@@ -309,7 +309,7 @@ static void file_draw_string(int sx, int sy, const char* string, float width, in
 	fs.align = align;
 
 	BLI_strncpy(fname,string, FILE_MAXFILE);
-	file_shorten_string(fname, width+1.0, 0);
+	file_shorten_string(fname, width + 1.0f, 0);
 
 	/* no text clipping needed, uiStyleFontDraw does it but is a bit too strict (for buttons it works) */
 	rect.xmin = sx;
@@ -401,10 +401,6 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	ARegion* ar = CTX_wm_region(C);
 
-#if 0
-	struct direntry *file = (struct direntry *)arg1;
-#endif
-
 	BLI_make_file_string(G.main->name, orgname, sfile->params->dir, oldname);
 	BLI_strncpy(filename, sfile->params->renameedit, sizeof(filename));
 	BLI_make_file_string(G.main->name, newname, sfile->params->dir, filename);
@@ -413,10 +409,6 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 		if (!BLI_exists(newname)) {
 			BLI_rename(orgname, newname);
 			/* to make sure we show what is on disk */
-#if 0		/* this is cleared anyway, no need */
-			MEM_freeN(file->relname);
-			file->relname= BLI_strdup(sfile->params->renameedit);
-#endif
 			ED_fileselect_clear(C, sfile);
 		}
 
@@ -469,7 +461,6 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	uiBlock *block = uiBeginBlock(C, ar, "FileNames", UI_EMBOSS);
 	int numfiles;
 	int numfiles_layout;
-	int colorid = 0;
 	int sx, sy;
 	int offset;
 	int textwidth, textheight;
@@ -515,15 +506,12 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		UI_ThemeColor4(TH_TEXT);
 
 
-		if (!(file->flags & EDITING)) {
-			if (params->active_file == i) {
-				if (file->flags & ACTIVEFILE) colorid= TH_HILITE;
-				else colorid = TH_BACK;
-				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
-			} else if (file->flags & ACTIVEFILE) {
-				colorid = TH_HILITE;
-				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
-			} 
+		if (!(file->selflag & EDITING_FILE)) {
+			if  ((params->active_file == i) || (file->selflag & HILITED_FILE) || (file->selflag & SELECTED_FILE) ) {
+				int colorid = (file->selflag & SELECTED_FILE) ? TH_HILITE : TH_BACK;
+				int shade = (params->active_file == i) || (file->selflag & HILITED_FILE) ? 20 : 0;
+				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid, shade);
+			}
 		}
 		uiSetRoundBox(0);
 
@@ -543,17 +531,17 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		UI_ThemeColor4(TH_TEXT);
 
-		if (file->flags & EDITING) {
+		if (file->selflag & EDITING_FILE) {
 			uiBut *but = uiDefBut(block, TEX, 1, "", sx , sy-layout->tile_h-3, 
 				textwidth, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit),0,0,"");
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
 			if ( 0 == uiButActiveOnly(C, block, but)) {
-				file->flags &= ~EDITING;
+				file->selflag &= ~EDITING_FILE;
 			}
 		}
 
-		if (!(file->flags & EDITING))  {
+		if (!(file->selflag & EDITING_FILE))  {
 			int tpos = (FILE_IMGDISPLAY == params->display) ? sy - layout->tile_h + layout->textheight : sy;
 			file_draw_string(sx+1, tpos, file->relname, textwidth, textheight, align);
 		}

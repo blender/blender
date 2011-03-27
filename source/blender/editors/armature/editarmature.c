@@ -2127,7 +2127,7 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const short
 		sub_v3_v3v3(align_axis_proj, align_axis, vec);
 		
 		if(axis_only) {
-			if(angle_v3v3(align_axis_proj, mat[2]) > M_PI/2) {
+			if(angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI/2.0)) {
 				negate_v3(align_axis_proj);
 			}
 		}
@@ -4704,14 +4704,14 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 				bone->rad_head * scale, bone->rad_tail * scale, bone->dist * scale);
 			
 			/* add the vert to the deform group if weight!=0.0 */
-			if (distance!=0.0)
+			if (distance != 0.0f)
 				ED_vgroup_vert_add (ob, dgroup, i, distance, WEIGHT_REPLACE);
 			else
 				ED_vgroup_vert_remove (ob, dgroup, i);
 			
 			/* do same for mirror */
 			if (dgroupflip && dgroupflip[j] && iflip >= 0) {
-				if (distance!=0.0)
+				if (distance != 0.0f)
 					ED_vgroup_vert_add (ob, dgroupflip[j], iflip, distance,
 						WEIGHT_REPLACE);
 				else
@@ -4960,7 +4960,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 					pchan->rotAxis[2]= 0.0f;
 					
 				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
-				if (IS_EQ(pchan->rotAxis[0], pchan->rotAxis[1]) && IS_EQ(pchan->rotAxis[1], pchan->rotAxis[2]))
+				if (IS_EQF(pchan->rotAxis[0], pchan->rotAxis[1]) && IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2]))
 					pchan->rotAxis[1] = 1.0f;
 			}
 			else if (pchan->rotmode == ROT_MODE_QUAT) {

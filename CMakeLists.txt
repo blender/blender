@@ -84,6 +84,10 @@ else()
 	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
 endif()
 
+if(UNIX AND NOT APPLE)
+	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support)"	ON)
+endif()
+
 # Modifiers
 option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
 option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
@@ -107,11 +111,7 @@ endif()
 
 # 3D format support
 # disable opencollada on non-apple unix because opencollada has no package for debian
-if(UNIX AND NOT APPLE)
-	option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
-else()
-	option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
-endif()
+option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
 
 # Sound output
 option(WITH_SDL           "Enable SDL for sound and joystick support" ON)
@@ -384,7 +384,11 @@ if(UNIX AND NOT APPLE)
 	mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
+	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB}")
+
+	if(WITH_X11_XINPUT)
+		list(APPEND LLIBS ${X11_Xinput_LIB})
+	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		if(NOT WITH_PYTHON_MODULE)
@@ -1017,6 +1021,13 @@ if(WITH_OPENMP)
 endif() 
 
 #-----------------------------------------------------------------------------
+# Configure Python.
+
+if(WITH_PYTHON_MODULE)
+	add_definitions(-DPy_ENABLE_SHARED)
+endif() 
+
+#-----------------------------------------------------------------------------
 # Extra compile flags
 
 if((NOT WIN32) AND (NOT MSVC))
@@ -1065,6 +1076,13 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 
 endif()
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	if(WITH_IK_ITASC OR WITH_MOD_FLUID)
+		message(WARNING "Using Clang as CXX compiler: disabling WITH_IK_ITASC and WITH_MOD_FLUID, these features will be missing.")
+		set(WITH_IK_ITASC OFF)
+		set(WITH_MOD_FLUID OFF)
+	endif()
+endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")

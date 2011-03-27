@@ -60,7 +60,7 @@ void project_from_camera(float target[2], float source[3], UvCameraInfo *uci)
 	mul_m4_v4(uci->caminv, pv4);
 
 	if(uci->do_pano) {
-		float angle= atan2f(pv4[0], -pv4[2]) / (M_PI * 2.0); /* angle around the camera */
+		float angle= atan2f(pv4[0], -pv4[2]) / ((float)M_PI * 2.0f); /* angle around the camera */
 		if (uci->do_persp==0) {
 			target[0]= angle; /* no correct method here, just map to  0-1 */
 			target[1]= pv4[1] / uci->camsize;
@@ -69,7 +69,7 @@ void project_from_camera(float target[2], float source[3], UvCameraInfo *uci)
 			float vec2d[2]; /* 2D position from the camera */
 			vec2d[0]= pv4[0];
 			vec2d[1]= pv4[2];
-			target[0]= angle * (M_PI / uci->camangle);
+			target[0]= angle * ((float)M_PI / uci->camangle);
 			target[1]= pv4[1] / (len_v2(vec2d) * uci->camsize);
 		}
 	}
@@ -109,23 +109,23 @@ void project_from_view(float target[2], float source[3], float persmat[4][4], fl
 
 	/* almost project_short */
 	mul_m4_v4(persmat, pv4);
-	if(fabs(pv4[3]) > 0.00001) { /* avoid division by zero */
-		target[0] = winx/2.0 + (winx/2.0) * pv4[0] / pv4[3];
-		target[1] = winy/2.0 + (winy/2.0) * pv4[1] / pv4[3];
+	if(fabsf(pv4[3]) > 0.00001f) { /* avoid division by zero */
+		target[0] = winx/2.0f + (winx/2.0f) * pv4[0] / pv4[3];
+		target[1] = winy/2.0f + (winy/2.0f) * pv4[1] / pv4[3];
 	}
 	else {
 		/* scaling is lost but give a valid result */
-		target[0] = winx/2.0 + (winx/2.0) * pv4[0];
-		target[1] = winy/2.0 + (winy/2.0) * pv4[1];
+		target[0] = winx/2.0f + (winx/2.0f) * pv4[0];
+		target[1] = winy/2.0f + (winy/2.0f) * pv4[1];
 	}
 
 	/* v3d->persmat seems to do this funky scaling */ 
 	if(winx > winy) {
-		y= (winx - winy)/2.0;
+		y= (winx - winy)/2.0f;
 		winy = winx;
 	}
 	else {
-		x= (winy - winx)/2.0;
+		x= (winy - winx)/2.0f;
 		winx = winy;
 	}
 

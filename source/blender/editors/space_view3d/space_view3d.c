@@ -1087,6 +1087,7 @@ void ED_spacetype_view3d(void)
 	art->duplicate= view3d_main_area_duplicate;
 	art->listener= view3d_main_area_listener;
 	art->cursor= view3d_main_area_cursor;
+	art->lock= 1;	/* can become flag, see BKE_spacedata_draw_locks */
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: listview/buttons */

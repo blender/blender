@@ -728,7 +728,7 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	
-	extrude_mesh(obedit, em, op, RNA_int_get(op->ptr, "type"));
+	extrude_mesh(obedit, em, op, RNA_enum_get(op->ptr, "type"));
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -744,7 +744,7 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 
-	extrude_mesh(obedit, em, op, RNA_int_get(op->ptr, "type"));
+	extrude_mesh(obedit, em, op, RNA_enum_get(op->ptr, "type"));
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -761,7 +761,7 @@ static EnumPropertyItem extrude_items[] = {
 		{0, NULL, 0, NULL, NULL}};
 
 
-static EnumPropertyItem *extrude_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *mesh_extrude_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
 	EnumPropertyItem *item= NULL;
 	Object *obedit= CTX_data_edit_object(C);
@@ -769,7 +769,7 @@ static EnumPropertyItem *extrude_itemf(bContext *C, PointerRNA *UNUSED(ptr), int
 
 	int totitem= 0;
 
-	if(!obedit)
+	if(obedit==NULL || obedit->type != OB_MESH)
 		return extrude_items;
 
 	em = BKE_mesh_get_editmesh(obedit->data);
@@ -849,7 +849,7 @@ void MESH_OT_extrude(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", extrude_items, 0, "Type", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
-	RNA_def_enum_funcs(prop, extrude_itemf);
+	RNA_def_enum_funcs(prop, mesh_extrude_itemf);
 	ot->prop= prop;
 }
 
@@ -944,7 +944,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= extrude_repeat_mesh;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_region_view3d;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -7451,6 +7451,8 @@ static void mesh_set_smooth_faces(EditMesh *em, short smooth)
 			else efa->flag &= ~ME_SMOOTH;
 		}
 	}
+
+	recalc_editnormals(em);
 }
 
 static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))

@@ -376,6 +376,7 @@ extern void ui_set_but_soft_range(uiBut *but, double value);
 extern void ui_check_but(uiBut *but);
 extern int  ui_is_but_float(uiBut *but);
 extern int  ui_is_but_unit(uiBut *but);
+extern int  ui_is_but_rna_valid(uiBut *but);
 
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);

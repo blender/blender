@@ -55,6 +55,7 @@
 #include <libavformat/avformat.h>
 #endif
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "BLI_threads.h"
@@ -320,6 +321,12 @@ static void rna_Scene_view3d_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 	Scene *scene= (Scene*)ptr->data;
 
 	BKE_screen_view3d_main_sync(&bmain->screen, scene);
+}
+
+static void rna_Scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	rna_Scene_view3d_update(bmain, scene, ptr);
+	DAG_on_visible_update(bmain, FALSE);
 }
 
 static void rna_Scene_framelen_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -751,6 +758,9 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unuse
 	bNode *node;
 	
 	if(ntree && scene->use_nodes) {
+		/* XXX images are freed here, stop render and preview threads, until Image is threadsafe */
+		WM_jobs_stop_all(bmain->wm.first);
+		
 		for (node=ntree->nodes.first; node; node=node->next) {
 			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
 				ED_node_changed_update(&scene->id, node);
@@ -2379,7 +2389,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{1, "CINE_24FPS", 0, "Cinema 24fps 2048x1080", ""},
 		{2, "CINE_48FPS", 0, "Cinema 48fps 2048x1080", ""},
 		{3, "CINE_24FPS_4K", 0, "Cinema 24fps 4096x2160", ""},
-		{4, "CINE_SCOPE_48FPS", 0, "Cine-Scope 24fps 2048x858", ""},
+		{4, "CINE_SCOPE_24FPS", 0, "Cine-Scope 24fps 2048x858", ""},
 		{5, "CINE_SCOPE_48FPS", 0, "Cine-Scope 48fps 2048x858", ""},
 		{6, "CINE_FLAT_24FPS", 0, "Cine-Flat 24fps 1998x1080", ""},
 		{7, "CINE_FLAT_48FPS", 0, "Cine-Flat 48fps 1998x1080", ""},
@@ -3527,7 +3537,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
 	RNA_def_property_ui_text(prop, "Layers", "Layers visible when rendering the scene");
-	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_view3d_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_layer_update");
 	
 	/* Frame Range Stuff */
 	prop= RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);

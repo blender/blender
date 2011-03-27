@@ -316,10 +316,12 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(const char *name, IDProperty *g
 	if (PyFloat_Check(ob)) {
 		val.d = PyFloat_AsDouble(ob);
 		prop = IDP_New(IDP_DOUBLE, val, name);
-	} else if (PyLong_Check(ob)) {
+	}
+	else if (PyLong_Check(ob)) {
 		val.i = (int) PyLong_AsSsize_t(ob);
 		prop = IDP_New(IDP_INT, val, name);
-	} else if (PyUnicode_Check(ob)) {
+	}
+	else if (PyUnicode_Check(ob)) {
 #ifdef USE_STRING_COERCE
 		PyObject *value_coerce= NULL;
 		val.str = (char *)PyC_UnicodeAsByte(ob, &value_coerce);
@@ -329,7 +331,8 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(const char *name, IDProperty *g
 		val.str = _PyUnicode_AsString(ob);
 		prop = IDP_New(IDP_STRING, val, name);
 #endif
-	} else if (PySequence_Check(ob)) {
+	}
+	else if (PySequence_Check(ob)) {
 		PyObject *item;
 		int i;
 
@@ -372,7 +375,8 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(const char *name, IDProperty *g
 			}
 			break;
 		}
-	} else if (PyMapping_Check(ob)) {
+	}
+	else if (PyMapping_Check(ob)) {
 		PyObject *keys, *vals, *key, *pval;
 		int i, len;
 		/*yay! we get into recursive stuff now!*/
@@ -409,13 +413,15 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(const char *name, IDProperty *g
 		}
 		Py_XDECREF(keys);
 		Py_XDECREF(vals);
-	} else return "invalid property value";
+	}
+	else return "invalid property value";
 
 	if(group->type==IDP_IDPARRAY) {
 		IDP_AppendArray(group, prop);
 		// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory
 		MEM_freeN(prop);
-	} else {
+	}
+	else {
 		IDP_ReplaceInGroup(group, prop);
 	}
 
@@ -436,7 +442,8 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 			IDP_FreeProperty(pkey);
 			MEM_freeN(pkey);
 			return 0;
-		} else {
+		}
+		else {
 			PyErr_SetString(PyExc_KeyError, "property not found in group");
 			return -1;
 		}
@@ -507,10 +514,12 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 				if (prop->subtype == IDP_FLOAT) {
 					PyList_SET_ITEM(seq, i,
 						PyFloat_FromDouble(((float*)prop->data.pointer)[i]));
-				} else if (prop->subtype == IDP_DOUBLE) {
+				}
+				else if (prop->subtype == IDP_DOUBLE) {
 					PyList_SET_ITEM(seq, i,
 						PyFloat_FromDouble(((double*)prop->data.pointer)[i]));
-				} else 	{
+				}
+				else 	{
 					PyList_SET_ITEM(seq, i,
 						  PyLong_FromLong(((int*)prop->data.pointer)[i]));
 				}
@@ -1092,10 +1101,12 @@ static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 			PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(cur->name));
 			PyTuple_SET_ITEM(ret, 1, BPy_IDGroup_WrapData(self->group->id, cur));
 			return ret;
-		} else {
+		}
+		else {
 			return PyUnicode_FromString(cur->name);
 		}
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_StopIteration, "iterator at end");
 		return NULL;
 	}

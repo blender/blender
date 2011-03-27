@@ -1270,34 +1270,74 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 			mf->flag &= ~ME_SMOOTH;
 		}
 	}
+
+	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 
-void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float **faceNors_r) 
+void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*faceNors_r)[3]) 
 {
 	float (*tnorms)[3]= MEM_callocN(numVerts*sizeof(*tnorms), "tnorms");
-	float *fnors= MEM_callocN(sizeof(*fnors)*3*numFaces, "meshnormals");
+	float (*fnors)[3]= (faceNors_r)? faceNors_r: MEM_callocN(sizeof(*fnors)*numFaces, "meshnormals");
 	int i;
+	int found_flat=0;
 
-	for (i=0; i<numFaces; i++) {
+	for(i=0; i<numFaces; i++) {
 		MFace *mf= &mfaces[i];
-		float *f_no= &fnors[i*3];
+		float *f_no= fnors[i];
 
-		if (mf->v4)
-			normal_quad_v3( f_no,mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co);
+		if(mf->v4)
+			normal_quad_v3(f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co);
 		else
-			normal_tri_v3( f_no,mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
-		
-		add_v3_v3(tnorms[mf->v1], f_no);
-		add_v3_v3(tnorms[mf->v2], f_no);
-		add_v3_v3(tnorms[mf->v3], f_no);
-		if (mf->v4)
-			add_v3_v3(tnorms[mf->v4], f_no);
+			normal_tri_v3(f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
+
+		if(mf->flag & ME_SMOOTH) {
+			float *n4 = (mf->v4)? tnorms[mf->v4]: NULL;
+			float *c4 = (mf->v4)? mverts[mf->v4].co: NULL;
+
+			accumulate_vertex_normals(tnorms[mf->v1], tnorms[mf->v2], tnorms[mf->v3], n4,
+				f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, c4);
+		}
+		else {
+			found_flat=1;
+		}
 	}
-	for (i=0; i<numVerts; i++) {
+
+	/* build smooth normals for uninitialized normals at faces set to flat */
+	if(found_flat!=0) {
+		const int nr_bits= sizeof(int)*8;
+		const int nr_words= (numVerts+(nr_bits-1))/nr_bits;
+		int *bit_array= (int*)MEM_callocN(sizeof(int)*MAX2(nr_words, 1), "temp buffer");
+
+		for(i=0; i<numFaces; i++) {
+			MFace *mf= &mfaces[i];
+
+			if(!(mf->flag & ME_SMOOTH)) {
+				if(is_zero_v3(tnorms[mf->v1])) bit_array[mf->v1/nr_bits]|=(1<<(mf->v1&(nr_bits-1)));
+				if(is_zero_v3(tnorms[mf->v2])) bit_array[mf->v2/nr_bits]|=(1<<(mf->v2&(nr_bits-1)));
+				if(is_zero_v3(tnorms[mf->v3])) bit_array[mf->v3/nr_bits]|=(1<<(mf->v3&(nr_bits-1)));
+				if(mf->v4 && is_zero_v3(tnorms[mf->v4])) bit_array[mf->v4/nr_bits]|=(1<<(mf->v4&(nr_bits-1)));
+			}
+		}
+
+		for(i=0; i<numFaces; i++) {
+			MFace *mf= &mfaces[i];
+			float *f_no= fnors[i];
+
+			if(bit_array[mf->v1/nr_bits]&(1<<(mf->v1&(nr_bits-1)))) add_v3_v3(tnorms[mf->v1], f_no);
+			if(bit_array[mf->v2/nr_bits]&(1<<(mf->v2&(nr_bits-1)))) add_v3_v3(tnorms[mf->v2], f_no);
+			if(bit_array[mf->v3/nr_bits]&(1<<(mf->v3&(nr_bits-1)))) add_v3_v3(tnorms[mf->v3], f_no);
+			if(mf->v4 && bit_array[mf->v4/nr_bits]&(1<<(mf->v4&(nr_bits-1)))) add_v3_v3(tnorms[mf->v4], f_no);
+		}
+
+		MEM_freeN(bit_array);
+	}
+
+	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
+	for(i=0; i<numVerts; i++) {
 		MVert *mv= &mverts[i];
 		float *no= tnorms[i];
 		
-		if (normalize_v3(no)==0.0)
+		if(normalize_v3(no) == 0.0f)
 			normalize_v3_v3(no, mv->co);
 
 		normal_float_to_short_v3(mv->no, no);
@@ -1305,11 +1345,8 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 	
 	MEM_freeN(tnorms);
 
-	if (faceNors_r) {
-		*faceNors_r = fnors;
-	} else {
+	if(fnors != faceNors_r)
 		MEM_freeN(fnors);
-	}
 }
 
 float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]

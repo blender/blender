@@ -44,6 +44,25 @@ endif()
 
 set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 
+
+# ------------------------------------------------------------------------------
+# GENERAL PYTHON CORRECTNESS TESTS
+add_test(script_load_addons ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_load_addons.py
+)
+
+add_test(script_load_modules ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_load_py_modules.py
+)
+
+# test running operators doesn't segfault under various conditions
+add_test(script_run_operators ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_run_operators.py
+)
+
+# ------------------------------------------------------------------------------
+# IO TESTS
+
 # OBJ Import tests
 add_test(import_obj_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
@@ -257,5 +276,5 @@ add_test(export_fbx_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_all_objects.fbx',use_selection=False,use_metadata=False\)
 	--md5_source=${TEST_OUT_DIR}/export_fbx_all_objects.fbx
-	--md5=be69cf0baf51dcf43f579183310cb383 --md5_method=FILE
+	--md5=fdcd9021da2aaa9b5a32e6ef91ec1799 --md5_method=FILE
 )

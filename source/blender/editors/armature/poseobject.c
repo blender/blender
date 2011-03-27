@@ -57,6 +57,7 @@
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
+#include "BKE_fcurve.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 
@@ -1600,7 +1601,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 void POSE_OT_autoside_names (wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[]= {
-		 {0, "XAXIS", 0, "X-Axis", "Left/Right"},
+		{0, "XAXIS", 0, "X-Axis", "Left/Right"},
 		{1, "YAXIS", 0, "Y-Axis", "Front/Back"},
 		{2, "ZAXIS", 0, "Z-Axis", "Top/Bottom"},
 		{0, NULL, 0, NULL, NULL}};
@@ -1707,20 +1708,23 @@ static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
 	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
-	
+
+	if(ob==NULL || ob->data==NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
-	
+
 	/* get pointer for armature, and write data there... */
-	RNA_id_pointer_create((ID *)arm, &ptr);
+	RNA_id_pointer_create((ID *)ob->data, &ptr);
 	RNA_boolean_set_array(&ptr, "layers", layers);
-	
+
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1794,25 +1798,28 @@ static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
 	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
-	
+
+	if(ob==NULL || ob->data==NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
-	
+
 	/* set layers of pchans based on the values set in the operator props */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones)
 	{
 		/* get pointer for pchan, and write flags this way */
-		RNA_pointer_create((ID *)arm, &RNA_Bone, pchan->bone, &ptr);
+		RNA_pointer_create((ID *)ob->data, &RNA_Bone, pchan->bone, &ptr);
 		RNA_boolean_set_array(&ptr, "layers", layers);
 	}
 	CTX_DATA_END;
-	
+
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 

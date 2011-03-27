@@ -43,11 +43,6 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
-#ifndef PREFIX
-#  define PREFIX "/usr/local"
-#endif
-
-
 using namespace std;
 
 GHOST_SystemPathsX11::GHOST_SystemPathsX11()
@@ -60,7 +55,12 @@ GHOST_SystemPathsX11::~GHOST_SystemPathsX11()
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getSystemDir() const
 {
+	/* no prefix assumes a portable build which only uses bundled scripts */
+#ifdef PREFIX
 	return (GHOST_TUns8*) PREFIX "/share";
+#else
+	return NULL;
+#endif
 }
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getUserDir() const

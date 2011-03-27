@@ -43,7 +43,8 @@ if(APPLE)
 		${OPENCOLLADA_INC}/COLLADAStreamWriter
 		${OPENCOLLADA_INC}/COLLADABaseUtils
 		${OPENCOLLADA_INC}/COLLADAFramework
-		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader 
+		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader
+		${OPENCOLLADA_INC}/GeneratedSaxParser 
 	)
 else()
 	list(APPEND INC
@@ -51,6 +52,7 @@ else()
 		${OPENCOLLADA_INC}/COLLADABaseUtils/include
 		${OPENCOLLADA_INC}/COLLADAFramework/include
 		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader/include 
+		${OPENCOLLADA_INC}/GeneratedSaxParser/include 
 	)
 endif()
 
@@ -62,6 +64,8 @@ set(SRC
 	DocumentExporter.cpp
 	DocumentImporter.cpp
 	EffectExporter.cpp
+	ExtraHandler.cpp
+	ExtraTags.cpp
 	GeometryExporter.cpp
 	ImageExporter.cpp
 	InstanceWriter.cpp
@@ -82,6 +86,8 @@ set(SRC
 	DocumentExporter.h
 	DocumentImporter.h
 	EffectExporter.h
+	ExtraHandler.h
+	ExtraTags.h
 	GeometryExporter.h
 	ImageExporter.h
 	InstanceWriter.h

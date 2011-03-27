@@ -207,7 +207,7 @@ class InfoPropertyRNA:
             self.fixed_type = None
 
         if self.type == "enum":
-            self.enum_items[:] = rna_prop.items.keys()
+            self.enum_items[:] = rna_prop.enum_items.keys()
             self.is_enum_flag = rna_prop.is_enum_flag
         else:
             self.is_enum_flag = False
@@ -253,7 +253,7 @@ class InfoPropertyRNA:
             return "%s=%s" % (self.identifier, default)
         return self.identifier
 
-    def get_type_description(self, as_ret=False, as_arg=False, class_fmt="%s"):
+    def get_type_description(self, as_ret=False, as_arg=False, class_fmt="%s", collection_id="Collection"):
         type_str = ""
         if self.fixed_type is None:
             type_str += self.type
@@ -277,9 +277,9 @@ class InfoPropertyRNA:
         else:
             if self.type == "collection":
                 if self.collection_type:
-                    collection_str = (class_fmt % self.collection_type.identifier) + " collection of "
+                    collection_str = (class_fmt % self.collection_type.identifier) + (" %s of " % collection_id)
                 else:
-                    collection_str = "Collection of "
+                    collection_str = "%s of " % collection_id
             else:
                 collection_str = ""
 

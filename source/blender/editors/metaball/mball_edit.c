@@ -230,7 +230,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 	MetaElem *ml;
 	float percent= RNA_float_get(op->ptr, "percent");
 	
-	if(percent == 0.0)
+	if(percent == 0.0f)
 		return OPERATOR_CANCELLED;
 	
 	ml= mb->editelems->first;
@@ -302,7 +302,7 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 	int retv= duplicate_metaelems_exec(C, op);
 	
 	if (retv == OPERATOR_FINISHED) {
-		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+		RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
 		WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	}
 	

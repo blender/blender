@@ -182,10 +182,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
         _global_loaded_modules[:] = []
 
-    user_path = user_script_path()
-
     for base_path in script_paths():
-        for path_subdir in ("", "ui", "op", "io", "keyingsets", "modules"):
+        for path_subdir in ("startup", "modules"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 _sys_path_ensure(path)
@@ -193,9 +191,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 # only add this to sys.modules, dont run
                 if path_subdir == "modules":
                     continue
-
-                if user_path != base_path and path_subdir == "":
-                    continue  # avoid loading 2.4x scripts
 
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
@@ -357,7 +352,9 @@ def keyconfig_set(filepath):
     keyconfigs_old = keyconfigs[:]
 
     try:
-        exec(compile(open(filepath).read(), filepath, 'exec'), {"__file__": filepath})
+        file = open(filepath)
+        exec(compile(file.read(), filepath, 'exec'), {"__file__": filepath})
+        file.close()
     except:
         import traceback
         traceback.print_exc()
@@ -431,6 +428,7 @@ def _bpy_module_classes(module, is_registered=False):
 def register_module(module, verbose=False):
     if verbose:
         print("bpy.utils.register_module(%r): ..." % module)
+    cls = None
     for cls in _bpy_module_classes(module, is_registered=False):
         if verbose:
             print("    %r" % cls)
@@ -438,12 +436,11 @@ def register_module(module, verbose=False):
             register_class(cls)
         except:
             print("bpy.utils.register_module(): failed to registering class %r" % cls)
-            print("\t", path, "line", line)
             import traceback
             traceback.print_exc()
     if verbose:
         print("done.\n")
-    if "cls" not in locals():
+    if cls is None:
         raise Exception("register_module(%r): defines no classes" % module)
 
 
@@ -457,7 +454,6 @@ def unregister_module(module, verbose=False):
             unregister_class(cls)
         except:
             print("bpy.utils.unregister_module(): failed to unregistering class %r" % cls)
-            print("\t", path, "line", line)
             import traceback
             traceback.print_exc()
     if verbose:

@@ -66,7 +66,7 @@ macro(SETUP_LIBDIRS)
 
 	link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
 
-	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
+	if(WITH_PYTHON)  #  AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		link_directories(${PYTHON_LIBPATH})
 	endif()
 	if(WITH_INTERNATIONAL)
@@ -127,7 +127,7 @@ macro(setup_liblinks
 	target_link_libraries(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
-	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
+	if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
 		if(WIN32 AND NOT UNIX)

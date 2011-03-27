@@ -2339,9 +2339,16 @@ void do_material_tex(ShadeInput *shi)
 				}
 				// warping, local space
 				if(mtex->mapto & MAP_WARP) {
-					warpvec[0]= mtex->warpfac*texres.nor[0];
-					warpvec[1]= mtex->warpfac*texres.nor[1];
-					warpvec[2]= mtex->warpfac*texres.nor[2];
+					float *warpnor= texres.nor, warpnor_[3];
+					
+					if(use_ntap_bump) {
+						VECCOPY(warpnor_, texres.nor);
+						warpnor= warpnor_;
+						normalize_v3(warpnor_);
+					}
+					warpvec[0]= mtex->warpfac*warpnor[0];
+					warpvec[1]= mtex->warpfac*warpnor[1];
+					warpvec[2]= mtex->warpfac*warpnor[2];
 					warpdone= 1;
 				}
 #if 0				

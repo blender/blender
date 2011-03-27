@@ -1824,19 +1824,19 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 		 * we divide the curvetime calculated in the previous step by the length of the path, to get a time
 		 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 		 */
-		if (IS_EQ(cu->pathlen, 0.0f) == 0)
+		if (IS_EQF(cu->pathlen, 0.0f) == 0)
 			ctime= cu->ctime / cu->pathlen;
 		else
 			ctime= cu->ctime;
-		
-		CLAMP(ctime, 0.0, 1.0);
+
+		CLAMP(ctime, 0.0f, 1.0f);
 	}
 	else {
 		ctime= scene->r.cfra - give_timeoffset(ob);
-		if (IS_EQ(cu->pathlen, 0.0f) == 0)
+		if (IS_EQF(cu->pathlen, 0.0f) == 0)
 			ctime /= cu->pathlen;
 		
-		CLAMP(ctime, 0.0, 1.0);
+		CLAMP(ctime, 0.0f, 1.0f);
 	}
 	
 	/* time calculus is correct, now apply distance offset */
@@ -2342,9 +2342,9 @@ void object_get_dimensions(Object *ob, float *value)
 		
 		mat4_to_size( scale,ob->obmat);
 		
-		value[0] = fabs(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
-		value[1] = fabs(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
-		value[2] = fabs(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
+		value[0] = fabsf(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
+		value[1] = fabsf(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
+		value[2] = fabsf(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
 	} else {
 		value[0] = value[1] = value[2] = 0.f;
 	}
@@ -2863,18 +2863,18 @@ void object_camera_matrix(
 	}
 	else if(camera->type==OB_LAMP) {
 		Lamp *la= camera->data;
-		float fac= cos( M_PI*la->spotsize/360.0 );
+		float fac= cosf((float)M_PI*la->spotsize/360.0f);
 		float phi= acos(fac);
 
-		(*lens)= 16.0*fac/sin(phi);
+		(*lens)= 16.0f*fac/sinf(phi);
 		if((*lens)==0.0f)
-			(*lens)= 35.0;
+			(*lens)= 35.0f;
 		(*clipsta)= la->clipsta;
 		(*clipend)= la->clipend;
 	}
 	else {	/* envmap exception... */;
 		if((*lens)==0.0f)
-			(*lens)= 16.0;
+			(*lens)= 16.0f;
 
 		if((*clipsta)==0.0f || (*clipend)==0.0f) {
 			(*clipsta)= 0.1f;
@@ -2894,8 +2894,8 @@ void object_camera_matrix(
 		pixsize= cam->ortho_scale/viewfac;
 	}
 	else {
-		if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx)/32.0;
-		else								viewfac= (*ycor) * ((*lens) * winy)/32.0;
+		if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx)/32.0f;
+		else								viewfac= (*ycor) * ((*lens) * winy)/32.0f;
 		pixsize= (*clipsta) / viewfac;
 	}
 
@@ -2908,12 +2908,12 @@ void object_camera_matrix(
 
 	if(field_second) {
 		if(rd->mode & R_ODDFIELD) {
-			viewplane->ymin-= 0.5 * (*ycor);
-			viewplane->ymax-= 0.5 * (*ycor);
+			viewplane->ymin-= 0.5f * (*ycor);
+			viewplane->ymax-= 0.5f * (*ycor);
 		}
 		else {
-			viewplane->ymin+= 0.5 * (*ycor);
-			viewplane->ymax+= 0.5 * (*ycor);
+			viewplane->ymin+= 0.5f * (*ycor);
+			viewplane->ymax+= 0.5f * (*ycor);
 		}
 	}
 	/* the window matrix is used for clipping, and not changed during OSA steps */
@@ -3091,4 +3091,33 @@ int object_is_modified(Scene *scene, Object *ob)
 	}
 
 	return flag;
+}
+
+static void copy_object__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob), ID **idpoin)
+{
+	/* this is copied from ID_NEW; it might be better to have a macro */
+	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
+}
+
+void object_relink(Object *ob)
+{
+	if(ob->id.lib)
+		return;
+
+	relink_constraints(&ob->constraints);
+	if (ob->pose){
+		bPoseChannel *chan;
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			relink_constraints(&chan->constraints);
+		}
+	}
+	modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
+
+	if(ob->adt)
+		BKE_relink_animdata(ob->adt);
+
+	ID_NEW(ob->parent);
+
+	ID_NEW(ob->proxy);
+	ID_NEW(ob->proxy_group);
 }

@@ -30,6 +30,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -217,25 +218,6 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 		{2, "CIE", 0, "CIE", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
-	static EnumPropertyItem prop_blendmode_items[] = {
-		{0, "MIX", 0, "Mix", ""},
-		{1, "ADD", 0, "Add", ""},
-		{2, "MULTIPLY", 0, "Multiply", ""},
-		{3, "SUBTRACT", 0, "Subtract", ""},
-		{4, "SCREEN", 0, "Screen", ""},
-		{5, "DIVIDE", 0, "Divide", ""},
-		{6, "DIFFERENCE", 0, "Difference", ""},
-		{7, "DARKEN", 0, "Darken", ""},
-		{8, "LIGHTEN", 0, "Lighten", ""},
-		{9, "OVERLAY", 0, "Overlay", ""},
-		{10, "DODGE", 0, "Dodge", ""},
-		{11, "BURN", 0, "Burn", ""},
-		{12, "HUE", 0, "Hue", ""},
-		{13, "SATURATION", 0, "Saturation", ""},
-		{14, "VALUE", 0, "Value", ""},
-		{15, "COLOR", 0, "Color", ""},
-		{0, NULL, 0, NULL, NULL}};
-		
 	srna= RNA_def_struct(brna, "LampSkySettings", NULL);
 	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_nested(brna, srna, "SunLamp");
@@ -249,7 +231,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "sky_blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "skyblendtype");
-	RNA_def_property_enum_items(prop, prop_blendmode_items);
+	RNA_def_property_enum_items(prop, ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Sky Blend Mode", "Blend mode for combining sun sky with world sky");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
 	

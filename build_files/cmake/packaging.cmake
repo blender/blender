@@ -51,7 +51,35 @@ if(APPLE)
 
 	# Libraries are bundled directly
 	set(CPACK_COMPONENT_LIBRARIES_HIDDEN TRUE)
-endif(APPLE)
+endif()
 
 set(CPACK_PACKAGE_EXECUTABLES "blender")
 include(CPack)
+
+# Target for build_archive.py script, to automatically pass along
+# version, revision, platform, build directory
+macro(add_package_archive packagename extension)
+	set(build_archive python ${CMAKE_SOURCE_DIR}/build_files/package_spec/build_archive.py)
+	set(package_output ${CMAKE_BINARY_DIR}/release/${packagename}.${extension})
+
+	add_custom_target(package_archive DEPENDS ${package_output})
+
+	add_custom_command(
+		OUTPUT ${package_output}
+		COMMAND ${build_archive} ${packagename} ${extension} bin release
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+endmacro()
+
+if(APPLE)
+	add_package_archive(
+		"blender-${BLENDER_VERSION}-r${BUILD_REV}-OSX-${CMAKE_OSX_ARCHITECTURES}"
+		"zip")
+elseif(UNIX)
+	# platform name could be tweaked, to include glibc, and ensure processor is correct (i386 vs i686)
+	string(TOLOWER ${CMAKE_SYSTEM_NAME} PACKAGE_SYSTEM_NAME)
+
+	add_package_archive(
+		"blender-${BLENDER_VERSION}-r${BUILD_REV}-${PACKAGE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
+		"tar.bz2")
+endif()
+

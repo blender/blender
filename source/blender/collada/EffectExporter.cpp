@@ -89,6 +89,34 @@ void EffectsExporter::exportEffects(Scene *sce)
 	}
 }
 
+void EffectsExporter::writeBlinn(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	COLLADASW::ColorOrTexture cot;
+	ep.setShaderType(COLLADASW::EffectProfile::BLINN);
+	// shininess
+	ep.setShininess(ma->har);
+	// specular
+	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+	ep.setSpecular(cot);
+}
+
+void EffectsExporter::writeLambert(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	COLLADASW::ColorOrTexture cot;
+	ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
+}
+
+void EffectsExporter::writePhong(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	COLLADASW::ColorOrTexture cot;
+	ep.setShaderType(COLLADASW::EffectProfile::PHONG);
+	// shininess
+	ep.setShininess(ma->har);
+	// specular
+	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+	ep.setSpecular(cot);
+}
+
 void EffectsExporter::operator()(Material *ma, Object *ob)
 {
 	// create a list of indices to textures of type TEX_IMAGE
@@ -101,20 +129,25 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
 	// set shader type - one of three blinn, phong or lambert
-	if (ma->spec_shader == MA_SPEC_BLINN) {
-		ep.setShaderType(COLLADASW::EffectProfile::BLINN);
-		// shininess
-		ep.setShininess(ma->har);
+	if(ma->spec>0.0f) {
+		if (ma->spec_shader == MA_SPEC_BLINN) {
+			writeBlinn(ep, ma);
+		}
+		else {
+			// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
+			// for now set phong in case spec shader is not blinn
+			writePhong(ep, ma);
+		}
+	} else {
+		if(ma->diff_shader == MA_DIFF_LAMBERT) {
+			writeLambert(ep, ma);
+		}
+		else {
+		// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
+		writePhong(ep, ma);
+		}
 	}
-	else if (ma->spec_shader == MA_SPEC_PHONG) {
-		ep.setShaderType(COLLADASW::EffectProfile::PHONG);
-		// shininess
-		ep.setShininess(ma->har);
-	}
-	else {
-		// XXX write warning "Current shader type is not supported" 
-		ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
-	}
+	
 	// index of refraction
 	if (ma->mode & MA_RAYTRANSP) {
 		ep.setIndexOfRefraction(ma->ang);
@@ -286,7 +319,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			twoSided = true;
 	}
 	if (twoSided)
-		ep.addExtraTechniqueParameter("GOOGLEEARTH", "show_double_sided", 1);
+		ep.addExtraTechniqueParameter("GOOGLEEARTH", "double_sided", 1);
 	ep.addExtraTechniques(mSW);
 
 	ep.closeProfile();

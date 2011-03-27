@@ -248,11 +248,11 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
 		int width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
-		numfiles = (float)width/(float)layout->tile_w+0.5;
+		numfiles = (float)width/(float)layout->tile_w + 0.5f;
 		return numfiles*layout->rows;
 	} else {
 		int height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
-		numfiles = (float)height/(float)layout->tile_h+0.5;
+		numfiles = (float)height/(float)layout->tile_h + 0.5f;
 		return numfiles*layout->columns;
 	}
 }
@@ -568,7 +568,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 		for (i = 0; i < n; i++) {
 			file = filelist_file(sfile->files, i);
 			if (fnmatch(pattern, file->relname, 0) == 0) {
-				file->flags |= ACTIVEFILE;
+				file->selflag |= SELECTED_FILE;
 				match = 1;
 			}
 		}

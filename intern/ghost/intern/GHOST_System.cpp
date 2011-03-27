@@ -226,6 +226,17 @@ GHOST_TSuccess GHOST_System::addEventConsumer(GHOST_IEventConsumer* consumer)
 	return success;
 }
 
+GHOST_TSuccess GHOST_System::removeEventConsumer(GHOST_IEventConsumer* consumer)
+{
+	GHOST_TSuccess success;
+	if (m_eventManager) {
+		success = m_eventManager->removeConsumer(consumer);
+	}
+	else {
+		success = GHOST_kFailure;
+	}
+	return success;
+}
 
 GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
 {

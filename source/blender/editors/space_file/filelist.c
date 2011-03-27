@@ -906,42 +906,64 @@ void filelist_parent(struct FileList* filelist)
 	filelist_readdir(filelist);
 }
 
-
-void filelist_swapselect(struct FileList* filelist)
+void filelist_select_file(struct FileList* filelist, int index, FileSelType select, unsigned int flag, FileCheckType check)
 {
-	struct direntry *file;
-	int num, act= 0;
-	
-	file= filelist->filelist;
-	for(num=0; num<filelist->numfiles; num++, file++) {
-		if(file->flags & ACTIVEFILE) {
-			act= 1;
-			break;
+	struct direntry* file = filelist_file(filelist, index);
+	if (file != NULL) {	
+		int check_ok = 0; 
+		switch (check) {
+			case CHECK_DIRS:
+			case CHECK_ALL:
+				check_ok = 1;
+				break;
+			case CHECK_FILES:
+			default:
+				check_ok = !S_ISDIR(file->type);
+				break;
 		}
-	}
-	file= filelist->filelist+2;
-	for(num=2; num<filelist->numfiles; num++, file++) {
-		if(act) file->flags &= ~ACTIVEFILE;
-		else file->flags |= ACTIVEFILE;
+		if (check_ok) {
+			switch (select) {
+				case FILE_SEL_REMOVE:
+					file->selflag &= ~flag;
+					break;
+				case FILE_SEL_ADD:
+					file->selflag |= flag;
+					break;
+				case FILE_SEL_TOGGLE:
+					file->selflag ^= flag;
+					break;
+			}
+		}
 	}
 }
 
-void filelist_select(struct FileList* filelist, FileSelection* sel, short select, unsigned int flag)
+void filelist_select(struct FileList* filelist, FileSelection* sel, FileSelType select, unsigned int flag, FileCheckType check)
 {
 	/* select all valid files between first and last indicated */
 	if ( (sel->first >= 0) && (sel->first < filelist->numfiltered) && (sel->last >= 0) && (sel->last < filelist->numfiltered) ) {
 		int current_file;
 		for (current_file = sel->first; current_file <= sel->last; current_file++) {	
-			struct direntry* file = filelist_file(filelist, current_file);
-			
-			if (select) 
-				file->flags |= flag;
-			else
-				file->flags &= ~flag;
+			filelist_select_file(filelist, current_file, select, flag, check);
 		}
 	}
 }
 
+int	filelist_is_selected(struct FileList* filelist, int index, FileCheckType check)
+{
+	struct direntry* file = filelist_file(filelist, index);
+	if (!file) {
+		return 0;
+	}
+	switch (check) {
+		case CHECK_DIRS:
+			return S_ISDIR(file->type) && (file->selflag & SELECTED_FILE);
+		case CHECK_FILES:
+			return S_ISREG(file->type) && (file->selflag & SELECTED_FILE);
+		case CHECK_ALL:
+		default:
+			return (file->selflag & SELECTED_FILE);
+	}
+}
 
 void filelist_sort(struct FileList* filelist, short sort)
 {
@@ -1035,8 +1057,11 @@ void filelist_from_library(struct FileList* filelist)
 		char *blockname= l->link;
 
 		filelist->filelist[i + 1].relname= BLI_strdup(blockname);
-		if (!idcode)
+		if (idcode) {
+			filelist->filelist[i + 1].type |= S_IFREG;
+		} else {
 			filelist->filelist[i + 1].type |= S_IFDIR;
+		}
 	}
 	
 	if(previews) {
@@ -1172,14 +1197,14 @@ void filelist_from_main(struct FileList *filelist)
 						files->relname= MEM_mallocN(FILE_MAXDIR+FILE_MAXFILE+32, "filename for lib");
 						sprintf(files->relname, "%s | %s", id->lib->name, id->name+2);
 					}
-					/* files->type |= S_IFDIR; */
+					files->type |= S_IFREG;
 #if 0				// XXXXX TODO show the selection status of the objects
 					if(!filelist->has_func) { /* F4 DATA BROWSE */
 						if(idcode==ID_OB) {
-							if( ((Object *)id)->flag & SELECT) files->flags |= ACTIVEFILE;
+							if( ((Object *)id)->flag & SELECT) files->selflag |= SELECTED_FILE;
 						}
 						else if(idcode==ID_SCE) {
-							if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->flags |= ACTIVEFILE;
+							if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->selflag |= SELECTED_FILE;
 						}					
 					}
 #endif

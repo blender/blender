@@ -107,7 +107,7 @@ void ED_region_pixelspace(ARegion *ar)
 	int width= ar->winrct.xmax-ar->winrct.xmin+1;
 	int height= ar->winrct.ymax-ar->winrct.ymin+1;
 	
-	wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
+	wmOrtho2(-0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f);
 	glLoadIdentity();
 }
 
@@ -314,6 +314,10 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ARegionType *at= ar->type;
 	rcti winrct;
 	
+	/* see BKE_spacedata_draw_locks() */
+	if(at->do_lock)
+		return;
+	
 	/* checks other overlapping regions */
 	region_scissor_winrct(ar, &winrct);
 	
@@ -431,7 +435,11 @@ void ED_area_tag_refresh(ScrArea *sa)
 void ED_area_headerprint(ScrArea *sa, const char *str)
 {
 	ARegion *ar;
-	
+
+	/* happens when running transform operators in backround mode */
+	if(sa == NULL)
+		return;
+
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		if(ar->regiontype==RGN_TYPE_HEADER) {
 			if(str) {

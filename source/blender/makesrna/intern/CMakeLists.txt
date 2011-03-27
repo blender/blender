@@ -125,6 +125,10 @@ if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
 endif()
 
+if(WITH_OPENCOLLADA)
+	add_definitions(-DWITH_COLLADA)
+endif()
+
 # Build makesrna executable
 blender_include_dirs(
 	.

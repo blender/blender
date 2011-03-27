@@ -178,22 +178,19 @@ typedef struct FileSelectParams {
 
 	char filter_glob[64]; /* list of filetypes to filter */
 
+	int	active_file;
+	int sel_first;
+	int sel_last;
+
+	/* short */
 	short type; /* XXXXX for now store type here, should be moved to the operator */
 	short flag; /* settings for filter, hiding dots files,...  */
 	short sort; /* sort order */
 	short display; /* display mode flag */
 	short filter; /* filter when (flags & FILE_FILTER) is true */
 
-	/* XXX - temporary, better move to filelist */
-	short active_bookmark;
-
-	int	active_file;
-	int selstate;
-
-	/* short */
 	/* XXX --- still unused -- */
 	short f_fp; /* show font preview */
-	short pad;
 	char fp_str[8]; /* string to use for font preview */
 
 	/* XXX --- end unused -- */
@@ -712,9 +709,7 @@ enum FileSortTypeE {
 #define FILE_BOOKMARKS		512
 #define FILE_GROUP_INSTANCE	1024
 
-/* files in filesel list: 2=ACTIVE  */
-#define EDITING				(1<<0)
-#define ACTIVEFILE			(1<<1)
+/* files in filesel list: file types */
 #define BLENDERFILE			(1<<2)
 #define BLENDERFILE_BACKUP	(1<<3)
 #define IMAGEFILE			(1<<4)
@@ -728,6 +723,13 @@ enum FileSortTypeE {
 #define BTXFILE				(1<<12)
 #define COLLADAFILE			(1<<13)
 #define OPERATORFILE		(1<<14) /* from filter_glob operator property */
+
+
+/* Selection Flags in filesel: struct direntry, unsigned char selflag */
+#define ACTIVE_FILE 		(1<<1)
+#define HILITED_FILE		(1<<2)
+#define SELECTED_FILE		(1<<3)
+#define EDITING_FILE		(1<<4)
 
 /* SpaceImage->dt_uv */
 #define SI_UVDT_OUTLINE	0

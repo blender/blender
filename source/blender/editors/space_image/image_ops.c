@@ -176,6 +176,7 @@ int space_image_main_area_poll(bContext *C)
 typedef struct ViewPanData {
 	float x, y;
 	float xof, yof;
+	int event_type;
 } ViewPanData;
 
 static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
@@ -190,6 +191,7 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->y= event->y;
 	vpd->xof= sima->xof;
 	vpd->yof= sima->yof;
+	vpd->event_type= event->type;
 
 	WM_event_add_modal_handler(C, op);
 }
@@ -266,9 +268,8 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			RNA_float_set_array(op->ptr, "offset", offset);
 			view_pan_exec(C, op);
 			break;
-		case MIDDLEMOUSE:
-		case LEFTMOUSE:
-			if(event->val==KM_RELEASE) {
+		default:
+			if(event->type==vpd->event_type &&  event->val==KM_RELEASE) {
 				view_pan_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
@@ -310,6 +311,7 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 typedef struct ViewZoomData {
 	float x, y;
 	float zoom;
+	int event_type;
 } ViewZoomData;
 
 static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
@@ -323,7 +325,8 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->x= event->x;
 	vpd->y= event->y;
 	vpd->zoom= sima->zoom;
-
+	vpd->event_type= event->type;
+	
 	WM_event_add_modal_handler(C, op);
 }
 
@@ -369,7 +372,7 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		ARegion *ar= CTX_wm_region(C);
 		float factor;
 		
-		factor= 1.0 + (event->x-event->prevx+event->y-event->prevy)/300.0f;
+		factor= 1.0f + (event->x-event->prevx+event->y-event->prevy)/300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
 		sima_zoom_set(sima, ar, sima->zoom*factor);
 		ED_region_tag_redraw(CTX_wm_region(C));
@@ -391,14 +394,13 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	switch(event->type) {
 		case MOUSEMOVE:
-			factor= 1.0 + (vpd->x-event->x+vpd->y-event->y)/300.0f;
+			factor= 1.0f + (vpd->x-event->x+vpd->y-event->y)/300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
 			sima_zoom_set(sima, ar, vpd->zoom*factor);
 			ED_region_tag_redraw(CTX_wm_region(C));
 			break;
-		case MIDDLEMOUSE:
-		case LEFTMOUSE:
-			if(event->val==KM_RELEASE) {
+		default:
+			if(event->type==vpd->event_type && event->val==KM_RELEASE) {
 				view_zoom_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
@@ -520,10 +522,10 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	d[0]= max[0] - min[0];
 	d[1]= max[1] - min[1];
-	size= 0.5*MAX2(d[0], d[1])*MAX2(width, height)/256.0f;
+	size= 0.5f*MAX2(d[0], d[1])*MAX2(width, height)/256.0f;
 	
-	if(size<=0.01) size= 0.01;
-	sima_zoom_set(sima, ar, 0.7/size);
+	if(size<=0.01f) size= 0.01f;
+	sima_zoom_set(sima, ar, 0.7f/size);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 	
@@ -1653,7 +1655,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	my= event->y - ar->winrct.ymin;
 	UI_view2d_region_to_view(&ar->v2d, mx, my, &fx, &fy);
 
-	if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
+	if(fx>=0.0f && fy>=0.0f && fx<1.0f && fy<1.0f) {
 		float *fp;
 		char *cp;
 		int x= (int)(fx*ibuf->x), y= (int)(fy*ibuf->y);

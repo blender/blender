@@ -30,6 +30,8 @@
 
 #include "py_capi_utils.h"
 
+#define PYC_INTERPRETER_ACTIVE (((PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
+
 /* for debugging */
 void PyC_ObSpit(const char *name, PyObject *var) {
 	fprintf(stderr, "<%s> : ", name);
@@ -51,8 +53,15 @@ void PyC_ObSpit(const char *name, PyObject *var) {
 }
 
 void PyC_LineSpit(void) {
+
 	const char *filename;
 	int lineno;
+
+	/* Note, allow calling from outside python (RNA) */
+	if(!PYC_INTERPRETER_ACTIVE) {
+		fprintf(stderr, "python line lookup failed, interpreter inactive\n");
+		return;
+	}
 
 	PyErr_Clear();
 	PyC_FileAndNum(&filename, &lineno);
@@ -150,9 +159,11 @@ PyObject *PyC_ExceptionBuffer(void)
 	
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
 		goto error_cleanup;
-	} else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
+	}
+	else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
 		goto error_cleanup;
-	} else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
+	}
+	else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
 		goto error_cleanup;
 	}
 	

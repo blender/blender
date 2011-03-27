@@ -290,7 +290,14 @@ public:
 	 * @return Indication of success.
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer) = 0;
-	
+
+	/**
+	 * Removes the given event consumer to our list.
+	 * @param consumer The event consumer to remove.
+	 * @return Indication of success.
+	 */
+	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer* consumer) = 0;
+
 	 /***************************************************************************************
 	 ** N-degree of freedom device management functionality
 	 ***************************************************************************************/

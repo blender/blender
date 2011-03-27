@@ -258,7 +258,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 	if(tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
 
 	/* de-premul, this is being premulled in shade_input_do_shade() */
-	if(texres->ta!=1.0f && texres->ta>FLT_EPSILON) {
+	if(texres->ta!=1.0f && texres->ta>1e-4f) {
 		fx= 1.0f/texres->ta;
 		texres->tr*= fx;
 		texres->tg*= fx;
@@ -1374,7 +1374,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 
 	// brecht: tried to fix this, see "TXF alpha" comments
 
-	if (texres->ta != 1.f && (texres->ta > FLT_EPSILON)) {
+	if (texres->ta != 1.f && (texres->ta > 1e-4f)) {
 		fx = 1.f/texres->ta;
 		texres->tr *= fx;
 		texres->tg *= fx;
@@ -1755,7 +1755,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 	}
 	
 	/* de-premul, this is being premulled in shade_input_do_shade() */
-	if(texres->ta!=1.0f && texres->ta>FLT_EPSILON) {
+	if(texres->ta!=1.0f && texres->ta>1e-4f) {
 		fx= 1.0f/texres->ta;
 		texres->tr*= fx;
 		texres->tg*= fx;

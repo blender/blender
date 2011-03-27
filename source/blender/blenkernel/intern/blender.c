@@ -466,7 +466,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 
 	if(success) {
 		/* important not to update time here, else non keyed tranforms are lost */
-		DAG_on_load_update(G.main, FALSE);
+		DAG_on_visible_update(G.main, FALSE);
 	}
 
 	return success;

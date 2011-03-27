@@ -164,7 +164,7 @@ unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac, IMB_
 
 static void blend_color_mix_float(float *cp, float *cp1, float *cp2, float fac)
 {
-	float mfac= 1.0-fac;
+	float mfac= 1.0f-fac;
 	cp[0]= mfac*cp1[0] + fac*cp2[0];
 	cp[1]= mfac*cp1[1] + fac*cp2[1];
 	cp[2]= mfac*cp1[2] + fac*cp2[2];
@@ -194,7 +194,7 @@ static void blend_color_sub_float(float *cp, float *cp1, float *cp2, float fac)
 
 static void blend_color_mul_float(float *cp, float *cp1, float *cp2, float fac)
 {
-	float mfac= 1.0-fac;
+	float mfac= 1.0f-fac;
 	
 	cp[0]= mfac*cp1[0] + fac*(cp1[0]*cp2[0]);
 	cp[1]= mfac*cp1[1] + fac*(cp1[1]*cp2[1]);
@@ -488,7 +488,7 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 	float a; /* alpha */
 	float ai; /* alpha inverted */
 	float aich; /* alpha, inverted, ai/255.0 - Convert char to float at the same time */
-	if ((!rect && !rectf) || (!col) || col[3]==0.0)
+	if ((!rect && !rectf) || (!col) || col[3]==0.0f)
 		return;
 	
 	/* sanity checks for coords */
@@ -510,7 +510,7 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 		unsigned char chr=0, chg=0, chb=0;
 		float fr=0, fg=0, fb=0;
 		
-		if (a == 1.0) {
+		if (a == 1.0f) {
 			chr = FTOCHAR(col[0]);
 			chg = FTOCHAR(col[1]);
 			chb = FTOCHAR(col[2]);
@@ -523,7 +523,7 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 			for (i = 0; i < x2-x1; i++) {
 				pixel = rect + 4 * (((y1 + j) * width) + (x1 + i));
 				if (pixel >= rect && pixel < rect+ (4 * (width * height))) {
-					if (a == 1.0) {
+					if (a == 1.0f) {
 						pixel[0] = chr;
 						pixel[1] = chg;
 						pixel[2] = chb;
@@ -542,7 +542,7 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 		for (j = 0; j < y2-y1; j++) {
 			for (i = 0; i < x2-x1; i++) {
 				pixel = rectf + 4 * (((y1 + j) * width) + (x1 + i));
-				if (a == 1.0) {
+				if (a == 1.0f) {
 					pixel[0] = col[0];
 					pixel[1] = col[1];
 					pixel[2] = col[2];

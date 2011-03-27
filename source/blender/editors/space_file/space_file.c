@@ -236,7 +236,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		if (idx >= 0) {
 			struct direntry *file= filelist_file(sfile->files, idx);
 			if (file) {
-				file->flags |= EDITING;
+				file->selflag |= EDITING_FILE;
 			}
 		}
 		BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));

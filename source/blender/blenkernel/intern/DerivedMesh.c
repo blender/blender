@@ -1123,9 +1123,7 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 
 	VECCOPY(vert_r->co, ev->co);
 
-	vert_r->no[0] = ev->no[0] * 32767.0;
-	vert_r->no[1] = ev->no[1] * 32767.0;
-	vert_r->no[2] = ev->no[2] * 32767.0;
+	normal_float_to_short_v3(vert_r->no, ev->no);
 
 	/* TODO what to do with vert_r->flag? */
 	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
@@ -1220,9 +1218,7 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 		else
 			copy_v3_v3(vert_r->co, ev->co);
 
-		vert_r->no[0] = ev->no[0] * 32767.0;
-		vert_r->no[1] = ev->no[1] * 32767.0;
-		vert_r->no[2] = ev->no[2] * 32767.0;
+		normal_float_to_short_v3(vert_r->no, ev->no);
 
 		/* TODO what to do with vert_r->flag? */
 		vert_r->flag = 0;
@@ -1425,7 +1421,7 @@ DerivedMesh *editmesh_get_derived(EditMesh *em, float (*vertexCos)[3])
 			float *no = emdm->vertexNos[i];
 			/* following Mesh convention; we use vertex coordinate itself
 			 * for normal in this case */
-			if (normalize_v3(no)==0.0) {
+			if (normalize_v3(no) == 0.0f) {
 				normalize_v3_v3(no, vertexCos[i]);
 			}
 		}
@@ -1596,12 +1592,12 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 		*fg= blend;
 		*fb= blend*(1.0f-((input-0.25f)*4.0f)); 
 	}
-	else if (input<=0.75){	// green->yellow
+	else if (input <= 0.75f){	// green->yellow
 		*fr= blend * ((input-0.50f)*4.0f);
 		*fg= blend;
 		*fb= 0.0f;
 	}
-	else if (input<=1.0){ // yellow->red
+	else if (input <= 1.0f){ // yellow->red
 		*fr= blend;
 		*fg= blend * (1.0f-((input-0.75f)*4.0f)); 
 		*fb= 0.0f;

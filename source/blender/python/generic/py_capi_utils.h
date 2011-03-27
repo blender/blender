@@ -47,4 +47,5 @@ void			PyC_RunQuicky(const char *filepath, int n, ...);
 
 void PyC_MainModule_Backup(PyObject **main_mod);
 void PyC_MainModule_Restore(PyObject *main_mod);
+
 #endif // PY_CAPI_UTILS_H

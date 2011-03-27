@@ -212,8 +212,10 @@ static void randuvec(float v[3])
 		r = (float)sqrt(r);
 		v[0] = (float)(r * cos(a));
 		v[1] = (float)(r * sin(a));
-	} else
+	}
+	else {
 		v[2] = 1.f;
+	}
 }
 
 static PyObject *Noise_random(PyObject *UNUSED(self))

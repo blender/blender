@@ -283,6 +283,32 @@ void BKE_animdata_make_local(AnimData *adt)
 		make_local_strips(&nlt->strips);
 }
 
+void BKE_relink_animdata(struct AnimData *adt)
+{
+	/* drivers */
+	if (adt->drivers.first) {
+		FCurve *fcu;
+
+		/* check each driver against all the base paths to see if any should go */
+		for (fcu= adt->drivers.first; fcu; fcu=fcu->next) {
+			ChannelDriver *driver= fcu->driver;
+			DriverVar *dvar;
+
+			/* driver variables */
+			for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
+				/* only change the used targets, since the others will need fixing manually anyway */
+				DRIVER_TARGETS_USED_LOOPER(dvar)
+				{
+					if(dtar->id->newid) {
+						dtar->id= dtar->id->newid;
+					}
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
+		}
+	}
+}
+
 /* Sub-ID Regrouping ------------------------------------------- */
 
 /* helper heuristic for determining if a path is compatible with the basepath 
@@ -1886,7 +1912,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 				/* action range is calculated taking F-Modifiers into account (which making new strips doesn't do due to the troublesome nature of that) */
 				calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
 				dummy_strip.start = dummy_strip.actstart;
-				dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
+				dummy_strip.end = (IS_EQF(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
 				
 				dummy_strip.blendmode= adt->act_blendmode;
 				dummy_strip.extendmode= adt->act_extendmode;
@@ -2053,7 +2079,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
-	
+
 	if (G.f & G_DEBUG)
 		printf("Evaluate all animation - %f \n", ctime);
 	

@@ -60,6 +60,7 @@ typedef struct EditVert
 		void            *p;
 		intptr_t         l;
 		float            fp;
+		int				 t;
 	} tmp;
 	float no[3]; /*vertex normal */
 	float co[3]; /*vertex location */

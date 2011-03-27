@@ -248,6 +248,8 @@ struct Render
 	void (*progress)(void *handle, float i);
 	void *prh;
 	
+	void (*draw_lock)(void *handle, int i);
+	void *dlh;
 	int (*test_break)(void *handle);
 	void *tbh;
 	

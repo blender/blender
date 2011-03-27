@@ -279,7 +279,7 @@ int WM_init_game(bContext *C)
 
 		/* full screen the area */
 		if(!sa->full) {
-			ED_screen_full_toggle(C, wm->windows.first, sa);
+			ED_screen_full_toggle(C, win, sa);
 		}
 
 		/* Fullscreen */

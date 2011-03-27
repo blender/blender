@@ -328,6 +328,7 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
 			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, CLAMPIS(ma->har, 0, 128));
 			glEnable(GL_LIGHTING);
 			glEnable(GL_COLOR_MATERIAL);
 		}

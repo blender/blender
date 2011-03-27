@@ -669,7 +669,14 @@ if 'blenderlite' in B.targets:
 
 Depends(nsiscmd, allinstall)
 
+buildslave_action = env.Action(btools.buildslave, btools.buildslave_print)
+buildslave_cmd = env.Command('buildslave_exec', None, buildslave_action)
+buildslave_alias = env.Alias('buildslave', buildslave_cmd)
+
+Depends(buildslave_cmd, allinstall)
+
 Default(B.program_list)
 
 if not env['WITHOUT_BF_INSTALL']:
         Default(installtarget)
+

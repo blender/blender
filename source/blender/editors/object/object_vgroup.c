@@ -208,14 +208,19 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 				Lattice *lt= (Lattice *)id;
 				lt= (lt->editlatt)? lt->editlatt->latt: lt;
 
-				*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
-				*dvert_arr= MEM_mallocN(sizeof(void*)*(*dvert_tot), "vgroup parray from me");
+				if(lt->dvert) {
+					*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
+					*dvert_arr= MEM_mallocN(sizeof(void*)*(*dvert_tot), "vgroup parray from me");
 
-				for (i=0; i<*dvert_tot; i++) {
-					(*dvert_arr)[i] = lt->dvert + i;
+					for (i=0; i<*dvert_tot; i++) {
+						(*dvert_arr)[i] = lt->dvert + i;
+					}
+
+					return 1;
 				}
-
-				return 1;
+				else {
+					return 0;
+				}
 			}
 		}
 	}
@@ -416,15 +421,15 @@ static void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float wei
 				break;
 			case WEIGHT_ADD:
 				dv->dw[i].weight+=weight;
-				if(dv->dw[i].weight >= 1.0)
-					dv->dw[i].weight = 1.0;
+				if(dv->dw[i].weight >= 1.0f)
+					dv->dw[i].weight = 1.0f;
 				break;
 			case WEIGHT_SUBTRACT:
 				dv->dw[i].weight-=weight;
 				/* if the weight is zero or less then
 				 * remove the vert from the deform group
 				 */
-				if(dv->dw[i].weight <= 0.0)
+				if(dv->dw[i].weight <= 0.0f)
 					ED_vgroup_nr_vert_remove(ob, def_nr, vertnum);
 				break;
 			}
@@ -2050,6 +2055,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "Editmode lattice isnt supported yet.");
+			MEM_freeN(sort_map_update);
 			return OPERATOR_CANCELLED;
 		}
 	}

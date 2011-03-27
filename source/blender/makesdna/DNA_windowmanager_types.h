@@ -85,7 +85,8 @@ typedef enum ReportType {
 enum ReportListFlags {
 	RPT_PRINT = 1,
 	RPT_STORE = 2,
-	RPT_FREE = 4
+	RPT_FREE = 4,
+	RPT_OP_HOLD = 8 /* dont move them into the operator global list (caller will use) */
 };
 #
 #

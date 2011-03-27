@@ -388,6 +388,9 @@ char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return (struct wmKeyMapItem *)NULL;}
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return (struct wmKeyMap *) NULL;}
 
+/* RNA COLLADA dependency */
+int collada_export(struct Scene *sce, const char *filepath){ return 0; }
+
 int sculpt_get_brush_size(struct Brush *brush) {return 0;}
 void sculpt_set_brush_size(struct Brush *brush, int size) {}
 int sculpt_get_lock_brush_size(struct Brush *brush){ return 0;}

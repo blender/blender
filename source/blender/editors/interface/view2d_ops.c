@@ -607,7 +607,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 		else {
 			if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
 				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / (v2d->cur.xmax-v2d->cur.xmin);
-				float mval_faci = 1.0 - mval_fac;
+				float mval_faci = 1.0f - mval_fac;
 				float ofs= (mval_fac * dx) - (mval_faci * dx);
 				
 				v2d->cur.xmin += ofs + dx;
@@ -632,7 +632,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 		else {
 			if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
 				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / (v2d->cur.ymax-v2d->cur.ymin);
-				float mval_faci = 1.0 - mval_fac;
+				float mval_faci = 1.0f - mval_fac;
 				float ofs= (mval_fac * dy) - (mval_faci * dy);
 				
 				v2d->cur.ymin += ofs + dy;
@@ -817,7 +817,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 		else {
 			if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
 				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / (v2d->cur.xmax-v2d->cur.xmin);
-				float mval_faci = 1.0 - mval_fac;
+				float mval_faci = 1.0f - mval_fac;
 				float ofs= (mval_fac * dx) - (mval_faci * dx);
 				
 				v2d->cur.xmin += ofs + dx;
@@ -836,7 +836,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 		else {
 			if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
 				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / (v2d->cur.ymax-v2d->cur.ymin);
-				float mval_faci = 1.0 - mval_fac;
+				float mval_faci = 1.0f - mval_fac;
 				float ofs= (mval_fac * dy) - (mval_faci * dy);
 				
 				v2d->cur.ymin += ofs + dy;
@@ -1448,9 +1448,9 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* single-click was in empty space outside bubble, so scroll by 1 'page' */
 				if (ELEM(vsm->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
 					if (vsm->zone == SCROLLHANDLE_MIN_OUTSIDE)
-						vsm->delta = -vsm->scrollbarwidth * 0.8;
+						vsm->delta = -vsm->scrollbarwidth * 0.8f;
 					else if (vsm->zone == SCROLLHANDLE_MAX_OUTSIDE)
-						vsm->delta = vsm->scrollbarwidth * 0.8;
+						vsm->delta = vsm->scrollbarwidth * 0.8f;
 					
 					scroller_activate_apply(C, op);
 					scroller_activate_exit(C, op);

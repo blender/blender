@@ -170,7 +170,8 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
  
 	if (initbuffer) {
 		memcpy(buffer->buf.asvoid, initbuffer, length*size);
-	} else {
+	}
+	else {
 		memset(buffer->buf.asvoid, 0, length*size);
 		/*
 		for (i= 0; i<length; i++) {
@@ -280,7 +281,8 @@ static PyObject *Buffer_item(PyObject *self, int i)
 			case GL_FLOAT: return PyFloat_FromDouble(buf->buf.asfloat[i]);
 			case GL_DOUBLE: return Py_BuildValue("d", buf->buf.asdouble[i]);
 		}
-	} else {
+	}
+	else {
 		Buffer *newbuf;
 		int j, length, size;
  
@@ -350,17 +352,21 @@ static int Buffer_ass_item(PyObject *self, int i, PyObject *v)
 	if (buf->type==GL_BYTE) {
 		if (!PyArg_Parse(v, "b:Coordinates must be ints", &buf->buf.asbyte[i]))
 		return -1;
-	} else if (buf->type==GL_SHORT) {
+	}
+	else if (buf->type==GL_SHORT) {
 		if (!PyArg_Parse(v, "h:Coordinates must be ints", &buf->buf.asshort[i]))
 			return -1;
 	  
-	} else if (buf->type==GL_INT) {
+	}
+	else if (buf->type==GL_INT) {
 		if (!PyArg_Parse(v, "i:Coordinates must be ints", &buf->buf.asint[i]))
 			return -1;
-	} else if (buf->type==GL_FLOAT) {
+	}
+	else if (buf->type==GL_FLOAT) {
 		if (!PyArg_Parse(v, "f:Coordinates must be floats", &buf->buf.asfloat[i]))
 			return -1;
-	} else if (buf->type==GL_DOUBLE) {
+	}
+	else if (buf->type==GL_DOUBLE) {
 		if (!PyArg_Parse(v, "d:Coordinates must be floats", &buf->buf.asdouble[i]))
 			return -1;
 	}

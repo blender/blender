@@ -606,7 +606,6 @@ CineonFile*
 cineonOpenFromMem(unsigned char *mem, unsigned int size) {
 
 	CineonGenericHeader header;
-	int i;
 	
 	CineonFile* cineon = (CineonFile* )malloc(sizeof(CineonFile));
 	if (cineon == 0) {
@@ -670,8 +669,6 @@ cineonOpenFromMem(unsigned char *mem, unsigned int size) {
 		return 0;
 	}
 	cineon->pixelBufferUsed = 0;
-
-	i = cineon->imageOffset;
 	
 	if (logimage_fseek(cineon, cineon->imageOffset, SEEK_SET) != 0) {
 		if (verbose) d_printf("Couldn't seek to image data at %d\n", cineon->imageOffset);

@@ -1,9 +1,6 @@
 # Configuration Blender
 import bpy
 
-wm = bpy.context.window_manager
-wm.keyconfigs.active = wm.keyconfigs['Blender']
-
 bpy.context.user_preferences.view.use_mouse_auto_depth = False
 bpy.context.user_preferences.view.use_zoom_to_mouse = False
 bpy.context.user_preferences.view.use_rotate_around_active = False

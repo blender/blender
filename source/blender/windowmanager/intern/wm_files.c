@@ -329,7 +329,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 		ED_editors_init(C);
-		DAG_on_load_update(CTX_data_main(C), TRUE);
+		DAG_on_visible_update(CTX_data_main(C), TRUE);
 
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
@@ -433,7 +433,7 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	BKE_write_undo(C, "original");	/* save current state */
 
 	ED_editors_init(C);
-	DAG_on_load_update(CTX_data_main(C), TRUE);
+	DAG_on_visible_update(CTX_data_main(C), TRUE);
 
 #ifdef WITH_PYTHON
 	if(CTX_py_init_get(C)) {

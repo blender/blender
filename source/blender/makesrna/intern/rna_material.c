@@ -54,6 +54,27 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 {TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Uses the optional tangent vector as texture coordinates"},
 {0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem ramp_blend_items[] = {
+{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
+{MA_RAMP_ADD, "ADD", 0, "Add", ""},
+{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
+{MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
+{MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
+{MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
+{MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
+{MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
+{MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
+{MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+{MA_RAMP_DODGE, "DODGE", 0, "Dodge", ""},
+{MA_RAMP_BURN, "BURN", 0, "Burn", ""},
+{MA_RAMP_HUE, "HUE", 0, "Hue", ""},
+{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
+{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
+{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
+{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""}, 
+{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""}, 
+{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
@@ -711,27 +732,6 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 static void rna_def_material_colors(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
-	static EnumPropertyItem prop_ramp_blend_diffuse_items[] = {
-		{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
-		{MA_RAMP_ADD, "ADD", 0, "Add", ""},
-		{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
-		{MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
-		{MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
-		{MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
-		{MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
-		{MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
-		{MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
-		{MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},
-		{MA_RAMP_DODGE, "DODGE", 0, "Dodge", ""},
-		{MA_RAMP_BURN, "BURN", 0, "Burn", ""},
-		{MA_RAMP_HUE, "HUE", 0, "Hue", ""},
-		{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
-		{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
-		{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
-		{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""}, 
-		{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""}, 
-		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_ramp_input_items[] = {
 		{MA_RAMP_IN_SHADER, "SHADER", 0, "Shader", ""},
@@ -796,13 +796,13 @@ static void rna_def_material_colors(StructRNA *srna)
 	
 	prop= RNA_def_property(srna, "diffuse_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_col");
-	RNA_def_property_enum_items(prop, prop_ramp_blend_diffuse_items);
+	RNA_def_property_enum_items(prop, ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "specular_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_spec");
-	RNA_def_property_enum_items(prop, prop_ramp_blend_diffuse_items);
+	RNA_def_property_enum_items(prop, ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 

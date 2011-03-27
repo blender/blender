@@ -194,7 +194,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				free_uci= 1;
 			}
 			else {
-				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * 32.0 / cam->lens : cam->ortho_scale;
+				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * 32.0f / cam->lens : cam->ortho_scale;
 				float xmax, xmin, ymax, ymin;
 
 				if(aspect > 1.0f) {

@@ -28,6 +28,8 @@
  */
 
 
+#include <sstream>
+
 #include "COLLADASWPrimitves.h"
 #include "COLLADASWSource.h"
 #include "COLLADASWVertices.h"
@@ -114,6 +116,11 @@ void GeometryExporter::operator()(Object *ob)
 	}
 	
 	closeMesh();
+	
+	if (me->flag & ME_TWOSIDED) {
+		mSW->appendTextBlock("<extra><technique profile=\"MAYA\"><double_sided>1</double_sided></technique></extra>");
+	}
+	
 	closeGeometry();
 	
 #if 0
@@ -167,7 +174,9 @@ void GeometryExporter::createPolylist(int material_index,
 		
 	// sets material name
 	if (ma) {
-		polylist.setMaterial(translate_id(id_name(ma)));
+		std::ostringstream ostr;
+		ostr << translate_id(id_name(ma)) << material_index+1;
+		polylist.setMaterial(ostr.str());
 	}
 			
 	COLLADASW::InputList &til = polylist.getInputList();

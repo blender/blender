@@ -229,9 +229,9 @@ static int VertDataEqual(float *a, float *b) {
 #define VertDataAvg4(tv, av, bv, cv, dv) \
 	{ \
 		float *_t = (float*) tv, *_a = (float*) av, *_b = (float*) bv, *_c = (float*) cv, *_d = (float*) dv; \
-		_t[0] = (_a[0]+_b[0]+_c[0]+_d[0])*.25; \
-		_t[1] = (_a[1]+_b[1]+_c[1]+_d[1])*.25; \
-		_t[2] = (_a[2]+_b[2]+_c[2]+_d[2])*.25; \
+		_t[0] = (_a[0]+_b[0]+_c[0]+_d[0])*.25f; \
+		_t[1] = (_a[1]+_b[1]+_c[1]+_d[1])*.25f; \
+		_t[2] = (_a[2]+_b[2]+_c[2]+_d[2])*.25f; \
 	}
 #define NormZero(av)					{ float *_a = (float*) av; _a[0] = _a[1] = _a[2] = 0.0f; }
 #define NormCopy(av, bv)				{ float *_a = (float*) av, *_b = (float*) bv; _a[0] =_b[0]; _a[1] =_b[1]; _a[2] =_b[2]; }
@@ -507,9 +507,9 @@ static float EDGE_getSharpness(CCGEdge *e, int lvl) {
 	if (!lvl)
 		return e->crease;
 	else if (!e->crease)
-		return 0.0;
-	else if (e->crease - lvl < 0.0)
-		return 0.0;
+		return 0.0f;
+	else if (e->crease - lvl < 0.0f)
+		return 0.0f;
 	else
 		return e->crease - lvl;
 }
@@ -1447,7 +1447,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		float sharpness = EDGE_getSharpness(e, curLvl);
 		int x, j;
 
-		if (_edge_isBoundary(e) || sharpness>1.0) {
+		if (_edge_isBoundary(e) || sharpness > 1.0f) {
 			for (x=0; x<edgeSize-1; x++) {
 				int fx = x*2 + 1;
 				void *co0 = EDGE_getCo(e, curLvl, x+0);
@@ -1456,7 +1456,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 
 				VertDataCopy(co, co0);
 				VertDataAdd(co, co1);
-				VertDataMulN(co, 0.5);
+				VertDataMulN(co, 0.5f);
 			}
 		} else {
 			for (x=0; x<edgeSize-1; x++) {
@@ -1479,7 +1479,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 
 				VertDataCopy(r, co0);
 				VertDataAdd(r, co1);
-				VertDataMulN(r, 0.5);
+				VertDataMulN(r, 0.5f);
 
 				VertDataCopy(co, q);
 				VertDataSub(r, q);
@@ -1519,8 +1519,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 
 		if(sharpCount) {
 			avgSharpness /= sharpCount;
-			if (avgSharpness>1.0) {
-				avgSharpness = 1.0;
+			if (avgSharpness > 1.0f) {
+				avgSharpness = 1.0f;
 			}
 		}
 
@@ -1542,7 +1542,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 			}
 
 			VertDataCopy(nCo, co);
-			VertDataMulN(nCo, 0.75);
+			VertDataMulN(nCo, 0.75f);
 			VertDataMulN(r, 0.25f/numBoundary);
 			VertDataAdd(nCo, r);
 		} else {
@@ -1587,7 +1587,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 				if (seam) {
 					if (_edge_isBoundary(e))
 						VertDataAdd(q, _edge_getCoVert(e, v, curLvl, 1, vertDataSize));
-				} else if (sharpness != 0.0) {
+				} else if (sharpness != 0.0f) {
 					VertDataAdd(q, _edge_getCoVert(e, v, curLvl, 1, vertDataSize));
 				}
 			}
@@ -1604,8 +1604,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 
 				// r = co*.75 + q*.25
 			VertDataCopy(r, co);
-			VertDataMulN(r, .75);
-			VertDataMulN(q, .25);
+			VertDataMulN(r, .75f);
+			VertDataMulN(q, .25f);
 			VertDataAdd(r, q);
 
 				// nCo = nCo  + (r-nCo)*avgSharpness
@@ -1631,8 +1631,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 			sharpCount = 2;
 			avgSharpness += sharpness;
 
-			if (avgSharpness>1.0) {
-				avgSharpness = 1.0;
+			if (avgSharpness > 1.0f) {
+				avgSharpness = 1.0f;
 			}
 		} else {
 			sharpCount = 0;
@@ -1646,10 +1646,10 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 				void *nCo = EDGE_getCo(e, nextLvl, fx);
 				VertDataCopy(r, EDGE_getCo(e, curLvl, x-1));
 				VertDataAdd(r, EDGE_getCo(e, curLvl, x+1));
-				VertDataMulN(r, 0.5);
+				VertDataMulN(r, 0.5f);
 				VertDataCopy(nCo, co);
-				VertDataMulN(nCo, 0.75);
-				VertDataMulN(r, 0.25);
+				VertDataMulN(nCo, 0.75f);
+				VertDataMulN(r, 0.25f);
 				VertDataAdd(nCo, r);
 			}
 		} else {
@@ -1671,8 +1671,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 					VertDataAdd(r, _face_getIFCoEdge(f, e, curLvl, x, 1, subdivLevels, vertDataSize));
 					numFaces++;
 				}
-				VertDataMulN(q, 1.0/(numFaces*2.0f));
-				VertDataMulN(r, 1.0/(2.0f + numFaces));
+				VertDataMulN(q, 1.0f/(numFaces*2.0f));
+				VertDataMulN(r, 1.0f/(2.0f + numFaces));
 
 				VertDataCopy(nCo, co);
 				VertDataMulN(nCo, (float) numFaces);
@@ -1895,7 +1895,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		void *co = EDGE_getCo(e, nextLvl, 1);
 		float sharpness = EDGE_getSharpness(e, curLvl);
 
-		if (_edge_isBoundary(e) || sharpness>=1.0) {
+		if (_edge_isBoundary(e) || sharpness >= 1.0f) {
 			VertDataCopy(co, VERT_getCo(e->v0, curLvl));
 			VertDataAdd(co, VERT_getCo(e->v1, curLvl));
 			VertDataMulN(co, 0.5f);
@@ -1947,8 +1947,8 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 		if(sharpCount) {
 			avgSharpness /= sharpCount;
-			if (avgSharpness>1.0) {
-				avgSharpness = 1.0;
+			if (avgSharpness > 1.0f) {
+				avgSharpness = 1.0f;
 			}
 		}
 
@@ -1969,7 +1969,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				}
 			}
 			VertDataCopy(nCo, co);
-			VertDataMulN(nCo, 0.75);
+			VertDataMulN(nCo, 0.75f);
 			VertDataMulN(r, 0.25f/numBoundary);
 			VertDataAdd(nCo, r);
 		} else {
@@ -2015,7 +2015,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 						CCGVert *oV = _edge_getOtherVert(e, v);
 						VertDataAdd(q, VERT_getCo(oV, curLvl));
 					}
-				} else if (sharpness != 0.0) {
+				} else if (sharpness != 0.0f) {
 					CCGVert *oV = _edge_getOtherVert(e, v);
 					VertDataAdd(q, VERT_getCo(oV, curLvl));
 				}
@@ -2033,8 +2033,8 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 				// r = co*.75 + q*.25
 			VertDataCopy(r, co);
-			VertDataMulN(r, .75);
-			VertDataMulN(q, .25);
+			VertDataMulN(r, 0.75f);
+			VertDataMulN(q, 0.25f);
 			VertDataAdd(r, q);
 
 				// nCo = nCo  + (r-nCo)*avgSharpness

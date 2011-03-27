@@ -176,7 +176,7 @@ void boundbox_seq(Scene *scene, rctf *rect)
 
 		if( min[0] > seq->startdisp-1) min[0]= seq->startdisp-1;
 		if( max[0] < seq->enddisp+1) max[0]= seq->enddisp+1;
-		if( max[1] < seq->machine+2.0) max[1]= seq->machine+2.0;
+		if( max[1] < seq->machine+2) max[1]= seq->machine+2;
 
 		seq= seq->next;
 	}
@@ -1656,7 +1656,7 @@ static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *
 {
 	sequencer_add_duplicate_exec(C, op);
 
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
 	WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
@@ -2613,6 +2613,8 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 
+	ListBase nseqbase= {NULL, NULL};
+
 	seq_free_clipboard();
 
 	if(seqbase_isolated_sel_check(ed->seqbasep)==FALSE) {
@@ -2620,7 +2622,28 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	seqbase_dupli_recursive(scene, NULL, &seqbase_clipboard, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
+	seqbase_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
+
+	/* To make sure the copied strips have unique names between each other add
+	 * them temporarily to the end of the original seqbase. (bug 25932)
+	 */
+	if(nseqbase.first) {
+		Sequence *seq, *first_seq = nseqbase.first;
+		BLI_movelisttolist(ed->seqbasep, &nseqbase);
+
+		for(seq=first_seq; seq; seq=seq->next)
+			seq_recursive_apply(seq, apply_unique_name_cb, scene);
+
+		seqbase_clipboard.first = first_seq;
+		seqbase_clipboard.last = ed->seqbasep->last;
+
+		if(first_seq->prev) {
+			first_seq->prev->next = NULL;
+			ed->seqbasep->last = first_seq->prev;
+			first_seq->prev = NULL;
+		}
+	}
+
 	seqbase_clipboard_frame= scene->r.cfra;
 
 	/* Need to remove anything that references the current scene */
@@ -2690,7 +2713,13 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
+	iseq = nseqbase.first;
+
 	BLI_movelisttolist(ed->seqbasep, &nseqbase);
+
+	/* make sure the pasted strips have unique names between them */
+	for(; iseq; iseq=iseq->next)
+		seq_recursive_apply(iseq, apply_unique_name_cb, scene);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
@@ -2786,10 +2815,10 @@ static int view_ghost_border_exec(bContext *C, wmOperator *op)
 	rect.xmax /=  (float)(ABS(v2d->tot.xmax - v2d->tot.xmin));
 	rect.ymax /=  (float)(ABS(v2d->tot.ymax - v2d->tot.ymin));
 
-	rect.xmin+=0.5;
-	rect.xmax+=0.5;
-	rect.ymin+=0.5;
-	rect.ymax+=0.5;
+	rect.xmin+=0.5f;
+	rect.xmax+=0.5f;
+	rect.ymin+=0.5f;
+	rect.ymax+=0.5f;
 
 	CLAMP(rect.xmin, 0.0f, 1.0f);
 	CLAMP(rect.ymin, 0.0f, 1.0f);

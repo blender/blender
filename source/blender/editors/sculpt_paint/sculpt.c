@@ -537,8 +537,8 @@ static float calc_overlap(StrokeCache *cache, const char symm, const char axis, 
 	//distsq = len_squared_v3v3(mirror, cache->traced_location);
 	distsq = len_squared_v3v3(mirror, cache->true_location);
 
-	if (distsq <= 4*(cache->radius_squared))
-		return (2*(cache->radius) - sqrt(distsq))  /  (2*(cache->radius));
+	if (distsq <= 4.0f*(cache->radius_squared))
+		return (2.0f*(cache->radius) - sqrtf(distsq))  /  (2.0f*(cache->radius));
 	else
 		return 0;
 }
@@ -731,12 +731,12 @@ static float tex_strength(SculptSession *ss, Brush *br, float *point, const floa
 		/* it is probably worth optimizing for those cases where 
 		   the texture is not rotated by skipping the calls to
 		   atan2, sqrtf, sin, and cos. */
-		if (rotation > 0.001 || rotation < -0.001) {
-			const float angle    = atan2(y, x) + rotation;
+		if (rotation > 0.001f || rotation < -0.001f) {
+			const float angle    = atan2f(y, x) + rotation;
 			const float flen     = sqrtf(x*x + y*y);
 
-			x = flen * cos(angle);
-			y = flen * sin(angle);
+			x = flen * cosf(angle);
+			y = flen * sinf(angle);
 		}
 
 		x *= br->mtex.size[0];
@@ -798,7 +798,7 @@ static void sculpt_clip(Sculpt *sd, SculptSession *ss, float *co, const float va
 		if(sd->flags & (SCULPT_LOCK_X << i))
 			continue;
 
-		if((ss->cache->flag & (CLIP_X << i)) && (fabs(co[i]) <= ss->cache->clip_tolerance[i]))
+		if((ss->cache->flag & (CLIP_X << i)) && (fabsf(co[i]) <= ss->cache->clip_tolerance[i]))
 			co[i]= 0.0f;
 		else
 			co[i]= val[i];
@@ -3135,7 +3135,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, st
 			  (brush->flag & BRUSH_RANDOM_ROTATION) &&
 			 !(brush->flag & BRUSH_RAKE))
 		{
-			cache->special_rotation = 2*M_PI*BLI_frand();
+			cache->special_rotation = 2.0f*(float)M_PI*BLI_frand();
 		}
 	}
 
@@ -3153,8 +3153,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, st
 			float halfway[2];
 			float out[3];
 
-			halfway[0] = dx*0.5 + cache->initial_mouse[0];
-			halfway[1] = dy*0.5 + cache->initial_mouse[1];
+			halfway[0] = (float)dx * 0.5f + cache->initial_mouse[0];
+			halfway[1] = (float)dy * 0.5f + cache->initial_mouse[1];
 
 			if (sculpt_stroke_get_location(C, stroke, out, halfway)) {
 				copy_v3_v3(sd->anchored_location, out);

@@ -62,7 +62,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *args);
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *args);
 static PyObject *bpy_lib_dir(BPy_Library *self);
 
-static PyMethodDef bpy_lib_methods[] = {
+static PyMethodDef bpy_lib_methods[]= {
 	{"__enter__", (PyCFunction)bpy_lib_enter, METH_NOARGS},
 	{"__exit__", (PyCFunction)bpy_lib_exit, METH_VARARGS},
 	{"__dir__", (PyCFunction)bpy_lib_dir, METH_NOARGS},
@@ -76,7 +76,7 @@ static void bpy_lib_dealloc(BPy_Library *self)
 }
 
 
-PyTypeObject bpy_lib_Type = {
+PyTypeObject bpy_lib_Type= {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"bpy_lib",		/* tp_name */
 	sizeof(BPy_Library),			/* tp_basicsize */
@@ -170,9 +170,9 @@ static char bpy_lib_load_doc[] =
 ;
 static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {"filepath", "link", "relative", NULL};
+	static const char *kwlist[]= {"filepath", "link", "relative", NULL};
 	BPy_Library *ret;
-	const char* filename = NULL;
+	const char* filename= NULL;
 	int is_rel= 0, is_link= 0;
 
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "s|ii:load", (char **)kwlist, &filename, &is_link, &is_rel))
@@ -202,9 +202,9 @@ static PyObject *_bpy_names(BPy_Library *self, int blocktype)
 	names= BLO_blendhandle_get_datablock_names(self->blo_handle, blocktype, &totnames);
 
 	if(names) {
-		int counter = 0;
-		list = PyList_New(totnames);
-		for(l = names; l; l = l->next) {
+		int counter= 0;
+		list= PyList_New(totnames);
+		for(l= names; l; l= l->next) {
 			PyList_SET_ITEM(list, counter, PyUnicode_FromString((char * )l->link));
 			counter++;
 		}
@@ -277,7 +277,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 	flag_all_listbases_ids(LIB_PRE_EXISTING, 1);
 
 	/* here appending/linking starts */
-	mainl = BLO_library_append_begin(BPy_GetContext(), &(self->blo_handle), self->relpath);
+	mainl= BLO_library_append_begin(BPy_GetContext(), &(self->blo_handle), self->relpath);
 
 	{
 		int i= 0, code;

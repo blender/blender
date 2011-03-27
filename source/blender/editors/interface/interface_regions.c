@@ -1185,9 +1185,9 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		if(block->direction & UI_CENTER) center= ysize/2;
 		else center= 0;
 
-		if( butrct.xmin-xsize > 0.0) left= 1;
+		if( butrct.xmin-xsize > 0.0f) left= 1;
 		if( butrct.xmax+xsize < winx) right= 1;
-		if( butrct.ymin-ysize+center > 0.0) down= 1;
+		if( butrct.ymin-ysize+center > 0.0f) down= 1;
 		if( butrct.ymax+ysize-center < winy) top= 1;
 		
 		dir1= block->direction & UI_DIRECTION;
@@ -1300,8 +1300,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 	/* safety calculus */
 	if(but) {
-		float midx= (butrct.xmin+butrct.xmax)/2.0;
-		float midy= (butrct.ymin+butrct.ymax)/2.0;
+		float midx= (butrct.xmin+butrct.xmax)/2.0f;
+		float midy= (butrct.ymin+butrct.ymax)/2.0f;
 		
 		/* when you are outside parent button, safety there should be smaller */
 		

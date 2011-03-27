@@ -108,6 +108,17 @@ int ED_operator_screenactive(bContext *C)
 	return 1;
 }
 
+static int screen_active_editable(bContext *C)
+{
+	if(ED_operator_screenactive(C)) {
+		/* no full window splitting allowed */
+		if(CTX_wm_screen(C)->full != SCREENNORMAL)
+			return 0;
+		return 1;
+	}
+	return 0;
+}
+
 /* when mouse is over area-edge */
 int ED_operator_screen_mainwinactive(bContext *C)
 {
@@ -1263,13 +1274,16 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	sAreaSplitData *sd;
 	int dir;
 	
+	/* no full window splitting allowed */
+	if(CTX_wm_screen(C)->full != SCREENNORMAL)
+		return OPERATOR_CANCELLED;
+	
 	if(event->type==EVT_ACTIONZONE_AREA) {
 		sActionzoneData *sad= event->customdata;
 		
 		if(sad->modifier>0) {
 			return OPERATOR_PASS_THROUGH;
 		}
-		
 		
 		/* verify *sad itself */
 		if(sad==NULL || sad->sa1==NULL || sad->az==NULL)
@@ -1298,10 +1312,6 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else {
 		ScrEdge *actedge;
 		int x, y;
-		
-		/* no full window splitting allowed */
-		if(CTX_wm_area(C) && CTX_wm_area(C)->full)
-			return OPERATOR_CANCELLED;
 		
 		/* retrieve initial mouse coord, so we can find the active edge */
 		if(RNA_property_is_set(op->ptr, "mouse_x"))
@@ -1471,7 +1481,7 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->invoke= area_split_invoke;
 	ot->modal= area_split_modal;
 	
-	ot->poll= ED_operator_screenactive;
+	ot->poll= screen_active_editable;
 	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna */
@@ -2210,7 +2220,7 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->exec= area_join_exec;
 	ot->invoke= area_join_invoke;
 	ot->modal= area_join_modal;
-	ot->poll= ED_operator_screenactive;
+	ot->poll= screen_active_editable;
 	
 	ot->flag= OPTYPE_BLOCKING;
 	
@@ -2766,7 +2776,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 					scene->r.cfra -= step;
 				else
 					scene->r.cfra += step;
-				wt->duration -= ((float)step)/FPS;
+				wt->duration -= ((double)step)/FPS;
 			}
 			else {
 				/* one frame +/- */
@@ -2928,20 +2938,23 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
 }
 
-static int screen_animation_cancel_exec(bContext *C, wmOperator *UNUSED(op))
+static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	
+
 	if (screen->animtimer) {
-		ScreenAnimData *sad= screen->animtimer->customdata;
-		Scene *scene= CTX_data_scene(C);
-		
-		/* reset current frame before stopping, and just send a notifier to deal with the rest 
-		 * (since playback still needs to be stopped)
-		 */
-		scene->r.cfra= sad->sfra;
-		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-		
+		if(RNA_boolean_get(op->ptr, "restore_frame")) {
+			ScreenAnimData *sad= screen->animtimer->customdata;
+			Scene *scene= CTX_data_scene(C);
+
+			/* reset current frame before stopping, and just send a notifier to deal with the rest
+			 * (since playback still needs to be stopped)
+			 */
+			scene->r.cfra= sad->sfra;
+
+			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+		}
+
 		/* call the other "toggling" operator to clean up now */
 		ED_screen_animation_play(C, 0, 0);
 	}
@@ -2960,6 +2973,8 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 	ot->exec= screen_animation_cancel_exec;
 	
 	ot->poll= ED_operator_screenactive;
+
+	RNA_def_boolean(ot->srna, "restore_frame", TRUE, "Restore Frame", "Restore the frame when animation was initialized.");
 }
 
 /* ************** border select operator (template) ***************************** */
@@ -3111,6 +3126,7 @@ static void SCREEN_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= screen_new_exec;
+	ot->poll= WM_operator_winactive;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

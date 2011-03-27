@@ -100,7 +100,7 @@ void ANIM_timecode_string_from_frame (char *str, Scene *scene, int power, short 
 			 *	to cope with 'half' frames, etc., which should be fine in most cases
 			 */
 			seconds= (int)cfra;
-			frames= (int)floor( ((cfra - seconds) * FPS) + 0.5f );
+			frames= (int)floor( (((double)cfra - (double)seconds) * FPS) + 0.5 );
 		}
 		else {
 			/* seconds (with pixel offset rounding) */
@@ -399,9 +399,9 @@ float ANIM_unit_mapping_get_factor (Scene *scene, ID *id, FCurve *fcu, short res
 				/* if the radians flag is not set, default to using degrees which need conversions */
 				if ((scene) && (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) == 0) {
 					if (restore)
-						return M_PI / 180.0f;	/* degrees to radians */
+						return M_PI / 180.0;	/* degrees to radians */
 					else
-						return 180.0f / M_PI;	/* radians to degrees */
+						return 180.0 / M_PI;	/* radians to degrees */
 				}
 			}
 			

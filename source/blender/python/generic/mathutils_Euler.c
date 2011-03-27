@@ -199,7 +199,7 @@ static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 	const char *axis;
 
 	if(!PyArg_ParseTuple(args, "sf:rotate", &axis, &angle)){
-		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected angle (float) and axis (x,y,z)");
+		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected angle (float) and axis (x, y, z)");
 		return NULL;
 	}
 	if(!(ELEM3(*axis, 'X', 'Y', 'Z') && axis[1]=='\0')){
@@ -428,7 +428,7 @@ static int Euler_ass_slice(EulerObject * self, int begin, int end, PyObject * se
 	CLAMP(begin, 0, EULER_SIZE);
 	if (end<0) end= (EULER_SIZE + 1) + end;
 	CLAMP(end, 0, EULER_SIZE);
-	begin = MIN2(begin,end);
+	begin = MIN2(begin, end);
 
 	if((size=mathutils_array_parse(eul, 0, EULER_SIZE, seq, "mathutils.Euler[begin:end] = []")) == -1)
 		return -1;
@@ -455,7 +455,8 @@ static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
 		if (i < 0)
 			i += EULER_SIZE;
 		return Euler_item(self, i);
-	} else if (PySlice_Check(item)) {
+	}
+	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
 		if (PySlice_GetIndicesEx((void *)item, EULER_SIZE, &start, &stop, &step, &slicelength) < 0)
@@ -531,7 +532,7 @@ static PyMappingMethods Euler_AsMapping = {
 /*
  * euler axis, euler.x/y/z
  */
-static PyObject *Euler_getAxis(EulerObject *self, void *type )
+static PyObject *Euler_getAxis(EulerObject *self, void *type)
 {
 	return Euler_item(self, GET_INT_FROM_POINTER(type));
 }
@@ -574,7 +575,7 @@ static PyGetSetDef Euler_getseters[] = {
 
 	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
 	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
-	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 

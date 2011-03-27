@@ -427,9 +427,9 @@ static void cuboid_do(
 			}
 
 			if (has_radius) {
-				if (fabs(tmp_co[0]) > cmd->radius ||
-								fabs(tmp_co[1]) > cmd->radius ||
-								fabs(tmp_co[2]) > cmd->radius) continue;
+				if (fabsf(tmp_co[0]) > cmd->radius ||
+								fabsf(tmp_co[1]) > cmd->radius ||
+								fabsf(tmp_co[2]) > cmd->radius) continue;
 			}
 
 			for (j = 0; j < dvert[i].totweight; ++j) {
@@ -479,7 +479,7 @@ static void cuboid_do(
 
 			/* ok, now we know which coordinate of the vertex to use */
 
-			if (fabs(tmp_co[coord]) < FLT_EPSILON) /* avoid division by zero */
+			if (fabsf(tmp_co[coord]) < FLT_EPSILON) /* avoid division by zero */
 				continue;
 
 			/* finally, this is the factor we wanted, to project the vertex
@@ -523,9 +523,9 @@ static void cuboid_do(
 		}
 
 		if (has_radius) {
-			if (fabs(tmp_co[0]) > cmd->radius ||
-						 fabs(tmp_co[1]) > cmd->radius ||
-						 fabs(tmp_co[2]) > cmd->radius) continue;
+			if (fabsf(tmp_co[0]) > cmd->radius ||
+						 fabsf(tmp_co[1]) > cmd->radius ||
+						 fabsf(tmp_co[2]) > cmd->radius) continue;
 		}
 
 		octant = 0;
@@ -550,7 +550,7 @@ static void cuboid_do(
 			coord = 2;
 		}
 
-		if (fabs(tmp_co[coord]) < FLT_EPSILON)
+		if (fabsf(tmp_co[coord]) < FLT_EPSILON)
 			continue;
 
 		fbb = apex[coord] / tmp_co[coord];

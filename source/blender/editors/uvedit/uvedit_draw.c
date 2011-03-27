@@ -72,35 +72,35 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 	h= zoomy*height/256.0f;
 	
 	cpack(0xFFFFFF);
-	glTranslatef(sima->cursor[0], sima->cursor[1], 0.0f);  
-	fdrawline(-0.05/w, 0, 0, 0.05/h);
-	fdrawline(0, 0.05/h, 0.05/w, 0);
-	fdrawline(0.05/w, 0, 0, -0.05/h);
-	fdrawline(0, -0.05/h, -0.05/w, 0);
-	
+	glTranslatef(sima->cursor[0], sima->cursor[1], 0.0);
+	fdrawline(-0.05f/w, 0, 0, 0.05f/h);
+	fdrawline(0, 0.05f/h, 0.05f/w, 0.0f);
+	fdrawline(0.05f/w, 0.0f, 0.0f, -0.05f/h);
+	fdrawline(0.0f, -0.05f/h, -0.05f/w, 0.0f);
+
 	setlinestyle(4);
 	cpack(0xFF);
-	fdrawline(-0.05/w, 0, 0, 0.05/h);
-	fdrawline(0, 0.05/h, 0.05/w, 0);
-	fdrawline(0.05/w, 0, 0, -0.05/h);
-	fdrawline(0, -0.05/h, -0.05/w, 0);
-	
-	
-	setlinestyle(0);
+	fdrawline(-0.05f/w, 0.0f, 0.0f, 0.05f/h);
+	fdrawline(0.0f, 0.05f/h, 0.05f/w, 0.0f);
+	fdrawline(0.05f/w, 0.0f, 0.0f, -0.05f/h);
+	fdrawline(0.0f, -0.05f/h, -0.05f/w, 0.0f);
+
+
+	setlinestyle(0.0f);
 	cpack(0x0);
-	fdrawline(-0.020/w, 0, -0.1/w, 0);
-	fdrawline(0.1/w, 0, .020/w, 0);
-	fdrawline(0, -0.020/h, 0, -0.1/h);
-	fdrawline(0, 0.1/h, 0, 0.020/h);
-	
+	fdrawline(-0.020f/w, 0.0f, -0.1f/w, 0.0f);
+	fdrawline(0.1f/w, 0.0f, 0.020f/w, 0.0f);
+	fdrawline(0.0f, -0.020f/h, 0.0f, -0.1f/h);
+	fdrawline(0.0f, 0.1f/h, 0.0f, 0.020f/h);
+
 	setlinestyle(1);
 	cpack(0xFFFFFF);
-	fdrawline(-0.020/w, 0, -0.1/w, 0);
-	fdrawline(0.1/w, 0, .020/w, 0);
-	fdrawline(0, -0.020/h, 0, -0.1/h);
-	fdrawline(0, 0.1/h, 0, 0.020/h);
-	
-	glTranslatef(-sima->cursor[0], -sima->cursor[1], 0.0f);
+	fdrawline(-0.020f/w, 0.0f, -0.1f/w, 0.0f);
+	fdrawline(0.1f/w, 0.0f, 0.020f/w, 0.0f);
+	fdrawline(0.0f, -0.020f/h, 0.0f, -0.1f/h);
+	fdrawline(0.0f, 0.1f/h, 0.0f, 0.020f/h);
+
+	glTranslatef(-sima->cursor[0], -sima->cursor[1], 0.0);
 	setlinestyle(0);
 }
 
@@ -215,11 +215,11 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 						uvarea = uv_area(tf_uv, efa->v4 != NULL) / totuvarea;
 						
 						if(area < FLT_EPSILON || uvarea < FLT_EPSILON)
-							areadiff = 1.0;
+							areadiff = 1.0f;
 						else if(area>uvarea)
-							areadiff = 1.0-(uvarea/area);
+							areadiff = 1.0f-(uvarea/area);
 						else
-							areadiff = 1.0-(area/uvarea);
+							areadiff = 1.0f-(area/uvarea);
 						
 						weight_to_rgb(areadiff, col, col+1, col+2);
 						glColor3fv(col);
@@ -276,10 +276,10 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 						
 						/* This is the correct angle however we are only comparing angles
 						 * uvang1 = 90-((angle_normalized_v2v2(av1, av2) * 180.0/M_PI)-90);*/
-						uvang1 = angle_normalized_v2v2(av1, av2)*180.0/M_PI;
-						uvang2 = angle_normalized_v2v2(av2, av3)*180.0/M_PI;
-						uvang3 = angle_normalized_v2v2(av3, av4)*180.0/M_PI;
-						uvang4 = angle_normalized_v2v2(av4, av1)*180.0/M_PI;
+						uvang1 = angle_normalized_v2v2(av1, av2);
+						uvang2 = angle_normalized_v2v2(av2, av3);
+						uvang3 = angle_normalized_v2v2(av3, av4);
+						uvang4 = angle_normalized_v2v2(av4, av1);
 						
 						/* 3d angles */
 						VECSUB(av1, efa->v4->co, efa->v1->co); normalize_v3(av1);
@@ -289,30 +289,30 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 						
 						/* This is the correct angle however we are only comparing angles
 						 * ang1 = 90-((angle_normalized_v3v3(av1, av2) * 180.0/M_PI)-90);*/
-						ang1 = angle_normalized_v3v3(av1, av2)*180.0/M_PI;
-						ang2 = angle_normalized_v3v3(av2, av3)*180.0/M_PI;
-						ang3 = angle_normalized_v3v3(av3, av4)*180.0/M_PI;
-						ang4 = angle_normalized_v3v3(av4, av1)*180.0/M_PI;
+						ang1 = angle_normalized_v3v3(av1, av2);
+						ang2 = angle_normalized_v3v3(av2, av3);
+						ang3 = angle_normalized_v3v3(av3, av4);
+						ang4 = angle_normalized_v3v3(av4, av1);
 						
 						glBegin(GL_QUADS);
 						
 						/* This simple makes the angles display worse then they really are ;)
-						 * 1.0-pow((1.0-a), 2) */
+						 * 1.0-powf((1.0-a), 2) */
 						
-						a = fabs(uvang1-ang1)/180.0;
-						weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+						a = fabsf(uvang1-ang1)/(float)M_PI;
+						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
 						glColor3fv(col);
 						glVertex2fv(tf->uv[0]);
-						a = fabs(uvang2-ang2)/180.0;
-						weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+						a = fabsf(uvang2-ang2)/(float)M_PI;
+						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
 						glColor3fv(col);
 						glVertex2fv(tf->uv[1]);
-						a = fabs(uvang3-ang3)/180.0;
-						weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+						a = fabsf(uvang3-ang3)/(float)M_PI;
+						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
 						glColor3fv(col);
 						glVertex2fv(tf->uv[2]);
-						a = fabs(uvang4-ang4)/180.0;
-						weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+						a = fabsf(uvang4-ang4)/(float)M_PI;
+						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
 						glColor3fv(col);
 						glVertex2fv(tf->uv[3]);
 						
@@ -336,9 +336,9 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 						
 						/* This is the correct angle however we are only comparing angles
 						 * uvang1 = 90-((angle_normalized_v2v2(av1, av2) * 180.0/M_PI)-90); */
-						uvang1 = angle_normalized_v2v2(av1, av2)*180.0/M_PI;
-						uvang2 = angle_normalized_v2v2(av2, av3)*180.0/M_PI;
-						uvang3 = angle_normalized_v2v2(av3, av1)*180.0/M_PI;
+						uvang1 = angle_normalized_v2v2(av1, av2);
+						uvang2 = angle_normalized_v2v2(av2, av3);
+						uvang3 = angle_normalized_v2v2(av3, av1);
 						
 						/* 3d angles */
 						VECSUB(av1, efa->v3->co, efa->v1->co); normalize_v3(av1);
@@ -346,24 +346,24 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 						VECSUB(av3, efa->v2->co, efa->v3->co); normalize_v3(av3);
 						/* This is the correct angle however we are only comparing angles
 						 * ang1 = 90-((angle_normalized_v3v3(av1, av2) * 180.0/M_PI)-90); */
-						ang1 = angle_normalized_v3v3(av1, av2)*180.0/M_PI;
-						ang2 = angle_normalized_v3v3(av2, av3)*180.0/M_PI;
-						ang3 = angle_normalized_v3v3(av3, av1)*180.0/M_PI;
+						ang1 = angle_normalized_v3v3(av1, av2);
+						ang2 = angle_normalized_v3v3(av2, av3);
+						ang3 = angle_normalized_v3v3(av3, av1);
 						
 						/* This simple makes the angles display worse then they really are ;)
-						 * 1.0-pow((1.0-a), 2) */
+						 * 1.0f-powf((1.0-a), 2) */
 						
 						glBegin(GL_TRIANGLES);
-						a = fabs(uvang1-ang1)/180.0;
-						weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+						a = fabsf(uvang1-ang1)/(float)M_PI;
+						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
 						glColor3fv(col);
 						glVertex2fv(tf->uv[0]);
-						a = fabs(uvang2-ang2)/180.0;
-						weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+						a = fabsf(uvang2-ang2)/(float)M_PI;
+						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
 						glColor3fv(col);
 						glVertex2fv(tf->uv[1]);
-						a = fabs(uvang3-ang3)/180.0;
-						weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+						a = fabsf(uvang3-ang3)/(float)M_PI;
+						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
 						glColor3fv(col);
 						glVertex2fv(tf->uv[2]);
 					}

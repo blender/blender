@@ -160,9 +160,9 @@ if __name__ == "__main__":
     from bpyml_test import *
 
     draw = [
-         ui() [
-            split() [
-                column() [
+         ui()[
+            split()[
+                column()[
                     prop(data='context.scene.render', property='use_stamp_time', text='Time'),
                     prop(data='context.scene.render', property='use_stamp_date', text='Date'),
                     prop(data='context.scene.render', property='use_stamp_render_time', text='RenderTime'),
@@ -173,7 +173,7 @@ if __name__ == "__main__":
                     prop(data='context.scene.render', property='use_stamp_marker', text='Marker'),
                     prop(data='context.scene.render', property='use_stamp_sequencer_strip', text='Seq. Strip')
                 ],
-                column() [
+                column()[
                     active(expr='context.scene.render.use_stamp'),
                     prop(data='context.scene.render', property='stamp_foreground', slider=True),
                     prop(data='context.scene.render', property='stamp_background', slider=True),
@@ -181,9 +181,9 @@ if __name__ == "__main__":
                     prop(data='context.scene.render', property='stamp_font_size', text='Font Size')
                 ]
             ],
-            split(percentage=0.2) [
+            split(percentage=0.2)[
                 prop(data='context.scene.render', property='use_stamp_note', text='Note'),
-                row() [
+                row()[
                     active(expr='context.scene.render.use_stamp_note'),
                     prop(data='context.scene.render', property='stamp_note_text', text='')
                 ]

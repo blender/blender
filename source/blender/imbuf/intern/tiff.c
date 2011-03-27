@@ -336,7 +336,7 @@ static void scanline_contig_32bit(float *rectf, float *fbuf, int scanline_w, int
 		rectf[i*4 + 0] = fbuf[i*spp + 0];
 		rectf[i*4 + 1] = fbuf[i*spp + 1];
 		rectf[i*4 + 2] = fbuf[i*spp + 2];
-		rectf[i*4 + 3] = (spp==4)?fbuf[i*spp + 3]:1.0;
+		rectf[i*4 + 3] = (spp==4)?fbuf[i*spp + 3]:1.0f;
 	}
 }
 

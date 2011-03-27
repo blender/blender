@@ -100,7 +100,7 @@ void mesh_strip_loose_edges(struct Mesh *me);
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
 	 * and vertex normals are stored in actual mverts.
 	 */
-void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float **faceNors_r);
+void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
 
 	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
 	 * (_numVerts_r_ may be NULL) */

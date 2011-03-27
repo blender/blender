@@ -157,13 +157,13 @@ void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, fl
 		ctrl= !ctrl;
 	
 	if(ctrl && shift) {
-		if(fac3!= 0.0) *val= fac3*floor(*val/fac3 +.5);
+		if(fac3 != 0.0f) *val= fac3*floorf(*val/fac3 +0.5f);
 	}
 	else if(ctrl) {
-		if(fac2!= 0.0) *val= fac2*floor(*val/fac2 +.5);
+		if(fac2 != 0.0f) *val= fac2*floorf(*val/fac2 +0.5f);
 	}
 	else {
-		if(fac1!= 0.0) *val= fac1*floor(*val/fac1 +.5);
+		if(fac1 != 0.0f) *val= fac1*floorf(*val/fac1 +0.5f);
 	}
 }
 

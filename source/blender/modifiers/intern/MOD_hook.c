@@ -136,8 +136,8 @@ static float hook_falloff(float *co_1, float *co_2, const float falloff_squared,
 		if(len_squared > falloff_squared) {
 			return 0.0f;
 		}
-		else if(len_squared > 0.0) {
-			return fac * (1.0 - (len_squared / falloff_squared));
+		else if(len_squared > 0.0f) {
+			return fac * (1.0f - (len_squared / falloff_squared));
 		}
 	}
 

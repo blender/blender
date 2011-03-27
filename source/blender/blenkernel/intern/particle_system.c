@@ -1577,10 +1577,14 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	part=psys->part;
 	
 	/* get precise emitter matrix if particle is born */
-	if(part->type!=PART_HAIR && pa->time < cfra && pa->time >= sim->psys->cfra) {
+	if(part->type!=PART_HAIR && dtime > 0.f && pa->time < cfra && pa->time >= sim->psys->cfra) {
 		/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
-		BKE_animsys_evaluate_animdata(&sim->ob->id, sim->ob->adt, pa->time, ADT_RECALC_ANIM);
-		where_is_object_time(sim->scene, sim->ob, pa->time);
+		while(ob) {
+			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, pa->time, ADT_RECALC_ANIM);
+			ob = ob->parent;
+		}
+		ob = sim->ob;
+		where_is_object_time(sim->scene, ob, pa->time);
 	}
 
 	/* get birth location from object		*/
@@ -2875,7 +2879,7 @@ static int collision_sphere_to_tri(ParticleCollision *col, float radius, Particl
 	}
 	return 0;
 }
-static int collision_sphere_to_edges(ParticleCollision *col, float radius, ParticleCollisionElement *pce, float *t, int quad)
+static int collision_sphere_to_edges(ParticleCollision *col, float radius, ParticleCollisionElement *pce, float *t)
 {
 	ParticleCollisionElement edge[3], *cur = NULL, *hit = NULL;
 	ParticleCollisionElement *result = &col->pce;
@@ -2884,8 +2888,8 @@ static int collision_sphere_to_edges(ParticleCollision *col, float radius, Parti
 	int i;
 
 	for(i=0; i<3; i++) {
-		/* in case of a quad, no need to check "edge" that goes through face */
-		if((pce->x[3] && i==2) || (quad && i==0))
+		/* in case of a quad, no need to check "edge" that goes through face twice */
+		if((pce->x[3] && i==2))
 			continue;
 
 		cur = edge+i;
@@ -2966,7 +2970,7 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 	MVert *x = col->md->x;
 	MVert *v = col->md->current_v;
 	float t = hit->dist/col->original_ray_length;
-	int collision = 0, quad = 0;
+	int collision = 0;
 
 	pce.x[0] = x[face->v1].co;
 	pce.x[1] = x[face->v2].co;
@@ -2985,7 +2989,7 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 	{	
 		collision = collision_sphere_to_tri(col, ray->radius, &pce, &t);
 		if(col->pce.inside == 0) {
-			collision += collision_sphere_to_edges(col, ray->radius, &pce, &t, quad);
+			collision += collision_sphere_to_edges(col, ray->radius, &pce, &t);
 			collision += collision_sphere_to_verts(col, ray->radius, &pce, &t);
 		}
 
@@ -3005,7 +3009,6 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 		pce.v[1] = pce.v[2];
 		pce.v[2] = pce.v[3];
 		pce.v[3] = NULL;
-		quad++;
 
 	} while(pce.x[2]);
 }
@@ -4329,6 +4332,16 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 			}
 			break;
 		}
+	}
+
+	if(psys->cfra < cfra) {
+		/* make sure emitter is left at correct time (particle emission can change this) */
+		while(ob) {
+			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
+			ob = ob->parent;
+		}
+		ob = sim.ob;
+		where_is_object_time(scene, ob, cfra);
 	}
 
 	psys->cfra = cfra;

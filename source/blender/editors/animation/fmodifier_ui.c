@@ -301,7 +301,7 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 
 /* --------------- */
 
-#define BINARYSEARCH_FRAMEEQ_THRESH	0.0001
+#define BINARYSEARCH_FRAMEEQ_THRESH	0.0001f
 
 /* Binary search algorithm for finding where to insert Envelope Data Point.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
@@ -443,9 +443,9 @@ static void fmod_envelope_deletepoint_cb (bContext *UNUSED(C), void *fcm_dv, voi
 	if (env->totvert > 1) {
 		/* allocate a new smaller array */
 		fedn= MEM_callocN(sizeof(FCM_EnvelopeData)*(env->totvert-1), "FCM_EnvelopeData");
-		
-		memcpy(fedn, &env->data, sizeof(FCM_EnvelopeData)*(index));
-		memcpy(&fedn[index], &env->data[index+1], sizeof(FCM_EnvelopeData)*(env->totvert-index-1));
+
+		memcpy(fedn, env->data, sizeof(FCM_EnvelopeData)*(index));
+		memcpy(fedn + index, env->data + (index + 1), sizeof(FCM_EnvelopeData)*((env->totvert - index)-1));
 		
 		/* free old array, and set the new */
 		MEM_freeN(env->data);
@@ -454,8 +454,10 @@ static void fmod_envelope_deletepoint_cb (bContext *UNUSED(C), void *fcm_dv, voi
 	}
 	else {
 		/* just free array, since the only vert was deleted */
-		if (env->data) 
+		if (env->data) {
 			MEM_freeN(env->data);
+			env->data= NULL;
+		}
 		env->totvert= 0;
 	}
 }

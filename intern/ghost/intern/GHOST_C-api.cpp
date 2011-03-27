@@ -253,6 +253,13 @@ GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle, GHOST_Eve
 	return system->addEventConsumer((GHOST_CallbackEventConsumer*)consumerhandle);
 }
 
+GHOST_TSuccess GHOST_RemoveEventConsumer(GHOST_SystemHandle systemhandle, GHOST_EventConsumerHandle consumerhandle)
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+
+	return system->removeEventConsumer((GHOST_CallbackEventConsumer*)consumerhandle);
+}
+
 GHOST_TSuccess GHOST_SetProgressBar(GHOST_WindowHandle windowhandle,float progress)
 {
 	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;

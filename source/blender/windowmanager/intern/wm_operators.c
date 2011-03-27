@@ -1320,6 +1320,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 	ot->idname= "WM_OT_call_menu";
 
 	ot->exec= wm_call_menu_exec;
+	ot->poll= WM_operator_winactive;
 
 	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the menu");
 }
@@ -2075,31 +2076,34 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
    It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
 */
 
-static int border_apply(bContext *C, wmOperator *op, int gesture_mode)
+static int border_apply_rect(wmOperator *op)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	
-	if(rect->xmin > rect->xmax)
-		SWAP(int, rect->xmin, rect->xmax);
-	if(rect->ymin > rect->ymax)
-		SWAP(int, rect->ymin, rect->ymax);
-	
 	if(rect->xmin==rect->xmax || rect->ymin==rect->ymax)
 		return 0;
-		
+
+	
 	/* operator arguments and storage. */
-	RNA_int_set(op->ptr, "xmin", rect->xmin);
-	RNA_int_set(op->ptr, "ymin", rect->ymin);
-	RNA_int_set(op->ptr, "xmax", rect->xmax);
-	RNA_int_set(op->ptr, "ymax", rect->ymax);
+	RNA_int_set(op->ptr, "xmin", MIN2(rect->xmin, rect->xmax) );
+	RNA_int_set(op->ptr, "ymin", MIN2(rect->ymin, rect->ymax) );
+	RNA_int_set(op->ptr, "xmax", MAX2(rect->xmin, rect->xmax) );
+	RNA_int_set(op->ptr, "ymax", MAX2(rect->ymin, rect->ymax) );
+
+	return 1;
+}
+
+static int border_apply(bContext *C, wmOperator *op, int gesture_mode)
+{
+	if (!border_apply_rect(op))
+		return 0;
 	
 	/* XXX weak; border should be configured for this without reading event types */
 	if( RNA_struct_find_property(op->ptr, "gesture_mode") )
 		RNA_int_set(op->ptr, "gesture_mode", gesture_mode);
 
 	op->type->exec(C, op);
-	
 	return 1;
 }
 
@@ -2148,6 +2152,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			rect->xmax= event->x - sx;
 			rect->ymax= event->y - sy;
 		}
+		border_apply_rect(op);
 
 		wm_gesture_tag_redraw(C);
 	}
@@ -2660,7 +2665,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	// int hit = 0;
 	
 	if(rc->mode == WM_RADIALCONTROL_STRENGTH)
-		rc->tex_col[3]= (rc->value + 0.5);
+		rc->tex_col[3]= (rc->value + 0.5f);
 
 	if(rc->mode == WM_RADIALCONTROL_SIZE) {
 		r1= rc->value;
@@ -2831,7 +2836,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		rc->max_value = 360;
 		mouse[0]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(initial_value);
 		mouse[1]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(initial_value);
-		initial_value *= 180.0f/M_PI;
+		initial_value *= 180.0f/(float)M_PI;
 	}
 
 	if(op->customdata) {
@@ -2879,7 +2884,7 @@ void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		BLI_snprintf(str, maxlen, "Strength: %d", (int)v);
 	else if(mode == WM_RADIALCONTROL_ANGLE)
-		BLI_snprintf(str, maxlen, "Angle: %d", (int)(v * 180.0f/M_PI));
+		BLI_snprintf(str, maxlen, "Angle: %d", (int)(v * 180.0f/(float)M_PI));
 }
 
 /** Important: this doesn't define an actual operator, it
@@ -2940,7 +2945,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	double stime= PIL_check_seconds_timer();
-	int type = RNA_int_get(op->ptr, "type");
+	int type = RNA_enum_get(op->ptr, "type");
 	int iter = RNA_int_get(op->ptr, "iterations");
 	int a;
 	float time;

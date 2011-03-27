@@ -638,7 +638,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 	Py_RETURN_NONE;
 }
 
-static PyObject *gLibLoad(PyObject*, PyObject* args)
+static PyObject *gLibLoad(PyObject*, PyObject* args, PyObject* kwds)
 {
 	KX_Scene *kx_scene= gp_KetsjiScene;
 	char *path;
@@ -646,20 +646,37 @@ static PyObject *gLibLoad(PyObject*, PyObject* args)
 	Py_buffer py_buffer;
 	py_buffer.buf = NULL;
 	char *err_str= NULL;
+
+	short options=0;
+	int load_actions=0, verbose=0;
+
+	static const char *kwlist[] = {"path", "group", "buffer", "load_actions", "verbose", NULL};
 	
-	if (!PyArg_ParseTuple(args,"ss|y*:LibLoad",&path, &group, &py_buffer))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ss|y*ii:LibLoad", const_cast<char**>(kwlist),
+									&path, &group, &py_buffer, &load_actions, &verbose))
 		return NULL;
+
+	/* setup options */
+	if (load_actions != 0)
+		options |= KX_BlenderSceneConverter::LIB_LOAD_LOAD_ACTIONS;
+	if (verbose != 0)
+		options |= KX_BlenderSceneConverter::LIB_LOAD_VERBOSE;
 
 	if (!py_buffer.buf)
 	{
-		if(kx_scene->GetSceneConverter()->LinkBlendFilePath(path, group, kx_scene, &err_str)) {
+		char abs_path[FILE_MAX];
+		// Make the path absolute
+		BLI_strncpy(abs_path, path, sizeof(abs_path));
+		BLI_path_abs(abs_path, gp_GamePythonPath);
+
+		if(kx_scene->GetSceneConverter()->LinkBlendFilePath(abs_path, group, kx_scene, &err_str, options)) {
 			Py_RETURN_TRUE;
 		}
 	}
 	else
 	{
 
-		if(kx_scene->GetSceneConverter()->LinkBlendFileMemory(py_buffer.buf, py_buffer.len, path, group, kx_scene, &err_str))	{
+		if(kx_scene->GetSceneConverter()->LinkBlendFileMemory(py_buffer.buf, py_buffer.len, path, group, kx_scene, &err_str, options))	{
 			PyBuffer_Release(&py_buffer);
 			Py_RETURN_TRUE;
 		}
@@ -793,7 +810,7 @@ static struct PyMethodDef game_methods[] = {
 	{"PrintMemInfo", (PyCFunction)pyPrintStats, METH_NOARGS, (const char *)"Print engine stastics"},
 	
 	/* library functions */
-	{"LibLoad", (PyCFunction)gLibLoad, METH_VARARGS, (const char *)""},
+	{"LibLoad", (PyCFunction)gLibLoad, METH_VARARGS|METH_KEYWORDS, (const char *)""},
 	{"LibNew", (PyCFunction)gLibNew, METH_VARARGS, (const char *)""},
 	{"LibFree", (PyCFunction)gLibFree, METH_VARARGS, (const char *)""},
 	{"LibList", (PyCFunction)gLibList, METH_VARARGS, (const char *)""},
@@ -1900,6 +1917,15 @@ static void restorePySysObjects(void)
 //	PyObject_Print(sys_path, stderr, 0);
 }
 
+// Copied from bpy_interface.c
+static struct _inittab bge_internal_modules[]= {
+	{(char *)"mathutils", BPyInit_mathutils},
+	{(char *)"bgl", BPyInit_bgl},
+	{(char *)"blf", BPyInit_blf},
+	{(char *)"aud", AUD_initPython},
+	{NULL, NULL}
+};
+
 /**
  * Python is not initialised.
  */
@@ -1919,6 +1945,10 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 #endif
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
+
+	/* must run before python initializes */
+	PyImport_ExtendInittab(bge_internal_modules);
+
 	Py_Initialize();
 	
 	if(argv && first_time) { /* browser plugins dont currently set this */
@@ -1935,6 +1965,13 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	}
 	
 	setSandbox(level);
+
+	/* mathutils types are used by the BGE even if we dont import them */
+	{
+		PyObject *mod= PyImport_ImportModuleLevel((char *)"mathutils", NULL, NULL, NULL, 0);
+		Py_DECREF(mod);
+	}
+
 	initPyTypes();
 	
 	bpy_import_main_set(maggie);
@@ -2028,11 +2065,6 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 
 	initGameKeys();
 	initPythonConstraintBinding();
-	initMathutils();
-	initGeometry();
-	initBGL();
-	initBLF();
-	AUD_initPython();
 	initVideoTexture();
 
 	/* could be done a lot more nicely, but for now a quick way to get bge.* working */
@@ -2339,26 +2371,6 @@ PyObject* initGameKeys()
     }
 
 	return d;
-}
-
-PyObject* initMathutils()
-{
-	return BPyInit_mathutils();
-}
-
-PyObject* initGeometry()
-{
-	return BPyInit_mathutils_geometry();
-}
-
-PyObject* initBGL()
-{
-	return BPyInit_bgl();
-}
-
-PyObject* initBLF()
-{
-	return BPyInit_blf();
 }
 
 // utility function for loading and saving the globalDict

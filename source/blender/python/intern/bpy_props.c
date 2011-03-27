@@ -47,19 +47,19 @@
 
 #include "../generic/py_capi_utils.h"
 
-static EnumPropertyItem property_flag_items[] = {
+static EnumPropertyItem property_flag_items[]= {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem property_flag_enum_items[] = {
+static EnumPropertyItem property_flag_enum_items[]= {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
 	{PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* subtypes */
-static EnumPropertyItem property_subtype_string_items[] = {
+static EnumPropertyItem property_subtype_string_items[]= {
 	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
 	{PROP_FILENAME, "FILENAME", 0, "Filename", ""},
@@ -67,7 +67,7 @@ static EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem property_subtype_number_items[] = {
+static EnumPropertyItem property_subtype_number_items[]= {
 	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},
 	{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
 	{PROP_FACTOR, "FACTOR", 0, "Factor", ""},
@@ -78,7 +78,7 @@ static EnumPropertyItem property_subtype_number_items[] = {
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem property_subtype_array_items[] = {
+static EnumPropertyItem property_subtype_array_items[]= {
 	{PROP_COLOR, "COLOR", 0, "Color", ""},
 	{PROP_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
 	{PROP_DIRECTION, "DIRECTION", 0, "Direction", ""},
@@ -96,17 +96,17 @@ static EnumPropertyItem property_subtype_array_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 /* PyObject's */
-static PyObject *pymeth_BoolProperty = NULL;
-static PyObject *pymeth_BoolVectorProperty = NULL;
-static PyObject *pymeth_IntProperty = NULL;
-static PyObject *pymeth_IntVectorProperty = NULL;
-static PyObject *pymeth_FloatProperty = NULL;
-static PyObject *pymeth_FloatVectorProperty = NULL;
-static PyObject *pymeth_StringProperty = NULL;
-static PyObject *pymeth_EnumProperty = NULL;
-static PyObject *pymeth_PointerProperty = NULL;
-static PyObject *pymeth_CollectionProperty = NULL;
-static PyObject *pymeth_RemoveProperty = NULL;
+static PyObject *pymeth_BoolProperty= NULL;
+static PyObject *pymeth_BoolVectorProperty= NULL;
+static PyObject *pymeth_IntProperty= NULL;
+static PyObject *pymeth_IntVectorProperty= NULL;
+static PyObject *pymeth_FloatProperty= NULL;
+static PyObject *pymeth_FloatVectorProperty= NULL;
+static PyObject *pymeth_StringProperty= NULL;
+static PyObject *pymeth_EnumProperty= NULL;
+static PyObject *pymeth_PointerProperty= NULL;
+static PyObject *pymeth_CollectionProperty= NULL;
+static PyObject *pymeth_RemoveProperty= NULL;
 
 
 /* operators and classes use this so it can store the args given but defer
@@ -114,7 +114,7 @@ static PyObject *pymeth_RemoveProperty = NULL;
  * the default args for that operator instance */
 static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 {
-	PyObject *ret = PyTuple_New(2);
+	PyObject *ret= PyTuple_New(2);
 	PyTuple_SET_ITEM(ret, 0, func);
 	Py_INCREF(func);
 
@@ -213,7 +213,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	BPY_PROPDEF_HEAD(BoolProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "options", "subtype", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int def=0;
@@ -255,7 +255,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string\n"
-"   :arg size: Vector dimensions in [1,  and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
+"   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
 "   :type size: int\n"
 ;
 static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -265,7 +265,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 	BPY_PROPDEF_HEAD(BoolVectorProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", "size", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "options", "subtype", "size", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int def[PYRNA_STACK_ARRAY]={0};
@@ -325,7 +325,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	BPY_PROPDEF_HEAD(IntProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def=0;
@@ -368,7 +368,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string\n"
-"   :arg size: Vector dimensions in [1,  and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
+"   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
 "   :type size: int\n"
 ;
 static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -378,7 +378,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 	BPY_PROPDEF_HEAD(IntVectorProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "size", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "size", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def[PYRNA_STACK_ARRAY]={0};
@@ -441,7 +441,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	BPY_PROPDEF_HEAD(FloatProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
@@ -492,7 +492,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string\n"
-"   :arg size: Vector dimensions in [1,  and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
+"   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
 "   :type size: int\n"
 ;
 static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -502,7 +502,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 	BPY_PROPDEF_HEAD(FloatVectorProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "size", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "size", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def[PYRNA_STACK_ARRAY]={0.0f};
@@ -562,7 +562,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 	BPY_PROPDEF_HEAD(StringProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "maxlen", "options", "subtype", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "maxlen", "options", "subtype", NULL};
 		const char *id=NULL, *name="", *description="", *def="";
 		int id_len;
 		int maxlen=0;
@@ -703,7 +703,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 	BPY_PROPDEF_HEAD(EnumProperty)
 	
 	if(srna) {
-		static const char *kwlist[] = {"attr", "items", "name", "description", "default", "options", NULL};
+		static const char *kwlist[]= {"attr", "items", "name", "description", "default", "options", NULL};
 		const char *id=NULL, *name="", *description="";
 		PyObject *def= NULL;
 		int id_len;
@@ -788,7 +788,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 	BPY_PROPDEF_HEAD(PointerProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
+		static const char *kwlist[]= {"attr", "type", "name", "description", "options", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		PropertyRNA *prop;
@@ -835,7 +835,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 	BPY_PROPDEF_HEAD(CollectionProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
+		static const char *kwlist[]= {"attr", "type", "name", "description", "options", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		PropertyRNA *prop;
@@ -897,7 +897,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		return NULL;
 	}
 	else {
-		static const char *kwlist[] = {"attr", NULL};
+		static const char *kwlist[]= {"attr", NULL};
 		
 		char *id=NULL;
 
@@ -912,7 +912,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 	Py_RETURN_NONE;
 }
 
-static struct PyMethodDef props_methods[] = {
+static struct PyMethodDef props_methods[]= {
 	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolProperty_doc},
 	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolVectorProperty_doc},
 	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, BPy_IntProperty_doc},
@@ -928,7 +928,7 @@ static struct PyMethodDef props_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-static struct PyModuleDef props_module = {
+static struct PyModuleDef props_module= {
 	PyModuleDef_HEAD_INIT,
 	"bpy.props",
 	"This module defines properties to extend blenders internal data, the result of these functions"
@@ -954,7 +954,7 @@ PyObject *BPY_rna_props( void )
 	/* api needs the PyObjects internally */
 	submodule_dict= PyModule_GetDict(submodule);
 
-#define ASSIGN_STATIC(_name) pymeth_##_name = PyDict_GetItemString(submodule_dict, #_name)
+#define ASSIGN_STATIC(_name) pymeth_##_name= PyDict_GetItemString(submodule_dict, #_name)
 
 	ASSIGN_STATIC(BoolProperty);
 	ASSIGN_STATIC(BoolVectorProperty);

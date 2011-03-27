@@ -2204,7 +2204,6 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 	/*	Blancmange (bmange@airdmhor.gen.nz) */
 
 	k = -1.0/(2.0*3.14159*blur*blur);
-	fval=0;
 	for (ix = 0;ix< halfWidth;ix++){
 		weight = (float)exp(k*(ix*ix));
 		filter[halfWidth - ix] = weight;

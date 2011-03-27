@@ -1970,6 +1970,7 @@ static void rekey_particle(PEData *data, int pa_index)
 	for(k=0, key=pa->hair; k<pa->totkey; k++, key++, ekey++) {
 		ekey->co= key->co;
 		ekey->time= &key->time;
+		ekey->flag |= PEK_SELECT;
 		if(!(psys->flag & PSYS_GLOBAL_HAIR))
 			ekey->flag |= PEK_USE_WCO;
 	}

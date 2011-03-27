@@ -439,7 +439,9 @@ GHOST_WindowX11(
 
 	setTitle(title);
 
+#ifdef WITH_X11_XINPUT
 	initXInputDevices();
+#endif
 
 	// now set up the rendering context.
 	if (installDrawingContext(type) == GHOST_kSuccess) {
@@ -453,6 +455,7 @@ GHOST_WindowX11(
 	XFlush(m_display);
 }
 
+#ifdef WITH_X11_XINPUT
 /* 
 	Dummy function to get around IO Handler exiting if device invalid
 	Basically it will not crash blender now if you have a X device that 
@@ -492,6 +495,7 @@ static bool match_token(const char *haystack, const char *needle)
 	}
 	return FALSE;
 }
+
 
 /*	Determining if an X device is a Tablet style device is an imperfect science.
 **  We rely on common conventions around device names as well as the type reported
@@ -652,8 +656,9 @@ void GHOST_WindowX11::initXInputDevices()
 		}
 		XFree(version);
 	}
-}	
+}
 
+#endif /* WITH_X11_XINPUT */
 
 	Window 
 GHOST_WindowX11::
@@ -1275,14 +1280,16 @@ GHOST_WindowX11::
 	if (m_custom_cursor) {
 		XFreeCursor(m_display, m_custom_cursor);
 	}
-	
+
+#ifdef WITH_X11_XINPUT
 	/* close tablet devices */
 	if(m_xtablet.StylusDevice)
 		XCloseDevice(m_display, m_xtablet.StylusDevice);
 	
 	if(m_xtablet.EraserDevice)
 		XCloseDevice(m_display, m_xtablet.EraserDevice);
-	
+#endif /* WITH_X11_XINPUT */
+
 	if (m_context != s_firstContext) {
 		glXDestroyContext(m_display, m_context);
 	}

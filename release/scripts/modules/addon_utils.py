@@ -97,10 +97,17 @@ def modules(module_cache):
                             break
 
         if body_info:
-            mod = ModuleType(mod_name)
-            mod.bl_info = ast.literal_eval(body.value)
-            mod.__file__ = mod_path
-            mod.__time__ = os.path.getmtime(mod_path)
+            try:
+                mod = ModuleType(mod_name)
+                mod.bl_info = ast.literal_eval(body.value)
+                mod.__file__ = mod_path
+                mod.__time__ = os.path.getmtime(mod_path)
+            except:
+                print("AST error in module %s" % mod_name)
+                import traceback
+                traceback.print_exc()
+                raise
+            
             return mod
         else:
             return None

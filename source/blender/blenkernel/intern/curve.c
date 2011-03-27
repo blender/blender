@@ -1712,13 +1712,12 @@ static void bevel_list_flip_tangents(BevList *bl)
 /* apply user tilt */
 static void bevel_list_apply_tilt(BevList *bl)
 {
-	BevPoint *bevp2, *bevp1, *bevp0;
+	BevPoint *bevp2, *bevp1;
 	int nr;
 	float q[4];
 
 	bevp2= (BevPoint *)(bl+1);
 	bevp1= bevp2+(bl->nr-1);
-	bevp0= bevp1-1;
 
 	nr= bl->nr;
 	while(nr--) {
@@ -1726,7 +1725,6 @@ static void bevel_list_apply_tilt(BevList *bl)
 		mul_qt_qtqt(bevp1->quat, q, bevp1->quat);
 		normalize_qt(bevp1->quat);
 
-		bevp0= bevp1;
 		bevp1= bevp2;
 		bevp2++;
 	}

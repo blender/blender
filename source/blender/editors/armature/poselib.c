@@ -298,7 +298,7 @@ static int poselib_sanitise_exec (bContext *C, wmOperator *op)
 		/* check if any pose matches this */
 		// TODO: don't go looking through the list like this every time...
 		for (marker= act->markers.first; marker; marker= marker->next) {
-			if (IS_EQ(marker->frame, ak->cfra)) {
+			if (IS_EQ(marker->frame, (double)ak->cfra)) {
 				marker->flag = -1;
 				break;
 			}
@@ -354,7 +354,7 @@ void POSELIB_OT_action_sanitise (wmOperatorType *ot)
 static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	Object *ob= get_poselib_object(C);
-	bAction *act= (ob) ? ob->poselib : NULL;
+	bAction *act= ob->poselib; /* never NULL */
 	TimeMarker *marker;
 	
 	/* set the operator execution context correctly */

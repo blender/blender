@@ -314,6 +314,11 @@ static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
 	v3d->lay= ED_view3d_scene_layer_set(v3d->lay, values, &v3d->layact);
 }
 
+static void rna_SpaceView3D_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	DAG_on_visible_update(bmain, FALSE);
+}
+
 static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
 {
 	View3D *v3d= (View3D*)(ptr->data);
@@ -1275,7 +1280,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceView3D_layer_set");
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible in this 3D View");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_SpaceView3D_layer_update");
 	
 	prop= RNA_def_property(srna, "layers_used", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_used", 1);
@@ -1445,9 +1450,9 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
-	prop= RNA_def_property(srna, "curves", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "cumap");
-	RNA_def_property_ui_text(prop, "Curves", "Color curve mapping to use for displaying the image");
+	RNA_def_property_ui_text(prop, "Curve", "Color curve mapping to use for displaying the image");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_curves_update");
 
 	prop= RNA_def_property(srna, "scopes", PROP_POINTER, PROP_NONE);

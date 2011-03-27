@@ -411,6 +411,21 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 			return 0;
 		}
 	}
+
+	if(property) {
+		static const char *kwlist_prop[] = {
+			/* not keywords but reserved all the same because py uses */
+			"keys", "values", "items", "get",
+			NULL
+		};
+
+		for(a=0; kwlist_prop[a]; a++) {
+			if (strcmp(identifier, kwlist_prop[a]) == 0) {
+				strcpy(error, "this keyword is reserved by python");
+				return 0;
+			}
+		}
+	}
 	
 	return 1;
 }
