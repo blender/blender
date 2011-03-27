@@ -2871,7 +2871,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 			cu->tb = tb;
 			cu->tb[0].w = cu->linewidth;
 		}		
-		if (cu->wordspace == 0.0) cu->wordspace = 1.0;
+		if (cu->wordspace == 0.0f) cu->wordspace = 1.0f;
 	}
 
 	cu->bev.first=cu->bev.last= NULL;
@@ -6951,9 +6951,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 113) {
 		Material *ma = main->mat.first;
 		while(ma) {
-			if(ma->flaresize==0.0) ma->flaresize= 1.0;
-			ma->subsize= 1.0;
-			ma->flareboost= 1.0;
+			if(ma->flaresize==0.0f) ma->flaresize= 1.0f;
+			ma->subsize= 1.0f;
+			ma->flareboost= 1.0f;
 			ma= ma->id.next;
 		}
 	}
@@ -6961,13 +6961,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 134) {
 		Tex *tex = main->tex.first;
 		while (tex) {
-			if ((tex->rfac == 0.0) &&
-				(tex->gfac == 0.0) &&
-				(tex->bfac == 0.0)) {
-				tex->rfac = 1.0;
-				tex->gfac = 1.0;
-				tex->bfac = 1.0;
-				tex->filtersize = 1.0;
+			if ((tex->rfac == 0.0f) &&
+				(tex->gfac == 0.0f) &&
+				(tex->bfac == 0.0f)) {
+				tex->rfac = 1.0f;
+				tex->gfac = 1.0f;
+				tex->bfac = 1.0f;
+				tex->filtersize = 1.0f;
 			}
 			tex = tex->id.next;
 		}
@@ -6976,13 +6976,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* r-g-b-fac in texture */
 		Tex *tex = main->tex.first;
 		while (tex) {
-			if ((tex->rfac == 0.0) &&
-				(tex->gfac == 0.0) &&
-				(tex->bfac == 0.0)) {
-				tex->rfac = 1.0;
-				tex->gfac = 1.0;
-				tex->bfac = 1.0;
-				tex->filtersize = 1.0;
+			if ((tex->rfac == 0.0f) &&
+				(tex->gfac == 0.0f) &&
+				(tex->bfac == 0.0f)) {
+				tex->rfac = 1.0f;
+				tex->gfac = 1.0f;
+				tex->bfac = 1.0f;
+				tex->filtersize = 1.0f;
 			}
 			tex = tex->id.next;
 		}
@@ -6990,7 +6990,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 153) {
 		Scene *sce = main->scene.first;
 		while(sce) {
-			if(sce->r.blurfac==0.0) sce->r.blurfac= 1.0;
+			if(sce->r.blurfac==0.0f) sce->r.blurfac= 1.0f;
 			sce= sce->id.next;
 		}
 	}
@@ -7111,8 +7111,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				TFace *tface= me->tface;
 				for(a=0; a<me->totface; a++, tface++) {
 					for(b=0; b<4; b++) {
-						tface->uv[b][0]/= 32767.0;
-						tface->uv[b][1]/= 32767.0;
+						tface->uv[b][0]/= 32767.0f;
+						tface->uv[b][1]/= 32767.0f;
 					}
 				}
 			}
@@ -7249,13 +7249,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if(act->type==ACT_OBJECT) {
 					oa= act->data;
 
-					oa->forceloc[0]*= 25.0;
-					oa->forceloc[1]*= 25.0;
-					oa->forceloc[2]*= 25.0;
+					oa->forceloc[0]*= 25.0f;
+					oa->forceloc[1]*= 25.0f;
+					oa->forceloc[2]*= 25.0f;
 
-					oa->forcerot[0]*= 10.0;
-					oa->forcerot[1]*= 10.0;
-					oa->forcerot[2]*= 10.0;
+					oa->forcerot[0]*= 10.0f;
+					oa->forcerot[1]*= 10.0f;
+					oa->forcerot[2]*= 10.0f;
 				}
 				act= act->next;
 			}
@@ -7264,8 +7264,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		sound = main->sound.first;
 		while (sound) {
-			if (sound->volume < 0.01) {
-				sound->volume = 1.0;
+			if (sound->volume < 0.01f) {
+				sound->volume = 1.0f;
 			}
 			sound = sound->id.next;
 		}
@@ -7361,18 +7361,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (act->type==ACT_OBJECT) {
 					/* multiply velocity with 50 in old files */
 					oa= act->data;
-					if (fabs(oa->linearvelocity[0]) >= 0.01f)
-						oa->linearvelocity[0] *= 50.0;
-					if (fabs(oa->linearvelocity[1]) >= 0.01f)
-						oa->linearvelocity[1] *= 50.0;
-					if (fabs(oa->linearvelocity[2]) >= 0.01f)
-						oa->linearvelocity[2] *= 50.0;
-					if (fabs(oa->angularvelocity[0])>=0.01f)
-						oa->angularvelocity[0] *= 50.0;
-					if (fabs(oa->angularvelocity[1])>=0.01f)
-						oa->angularvelocity[1] *= 50.0;
-					if (fabs(oa->angularvelocity[2])>=0.01f)
-						oa->angularvelocity[2] *= 50.0;
+					if (fabsf(oa->linearvelocity[0]) >= 0.01f)
+						oa->linearvelocity[0] *= 50.0f;
+					if (fabsf(oa->linearvelocity[1]) >= 0.01f)
+						oa->linearvelocity[1] *= 50.0f;
+					if (fabsf(oa->linearvelocity[2]) >= 0.01f)
+						oa->linearvelocity[2] *= 50.0f;
+					if (fabsf(oa->angularvelocity[0])>=0.01f)
+						oa->angularvelocity[0] *= 50.0f;
+					if (fabsf(oa->angularvelocity[1])>=0.01f)
+						oa->angularvelocity[1] *= 50.0f;
+					if (fabsf(oa->angularvelocity[2])>=0.01f)
+						oa->angularvelocity[2] *= 50.0f;
 				}
 				act= act->next;
 			}
@@ -7394,7 +7394,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sound->min_gain = 0.0;
 			sound->distance = 1.0;
 
-			if (sound->attenuation > 0.0)
+			if (sound->attenuation > 0.0f)
 				sound->flags |= SOUND_FLAGS_3D;
 			else
 				sound->flags &= ~SOUND_FLAGS_3D;
@@ -7452,7 +7452,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ob->formfactor = 0.4f;
 			/* patch form factor , note that inertia equiv radius
 			 * of a rotation symmetrical obj */
-			if (ob->inertia != 1.0) {
+			if (ob->inertia != 1.0f) {
 				ob->formfactor /= ob->inertia * ob->inertia;
 			}
 			ob = ob->id.next;
@@ -7814,7 +7814,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				SpaceLink *sl;
 
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->blockscale==0.0) sl->blockscale= 0.7f;
+					if(sl->blockscale==0.0f) sl->blockscale= 0.7f;
 					/* added: 5x better zoom in for action */
 					if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *sac= (SpaceAction *)sl;
@@ -7858,8 +7858,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		/* introduction of raytrace */
 		while(ma) {
-			if(ma->fresnel_tra_i==0.0) ma->fresnel_tra_i= 1.25;
-			if(ma->fresnel_mir_i==0.0) ma->fresnel_mir_i= 1.25;
+			if(ma->fresnel_tra_i==0.0f) ma->fresnel_tra_i= 1.25f;
+			if(ma->fresnel_mir_i==0.0f) ma->fresnel_mir_i= 1.25f;
 
 			ma->ang= 1.0;
 			ma->ray_depth= 2;
@@ -7871,23 +7871,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		sce= main->scene.first;
 		while(sce) {
-			if(sce->r.gauss==0.0) sce->r.gauss= 1.0;
+			if(sce->r.gauss==0.0f) sce->r.gauss= 1.0f;
 			sce= sce->id.next;
 		}
 		la= main->lamp.first;
 		while(la) {
-			if(la->k==0.0) la->k= 1.0;
+			if(la->k==0.0f) la->k= 1.0;
 			if(la->ray_samp==0) la->ray_samp= 1;
 			if(la->ray_sampy==0) la->ray_sampy= 1;
 			if(la->ray_sampz==0) la->ray_sampz= 1;
-			if(la->area_size==0.0) la->area_size= 1.0;
-			if(la->area_sizey==0.0) la->area_sizey= 1.0;
-			if(la->area_sizez==0.0) la->area_sizez= 1.0;
+			if(la->area_size==0.0f) la->area_size= 1.0f;
+			if(la->area_sizey==0.0f) la->area_sizey= 1.0f;
+			if(la->area_sizez==0.0f) la->area_sizez= 1.0f;
 			la= la->id.next;
 		}
 		wrld= main->world.first;
 		while(wrld) {
-			if(wrld->range==0.0) {
+			if(wrld->range==0.0f) {
 				wrld->range= 1.0f/wrld->exposure;
 			}
 			wrld= wrld->id.next;
@@ -7928,7 +7928,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				tex->flag |= TEX_CHECKER_ODD;
 			}
 			/* copied from kernel texture.c */
-			if(tex->ns_outscale==0.0) {
+			if(tex->ns_outscale==0.0f) {
 				/* musgrave */
 				tex->mg_H = 1.0f;
 				tex->mg_lacunarity = 2.0f;
@@ -7946,12 +7946,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		while(wrld) {
-			if(wrld->aodist==0.0) {
+			if(wrld->aodist==0.0f) {
 				wrld->aodist= 10.0f;
 				wrld->aobias= 0.05f;
 			}
-			if(wrld->aosamp==0.0) wrld->aosamp= 5;
-			if(wrld->aoenergy==0.0) wrld->aoenergy= 1.0;
+			if(wrld->aosamp==0) wrld->aosamp= 5;
+			if(wrld->aoenergy==0.0f) wrld->aoenergy= 1.0f;
 			wrld= wrld->id.next;
 		}
 
@@ -7963,7 +7963,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
 				SpaceLink *sl;
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->blockscale==0.0) sl->blockscale= 0.7f;
+					if(sl->blockscale==0.0f) sl->blockscale= 0.7f;
 
 					/* added: 5x better zoom in for nla */
 					if(sl->spacetype==SPACE_NLA) {
@@ -7986,8 +7986,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob= main->object.first;
 		
 		while(ma) {
-			if(ma->rampfac_col==0.0) ma->rampfac_col= 1.0;
-			if(ma->rampfac_spec==0.0) ma->rampfac_spec= 1.0;
+			if(ma->rampfac_col==0.0f) ma->rampfac_col= 1.0;
+			if(ma->rampfac_spec==0.0f) ma->rampfac_spec= 1.0;
 			if(ma->pr_lamp==0) ma->pr_lamp= 3;
 			ma= ma->id.next;
 		}
@@ -8048,7 +8048,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Editing *ed;
 		
 		while(tex) {
-			if(tex->nabla==0.0) tex->nabla= 0.025f;
+			if(tex->nabla==0.0f) tex->nabla= 0.025f;
 			tex= tex->id.next;
 		}
 		while(sce) {
@@ -8071,7 +8071,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bScreen *sc;
 
 		while(cam) {
-			if(cam->ortho_scale==0.0) {
+			if(cam->ortho_scale==0.0f) {
 				cam->ortho_scale= 256.0f/cam->lens;
 				if(cam->type==CAM_ORTHO) printf("NOTE: ortho render has changed, tweak new Camera 'scale' value.\n");
 			}
@@ -8099,7 +8099,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		// init new shader vars
 		for (ma= main->mat.first; ma; ma= ma->id.next) {
-			if(ma->darkness==0.0) {
+			if(ma->darkness==0.0f) {
 				ma->rms=0.1f;
 				ma->darkness=1.0f;
 			}
@@ -8108,8 +8108,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* softbody init new vars */
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(ob->soft) {
-				if(ob->soft->defgoal==0.0) ob->soft->defgoal= 0.7f;
-				if(ob->soft->physics_speed==0.0) ob->soft->physics_speed= 1.0f;
+				if(ob->soft->defgoal==0.0f) ob->soft->defgoal= 0.7f;
+				if(ob->soft->physics_speed==0.0f) ob->soft->physics_speed= 1.0f;
 				
 				if(ob->soft->interval==0) {
 					ob->soft->interval= 2;
@@ -8221,7 +8221,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for (lt=main->latt.first; lt; lt=lt->id.next) {
-			if (lt->fu==0.0 && lt->fv==0.0 && lt->fw==0.0) {
+			if (lt->fu==0.0f && lt->fv==0.0f && lt->fw==0.0f) {
 				calc_lat_fudu(lt->flag, lt->pntsu, &lt->fu, &lt->du);
 				calc_lat_fudu(lt->flag, lt->pntsv, &lt->fv, &lt->dv);
 				calc_lat_fudu(lt->flag, lt->pntsw, &lt->fw, &lt->dw);
@@ -8443,7 +8443,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ntree_version_241(sce->nodetree);
 
 			/* uv calculation options moved to toolsettings */
-			if (sce->toolsettings->uvcalc_radius == 0.0) {
+			if (sce->toolsettings->uvcalc_radius == 0.0f) {
 				sce->toolsettings->uvcalc_radius = 1.0f;
 				sce->toolsettings->uvcalc_cubesize = 1.0f;
 				sce->toolsettings->uvcalc_mapdir = 1;
@@ -8499,7 +8499,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 			/* transmissivity defaults */
-			if(ma->tx_falloff==0.0) ma->tx_falloff= 1.0;
+			if(ma->tx_falloff==0.0f) ma->tx_falloff= 1.0f;
 		}
 		
 		/* during 2.41 images with this name were used for viewer node output, lets fix that */
@@ -9720,7 +9720,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Lamp *la;
 
 		for(la=main->lamp.first; la; la= la->id.next) {
-			if(la->atm_turbidity == 0.0) {
+			if(la->atm_turbidity == 0.0f) {
 				la->sun_effect_type = 0;
 				la->horizon_brightness = 1.0f;
 				la->spread = 1.0f;
@@ -10192,7 +10192,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			ts= sce->toolsettings;
-			if(ts->normalsize == 0.0 || !ts->uv_selectmode || ts->vgroup_weight == 0.0) {
+			if(ts->normalsize == 0.0f || !ts->uv_selectmode || ts->vgroup_weight == 0.0f) {
 				ts->normalsize= 0.1f;
 				ts->selectmode= SCE_SELECT_VERTEX;
 				
@@ -11449,7 +11449,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			KeyBlock *kb;
 			
 			for (kb = key->block.first; kb; kb = kb->next) {
-				if (IS_EQ(kb->slidermin, kb->slidermax) && IS_EQ(kb->slidermax, 0))
+				if (IS_EQF(kb->slidermin, kb->slidermax) && IS_EQ(kb->slidermax, 0))
 					kb->slidermax = kb->slidermin + 1.0f;
 			}
 		}

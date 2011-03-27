@@ -594,8 +594,8 @@ static void enlarge_picture_float(
 	for (y_dst = 0; y_dst < dst_height; y_dst++) {
 		float* line1 = src + ((int) y_src) * 4 * src_width;
 		float* line2 = line1 + 4 * src_width;
-		float weight1y = 1.0 - (y_src - (int) y_src);
-		float weight2y = 1.0 - weight1y;
+		const float weight1y = (float)(1.0 - (y_src - (int) y_src));
+		const float weight2y = 1.0f - weight1y;
 
 		if ((int) y_src == src_height - 1) {
 			line2 = line1;
@@ -603,13 +603,13 @@ static void enlarge_picture_float(
 		       
 		x_src = 0;
 		for (x_dst = 0; x_dst < dst_width; x_dst++) {
-			float weight1x = 1.0 - (x_src - (int) x_src);
-			float weight2x = 1.0 - weight1x;
+			const float weight1x = (float)(1.0 - (x_src - (int) x_src));
+			const float weight2x = (float)(1.0f - weight1x);
 
-			float w11 = weight1y * weight1x;
-			float w21 = weight2y * weight1x;
-			float w12 = weight1y * weight2x;
-			float w22 = weight2y * weight2x;
+			const float w11 = weight1y * weight1x;
+			const float w21 = weight2y * weight1x;
+			const float w12 = weight1y * weight2x;
+			const float w22 = weight2y * weight2x;
 
 			uintptr_t x = ((int) x_src) * 4;
 
@@ -678,12 +678,12 @@ static void shrink_picture_float(
 	y_counter = 1.0;
 	for (y_src = 0; y_src < src_height; y_src++) {
 		float* line = src + y_src * 4 * src_width;
-		uintptr_t weight1y = 1.0 - (y_dst - (int) y_dst);
-		uintptr_t weight2y = 1.0 - weight1y;
+		uintptr_t weight1y = 1.0f - (y_dst - (int) y_dst);
+		uintptr_t weight2y = 1.0f - weight1y;
 		x_dst = 0;
 		for (x_src = 0; x_src < src_width; x_src++) {
-			uintptr_t weight1x = 1.0 - (x_dst - (int) x_dst);
-			uintptr_t weight2x = 1.0 - weight1x;
+			uintptr_t weight1x = 1.0f - (x_dst - (int) x_dst);
+			uintptr_t weight2x = 1.0f - weight1x;
 
 			uintptr_t x = (int) x_dst;
 
@@ -731,10 +731,10 @@ static void shrink_picture_float(
 			uintptr_t x;
 			struct scale_outpix_float * temp;
 
-			y_counter += 1.0;
+			y_counter += 1.0f;
 			
 			for (x=0; x < dst_width; x++) {
-				float f = 1.0 / dst_line1[x].weight;
+				float f = 1.0f / dst_line1[x].weight;
 				*dst++ = dst_line1[x].r * f;
 				*dst++ = dst_line1[x].g * f;
 				*dst++ = dst_line1[x].b * f;
@@ -750,7 +750,7 @@ static void shrink_picture_float(
 	if (dst - dst_begin < dst_width * dst_height * 4) {
 		uintptr_t x;
 		for (x = 0; x < dst_width; x++) {
-			float f = 1.0 / dst_line1[x].weight;
+			float f = 1.0f / dst_line1[x].weight;
 			*dst++ = dst_line1[x].r * f;
 			*dst++ = dst_line1[x].g * f;
 			*dst++ = dst_line1[x].b * f;
@@ -1026,8 +1026,8 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 			
 			sample += add;
 
-			while (sample >= 1.0) {
-				sample -= 1.0;
+			while (sample >= 1.0f) {
+				sample -= 1.0f;
 				
 				if (do_rect) {
 					nval[0] += rect[0];
@@ -1069,7 +1069,7 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 				newrectf += skipx;
 			}
 			
-			sample -= 1.0;
+			sample -= 1.0f;
 		}
 	}	
 
@@ -1142,22 +1142,22 @@ static struct ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 			val_a = rect[0] ;
 			nval_a = rect[4];
 			diff_a = nval_a - val_a ;
-			val_a += 0.5;
+			val_a += 0.5f;
 
 			val_b = rect[1] ;
 			nval_b = rect[5];
 			diff_b = nval_b - val_b ;
-			val_b += 0.5;
+			val_b += 0.5f;
 
 			val_g = rect[2] ;
 			nval_g = rect[6];
 			diff_g = nval_g - val_g ;
-			val_g += 0.5;
+			val_g += 0.5f;
 
 			val_r = rect[3] ;
 			nval_r = rect[7];
 			diff_r = nval_r - val_r ;
-			val_r += 0.5;
+			val_r += 0.5f;
 
 			rect += 8;
 		}
@@ -1181,29 +1181,29 @@ static struct ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 			rectf += 8;
 		}
 		for (x = newx ; x>0 ; x--){
-			if (sample >= 1.0){
-				sample -= 1.0;
+			if (sample >= 1.0f){
+				sample -= 1.0f;
 
 				if (do_rect) {
 					val_a = nval_a ;
 					nval_a = rect[0] ;
 					diff_a = nval_a - val_a ;
-					val_a += 0.5;
+					val_a += 0.5f;
 
 					val_b = nval_b ;
 					nval_b = rect[1] ;
 					diff_b = nval_b - val_b ;
-					val_b += 0.5;
+					val_b += 0.5f;
 
 					val_g = nval_g ;
 					nval_g = rect[2] ;
 					diff_g = nval_g - val_g ;
-					val_g += 0.5;
+					val_g += 0.5f;
 
 					val_r = nval_r ;
 					nval_r = rect[3] ;
 					diff_r = nval_r - val_r ;
-					val_r += 0.5;
+					val_r += 0.5f;
 					rect += 4;
 				}
 				if (do_float) {
@@ -1312,22 +1312,22 @@ static struct ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 			val_a = rect[0] ;
 			nval_a = rect[skipx];
 			diff_a = nval_a - val_a ;
-			val_a += 0.5;
+			val_a += 0.5f;
 
 			val_b = rect[1] ;
 			nval_b = rect[skipx+1];
 			diff_b = nval_b - val_b ;
-			val_b += 0.5;
+			val_b += 0.5f;
 
 			val_g = rect[2] ;
 			nval_g = rect[skipx+2];
 			diff_g = nval_g - val_g ;
-			val_g += 0.5;
+			val_g += 0.5f;
 
 			val_r = rect[3] ;
 			nval_r = rect[skipx+4];
 			diff_r = nval_r - val_r ;
-			val_r += 0.5;
+			val_r += 0.5f;
 
 			rect += 2*skipx;
 		}
@@ -1355,29 +1355,29 @@ static struct ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 		}
 		
 		for (y = newy ; y>0 ; y--){
-			if (sample >= 1.0){
-				sample -= 1.0;
+			if (sample >= 1.0f){
+				sample -= 1.0f;
 
 				if (do_rect) {
 					val_a = nval_a ;
 					nval_a = rect[0] ;
 					diff_a = nval_a - val_a ;
-					val_a += 0.5;
+					val_a += 0.5f;
 
 					val_b = nval_b ;
 					nval_b = rect[1] ;
 					diff_b = nval_b - val_b ;
-					val_b += 0.5;
+					val_b += 0.5f;
 
 					val_g = nval_g ;
 					nval_g = rect[2] ;
 					diff_g = nval_g - val_g ;
-					val_g += 0.5;
+					val_g += 0.5f;
 
 					val_r = nval_r ;
 					nval_r = rect[3] ;
 					diff_r = nval_r - val_r ;
-					val_r += 0.5;
+					val_r += 0.5f;
 					rect += skipx;
 				}
 				if (do_float) {

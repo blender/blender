@@ -719,7 +719,7 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	ifac= 1.0 - fac;
+	ifac= 1.0f - fac;
 
 	for(x = 0; x < size; x++) {
 		vec[x] = (ifac * self->vec[x]) + (fac * tvec[x]);
@@ -1111,12 +1111,12 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 			mul_qt_v3(quat2->quat, tvec);
 			return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec1));
 		}
-		else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
+		else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC*FLOAT */
 			return vector_mul_float(vec1, scalar);
 		}
 	}
 	else if (vec2) {
-		if (((scalar= PyFloat_AsDouble(v1)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
+		if (((scalar= PyFloat_AsDouble(v1)) == -1.0f && PyErr_Occurred())==0) { /* VEC*FLOAT */
 			return vector_mul_float(vec2, scalar);
 		}
 	}
@@ -1163,7 +1163,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		}
 		mul_qt_v3(quat2->quat, vec->vec);
 	}
-	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*=FLOAT */
+	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC*=FLOAT */
 		mul_vn_fl(vec->vec, vec->size, scalar);
 	}
 	else {
@@ -1197,7 +1197,7 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 		return NULL;
 	}
 
-	if(scalar==0.0) {
+	if(scalar==0.0f) {
 		PyErr_SetString(PyExc_ZeroDivisionError, "Vector division: divide by zero error");
 		return NULL;
 	}
@@ -1223,7 +1223,7 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 		return NULL;
 	}
 
-	if(scalar==0.0) {
+	if(scalar==0.0f) {
 		PyErr_SetString(PyExc_ZeroDivisionError, "Vector division: divide by zero error");
 		return NULL;
 	}

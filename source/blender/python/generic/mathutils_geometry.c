@@ -114,7 +114,7 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject* 
 	/* if determinant is near zero, ray lies in plane of triangle */
 	det= dot_v3v3(e1, pvec);
 
-	if (det > -0.000001 && det < 0.000001) {
+	if (det > -0.000001f && det < 0.000001f) {
 		Py_RETURN_NONE;
 	}
 

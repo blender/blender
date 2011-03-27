@@ -723,12 +723,12 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
 	}
 	/* the only case this can happen (for a supported type is "FLOAT*QUAT") */
 	else if(quat2) { /* FLOAT*QUAT */
-		if(((scalar= PyFloat_AsDouble(q1)) == -1.0 && PyErr_Occurred())==0) {
+		if(((scalar= PyFloat_AsDouble(q1)) == -1.0f && PyErr_Occurred())==0) {
 			return quat_mul_float(quat2, scalar);
 		}
 	}
 	else if (quat1) { /* QUAT*FLOAT */
-		if((((scalar= PyFloat_AsDouble(q2)) == -1.0 && PyErr_Occurred())==0)) {
+		if((((scalar= PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred())==0)) {
 			return quat_mul_float(quat1, scalar);
 		}
 	}
@@ -837,7 +837,7 @@ static PyObject *Quaternion_getAngle(QuaternionObject *self, void *UNUSED(closur
 		return NULL;
 
 	normalize_qt_qt(tquat, self->quat);
-	return PyFloat_FromDouble(2.0 * (saacos(tquat[0])));
+	return PyFloat_FromDouble(2.0f * (saacos(tquat[0])));
 }
 
 static int Quaternion_setAngle(QuaternionObject *self, PyObject *value, void *UNUSED(closure))
@@ -856,7 +856,7 @@ static int Quaternion_setAngle(QuaternionObject *self, PyObject *value, void *UN
 
 	angle= PyFloat_AsDouble(value);
 
-	if(angle==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
+	if(angle==-1.0 && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError, "quaternion.angle = value: float expected");
 		return -1;
 	}
