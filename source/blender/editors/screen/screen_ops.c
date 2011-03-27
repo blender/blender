@@ -2938,20 +2938,23 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
 }
 
-static int screen_animation_cancel_exec(bContext *C, wmOperator *UNUSED(op))
+static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	
+
 	if (screen->animtimer) {
-		ScreenAnimData *sad= screen->animtimer->customdata;
-		Scene *scene= CTX_data_scene(C);
-		
-		/* reset current frame before stopping, and just send a notifier to deal with the rest 
-		 * (since playback still needs to be stopped)
-		 */
-		scene->r.cfra= sad->sfra;
-		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-		
+		if(RNA_boolean_get(op->ptr, "restore_frame")) {
+			ScreenAnimData *sad= screen->animtimer->customdata;
+			Scene *scene= CTX_data_scene(C);
+
+			/* reset current frame before stopping, and just send a notifier to deal with the rest
+			 * (since playback still needs to be stopped)
+			 */
+			scene->r.cfra= sad->sfra;
+
+			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+		}
+
 		/* call the other "toggling" operator to clean up now */
 		ED_screen_animation_play(C, 0, 0);
 	}
@@ -2970,6 +2973,8 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 	ot->exec= screen_animation_cancel_exec;
 	
 	ot->poll= ED_operator_screenactive;
+
+	RNA_def_boolean(ot->srna, "restore_frame", TRUE, "Restore Frame", "Restore the frame when animation was initialized.");
 }
 
 /* ************** border select operator (template) ***************************** */
