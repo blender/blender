@@ -1273,7 +1273,8 @@ static void bmDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	BMEdge *ee;
 	BMIter iter;
 	BMVert *ev;
-	int i;
+	int has_bweight = CustomData_has_layer(&bm->edata, CD_BWEIGHT);
+	int i, has_crease = CustomData_has_layer(&bm->edata, CD_CREASE);
 
 	/* store vertex indices in tmp union */
 	ev = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
@@ -1282,11 +1283,11 @@ static void bmDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 
 	ee = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
 	for( ; ee; ee=BMIter_Step(&iter)) {
-		if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
+		if (has_bweight) {
 			edge_r->bweight = (unsigned char) (BM_GetCDf(&bm->edata, ee, CD_BWEIGHT)*255.0f);
 		}
 
-		if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
+		if (has_crease) {
 			edge_r->crease = (unsigned char) (BM_GetCDf(&bm->edata, ee, CD_CREASE)*255.0f);
 		}
 
@@ -1294,7 +1295,7 @@ static void bmDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 		if (ee->head.flag & BM_SEAM) edge_r->flag |= ME_SEAM;
 		if (ee->head.flag & BM_SHARP) edge_r->flag |= ME_SHARP;
 #if 0
-		/* this needs setup of f2 field */
+		/* this needs setup of f2 (edge draw flags, if I remember right) field */
 		if (!ee->f2) edge_r->flag |= ME_LOOSEEDGE;
 #endif
 

@@ -378,6 +378,10 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	
 	i = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		float *bweight = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_BWEIGHT);
+
+		mvert->bweight = bweight ? (char)((*bweight)*255) : 0;
+
 		VECCOPY(mvert->co, v->co);
 
 		mvert->no[0] = (short) (v->no[0]*32767.0f);
@@ -399,11 +403,16 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 	i = 0;
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		float *crease = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
+		float *bweight = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
+		
 		medge->v1 = BMINDEX_GET(e->v1);
 		medge->v2 = BMINDEX_GET(e->v2);
-
+		medge->crease = crease ? (char)((*crease)*255) : 0;
+		medge->bweight = bweight ? (char)((*bweight)*255) : 0;
+		
 		medge->flag = BMFlags_To_MEFlags(e);
-
+		
 		BMINDEX_SET(e, i);
 
 		/*copy over customdata*/

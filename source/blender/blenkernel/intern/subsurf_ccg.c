@@ -563,7 +563,7 @@ static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 	for(i = 0; i < totedge; i++, me++) {
 		CCGEdge *e;
 		float crease;
-
+		
 		crease = useFlatSubdiv ? creaseFactor :
 								 me->crease * creaseFactor / 255.0f;
 

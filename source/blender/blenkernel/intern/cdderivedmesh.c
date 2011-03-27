@@ -1850,7 +1850,12 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 	int numCol = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPCOL);
 	int numTex = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
 	int i, j, *index, add_orig;
-
+	int has_crease, has_edge_bweight, has_vert_bweight;
+	
+	has_edge_bweight = CustomData_has_layer(&em->bm->edata, CD_BWEIGHT);
+	has_vert_bweight = CustomData_has_layer(&em->bm->vdata, CD_BWEIGHT);
+	has_crease = CustomData_has_layer(&em->bm->edata, CD_CREASE);
+	
 	dm->deformedOnly = 1;
 	
 	/*don't add origindex layer if one already exists*/
@@ -1889,6 +1894,9 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 
 		mv->flag = BMFlags_To_MEFlags(eve);
 
+		if (has_vert_bweight)
+			mv->bweight = (unsigned char)(BM_GetCDf(&bm->vdata, eve, CD_BWEIGHT)*255.0f);
+
 		if (add_orig) *index = i;
 
 		CustomData_from_bmesh_block(&bm->vdata, &dm->vertData, eve->head.data, i);
@@ -1904,6 +1912,11 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 		med->v1 = BMINDEX_GET(eed->v1);
 		med->v2 = BMINDEX_GET(eed->v2);
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
+
+		if (has_crease)
+			med->crease = (unsigned char)(BM_GetCDf(&bm->edata, eed, CD_CREASE)*255.0f);
+		if (has_edge_bweight)
+			med->bweight = (unsigned char)(BM_GetCDf(&bm->edata, eed, CD_BWEIGHT)*255.0f);
 		
 		med->flag = BMFlags_To_MEFlags(eed);
 
