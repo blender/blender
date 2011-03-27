@@ -11559,6 +11559,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 	}
 
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 2)){
+		/* update blur area sizes from 0..1 range to 0..100 percentage */
+		Scene *scene;
+		bNode *node;
+		for (scene=main->scene.first; scene; scene=scene->id.next)
+			if (scene->nodetree)
+				for (node=scene->nodetree->nodes.first; node; node=node->next)
+					if (node->type==CMP_NODE_BLUR) {
+						NodeBlurData *nbd= node->storage;
+						nbd->percentx *= 100.0f;
+						nbd->percenty *= 100.0f;
+					}
+	}
+
 	/* put compatibility code here until next subversion bump */
 
 	{
