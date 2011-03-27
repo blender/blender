@@ -372,7 +372,7 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		ARegion *ar= CTX_wm_region(C);
 		float factor;
 		
-		factor= 1.0 + (event->x-event->prevx+event->y-event->prevy)/300.0f;
+		factor= 1.0f + (event->x-event->prevx+event->y-event->prevy)/300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
 		sima_zoom_set(sima, ar, sima->zoom*factor);
 		ED_region_tag_redraw(CTX_wm_region(C));

@@ -176,7 +176,7 @@ void boundbox_seq(Scene *scene, rctf *rect)
 
 		if( min[0] > seq->startdisp-1) min[0]= seq->startdisp-1;
 		if( max[0] < seq->enddisp+1) max[0]= seq->enddisp+1;
-		if( max[1] < seq->machine+2.0) max[1]= seq->machine+2.0;
+		if( max[1] < seq->machine+2) max[1]= seq->machine+2;
 
 		seq= seq->next;
 	}

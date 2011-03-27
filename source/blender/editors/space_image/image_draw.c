@@ -205,8 +205,8 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 	}
 	
 	/* the fine resolution level */
-	blendfac= 0.25*gridsize - floor(0.25f*gridsize);
-	CLAMP(blendfac, 0.0, 1.0);
+	blendfac= 0.25f*gridsize - floorf(0.25f*gridsize);
+	CLAMP(blendfac, 0.0f, 1.0f);
 	UI_ThemeColorShade(TH_BACK, (int)(20.0f*(1.0f-blendfac)));
 	
 	fac= 0.0f;

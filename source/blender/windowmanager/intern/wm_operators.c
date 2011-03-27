@@ -2665,7 +2665,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	// int hit = 0;
 	
 	if(rc->mode == WM_RADIALCONTROL_STRENGTH)
-		rc->tex_col[3]= (rc->value + 0.5);
+		rc->tex_col[3]= (rc->value + 0.5f);
 
 	if(rc->mode == WM_RADIALCONTROL_SIZE) {
 		r1= rc->value;
@@ -2836,7 +2836,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		rc->max_value = 360;
 		mouse[0]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(initial_value);
 		mouse[1]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(initial_value);
-		initial_value *= 180.0f/M_PI;
+		initial_value *= 180.0f/(float)M_PI;
 	}
 
 	if(op->customdata) {
@@ -2884,7 +2884,7 @@ void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		BLI_snprintf(str, maxlen, "Strength: %d", (int)v);
 	else if(mode == WM_RADIALCONTROL_ANGLE)
-		BLI_snprintf(str, maxlen, "Angle: %d", (int)(v * 180.0f/M_PI));
+		BLI_snprintf(str, maxlen, "Angle: %d", (int)(v * 180.0f/(float)M_PI));
 }
 
 /** Important: this doesn't define an actual operator, it

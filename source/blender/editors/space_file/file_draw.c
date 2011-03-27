@@ -309,7 +309,7 @@ static void file_draw_string(int sx, int sy, const char* string, float width, in
 	fs.align = align;
 
 	BLI_strncpy(fname,string, FILE_MAXFILE);
-	file_shorten_string(fname, width+1.0, 0);
+	file_shorten_string(fname, width + 1.0f, 0);
 
 	/* no text clipping needed, uiStyleFontDraw does it but is a bit too strict (for buttons it works) */
 	rect.xmin = sx;

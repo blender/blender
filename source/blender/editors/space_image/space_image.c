@@ -204,7 +204,7 @@ void ED_image_aspect(Image *ima, float *aspx, float *aspy)
 	*aspx= *aspy= 1.0;
 	
 	if((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
-	   (ima->aspx==0.0 || ima->aspy==0.0))
+	   (ima->aspx==0.0f || ima->aspy==0.0f))
 		return;
 	
 	/* x is always 1 */

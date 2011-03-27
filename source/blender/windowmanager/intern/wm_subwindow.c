@@ -143,7 +143,7 @@ void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
 			int width, height;
 
 			wm_subwindow_getsize(win, swin->swinid, &width, &height);
-			orthographic_m4(mat, -0.375, (float)width-0.375, -0.375, (float)height-0.375, -100, 100);
+			orthographic_m4(mat, -0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f, -100, 100);
 		}
 		else
 			glGetFloatv(GL_PROJECTION_MATRIX, (float*)mat);
@@ -174,7 +174,7 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 	
 	/* extra service */
 	wm_subwindow_getsize(win, swin->swinid, &width, &height);
-	wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
+	wmOrtho2(-0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f);
 	glLoadIdentity();
 
 	return swin->swinid;
@@ -229,7 +229,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 		/* extra service */
 		wmSubWindowSet(win, swinid);
 		wm_subwindow_getsize(win, swinid, &width, &height);
-		wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
+		wmOrtho2(-0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f);
 	}
 	else {
 		printf("wm_subwindow_position: Internal error, bad winid: %d\n", swinid);
@@ -268,7 +268,7 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	else
 		glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 	
-	wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
+	wmOrtho2(-0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f);
 	glLoadIdentity();
 
 	glFlush();
@@ -302,8 +302,8 @@ void wmOrtho(float x1, float x2, float y1, float y2, float n, float f)
 void wmOrtho2(float x1, float x2, float y1, float y2)
 {
 	/* prevent opengl from generating errors */
-	if(x1==x2) x2+=1.0;
-	if(y1==y2) y2+=1.0;
+	if(x1==x2) x2+=1.0f;
+	if(y1==y2) y2+=1.0f;
 
 	wmOrtho(x1, x2, y1, y2, -100, 100);
 }

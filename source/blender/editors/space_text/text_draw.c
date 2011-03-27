@@ -1108,7 +1108,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 	CLAMP(st->txtbar.ymax, pix_bottom_margin, ar->winy - pix_top_margin);
 
 	st->pix_per_line= (pix_available > 0)? (float) ltexth/pix_available: 0;
-	if(st->pix_per_line<.1) st->pix_per_line=.1f;
+	if(st->pix_per_line < 0.1f) st->pix_per_line=0.1f;
 
 	curl_off= text_get_span_wrap(st, ar, st->text->lines.first, st->text->curl);
 	sell_off= text_get_span_wrap(st, ar, st->text->lines.first, st->text->sell);

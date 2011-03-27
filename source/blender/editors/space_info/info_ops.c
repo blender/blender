@@ -362,7 +362,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 		return (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH);
 	}
 
-	if (rti->widthfac == 0.0) {
+	if (rti->widthfac == 0.0f) {
 		/* initialise colors based on report type */
 		if(report->type & RPT_ERROR_ALL) {
 			rti->col[0] = 1.0;
@@ -396,7 +396,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	/* collapse report at end of timeout */
 	if (progress*timeout > timeout - COLLAPSE_TIMEOUT) {
 		rti->widthfac = (progress*timeout - (timeout - COLLAPSE_TIMEOUT)) / COLLAPSE_TIMEOUT;
-		rti->widthfac = 1.0 - rti->widthfac;
+		rti->widthfac = 1.0f - rti->widthfac;
 		send_note= 1;
 	}
 	

@@ -107,7 +107,7 @@ void ED_region_pixelspace(ARegion *ar)
 	int width= ar->winrct.xmax-ar->winrct.xmin+1;
 	int height= ar->winrct.ymax-ar->winrct.ymin+1;
 	
-	wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
+	wmOrtho2(-0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f);
 	glLoadIdentity();
 }
 

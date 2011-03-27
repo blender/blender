@@ -360,9 +360,9 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, DLRBT_Tree *beztTree,
 	 *	-> secondly, handles which control that section of the curve must be constant
 	 */
 	if ((!prev) || (!beztn)) return;
-	if (IS_EQ(beztn->vec[1][1], prev->vec[1][1])==0) return;
-	if (IS_EQ(beztn->vec[1][1], beztn->vec[0][1])==0) return;
-	if (IS_EQ(prev->vec[1][1], prev->vec[2][1])==0) return;
+	if (IS_EQF(beztn->vec[1][1], prev->vec[1][1])==0) return;
+	if (IS_EQF(beztn->vec[1][1], beztn->vec[0][1])==0) return;
+	if (IS_EQF(prev->vec[1][1], prev->vec[2][1])==0) return;
 	
 	
 	/* if there are no blocks already, just add as root */

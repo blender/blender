@@ -255,10 +255,10 @@ static void nla_draw_strip_curves (NlaStrip *strip, float yminc, float ymaxc)
 	}
 	else {
 		/* use blend in/out values only if both aren't zero */
-		if ((IS_EQ(strip->blendin, 0.0f) && IS_EQ(strip->blendout, 0.0f))==0) {
+		if ((IS_EQF(strip->blendin, 0.0f) && IS_EQF(strip->blendout, 0.0f))==0) {
 			glBegin(GL_LINE_STRIP);
 				/* start of strip - if no blendin, start straight at 1, otherwise from 0 to 1 over blendin frames */
-				if (IS_EQ(strip->blendin, 0.0f) == 0) {
+				if (IS_EQF(strip->blendin, 0.0f) == 0) {
 					glVertex2f(strip->start, 					yminc);
 					glVertex2f(strip->start + strip->blendin, 	ymaxc);
 				}
@@ -266,7 +266,7 @@ static void nla_draw_strip_curves (NlaStrip *strip, float yminc, float ymaxc)
 					glVertex2f(strip->start, ymaxc);
 					
 				/* end of strip */
-				if (IS_EQ(strip->blendout, 0.0f) == 0) {
+				if (IS_EQF(strip->blendout, 0.0f) == 0) {
 					glVertex2f(strip->end - strip->blendout,	ymaxc);
 					glVertex2f(strip->end, 						yminc);
 				}
@@ -321,7 +321,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 			/* this only draws after the strip */
 			case NLASTRIP_EXTEND_HOLD_FORWARD: 
 				/* only need to try and draw if the next strip doesn't occur immediately after */
-				if ((strip->next == NULL) || (IS_EQ(strip->next->start, strip->end)==0)) {
+				if ((strip->next == NULL) || (IS_EQF(strip->next->start, strip->end)==0)) {
 					/* set the drawing color to the color of the strip, but this time less faint */
 					glColor4f(color[0], color[1], color[2], 0.3f);
 					
@@ -378,7 +378,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 	uiDrawBoxShade(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
 	
 	/* if action-clip strip, draw lines delimiting repeats too (in the same color as outline) */
-	if ((strip->type == NLASTRIP_TYPE_CLIP) && IS_EQ(strip->repeat, 1.0f)==0) {
+	if ((strip->type == NLASTRIP_TYPE_CLIP) && IS_EQF(strip->repeat, 1.0f)==0) {
 		float repeatLen = (strip->actend - strip->actstart) * strip->scale;
 		int i;
 		
@@ -403,7 +403,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 			/* draw start-line if not same as end of previous (and only if not the first strip) 
 			 *	- on upper half of strip
 			 */
-			if ((cs->prev) && IS_EQ(cs->prev->end, cs->start)==0)
+			if ((cs->prev) && IS_EQF(cs->prev->end, cs->start)==0)
 				fdrawline(cs->start, y, cs->start, ymaxc);
 				
 			/* draw end-line if not the last strip

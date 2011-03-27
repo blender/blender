@@ -301,7 +301,7 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 
 /* --------------- */
 
-#define BINARYSEARCH_FRAMEEQ_THRESH	0.0001
+#define BINARYSEARCH_FRAMEEQ_THRESH	0.0001f
 
 /* Binary search algorithm for finding where to insert Envelope Data Point.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)

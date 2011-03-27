@@ -128,8 +128,8 @@ void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, flo
 		}
 		
 		/* ensure that the extents are not too extreme that view implodes...*/
-		if ((xmin && xmax) && (fabs(*xmax - *xmin) < 0.1)) *xmax += 0.1;
-		if ((ymin && ymax) && (fabs(*ymax - *ymin) < 0.1)) *ymax += 0.1;
+		if ((xmin && xmax) && (fabsf(*xmax - *xmin) < 0.1f)) *xmax += 0.1f;
+		if ((ymin && ymax) && (fabsf(*ymax - *ymin) < 0.1f)) *ymax += 0.1f;
 		
 		/* free memory */
 		BLI_freelistN(&anim_data);
@@ -1621,17 +1621,17 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 				/* > 180 degree flip? */
 				if (fabs(prev->vec[1][1] - bezt->vec[1][1]) >= M_PI) {
 					/* 360 degrees to add/subtract frame value until difference is acceptably small that there's no more flip */
-					const double fac = 2.0 * M_PI;
+					const float fac = 2.0f * (float)M_PI;
 					
 					if (prev->vec[1][1] > bezt->vec[1][1]) {
-						while (fabs(bezt->vec[1][1] - prev->vec[1][1]) >= M_PI) {
+						while (fabsf(bezt->vec[1][1] - prev->vec[1][1]) >= (float)M_PI) {
 							bezt->vec[0][1] += fac;
 							bezt->vec[1][1] += fac;
 							bezt->vec[2][1] += fac;
 						}
 					}
 					else /* if (prev->vec[1][1] < bezt->vec[1][1]) */ {
-						while (fabs(bezt->vec[1][1] - prev->vec[1][1]) >= M_PI) {
+						while (fabsf(bezt->vec[1][1] - prev->vec[1][1]) >= (float)M_PI) {
 							bezt->vec[0][1] -= fac;
 							bezt->vec[1][1] -= fac;
 							bezt->vec[2][1] -= fac;

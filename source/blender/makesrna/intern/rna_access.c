@@ -903,10 +903,10 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
 			IDProperty *item;
 
 			item= IDP_GetPropertyTypeFromGroup(idp_ui, "min", IDP_DOUBLE);
-			*hardmin= item ? IDP_Double(item) : FLT_MIN; 
+			*hardmin= item ? (float)IDP_Double(item) : FLT_MIN;
 
 			item= IDP_GetPropertyTypeFromGroup(idp_ui, "max", IDP_DOUBLE);
-			*hardmax= item ? IDP_Double(item) : FLT_MAX;
+			*hardmax= item ? (float)IDP_Double(item) : FLT_MAX;
 
 			return;
 		}
@@ -934,16 +934,16 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 			IDProperty *item;
 
 			item= IDP_GetPropertyTypeFromGroup(idp_ui, "soft_min", IDP_DOUBLE);
-			*softmin= item ? IDP_Double(item) : FLT_MIN;
+			*softmin= item ? (float)IDP_Double(item) : FLT_MIN;
 
 			item= IDP_GetPropertyTypeFromGroup(idp_ui, "soft_max", IDP_DOUBLE);
-			*softmax= item ? IDP_Double(item) : FLT_MAX;
+			*softmax= item ? (float)IDP_Double(item) : FLT_MAX;
 
 			item= IDP_GetPropertyTypeFromGroup(idp_ui, "step", IDP_DOUBLE);
-			*step= item ? IDP_Double(item) : 1.0f;
+			*step= item ? (float)IDP_Double(item) : 1.0f;
 
 			item= IDP_GetPropertyTypeFromGroup(idp_ui, "precision", IDP_DOUBLE);
-			*precision= item ? IDP_Double(item) : 3.0f;
+			*precision= item ? (float)IDP_Double(item) : 3.0f;
 
 			return;
 		}
