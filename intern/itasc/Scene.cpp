@@ -292,7 +292,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 		return true;
 	}
 
-	double maxqdot;
+	// double maxqdot; // UNUSED
 	e_scalar nlcoef;
 	SceneLock lockCallback(this);
 	Frame external_pose;
@@ -454,7 +454,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 			// We will pass the joint velocity to each object and they will recommend a maximum timestep
 			timesubstep = timeleft;
 			// get armature max joint velocity to estimate the maximum duration of integration
-			maxqdot = m_qdot.cwise().abs().maxCoeff();
+			// maxqdot = m_qdot.cwise().abs().maxCoeff(); // UNUSED
 			double maxsubstep = nlcoef*m_maxstep;
 			if (maxsubstep < m_minstep)
 				maxsubstep = m_minstep;

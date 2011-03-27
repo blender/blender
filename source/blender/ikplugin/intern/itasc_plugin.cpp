@@ -860,13 +860,11 @@ static int convert_channels(IK_Scene *ikscene, PoseTree *tree)
 {
 	IK_Channel *ikchan;
 	bPoseChannel *pchan;
-	Bone *bone;
 	int a, flag, njoint;
 
 	njoint = 0;
 	for(a=0, ikchan = ikscene->channels; a<ikscene->numchan; ++a, ++ikchan) {
 		pchan= tree->pchan[a];
-		bone= pchan->bone;
 		ikchan->pchan = pchan;
 		ikchan->parent = (a>0) ? tree->parent[a] : -1;
 		ikchan->owner = ikscene->blArmature;

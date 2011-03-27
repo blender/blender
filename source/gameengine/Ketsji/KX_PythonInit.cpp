@@ -1919,10 +1919,10 @@ static void restorePySysObjects(void)
 
 // Copied from bpy_interface.c
 static struct _inittab bge_internal_modules[]= {
-	{"mathutils", BPyInit_mathutils},
-	{"bgl", BPyInit_bgl},
-	{"blf", BPyInit_blf},
-	{"aud", AUD_initPython},
+	{(char *)"mathutils", BPyInit_mathutils},
+	{(char *)"bgl", BPyInit_bgl},
+	{(char *)"blf", BPyInit_blf},
+	{(char *)"aud", AUD_initPython},
 	{NULL, NULL}
 };
 
