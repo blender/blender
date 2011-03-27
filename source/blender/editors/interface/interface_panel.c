@@ -377,7 +377,7 @@ static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 static void ui_draw_x_icon(float x, float y)
 {
 
-	ui_draw_anti_x(x, y, x+9.375, y+9.375);
+	ui_draw_anti_x(x, y, x+9.375f, y+9.375f);
 
 }
 
@@ -737,8 +737,8 @@ static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	for(a=0; a<tot; a++, ps++) {
 		if((ps->pa->flag & PNL_SELECT)==0) {
 			if((ps->orig->ofsx != ps->pa->ofsx) || (ps->orig->ofsy != ps->pa->ofsy)) {
-				ps->orig->ofsx= floor(0.5 + fac*ps->pa->ofsx + (1.0-fac)*ps->orig->ofsx);
-				ps->orig->ofsy= floor(0.5 + fac*ps->pa->ofsy + (1.0-fac)*ps->orig->ofsy);
+				ps->orig->ofsx= floorf(0.5f + fac*(float)ps->pa->ofsx + (1.0f-fac)*(float)ps->orig->ofsx);
+				ps->orig->ofsy= floorf(0.5f + fac*(float)ps->pa->ofsy + (1.0f-fac)*(float)ps->orig->ofsy);
 				done= 1;
 			}
 		}
@@ -886,9 +886,9 @@ static void check_panel_overlap(ARegion *ar, Panel *panel)
 				else if(panel->flag & PNL_CLOSEDY) safey= 0.05;
 				
 				if(pa->ofsx > panel->ofsx- safex*panel->sizex)
-				if(pa->ofsx+pa->sizex < panel->ofsx+ (1.0+safex)*panel->sizex)
+				if(pa->ofsx+pa->sizex < panel->ofsx+ (1.0f+safex)*panel->sizex)
 				if(pa->ofsy > panel->ofsy- safey*panel->sizey)
-				if(pa->ofsy+pa->sizey < panel->ofsy+ (1.0+safey)*panel->sizey)
+				if(pa->ofsy+pa->sizey < panel->ofsy+ (1.0f+safey)*panel->sizey)
 					pa->flag |= PNL_OVERLAP;
 			}
 		}

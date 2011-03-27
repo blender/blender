@@ -1296,7 +1296,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		
 		while (i > 0) {
 			i--;
-			if (BLF_width(fstyle->uifont_id, origstr+i) > (startx - x)*0.25) break;	// 0.25 == scale factor for less sensitivity
+			if (BLF_width(fstyle->uifont_id, origstr+i) > (startx - x)*0.25f) break;	// 0.25 == scale factor for less sensitivity
 		}
 		but->ofs = i;
 		but->pos = but->ofs;
@@ -1968,7 +1968,7 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 		softmax= but->softmax;
 		softrange= softmax - softmin;
 
-		data->dragfstart= (softrange == 0.0)? 0.0: (data->value - softmin)/softrange;
+		data->dragfstart= (softrange == 0.0f)? 0.0f: ((float)data->value - softmin)/softrange;
 		data->dragf= data->dragfstart;
 	}
 
@@ -2318,13 +2318,13 @@ static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, floa
 		}
 
 		if(snap==1) {
-			if(softrange < 2.10) tempf= 0.1*floor(10*tempf);
-			else if(softrange < 21.0) tempf= floor(tempf);
-			else tempf= 10.0*floor(tempf/10.0);
+			if(softrange < 2.10f) tempf= 0.1f*floorf(10.0f*tempf);
+			else if(softrange < 21.0f) tempf= floorf(tempf);
+			else tempf= 10.0f*floorf(tempf/10.0f);
 		}
 		else if(snap==2) {
-			if(softrange < 2.10) tempf= 0.01*floor(100.0*tempf);
-			else if(softrange < 21.0) tempf= 0.1*floor(10.0*tempf);
+			if(softrange < 2.10f) tempf= 0.01f*floorf(100.0f*tempf);
+			else if(softrange < 21.0f) tempf= 0.1f*floorf(10.0f*tempf);
 			else tempf= floor(tempf);
 		}
 		
@@ -2380,8 +2380,8 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		/* Mouse location isn't screen clamped to the screen so use a linear mapping
 		 * 2px == 1-int, or 1px == 1-ClickStep */
 		if(ui_is_but_float(but)) {
-			fac *= 0.01*but->a1;
-			tempf = data->startvalue + ((mx - data->dragstartx) * fac);
+			fac *= 0.01f*but->a1;
+			tempf = (float)data->startvalue + ((float)(mx - data->dragstartx) * fac);
 			tempf= ui_numedit_apply_snapf(but, tempf, softmin, softmax, softrange, snap);
 
 #if 1		/* fake moving the click start, nicer for dragging back after passing the limit */
@@ -2396,7 +2396,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 			CLAMP(tempf, softmin, softmax);
 #endif
 
-			if(tempf != data->value) {
+			if(tempf != (float)data->value) {
 				data->dragchange= 1;
 				data->value= tempf;
 				changed= 1;
@@ -2407,7 +2407,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 			else if(softrange > 32)	fac= 1.0/2.0;	/* 2px == 1 */
 			else					fac= 1.0/16.0;	/* 16px == 1? */
 
-			temp= data->startvalue + ((mx - data->dragstartx) * fac);
+			temp= data->startvalue + (((double)mx - data->dragstartx) * (double)fac);
 			temp= ui_numedit_apply_snap(temp, softmin, softmax, snap);
 
 #if 1		/* fake moving the click start, nicer for dragging back after passing the limit */
@@ -2445,22 +2445,22 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 
 		if(softrange > 11) {
 			/* non linear change in mouse input- good for high precicsion */
-			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.002);
+			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabsf(data->dragstartx-mx)*0.002f);
 		} else if (softrange > 129) { /* only scale large int buttons */
 			/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
-			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.004);
+			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabsf(data->dragstartx-mx)*0.004f);
 		} else {
 			/*no scaling */
 			data->dragf+= ((float)(mx-data->draglastx))/deler ;
 		}
 	
-		CLAMP(data->dragf, 0.0, 1.0);
+		CLAMP(data->dragf, 0.0f, 1.0f);
 		data->draglastx= mx;
 		tempf= (softmin + data->dragf*softrange);
 
 
 		if(!ui_is_but_float(but)) {
-			temp= floor(tempf+.5);
+			temp= floorf(tempf + 0.5f);
 
 			temp= ui_numedit_apply_snap(temp, softmin, softmax, snap);
 
@@ -2479,7 +2479,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 
 			CLAMP(tempf, softmin, softmax);
 
-			if(tempf != data->value) {
+			if(tempf != (float)data->value) {
 				data->dragchange= 1;
 				data->value= tempf;
 				changed= 1;
@@ -2609,7 +2609,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			if(mx < (but->x1 + (but->x2 - but->x1)/3 - 3)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
-				tempf= data->value - 0.01*but->a1;
+				tempf= (float)data->value - 0.01f * but->a1;
 				if (tempf < softmin) tempf = softmin;
 				data->value= tempf;
 
@@ -2618,7 +2618,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			else if(mx > but->x1 + (2*((but->x2 - but->x1)/3) + 3)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
-				tempf= data->value + 0.01*but->a1;
+				tempf= (float)data->value + 0.01f * but->a1;
 				if (tempf > softmax) tempf = softmax;
 				data->value= tempf;
 
@@ -2643,23 +2643,23 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, i
 	softmax= but->softmax;
 	softrange= softmax - softmin;
 
-	if(but->type==NUMSLI) deler= ((but->x2-but->x1) - 5.0*but->aspect);
-	else if(but->type==HSVSLI) deler= ((but->x2-but->x1)/2 - 5.0*but->aspect);
+	if(but->type==NUMSLI) deler= ((but->x2-but->x1) - 5.0f*but->aspect);
+	else if(but->type==HSVSLI) deler= ((but->x2-but->x1)/2.0f - 5.0f*but->aspect);
 	else if(but->type==SCROLL) {
 		int horizontal= (but->x2 - but->x1 > but->y2 - but->y1);
 		float size= (horizontal)? (but->x2-but->x1): -(but->y2-but->y1);
 		deler= size*(but->softmax - but->softmin)/(but->softmax - but->softmin + but->a1);
 	}
-	else deler= (but->x2-but->x1- 5.0*but->aspect);
+	else deler= (but->x2-but->x1- 5.0f*but->aspect);
 
 	f= (float)(mx-data->dragstartx)/deler + data->dragfstart;
 	
 	if(shift)
-		f= (f-data->dragfstart)/10.0 + data->dragfstart;
+		f= (f-data->dragfstart)/10.0f + data->dragfstart;
 
-	CLAMP(f, 0.0, 1.0);
+	CLAMP(f, 0.0f, 1.0f);
 	tempf= softmin + f*softrange;
-	temp= floor(tempf+.5);
+	temp= floorf(tempf+0.5f);
 
 	if(ctrl) {
 		if(tempf==softmin || tempf==softmax);
@@ -2667,14 +2667,14 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, i
 
 			if(shift) {
 				if(tempf==softmin || tempf==softmax);
-				else if(softmax-softmin < 2.10) tempf= 0.01*floor(100.0*tempf);
-				else if(softmax-softmin < 21.0) tempf= 0.1*floor(10.0*tempf);
-				else tempf= floor(tempf);
+				else if(softmax-softmin < 2.10f) tempf= 0.01f * floorf(100.0f*tempf);
+				else if(softmax-softmin < 21.0f) tempf= 0.1f * floorf(10.0f*tempf);
+				else tempf= floorf(tempf);
 			}
 			else {
-				if(softmax-softmin < 2.10) tempf= 0.1*floor(10*tempf);
-				else if(softmax-softmin < 21.0) tempf= floor(tempf);
-				else tempf= 10.0*floor(tempf/10.0);
+				if(softmax-softmin < 2.10f) tempf= 0.1f * floorf(10.0f*tempf);
+				else if(softmax-softmin < 21.0f) tempf= floorf(tempf);
+				else tempf= 10.0f*floorf(tempf/10.0f);
 			}
 		}
 		else {
@@ -2697,7 +2697,7 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, i
 	else {
 		CLAMP(tempf, softmin, softmax);
 
-		if(tempf != data->value) {
+		if(tempf != (float)data->value) {
 			data->value= tempf;
 			data->dragchange= 1;
 			changed= 1;
@@ -2814,8 +2814,8 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 					data->cancel= 1;
 			} 
 			else {
-				if(f<tempf) tempf-=.01;
-				else tempf+=.01;
+				if(f<tempf) tempf -= 0.01f;
+				else tempf += 0.01f;
 				
 				if(tempf>=softmin && tempf<=softmax)
 					data->value= tempf;
@@ -2983,7 +2983,7 @@ static int ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, i
 		mdy= (rad*fp[1]);
 	}
 	else if(fp[2]> -1.0f) {
-		mrad= rad/sqrt(fp[0]*fp[0] + fp[1]*fp[1]);
+		mrad= rad/sqrtf(fp[0]*fp[0] + fp[1]*fp[1]);
 		
 		mdx= 2.0f*mrad*fp[0] - (rad*fp[0]);
 		mdy= 2.0f*mrad*fp[1] - (rad*fp[1]);
@@ -3002,7 +3002,7 @@ static int ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, i
 	}
 	else {	/* outer circle */
 		
-		mrad= rad/sqrt(mrad);	// veclen
+		mrad= rad/sqrtf(mrad);	// veclen
 		
 		dx*= (2.0f*mrad - 1.0f);
 		dy*= (2.0f*mrad - 1.0f);
@@ -3081,8 +3081,8 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	/* relative position within box */
 	x= ((float)mx-but->x1)/(but->x2-but->x1);
 	y= ((float)my-but->y1)/(but->y2-but->y1);
-	CLAMP(x, 0.0, 1.0);
-	CLAMP(y, 0.0, 1.0);
+	CLAMP(x, 0.0f, 1.0f);
+	CLAMP(y, 0.0f, 1.0f);
 
 	switch((int)but->a1) {
 	case UI_GRAD_SV:
@@ -3226,7 +3226,7 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	}
 
 	if(U.uiflag & USER_CONTINUOUS_MOUSE) {
-		float fac= shift ? 0.05 : 1.0f;
+		float fac= shift ? 0.05f : 1.0f;
 		/* slow down the mouse, this is fairly picky */
 		mx = (data->dragstartx*(1.0f-fac) + mx*fac);
 		my = (data->dragstarty*(1.0f-fac) + my*fac);
@@ -3374,7 +3374,7 @@ static int ui_numedit_but_COLORBAND(uiBut *but, uiHandleButtonData *data, int mx
 
 	dx= ((float)(mx - data->draglastx))/(but->x2-but->x1);
 	data->dragcbd->pos += dx;
-	CLAMP(data->dragcbd->pos, 0.0, 1.0);
+	CLAMP(data->dragcbd->pos, 0.0f, 1.0f);
 	
 	ui_colorband_update(data->coba);
 	data->dragcbd= data->coba->data + data->coba->cur;	/* because qsort */
@@ -3479,8 +3479,8 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap, 
 				cmp[a].x+= fx;
 				cmp[a].y+= fy;
 				if(snap) {
-					cmp[a].x= 0.125f*floor(0.5f + 8.0f*cmp[a].x);
-					cmp[a].y= 0.125f*floor(0.5f + 8.0f*cmp[a].y);
+					cmp[a].x= 0.125f*floorf(0.5f + 8.0f*cmp[a].x);
+					cmp[a].y= 0.125f*floorf(0.5f + 8.0f*cmp[a].y);
 				}
 				if(cmp[a].x!=origx || cmp[a].y!=origy)
 					moved_point= 1;
@@ -3687,7 +3687,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 		hist->height = (but->y2 - but->y1) + (data->dragstarty - my);
 	} else {
 		/* scale histogram values */
-		yfac = MIN2(powf(hist->ymax, 2.f), 1.f) * 0.5;
+		yfac = MIN2(powf(hist->ymax, 2.f), 1.f) * 0.5f;
 		hist->ymax += dy * yfac;
 	
 		CLAMP(hist->ymax, 1.f, 100.f);

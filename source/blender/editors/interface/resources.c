@@ -784,10 +784,10 @@ void UI_ThemeColorBlend(int colorid1, int colorid2, float fac)
 	cp1= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
 	cp2= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
 
-	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
-	r= floor((1.0-fac)*cp1[0] + fac*cp2[0]);
-	g= floor((1.0-fac)*cp1[1] + fac*cp2[1]);
-	b= floor((1.0-fac)*cp1[2] + fac*cp2[2]);
+	CLAMP(fac, 0.0f, 1.0f);
+	r= floorf((1.0f-fac)*cp1[0] + fac*cp2[0]);
+	g= floorf((1.0f-fac)*cp1[1] + fac*cp2[1]);
+	b= floorf((1.0f-fac)*cp1[2] + fac*cp2[2]);
 	
 	glColor3ub(r, g, b);
 }
@@ -801,10 +801,10 @@ void UI_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
 	cp1= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
 	cp2= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
 
-	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
-	r= offset+floor((1.0-fac)*cp1[0] + fac*cp2[0]);
-	g= offset+floor((1.0-fac)*cp1[1] + fac*cp2[1]);
-	b= offset+floor((1.0-fac)*cp1[2] + fac*cp2[2]);
+	CLAMP(fac, 0.0f, 1.0f);
+	r= offset+floorf((1.0f-fac)*cp1[0] + fac*cp2[0]);
+	g= offset+floorf((1.0f-fac)*cp1[1] + fac*cp2[1]);
+	b= offset+floorf((1.0f-fac)*cp1[2] + fac*cp2[2]);
 	
 	CLAMP(r, 0, 255);
 	CLAMP(g, 0, 255);
@@ -822,11 +822,11 @@ void UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int off
 	cp1= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
 	cp2= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
 
-	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
-	r= offset+floor((1.0-fac)*cp1[0] + fac*cp2[0]);
-	g= offset+floor((1.0-fac)*cp1[1] + fac*cp2[1]);
-	b= offset+floor((1.0-fac)*cp1[2] + fac*cp2[2]);
-	a= alphaoffset+floor((1.0-fac)*cp1[3] + fac*cp2[3]);
+	CLAMP(fac, 0.0f, 1.0f);
+	r= offset+floorf((1.0f-fac)*cp1[0] + fac*cp2[0]);
+	g= offset+floorf((1.0f-fac)*cp1[1] + fac*cp2[1]);
+	b= offset+floorf((1.0f-fac)*cp1[2] + fac*cp2[2]);
+	a= alphaoffset + floorf((1.0f-fac)*cp1[3] + fac*cp2[3]);
 	
 	CLAMP(r, 0, 255);
 	CLAMP(g, 0, 255);
@@ -864,9 +864,9 @@ void UI_GetThemeColor3fv(int colorid, float *col)
 	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
-	col[0]= ((float)cp[0])/255.0;
-	col[1]= ((float)cp[1])/255.0;
-	col[2]= ((float)cp[2])/255.0;
+	col[0]= ((float)cp[0])/255.0f;
+	col[1]= ((float)cp[1])/255.0f;
+	col[2]= ((float)cp[2])/255.0f;
 }
 
 // get the color, range 0.0-1.0, complete with shading offset
@@ -884,9 +884,9 @@ void UI_GetThemeColorShade3fv(int colorid, int offset, float *col)
 	b= offset + (int) cp[2];
 	CLAMP(b, 0, 255);
 	
-	col[0]= ((float)r)/255.0;
-	col[1]= ((float)g)/255.0;
-	col[2]= ((float)b)/255.0;
+	col[0]= ((float)r)/255.0f;
+	col[1]= ((float)g)/255.0f;
+	col[2]= ((float)b)/255.0f;
 }
 
 // get the color, in char pointer
@@ -927,11 +927,10 @@ void UI_GetThemeColorType4ubv(int colorid, int spacetype, char col[4])
 void UI_ColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], float fac, int offset)
 {
 	int r, g, b;
-	
-	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
-	r= offset+floor((1.0-fac)*cp1[0] + fac*cp2[0]);
-	g= offset+floor((1.0-fac)*cp1[1] + fac*cp2[1]);
-	b= offset+floor((1.0-fac)*cp1[2] + fac*cp2[2]);
+	CLAMP(fac, 0.0f, 1.0f);
+	r= offset+floorf((1.0f-fac)*cp1[0] + fac*cp2[0]);
+	g= offset+floorf((1.0f-fac)*cp1[1] + fac*cp2[1]);
+	b= offset+floorf((1.0f-fac)*cp1[2] + fac*cp2[2]);
 	
 	r= r<0?0:(r>255?255:r);
 	g= g<0?0:(g>255?255:g);
@@ -944,16 +943,16 @@ void UI_ColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char c
 void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3], float fac, int offset)
 {
 	int r, g, b;
-	
-	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
-	r= offset+floor((1.0-fac)*cp1[0] + fac*cp2[0]);
-	g= offset+floor((1.0-fac)*cp1[1] + fac*cp2[1]);
-	b= offset+floor((1.0-fac)*cp1[2] + fac*cp2[2]);
-	
-	r= r<0?0:(r>255?255:r);
-	g= g<0?0:(g>255?255:g);
-	b= b<0?0:(b>255?255:b);
-	
+
+	CLAMP(fac, 0.0f, 1.0f);
+	r= offset+floor((1.0f-fac)*cp1[0] + fac*cp2[0]);
+	g= offset+floor((1.0f-fac)*cp1[1] + fac*cp2[1]);
+	b= offset+floor((1.0f-fac)*cp1[2] + fac*cp2[2]);
+
+	CLAMP(r, 0, 255);
+	CLAMP(g, 0, 255);
+	CLAMP(b, 0, 255);
+
 	col[0] = r;
 	col[1] = g;
 	col[2] = b;

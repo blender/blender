@@ -39,6 +39,10 @@ extern "C" {
 #define RAD2DEG(_rad) ((_rad)*(180.0/M_PI))
 #define DEG2RAD(_deg) ((_deg)*(M_PI/180.0))
 
+
+#define RAD2DEGF(_rad) ((_rad)*(float)(180.0/M_PI))
+#define DEG2RADF(_deg) ((_deg)*(float)(M_PI/180.0))
+
 /******************************** Quaternions ********************************/
 /* stored in (w, x, y, z) order                                              */
 

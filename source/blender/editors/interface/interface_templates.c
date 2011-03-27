@@ -2423,7 +2423,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	
 	rti= (ReportTimerInfo *)reports->reporttimer->customdata;
 	
-	if (!rti || rti->widthfac==0.0 || !report) return;
+	if (!rti || rti->widthfac==0.0f || !report) return;
 	
 	ui_abs= uiLayoutAbsolute(layout, 0);
 	block= uiLayoutGetBlock(ui_abs);

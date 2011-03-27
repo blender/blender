@@ -1063,9 +1063,9 @@ typedef struct Scene {
 #define PRVRANGEON		(scene->r.flag & SCER_PRV_RANGE)
 #define PSFRA			((PRVRANGEON)? (scene->r.psfra): (scene->r.sfra))
 #define PEFRA			((PRVRANGEON)? (scene->r.pefra): (scene->r.efra))
-#define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (a)) / scene->r.frs_sec)
-#define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (a)) / scene->r.frs_sec_base)
-#define FPS                     (((double) scene->r.frs_sec) / scene->r.frs_sec_base)
+#define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (double)(a)) / (double)scene->r.frs_sec)
+#define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (double)(a)) / (double)scene->r.frs_sec_base)
+#define FPS                     (((double) scene->r.frs_sec) / (double)scene->r.frs_sec_base)
 
 #define RAD_PHASE_PATCHES	1
 #define RAD_PHASE_FACES		2
