@@ -236,7 +236,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 			normalize_v3(state.vel);
 
 			/* TODO: incremental rotations somehow */
-			if(state.vel[axis] < -0.9999 || state.vel[axis] > 0.9999) {
+			if(state.vel[axis] < -0.9999f || state.vel[axis] > 0.9999f) {
 				state.rot[0] = 1;
 				state.rot[1] = state.rot[2] = state.rot[3] = 0.0f;
 			}

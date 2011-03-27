@@ -377,7 +377,7 @@ static void deformVertsEM(ModifierData *md, Object *ob,
 		dm->release(dm);
 }
 
-#define MESHDEFORM_MIN_INFLUENCE 0.00001
+#define MESHDEFORM_MIN_INFLUENCE 0.00001f
 
 void modifier_mdef_compact_influences(ModifierData *md)
 {

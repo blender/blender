@@ -114,7 +114,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	} else {
 		frac = BKE_curframe(md->scene) - bmd->start / bmd->length;
 	}
-	CLAMP(frac, 0.0, 1.0);
+	CLAMP(frac, 0.0f, 1.0f);
 
 	numFaces = dm->getNumFaces(dm) * frac;
 	numEdges = dm->getNumEdges(dm) * frac;

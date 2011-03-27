@@ -101,7 +101,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 			dataMask |= CD_MASK_MTFACE;
 	}
 
-	if(psmd->psys->part->tanfac!=0.0)
+	if(psmd->psys->part->tanfac != 0.0f)
 		dataMask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */

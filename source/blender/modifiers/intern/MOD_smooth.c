@@ -142,9 +142,7 @@ static void smoothModifier_do(
 			v1 = vertexCos[idx1];
 			v2 = vertexCos[idx2];
 
-			fvec[0] = (v1[0] + v2[0]) / 2.0;
-			fvec[1] = (v1[1] + v2[1]) / 2.0;
-			fvec[2] = (v1[2] + v2[2]) / 2.0;
+			mid_v3_v3v3(fvec, v1, v2);
 
 			v1 = &ftmp[idx1*3];
 			v2 = &ftmp[idx2*3];

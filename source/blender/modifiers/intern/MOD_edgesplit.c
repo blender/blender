@@ -1052,7 +1052,7 @@ static void tag_and_count_extra_edges(SmoothMesh *mesh, float split_angle,
 	/* if normal1 dot normal2 < threshold, angle is greater, so split */
 	/* FIXME not sure if this always works */
 	/* 0.00001 added for floating-point rounding */
-	float threshold = cos((split_angle + 0.00001) * M_PI / 180.0);
+	float threshold = cos((split_angle + 0.00001f) * (float)M_PI / 180.0f);
 	int i;
 
 	*extra_edges = 0;
@@ -1113,7 +1113,7 @@ static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 	/* if normal1 dot normal2 < threshold, angle is greater, so split */
 	/* FIXME not sure if this always works */
 	/* 0.00001 added for floating-point rounding */
-	mesh->threshold = cos((split_angle + 0.00001) * M_PI / 180.0);
+	mesh->threshold = cosf((split_angle + 0.00001f) * (float)M_PI / 180.0f);
 	mesh->flags = flags;
 
 	/* loop through edges, splitting sharp ones */

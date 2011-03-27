@@ -286,7 +286,7 @@ static void waveModifier_do(WaveModifierData *md,
 
 	if(wmd->damp == 0) wmd->damp = 10.0f;
 
-	if(wmd->lifetime != 0.0) {
+	if(wmd->lifetime != 0.0f) {
 		float x = ctime - wmd->timeoffs;
 
 		if(x > wmd->lifetime) {
@@ -294,7 +294,7 @@ static void waveModifier_do(WaveModifierData *md,
 
 			if(lifefac > wmd->damp) lifefac = 0.0;
 			else lifefac =
-				(float)(wmd->height * (1.0 - sqrt(lifefac / wmd->damp)));
+				(float)(wmd->height * (1.0f - sqrtf(lifefac / wmd->damp)));
 		}
 	}
 
@@ -304,9 +304,9 @@ static void waveModifier_do(WaveModifierData *md,
 		wavemod_get_texture_coords(wmd, ob, dm, vertexCos, tex_co, numVerts);
 	}
 
-	if(lifefac != 0.0) {		
+	if(lifefac != 0.0f) {
 		/* avoid divide by zero checks within the loop */
-		float falloff_inv= wmd->falloff ? 1.0f / wmd->falloff : 1.0;
+		float falloff_inv= wmd->falloff ? 1.0f / wmd->falloff : 1.0f;
 		int i;
 
 		for(i = 0; i < numVerts; i++) {
@@ -364,14 +364,14 @@ static void waveModifier_do(WaveModifierData *md,
 			amplit -= (ctime - wmd->timeoffs) * wmd->speed;
 
 			if(wmd->flag & MOD_WAVE_CYCL) {
-				amplit = (float)fmod(amplit - wmd->width, 2.0 * wmd->width)
+				amplit = (float)fmodf(amplit - wmd->width, 2.0f * wmd->width)
 						+ wmd->width;
 			}
 
 			/* GAUSSIAN */
 			if(amplit > -wmd->width && amplit < wmd->width) {
 				amplit = amplit * wmd->narrow;
-				amplit = (float)(1.0 / exp(amplit * amplit) - minfac);
+				amplit = (float)(1.0f / expf(amplit * amplit) - minfac);
 
 				/*apply texture*/
 				if(wmd->texture)
