@@ -16,7 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import os
+# <pep8 compliant>
+
 import subprocess
 import sys
 
@@ -37,4 +38,3 @@ if builder.find('cmake') != -1:
 else:
     # scons
     pass
-

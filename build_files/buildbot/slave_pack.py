@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 # Runs on buildbot slave, creating a release package using the build
 # system and zipping it into buildbot_upload.zip. This is then uploaded
 # to the master in the next buildbot step.
@@ -83,4 +85,3 @@ try:
 except Exception, ex:
     sys.stderr.write('Create buildbot_upload.zip failed' + str(ex) + '\n')
     sys.exit(1)
-

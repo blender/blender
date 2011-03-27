@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import os
 import subprocess
 import sys
@@ -56,4 +58,3 @@ else:
 
     retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
     sys.exit(retcode)
-

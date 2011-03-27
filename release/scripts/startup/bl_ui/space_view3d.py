@@ -1161,8 +1161,8 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout.menu("VIEW3D_MT_transform")
 
         layout.menu("VIEW3D_MT_pose_transform")
-        layout.menu("VIEW3D_MT_pose_apply")	
-		
+        layout.menu("VIEW3D_MT_pose_apply")
+
         layout.menu("VIEW3D_MT_snap")
 
         layout.separator()

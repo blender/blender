@@ -110,6 +110,7 @@ if _BPY_PROP_COLLECTION_FAKE:
 else:
     _BPY_PROP_COLLECTION_ID = "collection"
 
+
 def undocumented_message(module_name, type_name, identifier):
     if str(type_name).startswith('<module'):
         preloadtitle = '%s.%s' % (module_name, identifier)

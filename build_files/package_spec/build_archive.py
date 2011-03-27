@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# <pep8 compliant>
+
 import os
 import shutil
 import subprocess

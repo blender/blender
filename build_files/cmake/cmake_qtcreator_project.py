@@ -126,7 +126,6 @@ def cmake_advanced_info():
     defines = []
 
     import os
-    import sys
 
     create_eclipse_project(CMAKE_DIR)
 

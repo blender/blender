@@ -27,10 +27,12 @@ The main function to use is: update_data_paths(...)
 
 IS_TESTING = False
 
+
 def drepr(string):
     # is there a less crappy way to do this in python?, re.escape also escapes
     # single quotes strings so cant use it.
-    return '"%s"' % repr(string)[1:-1].replace("\"", "\\\"").replace("\\'","'")
+    return '"%s"' % repr(string)[1:-1].replace("\"", "\\\"").replace("\\'", "'")
+
 
 class DataPathBuilder(object):
     __slots__ = ("data_path", )
@@ -185,7 +187,7 @@ def update_data_paths(rna_update):
                 if data_path_new != data_path:
                     if not IS_TESTING:
                         fcurve.data_path = data_path_new
-                        fcurve.driver.is_valid = True; # reset to allow this to work again
+                        fcurve.driver.is_valid = True  # reset to allow this to work again
                     print("driver-fcurve (%s): %s -> %s" % (id_data.name, data_path, data_path_new))
 
                 for var in fcurve.driver.variables:

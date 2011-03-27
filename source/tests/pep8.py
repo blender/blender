@@ -42,7 +42,7 @@ SKIP_PREFIX = "./tools", "./config", "./scons", "./extern"
 def file_list_py(path):
     for dirpath, dirnames, filenames in os.walk(path):
         for filename in filenames:
-            if filename.endswith(".py"):
+            if filename.endswith(".py") or filename.endswith(".cfg"):
                 yield os.path.join(dirpath, filename)
 
 

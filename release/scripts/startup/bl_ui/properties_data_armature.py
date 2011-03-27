@@ -20,6 +20,7 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
+
 class ArmatureButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -263,6 +264,7 @@ from bl_ui.properties_animviz import (
     MotionPathButtonsPanel,
     OnionSkinButtonsPanel,
     )
+
 
 class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
     #bl_label = "Bones Motion Paths"

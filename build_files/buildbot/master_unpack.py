@@ -19,6 +19,8 @@
 # Runs on Buildbot master, to unpack incoming unload.zip into latest
 # builds directory and remove older builds.
 
+# <pep8 compliant>
+
 import os
 import shutil
 import sys
