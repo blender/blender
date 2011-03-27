@@ -27,13 +27,10 @@
  *  \ingroup collada
  */
 
-
 #include <string>
 
 #include "COLLADASWColor.h"
 #include "COLLADASWLight.h"
-
-#include "DNA_lamp_types.h"
 
 #include "BLI_math.h"
 
@@ -102,6 +99,7 @@ void LightsExporter::operator()(Object *ob)
 		COLLADASW::DirectionalLight cla(mSW, la_id, la_name, e);
 		cla.setColor(col);
 		cla.setConstantAttenuation(constatt);
+		exportBlenderProfile(cla, la);
 		addLight(cla);
 	}
 	// hemi
@@ -109,6 +107,7 @@ void LightsExporter::operator()(Object *ob)
 		COLLADASW::AmbientLight cla(mSW, la_id, la_name, e);
 		cla.setColor(col);
 		cla.setConstantAttenuation(constatt);
+		exportBlenderProfile(cla, la);
 		addLight(cla);
 	}
 	// spot
@@ -120,6 +119,7 @@ void LightsExporter::operator()(Object *ob)
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);
+		exportBlenderProfile(cla, la);
 		addLight(cla);
 	}
 	// lamp
@@ -129,6 +129,7 @@ void LightsExporter::operator()(Object *ob)
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);
+		exportBlenderProfile(cla, la);
 		addLight(cla);
 	}
 	// area lamp is not supported
@@ -139,6 +140,42 @@ void LightsExporter::operator()(Object *ob)
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);
+		exportBlenderProfile(cla, la);
 		addLight(cla);
 	}
+	
+}
+
+bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Lamp *la)
+{
+	cla.addExtraTechniqueParameter("blender", "type", la->type);
+	cla.addExtraTechniqueParameter("blender", "flag", la->flag);
+	cla.addExtraTechniqueParameter("blender", "mode", la->mode);
+	cla.addExtraTechniqueParameter("blender", "gamma", la->k);
+	cla.addExtraTechniqueParameter("blender", "shadow_r", la->shdwr);
+	cla.addExtraTechniqueParameter("blender", "shadow_g", la->shdwg);
+	cla.addExtraTechniqueParameter("blender", "shadow_b", la->shdwb);
+	cla.addExtraTechniqueParameter("blender", "energy", la->energy);
+	cla.addExtraTechniqueParameter("blender", "dist", la->dist);
+	cla.addExtraTechniqueParameter("blender", "spotsize", la->spotsize);
+	cla.addExtraTechniqueParameter("blender", "spotblend", la->spotblend);
+	cla.addExtraTechniqueParameter("blender", "halo_intensity", la->haint);
+	cla.addExtraTechniqueParameter("blender", "att1", la->att1);
+	cla.addExtraTechniqueParameter("blender", "att2", la->att2);
+	// \todo figure out how we can have falloff curve supported here
+	cla.addExtraTechniqueParameter("blender", "falloff_type", la->falloff_type);
+	cla.addExtraTechniqueParameter("blender", "clipsta", la->clipsta);
+	cla.addExtraTechniqueParameter("blender", "clipend", la->clipend);
+	cla.addExtraTechniqueParameter("blender", "shadspotsize", la->shadspotsize);
+	cla.addExtraTechniqueParameter("blender", "bias", la->bias);
+	cla.addExtraTechniqueParameter("blender", "soft", la->soft);
+	cla.addExtraTechniqueParameter("blender", "compressthresh", la->compressthresh);
+	cla.addExtraTechniqueParameter("blender", "bufsize", la->bufsize);
+	cla.addExtraTechniqueParameter("blender", "samp", la->samp);
+	cla.addExtraTechniqueParameter("blender", "buffers", la->buffers);
+	cla.addExtraTechniqueParameter("blender", "filtertype", la->filtertype);
+	cla.addExtraTechniqueParameter("blender", "bufflag", la->bufflag);
+	cla.addExtraTechniqueParameter("blender", "buftype", la->buftype);
+	
+	return true;
 }

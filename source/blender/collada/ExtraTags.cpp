@@ -44,7 +44,7 @@ ExtraTags::~ExtraTags()
 
 bool ExtraTags::addTag(const std::string tag, const std::string data)
 {
-	//std::cout << "ready to add " << tag << ": " << data << "." << std::endl;
+	std::cout << "ready to add " << tag << ": " << data << "." << std::endl;
 	
 	return true;
 }
