@@ -147,12 +147,12 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 			float *rf= rectf;
 			float srgb[3];
 			char *rc= rectc;
-			const float dither = ibuf->dither / 255.0;
+			const float dither = ibuf->dither / 255.0f;
 
 			/* XXX temp. because crop offset */
 			if( rectc >= (char *)(ibuf->rect)) {
 				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-					const float d = (BLI_frand()-0.5)*dither;
+					const float d = (BLI_frand()-0.5f)*dither;
 					srgb[0]= d + linearrgb_to_srgb(rf[0]);
 					srgb[1]= d + linearrgb_to_srgb(rf[1]);
 					srgb[2]= d + linearrgb_to_srgb(rf[2]);
@@ -176,7 +176,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 			/* XXX temp. because crop offset */
 			if( rectc >= (char *)(ibuf->rect)) {
 				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-					const float d = (BLI_frand()-0.5)*dither;
+					const float d = (BLI_frand()-0.5f)*dither;
 					
 					rgb[0] = d + rf[0];
 					rgb[1] = d + rf[1];

@@ -552,7 +552,7 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 		return NULL;
 
 	for(x = 0; x < self->size; x++) {
-		dot += self->vec[x] * tvec[x];
+		dot += (double)(self->vec[x] * tvec[x]);
 	}
 
 	return PyFloat_FromDouble(dot);
@@ -591,8 +591,8 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 		return NULL;
 
 	for(x = 0; x < size; x++) {
-		test_v1 += self->vec[x] * self->vec[x];
-		test_v2 += tvec[x] * tvec[x];
+		test_v1 += (double)(self->vec[x] * self->vec[x]);
+		test_v2 += (double)(tvec[x] * tvec[x]);
 	}
 	if (!test_v1 || !test_v2){
 		/* avoid exception */
@@ -608,7 +608,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 
 	//dot product
 	for(x = 0; x < self->size; x++) {
-		dot += self->vec[x] * tvec[x];
+		dot += (double)(self->vec[x] * tvec[x]);
 	}
 	dot /= (sqrt(test_v1) * sqrt(test_v2));
 
@@ -679,13 +679,13 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 
 	//get dot products
 	for(x = 0; x < size; x++) {
-		dot += self->vec[x] * tvec[x];
-		dot2 += tvec[x] * tvec[x];
+		dot += (double)(self->vec[x] * tvec[x]);
+		dot2 += (double)(tvec[x] * tvec[x]);
 	}
 	//projection
 	dot /= dot2;
 	for(x = 0; x < size; x++) {
-		vec[x] = (float)(dot * tvec[x]);
+		vec[x] = (float)dot * tvec[x];
 	}
 	return newVectorObject(vec, size, Py_NEW, Py_TYPE(self));
 }
@@ -1034,7 +1034,7 @@ static int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject
 
 	for(x = 0; x < mat->col_size; x++) {
 		for(y = 0; y < mat->row_size; y++) {
-			dot += mat->matrix[y][x] * vec_cpy[y];
+			dot += (double)(mat->matrix[y][x] * vec_cpy[y]);
 		}
 		rvec[z++] = (float)dot;
 		dot = 0.0f;
@@ -1079,7 +1079,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 
 		/*dot product*/
 		for(i = 0; i < vec1->size; i++) {
-			dot += vec1->vec[i] * vec2->vec[i];
+			dot += (double)(vec1->vec[i] * vec2->vec[i]);
 		}
 		return PyFloat_FromDouble(dot);
 	}
@@ -1257,7 +1257,7 @@ static double vec_magnitude_nosqrt(float *data, int size)
 	int i;
 
 	for(i=0; i<size; i++){
-		dot += data[i];
+		dot += (double)data[i];
 	}
 	/*return (double)sqrt(dot);*/
 	/* warning, line above removed because we are not using the length,
@@ -1273,7 +1273,7 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 {
 	VectorObject *vecA = NULL, *vecB = NULL;
 	int result = 0;
-	float epsilon = .000001f;
+	double epsilon = .000001f;
 	double lenA, lenB;
 
 	if (!VectorObject_Check(objectA) || !VectorObject_Check(objectB)){
@@ -1499,7 +1499,7 @@ static PyObject *Vector_getLength(VectorObject *self, void *UNUSED(closure))
 		return NULL;
 
 	for(i = 0; i < self->size; i++){
-		dot += (self->vec[i] * self->vec[i]);
+		dot += (double)(self->vec[i] * self->vec[i]);
 	}
 	return PyFloat_FromDouble(sqrt(dot));
 }
@@ -1517,17 +1517,17 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 		return -1;
 	}
 
-	if (param < 0.0f) {
+	if (param < 0.0) {
 		PyErr_SetString(PyExc_TypeError, "cannot set a vectors length to a negative value");
 		return -1;
 	}
-	if (param == 0.0f) {
+	if (param == 0.0) {
 		fill_vn(self->vec, self->size, 0.0f);
 		return 0;
 	}
 
 	for(i = 0; i < self->size; i++){
-		dot += (self->vec[i] * self->vec[i]);
+		dot += (double)(self->vec[i] * self->vec[i]);
 	}
 
 	if (!dot) /* cant sqrt zero */

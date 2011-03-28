@@ -243,7 +243,7 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 	int iNrActiveGroups = 0, index = 0;
 	const int iNrFaces = pContext->m_pInterface->m_getNumFaces(pContext);
 	tbool bRes = TFALSE;
-	const float fThresCos = (const float) cos((fAngularThreshold*M_PI)/180);
+	const float fThresCos = (const float) cos((fAngularThreshold*(float)M_PI)/180.0f);
 
 	// verify all call-backs have been set
 	if( pContext->m_pInterface->m_getNumFaces==NULL ||

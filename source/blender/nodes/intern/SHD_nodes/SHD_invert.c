@@ -59,7 +59,7 @@ bNodeStack **out)
 	
 	/* if fac, blend result against original input */
 	if (in[0]->vec[0] < 1.0f) {
-		facm = 1.0 - in[0]->vec[0];
+		facm = 1.0f - in[0]->vec[0];
 
 		col[0] = in[0]->vec[0]*col[0] + (facm*in[1]->vec[0]);
 		col[1] = in[0]->vec[0]*col[1] + (facm*in[1]->vec[1]);
