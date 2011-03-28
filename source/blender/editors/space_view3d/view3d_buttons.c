@@ -277,8 +277,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		}
 	}
 	
-	if(tot==0) return;
-
+	if(tot==0) {
+		uiDefBut(block, LABEL, 0, "Nothing selected",0, 130, 200, 20, NULL, 0, 0, 0, 0, "");
+		return;
+	}
 	median[0] /= (float)tot;
 	median[1] /= (float)tot;
 	median[2] /= (float)tot;
