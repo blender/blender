@@ -1418,6 +1418,36 @@ static void rna_def_event(BlenderRNA *brna)
 	RNA_define_verify_sdna(1); // not in sdna
 }
 
+static void rna_def_timer(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Timer", NULL);
+	RNA_def_struct_ui_text(srna, "Timer", "Window event timer");
+	RNA_def_struct_sdna(srna, "wmTimer");
+
+	RNA_define_verify_sdna(0); // not in sdna
+
+	/* could wrap more, for now this is enough */
+	prop= RNA_def_property(srna, "time_step", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "timestep");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Time Step", "");
+
+	prop= RNA_def_property(srna, "time_delta", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "delta");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Delta", "Time since last step in seconds");
+
+	prop= RNA_def_property(srna, "time_duration", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "duration");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Delta", "Time since last step in seconds");
+
+	RNA_define_verify_sdna(1); // not in sdna
+}
+
 static void rna_def_window(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1801,6 +1831,7 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_macro_operator(brna);
 	rna_def_operator_type_macro(brna);
 	rna_def_event(brna);
+	rna_def_timer(brna);
 	rna_def_window(brna);
 	rna_def_windowmanager(brna);
 	rna_def_keyconfig(brna);

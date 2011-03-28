@@ -73,6 +73,17 @@ static int rna_event_modal_handler_add(struct bContext *C, struct wmOperator *op
 	return WM_event_add_modal_handler(C, operator) != NULL;
 }
 
+/* XXX, need a way for python to know event types, 0x0110 is hard coded */
+struct wmTimer *rna_event_timer_add(struct wmWindowManager *wm, float time_step, wmWindow *win)
+{
+	return WM_event_add_timer(wm, win, 0x0110, time_step);
+}
+
+void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
+{
+	return WM_event_remove_timer(wm, timer->win, timer);
+}
+
 #else
 
 #define WM_GEN_INVOKE_EVENT (1<<0)
@@ -117,6 +128,22 @@ void RNA_api_wm(StructRNA *srna)
 	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_function_return(func, RNA_def_boolean(func, "handle", 1, "", ""));
+
+
+	func= RNA_def_function(srna, "event_timer_add", "rna_event_timer_add");
+	parm= RNA_def_property(func, "time_step", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_range(parm, 0.0, FLT_MAX);
+	RNA_def_property_ui_text(parm, "Time Step", "Interval in seconds between timer events");
+	parm= RNA_def_pointer(func, "window", "Window", "", "Window to attach the timer to or None.");
+	parm= RNA_def_pointer(func, "result", "Timer", "", "");
+	RNA_def_function_return(func, parm);
+
+
+	func= RNA_def_function(srna, "event_timer_remove", "rna_event_timer_remove");
+	parm= RNA_def_pointer(func, "timer", "Timer", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
 
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_props_popup", "WM_operator_props_popup");
