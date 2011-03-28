@@ -1272,7 +1272,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				glEnd();
 
 				glTranslatef(mval[0], mval[1], 0);
-				glRotatef(-180 / M_PI * atan2f(cent[0] - t->mval[0], cent[1] - t->mval[1]), 0, 0, 1);
+				glRotatef(-RAD2DEGF(atan2f(cent[0] - t->mval[0], cent[1] - t->mval[1])), 0, 0, 1);
 
 				setlinestyle(0);
 				glLineWidth(3.0);
@@ -1306,8 +1306,8 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 					float dx = t->mval[0] - cent[0], dy = t->mval[1] - cent[1];
 					float angle = atan2f(dy, dx);
 					float dist = sqrtf(dx*dx + dy*dy);
-					float delta_angle = MIN2(15 / dist, M_PI/4);
-					float spacing_angle = MIN2(5 / dist, M_PI/12);
+					float delta_angle = MIN2(15.0f / dist, (float)M_PI/4.0f);
+					float spacing_angle = MIN2(5.0f / dist, (float)M_PI/12.0f);
 					UI_ThemeColor(TH_WIRE);
 
 					setlinestyle(3);
@@ -1326,14 +1326,14 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 					glPushMatrix();
 
 					glTranslatef(cosf(angle - delta_angle) * dist, sinf(angle - delta_angle) * dist, 0);
-					glRotatef(180 / M_PI * (angle - delta_angle), 0, 0, 1);
+					glRotatef(RAD2DEGF(angle - delta_angle), 0, 0, 1);
 
 					drawArrowHead(DOWN, 5);
 
 					glPopMatrix();
 
 					glTranslatef(cosf(angle + delta_angle) * dist, sinf(angle + delta_angle) * dist, 0);
-					glRotatef(180 / M_PI * (angle + delta_angle), 0, 0, 1);
+					glRotatef(RAD2DEGF(angle + delta_angle), 0, 0, 1);
 
 					drawArrowHead(UP, 5);
 
@@ -1921,7 +1921,7 @@ static void protectedAxisAngleBits(short protectflag, float axis[3], float *angl
 		eulO_to_axis_angle( axis, angle,eul, EULER_ORDER_DEFAULT);
 		
 		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
-		if (IS_EQ(axis[0], axis[1]) && IS_EQ(axis[1], axis[2])) {
+		if (IS_EQF(axis[0], axis[1]) && IS_EQF(axis[1], axis[2])) {
 			/* for now, rotate around y-axis then (so that it simply becomes the roll) */
 			axis[1]= 1.0f;
 		}
@@ -2237,8 +2237,8 @@ void initWarp(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = 5.0f / 180 * M_PI;
-	t->snap[2] = 1.0f / 180 * M_PI;
+	t->snap[1] = 5.0f / 180.0f * (float)M_PI;
+	t->snap[2] = 1.0f / 180.0f * (float)M_PI;
 	
 	t->num.increment = 1.0f;
 
@@ -2261,7 +2261,7 @@ void initWarp(TransInfo *t)
 
 	mid_v3_v3v3(t->center, min, max);
 
-	if (max[0] == min[0]) max[0] += 0.1; /* not optimal, but flipping is better than invalid garbage (i.e. division by zero!) */
+	if (max[0] == min[0]) max[0] += 0.1f; /* not optimal, but flipping is better than invalid garbage (i.e. division by zero!) */
 	t->val= (max[0]-min[0])/2.0f; /* t->val is X dimension projected boundbox */
 }
 
@@ -2325,11 +2325,11 @@ int Warp(TransInfo *t, short UNUSED(mval[2]))
 		
 		sprintf(str, "Warp: %s", c);
 
-		circumfac = circumfac / 180 * M_PI;
+		circumfac = DEG2RADF(circumfac);
 	}
 	else {
 		/* default header print */
-		sprintf(str, "Warp: %.3f", circumfac * 180 / M_PI);
+		sprintf(str, "Warp: %.3f", RAD2DEGF(circumfac));
 	}
 	
 	t->values[0] = circumfac;
@@ -3180,16 +3180,16 @@ int Rotation(TransInfo *t, short UNUSED(mval[2]))
 		sprintf(str, "Rot: %s %s %s", &c[0], t->con.text, t->proptext);
 		
 		/* Clamp between -180 and 180 */
-		while (final >= 180.0)
-			final -= 360.0;
+		while (final >= 180.0f)
+			final -= 360.0f;
 		
-		while (final <= -180.0)
-			final += 360.0;
-		
-		final *= (float)(M_PI / 180.0);
+		while (final <= -180.0f)
+			final += 360.0f;
+
+		final = DEG2RADF(final);
 	}
 	else {
-		sprintf(str, "Rot: %.2f%s %s", 180.0*final/M_PI, t->con.text, t->proptext);
+		sprintf(str, "Rot: %.2f%s %s", RAD2DEGF(final), t->con.text, t->proptext);
 	}
 	
 	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
@@ -3289,11 +3289,11 @@ int Trackball(TransInfo *t, short UNUSED(mval[2]))
 
 		sprintf(str, "Trackball: %s %s %s", &c[0], &c[20], t->proptext);
 
-		phi[0] *= (float)(M_PI / 180.0);
-		phi[1] *= (float)(M_PI / 180.0);
+		phi[0] = DEG2RADF(phi[0]);
+		phi[1] = DEG2RADF(phi[1]);
 	}
 	else {
-		sprintf(str, "Trackball: %.2f %.2f %s", 180.0*phi[0]/M_PI, 180.0*phi[1]/M_PI, t->proptext);
+		sprintf(str, "Trackball: %.2f %.2f %s", RAD2DEGF(phi[0]), RAD2DEGF(phi[1]), t->proptext);
 	}
 
 	vec_rot_to_mat3( smat,axis1, phi[0]);
@@ -3382,7 +3382,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 
 	if(!(t->flag & T_2D_EDIT) && t->scene->unit.system)
 		bUnit_AsString(distvec, sizeof(distvec), dist*t->scene->unit.scale_length, 4, t->scene->unit.system, B_UNIT_LENGTH, t->scene->unit.flag & USER_UNIT_OPT_SPLIT, 0);
-	else if( dist > 1e10 || dist < -1e10 )	/* prevent string buffer overflow */
+	else if( dist > 1e10f || dist < -1e10f )	/* prevent string buffer overflow */
 		sprintf(distvec, "%.4e", dist);
 	else
 		sprintf(distvec, "%.4f", dist);
@@ -3648,10 +3648,10 @@ int Tilt(TransInfo *t, short UNUSED(mval[2]))
 
 		sprintf(str, "Tilt: %s %s", &c[0], t->proptext);
 
-		final *= (float)(M_PI / 180.0);
+		final = DEG2RADF(final);
 	}
 	else {
-		sprintf(str, "Tilt: %.2f %s", 180.0*final/M_PI, t->proptext);
+		sprintf(str, "Tilt: %.2f %s", RAD2DEGF(final), t->proptext);
 	}
 
 	for(i = 0 ; i < t->total; i++, td++) {
@@ -4639,7 +4639,7 @@ static int createSlideVerts(TransInfo *t)
 	}
 
 	add_v3_v3(start, end);
-	mul_v3_fl(start, 0.5*(1.0/totvec));
+	mul_v3_fl(start, 0.5f*(1.0f/totvec));
 	VECCOPY(vec, start);
 	start[0] = t->mval[0];
 	start[1] = t->mval[1];
@@ -4923,8 +4923,8 @@ int doEdgeSlide(TransInfo *t, float perc)
 			tempsv = BLI_ghash_lookup(vertgh,ev);
 			edgelen = len_v3v3(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co);
 			newlen = (edgelen != 0.0f)? (len / edgelen): 0.0f;
-			if(newlen > 1.0) {newlen = 1.0;}
-			if(newlen < 0.0) {newlen = 0.0;}
+			if(newlen > 1.0f) {newlen = 1.0;}
+			if(newlen < 0.0f) {newlen = 0.0;}
 			if(flip == 0) {
 				interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));
 				if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
@@ -5047,10 +5047,10 @@ int BoneRoll(TransInfo *t, short UNUSED(mval[2]))
 
 		sprintf(str, "Roll: %s", &c[0]);
 
-		final *= (float)(M_PI / 180.0);
+		final = DEG2RADF(final);
 	}
 	else {
-		sprintf(str, "Roll: %.2f", 180.0*final/M_PI);
+		sprintf(str, "Roll: %.2f", RAD2DEGF(final));
 	}
 
 	/* set roll values */
@@ -5358,8 +5358,8 @@ int SeqSlide(TransInfo *t, short UNUSED(mval[2]))
 		applyNumInput(&t->num, t->values);
 	}
 
-	t->values[0] = floor(t->values[0] + 0.5);
-	t->values[1] = floor(t->values[1] + 0.5);
+	t->values[0] = floor(t->values[0] + 0.5f);
+	t->values[1] = floor(t->values[1] + 0.5f);
 
 	headerSeqSlide(t, t->values, str);
 	applySeqSlide(t, t->values);
@@ -5781,7 +5781,7 @@ int TimeSlide(TransInfo *t, short mval[2])
 	/* handle numeric-input stuff */
 	t->vec[0] = 2.0f*(cval[0]-sval[0]) / (maxx-minx);
 	applyNumInput(&t->num, &t->vec[0]);
-	t->values[0] = (maxx-minx) * t->vec[0] / 2.0 + sval[0];
+	t->values[0] = (maxx-minx) * t->vec[0] / 2.0f + sval[0];
 
 	headerTimeSlide(t, sval[0], str);
 	applyTimeSlide(t, sval[0]);

@@ -645,7 +645,7 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 		
 		cross_v3_v3v3(tmp, start, end);
 		
-		if (dot_v3v3(tmp, axis) < 0.0)
+		if (dot_v3v3(tmp, axis) < 0.0f)
 			angle = -acos(dot_v3v3(start, end));
 		else	
 			angle = acos(dot_v3v3(start, end));
@@ -661,11 +661,11 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 		angle = atan2(start[1],start[0]) - atan2(end[1],end[0]);
 	}
 	
-	if (angle > M_PI) {
-		angle = angle - 2 * M_PI;
+	if (angle > (float)M_PI) {
+		angle = angle - 2 * (float)M_PI;
 	}
-	else if (angle < -(M_PI)) {
-		angle = 2 * M_PI + angle;
+	else if (angle < -((float)M_PI)) {
+		angle = 2.0f * (float)M_PI + angle;
 	}
 	
 	return angle;
@@ -1134,7 +1134,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 			 * this takes care of series of connected edges a bit slanted w.r.t the viewport
 			 * otherwise, it would stick to the verts of the closest edge and not slide along merrily 
 			 * */
-			if (new_dist <= *dist && new_depth < *depth * 1.001)
+			if (new_dist <= *dist && new_depth < *depth * 1.001f)
 			{
 				float n1[3], n2[3];
 				
@@ -1670,7 +1670,7 @@ static void removeDoublesPeel(ListBase *depth_peels)
 	{
 		DepthPeel *next_peel = peel->next;
 		
-		if (peel && next_peel && ABS(peel->depth - next_peel->depth) < 0.0015)
+		if (peel && next_peel && ABS(peel->depth - next_peel->depth) < 0.0015f)
 		{
 			peel->next = next_peel->next;
 			
@@ -1939,7 +1939,7 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 	float asp[3] = {1.0f, 1.0f, 1.0f}; // TODO: Remove hard coded limit here (3)
 
 	// Early bailing out if no need to snap
-	if (fac[action] == 0.0)
+	if (fac[action] == 0.0f)
 		return;
 	
 	/* evil hack - snapping needs to be adapted for image aspect ratio */
@@ -1948,6 +1948,6 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 	}
 
 	for (i=0; i<=max_index; i++) {
-		val[i]= fac[action]*asp[i]*(float)floor(val[i]/(fac[action]*asp[i]) +.5);
+		val[i]= fac[action]*asp[i]*(float)floor(val[i]/(fac[action]*asp[i]) +0.5f);
 	}
 }

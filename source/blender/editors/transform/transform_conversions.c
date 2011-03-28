@@ -356,7 +356,7 @@ static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 	bConstraint *con= pchan->constraints.first;
 
 	for(;con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0f)) {
 			bKinematicConstraint *data= con->data;
 
 			if(data->tar==NULL)
@@ -757,7 +757,7 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 
 	/* check if pchan has ik-constraint */
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0f)) {
 			bKinematicConstraint *data= con->data;
 			
 			/* only accept if a temporary one (for auto-ik) */
@@ -2802,7 +2802,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 			if (BEZSELECTED(bezt) == 0) {
 				/* check beztriple should be removed according to cache */
 				for (index= 0; index < len; index++) {
-					if (IS_EQ(bezt->vec[1][0], selcache[index])) {
+					if (IS_EQF(bezt->vec[1][0], selcache[index])) {
 						delete_fcurve_key(fcu, i, 0);
 						break;
 					}
@@ -2975,7 +2975,7 @@ void flushTransGPactionData (TransInfo *t)
 
 	/* flush data! */
 	for (i = 0; i < t->total; i++, tfd++) {
-		*(tfd->sdata)= (int)floor(tfd->val + 0.5);
+		*(tfd->sdata)= (int)floor(tfd->val + 0.5f);
 	}
 }
 
@@ -3358,8 +3358,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		mul_v3_fl(mtx[1], yscale);
 		
 		/* smtx is global (i.e. view) to data conversion */
-		if (IS_EQ(xscale, 0.0f) == 0) mul_v3_fl(smtx[0], 1.0f/xscale);
-		if (IS_EQ(yscale, 0.0f) == 0) mul_v3_fl(smtx[1], 1.0f/yscale);
+		if (IS_EQF(xscale, 0.0f) == 0) mul_v3_fl(smtx[0], 1.0f/xscale);
+		if (IS_EQF(yscale, 0.0f) == 0) mul_v3_fl(smtx[1], 1.0f/yscale);
 	}
 	
 	/* loop 2: build transdata arrays */
@@ -4137,7 +4137,7 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list)
 	if (list) {
 		for (con= list->first; con; con=con->next) {
 			/* only consider constraint if it is enabled, and has influence on result */
-			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) {
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0f)) {
 				/* (affirmative) returns for specific constraints here... */
 					/* constraints that require this regardless  */
 				if (con->type == CONSTRAINT_TYPE_CHILDOF) return 1;
