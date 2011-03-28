@@ -2063,10 +2063,15 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 	float force[3],acceleration[3],impulse[3],dx[4][3],dv[4][3],oldpos[3];
 	float pa_mass= (part->flag & PART_SIZEMASS ? part->mass * pa->size : part->mass);
 	int i, steps=1;
-	
-	copy_v3_v3(oldpos, pa->state.co);
+	int integrator = part->integrator;
 
-	switch(part->integrator){
+	copy_v3_v3(oldpos, pa->state.co);
+	
+	/* Verlet integration behaves strangely with moving emitters, so do first step with euler. */
+	if(pa->prev_state.time < 0.f && integrator == PART_INT_VERLET)
+		integrator = PART_INT_EULER;
+
+	switch(integrator){
 		case PART_INT_EULER:
 			steps=1;
 			break;
@@ -2100,7 +2105,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 		/* calculate next state */
 		add_v3_v3(states[i].vel, impulse);
 
-		switch(part->integrator){
+		switch(integrator){
 			case PART_INT_EULER:
 				madd_v3_v3v3fl(pa->state.co, states->co, states->vel, dtime);
 				madd_v3_v3v3fl(pa->state.vel, states->vel, acceleration, dtime);
