@@ -445,7 +445,26 @@ void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
 
 	if (!len) return;
 
-	mul_v3_fl(v->no, 1.0f/(int)len);
+	mul_v3_fl(v->no, 1.0f/(float)len);
+}
+
+void BM_Vert_UpdateAllNormals(BMesh *bm, BMVert *v)
+{
+	BMIter iter;
+	BMFace *f;
+	int len=0;
+
+	v->no[0] = v->no[1] = v->no[2] = 0.0f;
+
+	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
+	for (; f; f=BMIter_Step(&iter), len++) {
+		BM_Face_UpdateNormal(bm, f);
+		add_v3_v3v3(v->no, f->no, v->no);
+	}
+
+	if (!len) return;
+
+	mul_v3_fl(v->no, 1.0f/(float)len);
 }
 
 void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])

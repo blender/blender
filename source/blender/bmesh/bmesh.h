@@ -204,6 +204,7 @@ void BM_Edge_UpdateNormals ( BMesh *bm, BMEdge *e );
 
 /*update a vert normal (but not the faces incident on it)*/
 void BM_Vert_UpdateNormal ( BMesh *bm, BMVert *v );
+void BM_Vert_UpdateAllNormals ( BMesh *bm, BMVert *v );
 
 void BM_flip_normal ( BMesh *bm, BMFace *f );
 
@@ -232,11 +233,12 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f);
 void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source);
 void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source);
 
-void BM_Data_Interp_From_Verts ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, float fac );
-void BM_Data_Facevert_Edgeinterp ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, struct BMEdge *e1, float fac );
-void BM_add_data_layer ( BMesh *em, CustomData *data, int type );
-void BM_add_data_layer_named ( BMesh *bm, CustomData *data, int type, char *name );
-void BM_free_data_layer ( BMesh *em, CustomData *data, int type );
+void BM_Data_Interp_From_Verts (struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, float fac );
+void BM_Data_Facevert_Edgeinterp (struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, struct BMEdge *e1, float fac );
+void BM_add_data_layer (BMesh *em, CustomData *data, int type );
+void BM_add_data_layer_named (BMesh *bm, CustomData *data, int type, char *name );
+void BM_free_data_layer (BMesh *em, CustomData *data, int type );
+void BM_free_data_layer_n(BMesh *bm, CustomData *data, int type, int n);
 float BM_GetCDf(struct CustomData *cd, void *element, int type);
 void BM_SetCDf(struct CustomData *cd, void *element, int type, float val);
 

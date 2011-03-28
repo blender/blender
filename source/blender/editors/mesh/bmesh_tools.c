@@ -112,21 +112,24 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	int cuts= RNA_int_get(op->ptr,"number_cuts");
-	float smooth= 0.292f*RNA_float_get(op->ptr, "smoothness");
-	float fractal= RNA_float_get(op->ptr, "fractal")/100;
+	float fractal= RNA_float_get(op->ptr, "fractal")/2.5;
 	int flag= 0;
 
-	if(smooth != 0.0f)
-		flag |= B_SMOOTH;
 	if(fractal != 0.0f)
 		flag |= B_FRACTAL;
-
+	
+	if (RNA_boolean_get(op->ptr, "quadtri") && 
+	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
+	{
+		RNA_enum_set(op->ptr, "quadcorner", SUBD_INNERVERT);	
+	}
+	
 	BM_esubdivideflag(obedit, em->bm, BM_SELECT, 
-	                  smooth, fractal, 
+	                  0.0f, fractal, 
 	                  ts->editbutflag|flag, 
 	                  cuts, 0, RNA_enum_get(op->ptr, "quadcorner"), 
-	                  RNA_boolean_get(op->ptr, "tess_single_edge"),
-	                  RNA_boolean_get(op->ptr, "gridfill"));
+	                  RNA_boolean_get(op->ptr, "quadtri"),
+	                  1, RNA_int_get(op->ptr, "seed"));
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -158,19 +161,18 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, 20, "Number of Cuts", "", 1, INT_MAX);
-	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
-	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, 1000.0f, "Smoothness", "Smoothness factor.", 0.0f, FLT_MAX);
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, 50, "Number of Cuts", "", 1, INT_MAX);
 
-	/*props */
-	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_STRAIGHT_CUT, "Quad Corner Type", "Method used for subdividing two adjacent edges in a quad");
-	RNA_def_boolean(ot->srna, "tess_single_edge", 0, "Tesselate Single Edge", "Adds triangles to single edges belonging to triangles or quads");
-	RNA_def_boolean(ot->srna, "gridfill", 1, "Grid Fill", "Fill Fully Selected Triangles and Quads With A Grid");
+	RNA_def_boolean(ot->srna, "quadtri", 0, "Quad/Tri Mode", "Tries to prevent ngons");
+	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_STRAIGHT_CUT, "Quad Corner Type", "How to subdivide quad corners (anything other then Straight Cut will prevent ngons)");
+
+	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
+	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
 }
 
 /* individual face extrude */
 /* will use vertex normals for extrusion directions, so *nor is unaffected */
-short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float *nor) 
+short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
 {
 	BMOIter siter;
 	BMIter liter;
@@ -790,7 +792,7 @@ void EDBM_toggle_select_all(BMEditMesh *em) /* exported for UV */
 		EDBM_set_flag_all(em, SELECT);
 }
 
-static int toggle_select_all_exec(bContext *C, wmOperator *op)
+static int toggle_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
@@ -1240,7 +1242,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 }
 
 
-static int editbmesh_vert_connect(bContext *C, wmOperator *op)
+static int editbmesh_vert_connect(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
@@ -1675,7 +1677,7 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	EDBM_selectmode_flush(em);
 }
 
-static int reveal_mesh_exec(bContext *C, wmOperator *op)
+static int reveal_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
@@ -1804,7 +1806,7 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 }
 
 
-static int bm_test_exec(bContext *C, wmOperator *op)
+static int bm_test_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	RegionView3D *r3d = CTX_wm_region_view3d(C);		

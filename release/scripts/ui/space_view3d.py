@@ -557,7 +557,7 @@ class VIEW3D_MT_select_edit_curve(bpy.types.Menu):
         layout.operator("curve.select_less")
 
 
-class VIEW3D_MT_select_edit_surface(bpy.types.Menu):
+class sVIEW3D_MT_select_edit_surface(bpy.types.Menu):
     bl_label = "Select"
 
     def draw(self, context):
@@ -1366,7 +1366,6 @@ class VIEW3D_MT_edit_mesh_specials(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.subdivide", text="Subdivide")
-        layout.operator("mesh.subdivide", text="Subdivide Smooth").smoothness = 1.0
         layout.operator("mesh.merge", text="Merge...")
         layout.operator("mesh.remove_doubles")
         layout.operator("mesh.hide", text="Hide")

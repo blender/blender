@@ -517,8 +517,8 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	}
 
 	/*v->nv->v2*/
-	BM_Data_Facevert_Edgeinterp(bm,v2, v, nv, e, percent);	
-	BM_Data_Interp_From_Verts(bm, v2, v, nv, percent);
+	BM_Data_Facevert_Edgeinterp(bm, v2, v, nv, e, percent);	
+	BM_Data_Interp_From_Verts(bm, v, v2, nv, percent);
 
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS) && e->l && nv) {
 		int i, j;

@@ -118,7 +118,10 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVe
 			v2loop = (BMLoop*)(l->prev);
 			
 		}
-
+		
+		if (!v1loop || !v2loop)
+			return;
+		
 		src[0] = v1loop->head.data;
 		src[1] = v2loop->head.data;					
 
@@ -715,6 +718,18 @@ void BM_free_data_layer(BMesh *bm, CustomData *data, int type)
 	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
 	CustomData_free_layer_active(data, type, 0);
 
+	update_data_blocks(bm, &olddata, data);
+	if (olddata.layers) MEM_freeN(olddata.layers);
+}
+
+void BM_free_data_layer_n(BMesh *bm, CustomData *data, int type, int n)
+{
+	CustomData olddata;
+
+	olddata= *data;
+	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
+	CustomData_free_layer(data, type, 0, CustomData_get_layer_index_n(data, type, n));
+	
 	update_data_blocks(bm, &olddata, data);
 	if (olddata.layers) MEM_freeN(olddata.layers);
 }

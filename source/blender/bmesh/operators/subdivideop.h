@@ -6,7 +6,10 @@ typedef struct subdparams {
 	float smooth;
 	float fractal;
 	int beauty;
+	int seed;
+	int origkey; /*shapekey holding displaced vertex coordinates for current geometry*/
 	BMOperator *op;
+	float off[3];
 } subdparams;
 
 typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts, 

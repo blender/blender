@@ -657,6 +657,7 @@ BMOpDefine def_subdop = {
 	{BMOP_OPSLOT_FLT, "smooth"},
 	{BMOP_OPSLOT_FLT, "fractal"},
 	{BMOP_OPSLOT_INT, "beauty"},
+	{BMOP_OPSLOT_INT, "seed"},
 	{BMOP_OPSLOT_MAPPING, "custompatterns"},
 	{BMOP_OPSLOT_MAPPING, "edgepercents"},
 	
