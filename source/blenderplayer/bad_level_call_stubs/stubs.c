@@ -160,7 +160,9 @@ int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEv
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
 void WM_main_add_notifier(unsigned int type, void *reference){}
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep){}
-struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;};
+struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;}
+struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep){return (struct wmTimer *)NULL;}
+void		WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer){}
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone){}
 void object_test_constraints (struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
