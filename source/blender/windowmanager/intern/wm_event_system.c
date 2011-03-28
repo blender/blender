@@ -469,7 +469,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
 		
 		/* Records time since last report was added */
-		wm_reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.05);
+		wm_reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMERREPORT, 0.05);
 		
 		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
 		wm_reports->reporttimer->customdata = rti;
