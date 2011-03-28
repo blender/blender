@@ -640,6 +640,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 			}
 			break;
 		case PROP_COLOR:
+		case PROP_COLOR_GAMMA:
 			if(len==3) { /* color */
 				if(is_thick) {
 					ret= newColorObject(NULL, Py_NEW, NULL); // TODO, get order from RNA
