@@ -139,13 +139,17 @@ private:
 	ArmatureImporter armature_importer;
 	MeshImporter mesh_importer;
 	AnimationImporter anim_importer;
+	
+	/** TagsMap typedef for uid_tags_map. */
+	typedef std::map<std::string, ExtraTags*> TagsMap;
+	/** Tags map of unique id as a string and ExtraTags instance. */
+	TagsMap uid_tags_map;
 
 	std::map<COLLADAFW::UniqueId, Image*> uid_image_map;
 	std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
 	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
 	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
 	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
-	std::map<COLLADAFW::UniqueId, ExtraTags*> uid_tags_map;
 	std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
 	std::map<COLLADAFW::UniqueId, Object*> object_map;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> node_map;

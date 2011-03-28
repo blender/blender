@@ -47,9 +47,6 @@ bool ExtraHandler::elementBegin( const char* elementName, const char** attribute
 
 bool ExtraHandler::elementEnd(const char* elementName )
 {
-	currentUid = COLLADAFW::UniqueId();
-	currentExtraTags = 0;
-	currentElement.clear();
 	return true;
 }
 
@@ -60,7 +57,7 @@ bool ExtraHandler::textData(const char* text, size_t textLength)
 	if(currentElement.length() == 0) return false;
 	
 	BLI_snprintf(buf, textLength+1, "%s", text);
-	currentExtraTags->addTag(std::string(currentElement), std::string(buf));
+	currentExtraTags->addTag(currentElement, std::string(buf));
 	return true;
 }
 

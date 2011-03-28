@@ -33,18 +33,84 @@
 
 #include "ExtraTags.h"
 
-ExtraTags::ExtraTags(const std::string profile)
+ExtraTags::ExtraTags( std::string profile)
 {
 	this->profile = profile;
+	this->tags = std::map<std::string, std::string>();
 }
 
 ExtraTags::~ExtraTags()
 {
 }
 
-bool ExtraTags::addTag(const std::string tag, const std::string data)
+bool ExtraTags::addTag( std::string tag,  std::string data)
 {
-	std::cout << "ready to add " << tag << ": " << data << "." << std::endl;
+	tags[tag] = data;
 	
 	return true;
 }
+
+int ExtraTags::asInt( std::string tag, bool *ok)
+{
+	if(tags.find(tag) == tags.end()) {
+		*ok = false;
+		return -1;
+	}
+	*ok = true;
+	return atoi(tags[tag].c_str());
+}
+
+float ExtraTags::asFloat( std::string tag, bool *ok)
+{
+	if(tags.find(tag) == tags.end()) {
+		*ok = false;
+		return -1.0f;
+	}
+	*ok = true;
+	return (float)atof(tags[tag].c_str());
+}
+
+std::string ExtraTags::asString( std::string tag, bool *ok)
+{
+	if(tags.find(tag) == tags.end()) {
+		*ok = false;
+		return "";
+	}
+	*ok = true;
+	return tags[tag];
+}
+
+
+void ExtraTags::setData(std::string tag, short *data)
+{
+	bool ok = false;
+	int tmp = 0;
+	tmp = asInt(tag, &ok);
+	if(ok)
+		*data = (short)tmp;
+}
+void ExtraTags::setData(std::string tag, int *data)
+{
+	bool ok = false;
+	int tmp = 0;
+	tmp = asInt(tag, &ok);
+	if(ok)
+		*data = tmp;
+}
+void ExtraTags::setData(std::string tag, float *data)
+{
+	bool ok = false;
+	float tmp = 0.0f;
+	tmp = asFloat(tag, &ok);
+	if(ok)
+		*data = tmp;
+}
+void ExtraTags::setData(std::string tag, char *data)
+{
+	bool ok = false;
+	int tmp = 0;
+	tmp = asInt(tag, &ok);
+	if(ok)
+		*data = (char)tmp;
+}
+	

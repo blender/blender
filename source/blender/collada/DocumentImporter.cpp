@@ -103,7 +103,7 @@ DocumentImporter::DocumentImporter(bContext *C, const char *filename) :
 
 DocumentImporter::~DocumentImporter()
 {
-	std::map<COLLADAFW::UniqueId, ExtraTags*>::iterator etit;
+	TagsMap::iterator etit;
 	etit = uid_tags_map.begin();
 	while(etit!=uid_tags_map.end()) {
 		delete etit->second;
@@ -867,6 +867,12 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 	Lamp *lamp = NULL;
 	std::string la_id, la_name;
 	
+	TagsMap::iterator etit;
+	ExtraTags *et = 0;
+	etit = uid_tags_map.find(light->getUniqueId().toAscii());
+	if(etit != uid_tags_map.end())
+		et = etit->second;
+	
 	la_id = light->getOriginalId();
 	la_name = light->getName();
 	if (la_name.size()) lamp = (Lamp*)add_lamp((char*)la_name.c_str());
@@ -954,6 +960,61 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 		}
 		break;
 	}
+	
+	if(et) {
+		et->setData("type", &(lamp->type));
+		et->setData("flag", &(lamp->flag));
+		et->setData("mode", &(lamp->mode));
+		et->setData("gamma", &(lamp->k));
+		et->setData("shadow_r", &(lamp->shdwr));
+		et->setData("shadow_g", &(lamp->shdwg));
+		et->setData("shadow_b", &(lamp->shdwb));
+		et->setData("energy", &(lamp->energy));
+		et->setData("dist", &(lamp->dist));
+		et->setData("spotsize", &(lamp->spotsize));
+		et->setData("spotblend", &(lamp->spotblend));
+		et->setData("halo_intensity", &(lamp->haint));
+		et->setData("att1", &(lamp->att1));
+		et->setData("att2", &(lamp->att2));
+		et->setData("falloff_type", &(lamp->falloff_type));
+		et->setData("clipsta", &(lamp->clipsta));
+		et->setData("clipend", &(lamp->clipend));
+		et->setData("shadspotsize", &(lamp->shadspotsize));
+		et->setData("bias", &(lamp->bias));
+		et->setData("soft", &(lamp->soft));
+		et->setData("compressthresh", &(lamp->compressthresh));
+		et->setData("bufsize", &(lamp->bufsize));
+		et->setData("samp", &(lamp->samp));
+		et->setData("buffers", &(lamp->buffers));
+		et->setData("filtertype", &(lamp->filtertype));
+		et->setData("bufflag", &(lamp->bufflag));
+		et->setData("buftype", &(lamp->buftype));
+		et->setData("ray_samp", &(lamp->ray_samp));
+		et->setData("ray_sampy", &(lamp->ray_sampy));
+		et->setData("ray_sampz", &(lamp->ray_sampz));
+		et->setData("ray_samp_type", &(lamp->ray_samp_type));
+		et->setData("area_shape", &(lamp->area_shape));
+		et->setData("area_size", &(lamp->area_size));
+		et->setData("area_sizey", &(lamp->area_sizey));
+		et->setData("area_sizez", &(lamp->area_sizez));
+		et->setData("adapt_thresh", &(lamp->adapt_thresh));
+		et->setData("ray_samp_method", &(lamp->ray_samp_method));
+		et->setData("shadhalostep", &(lamp->shadhalostep));
+		et->setData("sun_effect_type", &(lamp->shadhalostep));
+		et->setData("skyblendtype", &(lamp->skyblendtype));
+		et->setData("horizon_brightness", &(lamp->horizon_brightness));
+		et->setData("spread", &(lamp->spread));
+		et->setData("sun_brightness", &(lamp->sun_brightness));
+		et->setData("sun_size", &(lamp->sun_size));
+		et->setData("backscattered_light", &(lamp->backscattered_light));
+		et->setData("sun_intensity", &(lamp->sun_intensity));
+		et->setData("atm_turbidity", &(lamp->atm_turbidity));
+		et->setData("atm_extinction_factor", &(lamp->atm_extinction_factor));
+		et->setData("atm_distance_factor", &(lamp->atm_distance_factor));
+		et->setData("skyblendfac", &(lamp->skyblendfac));
+		et->setData("sky_exposure", &(lamp->sky_exposure));
+		et->setData("sky_colorspace", &(lamp->sky_colorspace));
+	}
 		
 	this->uid_lamp_map[light->getUniqueId()] = lamp;
 	return true;
@@ -1007,15 +1068,15 @@ bool DocumentImporter::writeKinematicsScene( const COLLADAFW::KinematicsScene* k
 
 ExtraTags* DocumentImporter::getExtraTags(const COLLADAFW::UniqueId &uid)
 {
-	if(uid_tags_map.find(uid)==uid_tags_map.end()) {
+	if(uid_tags_map.find(uid.toAscii())==uid_tags_map.end()) {
 		return NULL;
 	}
-	return uid_tags_map[uid];
+	return uid_tags_map[uid.toAscii()];
 }
 
 bool DocumentImporter::addExtraTags( const COLLADAFW::UniqueId &uid, ExtraTags *extra_tags)
 {
-	uid_tags_map[uid] = extra_tags;
+	uid_tags_map[uid.toAscii()] = extra_tags;
 	return true;
 }
 
