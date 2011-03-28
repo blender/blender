@@ -60,12 +60,18 @@ class EditExternally(bpy.types.Operator):
         filepath = bpy.path.abspath(self.filepath)
 
         if not os.path.exists(filepath):
-            self.report('ERROR', "Image path %r not found." % filepath)
+            self.report({'ERROR'}, "Image path %r not found." % filepath)
             return {'CANCELLED'}
 
         cmd = self._editor_guess(context) + [filepath]
 
-        subprocess.Popen(cmd)
+        try:
+            subprocess.Popen(cmd)
+        except:
+            import traceback
+            traceback.print_exc()
+            self.report({'ERROR'}, "Image editor not found, please specify in User Preferences > File")
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
@@ -73,6 +79,8 @@ class EditExternally(bpy.types.Operator):
         try:
             filepath = context.space_data.image.filepath
         except:
+            import traceback
+            traceback.print_exc()
             self.report({'ERROR'}, "Image not found on disk")
             return {'CANCELLED'}
 
@@ -163,7 +171,10 @@ class ProjectEdit(bpy.types.Operator):
         image_new.file_format = 'PNG'
         image_new.save()
 
-        bpy.ops.image.external_edit(filepath=filepath_final)
+        try:
+            bpy.ops.image.external_edit(filepath=filepath_final)
+        except RuntimeError as re:
+            self.report({'ERROR'}, str(re))
 
         return {'FINISHED'}
 
@@ -180,6 +191,8 @@ class ProjectApply(bpy.types.Operator):
         try:
             image = bpy.data.images[image_name]
         except KeyError:
+            import traceback
+            traceback.print_exc()
             self.report({'ERROR'}, "Could not find image '%s'" % image_name)
             return {'CANCELLED'}
 
