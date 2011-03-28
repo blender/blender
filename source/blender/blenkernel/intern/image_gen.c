@@ -161,8 +161,8 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 
 /* Utility functions for BKE_image_buf_fill_checker_color */
 
-#define BLEND_FLOAT(real, add)  (real+add <= 1.0) ? (real+add) : 1.0
-#define BLEND_CHAR(real, add) ((real + (char)(add * 255.0)) <= 255) ? (real + (char)(add * 255.0)) : 255
+#define BLEND_FLOAT(real, add)  (real+add <= 1.0f) ? (real+add) : 1.0f
+#define BLEND_CHAR(real, add) ((real + (char)(add * 255.0f)) <= 255) ? (real + (char)(add * 255.0f)) : 255
 
 static int is_pow2(int n)
 {

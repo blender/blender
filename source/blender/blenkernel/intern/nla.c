@@ -296,7 +296,7 @@ NlaStrip *add_nlastrip (bAction *act)
 	calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
 	
 	strip->start = strip->actstart;
-	strip->end = (IS_EQ(strip->actstart, strip->actend)) ?  (strip->actstart + 1.0f): (strip->actend);
+	strip->end = (IS_EQF(strip->actstart, strip->actend)) ?  (strip->actstart + 1.0f): (strip->actend);
 	
 	/* strip should be referenced as-is */
 	strip->scale= 1.0f;
@@ -347,19 +347,20 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
  */
 static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short mode)
 {
-	float actlength, repeat, scale;
+	float actlength, scale;
+	// float repeat; // UNUSED
 	
 	/* get number of repeats */
-	if (IS_EQ(strip->repeat, 0.0f)) strip->repeat = 1.0f;
-	repeat = strip->repeat;
+	if (IS_EQF(strip->repeat, 0.0f)) strip->repeat = 1.0f;
+	// repeat = strip->repeat; // UNUSED
 	
 	/* scaling */
-	if (IS_EQ(strip->scale, 0.0f)) strip->scale= 1.0f;
+	if (IS_EQF(strip->scale, 0.0f)) strip->scale= 1.0f;
 	scale = (float)fabs(strip->scale); /* scale must be positive - we've got a special flag for reversing */
 	
 	/* length of referenced action */
 	actlength = strip->actend - strip->actstart;
-	if (IS_EQ(actlength, 0.0f)) actlength = 1.0f;
+	if (IS_EQF(actlength, 0.0f)) actlength = 1.0f;
 	
 	/* reversed = play strip backwards */
 	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
@@ -371,7 +372,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 			return (strip->end + (strip->actstart * scale - cframe)) / scale;
 		}
 		else /* if (mode == NLATIME_CONVERT_EVAL) */{
-			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
+			if (IS_EQF(cframe, strip->end) && IS_EQF(strip->repeat, ((int)strip->repeat))) {
 				/* this case prevents the motion snapping back to the first frame at the end of the strip 
 				 * by catching the case where repeats is a whole number, which means that the end of the strip
 				 * could also be interpreted as the end of the start of a repeat
@@ -382,7 +383,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 				/* - the 'fmod(..., actlength*scale)' is needed to get the repeats working
 				 * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
 				 */
-				return strip->actend - fmod(cframe - strip->start, actlength*scale) / scale; 
+				return strip->actend - fmodf(cframe - strip->start, actlength*scale) / scale;
 			}
 		}
 	}
@@ -394,7 +395,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 			return strip->actstart + (cframe - strip->start) / scale;
 		}
 		else /* if (mode == NLATIME_CONVERT_EVAL) */{
-			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
+			if (IS_EQF(cframe, strip->end) && IS_EQF(strip->repeat, ((int)strip->repeat))) {
 				/* this case prevents the motion snapping back to the first frame at the end of the strip 
 				 * by catching the case where repeats is a whole number, which means that the end of the strip
 				 * could also be interpreted as the end of the start of a repeat
@@ -405,7 +406,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 				/* - the 'fmod(..., actlength*scale)' is needed to get the repeats working
 				 * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
 				 */
-				return strip->actstart + fmod(cframe - strip->start, actlength*scale) / scale; 
+				return strip->actstart + fmodf(cframe - strip->start, actlength*scale) / scale;
 			}
 		}
 	}
@@ -507,7 +508,7 @@ short BKE_nlastrips_has_space (ListBase *strips, float start, float end)
 	NlaStrip *strip;
 	
 	/* sanity checks */
-	if ((strips == NULL) || IS_EQ(start, end))
+	if ((strips == NULL) || IS_EQF(start, end))
 		return 0;
 	if (start > end) {
 		puts("BKE_nlastrips_has_space() error... start and end arguments swapped");
@@ -800,13 +801,13 @@ void BKE_nlameta_flush_transforms (NlaStrip *mstrip)
 	 * don't flush if nothing changed yet
 	 *	TODO: maybe we need a flag to say always flush?
 	 */
-	if (IS_EQ(oStart, mstrip->start) && IS_EQ(oEnd, mstrip->end))
+	if (IS_EQF(oStart, mstrip->start) && IS_EQF(oEnd, mstrip->end))
 		return;
 	
 	/* check if scale changed */
 	oLen = oEnd - oStart;
 	nLen = mstrip->end - mstrip->start;
-	if (IS_EQ(nLen, oLen) == 0)
+	if (IS_EQF(nLen, oLen) == 0)
 		scaleChanged= 1;
 	
 	/* for each child-strip, calculate new start/end points based on this new info */
@@ -927,7 +928,7 @@ short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
 	 * 	- track must be editable
 	 * 	- bounds cannot be equal (0-length is nasty) 
 	 */
-	if ((nlt == NULL) || (nlt->flag & NLATRACK_PROTECTED) || IS_EQ(start, end))
+	if ((nlt == NULL) || (nlt->flag & NLATRACK_PROTECTED) || IS_EQF(start, end))
 		return 0;
 	
 	if (start > end) {
@@ -1044,7 +1045,7 @@ short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 	const float boundsLen= (float)fabs(max - min);
 	
 	/* sanity checks */
-	if ((strip == NULL) || IS_EQ(stripLen, 0.0f) || IS_EQ(boundsLen, 0.0f))
+	if ((strip == NULL) || IS_EQF(stripLen, 0.0f) || IS_EQF(boundsLen, 0.0f))
 		return 0;
 	
 	/* only ok if at least part of the strip is within the bounding window
@@ -1084,12 +1085,12 @@ void BKE_nlastrip_recalculate_bounds (NlaStrip *strip)
 		
 	/* calculate new length factors */
 	actlen= strip->actend - strip->actstart;
-	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
+	if (IS_EQF(actlen, 0.0f)) actlen= 1.0f;
 	
 	mapping= strip->scale * strip->repeat;
 	
 	/* adjust endpoint of strip in response to this */
-	if (IS_EQ(mapping, 0.0f) == 0)
+	if (IS_EQF(mapping, 0.0f) == 0)
 		strip->end = (actlen * mapping) + strip->start;
 }
 
@@ -1313,11 +1314,11 @@ static void nlastrip_get_endpoint_overlaps (NlaStrip *strip, NlaTrack *track, fl
 		/* if this strip is not part of an island of continuous strips, it can be used
 		 *	- this check needs to be done for each end of the strip we try and use...
 		 */
-		if ((nls->next == NULL) || IS_EQ(nls->next->start, nls->end)==0) {
+		if ((nls->next == NULL) || IS_EQF(nls->next->start, nls->end)==0) {
 			if ((nls->end > strip->start) && (nls->end < strip->end))
 				*start= &nls->end;
 		}
-		if ((nls->prev == NULL) || IS_EQ(nls->prev->end, nls->start)==0) {
+		if ((nls->prev == NULL) || IS_EQF(nls->prev->end, nls->start)==0) {
 			if ((nls->start < strip->end) && (nls->start > strip->start))
 				*end= &nls->start;
 		}
@@ -1349,7 +1350,7 @@ static void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
 	 *	  is directly followed/preceeded by another strip, forming an 
 	 *	  'island' of continuous strips
 	 */
-	if ( (ps || ns) && ((nls->prev == NULL) || IS_EQ(nls->prev->end, nls->start)==0) ) 
+	if ( (ps || ns) && ((nls->prev == NULL) || IS_EQF(nls->prev->end, nls->start)==0) )
 	{
 		/* start overlaps - pick the largest overlap */
 		if ( ((ps && ns) && (*ps > *ns)) || (ps) )
@@ -1360,7 +1361,7 @@ static void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
 	else /* no overlap allowed/needed */
 		nls->blendin= 0.0f;
 		
-	if ( (pe || ne) && ((nls->next == NULL) || IS_EQ(nls->next->start, nls->end)==0) ) 
+	if ( (pe || ne) && ((nls->next == NULL) || IS_EQF(nls->next->start, nls->end)==0) )
 	{
 		/* end overlaps - pick the largest overlap */
 		if ( ((pe && ne) && (*pe > *ne)) || (pe) )

@@ -178,8 +178,8 @@ void addnormalsDispList(ListBase *lb)
 		if(dl->type==DL_INDEX3) {
 			if(dl->nors==NULL) {
 				dl->nors= MEM_callocN(sizeof(float)*3, "dlnors");
-				if(dl->verts[2]<0.0) dl->nors[2]= -1.0;
-				else dl->nors[2]= 1.0;
+				if(dl->verts[2] < 0.0f) dl->nors[2]= -1.0f;
+				else dl->nors[2]= 1.0f;
 			}
 		}
 		else if(dl->type==DL_SURF) {
@@ -413,10 +413,10 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			VECCOPY(shi.orn, shi.vn);
 		}
 		if(ma->texco & TEXCO_REFL) {
-			float inp= 2.0*(shi.vn[2]);
+			float inp= 2.0f * (shi.vn[2]);
 			shi.ref[0]= (inp*shi.vn[0]);
 			shi.ref[1]= (inp*shi.vn[1]);
-			shi.ref[2]= (-1.0+inp*shi.vn[2]);
+			shi.ref[2]= (-1.0f + inp*shi.vn[2]);
 		}
 	}
 	
@@ -589,9 +589,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 
 			mul_v3_m4v3(vec, mat, mv->co);
 
-			vec[0]+= 0.001*vn[0];
-			vec[1]+= 0.001*vn[1];
-			vec[2]+= 0.001*vn[2];
+			mul_v3_v3fl(vec, vn, 0.001f);
 
 			fastshade_customdata(&dm->faceData, i, j, ma);
 			fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, ma, col1, col2);
@@ -1160,7 +1158,7 @@ float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 		/* horizontal size */
 		minx= dl->verts[0];
 		dx= dl->verts[3*(dl->nr-1)] - minx;
-		if(dx>0.0) {
+		if(dx > 0.0f) {
 		
 			fp= dl->verts;
 			for(a=0; a<dl->nr; a++, fp+=3) {
@@ -1741,7 +1739,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if (!dlbev.first && cu->width==1.0f) {
 			curve_to_displist(cu, nubase, dispbase, forRender);
 		} else {
-			float widfac= cu->width-1.0;
+			float widfac= cu->width - 1.0f;
 			BevList *bl= cu->bev.first;
 			Nurb *nu= nubase->first;
 

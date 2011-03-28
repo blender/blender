@@ -1006,9 +1006,9 @@ void automatname(Material *ma)
 	if(ma->mode & MA_SHLESS) ref= 1.0;
 	else ref= ma->ref;
 	
-	r= (int)(4.99*(ref*ma->r));
-	g= (int)(4.99*(ref*ma->g));
-	b= (int)(4.99*(ref*ma->b));
+	r= (int)(4.99f*(ref*ma->r));
+	g= (int)(4.99f*(ref*ma->g));
+	b= (int)(4.99f*(ref*ma->b));
 	nr= r + 5*g + 25*b;
 	if(nr>124) nr= 124;
 	new_id(&G.main->mat, (ID *)ma, colname_array[nr]);
@@ -1174,10 +1174,10 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 			}
 				break;
 		case MA_RAMP_DIFF:
-			*r = facm*(*r) + fac*fabs(*r-col[0]);
+			*r = facm*(*r) + fac*fabsf(*r-col[0]);
 			if(g) {
-				*g = facm*(*g) + fac*fabs(*g-col[1]);
-				*b = facm*(*b) + fac*fabs(*b-col[2]);
+				*g = facm*(*g) + fac*fabsf(*g-col[1]);
+				*b = facm*(*b) + fac*fabsf(*b-col[2]);
 			}
 				break;
 		case MA_RAMP_DARK:

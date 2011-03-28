@@ -223,9 +223,9 @@ void init_mapping(TexMapping *texmap)
 	
 	size_to_mat3( smat,texmap->size);
 	
-	eul[0]= (M_PI/180.0f)*texmap->rot[0];
-	eul[1]= (M_PI/180.0f)*texmap->rot[1];
-	eul[2]= (M_PI/180.0f)*texmap->rot[2];
+	eul[0]= DEG2RADF(texmap->rot[0]);
+	eul[1]= DEG2RADF(texmap->rot[1]);
+	eul[2]= DEG2RADF(texmap->rot[2]);
 	eul_to_mat3( rmat,eul);
 	
 	mul_m3_m3m3(mat, rmat, smat);
@@ -373,10 +373,10 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 					out[1]= t[3]*cbd3->g +t[2]*cbd2->g +t[1]*cbd1->g +t[0]*cbd0->g;
 					out[2]= t[3]*cbd3->b +t[2]*cbd2->b +t[1]*cbd1->b +t[0]*cbd0->b;
 					out[3]= t[3]*cbd3->a +t[2]*cbd2->a +t[1]*cbd1->a +t[0]*cbd0->a;
-					CLAMP(out[0], 0.0, 1.0);
-					CLAMP(out[1], 0.0, 1.0);
-					CLAMP(out[2], 0.0, 1.0);
-					CLAMP(out[3], 0.0, 1.0);
+					CLAMP(out[0], 0.0f, 1.0f);
+					CLAMP(out[1], 0.0f, 1.0f);
+					CLAMP(out[2], 0.0f, 1.0f);
+					CLAMP(out[3], 0.0f, 1.0f);
 				}
 				else {
 				

@@ -362,9 +362,9 @@ void tex_space_mesh(Mesh *me)
 
 	if(me->texflag & AUTOSPACE) {
 		for (a=0; a<3; a++) {
-			if(size[a]==0.0) size[a]= 1.0;
-			else if(size[a]>0.0 && size[a]<0.00001) size[a]= 0.00001;
-			else if(size[a]<0.0 && size[a]> -0.00001) size[a]= -0.00001;
+			if(size[a]==0.0f) size[a]= 1.0f;
+			else if(size[a]>0.0f && size[a]<0.00001f) size[a]= 0.00001f;
+			else if(size[a]<0.0f && size[a]> -0.00001f) size[a]= -0.00001f;
 		}
 
 		copy_v3_v3(me->loc, loc);
@@ -1433,7 +1433,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
 
-				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
+				if(fabsf(uv[0]-uv2[0]) < limit[0] && fabsf(uv[1]-uv2[1]) < limit[1]) {
 					if(lastv) lastv->next= next;
 					else vlist= next;
 					iterv->next= newvlist;

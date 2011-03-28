@@ -421,14 +421,14 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 	}
 
 	if(bezt->h1==HD_VECT) {	/* vector */
-		dx/=3.0; 
-		dy/=3.0; 
+		dx/=3.0f;
+		dy/=3.0f;
 		*(p2-3)= *p2-dx;
 		*(p2-2)= *(p2+1)-dy;
 	}
 	if(bezt->h2==HD_VECT) {
-		dx1/=3.0; 
-		dy1/=3.0; 
+		dx1/=3.0f;
+		dy1/=3.0f;
 		*(p2+3)= *p2+dx1;
 		*(p2+4)= *(p2+1)+dy1;
 	}
@@ -700,7 +700,7 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 		for(a=0; a<cuma->totpoint-1; a++) {
 			dx= cmp[a].x - cmp[a+1].x;
 			dy= cmp[a].y - cmp[a+1].y;
-			if( sqrt(dx*dx + dy*dy) < thresh ) {
+			if( sqrtf(dx*dx + dy*dy) < thresh ) {
 				if(a==0) {
 					cmp[a+1].flag|= 2;
 					if(cmp[a+1].flag & CUMA_SELECT)
@@ -962,7 +962,7 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 
 DO_INLINE int get_bin_float(float f)
 {
-	int bin= (int)((f*255) + 0.5);	/* 0.5 to prevent quantisation differences */
+	int bin= (int)((f*255.0f) + 0.5f);	/* 0.5 to prevent quantisation differences */
 
 	/* note: clamp integer instead of float to avoid problems with NaN */
 	CLAMP(bin, 0, 255);
@@ -1054,7 +1054,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	bin_lum = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
 
 	/* convert to number of lines with logarithmic scale */
-	scopes->sample_lines = (scopes->accuracy*0.01) * (scopes->accuracy*0.01) * ibuf->y;
+	scopes->sample_lines = (scopes->accuracy*0.01f) * (scopes->accuracy*0.01f) * ibuf->y;
 	
 	if (scopes->sample_full)
 		scopes->sample_lines = ibuf->y;
@@ -1105,7 +1105,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 			}
 
 			/* we still need luma for histogram */
-			luma = 0.299*rgb[0] + 0.587*rgb[1] + 0.114 * rgb[2];
+			luma = 0.299f * rgb[0] + 0.587f * rgb[1] + 0.114f * rgb[2];
 
 			/* check for min max */
 			if(ycc_mode == -1 ) {
@@ -1155,8 +1155,8 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 		if (bin_lum[x] > nl)
 			nl = bin_lum[x];
 	}
-	div = 1.f/(double)n;
-	divl = 1.f/(double)nl;
+	div = 1.0/(double)n;
+	divl = 1.0/(double)nl;
 	for (x=0; x<256; x++) {
 		scopes->hist.data_r[x] = bin_r[x] * div;
 		scopes->hist.data_g[x] = bin_g[x] * div;
