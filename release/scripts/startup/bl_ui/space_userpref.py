@@ -647,7 +647,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             layout.separator()
             layout.separator()
-        elif theme.theme_area == 'COLOR_SETS':
+        elif theme.theme_area == 'BONE_COLOR_SETS':
             col = split.column()
 
             for i, ui in enumerate(theme.bone_color_sets):
