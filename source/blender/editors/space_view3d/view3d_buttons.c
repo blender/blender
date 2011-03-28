@@ -137,7 +137,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 {
 	uiBlock *block= (layout)? uiLayoutAbsoluteBlock(layout): NULL;
 	MDeformVert *dvert=NULL;
-	TransformProperties *tfp= v3d->properties_storage;
+	TransformProperties *tfp;
 	float median[6], ve_median[6];
 	int tot, totw, totweight, totedge, totradius;
 	char defstr[320];
@@ -146,6 +146,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	tot= totw= totweight= totedge= totradius= 0;
 	defstr[0]= 0;
 
+	/* make sure we got storage */
+	if(v3d->properties_storage==NULL)
+		v3d->properties_storage= MEM_callocN(sizeof(TransformProperties), "TransformProperties");
+	tfp= v3d->properties_storage;
+	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 		EditMesh *em = BKE_mesh_get_editmesh(me);
