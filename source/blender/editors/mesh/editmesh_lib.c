@@ -353,8 +353,8 @@ void EM_editselection_plane(float *plane, EditSelection *ese)
 			we cant make a crossvec from a vec thats the same as the vec
 			unlikely but possible, so make sure if the normal is (0,0,1)
 			that vec isnt the same or in the same direction even.*/
-			if (eve->no[0]<0.5)			vec[0]=1;
-			else if (eve->no[1]<0.5)	vec[1]=1;
+			if (eve->no[0]<0.5f)		vec[0]=1;
+			else if (eve->no[1]<0.5f)	vec[1]=1;
 			else						vec[2]=1;
 			cross_v3_v3v3(plane, eve->no, vec);
 		}
@@ -1206,7 +1206,7 @@ short extrudeflag_edges_indiv(EditMesh *em, short flag, float *nor)
 		if(eed->v1->f & eed->v2->f & flag) eed->f |= flag;
 	}
 	
-	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g'; // g is grab
+	if(is_zero_v3(nor)) return 'g'; // g is grab
 	return 'n';  // n is for normal constraint
 }
 
@@ -1328,18 +1328,18 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short UNUSED(flag), 
 						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X)
-							if ( (fabs(co1[0]) < mmd->tolerance) &&
-								 (fabs(co2[0]) < mmd->tolerance) )
+							if ( (fabsf(co1[0]) < mmd->tolerance) &&
+								 (fabsf(co2[0]) < mmd->tolerance) )
 								++eed->f2;
 
 						if (mmd->flag & MOD_MIR_AXIS_Y)
-							if ( (fabs(co1[1]) < mmd->tolerance) &&
-								 (fabs(co2[1]) < mmd->tolerance) )
+							if ( (fabsf(co1[1]) < mmd->tolerance) &&
+								 (fabsf(co2[1]) < mmd->tolerance) )
 								++eed->f2;
 
 						if (mmd->flag & MOD_MIR_AXIS_Z)
-							if ( (fabs(co1[2]) < mmd->tolerance) &&
-								 (fabs(co2[2]) < mmd->tolerance) )
+							if ( (fabsf(co1[2]) < mmd->tolerance) &&
+								 (fabsf(co2[2]) < mmd->tolerance) )
 								++eed->f2;
 					}
 				}
@@ -1485,7 +1485,7 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short UNUSED(flag), 
 
 	EM_select_flush(em);
 
-	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g'; // grab
+	if(is_zero_v3(nor)) return 'g'; // grab
 	return 'n'; // normal constraint 
 }
 
@@ -1612,17 +1612,17 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X)
-							if ( (fabs(co1[0]) < mmd->tolerance) &&
-								 (fabs(co2[0]) < mmd->tolerance) )
+							if ( (fabsf(co1[0]) < mmd->tolerance) &&
+								 (fabsf(co2[0]) < mmd->tolerance) )
 								++eed->f2;
 
 						if (mmd->flag & MOD_MIR_AXIS_Y)
-							if ( (fabs(co1[1]) < mmd->tolerance) &&
-								 (fabs(co2[1]) < mmd->tolerance) )
+							if ( (fabsf(co1[1]) < mmd->tolerance) &&
+								 (fabsf(co2[1]) < mmd->tolerance) )
 								++eed->f2;
 						if (mmd->flag & MOD_MIR_AXIS_Z)
-							if ( (fabs(co1[2]) < mmd->tolerance) &&
-								 (fabs(co2[2]) < mmd->tolerance) )
+							if ( (fabsf(co1[2]) < mmd->tolerance) &&
+								 (fabsf(co2[2]) < mmd->tolerance) )
 								++eed->f2;
 					}
 				}
@@ -1774,7 +1774,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 	// since its vertex select mode now, it also deselects higher order
 	EM_selectmode_flush(em);
 
-	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g'; // g is grab, for correct undo print
+	if(is_zero_v3(nor)) return 'g'; // g is grab, for correct undo print
 	return 'n';
 }
 
@@ -2367,7 +2367,7 @@ UvVertMap *EM_make_uv_vert_map(EditMesh *em, int selected, int do_face_idx_array
 				
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
-				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
+				if(fabsf(uv[0]-uv2[0]) < limit[0] && fabsf(uv[1]-uv2[1]) < limit[1]) {
 					if(lastv) lastv->next= next;
 					else vlist= next;
 					iterv->next= newvlist;

@@ -452,7 +452,7 @@ static float edgetag_cut_cost(int e1, int e2, int vert)
 	sub_v3_v3v3(d1, v->co, v1->co);
 	sub_v3_v3v3(d2, v2->co, v->co);
 
-	cost = cost + 0.5f*cost*(2.0f - fabs(d1[0]*d2[0] + d1[1]*d2[1] + d1[2]*d2[2]));
+	cost = cost + 0.5f*cost*(2.0f - fabsf(d1[0]*d2[0] + d1[1]*d2[1] + d1[2]*d2[2]));
 
 	return cost;
 }

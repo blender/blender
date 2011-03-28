@@ -516,7 +516,8 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 /* draw grease-pencil datablock */
 static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
 {
-	bGPDlayer *gpl, *actlay=NULL;
+	bGPDlayer *gpl;
+	// bGPDlayer *actlay=NULL; // UNUSED
 	
 	/* reset line drawing style (in case previous user didn't reset) */
 	setlinestyle(0);
@@ -541,8 +542,8 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 			continue;
 		
 		/* if layer is active one, store pointer to it */
-		if (gpl->flag & GP_LAYER_ACTIVE)
-			actlay= gpl;
+		// if (gpl->flag & GP_LAYER_ACTIVE)
+		// 	actlay= gpl;
 		
 		/* get frame to draw */
 		gpf= gpencil_layer_getframe(gpl, cfra, 0);

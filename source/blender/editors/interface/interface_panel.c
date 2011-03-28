@@ -1097,6 +1097,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 					}*/
 				}
 				else if(event->type==PADPLUSKEY || event->type==PADMINUS) {
+#if 0 // XXX make float panel exception?
 					int zoom=0;
 				
 					/* if panel is closed, only zoom if mouse is over the header */
@@ -1107,7 +1108,6 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 					else
 						zoom=1;
 
-#if 0 // XXX make float panel exception?
 					if(zoom) {
 						ScrArea *sa= CTX_wm_area(C);
 						SpaceLink *sl= sa->spacedata.first;

@@ -1913,7 +1913,7 @@ void ui_check_but(uiBut *but)
 {
 	/* if something changed in the button */
 	double value;
-	float okwidth;
+//	float okwidth; // UNUSED
 //	int transopts= ui_translate_buttons();
 	
 	ui_is_but_sel(but);
@@ -1967,7 +1967,7 @@ void ui_check_but(uiBut *but)
 	
 	
 	/* safety is 4 to enable small number buttons (like 'users') */
-	okwidth= -4 + (but->x2 - but->x1); 
+	// okwidth= -4 + (but->x2 - but->x1); // UNUSED
 	
 	/* name: */
 	switch( but->type ) {
@@ -1989,8 +1989,8 @@ void ui_check_but(uiBut *but)
 		value= ui_get_but_val(but);
 
 		if(ui_is_but_float(but)) {
-			if(value == FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
-			else if(value == -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
+			if(value == (double) FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
+			else if(value == (double) -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
 			/* support length type buttons */
 			else if(ui_is_but_unit(but)) {
 				char new_str[sizeof(but->drawstr)];

@@ -505,7 +505,7 @@ static void rna_PartSetting_pathstartend_range(PointerRNA *ptr, float *min, floa
 
 	if(settings->type==PART_HAIR) {
 		*min = 0.0f;
-		*max = (settings->draw & PART_ABS_PATH_TIME) ? 100.0f : 1.0;
+		*max = (settings->draw & PART_ABS_PATH_TIME) ? 100.0f : 1.0f;
 	}
 	else {
 		*min = (settings->draw & PART_ABS_PATH_TIME) ? settings->sta : 0.0f;

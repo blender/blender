@@ -389,7 +389,6 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
 	DriverTarget *dtar= &dvar->targets[0];
 	PointerRNA dtar_ptr;
 	uiLayout *row, *col;
-	uiBlock *block;
 	
 	/* initialise RNA pointer to the target */
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
@@ -407,9 +406,8 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
 		RNA_id_pointer_create(dtar->id, &root_ptr);
 		
 		col= uiLayoutColumn(layout, 1);
-		block= uiLayoutGetBlock(col);
-			/* rna path */
-			uiTemplatePathBuilder(col, &dtar_ptr, "data_path", &root_ptr, "Path");
+		/* rna path */
+		uiTemplatePathBuilder(col, &dtar_ptr, "data_path", &root_ptr, "Path");
 	}
 }
 

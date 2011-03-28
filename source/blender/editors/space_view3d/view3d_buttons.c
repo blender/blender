@@ -1214,7 +1214,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	View3D *v3d= CTX_wm_view3d(C);
 	//uiBut *bt;
 	Object *ob= OBACT;
-	TransformProperties *tfp;
+	// TransformProperties *tfp; // UNUSED
 	PointerRNA obptr;
 	uiLayout *col, *row;
 	float lim;
@@ -1222,12 +1222,13 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	if(ob==NULL) return;
 
 	/* make sure we got storage */
+	/*
 	if(v3d->properties_storage==NULL)
 		v3d->properties_storage= MEM_callocN(sizeof(TransformProperties), "TransformProperties");
 	tfp= v3d->properties_storage;
 	
 // XXX	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-	/*
+
 	if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
 	}
 	else {

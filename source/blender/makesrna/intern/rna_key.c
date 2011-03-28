@@ -104,7 +104,7 @@ static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
 }
 
 /* epsilon for how close one end of shapekey range can get to the other */
-#define SHAPEKEY_SLIDER_TOL 0.001
+#define SHAPEKEY_SLIDER_TOL 0.001f
 
 static void rna_ShapeKey_slider_min_range(PointerRNA *ptr, float *min, float *max)
 {

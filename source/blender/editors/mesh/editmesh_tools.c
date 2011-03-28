@@ -980,7 +980,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 	cent[2]-= obedit->obmat[3][2];
 	mul_m3_v3(imat, cent);
 
-	phi= degr*M_PI/360.0;
+	phi= degr*(float)M_PI/360.0f;
 	phi/= steps;
 	if(ts->editbutflag & B_CLOCKWISE) phi= -phi;
 
@@ -1144,10 +1144,8 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 
 	VECCOPY(nor, obedit->obmat[2]);
 
-	if(nor[0]*dvec[0]+nor[1]*dvec[1]+nor[2]*dvec[2]>0.000) {
-		dvec[0]= -dvec[0];
-		dvec[1]= -dvec[1];
-		dvec[2]= -dvec[2];
+	if(nor[0]*dvec[0]+nor[1]*dvec[1]+nor[2]*dvec[2]>0.0f) {
+		negate_v3(dvec);
 	}
 
 	if(spin_mesh(C, op, dvec, turns*steps, 360.0f*turns, 0)) {
@@ -1476,7 +1474,7 @@ static void alter_co(float *co, EditEdge *edge, float smooth, float fractal, int
 		vec1[2]+= fac*nor2[2];
 
 		/* falloff for multi subdivide */
-		smooth *= sqrt(fabs(1.0f - 2.0f*fabs(0.5f-perc)));
+		smooth *= sqrtf(fabs(1.0f - 2.0f*fabsf(0.5f-perc)));
 
 		vec1[0]*= smooth*len;
 		vec1[1]*= smooth*len;
@@ -2675,15 +2673,15 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 					eve->f2= 0;
 					switch(mmd->axis){
 						case 0:
-							if (fabs(eve->co[0]) < mmd->tolerance)
+							if (fabsf(eve->co[0]) < mmd->tolerance)
 								eve->f2 |= 1;
 							break;
 						case 1:
-							if (fabs(eve->co[1]) < mmd->tolerance)
+							if (fabsf(eve->co[1]) < mmd->tolerance)
 								eve->f2 |= 2;
 							break;
 						case 2:
-							if (fabs(eve->co[2]) < mmd->tolerance)
+							if (fabsf(eve->co[2]) < mmd->tolerance)
 								eve->f2 |= 4;
 							break;
 					}
@@ -3226,13 +3224,13 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 	normal_tri_v3( noA2,v1->co, v3->co, v4->co);
 
 	if(noA1[0] == noA2[0] && noA1[1] == noA2[1] && noA1[2] == noA2[2]) normalADiff = 0.0;
-	else normalADiff = RAD2DEG(angle_v2v2(noA1, noA2));
+	else normalADiff = RAD2DEGF(angle_v2v2(noA1, noA2));
 		//if(!normalADiff) normalADiff = 179;
 	normal_tri_v3( noB1,v2->co, v3->co, v4->co);
 	normal_tri_v3( noB2,v4->co, v1->co, v2->co);
 
 	if(noB1[0] == noB2[0] && noB1[1] == noB2[1] && noB1[2] == noB2[2]) normalBDiff = 0.0;
-	else normalBDiff = RAD2DEG(angle_v2v2(noB1, noB2));
+	else normalBDiff = RAD2DEGF(angle_v2v2(noB1, noB2));
 		//if(!normalBDiff) normalBDiff = 179;
 
 	measure += (normalADiff/360) + (normalBDiff/360);
@@ -3247,10 +3245,10 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 	diff = 0.0;
 
 	diff = (
-		fabs(RAD2DEG(angle_v2v2(edgeVec1, edgeVec2)) - 90) +
-		fabs(RAD2DEG(angle_v2v2(edgeVec2, edgeVec3)) - 90) +
-		fabs(RAD2DEG(angle_v2v2(edgeVec3, edgeVec4)) - 90) +
-		fabs(RAD2DEG(angle_v2v2(edgeVec4, edgeVec1)) - 90)) / 360;
+		fabsf(RAD2DEGF(angle_v2v2(edgeVec1, edgeVec2)) - 90) +
+		fabsf(RAD2DEGF(angle_v2v2(edgeVec2, edgeVec3)) - 90) +
+		fabsf(RAD2DEGF(angle_v2v2(edgeVec3, edgeVec4)) - 90) +
+		fabsf(RAD2DEGF(angle_v2v2(edgeVec4, edgeVec1)) - 90)) / 360;
 	if(!diff) return 0.0;
 
 	measure +=  diff;
@@ -3272,7 +3270,7 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 	return measure;
 }
 
-#define T2QUV_LIMIT 0.005
+#define T2QUV_LIMIT 0.005f
 #define T2QCOL_LIMIT 3
 static int compareFaceAttribs(EditMesh *em, EditFace *f1, EditFace *f2, EditEdge *eed)
 {

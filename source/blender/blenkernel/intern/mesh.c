@@ -751,9 +751,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 		verts= dl->verts;
 		while(a--) {
 			VECCOPY(mvert->co, verts);
-			mvert->no[0]= (short int)(nors[0]*32767.0);
-			mvert->no[1]= (short int)(nors[1]*32767.0);
-			mvert->no[2]= (short int)(nors[2]*32767.0);
+			normal_float_to_short_v3(mvert->no, nors);
 			mvert++;
 			nors+= 3;
 			verts+= 3;

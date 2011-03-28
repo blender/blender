@@ -563,7 +563,8 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	moffset[2], /* mouse offset from the views center */
 	tmp_quat[4]; /* used for rotating the view */
 
-	int cent_orig[2], /* view center */
+	int
+//	cent_orig[2], /* view center */
 //XXX- can avoid using // 	cent[2], /* view center modified */
 	xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
 	unsigned char
@@ -582,8 +583,9 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	xmargin= ar->winx/20.0f;
 	ymargin= ar->winy/20.0f;
 
-	cent_orig[0]= ar->winrct.xmin + ar->winx/2;
-	cent_orig[1]= ar->winrct.ymin + ar->winy/2;
+	// UNUSED
+	// cent_orig[0]= ar->winrct.xmin + ar->winx/2;
+	// cent_orig[1]= ar->winrct.ymin + ar->winy/2;
 
 	{
 

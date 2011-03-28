@@ -330,13 +330,13 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	uiBut *but;
 	uiBlock *block;
 	PointerRNA idptr;
-	ListBase *lb;
+	// ListBase *lb; // UNUSED
 	ID *id, *idfrom;
 
 	idptr= RNA_property_pointer_get(&template->ptr, template->prop);
 	id= idptr.data;
 	idfrom= template->ptr.id.data;
-	lb= template->idlb;
+	// lb= template->idlb;
 
 	block= uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
@@ -920,7 +920,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	PointerRNA ptr;
 	char typestr[32];
 	short proxy_protected, xco=0, yco=0;
-	int rb_col;
+	// int rb_col; // UNUSED
 
 	/* get constraint typeinfo */
 	cti= constraint_get_typeinfo(con);
@@ -957,7 +957,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	/* Draw constraint header */
 	
 	/* rounded header */
-	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
+	// rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20; // UNUSED
 
 	/* open/close */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -1442,6 +1442,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	scopes->wavefrm_height= (scopes->wavefrm_height<=20)?20:scopes->wavefrm_height;
 
 	bt= uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
+	(void)bt; // UNUSED
 	
 	MEM_freeN(cb);
 }
@@ -2389,6 +2390,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiLayout *ui_abs;
 		
 		ui_abs= uiLayoutAbsolute(layout, 0);
+		(void)ui_abs; // UNUSED
 		
 		uiDefIconBut(block, BUT, handle_event, ICON_PANEL_CLOSE, 
 				0, UI_UNIT_Y*0.1, UI_UNIT_X*0.8, UI_UNIT_Y*0.8, NULL, 0.0f, 0.0f, 0, 0, "Stop this job");
