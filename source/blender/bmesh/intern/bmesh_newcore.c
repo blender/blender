@@ -548,6 +548,9 @@ void BM_Kill_Face(BMesh *bm, BMFace *f) {
 		BLI_mempool_free(bm->looplistpool, ls);
 	}
 	
+	if (bm->act_face == f)
+		bm->act_face = NULL;
+	
 	bm->totface--;
 	BM_remove_selection(bm, f);
 	if (f->head.data)
