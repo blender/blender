@@ -29,7 +29,7 @@ from bl_ui.properties_physics_common import (
 
 
 def particle_panel_enabled(context, psys):
-    if psys == None:
+    if psys is None:
         return True
     phystype = psys.settings.physics_type
     if psys.settings.type in {'EMITTER', 'REACTOR'} and phystype in {'NO', 'KEYED'}:
@@ -98,10 +98,10 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
             col.operator("object.particle_system_add", icon='ZOOMIN', text="")
             col.operator("object.particle_system_remove", icon='ZOOMOUT', text="")
 
-        if psys == None:
+        if psys is None:
             part = particle_get_settings(context)
 
-            if part == None:
+            if part is None:
                 return
 
             layout.template_ID(context.space_data, "pin_id")
@@ -192,7 +192,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         if settings.is_fluid:
             return False
         if particle_panel_poll(PARTICLE_PT_emission, context):
-            return psys == None or not context.particle_system.point_cache.use_external
+            return psys is None or not context.particle_system.point_cache.use_external
         return False
 
     def draw(self, context):
@@ -201,7 +201,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         psys = context.particle_system
         part = particle_get_settings(context)
 
-        layout.enabled = particle_panel_enabled(context, psys) and (psys == None or not psys.has_multiple_caches)
+        layout.enabled = particle_panel_enabled(context, psys) and (psys is None or not psys.has_multiple_caches)
 
         row = layout.row()
         row.active = part.distribution != 'GRID'
@@ -341,7 +341,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
 
             if settings.type == 'HAIR' and not settings.use_advanced_hair:
                 return False
-            return settings.physics_type != 'BOIDS' and (psys == None or not psys.point_cache.use_external)
+            return settings.physics_type != 'BOIDS' and (psys is None or not psys.point_cache.use_external)
         else:
             return False
 
@@ -391,7 +391,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
 
             if settings.type == 'HAIR' and not settings.use_advanced_hair:
                 return False
-            return settings.physics_type != 'BOIDS' and (psys == None or not psys.point_cache.use_external)
+            return settings.physics_type != 'BOIDS' and (psys is None or not psys.point_cache.use_external)
         else:
             return False
 
@@ -440,7 +440,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
 
             if settings.type == 'HAIR' and not settings.use_advanced_hair:
                 return False
-            return psys == None or not psys.point_cache.use_external
+            return psys is None or not psys.point_cache.use_external
         else:
             return False
 
@@ -1143,7 +1143,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        if context.particle_system == None:
+        if context.particle_system is None:
             return False
         return particle_panel_poll(cls, context)
 

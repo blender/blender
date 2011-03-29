@@ -645,7 +645,7 @@ void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikk
 		int iL=iL_in, iR=iR_in;
 		assert((iR_in-iL_in)>0);	// at least 2 entries
 
-		// seperate (by fSep) all points between iL_in and iR_in in pTmpVert[]
+		// separate (by fSep) all points between iL_in and iR_in in pTmpVert[]
 		while(iL < iR)
 		{
 			tbool bReadyLeftSwap = TFALSE, bReadyRightSwap = TFALSE;
