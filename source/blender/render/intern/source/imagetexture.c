@@ -521,6 +521,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
    * clipped-away parts are sampled as well.
    */
 	/* note: actually minx etc isnt in the proper range... this due to filter size and offset vectors for bump */
+	/* note: talpha must be initialized */
 	TexResult texr;
 	rctf *rf, stack[8];
 	float opp, tot, alphaclip= 1.0;
@@ -1779,7 +1780,8 @@ void image_sample(Image *ima, float fx, float fy, float dx, float dy, float *res
 	
 	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) )
 		ibuf->rect+= (ibuf->x*ibuf->y);
-	
+
+	texres.talpha= 1; /* boxsample expects to be initialized */
 	boxsample(ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1);
 	result[0]= texres.tr;
 	result[1]= texres.tg;
