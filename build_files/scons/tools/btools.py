@@ -611,7 +611,7 @@ def NSIS_Installer(target=None, source=None, env=None):
     #### change to suit install dir ####
     inst_dir = install_base_dir + env['BF_INSTALLDIR']
     
-    os.chdir("windows/installer")
+    os.chdir(rel_dir)
 
     ns = open("00.sconsblender.nsi","r")
 
