@@ -240,15 +240,25 @@ class VIEW3D_MT_uv_map(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("uv.unwrap")
+        layout.operator("uv.smart_project")
+        layout.operator("uv.lightmap_pack")
+        layout.operator("uv.follow_active_quads")
+
+        layout.separator()
+
         layout.operator("uv.cube_project")
         layout.operator("uv.cylinder_project")
         layout.operator("uv.sphere_project")
+
+        layout.separator()
+
         layout.operator("uv.project_from_view")
         layout.operator("uv.project_from_view", text="Project from View (Bounds)").scale_to_bounds = True
 
         layout.separator()
 
         layout.operator("uv.reset")
+        
 
 # ********** View menus **********
 
