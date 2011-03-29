@@ -470,8 +470,12 @@ void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctr
 			if (newMass)
 				body->getCollisionShape()->calculateLocalInertia(newMass, inertia);
 			body->setMassProps(newMass, inertia);
+			m_dynamicsWorld->addRigidBody(body, newCollisionGroup, newCollisionMask);
+		}	
+		else
+		{
+			m_dynamicsWorld->addCollisionObject(obj, newCollisionGroup, newCollisionMask);
 		}
-		m_dynamicsWorld->addCollisionObject(obj, newCollisionGroup, newCollisionMask);
 	}
 	// to avoid nasty interaction, we must update the property of the controller as well
 	ctrl->m_cci.m_mass = newMass;
