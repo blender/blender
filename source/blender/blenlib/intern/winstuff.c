@@ -43,6 +43,7 @@
 #include "BLI_string.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_global.h"
 
 #define WIN32_SKIP_HKEY_PROTECTION		// need to use HKEY
 #include "BLI_winstuff.h"
@@ -64,39 +65,108 @@ int BLI_getInstallationDir( char * str ) {
 	return 1;
 }
 
+void RegisterBlendExtension_Fail(HKEY root)
+{
+	printf("failed\n");
+	if (root)
+		RegCloseKey(root);
+	if (!G.background)
+		MessageBox(0,"Could not register file extension.","Blender error",MB_OK|MB_ICONERROR);
+	TerminateProcess(GetCurrentProcess(),1);
+}
 
-void RegisterBlendExtension(char * str) {
+void RegisterBlendExtension(void) {
 	LONG lresult;
 	HKEY hkey = 0;
+	HKEY root = 0;
+	BOOL usr_mode = FALSE;
 	DWORD dwd = 0;
-	char buffer[128];
-	
-	lresult = RegCreateKeyEx(HKEY_CLASSES_ROOT, "blendfile\\shell\\open\\command", 0,
-		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+	char buffer[256];
 
-	if (lresult == ERROR_SUCCESS) {
-		sprintf(buffer, "\"%s\" \"%%1\"", str);
-		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, buffer, strlen(buffer) + 1);
-		RegCloseKey(hkey);
+	char BlPath[MAX_PATH];
+	char InstallDir[FILE_MAXDIR];
+	char SysDir[FILE_MAXDIR];
+	char* ThumbHandlerDLL;
+	char RegCmd[MAX_PATH*2];
+	char MBox[256];
+	BOOL IsWOW64;
+
+	printf("Registering file extension...");
+	GetModuleFileName(0,BlPath,MAX_PATH);
+
+	// root is HKLM by default
+	lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
+	if (lresult != ERROR_SUCCESS)
+	{
+		// try HKCU on failure
+		usr_mode = TRUE;
+		lresult = RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
+		if (lresult != ERROR_SUCCESS)
+			RegisterBlendExtension_Fail(0);
 	}
 
-	lresult = RegCreateKeyEx(HKEY_CLASSES_ROOT, "blendfile\\DefaultIcon", 0,
-		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
-
+	lresult = RegCreateKeyEx(root, "blendfile", 0,
+		NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 	if (lresult == ERROR_SUCCESS) {
-		sprintf(buffer, "\"%s\",1", str);
-		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, buffer, strlen(buffer) + 1);
+		sprintf(buffer,"%s","Blender File");
+		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE*)buffer, strlen(buffer) + 1);
 		RegCloseKey(hkey);
 	}
+	if (lresult != ERROR_SUCCESS)
+		RegisterBlendExtension_Fail(root);
 
-	lresult = RegCreateKeyEx(HKEY_CLASSES_ROOT, ".blend", 0,
-		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+	lresult = RegCreateKeyEx(root, "blendfile\\shell\\open\\command", 0,
+		NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+	if (lresult == ERROR_SUCCESS) {
+		sprintf(buffer, "\"%s\" \"%%1\"", BlPath);
+		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE*)buffer, strlen(buffer) + 1);
+		RegCloseKey(hkey);
+	}
+	if (lresult != ERROR_SUCCESS)
+		RegisterBlendExtension_Fail(root);
 
+	lresult = RegCreateKeyEx(root, "blendfile\\DefaultIcon", 0,
+		NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+	if (lresult == ERROR_SUCCESS) {
+		sprintf(buffer, "\"%s\",1", BlPath);
+		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE*)buffer, strlen(buffer) + 1);
+		RegCloseKey(hkey);
+	}
+	if (lresult != ERROR_SUCCESS)
+		RegisterBlendExtension_Fail(root);
+
+	lresult = RegCreateKeyEx(root, ".blend", 0,
+		NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 	if (lresult == ERROR_SUCCESS) {
 		sprintf(buffer, "%s", "blendfile");
-		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, buffer, strlen(buffer) + 1);
+		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE*)buffer, strlen(buffer) + 1);
 		RegCloseKey(hkey);
 	}
+	if (lresult != ERROR_SUCCESS)
+		RegisterBlendExtension_Fail(root);
+	
+	BLI_getInstallationDir(InstallDir);
+	GetSystemDirectory(SysDir,FILE_MAXDIR);
+#ifdef WIN64
+	ThumbHandlerDLL = "BlendThumb64.dll";
+#else
+	IsWow64Process(GetCurrentProcess(),&IsWOW64);
+	if (IsWOW64 == TRUE)
+		ThumbHandlerDLL = "BlendThumb64.dll";
+	else
+		ThumbHandlerDLL = "BlendThumb.dll";
+#endif	
+	snprintf(RegCmd,MAX_PATH*2,"%s\\regsvr32 /s \"%s\\%s\"",SysDir,InstallDir,ThumbHandlerDLL);
+	system(RegCmd);
+
+	RegCloseKey(root);
+	printf("success (%s)\n",usr_mode ? "user" : "system");
+	if (!G.background)
+	{
+		sprintf(MBox,"File extension registered for %s.",usr_mode ? "the current user. To register for all users, run as an administrator" : "all users");
+		MessageBox(0,MBox,"Blender",MB_OK|MB_ICONINFORMATION);
+	}
+	TerminateProcess(GetCurrentProcess(),0);
 }
 
 DIR *opendir (const char *path) {

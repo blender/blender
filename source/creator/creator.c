@@ -287,6 +287,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 #ifdef WIN32
 	BLI_argsPrintArgDoc(ba, "-R");
+	BLI_argsPrintArgDoc(ba, "-r");
 #endif
 	BLI_argsPrintArgDoc(ba, "--version");
 
@@ -486,12 +487,12 @@ static int without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UN
 static int register_extension(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 #ifdef WIN32
-	char *path = BLI_argsArgv(data)[0];
-	RegisterBlendExtension(path);
+	if (data)
+		G.background = 1;
+	RegisterBlendExtension();
 #else
 	(void)data; /* unused */
 #endif
-
 	return 0;
 }
 
@@ -1094,7 +1095,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", "<sx> <sy> <w> <h>\n\tOpen with lower left corner at <sx>, <sy> and width and height as <w>, <h>", prefsize, NULL);
 	BLI_argsAdd(ba, 2, "-w", "--window-border", "\n\tForce opening with borders (default)", with_borders, NULL);
 	BLI_argsAdd(ba, 2, "-W", "--window-borderless", "\n\tForce opening without borders", without_borders, NULL);
-	BLI_argsAdd(ba, 2, "-R", NULL, "\n\tRegister .blend extension (windows only)", register_extension, ba);
+	BLI_argsAdd(ba, 2, "-R", NULL, "\n\tRegister .blend extension, then exit (Windows only)", register_extension, NULL);
+	BLI_argsAdd(ba, 2, "-r", NULL, "\n\tSilently register .blend extension, then exit (Windows only)", register_extension, ba);
 
 	/* third pass: disabling things and forcing settings */
 	BLI_argsAddCase(ba, 3, "-nojoystick", 1, NULL, 0, "\n\tDisable joystick support", no_joystick, syshandle);

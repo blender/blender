@@ -1,9 +1,12 @@
 #!/usr/bin/python
 Import ('env')
+import btools
 
-if env['OURPLATFORM'] == 'linuxcross':
-    source = 'linuxcrossblender.rcscons'
-else:
-    source = 'winblender.rcscons'
+env['RCFLAGS'].append("-DWINDRES")
+env['RCFLAGS'].append("-DBLEN_VER_RC_STR_M=" + btools.VERSION)
+env['RCFLAGS'].append("-DBLEN_VER_RC_1=" + btools.VERSION[0])
+env['RCFLAGS'].append("-DBLEN_VER_RC_2=" + btools.VERSION[2])
+env['RCFLAGS'].append("-DBLEN_VER_RC_3=" + btools.VERSION[3])
+env['RCFLAGS'].append("-DBLEN_VER_RC_4=0")
 
-env.BlenderRes('winresource', source, ['core'], priority=[95])
+env.BlenderRes('winresource', 'winblender.rc', ['core'], priority=[95])

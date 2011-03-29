@@ -101,6 +101,17 @@ set(SRC
 )
 
 if(WIN32 AND NOT UNIX)
+	string(SUBSTRING ${BLENDER_VERSION} 0 1 bver1)
+	string(SUBSTRING ${BLENDER_VERSION} 2 1 bver2)
+	string(SUBSTRING ${BLENDER_VERSION} 3 1 bver3)
+	add_definitions(
+		-DBLEN_VER_RC_STR="${BLENDER_VERSION}"
+		-DBLEN_VER_RC_1=${bver1}
+		-DBLEN_VER_RC_2=${bver2}
+		-DBLEN_VER_RC_3=${bver3}
+		-DBLEN_VER_RC_4=0
+	)
+
 	list(APPEND SRC
 		../icons/winblender.rc
 	)
@@ -535,6 +546,19 @@ elseif(WIN32)
 				DESTINATION ${TARGETDIR}/
 			)
 		endif()
+	endif()
+	
+	add_custom_command(TARGET blender
+		POST_BUILD
+		MAIN_DEPENDENCY blender
+		COMMAND copy /Y \"${LIBDIR}\\thumbhandler\\lib\\BlendThumb64.dll\" \"${TARGETDIR}\\\"
+	)
+	if(NOT CMAKE_CL_64)
+		add_custom_command(TARGET blender
+			POST_BUILD
+			MAIN_DEPENDENCY blender
+			COMMAND copy /Y \"${LIBDIR}\\thumbhandler\\lib\\BlendThumb.dll\" \"${TARGETDIR}\\\"
+		)
 	endif()
 
 elseif(APPLE)
