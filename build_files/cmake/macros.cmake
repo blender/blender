@@ -265,7 +265,7 @@ endmacro()
 # needs to be removed for some external libs which we dont maintain.
 
 # utility macro
-macro(_remove_strict_flags
+macro(remove_flag
 	flag)
 
 	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
@@ -285,12 +285,12 @@ endmacro()
 macro(remove_strict_flags)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
-		_remove_strict_flags("-Wstrict-prototypes")
-		_remove_strict_flags("-Wunused-parameter")
-		_remove_strict_flags("-Wwrite-strings")
-		_remove_strict_flags("-Wshadow")
-		_remove_strict_flags("-Werror=[^ ]+")
-		_remove_strict_flags("-Werror")
+		remove_flag("-Wstrict-prototypes")
+		remove_flag("-Wunused-parameter")
+		remove_flag("-Wwrite-strings")
+		remove_flag("-Wshadow")
+		remove_flag("-Werror=[^ ]+")
+		remove_flag("-Werror")
 	endif()
 
 	if(MSVC)
