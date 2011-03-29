@@ -157,8 +157,6 @@ typedef struct ParticleBillboardData
 
 typedef struct ParticleCollisionElement
 {
-	Object *ob;
-
 	/* pointers to original data */
 	float *x[4], *v[4];
 
@@ -170,6 +168,9 @@ typedef struct ParticleCollisionElement
 
 	/* count of original data (1-4) */
 	int tot;
+
+	/* index of the collision face */
+	int index;
 
 	/* flags for inversed normal / particle already inside element at start */
 	short inv_nor, inside;

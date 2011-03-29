@@ -2989,6 +2989,11 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 
 	pce.tot = 3;
 	pce.inside = 0;
+	pce.index = index;
+
+	/* don't collide with same face again */
+	if(col->hit == col->current && col->pce.index == index && col->pce.tot == 3)
+		return;
 
 	do
 	{	
