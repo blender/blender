@@ -1832,7 +1832,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 	}
 }
 
-DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
+DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me, int use_mdisps)
 {
 	DerivedMesh *dm = CDDM_new(em->bm->totvert, em->bm->totedge, 
 	                       em->tottri, em->bm->totloop, em->bm->totface);
@@ -1851,6 +1851,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 	int numTex = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
 	int i, j, *index, add_orig;
 	int has_crease, has_edge_bweight, has_vert_bweight;
+	int flag;
 	
 	has_edge_bweight = CustomData_has_layer(&em->bm->edata, CD_BWEIGHT);
 	has_vert_bweight = CustomData_has_layer(&em->bm->vdata, CD_BWEIGHT);
@@ -1861,13 +1862,14 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 	/*don't add origindex layer if one already exists*/
 	add_orig = !CustomData_has_layer(&em->bm->pdata, CD_ORIGINDEX);
 
-	CustomData_merge(&em->bm->vdata, &dm->vertData, CD_MASK_DERIVEDMESH,
+	flag = use_mdisps ? CD_MASK_DERIVEDMESH|CD_MASK_MDISPS : CD_MASK_DERIVEDMESH;
+	CustomData_merge(&em->bm->vdata, &dm->vertData, flag,
 	                 CD_CALLOC, dm->numVertData);
-	CustomData_merge(&em->bm->edata, &dm->edgeData, CD_MASK_DERIVEDMESH,
+	CustomData_merge(&em->bm->edata, &dm->edgeData, flag,
 	                 CD_CALLOC, dm->numEdgeData);
-	CustomData_merge(&em->bm->ldata, &dm->loopData, CD_MASK_DERIVEDMESH,
+	CustomData_merge(&em->bm->ldata, &dm->loopData, flag,
 	                 CD_CALLOC, dm->numLoopData);
-	CustomData_merge(&em->bm->pdata, &dm->polyData, CD_MASK_DERIVEDMESH,
+	CustomData_merge(&em->bm->pdata, &dm->polyData, flag,
 	                 CD_CALLOC, dm->numPolyData);
 	
 	/*add tesselation mface layers*/

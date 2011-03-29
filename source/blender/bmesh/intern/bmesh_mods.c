@@ -390,7 +390,8 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 		tv2 = BM_OtherEdgeVert(e2, kv);
 
 		f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
-		BM_Split_Face(bm, f2, tv, tv2, NULL, NULL);
+		if (f2) 
+			BM_Split_Face(bm, f2, tv, tv2, NULL, NULL);
 	} else if (faces && BLI_array_count(faces) == 1) {
 		BMLoop **loops = NULL;
 		BMEdge *e;

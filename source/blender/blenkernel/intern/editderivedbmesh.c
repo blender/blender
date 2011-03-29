@@ -298,9 +298,9 @@ void BMEdit_Free(BMEditMesh *em)
 	if (em->edge_index) MEM_freeN(em->edge_index);
 	if (em->face_index) MEM_freeN(em->face_index);
 
-	BM_Free_Mesh(em->bm);
+	if (em->bm)
+		BM_Free_Mesh(em->bm);
 }
-
 
 /*
 ok, basic design:

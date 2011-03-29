@@ -3741,7 +3741,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	if (!em)
 		return OPERATOR_CANCELLED;
 		
-	bmnew = BM_Make_Mesh(allocsize);
+	bmnew = BM_Make_Mesh(obedit, allocsize);
 	CustomData_copy(&bmnew->vdata, &em->bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bmnew->edata, &em->bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bmnew->ldata, &em->bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);

@@ -258,37 +258,6 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 }
 
 /*
-BMesh *bmesh_make_mesh_from_mesh(BMesh *bm, int allocsize[4])
-{
-	BMesh *target = NULL;
-	target = bmesh_make_mesh(allocsize);
-	
-
-	CustomData_copy(&bm->vdata, &target->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm->edata, &target->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm->ldata, &target->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm->pdata, &target->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	
-
-	CustomData_bmesh_init_pool(&target->vdata, allocsize[0]);
-	CustomData_bmesh_init_pool(&target->edata, allocsize[1]);
-	CustomData_bmesh_init_pool(&target->ldata, allocsize[2]);
-	CustomData_bmesh_init_pool(&target->pdata, allocsize[3]);
-	
-	bmesh_begin_edit(bm);
-	bmesh_begin_edit(target);
-	
-	bmesh_copy_mesh(bm, target, 0);
-
-	bmesh_end_edit(bm);
-	bmesh_end_edit(target);
-	
-	return target;
-
-}
-*/
-
-/*
  * Duplicate Operator
  *
  * Duplicates verts, edges and faces of a mesh.

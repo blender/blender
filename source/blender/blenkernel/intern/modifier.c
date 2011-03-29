@@ -301,7 +301,8 @@ int modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	md->scene= scene;
+	if (scene)
+		md->scene= scene;
 
 	if((md->mode & required_mode) != required_mode) return 0;
 	if(mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return 0;

@@ -113,8 +113,11 @@ typedef struct BMOpDefine {
 	const char *name;
 	slottype slottypes[BMOP_MAX_SLOTS];
 	void (*exec)(BMesh *bm, BMOperator *op);
-	int flag; /*doesn't do anything right now*/
+	int flag; 
 } BMOpDefine;
+
+/*BMOpDefine->flag*/
+#define BMOP_UNTAN_MULTIRES 1 /*switch from multires tangent space to absolute coordinates*/
 
 /*------------- Operator API --------------*/
 

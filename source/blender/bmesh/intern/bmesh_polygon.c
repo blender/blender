@@ -356,6 +356,7 @@ static void shrink_edgef(float *v1, float *v2, float fac)
 	add_v3_v3v3(v2, v2, mid);
 }
 
+
 /*
  * POLY ROTATE PLANE
  *

@@ -312,7 +312,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 										  int initFlags)
 {
 	DerivedMesh *cddm = dm; //copying shouldn't be necassary here, as all modifiers return CDDM's
-	BMEditMesh *em = CDDM_To_BMesh(cddm, NULL);
+	BMEditMesh *em = CDDM_To_BMesh(ob, cddm, NULL);
 	BMOperator op, oldop, weldop;
 	int i, j, indexLen;
 	/* offset matrix */
@@ -505,7 +505,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BMO_Finish_Op(em->bm, &weldop);
 
 	BMEdit_RecalcTesselation(em);
-	cddm = CDDM_from_BMEditMesh(em, NULL);
+	cddm = CDDM_from_BMEditMesh(em, NULL, 0);
 
 	BMEdit_Free(em);
 	MEM_freeN(indexMap);

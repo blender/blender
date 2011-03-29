@@ -19,6 +19,7 @@ struct BMLayerType;
 struct BMSubClassLayer;
 struct BMFlagLayer;
 struct BLI_mempool;
+struct Object;
 
 /*
  UPDATE: ok, this hasn't been all that useful.  Need to rip this out and just go with original 
@@ -253,6 +254,7 @@ typedef struct BMesh {
 	BMFace *act_face;
 
 	ListBase errorstack;
+	struct Object *ob; /*owner object*/
 } BMesh;
 
 BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts);

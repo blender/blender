@@ -33,10 +33,23 @@
  */
 
 #include "MEM_guardedalloc.h"
+
 #include "DNA_listBase.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+#include "BLI_cellalloc.h"
+
 #include "BKE_utildefines.h"
+#include "BKE_cdderivedmesh.h"
+#include "BKE_tessmesh.h"
+#include "BKE_customdata.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_multires.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
@@ -97,7 +110,7 @@ int bmesh_test_sysflag(BMHeader *head, int flag)
  *
 */
 
-BMesh *BM_Make_Mesh(int allocsize[4])
+BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
 {
 	/*allocate the structure*/
 	BMesh *bm = MEM_callocN(sizeof(BMesh),"BM");
@@ -119,7 +132,8 @@ BMesh *BM_Make_Mesh(int allocsize[4])
 	}
 
 	bm->baselevel = baselevel;
-
+	bm->ob = ob;
+	
 /*allocate the memory pools for the mesh elements*/
 	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], 0, 1);
 	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], 0, 1);
@@ -292,11 +306,69 @@ void BM_Compute_Normals(BMesh *bm)
  *
 */
 
-void bmesh_begin_edit(BMesh *UNUSED(bm)){
+void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
+{
+	/*switch multires data out of tangent space*/
+	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+		Object *ob = bm->ob;
+		BMEditMesh *em = BMEdit_Create(bm);
+		DerivedMesh *dm = CDDM_from_BMEditMesh(em, NULL, 1);
+		MDisps *mdisps;
+		BMFace *f;
+		BMIter iter;
+		int i;
+		
+		multires_set_space(dm, ob, from, to);
+		
+		mdisps = CustomData_get_layer(&dm->loopData, CD_MDISPS);
+		
+		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			BMLoop *l;
+			BMIter liter;
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+				MDisps *lmd = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
+				
+				if (!lmd->disps) {
+					printf("eck!\n");
+				}
+				
+				if (lmd->disps && lmd->totdisp == mdisps->totdisp) {
+					memcpy(lmd->disps, mdisps->disps, sizeof(float)*3*lmd->totdisp);
+				} else if (mdisps->disps) {
+					if (lmd->disps)
+						BLI_cellalloc_free(lmd->disps);
+					
+					lmd->disps = BLI_cellalloc_dupalloc(mdisps->disps);
+					lmd->totdisp = mdisps->totdisp;
+				}
+				
+				mdisps++;
+				i += 1;	
+			}
+		}
+		
+		dm->needsFree = 1;
+		dm->release(dm);
+		
+		/*setting this to NULL prevents BMEdit_Free from freeing it*/
+		em->bm = NULL;
+		BMEdit_Free(em);
+		MEM_freeN(em);
+	}
 }
 
-void bmesh_end_edit(BMesh *bm, int UNUSED(flag)){
+void bmesh_begin_edit(BMesh *bm, int flag) {
+	/*switch multires data out of tangent space*/
+	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS))
+		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
+}
+
+void bmesh_end_edit(BMesh *bm, int flag){
 	/*compute normals, clear temp flags and flush selections*/
 	BM_Compute_Normals(bm);
 	BM_SelectMode_Flush(bm);
+
+	/*switch multires data into tangent space*/
+	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS))
+		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
 }

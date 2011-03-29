@@ -498,7 +498,8 @@ void free_ss_weights(WeightTable *wtable)
 			MEM_freeN(wtable->weight_table[i].w);
 	}
 	
-	MEM_freeN(wtable->weight_table);
+	if (wtable->weight_table)
+		MEM_freeN(wtable->weight_table);
 }
 
 static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,

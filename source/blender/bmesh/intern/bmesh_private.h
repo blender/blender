@@ -57,7 +57,7 @@ int bmesh_radial_length(struct BMLoop *l);
 int bmesh_disk_count(BMVert *v);
 
 /*start/stop edit*/
-void bmesh_begin_edit(struct BMesh *bm);
+void bmesh_begin_edit(struct BMesh *bm, int flag);
 void bmesh_end_edit(struct BMesh *bm, int flag);
 
 /*internal selection flushing*/

@@ -478,7 +478,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	int i, j;
 
 	/*allocate a bmesh*/
-	bm = BM_Make_Mesh(allocsize);
+	bm = BM_Make_Mesh(bmold->ob, allocsize);
 
 	CustomData_copy(&bmold->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bmold->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);

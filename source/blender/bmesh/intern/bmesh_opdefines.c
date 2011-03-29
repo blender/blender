@@ -96,7 +96,7 @@ BMOpDefine def_righthandfaces = {
 	{0} /*null-terminating sentinel*/,
 	},
 	bmesh_righthandfaces_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 /*
@@ -135,7 +135,7 @@ BMOpDefine def_edgerotate = {
 	{0} /*null-terminating sentinel*/,
 	},
 	bmesh_edgerotate_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 /*
@@ -150,7 +150,7 @@ BMOpDefine def_reversefaces = {
 	{0} /*null-terminating sentinel*/,
 	},
 	bmesh_reversefaces_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 /*
@@ -167,7 +167,7 @@ BMOpDefine def_edgebisect = {
 	{0} /*null-terminating sentinel*/,
 	},
 	esplit_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 /*
@@ -221,7 +221,7 @@ BMOpDefine def_removedoubles = {
 	 {BMOP_OPSLOT_FLT,         "dist"}, //minimum distance
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_removedoubles_exec,
-	0,
+	BMOP_UNTAN_MULTIRES,
 };
 
 /*
@@ -237,7 +237,7 @@ BMOpDefine def_automerge = {
 	 {BMOP_OPSLOT_FLT,         "dist"}, //minimum distance
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_automerge_exec,
-	0,
+	BMOP_UNTAN_MULTIRES,
 };
 
 /*
@@ -250,7 +250,7 @@ BMOpDefine def_collapse = {
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /*input edges*/
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_collapse_exec,
-	0,
+	BMOP_UNTAN_MULTIRES,
 };
 
 
@@ -294,7 +294,7 @@ BMOpDefine def_pointmerge = {
 	 {BMOP_OPSLOT_VEC,         "mergeco"},
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_pointmerge_exec,
-	0,
+	BMOP_UNTAN_MULTIRES,
 };
 
 /*
@@ -322,7 +322,7 @@ BMOpDefine def_weldverts = {
 	{{BMOP_OPSLOT_MAPPING, "targetmap"}, /*maps welded vertices to verts they should weld to.*/
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_weldverts_exec,
-	0,
+	BMOP_UNTAN_MULTIRES,
 };
 
 /*
@@ -358,7 +358,7 @@ BMOpDefine def_join_triangles= {
 	 {BMOP_OPSLOT_FLT, "limit"},
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_jointriangles_exec,
-	0,
+	BMOP_UNTAN_MULTIRES,
 };
 
 /*
@@ -378,7 +378,7 @@ BMOpDefine def_contextual_create= {
 	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, //newly-made face(s)
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_contextual_create_exec,
-	0,
+	BMOP_UNTAN_MULTIRES,
 };
 
 BMOpDefine def_edgenet_fill= {
@@ -532,7 +532,7 @@ BMOpDefine def_extrude_indivface = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "skirtout"}, //output skirt geometry, faces and edges
 	{0} /*null-terminating sentinel*/},
 	bmesh_extrude_face_indiv_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 /*
@@ -547,7 +547,7 @@ BMOpDefine def_extrude_onlyedge = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output geometry
 	{0} /*null-terminating sentinel*/},
 	bmesh_extrude_onlyedge_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 /*
@@ -562,27 +562,8 @@ BMOpDefine def_extrudeverts_indiv = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output vertices
 	{0} /*null-terminating sentinel*/},
 	extrude_vert_indiv_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
-
-#if 0
-BMOpDefine def_makeprim = {
-	"makeprim",
-	{{BMOP_OPSLOT_INT, "type"},
-	{BMOP_OPSLOT_INT, "tot", /*rows/cols also applies to spheres*/
-	{BMOP_OPSLOT_INT, "seg",
-	{BMOP_OPSLOT_INT, "subdiv"},
-	{BMOP_OPSLOT_INT, "ext"},
-	{BMOP_OPSLOT_INT, "fill"},
-	{BMOP_OPSLOT_FLT, "dia"},
-	{BMOP_OPSLOT_FLT, "depth"},
-	{BMOP_OPSLOT_PNT, "mat"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //won't be implemented right away
-	{0}}
-	makeprim_exec,
-	0
-};
-#endif
 
 BMOpDefine def_connectverts = {
 	"connectverts",
@@ -590,7 +571,7 @@ BMOpDefine def_connectverts = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
 	{0} /*null-terminating sentinel*/},
 	connectverts_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 BMOpDefine def_extrudefaceregion = {
@@ -600,7 +581,7 @@ BMOpDefine def_extrudefaceregion = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
 	{0} /*null-terminating sentinel*/},
 	extrude_edge_context_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 BMOpDefine def_dissolvevertsop = {
@@ -608,7 +589,7 @@ BMOpDefine def_dissolvevertsop = {
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
 	{0} /*null-terminating sentinel*/},
 	dissolveverts_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 BMOpDefine def_dissolveedgessop = {
@@ -617,7 +598,7 @@ BMOpDefine def_dissolveedgessop = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
 	{0} /*null-terminating sentinel*/},
 	dissolveedges_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 BMOpDefine def_dissolveedgeloopsop = {
@@ -626,7 +607,7 @@ BMOpDefine def_dissolveedgeloopsop = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
 	{0} /*null-terminating sentinel*/},
 	dissolve_edgeloop_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 BMOpDefine def_dissolvefacesop = {
@@ -635,7 +616,7 @@ BMOpDefine def_dissolvefacesop = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
 	{0} /*null-terminating sentinel*/},
 	dissolvefaces_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 
@@ -647,7 +628,7 @@ BMOpDefine def_triangop = {
 	{BMOP_OPSLOT_MAPPING, "facemap"},
 	{0} /*null-terminating sentinel*/},
 	triangulate_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 BMOpDefine def_subdop = {
@@ -673,7 +654,7 @@ BMOpDefine def_subdop = {
 	{0} /*null-terminating sentinel*/,
 	},
 	esubdivide_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 BMOpDefine def_delop = {
@@ -838,7 +819,7 @@ BMOpDefine def_edgesplit = {
 	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout2"}, /* new output disconnected edges */
 	 {0} /*null-terminating sentinel*/},
 	bmesh_edgesplitop_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 /*
@@ -952,7 +933,7 @@ BMOpDefine def_bevel = {
 	 {BMOP_OPSLOT_FLT, "percent"}, /* percentage to expand bevelled edges*/
 	 {0} /*null-terminating sentinel*/},
 	bmesh_bevel_exec,
-	0
+	BMOP_UNTAN_MULTIRES
 };
 
 BMOpDefine *opdefines[] = {

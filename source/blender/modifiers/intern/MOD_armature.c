@@ -143,7 +143,7 @@ static void deformVertsEM(
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data);
+	if(!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, 0);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, NULL, numVerts,
 				  amd->deformflag, NULL, amd->defgrp_name);
@@ -159,7 +159,7 @@ static void deformMatricesEM(
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data);
+	if(!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, 0);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
 				  amd->deformflag, NULL, amd->defgrp_name);

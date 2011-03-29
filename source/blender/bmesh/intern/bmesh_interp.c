@@ -272,7 +272,8 @@ int isect_ray_tri_threshold_v3_uvw(float p1[3], float d[3], float _v0[3], float 
 	float du = 0, dv = 0;
 	float v0[3], v1[3], v2[3], c[3];
 	
-	/*expand triange a bit*/
+	/*expand triangle a bit*/
+#if 1
 	cent_tri_v3(c, _v0, _v1, _v2);
 	sub_v3_v3v3(v0, _v0, c);
 	sub_v3_v3v3(v1, _v1, c);
@@ -283,6 +284,11 @@ int isect_ray_tri_threshold_v3_uvw(float p1[3], float d[3], float _v0[3], float 
 	add_v3_v3(v0, c);
 	add_v3_v3(v1, c);
 	add_v3_v3(v2, c);
+#else
+	copy_v3_v3(v0, _v0);
+	copy_v3_v3(v1, _v1);
+	copy_v3_v3(v2, _v2);
+#endif
 	
 	sub_v3_v3v3(e1, v1, v0);
 	sub_v3_v3v3(e2, v2, v0);
@@ -329,20 +335,154 @@ int isect_ray_tri_threshold_v3_uvw(float p1[3], float d[3], float _v0[3], float 
 	return 1;
 }
 
+/* find closest point to p on line through l1,l2 and return lambda,
+ * where (0 <= lambda <= 1) when cp is in the line segement l1,l2
+ */
+static double closest_to_line_v3_d(double cp[3], const double p[3], const double l1[3], const double l2[3])
+{
+	double h[3],u[3],lambda;
+	VECSUB(u, l2, l1);
+	VECSUB(h, p, l1);
+	lambda =INPR(u,h)/INPR(u,u);
+	cp[0] = l1[0] + u[0] * lambda;
+	cp[1] = l1[1] + u[1] * lambda;
+	cp[2] = l1[2] + u[2] * lambda;
+	return lambda;
+}
+
+/* point closest to v1 on line v2-v3 in 3D */
+static void closest_to_line_segment_v3_d(double *closest, double v1[3], double v2[3], double v3[3])
+{
+	double lambda, cp[3];
+
+	lambda= closest_to_line_v3_d(cp,v1, v2, v3);
+
+	if(lambda <= 0.0) {
+		VECCOPY(closest, v2);
+	} else if(lambda >= 1.0) {
+		VECCOPY(closest, v3);
+	} else {
+		VECCOPY(closest, cp);
+	}
+}
+
+static double len_v3v3_d(const double a[3], const double b[3])
+{
+	double d[3];
+
+	VECSUB(d, b, a);
+	return sqrt(INPR(d, d));
+}
+
+/*funnily enough, I think this is identical to face_to_crn_interp, heh*/
+double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3], int a1, int a2)
+{
+	double x, y, z, f1, f2;
+	
+	x = aa[a1]*cc[a2]-cc[a1]*aa[a2];
+	y = aa[a1]*dd[a2]+bb[a1]*cc[a2]-cc[a1]*bb[a2]-dd[a1]*aa[a2];
+	z = bb[a1]*dd[a2]-dd[a1]*bb[a2];
+	
+	
+	if (fabs(2*(x-y+z)) > DBL_EPSILON*1000.0) {
+		f1 = (sqrt(y*y-4.0*x*z) - y + 2.0*z) / (2.0*(x-y+z));
+		f2 = (-sqrt(y*y-4.0*x*z) - y + 2.0*z) / (2.0*(x-y+z));
+	} else f1 = -1;
+	
+	if (isnan(f1) || f1 == -1.0)  {
+		int i, tot=200;
+		double d, lastd=-1.0;
+		
+		//return -1.0f;
+#if 0
+		double co[3], p[3] = {0.0, 0.0, 0.0};
+		closest_to_line_segment_v3_d(co, p, aa, bb);
+
+		return len_v3v3_d(bb, co) / len_v3v3_d(aa, bb);
+#endif
+#if 1
+		f1 = 1.0;
+		f2 = 0.0;
+		for (i=0; i<tot; i++) {
+			double f3, v1[3], v2[3], co[3], p[3] = {0.0, 0.0, 0.0};
+			
+			VECINTERP(v1, aa, bb, f1);
+			VECINTERP(v2, cc, dd, f1);
+			
+			closest_to_line_segment_v3_d(co, p, v1, v2);
+			d = len_v3v3_d(co, p);
+			
+			f3 = f1;
+			if (d < lastd) {
+				f1 += (f1-f2)*0.5;
+			} else {
+				f1 -= (f1-f2)*0.5;
+			}
+			
+			f2 = f3;
+			lastd = d;
+		}
+		
+		if (d > 0.0000001 || f1 < -FLT_EPSILON*1000 || f1 >= 1.0+FLT_EPSILON*100)
+			return -1.0;
+		
+		CLAMP(f1, 0.0, 1.0+DBL_EPSILON);
+		return 1.0 - f1;
+#endif
+	}
+	
+	f1 = MIN2(fabs(f1), fabs(f2));
+	CLAMP(f1, 0.0, 1.0+DBL_EPSILON);
+	
+	return f1;
+}
+
+void quad_co(float *x, float *y, float v1[3], float v2[3], float v3[3], float v4[3], float p[3], float n[3])
+{
+	float projverts[4][3];
+	double dverts[4][3];
+	int i;
+	
+	sub_v3_v3v3(projverts[0], v1, p);
+	sub_v3_v3v3(projverts[1], v2, p);
+	sub_v3_v3v3(projverts[2], v3, p);
+	sub_v3_v3v3(projverts[3], v4, p);
+	
+	/*rotate*/	
+	poly_rotate_plane(n, projverts, 4);
+	
+	/*flatten*/
+	for (i=0; i<4; i++) projverts[i][2] = 0.0f;
+	
+	VECCOPY(dverts[0], projverts[0]);
+	VECCOPY(dverts[1], projverts[1]);
+	VECCOPY(dverts[2], projverts[2]);
+	VECCOPY(dverts[3], projverts[3]);
+	
+	*y = quad_coord(dverts[1], dverts[0], dverts[2], dverts[3], 0, 1);
+	*x = quad_coord(dverts[2], dverts[1], dverts[3], dverts[0], 0, 1);
+}
+
 
 /*tl is loop to project onto, sl is loop whose internal displacement, co, is being
   projected.  x and y are location in loop's mdisps grid of co.*/
-static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float *y, int res)
+static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, float p[3], float *x, float *y, int res)
 {
 	float v1[3], v2[3], c[3], co[3], v3[3], v4[3], e1[3], e2[3];
 	float w[4], dir[3], uv[4] = {0.0f, 0.0f, 0.0f, 0.0f}, hit[3];
-	float lm, eps =  FLT_EPSILON*80;
+	float x2, y2, lm, eps = FLT_EPSILON*20;
 	int ret=0;
 	
+	if (len_v3(l->f->no) < FLT_EPSILON*50)
+		BM_Face_UpdateNormal(bm, l->f);
+
+	if (len_v3(tl->f->no) < FLT_EPSILON*50)
+		BM_Face_UpdateNormal(bm, tl->f);
+		
 	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
-	copy_v3_v3(dir, l->f->no);
+	copy_v3_v3(dir, tl->f->no);
 	copy_v3_v3(co, dir);
-	mul_v3_fl(co, -0.000001);
+	mul_v3_fl(co, -0.001);
 	add_v3_v3(co, p);
 	
 	/*four tests, two per triangle, once again normal, once along -normal*/
@@ -356,13 +496,17 @@ static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float
 		ret = ret || isect_ray_tri_threshold_v3_uvw(co, dir, v1, v3, v4, &lm, uv, eps);
 	}
 		
-	if (!ret || isnan(lm) || (uv[0]+uv[1]+uv[2]+uv[3]) < 1.0-FLT_EPSILON*10)
+	if (!ret)
+		return 0;
+	
+	if (isnan(lm))
 		return 0;
 	
 	mul_v3_fl(dir, lm);
 	add_v3_v3v3(hit, co, dir);
 
 	/*expand quad a bit*/
+#if 1
 	cent_quad_v3(c, v1, v2, v3, v4);
 	
 	sub_v3_v3(v1, c); sub_v3_v3(v2, c);
@@ -371,34 +515,30 @@ static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float
 	mul_v3_fl(v3, 1.0+eps);	mul_v3_fl(v4, 1.0+eps);
 	add_v3_v3(v1, c); add_v3_v3(v2, c);
 	add_v3_v3(v3, c); add_v3_v3(v4, c);
+#endif
 	
-	interp_weights_face_v3(uv, v1, v2, v3, v4, hit);
+	quad_co(x, y, v1, v2, v3, v4, hit, tl->f->no);
 	
-	*x = ((1.0+FLT_EPSILON)*uv[2] + (1.0+FLT_EPSILON)*uv[3])*(float)(res-1);
-	*y = ((1.0+FLT_EPSILON)*uv[1] + (1.0+FLT_EPSILON)*uv[2])*(float)(res-1);
+	if (isnan(*x) || isnan(*y) || *x == -1.0f || *y == -1.0f) {		
+		interp_weights_face_v3(uv, v1, v2, v3, v4, hit);
+		
+		x2 = ((1.0+FLT_EPSILON)*uv[2] + (1.0+FLT_EPSILON)*uv[3]);
+		y2 = ((1.0+FLT_EPSILON)*uv[1] + (1.0+FLT_EPSILON)*uv[2]);
+
+		if (*x == -1.0f || isnan(*x))
+			*x = x2;
+		if (*y == -1.0f || isnan(*y))
+			*y = y2;
+	}
+	
+	*x *= res-1-FLT_EPSILON*100;
+	*y *= res-1-FLT_EPSILON*100;
+	
+	if (fabs(*x-x2) > 1.5 || fabs(*y-y2) > 1.5) {
+		x2 = 1;
+	}
 	
 	return 1;
-}
-
-void undo_tangent(MDisps *md, int res, int x, int y, int redo)
-{
-#if 0
-	float co[3], tx[3], ty[3], mat[3][3];
-	
-	/* construct tangent space matrix */
-	grid_tangent(res, 0, x, y, 0, md->disps, tx);
-	normalize_v3(tx);
-
-	grid_tangent(res, 0, x, y, 1, md->disps, ty);
-	normalize_v3(ty);
-	
-	column_vectors_to_mat3(mat, tx, ty, no);
-	if (redo)
-		invert_m3(mat);
-	
-	mul_v3_m3v3(co, mat, md->disps[y*res+x]);
-	copy_v3_v3(md->disps[y*res+x], co);
-#endif
 }
 
 static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
@@ -425,22 +565,30 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			return;
 	}
 	
-	res = (int)(sqrt(mdisps->totdisp)+0.5f);
+	res = (int)sqrt(mdisps->totdisp);
 	d = 1.0f/(float)(res-1);
 	for (x=0.0f, ix=0; ix<res; x += d, ix++) {
 		for (y=0.0f, iy=0; iy<res; y+= d, iy++) {
 			float co1[3], co2[3], co[3];
+			float xx, yy;
 			
 			copy_v3_v3(co1, e1);
-			mul_v3_fl(co1, y);
+			
+			if (!iy) yy = y + FLT_EPSILON*2;
+			else yy = y - FLT_EPSILON*2;
+			
+			mul_v3_fl(co1, yy);
 			add_v3_v3(co1, v1);
 			
 			copy_v3_v3(co2, e2);
-			mul_v3_fl(co2, y);
+			mul_v3_fl(co2, yy);
 			add_v3_v3(co2, v4);
 			
+			if (!ix) xx = x + FLT_EPSILON*2;
+			else xx = x - FLT_EPSILON*2;
+			
 			sub_v3_v3v3(co, co2, co1);
-			mul_v3_fl(co, x);
+			mul_v3_fl(co, xx);
 			add_v3_v3(co, co1);
 			
 			l2 = bm_firstfaceloop(source);
@@ -452,33 +600,11 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 				md1 = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
 				md2 = CustomData_bmesh_get(&bm->ldata, l2->head.data, CD_MDISPS);
 				
-				if (mdisp_in_mdispquad(target, l2, co, &x2, &y2, res)) {
-					int i1, j1;
-					float tx[3], mat[3][3], ty[3];
-					
+				if (mdisp_in_mdispquad(bm, target, l2, co, &x2, &y2, res)) {
 					ix2 = (int)x2;
 					iy2 = (int)y2;
 					
-					for (i1=ix2-1; i1<ix2+1; i1++) {
-						for (j1=iy2-1; j1<iy2+1; j1++) {
-							if (i1 < 0 || i1 >= res) continue;
-							if (j1 < 0 || j1 >= res) continue;
-							
-							undo_tangent(md2, res, i1, j1, 0);
-						}
-					}
-
 					old_mdisps_bilinear(md1->disps[iy*res+ix], md2->disps, res, x2, y2);
-					
-					for (i1=ix2-1; i1<ix2+1; i1++) {
-						for (j1=iy2-1; j1<iy2+1; j1++) {
-							if (i1 < 0 || i1 >= res) continue;
-							if (j1 < 0 || j1 >= res) continue;
-							
-							undo_tangent(md2, res, i1, j1, 1);
-						}
-					}
-
 				}
 				l2 = l2->next;
 			} while (l2 != bm_firstfaceloop(source));
@@ -491,7 +617,7 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 	BMLoop *l;
 	BMIter liter;
 	
-	return;//XXX
+	//return;//XXX
 	
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
 		return;
@@ -507,23 +633,27 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		/*****
 		mdisps is a grid of displacements, ordered thus:
 		
-		v1/center -- v4/next -> x
-		|                 |
-		|				  |
-		v2/prev ---- v3/cur
-		|
-		V
-		
-		y
+		              v4/next
+		                |		                
+		 |       v1/cent-mid2 ---> x
+		 |       |       | 
+		 |       |       |
+		v2/prev--mid1--v3/cur
+		         |
+		         V
+		         y
 		*****/
 		  
 		sides = sqrt(mdp->totdisp);
 		for (y=0; y<sides; y++) {
-			add_v3_v3v3(co, mdp->disps[y*sides + sides-1], mdl->disps[y*sides]);
-			mul_v3_fl(co, 0.5);
+			//add_v3_v3v3(co, mdp->disps[y*sides + sides-1], mdl->disps[y*sides]);
+			//mul_v3_fl(co, 0.5);
+			copy_v3_v3(co, mdn->disps[y*sides]);
+			copy_v3_v3(mdn->disps[y*sides], mdl->disps[y]);
+			copy_v3_v3(mdl->disps[y], co);
 
-			copy_v3_v3(mdp->disps[y*sides + sides-1], co);
-			copy_v3_v3(mdl->disps[y*sides], co);
+			//copy_v3_v3(mdp->disps[y*sides + sides-1], co);
+			//copy_v3_v3(mdl->disps[y*sides], co);
 		}
 	}
 }
