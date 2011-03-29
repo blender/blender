@@ -2386,7 +2386,7 @@ static int snap_cursor_exec(bContext *C, wmOperator *op)
 	Image *ima= CTX_data_edit_image(C);
 	int change= 0;
 
-	switch(RNA_boolean_get(op->ptr, "target")) {
+	switch(RNA_enum_get(op->ptr, "target")) {
 		case 0:
 			snap_cursor_to_pixels(sima);
 			change= 1;
@@ -2623,7 +2623,7 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 	Image *ima= CTX_data_edit_image(C);
 	int change= 0;
 
-	switch(RNA_boolean_get(op->ptr, "target")) {
+	switch(RNA_enum_get(op->ptr, "target")) {
 		case 0:
 			change= snap_uvs_to_pixels(sima, scene, obedit);
 			break;
