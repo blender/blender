@@ -12032,6 +12032,8 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 
 static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
 {
+	int a;
+
 	expand_doit(fd, mainvar, part->dup_ob);
 	expand_doit(fd, mainvar, part->dup_group);
 	expand_doit(fd, mainvar, part->eff_group);
@@ -12039,6 +12041,13 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
 	
 	if(part->adt)
 		expand_animdata(fd, mainvar, part->adt);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(part->mtex[a]) {
+			expand_doit(fd, mainvar, part->mtex[a]->tex);
+			expand_doit(fd, mainvar, part->mtex[a]->object);
+		}
+	}
 }
 
 static void expand_group(FileData *fd, Main *mainvar, Group *group)
