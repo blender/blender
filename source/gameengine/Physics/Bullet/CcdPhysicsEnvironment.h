@@ -125,7 +125,11 @@ protected:
 		virtual void		debugDrawWorld();
 //		virtual bool		proceedDeltaTimeOneStep(float timeStep);
 
-		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep){};
+		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)
+		{
+			//based on DEFAULT_PHYSICS_TIC_RATE of 60 hertz
+			setNumTimeSubSteps(fixedTimeStep/60.f);
+		}
 		//returns 0.f if no fixed timestep is used
 
 		virtual	float		getFixedTimeStep(){ return 0.f;};
