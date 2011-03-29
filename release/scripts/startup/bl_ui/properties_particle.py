@@ -750,23 +750,23 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        psys = context.particle_system
+        settings = particle_get_settings(context)
         engine = context.scene.render.engine
-        if psys is None:
+        if settings is None:
             return False
-        if psys.settings is None:
-            return False
+
         return engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
 
         psys = context.particle_system
-        part = psys.settings
+        part = particle_get_settings(context)
 
         row = layout.row()
         row.prop(part, "material")
-        row.prop(psys, "parent")
+        if psys:
+            row.prop(psys, "parent")
 
         split = layout.split()
 
@@ -881,16 +881,19 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             col = row.column()
             col.prop(part, "billboard_offset")
 
-            col = layout.column()
-            col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_textures")
-            col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_textures")
+            if psys:
+                col = layout.column()
+                col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_textures")
+                col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_textures")
 
             split = layout.split(percentage=0.33)
             split.label(text="Split uv's:")
             split.prop(part, "billboard_uv_split", text="Number of splits")
-            col = layout.column()
-            col.active = part.billboard_uv_split > 1
-            col.prop_search(psys, "billboard_split_uv", ob.data, "uv_textures")
+            
+            if psys:
+                col = layout.column()
+                col.active = part.billboard_uv_split > 1
+                col.prop_search(psys, "billboard_split_uv", ob.data, "uv_textures")
 
             row = col.row()
             row.label(text="Animate:")
@@ -924,11 +927,9 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        psys = context.particle_system
+        settings = particle_get_settings(context)
         engine = context.scene.render.engine
-        if psys is None:
-            return False
-        if psys.settings is None:
+        if settings is None:
             return False
         return engine in cls.COMPAT_ENGINES
 
@@ -953,7 +954,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
         else:
             row.label(text="")
 
-        if part.draw_percentage != 100:
+        if part.draw_percentage != 100 and psys is not None:
             if part.type == 'HAIR':
                 if psys.use_hair_dynamics and psys.point_cache.is_baked == False:
                     layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
