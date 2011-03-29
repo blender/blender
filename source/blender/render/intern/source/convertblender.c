@@ -3195,12 +3195,14 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	int end, do_autosmooth=0, totvert = 0;
 	int use_original_normals= 0;
 	int recalc_normals = 0;	// false by default
+	int negative_scale;
 
 	me= ob->data;
 
 	mul_m4_m4m4(mat, ob->obmat, re->viewmat);
 	invert_m4_m4(ob->imat, mat);
 	copy_m3_m4(imat, ob->imat);
+	negative_scale= is_negative_m4(mat);
 
 	if(me->totvert==0)
 		return;
@@ -3282,13 +3284,13 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			ver= RE_findOrAddVert(obr, obr->totvert++);
 			VECCOPY(ver->co, mvert->co);
 			if(do_autosmooth==0) {	/* autosmooth on original unrotated data to prevent differences between frames */
-				ver->n[0]=mvert->no[0];
-				ver->n[1]=mvert->no[1];
-				ver->n[2]=mvert->no[2];
+				normal_short_to_float_v3(ver->n, mvert->no);
 				mul_m4_v3(mat, ver->co);
 				mul_transposed_m3_v3(imat, ver->n);
 				normalize_v3(ver->n);
-				negate_v3(ver->n);
+
+				if(!negative_scale)
+					negate_v3(ver->n);
 			}
   
 			if(orco) {
