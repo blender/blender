@@ -282,23 +282,31 @@ void BKE_animdata_make_local(AnimData *adt)
 		make_local_strips(&nlt->strips);
 }
 
-void BKE_relink_animdata(struct AnimData *adt)
+
+/* When duplicating data (i.e. objects), drivers referring to the original data will 
+ * get updated to point to the duplicated data (if drivers belong to the new data)
+ */
+void BKE_relink_animdata (AnimData *adt)
 {
+	/* sanity check */
+	if (adt == NULL)
+		return;
+	
 	/* drivers */
 	if (adt->drivers.first) {
 		FCurve *fcu;
-
+		
 		/* check each driver against all the base paths to see if any should go */
 		for (fcu= adt->drivers.first; fcu; fcu=fcu->next) {
 			ChannelDriver *driver= fcu->driver;
 			DriverVar *dvar;
-
+			
 			/* driver variables */
 			for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
 				/* only change the used targets, since the others will need fixing manually anyway */
 				DRIVER_TARGETS_USED_LOOPER(dvar)
 				{
-					if(dtar->id->newid) {
+					if (dtar->id && dtar->id->newid) {
 						dtar->id= dtar->id->newid;
 					}
 				}
@@ -1839,22 +1847,18 @@ void nladata_flush_channels (ListBase *channels)
 
 /* ---------------------- */
 
-/* NLA Evaluation function (mostly for use through do_animdata) 
- *	- All channels that will be affected are not cleared anymore. Instead, we just evaluate into 
- *		some temp channels, where values can be accumulated in one go.
+/* NLA Evaluation function - values are calculated and stored in temporary "NlaEvalChannels" 
+ * ! This is exported so that keyframing code can use this for make use of it for anim layers support
+ * > echannels: (list<NlaEvalChannels>) evaluation channels with calculated values
  */
-static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
+void animsys_evaluate_nla (ListBase *echannels, PointerRNA *ptr, AnimData *adt, float ctime) 
 {
 	NlaTrack *nlt;
 	short track_index=0;
 	short has_strips = 0;
 	
 	ListBase estrips= {NULL, NULL};
-	ListBase echannels= {NULL, NULL};
 	NlaEvalStrip *nes;
-	
-	// TODO: need to zero out all channels used, otherwise we have problems with threadsafety
-	// and also when the user jumps between different times instead of moving sequentially...
 	
 	/* 1. get the stack of strips to evaluate at current time (influence calculated here) */
 	for (nlt=adt->nla_tracks.first; nlt; nlt=nlt->next, track_index++) { 
@@ -1930,13 +1934,30 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	
 	/* 2. for each strip, evaluate then accumulate on top of existing channels, but don't set values yet */
 	for (nes= estrips.first; nes; nes= nes->next) 
-		nlastrip_evaluate(ptr, &echannels, NULL, nes);
+		nlastrip_evaluate(ptr, echannels, NULL, nes);
+		
+	/* 3. free temporary evaluation data that's not used elsewhere */
+	BLI_freelistN(&estrips);
+}
+
+/* NLA Evaluation function (mostly for use through do_animdata) 
+ *	- All channels that will be affected are not cleared anymore. Instead, we just evaluate into 
+ *		some temp channels, where values can be accumulated in one go.
+ */
+static void animsys_calculate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
+{
+	ListBase echannels= {NULL, NULL};
 	
-	/* 3. flush effects of accumulating channels in NLA to the actual data they affect */
+	// TODO: need to zero out all channels used, otherwise we have problems with threadsafety
+	// and also when the user jumps between different times instead of moving sequentially...
+	
+	/* evaluate the NLA stack, obtaining a set of values to flush */
+	animsys_evaluate_nla(&echannels, ptr, adt, ctime);
+	
+	/* flush effects of accumulating channels in NLA to the actual data they affect */
 	nladata_flush_channels(&echannels);
 	
-	/* 4. free temporary evaluation data */
-	BLI_freelistN(&estrips);
+	/* free temp data */
 	BLI_freelistN(&echannels);
 }
 
@@ -2030,7 +2051,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 			/* evaluate NLA-stack 
 			 *	- active action is evaluated as part of the NLA stack as the last item
 			 */
-			animsys_evaluate_nla(&id_ptr, adt, ctime);
+			animsys_calculate_nla(&id_ptr, adt, ctime);
 		}
 		/* evaluate Active Action only */
 		else if (adt->action)
