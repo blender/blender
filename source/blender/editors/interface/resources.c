@@ -415,7 +415,82 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 	return (unsigned char *)cp;
 }
 
+
+#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+#define SETCOLF(col, r, g, b, a)  col[0]=r*255; col[1]=g*255; col[2]= b*255; col[3]= a*255;
 #define SETCOLTEST(col, r, g, b, a)  if(col[3]==0) {col[0]=r; col[1]=g; col[2]= b; col[3]= a;}
+
+/* use this call to init new bone color sets in Theme */
+static void ui_theme_init_boneColorSets(bTheme *btheme)
+{
+	int i;
+	
+	/* define default color sets - currently we only define 15 of these, though that should be ample */
+		/* set 1 */
+	SETCOL(btheme->tarm[0].solid, 0x9a, 0x00, 0x00, 255);
+	SETCOL(btheme->tarm[0].select, 0xbd, 0x11, 0x11, 255);
+	SETCOL(btheme->tarm[0].active, 0xf7, 0x0a, 0x0a, 255);
+		/* set 2 */
+	SETCOL(btheme->tarm[1].solid, 0xf7, 0x40, 0x18, 255);
+	SETCOL(btheme->tarm[1].select, 0xf6, 0x69, 0x13, 255);
+	SETCOL(btheme->tarm[1].active, 0xfa, 0x99, 0x00, 255);
+		/* set 3 */
+	SETCOL(btheme->tarm[2].solid, 0x1e, 0x91, 0x09, 255);
+	SETCOL(btheme->tarm[2].select, 0x59, 0xb7, 0x0b, 255);
+	SETCOL(btheme->tarm[2].active, 0x83, 0xef, 0x1d, 255);
+		/* set 4 */
+	SETCOL(btheme->tarm[3].solid, 0x0a, 0x36, 0x94, 255);
+	SETCOL(btheme->tarm[3].select, 0x36, 0x67, 0xdf, 255);
+	SETCOL(btheme->tarm[3].active, 0x5e, 0xc1, 0xef, 255);
+		/* set 5 */
+	SETCOL(btheme->tarm[4].solid, 0xa9, 0x29, 0x4e, 255);
+	SETCOL(btheme->tarm[4].select, 0xc1, 0x41, 0x6a, 255);
+	SETCOL(btheme->tarm[4].active, 0xf0, 0x5d, 0x91, 255);
+		/* set 6 */
+	SETCOL(btheme->tarm[5].solid, 0x43, 0x0c, 0x78, 255);
+	SETCOL(btheme->tarm[5].select, 0x54, 0x3a, 0xa3, 255);
+	SETCOL(btheme->tarm[5].active, 0x87, 0x64, 0xd5, 255);
+		/* set 7 */
+	SETCOL(btheme->tarm[6].solid, 0x24, 0x78, 0x5a, 255);
+	SETCOL(btheme->tarm[6].select, 0x3c, 0x95, 0x79, 255);
+	SETCOL(btheme->tarm[6].active, 0x6f, 0xb6, 0xab, 255);
+		/* set 8 */
+	SETCOL(btheme->tarm[7].solid, 0x4b, 0x70, 0x7c, 255);
+	SETCOL(btheme->tarm[7].select, 0x6a, 0x86, 0x91, 255);
+	SETCOL(btheme->tarm[7].active, 0x9b, 0xc2, 0xcd, 255);
+		/* set 9 */
+	SETCOL(btheme->tarm[8].solid, 0xf4, 0xc9, 0x0c, 255);
+	SETCOL(btheme->tarm[8].select, 0xee, 0xc2, 0x36, 255);
+	SETCOL(btheme->tarm[8].active, 0xf3, 0xff, 0x00, 255);
+		/* set 10 */
+	SETCOL(btheme->tarm[9].solid, 0x1e, 0x20, 0x24, 255);
+	SETCOL(btheme->tarm[9].select, 0x48, 0x4c, 0x56, 255);
+	SETCOL(btheme->tarm[9].active, 0xff, 0xff, 0xff, 255);
+		/* set 11 */
+	SETCOL(btheme->tarm[10].solid, 0x6f, 0x2f, 0x6a, 255);
+	SETCOL(btheme->tarm[10].select, 0x98, 0x45, 0xbe, 255);
+	SETCOL(btheme->tarm[10].active, 0xd3, 0x30, 0xd6, 255);
+		/* set 12 */
+	SETCOL(btheme->tarm[11].solid, 0x6c, 0x8e, 0x22, 255);
+	SETCOL(btheme->tarm[11].select, 0x7f, 0xb0, 0x22, 255);
+	SETCOL(btheme->tarm[11].active, 0xbb, 0xef, 0x5b, 255);
+		/* set 13 */
+	SETCOL(btheme->tarm[12].solid, 0x8d, 0x8d, 0x8d, 255);
+	SETCOL(btheme->tarm[12].select, 0xb0, 0xb0, 0xb0, 255);
+	SETCOL(btheme->tarm[12].active, 0xde, 0xde, 0xde, 255);
+		/* set 14 */
+	SETCOL(btheme->tarm[13].solid, 0x83, 0x43, 0x26, 255);
+	SETCOL(btheme->tarm[13].select, 0x8b, 0x58, 0x11, 255);
+	SETCOL(btheme->tarm[13].active, 0xbd, 0x6a, 0x11, 255);
+		/* set 15 */
+	SETCOL(btheme->tarm[14].solid, 0x08, 0x31, 0x0e, 255);
+	SETCOL(btheme->tarm[14].select, 0x1c, 0x43, 0x0b, 255);
+	SETCOL(btheme->tarm[14].active, 0x34, 0x62, 0x2b, 255);
+	
+	/* reset flags too */
+	for (i = 0; i < 20; i++)
+		btheme->tarm[i].flag = 0;
+}
 
 /* use this call to init new variables in themespace, if they're same for all */
 static void ui_theme_init_new_do(ThemeSpace *ts)
@@ -462,8 +537,6 @@ static void ui_theme_init_new(bTheme *btheme)
 	
 }
 
-#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
-#define SETCOLF(col, r, g, b, a)  col[0]=r*255; col[1]=g*255; col[2]= b*255; col[3]= a*255;
 
 /* initialize default theme
    Note: when you add new colors, created & saved themes need initialized
@@ -488,7 +561,10 @@ void ui_theme_init_default(void)
 
 	/* UI buttons */
 	ui_widget_color_init(&btheme->tui);
-
+	
+	/* Bone Color Sets */
+	ui_theme_init_boneColorSets(btheme);
+	
 	/* common (new) variables */
 	ui_theme_init_new(btheme);
 	
@@ -1216,69 +1292,8 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
 			
 			/* bone custom-color sets */
-			// FIXME: this check for initialised colors is bad
-			if (btheme->tarm[0].solid[3] == 0) {
-					/* set 1 */
-				SETCOL(btheme->tarm[0].solid, 0x9a, 0x00, 0x00, 255);
-				SETCOL(btheme->tarm[0].select, 0xbd, 0x11, 0x11, 255);
-				SETCOL(btheme->tarm[0].active, 0xf7, 0x0a, 0x0a, 255);
-					/* set 2 */
-				SETCOL(btheme->tarm[1].solid, 0xf7, 0x40, 0x18, 255);
-				SETCOL(btheme->tarm[1].select, 0xf6, 0x69, 0x13, 255);
-				SETCOL(btheme->tarm[1].active, 0xfa, 0x99, 0x00, 255);
-					/* set 3 */
-				SETCOL(btheme->tarm[2].solid, 0x1e, 0x91, 0x09, 255);
-				SETCOL(btheme->tarm[2].select, 0x59, 0xb7, 0x0b, 255);
-				SETCOL(btheme->tarm[2].active, 0x83, 0xef, 0x1d, 255);
-					/* set 4 */
-				SETCOL(btheme->tarm[3].solid, 0x0a, 0x36, 0x94, 255);
-				SETCOL(btheme->tarm[3].select, 0x36, 0x67, 0xdf, 255);
-				SETCOL(btheme->tarm[3].active, 0x5e, 0xc1, 0xef, 255);
-					/* set 5 */
-				SETCOL(btheme->tarm[4].solid, 0xa9, 0x29, 0x4e, 255);
-				SETCOL(btheme->tarm[4].select, 0xc1, 0x41, 0x6a, 255);
-				SETCOL(btheme->tarm[4].active, 0xf0, 0x5d, 0x91, 255);
-					/* set 6 */
-				SETCOL(btheme->tarm[5].solid, 0x43, 0x0c, 0x78, 255);
-				SETCOL(btheme->tarm[5].select, 0x54, 0x3a, 0xa3, 255);
-				SETCOL(btheme->tarm[5].active, 0x87, 0x64, 0xd5, 255);
-					/* set 7 */
-				SETCOL(btheme->tarm[6].solid, 0x24, 0x78, 0x5a, 255);
-				SETCOL(btheme->tarm[6].select, 0x3c, 0x95, 0x79, 255);
-				SETCOL(btheme->tarm[6].active, 0x6f, 0xb6, 0xab, 255);
-					/* set 8 */
-				SETCOL(btheme->tarm[7].solid, 0x4b, 0x70, 0x7c, 255);
-				SETCOL(btheme->tarm[7].select, 0x6a, 0x86, 0x91, 255);
-				SETCOL(btheme->tarm[7].active, 0x9b, 0xc2, 0xcd, 255);
-					/* set 9 */
-				SETCOL(btheme->tarm[8].solid, 0xf4, 0xc9, 0x0c, 255);
-				SETCOL(btheme->tarm[8].select, 0xee, 0xc2, 0x36, 255);
-				SETCOL(btheme->tarm[8].active, 0xf3, 0xff, 0x00, 255);
-					/* set 10 */
-				SETCOL(btheme->tarm[9].solid, 0x1e, 0x20, 0x24, 255);
-				SETCOL(btheme->tarm[9].select, 0x48, 0x4c, 0x56, 255);
-				SETCOL(btheme->tarm[9].active, 0xff, 0xff, 0xff, 255);
-					/* set 11 */
-				SETCOL(btheme->tarm[10].solid, 0x6f, 0x2f, 0x6a, 255);
-				SETCOL(btheme->tarm[10].select, 0x98, 0x45, 0xbe, 255);
-				SETCOL(btheme->tarm[10].active, 0xd3, 0x30, 0xd6, 255);
-					/* set 12 */
-				SETCOL(btheme->tarm[11].solid, 0x6c, 0x8e, 0x22, 255);
-				SETCOL(btheme->tarm[11].select, 0x7f, 0xb0, 0x22, 255);
-				SETCOL(btheme->tarm[11].active, 0xbb, 0xef, 0x5b, 255);
-					/* set 13 */
-				SETCOL(btheme->tarm[12].solid, 0x8d, 0x8d, 0x8d, 255);
-				SETCOL(btheme->tarm[12].select, 0xb0, 0xb0, 0xb0, 255);
-				SETCOL(btheme->tarm[12].active, 0xde, 0xde, 0xde, 255);
-					/* set 14 */
-				SETCOL(btheme->tarm[13].solid, 0x83, 0x43, 0x26, 255);
-				SETCOL(btheme->tarm[13].select, 0x8b, 0x58, 0x11, 255);
-				SETCOL(btheme->tarm[13].active, 0xbd, 0x6a, 0x11, 255);
-					/* set 15 */
-				SETCOL(btheme->tarm[14].solid, 0x08, 0x31, 0x0e, 255);
-				SETCOL(btheme->tarm[14].select, 0x1c, 0x43, 0x0b, 255);
-				SETCOL(btheme->tarm[14].active, 0x34, 0x62, 0x2b, 255);
-			}
+			if (btheme->tarm[0].solid[3] == 0)
+				ui_theme_init_boneColorSets(btheme);
 		}
 	}
 	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 16)) {
