@@ -156,6 +156,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", DELKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_NEXT_SEL);
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_SEL);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", DEL_PREV_SEL); /* same as above [#26623] */
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_ALL);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", HOMEKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_BEGIN);

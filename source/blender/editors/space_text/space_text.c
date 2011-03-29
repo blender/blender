@@ -343,6 +343,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_NEXT_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", DEL_PREV_CHAR); /* same as above [#26623] */
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_PREV_WORD);
 	
