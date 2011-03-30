@@ -1031,13 +1031,8 @@ void lattice_calc_modifiers(Scene *scene, Object *ob)
 
 struct MDeformVert* lattice_get_deform_verts(struct Object *oblatt)
 {
-	if(oblatt->type == OB_LATTICE)
-	{
-		Lattice *lt = (Lattice*)oblatt->data;
-		if(lt->editlatt) lt= lt->editlatt->latt;
-		return lt->dvert;
-	}
-
-	return NULL;	
+	Lattice *lt = (Lattice*)oblatt->data;
+	BLI_assert(oblatt->type == OB_LATTICE);
+	if(lt->editlatt) lt= lt->editlatt->latt;
+	return lt->dvert;
 }
-
