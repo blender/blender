@@ -42,16 +42,16 @@
 
 static void rgb_to_yuv(float rgb[3], float yuv[3]) 
 {
-		yuv[0]= 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2];
-		yuv[1]= 0.492*(rgb[2] - yuv[0]);
-		yuv[2]= 0.877*(rgb[0] - yuv[0]);
+		yuv[0]= 0.299f*rgb[0] + 0.587f*rgb[1] + 0.114f*rgb[2];
+		yuv[1]= 0.492f*(rgb[2] - yuv[0]);
+		yuv[2]= 0.877f*(rgb[0] - yuv[0]);
 
 		/* Normalize */
-		yuv[1]*= 255.0/(122*2.0);
-		yuv[1]+= 0.5;
+		yuv[1]*= 255.0f/(122*2.0f);
+		yuv[1]+= 0.5f;
 
-		yuv[2]*= 255.0/(157*2.0);
-		yuv[2]+= 0.5;
+		yuv[2]*= 255.0f/(157*2.0f);
+		yuv[2]+= 0.5f;
 }
 
 static void scope_put_pixel(unsigned char* table, unsigned char * pos)
@@ -132,7 +132,7 @@ static void wform_put_gridrow(unsigned char * tgt, float perc, int w, int h)
 {
 	int i;
 
-	tgt += (int) (perc/100.0 * h) * w * 4;
+	tgt += (int) (perc/100.0f * h) * w * 4;
 
 	for (i = 0; i < w*2; i++) {
 		tgt[0] = 255;
@@ -217,13 +217,13 @@ static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
 
 		for (x = 0; x < ibuf->x; x++) {
 			float * rgb = src + 4 * (ibuf->x * y + x);
-			float v = 1.0 * 
-				(  0.299*rgb[0] 
-				 + 0.587*rgb[1] 
-				 + 0.114*rgb[2]);
+			float v = 1.0f *
+				(  0.299f*rgb[0]
+				 + 0.587f*rgb[1]
+				 + 0.114f*rgb[2]);
 			unsigned char * p = tgt;
 
-			CLAMP(v, 0.0, 1.0);
+			CLAMP(v, 0.0f, 1.0f);
 
 			p += 4 * (w * ((int) (v * (h - 3)) + 1) + x + 1);
 
@@ -333,7 +333,7 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
 				unsigned char * p = tgt;
 				float v = rgb[c];
 
-				CLAMP(v, 0.0, 1.0);
+				CLAMP(v, 0.0f, 1.0f);
 
 				p += 4 * (w * ((int) (v * (h - 3)) + 1)
 					  + c * sw + x/3 + 1);
@@ -367,7 +367,7 @@ struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf * ibuf)
 
 static void draw_zebra_byte(struct ImBuf * src,struct ImBuf * ibuf, float perc)
 {
-	unsigned int limit = 255 * perc / 100.0;
+	unsigned int limit = 255.0f * perc / 100.0f;
 	unsigned char * p = (unsigned char*) src->rect;
 	unsigned char * o = (unsigned char*) ibuf->rect;
 	int x;
@@ -398,7 +398,7 @@ static void draw_zebra_byte(struct ImBuf * src,struct ImBuf * ibuf, float perc)
 
 static void draw_zebra_float(struct ImBuf * src,struct ImBuf * ibuf,float perc)
 {
-	float limit = perc / 100.0;
+	float limit = perc / 100.0f;
 	float * p = src->rect_float;
 	unsigned char * o = (unsigned char*) ibuf->rect;
 	int x;
@@ -456,7 +456,7 @@ static void draw_histogram_marker(struct ImBuf * ibuf, int x)
 static void draw_histogram_bar(struct ImBuf * ibuf, int x,float val, int col)
 {
 	unsigned char * p = (unsigned char*) ibuf->rect;
-	int barh = ibuf->y * val * 0.9;
+	int barh = ibuf->y * val * 0.9f;
 	int i;
 
 	p += 4 * (x + ibuf->x);
@@ -513,13 +513,13 @@ static struct ImBuf *make_histogram_view_from_ibuf_byte(
 
 static int get_bin_float(float f)
 {
-	if (f < -0.25) {
-		f = -0.25;
-	} else if (f > 1.25) {
-		f = 1.25;
+	if (f < -0.25f) {
+		f = -0.25f;
+	} else if (f > 1.25f) {
+		f = 1.25f;
 	}
 
-	return (int) (((f + 0.25) / 1.5) * 512);
+	return (int) (((f + 0.25f) / 1.5f) * 512);
 }
 
 static struct ImBuf *make_histogram_view_from_ibuf_float(
@@ -582,9 +582,9 @@ static void vectorscope_put_cross(unsigned char r, unsigned char g,
 	int x = 0;
 	int y = 0;
 
-	rgb[0]= (float)r/255.0;
-	rgb[1]= (float)g/255.0;
-	rgb[2]= (float)b/255.0;
+	rgb[0]= (float)r/255.0f;
+	rgb[1]= (float)g/255.0f;
+	rgb[2]= (float)b/255.0f;
 	rgb_to_yuv(rgb, yuv);
 			
 	p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
@@ -633,9 +633,9 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_byte(struct ImBuf * ibuf)
 			char * src1 = src + 4 * (ibuf->x * y + x);
 			char * p;
 			
-			rgb[0]= (float)src1[0]/255.0;
-			rgb[1]= (float)src1[1]/255.0;
-			rgb[2]= (float)src1[2]/255.0;
+			rgb[0]= (float)src1[0]/255.0f;
+			rgb[1]= (float)src1[1]/255.0f;
+			rgb[2]= (float)src1[2]/255.0f;
 			rgb_to_yuv(rgb, yuv);
 			
 			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
@@ -682,9 +682,9 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_float(struct ImBuf * ibuf)
 			
 			memcpy(rgb, src1, 3 * sizeof(float));
 
-			CLAMP(rgb[0], 0.0, 1.0);
-			CLAMP(rgb[1], 0.0, 1.0);
-			CLAMP(rgb[2], 0.0, 1.0);
+			CLAMP(rgb[0], 0.0f, 1.0f);
+			CLAMP(rgb[1], 0.0f, 1.0f);
+			CLAMP(rgb[2], 0.0f, 1.0f);
 
 			rgb_to_yuv(rgb, yuv);
 			

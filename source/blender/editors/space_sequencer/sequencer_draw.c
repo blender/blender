@@ -303,20 +303,20 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 	/* set up co-ordinates/dimensions for either left or right handle */
 	if (direction == SEQ_LEFTHANDLE) {	
 		rx1 = x1;
-		rx2 = x1+handsize*0.75;
+		rx2 = x1+handsize * 0.75f;
 		
-		v1[0]= x1+handsize/4; v1[1]= y1+( ((y1+y2)/2.0 - y1)/2);
-		v2[0]= x1+handsize/4; v2[1]= y2-( ((y1+y2)/2.0 - y1)/2);
-		v3[0]= v2[0] + handsize/4; v3[1]= (y1+y2)/2.0;
+		v1[0]= x1+handsize/4; v1[1]= y1+( ((y1+y2)/2.0f - y1)/2);
+		v2[0]= x1+handsize/4; v2[1]= y2-( ((y1+y2)/2.0f - y1)/2);
+		v3[0]= v2[0] + handsize/4; v3[1]= (y1+y2)/2.0f;
 		
 		whichsel = SEQ_LEFTSEL;
 	} else if (direction == SEQ_RIGHTHANDLE) {	
-		rx1 = x2-handsize*0.75;
+		rx1 = x2-handsize*0.75f;
 		rx2 = x2;
 		
-		v1[0]= x2-handsize/4; v1[1]= y1+( ((y1+y2)/2.0 - y1)/2);
-		v2[0]= x2-handsize/4; v2[1]= y2-( ((y1+y2)/2.0 - y1)/2);
-		v3[0]= v2[0] - handsize/4; v3[1]= (y1+y2)/2.0;
+		v1[0]= x2-handsize/4; v1[1]= y1+( ((y1+y2)/2.0f - y1)/2);
+		v2[0]= x2-handsize/4; v2[1]= y2-( ((y1+y2)/2.0f - y1)/2);
+		v3[0]= v2[0] - handsize/4; v3[1]= (y1+y2)/2.0f;
 		
 		whichsel = SEQ_RIGHTSEL;
 	}
@@ -351,11 +351,11 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 		if (direction == SEQ_LEFTHANDLE) {
 			sprintf(str, "%d", seq->startdisp);
 			x1= rx1;
-			y1 -= 0.45;
+			y1 -= 0.45f;
 		} else {
 			sprintf(str, "%d", seq->enddisp - 1);
-			x1= x2 - handsize*0.75;
-			y1= y2 + 0.05;
+			x1= x2 - handsize*0.75f;
+			y1= y2 + 0.05f;
 		}
 		UI_view2d_text_cache_add(v2d, x1, y1, str, col);
 	}	
@@ -441,7 +441,7 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 		
 		glColor3ubv((GLubyte *)col);
 		
-		for(a=y1; a< y2; a+= pixely*2.0 ) {
+		for(a=y1; a< y2; a+= pixely * 2.0f) {
 			fdrawline(x1,  a,  (float)(seq->start),  a);
 		}
 	}
@@ -459,7 +459,7 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 		
 		glColor3ubv((GLubyte *)col);
 		
-		for(a=y1; a< y2; a+= pixely*2.0 ) {
+		for(a=y1; a< y2; a+= pixely * 2.0f) {
 			fdrawline((float)(seq->start+seq->len),  a,  x2,  a);
 		}
 	}
@@ -541,8 +541,8 @@ static void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, floa
 		glPolygonStipple(stipple_halftone);
 	}
 	
-	ymid1 = (y2-y1)*0.25 + y1;
-	ymid2 = (y2-y1)*0.65 + y1;
+	ymid1 = (y2-y1)*0.25f + y1;
+	ymid2 = (y2-y1)*0.65f + y1;
 	
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_QUADS);
@@ -719,8 +719,8 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		viewrectx *= scene->r.xasp / scene->r.yasp;
-		viewrectx /= proxy_size / 100.0;
-		viewrecty /= proxy_size / 100.0;
+		viewrectx /= proxy_size / 100.0f;
+		viewrecty /= proxy_size / 100.0f;
 	}
 
 	if(frame_ofs == 0) {
@@ -835,10 +835,10 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 1.0, 0);
 
 		glBegin(GL_LINE_LOOP);
-		glVertex2f(x1-0.5, y1-0.5);
-		glVertex2f(x1-0.5, y2+0.5);
-		glVertex2f(x2+0.5, y2+0.5);
-		glVertex2f(x2+0.5, y1-0.5);
+		glVertex2f(x1-0.5f, y1-0.5f);
+		glVertex2f(x1-0.5f, y2+0.5f);
+		glVertex2f(x2+0.5f, y2+0.5f);
+		glVertex2f(x2+0.5f, y1-0.5f);
 		glEnd();
 
 		/* safety border */
@@ -968,7 +968,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 			else if (seq == last_seq) continue;
 			else if (MIN2(seq->startdisp, seq->start) > v2d->cur.xmax) continue;
 			else if (MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin) continue;
-			else if (seq->machine+1.0 < v2d->cur.ymin) continue;
+			else if (seq->machine+1.0f < v2d->cur.ymin) continue;
 			else if (seq->machine > v2d->cur.ymax) continue;
 			
 			/* strip passed all tests unscathed... so draw it now */
@@ -1022,9 +1022,9 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	if (ed && ed->metastack.first) 
-		glClearColor(col[0], col[1], col[2]-0.1, 0.0);
+		glClearColor(col[0], col[1], col[2]-0.1f, 0.0f);
 	else 
-		glClearColor(col[0], col[1], col[2], 0.0);
+		glClearColor(col[0], col[1], col[2], 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	UI_view2d_view_ortho(v2d);
