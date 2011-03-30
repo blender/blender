@@ -1721,7 +1721,7 @@ void wm_event_do_handlers(bContext *C)
 					}
 					
 					if(playing == 0) {
-						int ncfra = sound_sync_scene(scene) * FPS + 0.5;
+						int ncfra = sound_sync_scene(scene) * (float)FPS + 0.5f;
 						if(ncfra != scene->r.cfra)	{
 							scene->r.cfra = ncfra;
 							ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);

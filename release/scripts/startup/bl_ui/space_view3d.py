@@ -258,7 +258,7 @@ class VIEW3D_MT_uv_map(bpy.types.Menu):
         layout.separator()
 
         layout.operator("uv.reset")
-        
+
 
 # ********** View menus **********
 
