@@ -53,7 +53,7 @@ extern "C" {
 		/* can be left blank, otherwise a,b,c... etc with no quotes */
 #define BLENDER_VERSION_CHAR	a
 		/* alpha/beta/rc/releases */
-#define BLENDER_VERSION_CYCLE	beta	
+#define BLENDER_VERSION_CYCLE	rc
 
 struct ListBase;
 struct MemFile;
