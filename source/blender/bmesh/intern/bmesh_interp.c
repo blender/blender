@@ -499,7 +499,7 @@ int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], doub
 static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], double *x, double *y, int res)
 {
 	double v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
-	double eps = FLT_EPSILON*8;
+	double eps = FLT_EPSILON*40;
 	
 	if (len_v3(l->v->no) == 0.0)
 		BM_Vert_UpdateAllNormals(bm, l->v);
