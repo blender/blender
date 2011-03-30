@@ -416,8 +416,8 @@ static void do_alphaover_effect_byte(float facf0, float facf1, int x, int y,
 	rt2= (char *)rect2;
 	rt= (char *)out;
 
-	fac2= (int)(256.0*facf0);
-	fac4= (int)(256.0*facf1);
+	fac2= (int)(256.0f*facf0);
+	fac4= (int)(256.0f*facf1);
 
 	while(y--) {
 
@@ -493,9 +493,9 @@ static void do_alphaover_effect_float(float facf0, float facf1, int x, int y,
 			/* rt = rt1 over rt2  (alpha from rt1) */
 
 			fac= fac2;
-			mfac= 1.0 - (fac2*rt1[3]) ;
+			mfac= 1.0f - (fac2*rt1[3]) ;
 
-			if(fac <= 0.0) {
+			if(fac <= 0.0f) {
 				memcpy(rt, rt2, 4 * sizeof(float));
 			} else if(mfac <=0) {
 				memcpy(rt, rt1, 4 * sizeof(float));
@@ -515,11 +515,11 @@ static void do_alphaover_effect_float(float facf0, float facf1, int x, int y,
 		while(x--) {
 
 			fac= fac4;
-			mfac= 1.0 - (fac4*rt1[3]);
+			mfac= 1.0f - (fac4*rt1[3]);
 
-			if(fac <= 0.0) {
+			if(fac <= 0.0f) {
 				memcpy(rt, rt2, 4 * sizeof(float));
-			} else if(mfac <= 0.0) {
+			} else if(mfac <= 0.0f) {
 				memcpy(rt, rt1, 4 * sizeof(float));
 			} else {
 				rt[0] = fac*rt1[0] + mfac*rt2[0];
@@ -572,8 +572,8 @@ static void do_alphaunder_effect_byte(
 	rt2= rect2;
 	rt= out;
 
-	fac2= (int)(256.0*facf0);
-	fac4= (int)(256.0*facf1);
+	fac2= (int)(256.0f*facf0);
+	fac4= (int)(256.0f*facf1);
 
 	while(y--) {
 
@@ -654,13 +654,13 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,
 			/* this complex optimalisation is because the
 			 * 'skybuf' can be crossed in
 			 */
-			if( rt2[3]<=0 && fac2>=1.0) {
+			if( rt2[3]<=0 && fac2 >= 1.0f) {
 				memcpy(rt, rt1, 4 * sizeof(float));
-			} else if(rt2[3]>=1.0) {
+			} else if(rt2[3] >= 1.0f) {
 				memcpy(rt, rt2, 4 * sizeof(float));
 			} else {
 				mfac = rt2[3];
-				fac = fac2 * (1.0 - mfac);
+				fac = fac2 * (1.0f - mfac);
 
 				if(fac == 0) {
 					memcpy(rt, rt2, 4 * sizeof(float));
@@ -680,14 +680,14 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,
 		x= xo;
 		while(x--) {
 
-			if(rt2[3]<=0 && fac4 >= 1.0) {
+			if(rt2[3]<=0 && fac4 >= 1.0f) {
 				memcpy(rt, rt1, 4 * sizeof(float));
  
-			} else if(rt2[3]>=1.0) {
+			} else if(rt2[3]>=1.0f) {
 				memcpy(rt, rt2, 4 * sizeof(float));
 			} else {
 				mfac= rt2[3];
-				fac= fac4*(1.0-mfac);
+				fac= fac4*(1.0f-mfac);
 
 				if(fac == 0) {
 					memcpy(rt, rt2, 4 * sizeof(float));
@@ -744,9 +744,9 @@ static void do_cross_effect_byte(float facf0, float facf1, int x, int y,
 	rt2= rect2;
 	rt= out;
 
-	fac2= (int)(256.0*facf0);
+	fac2= (int)(256.0f*facf0);
 	fac1= 256-fac2;
-	fac4= (int)(256.0*facf1);
+	fac4= (int)(256.0f*facf1);
 	fac3= 256-fac4;
 
 	while(y--) {
@@ -792,9 +792,9 @@ static void do_cross_effect_float(float facf0, float facf1, int x, int y,
 	rt= out;
 
 	fac2= facf0;
-	fac1= 1.0 - fac2;
+	fac1= 1.0f - fac2;
 	fac4= facf1;
-	fac3= 1.0 - fac4;
+	fac3= 1.0f - fac4;
 
 	while(y--) {
 
@@ -879,8 +879,8 @@ static void makeGammaTables(float gamma)
 	int i;
 
 	valid_gamma        = gamma;
-	valid_inv_gamma    = 1.0 / gamma;
-	color_step        = 1.0 / RE_GAMMA_TABLE_SIZE;
+	valid_inv_gamma    = 1.0f / gamma;
+	color_step        = 1.0f / RE_GAMMA_TABLE_SIZE;
 	inv_color_step    = (float) RE_GAMMA_TABLE_SIZE; 
 
 	/* We could squeeze out the two range tables to gain some memory.        */	
@@ -956,19 +956,19 @@ static void gamtabs(float gamma)
 	/* gamtab: in short, out short */
 	for(a=0; a<65536; a++) {
 		val= a;
-		val/= 65535.0;
+		val/= 65535.0f;
 		
-		if(gamma==2.0) val= sqrt(val);
-		else if(gamma!=1.0) val= pow(val, igamma);
+		if(gamma==2.0f) val= sqrt(val);
+		else if(gamma!=1.0f) val= pow(val, igamma);
 		
-		gamtab[a]= (65535.99*val);
+		gamtab[a]= (65535.99f*val);
 	}
 	/* inverse gamtab1 : in byte, out short */
 	for(a=1; a<=256; a++) {
-		if(gamma==2.0) igamtab1[a-1]= a*a-1;
-		else if(gamma==1.0) igamtab1[a-1]= 256*a-1;
+		if(gamma==2.0f) igamtab1[a-1]= a*a-1;
+		else if(gamma==1.0f) igamtab1[a-1]= 256*a-1;
 		else {
-			val= a/256.0;
+			val= a/256.0f;
 			igamtab1[a-1]= (65535.0*pow(val, gamma)) -1 ;
 		}
 	}
@@ -1011,7 +1011,7 @@ static void do_gammacross_effect_byte(float facf0, float UNUSED(facf1),
 	rt2= (unsigned char *)rect2;
 	rt= (unsigned char *)out;
 
-	fac2= (int)(256.0*facf0);
+	fac2= (int)(256.0f*facf0);
 	fac1= 256-fac2;
 
 	while(y--) {
@@ -1067,7 +1067,7 @@ static void do_gammacross_effect_float(float facf0, float UNUSED(facf1),
 	rt= out;
 
 	fac2= facf0;
-	fac1= 1.0 - fac2;
+	fac1= 1.0f - fac2;
 
 	while(y--) {
 
@@ -1137,8 +1137,8 @@ static void do_add_effect_byte(float facf0, float facf1, int x, int y,
 	rt2= (char *)rect2;
 	rt= (char *)out;
 
-	fac1= (int)(256.0*facf0);
-	fac3= (int)(256.0*facf1);
+	fac1= (int)(256.0f*facf0);
+	fac3= (int)(256.0f*facf1);
 
 	while(y--) {
 
@@ -1253,8 +1253,8 @@ static void do_sub_effect_byte(float facf0, float facf1,
 	rt2= (char *)rect2;
 	rt= (char *)out;
 
-	fac1= (int)(256.0*facf0);
-	fac3= (int)(256.0*facf1);
+	fac1= (int)(256.0f*facf0);
+	fac3= (int)(256.0f*facf1);
 
 	while(y--) {
 
@@ -1371,8 +1371,8 @@ static void do_drop_effect_byte(float facf0, float facf1, int x, int y,
 	width= x;
 	height= y;
 
-	fac1= (int)(70.0*facf0);
-	fac2= (int)(70.0*facf1);
+	fac1= (int)(70.0f*facf0);
+	fac2= (int)(70.0f*facf1);
 
 	rt2= (char*) (rect2i + YOFF*width);
 	rt1= (char*) rect1i;
@@ -1412,8 +1412,8 @@ static void do_drop_effect_float(float facf0, float facf1, int x, int y,
 	width= x;
 	height= y;
 
-	fac1= 70.0*facf0;
-	fac2= 70.0*facf1;
+	fac1= 70.0f*facf0;
+	fac2= 70.0f*facf1;
 
 	rt2=  (rect2i + YOFF*width);
 	rt1=  rect1i;
@@ -1430,10 +1430,10 @@ static void do_drop_effect_float(float facf0, float facf1, int x, int y,
 		for (x=XOFF; x<width; x++) {
 			temp= fac * rt2[3];
 
-			*(out++)= MAX2(0.0, *rt1 - temp); rt1++;
-			*(out++)= MAX2(0.0, *rt1 - temp); rt1++;
-			*(out++)= MAX2(0.0, *rt1 - temp); rt1++;
-			*(out++)= MAX2(0.0, *rt1 - temp); rt1++;
+			*(out++)= MAX2(0.0f, *rt1 - temp); rt1++;
+			*(out++)= MAX2(0.0f, *rt1 - temp); rt1++;
+			*(out++)= MAX2(0.0f, *rt1 - temp); rt1++;
+			*(out++)= MAX2(0.0f, *rt1 - temp); rt1++;
 			rt2+=4;
 		}
 		rt2+=XOFF*4;
@@ -1457,8 +1457,8 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y,
 	rt2= (char *)rect2;
 	rt= (char *)out;
 
-	fac1= (int)(256.0*facf0);
-	fac3= (int)(256.0*facf1);
+	fac1= (int)(256.0f*facf0);
+	fac3= (int)(256.0f*facf1);
 
 	/* formula:
 	 *		fac*(a*b) + (1-fac)*a  => fac*a*(b-1)+axaux= c*px + py*s ;//+centx
@@ -1519,10 +1519,10 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y,
 		x= xo;
 		while(x--) {
 
-			rt[0]= rt1[0] + fac1*rt1[0]*(rt2[0]-1.0);
-			rt[1]= rt1[1] + fac1*rt1[1]*(rt2[1]-1.0);
-			rt[2]= rt1[2] + fac1*rt1[2]*(rt2[2]-1.0);
-			rt[3]= rt1[3] + fac1*rt1[3]*(rt2[3]-1.0);
+			rt[0]= rt1[0] + fac1*rt1[0]*(rt2[0]-1.0f);
+			rt[1]= rt1[1] + fac1*rt1[1]*(rt2[1]-1.0f);
+			rt[2]= rt1[2] + fac1*rt1[2]*(rt2[2]-1.0f);
+			rt[3]= rt1[3] + fac1*rt1[3]*(rt2[3]-1.0f);
 
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
@@ -1533,10 +1533,10 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y,
 		x= xo;
 		while(x--) {
 
-			rt[0]= rt1[0] + fac3*rt1[0]*(rt2[0]-1.0);
-			rt[1]= rt1[1] + fac3*rt1[1]*(rt2[1]-1.0);
-			rt[2]= rt1[2] + fac3*rt1[2]*(rt2[2]-1.0);
-			rt[3]= rt1[3] + fac3*rt1[3]*(rt2[3]-1.0);
+			rt[0]= rt1[0] + fac3*rt1[0]*(rt2[0]-1.0f);
+			rt[1]= rt1[1] + fac3*rt1[1]*(rt2[1]-1.0f);
+			rt[2]= rt1[2] + fac3*rt1[2]*(rt2[2]-1.0f);
+			rt[3]= rt1[3] + fac3*rt1[3]*(rt2[3]-1.0f);
 
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
@@ -1661,7 +1661,7 @@ float hyp3,hyp4,b4,b5
 			else {
 				b1 = posy - (-angle)*posx;
 				b2 = y - (-angle)*x;
-				hyp = fabs(angle*x+y+(-posy-angle*posx))*wipezone->pythangle;
+				hyp = fabsf(angle*x+y+(-posy-angle*posx))*wipezone->pythangle;
 			}
 
 			if(angle < 0) {
@@ -2137,7 +2137,7 @@ static void do_transform(Scene *scene, Sequence *seq, float UNUSED(facf0), int x
 	}
 	
 	// Rotate
-	rotate_radians = (M_PI*transform->rotIni)/180.0f;
+	rotate_radians = ((float)M_PI*transform->rotIni)/180.0f;
 
 	transform_image(x,y, ibuf1, out, scale_x, scale_y, translate_x, translate_y, rotate_radians, transform->interpolation);
 }
@@ -2203,7 +2203,7 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 	/*	posted to comp.graphics.algorithms by */
 	/*	Blancmange (bmange@airdmhor.gen.nz) */
 
-	k = -1.0/(2.0*3.14159*blur*blur);
+	k = -1.0f/(2.0f*(float)M_PI*blur*blur);
 	for (ix = 0;ix< halfWidth;ix++){
 		weight = (float)exp(k*(ix*ix));
 		filter[halfWidth - ix] = weight;
@@ -2372,7 +2372,7 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 	/*	posted to comp.graphics.algorithms by */
 	/*	Blancmange (bmange@airdmhor.gen.nz) */
 
-	k = -1.0/(2.0*3.14159*blur*blur);
+	k = -1.0f/(2.0f*(float)M_PI*blur*blur);
 	fval=0;
 	for (ix = 0;ix< halfWidth;ix++){
 		weight = (float)exp(k*(ix*ix));
@@ -2529,10 +2529,10 @@ static void RVAddBitmaps_float (float* a, float* b, float* c,
 	for (y=0;y<height;y++){
 		for (x=0;x<width;x++){
 			index=(x+y*width)*4;
-			c[index+GlowR]=MIN2(1.0,a[index+GlowR]+b[index+GlowR]);
-			c[index+GlowG]=MIN2(1.0,a[index+GlowG]+b[index+GlowG]);
-			c[index+GlowB]=MIN2(1.0,a[index+GlowB]+b[index+GlowB]);
-			c[index+GlowA]=MIN2(1.0,a[index+GlowA]+b[index+GlowA]);
+			c[index+GlowR]= MIN2(1.0f, a[index+GlowR]+b[index+GlowR]);
+			c[index+GlowG]= MIN2(1.0f, a[index+GlowG]+b[index+GlowG]);
+			c[index+GlowB]= MIN2(1.0f, a[index+GlowB]+b[index+GlowB]);
+			c[index+GlowA]= MIN2(1.0f, a[index+GlowA]+b[index+GlowA]);
 		}
 	}
 }
@@ -3073,9 +3073,9 @@ static int early_out_noop(struct Sequence *UNUSED(seq),
 static int early_out_fade(struct Sequence *UNUSED(seq),
 			  float facf0, float facf1)
 {
-	if (facf0 == 0.0 && facf1 == 0.0) {
+	if (facf0 == 0.0f && facf1 == 0.0f) {
 		return 1;
-	} else if (facf0 == 1.0 && facf1 == 1.0) {
+	} else if (facf0 == 1.0f && facf1 == 1.0f) {
 		return 2;
 	}
 	return 0;
@@ -3084,7 +3084,7 @@ static int early_out_fade(struct Sequence *UNUSED(seq),
 static int early_out_mul_input2(struct Sequence *UNUSED(seq),
 				float facf0, float facf1)
 {
-	if (facf0 == 0.0 && facf1 == 0.0) {
+	if (facf0 == 0.0f && facf1 == 0.0f) {
 		return 1;
 	}
 	return 0;
@@ -3106,7 +3106,7 @@ static void get_default_fac_fade(struct Sequence *seq, float cfra,
 				 float * facf0, float * facf1)
 {
 	*facf0 = (float)(cfra - seq->startdisp);
-	*facf1 = (float)(*facf0 + 0.5);
+	*facf1 = (float)(*facf0 + 0.5f);
 	*facf0 /= seq->len;
 	*facf1 /= seq->len;
 }
