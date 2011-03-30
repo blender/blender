@@ -75,6 +75,14 @@ class MakeFur(bpy.types.Operator):
             self.report({'ERROR'}, "Select at least one mesh object.")
             return {'CANCELLED'}
         
+        mat = bpy.data.materials.new("Fur Material")
+        mat.strand.tip_size = 0.25
+        mat.strand.blend_distance = 0.5
+        
+        for ob in context.selected_objects:
+            ob.data.materials.append(mat)
+            ob.particle_systems[-1].settings.material = len(ob.material_slots)
+        
         return {'FINISHED'}
 
 class MakeSmoke(bpy.types.Operator):
@@ -123,6 +131,8 @@ class MakeSmoke(bpy.types.Operator):
                 ob.modifiers[-2].flow_settings.temperature = 2
                 
             psys.settings.use_render_emitter = self.show_flows
+            if not self.show_flows:
+                ob.draw_type = 'WIRE'
             
             # store bounding box min/max for the domain object
             for i in range(0, 8):
@@ -249,6 +259,8 @@ class MakeFluid(bpy.types.Operator):
                 ob.modifiers[-1].settings.initial_velocity = self.initial_velocity.copy()
             
             ob.hide_render = not self.show_flows
+            if not self.show_flows:
+                ob.draw_type = 'WIRE'
             
             # store bounding box min/max for the domain object
             for i in range(0, 8):
