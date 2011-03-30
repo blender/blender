@@ -255,6 +255,8 @@ typedef struct BMesh {
 
 	ListBase errorstack;
 	struct Object *ob; /*owner object*/
+	
+	int opflag; /*current operator flag*/
 } BMesh;
 
 BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts);

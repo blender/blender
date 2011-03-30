@@ -294,17 +294,46 @@ void BM_Compute_Normals(BMesh *bm)
 	MEM_freeN(projectverts);
 }
 
-/*	
- *	BMESH BEGIN/END EDIT
- *
- *	Functions for setting up a mesh for editing and cleaning up after 
- *  the editing operations are done. These are called by the tools/operator 
- *  API for each time a tool is executed.
- *
- *  Returns -
- *  Nothing
- *
+/*
+ This function ensures correct normals for the mesh, but
+ sets the flag BM_FLIPPED in flipped faces, to allow restoration
+ of original normals.
+ 
+ if undo is 0: calculate right normals
+ if undo is 1: restore original normals
 */
+//keep in sycn with utils.c!
+#define FACE_FLIP	8
+static void bmesh_rationalize_normals(BMesh *bm, int undo) {
+	BMOperator bmop;
+	BMFace *f;
+	BMIter iter;
+	
+	if (undo) {
+		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			if (BM_TestHFlag(f, BM_FLIPPED)) {
+				BM_flip_normal(bm, f);
+			}
+			BM_ClearHFlag(f, BM_FLIPPED);
+		}
+		
+		return;
+	}
+	
+	BMO_InitOpf(bm, &bmop, "righthandfaces faces=%af doflip=%d", 0);
+	
+	BMO_push(bm, &bmop);
+	bmesh_righthandfaces_exec(bm, &bmop);
+	
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		if (BMO_TestFlag(bm, f, FACE_FLIP))
+			BM_SetHFlag(f, BM_FLIPPED);
+		else BM_ClearHFlag(f, BM_FLIPPED);
+	}
+
+	BMO_pop(bm);
+	BMO_Finish_Op(bm, &bmop);
+}
 
 void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 {
@@ -357,18 +386,45 @@ void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 	}
 }
 
+/*	
+ *	BMESH BEGIN/END EDIT
+ *
+ *	Functions for setting up a mesh for editing and cleaning up after 
+ *  the editing operations are done. These are called by the tools/operator 
+ *  API for each time a tool is executed.
+ *
+ *  Returns -
+ *  Nothing
+ *
+*/
 void bmesh_begin_edit(BMesh *bm, int flag) {
+	bm->opflag = flag;
+	
 	/*switch multires data out of tangent space*/
-	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS))
+	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
+
+		/*ensure correct normals, if possible*/
+		bmesh_rationalize_normals(bm, 0);
+		BM_Compute_Normals(bm);
+	} else if (flag & BMOP_RATIONALIZE_NORMALS) {
+		bmesh_rationalize_normals(bm, 0);
+	}
 }
 
 void bmesh_end_edit(BMesh *bm, int flag){
+	/*switch multires data into tangent space*/
+	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+		/*set normals to their previous winding*/
+		bmesh_rationalize_normals(bm, 1);
+		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
+	} else if (flag & BMOP_RATIONALIZE_NORMALS) {
+		bmesh_rationalize_normals(bm, 1);
+	}
+
+	bm->opflag = 0;
+
 	/*compute normals, clear temp flags and flush selections*/
 	BM_Compute_Normals(bm);
 	BM_SelectMode_Flush(bm);
-
-	/*switch multires data into tangent space*/
-	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS))
-		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
 }

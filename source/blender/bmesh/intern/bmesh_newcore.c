@@ -665,15 +665,12 @@ int bmesh_loop_length(BMLoop *l)
 
 int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst){
 	BMLoop *l = lst->first, *curloop, *oldprev, *oldnext;
-	BMEdge *staticedar[64], **edar;
-	int i, j, edok, len = 0;
+	BMEdge **edar = NULL;
+	MDisps *md;
+	BLI_array_staticdeclare(edar, 64);
+	int i, j, edok, len = 0, do_disps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 
 	len = bmesh_loop_length(l);
-	if(len >= 64){
-		edar = MEM_callocN(sizeof(BMEdge *)* len, "BM Edge pointer array");
-	} else {
-		edar = staticedar;
-	}
 
 	for(i=0, curloop = l; i< len; i++, curloop= ((BMLoop*)(curloop->next)) ){
 		curloop->e->head.eflag1 = 0;
@@ -681,7 +678,7 @@ int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst){
 		bmesh_radial_remove_loop(curloop, curloop->e);
 		/*in case of border edges we HAVE to zero out curloop->radial Next/Prev*/
 		curloop->radial_next = curloop->radial_prev = NULL;
-		edar[i] = curloop->e;
+		BLI_array_append(edar, curloop->e);
 	}
 
 	/*actually reverse the loop.*/
@@ -691,6 +688,24 @@ int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst){
 		curloop->next = (BMLoop*)oldprev;
 		curloop->prev = (BMLoop*)oldnext;
 		curloop = oldnext;
+		
+		if (do_disps) {
+			float (*co)[3];
+			int x, y, sides;
+			
+			md = CustomData_bmesh_get(&bm->ldata, curloop->head.data, CD_MDISPS);
+			if (!md->totdisp || !md->disps)
+				continue;
+					
+			sides=sqrt(md->totdisp);
+			co = md->disps;
+			
+			for (x=0; x<sides; x++) {
+				for (y=0; y<x; y++) {
+					swap_v3_v3(co[y*sides+x], co[sides*x + y]);
+				}
+			}
+		}
 	}
 
 	if(len == 2){ //two edged face
@@ -722,8 +737,7 @@ int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst){
 		CHECK_ELEMENT(bm, curloop->f);
 	}
 
-	if (edar != staticedar)
-		MEM_freeN(edar);
+	BLI_array_free(edar);
 
 	CHECK_ELEMENT(bm, f);
 

@@ -119,6 +119,12 @@ typedef struct BMOpDefine {
 /*BMOpDefine->flag*/
 #define BMOP_UNTAN_MULTIRES 1 /*switch from multires tangent space to absolute coordinates*/
 
+/*ensures consistent normals before operator execution,
+  restoring the original ones windings/normals afterwards.
+  keep in mind, this won't work if the input mesh isn't
+  manifold.*/
+#define BMOP_RATIONALIZE_NORMALS 2
+
 /*------------- Operator API --------------*/
 
 /*data types that use pointers (arrays, etc) should never
@@ -147,6 +153,7 @@ void BMO_Finish_Op(struct BMesh *bm, struct BMOperator *op);
 #define BMO_TestFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f & (flag))
 #define BMO_SetFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f |= (flag))
 #define BMO_ClearFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f &= ~(flag))
+#define BMO_ToggleFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f ^= (flag))
 
 /*profiling showed a significant amount of time spent in BMO_TestFlag
 void BMO_SetFlag(struct BMesh *bm, void *element, int flag);

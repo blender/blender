@@ -457,9 +457,9 @@ double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3], int a1
 
 int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], double v4[3], double p[3], float n[3])
 {
-	float projverts[5][3];
-	double xn, yn, zn, dprojverts[4][3], origin[3]={0.0f, 0.0f, 0.0f};
-	int i, ax, ay;
+	float projverts[5][3], n2[3];
+	double dprojverts[4][3], origin[3]={0.0f, 0.0f, 0.0f};
+	int i;
 
 	/*project points into 2d along normal*/
 	VECCOPY(projverts[0], v1);
@@ -467,7 +467,12 @@ int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], doub
 	VECCOPY(projverts[2], v3);
 	VECCOPY(projverts[3], v4);
 	VECCOPY(projverts[4], p);
-	
+
+	normal_quad_v3(n2, projverts[0], projverts[1], projverts[2], projverts[3]);
+
+	if (INPR(n, n2) < -FLT_EPSILON)
+		return 0;
+
 	/*rotate*/	
 	poly_rotate_plane(n, projverts, 5);
 	
@@ -494,8 +499,8 @@ int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], doub
 }
 
 
-/*tl is loop to project onto, sl is loop whose internal displacement, co, is being
-  projected.  x and y are location in loop's mdisps grid of co.*/
+/*tl is loop to project onto, l is loop whose internal displacement, co, is being
+  projected.  x and y are location in loop's mdisps grid of point co.*/
 static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], double *x, double *y, int res)
 {
 	double v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
@@ -533,6 +538,10 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	BMLoop *l2;
 	double x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3], e3[3], e4[3];
 	int ix, iy, res;
+	
+	/*ignore 2-edged faces*/
+	if (target->f->len < 3)
+		return;
 	
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
 		return;

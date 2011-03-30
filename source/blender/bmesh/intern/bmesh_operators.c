@@ -1286,6 +1286,20 @@ int BMO_CallOpf(BMesh *bm, const char *fmt, ...) {
 	return 1;
 }
 
+/*
+ * BMO_TOGGLEFLAG
+ *
+ * Toggles a flag for a certain element
+ *
+*/
+#ifdef BMO_ToggleFlag
+#undef BMO_ToggleFlag
+#endif
+void BMO_ToggleFlag(BMesh *bm, void *element, int flag)
+{
+	BMHeader *head = element;
+	head->flags[bm->stackdepth-1].f ^= flag;
+}
 
 /*
  * BMO_SETFLAG

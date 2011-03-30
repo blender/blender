@@ -112,6 +112,7 @@ struct EditMesh;
 #define BM_ACTIVE	(1<<6)
 #define BM_NONORMCALC	(1<<7)
 #define BM_PINNED	(1<<8)
+#define BM_FLIPPED	(1<<9) /*internal flag, used for ensuring correct normals during multires interpolation*/
 
 #include "bmesh_class.h"
 
@@ -149,6 +150,7 @@ struct BMFace *BM_Make_Ngon ( struct BMesh *bm, struct BMVert *v1, struct BMVert
 #define BM_TestHFlag(ele, f) (ele && (((BMHeader*)ele)->flag & (f)))
 #define BM_SetHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag | (f))
 #define BM_ClearHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag & ~(f))
+#define BM_ToggleHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag ^ (f))
 
 /*stuff for setting indices in elements.*/
 #define BMINDEX_SET(ele, i) (((BMHeader*)ele)->index = i)

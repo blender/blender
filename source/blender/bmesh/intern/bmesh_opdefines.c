@@ -93,10 +93,11 @@ BMOpDefine def_vertexsmooth = {
 BMOpDefine def_righthandfaces = {
 	"righthandfaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
+	 {BMOP_OPSLOT_INT, "doflip"}, //internal flag, used by bmesh_rationalize_normals
 	{0} /*null-terminating sentinel*/,
 	},
 	bmesh_righthandfaces_exec,
-	BMOP_UNTAN_MULTIRES
+	BMOP_UNTAN_MULTIRES,
 };
 
 /*
@@ -150,7 +151,7 @@ BMOpDefine def_reversefaces = {
 	{0} /*null-terminating sentinel*/,
 	},
 	bmesh_reversefaces_exec,
-	BMOP_UNTAN_MULTIRES
+	BMOP_UNTAN_MULTIRES,
 };
 
 /*

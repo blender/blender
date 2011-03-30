@@ -229,6 +229,7 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 #define FACE_VIS	1
 #define FACE_FLAG	2
 #define FACE_MARK	4
+#define FACE_FLIP	8
 
 /* NOTE: these are the original righthandfaces comment in editmesh_mods.c,
          copied here for reference.
@@ -257,7 +258,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(fstack);
 	BMLoop *l, *l2;
 	float maxx, cent[3];
-	int i, maxi;
+	int i, maxi, flagflip = BMO_Get_Int(op, "doflip");
 
 	startf= NULL;
 	maxx= -1.0e10;
@@ -285,8 +286,13 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	BM_Compute_Face_Center(bm, startf, cent);
 
 	/*make sure the starting face has the correct winding*/
-	if (cent[0]*startf->no[0] + cent[1]*startf->no[1] + cent[2]*startf->no[2] < 0.0)
+	if (cent[0]*startf->no[0] + cent[1]*startf->no[1] + cent[2]*startf->no[2] < 0.0) {
 		BM_flip_normal(bm, startf);
+		BMO_ToggleFlag(bm, startf, FACE_FLIP);
+
+		if (flagflip)
+			BM_ToggleHFlag(startf, BM_FLIPPED);
+	}
 	
 	/*now that we've found our starting face, make all connected faces
 	  have the same winding.  this is done recursively, using a manual
@@ -312,9 +318,19 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 					BMO_SetFlag(bm, l2->f, FACE_VIS);
 					i++;
 					
-					if (l2->v == l->v)
+					if (l2->v == l->v) {
 						BM_flip_normal(bm, l2->f);
-
+						
+						BMO_ToggleFlag(bm, l2->f, FACE_FLIP);
+						if (flagflip)
+							BM_ToggleHFlag(l2->f, BM_FLIPPED);
+					} else if (BM_TestHFlag(l2->f, BM_FLIPPED) || BM_TestHFlag(l->f, BM_FLIPPED)) {
+						if (flagflip) {
+							BM_ClearHFlag(l->f, BM_FLIPPED);
+							BM_ClearHFlag(l2->f, BM_FLIPPED);
+						}
+					}
+					
 					if (i == maxi) {
 						BLI_array_growone(fstack);
 						maxi++;
