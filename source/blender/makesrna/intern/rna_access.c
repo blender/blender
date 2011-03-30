@@ -778,43 +778,41 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name)
 {
 	PropertySubType subtype= rna_ensure_property(prop)->subtype;
 
-	name= toupper(name);
-
 	/* get index based on string name/alias */
 	/* maybe a function to find char index in string would be better than all the switches */
 	if (ELEM(subtype, PROP_QUATERNION, PROP_AXISANGLE)) {
 		switch (name) {
-			case 'W':
+			case 'w':
 				return 0;
-			case 'X':
+			case 'x':
 				return 1;
-			case 'Y':
+			case 'y':
 				return 2;
-			case 'Z':
+			case 'z':
 				return 3;
 		}
 	}
 	else if(ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION)) {
 		switch (name) {
-			case 'X':
+			case 'x':
 				return 0;
-			case 'Y':
+			case 'y':
 				return 1;
-			case 'Z':
+			case 'z':
 				return 2;
-			case 'W':
+			case 'w':
 				return 3;
 		}
 	}
 	else if (ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA)) {
 		switch (name) {
-			case 'R':
+			case 'r':
 				return 0;
-			case 'G':
+			case 'g':
 				return 1;
-			case 'B':
+			case 'b':
 				return 2;
-			case 'A':
+			case 'a':
 				return 3;
 		}
 	}
