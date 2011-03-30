@@ -170,9 +170,13 @@ static void bpy_python_start_path(void)
 {
 	char *py_path_bundle= BLI_get_folder(BLENDER_PYTHON, NULL);
 
-	if(py_path_bundle==NULL)
+	if(py_path_bundle==NULL) {
+		/* Common enough to have bundled *nix python but complain on OSX/Win */
+#if defined(__APPLE__) || defined(_WIN32)
+		fprintf(stderr, "Bundled python is expected on this platform, if blender fails to load build the 'install' target\n");
+#endif
 		return;
-
+	}
 	/* set the environment path */
 	printf("found bundled python: %s\n", py_path_bundle);
 
