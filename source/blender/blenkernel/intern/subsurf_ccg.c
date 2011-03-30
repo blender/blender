@@ -851,7 +851,11 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		for(x = 1; x < edgeSize - 1; x++, i++) {
 			vd= ccgSubSurf_getEdgeData(ss, e, x);
 			copy_v3_v3(mvert[i].co, vd->co);
-			/* XXX, This gives errors with -fpe, the normals dont seem to be unit length - campbell */
+			/* This gives errors with -debug-fpe
+			 * the normals dont seem to be unit length.
+			 * this is most likely caused by edges with no
+			 * faces which are now zerod out, see comment in:
+			 * ccgSubSurf__calcVertNormals(), - campbell */
 			normal_float_to_short_v3(mvert[i].no, vd->no);
 		}
 	}
