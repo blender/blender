@@ -37,8 +37,6 @@
 #define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 0
 #endif
 
-#include <stddef.h>
-
 #if defined(__APPLE__) || defined(_WIN64) || EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
