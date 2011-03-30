@@ -249,6 +249,9 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
+	RNA_def_function_return(func, parm);
 }
 
 void RNA_api_macro(StructRNA *srna)
