@@ -56,6 +56,9 @@ public:
 	/** Set given char pointer to value of tag, if it exists. */
 	void setData(std::string tag, char *data);
 	
+	/** Return true if the extra tags is for specified profile. */
+	bool isProfile(std::string profile);
+	
 private:
 	/** Disable default copy constructor. */
 	ExtraTags( const ExtraTags& pre );

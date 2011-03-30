@@ -44,6 +44,11 @@ ExtraTags::~ExtraTags()
 {
 }
 
+bool ExtraTags::isProfile( std::string profile)
+{
+	return this->profile == profile;
+}
+
 bool ExtraTags::addTag( std::string tag,  std::string data)
 {
 	tags[tag] = data;

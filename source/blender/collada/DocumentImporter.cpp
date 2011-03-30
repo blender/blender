@@ -863,109 +863,35 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 {
 	if(mImportStage!=General)
 		return true;
-		
+
 	Lamp *lamp = NULL;
 	std::string la_id, la_name;
-	
+
 	TagsMap::iterator etit;
 	ExtraTags *et = 0;
 	etit = uid_tags_map.find(light->getUniqueId().toAscii());
 	if(etit != uid_tags_map.end())
 		et = etit->second;
-	
+
 	la_id = light->getOriginalId();
 	la_name = light->getName();
 	if (la_name.size()) lamp = (Lamp*)add_lamp((char*)la_name.c_str());
 	else lamp = (Lamp*)add_lamp((char*)la_id.c_str());
-	
+
 	if (!lamp) {
 		fprintf(stderr, "Cannot create lamp. \n");
 		return true;
 	}
-	if (light->getColor().isValid()) {
-		COLLADAFW::Color col = light->getColor();
-		lamp->r = col.getRed();
-		lamp->g = col.getGreen();
-		lamp->b = col.getBlue();
-	}
-	float constatt = light->getConstantAttenuation().getValue();
-	float linatt = light->getLinearAttenuation().getValue();
-	float quadatt = light->getQuadraticAttenuation().getValue();
-	float d = 25.0f;
-	float att1 = 0.0f;
-	float att2 = 0.0f;
-	
-	float e = 1.0f/constatt;
-	
-	/* NOTE: We assume for now that inv square is used for quadratic light
-	 * and inv linear for linear light. Exported blender lin/quad weighted
-	 * most likely will result in wrong import. */
-	/* quadratic light */
-	if(IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
-		//quadatt = att2/(d*d*(e*2));
-		float invquadatt = 1.0f/quadatt;
-		float d2 = invquadatt / (2 * e);
-		d = sqrtf(d2);
-	}
-	// linear light
-	else if(IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
-		//linatt = att1/(d*e);
-		float invlinatt = 1.0f/linatt;
-		d = invlinatt / e;
-	} else {
-		printf("no linear nor quad light, using defaults for attenuation, import will be incorrect: Lamp %s\n", lamp->id.name);
-		att2 = 1.0f;
-	}
-	
-	lamp->dist = d;
-	lamp->energy = e;
-	
-	COLLADAFW::Light::LightType type = light->getLightType();
-	switch(type) {
-	case COLLADAFW::Light::AMBIENT_LIGHT:
-		{
-			lamp->type = LA_HEMI;
-		}
-		break;
-	case COLLADAFW::Light::SPOT_LIGHT:
-		{
-			lamp->type = LA_SPOT;
-			lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-			lamp->att1 = att1;
-			lamp->att2 = att2;
-			lamp->spotsize = light->getFallOffAngle().getValue();
-			lamp->spotblend = light->getFallOffExponent().getValue();
-		}
-		break;
-	case COLLADAFW::Light::DIRECTIONAL_LIGHT:
-		{
-			/* our sun is very strong, so pick a smaller energy level */
-			lamp->type = LA_SUN;
-			lamp->energy = 1.0;
-			lamp->mode |= LA_NO_SPEC;
-		}
-		break;
-	case COLLADAFW::Light::POINT_LIGHT:
-		{
-			lamp->type = LA_LOCAL;
-			lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-			lamp->att1 = att1;
-			lamp->att2 = att2;
-		}
-		break;
-	case COLLADAFW::Light::UNDEFINED:
-		{
-			fprintf(stderr, "Current lamp type is not supported. \n");
-			lamp->type = LA_LOCAL;
-		}
-		break;
-	}
-	
-	if(et) {
+
+	// if we find an ExtraTags for this, use that instead.
+	if(et && et->isProfile("blender")) {
 		et->setData("type", &(lamp->type));
 		et->setData("flag", &(lamp->flag));
 		et->setData("mode", &(lamp->mode));
 		et->setData("gamma", &(lamp->k));
+		et->setData("red", &(lamp->r));
+		et->setData("green", &(lamp->g));
+		et->setData("blue", &(lamp->b));
 		et->setData("shadow_r", &(lamp->shdwr));
 		et->setData("shadow_g", &(lamp->shdwg));
 		et->setData("shadow_b", &(lamp->shdwb));
@@ -1015,7 +941,83 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 		et->setData("sky_exposure", &(lamp->sky_exposure));
 		et->setData("sky_colorspace", &(lamp->sky_colorspace));
 	}
+	else {
+		float constatt = light->getConstantAttenuation().getValue();
+		float linatt = light->getLinearAttenuation().getValue();
+		float quadatt = light->getQuadraticAttenuation().getValue();
+		float d = 25.0f;
+		float att1 = 0.0f;
+		float att2 = 0.0f;
+		float e = 1.0f;
+
+		if (light->getColor().isValid()) {
+			COLLADAFW::Color col = light->getColor();
+			lamp->r = col.getRed();
+			lamp->g = col.getGreen();
+			lamp->b = col.getBlue();
+		}
+
+		if(IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
+			att2 = quadatt;
+			d = (1.0f/quadatt) * 2;
+		}
+		// linear light
+		else if(IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
+			att1 = linatt;
+			d = (1.0f/linatt) * 2;
+		} else if (IS_EQ(constatt, 1.0f)) {
+			att1 = 1.0f;
+		} else {
+			// assuming point light (const att = 1.0);
+			att1 = 1.0f;
+		}
 		
+		d *= ( 1.0f / unit_converter.getLinearMeter());
+
+		lamp->energy = e;
+		lamp->dist = d;
+
+		COLLADAFW::Light::LightType type = light->getLightType();
+		switch(type) {
+			case COLLADAFW::Light::AMBIENT_LIGHT:
+				{
+					lamp->type = LA_HEMI;
+				}
+				break;
+			case COLLADAFW::Light::SPOT_LIGHT:
+				{
+					lamp->type = LA_SPOT;
+					lamp->falloff_type = LA_FALLOFF_INVSQUARE;
+					lamp->att1 = att1;
+					lamp->att2 = att2;
+					lamp->spotsize = light->getFallOffAngle().getValue();
+					lamp->spotblend = light->getFallOffExponent().getValue();
+				}
+				break;
+			case COLLADAFW::Light::DIRECTIONAL_LIGHT:
+				{
+					/* our sun is very strong, so pick a smaller energy level */
+					lamp->type = LA_SUN;
+					lamp->mode |= LA_NO_SPEC;
+				}
+				break;
+			case COLLADAFW::Light::POINT_LIGHT:
+				{
+					lamp->type = LA_LOCAL;
+					lamp->falloff_type = LA_FALLOFF_INVSQUARE;
+					lamp->att1 = att1;
+					lamp->att2 = att2;
+				}
+				break;
+			case COLLADAFW::Light::UNDEFINED:
+				{
+					fprintf(stderr, "Current lamp type is not supported. \n");
+					lamp->type = LA_LOCAL;
+				}
+				break;
+		}
+	}
+
 	this->uid_lamp_map[light->getUniqueId()] = lamp;
 	return true;
 }
