@@ -1116,7 +1116,7 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u,
 	float urat, vrat, uopp;
 	float d[4][3], d2[2][3];
 	
-	if (!disps)
+	if (!disps || isnan(u) || isnan(v))
 		return;
 			
 	if(u < 0)

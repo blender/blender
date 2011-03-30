@@ -221,119 +221,12 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BLI_array_free(blocks);
 }
 
-/***** multires interpolation*****
+/****some math stuff for dealing with doubles, put here to
+  avoid merge errors - joeedh ****/
 
-mdisps is a grid of displacements, ordered thus:
-
-v1/center -- v4/next -> x
-|                 |
-|				  |
-v2/prev ---- v3/cur
-|
-V
-
-y
-*/
-static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3], float e1[3], float e2[3])
-{
-	float cent[3] = {0.0f, 0.0f, 0.0f}, n[3], p[3];
-	BMLoop *l2;
-	
-	/*computer center*/
-	l2 = bm_firstfaceloop(l->f);
-	do {
-		add_v3_v3(cent, l2->v->co);
-		l2 = l2->next;
-	} while (l2 != bm_firstfaceloop(l->f));
-	
-	mul_v3_fl(cent, 1.0/(float)l->f->len);
-	
-	add_v3_v3v3(p, l->prev->v->co, l->v->co);
-	mul_v3_fl(p, 0.5);
-	add_v3_v3v3(n, l->next->v->co, l->v->co);
-	mul_v3_fl(n, 0.5);
-	
-	copy_v3_v3(v1, cent);
-	copy_v3_v3(v2, p);
-	copy_v3_v3(v3, l->v->co);
-	copy_v3_v3(v4, n);
-	
-	sub_v3_v3v3(e1, v2, v1);
-	sub_v3_v3v3(e2, v3, v4);
-	
-	return 1;
-}
-
-
-int isect_ray_tri_threshold_v3_uvw(float p1[3], float d[3], float _v0[3], float _v1[3], float _v2[3], float *lambda, float uv[3], float threshold)
-{
-	float p[3], s[3], e1[3], e2[3], q[3];
-	float a, f, u, v;
-	float du = 0, dv = 0;
-	float v0[3], v1[3], v2[3], c[3];
-	
-	/*expand triangle a bit*/
-#if 1
-	cent_tri_v3(c, _v0, _v1, _v2);
-	sub_v3_v3v3(v0, _v0, c);
-	sub_v3_v3v3(v1, _v1, c);
-	sub_v3_v3v3(v2, _v2, c);
-	mul_v3_fl(v0, 1.0+threshold);
-	mul_v3_fl(v1, 1.0+threshold);
-	mul_v3_fl(v2, 1.0+threshold);
-	add_v3_v3(v0, c);
-	add_v3_v3(v1, c);
-	add_v3_v3(v2, c);
-#else
-	copy_v3_v3(v0, _v0);
-	copy_v3_v3(v1, _v1);
-	copy_v3_v3(v2, _v2);
-#endif
-	
-	sub_v3_v3v3(e1, v1, v0);
-	sub_v3_v3v3(e2, v2, v0);
-	
-	cross_v3_v3v3(p, d, e2);
-	a = dot_v3v3(e1, p);
-	if ((a > -0.000001) && (a < 0.000001)) return 0;
-	f = 1.0f/a;
-	
-	sub_v3_v3v3(s, p1, v0);
-	
-	cross_v3_v3v3(q, s, e1);
-	*lambda = f * dot_v3v3(e2, q);
-	if ((*lambda < 0.0+FLT_EPSILON)) return 0;
-	
-	u = f * dot_v3v3(s, p);
-	v = f * dot_v3v3(d, q);
-	
-	if (u < 0) du = u;
-	if (u > 1) du = u - 1;
-	if (v < 0) dv = v;
-	if (v > 1) dv = v - 1;
-	if (u > 0 && v > 0 && u + v > 1)
-	{
-		float t = u + v - 1;
-		du = u - t/2;
-		dv = v - t/2;
-	}
-
-	mul_v3_fl(e1, du);
-	mul_v3_fl(e2, dv);
-	
-	if (dot_v3v3(e1, e1) + dot_v3v3(e2, e2) > threshold * threshold)
-	{
-		return 0;
-	}
-
-	if(uv) {
-		uv[0]= u;
-		uv[1]= v;
-		uv[2]= fabs(1.0-u-v);
-	}
-	
-	return 1;
-}
+#define VECMUL(a, b) (((a)[0] = (a)[0] * (b)), ((a)[1] = (a)[1] * (b)), ((a)[2] = (a)[2] * (b)))
+#define VECADD2(a, b) (((a)[0] = (a)[0] + (b)[0]), ((a)[1] = (a)[1] + (b)[1]), ((a)[2] = (a)[2] + (b)[2]))
+#define VECSUB2(a, b) (((a)[0] = (a)[0] - (b)[0]), ((a)[1] = (a)[1] - (b)[1]), ((a)[2] = (a)[2] - (b)[2]))
 
 /* find closest point to p on line through l1,l2 and return lambda,
  * where (0 <= lambda <= 1) when cp is in the line segement l1,l2
@@ -366,6 +259,11 @@ static void closest_to_line_segment_v3_d(double *closest, double v1[3], double v
 	}
 }
 
+static double len_v3_d(const double a[3])
+{
+	return sqrt(INPR(a, a));
+}
+
 static double len_v3v3_d(const double a[3], const double b[3])
 {
 	double d[3];
@@ -374,61 +272,181 @@ static double len_v3v3_d(const double a[3], const double b[3])
 	return sqrt(INPR(d, d));
 }
 
+static void cent_quad_v3_d(double *cent, double *v1, double *v2, double *v3, double *v4)
+{
+	cent[0]= 0.25*(v1[0]+v2[0]+v3[0]+v4[0]);
+	cent[1]= 0.25*(v1[1]+v2[1]+v3[1]+v4[1]);
+	cent[2]= 0.25*(v1[2]+v2[2]+v3[2]+v4[2]);
+}
+
+static void cent_tri_v3_d(double *cent, double *v1, double *v2, double *v3)
+{
+	cent[0]= 0.33333*(v1[0]+v2[0]+v3[0]);
+	cent[1]= 0.33333*(v1[1]+v2[1]+v3[1]);
+	cent[2]= 0.33333*(v1[2]+v2[2]+v3[2]);
+}
+
+static void cross_v3_v3v3_d(double r[3], const double a[3], const double b[3])
+{
+	r[0]= a[1]*b[2] - a[2]*b[1];
+	r[1]= a[2]*b[0] - a[0]*b[2];
+	r[2]= a[0]*b[1] - a[1]*b[0];
+}
+
+/* distance v1 to line-piece v2-v3 */
+double dist_to_line_segment_v2_d(double v1[3], double v2[3], double v3[3]) 
+{
+	double labda, rc[2], pt[2], len;
+	
+	rc[0]= v3[0]-v2[0];
+	rc[1]= v3[1]-v2[1];
+	len= rc[0]*rc[0]+ rc[1]*rc[1];
+	if(len==0.0) {
+		rc[0]= v1[0]-v2[0];
+		rc[1]= v1[1]-v2[1];
+		return sqrt(rc[0]*rc[0]+ rc[1]*rc[1]);
+	}
+	
+	labda= (rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]))/len;
+	if(labda<=0.0) {
+		pt[0]= v2[0];
+		pt[1]= v2[1];
+	}
+	else if(labda>=1.0) {
+		pt[0]= v3[0];
+		pt[1]= v3[1];
+	}
+	else {
+		pt[0]= labda*rc[0]+v2[0];
+		pt[1]= labda*rc[1]+v2[1];
+	}
+
+	rc[0]= pt[0]-v1[0];
+	rc[1]= pt[1]-v1[1];
+	return sqrt(rc[0]*rc[0]+ rc[1]*rc[1]);
+}
+
+
+MINLINE double line_point_side_v2_d(const double *l1, const double *l2, const double *pt)
+{
+	return	((l1[0]-pt[0]) * (l2[1]-pt[1])) -
+			((l2[0]-pt[0]) * (l1[1]-pt[1]));
+}
+
+/* point in quad - only convex quads */
+int isect_point_quad_v2_d(double pt[2], double v1[2], double v2[2], double v3[2], double v4[2])
+{
+	if (line_point_side_v2_d(v1,v2,pt)>=0.0) {
+		if (line_point_side_v2_d(v2,v3,pt)>=0.0) {
+			if (line_point_side_v2_d(v3,v4,pt)>=0.0) {
+				if (line_point_side_v2_d(v4,v1,pt)>=0.0) {
+					return 1;
+				}
+			}
+		}
+	} else {
+		if (! (line_point_side_v2_d(v2,v3,pt)>=0.0)) {
+			if (! (line_point_side_v2_d(v3,v4,pt)>=0.0)) {
+				if (! (line_point_side_v2_d(v4,v1,pt)>=0.0)) {
+					return -1;
+				}
+			}
+		}
+	}
+	
+	return 0;
+}
+
+/***** multires interpolation*****
+
+mdisps is a grid of displacements, ordered thus:
+
+v1/center -- v4/next -> x
+|                 |
+|				  |
+v2/prev ---- v3/cur
+|
+V
+
+y
+*/
+
+static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3], double v4[3], double e1[3], double e2[3])
+{
+	double cent[3] = {0.0, 0.0, 0.0}, n[3], p[3];
+	BMLoop *l2;
+	
+	/*computer center*/
+	l2 = bm_firstfaceloop(l->f);
+	do {
+		VECADD2(cent, l2->v->co);
+		l2 = l2->next;
+	} while (l2 != bm_firstfaceloop(l->f));
+	
+	VECMUL(cent, (1.0/(double)l->f->len));
+	
+	VECADD(p, l->prev->v->co, l->v->co);
+	VECMUL(p, 0.5);
+	VECADD(n, l->next->v->co, l->v->co);
+	VECMUL(n, 0.5);
+	
+	VECCOPY(v1, cent);
+	VECCOPY(v2, p);
+	VECCOPY(v3, l->v->co);
+	VECCOPY(v4, n);
+	
+	VECSUB(e1, v2, v1);
+	VECSUB(e2, v3, v4);
+	
+	return 1;
+}
+
 /*funnily enough, I think this is identical to face_to_crn_interp, heh*/
 double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3], int a1, int a2)
 {
-	double x, y, z, f1, f2;
+	double x, y, z, c, f1, f2;
 	
 	x = aa[a1]*cc[a2]-cc[a1]*aa[a2];
 	y = aa[a1]*dd[a2]+bb[a1]*cc[a2]-cc[a1]*bb[a2]-dd[a1]*aa[a2];
 	z = bb[a1]*dd[a2]-dd[a1]*bb[a2];
 	
-	
-	if (fabs(2*(x-y+z)) > DBL_EPSILON*1000.0) {
+	if (fabs(2*(x-y+z)) > DBL_EPSILON*10.0) {
 		f1 = (sqrt(y*y-4.0*x*z) - y + 2.0*z) / (2.0*(x-y+z));
 		f2 = (-sqrt(y*y-4.0*x*z) - y + 2.0*z) / (2.0*(x-y+z));
 	} else f1 = -1;
 	
-	if (isnan(f1) || f1 == -1.0)  {
-		int i, tot=200;
+	if (isnan(f1) || f1 == -1.0 || f1 < 0.0 || f1 > 1.0+DBL_EPSILON*50)  {
+		int i, tot=55;
 		double d, lastd=-1.0;
 		
-		//return -1.0f;
-#if 0
-		double co[3], p[3] = {0.0, 0.0, 0.0};
-		closest_to_line_segment_v3_d(co, p, aa, bb);
-
-		return len_v3v3_d(bb, co) / len_v3v3_d(aa, bb);
-#endif
-#if 1
-		f1 = 1.0;
-		f2 = 0.0;
+		/*this is a bisecting root solver that's fudged to avoid false
+         roots*/
+		f1 = 0.0;
+		f2 = 0.5;
 		for (i=0; i<tot; i++) {
-			double f3, v1[3], v2[3], co[3], p[3] = {0.0, 0.0, 0.0};
+			double f3, v1[3], v2[3], origin[3] = {0.0, 0.0, 0.0};
 			
 			VECINTERP(v1, aa, bb, f1);
 			VECINTERP(v2, cc, dd, f1);
 			
-			closest_to_line_segment_v3_d(co, p, v1, v2);
-			d = len_v3v3_d(co, p);
+			d = dist_to_line_segment_v2_d(origin, v1, v2);
 			
 			f3 = f1;
-			if (d < lastd) {
-				f1 += (f1-f2)*0.5;
+			if (d < lastd && i != 0) {
+				f1 += (f1 - f2)*0.75;
 			} else {
-				f1 -= (f1-f2)*0.5;
+				f1 -= (f1 - f2)*0.5;
 			}
-			
+		
 			f2 = f3;
 			lastd = d;
 		}
 		
-		if (d > 0.0000001 || f1 < -FLT_EPSILON*1000 || f1 >= 1.0+FLT_EPSILON*100)
+		if (d > 0.0001 || f1 < 0.0 || f1 >= 1.0+DBL_EPSILON*10)
 			return -1.0;
 		
 		CLAMP(f1, 0.0, 1.0+DBL_EPSILON);
 		return 1.0 - f1;
-#endif
 	}
 	
 	f1 = MIN2(fabs(f1), fabs(f2));
@@ -437,107 +455,75 @@ double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3], int a1
 	return f1;
 }
 
-void quad_co(float *x, float *y, float v1[3], float v2[3], float v3[3], float v4[3], float p[3], float n[3])
+int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], double v4[3], double p[3], float n[3])
 {
-	float projverts[4][3];
-	double dverts[4][3];
-	int i;
-	
-	sub_v3_v3v3(projverts[0], v1, p);
-	sub_v3_v3v3(projverts[1], v2, p);
-	sub_v3_v3v3(projverts[2], v3, p);
-	sub_v3_v3v3(projverts[3], v4, p);
+	float projverts[5][3];
+	double xn, yn, zn, dprojverts[4][3], origin[3]={0.0f, 0.0f, 0.0f};
+	int i, ax, ay;
+
+	/*project points into 2d along normal*/
+	VECCOPY(projverts[0], v1);
+	VECCOPY(projverts[1], v2);
+	VECCOPY(projverts[2], v3);
+	VECCOPY(projverts[3], v4);
+	VECCOPY(projverts[4], p);
 	
 	/*rotate*/	
-	poly_rotate_plane(n, projverts, 4);
+	poly_rotate_plane(n, projverts, 5);
 	
 	/*flatten*/
-	for (i=0; i<4; i++) projverts[i][2] = 0.0f;
+	for (i=0; i<5; i++) projverts[i][2] = 0.0f;
 	
-	VECCOPY(dverts[0], projverts[0]);
-	VECCOPY(dverts[1], projverts[1]);
-	VECCOPY(dverts[2], projverts[2]);
-	VECCOPY(dverts[3], projverts[3]);
+	/*subtract origin*/
+	for (i=0; i<4; i++) {
+		VECSUB2(projverts[i], projverts[4]);
+	}
 	
-	*y = quad_coord(dverts[1], dverts[0], dverts[2], dverts[3], 0, 1);
-	*x = quad_coord(dverts[2], dverts[1], dverts[3], dverts[0], 0, 1);
+	VECCOPY(dprojverts[0], projverts[0]);
+	VECCOPY(dprojverts[1], projverts[1]);
+	VECCOPY(dprojverts[2], projverts[2]);
+	VECCOPY(dprojverts[3], projverts[3]);
+
+	if (!isect_point_quad_v2_d(origin, dprojverts[0], dprojverts[1], dprojverts[2], dprojverts[3]))
+		return 0;
+	
+	*y = quad_coord(dprojverts[1], dprojverts[0], dprojverts[2], dprojverts[3], 0, 1);
+	*x = quad_coord(dprojverts[2], dprojverts[1], dprojverts[3], dprojverts[0], 0, 1);
+
+	return 1;
 }
 
 
 /*tl is loop to project onto, sl is loop whose internal displacement, co, is being
   projected.  x and y are location in loop's mdisps grid of co.*/
-static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, float p[3], float *x, float *y, int res)
+static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], double *x, double *y, int res)
 {
-	float v1[3], v2[3], c[3], co[3], v3[3], v4[3], e1[3], e2[3];
-	float w[4], dir[3], uv[4] = {0.0f, 0.0f, 0.0f, 0.0f}, hit[3];
-	float x2, y2, lm, eps = FLT_EPSILON*20;
-	int ret=0;
+	double v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
+	double eps = FLT_EPSILON*8;
 	
-	if (len_v3(l->f->no) < FLT_EPSILON*50)
-		BM_Face_UpdateNormal(bm, l->f);
-
-	if (len_v3(tl->f->no) < FLT_EPSILON*50)
-		BM_Face_UpdateNormal(bm, tl->f);
+	if (len_v3(l->v->no) == 0.0)
+		BM_Vert_UpdateAllNormals(bm, l->v);
+	if (len_v3(tl->v->no) == 0.0)
+		BM_Vert_UpdateAllNormals(bm, tl->v);
 		
 	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
-	copy_v3_v3(dir, tl->f->no);
-	copy_v3_v3(co, dir);
-	mul_v3_fl(co, -0.001);
-	add_v3_v3(co, p);
-	
-	/*four tests, two per triangle, once again normal, once along -normal*/
-	ret = isect_ray_tri_threshold_v3_uvw(co, dir, v1, v2, v3, &lm, uv, eps);
-	ret = ret || isect_ray_tri_threshold_v3_uvw(co, dir, v1, v3, v4, &lm, uv, eps);
-		
-	if (!ret) {
-		/*now try other direction*/
-		negate_v3(dir);
-		ret = isect_ray_tri_threshold_v3_uvw(co, dir, v1, v2, v3, &lm, uv, eps);
-		ret = ret || isect_ray_tri_threshold_v3_uvw(co, dir, v1, v3, v4, &lm, uv, eps);
-	}
-		
-	if (!ret)
-		return 0;
-	
-	if (isnan(lm))
-		return 0;
-	
-	mul_v3_fl(dir, lm);
-	add_v3_v3v3(hit, co, dir);
 
 	/*expand quad a bit*/
-#if 1
-	cent_quad_v3(c, v1, v2, v3, v4);
+	cent_quad_v3_d(c, v1, v2, v3, v4);
 	
-	sub_v3_v3(v1, c); sub_v3_v3(v2, c);
-	sub_v3_v3(v3, c); sub_v3_v3(v4, c);
-	mul_v3_fl(v1, 1.0+eps); mul_v3_fl(v2, 1.0+eps);
-	mul_v3_fl(v3, 1.0+eps);	mul_v3_fl(v4, 1.0+eps);
-	add_v3_v3(v1, c); add_v3_v3(v2, c);
-	add_v3_v3(v3, c); add_v3_v3(v4, c);
-#endif
+	VECSUB2(v1, c); VECSUB2(v2, c);
+	VECSUB2(v3, c); VECSUB2(v4, c);
+	VECMUL(v1, 1.0+eps); VECMUL(v2, 1.0+eps);
+	VECMUL(v3, 1.0+eps); VECMUL(v4, 1.0+eps);
+	VECADD2(v1, c); VECADD2(v2, c);
+	VECADD2(v3, c); VECADD2(v4, c);
 	
-	quad_co(x, y, v1, v2, v3, v4, hit, tl->f->no);
+	if (!quad_co(x, y, v1, v2, v3, v4, p, l->v->no))
+		return 0;
 	
-	if (isnan(*x) || isnan(*y) || *x == -1.0f || *y == -1.0f) {		
-		interp_weights_face_v3(uv, v1, v2, v3, v4, hit);
-		
-		x2 = ((1.0+FLT_EPSILON)*uv[2] + (1.0+FLT_EPSILON)*uv[3]);
-		y2 = ((1.0+FLT_EPSILON)*uv[1] + (1.0+FLT_EPSILON)*uv[2]);
-
-		if (*x == -1.0f || isnan(*x))
-			*x = x2;
-		if (*y == -1.0f || isnan(*y))
-			*y = y2;
-	}
-	
-	*x *= res-1-FLT_EPSILON*100;
-	*y *= res-1-FLT_EPSILON*100;
-	
-	if (fabs(*x-x2) > 1.5 || fabs(*y-y2) > 1.5) {
-		x2 = 1;
-	}
-	
+	*x *= res-1;
+	*y *= res-1;
+		  
 	return 1;
 }
 
@@ -545,7 +531,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 {
 	MDisps *mdisps;
 	BMLoop *l2;
-	float x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3], e3[3], e4[3];
+	double x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3], e3[3], e4[3];
 	int ix, iy, res;
 	
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
@@ -566,34 +552,34 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	}
 	
 	res = (int)sqrt(mdisps->totdisp);
-	d = 1.0f/(float)(res-1);
+	d = 1.0f/(double)(res-1);
 	for (x=0.0f, ix=0; ix<res; x += d, ix++) {
 		for (y=0.0f, iy=0; iy<res; y+= d, iy++) {
-			float co1[3], co2[3], co[3];
-			float xx, yy;
+			double co1[3], co2[3], co[3];
+			double xx, yy;
 			
-			copy_v3_v3(co1, e1);
+			VECCOPY(co1, e1);
 			
-			if (!iy) yy = y + FLT_EPSILON*2;
-			else yy = y - FLT_EPSILON*2;
+			if (!iy) yy = y + DBL_EPSILON*20;
+			else yy = y - DBL_EPSILON*20;
 			
-			mul_v3_fl(co1, yy);
-			add_v3_v3(co1, v1);
+			VECMUL(co1, y);
+			VECADD2(co1, v1);
 			
-			copy_v3_v3(co2, e2);
-			mul_v3_fl(co2, yy);
-			add_v3_v3(co2, v4);
+			VECCOPY(co2, e2);
+			VECMUL(co2, y);
+			VECADD2(co2, v4);
 			
-			if (!ix) xx = x + FLT_EPSILON*2;
-			else xx = x - FLT_EPSILON*2;
+			if (!ix) xx = x + DBL_EPSILON*20;
+			else xx = x - DBL_EPSILON*20;
 			
-			sub_v3_v3v3(co, co2, co1);
-			mul_v3_fl(co, xx);
-			add_v3_v3(co, co1);
+			VECSUB(co, co2, co1);
+			VECMUL(co, x);
+			VECADD2(co, co1);
 			
 			l2 = bm_firstfaceloop(source);
 			do {
-				float x2, y2;
+				double x2, y2;
 				int ix2, iy2;
 				MDisps *md1, *md2;
 
@@ -604,7 +590,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 					ix2 = (int)x2;
 					iy2 = (int)y2;
 					
-					old_mdisps_bilinear(md1->disps[iy*res+ix], md2->disps, res, x2, y2);
+					old_mdisps_bilinear(md1->disps[iy*res+ix], md2->disps, res, (float)x2, (float)y2);
 				}
 				l2 = l2->next;
 			} while (l2 != bm_firstfaceloop(source));
@@ -616,8 +602,6 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 {
 	BMLoop *l;
 	BMIter liter;
-	
-	//return;//XXX
 	
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
 		return;
@@ -646,14 +630,15 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		  
 		sides = sqrt(mdp->totdisp);
 		for (y=0; y<sides; y++) {
-			//add_v3_v3v3(co, mdp->disps[y*sides + sides-1], mdl->disps[y*sides]);
-			//mul_v3_fl(co, 0.5);
+			add_v3_v3v3(co, mdn->disps[y*sides], mdl->disps[y]);
+			mul_v3_fl(co, 0.5);
+			/*
 			copy_v3_v3(co, mdn->disps[y*sides]);
 			copy_v3_v3(mdn->disps[y*sides], mdl->disps[y]);
 			copy_v3_v3(mdl->disps[y], co);
-
-			//copy_v3_v3(mdp->disps[y*sides + sides-1], co);
-			//copy_v3_v3(mdl->disps[y*sides], co);
+			//*/
+			copy_v3_v3(mdn->disps[y*sides], co);
+			copy_v3_v3(mdl->disps[y], co);
 		}
 	}
 }
