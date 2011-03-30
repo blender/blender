@@ -34,6 +34,7 @@
 #ifndef _GHOST_IEVENT_H_
 #define _GHOST_IEVENT_H_
 
+#include <stddef.h>
 #include "GHOST_Types.h"
 
 class GHOST_IWindow;

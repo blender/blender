@@ -45,6 +45,7 @@
 #include "STR_String.h"
 #include "MT_Vector3.h"
 #include "SG_QList.h"
+#include <stddef.h>
 
 /*------------------------------
  * Python defines
