@@ -2916,7 +2916,7 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 		ss->cache->initial_mouse[1] = 0;
 	}
 
-	mode = RNA_int_get(op->ptr, "mode");
+	mode = RNA_enum_get(op->ptr, "mode");
 	cache->invert = mode == BRUSH_STROKE_INVERT;
 	cache->alt_smooth = mode == BRUSH_STROKE_SMOOTH;
 
