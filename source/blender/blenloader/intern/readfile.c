@@ -12301,50 +12301,19 @@ static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 	}
 }
 
-static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
+static void expand_object_expandModifiers(void *userData, Object *UNUSED(ob),
+											  ID **idpoin)
 {
-	if (md->type==eModifierType_Lattice) {
-		LatticeModifierData *lmd = (LatticeModifierData*) md;
-			
-		expand_doit(fd, mainvar, lmd->object);
-	} 
-	else if (md->type==eModifierType_Curve) {
-		CurveModifierData *cmd = (CurveModifierData*) md;
-			
-		expand_doit(fd, mainvar, cmd->object);
-	}
-	else if (md->type==eModifierType_Array) {
-		ArrayModifierData *amd = (ArrayModifierData*) md;
-			
-		expand_doit(fd, mainvar, amd->curve_ob);
-		expand_doit(fd, mainvar, amd->offset_ob);
-	}
-	else if (md->type==eModifierType_Mirror) {
-		MirrorModifierData *mmd = (MirrorModifierData*) md;
-			
-		expand_doit(fd, mainvar, mmd->mirror_ob);
-	}
-	else if (md->type==eModifierType_Displace) {
-		DisplaceModifierData *dmd = (DisplaceModifierData*) md;
-		
-		expand_doit(fd, mainvar, dmd->map_object);
-		expand_doit(fd, mainvar, dmd->texture);
-	}
-	else if (md->type==eModifierType_Smoke) {
-		SmokeModifierData *smd = (SmokeModifierData*) md;
-			
-		if(smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain)
-		{	
-			expand_doit(fd, mainvar, smd->domain->coll_group);
-			expand_doit(fd, mainvar, smd->domain->fluid_group);
-			expand_doit(fd, mainvar, smd->domain->eff_group);
-		}
-	}
+	struct { FileData *fd; Main *mainvar; } *data= userData;
+
+	FileData *fd= data->fd;
+	Main *mainvar= data->mainvar;
+
+	expand_doit(fd, mainvar, *idpoin);
 }
 
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 {
-	ModifierData *md;
 	ParticleSystem *psys;
 	bSensor *sens;
 	bController *cont;
@@ -12354,9 +12323,14 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	int a;
 
 	expand_doit(fd, mainvar, ob->data);
-	
-	for (md=ob->modifiers.first; md; md=md->next) {
-		expand_modifier(fd, mainvar, md);
+
+	/* expand_object_expandModifier() */
+	if(ob->modifiers.first) {
+		struct { FileData *fd; Main *mainvar; } data;
+		data.fd= fd;
+		data.mainvar= mainvar;
+
+		modifiers_foreachIDLink(ob, expand_object_expandModifiers, (void *)&data);
 	}
 
 	expand_pose(fd, mainvar, ob->pose);
