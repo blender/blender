@@ -27,7 +27,7 @@ For HTML generation
 -------------------
 - Run this script from blenders root path once you have compiled blender
 
-    ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py
+    ./blender.bin --background --python doc/python_api/sphinx_doc_gen.py
 
   This will generate python files in doc/python_api/sphinx-in/,
   assuming that ./blender.bin is or links to the blender executable
@@ -74,7 +74,7 @@ else:
         "mathutils.geometry",
     )
 
-    FILTER_BPY_TYPES = ("PropertyGroup", "Panel", "Menu", "Operator", "RenderEngine")  # allow
+    FILTER_BPY_TYPES = ("bpy_struct", "Panel", "Menu", "Operator", "RenderEngine")  # allow
     FILTER_BPY_OPS = ("import.scene", )  # allow
 
     # for quick rebuilds
@@ -272,7 +272,7 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
     else:
         raise TypeError("type was not GetSetDescriptorType, MethodDescriptorType or ClassMethodDescriptorType")
 
-    write_example_ref(ident, fw, module_name + "." + type_name + "." + identifier)
+    write_example_ref(ident + "   ", fw, module_name + "." + type_name + "." + identifier)
     fw("\n")
 
 
