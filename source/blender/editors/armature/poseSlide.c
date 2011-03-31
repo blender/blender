@@ -862,14 +862,16 @@ void POSE_OT_breakdown (wmOperatorType *ot)
 
 /* "termination conditions" - i.e. when we stop */
 typedef enum ePosePropagate_Termination {
-		/* stop when we run out of keyframes */
-	POSE_PROPAGATE_LAST_KEY	= 0,
+		/* stop after the current hold ends */
+	POSE_PROPAGATE_SMART_HOLDS = 0,
+		/* only do on the last keyframe */
+	POSE_PROPAGATE_LAST_KEY,
 		/* stop after the next keyframe */
 	POSE_PROPAGATE_NEXT_KEY,
 		/* stop after the specified frame */
 	POSE_PROPAGATE_BEFORE_FRAME,
-		/* stop after */
-	POSE_PROPAGATE_SMART_HOLDS
+		/* stop when we run out of keyframes */
+	POSE_PROPAGATE_BEFORE_END
 } ePosePropagate_Termination;
 
 /* --------------------------------- */
@@ -1066,12 +1068,17 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, tPChanFCurveLink 
 		if (ELEM(mode, POSE_PROPAGATE_BEFORE_FRAME, POSE_PROPAGATE_SMART_HOLDS)) {
 			/* stop if keyframe is outside the accepted range */
 			if (bezt->vec[1][0] > endFrame)
-				break;
+				break; 
 		}
 		else if (mode == POSE_PROPAGATE_NEXT_KEY) {
 			/* stop after the first keyframe has been processed */
 			if (first == 0)
 				break;
+		}
+		else if (mode == POSE_PROPAGATE_LAST_KEY) {
+			/* only affect this frame if it will be the last one */
+			if (i != (fcu->totvert-1))
+				continue;
 		}
 		
 		/* just flatten handles, since values will now be the same either side... */
@@ -1142,10 +1149,11 @@ static int pose_propagate_exec (bContext *C, wmOperator *op)
 void POSE_OT_propagate (wmOperatorType *ot)
 {
 	static EnumPropertyItem terminate_items[]= {
-		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, "Last Keyframe", ""},
-		{POSE_PROPAGATE_NEXT_KEY, "NEXT_KEY", 0, "Next Keyframe", ""},
-		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, "Before Frame", "Propagate pose to all keyframes between current frame and 'Frame' property"},
 		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held", "Propagate pose to all keyframes after current frame that don't change (Default behaviour)"},
+		{POSE_PROPAGATE_NEXT_KEY, "NEXT_KEY", 0, "To Next Keyframe", "Propagate pose to first keyframe following the current frame only"},
+		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, "To Last Keyframe", "Propagate pose to the last keyframe only (i.e. making action cyclic)"},
+		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, "Before Frame", "Propagate pose to all keyframes between current frame and 'Frame' property"},
+		{POSE_PROPAGATE_BEFORE_END, "BEFORE_END", 0, "Before Last Keyframe", "Propagate pose to all keyframes from current frame until no more are found"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	/* identifiers */
@@ -1163,7 +1171,7 @@ void POSE_OT_propagate (wmOperatorType *ot)
 	/* properties */
 	// TODO: add "fade out" control for tapering off amount of propagation as time goes by?
 	ot->prop= RNA_def_enum(ot->srna, "mode", terminate_items, POSE_PROPAGATE_SMART_HOLDS, "Terminate Mode", "Method used to determine when to stop propagating pose to keyframes");
-	RNA_def_float(ot->srna, "end_frame", 250.0, FLT_MIN, FLT_MAX, "End Frame", "Frame to stop propagating frames to", 1.0, 250.0);
+	RNA_def_float(ot->srna, "end_frame", 250.0, FLT_MIN, FLT_MAX, "End Frame", "Frame to stop propagating frames to (for 'Before Frame' mode)", 1.0, 250.0);
 }
 
 /* **************************************************** */

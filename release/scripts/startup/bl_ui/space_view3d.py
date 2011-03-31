@@ -1259,6 +1259,7 @@ class VIEW3D_MT_pose_propagate(bpy.types.Menu):
 
         layout.operator("pose.propagate")
         layout.operator("pose.propagate", text="To Next Keyframe").mode = 'NEXT_KEY'
+        layout.operator("pose.propagate", text="To Last Keyframe (Make Cyclic)").mode = 'LAST_KEY'
 
 
 class VIEW3D_MT_pose_library(bpy.types.Menu):
