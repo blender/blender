@@ -1087,6 +1087,9 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 		if(sl && sl->regionbase.first==NULL) {
 			st->free(sl);
 			BLI_freelinkN(&sa->spacedata, sl);
+			if(slold == sl) {
+				slold= NULL;
+			}
 			sl= NULL;
 		}
 		
