@@ -44,19 +44,22 @@ class MakeFur(bpy.types.Operator):
             default=0.1, min=0.001, max=100, soft_min=0.01, soft_max=10)
 
     def execute(self, context):
-        count = 0
-        for ob in context.selected_objects:
+        fake_context = bpy.context.copy()
+        mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
 
-            if(ob == None or ob.type != 'MESH'):
-                continue
+        if not mesh_objects:
+            self.report({'ERROR'}, "Select at least one mesh object.")
+            return {'CANCELLED'}
 
-            count += 1
+        mat = bpy.data.materials.new("Fur Material")
+        mat.strand.tip_size = 0.25
+        mat.strand.blend_distance = 0.5
 
-            context.scene.objects.active = ob
+        for obj in mesh_objects:
+            fake_context["active_object"] = obj
+            bpy.ops.object.particle_system_add(fake_context)
 
-            bpy.ops.object.particle_system_add()
-
-            psys = ob.particle_systems[-1]
+            psys = obj.particle_systems[-1]
             psys.settings.type = 'HAIR'
 
             if self.density == 'LIGHT':
@@ -72,20 +75,21 @@ class MakeFur(bpy.types.Operator):
             psys.settings.use_hair_bspline = True
             psys.settings.child_type = 'INTERPOLATED'
 
-        if count == 0:
-            self.report({'ERROR'}, "Select at least one mesh object.")
-            return {'CANCELLED'}
-
-        mat = bpy.data.materials.new("Fur Material")
-        mat.strand.tip_size = 0.25
-        mat.strand.blend_distance = 0.5
-
-        for ob in context.selected_objects:
-            ob.data.materials.append(mat)
-            ob.particle_systems[-1].settings.material = len(ob.material_slots)
+            obj.data.materials.append(mat)
+            obj.particle_systems[-1].settings.material = len(obj.data.materials)
 
         return {'FINISHED'}
 
+def obj_bb_minmax(obj, min_co, max_co):
+    for i in range(0, 8):
+        bb_vec = Vector((obj.bound_box[i][0], obj.bound_box[i][1], obj.bound_box[i][2])) * obj.matrix_world
+
+        min_co[0] = min(bb_vec[0], min_co[0])
+        min_co[1] = min(bb_vec[1], min_co[1])
+        min_co[2] = min(bb_vec[2], min_co[2])
+        max_co[0] = max(bb_vec[0], max_co[0])
+        max_co[1] = max(bb_vec[1], max_co[1])
+        max_co[2] = max(bb_vec[2], max_co[2])
 
 class MakeSmoke(bpy.types.Operator):
     bl_idname = "object.make_smoke"
@@ -105,21 +109,20 @@ class MakeSmoke(bpy.types.Operator):
                 default=False)
 
     def execute(self, context):
-        count = 0
-        min_co = Vector()
-        max_co = Vector()
-        for ob in context.selected_objects:
+        mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
+        min_co = Vector((100000, 100000, 100000))
+        max_co = Vector((-100000, -100000, -100000))
 
-            if(ob == None or ob.type != 'MESH'):
-                continue
+        if not mesh_objects:
+            self.report({'ERROR'}, "Select at least one mesh object.")
+            return {'CANCELLED'}
 
-            context.scene.objects.active = ob
-
+        for obj in mesh_objects:
             # make each selected object a smoke flow
-            bpy.ops.object.modifier_add(type='SMOKE')
-            ob.modifiers[-1].smoke_type = 'FLOW'
+            bpy.ops.object.modifier_add({"object": obj}, type='SMOKE')
+            obj.modifiers[-1].smoke_type = 'FLOW'
 
-            psys = ob.particle_systems[-1]
+            psys = obj.particle_systems[-1]
             if self.style == 'PUFF':
                 psys.settings.frame_end = psys.settings.frame_start
                 psys.settings.emit_from = 'VOLUME'
@@ -129,59 +132,37 @@ class MakeSmoke(bpy.types.Operator):
                 psys.settings.lifetime = 5
                 psys.settings.count = 100000
 
-                ob.modifiers[-2].flow_settings.initial_velocity = True
-                ob.modifiers[-2].flow_settings.temperature = 2
+                obj.modifiers[-2].flow_settings.initial_velocity = True
+                obj.modifiers[-2].flow_settings.temperature = 2
 
             psys.settings.use_render_emitter = self.show_flows
             if not self.show_flows:
-                ob.draw_type = 'WIRE'
+                obj.draw_type = 'WIRE'
 
             # store bounding box min/max for the domain object
-            for i in range(0, 8):
-                bb_vec = Vector((ob.bound_box[i][0], ob.bound_box[i][1], ob.bound_box[i][2])) * ob.matrix_world
-
-                if count == 0 and i == 0:
-                    min_co += bb_vec
-                    max_co += bb_vec
-                else:
-                    min_co[0] = min(bb_vec[0], min_co[0])
-                    min_co[1] = min(bb_vec[1], min_co[1])
-                    min_co[2] = min(bb_vec[2], min_co[2])
-                    max_co[0] = max(bb_vec[0], max_co[0])
-                    max_co[1] = max(bb_vec[1], max_co[1])
-                    max_co[2] = max(bb_vec[2], max_co[2])
-
-            count += 1
-
-        if count == 0:
-            self.report({'ERROR'}, "Select at least one mesh object.")
-            return {'CANCELLED'}
+            obj_bb_minmax(obj, min_co, max_co)
 
         # add the smoke domain object
         bpy.ops.mesh.primitive_cube_add()
-        ob = context.active_object
-        ob.name = "Smoke Domain"
+        obj = context.active_object
+        obj.name = "Smoke Domain"
 
         # give the smoke some room above the flows
-        ob.location[0] = (max_co[0] + min_co[0]) * 0.5
-        ob.location[1] = (max_co[1] + min_co[1]) * 0.5
-        ob.location[2] = max_co[2] - min_co[2]
-        ob.scale[0] = max_co[0] - min_co[0]
-        ob.scale[1] = max_co[1] - min_co[1]
-        ob.scale[2] = 2.0 * (max_co[2] - min_co[2])
+        obj.location = 0.5 * (max_co + min_co) + Vector((0,0,1))
+        obj.scale = 0.5 * (max_co - min_co) + Vector((1,1,2))
 
         # setup smoke domain
-        bpy.ops.object.modifier_add(type='SMOKE')
-        ob.modifiers[-1].smoke_type = 'DOMAIN'
+        bpy.ops.object.modifier_add({"object": obj}, type='SMOKE')
+        obj.modifiers[-1].smoke_type = 'DOMAIN'
         if self.style == 'FIRE':
-            ob.modifiers[-1].domain_settings.use_dissolve_smoke = True
-            ob.modifiers[-1].domain_settings.dissolve_speed = 20
-            ob.modifiers[-1].domain_settings.use_high_resolution = True
+            obj.modifiers[-1].domain_settings.use_dissolve_smoke = True
+            obj.modifiers[-1].domain_settings.dissolve_speed = 20
+            obj.modifiers[-1].domain_settings.use_high_resolution = True
 
         # create a volume material with a voxel data texture for the domain
-        bpy.ops.object.material_slot_add()
+        bpy.ops.object.material_slot_add({"object": obj})
 
-        mat = ob.material_slots[0].material
+        mat = obj.material_slots[0].material
         mat.name = "Smoke Domain Material"
         mat.type = 'VOLUME'
         mat.volume.density = 0
@@ -189,7 +170,7 @@ class MakeSmoke(bpy.types.Operator):
 
         mat.texture_slots.add()
         mat.texture_slots[0].texture = bpy.data.textures.new("Smoke Density", 'VOXEL_DATA')
-        mat.texture_slots[0].texture.voxel_data.domain_object = ob
+        mat.texture_slots[0].texture.voxel_data.domain_object = obj
         mat.texture_slots[0].use_map_color_emission = False
         mat.texture_slots[0].use_map_density = True
 
@@ -198,7 +179,7 @@ class MakeSmoke(bpy.types.Operator):
             mat.volume.emission = 5
             mat.texture_slots.add()
             mat.texture_slots[1].texture = bpy.data.textures.new("Smoke Heat", 'VOXEL_DATA')
-            mat.texture_slots[1].texture.voxel_data.domain_object = ob
+            mat.texture_slots[1].texture.voxel_data.domain_object = obj
             mat.texture_slots[1].texture.use_color_ramp = True
 
             ramp = mat.texture_slots[1].texture.color_ramp
@@ -242,74 +223,58 @@ class MakeFluid(bpy.types.Operator):
                 default=False)
 
     def execute(self, context):
-        count = 0
-        min_co = Vector()
-        max_co = Vector()
-        for ob in context.selected_objects:
+        mesh_objects = [obj for obj in context.selected_objects if (obj.type == 'MESH' and not 0 in obj.dimensions)]
+        min_co = Vector((100000, 100000, 100000))
+        max_co = Vector((-100000, -100000, -100000))
 
-            if(ob == None or ob.type != 'MESH'):
-                continue
-
-            context.scene.objects.active = ob
-
-            # make each selected object a fluid
-            bpy.ops.object.modifier_add(type='FLUID_SIMULATION')
-            if self.style == 'INFLOW':
-                ob.modifiers[-1].settings.type = 'INFLOW'
-                ob.modifiers[-1].settings.inflow_velocity = self.initial_velocity.copy()
-            else:
-                ob.modifiers[-1].settings.type = 'FLUID'
-                ob.modifiers[-1].settings.initial_velocity = self.initial_velocity.copy()
-
-            ob.hide_render = not self.show_flows
-            if not self.show_flows:
-                ob.draw_type = 'WIRE'
-
-            # store bounding box min/max for the domain object
-            for i in range(0, 8):
-                bb_vec = Vector((ob.bound_box[i][0], ob.bound_box[i][1], ob.bound_box[i][2])) * ob.matrix_world
-
-                if count == 0 and i == 0:
-                    min_co += bb_vec
-                    max_co += bb_vec
-                else:
-                    min_co[0] = min(bb_vec[0], min_co[0])
-                    min_co[1] = min(bb_vec[1], min_co[1])
-                    min_co[2] = min(bb_vec[2], min_co[2])
-                    max_co[0] = max(bb_vec[0], max_co[0])
-                    max_co[1] = max(bb_vec[1], max_co[1])
-                    max_co[2] = max(bb_vec[2], max_co[2])
-
-            count += 1
-
-        if count == 0:
+        if not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object.")
             return {'CANCELLED'}
 
+        for obj in mesh_objects:
+            # make each selected object a fluid
+            bpy.ops.object.modifier_add({"object": obj}, type='FLUID_SIMULATION')
+
+            # fluid has to be before constructive modifiers, so it might not be the last modifier
+            for mod in obj.modifiers:
+                if mod.type == 'FLUID_SIMULATION':
+                    break
+
+            if self.style == 'INFLOW':
+                mod.settings.type = 'INFLOW'
+                mod.settings.inflow_velocity = self.initial_velocity.copy()
+            else:
+                mod.settings.type = 'FLUID'
+                mod.settings.initial_velocity = self.initial_velocity.copy()
+
+            obj.hide_render = not self.show_flows
+            if not self.show_flows:
+                obj.draw_type = 'WIRE'
+
+            # store bounding box min/max for the domain object
+            obj_bb_minmax(obj, min_co, max_co)
+
         # add the fluid domain object
         bpy.ops.mesh.primitive_cube_add()
-        ob = context.active_object
-        ob.name = "Fluid Domain"
+        obj = context.active_object
+        obj.name = "Fluid Domain"
 
-        # give the smoke some room above the flows
-        ob.location[0] = (max_co[0] + min_co[0]) * 0.5
-        ob.location[1] = (max_co[1] + min_co[1]) * 0.5
-        ob.location[2] = min_co[2] - max_co[2]
-        ob.scale[0] = max_co[0] - min_co[0]
-        ob.scale[1] = max_co[1] - min_co[1]
-        ob.scale[2] = 2.0 * (max_co[2] - min_co[2])
+        # give the fluid some room below the flows and scale with initial velocity
+        v = 0.5 * self.initial_velocity
+        obj.location = 0.5 * (max_co + min_co) + Vector((0,0,-1)) + v
+        obj.scale = 0.5 * (max_co - min_co) + Vector((1,1,2)) + Vector((abs(v[0]), abs(v[1]), abs(v[2])))
 
         # setup smoke domain
-        bpy.ops.object.modifier_add(type='FLUID_SIMULATION')
-        ob.modifiers[-1].settings.type = 'DOMAIN'
+        bpy.ops.object.modifier_add({"object": obj}, type='FLUID_SIMULATION')
+        obj.modifiers[-1].settings.type = 'DOMAIN'
 
         # make the domain smooth so it renders nicely
         bpy.ops.object.shade_smooth()
 
         # create a ray-transparent material for the domain
-        bpy.ops.object.material_slot_add()
+        bpy.ops.object.material_slot_add({"object": obj})
 
-        mat = ob.material_slots[0].material
+        mat = obj.material_slots[0].material
         mat.name = "Fluid Domain Material"
         mat.specular_intensity = 1
         mat.specular_hardness = 100
