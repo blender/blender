@@ -222,7 +222,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	}
 
 	base= scene_add_base(scene, ob);
-	ob->id.us++;
+	id_us_plus(&ob->id);
 
 	/* this is similar to what object_add_type and add_object do */
 	base->lay= scene->lay;
