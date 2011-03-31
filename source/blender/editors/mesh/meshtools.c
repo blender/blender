@@ -418,9 +418,6 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					}
 				}
 				
-				if(base->object!=ob)
-					multiresModifier_prepare_join(scene, base->object, ob);
-
 				CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
 				CustomData_copy_data(&me->fdata, &fdata, 0, faceofs, me->totface);
 				
@@ -450,6 +447,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			}
 
 			if (me->totloop) {
+				if(base->object!=ob)
+					multiresModifier_prepare_join(scene, base->object, ob);
+				
 				CustomData_merge(&me->ldata, &ldata, CD_MASK_MESH, CD_DEFAULT, totloop);
 				CustomData_copy_data(&me->ldata, &ldata, 0, loopofs, me->totloop);
 				
@@ -477,7 +477,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				
 				for(a=0; a<me->totpoly; a++, mpoly++) {
 					mpoly->loopstart += loopofs;
-					mpoly->mat_nr= matmap[(int)mpoly->mat_nr];
+					mpoly->mat_nr= matmap ? matmap[(int)mpoly->mat_nr] : 0;
 				}
 				
 				polyofs += me->totpoly;

@@ -3744,10 +3744,10 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 		return OPERATOR_CANCELLED;
 		
 	bmnew = BM_Make_Mesh(obedit, allocsize);
-	CustomData_copy(&bmnew->vdata, &em->bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bmnew->edata, &em->bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bmnew->ldata, &em->bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bmnew->pdata, &em->bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->bm->vdata, &bmnew->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->bm->edata, &bmnew->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->bm->ldata, &bmnew->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->bm->pdata, &bmnew->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
 	CustomData_bmesh_init_pool(&bmnew->vdata, allocsize[0]);
 	CustomData_bmesh_init_pool(&bmnew->edata, allocsize[1]);
@@ -3787,6 +3787,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	BMO_CallOpf(bmnew, "bmesh_to_mesh mesh=%p object=%p", basenew->object->data, basenew->object);
 		
 	BM_Free_Mesh(bmnew);
+	((Mesh*)basenew->object->data)->edit_btmesh = NULL;
 	
 	return 1;
 }
@@ -3816,6 +3817,7 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 		retval= mesh_separate_loose(bmain, scene, base, op);
 	   
 	if(retval) {
+		DAG_id_tag_update(base->object->data, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
 		return OPERATOR_FINISHED;
 	}

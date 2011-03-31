@@ -1272,7 +1272,7 @@ float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *numVerts_r))[3]
 	BMIter iter;
 	BMVert *eve;
 
-	cos = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos");
+	cos = MEM_mallocN(sizeof(float)*3*numVerts, "vertexcos");
 
 	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
 	for (i=0; eve; eve=BMIter_Step(&iter), i++) {

@@ -179,7 +179,7 @@ void multires_force_external_reload(Object *ob)
 {
 	Mesh *me = get_mesh(ob);
 
-	CustomData_external_reload(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
+	CustomData_external_reload(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
 	multires_force_update(ob);
 }
 
@@ -258,7 +258,7 @@ static int get_levels_from_disps(Object *ob)
 	MDisps *mdisp, *md;
 	int i, j, totlvl= 0;
 
-	mdisp = CustomData_get_layer(&me->fdata, CD_MDISPS);
+	mdisp = CustomData_get_layer(&me->ldata, CD_MDISPS);
 
 	for(i = 0; i < me->totpoly; ++i) {
 		int S = me->mpoly[i].totloop;
@@ -441,7 +441,7 @@ void multiresModifier_del_levels(MultiresModifierData *mmd, Object *ob, int dire
 	MDisps *mdisps;
 	
 	multires_set_tot_mdisps(me, mmd->totlvl);
-	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
+	CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
 	mdisps= CustomData_get_layer(&me->ldata, CD_MDISPS);
 
 	multires_force_update(ob);
@@ -1749,8 +1749,8 @@ static void multires_sync_levels(Scene *scene, Object *ob, Object *to_ob)
 
 		Mesh *me= (Mesh*)ob->data;
 
-		CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
-		CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+		CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
+		CustomData_free_layer_active(&me->ldata, CD_MDISPS, me->totloop);
 	}
 
 	if(!mmd || !to_mmd) return;
@@ -1764,7 +1764,8 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	DerivedMesh *dm= NULL, *cddm= NULL, *subdm= NULL;
 	DMGridData **gridData, **subGridData;
 	Mesh *me= (Mesh*)ob->data;
-	MFace *mface= me->mface;
+	MPoly *mpoly= me->mpoly;
+	MLoop *mloop = me->mloop;
 	MDisps *mdisps;
 	int *gridOffset;
 	int i, /*numGrids,*/ gridSize, dGridSize, dSkip, totvert;
@@ -1772,8 +1773,8 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 1);
 	MultiresModifierData high_mmd;
 
-	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
-	mdisps= CustomData_get_layer(&me->fdata, CD_MDISPS);
+	CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
+	mdisps= CustomData_get_layer(&me->ldata, CD_MDISPS);
 
 	if(!mdisps || !mmd) return;
 
@@ -1809,15 +1810,15 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	dSkip= (dGridSize-1)/(gridSize-1);
 
 	#pragma omp parallel for private(i) if(me->totface*gridSize*gridSize*4 >= CCG_OMP_LIMIT)
-	for(i = 0; i < me->totface; ++i) {
-		const int numVerts= mface[i].v4 ? 4 : 3;
-		MDisps *mdisp= &mdisps[i];
+	for(i = 0; i < me->totpoly; ++i) {
+		const int numVerts= mpoly[i].totloop;
+		MDisps *mdisp= &mdisps[mpoly[i].loopstart];
 		int S, x, y, gIndex = gridOffset[i];
 
-		for(S = 0; S < numVerts; ++S, ++gIndex) {
+		for(S = 0; S < numVerts; ++S, ++gIndex, mdisp++) {
 			DMGridData *grid= gridData[gIndex];
 			DMGridData *subgrid= subGridData[gIndex];
-			float (*dispgrid)[3]= &mdisp->disps[S*dGridSize*dGridSize];
+			float (*dispgrid)[3]= mdisp->disps;
 
 			for(y = 0; y < gridSize; y++) {
 				for(x = 0; x < gridSize; x++) {
@@ -1887,58 +1888,6 @@ void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 	mul_m3_m3m3(mat, smat, tmat);
 
 	multires_apply_smat(scene, ob, mat);
-}
-
-/* update multires data after topology changing */
-void multires_topology_changed(Scene *scene, Object *ob)
-{
-	Mesh *me= (Mesh*)ob->data;
-	MDisps *mdisp= NULL, *cur= NULL;
-	int i, grid= 0, corners;
-	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 1);
-
-	if(mmd)
-		multires_set_tot_mdisps(me, mmd->totlvl);
-
-	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
-	mdisp= CustomData_get_layer(&me->fdata, CD_MDISPS);
-
-	if(!mdisp) return;
-
-	cur= mdisp;
-	for(i = 0; i < me->totface; i++, cur++) {
-		if(mdisp->totdisp) {
-			corners= multires_mdisp_corners(mdisp);
-			grid= mdisp->totdisp / corners;
-
-			break;
-		}
-	}
-
-	for(i = 0; i < me->totface; i++, mdisp++) {
-		int nvert= me->mface[i].v4 ? 4 : 3;
-
-		/* allocate memory for mdisp, the whole disp layer would be erased otherwise */
-		if(!mdisp->totdisp) {
-			if(grid) {
-				mdisp->totdisp= nvert*grid;
-				mdisp->disps= BLI_cellalloc_calloc(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
-			}
-
-			continue;
-		}
-
-		corners= multires_mdisp_corners(mdisp);
-
-		if(corners!=nvert) {
-			mdisp->totdisp= (mdisp->totdisp/corners)*nvert;
-
-			if(mdisp->disps)
-				BLI_cellalloc_free(mdisp->disps);
-
-			mdisp->disps= BLI_cellalloc_calloc(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
-		}
-	}
 }
 
 /* makes displacement along grid boundary symmetrical */

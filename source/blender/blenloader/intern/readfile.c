@@ -231,7 +231,7 @@ typedef struct OldNewMap {
 
 /* local prototypes */
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
-
+static void convert_mfaces_to_mpolys(Mesh *mesh);
 
 static OldNewMap *oldnewmap_new(void) 
 {
@@ -3409,6 +3409,11 @@ static void lib_link_mesh(FileData *fd, Main *main)
 				lib_link_customdata_mtface(fd, me, &me->mr->fdata,
 							   ((MultiresLevel*)me->mr->levels.first)->totface);
 
+			/*check if we need to convert mfaces to mpolys*/
+			if (me->totface && !me->totpoly) {
+				convert_mfaces_to_mpolys(me);
+			}
+			
 			me->id.flag -= LIB_NEEDLINK;
 		}
 		me= me->id.next;
@@ -3734,11 +3739,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			SWITCH_INT(tf->col[2]);
 			SWITCH_INT(tf->col[3]);
 		}
-	}
-
-	/*check if we need to convert mfaces to mpolys*/
-	if (mesh->totface && !mesh->totpoly) {
-		convert_mfaces_to_mpolys(mesh);
 	}
 }
 

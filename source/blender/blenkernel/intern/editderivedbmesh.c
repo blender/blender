@@ -439,8 +439,8 @@ static void bmDM_foreachMappedEdge(DerivedMesh *dm, void (*func)(void *userData,
 		eed = BMIter_New(&iter, bmdm->tc->bm, BM_EDGES_OF_MESH, NULL);
 		for(i=0; eed; i++,eed=BMIter_Step(&iter))
 			func(userData, i, 
-			     bmdm->vertexCos[BMINDEX_GET(eve)], 
-			     bmdm->vertexCos[BMINDEX_GET(eve)]);
+			     bmdm->vertexCos[BMINDEX_GET(eed->v1)], 
+			     bmdm->vertexCos[BMINDEX_GET(eed->v2)]);
 	} else {
 		eed = BMIter_New(&iter, bmdm->tc->bm, BM_EDGES_OF_MESH, NULL);
 		for(i=0; eed; i++,eed=BMIter_Step(&iter))
