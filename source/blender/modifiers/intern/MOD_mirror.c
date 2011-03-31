@@ -177,12 +177,23 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	
 	/*adjust mirrored poly loopstart indices, and reverse loop order (normals)*/	
 	mp = CDDM_get_polys(cddm) + dm->numPolyData;
+	ml = CDDM_get_loops(cddm);
 	for (i=0; i<dm->numPolyData; i++, mp++) {
+		MLoop *ml2;
+		int e;
+		
 		for (j=0; j<mp->totloop; j++) {
 			CustomData_copy_data(&dm->loopData, &cddm->loopData, mp->loopstart+j,
 								 mp->loopstart+dm->numLoopData+mp->totloop-j-1, 1);
 		}
-
+		
+		ml2 = ml + mp->loopstart + dm->numLoopData;
+		e = ml2[0].e;
+		for (j=0; j<mp->totloop-1; j++) {
+			ml2[j].e = ml2[j+1].e;
+		}
+		ml2[mp->totloop-1].e = e;
+		
 		mp->loopstart += dm->numLoopData;
 	}
 
