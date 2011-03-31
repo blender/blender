@@ -455,7 +455,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 			break;
 			
 		case ACTKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
-			ED_markers_make_cfra_list(ac->markers, &ked.list, 1);
+			ED_markers_make_cfra_list(ac->markers, &ked.list, SELECT);
 			break;
 			
 		default: /* invalid option */

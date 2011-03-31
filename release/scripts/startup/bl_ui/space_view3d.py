@@ -1258,8 +1258,15 @@ class VIEW3D_MT_pose_propagate(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("pose.propagate")
+
+        layout.separator()
+
         layout.operator("pose.propagate", text="To Next Keyframe").mode = 'NEXT_KEY'
         layout.operator("pose.propagate", text="To Last Keyframe (Make Cyclic)").mode = 'LAST_KEY'
+
+        layout.separator()
+
+        layout.operator("pose.propagate", text="On Selected Markers").mode = 'SELECTED_MARKERS'
 
 
 class VIEW3D_MT_pose_library(bpy.types.Menu):

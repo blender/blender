@@ -63,6 +63,7 @@
 
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
+#include "ED_markers.h"
 #include "ED_screen.h"
 
 #include "armature_intern.h"
@@ -871,8 +872,20 @@ typedef enum ePosePropagate_Termination {
 		/* stop after the specified frame */
 	POSE_PROPAGATE_BEFORE_FRAME,
 		/* stop when we run out of keyframes */
-	POSE_PROPAGATE_BEFORE_END
+	POSE_PROPAGATE_BEFORE_END,
+	
+		/* only do on the frames where markers are selected */
+	POSE_PROPAGATE_SELECTED_MARKERS
 } ePosePropagate_Termination;
+
+/* termination data needed for some modes - assumes only one of these entries will be needed at a time */
+typedef union tPosePropagate_ModeData {
+	/* smart holds + before frame: frame number to stop on */
+	float end_frame;
+	
+	/* selected markers: listbase for CfraElem's marking these frames */
+	ListBase sel_markers;
+} tPosePropagate_ModeData;
 
 /* --------------------------------- */
 
@@ -1030,7 +1043,8 @@ static float pose_propagate_get_refVal (Object *ob, FCurve *fcu)
 }
 
 /* propagate just works along each F-Curve in turn */
-static void pose_propagate_fcurve (wmOperator *op, Object *ob, tPChanFCurveLink *UNUSED(pfl), FCurve *fcu, float startFrame, float endFrame)
+static void pose_propagate_fcurve (wmOperator *op, Object *ob, FCurve *fcu, 
+				float startFrame, tPosePropagate_ModeData modeData)
 {
 	const int mode = RNA_enum_get(op->ptr, "mode");
 	
@@ -1067,7 +1081,7 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, tPChanFCurveLink 
 		/* additional termination conditions based on the operator 'mode' property go here... */
 		if (ELEM(mode, POSE_PROPAGATE_BEFORE_FRAME, POSE_PROPAGATE_SMART_HOLDS)) {
 			/* stop if keyframe is outside the accepted range */
-			if (bezt->vec[1][0] > endFrame)
+			if (bezt->vec[1][0] > modeData.end_frame)
 				break; 
 		}
 		else if (mode == POSE_PROPAGATE_NEXT_KEY) {
@@ -1078,6 +1092,20 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, tPChanFCurveLink 
 		else if (mode == POSE_PROPAGATE_LAST_KEY) {
 			/* only affect this frame if it will be the last one */
 			if (i != (fcu->totvert-1))
+				continue;
+		}
+		else if (mode == POSE_PROPAGATE_SELECTED_MARKERS) {
+			/* only allow if there's a marker on this frame */
+			CfraElem *ce = NULL;
+			
+			/* stop on matching marker if there is one */
+			for (ce = modeData.sel_markers.first; ce; ce = ce->next) {
+				if (ce->cfra == (int)(floor(bezt->vec[1][0] + 0.5f)))
+					break;
+			}
+			
+			/* skip this keyframe if no marker */
+			if (ce == NULL)
 				continue;
 		}
 		
@@ -1102,7 +1130,7 @@ static int pose_propagate_exec (bContext *C, wmOperator *op)
 	ListBase pflinks = {NULL, NULL};
 	tPChanFCurveLink *pfl;
 	
-	float endFrame = RNA_float_get(op->ptr, "end_frame");
+	tPosePropagate_ModeData modeData;
 	const int mode = RNA_enum_get(op->ptr, "mode");
 	
 	/* sanity checks */
@@ -1118,6 +1146,16 @@ static int pose_propagate_exec (bContext *C, wmOperator *op)
 	/* isolate F-Curves related to the selected bones */
 	poseAnim_mapping_get(C, &pflinks, ob, act);
 	
+	/* mode-specific data preprocessing (requiring no access to curves) */
+	if (mode == POSE_PROPAGATE_SELECTED_MARKERS) {
+		/* get a list of selected markers */
+		ED_markers_make_cfra_list(&scene->markers, &modeData.sel_markers, SELECT);
+	}
+	else {
+		/* assume everything else wants endFrame */
+		modeData.end_frame = RNA_float_get(op->ptr, "end_frame");
+	}
+	
 	/* for each bone, perform the copying required */
 	for (pfl = pflinks.first; pfl; pfl = pfl->next) {
 		LinkData *ld;
@@ -1127,16 +1165,19 @@ static int pose_propagate_exec (bContext *C, wmOperator *op)
 			/* we store in endFrame the end frame of the "long keyframe" (i.e. a held value) starting
 			 * from the keyframe that occurs after the current frame
 			 */
-			endFrame = pose_propagate_get_boneHoldEndFrame(ob, pfl, (float)CFRA);
+			modeData.end_frame = pose_propagate_get_boneHoldEndFrame(ob, pfl, (float)CFRA);
 		}
 		
 		/* go through propagating pose to keyframes, curve by curve */
 		for (ld = pfl->fcurves.first; ld; ld= ld->next)
-			pose_propagate_fcurve(op, ob, pfl, (FCurve *)ld->data, (float)CFRA, endFrame);
+			pose_propagate_fcurve(op, ob, (FCurve *)ld->data, (float)CFRA, modeData);
 	}
 	
 	/* free temp data */
 	poseAnim_mapping_free(&pflinks);
+	
+	if (mode == POSE_PROPAGATE_SELECTED_MARKERS)
+		BLI_freelistN(&modeData.sel_markers);
 	
 	/* updates + notifiers */
 	poseAnim_mapping_refresh(C, scene, ob);
@@ -1154,6 +1195,7 @@ void POSE_OT_propagate (wmOperatorType *ot)
 		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, "To Last Keyframe", "Propagate pose to the last keyframe only (i.e. making action cyclic)"},
 		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, "Before Frame", "Propagate pose to all keyframes between current frame and 'Frame' property"},
 		{POSE_PROPAGATE_BEFORE_END, "BEFORE_END", 0, "Before Last Keyframe", "Propagate pose to all keyframes from current frame until no more are found"},
+		{POSE_PROPAGATE_SELECTED_MARKERS, "SELECTED_MARKERS", 0, "On Selected Markers", "Propagate pose to all keyframes occurring on frames with Scene Markers after the current frame"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	/* identifiers */
