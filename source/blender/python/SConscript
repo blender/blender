@@ -34,4 +34,4 @@ if env['BF_BUILDINFO']:
     defs.append('BUILD_DATE')
 
 sources = env.Glob('intern/*.c')
-env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [361,160])
+env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core'], priority = [361])

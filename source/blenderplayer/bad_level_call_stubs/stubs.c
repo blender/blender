@@ -92,9 +92,16 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
+struct wmWindow;
 struct wmWindowManager;
 struct View3D;
 struct ToolSettings;
+struct bContextDataResult;
+struct bConstraintTarget;
+struct bPythonConstraint;
+struct bConstraintOb;
+struct Context;
+struct ChannelDriver;
 
 
 /*new render funcs */
@@ -401,6 +408,19 @@ void sculpt_set_brush_unprojected_radius(struct Brush *brush, float unprojected_
 float sculpt_get_brush_alpha(struct Brush *brush){return 0.0f;}
 void sculpt_set_brush_alpha(struct Brush *brush, float alpha){}
 void ED_sculpt_modifiers_changed(struct Object *ob){};
+
+
+/* bpy/python internal api */
+void operator_wrapper(struct wmOperatorType *ot, void *userdata) {}
+void BPY_text_free_code(struct Text *text) {}
+void BPY_id_release(struct Text *text) {}
+int BPY_context_member_get(struct Context *C, const char *member, struct bContextDataResult *result) { return 0; }
+void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) {}
+float BPY_driver_exec(struct ChannelDriver *driver) {return 0.0f;} /* might need this one! */
+void	BPY_DECREF(void *pyob_ptr) {}
+void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
+void macro_wrapper(struct wmOperatorType *ot, void *userdata) {} ;
+
 
 char blender_path[] = "";
 
