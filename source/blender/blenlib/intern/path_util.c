@@ -587,7 +587,7 @@ int BLI_path_frame(char *path, int frame, int digits)
 
 	if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
 		char tmp[FILE_MAX];
-		sprintf(tmp, "%.*s%.*d%s", ch_sta, path, digits, frame, path+ch_end);
+		sprintf(tmp, "%.*s%.*d%s", ch_sta, path, ch_end-ch_sta, frame, path+ch_end);
 		strcpy(path, tmp);
 		return 1;
 	}
@@ -603,7 +603,7 @@ int BLI_path_frame_range(char *path, int sta, int end, int digits)
 
 	if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
 		char tmp[FILE_MAX];
-		sprintf(tmp, "%.*s%.*d-%.*d%s", ch_sta, path, digits, sta, digits, end, path+ch_end);
+		sprintf(tmp, "%.*s%.*d-%.*d%s", ch_sta, path, ch_end-ch_sta, sta, ch_end-ch_sta, end, path+ch_end);
 		strcpy(path, tmp);
 		return 1;
 	}
