@@ -1585,6 +1585,9 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		   are no longer in the same screen */
 		for(ar=sa->regionbase.first; ar; ar=ar->next)
 			uiFreeBlocks(C, &ar->uiblocks);
+		
+		/* prevent hanging header prints */
+		ED_area_headerprint(sa, NULL);
 	}
 
 	if(sa && sa->full) {
