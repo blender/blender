@@ -3164,14 +3164,21 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 	Scene *newscene, *scene= CTX_data_scene(C);
 	Main *bmain= CTX_data_main(C);
 	int type= RNA_enum_get(op->ptr, "type");
-	
-	newscene= copy_scene(scene, type);
-	
-	/* these can't be handled in blenkernel curently, so do them here */
-	if(type == SCE_COPY_LINK_DATA)
-		ED_object_single_users(bmain, newscene, 0);
-	else if(type == SCE_COPY_FULL)
-		ED_object_single_users(bmain, newscene, 1);
+
+	if(type == SCE_COPY_NEW) {
+		newscene= add_scene("Scene");
+	}
+	else { /* different kinds of copying */
+		newscene= copy_scene(scene, type);
+
+		/* these can't be handled in blenkernel curently, so do them here */
+		if(type == SCE_COPY_LINK_DATA) {
+			ED_object_single_users(bmain, newscene, 0);
+		}
+		else if(type == SCE_COPY_FULL) {
+			ED_object_single_users(bmain, newscene, 1);
+		}
+	}
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, newscene);
 	
@@ -3181,7 +3188,8 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 static void SCENE_OT_new(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{SCE_COPY_EMPTY, "EMPTY", 0, "Empty", "Add empty scene"},
+		{SCE_COPY_NEW, "NEW", 0, "New", "Add new scene"},
+		{SCE_COPY_EMPTY, "EMPTY", 0, "Copy Settings", "Make a copy without any objects"},
 		{SCE_COPY_LINK_OB, "LINK_OBJECTS", 0, "Link Objects", "Link to the objects from the current scene"},
 		{SCE_COPY_LINK_DATA, "LINK_OBJECT_DATA", 0, "Link Object Data", "Copy objects linked to data from the current scene"},
 		{SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy", "Make a full copy of the current scene"},
