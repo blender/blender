@@ -240,12 +240,15 @@ class VIEW3D_MT_uv_map(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("uv.unwrap")
+
+        layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("uv.smart_project")
         layout.operator("uv.lightmap_pack")
         layout.operator("uv.follow_active_quads")
 
         layout.separator()
 
+        layout.operator_context = 'EXEC_DEFAULT'
         layout.operator("uv.cube_project")
         layout.operator("uv.cylinder_project")
         layout.operator("uv.sphere_project")
