@@ -363,7 +363,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
         sub.prop(part, "tangent_phase", slider=True)
 
         col = split.column()
-        col.label(text="Emitter Object")
+        col.label(text="Emitter Object:")
         col.prop(part, "object_align_factor", text="")
 
         layout.label(text="Other:")
