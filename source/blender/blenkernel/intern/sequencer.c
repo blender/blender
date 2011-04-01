@@ -218,13 +218,25 @@ Editing *seq_give_editing(Scene *scene, int alloc)
 	return scene->ed;
 }
 
+static void seq_free_clipboard_recursive(Sequence *seq_parent)
+{
+	Sequence *seq, *nseq;
+
+	for(seq= seq_parent->seqbase.first; seq; seq= nseq) {
+		nseq= seq->next;
+		seq_free_clipboard_recursive(seq);
+	}
+
+	seq_free_sequence(NULL, seq_parent);
+}
+
 void seq_free_clipboard(void)
 {
 	Sequence *seq, *nseq;
 
 	for(seq= seqbase_clipboard.first; seq; seq= nseq) {
 		nseq= seq->next;
-		seq_free_sequence(NULL, seq);
+		seq_free_clipboard_recursive(seq);
 	}
 	seqbase_clipboard.first= seqbase_clipboard.last= NULL;
 }
