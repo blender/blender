@@ -561,6 +561,7 @@ void ui_theme_init_default(void)
 
 	/* UI buttons */
 	ui_widget_color_init(&btheme->tui);
+	btheme->tui.iconfile[0]= 0;
 	
 	/* Bone Color Sets */
 	ui_theme_init_boneColorSets(btheme);
@@ -601,6 +602,16 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
 	SETCOL(btheme->tv3d.vertex_normal, 0x23, 0x61, 0xDD, 255);
 	SETCOL(btheme->tv3d.face_dot, 255, 133, 0, 255);
+	SETCOL(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
+	SETCOLF(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
+	SETCOL(btheme->tv3d.edge_sharp, 255, 32, 32, 255);
+	SETCOL(btheme->tv3d.header_text, 0, 0, 0, 255);
+	SETCOL(btheme->tv3d.header_text_hi, 255, 255, 255, 255);
+	SETCOL(btheme->tv3d.button_text, 0, 0, 0, 255);
+	SETCOL(btheme->tv3d.button_text_hi, 255, 255, 255, 255);
+	SETCOL(btheme->tv3d.button_title, 0, 0, 0, 255);
+	SETCOL(btheme->tv3d.title, 0, 0, 0, 255);
+
 	btheme->tv3d.facedot_size= 4;
 
 	SETCOL(btheme->tv3d.extra_edge_len, 32, 0, 0, 255);
