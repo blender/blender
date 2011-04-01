@@ -1301,6 +1301,8 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 	}
 
 	/* build smooth normals for uninitialized normals at faces set to flat */
+	/* For such faces the renderer/3Dview and exporters will be using the face normal */
+	/* The vertex normals built inside this if-statement are entirely to support the needs of the modeler */
 	if(found_flat!=0) {
 		const int nr_bits= sizeof(int)*8;
 		const int nr_words= (numVerts+(nr_bits-1))/nr_bits;

@@ -2028,6 +2028,8 @@ void recalc_editnormals(EditMesh *em)
 	}
 
 	/* build smooth normals for uninitialized normals at faces set to flat */
+	/* For such faces the renderer/3Dview and exporters will be using the face normal */
+	/* The vertex normals built inside this if-statement are entirely to support the needs of the modeler */
 	if(found_flat!=0) {
 		for(efa= em->faces.first; efa; efa=efa->next) {
 			efa->v1->tmp.t= 0;
