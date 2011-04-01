@@ -331,12 +331,9 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel, bpy.types.Panel):
     bl_label = "Armature Options"
 
     def draw(self, context):
-        layout = self.layout
-
         arm = context.active_object.data
 
-        col = layout.column(align=True)
-        col.prop(arm, "use_mirror_x")
+        self.layout.prop(arm, "use_mirror_x")
 
 # ********** default tools for editmode_mball ****************
 
@@ -431,12 +428,9 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, bpy.types.Panel):
     bl_label = "Pose Options"
 
     def draw(self, context):
-        layout = self.layout
-
         arm = context.active_object.data
 
-        col = layout.column(align=True)
-        col.prop(arm, "use_auto_ik")
+        self.layout.prop(arm, "use_auto_ik")
 
 # ********** default tools for paint modes ****************
 
@@ -795,9 +789,6 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
 
         settings = __class__.paint_settings(context)
         brush = settings.brush
-        ## Unused
-        # image_paint = context.image_paint_object
-        # sculpt = context.sculpt_object
 
         col = layout.column(align=True)
 
@@ -986,7 +977,6 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
         return (context.sculpt_object and context.tool_settings.sculpt)
 
     def draw(self, context):
-
         layout = self.layout
 
         sculpt = context.tool_settings.sculpt
@@ -995,21 +985,16 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-
         col.label(text="Mirror:")
         col.prop(sculpt, "use_symmetry_x", text="X")
         col.prop(sculpt, "use_symmetry_y", text="Y")
         col.prop(sculpt, "use_symmetry_z", text="Z")
 
-        col = split.column()
+        split.prop(sculpt, "radial_symmetry", text="Radial")
 
-        col.prop(sculpt, "radial_symmetry", text="Radial")
+        layout.separator()
 
-        col = layout.column()
-
-        col.separator()
-
-        col.prop(sculpt, "use_symmetry_feather", text="Feather")
+        layout.prop(sculpt, "use_symmetry_feather", text="Feather")
 
 
 class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
@@ -1215,10 +1200,10 @@ class VIEW3D_PT_imagepaint_options(PaintPanel):
 
     def draw(self, context):
         layout = self.layout
+        
+        tool_settings = context.tool_settings
 
         col = layout.column()
-
-        tool_settings = context.tool_settings
         col.label(text="Unified Settings:")
         col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
         col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
