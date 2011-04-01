@@ -172,6 +172,8 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit, float *loc, fl
 void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 {
 	PropertyRNA *prop;
+	
+	/* note: this property gets hidden for add-camera operator */
 	RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view.");
 
 	if(do_editmode) {
@@ -478,6 +480,8 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_camera_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Add Camera";
 	ot->description = "Add a camera object to the scene";
@@ -491,6 +495,11 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 		
 	ED_object_add_generic_props(ot, TRUE);
+	
+	/* hide this for cameras, default */
+	prop= RNA_struct_type_find_property(ot->srna, "view_align");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
 }
 
 
