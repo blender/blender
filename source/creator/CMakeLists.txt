@@ -547,19 +547,20 @@ elseif(WIN32)
 			)
 		endif()
 	endif()
-	
-	add_custom_command(TARGET blender
-		POST_BUILD
-		MAIN_DEPENDENCY blender
-		COMMAND copy /Y \"${LIBDIR}\\thumbhandler\\lib\\BlendThumb64.dll\" \"${TARGETDIR}\\\"
-	)
-	if(NOT CMAKE_CL_64)
-		add_custom_command(TARGET blender
-			POST_BUILD
-			MAIN_DEPENDENCY blender
-			COMMAND copy /Y \"${LIBDIR}\\thumbhandler\\lib\\BlendThumb.dll\" \"${TARGETDIR}\\\"
-		)
-	endif()
+
+    if(NOT CMAKE_CL_64)
+		install(
+			FILES
+	    	${LIBDIR}/thumbhandler/lib/BlendThumb.dll
+    		DESTINATION ${TARGETDIR}/
+	    )
+    else()
+		install(
+			FILES
+	    	${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
+    		DESTINATION ${TARGETDIR}/
+	    )
+    endif()
 
 elseif(APPLE)
 	set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
