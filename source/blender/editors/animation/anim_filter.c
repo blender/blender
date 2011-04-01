@@ -804,7 +804,9 @@ static bAnimListElem *make_new_animlistelem (void *data, short datatype, void *o
  
 /* ----------------------------------------- */
 
-/* NOTE: when this function returns true, the F-Curve is to be skipped */
+/* 'Only Selected' selected data filtering
+ * NOTE: when this function returns true, the F-Curve is to be skipped 
+ */
 static int skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
 {
 	if (GS(owner_id->name) == ID_OB) {
@@ -876,6 +878,37 @@ static int skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_id
 	return 0;
 }
 
+/* (Display-)Name-based F-Curve filtering
+ * NOTE: when this function returns true, the F-Curve is to be skipped 
+ */
+static short skip_fcurve_with_name (bDopeSheet *ads, FCurve *fcu, ID *owner_id)
+{
+	bAnimListElem ale_dummy = {0};
+	bAnimChannelType *acf;
+	
+	/* create a dummy wrapper for the F-Curve */
+	ale_dummy.type = ANIMTYPE_FCURVE;
+	ale_dummy.id = owner_id;
+	ale_dummy.data = fcu;
+	
+	/* get type info for channel */
+	acf = ANIM_channel_get_typeinfo(&ale_dummy);
+	if (acf && acf->name) {
+		char name[256]; /* hopefully this will be enough! */
+		
+		/* get name */
+		acf->name(&ale_dummy, name);
+		
+		/* check for partial match with the match string, assuming case insensitive filtering 
+		 * if match, this channel shouldn't be ignored!
+		 */
+		return BLI_strcasestr(name, ads->searchstr) == NULL;
+	}
+	
+	/* just let this go... */
+	return 1;
+}
+
 /* find the next F-Curve that is usable for inclusion */
 static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
 {
@@ -885,7 +918,7 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 	 * NOTE: we need to check if the F-Curves belong to the same group, as this gets called for groups too...
 	 */
 	for (fcu= first; ((fcu) && (fcu->grp==grp)); fcu= fcu->next) {
-		/* special exception for Pose-Channel Based F-Curves:
+		/* special exception for Pose-Channel/Sequence-Strip/Node Based F-Curves:
 		 *	- the 'Only Selected' data filter should be applied to Pose-Channel data too, but those are
 		 *	  represented as F-Curves. The way the filter for objects worked was to be the first check
 		 *	  after 'normal' visibility, so this is done first here too...
@@ -897,7 +930,7 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 			if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode))
 				continue;
 		}
-			
+		
 		/* only include if visible (Graph Editor check, not channels check) */
 		if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
 			/* only work with this channel and its subchannels if it is editable */
@@ -906,6 +939,12 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
+						/* name based filtering... */
+						if ( ((ads) && (ads->filterflag & ADS_FILTER_BY_FCU_NAME)) && (owner_id) ) {
+							if (skip_fcurve_with_name(ads, fcu, owner_id))
+								continue;
+						}
+						
 						/* this F-Curve can be used, so return it */
 						return fcu;
 					}
