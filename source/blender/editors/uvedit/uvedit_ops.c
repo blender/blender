@@ -1057,7 +1057,7 @@ static void UV_OT_align(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= align_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "axis", axis_items, 'a', "Axis", "Axis to align UV locations on.");
@@ -1761,7 +1761,7 @@ static void UV_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_exec;
 	ot->invoke= select_invoke;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -1810,7 +1810,7 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_loop_exec;
 	ot->invoke= select_loop_invoke;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -1890,7 +1890,7 @@ static void UV_OT_select_linked(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_linked_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -1918,7 +1918,7 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= select_linked_pick_invoke;
 	ot->exec= select_linked_pick_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -2256,7 +2256,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= border_select_exec;
 	ot->modal= WM_border_select_modal;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2345,7 +2345,7 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;
 	ot->exec= circle_select_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2419,7 +2419,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= snap_cursor_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to.");
@@ -2660,7 +2660,7 @@ static void UV_OT_snap_selection(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= snap_selection_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to.");
@@ -3080,7 +3080,7 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= set_2d_cursor_exec;
 	ot->invoke= set_2d_cursor_invoke;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3148,7 +3148,7 @@ static void UV_OT_tile_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= set_tile_exec;
 	ot->invoke= set_tile_invoke;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
