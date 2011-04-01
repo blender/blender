@@ -62,7 +62,7 @@ const char *screen_context_dir[] = {
 	"visible_pose_bones", "selected_pose_bones", "active_bone", "active_pose_bone",
 	"active_base", "active_object", "object", "edit_object",
 	"sculpt_object", "vertex_paint_object", "weight_paint_object",
-	"texture_paint_object", "particle_edit_object",
+	"image_paint_object", "particle_edit_object",
 	"sequences", "selected_sequences", "selected_editable_sequences", /* sequencer */
 	NULL};
 
@@ -340,7 +340,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 		return 1;
 	}
-	else if(CTX_data_equals(member, "texture_paint_object")) {
+	else if(CTX_data_equals(member, "image_paint_object")) {
 		if(obact && (obact->mode & OB_MODE_TEXTURE_PAINT))
 			CTX_data_id_pointer_set(result, &obact->id);
 

@@ -790,7 +790,7 @@ static const char *data_mode_strings[] = {
 	"sculpt_mode",
 	"weightpaint",
 	"vertexpaint",
-	"texturepaint",
+	"imagepaint",
 	"particlemode",
 	"objectmode",
 	NULL

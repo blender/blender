@@ -74,20 +74,20 @@ def execute_context_assign(self, context):
     return {'FINISHED'}
 
 
-class BRUSH_OT_set_active_number(bpy.types.Operator):
+class BRUSH_OT_active_index_set(bpy.types.Operator):
     '''Set active sculpt/paint brush from it's number'''
-    bl_idname = "brush.set_active_number"
+    bl_idname = "brush.active_index_set"
     bl_label = "Set Brush Number"
 
     mode = StringProperty(name="mode",
             description="Paint mode to set brush for", maxlen=1024)
-    number = IntProperty(name="number",
+    index = IntProperty(name="number",
             description="Brush number")
 
     _attr_dict = {"sculpt": "use_paint_sculpt",
                   "vertex_paint": "use_paint_vertex",
                   "weight_paint": "use_paint_weight",
-                  "image_paint": "use_paint_texture"}
+                  "image_paint": "use_paint_image"}
 
     def execute(self, context):
         attr = self._attr_dict.get(self.mode)

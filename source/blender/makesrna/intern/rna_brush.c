@@ -69,7 +69,7 @@ EnumPropertyItem brush_sculpt_tool_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 
-EnumPropertyItem brush_vertexpaint_tool_items[] = {
+EnumPropertyItem brush_vertex_tool_items[] = {
 	{0, "MIX", ICON_BRUSH_MIX, "Mix", "Use mix blending mode while painting"},
 	{1, "ADD", ICON_BRUSH_ADD, "Add", "Use add blending mode while painting"},
 	{2, "SUB", ICON_BRUSH_SUBTRACT, "Subtract", "Use subtract blending mode while painting"},
@@ -79,7 +79,7 @@ EnumPropertyItem brush_vertexpaint_tool_items[] = {
 	{6, "DARKEN", ICON_BRUSH_DARKEN, "Darken", "Use darken blending mode while painting"},
 	{0, NULL, 0, NULL, NULL}};
 	
-EnumPropertyItem brush_imagepaint_tool_items[] = {
+EnumPropertyItem brush_image_tool_items[] = {
 	{PAINT_TOOL_DRAW, "DRAW", ICON_BRUSH_TEXDRAW, "Draw", ""},
 	{PAINT_TOOL_SOFTEN, "SOFTEN", ICON_BRUSH_SOFTEN, "Soften", ""},
 	{PAINT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SMEAR, "Smear", ""},
@@ -130,7 +130,7 @@ static void rna_Brush_sculpt_tool_update(Main *bmain, Scene *scene, PointerRNA *
 	rna_Brush_update(bmain, scene, ptr);
 }
  
-static void rna_Brush_vertexpaint_tool_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Brush_vertex_tool_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
 	rna_Brush_reset_icon(br, "vertex_paint");
@@ -140,7 +140,7 @@ static void rna_Brush_vertexpaint_tool_update(Main *bmain, Scene *scene, Pointer
 static void rna_Brush_imagepaint_tool_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
-	rna_Brush_reset_icon(br, "texture_paint");
+	rna_Brush_reset_icon(br, "image_paint");
 	rna_Brush_update(bmain, scene, ptr);
 }
 
@@ -383,13 +383,15 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sculpt Tool", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_sculpt_tool_update");
 
-	prop= RNA_def_property(srna, "vertexpaint_tool", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, brush_vertexpaint_tool_items);
+	prop= RNA_def_property(srna, "vertex_tool", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "vertexpaint_tool");
+	RNA_def_property_enum_items(prop, brush_vertex_tool_items);
 	RNA_def_property_ui_text(prop, "Vertex/Weight Paint Tool", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_vertexpaint_tool_update");
+	RNA_def_property_update(prop, 0, "rna_Brush_vertex_tool_update");
 	
-	prop= RNA_def_property(srna, "imagepaint_tool", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, brush_imagepaint_tool_items);
+	prop= RNA_def_property(srna, "image_tool", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "imagepaint_tool");
+	RNA_def_property_enum_items(prop, brush_image_tool_items);
 	RNA_def_property_ui_text(prop, "Image Paint Tool", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_Brush_imagepaint_tool_update");
 
@@ -694,7 +696,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_WEIGHT_PAINT);
 	RNA_def_property_ui_text(prop, "Use Weight", "Use this brush in weight paint mode");	
 
-	prop= RNA_def_property(srna, "use_paint_texture", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_paint_image", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_TEXTURE_PAINT);
 	RNA_def_property_ui_text(prop, "Use Texture", "Use this brush in texture paint mode");	
 

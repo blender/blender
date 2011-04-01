@@ -1072,11 +1072,11 @@ static int ui_id_brush_get_icon(bContext *C, ID *id)
 			tool = br->sculpt_tool;
 		}
 		else if(mode == OB_MODE_VERTEX_PAINT) {
-			items = brush_vertexpaint_tool_items;
+			items = brush_vertex_tool_items;
 			tool = br->vertexpaint_tool;
 		}
 		else if(mode == OB_MODE_TEXTURE_PAINT) {
-			items = brush_imagepaint_tool_items;
+			items = brush_image_tool_items;
 			tool = br->imagepaint_tool;
 		}
 

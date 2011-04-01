@@ -455,7 +455,7 @@ class PaintPanel():
             return ts.vertex_paint
         elif context.weight_paint_object:
             return ts.weight_paint
-        elif context.texture_paint_object:
+        elif context.image_paint_object:
             return ts.image_paint
         elif context.particle_edit_object:
             return ts.particle_edit
@@ -619,7 +619,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
         # Texture Paint Mode #
 
-        elif context.texture_paint_object and brush:
+        elif context.image_paint_object and brush:
             col = layout.column()
             col.template_color_wheel(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
@@ -689,7 +689,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
     def poll(cls, context):
         settings = cls.paint_settings(context)
         return (settings and settings.brush and (context.sculpt_object or
-                             context.texture_paint_object))
+                             context.image_paint_object))
 
     def draw(self, context):
         layout = self.layout
@@ -701,7 +701,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
         col = layout.column()
 
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
-        if brush.use_paint_texture:
+        if brush.use_paint_image:
             col.prop(brush, "use_fixed_texture")
 
         if context.sculpt_object:
@@ -787,7 +787,7 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
     def poll(cls, context):
         settings = cls.paint_settings(context)
         return (settings and settings.brush and
-            (context.sculpt_object or context.texture_paint_object or
+            (context.sculpt_object or context.image_paint_object or
             context.vertex_paint_object or context.weight_paint_object))
 
     def draw(self, context):
@@ -796,7 +796,7 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
         settings = __class__.paint_settings(context)
         brush = settings.brush
         ## Unused
-        # texture_paint = context.texture_paint_object
+        # image_paint = context.image_paint_object
         # sculpt = context.sculpt_object
 
         col = layout.column(align=True)
@@ -804,16 +804,16 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
         if context.sculpt_object:
             col.prop(brush, "sculpt_tool", expand=False, text="")
             col.operator("brush.reset")
-        elif context.texture_paint_object:
-            col.prop(brush, "imagepaint_tool", expand=False, text="")
+        elif context.image_paint_object:
+            col.prop(brush, "image_tool", expand=False, text="")
         elif context.vertex_paint_object or context.weight_paint_object:
-            col.prop(brush, "vertexpaint_tool", expand=False, text="")
+            col.prop(brush, "vertex_tool", expand=False, text="")
 
         row = layout.row(align=True)
         row.prop(brush, "use_paint_sculpt", text="", icon='SCULPTMODE_HLT')
         row.prop(brush, "use_paint_vertex", text="", icon='VPAINT_HLT')
         row.prop(brush, "use_paint_weight", text="", icon='WPAINT_HLT')
-        row.prop(brush, "use_paint_texture", text="", icon='TPAINT_HLT')
+        row.prop(brush, "use_paint_image", text="", icon='TPAINT_HLT')
 
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
@@ -826,14 +826,14 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
         return (settings and settings.brush and (context.sculpt_object or
                              context.vertex_paint_object or
                              context.weight_paint_object or
-                             context.texture_paint_object))
+                             context.image_paint_object))
 
     def draw(self, context):
         layout = self.layout
 
         settings = __class__.paint_settings(context)
         brush = settings.brush
-        texture_paint = context.texture_paint_object
+        image_paint = context.image_paint_object
 
         col = layout.column()
 
@@ -884,7 +884,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
 
             col.separator()
 
-            if not texture_paint:
+            if not image_paint:
                 row = col.row()
                 row.prop(brush, "use_smooth_stroke")
 
@@ -910,7 +910,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
 
             #col.separator()
 
-            #if texture_paint:
+            #if image_paint:
             #    row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
 
@@ -1018,7 +1018,7 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.sculpt_object and context.tool_settings.sculpt) or (context.vertex_paint_object and context.tool_settings.vertex_paint) or (context.weight_paint_object and context.tool_settings.weight_paint) or (context.texture_paint_object and context.tool_settings.image_paint)
+        return (context.sculpt_object and context.tool_settings.sculpt) or (context.vertex_paint_object and context.tool_settings.vertex_paint) or (context.weight_paint_object and context.tool_settings.weight_paint) or (context.image_paint_object and context.tool_settings.image_paint)
 
     def draw(self, context):
         layout = self.layout
@@ -1135,13 +1135,13 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel, bpy.types.Panel):
 
 
 class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
-    bl_context = "texturepaint"
+    bl_context = "imagepaint"
     bl_label = "Project Paint"
 
     @classmethod
     def poll(cls, context):
         brush = context.tool_settings.image_paint.brush
-        return (brush and brush.imagepaint_tool != 'SOFTEN')
+        return (brush and brush.image_tool != 'SOFTEN')
 
     def draw_header(self, context):
         ipaint = context.tool_settings.image_paint
@@ -1184,7 +1184,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
         col = layout.column()
         sub = col.column()
         row = sub.row()
-        row.active = (settings.brush.imagepaint_tool == 'CLONE')
+        row.active = (settings.brush.image_tool == 'CLONE')
 
         row.prop(ipaint, "use_clone_layer", text="Layer")
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
@@ -1211,7 +1211,7 @@ class VIEW3D_PT_imagepaint_options(PaintPanel):
 
     @classmethod
     def poll(cls, context):
-        return (context.texture_paint_object and context.tool_settings.image_paint)
+        return (context.image_paint_object and context.tool_settings.image_paint)
 
     def draw(self, context):
         layout = self.layout
