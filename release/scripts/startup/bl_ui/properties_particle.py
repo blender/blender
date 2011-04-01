@@ -889,7 +889,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             split = layout.split(percentage=0.33)
             split.label(text="Split uv's:")
             split.prop(part, "billboard_uv_split", text="Number of splits")
-            
+
             if psys:
                 col = layout.column()
                 col.active = part.billboard_uv_split > 1

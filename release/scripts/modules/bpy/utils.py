@@ -347,7 +347,6 @@ def keyconfig_set(filepath):
 
     print("loading preset:", filepath)
     keyconfigs = _bpy.context.window_manager.keyconfigs
-    kc_orig = keyconfigs.active
 
     keyconfigs_old = keyconfigs[:]
 

@@ -859,6 +859,7 @@ class WM_OT_keyconfig_activate(bpy.types.Operator):
         bpy.utils.keyconfig_set(self.filepath)
         return {'FINISHED'}
 
+
 class WM_OT_appconfig_default(bpy.types.Operator):
     bl_idname = "wm.appconfig_default"
     bl_label = "Default Application Configuration"
@@ -868,12 +869,13 @@ class WM_OT_appconfig_default(bpy.types.Operator):
 
         context.window_manager.keyconfigs.active = context.window_manager.keyconfigs.default
 
-        filepath = os.path.join(bpy.utils.preset_paths("interaction")[0], "blender.py")        
-        
+        filepath = os.path.join(bpy.utils.preset_paths("interaction")[0], "blender.py")
+
         if os.path.exists(filepath):
-            bpy.ops.script.execute_preset(filepath = filepath, menu_idname = "USERPREF_MT_interaction_presets")
-        
+            bpy.ops.script.execute_preset(filepath=filepath, menu_idname="USERPREF_MT_interaction_presets")
+
         return {'FINISHED'}
+
 
 class WM_OT_appconfig_activate(bpy.types.Operator):
     bl_idname = "wm.appconfig_activate"
@@ -884,13 +886,14 @@ class WM_OT_appconfig_activate(bpy.types.Operator):
     def execute(self, context):
         import os
         bpy.utils.keyconfig_set(self.filepath)
-        
+
         filepath = self.filepath.replace("keyconfig", "interaction")
-        
+
         if os.path.exists(filepath):
-            bpy.ops.script.execute_preset(filepath = filepath, menu_idname = "USERPREF_MT_interaction_presets")
-        
+            bpy.ops.script.execute_preset(filepath=filepath, menu_idname="USERPREF_MT_interaction_presets")
+
         return {'FINISHED'}
+
 
 class WM_OT_sysinfo(bpy.types.Operator):
     '''Generate System Info'''

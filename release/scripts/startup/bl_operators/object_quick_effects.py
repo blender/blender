@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 
-import mathutils
 from mathutils import Vector
 import bpy
 from bpy.props import BoolProperty, EnumProperty, IntProperty, FloatProperty, FloatVectorProperty
@@ -80,6 +79,7 @@ class MakeFur(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 def obj_bb_minmax(obj, min_co, max_co):
     for i in range(0, 8):
         bb_vec = Vector((obj.bound_box[i][0], obj.bound_box[i][1], obj.bound_box[i][2])) * obj.matrix_world
@@ -90,6 +90,7 @@ def obj_bb_minmax(obj, min_co, max_co):
         max_co[0] = max(bb_vec[0], max_co[0])
         max_co[1] = max(bb_vec[1], max_co[1])
         max_co[2] = max(bb_vec[2], max_co[2])
+
 
 class MakeSmoke(bpy.types.Operator):
     bl_idname = "object.make_smoke"
@@ -148,8 +149,8 @@ class MakeSmoke(bpy.types.Operator):
         obj.name = "Smoke Domain"
 
         # give the smoke some room above the flows
-        obj.location = 0.5 * (max_co + min_co) + Vector((0,0,1))
-        obj.scale = 0.5 * (max_co - min_co) + Vector((1,1,2))
+        obj.location = 0.5 * (max_co + min_co) + Vector((0.0, 0.0, 1.0))
+        obj.scale = 0.5 * (max_co - min_co) + Vector((1.0, 1.0, 2.0))
 
         # setup smoke domain
         bpy.ops.object.modifier_add({"object": obj}, type='SMOKE')
@@ -261,8 +262,8 @@ class MakeFluid(bpy.types.Operator):
 
         # give the fluid some room below the flows and scale with initial velocity
         v = 0.5 * self.initial_velocity
-        obj.location = 0.5 * (max_co + min_co) + Vector((0,0,-1)) + v
-        obj.scale = 0.5 * (max_co - min_co) + Vector((1,1,2)) + Vector((abs(v[0]), abs(v[1]), abs(v[2])))
+        obj.location = 0.5 * (max_co + min_co) + Vector((0.0, 0.0, -1.0)) + v
+        obj.scale = 0.5 * (max_co - min_co) + Vector((1.0, 1.0, 2.0)) + Vector((abs(v[0]), abs(v[1]), abs(v[2])))
 
         # setup smoke domain
         bpy.ops.object.modifier_add({"object": obj}, type='FLUID_SIMULATION')
@@ -279,7 +280,7 @@ class MakeFluid(bpy.types.Operator):
         mat.specular_intensity = 1
         mat.specular_hardness = 100
         mat.use_transparency = True
-        mat.alpha = 0
+        mat.alpha = 0.0
         mat.transparency_method = 'RAYTRACE'
         mat.raytrace_transparency.ior = 1.33
         mat.raytrace_transparency.depth = 4

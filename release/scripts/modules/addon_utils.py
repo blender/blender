@@ -107,7 +107,7 @@ def modules(module_cache):
                 import traceback
                 traceback.print_exc()
                 raise
-            
+
             return mod
         else:
             return None
@@ -246,7 +246,6 @@ def disable(module_name, default_set=True):
     :type module_name: string
     """
     import sys
-    import traceback
     import bpy_types as _bpy_types
 
     mod = sys.modules.get(module_name)
@@ -259,6 +258,7 @@ def disable(module_name, default_set=True):
         try:
             mod.unregister()
         except:
+            import traceback
             traceback.print_exc()
     else:
         print("addon_utils.disable", module_name, "not loaded")

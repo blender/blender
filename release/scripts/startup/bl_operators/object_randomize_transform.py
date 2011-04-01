@@ -84,7 +84,7 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even):
             uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
 
 
-from bpy.props import IntProperty, BoolProperty, FloatProperty, FloatVectorProperty
+from bpy.props import IntProperty, BoolProperty, FloatVectorProperty
 
 
 class RandomizeLocRotSize(bpy.types.Operator):

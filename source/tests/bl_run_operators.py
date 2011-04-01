@@ -113,11 +113,6 @@ def ctx_editmode_mball():
     bpy.ops.object.mode_set(mode='EDIT')
 
 
-def ctx_editmode_mball():
-    bpy.ops.object.metaball_add()
-    bpy.ops.object.mode_set(mode='EDIT')
-
-
 def ctx_editmode_text():
     bpy.ops.object.text_add()
     bpy.ops.object.mode_set(mode='EDIT')

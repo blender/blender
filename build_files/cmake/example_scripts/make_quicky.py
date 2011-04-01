@@ -43,8 +43,8 @@ def main():
     targets = set()
 
     # collect targets
-    file = open("Makefile", "r")
-    for line in file:
+    makefile = open("Makefile", "r")
+    for line in makefile:
         line = line.rstrip()
         if not line or line[0] in ". \t@$#":
             continue
@@ -59,7 +59,7 @@ def main():
             continue
 
         targets.add(line)
-    file.close()
+    makefile.close()
 
     # remove cmake targets
     bad = set([

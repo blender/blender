@@ -19,7 +19,6 @@
 # <pep8 compliant>
 
 import bpy
-import os
 
 
 class AddPresetBase():

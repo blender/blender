@@ -94,11 +94,11 @@ if platform == '':
     sys.exit(1)
 
 # extract
-dir = 'public_html/download'
+directory = 'public_html/download'
 
 try:
     zf = z.open(package)
-    f = file(os.path.join(dir, packagename), "wb")
+    f = file(os.path.join(directory, packagename), "wb")
 
     shutil.copyfileobj(zf, f)
 
@@ -112,10 +112,10 @@ except Exception, ex:
 
 # remove other files from the same platform
 try:
-    for f in os.listdir(dir):
+    for f in os.listdir(directory):
         if platform.lower() in f.lower():
             if f != packagename:
-                os.remove(os.path.join(dir, f))
+                os.remove(os.path.join(directory, f))
 except Exception, ex:
     sys.stderr.write('Failed to remove old packages: %s\n' % str(ex))
     sys.exit(1)

@@ -1,5 +1,4 @@
 import bpy
-from bpy.props import IntProperty, FloatProperty
 
 
 class ModalTimerOperator(bpy.types.Operator):
