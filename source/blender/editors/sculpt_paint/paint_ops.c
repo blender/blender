@@ -28,10 +28,12 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_brush_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_paint.h"
+#include "BKE_main.h"
 
 #include "ED_sculpt.h"
 #include "ED_screen.h"
@@ -42,12 +44,14 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include <string.h>
 //#include <stdio.h>
+#include <stddef.h>
 
 /* Brush operators */
 static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -191,6 +195,148 @@ static void BRUSH_OT_reset(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* generic functions for setting the active brush based on the tool */
+static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, const size_t tool_offset, const int ob_mode)
+{
+	struct Brush *brush;
+
+	if(!brush_orig && !(brush_orig= bmain->brush.first)) {
+		return NULL;
+	}
+
+	/* get the next brush with the active tool */
+	for(	brush= brush_orig->id.next ? brush_orig->id.next : bmain->brush.first;
+			brush != brush_orig;
+			brush= brush->id.next ? brush->id.next : bmain->brush.first)
+	{
+		if(	(brush->ob_mode & ob_mode) &&
+			(*(((char *)brush) + tool_offset) == tool)
+		) {
+			return brush;
+		}
+	}
+
+	return NULL;
+
+}
+
+static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool, const size_t tool_offset, const int ob_mode)
+{
+	struct Brush *brush, *brush_orig= paint_brush(paint);
+
+	brush= brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
+
+	if(brush) {
+		paint_brush_set(paint, brush);
+		WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static int brush_sculpt_tool_set_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+
+	return brush_generic_tool_set(bmain, &scene->toolsettings->sculpt->paint, RNA_enum_get(op->ptr, "tool"), offsetof(Brush, sculpt_tool), OB_MODE_SCULPT);
+}
+
+static void BRUSH_OT_sculpt_tool_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Sculpt Tool Set";
+	ot->description= "Set the sculpt tool";
+	ot->idname= "BRUSH_OT_sculpt_tool_set";
+
+	/* api callbacks */
+	ot->exec= brush_sculpt_tool_set_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	ot->prop= RNA_def_enum(ot->srna, "tool", brush_sculpt_tool_items, 0, "Tool", "");
+}
+
+static int brush_vertex_tool_set_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+
+	return brush_generic_tool_set(bmain, &scene->toolsettings->vpaint->paint, RNA_enum_get(op->ptr, "tool"), offsetof(Brush, vertexpaint_tool), OB_MODE_VERTEX_PAINT);
+}
+
+static void BRUSH_OT_vertex_tool_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Vertex Paint Tool Set";
+	ot->description= "Set the vertex paint tool";
+	ot->idname= "BRUSH_OT_vertex_tool_set";
+
+	/* api callbacks */
+	ot->exec= brush_vertex_tool_set_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	ot->prop= RNA_def_enum(ot->srna, "tool", brush_vertex_tool_items, 0, "Tool", "");
+}
+
+static int brush_weight_tool_set_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+	/* vertexpaint_tool is used for weight paint mode */
+	return brush_generic_tool_set(bmain, &scene->toolsettings->wpaint->paint, RNA_enum_get(op->ptr, "tool"), offsetof(Brush, vertexpaint_tool), OB_MODE_WEIGHT_PAINT);
+}
+
+static void BRUSH_OT_weight_tool_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Weight Paint Tool Set";
+	ot->description= "Set the weight paint tool";
+	ot->idname= "BRUSH_OT_weight_tool_set";
+
+	/* api callbacks */
+	ot->exec= brush_weight_tool_set_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	ot->prop= RNA_def_enum(ot->srna, "tool", brush_vertex_tool_items, 0, "Tool", "");
+}
+
+static int brush_image_tool_set_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+
+	return brush_generic_tool_set(bmain, &scene->toolsettings->imapaint.paint, RNA_enum_get(op->ptr, "tool"), offsetof(Brush, imagepaint_tool), OB_MODE_TEXTURE_PAINT);
+}
+
+static void BRUSH_OT_image_tool_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Image Paint Tool Set";
+	ot->description= "Set the image tool";
+	ot->idname= "BRUSH_OT_image_tool_set";
+
+	/* api callbacks */
+	ot->exec= brush_image_tool_set_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	ot->prop= RNA_def_enum(ot->srna, "tool", brush_image_tool_items, 0, "Tool", "");
+}
+
+
 /**************************** registration **********************************/
 
 void ED_operatortypes_paint(void)
@@ -200,6 +346,12 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(BRUSH_OT_scale_size);
 	WM_operatortype_append(BRUSH_OT_curve_preset);
 	WM_operatortype_append(BRUSH_OT_reset);
+
+	/* note, particle uses a different system, can be added with existing operators in wm.py */
+	WM_operatortype_append(BRUSH_OT_sculpt_tool_set);
+	WM_operatortype_append(BRUSH_OT_vertex_tool_set);
+	WM_operatortype_append(BRUSH_OT_weight_tool_set);
+	WM_operatortype_append(BRUSH_OT_image_tool_set);
 
 	/* image */
 	WM_operatortype_append(PAINT_OT_texture_paint_toggle);
@@ -344,6 +496,16 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	ed_keymap_paint_brush_switch(keymap, "sculpt");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.sculpt.brush.size");
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_sculpt_tool_set", DKEY, KM_PRESS, 0, 0)->ptr, "tool", SCULPT_TOOL_DRAW);
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_sculpt_tool_set", SKEY, KM_PRESS, 0, 0)->ptr, "tool", SCULPT_TOOL_SMOOTH);
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_sculpt_tool_set", PKEY, KM_PRESS, 0, 0)->ptr, "tool", SCULPT_TOOL_PINCH);
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_sculpt_tool_set", IKEY, KM_PRESS, 0, 0)->ptr, "tool", SCULPT_TOOL_INFLATE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_sculpt_tool_set", GKEY, KM_PRESS, 0, 0)->ptr, "tool", SCULPT_TOOL_GRAB);
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_sculpt_tool_set", LKEY, KM_PRESS, 0, 0)->ptr, "tool", SCULPT_TOOL_LAYER);
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_sculpt_tool_set", TKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "tool", SCULPT_TOOL_FLATTEN); /* was just TKEY in 2.4x */
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_sculpt_tool_set", CKEY, KM_PRESS, 0, 0)->ptr, "tool", SCULPT_TOOL_CLAY);
+	RNA_enum_set(WM_keymap_add_item(keymap, "BRUSH_OT_sculpt_tool_set", CKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "tool", SCULPT_TOOL_CREASE);
 
 	/* */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_menu_enum", AKEY, KM_PRESS, 0, 0);

@@ -95,7 +95,7 @@ class BRUSH_OT_active_index_set(bpy.types.Operator):
             return {'CANCELLED'}
 
         for i, brush in enumerate((cur for cur in bpy.data.brushes if getattr(cur, attr))):
-            if i == self.number:
+            if i == self.index:
                 getattr(context.tool_settings, self.mode).brush = brush
                 return {'FINISHED'}
 
