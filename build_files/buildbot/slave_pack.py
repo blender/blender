@@ -37,16 +37,48 @@ builder = sys.argv[1]
 # scons does own packaging
 if builder.find('scons') != -1:
     os.chdir('../blender')
-    retcode = subprocess.call(['python', 'scons/scons.py', 'BF_QUICK=slnt', 'buildslave'])
-    sys.exit(retcode)
+    scons_options = ['BF_QUICK=slnt', 'buildslave']
+
+    if builder.startswith('linux'):
+        buildbot_dir = os.path.dirname(os.path.realpath(__file__))
+        config_dir = os.path.join(buildbot_dir, 'config')
+        build_dir = os.path.join('..', 'build', builder)
+        install_dir = os.path.join('..', 'install', builder)
+
+        scons_options += ['WITH_BF_NOBLENDER=True', 'WITH_BF_PLAYER=False',
+            'BF_BUILDDIR=' + build_dir,
+            'BF_INSTALLDIR=' + install_dir]
+
+        config = None
+
+        if builder == 'linux_x86_64_scons':
+            config = 'user-config-x86_64.py'
+        elif builder == 'linux_i386_scons':
+            config = 'user-config-x86_64.py'
+
+        if config is not None:
+            config_fpath = os.path.join(config_dir, config)
+            scons_options.append('BF_CONFIG=' + config_fpath)
+
+        retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+        if retcode == 0:
+            blender = os.path.join(install_dir, 'blender')
+            blenderplayer = os.path.join(install_dir, 'blenderplayer')
+
+            subprocess.call(['strip', '--strip-all', blender, blenderplayer])
+
+        sys.exit(retcode)
+    else:
+        retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+        sys.exit(retcode)
 
 # clean release directory if it already exists
-directory = 'release'
+dir = 'release'
 
-if os.path.exists(directory):
-    for f in os.listdir(directory):
-        if os.path.isfile(os.path.join(directory, f)):
-            os.remove(os.path.join(directory, f))
+if os.path.exists(dir):
+    for f in os.listdir(dir):
+        if os.path.isfile(os.path.join(dir, f)):
+            os.remove(os.path.join(dir, f))
 
 # create release package
 try:
@@ -56,7 +88,7 @@ except Exception, ex:
     sys.exit(1)
 
 # find release directory, must exist this time
-if not os.path.exists(directory):
+if not os.path.exists(dir):
     sys.stderr.write("Failed to find release directory.\n")
     sys.exit(1)
 
@@ -64,8 +96,8 @@ if not os.path.exists(directory):
 file = None
 filepath = None
 
-for f in os.listdir(directory):
-    rf = os.path.join(directory, f)
+for f in os.listdir(dir):
+    rf = os.path.join(dir, f)
     if os.path.isfile(rf) and f.startswith('blender'):
         file = f
         filepath = rf

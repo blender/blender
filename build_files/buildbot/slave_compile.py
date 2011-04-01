@@ -56,5 +56,67 @@ else:
     os.chdir(blender_dir)
     scons_options = []
 
-    retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
-    sys.exit(retcode)
+    if builder.startswith('linux'):
+        import shutil
+
+        cores = 1
+        if hasattr(os, 'sysconf'):
+            if 'SC_NPROCESSORS_ONLN' in os.sysconf_names:
+                cores = os.sysconf('SC_NPROCESSORS_ONLN')
+
+            if cores > 1:
+                # there're two chroot environments in one machine,
+                # so use only a half of power for better performance
+                cores = cores / 2
+
+        # We're using the same rules as release builder, so tweak
+        # build and install dirs
+        build_dir = os.path.join('..', 'build', builder)
+        install_dir = os.path.join('..', 'install', builder)
+
+        common_options = ['BF_NUMJOBS=' + str(cores),
+            'BF_BUILDDIR=' + build_dir,
+            'BF_INSTALLDIR=' + install_dir]
+
+        # Clean all directories first
+        retcode = subprocess.call(['python', 'scons/scons.py'] + common_options + ['clean'])
+        if retcode != 0:
+            print('Error cleaning build directory')
+            sys.exit(retcode)
+
+        if os.path.isdir(install_dir):
+            shutil.rmtree(install_dir)
+
+        buildbot_dir = os.path.dirname(os.path.realpath(__file__))
+        config_dir = os.path.join(buildbot_dir, 'config')
+
+        configs = []
+        if builder == 'linux_x86_64_scons':
+            configs = ['user-config-player-x86_64.py',
+                       'user-config-x86_64.py']
+        elif builder == 'linux_i386_scons':
+            configs = ['user-config-player-i686.py',
+                       'user-config-i686.py']
+
+        for config in configs:
+            config_fpath = os.path.join(config_dir, config)
+
+            scons_options = []
+            scons_options += common_options
+
+            if config.find('player') == -1:
+                scons_options.append('blender')
+            else:
+                scons_options.append('blenderplayer')
+
+            scons_options.append('BF_CONFIG=' + config_fpath)
+
+            retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+            if retcode != 0:
+                print('Error building rules wuth config ' + config)
+                sys.exit(retcode)
+
+        sys.exit(0)
+    else:
+        retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+        sys.exit(retcode)
