@@ -81,6 +81,7 @@ enum {
 	GP_DRAWDATA_ONLYV2D		= (1<<2),	/* only draw 'canvas' strokes */
 	GP_DRAWDATA_ONLYI2D		= (1<<3),	/* only draw 'image' strokes */
 	GP_DRAWDATA_IEDITHACK	= (1<<4),	/* special hack for drawing strokes in Image Editor (weird coordinates) */
+	GP_DRAWDATA_NO_XRAY		= (1<<5),	/* dont draw xray in 3D view (which is default) */
 };
 
 /* thickness above which we should use special drawing */
@@ -506,8 +507,35 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 		/* check which stroke-drawer to use */
 		if (gps->totpoints == 1)
 			gp_draw_stroke_point(gps->points, lthick, gps->flag, offsx, offsy, winx, winy);
-		else if (dflag & GP_DRAWDATA_ONLY3D)
+		else if (dflag & GP_DRAWDATA_ONLY3D) {
+			const int no_xray= (dflag & GP_DRAWDATA_NO_XRAY);
+			int mask_orig;
+			if(no_xray) {
+				glGetIntegerv(GL_DEPTH_WRITEMASK, &mask_orig);
+				glDepthMask(0);
+				glEnable(GL_DEPTH_TEST);
+
+				/* first arg is normally rv3d->dist, but this isnt available here and seems to work quite well without */
+				bglPolygonOffset(1.0f, 1.0f);
+				/*
+				glEnable(GL_POLYGON_OFFSET_LINE);
+				glPolygonOffset(-1.0f, -1.0f);
+				*/
+			}
+
 			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, debug);
+
+			if(no_xray) {
+				glDepthMask(mask_orig);
+				glDisable(GL_DEPTH_TEST);
+
+				bglPolygonOffset(0.0, 0.0);
+				/*
+				glDisable(GL_POLYGON_OFFSET_LINE);
+				glPolygonOffset(0, 0);
+				*/
+			}
+		}
 		else if (gps->totpoints > 1)	
 			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, offsx, offsy, winx, winy);
 	}
@@ -556,7 +584,11 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 		QUATCOPY(tcolor, gpl->color); // additional copy of color (for ghosting)
 		glColor4f(color[0], color[1], color[2], color[3]);
 		glPointSize((float)(gpl->thickness + 2));
-		
+
+		/* apply xray layer setting */
+		if(gpl->flag & GP_LAYER_NO_XRAY)	dflag |=  GP_DRAWDATA_NO_XRAY;
+		else								dflag &= ~GP_DRAWDATA_NO_XRAY;
+
 		/* draw 'onionskins' (frame left + right) */
 		if (gpl->flag & GP_LAYER_ONIONSKIN) {
 			/* drawing method - only immediately surrounding (gstep = 0), or within a frame range on either side (gstep > 0)*/			
