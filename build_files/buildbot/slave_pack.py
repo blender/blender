@@ -60,13 +60,11 @@ if builder.find('scons') != -1:
             config_fpath = os.path.join(config_dir, config)
             scons_options.append('BF_CONFIG=' + config_fpath)
 
+        blender = os.path.join(install_dir, 'blender')
+        blenderplayer = os.path.join(install_dir, 'blenderplayer')
+        subprocess.call(['strip', '--strip-all', blender, blenderplayer])
+
         retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
-        if retcode == 0:
-            blender = os.path.join(install_dir, 'blender')
-            blenderplayer = os.path.join(install_dir, 'blenderplayer')
-
-            subprocess.call(['strip', '--strip-all', blender, blenderplayer])
-
         sys.exit(retcode)
     else:
         retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
