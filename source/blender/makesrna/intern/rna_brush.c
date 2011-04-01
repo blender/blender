@@ -430,7 +430,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Brush_get_size", "rna_Brush_set_size", NULL);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS*10);
 	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, 0);
-	RNA_def_property_ui_text(prop, "Size", "Radius of the brush in pixels");
+	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);

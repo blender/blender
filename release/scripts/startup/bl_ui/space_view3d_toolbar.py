@@ -522,7 +522,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.prop(brush, "unprojected_radius", text="Radius", slider=True)
             else:
                 row.prop(brush, "use_locked_size", toggle=True, text="", icon='UNLOCKED')
-                row.prop(brush, "size", text="Radius", slider=True)
+                row.prop(brush, "size", slider=True)
 
             row.prop(brush, "use_pressure_size", toggle=True, text="")
 
@@ -625,7 +625,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            row.prop(brush, "size", text="Radius", slider=True)
+            row.prop(brush, "size", slider=True)
             row.prop(brush, "use_pressure_size", toggle=True, text="")
 
             row = col.row(align=True)
@@ -650,7 +650,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             col = layout.column()
 
             row = col.row(align=True)
-            row.prop(brush, "size", text="Radius", slider=True)
+            row.prop(brush, "size", slider=True)
             row.prop(brush, "use_pressure_size", toggle=True, text="")
 
             row = col.row(align=True)
@@ -668,7 +668,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            row.prop(brush, "size", text="Radius", slider=True)
+            row.prop(brush, "size", slider=True)
             row.prop(brush, "use_pressure_size", toggle=True, text="")
 
             row = col.row(align=True)
