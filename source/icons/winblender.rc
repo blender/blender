@@ -23,8 +23,13 @@ BEGIN
   BEGIN
     BLOCK "04090000"
     BEGIN
+#ifdef FREE_WINDOWS // this doesnt work for mingw.
+      VALUE "FileVersion", "Unknown"
+      VALUE "ProductVersion", "Unknown"
+#else
       VALUE "FileVersion", BLEN_VER_RC_STR
       VALUE "ProductVersion", BLEN_VER_RC_STR
+#endif
       VALUE "CompanyName", "Blender Foundation"
       VALUE "FileDescription", "Blender"
       VALUE "LegalCopyright", "GPLv2 (Blender Foundation)"
