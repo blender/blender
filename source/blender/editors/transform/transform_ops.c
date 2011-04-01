@@ -110,6 +110,39 @@ static TransformModeItem transform_modes[] =
 	{NULL, 0}
 };
 
+EnumPropertyItem transform_mode_types[] =
+{
+	{TFM_INIT, "INIT", 0, "Init", ""},
+	{TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
+	{TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
+	{TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
+	{TFM_RESIZE, "RESIZE", 0, "Resize", ""},
+	{TFM_TOSPHERE, "TOSPHERE", 0, "Tosphere", ""},
+	{TFM_SHEAR, "SHEAR", 0, "Shear", ""},
+	{TFM_WARP, "WARP", 0, "Warp", ""},
+	{TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrinkfatten", ""},
+	{TFM_TILT, "TILT", 0, "Tilt", ""},
+	{TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
+	{TFM_PUSHPULL, "PUSHPULL", 0, "Pushpull", ""},
+	{TFM_CREASE, "CREASE", 0, "Crease", ""},
+	{TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
+	{TFM_BONESIZE, "BONE_SIZE", 0, "Bonesize", ""},
+	{TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone_Envelope", ""},
+	{TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve_Shrinkfatten", ""},
+	{TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone_Roll", ""},
+	{TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time_Translate", ""},
+	{TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time_Slide", ""},
+	{TFM_TIME_SCALE, "TIME_SCALE", 0, "Time_Scale", ""},
+	{TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time_Extend", ""},
+	{TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake_Time", ""},
+	{TFM_BEVEL, "BEVEL", 0, "Bevel", ""},
+	{TFM_BWEIGHT, "BWEIGHT", 0, "Bweight", ""},
+	{TFM_ALIGN, "ALIGN", 0, "Align", ""},
+	{TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
+	{TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static int snap_type_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
@@ -756,38 +789,6 @@ void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
 void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-
-	static EnumPropertyItem transform_mode_types[] = {
-			{TFM_INIT, "INIT", 0, "Init", ""},
-			{TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
-			{TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
-			{TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
-			{TFM_RESIZE, "RESIZE", 0, "Resize", ""},
-			{TFM_TOSPHERE, "TOSPHERE", 0, "Tosphere", ""},
-			{TFM_SHEAR, "SHEAR", 0, "Shear", ""},
-			{TFM_WARP, "WARP", 0, "Warp", ""},
-			{TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrinkfatten", ""},
-			{TFM_TILT, "TILT", 0, "Tilt", ""},
-			{TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
-			{TFM_PUSHPULL, "PUSHPULL", 0, "Pushpull", ""},
-			{TFM_CREASE, "CREASE", 0, "Crease", ""},
-			{TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
-			{TFM_BONESIZE, "BONE_SIZE", 0, "Bonesize", ""},
-			{TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone_Envelope", ""},
-			{TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve_Shrinkfatten", ""},
-			{TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone_Roll", ""},
-			{TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time_Translate", ""},
-			{TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time_Slide", ""},
-			{TFM_TIME_SCALE, "TIME_SCALE", 0, "Time_Scale", ""},
-			{TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time_Extend", ""},
-			{TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake_Time", ""},
-			{TFM_BEVEL, "BEVEL", 0, "Bevel", ""},
-			{TFM_BWEIGHT, "BWEIGHT", 0, "Bweight", ""},
-			{TFM_ALIGN, "ALIGN", 0, "Align", ""},
-			{TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
-			{TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
-			{0, NULL, 0, NULL, NULL}
-	};
 
 	/* identifiers */
 	ot->name   = "Transform";

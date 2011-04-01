@@ -62,6 +62,7 @@
 #include "WM_types.h"
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 /* for menu/popup icons etc etc*/
 
@@ -1678,7 +1679,7 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /* delete operator */
@@ -2671,21 +2672,6 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 	/* properties */
 }
 
-static void seq_offset(Scene *scene, Sequence *seq, int ofs)
-{
-	if(seq->type == SEQ_META) {
-		Sequence *iseq;
-		for(iseq= seq->seqbase.first; iseq; iseq= iseq->next) {
-			seq_offset(scene, iseq, ofs);
-		}
-	}
-	else {
-		seq->start += ofs;
-	}
-
-	calc_sequence_disp(scene, seq);
-}
-
 static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
@@ -2702,14 +2688,8 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	/* transform pasted strips before adding */
 	if(ofs) {
 		for(iseq= nseqbase.first; iseq; iseq= iseq->next) {
-			seq_offset(scene, iseq, ofs);
-			/* XXX, ffmpeg too? */
-			if(iseq->sound) {
-				iseq->scene_sound = sound_add_scene_sound(scene, iseq, iseq->startdisp, iseq->enddisp, iseq->startofs + iseq->anim_startofs);
-			}
-			if(iseq->scene) {
-				sound_scene_add_scene_sound(scene, iseq, iseq->startdisp, iseq->enddisp, iseq->startofs + iseq->anim_startofs);
-			}
+			seq_translate(scene, iseq, ofs);
+			seq_sound_init(scene, iseq);
 		}
 	}
 

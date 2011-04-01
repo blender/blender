@@ -171,7 +171,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 			float *rf= rectf;
 			char *rc= rectc;
 			float rgb[3];
-			const float dither = ibuf->dither / 255.0;
+			const float dither = ibuf->dither / 255.0f;
 
 			/* XXX temp. because crop offset */
 			if( rectc >= (char *)(ibuf->rect)) {

@@ -95,6 +95,8 @@ extern EnumPropertyItem operator_context_items[];
 
 extern EnumPropertyItem wm_report_items[];
 
+extern EnumPropertyItem transform_mode_types[];
+
 extern EnumPropertyItem property_type_items[];
 extern EnumPropertyItem property_unit_items[];
 
