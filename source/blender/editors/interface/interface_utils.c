@@ -145,16 +145,22 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int (*check_prop)(Proper
 			continue;
 
 		if(label_align != '\0') {
+			PropertyType type = RNA_property_type(prop);
+			int is_boolean = (type == PROP_BOOLEAN && !RNA_property_array_check(ptr, prop));
+
 			name= RNA_property_ui_name(prop);
 
 			if(label_align=='V') {
 				col= uiLayoutColumn(layout, 1);
-				uiItemL(col, name, ICON_NONE);
+
+				if(!is_boolean)
+					uiItemL(col, name, ICON_NONE);
 			}
 			else if(label_align=='H') {
 				split = uiLayoutSplit(layout, 0.5f, 0);
 
-				uiItemL(uiLayoutColumn(split, 0), name, ICON_NONE);
+				col= uiLayoutColumn(split, 0);
+				uiItemL(col, (is_boolean)? "": name, ICON_NONE);
 				col= uiLayoutColumn(split, 0);
 			}
 			else {
@@ -163,12 +169,9 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int (*check_prop)(Proper
 
 			/* may meed to add more cases here.
 			 * don't override enum flag names */
-			if(flag & PROP_ENUM_FLAG) {
-				name= NULL;
-			}
-			else {
-				name= ""; /* name is shown above, empty name for button below */
-			}
+
+			/* name is shown above, empty name for button below */
+			name= (flag & PROP_ENUM_FLAG || is_boolean)? NULL: "";
 		}
 		else {
 			col= layout;
