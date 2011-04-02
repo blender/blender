@@ -495,7 +495,7 @@ static float wind_func(struct RNG *rng, float strength)
 	float ret;
 	float sign = 0;
 	
-	sign = ((float)random > 64.0) ? 1.0: -1.0; // dividing by 2 is not giving equal sign distribution
+	sign = ((float)random > 64.0f) ? 1.0f: -1.0f; // dividing by 2 is not giving equal sign distribution
 	
 	ret = sign*((float)random / force)*strength/128.0f;
 	
@@ -517,7 +517,7 @@ static float falloff_func(float fac, int usemin, float mindist, int usemax, floa
 	if(!usemin)
 		mindist = 0.0;
 
-	return pow((double)1.0+fac-mindist, (double)-power);
+	return pow((double)(1.0f+fac-mindist), (double)(-power));
 }
 
 static float falloff_func_dist(PartDeflect *pd, float fac)
@@ -653,7 +653,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 			sim.psys= eff->psys;
 
 			/* TODO: time from actual previous calculated frame (step might not be 1) */
-			state.time = cfra - 1.0;
+			state.time = cfra - 1.0f;
 			ret = psys_get_particle_state(&sim, *efd->index, &state, 0);
 
 			/* TODO */
@@ -705,7 +705,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		if(real_velocity) {
 			VECCOPY(efd->vel, ob->obmat[3]);
 
-			where_is_object_time(eff->scene, ob, cfra - 1.0);
+			where_is_object_time(eff->scene, ob, cfra - 1.0f);
 
 			sub_v3_v3v3(efd->vel, efd->vel, ob->obmat[3]);
 		}
@@ -931,10 +931,10 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 		case PFIELD_LENNARDJ:
 			fac = pow((efd->size + point->size) / efd->distance, 6.0);
 			
-			fac = - fac * (1.0 - fac) / efd->distance;
+			fac = - fac * (1.0f - fac) / efd->distance;
 
 			/* limit the repulsive term drastically to avoid huge forces */
-			fac = ((fac>2.0) ? 2.0 : fac);
+			fac = ((fac>2.0f) ? 2.0f : fac);
 
 			mul_v3_fl(force, strength * fac);
 			break;

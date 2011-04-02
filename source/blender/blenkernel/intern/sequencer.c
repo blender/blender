@@ -1029,7 +1029,7 @@ static float give_stripelem_index(Sequence *seq, float cfra)
 	if (seq->strobe < 1.0f) seq->strobe = 1.0f;
 	
 	if (seq->strobe > 1.0f) {
-		nr -= fmod((double)nr, (double)seq->strobe);
+		nr -= fmodf((double)nr, (double)seq->strobe);
 	}
 
 	return nr;

@@ -880,7 +880,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 		if((arearatio < 1.0f || viewport < 1.0f) && elem->totchild) {
 			/* lambda is percentage of elements to keep */
-			lambda= (arearatio < 1.0f)? pow(arearatio, powrate): 1.0f;
+			lambda= (arearatio < 1.0f)? powf(arearatio, powrate): 1.0f;
 			lambda *= viewport;
 
 			lambda= MAX2(lambda, 1.0f/elem->totchild);
@@ -2254,7 +2254,7 @@ static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheK
 	pd_point_from_particle(sim, sim->psys->particles+i, &eff_key, &epoint);
 	pdDoEffectors(sim->psys->effectors, sim->colliders, sim->psys->part->effector_weights, &epoint, force, NULL);
 
-	mul_v3_fl(force, effector*pow((float)k / (float)steps, 100.0f * sim->psys->part->eff_hair) / (float)steps);
+	mul_v3_fl(force, effector*powf((float)k / (float)steps, 100.0f * sim->psys->part->eff_hair) / (float)steps);
 
 	add_v3_v3(force, vec);
 

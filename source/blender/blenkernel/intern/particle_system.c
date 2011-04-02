@@ -659,7 +659,7 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 
 	if(num==0) return;
 
-	rad1= (float)(1.0f/sqrt((float)num));
+	rad1= (float)(1.0f/sqrtf((float)num));
 	rad2= (float)(1.0f/((float)num));
 	rad3= (float)sqrt((float)num)/((float)num);
 
@@ -1668,7 +1668,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		zero_v3(pa->state.vel);
 
 		/* boids store direction in ave */
-		if(fabs(nor[2])==1.0f) {
+		if(fabsf(nor[2])==1.0f) {
 			sub_v3_v3v3(pa->state.ave, loc, ob->obmat[3]);
 			normalize_v3(pa->state.ave);
 		}
@@ -2334,7 +2334,7 @@ static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 	pfr->neighbors[pfr->tot_neighbors].psys = pfr->npsys;
 	pfr->tot_neighbors++;
 
-	q = (1.f - sqrt(squared_dist)/pfr->h) * pfr->massfac;
+	q = (1.f - sqrtf(squared_dist)/pfr->h) * pfr->massfac;
 
 	if(pfr->use_size)
 		q *= npa->size;
@@ -2658,7 +2658,7 @@ static float nr_distance_to_edge(float *p, float radius, ParticleCollisionElemen
 
 	cross_v3_v3v3(c, v1, v2);
 
-	return fabs(len_v3(c)/len_v3(v0)) - radius;
+	return fabsf(len_v3(c)/len_v3(v0)) - radius;
 }
 static float nr_distance_to_vert(float *p, float radius, ParticleCollisionElement *pce, float *UNUSED(nor))
 {

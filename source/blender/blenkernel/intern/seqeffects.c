@@ -1582,11 +1582,11 @@ typedef struct WipeZone {
 static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo)
 {
 	wipezone->flip = (wipe->angle < 0);
-	wipezone->angle = pow(fabs(wipe->angle)/45.0f, log(xo)/log(2.0f));
+	wipezone->angle = pow(fabsf(wipe->angle)/45.0f, log(xo)/log(2.0f));
 	wipezone->xo = xo;
 	wipezone->yo = yo;
 	wipezone->width = (int)(wipe->edgeWidth*((xo+yo)/2.0f));
-	wipezone->pythangle = 1.0f/sqrt(wipe->angle*wipe->angle + 1.0f);
+	wipezone->pythangle = 1.0f/sqrtf(wipe->angle*wipe->angle + 1.0f);
 
 	if(wipe->wipetype == DO_SINGLE_WIPE)
 		wipezone->invwidth = 1.0f/wipezone->width;

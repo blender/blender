@@ -1060,7 +1060,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						else
 							newnor = tnor;
 						
-						norfac = MIN2(fabsf(mtex->norfac), 1.0);
+						norfac = MIN2(fabsf(mtex->norfac), 1.0f);
 						
 						if(norfac == 1.0f && !GPU_link_changed(stencil)) {
 							shi->vn = newnor;
@@ -1308,7 +1308,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 			/* exposure correction */
 			if(world->exp!=0.0f || world->range!=1.0f) {
 				linfac= 1.0 + pow((2.0*world->exp + 0.5), -10);
-				logfac= log((linfac-1.0)/linfac)/world->range;
+				logfac= log((linfac-1.0f)/linfac)/world->range;
 
 				GPU_link(mat, "set_value", GPU_uniform(&linfac), &ulinfac);
 				GPU_link(mat, "set_value", GPU_uniform(&logfac), &ulogfac);
@@ -1481,10 +1481,10 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 
 	lamp->spotsi= la->spotsize;
 	if(lamp->mode & LA_HALO)
-		if(lamp->spotsi > 170.0)
-			lamp->spotsi = 170.0;
+		if(lamp->spotsi > 170.0f)
+			lamp->spotsi = 170.0f;
 	lamp->spotsi= cos(M_PI*lamp->spotsi/360.0);
-	lamp->spotbl= (1.0 - lamp->spotsi)*la->spotblend;
+	lamp->spotbl= (1.0f - lamp->spotsi)*la->spotblend;
 	lamp->k= la->k;
 
 	lamp->dist= la->dist;

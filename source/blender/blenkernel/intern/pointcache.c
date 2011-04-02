@@ -2557,7 +2557,7 @@ static void *ptcache_bake_thread(void *ptr) {
 				ptcache_dt_to_str(run, ctime-stime);
 				ptcache_dt_to_str(etd, fetd);
 
-				printf("Baked for %s, current frame: %i/%i (%.3fs), ETC: %s          \r", run, *data->cfra_ptr-sfra+1, efra-sfra+1, (float)(ctime-ptime), etd);
+				printf("Baked for %s, current frame: %i/%i (%.3fs), ETC: %s          \r", run, *data->cfra_ptr-sfra+1, efra-sfra+1, ctime-ptime, etd);
 			}
 			ptime = ctime;
 		}
