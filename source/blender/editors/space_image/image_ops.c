@@ -798,7 +798,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open";
+	ot->name= "Open Image";
 	ot->idname= "IMAGE_OT_open";
 	
 	/* api callbacks */
@@ -856,7 +856,7 @@ static int replace_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void IMAGE_OT_replace(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Replace";
+	ot->name= "Replace Image";
 	ot->idname= "IMAGE_OT_replace";
 	
 	/* api callbacks */
@@ -1076,7 +1076,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void IMAGE_OT_save_as(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Save As";
+	ot->name= "Save As Image";
 	ot->idname= "IMAGE_OT_save_as";
 	
 	/* api callbacks */
@@ -1147,7 +1147,7 @@ static int save_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_save(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Save";
+	ot->name= "Save Image";
 	ot->idname= "IMAGE_OT_save";
 	
 	/* api callbacks */
@@ -1259,7 +1259,7 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 void IMAGE_OT_reload(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reload";
+	ot->name= "Reload Image";
 	ot->idname= "IMAGE_OT_reload";
 	
 	/* api callbacks */
@@ -1341,7 +1341,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	static float default_color[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 	
 	/* identifiers */
-	ot->name= "New";
+	ot->name= "New Image";
 	ot->idname= "IMAGE_OT_new";
 	
 	/* api callbacks */
@@ -1349,7 +1349,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->invoke= image_new_invoke;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_string(ot->srna, "name", "untitled", 21, "Name", "Image datablock name.");
@@ -1514,7 +1514,7 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void IMAGE_OT_pack(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pack";
+	ot->name= "Pack Image";
 	ot->description= "Pack an image as embedded data into the .blend file"; 
 	ot->idname= "IMAGE_OT_pack";
 	
@@ -1591,7 +1591,7 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 void IMAGE_OT_unpack(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Unpack";
+	ot->name= "Unpack Image";
 	ot->description= "Save an image packed in the .blend file to disk"; 
 	ot->idname= "IMAGE_OT_unpack";
 	
@@ -1803,7 +1803,7 @@ static int sample_cancel(bContext *C, wmOperator *op)
 void IMAGE_OT_sample(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sample";
+	ot->name= "Sample Color";
 	ot->idname= "IMAGE_OT_sample";
 	
 	/* api callbacks */
