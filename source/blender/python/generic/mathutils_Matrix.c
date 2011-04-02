@@ -226,8 +226,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 		}
 	}
 
-	/* clamp angle between -360 and 360 in radians */
-	angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2;
+	angle= angle_wrap_rad(angle);
 
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix");

@@ -861,7 +861,7 @@ static int Quaternion_setAngle(QuaternionObject *self, PyObject *value, void *UN
 		return -1;
 	}
 
-	angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2;
+	angle= angle_wrap_rad(angle);
 
 	/* If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations */
 	if(	EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
@@ -955,7 +955,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	case 2:
 		if (mathutils_array_parse(quat, 3, 3, seq, "mathutils.Quaternion()") == -1)
 			return NULL;
-		angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2; /* clamp because of precision issues */
+		angle= angle_wrap_rad(angle); /* clamp because of precision issues */
 		axis_angle_to_quat(quat, quat, angle);
 		break;
 	/* PyArg_ParseTuple assures no more then 2 */

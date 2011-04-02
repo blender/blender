@@ -1675,3 +1675,19 @@ float angle_to_lens(float angle)
 {
 	return 16.0f / tanf(angle * 0.5f);
 }
+
+/* 'mod_inline(-3,4)= 1', 'fmod(-3,4)= -3' */
+static float mod_inline(float a, float b)
+{
+	return a - (b * floorf(a / b));
+}
+
+float angle_wrap_rad(float angle)
+{
+	return mod_inline(angle + (float)M_PI, (float)M_PI*2.0f) - (float)M_PI;
+}
+
+float angle_wrap_deg(float angle)
+{
+	return mod_inline(angle + 180.0f, 360.0f) - 180.0f;
+}
