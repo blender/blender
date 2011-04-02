@@ -45,7 +45,9 @@ def get_platform(filename):
     filename = strip_extension(filename)
 
     tokens = filename.split("-")
-    platforms = 'osx', 'mac', 'bsd', 'win', 'linux', 'source', 'irix', 'solaris'
+    platforms = ('osx', 'mac', 'bsd',
+                 'win', 'linux', 'source',
+                 'irix', 'solaris')
     platform_tokens = []
     found = False
 
@@ -90,7 +92,8 @@ packagename = os.path.basename(package)
 platform = get_platform(packagename)
 
 if platform == '':
-    sys.stderr.write('Failed to detect platform from package: %r\n' % packagename)
+    sys.stderr.write('Failed to detect platform ' +
+        'from package: %r\n' % packagename)
     sys.exit(1)
 
 # extract

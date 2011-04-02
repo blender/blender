@@ -54,6 +54,7 @@ if builder.find('cmake') != -1:
 else:
     # scons
     os.chdir(blender_dir)
+    scons_cmd = ['python', 'scons/scons.py']
     scons_options = []
 
     if builder.startswith('linux'):
@@ -79,7 +80,7 @@ else:
             'BF_INSTALLDIR=' + install_dir]
 
         # Clean all directories first
-        retcode = subprocess.call(['python', 'scons/scons.py'] + common_options + ['clean'])
+        retcode = subprocess.call(scons_cmd + common_options + ['clean'])
         if retcode != 0:
             print('Error cleaning build directory')
             sys.exit(retcode)
@@ -111,7 +112,7 @@ else:
 
             scons_options.append('BF_CONFIG=' + config_fpath)
 
-            retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+            retcode = subprocess.call(scons_cmd + scons_options)
             if retcode != 0:
                 print('Error building rules wuth config ' + config)
                 sys.exit(retcode)
