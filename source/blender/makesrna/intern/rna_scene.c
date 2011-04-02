@@ -78,9 +78,9 @@ EnumPropertyItem proportional_falloff_items[] ={
 
 
 EnumPropertyItem proportional_editing_items[] = {
-	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", ""},
-	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", ""},
-	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected", ""},
+	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", "Proportional Editing disabled"},
+	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", "Proportional Editing enabled"},
+	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected", "Proportional Editing using connected geometry only"},
 	{0, NULL, 0, NULL, NULL}};
 
 /* keep for operators, not used here */
@@ -1087,7 +1087,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "proportional_edit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "proportional");
 	RNA_def_property_enum_items(prop, proportional_editing_items);
-	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional editing mode");
+	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional Editing mode, allows transforms with distance fall-off");
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "use_proportional_edit_objects", PROP_BOOLEAN, PROP_NONE);
