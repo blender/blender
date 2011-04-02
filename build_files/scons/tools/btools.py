@@ -530,6 +530,8 @@ def buildbot_zip(src, dest, package_name, extension):
     print("writing %s to %s" % (dest, bb_zip_name))
     bb_zip.write(dest, os.path.split(dest)[1])
     bb_zip.close()
+    print("removing unneeded packed file %s (to keep install directory clean)" % (dest))
+    os.remove(dest)
     print("done.")
 
 def buildslave_print(target, source, env):
