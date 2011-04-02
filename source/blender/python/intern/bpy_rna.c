@@ -6189,22 +6189,6 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 		return NULL;
 	}
 
-	/* call classed register function () */
-	py_cls_meth= PyObject_GetAttrString(py_class, "register");
-	if(py_cls_meth == NULL) {
-		PyErr_Clear();
-	}
-	else {
-		PyObject *ret= PyObject_CallObject(py_cls_meth, NULL);
-		if(ret) {
-			Py_DECREF(ret);
-		}
-		else {
-			return NULL;
-		}
-	}
-
-
 	/* get the context, so register callback can do necessary refreshes */
 	C= BPy_GetContext();
 
@@ -6237,6 +6221,21 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 	 */
 	if(pyrna_deferred_register_class(srna_new, py_class)!=0)
 		return NULL;
+
+	/* call classed register method () */
+	py_cls_meth= PyObject_GetAttrString(py_class, "register");
+	if(py_cls_meth == NULL) {
+		PyErr_Clear();
+	}
+	else {
+		PyObject *ret= PyObject_CallObject(py_cls_meth, NULL);
+		if(ret) {
+			Py_DECREF(ret);
+		}
+		else {
+			return NULL;
+		}
+	}
 
 	Py_RETURN_NONE;
 }
@@ -6299,7 +6298,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 		return NULL;
 	}
 
-	/* call classed register function */
+	/* call classed unregister method */
 	py_cls_meth= PyObject_GetAttrString(py_class, "unregister");
 	if(py_cls_meth == NULL) {
 		PyErr_Clear();
