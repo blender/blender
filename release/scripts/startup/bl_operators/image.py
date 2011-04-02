@@ -112,7 +112,7 @@ class SaveDirty(bpy.types.Operator):
 
 
 class ProjectEdit(bpy.types.Operator):
-    """Edit a snapshot if the viewport in an external image editor"""
+    """Edit a snapshot of the viewport in an external image editor"""
     bl_idname = "image.project_edit"
     bl_label = "Project Edit"
     bl_options = {'REGISTER'}
