@@ -1918,7 +1918,18 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int screen_full_area_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ED_screen_full_toggle(C, CTX_wm_window(C), CTX_wm_area(C));
+	bScreen *screen = CTX_wm_screen(C);
+	ScrArea *sa=NULL;
+	
+	/* search current screen for 'fullscreen' areas */
+	/* prevents restoring info header, when mouse is over it */
+	for (sa=screen->areabase.first; sa; sa=sa->next) {
+		if (sa->full) break;
+	}
+	
+	if(sa==NULL) sa= CTX_wm_area(C);
+	
+	ED_screen_full_toggle(C, CTX_wm_window(C), sa);
 	return OPERATOR_FINISHED;
 }
 
