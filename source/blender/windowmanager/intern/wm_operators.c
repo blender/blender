@@ -906,7 +906,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiPopupBoundsBlock(block, 4, 0, 0);
 	uiEndBlock(C, block);
 
 	return block;
@@ -969,7 +969,7 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	}
 
 	/* center around the mouse */
-	uiPopupBoundsBlock(block, 4.0f, data->width/-2, data->height/2);
+	uiPopupBoundsBlock(block, 4, data->width/-2, data->height/2);
 	uiEndBlock(C, block);
 
 	return block;
@@ -992,7 +992,7 @@ static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 	/* since ui is defined the auto-layout args are not used */
 	uiLayoutOperatorButs(C, layout, op, NULL, 'V', 0);
 
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiPopupBoundsBlock(block, 4, 0, 0);
 	uiEndBlock(C, block);
 
 	return block;
@@ -1264,7 +1264,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
-	uiPopupBoundsBlock(block, 6.0f, 0, -20); /* move it downwards, mouse over button */
+	uiPopupBoundsBlock(block, 6, 0, -20); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
 	
 	event= *(win->eventstate);	/* XXX huh huh? make api call */
@@ -2728,8 +2728,8 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	}
 
 	glColor4f(rc->col[0], rc->col[1], rc->col[2], rc->col[3]);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, r1, 40);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, r2, 40);
+	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r1, 40);
+	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r2, 40);
 	glDisable(GL_BLEND);
 }
 

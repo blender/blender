@@ -11528,7 +11528,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
 			if(brush->height == 0)
-				brush->height= 0.4;
+				brush->height= 0.4f;
 		}
 
 		/* replace 'rim material' option for in offset*/

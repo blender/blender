@@ -247,7 +247,7 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 	int numfiles;
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
-		int width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
+		int width = (int)(ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x);
 		numfiles = (float)width/(float)layout->tile_w + 0.5f;
 		return numfiles*layout->rows;
 	} else {
