@@ -1221,6 +1221,7 @@ static void customData_update_offsets(CustomData *data)
 	}
 
 	data->totsize = offset;
+	customData_update_typemap(data);
 }
 
 int CustomData_get_layer_index(const CustomData *data, int type)
@@ -1666,10 +1667,10 @@ void CustomData_free_temporary(CustomData *data, int totelem)
 
 		if (i != j)
 			data->layers[j] = data->layers[i];
-
-		if ((layer->flag & CD_FLAG_TEMPORARY) == CD_FLAG_TEMPORARY)
+		
+		if ((layer->flag & CD_FLAG_TEMPORARY) == CD_FLAG_TEMPORARY) {
 			customData_free_layer__internal(layer, totelem);
-		else
+		} else
 			j++;
 	}
 

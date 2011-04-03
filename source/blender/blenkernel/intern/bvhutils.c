@@ -581,6 +581,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			if(tree != NULL)
 			{
 				/* XXX, for snap only, em & dm are assumed to be aligned, since dm is the em's cage */
+#if 0 //BMESH_TODO
 				EditMesh *em= data->em_evil;
 				if(em) {
 					EditFace *efa= em->faces.first;
@@ -596,6 +597,9 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 							BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 						}
 					}
+#else
+				if (0) {
+#endif
 				}
 				else {
 					for(i = 0; i < numFaces; i++) {

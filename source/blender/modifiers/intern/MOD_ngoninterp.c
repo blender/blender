@@ -90,10 +90,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int *origv = NULL, *origf = NULL, *of, *ov;
 	BLI_array_declare(origv);
 	BLI_array_declare(origf);
+	DerivedMesh *copy = NULL;
 	int i;
 	
 	if (nmd->resolution <= 0)
 		return dm;
+	
+	if (!CDDM_Check(dm)) {
+		dm = copy = CDDM_copy(dm, 0);
+	}
 	
 	CDDM_recalc_tesselation(dm, 0);
 	
@@ -291,6 +296,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	dummy->needsFree = 1;
 	dummy->release(dummy);
 	
+	if (copy) {
+		copy->needsFree = 1;
+		copy->release(dm);
+		copy = copy;
+	}
+
 	return cddm;
 }
 
