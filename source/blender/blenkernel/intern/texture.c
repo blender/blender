@@ -795,7 +795,13 @@ Tex *localize_texture(Tex *tex)
 		texn->env= BKE_copy_envmap(texn->env);
 		id_us_min(&texn->env->ima->id);
 	}
-	if(texn->pd) texn->pd= MEM_dupallocN(texn->pd);
+	if(texn->pd) {
+		texn->pd= MEM_dupallocN(texn->pd);
+		if(texn->pd->coba) {
+			texn->pd->coba= MEM_dupallocN(texn->pd->coba);
+		}
+
+	}
 	if(texn->vd) {
 		texn->vd= MEM_dupallocN(texn->vd);
 		if(texn->vd->dataset)
