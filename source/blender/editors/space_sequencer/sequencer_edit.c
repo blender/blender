@@ -337,7 +337,7 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, short mval[2])
 		}
 		seq= seq->next;
 	}
-	return 0;
+	return NULL;
 }
 
 
@@ -461,12 +461,12 @@ static void reload_image_strip(Scene *scene, char *UNUSED(name))
 
 
 
-	if(last_seq==0 || last_seq->type!=SEQ_IMAGE) return;
+	if(last_seq==NULL || last_seq->type!=SEQ_IMAGE) return;
 	seqact= last_seq;	/* last_seq changes in alloc_sequence */
 
 	/* search sfile */
 //	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
-	if(sfile==0) return;
+	if(sfile == NULL) return;
 
 	waitcursor(1);
 
@@ -479,7 +479,7 @@ static void reload_image_strip(Scene *scene, char *UNUSED(name))
 		seqact->len= seq->len;
 		calc_sequence(scene, seqact);
 
-		seq->strip= 0;
+		seq->strip= NULL;
 		seq_free_sequence(scene, seq);
 		BLI_remlink(ed->seqbasep, seq);
 
@@ -497,7 +497,7 @@ static void change_sequence(Scene *scene)
 	Scene *sce;
 	short event;
 
-	if(last_seq==0) return;
+	if(last_seq == NULL) return;
 
 	if(last_seq->type & SEQ_EFFECT) {
 		event = pupmenu("Change Effect%t"
@@ -590,7 +590,7 @@ static void change_sequence(Scene *scene)
 int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3, const char **error_str)
 {
 	Editing *ed = seq_give_editing(scene, FALSE);
-	Sequence *seq1= 0, *seq2= 0, *seq3= 0, *seq;
+	Sequence *seq1= NULL, *seq2= NULL, *seq3= NULL, *seq;
 	
 	*error_str= NULL;
 
@@ -604,9 +604,9 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 				return 0;
 			}
 			if((seq != activeseq) && (seq != seq2)) {
-								if(seq2==0) seq2= seq;
-								else if(seq1==0) seq1= seq;
-								else if(seq3==0) seq3= seq;
+								if(seq2 == NULL) seq2= seq;
+								else if(seq1 == NULL) seq1= seq;
+								else if(seq3 == NULL) seq3= seq;
 								else {
 									*error_str= "Can't apply effect to more than 3 sequence strips";
 									return 0;
@@ -617,7 +617,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
        
 	/* make sequence selection a little bit more intuitive
 	   for 3 strips: the last-strip should be sequence3 */
-	if (seq3 != 0 && seq2 != 0) {
+	if (seq3 != NULL && seq2 != NULL) {
 		Sequence *tmp = seq2;
 		seq2 = seq3;
 		seq3 = tmp;
@@ -626,21 +626,21 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 
 	switch(get_sequence_effect_num_inputs(type)) {
 	case 0:
-		*selseq1 = *selseq2 = *selseq3 = 0;
+		*selseq1 = *selseq2 = *selseq3 = NULL;
 		return 1; /* succsess */
 	case 1:
-		if(seq2==0)  {
+		if(seq2==NULL)  {
 			*error_str= "Need at least one selected sequence strip";
 			return 0;
 		}
-		if(seq1==0) seq1= seq2;
-		if(seq3==0) seq3= seq2;
+		if(seq1==NULL) seq1= seq2;
+		if(seq3==NULL) seq3= seq2;
 	case 2:
-		if(seq1==0 || seq2==0) {
+		if(seq1==NULL || seq2==NULL) {
 			*error_str= "Need 2 selected sequence strips";
 			return 0;
 		}
-		if(seq3==0) seq3= seq2;
+		if(seq3 == NULL) seq3= seq2;
 	}
 	
 	if (seq1==NULL && seq2==NULL && seq3==NULL) {
@@ -722,7 +722,7 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 {
 	TransSeq ts;
-	Sequence *seqn = 0;
+	Sequence *seqn = NULL;
 	int skip_dup = FALSE;
 
 	/* backup values */
@@ -816,7 +816,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 {
 	TransSeq ts;
-	Sequence *seqn = 0;
+	Sequence *seqn = NULL;
 	int skip_dup = FALSE;
 
 	/* backup values */
@@ -2013,8 +2013,8 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BLI_movelisttolist(ed->seqbasep, &last_seq->seqbase);
 
-	last_seq->seqbase.first= 0;
-	last_seq->seqbase.last= 0;
+	last_seq->seqbase.first= NULL;
+	last_seq->seqbase.last= NULL;
 
 	BLI_remlink(ed->seqbasep, last_seq);
 	seq_free_sequence(scene, last_seq);

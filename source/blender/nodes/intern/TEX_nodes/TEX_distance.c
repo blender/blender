@@ -34,6 +34,7 @@
 #include <math.h>
 #include "BLI_math.h"
 #include "../TEX_util.h"
+#include "TEX_node.h"
 
 static bNodeSocketType inputs[]= {
 	{ SOCK_VECTOR, 1, "Coordinate 1", 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f },

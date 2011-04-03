@@ -1696,7 +1696,7 @@ static void RestoreState(bContext *C, wmWindow *win)
 }
 
 /* was space_set_commmandline_options in 2.4x */
-void game_set_commmandline_options(GameData *gm)
+static void game_set_commmandline_options(GameData *gm)
 {
 	SYS_SystemHandle syshandle;
 	int test;

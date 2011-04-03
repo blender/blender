@@ -191,14 +191,14 @@ static int edgecut_get(EdgeHash *edgehash, int v1, int v2)
 }
 
  
-const short add_faces[24] = {
+static const short add_faces[24] = {
 	0,
 	0, 0, 2, 0, 1, 2, 2, 0, 2, 1,
 	2, 2, 2, 2, 3, 0, 0, 0, 1, 0,
 	1, 1, 2
  };
 
-MFace *get_dface(DerivedMesh *dm, DerivedMesh *split, int cur, int i, MFace *mf)
+static MFace *get_dface(DerivedMesh *dm, DerivedMesh *split, int cur, int i, MFace *mf)
 {
 	MFace *df = CDDM_get_face(split, cur);
 	DM_copy_face_data(dm, split, i, cur, 1);

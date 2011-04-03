@@ -2855,7 +2855,7 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 	}
 }
 
-void RNA_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
+static void rna_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
 {
 	ContainerRNA *cont= cont_;
 	
@@ -2880,7 +2880,7 @@ int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *ide
 	for(prop= cont->properties.first; prop; prop= prop->next) {
 		if(strcmp(prop->identifier, identifier)==0) {
 			if(prop->flag & PROP_RUNTIME) {
-				RNA_def_property_free(cont_, prop);
+				rna_def_property_free(cont_, prop);
 				return 1;
 			}
 			else {

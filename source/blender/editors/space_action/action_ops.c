@@ -39,8 +39,7 @@
 
 #include "BLI_blenlib.h"
 
-
-
+#include "ED_anim_api.h"
 #include "ED_transform.h"
 
 #include "action_intern.h"

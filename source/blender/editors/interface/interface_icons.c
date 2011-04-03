@@ -129,7 +129,7 @@ typedef struct IconTexture {
 /* ******************* STATIC LOCAL VARS ******************* */
 /* static here to cache results of icon directory scan, so it's not 
  * scanning the filesystem each time the menu is drawn */
-static struct ListBase iconfilelist = {0, 0};
+static struct ListBase iconfilelist = {NULL, NULL};
 static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
 /* **************************************************** */
@@ -144,7 +144,7 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
-	new_icon->obj = 0; /* icon is not for library object */
+	new_icon->obj = NULL; /* icon is not for library object */
 	new_icon->type = 0;	
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
@@ -184,14 +184,14 @@ static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
-	new_icon->obj = 0; /* icon is not for library object */
+	new_icon->obj = NULL; /* icon is not for library object */
 	new_icon->type = 0;
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type= ICON_TYPE_VECTOR;
 	di->data.vector.func =drawFunc;
 
-	new_icon->drawinfo_free = 0;
+	new_icon->drawinfo_free = NULL;
 	new_icon->drawinfo = di;
 
 	BKE_icon_set(icon_id, new_icon);
@@ -667,7 +667,7 @@ static void init_iconfile_list(struct ListBase *list)
 		if (dir[i].string) MEM_freeN(dir[i].string);
 	}
 	free(dir);
-	dir= 0;
+	dir= NULL;
 }
 
 static void free_iconfile_list(struct ListBase *list)

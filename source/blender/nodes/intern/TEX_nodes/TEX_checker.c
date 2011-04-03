@@ -31,7 +31,8 @@
  */
 
 
-#include "../TEX_util.h"                                                   
+#include "../TEX_util.h"
+#include "TEX_node.h"
 #include <math.h>
 
 static bNodeSocketType inputs[]= {

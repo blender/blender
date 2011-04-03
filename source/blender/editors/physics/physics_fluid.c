@@ -809,7 +809,7 @@ static void fluidbake_free_data(FluidAnimChannels *channels, ListBase *fobjects,
 	}
 }
 
-int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
+static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 {
 	Scene *scene= CTX_data_scene(C);
 	int i;

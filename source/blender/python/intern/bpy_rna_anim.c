@@ -46,6 +46,7 @@
 
 #include "bpy_rna.h"
 #include "bpy_util.h"
+#include "bpy_rna_anim.h"
 
 #define TRUE 1
 #define FALSE 0

@@ -272,8 +272,8 @@ static void rna_def_gpencil_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	FunctionRNA *func;
-	PropertyRNA *parm;
+//	FunctionRNA *func;
+//	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "GreasePencilLayers");
 	srna= RNA_def_struct(brna, "GreasePencilLayers", NULL);

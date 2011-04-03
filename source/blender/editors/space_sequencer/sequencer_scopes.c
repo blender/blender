@@ -167,7 +167,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
-		unsigned char * last_p = 0;
+		unsigned char * last_p = NULL;
 
 		for (x = 0; x < ibuf->x; x++) {
 			unsigned char * rgb = src + 4 * (ibuf->x * y + x);
@@ -182,7 +182,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 			p += 4 * w;
 			scope_put_pixel(wtable, p);
 
-			if (last_p != 0) {
+			if (last_p != NULL) {
 				wform_put_line(w, last_p, p);
 			}
 			last_p = p;
@@ -213,7 +213,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
-		unsigned char * last_p = 0;
+		unsigned char * last_p = NULL;
 
 		for (x = 0; x < ibuf->x; x++) {
 			float * rgb = src + 4 * (ibuf->x * y + x);
@@ -231,7 +231,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
 			p += 4 * w;
 			scope_put_pixel(wtable, p);
 
-			if (last_p != 0) {
+			if (last_p != NULL) {
 				wform_put_line(w, last_p, p);
 			}
 			last_p = p;
@@ -274,7 +274,7 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
-		unsigned char * last_p[3] = {0,0,0};
+		unsigned char *last_p[3] = {NULL, NULL, NULL};
 
 		for (x = 0; x < ibuf->x; x++) {
 			int c;
@@ -288,7 +288,7 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 				p += 4 * w;
 				scope_put_pixel_single(wtable, p, c);
 
-				if (last_p[c] != 0) {
+				if (last_p[c] != NULL) {
 					wform_put_line_single(
 						w, last_p[c], p, c);
 				}
@@ -324,7 +324,7 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
-		unsigned char * last_p[3] = {0, 0, 0};
+		unsigned char *last_p[3] = {NULL, NULL, NULL};
 
 		for (x = 0; x < ibuf->x; x++) {
 			int c;
@@ -342,7 +342,7 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
 				p += 4 * w;
 				scope_put_pixel_single(wtable, p, c);
 
-				if (last_p[c] != 0) {
+				if (last_p[c] != NULL) {
 					wform_put_line_single(
 						w, last_p[c], p, c);
 				}

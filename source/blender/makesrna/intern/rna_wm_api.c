@@ -81,7 +81,7 @@ struct wmTimer *rna_event_timer_add(struct wmWindowManager *wm, float time_step,
 
 void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 {
-	return WM_event_remove_timer(wm, timer->win, timer);
+	WM_event_remove_timer(wm, timer->win, timer);
 }
 
 #else

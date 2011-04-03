@@ -1851,7 +1851,7 @@ void nladata_flush_channels (ListBase *channels)
  * ! This is exported so that keyframing code can use this for make use of it for anim layers support
  * > echannels: (list<NlaEvalChannels>) evaluation channels with calculated values
  */
-void animsys_evaluate_nla (ListBase *echannels, PointerRNA *ptr, AnimData *adt, float ctime) 
+static void animsys_evaluate_nla (ListBase *echannels, PointerRNA *ptr, AnimData *adt, float ctime)
 {
 	NlaTrack *nlt;
 	short track_index=0;

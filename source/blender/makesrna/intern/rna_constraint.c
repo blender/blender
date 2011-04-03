@@ -75,25 +75,25 @@ EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", ICON_CONSTRAINT_DATA, "Shrinkwrap", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem space_pchan_items[] = {
+static EnumPropertyItem space_pchan_items[] = {
 	{0, "WORLD", 0, "World Space", ""},
 	{2, "POSE", 0, "Pose Space", ""},
 	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", ""},
 	{1, "LOCAL", 0, "Local Space", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem space_object_items[] = {
+static EnumPropertyItem space_object_items[] = {
 	{0, "WORLD", 0, "World Space", ""},
 	{1, "LOCAL", 0, "Local Space", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem constraint_ik_type_items[] ={
+static EnumPropertyItem constraint_ik_type_items[] ={
 	{CONSTRAINT_IK_COPYPOSE, "COPY_POSE", 0, "Copy Pose", ""},
 	{CONSTRAINT_IK_DISTANCE, "DISTANCE", 0, "Distance", ""},
 	{0, NULL, 0, NULL, NULL},
 };
 
-EnumPropertyItem constraint_ik_axisref_items[] ={
+static EnumPropertyItem constraint_ik_axisref_items[] ={
 	{0, "BONE", 0, "Bone", ""},
 	{CONSTRAINT_IK_TARGETAXIS, "TARGET", 0, "Target", ""},
 	{0, NULL, 0, NULL, NULL},

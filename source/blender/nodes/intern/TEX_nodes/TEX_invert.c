@@ -32,6 +32,7 @@
 
 
 #include "../TEX_util.h"
+#include "TEX_node.h"
 
 /* **************** INVERT ******************** */ 
 static bNodeSocketType inputs[]= { 

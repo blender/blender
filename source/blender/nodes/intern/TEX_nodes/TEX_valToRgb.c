@@ -33,6 +33,7 @@
 
 
 #include "../TEX_util.h"
+#include "TEX_node.h"
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketType valtorgb_in[]= {

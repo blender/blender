@@ -32,7 +32,7 @@
 
 
 #include "../TEX_util.h"
-
+#include "TEX_node.h"
 
 
 /* **************** SCALAR MATH ******************** */ 
