@@ -350,7 +350,12 @@ macro(get_blender_version)
 		message(FATAL_ERROR "Version parsing failed for BLENDER_SUBVERSION")
 	endif()
 
-	if(NOT ${_out_version_char} MATCHES "[a-z]+")
+	# clumsy regex, only single char are ok but it could be unset
+
+	string(LENGTH "${_out_version_char}" _out_version_char_len)
+	if(NOT _out_version_char_len EQUAL 1)
+		set(_out_version_char "")
+	elseif(NOT ${_out_version_char} MATCHES "[a-z]+")
 		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_CHAR")
 	endif()
 
