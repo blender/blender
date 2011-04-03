@@ -2742,7 +2742,7 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int ret = OPERATOR_RUNNING_MODAL;
 	// float initial_value = RNA_float_get(op->ptr, "initial_value");
 
-	mode = RNA_int_get(op->ptr, "mode");
+	mode = RNA_enum_get(op->ptr, "mode");
 	RNA_int_get_array(op->ptr, "initial_mouse", initial_mouse);
 
 	switch(event->type) {
@@ -2818,7 +2818,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmRadialControl *rc = MEM_callocN(sizeof(wmRadialControl), "radial control");
 	// wmWindow *win = CTX_wm_window(C);
-	int mode = RNA_int_get(op->ptr, "mode");
+	int mode = RNA_enum_get(op->ptr, "mode");
 	float initial_value = RNA_float_get(op->ptr, "initial_value");
 	//float initial_size = RNA_float_get(op->ptr, "initial_size");
 	int mouse[2];
@@ -2881,7 +2881,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 /* Gets a descriptive string of the operation */
 void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
 {
-	int mode = RNA_int_get(op->ptr, "mode");
+	int mode = RNA_enum_get(op->ptr, "mode");
 	float v = RNA_float_get(op->ptr, "new_value");
 
 	if(mode == WM_RADIALCONTROL_SIZE)
