@@ -23,7 +23,7 @@ BEGIN
   BEGIN
     BLOCK "04090000"
     BEGIN
-#ifdef FREE_WINDOWS // this doesnt work for mingw.
+#if defined(FREE_WINDOWS) || !defined(WINDRES) // this doesnt work for mingw.
       VALUE "FileVersion", "Unknown"
       VALUE "ProductVersion", "Unknown"
 #else
