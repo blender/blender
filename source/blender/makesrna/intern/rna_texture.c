@@ -149,7 +149,9 @@ static void rna_Texture_voxeldata_image_update(Main *bmain, Scene *scene, Pointe
 {
 	Tex *tex= ptr->id.data;
 	
-	tex->ima->source = IMA_SRC_SEQUENCE;
+	if(tex->ima) { /* may be getting cleared too */
+		tex->ima->source = IMA_SRC_SEQUENCE;
+	}
 	rna_Texture_voxeldata_update(bmain, scene, ptr);
 }
 
