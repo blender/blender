@@ -163,7 +163,7 @@ static void rna_NlaStrip_end_frame_set(PointerRNA *ptr, float value)
 		
 		len= data->end - data->start;
 		actlen= data->actend - data->actstart;
-		if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
+		if (IS_EQF(actlen, 0.0f)) actlen= 1.0f;
 		
 		/* now, adjust the 'scale' setting to reflect this (so that this change can be valid) */
 		data->scale= len / ((actlen) * data->repeat);

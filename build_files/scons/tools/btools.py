@@ -530,6 +530,8 @@ def buildbot_zip(src, dest, package_name, extension):
     print("writing %s to %s" % (dest, bb_zip_name))
     bb_zip.write(dest, os.path.split(dest)[1])
     bb_zip.close()
+    print("removing unneeded packed file %s (to keep install directory clean)" % (dest))
+    os.remove(dest)
     print("done.")
 
 def buildslave_print(target, source, env):
@@ -545,8 +547,18 @@ def buildslave(target=None, source=None, env=None):
     else:
         extension = '.tar.bz2'
 
+    platform = env['OURPLATFORM'].split('-')[0]
+    if platform == 'linux2':
+        import platform
+
+        bitness = platform.architecture()[0]
+        if bitness == '64bit':
+            platform = 'linux-glibc27-x86_64'
+        elif bitness == '32bit':
+            platform = 'linux-glibc27-i686'
+
     outdir = os.path.abspath(env['BF_INSTALLDIR'])
-    package_name = 'blender-' + VERSION+'-'+REVISION + '-' + env['OURPLATFORM'].split('-')[0]
+    package_name = 'blender-' + VERSION+'-'+REVISION + '-' + platform
     package_dir = os.path.normpath(outdir + os.sep + '..' + os.sep + package_name)
     package_archive = os.path.normpath(outdir + os.sep + '..' + os.sep + package_name + extension)
 
@@ -611,7 +623,7 @@ def NSIS_Installer(target=None, source=None, env=None):
     #### change to suit install dir ####
     inst_dir = install_base_dir + env['BF_INSTALLDIR']
     
-    os.chdir("windows/installer")
+    os.chdir(rel_dir)
 
     ns = open("00.sconsblender.nsi","r")
 

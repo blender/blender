@@ -185,6 +185,9 @@ void vec_apply_track(float vec[3], short axis);
 float lens_to_angle(float lens);
 float angle_to_lens(float angle);
 
+float angle_wrap_rad(float angle);
+float angle_wrap_deg(float angle);
+
 #ifdef __cplusplus
 }
 #endif

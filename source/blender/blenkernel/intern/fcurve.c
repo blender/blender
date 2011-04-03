@@ -1119,7 +1119,7 @@ static float dvar_eval_rotDiff (ChannelDriver *driver, DriverVar *dvar)
 	angle = 2.0f * (saacos(quat[0]));
 	angle= ABS(angle);
 	
-	return (angle > M_PI) ? (float)((2.0f * M_PI) - angle) : (float)(angle);
+	return (angle > (float)M_PI) ? (float)((2.0f * (float)M_PI) - angle) : (float)(angle);
 }
 
 /* evaluate 'location difference' driver variable */
@@ -1652,9 +1652,9 @@ static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 	int nr= 0;
 
 	c0= q0 - x;
-	c1= 3.0 * (q1 - q0);
-	c2= 3.0 * (q0 - 2.0*q1 + q2);
-	c3= q3 - q0 + 3.0 * (q1 - q2);
+	c1= 3.0f * (q1 - q0);
+	c2= 3.0f * (q0 - 2.0f*q1 + q2);
+	c3= q3 - q0 + 3.0f * (q1 - q2);
 	
 	if (c3 != 0.0) {
 		a= c2/c3;
@@ -1670,17 +1670,17 @@ static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 			t= sqrt(d);
 			o[0]= (float)(sqrt3d(-q+t) + sqrt3d(-q-t) - a);
 			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
+			if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) return 1;
 			else return 0;
 		}
 		else if (d == 0.0) {
 			t= sqrt3d(-q);
 			o[0]= (float)(2*t - a);
 			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;
+			if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) nr++;
 			o[nr]= (float)(-t-a);
 			
-			if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) return nr+1;
+			if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) return nr+1;
 			else return nr;
 		}
 		else {
@@ -1690,13 +1690,13 @@ static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 			q= sqrt(3 - 3*p*p);
 			o[0]= (float)(2*t*p - a);
 			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;
+			if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) nr++;
 			o[nr]= (float)(-t * (p + q) - a);
 			
-			if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) nr++;
+			if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) nr++;
 			o[nr]= (float)(-t * (p - q) - a);
 			
-			if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) return nr+1;
+			if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) return nr+1;
 			else return nr;
 		}
 	}
@@ -1713,22 +1713,22 @@ static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 				p= sqrt(p);
 				o[0]= (float)((-b-p) / (2 * a));
 				
-				if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;
+				if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) nr++;
 				o[nr]= (float)((-b+p)/(2*a));
 				
-				if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) return nr+1;
+				if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) return nr+1;
 				else return nr;
 			}
 			else if (p == 0) {
 				o[0]= (float)(-b / (2 * a));
-				if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
+				if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) return 1;
 				else return 0;
 			}
 		}
 		else if (b != 0.0) {
 			o[0]= (float)(-c/b);
 			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
+			if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) return 1;
 			else return 0;
 		}
 		else if (c == 0.0) {

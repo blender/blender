@@ -362,9 +362,9 @@ void tex_space_mesh(Mesh *me)
 
 	if(me->texflag & AUTOSPACE) {
 		for (a=0; a<3; a++) {
-			if(size[a]==0.0) size[a]= 1.0;
-			else if(size[a]>0.0 && size[a]<0.00001) size[a]= 0.00001;
-			else if(size[a]<0.0 && size[a]> -0.00001) size[a]= -0.00001;
+			if(size[a]==0.0f) size[a]= 1.0f;
+			else if(size[a]>0.0f && size[a]<0.00001f) size[a]= 0.00001f;
+			else if(size[a]<0.0f && size[a]> -0.00001f) size[a]= -0.00001f;
 		}
 
 		copy_v3_v3(me->loc, loc);
@@ -751,9 +751,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 		verts= dl->verts;
 		while(a--) {
 			VECCOPY(mvert->co, verts);
-			mvert->no[0]= (short int)(nors[0]*32767.0);
-			mvert->no[1]= (short int)(nors[1]*32767.0);
-			mvert->no[2]= (short int)(nors[2]*32767.0);
+			normal_float_to_short_v3(mvert->no, nors);
 			mvert++;
 			nors+= 3;
 			verts+= 3;
@@ -1303,6 +1301,8 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 	}
 
 	/* build smooth normals for uninitialized normals at faces set to flat */
+	/* For such faces the renderer/3Dview and exporters will be using the face normal */
+	/* The vertex normals built inside this if-statement are entirely to support the needs of the modeler */
 	if(found_flat!=0) {
 		const int nr_bits= sizeof(int)*8;
 		const int nr_words= (numVerts+(nr_bits-1))/nr_bits;
@@ -1435,7 +1435,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
 
-				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
+				if(fabsf(uv[0]-uv2[0]) < limit[0] && fabsf(uv[1]-uv2[1]) < limit[1]) {
 					if(lastv) lastv->next= next;
 					else vlist= next;
 					iterv->next= newvlist;

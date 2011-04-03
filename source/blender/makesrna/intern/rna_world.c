@@ -291,7 +291,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "indirect_bounces", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "ao_indirect_bounces");
 	RNA_def_property_range(prop, 1, SHRT_MAX);
-	RNA_def_property_ui_text(prop, "Bounces", "Number of indirect diffuse light bounces to use for approximate ambient occlusion");
+	RNA_def_property_ui_text(prop, "Bounces", "Number of indirect diffuse light bounces");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	/* gathering parameters */
@@ -304,7 +304,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "passes", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ao_approx_passes");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Passes", "Number of preprocessing passes to reduce overocclusion (for approximate ambient occlusion)");
+	RNA_def_property_ui_text(prop, "Passes", "Number of preprocessing passes to reduce overocclusion");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
@@ -338,14 +338,14 @@ static void rna_def_lighting(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "error_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_approx_error");
 	RNA_def_property_range(prop, 0.0001, 10);
-	RNA_def_property_ui_text(prop, "Error Tolerance", "Low values are slower and higher quality (for Approximate)");
+	RNA_def_property_ui_text(prop, "Error Tolerance", "Low values are slower and higher quality");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "correction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_approx_correction");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_range(prop, 0, 1, 0.1, 2);
-	RNA_def_property_ui_text(prop, "Correction", "Ad-hoc correction for over-occlusion due to the approximation (for Approximate)");
+	RNA_def_property_ui_text(prop, "Correction", "Ad-hoc correction for over-occlusion due to the approximation");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "use_falloff", PROP_BOOLEAN, PROP_NONE);
@@ -355,7 +355,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "aomode", WO_AOCACHE);
-	RNA_def_property_ui_text(prop, "Pixel Cache", "Cache AO results in pixels and interpolate over neighbouring pixels for speedup (for Approximate)");
+	RNA_def_property_ui_text(prop, "Pixel Cache", "Cache AO results in pixels and interpolate over neighbouring pixels for speedup");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
@@ -573,4 +573,3 @@ void RNA_def_world(BlenderRNA *brna)
 }
 
 #endif
-

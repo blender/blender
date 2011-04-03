@@ -1041,8 +1041,13 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)
 {
+	/* CTX_wm_reports(C) because operator is on stack, not active in event system */
 	if((op->type->flag & OPTYPE_REGISTER)==0) {
-		BKE_reportf(op->reports, RPT_ERROR, "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		return OPERATOR_CANCELLED;
+	}
+	if(op->type->poll && op->type->poll(C)==0) {
+		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s': wrong context.", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -2761,11 +2766,11 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 		else if(mode == WM_RADIALCONTROL_STRENGTH) {
 			new_value = 1 - dist / WM_RADIAL_CONTROL_DISPLAY_SIZE;
 		} else if(mode == WM_RADIALCONTROL_ANGLE)
-			new_value = ((int)(atan2(delta[1], delta[0]) * (180.0 / M_PI)) + 180);
+			new_value = ((int)(atan2f(delta[1], delta[0]) * (float)(180.0 / M_PI)) + 180);
 		
 		if(event->ctrl) {
 			if(mode == WM_RADIALCONTROL_STRENGTH)
-				new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
+				new_value = ((int)ceilf(new_value * 10.f) * 10.0f) / 100.f;
 			else
 				new_value = ((int)new_value + 5) / 10*10;
 		}

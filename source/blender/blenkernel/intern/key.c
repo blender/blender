@@ -422,7 +422,7 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 		t[3]= k1->pos+ofs; 
 		k[3]= k1;
 
-		if(ofs>2.1+lastpos) break;
+		if(ofs > 2.1f + lastpos) break;
 	}
 	
 	bsplinetype= 0;
@@ -448,7 +448,7 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 	}
 
 	d= t[2]-t[1];
-	if(d==0.0) {
+	if(d == 0.0f) {
 		if(bsplinetype==0) {
 			return 1;	/* both keys equal */
 		}
@@ -649,8 +649,8 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 		/* are we going to be nasty? */
 		if(flagflo) {
 			ktot+= kd;
-			while(ktot>=1.0) {
-				ktot-= 1.0;
+			while(ktot >= 1.0f) {
+				ktot -= 1.0f;
 				k1+= elemsize;
 				kref+= elemsize;
 			}
@@ -953,8 +953,8 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 		if(flagdo & 1) {
 			if(flagflo & 1) {
 				k1tot+= k1d;
-				while(k1tot>=1.0) {
-					k1tot-= 1.0;
+				while(k1tot >= 1.0f) {
+					k1tot -= 1.0f;
 					k1+= elemsize;
 				}
 			}
@@ -963,8 +963,8 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 		if(flagdo & 2) {
 			if(flagflo & 2) {
 				k2tot+= k2d;
-				while(k2tot>=1.0) {
-					k2tot-= 1.0;
+				while(k2tot >= 1.0f) {
+					k2tot -= 1.0f;
 					k2+= elemsize;
 				}
 			}
@@ -973,8 +973,8 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 		if(flagdo & 4) {
 			if(flagflo & 4) {
 				k3tot+= k3d;
-				while(k3tot>=1.0) {
-					k3tot-= 1.0;
+				while(k3tot >= 1.0f) {
+					k3tot -= 1.0f;
 					k3+= elemsize;
 				}
 			}
@@ -983,8 +983,8 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 		if(flagdo & 8) {
 			if(flagflo & 8) {
 				k4tot+= k4d;
-				while(k4tot>=1.0) {
-					k4tot-= 1.0;
+				while(k4tot >= 1.0f) {
+					k4tot -= 1.0f;
 					k4+= elemsize;
 				}
 			}
@@ -1473,7 +1473,7 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 	
 	// XXX kb->pos is the confusing old horizontal-line RVK crap in old IPO Editor...
 	if(key->type == KEY_RELATIVE) 
-		kb->pos= curpos+0.1;
+		kb->pos= curpos + 0.1f;
 	else {
 #if 0 // XXX old animation system
 		curpos= bsystem_time(scene, 0, (float)CFRA, 0.0);

@@ -32,6 +32,8 @@
 
 
 #include "../TEX_util.h"
+#include "TEX_node.h"
+
 #include "RE_shader_ext.h"
 
 static bNodeSocketType inputs[]= {

@@ -38,6 +38,7 @@
 #include "PyObjectPlus.h"
 
 #include <stdio.h>
+#include <stddef.h>
 #include <iostream>
 
 

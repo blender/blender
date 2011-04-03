@@ -587,13 +587,13 @@ float densfunc(MetaElem *ball, float x, float y, float z)
 
 	if(ball->flag & MB_NEGATIVE) {
 		dist2= 1.0f-(dist2/ball->rad2);
-		if(dist2 < 0.0) return 0.5f;
+		if(dist2 < 0.0f) return 0.5f;
 
 		return 0.5f-ball->s*dist2*dist2*dist2;
 	}
 	else {
 		dist2= 1.0f-(dist2/ball->rad2);
-		if(dist2 < 0.0) return -0.5f;
+		if(dist2 < 0.0f) return -0.5f;
 
 		return ball->s*dist2*dist2*dist2 -0.5f;
 	}
@@ -685,8 +685,8 @@ float metaball(float x, float y, float z)
 				ml_p= ml_p->next;
 			}
 
-			dens+= -0.5*(metaball_tree->pos - node->pos);
-			dens+= 0.5*(metaball_tree->neg - node->neg);
+			dens+= -0.5f*(metaball_tree->pos - node->pos);
+			dens+= 0.5f*(metaball_tree->neg - node->neg);
 		}
 		else{
 			for(a=0; a<totelem; a++) {
@@ -832,7 +832,7 @@ void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
 	CORNER *c1, *c2;
 	int i, index = 0, count, indexar[8];
 	
-	for (i = 0; i < 8; i++) if (cube->corners[i]->value > 0.0) index += (1<<i);
+	for (i = 0; i < 8; i++) if (cube->corners[i]->value > 0.0f) index += (1<<i);
 	
 	for (polys = cubetable[index]; polys; polys = polys->next) {
 		INTLIST *edges;
@@ -906,7 +906,7 @@ void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, i
 	corn3= old->corners[c3];
 	corn4= old->corners[c4];
 	
-	pos = corn1->value > 0.0 ? 1 : 0;
+	pos = corn1->value > 0.0f ? 1 : 0;
 
 	/* test if no surface crossing */
 	if( (corn2->value > 0) == pos && (corn3->value > 0) == pos && (corn4->value > 0) == pos) return;
@@ -1219,9 +1219,9 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 	v->x = p->function(point->x+delta, point->y, point->z)-f;
 	v->y = p->function(point->x, point->y+delta, point->z)-f;
 	v->z = p->function(point->x, point->y, point->z+delta)-f;
-	f = (float)sqrt(v->x*v->x + v->y*v->y + v->z*v->z);
+	f = sqrtf(v->x*v->x + v->y*v->y + v->z*v->z);
 
-	if (f != 0.0) {
+	if (f != 0.0f) {
 		v->x /= f; 
 		v->y /= f; 
 		v->z /= f;
@@ -1230,16 +1230,16 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 	if(FALSE) {
 		MB_POINT temp;
 		
-		delta*= 2.0;
+		delta *= 2.0f;
 		
 		f = p->function(point->x, point->y, point->z);
 	
 		temp.x = p->function(point->x+delta, point->y, point->z)-f;
 		temp.y = p->function(point->x, point->y+delta, point->z)-f;
 		temp.z = p->function(point->x, point->y, point->z+delta)-f;
-		f = (float)sqrt(temp.x*temp.x + temp.y*temp.y + temp.z*temp.z);
+		f = sqrtf(temp.x*temp.x + temp.y*temp.y + temp.z*temp.z);
 	
-		if (f != 0.0) {
+		if (f != 0.0f) {
 			temp.x /= f; 
 			temp.y /= f; 
 			temp.z /= f;
@@ -1248,9 +1248,9 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 			v->y+= temp.y;
 			v->z+= temp.z;
 			
-			f = (float)sqrt(v->x*v->x + v->y*v->y + v->z*v->z);
+			f = sqrtf(v->x*v->x + v->y*v->y + v->z*v->z);
 		
-			if (f != 0.0) {
+			if (f != 0.0f) {
 				v->x /= f; 
 				v->y /= f; 
 				v->z /= f;
@@ -1317,7 +1317,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 
 /* Aproximation by linear interpolation is faster then binary subdivision,
  * but it results sometimes (mb->thresh < 0.2) into the strange results */
-	if((mb->thresh >0.2) && (f==1)){
+	if((mb->thresh > 0.2f) && (f==1)){
 	if((dy == 0.0f) && (dz == 0.0f)){
 		p->x = neg.x - negative*dx/(positive-negative);
 		p->y = neg.y;
@@ -1344,7 +1344,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p->x = 0.5f*(pos.x + neg.x);
-			if ((function(p->x,p->y,p->z)) > 0.0)	pos.x = p->x; else neg.x = p->x; 
+			if ((function(p->x,p->y,p->z)) > 0.0f)	pos.x = p->x; else neg.x = p->x;
 		}
 	}
 
@@ -1354,7 +1354,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p->y = 0.5f*(pos.y + neg.y);
-			if ((function(p->x,p->y,p->z)) > 0.0)	pos.y = p->y; else neg.y = p->y;
+			if ((function(p->x,p->y,p->z)) > 0.0f)	pos.y = p->y; else neg.y = p->y;
 		}
 	  }
    
@@ -1364,7 +1364,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p->z = 0.5f*(pos.z + neg.z);
-			if ((function(p->x,p->y,p->z)) > 0.0)	pos.z = p->z; else neg.z = p->z;
+			if ((function(p->x,p->y,p->z)) > 0.0f)	pos.z = p->z; else neg.z = p->z;
 		}
 	}
 
@@ -1376,7 +1376,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
     
 		if (i++ == RES) return;
    
-		if ((function(p->x, p->y, p->z)) > 0.0){
+		if ((function(p->x, p->y, p->z)) > 0.0f){
 			pos.x = p->x;
 			pos.y = p->y;
 			pos.z = p->z;
@@ -1437,7 +1437,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 
 	/* Skip, when Stiffness of MetaElement is too small ... MetaElement can't be
 	 * visible alone ... but still can influence others MetaElements :-) */
-	if(f > 0.0) {
+	if(f > 0.0f) {
 		OUT.x = IN.x = in.x= 0.0;
 		OUT.y = IN.y = in.y= 0.0;
 		OUT.z = IN.z = in.z= 0.0;
@@ -1495,7 +1495,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 					workp.y = in.y;
 					workp.z = in.z;
 					workp_v = in_v;
-					max_len = sqrt((out.x-in.x)*(out.x-in.x) + (out.y-in.y)*(out.y-in.y) + (out.z-in.z)*(out.z-in.z));
+					max_len = sqrtf((out.x-in.x)*(out.x-in.x) + (out.y-in.y)*(out.y-in.y) + (out.z-in.z)*(out.z-in.z));
 
 					nx = abs((out.x - in.x)/mbproc->size);
 					ny = abs((out.y - in.y)/mbproc->size);
@@ -1515,7 +1515,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 							/* compute value of implicite function */
 							tmp_v = mbproc->function(workp.x, workp.y, workp.z);
 							/* add cube to the stack, when value of implicite function crosses zero value */
-							if((tmp_v<0.0 && workp_v>=0.0)||(tmp_v>0.0 && workp_v<=0.0)) {
+							if((tmp_v<0.0f && workp_v>=0.0f)||(tmp_v>0.0f && workp_v<=0.0f)) {
 
 								/* indexes of CUBE, which includes "first point" */
 								c_i= (int)floor(workp.x/mbproc->size);
@@ -1529,7 +1529,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 								else
 									add_cube(mbproc, c_i, c_j, c_k, 1);
 							}
-							len = sqrt((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
+							len = sqrtf((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
 							workp_v = tmp_v;
 
 						}
@@ -1627,13 +1627,13 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 
 			/* when metaball object hase zero scale, then MetaElem ot this MetaBall
 			 * will not be put to mainb array */
-			if(bob->size[0]==0.0 || bob->size[1]==0.0 || bob->size[2]==0.0) {
+			if(bob->size[0]==0.0f || bob->size[1]==0.0f || bob->size[2]==0.0f) {
 				zero_size= 1;
 			}
 			else if(bob->parent) {
 				struct Object *pob=bob->parent;
 				while(pob) {
-					if(pob->size[0]==0.0 || pob->size[1]==0.0 || pob->size[2]==0.0) {
+					if(pob->size[0]==0.0f || pob->size[1]==0.0f || pob->size[2]==0.0f) {
 						zero_size= 1;
 						break;
 					}
@@ -1662,7 +1662,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 
 					/* too big stiffness seems only ugly due to linear interpolation
 					 * no need to have possibility for too big stiffness */
-					if(ml->s > 10.0) ml->s = 10.0;
+					if(ml->s > 10.0f) ml->s = 10.0f;
 					
 					/* Rotation of MetaElem is stored in quat */
 					 quat_to_mat4( temp3,ml->quat);
@@ -2228,7 +2228,7 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 		if(G.moving && mb->flag==MB_UPDATE_HALFRES) width*= 2;
 	}
 	/* nr_cubes is just for safety, minimum is totsize */
-	nr_cubes= (int)(0.5+totsize/width);
+	nr_cubes= (int)(0.5f+totsize/width);
 
 	/* init process */
 	mbproc.function = metaball;

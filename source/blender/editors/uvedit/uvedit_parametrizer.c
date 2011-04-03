@@ -370,7 +370,7 @@ static void p_triangle_angles(float *v1, float *v2, float *v3, float *a1, float 
 {
 	*a1 = p_vec_angle(v3, v1, v2);
 	*a2 = p_vec_angle(v1, v2, v3);
-	*a3 = M_PI - *a2 - *a1;
+	*a3 = (float)M_PI - *a2 - *a1;
 }
 
 static void p_face_angles(PFace *f, float *a1, float *a2, float *a3)
@@ -786,12 +786,12 @@ static PBool p_edge_implicit_seam(PEdge *e, PEdge *ep)
 		uvp2 = ep->orig_uv;
 	}
 
-	if((fabs(uv1[0]-uvp1[0]) > limit[0]) || (fabs(uv1[1]-uvp1[1]) > limit[1])) {
+	if((fabsf(uv1[0]-uvp1[0]) > limit[0]) || (fabsf(uv1[1]-uvp1[1]) > limit[1])) {
 		e->flag |= PEDGE_SEAM;
 		ep->flag |= PEDGE_SEAM;
 		return P_TRUE;
 	}
-	if((fabs(uv2[0]-uvp2[0]) > limit[0]) || (fabs(uv2[1]-uvp2[1]) > limit[1])) {
+	if((fabsf(uv2[0]-uvp2[0]) > limit[0]) || (fabsf(uv2[1]-uvp2[1]) > limit[1])) {
 		e->flag |= PEDGE_SEAM;
 		ep->flag |= PEDGE_SEAM;
 		return P_TRUE;
@@ -2259,8 +2259,8 @@ static void p_abf_setup_system(PAbfSystem *sys)
 	for (i = 0; i < sys->ninterior; i++)
 		sys->lambdaLength[i] = 1.0;
 	
-	sys->minangle = 7.5f*M_PI/180.0f;
-	sys->maxangle = M_PI - sys->minangle;
+	sys->minangle = 7.5*M_PI/180.0;
+	sys->maxangle = (float)M_PI - sys->minangle;
 }
 
 static void p_abf_free_system(PAbfSystem *sys)
@@ -2373,7 +2373,7 @@ static float p_abf_compute_gradient(PAbfSystem *sys, PChart *chart)
 
 		norm += galpha1*galpha1 + galpha2*galpha2 + galpha3*galpha3;
 
-		gtriangle = sys->alpha[e1->u.id] + sys->alpha[e2->u.id] + sys->alpha[e3->u.id] - M_PI;
+		gtriangle = sys->alpha[e1->u.id] + sys->alpha[e2->u.id] + sys->alpha[e3->u.id] - (float)M_PI;
 		sys->bTriangle[f->u.id] = -gtriangle;
 		norm += gtriangle*gtriangle;
 	}
@@ -2424,9 +2424,9 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 		PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
 		PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
 
-		wi1 = 1.0/sys->weight[e1->u.id];
-		wi2 = 1.0/sys->weight[e2->u.id];
-		wi3 = 1.0/sys->weight[e3->u.id];
+		wi1 = 1.0f/sys->weight[e1->u.id];
+		wi2 = 1.0f/sys->weight[e2->u.id];
+		wi3 = 1.0f/sys->weight[e3->u.id];
 
 		/* bstar1 = (J1*dInv*bAlpha - bTriangle) */
 		b = sys->bAlpha[e1->u.id]*wi1;
@@ -2435,7 +2435,7 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 		b -= sys->bTriangle[f->u.id];
 
 		/* si = J1*d*J1t */
-		si = 1.0/(wi1 + wi2 + wi3);
+		si = 1.0f/(wi1 + wi2 + wi3);
 
 		/* J1t*si*bstar1 - bAlpha */
 		beta[0] = b*si - sys->bAlpha[e1->u.id];
@@ -2457,7 +2457,7 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 			vid[0] = v1->u.id;
 			vid[3] = ninterior + v1->u.id;
 
-			sys->J2dt[e1->u.id][0] = j2[0][0] = 1.0*wi1;
+			sys->J2dt[e1->u.id][0] = j2[0][0] = 1.0f * wi1;
 			sys->J2dt[e2->u.id][0] = j2[1][0] = p_abf_compute_sin_product(sys, v1, e2->u.id)*wi2;
 			sys->J2dt[e3->u.id][0] = j2[2][0] = p_abf_compute_sin_product(sys, v1, e3->u.id)*wi3;
 
@@ -2478,7 +2478,7 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 			vid[4] = ninterior + v2->u.id;
 
 			sys->J2dt[e1->u.id][1] = j2[0][1] = p_abf_compute_sin_product(sys, v2, e1->u.id)*wi1;
-			sys->J2dt[e2->u.id][1] = j2[1][1] = 1.0*wi2;
+			sys->J2dt[e2->u.id][1] = j2[1][1] = 1.0f*wi2;
 			sys->J2dt[e3->u.id][1] = j2[2][1] = p_abf_compute_sin_product(sys, v2, e3->u.id)*wi3;
 
 			nlRightHandSideAdd(0, v2->u.id, j2[1][1]*beta[1]);
@@ -2499,7 +2499,7 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 
 			sys->J2dt[e1->u.id][2] = j2[0][2] = p_abf_compute_sin_product(sys, v3, e1->u.id)*wi1;
 			sys->J2dt[e2->u.id][2] = j2[1][2] = p_abf_compute_sin_product(sys, v3, e2->u.id)*wi2;
-			sys->J2dt[e3->u.id][2] = j2[2][2] = 1.0*wi3;
+			sys->J2dt[e3->u.id][2] = j2[2][2] = 1.0f * wi3;
 
 			nlRightHandSideAdd(0, v3->u.id, j2[2][2]*beta[2]);
 			nlRightHandSideAdd(0, ninterior + v3->u.id, j2[0][2]*beta[0] + j2[1][2]*beta[1]);
@@ -2599,8 +2599,8 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 			/* clamp */
 			e = f->edge;
 			do {
-				if (sys->alpha[e->u.id] > M_PI)
-					sys->alpha[e->u.id] = M_PI;
+				if (sys->alpha[e->u.id] > (float)M_PI)
+					sys->alpha[e->u.id] = (float)M_PI;
 				else if (sys->alpha[e->u.id] < 0.0f)
 					sys->alpha[e->u.id] = 0.0f;
 			} while (e != f->edge);
@@ -2674,9 +2674,9 @@ static PBool p_chart_abf_solve(PChart *chart)
 		sys.alpha[e2->u.id] = sys.beta[e2->u.id] = a2;
 		sys.alpha[e3->u.id] = sys.beta[e3->u.id] = a3;
 
-		sys.weight[e1->u.id] = 2.0/(a1*a1);
-		sys.weight[e2->u.id] = 2.0/(a2*a2);
-		sys.weight[e3->u.id] = 2.0/(a3*a3);
+		sys.weight[e1->u.id] = 2.0f/(a1*a1);
+		sys.weight[e2->u.id] = 2.0f/(a2*a2);
+		sys.weight[e3->u.id] = 2.0f/(a3*a3);
 	}
 
 	for (v=chart->verts; v; v=v->nextlink) {
@@ -2689,7 +2689,7 @@ static PBool p_chart_abf_solve(PChart *chart)
 				e = e->next->next->pair;
 			} while (e && (e != v->edge));
 
-			scale = (anglesum == 0.0f)? 0.0f: 2*M_PI/anglesum;
+			scale = (anglesum == 0.0f)? 0.0f: 2.0f*(float)M_PI/anglesum;
 
 			e = v->edge;
 			do {
@@ -3089,7 +3089,7 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 
 		/* angle based lscm formulation */
 		ratio = (sina3 == 0.0f)? 1.0f: sina2/sina3;
-		cosine = cos(a1)*ratio;
+		cosine = cosf(a1)*ratio;
 		sine = sina1*ratio;
 
 #if 0
@@ -3109,7 +3109,7 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 		nlCoefficient(2*v3->u.id+1, 1.0);
 		nlEnd(NL_ROW);
 #else
-		nlMatrixAdd(row, 2*v1->u.id,   cosine - 1.0);
+		nlMatrixAdd(row, 2*v1->u.id,   cosine - 1.0f);
 		nlMatrixAdd(row, 2*v1->u.id+1, -sine);
 		nlMatrixAdd(row, 2*v2->u.id,   -cosine);
 		nlMatrixAdd(row, 2*v2->u.id+1, sine);
@@ -3117,7 +3117,7 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 		row++;
 
 		nlMatrixAdd(row, 2*v1->u.id,   sine);
-		nlMatrixAdd(row, 2*v1->u.id+1, cosine - 1.0);
+		nlMatrixAdd(row, 2*v1->u.id+1, cosine - 1.0f);
 		nlMatrixAdd(row, 2*v2->u.id,   -sine);
 		nlMatrixAdd(row, 2*v2->u.id+1, -cosine);
 		nlMatrixAdd(row, 2*v3->u.id+1, 1.0);
@@ -3221,7 +3221,7 @@ static float p_face_stretch(PFace *f)
 
 	T =  sqrt(0.5f*(a + c));
 	if (f->flag & PFACE_FILLED)
-		T *= 0.2;
+		T *= 0.2f;
 
 	return T;
 }
@@ -3269,9 +3269,9 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 
 		trusted_radius /= 2 * nedges;
 
-		random_angle = rng_getFloat(rng) * 2.0 * M_PI;
-		dir[0] = trusted_radius * cos(random_angle);
-		dir[1] = trusted_radius * sin(random_angle);
+		random_angle = rng_getFloat(rng) * 2.0f * (float)M_PI;
+		dir[0] = trusted_radius * cosf(random_angle);
+		dir[1] = trusted_radius * sinf(random_angle);
 
 		/* calculate old and new stretch */
 		low = 0;
@@ -3283,7 +3283,7 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 
 		/* binary search for lowest stretch position */
 		for (j = 0; j < P_STRETCH_ITER; j++) {
-			mid = 0.5 * (low + high);
+			mid = 0.5f * (low + high);
 			v->uv[0]= orig_uv[0] + mid*dir[0];
 			v->uv[1]= orig_uv[1] + mid*dir[1];
 			stretch = p_stretch_compute_vertex(v);
@@ -3437,7 +3437,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 		p2 = points[i];
 		p3 = (i == npoints-1)? points[0]: points[i+1];
 
-		angles[i] = M_PI - p_vec2_angle(p1->uv, p2->uv, p3->uv);
+		angles[i] = (float)M_PI - p_vec2_angle(p1->uv, p2->uv, p3->uv);
 
 		if (points[i]->uv[1] < miny) {
 			miny = points[i]->uv[1];
@@ -3477,7 +3477,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 	minarea = 1e10;
 	minangle = 0.0;
 
-	while (rotated <= M_PI/2) { /* INVESTIGATE: how far to rotate? */
+	while (rotated <= (float)(M_PI/2.0)) { /* INVESTIGATE: how far to rotate? */
 		/* rotate with the smallest angle */
 		mini = 0;
 		mina = 1e10;
@@ -3506,7 +3506,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 		len = len_v2v2(p1->uv, p1n->uv);
 
 		if (len > 0.0f) {
-			len = 1.0/len;
+			len = 1.0f/len;
 			v[0] = (p1n->uv[0] - p1->uv[0])*len;
 			v[1] = (p1n->uv[1] - p1->uv[1])*len;
 
@@ -3523,8 +3523,8 @@ static float p_chart_minimum_area_angle(PChart *chart)
 	}
 
 	/* try keeping rotation as small as possible */
-	if (minangle > M_PI/4)
-		minangle -= M_PI/2;
+	if (minangle > (float)(M_PI/4))
+		minangle -= (float)(M_PI/2.0);
 
 	MEM_freeN(angles);
 	MEM_freeN(points);
@@ -3586,7 +3586,7 @@ static void p_barycentric_2d(float *v1, float *v2, float *v3, float *p, float *b
 
 		b[1] = (h[0]*c[1] - h[1]*c[0])*div;
 		b[2] = (a[0]*h[1] - a[1]*h[0])*div;
-		b[0] = 1.0 - b[1] - b[2];
+		b[0] = 1.0f - b[1] - b[2];
 	}
 }
 
@@ -3596,7 +3596,7 @@ static PBool p_triangle_inside(SmoothTriangle *t, float *co)
 
 	p_barycentric_2d(t->co1, t->co2, t->co3, co, b);
 
-	if ((b[0] >= 0.0) && (b[1] >= 0.0) && (b[2] >= 0.0f)) {
+	if ((b[0] >= 0.0f) && (b[1] >= 0.0f) && (b[2] >= 0.0f)) {
 		co[0] = t->oco1[0]*b[0] + t->oco2[0]*b[1] + t->oco3[0]*b[2];
 		co[1] = t->oco1[1]*b[0] + t->oco2[1]*b[1] + t->oco3[1]*b[2];
 		return P_TRUE;
@@ -3752,10 +3752,10 @@ static void p_smooth(PChart *chart)
 	p_chart_uv_bbox(chart, minv, maxv);
 	median = p_smooth_median_edge_length(chart)*0.10f;
 
-	if (median == 0.0)
+	if (median == 0.0f)
 		return;
 
-	invmedian = 1.0/median;
+	invmedian = 1.0f/median;
 
 	/* compute edge distortion */
 	avglen2d = avglen3d = 0.0;
@@ -3874,7 +3874,7 @@ static void p_smooth(PChart *chart)
 
 				p_barycentric_2d(e1->vert->uv, e2->vert->uv, e3->vert->uv, p, b);
 
-				if ((b[0] > 0.0) && (b[1] > 0.0) && (b[2] > 0.0)) {
+				if ((b[0] > 0.0f) && (b[1] > 0.0f) && (b[2] > 0.0f)) {
 					nodes[i] = e1->vert->u.distortion*b[0];
 					nodes[i] += e2->vert->u.distortion*b[1];
 					nodes[i] += e3->vert->u.distortion*b[2];
@@ -4366,7 +4366,7 @@ void param_pack(ParamHandle *handle, float margin)
 		/* multiply the margin by the area to give predictable results not dependant on UV scale,
 		 * ...Without using the area running pack multiple times also gives a bad feedback loop.
 		 * multiply by 0.1 so the margin value from the UI can be from 0.0 to 1.0 but not give a massive margin */
-		margin = (margin*(float)area) * 0.1;
+		margin = (margin*(float)area) * 0.1f;
 		unpacked= 0;
 		for (i = 0; i < phandle->ncharts; i++) {
 			chart = phandle->charts[i];
@@ -4388,9 +4388,9 @@ void param_pack(ParamHandle *handle, float margin)
 	boxPack2D(boxarray, phandle->ncharts-unpacked, &tot_width, &tot_height);
 	
 	if (tot_height>tot_width)
-		scale = 1.0/tot_height;
+		scale = 1.0f/tot_height;
 	else
-		scale = 1.0/tot_width;
+		scale = 1.0f/tot_width;
 	
 	for (i = 0; i < phandle->ncharts-unpacked; i++) {
 		box = boxarray+i;
@@ -4428,7 +4428,7 @@ void param_average(ParamHandle *handle)
 		
 		for (f=chart->faces; f; f=f->nextlink) {
 			chart->u.pack.area += p_face_area(f);
-			chart->u.pack.rescale += fabs(p_face_uv_area_signed(f));
+			chart->u.pack.rescale += fabsf(p_face_uv_area_signed(f));
 		}
 		
 		tot_facearea += chart->u.pack.area;

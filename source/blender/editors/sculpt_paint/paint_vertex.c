@@ -1687,7 +1687,7 @@ static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 void PAINT_OT_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Weight Set";
+	ot->name= "Set Weight";
 	ot->idname= "PAINT_OT_weight_set";
 
 	/* api callbacks */

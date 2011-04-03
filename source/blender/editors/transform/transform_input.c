@@ -274,7 +274,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], floa
 		mi->imval[1] = mval[1];
 	}
 
-	*angle += dphi;
+	*angle += (double)dphi;
 
 	output[0] = *angle;
 }

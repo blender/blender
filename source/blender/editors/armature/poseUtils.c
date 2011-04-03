@@ -128,7 +128,6 @@ static void fcurves_to_pchan_links_get (ListBase *pfLinks, Object *ob, bAction *
 
 
 /* get sets of F-Curves providing transforms for the bones in the Pose  */
-// TODO: separate the inner workings out to another helper func, since we need option of whether to take selected or visible bones...
 void poseAnim_mapping_get (bContext *C, ListBase *pfLinks, Object *ob, bAction *act)
 {	
 	/* for each Pose-Channel which gets affected, get the F-Curves for that channel 
@@ -139,6 +138,17 @@ void poseAnim_mapping_get (bContext *C, ListBase *pfLinks, Object *ob, bAction *
 		fcurves_to_pchan_links_get(pfLinks, ob, act, pchan);
 	}
 	CTX_DATA_END;
+	
+	/* if no PoseChannels were found, try a second pass, doing visible ones instead
+	 * i.e. if nothing selected, do whole pose
+	 */
+	if (pfLinks->first == NULL) {
+		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, visible_pose_bones)
+		{
+			fcurves_to_pchan_links_get(pfLinks, ob, act, pchan);
+		}
+		CTX_DATA_END;
+	}
 }
 
 /* free F-Curve <-> PoseChannel links  */

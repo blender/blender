@@ -114,7 +114,6 @@ def cmake_advanced_info():
     """
 
     def create_eclipse_project(CMAKE_DIR):
-        import sys
         if sys.platform == "win32":
             cmd = 'cmake %r -G"Eclipse CDT4 - MinGW Makefiles"' % CMAKE_DIR
         else:
@@ -125,7 +124,7 @@ def cmake_advanced_info():
     includes = []
     defines = []
 
-    import os
+
 
     create_eclipse_project(CMAKE_DIR)
 

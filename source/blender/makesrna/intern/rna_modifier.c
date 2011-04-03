@@ -437,9 +437,12 @@ static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRN
 {
 	Object *ob= value.data;
 
-	if(!self || ob != self)
-		if(!ob || type == OB_EMPTY || ob->type == type)
+	if(!self || ob != self) {
+		if(!ob || type == OB_EMPTY || ob->type == type) {
+			id_lib_extern((ID *)ob);
 			*ob_p= ob;
+		}
+	}
 }
 
 static void rna_LatticeModifier_object_set(PointerRNA *ptr, PointerRNA value)

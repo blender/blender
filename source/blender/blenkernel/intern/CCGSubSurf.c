@@ -1342,6 +1342,17 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 				NormCopy(EDGE_getNo(e, lvl, x),
 					_face_getIFNoEdge(f, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset));
 		}
+		else {
+			/* set to zero here otherwise the normals are uninitialized memory
+			 * render: tests/animation/knight.blend with valgrind.
+			 * we could be more clever and interpolate vertex normals but these are
+			 * most likely not used so just zero out. */
+			int x;
+
+			for (x=0; x<edgeSize; x++) {
+				NormZero(EDGE_getNo(e, lvl, x));
+			}
+		}
 	}
 }
 #undef FACE_getIFNo

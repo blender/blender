@@ -1528,18 +1528,13 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 			if(ui_is_but_unit(but)) {
 				ui_get_but_string_unit(but, str, maxlen, value, 0);
 			}
-			else if(but->a2) { /* amount of digits defined */
-				if(but->a2==1) BLI_snprintf(str, maxlen, "%.1f", value);
-				else if(but->a2==2) BLI_snprintf(str, maxlen, "%.2f", value);
-				else if(but->a2==3) BLI_snprintf(str, maxlen, "%.3f", value);
-				else if(but->a2==4) BLI_snprintf(str, maxlen, "%.4f", value);
-				else if(but->a2==5) BLI_snprintf(str, maxlen, "%.5f", value);
-				else if(but->a2==6) BLI_snprintf(str, maxlen, "%.6f", value);
-				else if(but->a2==7) BLI_snprintf(str, maxlen, "%.7f", value);
-				else BLI_snprintf(str, maxlen, "%.4f", value);
+			else {
+				int prec= (int)but->a2;
+				if(prec==0) prec= 3;
+				else CLAMP(prec, 1, 7);
+
+				BLI_snprintf(str, maxlen, "%.*f", prec, value);
 			}
-			else
-				BLI_snprintf(str, maxlen, "%.3f", value);
 		}
 		else
 			BLI_snprintf(str, maxlen, "%d", (int)value);
@@ -1913,7 +1908,7 @@ void ui_check_but(uiBut *but)
 {
 	/* if something changed in the button */
 	double value;
-	float okwidth;
+//	float okwidth; // UNUSED
 //	int transopts= ui_translate_buttons();
 	
 	ui_is_but_sel(but);
@@ -1967,7 +1962,7 @@ void ui_check_but(uiBut *but)
 	
 	
 	/* safety is 4 to enable small number buttons (like 'users') */
-	okwidth= -4 + (but->x2 - but->x1); 
+	// okwidth= -4 + (but->x2 - but->x1); // UNUSED
 	
 	/* name: */
 	switch( but->type ) {
@@ -1989,27 +1984,20 @@ void ui_check_but(uiBut *but)
 		value= ui_get_but_val(but);
 
 		if(ui_is_but_float(but)) {
-			if(value == FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
-			else if(value == -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
+			if(value == (double) FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
+			else if(value == (double) -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
 			/* support length type buttons */
 			else if(ui_is_but_unit(but)) {
 				char new_str[sizeof(but->drawstr)];
 				ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE);
 				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
 			}
-			else if(but->a2) { /* amount of digits defined */
-				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
-				else if(but->a2==2) sprintf(but->drawstr, "%s%.2f", but->str, value);
-				else if(but->a2==3) sprintf(but->drawstr, "%s%.3f", but->str, value);
-				else if(but->a2==4) sprintf(but->drawstr, "%s%.4f", but->str, value);
-				else if(but->a2==5) sprintf(but->drawstr, "%s%.5f", but->str, value);
-				else if(but->a2==6) sprintf(but->drawstr, "%s%.6f", but->str, value);
-				else if(but->a2==7) sprintf(but->drawstr, "%s%.7f", but->str, value);
-				else sprintf(but->drawstr, "%s%.4f", but->str, value);
-			}
 			else {
-				if(but->hardmax<10.001f) sprintf(but->drawstr, "%s%.3f", but->str, value);
-				else sprintf(but->drawstr, "%s%.2f", but->str, value);
+				int prec= (int)but->a2;
+				if(prec==0) prec= (but->hardmax < 10.001f) ? 3 : 2;
+				else CLAMP(prec, 1, 7);
+
+				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
 			}
 		}
 		else {
@@ -2026,22 +2014,16 @@ void ui_check_but(uiBut *but)
 
 	case LABEL:
 		if(ui_is_but_float(but)) {
+			int prec= (int)but->a2;
 			value= ui_get_but_val(but);
-			if(but->a2) { /* amount of digits defined */
-				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
-				else if(but->a2==2) sprintf(but->drawstr, "%s%.2f", but->str, value);
-				else if(but->a2==3) sprintf(but->drawstr, "%s%.3f", but->str, value);
-				else if(but->a2==4) sprintf(but->drawstr, "%s%.4f", but->str, value);
-				else if(but->a2==5) sprintf(but->drawstr, "%s%.5f", but->str, value);
-				else if(but->a2==6) sprintf(but->drawstr, "%s%.6f", but->str, value);
-				else if(but->a2==7) sprintf(but->drawstr, "%s%.7f", but->str, value);
-				else sprintf(but->drawstr, "%s%.4f", but->str, value);
-			}
-			else {
-				sprintf(but->drawstr, "%s%.2f", but->str, value);
-			}
+			if(prec==0) prec= 3;
+			else CLAMP(prec, 1, 7);
+
+			BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
 		}
-		else strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+		else {
+			strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+		}
 		
 		break;
 

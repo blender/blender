@@ -21,7 +21,7 @@ import bpy
 import os
 import addon_utils
 
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty
 
 
 def ui_items_general(col, context):
@@ -119,6 +119,7 @@ class USERPREF_MT_interaction_presets(bpy.types.Menu):
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
+
 class USERPREF_MT_appconfigs(bpy.types.Menu):
     bl_label = "AppPresets"
     preset_subdir = "keyconfig"
@@ -129,6 +130,7 @@ class USERPREF_MT_appconfigs(bpy.types.Menu):
 
         # now draw the presets
         bpy.types.Menu.draw_preset(self, context)
+
 
 class USERPREF_MT_splash(bpy.types.Menu):
     bl_label = "Splash"
@@ -647,7 +649,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             layout.separator()
             layout.separator()
-        elif theme.theme_area == 'COLOR_SETS':
+        elif theme.theme_area == 'BONE_COLOR_SETS':
             col = split.column()
 
             for i, ui in enumerate(theme.bone_color_sets):

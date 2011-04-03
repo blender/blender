@@ -1637,176 +1637,6 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	return m;
 }
 
-// Python Sandbox code
-// override builtin functions import() and open()
-
-
-PyObject *KXpy_open(PyObject *self, PyObject *args) {
-	PyErr_SetString(PyExc_RuntimeError, "Sandbox: open() function disabled!\nGame Scripts should not use this function.");
-	return NULL;
-}
-
-PyObject *KXpy_file(PyObject *self, PyObject *args) {
-	PyErr_SetString(PyExc_RuntimeError, "Sandbox: file() function disabled!\nGame Scripts should not use this function.");
-	return NULL;
-}
-
-PyObject *KXpy_execfile(PyObject *self, PyObject *args) {
-	PyErr_SetString(PyExc_RuntimeError, "Sandbox: execfile() function disabled!\nGame Scripts should not use this function.");
-	return NULL;
-}
-
-PyObject *KXpy_compile(PyObject *self, PyObject *args) {
-	PyErr_SetString(PyExc_RuntimeError, "Sandbox: compile() function disabled!\nGame Scripts should not use this function.");
-	return NULL;
-}
-
-PyObject *KXpy_import(PyObject *self, PyObject *args)
-{
-	char *name;
-	int found;
-	PyObject *globals = NULL;
-	PyObject *locals = NULL;
-	PyObject *fromlist = NULL;
-	PyObject *l, *m, *n;
-	int level; /* not used yet */
-	
-	if (!PyArg_ParseTuple(args, "s|OOOi:m_import",
-	        &name, &globals, &locals, &fromlist, &level))
-	    return NULL;
-
-	/* check for builtin modules */
-	m = PyImport_AddModule("sys");
-	l = PyObject_GetAttrString(m, "builtin_module_names");
-	n = PyUnicode_FromString(name);
-	
-	if (PySequence_Contains(l, n)) {
-		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
-	}
-
-	/* quick hack for GamePython modules 
-		TODO: register builtin modules properly by ExtendInittab */
-	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") || !strcmp(name, "PhysicsConstraints") ||
-		!strcmp(name, "Rasterizer") || !strcmp(name, "mathutils") || !strcmp(name, "bgl") || !strcmp(name, "geometry")) {
-		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
-	}
-	
-	/* Import blender texts as python modules */
-	m= bpy_text_import_name(name, &found);
-	if (m)
-		return m;
-	
-	if(found==0) /* if its found but could not import then it has its own error */
-		PyErr_Format(PyExc_ImportError, "Import of external Module %.20s not allowed.", name);
-	
-	return NULL;
-
-}
-
-PyObject *KXpy_reload(PyObject *self, PyObject *args) {
-	
-	/* Used to be sandboxed, bettet to allow importing of internal text only */ 
-#if 0
-	PyErr_SetString(PyExc_RuntimeError, "Sandbox: reload() function disabled!\nGame Scripts should not use this function.");
-	return NULL;
-#endif
-	int found;
-	PyObject *module = NULL;
-	PyObject *newmodule = NULL;
-
-	/* check for a module arg */
-	if( !PyArg_ParseTuple( args, "O:bpy_reload_meth", &module ) )
-		return NULL;
-	
-	newmodule= bpy_text_reimport( module, &found );
-	if (newmodule)
-		return newmodule;
-	
-	if (found==0) /* if its found but could not import then it has its own error */
-		PyErr_SetString(PyExc_ImportError, "reload(module): failed to reload from blenders internal text");
-	
-	return newmodule;
-}
-
-/* override python file type functions */
-#if 0
-static int
-file_init(PyObject *self, PyObject *args, PyObject *kwds)
-{
-	KXpy_file(NULL, NULL);
-	return -1;
-}
-
-static PyObject *
-file_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-	return KXpy_file(NULL, NULL);
-}
-#endif
-
-static PyMethodDef meth_open[] = {{ "open", KXpy_open, METH_VARARGS, "(disabled)"}};
-static PyMethodDef meth_reload[] = {{ "reload", KXpy_reload, METH_VARARGS, "(disabled)"}};
-static PyMethodDef meth_file[] = {{ "file", KXpy_file, METH_VARARGS, "(disabled)"}};
-static PyMethodDef meth_execfile[] = {{ "execfile", KXpy_execfile, METH_VARARGS, "(disabled)"}};
-static PyMethodDef meth_compile[] = {{ "compile", KXpy_compile, METH_VARARGS, "(disabled)"}};
-
-static PyMethodDef meth_import[] = {{ "import", KXpy_import, METH_VARARGS, "our own import"}};
-
-//static PyObject *g_oldopen = 0;
-//static PyObject *g_oldimport = 0;
-//static int g_security = 0;
-
-static void setSandbox(TPythonSecurityLevel level)
-{
-    PyObject *m = PyImport_AddModule("__builtin__");
-    PyObject *d = PyModule_GetDict(m);
-	PyObject *item;
-	switch (level) {
-	case psl_Highest:
-		//if (!g_security) {
-			//g_oldopen = PyDict_GetItemString(d, "open");
-	
-			// functions we cant trust
-			PyDict_SetItemString(d, "open", item=PyCFunction_New(meth_open, NULL));			Py_DECREF(item);
-			PyDict_SetItemString(d, "reload", item=PyCFunction_New(meth_reload, NULL));		Py_DECREF(item);
-			PyDict_SetItemString(d, "file", item=PyCFunction_New(meth_file, NULL));			Py_DECREF(item);
-			PyDict_SetItemString(d, "execfile", item=PyCFunction_New(meth_execfile, NULL));	Py_DECREF(item);
-			PyDict_SetItemString(d, "compile", item=PyCFunction_New(meth_compile, NULL));		Py_DECREF(item);
-			
-			// our own import
-			PyDict_SetItemString(d, "__import__", PyCFunction_New(meth_import, NULL));
-			//g_security = level;
-			
-			// Overiding file dosnt stop it being accessed if your sneaky
-			//    f =  [ t for t in (1).__class__.__mro__[-1].__subclasses__() if t.__name__ == 'file'][0]('/some_file.txt', 'w')
-			//    f.write('...')
-			// so overwrite the file types functions. be very careful here still, since python uses python.
-			// ps - python devs frown deeply upon this.
-	
-			/* this could mess up pythons internals, if we are serious about sandboxing
-			 * issues like the one above need to be solved, possibly modify __subclasses__ is safer? */
-#if 0
-			PyFile_Type.tp_init = file_init;
-			PyFile_Type.tp_new = file_new;
-#endif
-		//}
-		break;
-	/*
-	case psl_Lowest:
-		if (g_security) {
-			PyDict_SetItemString(d, "open", g_oldopen);
-			PyDict_SetItemString(d, "__import__", g_oldimport);
-			g_security = level;
-		}
-	*/
-	default:
-			/* Allow importing internal text, from bpy_internal_import.py */
-			PyDict_SetItemString(d, "reload", item=PyCFunction_New(&bpy_reload_meth, NULL));		Py_DECREF(item);
-			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(&bpy_import_meth, NULL));	Py_DECREF(item);
-		break;
-	}
-}
-
 /* Explanation of 
  * 
  * - backupPySysObjects()		: stores sys.path in gp_OrigPythonSysPath
@@ -1963,8 +1793,8 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
 	}
-	
-	setSandbox(level);
+
+	bpy_import_init(PyEval_GetBuiltins());
 
 	/* mathutils types are used by the BGE even if we dont import them */
 	{
@@ -2016,7 +1846,6 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
 
-	setSandbox(level);
 	initPyTypes();
 	
 	bpy_import_main_set(maggie);

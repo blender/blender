@@ -918,8 +918,8 @@ static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *
 			int idlen = strlen(_operator_idname) + 4;
 			int namelen = strlen(_operator_name) + 1;
 			int desclen = strlen(_operator_descr) + 1;
-			char *ch, *ch_arr;
-			ch_arr= ch= MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
+			char *ch;
+			ch= MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
 			WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
 			dummyot.idname= ch;
 			ch += idlen;
@@ -985,8 +985,8 @@ static StructRNA *rna_MacroOperator_register(bContext *C, ReportList *reports, v
 		int idlen = strlen(_operator_idname) + 4;
 		int namelen = strlen(_operator_name) + 1;
 		int desclen = strlen(_operator_descr) + 1;
-		char *ch, *ch_arr;
-		ch_arr= ch= MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
+		char *ch;
+		ch= MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
 		WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
 		dummyot.idname= ch;
 		ch += idlen;
@@ -1418,6 +1418,36 @@ static void rna_def_event(BlenderRNA *brna)
 	RNA_define_verify_sdna(1); // not in sdna
 }
 
+static void rna_def_timer(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Timer", NULL);
+	RNA_def_struct_ui_text(srna, "Timer", "Window event timer");
+	RNA_def_struct_sdna(srna, "wmTimer");
+
+	RNA_define_verify_sdna(0); // not in sdna
+
+	/* could wrap more, for now this is enough */
+	prop= RNA_def_property(srna, "time_step", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "timestep");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Time Step", "");
+
+	prop= RNA_def_property(srna, "time_delta", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "delta");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Delta", "Time since last step in seconds");
+
+	prop= RNA_def_property(srna, "time_duration", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "duration");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Delta", "Time since last step in seconds");
+
+	RNA_define_verify_sdna(1); // not in sdna
+}
+
 static void rna_def_window(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1801,6 +1831,7 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_macro_operator(brna);
 	rna_def_operator_type_macro(brna);
 	rna_def_event(brna);
+	rna_def_timer(brna);
 	rna_def_window(brna);
 	rna_def_windowmanager(brna);
 	rna_def_keyconfig(brna);

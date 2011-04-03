@@ -153,6 +153,16 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Area_type_update");
 
+	prop= RNA_def_property(srna, "width", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "winx");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Width", "Area width");
+
+	prop= RNA_def_property(srna, "height", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "winy");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Height", "Area height");
+
 	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
 
 	func= RNA_def_function(srna, "header_text_set", "ED_area_headerprint");

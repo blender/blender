@@ -147,6 +147,17 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
+static void foreachIDLink(ModifierData *md, Object *ob,
+					   IDWalkFunc walk, void *userData)
+{
+	SmokeModifierData *smd = (SmokeModifierData*) md;
+
+	if(smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
+		walk(userData, ob, (ID **)&smd->domain->coll_group);
+		walk(userData, ob, (ID **)&smd->domain->fluid_group);
+		walk(userData, ob, (ID **)&smd->domain->eff_group);
+	}
+}
 
 ModifierTypeInfo modifierType_Smoke = {
 	/* name */              "Smoke",
@@ -172,5 +183,5 @@ ModifierTypeInfo modifierType_Smoke = {
 	/* dependsOnTime */     dependsOnTime,
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
+	/* foreachIDLink */     foreachIDLink,
 };

@@ -55,6 +55,27 @@
 
 static Main *bpy_import_main= NULL;
 
+/* 'builtins' is most likely PyEval_GetBuiltins() */
+void bpy_import_init(PyObject *builtins)
+{
+	PyObject *item;
+	PyObject *mod;
+
+	PyDict_SetItemString(builtins, "__import__",	item=PyCFunction_New(&bpy_import_meth, NULL));	Py_DECREF(item);
+
+	/* move reload here
+	 * XXX, use import hooks */
+	mod= PyImport_ImportModuleLevel((char *)"imp", NULL, NULL, NULL, 0);
+	if(mod) {
+		PyDict_SetItemString(PyModule_GetDict(mod), "reload", item=PyCFunction_New(&bpy_reload_meth, NULL)); Py_DECREF(item);
+		Py_DECREF(mod);
+	}
+	else {
+		BLI_assert(!"unable to load 'imp' module.");
+	}
+}
+
+
 static void free_compiled_text(Text *text)
 {
 	if(text->compiled) {

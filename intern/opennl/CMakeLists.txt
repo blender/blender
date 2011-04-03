@@ -27,6 +27,10 @@
 # External project, better not fix warnings.
 remove_strict_flags()
 
+# remove debug flag here since this is not a blender maintained library
+# and debug gives a lot of prints on UV unwrapping. developers can enable if they need to.
+remove_flag("-DDEBUG")
+
 set(INC
 	extern
 	superlu

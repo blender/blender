@@ -37,6 +37,7 @@
 #include "BL_ArmatureConstraint.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include <stddef.h>
 
 #ifdef WITH_PYTHON
 

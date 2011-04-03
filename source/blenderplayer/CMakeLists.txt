@@ -99,7 +99,6 @@ if(UNIX)
 		extern_bullet 
 		bf_intern_guardedalloc 
 		bf_intern_memutil 
-		bf_python
 		bf_python_ext
 		bf_blenlib 
 		bf_imbuf_cineon

@@ -635,8 +635,8 @@ static void hammersley_create(float *out, int n, int seed, float amount)
 	int k, kk;
 
 	rng = rng_new(31415926 + n + seed);
-	offs[0]= rng_getDouble(rng) + amount;
-	offs[1]= rng_getDouble(rng) + amount;
+	offs[0]= rng_getDouble(rng) + (double)amount;
+	offs[1]= rng_getDouble(rng) + (double)amount;
 	rng_free(rng);
 
 	for (k = 0; k < n; k++) {
@@ -659,8 +659,8 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 
 	if(num==0) return;
 
-	rad1= (float)(1.0/sqrt((float)num));
-	rad2= (float)(1.0/((float)num));
+	rad1= (float)(1.0f/sqrtf((float)num));
+	rad2= (float)(1.0f/((float)num));
 	rad3= (float)sqrt((float)num)/((float)num);
 
 	rng = rng_new(31415926 + num + seed2);
@@ -890,7 +890,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 		if(ctx->tree){
 			KDTreeNearest ptn[10];
 			int w,maxw;//, do_seams;
-			float maxd,mind,/*dd,*/totw=0.0;
+			float maxd,mind,/*dd,*/totw= 0.0f;
 			int parent[10];
 			float pweight[10];
 
@@ -1210,10 +1210,10 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 				
 				if(mf->v4) {
 					tweight += vweight[mf->v4];
-					tweight /= 4.0;
+					tweight /= 4.0f;
 				}
 				else {
-					tweight /= 3.0;
+					tweight /= 3.0f;
 				}
 
 				element_weight[i]*=tweight;
@@ -1271,7 +1271,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 
 	/* For hair, sort by origindex (allows optimizations in rendering), */
 	/* however with virtual parents the children need to be in random order. */
-	if(part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents!=0.0)) {
+	if(part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents!=0.0f)) {
 		COMPARE_ORIG_INDEX = NULL;
 
 		if(from == PART_FROM_VERT) {
@@ -1606,11 +1606,11 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	normalize_v3(nor);
 
 	/* -tangent								*/
-	if(part->tanfac!=0.0){
+	if(part->tanfac!=0.0f){
 		//float phase=vg_rot?2.0f*(psys_particle_value_from_verts(sim->psmd->dm,part->from,pa,vg_rot)-0.5f):0.0f;
 		float phase=0.0f;
-		mul_v3_fl(vtan,-(float)cos(M_PI*(part->tanphase+phase)));
-		fac=-(float)sin(M_PI*(part->tanphase+phase));
+		mul_v3_fl(vtan,-(float)cos((float)M_PI*(part->tanphase+phase)));
+		fac=-(float)sin((float)M_PI*(part->tanphase+phase));
 		VECADDFAC(vtan,vtan,utan,fac);
 
 		mul_mat3_m4_v3(ob->obmat,vtan);
@@ -1624,7 +1624,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		
 
 	/* -velocity							*/
-	if(part->randfac!=0.0){
+	if(part->randfac != 0.0f){
 		r_vel[0] = 2.0f * (PSYS_FRAND(p + 10) - 0.5f);
 		r_vel[1] = 2.0f * (PSYS_FRAND(p + 11) - 0.5f);
 		r_vel[2] = 2.0f * (PSYS_FRAND(p + 12) - 0.5f);
@@ -1668,7 +1668,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		zero_v3(pa->state.vel);
 
 		/* boids store direction in ave */
-		if(fabs(nor[2])==1.0f) {
+		if(fabsf(nor[2])==1.0f) {
 			sub_v3_v3v3(pa->state.ave, loc, ob->obmat[3]);
 			normalize_v3(pa->state.ave);
 		}
@@ -1821,7 +1821,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	else{
 		pa->lifetime = part->lifetime * ptex.life;
 
-		if(part->randlife != 0.0)
+		if(part->randlife != 0.0f)
 			pa->lifetime *= 1.0f - part->randlife * PSYS_FRAND(p + 21);
 	}
 
@@ -1987,7 +1987,7 @@ void psys_get_pointcache_start_end(Scene *scene, ParticleSystem *psys, int *sfra
 	ParticleSettings *part = psys->part;
 
 	*sfra = MAX2(1, (int)part->sta);
-	*efra = MIN2((int)(part->end + part->lifetime + 1.0), scene->r.efra);
+	*efra = MIN2((int)(part->end + part->lifetime + 1.0f), scene->r.efra);
 }
 
 /************************************************/
@@ -2063,10 +2063,15 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 	float force[3],acceleration[3],impulse[3],dx[4][3],dv[4][3],oldpos[3];
 	float pa_mass= (part->flag & PART_SIZEMASS ? part->mass * pa->size : part->mass);
 	int i, steps=1;
-	
-	copy_v3_v3(oldpos, pa->state.co);
+	int integrator = part->integrator;
 
-	switch(part->integrator){
+	copy_v3_v3(oldpos, pa->state.co);
+	
+	/* Verlet integration behaves strangely with moving emitters, so do first step with euler. */
+	if(pa->prev_state.time < 0.f && integrator == PART_INT_VERLET)
+		integrator = PART_INT_EULER;
+
+	switch(integrator){
 		case PART_INT_EULER:
 			steps=1;
 			break;
@@ -2100,7 +2105,7 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 		/* calculate next state */
 		add_v3_v3(states[i].vel, impulse);
 
-		switch(part->integrator){
+		switch(integrator){
 			case PART_INT_EULER:
 				madd_v3_v3v3fl(pa->state.co, states->co, states->vel, dtime);
 				madd_v3_v3v3fl(pa->state.vel, states->vel, acceleration, dtime);
@@ -2329,7 +2334,7 @@ static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 	pfr->neighbors[pfr->tot_neighbors].psys = pfr->npsys;
 	pfr->tot_neighbors++;
 
-	q = (1.f - sqrt(squared_dist)/pfr->h) * pfr->massfac;
+	q = (1.f - sqrtf(squared_dist)/pfr->h) * pfr->massfac;
 
 	if(pfr->use_size)
 		q *= npa->size;
@@ -2511,7 +2516,7 @@ static void basic_force_cb(void *efdata_v, ParticleKey *state, float *force, flo
 		madd_v3_v3fl(force, state->vel, -part->dragfac * pa->size * pa->size * len_v3(state->vel));
 
 	/* brownian force */
-	if(part->brownfac != 0.0){
+	if(part->brownfac != 0.0f){
 		force[0] += (BLI_frand()-0.5f) * part->brownfac;
 		force[1] += (BLI_frand()-0.5f) * part->brownfac;
 		force[2] += (BLI_frand()-0.5f) * part->brownfac;
@@ -2554,7 +2559,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 
 	/* finally we do guides */
 	time=(cfra-pa->time)/pa->lifetime;
-	CLAMP(time,0.0,1.0);
+	CLAMP(time, 0.0f, 1.0f);
 
 	VECCOPY(tkey.co,pa->state.co);
 	VECCOPY(tkey.vel,pa->state.vel);
@@ -2594,8 +2599,8 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 	}
 
 	rotfac=len_v3(pa->state.ave);
-	if(rotfac==0.0){ /* unit_qt(in VecRotToQuat) doesn't give unit quat [1,0,0,0]?? */
-		rot1[0]=1.0;
+	if(rotfac == 0.0f){ /* unit_qt(in VecRotToQuat) doesn't give unit quat [1,0,0,0]?? */
+		rot1[0]=1.0f;
 		rot1[1]=rot1[2]=rot1[3]=0;
 	}
 	else{
@@ -2653,7 +2658,7 @@ static float nr_distance_to_edge(float *p, float radius, ParticleCollisionElemen
 
 	cross_v3_v3v3(c, v1, v2);
 
-	return fabs(len_v3(c)/len_v3(v0)) - radius;
+	return fabsf(len_v3(c)/len_v3(v0)) - radius;
 }
 static float nr_distance_to_vert(float *p, float radius, ParticleCollisionElement *pce, float *UNUSED(nor))
 {
@@ -2984,6 +2989,11 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 
 	pce.tot = 3;
 	pce.inside = 0;
+	pce.index = index;
+
+	/* don't collide with same face again */
+	if(col->hit == col->current && col->pce.index == index && col->pce.tot == 3)
+		return;
 
 	do
 	{	
@@ -3088,8 +3098,8 @@ static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeR
 		float frict = pd->pdef_frict + pd->pdef_rfrict * 2 * (BLI_frand() - 0.5f);
 		float distance, nor[3], dot;
 
-		CLAMP(damp,0.0,1.0);
-		CLAMP(frict,0.0,1.0);
+		CLAMP(damp,0.0f, 1.0f);
+		CLAMP(frict,0.0f, 1.0f);
 
 		/* get exact velocity right before collision */
 		madd_v3_v3v3fl(v0, col->ve1, col->acc, dt1);
@@ -3136,7 +3146,7 @@ static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeR
 
 				/* convert to angular velocity*/
 				cross_v3_v3v3(ave, vr_tan, pce->nor);
-				mul_v3_fl(ave, 1.0f/MAX2(pa->size, 0.001));
+				mul_v3_fl(ave, 1.0f/MAX2(pa->size, 0.001f));
 
 				/* only friction will cause change in linear & angular velocity */
 				interp_v3_v3v3(pa->state.ave, pa->state.ave, ave, frict);
@@ -3324,7 +3334,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 			if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE)) {
 				distribute_particles(sim, PART_FROM_CHILD);
 
-				if(part->childtype==PART_CHILD_FACES && part->parents!=0.0)
+				if(part->childtype==PART_CHILD_FACES && part->parents != 0.0f)
 					psys_find_parents(sim);
 			}
 		}
@@ -3577,11 +3587,11 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	timestep = psys_get_timestep(sim);
 	dtime= dfra*timestep;
 
-	if(dfra<0.0){
+	if(dfra < 0.0f) {
 		LOOP_EXISTING_PARTICLES {
 			psys_get_texture(sim, pa, &ptex, PAMAP_SIZE, cfra);
 			pa->size = part->size*ptex.size;
-			if(part->randsize > 0.0)
+			if(part->randsize > 0.0f)
 				pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
 
 			reset_particle(sim, pa, dtime, cfra);
@@ -3636,7 +3646,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		psys_get_texture(sim, pa, &ptex, PAMAP_SIZE, cfra);
 
 		pa->size = part->size*ptex.size;
-		if(part->randsize > 0.0)
+		if(part->randsize > 0.0f)
 			pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
 
 		birthtime = pa->time;
@@ -3780,7 +3790,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 	LOOP_PARTICLES {
 		psys_get_texture(sim, pa, &ptex, PAMAP_SIZE, cfra);
 		pa->size = part->size*ptex.size;
-		if(part->randsize > 0.0)
+		if(part->randsize > 0.0f)
 			pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
 
 		psys->lattice= psys_get_lattice(sim);
@@ -4305,7 +4315,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 					LOOP_EXISTING_PARTICLES {
 						pa->size = part->size;
-						if(part->randsize > 0.0)
+						if(part->randsize > 0.0f)
 							pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
 
 						reset_particle(&sim, pa, 0.0, cfra);

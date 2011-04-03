@@ -560,29 +560,29 @@ static void test_manipulator_axis(const bContext *C)
 	viewvector(rv3d, rv3d->twmat[3], vec);
 
 	angle = fabs(angle_v3v3(rv3d->twmat[0], vec));
-	if (angle > M_PI / 2) {
-		angle = M_PI - angle;
+	if (angle > (float)M_PI / 2.0f) {
+		angle = (float)M_PI - angle;
 	}
-	angle = rv3d->twangle[0] = 180.0f * angle / M_PI;
-	if (angle < 5) {
+	angle = rv3d->twangle[0] = RAD2DEGF(angle);
+	if (angle < 5.0f) {
 		rv3d->twdrawflag &= ~(MAN_TRANS_X|MAN_SCALE_X);
 	}
 
 	angle = fabs(angle_v3v3(rv3d->twmat[1], vec));
-	if (angle > M_PI / 2) {
-		angle = M_PI - angle;
+	if (angle > (float)M_PI / 2.0f) {
+		angle = (float)M_PI - angle;
 	}
-	angle = rv3d->twangle[1] = 180.0f * angle / M_PI;
-	if (angle < 5) {
+	angle = rv3d->twangle[1] = RAD2DEGF(angle);
+	if (angle < 5.0f) {
 		rv3d->twdrawflag &= ~(MAN_TRANS_Y|MAN_SCALE_Y);
 	}
 
 	angle = fabs(angle_v3v3(rv3d->twmat[2], vec));
-	if (angle > M_PI / 2) {
-		angle = M_PI - angle;
+	if (angle > (float)M_PI / 2.0f) {
+		angle = (float)M_PI - angle;
 	}
-	angle = rv3d->twangle[2] = 180.0f * angle / M_PI;
-	if (angle < 5) {
+	angle = rv3d->twangle[2] = RAD2DEGF(angle);
+	if (angle < 5.0f) {
 		rv3d->twdrawflag &= ~(MAN_TRANS_Z|MAN_SCALE_Z);
 	}
 }
@@ -832,7 +832,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 	if(arcs) {
 		/* clipplane makes nice handles, calc here because of multmatrix but with translate! */
 		VECCOPY(plane, rv3d->viewinv[2]);
-		plane[3]= -0.02*size; // clip just a bit more
+		plane[3]= -0.02f*size; // clip just a bit more
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
 	/* sets view screen aligned */

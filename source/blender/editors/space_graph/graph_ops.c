@@ -45,6 +45,7 @@
 
 #include "UI_view2d.h"
 
+#include "ED_anim_api.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 

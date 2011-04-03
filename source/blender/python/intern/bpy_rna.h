@@ -64,6 +64,7 @@
 #endif
 /* --- end bpy build options --- */
 
+struct ID;
 
 extern PyTypeObject pyrna_struct_meta_idprop_Type;
 extern PyTypeObject pyrna_struct_Type;
@@ -191,5 +192,7 @@ void BPY_modules_update(struct bContext *C); //XXX temp solution
 /* bpy.utils.(un)register_class */
 extern PyMethodDef meth_bpy_register_class;
 extern PyMethodDef meth_bpy_unregister_class;
+
+void BPY_id_release(struct ID *id);
 
 #endif

@@ -66,32 +66,22 @@ void LightsExporter::operator()(Object *ob)
 	Lamp *la = (Lamp*)ob->data;
 	std::string la_id(get_light_id(ob));
 	std::string la_name(id_name(la));
-	COLLADASW::Color col(la->r, la->g, la->b);
-	float att1, att2;
+	COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
 	float e, d, constatt, linatt, quadatt;
-	att1 = att2 = 0.0f;
+	float r;
+	
+	d = la->dist;
+	r = d/2.0f;
+	
+	constatt = 1.0f;
 	
 	if(la->falloff_type==LA_FALLOFF_INVLINEAR) {
-		att1 = 1.0f;
-		att2 = 0.0f;
+		linatt = 1.0f / r;
+		quadatt = 0.0f;
 	}
-	else if(la->falloff_type==LA_FALLOFF_INVSQUARE) {
-		att1 = 0.0f;
-		att2 = 1.0f;
-	}
-	else if(la->falloff_type==LA_FALLOFF_SLIDERS) {
-		att1 = la->att1;
-		att2 = la->att2;
-	}
-	
-	e = la->energy;
-	d = la->dist;
-	
-	constatt = linatt = quadatt = MAXFLOAT;
-	if(e > 0.0f) {
-		constatt = 1.0f/e;
-		linatt = att1/(d*e);
-		quadatt = att2/(d*d*(e*2));
+	else {
+		linatt = 0.0f;
+		quadatt = 1.0f / r;
 	}
 	
 	// sun
@@ -152,6 +142,9 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Lamp *la)
 	cla.addExtraTechniqueParameter("blender", "flag", la->flag);
 	cla.addExtraTechniqueParameter("blender", "mode", la->mode);
 	cla.addExtraTechniqueParameter("blender", "gamma", la->k);
+	cla.addExtraTechniqueParameter("blender", "red", la->r);
+	cla.addExtraTechniqueParameter("blender", "green", la->g);
+	cla.addExtraTechniqueParameter("blender", "blue", la->b);
 	cla.addExtraTechniqueParameter("blender", "shadow_r", la->shdwr);
 	cla.addExtraTechniqueParameter("blender", "shadow_g", la->shdwg);
 	cla.addExtraTechniqueParameter("blender", "shadow_b", la->shdwb);

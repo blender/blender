@@ -2120,6 +2120,11 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 		}
 	}
 
+	/* must be before xray draw which clears the depth buffer */
+	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	draw_gpencil_view3d_ext(scene, v3d, ar, 1);
+	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+
 	/* transp and X-ray afterdraw stuff */
 	if(v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
 	if(v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
@@ -2132,8 +2137,6 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	}
 
 	/* draw grease-pencil stuff */
-	draw_gpencil_view3d_ext(scene, v3d, ar, 1);
-
 	ED_region_pixelspace(ar);
 
 	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
@@ -2451,7 +2454,14 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 //	REEB_draw();
-	
+
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+		/* must be before xray draw which clears the depth buffer */
+		if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+		draw_gpencil_view3d((bContext *)C, 1);
+		if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	}
+
 	/* Transp and X-ray afterdraw stuff */
 	if(v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
 	if(v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
@@ -2472,12 +2482,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
 	}
-	
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
-		/* draw grease-pencil stuff (3d-space strokes) */
-		//if (v3d->flag2 & V3D_DISPGP)
-			draw_gpencil_view3d((bContext *)C, 1);
 
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		BDR_drawSketch(C);
 	}
 

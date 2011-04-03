@@ -31,6 +31,7 @@ _modules = (
     "object_align",
     "object",
     "object_randomize_transform",
+    "object_quick_effects",
     "presets",
     "screen_play_rendered_anim",
     "sequencer",

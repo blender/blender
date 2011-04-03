@@ -912,13 +912,13 @@ void brush_painter_break_stroke(BrushPainter *painter)
 static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pressure)
 {
 	if (brush_use_alpha_pressure(brush)) 
-		brush_set_alpha(brush, MAX2(0.0, painter->startalpha*pressure));
+		brush_set_alpha(brush, MAX2(0.0f, painter->startalpha*pressure));
 	if (brush_use_size_pressure(brush))
-		brush_set_size(brush, MAX2(1.0, painter->startsize*pressure));
+		brush_set_size(brush, MAX2(1.0f, painter->startsize*pressure));
 	if (brush->flag & BRUSH_JITTER_PRESSURE)
-		brush->jitter = MAX2(0.0, painter->startjitter*pressure);
+		brush->jitter = MAX2(0.0f, painter->startjitter*pressure);
 	if (brush->flag & BRUSH_SPACING_PRESSURE)
-		brush->spacing = MAX2(1.0, painter->startspacing*(1.5f-pressure));
+		brush->spacing = MAX2(1.0f, painter->startspacing*(1.5f-pressure));
 }
 
 void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
@@ -1075,7 +1075,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 			else
 				painter->accumtime -= painttime;
 
-			while (painter->accumtime >= brush->rate) {
+			while (painter->accumtime >= (double)brush->rate) {
 				brush_apply_pressure(painter, brush, pressure);
 
 				brush_jitter_pos(brush, pos, finalpos);
@@ -1085,7 +1085,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 
 				totpaintops +=
 					func(user, painter->cache.ibuf, painter->lastmousepos, finalpos);
-				painter->accumtime -= brush->rate;
+				painter->accumtime -= (double)brush->rate;
 			}
 
 			painter->lasttime= curtime;
@@ -1111,7 +1111,7 @@ float brush_curve_strength_clamp(Brush *br, float p, const float len)
 	else			p= p/len;
 
 	p= curvemapping_evaluateF(br->curve, 0, p);
-	if(p < 0.0)			p= 0.0f;
+	if(p < 0.0f)		p= 0.0f;
 	else if(p > 1.0f)	p= 1.0f;
 	return p;
 }
@@ -1158,10 +1158,10 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 				 * if the texture didn't give an RGB value, copy the intensity across
 				 */
 				if(hasrgb & TEX_RGB)
-					texres.tin = (0.35 * texres.tr + 0.45 *
-								  texres.tg + 0.2 * texres.tb);
+					texres.tin = (0.35f * texres.tr + 0.45f *
+								  texres.tg + 0.2f * texres.tb);
 
-				texres.tin = texres.tin * 255.0;
+				texres.tin = texres.tin * 255.0f;
 				((char*)texcache)[(iy*side+ix)*4] = (char)texres.tin;
 				((char*)texcache)[(iy*side+ix)*4+1] = (char)texres.tin;
 				((char*)texcache)[(iy*side+ix)*4+2] = (char)texres.tin;

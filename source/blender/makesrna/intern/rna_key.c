@@ -104,7 +104,7 @@ static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
 }
 
 /* epsilon for how close one end of shapekey range can get to the other */
-#define SHAPEKEY_SLIDER_TOL 0.001
+#define SHAPEKEY_SLIDER_TOL 0.001f
 
 static void rna_ShapeKey_slider_min_range(PointerRNA *ptr, float *min, float *max)
 {
@@ -348,7 +348,7 @@ static char *rna_ShapeKey_path(PointerRNA *ptr)
 	ID *id= ptr->id.data;
 	
 	if ((id) && (GS(id->name) != ID_KE))
-		return BLI_sprintfN("shape_keys.keys[\"%s\"]", kb->name);
+		return BLI_sprintfN("shape_keys.key_blocks[\"%s\"]", kb->name);
 	else
 		return BLI_sprintfN("key_blocks[\"%s\"]", kb->name);
 }

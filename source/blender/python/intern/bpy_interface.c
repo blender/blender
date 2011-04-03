@@ -170,9 +170,13 @@ static void bpy_python_start_path(void)
 {
 	char *py_path_bundle= BLI_get_folder(BLENDER_PYTHON, NULL);
 
-	if(py_path_bundle==NULL)
+	if(py_path_bundle==NULL) {
+		/* Common enough to have bundled *nix python but complain on OSX/Win */
+#if defined(__APPLE__) || defined(_WIN32)
+		fprintf(stderr, "Warning! bundled python not found and is expected on this platform. (if you built with CMake: 'install' target may have not been built)\n");
+#endif
 		return;
-
+	}
 	/* set the environment path */
 	printf("found bundled python: %s\n", py_path_bundle);
 
@@ -272,27 +276,7 @@ void BPY_python_start(int argc, const char **argv)
 	/* bpy.* and lets us import it */
 	BPy_init_modules();
 
-	{ /* our own import and reload functions */
-		PyObject *item;
-		PyObject *mod;
-		//PyObject *m= PyImport_AddModule("__builtin__");
-		//PyObject *d= PyModule_GetDict(m);
-		PyObject *d= PyEval_GetBuiltins();
-//		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(&bpy_reload_meth, NULL));	Py_DECREF(item);
-		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(&bpy_import_meth, NULL));	Py_DECREF(item);
-
-		/* move reload here
-		 * XXX, use import hooks */
-		mod= PyImport_ImportModuleLevel((char *)"imp", NULL, NULL, NULL, 0);
-		if(mod) {
-			PyDict_SetItemString(PyModule_GetDict(mod), "reload",		item=PyCFunction_New(&bpy_reload_meth, NULL));	Py_DECREF(item);
-			Py_DECREF(mod);
-		}
-		else {
-			BLI_assert(!"unable to load 'imp' module.");
-		}
-
-	}
+	bpy_import_init(PyEval_GetBuiltins());
 	
 	pyrna_alloc_types();
 

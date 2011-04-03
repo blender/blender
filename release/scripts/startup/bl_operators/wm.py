@@ -74,20 +74,20 @@ def execute_context_assign(self, context):
     return {'FINISHED'}
 
 
-class BRUSH_OT_set_active_number(bpy.types.Operator):
+class BRUSH_OT_active_index_set(bpy.types.Operator):
     '''Set active sculpt/paint brush from it's number'''
-    bl_idname = "brush.set_active_number"
+    bl_idname = "brush.active_index_set"
     bl_label = "Set Brush Number"
 
     mode = StringProperty(name="mode",
             description="Paint mode to set brush for", maxlen=1024)
-    number = IntProperty(name="number",
+    index = IntProperty(name="number",
             description="Brush number")
 
     _attr_dict = {"sculpt": "use_paint_sculpt",
                   "vertex_paint": "use_paint_vertex",
                   "weight_paint": "use_paint_weight",
-                  "image_paint": "use_paint_texture"}
+                  "image_paint": "use_paint_image"}
 
     def execute(self, context):
         attr = self._attr_dict.get(self.mode)
@@ -95,7 +95,7 @@ class BRUSH_OT_set_active_number(bpy.types.Operator):
             return {'CANCELLED'}
 
         for i, brush in enumerate((cur for cur in bpy.data.brushes if getattr(cur, attr))):
-            if i == self.number:
+            if i == self.index:
                 getattr(context.tool_settings, self.mode).brush = brush
                 return {'FINISHED'}
 
@@ -596,7 +596,10 @@ class WM_OT_doc_view(bpy.types.Operator):
     bl_label = "View Documentation"
 
     doc_id = doc_id
-    _prefix = "http://www.blender.org/documentation/blender_python_api_%s" % "_".join(str(v) for v in bpy.app.version)
+    if bpy.app.version_cycle == "release":
+        _prefix = "http://www.blender.org/documentation/blender_python_api_%s%s_release" % ("_".join(str(v) for v in bpy.app.version[:2]), bpy.app.version_char)
+    else:
+        _prefix = "http://www.blender.org/documentation/blender_python_api_%s" % "_".join(str(v) for v in bpy.app.version)
 
     def _nested_class_string(self, class_string):
         ls = []
@@ -859,6 +862,7 @@ class WM_OT_keyconfig_activate(bpy.types.Operator):
         bpy.utils.keyconfig_set(self.filepath)
         return {'FINISHED'}
 
+
 class WM_OT_appconfig_default(bpy.types.Operator):
     bl_idname = "wm.appconfig_default"
     bl_label = "Default Application Configuration"
@@ -868,12 +872,13 @@ class WM_OT_appconfig_default(bpy.types.Operator):
 
         context.window_manager.keyconfigs.active = context.window_manager.keyconfigs.default
 
-        filepath = os.path.join(bpy.utils.preset_paths("interaction")[0], "blender.py")        
-        
+        filepath = os.path.join(bpy.utils.preset_paths("interaction")[0], "blender.py")
+
         if os.path.exists(filepath):
-            bpy.ops.script.execute_preset(filepath = filepath, menu_idname = "USERPREF_MT_interaction_presets")
-        
+            bpy.ops.script.execute_preset(filepath=filepath, menu_idname="USERPREF_MT_interaction_presets")
+
         return {'FINISHED'}
+
 
 class WM_OT_appconfig_activate(bpy.types.Operator):
     bl_idname = "wm.appconfig_activate"
@@ -884,13 +889,14 @@ class WM_OT_appconfig_activate(bpy.types.Operator):
     def execute(self, context):
         import os
         bpy.utils.keyconfig_set(self.filepath)
-        
+
         filepath = self.filepath.replace("keyconfig", "interaction")
-        
+
         if os.path.exists(filepath):
-            bpy.ops.script.execute_preset(filepath = filepath, menu_idname = "USERPREF_MT_interaction_presets")
-        
+            bpy.ops.script.execute_preset(filepath=filepath, menu_idname="USERPREF_MT_interaction_presets")
+
         return {'FINISHED'}
+
 
 class WM_OT_sysinfo(bpy.types.Operator):
     '''Generate System Info'''

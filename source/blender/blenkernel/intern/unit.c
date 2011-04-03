@@ -344,9 +344,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 
 	/* Convert to a string */
 	{
-		char conv_str[6] = {'%', '.', '0', 'l', 'f', '\0'}; /* "%.2lf" when prec is 2, must be under 10 */
-		conv_str[2] += prec;
-		len= snprintf(str, len_max, conv_str, (float)value_conv);
+		len= snprintf(str, len_max, "%.*lf", prec, value_conv);
 
 		if(len >= len_max)
 			len= len_max;

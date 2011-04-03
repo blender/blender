@@ -206,7 +206,7 @@
 #  ifdef __GNUC__ /* just want to check if __func__ is available */
 #    define BLI_assert(a) \
 do { \
-	if (0 == (a)) { \
+	if (!(a)) { \
 		fprintf(stderr, \
 			"BLI_assert failed: %s, %s(), %d at \'%s\'\n", \
 			__FILE__, __func__, __LINE__, STRINGIFY(a)); \

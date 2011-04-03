@@ -85,7 +85,7 @@ void outputNumInput(NumInput *n, char *str)
 		else
 			inv[0] = 0;
 
-		if( n->val[i] > 1e10 || n->val[i] < -1e10 )
+		if( n->val[i] > 1e10f || n->val[i] < -1e10f )
 			sprintf(&str[j*20], "%s%.4e%c", inv, n->val[i], cur);
 		else
 			switch (n->ctrl[i]) {
@@ -281,7 +281,7 @@ char handleNumInput(NumInput *n, wmEvent *event)
 			if (!n->ctrl[idx])
 				n->ctrl[idx] = 1;
 
-			if (fabs(n->val[idx]) > 9999999.0f);
+			if (fabsf(n->val[idx]) > 9999999.0f);
 			else if (n->ctrl[idx] == 1) {
 				n->val[idx] *= 10;
 				n->val[idx] += Val;
@@ -303,7 +303,7 @@ char handleNumInput(NumInput *n, wmEvent *event)
 		}
 	}
 	
-	printf("%f\n", n->val[idx]);
+	// printf("%f\n", n->val[idx]);
 
 	/* REDRAW SINCE NUMBERS HAVE CHANGED */
 	return 1;

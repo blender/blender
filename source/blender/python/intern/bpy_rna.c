@@ -225,18 +225,18 @@ static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash)
 
 	BLI_ghashIterator_init(&weakinfo_hash_iter, weakinfo_hash);
 
-	#ifdef DEBUG_RNA_WEAKREF
+#ifdef DEBUG_RNA_WEAKREF
 	fprintf(stdout, "id_release_weakref: '%s', %d items\n", id->name, BLI_ghash_size(weakinfo_hash));
-	#endif
+#endif
 
 	while (!BLI_ghashIterator_isDone(&weakinfo_hash_iter)) {
 		PyObject *weakref= (PyObject *)BLI_ghashIterator_getKey(&weakinfo_hash_iter);
 		PyObject *item= PyWeakref_GET_OBJECT(weakref);
 		if(item != Py_None) {
 
-	#ifdef DEBUG_RNA_WEAKREF
+#ifdef DEBUG_RNA_WEAKREF
 			PyC_ObSpit("id_release_weakref item ", item);
-	#endif
+#endif
 
 			pyrna_invalidate((BPy_DummyPointerRNA *)item);
 		}
@@ -252,9 +252,9 @@ static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash)
 	if(BLI_ghash_size(id_weakref_pool) == 0) {
 		BLI_ghash_free(id_weakref_pool, NULL, NULL);
 		id_weakref_pool= NULL;
-	#ifdef DEBUG_RNA_WEAKREF
+#ifdef DEBUG_RNA_WEAKREF
 		printf("id_release_weakref freeing pool\n");
-	#endif
+#endif
 	}
 }
 
@@ -275,11 +275,13 @@ void BPY_id_release(struct ID *id)
 #endif
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
-	PyGILState_STATE gilstate= PyGILState_Ensure();
+	if(id_weakref_pool) {
+		PyGILState_STATE gilstate= PyGILState_Ensure();
 
-	id_release_weakref(id);
+		id_release_weakref(id);
 
-	PyGILState_Release(gilstate);
+		PyGILState_Release(gilstate);
+	}
 #endif /* USE_PYRNA_INVALIDATE_WEAKREF */
 
 	(void)id;
@@ -640,6 +642,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 			}
 			break;
 		case PROP_COLOR:
+		case PROP_COLOR_GAMMA:
 			if(len==3) { /* color */
 				if(is_thick) {
 					ret= newColorObject(NULL, Py_NEW, NULL); // TODO, get order from RNA
@@ -6186,22 +6189,6 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 		return NULL;
 	}
 
-	/* call classed register function () */
-	py_cls_meth= PyObject_GetAttrString(py_class, "register");
-	if(py_cls_meth == NULL) {
-		PyErr_Clear();
-	}
-	else {
-		PyObject *ret= PyObject_CallObject(py_cls_meth, NULL);
-		if(ret) {
-			Py_DECREF(ret);
-		}
-		else {
-			return NULL;
-		}
-	}
-
-
 	/* get the context, so register callback can do necessary refreshes */
 	C= BPy_GetContext();
 
@@ -6234,6 +6221,21 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 	 */
 	if(pyrna_deferred_register_class(srna_new, py_class)!=0)
 		return NULL;
+
+	/* call classed register method () */
+	py_cls_meth= PyObject_GetAttrString(py_class, "register");
+	if(py_cls_meth == NULL) {
+		PyErr_Clear();
+	}
+	else {
+		PyObject *ret= PyObject_CallObject(py_cls_meth, NULL);
+		if(ret) {
+			Py_DECREF(ret);
+		}
+		else {
+			return NULL;
+		}
+	}
 
 	Py_RETURN_NONE;
 }
@@ -6296,7 +6298,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 		return NULL;
 	}
 
-	/* call classed register function */
+	/* call classed unregister method */
 	py_cls_meth= PyObject_GetAttrString(py_class, "unregister");
 	if(py_cls_meth == NULL) {
 		PyErr_Clear();

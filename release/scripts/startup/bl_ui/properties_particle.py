@@ -29,7 +29,7 @@ from bl_ui.properties_physics_common import (
 
 
 def particle_panel_enabled(context, psys):
-    if psys == None:
+    if psys is None:
         return True
     phystype = psys.settings.physics_type
     if psys.settings.type in {'EMITTER', 'REACTOR'} and phystype in {'NO', 'KEYED'}:
@@ -98,10 +98,10 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
             col.operator("object.particle_system_add", icon='ZOOMIN', text="")
             col.operator("object.particle_system_remove", icon='ZOOMOUT', text="")
 
-        if psys == None:
+        if psys is None:
             part = particle_get_settings(context)
 
-            if part == None:
+            if part is None:
                 return
 
             layout.template_ID(context.space_data, "pin_id")
@@ -192,7 +192,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         if settings.is_fluid:
             return False
         if particle_panel_poll(PARTICLE_PT_emission, context):
-            return psys == None or not context.particle_system.point_cache.use_external
+            return psys is None or not context.particle_system.point_cache.use_external
         return False
 
     def draw(self, context):
@@ -201,7 +201,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         psys = context.particle_system
         part = particle_get_settings(context)
 
-        layout.enabled = particle_panel_enabled(context, psys) and (psys == None or not psys.has_multiple_caches)
+        layout.enabled = particle_panel_enabled(context, psys) and (psys is None or not psys.has_multiple_caches)
 
         row = layout.row()
         row.active = part.distribution != 'GRID'
@@ -341,7 +341,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
 
             if settings.type == 'HAIR' and not settings.use_advanced_hair:
                 return False
-            return settings.physics_type != 'BOIDS' and (psys == None or not psys.point_cache.use_external)
+            return settings.physics_type != 'BOIDS' and (psys is None or not psys.point_cache.use_external)
         else:
             return False
 
@@ -363,7 +363,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
         sub.prop(part, "tangent_phase", slider=True)
 
         col = split.column()
-        col.label(text="Emitter Object")
+        col.label(text="Emitter Object:")
         col.prop(part, "object_align_factor", text="")
 
         layout.label(text="Other:")
@@ -391,7 +391,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
 
             if settings.type == 'HAIR' and not settings.use_advanced_hair:
                 return False
-            return settings.physics_type != 'BOIDS' and (psys == None or not psys.point_cache.use_external)
+            return settings.physics_type != 'BOIDS' and (psys is None or not psys.point_cache.use_external)
         else:
             return False
 
@@ -440,7 +440,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
 
             if settings.type == 'HAIR' and not settings.use_advanced_hair:
                 return False
-            return psys == None or not psys.point_cache.use_external
+            return psys is None or not psys.point_cache.use_external
         else:
             return False
 
@@ -750,23 +750,23 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        psys = context.particle_system
+        settings = particle_get_settings(context)
         engine = context.scene.render.engine
-        if psys is None:
+        if settings is None:
             return False
-        if psys.settings is None:
-            return False
+
         return engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
 
         psys = context.particle_system
-        part = psys.settings
+        part = particle_get_settings(context)
 
         row = layout.row()
         row.prop(part, "material")
-        row.prop(psys, "parent")
+        if psys:
+            row.prop(psys, "parent")
 
         split = layout.split()
 
@@ -881,16 +881,19 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             col = row.column()
             col.prop(part, "billboard_offset")
 
-            col = layout.column()
-            col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_textures")
-            col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_textures")
+            if psys:
+                col = layout.column()
+                col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_textures")
+                col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_textures")
 
             split = layout.split(percentage=0.33)
             split.label(text="Split uv's:")
             split.prop(part, "billboard_uv_split", text="Number of splits")
-            col = layout.column()
-            col.active = part.billboard_uv_split > 1
-            col.prop_search(psys, "billboard_split_uv", ob.data, "uv_textures")
+
+            if psys:
+                col = layout.column()
+                col.active = part.billboard_uv_split > 1
+                col.prop_search(psys, "billboard_split_uv", ob.data, "uv_textures")
 
             row = col.row()
             row.label(text="Animate:")
@@ -924,11 +927,9 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        psys = context.particle_system
+        settings = particle_get_settings(context)
         engine = context.scene.render.engine
-        if psys is None:
-            return False
-        if psys.settings is None:
+        if settings is None:
             return False
         return engine in cls.COMPAT_ENGINES
 
@@ -953,7 +954,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
         else:
             row.label(text="")
 
-        if part.draw_percentage != 100:
+        if part.draw_percentage != 100 and psys is not None:
             if part.type == 'HAIR':
                 if psys.use_hair_dynamics and psys.point_cache.is_baked == False:
                     layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
@@ -1143,7 +1144,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        if context.particle_system == None:
+        if context.particle_system is None:
             return False
         return particle_panel_poll(cls, context)
 

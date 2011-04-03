@@ -1918,7 +1918,18 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int screen_full_area_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ED_screen_full_toggle(C, CTX_wm_window(C), CTX_wm_area(C));
+	bScreen *screen = CTX_wm_screen(C);
+	ScrArea *sa=NULL;
+	
+	/* search current screen for 'fullscreen' areas */
+	/* prevents restoring info header, when mouse is over it */
+	for (sa=screen->areabase.first; sa; sa=sa->next) {
+		if (sa->full) break;
+	}
+	
+	if(sa==NULL) sa= CTX_wm_area(C);
+	
+	ED_screen_full_toggle(C, CTX_wm_window(C), sa);
 	return OPERATOR_FINISHED;
 }
 
@@ -2766,7 +2777,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		else sync= (scene->flag & SCE_FRAME_DROP);
 		
 		if((scene->audio.flag & AUDIO_SYNC) && !(sad->flag & ANIMPLAY_FLAG_REVERSE) && finite(time = sound_sync_scene(scene)))
-			scene->r.cfra = time * FPS + 0.5;
+			scene->r.cfra = (double)time * FPS + 0.5;
 		else
 		{
 			if (sync) {
@@ -3162,18 +3173,30 @@ static void SCREEN_OT_delete(wmOperatorType *ot)
 static int scene_new_exec(bContext *C, wmOperator *op)
 {
 	Scene *newscene, *scene= CTX_data_scene(C);
+	bScreen *screen= CTX_wm_screen(C);
 	Main *bmain= CTX_data_main(C);
 	int type= RNA_enum_get(op->ptr, "type");
+
+	if(type == SCE_COPY_NEW) {
+		newscene= add_scene("Scene");
+	}
+	else { /* different kinds of copying */
+		newscene= copy_scene(scene, type);
+
+		/* these can't be handled in blenkernel curently, so do them here */
+		if(type == SCE_COPY_LINK_DATA) {
+			ED_object_single_users(bmain, newscene, 0);
+		}
+		else if(type == SCE_COPY_FULL) {
+			ED_object_single_users(bmain, newscene, 1);
+		}
+	}
 	
-	newscene= copy_scene(scene, type);
-	
-	/* these can't be handled in blenkernel curently, so do them here */
-	if(type == SCE_COPY_LINK_DATA)
-		ED_object_single_users(bmain, newscene, 0);
-	else if(type == SCE_COPY_FULL)
-		ED_object_single_users(bmain, newscene, 1);
-	
+	/* this notifier calls ED_screen_set_scene, doing a lot of UI stuff, not for inside event loops */
 	WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, newscene);
+	
+	if(screen)
+		screen->scene= newscene;
 	
 	return OPERATOR_FINISHED;
 }
@@ -3181,7 +3204,8 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 static void SCENE_OT_new(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{SCE_COPY_EMPTY, "EMPTY", 0, "Empty", "Add empty scene"},
+		{SCE_COPY_NEW, "NEW", 0, "New", "Add new scene"},
+		{SCE_COPY_EMPTY, "EMPTY", 0, "Copy Settings", "Make a copy without any objects"},
 		{SCE_COPY_LINK_OB, "LINK_OBJECTS", 0, "Link Objects", "Link to the objects from the current scene"},
 		{SCE_COPY_LINK_DATA, "LINK_OBJECT_DATA", 0, "Link Object Data", "Copy objects linked to data from the current scene"},
 		{SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy", "Make a full copy of the current scene"},

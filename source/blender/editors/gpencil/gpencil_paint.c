@@ -1594,6 +1594,18 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
+static int gpencil_area_exists(bContext *C, ScrArea *satest)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *sa;
+	
+	for(sa= sc->areabase.first; sa; sa= sa->next)
+		if(sa==satest)
+			return 1;
+	return 0;
+}
+
 /* events handling during interactive drawing part of operator */
 static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -1659,6 +1671,8 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 	
+	
+	
 	/* handle mode-specific events */
 	if (p->status == GP_STATUS_PAINTING) {
 		/* handle painting mouse-movements? */
@@ -1705,8 +1719,12 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 	
-	/* update status indicators - cursor, header, etc. */
-	gpencil_draw_status_indicators(p);
+	/* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
+	if(0==gpencil_area_exists(C, p->sa))
+		estate= OPERATOR_CANCELLED;
+	else
+		/* update status indicators - cursor, header, etc. */
+		gpencil_draw_status_indicators(p);
 	
 	/* process last operations before exiting */
 	switch (estate) {

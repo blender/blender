@@ -3671,12 +3671,12 @@ static int in_scope_resize_zone(uiBut *but, int UNUSED(x), int y)
 static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
 	Histogram *hist = (Histogram *)but->poin;
-	rcti rect;
+	/* rcti rect; */
 	int changed= 1;
 	float dx, dy, yfac=1.f;
 	
-	rect.xmin= but->x1; rect.xmax= but->x2;
-	rect.ymin= but->y1; rect.ymax= but->y2;
+	/* rect.xmin= but->x1; rect.xmax= but->x2; */
+	/* rect.ymin= but->y1; rect.ymax= but->y2; */
 	
 	dx = mx - data->draglastx;
 	dy = my - data->draglasty;
@@ -3754,12 +3754,12 @@ static int ui_do_but_HISTOGRAM(bContext *C, uiBlock *block, uiBut *but, uiHandle
 static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
 	Scopes *scopes = (Scopes *)but->poin;
-	rcti rect;
+	/* rcti rect; */
 	int changed= 1;
 	float dx, dy, yfac=1.f;
 
-	rect.xmin= but->x1; rect.xmax= but->x2;
-	rect.ymin= but->y1; rect.ymax= but->y2;
+	/* rect.xmin= but->x1; rect.xmax= but->x2; */
+	/* rect.ymin= but->y1; rect.ymax= but->y2; */
 
 	dx = mx - data->draglastx;
 	dy = my - data->draglasty;
@@ -3837,12 +3837,12 @@ static int ui_do_but_WAVEFORM(bContext *C, uiBlock *block, uiBut *but, uiHandleB
 static int ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
 	Scopes *scopes = (Scopes *)but->poin;
-	rcti rect;
+	/* rcti rect; */
 	int changed= 1;
 	/* float dx, dy; */
 
-	rect.xmin= but->x1; rect.xmax= but->x2;
-	rect.ymin= but->y1; rect.ymax= but->y2;
+	/* rect.xmin= but->x1; rect.xmax= but->x2; */
+	/* rect.ymin= but->y1; rect.ymax= but->y2; */
 
 	/* dx = mx - data->draglastx; */
 	/* dy = my - data->draglasty; */

@@ -37,8 +37,39 @@ builder = sys.argv[1]
 # scons does own packaging
 if builder.find('scons') != -1:
     os.chdir('../blender')
-    retcode = subprocess.call(['python', 'scons/scons.py', 'BF_QUICK=slnt', 'buildslave'])
-    sys.exit(retcode)
+    scons_options = ['BF_QUICK=slnt', 'buildslave']
+
+    if builder.startswith('linux'):
+        buildbot_dir = os.path.dirname(os.path.realpath(__file__))
+        config_dir = os.path.join(buildbot_dir, 'config')
+        build_dir = os.path.join('..', 'build', builder)
+        install_dir = os.path.join('..', 'install', builder)
+
+        scons_options += ['WITH_BF_NOBLENDER=True', 'WITH_BF_PLAYER=False',
+            'BF_BUILDDIR=' + build_dir,
+            'BF_INSTALLDIR=' + install_dir,
+            'WITHOUT_BF_INSTALL=True']
+
+        config = None
+
+        if builder == 'linux_x86_64_scons':
+            config = 'user-config-x86_64.py'
+        elif builder == 'linux_i386_scons':
+            config = 'user-config-x86_64.py'
+
+        if config is not None:
+            config_fpath = os.path.join(config_dir, config)
+            scons_options.append('BF_CONFIG=' + config_fpath)
+
+        blender = os.path.join(install_dir, 'blender')
+        blenderplayer = os.path.join(install_dir, 'blenderplayer')
+        subprocess.call(['strip', '--strip-all', blender, blenderplayer])
+
+        retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+        sys.exit(retcode)
+    else:
+        retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+        sys.exit(retcode)
 
 # clean release directory if it already exists
 dir = 'release'

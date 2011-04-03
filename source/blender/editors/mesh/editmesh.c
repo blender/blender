@@ -599,7 +599,7 @@ static void edge_normal_compare(EditEdge *eed, EditFace *efa1)
 	if(efa1==efa2) return;
 	
 	inp= efa1->n[0]*efa2->n[0] + efa1->n[1]*efa2->n[1] + efa1->n[2]*efa2->n[2];
-	if(inp<0.999 && inp >-0.999) eed->f2= 1;
+	if(inp<0.999f && inp >-0.999f) eed->f2= 1;
 		
 	if(efa1->v4) cent_quad_v3(cent1, efa1->v1->co, efa1->v2->co, efa1->v3->co, efa1->v4->co);
 	else cent_tri_v3(cent1, efa1->v1->co, efa1->v2->co, efa1->v3->co);
@@ -610,7 +610,7 @@ static void edge_normal_compare(EditEdge *eed, EditFace *efa1)
 	normalize_v3(cent1);
 	inp= cent1[0]*efa1->n[0] + cent1[1]*efa1->n[1] + cent1[2]*efa1->n[2]; 
 
-	if(inp < -0.001 ) eed->f1= 1;
+	if(inp < -0.001f) eed->f1= 1;
 }
 
 #if 0
@@ -799,10 +799,8 @@ void make_editMesh(Scene *scene, Object *ob)
 		if(!is_paint_sel)
 			eve->f |= (mvert->flag & 1);
 		
-		if (mvert->flag & ME_HIDE) eve->h= 1;		
-		eve->no[0]= mvert->no[0]/32767.0;
-		eve->no[1]= mvert->no[1]/32767.0;
-		eve->no[2]= mvert->no[2]/32767.0;
+		if (mvert->flag & ME_HIDE) eve->h= 1;
+		normal_short_to_float_v3(eve->no, mvert->no);
 
 		eve->bweight= ((float)mvert->bweight)/255.0f;
 
@@ -936,7 +934,7 @@ void load_editMesh(Scene *scene, Object *obedit)
 	EditFace *efa, *efa_act;
 	EditEdge *eed;
 	EditSelection *ese;
-	float *fp, *newkey, *oldkey, nor[3];
+	float *fp, *newkey, *oldkey;
 	int i, a, ototvert;
 	
 	/* this one also tests of edges are not in faces: */
@@ -995,9 +993,7 @@ void load_editMesh(Scene *scene, Object *obedit)
 		VECCOPY(mvert->co, eve->co);
 
 		/* vertex normal */
-		VECCOPY(nor, eve->no);
-		mul_v3_fl(nor, 32767.0);
-		VECCOPY(mvert->no, nor);
+		normal_float_to_short_v3(mvert->no, eve->no);
 
 		/* note: it used to remove me->dvert when it was not in use, cancelled
 		   that... annoying when you have a fresh vgroup */
@@ -1009,7 +1005,7 @@ void load_editMesh(Scene *scene, Object *obedit)
 		mvert->flag |= (eve->f & SELECT);
 		if (eve->h) mvert->flag |= ME_HIDE;
 		
-		mvert->bweight= (char)(255.0*eve->bweight);
+		mvert->bweight= (char)(255.0f*eve->bweight);
 
 		eve= eve->next;
 		mvert++;
@@ -1030,8 +1026,8 @@ void load_editMesh(Scene *scene, Object *obedit)
 		if(eed->h & EM_FGON) medge->flag |= ME_FGON;	// different defines yes
 		if(eed->h & 1) medge->flag |= ME_HIDE;
 		
-		medge->crease= (char)(255.0*eed->crease);
-		medge->bweight= (char)(255.0*eed->bweight);
+		medge->crease= (char)(255.0f*eed->crease);
+		medge->bweight= (char)(255.0f*eed->bweight);
 		CustomData_from_em_block(&em->edata, &me->edata, eed->data, a);		
 
 		eed->tmp.l = a++;
@@ -1663,7 +1659,7 @@ static void *editMesh_to_undoMesh(void *emv)
 		evec->h= eve->h;
 		evec->keyindex= eve->keyindex;
 		eve->tmp.l = a; /*store index*/
-		evec->bweight= (short)(eve->bweight*255.0);
+		evec->bweight= (short)(eve->bweight*255.0f);
 
 		CustomData_from_em_block(&em->vdata, &um->vdata, eve->data, a);
 	}
@@ -1677,8 +1673,8 @@ static void *editMesh_to_undoMesh(void *emv)
 		eedc->h= eed->h;
 		eedc->seam= eed->seam;
 		eedc->sharp= eed->sharp;
-		eedc->crease= (short)(eed->crease*255.0);
-		eedc->bweight= (short)(eed->bweight*255.0);
+		eedc->crease= (short)(eed->crease*255.0f);
+		eedc->bweight= (short)(eed->bweight*255.0f);
 		eedc->fgoni= eed->fgoni;
 		eed->tmp.l = a; /*store index*/
 		CustomData_from_em_block(&em->edata, &um->edata, eed->data, a);

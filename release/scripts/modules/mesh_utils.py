@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 
-def mesh_linked_faces(me):
+def mesh_linked_faces(mesh):
     '''
     Splits the mesh into connected parts,
     these parts are returned as lists of faces.

@@ -27,7 +27,7 @@ For HTML generation
 -------------------
 - Run this script from blenders root path once you have compiled blender
 
-    ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py
+    ./blender.bin --background --python doc/python_api/sphinx_doc_gen.py
 
   This will generate python files in doc/python_api/sphinx-in/,
   assuming that ./blender.bin is or links to the blender executable
@@ -75,7 +75,7 @@ else:
         "Freestyle",
     )
 
-    FILTER_BPY_TYPES = ("PropertyGroup", "Panel", "Menu", "Operator", "RenderEngine")  # allow
+    FILTER_BPY_TYPES = ("bpy_struct", "Panel", "Menu", "Operator", "RenderEngine")  # allow
     FILTER_BPY_OPS = ("import.scene", )  # allow
 
     # for quick rebuilds
@@ -274,7 +274,7 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
     else:
         raise TypeError("type was not GetSetDescriptorType, MethodDescriptorType or ClassMethodDescriptorType")
 
-    write_example_ref(ident, fw, module_name + "." + type_name + "." + identifier)
+    write_example_ref(ident + "   ", fw, module_name + "." + type_name + "." + identifier)
     fw("\n")
 
 
@@ -469,6 +469,7 @@ def pycontext2sphinx(BASEPATH):
         "edit_text": ("Text", False),
         "editable_bones": ("EditBone", True),
         "fluid": ("FluidSimulationModifier", False),
+        "image_paint_object": ("Object", False),
         "lamp": ("Lamp", False),
         "lattice": ("Lattice", False),
         "material": ("Material", False),
@@ -498,7 +499,6 @@ def pycontext2sphinx(BASEPATH):
         "smoke": ("SmokeModifier", False),
         "soft_body": ("SoftBodyModifier", False),
         "texture": ("Texture", False),
-        "texture_paint_object": ("Object", False),
         "texture_slot": ("MaterialTextureSlot", False),
         "vertex_paint_object": ("Object", False),
         "visible_bases": ("ObjectBase", True),

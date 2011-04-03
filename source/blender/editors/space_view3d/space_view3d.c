@@ -1078,7 +1078,7 @@ void ED_spacetype_view3d(void)
 	st->context= view3d_context;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d main region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->keymapflag= ED_KEYMAP_GPENCIL;
 	art->draw= view3d_main_area_draw;
@@ -1091,7 +1091,7 @@ void ED_spacetype_view3d(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: listview/buttons */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d buttons region");
 	art->regionid = RGN_TYPE_UI;
 	art->prefsizex= 180; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
@@ -1103,7 +1103,7 @@ void ED_spacetype_view3d(void)
 	view3d_buttons_register(art);
 
 	/* regions: tool(bar) */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d tools region");
 	art->regionid = RGN_TYPE_TOOLS;
 	art->prefsizex= 160; // XXX
 	art->prefsizey= 50; // XXX
@@ -1119,7 +1119,7 @@ void ED_spacetype_view3d(void)
 #endif
 
 	/* regions: tool properties */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d tool properties region");
 	art->regionid = RGN_TYPE_TOOL_PROPS;
 	art->prefsizex= 0;
 	art->prefsizey= 120;
@@ -1133,7 +1133,7 @@ void ED_spacetype_view3d(void)
 	
 	
 	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d header region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;

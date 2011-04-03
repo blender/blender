@@ -469,7 +469,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 1, 100, 10, 3);
-	RNA_def_property_ui_text(prop, "Size", "Brush size");
+	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
 
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 1.0);

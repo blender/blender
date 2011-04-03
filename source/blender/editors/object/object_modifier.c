@@ -309,15 +309,21 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	cache= psys->pathcache;
 	for(a=0; a<totpart; a++) {
 		key= cache[a];
-		totvert+= key->steps+1;
-		totedge+= key->steps;
+
+		if(key->steps > 0) {
+			totvert+= key->steps+1;
+			totedge+= key->steps;
+		}
 	}
 
 	cache= psys->childcache;
 	for(a=0; a<totchild; a++) {
 		key= cache[a];
-		totvert+= key->steps+1;
-		totedge+= key->steps;
+
+		if(key->steps > 0) {
+			totvert+= key->steps+1;
+			totedge+= key->steps;
+		}
 	}
 
 	if(totvert==0) return 0;

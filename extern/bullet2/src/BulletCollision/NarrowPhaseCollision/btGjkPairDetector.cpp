@@ -254,19 +254,20 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput& inpu
 			}
 #endif //
 			
-			m_cachedSeparatingAxis = newCachedSeparatingAxis;
 
 			//redundant m_simplexSolver->compute_points(pointOnA, pointOnB);
 
 			//are we getting any closer ?
 			if (previousSquaredDistance - squaredDistance <= SIMD_EPSILON * previousSquaredDistance) 
 			{ 
-				m_simplexSolver->backup_closest(m_cachedSeparatingAxis);
+//				m_simplexSolver->backup_closest(m_cachedSeparatingAxis);
 				checkSimplex = true;
 				m_degenerateSimplex = 12;
 				
 				break;
 			}
+
+			m_cachedSeparatingAxis = newCachedSeparatingAxis;
 
 			  //degeneracy, this is typically due to invalid/uninitialized worldtransforms for a btCollisionObject   
               if (m_curIter++ > gGjkMaxIter)   
@@ -294,7 +295,7 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput& inpu
 			if (!check)
 			{
 				//do we need this backup_closest here ?
-				m_simplexSolver->backup_closest(m_cachedSeparatingAxis);
+//				m_simplexSolver->backup_closest(m_cachedSeparatingAxis);
 				m_degenerateSimplex = 13;
 				break;
 			}
@@ -303,7 +304,7 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput& inpu
 		if (checkSimplex)
 		{
 			m_simplexSolver->compute_points(pointOnA, pointOnB);
-			normalInB = pointOnA-pointOnB;
+			normalInB = m_cachedSeparatingAxis;
 			btScalar lenSqr =m_cachedSeparatingAxis.length2();
 			
 			//valid normal

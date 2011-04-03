@@ -92,9 +92,16 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
+struct wmWindow;
 struct wmWindowManager;
 struct View3D;
 struct ToolSettings;
+struct bContextDataResult;
+struct bConstraintTarget;
+struct bPythonConstraint;
+struct bConstraintOb;
+struct Context;
+struct ChannelDriver;
 
 
 /*new render funcs */
@@ -160,7 +167,9 @@ int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEv
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
 void WM_main_add_notifier(unsigned int type, void *reference){}
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep){}
-struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;};
+struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;}
+struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep){return (struct wmTimer *)NULL;}
+void		WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer){}
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone){}
 void object_test_constraints (struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
@@ -399,6 +408,19 @@ void sculpt_set_brush_unprojected_radius(struct Brush *brush, float unprojected_
 float sculpt_get_brush_alpha(struct Brush *brush){return 0.0f;}
 void sculpt_set_brush_alpha(struct Brush *brush, float alpha){}
 void ED_sculpt_modifiers_changed(struct Object *ob){};
+
+
+/* bpy/python internal api */
+void operator_wrapper(struct wmOperatorType *ot, void *userdata) {}
+void BPY_text_free_code(struct Text *text) {}
+void BPY_id_release(struct Text *text) {}
+int BPY_context_member_get(struct Context *C, const char *member, struct bContextDataResult *result) { return 0; }
+void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) {}
+float BPY_driver_exec(struct ChannelDriver *driver) {return 0.0f;} /* might need this one! */
+void	BPY_DECREF(void *pyob_ptr) {}
+void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
+void macro_wrapper(struct wmOperatorType *ot, void *userdata) {} ;
+
 
 char blender_path[] = "";
 

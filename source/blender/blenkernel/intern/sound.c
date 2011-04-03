@@ -329,7 +329,7 @@ static float sound_get_volume(Scene* scene, Sequence* sequence, float time)
 		fcu= list_find_fcurve(&adt->action->curves, buf, 0);
 	
 	if(fcu)
-		return evaluate_fcurve(fcu, time * FPS);
+		return evaluate_fcurve(fcu, time * (float)FPS);
 	else
 		return sequence->volume;
 }

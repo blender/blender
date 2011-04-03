@@ -346,7 +346,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 		case FCM_GENERATOR_FN_LN: /* natural log */
 		{
 			/* check that value is greater than 1? */
-			if (arg > 1.0f) {
+			if (arg > 1.0) {
 				fn= log;
 			}
 			else {
@@ -358,7 +358,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 		case FCM_GENERATOR_FN_SQRT: /* square root */
 		{
 			/* no negative numbers */
-			if (arg > 0.0f) {
+			if (arg > 0.0) {
 				fn= sqrt;
 			}
 			else {
@@ -374,7 +374,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 	
 	/* execute function callback to set value if appropriate */
 	if (fn) {
-		float value= (float)(data->amplitude*fn(arg) + data->value_offset);
+		float value= (float)(data->amplitude*(float)fn(arg) + data->value_offset);
 		
 		if (data->flag & FCM_GENERATOR_ADDITIVE)
 			*cvalue += value;

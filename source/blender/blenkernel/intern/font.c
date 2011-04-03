@@ -490,19 +490,19 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	nu2->bp[0].vec[0] = x1;
 	nu2->bp[0].vec[1] = y1;	
 	nu2->bp[0].vec[2] = 0;
-	nu2->bp[0].vec[3] = 1.0;
+	nu2->bp[0].vec[3] = 1.0f;
 	nu2->bp[1].vec[0] = x2;
 	nu2->bp[1].vec[1] = y1;
 	nu2->bp[1].vec[2] = 0;	
-	nu2->bp[1].vec[3] = 1.0;	
+	nu2->bp[1].vec[3] = 1.0f;
 	nu2->bp[2].vec[0] = x2;
 	nu2->bp[2].vec[1] = y2;	
 	nu2->bp[2].vec[2] = 0;
-	nu2->bp[2].vec[3] = 1.0; 
+	nu2->bp[2].vec[3] = 1.0f;
 	nu2->bp[3].vec[0] = x1;
 	nu2->bp[3].vec[1] = y2;
 	nu2->bp[3].vec[2] = 0;	
-	nu2->bp[3].vec[3] = 1.0;	
+	nu2->bp[3].vec[3] = 1.0f;
 	
 	BLI_addtail(&(cu->nurb), nu2);	
 
@@ -574,7 +574,7 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 			memcpy(bezt2, bezt1, i * sizeof(struct BezTriple));
 			nu2->bezt = bezt2;
 			
-			if (shear != 0.0) {
+			if (shear != 0.0f) {
 				bezt2 = nu2->bezt;
 				
 				for (i= nu2->pntsu; i > 0; i--) {
@@ -584,7 +584,7 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 					bezt2++;
 				}
 			}
-			if(rot!=0.0) {
+			if(rot != 0.0f) {
 				bezt2= nu2->bezt;
 				for (i=nu2->pntsu; i > 0; i--) {
 					fp= bezt2->vec[0];
@@ -709,8 +709,8 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	// Count the wchar_t string length
 	slen = wcslen(mem);
 
-	if (cu->ulheight == 0.0) 
-		cu->ulheight = 0.05;
+	if (cu->ulheight == 0.0f)
+		cu->ulheight = 0.05f;
 	
 	if (cu->strinfo==NULL)	/* old file */
 		cu->strinfo = MEM_callocN((slen+4) * sizeof(CharInfo), "strinfo compat");
@@ -815,7 +815,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 		twidth = char_width(cu, che, info);
 
 		// Calculate positions
-		if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w + cu->xof*cu->fsize) {
+		if((tb->w != 0.0f) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w + cu->xof*cu->fsize) {
 	//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
 			for (j=i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
 				if (mem[j]==' ' || mem[j]=='-') {
@@ -855,7 +855,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			linedata3[lnr]= tb->w/cu->fsize;
 			linedata4[lnr]= wsnr;
 			
-			if ( (tb->h != 0.0) &&
+			if ( (tb->h != 0.0f) &&
 				 ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize)) - cu->yof) &&
 				 (cu->totbox > (curbox+1)) ) {
 				maxlen= 0;
@@ -886,7 +886,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			ct->charnr= cnr++;
 
 			tabfac= (xof-cu->xof+0.01f);
-			tabfac= (float)(2.0*ceil(tabfac/2.0));
+			tabfac= 2.0f*ceilf(tabfac/2.0f);
 			xof= cu->xof+tabfac;
 		}
 		else {
@@ -900,7 +900,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 			if (cu->selboxes && (i>=selstart) && (i<=selend)) {
 				sb = &(cu->selboxes[i-selstart]);
-				sb->y = yof*cu->fsize-linedist*cu->fsize*0.1;
+				sb->y = yof*cu->fsize-linedist*cu->fsize*0.1f;
 				sb->h = linedist*cu->fsize;
 				sb->w = xof*cu->fsize;
 			}
@@ -909,12 +909,12 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				wsfac = cu->wordspace; 
 				wsnr++;
 			} 
-			else wsfac = 1.0;
+			else wsfac = 1.0f;
 			
 			// Set the width of the character
 			twidth = char_width(cu, che, info);
 
-			xof += (twidth*wsfac*(1.0+(info->kern/40.0)) ) + xtrax;
+			xof += (twidth*wsfac*(1.0f+(info->kern/40.0f)) ) + xtrax;
 			
 			if (sb) 
 				sb->w = (xof*cu->fsize) - sb->w;
@@ -951,7 +951,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				ct++;
 			}
 		} else if((cu->spacemode==CU_FLUSH) &&
-				  (cu->tb[0].w != 0.0)) {
+				  (cu->tb[0].w != 0.0f)) {
 			for(i=0;i<lnr;i++)
 				if(linedata2[i]>1)
 					linedata[i]= (linedata3[i]-linedata[i])/(linedata2[i]-1);
@@ -964,7 +964,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				ct++;
 			}
 		} 
-		else if((cu->spacemode==CU_JUSTIFY) && (cu->tb[0].w != 0.0)) {
+		else if((cu->spacemode==CU_JUSTIFY) && (cu->tb[0].w != 0.0f)) {
 			float curofs= 0.0f;
 			for (i=0; i<=slen; i++) {
 				for (j=i; (mem[j]) && (mem[j]!='\n') && 
@@ -1015,9 +1015,9 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			
 			/* length correction */
 			distfac= sizefac*cucu->path->totdist/(maxx-minx);
-			timeofs= 0.0;
+			timeofs= 0.0f;
 			
-			if(distfac > 1.0) {
+			if(distfac > 1.0f) {
 				/* path longer than text: spacemode involves */
 				distfac= 1.0f/distfac;
 				
@@ -1051,7 +1051,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				dtime= distfac*0.5f*twidth;
 
 				ctime= timeofs + distfac*( ct->xof - minx);
-				CLAMP(ctime, 0.0, 1.0);
+				CLAMP(ctime, 0.0f, 1.0f);
 
 				/* calc the right loc AND the right rot separately */
 				/* vec, tvec need 4 items */
@@ -1173,17 +1173,17 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 					if ( (i<(slen-1)) && (mem[i+1] != '\n') && (mem[i+1] != '\r') &&
 						 ((mem[i+1] != ' ') || (custrinfo[i+1].flag & CU_CHINFO_UNDERLINE)) && ((custrinfo[i+1].flag & CU_CHINFO_WRAP)==0)
 						 ) {
-						uloverlap = xtrax + 0.1;
+						uloverlap = xtrax + 0.1f;
 					}
 					// Find the character, the characters has to be in the memory already 
 					// since character checking has been done earlier already.
 					che= find_vfont_char(vfd, cha);
 
 					twidth = char_width(cu, che, info);
-					ulwidth = cu->fsize * ((twidth* (1.0+(info->kern/40.0)))+uloverlap);
-					build_underline(cu, ct->xof*cu->fsize, ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize, 
+					ulwidth = cu->fsize * ((twidth* (1.0f+(info->kern/40.0f)))+uloverlap);
+					build_underline(cu, ct->xof*cu->fsize, ct->yof*cu->fsize + (cu->ulpos-0.05f)*cu->fsize,
 									ct->xof*cu->fsize + ulwidth, 
-									ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize - cu->ulheight*cu->fsize, 
+									ct->yof*cu->fsize + (cu->ulpos-0.05f)*cu->fsize - cu->ulheight*cu->fsize,
 									i, info->mat_nr);
 				}
 				ct++;

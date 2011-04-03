@@ -80,12 +80,9 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg);
 
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
-	if(ob->type==OB_LATTICE) {
-		Lattice *lt= ob->data;
-		return (lt->editlatt)? lt->editlatt->latt: lt;
-	}
-
-	return NULL;
+	Lattice *lt= ob->data;
+	BLI_assert(ob->type==OB_LATTICE);
+	return (lt->editlatt)? lt->editlatt->latt: lt;
 }
 
 int ED_vgroup_object_is_edit_mode(Object *ob)
@@ -511,7 +508,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup	*dg, int vertnum)
 
 static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 {
-	MDeformVert *dvert= NULL;
+	MDeformVert *dvert;
 	EditVert *eve;
 	Mesh *me;
 	int i;
@@ -526,14 +523,22 @@ static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 			dvert= CustomData_em_get(&me->edit_mesh->vdata, eve->data, CD_MDEFORMVERT);
 			vertnum= 0;
 		}
-		else
+		else {
+			if(vertnum >= me->totvert) {
+				return 0.0f;
+			}
 			dvert = me->dvert;
+		}
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
-		
-		if(lt->dvert)
+
+		if(lt->dvert) {
+			if(vertnum >= lt->pntsu*lt->pntsv*lt->pntsw) {
+				return 0.0f;
+			}
 			dvert = lt->dvert;
+		}
 	}
 	
 	if(dvert==NULL)

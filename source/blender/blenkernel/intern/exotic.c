@@ -182,12 +182,10 @@ static void mesh_add_normals_flags(Mesh *me)
 		v2= me->mvert+mface->v2;
 		v3= me->mvert+mface->v3;
 		v4= me->mvert+mface->v4;
-		
+
 		normal_tri_v3( nor,v1->co, v2->co, v3->co);
-		sno[0]= 32767.0*nor[0];
-		sno[1]= 32767.0*nor[1];
-		sno[2]= 32767.0*nor[2];
-		
+		normal_float_to_short_v3(sno, nor);
+
 		simple_vertex_normal_blend(v1->no, sno);
 		simple_vertex_normal_blend(v2->no, sno);
 		simple_vertex_normal_blend(v3->no, sno);

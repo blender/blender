@@ -195,7 +195,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
 
-    # deal with addons seperately
+    # deal with addons separately
     _addon_utils.reset_all(reload_scripts)
 
     # run the active integration preset
@@ -347,7 +347,6 @@ def keyconfig_set(filepath):
 
     print("loading preset:", filepath)
     keyconfigs = _bpy.context.window_manager.keyconfigs
-    kc_orig = keyconfigs.active
 
     keyconfigs_old = keyconfigs[:]
 

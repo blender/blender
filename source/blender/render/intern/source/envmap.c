@@ -730,6 +730,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			TexResult texr1, texr2;
 	
 			texr1.nor= texr2.nor= NULL;
+			texr1.talpha= texr2.talpha= texres->talpha; /* boxclip expects this initialized */
 
 			add_v3_v3(vec, dxt);
 			face1= envcube_isect(env, vec, sco);

@@ -218,13 +218,25 @@ Editing *seq_give_editing(Scene *scene, int alloc)
 	return scene->ed;
 }
 
+static void seq_free_clipboard_recursive(Sequence *seq_parent)
+{
+	Sequence *seq, *nseq;
+
+	for(seq= seq_parent->seqbase.first; seq; seq= nseq) {
+		nseq= seq->next;
+		seq_free_clipboard_recursive(seq);
+	}
+
+	seq_free_sequence(NULL, seq_parent);
+}
+
 void seq_free_clipboard(void)
 {
 	Sequence *seq, *nseq;
 
 	for(seq= seqbase_clipboard.first; seq; seq= nseq) {
 		nseq= seq->next;
-		seq_free_sequence(NULL, seq);
+		seq_free_clipboard_recursive(seq);
 	}
 	seqbase_clipboard.first= seqbase_clipboard.last= NULL;
 }
@@ -333,7 +345,7 @@ unsigned int seq_hash_render_data(const SeqRenderData * a)
 	rval ^= a->preview_render_size;
 	rval ^= ((intptr_t) a->bmain) << 6;
 	rval ^= ((intptr_t) a->scene) << 6;
-	rval ^= (int) (a->motion_blur_shutter * 100.0) << 10;
+	rval ^= (int) (a->motion_blur_shutter * 100.0f) << 10;
 	rval ^= a->motion_blur_samples << 24;
 	
 	return rval;
@@ -962,7 +974,7 @@ static void multibuf(ImBuf *ibuf, float fmul)
 
 	int a, mul, icol;
 
-	mul= (int)(256.0*fmul);
+	mul= (int)(256.0f * fmul);
 	rt= (char *)ibuf->rect;
 	rt_float = ibuf->rect_float;
 
@@ -1014,10 +1026,10 @@ static float give_stripelem_index(Sequence *seq, float cfra)
 		else nr= cfra - sta;
 	}
 	
-	if (seq->strobe < 1.0) seq->strobe = 1.0;
+	if (seq->strobe < 1.0f) seq->strobe = 1.0f;
 	
-	if (seq->strobe > 1.0) {
-		nr -= fmod((double)nr, (double)seq->strobe);
+	if (seq->strobe > 1.0f) {
+		nr -= fmodf((double)nr, (double)seq->strobe);
 	}
 
 	return nr;
@@ -1370,7 +1382,7 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 			/* tweak to give more subtle results
 			 * values above 1.0 are scaled */
 			if(cb.lift[c] > 1.0f)
-				cb.lift[c] = pow(cb.lift[c] - 1.0f, 2.0f) + 1.0f;
+				cb.lift[c] = pow(cb.lift[c] - 1.0f, 2.0) + 1.0;
 
 			cb.lift[c] = 2.0f - cb.lift[c];
 		}
@@ -1378,8 +1390,8 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 
 	if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_GAIN) {
 		for (c = 0; c < 3; c++) {
-			if (cb.gain[c] != 0.0) {
-				cb.gain[c] = 1.0/cb.gain[c];
+			if (cb.gain[c] != 0.0f) {
+				cb.gain[c] = 1.0f / cb.gain[c];
 			} else {
 				cb.gain[c] = 1000000; /* should be enough :) */
 			}
@@ -1388,8 +1400,8 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 
 	if (!(cb.flag & SEQ_COLOR_BALANCE_INVERSE_GAMMA)) {
 		for (c = 0; c < 3; c++) {
-			if (cb.gamma[c] != 0.0) {
-				cb.gamma[c] = 1.0/cb.gamma[c];
+			if (cb.gamma[c] != 0.0f) {
+				cb.gamma[c] = 1.0f/cb.gamma[c];
 			} else {
 				cb.gamma[c] = 1000000; /* should be enough :) */
 			}
@@ -1416,7 +1428,7 @@ static void make_cb_table_byte(float lift, float gain, float gamma,
 	int y;
 
 	for (y = 0; y < 256; y++) {
-		float v= color_balance_fl((float)y * (1.0 / 255.0f), lift, gain, gamma, mul);
+		float v= color_balance_fl((float)y * (1.0f / 255.0f), lift, gain, gamma, mul);
 		CLAMP(v, 0.0f, 1.0f);
 		table[y] = v * 255;
 	}
@@ -1428,7 +1440,7 @@ static void make_cb_table_float(float lift, float gain, float gamma,
 	int y;
 
 	for (y = 0; y < 256; y++) {
-		float v= color_balance_fl((float)y * (1.0 / 255.0f), lift, gain, gamma, mul);
+		float v= color_balance_fl((float)y * (1.0f / 255.0f), lift, gain, gamma, mul);
 		table[y] = v;
 	}
 }
@@ -1547,14 +1559,14 @@ int input_have_to_preprocess(
 	mul = seq->mul;
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
-		mul *= seq->blend_opacity / 100.0;
+		mul *= seq->blend_opacity / 100.0f;
 	}
 
-	if (mul != 1.0) {
+	if (mul != 1.0f) {
 		return TRUE;
 	}
 
-	if (seq->sat != 1.0) {
+	if (seq->sat != 1.0f) {
 		return TRUE;
 	}
 		
@@ -1643,7 +1655,7 @@ static ImBuf * input_preprocess(
 	mul = seq->mul;
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
-		mul *= seq->blend_opacity / 100.0;
+		mul *= seq->blend_opacity / 100.0f;
 	}
 
 	if(seq->flag & SEQ_USE_COLOR_BALANCE && seq->strip->color_balance) {
@@ -1660,7 +1672,7 @@ static ImBuf * input_preprocess(
 		}
 	}
 
-	if(mul != 1.0) {
+	if(mul != 1.0f) {
 		multibuf(ibuf, mul);
 	}
 
@@ -1765,7 +1777,7 @@ static ImBuf* seq_render_effect_strip_impl(
 		if (fcu) {
 			fac = facf = evaluate_fcurve(fcu, cfra);
 			if( context.scene->r.mode & R_FIELDS ) {
-				facf = evaluate_fcurve(fcu, cfra + 0.5);
+				facf = evaluate_fcurve(fcu, cfra + 0.5f);
 			}
 		} else {
 			fac = facf = seq->effect_fader;
@@ -2144,7 +2156,7 @@ static int seq_must_swap_input_in_blend_mode(Sequence * seq)
 static int seq_get_early_out_for_blend_mode(Sequence * seq)
 {
 	struct SeqEffectHandle sh = get_sequence_blend(seq);
-	float facf = seq->blend_opacity / 100.0;
+	float facf = seq->blend_opacity / 100.0f;
 	int early_out = sh.early_out(seq, facf, facf);
 	
 	if (ELEM(early_out, EARLY_DO_EFFECT, EARLY_NO_INPUT)) {
@@ -2252,7 +2264,7 @@ static ImBuf* seq_render_strip_stack(
 			ImBuf * ibuf1 = out;
 			ImBuf * ibuf2 = seq_render_strip(context, seq, cfra);
 
-			float facf = seq->blend_opacity / 100.0;
+			float facf = seq->blend_opacity / 100.0f;
 			int swap_input = seq_must_swap_input_in_blend_mode(seq);
 
 			if (swap_input) {
@@ -2972,6 +2984,24 @@ void seq_translate(Scene *evil_scene, Sequence *seq, int delta)
 	}
 
 	calc_sequence_disp(evil_scene, seq);
+}
+
+void seq_sound_init(Scene *scene, Sequence *seq)
+{
+	if(seq->type==SEQ_META) {
+		Sequence *seq_child;
+		for(seq_child= seq->seqbase.first; seq_child; seq_child= seq_child->next) {
+			seq_sound_init(scene, seq_child);
+		}
+	}
+	else {
+		if(seq->sound) {
+			seq->scene_sound = sound_add_scene_sound(scene, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+		}
+		if(seq->scene) {
+			sound_scene_add_scene_sound(scene, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+		}
+	}
 }
 
 Sequence *seq_foreground_frame_get(Scene *scene, int frame)

@@ -45,6 +45,7 @@
 
 #include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -1099,9 +1100,9 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		phi= 0; 
 		phid/=2;
 		for(a=0; a<=tot; a++) {
-			vec[0]= dia*sin(phi);
+			vec[0]= dia*sinf(phi);
 			vec[1]= 0.0;
-			vec[2]= dia*cos(phi);
+			vec[2]= dia*cosf(phi);
 			eve= addvertlist(em, vec, NULL);
 			eve->f= 1+2+4;
 			if(a==0) v1= eve;
@@ -1226,8 +1227,8 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		for(b=0; b<=ext; b++) {
 			for(a=0; a<tot; a++) {
 				
-				vec[0]= dia*sin(phi);
-				vec[1]= dia*cos(phi);
+				vec[0]= dia*sinf(phi);
+				vec[1]= dia*cosf(phi);
 				vec[2]= b?depth:-depth;
 				
 				mul_m4_v3(mat, vec);
@@ -1768,6 +1769,6 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 

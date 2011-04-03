@@ -1604,9 +1604,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
 
 		VECCOPY(mv->co, eve->co);
 
-		mv->no[0] = eve->no[0] * 32767.0;
-		mv->no[1] = eve->no[1] * 32767.0;
-		mv->no[2] = eve->no[2] * 32767.0;
+		normal_float_to_short_v3(mv->no, eve->no);
 		mv->bweight = (unsigned char) (eve->bweight * 255.0f);
 
 		mv->flag = 0;

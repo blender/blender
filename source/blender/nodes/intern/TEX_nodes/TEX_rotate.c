@@ -34,6 +34,7 @@
 #include <math.h>
 
 #include "../TEX_util.h"
+#include "TEX_node.h"
 
 static bNodeSocketType inputs[]= { 
 	{ SOCK_RGBA, 1, "Color", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
@@ -53,8 +54,8 @@ static void rotate(float new_co[3], float a, float ax[3], float co[3])
 	float perp[3];
 	float cp[3];
 	
-	float cos_a = cos(a * 2 * M_PI);
-	float sin_a = sin(a * 2 * M_PI);
+	float cos_a = cos(a * (float)(2*M_PI));
+	float sin_a = sin(a * (float)(2*M_PI));
 	
 	// x' = xcosa + n(n.x)(1-cosa) + (x*n)sina
 	
