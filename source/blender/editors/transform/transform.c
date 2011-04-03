@@ -3178,15 +3178,9 @@ int Rotation(TransInfo *t, short UNUSED(mval[2]))
 		outputNumInput(&(t->num), c);
 		
 		sprintf(str, "Rot: %s %s %s", &c[0], t->con.text, t->proptext);
-		
-		/* Clamp between -180 and 180 */
-		while (final >= 180.0f)
-			final -= 360.0f;
-		
-		while (final <= -180.0f)
-			final += 360.0f;
 
-		final = DEG2RADF(final);
+		/* Clamp between -180 and 180 */
+		final= angle_wrap_rad(DEG2RADF(final));
 	}
 	else {
 		sprintf(str, "Rot: %.2f%s %s", RAD2DEGF(final), t->con.text, t->proptext);
