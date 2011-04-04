@@ -189,7 +189,7 @@ static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
 	return PyFloat_FromDouble(dot_qtqt(self->quat, tquat));
 }
 
-static char Quaternion_difference_doc[] =
+static char Quaternion_rotation_difference_doc[] =
 ".. function:: difference(other)\n"
 "\n"
 "   Returns a quaternion representing the rotational difference.\n"
@@ -199,7 +199,7 @@ static char Quaternion_difference_doc[] =
 "   :return: the rotational difference between the two quat rotations.\n"
 "   :rtype: :class:`Quaternion`\n"
 ;
-static PyObject *Quaternion_difference(QuaternionObject *self, PyObject *value)
+static PyObject *Quaternion_rotation_difference(QuaternionObject *self, PyObject *value)
 {
 	float tquat[QUAT_SIZE], quat[QUAT_SIZE];
 
@@ -1000,7 +1000,7 @@ static struct PyMethodDef Quaternion_methods[] = {
 	/* operation between 2 or more types  */
 	{"cross", (PyCFunction) Quaternion_cross, METH_O, Quaternion_cross_doc},
 	{"dot", (PyCFunction) Quaternion_dot, METH_O, Quaternion_dot_doc},
-	{"difference", (PyCFunction) Quaternion_difference, METH_O, Quaternion_difference_doc},
+	{"rotation_difference", (PyCFunction) Quaternion_rotation_difference, METH_O, Quaternion_rotation_difference_doc},
 	{"slerp", (PyCFunction) Quaternion_slerp, METH_VARARGS, Quaternion_slerp_doc},
 	{"rotate", (PyCFunction) Quaternion_rotate, METH_O, Quaternion_rotate_doc},
 

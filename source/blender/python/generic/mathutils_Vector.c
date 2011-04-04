@@ -615,7 +615,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 	return PyFloat_FromDouble(saacos(dot));
 }
 
-static char Vector_difference_doc[] =
+static char Vector_rotation_difference_doc[] =
 ".. function:: difference(other)\n"
 "\n"
 "   Returns a quaternion representing the rotational difference between this vector and another.\n"
@@ -627,7 +627,7 @@ static char Vector_difference_doc[] =
 "\n"
 "   .. note:: 2D vectors raise an :exc:`AttributeError`.\n"
 ;
-static PyObject *Vector_difference(VectorObject *self, PyObject *value)
+static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 {
 	float quat[4], vec_a[3], vec_b[3];
 
@@ -2136,7 +2136,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"cross", (PyCFunction) Vector_cross, METH_O, Vector_cross_doc},
 	{"dot", (PyCFunction) Vector_dot, METH_O, Vector_dot_doc},
 	{"angle", (PyCFunction) Vector_angle, METH_VARARGS, Vector_angle_doc},
-	{"difference", (PyCFunction) Vector_difference, METH_O, Vector_difference_doc},
+	{"rotation_difference", (PyCFunction) Vector_rotation_difference, METH_O, Vector_rotation_difference_doc},
 	{"project", (PyCFunction) Vector_project, METH_O, Vector_project_doc},
 	{"lerp", (PyCFunction) Vector_lerp, METH_VARARGS, Vector_lerp_doc},
 	{"rotate", (PyCFunction) Vector_rotate, METH_O, Vector_rotate_doc},
