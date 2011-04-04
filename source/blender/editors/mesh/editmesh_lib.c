@@ -2017,6 +2017,9 @@ void recalc_editnormals(EditMesh *em)
 			normal_tri_v3(efa->n, efa->v1->co, efa->v2->co, efa->v3->co);
 			cent_tri_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
 		}
+
+		accumulate_vertex_normals(efa->v1->no, efa->v2->no, efa->v3->no, n4,
+			efa->n, efa->v1->co, efa->v2->co, efa->v3->co, c4);
 	}
 
 	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
