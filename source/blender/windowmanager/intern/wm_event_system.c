@@ -2145,6 +2145,13 @@ int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 					return 1;
 			}
 		}
+		else {
+			/* if the initial event wasn't a tweak event then
+			 * ignore USER_RELEASECONFIRM setting: see [#26756] */
+			if(ELEM3(tweak_event, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) == 0) {
+				return 1;
+			}
+		}
 	}
 	else {
 		/* this is fine as long as not doing km-release, otherwise
