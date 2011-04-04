@@ -11545,7 +11545,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 5)){
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 6)){
 		Mesh *me;
 
 		for(me= main->mesh.first; me; me= me->id.next)
