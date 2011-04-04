@@ -1,4 +1,4 @@
-.TH "BLENDER" "1" "January 27, 2011" "Blender Blender 2\&.56 (sub 0) "
+.TH "BLENDER" "1" "April 05, 2011" "Blender Blender 2\&.56 (sub 6)"
 
 .SH NAME
 blender \- a 3D modelling and rendering package
@@ -15,7 +15,7 @@ Use Blender to create TV commercials, to make technical visualizations, business
 http://www.blender.org
 .SH OPTIONS
 
-Blender 2.56 (sub 0) Build
+Blender 2.56 (sub 6)
 Usage: blender [args ...] [file] [args ...]
 .br
 .SS "Render Options:"
@@ -347,7 +347,13 @@ Playback <file(s)>, only operates this way when not running in background.
 .TP
 .B \-R
 .br
-Register .blend extension (windows only)
+Register .blend extension, then exit (Windows only)
+.br
+
+.TP
+.B \-r
+.br
+Silently register .blend extension, then exit (Windows only)
 .br
 
 .SS "Argument Parsing:"
@@ -377,7 +383,6 @@ Arguments are executed in the order they are given. eg
   \fIBLENDER_SYSTEM_DATAFILES\fR Directory for system wide data files.
   \fIBLENDER_SYSTEM_PYTHON\fR Directory for system python libraries.
   \fITMP\fR or \fITMPDIR\fR Store temporary files here.
-  \fISDL_AUDIODRIVER\fR LibSDL audio driver \- alsa, esd, dma.
   \fIPYTHONHOME\fR Path to the python directory, eg. /usr/lib/python.
 .br
 .br

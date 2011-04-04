@@ -1202,7 +1202,7 @@ class VIEW3D_PT_imagepaint_options(PaintPanel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         tool_settings = context.tool_settings
 
         col = layout.column()
