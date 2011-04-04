@@ -364,3 +364,6 @@ class DOPESHEET_MT_gpencil_frame(bpy.types.Menu):
         #layout.separator()
         #layout.operator("action.copy")
         #layout.operator("action.paste")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

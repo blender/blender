@@ -636,3 +636,6 @@ class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
         sub.active = rd.use_bake_selected_to_active
         sub.prop(rd, "bake_distance")
         sub.prop(rd, "bake_bias")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

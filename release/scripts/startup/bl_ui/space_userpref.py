@@ -1188,3 +1188,6 @@ class WM_OT_addon_expand(bpy.types.Operator):
         info = addon_utils.module_bl_info(mod)
         info["show_expanded"] = not info["show_expanded"]
         return {'FINISHED'}
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

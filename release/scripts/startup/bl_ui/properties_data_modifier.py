@@ -699,3 +699,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(md, "width", slider=True)
         col.prop(md, "narrowness", slider=True)
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

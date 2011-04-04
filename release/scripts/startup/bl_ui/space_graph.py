@@ -245,3 +245,6 @@ class GRAPH_MT_key_transform(bpy.types.Menu):
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

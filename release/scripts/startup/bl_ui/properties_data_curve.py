@@ -390,3 +390,6 @@ class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, bpy.types.Pan
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Curve
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

@@ -1297,3 +1297,6 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
             sub = col.row()
             sub.active = pe.use_fade_time
             sub.prop(pe, "fade_frames", slider=True)
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

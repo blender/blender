@@ -191,3 +191,6 @@ class NODE_PT_properties(bpy.types.Panel):
         col.prop(snode, "backdrop_x", text="X")
         col.prop(snode, "backdrop_y", text="Y")
         col.operator("node.backimage_move", text="Move")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

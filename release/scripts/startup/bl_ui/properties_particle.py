@@ -1212,3 +1212,6 @@ class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, bpy.types.Pa
     COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "particle_system.settings"
     _property_type = bpy.types.ParticleSettings
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

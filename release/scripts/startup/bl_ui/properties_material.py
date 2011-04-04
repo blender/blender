@@ -967,3 +967,6 @@ class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel, bpy.types.Pa
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "material"
     _property_type = bpy.types.Material
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

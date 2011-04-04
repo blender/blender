@@ -496,3 +496,6 @@ class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.label(text="Logic Steps:")
             col.prop(gs, "logic_step_max", text="Max")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

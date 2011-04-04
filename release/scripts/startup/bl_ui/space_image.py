@@ -751,3 +751,6 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, bpy.types.Panel):
         row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
         row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

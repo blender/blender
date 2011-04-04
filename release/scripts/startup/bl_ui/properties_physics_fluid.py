@@ -281,3 +281,6 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, bpy.types.Panel):
         col = layout.column(align=True)
         col.prop(fluid, "tracer_particles")
         col.prop(fluid, "generate_particles")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

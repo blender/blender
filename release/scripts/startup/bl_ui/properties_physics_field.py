@@ -216,3 +216,6 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
 
             col.label(text="Force Fields:")
             col.prop(settings, "absorption", text="Absorption")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

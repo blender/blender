@@ -399,3 +399,6 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
         textblock.write('\n'.join(op_strings))
         self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

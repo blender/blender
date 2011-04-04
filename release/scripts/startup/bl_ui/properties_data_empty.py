@@ -40,3 +40,6 @@ class DATA_PT_empty(DataButtonsPanel, bpy.types.Panel):
 
         layout.prop(ob, "empty_draw_type", text="Display")
         layout.prop(ob, "empty_draw_size", text="Size")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

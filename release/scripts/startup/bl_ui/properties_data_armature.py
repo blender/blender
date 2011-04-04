@@ -310,3 +310,6 @@ class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, bpy.types.Pa
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Armature
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

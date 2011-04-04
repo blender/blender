@@ -781,3 +781,6 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
         keyconfig = wm.keyconfigs.active
         wm.keyconfigs.remove(keyconfig)
         return {'FINISHED'}
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)
