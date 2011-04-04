@@ -6941,13 +6941,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sc= sc->id.next;
 		}
 	}
-	if(main->versionfile <= 112) {
-		Mesh *me = main->mesh.first;
-		while(me) {
-			me->cubemapsize= 1.0;
-			me= me->id.next;
-		}
-	}
 	if(main->versionfile <= 113) {
 		Material *ma = main->mat.first;
 		while(ma) {
