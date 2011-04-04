@@ -3164,9 +3164,11 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			index3_nors_incr= 0;
 			
 			if( displist_has_faces(lb)==0) {
-				draw_index_wire= 0;
-				drawDispListwire(lb);
-				draw_index_wire= 1;
+				if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+					draw_index_wire= 0;
+					drawDispListwire(lb);
+					draw_index_wire= 1;
+				}
 			}
 			else {
 				if(draw_glsl_material(scene, ob, v3d, dt)) {
