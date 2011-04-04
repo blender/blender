@@ -173,7 +173,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, bpy.types.Panel):
         ob = context.active_object
 
         if ob:
-            mesh = context.active_object.data
+            mesh = ob.data
             col = layout.column(align=True)
             col.prop(mesh, "use_mirror_x")
             sub = col.column()
@@ -1136,6 +1136,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
+        ob = context.active_object
+        mesh = ob.data
         ipaint = context.tool_settings.image_paint
         settings = context.tool_settings.image_paint
         use_projection = ipaint.use_projection
@@ -1163,7 +1165,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
 
         row2 = row.row(align=False)
         row2.active = (use_projection and ipaint.use_stencil_layer)
-        row2.menu("VIEW3D_MT_tools_projectpaint_stencil", text=context.active_object.data.uv_texture_stencil.name)
+        row2.menu("VIEW3D_MT_tools_projectpaint_stencil", text=mesh.uv_texture_stencil.name)
         row2.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
         col = layout.column()
@@ -1172,7 +1174,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
         row.active = (settings.brush.image_tool == 'CLONE')
 
         row.prop(ipaint, "use_clone_layer", text="Layer")
-        row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
+        row.menu("VIEW3D_MT_tools_projectpaint_clone", text=mesh.uv_texture_clone.name)
 
         sub = col.column()
         sub.prop(ipaint, "seam_bleed")
