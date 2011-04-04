@@ -1922,7 +1922,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "material", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "omat");
-	RNA_def_property_range(prop, 1, 16);
+	RNA_def_property_range(prop, 1, 32767);
 	RNA_def_property_ui_text(prop, "Material", "Specify material used for the particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
