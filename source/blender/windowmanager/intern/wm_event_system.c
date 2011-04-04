@@ -726,6 +726,14 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
 				}
 
+				/* exception, cont. grab in header is annoying */
+				if(wrap) {
+					ARegion *ar= CTX_wm_region(C);
+					if(ar && ar->regiontype == RGN_TYPE_HEADER) {
+						wrap= FALSE;
+					}
+				}
+
 				if(wrap) {
 					rcti *winrect= NULL;
 					ARegion *ar= CTX_wm_region(C);

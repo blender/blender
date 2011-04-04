@@ -798,6 +798,7 @@ Tex *localize_texture(Tex *tex)
 	if(texn->pd) {
 		texn->pd= MEM_dupallocN(texn->pd);
 		if(texn->pd->coba) {
+			texn->pd->point_tree = NULL;
 			texn->pd->coba= MEM_dupallocN(texn->pd->coba);
 		}
 
