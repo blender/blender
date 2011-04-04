@@ -245,12 +245,11 @@ Material *localize_material(Material *ma)
 	man= copy_libblock(ma);
 	BLI_remlink(&G.main->mat, man);
 
+	/* no increment for texture ID users, in previewrender.c it prevents decrement */
 	for(a=0; a<MAX_MTEX; a++) {
 		if(ma->mtex[a]) {
 			man->mtex[a]= MEM_mallocN(sizeof(MTex), "copymaterial");
 			memcpy(man->mtex[a], ma->mtex[a], sizeof(MTex));
-			/* free_material decrements! */
-			id_us_plus((ID *)man->mtex[a]->tex);
 		}
 	}
 	
