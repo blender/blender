@@ -251,18 +251,14 @@ static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY
 
 	ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
 
-	if(ibuf) {
-		length[0]= ibuf->x*ibuf->y;
-		length[1]= ibuf->channels;
-	}
-	else {
+	if(ibuf)
+		length[0]= ibuf->x*ibuf->y*ibuf->channels;
+	else
 		length[0]= 0;
-		length[1]= 0;
-	}
 
 	BKE_image_release_ibuf(ima, lock);
 
-	return length[0]*length[1];
+	return length[0];
 }
 
 static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
@@ -561,7 +557,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "pixels", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
-	RNA_def_property_multi_array(prop, 2, NULL);
+	RNA_def_property_multi_array(prop, 1, NULL);
 	RNA_def_property_ui_text(prop, "Pixels", "Image pixels in floating point values");
 	RNA_def_property_dynamic_array_funcs(prop, "rna_Image_pixels_get_length");
 	RNA_def_property_float_funcs(prop, "rna_Image_pixels_get", "rna_Image_pixels_set", NULL);
