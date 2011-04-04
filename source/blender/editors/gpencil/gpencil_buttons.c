@@ -88,6 +88,14 @@ static void gp_ui_dellayer_cb (bContext *C, void *gpd, void *gpl)
 	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
 }
 
+static void gp_ui_actlayer_cb (bContext *C, void *gpd, void *gpl)
+{
+	/* make sure the layer we want to remove is the active one */
+	gpencil_layer_setactive(gpd, gpl);
+
+	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
+}
+
 /* ------- Drawing Code ------- */
 
 /* draw the controls for a given layer */
@@ -122,9 +130,11 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, con
 	subrow= uiLayoutRow(row, 0);
 	
 	/* active */
+	block= uiLayoutGetBlock(subrow);
 	icon= (gpl->flag & GP_LAYER_ACTIVE) ? ICON_RADIOBUT_ON : ICON_RADIOBUT_OFF;
-	uiItemR(subrow, &ptr, "active", 0, "", icon);
-	
+	but= uiDefIconBut(block, BUT, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Set active layer");
+	uiButSetFunc(but, gp_ui_activelayer_cb, gpd, gpl);
+
 	/* locked */
 	icon= (gpl->flag & GP_LAYER_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
 	uiItemR(subrow, &ptr, "lock", 0, "", icon);
