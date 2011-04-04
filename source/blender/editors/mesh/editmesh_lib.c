@@ -2006,8 +2006,8 @@ void recalc_editnormals(EditMesh *em)
 		zero_v3(eve->no);
 
 	for(efa= em->faces.first; efa; efa=efa->next) {
-		float *n4= (efa->v4)? efa->v4->no: NULL;
-		float *c4= (efa->v4)? efa->v4->co: NULL;
+		// float *n4= (efa->v4)? efa->v4->no: NULL;
+		// float *c4= (efa->v4)? efa->v4->co: NULL;
 
 		if(efa->v4) {
 			normal_quad_v3(efa->n, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
