@@ -1091,9 +1091,17 @@ void ui_searchbox_free(bContext *C, ARegion *ar)
 /* XXX weak: search_func adds all partial matches... */
 void ui_but_search_test(uiBut *but)
 {
-	uiSearchItems *items= MEM_callocN(sizeof(uiSearchItems), "search items");
+	uiSearchItems *items;
 	int x1;
-	
+
+	/* possibly very large lists (such as ID datablocks) only
+	 * only validate string RNA buts (not pointers) */
+	if(but->rnaprop && RNA_property_type(but->rnaprop) != PROP_STRING) {
+		return;
+	}
+
+	items= MEM_callocN(sizeof(uiSearchItems), "search items");
+
 	/* setup search struct */
 	items->maxitem= 10;
 	items->maxstrlen= 256;
