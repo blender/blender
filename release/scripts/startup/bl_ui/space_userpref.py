@@ -21,7 +21,7 @@ import bpy
 import os
 import addon_utils
 
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 
 def ui_items_general(col, context):
@@ -1044,6 +1044,10 @@ class WM_OT_addon_install(bpy.types.Operator):
     bl_label = "Install Add-On..."
 
     overwrite = BoolProperty(name="Overwrite", description="Remove existing addons with the same ID", default=True)
+    target = EnumProperty(
+            name="Target Path",
+            items=(('DEFAULT', "Default", ""),
+                   ('PREFS', "User Prefs", "")))
 
     filepath = StringProperty(name="File Path", description="File path to write file to")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
@@ -1070,12 +1074,21 @@ class WM_OT_addon_install(bpy.types.Operator):
 
         pyfile = self.filepath
 
-        # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.
-        path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
+        if self.target == 'DEFAULT':
+            # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.
+            path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
+        else:
+            path_addons = bpy.context.user_preferences.filepaths.script_directory
+            if path_addons:
+                path_addons = os.path.join(path_addons, "addons")
 
         if not path_addons:
             self.report({'ERROR'}, "Failed to get addons path")
             return {'CANCELLED'}
+
+        # create dir is if missing.
+        if not os.path.exists(path_addons):
+            os.makedirs(path_addons)
 
         # Check if we are installing from a target path,
         # doing so causes 2+ addons of same name or when the same from/to
