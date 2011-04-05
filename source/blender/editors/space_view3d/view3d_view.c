@@ -677,6 +677,28 @@ void window_to_3d_delta(ARegion *ar, float *vec, short mx, short my)
 	vec[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
 }
 
+/* doesn't rely on initgrabz */
+/* for perspective view, get the vector direction to
+ * the mouse cursor as a normalized vector */
+void window_to_3d_vector(ARegion *ar, float *vec, short mx, short my)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	float dx, dy;
+	float viewvec[3];
+
+	dx= 2.0f*mx/ar->winx;
+	dy= 2.0f*my/ar->winy;
+
+	/* normalize here so vecs are proportional to eachother */
+	normalize_v3_v3(viewvec, rv3d->viewinv[2]);
+
+	vec[0]= viewvec[0] - (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
+	vec[1]= viewvec[1] - (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
+	vec[2]= viewvec[2] - (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
+
+	normalize_v3(vec);
+}
+
 float read_cached_depth(ViewContext *vc, int x, int y)
 {
 	ViewDepths *vd = vc->rv3d->depths;
