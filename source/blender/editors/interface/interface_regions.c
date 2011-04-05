@@ -529,9 +529,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			x2= winx;
 		}
 	}
-	if(y1 < 0) {
-		y1 += 56;
-		y2 += 56;
+	/* ensure at least 5 px above screen bounds
+	 * 25 is just a guess to be above the menu item */
+	if(y1 < 5) {
+		y2 += (-y1) + 30;
+		y1 = 30;
 	}
 
 	/* widget rect, in region coords */
