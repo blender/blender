@@ -52,7 +52,7 @@ set(INC
 	../../../intern/audaspace/intern
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
-	../../../extern/glew/include
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

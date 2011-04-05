@@ -138,6 +138,10 @@ macro(setup_liblinks
 		endif()
 	endif()
 
+	if(NOT WITH_BUILTIN_GLEW)
+		target_link_libraries(${target} ${GLEW_LIBRARY})
+	endif()
+
 	target_link_libraries(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
 	target_link_libraries(${target} ${FREETYPE_LIBRARY})
 

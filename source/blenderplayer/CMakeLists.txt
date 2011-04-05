@@ -112,12 +112,15 @@ if(UNIX)
 		bf_intern_audaspace
 		blenkernel_blc
 		extern_binreloc
-		extern_glew
 		extern_minilzo
 		bf_intern_ghost # duplicate for linking
 		bf_blenkernel # duplicate for linking
 		bf_intern_mikktspace
 	)
+
+    if(WITH_BUILTIN_GLEW)
+		list(APPEND BLENDER_SORTED_LIBS extern_glew)
+    endif()
 
 	if(WITH_LZMA)
 		list(APPEND BLENDER_SORTED_LIBS extern_lzma)

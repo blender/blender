@@ -38,7 +38,6 @@ set(INC
 	../nodes
 	../editors/include
 	../render/extern/include
-	../../../extern/glew/include
 	../../../intern/audaspace/intern
 	../../../intern/bsp/extern ../blenfont
 	../../../intern/decimation/extern
@@ -50,6 +49,7 @@ set(INC
 	../../../intern/smoke/extern
 	../../../intern/mikktspace
     ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
+	${GLEW_INCLUDE_PATH}
 	${ZLIB_INCLUDE_DIRS}
 )
 

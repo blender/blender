@@ -9,6 +9,7 @@ objs += o
 incs = '#/intern/guardedalloc #/intern/memutil #/intern/audaspace/intern ../blenkernel ../blenlib ../makesdna intern .'
 incs += ' ../windowmanager ../editors/include ../gpu ../imbuf ../ikplugin ../blenfont ../blenloader'
 incs += ' ../render/extern/include'
+incs += ' #/extern/glew/include'
 
 defs = []
 

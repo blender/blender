@@ -777,7 +777,6 @@ endif()
 		extern_bullet
 		ge_logic_loopbacknetwork
 		bf_intern_moto
-		extern_glew
 		extern_openjpeg
 		extern_redcode
 		ge_videotex
@@ -787,6 +786,10 @@ endif()
 		bf_intern_audaspace
 		bf_intern_mikktspace
 	)
+
+    if(WITH_BUILTIN_GLEW)
+		list(APPEND BLENDER_SORTED_LIBS extern_glew)
+    endif()
 
 	if(WITH_BINRELOC)
 		list(APPEND BLENDER_SORTED_LIBS extern_binreloc)

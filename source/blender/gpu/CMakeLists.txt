@@ -32,9 +32,9 @@ set(INC
 	../imbuf
 	../makesdna
 	../makesrna
-	../../../extern/glew/include
 	../../../intern/guardedalloc
 	../../../intern/smoke/extern
+    ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

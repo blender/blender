@@ -27,9 +27,9 @@
 set(INC
 	.
 	../string
-	../../extern/glew/include
 	../../source/blender/imbuf
 	../../source/blender/makesdna
+    ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

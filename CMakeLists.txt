@@ -44,6 +44,9 @@ endif()
 
 cmake_minimum_required(VERSION 2.8)
 
+# this starts out unset
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/")
+
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
@@ -86,6 +89,7 @@ endif()
 
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support)"	ON)
+	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
 endif()
 
 # Modifiers
@@ -1019,6 +1023,23 @@ if(WITH_OPENMP)
 	mark_as_advanced(OpenMP_C_FLAGS)
 	mark_as_advanced(OpenMP_CXX_FLAGS)
 endif() 
+
+#-----------------------------------------------------------------------------
+# Configure GLEW
+
+if(WITH_BUILTIN_GLEW)
+	# set(GLEW_LIBRARY "")  # unused
+	set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew/include")
+else()
+	find_package(GLEW)
+
+	if(NOT GLEW_FOUND)
+		message(FATAL_ERROR "GLEW is required to build blender, install it or use WITH_BUILTIN_GLEW")
+	endif()
+
+	mark_as_advanced(GLEW_LIBRARY)
+	mark_as_advanced(GLEW_INCLUDE_PATH)
+endif()
 
 #-----------------------------------------------------------------------------
 # Configure Python.
