@@ -52,9 +52,12 @@ def path_add_property(path, prop):
 # Poll Callbacks
 
 
-# selected objects
+# selected objects (active object must be in object mode)
 def RKS_POLL_selected_objects(ksi, context):
-    return context.active_object or len(context.selected_objects)
+    if context.active_object:
+        return context.active_object.mode == 'OBJECT'
+    else:
+        return len(context.selected_objects) != 0
 
 
 # selected bones
@@ -84,6 +87,11 @@ def RKS_ITER_selected_item(ksi, context, ks):
     else:
         for ob in context.selected_objects:
             ksi.generate(context, ks, ob)
+            
+# all select objects only
+def RKS_ITER_selected_objects(ksi, context, ks):
+    for ob in context.selected_objects:
+        ksi.generate(context, ks, ob)
 
 ###########################
 # Generate Callbacks

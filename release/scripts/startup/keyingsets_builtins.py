@@ -23,6 +23,11 @@ Built-In Keying Sets
 None of these Keying Sets should be removed, as these
 are needed by various parts of Blender in order for them
 to work correctly.
+
+Beware also about changing the order that these are defined
+here, since this can result in old files referring to the
+wrong Keying Set as the active one, potentially resulting
+in lost (i.e. unkeyed) animation.
 """
 
 import bpy
@@ -351,6 +356,92 @@ class BUILTIN_KSI_WholeCharacter(bpy.types.KeyingSetInfo):
 
             # for now, just add all of 'em
             ksi.addProp(ks, bone, '["%s"]' % (prop))
+
+###############################
+
+# Delta Location
+class BUILTIN_KSI_DeltaLocation(bpy.types.KeyingSetInfo):
+    bl_label = "Delta Location"
+    
+    # poll - selected objects only (and only if active object in object mode)
+    poll = keyingsets_utils.RKS_POLL_selected_objects
+
+    # iterator - selected objects only
+    iterator = keyingsets_utils.RKS_ITER_selected_objects
+
+    # generator - delta location channels only
+    def generate(ksi, context, ks, data):
+        # get id-block and path info
+        id_block, base_path, grouping = keyingsets_utils.get_transform_generators_base_info(data)
+
+        # add the property name to the base path
+        path = keyingsets_utils.path_add_property(base_path, "delta_location")
+
+        # add Keying Set entry for this...
+        if grouping:
+            ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
+        else:
+            ks.paths.add(id_block, path)
+
+
+# Delta Rotation
+class BUILTIN_KSI_DeltaRotation(bpy.types.KeyingSetInfo):
+    bl_label = "Delta Rotation"
+    
+    # poll - selected objects only (and only if active object in object mode)
+    poll = keyingsets_utils.RKS_POLL_selected_objects
+
+    # iterator - selected objects only
+    iterator = keyingsets_utils.RKS_ITER_selected_objects
+
+    # generator - delta location channels only
+    def generate(ksi, context, ks, data):
+        # get id-block and path info
+        id_block, base_path, grouping = keyingsets_utils.get_transform_generators_base_info(data)
+
+        # add the property name to the base path
+        #   rotation mode affects the property used
+        if data.rotation_mode == 'QUATERNION':
+            path = path_add_property(base_path, "delta_rotation_quaternion")
+        elif data.rotation_mode == 'AXIS_ANGLE':
+            # XXX: for now, this is not available yet
+            #path = path_add_property(base_path, "delta_rotation_axis_angle")
+            return;
+        else:
+            path = keyingsets_utils.path_add_property(base_path, "delta_rotation_euler")
+
+        # add Keying Set entry for this...
+        if grouping:
+            ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
+        else:
+            ks.paths.add(id_block, path)
+    
+
+# Delta Scale
+class BUILTIN_KSI_DeltaScale(bpy.types.KeyingSetInfo):
+    bl_label = "Delta Scale"
+    
+    # poll - selected objects only (and only if active object in object mode)
+    poll = keyingsets_utils.RKS_POLL_selected_objects
+
+    # iterator - selected objects only
+    iterator = keyingsets_utils.RKS_ITER_selected_objects
+
+    # generator - delta location channels only
+    def generate(ksi, context, ks, data):
+        # get id-block and path info
+        id_block, base_path, grouping = keyingsets_utils.get_transform_generators_base_info(data)
+
+        # add the property name to the base path
+        path = keyingsets_utils.path_add_property(base_path, "delta_scale")
+
+        # add Keying Set entry for this...
+        if grouping:
+            ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
+        else:
+            ks.paths.add(id_block, path)
+
+###############################
 
 
 def register():
