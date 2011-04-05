@@ -188,7 +188,7 @@ class NLA_MT_edit_transform(bpy.types.Menu):
         layout.column()
         layout.operator("transform.translate", text="Grab/Move")
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
-        # layout.operator("transform.resize", text="Scale")  # crashes [#26792]
+        layout.operator("transform.transform", text="Scale").mode= 'TIME_SCALE'
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

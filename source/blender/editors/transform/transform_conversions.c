@@ -2613,6 +2613,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								unit_m3(td->smtx);
 							}
 							else {
+								/* time scaling only needs single value */
 								td->val= &tdn->h1[0];
 								td->ival= tdn->h1[0];
 							}
@@ -2644,6 +2645,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								unit_m3(td->smtx);
 							}
 							else {
+								/* time scaling only needs single value */
 								td->val= &tdn->h2[0];
 								td->ival= tdn->h2[0];
 							}
@@ -2664,7 +2666,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 			}
 		}
 	}
-
+	
 	/* cleanup temp list */
 	BLI_freelistN(&anim_data);
 }
