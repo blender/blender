@@ -43,7 +43,7 @@ import bpy
 
 # Append the specified property name on the the existing path
 def path_add_property(path, prop):
-    if len(path):
+    if path:
         return path + "." + prop
     else:
         return prop
@@ -54,17 +54,19 @@ def path_add_property(path, prop):
 
 # selected objects (active object must be in object mode)
 def RKS_POLL_selected_objects(ksi, context):
-    if context.active_object:
-        return context.active_object.mode == 'OBJECT'
+    ob = context.active_object
+    if ob:
+        return ob.mode == 'OBJECT'
     else:
-        return len(context.selected_objects) != 0
+        return bool(context.selected_objects)
 
 
 # selected bones
 def RKS_POLL_selected_bones(ksi, context):
     # we must be in Pose Mode, and there must be some bones selected
-    if (context.active_object) and (context.active_object.mode == 'POSE'):
-        if context.active_pose_bone or len(context.selected_pose_bones):
+    ob = context.active_object
+    if ob and ob.mode == 'POSE':
+        if context.active_pose_bone or context.selected_pose_bones:
             return True
 
     # nothing selected
@@ -81,13 +83,15 @@ def RKS_POLL_selected_items(ksi, context):
 
 # all selected objects or pose bones, depending on which we've got
 def RKS_ITER_selected_item(ksi, context, ks):
-    if (context.active_object) and (context.active_object.mode == 'POSE'):
+    ob = context.active_object
+    if ob and ob.mode == 'POSE':
         for bone in context.selected_pose_bones:
             ksi.generate(context, ks, bone)
     else:
         for ob in context.selected_objects:
             ksi.generate(context, ks, ob)
-            
+
+
 # all select objects only
 def RKS_ITER_selected_objects(ksi, context, ks):
     for ob in context.selected_objects:
