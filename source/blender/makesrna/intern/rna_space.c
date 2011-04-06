@@ -734,7 +734,7 @@ static int rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 
 static void rna_Sequencer_display_mode_update(bContext *C, PointerRNA *ptr)
 {
-	int view = RNA_int_get(ptr, "view_type");
+	int view = RNA_enum_get(ptr, "view_type");
 
 	ED_sequencer_update_view(C, view);
 }
