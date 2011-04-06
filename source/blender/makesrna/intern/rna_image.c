@@ -304,6 +304,8 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
 			for(i = 0; i < size; i++)
 				((unsigned char*)ibuf->rect)[i] = FTOCHAR(values[i]);
 		}
+
+		ibuf->userflags |= IB_BITMAPDIRTY;
 	}
 
 	BKE_image_release_ibuf(ima, lock);
