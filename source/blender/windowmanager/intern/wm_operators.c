@@ -1999,7 +1999,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 /* *********************** */
 #if defined(WIN32)
 static int console= 1;
-void WM_toggle_console(bContext *UNUSED(C), short show)
+void WM_console_toggle(bContext *UNUSED(C), short show)
 {
 	if(show) {
 		ShowWindow(GetConsoleWindow(),SW_SHOW);
@@ -2011,24 +2011,24 @@ void WM_toggle_console(bContext *UNUSED(C), short show)
 	}
 }
 
-static int wm_toggle_console_op(bContext *C, wmOperator *UNUSED(op))
+static int wm_console_toggle_op(bContext *C, wmOperator *UNUSED(op))
 {
 	if(console) {
-		WM_toggle_console(C, 0);
+		WM_console_toggle(C, 0);
 	}
 	else {
-		WM_toggle_console(C, 1);
+		WM_console_toggle(C, 1);
 	}
 	return OPERATOR_FINISHED;
 }
 
-static void WM_OT_toggle_console(wmOperatorType *ot)
+static void WM_OT_console_toggle(wmOperatorType *ot)
 {
 	ot->name= "Toggle System Console";
-	ot->idname= "WM_OT_toggle_console";
+	ot->idname= "WM_OT_console_toggle";
 	ot->description= "Toggle System Console";
 	
-	ot->exec= wm_toggle_console_op;
+	ot->exec= wm_console_toggle_op;
 	ot->poll= WM_operator_winactive;
 }
 #endif
@@ -3112,7 +3112,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
 #if defined(WIN32)
-	WM_operatortype_append(WM_OT_toggle_console);
+	WM_operatortype_append(WM_OT_console_toggle);
 #endif
 
 #ifdef WITH_COLLADA
