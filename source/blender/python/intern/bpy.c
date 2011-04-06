@@ -42,6 +42,7 @@
 #include "bpy_operator.h"
 
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_bpath.h"
 #include "BLI_utildefines.h"
 
