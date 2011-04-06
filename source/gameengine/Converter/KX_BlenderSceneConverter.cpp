@@ -926,7 +926,7 @@ vector<Main*> &KX_BlenderSceneConverter::GetMainDynamic()
 Main* KX_BlenderSceneConverter::GetMainDynamicPath(const char *path)
 {
 	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++)
-		if(strcmp((*it)->name, path)==0)
+		if(BLI_path_cmp((*it)->name, path) == 0)
 			return *it;
 	
 	return NULL;

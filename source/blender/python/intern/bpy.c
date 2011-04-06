@@ -115,7 +115,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 		}
 		else {
 			lib= BLI_bpathIterator_getLib(bpi);
-			if (lib && (strcmp(lib, BLI_bpathIterator_getBasePath(bpi)))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
+			if (lib && (BLI_path_cmp(lib, BLI_bpathIterator_getBasePath(bpi)))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
 				BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
 			}
 			else {

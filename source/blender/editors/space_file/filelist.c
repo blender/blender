@@ -459,7 +459,7 @@ int folderlist_clear_next(struct SpaceFile *sfile)
 
 	// if previous_folder, next_folder or refresh_folder operators are executed it doesn't clear folder_next
 	folder = sfile->folders_prev->last;
-	if ((!folder) ||(!strcmp(folder->foldername, sfile->params->dir)))
+	if ((!folder) ||(BLI_path_cmp(folder->foldername, sfile->params->dir) == 0))
 		return 0;
 
 	// eventually clear flist->folders_next
@@ -697,7 +697,7 @@ int filelist_find(struct FileList* filelist, char *file)
 
 	
 	for (i = 0; i < filelist->numfiles; ++i) {
-		if ( strcmp(filelist->filelist[i].relname, file) == 0) {
+		if ( strcmp(filelist->filelist[i].relname, file) == 0) { /* not dealing with user input so dont need BLI_path_cmp */
 			index = i;
 			break;
 		}
@@ -880,7 +880,7 @@ static void filelist_read_library(struct FileList* filelist)
 				strcat(name, file->relname);
 				
 				/* prevent current file being used as acceptable dir */
-				if (BLI_streq(G.main->name, name)==0) {
+				if (BLI_path_cmp(G.main->name, name) != 0) {
 					file->type &= ~S_IFMT;
 					file->type |= S_IFDIR;
 				}

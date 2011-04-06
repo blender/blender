@@ -686,7 +686,7 @@ int UI_iconfile_get_index(const char *filename)
 	ListBase *list=&(iconfilelist);
 	
 	for(ifile=list->first; ifile; ifile=ifile->next) {
-		if ( BLI_streq(filename, ifile->filename)) {
+		if (BLI_path_cmp(filename, ifile->filename) == 0) {
 			return ifile->index;
 		}
 	}

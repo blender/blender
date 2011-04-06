@@ -173,9 +173,11 @@ void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, const c
 
 	for (; fsme; prev= fsme, fsme= fsme->next) {
 		if (fsme->path) {
-			if (BLI_streq(path, fsme->path)) {
+			const int cmp_ret= BLI_path_cmp(path, fsme->path);
+			if (cmp_ret == 0) {
 				return;
-			} else if (sorted && strcmp(path, fsme->path)<0) {
+			}
+			else if (sorted && cmp_ret < 0) {
 				break;
 			}
 		} else {

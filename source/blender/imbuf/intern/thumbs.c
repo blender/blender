@@ -281,7 +281,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 		BLI_snprintf(tpath, FILE_MAX, "%s%s", tdir, thumb);
 		thumb[8] = '\0'; /* shorten for tempname, not needed anymore */
 		BLI_snprintf(temp, FILE_MAX, "%sblender_%d_%s.png", tdir, abs(getpid()), thumb);
-		if (strncmp(path, tdir, strlen(tdir)) == 0) {
+		if (BLI_path_ncmp(path, tdir, sizeof(tdir)) == 0) {
 			return NULL;
 		}
 		if (size == THB_FAIL) {
@@ -387,7 +387,7 @@ void IMB_thumb_delete(const char* path, ThumbSize size)
 		return;
 	}
 	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
-		if (strncmp(path, thumb, strlen(thumb)) == 0) {
+		if (BLI_path_ncmp(path, thumb, sizeof(thumb)) == 0) {
 			return;
 		}
 		if (BLI_exists(thumb)) {
@@ -419,7 +419,7 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 	}
 
 	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
-		if (strncmp(path, thumb, strlen(thumb)) == 0) {
+		if (BLI_path_ncmp(path, thumb, sizeof(thumb)) == 0) {
 			img = IMB_loadiffname(path, IB_rect);
 		} else {
 			img = IMB_loadiffname(thumb, IB_rect | IB_metadata);

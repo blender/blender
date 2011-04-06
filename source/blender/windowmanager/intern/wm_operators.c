@@ -1133,8 +1133,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	sprintf(revision_str, "r%s", build_rev);
 	
 	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
-	ver_width = BLF_width(style->widgetlabel.uifont_id, version_str)+5;
-	rev_width = BLF_width(style->widgetlabel.uifont_id, revision_str)+5;
+	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_str) + 5;
+	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_str) + 5;
 #endif //NAN_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
@@ -1522,7 +1522,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
 		return OPERATOR_CANCELLED;
 	}
-	else if(BLI_streq(bmain->name, libname)) {
+	else if(BLI_path_cmp(bmain->name, libname) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot use current file as library");
 		return OPERATOR_CANCELLED;
 	}

@@ -158,8 +158,15 @@ int BLI_path_abs(char *path, const char *basepath);
 int BLI_path_frame(char *path, int frame, int digits);
 int BLI_path_frame_range(char *path, int sta, int end, int digits);
 int BLI_path_cwd(char *path);
-
 void BLI_path_rel(char *file, const char *relfile);
+
+#ifdef WIN32
+#  define BLI_path_cmp BLI_strcasecmp
+#  define BLI_path_ncmp BLI_strncasecmp
+#else
+#  define BLI_path_cmp strcmp
+#  define BLI_path_ncmp strncmp
+#endif
 
 	/**
 	 * Change every @a from in @a string into @a to. The

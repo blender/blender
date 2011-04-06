@@ -2547,7 +2547,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 	}
 
 	BLI_make_file_string(G.main->name, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
-	write_user_block= BLI_streq(dir, userfilename);
+	write_user_block= (BLI_path_cmp(dir, userfilename) == 0);
 
 	if(write_flags & G_FILE_RELATIVE_REMAP)
 		makeFilesRelative(mainvar, dir, NULL); /* note, making relative to something OTHER then G.main->name */

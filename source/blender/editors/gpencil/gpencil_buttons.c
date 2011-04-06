@@ -73,8 +73,9 @@
 /* make layer active one after being clicked on */
 static void gp_ui_activelayer_cb (bContext *C, void *gpd, void *gpl)
 {
+	/* make sure the layer we want to remove is the active one */
 	gpencil_layer_setactive(gpd, gpl);
-	
+
 	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
 }
 
@@ -88,13 +89,7 @@ static void gp_ui_dellayer_cb (bContext *C, void *gpd, void *gpl)
 	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
 }
 
-static void gp_ui_actlayer_cb (bContext *C, void *gpd, void *gpl)
-{
-	/* make sure the layer we want to remove is the active one */
-	gpencil_layer_setactive(gpd, gpl);
 
-	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
-}
 
 /* ------- Drawing Code ------- */
 
