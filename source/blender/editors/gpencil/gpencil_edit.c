@@ -201,6 +201,7 @@ void GPENCIL_OT_data_add (wmOperatorType *ot)
 	ot->name= "Grease Pencil Add New";
 	ot->idname= "GPENCIL_OT_data_add";
 	ot->description= "Add new Grease Pencil datablock";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->exec= gp_data_add_exec;
@@ -248,6 +249,7 @@ void GPENCIL_OT_data_unlink (wmOperatorType *ot)
 	ot->name= "Grease Pencil Unlink";
 	ot->idname= "GPENCIL_OT_data_unlink";
 	ot->description= "Unlink active Grease Pencil datablock";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->exec= gp_data_unlink_exec;
@@ -284,6 +286,7 @@ void GPENCIL_OT_layer_add (wmOperatorType *ot)
 	ot->name= "Add New Layer";
 	ot->idname= "GPENCIL_OT_layer_add";
 	ot->description= "Add new Grease Pencil layer for the active Grease Pencil datablock";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->exec= gp_layer_add_exec;
@@ -334,6 +337,7 @@ void GPENCIL_OT_active_frame_delete (wmOperatorType *ot)
 	ot->name= "Delete Active Frame";
 	ot->idname= "GPENCIL_OT_active_frame_delete";
 	ot->description= "Delete the active frame for the active Grease Pencil datablock";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->exec= gp_actframe_delete_exec;
@@ -599,6 +603,7 @@ void GPENCIL_OT_convert (wmOperatorType *ot)
 	ot->name= "Convert Grease Pencil";
 	ot->idname= "GPENCIL_OT_convert";
 	ot->description= "Convert the active Grease Pencil layer to a new Object";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->invoke= WM_menu_invoke;

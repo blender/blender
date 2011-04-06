@@ -62,6 +62,7 @@
 #include "UI_resources.h"
 
 #include "ED_anim_api.h"
+#include "ED_util.h"
 
 /* ********************************************** */
 /* UI STUFF */
@@ -99,6 +100,8 @@ static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 	
 	/* remove the given F-Modifier from the active modifier-stack */
 	remove_fmodifier(modifiers, fcm);
+
+	ED_undo_push(C, "Delete F-Curve Modifier");
 	
 	/* send notifiers */
 	// XXX for now, this is the only way to get updates in all the right places... but would be nice to have a special one in this case 
