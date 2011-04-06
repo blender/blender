@@ -100,6 +100,8 @@ set(SRC
 	creator.c
 )
 
+if(OFF)  # XXX, Disable, is giving problems with linking msvc2010
+
 if(WIN32 AND NOT UNIX)
 	string(SUBSTRING ${BLENDER_VERSION} 0 1 bver1)
 	string(SUBSTRING ${BLENDER_VERSION} 2 1 bver2)
@@ -116,6 +118,8 @@ if(WIN32 AND NOT UNIX)
 		../icons/winblender.rc
 	)
 endif()
+
+endif(OFF)  # XXX.
 
 if(WITH_BUILDINFO)
 	# --------------------------------------------------------------------------
