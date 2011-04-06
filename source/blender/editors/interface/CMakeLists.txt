@@ -32,6 +32,7 @@ set(INC
 	../../python
 	../../windowmanager
 	../../../../intern/guardedalloc
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

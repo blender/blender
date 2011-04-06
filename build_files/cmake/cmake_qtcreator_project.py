@@ -114,10 +114,11 @@ def cmake_advanced_info():
     """
 
     def create_eclipse_project(CMAKE_DIR):
+        print("CMAKE_DIR %r" % CMAKE_DIR)
         if sys.platform == "win32":
-            cmd = 'cmake %r -G"Eclipse CDT4 - MinGW Makefiles"' % CMAKE_DIR
+            cmd = 'cmake "%s" -G"Eclipse CDT4 - MinGW Makefiles"' % CMAKE_DIR
         else:
-            cmd = 'cmake %r -G"Eclipse CDT4 - Unix Makefiles"' % CMAKE_DIR
+            cmd = 'cmake "%s" -G"Eclipse CDT4 - Unix Makefiles"' % CMAKE_DIR
 
         os.system(cmd)
 
@@ -202,7 +203,6 @@ def cmake_compiler_defines():
 
     os.remove(temp_c)
     os.remove(temp_def)
-
     return lines
 
 
@@ -252,7 +252,8 @@ def create_qtc_project_main():
         f = open(qtc_cfg, 'w')
         f.write("// ADD PREDEFINED MACROS HERE!\n")
         defines_final = [("#define %s %s" % item) for item in defines]
-        defines_final += cmake_compiler_defines()  # defines from the compiler
+        if sys.platform != "win32":
+            defines_final += cmake_compiler_defines()  # defines from the compiler
         f.write("\n".join(defines_final))
 
     print("Blender project file written to: %s" % qtc_prj)
