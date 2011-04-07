@@ -984,6 +984,15 @@ def rna2sphinx(BASEPATH):
         fw("   bge.render.rst\n\n")
         fw("   bge.events.rst\n\n")
 
+    # rna generated change log
+    fw("========\n")
+    fw("API Info\n")
+    fw("========\n")
+    fw("\n")
+    fw(".. toctree::\n")
+    fw("   :maxdepth: 1\n\n")
+    fw("   change_log.rst\n\n")
+
     file.close()
 
     # internal modules
@@ -1087,6 +1096,8 @@ def rna2sphinx(BASEPATH):
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.logic.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.render.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.events.rst"), BASEPATH)
+
+    shutil.copy2(os.path.join(BASEPATH, "..", "rst", "change_log.rst"), BASEPATH)
 
     if 0:
         filepath = os.path.join(BASEPATH, "bpy.rst")
