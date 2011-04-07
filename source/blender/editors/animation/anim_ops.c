@@ -42,6 +42,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_sound.h"
 
 #include "UI_view2d.h"
@@ -63,6 +64,9 @@
 static int change_frame_poll(bContext *C)
 {
 	ScrArea *curarea= CTX_wm_area(C);
+	
+	/* XXX temp? prevent changes during render */
+	if(G.rendering) return 0;
 	
 	/* as long as there is an active area, and it isn't a Graph Editor 
 	 * (since the Graph Editor has its own version which does extra stuff),
