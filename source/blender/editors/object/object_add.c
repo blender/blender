@@ -1630,7 +1630,8 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 }
 
 /* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
-/* leaves selection of base/object unaltered */
+/* leaves selection of base/object unaltered.
+ * note: don't call this within a loop since clear_* funcs loop over the entire database. */
 Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag)
 {
 	Base *basen;
@@ -1645,6 +1646,10 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag
 	}
 
 	ob= basen->object;
+
+	/* link own references to the newly duplicated data [#26816] */
+	object_relink(ob);
+	set_sca_new_poins_ob(ob);
 
 	DAG_scene_sort(bmain, scene);
 	ED_render_id_flush_update(bmain, ob->data);
