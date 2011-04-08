@@ -335,6 +335,15 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			ex = (short)scaledx;
 			ey = (short)scaledy;
 			
+			/* save some time by only scaling byte buf */
+			if(img->rect_float) {
+				if(img->rect == NULL) {
+					IMB_rect_from_float(img);
+				}
+
+				imb_freerectfloatImBuf(img);
+			}
+
 			IMB_scaleImBuf(img, ex, ey);
 		}
 		BLI_snprintf(desc, sizeof(desc), "Thumbnail for %s", uri);
