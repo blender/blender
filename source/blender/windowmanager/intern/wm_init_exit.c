@@ -357,7 +357,9 @@ void WM_exit(bContext *C)
 
 	sound_exit();
 
+#ifdef WIN32
 	WM_console_toggle(C, 1); /* never leave behind invisible consoles */
+#endif
 
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
