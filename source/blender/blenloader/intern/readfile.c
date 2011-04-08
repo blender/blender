@@ -234,7 +234,7 @@ typedef struct OldNewMap {
 
 /* local prototypes */
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
-
+static void direct_link_modifiers(FileData *fd, ListBase *lb);
 
 static OldNewMap *oldnewmap_new(void) 
 {
@@ -1894,7 +1894,7 @@ static void direct_link_nladata_strips(FileData *fd, ListBase *list)
 		
 		/* strip's F-Modifiers */
 		link_list(fd, &strip->modifiers);
-		direct_link_fcurves(fd, &strip->modifiers);
+		direct_link_modifiers(fd, &strip->modifiers);
 	}
 }
 
