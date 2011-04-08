@@ -967,6 +967,7 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_QUATERNION, "QUATERNION", 0, "Quaternion", ""},
 		{PROP_XYZ, "XYZ", 0, "XYZ", ""},
 		{PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Gamma Corrected Color", ""},
+		{PROP_COORDS, "COORDINATES", 0, "Vector Coordinates", ""},
 		{PROP_LAYER, "LAYER", 0, "Layer", ""},
 		{PROP_LAYER_MEMBER, "LAYER_MEMBERSHIP", 0, "Layer Membership", ""},
 		{0, NULL, 0, NULL, NULL}};
