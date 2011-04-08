@@ -456,7 +456,12 @@ void BLI_path_rel(char *file, const char *relfile)
 		char *p= temp;
 		char *q= file;
 
-		while (*p == *q) {
+#ifdef WIN32
+		while (tolower(*p) == tolower(*q))
+#else
+		while (*p == *q)
+#endif
+		{
 			++p; ++q;
 			/* dont search beyond the end of the string
 			 * in the rare case they match */
