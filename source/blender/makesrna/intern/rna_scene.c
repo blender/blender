@@ -2988,7 +2988,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Object", "Active object for this scene");
 	/* Could call: ED_base_object_activate(C, scene->basact);
 	 * but would be a bad level call and it seems the notifier is enough */

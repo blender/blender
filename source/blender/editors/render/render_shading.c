@@ -76,9 +76,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_render.h"
 #include "ED_curve.h"
 #include "ED_mesh.h"
+#include "ED_render.h"
+#include "ED_screen.h"
 
 #include "RNA_define.h"
 
@@ -285,6 +286,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= material_slot_add_exec;
+	ot->poll= ED_operator_object_active_editable;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -320,6 +322,7 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= material_slot_remove_exec;
+	ot->poll= ED_operator_object_active_editable;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -379,6 +382,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= material_slot_assign_exec;
+	ot->poll= ED_operator_object_active_editable;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

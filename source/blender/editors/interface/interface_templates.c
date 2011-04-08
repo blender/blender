@@ -416,7 +416,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	
 		if(user_alert) uiButSetFlag(but, UI_BUT_REDALERT);
 		
-		if(id->lib == NULL && !(ELEM4(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT))) {
+		if(id->lib == NULL && !(ELEM5(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB))) {
 			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
 		}
 	}

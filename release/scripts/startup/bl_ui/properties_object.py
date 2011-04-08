@@ -40,8 +40,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
             layout.template_ID(space, "pin_id")
         else:
             row = layout.row()
-            row.label(text="", icon='OBJECT_DATA')
-            row.prop(ob, "name", text="")
+            row.template_ID(context.scene.objects, "active")
 
 
 class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
