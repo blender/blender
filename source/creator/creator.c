@@ -247,6 +247,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	BLI_argsPrintArgDoc(ba, "--window-border");
 	BLI_argsPrintArgDoc(ba, "--window-borderless");
 	BLI_argsPrintArgDoc(ba, "--window-geometry");
+	BLI_argsPrintArgDoc(ba, "--start-console");
 
 	printf("\n");
 	printf ("Game Engine Specific Options:\n");
@@ -481,6 +482,13 @@ static int with_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSE
 static int without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	WM_setinitialstate_fullscreen();
+	return 0;
+}
+
+extern int wm_start_with_console; // blender/windowmanager/intern/wm_init_exit.c
+static int start_with_console(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	wm_start_with_console = 1;
 	return 0;
 }
 
@@ -1095,6 +1103,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", "<sx> <sy> <w> <h>\n\tOpen with lower left corner at <sx>, <sy> and width and height as <w>, <h>", prefsize, NULL);
 	BLI_argsAdd(ba, 2, "-w", "--window-border", "\n\tForce opening with borders (default)", with_borders, NULL);
 	BLI_argsAdd(ba, 2, "-W", "--window-borderless", "\n\tForce opening without borders", without_borders, NULL);
+	BLI_argsAdd(ba, 2, "-con", "--start-console", "\n\tStart with the console window open (ignored if -b is set)", start_with_console, NULL);
 	BLI_argsAdd(ba, 2, "-R", NULL, "\n\tRegister .blend extension, then exit (Windows only)", register_extension, NULL);
 	BLI_argsAdd(ba, 2, "-r", NULL, "\n\tSilently register .blend extension, then exit (Windows only)", register_extension, ba);
 

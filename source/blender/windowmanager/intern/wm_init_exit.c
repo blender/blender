@@ -63,6 +63,7 @@
 #include "BKE_material.h" /* clear_matcopybuf */
 
 #include "BLI_blenlib.h"
+#include "BLI_winstuff.h"
 
 #include "RE_pipeline.h"		/* RE_ free stuff */
 
@@ -114,7 +115,7 @@ static void wm_free_reports(bContext *C)
 	BKE_reports_clear(CTX_wm_reports(C));
 }
 
-
+int wm_start_with_console = 0;
 
 /* only called once, for startup */
 void WM_init(bContext *C, int argc, const char **argv)
@@ -123,6 +124,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 	if (!G.background) {
 		wm_ghost_init(C);	/* note: it assigns C to ghost! */
 		wm_init_cursor_data();
+#ifdef WIN32
+		if (IsConsoleEmpty()) /* never hide if the console window pre-existed */
+			WM_console_toggle(C, wm_start_with_console);
+#endif
 	}
 	GHOST_CreateSystemPaths();
 
@@ -351,6 +356,8 @@ void WM_exit(bContext *C)
 	wmWindow *win;
 
 	sound_exit();
+
+	WM_console_toggle(C, 1); /* never leave behind invisible consoles */
 
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
