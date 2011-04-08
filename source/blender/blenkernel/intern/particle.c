@@ -3590,6 +3590,8 @@ ParticleSettings *psys_copy_settings(ParticleSettings *part)
 			id_us_plus((ID *)partn->mtex[a]->tex);
 		}
 	}
+
+	BLI_duplicatelist(&partn->dupliweights, &part->dupliweights);
 	
 	return partn;
 }
