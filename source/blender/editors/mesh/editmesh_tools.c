@@ -7325,7 +7325,7 @@ void MESH_OT_sort_faces(wmOperatorType *ot)
 		{ 1, "VIEW_AXIS", 0, "View Axis", "" },
 		{ 2, "CURSOR_DISTANCE", 0, "Cursor Distance", "" },
 		{ 3, "MATERIAL", 0, "Material", "" },
-		{ 4, "SELECTION", 0, "Selection", "" },
+		{ 4, "SELECTED", 0, "Selected", "" },
 		{ 5, "RANDOMIZE", 0, "Randomize", "" },
 		{ 0, NULL, 0, NULL, NULL }};
 

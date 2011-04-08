@@ -92,7 +92,7 @@ class IMAGE_MT_select(bpy.types.Menu):
 
         layout.operator("uv.select_all")
         layout.operator("uv.select_inverse")
-        layout.operator("uv.unlink_selection")
+        layout.operator("uv.unlink_selected")
 
         layout.separator()
 
@@ -206,14 +206,14 @@ class IMAGE_MT_uvs_snap(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.operator("uv.snap_selection", text="Selected to Pixels").target = 'PIXELS'
-        layout.operator("uv.snap_selection", text="Selected to Cursor").target = 'CURSOR'
-        layout.operator("uv.snap_selection", text="Selected to Adjacent Unselected").target = 'ADJACENT_UNSELECTED'
+        layout.operator("uv.snap_selected", text="Selected to Pixels").target = 'PIXELS'
+        layout.operator("uv.snap_selected", text="Selected to Cursor").target = 'CURSOR'
+        layout.operator("uv.snap_selected", text="Selected to Adjacent Unselected").target = 'ADJACENT_UNSELECTED'
 
         layout.separator()
 
         layout.operator("uv.snap_cursor", text="Cursor to Pixels").target = 'PIXELS'
-        layout.operator("uv.snap_cursor", text="Cursor to Selection").target = 'SELECTION'
+        layout.operator("uv.snap_cursor", text="Cursor to Selected").target = 'SELECTED'
 
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
