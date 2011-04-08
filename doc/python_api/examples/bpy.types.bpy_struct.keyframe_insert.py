@@ -1,7 +1,4 @@
 """
-Basic Keyframing
-++++++++++++++++
-
 This is the most simple example of inserting a keyframe from python.
 """
 
