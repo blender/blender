@@ -165,7 +165,7 @@ CXX = 'g++'
 CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 
 CPPFLAGS = ['-DWIN32', '-DFREE_WINDOWS', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE64_SOURCE']
-CXXFLAGS = ['-pipe', '-mwindows', '-funsigned-char', '-fno-strict-aliasing' ]
+CXXFLAGS = ['-pipe',  '-funsigned-char', '-fno-strict-aliasing' ]
 REL_CFLAGS = ['-DNDEBUG',  '-O2']
 REL_CCFLAGS = ['-DNDEBUG',  '-O2']
 
