@@ -28,15 +28,8 @@
 
 /** \file ghost/intern/GHOST_System.cpp
  *  \ingroup GHOST
- */
-
-
-/**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 7, 2001
+ *  \author	Maarten Gribnau
+ *  \date	May 7, 2001
  */
 
 #include "GHOST_System.h"
@@ -146,10 +139,10 @@ GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting& setting
 		if (!m_windowManager->getFullScreen()) {
 			m_displayManager->getCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, m_preFullScreenSetting);
 
-            //GHOST_PRINT("GHOST_System::beginFullScreen(): activating new display settings\n");
+			//GHOST_PRINT("GHOST_System::beginFullScreen(): activating new display settings\n");
 			success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, setting);
 			if (success == GHOST_kSuccess) {
-                //GHOST_PRINT("GHOST_System::beginFullScreen(): creating full-screen window\n");
+				//GHOST_PRINT("GHOST_System::beginFullScreen(): creating full-screen window\n");
 				success = createFullScreenWindow((GHOST_Window**)window, stereoVisual);
 				if (success == GHOST_kSuccess) {
 					m_windowManager->beginFullScreen(*window, stereoVisual);
@@ -172,11 +165,11 @@ GHOST_TSuccess GHOST_System::endFullScreen(void)
 	GHOST_TSuccess success = GHOST_kFailure;
 	GHOST_ASSERT(m_windowManager, "GHOST_System::endFullScreen(): invalid window manager")
 	if (m_windowManager->getFullScreen()) {
-        //GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
-        //GHOST_PRINT("GHOST_System::endFullScreen(): leaving window manager full-screen mode\n");
+		//GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
+		//GHOST_PRINT("GHOST_System::endFullScreen(): leaving window manager full-screen mode\n");
 		success = m_windowManager->endFullScreen();
 		GHOST_ASSERT(m_displayManager, "GHOST_System::endFullScreen(): invalid display manager")
-        //GHOST_PRINT("GHOST_System::endFullScreen(): leaving full-screen mode\n");
+		//GHOST_PRINT("GHOST_System::endFullScreen(): leaving full-screen mode\n");
 		success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, m_preFullScreenSetting);
 	}
 	else {
@@ -251,14 +244,14 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
 }
 
 int GHOST_System::openNDOF(GHOST_IWindow* w,
-        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
-        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
+		GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+		GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+		GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
 {
- return   m_ndofManager->deviceOpen(w,
-        setNdofLibraryInit, 
-        setNdofLibraryShutdown,
-        setNdofDeviceOpen);
+ return m_ndofManager->deviceOpen(w,
+		setNdofLibraryInit, 
+		setNdofLibraryShutdown,
+		setNdofDeviceOpen);
 }
 
 
@@ -292,7 +285,7 @@ GHOST_TSuccess GHOST_System::init()
 	m_timerManager = new GHOST_TimerManager ();
 	m_windowManager = new GHOST_WindowManager ();
 	m_eventManager = new GHOST_EventManager ();
-    m_ndofManager = new GHOST_NDOFManager();
+	m_ndofManager = new GHOST_NDOFManager();
 
 #if 0
 	if(m_ndofManager)
@@ -335,10 +328,10 @@ GHOST_TSuccess GHOST_System::exit()
 		delete m_eventManager;
 		m_eventManager = 0;
 	}
-    if (m_ndofManager) {
-        delete m_ndofManager;
-        m_ndofManager = 0;
-    }
+	if (m_ndofManager) {
+		delete m_ndofManager;
+		m_ndofManager = 0;
+	}
 	return GHOST_kSuccess;
 }
 
@@ -351,7 +344,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window** window, const
 
 	success = m_displayManager->getCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, settings);
 	if (success) {
-        //GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");
+		//GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");
 		*window = (GHOST_Window*)createWindow(
 					STR_String (""),
 					0, 0, settings.xPixels, settings.yPixels,
