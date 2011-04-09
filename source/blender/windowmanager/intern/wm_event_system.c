@@ -445,6 +445,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		if(G.f & G_DEBUG)
 			wm_operator_print(C, op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 		
+		BKE_reports_print(op->reports, RPT_DEBUG); /* print out reports to console. */
 		if (op->type->flag & OPTYPE_REGISTER) {
 			if(G.background == 0) { /* ends up printing these in the terminal, gets annoying */
 				/* Report the python string representation of the operator */
@@ -705,7 +706,6 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		if (!(retval & OPERATOR_HANDLED) && retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 			/* only show the report if the report list was not given in the function */
 			wm_operator_reports(C, op, retval, (reports==NULL));
-			
 		
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
