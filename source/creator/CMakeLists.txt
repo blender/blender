@@ -105,14 +105,25 @@ if(WIN32 AND NOT UNIX AND NOT MSVC10)
 	string(SUBSTRING ${BLENDER_VERSION} 0 1 bver1)
 	string(SUBSTRING ${BLENDER_VERSION} 2 1 bver2)
 	string(SUBSTRING ${BLENDER_VERSION} 3 1 bver3)
-	add_definitions(
-		-DWINDRES
-		-DBLEN_VER_RC_STR_M=${BLENDER_VERSION}
-		-DBLEN_VER_RC_1=${bver1}
-		-DBLEN_VER_RC_2=${bver2}
-		-DBLEN_VER_RC_3=${bver3}
-		-DBLEN_VER_RC_4=0
-	)
+	if(MINGW)
+		add_definitions(
+			-DWINDRES
+			-DBLEN_VER_RC_STR_M=${BLENDER_VERSION}
+			-DBLEN_VER_RC_1=${bver1}
+			-DBLEN_VER_RC_2=${bver2}
+			-DBLEN_VER_RC_3=${bver3}
+			-DBLEN_VER_RC_4=0
+		)
+	else()
+		add_definitions(
+			-DBLEN_VER_RC_STR=${BLENDER_VERSION}
+			-DBLEN_VER_RC_1=${bver1}
+			-DBLEN_VER_RC_2=${bver2}
+			-DBLEN_VER_RC_3=${bver3}
+			-DBLEN_VER_RC_4=0
+		)
+	endif()
+	
 
 	list(APPEND SRC
 		../icons/winblender.rc
