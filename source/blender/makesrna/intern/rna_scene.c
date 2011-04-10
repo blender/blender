@@ -912,6 +912,24 @@ static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr
 		rna_Scene_use_simplify_update(bmain, scene, ptr);
 }
 
+static int rna_Scene_use_audio_get(PointerRNA *ptr)
+{
+	Scene *scene= (Scene*)ptr->data;
+	return scene->audio.flag & AUDIO_MUTE;
+}
+
+static void rna_Scene_use_audio_set(PointerRNA *ptr, int value)
+{
+	Scene *scene= (Scene*)ptr->data;
+
+	if(value)
+		scene->audio.flag |= AUDIO_MUTE;
+	else
+		scene->audio.flag &= ~AUDIO_MUTE;
+
+	sound_mute_scene(scene, value);
+}
+
 static int rna_Scene_sync_mode_get(PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->data;
@@ -3350,7 +3368,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	/* Audio Settings */
 	prop= RNA_def_property(srna, "use_audio", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "audio.flag", AUDIO_MUTE);
+	RNA_def_property_boolean_funcs(prop, "rna_Scene_use_audio_get", "rna_Scene_use_audio_set");
 	RNA_def_property_ui_text(prop, "Audio Muted", "Play back of audio from Sequence Editor will be muted");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 

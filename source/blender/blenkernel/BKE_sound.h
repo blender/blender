@@ -78,6 +78,8 @@ void sound_create_scene(struct Scene *scene);
 
 void sound_destroy_scene(struct Scene *scene);
 
+void sound_mute_scene(struct Scene *scene, int muted);
+
 void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip);
 
 void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip);
