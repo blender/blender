@@ -163,8 +163,11 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 	my_src_ptr src = (my_src_ptr) cinfo->src;
 
 	if(num_bytes > 0) {
-		src->pub.next_input_byte = src->pub.next_input_byte + num_bytes;
-		src->pub.bytes_in_buffer = src->pub.bytes_in_buffer - num_bytes;
+		// prevent skipping over file end
+		size_t skip_size = (size_t)num_bytes <= src->pub.bytes_in_buffer ? num_bytes : src->pub.bytes_in_buffer;
+
+		src->pub.next_input_byte = src->pub.next_input_byte + skip_size;
+		src->pub.bytes_in_buffer = src->pub.bytes_in_buffer - skip_size;
 	}
 }
 
@@ -222,17 +225,19 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
  */
 #define MAKE_BYTE_AVAIL(cinfo,action)  \
 	if (bytes_in_buffer == 0) {  \
-		if (! (*datasrc->fill_input_buffer) (cinfo))  \
-			{ action; }  \
-		  INPUT_RELOAD(cinfo);  \
-	}  \
-	bytes_in_buffer--
+	  if (! (*datasrc->fill_input_buffer) (cinfo))  \
+	    { action; }  \
+	  INPUT_RELOAD(cinfo);  \
+	}
+
+	
 
 /* Read a byte into variable V.
  * If must suspend, take the specified action (typically "return FALSE").
  */
 #define INPUT_BYTE(cinfo,V,action)  \
 	MAKESTMT( MAKE_BYTE_AVAIL(cinfo,action); \
+		  bytes_in_buffer--; \
 		  V = GETJOCTET(*next_input_byte++); )
 
 /* As above, but read two bytes interpreted as an unsigned 16-bit integer.
@@ -240,8 +245,10 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
  */
 #define INPUT_2BYTES(cinfo,V,action)  \
 	MAKESTMT( MAKE_BYTE_AVAIL(cinfo,action); \
+		  bytes_in_buffer--; \
 		  V = ((unsigned int) GETJOCTET(*next_input_byte++)) << 8; \
 		  MAKE_BYTE_AVAIL(cinfo,action); \
+		  bytes_in_buffer--; \
 		  V += GETJOCTET(*next_input_byte++); )
 
 
@@ -252,7 +259,8 @@ handle_app1 (j_decompress_ptr cinfo)
 	char neogeo[128];
 	
 	INPUT_VARS(cinfo);
-
+	
+	length = 0;
 	INPUT_2BYTES(cinfo, length, return FALSE);
 	length -= 2;
 	
