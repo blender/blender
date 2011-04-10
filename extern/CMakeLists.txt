@@ -31,7 +31,7 @@ if(WITH_BULLET)
 	add_subdirectory(bullet2)
 endif()
 
-if(WITH_ELTOPO)
+if(WITH_MOD_CLOTH_ELTOPO)
 	add_subdirectory(eltopo)
 endif()
 
