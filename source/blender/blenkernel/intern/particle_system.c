@@ -4311,6 +4311,9 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 						free_keyed_keys(psys);
 						distribute_particles(&sim, part->from);
 						initialize_all_particles(&sim);
+
+						/* flag for possible explode modifiers after this system */
+						sim.psmd->flag |= eParticleSystemFlag_Pars;
 					}
 
 					LOOP_EXISTING_PARTICLES {
