@@ -73,6 +73,8 @@ if (_reset_standard_libraries)
 	# have libs we define and that cmake & scons builds match.
 	set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
 	set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
+	mark_as_advanced(CMAKE_C_STANDARD_LIBRARIES)
+	mark_as_advanced(CMAKE_CXX_STANDARD_LIBRARIES)
 endif()
 unset(_reset_standard_libraries)
 
@@ -125,7 +127,7 @@ endif()
 option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
 option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
 option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
-option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experemental cloth solver" ON)
+option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experemental cloth solver" OFF)
 mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
 
 # Image format support
