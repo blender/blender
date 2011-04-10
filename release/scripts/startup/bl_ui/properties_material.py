@@ -755,7 +755,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
         if simple_material(base_mat):
             col.prop(mat, "use_cast_shadows_only", text="Cast Only")
             col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
-        col.prop(mat, "use_only_shadow", text="ShadowsOnly")
+        col.prop(mat, "use_only_shadow", text="Shadows Only")
         sub = col.column()
         sub.active = mat.use_only_shadow
         sub.prop(mat, "shadow_only_type", text="")
