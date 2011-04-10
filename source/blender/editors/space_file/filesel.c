@@ -248,11 +248,11 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
 		int width = (int)(ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x);
-		numfiles = (float)width/(float)layout->tile_w + 0.5f;
+		numfiles = (int)((float)width / (float)layout->tile_w + 0.5f);
 		return numfiles*layout->rows;
 	} else {
-		int height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
-		numfiles = (float)height/(float)layout->tile_h + 0.5f;
+		int height = (int)(ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y);
+		numfiles = (int)((float)height/(float)layout->tile_h + 0.5f);
 		return numfiles*layout->columns;
 	}
 }
@@ -423,7 +423,7 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 	{
 		struct direntry* file = filelist_file(files, i);	
 		if (file) {
-			int len;
+			float len;
 			len = file_string_width(file->relname);
 			if (len > layout->column_widths[COLUMN_NAME]) layout->column_widths[COLUMN_NAME] = len;
 			len = file_string_width(file->date);
@@ -460,7 +460,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 	if (!sfile->layout->dirty) return;
 
 	numfiles = filelist_numfiles(sfile->files);
-	textheight = file_font_pointsize();
+	textheight = (int)file_font_pointsize();
 	layout = sfile->layout;
 	layout->textheight = textheight;
 
@@ -473,7 +473,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		layout->prv_border_y = 6;
 		layout->tile_w = layout->prv_w + 2*layout->prv_border_x;
 		layout->tile_h = layout->prv_h + 2*layout->prv_border_y + textheight;
-		layout->width= (v2d->cur.xmax - v2d->cur.xmin - 2*layout->tile_border_x);
+		layout->width= (int)(v2d->cur.xmax - v2d->cur.xmin - 2*layout->tile_border_x);
 		layout->columns= layout->width / (layout->tile_w + 2*layout->tile_border_x);
 		if(layout->columns > 0)
 			layout->rows= numfiles/layout->columns + 1; // XXX dirty, modulo is zero
@@ -491,27 +491,27 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		layout->prv_border_x = 0;
 		layout->prv_border_y = 0;
 		layout->tile_h = textheight*3/2;
-		layout->height= v2d->cur.ymax - v2d->cur.ymin - 2*layout->tile_border_y;
+		layout->height= (int)(v2d->cur.ymax - v2d->cur.ymin - 2*layout->tile_border_y);
 		layout->rows = layout->height / (layout->tile_h + 2*layout->tile_border_y);
         
 		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
 			maxlen = ICON_DEFAULT_WIDTH + 4 +
-					 layout->column_widths[COLUMN_NAME] + 12 +
-					 layout->column_widths[COLUMN_SIZE] + 12;
+					 (int)layout->column_widths[COLUMN_NAME] + 12 +
+					 (int)layout->column_widths[COLUMN_SIZE] + 12;
 		} else {
 			maxlen = ICON_DEFAULT_WIDTH + 4 +
-					 layout->column_widths[COLUMN_NAME] + 12 +
+					 (int)layout->column_widths[COLUMN_NAME] + 12 +
 #ifndef WIN32
-					 layout->column_widths[COLUMN_MODE1] + 12 +
-					 layout->column_widths[COLUMN_MODE2] + 12 +
-					 layout->column_widths[COLUMN_MODE3] + 12 +
-					 layout->column_widths[COLUMN_OWNER] + 12 +
+					 (int)layout->column_widths[COLUMN_MODE1] + 12 +
+					 (int)layout->column_widths[COLUMN_MODE2] + 12 +
+					 (int)layout->column_widths[COLUMN_MODE3] + 12 +
+					 (int)layout->column_widths[COLUMN_OWNER] + 12 +
 #endif
-					 layout->column_widths[COLUMN_DATE] + 12 +
-					 layout->column_widths[COLUMN_TIME] + 12 +
-					 layout->column_widths[COLUMN_SIZE] + 12;
+					 (int)layout->column_widths[COLUMN_DATE] + 12 +
+					 (int)layout->column_widths[COLUMN_TIME] + 12 +
+					 (int)layout->column_widths[COLUMN_SIZE] + 12;
 
 		}
 		layout->tile_w = maxlen;

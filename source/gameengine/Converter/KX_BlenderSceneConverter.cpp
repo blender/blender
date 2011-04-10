@@ -778,12 +778,12 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 					float tmat[3][3];
 					for (int r=0;r<3;r++)
 						for (int c=0;c<3;c++)
-							tmat[r][c] = orn[c][r];
+							tmat[r][c] = (float)orn[c][r];
 
 					mat3_to_compatible_eul(blenderObject->rot, blenderObject->rot, tmat);
 
-					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "location", -1, frameNumber, INSERTKEY_FAST);
-					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "rotation_euler", -1, frameNumber, INSERTKEY_FAST);
+					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "location", -1, (float)frameNumber, INSERTKEY_FAST);
+					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "rotation_euler", -1, (float)frameNumber, INSERTKEY_FAST);
 
 #if 0
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
@@ -1195,7 +1195,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 						}
 
 						/* make sure action actuators are not referencing tagged actions */
-						for (int act_idx=0; act_idx<gameobj->GetActuators().size(); act_idx++)
+						for (unsigned int act_idx=0; act_idx<gameobj->GetActuators().size(); act_idx++)
 						{
 							if (gameobj->GetActuators()[act_idx]->IsType(SCA_IActuator::KX_ACT_ACTION))
 							{

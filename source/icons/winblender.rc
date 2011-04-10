@@ -23,13 +23,8 @@ BEGIN
   BEGIN
     BLOCK "04090000"
     BEGIN
-#ifdef WINDRES // this doesnt work for mingw.
       VALUE "FileVersion", BLEN_VER_RC_STR
       VALUE "ProductVersion", BLEN_VER_RC_STR
-#else
-      VALUE "FileVersion", "Unknown"
-      VALUE "ProductVersion", "Unknown"
-#endif
       VALUE "CompanyName", "Blender Foundation"
       VALUE "FileDescription", "Blender"
       VALUE "LegalCopyright", "GPLv2 (Blender Foundation)"

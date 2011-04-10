@@ -101,7 +101,7 @@ set(SRC
 )
 
 # MSVC 2010 gives linking errors with the manifest
-if(WIN32 AND NOT UNIX AND NOT MSVC10)
+if(WIN32 AND NOT UNIX)
 	string(SUBSTRING ${BLENDER_VERSION} 0 1 bver1)
 	string(SUBSTRING ${BLENDER_VERSION} 2 1 bver2)
 	string(SUBSTRING ${BLENDER_VERSION} 3 1 bver3)

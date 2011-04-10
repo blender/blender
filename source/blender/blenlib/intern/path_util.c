@@ -1353,9 +1353,9 @@ int BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 }
 
 
-int BLI_replace_extension(char *path, int maxlen, const char *ext)
+int BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 {
-	unsigned int a;
+	size_t a;
 
 	for(a=strlen(path); a>0; a--) {
 		if(path[a-1] == '.' || path[a-1] == '/' || path[a-1] == '\\') {

@@ -523,7 +523,7 @@ int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 
 		UI_view2d_region_to_view(v2d, mx, my, &fx, &fy);
 
-		active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
+		active_file = ED_fileselect_layout_offset(sfile->layout, (int)(v2d->tot.xmin + fx), (int)(v2d->tot.ymax - fy));
 
 		if((active_file >= 0) && (active_file < numfiles))
 			params->active_file=active_file;
@@ -906,7 +906,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 		return OPERATOR_PASS_THROUGH;
 	}
 
-	offset = ED_fileselect_layout_offset(sfile->layout, ar->v2d.cur.xmin, -ar->v2d.cur.ymax);
+	offset = ED_fileselect_layout_offset(sfile->layout, (int)ar->v2d.cur.xmin, (int)-ar->v2d.cur.ymax);
 	if (offset<0) offset=0;
 
 	/* scroll offset is the first file in the row/column we are editing in */
