@@ -125,7 +125,6 @@ def cmake_advanced_info():
     includes = []
     defines = []
 
-
     create_eclipse_project(CMAKE_DIR)
 
     from xml.dom.minidom import parse

@@ -34,7 +34,7 @@ blender --background --python intern/tools/rna_api_dump.py -- \
 
 
 # Api comparison can also run without blender
-python intern/tools/rna_api_dump.py 
+python intern/tools/rna_api_dump.py
         --api_from blender_api_2_56_6.py \
         --api_to blender_api_2_57.py \
         --api_out changes.rst
@@ -252,7 +252,6 @@ def api_changelog(api_from, api_to, api_out):
                         if args_new != args_old:
                             func_args.append((prop_id, args_old, args_new))
 
-
             if props_moved or set_props_new or set_props_old or func_args:
                 props_moved.sort()
                 props_new[:] = sorted(set_props_new)
@@ -262,10 +261,6 @@ def api_changelog(api_from, api_to, api_out):
                 api_changes.append((mod_id, class_id, props_moved, props_new, props_old, func_args))
 
     # also document function argument changes
-    
-
-
-
 
     fout = open(api_out, 'w')
     fw = fout.write
@@ -298,7 +293,7 @@ def api_changelog(api_from, api_to, api_out):
             for prop_id_old, prop_id in props_moved:
                 fw("* **%s** -> :class:`%s.%s.%s`\n" % (prop_id_old, mod_id, class_name, prop_id))
             fw("\n")
-            
+
         if func_args:
             write_title("Function Arguments", "^")
             for func_id, args_old, args_new in func_args:
@@ -313,14 +308,13 @@ def api_changelog(api_from, api_to, api_out):
 def main():
     import sys
     import os
-    
+
     try:
         import argparse
     except:
         print("Old Blender, just dumping")
         api_dump()
         return
-        
 
     argv = sys.argv
 

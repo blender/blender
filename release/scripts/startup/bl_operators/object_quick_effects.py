@@ -163,7 +163,7 @@ class MakeSmoke(bpy.types.Operator):
         # create a volume material with a voxel data texture for the domain
         bpy.ops.object.material_slot_add({"object": obj})
 
-        mat = bpy.data.materials.new("Smoke Domain Material");
+        mat = bpy.data.materials.new("Smoke Domain Material")
         obj.material_slots[0].material = mat
         mat.type = 'VOLUME'
         mat.volume.density = 0
@@ -274,8 +274,8 @@ class MakeFluid(bpy.types.Operator):
 
         # create a ray-transparent material for the domain
         bpy.ops.object.material_slot_add({"object": obj})
-        
-        mat = bpy.data.materials.new("Fluid Domain Material");
+
+        mat = bpy.data.materials.new("Fluid Domain Material")
         obj.material_slots[0].material = mat
 
         mat.specular_intensity = 1

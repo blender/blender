@@ -98,6 +98,16 @@ package_archive:
 test:
 	cd $(BUILD_DIR) ; ctest . --output-on-failure
 
+# run pep8 check check on scripts we distribute.
+test_pep8:
+	python source/tests/pep8.py > test_pep8.log 2>&1
+	@echo "written: test_pep8.log"
+
+# run some checks on our cmakefiles.
+test_cmake:
+	python build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
+	@echo "written: test_cmake_consistency.txt"
+
 clean:
 	cd $(BUILD_DIR) ; make clean
 

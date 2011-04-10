@@ -359,10 +359,11 @@ class BUILTIN_KSI_WholeCharacter(bpy.types.KeyingSetInfo):
 
 ###############################
 
+
 # Delta Location
 class BUILTIN_KSI_DeltaLocation(bpy.types.KeyingSetInfo):
     bl_label = "Delta Location"
-    
+
     # poll - selected objects only (and only if active object in object mode)
     poll = keyingsets_utils.RKS_POLL_selected_objects
 
@@ -387,7 +388,7 @@ class BUILTIN_KSI_DeltaLocation(bpy.types.KeyingSetInfo):
 # Delta Rotation
 class BUILTIN_KSI_DeltaRotation(bpy.types.KeyingSetInfo):
     bl_label = "Delta Rotation"
-    
+
     # poll - selected objects only (and only if active object in object mode)
     poll = keyingsets_utils.RKS_POLL_selected_objects
 
@@ -406,7 +407,7 @@ class BUILTIN_KSI_DeltaRotation(bpy.types.KeyingSetInfo):
         elif data.rotation_mode == 'AXIS_ANGLE':
             # XXX: for now, this is not available yet
             #path = path_add_property(base_path, "delta_rotation_axis_angle")
-            return;
+            return
         else:
             path = keyingsets_utils.path_add_property(base_path, "delta_rotation_euler")
 
@@ -415,12 +416,12 @@ class BUILTIN_KSI_DeltaRotation(bpy.types.KeyingSetInfo):
             ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
         else:
             ks.paths.add(id_block, path)
-    
+
 
 # Delta Scale
 class BUILTIN_KSI_DeltaScale(bpy.types.KeyingSetInfo):
     bl_label = "Delta Scale"
-    
+
     # poll - selected objects only (and only if active object in object mode)
     poll = keyingsets_utils.RKS_POLL_selected_objects
 
