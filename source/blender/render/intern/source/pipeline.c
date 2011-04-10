@@ -2303,9 +2303,12 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			
 			tag_scenes_for_render(re);
 			for(re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
-				if(re1->scene->id.flag & LIB_DOIT)
-					if(re1->r.scemode & R_FULL_SAMPLE)
+				if(re1->scene->id.flag & LIB_DOIT) {
+					if(re1->r.scemode & R_FULL_SAMPLE) {
 						read_render_result(re1, sample);
+						ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
+					}
+				}
 			}
 		}
 
