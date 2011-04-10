@@ -106,7 +106,7 @@ test_pep8:
 # run some checks on our cmakefiles.
 test_cmake:
 	python build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
-	@echo "written: test_cmake_consistency.txt"
+	@echo "written: test_cmake_consistency.log"
 
 clean:
 	cd $(BUILD_DIR) ; make clean
