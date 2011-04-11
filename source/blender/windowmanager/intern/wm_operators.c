@@ -1107,6 +1107,33 @@ static void wm_block_splash_refreshmenu (bContext *UNUSED(C), void *UNUSED(arg_b
 	  */
 }
 
+static int wm_resource_check_prev(void)
+{
+
+	char *res= BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION, TRUE);
+
+	// if(res) printf("USER: %s\n", res);
+
+	if(res == NULL) {
+		res= BLI_get_folder_version(BLENDER_RESOURCE_PATH_LOCAL, BLENDER_VERSION, TRUE);
+	}
+
+	// if(res) printf("LOCAL: %s\n", res);
+
+	if(res == NULL) {
+		int res_dir[]= {BLENDER_RESOURCE_PATH_USER, BLENDER_RESOURCE_PATH_LOCAL, -1};
+		int i= 0;
+
+		for(i= 0; res_dir[i] != -1; i++) {
+			if(BLI_get_folder_version(res_dir[i], BLENDER_VERSION - 1, TRUE)) {
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	uiBlock *block;
@@ -1183,6 +1210,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	for(recent = G.recent_files.first, i=0; (i<5) && (recent); recent = recent->next, i++) {
 		uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
 	}
+
+	if(wm_resource_check_prev()) {
+		uiItemS(col);
+		uiItemO(col, NULL, ICON_NEW, "WM_OT_copy_prev_settings");
+	}
+
 	uiItemS(col);
 	uiItemO(col, NULL, ICON_RECOVER_LAST, "WM_OT_recover_last_session");
 	uiItemL(col, "", ICON_NONE);

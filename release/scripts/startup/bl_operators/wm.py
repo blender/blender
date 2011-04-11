@@ -909,6 +909,34 @@ class WM_OT_sysinfo(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class WM_OT_copy_prev_settings(bpy.types.Operator):
+    '''Generate System Info'''
+    bl_idname = "wm.copy_prev_settings"
+    bl_label = "Copy Previous Settings"
+
+    def execute(self, context):
+        import os
+        import shutil
+        ver = bpy.app.version
+        ver_prev = ((ver[0] * 100) + ver[1]) - 1
+        ver_prev = ver_prev // 100, ver_prev % 100
+        for res in ('USER', 'LOCAL'):
+            path_src = bpy.utils.resource_path(res, ver_prev[0], ver_prev[1])
+            path_dst = bpy.utils.resource_path(res)
+
+            if os.path.isdir(path_dst):
+                self.report({'ERROR'}, "Path %r exists" % path_dst)
+                return {'CANCELLED'}
+            else:
+                break
+
+        if os.path.isdir(path_src):
+            shutil.copytree(path_src, path_dst)
+            bpy.ops.wm.read_homefile()
+
+        return {'FINISHED'}
+
+
 def _webbrowser_bug_fix():
     # test for X11
     import os
