@@ -1164,6 +1164,10 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		else {
 			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 			BLI_strncpy(active_data->str, buf, active_data->maxlen);
+			if(but->type == SEARCH_MENU) {
+				/* else uiSearchboxData.active member is not updated [#26856] */
+				ui_searchbox_update(C, data->searchbox, but, 1);
+			}
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 	}
