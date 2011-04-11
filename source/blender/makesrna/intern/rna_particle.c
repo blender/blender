@@ -925,7 +925,7 @@ static void rna_def_particle_key(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
-	RNA_def_property_ui_text(prop, "Rotation", "Key rotation quaterion");
+	RNA_def_property_ui_text(prop, "Rotation", "Key rotation quaternion");
 
 	prop= RNA_def_property(srna, "angular_velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "ave");

@@ -1240,7 +1240,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_flare_mode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO_FLARE); /* use bitflags */
-	RNA_def_property_ui_text(prop, "Flare", "Renders halo as a lensflare");
+	RNA_def_property_ui_text(prop, "Flare", "Renders halo as a lens flare");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "flare_size", PROP_FLOAT, PROP_NONE);
@@ -1252,7 +1252,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "flare_subflare_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "subsize");
 	RNA_def_property_range(prop, 0.1f, 25.0f);
-	RNA_def_property_ui_text(prop, "Flare Subsize", "Sets the dimension of the subflares, dots and circles");
+	RNA_def_property_ui_text(prop, "Flare Subsize", "Sets the dimension of the sub-flares, dots and circles");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "flare_boost", PROP_FLOAT, PROP_NONE);
@@ -1270,7 +1270,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "flare_subflare_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "flarec");
 	RNA_def_property_range(prop, 1, 32);
-	RNA_def_property_ui_text(prop, "Flares Sub", "Sets the number of subflares");
+	RNA_def_property_ui_text(prop, "Flares Sub", "Sets the number of sub-flares");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_ring", PROP_BOOLEAN, PROP_NONE);
@@ -1749,7 +1749,7 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_transparent_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_SHADOW_TRA);
-	RNA_def_property_ui_text(prop, "Receive Transparent Shadows", "Allow this object to receive transparent shadows casted through other objects");
+	RNA_def_property_ui_text(prop, "Receive Transparent Shadows", "Allow this object to receive transparent shadows cast through other objects");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_ray_shadow_bias", PROP_BOOLEAN, PROP_NONE);

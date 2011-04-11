@@ -337,9 +337,9 @@ static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *report
 /* enum defines exported for rna_animation.c */
 EnumPropertyItem nla_mode_blend_items[] = {
 	{NLASTRIP_MODE_REPLACE, "REPLACE", 0, "Replace", "Result strip replaces the accumulated results by amount specified by influence"},
-	{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumlated results"},
-	{NLASTRIP_MODE_SUBTRACT, "SUBTRACT", 0, "Subtract", "Weighted result of strip is removed from the accumlated results"},
-	{NLASTRIP_MODE_MULTIPLY, "MULITPLY", 0, "Multiply", "Weighted result of strip is multiplied with the accumlated results"},
+	{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumulated results"},
+	{NLASTRIP_MODE_SUBTRACT, "SUBTRACT", 0, "Subtract", "Weighted result of strip is removed from the accumulated results"},
+	{NLASTRIP_MODE_MULTIPLY, "MULITPLY", 0, "Multiply", "Weighted result of strip is multiplied with the accumulated results"},
 	{0, NULL, 0, NULL, NULL}};
 EnumPropertyItem nla_mode_extend_items[] = {
 	{NLASTRIP_EXTEND_NOTHING, "NOTHING", 0, "Nothing", "Strip has no influence past its extents"},

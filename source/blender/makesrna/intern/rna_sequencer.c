@@ -1060,7 +1060,7 @@ static void rna_def_editor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "show_overlay", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "over_flag", SEQ_EDIT_OVERLAY_SHOW);
-	RNA_def_property_ui_text(prop, "Draw Axes", "Partial overlay ontop of the sequencer");
+	RNA_def_property_ui_text(prop, "Draw Axes", "Partial overlay on top of the sequencer");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 
 	prop= RNA_def_property(srna, "overlay_lock", PROP_BOOLEAN, PROP_NONE);

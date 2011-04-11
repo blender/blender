@@ -1214,7 +1214,7 @@ static void def_cmp_vector_blur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "use_curved", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "curved", 1);
-	RNA_def_property_ui_text(prop, "Curved", "Interpolate between frames in a bezier curve, rather than linearly");
+	RNA_def_property_ui_text(prop, "Curved", "Interpolate between frames in a Bezier curve, rather than linearly");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -1547,7 +1547,7 @@ static void def_cmp_color_spill(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "use_unspill", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "unspill", 0);
-	RNA_def_property_ui_text(prop, "Unspill", "Compensate all channels (diffenrently) by hand");
+	RNA_def_property_ui_text(prop, "Unspill", "Compensate all channels (differently) by hand");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "unspill_red", PROP_FLOAT, PROP_NONE);
@@ -1809,13 +1809,13 @@ static void def_cmp_defocus(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "no_zbuf", 1);
-	RNA_def_property_ui_text(prop, "Use Z-Buffer", "Disable when using an image as input instead of actual zbuffer (auto enabled if node not image based, eg. time node)");
+	RNA_def_property_ui_text(prop, "Use Z-Buffer", "Disable when using an image as input instead of actual z-buffer (auto enabled if node not image based, eg. time node)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "z_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_range(prop, 0.0f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Z-Scale", "Scales the Z input when not using a zbuffer, controls maximum blur designated by the color white or input value 1");
+	RNA_def_property_ui_text(prop, "Z-Scale", "Scales the Z input when not using a z-buffer, controls maximum blur designated by the color white or input value 1");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 

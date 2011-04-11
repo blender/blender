@@ -64,7 +64,6 @@ project(Blender)
 
 
 if (_reset_standard_libraries)
-	message("Reset Libs")
 	# Must come after project(...)
 	#
 	# MINGW workaround for -ladvapi32 being included which surprisingly causes

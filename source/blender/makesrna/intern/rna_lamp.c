@@ -575,7 +575,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_shadbuftype_items[] = {
 		{LA_SHADBUF_REGULAR	, "REGULAR", 0, "Classical", "Classic shadow buffer"},
-		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifaces"},
+		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifacts"},
 		{LA_SHADBUF_IRREGULAR, "IRREGULAR", 0, "Irregular", "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing"},
 		{LA_SHADBUF_DEEP, "DEEP", 0, "Deep", "Deep shadow buffer supports transparency and better filtering, at the cost of more memory usage and processing time"},
 		{0, NULL, 0, NULL, NULL}};
