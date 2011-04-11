@@ -2008,7 +2008,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 			}
 			BLI_addfilledge(lastv, firstv);
 			
-			BLI_edgefill(0);
+			BLI_edgefill(2);
 			for (f=fillfacebase.first; f; f=f->next) {
 				BLI_array_growone(mf);
 				BLI_array_growone(origIndex);

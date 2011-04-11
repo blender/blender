@@ -209,8 +209,8 @@ BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len,
 	
 		f = BM_Make_Face(bm, verts, edar, len);
 	
-		if(example)
-			CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, example->head.data, &f->head.data);
+		if(example && f)
+			BM_Copy_Attributes(bm, bm, example, f);
 
 	}
 

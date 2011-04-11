@@ -407,7 +407,8 @@ static void draw_textured_end(void)
 
 static int draw_tface__set_draw_legacy(MTFace *tface, int has_vcol, int matnr)
 {
-	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
+	if (tface && (tface->mode&TF_INVISIBLE))
+		return 0;
 
 	if (tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
 		glColor3ub(0xFF, 0x00, 0xFF);

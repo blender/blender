@@ -213,7 +213,7 @@ BMFace *BMBVH_RayCast(BMBVHTree *tree, float *co, float *dir, float *hitout)
 	hit.dist = FLT_MAX;
 	hit.index = -1;
 
-	BLI_bvhtree_ray_cast(tree->tree, co, dir, FLT_MAX, &hit, raycallback, tree);
+	BLI_bvhtree_ray_cast(tree->tree, co, dir, 0.0f, &hit, raycallback, tree);
 	if (hit.dist != FLT_MAX && hit.index != -1) {
 		if (hitout) {
 			VECCOPY(hitout, hit.co);

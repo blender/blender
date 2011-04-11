@@ -249,9 +249,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		for (j=0; j<mp->totloop; j++) {
 			float vec[3];
 			
-			sub_v3_v3v3(vec, cent, cos[j]);
-			mul_v3_fl(vec, 0.000001);
-			add_v3_v3(cos[j], vec);
+			sub_v3_v3(cos[j], cent);
+			mul_v3_fl(cos[j], 1.0+FLT_EPSILON*1500.0f);
+			add_v3_v3(cos[j], cent);
 		}
 
 		copy_v3_v3(co, mvert + mf2->v1);

@@ -355,7 +355,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		for (j=0; j<mp->totloop; j++) {
 			CustomData_copy_data(&dm->loopData, &result->loopData, mp->loopstart+j, 
 			                     mp->loopstart+(mp->totloop-j-1)+dm->numLoopData, 1);
-			//SWAP(MLoop, ml2[j], ml2[mp->totloop-j-1]);
 		}
 		
 		e = ml2[0].e;

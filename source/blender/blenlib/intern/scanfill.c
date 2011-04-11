@@ -791,17 +791,17 @@ int BLI_edgefill(int mat_nr)
 		a += 1;
 	}
 
-	if (a == 3) {
+	if (a == 3 && (mat_nr & 2)) {
 		eve = fillvertbase.first;
 
 		addfillface(eve, eve->next, eve->next->next, 0);
 		return 1;
-	} else if (a == 4) {
+	} else if (a == 4 && (mat_nr & 2)) {
 		float vec1[3], vec2[3];
 
 		eve = fillvertbase.first;
 		
-		if (1) { //BMESH_TODO this is correct, right? -joeedh //mode & 2) {
+		if (1) { //BMESH_TODO) {
 			/*use shortest diagonal for quad*/
 			sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
 			sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);
@@ -855,6 +855,13 @@ int BLI_edgefill(int mat_nr)
 	while(eve) {
 		if(v2) {
 			if( compare_v3v3(v2, eve->co, COMPLIMIT)==0) {
+				float inner = angle_v3v3v3(v1, v2, eve->co);
+				
+				if (fabs(inner-M_PI) < 0.05 || fabs(inner) < 0.05) {
+					eve = eve->next;	
+					continue;
+				}
+
 				len= normal_tri_v3( norm,v1, v2, eve->co);
 				if(len != 0.0) break;
 			}
