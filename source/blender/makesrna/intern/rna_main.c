@@ -42,9 +42,20 @@
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
+static int rna_Main_is_saved_get(PointerRNA *ptr)
+{
+	return G.relbase_valid;
+}
+
 static int rna_Main_is_dirty_get(PointerRNA *ptr)
 {
-	return !G.relbase_valid;
+	/* XXX, not totally nice to do it this way, should store in main ? */
+	wmWindowManager *wm;
+	for(wm= G.main->wm.first; wm; wm= wm->id.next) {
+		return !wm->file_saved;
+	}
+
+	return TRUE;
 }
 
 static void rna_Main_filepath_get(PointerRNA *ptr, char *value)
@@ -307,6 +318,11 @@ void RNA_def_main(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_is_dirty_get", NULL);
+	RNA_def_property_ui_text(prop, "File is Saved", "Have recent edits been saved to disk");
+
+	prop= RNA_def_property(srna, "is_saved", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_is_saved_get", NULL);
 	RNA_def_property_ui_text(prop, "File is Saved", "Has the current session been saved to disk as a .blend file");
 
 	for(i=0; lists[i].name; i++)
