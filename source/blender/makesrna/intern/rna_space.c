@@ -902,7 +902,7 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Normalized Coordinates", "Display UV coordinates from 0.0 to 1.0 rather than in pixels");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 	
-	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_SpaceImageEditor_cursor_location_get", "rna_SpaceImageEditor_cursor_location_set", NULL);
 	RNA_def_property_ui_text(prop, "2D Cursor Location", "2D cursor location for this view");
