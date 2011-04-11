@@ -45,6 +45,7 @@ const char *BLI_getDefaultDocumentFolder(void);
 char *BLI_get_folder(int folder_id, const char *subfolder);
 char *BLI_get_folder_create(int folder_id, const char *subfolder);
 char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
+char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 
 /* folder_id */
 
@@ -72,6 +73,11 @@ char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
 #define BLENDER_TEMP				80
 
 #define BLENDER_USERFOLDER(id) (id >= BLENDER_USER_CONFIG && id <= BLENDER_USER_PLUGINS)
+
+/* for BLI_get_folder_version only */
+#define BLENDER_RESOURCE_PATH_USER		0
+#define BLENDER_RESOURCE_PATH_LOCAL		1
+#define BLENDER_RESOURCE_PATH_SYSTEM	2
 
 #define BLENDER_STARTUP_FILE	"startup.blend"
 #define BLENDER_BOOKMARK_FILE	"bookmarks.txt"

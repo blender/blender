@@ -670,11 +670,13 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 	}
 
 	if(done==0) {
-		if (item)	printf("Context '%s' not a valid type\n", member);
-		else		printf("Context '%s' not found\n", member);
+		if (item)	printf("PyContext '%s' not a valid type\n", member);
+		else		printf("PyContext '%s' not found\n", member);
 	}
 	else {
-		printf("Context '%s' found\n", member);
+		if(G.f & G_DEBUG) {
+			printf("PyContext '%s' found\n", member);
+		}
 	}
 
 	return done;

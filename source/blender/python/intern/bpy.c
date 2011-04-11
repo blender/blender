@@ -48,6 +48,7 @@
 
 
 #include "BKE_global.h" /* XXX, G.main only */
+#include "BKE_blender.h"
 
 #include "RNA_access.h"
 
@@ -69,8 +70,8 @@ static char bpy_script_paths_doc[] =
 "   Return 2 paths to blender scripts directories.\n"
 "\n"
 "   :return: (system, user) strings will be empty when not found.\n"
-"   :rtype: tuple of strigs\n";
-
+"   :rtype: tuple of strings\n"
+;
 static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
 	PyObject *ret= PyTuple_New(2);
@@ -92,7 +93,8 @@ static char bpy_blend_paths_doc[] =
 "   :arg absolute: When true the paths returned are made absolute.\n"
 "   :type absolute: boolean\n"
 "   :return: path list.\n"
-"   :rtype: list of strigs\n";
+"   :rtype: list of strings\n"
+;
 static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct BPathIterator *bpi;
@@ -167,9 +169,50 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	return PyUnicode_DecodeFSDefault(path ? path : "");
 }
 
+static char bpy_resource_path_doc[] =
+".. function:: resource_path(type, major=2, minor=57)\n"
+"\n"
+"   Return the base path for storing system files.\n"
+"\n"
+"   :arg type: string in ['USER', 'LOCAL', 'SYSTEM'].\n"
+"   :type type: string\n"
+"   :arg major: major version, defaults to current.\n"
+"   :type major: int\n"
+"   :arg minor: minor version, defaults to current.\n"
+"   :type minor: string\n"
+"   :return: the resource path (not necessarily existing).\n"
+"   :rtype: string\n"
+;
+static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+{
+	char *type;
+	int major= BLENDER_VERSION/100, minor= BLENDER_VERSION%100;
+	static const char *kwlist[]= {"type", "major", "minor", NULL};
+	int folder_id;
+	char *path;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ii:resource_path", (char **)kwlist, &type, &major, &minor))
+		return NULL;
+
+	/* stupid string compare */
+	if     (!strcmp(type, "USER"))		folder_id= BLENDER_RESOURCE_PATH_USER;
+	else if(!strcmp(type, "LOCAL"))		folder_id= BLENDER_RESOURCE_PATH_LOCAL;
+	else if(!strcmp(type, "SYSTEM"))	folder_id= BLENDER_RESOURCE_PATH_SYSTEM;
+	else {
+		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
+		return NULL;
+	}
+
+	path= BLI_get_folder_version(folder_id, (major * 100) + minor, FALSE);
+
+	return PyUnicode_DecodeFSDefault(path);
+}
+
 static PyMethodDef meth_bpy_script_paths= {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
 static PyMethodDef meth_bpy_blend_paths= {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
 static PyMethodDef meth_bpy_user_resource= {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
+static PyMethodDef meth_bpy_resource_path= {"resource_path", (PyCFunction)bpy_resource_path, METH_VARARGS|METH_KEYWORDS, bpy_resource_path_doc};
+
 
 static PyObject *bpy_import_test(const char *modname)
 {
@@ -244,6 +287,7 @@ void BPy_init_modules( void )
 	PyModule_AddObject(mod, meth_bpy_script_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_script_paths, NULL));
 	PyModule_AddObject(mod, meth_bpy_blend_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_blend_paths, NULL));
 	PyModule_AddObject(mod, meth_bpy_user_resource.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_user_resource, NULL));
+	PyModule_AddObject(mod, meth_bpy_resource_path.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_resource_path, NULL));
 
 	/* register funcs (bpy_rna.c) */
 	PyModule_AddObject(mod, meth_bpy_register_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_register_class, NULL));
