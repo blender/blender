@@ -438,9 +438,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					float radius = blendernearsensor->dist;
 					PHY__Vector3 pos;
 					const MT_Vector3& wpos = gameobj->NodeGetWorldPosition();
-					pos[0] = wpos[0];
-					pos[1] = wpos[1];
-					pos[2] = wpos[2];
+					pos[0] = (float)wpos[0];
+					pos[1] = (float)wpos[1];
+					pos[2] = (float)wpos[2];
 					pos[3] = 0.f;
 					bool bFindMaterial = false;
 					PHY_IPhysicsController* physCtrl = kxscene->GetPhysicsEnvironment()->CreateSphereController(radius,pos);
@@ -662,7 +662,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					MT_Scalar largemargin = 0.0;
 					
 					bool bFindMaterial = false;
-					PHY_IPhysicsController* ctrl = kxscene->GetPhysicsEnvironment()->CreateConeController(coneradius,coneheight);
+					PHY_IPhysicsController* ctrl = kxscene->GetPhysicsEnvironment()->CreateConeController((float)coneradius, (float)coneheight);
 
 					gamesensor = new KX_RadarSensor(
 						eventmgr,

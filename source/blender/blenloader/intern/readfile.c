@@ -235,7 +235,7 @@ typedef struct OldNewMap {
 
 /* local prototypes */
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
-
+static void direct_link_modifiers(FileData *fd, ListBase *lb);
 
 static OldNewMap *oldnewmap_new(void) 
 {
@@ -501,7 +501,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *name, c
 	for (m= mainlist->first; m; m= m->next) {
 		char *libname= (m->curlib)?m->curlib->filepath:m->name;
 		
-		if (BLI_streq(name1, libname)) {
+		if (BLI_path_cmp(name1, libname) == 0) {
 			if(G.f & G_DEBUG) printf("blo_find_main: found library %s\n", libname);
 			return m;
 		}
@@ -1895,7 +1895,7 @@ static void direct_link_nladata_strips(FileData *fd, ListBase *list)
 		
 		/* strip's F-Modifiers */
 		link_list(fd, &strip->modifiers);
-		direct_link_fcurves(fd, &strip->modifiers);
+		direct_link_modifiers(fd, &strip->modifiers);
 	}
 }
 
@@ -5463,7 +5463,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	
 	for(newmain= fd->mainlist.first; newmain; newmain= newmain->next) {
 		if(newmain->curlib) {
-			if(strcmp(newmain->curlib->filepath, lib->filepath)==0) {
+			if(BLI_path_cmp(newmain->curlib->filepath, lib->filepath) == 0) {
 				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->filepath);
 				BKE_reportf(fd->reports, RPT_WARNING, "Library '%s', '%s' had multiple instances, save and reload!", lib->name, lib->filepath);
 
@@ -7089,13 +7089,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sa= sa->next;
 			}
 			sc= sc->id.next;
-		}
-	}
-	if(main->versionfile <= 112) {
-		Mesh *me = main->mesh.first;
-		while(me) {
-			me->cubemapsize= 1.0;
-			me= me->id.next;
 		}
 	}
 	if(main->versionfile <= 113) {
@@ -11678,7 +11671,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
 			if(brush->height == 0)
-				brush->height= 0.4;
+				brush->height= 0.4f;
 		}
 
 		/* replace 'rim material' option for in offset*/
@@ -11702,7 +11695,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 5)){
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 6)){
 		Mesh *me;
 
 		for(me= main->mesh.first; me; me= me->id.next)

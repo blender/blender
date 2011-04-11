@@ -18,6 +18,10 @@
 
 # <pep8 compliant>
 
+"""
+Give access to blender data and utility functions.
+"""
+
 # internal blender C module
 import _bpy
 from _bpy import types, props, app

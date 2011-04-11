@@ -40,8 +40,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
             layout.template_ID(space, "pin_id")
         else:
             row = layout.row()
-            row.label(text="", icon='OBJECT_DATA')
-            row.prop(ob, "name", text="")
+            row.template_ID(context.scene.objects, "active")
 
 
 class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
@@ -335,3 +334,6 @@ class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, bpy.types.Panel)
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object"
     _property_type = bpy.types.Object
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

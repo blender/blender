@@ -1117,11 +1117,20 @@ static void shader_preview_free(void *customdata)
 	
 	if(sp->matcopy) {
 		struct IDProperty *properties;
+		int a;
+		
 		/* node previews */
 		shader_preview_updatejob(sp);
 		
 		/* get rid of copied material */
 		BLI_remlink(&pr_main->mat, sp->matcopy);
+		
+		/* free_material decrements texture, prevent this. hack alert! */
+		for(a=0; a<MAX_MTEX; a++) {
+			MTex *mtex= sp->matcopy->mtex[a];
+			if(mtex && mtex->tex) mtex->tex= NULL;
+		}
+		
 		free_material(sp->matcopy);
 
 		properties= IDP_GetProperties((ID *)sp->matcopy, FALSE);

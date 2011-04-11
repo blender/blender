@@ -88,19 +88,19 @@ void IDP_UnlinkID(struct IDProperty *prop);
 
 /*-------- Group Functions -------*/
 
-/* Sync values from one group to another, only where they match */
+/** Sync values from one group to another, only where they match */
 void IDP_SyncGroupValues(struct IDProperty *dest, struct IDProperty *src);
 
-/*
+/**
  replaces all properties with the same name in a destination group from a source group.
 */
 void IDP_ReplaceGroupInGroup(struct IDProperty *dest, struct IDProperty *src);
 
-/*checks if a property with the same name as prop exists, and if so replaces it.
+/** checks if a property with the same name as prop exists, and if so replaces it.
   Use this to preserve order!*/
 void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop);
 
-/*
+/**
 This function has a sanity check to make sure ID properties with the same name don't
 get added to the group.
 
@@ -117,12 +117,12 @@ be reorganized to work properly.
 */
 int IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop);
 
-/*this is the same as IDP_AddToGroup, only you pass an item
+/** this is the same as IDP_AddToGroup, only you pass an item
   in the group list to be inserted after.*/
 int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous, 
 					  struct IDProperty *pnew);
 
-/*NOTE: this does not free the property!!
+/** \note this does not free the property!!
 
  To free the property, you have to do:
  IDP_FreeProperty(prop); //free all subdata
@@ -132,27 +132,27 @@ int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous,
 void IDP_RemFromGroup(struct IDProperty *group, struct IDProperty *prop);
 
 IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, const char *name);
-/* same as above but ensure type match */
+/** same as above but ensure type match */
 IDProperty *IDP_GetPropertyTypeFromGroup(struct IDProperty *prop, const char *name, const char type);
 
-/*Get an iterator to iterate over the members of an id property group.
+/** Get an iterator to iterate over the members of an id property group.
  Note that this will automatically free the iterator once iteration is complete;
  if you stop the iteration before hitting the end, make sure to call
  IDP_FreeIterBeforeEnd().*/
 void *IDP_GetGroupIterator(struct IDProperty *prop);
 
-/*Returns the next item in the iteration.  To use, simple for a loop like the following:
+/** Returns the next item in the iteration.  To use, simple for a loop like the following:
  while (IDP_GroupIterNext(iter) != NULL) {
 	. . .
  }*/
 IDProperty *IDP_GroupIterNext(void *vself);
 
-/*Frees the iterator pointed to at vself, only use this if iteration is stopped early; 
+/** Frees the iterator pointed to at vself, only use this if iteration is stopped early; 
   when the iterator hits the end of the list it'll automatially free itself.*/
 void IDP_FreeIterBeforeEnd(void *vself);
 
 /*-------- Main Functions --------*/
-/*Get the Group property that contains the id properties for ID id.  Set create_if_needed
+/** Get the Group property that contains the id properties for ID id.  Set create_if_needed
   to create the Group property and attach it to id if it doesn't exist; otherwise
   the function will return NULL if there's no Group property attached to the ID.*/
 struct IDProperty *IDP_GetProperties(struct ID *id, int create_if_needed);
@@ -160,7 +160,7 @@ struct IDProperty *IDP_CopyProperty(struct IDProperty *prop);
 
 int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2);
 
-/*
+/**
 Allocate a new ID.
 
 This function takes three arguments: the ID property type, a union which defines
@@ -186,13 +186,13 @@ IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
 a memory leak.
 */
 struct IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name);
-\
-/*NOTE: this will free all child properties of list arrays and groups!
+
+/** \note this will free all child properties of list arrays and groups!
   Also, note that this does NOT unlink anything!  Plus it doesn't free
   the actual struct IDProperty struct either.*/
 void IDP_FreeProperty(struct IDProperty *prop);
 
-/*Unlinks any struct IDProperty<->ID linkage that might be going on.*/
+/** Unlinks any struct IDProperty<->ID linkage that might be going on.*/
 void IDP_UnlinkProperty(struct IDProperty *prop);
 
 #define IDP_Int(prop) ((prop)->data.val)

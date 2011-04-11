@@ -246,12 +246,11 @@ Material *localize_material(Material *ma)
 	man= copy_libblock(ma);
 	BLI_remlink(&G.main->mat, man);
 
+	/* no increment for texture ID users, in previewrender.c it prevents decrement */
 	for(a=0; a<MAX_MTEX; a++) {
 		if(ma->mtex[a]) {
 			man->mtex[a]= MEM_mallocN(sizeof(MTex), "copymaterial");
 			memcpy(man->mtex[a], ma->mtex[a], sizeof(MTex));
-			/* free_material decrements! */
-			id_us_plus((ID *)man->mtex[a]->tex);
 		}
 	}
 	
@@ -689,6 +688,10 @@ void assign_material(Object *ob, Material *ma, int act)
 	if(act>MAXMAT) return;
 	if(act<1) act= 1;
 	
+	/* prevent crashing when using accidentally */
+	BLI_assert(ob->id.lib != NULL);
+	if(ob->id.lib) return;
+	
 	/* test arraylens */
 	
 	totcolp= give_totcolp(ob);
@@ -786,21 +789,10 @@ int find_material_index(Object *ob, Material *ma)
 
 int object_add_material_slot(Object *ob)
 {
-	Material *ma;
-	
 	if(ob==NULL) return FALSE;
 	if(ob->totcol>=MAXMAT) return FALSE;
 	
-	ma= give_current_material(ob, ob->actcol);
-
-    if(ma == NULL)
-		ma= add_material("Material");
-	else
-		ma= copy_material(ma);
-
-	id_us_min(&ma->id);
-
-	assign_material(ob, ma, ob->totcol+1);
+	assign_material(ob, NULL, ob->totcol+1);
 	ob->actcol= ob->totcol;
 	return TRUE;
 }

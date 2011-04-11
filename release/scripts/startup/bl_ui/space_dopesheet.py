@@ -73,7 +73,7 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
             row.prop(dopesheet, "show_only_group_objects", text="")
             if dopesheet.show_only_group_objects:
                 row.prop(dopesheet, "filter_group", text="")
-   
+
     if not is_nla:
         row = layout.row(align=True)
         row.prop(dopesheet, "show_only_matching_fcurves", text="")
@@ -364,3 +364,6 @@ class DOPESHEET_MT_gpencil_frame(bpy.types.Menu):
         #layout.separator()
         #layout.operator("action.copy")
         #layout.operator("action.paste")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

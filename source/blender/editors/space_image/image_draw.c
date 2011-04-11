@@ -154,12 +154,13 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.4f ", 0.5f+0.5f*(((float)*zp)/(float)0x7fffffff));
 	if(zpf)
 		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.3f ", *zpf);
-	(void)ofs;
+	(void)ofs; /* quiet clang */
 
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
-	
-	glColor4f(.0,.0,.0,.25);
+
+	/* noisy, high contrast make impossible to read if lower alpha is used. */
+	glColor4ub(0, 0, 0, 190);
 	glRecti(0.0, 0.0, ar->winrct.xmax - ar->winrct.xmin + 1, 20);
 	glDisable(GL_BLEND);
 	

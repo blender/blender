@@ -22,6 +22,6 @@ bpy.types.Material.my_settings = \
 # test the new settings work
 material = bpy.data.materials[0]
 
-material.my_settings.val_int = 5
-material.my_settings.val_float = 3.0
+material.my_settings.my_int = 5
+material.my_settings.my_float = 3.0
 material.my_settings.my_string = "Foo"

@@ -182,55 +182,58 @@ void AUD_SequencerReader::read(int & length, sample_t* & buffer)
 		m_buffer.resize(size);
 	buffer = m_buffer.getBuffer();
 
-	for(AUD_StripIterator i = m_strips.begin(); i != m_strips.end(); i++)
+	if(!m_factory->getMute())
 	{
-		strip = *i;
-		if(!strip->entry->muted)
+		for(AUD_StripIterator i = m_strips.begin(); i != m_strips.end(); i++)
 		{
-			if(strip->old_sound != *strip->entry->sound)
+			strip = *i;
+			if(!strip->entry->muted)
 			{
-				strip->old_sound = *strip->entry->sound;
-				if(strip->reader)
-					delete strip->reader;
-
-				if(strip->old_sound)
+				if(strip->old_sound != *strip->entry->sound)
 				{
-					try
-					{
-						strip->reader = m_mixer->prepare(strip->old_sound->createReader());
-					}
-					catch(AUD_Exception)
-					{
-						strip->reader = NULL;
-					}
-				}
-				else
-					strip->reader = NULL;
-			}
+					strip->old_sound = *strip->entry->sound;
+					if(strip->reader)
+						delete strip->reader;
 
-			if(strip->reader)
-			{
-				end = floor(strip->entry->end * rate);
-				if(m_position < end)
-				{
-					start = floor(strip->entry->begin * rate);
-					if(m_position + length > start)
+					if(strip->old_sound)
 					{
-						current = m_position - start;
-						if(current < 0)
+						try
 						{
-							skip = -current;
-							current = 0;
+							strip->reader = m_mixer->prepare(strip->old_sound->createReader());
 						}
-						else
-							skip = 0;
-						current += strip->entry->skip * rate;
-						len = length > end - m_position ? end - m_position : length;
-						len -= skip;
-						if(strip->reader->getPosition() != current)
-							strip->reader->seek(current);
-						strip->reader->read(len, buf);
-						m_mixer->add(buf, skip, len, m_volume(m_data, strip->entry->data, (float)m_position / (float)rate));
+						catch(AUD_Exception)
+						{
+							strip->reader = NULL;
+						}
+					}
+					else
+						strip->reader = NULL;
+				}
+
+				if(strip->reader)
+				{
+					end = floor(strip->entry->end * rate);
+					if(m_position < end)
+					{
+						start = floor(strip->entry->begin * rate);
+						if(m_position + length > start)
+						{
+							current = m_position - start;
+							if(current < 0)
+							{
+								skip = -current;
+								current = 0;
+							}
+							else
+								skip = 0;
+							current += strip->entry->skip * rate;
+							len = length > end - m_position ? end - m_position : length;
+							len -= skip;
+							if(strip->reader->getPosition() != current)
+								strip->reader->seek(current);
+							strip->reader->read(len, buf);
+							m_mixer->add(buf, skip, len, m_volume(m_data, strip->entry->data, (float)m_position / (float)rate));
+						}
 					}
 				}
 			}

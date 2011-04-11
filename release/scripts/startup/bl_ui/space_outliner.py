@@ -115,3 +115,6 @@ class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
 
         col.operator("outliner.drivers_add_selected")
         col.operator("outliner.drivers_delete_selected")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

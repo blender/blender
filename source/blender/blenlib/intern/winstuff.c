@@ -37,6 +37,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <conio.h>
 
 #include "MEM_guardedalloc.h"
 #include "BLI_path_util.h"
@@ -65,6 +66,14 @@ int BLI_getInstallationDir( char * str ) {
 	return 1;
 }
 
+int IsConsoleEmpty(void)
+{
+	CONSOLE_SCREEN_BUFFER_INFO csbi = {{0}};
+	HANDLE hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	return GetConsoleScreenBufferInfo(hStdOutput, &csbi) && csbi.dwCursorPosition.X == 0 && csbi.dwCursorPosition.Y == 0;
+}
+
 void RegisterBlendExtension_Fail(HKEY root)
 {
 	printf("failed\n");
@@ -86,7 +95,7 @@ void RegisterBlendExtension(void) {
 	char BlPath[MAX_PATH];
 	char InstallDir[FILE_MAXDIR];
 	char SysDir[FILE_MAXDIR];
-	char* ThumbHandlerDLL;
+	const char* ThumbHandlerDLL;
 	char RegCmd[MAX_PATH*2];
 	char MBox[256];
 	BOOL IsWOW64;

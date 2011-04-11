@@ -145,10 +145,10 @@ blender_include_dirs(
 	../../editors/include
 	../../render/extern/include
 	../../freestyle
-	../../../../extern/glew/include
 	../../../../intern/audaspace/intern
 	../../../../intern/guardedalloc
 	../../../../intern/memutil
+    ${GLEW_INCLUDE_PATH}
 )
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})

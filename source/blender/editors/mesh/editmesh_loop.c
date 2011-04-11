@@ -624,7 +624,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	float  *scr, co[4];
 	int len=0;
 	short numcuts= RNA_int_get(op->ptr, "num_cuts"); 
-	short mode= RNA_int_get(op->ptr, "type");
+	short mode= RNA_enum_get(op->ptr, "type");
 //	int corner_cut_pattern= RNA_enum_get(op->ptr,"corner_cut_pattern");
 	
 	/* edit-object needed for matrix, and ar->regiondata for projections to work */

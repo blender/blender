@@ -366,7 +366,7 @@ class INFO_MT_help(bpy.types.Menu):
         layout.operator("wm.sysinfo", icon='TEXT')
         layout.separator()
         if sys.platform[:3] == "win":
-            layout.operator("wm.toggle_console", icon='CONSOLE')
+            layout.operator("wm.console_toggle", icon='CONSOLE')
             layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver Version fix", icon='HELP')
         layout.separator()
@@ -399,3 +399,6 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
         textblock.write('\n'.join(op_strings))
         self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

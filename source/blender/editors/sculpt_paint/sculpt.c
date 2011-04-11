@@ -263,6 +263,8 @@ typedef struct StrokeCache {
 	int alt_smooth;
 
 	float plane_trim_squared;
+
+	rcti previous_r; /* previous redraw rectangle */
 } StrokeCache;
 
 /*** BVH Tree ***/
@@ -3403,19 +3405,19 @@ static void sculpt_flush_update(bContext *C)
 
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB, NULL);
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
-			//rcti tmp;
-
 			r.xmin += ar->winrct.xmin + 1;
 			r.xmax += ar->winrct.xmin - 1;
 			r.ymin += ar->winrct.ymin + 1;
 			r.ymax += ar->winrct.ymin - 1;
 
-			//tmp = r;
+			if (ss->cache) {
+				rcti tmp = r;
 
-			//if (!BLI_rcti_is_empty(&ss->previous_r))
-			//	BLI_union_rcti(&r, &ss->previous_r);
+				if (!BLI_rcti_is_empty(&ss->cache->previous_r))
+					BLI_union_rcti(&r, &ss->cache->previous_r);
 
-			//ss->previous_r= tmp;
+				ss->cache->previous_r= tmp;
+			}
 
 			ss->partial_redraw = 1;
 			ED_region_tag_redraw_partial(ar, &r);

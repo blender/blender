@@ -5793,8 +5793,10 @@ void initTimeScale(TransInfo *t)
 {
 	int center[2];
 
-	/* this tool is only really available in the Action Editor... */
-	if (t->spacetype != SPACE_ACTION) {
+	/* this tool is only really available in the Action Editor
+	 * AND NLA Editor (for strip scaling)
+	 */
+	if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA) == 0) {
 		t->state = TRANS_CANCEL;
 	}
 

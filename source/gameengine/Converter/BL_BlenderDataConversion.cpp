@@ -964,7 +964,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 	
 				if (ma) {
 					polymat->m_specular = MT_Vector3(ma->specr, ma->specg, ma->specb)*ma->spec;
-					polymat->m_shininess = (float)ma->har/4.0; // 0 < ma->har <= 512
+					polymat->m_shininess = (float)ma->har/4.0f; // 0 < ma->har <= 512
 					polymat->m_diffuse = MT_Vector3(ma->r, ma->g, ma->b)*(ma->emit + ma->ref);
 				}
 				else {
@@ -1135,7 +1135,7 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 {
 	MVert *mvert;
 	BoundBox *bb;
-	MT_Point3 min, max;
+	float min[3], max[3];
 	float mloc[3], msize[3];
 	float radius=0.0f, vert_radius, *co;
 	int a;
@@ -1162,17 +1162,17 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	}
 		
 	if(me->totvert) {
-		loc[0]= (min[0]+max[0])/2.0;
-		loc[1]= (min[1]+max[1])/2.0;
-		loc[2]= (min[2]+max[2])/2.0;
+		loc[0]= (min[0]+max[0])/2.0f;
+		loc[1]= (min[1]+max[1])/2.0f;
+		loc[2]= (min[2]+max[2])/2.0f;
 		
-		size[0]= (max[0]-min[0])/2.0;
-		size[1]= (max[1]-min[1])/2.0;
-		size[2]= (max[2]-min[2])/2.0;
+		size[0]= (max[0]-min[0])/2.0f;
+		size[1]= (max[1]-min[1])/2.0f;
+		size[2]= (max[2]-min[2])/2.0f;
 	}
 	else {
-		loc[0]= loc[1]= loc[2]= 0.0;
-		size[0]= size[1]= size[2]= 0.0;
+		loc[0]= loc[1]= loc[2]= 0.0f;
+		size[0]= size[1]= size[2]= 0.0f;
 	}
 		
 	bb->vec[0][0]=bb->vec[1][0]=bb->vec[2][0]=bb->vec[3][0]= loc[0]-size[0];
@@ -1210,8 +1210,8 @@ static void my_tex_space_mesh(Mesh *me)
 					DO_MINMAX(fp, min, max);
 				}
 				if(kb->totelem) {
-					loc[0]= (min[0]+max[0])/2.0; loc[1]= (min[1]+max[1])/2.0; loc[2]= (min[2]+max[2])/2.0;
-					size[0]= (max[0]-min[0])/2.0; size[1]= (max[1]-min[1])/2.0; size[2]= (max[2]-min[2])/2.0;
+					loc[0]= (min[0]+max[0])/2.0f; loc[1]= (min[1]+max[1])/2.0f; loc[2]= (min[2]+max[2])/2.0f;
+					size[0]= (max[0]-min[0])/2.0f; size[1]= (max[1]-min[1])/2.0f; size[2]= (max[2]-min[2])/2.0f;
 	} 
 	else {
 					loc[0]= loc[1]= loc[2]= 0.0;
@@ -1223,19 +1223,19 @@ static void my_tex_space_mesh(Mesh *me)
 	
 		VECCOPY(me->loc, loc);
 		VECCOPY(me->size, size);
-		me->rot[0]= me->rot[1]= me->rot[2]= 0.0;
+		me->rot[0]= me->rot[1]= me->rot[2]= 0.0f;
 	
-		if(me->size[0]==0.0) me->size[0]= 1.0;
-		else if(me->size[0]>0.0 && me->size[0]<0.00001) me->size[0]= 0.00001;
-		else if(me->size[0]<0.0 && me->size[0]> -0.00001) me->size[0]= -0.00001;
+		if(me->size[0]==0.0) me->size[0]= 1.0f;
+		else if(me->size[0]>0.0 && me->size[0]< 0.00001f) me->size[0]= 0.00001f;
+		else if(me->size[0]<0.0 && me->size[0]> -0.00001f) me->size[0]= -0.00001f;
 	
-		if(me->size[1]==0.0) me->size[1]= 1.0;
-		else if(me->size[1]>0.0 && me->size[1]<0.00001) me->size[1]= 0.00001;
-		else if(me->size[1]<0.0 && me->size[1]> -0.00001) me->size[1]= -0.00001;
+		if(me->size[1]==0.0) me->size[1]= 1.0f;
+		else if(me->size[1]>0.0 && me->size[1]< 0.00001f) me->size[1]= 0.00001f;
+		else if(me->size[1]<0.0 && me->size[1]> -0.00001f) me->size[1]= -0.00001f;
 						
-		if(me->size[2]==0.0) me->size[2]= 1.0;
-		else if(me->size[2]>0.0 && me->size[2]<0.00001) me->size[2]= 0.00001;
-		else if(me->size[2]<0.0 && me->size[2]> -0.00001) me->size[2]= -0.00001;
+		if(me->size[2]==0.0) me->size[2]= 1.0f;
+		else if(me->size[2]>0.0 && me->size[2]< 0.00001f) me->size[2]= 0.00001f;
+		else if(me->size[2]<0.0 && me->size[2]> -0.00001f) me->size[2]= -0.00001f;
 	}
 	
 }
@@ -1252,13 +1252,13 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 				float min_r[3], max_r[3];
 				INIT_MINMAX(min_r, max_r);
 				dm->getMinMax(dm, min_r, max_r);
-				size[0]= 0.5*fabs(max_r[0] - min_r[0]);
-				size[1]= 0.5*fabs(max_r[1] - min_r[1]);
-				size[2]= 0.5*fabs(max_r[2] - min_r[2]);
+				size[0]= 0.5f*fabsf(max_r[0] - min_r[0]);
+				size[1]= 0.5f*fabsf(max_r[1] - min_r[1]);
+				size[2]= 0.5f*fabsf(max_r[2] - min_r[2]);
 					
-				center[0]= 0.5*(max_r[0] + min_r[0]);
-				center[1]= 0.5*(max_r[1] + min_r[1]);
-				center[2]= 0.5*(max_r[2] + min_r[2]);
+				center[0]= 0.5f*(max_r[0] + min_r[0]);
+				center[1]= 0.5f*(max_r[1] + min_r[1]);
+				center[2]= 0.5f*(max_r[2] + min_r[2]);
 				return;
 			} else
 			{
@@ -1291,13 +1291,13 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 	}
 	else 
 	{
-		size[0]= 0.5*fabs(bb->vec[0][0] - bb->vec[4][0]);
-		size[1]= 0.5*fabs(bb->vec[0][1] - bb->vec[2][1]);
-		size[2]= 0.5*fabs(bb->vec[0][2] - bb->vec[1][2]);
+		size[0]= 0.5f*fabs(bb->vec[0][0] - bb->vec[4][0]);
+		size[1]= 0.5f*fabs(bb->vec[0][1] - bb->vec[2][1]);
+		size[2]= 0.5f*fabs(bb->vec[0][2] - bb->vec[1][2]);
 					
-		center[0]= 0.5*(bb->vec[0][0] + bb->vec[4][0]);
-		center[1]= 0.5*(bb->vec[0][1] + bb->vec[2][1]);
-		center[2]= 0.5*(bb->vec[0][2] + bb->vec[1][2]);
+		center[0]= 0.5f*(bb->vec[0][0] + bb->vec[4][0]);
+		center[1]= 0.5f*(bb->vec[0][1] + bb->vec[2][1]);
+		center[2]= 0.5f*(bb->vec[0][2] + bb->vec[1][2]);
 	}
 }
 	
@@ -1638,7 +1638,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 	KX_LightObject *gamelight;
 	
 	lightobj.m_att1 = la->att1;
-	lightobj.m_att2 = (la->mode & LA_QUAD)?la->att2:0.0;
+	lightobj.m_att2 = (la->mode & LA_QUAD) ? la->att2 : 0.0f;
 	lightobj.m_red = la->r;
 	lightobj.m_green = la->g;
 	lightobj.m_blue = la->b;

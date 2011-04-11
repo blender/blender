@@ -115,7 +115,7 @@ void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);
 int BLI_testextensie_array(const char *str, const char **ext_array);
 int BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
-int BLI_replace_extension(char *path, int maxlen, const char *ext);
+int BLI_replace_extension(char *path, size_t maxlen, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len);
 int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, const char defname[], char delim, char *name, short name_len);
 void BLI_newname(char * name, int add);
@@ -158,8 +158,15 @@ int BLI_path_abs(char *path, const char *basepath);
 int BLI_path_frame(char *path, int frame, int digits);
 int BLI_path_frame_range(char *path, int sta, int end, int digits);
 int BLI_path_cwd(char *path);
-
 void BLI_path_rel(char *file, const char *relfile);
+
+#ifdef WIN32
+#  define BLI_path_cmp BLI_strcasecmp
+#  define BLI_path_ncmp BLI_strncasecmp
+#else
+#  define BLI_path_cmp strcmp
+#  define BLI_path_ncmp strncmp
+#endif
 
 	/**
 	 * Change every @a from in @a string into @a to. The

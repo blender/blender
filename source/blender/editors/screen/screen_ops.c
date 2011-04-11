@@ -49,6 +49,7 @@
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
@@ -107,6 +108,16 @@ int ED_operator_screenactive(bContext *C)
 	if(CTX_wm_screen(C)==NULL) return 0;
 	return 1;
 }
+
+/* XXX added this to prevent anim state to change during renders */
+int ED_operator_screenactive_norender(bContext *C)
+{
+	if(G.rendering) return 0;
+	if(CTX_wm_window(C)==NULL) return 0;
+	if(CTX_wm_screen(C)==NULL) return 0;
+	return 1;
+}
+
 
 static int screen_active_editable(bContext *C)
 {
@@ -1716,7 +1727,7 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 	
 	ot->exec= frame_offset_exec;
 	
-	ot->poll= ED_operator_screenactive;
+	ot->poll= ED_operator_screenactive_norender;
 	ot->flag= 0;
 	
 	/* rna */
@@ -1766,7 +1777,7 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 	
 	ot->exec= frame_jump_exec;
 	
-	ot->poll= ED_operator_screenactive;
+	ot->poll= ED_operator_screenactive_norender;
 	ot->flag= OPTYPE_UNDO;
 	
 	/* rna */
@@ -1846,7 +1857,7 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 	
 	ot->exec= keyframe_jump_exec;
 	
-	ot->poll= ED_operator_screenactive;
+	ot->poll= ED_operator_screenactive_norender;
 	ot->flag= OPTYPE_UNDO;
 	
 	/* rna */
@@ -2886,7 +2897,7 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= screen_animation_step;
 	
-	ot->poll= ED_operator_screenactive;
+	ot->poll= ED_operator_screenactive_norender;
 	
 }
 
@@ -2943,7 +2954,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= screen_animation_play_exec;
 	
-	ot->poll= ED_operator_screenactive;
+	ot->poll= ED_operator_screenactive_norender;
 	
 	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
 	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");

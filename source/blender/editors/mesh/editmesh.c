@@ -1416,7 +1416,14 @@ static int mesh_separate_selected(wmOperator *op, Main *bmain, Scene *scene, Bas
 	free_editMesh(emnew);
 	MEM_freeN(menew->edit_mesh);
 	menew->edit_mesh= NULL;
-	
+
+	/* copy settings */
+	menew->texflag= me->texflag;
+	menew->drawflag= me->drawflag;
+	menew->flag= me->flag;
+	menew->editflag= me->editflag;
+	menew->smoothresh= me->smoothresh;
+
 	/* hashedges are invalid now, make new! */
 	editMesh_set_hash(em);
 

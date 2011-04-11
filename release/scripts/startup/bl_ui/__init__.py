@@ -101,6 +101,7 @@ def register():
                    ('Object', "Object", ""),
                    ('Render', "Render", ""),
                    ('Rigging', "Rigging", ""),
+                   ('Text Editor', "Text Editor", ""),
                    ('System', "System", "")
                    ],
             name="Category",

@@ -456,7 +456,12 @@ void BLI_path_rel(char *file, const char *relfile)
 		char *p= temp;
 		char *q= file;
 
-		while (*p == *q) {
+#ifdef WIN32
+		while (tolower(*p) == tolower(*q))
+#else
+		while (*p == *q)
+#endif
+		{
 			++p; ++q;
 			/* dont search beyond the end of the string
 			 * in the rare case they match */
@@ -1348,9 +1353,9 @@ int BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 }
 
 
-int BLI_replace_extension(char *path, int maxlen, const char *ext)
+int BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 {
-	unsigned int a;
+	size_t a;
 
 	for(a=strlen(path); a>0; a--) {
 		if(path[a-1] == '.' || path[a-1] == '/' || path[a-1] == '\\') {
@@ -1481,7 +1486,7 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 	if (!strncmp(path, blend_dir, len)) {
 
 		/* if image is _in_ current .blend file directory */
-		if (!strcmp(dir, blend_dir)) {
+		if (BLI_path_cmp(dir, blend_dir) == 0) {
 			BLI_join_dirfile(dest_path, sizeof(dest_path), dest_dir, base);
 		}
 		/* "below" */
@@ -1508,7 +1513,7 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 	}
 
 	/* return 2 if src=dest */
-	if (!strcmp(path, dest_path)) {
+	if (BLI_path_cmp(path, dest_path) == 0) {
 		// if (G.f & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
 		return 2;
 	}

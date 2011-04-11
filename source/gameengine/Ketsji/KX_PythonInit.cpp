@@ -943,12 +943,12 @@ static PyObject* gPySetBackgroundColor(PyObject*, PyObject* value)
 	
 	if (gp_Canvas)
 	{
-		gp_Rasterizer->SetBackColor(vec[0], vec[1], vec[2], vec[3]);
+		gp_Rasterizer->SetBackColor((float)vec[0], (float)vec[1], (float)vec[2], (float)vec[3]);
 	}
 
 	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
 	if (wi->hasWorld())
-		wi->setBackColor(vec[0], vec[1], vec[2]);
+		wi->setBackColor((float)vec[0], (float)vec[1], (float)vec[2]);
 
 	Py_RETURN_NONE;
 }
@@ -966,7 +966,7 @@ static PyObject* gPySetMistColor(PyObject*, PyObject* value)
 		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistColor(color), Rasterizer not available");
 		return NULL;
 	}	
-	gp_Rasterizer->SetFogColor(vec[0], vec[1], vec[2]);
+	gp_Rasterizer->SetFogColor((float)vec[0], (float)vec[1], (float)vec[2]);
 	
 	Py_RETURN_NONE;
 }
@@ -1031,7 +1031,7 @@ static PyObject* gPySetAmbientColor(PyObject*, PyObject* value)
 		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setAmbientColor(color), Rasterizer not available");
 		return NULL;
 	}	
-	gp_Rasterizer->SetAmbientColor(vec[0], vec[1], vec[2]);
+	gp_Rasterizer->SetAmbientColor((float)vec[0], (float)vec[1], (float)vec[2]);
 	
 	Py_RETURN_NONE;
 }

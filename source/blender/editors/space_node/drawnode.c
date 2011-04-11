@@ -1227,14 +1227,28 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 			row= uiLayoutRow(col, 0);
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 			row= uiLayoutRow(col, 0);
-			uiItemR(row, &tex_ptr, "noisebasis_2", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+			uiItemR(row, &tex_ptr, "noise_basis", 0, "", ICON_NONE);
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, &tex_ptr, "noise_basis_2", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+			break;
+
+		case TEX_MAGIC:
+			uiItemR(col, &tex_ptr, "noise_depth", 0, NULL, ICON_NONE);
+			break;
+
+		case TEX_STUCCI:
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, &tex_ptr, "stucci_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+			row= uiLayoutRow(col, 0);
+			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+			uiItemR(col, &tex_ptr, "noise_basis", 0, "", ICON_NONE);
 			break;
 
 		case TEX_WOOD:
 			uiItemR(col, &tex_ptr, "noise_basis", 0, "", ICON_NONE);
 			uiItemR(col, &tex_ptr, "wood_type", 0, "", ICON_NONE);
 			row= uiLayoutRow(col, 0);
-			uiItemR(row, &tex_ptr, "noisebasis_2", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+			uiItemR(row, &tex_ptr, "noise_basis_2", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 			row= uiLayoutRow(col, 0);
 			uiLayoutSetActive(row, !(RNA_enum_get(&tex_ptr, "wood_type")==TEX_BAND || RNA_enum_get(&tex_ptr, "wood_type")==TEX_RING)); 
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
@@ -1252,6 +1266,18 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 		case TEX_DISTNOISE:
 			uiItemR(col, &tex_ptr, "noise_basis", 0, "", ICON_NONE);
 			uiItemR(col, &tex_ptr, "noise_distortion", 0, "", ICON_NONE);
+			break;
+
+		case TEX_MUSGRAVE:
+			uiItemR(col, &tex_ptr, "musgrave_type", 0, "", ICON_NONE);
+			uiItemR(col, &tex_ptr, "noise_basis", 0, "", ICON_NONE);
+			break;
+		case TEX_VORONOI:
+			uiItemR(col, &tex_ptr, "distance_metric", 0, "", ICON_NONE);
+			if(tex->vn_distm == TEX_MINKOVSKY) {
+				uiItemR(col, &tex_ptr, "minkovsky_exponent", 0, NULL, ICON_NONE);
+			}
+			uiItemR(col, &tex_ptr, "color_mode", 0, "", ICON_NONE);
 			break;
 	}
 }

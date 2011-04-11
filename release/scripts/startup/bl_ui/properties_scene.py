@@ -301,3 +301,6 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

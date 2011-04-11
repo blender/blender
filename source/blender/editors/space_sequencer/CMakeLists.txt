@@ -30,6 +30,7 @@ set(INC
 	../../windowmanager
 	../../../../intern/guardedalloc
 	../../../../intern/audaspace/intern
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

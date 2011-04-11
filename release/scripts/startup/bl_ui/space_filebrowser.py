@@ -72,3 +72,6 @@ class FILEBROWSER_HT_header(bpy.types.Header):
                 row.prop(params, "use_filter_font", text="")
                 row.prop(params, "use_filter_sound", text="")
                 row.prop(params, "use_filter_text", text="")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

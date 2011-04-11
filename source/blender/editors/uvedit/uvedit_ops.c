@@ -408,37 +408,53 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float
 	return sel;
 }
 
-static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float *cent, int mode)
+int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3])
 {
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
+	unsigned int sel= 0;
+
+	zero_v3(co);
+
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if(uvedit_face_visible(scene, ima, efa, tf)) {
+			if(uvedit_uv_selected(scene, efa, tf, 0))				{ add_v3_v3(co, tf->uv[0]); sel++; }
+			if(uvedit_uv_selected(scene, efa, tf, 1))				{ add_v3_v3(co, tf->uv[1]); sel++; }
+			if(uvedit_uv_selected(scene, efa, tf, 2))				{ add_v3_v3(co, tf->uv[2]); sel++; }
+			if(efa->v4 && (uvedit_uv_selected(scene, efa, tf, 3)))	{ add_v3_v3(co, tf->uv[3]); sel++; }
+		}
+	}
+
+	mul_v3_fl(co, 1.0f/(float)sel);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+	return (sel != 0);
+}
+
+static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float *cent, char mode)
+{
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	float min[2], max[2];
 	int change= 0;
 	
-	if(mode==0) {
-		if(ED_uvedit_minmax(scene, ima, obedit, min, max))
+	if(mode==V3D_CENTER) { /* bounding box */
+		if(ED_uvedit_minmax(scene, ima, obedit, min, max)) {
 			change = 1;
-	}
-	else if(mode==1) {
-		INIT_MINMAX2(min, max);
-		
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				if(uvedit_uv_selected(scene, efa, tf, 0))				{ DO_MINMAX2(tf->uv[0], min, max);	change= 1;}
-				if(uvedit_uv_selected(scene, efa, tf, 1))				{ DO_MINMAX2(tf->uv[1], min, max);	change= 1;}
-				if(uvedit_uv_selected(scene, efa, tf, 2))				{ DO_MINMAX2(tf->uv[2], min, max);	change= 1;}
-				if(efa->v4 && (uvedit_uv_selected(scene, efa, tf, 3)))	{ DO_MINMAX2(tf->uv[3], min, max);	change= 1;}
-			}
+			cent[0]= (min[0]+max[0])/2.0f;
+			cent[1]= (min[1]+max[1])/2.0f;
 		}
 	}
-	
+	else {
+		if(ED_uvedit_median(scene, ima, obedit, cent)) {
+			change = 1;
+		}
+
+	}
+
 	if(change) {
-		cent[0]= (min[0]+max[0])/2.0f;
-		cent[1]= (min[1]+max[1])/2.0f;
-		
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return 1;
 	}
@@ -1964,12 +1980,12 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void UV_OT_unlink_selection(wmOperatorType *ot)
+static void UV_OT_unlink_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Unlink Selection";
 	ot->description= "Unlink selected UV vertices from active UV map";
-	ot->idname= "UV_OT_unlink_selection";
+	ot->idname= "UV_OT_unlink_selected";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -2375,7 +2391,7 @@ static void snap_cursor_to_pixels(SpaceImage *sima)
 
 static int snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
-	return uvedit_center(scene, ima, obedit, sima->cursor, 0);
+	return uvedit_center(scene, ima, obedit, sima->cursor, sima->around);
 }
 
 static int snap_cursor_exec(bContext *C, wmOperator *op)
@@ -2408,7 +2424,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
 		{0, "PIXELS", 0, "Pixels", ""},
-		{1, "SELECTION", 0, "Selection", ""},
+		{1, "SELECTED", 0, "Selected", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -2644,7 +2660,7 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void UV_OT_snap_selection(wmOperatorType *ot)
+static void UV_OT_snap_selected(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
 		{0, "PIXELS", 0, "Pixels", ""},
@@ -2655,7 +2671,7 @@ static void UV_OT_snap_selection(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Snap Selection";
 	ot->description= "Snap selected UV vertices to target type";
-	ot->idname= "UV_OT_snap_selection";
+	ot->idname= "UV_OT_snap_selected";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -3167,13 +3183,13 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
 	WM_operatortype_append(UV_OT_select_linked_pick);
-	WM_operatortype_append(UV_OT_unlink_selection);
+	WM_operatortype_append(UV_OT_unlink_selected);
 	WM_operatortype_append(UV_OT_select_pinned);
 	WM_operatortype_append(UV_OT_select_border);
 	WM_operatortype_append(UV_OT_circle_select);
 
 	WM_operatortype_append(UV_OT_snap_cursor);
-	WM_operatortype_append(UV_OT_snap_selection);
+	WM_operatortype_append(UV_OT_snap_selected);
 
 	WM_operatortype_append(UV_OT_align);
 	WM_operatortype_append(UV_OT_stitch);
@@ -3222,7 +3238,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "extend", TRUE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
 
-	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "UV_OT_unlink_selected", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);

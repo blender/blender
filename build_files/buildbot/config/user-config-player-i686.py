@@ -42,10 +42,10 @@ BF_PNG_LIBPATH = '/home/sources/staticlibs/lib32'
 
 WITH_BF_STATICLIBSAMPLERATE = True
 
-WITH_BF_ZLIB = False
-BF_ZLIB_LIB_STATIC= '${BF_ZLIB}/lib/libz.a'
+WITH_BF_ZLIB = True
+WITH_BF_STATICZLIB = True
+BF_ZLIB_LIB_STATIC = '${BF_ZLIB}/lib/libz.a'
 
-WITH_BF_STATICZLIB = False
 WITH_BF_SDL = True
 WITH_BF_OGG = False
 

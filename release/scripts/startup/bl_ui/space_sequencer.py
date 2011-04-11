@@ -799,3 +799,6 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, bpy.types.Panel):
         if st.display_mode == 'WAVEFORM':
             col.prop(st, "show_separate_color")
         col.prop(st, "proxy_render_size")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

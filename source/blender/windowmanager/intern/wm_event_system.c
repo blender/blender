@@ -445,6 +445,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		if(G.f & G_DEBUG)
 			wm_operator_print(C, op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 		
+		BKE_reports_print(op->reports, RPT_DEBUG); /* print out reports to console. */
 		if (op->type->flag & OPTYPE_REGISTER) {
 			if(G.background == 0) { /* ends up printing these in the terminal, gets annoying */
 				/* Report the python string representation of the operator */
@@ -705,7 +706,6 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		if (!(retval & OPERATOR_HANDLED) && retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 			/* only show the report if the report list was not given in the function */
 			wm_operator_reports(C, op, retval, (reports==NULL));
-			
 		
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
@@ -724,6 +724,14 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
 				} else {
 					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				}
+
+				/* exception, cont. grab in header is annoying */
+				if(wrap) {
+					ARegion *ar= CTX_wm_region(C);
+					if(ar && ar->regiontype == RGN_TYPE_HEADER) {
+						wrap= FALSE;
+					}
 				}
 
 				if(wrap) {
@@ -2135,6 +2143,13 @@ int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 				case EVT_TWEAK_M:
 				case EVT_TWEAK_R:
 					return 1;
+			}
+		}
+		else {
+			/* if the initial event wasn't a tweak event then
+			 * ignore USER_RELEASECONFIRM setting: see [#26756] */
+			if(ELEM3(tweak_event, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) == 0) {
+				return 1;
 			}
 		}
 	}

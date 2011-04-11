@@ -31,12 +31,12 @@ set(INC
 	../../../../source/gameengine/Rasterizer
 	../../../../source/gameengine/Ketsji
 	../../../../source/gameengine/SceneGraph
-	../../../../extern/glew/include
 	../../../../source/blender/gpu
 	../../../../source/blender/makesdna
 	../../../../source/blender/blenkernel
 	../../../../source/blender/blenlib
 	../../../../source/blender/blenloader
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

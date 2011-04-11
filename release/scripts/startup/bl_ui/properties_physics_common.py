@@ -280,3 +280,6 @@ def basic_force_field_falloff_ui(self, context, field):
     sub = row.row()
     sub.active = field.use_max_distance
     sub.prop(field, "distance_max", text="Maximum")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

@@ -173,9 +173,11 @@ void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, const c
 
 	for (; fsme; prev= fsme, fsme= fsme->next) {
 		if (fsme->path) {
-			if (BLI_streq(path, fsme->path)) {
+			const int cmp_ret= BLI_path_cmp(path, fsme->path);
+			if (cmp_ret == 0) {
 				return;
-			} else if (sorted && strcmp(path, fsme->path)<0) {
+			}
+			else if (sorted && cmp_ret < 0) {
 				break;
 			}
 		} else {
@@ -232,7 +234,7 @@ void fsmenu_remove_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx
 void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 {
 	FSMenuEntry *fsme= NULL;
-	int count=FSMENU_RECENT_MAX;
+	int nskip= 0;
 
 	FILE *fp = fopen(filename, "w");
 	if (!fp) return;
@@ -244,7 +246,11 @@ void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 		}
 	}
 	fprintf(fp, "[Recent]\n");
-	for (fsme= fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT); fsme && count; fsme= fsme->next, --count) {
+	nskip = fsmenu_get_nentries(fsmenu, FS_CATEGORY_RECENT) - FSMENU_RECENT_MAX;
+	// skip first entries if list too long
+	for (fsme= fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT); fsme && (nskip>0); fsme= fsme->next, --nskip)
+		;
+	for (; fsme; fsme= fsme->next) {
 		if (fsme->path && fsme->save) {
 			fprintf(fp, "%s\n", fsme->path);
 		}

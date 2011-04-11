@@ -368,3 +368,6 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
             return "active_pose_bone"
         else:
             return "active_bone"
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

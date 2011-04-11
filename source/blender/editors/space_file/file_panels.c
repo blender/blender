@@ -101,7 +101,7 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 		
 		/* set this list item as active if we have a match */
 		if(sfile->params) {
-			if(strcmp(sfile->params->dir, entry) == 0) {
+			if(BLI_path_cmp(sfile->params->dir, entry) == 0) {
 				*nr= i;
 			}
 		}

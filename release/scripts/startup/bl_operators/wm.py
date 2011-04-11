@@ -335,7 +335,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
         if type(rna_prop) != bpy.types.EnumProperty:
             raise Exception("expected an enum property")
 
-        enums = rna_struct.properties[rna_prop_str].items.keys()
+        enums = rna_struct.properties[rna_prop_str].enum_items.keys()
         orig_index = enums.index(orig_value)
 
         # Have the info we need, advance to the next item

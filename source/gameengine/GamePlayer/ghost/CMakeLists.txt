@@ -53,7 +53,7 @@ set(INC
 	../../../../source/gameengine/GamePlayer/common
 	../../../../source/blender/blenloader
 	../../../../source/blender/gpu
-	../../../../extern/glew/include
+	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 )
 

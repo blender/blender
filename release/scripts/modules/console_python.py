@@ -34,7 +34,7 @@ def add_scrollback(text, text_type):
 
 
 def replace_help(namespace):
-    def _help(value):
+    def _help(*args):
         # because of how the console works. we need our own help() pager func.
         # replace the bold function because it adds crazy chars
         import pydoc
@@ -42,7 +42,7 @@ def replace_help(namespace):
         pydoc.Helper.getline = lambda self, prompt: None
         pydoc.TextDoc.use_bold = lambda self, text: text
 
-        help(value)
+        pydoc.help(*args)
 
     namespace["help"] = _help
 

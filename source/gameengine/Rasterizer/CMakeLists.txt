@@ -32,9 +32,9 @@ set(INC
 	../../../source/gameengine/Ketsji
 	../../../intern/string
 	../../../intern/moto/include
-	../../../extern/glew/include
 	../../../intern/guardedalloc
 	../Expressions
+	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 )
 

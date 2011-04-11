@@ -196,3 +196,6 @@ class TIME_MT_autokey(bpy.types.Menu):
 
         layout.prop_enum(tools, "auto_keying_mode", 'ADD_REPLACE_KEYS')
         layout.prop_enum(tools, "auto_keying_mode", 'REPLACE_KEYS')
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

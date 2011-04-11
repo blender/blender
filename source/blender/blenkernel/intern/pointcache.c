@@ -1028,7 +1028,6 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, 
 	size_t in_len;
 #ifdef WITH_LZO
 	size_t out_len = len;
-	size_t sizeOfIt = 5;
 #endif
 	unsigned char *in;
 	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
@@ -1051,6 +1050,7 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, 
 #ifdef WITH_LZMA
 			if(compressed == 2)
 			{
+				size_t sizeOfIt;
 				size_t leni = in_len, leno = out_len;
 				ptcache_file_read(pf, &size, 1, sizeof(unsigned int));
 				sizeOfIt = (size_t)size;

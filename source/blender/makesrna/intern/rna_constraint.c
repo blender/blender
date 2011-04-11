@@ -82,24 +82,12 @@ static EnumPropertyItem space_pchan_items[] = {
 	{1, "LOCAL", 0, "Local Space", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+#ifdef RNA_RUNTIME
+
 static EnumPropertyItem space_object_items[] = {
 	{0, "WORLD", 0, "World Space", ""},
 	{1, "LOCAL", 0, "Local Space", ""},
 	{0, NULL, 0, NULL, NULL}};
-
-static EnumPropertyItem constraint_ik_type_items[] ={
-	{CONSTRAINT_IK_COPYPOSE, "COPY_POSE", 0, "Copy Pose", ""},
-	{CONSTRAINT_IK_DISTANCE, "DISTANCE", 0, "Distance", ""},
-	{0, NULL, 0, NULL, NULL},
-};
-
-static EnumPropertyItem constraint_ik_axisref_items[] ={
-	{0, "BONE", 0, "Bone", ""},
-	{CONSTRAINT_IK_TARGETAXIS, "TARGET", 0, "Target", ""},
-	{0, NULL, 0, NULL, NULL},
-};
-
-#ifdef RNA_RUNTIME
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -465,6 +453,18 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	static EnumPropertyItem constraint_ik_axisref_items[] ={
+		{0, "BONE", 0, "Bone", ""},
+		{CONSTRAINT_IK_TARGETAXIS, "TARGET", 0, "Target", ""},
+		{0, NULL, 0, NULL, NULL},
+	};
+
+	static EnumPropertyItem constraint_ik_type_items[] ={
+		{CONSTRAINT_IK_COPYPOSE, "COPY_POSE", 0, "Copy Pose", ""},
+		{CONSTRAINT_IK_DISTANCE, "DISTANCE", 0, "Distance", ""},
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	srna= RNA_def_struct(brna, "KinematicConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Kinematic Constraint", "Inverse Kinematics");

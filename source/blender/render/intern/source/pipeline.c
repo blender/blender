@@ -2378,6 +2378,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 					if(re1->r.scemode & R_FULL_SAMPLE) {
 						read_render_result(re1, sample);
 						composite_freestyle_renders(re1, sample);
+						ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
 					}
 				}
 			}

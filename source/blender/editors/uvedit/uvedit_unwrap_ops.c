@@ -431,12 +431,19 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 /* ******************** Pack Islands operator **************** */
 
-static int pack_islands_exec(bContext *C, wmOperator *UNUSED(op))
+static int pack_islands_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ParamHandle *handle;
+
+	if(RNA_property_is_set(op->ptr, "margin")) {
+		scene->toolsettings->uvcalc_margin= RNA_float_get(op->ptr, "margin");
+	}
+	else {
+		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
+	}
 
 	handle = construct_param_handle(scene, em, 1, 0, 1, 1);
 	param_pack(handle, scene->toolsettings->uvcalc_margin);
@@ -460,6 +467,9 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= pack_islands_exec;
 	ot->poll= ED_operator_uvedit;
+
+	/* properties */
+	RNA_def_float_factor(ot->srna, "margin", 0.0f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
 /* ******************** Average Islands Scale operator **************** */

@@ -154,7 +154,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "visible_bones") || CTX_data_equals(member, "editable_bones")) {
-		bArmature *arm= (obedit) ? obedit->data : NULL;
+		bArmature *arm= (obedit && obedit->type == OB_ARMATURE) ? obedit->data : NULL;
 		EditBone *ebone, *flipbone=NULL;
 		int editable_bones= CTX_data_equals(member, "editable_bones");
 		
@@ -196,7 +196,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "selected_bones") || CTX_data_equals(member, "selected_editable_bones")) {
-		bArmature *arm= (obedit) ? obedit->data : NULL;
+		bArmature *arm= (obedit && obedit->type == OB_ARMATURE) ? obedit->data : NULL;
 		EditBone *ebone, *flipbone=NULL;
 		int selected_editable_bones= CTX_data_equals(member, "selected_editable_bones");
 		

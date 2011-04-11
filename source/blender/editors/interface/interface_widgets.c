@@ -1554,6 +1554,24 @@ static void widget_state_label(uiWidgetType *wt, int state)
 	
 }
 
+/* labels use theme colors for text */
+static void widget_state_option_menu(uiWidgetType *wt, int state)
+{
+	
+	/* call this for option button */
+	widget_state(wt, state);
+	
+	/* if not selected we get theme from menu back */
+	if(state & UI_SELECT)
+		UI_GetThemeColor4ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
+	else {
+		bTheme *btheme= U.themes.first; /* XXX */
+
+		VECCOPY(wt->wcol.text, btheme->tui.wcol_menu_back.text);
+	}
+}
+
+
 static void widget_state_nothing(uiWidgetType *wt, int UNUSED(state))
 {
 	wt->wcol= *(wt->wcol_theme);
@@ -2938,6 +2956,11 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				}
 				else
 					wt= widget_type(UI_WTYPE_TOGGLE);
+				
+				/* option buttons have strings outside, on menus use different colors */
+				if(but->block->flag & UI_BLOCK_LOOP)
+					wt->state= widget_state_option_menu;
+				
 				break;
 				
 			case MENU:

@@ -194,7 +194,7 @@ int DNA_elem_array_size(const char *astr, int len)
 void DNA_sdna_free(SDNA *sdna)
 {
 	MEM_freeN(sdna->data);
-	MEM_freeN(sdna->names);
+	MEM_freeN((void *)sdna->names);
 	MEM_freeN(sdna->types);
 	MEM_freeN(sdna->structs);
 	
