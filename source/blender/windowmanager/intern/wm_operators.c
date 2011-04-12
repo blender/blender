@@ -1114,10 +1114,12 @@ static int wm_resource_check_prev(void)
 
 	// if(res) printf("USER: %s\n", res);
 
+#if 0 /* ignore the local folder */
 	if(res == NULL) {
 		/* with a local dir, copying old files isnt useful since local dir get priority for config */
 		res= BLI_get_folder_version(BLENDER_RESOURCE_PATH_LOCAL, BLENDER_VERSION, TRUE);
 	}
+#endif
 
 	// if(res) printf("LOCAL: %s\n", res);
 	if(res) {
