@@ -177,6 +177,11 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
         layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
 
+        layout.separator()
+
+        layout.operator("object.randomize_transform")
+        layout.operator("object.align")
+
 
 class VIEW3D_MT_mirror(bpy.types.Menu):
     bl_label = "Mirror"
