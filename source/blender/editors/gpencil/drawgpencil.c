@@ -601,8 +601,8 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 					/* check if frame is drawable */
 					if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						fac= (float)(gpf->framenum - gf->framenum) / (float)gpl->gstep;
-						tcolor[3] = color[3] - fac;
+						fac= 1.0f - ((float)(gpf->framenum - gf->framenum) / (float)(gpl->gstep + 1));
+						tcolor[3] = color[3] * fac * 0.66f;
 						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
@@ -614,8 +614,8 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 					/* check if frame is drawable */
 					if ((gf->framenum - gpf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						fac= (float)(gf->framenum - gpf->framenum) / (float)gpl->gstep;
-						tcolor[3] = color[3] - fac;
+						fac= 1.0f - ((float)(gf->framenum - gpf->framenum) / (float)(gpl->gstep + 1));
+						tcolor[3] = color[3] * fac * 0.66f;
 						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
