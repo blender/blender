@@ -609,7 +609,12 @@ GHOST_TSuccess GHOST_WindowWin32::setOrder(GHOST_TWindowOrder order)
 
 GHOST_TSuccess GHOST_WindowWin32::swapBuffers()
 {
-	return ::SwapBuffers(m_hDC) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+	HDC hDC = m_hDC;
+
+	if (is_crappy_intel_card())
+		hDC = ::wglGetCurrentDC();
+
+	return ::SwapBuffers(hDC) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 
