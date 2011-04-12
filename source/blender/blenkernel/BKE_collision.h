@@ -63,11 +63,7 @@ struct LinkNode;
 /* COLLISION FLAGS */
 typedef enum
 {
-	COLLISION_IN_FUTURE =		(1 << 1),
-#ifdef USE_ELTOPO
-	COLLISION_USE_COLLFACE =	(1 << 2),
-	COLLISION_IS_EDGES =		(1 << 3),
-#endif
+	COLLISION_IN_FUTURE = ( 1 << 1 ),
 } COLLISION_FLAGS;
 
 
@@ -85,13 +81,7 @@ typedef struct CollPair
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
 	int flag;
 	float time; // collision time, from 0 up to 1
-#ifdef USE_ELTOPO /*either ap* or bp* can be set, but not both*/
-	float bary[3];
-	int ap1, ap2, ap3, collp, bp1, bp2, bp3;
-	int collface;
-#else
 	int ap1, ap2, ap3, bp1, bp2, bp3;
-#endif
 	int pointsb[4];
 }
 CollPair;
@@ -119,7 +109,6 @@ typedef struct FaceCollPair
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
 }
 FaceCollPair;
-
 ////////////////////////////////////////
 
 

@@ -4,7 +4,7 @@
 #  PYTHON_INCLUDE_DIRS
 #  PYTHON_LIBRARY
 #  PYTHON_LIBPATH
-#  PYTHON_LINKFLAGSPYTHON
+#  PYTHON_LINKFLAGS
 
 #=============================================================================
 

@@ -99,7 +99,7 @@ def validate_arguments(args, bc):
             'WITH_BF_INTERNATIONAL',
             'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'WITH_BF_GETTEXT_STATIC', 'BF_GETTEXT_LIB_STATIC', 'BF_GETTEXT_LIBPATH',
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
-            'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'WITH_BF_ELTOPO', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
+            'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
             'BF_WINTAB', 'BF_WINTAB_INC',
             'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH', 'BF_FREETYPE_LIB_STATIC', 'WITH_BF_FREETYPE_STATIC',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
@@ -365,8 +365,6 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , False)),
 
         (BoolVariable('WITH_BF_BULLET', 'Use Bullet if true', True)),
-        (BoolVariable('WITH_BF_ELTOPO', 'Use Eltopo collision library if true', False)),
-        
         ('BF_BULLET', 'Bullet base dir', ''),
         ('BF_BULLET_INC', 'Bullet include path', ''),
         ('BF_BULLET_LIB', 'Bullet library', ''),

@@ -140,7 +140,7 @@ set(SRC
 	intern/writeavi.c
 	intern/writeffmpeg.c
 	intern/writeframeserver.c
-	
+
 	BKE_DerivedMesh.h
 	BKE_action.h
 	BKE_anim.h
@@ -233,11 +233,6 @@ add_definitions(-DGLEW_STATIC)
 if(WITH_BULLET)
 	list(APPEND INC ../../../extern/bullet2/src)
 	add_definitions(-DUSE_BULLET)
-endif()
-
-if(WITH_ELTOPO)
-	list(APPEND INC ../../../extern/eltopo)
-	add_definitions(-DUSE_ELTOPO)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
