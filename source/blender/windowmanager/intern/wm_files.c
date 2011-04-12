@@ -33,7 +33,7 @@
 	/* placed up here because of crappy
 	 * winsock stuff.
 	 */
-#include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <errno.h>
 
@@ -95,6 +95,8 @@
 #include "ED_sculpt.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
+
+#include "RE_pipeline.h" /* only to report missing engine */
 
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.h"
@@ -337,6 +339,17 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 		BPY_modules_load_user(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
+
+		/* TODO, make this show in header info window */
+		{
+			Scene *sce;
+			for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+				if(BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
+					BKE_reportf(reports, RPT_WARNING, "Engine not available: '%s' for scene: %s, an addon may need to be installed or enabled", sce->r.engine, sce->id.name+2);
+				}
+			}
+		}
+
 
 		// XXX		undo_editmode_clear();
 		BKE_reset_undo();

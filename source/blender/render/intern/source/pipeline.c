@@ -35,6 +35,7 @@
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
@@ -3349,12 +3350,8 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
 
 static int external_render_3d(Render *re, int do_all)
 {
-	RenderEngineType *type;
+	RenderEngineType *type= BLI_findstring(&R_engines, re->r.engine, offsetof(RenderEngineType, idname));
 	RenderEngine engine;
-
-	for(type=R_engines.first; type; type=type->next)
-		if(strcmp(type->idname, re->r.engine) == 0)
-			break;
 
 	if(!(type && type->render))
 		return 0;

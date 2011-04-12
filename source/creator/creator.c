@@ -43,6 +43,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 
 /* for setuid / getuid */
@@ -583,18 +584,12 @@ static int set_engine(int argc, const char **argv, void *data)
 			{
 				printf("\nError: no blend loaded. order the arguments so '-E  / --engine ' is after a blend is loaded.\n");
 			}
-			else
-			{
+			else {
 				Scene *scene= CTX_data_scene(C);
 				RenderData *rd = &scene->r;
-				RenderEngineType *type = NULL;
 
-				for( type = R_engines.first; type; type = type->next )
-				{
-					if (!strcmp(argv[1],type->idname))
-					{
-						BLI_strncpy(rd->engine, type->idname, sizeof(rd->engine));
-					}
+				if(BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
+					BLI_strncpy(rd->engine, argv[1], sizeof(rd->engine));
 				}
 			}
 		}
