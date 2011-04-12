@@ -69,7 +69,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	list(APPEND BLENDER_LINK_LIBS extern_binreloc)
 endif()
 
-if(UNIX)
+# if(UNIX)
 	# Sort libraries
 	set(BLENDER_SORTED_LIBS
 		ge_player_ghost 
@@ -128,13 +128,13 @@ if(UNIX)
 		bf_intern_mikktspace
 	)
 
-    if(WITH_ELTOPO)
+	if(WITH_ELTOPO)
 		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
-    endif()
-    
-    if(WITH_BUILTIN_GLEW)
+	endif()
+
+	if(WITH_BUILTIN_GLEW)
 		list(APPEND BLENDER_SORTED_LIBS extern_glew)
-    endif()
+	endif()
 
 	if(WITH_LZMA)
 		list(APPEND BLENDER_SORTED_LIBS extern_lzma)
@@ -176,9 +176,9 @@ if(UNIX)
 		message(STATUS "Player Skipping: (${REM_MSG})")
 	endif()
 	target_link_libraries(blenderplayer ${BLENDER_SORTED_LIBS})
-else()
-	target_link_libraries(blenderplayer ${BLENDER_LINK_LIBS})
-endif()
+# else()
+# 	target_link_libraries(blenderplayer ${BLENDER_LINK_LIBS})
+# endif()
 
 if(WITH_PLAYER)
 	add_subdirectory(bad_level_call_stubs)
