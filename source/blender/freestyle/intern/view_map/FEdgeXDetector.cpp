@@ -114,7 +114,7 @@ void FEdgeXDetector::preProcessShape(WXShape* iWShape) {
     preProcessFace((WXFace*)(*f));
   }
 
-  if(_faceSmoothness || _computeRidgesAndValleys || _computeSuggestiveContours ) {
+  if(_computeRidgesAndValleys || _computeSuggestiveContours ) {
     vector<WVertex*>& wvertices = iWShape->getVertexList();
     for(vector<WVertex*>::iterator wv=wvertices.begin(), wvend=wvertices.end(); 
     wv!=wvend;
@@ -711,6 +711,8 @@ void FEdgeXDetector::ProcessMaterialBoundaryEdge(WXEdge *iEdge)
 // Build Smooth edges
 /////////////////////
 void FEdgeXDetector::buildSmoothEdges(WXShape* iShape){
+  bool hasSmoothEdges = false;
+
   // Make a last pass to build smooth edges from the previous stored values:
   //--------------------------------------------------------------------------
   vector<WFace*>& wfaces = iShape->GetFaceList();
@@ -722,7 +724,21 @@ void FEdgeXDetector::buildSmoothEdges(WXShape* iShape){
     for(vector<WXFaceLayer*>::iterator wxfl = faceLayers.begin(), wxflend=faceLayers.end();
     wxfl!=wxflend;
     ++wxfl){
-      (*wxfl)->BuildSmoothEdge();
+      if ((*wxfl)->BuildSmoothEdge())
+	    hasSmoothEdges = true;
     }
+  }
+
+  if (hasSmoothEdges && !_computeRidgesAndValleys && !_computeSuggestiveContours) {
+    vector<WVertex*>& wvertices = iShape->getVertexList();
+    for(vector<WVertex*>::iterator wv=wvertices.begin(), wvend=wvertices.end(); 
+    wv!=wvend;
+    ++wv){
+      // Compute curvatures
+      WXVertex * wxv = dynamic_cast<WXVertex*>(*wv);
+      computeCurvatures(wxv);
+    }
+    _meanK1 /= (real)(_nPoints);
+    _meanKr /= (real)(_nPoints);
   }
 }
