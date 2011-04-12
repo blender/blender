@@ -552,6 +552,7 @@ int BPY_string_exec(bContext *C, const char *expr)
 	PyObject *main_mod= NULL;
 	PyObject *py_dict, *retval;
 	int error_ret= 0;
+	Main *bmain_back;
 
 	if (!expr) return -1;
 
@@ -565,7 +566,12 @@ int BPY_string_exec(bContext *C, const char *expr)
 
 	py_dict= PyC_DefaultNameSpace("<blender string>");
 
+	bmain_back= bpy_import_main_get();
+	bpy_import_main_set(CTX_data_main(C));
+
 	retval= PyRun_String(expr, Py_eval_input, py_dict, py_dict);
+
+	bpy_import_main_set(bmain_back);
 
 	if (retval == NULL) {
 		error_ret= -1;
