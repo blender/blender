@@ -347,6 +347,17 @@ void uvedit_uv_deselect(Scene *scene, EditFace *efa, MTFace *tf, int i)
 		tf->flag &= ~TF_SEL_MASK(i);
 }
 
+/*********************** live unwrap utilities ***********************/
+
+static void uvedit_live_unwrap_update(SpaceImage *sima, Scene *scene, Object *obedit)
+{
+	if(sima && (sima->flag & SI_LIVE_UNWRAP)) {
+		ED_uvedit_live_unwrap_begin(scene, obedit);
+		ED_uvedit_live_unwrap_re_solve();
+		ED_uvedit_live_unwrap_end(0);
+	}
+}
+
 /*********************** geometric utilities ***********************/
 
 void uv_center(float uv[][2], float cent[2], int quad)
@@ -976,6 +987,7 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 
 static void weld_align_uv(bContext *C, int tool)
 {
+	SpaceImage *sima;
 	Scene *scene;
 	Object *obedit;
 	Image *ima;
@@ -988,6 +1000,7 @@ static void weld_align_uv(bContext *C, int tool)
 	obedit= CTX_data_edit_object(C);
 	em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ima= CTX_data_edit_image(C);
+	sima= CTX_wm_space_image(C);
 
 	INIT_MINMAX2(min, max);
 
@@ -1044,6 +1057,7 @@ static void weld_align_uv(bContext *C, int tool)
 		}
 	}
 
+	uvedit_live_unwrap_update(sima, scene, obedit);
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
@@ -1111,6 +1125,7 @@ typedef struct UVVertAverage {
 
 static int stitch_exec(bContext *C, wmOperator *op)
 {
+	SpaceImage *sima;
 	Scene *scene;
 	Object *obedit;
 	EditMesh *em;
@@ -1123,6 +1138,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	obedit= CTX_data_edit_object(C);
 	em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ima= CTX_data_edit_image(C);
+	sima= CTX_wm_space_image(C);
 	
 	if(RNA_boolean_get(op->ptr, "use_limit")) {
 		UvVertMap *vmap;
@@ -1265,6 +1281,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		MEM_freeN(uv_average);
 	}
 
+	uvedit_live_unwrap_update(sima, scene, obedit);
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
@@ -2653,7 +2670,8 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 
 	if(!change)
 		return OPERATOR_CANCELLED;
-	
+
+	uvedit_live_unwrap_update(sima, scene, obedit);
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
