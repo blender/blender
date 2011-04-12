@@ -1827,6 +1827,20 @@ static int edge_not_in_tagged_face(EditMesh *em, EditEdge *eed)
 	return 1;
 }
 
+static void ensure_ed_vert_sel(EditMesh *em)
+{
+	EditEdge *eed;
+
+	/* EM_selectmode_flush() doesnt take into account that deselected edges
+	 * may be still connected to selected edges [#26885] */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f & SELECT) {
+			eed->v1->f |= SELECT;
+			eed->v2->f |= SELECT;
+		}
+	}
+}
+
 /* selects or deselects edges that:
 - if edges has 2 faces:
 	- has vertices with valence of 4
@@ -1899,6 +1913,10 @@ static void edgeloop_select(EditMesh *em, EditEdge *starteed, int select)
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->f2) EM_select_edge(eed, select);
 	}
+
+	if(select == FALSE) {
+		ensure_ed_vert_sel(em);
+	}
 }
 
 /* 
@@ -1967,6 +1985,10 @@ static void edgering_select(EditMesh *em, EditEdge *startedge, int select)
 	/* (de)select the edges */
 	for(eed= em->edges.first; eed; eed= eed->next) {
 			if(eed->f2) EM_select_edge(eed, select);
+	}
+
+	if(select == FALSE) {
+		ensure_ed_vert_sel(em);
 	}
 }
 
