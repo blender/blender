@@ -910,7 +910,7 @@ class WM_OT_sysinfo(bpy.types.Operator):
 
 
 class WM_OT_copy_prev_settings(bpy.types.Operator):
-    '''Generate System Info'''
+    '''Copy settings from previous version'''
     bl_idname = "wm.copy_prev_settings"
     bl_label = "Copy Previous Settings"
 
