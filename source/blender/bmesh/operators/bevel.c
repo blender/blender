@@ -646,7 +646,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				
 				if (tag->newv != l->v || HasMDisps) {
 					BM_Copy_Attributes(bm, bm, l->f, l2->f);
-					BM_loop_interp_from_face(bm, l2, l->f, 1);
+					BM_loop_interp_from_face(bm, l2, l->f, 1, 1);
 				} else {
 					BM_Copy_Attributes(bm, bm, l->f, l2->f);
 					BM_Copy_Attributes(bm, bm, l, l2);

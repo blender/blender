@@ -310,13 +310,13 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 		
 		l = bm_firstfaceloop(f);
 		do {
-			BM_loop_interp_from_face(bm, l, of, 0);
+			BM_loop_interp_from_face(bm, l, of, 0, 1);
 			l = l->next;
 		} while (l != bm_firstfaceloop(f));
 
 		l = bm_firstfaceloop(nf);
 		do {
-			BM_loop_interp_from_face(bm, l, of, 0);
+			BM_loop_interp_from_face(bm, l, of, 0, 1);
 			l = l->next;
 		} while (l != bm_firstfaceloop(nf));
 		

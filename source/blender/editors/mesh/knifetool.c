@@ -513,7 +513,6 @@ static int verge_linehit(const void *vlh1, const void *vlh2)
 static void knife_add_cut(knifetool_opdata *kcd)
 {
 	BMEditMesh *em = kcd->em;
-	BMesh *bm = em->bm;
 	knifetool_opdata oldkcd = *kcd;
 	
 	if (kcd->linehits) {
@@ -738,7 +737,7 @@ void _print_smhash(SmallHash *hash)
 		} else if (hash->table[i].val == CELL_FREE) {
 			printf("--f-");
 		} else	{
-			printf("%2x", (intptr_t)hash->table[i].key);
+			printf("%2x", (unsigned int)hash->table[i].key);
 		}
 		
 		if (i != hash->size-1)
@@ -1284,13 +1283,13 @@ static void remerge_faces(knifetool_opdata *kcd)
 		if (!BMO_TestFlag(bm, f, FACE_NEW))
 			continue;
 		
-		if (BLI_smallhash_haskey(visit, f))
+		if (BLI_smallhash_haskey(visit, (intptr_t)f))
 			continue;
 		
 		BLI_array_empty(stack);
 		BLI_array_empty(faces);
 		BLI_array_append(stack, f);
-		BLI_smallhash_insert(visit, f, NULL);
+		BLI_smallhash_insert(visit, (intptr_t)f, NULL);
 		
 		do {
 			f2 = BLI_array_pop(stack);
@@ -1307,10 +1306,10 @@ static void remerge_faces(knifetool_opdata *kcd)
 				BM_ITER(f3, &fiter, bm, BM_FACES_OF_EDGE, e) {
 					if (!BMO_TestFlag(bm, f3, FACE_NEW))
 						continue;
-					if (BLI_smallhash_haskey(visit, f3))
+					if (BLI_smallhash_haskey(visit, (intptr_t)f3))
 						continue;
 					
-					BLI_smallhash_insert(visit, f3, NULL);
+					BLI_smallhash_insert(visit, (intptr_t)f3, NULL);
 					BLI_array_append(stack, f3);
 				}
 			}	
@@ -1451,36 +1450,36 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 			BMO_SetFlag(bm, f, DEL);
 		
 		for (entry=face_nets[i].first; entry; entry=entry->next) {
-			if (!BLI_smallhash_haskey(hash, entry->kfe->v1)) {
+			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v1)) {
 				eve = BLI_addfillvert(entry->kfe->v1->v->co);
 				eve->xs = 0;
 				rnd_offset_co(eve->co, rndscale);
 				eve->tmp.p = entry->kfe->v1->v;
-				BLI_smallhash_insert(hash, entry->kfe->v1, eve);
+				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v1, eve);
 			}
 
-			if (!BLI_smallhash_haskey(hash, entry->kfe->v2)) {
+			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v2)) {
 				eve = BLI_addfillvert(entry->kfe->v2->v->co);
 				eve->xs = 0;
 				rnd_offset_co(eve->co, rndscale);
 				eve->tmp.p = entry->kfe->v2->v;
-				BLI_smallhash_insert(hash, entry->kfe->v2, eve);
+				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v2, eve);
 			}						 
 		}
 		
 		for (j=0, entry=face_nets[i].first; entry; entry=entry->next, j++) {
 			EditEdge *eed;
 
-			lasteve = BLI_smallhash_lookup(hash, entry->kfe->v1);
-			eve = BLI_smallhash_lookup(hash, entry->kfe->v2);
+			lasteve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
+			eve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
 			
 			eve->xs++;
 			lasteve->xs++;
 		}
 		
 		for (j=0, entry=face_nets[i].first; entry; entry=entry->next, j++) {
-			lasteve = BLI_smallhash_lookup(hash, entry->kfe->v1);
-			eve = BLI_smallhash_lookup(hash, entry->kfe->v2);
+			lasteve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
+			eve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
 			
 			if (eve->xs > 1 && lasteve->xs > 1) {
 				BLI_addfilledge(lasteve, eve);
@@ -1547,7 +1546,7 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 		BM_Copy_Attributes(bm, bm, f2, f);
 		
 		BM_ITER(l1, &liter1, bm, BM_LOOPS_OF_FACE, f) {
-			BM_loop_interp_from_face(bm, l1, f2, 1);
+			BM_loop_interp_from_face(bm, l1, f2, 1, 1);
 		}
 	}
 	

@@ -219,6 +219,11 @@ int BM_Dissolve_Disk ( BMesh *bm, BMVert *v );
   (e.g. if the vert is part of a wire edge, etc).*/
 int BM_Dissolve_Vert ( BMesh *bm, BMVert *v );
 
+/*Projects co onto face f, and returns true if it is inside
+  the face bounds.  Note that this uses a best-axis projection
+  test, instead of projecting co directly into f's orientation
+  space, so there might be accuracy issues.*/
+int BM_Point_In_Face(BMesh *bm, BMFace *f, float co[3]);
 
 /*Interpolation*/
 
@@ -228,7 +233,8 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source);
 
 /*projects a single loop, target, onto source for customdata interpolation. multires is handled.  
   if do_vertex is true, target's vert data will also get interpolated.*/
-void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, int do_vertex);
+void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, 
+                              int do_vertex, int do_multires);
 
 /*smoothes boundaries between multires grids, including some borders in adjacent faces*/
 void BM_multires_smooth_bounds(BMesh *bm, BMFace *f);

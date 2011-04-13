@@ -434,7 +434,7 @@ static int draw_tface__set_draw_legacy(MTFace *tface, int has_vcol, int matnr)
 		return 1; /* Set color from mcol */
 	}
 }
-static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
+static int draw_tface__set_draw(MTFace *tface, int has_vcol, int matnr)
 {
 	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
 
@@ -442,7 +442,7 @@ static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 		return 2; /* Don't set color */
 	} else if (tface && tface->mode&TF_OBCOL) {
 		return 2; /* Don't set color */
-	} else if (!mcol) {
+	} else if (!has_vcol) {
 		return 1; /* Don't set color */
 	} else {
 		return 1; /* Set color from mcol */

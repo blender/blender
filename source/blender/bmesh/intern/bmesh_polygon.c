@@ -547,69 +547,106 @@ int linecrosses(double *v1, double *v2, double *v3, double *v4)
 int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 {
 	int w1, w2, w3, w4, w5 /*, ret*/;
+	float mv1[2], mv2[2], mv3[2], mv4[2];
 	
-/*	   int test1_a, test1_a, test2_a, test2_a;
-
-   test1_a = check_tri_clock_dir(l1p1, l1p2, l2p1);
-   test1_b = check_tri_clock_dir(l1p1, l1p2, l2p2);
-   if (test1_a != test1_b)
-   {
-      test2_a = check_tri_clock_dir(l2p1, l2p2, l1p1);
-      test2_b = check_tri_clock_dir(l2p1, l2p2, l1p2);
-      if (test2_a != test2_b)
-      {
-         return 1;
-      }
-   }*/
-	/*w1 = testedgesidef(v1, v2, v3);
-	w2 = testedgesidef(v1, v2, v4);
-	if(w1 != w2) {
-		w3 = testedgesidef(v3, v4, v1);
-		w4 = testedgesidef(v3, v4, v2);
-		if (w3 != w4) return 1;
-	}
-		
-	return 0;*/
-
-	/*w1 = testedgesidef(v1, v3, v4);
-	w2 = testedgesidef(v2, v3, v4);
-	w3 = testedgesidef(v3, v1, v2);
-	w4 = testedgesidef(v4, v1, v2);
-	
-	return (w1 == w2) && (w2 == w3) && (w3 == w4);*/
-
-	/*do an interval test on the x and y axes*/
-	/*first do x axis*/
-	#define T 0.01
-	if (ABS(v1[1]-v2[1]) < T && ABS(v3[1]-v4[1]) < T &&
-	    ABS(v1[1]-v3[1]) < T) {
-		if (v3[0] >= v1[0] && v3[0] <= v2[0])
-			return 1;
-		if (v4[0] >= v1[0] && v4[0] <= v2[0])
-			return 1;
-		if (v3[0] <= v1[0] && v4[0] >= v2[0])
-			return 1;
-	}
-
-	/*now do y axis*/
-	if (ABS(v1[0]-v2[0]) < T && ABS(v3[0]-v4[0]) < T &&
-	    ABS(v1[0]-v3[0]) < T) {
-		if (v3[1] >= v1[1] && v3[1] <= v2[1])
-			return 1;
-		if (v4[1] >= v1[1] && v4[1] <= v2[1])
-			return 1;
-		if (v3[1] <= v1[1] && v4[1] >= v2[1])
-			return 1;
-	}
-
 	/*now test winding*/
 	w1 = testedgesidef(v1, v3, v2);
 	w2 = testedgesidef(v2, v4, v1);
 	w3 = !testedgesidef(v1, v2, v3);
 	w4 = testedgesidef(v3, v2, v4);
 	w5 = !testedgesidef(v3, v1, v4);
+	
+	if (w1 == w2 && w2 == w3 && w3 == w4 && w4==w5)
+		return 1;
+	
+#define GETMIN2_AXIS(a, b, ma, mb, axis) ma[axis] = MIN2(a[axis], b[axis]), mb[axis] = MAX2(a[axis], b[axis])
+#define GETMIN2(a, b, ma, mb) GETMIN2_AXIS(a, b, ma, mb, 0); GETMIN2_AXIS(a, b, ma, mb, 1);
+	
+	GETMIN2(v1, v2, mv1, mv2);
+	GETMIN2(v3, v4, mv3, mv4);
+	
+	/*do an interval test on the x and y axes*/
+	/*first do x axis*/
+	#define T FLT_EPSILON*15
+	if (ABS(v1[1]-v2[1]) < T && ABS(v3[1]-v4[1]) < T &&
+	    ABS(v1[1]-v3[1]) < T) 
+	{
+		return (mv4[0] >= mv1[0] && mv3[0] <= mv2[0]);
+	}
 
-	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5; 
+	/*now do y axis*/
+	if (ABS(v1[0]-v2[0]) < T && ABS(v3[0]-v4[0]) < T &&
+	    ABS(v1[0]-v3[0]) < T)
+	{
+		return (mv4[1] >= mv1[1] && mv3[1] <= mv2[1]);
+	}
+
+	return 0; 
+}
+
+/*
+   BM POINT IN FACE
+   
+  Projects co onto face f, and returns true if it is inside
+  the face bounds.  Note that this uses a best-axis projection
+  test, instead of projecting co directly into f's orientation
+  space, so there might be accuracy issues.
+*/
+int BM_Point_In_Face(BMesh *bm, BMFace *f, float co[3])
+{
+	int xn, yn, zn, ax, ay;
+	float co2[3], cent[3] = {0.0f, 0.0f}, out[3] = {FLT_MAX*0.5f, FLT_MAX*0.5f, 0};
+	BMLoop *l;
+	int crosses = 0;
+	float eps = 1.0+FLT_EPSILON*150;
+	
+	if (dot_v3v3(f->no, f->no) <= FLT_EPSILON*10)
+		BM_Face_UpdateNormal(bm, f);
+	
+	/* find best projection of face XY, XZ or YZ: barycentric weights of
+	   the 2d projected coords are the same and faster to compute
+	   
+	   this probably isn't all that accurate, but it has the advantage of
+	   being fast (especially compared to projecting into the face orientation)
+	*/
+	xn= (float)fabs(f->no[0]);
+	yn= (float)fabs(f->no[1]);
+	zn= (float)fabs(f->no[2]);
+	if(zn>=xn && zn>=yn) {ax= 0; ay= 1;}
+	else if(yn>=xn && yn>=zn) {ax= 0; ay= 2;}
+	else {ax= 1; ay= 2;}
+
+	co2[0] = co[ax];
+	co2[1] = co[ay];
+	co2[2] = 0;
+	
+	l = bm_firstfaceloop(f);
+	do {
+		cent[0] += l->v->co[ax];
+		cent[1] += l->v->co[ay];
+		l = l->next;
+	} while (l != bm_firstfaceloop(f));
+	
+	mul_v2_fl(cent, 1.0/(float)f->len);
+	
+	l = bm_firstfaceloop(f);
+	do {
+		float v1[3], v2[3];
+		
+		v1[0] = (l->prev->v->co[ax] - cent[ax])*eps + cent[ax];
+		v1[1] = (l->prev->v->co[ay] - cent[ay])*eps + cent[ay];
+		v1[2] = 0.0f;
+		
+		v2[0] = (l->v->co[ax] - cent[ax])*eps + cent[ax];
+		v2[1] = (l->v->co[ay] - cent[ay])*eps + cent[ay];
+		v2[2] = 0.0f;
+		
+		crosses += linecrossesf(v1, v2, co2, out) != 0;
+		
+		l = l->next;
+	} while (l != bm_firstfaceloop(f));
+	
+	return crosses%2 != 0;
 }
 
 int goodline(float (*projectverts)[3], BMFace *f, int v1i,

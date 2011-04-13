@@ -36,11 +36,13 @@
 #include "MEM_guardedalloc.h"
 #include "BLO_sys_types.h"
 #include "BLI_utildefines.h"
+#include <string.h>
 
 extern unsigned int hashsizes[];
 #define NONHASH	-25436536
-typedef struct entry {intptr_t key; void *val;} entry;
+typedef struct entry {uintptr_t key; void *val;} entry;
 
+/*how much stack space to use before dynamically allocating memory*/
 #define SMSTACKSIZE	521
 typedef struct SmallHash {
 	entry *table, _stacktable[SMSTACKSIZE], _copytable[SMSTACKSIZE];
@@ -49,6 +51,11 @@ typedef struct SmallHash {
 	int curhash;
 	int size;
 } SmallHash;
+
+typedef struct SmallHashIter {
+	SmallHash *hash;
+	int i;
+} SmallHashIter;
 
 /*CELL_UNUSED means this cell is inside a key series, while CELL_FREE
   means this cell terminates a key series.
@@ -89,7 +96,7 @@ BM_INLINE void BLI_smallhash_release(SmallHash *hash)
 		MEM_freeN(hash->table);
 }
 
-BM_INLINE void BLI_smallhash_insert(SmallHash *hash, intptr_t key, void *item) 
+BM_INLINE void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item) 
 {
 	int h, hoff=1;
 
@@ -145,7 +152,7 @@ BM_INLINE void BLI_smallhash_insert(SmallHash *hash, intptr_t key, void *item)
 	hash->used++;
 }
 
-BM_INLINE void BLI_smallhash_remove(SmallHash *hash, intptr_t key)
+BM_INLINE void BLI_smallhash_remove(SmallHash *hash, uintptr_t key)
 {
 	int h, hoff=1;
 
@@ -165,7 +172,7 @@ BM_INLINE void BLI_smallhash_remove(SmallHash *hash, intptr_t key)
 	hash->table[h].val = CELL_UNUSED;
 }
 
-BM_INLINE void *BLI_smallhash_lookup(SmallHash *hash, intptr_t key)
+BM_INLINE void *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)
 {
 	int h, hoff=1;
 
@@ -187,7 +194,7 @@ BM_INLINE void *BLI_smallhash_lookup(SmallHash *hash, intptr_t key)
 }
 
 
-BM_INLINE int BLI_smallhash_haskey(SmallHash *hash, intptr_t key)
+BM_INLINE int BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
 {
 	int h = ABS(key), hoff=1;
 	key = ABS(key);
@@ -209,6 +216,31 @@ BM_INLINE int BLI_smallhash_haskey(SmallHash *hash, intptr_t key)
 BM_INLINE int BLI_smallhash_count(SmallHash *hash)
 {
 	return hash->used;
+}
+
+BM_INLINE void *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
+{
+	while (iter->i < iter->hash->size) {
+		if (iter->hash->table[iter->i].val != CELL_UNUSED && iter->hash->table[iter->i].val != CELL_FREE) {
+			if (key)
+				*key = iter->hash->table[iter->i].key;
+			
+			iter->i++;
+			return iter->hash->table[iter->i-1].val;
+		}
+		
+		iter->i++;
+	}
+	
+	return NULL;
+}
+
+BM_INLINE void *BLI_smallhash_iternew(SmallHash *hash, SmallHashIter *iter, uintptr_t *key) 
+{
+	iter->hash = hash;
+	iter->i = 0;
+	
+	return BLI_smallhash_iternext(iter, key);
 }
 
 #endif // BLI_SMALLHASH_H

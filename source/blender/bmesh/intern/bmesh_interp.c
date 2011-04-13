@@ -657,17 +657,18 @@ void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
 	bmesh_loop_interp_mdisps(bm, target, source);
 }
 
-void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, int do_vertex)
+void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, 
+                              int do_vertex, int do_multires)
 {
 	BMLoop *l;
 	void **blocks=NULL;
 	void **vblocks=NULL;
-	float (*cos)[3]=NULL, *w=NULL, cent[3] = {0.0f, 0.0f, 0.0f};
+	float (*cos)[3]=NULL, co[3], *w=NULL, cent[3] = {0.0f, 0.0f, 0.0f};
 	BLI_array_staticdeclare(cos, 64);
 	BLI_array_staticdeclare(w, 64);
 	BLI_array_staticdeclare(blocks, 64);
 	BLI_array_staticdeclare(vblocks, 64);
-	int i;
+	int i, xn, yn, zn, ax, ay;
 	
 	BM_Copy_Attributes(bm, bm, source, target->f);
 	
@@ -686,18 +687,37 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, int do_
 		l = l->next;
 	} while (l != bm_firstfaceloop(source));
 
+	/* find best projection of face XY, XZ or YZ: barycentric weights of
+	   the 2d projected coords are the same and faster to compute */
+	xn= (float)fabs(source->no[0]);
+	yn= (float)fabs(source->no[1]);
+	zn= (float)fabs(source->no[2]);
+	if(zn>=xn && zn>=yn) {ax= 0; ay= 1;}
+	else if(yn>=xn && yn>=zn) {ax= 0; ay= 2;}
+	else {ax= 1; ay= 2;} 
+	
 	/*scale source face coordinates a bit, so points sitting directonly on an
       edge will work.*/
 	mul_v3_fl(cent, 1.0f/(float)source->len);
 	for (i=0; i<source->len; i++) {
-		float vec[3];
+		float vec[3], tmp[3];
 		sub_v3_v3v3(vec, cent, cos[i]);
-		mul_v3_fl(vec, 0.0001);
+		mul_v3_fl(vec, 0.001);
 		add_v3_v3(cos[i], vec);
+		
+		copy_v3_v3(tmp, cos[i]);
+		cos[i][0] = tmp[ax];
+		cos[i][1] = tmp[ay];
+		cos[i][2] = 0.0;
 	}
 	
+	
 	/*interpolate*/
-	interp_weights_poly_v3(w, cos, source->len, target->v->co);
+	co[0] = target->v->co[ax];
+	co[1] = target->v->co[ay];
+	co[2] = 0.0f;
+	
+	interp_weights_poly_v3(w, cos, source->len, co);
 	CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, target->head.data);
 	if (do_vertex) 
 		CustomData_bmesh_interp(&bm->vdata, vblocks, w, NULL, source->len, target->v->head.data);
@@ -706,8 +726,10 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, int do_
 	BLI_array_free(w);
 	BLI_array_free(blocks);
 	
-	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		bmesh_loop_interp_mdisps(bm, target, source);
+	if (do_multires) {
+		if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+			bmesh_loop_interp_mdisps(bm, target, source);
+		}
 	}
 }
 

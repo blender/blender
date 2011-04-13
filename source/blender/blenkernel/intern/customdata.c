@@ -589,6 +589,7 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 
 static void layerValidate_mdisps(void *data, int sub_elements)
 {
+#if 0
 	MDisps *disps = data;
 	if(disps->disps) {
 		int corners = multires_mdisp_corners(disps);
@@ -599,6 +600,7 @@ static void layerValidate_mdisps(void *data, int sub_elements)
 			disps->disps = BLI_cellalloc_calloc(3*disps->totdisp*sizeof(float), "layerValidate_mdisps");
 		}
 	}
+#endif
 }
 
 static void layerFree_mdisps(void *data, int count, int UNUSED(size))
