@@ -344,7 +344,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 		{
 			Scene *sce;
 			for(sce= G.main->scene.first; sce; sce= sce->id.next) {
-				if(BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
+				if(sce->r.engine[0] && BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
 					BKE_reportf(reports, RPT_WARNING, "Engine not available: '%s' for scene: %s, an addon may need to be installed or enabled", sce->r.engine, sce->id.name+2);
 				}
 			}

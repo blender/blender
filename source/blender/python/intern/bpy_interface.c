@@ -244,7 +244,7 @@ void BPY_python_start(int argc, const char **argv)
 
 	bpy_python_start_path(); /* allow to use our own included python */
 
-	/* Python 3.2 now looks for '2.56/python/include/python3.2d/pyconfig.h' to parse
+	/* Python 3.2 now looks for '2.57/python/include/python3.2d/pyconfig.h' to parse
 	 * from the 'sysconfig' module which is used by 'site', so for now disable site.
 	 * alternatively we could copy the file. */
 	Py_NoSiteFlag= 1;
@@ -552,7 +552,7 @@ int BPY_string_exec(bContext *C, const char *expr)
 	PyObject *main_mod= NULL;
 	PyObject *py_dict, *retval;
 	int error_ret= 0;
-	Main *bmain_back;
+	Main *bmain_back; /* XXX, quick fix for release (Copy Settings crash), needs further investigation */
 
 	if (!expr) return -1;
 
