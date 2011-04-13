@@ -5354,10 +5354,12 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				
 				/* WARNING: gpencil data is no longer stored directly in sima after 2.5 
 				 * so sacrifice a few old files for now to avoid crashes with new files!
-				 */
-				//sima->gpd= newdataadr(fd, sima->gpd);
-				//if (sima->gpd)
-				//	direct_link_gpencil(fd, sima->gpd);
+				 * committed: r28002 */
+#if 0
+				sima->gpd= newdataadr(fd, sima->gpd);
+				if (sima->gpd)
+					direct_link_gpencil(fd, sima->gpd);
+#endif
 			}
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;
@@ -6649,10 +6651,14 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 			}
 			else if (sl->spacetype==SPACE_IMAGE) {
 				SpaceImage *sima= (SpaceImage *)sl;
+#if 0			/* see comment on r28002 */
 				if(sima->gpd) {
 					versions_gpencil_add_main(&main->gpencil, (ID *)sima->gpd, "GPencil Image");
 					sima->gpd= NULL;
 				}
+#else
+				sima->gpd= NULL;
+#endif
 			}
 		}
 	}		
