@@ -161,7 +161,7 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 		glEnd();
 	}
 	else {
-		int spacetype= 0; // XXX make local gpencil state var? 
+		// int spacetype= 0; // XXX make local gpencil state var?
 		float co[2];
 		
 		/* get coordinates of point */
@@ -181,8 +181,12 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple dot looks ok
 		 * 	- also mandatory in if Image Editor 'image-based' dot
 		 */
+#if 0
 		if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) ||
 			 ((spacetype==SPACE_IMAGE) && (sflag & GP_STROKE_2DSPACE)) )
+#else
+		if(1) /* when spacetype is back uncomment the check above */
+#endif
 		{
 			glBegin(GL_POINTS);
 				glVertex2fv(co);
