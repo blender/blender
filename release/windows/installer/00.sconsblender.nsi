@@ -88,7 +88,6 @@ Var HWND_HOMEDIR
 
 Function .onInit
   ClearErrors
-  !insertmacro MULTIUSER_INIT ; Checks if user has admin rights
   StrCpy $SHORTVERSION "[SHORTVERSION]"
 
   ${If} ${RunningX64}
@@ -104,7 +103,6 @@ Function .onInit
 FunctionEnd
 
 Function un.onInit
-  !insertmacro MULTIUSER_UNINIT
 FunctionEnd
 
 Function DataLocation
