@@ -208,7 +208,7 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 	MTexPoly *tf;
 	BMLoop *l;
 	MLoopUV *luv;
-	BMIter iter, liter;
+	BMIter iter;
 	static float ocent[2];
 	float cent[2]= {0.0, 0.0};
 	int imx= 256, imy= 256;

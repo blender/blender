@@ -296,6 +296,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			BM_esubdivideflag(lcd->ob, em->bm, BM_SELECT, 0.0f, 
 			                  0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT, 
 			                  SUBD_PATH, 0, 0, 0);
+			
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {
 				if (em->selectmode == SCE_SELECT_FACE)

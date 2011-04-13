@@ -1737,7 +1737,6 @@ static void draw_dm_face_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 static void draw_dm_face_centers__mapFunc(void *userData, int index, float *cent, float *UNUSED(no))
 {
 	BMFace *efa = EDBM_get_face_for_index(((void **)userData)[0], index);
-	BMEditMesh *em = ((void **)userData)[0];
 	int sel = *(((int **)userData)[1]);
 
 	if (!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)==sel) {
@@ -1798,7 +1797,8 @@ static int check_pinned_face(BMesh *bm, BMFace *efa)
 	return 0;
 }
 
-static void draw_dm_vert_pins__mapFunc(void *userData, int index, float *co)
+static void draw_dm_vert_pins__mapFunc(void *userData, int index, 
+                                       float *co, float *no_f, short *no_s)
 {
 	struct {BMEditMesh *em; Mesh *me;} *data = userData;
 	BMVert *eve = EDBM_get_vert_for_index(data->em, index);
@@ -1955,7 +1955,7 @@ static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int i
 
 static void draw_dm_edges_sel_interp(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol)
 {
-	unsigned char *cols[3] = {em, baseCol, selCol};
+	void *cols[3] = {em, baseCol, selCol};
 
 	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
 }
@@ -2044,9 +2044,7 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 	struct { unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; Mesh *me;} *data = userData;
 	BMFace *efa = EDBM_get_face_for_index(data->em, index);
 	unsigned char *col;
-	BMIter vfiter;
-	BMVert *v;
-	int vcount, pin=0;
+	int pin=0;
 	int opac = UI_GetThemeValue(TH_PIN_OPAC);
 	
 	if (!efa)

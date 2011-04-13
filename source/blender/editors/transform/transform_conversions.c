@@ -2339,7 +2339,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 				/* CrazySpace */
 				if(defmats) { // || (quats && eve->tmp.p)) {
-					float mat[3][3], imat[3][3], qmat[3][3];
+					float mat[3][3], imat[3][3];
 
 					/* use both or either quat and defmat correction */
 					//BMESH_TODO, need to restore this quats thing

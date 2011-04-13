@@ -48,6 +48,16 @@ const int BMOP_OPSLOT_TYPEINFO[] = {
 	sizeof(element_mapping)
 };
 
+void BMO_Set_OpFlag(BMesh *bm, BMOperator *op, int flag)
+{
+	op->flag |= flag;
+}
+
+void BMO_Clear_OpFlag(BMesh *UNUSED(bm), BMOperator *op, int flag)
+{
+	op->flag &= ~flag;
+}
+
 /*
  * BMESH OPSTACK PUSH
  *
@@ -99,6 +109,7 @@ void BMO_Init_Op(BMOperator *op, const char *opname)
 
 	memset(op, 0, sizeof(BMOperator));
 	op->type = opcode;
+	op->flag = opdefines[opcode]->flag;
 	
 	/*initialize the operator slot types*/
 	for(i = 0; opdefines[opcode]->slottypes[i].type; i++) {
@@ -131,11 +142,11 @@ void BMO_Exec_Op(BMesh *bm, BMOperator *op)
 	BMO_push(bm, op);
 
 	if(bm->stackdepth == 2)
-		bmesh_begin_edit(bm, opdefines[op->type]->flag);
+		bmesh_begin_edit(bm, op->flag);
 	op->exec(bm, op);
 	
 	if(bm->stackdepth == 2)
-		bmesh_end_edit(bm, opdefines[op->type]->flag);
+		bmesh_end_edit(bm, op->flag);
 	
 	BMO_pop(bm);	
 }

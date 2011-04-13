@@ -43,6 +43,7 @@
 #include "BLI_editVert.h"
 #include "BLI_uvproject.h"
 #include "BLI_utildefines.h"
+#include "BLI_rand.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -203,7 +204,14 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		/*scanfill time!*/
 		firstv = lastv = NULL;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			int i;
+			
 			v = BLI_addfillvert(l->v->co);
+			
+			/*add small random offset*/
+			for (i=0; i<3; i++) {
+				v->co[i] += (BLI_drand()-0.5f)*FLT_EPSILON*50;
+			}
 			
 			v->tmp.p = l;
 
@@ -218,8 +226,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 		BLI_addfilledge(firstv, v);
 		
-		/*mode 2 enables shortest-diagonal for quads*/
-		BLI_edgefill(0);
+		/*mode 2 enables faster handling of tri/quads*/
+		BLI_edgefill(2);
 		for (sefa = fillfacebase.first; sefa; sefa=sefa->next) {
 			ls[0] = sefa->v1->tmp.p;
 			ls[1] = sefa->v2->tmp.p;

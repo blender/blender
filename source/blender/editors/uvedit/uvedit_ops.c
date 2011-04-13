@@ -361,7 +361,7 @@ int uvedit_uv_selected(BMEditMesh *em, Scene *scene, BMLoop *l)
 		if(ts->selectmode & SCE_SELECT_FACE)
 			return BM_TestHFlag(l->f, BM_SELECT);
 		else
-			return BM_TestHFlag(l, BM_SELECT);
+			return BM_TestHFlag(l->v, BM_SELECT);
 	}
 	else {
 		MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -715,7 +715,7 @@ static void find_nearest_uv_vert(Scene *scene, Image *ima, BMEditMesh *em,
 	MTexPoly *tf;
 	MLoopUV *luv;
 	float mindist, dist;
-	int i, nverts;
+	int i;
 
 	/*this will fill in hit.vert1 and hit.vert2*/
 	find_nearest_uv_edge(scene, ima, em, co, hit);
@@ -1549,7 +1549,6 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	MTexPoly *tf;
 	MLoopUV *luv;
 	int action = RNA_enum_get(op->ptr, "action");
-	int sel = 1;
 	
 	scene= CTX_data_scene(C);
 	ts= CTX_data_tool_settings(C);
@@ -1925,16 +1924,15 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 			}
 		}
 	}
-#if 0 //bmesh does flushing through the BM_Select functions, so not sure
-      //what to do about this bit.
+
 	if(sync) {
 		/* flush for mesh selection */
 		if(ts->selectmode != SCE_SELECT_FACE) {
-			if(flush==1)		EM_select_flush(em);
-			else if(flush==-1)	EM_deselect_flush(em);
+			if(flush==1)		EDBM_select_flush(em, ts->selectmode);
+			//else if(flush==-1)	EDBM_deselect_flush(em); <-- I think this takes care of itself. . .
 		}
 	}
-#endif	
+
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	

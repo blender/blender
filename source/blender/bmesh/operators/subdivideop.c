@@ -1103,8 +1103,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 /*editmesh-emulating function*/
 void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth,
-		       float fractal, int beauty, int numcuts, 
-		       int seltype, int cornertype, int singleedge, int gridfill, int seed)
+               float fractal, int beauty, int numcuts, 
+               int seltype, int cornertype, int singleedge, 
+               int gridfill, int seed)
 {
 	BMOperator op;
 	

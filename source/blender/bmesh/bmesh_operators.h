@@ -80,8 +80,8 @@ struct EditMesh;
 
 void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
 void BM_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth, 
-		       float fractal, int beauty, int numcuts, int seltype,
-		       int cornertype, int singleedge, int gridfill, int seed);
+               float fractal, int beauty, int numcuts, int seltype,
+               int cornertype, int singleedge, int gridfill, int seed);
 void BM_extrudefaceflag(BMesh *bm, int flag);
 
 /*this next one return 1 if they did anything, or zero otherwise.

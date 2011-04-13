@@ -4662,10 +4662,10 @@ void projectSVData(TransInfo *t, int final)
 		BMFace *f;
 		
 		BM_ITER(f, &fiter, em->bm, BM_FACES_OF_VERT, tempsv->v) {
-			BMIter liter2, fiter2;
-			BMFace *f2, *copyf, *copyf2;
+			BMIter liter2;
+			BMFace *copyf, *copyf2;
 			BMLoop *l2;
-			int sel, ok, do_vdata;
+			int sel, do_vdata;
 			
 			if (BLI_smallhash_haskey(&visit, (uintptr_t)f))
 				continue;

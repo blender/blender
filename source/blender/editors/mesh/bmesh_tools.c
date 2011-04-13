@@ -1334,7 +1334,7 @@ static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	WM_cursor_wait(1);
 	mesh_duplicate_exec(C, op);
@@ -1900,7 +1900,7 @@ void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 	}
 }
 
-static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
@@ -1928,7 +1928,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
@@ -2317,7 +2317,7 @@ static EnumPropertyItem merge_type_items[]= {
 	{5, "COLLAPSE", 0, "Collapse", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {	
 	Object *obedit;
 	EnumPropertyItem *item= NULL;
@@ -3234,7 +3234,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {	
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= (obedit) ? obedit->data : NULL;
@@ -3361,7 +3361,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "axis", 0, 0, 2, "Axis", "Select the axis to compare each vertex on", 0, 2);
 }
 
-static int solidify_exec(bContext *C, wmOperator *op)
+static int solidify_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 #if 0
 	Object *obedit= CTX_data_edit_object(C);

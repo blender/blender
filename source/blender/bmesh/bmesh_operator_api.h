@@ -97,6 +97,7 @@ typedef struct BMOperator {
 	int type;
 	int slottype;
 	int needflag;
+	int flag;
 	struct BMOpSlot slots[BMOP_MAX_SLOTS];
 	void (*exec)(struct BMesh *bm, struct BMOperator *op);
 	MemArena *arena;
@@ -117,7 +118,8 @@ typedef struct BMOpDefine {
 } BMOpDefine;
 
 /*BMOpDefine->flag*/
-#define BMOP_UNTAN_MULTIRES 1 /*switch from multires tangent space to absolute coordinates*/
+#define BMOP_UNTAN_MULTIRES		1 /*switch from multires tangent space to absolute coordinates*/
+
 
 /*ensures consistent normals before operator execution,
   restoring the original ones windings/normals afterwards.
@@ -227,6 +229,9 @@ void BMO_CopySlot(struct BMOperator *source_op, struct BMOperator *dest_op,
 void BM_remove_tagged_faces(struct BMesh *bm, int flag);
 void BM_remove_tagged_edges(struct BMesh *bm, int flag);
 void BM_remove_tagged_verts(struct BMesh *bm, int flag);
+
+void BMO_Set_OpFlag(struct BMesh *bm, struct BMOperator *op, int flag);
+void BMO_Clear_OpFlag(struct BMesh *bm, struct BMOperator *op, int flag);
 
 void BMO_Set_Float(struct BMOperator *op, const char *slotname, float f);
 float BMO_Get_Float(BMOperator *op, const char *slotname);
