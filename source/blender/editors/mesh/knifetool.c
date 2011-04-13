@@ -622,7 +622,7 @@ static void knifetool_draw(const bContext *C, ARegion *ar, void *arg)
 		glLineWidth(1.0);
 	} else if (kcd->curvert) {
 		glColor3f(0.8, 0.2, 0.1);
-		glPointSize(9);
+		glPointSize(11);
 		
 		glBegin(GL_POINTS);
 		glVertex3fv(kcd->vertco);
@@ -631,7 +631,7 @@ static void knifetool_draw(const bContext *C, ARegion *ar, void *arg)
 	
 	if (kcd->curbmface) {		
 		glColor3f(0.1, 0.8, 0.05);
-		glPointSize(7);
+		glPointSize(9);
 		
 		glBegin(GL_POINTS);
 		glVertex3fv(kcd->vertco);
@@ -647,7 +647,7 @@ static void knifetool_draw(const bContext *C, ARegion *ar, void *arg)
 		
 		/*draw any snapped verts first*/
 		glColor4f(0.8, 0.2, 0.1, 0.4);
-		glPointSize(9);
+		glPointSize(11);
 		glBegin(GL_POINTS);
 		lh = kcd->linehits;
 		for (i=0; i<kcd->totlinehit; i++, lh++) {
@@ -671,7 +671,7 @@ static void knifetool_draw(const bContext *C, ARegion *ar, void *arg)
 		
 		/*now draw the rest*/
 		glColor4f(0.1, 0.8, 0.05, 0.4);
-		glPointSize(5);
+		glPointSize(7);
 		glBegin(GL_POINTS);
 		lh = kcd->linehits;
 		for (i=0; i<kcd->totlinehit; i++, lh++) {
@@ -707,7 +707,7 @@ static void knifetool_draw(const bContext *C, ARegion *ar, void *arg)
 		BLI_mempool_iter iter;
 		KnifeVert *kfv;
 		
-		glPointSize(4.0);
+		glPointSize(5.0);
 				
 		glBegin(GL_POINTS);
 		BLI_mempool_iternew(kcd->kverts, &iter);
@@ -1501,10 +1501,13 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 			BMVert *v1=efa->v3->tmp.p, *v2=efa->v2->tmp.p, *v3=efa->v1->tmp.p;
 			BMFace *f2;
 			BMLoop *l;
+			BMVert *verts[3] = {v1, v2, v3};
 			
 			if (v1 == v2 || v2 == v3 || v1 == v3)
+				continue;	
+			if (BM_Face_Exists(bm, verts, 3, &f2))
 				continue;
-			
+		
 			f2 = BM_Make_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
 			BMO_SetFlag(bm, f2, FACE_NEW);
 			

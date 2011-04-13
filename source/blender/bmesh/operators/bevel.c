@@ -614,6 +614,9 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		if (BLI_array_count(edges) >= 3) {
 			BMFace *f;
 			
+			if (BM_Face_Exists(bm, verts, BLI_array_count(verts), &f))
+				continue;
+			
 			f = BM_Make_Ngon(bm, lastv, vstart, edges, BLI_array_count(edges), 0);
 			if (!f) {
 				printf("eek! in bevel vert fill!\n");
