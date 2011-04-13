@@ -596,7 +596,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *obdata)
 	BMesh *bm;
 	int allocsize[4] = {512, 512, 2048, 512};
 	
-	ob = find_id("OB", me->obname);
+	ob = (Object*)find_id("OB", me->obname);
 	ob->shapenr = em->bm->shapenr;
 
 	BMEdit_Free(em);

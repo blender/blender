@@ -504,7 +504,7 @@ int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], doub
 static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], double *x, double *y, int res)
 {
 	double v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
-	double eps = FLT_EPSILON*40;
+	double eps = FLT_EPSILON*40000;
 	
 	if (len_v3(l->v->no) == 0.0)
 		BM_Vert_UpdateAllNormals(bm, l->v);
@@ -569,8 +569,8 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			
 			VECCOPY(co1, e1);
 			
-			if (!iy) yy = y + DBL_EPSILON*20;
-			else yy = y - DBL_EPSILON*20;
+			if (!iy) yy = y + FLT_EPSILON*20;
+			else yy = y - FLT_EPSILON*20;
 			
 			VECMUL(co1, y);
 			VECADD2(co1, v1);
@@ -579,8 +579,8 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			VECMUL(co2, y);
 			VECADD2(co2, v4);
 			
-			if (!ix) xx = x + DBL_EPSILON*20;
-			else xx = x - DBL_EPSILON*20;
+			if (!ix) xx = x + FLT_EPSILON*20;
+			else xx = x - FLT_EPSILON*20;
 			
 			VECSUB(co, co2, co1);
 			VECMUL(co, x);
@@ -692,7 +692,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, int do_
 	for (i=0; i<source->len; i++) {
 		float vec[3];
 		sub_v3_v3v3(vec, cent, cos[i]);
-		mul_v3_fl(vec, 0.01);
+		mul_v3_fl(vec, 0.0001);
 		add_v3_v3(cos[i], vec);
 	}
 	

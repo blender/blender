@@ -86,6 +86,8 @@
 #include "mesh_intern.h"
 #include "editbmesh_bvh.h"
 
+/* this code here is kindof messy. . .I might need to eventually rework it - joeedh*/
+
 #define MAXGROUP	30
 #define KMAXDIST	25	/*max mouse distance from edge before not detecting it*/
 
@@ -1341,14 +1343,10 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 	BMFace **faces = MEM_callocN(sizeof(BMFace*)*bm->totface, "faces knife");
 	MemArena *arena = BLI_memarena_new(1<<16, "knifenet_fill_faces");
 	SmallHash shash, shash2, *hash = &shash, *visited = &shash2;
-	void **blocks = NULL;
-	BLI_array_declare(blocks);
-	float *w = NULL, (*vertcos)[3] = NULL;
-	BLI_array_declare(w);
-	BLI_array_declare(vertcos);
-	int i, totface=bm->totface;
+	int i, j, k=0, totface=bm->totface;
 	
 	BMO_push(bm, NULL);
+	bmesh_begin_edit(bm, BMOP_UNTAN_MULTIRES);
 	
 	i = 0;
 	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
@@ -1376,34 +1374,34 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 		BMO_SetFlag(bm, kfv->v, MARK);
 	}
 	
+	/*we want to only do changed faces.  first, go over new edges and add to
+      face net lists.*/
+	i=0; j=0; k=0;
 	BLI_mempool_iternew(kcd->kedges, &iter);
 	for (kfe=BLI_mempool_iterstep(&iter); kfe; kfe=BLI_mempool_iterstep(&iter)) {
 		Ref *ref;
-		
 		if (!kfe->v1 || !kfe->v2 || kfe->v1->inspace || kfe->v2->inspace)
 			continue;
+
+		i++;
+
+		if (kfe->e && kfe->v1->v == kfe->e->v1 && kfe->v2->v == kfe->e->v2) {
+			kfe->oe = kfe->e;
+			continue;
+		}
+		
+		j++;
 		
 		if (kfe->e) {
-			BM_ITER(f, &bmiter, bm, BM_FACES_OF_EDGE, kfe->e) {
-				if (kfe->v1->v != kfe->e->v1 || kfe->v2->v != kfe->e->v2) {
-					BMO_SetFlag(bm, f, DEL);
-				}
-			}
-
 			kfe->oe = kfe->e;
 
-			if (kfe->v1->v != kfe->e->v1 || kfe->v2->v != kfe->e->v2) {
-				BMO_SetFlag(bm, kfe->e, DEL);
-				BMO_ClearFlag(bm, kfe->e, BOUNDARY);
-				
-				kfe->e = NULL;
-			}
+			BMO_SetFlag(bm, kfe->e, DEL);
+			BMO_ClearFlag(bm, kfe->e, BOUNDARY);
+			kfe->e = NULL;
 		}
 		
-		if (!kfe->e) {
-			kfe->e = BM_Make_Edge(bm, kfe->v1->v, kfe->v2->v, NULL, 1);
-			BMO_SetFlag(bm, kfe->e, BOUNDARY);
-		}
+		kfe->e = BM_Make_Edge(bm, kfe->v1->v, kfe->v2->v, NULL, 1);
+		BMO_SetFlag(bm, kfe->e, BOUNDARY);
 		
 		for (ref=kfe->faces.first; ref; ref=ref->next) {
 			f = ref->ref;
@@ -1414,11 +1412,37 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 		}
 	}
 	
+	/*go over original edges, and add to faces with new geometry*/
+	BLI_mempool_iternew(kcd->kedges, &iter);
+	for (kfe=BLI_mempool_iterstep(&iter); kfe; kfe=BLI_mempool_iterstep(&iter)) {
+		Ref *ref;
+		
+		if (!kfe->v1 || !kfe->v2 || kfe->v1->inspace || kfe->v2->inspace)
+			continue;
+		if (!(kfe->oe && kfe->v1->v == kfe->oe->v1 && kfe->v2->v == kfe->oe->v2))
+			continue;
+		
+		k++;
+		
+		BMO_SetFlag(bm, kfe->e, BOUNDARY);
+		kfe->oe = kfe->e;
+		
+		for (ref=kfe->faces.first; ref; ref=ref->next) {
+			f = ref->ref;
+			
+			if (face_nets[BMINDEX_GET(f)].first) {
+				entry = BLI_memarena_alloc(arena, sizeof(*entry));
+				entry->kfe = kfe;
+				BLI_addtail(face_nets+BMINDEX_GET(f), entry);
+			}
+		}
+	}
+	
 	for (i=0; i<totface; i++) {
 		EditFace *efa;
 		EditVert *eve, *lasteve;
 		int j;
-		float rndscale = FLT_EPSILON*250;
+		float rndscale = FLT_EPSILON*25;
 		
 		f = faces[i];
 		BLI_smallhash_init(hash);
@@ -1481,7 +1505,7 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 			if (v1 == v2 || v2 == v3 || v1 == v3)
 				continue;
 			
-			f2 = BM_Make_QuadTri(bm, v1, v2, v3, NULL, f, 0);
+			f2 = BM_Make_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
 			BMO_SetFlag(bm, f2, FACE_NEW);
 			
 			l = bm_firstfaceloop(f2);
@@ -1505,10 +1529,9 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 	
 	/* interpolate customdata */
 	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
-		BMLoop *l1, *l2;
+		BMLoop *l1;
 		BMFace *f2; 
-		BMIter liter1, liter2;
-		float cent[3];
+		BMIter liter1;
 		
 		if (!BMO_TestFlag(bm, f, FACE_NEW))
 			continue;
@@ -1520,29 +1543,8 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 
 		BM_Copy_Attributes(bm, bm, f2, f);
 		
-		BLI_array_empty(vertcos);
-		BLI_array_empty(blocks);
-		BLI_array_empty(w);
-		BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, f2) {
-			BLI_array_growone(vertcos);
-			BLI_array_append(blocks, l2->head.data);
-
-			copy_v3_v3(vertcos[BLI_array_count(vertcos)-1], l2->v->co);
-			add_v3_v3(cent, vertcos[BLI_array_count(vertcos)-1]);
-			
-			BLI_array_append(w, 0.0f);
-		}
-		
-		mul_v3_fl(cent, 1.0/(float)BLI_array_count(vertcos));
-		for (i=0; i<BLI_array_count(vertcos); i++) {
-			sub_v3_v3(vertcos[i], cent);
-			mul_v3_fl(vertcos[i], 1.0f+FLT_EPSILON*1500);
-			add_v3_v3(vertcos[i], cent);
-		}
-
 		BM_ITER(l1, &liter1, bm, BM_LOOPS_OF_FACE, f) {
-			interp_weights_poly_v3(w, vertcos, f2->len, l1->v->co);
-			CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, BLI_array_count(blocks), l1->head.data);
+			BM_loop_interp_from_face(bm, l1, f2, 1);
 		}
 	}
 	
@@ -1554,7 +1556,6 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 	BMO_CallOpf(bm, "del geom=%fe context=%i", DEL, DEL_EDGES);
 	BMO_CallOpf(bm, "del geom=%fv context=%i", DEL, DEL_VERTS);
 
-cleanup:
 	if (face_nets) 
 		MEM_freeN(face_nets);
 	if (faces)
@@ -1562,8 +1563,10 @@ cleanup:
 	BLI_memarena_free(arena);
 	BLI_smallhash_release(hash);	
 	
-	BMO_pop(bm);
 	BMO_ClearStack(bm); /*remerge_faces sometimes raises errors, so make sure to clear them*/
+
+	bmesh_end_edit(bm, BMOP_UNTAN_MULTIRES);
+	BMO_pop(bm);
 }
 
 /*called on tool confirmation*/

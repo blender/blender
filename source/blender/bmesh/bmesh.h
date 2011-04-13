@@ -292,6 +292,11 @@ void BM_Kill_Face_Edges(BMesh *bm, BMFace *f);
   those vertices*/
 void BM_Kill_Face_Verts(BMesh *bm, BMFace *f) ;
 
+/*start/stop edit*/
+void bmesh_begin_edit(struct BMesh *bm, int flag);
+void bmesh_end_edit(struct BMesh *bm, int flag);
+
+
 #define bm_firstfaceloop(p) ((BMLoopList*)(p->loops.first))->first
 
 /*include the rest of the API*/
