@@ -340,6 +340,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
 
+#if 0	/* gives popups on windows but not linux, bug in report API but disable for now to stop users getting annoyed  */
 		/* TODO, make this show in header info window */
 		{
 			Scene *sce;
@@ -349,7 +350,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 				}
 			}
 		}
-
+#endif
 
 		// XXX		undo_editmode_clear();
 		BKE_reset_undo();
