@@ -541,17 +541,18 @@ static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
 	MTFace *tface= RE_vlakren_get_tface(pMesh->obr, vlr, pMesh->obr->actmtface, NULL, 0);
+	const float *coord;
 	
 	if(tface!=NULL)
 	{
-		float * pTexCo = tface->uv[vert_index];
-		fUV[0]=pTexCo[0]; fUV[1]=pTexCo[1];
+		coord= tface->uv[vert_index];
+		fUV[0]= coord[0]; fUV[1]= coord[1];
 	}
-	else
-	{
-		const float *orco= (&vlr->v1)[vert_index]->orco;
-		map_to_sphere(&fUV[0], &fUV[1], orco[0], orco[1], orco[2]);
-
+	else if(1 || (coord= (&vlr->v1)[vert_index]->orco)) {
+		map_to_sphere(&fUV[0], &fUV[1], coord[0], coord[1], coord[2]);
+	}
+	else { /* else we get un-initialized value, 0.0 ok default? */
+		fUV[0]= fUV[1]= 0.0f;
 	}
 }
 
