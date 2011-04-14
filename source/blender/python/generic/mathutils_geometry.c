@@ -72,7 +72,7 @@ static char M_Geometry_intersect_ray_tri_doc[] =
 "   :type ray: :class:`mathutils.Vector`\n"
 "   :arg orig: Origin\n"
 "   :type orig: :class:`mathutils.Vector`\n"
-"   :arg clip: Clip by the ray length\n"
+"   :arg clip: When False, don't restrict the intersection to the area of the triangle, use the infinite plane defined by the triangle.\n"
 "   :type clip: boolean\n"
 "   :return: The point of intersection or None if no intersection is found\n"
 "   :rtype: :class:`mathutils.Vector` or None\n"
