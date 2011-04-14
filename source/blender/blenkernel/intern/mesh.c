@@ -835,7 +835,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 	}
 
 	*allvert= mvert= MEM_callocN(sizeof (MVert) * totvert, "nurbs_init mvert");
-	*allface= mface= MEM_callocN(sizeof (MVert) * totvlak, "nurbs_init mface");
+	*allface= mface= MEM_callocN(sizeof (MFace) * totvlak, "nurbs_init mface");
 
 	/* verts and faces */
 	vertcount= 0;
