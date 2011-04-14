@@ -1914,7 +1914,7 @@ static void edgeloop_select(EditMesh *em, EditEdge *starteed, int select)
 		if(eed->f2) EM_select_edge(eed, select);
 	}
 
-	if(select == FALSE) {
+	if(select == FALSE && !(em->selectmode & SCE_SELECT_VERTEX)) { /* only when not in vert sel [#26931] */
 		ensure_ed_vert_sel(em);
 	}
 }
@@ -1987,7 +1987,7 @@ static void edgering_select(EditMesh *em, EditEdge *startedge, int select)
 			if(eed->f2) EM_select_edge(eed, select);
 	}
 
-	if(select == FALSE) {
+	if(select == FALSE && !(em->selectmode & SCE_SELECT_VERTEX)) { /* only when not in vert sel [#26931] */
 		ensure_ed_vert_sel(em);
 	}
 }
