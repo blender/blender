@@ -487,12 +487,9 @@ void makeraytree(Render *re)
 /* 	if(shi->osatex)  */
 static void shade_ray_set_derivative(ShadeInput *shi)
 {
-	float *v1= shi->v1->co;
-	float *v2= shi->v2->co;
-	float *v3= shi->v3->co;
 	float detsh, t00, t10, t01, t11, xn, yn, zn;
 	int axis1, axis2;
-	
+
 	/* find most stable axis to project */
 	xn= fabs(shi->facenor[0]);
 	yn= fabs(shi->facenor[1]);
@@ -503,9 +500,27 @@ static void shade_ray_set_derivative(ShadeInput *shi)
 	else { axis1= 1; axis2= 2; }
 	
 	/* compute u,v and derivatives */
-	t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
-	t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
-	
+	if(shi->obi->flag & R_TRANSFORMED) {
+		float v1[3], v2[3], v3[3];
+
+		mul_v3_m3v3(v1, shi->obi->nmat, shi->v1->co);
+		mul_v3_m3v3(v2, shi->obi->nmat, shi->v2->co);
+		mul_v3_m3v3(v3, shi->obi->nmat, shi->v3->co);
+
+		/* same as below */
+		t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
+		t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
+	}
+	else {
+		float *v1= shi->v1->co;
+		float *v2= shi->v2->co;
+		float *v3= shi->v3->co;
+
+		/* same as above */
+		t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
+		t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
+	}
+
 	detsh= 1.0f/(t00*t11-t10*t01);
 	t00*= detsh; t01*=detsh; 
 	t10*=detsh; t11*=detsh;
