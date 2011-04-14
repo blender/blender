@@ -306,7 +306,23 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 		}
 	}
 	
-	return rect->xmin < rect->xmax && rect->ymin < rect->ymax;
+	if (rect->xmin < rect->xmax && rect->ymin < rect->ymax) {
+		/* expand redraw rect with redraw rect from previous step to prevent
+		   partial-redraw issues caused by fast strokes. This is needed here (not in sculpt_flush_update)
+		   as it was before because redraw rectangle should be the same in both of
+		   optimized PBVH draw function and 3d view redraw (if not -- some mesh parts could
+		   disapper from screen (sergey) */
+		SculptSession *ss = ob->sculpt;
+
+		if (ss->cache) {
+			if (!BLI_rcti_is_empty(&ss->cache->previous_r))
+				BLI_union_rcti(rect, &ss->cache->previous_r);
+		}
+
+		return 1;
+	}
+
+	return 0;
 }
 
 void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
@@ -3417,19 +3433,13 @@ static void sculpt_flush_update(bContext *C)
 
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB, NULL);
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
+			if (ss->cache)
+				ss->cache->previous_r= r;
+
 			r.xmin += ar->winrct.xmin + 1;
 			r.xmax += ar->winrct.xmin - 1;
 			r.ymin += ar->winrct.ymin + 1;
 			r.ymax += ar->winrct.ymin - 1;
-
-			if (ss->cache) {
-				rcti tmp = r;
-
-				if (!BLI_rcti_is_empty(&ss->cache->previous_r))
-					BLI_union_rcti(&r, &ss->cache->previous_r);
-
-				ss->cache->previous_r= tmp;
-			}
 
 			ss->partial_redraw = 1;
 			ED_region_tag_redraw_partial(ar, &r);
