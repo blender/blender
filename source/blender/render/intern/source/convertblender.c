@@ -531,8 +531,8 @@ static void GetPosition(const SMikkTSpaceContext * pContext, float fPos[], const
 	//assert(vert_index>=0 && vert_index<4);
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
-	VertRen * pVerts[] = {vlr->v1, vlr->v2, vlr->v3, vlr->v4};
-	VECCOPY(fPos, pVerts[vert_index]->co);
+	const float *co= (&vlr->v1)[vert_index]->co;
+	VECCOPY(fPos, co);
 }
 
 static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[], const int face_num, const int vert_index)
@@ -549,8 +549,9 @@ static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[
 	}
 	else
 	{
-		VertRen * pVerts[] = {vlr->v1, vlr->v2, vlr->v3, vlr->v4};
-		map_to_sphere(&fUV[0], &fUV[1], pVerts[vert_index]->orco[0], pVerts[vert_index]->orco[1], pVerts[vert_index]->orco[2]);
+		const float *orco= (&vlr->v1)[vert_index]->orco;
+		map_to_sphere(&fUV[0], &fUV[1], orco[0], orco[1], orco[2]);
+
 	}
 }
 
@@ -559,8 +560,8 @@ static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const 
 	//assert(vert_index>=0 && vert_index<4);
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
-	VertRen * pVerts[] = {vlr->v1, vlr->v2, vlr->v3, vlr->v4};
-	VECCOPY(fNorm, pVerts[vert_index]->n);
+	const float *n= (&vlr->v1)[vert_index]->n;
+	VECCOPY(fNorm, n);
 }
 static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent[], const float fSign, const int face_num, const int iVert)
 {
