@@ -1453,19 +1453,19 @@ void draw_nodespace_color_info(ARegion *ar, int channels, int x, int y, char *cp
 		if(cp)
 			ofs+= sprintf(str+ofs, "| R: %3d G: %3d B: %3d A: %3d ", cp[0], cp[1], cp[2], cp[3]);
 		if (fp)
-			ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
+			ofs+= sprintf(str+ofs, "| R: %.4f G: %.4f B: %.4f A: %.4f ", fp[0], fp[1], fp[2], fp[3]);
 	}
 	else if(channels==1) {
 		if(cp)
 			ofs+= sprintf(str+ofs, "| Val: %3d ", cp[0]);
 		if (fp)
-			ofs+= sprintf(str+ofs, "| Val: %.3f ", fp[0]);
+			ofs+= sprintf(str+ofs, "| Val: %.4f ", fp[0]);
 	}
 	else if(channels==3) {
 		if(cp)
 			ofs+= sprintf(str+ofs, "| R: %3d G: %3d B: %3d ", cp[0], cp[1], cp[2]);
 		if (fp)
-			ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f ", fp[0], fp[1], fp[2]);
+			ofs+= sprintf(str+ofs, "| R: %.4f G: %.4f B: %.4f ", fp[0], fp[1], fp[2]);
 	}
 
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
