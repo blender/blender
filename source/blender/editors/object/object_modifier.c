@@ -412,7 +412,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		}
 		mesh_pmv_off(me);
 		
-		dm = mesh_create_derived_for_modifier(scene, ob, md);
+		dm = mesh_create_derived_for_modifier(scene, ob, md, 0);
 		if (!dm) {
 			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
 			return 0;
@@ -452,12 +452,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		DerivedMesh *dm;
 		Mesh *me = ob->data;
 		MultiresModifierData *mmd= find_multires_modifier_before(scene, md);
-
-		if( me->key) {
-			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
-			return 0;
-		}
-
+		
 		mesh_pmv_off(me);
 
 		/* Multires: ensure that recent sculpting is applied */
@@ -470,19 +465,19 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 				return 0;
 			}
 		} else {
-			dm = mesh_create_derived_for_modifier(scene, ob, md);
+			dm = mesh_create_derived_for_modifier(scene, ob, md, 1);
 			if (!dm) {
 				BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
 				return 0;
 			}
 
-			DM_to_mesh(dm, me);
+			DM_to_mesh(dm, me, ob);
 
 			dm->release(dm);
 
 			if(md->type == eModifierType_Multires) {
-				CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
-				CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+				CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
+				CustomData_free_layer_active(&me->ldata, CD_MDISPS, me->totloop);
 			}
 		}
 	} 
@@ -1166,7 +1161,7 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
 	if(!me)
 		return OPERATOR_CANCELLED;
 
-	if(CustomData_external_test(&me->fdata, CD_MDISPS))
+	if(CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "filepath", path);
@@ -1174,8 +1169,8 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
 	if(relative)
 		BLI_path_rel(path, G.main->name);
 
-	CustomData_external_add(&me->fdata, &me->id, CD_MDISPS, me->totface, path);
-	CustomData_external_write(&me->fdata, &me->id, CD_MASK_MESH, me->totface, 0);
+	CustomData_external_add(&me->ldata, &me->id, CD_MDISPS, me->totloop, path);
+	CustomData_external_write(&me->ldata, &me->id, CD_MASK_MESH, me->totloop, 0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1195,7 +1190,7 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *U
 	if (!mmd)
 		return OPERATOR_CANCELLED;
 	
-	if(CustomData_external_test(&me->fdata, CD_MDISPS))
+	if(CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
@@ -1239,11 +1234,11 @@ static int multires_external_pack_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= ob->data;
 
-	if(!CustomData_external_test(&me->fdata, CD_MDISPS))
+	if(!CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
 	// XXX don't remove..
-	CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
+	CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
 	
 	return OPERATOR_FINISHED;
 }

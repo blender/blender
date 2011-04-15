@@ -113,7 +113,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	float mtx[4][4], imtx[4][4];
 	int i, j, *vtargetmap = NULL;
 	BLI_array_declare(vtargetmap);
-	int vector_size=0, a, b;
+	int vector_size=0, a, b, totshape;
 	
 	origdm = dm;
 	if (!CDDM_Check(dm))
@@ -162,6 +162,15 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		if (fabs(mv->co[axis]) < tolerance) {
 			BLI_array_append(vtargetmap, i+dm->numVertData);
 		} else BLI_array_append(vtargetmap, -1);
+	}
+	
+	/*handle shape keys*/
+	totshape = CustomData_number_of_layers(&cddm->vertData, CD_SHAPEKEY);
+	for (a=0; a<totshape; a++) {
+		float (*cos)[3] = CustomData_get_layer_n(&cddm->vertData, CD_SHAPEKEY, a);
+		for (i=dm->numVertData; i<cddm->numVertData; i++) {
+			cos[i][axis] = -cos[i][axis];
+		}
 	}
 	
 	for (i=0; i<dm->numVertData; i++) {

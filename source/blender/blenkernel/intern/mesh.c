@@ -1433,7 +1433,7 @@ void nurbs_to_mesh(Object *ob)
 		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 	} else {
 		me= add_mesh("Mesh");
-		DM_to_mesh(dm, me);
+		DM_to_mesh(dm, me, ob);
 	}
 
 	me->totcol= cu->totcol;
@@ -1715,7 +1715,7 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 		ml = mloop + mp->loopstart;
 		/*this is kindof hackish, probably need to calculate quads around face center for
 		  ngons, not this weird quad-fitting thing I've got going here*/
-		for (j=0; j<mp->totloop; j += 4, ml++) {
+		for (j=0; j<mp->totloop; j += 4, ml += 4) {
 			int v1, v2, v3, v4;
 			
 			v1 = ml->v; 
@@ -1744,7 +1744,7 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 		mf = mfaces;
 		for (i=0; i<numFaces; i++, mf++, origIndexFace++) {
 			if (*origIndexFace < numPolys) {
-				VECCOPY(fnors[i], tnorms[*origIndexFace]);
+				VECCOPY(fnors[i], pnors[*origIndexFace]);
 			} else {
 				/*eek, we're not corrusponding to polys*/
 				printf("error in mesh_calc_normals; tesselation face indices are incorrect.  normals may look bad.\n");

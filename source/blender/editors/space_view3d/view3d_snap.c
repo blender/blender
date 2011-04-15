@@ -84,6 +84,7 @@ typedef struct TransVert {
 	float *val, oldval;
 	int flag;
 	float *nor;
+	int f1;
 } TransVert;
 
 static TransVert *transvmain=NULL;
@@ -197,8 +198,10 @@ static void set_mapped_co(void *vuserdata, int index, float *co, float *no, shor
 	TransVert *tv = userdata[1];
 	BMVert *eve = EDBM_get_vert_for_index(em, index);
 	
-	if (BMINDEX_GET(eve) != -1)
+	if (BMINDEX_GET(eve) != -1 && !tv[BMINDEX_GET(eve)].f1) {
 		copy_v3_v3(tv[BMINDEX_GET(eve)].maploc, co);
+		tv[BMINDEX_GET(eve)].f1 = 1;
+	}
 }
 
 /* copied from editobject.c, needs to be replaced with new transform code still */

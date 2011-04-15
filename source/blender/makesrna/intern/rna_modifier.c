@@ -406,7 +406,7 @@ static int rna_MultiresModifier_external_get(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	Mesh *me= ob->data;
 
-	return CustomData_external_test(&me->fdata, CD_MDISPS);
+	return CustomData_external_test(&me->ldata, CD_MDISPS);
 }
 
 static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)

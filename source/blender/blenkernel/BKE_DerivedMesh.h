@@ -446,7 +446,7 @@ int DM_release(DerivedMesh *dm);
 
 /* utility function to convert a DerivedMesh to a Mesh
  */
-void DM_to_mesh(DerivedMesh *dm, struct Mesh *me);
+void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob);
 
 /* utility function to convert a DerivedMesh to a shape key block 
  */
@@ -585,7 +585,8 @@ DerivedMesh *mesh_get_derived_final(struct Scene *scene, struct Object *ob,
 DerivedMesh *mesh_get_derived_deform(struct Scene *scene, struct Object *ob,
 									 CustomDataMask dataMask);
 
-DerivedMesh *mesh_create_derived_for_modifier(struct Scene *scene, struct Object *ob, struct ModifierData *md);
+DerivedMesh *mesh_create_derived_for_modifier(struct Scene *scene, struct Object *ob,
+											  struct ModifierData *md, int build_shapekey_layers);
 
 DerivedMesh *mesh_create_derived_render(struct Scene *scene, struct Object *ob,
 										CustomDataMask dataMask);
@@ -620,7 +621,8 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(struct Scene *scene, struct Ob
 												 CustomDataMask dataMask);
 float (*editbmesh_get_vertex_cos(struct BMEditMesh *em, int *numVerts_r))[3];
 int editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, DerivedMesh *dm);
-void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *em, CustomDataMask dataMask);
+void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *em, 
+	CustomDataMask dataMask, int build_shapekey_layers);
 
 /* returns an array of deform matrices for crazyspace correction, and the
    number of modifiers left */

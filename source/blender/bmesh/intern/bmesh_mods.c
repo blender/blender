@@ -263,9 +263,7 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 	BMLoop *nl;
 	BMFace *face;
 
-	/*this isn't the best thing in the world.  it doesn't handle cases where there's
-	  multiple faces yet.  that might require a convexity test to figure out which
-	  face is "best," and who knows what for non-manifold conditions.*/
+	/*be warned: this can do weird things in some ngon situation, see BM_LegalSplits*/
 	for (face = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
 		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
 			if (v == v2) {

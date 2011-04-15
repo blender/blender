@@ -1872,6 +1872,10 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me, int use_mdisps)
 	add_orig = !CustomData_has_layer(&em->bm->pdata, CD_ORIGINDEX);
 
 	flag = use_mdisps ? CD_MASK_DERIVEDMESH|CD_MASK_MDISPS : CD_MASK_DERIVEDMESH;
+	
+	/*don't process shapekeys, we only feed them through the modifier stack as needed,
+      e.g. for applying modifiers or the like*/
+	flag &= ~CD_SHAPEKEY;
 	CustomData_merge(&em->bm->vdata, &dm->vertData, flag,
 	                 CD_CALLOC, dm->numVertData);
 	CustomData_merge(&em->bm->edata, &dm->edgeData, flag,

@@ -4723,7 +4723,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		mesh_update_customdata_pointers(me);
 		
 		/*force customdata update*/
-		makeDerivedMesh(scene, pop->ps.ob, NULL, CD_MASK_BAREMESH);
+		makeDerivedMesh(scene, pop->ps.ob, NULL, CD_MASK_BAREMESH, 0);
 
 		/* Dont allow brush size below 2 */
 		if (pop->ps.brush && pop->ps.brush->size<=1)

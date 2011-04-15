@@ -116,7 +116,7 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 	/* disable subsurf temporal, get mapped cos, and enable it */
 	if(modifiers_disable_subsurf_temporary(obedit)) {
 		/* need to make new derivemesh */
-		makeDerivedMesh(scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
+		makeDerivedMesh(scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH, 0);
 	}
 
 	/* now get the cage */

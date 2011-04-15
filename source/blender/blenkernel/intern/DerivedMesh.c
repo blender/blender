@@ -33,7 +33,7 @@
 
 
 #include <string.h>
-
+#include "limits.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -77,7 +77,10 @@
 
 #include "ED_sculpt.h" /* for ED_sculpt_modifiers_changed */
 
-///////////////////////////////////
+static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *ob);
+static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape_uid);
+
+		///////////////////////////////////
 ///////////////////////////////////
 
 static MVert *dm_getVertArray(DerivedMesh *dm)
@@ -364,13 +367,14 @@ void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
 	target->numPolyData = source->getNumFaces(source);
 }
 
-void DM_to_mesh(DerivedMesh *dm, Mesh *me)
+void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 {
 	/* dm might depend on me, so we need to do everything with a local copy */
 	Mesh tmp = *me;
 	DMFaceIter *iter;
 	int totvert, totedge, totface, totloop, totpoly;
-
+	int did_shapekeys=0;
+	
 	memset(&tmp.vdata, 0, sizeof(tmp.vdata));
 	memset(&tmp.edata, 0, sizeof(tmp.edata));
 	memset(&tmp.fdata, 0, sizeof(tmp.fdata));
@@ -396,6 +400,31 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 	CustomData_copy(&dm->loopData, &tmp.ldata, CD_MASK_MESH, CD_DUPLICATE, totloop);
 	CustomData_copy(&dm->polyData, &tmp.pdata, CD_MASK_MESH, CD_DUPLICATE, totpoly);
 
+	if (CustomData_has_layer(&dm->vertData, CD_SHAPEKEY)) {
+		KeyBlock *kb;
+		int i=0;
+		
+		if (ob) {
+			for (kb=me->key->block.first; kb; kb=kb->next, i++) {
+				if (i == ob->shapenr-1) {
+					i = kb->uid;
+					break;
+				}
+			}
+			
+			if (!kb) {
+				printf("error in DM_to_mesh: could not find active shapekey! eek!!\n");
+				i = INT_MAX;
+			}
+		} else {
+			/*if no object, set to INT_MAX so we don't mess up any shapekey layers*/
+			i = INT_MAX;
+		}
+		
+		shapekey_layers_to_keyblocks(dm, me, i);
+		did_shapekeys = 1;
+	}
+	
 	/* not all DerivedMeshes store their verts/edges/faces in CustomData, so
 	   we set them here in case they are missing */
 	if(!CustomData_has_layer(&tmp.vdata, CD_MVERT))
@@ -409,10 +438,10 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 
 	/* object had got displacement layer, should copy this layer to save sculpted data */
 	/* NOTE: maybe some other layers should be copied? nazgul */
-	if(CustomData_has_layer(&me->fdata, CD_MDISPS)) {
-		if (totface == me->totface) {
-			MDisps *mdisps = CustomData_get_layer(&me->fdata, CD_MDISPS);
-			CustomData_add_layer(&tmp.fdata, CD_MDISPS, CD_DUPLICATE, mdisps, totface);
+	if(CustomData_has_layer(&me->ldata, CD_MDISPS)) {
+		if (totloop == me->totloop) {
+			MDisps *mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
+			CustomData_add_layer(&tmp.ldata, CD_MDISPS, CD_DUPLICATE, mdisps, totloop);
 		}
 	}
 
@@ -424,10 +453,10 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 	CustomData_free(&me->ldata, me->totloop);
 	CustomData_free(&me->pdata, me->totpoly);
 
-	/* BMESH_TODO/XXX: ok, this should use new CD shapekey data,
-	                   which shouuld be fed through the modifier 
-					   stack*/
-	if(tmp.totvert != me->totvert) {
+	/*  ok, this should now use new CD shapekey data,
+	    which shouuld be fed through the modifier 
+		stack*/
+	if(tmp.totvert != me->totvert && !did_shapekeys) {
 		printf("YEEK! this should be recoded! Shape key loss!!!\n");
 		if(tmp.key) tmp.key->id.us--;
 		tmp.key = NULL;
@@ -672,7 +701,8 @@ DerivedMesh *mesh_create_derived(Mesh *me, Object *ob, float (*vertCos)[3])
 
 /***/
 
-DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, ModifierData *md)
+DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, 
+	ModifierData *md, int build_shapekey_layers)
 {
 	Mesh *me = ob->data;
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -682,7 +712,11 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, Modifier
 	
 	if (!(md->mode&eModifierMode_Realtime)) return NULL;
 	if (mti->isDisabled && mti->isDisabled(md, 0)) return NULL;
-
+	
+	if (build_shapekey_layers && me->key && ob->shapenr <= BLI_countlist(&me->key->block)) {
+		key_to_mesh(BLI_findlink(&me->key->block, ob->shapenr-1), me);
+	}
+	
 	if (mti->type==eModifierTypeType_OnlyDeform) {
 		int numVerts;
 		float (*deformedVerts)[3] = mesh_getVertexCos(me, &numVerts);
@@ -690,9 +724,16 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, Modifier
 		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, 0, 0);
 		dm = mesh_create_derived(me, ob, deformedVerts);
 
+		if (build_shapekey_layers)
+			add_shapekey_layers(dm, me, ob);
+		
 		MEM_freeN(deformedVerts);
 	} else {
 		DerivedMesh *tdm = mesh_create_derived(me, ob, NULL);
+
+		if (build_shapekey_layers)
+			add_shapekey_layers(tdm, me, ob);
+		
 		dm = mti->applyModifier(md, ob, tdm, 0, 0);
 
 		if(tdm != dm) tdm->release(tdm);
@@ -924,6 +965,92 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	dfiter->free(dfiter);
 }
 
+
+static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape_uid)
+{
+	KeyBlock *kb;
+	int i, j, tot;
+	
+	if (!me->key)
+		return;	
+	
+	tot = CustomData_number_of_layers(&dm->vertData, CD_SHAPEKEY);
+	for (i=0; i<tot; i++) {
+		CustomDataLayer *layer = &dm->vertData.layers[CustomData_get_layer_index_n(&dm->vertData, CD_SHAPEKEY, i)];
+		float (*cos)[3], (*kbcos)[3];
+		
+		for (kb=me->key->block.first; kb; kb=kb->next) {
+			if (kb->uid == layer->uid)
+				break;
+		}
+		
+		if (!kb) {
+			kb = add_keyblock(me->key, layer->name);
+			kb->uid = layer->uid;
+		}
+		
+		if (kb->data)
+			MEM_freeN(kb->data);
+		
+		cos = CustomData_get_layer_n(&dm->vertData, CD_SHAPEKEY, i);
+		kb->totelem = dm->numVertData;
+
+		kb->data = kbcos = MEM_mallocN(sizeof(float)*3*kb->totelem, "kbcos DerivedMesh.c");
+		if (kb->uid == actshape_uid) {
+			MVert *mvert = dm->getVertArray(dm);
+			
+			for (j=0; j<dm->numVertData; j++, kbcos++, mvert++) {
+				copy_v3_v3(*kbcos, mvert->co);
+			}
+		} else {
+			for (j=0; j<kb->totelem; j++, cos++, kbcos++) {
+				copy_v3_v3(*kbcos, *cos);
+			}
+		}
+	}
+	
+	for (kb=me->key->block.first; kb; kb=kb->next) {
+		if (kb->totelem != dm->numVertData) {
+			if (kb->data)
+				MEM_freeN(kb->data);
+			
+			kb->totelem = dm->numVertData;
+			kb->data = MEM_callocN(sizeof(float)*3*kb->totelem, "kb->data derivedmesh.c");
+			printf("eek! lost a shapekey layer!\n");
+		}
+	}
+}
+
+static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *ob)
+{
+	KeyBlock *kb;
+	Key *key = me->key;
+	int a, b;
+	
+	if (!me->key)
+		return;
+	
+	if (dm->numVertData != me->totvert) {
+		printf("error in add_shapekey_layers: dm isn't the same size as me\n");
+		return;
+	}
+		
+	for (a=0, kb=key->block.first; kb; kb=kb->next, a++) {
+		float (*cos)[3] = CustomData_add_layer_named(&dm->vertData, CD_SHAPEKEY, CD_CALLOC, NULL, dm->numVertData, kb->name);
+		int ci = CustomData_get_layer_index_n(&dm->vertData, CD_SHAPEKEY, a);
+		
+		dm->vertData.layers[ci].uid = kb->uid;
+		if (kb->totelem != dm->numVertData) {
+			printf("error in add_shapekey_layers: totelem and totvert don't match");
+			continue;
+		}
+		
+		for (b=0; b<kb->totelem; b++, cos++) {
+			copy_v3_v3(cos, ((float*)kb->data)+b*3);
+		}
+	}
+}
+
 /* new value for useDeform -1  (hack for the gameengine):
  * - apply only the modifier stack of the object, skipping the virtual modifiers,
  * - don't apply the key
@@ -932,7 +1059,8 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos)[3],
 								DerivedMesh **deform_r, DerivedMesh **final_r,
 								int useRenderParams, int useDeform,
-								int needMapping, CustomDataMask dataMask, int index, int useCache)
+								int needMapping, CustomDataMask dataMask, 
+								int index, int useCache, int build_shapekey_layers)
 {
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md;
@@ -1007,7 +1135,10 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		 */
 		if (deform_r) {
 			*deform_r = CDDM_from_mesh(me, ob);
-
+			
+			if (build_shapekey_layers)
+				add_shapekey_layers(dm, me, ob);
+			
 			if(deformedVerts) {
 				CDDM_apply_vert_coords(*deform_r, deformedVerts);
 				CDDM_calc_normals(*deform_r);
@@ -1081,7 +1212,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			/* if this is not the last modifier in the stack then recalculate the normals
 			 * to avoid giving bogus normals to the next modifier see: [#23673] */
-			if(isPrevDeform &&  mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+			if(dm && isPrevDeform &&  mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 				/* XXX, this covers bug #23673, but we may need normal calc for other types */
 				if(dm->type == DM_TYPE_CDDM) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
@@ -1111,6 +1242,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			} else {
 				dm = CDDM_from_mesh(me, ob);
+
+				if (build_shapekey_layers)
+					add_shapekey_layers(dm, me, ob);
 
 				if(deformedVerts) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
@@ -1239,14 +1373,19 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		finaldm = dm;
 	} else {
 		finaldm = CDDM_from_mesh(me, ob);
-
+		
+		if (build_shapekey_layers)
+			add_shapekey_layers(finaldm, me, ob);
+		
 		if(deformedVerts) {
 			CDDM_apply_vert_coords(finaldm, deformedVerts);
-			CDDM_calc_normals(finaldm);
 		}
 
+		CDDM_calc_normals(finaldm);
+		
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm);
+		
 	}
 
 	/* add an orco layer if needed */
@@ -1519,7 +1658,8 @@ static void clear_mesh_caches(Object *ob)
 	}
 }
 
-static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
+static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask,
+	int build_shapekey_layers)
 {
 	Object *obact = scene->basact?scene->basact->object:NULL;
 	int editing = paint_facesel_test(ob);
@@ -1530,7 +1670,7 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 
 	mesh_calc_modifiers(scene, ob, NULL, &ob->derivedDeform,
 						&ob->derivedFinal, 0, 1,
-						needMapping, dataMask, -1, 1);
+						needMapping, dataMask, -1, 1, build_shapekey_layers);
 
 	DM_set_object_boundbox (ob, ob->derivedFinal);
 
@@ -1564,12 +1704,13 @@ static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, C
 	em->derivedCage->needsFree = 0;
 }
 
-void makeDerivedMesh(Scene *scene, Object *ob, BMEditMesh *em, CustomDataMask dataMask)
+void makeDerivedMesh(Scene *scene, Object *ob, BMEditMesh *em,
+	CustomDataMask dataMask, int build_shapekey_layers)
 {
 	if (em) {
 		editbmesh_build_data(scene, ob, em, dataMask);
 	} else {
-		mesh_build_data(scene, ob, dataMask);
+		mesh_build_data(scene, ob, dataMask, build_shapekey_layers);
 	}
 }
 
@@ -1581,7 +1722,7 @@ DerivedMesh *mesh_get_derived_final(Scene *scene, Object *ob, CustomDataMask dat
 	 * the data we need, rebuild the derived mesh
 	 */
 	if(!ob->derivedFinal || (dataMask & ob->lastDataMask) != dataMask)
-		mesh_build_data(scene, ob, dataMask);
+		mesh_build_data(scene, ob, dataMask, 0);
 
 	return ob->derivedFinal;
 }
@@ -1592,7 +1733,7 @@ DerivedMesh *mesh_get_derived_deform(Scene *scene, Object *ob, CustomDataMask da
 	 * the data we need, rebuild the derived mesh
 	 */
 	if(!ob->derivedDeform || (dataMask & ob->lastDataMask) != dataMask)
-		mesh_build_data(scene, ob, dataMask);
+		mesh_build_data(scene, ob, dataMask, 0);
 
 	return ob->derivedDeform;
 }
@@ -1601,7 +1742,7 @@ DerivedMesh *mesh_create_derived_render(Scene *scene, Object *ob, CustomDataMask
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, -1, 0);
+	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, -1, 0, 0);
 
 	return final;
 }
@@ -1610,7 +1751,7 @@ DerivedMesh *mesh_create_derived_index_render(Scene *scene, Object *ob, CustomDa
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, index, 0);
+	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, index, 0, 0);
 
 	return final;
 }
@@ -1619,7 +1760,7 @@ DerivedMesh *mesh_create_derived_view(Scene *scene, Object *ob, CustomDataMask d
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 0, 1, 0, dataMask, -1, 0);
+	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 0, 1, 0, dataMask, -1, 0, 0);
 
 	return final;
 }
@@ -1629,7 +1770,7 @@ DerivedMesh *mesh_create_derived_no_deform(Scene *scene, Object *ob, float (*ver
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, 0, 0, dataMask, -1, 0);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, 0, 0, dataMask, -1, 0, 0);
 
 	return final;
 }
@@ -1639,7 +1780,7 @@ DerivedMesh *mesh_create_derived_no_virtual(Scene *scene, Object *ob, float (*ve
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, -1, 0, dataMask, -1, 0);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, -1, 0, dataMask, -1, 0, 0);
 
 	return final;
 }
@@ -1649,7 +1790,7 @@ DerivedMesh *mesh_create_derived_physics(Scene *scene, Object *ob, float (*vertC
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, -1, 1, dataMask, -1, 0);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, -1, 1, dataMask, -1, 0, 0);
 
 	return final;
 }
@@ -1660,7 +1801,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Scene *scene, Object *ob,
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 1, 0, 0, dataMask, -1, 0);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 1, 0, 0, dataMask, -1, 0, 0);
 
 	return final;
 }

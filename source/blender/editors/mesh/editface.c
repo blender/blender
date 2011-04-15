@@ -118,7 +118,7 @@ static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, short *mv
 	me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, 
 		me->mvert, me->totface, me->totloop, me->totpoly, 0, 0);
 	mesh_update_customdata_pointers(me);
-	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
+	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH, 0);
 
 	// XXX 	if (v3d->flag & V3D_INVALID_BACKBUF) {
 // XXX drawview.c!		check_backbuf();

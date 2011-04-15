@@ -1175,7 +1175,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			dm= mesh_get_derived_final(scene, newob, CD_MASK_MESH);
 			/* dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton) */
 
-			DM_to_mesh(dm, newob->data);
+			DM_to_mesh(dm, newob->data, newob);
 
 			dm->release(dm);
 			object_free_modifiers(newob);	/* after derivedmesh calls! */

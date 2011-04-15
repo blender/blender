@@ -969,7 +969,7 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_CLOTH_ORCO |
 	CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_WEIGHT_MLOOPCOL |
 	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | 
-	CD_MASK_WEIGHT_MCOL | CD_MASK_NORMAL;
+	CD_MASK_WEIGHT_MCOL | CD_MASK_NORMAL | CD_MASK_SHAPEKEY;
 const CustomDataMask CD_MASK_BMESH = CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | 
 	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS;
@@ -1050,6 +1050,8 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 				layer->data, totelem, layer->name);
 		
 		if(newlayer) {
+			newlayer->uid = layer->uid;
+			
 			newlayer->active = lastactive;
 			newlayer->active_rnd = lastrender;
 			newlayer->active_clone = lastclone;
