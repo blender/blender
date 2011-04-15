@@ -914,7 +914,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	float (*vertexNos)[3]= emdm->vertexNos;
 	EditVert *eve;
 	EditFace *efa;
-	DMVertexAttribs attribs;
+	DMVertexAttribs attribs= {{{0}}};
 	GPUVertexAttribs gattribs;
 	MTFace *tf;
 	int transp, new_transp, orig_transp, tfoffset;
@@ -927,8 +927,6 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	orig_transp = transp;
 	layer = CustomData_get_layer_index(&em->fdata, CD_MTFACE);
 	tfoffset = (layer == -1)? -1: em->fdata.layers[layer].offset;
-
-	memset(&attribs, 0, sizeof(attribs));
 
 	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
 	glShadeModel(GL_SMOOTH);
@@ -2522,8 +2520,7 @@ static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[
 	//assert(vert_index>=0 && vert_index<4);
 	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 
-	if(pMesh->mtface!=NULL)
-	{
+	if(pMesh->mtface!=NULL) {
 		float * uv = pMesh->mtface[face_num].uv[vert_index];
 		fUV[0]=uv[0]; fUV[1]=uv[1];
 	}
@@ -2539,8 +2536,7 @@ static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const 
 	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 
 	const int smoothnormal = (pMesh->mface[face_num].flag & ME_SMOOTH);
-	if(!smoothnormal)	// flat
-	{
+	if(!smoothnormal) {	// flat
 		if(pMesh->precomputedFaceNormals) {
 			VECCOPY(fNorm, &pMesh->precomputedFaceNormals[3*face_num]);
 		}
@@ -2619,14 +2615,10 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 
 	// new computation method
 	iCalcNewMethod = 1;
-	if(iCalcNewMethod!=0)
-	{
-		SGLSLMeshToTangent mesh2tangent;
-		SMikkTSpaceContext sContext;
-		SMikkTSpaceInterface sInterface;
-		memset(&mesh2tangent, 0, sizeof(SGLSLMeshToTangent));
-		memset(&sContext, 0, sizeof(SMikkTSpaceContext));
-		memset(&sInterface, 0, sizeof(SMikkTSpaceInterface));
+	if(iCalcNewMethod != 0) {
+		SGLSLMeshToTangent mesh2tangent= {0};
+		SMikkTSpaceContext sContext= {0};
+		SMikkTSpaceInterface sInterface= {0};
 
 		mesh2tangent.precomputedFaceNormals = nors;
 		mesh2tangent.mtface = mtface;
@@ -2649,8 +2641,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 		iCalcNewMethod = genTangSpaceDefault(&sContext);
 	}
 
-	if(!iCalcNewMethod)
-	{
+	if(!iCalcNewMethod) {
 		/* sum tangents at connected vertices */
 		for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++) {
 			v1= &mvert[mf->v1];
