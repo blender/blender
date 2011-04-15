@@ -2705,14 +2705,6 @@ int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle,
 {
 	SceneRenderLayer *srl;
 	
-	/* forbidden combinations */
-	if(scene->r.mode & R_PANORAMA) {
-		if(scene->r.mode & R_ORTHO) {
-			error(erh, "No Ortho render possible for Panorama");
-			return 0;
-		}
-	}
-	
 	if(scene->r.mode & R_BORDER) {
 		if(scene->r.border.xmax <= scene->r.border.xmin ||
 		   scene->r.border.ymax <= scene->r.border.ymin) {
@@ -2775,6 +2767,17 @@ int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle,
 		return 0;
 	}
 	
+	/* get panorama & ortho, only after camera is set */
+	object_camera_mode(&scene->r, scene->camera);
+
+	/* forbidden combinations */
+	if(scene->r.mode & R_PANORAMA) {
+		if(scene->r.mode & R_ORTHO) {
+			error(erh, "No Ortho render possible for Panorama");
+			return 0;
+		}
+	}
+
 	/* layer flag tests */
 	if(scene->r.scemode & R_SINGLE_LAYER) {
 		srl= BLI_findlink(&scene->r.layers, scene->r.actlay);

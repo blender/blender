@@ -2818,6 +2818,16 @@ int object_insert_ptcache(Object *ob)
 	return i;
 }
 
+void object_camera_mode(RenderData *rd, Object *camera)
+{
+	rd->mode &= ~(R_ORTHO|R_PANORAMA);
+	if(camera && camera->type==OB_CAMERA) {
+		Camera *cam= camera->data;
+		if(cam->type == CAM_ORTHO) rd->mode |= R_ORTHO;
+		if(cam->flag & CAM_PANORAMA) rd->mode |= R_PANORAMA;
+	}
+}
+
 /* 'lens' may be set for envmap only */
 void object_camera_matrix(
 		RenderData *rd, Object *camera, int winx, int winy, short field_second,
@@ -2827,8 +2837,7 @@ void object_camera_matrix(
 	Camera *cam=NULL;
 	float pixsize;
 	float shiftx=0.0, shifty=0.0, winside, viewfac;
-
-	rd->mode &= ~(R_ORTHO|R_PANORAMA);
+	short is_ortho= FALSE;
 
 	/* question mark */
 	(*ycor)= rd->yasp / rd->xasp;
@@ -2838,8 +2847,9 @@ void object_camera_matrix(
 	if(camera->type==OB_CAMERA) {
 		cam= camera->data;
 
-		if(cam->type==CAM_ORTHO) rd->mode |= R_ORTHO;
-		if(cam->flag & CAM_PANORAMA) rd->mode |= R_PANORAMA;
+		if(cam->type == CAM_ORTHO) {
+			is_ortho= TRUE;
+		}
 
 		/* solve this too... all time depending stuff is in convertblender.c?
 		 * Need to update the camera early because it's used for projection matrices
@@ -2879,7 +2889,7 @@ void object_camera_matrix(
 	}
 
 	/* ortho only with camera available */
-	if(cam && rd->mode & R_ORTHO) {
+	if(cam && is_ortho) {
 		if(rd->xasp*winx >= rd->yasp*winy) {
 			viewfac= winx;
 		}
@@ -2922,7 +2932,7 @@ void object_camera_matrix(
 	(*viewdx)= pixsize;
 	(*viewdy)= (*ycor) * pixsize;
 
-	if(rd->mode & R_ORTHO)
+	if(is_ortho)
 		orthographic_m4(winmat, viewplane->xmin, viewplane->xmax, viewplane->ymin, viewplane->ymax, *clipsta, *clipend);
 	else
 		perspective_m4(winmat, viewplane->xmin, viewplane->xmax, viewplane->ymin, viewplane->ymax, *clipsta, *clipend);
