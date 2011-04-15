@@ -873,7 +873,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
+	prop= ot->prop= RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
 }
 

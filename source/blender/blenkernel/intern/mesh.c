@@ -1694,7 +1694,7 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 {
 	float (*pnors)[3] = polyNors_r, (*fnors)[3] = faceNors_r;
 	float (*tnorms)[3] = NULL;
-	int i, j, *origIndex;
+	int i, j;
 	MFace *mf;
 	MPoly *mp;
 	MLoop *ml;
@@ -1743,7 +1743,7 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 	if (origIndexFace && fnors==faceNors_r && numFaces) {
 		mf = mfaces;
 		for (i=0; i<numFaces; i++, mf++, origIndexFace++) {
-			if (origIndex < numPolys) {
+			if (*origIndexFace < numPolys) {
 				VECCOPY(fnors[i], tnorms[*origIndexFace]);
 			} else {
 				/*eek, we're not corrusponding to polys*/
