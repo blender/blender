@@ -156,6 +156,9 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 	
 	index = 0;
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BM_TestHFlag(v, BM_SELECT) || BM_TestHFlag(v, BM_HIDDEN))
+			continue;
+		
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_VERT, v) {
 			BMLoop *l2 = BM_OtherFaceLoop(l->e, l->f, v);
 			

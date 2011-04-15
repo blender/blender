@@ -58,6 +58,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_tessmesh.h"
+#include "BKE_DerivedMesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -79,7 +80,7 @@
 
 typedef struct TransVert {
 	float *loc;
-	float oldloc[3], fac;
+	float oldloc[3], maploc[3], fac;
 	float *val, oldval;
 	int flag;
 	float *nor;
@@ -189,6 +190,17 @@ static void special_transvert_update(Object *obedit)
 	}
 }
 
+static void set_mapped_co(void *vuserdata, int index, float *co, float *no, short *no_s)
+{
+	void **	userdata = vuserdata;
+	BMEditMesh *em = userdata[0];
+	TransVert *tv = userdata[1];
+	BMVert *eve = EDBM_get_vert_for_index(em, index);
+	
+	if (BMINDEX_GET(eve) != -1)
+		copy_v3_v3(tv[BMINDEX_GET(eve)].maploc, co);
+}
+
 /* copied from editobject.c, needs to be replaced with new transform code still */
 /* mode flags: */
 #define TM_ALL_JOINTS		1 /* all joints (for bones only) */
@@ -215,6 +227,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		BMEditMesh *em= me->edit_btmesh;
 		BMesh *bm = em->bm;
 		BMIter iter;
+		void *userdata[2] = {em, NULL};
 		int proptrans= 0;
 		
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
@@ -266,16 +279,32 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		/* and now make transverts */
 		if(tottrans) {
 			tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
-
+		
+			a = 0;
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if(BMINDEX_GET(eve)) {
+					BMINDEX_SET(eve, a);
 					VECCOPY(tv->oldloc, eve->co);
 					tv->loc= eve->co;
 					if(eve->no[0] != 0.0f || eve->no[1] != 0.0f ||eve->no[2] != 0.0f)
 						tv->nor= eve->no; // note this is a hackish signal (ton)
 					tv->flag= BMINDEX_GET(eve) & SELECT;
 					tv++;
-				}
+					a++;
+				} else BMINDEX_SET(eve, -1);
+			}
+			
+			userdata[1] = transvmain;
+		}
+		
+		if (transvmain && em->derivedFinal) {
+			EDBM_init_index_arrays(em, 1, 0, 0);
+			em->derivedFinal->foreachMappedVert(em->derivedFinal, set_mapped_co, userdata);
+			EDBM_free_index_arrays(em);
+		} else if (transvmain) {
+			tv = transvmain;
+			for (a=0; a<tottrans; a++, tv++) {
+				copy_v3_v3(tv->maploc, tv->loc);
 			}
 		}
 	}
@@ -978,7 +1007,7 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	
 	tv= transvmain;
 	for(a=0; a<tottrans; a++, tv++) {		
-		VECCOPY(vec, tv->loc);
+		VECCOPY(vec, tv->maploc);
 		mul_m3_v3(bmat, vec);
 		add_v3_v3(vec, obedit->obmat[3]);
 		add_v3_v3(centroid, vec);
