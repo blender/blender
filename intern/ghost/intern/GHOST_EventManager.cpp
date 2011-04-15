@@ -197,6 +197,9 @@ bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event)
 }
 
 bool GHOST_EventManager::playingEvents(bool *hasevent) {
+	if (!m_playfile)
+		return false;
+	
 	if (hasevent && m_events.size()) {
 		GHOST_IEvent *event = m_events[m_events.size()-1];
 		GHOST_System *sys;
@@ -209,7 +212,7 @@ bool GHOST_EventManager::playingEvents(bool *hasevent) {
 	} else if (hasevent) 
 		*hasevent = true;
 	
-	return m_playfile != NULL;
+	return 1;
 }
 
 bool GHOST_EventManager::dispatchEvent()

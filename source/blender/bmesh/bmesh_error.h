@@ -32,11 +32,12 @@ int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 #define BMERR_SELF_INTERSECTING			1
 #define BMERR_DISSOLVEDISK_FAILED		2
 #define BMERR_CONNECTVERT_FAILED		3
-#define BMERR_WALKER_FAILED			4
+#define BMERR_WALKER_FAILED				4
 #define BMERR_DISSOLVEFACES_FAILED		5
 #define BMERR_DISSOLVEVERTS_FAILED		6
-#define BMERR_TESSELATION			7
-#define BMERR_NONMANIFOLD			8
+#define BMERR_TESSELATION				7
+#define BMERR_NONMANIFOLD				8
 #define BMERR_INVALID_SELECTION			9
+#define BMERR_MESH_ERROR				10
 
 #endif /* _BMESH_ERROR_H */

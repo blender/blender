@@ -1850,8 +1850,9 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 			
 		BLI_array_empty(stack);
 		BLI_array_append(stack, v);
-		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);		
 		BLI_array_append(dstack, 0.0f);
+
+		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);		
 		
 		while (BLI_array_count(stack)) {
 			BMIter eiter;
@@ -1860,14 +1861,15 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 			float d, d2, vec[3];
 			
 			v2 = BLI_array_pop(stack);
-			
-			d = dstack[BLI_array_count(dstack)-1]; 
-			BLI_array_pop(dstack);
+			d = BLI_array_pop(dstack);
 			
 			dists[BMINDEX_GET(v2)] = d;
 			BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v2) {
 				float d2;
 				v3 = BM_OtherEdgeVert(e, v2);
+				
+				if (BM_TestHFlag(v3, BM_SELECT) || BM_TestHFlag(v3, BM_HIDDEN))
+					continue;
 				
 				sub_v3_v3v3(vec, v2->co, v3->co);
 				mul_m3_v3(mtx, vec);
@@ -1877,7 +1879,9 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 				if (d2 >= dists[BMINDEX_GET(v3)] && BLI_smallhash_haskey(visit, (uintptr_t)v3))
 					continue;
 				
-				BLI_smallhash_insert(visit, (uintptr_t)v3, NULL);
+				dists[BMINDEX_GET(v3)] = d2;
+				if (!BLI_smallhash_haskey(visit, (uintptr_t)v3))
+					BLI_smallhash_insert(visit, (uintptr_t)v3, NULL);
 				
 				BLI_array_append(stack, v3);
 				BLI_array_append(dstack, d2);

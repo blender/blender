@@ -771,7 +771,7 @@ void bmesh_clear_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int fl
 
 #define FACE_MARK	(1<<10)
 
-static int count_flagged_radial(BMLoop *l, int flag)
+static int count_flagged_radial(BMesh *bm, BMLoop *l, int flag)
 {
 	BMLoop *l2 = l;
 	int i = 0, c=0;
@@ -779,19 +779,23 @@ static int count_flagged_radial(BMLoop *l, int flag)
 	do {
 		if (!l2) {
 			bmesh_error();
-			return 0;
+			goto error;
 		}
 		
 		i += bmesh_api_getflag(l2->f, flag) ? 1 : 0;
 		l2 = bmesh_radial_nextloop(l2);
 		if (c >= 800000) {
 			bmesh_error();
-			return 0;
+			goto error;
 		}
 		c++;
 	} while (l2 != l);
 
 	return i;
+
+error:
+	BMO_RaiseError(bm, bm->currentop, BMERR_MESH_ERROR, NULL);
+	return 0;
 }
 
 static int count_flagged_disk(BMVert *v, int flag)
@@ -874,7 +878,7 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 		f = faces[i];
 		l = bm_firstfaceloop(f);
 		do {
-			int rlen = count_flagged_radial(l, _FLAG_JF);
+			int rlen = count_flagged_radial(bm, l, _FLAG_JF);
 
 			if (rlen > 2) {
 				err = "Input faces do not form a contiguous manifold region";

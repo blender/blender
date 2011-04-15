@@ -56,7 +56,8 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v) {
 	}
 	
 	if (len == 1) {
-		BM_Kill_Edge(bm, v->e);
+		if (v->e) 
+			BM_Kill_Edge(bm, v->e);
 		BM_Kill_Vert(bm, v);
 		return 1;
 	}

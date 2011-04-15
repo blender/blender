@@ -32,6 +32,7 @@ static const char *bmop_error_messages[] = {
        "Tesselation error",
        "Can not deal with non-manifold geometry",
        "Invalid selection",
+	   "Internal mesh error",
 };
 
 
