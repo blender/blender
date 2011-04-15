@@ -477,8 +477,15 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			if (v1 != v2 && v2 != v3 && v3 != v4) {
 				BMIter liter2;
 				BMLoop *l2;
+				BMEdge *e1, *e2;
 				
 				f = BM_Make_QuadTri(bm, v4, v3, v2, v1, l->f, 1);
+
+				e1 = BM_Edge_Exist(v4, v3);
+				e2 = BM_Edge_Exist(v2, v1);
+				BM_Copy_Attributes(bm, bm, l->e, e1);
+				BM_Copy_Attributes(bm, bm, l->e, e2);
+
 				if (!f) {
 					printf("eek!\n");
 					continue;

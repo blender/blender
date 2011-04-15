@@ -135,13 +135,14 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 	BMO_SetFlag(target_mesh, (BMHeader*)target_face, DUPE_NEW);
 	
 	/*copy per-loop custom data*/
-	for (i=0,source_loop=BMIter_New(&iter, source_mesh, BM_LOOPS_OF_FACE, source_face),
-	  target_loop=BMIter_New(&iter2, target_mesh, BM_LOOPS_OF_FACE, target_face);
-	  source_loop && target_loop; source_loop=BMIter_Step(&iter), target_loop=BMIter_Step(&iter2),
-	  i++) {
-		BM_Copy_Attributes(source_mesh, target_mesh, source_loop, target_loop);		
+	BM_ITER(source_loop, &iter, source_mesh, BM_LOOPS_OF_FACE, source_face) {
+		BM_ITER(target_loop, &iter2, target_mesh, BM_LOOPS_OF_FACE, target_face) {
+			if (BLI_ghash_lookup(vhash, source_loop->v) == target_loop->v) {
+				BM_Copy_Attributes(source_mesh, target_mesh, source_loop, target_loop);
+				break;
+			}
+		}
 	}
-
 
 	return target_face;
 }

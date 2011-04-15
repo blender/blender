@@ -533,7 +533,7 @@ BMOpDefine def_extrude_indivface = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "skirtout"}, //output skirt geometry, faces and edges
 	{0} /*null-terminating sentinel*/},
 	bmesh_extrude_face_indiv_exec,
-	BMOP_UNTAN_MULTIRES
+	0
 };
 
 /*
@@ -548,7 +548,7 @@ BMOpDefine def_extrude_onlyedge = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output geometry
 	{0} /*null-terminating sentinel*/},
 	bmesh_extrude_onlyedge_exec,
-	BMOP_UNTAN_MULTIRES
+	0
 };
 
 /*
@@ -563,7 +563,7 @@ BMOpDefine def_extrudeverts_indiv = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output vertices
 	{0} /*null-terminating sentinel*/},
 	extrude_vert_indiv_exec,
-	BMOP_UNTAN_MULTIRES
+	0
 };
 
 BMOpDefine def_connectverts = {
@@ -582,7 +582,7 @@ BMOpDefine def_extrudefaceregion = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
 	{0} /*null-terminating sentinel*/},
 	extrude_edge_context_exec,
-	BMOP_UNTAN_MULTIRES
+	0
 };
 
 BMOpDefine def_dissolvevertsop = {

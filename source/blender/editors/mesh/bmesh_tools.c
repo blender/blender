@@ -4820,8 +4820,8 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		
 		BMO_Exec_Op(em->bm, &bmop);
-		BMO_HeaderFlag_Buffer(em->bm, &bmop, "face_spans", BM_SELECT, BM_FACE);
-		BMO_HeaderFlag_Buffer(em->bm, &bmop, "face_holes", BM_SELECT, BM_FACE);
+		//BMO_HeaderFlag_Buffer(em->bm, &bmop, "face_spans", BM_SELECT, BM_FACE);
+		//BMO_HeaderFlag_Buffer(em->bm, &bmop, "face_holes", BM_SELECT, BM_FACE);
 		BMO_Finish_Op(em->bm, &bmop);
 		
 		fac = fac + (sqrt(fac) - fac)*0.25;
