@@ -548,7 +548,7 @@ static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[
 		coord= tface->uv[vert_index];
 		fUV[0]= coord[0]; fUV[1]= coord[1];
 	}
-	else if(1 || (coord= (&vlr->v1)[vert_index]->orco)) {
+	else if((coord= (&vlr->v1)[vert_index]->orco)) {
 		map_to_sphere(&fUV[0], &fUV[1], coord[0], coord[1], coord[2]);
 	}
 	else { /* else we get un-initialized value, 0.0 ok default? */
