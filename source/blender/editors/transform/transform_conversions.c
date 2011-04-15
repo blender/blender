@@ -1824,16 +1824,15 @@ void flushTransParticles(TransInfo *t)
   or slow this is.*/
 static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], float *dists)
 {
-	BMVert **stack = NULL;
-	float *dstack = NULL;
-	BLI_array_declare(stack);
-	BLI_array_declare(dstack);
+	BMVert **queue = NULL;
+	float *dqueue = NULL;
+	int *tots = MEM_callocN(sizeof(int)*em->bm->totvert, "tots editmesh_set_connectivity_distance");
+	BLI_array_declare(queue);
+	BLI_array_declare(dqueue);
 	SmallHash svisit, *visit=&svisit;
 	BMVert *v;
 	BMIter viter;
 	int i;
-	
-	BLI_smallhash_init(visit);
 	
 	i = 0;
 	BM_ITER(v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -1844,26 +1843,30 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	
 	BM_ITER(v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BMVert *v2;
+		int start;
 		
-		if (BLI_smallhash_haskey(visit, (uintptr_t)v) || BM_TestHFlag(v, BM_SELECT)==0 || BM_TestHFlag(v, BM_HIDDEN))
+		if (BM_TestHFlag(v, BM_SELECT)==0 || BM_TestHFlag(v, BM_HIDDEN))
 			continue;
 			
-		BLI_array_empty(stack);
-		BLI_array_append(stack, v);
-		BLI_array_append(dstack, 0.0f);
+		BLI_smallhash_init(visit);
 
-		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);		
+		BLI_array_empty(queue);
+		BLI_array_append(queue, v);
+		BLI_array_append(dqueue, 0.0f);
+		dists[BMINDEX_GET(v)] = 0.0f;
 		
-		while (BLI_array_count(stack)) {
+		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);		
+		start = 0;
+		
+		while (start < BLI_array_count(queue)) {
 			BMIter eiter;
 			BMEdge *e;
 			BMVert *v3;
 			float d, d2, vec[3];
 			
-			v2 = BLI_array_pop(stack);
-			d = BLI_array_pop(dstack);
+			v2 = queue[start];
+			d = dqueue[start];
 			
-			dists[BMINDEX_GET(v2)] = d;
 			BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v2) {
 				float d2;
 				v3 = BM_OtherEdgeVert(e, v2);
@@ -1876,22 +1879,37 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 				
 				d2 = d + len_v3(vec);
 				
-				if (d2 >= dists[BMINDEX_GET(v3)] && BLI_smallhash_haskey(visit, (uintptr_t)v3))
+				if (BLI_smallhash_haskey(visit, (uintptr_t)v3))
 					continue;
 				
-				dists[BMINDEX_GET(v3)] = d2;
+				if (dists[BMINDEX_GET(v3)] != FLT_MAX)
+					dists[BMINDEX_GET(v3)] += d2;
+				else
+					dists[BMINDEX_GET(v3)] = d2;
+				
+				tots[BMINDEX_GET(v3)]++;
+				
 				if (!BLI_smallhash_haskey(visit, (uintptr_t)v3))
 					BLI_smallhash_insert(visit, (uintptr_t)v3, NULL);
 				
-				BLI_array_append(stack, v3);
-				BLI_array_append(dstack, d2);
+				BLI_array_append(queue, v3);
+				BLI_array_append(dqueue, d2);
 			}
+			
+			start++;
 		}
+
+		BLI_smallhash_release(visit);
 	}
 	
-	BLI_smallhash_release(visit);
-	BLI_array_free(stack);
-	BLI_array_free(dstack);
+	for (i=0; i<em->bm->totvert; i++) {
+		if (tots[i])
+			dists[i] /= (float)tots[i];
+	}
+	
+	BLI_array_free(queue);
+	BLI_array_free(dqueue);
+	MEM_freeN(tots);
 }
 
 /* loop-in-a-loop I know, but we need it! (ton) */

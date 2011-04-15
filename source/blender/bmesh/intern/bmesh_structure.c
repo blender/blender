@@ -317,16 +317,28 @@ struct BMEdge *bmesh_disk_find_next_faceedge(struct BMEdge *e, struct BMVert *v)
 int bmesh_radial_validate(int radlen, BMLoop *l)
 {
 	BMLoop *l2 = l;
-
+	int i=0;
+	
 	if (bmesh_radial_length(l) != radlen)
 		return 0;
 
 	do {
+		if (!l2) {
+			bmesh_error();
+			return 0;
+		}
+		
 		if (l2->e != l->e)
 			return 0;
 		if (l2->v != l->e->v1 && l2->v != l->e->v2)
 			return 0;
-
+		
+		if (i > 3000000) {
+			bmesh_error();
+			return 0;
+		}
+		
+		i++;
 		l2 = l2->radial_next;
 	} while (l2 != l);
 
@@ -394,6 +406,11 @@ int bmesh_radial_length(BMLoop *l)
 		return 0;
 
 	do {
+		if (!l2) {
+			bmesh_error();
+			return 0;
+		}
+		
 		i++;
 		l2 = l2->radial_next;
 		if (i >= 555555)

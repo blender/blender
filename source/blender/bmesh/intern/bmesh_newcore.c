@@ -579,6 +579,11 @@ void BM_Kill_Edge(BMesh *bm, BMEdge *e) {
 			
 			do {
 				lnext = l->radial_next;
+				if (lnext->f == l->f) {
+					BM_Kill_Face(bm, l->f);
+					break;					
+				}
+				
 				BM_Kill_Face(bm, l->f);
 			
 				if (l == lnext)

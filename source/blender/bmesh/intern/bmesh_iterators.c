@@ -216,12 +216,10 @@ static void loops_of_edge_begin(BMIter *iter)
 	BMLoop *l;
 
 	l = iter->edata->l;
-	if (!l)
-		return;
 
 	/*note sure why this sets ldata. . .*/
 	init_iterator(iter);
-
+	
 	iter->firstloop = iter->nextloop = l;
 }
 

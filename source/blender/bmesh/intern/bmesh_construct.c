@@ -335,7 +335,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	for (i=0; i<len; i++) {
 		edges2[i] = BM_Edge_Exist(verts[i], verts[(i+1)%len]);
 		if (!edges2[i])
-			return NULL;
+			goto err;
 	}
 
 	/*check if face already exists*/

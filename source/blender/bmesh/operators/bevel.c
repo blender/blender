@@ -32,27 +32,59 @@ typedef struct EdgeTag {
 	BMVert *newv1, *newv2;
 } EdgeTag;
 
-void calc_corner_co(BMesh *UNUSED(bm), BMLoop *l, float *co, float fac)
+void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 {
-	float /* no[3], tan[3], */ vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
-	// float p1[3], p2[3], w[3];
-	// float l1, l2;
-	// int ret;
+	float  no[3], tan[3], vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
+	float p1[3], p2[3], w[3];
+	float l1, l2;
+	int ret, inv=0;
+	
+	if (l->f->len > 2) {
+		copy_v3_v3(v1, l->prev->v->co);
+		copy_v3_v3(v2, l->v->co);
+		copy_v3_v3(v3, l->v->co);
+		copy_v3_v3(v4, l->next->v->co);
+	} else {
+		BMIter iter;
+		BMLoop *l2;
+		float up[3] = {0.0f, 0.0f, 1.0f};
+		
+		copy_v3_v3(v1, l->prev->v->co);
+		copy_v3_v3(v2, l->v->co);
+		copy_v3_v3(v3, l->v->co);
+		
+		BM_ITER(l2, &iter, bm, BM_LOOPS_OF_VERT, l->v) {
+			if (l2->f != l) {
+				copy_v3_v3(v4, BM_OtherEdgeVert(l2->e, l2->next->v));
+				break;
+			}
+		}
+		
+		sub_v3_v3v3(vec1, v1, v2);
+		sub_v3_v3v3(vec2, v4, v3);
 
-	copy_v3_v3(v1, l->prev->v->co);
-	copy_v3_v3(v2, l->v->co);
-	copy_v3_v3(v3, l->v->co);
-	copy_v3_v3(v4, l->next->v->co);
+		cross_v3_v3v3(no, vec1, vec2);
+		if (dot_v3v3(no, no) == 0.0) {
+			no[0] = no[1] = 0.0f; no[2] = -1.0f;	
+		}
+		
+		inv = dot_v3v3(no, up) < 0.0;
+	}
 	
 	/*calculate normal*/
 	sub_v3_v3v3(vec1, v1, v2);
 	sub_v3_v3v3(vec2, v4, v3);
+	
 #if 0
 	cross_v3_v3v3(no, vec2, vec1);
 	normalize_v3(no);
 	
-	if (dot_v3v3(no, no) < DBL_EPSILON*10) {
+	if (dot_v3v3(no, no) < FLT_EPSILON*10) {
 		copy_v3_v3(no, l->f->no);
+	}
+	
+	if (dot_v3v3(no, no) < FLT_EPSILON*10) {
+		no[0] = 0.0; no[1] = 0.0; no[2] = 1.0f;
 	}
 	
 	/*compute offsets*/
@@ -83,6 +115,12 @@ void calc_corner_co(BMesh *UNUSED(bm), BMLoop *l, float *co, float fac)
 	
 	/*compute intersection*/
 	ret = isect_line_line_v3(v1, v2, v3, v4, p1, p2);
+	if (len_v3v3(p1, v1) > len_v3v3(v1, v2) || len_v3v3(p1, v2) > len_v3v3(v1, v2))
+		copy_v3_v3(p1, v2);
+	
+	if (len_v3v3(p1, v3) > len_v3v3(v3, v4) || len_v3v3(p1, v4) > len_v3v3(v3, v4))
+		copy_v3_v3(p2, v3);
+	
 	if (ret==1) {
 		copy_v3_v3(co, p1);
 	} else if (ret==2) {
@@ -92,14 +130,18 @@ void calc_corner_co(BMesh *UNUSED(bm), BMLoop *l, float *co, float fac)
 		add_v3_v3v3(co, v2, v3);
 		mul_v3_fl(co, 0.5);
 	}
-#endif
+#else
 	/*oddly, this simplistic method seems to work the best*/
 	mul_v3_fl(vec1, fac);
 	mul_v3_fl(vec2, fac);
 	add_v3_v3(vec1, vec2);
 	mul_v3_fl(vec1, 0.5);
+
+	if (inv)
+		negate_v3(vec1);
 	
 	add_v3_v3v3(co, vec1, l->v->co);
+#endif
 }
 
 #define ETAG_SET(e, v, nv) (v) == (e)->v1 ? (etags[BMINDEX_GET((e))].newv1 = (nv)) : (etags[BMINDEX_GET((e))].newv2 = (nv))
@@ -111,7 +153,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMEdge *e;
 	BMVert *v;
-	BMFace **faces = NULL;
+	BMFace **faces = NULL, *f;
 	LoopTag *tags=NULL, *tag;
 	EdgeTag *etags = NULL, *etag;
 	BMVert **verts = NULL;
@@ -137,6 +179,15 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMO_ClearFlag(bm, e->v1, BEVEL_DEL);
 			BMO_ClearFlag(bm, e->v2, BEVEL_DEL);
 		}
+#if 0
+		if (BM_Edge_FaceCount(e) == 0) {
+			BMVert *verts[2] = {e->v1, e->v2};
+			BMEdge *edges[2] = {e, BM_Make_Edge(bm, e->v1, e->v2, e, 0)};
+			
+			BMO_SetFlag(bm, edges[1], BEVEL_FLAG);
+			BM_Make_Face(bm, verts, edges, 2);
+		}
+#endif
 	}
 	
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
@@ -198,7 +249,6 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMO_ClearFlag(bm, e, BEVEL_DEL);
 			BMO_ClearFlag(bm, e->v1, BEVEL_DEL);
 			BMO_ClearFlag(bm, e->v2, BEVEL_DEL);
-			//continue;	
 		}
 		
 		if (!BLI_smallhash_haskey(&hash, (intptr_t)e)) {
@@ -338,14 +388,35 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 		
-		for (j=0; j<BLI_array_count(verts); j++) {
-			BMVert *next = verts[(j+1)%BLI_array_count(verts)];
-
-			e = BM_Make_Edge(bm, next, verts[j], NULL, 1);
-			BLI_array_append(edges, e);
+		if (BLI_array_count(verts) == 2) {
+			BMEdge *e1=NULL, *e2=NULL;
+			
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, verts[0]) {
+				if (BM_Vert_In_Edge(l->e, verts[1])) {
+					if (!e1)
+						e1 = l->e;
+					else if (!e2) 
+						e2 = l->e;
+				}	
+			}
+			
+			if (!e1)
+				e1 = BM_Make_Edge(bm, verts[0], verts[1], NULL, 0);
+			if (!e2) 
+				e2 = BM_Make_Edge(bm, verts[0], verts[1], NULL, 0);
+			
+			BLI_array_append(edges, e1);
+			BLI_array_append(edges, e2);
+		} else {
+			for (j=0; j<BLI_array_count(verts); j++) {
+				BMVert *next = verts[(j+1)%BLI_array_count(verts)];
+				
+				e = BM_Make_Edge(bm, next, verts[j], NULL, 1);
+				BLI_array_append(edges, e);
+			}
 		}
 		
-		f = BM_Make_Face(bm, verts, edges, BLI_array_count(verts));
+		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(verts), 0);
 		if (!f) {
 			printf("eck!!\n");
 			continue;
@@ -657,7 +728,20 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
-
+#if 0
+	/*clean up any remainin 2-edged faces*/
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		if (f->len == 2) {
+			BMFace *faces[2] = {f, bm_firstfaceloop(f)->radial_next->f};
+			
+			if (faces[0] == faces[1])
+				BM_Kill_Face(bm, f);
+			else
+				BM_Join_Faces(bm, faces, 2);
+		}
+	}
+#endif
+	
 	BMO_CallOpf(bm, "del geom=%fv context=%i", BEVEL_DEL, DEL_VERTS);
 
 	/*clean up any edges that might not get properly deleted*/
