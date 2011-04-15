@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/generic/blf_py_api.c
+ *  \ingroup pygen
+ */
+
+
 #include <Python.h>
 #include "blf_py_api.h"
 

@@ -173,7 +173,7 @@ General functions
 
    Restarts the current game by reloading the .blend file (the last saved version, not what is currently running).
    
-.. function:: LibLoad(blend, type, data)
+.. function:: LibLoad(blend, type, data, load_actions=False, verbose=False)
    
    Converts the all of the datablocks of the given type from the given blend.
    
@@ -183,6 +183,10 @@ General functions
    :type type: string
    :arg data: Binary data from a blend file (optional)
    :type data: bytes
+   :arg load_actions: Search for and load all actions in a given Scene and not just the "active" actions (Scene type only)
+   :type load_actions: bool
+   :arg verbose: Whether or not to print debugging information (e.g., "SceneName: Scene")
+   :type verbose: bool
    
 .. function:: LibNew(name, type, data)
 
@@ -201,6 +205,12 @@ General functions
 
    :arg name: The name of the library to free (the name used in LibNew)
    :type name: string
+   
+.. function:: LibList()
+
+   Returns a list of currently loaded libraries.
+   
+   :rtype: list [str]
 
 .. function:: addScene(name, overlay=1)
 

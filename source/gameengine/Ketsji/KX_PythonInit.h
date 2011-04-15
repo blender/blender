@@ -49,10 +49,6 @@ PyObject*	initGameLogic(class KX_KetsjiEngine *engine, class KX_Scene* ketsjisce
 PyObject*	initGameKeys();
 PyObject*	initRasterizer(class RAS_IRasterizer* rasty,class RAS_ICanvas* canvas);
 PyObject*	initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, struct Main *maggie, int argc, char** argv);
-PyObject*	initMathutils();
-PyObject*	initGeometry();
-PyObject*	initBGL();
-PyObject*	initBLF();
 PyObject*	initVideoTexture(void); 
 void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, struct Main *maggie);

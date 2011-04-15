@@ -40,7 +40,7 @@ struct ARegion;
 struct uiBlock;
 struct wmOperator;
 struct wmOperatorType;
-struct EditMesh;
+struct BMEditMesh;
 struct Mesh;
 
 /* ed_util.c */

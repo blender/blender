@@ -152,6 +152,14 @@ class InfoStructRNA:
                 functions.append((identifier, attr))
         return functions
 
+    def get_py_c_functions(self):
+        import types
+        functions = []
+        for identifier, attr in self._get_py_visible_attrs():
+            if type(attr) in (types.BuiltinMethodType, types.BuiltinFunctionType):
+                functions.append((identifier, attr))
+        return functions
+
     def __str__(self):
 
         txt = ""
@@ -199,7 +207,7 @@ class InfoPropertyRNA:
             self.fixed_type = None
 
         if self.type == "enum":
-            self.enum_items[:] = rna_prop.items.keys()
+            self.enum_items[:] = rna_prop.enum_items.keys()
             self.is_enum_flag = rna_prop.is_enum_flag
         else:
             self.is_enum_flag = False
@@ -245,7 +253,7 @@ class InfoPropertyRNA:
             return "%s=%s" % (self.identifier, default)
         return self.identifier
 
-    def get_type_description(self, as_ret=False, as_arg=False, class_fmt="%s"):
+    def get_type_description(self, as_ret=False, as_arg=False, class_fmt="%s", collection_id="Collection"):
         type_str = ""
         if self.fixed_type is None:
             type_str += self.type
@@ -269,9 +277,9 @@ class InfoPropertyRNA:
         else:
             if self.type == "collection":
                 if self.collection_type:
-                    collection_str = (class_fmt % self.collection_type.identifier) + " collection of "
+                    collection_str = (class_fmt % self.collection_type.identifier) + (" %s of " % collection_id)
                 else:
-                    collection_str = "Collection of "
+                    collection_str = "%s of " % collection_id
             else:
                 collection_str = ""
 

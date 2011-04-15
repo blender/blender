@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/armature/reeb.c
+ *  \ingroup edarmature
+ */
+
  
 #include <math.h>
 #include <string.h> // for memcpy

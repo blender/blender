@@ -577,6 +577,10 @@ protected:
 			return m_parentCtrl;
 		}
 
+		virtual const char* getName()
+		{
+			return 0;
+		}
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:

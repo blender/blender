@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/makesrna.c
+ *  \ingroup RNA
+ */
+
+
 #include <float.h>
 #include <limits.h>
 #include <stdio.h>
@@ -1772,6 +1777,7 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_ACCELERATION: return "PROP_ACCELERATION";
 		case PROP_XYZ: return "PROP_XYZ";
 		case PROP_COLOR_GAMMA: return "PROP_COLOR_GAMMA";
+		case PROP_COORDS: return "PROP_COORDS";
 		case PROP_LAYER: return "PROP_LAYER";
 		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		default: {
@@ -1786,7 +1792,7 @@ static const char *rna_property_subtypename(PropertySubType type)
 	}
 }
 
-static const char *rna_property_subtype_unit(PropertyType type)
+static const char *rna_property_subtype_unit(PropertySubType type)
 {
 	switch(RNA_SUBTYPE_UNIT(type)) {
 		case PROP_UNIT_NONE:		return "PROP_UNIT_NONE";

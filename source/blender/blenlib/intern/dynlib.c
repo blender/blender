@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/dynlib.c
+ *  \ingroup bli
+ */
+
+
 #include <stdlib.h>
 
 #include "../PIL_dynlib.h"

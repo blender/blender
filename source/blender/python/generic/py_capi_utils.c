@@ -20,10 +20,17 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+/** \file blender/python/generic/py_capi_utils.c
+ *  \ingroup pygen
+ */
+
+
 #include <Python.h>
 #include <frameobject.h>
 
 #include "py_capi_utils.h"
+
+#define PYC_INTERPRETER_ACTIVE (((PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
 
 /* for debugging */
 void PyC_ObSpit(const char *name, PyObject *var) {
@@ -46,26 +53,21 @@ void PyC_ObSpit(const char *name, PyObject *var) {
 }
 
 void PyC_LineSpit(void) {
+
 	const char *filename;
 	int lineno;
+
+	/* Note, allow calling from outside python (RNA) */
+	if(!PYC_INTERPRETER_ACTIVE) {
+		fprintf(stderr, "python line lookup failed, interpreter inactive\n");
+		return;
+	}
 
 	PyErr_Clear();
 	PyC_FileAndNum(&filename, &lineno);
 	
 	fprintf(stderr, "%s:%d\n", filename, lineno);
 }
-
-/* python 3.2 only, copied from frameobjec.c */
-#if PY_VERSION_HEX <  0x03020000
-int
-PyFrame_GetLineNumber(PyFrameObject *f)
-{
-    if (f->f_trace)
-        return f->f_lineno;
-    else
-        return PyCode_Addr2Line(f->f_code, f->f_lasti);
-}
-#endif
 
 void PyC_FileAndNum(const char **filename, int *lineno)
 {
@@ -157,9 +159,11 @@ PyObject *PyC_ExceptionBuffer(void)
 	
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
 		goto error_cleanup;
-	} else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
+	}
+	else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
 		goto error_cleanup;
-	} else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
+	}
+	else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
 		goto error_cleanup;
 	}
 	
@@ -219,29 +223,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 		return PyBytes_AS_STRING(py_str);
 	}
 	else {
-		/* mostly copied from fileio.c's, fileio_init */
-		PyObject *stringobj;
-		PyObject *u;
-
-		PyErr_Clear();
-		
-		u= PyUnicode_FromObject(py_str); /* coerce into unicode */
-		
-		if (u == NULL)
-			return NULL;
-
-		stringobj= PyUnicode_EncodeUTF8(PyUnicode_AS_UNICODE(u), PyUnicode_GET_SIZE(u), "surrogateescape");
-		Py_DECREF(u);
-		if (stringobj == NULL)
-			return NULL;
-		if (!PyBytes_Check(stringobj)) { /* this seems wrong but it works fine */
-			// printf("encoder failed to return bytes\n");
-			Py_DECREF(stringobj);
-			return NULL;
-		}
-		*coerce= stringobj;
-
-		return PyBytes_AS_STRING(stringobj);
+		return PyBytes_AS_STRING((*coerce= PyUnicode_EncodeFSDefault(py_str)));
 	}
 }
 

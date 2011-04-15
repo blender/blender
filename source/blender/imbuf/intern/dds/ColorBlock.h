@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/dds/ColorBlock.h
+ *  \ingroup imbdds
+ */
+
+
 /*
  * This file is based on a similar file from the NVIDIA texture tools
  * (http://nvidia-texture-tools.googlecode.com/)

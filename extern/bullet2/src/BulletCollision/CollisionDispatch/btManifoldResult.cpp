@@ -47,6 +47,12 @@ btManifoldResult::btManifoldResult(btCollisionObject* body0,btCollisionObject* b
 		:m_manifoldPtr(0),
 		m_body0(body0),
 		m_body1(body1)
+#ifdef DEBUG_PART_INDEX
+		,m_partId0(-1),
+	m_partId1(-1),
+	m_index0(-1),
+	m_index1(-1)
+#endif //DEBUG_PART_INDEX
 {
 	m_rootTransA = body0->getWorldTransform();
 	m_rootTransB = body1->getWorldTransform();
@@ -57,8 +63,9 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
 {
 	btAssert(m_manifoldPtr);
 	//order in manifold needs to match
-	
-	if (depth > m_manifoldPtr->getContactBreakingThreshold())
+
+//	if (depth > m_manifoldPtr->getContactBreakingThreshold())
+	if (depth > m_manifoldPtr->getContactProcessingThreshold())
 		return;
 
 	bool isSwapped = m_manifoldPtr->getBody0() != m_body0;
@@ -88,10 +95,19 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
 	newPt.m_combinedRestitution = calculateCombinedRestitution(m_body0,m_body1);
 
    //BP mod, store contact triangles.
-   newPt.m_partId0 = m_partId0;
-   newPt.m_partId1 = m_partId1;
-   newPt.m_index0  = m_index0;
-   newPt.m_index1  = m_index1;
+	if (isSwapped)
+	{
+		newPt.m_partId0 = m_partId1;
+		newPt.m_partId1 = m_partId0;
+		newPt.m_index0  = m_index1;
+		newPt.m_index1  = m_index0;
+	} else
+	{
+		newPt.m_partId0 = m_partId0;
+		newPt.m_partId1 = m_partId1;
+		newPt.m_index0  = m_index0;
+		newPt.m_index1  = m_index1;
+	}
 	//printf("depth=%f\n",depth);
 	///@todo, check this for any side effects
 	if (insertIndex >= 0)
@@ -112,7 +128,7 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
 		//experimental feature info, for per-triangle material etc.
 		btCollisionObject* obj0 = isSwapped? m_body1 : m_body0;
 		btCollisionObject* obj1 = isSwapped? m_body0 : m_body1;
-		(*gContactAddedCallback)(m_manifoldPtr->getContactPoint(insertIndex),obj0,m_partId0,m_index0,obj1,m_partId1,m_index1);
+		(*gContactAddedCallback)(m_manifoldPtr->getContactPoint(insertIndex),obj0,newPt.m_partId0,newPt.m_index0,obj1,newPt.m_partId1,newPt.m_index1);
 	}
 
 }

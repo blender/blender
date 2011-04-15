@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/animation/keyframing.c
+ *  \ingroup edanimation
+ */
+
  
 #include <stdio.h>
 #include <stddef.h>
@@ -295,6 +300,7 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 {
 	BezTriple beztr= {{{0}}};
+	unsigned int oldTot = fcu->totvert;
 	int a;
 	
 	/* set all three points, for nicer start position 
@@ -330,10 +336,16 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 	if ((fcu->totvert > 2) && (flag & INSERTKEY_REPLACE)==0) {
 		BezTriple *bezt= (fcu->bezt + a);
 		
-		/* set interpolation from previous (if available) */
-		// FIXME: this doesn't work if user tweaked the interpolation specifically, and they were just overwriting some existing key in the process...
-		if (a > 0) bezt->ipo= (bezt-1)->ipo;
-		else if (a < fcu->totvert-1) bezt->ipo= (bezt+1)->ipo;
+		/* set interpolation from previous (if available), but only if we didn't just replace some keyframe 
+		 * 	- replacement is indicated by no-change in number of verts
+		 *	- when replacing, the user may have specified some interpolation that should be kept
+		 */
+		if (fcu->totvert > oldTot) {
+			if (a > 0) 
+				bezt->ipo= (bezt-1)->ipo;
+			else if (a < fcu->totvert-1) 
+				bezt->ipo= (bezt+1)->ipo;
+		}
 			
 		/* don't recalculate handles if fast is set
 		 *	- this is a hack to make importers faster
@@ -391,14 +403,14 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 			prevVal= prev->vec[1][1];
 			
 			/* keyframe to be added at point where there are already two similar points? */
-			if (IS_EQ(prevPosi, cFrame) && IS_EQ(beztPosi, cFrame) && IS_EQ(beztPosi, prevPosi)) {
+			if (IS_EQF(prevPosi, cFrame) && IS_EQF(beztPosi, cFrame) && IS_EQF(beztPosi, prevPosi)) {
 				return KEYNEEDED_DONTADD;
 			}
 			
 			/* keyframe between prev+current points ? */
 			if ((prevPosi <= cFrame) && (cFrame <= beztPosi)) {
 				/* is the value of keyframe to be added the same as keyframes on either side ? */
-				if (IS_EQ(prevVal, nValue) && IS_EQ(beztVal, nValue) && IS_EQ(prevVal, beztVal)) {
+				if (IS_EQF(prevVal, nValue) && IS_EQF(beztVal, nValue) && IS_EQF(prevVal, beztVal)) {
 					return KEYNEEDED_DONTADD;
 				}
 				else {
@@ -408,7 +420,7 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 					realVal= evaluate_fcurve(fcu, cFrame);
 					
 					/* compare whether it's the same as proposed */
-					if (IS_EQ(realVal, nValue)) 
+					if (IS_EQF(realVal, nValue))
 						return KEYNEEDED_DONTADD;
 					else 
 						return KEYNEEDED_JUSTADD;
@@ -421,7 +433,7 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 				 * stays around or not depends on whether the values of previous/current
 				 * beztriples and new keyframe are the same.
 				 */
-				if (IS_EQ(prevVal, nValue) && IS_EQ(beztVal, nValue) && IS_EQ(prevVal, beztVal))
+				if (IS_EQF(prevVal, nValue) && IS_EQF(beztVal, nValue) && IS_EQF(prevVal, beztVal))
 					return KEYNEEDED_DELNEXT;
 				else 
 					return KEYNEEDED_JUSTADD;
@@ -459,7 +471,7 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 	else 
 		valB= bezt->vec[1][1] + 1.0f; 
 		
-	if (IS_EQ(valA, nValue) && IS_EQ(valA, valB)) 
+	if (IS_EQF(valA, nValue) && IS_EQF(valA, valB))
 		return KEYNEEDED_DELPREV;
 	else 
 		return KEYNEEDED_JUSTADD;
@@ -904,7 +916,7 @@ short insert_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 				/* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
 				 * is determined by the array index for the F-Curve
 				 */
-				if (ELEM4(RNA_property_subtype(prop), PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR)) {
+				if (ELEM5(RNA_property_subtype(prop), PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
 					fcu->color_mode= FCURVE_COLOR_AUTO_RGB;
 				}
 			}
@@ -1320,7 +1332,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 		short success= 0;
 		
 		/* loop through all curves in animdata and delete keys on this frame */
-		if (ob->adt) {
+		if ((ob->adt) && (ob->adt->action)) {
 			AnimData *adt= ob->adt;
 			bAction *act= adt->action;
 			
@@ -1330,7 +1342,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 			}
 		}
 		
-		BKE_reportf(op->reports, RPT_INFO, "Ob '%s' - Successfully removed %d keyframes \n", id->name+2, success);
+		BKE_reportf(op->reports, RPT_INFO, "Ob '%s' - Successfully had %d keyframes removed", id->name+2, success);
 		
 		ob->recalc |= OB_RECALC_OB;
 	}

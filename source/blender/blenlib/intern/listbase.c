@@ -32,6 +32,11 @@
  * 
  */
 
+/** \file blender/blenlib/intern/listbase.c
+ *  \ingroup bli
+ */
+
+
 #include <string.h>
 #include <stdlib.h>
 

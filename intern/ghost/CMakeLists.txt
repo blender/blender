@@ -27,9 +27,9 @@
 set(INC
 	.
 	../string
-	../../extern/glew/include
 	../../source/blender/imbuf
 	../../source/blender/makesdna
+    ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
@@ -118,6 +118,11 @@ if(APPLE)
 	endif()
 
 elseif(UNIX)
+
+	if(WITH_X11_XINPUT)
+		add_definitions(-DWITH_X11_XINPUT)
+	endif()
+
 	list(APPEND INC ${X11_X11_INCLUDE_PATH})
 
 	list(APPEND SRC
@@ -132,7 +137,9 @@ elseif(UNIX)
 		intern/GHOST_WindowX11.h
 	)
 
-	add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+	if(NOT WITH_INSTALL_PORTABLE)
+		add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+	endif()
 
 	if(X11_XF86keysym_INCLUDE_PATH)
 		add_definitions(-DWITH_XF86KEYSYM)

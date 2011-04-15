@@ -726,9 +726,11 @@ typedef struct ToolSettings {
 	
 	/* Alt+RMB option */
 	char edge_mode;
+	char edge_mode_live_unwrap;
 
 	/* Transform */
-	short snap_mode, snap_flag, snap_target;
+	char snap_mode;
+	short snap_flag, snap_target;
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
 	char pad[3];
@@ -781,7 +783,9 @@ typedef struct Scene {
 	
 	unsigned int lay;			/* bitflags for layer visibility */
 	int layact;		/* active layer */
+	unsigned int lay_updated;       /* runtime flag, has layer ever been updated since load? */
 	unsigned int customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
+	unsigned int customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
 	
 	short flag;								/* various settings */
 	
@@ -1039,9 +1043,9 @@ typedef struct Scene {
 
 /* depricate this! */
 #define TESTBASE(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
-#define TESTBASELIB(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
-#define TESTBASELIB_BGMODE(v3d, scene, base)   ( ((base)->flag & SELECT) && ((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
-#define BASE_EDITABLE_BGMODE(v3d, scene, base)   (((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+#define TESTBASELIB(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && ((base)->object->id.lib==NULL) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+#define TESTBASELIB_BGMODE(v3d, scene, base)   ( ((base)->flag & SELECT) && ((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==NULL) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+#define BASE_EDITABLE_BGMODE(v3d, scene, base)   (((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==NULL) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
 #define BASE_SELECTABLE(v3d, base)	 ((base->lay & v3d->lay) && (base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0)
 #define BASE_VISIBLE(v3d, base)	 ((base->lay & v3d->lay) && (base->object->restrictflag & OB_RESTRICT_VIEW)==0)
 #define FIRSTBASE		scene->base.first
@@ -1059,9 +1063,9 @@ typedef struct Scene {
 #define PRVRANGEON		(scene->r.flag & SCER_PRV_RANGE)
 #define PSFRA			((PRVRANGEON)? (scene->r.psfra): (scene->r.sfra))
 #define PEFRA			((PRVRANGEON)? (scene->r.pefra): (scene->r.efra))
-#define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (a)) / scene->r.frs_sec)
-#define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (a)) / scene->r.frs_sec_base)
-#define FPS                     (((double) scene->r.frs_sec) / scene->r.frs_sec_base)
+#define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (double)(a)) / (double)scene->r.frs_sec)
+#define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (double)(a)) / (double)scene->r.frs_sec_base)
+#define FPS                     (((double) scene->r.frs_sec) / (double)scene->r.frs_sec_base)
 
 #define RAD_PHASE_PATCHES	1
 #define RAD_PHASE_FACES		2
@@ -1176,7 +1180,7 @@ typedef enum SculptFlags {
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
-/*#define UVCALC_NO_ASPECT_CORRECT	2*/	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+#define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
 #define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
 
 /* toolsettings->uv_flag */

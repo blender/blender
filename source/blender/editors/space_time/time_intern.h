@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_time/time_intern.h
+ *  \ingroup sptime
+ */
+
+
 #ifndef ED_TIME_INTERN_H
 #define ED_TIME_INTERN_H
 

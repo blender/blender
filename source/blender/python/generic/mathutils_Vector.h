@@ -28,6 +28,11 @@
  *
  */
 
+/** \file blender/python/generic/mathutils_Vector.h
+ *  \ingroup pygen
+ */
+
+
 #ifndef MATHUTILS_VECTOR_H
 #define MATHUTILS_VECTOR_H
 

@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/interface_utils.c
+ *  \ingroup edinterface
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -140,16 +145,22 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int (*check_prop)(Proper
 			continue;
 
 		if(label_align != '\0') {
+			PropertyType type = RNA_property_type(prop);
+			int is_boolean = (type == PROP_BOOLEAN && !RNA_property_array_check(ptr, prop));
+
 			name= RNA_property_ui_name(prop);
 
 			if(label_align=='V') {
 				col= uiLayoutColumn(layout, 1);
-				uiItemL(col, name, ICON_NULL);
+
+				if(!is_boolean)
+					uiItemL(col, name, ICON_NONE);
 			}
 			else if(label_align=='H') {
 				split = uiLayoutSplit(layout, 0.5f, 0);
 
-				uiItemL(uiLayoutColumn(split, 0), name, ICON_NULL);
+				col= uiLayoutColumn(split, 0);
+				uiItemL(col, (is_boolean)? "": name, ICON_NONE);
 				col= uiLayoutColumn(split, 0);
 			}
 			else {
@@ -158,19 +169,16 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int (*check_prop)(Proper
 
 			/* may meed to add more cases here.
 			 * don't override enum flag names */
-			if(flag & PROP_ENUM_FLAG) {
-				name= NULL;
-			}
-			else {
-				name= ""; /* name is shown above, empty name for button below */
-			}
+
+			/* name is shown above, empty name for button below */
+			name= (flag & PROP_ENUM_FLAG || is_boolean)? NULL: "";
 		}
 		else {
 			col= layout;
 			name= NULL; /* no smart label alignment, show default name with button */
 		}
 
-		uiItemFullR(col, ptr, prop, -1, 0, 0, name, ICON_NULL);
+		uiItemFullR(col, ptr, prop, -1, 0, 0, name, ICON_NONE);
 		tot++;
 	}
 	RNA_STRUCT_END;
@@ -187,7 +195,7 @@ int uiIconFromID(ID *id)
 	short idcode;
 
 	if(id==NULL)
-		return ICON_NULL;
+		return ICON_NONE;
 	
 	idcode= GS(id->name);
 
@@ -205,5 +213,5 @@ int uiIconFromID(ID *id)
 	   will set the right type, also with subclassing */
 	RNA_id_pointer_create(id, &ptr);
 
-	return (ptr.type)? RNA_struct_ui_icon(ptr.type) : ICON_NULL;
+	return (ptr.type)? RNA_struct_ui_icon(ptr.type) : ICON_NONE;
 }

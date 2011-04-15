@@ -20,6 +20,8 @@ subject to the following restrictions:
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
 #include "LinearMath/btMatrix3x3.h"
+#include "LinearMath/btAabbUtil2.h"
+
 #include <new>
 
 extern int gOverlappingPairs;
@@ -162,6 +164,23 @@ void	btSimpleBroadphase::rayTest(const btVector3& rayFrom,const btVector3& rayTo
 			continue;
 		}
 		rayCallback.process(proxy);
+	}
+}
+
+
+void	btSimpleBroadphase::aabbTest(const btVector3& aabbMin, const btVector3& aabbMax, btBroadphaseAabbCallback& callback)
+{
+	for (int i=0; i <= m_LastHandleIndex; i++)
+	{
+		btSimpleBroadphaseProxy* proxy = &m_pHandles[i];
+		if(!proxy->m_clientObject)
+		{
+			continue;
+		}
+		if (TestAabbAgainstAabb2(aabbMin,aabbMax,proxy->m_aabbMin,proxy->m_aabbMax))
+		{
+			callback.process(proxy);
+		}
 	}
 }
 

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_node/node_draw.c
+ *  \ingroup spnode
+ */
+
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -279,7 +284,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 		node->butr.xmax= node->width - 2*NODE_DYS;
 		node->butr.ymin= 0;
 		node->butr.ymax= 0;
-
+		
 		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 
 		layout= uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
@@ -308,7 +313,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 	node->totr.xmin= node->locx;
 	node->totr.xmax= node->locx + node->width;
 	node->totr.ymax= node->locy;
-	node->totr.ymin= dy;
+	node->totr.ymin= MIN2(dy, node->locy-2*NODE_DY);
 }
 
 /* based on settings in node, sets drawing rect info. each redraw! */
@@ -381,7 +386,7 @@ static int node_get_colorid(bNode *node)
 /* based on settings in node, sets drawing rect info. each redraw! */
 /* note: this assumes only 1 group at a time is drawn (linked data) */
 /* in node->totr the entire boundbox for the group is stored */
-static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
+static void node_update_group(const bContext *C, bNodeTree *UNUSED(ntree), bNode *gnode)
 {
 	bNodeTree *ngroup= (bNodeTree *)gnode->id;
 	bNode *node;
@@ -401,7 +406,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		if(node->flag & NODE_HIDDEN)
 			node_update_hidden(node);
 		else
-			node_update(C, ntree, node);
+			node_update(C, ngroup, node);
 		node->locx-= gnode->locx;
 		node->locy-= gnode->locy;
 	}
@@ -459,7 +464,7 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *valsock= NULL, *colsock= NULL, *vecsock= NULL;
 	bNodeSocket *sock;
-	bNodeLink link= {0};
+	bNodeLink link= {NULL};
 	int a;
 	
 	/* connect the first value buffer in with first value out */
@@ -651,7 +656,7 @@ static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *args_v)
 	
 	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y+2, args->width, 20, U.uistyles.first), 0);
 	
-	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NULL);
+	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NONE);
 	
 	return block;
 }
@@ -799,7 +804,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		UI_ThemeColor(TH_TEXT); */
 	
-	if (node->typeinfo->labelfunc)
+	if (node->label[0]!='\0')
+		BLI_strncpy(showname, node->label, sizeof(showname));
+	else if (node->typeinfo->labelfunc)
 		BLI_strncpy(showname, node->typeinfo->labelfunc(node), sizeof(showname));
 	else
 		BLI_strncpy(showname, node->typeinfo->name, sizeof(showname));
@@ -943,7 +950,9 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_ThemeColor(TH_TEXT);
 	
 	if(node->miniwidth>0.0f) {
-		if (node->typeinfo->labelfunc)
+		if (node->label[0]!='\0')
+			BLI_strncpy(showname, node->label, sizeof(showname));
+		else if (node->typeinfo->labelfunc)
 			BLI_strncpy(showname, node->typeinfo->labelfunc(node), sizeof(showname));
 		else
 			BLI_strncpy(showname, node->typeinfo->name, sizeof(showname));
@@ -1195,6 +1204,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *scene= CTX_data_scene(C);
 	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+	bNodeLinkDrag *nldrag;
 	
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1249,6 +1259,14 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 				node_draw_group(C, ar, snode, snode->nodetree, node);
 		}
 	}
+	
+	/* temporary links */
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
+	for(nldrag= snode->linkdrag.first; nldrag; nldrag= nldrag->next)
+		node_draw_link(&ar->v2d, snode, nldrag->link);
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
 	
 	/* draw grease-pencil ('canvas' strokes) */
 	if (/*(snode->flag & SNODE_DISPGP) &&*/ (snode->nodetree))

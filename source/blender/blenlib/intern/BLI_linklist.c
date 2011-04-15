@@ -28,6 +28,11 @@
  * Support for linked lists.
  */
 
+/** \file blender/blenlib/intern/BLI_linklist.c
+ *  \ingroup bli
+ */
+
+
 #include "MEM_guardedalloc.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"

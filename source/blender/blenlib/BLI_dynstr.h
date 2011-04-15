@@ -79,7 +79,7 @@ void	BLI_dynstr_nappend				(DynStr *ds, const char *cstr, int len);
 	 */
 void	BLI_dynstr_appendf				(DynStr *ds, const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 2, 3)));
+__attribute__ ((format (printf, 2, 3)))
 #endif
 ;
 void	BLI_dynstr_vappendf				(DynStr *ds, const char *format, va_list args);

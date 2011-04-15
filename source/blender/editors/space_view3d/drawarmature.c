@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_view3d/drawarmature.c
+ *  \ingroup spview3d
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -1510,7 +1515,7 @@ static void draw_pose_dofs(Object *ob)
 							/* arcs */
 							if (pchan->ikflag & BONE_IK_ZLIMIT) {
 								/* OpenGL requires rotations in degrees; so we're taking the average angle here */
-								theta= 0.5f*(pchan->limitmin[2]+pchan->limitmax[2]) * (float)(180.0f/M_PI);
+								theta= RAD2DEGF(0.5f * (pchan->limitmin[2]+pchan->limitmax[2]));
 								glRotatef(theta, 0.0f, 0.0f, 1.0f);
 								
 								glColor3ub(50, 50, 255);	// blue, Z axis limit
@@ -1533,7 +1538,7 @@ static void draw_pose_dofs(Object *ob)
 							
 							if (pchan->ikflag & BONE_IK_XLIMIT) {
 							/* OpenGL requires rotations in degrees; so we're taking the average angle here */
-								theta= 0.5f*(pchan->limitmin[0] + pchan->limitmax[0]) * (float)(180.0f/M_PI);
+								theta= RAD2DEGF(0.5f * (pchan->limitmin[0] + pchan->limitmax[0]));
 								glRotatef(theta, 1.0f, 0.0f, 0.0f);
 								
 								glColor3ub(255, 50, 50);	// Red, X axis limit
@@ -1591,7 +1596,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 	
 	/* hacky... prevent outline select from drawing dashed helplines */
 	glGetFloatv(GL_LINE_WIDTH, &tmp);
-	if (tmp > 1.1) do_dashed &= ~1;
+	if (tmp > 1.1f) do_dashed &= ~1;
 	if (v3d->flag & V3D_HIDE_HELPLINES) do_dashed &= ~2;
 	
 	/* precalc inverse matrix for drawing screen aligned */
@@ -1889,7 +1894,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			float vec[3];
 
 			unsigned char col[4];
-			float col_f[3];
+			float col_f[4];
 			glGetFloatv(GL_CURRENT_COLOR, col_f); /* incase this is not set below */
 			rgb_float_to_byte(col_f, col);
 			col[3]= 255;
@@ -2455,12 +2460,16 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 			/* drawing posemode selection indices or colors only in these cases */
 			if(!(base->flag & OB_FROMDUPLI)) {
 				if(G.f & G_PICKSEL) {
+#if 0				/* nifty but actually confusing to allow bone selection out of posemode */
 					if(OBACT && (OBACT->mode & OB_MODE_WEIGHT_PAINT)) {
 						if(ob==modifiers_isDeformedByArmature(OBACT))
 							arm->flag |= ARM_POSEMODE;
 					}
-					else if(ob->mode & OB_MODE_POSE) 
+					else
+#endif
+					if(ob->mode & OB_MODE_POSE) {
 						arm->flag |= ARM_POSEMODE;
+					}
 				}
 				else if(ob->mode & OB_MODE_POSE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {

@@ -110,12 +110,34 @@ struct	btSoftBodyHelpers
 		const btScalar*	vertices,
 		const int* triangles,
 		int ntriangles,
- 		bool randomizeConstraints = true);
+		bool randomizeConstraints = true);
 	/* Create from convex-hull												*/ 
 	static	btSoftBody*		CreateFromConvexHull(	btSoftBodyWorldInfo& worldInfo,
 		const btVector3* vertices,
 		int nvertices,
- 		bool randomizeConstraints = true);
+		bool randomizeConstraints = true);
+
+
+	/* Export TetGen compatible .smesh file									*/ 
+//	static void				ExportAsSMeshFile(	btSoftBody* psb,
+//												const char* filename);	
+	/* Create from TetGen .ele, .face, .node files							*/ 
+//	static btSoftBody*		CreateFromTetGenFile(	btSoftBodyWorldInfo& worldInfo,
+//													const char* ele,
+//													const char* face,
+//													const char* node,
+//													bool bfacelinks,
+//													bool btetralinks,
+//													bool bfacesfromtetras);
+	/* Create from TetGen .ele, .face, .node data							*/ 
+	static btSoftBody*		CreateFromTetGenData(	btSoftBodyWorldInfo& worldInfo,
+													const char* ele,
+													const char* face,
+													const char* node,
+													bool bfacelinks,
+													bool btetralinks,
+													bool bfacesfromtetras);
+	
 };
 
 #endif //SOFT_BODY_HELPERS_H

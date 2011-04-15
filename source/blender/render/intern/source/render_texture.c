@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/render_texture.c
+ *  \ingroup render
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1825,8 +1830,8 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		idv = (dv < 1e-5f) ? bf : (bf/dv);
 
 		if ((mtex->texco == TEXCO_ORCO) && shi->obr && shi->obr->ob) {
-			mul_mat3_m4_v3(shi->obr->ob->imat, tu);
-			mul_mat3_m4_v3(shi->obr->ob->imat, tv);
+			mul_mat3_m4_v3(shi->obr->ob->imat_ren, tu);
+			mul_mat3_m4_v3(shi->obr->ob->imat_ren, tv);
 			normalize_v3(tu);
 			normalize_v3(tv);
 		}
@@ -1835,8 +1840,8 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 			mul_mat3_m4_v3(R.viewinv, tv);
 		}
 		else if (mtex->texco == TEXCO_OBJECT && mtex->object) {
-			mul_mat3_m4_v3(mtex->object->imat, tu);
-			mul_mat3_m4_v3(mtex->object->imat, tv);
+			mul_mat3_m4_v3(mtex->object->imat_ren, tu);
+			mul_mat3_m4_v3(mtex->object->imat_ren, tv);
 			normalize_v3(tu);
 			normalize_v3(tv);
 		}
@@ -2172,12 +2177,12 @@ void do_material_tex(ShadeInput *shi)
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG)
 						if(shi->obi && shi->obi->duplitexmat)
 							mul_m4_v3(shi->obi->duplitexmat, tempvec);
-					mul_m4_v3(ob->imat, tempvec);
+					mul_m4_v3(ob->imat_ren, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						mul_mat3_m4_v3(ob->imat, dxt);
-						mul_mat3_m4_v3(ob->imat, dyt);
+						mul_mat3_m4_v3(ob->imat_ren, dxt);
+						mul_mat3_m4_v3(ob->imat_ren, dyt);
 					}
 				}
 				else {
@@ -2334,9 +2339,16 @@ void do_material_tex(ShadeInput *shi)
 				}
 				// warping, local space
 				if(mtex->mapto & MAP_WARP) {
-					warpvec[0]= mtex->warpfac*texres.nor[0];
-					warpvec[1]= mtex->warpfac*texres.nor[1];
-					warpvec[2]= mtex->warpfac*texres.nor[2];
+					float *warpnor= texres.nor, warpnor_[3];
+					
+					if(use_ntap_bump) {
+						VECCOPY(warpnor_, texres.nor);
+						warpnor= warpnor_;
+						normalize_v3(warpnor_);
+					}
+					warpvec[0]= mtex->warpfac*warpnor[0];
+					warpvec[1]= mtex->warpfac*warpnor[1];
+					warpvec[2]= mtex->warpfac*warpnor[2];
 					warpdone= 1;
 				}
 #if 0				
@@ -2648,7 +2660,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 						if(shi->obi && shi->obi->duplitexmat)
 							mul_m4_v3(shi->obi->duplitexmat, co);					
 					} 
-					mul_m4_v3(ob->imat, co);
+					mul_m4_v3(ob->imat_ren, co);
 				}
 			}
 			/* not really orco, but 'local' */
@@ -2660,7 +2672,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 				else {
 					Object *ob= shi->obi->ob;
 					VECCOPY(co, xyz);
-					mul_m4_v3(ob->imat, co);
+					mul_m4_v3(ob->imat_ren, co);
 				}
 			}
 			else if(mtex->texco==TEXCO_GLOB) {							
@@ -3011,7 +3023,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_OBJECT:
 				if(mtex->object) {
 					VECCOPY(tempvec, lo);
-					mul_m4_v3(mtex->object->imat, tempvec);
+					mul_m4_v3(mtex->object->imat_ren, tempvec);
 					co= tempvec;
 				}
 				break;
@@ -3160,12 +3172,12 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					dx= dxt;
 					dy= dyt;
 					VECCOPY(tempvec, shi->co);
-					mul_m4_v3(ob->imat, tempvec);
+					mul_m4_v3(ob->imat_ren, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						mul_mat3_m4_v3(ob->imat, dxt);
-						mul_mat3_m4_v3(ob->imat, dyt);
+						mul_mat3_m4_v3(ob->imat_ren, dxt);
+						mul_mat3_m4_v3(ob->imat_ren, dyt);
 					}
 				}
 				else {

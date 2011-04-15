@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenfont/intern/blf_dir.c
+ *  \ingroup blf
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,7 +60,7 @@ static DirBLF *blf_dir_find(const char *path)
 	
 	p= global_font_dir.first;
 	while (p) {
-		if (!strcmp(p->path, path))
+		if (BLI_path_cmp(p->path, path) == 0)
 			return(p);
 		p= p->next;
 	}

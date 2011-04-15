@@ -21,11 +21,20 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy_rna_array.c
+ *  \ingroup pythonintern
+ */
+
 #include <Python.h>
+
+#include "RNA_types.h"
 
 #include "bpy_rna.h"
 #include "BKE_global.h"
 #include "MEM_guardedalloc.h"
+
+#include "RNA_access.h"
 
 #define MAX_ARRAY_DIMENSION 10
 
@@ -40,7 +49,7 @@ typedef void (*RNA_SetIndexFunc)(PointerRNA *, PropertyRNA *, int index, void *)
 */
 
 /*
-  arr[2] = x
+  arr[2]= x
 
   py_to_array_index(arraydim=0, arrayoffset=0, index=2)
 	validate_array(lvalue_dim=0)
@@ -58,6 +67,10 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 	if (dim + 1 < totdim) {
 		/* check that a sequence contains dimsize[dim] items */
 		const int seq_size= PySequence_Size(seq);
+		if(seq_size == -1) {
+			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not %s", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			return 0;
+		}
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item;
 			int ok= 1;
@@ -91,6 +104,10 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 	else {
 		/* check that items are of correct type */
 		const int seq_size= PySequence_Size(seq);
+		if(seq_size == -1) {
+			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not %s", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			return 0;
+		}
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
 
@@ -137,7 +154,7 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 	int tot, totdim, len;
 
 	totdim= RNA_property_array_dimension(ptr, prop, dimsize);
-	tot= count_items(rvalue, totdim);
+	tot= count_items(rvalue, totdim - lvalue_dim);
 
 	if ((RNA_property_flag(prop) & PROP_DYNAMIC) && lvalue_dim == 0) {
 		if (RNA_property_array_length(ptr, prop) != tot) {
@@ -170,16 +187,16 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 
 			/* arr[3][4][5]
 
-			   arr[2] = x
+			   arr[2]= x
 			   dimsize={4, 5}
-			   dimsize[1] = 4
-			   dimsize[2] = 5
+			   dimsize[1]= 4
+			   dimsize[2]= 5
 			   lvalue_dim=0, totdim=3
 
-			   arr[2][3] = x
+			   arr[2][3]= x
 			   lvalue_dim=1
 
-			   arr[2][3][4] = x
+			   arr[2][3][4]= x
 			   lvalue_dim=2 */
 			for (i= lvalue_dim; i < totdim; i++)
 				len *= dimsize[i];
@@ -217,7 +234,7 @@ static char *copy_value_single(PyObject *item, PointerRNA *ptr, PropertyRNA *pro
 
 		convert_item(item, value);
 		rna_set_index(ptr, prop, *index, value);
-		*index = *index + 1;
+		*index= *index + 1;
 	}
 	else {
 		convert_item(item, data);
@@ -232,6 +249,8 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int 
 	unsigned int i;
 	int totdim= RNA_property_array_dimension(ptr, prop, NULL);
 	const int seq_size= PySequence_Size(seq);
+
+	assert(seq_size != -1);
 
 	for (i= 0; i < seq_size; i++) {
 		PyObject *item= PySequence_GetItem(seq, i);
@@ -301,11 +320,11 @@ static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, i
 
 	/* arr[3][4][5]
 
-	   arr[2] = x
-	   lvalue_dim=0, index = 0 + 2 * 4 * 5
+	   arr[2]= x
+	   lvalue_dim=0, index= 0 + 2 * 4 * 5
 
-	   arr[2][3] = x
-	   lvalue_dim=1, index = 40 + 3 * 5 */
+	   arr[2][3]= x
+	   lvalue_dim=1, index= 40 + 3 * 5 */
 
 	lvalue_dim++;
 
@@ -485,7 +504,7 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 	BPy_PropertyArrayRNA *ret= NULL;
 
 	arraydim= self ? self->arraydim : 0;
-	arrayoffset = self ? self->arrayoffset : 0;
+	arrayoffset= self ? self->arrayoffset : 0;
 
 	/* just in case check */
 	len= RNA_property_multi_array_length(ptr, prop, arraydim);
@@ -505,11 +524,11 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 
 		/* arr[3][4][5]
 
-		   x = arr[2]
-		   index = 0 + 2 * 4 * 5
+		   x= arr[2]
+		   index= 0 + 2 * 4 * 5
 
-		   x = arr[2][3]
-		   index = offset + 3 * 5 */
+		   x= arr[2][3]
+		   index= offset + 3 * 5 */
 
 		for (i= arraydim + 1; i < totdim; i++)
 			index *= dimsize[i];
@@ -517,7 +536,7 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 		ret->arrayoffset= arrayoffset + index;
 	}
 	else {
-		index = arrayoffset + index;
+		index= arrayoffset + index;
 		ret= (BPy_PropertyArrayRNA *)pyrna_array_index(ptr, prop, index);
 	}
 

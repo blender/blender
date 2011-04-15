@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/quicktime/quicktime_export.h
+ *  \ingroup quicktime
+ */
+
+
 #ifndef __QUICKTIME_EXPORT_H__
 #define __QUICKTIME_EXPORT_H__
 

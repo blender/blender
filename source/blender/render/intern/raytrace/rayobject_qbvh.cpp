@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/raytrace/rayobject_qbvh.cpp
+ *  \ingroup render
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -75,9 +80,12 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 		return;
 	}
 	
-	pushup_simd<VBVHNode,4>(root);
-
-	obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
+	if(root) {
+		pushup_simd<VBVHNode,4>(root);
+		obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
+	}
+	else
+		obj->root = NULL;
 	
 	//Free data
 	BLI_memarena_free(arena1);

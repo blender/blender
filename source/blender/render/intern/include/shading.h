@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/shading.h
+ *  \ingroup render
+ */
+
+
 struct ShadeInput;
 struct ShadeResult;
 struct RenderPart;

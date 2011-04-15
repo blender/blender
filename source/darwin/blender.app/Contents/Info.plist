@@ -20,13 +20,13 @@
 	<string>Blender</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.blenderfoundation.blender</string>
-	
+
 	<key>CFBundleVersion</key>
-	<string>VERSION, DATE, Blender Foundation</string>
+	<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
 	<key>CFBundleShortVersionString</key>
-	<string>VERSION</string>
+	<string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
 	<key>CFBundleGetInfoString</key>
-	<string>VERSION, DATE, Blender Foundation</string>
+	<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
 
 	<key>CFBundleDocumentTypes</key>
 	<array>

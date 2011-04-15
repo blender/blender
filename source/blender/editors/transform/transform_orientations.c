@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform_orientations.c
+ *  \ingroup edtransform
+ */
+
+
 #include <string.h>
 #include <ctype.h>
 

@@ -33,7 +33,7 @@
 	/* placed up here because of crappy
 	 * winsock stuff.
 	 */
-#include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <errno.h>
 
@@ -95,6 +95,8 @@
 #include "ED_sculpt.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
+
+#include "RE_pipeline.h" /* only to report missing engine */
 
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.h"
@@ -267,8 +269,11 @@ static void wm_init_userdef(bContext *C)
 	else						G.fileflags &= ~G_FILE_NO_UI;
 
 	/* set the python auto-execute setting from user prefs */
-	/* disabled by default, unless explicitly enabled in the command line */
-	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
+	/* enabled by default, unless explicitly enabled in the command line which overrides */
+	if((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
+		if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
+		else											  G.f &= ~G_SCRIPT_AUTOEXEC;
+	}
 	if(U.tempdir[0]) BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
@@ -300,8 +305,10 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 
 		/* this flag is initialized by the operator but overwritten on read.
 		 * need to re-enable it here else drivers + registered scripts wont work. */
-		if(G_f & G_SCRIPT_AUTOEXEC) G.f |= G_SCRIPT_AUTOEXEC;
-		else						G.f &= ~G_SCRIPT_AUTOEXEC;
+		if(G.f != G_f) {
+			const int flags_keep= (G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+			G.f= (G.f & ~flags_keep) | (G_f & flags_keep);
+		}
 
 		/* match the read WM with current WM */
 		wm_window_match_do(C, &wmbase);
@@ -324,7 +331,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 		ED_editors_init(C);
-		DAG_on_load_update(CTX_data_main(C), TRUE);
+		DAG_on_visible_update(CTX_data_main(C), TRUE);
 
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
@@ -332,6 +339,18 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 		BPY_modules_load_user(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
+
+#if 0	/* gives popups on windows but not linux, bug in report API but disable for now to stop users getting annoyed  */
+		/* TODO, make this show in header info window */
+		{
+			Scene *sce;
+			for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+				if(sce->r.engine[0] && BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
+					BKE_reportf(reports, RPT_WARNING, "Engine not available: '%s' for scene: %s, an addon may need to be installed or enabled", sce->r.engine, sce->id.name+2);
+				}
+			}
+		}
+#endif
 
 		// XXX		undo_editmode_clear();
 		BKE_reset_undo();
@@ -428,7 +447,7 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	BKE_write_undo(C, "original");	/* save current state */
 
 	ED_editors_init(C);
-	DAG_on_load_update(CTX_data_main(C), TRUE);
+	DAG_on_visible_update(CTX_data_main(C), TRUE);
 
 #ifdef WITH_PYTHON
 	if(CTX_py_init_get(C)) {
@@ -505,7 +524,7 @@ static void write_history(void)
 
 	recent = G.recent_files.first;
 	/* refresh recent-files.txt of recent opened files, when current file was changed */
-	if(!(recent) || (strcmp(recent->filepath, G.main->name)!=0)) {
+	if(!(recent) || (BLI_path_cmp(recent->filepath, G.main->name)!=0)) {
 		fp= fopen(name, "w");
 		if (fp) {
 			/* add current file to the beginning of list */
@@ -519,7 +538,7 @@ static void write_history(void)
 			/* write rest of recent opened files to recent-files.txt */
 			while((i<U.recent_files) && (recent)){
 				/* this prevents to have duplicities in list */
-				if (strcmp(recent->filepath, G.main->name)!=0) {
+				if (BLI_path_cmp(recent->filepath, G.main->name)!=0) {
 					fprintf(fp, "%s\n", recent->filepath);
 					recent = recent->next;
 				}
@@ -569,6 +588,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
 	int *thumb;
+	char err_out[256]= "unknown";
 
 	*thumb_pt= NULL;
 	
@@ -576,7 +596,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
-	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID);
+	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID, err_out);
 	
 	if(ibuf) {		
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
@@ -597,6 +617,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	}
 	else {
 		/* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
+		fprintf(stderr, "blend_file_thumb failed to create thumbnail: %s\n", err_out);
 		thumb= NULL;
 	}
 	
@@ -649,7 +670,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {
-		if (strcmp(li->filepath, di) == 0) {
+		if (BLI_path_cmp(li->filepath, di) == 0) {
 			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%.200s'", di);
 			return -1;
 		}

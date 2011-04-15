@@ -32,41 +32,6 @@ typedef struct EdgeTag {
 	BMVert *newv1, *newv2;
 } EdgeTag;
 
-
-/* "Projects" a vector perpendicular to vec2 against vec1, such that
- * the projected vec1 + vec2 has a min distance of 1 from the "edge" defined by vec2.
- * note: the direction, is_forward, is used in conjunction with up_vec to determine
- * whether this is a convex or concave corner. If it is a concave corner, it will
- * be projected "backwards." If vec1 is before vec2, is_forward should be 0 (we are projecting backwards).
- * vec1 is the vector to project onto (expected to be normalized)
- * vec2 is the direction of projection (pointing away from vec1)
- * up_vec is used for orientation (expected to be normalized)
- * returns the length of the projected vector that lies along vec1 */
-static float BM_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int is_forward) {
-	float factor, vec3[3], tmp[3],c1,c2;
-
-	cross_v3_v3v3(tmp,vec1,vec2);
-	normalize_v3(tmp);
-	factor = dot_v3v3(up_vec,tmp);
-	if ((factor > 0 && is_forward) || (factor < 0 && !is_forward)) {
-		cross_v3_v3v3(vec3,vec2,tmp); /* hmm, maybe up_vec should be used instead of tmp */
-	}
-	else {
-		cross_v3_v3v3(vec3,tmp,vec2); /* hmm, maybe up_vec should be used instead of tmp */
-	}
-	normalize_v3(vec3);
-	c1 = dot_v3v3(vec3,vec1);
-	c2 = dot_v3v3(vec1,vec1);
-	if (fabs(c1) < 0.000001f || fabs(c2) < 0.000001f) {
-		factor = 0.0f;
-	}
-	else {
-		factor = c2/c1;
-	}
-
-	return factor;
-}
-
 void calc_corner_co(BMesh *UNUSED(bm), BMLoop *l, float *co, float fac)
 {
 	float /* no[3], tan[3], */ vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];

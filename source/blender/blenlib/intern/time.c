@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/time.c
+ *  \ingroup bli
+ */
+
+
 #include "PIL_time.h"
 
 #ifdef WIN32

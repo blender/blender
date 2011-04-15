@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_view3d/view3d_select.c
+ *  \ingroup spview3d
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -72,7 +77,7 @@
 #include "ED_mball.h"
 
 #include "UI_interface.h"
-
+#include "UI_resources.h"
 
 #include "view3d_intern.h"	// own include
 
@@ -199,26 +204,6 @@ void EDBM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 	}
 }
 
-#if 0
-void arrows_move_cursor(unsigned short event)
-{
-	short mval[2];
-
-	getmouseco_sc(mval);
-
-	if(event==UPARROWKEY) {
-		warp_pointer(mval[0], mval[1]+1);
-	} else if(event==DOWNARROWKEY) {
-		warp_pointer(mval[0], mval[1]-1);
-	} else if(event==LEFTARROWKEY) {
-		warp_pointer(mval[0]-1, mval[1]);
-	} else if(event==RIGHTARROWKEY) {
-		warp_pointer(mval[0]+1, mval[1]);
-	}
-}
-#endif
-
-
 /* *********************** GESTURE AND LASSO ******************* */
 
 static int view3d_selectable_data(bContext *C)
@@ -317,7 +302,7 @@ int lasso_inside(short mcords[][2], short moves, short sx, short sy)
 
 		cross= (float)((p1[1]-p2[1])*(p1[0]-sx) + (p2[0]-p1[0])*(p1[1]-sy));
 		
-		if(cross<0.0) angletot-= ang;
+		if(cross<0.0f) angletot-= ang;
 		else angletot+= ang;
 		
 		/* circulate */
@@ -1013,7 +998,7 @@ static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffe
 	}
 	else {
 		/* UI */
-		uiPopupMenu *pup= uiPupMenuBegin(C, "Select Object", ICON_NULL);
+		uiPopupMenu *pup= uiPupMenuBegin(C, "Select Object", ICON_NONE);
 		uiLayout *layout= uiPupMenuLayout(pup);
 		uiLayout *split= uiLayoutSplit(layout, 0, 0);
 		uiLayout *column= uiLayoutColumn(split, 0);
@@ -1264,7 +1249,7 @@ static int mouse_select(bContext *C, short *mval, short extend, short obcenter, 
 				}
 				base= base->next;
 				
-				if(base==0) base= FIRSTBASE;
+				if(base==NULL) base= FIRSTBASE;
 				if(base==startbase) break;
 			}
 		}
@@ -1993,7 +1978,7 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, short *mval
 	int bbsel;
 
 	if (me) {
-		bm_vertoffs= me->totface+1;	/* max index array */
+		bm_vertoffs= me->totpoly+1;	/* max index array */
 
 		bbsel= EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
 		EDBM_backbuf_checkAndSelectTFaces(me, select==LEFTMOUSE);

@@ -75,7 +75,7 @@
 
 #undef small
 
-// These definitions are also in arithb for simplicity
+// These definitions are also in BLI_math for simplicity
 
 #ifdef __cplusplus
 extern "C" {
@@ -127,7 +127,8 @@ typedef struct _DIR {
 	struct dirent direntry;
 } DIR;
 
-void RegisterBlendExtension(char * str);
+int IsConsoleEmpty(void);
+void RegisterBlendExtension(void);
 DIR *opendir (const char *path);
 struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);

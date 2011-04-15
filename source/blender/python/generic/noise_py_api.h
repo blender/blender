@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/generic/noise_py_api.h
+ *  \ingroup pygen
+ */
+
 #ifndef NOISE_PY_API_H
 #define NOISE_PY_API_H
 

@@ -43,8 +43,8 @@ set(INC
 	../../../intern/elbeem/extern
 	../../../intern/ghost
 	../../../intern/opennl/extern
-	../../../extern/glew/include
 	${OPENGL_INCLUDE_DIR}
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

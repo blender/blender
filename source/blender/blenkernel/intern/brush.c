@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/brush.c
+ *  \ingroup bke
+ */
+
+
 #include <math.h>
 #include <string.h>
 
@@ -588,13 +593,21 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 					dst[2]= FTOCHAR(rgba[2]);
 					dst[3]= FTOCHAR(rgba[3]);
 				}
-				else {
+				else if (texfall == 2) {
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
 					brush_sample_tex(brush, xy, rgba, 0);
 					dst[0] = FTOCHAR(rgba[0]*brush->rgb[0]);
 					dst[1] = FTOCHAR(rgba[1]*brush->rgb[1]);
 					dst[2] = FTOCHAR(rgba[2]*brush->rgb[2]);
+					dst[3] = FTOCHAR(rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius));
+				} else {
+					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
+
+					brush_sample_tex(brush, xy, rgba, 0);
+					dst[0]= crgb[0];
+					dst[1]= crgb[1];
+					dst[2]= crgb[2];
 					dst[3] = FTOCHAR(rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius));
 				}
 			}
@@ -718,6 +731,12 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 	maskibuf = painter->cache.maskibuf;
 
 	dotexold = (oldtexibuf != NULL);
+
+	/* not sure if it's actually needed or it's a mistake in coords/sizes
+	   calculation in brush_painter_fixed_tex_partial_update(), but without this
+	   limitation memory gets corrupted at fast strokes with quite big spacing (sergey) */
+	w = MIN2(w, ibuf->x);
+	h = MIN2(h, ibuf->y);
 
 	if (painter->cache.flt) {
 		for (; y < h; y++) {
@@ -865,11 +884,8 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 		flt= cache->flt;
 		size= (cache->size)? cache->size: diameter;
 
-		if (!(mtex && mtex->tex) || (mtex->tex->type==0)) {
-			brush_imbuf_new(brush, flt, 0, size, &cache->ibuf);
-		}
-		else if (brush->flag & BRUSH_FIXED_TEX) {
-			brush_imbuf_new(brush, flt, 0, size, &cache->maskibuf);
+		if (brush->flag & BRUSH_FIXED_TEX) {
+			brush_imbuf_new(brush, flt, 3, size, &cache->maskibuf);
 			brush_painter_fixed_tex_partial_update(painter, pos);
 		}
 		else
@@ -896,13 +912,13 @@ void brush_painter_break_stroke(BrushPainter *painter)
 static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pressure)
 {
 	if (brush_use_alpha_pressure(brush)) 
-		brush_set_alpha(brush, MAX2(0.0, painter->startalpha*pressure));
+		brush_set_alpha(brush, MAX2(0.0f, painter->startalpha*pressure));
 	if (brush_use_size_pressure(brush))
-		brush_set_size(brush, MAX2(1.0, painter->startsize*pressure));
+		brush_set_size(brush, MAX2(1.0f, painter->startsize*pressure));
 	if (brush->flag & BRUSH_JITTER_PRESSURE)
-		brush->jitter = MAX2(0.0, painter->startjitter*pressure);
+		brush->jitter = MAX2(0.0f, painter->startjitter*pressure);
 	if (brush->flag & BRUSH_SPACING_PRESSURE)
-		brush->spacing = MAX2(1.0, painter->startspacing*(1.5f-pressure));
+		brush->spacing = MAX2(1.0f, painter->startspacing*(1.5f-pressure));
 }
 
 void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
@@ -1008,29 +1024,42 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		len= normalize_v2(dmousepos);
 		painter->accumdistance += len;
 
-		/* do paint op over unpainted distance */
-		while ((len > 0.0f) && (painter->accumdistance >= spacing)) {
-			step= spacing - startdistance;
-			paintpos[0]= painter->lastmousepos[0] + dmousepos[0]*step;
-			paintpos[1]= painter->lastmousepos[1] + dmousepos[1]*step;
+		if (brush->flag & BRUSH_SPACE) {
+			/* do paint op over unpainted distance */
+			while ((len > 0.0f) && (painter->accumdistance >= spacing)) {
+				step= spacing - startdistance;
+				paintpos[0]= painter->lastmousepos[0] + dmousepos[0]*step;
+				paintpos[1]= painter->lastmousepos[1] + dmousepos[1]*step;
 
-			t = step/len;
-			press= (1.0f-t)*painter->lastpressure + t*pressure;
-			brush_apply_pressure(painter, brush, press);
-			spacing= MAX2(1.0f, radius)*brush->spacing*0.01f;
+				t = step/len;
+				press= (1.0f-t)*painter->lastpressure + t*pressure;
+				brush_apply_pressure(painter, brush, press);
+				spacing= MAX2(1.0f, radius)*brush->spacing*0.01f;
 
-			brush_jitter_pos(brush, paintpos, finalpos);
+				brush_jitter_pos(brush, paintpos, finalpos);
+
+				if (painter->cache.enabled)
+					brush_painter_refresh_cache(painter, finalpos);
+
+				totpaintops +=
+					func(user, painter->cache.ibuf, painter->lastpaintpos, finalpos);
+
+				painter->lastpaintpos[0]= paintpos[0];
+				painter->lastpaintpos[1]= paintpos[1];
+				painter->accumdistance -= spacing;
+				startdistance -= spacing;
+			}
+		} else {
+			brush_jitter_pos(brush, pos, finalpos);
 
 			if (painter->cache.enabled)
 				brush_painter_refresh_cache(painter, finalpos);
 
-			totpaintops +=
-				func(user, painter->cache.ibuf, painter->lastpaintpos, finalpos);
+			totpaintops += func(user, painter->cache.ibuf, pos, finalpos);
 
-			painter->lastpaintpos[0]= paintpos[0];
-			painter->lastpaintpos[1]= paintpos[1];
-			painter->accumdistance -= spacing;
-			startdistance -= spacing;
+			painter->lastpaintpos[0]= pos[0];
+			painter->lastpaintpos[1]= pos[1];
+			painter->accumdistance= 0;
 		}
 
 		/* do airbrush paint ops, based on the number of paint ops left over
@@ -1046,7 +1075,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 			else
 				painter->accumtime -= painttime;
 
-			while (painter->accumtime >= brush->rate) {
+			while (painter->accumtime >= (double)brush->rate) {
 				brush_apply_pressure(painter, brush, pressure);
 
 				brush_jitter_pos(brush, pos, finalpos);
@@ -1056,7 +1085,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 
 				totpaintops +=
 					func(user, painter->cache.ibuf, painter->lastmousepos, finalpos);
-				painter->accumtime -= brush->rate;
+				painter->accumtime -= (double)brush->rate;
 			}
 
 			painter->lasttime= curtime;
@@ -1082,7 +1111,7 @@ float brush_curve_strength_clamp(Brush *br, float p, const float len)
 	else			p= p/len;
 
 	p= curvemapping_evaluateF(br->curve, 0, p);
-	if(p < 0.0)			p= 0.0f;
+	if(p < 0.0f)		p= 0.0f;
 	else if(p > 1.0f)	p= 1.0f;
 	return p;
 }
@@ -1129,10 +1158,10 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 				 * if the texture didn't give an RGB value, copy the intensity across
 				 */
 				if(hasrgb & TEX_RGB)
-					texres.tin = (0.35 * texres.tr + 0.45 *
-								  texres.tg + 0.2 * texres.tb);
+					texres.tin = (0.35f * texres.tr + 0.45f *
+								  texres.tg + 0.2f * texres.tb);
 
-				texres.tin = texres.tin * 255.0;
+				texres.tin = texres.tin * 255.0f;
 				((char*)texcache)[(iy*side+ix)*4] = (char)texres.tin;
 				((char*)texcache)[(iy*side+ix)*4+1] = (char)texres.tin;
 				((char*)texcache)[(iy*side+ix)*4+2] = (char)texres.tin;
@@ -1181,7 +1210,7 @@ static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 
 void brush_radial_control_invoke(wmOperator *op, Brush *br, float size_weight)
 {
-	int mode = RNA_int_get(op->ptr, "mode");
+	int mode = RNA_enum_get(op->ptr, "mode");
 	float original_value= 0;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
@@ -1200,7 +1229,7 @@ void brush_radial_control_invoke(wmOperator *op, Brush *br, float size_weight)
 
 int brush_radial_control_exec(wmOperator *op, Brush *br, float size_weight)
 {
-	int mode = RNA_int_get(op->ptr, "mode");
+	int mode = RNA_enum_get(op->ptr, "mode");
 	float new_value = RNA_float_get(op->ptr, "new_value");
 	const float conv = 0.017453293;
 

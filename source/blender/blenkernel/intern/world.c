@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/world.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 #include <math.h>
 #include "MEM_guardedalloc.h"
@@ -155,7 +160,7 @@ void make_local_world(World *wrld)
 	}
 	
 	if(local && lib==0) {
-		wrld->id.lib= 0;
+		wrld->id.lib= NULL;
 		wrld->id.flag= LIB_LOCAL;
 		new_id(NULL, (ID *)wrld, NULL);
 	}

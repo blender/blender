@@ -23,10 +23,7 @@ This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
 
-from _bpy import register_class
-from _bpy import unregister_class
-
-from _bpy import blend_paths
+from _bpy import register_class, unregister_class, blend_paths, resource_path
 from _bpy import script_paths as _bpy_script_paths
 from _bpy import user_resource as _user_resource
 
@@ -34,26 +31,30 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
-import addon_utils
+import addon_utils as _addon_utils
 
 
 def _test_import(module_name, loaded_modules):
-    import traceback
-    import time
+    use_time = _bpy.app.debug
+
     if module_name in loaded_modules:
         return None
     if "." in module_name:
         print("Ignoring '%s', can't import files containing multiple periods." % module_name)
         return None
 
-    t = time.time()
+    if use_time:
+        import time
+        t = time.time()
+
     try:
         mod = __import__(module_name)
     except:
+        import traceback
         traceback.print_exc()
         return None
 
-    if _bpy.app.debug:
+    if use_time:
         print("time %s %.4f" % (module_name, time.time() - t))
 
     loaded_modules.add(mod.__name__)  # should match mod.__name__ too
@@ -99,10 +100,11 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     :arg refresh_scripts: only load scripts which are not already loaded as modules.
     :type refresh_scripts: bool
     """
-    import traceback
-    import time
+    use_time = _bpy.app.debug
 
-    t_main = time.time()
+    if use_time:
+        import time
+        t_main = time.time()
 
     loaded_modules = set()
 
@@ -116,7 +118,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # note that they will only actually reload of the modification time changes.
         # this `wont` work for packages so... its not perfect.
         for module_name in [ext.module for ext in _bpy.context.user_preferences.addons]:
-            addon_utils.disable(module_name, default_set=False)
+            _addon_utils.disable(module_name, default_set=False)
 
     def register_module_call(mod):
         register = getattr(mod, "register", None)
@@ -124,6 +126,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             try:
                 register()
             except:
+                import traceback
                 traceback.print_exc()
         else:
             print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
@@ -134,6 +137,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             try:
                 unregister()
             except:
+                import traceback
                 traceback.print_exc()
 
     def test_reload(mod):
@@ -147,6 +151,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         try:
             return imp.reload(mod)
         except:
+            import traceback
             traceback.print_exc()
 
     def test_register(mod):
@@ -177,10 +182,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
         _global_loaded_modules[:] = []
 
-    user_path = user_script_path()
-
     for base_path in script_paths():
-        for path_subdir in ("", "ui", "op", "io", "keyingsets", "modules"):
+        for path_subdir in ("startup", "modules"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 _sys_path_ensure(path)
@@ -189,14 +192,11 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 if path_subdir == "modules":
                     continue
 
-                if user_path != base_path and path_subdir == "":
-                    continue  # avoid loading 2.4x scripts
-
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
 
-    # deal with addons seperately
-    addon_utils.reset_all(reload_scripts)
+    # deal with addons separately
+    _addon_utils.reset_all(reload_scripts)
 
     # run the active integration preset
     filepath = preset_find(_bpy.context.user_preferences.inputs.active_keyconfig, "keyconfig")
@@ -207,7 +207,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         import gc
         print("gc.collect() -> %d" % gc.collect())
 
-    if _bpy.app.debug:
+    if use_time:
         print("Python Script Load Time %.4f" % (time.time() - t_main))
 
 
@@ -347,12 +347,13 @@ def keyconfig_set(filepath):
 
     print("loading preset:", filepath)
     keyconfigs = _bpy.context.window_manager.keyconfigs
-    kc_orig = keyconfigs.active
 
     keyconfigs_old = keyconfigs[:]
 
     try:
-        exec(compile(open(filepath).read(), filepath, 'exec'), {"__file__": filepath})
+        file = open(filepath)
+        exec(compile(file.read(), filepath, 'exec'), {"__file__": filepath})
+        file.close()
     except:
         import traceback
         traceback.print_exc()
@@ -412,48 +413,47 @@ def _bpy_module_classes(module, is_registered=False):
     typemap_list = _bpy_types.TypeMap.get(module, ())
     i = 0
     while i < len(typemap_list):
-        cls_weakref, path, line = typemap_list[i]
+        cls_weakref = typemap_list[i]
         cls = cls_weakref()
 
         if cls is None:
             del typemap_list[i]
         else:
             if is_registered == cls.is_registered:
-                yield (cls, path, line)
+                yield cls
             i += 1
 
 
 def register_module(module, verbose=False):
-    import traceback
     if verbose:
         print("bpy.utils.register_module(%r): ..." % module)
-    for cls, path, line in _bpy_module_classes(module, is_registered=False):
+    cls = None
+    for cls in _bpy_module_classes(module, is_registered=False):
         if verbose:
-            print("    %s of %s:%s" % (cls, path, line))
+            print("    %r" % cls)
         try:
             register_class(cls)
         except:
-            print("bpy.utils.register_module(): failed to registering class '%s.%s'" % (cls.__module__, cls.__name__))
-            print("\t", path, "line", line)
+            print("bpy.utils.register_module(): failed to registering class %r" % cls)
+            import traceback
             traceback.print_exc()
     if verbose:
         print("done.\n")
-    if "cls" not in locals():
+    if cls is None:
         raise Exception("register_module(%r): defines no classes" % module)
 
 
 def unregister_module(module, verbose=False):
-    import traceback
     if verbose:
         print("bpy.utils.unregister_module(%r): ..." % module)
-    for cls, path, line in _bpy_module_classes(module, is_registered=True):
+    for cls in _bpy_module_classes(module, is_registered=True):
         if verbose:
-            print("    %s of %s:%s" % (cls, path, line))
+            print("    %r" % cls)
         try:
             unregister_class(cls)
         except:
-            print("bpy.utils.unregister_module(): failed to unregistering class '%s.%s'" % (cls.__module__, cls.__name__))
-            print("\t", path, "line", line)
+            print("bpy.utils.unregister_module(): failed to unregistering class %r" % cls)
+            import traceback
             traceback.print_exc()
     if verbose:
         print("done.\n")

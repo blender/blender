@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_buttons/space_buttons.c
+ *  \ingroup spbuttons
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -63,7 +68,7 @@ static SpaceLink *buttons_new(const bContext *UNUSED(C))
 	
 	sbuts= MEM_callocN(sizeof(SpaceButs), "initbuts");
 	sbuts->spacetype= SPACE_BUTS;
-	sbuts->align= BUT_AUTO;
+	sbuts->align= BUT_VERTICAL;
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for buts");
@@ -351,8 +356,12 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_NODE:
-			if(wmn->action==NA_SELECTED)
+			if(wmn->action==NA_SELECTED) {
 				ED_area_tag_redraw(sa);
+				/* new active node, update texture preview */
+				if(sbuts->mainb == BCONTEXT_TEXTURE)
+					sbuts->preview= 1;
+			}
 			break;
 		/* Listener for preview render, when doing an global undo. */
 		case NC_WINDOW:

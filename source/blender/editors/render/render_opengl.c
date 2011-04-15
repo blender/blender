@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/render/render_opengl.c
+ *  \ingroup edrend
+ */
+
+
 #include <math.h>
 #include <string.h>
 #include <stddef.h>
@@ -183,9 +188,17 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		GPU_offscreen_unbind(oglrender->ofs); /* unbind */
 	}
 	else {
-		ImBuf *ibuf_view= ED_view3d_draw_offscreen_imbuf_simple(scene, oglrender->sizex, oglrender->sizey, IB_rectfloat, OB_SOLID);
-		memcpy(rr->rectf, ibuf_view->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
-		IMB_freeImBuf(ibuf_view);
+		/* shouldnt suddenly give errors mid-render but possible */
+		char err_out[256]= "unknown";
+		ImBuf *ibuf_view= ED_view3d_draw_offscreen_imbuf_simple(scene, oglrender->sizex, oglrender->sizey, IB_rectfloat, OB_SOLID, err_out);
+
+		if(ibuf_view) {
+			memcpy(rr->rectf, ibuf_view->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
+			IMB_freeImBuf(ibuf_view);
+		}
+		else {
+			fprintf(stderr, "screen_opengl_render_apply: failed to get buffer, %s\n", err_out);
+		}
 	}
 	
 	/* rr->rectf is now filled with image data */
@@ -225,6 +238,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	short is_view_context= RNA_boolean_get(op->ptr, "view_context");
 	const short is_animation= RNA_boolean_get(op->ptr, "animation");
 	const short is_write_still= RNA_boolean_get(op->ptr, "write_still");
+	char err_out[256]= "unknown";
 
 	/* ensure we have a 3d view */
 
@@ -258,10 +272,10 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	sizey= (scene->r.size*scene->r.ysch)/100;
 
 	/* corrects render size with actual size, not every card supports non-power-of-two dimensions */
-	ofs= GPU_offscreen_create(&sizex, &sizey);
+	ofs= GPU_offscreen_create(&sizex, &sizey, err_out);
 
 	if(!ofs) {
-		BKE_report(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer.");
+		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer, %s", err_out);
 		return 0;
 	}
 
@@ -280,6 +294,9 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		oglrender->v3d= CTX_wm_view3d(C);
 		oglrender->ar= CTX_wm_region(C);
 		oglrender->rv3d= CTX_wm_region_view3d(C);
+
+		/* MUST be cleared on exit */
+		oglrender->scene->customdata_mask_modal= ED_view3d_datamask(oglrender->scene, oglrender->v3d);
 	}
 
 	/* create image and image user */
@@ -322,6 +339,8 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);
 
 	GPU_offscreen_free(oglrender->ofs);
+
+	oglrender->scene->customdata_mask_modal= 0;
 
 	MEM_freeN(oglrender);
 }

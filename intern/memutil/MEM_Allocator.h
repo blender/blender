@@ -29,6 +29,7 @@
 #ifndef MEM_ALLOCATOR_H
 #define MEM_ALLOCATOR_H
 
+#include <stddef.h>
 #include "guardedalloc/MEM_guardedalloc.h"
 #include "guardedalloc/MEM_sys_types.h"
 

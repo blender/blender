@@ -28,6 +28,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/threads.c
+ *  \ingroup bli
+ */
+
+
 #include <errno.h>
 #include <string.h>
 

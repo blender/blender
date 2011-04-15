@@ -1,5 +1,5 @@
 
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,19 +23,28 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/intern/bpy_operator.c
+ *  \ingroup pythonintern
+ */
+
+
 /* Note, this module is not to be used directly by the user.
  * Internally its exposed as '_bpy.ops', which provides functions for 'bpy.ops', a python package.
  * */
 
 #include <Python.h>
 
+#include "RNA_types.h"
+
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_util.h"
+#include "../generic/bpy_internal_import.h"
 
 #include "BLI_utildefines.h"
 
+#include "RNA_access.h"
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"
@@ -110,7 +119,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 {
 	wmOperatorType *ot;
-	int error_val = 0;
+	int error_val= 0;
 	PointerRNA ptr;
 	int operator_ret= OPERATOR_CANCELLED;
 
@@ -124,7 +133,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	int context= WM_OP_EXEC_DEFAULT;
 
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
-	bContext *C = (bContext *)BPy_GetContext();
+	bContext *C= (bContext *)BPy_GetContext();
 	
 	if(C==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "Context is None, cant poll any operators");
@@ -186,12 +195,11 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			ReportList *reports;
 
 			reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
-			BKE_reports_init(reports, RPT_STORE);
+			BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD); /* own so these dont move into global reports */
 
 			operator_ret= WM_operator_call_py(C, ot, context, &ptr, reports);
 
-			if(BPy_reports_to_error(reports, FALSE))
-				error_val = -1;
+			error_val= BPy_reports_to_error(reports, PyExc_RuntimeError, FALSE);
 
 			/* operator output is nice to have in the terminal/console too */
 			if(reports->list.first) {
@@ -239,6 +247,8 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	 * function corrects bpy.data (internal Main pointer) */
 	BPY_modules_update(C);
 
+	/* needed for when WM_OT_read_factory_settings us called fro within a script */
+	bpy_import_main_set(CTX_data_main(C));
 
 	/* return operator_ret as a bpy enum */
 	return pyrna_enum_bitfield_to_py(operator_return_items, operator_ret);
@@ -252,10 +262,10 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 
 	char		*opname;
 	PyObject	*kw= NULL; /* optional args */
-	int all_args = 1;
+	int all_args= 1;
 	int error_val= 0;
 
-	char *buf = NULL;
+	char *buf= NULL;
 	PyObject *pybuf;
 
 	bContext *C= (bContext *)BPy_GetContext();
@@ -304,11 +314,11 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 
 static PyObject *pyop_dir(PyObject *UNUSED(self))
 {
-	PyObject *list = PyList_New(0), *name;
+	PyObject *list= PyList_New(0), *name;
 	wmOperatorType *ot;
 	
 	for(ot= WM_operatortype_first(); ot; ot= ot->next) {
-		name = PyUnicode_FromString(ot->idname);
+		name= PyUnicode_FromString(ot->idname);
 		PyList_Append(list, name);
 		Py_DECREF(name);
 	}
@@ -346,7 +356,7 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 	return (PyObject *)pyrna;
 }
 
-static struct PyMethodDef bpy_ops_methods[] = {
+static struct PyMethodDef bpy_ops_methods[]= {
 	{"poll", (PyCFunction) pyop_poll, METH_VARARGS, NULL},
 	{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL},
 	{"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL},
@@ -356,7 +366,7 @@ static struct PyMethodDef bpy_ops_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-static struct PyModuleDef bpy_ops_module = {
+static struct PyModuleDef bpy_ops_module= {
 	PyModuleDef_HEAD_INIT,
 	"_bpy.ops",
 	NULL,

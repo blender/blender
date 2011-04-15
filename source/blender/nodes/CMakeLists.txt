@@ -34,7 +34,7 @@ set(INC
 	../makesrna
 	../render/extern/include
 	../../../intern/guardedalloc
-	../../../extern/glew/include
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

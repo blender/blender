@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/avi/intern/avi_intern.h
+ *  \ingroup avi
+ */
+
 #ifndef AVI_INTERN_H
 #define AVI_INTERN_H
 

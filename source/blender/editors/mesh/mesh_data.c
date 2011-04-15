@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/mesh_data.c
+ *  \ingroup edmesh
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -584,7 +589,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 	if(calc_edges || (mesh->totface && mesh->totedge == 0))
 		BKE_mesh_calc_edges(mesh, calc_edges);
 
-	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mface, mesh->totface, NULL);
+	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
 
 	DAG_id_tag_update(&mesh->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mesh);
@@ -620,15 +625,15 @@ static void mesh_add_verts(Mesh *mesh, int len)
 	mesh->totvert= totvert;
 }
 
-void ED_mesh_transform(Mesh *me, float *mat)
+void ED_mesh_transform(Mesh *mesh, float *mat)
 {
 	int i;
-	MVert *mvert= me->mvert;
+	MVert *mvert= mesh->mvert;
 
-	for(i= 0; i < me->totvert; i++, mvert++)
+	for(i= 0; i < mesh->totvert; i++, mvert++)
 		mul_m4_v3((float (*)[4])mat, mvert->co);
 
-	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
 }
 
 static void mesh_add_edges(Mesh *mesh, int len)
@@ -737,8 +742,8 @@ void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
 	mesh_add_verts(mesh, count);
 }
 
-void ED_mesh_calc_normals(Mesh *me)
+void ED_mesh_calc_normals(Mesh *mesh)
 {
-	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
 }
 

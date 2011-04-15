@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform_input.c
+ *  \ingroup edtransform
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -87,8 +92,9 @@ static void InputSpringFlip(TransInfo *t, MouseInput *mi, short mval[2], float o
 	InputSpring(t, mi, mval, output);
 
 	/* flip scale */
-	if	((mi->center[0] - mval[0]) * (mi->center[0] - mi->imval[0]) +
-		 (mi->center[1] - mval[1]) * (mi->center[1] - mi->imval[1]) < 0)
+	/* values can become really big when zoomed in so use longs [#26598] */
+	if	((long long int)(mi->center[0] - mval[0]) * (long long int)(mi->center[0] - mi->imval[0]) +
+		 (long long int)(mi->center[1] - mval[1]) * (long long int)(mi->center[1] - mi->imval[1]) < 0)
 	 {
 		output[0] *= -1.0f;
 	 }
@@ -268,7 +274,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], floa
 		mi->imval[1] = mval[1];
 	}
 
-	*angle += dphi;
+	*angle += (double)dphi;
 
 	output[0] = *angle;
 }

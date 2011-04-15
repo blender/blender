@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_node/node_select.c
+ *  \ingroup spnode
+ */
+
+
 #include <stdio.h>
 
 #include "DNA_node_types.h"

@@ -1,3 +1,6 @@
+/** \file blender/blenkernel/intern/writeframeserver.c
+ *  \ingroup bke
+ */
 /*
  * $Id$
  *

@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/gammaCorrectionTables.h
+ *  \ingroup render
+ */
+
+
 #ifndef GAMMACORRECTIONTABLES_H
 #define GAMMACORRECTIONTABLES_H
 

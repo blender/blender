@@ -29,6 +29,7 @@ struct btWheelInfoConstructionInfo
 	btScalar		m_wheelsDampingCompression;
 	btScalar		m_wheelsDampingRelaxation;
 	btScalar		m_frictionSlip;
+	btScalar		m_maxSuspensionForce;
 	bool m_bIsFrontWheel;
 	
 };
@@ -68,6 +69,7 @@ struct btWheelInfo
 	btScalar	m_rotation;
 	btScalar	m_deltaRotation;
 	btScalar	m_rollInfluence;
+	btScalar	m_maxSuspensionForce;
 
 	btScalar	m_engineForce;
 
@@ -99,6 +101,7 @@ struct btWheelInfo
 		m_brake = btScalar(0.);
 		m_rollInfluence = btScalar(0.1);
 		m_bIsFrontWheel = ci.m_bIsFrontWheel;
+		m_maxSuspensionForce = ci.m_maxSuspensionForce;
 
 	}
 

@@ -406,6 +406,7 @@ static void knife_edge_append_face(knifetool_opdata *kcd, KnifeEdge *kfe, BMFace
 	BLI_addtail(&kfe->faces, ref);
 }
 
+#if 0
 static void knife_copy_edge_facelist(knifetool_opdata *kcd, KnifeEdge *dest, KnifeEdge *source) 
 {
 	Ref *ref, *ref2;
@@ -424,6 +425,7 @@ static void knife_copy_edge_facelist(knifetool_opdata *kcd, KnifeEdge *dest, Kni
 		BLI_addtail(&dest->faces, ref);
 	}
 }
+#endif
 
 static void knife_add_single_cut(knifetool_opdata *kcd)
 {

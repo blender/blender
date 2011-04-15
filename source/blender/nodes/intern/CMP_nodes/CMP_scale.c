@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_scale.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 /* **************** Scale  ******************** */
@@ -107,7 +112,7 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 		if(cbuf!=in[0]->data)
 			free_compbuf(cbuf);
 	}
-};
+}
 
 void register_node_type_cmp_scale(ListBase *lb)
 {

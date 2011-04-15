@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/anim_markers.c
+ *  \ingroup edanimation
+ */
+
+
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
@@ -63,6 +68,7 @@
 #include "ED_util.h"
 #include "ED_numinput.h"
 #include "ED_object.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 
 /* ************* Marker API **************** */
@@ -105,6 +111,57 @@ ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
 		return context_get_markers(ac->scene, ac->sa);
 	else
 		return NULL;
+}
+
+/* --------------------------------- */
+
+/* Apply some transformation to markers after the fact 
+ * < markers: list of markers to affect - this may or may not be the scene markers list, so don't assume anything
+ * < scene: current scene (for getting current frame)
+ * < mode: (TfmMode) transform mode that this transform is for
+ * < value: from the transform code, this is t->vec[0] (which is delta transform for grab/extend, and scale factor for scale)
+ * < side: (B/L/R) for 'extend' functionality, which side of current frame to use
+ */
+int ED_markers_post_apply_transform (ListBase *markers, Scene *scene, int mode, float value, char side)
+{
+	TimeMarker *marker;
+	float cfra = (float)CFRA;
+	int changed = 0;
+	
+	/* sanity check */
+	if (markers == NULL)
+		return changed;
+	
+	/* affect selected markers - it's unlikely that we will want to affect all in this way? */
+	for (marker = markers->first; marker; marker = marker->next) {
+		if (marker->flag & SELECT) {
+			switch (mode) {
+				case TFM_TIME_TRANSLATE:
+				case TFM_TIME_EXTEND:
+				{
+					/* apply delta if marker is on the right side of the current frame */
+					if ((side=='B') ||
+						(side=='L' && marker->frame < cfra) || 
+					    (side=='R' && marker->frame >= cfra))
+					{
+						marker->frame += (int)floorf(value + 0.5f);
+						changed++;
+					}
+				}
+					break;
+					
+				case TFM_TIME_SCALE:
+				{	
+					/* rescale the distance between the marker and the current frame */
+					marker->frame= cfra + (int)floorf(((float)(marker->frame - cfra) * value) + 0.5f);
+					changed++;
+				}
+					break;
+			}
+		}
+	}
+	
+	return changed;
 }
 
 /* --------------------------------- */
@@ -281,7 +338,7 @@ void debug_markers_print_list(ListBase *markers)
 	printf("List of markers follows: -----\n");
 	
 	for (marker = markers->first; marker; marker = marker->next) {
-		printf("\t'%s' on %d at %p with %d\n", marker->name, marker->frame, marker, marker->flag);
+		printf("\t'%s' on %d at %p with %d\n", marker->name, marker->frame, (void *)marker, marker->flag);
 	}
 	
 	printf("End of list ------------------\n");
@@ -365,7 +422,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		}
 
 #ifdef DURIAN_CAMERA_SWITCH
-		if(marker->camera && marker->camera->restrictflag & OB_RESTRICT_RENDER) {
+		if(marker->camera && (marker->camera->restrictflag & OB_RESTRICT_RENDER)) {
 			float col[4];
 			glGetFloatv(GL_CURRENT_COLOR, col);
 			col[3]= 0.4;
@@ -407,9 +464,6 @@ void draw_markers_time(const bContext *C, int flag)
  * of standard animation editors, such that they can coexist with the 
  * primary operations of those editors.
  */
-
-/* maximum y-axis value (in region screen-space) that marker events should still be accepted for  */
-#define ANIMEDIT_MARKER_YAXIS_MAX 	40
 
 /* ------------------------ */
 
@@ -455,15 +509,7 @@ static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, wmEvent 
 	ScrArea *sa = CTX_wm_area(C);
 	int retval = OPERATOR_PASS_THROUGH;
 	
-	/* only timeline view doesn't need calling-location validation as it's the only dedicated view */
-	if (sa->spacetype != SPACE_TIME) {
-		/* restrict y-values to within ANIMEDIT_MARKER_YAXIS_MAX of the view's vertical extents, including scrollbars */
-		if (evt->mval[1] > ANIMEDIT_MARKER_YAXIS_MAX) {
-			/* not ok... "pass-through" to let normal editor's operators have a chance at tackling this event... */
-			//printf("MARKER-WRAPPER-DEBUG: event mval[1] = %d, so over accepted tolerance\n", evt->mval[1]);
-			return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
-		}
-	}
+	/* removed check for Y coord of event, keymap has bounbox now */
 	
 	/* allow operator to run now */
 	if (invoke_func)
@@ -697,18 +743,24 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			ed_marker_move_cancel(C, op);
 			return OPERATOR_CANCELLED;
 		
+		case RIGHTMOUSE:
+			/* press = user manually demands transform to be cancelled */
+			if (evt->val == KM_PRESS) {
+				ed_marker_move_cancel(C, op);
+				return OPERATOR_CANCELLED;
+			}
+			/* else continue; <--- see if release event should be caught for tweak-end */
+		
 		case RETKEY:
 		case PADENTER:
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
-		case RIGHTMOUSE:
 			if (WM_modal_tweak_exit(evt, mm->event_type)) {
 				ed_marker_move_exit(C, op);
 				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 				WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 				return OPERATOR_FINISHED;
 			}
-			
 			break;
 		case MOUSEMOVE:
 			if (hasNumInput(&mm->num))

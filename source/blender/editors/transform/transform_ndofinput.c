@@ -23,6 +23,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/transform/transform_ndofinput.c
+ *  \ingroup edtransform
+ */
+
  
  #include <math.h>			/* fabs */
 #include <stdio.h>			/* for sprintf		*/

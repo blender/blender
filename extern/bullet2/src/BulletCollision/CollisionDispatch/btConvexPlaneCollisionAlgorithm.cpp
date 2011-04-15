@@ -102,9 +102,9 @@ void btConvexPlaneCollisionAlgorithm::processCollision (btCollisionObject* body0
 	btConvexShape* convexShape = (btConvexShape*) convexObj->getCollisionShape();
 	btStaticPlaneShape* planeShape = (btStaticPlaneShape*) planeObj->getCollisionShape();
 
-    bool hasCollision = false;
+    
 	const btVector3& planeNormal = planeShape->getPlaneNormal();
-	const btScalar& planeConstant = planeShape->getPlaneConstant();
+	//const btScalar& planeConstant = planeShape->getPlaneConstant();
 
 	//first perform a collision query with the non-perturbated collision objects
 	{

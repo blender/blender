@@ -51,7 +51,7 @@ void BKE_reports_clear(ReportList *reports);
 void BKE_report(ReportList *reports, ReportType type, const char *message);
 void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 3, 4)));
+__attribute__ ((format (printf, 3, 4)))
 #endif
 ;
 

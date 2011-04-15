@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_select.c
+ *  \ingroup edobj
+ */
+
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,6 +67,7 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -181,7 +187,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	Object *ob;
 	void *obdata = NULL;
 	Material *mat = NULL, *mat1;
-	Tex *tex=0;
+	Tex *tex= NULL;
 	int a, b;
 	int nr = RNA_enum_get(op->ptr, "type");
 	short changed = 0, extend;
@@ -216,15 +222,15 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else if(nr==2) {
-		if(ob->data==0) return OPERATOR_CANCELLED;
+		if(ob->data==NULL) return OPERATOR_CANCELLED;
 		obdata= ob->data;
 	}
 	else if(nr==3 || nr==4) {
 		mat= give_current_material(ob, ob->actcol);
-		if(mat==0) return OPERATOR_CANCELLED;
+		if(mat==NULL) return OPERATOR_CANCELLED;
 		if(nr==4) {
 			if(mat->mtex[ (int)mat->texact ]) tex= mat->mtex[ (int)mat->texact ]->tex;
-			if(tex==0) return OPERATOR_CANCELLED;
+			if(tex==NULL) return OPERATOR_CANCELLED;
 		}
 	}
 	else if(nr==5) {
@@ -433,7 +439,7 @@ static short select_grouped_group(bContext *C, Object *ob)	/* Select objects in 
 	}
 
 	/* build the menu. */
-	pup= uiPupMenuBegin(C, "Select Group", ICON_NULL);
+	pup= uiPupMenuBegin(C, "Select Group", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 
 	for (i=0; i<group_count; i++) {
@@ -586,7 +592,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	}
 	
 	ob= OBACT;
-	if(ob==0){ 
+	if(ob==NULL) { 
 		BKE_report(op->reports, RPT_ERROR, "No Active Object");
 		return OPERATOR_CANCELLED;
 	}

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenloader/intern/writefile.c
+ *  \ingroup blenloader
+ */
+
+
 /*
 FILEFORMAT: IFF-style structure  (but not IFF compatible!)
 
@@ -463,7 +468,7 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 					
 					/* write envelope data */
 					if (data->data)
-						writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
+						writestruct(wd, DATA, "FCM_EnvelopeData", data->totvert, data->data);
 				}
 					break;
 				case FMODIFIER_TYPE_PYTHON:
@@ -2544,7 +2549,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 	}
 
 	BLI_make_file_string(G.main->name, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
-	write_user_block= BLI_streq(dir, userfilename);
+	write_user_block= (BLI_path_cmp(dir, userfilename) == 0);
 
 	if(write_flags & G_FILE_RELATIVE_REMAP)
 		makeFilesRelative(mainvar, dir, NULL); /* note, making relative to something OTHER then G.main->name */

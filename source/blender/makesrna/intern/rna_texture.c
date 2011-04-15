@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_texture.c
+ *  \ingroup RNA
+ */
+
+
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -144,7 +149,9 @@ static void rna_Texture_voxeldata_image_update(Main *bmain, Scene *scene, Pointe
 {
 	Tex *tex= ptr->id.data;
 	
-	tex->ima->source = IMA_SRC_SEQUENCE;
+	if(tex->ima) { /* may be getting cleared too */
+		tex->ima->source = IMA_SRC_SEQUENCE;
+	}
 	rna_Texture_voxeldata_update(bmain, scene, ptr);
 }
 
@@ -783,7 +790,7 @@ static void rna_def_texture_wood(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pattern", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
-	prop= RNA_def_property(srna, "noisebasis_2", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "noise_basis_2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_wood_noisebasis2);
 	RNA_def_property_ui_text(prop, "Noise Basis 2", "");
@@ -857,7 +864,7 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
 	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
-	prop= RNA_def_property(srna, "noisebasis_2", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "noise_basis_2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_marble_noisebasis2);
 	RNA_def_property_ui_text(prop, "Noise Basis 2", "");
@@ -1009,7 +1016,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_interpolation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_INTERPOL);
-	RNA_def_property_ui_text(prop, "Interpolation", "Interpolates pixels using Area filter");
+	RNA_def_property_ui_text(prop, "Interpolation", "Interpolates pixels using selected filter");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	/* XXX: I think flip_axis should be a generic Texture property, enabled for all the texture types */

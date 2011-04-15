@@ -125,6 +125,10 @@ if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
 endif()
 
+if(WITH_OPENCOLLADA)
+	add_definitions(-DWITH_COLLADA)
+endif()
+
 # Build makesrna executable
 blender_include_dirs(
 	.
@@ -141,10 +145,10 @@ blender_include_dirs(
 	../../windowmanager
 	../../editors/include
 	../../render/extern/include
-	../../../../extern/glew/include
 	../../../../intern/audaspace/intern
 	../../../../intern/guardedalloc
 	../../../../intern/memutil
+    ${GLEW_INCLUDE_PATH}
 )
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})

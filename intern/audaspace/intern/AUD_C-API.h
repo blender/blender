@@ -459,9 +459,11 @@ extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
  */
 extern AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds);
 
-extern AUD_Sound* AUD_createSequencer(void* data, AUD_volumeFunction volume);
+extern AUD_Sound* AUD_createSequencer(int muted, void* data, AUD_volumeFunction volume);
 
 extern void AUD_destroySequencer(AUD_Sound* sequencer);
+
+extern void AUD_setSequencerMuted(AUD_Sound* sequencer, int muted);
 
 extern AUD_SequencerEntry* AUD_addSequencer(AUD_Sound** sequencer, AUD_Sound* sound,
 										float begin, float end, float skip, void* data);

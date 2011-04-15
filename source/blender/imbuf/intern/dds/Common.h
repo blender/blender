@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/dds/Common.h
+ *  \ingroup imbdds
+ */
+
+
 #ifndef _DDS_COMMON_H
 #define _DDS_COMMON_H
 

@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/context.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 #include <stddef.h>
 
@@ -114,7 +119,7 @@ bContext *CTX_copy(const bContext *C)
 	return newC;
 }
 
-#ifdef EVENT_RECORDER
+#if defined(EVENT_RECORDER) && !defined(BUILDING_GAMEPLAYER)
 extern GHOST_SystemHandle g_system;
 
 int CTX_rec_events(bContext *C)
@@ -854,7 +859,7 @@ static const char *data_mode_strings[] = {
 	"sculpt_mode",
 	"weightpaint",
 	"vertexpaint",
-	"texturepaint",
+	"imagepaint",
 	"particlemode",
 	"objectmode",
 	NULL

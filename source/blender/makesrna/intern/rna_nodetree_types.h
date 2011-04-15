@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_nodetree_types.h
+ *  \ingroup RNA
+ */
+
  
 /*       Tree type       Node ID                  RNA def function        Enum name         Struct name       UI Name              UI Description */
 DefNode( ShaderNode,     SH_NODE_OUTPUT,          0,                      "OUTPUT",         Output,           "Output",            ""              )

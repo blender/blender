@@ -34,6 +34,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/bmesh_private.h
+ *  \ingroup bke
+ */
+
+
 #ifndef BMESH_PRIVATE
 #define BMESH_PRIVATE
 

@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/depsgraph_private.h
+ *  \ingroup bke
+ */
+
 #ifndef DEPSGRAPH_PRIVATE
 #define DEPSGRAPH_PRIVATE
 

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/pointdensity.h
+ *  \ingroup render
+ */
+
+
 #ifndef POINTDENSITY_H
 #define POINTDENSITY_H 
 

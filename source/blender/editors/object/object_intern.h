@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/object/object_intern.h
+ *  \ingroup edobj
+ */
+
 #ifndef ED_OBJECT_INTERN_H
 #define ED_OBJECT_INTERN_H
 

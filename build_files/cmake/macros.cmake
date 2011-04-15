@@ -66,7 +66,7 @@ macro(SETUP_LIBDIRS)
 
 	link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
 
-	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
+	if(WITH_PYTHON)  #  AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		link_directories(${PYTHON_LIBPATH})
 	endif()
 	if(WITH_INTERNATIONAL)
@@ -127,7 +127,7 @@ macro(setup_liblinks
 	target_link_libraries(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
-	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
+	if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
 		if(WIN32 AND NOT UNIX)
@@ -136,6 +136,10 @@ macro(setup_liblinks
 		else()
 			target_link_libraries(${target} ${PYTHON_LIBRARY})
 		endif()
+	endif()
+
+	if(NOT WITH_BUILTIN_GLEW)
+		target_link_libraries(${target} ${GLEW_LIBRARY})
 	endif()
 
 	target_link_libraries(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
@@ -265,7 +269,7 @@ endmacro()
 # needs to be removed for some external libs which we dont maintain.
 
 # utility macro
-macro(_remove_strict_flags
+macro(remove_flag
 	flag)
 
 	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
@@ -285,12 +289,12 @@ endmacro()
 macro(remove_strict_flags)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
-		_remove_strict_flags("-Wstrict-prototypes")
-		_remove_strict_flags("-Wunused-parameter")
-		_remove_strict_flags("-Wwrite-strings")
-		_remove_strict_flags("-Wshadow")
-		_remove_strict_flags("-Werror=[^ ]+")
-		_remove_strict_flags("-Werror")
+		remove_flag("-Wstrict-prototypes")
+		remove_flag("-Wunused-parameter")
+		remove_flag("-Wwrite-strings")
+		remove_flag("-Wshadow")
+		remove_flag("-Werror=[^ ]+")
+		remove_flag("-Werror")
 	endif()
 
 	if(MSVC)
@@ -350,7 +354,12 @@ macro(get_blender_version)
 		message(FATAL_ERROR "Version parsing failed for BLENDER_SUBVERSION")
 	endif()
 
-	if(NOT ${_out_version_char} MATCHES "[a-z]+")
+	# clumsy regex, only single char are ok but it could be unset
+
+	string(LENGTH "${_out_version_char}" _out_version_char_len)
+	if(NOT _out_version_char_len EQUAL 1)
+		set(_out_version_char "")
+	elseif(NOT ${_out_version_char} MATCHES "[a-z]+")
 		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_CHAR")
 	endif()
 
@@ -358,13 +367,30 @@ macro(get_blender_version)
 		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_CYCLE")
 	endif()
 
-	MATH(EXPR BLENDER_VERSION_MAJOR "${_out_version} / 100")
-	MATH(EXPR BLENDER_VERSION_MINOR "${_out_version} % 100")
+	math(EXPR BLENDER_VERSION_MAJOR "${_out_version} / 100")
+	math(EXPR BLENDER_VERSION_MINOR "${_out_version} % 100")
 	set(BLENDER_VERSION "${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}")
 
 	set(BLENDER_SUBVERSION ${_out_subversion})
 	set(BLENDER_VERSION_CHAR ${_out_version_char})
 	set(BLENDER_VERSION_CYCLE ${_out_version_cycle})
+
+	# for packaging, alpha to numbers
+	string(COMPARE EQUAL "${BLENDER_VERSION_CHAR}" "" _out_version_char_empty)
+	if(${_out_version_char_empty})
+		set(BLENDER_VERSION_CHAR_INDEX "0")
+	else()
+		set(_char_ls a b c d e f g h i j k l m n o p q r s t u v w q y z)
+		list(FIND _char_ls ${BLENDER_VERSION_CHAR} _out_version_char_index)
+		math(EXPR BLENDER_VERSION_CHAR_INDEX "${_out_version_char_index} + 1")
+		unset(_char_ls)
+		unset(_out_version_char_index)
+	endif()
+
+	unset(_out_subversion)
+	unset(_out_version_char)
+	unset(_out_version_char_empty)
+	unset(_out_version_cycle)
 
 	# message(STATUS "Version (Internal): ${BLENDER_VERSION}.${BLENDER_SUBVERSION}, Version (external): ${BLENDER_VERSION}${BLENDER_VERSION_CHAR}-${BLENDER_VERSION_CYCLE}")
 endmacro()

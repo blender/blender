@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_nla.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -158,7 +163,7 @@ static void rna_NlaStrip_end_frame_set(PointerRNA *ptr, float value)
 		
 		len= data->end - data->start;
 		actlen= data->actend - data->actstart;
-		if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
+		if (IS_EQF(actlen, 0.0f)) actlen= 1.0f;
 		
 		/* now, adjust the 'scale' setting to reflect this (so that this change can be valid) */
 		data->scale= len / ((actlen) * data->repeat);
@@ -291,7 +296,7 @@ static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *repo
 	 * 	- only the nla_tracks list is needed there, which we aim to reverse engineer here...
 	 */
 	{
-		AnimData adt = {0};
+		AnimData adt = {NULL};
 		NlaTrack *nlt, *nlt_p;
 		
 		/* 'first' NLA track is found by going back up chain of given track's parents until we fall off */
@@ -332,9 +337,9 @@ static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *report
 /* enum defines exported for rna_animation.c */
 EnumPropertyItem nla_mode_blend_items[] = {
 	{NLASTRIP_MODE_REPLACE, "REPLACE", 0, "Replace", "Result strip replaces the accumulated results by amount specified by influence"},
-	{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumlated results"},
-	{NLASTRIP_MODE_SUBTRACT, "SUBTRACT", 0, "Subtract", "Weighted result of strip is removed from the accumlated results"},
-	{NLASTRIP_MODE_MULTIPLY, "MULITPLY", 0, "Multiply", "Weighted result of strip is multiplied with the accumlated results"},
+	{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumulated results"},
+	{NLASTRIP_MODE_SUBTRACT, "SUBTRACT", 0, "Subtract", "Weighted result of strip is removed from the accumulated results"},
+	{NLASTRIP_MODE_MULTIPLY, "MULITPLY", 0, "Multiply", "Weighted result of strip is multiplied with the accumulated results"},
 	{0, NULL, 0, NULL, NULL}};
 EnumPropertyItem nla_mode_extend_items[] = {
 	{NLASTRIP_EXTEND_NOTHING, "NOTHING", 0, "Nothing", "Strip has no influence past its extents"},

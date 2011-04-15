@@ -13,6 +13,6 @@ mat3 = mat.to_3x3()
 quat1 = mat.to_quaternion()
 quat2 = mat3.to_quaternion()
 
-angle = quat1.difference(quat2)
+quat_diff = quat1.rotation_difference(quat2)
 
-print(angle)
+print(quat_diff.angle)

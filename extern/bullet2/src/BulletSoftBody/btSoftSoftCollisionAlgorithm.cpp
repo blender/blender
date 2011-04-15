@@ -17,6 +17,7 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
 #include "BulletCollision/CollisionShapes/btBoxShape.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
+#include "BulletSoftBody/btSoftBodySolvers.h"
 #include "btSoftBody.h"
 
 #define USE_PERSISTENT_CONTACTS 1
@@ -36,7 +37,7 @@ void btSoftSoftCollisionAlgorithm::processCollision (btCollisionObject* body0,bt
 {
 	btSoftBody* soft0 =	(btSoftBody*)body0;
 	btSoftBody* soft1 =	(btSoftBody*)body1;
-	soft0->defaultCollisionHandler(soft1);
+	soft0->getSoftBodySolver()->processCollision(soft0, soft1);
 }
 
 btScalar btSoftSoftCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* /*body0*/,btCollisionObject* /*body1*/,const btDispatcherInfo& /*dispatchInfo*/,btManifoldResult* /*resultOut*/)

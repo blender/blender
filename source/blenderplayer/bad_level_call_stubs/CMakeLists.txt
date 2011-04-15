@@ -56,4 +56,5 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_FREETYPE2)
 endif()
 
+add_definitions(-DBUILDING_GAMEPLAYER)
 blender_add_lib_nolist(blenkernel_blc "${SRC}" "${INC}")

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/occlusion.c
+ *  \ingroup render
+ */
+
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -189,6 +194,7 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	if(shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
 		negate_v3(shi->vn);
 		negate_v3(shi->vno);
+		negate_v3(shi->nmapnorm);
 	}
 
 	/* init material vars */
@@ -608,7 +614,8 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 
 	/* compute maximum distance from center */
 	node->dco= 0.0f;
-	occ_build_dco(tree, node, node->co, &node->dco);
+	if(node->area > 0.0f)
+		occ_build_dco(tree, node, node->co, &node->dco);
 }
 
 static void occ_build_sh_normalize(OccNode *node)

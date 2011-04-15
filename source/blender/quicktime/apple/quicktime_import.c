@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/quicktime/apple/quicktime_import.c
+ *  \ingroup quicktime
+ */
+
 #ifdef WITH_QUICKTIME
 
 #if defined(_WIN32) || defined(__APPLE__)

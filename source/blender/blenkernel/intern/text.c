@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/text.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h> /* strstr */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -373,7 +378,6 @@ Text *add_text(const char *file, const char *relpath)
 	ta->mtime= st.st_mtime;
 	
 	ta->nlines=0;
-	i=0;
 	llen=0;
 	for(i=0; i<len; i++) {
 		if (buffer[i]=='\n') {

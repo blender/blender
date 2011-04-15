@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy.c
+ *  \ingroup pythonintern
+ */
+
  
 /* This file defines the '_bpy' module which is used by python's 'bpy' package.
  * a script writer should never directly access this module */
@@ -37,11 +42,15 @@
 #include "bpy_operator.h"
 
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_bpath.h"
 #include "BLI_utildefines.h"
 
 
 #include "BKE_global.h" /* XXX, G.main only */
+#include "BKE_blender.h"
+
+#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -61,8 +70,8 @@ static char bpy_script_paths_doc[] =
 "   Return 2 paths to blender scripts directories.\n"
 "\n"
 "   :return: (system, user) strings will be empty when not found.\n"
-"   :rtype: tuple of strigs\n";
-
+"   :rtype: tuple of strings\n"
+;
 static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
 	PyObject *ret= PyTuple_New(2);
@@ -84,7 +93,8 @@ static char bpy_blend_paths_doc[] =
 "   :arg absolute: When true the paths returned are made absolute.\n"
 "   :type absolute: boolean\n"
 "   :return: path list.\n"
-"   :rtype: list of strigs\n";
+"   :rtype: list of strings\n"
+;
 static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct BPathIterator *bpi;
@@ -93,8 +103,8 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	char filepath_expanded[1024];
 	const char *lib;
 
-	int absolute = 0;
-	static const char *kwlist[] = {"absolute", NULL};
+	int absolute= 0;
+	static const char *kwlist[]= {"absolute", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
 		return NULL;
@@ -107,8 +117,8 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
 		}
 		else {
-			lib = BLI_bpathIterator_getLib(bpi);
-			if (lib && (strcmp(lib, BLI_bpathIterator_getBasePath(bpi)))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
+			lib= BLI_bpathIterator_getLib(bpi);
+			if (lib && (BLI_path_cmp(lib, BLI_bpathIterator_getBasePath(bpi)))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
 				BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
 			}
 			else {
@@ -127,13 +137,13 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 }
 
 
-// static char bpy_user_resource_doc[] = // now in bpy/utils.py
+// static char bpy_user_resource_doc[]= // now in bpy/utils.py
 static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;
 	char *subdir= NULL;
 	int folder_id;
-	static const char *kwlist[] = {"type", "subdir", NULL};
+	static const char *kwlist[]= {"type", "subdir", NULL};
 
 	char *path;
 
@@ -154,14 +164,55 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	path= BLI_get_folder(folder_id, subdir);
 
 	if (!path)
-		path = BLI_get_user_folder_notest(folder_id, subdir);
+		path= BLI_get_user_folder_notest(folder_id, subdir);
 
-	return PyUnicode_FromString(path ? path : "");
+	return PyUnicode_DecodeFSDefault(path ? path : "");
 }
 
-static PyMethodDef meth_bpy_script_paths = {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
-static PyMethodDef meth_bpy_blend_paths = {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
-static PyMethodDef meth_bpy_user_resource = {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
+static char bpy_resource_path_doc[] =
+".. function:: resource_path(type, major=2, minor=57)\n"
+"\n"
+"   Return the base path for storing system files.\n"
+"\n"
+"   :arg type: string in ['USER', 'LOCAL', 'SYSTEM'].\n"
+"   :type type: string\n"
+"   :arg major: major version, defaults to current.\n"
+"   :type major: int\n"
+"   :arg minor: minor version, defaults to current.\n"
+"   :type minor: string\n"
+"   :return: the resource path (not necessarily existing).\n"
+"   :rtype: string\n"
+;
+static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+{
+	char *type;
+	int major= BLENDER_VERSION/100, minor= BLENDER_VERSION%100;
+	static const char *kwlist[]= {"type", "major", "minor", NULL};
+	int folder_id;
+	char *path;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ii:resource_path", (char **)kwlist, &type, &major, &minor))
+		return NULL;
+
+	/* stupid string compare */
+	if     (!strcmp(type, "USER"))		folder_id= BLENDER_RESOURCE_PATH_USER;
+	else if(!strcmp(type, "LOCAL"))		folder_id= BLENDER_RESOURCE_PATH_LOCAL;
+	else if(!strcmp(type, "SYSTEM"))	folder_id= BLENDER_RESOURCE_PATH_SYSTEM;
+	else {
+		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
+		return NULL;
+	}
+
+	path= BLI_get_folder_version(folder_id, (major * 100) + minor, FALSE);
+
+	return PyUnicode_DecodeFSDefault(path);
+}
+
+static PyMethodDef meth_bpy_script_paths= {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
+static PyMethodDef meth_bpy_blend_paths= {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
+static PyMethodDef meth_bpy_user_resource= {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
+static PyMethodDef meth_bpy_resource_path= {"resource_path", (PyCFunction)bpy_resource_path, METH_VARARGS|METH_KEYWORDS, bpy_resource_path_doc};
+
 
 static PyObject *bpy_import_test(const char *modname)
 {
@@ -183,6 +234,7 @@ static PyObject *bpy_import_test(const char *modname)
 void BPy_init_modules( void )
 {
 	extern BPy_StructRNA *bpy_context_module;
+	extern int bpy_lib_init(PyObject *);
 	PointerRNA ctx_ptr;
 	PyObject *mod;
 
@@ -201,7 +253,7 @@ void BPy_init_modules( void )
 	/* stand alone utility modules not related to blender directly */
 	IDProp_Init_Types(); /* not actually a submodule, just types */
 
-	mod = PyModule_New("_bpy");
+	mod= PyModule_New("_bpy");
 
 	/* add the module so we can import it */
 	PyDict_SetItemString(PyImport_GetModuleDict(), "_bpy", mod);
@@ -212,7 +264,9 @@ void BPy_init_modules( void )
 
 	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
 	PyModule_AddObject(mod, "StructMetaPropGroup", (PyObject *)&pyrna_struct_meta_idprop_Type); /* metaclass for idprop types, bpy_types.py needs access */
-			
+
+	bpy_lib_init(mod); /* adds '_bpy._library_load', must be called before 'bpy_types' which uses it */
+
 	bpy_import_test("bpy_types");
 	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
 	bpy_import_test("bpy_types");
@@ -233,6 +287,7 @@ void BPy_init_modules( void )
 	PyModule_AddObject(mod, meth_bpy_script_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_script_paths, NULL));
 	PyModule_AddObject(mod, meth_bpy_blend_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_blend_paths, NULL));
 	PyModule_AddObject(mod, meth_bpy_user_resource.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_user_resource, NULL));
+	PyModule_AddObject(mod, meth_bpy_resource_path.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_resource_path, NULL));
 
 	/* register funcs (bpy_rna.c) */
 	PyModule_AddObject(mod, meth_bpy_register_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_register_class, NULL));

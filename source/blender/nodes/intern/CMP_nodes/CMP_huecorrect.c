@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_huecorrect.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 static bNodeSocketType cmp_node_huecorrect_in[]= {

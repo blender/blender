@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/raytrace/reorganize.h
+ *  \ingroup render
+ */
+
+
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
@@ -39,7 +44,10 @@
 #include "BKE_global.h"
 
 #ifdef _WIN32
-#define INFINITY FLT_MAX // in mingw math.h: (1.0F/0.0F). This generates compile error, though.
+#  ifdef INFINITY
+#    undef INFINITY
+#  endif
+#  define INFINITY FLT_MAX // in mingw math.h: (1.0F/0.0F). This generates compile error, though.
 #endif
 
 extern int tot_pushup;

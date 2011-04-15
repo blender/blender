@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/initrender.h
+ *  \ingroup render
+ */
+
+
 #ifndef INITRENDER_H
 #define INITRENDER_H 
 

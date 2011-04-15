@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/imbuf/IMB_imbuf.h
+ *  \ingroup imbuf
+ */
+
 /**
  * @file IMB_imbuf.h
  * @brief IMage Buffer module.

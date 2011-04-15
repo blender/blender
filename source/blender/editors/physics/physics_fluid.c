@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/physics/physics_fluid.c
+ *  \ingroup edphys
+ */
+
+
 
 
 #include <math.h>
@@ -82,6 +87,7 @@
 #include "ED_fluidsim.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 #include "physics_intern.h" // own include
 
@@ -437,15 +443,20 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 			Object *ob = fobj->object;
 			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 			float active= (float)(fluidmd->fss->flag & OB_FLUIDSIM_ACTIVE);
-			float rot_d[3], rot_360[3] = {360.f, 360.f, 360.f};
+			float rot_d[3], old_rot[3] = {0.f, 0.f, 0.f};
 			
 			if (ELEM(fluidmd->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE))
 				continue;
 			
 			/* init euler rotation values and convert to elbeem format */
-			BKE_rotMode_change_values(ob->quat, ob->rot, ob->rotAxis, &ob->rotAngle, ob->rotmode, ROT_MODE_EUL);
-			mul_v3_v3fl(rot_d, ob->rot, 180.f/M_PI);
-			sub_v3_v3v3(rot_d, rot_360, rot_d);
+			/* get the rotation from ob->obmat rather than ob->rot to account for parent animations */
+			if(i) {
+				copy_v3_v3(old_rot, fobj->Rotation + 4*(i-1));
+				mul_v3_fl(old_rot, -M_PI/180.f);
+			}
+
+			mat4_to_compatible_eulO(rot_d, old_rot, 0, ob->obmat);
+			mul_v3_fl(rot_d, -180.f/M_PI);
 			
 			set_channel(fobj->Translation, timeAtFrame, ob->loc, i, CHANNEL_VEC);
 			set_channel(fobj->Rotation, timeAtFrame, rot_d, i, CHANNEL_VEC);
@@ -798,7 +809,7 @@ static void fluidbake_free_data(FluidAnimChannels *channels, ListBase *fobjects,
 	}
 }
 
-int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
+static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 {
 	Scene *scene= CTX_data_scene(C);
 	int i;
@@ -1070,19 +1081,17 @@ static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object
 	return 0;
 }
 
-static void fluidsimFreeBake(Object *UNUSED(ob))
-{
-}
-
 #endif /* DISABLE_ELBEEM */
 
 /***************************** Operators ******************************/
 
 static int fluid_bake_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
+	/* only one bake job at a time */
+	if(WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
+		return 0;
 
-	if(!fluidsimBake(C, op->reports, ob))
+	if(!fluidsimBake(C, op->reports, CTX_data_active_object(C)))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;

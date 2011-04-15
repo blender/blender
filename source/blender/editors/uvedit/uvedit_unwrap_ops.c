@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/uvedit/uvedit_unwrap_ops.c
+ *  \ingroup eduv
+ */
+
+
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -476,12 +481,19 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 /* ******************** Pack Islands operator **************** */
 
-static int pack_islands_exec(bContext *C, wmOperator *UNUSED(op))
+static int pack_islands_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	ParamHandle *handle;
+
+	if(RNA_property_is_set(op->ptr, "margin")) {
+		scene->toolsettings->uvcalc_margin= RNA_float_get(op->ptr, "margin");
+	}
+	else {
+		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
+	}
 
 	handle = construct_param_handle(scene, em, 1, 0, 1, 1);
 	param_pack(handle, scene->toolsettings->uvcalc_margin);
@@ -504,6 +516,9 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= pack_islands_exec;
 	ot->poll= ED_operator_uvedit;
+
+	/* properties */
+	RNA_def_float_factor(ot->srna, "margin", 0.0f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
 /* ******************** Average Islands Scale operator **************** */
@@ -750,7 +765,7 @@ static void correct_uv_aspect(BMEditMesh *em)
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-			if (!BM_TestHFlag(efa, BM_SELECT))
+			if (!BM_TestHFlag(efa, BM_SELECT) || BM_TestHFlag(efa, BM_HIDDEN))
 				continue;
 			
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -764,7 +779,7 @@ static void correct_uv_aspect(BMEditMesh *em)
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-			if (!BM_TestHFlag(efa, BM_SELECT))
+			if (!BM_TestHFlag(efa, BM_SELECT)||BM_TestHFlag(efa, BM_HIDDEN))
 				continue;
 			
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -842,14 +857,35 @@ static void uv_map_clip_correct(BMEditMesh *em, wmOperator *op)
 
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				CLAMP(luv->uv[0], 0.0, 1.0);
-				CLAMP(luv->uv[1], 0.0, 1.0);
+				CLAMP(luv->uv[0], 0.0f, 1.0f);
+				CLAMP(luv->uv[1], 0.0f, 1.0f);
 			}
 		}
 	}
 }
 
 /* ******************** Unwrap operator **************** */
+
+/* assumes UV layer is checked, doesn't run update funcs */
+void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
+{
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+
+	const short fill_holes= scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
+	const short correct_aspect= !(scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT);
+
+	ParamHandle *handle= construct_param_handle(scene, em, 0, fill_holes, sel, correct_aspect);
+
+	param_lscm_begin(handle, PARAM_FALSE, scene->toolsettings->unwrapper == 0);
+	param_lscm_solve(handle);
+	param_lscm_end(handle);
+
+	param_pack(handle, scene->toolsettings->uvcalc_margin);
+
+	param_flush(handle);
+
+	param_delete(handle);
+}
 
 static int unwrap_exec(bContext *C, wmOperator *op)
 {
@@ -869,17 +905,14 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	/* remember last method for live unwrap */
 	scene->toolsettings->unwrapper = method;
 
-	handle= construct_param_handle(scene, em, 0, fill_holes, 1, correct_aspect);
+	if(fill_holes)		scene->toolsettings->uvcalc_flag |=  UVCALC_FILLHOLES;
+	else				scene->toolsettings->uvcalc_flag &= ~UVCALC_FILLHOLES;
 
-	param_lscm_begin(handle, PARAM_FALSE, method == 0);
-	param_lscm_solve(handle);
-	param_lscm_end(handle);
-	
-	param_pack(handle, scene->toolsettings->uvcalc_margin);
+	if(correct_aspect)	scene->toolsettings->uvcalc_flag &= ~UVCALC_NO_ASPECT_CORRECT;
+	else				scene->toolsettings->uvcalc_flag |=  UVCALC_NO_ASPECT_CORRECT;
 
-	param_flush(handle);
-
-	param_delete(handle);
+	/* execute unwrap */
+	ED_unwrap_lscm(scene, obedit, TRUE);
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -1146,7 +1179,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *tf)
 	for(i=0; i<efa->len; i++) {
 		if(i != mi) {
 			dx = uvs[mi][0] - uvs[i][0];
-			if(dx > 0.5) uvs[i][0] += 1.0;
+			if(dx > 0.5f) uvs[i][0] += 1.0f;
 		} 
 	} 
 
@@ -1326,18 +1359,20 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 		if(no[2]>=no[0] && no[2]>=no[1]);
 		else if(no[1]>=no[0] && no[1]>=no[2]) coy= 2;
 		else { cox= 1; coy= 2; }
-
+		
+		dx = dy = 0;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-			luv->uv[0] = 0.5+0.5*cube_size*(loc[cox] + l->v->co[cox]);
-			luv->uv[1] = 0.5+0.5*cube_size*(loc[coy] + l->v->co[coy]);
+			luv->uv[0] = 0.5f+0.5f*cube_size*(loc[cox] + l->v->co[cox]);
+			luv->uv[1] = 0.5f+0.5f*cube_size*(loc[coy] + l->v->co[coy]);
 			
 			if (first) {
 				dx = floor(luv->uv[0]);
 				dy = floor(luv->uv[1]);
 				first = 0;
 			}
+			
 
 			luv->uv[0] -= dx;
 			luv->uv[1] -= dy;

@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/armature/reeb.h
+ *  \ingroup edarmature
+ */
+
  
 #ifndef REEB_H_
 #define REEB_H_

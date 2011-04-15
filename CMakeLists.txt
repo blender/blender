@@ -44,10 +44,39 @@ endif()
 
 cmake_minimum_required(VERSION 2.8)
 
+# this starts out unset
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/")
+
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
+# ignore system set flag, use our own
+# must be before project(...)
+# if the user wants to add their own its ok after first run.
+if(DEFINED CMAKE_C_STANDARD_LIBRARIES)
+	set(_reset_standard_libraries OFF)
+else()
+	set(_reset_standard_libraries ON)
+endif()
+
+
 project(Blender)
+
+
+if (_reset_standard_libraries)
+	# Must come after project(...)
+	#
+	# MINGW workaround for -ladvapi32 being included which surprisingly causes
+	# string formatting of floats, eg: printf("%.*f", 3, value). to crash blender
+	# with a meaningless stack trace. by overriding this flag we ensure we only
+	# have libs we define and that cmake & scons builds match.
+	set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
+	set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
+	mark_as_advanced(CMAKE_C_STANDARD_LIBRARIES)
+	mark_as_advanced(CMAKE_CXX_STANDARD_LIBRARIES)
+endif()
+unset(_reset_standard_libraries)
+
 
 enable_testing()
 
@@ -67,11 +96,13 @@ include(build_files/cmake/macros.cmake)
 get_blender_version()
 
 # Blender internal features
-option(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
-option(WITH_PYTHON        "Enable Embedded Python API" ON)
-option(WITH_PYTHON_MODULE "Enable building as a python module (experemental)" OFF)
-option(WITH_BUILDINFO     "Include extra build details" ON)
-option(WITH_IK_ITASC      "Enable ITASC IK solver" ON)
+option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
+option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
+mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they really know what they are doing.
+option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
+option(WITH_PYTHON_MODULE "Enable building as a python module (experemental, only enable for development)" OFF)
+option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
+option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
 option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
@@ -83,10 +114,20 @@ else()
 	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
 endif()
 
+if(UNIX AND NOT APPLE)
+	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support)"	ON)
+	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
+else()
+	# not an option for other OS's
+	set(WITH_BUILTIN_GLEW ON)
+endif()
+
 # Modifiers
 option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
 option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
 option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
+option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experemental cloth solver" OFF)
+mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
 
 # Image format support
 option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
@@ -106,11 +147,7 @@ endif()
 
 # 3D format support
 # disable opencollada on non-apple unix because opencollada has no package for debian
-if(UNIX AND NOT APPLE)
-	option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
-else()
-	option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
-endif()
+option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
 
 # Sound output
 option(WITH_SDL           "Enable SDL for sound and joystick support" ON)
@@ -124,17 +161,29 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 
 # Misc
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
-option(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
+if(UNIX AND NOT APPLE)
+	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
+endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
 # Debug
-option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
+option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
 mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" OFF)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
 if(APPLE)
+	if(NOT CMAKE_OSX_ARCHITECTURES)
+		set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
+		"Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
+		FORCE)
+	endif()
+	if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5 CACHE STRING
+		"Choose the minimum OSX version required: 10.4 or 10.5"
+		FORCE)
+	endif()
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
@@ -145,10 +194,6 @@ endif()
 
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
-endif()
-
-if(NOT WITH_INSTALL AND WITH_PYTHON_INSTALL)
-	message("WARNING: WITH_PYTHON_INSTALL requires WITH_INSTALL")
 endif()
 
 if(NOT WITH_SAMPLERATE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
@@ -168,6 +213,9 @@ if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
 
+# remove old vars
+unset(WITH_INSTALL CACHE)
+
 TEST_SSE_SUPPORT()
 
 #-----------------------------------------------------------------------------
@@ -186,9 +234,17 @@ set(CXX_WARNINGS "")
 
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
-#   cmake -D PYTHON_LIBRARY=/usr/local/lib/python3.1/config/libpython3.1.so -D PYTHON_INCLUDE_DIRS=/usr/local/include/python3.1 -G "Unix Makefiles" ../blender
+#   cmake ../blender \
+#         -D PYTHON_VERSION=3.2 \
+#         -D PYTHON_INCLUDE_DIRS=/opt/py32/include/python3.2d \
+#         -D PYTHON_LIBPATH=/opt/py32/lib \
+#         -D PYTHON_LIBRARY=python3.2d
+#
 # On Macs: 
-#   cmake -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config -G Xcode ../blender
+#   cmake ../blender \
+#         -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.2/include/python3.2 \
+#         -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.2/lib/python3.2/config \
+#         -G Xcode
 #
 # When changing any of this remember to update the notes in doc/build_systems/cmake.txt
 
@@ -196,6 +252,11 @@ set(CXX_WARNINGS "")
 #Platform specifics
 
 if(UNIX AND NOT APPLE)
+	
+	# needed for ubuntu 11.04
+	if(EXISTS "/usr/lib/x86_64-linux-gnu")
+		set(CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu;${CMAKE_LIBRARY_PATH}")
+	endif()
 
 	if(WITH_OPENAL)
 		find_package(OpenAL)
@@ -243,23 +304,19 @@ if(UNIX AND NOT APPLE)
 
 
 	if(WITH_PYTHON)
-		# No way to set py31. remove for now.
+		# No way to set py32. remove for now.
 		# find_package(PythonLibs)
-		set(PYTHON /usr)
-		set(PYTHON_VERSION 3.1 CACHE STRING "")
-		mark_as_advanced(PYTHON_VERSION)
-		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
-		mark_as_advanced(PYTHON_INCLUDE_DIRS)
-		# set(PYTHON_BINARY python) # not used yet
-		set(PYTHON_LIBRARY python${PYTHON_VERSION} CACHE STRING "")
-		mark_as_advanced(PYTHON_LIBRARY)
-		set(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
-		mark_as_advanced(PYTHON_LIBPATH)
-		# find_package(PythonInterp) # not used yet
-		# set(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
 
-		set(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
-		mark_as_advanced(PYTHON_LINKFLAGS)
+		# defines...
+		
+		#  PYTHON_VERSION
+		#  PYTHON_INCLUDE_DIRS
+		#  PYTHON_LIBRARY
+		#  PYTHON_LIBPATH
+		#  PYTHON_LINKFLAGS
+
+		include(build_files/cmake/FindPythonLibsUnix.cmake)
+
 	endif()
 
 	if(WITH_SDL)
@@ -363,7 +420,11 @@ if(UNIX AND NOT APPLE)
 	mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
+	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB}")
+
+	if(WITH_X11_XINPUT)
+		list(APPEND LLIBS ${X11_Xinput_LIB})
+	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		if(NOT WITH_PYTHON_MODULE)
@@ -481,7 +542,7 @@ elseif(WIN32)
 
 	if(MSVC)
 		if(CMAKE_CL_64)
-			set(LLIBS kernel32 user32 vfw32 winmm ws2_32 )
+			set(LLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid )
 		else()
 			set(LLIBS kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 vfw32 winmm)
 		endif()
@@ -609,18 +670,18 @@ elseif(WIN32)
 
 		if(WITH_PYTHON)
 			set(PYTHON ${LIBDIR}/python)
-			set(PYTHON_VERSION 3.1)
+			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARY python31)
+			set(PYTHON_LIBRARY python32)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 
 		# MSVC only, Mingw doesnt need
 		if(CMAKE_CL_64)
-			set(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib ")
+			set(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib /STACK:2097152 ")
 		else()
-			set(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib ")
+			set(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib /STACK:2097152 ")
 		endif()
 
 		set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib;libc.lib ")
@@ -716,12 +777,14 @@ elseif(WIN32)
 
 		if(WITH_PYTHON)
 			set(PYTHON ${LIBDIR}/python)
-			set(PYTHON_VERSION 3.1)
+			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARY python31mw)
+			set(PYTHON_LIBRARY python32mw)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
+
+		set(PLATFORM_LINKFLAGS "--stack,2097152")
 
 	endif()
 
@@ -729,6 +792,10 @@ elseif(WIN32)
 	blender_include_dirs("${PTHREADS_INC}")
 
 elseif(APPLE)
+
+	if (${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.5")
+		set(WITH_LIBS10.5 ON CACHE BOOL "Use 10.5 libs" FORCE)
+	endif()
 
 	if(WITH_LIBS10.5)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
@@ -765,10 +832,10 @@ elseif(APPLE)
 		set(SNDFILE_LIBPATH ${SNDFILE}/lib ${FFMPEG}/lib)
 	endif()
 
-	set(PYTHON_VERSION 3.1)
+	set(PYTHON_VERSION 3.2)
 
-	if(PYTHON_VERSION MATCHES 3.1)
-		# we use precompiled libraries for py 3.1 and up by default
+	if(PYTHON_VERSION MATCHES 3.2)
+		# we use precompiled libraries for py 3.2 and up by default
 
 		set(PYTHON ${LIBDIR}/python)
 		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
@@ -780,7 +847,7 @@ elseif(APPLE)
 		# otherwise, use custom system framework
 
 		set(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
-		set(PYTHON_VERSION 3.1)
+		set(PYTHON_VERSION 3.2)
 		set(PYTHON_INCLUDE_DIRS "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
 		# set(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
 		set(PYTHON_LIBRARY "")
@@ -990,6 +1057,30 @@ if(WITH_OPENMP)
 endif() 
 
 #-----------------------------------------------------------------------------
+# Configure GLEW
+
+if(WITH_BUILTIN_GLEW)
+	# set(GLEW_LIBRARY "")  # unused
+	set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew/include")
+else()
+	find_package(GLEW)
+
+	if(NOT GLEW_FOUND)
+		message(FATAL_ERROR "GLEW is required to build blender, install it or use WITH_BUILTIN_GLEW")
+	endif()
+
+	mark_as_advanced(GLEW_LIBRARY)
+	mark_as_advanced(GLEW_INCLUDE_PATH)
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure Python.
+
+if(WITH_PYTHON_MODULE)
+	add_definitions(-DPy_ENABLE_SHARED)
+endif() 
+
+#-----------------------------------------------------------------------------
 # Extra compile flags
 
 if((NOT WIN32) AND (NOT MSVC))
@@ -1014,12 +1105,16 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_DECLARATION_AFTER_STATEMENT -Werror=declaration-after-statement)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE -Werror=return-type)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_STRICT_PROTOTYPES -Werror=strict-prototypes)
+	# system headers sometimes do this, disable for now, was: -Werror=strict-prototypes
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_STRICT_PROTOTYPES -Wstrict-prototypes)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
+	# disable because it gives warnings for printf() & friends.
+	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
 
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
@@ -1037,6 +1132,13 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 
 endif()
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	if(WITH_IK_ITASC OR WITH_MOD_FLUID)
+		message(WARNING "Using Clang as CXX compiler: disabling WITH_IK_ITASC and WITH_MOD_FLUID, these features will be missing.")
+		set(WITH_IK_ITASC OFF)
+		set(WITH_MOD_FLUID OFF)
+	endif()
+endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")

@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -12,6 +12,7 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
+
 ///btDbvtBroadphase implementation by Nathanael Presson
 
 #include "btDbvtBroadphase.h"
@@ -123,7 +124,7 @@ btDbvtBroadphase::btDbvtBroadphase(btOverlappingPairCache* paircache)
 	m_deferedcollide	=	false;
 	m_needcleanup		=	true;
 	m_releasepaircache	=	(paircache!=0)?false:true;
-	m_prediction		=	1/(btScalar)2;
+	m_prediction		=	0;
 	m_stageCurrent		=	0;
 	m_fixedleft			=	0;
 	m_fupdates			=	1;
@@ -249,6 +250,34 @@ void	btDbvtBroadphase::rayTest(const btVector3& rayFrom,const btVector3& rayTo, 
 
 }
 
+
+struct	BroadphaseAabbTester : btDbvt::ICollide
+{
+	btBroadphaseAabbCallback& m_aabbCallback;
+	BroadphaseAabbTester(btBroadphaseAabbCallback& orgCallback)
+		:m_aabbCallback(orgCallback)
+	{
+	}
+	void					Process(const btDbvtNode* leaf)
+	{
+		btDbvtProxy*	proxy=(btDbvtProxy*)leaf->data;
+		m_aabbCallback.process(proxy);
+	}
+};	
+
+void	btDbvtBroadphase::aabbTest(const btVector3& aabbMin,const btVector3& aabbMax,btBroadphaseAabbCallback& aabbCallback)
+{
+	BroadphaseAabbTester callback(aabbCallback);
+
+	const ATTRIBUTE_ALIGNED16(btDbvtVolume)	bounds=btDbvtVolume::FromMM(aabbMin,aabbMax);
+		//process all children, that overlap with  the given AABB bounds
+	m_sets[0].collideTV(m_sets[0].m_root,bounds,callback);
+	m_sets[1].collideTV(m_sets[1].m_root,bounds,callback);
+
+}
+
+
+
 //
 void							btDbvtBroadphase::setAabb(		btBroadphaseProxy* absproxy,
 														  const btVector3& aabbMin,
@@ -314,6 +343,47 @@ void							btDbvtBroadphase::setAabb(		btBroadphaseProxy* absproxy,
 			}
 		}	
 	}
+}
+
+
+//
+void							btDbvtBroadphase::setAabbForceUpdate(		btBroadphaseProxy* absproxy,
+														  const btVector3& aabbMin,
+														  const btVector3& aabbMax,
+														  btDispatcher* /*dispatcher*/)
+{
+	btDbvtProxy*						proxy=(btDbvtProxy*)absproxy;
+	ATTRIBUTE_ALIGNED16(btDbvtVolume)	aabb=btDbvtVolume::FromMM(aabbMin,aabbMax);
+	bool	docollide=false;
+	if(proxy->stage==STAGECOUNT)
+	{/* fixed -> dynamic set	*/ 
+		m_sets[1].remove(proxy->leaf);
+		proxy->leaf=m_sets[0].insert(aabb,proxy);
+		docollide=true;
+	}
+	else
+	{/* dynamic set				*/ 
+		++m_updates_call;
+		/* Teleporting			*/ 
+		m_sets[0].update(proxy->leaf,aabb);
+		++m_updates_done;
+		docollide=true;
+	}
+	listremove(proxy,m_stageRoots[proxy->stage]);
+	proxy->m_aabbMin = aabbMin;
+	proxy->m_aabbMax = aabbMax;
+	proxy->stage	=	m_stageCurrent;
+	listappend(proxy,m_stageRoots[m_stageCurrent]);
+	if(docollide)
+	{
+		m_needcleanup=true;
+		if(!m_deferedcollide)
+		{
+			btDbvtTreeCollider	collider(this);
+			m_sets[1].collideTTpersistentStack(m_sets[1].m_root,proxy->leaf,collider);
+			m_sets[0].collideTTpersistentStack(m_sets[0].m_root,proxy->leaf,collider);
+		}
+	}	
 }
 
 //
@@ -571,7 +641,6 @@ void btDbvtBroadphase::resetPool(btDispatcher* dispatcher)
 		
 		m_deferedcollide	=	false;
 		m_needcleanup		=	true;
-		m_prediction		=	1/(btScalar)2;
 		m_stageCurrent		=	0;
 		m_fixedleft			=	0;
 		m_fupdates			=	1;

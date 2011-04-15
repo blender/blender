@@ -64,6 +64,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_cellalloc.h"
+#include "BLI_winstuff.h"
 
 #include "RE_pipeline.h"		/* RE_ free stuff */
 
@@ -115,7 +116,7 @@ static void wm_free_reports(bContext *C)
 	BKE_reports_clear(CTX_wm_reports(C));
 }
 
-
+int wm_start_with_console = 0;
 
 /* only called once, for startup */
 void WM_init(bContext *C, int argc, const char **argv)
@@ -124,6 +125,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 	if (!G.background) {
 		wm_ghost_init(C);	/* note: it assigns C to ghost! */
 		wm_init_cursor_data();
+#ifdef WIN32
+		if (IsConsoleEmpty()) /* never hide if the console window pre-existed */
+			WM_console_toggle(C, wm_start_with_console);
+#endif
 	}
 	GHOST_CreateSystemPaths();
 
@@ -280,7 +285,7 @@ int WM_init_game(bContext *C)
 
 		/* full screen the area */
 		if(!sa->full) {
-			ED_screen_full_toggle(C, wm->windows.first, sa);
+			ED_screen_full_toggle(C, win, sa);
 		}
 
 		/* Fullscreen */
@@ -352,6 +357,10 @@ void WM_exit(bContext *C)
 	wmWindow *win;
 
 	sound_exit();
+
+#ifdef WIN32
+	WM_console_toggle(C, 1); /* never leave behind invisible consoles */
+#endif
 
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
@@ -431,7 +440,7 @@ void WM_exit(bContext *C)
 // XXX		UI_filelist_free_icons();
 	}
 	
-	GPU_buffer_pool_free(0);
+	GPU_buffer_pool_free(NULL);
 	GPU_free_unused_buffers();
 	GPU_extensions_exit();
 	
@@ -458,12 +467,11 @@ void WM_exit(bContext *C)
 	
 	GHOST_DisposeSystemPaths();
 
-	if(MEM_get_memory_blocks_in_use()!=0 || BLI_cellalloc_get_totblock()!=0) {
-		printf("Error Totblock: %d\n", 
-			BLI_cellalloc_get_totblock()+MEM_get_memory_blocks_in_use());
+	if(MEM_get_memory_blocks_in_use()!=0) {
+		printf("Error: Not freed memory blocks: %d\n", MEM_get_memory_blocks_in_use()+BLI_cellalloc_get_totblock());
+		MEM_printmemlist();
 		BLI_cellalloc_printleaks();
 		BLI_cellalloc_destroy();
-		MEM_printmemlist();
 	}
 	wm_autosave_delete();
 	

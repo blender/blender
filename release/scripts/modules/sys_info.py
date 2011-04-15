@@ -51,8 +51,8 @@ def textWrap(text, length=70):
 def write_sysinfo(op):
     output_filename = "system-info.txt"
 
-    if output_filename in bpy.data.texts.keys():
-        output = bpy.data.texts[output_filename]
+    output = bpy.data.texts.get(output_filename)
+    if output:
         output.clear()
     else:
         output = bpy.data.texts.new(name=output_filename)
@@ -94,16 +94,19 @@ def write_sysinfo(op):
     output.write('autosave: {}\n'.format(bpy.utils.user_resource('AUTOSAVE')))
     output.write('tempdir: {}\n'.format(bpy.app.tempdir))
 
-    output.write('\nOpenGL\n')
-    output.write(lilies)
-    output.write('renderer:\t{}\n'.format(bgl.glGetString(bgl.GL_RENDERER)))
-    output.write('vendor:\t\t{}\n'.format(bgl.glGetString(bgl.GL_VENDOR)))
-    output.write('version:\t{}\n'.format(bgl.glGetString(bgl.GL_VERSION)))
-    output.write('extensions:\n')
+    if bpy.app.background:
+        output.write('\nOpenGL: missing, background mode\n')
+    else:
+        output.write('\nOpenGL\n')
+        output.write(lilies)
+        output.write('renderer:\t{}\n'.format(bgl.glGetString(bgl.GL_RENDERER)))
+        output.write('vendor:\t\t{}\n'.format(bgl.glGetString(bgl.GL_VENDOR)))
+        output.write('version:\t{}\n'.format(bgl.glGetString(bgl.GL_VERSION)))
+        output.write('extensions:\n')
 
-    glext = bgl.glGetString(bgl.GL_EXTENSIONS)
-    glext = textWrap(glext, 70)
-    for l in glext:
-        output.write('\t\t{}\n'.format(l))
+        glext = bgl.glGetString(bgl.GL_EXTENSIONS)
+        glext = textWrap(glext, 70)
+        for l in glext:
+            output.write('\t\t{}\n'.format(l))
 
     op.report({'INFO'}, "System information generated in 'system-info.txt'")

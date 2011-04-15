@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/subsurf_ccg.c
+ *  \ingroup bke
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -383,49 +388,6 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 	MEM_freeN(faceMap);
 }
 
-static void calc_ss_weights(int gridFaces,
-							FaceVertWeight **qweight, FaceVertWeight **tweight)
-{
-	FaceVertWeight *qw, *tw;
-	int x, y, j;
-	int numWeights = gridFaces * gridFaces;
-
-	*tweight = MEM_mallocN(sizeof(**tweight) * numWeights, "ssTriWeight");
-	*qweight = MEM_mallocN(sizeof(**qweight) * numWeights, "ssQuadWeight");
-
-	qw = *qweight;
-	tw = *tweight;
-
-	for (y = 0; y < gridFaces; y++) {
-		for (x = 0; x < gridFaces; x++) {
-			for (j = 0; j < 4; j++) {
-				int fx = x + (j == 2 || j == 3);
-				int fy = y + (j == 1 || j == 2);
-				float x_v = (float) fx / gridFaces;
-				float y_v = (float) fy / gridFaces;
-				float tx_v = (1.0f - x_v), ty_v = (1.0f - y_v);
-				float center = (1.0f / 3.0f) * tx_v * ty_v;
-
-				(*tw)[j][0] = center + 0.5f * tx_v * y_v;
-				(*tw)[j][2] = center + 0.5f * x_v * ty_v;
-				(*tw)[j][1] = 1.0f - (*tw)[j][0] - (*tw)[j][2];
-				(*tw)[j][3] = 0.0f;
-
-				tx_v *= 0.5f;
-				ty_v *= 0.5f;
-
-				(*qw)[j][3] = tx_v * ty_v;
-				(*qw)[j][0] = (*qw)[j][3] + tx_v * y_v;
-				(*qw)[j][2] = (*qw)[j][3] + x_v * ty_v;
-				(*qw)[j][1] = 1.0f - (*qw)[j][0] - (*qw)[j][2] - (*qw)[j][3];
-
-			}
-			tw++;
-			qw++;
-		}
-	}
-}
-
 /* face weighting */
 typedef struct FaceVertWeightEntry {
 	FaceVertWeight *weight;
@@ -502,6 +464,7 @@ void free_ss_weights(WeightTable *wtable)
 		MEM_freeN(wtable->weight_table);
 }
 
+#if 0
 static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
                                  int drawInteriorEdges, int useSubsurfUv,
                                  DerivedMesh *dm, struct MultiresSubsurf *ms)
@@ -521,6 +484,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 
 	return result;
 }
+#endif
 
 static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 									 float (*vertexCos)[3], int useFlatSubdiv)
@@ -960,7 +924,11 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		for(x = 1; x < edgeSize - 1; x++, i++) {
 			vd= ccgSubSurf_getEdgeData(ss, e, x);
 			copy_v3_v3(mvert[i].co, vd->co);
-			/* XXX, This gives errors with -fpe, the normals dont seem to be unit length - campbell */
+			/* This gives errors with -debug-fpe
+			 * the normals dont seem to be unit length.
+			 * this is most likely caused by edges with no
+			 * faces which are now zerod out, see comment in:
+			 * ccgSubSurf__calcVertNormals(), - campbell */
 			normal_float_to_short_v3(mvert[i].no, vd->no);
 		}
 	}
@@ -1636,7 +1604,7 @@ static void cgdm_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	CCGSubSurf *ss = cgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
 	GPUVertexAttribs gattribs;
-	DMVertexAttribs attribs= {{{0}}};
+	DMVertexAttribs attribs= {{{NULL}}};
 	MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;

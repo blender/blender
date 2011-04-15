@@ -28,6 +28,11 @@
  *
  */
 
+/** \file blender/readblenfile/stub/BLO_readblenfileSTUB.c
+ *  \ingroup blo
+ */
+
+
 #include <stdio.h>
 #include "GEN_messaging.h"
 

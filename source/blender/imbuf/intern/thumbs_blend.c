@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/thumbs_blend.c
+ *  \ingroup imbuf
+ */
+
+
 #include <string.h>
 
 #include "zlib.h"

@@ -211,6 +211,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int numLoops=0, newLoops=0, newFaces=0, newEdges=0;
 	int j;
 	
+	/* only use material offsets if we have 2 or more materials  */
+	const short mat_nr_max= ob->totcol > 1 ? ob->totcol - 1 : 0;
+	const short mat_ofs= mat_nr_max ? smd->mat_ofs : 0;
+	const short mat_ofs_rim= mat_nr_max ? smd->mat_ofs_rim : 0;
+
 	/* use for edges */
 	int *new_vert_arr= NULL;
 	BLI_array_declare(new_vert_arr);
@@ -355,6 +360,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		for (j=0; j<mp->totloop; j++) {
 			CustomData_copy_data(&dm->loopData, &result->loopData, mp->loopstart+j, 
 			                     mp->loopstart+(mp->totloop-j-1)+dm->numLoopData, 1);
+
+			if(mat_ofs) {
+				mp->mat_nr += mat_ofs;
+				CLAMP(mp->mat_nr, 0, mat_nr_max);
+			}
 		}
 		
 		e = ml2[0].e;
@@ -526,9 +536,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		float (*edge_vert_nos)[3]= MEM_callocN(sizeof(float) * numVerts * 3, "solidify_edge_nos");
 		float nor[3];
 #endif
-		/* maximum value -1, so we have room to increase */
-		const short mat_nr_shift= (smd->flag & MOD_SOLIDIFY_RIM_MATERIAL) ? ob->totcol-1 : -1;
-
 		const unsigned char crease_rim= smd->crease_rim * 255.0f;
 		const unsigned char crease_outer= smd->crease_outer * 255.0f;
 		const unsigned char crease_inner= smd->crease_inner * 255.0f;
@@ -629,15 +636,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				ml[j++].e = numEdges*2 + old_vert_arr[ed->v1];
 			}
 			
-			/* use the next material index if option enabled */
-			if(mp->mat_nr < mat_nr_shift)
-				mp->mat_nr++;
-
-			if(crease_outer)
-				ed->crease= crease_outer;
-
+			if(crease_outer) {
+				/* crease += crease_outer; without wrapping */
+				unsigned char *cr= (unsigned char *)&(medge[numEdges + eidx].crease);
+				int tcr= *cr + crease_outer;
+				*cr= tcr > 255 ? 255 : tcr;
+			}
 			if(crease_inner) {
-				medge[numEdges + eidx].crease= crease_inner;
+				/* crease += crease_inner; without wrapping */
+				unsigned char *cr= (unsigned char *)&(medge[numEdges + eidx].crease);
+				int tcr= *cr + crease_inner;
+				*cr= tcr > 255 ? 255 : tcr;
 			}
 			
 #ifdef SOLIDIFY_SIDE_NORMALS
@@ -678,8 +687,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	if (old_vert_arr)
 		MEM_freeN(old_vert_arr);
+	
 	CDDM_recalc_tesselation(result, 1);
 	
+	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
+	if(dvert) {
+		CDDM_calc_normals(result);
+	}
+
 	return result;
 }
 
@@ -687,7 +702,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 static DerivedMesh *applyModifierEM(ModifierData *md,
 							 Object *ob,
-							 struct EditMesh *UNUSED(editData),
+							 struct BMEditMesh *UNUSED(editData),
 							 DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

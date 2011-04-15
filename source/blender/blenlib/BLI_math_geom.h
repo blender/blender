@@ -169,6 +169,12 @@ void box_minmax_bounds_m4(float min[3], float max[3],
 void map_to_tube(float *u, float *v, float x, float y, float z);
 void map_to_sphere(float *u, float *v, float x, float y, float z);
 
+/********************************** Normals **********************************/
+
+void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
+	float n4[3], const float f_no[3], const float co1[3], const float co2[3],
+	const float co3[3], const float co4[3]);
+
 /********************************* Tangents **********************************/
 
 typedef struct VertexTangent {

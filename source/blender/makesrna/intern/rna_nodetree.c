@@ -22,10 +22,16 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_nodetree.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -53,27 +59,6 @@ EnumPropertyItem node_socket_type_items[] = {
 	{SOCK_VECTOR, "VECTOR",    0,    "Vector",    ""},
 	{SOCK_RGBA,   "RGBA",      0,    "RGBA",      ""},
 	{0, NULL, 0, NULL, NULL}};
-
-EnumPropertyItem node_blend_type_items[] = {
-{ 0, "MIX",          0, "Mix",         ""},
-{ 1, "ADD",          0, "Add",         ""},
-{ 3, "SUBTRACT",     0, "Subtract",    ""},
-{ 2, "MULTIPLY",     0, "Multiply",    ""},
-{ 4, "SCREEN",       0, "Screen",      ""},
-{ 9, "OVERLAY",      0, "Overlay",     ""},
-{ 5, "DIVIDE",       0, "Divide",      ""},
-{ 6, "DIFFERENCE",   0, "Difference",  ""},
-{ 7, "DARKEN",       0, "Darken",      ""},
-{ 8, "LIGHTEN",      0, "Lighten",     ""},
-{10, "DODGE",        0, "Dodge",       ""},
-{11, "BURN",         0, "Burn",        ""},
-{15, "COLOR",        0, "Color",       ""},
-{14, "VALUE",        0, "Value",       ""},
-{13, "SATURATION",   0, "Saturation",  ""},
-{12, "HUE",          0, "Hue",         ""},
-{16, "SOFT_LIGHT",   0, "Soft Light",  ""},
-{17, "LINEAR_LIGHT", 0, "Linear Light",""},
-{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem node_math_items[] = {
 { 0, "ADD",          0, "Add",          ""},
@@ -312,55 +297,6 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	BKE_all_animdata_fix_paths_rename("nodes", oldname, node->name);
 }
 
-/* this should be done at display time! if no custom names are set */
-#if 0
-static void rna_Node_update_username(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	bNode *node= (bNode*)ptr->data;
-	const char *name;
-
-	
-	/*
-	if (!node->username[0]) {
-		if(node->id) {
-			BLI_strncpy(node->username, node->id->name+2, NODE_MAXSTR);
-		}
-		else {
-		
-			switch(node->typeinfo->type) {
-				case SH_NODE_MIX_RGB:
-				case CMP_NODE_MIX_RGB:
-				case TEX_NODE_MIX_RGB:
-					if(RNA_enum_name(node_blend_type_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-				case CMP_NODE_FILTER:
-					if(RNA_enum_name(node_filter_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-				case CMP_NODE_FLIP:
-					if(RNA_enum_name(node_flip_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-				case SH_NODE_MATH:
-				case CMP_NODE_MATH:
-				case TEX_NODE_MATH:
-					if(RNA_enum_name(node_math_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-				case SH_NODE_VECT_MATH:
-					if(RNA_enum_name(node_vec_math_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-			}
-		 */
-		}
-	}
-
-	rna_Node_update(bmain, scene, ptr);
-}
-#endif
-
 static void rna_NodeSocket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
@@ -596,15 +532,14 @@ static void rna_NodeTree_node_remove(bNodeTree *ntree, ReportList *reports, bNod
 static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, bNodeSocket *in, bNodeSocket *out)
 {
 	bNodeLink *ret;
-	bNode *fromnode, *tonode;
+	bNode *fromnode= NULL, *tonode= NULL;
+	int from_in_out, to_in_out;
 
-	if (!nodeFindNode(ntree, in, &fromnode, NULL, NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate input socket's node in nodetree");
-		return NULL;
-	}
-
-	if (!nodeFindNode(ntree, out, &tonode, NULL, NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate output socket's node in nodetree");
+	nodeFindNode(ntree, in, &fromnode, NULL, &from_in_out);
+	nodeFindNode(ntree, out, &tonode, NULL, &to_in_out);
+	
+	if (&from_in_out == &to_in_out) {
+		BKE_reportf(reports, RPT_ERROR, "Same input/output direction of sockets");
 		return NULL;
 	}
 
@@ -941,7 +876,7 @@ static void def_mix_rgb(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, node_blend_type_items);
+	RNA_def_property_enum_items(prop, ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Blend Type", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
@@ -1279,7 +1214,7 @@ static void def_cmp_vector_blur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "use_curved", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "curved", 1);
-	RNA_def_property_ui_text(prop, "Curved", "Interpolate between frames in a bezier curve, rather than linearly");
+	RNA_def_property_ui_text(prop, "Curved", "Interpolate between frames in a Bezier curve, rather than linearly");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -1612,7 +1547,7 @@ static void def_cmp_color_spill(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "use_unspill", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "unspill", 0);
-	RNA_def_property_ui_text(prop, "Unspill", "Compensate all channels (diffenrently) by hand");
+	RNA_def_property_ui_text(prop, "Unspill", "Compensate all channels (differently) by hand");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "unspill_red", PROP_FLOAT, PROP_NONE);
@@ -1874,13 +1809,13 @@ static void def_cmp_defocus(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "no_zbuf", 1);
-	RNA_def_property_ui_text(prop, "Use Z-Buffer", "Disable when using an image as input instead of actual zbuffer (auto enabled if node not image based, eg. time node)");
+	RNA_def_property_ui_text(prop, "Use Z-Buffer", "Disable when using an image as input instead of actual z-buffer (auto enabled if node not image based, eg. time node)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "z_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_range(prop, 0.0f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Z-Scale", "Scales the Z input when not using a zbuffer, controls maximum blur designated by the color white or input value 1");
+	RNA_def_property_ui_text(prop, "Z-Scale", "Scales the Z input when not using a z-buffer, controls maximum blur designated by the color white or input value 1");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -2680,7 +2615,7 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Name", "Node name");
+	RNA_def_property_ui_text(prop, "Name", "Unique node identifier");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Node_name_set");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
@@ -2694,6 +2629,11 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "outputs", NULL);
 	RNA_def_property_struct_type(prop, "NodeSocket");
 	RNA_def_property_ui_text(prop, "Outputs", "");
+	
+	prop = RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "label");
+	RNA_def_property_ui_text(prop, "Label", "Optional custom node label");
+	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 }
 
 static void rna_def_node_link(BlenderRNA *brna)

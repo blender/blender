@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/armature/armature_intern.h
+ *  \ingroup edarmature
+ */
+
 #ifndef ED_ARMATURE_INTERN_H
 #define ED_ARMATURE_INTERN_H
 
@@ -145,16 +150,19 @@ void SKETCH_OT_select(struct wmOperatorType *ot);
 typedef struct tPChanFCurveLink {
 	struct tPChanFCurveLink *next, *prev;
 	
-	ListBase fcurves;			/* F-Curves for this PoseChannel (wrapped with LinkData) */
-	struct bPoseChannel *pchan;	/* Pose Channel which data is attached to */
+	ListBase fcurves;				/* F-Curves for this PoseChannel (wrapped with LinkData) */
+	struct bPoseChannel *pchan;		/* Pose Channel which data is attached to */
 	
-	char *pchan_path;			/* RNA Path to this Pose Channel (needs to be freed when we're done) */
+	char *pchan_path;				/* RNA Path to this Pose Channel (needs to be freed when we're done) */
 	
-		// TODO: need to include axis-angle here at some stage
-	float oldloc[3];			/* transform values at start of operator (to be restored before each modal step) */
+	float oldloc[3];				/* transform values at start of operator (to be restored before each modal step) */
 	float oldrot[3];
 	float oldscale[3];
 	float oldquat[4];
+	float oldangle;
+	float oldaxis[3];
+	
+	struct IDProperty *oldprops;	/* copy of custom properties at start of operator (to be restored before each modal step) */	
 } tPChanFCurveLink;
 
 /* ----------- */
@@ -191,6 +199,8 @@ void POSELIB_OT_apply_pose(struct wmOperatorType *ot);
 void POSE_OT_push(struct wmOperatorType *ot);
 void POSE_OT_relax(struct wmOperatorType *ot);
 void POSE_OT_breakdown(struct wmOperatorType *ot);
+
+void POSE_OT_propagate(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* editarmature.c */

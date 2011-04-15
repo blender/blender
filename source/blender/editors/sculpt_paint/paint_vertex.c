@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/sculpt_paint/paint_vertex.c
+ *  \ingroup edsculpt
+ */
+
+
 #include <math.h>
 #include <string.h>
 
@@ -124,15 +129,18 @@ int weight_paint_mode_poll(bContext *C)
 
 int weight_paint_poll(bContext *C)
 {
-	Object *ob = CTX_data_active_object(C);
+	Object *ob= CTX_data_active_object(C);
+	ScrArea *sa;
 
-	if(ob && ob->mode & OB_MODE_WEIGHT_PAINT &&
-	   paint_brush(&CTX_data_tool_settings(C)->wpaint->paint)) {
-		ScrArea *sa= CTX_wm_area(C);
-		if(sa->spacetype==SPACE_VIEW3D) {
-			ARegion *ar= CTX_wm_region(C);
-			if(ar->regiontype==RGN_TYPE_WINDOW)
-				return 1;
+	if(	(ob != NULL) &&
+		(ob->mode & OB_MODE_WEIGHT_PAINT) &&
+		(paint_brush(&CTX_data_tool_settings(C)->wpaint->paint) != NULL) &&
+		(sa= CTX_wm_area(C)) &&
+		(sa->spacetype == SPACE_VIEW3D)
+	) {
+		ARegion *ar= CTX_wm_region(C);
+		if(ar->regiontype==RGN_TYPE_WINDOW) {
+			return 1;
 		}
 	}
 	return 0;
@@ -165,13 +173,13 @@ static unsigned int rgba_to_mcol(float r, float g, float b, float a)
 	unsigned int col;
 	char *cp;
 	
-	ir= floor(255.0*r);
+	ir= floor(255.0f * r);
 	if(ir<0) ir= 0; else if(ir>255) ir= 255;
-	ig= floor(255.0*g);
+	ig= floor(255.0f * g);
 	if(ig<0) ig= 0; else if(ig>255) ig= 255;
-	ib= floor(255.0*b);
+	ib= floor(255.0f * b);
 	if(ib<0) ib= 0; else if(ib>255) ib= 255;
-	ia= floor(255.0*a);
+	ia= floor(255.0f * a);
 	if(ia<0) ia= 0; else if(ia>255) ia= 255;
 	
 	cp= (char *)&col;
@@ -200,7 +208,7 @@ static void do_shared_vertex_tesscol(Mesh *me)
 	short *scolmain, *scol;
 	char *mcol;
 	
-	if(me->mcol==0 || me->totvert==0 || me->totface==0) return;
+	if(me->mcol==NULL || me->totvert==0 || me->totface==0) return;
 	
 	scolmain= MEM_callocN(4*sizeof(short)*me->totvert, "colmain");
 	
@@ -318,7 +326,7 @@ static void make_vertexcol(Object *ob)	/* single ob */
 	Mesh *me;
 	if(!ob || ob->id.lib) return;
 	me= get_mesh(ob);
-	if(me==0) return;
+	if(me==NULL) return;
 	if(me->edit_btmesh) return;
 
 	/* copies from shadedisplist to mcol */
@@ -380,7 +388,7 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	int i, j, selected;
 
 	me= get_mesh(ob);
-	if(me==0 || me->totface==0) return;
+	if(me==NULL || me->totface==0) return;
 
 	if(!me->mcol)
 		make_vertexcol(ob);
@@ -428,7 +436,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	int selected;
 	
 	me= ob->data;
-	if(me==0 || me->totface==0 || me->dvert==0 || !me->mface) return;
+	if(me==NULL || me->totface==0 || me->dvert==NULL || !me->mface) return;
 	
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 
@@ -734,7 +742,7 @@ static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, u
 		unsigned int testcol=0, a;
 		char *cp, *ct, *co;
 		
-		alpha= (int)(255.0*brush_alpha(brush));
+		alpha= (int)(255.0f*brush_alpha(brush));
 		
 		if(brush->vertexpaint_tool==VP_MIX || brush->vertexpaint_tool==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
 		else if(brush->vertexpaint_tool==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
@@ -829,7 +837,7 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], fl
 		
 		/* transpose ! */
 		fac= vpimat[2][0]*no[0]+vpimat[2][1]*no[1]+vpimat[2][2]*no[2];
-		if(fac>0.0) {
+		if(fac > 0.0f) {
 			dx= vpimat[0][0]*no[0]+vpimat[0][1]*no[1]+vpimat[0][2]*no[2];
 			dy= vpimat[1][0]*no[0]+vpimat[1][1]*no[1]+vpimat[1][2]*no[2];
 			
@@ -864,20 +872,20 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 	}
 	
 	if(tool==VP_MIX || tool==VP_BLUR)
-		dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
+		dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
 	else if(tool==VP_ADD)
 		dw->weight += paintval*alpha;
 	else if(tool==VP_SUB) 
 		dw->weight -= paintval*alpha;
 	else if(tool==VP_MUL) 
 		/* first mul, then blend the fac */
-		dw->weight = ((1.0-alpha) + alpha*paintval)*dw->weight;
+		dw->weight = ((1.0f-alpha) + alpha*paintval)*dw->weight;
 	else if(tool==VP_LIGHTEN) {
 		if (dw->weight < paintval)
-			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
+			dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
 	} else if(tool==VP_DARKEN) {
 		if (dw->weight > paintval)
-			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
+			dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
 	}
 	CLAMP(dw->weight, 0.0f, 1.0f);
 	
@@ -887,22 +895,22 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 		
 		alpha= brush_alpha(brush);
 		if(tool==VP_MIX || tool==VP_BLUR)
-			testw = paintval*alpha + uw->weight*(1.0-alpha);
+			testw = paintval*alpha + uw->weight*(1.0f-alpha);
 		else if(tool==VP_ADD)
 			testw = uw->weight + paintval*alpha;
 		else if(tool==VP_SUB) 
 			testw = uw->weight - paintval*alpha;
 		else if(tool==VP_MUL) 
 			/* first mul, then blend the fac */
-			testw = ((1.0-alpha) + alpha*paintval)*uw->weight;		
+			testw = ((1.0f-alpha) + alpha*paintval)*uw->weight;
 		else if(tool==VP_LIGHTEN) {
 			if (uw->weight < paintval)
-				testw = paintval*alpha + uw->weight*(1.0-alpha);
+				testw = paintval*alpha + uw->weight*(1.0f-alpha);
 			else
 				testw = uw->weight;
 		} else if(tool==VP_DARKEN) {
 			if (uw->weight > paintval)
-				testw = paintval*alpha + uw->weight*(1.0-alpha);
+				testw = paintval*alpha + uw->weight*(1.0f-alpha);
 			else
 				testw = uw->weight;
 		}
@@ -1673,7 +1681,7 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	op->customdata = paint_stroke_new(C, NULL, wpaint_stroke_test_start,
 					  wpaint_stroke_update_step,
-					  wpaint_stroke_done);
+					  wpaint_stroke_done, event->type);
 	
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
@@ -1715,7 +1723,7 @@ static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 void PAINT_OT_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Weight Set";
+	ot->name= "Set Weight";
 	ot->idname= "PAINT_OT_weight_set";
 
 	/* api callbacks */
@@ -1938,7 +1946,7 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index
 	for(i = 0; i < (mface->v4 ? 4 : 3); ++i) {
 		alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i], mval, pressure);
 		if(alpha)
-			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0));
+			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
 	}
 }
 #endif
@@ -2115,7 +2123,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	op->customdata = paint_stroke_new(C, NULL, vpaint_stroke_test_start,
 					  vpaint_stroke_update_step,
-					  vpaint_stroke_done);
+					  vpaint_stroke_done, event->type);
 	
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);

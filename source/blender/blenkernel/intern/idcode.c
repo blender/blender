@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * return info about ID types
  */
+
+/** \file blender/blenkernel/intern/idcode.c
+ *  \ingroup bke
+ */
+
  
 #include <stdlib.h>
 #include <string.h>
@@ -127,4 +132,9 @@ const char *BKE_idcode_to_name_plural(int code)
 	IDType *idt= idtype_from_code(code);
 	
 	return idt?idt->plural:NULL;
+}
+
+int BKE_idcode_iter_step(int *index)
+{
+	return (*index < nidtypes) ? idtypes[(*index)++].code : 0;
 }

@@ -359,7 +359,7 @@ void		WM_progress_clear(struct wmWindow *win);
 
 #ifdef WIN32
 			/* Windows System Console */
-void		WM_toggle_console(struct bContext *C, short show);
+void		WM_console_toggle(struct bContext *C, short show);
 #endif
 
 /* debugging only, convenience function to write on crash */

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_wm_api.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -66,6 +71,17 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 static int rna_event_modal_handler_add(struct bContext *C, struct wmOperator *operator)
 {
 	return WM_event_add_modal_handler(C, operator) != NULL;
+}
+
+/* XXX, need a way for python to know event types, 0x0110 is hard coded */
+struct wmTimer *rna_event_timer_add(struct wmWindowManager *wm, float time_step, wmWindow *win)
+{
+	return WM_event_add_timer(wm, win, 0x0110, time_step);
+}
+
+void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
+{
+	WM_event_remove_timer(wm, timer->win, timer);
 }
 
 #else
@@ -112,6 +128,22 @@ void RNA_api_wm(StructRNA *srna)
 	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_function_return(func, RNA_def_boolean(func, "handle", 1, "", ""));
+
+
+	func= RNA_def_function(srna, "event_timer_add", "rna_event_timer_add");
+	parm= RNA_def_property(func, "time_step", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_range(parm, 0.0, FLT_MAX);
+	RNA_def_property_ui_text(parm, "Time Step", "Interval in seconds between timer events");
+	parm= RNA_def_pointer(func, "window", "Window", "", "Window to attach the timer to or None.");
+	parm= RNA_def_pointer(func, "result", "Timer", "", "");
+	RNA_def_function_return(func, parm);
+
+
+	func= RNA_def_function(srna, "event_timer_remove", "rna_event_timer_remove");
+	parm= RNA_def_pointer(func, "timer", "Timer", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
 
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_props_popup", "WM_operator_props_popup");
@@ -210,6 +242,16 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	/* cancel */
+	func= RNA_def_function(srna, "cancel", NULL);
+	RNA_def_function_ui_description(func, "Called when the operator is cancelled.");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
+	RNA_def_function_return(func, parm);
 }
 
 void RNA_api_macro(StructRNA *srna)

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/ikplugin/intern/itasc_plugin.h
+ *  \ingroup ikplugin
+ */
+
+
 #ifndef ITASC_PLUGIN_H
 #define ITASC_PLUGIN_H
 

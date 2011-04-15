@@ -475,7 +475,7 @@ typedef struct CollisionModifierData {
 	
 	unsigned int numverts;
 	unsigned int numfaces;
-	float time, pad;		/* cfra time of modifier */
+	float time_x, time_xnew;		/* cfra time of modifier */
 	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
 
@@ -706,13 +706,16 @@ typedef struct SolidifyModifierData {
 	float crease_outer;
 	float crease_rim;
 	int flag;
+	short mat_ofs;
+	short mat_ofs_rim;
+	int pad;
 } SolidifyModifierData;
 
 #define MOD_SOLIDIFY_RIM			(1<<0)
 #define MOD_SOLIDIFY_EVEN			(1<<1)
 #define MOD_SOLIDIFY_NORMAL_CALC	(1<<2)
 #define MOD_SOLIDIFY_VGROUP_INV		(1<<3)
-#define MOD_SOLIDIFY_RIM_MATERIAL	(1<<4)
+#define MOD_SOLIDIFY_RIM_MATERIAL	(1<<4) /* deprecated, used in do_versions */
 
 typedef struct ScrewModifierData {
 	ModifierData modifier;

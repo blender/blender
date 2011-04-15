@@ -112,7 +112,7 @@ void	DAG_scene_update_flags(struct Main *bmain, struct Scene *sce, unsigned int 
 		/* flushes all recalc flags in objects down the dependency tree */
 void	DAG_scene_flush_update(struct Main *bmain, struct Scene *sce, unsigned int lay, const short do_time);
 		/* tag objects for update on file load */
-void	DAG_on_load_update(struct Main *bmain, const short do_time);
+void	DAG_on_visible_update(struct Main *bmain, const short do_time);
 
 		/* when setting manual RECALC flags, call this afterwards */
 void	DAG_ids_flush_update(struct Main *bmain, int time);

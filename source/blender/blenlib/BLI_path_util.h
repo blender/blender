@@ -40,11 +40,12 @@ extern "C" {
 struct ListBase;
 struct direntry;
 
-char *BLI_getDefaultDocumentFolder(void);
+const char *BLI_getDefaultDocumentFolder(void);
 
 char *BLI_get_folder(int folder_id, const char *subfolder);
 char *BLI_get_folder_create(int folder_id, const char *subfolder);
 char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
+char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 
 /* folder_id */
 
@@ -72,6 +73,11 @@ char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
 #define BLENDER_TEMP				80
 
 #define BLENDER_USERFOLDER(id) (id >= BLENDER_USER_CONFIG && id <= BLENDER_USER_PLUGINS)
+
+/* for BLI_get_folder_version only */
+#define BLENDER_RESOURCE_PATH_USER		0
+#define BLENDER_RESOURCE_PATH_LOCAL		1
+#define BLENDER_RESOURCE_PATH_SYSTEM	2
 
 #define BLENDER_STARTUP_FILE	"startup.blend"
 #define BLENDER_BOOKMARK_FILE	"bookmarks.txt"
@@ -115,7 +121,7 @@ void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);
 int BLI_testextensie_array(const char *str, const char **ext_array);
 int BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
-int BLI_replace_extension(char *path, int maxlen, const char *ext);
+int BLI_replace_extension(char *path, size_t maxlen, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len);
 int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, const char defname[], char delim, char *name, short name_len);
 void BLI_newname(char * name, int add);
@@ -132,8 +138,9 @@ void BLI_clean(char *path);
 	 * converts it to a regular full path.
 	 * Also removes garbage from directory paths, like /../ or double slashes etc 
 	 */
-void BLI_cleanup_file(const char *relabase, char *dir);
+void BLI_cleanup_file(const char *relabase, char *dir); /* removes trailing slash */
 void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds a trailing slash */
+void BLI_cleanup_path(const char *relabase, char *dir); /* doesn't touch trailing slash */
 
 /* go back one directory */
 int BLI_parent_dir(char *path);
@@ -157,8 +164,15 @@ int BLI_path_abs(char *path, const char *basepath);
 int BLI_path_frame(char *path, int frame, int digits);
 int BLI_path_frame_range(char *path, int sta, int end, int digits);
 int BLI_path_cwd(char *path);
-
 void BLI_path_rel(char *file, const char *relfile);
+
+#ifdef WIN32
+#  define BLI_path_cmp BLI_strcasecmp
+#  define BLI_path_ncmp BLI_strncasecmp
+#else
+#  define BLI_path_cmp strcmp
+#  define BLI_path_ncmp strncmp
+#endif
 
 	/**
 	 * Change every @a from in @a string into @a to. The

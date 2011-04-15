@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/jitter.c
+ *  \ingroup bli
+ */
+
+
 #include <math.h>
 #include <string.h>
 #include "MEM_guardedalloc.h"

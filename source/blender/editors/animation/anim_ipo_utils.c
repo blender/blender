@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/anim_ipo_utils.c
+ *  \ingroup edanimation
+ */
+
+
 /* This file contains code for presenting F-Curves and other animation data
  * in the UI (especially for use in the Animation Editors).
  *

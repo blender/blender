@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -17,7 +17,6 @@ subject to the following restrictions:
 #define BU_SHAPE
 
 #include "LinearMath/btMatrix3x3.h"
-#include "LinearMath/btAabbUtil2.h"
 #include "btConvexInternalShape.h"
 
 
@@ -26,10 +25,7 @@ class btPolyhedralConvexShape : public btConvexInternalShape
 {
 
 protected:
-	btVector3	m_localAabbMin;
-	btVector3	m_localAabbMax;
-	bool		m_isLocalAabbValid;
-
+	
 public:
 
 	btPolyhedralConvexShape();
@@ -38,10 +34,32 @@ public:
 
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
-
 	
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
+	
+	
+	virtual int	getNumVertices() const = 0 ;
+	virtual int getNumEdges() const = 0;
+	virtual void getEdge(int i,btVector3& pa,btVector3& pb) const = 0;
+	virtual void getVertex(int i,btVector3& vtx) const = 0;
+	virtual int	getNumPlanes() const = 0;
+	virtual void getPlane(btVector3& planeNormal,btVector3& planeSupport,int i ) const = 0;
+//	virtual int getIndex(int i) const = 0 ; 
 
+	virtual	bool isInside(const btVector3& pt,btScalar tolerance) const = 0;
+	
+};
+
+
+///The btPolyhedralConvexAabbCachingShape adds aabb caching to the btPolyhedralConvexShape
+class btPolyhedralConvexAabbCachingShape : public btPolyhedralConvexShape
+{
+
+	btVector3	m_localAabbMin;
+	btVector3	m_localAabbMax;
+	bool		m_isLocalAabbValid;
+		
+protected:
 
 	void setCachedLocalAabb (const btVector3& aabbMin, const btVector3& aabbMax)
 	{
@@ -57,6 +75,10 @@ public:
 		aabbMax = m_localAabbMax;
 	}
 
+public:
+
+	btPolyhedralConvexAabbCachingShape();
+	
 	inline void getNonvirtualAabb(const btTransform& trans,btVector3& aabbMin,btVector3& aabbMax, btScalar margin) const
 	{
 
@@ -65,25 +87,11 @@ public:
 		btTransformAabb(m_localAabbMin,m_localAabbMax,margin,trans,aabbMin,aabbMax);
 	}
 
-	
-	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
-
 	virtual void	setLocalScaling(const btVector3& scaling);
 
+	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
+
 	void	recalcLocalAabb();
-
-	virtual int	getNumVertices() const = 0 ;
-	virtual int getNumEdges() const = 0;
-	virtual void getEdge(int i,btVector3& pa,btVector3& pb) const = 0;
-	virtual void getVertex(int i,btVector3& vtx) const = 0;
-	virtual int	getNumPlanes() const = 0;
-	virtual void getPlane(btVector3& planeNormal,btVector3& planeSupport,int i ) const = 0;
-//	virtual int getIndex(int i) const = 0 ; 
-
-	virtual	bool isInside(const btVector3& pt,btScalar tolerance) const = 0;
-	
-	/// optional Hull is for optional Separating Axis Test Hull collision detection, see Hull.cpp
-	class	Hull*	m_optionalHull;
 
 };
 

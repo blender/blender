@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/ikplugin/intern/iksolver_plugin.h
+ *  \ingroup ikplugin
+ */
+
+
 #ifndef IKSOLVER_PLUGIN_H
 #define IKSOLVER_PLUGIN_H
 

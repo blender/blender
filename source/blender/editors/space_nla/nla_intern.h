@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_nla/nla_intern.h
+ *  \ingroup spnla
+ */
+
 #ifndef ED_NLA_INTERN_H
 #define ED_NLA_INTERN_H
 

@@ -29,6 +29,11 @@
  * all data is 'direct data', not Blender lib data.
  */
 
+/** \file blender/blenkernel/intern/sca.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <string.h>
 #include <float.h>

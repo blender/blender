@@ -26,6 +26,8 @@ StructRNA = bpy_types.Struct.__bases__[0]
 StructMetaPropGroup = _bpy.StructMetaPropGroup
 # StructRNA = bpy_types.Struct
 
+bpy_types.BlendDataLibraries.load = _bpy._library_load
+
 
 class Context(StructRNA):
     __slots__ = ()
@@ -567,18 +569,15 @@ TypeMap = {}
 class RNAMeta(type):
     def __new__(cls, name, bases, classdict, **args):
         result = type.__new__(cls, name, bases, classdict)
-        if bases and bases[0] != StructRNA:
-            import traceback
-            import weakref
+        if bases and bases[0] is not StructRNA:
+            from _weakref import ref as ref
             module = result.__module__
 
             # first part of packages only
             if "." in module:
                 module = module[:module.index(".")]
 
-            sf = traceback.extract_stack(limit=2)[0]
-
-            TypeMap.setdefault(module, []).append((weakref.ref(result), sf[0], sf[1]))
+            TypeMap.setdefault(module, []).append(ref(result))
 
         return result
 
@@ -586,7 +585,20 @@ class RNAMeta(type):
     def is_registered(cls):
         return "bl_rna" in cls.__dict__
 
-import collections
+
+class OrderedDictMini(dict):
+    def __init__(self, *args):
+        self.order = []
+        dict.__init__(self, args)
+
+    def __setitem__(self, key, val):
+        dict.__setitem__(self, key, val)
+        if key not in self.order:
+            self.order.append(key)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        self.order.remove(key)
 
 
 class RNAMetaPropGroup(RNAMeta, StructMetaPropGroup):
@@ -594,13 +606,12 @@ class RNAMetaPropGroup(RNAMeta, StructMetaPropGroup):
 
 
 class OrderedMeta(RNAMeta):
-
     def __init__(cls, name, bases, attributes):
-        super(OrderedMeta, cls).__init__(name, bases, attributes)
-        cls.order = list(attributes.keys())
+        if attributes.__class__ is OrderedDictMini:
+            cls.order = attributes.order
 
     def __prepare__(name, bases, **kwargs):
-        return collections.OrderedDict()
+        return OrderedDictMini()  # collections.OrderedDict()
 
 
 # Only defined so operators members can be used by accessing self.order
@@ -669,6 +680,9 @@ class _GenericUI:
         if draw_funcs is None:
 
             def draw_ls(self, context):
+                # ensure menus always get default context
+                operator_context_default = self.layout.operator_context
+
                 for func in draw_ls._draw_funcs:
                     # so bad menu functions dont stop the entire menu from drawing.
                     try:
@@ -676,6 +690,8 @@ class _GenericUI:
                     except:
                         import traceback
                         traceback.print_exc()
+
+                    self.layout.operator_context = operator_context_default
 
             draw_funcs = draw_ls._draw_funcs = [cls.draw]
             cls.draw = draw_ls

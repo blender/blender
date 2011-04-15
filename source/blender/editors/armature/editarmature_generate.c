@@ -28,6 +28,11 @@
  * editarmature.c: Interface for creating and posing armature objects
  */
 
+/** \file blender/editors/armature/editarmature_generate.c
+ *  \ingroup edarmature
+ */
+
+
 #include <string.h>
 #include <math.h>
 #include <float.h>

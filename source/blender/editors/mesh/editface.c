@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/editface.c
+ *  \ingroup edmesh
+ */
+
+
 
 #include <math.h>
 #include <string.h>
@@ -169,7 +174,7 @@ void paintface_hide(Object *ob, const int unselected)
 	int a;
 	
 	me= get_mesh(ob);
-	if(me==0 || me->totpoly==0) return;
+	if(me==NULL || me->totpoly==0) return;
 
 	mface= me->mpoly;
 	a= me->totpoly;
@@ -198,7 +203,7 @@ void paintface_reveal(Object *ob)
 	int a;
 
 	me= get_mesh(ob);
-	if(me==0 || me->totpoly==0) return;
+	if(me==NULL || me->totpoly==0) return;
 
 	mface= me->mpoly;
 	a= me->totpoly;
@@ -329,7 +334,7 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, short UNUSED(mval[
 	unsigned int index=0;
 
 	me = get_mesh(ob);
-	if(me==0 || me->totpoly==0) return;
+	if(me==NULL || me->totpoly==0) return;
 
 	if (mode==0 || mode==1) {
 		// XXX - Causes glitches, not sure why
@@ -352,7 +357,7 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 	int a;
 
 	me= get_mesh(ob);
-	if(me==0) return;
+	if(me==NULL) return;
 	
 	if(action == SEL_INVERT) {
 		mface= me->mpoly;
@@ -457,7 +462,7 @@ static float edgetag_cut_cost(BMEditMesh *em, int e1, int e2, int vert)
 	sub_v3_v3v3(d1, v->co, v1->co);
 	sub_v3_v3v3(d2, v2->co, v->co);
 
-	cost = cost + 0.5f*cost*(2.0f - fabs(d1[0]*d2[0] + d1[1]*d2[1] + d1[2]*d2[2]));
+	cost = cost + 0.5f*cost*(2.0f - fabsf(d1[0]*d2[0] + d1[1]*d2[1] + d1[2]*d2[2]));
 
 	return cost;
 }

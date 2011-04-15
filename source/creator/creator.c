@@ -43,6 +43,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <signal.h>
 
@@ -73,7 +74,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h" // for DAG_on_load_update
+#include "BKE_depsgraph.h" // for DAG_on_visible_update
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -250,6 +251,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	BLI_argsPrintArgDoc(ba, "--window-border");
 	BLI_argsPrintArgDoc(ba, "--window-borderless");
 	BLI_argsPrintArgDoc(ba, "--window-geometry");
+	BLI_argsPrintArgDoc(ba, "--start-console");
 
 	printf("\n");
 	printf ("Game Engine Specific Options:\n");
@@ -293,6 +295,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 #ifdef WIN32
 	BLI_argsPrintArgDoc(ba, "-R");
+	BLI_argsPrintArgDoc(ba, "-r");
 #endif
 	BLI_argsPrintArgDoc(ba, "--version");
 
@@ -390,12 +393,14 @@ static int end_arguments(int UNUSED(argc), const char **UNUSED(argv), void *UNUS
 static int enable_python(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.f |= G_SCRIPT_AUTOEXEC;
+	G.f |= G_SCRIPT_OVERRIDE_PREF;
 	return 0;
 }
 
-static int disable_python(int UNUSED(argc), const const char **UNUSED(argv), void *UNUSED(data))
+static int disable_python(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.f &= ~G_SCRIPT_AUTOEXEC;
+	G.f |= G_SCRIPT_OVERRIDE_PREF;
 	return 0;
 }
 
@@ -515,15 +520,22 @@ static int without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UN
 	return 0;
 }
 
+extern int wm_start_with_console; // blender/windowmanager/intern/wm_init_exit.c
+static int start_with_console(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	wm_start_with_console = 1;
+	return 0;
+}
+
 static int register_extension(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 #ifdef WIN32
-	char *path = BLI_argsArgv(data)[0];
-	RegisterBlendExtension(path);
+	if (data)
+		G.background = 1;
+	RegisterBlendExtension();
 #else
 	(void)data; /* unused */
 #endif
-
 	return 0;
 }
 
@@ -606,18 +618,12 @@ static int set_engine(int argc, const char **argv, void *data)
 			{
 				printf("\nError: no blend loaded. order the arguments so '-E  / --engine ' is after a blend is loaded.\n");
 			}
-			else
-			{
+			else {
 				Scene *scene= CTX_data_scene(C);
 				RenderData *rd = &scene->r;
-				RenderEngineType *type = NULL;
 
-				for( type = R_engines.first; type; type = type->next )
-				{
-					if (!strcmp(argv[1],type->idname))
-					{
-						BLI_strncpy(rd->engine, type->idname, sizeof(rd->engine));
-					}
+				if(BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
+					BLI_strncpy(rd->engine, argv[1], sizeof(rd->engine));
 				}
 			}
 		}
@@ -990,10 +996,10 @@ static int set_addons(int argc, const char **argv, void *data)
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
 #ifdef WITH_PYTHON
-		const int slen= strlen(argv[1]) + 10;
+		const int slen= strlen(argv[1]) + 128;
 		char *str= malloc(slen);
 		bContext *C= data;
-		BLI_snprintf(str, slen, "[__import__('addon_utils').enable(i) for i in '%s'.split(',')]", argv[1]);
+		BLI_snprintf(str, slen, "[__import__('addon_utils').enable(i, default_set=False) for i in '%s'.split(',')]", argv[1]);
 		BPY_CTX_SETUP(BPY_string_exec(C, str));
 		free(str);
 #else
@@ -1039,7 +1045,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 			G.relbase_valid = 1;
 			if (CTX_wm_manager(C) == NULL) CTX_wm_manager_set(C, wm); /* reset wm */
 
-			DAG_on_load_update(CTX_data_main(C), TRUE);
+			DAG_on_visible_update(CTX_data_main(C), TRUE);
 		}
 
 		/* WM_read_file() runs normally but since we're in background mode do here */
@@ -1140,7 +1146,9 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", "<sx> <sy> <w> <h>\n\tOpen with lower left corner at <sx>, <sy> and width and height as <w>, <h>", prefsize, NULL);
 	BLI_argsAdd(ba, 2, "-w", "--window-border", "\n\tForce opening with borders (default)", with_borders, NULL);
 	BLI_argsAdd(ba, 2, "-W", "--window-borderless", "\n\tForce opening without borders", without_borders, NULL);
-	BLI_argsAdd(ba, 2, "-R", NULL, "\n\tRegister .blend extension (windows only)", register_extension, ba);
+	BLI_argsAdd(ba, 2, "-con", "--start-console", "\n\tStart with the console window open (ignored if -b is set)", start_with_console, NULL);
+	BLI_argsAdd(ba, 2, "-R", NULL, "\n\tRegister .blend extension, then exit (Windows only)", register_extension, NULL);
+	BLI_argsAdd(ba, 2, "-r", NULL, "\n\tSilently register .blend extension, then exit (Windows only)", register_extension, ba);
 	BLI_argsAdd(ba, 2,  "--no_crash_handler", NULL, "disable crash handler", nocrashhandler, NULL);
 	
 	/* third pass: disabling things and forcing settings */

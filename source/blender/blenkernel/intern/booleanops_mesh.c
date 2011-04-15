@@ -1,6 +1,6 @@
 #if 0
 
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/booleanops_mesh.c
+ *  \ingroup bke
+ */
+
 #include "CSG_BooleanOps.h"
 
 

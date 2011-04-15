@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_console/console_intern.h
+ *  \ingroup spconsole
+ */
+
 #ifndef ED_CONSOLE_INTERN_H
 #define ED_CONSOLE_INTERN_H
 

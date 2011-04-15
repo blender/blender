@@ -2,7 +2,7 @@
 #define GIM_BOX_COLLISION_H_INCLUDED
 
 /*! \file gim_box_collision.h
-\author Francisco Len Nßjera
+\author Francisco Leon Najera
 */
 /*
 -----------------------------------------------------------------------------

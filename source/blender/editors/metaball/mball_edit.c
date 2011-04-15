@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/metaball/mball_edit.c
+ *  \ingroup edmeta
+ */
+
+
 #include <math.h>
 #include <string.h>
 
@@ -43,6 +48,7 @@
 
 #include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_context.h"
@@ -225,7 +231,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 	MetaElem *ml;
 	float percent= RNA_float_get(op->ptr, "percent");
 	
-	if(percent == 0.0)
+	if(percent == 0.0f)
 		return OPERATOR_CANCELLED;
 	
 	ml= mb->editelems->first;
@@ -297,7 +303,7 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 	int retv= duplicate_metaelems_exec(C, op);
 	
 	if (retv == OPERATOR_FINISHED) {
-		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+		RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
 		WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	}
 	
@@ -321,7 +327,7 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /***************************** Delete operator *****************************/

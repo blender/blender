@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/raytrace/rayobject_rtbuild.h
+ *  \ingroup render
+ */
+
 #ifndef RE_RAYOBJECT_RTBUILD_H
 #define RE_RAYOBJECT_RTBUILD_H
 

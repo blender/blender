@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/anim.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -1119,7 +1124,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						/* scale */
 						if(par->transflag & OB_DUPLIFACES_SCALE) {
 							float size= v4? area_quad_v3(v1, v2, v3, v4): area_tri_v3(v1, v2, v3);
-							size= sqrt(size) * par->dupfacesca;
+							size= sqrtf(size) * par->dupfacesca;
 							mul_m3_fl(mat, size);
 						}
 						
@@ -1340,8 +1345,6 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				/* for groups, pick the object based on settings */
 				if(part->draw&PART_DRAW_RAND_GR)
 					b= BLI_rand() % totgroup;
-				else if(part->from==PART_FROM_PARTICLE)
-					b= pa_num % totgroup;
 				else
 					b= a % totgroup;
 
@@ -1396,7 +1399,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					dob= new_dupli_object(lb, go->ob, mat, par->lay, counter, OB_DUPLIPARTS, animated);
 					copy_m4_m4(dob->omat, obcopylist[b].obmat);
 					if(G.rendering)
-						psys_get_dupli_texture(par, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
+						psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 				}
 			}
 			else {
@@ -1428,7 +1431,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				dob= new_dupli_object(lb, ob, mat, ob->lay, counter, GS(id->name) == ID_GR ? OB_DUPLIGROUP : OB_DUPLIPARTS, animated);
 				copy_m4_m4(dob->omat, oldobmat);
 				if(G.rendering)
-					psys_get_dupli_texture(par, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
+					psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 			}
 		}
 

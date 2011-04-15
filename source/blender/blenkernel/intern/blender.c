@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/blender.c
+ *  \ingroup bke
+ */
+
+
 #ifndef _WIN32 
 	#include <unistd.h> // for read close
 #else
@@ -266,12 +271,11 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename
 	}
 
 	/* special cases, override loaded flags: */
-	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
-	else bfd->globalf &= ~G_DEBUG;
-	if (G.f & G_SWAP_EXCHANGE) bfd->globalf |= G_SWAP_EXCHANGE;
-	else bfd->globalf &= ~G_SWAP_EXCHANGE;
-	if (G.f & G_SCRIPT_AUTOEXEC) bfd->globalf |= G_SCRIPT_AUTOEXEC;
-	else bfd->globalf &= ~G_SCRIPT_AUTOEXEC;
+	if(G.f != bfd->globalf) {
+		const int flags_keep= (G_DEBUG | G_SWAP_EXCHANGE | G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+		bfd->globalf= (bfd->globalf & ~flags_keep) | (G.f & flags_keep);
+	}
+
 
 	G.f= bfd->globalf;
 
@@ -348,20 +352,20 @@ void BKE_userdef_free(void)
 int BKE_read_file(bContext *C, const char *dir, ReportList *reports) 
 {
 	BlendFileData *bfd;
-	int retval= 1;
+	int retval= BKE_READ_FILE_OK;
 
 	if(strstr(dir, BLENDER_STARTUP_FILE)==NULL) /* dont print user-pref loading */
 		printf("read blend: %s\n", dir);
 
 	bfd= BLO_read_from_file(dir, reports);
 	if (bfd) {
-		if(bfd->user) retval= 2;
+		if(bfd->user) retval= BKE_READ_FILE_OK_USERPREFS;
 		
 		if(0==handle_subversion_warning(bfd->main)) {
 			free_main(bfd->main);
 			MEM_freeN(bfd);
 			bfd= NULL;
-			retval= 0;
+			retval= BKE_READ_FILE_FAIL;
 		}
 		else
 			setup_app_data(C, bfd, dir); // frees BFD
@@ -369,7 +373,7 @@ int BKE_read_file(bContext *C, const char *dir, ReportList *reports)
 	else
 		BKE_reports_prependf(reports, "Loading %s failed: ", dir);
 		
-	return (bfd?retval:0);
+	return (bfd?retval:BKE_READ_FILE_FAIL);
 }
 
 int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, ReportList *reports)
@@ -464,7 +468,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 
 	if(success) {
 		/* important not to update time here, else non keyed tranforms are lost */
-		DAG_on_load_update(G.main, FALSE);
+		DAG_on_visible_update(G.main, FALSE);
 	}
 
 	return success;

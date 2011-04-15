@@ -61,8 +61,6 @@ struct Scene;
 extern "C" {
 #endif
 
-struct EditMesh *BKE_mesh_get_editmesh(struct Mesh *me);
-void BKE_mesh_end_editmesh(struct Mesh *me, struct EditMesh *em);
 struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me, struct Object *ob);
 
 /*
@@ -106,17 +104,20 @@ int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex,
 struct Mesh *get_mesh(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
-int nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *_totvert,
-	struct MEdge **alledge, int *_totedge, struct MFace **allface, int *_totface);
-int nurbs_to_mdata_customdb(struct Object *ob, struct ListBase *dispbase,
-	struct MVert **allvert, int *_totvert, struct MEdge **alledge, int *_totedge,
-	struct MFace **allface, int *_totface);
+int nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *totvert,
+	struct MEdge **alledge, int *totedge, struct MFace **allface, struct MLoop **allloop, struct MPoly **allpoly, 
+	int *totface, int *totloop, int *totpoly);
+int nurbs_to_mdata_customdb(struct Object *ob, struct ListBase *dispbase, struct MVert **allvert, int *_totvert,
+	struct MEdge **alledge, int *_totedge, struct MFace **allface, struct MLoop **allloop, struct MPoly **allpoly, 
+	int *_totface, int *_totloop, int *_totpoly);
 void nurbs_to_mesh(struct Object *ob);
 void mesh_to_curve(struct Scene *scene, struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);
 void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */
 void mesh_delete_material_index(struct Mesh *me, int index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
+void convert_mfaces_to_mpolys(struct Mesh *mesh);
+void mesh_calc_tessface_normals(struct MVert *mverts, int numVerts,struct  MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
 
 /*used for unit testing; compares two meshes, checking only
   differences we care about.  should be usable with leaf's
@@ -136,7 +137,9 @@ void mesh_strip_loose_edges(struct Mesh *me);
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
 	 * and vertex normals are stored in actual mverts.
 	 */
-void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float **faceNors_r);
+void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MLoop *mloop, 
+	struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3], 
+	struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3]);
 
 	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
 	 * (_numVerts_r_ may be NULL) */
@@ -192,7 +195,7 @@ int mesh_center_bounds(struct Mesh *me, float cent[3]);
 void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 /* mesh_validate.c */
-int BKE_mesh_validate_arrays(struct Mesh *me, struct MVert *mverts, int totvert, struct MEdge *medges, int totedge, struct MFace *mfaces, int totface, const short do_verbose, const short do_fixes);
+int BKE_mesh_validate_arrays(struct Mesh *me, struct MVert *mverts, unsigned int totvert, struct MEdge *medges, unsigned int totedge, struct MFace *mfaces, unsigned int totface, const short do_verbose, const short do_fixes);
 int BKE_mesh_validate(struct Mesh *me, int do_verbose);
 int BKE_mesh_validate_dm(struct DerivedMesh *dm);
 

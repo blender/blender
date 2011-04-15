@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/TransformWriter.cpp
+ *  \ingroup collada
+ */
+
+
 #include "BKE_object.h"
 
 #include "TransformWriter.h"

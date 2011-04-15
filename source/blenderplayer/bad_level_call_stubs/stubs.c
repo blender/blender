@@ -92,12 +92,37 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
+struct wmWindow;
 struct wmWindowManager;
 struct View3D;
 struct ToolSettings;
-
+struct bContextDataResult;
+struct bConstraintTarget;
+struct bPythonConstraint;
+struct bConstraintOb;
+struct Context;
+struct ChannelDriver;
+struct BMEditMesh;
+struct Heap;
+struct HeapNode;
+struct Scene;
 
 /*new render funcs */
+void EDBM_selectmode_set(struct BMEditMesh *em) {}
+void EDBM_LoadEditBMesh(struct Scene *scene, struct Object *ob) {}
+void EDBM_MakeEditBMesh(struct ToolSettings *ts, struct Scene *scene, struct Object *ob) {}
+void *g_system;
+
+struct Heap* BLI_heap_new (void){return NULL;}
+void BLI_heap_free (struct Heap *heap, void *ptrfreefp) {}
+struct HeapNode* BLI_heap_insert (struct Heap *heap, float value, void *ptr){return NULL;}
+void BLI_heap_remove (struct Heap *heap, struct HeapNode *node) {}
+int BLI_heap_empty (struct Heap *heap) {return 0;}
+int BLI_heap_size (struct Heap *heap){return 0;}
+struct HeapNode* BLI_heap_top (struct Heap *heap){return NULL;}
+void* BLI_heap_popmin (struct Heap *heap){return NULL;}
+
+
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return (float *) NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name) {return (struct RenderLayer *)NULL;}
@@ -160,7 +185,9 @@ int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEv
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
 void WM_main_add_notifier(unsigned int type, void *reference){}
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep){}
-struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;};
+struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;}
+struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep){return (struct wmTimer *)NULL;}
+void		WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer){}
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone){}
 void object_test_constraints (struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
@@ -388,6 +415,9 @@ char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return (struct wmKeyMapItem *)NULL;}
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return (struct wmKeyMap *) NULL;}
 
+/* RNA COLLADA dependency */
+int collada_export(struct Scene *sce, const char *filepath){ return 0; }
+
 int sculpt_get_brush_size(struct Brush *brush) {return 0;}
 void sculpt_set_brush_size(struct Brush *brush, int size) {}
 int sculpt_get_lock_brush_size(struct Brush *brush){ return 0;}
@@ -396,6 +426,19 @@ void sculpt_set_brush_unprojected_radius(struct Brush *brush, float unprojected_
 float sculpt_get_brush_alpha(struct Brush *brush){return 0.0f;}
 void sculpt_set_brush_alpha(struct Brush *brush, float alpha){}
 void ED_sculpt_modifiers_changed(struct Object *ob){};
+
+
+/* bpy/python internal api */
+void operator_wrapper(struct wmOperatorType *ot, void *userdata) {}
+void BPY_text_free_code(struct Text *text) {}
+void BPY_id_release(struct Text *text) {}
+int BPY_context_member_get(struct Context *C, const char *member, struct bContextDataResult *result) { return 0; }
+void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) {}
+float BPY_driver_exec(struct ChannelDriver *driver) {return 0.0f;} /* might need this one! */
+void	BPY_DECREF(void *pyob_ptr) {}
+void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
+void macro_wrapper(struct wmOperatorType *ot, void *userdata) {} ;
+
 
 char blender_path[] = "";
 

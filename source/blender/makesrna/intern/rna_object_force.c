@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_object_force.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -472,12 +477,12 @@ static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 		if(part->pd->forcefield != PFIELD_TEXTURE && part->pd->tex) {
 			part->pd->tex->id.us--;
-			part->pd->tex= 0;
+			part->pd->tex= NULL;
 		}
 
 		if(part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
 			part->pd2->tex->id.us--;
-			part->pd2->tex= 0;
+			part->pd2->tex= NULL;
 		}
 
 		DAG_id_tag_update(&part->id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME|PSYS_RECALC_RESET);
@@ -489,7 +494,7 @@ static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 		if(ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
 			ob->pd->tex->id.us--;
-			ob->pd->tex= 0;
+			ob->pd->tex= NULL;
 		}
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -1653,7 +1658,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "fuzzy", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fuzzyness");
 	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_text(prop, "Fuzzy", "Fuzziness while on collision, high values make collsion handling faster but less stable");
+	RNA_def_property_ui_text(prop, "Fuzzy", "Fuzziness while on collision, high values make collision handling faster but less stable");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "use_auto_step", PROP_BOOLEAN, PROP_NONE);

@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/clone.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <clone_png> */
 
 int datatoc_clone_png_size= 10774;

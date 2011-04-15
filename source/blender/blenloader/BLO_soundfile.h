@@ -30,7 +30,7 @@
 #define BLO_SOUNDFILE_H
 
 /** \file BLO_soundfile.h
- *  \ingroup readwrite
+ *  \ingroup blenloader
  */
 
 #include "DNA_sound_types.h"

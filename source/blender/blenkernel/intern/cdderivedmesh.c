@@ -30,7 +30,12 @@
 *
 * BKE_cdderivedmesh.h contains the function prototypes for this file.
 *
-*/ 
+*/
+
+/** \file blender/blenkernel/intern/cdderivedmesh.c
+ *  \ingroup bke
+ */
+ 
 
 /* TODO maybe BIF_gl.h should include string.h? */
 #include <string.h>
@@ -1684,9 +1689,7 @@ DerivedMesh *disabled__CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
 
 		VECCOPY(mv->co, eve->co);
 
-		mv->no[0] = eve->no[0] * 32767.0;
-		mv->no[1] = eve->no[1] * 32767.0;
-		mv->no[2] = eve->no[2] * 32767.0;
+		normal_float_to_short_v3(mv->no, eve->no);
 		mv->bweight = (unsigned char) (eve->bweight * 255.0f);
 
 		mv->flag = 0;
@@ -1749,15 +1752,17 @@ DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)
 	MVert *allvert;
 	MEdge *alledge;
 	MFace *allface;
-	int totvert, totedge, totface;
+	MLoop *allloop;
+	MPoly *allpoly;
+	int totvert, totedge, totface, totloop, totpoly;
 
 	if (nurbs_to_mdata_customdb(ob, dispbase, &allvert, &totvert, &alledge,
-		&totedge, &allface, &totface) != 0) {
+		&totedge, &allface, &allloop, &allpoly, &totface, &totloop, &totpoly) != 0) {
 		/* Error initializing mdata. This often happens when curve is empty */
 		return CDDM_new(0, 0, 0, 0, 0);
 	}
 
-	dm = CDDM_new(totvert, totedge, totface, totface*4, totface);
+	dm = CDDM_new(totvert, totedge, totface, totloop, totpoly);
 	dm->deformedOnly = 1;
 
 	cddm = (CDDerivedMesh*)dm;
@@ -1765,10 +1770,14 @@ DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)
 	memcpy(cddm->mvert, allvert, totvert*sizeof(MVert));
 	memcpy(cddm->medge, alledge, totedge*sizeof(MEdge));
 	memcpy(cddm->mface, allface, totface*sizeof(MFace));
+	memcpy(cddm->mloop, allloop, totloop*sizeof(MLoop));
+	memcpy(cddm->mpoly, allpoly, totpoly*sizeof(MPoly));
 
 	MEM_freeN(allvert);
 	MEM_freeN(alledge);
 	MEM_freeN(allface);
+	MEM_freeN(allloop);
+	MEM_freeN(allpoly);
 
 	return dm;
 }
@@ -2227,73 +2236,27 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
 void CDDM_calc_normals(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
-	float (*temp_nors)[3];
-	float (*face_nors)[3];
-	float (*vert_nors)[3];
-	int i, j, *origIndex;
-	int numVerts = dm->numVertData;
-	int numFaces = dm->numFaceData;
-	MFace *mf;
-	MPoly *mp;
-	MVert *mv;
-	MLoop *ml;
-
-	if(numVerts == 0) return;
-
-	if (CustomData_has_layer(&dm->faceData, CD_NORMAL))
-		CustomData_free_layer(&dm->faceData, CD_NORMAL, dm->numFaceData, 0);
-
-	/*recalc tesselation to ensure we have valid origindex values
-	  for mface->mpoly lookups.*/
-	cdDM_recalcTesselation2(dm);
-
-	numFaces = dm->numFaceData;
-
-	/*first go through and calculate normals for all the polys*/
-	temp_nors = MEM_callocN(sizeof(float)*3*dm->numPolyData, "temp_nors cdderivedmesh.c");
-	vert_nors = MEM_callocN(sizeof(float)*3*dm->numVertData, "vert_nors cdderivedmesh.c");
+	float (*face_nors)[3] = NULL;
 	
-	mp = cddm->mpoly;
-	for (i=0; i<dm->numPolyData; i++, mp++) {
-		mesh_calc_poly_normal(mp, cddm->mloop+mp->loopstart, cddm->mvert, temp_nors[i]);
+	if(dm->numVertData == 0) return;
 
-		ml = cddm->mloop + mp->loopstart;
-		for (j=0; j<mp->totloop; j++, ml++) {
-			VECADD(vert_nors[ml->v], vert_nors[ml->v], temp_nors[i]);
-		}
-	}
-
-	face_nors = MEM_callocN(sizeof(float)*3*dm->numFaceData, "face_nors cdderivedmesh.c");
-	origIndex = CustomData_get_layer(&dm->faceData, CD_ORIGINDEX);
-
-	mf = cddm->mface;
-	for (i=0; i<dm->numFaceData; i++, mf++, origIndex++) {
-		VECCOPY(face_nors[i], temp_nors[*origIndex]);
-	}
-
-	mv = cddm->mvert;
-	for (i=0; i<dm->numVertData; i++, mv++) {
-		float *no = vert_nors[i];
-		
-		if (normalize_v3(no) == 0.0) {
-			VECCOPY(no, mv->co);
-			if (normalize_v3(no) == 0.0) {
-				no[0] = 0.0f;
-				no[1] = 0.0f;
-				no[2] = 1.0f;
-			}
-		}
-
-		normal_float_to_short_v3(mv->no, no);
-	}
-
-	MEM_freeN(temp_nors);
-	MEM_freeN(vert_nors);
-
-	/*this restores original poly origindex -> tessface origindex mapping,
-	  instead of the poly index -> tessface origindex one we generated
-	  with cdDM_recalcTesselation2*/
+	/* we don't want to overwrite any referenced layers */
+	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+	
+	/*set tesselation origindex values to map to poly indices, rather then poly
+	  poly origindex values*/
+	cdDM_recalcTesselation2(dm);
+	
+	face_nors = MEM_mallocN(sizeof(float)*3*dm->numFaceData, "face_nors");
+	
+	/* calculate face normals */
+	mesh_calc_normals(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm), 
+					  dm->numLoopData, dm->numPolyData, NULL, cddm->mface, dm->numFaceData, 
+					  CustomData_get_layer(&dm->faceData, CD_ORIGINDEX), face_nors);
+	
+	/*restore tesselation origindex indices to poly origindex indices*/
 	cdDM_recalcTesselation(dm);
+
 	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN, 
 		face_nors, dm->numFaceData);
 }
@@ -2433,7 +2396,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	}
 	
 	/*create new cddm*/	
-	cddm2 = (CDDerivedMesh*) CDDM_from_template(cddm, BLI_array_count(mvert), BLI_array_count(medge), 0, BLI_array_count(mloop), BLI_array_count(mpoly));
+	cddm2 = (CDDerivedMesh*) CDDM_from_template((DerivedMesh*)cddm, BLI_array_count(mvert), BLI_array_count(medge), 0, BLI_array_count(mloop), BLI_array_count(mpoly));
 	
 	/*update edge indices and copy customdata*/
 	me = medge;
@@ -2476,7 +2439,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	memcpy(cddm2->mpoly, mpoly, sizeof(MPoly)*BLI_array_count(mpoly));
 	BLI_array_free(mvert); BLI_array_free(medge); BLI_array_free(mloop); BLI_array_free(mpoly);
 
-	CDDM_recalc_tesselation(cddm2, 1);
+	CDDM_recalc_tesselation((DerivedMesh*)cddm2, 1);
 	
 	if (newv) 
 		MEM_freeN(newv); 

@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_bilateralblur.c
+ *  \ingroup cmpnodes
+ */
+
 #include "../CMP_util.h"
 
 /* **************** BILATERALBLUR ******************** */

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/SHD_util.h
+ *  \ingroup nodes
+ */
+
+
 #ifndef SHD_NODE_UTIL_H_
 #define SHD_NODE_UTIL_H_
 

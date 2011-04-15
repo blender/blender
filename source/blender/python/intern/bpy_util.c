@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/intern/bpy_util.c
+ *  \ingroup pythonintern
+ */
+
+
 #include <Python.h>
 
 #include "bpy_util.h"
@@ -32,7 +37,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-static bContext*	__py_context = NULL;
+static bContext*	__py_context= NULL;
 bContext*	BPy_GetContext(void) { return __py_context; }
 void		BPy_SetContext(bContext *C) { __py_context= C; }
 
@@ -47,12 +52,12 @@ char *BPy_enum_as_string(EnumPropertyItem *item)
 			BLI_dynstr_appendf(dynstr, (e==item)?"'%s'":", '%s'", item->identifier);
 	}
 
-	cstring = BLI_dynstr_get_cstring(dynstr);
+	cstring= BLI_dynstr_get_cstring(dynstr);
 	BLI_dynstr_free(dynstr);
 	return cstring;
 }
 
-short BPy_reports_to_error(ReportList *reports, const short clear)
+short BPy_reports_to_error(ReportList *reports, PyObject *exception, const short clear)
 {
 	char *report_str;
 
@@ -63,11 +68,11 @@ short BPy_reports_to_error(ReportList *reports, const short clear)
 	}
 
 	if(report_str) {
-		PyErr_SetString(PyExc_RuntimeError, report_str);
+		PyErr_SetString(exception, report_str);
 		MEM_freeN(report_str);
 	}
 
-	return (report_str != NULL);
+	return (report_str == NULL) ? 0 : -1;
 }
 
 
@@ -141,19 +146,19 @@ int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, co
 	if(type == &PyFloat_Type) {
 		float *array_float= array;
 		for(i=0; i<length; i++) {
-			array_float[i] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
+			array_float[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
 		}
 	}
 	else if(type == &PyLong_Type) {
 		int *array_int= array;
 		for(i=0; i<length; i++) {
-			array_int[i] = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
+			array_int[i]= PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
 		}
 	}
 	else if(type == &PyBool_Type) {
 		int *array_bool= array;
 		for(i=0; i<length; i++) {
-			array_bool[i] = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
+			array_bool[i]= (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
 		}
 	}
 	else {

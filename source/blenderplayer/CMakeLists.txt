@@ -40,6 +40,16 @@ add_custom_command(
 )
 
 if(WIN32 AND NOT UNIX)
+	string(SUBSTRING ${BLENDER_VERSION} 0 1 bver1)
+	string(SUBSTRING ${BLENDER_VERSION} 2 1 bver2)
+	string(SUBSTRING ${BLENDER_VERSION} 3 1 bver3)
+	add_definitions(
+		-DBLEN_VER_RC_STR=${BLENDER_VERSION}
+		-DBLEN_VER_RC_1=${bver1}
+		-DBLEN_VER_RC_2=${bver2}
+		-DBLEN_VER_RC_3=${bver3}
+		-DBLEN_VER_RC_4=0
+	)
 	add_executable(blenderplayer ${EXETYPE} ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../icons/winblender.rc)
 else()
 	add_executable(blenderplayer ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
@@ -59,42 +69,18 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	list(APPEND BLENDER_LINK_LIBS extern_binreloc)
 endif()
 
-if(UNIX)
+# if(UNIX)
 	# Sort libraries
-<<<<<<< .working
-	SET(BLENDER_SORTED_LIBS
-		gp_ghost 
-		gp_common 
-		bf_intern_string 
-		bf_intern_ghost 
-=======
 	set(BLENDER_SORTED_LIBS
 		ge_player_ghost 
 		ge_player_common 
 		bf_intern_string 
 		bf_intern_ghost
->>>>>>> .merge-right.r35190
 		bf_rna
+		bf_bmesh
 		bf_blenkernel
 		bf_blenloader 
 		bf_blenpluginapi 
-<<<<<<< .working
-		bf_blroutines 
-		bf_converter 
-		bf_ketsji 
-		bf_bullet 
-		bf_common 
-		bf_dummy 
-		bf_logic 
-		bf_rasterizer 
-		bf_oglrasterizer 
-		bf_expressions 
-		bf_scenegraph
-        	bf_ikplugin
-        	bf_intern_itasc
-        	bf_intern_ik
-        	bf_intern_smoke
-=======
 		ge_blen_routines
 		bf_editor_datafiles
 		ge_converter 
@@ -111,15 +97,9 @@ if(UNIX)
 		bf_intern_itasc
 		bf_intern_ik
 		bf_intern_smoke
->>>>>>> .merge-right.r35190
 		bf_modifiers
-<<<<<<< .working
-		bf_intern_moto 
-		bf_kernel 
-=======
 		bf_intern_moto 
 		bf_gen_system 
->>>>>>> .merge-right.r35190
 		bf_nodes
 		bf_gpu
 		bf_imbuf
@@ -130,43 +110,47 @@ if(UNIX)
 		extern_bullet 
 		bf_intern_guardedalloc 
 		bf_intern_memutil 
-		bf_python
 		bf_python_ext
 		bf_blenlib 
-<<<<<<< .working
-		bf_cineon
-		bf_openexr 
-		extern_openjpeg 
-		bf_dds
-=======
 		bf_imbuf_cineon
 		bf_imbuf_openexr 
 		extern_openjpeg 
 		bf_imbuf_dds
->>>>>>> .merge-right.r35190
 		bf_readblenfile 
 		bf_dna
 		ge_videotex
 		bf_blenfont
 		bf_intern_audaspace
 		blenkernel_blc
+		bf_bmesh
 		extern_binreloc
-		extern_glew
 		extern_minilzo
 		bf_intern_ghost # duplicate for linking
 		bf_blenkernel # duplicate for linking
 		bf_intern_mikktspace
 	)
 
-<<<<<<< .working
-	IF(WITH_CXX_GUARDEDALLOC)
-		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_intern_guardedalloc_cpp)
-	ENDIF(WITH_CXX_GUARDEDALLOC)
-=======
+	if(WITH_BUILTIN_GLEW)
+		list(APPEND BLENDER_SORTED_LIBS extern_glew)
+	endif()
+
+	if(WITH_LZMA)
+		list(APPEND BLENDER_SORTED_LIBS extern_lzma)
+	endif()
+
+	if(WITH_MOD_DECIMATE)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_decimate)
+	endif()
+
+	if(WITH_MOD_BOOLEAN)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_bsp)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_bop)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_moto)
+	endif()
+
 	if(WITH_CODEC_QUICKTIME)
 		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
 	endif()
->>>>>>> .merge-right.r35190
 
 	if(WITH_CXX_GUARDEDALLOC)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_guardedalloc_cpp)
@@ -190,9 +174,9 @@ if(UNIX)
 		message(STATUS "Player Skipping: (${REM_MSG})")
 	endif()
 	target_link_libraries(blenderplayer ${BLENDER_SORTED_LIBS})
-else()
-	target_link_libraries(blenderplayer ${BLENDER_LINK_LIBS})
-endif()
+# else()
+# 	target_link_libraries(blenderplayer ${BLENDER_LINK_LIBS})
+# endif()
 
 if(WITH_PLAYER)
 	add_subdirectory(bad_level_call_stubs)

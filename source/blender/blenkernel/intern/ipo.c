@@ -28,6 +28,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/ipo.c
+ *  \ingroup bke
+ */
+
+
 /* NOTE:
  *
  * This file is no longer used to provide tools for the depreceated IPO system. Instead, it
@@ -326,7 +331,7 @@ static char *shapekey_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
 	if (adrcode == 0) 
 		sprintf(buf, "speed");
 	else
-		sprintf(buf, "keys[%d].value", adrcode);
+		sprintf(buf, "key_blocks[%d].value", adrcode);
 	return buf;
 }
 

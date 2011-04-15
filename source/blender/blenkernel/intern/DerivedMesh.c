@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/DerivedMesh.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 
 
@@ -827,12 +832,12 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 		*fg= blend;
 		*fb= blend*(1.0f-((input-0.25f)*4.0f)); 
 	}
-	else if (input<=0.75){	// green->yellow
+	else if (input <= 0.75f){	// green->yellow
 		*fr= blend * ((input-0.50f)*4.0f);
 		*fg= blend;
 		*fb= 0.0f;
 	}
-	else if (input<=1.0){ // yellow->red
+	else if (input <= 1.0f){ // yellow->red
 		*fr= blend;
 		*fg= blend * (1.0f-((input-0.75f)*4.0f)); 
 		*fb= 0.0f;
@@ -1840,11 +1845,9 @@ static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const 
 	}
 	else
 	{
-		int i=0;
-		short * no = pMesh->mvert[indices[vert_index]].no;
-		for(i=0; i<3; i++)
-			fNorm[i]=no[i]/32767.0f;
-		normalize_v3(fNorm);
+		short *no = pMesh->mvert[indices[vert_index]].no;
+		normal_short_to_float_v3(fNorm, no);
+		normalize_v3(fNorm); /* XXX, is this needed */
 	}
 }
 static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent[], const float fSign, const int face_num, const int iVert)

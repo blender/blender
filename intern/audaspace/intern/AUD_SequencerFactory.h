@@ -63,6 +63,7 @@ private:
 
 	std::list<AUD_SequencerEntry*> m_entries;
 	std::list<AUD_SequencerReader*> m_readers;
+	bool m_muted;
 	void* m_data;
 	AUD_volumeFunction m_volume;
 
@@ -73,9 +74,11 @@ private:
 	AUD_SequencerFactory& operator=(const AUD_SequencerFactory&);
 
 public:
-	AUD_SequencerFactory(AUD_Specs specs, void* data, AUD_volumeFunction volume);
+	AUD_SequencerFactory(AUD_Specs specs, bool muted, void* data, AUD_volumeFunction volume);
 	~AUD_SequencerFactory();
 
+	void mute(bool muted);
+	bool getMute() const;
 	AUD_SequencerEntry* add(AUD_IFactory** sound, float begin, float end, float skip, void* data);
 	void remove(AUD_SequencerEntry* entry);
 	void move(AUD_SequencerEntry* entry, float begin, float end, float skip);

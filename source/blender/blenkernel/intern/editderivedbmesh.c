@@ -488,7 +488,7 @@ static void bmDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	}
 }
 
-static void bmDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
+static void bmDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges)
 {
 	bmDM_drawMappedEdges(dm, NULL, NULL);
 }
@@ -622,7 +622,10 @@ static void bmDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 	}
 }
 
-static void bmDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
+static void bmDM_drawMappedFaces(DerivedMesh *dm, 
+	int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), 
+	void *userData, int useColors, 
+	int (*setMaterial)(int, void *attribs))
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMFace *efa;
@@ -1492,9 +1495,9 @@ DMLoopIter *bmDM_newLoopsIter(void *faceiter)
 	return (DMLoopIter*) iter;
 }
 
-static DMFaceIter *bmDM_getFaceIter(void *dm)
+static DMFaceIter *bmDM_getFaceIter(DerivedMesh *dm)
 {
-	EditDerivedBMesh *bmdm= dm;
+	EditDerivedBMesh *bmdm= (EditDerivedBMesh*)dm;
 	bmDM_faceIter *iter = MEM_callocN(sizeof(bmDM_faceIter), "bmDM_faceIter");
 	BMIter biter;
 	BMVert *v;
@@ -1528,9 +1531,9 @@ static DMFaceIter *bmDM_getFaceIter(void *dm)
 	return (DMFaceIter*) iter;
 }
 
-static void bmDM_release(void *dm)
+static void bmDM_release(DerivedMesh *dm)
 {
-	EditDerivedBMesh *bmdm= dm;
+	EditDerivedBMesh *bmdm= (EditDerivedBMesh *)dm;
 
 	if (DM_release(dm)) {
 		if (bmdm->vertexCos) {

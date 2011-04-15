@@ -21,6 +21,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/jp2.c
+ *  \ingroup imbuf
+ */
+
+
 #ifdef WITH_OPENJPEG
 
 #include "MEM_guardedalloc.h"

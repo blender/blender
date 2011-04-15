@@ -171,7 +171,7 @@ void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int 
 
 	/* the actual drawing */
 	glColor3ub(255, 255, 255);
-	BLF_draw_default(xco, height-yco, 0.0f, (char *)text, 65535); /* XXX, use real len */
+	BLF_draw_default((float)xco, (float)(height-yco), 0.0f, (char *)text, 65535); /* XXX, use real len */
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -200,9 +200,9 @@ void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int widt
 
 	/* draw in black first*/
 	glColor3ub(0, 0, 0);
-	BLF_draw_default(xco+2, height-yco-2, 0.0f, text, 65535); /* XXX, use real len */
+	BLF_draw_default((float)(xco+2), (float)(height-yco-2), 0.0f, text, 65535); /* XXX, use real len */
 	glColor3ub(255, 255, 255);
-	BLF_draw_default(xco, height-yco, 0.0f, text, 65535); /* XXX, use real len */
+	BLF_draw_default((float)xco, (float)(height-yco), 0.0f, text, 65535); /* XXX, use real len */
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

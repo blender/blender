@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/pbvh.c
+ *  \ingroup bli
+ */
+
+
 
 
 #include "DNA_meshdata_types.h"
@@ -1531,7 +1536,7 @@ void BLI_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
 		}
 
 		/* coordinates are new -- normals should also be updated */
-		mesh_calc_normals(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
+		mesh_calc_tessface_normals(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
 
 		for (a= 0; a < pbvh->totnode; ++a)
 			BLI_pbvh_node_mark_update(&pbvh->nodes[a]);

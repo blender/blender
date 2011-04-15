@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/util/crazyspace.c
+ *  \ingroup edutil
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -45,6 +50,11 @@
 #include "BLI_editVert.h"
 
 #include "ED_util.h"
+
+typedef struct {
+	float *vertexcos;
+	short *flags;
+} MappedUserData;
 
 #define TAN_MAKE_VEC(a, b, c)	a[0]= b[0] + 0.2f*(b[0]-c[0]); a[1]= b[1] + 0.2f*(b[1]-c[1]); a[2]= b[2] + 0.2f*(b[2]-c[2])
 static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, float *def1, float *def2, float *def3)
@@ -66,10 +76,16 @@ static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, 
 
 static void make_vertexcos__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
-	float *vec = userData;
+	MappedUserData *mappedData= (MappedUserData*)userData;
+	float *vec = mappedData->vertexcos;
 
 	vec+= 3*index;
-	VECCOPY(vec, co);
+	if(!mappedData->flags[index]) {
+		/* we need coord from prototype vertex, not it clones or images,
+		   suppose they stored in the beginning of vertex array stored in DM */
+		VECCOPY(vec, co);
+		mappedData->flags[index]= 1;
+	}
 }
 
 static int modifiers_disable_subsurf_temporary(Object *ob)
@@ -93,6 +109,9 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 	Mesh *me= obedit->data;
 	DerivedMesh *dm;
 	float *vertexcos;
+	int nverts= me->edit_btmesh->bm->totvert;
+	short *flags;
+	MappedUserData userData;
 
 	/* disable subsurf temporal, get mapped cos, and enable it */
 	if(modifiers_disable_subsurf_temporary(obedit)) {
@@ -103,19 +122,73 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 	/* now get the cage */
 	dm= editbmesh_get_derived_cage(scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
 
-	vertexcos= MEM_mallocN(3*sizeof(float)*me->edit_btmesh->bm->totvert, "vertexcos map");
-	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
+	vertexcos= MEM_callocN(3*sizeof(float)*nverts, "vertexcos map");
+	flags= MEM_callocN(sizeof(short)*nverts, "vertexcos flags");
+
+	userData.vertexcos= vertexcos;
+	userData.flags= flags;
+	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData);
 
 	dm->release(dm);
 
 	/* set back the flag, no new cage needs to be built, transform does it */
 	modifiers_disable_subsurf_temporary(obedit);
 
+	MEM_freeN(flags);
+
 	return vertexcos;
 }
 
 void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mappedcos, float *quats)
 {
+	BMVert *v;
+	BMIter iter, liter;
+	BMEdge *e;
+	BMLoop *l;
+	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
+	int *vert_table = MEM_callocN(sizeof(int)*em->bm->totvert, "vert_table");
+	int index = 0;
+	
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BMINDEX_SET(v, index);
+		index++;
+	}
+	
+	index = 0;
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_VERT, v) {
+			BMLoop *l2 = BM_OtherFaceLoop(l->e, l->f, v);
+			
+			/* retrieve mapped coordinates */
+			v1= mappedcos + 3*BMINDEX_GET(l->v);
+			v2= mappedcos + 3*BMINDEX_GET(BM_OtherEdgeVert(l2->e, l->v));
+			v3= mappedcos + 3*BMINDEX_GET(BM_OtherEdgeVert(l->e, l->v));
+			
+			co1= (origcos)? origcos + 3*BMINDEX_GET(l->v) : l->v->co;
+			co2= (origcos)? origcos + 3*BMINDEX_GET(BM_OtherEdgeVert(l2->e, l->v)) : BM_OtherEdgeVert(l2->e, l->v)->co;
+			co3= (origcos)? origcos + 3*BMINDEX_GET(BM_OtherEdgeVert(l->e, l->v)) : BM_OtherEdgeVert(l->e, l->v)->co;
+			
+			set_crazy_vertex_quat(quats, v1, v2, v3, co1, co2, co3);
+			quats+= 4;
+			
+			vert_table[BMINDEX_GET(l->v)] = index+1;
+			
+			index++;
+			break; /*just do one corner*/
+		}
+	}
+	
+	index = 0;
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (vert_table[index] != 0)
+			BMINDEX_SET(v, vert_table[index]-1);
+		else
+			BMINDEX_SET(v, -1);
+		
+		index++;
+	}
+
+	MEM_freeN(vert_table);
 #if 0
 	BMEditVert *eve, *prev;
 	BMEditFace *efa;

@@ -27,6 +27,9 @@
  * ***** END GPL LICENSE BLOCK *****
  * (uit traces) maart 95
  */
+/** \file blender/blenlib/intern/scanfill.c
+ *  \ingroup bli
+ */
 
 #include <stdio.h>
 #include <math.h>

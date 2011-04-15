@@ -179,6 +179,7 @@ typedef struct wmNotifier {
 #define ND_EDITOR_CHANGED	(6<<16) /*sent to new editors after switching to them*/
 #define ND_SCREENSET		(7<<16)
 #define ND_SKETCH			(8<<16)
+#define ND_SUBWINACTIVE		(9<<16)
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)

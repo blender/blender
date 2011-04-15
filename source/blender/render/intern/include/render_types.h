@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/render_types.h
+ *  \ingroup render
+ */
+
+
 #ifndef RENDER_TYPES_H
 #define RENDER_TYPES_H
 
@@ -241,6 +246,8 @@ struct Render
 	void (*progress)(void *handle, float i);
 	void *prh;
 	
+	void (*draw_lock)(void *handle, int i);
+	void *dlh;
 	int (*test_break)(void *handle);
 	void *tbh;
 	

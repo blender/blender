@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_view3d/view3d_intern.h
+ *  \ingroup spview3d
+ */
+
 #ifndef ED_VIEW3D_INTERN_H
 #define ED_VIEW3D_INTERN_H
 

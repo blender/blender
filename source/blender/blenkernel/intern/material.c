@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/material.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 #include <math.h>
 
@@ -240,12 +245,11 @@ Material *localize_material(Material *ma)
 	man= copy_libblock(ma);
 	BLI_remlink(&G.main->mat, man);
 
+	/* no increment for texture ID users, in previewrender.c it prevents decrement */
 	for(a=0; a<MAX_MTEX; a++) {
 		if(ma->mtex[a]) {
 			man->mtex[a]= MEM_mallocN(sizeof(MTex), "copymaterial");
 			memcpy(man->mtex[a], ma->mtex[a], sizeof(MTex));
-			/* free_material decrements! */
-			id_us_plus((ID *)man->mtex[a]->tex);
 		}
 	}
 	
@@ -683,6 +687,10 @@ void assign_material(Object *ob, Material *ma, int act)
 	if(act>MAXMAT) return;
 	if(act<1) act= 1;
 	
+	/* prevent crashing when using accidentally */
+	BLI_assert(ob->id.lib == NULL);
+	if(ob->id.lib) return;
+	
 	/* test arraylens */
 	
 	totcolp= give_totcolp(ob);
@@ -780,21 +788,10 @@ int find_material_index(Object *ob, Material *ma)
 
 int object_add_material_slot(Object *ob)
 {
-	Material *ma;
-	
 	if(ob==NULL) return FALSE;
 	if(ob->totcol>=MAXMAT) return FALSE;
 	
-	ma= give_current_material(ob, ob->actcol);
-
-    if(ma == NULL)
-		ma= add_material("Material");
-	else
-		ma= copy_material(ma);
-
-	id_us_min(&ma->id);
-
-	assign_material(ob, ma, ob->totcol+1);
+	assign_material(ob, NULL, ob->totcol+1);
 	ob->actcol= ob->totcol;
 	return TRUE;
 }
@@ -1001,9 +998,9 @@ void automatname(Material *ma)
 	if(ma->mode & MA_SHLESS) ref= 1.0;
 	else ref= ma->ref;
 	
-	r= (int)(4.99*(ref*ma->r));
-	g= (int)(4.99*(ref*ma->g));
-	b= (int)(4.99*(ref*ma->b));
+	r= (int)(4.99f*(ref*ma->r));
+	g= (int)(4.99f*(ref*ma->g));
+	b= (int)(4.99f*(ref*ma->b));
 	nr= r + 5*g + 25*b;
 	if(nr>124) nr= 124;
 	new_id(&G.main->mat, (ID *)ma, colname_array[nr]);
@@ -1169,10 +1166,10 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 			}
 				break;
 		case MA_RAMP_DIFF:
-			*r = facm*(*r) + fac*fabs(*r-col[0]);
+			*r = facm*(*r) + fac*fabsf(*r-col[0]);
 			if(g) {
-				*g = facm*(*g) + fac*fabs(*g-col[1]);
-				*b = facm*(*b) + fac*fabs(*b-col[2]);
+				*g = facm*(*g) + fac*fabsf(*g-col[1]);
+				*b = facm*(*b) + fac*fabsf(*b-col[2]);
 			}
 				break;
 		case MA_RAMP_DARK:

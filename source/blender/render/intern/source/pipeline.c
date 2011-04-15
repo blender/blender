@@ -26,10 +26,16 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/pipeline.c
+ *  \ingroup render
+ */
+
+
 #include <math.h>
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
@@ -41,18 +47,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_utildefines.h"
+#include "BKE_animsys.h"	/* <------ should this be here?, needed for sequencer update */
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
 #include "BKE_sequencer.h"
-#include "BKE_pointcache.h"
-#include "BKE_animsys.h"	/* <------ should this be here?, needed for sequencer update */
+#include "BKE_utildefines.h"
+#include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -1399,6 +1405,12 @@ void RE_progress_cb(Render *re, void *handle, void (*f)(void *handle, float))
 	re->prh= handle;
 }
 
+void RE_draw_lock_cb(Render *re, void *handle, void (*f)(void *handle, int i))
+{
+	re->draw_lock= f;
+	re->tbh= handle;
+}
+
 void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
 {
 	re->test_break= f;
@@ -1785,11 +1797,19 @@ static void do_render_3d(Render *re)
 //	re->cfra= cfra;	/* <- unused! */
 	re->scene->r.subframe = re->mblur_offs + re->field_offs;
 	
+	/* lock drawing in UI during data phase */
+	if(re->draw_lock)
+		re->draw_lock(re->dlh, 1);
+	
 	/* make render verts/faces/halos/lamps */
 	if(render_scene_needs_vector(re))
 		RE_Database_FromScene_Vectors(re, re->main, re->scene, re->lay);
 	else
 	   RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
+	
+	/* clear UI drawing locks */
+	if(re->draw_lock)
+		re->draw_lock(re->dlh, 0);
 	
 	threaded_tile_processor(re);
 	
@@ -2284,9 +2304,12 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			
 			tag_scenes_for_render(re);
 			for(re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
-				if(re1->scene->id.flag & LIB_DOIT)
-					if(re1->r.scemode & R_FULL_SAMPLE)
+				if(re1->scene->id.flag & LIB_DOIT) {
+					if(re1->r.scemode & R_FULL_SAMPLE) {
 						read_render_result(re1, sample);
+						ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
+					}
+				}
 			}
 		}
 
@@ -3327,12 +3350,8 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
 
 static int external_render_3d(Render *re, int do_all)
 {
-	RenderEngineType *type;
+	RenderEngineType *type= BLI_findstring(&R_engines, re->r.engine, offsetof(RenderEngineType, idname));
 	RenderEngine engine;
-
-	for(type=R_engines.first; type; type=type->next)
-		if(strcmp(type->idname, re->r.engine) == 0)
-			break;
 
 	if(!(type && type->render))
 		return 0;

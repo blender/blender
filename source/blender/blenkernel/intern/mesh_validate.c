@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/mesh_validate.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -112,7 +117,7 @@ static int search_face_cmp(const void *v1, const void *v2)
 
 }
 
-int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge *medges, int totedge, MFace *mfaces, int totface, const short do_verbose, const short do_fixes)
+int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totvert, MEdge *medges, unsigned int totedge, MFace *mfaces, unsigned int totface, const short do_verbose, const short do_fixes)
 {
 #	define PRINT if(do_verbose) printf
 #	define REMOVE_EDGE_TAG(_med) { _med->v2= _med->v1; do_edge_free= 1; }
@@ -122,7 +127,7 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 	MEdge *med;
 	MFace *mf;
 	MFace *mf_prev;
-	int i;
+	unsigned int i;
 
 	int do_face_free= FALSE;
 	int do_edge_free= FALSE;
@@ -134,7 +139,7 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 	SortFace *sort_faces= MEM_callocN(sizeof(SortFace) * totface, "search faces");
 	SortFace *sf;
 	SortFace *sf_prev;
-	int totsortface= 0;
+	unsigned int totsortface= 0;
 
 	BLI_assert(!(do_fixes && me == NULL));
 

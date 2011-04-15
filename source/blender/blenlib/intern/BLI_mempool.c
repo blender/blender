@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/BLI_mempool.c
+ *  \ingroup bli
+ */
+
+
 /*
 	Simple, fast memory allocator for allocating many elements of the same size.
 */

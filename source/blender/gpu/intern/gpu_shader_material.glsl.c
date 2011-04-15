@@ -1,3 +1,6 @@
+/** \file blender/gpu/intern/gpu_shader_material.glsl.c
+ *  \ingroup gpu
+ */
 /* DataToC output of file <gpu_shader_material_glsl> */
 
 int datatoc_gpu_shader_material_glsl_size= 38950;

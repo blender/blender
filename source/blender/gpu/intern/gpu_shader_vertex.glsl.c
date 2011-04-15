@@ -1,3 +1,6 @@
+/** \file blender/gpu/intern/gpu_shader_vertex.glsl.c
+ *  \ingroup gpu
+ */
 /* DataToC output of file <gpu_shader_vertex_glsl> */
 
 int datatoc_gpu_shader_vertex_glsl_size= 228;

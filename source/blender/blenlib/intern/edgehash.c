@@ -28,6 +28,11 @@
  * A general (pointer -> pointer) hash table ADT
  */
 
+/** \file blender/blenlib/intern/edgehash.c
+ *  \ingroup bli
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 

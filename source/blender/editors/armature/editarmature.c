@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/armature/editarmature.c
+ *  \ingroup edarmature
+ */
+
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -82,6 +87,7 @@
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "armature_intern.h"
 #include "meshlaplacian.h"
@@ -632,6 +638,8 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	
 	/* helpful warnings... */
 	// TODO: add warnings to be careful about actions, applying deforms first, etc.
+	if (ob->adt && ob->adt->action) 
+		BKE_report(op->reports, RPT_WARNING, "Actions on this armature will be destroyed by this new rest pose as the transforms stored are relative to the old rest pose");
 	
 	/* Get editbones of active armature to alter */
 	ED_armature_to_edit(ob);	
@@ -2119,7 +2127,7 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const short
 		sub_v3_v3v3(align_axis_proj, align_axis, vec);
 		
 		if(axis_only) {
-			if(angle_v3v3(align_axis_proj, mat[2]) > M_PI/2) {
+			if(angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI/2.0)) {
 				negate_v3(align_axis_proj);
 			}
 		}
@@ -2304,7 +2312,7 @@ static void undoBones_to_editBones(void *uarmv, void *armv, void *data)
 	}
 }
 
-static void *editBones_to_undoBones(void *armv, void *obdata)
+static void *editBones_to_undoBones(void *armv, void *UNUSED(obdata))
 {
 	bArmature *arm= armv;
 	UndoArmature *uarm;
@@ -4000,7 +4008,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	EditBone *actbone = CTX_data_active_bone(C);
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Make Parent ", ICON_NULL);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Make Parent ", ICON_NONE);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	int allchildbones = 0;
 	
@@ -4697,14 +4705,14 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 				bone->rad_head * scale, bone->rad_tail * scale, bone->dist * scale);
 			
 			/* add the vert to the deform group if weight!=0.0 */
-			if (distance!=0.0)
+			if (distance != 0.0f)
 				ED_vgroup_vert_add (ob, dgroup, i, distance, WEIGHT_REPLACE);
 			else
 				ED_vgroup_vert_remove (ob, dgroup, i);
 			
 			/* do same for mirror */
 			if (dgroupflip && dgroupflip[j] && iflip >= 0) {
-				if (distance!=0.0)
+				if (distance != 0.0f)
 					ED_vgroup_vert_add (ob, dgroupflip[j], iflip, distance,
 						WEIGHT_REPLACE);
 				else
@@ -4953,7 +4961,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 					pchan->rotAxis[2]= 0.0f;
 					
 				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
-				if (IS_EQ(pchan->rotAxis[0], pchan->rotAxis[1]) && IS_EQ(pchan->rotAxis[1], pchan->rotAxis[2]))
+				if (IS_EQF(pchan->rotAxis[0], pchan->rotAxis[1]) && IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2]))
 					pchan->rotAxis[1] = 1.0f;
 			}
 			else if (pchan->rotmode == ROT_MODE_QUAT) {

@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/collada/TransformReader.cpp
+ *  \ingroup collada
+ */
+
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"
 

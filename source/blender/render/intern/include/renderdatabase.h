@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/renderdatabase.h
+ *  \ingroup render
+ */
+
+
 #ifndef RENDERDATABASE_H
 #define RENDERDATABASE_H
 

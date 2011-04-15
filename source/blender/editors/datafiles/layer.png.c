@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/layer.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <layer_png> */
 
 int datatoc_layer_png_size= 11004;

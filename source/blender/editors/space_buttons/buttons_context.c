@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_buttons/buttons_context.c
+ *  \ingroup spbuttons
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -231,6 +236,12 @@ static int buttons_context_path_material(ButsContextPath *path)
 			ma= give_current_material(ob, ob->actcol);
 			RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
 			path->len++;
+			
+			ma= give_node_material(ma);
+			if(ma) {
+				RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
+				path->len++;
+			}			
 			return 1;
 		}
 	}

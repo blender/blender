@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_console/console_ops.c
+ *  \ingroup spconsole
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h> /* ispunct */
@@ -712,7 +717,7 @@ static int copy_exec(bContext *C, wmOperator *UNUSED(op))
 	int sel[2];
 	int offset= 0;
 
-	ConsoleLine cl_dummy= {0};
+	ConsoleLine cl_dummy= {NULL};
 
 #if 0
 	/* copy whole file */

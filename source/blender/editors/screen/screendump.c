@@ -26,6 +26,11 @@
  * Making screendumps.
  */
 
+/** \file blender/editors/screen/screendump.c
+ *  \ingroup edscr
+ */
+
+
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

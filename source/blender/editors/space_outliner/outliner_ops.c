@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_outliner/outliner_ops.c
+ *  \ingroup spoutliner
+ */
+
+
 #include <stdlib.h>
 
 #include "DNA_space_types.h"

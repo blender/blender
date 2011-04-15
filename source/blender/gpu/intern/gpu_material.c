@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/gpu/intern/gpu_material.c
+ *  \ingroup gpu
+ */
+
+
 #include <math.h>
 #include <string.h>
 
@@ -104,8 +109,8 @@ struct GPULamp {
 
 	int type, mode, lay, hide;
 
-	float dynpower, dyncol[3];
-	float power, col[3];
+	float dynenergy, dyncol[3];
+	float energy, col[3];
 
 	float co[3], vec[3];
 	float dynco[3], dynvec[3];
@@ -114,7 +119,7 @@ struct GPULamp {
 	float dynimat[4][4];
 
 	float spotsi, spotbl, k;
-	float dist;
+	float dist, att1, att2;
 
 	float bias, d, clipend;
 	int size;
@@ -256,11 +261,11 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 			lamp= nlink->data;
 
 			if(!lamp->hide && (lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))) {
-				lamp->dynpower = lamp->power;
+				lamp->dynenergy = lamp->energy;
 				VECCOPY(lamp->dyncol, lamp->col);
 			}
 			else {
-				lamp->dynpower = 0.0f;
+				lamp->dynenergy = 0.0f;
 				lamp->dyncol[0]= lamp->dyncol[1]= lamp->dyncol[2] = 0.0f;
 			}
 		}
@@ -395,6 +400,9 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 			case LA_FALLOFF_INVSQUARE:
 				GPU_link(mat, "lamp_falloff_invsquare", GPU_uniform(&lamp->dist), *dist, &visifac);
 				break;
+			case LA_FALLOFF_SLIDERS:
+				GPU_link(mat, "lamp_falloff_sliders", GPU_uniform(&lamp->dist), GPU_uniform(&lamp->att1), GPU_uniform(&lamp->att2), *dist, &visifac);
+				break;
 			case LA_FALLOFF_CURVE:
 				{
 					float *array;
@@ -521,6 +529,9 @@ static void add_to_diffuse(GPUMaterial *mat, Material *ma, GPUShadeInput *shi, G
 		else {
 			/* input */
 			switch(ma->rampin_col) {
+			case MA_RAMP_IN_ENERGY:
+				GPU_link(mat, "ramp_rgbtobw", rgb, &fac);
+				break;
 			case MA_RAMP_IN_SHADER:
 				fac= is;
 				break;
@@ -571,6 +582,9 @@ static void do_specular_ramp(GPUShadeInput *shi, GPUNodeLink *is, GPUNodeLink *t
 		
 		/* input */
 		switch(ma->rampin_spec) {
+		case MA_RAMP_IN_ENERGY:
+			fac = t;
+			break;
 		case MA_RAMP_IN_SHADER:
 			fac = is;
 			break;
@@ -670,7 +684,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 			
 			if(lamp->mode & LA_ONLYSHADOW) {
 				GPU_link(mat, "shade_only_shadow", i, shadfac,
-					GPU_dynamic_uniform(&lamp->dynpower), &shadfac);
+					GPU_dynamic_uniform(&lamp->dynenergy), &shadfac);
 				
 				if(!(lamp->mode & LA_NO_DIFF))
 					GPU_link(mat, "shade_only_shadow_diffuse", shadfac, shi->rgb,
@@ -909,7 +923,7 @@ static void do_material_tex(GPUShadeInput *shi)
 			mtex= ma->mtex[tex_nr];
 			
 			tex= mtex->tex;
-			if(tex==0) continue;
+			if(tex == NULL) continue;
 
 			/* which coords */
 			if(mtex->texco==TEXCO_ORCO)
@@ -1046,7 +1060,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						else
 							newnor = tnor;
 						
-						norfac = MIN2(fabsf(mtex->norfac), 1.0);
+						norfac = MIN2(fabsf(mtex->norfac), 1.0f);
 						
 						if(norfac == 1.0f && !GPU_link_changed(stencil)) {
 							shi->vn = newnor;
@@ -1250,10 +1264,10 @@ void GPU_shadeinput_set(GPUMaterial *mat, Material *ma, GPUShadeInput *shi)
 void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 {
 	GPUMaterial *mat= shi->gpumat;
-	GPUNodeLink *emit, *mistfac;
+	GPUNodeLink *emit, *ulinfac, *ulogfac, *mistfac;
 	Material *ma= shi->mat;
 	World *world= mat->scene->world;
-	float misttype;
+	float linfac, logfac, misttype;
 
 	memset(shr, 0, sizeof(*shr));
 
@@ -1291,6 +1305,20 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		shr->alpha = shi->alpha;
 
 		if(world) {
+			/* exposure correction */
+			if(world->exp!=0.0f || world->range!=1.0f) {
+				linfac= 1.0 + pow((2.0*world->exp + 0.5), -10);
+				logfac= log((linfac-1.0f)/linfac)/world->range;
+
+				GPU_link(mat, "set_value", GPU_uniform(&linfac), &ulinfac);
+				GPU_link(mat, "set_value", GPU_uniform(&logfac), &ulogfac);
+
+				GPU_link(mat, "shade_exposure_correct", shr->combined,
+					ulinfac, ulogfac, &shr->combined);
+				GPU_link(mat, "shade_exposure_correct", shr->spec,
+					ulinfac, ulogfac, &shr->spec);
+			}
+
 			/* ambient color */
 			if(world->ambr!=0.0f || world->ambg!=0.0f || world->ambb!=0.0f) {
 				if(GPU_link_changed(shi->amb) || ma->amb != 0.0f)
@@ -1419,14 +1447,14 @@ void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[][4])
 	invert_m4_m4(lamp->imat, mat);
 }
 
-void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float power)
+void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy)
 {
-	lamp->power = power;
-	if(lamp->mode & LA_NEG) lamp->power= -lamp->power;
+	lamp->energy = energy;
+	if(lamp->mode & LA_NEG) lamp->energy= -lamp->energy;
 
-	lamp->col[0]= r* lamp->power;
-	lamp->col[1]= g* lamp->power;
-	lamp->col[2]= b* lamp->power;
+	lamp->col[0]= r* lamp->energy;
+	lamp->col[1]= g* lamp->energy;
+	lamp->col[2]= b* lamp->energy;
 }
 
 static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *la, GPULamp *lamp)
@@ -1442,25 +1470,27 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->mode = la->mode;
 	lamp->type = la->type;
 
-	lamp->power= (ELEM(la->type, LA_SUN, LA_HEMI))? la->energy*M_PI: la->energy*M_PI; //XXX la->power;
-	if(lamp->mode & LA_NEG) lamp->power= -lamp->power;
+	lamp->energy = la->energy;
+	if(lamp->mode & LA_NEG) lamp->energy= -lamp->energy;
 
-	lamp->col[0]= la->r*lamp->power;
-	lamp->col[1]= la->g*lamp->power;
-	lamp->col[2]= la->b*lamp->power;
+	lamp->col[0]= la->r*lamp->energy;
+	lamp->col[1]= la->g*lamp->energy;
+	lamp->col[2]= la->b*lamp->energy;
 
 	GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_RENDER), ob->obmat);
 
 	lamp->spotsi= la->spotsize;
 	if(lamp->mode & LA_HALO)
-		if(lamp->spotsi > 170.0)
-			lamp->spotsi = 170.0;
+		if(lamp->spotsi > 170.0f)
+			lamp->spotsi = 170.0f;
 	lamp->spotsi= cos(M_PI*lamp->spotsi/360.0);
-	lamp->spotbl= (1.0 - lamp->spotsi)*la->spotblend;
+	lamp->spotbl= (1.0f - lamp->spotsi)*la->spotblend;
 	lamp->k= la->k;
 
 	lamp->dist= la->dist;
 	lamp->falloff_type= la->falloff_type;
+	lamp->att1= la->att1;
+	lamp->att2= la->att2;
 	lamp->curfalloff= la->curfalloff;
 
 	/* initshadowbuf */
@@ -1523,13 +1553,13 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 			return lamp;
 		}
 
-		lamp->tex = GPU_texture_create_depth(lamp->size, lamp->size);
+		lamp->tex = GPU_texture_create_depth(lamp->size, lamp->size, NULL);
 		if(!lamp->tex) {
 			gpu_lamp_shadow_free(lamp);
 			return lamp;
 		}
 
-		if(!GPU_framebuffer_texture_attach(lamp->fb, lamp->tex)) {
+		if(!GPU_framebuffer_texture_attach(lamp->fb, lamp->tex, NULL)) {
 			gpu_lamp_shadow_free(lamp);
 			return lamp;
 		}

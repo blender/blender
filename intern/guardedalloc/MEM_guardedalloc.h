@@ -61,7 +61,7 @@
 #ifndef MEM_MALLOCN_H
 #define MEM_MALLOCN_H
 
-#include "stdio.h" /* needed for FILE* */
+#include <stdio.h> /* needed for FILE* */
 #include "MEM_sys_types.h" /* needed for uintptr_t */
 
 #ifndef WARN_UNUSED

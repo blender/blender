@@ -34,9 +34,11 @@
 
 typedef std::list<AUD_SequencerReader*>::iterator AUD_ReaderIterator;
 
-AUD_SequencerFactory::AUD_SequencerFactory(AUD_Specs specs, void* data,
+AUD_SequencerFactory::AUD_SequencerFactory(AUD_Specs specs, bool muted,
+										   void* data,
 										   AUD_volumeFunction volume) :
 	m_specs(specs),
+	m_muted(muted),
 	m_data(data),
 	m_volume(volume)
 {
@@ -60,6 +62,16 @@ AUD_SequencerFactory::~AUD_SequencerFactory()
 		m_entries.pop_front();
 		delete entry;
 	}
+}
+
+void AUD_SequencerFactory::mute(bool muted)
+{
+	m_muted = muted;
+}
+
+bool AUD_SequencerFactory::getMute() const
+{
+	return m_muted;
 }
 
 AUD_IReader* AUD_SequencerFactory::newReader()

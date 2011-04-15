@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/intern/bpy_traceback.c
+ *  \ingroup pythonintern
+ */
+
+
 #include <Python.h>
 #include <frameobject.h>
 
@@ -72,7 +77,8 @@ parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
         *offset = -1;
         Py_DECREF(v);
         v = NULL;
-    } else {
+	}
+	else {
         hold = PyLong_AsLong(v);
         Py_DECREF(v);
         v = NULL;

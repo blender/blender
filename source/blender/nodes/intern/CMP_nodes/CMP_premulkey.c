@@ -28,6 +28,11 @@
 
 */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_premulkey.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 /* **************** Premul and Key Alpha Convert ******************** */

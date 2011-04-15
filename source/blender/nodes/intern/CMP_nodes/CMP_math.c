@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_math.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 /* **************** SCALAR MATH ******************** */ 
@@ -135,7 +140,7 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		break;
 	case 14: /* Round */
 		{
-				out[0]= (int)(in[0] + 0.5f);
+				out[0]= (out[0]<0)?(int)(in[0] - 0.5f):(int)(in[0] + 0.5f);
 		}
 		break;
 	case 15: /* Less Than */

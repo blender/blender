@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_group.c
+ *  \ingroup edobj
+ */
+
+
 #include <string.h>
 
 #include "BLI_blenlib.h"

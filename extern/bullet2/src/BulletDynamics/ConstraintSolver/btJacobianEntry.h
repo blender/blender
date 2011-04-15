@@ -28,7 +28,7 @@ subject to the following restrictions:
 /// Jacobian entry is an abstraction that allows to describe constraints
 /// it can be used in combination with a constraint solver
 /// Can be used to relate the effect of an impulse to the constraint error
-class btJacobianEntry
+ATTRIBUTE_ALIGNED16(class) btJacobianEntry
 {
 public:
 	btJacobianEntry() {};

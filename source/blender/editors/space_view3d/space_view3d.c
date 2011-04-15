@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_view3d/space_view3d.c
+ *  \ingroup spview3d
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -209,7 +214,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	
 	v3d->lens= 35.0f;
 	v3d->near= 0.01f;
-	v3d->far= 500.0f;
+	v3d->far= 1000.0f;
 
 	v3d->twflag |= U.tw_flag & V3D_USE_MANIPULATOR;
 	v3d->twtype= V3D_MANIP_TRANSLATE;
@@ -526,7 +531,6 @@ static void *view3d_main_area_duplicate(void *poin)
 			new->clipbb= MEM_dupallocN(rv3d->clipbb);
 		
 		new->depths= NULL;
-		new->retopo_view_data= NULL;
 		new->ri= NULL;
 		new->gpd= NULL;
 		new->sms= NULL;
@@ -1075,7 +1079,7 @@ void ED_spacetype_view3d(void)
 	st->context= view3d_context;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d main region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->keymapflag= ED_KEYMAP_GPENCIL;
 	art->draw= view3d_main_area_draw;
@@ -1084,10 +1088,11 @@ void ED_spacetype_view3d(void)
 	art->duplicate= view3d_main_area_duplicate;
 	art->listener= view3d_main_area_listener;
 	art->cursor= view3d_main_area_cursor;
+	art->lock= 1;	/* can become flag, see BKE_spacedata_draw_locks */
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: listview/buttons */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d buttons region");
 	art->regionid = RGN_TYPE_UI;
 	art->prefsizex= 180; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
@@ -1099,7 +1104,7 @@ void ED_spacetype_view3d(void)
 	view3d_buttons_register(art);
 
 	/* regions: tool(bar) */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d tools region");
 	art->regionid = RGN_TYPE_TOOLS;
 	art->prefsizex= 160; // XXX
 	art->prefsizey= 50; // XXX
@@ -1115,7 +1120,7 @@ void ED_spacetype_view3d(void)
 #endif
 
 	/* regions: tool properties */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d tool properties region");
 	art->regionid = RGN_TYPE_TOOL_PROPS;
 	art->prefsizex= 0;
 	art->prefsizey= 120;
@@ -1129,7 +1134,7 @@ void ED_spacetype_view3d(void)
 	
 	
 	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d header region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;

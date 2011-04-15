@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/loopcut.c
+ *  \ingroup edmesh
+ */
+
+
 #include <float.h>
 #define _USE_MATH_DEFINES
 #include <math.h>

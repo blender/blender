@@ -34,9 +34,7 @@ int gNumManifold = 0;
 
 
 btCollisionDispatcher::btCollisionDispatcher (btCollisionConfiguration* collisionConfiguration): 
-	m_count(0),
-	m_useIslands(true),
-	m_staticWarningReported(false),
+m_dispatcherFlags(btCollisionDispatcher::CD_USE_RELATIVE_CONTACT_BREAKING_THRESHOLD),
 	m_collisionConfiguration(collisionConfiguration)
 {
 	int i;
@@ -79,9 +77,11 @@ btPersistentManifold*	btCollisionDispatcher::getNewManifold(void* b0,void* b1)
 	btCollisionObject* body0 = (btCollisionObject*)b0;
 	btCollisionObject* body1 = (btCollisionObject*)b1;
 
-	//test for Bullet 2.74: use a relative contact breaking threshold without clamping against 'gContactBreakingThreshold'
-	//btScalar contactBreakingThreshold = btMin(gContactBreakingThreshold,btMin(body0->getCollisionShape()->getContactBreakingThreshold(),body1->getCollisionShape()->getContactBreakingThreshold()));
-	btScalar contactBreakingThreshold = btMin(body0->getCollisionShape()->getContactBreakingThreshold(),body1->getCollisionShape()->getContactBreakingThreshold());
+	//optional relative contact breaking threshold, turned on by default (use setDispatcherFlags to switch off feature for improved performance)
+	
+	btScalar contactBreakingThreshold =  (m_dispatcherFlags & btCollisionDispatcher::CD_USE_RELATIVE_CONTACT_BREAKING_THRESHOLD) ? 
+		btMin(body0->getCollisionShape()->getContactBreakingThreshold(gContactBreakingThreshold) , body1->getCollisionShape()->getContactBreakingThreshold(gContactBreakingThreshold))
+		: gContactBreakingThreshold ;
 
 	btScalar contactProcessingThreshold = btMin(body0->getContactProcessingThreshold(),body1->getContactProcessingThreshold());
 		
@@ -169,13 +169,13 @@ bool	btCollisionDispatcher::needsCollision(btCollisionObject* body0,btCollisionO
 	bool needsCollision = true;
 
 #ifdef BT_DEBUG
-	if (!m_staticWarningReported)
+	if (!(m_dispatcherFlags & btCollisionDispatcher::CD_STATIC_STATIC_REPORTED))
 	{
 		//broadphase filtering already deals with this
 		if ((body0->isStaticObject() || body0->isKinematicObject()) &&
 			(body1->isStaticObject() || body1->isKinematicObject()))
 		{
-			m_staticWarningReported = true;
+			m_dispatcherFlags |= btCollisionDispatcher::CD_STATIC_STATIC_REPORTED;
 			printf("warning btCollisionDispatcher::needsCollision: static-static collision!\n");
 		}
 	}

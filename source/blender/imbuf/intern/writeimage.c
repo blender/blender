@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/writeimage.c
+ *  \ingroup imbuf
+ */
+
+
 #include <stdio.h>
 
 #include "IMB_imbuf_types.h"

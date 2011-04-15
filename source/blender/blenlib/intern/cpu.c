@@ -21,6 +21,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/cpu.c
+ *  \ingroup bli
+ */
+
+
 #include "BLI_cpu.h"
 
 int BLI_cpu_support_sse2(void)

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/mesh_intern.h
+ *  \ingroup edmesh
+ */
+
+
 /* Internal for editmesh_xxxx.c functions */
 
 #ifndef MESH_INTERN_H
@@ -98,7 +103,7 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 
 extern void free_editvert(EditMesh *em, EditVert *eve);
 extern void free_editedge(EditMesh *em, EditEdge *eed);
-extern void free_editface(EditMesh *em, EditFace *efa);;
+extern void free_editface(EditMesh *em, EditFace *efa);
 
 /*frees dst mesh, then copies the contents of 
   *src (the struct) to dst. */

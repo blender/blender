@@ -1,3 +1,6 @@
+/** \file blender/editors/sculpt_paint/paint_utils.c
+ *  \ingroup edsculpt
+ */
 
 #include <math.h>
 #include <stdlib.h>
@@ -81,7 +84,7 @@ float paint_get_tex_pixel(Brush* br, float u, float v)
 	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 0, &texres);
 
 	if (hasrgb & TEX_RGB)
-		texres.tin = (0.35*texres.tr + 0.45*texres.tg + 0.2*texres.tb)*texres.ta;
+		texres.tin = (0.35f*texres.tr + 0.45f*texres.tg + 0.2f*texres.tb)*texres.ta;
 
 	return texres.tin;
 }
@@ -144,7 +147,7 @@ static void imapaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, fl
 void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, int *xy, float *uv)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-	int *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	const int *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = dm->getTessFaceDataArray(dm, CD_MTFACE), *tf;
 	int numfaces = dm->getNumTessFaces(dm), a, findex;
 	float p[2], w[3], absw, minabsw;
@@ -156,7 +159,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, int *xy,
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
 	for(a = 0; a < numfaces; a++) {
-		findex= (index)? index[a]: a;
+		findex= index ? index[a]: a;
 
 		if(findex == faceindex) {
 			dm->getTessFace(dm, a, &mf);

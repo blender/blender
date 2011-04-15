@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/zbuf.c
+ *  \ingroup render
+ */
+
+
 
 /*---------------------------------------------------------------------------*/
 /* Common includes                                                           */

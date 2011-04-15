@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/lattice.c
+ *  \ingroup bke
+ */
+
+
 
 #include <stdio.h>
 #include <string.h>
@@ -408,7 +413,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 	for(ww= wi-1; ww<=wi+2; ww++) {
 		w= tw[ww-wi+1];
 
-		if(w!=0.0) {
+		if(w != 0.0f) {
 			if(ww>0) {
 				if(ww<lt->pntsw) idx_w= ww*lt->pntsu*lt->pntsv;
 				else idx_w= (lt->pntsw-1)*lt->pntsu*lt->pntsv;
@@ -418,7 +423,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 			for(vv= vi-1; vv<=vi+2; vv++) {
 				v= w*tv[vv-vi+1];
 
-				if(v!=0.0) {
+				if(v != 0.0f) {
 					if(vv>0) {
 						if(vv<lt->pntsv) idx_v= idx_w + vv*lt->pntsu;
 						else idx_v= idx_w + (lt->pntsv-1)*lt->pntsu;
@@ -428,7 +433,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 					for(uu= ui-1; uu<=ui+2; uu++) {
 						u= weight*v*tu[uu-ui+1];
 
-						if(u!=0.0) {
+						if(u != 0.0f) {
 							if(uu>0) {
 								if(uu<lt->pntsu) idx_u= idx_v + uu;
 								else idx_u= idx_v + (lt->pntsu-1);
@@ -504,7 +509,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 	if(bl && bl->poly> -1) cycl= 1;
 
 	if(cycl==0) {
-		ctime1= CLAMPIS(ctime, 0.0, 1.0);
+		ctime1= CLAMPIS(ctime, 0.0f, 1.0f);
 	}
 	else ctime1= ctime;
 	
@@ -515,16 +520,16 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 			Path *path= cu->path;
 			float dvec[3];
 			
-			if(ctime < 0.0) {
+			if(ctime < 0.0f) {
 				sub_v3_v3v3(dvec, path->data[1].vec, path->data[0].vec);
 				mul_v3_fl(dvec, ctime*(float)path->len);
 				add_v3_v3(vec, dvec);
 				if(quat) copy_qt_qt(quat, path->data[0].quat);
 				if(radius) *radius= path->data[0].radius;
 			}
-			else if(ctime > 1.0) {
+			else if(ctime > 1.0f) {
 				sub_v3_v3v3(dvec, path->data[path->len-1].vec, path->data[path->len-2].vec);
-				mul_v3_fl(dvec, (ctime-1.0)*(float)path->len);
+				mul_v3_fl(dvec, (ctime-1.0f)*(float)path->len);
 				add_v3_v3(vec, dvec);
 				if(quat) copy_qt_qt(quat, path->data[path->len-1].quat);
 				if(radius) *radius= path->data[path->len-1].radius;
@@ -1027,13 +1032,8 @@ void lattice_calc_modifiers(Scene *scene, Object *ob)
 
 struct MDeformVert* lattice_get_deform_verts(struct Object *oblatt)
 {
-	if(oblatt->type == OB_LATTICE)
-	{
-		Lattice *lt = (Lattice*)oblatt->data;
-		if(lt->editlatt) lt= lt->editlatt->latt;
-		return lt->dvert;
-	}
-
-	return NULL;	
+	Lattice *lt = (Lattice*)oblatt->data;
+	BLI_assert(oblatt->type == OB_LATTICE);
+	if(lt->editlatt) lt= lt->editlatt->latt;
+	return lt->dvert;
 }
-

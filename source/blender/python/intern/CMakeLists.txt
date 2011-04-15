@@ -42,10 +42,12 @@ set(SRC
 	bpy_app.c
 	bpy_driver.c
 	bpy_interface.c
+	bpy_library.c
 	bpy_operator.c
 	bpy_operator_wrap.c
 	bpy_props.c
 	bpy_rna.c
+	bpy_rna_anim.c
 	bpy_rna_array.c
 	bpy_rna_callback.c
 	bpy_traceback.c
@@ -59,6 +61,7 @@ set(SRC
 	bpy_operator_wrap.h
 	bpy_props.h
 	bpy_rna.h
+	bpy_rna_anim.h
 	bpy_rna_callback.h
 	bpy_traceback.h
 	bpy_util.h
@@ -72,6 +75,10 @@ endif()
 
 if(WITH_PYTHON_MODULE)
 	add_definitions(-DWITH_PYTHON_MODULE)
+endif()
+
+if(WITH_PYTHON_SAFETY)
+	add_definitions(-DWITH_PYTHON_SAFETY)
 endif()
 
 blender_add_lib(bf_python "${SRC}" "${INC}")

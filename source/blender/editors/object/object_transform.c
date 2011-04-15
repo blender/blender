@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_transform.c
+ *  \ingroup edobj
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -97,9 +102,9 @@ static void object_clear_rot(Object *ob)
 					ob->rotAxis[2]= ob->drotAxis[2]= 0.0f;
 					
 				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
-				if (IS_EQ(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQ(ob->rotAxis[1], ob->rotAxis[2]))
+				if (IS_EQF(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQF(ob->rotAxis[1], ob->rotAxis[2]))
 					ob->rotAxis[1] = 1.0f;
-				if (IS_EQ(ob->drotAxis[0], ob->drotAxis[1]) && IS_EQ(ob->drotAxis[1], ob->drotAxis[2]))
+				if (IS_EQF(ob->drotAxis[0], ob->drotAxis[1]) && IS_EQF(ob->drotAxis[1], ob->drotAxis[2]))
 					ob->drotAxis[1]= 1.0f;
 			}
 			else if (ob->rotmode == ROT_MODE_QUAT) {
@@ -494,7 +499,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			}
 			
 			/* update normals */
-			mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+			mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 		}
 		else if (ob->type==OB_ARMATURE) {
 			ED_armature_apply_transform(ob, mat);
@@ -603,7 +608,7 @@ void OBJECT_OT_location_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= location_apply_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode; /* editmode will crash */
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -623,7 +628,7 @@ void OBJECT_OT_scale_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= scale_apply_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -643,57 +648,10 @@ void OBJECT_OT_rotation_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= rotation_apply_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/************************ Texture Space Transform ****************************/
-
-static void texspace_edit(Scene *scene, View3D *v3d)
-{
-	Base *base;
-	int nr=0;
-	
-	/* first test if from visible and selected objects
-	 * texspacedraw is set:
-	 */
-	
-	if(scene->obedit) return; // XXX get from context
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			break;
-		}
-	}
-
-	if(base==0) {
-		return;
-	}
-	
-	nr= 0; // XXX pupmenu("Texture Space %t|Grab/Move%x1|Size%x2");
-	if(nr<1) return;
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			base->object->dtx |= OB_TEXSPACE;
-		}
-	}
-	
-
-	if(nr==1) {
-// XXX		initTransform(TFM_TRANSLATION, CTX_TEXTURE);
-// XXX		Transform();
-	}
-	else if(nr==2) {
-// XXX		initTransform(TFM_RESIZE, CTX_TEXTURE);
-// XXX		Transform();
-	}
-	else if(nr==3) {
-// XXX		initTransform(TFM_ROTATION, CTX_TEXTURE);
-// XXX		Transform();
-	}
 }
 
 /********************* Set Object Center ************************/

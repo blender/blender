@@ -29,6 +29,11 @@
  * I hearby donate this code and all rights to the Blender Foundation.
  * $Id$
  */
+
+/** \file blender/imbuf/intern/cineon/cineon_dpx.c
+ *  \ingroup imbcineon
+ */
+
  
 #include <stdio.h>
 #include <string.h> /*for memcpy*/

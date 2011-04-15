@@ -183,6 +183,7 @@ void wm_event_do_notifiers(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmNotifier *note, *next;
 	wmWindow *win;
+	unsigned int win_combine_v3d_datamask= 0;
 	
 	if(wm==NULL)
 		return;
@@ -270,7 +271,7 @@ void wm_event_do_notifiers(bContext *C)
 				CTX_wm_window_set(C, win);
 
 				/* printf("notifier win %d screen %s cat %x\n", win->winid, win->screen->id.name+2, note->category); */
-				ED_screen_do_listen(win, note);
+				ED_screen_do_listen(C, note);
 
 				for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
 					ED_region_do_listen(ar, note);
@@ -288,6 +289,11 @@ void wm_event_do_notifiers(bContext *C)
 		MEM_freeN(note);
 	}
 	
+	/* combine datamasks so 1 win doesn't disable UV's in another [#26448] */
+	for(win= wm->windows.first; win; win= win->next) {
+		win_combine_v3d_datamask |= ED_viewedit_datamask(win->screen);
+	}
+
 	/* cached: editor refresh callbacks now, they get context */
 	for(win= wm->windows.first; win; win= win->next) {
 		ScrArea *sa;
@@ -305,7 +311,10 @@ void wm_event_do_notifiers(bContext *C)
 			/* depsgraph & animation: update tagged datablocks */
 
 			/* copied to set's in scene_update_tagged_recursive() */
-			win->screen->scene->customdata_mask= ED_viewedit_datamask(win->screen);
+			win->screen->scene->customdata_mask= win_combine_v3d_datamask;
+
+			/* XXX, hack so operators can enforce datamasks [#26482], gl render */
+			win->screen->scene->customdata_mask |= win->screen->scene->customdata_mask_modal;
 
 			scene_update_tagged(CTX_data_main(C), win->screen->scene);
 		}
@@ -436,15 +445,19 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		if(G.f & G_DEBUG)
 			wm_operator_print(C, op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 		
+		BKE_reports_print(op->reports, RPT_DEBUG); /* print out reports to console. */
 		if (op->type->flag & OPTYPE_REGISTER) {
-			/* Report the python string representation of the operator */
-			char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
-			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
-			MEM_freeN(buf);
+			if(G.background == 0) { /* ends up printing these in the terminal, gets annoying */
+				/* Report the python string representation of the operator */
+				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+				MEM_freeN(buf);
+			}
 		}
 	}
 
-	if (op->reports->list.first) {
+	/* if the caller owns them them handle this */
+	if (op->reports->list.first && (op->reports->flag & RPT_OP_HOLD) == 0) {
 
 		wmWindowManager *wm = CTX_wm_manager(C);
 		ReportList *wm_reports= CTX_wm_reports(C);
@@ -457,7 +470,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
 		
 		/* Records time since last report was added */
-		wm_reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.05);
+		wm_reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMERREPORT, 0.05);
 		
 		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
 		wm_reports->reporttimer->customdata = rti;
@@ -693,7 +706,6 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		if (!(retval & OPERATOR_HANDLED) && retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 			/* only show the report if the report list was not given in the function */
 			wm_operator_reports(C, op, retval, (reports==NULL));
-			
 		
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
@@ -712,6 +724,14 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
 				} else {
 					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				}
+
+				/* exception, cont. grab in header is annoying */
+				if(wrap) {
+					ARegion *ar= CTX_wm_region(C);
+					if(ar && ar->regiontype == RGN_TYPE_HEADER) {
+						wrap= FALSE;
+					}
 				}
 
 				if(wrap) {
@@ -1557,6 +1577,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 	}
+	
+	if(action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL))
+		wm_cursor_arrow_move(CTX_wm_window(C), event);
 
 	return action;
 }
@@ -1622,6 +1645,7 @@ static void wm_paintcursor_test(bContext *C, wmEvent *event)
 	
 	if(wm->paintcursors.first) {
 		ARegion *ar= CTX_wm_region(C);
+		
 		if(ar)
 			wm_paintcursor_tag(C, wm->paintcursors.first, ar);
 		
@@ -1705,7 +1729,7 @@ void wm_event_do_handlers(bContext *C)
 					}
 					
 					if(playing == 0) {
-						int ncfra = sound_sync_scene(scene) * FPS + 0.5;
+						int ncfra = sound_sync_scene(scene) * (float)FPS + 0.5f;
 						if(ncfra != scene->r.cfra)	{
 							scene->r.cfra = ncfra;
 							ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);
@@ -1757,15 +1781,15 @@ void wm_event_do_handlers(bContext *C)
 				ScrArea *sa;
 				ARegion *ar;
 				int doit= 0;
-				
-				/* XXX to solve, here screen handlers? */
+	
+				/* Note: setting subwin active should be done here, after modal handlers have been done */
 				if(event->type==MOUSEMOVE) {
-					/* state variables in screen, cursors */
-					ED_screen_set_subwinactive(win, event);	
+					/* state variables in screen, cursors. Also used in wm_draw.c, fails for modal handlers though */
+					ED_screen_set_subwinactive(C, event);	
 					/* for regions having custom cursors */
 					wm_paintcursor_test(C, event);
 				}
-
+				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
@@ -1943,11 +1967,13 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	WM_event_fileselect_event(C, op, full?EVT_FILESELECT_FULL_OPEN:EVT_FILESELECT_OPEN);
 }
 
+#if 0
 /* lets not expose struct outside wm? */
 static void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 {
 	handler->flag= flag;
 }
+#endif
 
 wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 {
@@ -2093,11 +2119,13 @@ void WM_event_remove_area_handler(ListBase *handlers, void *area)
 	}
 }
 
+#if 0
 static void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
 {
 	BLI_remlink(handlers, handler);
 	wm_event_free_handler(handler);
 }
+#endif
 
 void WM_event_add_mousemove(bContext *C)
 {
@@ -2120,6 +2148,13 @@ int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 				case EVT_TWEAK_M:
 				case EVT_TWEAK_R:
 					return 1;
+			}
+		}
+		else {
+			/* if the initial event wasn't a tweak event then
+			 * ignore USER_RELEASECONFIRM setting: see [#26756] */
+			if(ELEM3(tweak_event, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) == 0) {
+				return 1;
 			}
 		}
 	}

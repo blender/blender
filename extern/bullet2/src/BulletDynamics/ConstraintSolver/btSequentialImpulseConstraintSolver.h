@@ -21,48 +21,76 @@ class btIDebugDraw;
 #include "btContactConstraint.h"
 #include "btSolverBody.h"
 #include "btSolverConstraint.h"
-
-
+#include "btTypedConstraint.h"
+#include "BulletCollision/NarrowPhaseCollision/btManifoldPoint.h"
 
 ///The btSequentialImpulseConstraintSolver is a fast SIMD implementation of the Projected Gauss Seidel (iterative LCP) method.
 class btSequentialImpulseConstraintSolver : public btConstraintSolver
 {
 protected:
 
-	btAlignedObjectArray<btSolverBody>	m_tmpSolverBodyPool;
 	btConstraintArray			m_tmpSolverContactConstraintPool;
 	btConstraintArray			m_tmpSolverNonContactConstraintPool;
 	btConstraintArray			m_tmpSolverContactFrictionConstraintPool;
 	btAlignedObjectArray<int>	m_orderTmpConstraintPool;
 	btAlignedObjectArray<int>	m_orderFrictionConstraintPool;
+	btAlignedObjectArray<btTypedConstraint::btConstraintInfo1> m_tmpConstraintSizesPool;
 
-	btSolverConstraint&	addFrictionConstraint(const btVector3& normalAxis,int solverBodyIdA,int solverBodyIdB,int frictionIndex,btManifoldPoint& cp,const btVector3& rel_pos1,const btVector3& rel_pos2,btCollisionObject* colObj0,btCollisionObject* colObj1, btScalar relaxation);
+	void setupFrictionConstraint(	btSolverConstraint& solverConstraint, const btVector3& normalAxis,btRigidBody* solverBodyA,btRigidBody* solverBodyIdB,
+									btManifoldPoint& cp,const btVector3& rel_pos1,const btVector3& rel_pos2,
+									btCollisionObject* colObj0,btCollisionObject* colObj1, btScalar relaxation, 
+									btScalar desiredVelocity=0., btScalar cfmSlip=0.);
+
+	btSolverConstraint&	addFrictionConstraint(const btVector3& normalAxis,btRigidBody* solverBodyA,btRigidBody* solverBodyB,int frictionIndex,btManifoldPoint& cp,const btVector3& rel_pos1,const btVector3& rel_pos2,btCollisionObject* colObj0,btCollisionObject* colObj1, btScalar relaxation, btScalar desiredVelocity=0., btScalar cfmSlip=0.);
 	
+	void setupContactConstraint(btSolverConstraint& solverConstraint, btCollisionObject* colObj0, btCollisionObject* colObj1, btManifoldPoint& cp, 
+								const btContactSolverInfo& infoGlobal, btVector3& vel, btScalar& rel_vel, btScalar& relaxation, 
+								btVector3& rel_pos1, btVector3& rel_pos2);
+
+	void setFrictionConstraintImpulse( btSolverConstraint& solverConstraint, btRigidBody* rb0, btRigidBody* rb1, 
+										 btManifoldPoint& cp, const btContactSolverInfo& infoGlobal);
+
 	///m_btSeed2 is used for re-arranging the constraint rows. improves convergence/quality of friction
 	unsigned long	m_btSeed2;
 
-	void	initSolverBody(btSolverBody* solverBody, btCollisionObject* collisionObject);
+//	void	initSolverBody(btSolverBody* solverBody, btCollisionObject* collisionObject);
 	btScalar restitutionCurve(btScalar rel_vel, btScalar restitution);
 
 	void	convertContact(btPersistentManifold* manifold,const btContactSolverInfo& infoGlobal);
 
+
+	void	resolveSplitPenetrationSIMD(
+        btRigidBody& body1,
+        btRigidBody& body2,
+        const btSolverConstraint& contactConstraint);
+
 	void	resolveSplitPenetrationImpulseCacheFriendly(
-        btSolverBody& body1,
-        btSolverBody& body2,
-        const btSolverConstraint& contactConstraint,
-        const btContactSolverInfo& solverInfo);
+        btRigidBody& body1,
+        btRigidBody& body2,
+        const btSolverConstraint& contactConstraint);
 
 	//internal method
 	int	getOrInitSolverBody(btCollisionObject& body);
 
-	void	resolveSingleConstraintRowGeneric(btSolverBody& body1,btSolverBody& body2,const btSolverConstraint& contactConstraint);
+	void	resolveSingleConstraintRowGeneric(btRigidBody& body1,btRigidBody& body2,const btSolverConstraint& contactConstraint);
 
-	void	resolveSingleConstraintRowGenericSIMD(btSolverBody& body1,btSolverBody& body2,const btSolverConstraint& contactConstraint);
+	void	resolveSingleConstraintRowGenericSIMD(btRigidBody& body1,btRigidBody& body2,const btSolverConstraint& contactConstraint);
 	
-	void	resolveSingleConstraintRowLowerLimit(btSolverBody& body1,btSolverBody& body2,const btSolverConstraint& contactConstraint);
+	void	resolveSingleConstraintRowLowerLimit(btRigidBody& body1,btRigidBody& body2,const btSolverConstraint& contactConstraint);
 	
-	void	resolveSingleConstraintRowLowerLimitSIMD(btSolverBody& body1,btSolverBody& body2,const btSolverConstraint& contactConstraint);
+	void	resolveSingleConstraintRowLowerLimitSIMD(btRigidBody& body1,btRigidBody& body2,const btSolverConstraint& contactConstraint);
 		
+protected:
+	static btRigidBody& getFixedBody();
+	
+	virtual void solveGroupCacheFriendlySplitImpulseIterations(btCollisionObject** bodies,int numBodies,btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer,btStackAlloc* stackAlloc);
+	virtual btScalar solveGroupCacheFriendlyFinish(btCollisionObject** bodies ,int numBodies,btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer,btStackAlloc* stackAlloc);
+	btScalar solveSingleIteration(int iteration, btCollisionObject** bodies ,int numBodies,btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer,btStackAlloc* stackAlloc);
+
+	virtual btScalar solveGroupCacheFriendlySetup(btCollisionObject** bodies,int numBodies,btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer,btStackAlloc* stackAlloc);
+	virtual btScalar solveGroupCacheFriendlyIterations(btCollisionObject** bodies,int numBodies,btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer,btStackAlloc* stackAlloc);
+
+
 public:
 
 	
@@ -71,9 +99,8 @@ public:
 
 	virtual btScalar solveGroup(btCollisionObject** bodies,int numBodies,btPersistentManifold** manifold,int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& info, btIDebugDraw* debugDrawer, btStackAlloc* stackAlloc,btDispatcher* dispatcher);
 	
-	btScalar solveGroupCacheFriendlySetup(btCollisionObject** bodies,int numBodies,btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer,btStackAlloc* stackAlloc);
-	btScalar solveGroupCacheFriendlyIterations(btCollisionObject** bodies,int numBodies,btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer,btStackAlloc* stackAlloc);
 
+	
 	///clear internal cached data and reset random seed
 	virtual	void	reset();
 	

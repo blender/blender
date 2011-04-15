@@ -56,10 +56,16 @@ def get_version():
 
     raise Exception("%s: missing version string" % fname)
 
+def get_revision():
+    build_rev = os.popen('svnversion').read()[:-1] # remove \n
+    if build_rev == '' or build_rev==None: 
+        build_rev = 'UNKNOWN'
+
+    return 'r' + build_rev
 
 # This is used in creating the local config directories
 VERSION, VERSION_DISPLAY = get_version()
-
+REVISION = get_revision()
 
 def print_arguments(args, bc):
     if len(args):
@@ -72,7 +78,7 @@ def print_arguments(args, bc):
 
 def validate_arguments(args, bc):
     opts_list = [
-            'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL',
+            'WITH_BF_PYTHON', 'WITH_BF_PYTHON_SAFETY', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL', 'BF_PYTHON_ABI_FLAGS', 
             'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
             'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH', 'WITH_BF_STATICLIBSAMPLERATE', 'BF_LIBSAMPLERATE_LIB_STATIC',
@@ -175,7 +181,7 @@ def print_targets(targs, bc):
 def validate_targets(targs, bc):
     valid_list = ['.', 'blender', 'blenderstatic', 'blenderplayer', 'webplugin',
             'blendernogame', 'blenderstaticnogame', 'blenderlite', 'release',
-            'everything', 'clean', 'install-bin', 'install', 'nsis']
+            'everything', 'clean', 'install-bin', 'install', 'nsis','buildslave']
     oklist = []
     for t in targs:
         if t in valid_list:
@@ -211,6 +217,7 @@ def read_opts(env, cfg, args):
     localopts.AddVariables(
         ('LCGDIR', 'location of cvs lib dir'),
         (BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
+        (BoolVariable('WITH_BF_PYTHON_SAFETY', 'Internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency)', False)),
         ('BF_PYTHON', 'base path for python', ''),
         ('BF_PYTHON_VERSION', 'Python version to use', ''),
         ('BF_PYTHON_INC', 'include path for Python headers', ''),
@@ -221,6 +228,7 @@ def read_opts(env, cfg, args):
         ('BF_PYTHON_LIBPATH', 'Library path', ''),
         ('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
         (BoolVariable('WITH_BF_STATICPYTHON', 'Staticly link to python', False)),
+        ('BF_PYTHON_ABI_FLAGS', 'Python ABI flags (suffix in library version: m, mu, etc)', ''),
 
         (BoolVariable('BF_NO_ELBEEM', 'Disable Fluid Sim', False)),
         ('BF_PROFILE_FLAGS', 'Profiling compiler flags', ''),
@@ -494,6 +502,79 @@ def read_opts(env, cfg, args):
 
     return localopts
 
+def buildbot_zip(src, dest, package_name, extension):
+    import zipfile
+    ln = len(src)+1 # one extra to remove leading os.sep when cleaning root for package_root
+    flist = list()
+
+    # create list of tuples containing file and archive name
+    for root, dirs, files in os.walk(src):
+        package_root = os.path.join(package_name, root[ln:])
+        flist.extend([(os.path.join(root, file), os.path.join(package_root, file)) for file in files])
+
+    if extension == '.zip':
+        package = zipfile.ZipFile(dest, 'w', zipfile.ZIP_DEFLATED)
+        package.comment = package_name + ' is a zip-file containing the Blender software. Visit http://www.blender.org for more information.'
+        for entry in flist:
+            package.write(entry[0], entry[1])
+        package.close()
+    else:
+        import tarfile
+        package = tarfile.open(dest, 'w:bz2')
+        for entry in flist:
+            package.add(entry[0], entry[1], recursive=False)
+        package.close()
+    bb_zip_name = os.path.normpath(src + os.sep + '..' + os.sep + 'buildbot_upload.zip')
+    print("creating %s" % (bb_zip_name))
+    bb_zip = zipfile.ZipFile(bb_zip_name, 'w', zipfile.ZIP_DEFLATED)
+    print("writing %s to %s" % (dest, bb_zip_name))
+    bb_zip.write(dest, os.path.split(dest)[1])
+    bb_zip.close()
+    print("removing unneeded packed file %s (to keep install directory clean)" % (dest))
+    os.remove(dest)
+    print("done.")
+
+def buildslave_print(target, source, env):
+    return "Running buildslave target"
+
+def buildslave(target=None, source=None, env=None):
+    """
+    Builder for buildbot integration. Used by buildslaves of http://builder.blender.org only.
+    """
+
+    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
+        extension = '.zip'
+    else:
+        extension = '.tar.bz2'
+
+    platform = env['OURPLATFORM'].split('-')[0]
+    if platform == 'linux2':
+        import platform
+
+        bitness = platform.architecture()[0]
+        if bitness == '64bit':
+            platform = 'linux-glibc27-x86_64'
+        elif bitness == '32bit':
+            platform = 'linux-glibc27-i686'
+
+    outdir = os.path.abspath(env['BF_INSTALLDIR'])
+    package_name = 'blender-' + VERSION+'-'+REVISION + '-' + platform
+    package_dir = os.path.normpath(outdir + os.sep + '..' + os.sep + package_name)
+    package_archive = os.path.normpath(outdir + os.sep + '..' + os.sep + package_name + extension)
+
+    try:
+        if os.path.exists(package_archive):
+            os.remove(package_archive)
+        if os.path.exists(package_dir):
+            shutil.rmtree(package_dir)
+    except Exception, ex:
+        sys.stderr.write('Failed to clean up old package files: ' + str(ex) + '\n')
+        return 1
+
+    buildbot_zip(outdir, package_archive, package_name, extension)
+
+    return 0
+
 def NSIS_print(target, source, env):
     return "Creating NSIS installer for Blender"
 
@@ -542,7 +623,7 @@ def NSIS_Installer(target=None, source=None, env=None):
     #### change to suit install dir ####
     inst_dir = install_base_dir + env['BF_INSTALLDIR']
     
-    os.chdir("windows/installer")
+    os.chdir(rel_dir)
 
     ns = open("00.sconsblender.nsi","r")
 

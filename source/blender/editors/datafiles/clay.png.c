@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/clay.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <clay_png> */
 
 int datatoc_clay_png_size= 11181;

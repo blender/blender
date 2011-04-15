@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/packedFile.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/stat.h>

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_sound/sound_header.c
+ *  \ingroup spsnd
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 

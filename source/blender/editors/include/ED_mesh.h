@@ -75,6 +75,7 @@ struct Material;
 struct Object;
 struct rcti;
 struct wmOperator;
+struct ToolSeetings;
 
 // edge and face flag both
 #define EM_FGON		2

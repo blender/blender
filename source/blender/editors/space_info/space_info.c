@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_info/space_info.c
+ *  \ingroup spinfo
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -193,7 +198,7 @@ static void info_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
 	
-	WM_keymap_verify_item(keymap, "INFO_OT_reports_display_update", TIMER, KM_ANY, KM_ANY, 0);
+	WM_keymap_verify_item(keymap, "INFO_OT_reports_display_update", TIMERREPORT, KM_ANY, KM_ANY, 0);
 
 	/* info space */
 	keymap= WM_keymap_find(keyconf, "Info", SPACE_INFO, 0);
@@ -273,7 +278,7 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 			uiItemStringO(layout, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
 		}
 	} else {
-		uiItemL(layout, "No Recent Files", ICON_NULL);
+		uiItemL(layout, "No Recent Files", ICON_NONE);
 	}
 }
 

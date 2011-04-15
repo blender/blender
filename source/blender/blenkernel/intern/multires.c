@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/multires.c
+ *  \ingroup bke
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -916,7 +921,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 
 void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 {
-	CCGDerivedMesh *ccgdm, *subsurf=NULL;
+	DerivedMesh *ccgdm, *subsurf=NULL;
 	DMGridData **gridData, **subGridData=NULL;
 	MPoly *mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 	MDisps *mdisps;
@@ -934,14 +939,14 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 	}
 
 	totlvl = mmd->totlvl;
-	ccgdm = (CCGDerivedMesh*)multires_dm_create_local(ob, dm, totlvl, totlvl, mmd->simple);
+	ccgdm = multires_dm_create_local(ob, dm, totlvl, totlvl, mmd->simple);
 	
 	subsurf = subsurf_dm_create_local(ob, dm, totlvl,
 		mmd->simple, mmd->flags & eMultiresModifierFlag_ControlEdges);
 
-	numGrids = subsurf->dm.getNumGrids(subsurf);
-	gridSize = subsurf->dm.getGridSize(subsurf);
-	gridData = subsurf->dm.getGridData(subsurf);
+	numGrids = subsurf->getNumGrids(subsurf);
+	gridSize = subsurf->getGridSize(subsurf);
+	gridData = subsurf->getGridData(subsurf);
 
 	subGridData = MEM_callocN(sizeof(DMGridData*)*numGrids, "subGridData*");
 
@@ -951,9 +956,9 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 	}
 	
 	/*numGrids = ccgdm->dm->getNumGrids((DerivedMesh*)ccgdm);*/ /*UNUSED*/
-	gridSize = ccgdm->dm.getGridSize((DerivedMesh*)ccgdm);
-	gridData = ccgdm->dm.getGridData((DerivedMesh*)ccgdm);
-	gridOffset = ccgdm->dm.getGridOffset((DerivedMesh*)ccgdm);
+	gridSize = ccgdm->getGridSize((DerivedMesh*)ccgdm);
+	gridData = ccgdm->getGridData((DerivedMesh*)ccgdm);
+	gridOffset = ccgdm->getGridOffset((DerivedMesh*)ccgdm);
 
 	dGridSize = multires_side_tot[totlvl];
 	dSkip = (dGridSize-1)/(gridSize-1);
@@ -1026,12 +1031,12 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 
 cleanup:
 	if (subsurf) {
-		subsurf->dm.needsFree = 1;
-		subsurf->dm.release(subsurf);
+		subsurf->needsFree = 1;
+		subsurf->release(subsurf);
 	}
 	
-	ccgdm->dm.needsFree = 1;
-	ccgdm->dm.release((DerivedMesh*)ccgdm);
+	ccgdm->needsFree = 1;
+	ccgdm->release(ccgdm);
 }
 
 void multires_stitch_grids(Object *ob)

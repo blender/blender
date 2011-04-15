@@ -51,7 +51,7 @@ set(INC
 	../../../../source/gameengine/GamePlayer/ghost
 	../../../../source/blender/blenloader
 	../../../../source/blender/gpu
-	../../../../extern/glew/include
+	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 	${PNG_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}

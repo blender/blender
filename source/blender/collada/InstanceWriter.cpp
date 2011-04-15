@@ -23,7 +23,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/InstanceWriter.cpp
+ *  \ingroup collada
+ */
+
+
 #include <string>
+#include <sstream>
 
 #include "COLLADASWInstanceMaterial.h"
 
@@ -45,9 +51,11 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 		COLLADASW::InstanceMaterialList& iml = bind_material.getInstanceMaterialList();
 
 		if (ma) {
-			std::string matid(id_name(ma));
+			std::string matid(get_material_id(ma));
 			matid = translate_id(matid);
-			COLLADASW::InstanceMaterial im(matid, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
+			std::ostringstream ostr;
+			ostr << translate_id(id_name(ma)) << a+1;
+			COLLADASW::InstanceMaterial im(ostr.str(), COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
 			
 			// create <bind_vertex_input> for each uv layer
 			Mesh *me = (Mesh*)ob->data;

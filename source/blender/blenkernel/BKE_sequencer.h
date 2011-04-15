@@ -258,6 +258,7 @@ int seq_single_check(struct Sequence *seq);
 void seq_single_fix(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
 void seq_translate(struct Scene *scene, struct Sequence *seq, int delta);
+void seq_sound_init(struct Scene *scene, struct Sequence *seq);
 struct Sequence *seq_foreground_frame_get(struct Scene *scene, int frame);
 struct ListBase *seq_seqbase(struct ListBase *seqbase, struct Sequence *seq);
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
@@ -322,7 +323,7 @@ struct Sequence *sequencer_add_sound_strip(struct bContext *C, ListBase *seqbase
 struct Sequence *sequencer_add_movie_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 
 /* view3d draw callback, run when not in background view */
-typedef struct ImBuf *(*SequencerDrawView)(struct Scene *, int, int, unsigned int, int);
+typedef struct ImBuf *(*SequencerDrawView)(struct Scene *, int, int, unsigned int, int, char[256]);
 extern SequencerDrawView sequencer_view3d_cb;
 
 /* copy/paste */

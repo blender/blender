@@ -52,7 +52,7 @@ ifeq ($(OS), Linux)
 	NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 endif
 ifeq ($(OS), Darwin)
-	NPROCS:=$(shell system_profiler | awk '/Number Of CPUs/{print $4}{next;}')
+	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3)
 endif
 ifeq ($(OS), FreeBSD)
 	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3 )
@@ -75,7 +75,7 @@ all:
 
 	@echo 
 	@echo Building Blender ...
-	cd $(BUILD_DIR) ; make -s -j $(NPROCS)
+	cd $(BUILD_DIR) ; make -s -j $(NPROCS) install
 	@echo 
 	@echo run blender from "$(BUILD_DIR)/bin/blender"
 	@echo 
@@ -90,9 +90,23 @@ package_debian:
 package_pacman:
 	cd build_files/package_spec/pacman ; MAKEFLAGS="-j$(NPROCS)" makepkg --asroot
 
+package_archive:
+	cd $(BUILD_DIR) ; make -s package_archive
+	@echo archive in "$(BUILD_DIR)/release"
+
 # forward build targets
 test:
 	cd $(BUILD_DIR) ; ctest . --output-on-failure
+
+# run pep8 check check on scripts we distribute.
+test_pep8:
+	python source/tests/pep8.py > test_pep8.log 2>&1
+	@echo "written: test_pep8.log"
+
+# run some checks on our cmakefiles.
+test_cmake:
+	python build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
+	@echo "written: test_cmake_consistency.log"
 
 clean:
 	cd $(BUILD_DIR) ; make clean

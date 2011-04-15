@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/util/undo.c
+ *  \ingroup edutil
+ */
+
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -75,6 +80,9 @@ void ED_undo_push(bContext *C, const char *str)
 	Object *obedit= CTX_data_edit_object(C);
 	Object *obact= CTX_data_active_object(C);
 
+	if (G.f & G_DEBUG)
+		printf("undo push %s\n", str);
+	
 	if(obedit) {
 		if (U.undosteps == 0) return;
 		
@@ -354,6 +362,11 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 			if (G.f & G_DEBUG)
 				printf("redo_cb: operator redo %s\n", op->type->name);
 			ED_undo_pop_op(C, op);
+
+			if(op->type->check) {
+				op->type->check(C, op); /* ignore return value since its running again anyway */
+			}
+
 			retval= WM_operator_repeat(C, op);
 			if((retval & OPERATOR_FINISHED)==0) {
 				if (G.f & G_DEBUG)

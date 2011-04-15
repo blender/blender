@@ -42,6 +42,12 @@ and swing 1 and 2 are along the z and y axes respectively.
 
 class btRigidBody;
 
+enum btConeTwistFlags
+{
+	BT_CONETWIST_FLAGS_LIN_CFM = 1,
+	BT_CONETWIST_FLAGS_LIN_ERP = 2,
+	BT_CONETWIST_FLAGS_ANG_CFM = 4
+};
 
 ///btConeTwistConstraint can be used to simulate ragdoll joints (upper arm, leg etc)
 class btConeTwistConstraint : public btTypedConstraint
@@ -99,24 +105,45 @@ public:
 	btScalar	 m_maxMotorImpulse;
 	btVector3	 m_accMotorImpulse;
 	
+	// parameters
+	int			m_flags;
+	btScalar	m_linCFM;
+	btScalar	m_linERP;
+	btScalar	m_angCFM;
+	
+protected:
+
+	void init();
+
+	void computeConeLimitInfo(const btQuaternion& qCone, // in
+		btScalar& swingAngle, btVector3& vSwingAxis, btScalar& swingLimit); // all outs
+
+	void computeTwistLimitInfo(const btQuaternion& qTwist, // in
+		btScalar& twistAngle, btVector3& vTwistAxis); // all outs
+
+	void adjustSwingAxisToUseEllipseNormal(btVector3& vSwingAxis) const;
+
+
 public:
 
 	btConeTwistConstraint(btRigidBody& rbA,btRigidBody& rbB,const btTransform& rbAFrame, const btTransform& rbBFrame);
 	
 	btConeTwistConstraint(btRigidBody& rbA,const btTransform& rbAFrame);
 
-	btConeTwistConstraint();
-
 	virtual void	buildJacobian();
 
 	virtual void getInfo1 (btConstraintInfo1* info);
+
+	void	getInfo1NonVirtual(btConstraintInfo1* info);
 	
 	virtual void getInfo2 (btConstraintInfo2* info);
 	
+	void	getInfo2NonVirtual(btConstraintInfo2* info,const btTransform& transA,const btTransform& transB,const btMatrix3x3& invInertiaWorldA,const btMatrix3x3& invInertiaWorldB);
 
-	virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep);
+	virtual	void	solveConstraintObsolete(btRigidBody& bodyA,btRigidBody& bodyB,btScalar	timeStep);
 
 	void	updateRHS(btScalar	timeStep);
+
 
 	const btRigidBody& getRigidBodyA() const
 	{
@@ -198,7 +225,7 @@ public:
 	}
 
 	void calcAngleInfo();
-	void calcAngleInfo2();
+	void calcAngleInfo2(const btTransform& transA, const btTransform& transB,const btMatrix3x3& invInertiaWorldA,const btMatrix3x3& invInertiaWorldB);
 
 	inline btScalar getSwingSpan1()
 	{
@@ -217,7 +244,6 @@ public:
 		return m_twistAngle;
 	}
 	bool isPastSwingLimit() { return m_solveSwingLimit; }
-
 
 	void setDamping(btScalar damping) { m_damping = damping; }
 
@@ -239,18 +265,82 @@ public:
 
 	btVector3 GetPointForAngle(btScalar fAngleInRadians, btScalar fLength) const;
 
+	///override the default global value of a parameter (such as ERP or CFM), optionally provide the axis (0..5). 
+	///If no axis is provided, it uses the default axis for this constraint.
+	virtual	void setParam(int num, btScalar value, int axis = -1);
+
+	virtual void setFrames(const btTransform& frameA, const btTransform& frameB);
+
+	const btTransform& getFrameOffsetA() const
+	{
+		return m_rbAFrame;
+	}
+
+	const btTransform& getFrameOffsetB() const
+	{
+		return m_rbBFrame;
+	}
 
 
-protected:
-	void init();
+	///return the local value of parameter
+	virtual	btScalar getParam(int num, int axis = -1) const;
 
-	void computeConeLimitInfo(const btQuaternion& qCone, // in
-		btScalar& swingAngle, btVector3& vSwingAxis, btScalar& swingLimit); // all outs
+	virtual	int	calculateSerializeBufferSize() const;
 
-	void computeTwistLimitInfo(const btQuaternion& qTwist, // in
-		btScalar& twistAngle, btVector3& vTwistAxis); // all outs
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+	virtual	const char*	serialize(void* dataBuffer, btSerializer* serializer) const;
 
-	void adjustSwingAxisToUseEllipseNormal(btVector3& vSwingAxis) const;
 };
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btConeTwistConstraintData
+{
+	btTypedConstraintData	m_typeConstraintData;
+	btTransformFloatData m_rbAFrame;
+	btTransformFloatData m_rbBFrame;
+
+	//limits
+	float	m_swingSpan1;
+	float	m_swingSpan2;
+	float	m_twistSpan;
+	float	m_limitSoftness;
+	float	m_biasFactor;
+	float	m_relaxationFactor;
+
+	float	m_damping;
+		
+	char m_pad[4];
+
+};
+	
+
+
+SIMD_FORCE_INLINE int	btConeTwistConstraint::calculateSerializeBufferSize() const
+{
+	return sizeof(btConeTwistConstraintData);
+
+}
+
+
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+SIMD_FORCE_INLINE const char*	btConeTwistConstraint::serialize(void* dataBuffer, btSerializer* serializer) const
+{
+	btConeTwistConstraintData* cone = (btConeTwistConstraintData*) dataBuffer;
+	btTypedConstraint::serialize(&cone->m_typeConstraintData,serializer);
+
+	m_rbAFrame.serializeFloat(cone->m_rbAFrame);
+	m_rbBFrame.serializeFloat(cone->m_rbBFrame);
+	
+	cone->m_swingSpan1 = float(m_swingSpan1);
+	cone->m_swingSpan2 = float(m_swingSpan2);
+	cone->m_twistSpan = float(m_twistSpan);
+	cone->m_limitSoftness = float(m_limitSoftness);
+	cone->m_biasFactor = float(m_biasFactor);
+	cone->m_relaxationFactor = float(m_relaxationFactor);
+	cone->m_damping = float(m_damping);
+
+	return "btConeTwistConstraintData";
+}
+
 
 #endif //CONETWISTCONSTRAINT_H

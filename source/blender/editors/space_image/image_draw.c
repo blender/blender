@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_image/image_draw.c
+ *  \ingroup spimage
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -138,23 +143,24 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 
 	if(fp) {
 		if(channels==4)
-			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
+			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.4f G: %.4f B: %.4f A: %.4f ", fp[0], fp[1], fp[2], fp[3]);
 		else if(channels==1)
-			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Val: %.3f ", fp[0]);
+			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Val: %.4f ", fp[0]);
 		else if(channels==3)
-			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.3f G: %.3f B: %.3f ", fp[0], fp[1], fp[2]);
+			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.4f G: %.4f B: %.4f ", fp[0], fp[1], fp[2]);
 	}
 
 	if(zp)
-		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.4f ", 0.5+0.5*(((float)*zp)/(float)0x7fffffff));
+		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.4f ", 0.5f+0.5f*(((float)*zp)/(float)0x7fffffff));
 	if(zpf)
 		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.3f ", *zpf);
-	(void)ofs;
+	(void)ofs; /* quiet clang */
 
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
-	
-	glColor4f(.0,.0,.0,.25);
+
+	/* noisy, high contrast make impossible to read if lower alpha is used. */
+	glColor4ub(0, 0, 0, 190);
 	glRecti(0.0, 0.0, ar->winrct.xmax - ar->winrct.xmin + 1, 20);
 	glDisable(GL_BLEND);
 	
@@ -188,21 +194,21 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 	
 	if(gridsize<1.0f) {
 		while(gridsize<1.0f && gridsize<1000000.0f	) {
-			gridsize*= 4.0;
-			gridstep*= 4.0;
+			gridsize*= 4.0f;
+			gridstep*= 4.0f;
 		}
 	}
 	else {
 		while(gridsize>=4.0f && gridsize<1000000.0f) {
-			gridsize/= 4.0;
-			gridstep/= 4.0;
+			gridsize/= 4.0f;
+			gridstep/= 4.0f;
 		}
 	}
 	
 	/* the fine resolution level */
-	blendfac= 0.25*gridsize - floor(0.25*gridsize);
-	CLAMP(blendfac, 0.0, 1.0);
-	UI_ThemeColorShade(TH_BACK, (int)(20.0*(1.0-blendfac)));
+	blendfac= 0.25f*gridsize - floorf(0.25f*gridsize);
+	CLAMP(blendfac, 0.0f, 1.0f);
+	UI_ThemeColorShade(TH_BACK, (int)(20.0f*(1.0f-blendfac)));
 	
 	fac= 0.0f;
 	glBegin(GL_LINES);

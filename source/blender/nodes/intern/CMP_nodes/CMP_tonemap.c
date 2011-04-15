@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_tonemap.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 static bNodeSocketType cmp_node_tonemap_in[]= {

@@ -68,7 +68,43 @@ namespace gjkepa2_impl
 		const btConvexShape*	m_shapes[2];
 		btMatrix3x3				m_toshape1;
 		btTransform				m_toshape0;
+#ifdef __SPU__
+		bool					m_enableMargin;
+#else
 		btVector3				(btConvexShape::*Ls)(const btVector3&) const;
+#endif//__SPU__
+		
+
+		MinkowskiDiff()
+		{
+
+		}
+#ifdef __SPU__
+			void					EnableMargin(bool enable)
+		{
+			m_enableMargin = enable;
+		}	
+		inline btVector3		Support0(const btVector3& d) const
+		{
+			if (m_enableMargin)
+			{
+				return m_shapes[0]->localGetSupportVertexNonVirtual(d);
+			} else
+			{
+				return m_shapes[0]->localGetSupportVertexWithoutMarginNonVirtual(d);
+			}
+		}
+		inline btVector3		Support1(const btVector3& d) const
+		{
+			if (m_enableMargin)
+			{
+				return m_toshape0*(m_shapes[1]->localGetSupportVertexNonVirtual(m_toshape1*d));
+			} else
+			{
+				return m_toshape0*(m_shapes[1]->localGetSupportVertexWithoutMarginNonVirtual(m_toshape1*d));
+			}
+		}
+#else
 		void					EnableMargin(bool enable)
 		{
 			if(enable)
@@ -84,6 +120,8 @@ namespace gjkepa2_impl
 		{
 			return(m_toshape0*((m_shapes[1])->*(Ls))(m_toshape1*d));
 		}
+#endif //__SPU__
+
 		inline btVector3		Support(const btVector3& d) const
 		{
 			return(Support0(d)-Support1(-d));
@@ -202,7 +240,7 @@ namespace gjkepa2_impl
 						lastw[clastw=(clastw+1)&3]=w;
 					}
 					/* Check for termination				*/ 
-					const btScalar	omega=dot(m_ray,w)/rl;
+					const btScalar	omega=btDot(m_ray,w)/rl;
 					alpha=btMax(omega,alpha);
 					if(((rl-alpha)-(GJK_ACCURARY*rl))<=0)
 					{/* Return old simplex				*/ 
@@ -259,6 +297,9 @@ namespace gjkepa2_impl
 				{
 				case	eStatus::Valid:		m_distance=m_ray.length();break;
 				case	eStatus::Inside:	m_distance=0;break;
+				default:
+					{
+					}
 				}	
 				return(m_status);
 			}
@@ -288,7 +329,7 @@ namespace gjkepa2_impl
 						{
 							btVector3		axis=btVector3(0,0,0);
 							axis[i]=1;
-							const btVector3	p=cross(d,axis);
+							const btVector3	p=btCross(d,axis);
 							if(p.length2()>0)
 							{
 								appendvertice(*m_simplex, p);
@@ -303,7 +344,7 @@ namespace gjkepa2_impl
 					break;
 				case	3:
 					{
-						const btVector3	n=cross(m_simplex->c[1]->w-m_simplex->c[0]->w,
+						const btVector3	n=btCross(m_simplex->c[1]->w-m_simplex->c[0]->w,
 							m_simplex->c[2]->w-m_simplex->c[0]->w);
 						if(n.length2()>0)
 						{
@@ -357,7 +398,7 @@ namespace gjkepa2_impl
 				const btScalar	l=d.length2();
 				if(l>GJK_SIMPLEX2_EPS)
 				{
-					const btScalar	t(l>0?-dot(a,d)/l:0);
+					const btScalar	t(l>0?-btDot(a,d)/l:0);
 					if(t>=1)		{ w[0]=0;w[1]=1;m=2;return(b.length2()); }
 					else if(t<=0)	{ w[0]=1;w[1]=0;m=1;return(a.length2()); }
 					else			{ w[0]=1-(w[1]=t);m=3;return((a+d*t).length2()); }
@@ -372,16 +413,16 @@ namespace gjkepa2_impl
 				static const U		imd3[]={1,2,0};
 				const btVector3*	vt[]={&a,&b,&c};
 				const btVector3		dl[]={a-b,b-c,c-a};
-				const btVector3		n=cross(dl[0],dl[1]);
+				const btVector3		n=btCross(dl[0],dl[1]);
 				const btScalar		l=n.length2();
 				if(l>GJK_SIMPLEX3_EPS)
 				{
 					btScalar	mindist=-1;
-					btScalar	subw[2];
-					U			subm;
+					btScalar	subw[2]={0.f,0.f};
+					U			subm(0);
 					for(U i=0;i<3;++i)
 					{
-						if(dot(*vt[i],cross(dl[i],n))>0)
+						if(btDot(*vt[i],btCross(dl[i],n))>0)
 						{
 							const U			j=imd3[i];
 							const btScalar	subd(projectorigin(*vt[i],*vt[j],subw,subm));
@@ -397,13 +438,13 @@ namespace gjkepa2_impl
 					}
 					if(mindist<0)
 					{
-						const btScalar	d=dot(a,n);	
+						const btScalar	d=btDot(a,n);	
 						const btScalar	s=btSqrt(l);
 						const btVector3	p=n*(d/l);
 						mindist	=	p.length2();
 						m		=	7;
-						w[0]	=	(cross(dl[1],b-p)).length()/s;
-						w[1]	=	(cross(dl[2],c-p)).length()/s;
+						w[0]	=	(btCross(dl[1],b-p)).length()/s;
+						w[1]	=	(btCross(dl[2],c-p)).length()/s;
 						w[2]	=	1-(w[0]+w[1]);
 					}
 					return(mindist);
@@ -420,16 +461,16 @@ namespace gjkepa2_impl
 				const btVector3*	vt[]={&a,&b,&c,&d};
 				const btVector3		dl[]={a-d,b-d,c-d};
 				const btScalar		vl=det(dl[0],dl[1],dl[2]);
-				const bool			ng=(vl*dot(a,cross(b-c,a-b)))<=0;
+				const bool			ng=(vl*btDot(a,btCross(b-c,a-b)))<=0;
 				if(ng&&(btFabs(vl)>GJK_SIMPLEX4_EPS))
 				{
 					btScalar	mindist=-1;
-					btScalar	subw[3];
-					U			subm;
+					btScalar	subw[3]={0.f,0.f,0.f};
+					U			subm(0);
 					for(U i=0;i<3;++i)
 					{
 						const U			j=imd3[i];
-						const btScalar	s=vl*dot(d,cross(dl[i],dl[j]));
+						const btScalar	s=vl*btDot(d,btCross(dl[i],dl[j]));
 						if(s>0)
 						{
 							const btScalar	subd=projectorigin(*vt[i],*vt[j],d,subw,subm);
@@ -601,7 +642,7 @@ namespace gjkepa2_impl
 								bool			valid=true;					
 								best->pass	=	(U1)(++pass);
 								gjk.getsupport(best->n,*w);
-								const btScalar	wdist=dot(best->n,w->w)-best->d;
+								const btScalar	wdist=btDot(best->n,w->w)-best->d;
 								if(wdist>EPA_ACCURACY)
 								{
 									for(U j=0;(j<3)&&valid;++j)
@@ -628,11 +669,11 @@ namespace gjkepa2_impl
 						m_result.c[0]	=	outer.c[0];
 						m_result.c[1]	=	outer.c[1];
 						m_result.c[2]	=	outer.c[2];
-						m_result.p[0]	=	cross(	outer.c[1]->w-projection,
+						m_result.p[0]	=	btCross(	outer.c[1]->w-projection,
 							outer.c[2]->w-projection).length();
-						m_result.p[1]	=	cross(	outer.c[2]->w-projection,
+						m_result.p[1]	=	btCross(	outer.c[2]->w-projection,
 							outer.c[0]->w-projection).length();
-						m_result.p[2]	=	cross(	outer.c[0]->w-projection,
+						m_result.p[2]	=	btCross(	outer.c[0]->w-projection,
 							outer.c[1]->w-projection).length();
 						const btScalar	sum=m_result.p[0]+m_result.p[1]+m_result.p[2];
 						m_result.p[0]	/=	sum;
@@ -666,18 +707,18 @@ namespace gjkepa2_impl
 					face->c[0]	=	a;
 					face->c[1]	=	b;
 					face->c[2]	=	c;
-					face->n		=	cross(b->w-a->w,c->w-a->w);
+					face->n		=	btCross(b->w-a->w,c->w-a->w);
 					const btScalar	l=face->n.length();
 					const bool		v=l>EPA_ACCURACY;
 					face->p		=	btMin(btMin(
-						dot(a->w,cross(face->n,a->w-b->w)),
-						dot(b->w,cross(face->n,b->w-c->w))),
-						dot(c->w,cross(face->n,c->w-a->w)))	/
+						btDot(a->w,btCross(face->n,a->w-b->w)),
+						btDot(b->w,btCross(face->n,b->w-c->w))),
+						btDot(c->w,btCross(face->n,c->w-a->w)))	/
 						(v?l:1);
 					face->p		=	face->p>=-EPA_INSIDE_EPS?0:face->p;
 					if(v)
 					{
-						face->d		=	dot(a->w,face->n)/l;
+						face->d		=	btDot(a->w,face->n)/l;
 						face->n		/=	l;
 						if(forced||(face->d>=-EPA_PLANE_EPS))
 						{
@@ -715,7 +756,7 @@ namespace gjkepa2_impl
 				if(f->pass!=pass)
 				{
 					const U	e1=i1m3[e];
-					if((dot(f->n,w->w)-f->d)<-EPA_PLANE_EPS)
+					if((btDot(f->n,w->w)-f->d)<-EPA_PLANE_EPS)
 					{
 						sFace*	nf=newface(f->c[e1],f->c[e],w,false);
 						if(nf)
@@ -854,10 +895,14 @@ bool	btGjkEpaSolver2::Penetration(	const btConvexShape*	shape0,
 	case	GJK::eStatus::Failed:
 		results.status=sResults::GJK_Failed;
 		break;
+		default:
+					{
+					}
 	}
 	return(false);
 }
 
+#ifndef __SPU__
 //
 btScalar	btGjkEpaSolver2::SignedDistance(const btVector3& position,
 											btScalar margin,
@@ -923,6 +968,7 @@ bool	btGjkEpaSolver2::SignedDistance(const btConvexShape*	shape0,
 	else
 		return(true);
 }
+#endif //__SPU__
 
 /* Symbols cleanup		*/ 
 

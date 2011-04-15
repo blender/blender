@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/texture.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -218,9 +223,9 @@ void init_mapping(TexMapping *texmap)
 	
 	size_to_mat3( smat,texmap->size);
 	
-	eul[0]= (M_PI/180.0f)*texmap->rot[0];
-	eul[1]= (M_PI/180.0f)*texmap->rot[1];
-	eul[2]= (M_PI/180.0f)*texmap->rot[2];
+	eul[0]= DEG2RADF(texmap->rot[0]);
+	eul[1]= DEG2RADF(texmap->rot[1]);
+	eul[2]= DEG2RADF(texmap->rot[2]);
 	eul_to_mat3( rmat,eul);
 	
 	mul_m3_m3m3(mat, rmat, smat);
@@ -337,8 +342,11 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 		
 				if(cbd2->pos!=cbd1->pos)
 					fac= (in-cbd1->pos)/(cbd2->pos-cbd1->pos);
-				else
-					fac= 0.0f;
+				else {
+					/* was setting to 0.0 in 2.56 & previous, but this
+					 * is incorrect for the last element, see [#26732] */
+					fac= (a != coba->tot) ? 0.0f : 1.0f;
+				}
 				
 				if (coba->ipotype==4) {
 					/* constant */
@@ -368,10 +376,10 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 					out[1]= t[3]*cbd3->g +t[2]*cbd2->g +t[1]*cbd1->g +t[0]*cbd0->g;
 					out[2]= t[3]*cbd3->b +t[2]*cbd2->b +t[1]*cbd1->b +t[0]*cbd0->b;
 					out[3]= t[3]*cbd3->a +t[2]*cbd2->a +t[1]*cbd1->a +t[0]*cbd0->a;
-					CLAMP(out[0], 0.0, 1.0);
-					CLAMP(out[1], 0.0, 1.0);
-					CLAMP(out[2], 0.0, 1.0);
-					CLAMP(out[3], 0.0, 1.0);
+					CLAMP(out[0], 0.0f, 1.0f);
+					CLAMP(out[1], 0.0f, 1.0f);
+					CLAMP(out[2], 0.0f, 1.0f);
+					CLAMP(out[3], 0.0f, 1.0f);
 				}
 				else {
 				
@@ -475,11 +483,13 @@ int colorband_element_remove(struct ColorBand *coba, int index)
 void free_texture(Tex *tex)
 {
 	free_plugin_tex(tex->plugin);
+	
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) BKE_free_envmap(tex->env);
 	if(tex->pd) BKE_free_pointdensity(tex->pd);
 	if(tex->vd) BKE_free_voxeldata(tex->vd);
 	BKE_free_animdata((struct ID *)tex);
+	
 	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
@@ -745,10 +755,6 @@ Tex *copy_texture(Tex *tex)
 	if(texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= NULL;
 	
-#if 0 // XXX old animation system
-	id_us_plus((ID *)texn->ipo);
-#endif // XXX old animation system
-	
 	if(texn->plugin) {
 		texn->plugin= MEM_dupallocN(texn->plugin);
 		open_plugin_tex(texn->plugin);
@@ -763,11 +769,55 @@ Tex *copy_texture(Tex *tex)
 
 	if(tex->nodetree) {
 		ntreeEndExecTree(tex->nodetree);
-		texn->nodetree= ntreeCopyTree(tex->nodetree); /* 0 == full new tree */
+		texn->nodetree= ntreeCopyTree(tex->nodetree); 
 	}
 	
 	return texn;
 }
+
+/* texture copy without adding to main dbase */
+Tex *localize_texture(Tex *tex)
+{
+	Tex *texn;
+	
+	texn= copy_libblock(tex);
+	BLI_remlink(&G.main->tex, texn);
+	
+	/* image texture: free_texture also doesn't decrease */
+	
+	if(texn->plugin) {
+		texn->plugin= MEM_dupallocN(texn->plugin);
+		open_plugin_tex(texn->plugin);
+	}
+	
+	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
+	if(texn->env) {
+		texn->env= BKE_copy_envmap(texn->env);
+		id_us_min(&texn->env->ima->id);
+	}
+	if(texn->pd) {
+		texn->pd= MEM_dupallocN(texn->pd);
+		if(texn->pd->coba) {
+			texn->pd->point_tree = NULL;
+			texn->pd->coba= MEM_dupallocN(texn->pd->coba);
+		}
+
+	}
+	if(texn->vd) {
+		texn->vd= MEM_dupallocN(texn->vd);
+		if(texn->vd->dataset)
+			texn->vd->dataset= MEM_dupallocN(texn->vd->dataset);
+	}
+	
+	texn->preview = NULL;
+	
+	if(tex->nodetree) {
+		texn->nodetree= ntreeLocalize(tex->nodetree);
+	}
+	
+	return texn;
+}
+
 
 /* ------------------------------------------------------------------------- */
 
@@ -1342,7 +1392,10 @@ void BKE_free_pointdensitydata(PointDensity *pd)
 		MEM_freeN(pd->point_data);
 		pd->point_data = NULL;
 	}
-	if(pd->coba) MEM_freeN(pd->coba);
+	if(pd->coba) {
+		MEM_freeN(pd->coba);
+		pd->coba = NULL;
+	}
 }
 
 void BKE_free_pointdensity(PointDensity *pd)

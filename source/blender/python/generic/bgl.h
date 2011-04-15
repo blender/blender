@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+/** \file blender/python/generic/bgl.h
+ *  \ingroup pygen
+ */
+
+
 /* This is the Blender.BGL part of opy_draw.c, from the old bpython/intern
  * dir, with minor changes to adapt it to the new Python implementation.
  * The BGL submodule "wraps" OpenGL functions and constants, allowing script

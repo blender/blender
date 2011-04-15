@@ -126,11 +126,15 @@
 #define CLAMPTEST(a, b, c)	if((b)<(c)) {CLAMP(a, b, c);} else {CLAMP(a, c, b);}
 
 #define IS_EQ(a,b) ((fabs((double)(a)-(b)) >= (double) FLT_EPSILON) ? 0 : 1)
+#define IS_EQF(a,b) ((fabsf((float)(a)-(b)) >= (float) FLT_EPSILON) ? 0 : 1)
 
 #define IS_EQT(a, b, c) ((a > b)? (((a-b) <= c)? 1:0) : ((((b-a) <= c)? 1:0)))
 #define IN_RANGE(a, b, c) ((b < c)? ((b<a && a<c)? 1:0) : ((c<a && a<b)? 1:0))
 #define IN_RANGE_INCL(a, b, c) ((b < c)? ((b<=a && a<=c)? 1:0) : ((c<=a && a<=b)? 1:0))
 
+/* array helpers */
+#define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot) 		(arr_dtype *)((char*)arr_start + (elem_size*(tot - 1)))
+#define ARRAY_HAS_ITEM(item, arr_start, arr_dtype, elem_size, tot) 	((item >= arr_start) && (item <= ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot)))
 
 /* This one rotates the bytes in an int64, int (32) and short (16) */
 #define SWITCH_INT64(a) { \
@@ -203,7 +207,7 @@
 #  ifdef __GNUC__ /* just want to check if __func__ is available */
 #    define BLI_assert(a) \
 do { \
-	if (0 == (a)) { \
+	if (!(a)) { \
 		fprintf(stderr, \
 			"BLI_assert failed: %s, %s(), %d at \'%s\'\n", \
 			__FILE__, __func__, __LINE__, STRINGIFY(a)); \

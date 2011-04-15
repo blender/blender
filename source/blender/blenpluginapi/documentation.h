@@ -67,3 +67,8 @@
  * define some useful variables.
  * */
 
+/** \file blender/blenpluginapi/documentation.h
+ *  \ingroup blpluginapi
+ */
+
+

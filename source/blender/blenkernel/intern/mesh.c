@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/mesh.c
+ *  \ingroup bke
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -711,9 +716,9 @@ void tex_space_mesh(Mesh *me)
 
 	if(me->texflag & AUTOSPACE) {
 		for (a=0; a<3; a++) {
-			if(size[a]==0.0) size[a]= 1.0;
-			else if(size[a]>0.0 && size[a]<0.00001) size[a]= 0.00001;
-			else if(size[a]<0.0 && size[a]> -0.00001) size[a]= -0.00001;
+			if(size[a]==0.0f) size[a]= 1.0f;
+			else if(size[a]>0.0f && size[a]<0.00001f) size[a]= 0.00001f;
+			else if(size[a]<0.0f && size[a]> -0.00001f) size[a]= -0.00001f;
 		}
 
 		copy_v3_v3(me->loc, loc);
@@ -941,13 +946,17 @@ static void mfaces_strip_loose(MFace *mface, int *totface)
 }
 
 /* Create edges based on known verts and faces */
-static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, int UNUSED(totvert), int totface,
+static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *allloop,
+	MPoly *allpoly, int UNUSED(totvert), int totface, int totloop, int totpoly, 
 	int old, MEdge **alledge, int *_totedge)
 {
+	MPoly *mpoly;
+	MLoop *mloop;
 	MFace *mface;
 	MEdge *medge;
+	EdgeHash *hash = BLI_edgehash_new();
 	struct edgesort *edsort, *ed;
-	int a, totedge=0, final=0;
+	int a, b, totedge=0, final=0;
 
 	/* we put all edges in array, sort them, and detect doubles that way */
 
@@ -1019,6 +1028,26 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, int UNUSED(
 	medge->flag |= ME_EDGERENDER;
 
 	MEM_freeN(edsort);
+	
+	/*set edge members of mloops*/
+	medge= *alledge;
+	for (a=0; a<*_totedge; a++, medge++) {
+		BLI_edgehash_insert(hash, medge->v1, medge->v2, SET_INT_IN_POINTER(a));
+	}
+	
+	mpoly = allpoly;
+	for (a=0; a<totpoly; a++, mpoly++) {
+		mloop = allloop + mpoly->loopstart;
+		for (b=0; b<mpoly->totloop; b++) {
+			int v1, v2;
+			
+			v1 = mloop[b].v;
+			v2 = mloop[(b+1)%mpoly->loopstart].v;
+			mloop[b].e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(hash, v1, v2));
+		}
+	}
+	
+	BLI_edgehash_free(hash, NULL);
 }
 
 void make_edges(Mesh *me, int old)
@@ -1026,7 +1055,7 @@ void make_edges(Mesh *me, int old)
 	MEdge *medge;
 	int totedge=0;
 
-	make_edges_mdata(me->mvert, me->mface, me->totvert, me->totface, old, &medge, &totedge);
+	make_edges_mdata(me->mvert, me->mface, me->mloop, me->mpoly, me->totvert, me->totface, me->totloop, me->totpoly, old, &medge, &totedge);
 	if(totedge==0) {
 		/* flag that mesh has edges */
 		me->medge = medge;
@@ -1100,9 +1129,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 		verts= dl->verts;
 		while(a--) {
 			VECCOPY(mvert->co, verts);
-			mvert->no[0]= (short int)(nors[0]*32767.0);
-			mvert->no[1]= (short int)(nors[1]*32767.0);
-			mvert->no[2]= (short int)(nors[2]*32767.0);
+			normal_float_to_short_v3(mvert->no, nors);
 			mvert++;
 			nors+= 3;
 			verts+= 3;
@@ -1124,31 +1151,37 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 		}
 
 		make_edges(me, 0);	// all edges
-	}	
+		convert_mfaces_to_mpolys(me);
+	}
 }
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* return non-zero on error */
 int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
-	MEdge **alledge, int *totedge, MFace **allface, int *totface)
+	MEdge **alledge, int *totedge, MFace **allface, MLoop **allloop, MPoly **allpoly, 
+	int *totface, int *totloop, int *totpoly)
 {
 	return nurbs_to_mdata_customdb(ob, &ob->disp,
-		allvert, totvert, alledge, totedge, allface, totface);
+		allvert, totvert, alledge, totedge, allface, allloop, allpoly, totface, totloop, totpoly);
 }
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* use specified dispbase  */
 int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int *_totvert,
-	MEdge **alledge, int *_totedge, MFace **allface, int *_totface)
+	MEdge **alledge, int *_totedge, MFace **allface, MLoop **allloop, MPoly **allpoly, 
+	int *_totface, int *_totloop, int *_totpoly)
 {
 	DispList *dl;
 	Curve *cu;
 	MVert *mvert;
 	MFace *mface;
+	MPoly *mpoly;
+	MLoop *mloop;
 	float *data;
 	int a, b, ofs, vertcount, startvert, totvert=0, totvlak=0;
 	int p1, p2, p3, p4, *index;
 	int conv_polys= 0;
+	int i, j;
 
 	cu= ob->data;
 
@@ -1186,8 +1219,10 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 	}
 
 	*allvert= mvert= MEM_callocN(sizeof (MVert) * totvert, "nurbs_init mvert");
-	*allface= mface= MEM_callocN(sizeof (MVert) * totvlak, "nurbs_init mface");
-
+	*allface= mface= MEM_callocN(sizeof (MFace) * totvlak, "nurbs_init mface");
+	*allloop = mloop = MEM_callocN(sizeof(MLoop) * totvlak * 4, "nurbs_init mloop");
+	*allpoly = mpoly = MEM_callocN(sizeof(MPoly) * totvlak * 4, "nurbs_init mloop");
+	
 	/* verts and faces */
 	vertcount= 0;
 
@@ -1325,11 +1360,34 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 
 		dl= dl->next;
 	}
-
+	
+	mface= *allface;
+	j = 0;
+	for (i=0; i<totvert; i++, mpoly++, mface++) {
+		int k;
+		
+		if (!mface->v3) {
+			mpoly--;
+			i--;
+			continue;
+		}
+		
+		if (mface >= *allface + totvlak)
+			break;
+		
+		mpoly->loopstart= j;
+		mpoly->totloop= mface->v4 ? 4 : 3;
+		for (k=0; k<mpoly->totloop; k++, mloop++) {
+			mloop->v = (&mface->v1)[k];
+		}
+	}
+	
+	*_totpoly= i;
+	*_totloop= j;
 	*_totvert= totvert;
 	*_totface= totvlak;
 
-	make_edges_mdata(*allvert, *allface, totvert, totvlak, 0, alledge, _totedge);
+	make_edges_mdata(*allvert, *allface, *allloop, *allpoly, totvert, totvlak, *_totloop, *_totpoly, 0, alledge, _totedge);
 	mfaces_strip_loose(*allface, _totface);
 
 	return 0;
@@ -1346,12 +1404,14 @@ void nurbs_to_mesh(Object *ob)
 	MVert *allvert= NULL;
 	MEdge *alledge= NULL;
 	MFace *allface= NULL;
-	int totvert, totedge, totface;
+	MLoop *allloop = NULL;
+	MPoly *allpoly = NULL;
+	int totvert, totedge, totface, totloop, totpoly;
 
 	cu= ob->data;
 
 	if (dm == NULL) {
-		if (nurbs_to_mdata (ob, &allvert, &totvert, &alledge, &totedge, &allface, &totface) != 0) {
+		if (nurbs_to_mdata (ob, &allvert, &totvert, &alledge, &totedge, &allface, &allloop, &allpoly, &totface, &totloop, &totpoly) != 0) {
 			/* Error initializing */
 			return;
 		}
@@ -1361,12 +1421,16 @@ void nurbs_to_mesh(Object *ob)
 		me->totvert= totvert;
 		me->totface= totface;
 		me->totedge= totedge;
+		me->totloop = totloop;
+		me->totpoly = totpoly;
 
 		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, allvert, me->totvert);
-		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, allface, me->totface);
 		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, alledge, me->totedge);
+		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, allface, me->totface);
+		me->mloop= CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, allloop, me->totloop);
+		me->mpoly= CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, allpoly, me->totpoly);
 
-		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 	} else {
 		me= add_mesh("Mesh");
 		DM_to_mesh(dm, me);
@@ -1619,34 +1683,112 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 			mf->flag &= ~ME_SMOOTH;
 		}
 	}
+
+	mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, 
+					  me->totpoly, NULL, NULL, 0, NULL, NULL);
 }
 
-void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float **faceNors_r) 
+void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys, 
+	int UNUSED(numLoops), int numPolys, float (*polyNors_r)[3], MFace *mfaces, int numFaces, 
+	int *origIndexFace, float (*faceNors_r)[3])
 {
-	float (*tnorms)[3]= MEM_callocN(numVerts*sizeof(*tnorms), "tnorms");
-	float *fnors= MEM_callocN(sizeof(*fnors)*3*numFaces, "meshnormals");
-	int i;
-
-	for (i=0; i<numFaces; i++) {
-		MFace *mf= &mfaces[i];
-		float *f_no= &fnors[i*3];
-
-		if (mf->v4)
-			normal_quad_v3( f_no,mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co);
-		else
-			normal_tri_v3( f_no,mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
+	float (*pnors)[3] = polyNors_r, (*fnors)[3] = faceNors_r;
+	float (*tnorms)[3] = NULL;
+	int i, j, *origIndex;
+	MFace *mf;
+	MPoly *mp;
+	MLoop *ml;
+	
+	if(numPolys == 0) return;
+	
+	/*first go through and calculate normals for all the polys*/
+	tnorms = MEM_callocN(sizeof(float)*3*numVerts, "tnorms cdderivedmesh.c");
+	if (!pnors) 
+		pnors = MEM_callocN(sizeof(float)*3*numPolys, "poly_nors cdderivedmesh.c");
+	if (!fnors)
+		fnors = MEM_callocN(sizeof(float)*3*numFaces, "face nors cdderivedmesh.c");
+	
+	mp = mpolys;
+	for (i=0; i<numPolys; i++, mp++) {
+		mesh_calc_poly_normal(mp, mloop+mp->loopstart, mverts, pnors[i]);
 		
-		add_v3_v3(tnorms[mf->v1], f_no);
-		add_v3_v3(tnorms[mf->v2], f_no);
-		add_v3_v3(tnorms[mf->v3], f_no);
-		if (mf->v4)
-			add_v3_v3(tnorms[mf->v4], f_no);
+		ml = mloop + mp->loopstart;
+		/*this is kindof hackish, probably need to calculate quads around face center for
+		  ngons, not this weird quad-fitting thing I've got going here*/
+		for (j=0; j<mp->totloop; j += 4, ml++) {
+			int v1, v2, v3, v4;
+			
+			v1 = ml->v; 
+			v2 = mloop[mp->loopstart+(j+1)%mp->totloop].v;
+			v3 = mloop[mp->loopstart+(j+2)%mp->totloop].v;
+			v4 = mloop[mp->loopstart+(j+3)%mp->totloop].v;
+					
+			accumulate_vertex_normals(tnorms[v1], tnorms[v2], tnorms[v3], v4 != v1 ? tnorms[v4] : NULL,
+									  pnors[i], mverts[v1].co, mverts[v2].co, mverts[v3].co, v4!=v1 ? mverts[v4].co : NULL);
+			
+		}
 	}
-	for (i=0; i<numVerts; i++) {
+	
+	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
+	for(i=0; i<numVerts; i++) {
 		MVert *mv= &mverts[i];
 		float *no= tnorms[i];
 		
-		if (normalize_v3(no)==0.0)
+		if(normalize_v3(no) == 0.0f)
+			normalize_v3_v3(no, mv->co);
+
+		normal_float_to_short_v3(mv->no, no);
+	}
+	
+	if (origIndexFace && fnors==faceNors_r && numFaces) {
+		mf = mfaces;
+		for (i=0; i<numFaces; i++, mf++, origIndexFace++) {
+			if (origIndex < numPolys) {
+				VECCOPY(fnors[i], tnorms[*origIndexFace]);
+			} else {
+				/*eek, we're not corrusponding to polys*/
+				printf("error in mesh_calc_normals; tesselation face indices are incorrect.  normals may look bad.\n");
+			}
+		}
+	}
+	
+	MEM_freeN(tnorms);
+	if (fnors != faceNors_r)
+		MEM_freeN(fnors);
+	if (pnors != polyNors_r)
+		MEM_freeN(pnors);
+	
+	fnors = pnors = NULL;
+	
+}
+
+void mesh_calc_tessface_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*faceNors_r)[3]) 
+{
+	float (*tnorms)[3]= MEM_callocN(numVerts*sizeof(*tnorms), "tnorms");
+	float (*fnors)[3]= (faceNors_r)? faceNors_r: MEM_callocN(sizeof(*fnors)*numFaces, "meshnormals");
+	int i;
+
+	for(i=0; i<numFaces; i++) {
+		MFace *mf= &mfaces[i];
+		float *f_no= fnors[i];
+		float *n4 = (mf->v4)? tnorms[mf->v4]: NULL;
+		float *c4 = (mf->v4)? mverts[mf->v4].co: NULL;
+
+		if(mf->v4)
+			normal_quad_v3(f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co);
+		else
+			normal_tri_v3(f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
+
+		accumulate_vertex_normals(tnorms[mf->v1], tnorms[mf->v2], tnorms[mf->v3], n4,
+			f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, c4);
+	}
+
+	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
+	for(i=0; i<numVerts; i++) {
+		MVert *mv= &mverts[i];
+		float *no= tnorms[i];
+		
+		if(normalize_v3(no) == 0.0f)
 			normalize_v3_v3(no, mv->co);
 
 		normal_float_to_short_v3(mv->no, no);
@@ -1654,11 +1796,147 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 	
 	MEM_freeN(tnorms);
 
-	if (faceNors_r) {
-		*faceNors_r = fnors;
-	} else {
+	if(fnors != faceNors_r)
 		MEM_freeN(fnors);
+}
+
+
+void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol) 
+{
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+	MFace *mf;
+	int i;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
+		texpoly = CustomData_get_n(&me->pdata, CD_MTEXPOLY, findex, i); 
+		mf = me->mface + findex;
+		
+		texpoly->tpage = texface->tpage;
+		texpoly->flag = texface->flag;
+		texpoly->transp = texface->transp;
+		texpoly->mode = texface->mode;
+		texpoly->tile = texface->tile;
+		texpoly->unwrap = texface->unwrap;
+	
+		mloopuv = CustomData_get_n(&me->ldata, CD_MLOOPUV, loopstart, i);
+		mloopuv->uv[0] = texface->uv[0][0]; mloopuv->uv[1] = texface->uv[0][1]; mloopuv++;
+		mloopuv->uv[0] = texface->uv[1][0]; mloopuv->uv[1] = texface->uv[1][1]; mloopuv++;
+		mloopuv->uv[0] = texface->uv[2][0]; mloopuv->uv[1] = texface->uv[2][1]; mloopuv++;
+
+		if (mf->v4) {
+			mloopuv->uv[0] = texface->uv[3][0]; mloopuv->uv[1] = texface->uv[3][1]; mloopuv++;
+		}
 	}
+
+	for(i=0; i < numCol; i++){
+		mf = me->mface + findex;
+		mloopcol = CustomData_get_n(&me->ldata, CD_MLOOPCOL, loopstart, i);
+		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
+
+		mloopcol->r = mcol[0].r; mloopcol->g = mcol[0].g; mloopcol->b = mcol[0].b; mloopcol->a = mcol[0].a; mloopcol++;
+		mloopcol->r = mcol[1].r; mloopcol->g = mcol[1].g; mloopcol->b = mcol[1].b; mloopcol->a = mcol[1].a; mloopcol++;
+		mloopcol->r = mcol[2].r; mloopcol->g = mcol[2].g; mloopcol->b = mcol[2].b; mloopcol->a = mcol[2].a; mloopcol++;
+		if (mf->v4) {
+			mloopcol->r = mcol[3].r; mloopcol->g = mcol[3].g; mloopcol->b = mcol[3].b; mloopcol->a = mcol[3].a; mloopcol++;
+		}
+	}
+	
+	if (CustomData_has_layer(&me->fdata, CD_MDISPS)) {
+		MDisps *ld = CustomData_get(&me->ldata, loopstart, CD_MDISPS);
+		MDisps *fd = CustomData_get(&me->fdata, findex, CD_MDISPS);
+		float (*disps)[3] = fd->disps;
+		int i, tot = mf->v4 ? 4 : 3;
+		int side, corners;
+		
+		corners = multires_mdisp_corners(fd);
+		side = sqrt(fd->totdisp / corners);
+		
+		for (i=0; i<tot; i++, disps += side*side, ld++) {
+			ld->totdisp = side*side;
+			
+			if (ld->disps)
+				BLI_cellalloc_free(ld->disps);
+			
+			ld->disps = BLI_cellalloc_malloc(sizeof(float)*3*side*side, "converted loop mdisps");
+			memcpy(ld->disps, disps, sizeof(float)*3*side*side);
+		}
+	}
+}
+
+void convert_mfaces_to_mpolys(Mesh *mesh)
+{
+	MFace *mf;
+	MLoop *ml;
+	MPoly *mp;
+	MEdge *me;
+	EdgeHash *eh;
+	int numTex, numCol;
+	int i, j, totloop;
+
+	mesh->totpoly = mesh->totface;
+	mesh->mpoly = MEM_callocN(sizeof(MPoly)*mesh->totpoly, "mpoly converted");
+	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_ASSIGN, mesh->mpoly, mesh->totpoly);
+
+	numTex = CustomData_number_of_layers(&mesh->fdata, CD_MTFACE);
+	numCol = CustomData_number_of_layers(&mesh->fdata, CD_MCOL);
+	
+	totloop = 0;
+	mf = mesh->mface;
+	for (i=0; i<mesh->totface; i++, mf++) {
+		totloop += mf->v4 ? 4 : 3;
+	}
+	
+	mesh->totloop = totloop;
+	mesh->mloop = MEM_callocN(sizeof(MLoop)*mesh->totloop, "mloop converted");
+
+	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_ASSIGN, mesh->mloop, totloop);
+	CustomData_to_bmeshpoly(&mesh->fdata, &mesh->pdata, &mesh->ldata,
+		mesh->totloop, mesh->totpoly);
+
+	eh = BLI_edgehash_new();
+
+	/*build edge hash*/
+	me = mesh->medge;
+	for (i=0; i<mesh->totedge; i++, me++) {
+		BLI_edgehash_insert(eh, me->v1, me->v2, SET_INT_IN_POINTER(i));
+	}
+
+	j = 0; /*current loop index*/
+	ml = mesh->mloop;
+	mf = mesh->mface;
+	mp = mesh->mpoly;
+	for (i=0; i<mesh->totface; i++, mf++, mp++) {
+		mp->loopstart = j;
+		
+		mp->totloop = mf->v4 ? 4 : 3;
+
+		mp->mat_nr = mf->mat_nr;
+		mp->flag = mf->flag;
+		
+		#define ML(v1, v2) {ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++;}
+		
+		ML(v1, v2);
+		ML(v2, v3);
+		if (mf->v4) {
+			ML(v3, v4);
+			ML(v4, v1);
+		} else {
+			ML(v3, v1);
+		}
+		
+		#undef ML
+
+		bmesh_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
+	}
+
+	/*BMESH_TODO now to deal with fgons*/
+
+	BLI_edgehash_free(eh, NULL);
 }
 
 float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
@@ -1747,7 +2025,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
 
-				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
+				if(fabsf(uv[0]-uv2[0]) < limit[0] && fabsf(uv[1]-uv2[1]) < limit[1]) {
 					if(lastv) lastv->next= next;
 					else vlist= next;
 					iterv->next= newvlist;

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/curve/curve_intern.h
+ *  \ingroup edcurve
+ */
+
+
 #ifndef ED_CURVE_INTERN_H
 #define ED_CURVE_INTERN_H
 

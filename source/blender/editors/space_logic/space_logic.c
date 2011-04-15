@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_logic/space_logic.c
+ *  \ingroup splogic
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 

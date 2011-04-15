@@ -27,6 +27,11 @@
  *
  */
 
+/** \file blender/blenloader/intern/readfile.c
+ *  \ingroup blenloader
+ */
+
+
 #include "zlib.h"
 
 #include <limits.h>
@@ -231,7 +236,7 @@ typedef struct OldNewMap {
 
 /* local prototypes */
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
-static void convert_mfaces_to_mpolys(Mesh *mesh);
+static void direct_link_modifiers(FileData *fd, ListBase *lb);
 
 static OldNewMap *oldnewmap_new(void) 
 {
@@ -497,7 +502,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *name, c
 	for (m= mainlist->first; m; m= m->next) {
 		char *libname= (m->curlib)?m->curlib->filepath:m->name;
 		
-		if (BLI_streq(name1, libname)) {
+		if (BLI_path_cmp(name1, libname) == 0) {
 			if(G.f & G_DEBUG) printf("blo_find_main: found library %s\n", libname);
 			return m;
 		}
@@ -947,7 +952,7 @@ FileData *blo_openblenderfile(const char *name, ReportList *reports)
 	gzfile= gzopen(name, "rb");
 
 	if (gzfile == (gzFile)Z_NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", name, errno ? strerror(errno) : "Unknown erro reading file");
+		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", name, errno ? strerror(errno) : "Unknown error reading file");
 		return NULL;
 	} else {
 		FileData *fd = filedata_new();
@@ -1197,7 +1202,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 	OldNew *entry= fd->imamap->entries;
 	Image *ima= oldmain->image.first;
 	Scene *sce= oldmain->scene.first;
-	int i, a;
+	int i;
 	
 	/* used entries were restored, so we put them to zero */
 	for (i=0; i<fd->imamap->nentries; i++, entry++) {
@@ -1217,10 +1222,10 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 				ima->gputexture= NULL;
 			}
 		}
+		for(i=0; i<IMA_MAX_RENDER_SLOT; i++)
+			ima->renders[i]= newimaadr(fd, ima->renders[i]);
 
 		ima->gputexture= newimaadr(fd, ima->gputexture);
-		for(a=0; a<IMA_MAX_RENDER_SLOT; a++)
-			ima->renders[a]= newimaadr(fd, ima->renders[a]);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -1891,7 +1896,7 @@ static void direct_link_nladata_strips(FileData *fd, ListBase *list)
 		
 		/* strip's F-Modifiers */
 		link_list(fd, &strip->modifiers);
-		direct_link_fcurves(fd, &strip->modifiers);
+		direct_link_modifiers(fd, &strip->modifiers);
 	}
 }
 
@@ -2780,8 +2785,18 @@ static void direct_link_image(FileData *fd, Image *ima)
 	ima->anim= NULL;
 	ima->rr= NULL;
 	ima->repbind= NULL;
-	memset(ima->renders, 0, sizeof(ima->renders));
-	ima->last_render_slot= ima->render_slot;
+	
+	/* undo system, try to restore render buffers */
+	if(fd->imamap) {
+		int a;
+		
+		for(a=0; a<IMA_MAX_RENDER_SLOT; a++)
+			ima->renders[a]= newimaadr(fd, ima->renders[a]);
+	}
+	else {
+		memset(ima->renders, 0, sizeof(ima->renders));
+		ima->last_render_slot= ima->render_slot;
+	}
 	
 	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	ima->preview = direct_link_preview_image(fd, ima->preview);
@@ -2868,7 +2883,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 			cu->tb = tb;
 			cu->tb[0].w = cu->linewidth;
 		}		
-		if (cu->wordspace == 0.0) cu->wordspace = 1.0;
+		if (cu->wordspace == 0.0f) cu->wordspace = 1.0f;
 	}
 
 	cu->bev.first=cu->bev.last= NULL;
@@ -3327,6 +3342,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		}
 
 		psys->tree = NULL;
+		psys->bvhtree = NULL;
 	}
 	return;
 }
@@ -3505,145 +3521,6 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 	}
 
 	customData_update_typemap(data);
-}
-
-
-void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol) 
-{
-	MTFace *texface;
-	MTexPoly *texpoly;
-	MCol *mcol;
-	MLoopCol *mloopcol;
-	MLoopUV *mloopuv;
-	MFace *mf;
-	int i;
-
-	for(i=0; i < numTex; i++){
-		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
-		texpoly = CustomData_get_n(&me->pdata, CD_MTEXPOLY, findex, i); 
-		mf = me->mface + findex;
-		
-		texpoly->tpage = texface->tpage;
-		texpoly->flag = texface->flag;
-		texpoly->transp = texface->transp;
-		texpoly->mode = texface->mode;
-		texpoly->tile = texface->tile;
-		texpoly->unwrap = texface->unwrap;
-	
-		mloopuv = CustomData_get_n(&me->ldata, CD_MLOOPUV, loopstart, i);
-		mloopuv->uv[0] = texface->uv[0][0]; mloopuv->uv[1] = texface->uv[0][1]; mloopuv++;
-		mloopuv->uv[0] = texface->uv[1][0]; mloopuv->uv[1] = texface->uv[1][1]; mloopuv++;
-		mloopuv->uv[0] = texface->uv[2][0]; mloopuv->uv[1] = texface->uv[2][1]; mloopuv++;
-
-		if (mf->v4) {
-			mloopuv->uv[0] = texface->uv[3][0]; mloopuv->uv[1] = texface->uv[3][1]; mloopuv++;
-		}
-	}
-
-	for(i=0; i < numCol; i++){
-		mf = me->mface + findex;
-		mloopcol = CustomData_get_n(&me->ldata, CD_MLOOPCOL, loopstart, i);
-		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
-
-		mloopcol->r = mcol[0].r; mloopcol->g = mcol[0].g; mloopcol->b = mcol[0].b; mloopcol->a = mcol[0].a; mloopcol++;
-		mloopcol->r = mcol[1].r; mloopcol->g = mcol[1].g; mloopcol->b = mcol[1].b; mloopcol->a = mcol[1].a; mloopcol++;
-		mloopcol->r = mcol[2].r; mloopcol->g = mcol[2].g; mloopcol->b = mcol[2].b; mloopcol->a = mcol[2].a; mloopcol++;
-		if (mf->v4) {
-			mloopcol->r = mcol[3].r; mloopcol->g = mcol[3].g; mloopcol->b = mcol[3].b; mloopcol->a = mcol[3].a; mloopcol++;
-		}
-	}
-	
-	if (CustomData_has_layer(&me->fdata, CD_MDISPS)) {
-		MDisps *ld = CustomData_get(&me->ldata, loopstart, CD_MDISPS);
-		MDisps *fd = CustomData_get(&me->fdata, findex, CD_MDISPS);
-		float (*disps)[3] = fd->disps;
-		int i, tot = mf->v4 ? 4 : 3;
-		int side, corners;
-		
-		corners = multires_mdisp_corners(fd);
-		side = sqrt(fd->totdisp / corners);
-		
-		for (i=0; i<tot; i++, disps += side*side, ld++) {
-			ld->totdisp = side*side;
-			
-			if (ld->disps)
-				BLI_cellalloc_free(ld->disps);
-			
-			ld->disps = BLI_cellalloc_malloc(sizeof(float)*3*side*side, "converted loop mdisps");
-			memcpy(ld->disps, disps, sizeof(float)*3*side*side);
-		}
-	}
-}
-
-static void convert_mfaces_to_mpolys(Mesh *mesh)
-{
-	MFace *mf;
-	MLoop *ml;
-	MPoly *mp;
-	MEdge *me;
-	EdgeHash *eh;
-	int numTex, numCol;
-	int i, j, totloop;
-
-	mesh->totpoly = mesh->totface;
-	mesh->mpoly = MEM_callocN(sizeof(MPoly)*mesh->totpoly, "mpoly converted");
-	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_ASSIGN, mesh->mpoly, mesh->totpoly);
-
-	numTex = CustomData_number_of_layers(&mesh->fdata, CD_MTFACE);
-	numCol = CustomData_number_of_layers(&mesh->fdata, CD_MCOL);
-	
-	totloop = 0;
-	mf = mesh->mface;
-	for (i=0; i<mesh->totface; i++, mf++) {
-		totloop += mf->v4 ? 4 : 3;
-	}
-	
-	mesh->totloop = totloop;
-	mesh->mloop = MEM_callocN(sizeof(MLoop)*mesh->totloop, "mloop converted");
-
-	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_ASSIGN, mesh->mloop, totloop);
-	CustomData_to_bmeshpoly(&mesh->fdata, &mesh->pdata, &mesh->ldata,
-		mesh->totloop, mesh->totpoly);
-
-	eh = BLI_edgehash_new();
-
-	/*build edge hash*/
-	me = mesh->medge;
-	for (i=0; i<mesh->totedge; i++, me++) {
-		BLI_edgehash_insert(eh, me->v1, me->v2, SET_INT_IN_POINTER(i));
-	}
-
-	j = 0; /*current loop index*/
-	ml = mesh->mloop;
-	mf = mesh->mface;
-	mp = mesh->mpoly;
-	for (i=0; i<mesh->totface; i++, mf++, mp++) {
-		mp->loopstart = j;
-		
-		mp->totloop = mf->v4 ? 4 : 3;
-
-		mp->mat_nr = mf->mat_nr;
-		mp->flag = mf->flag;
-		
-		#define ML(v1, v2) {ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++;}
-		
-		ML(v1, v2);
-		ML(v2, v3);
-		if (mf->v4) {
-			ML(v3, v4);
-			ML(v4, v1);
-		} else {
-			ML(v3, v1);
-		}
-		
-		#undef ML
-
-		bmesh_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
-	}
-
-	/*BMESH_TODO now to deal with fgons*/
-
-	BLI_edgehash_free(eh, NULL);
 }
 
 static void direct_link_mesh(FileData *fd, Mesh *mesh)
@@ -4230,7 +4107,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_x = NULL;
 			collmd->current_xnew = NULL;
 			collmd->current_v = NULL;
-			collmd->time = -1000;
+			collmd->time_x = collmd->time_xnew = -1000;
 			collmd->numverts = 0;
 			collmd->bvhtree = NULL;
 			collmd->mfaces = NULL;
@@ -4515,7 +4392,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	if(ob->sculpt) {
 		ob->sculpt= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
-		ob->sculpt->ob= ob;
 	}
 }
 
@@ -4665,6 +4541,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->obedit= NULL;
 	sce->stats= NULL;
 	sce->fps_info= NULL;
+	sce->customdata_mask_modal= 0;
+	sce->lay_updated = 0;
 
 	sound_create_scene(sce);
 
@@ -5107,6 +4985,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 							else if(GS(snode->id->name)==ID_TE)
 								snode->nodetree= ((Tex *)snode->id)->nodetree;
 						}
+						
+						snode->linkdrag.first = snode->linkdrag.last = NULL;
 					}
 				}
 				sa= sa->next;
@@ -5362,7 +5242,6 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 			rv3d->clipbb= newdataadr(fd, rv3d->clipbb);
 			
 			rv3d->depths= NULL;
-			rv3d->retopo_view_data= NULL;
 			rv3d->ri= NULL;
 			rv3d->sms= NULL;
 			rv3d->smooth_timer= NULL;
@@ -5547,10 +5426,12 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				
 				/* WARNING: gpencil data is no longer stored directly in sima after 2.5 
 				 * so sacrifice a few old files for now to avoid crashes with new files!
-				 */
-				//sima->gpd= newdataadr(fd, sima->gpd);
-				//if (sima->gpd)
-				//	direct_link_gpencil(fd, sima->gpd);
+				 * committed: r28002 */
+#if 0
+				sima->gpd= newdataadr(fd, sima->gpd);
+				if (sima->gpd)
+					direct_link_gpencil(fd, sima->gpd);
+#endif
 			}
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;
@@ -5642,7 +5523,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	
 	for(newmain= fd->mainlist.first; newmain; newmain= newmain->next) {
 		if(newmain->curlib) {
-			if(strcmp(newmain->curlib->filepath, lib->filepath)==0) {
+			if(BLI_path_cmp(newmain->curlib->filepath, lib->filepath) == 0) {
 				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->filepath);
 				BKE_reportf(fd->reports, RPT_WARNING, "Library '%s', '%s' had multiple instances, save and reload!", lib->name, lib->filepath);
 
@@ -6017,8 +5898,8 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 static void link_global(FileData *fd, BlendFileData *bfd)
 {
 	
-	bfd->curscreen= newlibadr(fd, 0, bfd->curscreen);
-	bfd->curscene= newlibadr(fd, 0, bfd->curscene);
+	bfd->curscreen= newlibadr(fd, NULL, bfd->curscreen);
+	bfd->curscene= newlibadr(fd, NULL, bfd->curscene);
 	// this happens in files older than 2.35
 	if(bfd->curscene==NULL) {
 		if(bfd->curscreen) bfd->curscene= bfd->curscreen->scene;
@@ -6031,7 +5912,7 @@ static void vcol_to_fcol(Mesh *me)
 	unsigned int *mcol, *mcoln, *mcolmain;
 	int a;
 
-	if(me->totface==0 || me->mcol==0) return;
+	if(me->totface==0 || me->mcol==NULL) return;
 
 	mcoln= mcolmain= MEM_mallocN(4*sizeof(int)*me->totface, "mcoln");
 	mcol = (unsigned int *)me->mcol;
@@ -6842,10 +6723,14 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 			}
 			else if (sl->spacetype==SPACE_IMAGE) {
 				SpaceImage *sima= (SpaceImage *)sl;
+#if 0			/* see comment on r28002 */
 				if(sima->gpd) {
 					versions_gpencil_add_main(&main->gpencil, (ID *)sima->gpd, "GPencil Image");
 					sima->gpd= NULL;
 				}
+#else
+				sima->gpd= NULL;
+#endif
 			}
 		}
 	}		
@@ -7008,7 +6893,7 @@ static void do_version_bone_roll_256(Bone *bone)
 	float submat[3][3];
 	
 	copy_m3_m4(submat, bone->arm_mat);
-	mat3_to_vec_roll(submat, 0, &bone->arm_roll);
+	mat3_to_vec_roll(submat, NULL, &bone->arm_roll);
 	
 	for(child = bone->childbase.first; child; child = child->next)
 		do_version_bone_roll_256(child);
@@ -7134,19 +7019,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sc= sc->id.next;
 		}
 	}
-	if(main->versionfile <= 112) {
-		Mesh *me = main->mesh.first;
-		while(me) {
-			me->cubemapsize= 1.0;
-			me= me->id.next;
-		}
-	}
 	if(main->versionfile <= 113) {
 		Material *ma = main->mat.first;
 		while(ma) {
-			if(ma->flaresize==0.0) ma->flaresize= 1.0;
-			ma->subsize= 1.0;
-			ma->flareboost= 1.0;
+			if(ma->flaresize==0.0f) ma->flaresize= 1.0f;
+			ma->subsize= 1.0f;
+			ma->flareboost= 1.0f;
 			ma= ma->id.next;
 		}
 	}
@@ -7154,13 +7032,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 134) {
 		Tex *tex = main->tex.first;
 		while (tex) {
-			if ((tex->rfac == 0.0) &&
-				(tex->gfac == 0.0) &&
-				(tex->bfac == 0.0)) {
-				tex->rfac = 1.0;
-				tex->gfac = 1.0;
-				tex->bfac = 1.0;
-				tex->filtersize = 1.0;
+			if ((tex->rfac == 0.0f) &&
+				(tex->gfac == 0.0f) &&
+				(tex->bfac == 0.0f)) {
+				tex->rfac = 1.0f;
+				tex->gfac = 1.0f;
+				tex->bfac = 1.0f;
+				tex->filtersize = 1.0f;
 			}
 			tex = tex->id.next;
 		}
@@ -7169,13 +7047,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* r-g-b-fac in texture */
 		Tex *tex = main->tex.first;
 		while (tex) {
-			if ((tex->rfac == 0.0) &&
-				(tex->gfac == 0.0) &&
-				(tex->bfac == 0.0)) {
-				tex->rfac = 1.0;
-				tex->gfac = 1.0;
-				tex->bfac = 1.0;
-				tex->filtersize = 1.0;
+			if ((tex->rfac == 0.0f) &&
+				(tex->gfac == 0.0f) &&
+				(tex->bfac == 0.0f)) {
+				tex->rfac = 1.0f;
+				tex->gfac = 1.0f;
+				tex->bfac = 1.0f;
+				tex->filtersize = 1.0f;
 			}
 			tex = tex->id.next;
 		}
@@ -7183,7 +7061,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 153) {
 		Scene *sce = main->scene.first;
 		while(sce) {
-			if(sce->r.blurfac==0.0) sce->r.blurfac= 1.0;
+			if(sce->r.blurfac==0.0f) sce->r.blurfac= 1.0f;
 			sce= sce->id.next;
 		}
 	}
@@ -7304,8 +7182,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				TFace *tface= me->tface;
 				for(a=0; a<me->totface; a++, tface++) {
 					for(b=0; b<4; b++) {
-						tface->uv[b][0]/= 32767.0;
-						tface->uv[b][1]/= 32767.0;
+						tface->uv[b][0]/= 32767.0f;
+						tface->uv[b][1]/= 32767.0f;
 					}
 				}
 			}
@@ -7442,13 +7320,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if(act->type==ACT_OBJECT) {
 					oa= act->data;
 
-					oa->forceloc[0]*= 25.0;
-					oa->forceloc[1]*= 25.0;
-					oa->forceloc[2]*= 25.0;
+					oa->forceloc[0]*= 25.0f;
+					oa->forceloc[1]*= 25.0f;
+					oa->forceloc[2]*= 25.0f;
 
-					oa->forcerot[0]*= 10.0;
-					oa->forcerot[1]*= 10.0;
-					oa->forcerot[2]*= 10.0;
+					oa->forcerot[0]*= 10.0f;
+					oa->forcerot[1]*= 10.0f;
+					oa->forcerot[2]*= 10.0f;
 				}
 				act= act->next;
 			}
@@ -7457,8 +7335,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		sound = main->sound.first;
 		while (sound) {
-			if (sound->volume < 0.01) {
-				sound->volume = 1.0;
+			if (sound->volume < 0.01f) {
+				sound->volume = 1.0f;
 			}
 			sound = sound->id.next;
 		}
@@ -7554,18 +7432,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (act->type==ACT_OBJECT) {
 					/* multiply velocity with 50 in old files */
 					oa= act->data;
-					if (fabs(oa->linearvelocity[0]) >= 0.01f)
-						oa->linearvelocity[0] *= 50.0;
-					if (fabs(oa->linearvelocity[1]) >= 0.01f)
-						oa->linearvelocity[1] *= 50.0;
-					if (fabs(oa->linearvelocity[2]) >= 0.01f)
-						oa->linearvelocity[2] *= 50.0;
-					if (fabs(oa->angularvelocity[0])>=0.01f)
-						oa->angularvelocity[0] *= 50.0;
-					if (fabs(oa->angularvelocity[1])>=0.01f)
-						oa->angularvelocity[1] *= 50.0;
-					if (fabs(oa->angularvelocity[2])>=0.01f)
-						oa->angularvelocity[2] *= 50.0;
+					if (fabsf(oa->linearvelocity[0]) >= 0.01f)
+						oa->linearvelocity[0] *= 50.0f;
+					if (fabsf(oa->linearvelocity[1]) >= 0.01f)
+						oa->linearvelocity[1] *= 50.0f;
+					if (fabsf(oa->linearvelocity[2]) >= 0.01f)
+						oa->linearvelocity[2] *= 50.0f;
+					if (fabsf(oa->angularvelocity[0])>=0.01f)
+						oa->angularvelocity[0] *= 50.0f;
+					if (fabsf(oa->angularvelocity[1])>=0.01f)
+						oa->angularvelocity[1] *= 50.0f;
+					if (fabsf(oa->angularvelocity[2])>=0.01f)
+						oa->angularvelocity[2] *= 50.0f;
 				}
 				act= act->next;
 			}
@@ -7587,7 +7465,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sound->min_gain = 0.0;
 			sound->distance = 1.0;
 
-			if (sound->attenuation > 0.0)
+			if (sound->attenuation > 0.0f)
 				sound->flags |= SOUND_FLAGS_3D;
 			else
 				sound->flags &= ~SOUND_FLAGS_3D;
@@ -7645,7 +7523,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ob->formfactor = 0.4f;
 			/* patch form factor , note that inertia equiv radius
 			 * of a rotation symmetrical obj */
-			if (ob->inertia != 1.0) {
+			if (ob->inertia != 1.0f) {
 				ob->formfactor /= ob->inertia * ob->inertia;
 			}
 			ob = ob->id.next;
@@ -8007,7 +7885,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				SpaceLink *sl;
 
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->blockscale==0.0) sl->blockscale= 0.7f;
+					if(sl->blockscale==0.0f) sl->blockscale= 0.7f;
 					/* added: 5x better zoom in for action */
 					if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *sac= (SpaceAction *)sl;
@@ -8051,8 +7929,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		/* introduction of raytrace */
 		while(ma) {
-			if(ma->fresnel_tra_i==0.0) ma->fresnel_tra_i= 1.25;
-			if(ma->fresnel_mir_i==0.0) ma->fresnel_mir_i= 1.25;
+			if(ma->fresnel_tra_i==0.0f) ma->fresnel_tra_i= 1.25f;
+			if(ma->fresnel_mir_i==0.0f) ma->fresnel_mir_i= 1.25f;
 
 			ma->ang= 1.0;
 			ma->ray_depth= 2;
@@ -8064,23 +7942,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		sce= main->scene.first;
 		while(sce) {
-			if(sce->r.gauss==0.0) sce->r.gauss= 1.0;
+			if(sce->r.gauss==0.0f) sce->r.gauss= 1.0f;
 			sce= sce->id.next;
 		}
 		la= main->lamp.first;
 		while(la) {
-			if(la->k==0.0) la->k= 1.0;
+			if(la->k==0.0f) la->k= 1.0;
 			if(la->ray_samp==0) la->ray_samp= 1;
 			if(la->ray_sampy==0) la->ray_sampy= 1;
 			if(la->ray_sampz==0) la->ray_sampz= 1;
-			if(la->area_size==0.0) la->area_size= 1.0;
-			if(la->area_sizey==0.0) la->area_sizey= 1.0;
-			if(la->area_sizez==0.0) la->area_sizez= 1.0;
+			if(la->area_size==0.0f) la->area_size= 1.0f;
+			if(la->area_sizey==0.0f) la->area_sizey= 1.0f;
+			if(la->area_sizez==0.0f) la->area_sizez= 1.0f;
 			la= la->id.next;
 		}
 		wrld= main->world.first;
 		while(wrld) {
-			if(wrld->range==0.0) {
+			if(wrld->range==0.0f) {
 				wrld->range= 1.0f/wrld->exposure;
 			}
 			wrld= wrld->id.next;
@@ -8121,7 +7999,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				tex->flag |= TEX_CHECKER_ODD;
 			}
 			/* copied from kernel texture.c */
-			if(tex->ns_outscale==0.0) {
+			if(tex->ns_outscale==0.0f) {
 				/* musgrave */
 				tex->mg_H = 1.0f;
 				tex->mg_lacunarity = 2.0f;
@@ -8139,12 +8017,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		while(wrld) {
-			if(wrld->aodist==0.0) {
+			if(wrld->aodist==0.0f) {
 				wrld->aodist= 10.0f;
 				wrld->aobias= 0.05f;
 			}
-			if(wrld->aosamp==0.0) wrld->aosamp= 5;
-			if(wrld->aoenergy==0.0) wrld->aoenergy= 1.0;
+			if(wrld->aosamp==0) wrld->aosamp= 5;
+			if(wrld->aoenergy==0.0f) wrld->aoenergy= 1.0f;
 			wrld= wrld->id.next;
 		}
 
@@ -8156,7 +8034,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
 				SpaceLink *sl;
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->blockscale==0.0) sl->blockscale= 0.7f;
+					if(sl->blockscale==0.0f) sl->blockscale= 0.7f;
 
 					/* added: 5x better zoom in for nla */
 					if(sl->spacetype==SPACE_NLA) {
@@ -8179,8 +8057,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob= main->object.first;
 		
 		while(ma) {
-			if(ma->rampfac_col==0.0) ma->rampfac_col= 1.0;
-			if(ma->rampfac_spec==0.0) ma->rampfac_spec= 1.0;
+			if(ma->rampfac_col==0.0f) ma->rampfac_col= 1.0;
+			if(ma->rampfac_spec==0.0f) ma->rampfac_spec= 1.0;
 			if(ma->pr_lamp==0) ma->pr_lamp= 3;
 			ma= ma->id.next;
 		}
@@ -8241,7 +8119,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Editing *ed;
 		
 		while(tex) {
-			if(tex->nabla==0.0) tex->nabla= 0.025f;
+			if(tex->nabla==0.0f) tex->nabla= 0.025f;
 			tex= tex->id.next;
 		}
 		while(sce) {
@@ -8264,7 +8142,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bScreen *sc;
 
 		while(cam) {
-			if(cam->ortho_scale==0.0) {
+			if(cam->ortho_scale==0.0f) {
 				cam->ortho_scale= 256.0f/cam->lens;
 				if(cam->type==CAM_ORTHO) printf("NOTE: ortho render has changed, tweak new Camera 'scale' value.\n");
 			}
@@ -8292,7 +8170,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		// init new shader vars
 		for (ma= main->mat.first; ma; ma= ma->id.next) {
-			if(ma->darkness==0.0) {
+			if(ma->darkness==0.0f) {
 				ma->rms=0.1f;
 				ma->darkness=1.0f;
 			}
@@ -8301,8 +8179,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* softbody init new vars */
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(ob->soft) {
-				if(ob->soft->defgoal==0.0) ob->soft->defgoal= 0.7f;
-				if(ob->soft->physics_speed==0.0) ob->soft->physics_speed= 1.0f;
+				if(ob->soft->defgoal==0.0f) ob->soft->defgoal= 0.7f;
+				if(ob->soft->physics_speed==0.0f) ob->soft->physics_speed= 1.0f;
 				
 				if(ob->soft->interval==0) {
 					ob->soft->interval= 2;
@@ -8414,7 +8292,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for (lt=main->latt.first; lt; lt=lt->id.next) {
-			if (lt->fu==0.0 && lt->fv==0.0 && lt->fw==0.0) {
+			if (lt->fu==0.0f && lt->fv==0.0f && lt->fw==0.0f) {
 				calc_lat_fudu(lt->flag, lt->pntsu, &lt->fu, &lt->du);
 				calc_lat_fudu(lt->flag, lt->pntsv, &lt->fv, &lt->dv);
 				calc_lat_fudu(lt->flag, lt->pntsw, &lt->fw, &lt->dw);
@@ -8636,7 +8514,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ntree_version_241(sce->nodetree);
 
 			/* uv calculation options moved to toolsettings */
-			if (sce->toolsettings->uvcalc_radius == 0.0) {
+			if (sce->toolsettings->uvcalc_radius == 0.0f) {
 				sce->toolsettings->uvcalc_radius = 1.0f;
 				sce->toolsettings->uvcalc_cubesize = 1.0f;
 				sce->toolsettings->uvcalc_mapdir = 1;
@@ -8692,7 +8570,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 			/* transmissivity defaults */
-			if(ma->tx_falloff==0.0) ma->tx_falloff= 1.0;
+			if(ma->tx_falloff==0.0f) ma->tx_falloff= 1.0f;
 		}
 		
 		/* during 2.41 images with this name were used for viewer node output, lets fix that */
@@ -9219,7 +9097,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							strcpy (simasel->dir,  U.textudir);	/* TON */
 							strcpy (simasel->file, "");
 							
-							simasel->returnfunc     =  0;	
+							simasel->returnfunc     =  NULL;
 							simasel->title[0]       =  0;
 						}
 					}
@@ -9509,7 +9387,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 8)) {
 		Scene *sce;
 		Object *ob;
-		PartEff *paf=0;
+		PartEff *paf=NULL;
 
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			if(ob->soft && ob->soft->keys) {
@@ -9795,7 +9673,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				fluidmd->fss->lastgoodframe = INT_MAX;
 				fluidmd->fss->flag = 0;
-				fluidmd->fss->meshSurfNormals = 0;
+				fluidmd->fss->meshSurfNormals = NULL;
 			}
 		}
 	}
@@ -9913,7 +9791,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Lamp *la;
 
 		for(la=main->lamp.first; la; la= la->id.next) {
-			if(la->atm_turbidity == 0.0) {
+			if(la->atm_turbidity == 0.0f) {
 				la->sun_effect_type = 0;
 				la->horizon_brightness = 1.0f;
 				la->spread = 1.0f;
@@ -10385,7 +10263,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			ts= sce->toolsettings;
-			if(ts->normalsize == 0.0 || !ts->uv_selectmode || ts->vgroup_weight == 0.0) {
+			if(ts->normalsize == 0.0f || !ts->uv_selectmode || ts->vgroup_weight == 0.0f) {
 				ts->normalsize= 0.1f;
 				ts->selectmode= SCE_SELECT_VERTEX;
 				
@@ -11642,7 +11520,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			KeyBlock *kb;
 			
 			for (kb = key->block.first; kb; kb = kb->next) {
-				if (IS_EQ(kb->slidermin, kb->slidermax) && IS_EQ(kb->slidermax, 0))
+				if (IS_EQF(kb->slidermin, kb->slidermax) && IS_EQ(kb->slidermax, 0))
 					kb->slidermax = kb->slidermin + 1.0f;
 			}
 		}
@@ -11685,12 +11563,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
-
-	{
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile <3)){
 		bScreen *sc;
 		Brush *brush;
+		Object *ob;
+		ParticleSettings *part;
+		Material *mat;
+		int tex_nr, transp_tex;
 		
+		for(mat = main->mat.first; mat; mat = mat->id.next){
+			if(!(mat->mode & MA_TRANSP) && !(mat->material_type & MA_TYPE_VOLUME)){
+				
+				transp_tex= 0;
+				
+				for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++){
+					if(!mat->mtex[tex_nr]) continue;
+					if(mat->mtex[tex_nr]->mapto & MAP_ALPHA) transp_tex= 1;
+				}
+				
+				if(mat->alpha < 1.0f || mat->fresnel_tra > 0.0f || transp_tex){
+					mat->mode |= MA_TRANSP;
+					mat->mode &= ~(MA_ZTRANSP|MA_RAYTRANSP);
+				}
+			}
+		}
+
 		/* redraws flag in SpaceTime has been moved to Screen level */
 		for (sc = main->screen.first; sc; sc= sc->id.next) {
 			if (sc->redraws_flag == 0) {
@@ -11702,8 +11599,55 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
 			if(brush->height == 0)
-				brush->height= 0.4;
+				brush->height= 0.4f;
 		}
+
+		/* replace 'rim material' option for in offset*/
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for(md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Solidify) {
+					SolidifyModifierData *smd = (SolidifyModifierData *)md;
+					if(smd->flag & MOD_SOLIDIFY_RIM_MATERIAL) {
+						smd->mat_ofs_rim= 1;
+						smd->flag &= ~MOD_SOLIDIFY_RIM_MATERIAL;
+					}
+				}
+			}
+		}
+
+		/* particle draw color from material */
+		for(part = main->particle.first; part; part = part->id.next) {
+			if(part->draw & PART_DRAW_MAT_COL)
+				part->draw_col = PART_DRAW_COL_MAT;
+		}
+	}
+
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 6)){
+		Mesh *me;
+
+		for(me= main->mesh.first; me; me= me->id.next)
+			mesh_calc_tessface_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	}
+
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 2)){
+		/* update blur area sizes from 0..1 range to 0..100 percentage */
+		Scene *scene;
+		bNode *node;
+		for (scene=main->scene.first; scene; scene=scene->id.next)
+			if (scene->nodetree)
+				for (node=scene->nodetree->nodes.first; node; node=node->next)
+					if (node->type==CMP_NODE_BLUR) {
+						NodeBlurData *nbd= node->storage;
+						nbd->percentx *= 100.0f;
+						nbd->percenty *= 100.0f;
+					}
+	}
+
+	/* put compatibility code here until next subversion bump */
+
+	{
+
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -12159,6 +12103,8 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 
 static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
 {
+	int a;
+
 	expand_doit(fd, mainvar, part->dup_ob);
 	expand_doit(fd, mainvar, part->dup_group);
 	expand_doit(fd, mainvar, part->eff_group);
@@ -12166,6 +12112,13 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
 	
 	if(part->adt)
 		expand_animdata(fd, mainvar, part->adt);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(part->mtex[a]) {
+			expand_doit(fd, mainvar, part->mtex[a]->tex);
+			expand_doit(fd, mainvar, part->mtex[a]->object);
+		}
+	}
 }
 
 static void expand_group(FileData *fd, Main *mainvar, Group *group)
@@ -12419,50 +12372,19 @@ static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 	}
 }
 
-static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
+static void expand_object_expandModifiers(void *userData, Object *UNUSED(ob),
+											  ID **idpoin)
 {
-	if (md->type==eModifierType_Lattice) {
-		LatticeModifierData *lmd = (LatticeModifierData*) md;
-			
-		expand_doit(fd, mainvar, lmd->object);
-	} 
-	else if (md->type==eModifierType_Curve) {
-		CurveModifierData *cmd = (CurveModifierData*) md;
-			
-		expand_doit(fd, mainvar, cmd->object);
-	}
-	else if (md->type==eModifierType_Array) {
-		ArrayModifierData *amd = (ArrayModifierData*) md;
-			
-		expand_doit(fd, mainvar, amd->curve_ob);
-		expand_doit(fd, mainvar, amd->offset_ob);
-	}
-	else if (md->type==eModifierType_Mirror) {
-		MirrorModifierData *mmd = (MirrorModifierData*) md;
-			
-		expand_doit(fd, mainvar, mmd->mirror_ob);
-	}
-	else if (md->type==eModifierType_Displace) {
-		DisplaceModifierData *dmd = (DisplaceModifierData*) md;
-		
-		expand_doit(fd, mainvar, dmd->map_object);
-		expand_doit(fd, mainvar, dmd->texture);
-	}
-	else if (md->type==eModifierType_Smoke) {
-		SmokeModifierData *smd = (SmokeModifierData*) md;
-			
-		if(smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain)
-		{	
-			expand_doit(fd, mainvar, smd->domain->coll_group);
-			expand_doit(fd, mainvar, smd->domain->fluid_group);
-			expand_doit(fd, mainvar, smd->domain->eff_group);
-		}
-	}
+	struct { FileData *fd; Main *mainvar; } *data= userData;
+
+	FileData *fd= data->fd;
+	Main *mainvar= data->mainvar;
+
+	expand_doit(fd, mainvar, *idpoin);
 }
 
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 {
-	ModifierData *md;
 	ParticleSystem *psys;
 	bSensor *sens;
 	bController *cont;
@@ -12472,9 +12394,14 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	int a;
 
 	expand_doit(fd, mainvar, ob->data);
-	
-	for (md=ob->modifiers.first; md; md=md->next) {
-		expand_modifier(fd, mainvar, md);
+
+	/* expand_object_expandModifier() */
+	if(ob->modifiers.first) {
+		struct { FileData *fd; Main *mainvar; } data;
+		data.fd= fd;
+		data.mainvar= mainvar;
+
+		modifiers_foreachIDLink(ob, expand_object_expandModifiers, (void *)&data);
 	}
 
 	expand_pose(fd, mainvar, ob->pose);
@@ -12682,7 +12609,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 	ID *id;
 	int a, doit= 1;
 
-	if(fd==0) return;
+	if(fd==NULL) return;
 
 	while(doit) {
 		doit= 0;
@@ -12850,7 +12777,9 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 	}
 }
 
-static void append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *name, int idcode, short flag)
+/* returns true if the item was found
+ * but it may already have already been appended/linked */
+static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *name, int idcode, short flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
@@ -12858,6 +12787,7 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, cons
 	BHead *bhead;
 	ID *id;
 	int endloop=0;
+	int found=0;
 
 	bhead = blo_firstbhead(fd);
 	while(bhead && endloop==0) {
@@ -12867,7 +12797,7 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, cons
 			char *idname= bhead_id_name(fd, bhead);
 				
 			if(strcmp(idname+2, name)==0) {
-
+				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
 				if(id==NULL) {
 					read_libblock(fd, mainl, bhead, LIB_TESTEXT, NULL);
@@ -12914,12 +12844,14 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, cons
 
 		bhead = blo_nextbhead(fd, bhead);
 	}
+
+	return found;
 }
 
-void BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag)
+int BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag)
 {
 	FileData *fd= (FileData*)(*bh);
-	append_named_part(C, mainl, fd, name, idcode, flag);
+	return append_named_part(C, mainl, fd, name, idcode, flag);
 }
 
 static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)

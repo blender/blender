@@ -26,7 +26,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_texture.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
+#include "TEX_node.h"
+
 #include "RE_shader_ext.h"
 
 static bNodeSocketType inputs[]= {

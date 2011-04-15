@@ -26,8 +26,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "../TEX_util.h"
+/** \file blender/nodes/intern/TEX_nodes/TEX_math.c
+ *  \ingroup texnodes
+ */
 
+
+#include "../TEX_util.h"
+#include "TEX_node.h"
 
 
 /* **************** SCALAR MATH ******************** */ 
@@ -111,8 +116,8 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 				out[0]= pow(in0, in1);
             } else {
                 float y_mod_1 = fmod(in1, 1);
-                if (y_mod_1 > 0.999 || y_mod_1 < 0.001) {
-                    *out = pow(in0, floor(in1 + 0.5));
+				if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
+					*out = pow(in0, floor(in1 + 0.5f));
                 } else {
                     *out = 0.0;
                 }
@@ -146,7 +151,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		break;
 	case 14: /* Round */
 		{
-			*out= (int)(in0 + 0.5f);
+			*out= (in0<0)?(int)(in0 - 0.5f):(int)(in0 + 0.5f);
 		}
 		break; 
 		

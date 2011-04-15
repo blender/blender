@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/thumbs.c
+ *  \ingroup imbuf
+ */
+
+
 #include <stdio.h>
 
 #include "BKE_utildefines.h"
@@ -69,7 +74,7 @@ static int get_thumb_dir( char* dir , ThumbSize size)
 	/* yes, applications shouldn't store data there, but so does GIMP :)*/
 	SHGetSpecialFolderPath(0, dir, CSIDL_PROFILE, 0);
 #else
-	char* home = getenv("HOME");
+	const char* home = getenv("HOME");
 	if (!home) return 0;
 	BLI_strncpy(dir, home, FILE_MAX);
 #endif
@@ -267,7 +272,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			tsize = 1;
 			break;
 		default:
-			return 0; /* unknown size */
+			return NULL; /* unknown size */
 	}
 
 	uri_from_filename(path, uri);
@@ -276,12 +281,12 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 		BLI_snprintf(tpath, FILE_MAX, "%s%s", tdir, thumb);
 		thumb[8] = '\0'; /* shorten for tempname, not needed anymore */
 		BLI_snprintf(temp, FILE_MAX, "%sblender_%d_%s.png", tdir, abs(getpid()), thumb);
-		if (strncmp(path, tdir, strlen(tdir)) == 0) {
+		if (BLI_path_ncmp(path, tdir, sizeof(tdir)) == 0) {
 			return NULL;
 		}
 		if (size == THB_FAIL) {
 			img = IMB_allocImBuf(1,1,32, IB_rect | IB_metadata);
-			if (!img) return 0;
+			if (!img) return NULL;
 		} else {
 			if (THB_SOURCE_IMAGE == source || THB_SOURCE_BLEND == source) {
 				
@@ -317,7 +322,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 				stat(path, &info);
 				BLI_snprintf(mtime, sizeof(mtime), "%ld", info.st_mtime);
 			}
-			if (!img) return 0;		
+			if (!img) return NULL;
 
 			if (img->x > img->y) {
 				scaledx = (float)tsize;
@@ -330,6 +335,15 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			ex = (short)scaledx;
 			ey = (short)scaledy;
 			
+			/* save some time by only scaling byte buf */
+			if(img->rect_float) {
+				if(img->rect == NULL) {
+					IMB_rect_from_float(img);
+				}
+
+				imb_freerectfloatImBuf(img);
+			}
+
 			IMB_scaleImBuf(img, ex, ey);
 		}
 		BLI_snprintf(desc, sizeof(desc), "Thumbnail for %s", uri);
@@ -360,7 +374,7 @@ ImBuf* IMB_thumb_read(const char* path, ThumbSize size)
 {
 	char thumb[FILE_MAX];
 	char uri[FILE_MAX*3+8];
-	ImBuf *img = 0;
+	ImBuf *img = NULL;
 
 	if (!uri_from_filename(path,uri)) {
 		return NULL;
@@ -382,7 +396,7 @@ void IMB_thumb_delete(const char* path, ThumbSize size)
 		return;
 	}
 	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
-		if (strncmp(path, thumb, strlen(thumb)) == 0) {
+		if (BLI_path_ncmp(path, thumb, sizeof(thumb)) == 0) {
 			return;
 		}
 		if (BLI_exists(thumb)) {
@@ -414,7 +428,7 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 	}
 
 	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
-		if (strncmp(path, thumb, strlen(thumb)) == 0) {
+		if (BLI_path_ncmp(path, thumb, sizeof(thumb)) == 0) {
 			img = IMB_loadiffname(path, IB_rect);
 		} else {
 			img = IMB_loadiffname(thumb, IB_rect | IB_metadata);
@@ -423,13 +437,13 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 				if (!IMB_metadata_get_field(img, "Thumb::MTime", mtime, 40)) {
 					/* illegal thumb, forget it! */
 					IMB_freeImBuf(img);
-					img = 0;
+					img = NULL;
 				} else {
 					time_t t = atol(mtime);
 					if (st.st_mtime != t) {
 						/* recreate all thumbs */
 						IMB_freeImBuf(img);
-						img = 0;
+						img = NULL;
 						IMB_thumb_delete(path, THB_NORMAL);
 						IMB_thumb_delete(path, THB_LARGE);
 						IMB_thumb_delete(path, THB_FAIL);
@@ -440,7 +454,7 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 							if (img) {
 								/* we don't need failed thumb anymore */
 								IMB_freeImBuf(img);
-								img = 0;
+								img = NULL;
 							}
 						}
 					}
@@ -453,7 +467,7 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 					if (img) {
 						/* we don't need failed thumb anymore */
 						IMB_freeImBuf(img);
-						img = 0;
+						img = NULL;
 					}
 				}
 			}

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/uvedit/uvedit_ops.c
+ *  \ingroup eduv
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -404,6 +409,17 @@ void uvedit_uv_deselect(BMEditMesh *em, Scene *scene, BMLoop *l)
 	}
 }
 
+/*********************** live unwrap utilities ***********************/
+
+static void uvedit_live_unwrap_update(SpaceImage *sima, Scene *scene, Object *obedit)
+{
+	if(sima && (sima->flag & SI_LIVE_UNWRAP)) {
+		ED_uvedit_live_unwrap_begin(scene, obedit);
+		ED_uvedit_live_unwrap_re_solve();
+		ED_uvedit_live_unwrap_end(0);
+	}
+}
+
 /*********************** geometric utilities ***********************/
 void poly_uv_center(BMEditMesh *em, BMFace *f, float cent[2])
 {
@@ -427,12 +443,12 @@ void poly_uv_center(BMEditMesh *em, BMFace *f, float cent[2])
 void uv_center(float uv[][2], float cent[2], int quad)
 {
 	if(quad) {
-		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0] + uv[3][0]) / 4.0;
-		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1] + uv[3][1]) / 4.0;		
+		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0] + uv[3][0]) / 4.0f;
+		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1] + uv[3][1]) / 4.0f;
 	}
 	else {
-		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0]) / 3.0;
-		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1]) / 3.0;		
+		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0]) / 3.0f;
+		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1]) / 3.0f;
 	}
 }
 
@@ -510,8 +526,7 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float
 	return sel;
 }
 
-static int uvedit_center(Scene *scene, Image *ima, Object *obedit, 
-		  float *cent, int mode)
+int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3])
 {
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	BMFace *efa;
@@ -519,36 +534,49 @@ static int uvedit_center(Scene *scene, Image *ima, Object *obedit,
 	BMIter iter, liter;
 	MTexPoly *tf;
 	MLoopUV *luv;
-	float min[2], max[2];
-	int change= 0;
-	
-	if(mode==0) {
-		if(ED_uvedit_minmax(scene, ima, obedit, min, max))
-			change = 1;
-	}
-	else if(mode==1) {
-		INIT_MINMAX2(min, max);
+	unsigned int sel= 0;
+
+	zero_v3(co);
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		if(!uvedit_face_visible(scene, ima, efa, tf))
+			continue;
 		
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-			if(!uvedit_face_visible(scene, ima, efa, tf))
-				continue;
-			
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				if (uvedit_uv_selected(em, scene, l)) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-	
-					DO_MINMAX2(luv->uv, min, max); 
-					change= 1;
-				}
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			if (uvedit_uv_selected(em, scene, l)) {
+				add_v2_v2(co, luv->uv);
+				sel++;
 			}
 		}
 	}
+
+	mul_v3_fl(co, 1.0f/(float)sel);
+
+	return (sel != 0);
+}
+
+static int uvedit_center(Scene *scene, Image *ima, Object *obedit, float *cent, char mode)
+{
+	float min[2], max[2];
+	int change= 0;
 	
+	if(mode==V3D_CENTER) { /* bounding box */
+		if(ED_uvedit_minmax(scene, ima, obedit, min, max)) {
+			change = 1;
+
+			cent[0]= (min[0]+max[0])/2.0f;
+			cent[1]= (min[1]+max[1])/2.0f;
+		}
+	}
+	else {
+		if(ED_uvedit_median(scene, ima, obedit, cent)) {
+			change = 1;
+		}
+
+	}
+
 	if(change) {
-		cent[0]= (min[0]+max[0])/2.0;
-		cent[1]= (min[1]+max[1])/2.0;
-		
 		return 1;
 	}
 
@@ -1024,7 +1052,8 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 	MLoopUV *luv;
 	UvVertMap *vmap;
 	UvMapVert *vlist, *iterv, *startv;
-	int a, i, nverts, stacksize= 0, *stack;
+	int i, nverts, stacksize= 0, *stack;
+	unsigned int a;
 	char *flag;
 
 	EDBM_init_index_arrays(em, 0, 0, 1); /* we can use this too */
@@ -1182,6 +1211,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 
 static void weld_align_uv(bContext *C, int tool)
 {
+	SpaceImage *sima;
 	Scene *scene;
 	Object *obedit;
 	Image *ima;
@@ -1197,6 +1227,7 @@ static void weld_align_uv(bContext *C, int tool)
 	obedit= CTX_data_edit_object(C);
 	em= ((Mesh*)obedit->data)->edit_btmesh;
 	ima= CTX_data_edit_image(C);
+	sima= CTX_wm_space_image(C);
 
 	INIT_MINMAX2(min, max);
 
@@ -1252,6 +1283,7 @@ static void weld_align_uv(bContext *C, int tool)
 		}
 	}
 
+	uvedit_live_unwrap_update(sima, scene, obedit);
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 }
@@ -1279,7 +1311,7 @@ static void UV_OT_align(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= align_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "axis", axis_items, 'a', "Axis", "Axis to align UV locations on.");
@@ -1333,6 +1365,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	obedit= CTX_data_edit_object(C);
 	em= ((Mesh*)obedit->data)->edit_btmesh;
 	ima= CTX_data_edit_image(C);
+	sima= CTX_wm_space_image(C);
 	
 	if(RNA_boolean_get(op->ptr, "use_limit")) {
 		UvVertMap *vmap;
@@ -1455,6 +1488,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		MEM_freeN(uv_average);
 	}
 
+	uvedit_live_unwrap_update(sima, scene, obedit);
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
@@ -1652,7 +1686,7 @@ static int sticky_select(float *limit, int hitv[4], int v, float *hituv[4], floa
 	for(i=0; i<hitlen; i++) {
 		if(hitv[i] == v) {
 			if(sticky == SI_STICKY_LOC) {
-				if(fabs(hituv[i][0]-uv[0]) < limit[0] && fabs(hituv[i][1]-uv[1]) < limit[1])
+				if(fabsf(hituv[i][0]-uv[0]) < limit[0] && fabsf(hituv[i][1]-uv[1]) < limit[1])
 					return 1;
 			}
 			else if(sticky == SI_STICKY_VERTEX)
@@ -1684,8 +1718,14 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	BLI_array_declare(hituv);
 	float penalty[2];
 
+	/* notice 'limit' is the same no matter the zoom level, since this is like
+	 * remove doubles and could annoying if it joined points when zoomed out.
+	 * 'penalty' is in screen pixel space otherwise zooming in on a uv-vert and
+	 * shift-selecting can consider an adjacent point close enough to add to
+	 * the selection rather then de-selecting the closest. */
+
 	uvedit_pixel_to_float(sima, limit, 0.05f);
-	uvedit_pixel_to_float(sima, penalty, 5.0f);
+	uvedit_pixel_to_float(sima, penalty, 5.0f / sima->zoom);
 
 	/* retrieve operation mode */
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
@@ -1977,7 +2017,7 @@ static void UV_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_exec;
 	ot->invoke= select_invoke;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -2026,7 +2066,7 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_loop_exec;
 	ot->invoke= select_loop_invoke;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -2104,7 +2144,7 @@ static void UV_OT_select_linked(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_linked_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -2132,7 +2172,7 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= select_linked_pick_invoke;
 	ot->exec= select_linked_pick_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
@@ -2192,12 +2232,12 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void UV_OT_unlink_selection(wmOperatorType *ot)
+static void UV_OT_unlink_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Unlink Selection";
 	ot->description= "Unlink selected UV vertices from active UV map";
-	ot->idname= "UV_OT_unlink_selection";
+	ot->idname= "UV_OT_unlink_selected";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -2265,7 +2305,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		UvMapVert *start_vlist=NULL, *vlist_iter;
 		struct UvVertMap *vmap;
 		float limit[2];
-		int efa_index;
+		unsigned int efa_index;
 		//BMVert *eve; /* removed vert counting for now */ 
 		//int a;
 		
@@ -2461,7 +2501,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= border_select_exec;
 	ot->modal= WM_border_select_modal;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2487,7 +2527,7 @@ static void select_uv_inside_ellipse(BMEditMesh *em, SpaceImage *sima, Scene *sc
 	y= (uv[1] - offset[1])*ell[1];
 
 	r2 = x*x + y*y;
-	if(r2 < 1.0) {
+	if(r2 < 1.0f) {
 		if(select) uvedit_uv_select(em, scene, l);
 		else uvedit_uv_deselect(em, scene, l);
 	}
@@ -2553,7 +2593,7 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;
 	ot->exec= circle_select_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2583,7 +2623,7 @@ static void snap_cursor_to_pixels(SpaceImage *sima)
 
 static int snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
-	return uvedit_center(scene, ima, obedit, sima->cursor, 0);
+	return uvedit_center(scene, ima, obedit, sima->cursor, sima->around);
 }
 
 static int snap_cursor_exec(bContext *C, wmOperator *op)
@@ -2594,7 +2634,7 @@ static int snap_cursor_exec(bContext *C, wmOperator *op)
 	Image *ima= CTX_data_edit_image(C);
 	int change= 0;
 
-	switch(RNA_boolean_get(op->ptr, "target")) {
+	switch(RNA_enum_get(op->ptr, "target")) {
 		case 0:
 			snap_cursor_to_pixels(sima);
 			change= 1;
@@ -2616,7 +2656,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
 		{0, "PIXELS", 0, "Pixels", ""},
-		{1, "SELECTION", 0, "Selection", ""},
+		{1, "SELECTED", 0, "Selected", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -2627,7 +2667,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= snap_cursor_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to.");
@@ -2798,7 +2838,7 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 	Image *ima= CTX_data_edit_image(C);
 	int change= 0;
 
-	switch(RNA_boolean_get(op->ptr, "target")) {
+	switch(RNA_enum_get(op->ptr, "target")) {
 		case 0:
 			change= snap_uvs_to_pixels(sima, scene, obedit);
 			break;
@@ -2812,14 +2852,15 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 
 	if(!change)
 		return OPERATOR_CANCELLED;
-	
+
+	uvedit_live_unwrap_update(sima, scene, obedit);
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
 
-static void UV_OT_snap_selection(wmOperatorType *ot)
+static void UV_OT_snap_selected(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
 		{0, "PIXELS", 0, "Pixels", ""},
@@ -2830,12 +2871,12 @@ static void UV_OT_snap_selection(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Snap Selection";
 	ot->description= "Snap selected UV vertices to target type";
-	ot->idname= "UV_OT_snap_selection";
+	ot->idname= "UV_OT_snap_selected";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec= snap_selection_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to.");
@@ -3051,6 +3092,8 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	BMIter iter, liter;
 	MTexPoly *tf;
 	MLoopUV *luv;
+	int facemode= sima ? sima->flag & SI_SELACTFACE : 0;
+	int stickymode= sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
 	
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BMINDEX_SET(v, BM_TestHFlag(v, BM_SELECT));
@@ -3063,22 +3106,79 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 
 		return OPERATOR_FINISHED;
 	}
-
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (em->selectmode == SCE_SELECT_FACE) {
-			uvedit_face_select(scene, em, efa);
-		} else {
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				if (!BMINDEX_GET(l->v)) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					luv->flag |= MLOOPUV_VERTSEL;
+	if(facemode) {
+		if(em->selectmode == SCE_SELECT_FACE) {
+			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+				if (!BM_TestHFlag(efa, BM_HIDDEN) && !BM_TestHFlag(efa, BM_SELECT)) {
+					BM_Select(em->bm, efa, 1);
+					BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+						luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+						luv->flag |= MLOOPUV_VERTSEL;
+					}
 				}
 			}
 		}
-
-		BM_Select(em->bm, efa, 1);
+		else {
+			/* enable adjacent faces to have disconnected UV selections if sticky is disabled */
+			if(!stickymode) {
+				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+					if (!BM_TestHFlag(efa, BM_HIDDEN) && !BM_TestHFlag(efa, BM_SELECT)) {
+						int totsel=0;
+						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+							totsel += BM_TestHFlag(l->v, BM_SELECT);
+						}
+						
+						if (!totsel) {
+							BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+								luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+								luv->flag |= MLOOPUV_VERTSEL;
+							}
+							
+							BM_Select(em->bm, efa, 1);
+						}
+					}
+				}
+			} else {
+				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+					if (!BM_TestHFlag(efa, BM_HIDDEN) && !BM_TestHFlag(efa, BM_SELECT)) {
+						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+							if (BM_TestHFlag(l->v, BM_SELECT)==0) {
+								luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+								luv->flag |= MLOOPUV_VERTSEL;
+							}
+						}
+						
+						BM_Select(em->bm, efa, 1);				
+					}
+				}
+			}
+		}
+	} else if(em->selectmode == SCE_SELECT_FACE) {
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			if (!BM_TestHFlag(efa, BM_HIDDEN) && !BM_TestHFlag(efa, BM_SELECT)) {
+				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					luv->flag |= MLOOPUV_VERTSEL;
+				}
+				
+				BM_Select(em->bm, efa, 1);
+			}
+		}
+	} else {
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			if (!BM_TestHFlag(efa, BM_HIDDEN) && !BM_TestHFlag(efa, BM_SELECT)) {
+				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+					if (BM_TestHFlag(l->v, BM_SELECT)==0) {
+						luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+						luv->flag |= MLOOPUV_VERTSEL;
+					}
+				}
+				
+				BM_Select(em->bm, efa, 1);				
+			}
+		}
 	}
-
+	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -3140,7 +3240,7 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= set_2d_cursor_exec;
 	ot->invoke= set_2d_cursor_invoke;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3184,7 +3284,7 @@ static int set_tile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	y= event->y - ar->winrct.ymin;
 	UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
 
-	if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
+	if(fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
 		fx= fx*ima->xrep;
 		fy= fy*ima->yrep;
 		
@@ -3208,7 +3308,7 @@ static void UV_OT_tile_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= set_tile_exec;
 	ot->invoke= set_tile_invoke;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3227,13 +3327,13 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
 	WM_operatortype_append(UV_OT_select_linked_pick);
-	WM_operatortype_append(UV_OT_unlink_selection);
+	WM_operatortype_append(UV_OT_unlink_selected);
 	WM_operatortype_append(UV_OT_select_pinned);
 	WM_operatortype_append(UV_OT_select_border);
 	WM_operatortype_append(UV_OT_circle_select);
 
 	WM_operatortype_append(UV_OT_snap_cursor);
-	WM_operatortype_append(UV_OT_snap_selection);
+	WM_operatortype_append(UV_OT_snap_selected);
 
 	WM_operatortype_append(UV_OT_align);
 	WM_operatortype_append(UV_OT_stitch);
@@ -3282,7 +3382,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "extend", TRUE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
 
-	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "UV_OT_unlink_selected", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);

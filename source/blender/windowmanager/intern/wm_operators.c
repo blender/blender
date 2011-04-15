@@ -655,7 +655,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		return op->type->exec(C, op);
 	}
 	else {
-		pup= uiPupMenuBegin(C, op->type->name, ICON_NULL);
+		pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
 		layout= uiPupMenuLayout(pup);
 		uiItemsFullEnumO(layout, op->type->idname, (char*)RNA_property_identifier(prop), op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
 		uiPupMenuEnd(C, pup);
@@ -764,7 +764,7 @@ int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message
 
 	pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 	layout= uiPupMenuLayout(pup);
-	uiItemFullO(layout, op->type->idname, message, ICON_NULL, properties, WM_OP_EXEC_REGION_WIN, 0);
+	uiItemFullO(layout, op->type->idname, message, ICON_NONE, properties, WM_OP_EXEC_REGION_WIN, 0);
 	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
@@ -906,7 +906,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiPopupBoundsBlock(block, 4, 0, 0);
 	uiEndBlock(C, block);
 
 	return block;
@@ -940,7 +940,6 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	wmOperator *op= data->op;
 	uiBlock *block;
 	uiLayout *layout;
-	uiBut *btn;
 	uiStyle *style= U.uistyles.first;
 
 	block = uiBeginBlock(C, ar, "operator dialog", UI_EMBOSS);
@@ -956,12 +955,21 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	/* clear so the OK button is left alone */
 	uiBlockSetFunc(block, NULL, NULL, NULL);
 
-	/* Create OK button, the callback of which will execute op */
-	btn= uiDefBut(block, BUT, 0, "OK", 0, 0, 0, 20, NULL, 0, 0, 0, 0, "");
-	uiButSetFunc(btn, dialog_exec_cb, op, block);
+	/* new column so as not to interfear with custom layouts [#26436] */
+	{
+		uiBlock *col_block;
+		uiLayout *col;
+		uiBut *btn;
+
+		col= uiLayoutColumn(layout, FALSE);
+		col_block= uiLayoutGetBlock(col);
+		/* Create OK button, the callback of which will execute op */
+		btn= uiDefBut(col_block, BUT, 0, "OK", 0, -30, 0, 20, NULL, 0, 0, 0, 0, "");
+		uiButSetFunc(btn, dialog_exec_cb, op, col_block);
+	}
 
 	/* center around the mouse */
-	uiPopupBoundsBlock(block, 4.0f, data->width/-2, data->height/2);
+	uiPopupBoundsBlock(block, 4, data->width/-2, data->height/2);
 	uiEndBlock(C, block);
 
 	return block;
@@ -984,7 +992,7 @@ static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 	/* since ui is defined the auto-layout args are not used */
 	uiLayoutOperatorButs(C, layout, op, NULL, 'V', 0);
 
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiPopupBoundsBlock(block, 4, 0, 0);
 	uiEndBlock(C, block);
 
 	return block;
@@ -1033,8 +1041,13 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)
 {
+	/* CTX_wm_reports(C) because operator is on stack, not active in event system */
 	if((op->type->flag & OPTYPE_REGISTER)==0) {
-		BKE_reportf(op->reports, RPT_ERROR, "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		return OPERATOR_CANCELLED;
+	}
+	if(op->type->poll && op->type->poll(C)==0) {
+		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s': wrong context.", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1094,6 +1107,29 @@ static void wm_block_splash_refreshmenu (bContext *UNUSED(C), void *UNUSED(arg_b
 	  */
 }
 
+static int wm_resource_check_prev(void)
+{
+
+	char *res= BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION, TRUE);
+
+	// if(res) printf("USER: %s\n", res);
+
+#if 0 /* ignore the local folder */
+	if(res == NULL) {
+		/* with a local dir, copying old files isnt useful since local dir get priority for config */
+		res= BLI_get_folder_version(BLENDER_RESOURCE_PATH_LOCAL, BLENDER_VERSION, TRUE);
+	}
+#endif
+
+	// if(res) printf("LOCAL: %s\n", res);
+	if(res) {
+		return FALSE;
+	}
+	else {
+		return (BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION - 1, TRUE) != NULL);
+	}
+}
+
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	uiBlock *block;
@@ -1103,7 +1139,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	struct RecentFile *recent;
 	int i;
 	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);
-	char url[64];
+	char url[96];
 	
 #ifdef NAN_BUILDINFO
 	int ver_width, rev_width;
@@ -1120,8 +1156,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	sprintf(revision_str, "r%s", build_rev);
 	
 	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
-	ver_width = BLF_width(style->widgetlabel.uifont_id, version_str)+5;
-	rev_width = BLF_width(style->widgetlabel.uifont_id, revision_str)+5;
+	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_str) + 5;
+	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_str) + 5;
 #endif //NAN_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
@@ -1141,13 +1177,13 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	/* show the splash menu (containing interaction presets), using python */
 	if (mt) {
-		Menu menu= {0};
+		Menu menu= {NULL};
 		menu.layout= layout;
 		menu.type= mt;
 		mt->draw(C, &menu);
 
 //		wmWindowManager *wm= CTX_wm_manager(C);
-//		uiItemM(layout, C, "USERPREF_MT_keyconfigs", U.keyconfigstr, ICON_NULL);
+//		uiItemM(layout, C, "USERPREF_MT_keyconfigs", U.keyconfigstr, ICON_NONE);
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSSP);
@@ -1155,26 +1191,38 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	
 	split = uiLayoutSplit(layout, 0, 0);
 	col = uiLayoutColumn(split, 0);
-	uiItemL(col, "Links", ICON_NULL);
+	uiItemL(col, "Links", ICON_NONE);
 	uiItemStringO(col, "Donations", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment/");
-	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-256-beta/");
+	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-257/");
 	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:Manual");
 	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
 	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/"); // 
-	BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d_%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+	if(strcmp(STRINGIFY(BLENDER_VERSION_CYCLE), "release")==0) {
+		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d" STRINGIFY(BLENDER_VERSION_CHAR) "_release", BLENDER_VERSION/100, BLENDER_VERSION%100);
+	}
+	else {
+		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d_%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+	}
 	uiItemStringO(col, "Python API Reference", ICON_URL, "WM_OT_url_open", "url", url);
-	uiItemL(col, "", ICON_NULL);
+	uiItemL(col, "", ICON_NONE);
 
 	col = uiLayoutColumn(split, 0);
-	uiItemL(col, "Recent", ICON_NULL);
+
+	if(wm_resource_check_prev()) {
+		uiItemO(col, NULL, ICON_NEW, "WM_OT_copy_prev_settings");
+		uiItemS(col);
+	}
+
+	uiItemL(col, "Recent", ICON_NONE);
 	for(recent = G.recent_files.first, i=0; (i<5) && (recent); recent = recent->next, i++) {
 		uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
 	}
+
 	uiItemS(col);
 	uiItemO(col, NULL, ICON_RECOVER_LAST, "WM_OT_recover_last_session");
-	uiItemL(col, "", ICON_NULL);
+	uiItemL(col, "", ICON_NONE);
 	
-	uiCenteredBoundsBlock(block, 0.0f);
+	uiCenteredBoundsBlock(block, 0);
 	uiEndBlock(C, block);
 	
 	return block;
@@ -1251,7 +1299,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
-	uiPopupBoundsBlock(block, 6.0f, 0, -20); /* move it downwards, mouse over button */
+	uiPopupBoundsBlock(block, 6, 0, -20); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
 	
 	event= *(win->eventstate);	/* XXX huh huh? make api call */
@@ -1312,6 +1360,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 	ot->idname= "WM_OT_call_menu";
 
 	ot->exec= wm_call_menu_exec;
+	ot->poll= WM_operator_winactive;
 
 	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the menu");
 }
@@ -1383,8 +1432,12 @@ static void open_set_load_ui(wmOperator *op)
 
 static void open_set_use_scripts(wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "use_scripts"))
-		RNA_boolean_set(op->ptr, "use_scripts", !(U.flag & USER_SCRIPT_AUTOEXEC_DISABLE));
+	if(!RNA_property_is_set(op->ptr, "use_scripts")) {
+		/* use G_SCRIPT_AUTOEXEC rather then the userpref because this means if
+		 * the flag has been disabled from the command line, then opening
+		 * from the menu wont enable this setting. */
+		RNA_boolean_set(op->ptr, "use_scripts", (G.f & G_SCRIPT_AUTOEXEC));
+	}
 }
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
@@ -1480,26 +1533,11 @@ static short wm_link_append_flag(wmOperator *op)
 	return flag;
 }
 
-static void wm_link_make_library_local(Main *main, const char *libname)
-{
-	Library *lib;
-
-	/* and now find the latest append lib file */
-	for(lib= main->library.first; lib; lib=lib->id.next)
-		if(BLI_streq(libname, lib->filepath))
-			break;
-	
-	/* make local */
-	if(lib) {
-		all_local(lib, 1);
-	}
-}
-
 static int wm_link_append_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	Main *mainl= 0;
+	Main *mainl= NULL;
 	BlendHandle *bh;
 	PropertyRNA *prop;
 	char name[FILE_MAX], dir[FILE_MAX], libname[FILE_MAX], group[GROUP_MAX];
@@ -1519,7 +1557,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
 		return OPERATOR_CANCELLED;
 	}
-	else if(BLI_streq(bmain->name, libname)) {
+	else if(BLI_path_cmp(bmain->name, libname) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot use current file as library");
 		return OPERATOR_CANCELLED;
 	}
@@ -1540,12 +1578,23 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	bh = BLO_blendhandle_from_file(libname, op->reports);
+
+	if(bh == NULL) {
+		/* unlikely since we just browsed it, but possible
+		 * error reports will have been made by BLO_blendhandle_from_file() */
+		return OPERATOR_CANCELLED;
+	}
+
+
+	/* from here down, no error returns */
+
+	idcode = BKE_idcode_from_name(group);
+
 	/* now we have or selected, or an indicated file */
 	if(RNA_boolean_get(op->ptr, "autoselect"))
 		scene_deselect_all(scene);
 
-	bh = BLO_blendhandle_from_file(libname);
-	idcode = BKE_idcode_from_name(group);
 	
 	flag = wm_link_append_flag(op);
 
@@ -1581,8 +1630,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	recalc_all_library_objects(bmain);
 
 	/* append, rather than linking */
-	if((flag & FILE_LINK)==0)
-		wm_link_make_library_local(bmain, libname);
+	if((flag & FILE_LINK)==0) {
+		Library *lib= BLI_findstring(&bmain->library, libname, offsetof(Library, filepath));
+		if(lib)	all_local(lib, 1);
+		else	BLI_assert(!"cant find name of just added library!");
+	}
 
 	/* important we unset, otherwise these object wont
 	 * link into other scenes from this blend file */
@@ -1982,7 +2034,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 /* *********************** */
 #if defined(WIN32)
 static int console= 1;
-void WM_toggle_console(bContext *UNUSED(C), short show)
+void WM_console_toggle(bContext *UNUSED(C), short show)
 {
 	if(show) {
 		ShowWindow(GetConsoleWindow(),SW_SHOW);
@@ -1994,24 +2046,24 @@ void WM_toggle_console(bContext *UNUSED(C), short show)
 	}
 }
 
-static int wm_toggle_console_op(bContext *C, wmOperator *UNUSED(op))
+static int wm_console_toggle_op(bContext *C, wmOperator *UNUSED(op))
 {
 	if(console) {
-		WM_toggle_console(C, 0);
+		WM_console_toggle(C, 0);
 	}
 	else {
-		WM_toggle_console(C, 1);
+		WM_console_toggle(C, 1);
 	}
 	return OPERATOR_FINISHED;
 }
 
-static void WM_OT_toggle_console(wmOperatorType *ot)
+static void WM_OT_console_toggle(wmOperatorType *ot)
 {
 	ot->name= "Toggle System Console";
-	ot->idname= "WM_OT_toggle_console";
+	ot->idname= "WM_OT_console_toggle";
 	ot->description= "Toggle System Console";
 	
-	ot->exec= wm_toggle_console_op;
+	ot->exec= wm_console_toggle_op;
 	ot->poll= WM_operator_winactive;
 }
 #endif
@@ -2064,31 +2116,34 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
    It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
 */
 
-static int border_apply(bContext *C, wmOperator *op, int gesture_mode)
+static int border_apply_rect(wmOperator *op)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	
-	if(rect->xmin > rect->xmax)
-		SWAP(int, rect->xmin, rect->xmax);
-	if(rect->ymin > rect->ymax)
-		SWAP(int, rect->ymin, rect->ymax);
-	
 	if(rect->xmin==rect->xmax || rect->ymin==rect->ymax)
 		return 0;
-		
+
+	
 	/* operator arguments and storage. */
-	RNA_int_set(op->ptr, "xmin", rect->xmin);
-	RNA_int_set(op->ptr, "ymin", rect->ymin);
-	RNA_int_set(op->ptr, "xmax", rect->xmax);
-	RNA_int_set(op->ptr, "ymax", rect->ymax);
+	RNA_int_set(op->ptr, "xmin", MIN2(rect->xmin, rect->xmax) );
+	RNA_int_set(op->ptr, "ymin", MIN2(rect->ymin, rect->ymax) );
+	RNA_int_set(op->ptr, "xmax", MAX2(rect->xmin, rect->xmax) );
+	RNA_int_set(op->ptr, "ymax", MAX2(rect->ymin, rect->ymax) );
+
+	return 1;
+}
+
+static int border_apply(bContext *C, wmOperator *op, int gesture_mode)
+{
+	if (!border_apply_rect(op))
+		return 0;
 	
 	/* XXX weak; border should be configured for this without reading event types */
 	if( RNA_struct_find_property(op->ptr, "gesture_mode") )
 		RNA_int_set(op->ptr, "gesture_mode", gesture_mode);
 
 	op->type->exec(C, op);
-	
 	return 1;
 }
 
@@ -2137,6 +2192,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			rect->xmax= event->x - sx;
 			rect->ymax= event->y - sy;
 		}
+		border_apply_rect(op);
 
 		wm_gesture_tag_redraw(C);
 	}
@@ -2649,7 +2705,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	// int hit = 0;
 	
 	if(rc->mode == WM_RADIALCONTROL_STRENGTH)
-		rc->tex_col[3]= (rc->value + 0.5);
+		rc->tex_col[3]= (rc->value + 0.5f);
 
 	if(rc->mode == WM_RADIALCONTROL_SIZE) {
 		r1= rc->value;
@@ -2657,9 +2713,9 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 		r3= r1;
 	} else if(rc->mode == WM_RADIALCONTROL_STRENGTH) {
 		r1= (1 - rc->value) * WM_RADIAL_CONTROL_DISPLAY_SIZE;
-		r2= r3= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		r2= r3= (float)WM_RADIAL_CONTROL_DISPLAY_SIZE;
 	} else if(rc->mode == WM_RADIALCONTROL_ANGLE) {
-		r1= r2= r3= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		r1= r2= r3= (float)WM_RADIAL_CONTROL_DISPLAY_SIZE;
 		angle = rc->value;
 	}
 
@@ -2700,15 +2756,15 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 		glColor4f(rc->col[0], rc->col[1], rc->col[2], rc->col[3]);
 		glEnable(GL_LINE_SMOOTH);
 		glRotatef(-angle, 0, 0, 1);
-		fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
+		fdrawline(0.0f, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		glRotatef(angle, 0, 0, 1);
-		fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
+		fdrawline(0.0f, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		glDisable(GL_LINE_SMOOTH);
 	}
 
 	glColor4f(rc->col[0], rc->col[1], rc->col[2], rc->col[3]);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, r1, 40);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, r2, 40);
+	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r1, 40);
+	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r2, 40);
 	glDisable(GL_BLEND);
 }
 
@@ -2721,7 +2777,7 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int ret = OPERATOR_RUNNING_MODAL;
 	// float initial_value = RNA_float_get(op->ptr, "initial_value");
 
-	mode = RNA_int_get(op->ptr, "mode");
+	mode = RNA_enum_get(op->ptr, "mode");
 	RNA_int_get_array(op->ptr, "initial_mouse", initial_mouse);
 
 	switch(event->type) {
@@ -2738,18 +2794,18 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 		//	delta[1]+= WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(initial_value*M_PI/180.0f);
 		//}
 
-		dist= sqrt(delta[0]*delta[0]+delta[1]*delta[1]);
+		dist= sqrtf(delta[0]*delta[0]+delta[1]*delta[1]);
 
 		if(mode == WM_RADIALCONTROL_SIZE)
 			new_value = dist;
 		else if(mode == WM_RADIALCONTROL_STRENGTH) {
 			new_value = 1 - dist / WM_RADIAL_CONTROL_DISPLAY_SIZE;
 		} else if(mode == WM_RADIALCONTROL_ANGLE)
-			new_value = ((int)(atan2(delta[1], delta[0]) * (180.0 / M_PI)) + 180);
+			new_value = ((int)(atan2f(delta[1], delta[0]) * (float)(180.0 / M_PI)) + 180);
 		
 		if(event->ctrl) {
 			if(mode == WM_RADIALCONTROL_STRENGTH)
-				new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
+				new_value = ((int)ceilf(new_value * 10.f) * 10.0f) / 100.f;
 			else
 				new_value = ((int)new_value + 5) / 10*10;
 		}
@@ -2773,9 +2829,9 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 		new_value = 0;
 
 	/* Update paint data */
-	rc->value = new_value;
+	rc->value = (float)new_value;
 
-	RNA_float_set(op->ptr, "new_value", new_value);
+	RNA_float_set(op->ptr, "new_value", rc->value);
 
 	if(ret != OPERATOR_RUNNING_MODAL) {
 		WM_paint_cursor_end(CTX_wm_manager(C), rc->cursor);
@@ -2797,7 +2853,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmRadialControl *rc = MEM_callocN(sizeof(wmRadialControl), "radial control");
 	// wmWindow *win = CTX_wm_window(C);
-	int mode = RNA_int_get(op->ptr, "mode");
+	int mode = RNA_enum_get(op->ptr, "mode");
 	float initial_value = RNA_float_get(op->ptr, "initial_value");
 	//float initial_size = RNA_float_get(op->ptr, "initial_size");
 	int mouse[2];
@@ -2810,17 +2866,17 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if(mode == WM_RADIALCONTROL_SIZE) {
 		rc->max_value = 200;
-		mouse[0]-= initial_value;
+		mouse[0]-= (int)initial_value;
 	}
 	else if(mode == WM_RADIALCONTROL_STRENGTH) {
 		rc->max_value = 1;
-		mouse[0]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * (1 - initial_value);
+		mouse[0]-= (int)(WM_RADIAL_CONTROL_DISPLAY_SIZE * (1.0f - initial_value));
 	}
 	else if(mode == WM_RADIALCONTROL_ANGLE) {
 		rc->max_value = 360;
-		mouse[0]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(initial_value);
-		mouse[1]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(initial_value);
-		initial_value *= 180.0f/M_PI;
+		mouse[0]-= (int)(WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(initial_value));
+		mouse[1]-= (int)(WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(initial_value));
+		initial_value *= 180.0f/(float)M_PI;
 	}
 
 	if(op->customdata) {
@@ -2860,7 +2916,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 /* Gets a descriptive string of the operation */
 void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
 {
-	int mode = RNA_int_get(op->ptr, "mode");
+	int mode = RNA_enum_get(op->ptr, "mode");
 	float v = RNA_float_get(op->ptr, "new_value");
 
 	if(mode == WM_RADIALCONTROL_SIZE)
@@ -2868,7 +2924,7 @@ void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		BLI_snprintf(str, maxlen, "Strength: %d", (int)v);
 	else if(mode == WM_RADIALCONTROL_ANGLE)
-		BLI_snprintf(str, maxlen, "Angle: %d", (int)(v * 180.0f/M_PI));
+		BLI_snprintf(str, maxlen, "Angle: %d", (int)(v * 180.0f/(float)M_PI));
 }
 
 /** Important: this doesn't define an actual operator, it
@@ -2929,7 +2985,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	double stime= PIL_check_seconds_timer();
-	int type = RNA_int_get(op->ptr, "type");
+	int type = RNA_enum_get(op->ptr, "type");
 	int iter = RNA_int_get(op->ptr, "iterations");
 	int a;
 	float time;
@@ -3008,7 +3064,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	time= ((PIL_check_seconds_timer()-stime)*1000);
+	time= (float)((PIL_check_seconds_timer()-stime)*1000);
 
 	RNA_enum_description(redraw_timer_type_items, type, &infostr);
 
@@ -3091,7 +3147,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
 #if defined(WIN32)
-	WM_operatortype_append(WM_OT_toggle_console);
+	WM_operatortype_append(WM_OT_console_toggle);
 #endif
 
 #ifdef WITH_COLLADA

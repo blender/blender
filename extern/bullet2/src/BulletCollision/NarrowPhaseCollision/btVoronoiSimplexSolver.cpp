@@ -68,7 +68,7 @@ void btVoronoiSimplexSolver::reset()
 	m_cachedValidClosest = false;
 	m_numVertices = 0;
 	m_needsUpdate = true;
-	m_lastW = btVector3(btScalar(1e30),btScalar(1e30),btScalar(1e30));
+	m_lastW = btVector3(btScalar(BT_LARGE_FLOAT),btScalar(BT_LARGE_FLOAT),btScalar(BT_LARGE_FLOAT));
 	m_cachedBC.reset();
 }
 
@@ -289,7 +289,11 @@ bool btVoronoiSimplexSolver::inSimplex(const btVector3& w)
 	//w is in the current (reduced) simplex
 	for (i=0;i<numverts;i++)
 	{
+#ifdef BT_USE_EQUAL_VERTEX_THRESHOLD
+		if ( m_simplexVectorW[i].distance2(w) <= m_equalVertexThreshold)
+#else
 		if (m_simplexVectorW[i] == w)
+#endif
 			found = true;
 	}
 

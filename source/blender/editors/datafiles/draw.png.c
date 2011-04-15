@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/draw.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <draw_png> */
 
 int datatoc_draw_png_size= 11349;

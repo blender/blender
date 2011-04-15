@@ -27,64 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* Note: Changes to Mathutils since 2.4x
- * use radians rather then degrees
- * - Mathutils.Vector/Euler/Quaternion(), now only take single sequence arguments.
- * - Mathutils.MidpointVecs --> vector.lerp(other, fac)
- * - Mathutils.AngleBetweenVecs --> vector.angle(other)
- * - Mathutils.ProjectVecs --> vector.project(other)
- * - Mathutils.DifferenceQuats --> quat.difference(other)
- * - Mathutils.Slerp --> quat.slerp(other, fac)
- * - Mathutils.Rand: removed, use pythons random module
- * - Mathutils.RotationMatrix(angle, size, axis_flag, axis) --> Mathutils.RotationMatrix(angle, size, axis); merge axis & axis_flag args
- * - Mathutils.OrthoProjectionMatrix(plane, size, axis) --> Mathutils.OrthoProjectionMatrix(axis, size); merge axis & plane args
- * - Mathutils.ShearMatrix(plane, factor, size) --> Mathutils.ShearMatrix(plane, size, factor); swap size & factor args, match other constructors.
- * - Matrix.scalePart --> Matrix.scale_part
- * - Matrix.translationPart --> Matrix.translation_part
- * - Matrix.rotationPart --> Matrix.rotation_part
- * - mathutils.Matrix.Shear(plane, fac, size), now takes a pair of floats for 3x3 or 4x4 shear factor.
- * - toMatrix --> to_matrix
- * - toEuler --> to_euler
- * - toQuat --> to_quat
- * - Vector.toTrackQuat --> Vector.to_track_quat
- * - Vector.rotate(axis, angle) --> rotate(other), where other can be Euler/Quaternion/Matrix.
- * - Quaternion * Quaternion --> cross product (not dot product)
- * - Euler.rotate(angle, axis) --> Euler.rotate_axis(axis, angle)
- * - Euler.unique() *removed*, not a standard function only toggled different rotations.
- * - Matrix.rotation_part() -> to_3x3()
- * - Matrix.scale_part() -> to_scale()
- * - Matrix.translation_part() -> to_translation()
- * - Matrix.resize4x4() -> resize_4x4()
- * - Euler.to_quat() -> to_quaternion()
- * - Matrix.to_quat() -> to_quaternion()
- * resizing nolonger returns the resized value.
- * - Vector.resize2D -> resize_2d
- * - Vector.resize3D -> resize_3d
- * - Vector.resize4D -> resize_4d
- * added new functions.
- * - Vector.to_2d()
- * - Vector.to_3d()
- * - Vector.to_4d()
- * moved into class functions.
- * - Mathutils.RotationMatrix -> mathutils.Matrix.Rotation
- * - Mathutils.ScaleMatrix -> mathutils.Matrix.Scale
- * - Mathutils.ShearMatrix -> mathutils.Matrix.Shear
- * - Mathutils.TranslationMatrix -> mathutils.Matrix.Translation
- * - Mathutils.OrthoProjectionMatrix -> mathutils.Matrix.OrthoProjection
- *
- * Moved to Geometry module: Intersect, TriangleArea, TriangleNormal, QuadNormal, LineIntersect
- * - geometry.Intersect -> intersect_ray_tri
- * - geometry.ClosestPointOnLine -> intersect_point_line
- * - geometry.PointInTriangle2D -> intersect_point_tri_2d
- * - geometry.PointInQuad2D -> intersect_point_quad_2d
- * - geometry.LineIntersect -> intersect_line_line
- * - geometry.LineIntersect2D -> intersect_line_line_2d
- * - geometry.BezierInterp -> interpolate_bezier
- * - geometry.TriangleArea -> area_tri
- * - geometry.QuadNormal, TriangleNormal -> normal
- * - geometry.PolyFill -> tesselate_polygon
- * - geometry.BoxPack2D -> box_pack_2d
- * - geometry.BarycentricTransform -> barycentric_transform
+/** \file blender/python/generic/mathutils.c
+ *  \ingroup pygen
  */
 
 #include <Python.h>
@@ -94,9 +38,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-
-
-//-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] =
 "This module provides access to matrices, eulers, quaternions and vectors."
 ;
@@ -125,7 +66,7 @@ static int mathutils_array_parse_fast(float *array, int array_min, int array_max
 	i= size;
 	do {
 		i--;
-		if(((array[i]= PyFloat_AsDouble((item= PySequence_Fast_GET_ITEM(value_fast, i)))) == -1.0) && PyErr_Occurred()) {
+		if(((array[i]= PyFloat_AsDouble((item= PySequence_Fast_GET_ITEM(value_fast, i)))) == -1.0f) && PyErr_Occurred()) {
 			PyErr_Format(PyExc_ValueError, "%.200s: sequence index %d expected a number, found '%.200s' type, ", error_prefix, i, Py_TYPE(item)->tp_name);
 			Py_DECREF(value_fast);
 			return -1;
@@ -147,7 +88,7 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 		(QuaternionObject_Check(value) && (size= 4)) ||
 		(ColorObject_Check(value) && (size= 3))
 	) {
-		if(!BaseMath_ReadCallback((BaseMathObject *)value)) {
+		if(BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
 
@@ -170,7 +111,7 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix)
 {
 	if(EulerObject_Check(value)) {
-		if(!BaseMath_ReadCallback((BaseMathObject *)value)) {
+		if(BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
 		else {
@@ -179,7 +120,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 		}
 	}
 	else if (QuaternionObject_Check(value)) {
-		if(!BaseMath_ReadCallback((BaseMathObject *)value)) {
+		if(BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
 		else {
@@ -190,7 +131,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 		}
 	}
 	else if (MatrixObject_Check(value)) {
-		if(!BaseMath_ReadCallback((BaseMathObject *)value)) {
+		if(BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
 		else if(((MatrixObject *)value)->col_size < 3 || ((MatrixObject *)value)->row_size < 3) {
@@ -269,45 +210,45 @@ int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 int _BaseMathObject_ReadCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get(self, self->cb_subtype))
-		return 1;
+	if(cb->get(self, self->cb_subtype) != -1)
+		return 0;
 
 	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_RuntimeError, "%s user has become invalid", Py_TYPE(self)->tp_name);
-	return 0;
+		PyErr_Format(PyExc_RuntimeError, "%s read, user has become invalid", Py_TYPE(self)->tp_name);
+	return -1;
 }
 
 int _BaseMathObject_WriteCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set(self, self->cb_subtype))
-		return 1;
+	if(cb->set(self, self->cb_subtype) != -1)
+		return 0;
 
 	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_RuntimeError, "%s user has become invalid", Py_TYPE(self)->tp_name);
-	return 0;
+		PyErr_Format(PyExc_RuntimeError, "%s write, user has become invalid", Py_TYPE(self)->tp_name);
+	return -1;
 }
 
 int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get_index(self, self->cb_subtype, index))
-		return 1;
+	if(cb->get_index(self, self->cb_subtype, index) != -1)
+		return 0;
 
 	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_RuntimeError, "%s user has become invalid", Py_TYPE(self)->tp_name);
-	return 0;
+		PyErr_Format(PyExc_RuntimeError, "%s read index, user has become invalid", Py_TYPE(self)->tp_name);
+	return -1;
 }
 
 int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set_index(self, self->cb_subtype, index))
-		return 1;
+	if(cb->set_index(self, self->cb_subtype, index) != -1)
+		return 0;
 
 	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_RuntimeError, "%s user has become invalid", Py_TYPE(self)->tp_name);
-	return 0;
+		PyErr_Format(PyExc_RuntimeError, "%s write index, user has become invalid", Py_TYPE(self)->tp_name);
+	return -1;
 }
 
 /* BaseMathObject generic functions for all mathutils types */
@@ -344,7 +285,10 @@ void BaseMathObject_dealloc(BaseMathObject *self)
 		PyMem_Free(self->data);
 	}
 
-	BaseMathObject_clear(self);
+	if(self->cb_user) {
+		PyObject_GC_UnTrack(self);
+		BaseMathObject_clear(self);
+	}
 
 	Py_TYPE(self)->tp_free(self); // PyObject_DEL(self); // breaks subtypes
 }
@@ -371,28 +315,28 @@ PyMODINIT_FUNC BPyInit_mathutils(void)
 	PyObject *submodule;
 	PyObject *item;
 
-	if( PyType_Ready( &vector_Type ) < 0 )
+	if(PyType_Ready(&vector_Type) < 0)
 		return NULL;
-	if( PyType_Ready( &matrix_Type ) < 0 )
+	if(PyType_Ready(&matrix_Type) < 0)
 		return NULL;	
-	if( PyType_Ready( &euler_Type ) < 0 )
+	if(PyType_Ready(&euler_Type) < 0)
 		return NULL;
-	if( PyType_Ready( &quaternion_Type ) < 0 )
+	if(PyType_Ready(&quaternion_Type) < 0)
 		return NULL;
-	if( PyType_Ready( &color_Type ) < 0 )
+	if(PyType_Ready(&color_Type) < 0)
 		return NULL;
 
 	submodule = PyModule_Create(&M_Mathutils_module_def);
 	
 	/* each type has its own new() function */
-	PyModule_AddObject( submodule, "Vector",		(PyObject *)&vector_Type );
-	PyModule_AddObject( submodule, "Matrix",		(PyObject *)&matrix_Type );
-	PyModule_AddObject( submodule, "Euler",			(PyObject *)&euler_Type );
-	PyModule_AddObject( submodule, "Quaternion",	(PyObject *)&quaternion_Type );
-	PyModule_AddObject( submodule, "Color",			(PyObject *)&color_Type );
+	PyModule_AddObject(submodule, "Vector",		(PyObject *)&vector_Type);
+	PyModule_AddObject(submodule, "Matrix",		(PyObject *)&matrix_Type);
+	PyModule_AddObject(submodule, "Euler",		(PyObject *)&euler_Type);
+	PyModule_AddObject(submodule, "Quaternion",	(PyObject *)&quaternion_Type);
+	PyModule_AddObject(submodule, "Color",		(PyObject *)&color_Type);
 	
 	/* submodule */
-	PyModule_AddObject( submodule, "geometry",		(item=BPyInit_mathutils_geometry()));
+	PyModule_AddObject(submodule, "geometry",		(item=BPyInit_mathutils_geometry()));
 	/* XXX, python doesnt do imports with this usefully yet
 	 * 'from mathutils.geometry import PolyFill'
 	 * ...fails without this. */

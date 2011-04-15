@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/grab.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <grab_png> */
 
 int datatoc_grab_png_size= 8045;

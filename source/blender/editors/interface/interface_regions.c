@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/interface_regions.c
+ *  \ingroup edinterface
+ */
+
+
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -524,9 +529,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			x2= winx;
 		}
 	}
-	if(y1 < 0) {
-		y1 += 56;
-		y2 += 56;
+	/* ensure at least 5 px above screen bounds
+	 * 25 is just a guess to be above the menu item */
+	if(y1 < 5) {
+		y2 += (-y1) + 30;
+		y1 = 30;
 	}
 
 	/* widget rect, in region coords */
@@ -678,7 +685,7 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 		rect->xmin += col * butw;
 		rect->xmax = rect->xmin + butw;
 		
-		rect->ymax = data->bbox.ymax - (row * buth);
+		rect->ymax = data->bbox.ymax - MENU_TOP - (row * buth);
 		rect->ymin = rect->ymax - buth;
 	}
 	/* list view */
@@ -980,7 +987,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->bbox.ymax= (ar->winrct.ymax-ar->winrct.ymin) - MENU_SHADOW_BOTTOM;
 		
 		/* check if button is lower half */
-		if( but->y2 < (but->block->minx+but->block->maxx)/2 ) {
+		if( but->y2 < (but->block->miny+but->block->maxy)/2 ) {
 			data->bbox.ymin += (but->y2-but->y1);
 		}
 		else {
@@ -1034,7 +1041,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 		if(y1 < 0) { /* XXX butregion NULL check?, there is one above */
 			int newy1;
-			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->y2 + ofsy, 0, &newy1);
+			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->y2 + ofsy, NULL, &newy1);
 			newy1 += butregion->winrct.ymin;
 
 			y2= y2-y1 + newy1;
@@ -1086,9 +1093,17 @@ void ui_searchbox_free(bContext *C, ARegion *ar)
 /* XXX weak: search_func adds all partial matches... */
 void ui_but_search_test(uiBut *but)
 {
-	uiSearchItems *items= MEM_callocN(sizeof(uiSearchItems), "search items");
+	uiSearchItems *items;
 	int x1;
-	
+
+	/* possibly very large lists (such as ID datablocks) only
+	 * only validate string RNA buts (not pointers) */
+	if(but->rnaprop && RNA_property_type(but->rnaprop) != PROP_STRING) {
+		return;
+	}
+
+	items= MEM_callocN(sizeof(uiSearchItems), "search items");
+
 	/* setup search struct */
 	items->maxitem= 10;
 	items->maxstrlen= 256;
@@ -1180,9 +1195,9 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		if(block->direction & UI_CENTER) center= ysize/2;
 		else center= 0;
 
-		if( butrct.xmin-xsize > 0.0) left= 1;
+		if( butrct.xmin-xsize > 0.0f) left= 1;
 		if( butrct.xmax+xsize < winx) right= 1;
-		if( butrct.ymin-ysize+center > 0.0) down= 1;
+		if( butrct.ymin-ysize+center > 0.0f) down= 1;
 		if( butrct.ymax+ysize-center < winy) top= 1;
 		
 		dir1= block->direction & UI_DIRECTION;
@@ -1295,8 +1310,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 	/* safety calculus */
 	if(but) {
-		float midx= (butrct.xmin+butrct.xmax)/2.0;
-		float midy= (butrct.ymin+butrct.ymax)/2.0;
+		float midx= (butrct.xmin+butrct.xmax)/2.0f;
+		float midy= (butrct.ymin+butrct.ymax)/2.0f;
 		
 		/* when you are outside parent button, safety there should be smaller */
 		
@@ -1495,7 +1510,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			uiItemL(layout, md->title, md->titleicon);
 		}
 		else {
-			uiItemL(layout, md->title, ICON_NULL);
+			uiItemL(layout, md->title, ICON_NONE);
 			bt= block->buttons.last;
 			bt->flag= UI_TEXT_LEFT;
 		}
@@ -1895,7 +1910,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 3, "Blue");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 
-	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NULL);
+	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NONE);
 	// but need to use uiButSetFunc for updating other fake buttons
 	
 	/* HSV values */
@@ -2420,7 +2435,7 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 	if(mt->poll && mt->poll(C, mt)==0)
 		return;
 
-	pup= uiPupMenuBegin(C, mt->label, ICON_NULL);
+	pup= uiPupMenuBegin(C, mt->label, ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 
 	menu.layout= layout;

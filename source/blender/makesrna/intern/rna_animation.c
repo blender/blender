@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_animation.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "RNA_access.h"
@@ -164,9 +169,9 @@ static void rna_KeyingSetInfo_unregister(const bContext *C, StructRNA *type)
 
 static StructRNA *rna_KeyingSetInfo_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
-	KeyingSetInfo dummyksi = {0};
+	KeyingSetInfo dummyksi = {NULL};
 	KeyingSetInfo *ksi;
-	PointerRNA dummyptr = {{0}};
+	PointerRNA dummyptr = {{NULL}};
 	int have_function[3];
 
 	/* setup dummy type info to store static properties in */
@@ -545,7 +550,8 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Data Path", "Path to property setting");
 	RNA_def_struct_name_property(srna, prop); // XXX this is the best indicator for now...
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL);
-	
+
+	/* called 'index' when given as function arg */
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific setting if applicable");
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL); // XXX: maybe a bit too noisy

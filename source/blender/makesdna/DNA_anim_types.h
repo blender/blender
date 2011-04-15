@@ -261,7 +261,7 @@ typedef enum eFMod_Stepped_Flags {
  * Defines how to access a dependency needed for a driver variable.
  */
 typedef struct DriverTarget {
-	ID 	*id;				/* ID-block which owns the target */
+	ID 	*id;				/* ID-block which owns the target, no user count */
 	
 	char *rna_path;			/* RNA path defining the setting to use (for DVAR_TYPE_SINGLE_PROP) */
 	

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/occlusion.h
+ *  \ingroup render
+ */
+
+
 #ifndef OCCLUSION_H
 #define OCCLUSION_H
 

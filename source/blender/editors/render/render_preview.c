@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/render/render_preview.c
+ *  \ingroup edrend
+ */
+
+
 /* global includes */
 
 #include <stdlib.h>
@@ -62,13 +67,14 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
-#include "BKE_idprop.h"
+#include "BKE_texture.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -151,8 +157,10 @@ typedef struct ShaderPreview {
 	ID *parent;
 	MTex *slot;
 	
-	/* node materials need full copy during preview render, glsl uses it too */
+	/* node materials/texture need full copy during preview render, glsl uses it too */
 	Material *matcopy;
+	Tex *texcopy;
+	
 	float col[4];		/* active object color */
 	
 	int sizex, sizey;
@@ -169,7 +177,7 @@ void draw_tex_crop(Tex *tex)
 	rcti rct;
 	int ret= 0;
 	
-	if(tex==0) return;
+	if(tex==NULL) return;
 	
 	if(tex->type==TEX_IMAGE) {
 		if(tex->cropxmin==0.0f) ret++;
@@ -477,8 +485,13 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			}
 		}
 		else if(id_type==ID_TE) {
-			Tex *tex= (Tex *)id;
+			Tex *tex= NULL, *origtex= (Tex *)id;
 			
+			if(origtex) {
+				tex= localize_texture(origtex);
+				sp->texcopy= tex;
+				BLI_addtail(&pr_main->tex, tex);
+			}			
 			sce->lay= 1<<MA_TEXTURE;
 			
 			for(base= sce->base.first; base; base= base->next) {
@@ -503,8 +516,11 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 			}
 
-			if(tex && tex->nodetree && sp->pr_method==PR_NODE_RENDER)
+			if(tex && tex->nodetree && sp->pr_method==PR_NODE_RENDER) {
+				/* two previews, they get copied by wmJob */
+				ntreeInitPreview(origtex->nodetree, sp->sizex, sp->sizey);
 				ntreeInitPreview(tex->nodetree, sp->sizex, sp->sizey);
+			}
 		}
 		else if(id_type==ID_LA) {
 			Lamp *la= (Lamp *)id;
@@ -966,11 +982,21 @@ static void shader_preview_updatejob(void *spv)
 {
 	ShaderPreview *sp= spv;
 	
-	if(sp->id && GS(sp->id->name) == ID_MA) {
-		Material *mat= (Material *)sp->id;
-		
-		if(sp->matcopy && mat->nodetree && sp->matcopy->nodetree)
-			ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
+	if(sp->id) {
+		if(sp->pr_method==PR_NODE_RENDER) {
+			if( GS(sp->id->name) == ID_MA) {
+				Material *mat= (Material *)sp->id;
+				
+				if(sp->matcopy && mat->nodetree && sp->matcopy->nodetree)
+					ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
+			}
+			else if( GS(sp->id->name) == ID_TE) {
+				Tex *tex= (Tex *)sp->id;
+				
+				if(sp->texcopy && tex->nodetree && sp->texcopy->nodetree)
+					ntreeLocalSync(sp->texcopy->nodetree, tex->nodetree);
+			}
+		}		
 	}
 }
 
@@ -1027,8 +1053,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	/* callbacs are cleared on GetRender() */
 	if(ELEM(sp->pr_method, PR_BUTS_RENDER, PR_NODE_RENDER)) {
 		RE_display_draw_cb(re, sp, shader_preview_draw);
-		RE_test_break_cb(re, sp, shader_preview_break);
 	}
+	/* set this for all previews, default is react to G.afbreek still */
+	RE_test_break_cb(re, sp, shader_preview_break);
+	
 	/* lens adjust */
 	oldlens= ((Camera *)sce->camera->data)->lens;
 	if(sizex > sp->sizey)
@@ -1055,6 +1083,14 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
 	/* unassign the pointers, reset vars */
 	preview_prepare_scene(sp->scene, NULL, GS(id->name), sp);
+	
+	/* XXX bad exception, end-exec is not being called in render, because it uses local main */
+//	if(idtype == ID_TE) {
+//		Tex *tex= (Tex *)id;
+//		if(tex->use_nodes && tex->nodetree)
+//			ntreeEndExecTree(tex->nodetree);
+//	}
+
 }
 
 /* runs inside thread for material and icons */
@@ -1081,11 +1117,20 @@ static void shader_preview_free(void *customdata)
 	
 	if(sp->matcopy) {
 		struct IDProperty *properties;
+		int a;
+		
 		/* node previews */
 		shader_preview_updatejob(sp);
 		
 		/* get rid of copied material */
 		BLI_remlink(&pr_main->mat, sp->matcopy);
+		
+		/* free_material decrements texture, prevent this. hack alert! */
+		for(a=0; a<MAX_MTEX; a++) {
+			MTex *mtex= sp->matcopy->mtex[a];
+			if(mtex && mtex->tex) mtex->tex= NULL;
+		}
+		
 		free_material(sp->matcopy);
 
 		properties= IDP_GetProperties((ID *)sp->matcopy, FALSE);
@@ -1094,6 +1139,22 @@ static void shader_preview_free(void *customdata)
 			MEM_freeN(properties);
 		}
 		MEM_freeN(sp->matcopy);
+	}
+	if(sp->texcopy) {
+		struct IDProperty *properties;
+		/* node previews */
+		shader_preview_updatejob(sp);
+		
+		/* get rid of copied texture */
+		BLI_remlink(&pr_main->tex, sp->texcopy);
+		free_texture(sp->texcopy);
+		
+		properties= IDP_GetProperties((ID *)sp->texcopy, FALSE);
+		if (properties) {
+			IDP_FreeProperty(properties);
+			MEM_freeN(properties);
+		}
+		MEM_freeN(sp->texcopy);
 	}
 	
 	MEM_freeN(sp);
@@ -1169,7 +1230,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 	if(idtype == ID_IM) {
 		Image *ima= (Image*)id;
 		ImBuf *ibuf= NULL;
-		ImageUser iuser= {0};
+		ImageUser iuser= {NULL};
 
 		/* ima->ok is zero when Image cannot load */
 		if(ima==NULL || ima->ok==0)
