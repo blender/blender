@@ -300,9 +300,9 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			userdata[1] = transvmain;
 		}
 		
-		if (transvmain && em->derivedFinal) {
+		if (transvmain && em->derivedCage) {
 			EDBM_init_index_arrays(em, 1, 0, 0);
-			em->derivedFinal->foreachMappedVert(em->derivedFinal, set_mapped_co, userdata);
+			em->derivedCage->foreachMappedVert(em->derivedCage, set_mapped_co, userdata);
 			EDBM_free_index_arrays(em);
 		} else if (transvmain) {
 			tv = transvmain;
