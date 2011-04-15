@@ -86,6 +86,9 @@ int ED_uvedit_test(Object *obedit)
 	BMEditMesh *em;
 	int ret;
 
+	if (!obedit)
+		return 0;
+	
 	if(obedit->type != OB_MESH)
 		return 0;
 
