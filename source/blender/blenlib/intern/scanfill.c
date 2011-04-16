@@ -44,6 +44,7 @@
 #include "BLI_math.h"
 #include "BLI_scanfill.h"
 #include "BLI_utildefines.h"
+#include "BLI_threads.h"
 
 /* callbacks for errors and interrupts and some goo */
 static void (*BLI_localErrorCallBack)(const char*) = NULL;
@@ -202,6 +203,8 @@ void BLI_end_edgefill(void)
 	fillvertbase.first= fillvertbase.last= 0;
 	filledgebase.first= filledgebase.last= 0;
 	fillfacebase.first= fillfacebase.last= 0;
+	
+	BLI_unlock_thread(LOCK_SCANFILL);	
 }
 
 /* ****  FILL ROUTINES *************************** */
@@ -765,6 +768,12 @@ static void scanfill(PolyFill *pf, int mat_nr)
 }
 
 
+int BLI_begin_edgefill(void)
+{
+	BLI_lock_thread(LOCK_SCANFILL);
+
+	return 1;
+}
 
 int BLI_edgefill(int mat_nr)
 {
@@ -804,7 +813,7 @@ int BLI_edgefill(int mat_nr)
 
 		eve = fillvertbase.first;
 		
-		if (1) { //BMESH_TODO) {
+		if (1 && eve->next && eve->next->next && eve->next->next->next) { //BMESH_TODO) {
 			/*use shortest diagonal for quad*/
 			sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
 			sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);

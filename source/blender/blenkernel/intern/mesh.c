@@ -2265,7 +2265,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 	for (i=0; i<totpoly; i++, mp++) {
 		if (mp->totloop > 2) {		
 			ml = mloop + mp->loopstart;
-
+			
+			BLI_begin_edgefill();
 			firstv = NULL;
 			lastv = NULL;
 			for (j=0; j<mp->totloop; j++, ml++) {

@@ -182,6 +182,7 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 		/*don't consider two-edged faces*/
 		if (f->len < 3) continue;
 		
+		BLI_begin_edgefill();
 		/*scanfill time*/
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 		for (j=0; l; l=BMIter_Step(&liter), j++) {

@@ -114,6 +114,7 @@ static pthread_mutex_t _viewer_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _rcache_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _opengl_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t _scanfill_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
 static int thread_levels= 0;	/* threads can be invoked inside threads */
 
@@ -349,6 +350,8 @@ void BLI_lock_thread(int type)
 		pthread_mutex_lock(&_rcache_lock);
 	else if (type==LOCK_OPENGL)
 		pthread_mutex_lock(&_opengl_lock);
+	else if (type == LOCK_SCANFILL) 
+		pthread_mutex_lock(&_scanfill_lock);
 }
 
 void BLI_unlock_thread(int type)
@@ -365,6 +368,8 @@ void BLI_unlock_thread(int type)
 		pthread_mutex_unlock(&_rcache_lock);
 	else if(type==LOCK_OPENGL)
 		pthread_mutex_unlock(&_opengl_lock);
+	else if(type == LOCK_SCANFILL)
+		pthread_mutex_unlock(&_scanfill_lock);
 }
 
 /* Mutex Locks */

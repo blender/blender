@@ -1451,6 +1451,8 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 		if (face_nets[i].first)
 			BMO_SetFlag(bm, f, DEL);
 		
+		BLI_begin_edgefill();
+		
 		for (entry=face_nets[i].first; entry; entry=entry->next) {
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v1)) {
 				eve = BLI_addfillvert(entry->kfe->v1->v->co);

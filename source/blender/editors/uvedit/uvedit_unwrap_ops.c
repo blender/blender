@@ -207,6 +207,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		key = (ParamKey)efa;
 
 		/*scanfill time!*/
+		BLI_begin_edgefill();
+		
 		firstv = lastv = NULL;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			int i;

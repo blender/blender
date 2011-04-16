@@ -431,6 +431,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			EditVert *eve, *lasteve = NULL, *firsteve = NULL;
 			EditFace *efa;
 			
+			BLI_begin_edgefill();
 			i = 0;
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 				eve = BLI_addfillvert(l->v->co);
@@ -478,6 +479,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			EditFace *efa;
 			BMLoop *ls[3];
 			
+			BLI_begin_edgefill();
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 				eve = BLI_addfillvert(l->v->co);
 				eve->tmp.p = l;

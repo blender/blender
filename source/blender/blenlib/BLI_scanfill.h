@@ -53,6 +53,8 @@ extern "C" {
 /* scanfill.c: used in displist only... */
 struct EditVert *BLI_addfillvert(float *vec);
 struct EditEdge *BLI_addfilledge(struct EditVert *v1, struct EditVert *v2);
+
+int BLI_begin_edgefill(void);
 int BLI_edgefill(int mat_nr);
 void BLI_end_edgefill(void);
 

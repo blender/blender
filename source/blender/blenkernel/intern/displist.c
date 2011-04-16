@@ -946,6 +946,8 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 		totvert= 0;
 		nextcol= 0;
 		
+		BLI_begin_edgefill();
+		
 		dl= dispbase->first;
 		while(dl) {
 	
