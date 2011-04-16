@@ -719,9 +719,11 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	
 	interp_weights_poly_v3(w, cos, source->len, co);
 	CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, target->head.data);
-	if (do_vertex) 
+	if (do_vertex) {
 		CustomData_bmesh_interp(&bm->vdata, vblocks, w, NULL, source->len, target->v->head.data);
-
+		BLI_array_free(vblocks);
+	}
+	
 	BLI_array_free(cos);
 	BLI_array_free(w);
 	BLI_array_free(blocks);

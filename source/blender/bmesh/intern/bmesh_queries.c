@@ -465,7 +465,7 @@ float BM_Face_Angle(BMesh *UNUSED(bm), BMEdge *e)
 		l2 = e->l->radial_next;
 		edge_angle_cos = INPR(l1->f->no, l2->f->no);
 	}
-	return edge_angle_cos;
+	return acos(edge_angle_cos);
 
 }
 

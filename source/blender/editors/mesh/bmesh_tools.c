@@ -4809,24 +4809,60 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	Tex *tex;
 	BMVert *eve;
 	BMIter iter;
+	BMEdge *eed;
 	BMOperator bmop;
-	float factor= RNA_float_get(op->ptr, "percent"), fac=factor;
-	int i, recursion = RNA_int_get(op->ptr, "recursion");
+	float factor= RNA_float_get(op->ptr, "percent"), fac=factor, dfac, df, s;
+	/*float p2 = RNA_float_get(op->ptr, "param2");
+	float p3 = RNA_float_get(op->ptr, "param3");
+	float p4 = RNA_float_get(op->ptr, "param4");
+	float p5 = RNA_float_get(op->ptr, "param5");*/
+	int i, tot, recursion = RNA_int_get(op->ptr, "recursion");
+	float *w = NULL, ftot;
+	int li;
+	BLI_array_declare(w);
+	
+	BM_add_data_layer(em->bm, &em->bm->edata, CD_PROP_FLT);
+	li = CustomData_number_of_layers(&em->bm->edata, CD_PROP_FLT)-1;
+	
+	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		float d = len_v3v3(eed->v1->co, eed->v2->co);
+		float *dv = CustomData_bmesh_get_n(&em->bm->edata, eed->head.data, CD_PROP_FLT, li);
+		
+		*dv = d;
+	}
 	
 	if(em==NULL) return OPERATOR_CANCELLED;
 	
-	while (recursion-- > 0) {
-		if (!EDBM_InitOpf(em, &bmop, op, "bevel geom=%hev percent=%f", BM_SELECT, fac))
+	/*ugh, stupid math depends somewhat on angles!*/
+	dfac = 1.0/(float)(recursion+1);
+	df = 1.0;
+	for (i=0, ftot=0.0f; i<recursion; i++) {
+		s = pow(df, 1.25);
+		
+		BLI_array_append(w, s);
+		ftot += s;
+		
+		df *= 2.0;
+	}
+	
+	for (i=0; i<BLI_array_count(w); i++) {
+		w[i] /= ftot;
+	}
+
+	fac = factor;
+	for (i=0; i<BLI_array_count(w); i++) {
+		fac = w[BLI_array_count(w)-i-1]*factor;
+
+		if (!EDBM_InitOpf(em, &bmop, op, "bevel geom=%hev percent=%f lengthlayer=%i uselengths=%i", BM_SELECT, fac, li, 1))
 			return OPERATOR_CANCELLED;
 		
 		BMO_Exec_Op(em->bm, &bmop);
-		//BMO_HeaderFlag_Buffer(em->bm, &bmop, "face_spans", BM_SELECT, BM_FACE);
-		//BMO_HeaderFlag_Buffer(em->bm, &bmop, "face_holes", BM_SELECT, BM_FACE);
 		BMO_Finish_Op(em->bm, &bmop);
-		
-		fac = fac + (sqrt(fac) - fac)*0.25;
 	}
 	
+	BM_free_data_layer_n(em->bm, &em->bm->edata, CD_MASK_PROP_FLT, li);
+	
+	BLI_array_free(w);
 	EDBM_RecalcNormals(em);
 
 	DAG_id_tag_update(obedit->data, 0);
@@ -4849,6 +4885,10 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "percent", 0.1f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 0.5f);
+	RNA_def_float(ot->srna, "percent", 0.5f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
+	//RNA_def_float(ot->srna, "param2", 1.0f, -FLT_MAX, FLT_MAX, "Parameter 2", "", -1000.0f, 1000.0f);
+	//RNA_def_float(ot->srna, "param3", 0.5f, -FLT_MAX, FLT_MAX, "Parameter 3", "", -1000.0f, 1000.0f);
+	//RNA_def_float(ot->srna, "param4", 0.5f, -FLT_MAX, FLT_MAX, "Parameter 4", "", -1000.0f, 1000.0f);
+	//RNA_def_float(ot->srna, "param5", 0.5f, -FLT_MAX, FLT_MAX, "Parameter 5", "", -1000.0f, 1000.0f);
 }

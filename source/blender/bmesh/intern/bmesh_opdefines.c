@@ -931,6 +931,8 @@ BMOpDefine def_bevel = {
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "face_spans"}, /* new geometry */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "face_holes"}, /* new geometry */
+	 {BMOP_OPSLOT_INT, "uselengths"}, /* grab edge lengths from a PROP_FLT customdata layer*/
+	 {BMOP_OPSLOT_INT, "lengthlayer"}, /* which PROP_FLT layer to use*/
 	 {BMOP_OPSLOT_FLT, "percent"}, /* percentage to expand bevelled edges*/
 	 {0} /*null-terminating sentinel*/},
 	bmesh_bevel_exec,

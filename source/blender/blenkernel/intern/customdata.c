@@ -350,6 +350,24 @@ static void layerDefault_tface(void *data, int count)
 		tf[i] = default_tf;
 }
 
+static void layerCopy_propFloat(const void *source, void *dest,
+								  int count)
+{
+	memcpy(dest, source, sizeof(MFloatProperty)*count);
+}
+
+static void layerCopy_propInt(const void *source, void *dest,
+								  int count)
+{
+	memcpy(dest, source, sizeof(MIntProperty)*count);
+}
+
+static void layerCopy_propString(const void *source, void *dest,
+								  int count)
+{
+	memcpy(dest, source, sizeof(MStringProperty)*count);
+}
+
 static void layerCopy_origspace_face(const void *source, void *dest, int count)
 {
 	const OrigSpaceFace *source_tf = (const OrigSpaceFace*)source;
@@ -905,9 +923,9 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 3 floats per normal vector */
 	{sizeof(float)*3, "vec3f", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
-	{sizeof(MFloatProperty), "MFloatProperty",1,"Float",NULL,NULL,NULL,NULL},
-	{sizeof(MIntProperty), "MIntProperty",1,"Int",NULL,NULL,NULL,NULL},
-	{sizeof(MStringProperty), "MStringProperty",1,"String",NULL,NULL,NULL,NULL},
+	{sizeof(MFloatProperty), "MFloatProperty",1,"Float", layerCopy_propFloat,NULL,NULL,NULL},
+	{sizeof(MIntProperty), "MIntProperty",1,"Int",layerCopy_propInt,NULL,NULL,NULL},
+	{sizeof(MStringProperty), "MStringProperty",1,"String",layerCopy_propString,NULL,NULL,NULL},
 	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVTex", layerCopy_origspace_face, NULL,
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
