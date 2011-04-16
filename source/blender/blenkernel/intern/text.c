@@ -2719,11 +2719,12 @@ int setcurr_tab_spaces (Text *text, int space)
 		int a, indent = 0;
 		for(a=0; (a < text->curc) && (text->curl->line[a] != '\0'); a++)
 		{
-			if (text->curl->line[a]=='#') {
+			char ch= text->curl->line[a];
+			if (ch=='#') {
 				break;
-			} else if (text->curl->line[a]==':') {
+			} else if (ch==':') {
 				indent = 1;
-			} else if (text->curl->line[a]==']') {
+			} else if (ch==']' || ch=='}' || ch=='"' || ch=='\'') {
 				indent = 0;
 			}
 		}
