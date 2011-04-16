@@ -75,16 +75,10 @@ else:
         build_dir = os.path.join('..', 'build', builder)
         install_dir = os.path.join('..', 'install', builder)
 
-        common_options = ['BF_NUMJOBS=' + str(cores),
-            'BF_BUILDDIR=' + build_dir,
+        common_options = ['BF_NUMJOBS=' + str(cores + 1),
             'BF_INSTALLDIR=' + install_dir]
 
-        # Clean all directories first
-        retcode = subprocess.call(scons_cmd + common_options + ['clean'])
-        if retcode != 0:
-            print('Error cleaning build directory')
-            sys.exit(retcode)
-
+        # Clean install directory so we'll be sure there's no
         if os.path.isdir(install_dir):
             shutil.rmtree(install_dir)
 
@@ -103,6 +97,12 @@ else:
             config_fpath = os.path.join(config_dir, config)
 
             scons_options = []
+
+            if config.find('player') != -1:
+                scons_options.append('BF_BUILDDIR=%s_player' % (build_dir))
+            else:
+                scons_options.append('BF_BUILDDIR=%s' % (build_dir))
+
             scons_options += common_options
 
             if config.find('player') == -1:
