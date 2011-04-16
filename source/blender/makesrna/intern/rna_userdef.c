@@ -110,6 +110,12 @@ static void rna_userdef_mipmap_update(Main *bmain, Scene *scene, PointerRNA *ptr
 	rna_userdef_update(bmain, scene, ptr);
 }
 
+static void rna_userdef_gl_texture_limit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	GPU_free_images();
+	rna_userdef_update(bmain, scene, ptr);
+}
+
 static void rna_userdef_select_mouse_set(PointerRNA *ptr,int value)
 {
 	UserDef *userdef = (UserDef*)ptr->data;
@@ -2549,7 +2555,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "glreslimit");
 	RNA_def_property_enum_items(prop, gl_texture_clamp_items);
 	RNA_def_property_ui_text(prop, "GL Texture Limit", "Limit the texture size to save graphics memory");
-	RNA_def_property_update(prop, 0, "rna_userdef_mipmap_update");
+	RNA_def_property_update(prop, 0, "rna_userdef_gl_texture_limit_update");
 
 	prop= RNA_def_property(srna, "texture_time_out", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "textimeout");
