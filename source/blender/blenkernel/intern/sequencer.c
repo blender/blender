@@ -1720,16 +1720,25 @@ static ImBuf * copy_from_ibuf_still(SeqRenderData context, Sequence * seq,
 static void copy_to_ibuf_still(SeqRenderData context, Sequence * seq, float nr,
 			       ImBuf * ibuf)
 {
-	if (nr == 0) {
-		seq_stripelem_cache_put(
-			context, seq, seq->start, 
-			SEQ_STRIPELEM_IBUF_STARTSTILL, IMB_dupImBuf(ibuf));
-	} 
+	if (nr == 0 || nr == seq->len - 1) {
+		/* we have to store a copy, since the passed ibuf
+		   could be preprocessed afterwards (thereby silently
+		   changing the cached image... */
+		ibuf = IMB_dupImBuf(ibuf);
 
-	if (nr == seq->len - 1) {
-		seq_stripelem_cache_put(
-			context, seq, seq->start, 
-			SEQ_STRIPELEM_IBUF_ENDSTILL, IMB_dupImBuf(ibuf));
+		if (nr == 0) {
+			seq_stripelem_cache_put(
+				context, seq, seq->start, 
+				SEQ_STRIPELEM_IBUF_STARTSTILL, ibuf);
+		} 
+
+		if (nr == seq->len - 1) {
+			seq_stripelem_cache_put(
+				context, seq, seq->start, 
+				SEQ_STRIPELEM_IBUF_ENDSTILL, ibuf);
+		}
+
+		IMB_freeImBuf(ibuf);
 	}
 }
 
