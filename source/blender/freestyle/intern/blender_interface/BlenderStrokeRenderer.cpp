@@ -46,6 +46,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	char name[22];
 	snprintf(name, sizeof(name), "FRS%d_%s", render_count, re->scene->id.name+2);
 	freestyle_scene = add_scene(name);
+	freestyle_scene->r.cfra = old_scene->r.cfra;
 	freestyle_scene->r.mode= old_scene->r.mode;
 	freestyle_scene->r.xsch= old_scene->r.xsch;
 	freestyle_scene->r.ysch= old_scene->r.ysch;
