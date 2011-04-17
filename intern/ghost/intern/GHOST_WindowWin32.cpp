@@ -609,7 +609,12 @@ GHOST_TSuccess GHOST_WindowWin32::setOrder(GHOST_TWindowOrder order)
 
 GHOST_TSuccess GHOST_WindowWin32::swapBuffers()
 {
-	return ::SwapBuffers(m_hDC) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+	HDC hDC = m_hDC;
+
+	if (is_crappy_intel_card())
+		hDC = ::wglGetCurrentDC();
+
+	return ::SwapBuffers(hDC) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 
@@ -723,27 +728,46 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 			}
 
 			// Create the context
-			if (s_firsthGLRc && is_crappy_intel_card()) {
-				m_hGlRc = s_firsthGLRc;
-			} else {
-				m_hGlRc = ::wglCreateContext(m_hDC);
-
-				if (m_hGlRc) {
+			m_hGlRc = ::wglCreateContext(m_hDC);
+			if (m_hGlRc) {
+				if (::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE) {
 					if (s_firsthGLRc) {
-						::wglCopyContext(s_firsthGLRc, m_hGlRc, GL_ALL_ATTRIB_BITS);
-						::wglShareLists(s_firsthGLRc, m_hGlRc);
-					} else {
+						if (is_crappy_intel_card()) {
+							if (::wglMakeCurrent(NULL, NULL) == TRUE) {
+								::wglDeleteContext(m_hGlRc);
+								m_hGlRc = s_firsthGLRc;
+							}
+							else {
+								::wglDeleteContext(m_hGlRc);
+								m_hGlRc = NULL;
+							}
+						}
+						else {
+							::wglCopyContext(s_firsthGLRc, m_hGlRc, GL_ALL_ATTRIB_BITS);
+							::wglShareLists(s_firsthGLRc, m_hGlRc);
+						}
+					}
+					else {
 						s_firsthGLRc = m_hGlRc;
 					}
+
+					if (m_hGlRc) {
+						success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+					}
+					else {
+						success = GHOST_kFailure;
+					}
+				}
+				else {
+					success = GHOST_kFailure;
 				}
 			}
-
-			if (m_hGlRc) {
-				success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
-			}
 			else {
-				printf("Failed to get a context....\n");
 				success = GHOST_kFailure;
+			}
+
+			if (success == GHOST_kFailure) {
+				printf("Failed to get a context....\n");
 			}
 		}
 		else
@@ -766,26 +790,45 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 			::DescribePixelFormat(m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &preferredFormat);
 
 			// Create the context
-			if (s_firsthGLRc && is_crappy_intel_card()) {
-				m_hGlRc = s_firsthGLRc;
-			} else {
-				m_hGlRc = ::wglCreateContext(m_hDC);
-
-				if (m_hGlRc) {
+			m_hGlRc = ::wglCreateContext(m_hDC);
+			if (m_hGlRc) {
+				if (::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE) {
 					if (s_firsthGLRc) {
-						::wglShareLists(s_firsthGLRc, m_hGlRc);
-					} else {
+						if (is_crappy_intel_card()) {
+							if (::wglMakeCurrent(NULL, NULL) == TRUE) {
+								::wglDeleteContext(m_hGlRc);
+								m_hGlRc = s_firsthGLRc;
+							}
+							else {
+								::wglDeleteContext(m_hGlRc);
+								m_hGlRc = NULL;
+							}
+						}
+						else {
+							::wglShareLists(s_firsthGLRc, m_hGlRc);
+						}
+					}
+					else {
 						s_firsthGLRc = m_hGlRc;
 					}
+
+					if (m_hGlRc) {
+						success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+					}
+					else {
+						success = GHOST_kFailure;
+					}
+				}
+				else {
+					success = GHOST_kFailure;
 				}
 			}
-
-			if (m_hGlRc) {
-				success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
-			}
 			else {
-				printf("Failed to get a context....\n");
 				success = GHOST_kFailure;
+			}
+
+			if (success == GHOST_kFailure) {
+				printf("Failed to get a context....\n");
 			}
 					
 			// Attempt to enable multisample

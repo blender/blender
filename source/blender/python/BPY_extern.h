@@ -86,7 +86,7 @@ void	BPY_modules_load_user(struct bContext *C);
 void	BPY_driver_reset(void);
 float	BPY_driver_exec(struct ChannelDriver *driver);
 
-int		BPY_button_exec(struct bContext *C, const char *expr, double *value);
+int		BPY_button_exec(struct bContext *C, const char *expr, double *value, const short verbose);
 int		BPY_string_exec(struct bContext *C, const char *expr);
 
 void	BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */

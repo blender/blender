@@ -607,7 +607,9 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
         if show_uvedit:
 
             col = layout.column()
-            col.prop(uvedit, "cursor_location")
+            col.label("Cursor Location")
+            row = col.row()
+            row.prop(uvedit, "cursor_location", text="")
 
             col = layout.column()
             col.label(text="UVs:")

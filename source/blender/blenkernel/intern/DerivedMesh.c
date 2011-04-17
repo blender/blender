@@ -914,7 +914,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	float (*vertexNos)[3]= emdm->vertexNos;
 	EditVert *eve;
 	EditFace *efa;
-	DMVertexAttribs attribs;
+	DMVertexAttribs attribs= {{{0}}};
 	GPUVertexAttribs gattribs;
 	MTFace *tf;
 	int transp, new_transp, orig_transp, tfoffset;
@@ -927,8 +927,6 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	orig_transp = transp;
 	layer = CustomData_get_layer_index(&em->fdata, CD_MTFACE);
 	tfoffset = (layer == -1)? -1: em->fdata.layers[layer].offset;
-
-	memset(&attribs, 0, sizeof(attribs));
 
 	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
 	glShadeModel(GL_SMOOTH);
@@ -2513,9 +2511,8 @@ static void GetPosition(const SMikkTSpaceContext * pContext, float fPos[], const
 {
 	//assert(vert_index>=0 && vert_index<4);
 	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
-	unsigned int indices[] = {	pMesh->mface[face_num].v1, pMesh->mface[face_num].v2,
-								pMesh->mface[face_num].v3, pMesh->mface[face_num].v4 };
-	VECCOPY(fPos, pMesh->mvert[indices[vert_index]].co);
+	const float *co= pMesh->mvert[(&pMesh->mface[face_num].v1)[vert_index]].co;
+	VECCOPY(fPos, co);
 }
 
 static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[], const int face_num, const int vert_index)
@@ -2523,17 +2520,13 @@ static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[
 	//assert(vert_index>=0 && vert_index<4);
 	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 
-	if(pMesh->mtface!=NULL)
-	{
+	if(pMesh->mtface!=NULL) {
 		float * uv = pMesh->mtface[face_num].uv[vert_index];
 		fUV[0]=uv[0]; fUV[1]=uv[1];
 	}
-	else
-	{
-		unsigned int indices[] = {	pMesh->mface[face_num].v1, pMesh->mface[face_num].v2,
-									pMesh->mface[face_num].v3, pMesh->mface[face_num].v4 };
-
-		map_to_sphere( &fUV[0], &fUV[1],pMesh->orco[indices[vert_index]][0], pMesh->orco[indices[vert_index]][1], pMesh->orco[indices[vert_index]][2]);
+	else {
+		const float *orco= pMesh->orco[(&pMesh->mface[face_num].v1)[vert_index]];
+		map_to_sphere( &fUV[0], &fUV[1], orco[0], orco[1], orco[2]);
 	}
 }
 
@@ -2541,36 +2534,29 @@ static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const 
 {
 	//assert(vert_index>=0 && vert_index<4);
 	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
-	unsigned int indices[] = {	pMesh->mface[face_num].v1, pMesh->mface[face_num].v2,
-								pMesh->mface[face_num].v3, pMesh->mface[face_num].v4 };
 
 	const int smoothnormal = (pMesh->mface[face_num].flag & ME_SMOOTH);
-	if(!smoothnormal)	// flat
-	{
-		if(pMesh->precomputedFaceNormals)
-		{
+	if(!smoothnormal) {	// flat
+		if(pMesh->precomputedFaceNormals) {
 			VECCOPY(fNorm, &pMesh->precomputedFaceNormals[3*face_num]);
 		}
-		else
-		{
-			float nor[3];
-			float * p0, * p1, * p2;
-			const int iGetNrVerts = pMesh->mface[face_num].v4!=0 ? 4 : 3;
-			p0 = pMesh->mvert[indices[0]].co; p1 = pMesh->mvert[indices[1]].co; p2 = pMesh->mvert[indices[2]].co;
-			if(iGetNrVerts==4)
-			{
-				float * p3 = pMesh->mvert[indices[3]].co;
-				normal_quad_v3( nor, p0, p1, p2, p3);
+		else {
+			MFace *mf= &pMesh->mface[face_num];
+			float *p0= pMesh->mvert[mf->v1].co;
+			float *p1= pMesh->mvert[mf->v2].co;
+			float *p2= pMesh->mvert[mf->v3].co;
+
+			if(mf->v4) {
+				float *p3 = pMesh->mvert[mf->v4].co;
+				normal_quad_v3(fNorm, p0, p1, p2, p3);
 			}
 			else {
-				normal_tri_v3(nor, p0, p1, p2);
+				normal_tri_v3(fNorm, p0, p1, p2);
 			}
-			VECCOPY(fNorm, nor);
 		}
 	}
-	else
-	{
-		short *no = pMesh->mvert[indices[vert_index]].no;
+	else {
+		const short *no= pMesh->mvert[(&pMesh->mface[face_num].v1)[vert_index]].no;
 		normal_short_to_float_v3(fNorm, no);
 		normalize_v3(fNorm); /* XXX, is this needed */
 	}
@@ -2629,14 +2615,10 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 
 	// new computation method
 	iCalcNewMethod = 1;
-	if(iCalcNewMethod!=0)
-	{
-		SGLSLMeshToTangent mesh2tangent;
-		SMikkTSpaceContext sContext;
-		SMikkTSpaceInterface sInterface;
-		memset(&mesh2tangent, 0, sizeof(SGLSLMeshToTangent));
-		memset(&sContext, 0, sizeof(SMikkTSpaceContext));
-		memset(&sInterface, 0, sizeof(SMikkTSpaceInterface));
+	if(iCalcNewMethod != 0) {
+		SGLSLMeshToTangent mesh2tangent= {0};
+		SMikkTSpaceContext sContext= {0};
+		SMikkTSpaceInterface sInterface= {0};
 
 		mesh2tangent.precomputedFaceNormals = nors;
 		mesh2tangent.mtface = mtface;
@@ -2659,8 +2641,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 		iCalcNewMethod = genTangSpaceDefault(&sContext);
 	}
 
-	if(!iCalcNewMethod)
-	{
+	if(!iCalcNewMethod) {
 		/* sum tangents at connected vertices */
 		for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++) {
 			v1= &mvert[mf->v1];

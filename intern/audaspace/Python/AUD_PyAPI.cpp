@@ -2214,6 +2214,7 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 			switch(device)
 			{
 			case AUD_DEVICE_NULL:
+				(void)specs; /* quiet warning when others disabled */
 				self->device = new AUD_NULLDevice();
 				break;
 			case AUD_DEVICE_OPENAL:

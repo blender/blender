@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 
 class ExportHelper:
@@ -126,3 +126,99 @@ def unpack_face_list(list_of_tuples):
         flat_ls[i:i + len(t)] = t
         i += 4
     return flat_ls
+
+
+path_reference_mode = EnumProperty(
+        name="Path Mode",
+        description="Method used to reference paths",
+        items=(('AUTO', "Auto", "Use Relative paths with subdirectories only"),
+               ('ABSOLUTE', "Absolute", "Always write absolute paths"),
+               ('RELATIVE', "Relative", "Always write relative patsh (where possible)"),
+               ('MATCH', "Match", "Match Absolute/Relative setting with input path"),
+               ('STRIP', "Strip Path", "Filename only"),
+               ('COPY', "Copy", "copy the file to the destination path (or subdirectory)"),
+               ),
+        default='AUTO'
+        )
+
+
+def path_reference(filepath, base_src, base_dst, mode='AUTO', copy_subdir="", copy_set=None):
+    """
+    Return a filepath relative to a destination directory, for use with
+    exporters.
+
+    :arg filepath: the file path to return, supporting blenders relative '//' prefix.
+    :type filepath: string
+    :arg base_src: the directory the *filepath* is relative too (normally the blend file).
+    :type base_src: string
+    :arg base_dst: the directory the *filepath* will be referenced from (normally the export path).
+    :type base_dst: string
+    :arg mode: the method used get the path in ['AUTO', 'ABSOLUTE', 'RELATIVE', 'MATCH', 'STRIP', 'COPY']
+    :type mode: string
+    :arg copy_subdir: the subdirectory of *base_dst* to use when mode='COPY'.
+    :type copy_subdir: string
+    :arg copy_set: collect from/to pairs when mode='COPY', pass to *path_reference_copy* when exportign is done.
+    :type copy_set: set
+    :return: the new filepath.
+    :rtype: string
+    """
+    import os
+    is_relative = filepath.startswith("//")
+    filepath_abs = os.path.normpath(bpy.path.abspath(filepath, base_src))
+
+    if mode in ('ABSOLUTE', 'RELATIVE', 'STRIP'):
+        pass
+    elif mode == 'MATCH':
+        mode = 'RELATIVE' if is_relative else 'ABSOLUTE'
+    elif mode == 'AUTO':
+        mode = 'RELATIVE' if bpy.path.is_subdir(filepath, base_dst) else 'ABSOLUTE'
+    elif mode == 'COPY':
+        if copy_subdir:
+            subdir_abs = os.path.join(os.path.normpath(base_dst), copy_subdir)
+        else:
+            subdir_abs = os.path.normpath(base_dst)
+
+        filepath_cpy = os.path.join(subdir_abs, os.path.basename(filepath))
+
+        copy_set.add((filepath_abs, filepath_cpy))
+
+        filepath_abs = filepath_cpy
+        mode = 'RELATIVE'
+    else:
+        Excaption("invalid mode given %r" % mode)
+
+    if mode == 'ABSOLUTE':
+        return filepath_abs
+    elif mode == 'RELATIVE':
+        return os.path.relpath(filepath_abs, base_dst)
+    elif mode == 'STRIP':
+        return os.path.basename(filepath_abs)
+
+
+def path_reference_copy(copy_set, report=print):
+    """
+    Execute copying files of path_reference
+    
+    :arg copy_set: set of (from, to) pairs to copy.
+    :type copy_set: set
+    :arg report: function used for reporting warnings, takes a string argument.
+    :type report: function
+    """
+    if not copy_set:
+        return
+
+    import os
+    import shutil
+
+    for file_src, file_dst in copy_set:
+        if not os.path.exists(file_src):
+            report("missing %r, not copying" % file_src)
+        elif os.path.exists(file_dst) and os.path.samefile(file_src, file_dst):
+            pass
+        else:
+            dir_to = os.path.dirname(file_dst)
+
+            if not os.path.isdir(dir_to):
+                os.makedirs(dir_to)
+
+            shutil.copy(file_src, file_dst)

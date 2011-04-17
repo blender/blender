@@ -244,7 +244,7 @@ void BPY_python_start(int argc, const char **argv)
 
 	bpy_python_start_path(); /* allow to use our own included python */
 
-	/* Python 3.2 now looks for '2.56/python/include/python3.2d/pyconfig.h' to parse
+	/* Python 3.2 now looks for '2.57/python/include/python3.2d/pyconfig.h' to parse
 	 * from the 'sysconfig' module which is used by 'site', so for now disable site.
 	 * alternatively we could copy the file. */
 	Py_NoSiteFlag= 1;
@@ -471,7 +471,8 @@ void BPY_DECREF(void *pyob_ptr)
 	PyGILState_Release(gilstate);
 }
 
-int BPY_button_exec(bContext *C, const char *expr, double *value)
+/* return -1 on error, else 0 */
+int BPY_button_exec(bContext *C, const char *expr, double *value, const short verbose)
 {
 	PyGILState_STATE gilstate;
 	PyObject *py_dict, *mod, *retval;
@@ -536,7 +537,12 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 	}
 	
 	if(error_ret) {
-		BPy_errors_to_report(CTX_wm_reports(C));
+		if(verbose) {
+			BPy_errors_to_report(CTX_wm_reports(C));
+		}
+		else {
+			PyErr_Clear();
+		}
 	}
 
 	PyC_MainModule_Backup(&main_mod);
@@ -552,6 +558,7 @@ int BPY_string_exec(bContext *C, const char *expr)
 	PyObject *main_mod= NULL;
 	PyObject *py_dict, *retval;
 	int error_ret= 0;
+	Main *bmain_back; /* XXX, quick fix for release (Copy Settings crash), needs further investigation */
 
 	if (!expr) return -1;
 
@@ -565,7 +572,12 @@ int BPY_string_exec(bContext *C, const char *expr)
 
 	py_dict= PyC_DefaultNameSpace("<blender string>");
 
+	bmain_back= bpy_import_main_get();
+	bpy_import_main_set(CTX_data_main(C));
+
 	retval= PyRun_String(expr, Py_eval_input, py_dict, py_dict);
+
+	bpy_import_main_set(bmain_back);
 
 	if (retval == NULL) {
 		error_ret= -1;
@@ -670,11 +682,13 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 	}
 
 	if(done==0) {
-		if (item)	printf("Context '%s' not a valid type\n", member);
-		else		printf("Context '%s' not found\n", member);
+		if (item)	printf("PyContext '%s' not a valid type\n", member);
+		else		printf("PyContext '%s' not found\n", member);
 	}
 	else {
-		printf("Context '%s' found\n", member);
+		if(G.f & G_DEBUG) {
+			printf("PyContext '%s' found\n", member);
+		}
 	}
 
 	return done;

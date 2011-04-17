@@ -909,6 +909,35 @@ class WM_OT_sysinfo(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class WM_OT_copy_prev_settings(bpy.types.Operator):
+    '''Copy settings from previous version'''
+    bl_idname = "wm.copy_prev_settings"
+    bl_label = "Copy Previous Settings"
+
+    def execute(self, context):
+        import os
+        import shutil
+        ver = bpy.app.version
+        ver_old = ((ver[0] * 100) + ver[1]) - 1
+        path_src = bpy.utils.resource_path('USER', ver_old // 100, ver_old % 100)
+        path_dst = bpy.utils.resource_path('USER')
+
+        if os.path.isdir(path_dst):
+            self.report({'ERROR'}, "Target path %r exists" % path_dst)
+        elif not os.path.isdir(path_src):
+            self.report({'ERROR'}, "Source path %r exists" % path_src)
+        else:
+            shutil.copytree(path_src, path_dst)
+            # dont loose users work if they open the splash later.
+            if bpy.data.is_saved is bpy.data.is_dirty is False:
+                bpy.ops.wm.read_homefile()
+            else:
+                self.report({'INFO'}, "Reload Start-Up file to restore settings.")
+            return {'FINISHED'}
+
+        return {'CANCELLED'}
+
+
 def _webbrowser_bug_fix():
     # test for X11
     import os

@@ -1323,9 +1323,9 @@ static void rna_def_operator_filelist_element(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "OperatorFileListElement", "PropertyGroup");
 	RNA_def_struct_ui_text(srna, "Operator File List Element", "");
-	
-	
-	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_FILENAME);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_ui_text(prop, "Name", "the name of a file or directory within a file list");
 }

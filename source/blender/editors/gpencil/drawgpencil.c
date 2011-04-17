@@ -75,14 +75,16 @@
 /* ----- General Defines ------ */
 
 /* flags for sflag */
-enum {
+typedef enum eDrawStrokeFlags {
 	GP_DRAWDATA_NOSTATUS 	= (1<<0),	/* don't draw status info */
 	GP_DRAWDATA_ONLY3D		= (1<<1),	/* only draw 3d-strokes */
 	GP_DRAWDATA_ONLYV2D		= (1<<2),	/* only draw 'canvas' strokes */
 	GP_DRAWDATA_ONLYI2D		= (1<<3),	/* only draw 'image' strokes */
 	GP_DRAWDATA_IEDITHACK	= (1<<4),	/* special hack for drawing strokes in Image Editor (weird coordinates) */
 	GP_DRAWDATA_NO_XRAY		= (1<<5),	/* dont draw xray in 3D view (which is default) */
-};
+} eDrawStrokeFlags;
+
+
 
 /* thickness above which we should use special drawing */
 #define GP_DRAWTHICKNESS_SPECIAL 	3
@@ -152,7 +154,7 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 /* ----- Existing Strokes Drawing (3D and Point) ------ */
 
 /* draw a given stroke - just a single dot (only one point) */
-static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sflag, int offsx, int offsy, int winx, int winy)
+static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short dflag, short sflag, int offsx, int offsy, int winx, int winy)
 {
 	/* draw point */
 	if (sflag & GP_STROKE_3DSPACE) {
@@ -161,7 +163,6 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 		glEnd();
 	}
 	else {
-		int spacetype= 0; // XXX make local gpencil state var? 
 		float co[2];
 		
 		/* get coordinates of point */
@@ -182,7 +183,7 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 		 * 	- also mandatory in if Image Editor 'image-based' dot
 		 */
 		if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) ||
-			 ((spacetype==SPACE_IMAGE) && (sflag & GP_STROKE_2DSPACE)) )
+			 ((dflag & GP_DRAWDATA_IEDITHACK) && (sflag & GP_STROKE_2DSPACE)) )
 		{
 			glBegin(GL_POINTS);
 				glVertex2fv(co);
@@ -506,15 +507,16 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 		
 		/* check which stroke-drawer to use */
 		if (gps->totpoints == 1)
-			gp_draw_stroke_point(gps->points, lthick, gps->flag, offsx, offsy, winx, winy);
+			gp_draw_stroke_point(gps->points, lthick, dflag, gps->flag, offsx, offsy, winx, winy);
 		else if (dflag & GP_DRAWDATA_ONLY3D) {
 			const int no_xray= (dflag & GP_DRAWDATA_NO_XRAY);
-			int mask_orig;
-			if(no_xray) {
+			int mask_orig = 0;
+			
+			if (no_xray) {
 				glGetIntegerv(GL_DEPTH_WRITEMASK, &mask_orig);
 				glDepthMask(0);
 				glEnable(GL_DEPTH_TEST);
-
+				
 				/* first arg is normally rv3d->dist, but this isnt available here and seems to work quite well without */
 				bglPolygonOffset(1.0f, 1.0f);
 				/*
@@ -522,13 +524,13 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 				glPolygonOffset(-1.0f, -1.0f);
 				*/
 			}
-
+			
 			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, debug);
-
-			if(no_xray) {
+			
+			if (no_xray) {
 				glDepthMask(mask_orig);
 				glDisable(GL_DEPTH_TEST);
-
+				
 				bglPolygonOffset(0.0, 0.0);
 				/*
 				glDisable(GL_POLYGON_OFFSET_LINE);
@@ -545,7 +547,6 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
 {
 	bGPDlayer *gpl;
-	// bGPDlayer *actlay=NULL; // UNUSED
 	
 	/* reset line drawing style (in case previous user didn't reset) */
 	setlinestyle(0);
@@ -569,10 +570,6 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 		if (gpl->flag & GP_LAYER_HIDE) 
 			continue;
 		
-		/* if layer is active one, store pointer to it */
-		// if (gpl->flag & GP_LAYER_ACTIVE)
-		// 	actlay= gpl;
-		
 		/* get frame to draw */
 		gpf= gpencil_layer_getframe(gpl, cfra, 0);
 		if (gpf == NULL) 
@@ -584,11 +581,11 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 		QUATCOPY(tcolor, gpl->color); // additional copy of color (for ghosting)
 		glColor4f(color[0], color[1], color[2], color[3]);
 		glPointSize((float)(gpl->thickness + 2));
-
+		
 		/* apply xray layer setting */
-		if(gpl->flag & GP_LAYER_NO_XRAY)	dflag |=  GP_DRAWDATA_NO_XRAY;
+		if (gpl->flag & GP_LAYER_NO_XRAY)	dflag |=  GP_DRAWDATA_NO_XRAY;
 		else								dflag &= ~GP_DRAWDATA_NO_XRAY;
-
+		
 		/* draw 'onionskins' (frame left + right) */
 		if (gpl->flag & GP_LAYER_ONIONSKIN) {
 			/* drawing method - only immediately surrounding (gstep = 0), or within a frame range on either side (gstep > 0)*/			
@@ -601,8 +598,8 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 					/* check if frame is drawable */
 					if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						fac= (float)(gpf->framenum - gf->framenum) / (float)gpl->gstep;
-						tcolor[3] = color[3] - fac;
+						fac= 1.0f - ((float)(gpf->framenum - gf->framenum) / (float)(gpl->gstep + 1));
+						tcolor[3] = color[3] * fac * 0.66f;
 						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
@@ -614,8 +611,8 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 					/* check if frame is drawable */
 					if ((gf->framenum - gpf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						fac= (float)(gf->framenum - gpf->framenum) / (float)gpl->gstep;
-						tcolor[3] = color[3] - fac;
+						fac= 1.0f - ((float)(gf->framenum - gpf->framenum) / (float)(gpl->gstep + 1));
+						tcolor[3] = color[3] * fac * 0.66f;
 						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
@@ -787,11 +784,11 @@ void draw_gpencil_view3d_ext (Scene *scene, View3D *v3d, ARegion *ar, short only
 
 	/* check that we have grease-pencil stuff to draw */
 	gpd= gpencil_data_get_active_v3d(scene); // XXX
-	if(gpd == NULL) return;
+	if (gpd == NULL) return;
 
 	/* when rendering to the offscreen buffer we dont want to
 	 * deal with the camera border, otherwise map the coords to the camera border. */
-	if(rv3d->persp == RV3D_CAMOB && !(G.f & G_RENDER_OGL)) {
+	if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_RENDER_OGL)) {
 		rctf rectf;
 		view3d_calc_camera_border(scene, ar, rv3d, v3d, &rectf, -1); /* negative shift */
 		BLI_copy_rcti_rctf(&rect, &rectf);

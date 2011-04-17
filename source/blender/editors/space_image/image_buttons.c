@@ -255,16 +255,10 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 				ocent[1] *= imy;
 			}
 			
-			//uiBlockBeginAlign(block);
-			if(nactive==1) {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 10, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	165, 10, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
-			}
-			else {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 10, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	165, 10, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
-			}
-			//uiBlockEndAlign(block);
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_TRANS_IMAGE, "X:",	10, 10, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+			uiDefButF(block, NUM, B_TRANS_IMAGE, "Y:",	165, 10, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+			uiBlockEndAlign(block);
 		}
 	}
 	else {	// apply event
@@ -993,16 +987,6 @@ void image_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	/* editvertex_buts not working atm */
-	if(0) {
-		pt= MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
-		strcpy(pt->idname, "IMAGE_PT_uv");
-		strcpy(pt->label, "UV");
-		pt->draw= image_panel_uv;
-		pt->poll= image_panel_uv_poll;
-		BLI_addtail(&art->paneltypes, pt);
-	}
-
 	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel curves");
 	strcpy(pt->idname, "IMAGE_PT_curves");
 	strcpy(pt->label, "Curves");
@@ -1015,6 +999,13 @@ void image_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "IMAGE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");
 	pt->draw= gpencil_panel_standard;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
+	strcpy(pt->idname, "IMAGE_PT_uv");
+	strcpy(pt->label, "UV Vertex");
+	pt->draw= image_panel_uv;
+	pt->poll= image_panel_uv_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

@@ -33,6 +33,7 @@ $BLENDER --background --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
 
 # html
 sphinx-build $SPHINXBASE/sphinx-in $SPHINXBASE/sphinx-out
+
 cp $SPHINXBASE/sphinx-out/contents.html $SPHINXBASE/sphinx-out/index.html
 ssh $SSH_USER@emo.blender.org 'rm -rf '$SSH_UPLOAD_FULL'/*'
 rsync --progress -avze "ssh -p 22" $SPHINXBASE/sphinx-out/* $SSH_HOST:$SSH_UPLOAD_FULL/

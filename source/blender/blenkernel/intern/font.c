@@ -67,69 +67,61 @@
 static ListBase ttfdata= {NULL, NULL};
 
 /* UTF-8 <-> wchar transformations */
-void
-chtoutf8(unsigned long c, char *o)
+size_t chtoutf8(const unsigned long c, char o[4])
 {
 	// Variables and initialization
-/*	memset(o, 0, 16);	*/
+/*	memset(o, 0, 4);	*/
 
 	// Create the utf-8 string
-	if (c < 0x80)
-	{
+	if (c < 0x80) {
 		o[0] = (char) c;
+		return 1;
 	}
-	else if (c < 0x800)
-	{
+	else if (c < 0x800) {
 		o[0] = (0xC0 | (c>>6));
 		o[1] = (0x80 | (c & 0x3f));
+		return 2;
 	}
-	else if (c < 0x10000)
-	{
+	else if (c < 0x10000) {
 		o[0] = (0xe0 | (c >> 12));
 		o[1] = (0x80 | (c >>6 & 0x3f));
 		o[2] = (0x80 | (c & 0x3f));
+		return 3;
 	}
-	else if (c < 0x200000)
-	{
-	o[0] = (0xf0 | (c>>18));
-	o[1] = (0x80 | (c >>12 & 0x3f));
-	o[2] = (0x80 | (c >> 6 & 0x3f));
-	o[3] = (0x80 | (c & 0x3f));
+	else if (c < 0x200000) {
+		o[0] = (0xf0 | (c>>18));
+		o[1] = (0x80 | (c >>12 & 0x3f));
+		o[2] = (0x80 | (c >> 6 & 0x3f));
+		o[3] = (0x80 | (c & 0x3f));
+		return 4;
 	}
+
+	/* should we assert here? */
+	return 0;
 }
 
-void
-wcs2utf8s(char *dst, wchar_t *src)
+void wcs2utf8s(char *dst, const wchar_t *src)
 {
-	/* NULL terminator not needed */
-	char ch[4];
-
-	while(*src)
-	{
-		memset(ch, 0, sizeof(ch));
-		chtoutf8(*src++, ch);
-		dst= strncat(dst, ch, sizeof(ch));
+	while(*src) {
+		dst += chtoutf8(*src++, dst);
 	}
+
+	*dst= '\0';
 }
 
-int
-wcsleninu8(wchar_t *src)
+size_t wcsleninu8(wchar_t *src)
 {
-	char ch[16];
-	int len = 0;
+	char ch_dummy[4];
+	size_t len = 0;
 
-	while(*src)
-	{
-		memset(ch, 0, 16);
-		chtoutf8(*src++, ch);
-		len = len + strlen(ch);
+	while(*src) {
+		len += chtoutf8(*src++, ch_dummy);
 	}
 
 	return len;
 }
 
-static int
-utf8slen(const char *strc)
+static size_t utf8slen(const char *strc)
 {
 	int len=0;
 
@@ -172,7 +164,7 @@ only a single input character is consumed.
 
 */
 
-int utf8towchar(wchar_t *w, char *c)
+size_t utf8towchar(wchar_t *w, const char *c)
 {
 	int len=0;
 

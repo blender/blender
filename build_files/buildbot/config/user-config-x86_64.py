@@ -1,5 +1,6 @@
 BF_BUILDDIR = '../blender-build/linux-glibc27-x86_64'
 BF_INSTALLDIR = '../blender-install/linux-glibc27-x86_64'
+BF_NUMJOBS = 2
 
 # Python configuration
 BF_PYTHON_VERSION = '3.2'

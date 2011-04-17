@@ -306,7 +306,23 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 		}
 	}
 	
-	return rect->xmin < rect->xmax && rect->ymin < rect->ymax;
+	if (rect->xmin < rect->xmax && rect->ymin < rect->ymax) {
+		/* expand redraw rect with redraw rect from previous step to prevent
+		   partial-redraw issues caused by fast strokes. This is needed here (not in sculpt_flush_update)
+		   as it was before because redraw rectangle should be the same in both of
+		   optimized PBVH draw function and 3d view redraw (if not -- some mesh parts could
+		   disapper from screen (sergey) */
+		SculptSession *ss = ob->sculpt;
+
+		if (ss->cache) {
+			if (!BLI_rcti_is_empty(&ss->cache->previous_r))
+				BLI_union_rcti(rect, &ss->cache->previous_r);
+		}
+
+		return 1;
+	}
+
+	return 0;
 }
 
 void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
@@ -2492,38 +2508,50 @@ static void sculpt_update_keyblock(Object *ob)
 static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
-	
-	if(!ss->kb) {
+	Brush *brush= paint_brush(&sd->paint);
+
+	if(ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
+		/* this brushes aren't using proxies, so sculpt_combine_proxies() wouldn't
+		   propagate needed deformation to original base */
+
+		int n, totnode;
 		Mesh *me= (Mesh*)ob->data;
-		Brush *brush= paint_brush(&sd->paint);
+		PBVHNode** nodes;
+		float (*vertCos)[3]= NULL;
 
-		if(ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
-			/* this brushes aren't using proxies, so sculpt_combine_proxies() wouldn't
-			   propagate needed deformation to original base */
+		if(ss->kb)
+			vertCos= MEM_callocN(sizeof(*vertCos)*me->totvert, "flushStrokeDeofrm keyVerts");
 
-			int n, totnode;
-			PBVHNode** nodes;
+		BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-			BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+		for (n= 0; n < totnode; n++) {
+			PBVHVertexIter vd;
 
-			#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
-			for (n= 0; n < totnode; n++) {
-				PBVHVertexIter vd;
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+				sculpt_flush_pbvhvert_deform(ob, &vd);
 
-				BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
-					sculpt_flush_pbvhvert_deform(ob, &vd);
+				if(vertCos) {
+					int index= vd.vert_indices[vd.i];
+					copy_v3_v3(vertCos[index], ss->orig_cos[index]);
 				}
-				BLI_pbvh_vertex_iter_end;
 			}
-
-			MEM_freeN(nodes);
+			BLI_pbvh_vertex_iter_end;
 		}
+
+		if(vertCos) {
+			sculpt_vertcos_to_key(ob, ss->kb, vertCos);
+			MEM_freeN(vertCos);
+		}
+
+		MEM_freeN(nodes);
 
 		/* Modifiers could depend on mesh normals, so we should update them/
 		   Note, then if sculpting happens on locked key, normals should be re-calculated
 		   after applying coords from keyblock on base mesh */
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-	} else sculpt_update_keyblock(ob);
+	} else if (ss->kb)
+		sculpt_update_keyblock(ob);
 }
 
 //static int max_overlap_count(Sculpt *sd)
@@ -3405,19 +3433,13 @@ static void sculpt_flush_update(bContext *C)
 
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB, NULL);
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
+			if (ss->cache)
+				ss->cache->previous_r= r;
+
 			r.xmin += ar->winrct.xmin + 1;
 			r.xmax += ar->winrct.xmin - 1;
 			r.ymin += ar->winrct.ymin + 1;
 			r.ymax += ar->winrct.ymin - 1;
-
-			if (ss->cache) {
-				rcti tmp = r;
-
-				if (!BLI_rcti_is_empty(&ss->cache->previous_r))
-					BLI_union_rcti(&r, &ss->cache->previous_r);
-
-				ss->cache->previous_r= tmp;
-			}
 
 			ss->partial_redraw = 1;
 			ED_region_tag_redraw_partial(ar, &r);

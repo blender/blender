@@ -531,7 +531,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 	}
 
 	/* scale if not a power of two */
-	if (!mipmap && (!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
+	if (!is_pow2_limit(rectw) || !is_pow2_limit(recth)) {
 		rectw= smaller_pow2_limit(rectw);
 		recth= smaller_pow2_limit(recth);
 		

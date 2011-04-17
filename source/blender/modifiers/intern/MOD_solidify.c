@@ -643,6 +643,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		MEM_freeN(edge_order);
 	}
 
+	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
+	if(dvert) {
+		CDDM_calc_normals(result);
+	}
+
 	return result;
 }
 

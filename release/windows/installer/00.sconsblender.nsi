@@ -3,21 +3,18 @@
 ;
 ; Blender Self-Installer for Windows (NSIS - http://nsis.sourceforge.net)
 ;
-; Requires the MoreInfo plugin - http://nsis.sourceforge.net/MoreInfo_plug-in
-;
 
 SetCompressor /SOLID lzma
 
 Name "Blender [VERSION]" 
 
-!define MULTIUSER_EXECUTIONLEVEL Admin
+RequestExecutionLevel admin
 
 !include "MUI.nsh"
 !include "WinVer.nsh"
 !include "FileFunc.nsh"
 !include "WordFunc.nsh"
 !include "nsDialogs.nsh"
-!include "MultiUser.nsh"
 !include "x64.nsh"
 
 !define MUI_ABORTWARNING
@@ -91,7 +88,6 @@ Var HWND_HOMEDIR
 
 Function .onInit
   ClearErrors
-  !insertmacro MULTIUSER_INIT ; Checks if user has admin rights
   StrCpy $SHORTVERSION "[SHORTVERSION]"
 
   ${If} ${RunningX64}
@@ -107,7 +103,6 @@ Function .onInit
 FunctionEnd
 
 Function un.onInit
-  !insertmacro MULTIUSER_UNINIT
 FunctionEnd
 
 Function DataLocation
@@ -206,7 +201,7 @@ Section "Add Desktop Shortcut" DesktopShortcut
 SectionEnd
 
 Section "Open .blend files with Blender" BlendRegister
-ExecWait '"$INSTDIR\blender.exe" -r'
+  ExecWait '"$INSTDIR\blender.exe" -r'
 SectionEnd
 
 UninstallText "This will uninstall Blender [VERSION], and all installed files. Before continuing make sure you have created backup of all the files you may want to keep: startup.blend, bookmarks.txt, recent-files.txt. Hit 'Uninstall' to continue."

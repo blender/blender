@@ -106,7 +106,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         layout.label(text=cache.info)
     else:
         if cachetype == 'SMOKE':
-            if bpy.data.is_dirty:
+            if not bpy.data.is_saved:
                 layout.label(text="Cache is disabled until the file is saved")
                 layout.enabled = False
 
@@ -129,7 +129,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
         if cachetype != 'SMOKE':
             split = layout.split()
-            split.enabled = enabled and (not bpy.data.is_dirty)
+            split.enabled = enabled and bpy.data.is_saved
 
             col = split.column()
             col.prop(cache, "use_disk_cache")
@@ -139,7 +139,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             col.prop(cache, "use_library_path", "Use Lib Path")
 
             row = layout.row()
-            row.enabled = enabled and (not bpy.data.is_dirty)
+            row.enabled = enabled and bpy.data.is_saved
             row.active = cache.use_disk_cache
             row.label(text="Compression:")
             row.prop(cache, "compression", expand=True)

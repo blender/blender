@@ -1462,7 +1462,7 @@ static void rna_def_random_actuator(BlenderRNA *brna)
 	static EnumPropertyItem prop_distribution_items[] ={
 		{ACT_RANDOM_BOOL_CONST, "BOOL_CONSTANT", 0, "Bool Constant", ""},
 		{ACT_RANDOM_BOOL_UNIFORM, "BOOL_UNIFORM", 0, "Bool Uniform", ""},
-		{ACT_RANDOM_BOOL_BERNOUILLI, "BOOL_BERNOUILLI", 0, "Bool Bernouilli", ""},
+		{ACT_RANDOM_BOOL_BERNOUILLI, "BOOL_BERNOUILLI", 0, "Bool Bernoulli", ""},
 		{ACT_RANDOM_INT_CONST, "INT_CONSTANT", 0, "Int Constant", ""},
 		{ACT_RANDOM_INT_UNIFORM, "INT_UNIFORM", 0, "Int Uniform", ""},
 		{ACT_RANDOM_INT_POISSON, "INT_POISSON", 0, "Int Poisson", ""},

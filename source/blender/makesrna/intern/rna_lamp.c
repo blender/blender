@@ -575,7 +575,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_shadbuftype_items[] = {
 		{LA_SHADBUF_REGULAR	, "REGULAR", 0, "Classical", "Classic shadow buffer"},
-		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifaces"},
+		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifacts"},
 		{LA_SHADBUF_IRREGULAR, "IRREGULAR", 0, "Irregular", "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing"},
 		{LA_SHADBUF_DEEP, "DEEP", 0, "Deep", "Deep shadow buffer supports transparency and better filtering, at the cost of more memory usage and processing time"},
 		{0, NULL, 0, NULL, NULL}};
@@ -607,13 +607,13 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_halo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_HALO);
-	RNA_def_property_ui_text(prop, "Halo", "Renders spotlight with a volumetric halo (Buffer Shadows)");
+	RNA_def_property_ui_text(prop, "Halo", "Renders spotlight with a volumetric halo");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop= RNA_def_property(srna, "halo_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "haint");
 	RNA_def_property_ui_range(prop, 0, 5.0, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Halo Intensity", "Brightness of the spotlight's halo cone  (Buffer Shadows)");
+	RNA_def_property_ui_text(prop, "Halo Intensity", "Brightness of the spotlight's halo cone");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop= RNA_def_property(srna, "halo_step", PROP_INT, PROP_NONE);

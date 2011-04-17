@@ -1601,24 +1601,33 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		double value;
 
 #ifdef WITH_PYTHON
-		{
-			char str_unit_convert[256];
-			int unit_type= uiButGetUnitType(but);
-			Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+		int ok= FALSE;
 
-			BLI_strncpy(str_unit_convert, str, sizeof(str_unit_convert));
+		if(str[0] != '\0') {
+			int is_unit_but= ui_is_but_unit(but);
+			/* only enable verbose if we won't run again with units */
+			if(BPY_button_exec(C, str, &value, is_unit_but==FALSE) != -1) {
+				ok= TRUE; /* parse normal string via py (no unit conversion needed) */
+			}
+			else if(is_unit_but) {
+				/* parse failed, this is a unit but so run replacements and parse again */
+				char str_unit_convert[256];
+				const int unit_type= uiButGetUnitType(but);
+				Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
 
-			if(ui_is_but_unit(but)) {
+				BLI_strncpy(str_unit_convert, str, sizeof(str_unit_convert));
+
 				/* ugly, use the draw string to get the value, this could cause problems if it includes some text which resolves to a unit */
 				bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), but->drawstr, ui_get_but_scale_unit(but, 1.0), scene->unit.system, unit_type>>16);
-			}
 
-			if(BPY_button_exec(C, str_unit_convert, &value)) {
-				value = ui_get_but_val(but); /* use its original value */
-
-				if(str[0])
-					return 0;
+				if(BPY_button_exec(C, str_unit_convert, &value, TRUE) != -1) {
+					ok= TRUE;
+				}
 			}
+		}
+
+		if(ok == FALSE) {
+			return 0;
 		}
 #else
 		value= atof(str);

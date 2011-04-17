@@ -395,7 +395,7 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 		}
 
 		if (identifier[a]==' ') {
-			strcpy(error, "spaces are not ok in identifier names");
+			strcpy(error, "spaces are not okay in identifier names");
 			return 0;
 		}
 

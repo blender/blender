@@ -35,6 +35,7 @@
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
@@ -2778,14 +2779,6 @@ int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle,
 {
 	SceneRenderLayer *srl;
 	
-	/* forbidden combinations */
-	if(scene->r.mode & R_PANORAMA) {
-		if(scene->r.mode & R_ORTHO) {
-			error(erh, "No Ortho render possible for Panorama");
-			return 0;
-		}
-	}
-	
 	if(scene->r.mode & R_BORDER) {
 		if(scene->r.border.xmax <= scene->r.border.xmin ||
 		   scene->r.border.ymax <= scene->r.border.ymin) {
@@ -2848,6 +2841,17 @@ int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle,
 		return 0;
 	}
 	
+	/* get panorama & ortho, only after camera is set */
+	object_camera_mode(&scene->r, scene->camera);
+
+	/* forbidden combinations */
+	if(scene->r.mode & R_PANORAMA) {
+		if(scene->r.mode & R_ORTHO) {
+			error(erh, "No Ortho render possible for Panorama");
+			return 0;
+		}
+	}
+
 	/* layer flag tests */
 	if(scene->r.scemode & R_SINGLE_LAYER) {
 		srl= BLI_findlink(&scene->r.layers, scene->r.actlay);
@@ -3432,12 +3436,8 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
 
 static int external_render_3d(Render *re, int do_all)
 {
-	RenderEngineType *type;
+	RenderEngineType *type= BLI_findstring(&R_engines, re->r.engine, offsetof(RenderEngineType, idname));
 	RenderEngine engine;
-
-	for(type=R_engines.first; type; type=type->next)
-		if(strcmp(type->idname, re->r.engine) == 0)
-			break;
 
 	if(!(type && type->render))
 		return 0;
