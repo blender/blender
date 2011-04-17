@@ -360,12 +360,12 @@ void EDBM_free_index_arrays(BMEditMesh *tm)
 
 BMVert *EDBM_get_vert_for_index(BMEditMesh *tm, int index)
 {
-	return tm->vert_index?tm->vert_index[index]:NULL;
+	return tm->vert_index && index < tm->bm->totvert ?tm->vert_index[index]:NULL;
 }
 
 BMEdge *EDBM_get_edge_for_index(BMEditMesh *tm, int index)
 {
-	return tm->edge_index?tm->edge_index[index]:NULL;
+	return tm->edge_index && index < tm->bm->totedge ?tm->edge_index[index]:NULL;
 }
 
 BMFace *EDBM_get_face_for_index(BMEditMesh *tm, int index)

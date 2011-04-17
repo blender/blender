@@ -4773,6 +4773,8 @@ void freeSlideVerts(TransInfo *t)
 	MEM_freeN(sld);
 	
 	t->customData = NULL;
+	
+	recalcData(t);
 }
 
 void initEdgeSlide(TransInfo *t)

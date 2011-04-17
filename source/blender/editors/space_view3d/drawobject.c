@@ -2104,7 +2104,7 @@ static int draw_dm_creases__setDrawOptions(void *userData, int index)
 {
 	BMEditMesh *em = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
-	float *crease = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE);
+	float *crease = eed ? bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE) : NULL;
 	
 	if (!crease)
 		return 0;

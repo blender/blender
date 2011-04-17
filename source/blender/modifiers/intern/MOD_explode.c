@@ -201,7 +201,7 @@ static const short add_faces[24] = {
 static MFace *get_dface(DerivedMesh *dm, DerivedMesh *split, int cur, int i, MFace *mf)
 {
 	MFace *df = CDDM_get_tessface(split, cur);
-	DM_copy_face_data(dm, split, i, cur, 1);
+	DM_copy_tessface_data(dm, split, i, cur, 1);
 	*df = *mf;
 	return df;
 }
@@ -925,7 +925,7 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 		if(source.v4)
 			source.v4 = edgecut_get(vertpahash, source.v4, mindex);
 
-		DM_copy_face_data(dm,explode,i,i,1);
+		DM_copy_tessface_data(dm,explode,i,i,1);
 
 		*mf = source;
 
@@ -949,16 +949,13 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 
 	/* finalization */
 	CDDM_calc_edges(explode);
+	CDDM_tessfaces_to_faces(explode);
 	CDDM_calc_normals(explode);
 
 	if(psmd->psys->lattice){
 		end_latt_deform(psmd->psys->lattice);
 		psmd->psys->lattice= NULL;
 	}
-
-	dm = CDDM_copy(explode, 1); /*builds ngon faces from tess (mface) faces*/
-	explode->needsFree = 1;
-	explode->release(explode);
 
 	return explode;
 }

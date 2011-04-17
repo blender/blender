@@ -198,7 +198,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						int UNUSED(isFinalCalc))
 {
 	int i;
-	DerivedMesh *result, *copy;
+	DerivedMesh *result, *copy, *odm = dm;
 	const SolidifyModifierData *smd = (SolidifyModifierData*) md;
 
 	MVert *mv, *mvert, *orig_mvert;
@@ -241,8 +241,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	if (!CDDM_Check(dm)) {
 		DerivedMesh *dm2 = CDDM_copy(dm, 0);
-		dm->needsFree = 1;
-		dm->release(dm);
 		dm = dm2;
 	}
 	
@@ -679,8 +677,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		MEM_freeN(edge_vert_nos);
 #endif
 
-		MEM_freeN(new_vert_arr);
-		MEM_freeN(new_edge_arr);
+		BLI_array_free(new_vert_arr);
+		BLI_array_free(new_edge_arr);
 		MEM_freeN(edge_users);
 		MEM_freeN(edge_order);
 	}
@@ -688,13 +686,18 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (old_vert_arr)
 		MEM_freeN(old_vert_arr);
 	
-	CDDM_recalc_tesselation(result, 1);
-	
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
 	if(dvert) {
 		CDDM_calc_normals(result);
+	} else {
+		CDDM_recalc_tesselation(result, 1);
 	}
-
+	
+	if (dm != odm) {
+		dm->needsFree = 1;
+		dm->release(dm);
+	}
+	
 	return result;
 }
 
