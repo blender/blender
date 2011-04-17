@@ -59,6 +59,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	BLI_array_declare(fedges);
 	float (*keyco)[3]= NULL;
 	int *keyi;
+	int set_key = BMO_Get_Int(op, "set_shapekey");
 	int i, j, li, allocsize[4] = {512, 512, 2048, 512};
 
 	if (!me || !me->totvert) return; /*sanity check*/
@@ -119,7 +120,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
 
 	for (i=0; i<me->totvert; i++, mvert++) {
-		v = BM_Make_Vert(bm, keyco ? keyco[i] : mvert->co, NULL);
+		v = BM_Make_Vert(bm, keyco&&set_key ? keyco[i] : mvert->co, NULL);
 		normal_short_to_float_v3(v->no, mvert->no);
 
 		vt[i] = v;

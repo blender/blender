@@ -574,7 +574,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
 
 	bm = BM_Make_Mesh(ob, allocsize);
 
-	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p", me, ob);
+	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", me, ob, 1);
 
 	return bm;
 }

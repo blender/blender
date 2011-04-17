@@ -516,6 +516,7 @@ BMOpDefine def_mesh_to_bmesh = {
 	"mesh_to_bmesh",
 	{{BMOP_OPSLOT_PNT, "mesh"}, //pointer to a Mesh structure
 	 {BMOP_OPSLOT_PNT, "object"}, //pointer to an Object structure
+	 {BMOP_OPSLOT_INT, "set_shapekey"}, //load active shapekey coordinates into verts
 	 {0, /*null-terminating sentinel*/}},
 	mesh_to_bmesh_exec,
 	0

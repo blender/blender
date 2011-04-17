@@ -602,7 +602,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *obdata)
 	BMEdit_Free(em);
 
 	bm = BM_Make_Mesh(ob, allocsize);
-	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p", me, ob);
+	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", me, ob, 0);
 
 	em2 = BMEdit_Create(bm);
 	*em = *em2;
