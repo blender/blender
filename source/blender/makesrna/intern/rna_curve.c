@@ -1355,7 +1355,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	// XXX - would be nice to have a better way to do this, only add for testing.
 	prop= RNA_def_property(srna, "twist_smooth", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "twist_smooth");
-	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
+	RNA_def_property_ui_range(prop, 0, 100.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Twist Smooth", "Smoothing iteration for tangents");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
