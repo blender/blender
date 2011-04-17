@@ -471,7 +471,8 @@ void BPY_DECREF(void *pyob_ptr)
 	PyGILState_Release(gilstate);
 }
 
-int BPY_button_exec(bContext *C, const char *expr, double *value)
+/* return -1 on error, else 0 */
+int BPY_button_exec(bContext *C, const char *expr, double *value, const short verbose)
 {
 	PyGILState_STATE gilstate;
 	PyObject *py_dict, *mod, *retval;
@@ -536,7 +537,12 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 	}
 	
 	if(error_ret) {
-		BPy_errors_to_report(CTX_wm_reports(C));
+		if(verbose) {
+			BPy_errors_to_report(CTX_wm_reports(C));
+		}
+		else {
+			PyErr_Clear();
+		}
 	}
 
 	PyC_MainModule_Backup(&main_mod);
