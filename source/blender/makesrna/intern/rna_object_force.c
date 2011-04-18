@@ -322,10 +322,21 @@ static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max)
 
 static char *rna_CollisionSettings_path(PointerRNA *ptr)
 {
+	/* both methods work ok, but return the shorter path */
+#if 0
 	Object *ob= (Object*)ptr->id.data;
 	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Collision);
-	
-	return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
+
+	if(md) {
+		return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
+	}
+	else {
+		return BLI_strdup("");
+	}
+#else
+	/* more reliable */
+	return BLI_strdup("collision");
+#endif
 }
 
 static int rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
