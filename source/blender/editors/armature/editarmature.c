@@ -504,6 +504,10 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 		ebone->rad_head	*= scale;
 		ebone->rad_tail	*= scale;
 		ebone->dist		*= scale;
+
+		/* we could be smarter and scale by the matrix along the x & z axis */
+		ebone->xwidth	*= scale;
+		ebone->zwidth	*= scale;
 	}
 	
 	/* Turn the list into an armature */
