@@ -1758,6 +1758,7 @@ static struct _inittab bge_internal_modules[]= {
 
 /**
  * Python is not initialised.
+ * see bpy_interface.c's BPY_python_start() which shares the same functionality in blender.
  */
 PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie, int argc, char** argv)
 {
@@ -1778,6 +1779,9 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 
 	/* must run before python initializes */
 	PyImport_ExtendInittab(bge_internal_modules);
+
+	/* find local python installation */
+	PyC_SetHomePath(BLI_get_folder(BLENDER_PYTHON, NULL));
 
 	Py_Initialize();
 	
