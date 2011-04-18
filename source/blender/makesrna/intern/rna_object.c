@@ -1059,6 +1059,9 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
+	if(ob->type != OB_MESH)
+		return PointerRNA_NULL;
+
 	/* weak */
 	if(!ob->pd)
 		ob->pd= object_add_collision_fields(0);
