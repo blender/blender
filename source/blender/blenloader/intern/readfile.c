@@ -9974,7 +9974,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					{
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
-						BLI_path_abs(str, G.main->name);
+						BLI_path_abs(str, main->name);
 						seq->sound = sound_new_file(main, str);
 					}
 					/* don't know, if anybody used that
