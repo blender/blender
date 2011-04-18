@@ -32,6 +32,10 @@
 
 #include "BKE_font.h" /* only for utf8towchar, should replace with py funcs but too late in release now */
 
+#ifdef _WIN32 /* BLI_setenv */
+#include "BLI_path_util.h"
+#endif
+
 #define PYC_INTERPRETER_ACTIVE (((PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
 
 /* for debugging */
