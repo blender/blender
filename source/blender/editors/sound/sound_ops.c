@@ -254,7 +254,7 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	if(G.fileflags & G_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
 
-	unpack_menu(C, "SOUND_OT_unpack", sound->id.name+2, sound->name, "audio", sound->packedfile);
+	unpack_menu(C, "SOUND_OT_unpack", sound->id.name+2, sound->name, "sounds", sound->packedfile);
 
 	return OPERATOR_FINISHED;
 }
