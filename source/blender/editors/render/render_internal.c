@@ -823,7 +823,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
 	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
 	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render");
-	RNA_def_string(ot->srna, "scene", "", 19, "Scene", "Re-render single layer in this scene");
+	RNA_def_string(ot->srna, "scene", "", sizeof(((ID *)NULL)->name)-2, "Scene", "Re-render single layer in this scene");
 }
 
 /* ****************************** opengl render *************************** */
