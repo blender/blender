@@ -54,6 +54,7 @@
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -744,6 +745,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		rl = (SceneRenderLayer *)BLI_findstring(&scene->r.layers, rl_name, offsetof(SceneRenderLayer, name));
 		
 		if (scn && rl) {
+			/* camera switch wont have updated */
+			scn->r.cfra= scene->r.cfra;
+			scene_camera_switch_update(scn);
+
 			scene = scn;
 			srl = rl;
 		}
