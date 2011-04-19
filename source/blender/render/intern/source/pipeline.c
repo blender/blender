@@ -2170,7 +2170,9 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	int winx= re->winx, winy= re->winy;
 	
 	sce->r.cfra= cfra;
-		
+
+	scene_camera_switch_update(sce);
+
 	/* exception: scene uses own size (unfinished code) */
 	if(0) {
 		winx= (sce->r.size*sce->r.xsch)/100;
