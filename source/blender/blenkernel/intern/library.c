@@ -1157,7 +1157,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 int new_id(ListBase *lb, ID *id, const char *tname)
 {
 	int result;
-	char name[22];
+	char name[MAX_ID_NAME-2];
 
 	/* if library, don't rename */
 	if(id->lib) return 0;

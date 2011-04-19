@@ -219,7 +219,7 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
 
 	/* find the suppplied image by name */
 	if (RNA_property_is_set(op->ptr, "id")) {
-		char sndname[22];
+		char sndname[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "id", sndname);
 		sound = BLI_findstring(&CTX_data_main(C)->sound, sndname, offsetof(ID, name) + 2);
 	}
@@ -276,7 +276,7 @@ static void SOUND_OT_unpack(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
-	RNA_def_string(ot->srna, "id", "", sizeof(((ID *)NULL)->name)-2, "Sound Name", "Sound datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */
+	RNA_def_string(ot->srna, "id", "", MAX_ID_NAME-2, "Sound Name", "Sound datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */
 }
 
 /* ******************************************************* */

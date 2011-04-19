@@ -518,7 +518,7 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	PointerRNA scn_ptr;
 	PropertyRNA *prop;
 	const char *layer_name;
-	char scene_name[19];
+	char scene_name[MAX_ID_NAME-2];
 	
 	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
 	

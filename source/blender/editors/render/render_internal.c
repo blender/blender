@@ -736,7 +736,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(RNA_property_is_set(op->ptr, "layer")) {
 		SceneRenderLayer *rl;
 		Scene *scn;
-		char scene_name[19], rl_name[RE_MAXNAME];
+		char scene_name[MAX_ID_NAME-2], rl_name[RE_MAXNAME];
 
 		RNA_string_get(op->ptr, "layer", rl_name);
 		RNA_string_get(op->ptr, "scene", scene_name);
@@ -828,7 +828,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
 	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
 	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render");
-	RNA_def_string(ot->srna, "scene", "", sizeof(((ID *)NULL)->name)-2, "Scene", "Re-render single layer in this scene");
+	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene", "Re-render single layer in this scene");
 }
 
 /* ****************************** opengl render *************************** */

@@ -5665,7 +5665,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				if(tselem->type==TSE_EBONE) len = sizeof(((EditBone*) 0)->name);
 				else if (tselem->type==TSE_MODIFIER) len = sizeof(((ModifierData*) 0)->name);
 				else if(tselem->id && GS(tselem->id->name)==ID_LI) len = sizeof(((Library*) 0)->name);
-				else len= sizeof(((ID*) 0)->name)-2;
+				else len= MAX_ID_NAME-2;
 				
 
 				dx= (int)UI_GetStringWidth(te->name);

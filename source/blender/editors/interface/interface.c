@@ -1390,7 +1390,7 @@ int ui_get_but_string_max_length(uiBut *but)
 	if(ELEM(but->type, TEX, SEARCH_MENU))
 		return but->hardmax;
 	else if(but->type == IDPOIN)
-		return sizeof(((ID*)NULL)->name)-2;
+		return MAX_ID_NAME-2;
 	else
 		return UI_MAX_DRAW_STR;
 }
