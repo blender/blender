@@ -122,7 +122,6 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
         col = layout.column(align=True)
         col.label(text="Deform:")
         col.operator("transform.edge_slide")
-        col.operator("mesh.rip_move")
         col.operator("mesh.noise")
         col.operator("mesh.vertices_smooth")
 
