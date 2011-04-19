@@ -95,7 +95,7 @@ typedef struct bUnitDef {
 /* define a single unit */
 typedef struct bUnitCollection {
 	struct bUnitDef *units;
-	int base_unit;				/* basic unit index (when user desn't specify unit explicitly) */
+	int base_unit;				/* basic unit index (when user doesn't specify unit explicitly) */
 	int flag;					/* options for this system */
 	int length;					/* to quickly find the last item */
 } bUnitCollection;

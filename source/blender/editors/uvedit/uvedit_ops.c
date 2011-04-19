@@ -1787,7 +1787,7 @@ static void UV_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select";
-	ot->description= "Select UV vertice";
+	ot->description= "Select UV vertices";
 	ot->idname= "UV_OT_select";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	

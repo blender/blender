@@ -5414,7 +5414,7 @@ static void freecollections(ListBase *allcollections)
 
 /*Begin UV Edge Collapse Code
 	Like Edge subdivide, Edge Collapse should handle UV's intelligently, but since UV's are a per-face attribute, normal edge collapse will fail
-	in areas such as the boundries of 'UV islands'. So for each edge collection we need to build a set of 'welded' UV vertices and edges for it.
+	in areas such as the boundaries of 'UV islands'. So for each edge collection we need to build a set of 'welded' UV vertices and edges for it.
 	The welded UV edges can then be sorted and collapsed.
 */
 typedef struct wUV{

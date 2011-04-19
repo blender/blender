@@ -3581,7 +3581,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Spline Type";
-	ot->description = "Set type of actibe spline";
+	ot->description = "Set type of active spline";
 	ot->idname= "CURVE_OT_spline_type_set";
 	
 	/* api callbacks */

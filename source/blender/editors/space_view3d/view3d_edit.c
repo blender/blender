@@ -1678,7 +1678,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Render Border";
-	ot->description = "Set the boundries of the border render and enables border render ";
+	ot->description = "Set the boundaries of the border render and enables border render ";
 	ot->idname= "VIEW3D_OT_render_border";
 
 	/* api callbacks */

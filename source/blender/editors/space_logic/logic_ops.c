@@ -581,7 +581,7 @@ static void LOGIC_OT_sensor_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Sensor";
-	ot->description = "Move Densor";
+	ot->description = "Move Sensor";
 	ot->idname= "LOGIC_OT_sensor_move";
 	
 	/* api callbacks */

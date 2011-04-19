@@ -1002,7 +1002,7 @@ void NLA_OT_mute_toggle (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Muting";
 	ot->idname= "NLA_OT_mute_toggle";
-	ot->description= "Mute or un-muted selected strips";
+	ot->description= "Mute or un-mute selected strips";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_toggle_mute_exec;
@@ -1384,7 +1384,7 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Sync Action Length";
 	ot->idname= "NLA_OT_action_sync_length";
-	ot->description= "Sychronise the length of the referenced Action with the lengths used in the strip";
+	ot->description= "Synchronise the length of the referenced Action with the lengths used in the strip";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_sync_actlen_exec;
@@ -1803,7 +1803,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add F-Modifier";
 	ot->idname= "NLA_OT_fmodifier_add";
-	ot->description= "Add F-Modifier of the secified type to the selected NLA-Strips";
+	ot->description= "Add F-Modifier of the specified type to the selected NLA-Strips";
 	
 	/* api callbacks */
 	ot->invoke= nla_fmodifier_add_invoke;

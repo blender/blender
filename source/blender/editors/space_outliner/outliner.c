@@ -1729,7 +1729,7 @@ void OUTLINER_OT_renderability_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Renderability";
 	ot->idname= "OUTLINER_OT_renderability_toggle";
-	ot->description= "Toggle the renderbility of selected items";
+	ot->description= "Toggle the renderability of selected items";
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_renderability_exec;
