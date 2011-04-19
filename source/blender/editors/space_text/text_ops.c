@@ -290,7 +290,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void TEXT_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open";
+	ot->name= "Open Text Block";
 	ot->idname= "TEXT_OT_open";
 	ot->description= "Open a new text data block";
 

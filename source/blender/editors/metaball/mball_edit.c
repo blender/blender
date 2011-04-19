@@ -314,7 +314,7 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate";
+	ot->name= "Duplicate Metaelements";
 	ot->description= "Delete selected metaelement(s)";
 	ot->idname= "MBALL_OT_duplicate_metaelems";
 

@@ -1754,7 +1754,7 @@ static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 void MESH_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate";
+	ot->name= "Duplicate Mesh";
 	ot->description= "Duplicate selected vertices, edges or faces";
 	ot->idname= "MESH_OT_duplicate";
 	

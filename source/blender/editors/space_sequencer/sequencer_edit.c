@@ -1666,7 +1666,7 @@ static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *
 void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate";
+	ot->name= "Duplicate Strips";
 	ot->idname= "SEQUENCER_OT_duplicate";
 	ot->description="Duplicate the selected strips";
 	

@@ -1310,7 +1310,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom view";
+	ot->name= "Zoom View";
 	ot->description = "Zoom in/out in the view";
 	ot->idname= "VIEW3D_OT_zoom";
 

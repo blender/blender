@@ -5639,7 +5639,7 @@ static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate";
+	ot->name= "Duplicate Curve";
 	ot->description = "Duplicate selected control points and segments between them";
 	ot->idname= "CURVE_OT_duplicate";
 	
@@ -6664,7 +6664,7 @@ static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Circle";
+	ot->name= "Add Bezier Circle";
 	ot->description= "Construct a Bezier Circle";
 	ot->idname= "CURVE_OT_primitive_bezier_circle_add";
 	

@@ -1715,7 +1715,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void FONT_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open";
+	ot->name= "Open Font";
 	ot->idname= "FONT_OT_open";
 	
 	/* api callbacks */
