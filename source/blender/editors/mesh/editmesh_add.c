@@ -139,7 +139,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* call extrude? */
 	if(done) {
-		short rot_src= RNA_boolean_get(op->ptr, "rotate_source");
+		const short rot_src= RNA_boolean_get(op->ptr, "rotate_source");
 		EditEdge *eed;
 		float vec[3], cent[3], mat[3][3];
 		float nor[3]= {0.0, 0.0, 0.0};
@@ -246,20 +246,16 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else if(vc.em->selectmode & SCE_SELECT_VERTEX) {
 
-		float mat[3][3],imat[3][3];
-		float *curs= give_cursor(vc.scene, vc.v3d);
+		float imat[4][4];
+		const float *curs= give_cursor(vc.scene, vc.v3d);
 		
 		copy_v3_v3(min, curs);
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
 		
 		eve= addvertlist(vc.em, 0, NULL);
 
-		copy_m3_m4(mat, vc.obedit->obmat);
-		invert_m3_m3(imat, mat);
-		
-		copy_v3_v3(eve->co, min);
-		mul_m3_v3(imat, eve->co);
-		sub_v3_v3v3(eve->co, eve->co, vc.obedit->obmat[3]);
+		invert_m4_m4(imat, vc.obedit->obmat);
+		mul_v3_m4v3(eve->co, imat, min);
 		
 		eve->f= SELECT;
 	}

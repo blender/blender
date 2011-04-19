@@ -4413,11 +4413,10 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	Nurb *nu, *newnu= NULL;
 	BezTriple *bezt, *newbezt = NULL;
 	BPoint *bp, *newbp = NULL;
-	float mat[3][3],imat[3][3], temp[3];
+	float imat[4][4], temp[3];
 	int ok= 0;
 
-	copy_m3_m4(mat, obedit->obmat);
-	invert_m3_m3(imat,mat);
+	invert_m4_m4(imat, obedit->obmat);
 
 	findselectedNurbvert(&editnurb->nurbs, &nu, &bezt, &bp);
 
@@ -4451,10 +4450,14 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				temp[0] = 1;
 				temp[1] = 0;
 				temp[2] = 0;
+
 				copy_v3_v3(newbezt->vec[1], location);
-				sub_v3_v3(newbezt->vec[1], obedit->obmat[3]);
-				sub_v3_v3v3(newbezt->vec[0], newbezt->vec[1],temp);
-				add_v3_v3v3(newbezt->vec[2], newbezt->vec[1],temp);
+				sub_v3_v3v3(newbezt->vec[0], newbezt->vec[1], temp);
+				add_v3_v3v3(newbezt->vec[2], newbezt->vec[1], temp);
+
+				mul_m4_v3(imat, newbezt->vec[0]);
+				mul_m4_v3(imat, newbezt->vec[1]);
+				mul_m4_v3(imat, newbezt->vec[2]);
 
 				ok= 1;
 				nu= newnu;
@@ -4473,9 +4476,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				newnu->orderu= 2;
 				newnu->pntsu= 1;
 
-				copy_v3_v3(newbp->vec, location);
-				sub_v3_v3(newbp->vec, obedit->obmat[3]);
-				mul_m3_v3(imat,newbp->vec);
+				mul_v3_m4v3(newbp->vec, imat, location);
 				newbp->vec[3]= 1.0;
 
 				newnu->knotsu= newnu->knotsv= NULL;
@@ -4555,9 +4556,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				copy_v3_v3(newbezt->vec[2], bezt->vec[2]);
 			}
 			else {
-				copy_v3_v3(newbezt->vec[1], location);
-				sub_v3_v3(newbezt->vec[1], obedit->obmat[3]);
-				mul_m3_v3(imat,newbezt->vec[1]);
+				mul_v3_m4v3(newbezt->vec[1], imat, location);
 				sub_v3_v3v3(temp, newbezt->vec[1],temp);
 				add_v3_v3v3(newbezt->vec[0], bezt->vec[0],temp);
 				add_v3_v3v3(newbezt->vec[2], bezt->vec[2],temp);
@@ -4622,9 +4621,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				copy_v3_v3(newbp->vec, bp->vec);
 			}
 			else {
-				copy_v3_v3(newbp->vec, location);
-				sub_v3_v3(newbp->vec, obedit->obmat[3]);
-				mul_m3_v3(imat,newbp->vec);
+				mul_v3_m4v3(newbp->vec, imat, location);
 				newbp->vec[3]= 1.0;
 
 				if(!newnu && nu->orderu<4 && nu->orderu<=nu->pntsu)
@@ -4666,12 +4663,32 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	ViewContext vc;
-	float location[3] = {0.0f, 0.0f, 0.0f};
-	short mval[2];
 
 	if(rv3d && !RNA_property_is_set(op->ptr, "location")) {
+		Curve *cu;
+		ViewContext vc;
+		float location[3];
+		short mval[2];
+
+		Nurb *nu;
+		BezTriple *bezt;
+		BPoint *bp;
+
 		view3d_set_viewcontext(C, &vc);
+
+		cu= vc.obedit->data;
+
+		findselectedNurbvert(&cu->editnurb->nurbs, &nu, &bezt, &bp);
+
+		if(bezt) {
+			mul_v3_m4v3(location, vc.obedit->obmat, bezt->vec[1]);
+		}
+		else if (bp) {
+			mul_v3_m4v3(location, vc.obedit->obmat, bp->vec);
+		}
+		else {
+			copy_v3_v3(location, give_cursor(vc.scene, vc.v3d));
+		}
 
 		mval[0]= event->x - vc.ar->winrct.xmin;
 		mval[1]= event->y - vc.ar->winrct.ymin;
