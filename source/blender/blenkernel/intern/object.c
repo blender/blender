@@ -208,8 +208,8 @@ void object_link_modifiers(struct Object *ob, struct Object *from)
 		BLI_addtail(&ob->modifiers, nmd);
 	}
 
-	copy_object_particlesystems(from, ob);
-	copy_object_softbody(from, ob);
+	copy_object_particlesystems(ob, from);
+	copy_object_softbody(ob, from);
 
 	// TODO: smoke?, cloth?
 }
