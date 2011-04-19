@@ -4371,7 +4371,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 	float loc[3], nor[3], vec[3], side[3], len, obrotmat[4][4], qmat[4][4];
 	float xvec[3] = {-1.0, 0.0, 0.0}, q[4], nmat[3][3];
 
-	sub_v3_v3v3(vec, (cache+cache->steps-1)->co, cache->co);
+	sub_v3_v3v3(vec, (cache+cache->steps)->co, cache->co);
 	len= normalize_v3(vec);
 
 	if(psys->part->rotmode) {
