@@ -56,7 +56,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
-#include "BKE_node.h"
 
 #include "PIL_time.h"
 
