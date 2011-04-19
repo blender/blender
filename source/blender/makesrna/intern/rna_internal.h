@@ -222,6 +222,9 @@ int rna_Curve_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
 int rna_Lattice_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
 int rna_Mesh_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
 
+/* basic poll functions for actions (to prevent actions getting set in wrong places) */
+int rna_Action_id_poll(struct PointerRNA *ptr, struct PointerRNA value);
+int rna_Action_actedit_assign_poll(struct PointerRNA *ptr, struct PointerRNA value);
 
 char *rna_TextureSlot_path(struct PointerRNA *ptr);
 

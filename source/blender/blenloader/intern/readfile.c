@@ -1863,6 +1863,10 @@ static void lib_link_nladata_strips(FileData *fd, ID *id, ListBase *list)
 		
 		/* reassign the counted-reference to action */
 		strip->act = newlibadr_us(fd, id->lib, strip->act);
+		
+		/* fix action id-root (i.e. if it comes from a pre 2.57 .blend file) */
+		if ((strip->act) && (strip->act->idroot == 0))
+			strip->act->idroot = GS(id->name);
 	}
 }
 
@@ -1955,6 +1959,12 @@ static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt)
 	/* link action data */
 	adt->action= newlibadr_us(fd, id->lib, adt->action);
 	adt->tmpact= newlibadr_us(fd, id->lib, adt->tmpact);
+	
+	/* fix action id-roots (i.e. if they come from a pre 2.57 .blend file) */
+	if ((adt->action) && (adt->action->idroot == 0))
+		adt->action->idroot = GS(id->name);
+	if ((adt->tmpact) && (adt->tmpact->idroot == 0))
+		adt->tmpact->idroot = GS(id->name);
 	
 	/* link drivers */
 	lib_link_fcurves(fd, id, &adt->drivers);

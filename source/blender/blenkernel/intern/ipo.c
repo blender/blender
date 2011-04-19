@@ -1372,7 +1372,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
  * This does not assume that any ID or AnimData uses it, but does assume that
  * it is given two lists, which it will perform driver/animation-data separation.
  */
-static void ipo_to_animato (ID *id, Ipo *ipo, char actname[], char constname[], Sequence * seq, ListBase *animgroups, ListBase *anim, ListBase *drivers)
+static void ipo_to_animato (ID *id, Ipo *ipo, char actname[], char constname[], Sequence *seq, ListBase *animgroups, ListBase *anim, ListBase *drivers)
 {
 	IpoCurve *icu;
 	
@@ -1804,6 +1804,10 @@ void do_versions_ipos_to_animato(Main *main)
 				BLI_freelinkN(&ob->constraintChannels, conchan);
 			}
 		}
+		
+		/* object's action will always be object-rooted */
+		if (adt->action)
+			adt->action->idroot = ID_OB;
 	}
 	
 	/* shapekeys */
@@ -1822,6 +1826,10 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* Convert Shapekey data... */
 			ipo_to_animdata(id, key->ipo, NULL, NULL, NULL);
+			
+			if (adt->action)
+				adt->action->idroot = key->ipo->blocktype;
+			
 			key->ipo->id.us--;
 			key->ipo= NULL;
 		}
@@ -1840,6 +1848,10 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* Convert Material data... */
 			ipo_to_animdata(id, ma->ipo, NULL, NULL, NULL);
+			
+			if (adt->action)
+				adt->action->idroot = ma->ipo->blocktype;
+			
 			ma->ipo->id.us--;
 			ma->ipo= NULL;
 		}
@@ -1858,6 +1870,10 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* Convert World data... */
 			ipo_to_animdata(id, wo->ipo, NULL, NULL, NULL);
+			
+			if (adt->action)
+				adt->action->idroot = wo->ipo->blocktype;
+			
 			wo->ipo->id.us--;
 			wo->ipo= NULL;
 		}
@@ -1904,6 +1920,10 @@ void do_versions_ipos_to_animato(Main *main)
 				
 				/* convert IPO */
 				ipo_to_animdata((ID *)scene, seq->ipo, NULL, NULL, seq);
+				
+				if (adt->action)
+					adt->action->idroot = ID_SCE; /* scene-rooted */
+				
 				seq->ipo->id.us--;
 				seq->ipo = NULL;
 			}
@@ -1925,6 +1945,10 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* Convert Texture data... */
 			ipo_to_animdata(id, te->ipo, NULL, NULL, NULL);
+			
+			if (adt->action)
+				adt->action->idroot = te->ipo->blocktype;
+			
 			te->ipo->id.us--;
 			te->ipo= NULL;
 		}
@@ -1943,6 +1967,10 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* Convert Camera data... */
 			ipo_to_animdata(id, ca->ipo, NULL, NULL, NULL);
+			
+			if (adt->action)
+				adt->action->idroot = ca->ipo->blocktype;
+			
 			ca->ipo->id.us--;
 			ca->ipo= NULL;
 		}
@@ -1961,6 +1989,10 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* Convert Lamp data... */
 			ipo_to_animdata(id, la->ipo, NULL, NULL, NULL);
+			
+			if (adt->action)
+				adt->action->idroot = la->ipo->blocktype;
+			
 			la->ipo->id.us--;
 			la->ipo= NULL;
 		}
@@ -1979,6 +2011,10 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* Convert Curve data... */
 			ipo_to_animdata(id, cu->ipo, NULL, NULL, NULL);
+			
+			if (adt->action)
+				adt->action->idroot = cu->ipo->blocktype;
+			
 			cu->ipo->id.us--;
 			cu->ipo= NULL;
 		}
@@ -2001,6 +2037,10 @@ void do_versions_ipos_to_animato(Main *main)
 		
 		if (G.f & G_DEBUG) printf("\tconverting action %s \n", id->name+2);
 		
+		/* if old action, it will be object-only... */
+		if (act->chanbase.first)
+			act->idroot = ID_OB;
+		
 		/* be careful! some of the actions we encounter will be converted ones... */
 		action_to_animato(NULL, act, &act->groups, &act->curves, &drivers);
 	}
@@ -2018,6 +2058,7 @@ void do_versions_ipos_to_animato(Main *main)
 			/* add a new action for this, and convert all data into that action */
 			new_act= add_empty_action("ConvIPO_Action"); // XXX need a better name...
 			ipo_to_animato(NULL, ipo, NULL, NULL, NULL, NULL, &new_act->curves, &drivers);
+			new_act->idroot = ipo->blocktype;
 		}
 		
 		/* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */

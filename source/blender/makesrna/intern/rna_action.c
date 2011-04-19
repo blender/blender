@@ -30,6 +30,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -192,6 +193,56 @@ static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min,
 static void rna_Action_frame_range_get(PointerRNA *ptr,float *values)
 {
 	calc_action_range(ptr->id.data, values, values+1, 1);
+}
+
+
+/* used to check if an action (value pointer) is suitable to be assigned to the ID-block that is ptr */
+int rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
+{
+	ID *srcId = (ID *)ptr->id.data;
+	bAction *act = (bAction *)value.id.data;
+	
+	if (act) {
+		/* there can still be actions that will have undefined id-root 
+		 * (i.e. floating "action-library" members) which we will not
+		 * be able to resolve an idroot for automatically, so let these through
+		 */
+		if (act->idroot == 0)
+			return 1;
+		else if (srcId)
+			return GS(srcId->name) == act->idroot;
+	}
+	
+	return 0;
+}
+
+/* used to check if an action (value pointer) can be assigned to Action Editor given current mode */
+int rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceAction *saction = (SpaceAction *)ptr->data;
+	bAction *act = (bAction *)value.id.data;
+	
+	if (act) {
+		/* there can still be actions that will have undefined id-root 
+		 * (i.e. floating "action-library" members) which we will not
+		 * be able to resolve an idroot for automatically, so let these through
+		 */
+		if (act->idroot == 0)
+			return 1;
+		
+		if (saction) {
+			if (saction->mode == SACTCONT_ACTION) {
+				/* this is only Object-level for now... */
+				return act->idroot == ID_OB;
+			}
+			else if (saction->mode == SACTCONT_SHAPEKEY) {
+				/* obviously shapekeys only */
+				return act->idroot == ID_KE;
+			}
+		}
+	}
+	
+	return 0;
 }
 
 #else
@@ -515,34 +566,43 @@ static void rna_def_action(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
+	
 	srna= RNA_def_struct(brna, "Action", "ID");
 	RNA_def_struct_sdna(srna, "bAction");
 	RNA_def_struct_ui_text(srna, "Action", "A collection of F-Curves for animation");
 	RNA_def_struct_ui_icon(srna, ICON_ACTION);
-
+	
+	/* collections */
 	prop= RNA_def_property(srna, "fcurves", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "curves", NULL);
 	RNA_def_property_struct_type(prop, "FCurve");
 	RNA_def_property_ui_text(prop, "F-Curves", "The individual F-Curves that make up the Action");
 	rna_def_action_fcurves(brna, prop);
-
+	
 	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "groups", NULL);
 	RNA_def_property_struct_type(prop, "ActionGroup");
 	RNA_def_property_ui_text(prop, "Groups", "Convenient groupings of F-Curves");
 	rna_def_action_groups(brna, prop);
-
+	
 	prop= RNA_def_property(srna, "pose_markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses");
 	rna_def_action_pose_markers(brna, prop);
-
+	
+	/* properties */
 	prop= RNA_def_float_vector(srna, "frame_range" , 2 , NULL , 0, 0, "Frame Range" , "The final frame range of all fcurves within this action" , 0 , 0);
 	RNA_def_property_float_funcs(prop, "rna_Action_frame_range_get" , NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
+	
+	/* special "type" limiter - should not really be edited in general, but is still available/editable in 'emergencies' */
+	prop= RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "idroot");
+	RNA_def_property_enum_items(prop, id_type_items);
+	RNA_def_property_ui_text(prop, "ID Root Type", "Type of ID-block that action can be used on. DO NOT CHANGE UNLESS YOU KNOW WHAT YOU'RE DOING");
+	
+	/* API calls */
 	RNA_api_action(srna);
 }
 

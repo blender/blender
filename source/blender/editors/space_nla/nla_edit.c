@@ -271,6 +271,12 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 		//printf("Add strip - actname = '%s' \n", actname);
 		return OPERATOR_CANCELLED;
 	}
+	else if (act->idroot == 0) {
+		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
+		BKE_reportf(op->reports, RPT_WARNING,
+			"Action '%s' does not specify what datablocks it can be used on. Try setting the 'ID Root Type' setting from the Datablocks Editor for this Action to avoid future problems",
+			act->id.name+2);
+	}
 	
 	/* get a list of the editable tracks being shown in the NLA
 	 *	- this is limited to active ones for now, but could be expanded to 
@@ -288,6 +294,16 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		AnimData *adt= ale->adt;
 		NlaStrip *strip= NULL;
+		
+		/* sanity check: only apply actions of the right type for this ID 
+		 * NOTE: in the case that this hasn't been set, we've already warned the user about this already
+		 */
+		if ((act->idroot) && (act->idroot != GS(ale->id->name))) {
+			BKE_reportf(op->reports, RPT_ERROR, 
+				"Couldn't add action '%s' as it cannot be used relative to ID-blocks of type '%s'",
+				act->id.name+2, ale->id->name);
+			continue;
+		}
 		
 		/* create a new strip, and offset it to start on the current frame */
 		strip= add_nlastrip(act);
