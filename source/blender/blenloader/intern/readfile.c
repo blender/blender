@@ -3412,15 +3412,19 @@ static void lib_link_mesh(FileData *fd, Main *main)
 
 static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 {
-	int	i;
+	int i;
 
-	if (!mdverts)
+	if (mdverts == NULL) {
 		return;
+	}
 
-	for (i=0; i<count; i++) {
-		mdverts[i].dw=newdataadr(fd, mdverts[i].dw);
-		if (!mdverts[i].dw)
-			mdverts[i].totweight=0;
+	for (i= count; i > 0; i--, mdverts++) {
+		if(mdverts->dw) {
+			mdverts->dw= newdataadr(fd, mdverts->dw);
+		}
+		if (mdverts->dw == NULL) {
+			mdverts->totweight= 0;
+		}
 	}
 }
 
