@@ -46,7 +46,7 @@
 #include "BLI_bpath.h"
 #include "BLI_utildefines.h"
 
-
+#include "BKE_main.h"
 #include "BKE_global.h" /* XXX, G.main only */
 #include "BKE_blender.h"
 
@@ -111,7 +111,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 
 	list= PyList_New(0);
 
-	for(BLI_bpathIterator_init(&bpi, G.main, NULL, 0); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
+	for(BLI_bpathIterator_init(&bpi, G.main, G.main->name, 0); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
 		/* build the list */
 		if (absolute) {
 			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
