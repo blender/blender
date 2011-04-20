@@ -290,6 +290,8 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr)
 {
 	int i;
 
+	if(addr==NULL) return NULL;
+
 	if (onm->lasthit<onm->nentries-1) {
 		OldNew *entry= &onm->entries[++onm->lasthit];
 
