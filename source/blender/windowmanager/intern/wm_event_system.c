@@ -1538,12 +1538,19 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		}
 		
 		/* modal ui handler can be tagged to be freed */ 
+		/* XXX TODO - handler was free'd in wm_handler_ui_call 
+		       and memory could be written to in BLI_remlink.
+			   As temporary solution preventing this by
+			   making sure handler is still in the list.
+		*/   
+		
 		if(handler->flag & WM_HANDLER_DO_FREE) {
-			BLI_remlink(handlers, handler);
-			wm_event_free_handler(handler);
+			if (BLI_findindex(handlers, handler) >= 0) {
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(handler);
+			}
 		}
 
-		
 		/* XXX fileread case */
 		if(CTX_wm_window(C)==NULL)
 			return action;
