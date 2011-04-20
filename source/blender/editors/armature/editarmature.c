@@ -997,7 +997,7 @@ int join_armature_exec(bContext *C, wmOperator *UNUSED(op))
 static void separated_armature_fix_links(Object *origArm, Object *newArm)
 {
 	Object *ob;
-	bPoseChannel *pchan, *pcha, *pchb;
+	bPoseChannel *pchan;
 	bConstraint *con;
 	ListBase *opchans, *npchans;
 	
@@ -1024,38 +1024,23 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 							 *	- the target isn't origArm/newArm itself
 							 *	- the target is one that can be found in newArm/origArm
 							 */
-							if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
-								for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-									/* check if either one matches */
-									if ( (strcmp(pcha->name, ct->subtarget)==0) ||
-										 (strcmp(pchb->name, ct->subtarget)==0) )
-									{
+							if (ct->subtarget[0] != 0) {
+								if (ct->tar == origArm) {
+									if(BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 										ct->tar= newArm;
-										break;
 									}
-									
-									/* check if both ends have met (to stop checking) */
-									if (pcha == pchb) break;
-								}								
-							}
-							else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
-								for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-									/* check if either one matches */
-									if ( (strcmp(pcha->name, ct->subtarget)==0) ||
-										 (strcmp(pchb->name, ct->subtarget)==0) )
-									{
+								}
+								else if (ct->tar == newArm) {
+									if(BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 										ct->tar= origArm;
-										break;
 									}
-									
-									/* check if both ends have met (to stop checking) */
-									if (pcha == pchb) break;
-								}								
+								}
 							}
 						}
-						
-						if (cti->flush_constraint_targets)
+
+						if (cti->flush_constraint_targets) {
 							cti->flush_constraint_targets(con, &targets, 0);
+						}
 					}
 				}
 			}
@@ -1077,58 +1062,33 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 						 *	- the target isn't origArm/newArm itself
 						 *	- the target is one that can be found in newArm/origArm
 						 */
-						if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
-							for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-								/* check if either one matches */
-								if ( (strcmp(pcha->name, ct->subtarget)==0) ||
-									 (strcmp(pchb->name, ct->subtarget)==0) )
-								{
+						if(ct->subtarget[0] != '\0')  {
+							if (ct->tar == origArm) {
+								if(BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 									ct->tar= newArm;
-									break;
 								}
-								
-								/* check if both ends have met (to stop checking) */
-								if (pcha == pchb) break;
-							}								
-						}
-						else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
-							for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-								/* check if either one matches */
-								if ( (strcmp(pcha->name, ct->subtarget)==0) ||
-									 (strcmp(pchb->name, ct->subtarget)==0) )
-								{
+							}
+							else if (ct->tar == newArm) {
+								if(BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 									ct->tar= origArm;
-									break;
 								}
-								
-								/* check if both ends have met (to stop checking) */
-								if (pcha == pchb) break;
-							}								
+							}
 						}
 					}
-					
-					if (cti->flush_constraint_targets)
+
+					if (cti->flush_constraint_targets) {
 						cti->flush_constraint_targets(con, &targets, 0);
+					}
 				}
 			}
 		}
 		
 		/* See if an object is parented to this armature */
-		if ((ob->parent) && (ob->parent == origArm)) {
+		if (ob->parent && (ob->parent == origArm)) {
 			/* Is object parented to a bone of this src armature? */
-			if (ob->partype==PARBONE) {
-				/* bone name in object */
-				for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-					/* check if either one matches */
-					if ( (strcmp(pcha->name, ob->parsubstr)==0) ||
-						 (strcmp(pchb->name, ob->parsubstr)==0) )
-					{
-						ob->parent= newArm;
-						break;
-					}
-					
-					/* check if both ends have met (to stop checking) */
-					if (pcha == pchb) break;
+			if ((ob->partype == PARBONE) && (ob->parsubstr[0] != '\0')) {
+				if(BLI_findstring(npchans, ob->parsubstr, offsetof(bPoseChannel, name))) {
+					ob->parent= newArm;
 				}
 			}
 		}

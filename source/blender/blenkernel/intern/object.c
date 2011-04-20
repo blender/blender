@@ -2271,7 +2271,7 @@ void what_does_parent(Scene *scene, Object *ob, Object *workob)
 	workob->constraints.first = ob->constraints.first;
 	workob->constraints.last = ob->constraints.last;
 
-	strcpy(workob->parsubstr, ob->parsubstr); 
+	BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 
 	where_is_object(scene, workob);
 }
