@@ -2235,6 +2235,10 @@ static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack, bNodeStack *
 			if (ns)
 				ns->sockettype = sock->type;
 		}
+		
+		/* non-composite trees do all nodes by default */
+		if (ntree->type!=NTREE_COMPOSIT)
+			node->need_exec = 1;
 	}
 }
 
@@ -2320,7 +2324,7 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		for(node= ntree->nodes.first; node; node= node->next) {
 			bNodeSocket *sock;
 			
-			/* composite has own need_exec tag handling */
+			/* non-composite trees do all nodes by default */
 			if(ntree->type!=NTREE_COMPOSIT)
 				node->need_exec= 1;
 
