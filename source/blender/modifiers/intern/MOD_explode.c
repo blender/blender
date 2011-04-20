@@ -1019,7 +1019,7 @@ ModifierTypeInfo modifierType_Explode = {
 	/* name */              "Explode",
 	/* structName */        "ExplodeModifierData",
 	/* structSize */        sizeof(ExplodeModifierData),
-	/* type */              eModifierTypeType_Nonconstructive,
+	/* type */              eModifierTypeType_Constructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh,
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,
