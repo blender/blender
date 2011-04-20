@@ -54,6 +54,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_multires.h"
+#include "BKE_armature.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -389,13 +390,6 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	bArmature *arm;
-	Mesh *me;
-	Curve *cu;
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	MVert *mvert;
 	float rsmat[3][3], tmat[3][3], obmat[3][3], iobmat[3][3], mat[4][4], scale;
 	int a, change = 0;
 	
@@ -403,28 +397,27 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
 		if(ob->type==OB_MESH) {
-			me= ob->data;
-			
-			if(ID_REAL_USERS(me) > 1) {
+			if(ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user mesh, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
 		}
 		else if(ob->type==OB_ARMATURE) {
-			arm= ob->data;
-			
-			if(ID_REAL_USERS(arm) > 1) {
+			if(ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user armature, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
-			cu= ob->data;
-			
-			if(ID_REAL_USERS(cu) > 1) {
+			Curve *cu;
+
+			if(ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
+
+			cu= ob->data;
+
 			if(!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
 				BKE_report(reports, RPT_ERROR, "Neither rotation nor location could be applied to a 2d curve, doing nothing.");
 				return OPERATOR_CANCELLED;
@@ -477,8 +470,9 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 		/* apply to object data */
 		if(ob->type==OB_MESH) {
-			me= ob->data;
-			
+			Mesh *me= ob->data;
+			MVert *mvert;
+
 			multiresModifier_scale_disp(scene, ob);
 			
 			/* adjust data */
@@ -504,7 +498,11 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			ED_armature_apply_transform(ob, mat);
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
-			cu= ob->data;
+			Curve *cu= ob->data;
+
+			Nurb *nu;
+			BPoint *bp;
+			BezTriple *bezt;
 
 			scale = mat3_to_scale(rsmat);
 
@@ -539,6 +537,10 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		}
 
 		where_is_object(scene, ob);
+		if(ob->type==OB_ARMATURE) {
+			where_is_pose(scene, ob); /* needed for bone parents */
+		}
+
 		ignore_parent_tx(bmain, scene, ob);
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
@@ -864,6 +866,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					/* do_inverse_offset= TRUE; */ /* docenter_armature() handles this */
 
 					where_is_object(scene, ob);
+					where_is_pose(scene, ob); /* needed for bone parents */
+
 					ignore_parent_tx(bmain, scene, ob);
 
 					if(obedit)
@@ -880,6 +884,10 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				add_v3_v3(ob->loc, centn);
 
 				where_is_object(scene, ob);
+				if(ob->type==OB_ARMATURE) {
+					where_is_pose(scene, ob); /* needed for bone parents */
+				}
+
 				ignore_parent_tx(bmain, scene, ob);
 				
 				/* other users? */
@@ -896,6 +904,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						add_v3_v3(ob_other->loc, centn);
 
 						where_is_object(scene, ob_other);
+						if(ob_other->type==OB_ARMATURE) {
+							where_is_pose(scene, ob_other); /* needed for bone parents */
+						}
 						ignore_parent_tx(bmain, scene, ob_other);
 					}
 				}
