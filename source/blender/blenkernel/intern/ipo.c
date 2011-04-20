@@ -1668,7 +1668,6 @@ void do_versions_ipos_to_animato(Main *main)
 {
 	ListBase drivers = {NULL, NULL};
 	ID *id;
-	AnimData *adt;
 	
 	if (main == NULL) {
 		printf("Argh! Main is NULL in do_versions_ipos_to_animato() \n");
@@ -1697,7 +1696,7 @@ void do_versions_ipos_to_animato(Main *main)
 		/* check if object has any animation data */
 		if (ob->nlastrips.first) {
 			/* Add AnimData block */
-			adt= BKE_id_add_animdata(id);
+			BKE_id_add_animdata(id);
 			
 			/* IPO first to take into any non-NLA'd Object Animation */
 			if (ob->ipo) {
@@ -1720,7 +1719,7 @@ void do_versions_ipos_to_animato(Main *main)
 		}
 		else if ((ob->ipo) || (ob->action)) {
 			/* Add AnimData block */
-			adt= BKE_id_add_animdata(id);
+			AnimData *adt= BKE_id_add_animdata(id);
 			
 			/* Action first - so that Action name get conserved */
 			if (ob->action) {
@@ -1806,8 +1805,11 @@ void do_versions_ipos_to_animato(Main *main)
 		}
 		
 		/* object's action will always be object-rooted */
-		if (adt->action)
-			adt->action->idroot = ID_OB;
+		{
+			AnimData *adt= BKE_animdata_from_id(id);
+			if (adt && adt->action)
+				adt->action->idroot = ID_OB;
+		}
 	}
 	
 	/* shapekeys */
@@ -1822,7 +1824,7 @@ void do_versions_ipos_to_animato(Main *main)
 		 */
 		if (key->ipo) {
 			/* Add AnimData block */
-			adt= BKE_id_add_animdata(id);
+			AnimData *adt= BKE_id_add_animdata(id);
 			
 			/* Convert Shapekey data... */
 			ipo_to_animdata(id, key->ipo, NULL, NULL, NULL);
@@ -1844,7 +1846,7 @@ void do_versions_ipos_to_animato(Main *main)
 		/* we're only interested in the IPO */
 		if (ma->ipo) {
 			/* Add AnimData block */
-			adt= BKE_id_add_animdata(id);
+			AnimData *adt= BKE_id_add_animdata(id);
 			
 			/* Convert Material data... */
 			ipo_to_animdata(id, ma->ipo, NULL, NULL, NULL);
@@ -1866,7 +1868,7 @@ void do_versions_ipos_to_animato(Main *main)
 		/* we're only interested in the IPO */
 		if (wo->ipo) {
 			/* Add AnimData block */
-			adt= BKE_id_add_animdata(id);
+			AnimData *adt= BKE_id_add_animdata(id);
 			
 			/* Convert World data... */
 			ipo_to_animdata(id, wo->ipo, NULL, NULL, NULL);
@@ -1886,7 +1888,7 @@ void do_versions_ipos_to_animato(Main *main)
 		if (ed && ed->seqbasep) {
 			Sequence * seq;
 			
-			adt= BKE_id_add_animdata(id);
+			AnimData *adt= BKE_id_add_animdata(id);
 			
 			SEQ_BEGIN(ed, seq) {
 				IpoCurve *icu = (seq->ipo) ? seq->ipo->curve.first : NULL;
@@ -1941,7 +1943,7 @@ void do_versions_ipos_to_animato(Main *main)
 		/* we're only interested in the IPO */
 		if (te->ipo) {
 			/* Add AnimData block */
-			adt= BKE_id_add_animdata(id);
+			AnimData *adt= BKE_id_add_animdata(id);
 			
 			/* Convert Texture data... */
 			ipo_to_animdata(id, te->ipo, NULL, NULL, NULL);
@@ -1963,7 +1965,7 @@ void do_versions_ipos_to_animato(Main *main)
 		/* we're only interested in the IPO */
 		if (ca->ipo) {
 			/* Add AnimData block */
-			adt= BKE_id_add_animdata(id);
+			AnimData *adt= BKE_id_add_animdata(id);
 			
 			/* Convert Camera data... */
 			ipo_to_animdata(id, ca->ipo, NULL, NULL, NULL);
@@ -1985,7 +1987,7 @@ void do_versions_ipos_to_animato(Main *main)
 		/* we're only interested in the IPO */
 		if (la->ipo) {
 			/* Add AnimData block */
-			adt= BKE_id_add_animdata(id);
+			AnimData *adt= BKE_id_add_animdata(id);
 			
 			/* Convert Lamp data... */
 			ipo_to_animdata(id, la->ipo, NULL, NULL, NULL);
@@ -2007,7 +2009,7 @@ void do_versions_ipos_to_animato(Main *main)
 		/* we're only interested in the IPO */
 		if (cu->ipo) {
 			/* Add AnimData block */
-			adt= BKE_id_add_animdata(id);
+			AnimData *adt= BKE_id_add_animdata(id);
 			
 			/* Convert Curve data... */
 			ipo_to_animdata(id, cu->ipo, NULL, NULL, NULL);
