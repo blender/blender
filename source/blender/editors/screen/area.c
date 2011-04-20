@@ -1457,7 +1457,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(&ar->v2d);
 
 	xco= maxco= 8;
-	yco= HEADERY-3;
+	yco= HEADERY-4;
 
 	/* draw all headers types */
 	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
