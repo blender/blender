@@ -55,7 +55,7 @@ class MakeFur(bpy.types.Operator):
         mat.strand.blend_distance = 0.5
 
         for obj in mesh_objects:
-            fake_context["active_object"] = obj
+            fake_context["object"] = obj
             bpy.ops.object.particle_system_add(fake_context)
 
             psys = obj.particle_systems[-1]
@@ -110,6 +110,7 @@ class MakeSmoke(bpy.types.Operator):
                 default=False)
 
     def execute(self, context):
+        fake_context = bpy.context.copy()
         mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
         min_co = Vector((100000, 100000, 100000))
         max_co = Vector((-100000, -100000, -100000))
@@ -119,8 +120,9 @@ class MakeSmoke(bpy.types.Operator):
             return {'CANCELLED'}
 
         for obj in mesh_objects:
+            fake_context["object"] = obj
             # make each selected object a smoke flow
-            bpy.ops.object.modifier_add({"object": obj}, type='SMOKE')
+            bpy.ops.object.modifier_add(fake_context, type='SMOKE')
             obj.modifiers[-1].smoke_type = 'FLOW'
 
             psys = obj.particle_systems[-1]
@@ -153,7 +155,7 @@ class MakeSmoke(bpy.types.Operator):
         obj.scale = 0.5 * (max_co - min_co) + Vector((1.0, 1.0, 2.0))
 
         # setup smoke domain
-        bpy.ops.object.modifier_add({"object": obj}, type='SMOKE')
+        bpy.ops.object.modifier_add(type='SMOKE')
         obj.modifiers[-1].smoke_type = 'DOMAIN'
         if self.style == 'FIRE':
             obj.modifiers[-1].domain_settings.use_dissolve_smoke = True
@@ -161,7 +163,7 @@ class MakeSmoke(bpy.types.Operator):
             obj.modifiers[-1].domain_settings.use_high_resolution = True
 
         # create a volume material with a voxel data texture for the domain
-        bpy.ops.object.material_slot_add({"object": obj})
+        bpy.ops.object.material_slot_add()
 
         mat = bpy.data.materials.new("Smoke Domain Material")
         obj.material_slots[0].material = mat
@@ -224,6 +226,7 @@ class MakeFluid(bpy.types.Operator):
                 default=False)
 
     def execute(self, context):
+        fake_context = bpy.context.copy()
         mesh_objects = [obj for obj in context.selected_objects if (obj.type == 'MESH' and not 0 in obj.dimensions)]
         min_co = Vector((100000, 100000, 100000))
         max_co = Vector((-100000, -100000, -100000))
@@ -233,8 +236,9 @@ class MakeFluid(bpy.types.Operator):
             return {'CANCELLED'}
 
         for obj in mesh_objects:
+            fake_context["object"] = obj
             # make each selected object a fluid
-            bpy.ops.object.modifier_add({"object": obj}, type='FLUID_SIMULATION')
+            bpy.ops.object.modifier_add(fake_context, type='FLUID_SIMULATION')
 
             # fluid has to be before constructive modifiers, so it might not be the last modifier
             for mod in obj.modifiers:
@@ -266,14 +270,14 @@ class MakeFluid(bpy.types.Operator):
         obj.scale = 0.5 * (max_co - min_co) + Vector((1.0, 1.0, 2.0)) + Vector((abs(v[0]), abs(v[1]), abs(v[2])))
 
         # setup smoke domain
-        bpy.ops.object.modifier_add({"object": obj}, type='FLUID_SIMULATION')
+        bpy.ops.object.modifier_add(type='FLUID_SIMULATION')
         obj.modifiers[-1].settings.type = 'DOMAIN'
 
         # make the domain smooth so it renders nicely
         bpy.ops.object.shade_smooth()
 
         # create a ray-transparent material for the domain
-        bpy.ops.object.material_slot_add({"object": obj})
+        bpy.ops.object.material_slot_add()
 
         mat = bpy.data.materials.new("Fluid Domain Material")
         obj.material_slots[0].material = mat
