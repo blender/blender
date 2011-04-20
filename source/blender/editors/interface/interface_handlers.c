@@ -4898,7 +4898,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		}
 		else {
 			if(button_modal_state(data->state))
-				WM_event_remove_ui_handler(&data->window->modalhandlers, ui_handler_region_menu, NULL, data);
+				WM_event_remove_ui_handler(&data->window->modalhandlers, ui_handler_region_menu, NULL, data, 1); /* 1 = postpone free */
 		}
 	}
 	
@@ -6154,7 +6154,7 @@ static void ui_handler_remove_popup(bContext *C, void *userdata)
 
 void UI_add_region_handlers(ListBase *handlers)
 {
-	WM_event_remove_ui_handler(handlers, ui_handler_region, ui_handler_remove_region, NULL);
+	WM_event_remove_ui_handler(handlers, ui_handler_region, ui_handler_remove_region, NULL, 0);
 	WM_event_add_ui_handler(NULL, handlers, ui_handler_region, ui_handler_remove_region, NULL);
 }
 
@@ -6165,7 +6165,7 @@ void UI_add_popup_handlers(bContext *C, ListBase *handlers, uiPopupBlockHandle *
 
 void UI_remove_popup_handlers(ListBase *handlers, uiPopupBlockHandle *popup)
 {
-	WM_event_remove_ui_handler(handlers, ui_handler_popup, ui_handler_remove_popup, popup);
+	WM_event_remove_ui_handler(handlers, ui_handler_popup, ui_handler_remove_popup, popup, 0);
 }
 
 
