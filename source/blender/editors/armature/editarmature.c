@@ -416,7 +416,9 @@ void ED_armature_from_edit(Object *obedit)
 		newBone->flag= eBone->flag;
 		
 		if (eBone == arm->act_edbone) {
-			newBone->flag |= BONE_SELECTED;	/* important, editbones can be active with only 1 point selected */
+			/* don't change active selection, this messes up separate which uses
+			 * editmode toggle and can separate active bone which is de-selected originally */
+			/* newBone->flag |= BONE_SELECTED; */ /* important, editbones can be active with only 1 point selected */
 			arm->act_edbone= NULL;
 			arm->act_bone= newBone;
 		}
