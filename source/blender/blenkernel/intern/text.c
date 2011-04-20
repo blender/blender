@@ -1348,9 +1348,19 @@ char *txt_sel_to_buf (Text *text)
 	return buf;
 }
 
+static void txt_shift_markers(Text *text, int lineno, int count)
+{
+	TextMarker *marker;
+
+	for (marker=text->markers.first; marker; marker= marker->next)
+		if (marker->lineno>=lineno) {
+			marker->lineno+= count;
+		}
+}
+
 void txt_insert_buf(Text *text, const char *in_buffer)
 {
-	int i=0, l=0, j, u, len;
+	int i=0, l=0, j, u, len, lineno= -1, count= 0;
 	TextLine *add;
 
 	if (!text) return;
@@ -1365,7 +1375,7 @@ void txt_insert_buf(Text *text, const char *in_buffer)
 
 	/* Read the first line (or as close as possible */
 	while (in_buffer[i] && in_buffer[i]!='\n') {
-		txt_add_char(text, in_buffer[i]);
+		txt_add_raw_char(text, in_buffer[i]);
 		i++;
 	}
 	
@@ -1375,6 +1385,7 @@ void txt_insert_buf(Text *text, const char *in_buffer)
 
 	/* Read as many full lines as we can */
 	len= strlen(in_buffer);
+	lineno= txt_get_span(text->lines.first, text->curl);
 
 	while (i<len) {
 		l=0;
@@ -1387,14 +1398,25 @@ void txt_insert_buf(Text *text, const char *in_buffer)
 			add= txt_new_linen(in_buffer +(i-l), l);
 			BLI_insertlinkbefore(&text->lines, text->curl, add);
 			i++;
+			count++;
 		} else {
+			if(count) {
+				txt_shift_markers(text, lineno, count);
+				count= 0;
+			}
+
 			for (j= i-l; j<i && j<(int)strlen(in_buffer); j++) {
-				txt_add_char(text, in_buffer[j]);
+				txt_add_raw_char(text, in_buffer[j]);
 			}
 			break;
 		}
 	}
-	
+
+	if(count) {
+		txt_shift_markers(text, lineno, count);
+		count= 0;
+	}
+
 	undoing= u;
 }
 
@@ -2375,7 +2397,7 @@ static void txt_convert_tab_to_spaces (Text *text)
 	txt_insert_buf(text, sb);
 }
 
-int txt_add_char (Text *text, char add) 
+static int txt_add_char_intern (Text *text, char add, int replace_tabs)
 {
 	int len, lineno;
 	char *tmp;
@@ -2390,7 +2412,7 @@ int txt_add_char (Text *text, char add)
 	}
 	
 	/* insert spaces rather then tabs */
-	if (add == '\t' && text->flags & TXT_TABSTOSPACES) {
+	if (add == '\t' && replace_tabs) {
 		txt_convert_tab_to_spaces(text);
 		return 1;
 	}
@@ -2426,6 +2448,16 @@ int txt_add_char (Text *text, char add)
 
 	if(!undoing) txt_undo_add_charop(text, UNDO_INSERT, add);
 	return 1;
+}
+
+int txt_add_char (Text *text, char add)
+{
+	return txt_add_char_intern(text, add, text->flags & TXT_TABSTOSPACES);
+}
+
+int txt_add_raw_char (Text *text, char add)
+{
+	return txt_add_char_intern(text, add, 0);
 }
 
 void txt_delete_selected(Text *text)
