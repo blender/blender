@@ -4667,16 +4667,24 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				Object *ob= (Object *)tselem->id;
 				
 				if(ob==OBACT || (ob->flag & SELECT)) {
-					char col[4];
+					char col[4]= {0, 0, 0, 0};
 					
-					active= 2;
+					/* outliner active ob: always white text, circle color now similar to view3d */
+					
+					active= 2; /* means it draws a color circle */
 					if(ob==OBACT) {
-						UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
-						/* so black text is drawn when active and not selected */
-						if (ob->flag & SELECT) active= 1;
+						if(ob->flag & SELECT) {
+							UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
+							col[3]= 100;
+						}
+						
+						active= 1; /* means it draws white text */
 					}
-					else UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-					col[3]= 100;
+					else if(ob->flag & SELECT) {
+						UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
+						col[3]= 100;
+					}
+					
 					glColor4ubv((GLubyte *)col);
 				}
 
