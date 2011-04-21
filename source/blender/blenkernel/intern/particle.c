@@ -269,12 +269,6 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 	if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE || !psys->part)
 		return 0;
 
-	if(ob->type == OB_MESH) {
-		me= (Mesh*)ob->data;
-		if(me->mr && me->mr->current != 1)
-			return 0;
-	}
-
 	psmd= psys_get_modifier(ob, psys);
 	if(psys->renderdata || G.rendering) {
 		if(!(psmd->modifier.mode & eModifierMode_Render))
