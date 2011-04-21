@@ -201,6 +201,7 @@ Curve *copy_curve(Curve *cu)
 
 	cun->editnurb= NULL;
 	cun->editfont= NULL;
+	cun->selboxes= NULL;
 
 #if 0	// XXX old animation system
 	/* single user ipo too */

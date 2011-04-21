@@ -214,6 +214,11 @@ bArmature *copy_armature(bArmature *arm)
 	};
 	
 	newArm->act_bone= newActBone;
+
+	newArm->edbo= NULL;
+	newArm->act_edbone= NULL;
+	newArm->sketch= NULL;
+
 	return newArm;
 }
 

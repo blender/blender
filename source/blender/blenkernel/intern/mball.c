@@ -132,6 +132,9 @@ MetaBall *copy_mball(MetaBall *mb)
 		id_us_plus((ID *)mbn->mat[a]);
 	}
 	mbn->bb= MEM_dupallocN(mb->bb);
+
+	mbn->editelems= NULL;
+	mbn->lastelem= NULL;
 	
 	return mbn;
 }

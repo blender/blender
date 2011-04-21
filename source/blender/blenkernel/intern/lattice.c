@@ -219,7 +219,9 @@ Lattice *copy_lattice(Lattice *lt)
 		ltn->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
 		copy_dverts(ltn->dvert, lt->dvert, tot);
 	}
-	
+
+	ltn->editlatt= NULL;
+
 	return ltn;
 }
 
