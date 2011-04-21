@@ -264,7 +264,6 @@ static void psys_create_frand(ParticleSystem *psys)
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd;
-	Mesh *me;
 
 	if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE || !psys->part)
 		return 0;

@@ -236,6 +236,8 @@ Mesh *copy_mesh(Mesh *me)
 	}
 	
 	men->mselect= NULL;
+	men->edit_mesh= NULL;
+	men->pv= NULL; /* looks like this is no-longer supported but NULL just incase */
 
 	men->bb= MEM_dupallocN(men->bb);
 	
