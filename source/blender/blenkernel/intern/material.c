@@ -1314,12 +1314,12 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 		case MA_RAMP_SOFT: 
 			if (g){ 
 				float scr, scg, scb; 
-                 
+
 				/* first calculate non-fac based Screen mix */ 
 				scr = 1.0f - (1.0f - col[0]) * (1.0f - *r); 
 				scg = 1.0f - (1.0f - col[1]) * (1.0f - *g); 
 				scb = 1.0f - (1.0f - col[2]) * (1.0f - *b); 
-                 
+
 				*r = facm*(*r) + fac*(((1.0f - *r) * col[0] * (*r)) + (*r * scr)); 
 				*g = facm*(*g) + fac*(((1.0f - *g) * col[1] * (*g)) + (*g * scg)); 
 				*b = facm*(*b) + fac*(((1.0f - *b) * col[2] * (*b)) + (*b * scb)); 

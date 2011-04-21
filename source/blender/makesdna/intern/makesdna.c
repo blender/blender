@@ -1065,7 +1065,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 	MEM_freeN(names);
 	MEM_freeN(types);
 	MEM_freeN(typelens);
-    MEM_freeN(alphalens);
+	MEM_freeN(alphalens);
 	MEM_freeN(structs);
 
 	if (debugSDNA > -1) printf("done.\n");

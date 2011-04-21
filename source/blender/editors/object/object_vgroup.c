@@ -348,7 +348,7 @@ static void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
 		 */
 		if(dvert->dw[i].def_nr == def_nr) {
 			dvert->totweight--;
-        
+
 			/* if there are still other deform weights
 			 * attached to this vert then remove this
 			 * deform weight, and reshuffle the others
@@ -457,10 +457,10 @@ static void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float wei
 			MEM_freeN(dv->dw);
 		}
 		dv->dw=newdw;
-    
+
 		dv->dw[dv->totweight].weight=weight;
 		dv->dw[dv->totweight].def_nr=def_nr;
-    
+
 		dv->totweight++;
 		break;
 	}

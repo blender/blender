@@ -254,7 +254,6 @@ int defgroup_find_index (Object *ob, bDeformGroup *dg)
 	if (eg == NULL) return -1;
 	
 	return def_nr;
-    
 }
 
 /* note, must be freed */

@@ -1376,7 +1376,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		p->x = 0.5f*(pos.x + neg.x);
 		p->y = 0.5f*(pos.y + neg.y);
 		p->z = 0.5f*(pos.z + neg.z);
-    
+
 		if (i++ == RES) return;
    
 		if ((function(p->x, p->y, p->z)) > 0.0f){
@@ -1691,11 +1691,11 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					mul_m4_m4m4(temp2, bob->obmat, obinv);
 					/* MetaBall transformation */
 					mul_m4_m4m4(mat, temp1, temp2);
-        
+
 					invert_m4_m4(imat,mat);				
-        
+
 					mainb[a]->rad2= ml->rad*ml->rad;
-        
+
 					mainb[a]->mat= (float*) mat;
 					mainb[a]->imat= (float*) imat;
 

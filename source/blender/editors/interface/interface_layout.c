@@ -1196,10 +1196,10 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 #endif
 			name= BLI_strdup(name_ui);
 			iconid= ui_id_icon_get((bContext*)C, id, 1);
-        }
+		}
 		else {
 			name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
-            iconid = 0;
+			iconid = 0;
 		}
 
 		if(name) {

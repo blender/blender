@@ -193,9 +193,9 @@ static void fill_out(ImBuf *out, float r, float g, float b, float a)
 	} else {
 		for (x=0;x < tot;x++) {
 			rect[0] = (int)(r * 255);
-	       		rect[1] = (int)(g * 255);
-       	 		rect[2] = (int)(b * 255);
-       	 		rect[3] = (int)(a * 255);
+			rect[1] = (int)(g * 255);
+			rect[2] = (int)(b * 255);
+			rect[3] = (int)(a * 255);
 			rect += 4;
 		}
 	}

@@ -370,7 +370,7 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_
 	/* and we adjust the position to fit within window */
 	width= block->maxx - block->minx;
 	height= block->maxy - block->miny;
-    
+
 	/* avoid divide by zero below, caused by calling with no UI, but better not crash */
 	oldwidth= oldwidth > 0 ? oldwidth : MAX2(1, width);
 	oldheight= oldheight > 0 ? oldheight : MAX2(1, height);
@@ -1284,7 +1284,7 @@ double ui_get_but_val(uiBut *but)
 	else if( but->pointype == FLO ) {
 		value= *(float *)but->poin;
 	}
-    
+
 	return value;
 }
 

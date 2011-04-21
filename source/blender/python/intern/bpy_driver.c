@@ -255,7 +255,7 @@ float BPY_driver_exec(ChannelDriver *driver)
 
 	if(use_gil)
 		PyGILState_Release(gilstate);
-    
+
 	if(finite(result)) {
 		return (float)result;
 	}

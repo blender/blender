@@ -69,7 +69,7 @@ static void node_composit_exec_sephsva(void *UNUSED(data), bNode *node, bNodeSta
 	if(in[0]->data==NULL) {
 		float h, s, v;
 	
-      rgb_to_hsv(in[0]->vec[0], in[0]->vec[1], in[0]->vec[2], &h, &s, &v);
+	rgb_to_hsv(in[0]->vec[0], in[0]->vec[1], in[0]->vec[2], &h, &s, &v);
 		
 		out[0]->vec[0] = h;
 		out[1]->vec[0] = s;

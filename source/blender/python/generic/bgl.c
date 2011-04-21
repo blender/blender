@@ -293,7 +293,7 @@ static PyObject *Buffer_item(PyObject *self, int i)
 		size= BGL_typeSize(buf->type);
 
 		newbuf= (Buffer *) PyObject_NEW(Buffer, &BGL_bufferType);
-    
+
 		Py_INCREF(self);
 		newbuf->parent= self;
 
@@ -1641,7 +1641,7 @@ PyObject *BPyInit_bgl(void)
 	EXPP_ADDCONST(GL_TEXTURE_RESIDENT);
 	EXPP_ADDCONST(GL_TEXTURE_BINDING_1D);
 	EXPP_ADDCONST(GL_TEXTURE_BINDING_2D);
-      
+
 	return submodule;
 }
 

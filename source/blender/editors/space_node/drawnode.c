@@ -730,22 +730,22 @@ static void node_composit_buts_flip(uiLayout *layout, bContext *UNUSED(C), Point
 static void node_composit_buts_crop(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *col;
-	
+
 	uiItemR(layout, ptr, "use_crop_size", 0, NULL, ICON_NONE);
-   uiItemR(layout, ptr, "relative", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "relative", 0, NULL, ICON_NONE);
 
 	col= uiLayoutColumn(layout, 1);
-   if (RNA_boolean_get(ptr, "relative")){
-      uiItemR(col, ptr, "rel_min_x", 0, "Left", ICON_NONE);
-      uiItemR(col, ptr, "rel_max_x", 0, "Right", ICON_NONE);
-      uiItemR(col, ptr, "rel_min_y", 0, "Up", ICON_NONE);
-      uiItemR(col, ptr, "rel_max_y", 0, "Down", ICON_NONE);
-   } else {
-      uiItemR(col, ptr, "min_x", 0, "Left", ICON_NONE);
-      uiItemR(col, ptr, "max_x", 0, "Right", ICON_NONE);
-      uiItemR(col, ptr, "min_y", 0, "Up", ICON_NONE);
-      uiItemR(col, ptr, "max_y", 0, "Down", ICON_NONE);
-   }
+	if (RNA_boolean_get(ptr, "relative")){
+		uiItemR(col, ptr, "rel_min_x", 0, "Left", ICON_NONE);
+		uiItemR(col, ptr, "rel_max_x", 0, "Right", ICON_NONE);
+		uiItemR(col, ptr, "rel_min_y", 0, "Up", ICON_NONE);
+		uiItemR(col, ptr, "rel_max_y", 0, "Down", ICON_NONE);
+	} else {
+		uiItemR(col, ptr, "min_x", 0, "Left", ICON_NONE);
+		uiItemR(col, ptr, "max_x", 0, "Right", ICON_NONE);
+		uiItemR(col, ptr, "min_y", 0, "Up", ICON_NONE);
+		uiItemR(col, ptr, "max_y", 0, "Down", ICON_NONE);
+	}
 }
 
 static void node_composit_buts_splitviewer(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

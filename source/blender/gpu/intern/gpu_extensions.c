@@ -119,8 +119,8 @@ void GPU_extensions_init(void)
 	glGetIntegerv(GL_RED_BITS, &r);
 	glGetIntegerv(GL_GREEN_BITS, &g);
 	glGetIntegerv(GL_BLUE_BITS, &b);
-    GG.colordepth = r+g+b; /* assumes same depth for RGB */
-    
+	GG.colordepth = r+g+b; /* assumes same depth for RGB */
+
 	vendor = (const char*)glGetString(GL_VENDOR);
 	renderer = (const char*)glGetString(GL_RENDERER);
 
@@ -141,7 +141,7 @@ void GPU_extensions_init(void)
 	else if(strstr(vendor, "Intel") ||
 	        /* src/mesa/drivers/dri/intel/intel_context.c */
 	        strstr(renderer, "Mesa DRI Intel") ||
-	        strstr(renderer, "Mesa DRI Mobile Intel")) {
+		strstr(renderer, "Mesa DRI Mobile Intel")) {
 		GG.device = GPU_DEVICE_INTEL;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
@@ -210,7 +210,7 @@ int GPU_non_power_of_two_support(void)
 
 int GPU_color_depth(void)
 {
-    return GG.colordepth;
+	return GG.colordepth;
 }
 
 int GPU_print_error(const char *str)
@@ -1223,10 +1223,10 @@ void GPU_pixelbuffer_texture(GPUTexture *tex, GPUPixelBuffer *pb)
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, pb->bindcode[pb->current]);
 		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, pb->datasize, NULL,
 			GL_STREAM_DRAW_ARB);
-    
+
 		pixels = glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
 		/*memcpy(pixels, _oImage.data(), pb->datasize);*/
-    
+
 		if (!glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT)) {
 			fprintf(stderr, "Could not unmap opengl PBO\n");
 			break;

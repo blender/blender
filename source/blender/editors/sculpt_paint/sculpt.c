@@ -1882,9 +1882,9 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 /* Projects a point onto a plane along the plane's normal */
 static void point_plane_project(float intr[3], float co[3], float plane_normal[3], float plane_center[3])
 {
-    sub_v3_v3v3(intr, co, plane_center);
-    mul_v3_v3fl(intr, plane_normal, dot_v3v3(plane_normal, intr));
-    sub_v3_v3v3(intr, co, intr); 
+	sub_v3_v3v3(intr, co, plane_center);
+	mul_v3_v3fl(intr, plane_normal, dot_v3v3(plane_normal, intr));
+	sub_v3_v3v3(intr, co, intr);
 }
 
 static int plane_trim(StrokeCache *cache, Brush *brush, float val[3])
@@ -1894,23 +1894,23 @@ static int plane_trim(StrokeCache *cache, Brush *brush, float val[3])
 
 static int plane_point_side_flip(float co[3], float plane_normal[3], float plane_center[3], int flip)
 {
-    float delta[3];
-    float d;
+	float delta[3];
+	float d;
 
-    sub_v3_v3v3(delta, co, plane_center);
-    d = dot_v3v3(plane_normal, delta);
+	sub_v3_v3v3(delta, co, plane_center);
+	d = dot_v3v3(plane_normal, delta);
 
-    if (flip) d = -d;
+	if (flip) d = -d;
 
-    return d <= 0.0f;
+	return d <= 0.0f;
 }
 
 static int plane_point_side(float co[3], float plane_normal[3], float plane_center[3])
 {
-    float delta[3];
+	float delta[3];
 
-    sub_v3_v3v3(delta, co, plane_center);
-    return  dot_v3v3(plane_normal, delta) <= 0.0f;
+	sub_v3_v3v3(delta, co, plane_center);
+	return  dot_v3v3(plane_normal, delta) <= 0.0f;
 }
 
 static float get_offset(Sculpt *sd, SculptSession *ss)

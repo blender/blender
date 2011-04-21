@@ -889,7 +889,7 @@ void write_dxf(struct Scene *scene, char *str)
 	write_group(0, "SECTION");
 	write_group(2, "BLOCKS");
 
-    
+
 	/* only write meshes we're using in this scene */
 	flag_listbase_ids(&G.main->mesh, LIB_DOIT, 0);
 	
@@ -1608,7 +1608,7 @@ static void dxf_read_arc(Scene *scene, int noob)
 		dia = (float) atof(val);
 	  } else if (id==62) {
 		int colorid= atoi(val);
-	    
+
 		CLAMP(colorid, 1, 255);
 		dxf_col_to_rgb(colorid, &color[0], &color[1], &color[2]);
 	  } else if (id==67) {

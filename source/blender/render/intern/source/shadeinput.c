@@ -138,7 +138,7 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 	/* depth >= 1 when ray-shading */
 	if(shi->depth==0 || shi->volume_depth > 0) {
 		if(R.r.mode & R_RAYTRACE) {
-		    if(shi->ray_mirror!=0.0f || ((shi->mode & MA_TRANSP) && (shi->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
+			if(shi->ray_mirror!=0.0f || ((shi->mode & MA_TRANSP) && (shi->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
 				/* ray trace works on combined, but gives pass info */
 				ray_trace(shi, shr);
 			}

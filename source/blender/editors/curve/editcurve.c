@@ -3031,7 +3031,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 		/* This is a very strange test ... */
 		/** 
 		   Subdivide NURB surfaces - nzc 30-5-'00 -
-           
+
 			 Subdivision of a NURB curve can be effected by adding a 
 		   control point (insertion of a knot), or by raising the
 		   degree of the functions used to build the NURB. The

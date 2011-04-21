@@ -373,7 +373,7 @@ void *MEM_mapallocN(size_t len, const char *str)
 	  fd = open("/dev/zero", O_RDWR);
 
 	  memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail),
-		     PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+			PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 	  close(fd);
 	}
 #else
@@ -698,26 +698,26 @@ static void remlink(volatile localListBase *listbase, void *vlink)
 
 static void rem_memblock(MemHead *memh)
 {
-    remlink(membase,&memh->next);
-    if (memh->prev) {
-        if (memh->next) 
+	remlink(membase,&memh->next);
+	if (memh->prev) {
+		if (memh->next)
 			MEMNEXT(memh->prev)->nextname = MEMNEXT(memh->next)->name;
-        else 
+		else
 			MEMNEXT(memh->prev)->nextname = NULL;
-    }
+	}
 
-    totblock--;
-    mem_in_use -= memh->len;
-   
-    if(memh->mmap) {
-        mmap_in_use -= memh->len;
-        if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
-            printf("Couldn't unmap memory %s\n", memh->name);
-    }	
+	totblock--;
+	mem_in_use -= memh->len;
+
+	if(memh->mmap) {
+		mmap_in_use -= memh->len;
+		if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
+			printf("Couldn't unmap memory %s\n", memh->name);
+	}
 	else {
 		if(malloc_debug_memset && memh->len)
 			memset(memh+1, 255, memh->len);
-        free(memh);
+		free(memh);
 	}
 }
 

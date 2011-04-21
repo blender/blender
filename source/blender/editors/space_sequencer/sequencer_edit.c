@@ -614,7 +614,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 			}
 		}
 	}
-       
+
 	/* make sequence selection a little bit more intuitive
 	   for 3 strips: the last-strip should be sequence3 */
 	if (seq3 != NULL && seq2 != NULL) {

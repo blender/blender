@@ -1329,7 +1329,7 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 4);
 	RNA_def_property_ui_text(prop, "Limit Z", "Use minimum/maximum z limit");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-    
+
 	prop= RNA_def_property(srna, "use_angular_limit_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 8);
 	RNA_def_property_ui_text(prop, "Angular X Limit", "Use minimum/maximum x angular limit");
@@ -1344,7 +1344,6 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 32);
 	RNA_def_property_ui_text(prop, "Angular Z Limit", "Use minimum/maximum z angular limit");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-    
 }
 
 static void rna_def_constraint_clamp_to(BlenderRNA *brna)

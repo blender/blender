@@ -993,7 +993,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		cpack(0x4040FF);
 		glRectf(x3,  y3,  x4,  y4); 
 	}
-    
+
 	/* safety border */
 	if (ca && (ca->flag & CAM_SHOWTITLESAFE)) {
 		fac= 0.1;

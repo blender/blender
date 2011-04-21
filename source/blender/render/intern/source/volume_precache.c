@@ -414,7 +414,7 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 		SWAP(float *,sr,sr0);
 		SWAP(float *,sg,sg0);
 		SWAP(float *,sb,sb0);
-               
+
 		/* main diffusion simulation */
 		ms_diffuse(sr0, sr, diff, n);
 		ms_diffuse(sg0, sg, diff, n);

@@ -3198,7 +3198,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 				if(la->type==LA_SPOT) {
 					tempvec[0]*= la->spottexfac;
 					tempvec[1]*= la->spottexfac;
-                    /* project from 3d to 2d */
+				/* project from 3d to 2d */
 					tempvec[0] /= -tempvec[2];
 					tempvec[1] /= -tempvec[2];
 				}

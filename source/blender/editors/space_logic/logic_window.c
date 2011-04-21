@@ -2201,12 +2201,12 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 	case ACT_CAMERA:
 
 		 ysize= 48;
-        
+
 		 glRects(xco, yco-ysize, xco+width, yco);
 		 uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 		
 		 ca= act->data;
-        
+
 		 uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+10, yco-24, (width-20)/2, 19, &(ca->ob), "Look at this Object");
 		 uiDefButF(block, NUM, 0, "Height:",	xco+10+(width-20)/2, yco-24, (width-20)/2, 19, &ca->height, 0.0, 20.0, 0, 0, "");
 		
@@ -2219,7 +2219,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		 uiDefButF(block, NUM, 0, "Max:",	xco+20+(width)/2, yco-44, (width-60)/2, 19, &ca->max, 0.0, 20.0, 0, 0, "");
 
 		 yco-= ysize;
-        
+
 		 break;
 		 		
 	case ACT_EDIT_OBJECT:
@@ -2311,7 +2311,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-24, (width-80), 19, &eoa->type, 0.0, 0.0, 0, 0, "");
 
 		 yco-= ysize;
-        
+
 		break;
  
 	 case ACT_CONSTRAINT:
@@ -2319,7 +2319,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 	
 		if (coa->type == ACT_CONST_TYPE_LOC) {
 			ysize= 69;
-        
+
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 			

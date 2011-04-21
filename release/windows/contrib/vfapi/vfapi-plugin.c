@@ -114,17 +114,17 @@ __declspec(dllexport) HRESULT vfGetPluginInfo(
 
 static unsigned long getipaddress(const char * ipaddr)
 {
-        struct hostent  *host;
-        unsigned long   ip;
+	struct hostent  *host;
+	unsigned long   ip;
 
-        if (((ip = inet_addr(ipaddr)) == INADDR_NONE)
-            && strcmp(ipaddr, "255.255.255.255") != 0) {
-                if ((host = gethostbyname(ipaddr)) != NULL) {
-                        memcpy(&ip, host->h_addr, sizeof(ip));
-                }
-        }
+	if (((ip = inet_addr(ipaddr)) == INADDR_NONE)
+	&& strcmp(ipaddr, "255.255.255.255") != 0) {
+		if ((host = gethostbyname(ipaddr)) != NULL) {
+			memcpy(&ip, host->h_addr, sizeof(ip));
+		}
+	}
 
-        return (ip);
+	return (ip);
 }
 
 static void my_send(SOCKET sock, char * str)
@@ -363,12 +363,12 @@ HRESULT __stdcall VF_ReadDataFunc_Blen(
 	} while (strcmp(buf, "P6\n") != 0);
 
 	do {
-                rval = my_gets(s_in, buf, 256); 
-        } while ( (buf[0] == '#' || buf[0] == '\n') && rval >= 0);
+		rval = my_gets(s_in, buf, 256);
+	} while ( (buf[0] == '#' || buf[0] == '\n') && rval >= 0);
 
-        if (sscanf(buf, "%d %d\n", &width, &height) != 2) {
+	if (sscanf(buf, "%d %d\n", &width, &height) != 2) {
 		goto errout;
-        }
+	}
 
 	if (width != c->width || height != c->height) {
 		goto errout;

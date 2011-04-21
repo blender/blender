@@ -2696,7 +2696,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 		int numFaces = ccgSubSurf_getVertNumFaces(v);
 		float *co;
 		int i;
-                
+
 		edge_sum[0]= edge_sum[1]= edge_sum[2]= 0.0;
 		face_sum[0]= face_sum[1]= face_sum[2]= 0.0;
 

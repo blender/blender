@@ -53,14 +53,14 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 		CompBuf *stackbuf;
 		int x, y;
 		float *srcfp, *outfp;
-      rcti outputrect;
+		rcti outputrect;
 
-      if(node->custom2) {
-         ntxy->x1= cbuf->x* ntxy->fac_x1;
-         ntxy->x2= cbuf->x* ntxy->fac_x2;
-         ntxy->y1= cbuf->y* ntxy->fac_y1;
-         ntxy->y2= cbuf->y* ntxy->fac_y2;
-      }
+		if(node->custom2) {
+			ntxy->x1= cbuf->x* ntxy->fac_x1;
+			ntxy->x2= cbuf->x* ntxy->fac_x2;
+			ntxy->y1= cbuf->y* ntxy->fac_y1;
+			ntxy->y2= cbuf->y* ntxy->fac_y2;
+		}
 
 		/* check input image size */
 		if(cbuf->x <= ntxy->x1 + 1)

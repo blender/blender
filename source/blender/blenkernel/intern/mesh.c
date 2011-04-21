@@ -1465,7 +1465,7 @@ void create_vert_edge_map(ListBase **map, IndexNode **mem, const MEdge *medge, c
 	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert edge map");
 	(*mem) = MEM_callocN(sizeof(IndexNode) * totedge * 2, "vert edge map mem");
 	node = *mem;
-       
+
 	/* Find the users */
 	for(i = 0; i < totedge; ++i){
 		for(j = 0; j < 2; ++j, ++node) {

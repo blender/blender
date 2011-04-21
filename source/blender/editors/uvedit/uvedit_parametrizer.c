@@ -1142,7 +1142,7 @@ static void p_chart_boundaries(PChart *chart, int *nboundaries, PEdge **outer)
 			(*nboundaries)++;
 
 		len = 0.0f;
-    
+
 		be = e;
 		do {
 			be->flag |= PEDGE_DONE;

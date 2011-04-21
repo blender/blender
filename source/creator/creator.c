@@ -186,13 +186,13 @@ static void blender_esc(int sig)
 #ifdef BUILD_DATE
 static void strip_quotes(char *str)
 {
-    if(str[0] == '"') {
-        int len= strlen(str) - 1;
-        memmove(str, str+1, len);
-        if(str[len-1] == '"') {
-            str[len-1]= '\0';
-        }
-    }
+	if(str[0] == '"') {
+		int len= strlen(str) - 1;
+		memmove(str, str+1, len);
+		if(str[len-1] == '"') {
+			str[len-1]= '\0';
+		}
+	}
 }
 #endif
 

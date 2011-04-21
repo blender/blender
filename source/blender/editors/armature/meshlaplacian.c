@@ -471,7 +471,7 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 
 static int heat_ray_source_visible(LaplacianSystem *sys, int vertex, int source)
 {
-    BVHTreeRayHit hit;
+	BVHTreeRayHit hit;
 	BVHCallbackUserData data;
 	MFace *mface;
 	float end[3];

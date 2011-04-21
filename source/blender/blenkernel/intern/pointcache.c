@@ -1308,8 +1308,8 @@ static void ptcache_data_copy(void *from[], void *to[])
 {
 	int i;
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
-        /* note, durian file 03.4b_comp crashes if to[i] is not tested
-         * its NULL, not sure if this should be fixed elsewhere but for now its needed */
+	/* note, durian file 03.4b_comp crashes if to[i] is not tested
+	 * its NULL, not sure if this should be fixed elsewhere but for now its needed */
 		if(from[i] && to[i])
 			memcpy(to[i], from[i], ptcache_data_size[i]);
 	}

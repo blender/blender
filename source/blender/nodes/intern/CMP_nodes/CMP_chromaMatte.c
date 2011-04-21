@@ -88,41 +88,41 @@ static void do_ycca_to_rgba_normalized(bNode *UNUSED(node), float *out, float *i
 static void do_chroma_key(bNode *node, float *out, float *in)
 {
 	NodeChroma *c;
-   float x, z, alpha;
-   float theta, beta, angle, angle2;
-   float kfg;
+	float x, z, alpha;
+	float theta, beta, angle, angle2;
+	float kfg;
 
 	c=node->storage;
 
-   /* Algorithm from book "Video Demistified," does not include the spill reduction part */
+	/* Algorithm from book "Video Demistified," does not include the spill reduction part */
 
 	/* find theta, the angle that the color space should be rotated based on key*/
-   theta=atan2(c->key[2], c->key[1]);
+	theta=atan2(c->key[2], c->key[1]);
 
 	/*rotate the cb and cr into x/z space */
-   x=in[1]*cos(theta)+in[2]*sin(theta);
-   z=in[2]*cos(theta)-in[1]*sin(theta);
+	x=in[1]*cos(theta)+in[2]*sin(theta);
+	z=in[2]*cos(theta)-in[1]*sin(theta);
 
-   /*if within the acceptance angle */
-   angle=c->t1*M_PI/180.0; /* convert to radians */
-	
-   /* if kfg is <0 then the pixel is outside of the key color */
-   kfg=x-(fabs(z)/tan(angle/2.0));
+	/*if within the acceptance angle */
+	angle=c->t1*M_PI/180.0; /* convert to radians */
 
-   out[0]=in[0];
-   out[1]=in[1];
-   out[2]=in[2];
+	/* if kfg is <0 then the pixel is outside of the key color */
+	kfg=x-(fabs(z)/tan(angle/2.0));
 
-   if(kfg>0.0) {  /* found a pixel that is within key color */
-      alpha=(1.0-kfg)*(c->fstrength);
+	out[0]=in[0];
+	out[1]=in[1];
+	out[2]=in[2];
 
-      beta=atan2(z,x);
-      angle2=c->t2*M_PI/180.0;
+	if(kfg>0.0) {  /* found a pixel that is within key color */
+		alpha=(1.0-kfg)*(c->fstrength);
 
-      /* if beta is within the cutoff angle */
-      if(fabs(beta)<(angle2/2.0)) {
-         alpha=0.0;
-      }
+		beta=atan2(z,x);
+		angle2=c->t2*M_PI/180.0;
+
+		/* if beta is within the cutoff angle */
+		if(fabs(beta)<(angle2/2.0)) {
+			alpha=0.0;
+		}
 
 		/* don't make something that was more transparent less transparent */
 		if (alpha<in[3]) {
