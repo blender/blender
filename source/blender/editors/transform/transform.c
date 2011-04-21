@@ -4101,6 +4101,7 @@ void initBoneSize(TransInfo *t)
 	t->idx_max = 2;
 	t->num.idx_max = 2;
 	t->num.flag |= NUM_NULL_ONE;
+	t->num.flag |= NUM_AFFECT_ALL;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
@@ -5452,7 +5453,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
 		const Scene *scene= t->scene;
-		const short doTime= 0; //XXX doesn't work - getAnimEdit_DrawTime(t);
+		const short doTime= 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behaviour given the option's label, hence disabled
 		const double secf= FPS;
 		double val;
 		
