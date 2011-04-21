@@ -253,7 +253,7 @@ if(UNIX AND NOT APPLE)
 		install(
 			FILES
 			${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
-			${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/blender.svg
+			${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
 			${CMAKE_SOURCE_DIR}/doc/manpage/blender.1
 			DESTINATION ${TARGETDIR}
 		)
@@ -290,8 +290,20 @@ if(UNIX AND NOT APPLE)
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications
 		)
 		install(
-			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/blender.svg
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
+			DIRECTORY
+					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/16x16
+					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/22x22
+					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/24x24
+					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/32x32
+					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/48x48
+					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/256x256
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/
+			PATTERN ".svn" EXCLUDE
+			PATTERN "*.svg" EXCLUDE
+		)
+		install(
+			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps
 		)
 		install(
 			PROGRAMS ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
