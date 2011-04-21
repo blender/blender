@@ -43,7 +43,7 @@
 
 /* ************************** INPUT FROM MOUSE *************************** */
 
-static void InputVector(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
+static void InputVector(TransInfo *t, MouseInput *mi, const short mval[2], float output[3])
 {
 	float vec[3], dvec[3];
 	if(mi->precision)
@@ -61,7 +61,7 @@ static void InputVector(TransInfo *t, MouseInput *mi, short mval[2], float outpu
 
 }
 
-static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float output[3])
+static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
 {
 	float ratio, precise_ratio, dx, dy;
 	if(mi->precision)
@@ -87,7 +87,7 @@ static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], flo
 	output[0] = ratio;
 }
 
-static void InputSpringFlip(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
+static void InputSpringFlip(TransInfo *t, MouseInput *mi, const short mval[2], float output[3])
 {
 	InputSpring(t, mi, mval, output);
 
@@ -100,7 +100,7 @@ static void InputSpringFlip(TransInfo *t, MouseInput *mi, short mval[2], float o
 	 }
 }
 
-static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float output[3])
+static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
 {
 
 	if(mi->precision)
@@ -118,7 +118,7 @@ static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], 
 	output[1] *= mi->factor;
 }
 
-static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
+static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
 	float x, pad;
 
 	pad = t->ar->winx / 10;
@@ -135,7 +135,7 @@ static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, short mval[2], fl
 	output[0] = (x - pad) / (t->ar->winx - 2 * pad);
 }
 
-static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
+static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
@@ -144,7 +144,7 @@ static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, short mval[2],
 	output[0] = dot_v3v3(t->viewinv[0], vec) * 2.0f;
 }
 
-static void InputVerticalRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
+static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
 	float y, pad;
 
 	pad = t->ar->winy / 10;
@@ -160,7 +160,7 @@ static void InputVerticalRatio(TransInfo *t, MouseInput *mi, short mval[2], floa
 	output[0] = (y - pad) / (t->ar->winy - 2 * pad);
 }
 
-static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
+static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
@@ -185,7 +185,7 @@ void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, short start[2], short
 	data[3] = end[1];
 }
 
-static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float output[3])
+static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
 {
 	float length;
 	float distance;
@@ -218,7 +218,7 @@ static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, short mval[2]
 	}
 }
 
-static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float output[3])
+static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
 {
 	double dx2 = mval[0] - mi->center[0];
 	double dy2 = mval[1] - mi->center[1];

@@ -2283,7 +2283,7 @@ static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceText *st= CTX_wm_space_text(C);
 	ARegion *ar= CTX_wm_region(C);
 	TextScroll *tsc;
-	short *mval= event->mval;
+	const short *mval= event->mval;
 	int zone= -1;
 
 	if(RNA_property_is_set(op->ptr, "lines"))
@@ -2694,7 +2694,7 @@ static int line_number_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
 	ARegion *ar= CTX_wm_region(C);
-	short *mval= event->mval;
+	const short *mval= event->mval;
 	double time;
 	static int jump_to= 0;
 	static double last_jump= 0;

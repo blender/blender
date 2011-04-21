@@ -2650,7 +2650,7 @@ void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 /* ************************* below the line! *********************** */
 
 
-static float view_autodist_depth_margin(ARegion *ar, short mval[2], int margin)
+static float view_autodist_depth_margin(ARegion *ar, const short mval[2], int margin)
 {
 	ViewDepths depth_temp= {0};
 	rcti rect;
@@ -2678,7 +2678,7 @@ static float view_autodist_depth_margin(ARegion *ar, short mval[2], int margin)
 }
 
 /* XXX todo Zooms in on a border drawn by the user */
-int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mouse_worldloc[3] ) //, float *autodist )
+int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, const short mval[2], float mouse_worldloc[3] ) //, float *autodist )
 {
 	bglMats mats; /* ZBuffer depth vars */
 	float depth_close= FLT_MAX;
@@ -2721,7 +2721,7 @@ int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //, flo
 }
 
 // no 4x4 sampling, run view_autodist_init first
-int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3], int margin, float *force_depth) //, float *autodist )
+int view_autodist_simple(ARegion *ar, const short mval[2], float mouse_worldloc[3], int margin, float *force_depth) //, float *autodist )
 {
 	bglMats mats; /* ZBuffer depth vars, could cache? */
 	float depth;
@@ -2749,7 +2749,7 @@ int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3], int 
 	return 1;
 }
 
-int view_autodist_depth(struct ARegion *ar, short mval[2], int margin, float *depth)
+int view_autodist_depth(struct ARegion *ar, const short mval[2], int margin, float *depth)
 {
 	*depth= view_autodist_depth_margin(ar, mval, margin);
 
@@ -2776,7 +2776,7 @@ static int depth_segment_cb(int x, int y, void *userData)
 	}
 }
 
-int view_autodist_depth_segment(struct ARegion *ar, short mval_sta[2], short mval_end[2], int margin, float *depth)
+int view_autodist_depth_segment(struct ARegion *ar, const short mval_sta[2], const short mval_end[2], int margin, float *depth)
 {
 	struct { struct ARegion *ar; int margin; float depth; } data = {NULL};
 	int p1[2];

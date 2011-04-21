@@ -239,7 +239,7 @@ static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
 
 /* convert screen-coordinates to buffer-coordinates */
 // XXX this method needs a total overhaul!
-static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[], float *depth)
+static void gp_stroke_convertcoords (tGPsdata *p, short mval[2], float out[3], float *depth)
 {
 	bGPdata *gpd= p->gpd;
 	

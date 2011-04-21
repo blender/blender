@@ -1698,7 +1698,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
-static EditBone *get_nearest_editbonepoint (ViewContext *vc, short mval[2], ListBase *edbo, int findunsel, int *selmask)
+static EditBone *get_nearest_editbonepoint (ViewContext *vc, const short mval[2], ListBase *edbo, int findunsel, int *selmask)
 {
 	EditBone *ebone;
 	rcti rect;
@@ -1958,7 +1958,7 @@ static int ebone_select_flag(EditBone *ebone)
 }
 
 /* context: editmode armature in view3d */
-int mouse_armature(bContext *C, short mval[2], int extend)
+int mouse_armature(bContext *C, const short mval[2], int extend)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;

@@ -189,7 +189,7 @@ void view3d_clr_clipping(void)
 	}
 }
 
-static int test_clipping(float *vec, float clip[][4])
+static int test_clipping(const float vec[3], float clip[][4])
 {
 	float view[3];
 	copy_v3_v3(view, vec);
@@ -205,7 +205,7 @@ static int test_clipping(float *vec, float clip[][4])
 
 /* for 'local' ED_view3d_local_clipping must run first
  * then all comparisons can be done in localspace */
-int view3d_test_clipping(RegionView3D *rv3d, float *vec, int local)
+int view3d_test_clipping(RegionView3D *rv3d, const float vec[3], const int local)
 {
 	return test_clipping(vec, local ? rv3d->clip_local : rv3d->clip);
 }
@@ -1172,7 +1172,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-unsigned int view3d_sample_backbuf_rect(ViewContext *vc, short mval[2], int size, 
+unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const short mval[2], int size,
 										unsigned int min, unsigned int max, int *dist, short strict, 
 										void *handle, unsigned int (*indextest)(void *handle, unsigned int index))
 {

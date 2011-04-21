@@ -284,7 +284,7 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
 }
 
 
-Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, short mval[2])
+Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const short mval[2])
 {
 	Sequence *seq;
 	Editing *ed= seq_give_editing(scene, FALSE);

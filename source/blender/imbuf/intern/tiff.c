@@ -605,8 +605,7 @@ void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int 
 		return;
 	}
 
-	if(TIFFSetDirectory(image, ibuf->miplevel)) {
-		/* allocate the image buffer */
+	if(TIFFSetDirectory(image, ibuf->miplevel)) { /* allocate the image buffer */
 		TIFFGetField(image, TIFFTAG_IMAGEWIDTH,  &width);
 		TIFFGetField(image, TIFFTAG_IMAGELENGTH, &height);
 

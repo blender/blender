@@ -646,25 +646,25 @@ int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 }
 
 /* always call initgrabz */
-void window_to_3d(ARegion *ar, float *vec, short mx, short my)
+void window_to_3d(ARegion *ar, float out[3], short mx, short my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
 	float dx= ((float)(mx-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
 	float dy= ((float)(my-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
 	
-	float fz= rv3d->persmat[0][3]*vec[0]+ rv3d->persmat[1][3]*vec[1]+ rv3d->persmat[2][3]*vec[2]+ rv3d->persmat[3][3];
+	float fz= rv3d->persmat[0][3]*out[0]+ rv3d->persmat[1][3]*out[1]+ rv3d->persmat[2][3]*out[2]+ rv3d->persmat[3][3];
 	fz= fz/rv3d->zfac;
 	
-	vec[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy+ rv3d->persinv[2][0]*fz)-rv3d->ofs[0];
-	vec[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy+ rv3d->persinv[2][1]*fz)-rv3d->ofs[1];
-	vec[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy+ rv3d->persinv[2][2]*fz)-rv3d->ofs[2];
+	out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy+ rv3d->persinv[2][0]*fz)-rv3d->ofs[0];
+	out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy+ rv3d->persinv[2][1]*fz)-rv3d->ofs[1];
+	out[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy+ rv3d->persinv[2][2]*fz)-rv3d->ofs[2];
 	
 }
 
 /* always call initgrabz */
 /* only to detect delta motion */
-void window_to_3d_delta(ARegion *ar, float *vec, short mx, short my)
+void window_to_3d_delta(ARegion *ar, float out[3], short mx, short my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float dx, dy;
@@ -672,15 +672,15 @@ void window_to_3d_delta(ARegion *ar, float *vec, short mx, short my)
 	dx= 2.0f*mx*rv3d->zfac/ar->winx;
 	dy= 2.0f*my*rv3d->zfac/ar->winy;
 	
-	vec[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
-	vec[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
-	vec[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
+	out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
+	out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
+	out[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
 }
 
 /* doesn't rely on initgrabz */
 /* for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector */
-void window_to_3d_vector(ARegion *ar, float *vec, short mx, short my)
+void window_to_3d_vector(ARegion *ar, float out[3], short mx, short my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float dx, dy;
@@ -692,11 +692,11 @@ void window_to_3d_vector(ARegion *ar, float *vec, short mx, short my)
 	/* normalize here so vecs are proportional to eachother */
 	normalize_v3_v3(viewvec, rv3d->viewinv[2]);
 
-	vec[0]= viewvec[0] - (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
-	vec[1]= viewvec[1] - (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
-	vec[2]= viewvec[2] - (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
+	out[0]= viewvec[0] - (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
+	out[1]= viewvec[1] - (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
+	out[2]= viewvec[2] - (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
 
-	normalize_v3(vec);
+	normalize_v3(out);
 }
 
 float read_cached_depth(ViewContext *vc, int x, int y)
@@ -740,7 +740,7 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 }
 
 /* use above call to get projecting mat */
-void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
+void view3d_project_float(ARegion *ar, const float vec[3], float adr[2], float mat[4][4])
 {
 	float vec4[4];
 	
@@ -793,7 +793,7 @@ int boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
 	return 0;
 }
 
-void project_short(ARegion *ar, float *vec, short *adr)	/* clips */
+void project_short(ARegion *ar, const float vec[3], short adr[2])	/* clips */
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -824,7 +824,7 @@ void project_short(ARegion *ar, float *vec, short *adr)	/* clips */
 	}
 }
 
-void project_int(ARegion *ar, float *vec, int *adr)
+void project_int(ARegion *ar, const float vec[3], int adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -849,7 +849,7 @@ void project_int(ARegion *ar, float *vec, int *adr)
 	}
 }
 
-void project_int_noclip(ARegion *ar, float *vec, int *adr)
+void project_int_noclip(ARegion *ar, const float vec[3], int adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -873,7 +873,7 @@ void project_int_noclip(ARegion *ar, float *vec, int *adr)
 	}
 }
 
-void project_short_noclip(ARegion *ar, float *vec, short *adr)
+void project_short_noclip(ARegion *ar, const float vec[3], short adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -899,7 +899,7 @@ void project_short_noclip(ARegion *ar, float *vec, short *adr)
 	}
 }
 
-void project_float(ARegion *ar, float *vec, float *adr)
+void project_float(ARegion *ar, const float vec[3], float adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float vec4[4];
@@ -916,7 +916,7 @@ void project_float(ARegion *ar, float *vec, float *adr)
 	}
 }
 
-void project_float_noclip(ARegion *ar, float *vec, float *adr)
+void project_float_noclip(ARegion *ar, const float vec[3], float adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float vec4[4];

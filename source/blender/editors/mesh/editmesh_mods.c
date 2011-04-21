@@ -2061,7 +2061,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 
 /* ***************** loop select (non modal) ************** */
 
-static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring)
+static void mouse_mesh_loop(bContext *C, const short mval[2], short extend, short ring)
 {
 	ViewContext vc;
 	EditMesh *em;
@@ -2149,7 +2149,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static void mouse_mesh_shortest_path(bContext *C, short mval[2])
+static void mouse_mesh_shortest_path(bContext *C, const short mval[2])
 {
 	ViewContext vc;
 	EditMesh *em;
@@ -2282,7 +2282,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 
 /* here actual select happens */
 /* gets called via generic mouse select operator */
-int mouse_mesh(bContext *C, short mval[2], short extend)
+int mouse_mesh(bContext *C, const short mval[2], short extend)
 {
 	ViewContext vc;
 	EditVert *eve;

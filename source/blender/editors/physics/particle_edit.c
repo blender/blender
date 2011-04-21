@@ -338,7 +338,7 @@ typedef struct PEData {
 	DerivedMesh *dm;
 	PTCacheEdit *edit;
 
-	short *mval;
+	const short *mval;
 	rcti *rect;
 	float rad;
 	float dist;
@@ -1369,7 +1369,7 @@ void PARTICLE_OT_select_all(wmOperatorType *ot)
 
 /************************ pick select operator ************************/
 
-int PE_mouse_particles(bContext *C, short *mval, int extend)
+int PE_mouse_particles(bContext *C, const short mval[2], int extend)
 {
 	PEData data;
 	Scene *scene= CTX_data_scene(C);
@@ -1574,7 +1574,7 @@ int PE_border_select(bContext *C, rcti *rect, int select, int extend)
 
 /************************ circle select operator ************************/
 
-int PE_circle_select(bContext *C, int selecting, short *mval, float rad)
+int PE_circle_select(bContext *C, int selecting, const short mval[2], float rad)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
