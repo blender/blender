@@ -242,10 +242,10 @@ class AddPresetSunSky(AddPresetBase, bpy.types.Operator):
         "sky.sun_brightness",
         "sky.sun_intensity",
         "sky.sun_size",
-        "sky.use_sky_blend",
-        "sky.use_sky_blend_type",
-        "sky.use_sky_color_space",
-        "sky.use_sky_exposure",
+        "sky.sky_blend",
+        "sky.sky_blend_type",
+        "sky.sky_color_space",
+        "sky.sky_exposure",
     ]
 
     preset_subdir = "sunsky"
