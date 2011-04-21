@@ -217,7 +217,7 @@ endif()
 # Post build steps for bundling/packaging.
 
 
-if(MSVC)
+if(MSVC_IDE)
 	# ${CMAKE_CFG_INTDIR} should replace \${BUILD_TYPE} when using add_command
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
 elseif(APPLE)
