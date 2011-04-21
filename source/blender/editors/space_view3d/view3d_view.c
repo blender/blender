@@ -939,25 +939,25 @@ void project_float_noclip(ARegion *ar, float *vec, float *adr)
 
 int get_view3d_ortho(View3D *v3d, RegionView3D *rv3d)
 {
-  Camera *cam;
-  
-  if(rv3d->persp==RV3D_CAMOB) {
-	  if(v3d->camera && v3d->camera->type==OB_CAMERA) {
-		  cam= v3d->camera->data;
+	Camera *cam;
 
-		  if(cam && cam->type==CAM_ORTHO)
-			  return 1;
-		  else
-			  return 0;
-	  }
-	  else
-		  return 0;
-  }
-  
-  if(rv3d->persp==RV3D_ORTHO)
-	  return 1;
+	if(rv3d->persp==RV3D_CAMOB) {
+		if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+			cam= v3d->camera->data;
 
-  return 0;
+			if(cam && cam->type==CAM_ORTHO)
+				return 1;
+			else
+				return 0;
+		}
+		else
+			return 0;
+	}
+
+	if(rv3d->persp==RV3D_ORTHO)
+		return 1;
+
+	return 0;
 }
 
 /* copies logic of get_view3d_viewplane(), keep in sync */

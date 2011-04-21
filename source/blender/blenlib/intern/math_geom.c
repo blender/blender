@@ -99,7 +99,7 @@ float area_tri_v2(const float v1[2], const float v2[2], const float v3[2])
 
 float area_tri_signed_v2(const float v1[2], const float v2[2], const float v3[2])
 {
-   return 0.5f * ((v1[0]-v2[0])*(v2[1]-v3[1]) + (v1[1]-v2[1])*(v3[0]-v2[0]));
+	return 0.5f * ((v1[0]-v2[0])*(v2[1]-v3[1]) + (v1[1]-v2[1])*(v3[0]-v2[0]));
 }
 
 float area_quad_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])  /* only convex Quadrilaterals */
@@ -1524,22 +1524,22 @@ void interp_weights_face_v3(float w[4], const float v1[3], const float v2[3], co
  * note: using area_tri_signed_v2 means locations outside the triangle are correctly weighted */
 void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
 {
-   float wtot_inv, wtot;
+	float wtot_inv, wtot;
 
-   w[0] = area_tri_signed_v2(v2, v3, co);
-   w[1] = area_tri_signed_v2(v3, v1, co);
-   w[2] = area_tri_signed_v2(v1, v2, co);
-   wtot = w[0]+w[1]+w[2];
+	w[0] = area_tri_signed_v2(v2, v3, co);
+	w[1] = area_tri_signed_v2(v3, v1, co);
+	w[2] = area_tri_signed_v2(v1, v2, co);
+	wtot = w[0]+w[1]+w[2];
 
-   if (wtot != 0.0f) {
-	   wtot_inv = 1.0f/wtot;
+	if (wtot != 0.0f) {
+		wtot_inv = 1.0f/wtot;
 
-	   w[0] = w[0]*wtot_inv;
-	   w[1] = w[1]*wtot_inv;
-	   w[2] = w[2]*wtot_inv;
-   }
-   else /* dummy values for zero area face */
-	   w[0] = w[1] = w[2] = 1.0f/3.0f;
+		w[0] = w[0]*wtot_inv;
+		w[1] = w[1]*wtot_inv;
+		w[2] = w[2]*wtot_inv;
+	}
+	else /* dummy values for zero area face */
+		w[0] = w[1] = w[2] = 1.0f/3.0f;
 }
 
 /* given 2 triangles in 3D space, and a point in relation to the first triangle.

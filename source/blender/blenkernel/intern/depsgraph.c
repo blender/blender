@@ -1092,10 +1092,10 @@ void graph_bfs(void)
 					push_queue(nqueue,itA->node);
 				}
 				
-				 else {
+				else {
 					fprintf(stderr,"bfs not dag tree edge color :%i \n",itA->node->color);
 				}
-				 
+
 				
 				itA = itA->next;
 			}
@@ -1225,7 +1225,7 @@ DagNodeQueue * graph_dfs(void)
 		while(nqueue->count) {
 			//graph_print_queue(nqueue);
 
-			 skip = 0;
+			skip = 0;
 			node = get_top_node_queue(nqueue);
 			
 			minheight = pos[node->DFS_dist];
@@ -1253,7 +1253,7 @@ DagNodeQueue * graph_dfs(void)
 						*/
 						/*if (node->DFS_dist >= itA->node->DFS_dist)
 							itA->node->DFS_dist = node->DFS_dist + 1;
-						 	
+
 							fprintf(stderr,"dfs forward or cross edge :%15s %i-%i %15s %i-%i \n",
 								((ID *) node->ob)->name,
 								node->DFS_dvtm, 
@@ -1287,17 +1287,17 @@ DagNodeQueue * graph_dfs(void)
 				/*
 				 fprintf(stderr,"DFS node : %20s %i %i %i %i\n",((ID *) node->ob)->name,node->BFS_dist, node->DFS_dist, node->DFS_dvtm, node->DFS_fntm ); 	
 				*/
-				 push_stack(retqueue,node);
+				push_stack(retqueue,node);
 				
 			}
 		}
 	}
 		node = node->next;
 	} while (node);
-//	  fprintf(stderr,"i size : %i \n", maxpos);
-	  
+//	fprintf(stderr,"i size : %i \n", maxpos);
+
 	queue_delete(nqueue);
-	  return(retqueue);
+	return(retqueue);
 }
 
 /* unused */

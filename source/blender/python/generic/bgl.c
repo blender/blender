@@ -132,16 +132,16 @@ static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args) {\
 int BGL_typeSize(int type)
 {
 	switch (type) {
-		case GL_BYTE: 
-		  return sizeof(char);
-		case GL_SHORT: 
-		  return sizeof(short);
-		case GL_INT: 
-		  return sizeof(int);
-		case GL_FLOAT: 
-		  return sizeof(float);
-		case GL_DOUBLE:
-		  return sizeof(double);
+	case GL_BYTE:
+		return sizeof(char);
+	case GL_SHORT:
+		return sizeof(short);
+	case GL_INT:
+		return sizeof(int);
+	case GL_FLOAT:
+		return sizeof(float);
+	case GL_DOUBLE:
+		return sizeof(double);
 	}
 	return -1;
 }
@@ -307,7 +307,7 @@ static PyObject *Buffer_item(PyObject *self, int i)
 
 		return (PyObject *) newbuf;
 	}
-  
+
 	return NULL;
 }
 
@@ -435,7 +435,7 @@ static PyObject *Buffer_dimensions(PyObject *self)
 	Buffer *buffer= (Buffer *) self;
 	PyObject *list= PyList_New(buffer->ndimensions);
 	int i;
-  
+
 	for (i= 0; i<buffer->ndimensions; i++) {
 		PyList_SET_ITEM(list, i, PyLong_FromLong(buffer->dimensions[i]));
 	}
@@ -804,7 +804,7 @@ BGLU_Wrap(9, UnProject,			GLint,		(GLdouble, GLdouble, GLdouble, GLdoubleP, GLdo
  * {"glAccum", Method_Accumfunc, METH_VARARGS} */
 
 static struct PyMethodDef BGL_methods[] = {
-  {"Buffer", Method_Buffer, METH_VARARGS, Method_Buffer_doc}, 
+	{"Buffer", Method_Buffer, METH_VARARGS, Method_Buffer_doc},
 
 /* #ifndef __APPLE__ */
 	MethodDef(Accum),

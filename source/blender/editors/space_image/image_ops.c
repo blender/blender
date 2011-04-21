@@ -768,13 +768,13 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	Image *ima= NULL;
 
 	if(sima) {
-		 ima= sima->image;
+		ima= sima->image;
 	}
 
 	if (ima==NULL) {
-		 Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-		 if(tex && tex->type==TEX_IMAGE)
-			 ima= tex->ima;
+		Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		if(tex && tex->type==TEX_IMAGE)
+			ima= tex->ima;
 	}
 
 	if(ima)

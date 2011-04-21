@@ -3856,7 +3856,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 		ShadeInput *shi= ssamp->shi;
 		ShadeResult *shr= ssamp->shr;
 		
-		 for(sample=0; sample<ssamp->tot; sample++, shi++, shr++) {
+		for(sample=0; sample<ssamp->tot; sample++, shi++, shr++) {
 		
 			if(shi->mask & (1<<a)) {
 				float fac= (1.0f - samp_shr->combined[3])*shr->combined[3];

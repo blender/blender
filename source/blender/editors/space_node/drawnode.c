@@ -834,26 +834,26 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 {
 	uiLayout *row, *col;
 	
-   uiItemL(layout, "Despill Channel:", ICON_NONE);
-   row =uiLayoutRow(layout,0);
+	uiItemL(layout, "Despill Channel:", ICON_NONE);
+	row =uiLayoutRow(layout,0);
 	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
-   col= uiLayoutColumn(layout, 0);
-   uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
+	col= uiLayoutColumn(layout, 0);
+	uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
 
-   if(RNA_enum_get(ptr, "limit_method")==0) {
-	  uiItemL(col, "Limiting Channel:", ICON_NONE);
-	  row=uiLayoutRow(col,0);
-	  uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-   }
+	if(RNA_enum_get(ptr, "limit_method")==0) {
+		uiItemL(col, "Limiting Channel:", ICON_NONE);
+		row=uiLayoutRow(col,0);
+		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	}
 
-   uiItemR(col, ptr, "ratio", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-   uiItemR(col, ptr, "use_unspill", 0, NULL, ICON_NONE);
-   if (RNA_enum_get(ptr, "use_unspill")== 1) {
-	  uiItemR(col, ptr, "unspill_red", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	  uiItemR(col, ptr, "unspill_green", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	  uiItemR(col, ptr, "unspill_blue", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-   }
+	uiItemR(col, ptr, "ratio", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(col, ptr, "use_unspill", 0, NULL, ICON_NONE);
+	if (RNA_enum_get(ptr, "use_unspill")== 1) {
+		uiItemR(col, ptr, "unspill_red", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+		uiItemR(col, ptr, "unspill_green", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+		uiItemR(col, ptr, "unspill_blue", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	}
 }
 
 static void node_composit_buts_chroma_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -865,9 +865,9 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext *UNUSED(C
 	uiItemR(col, ptr, "threshold", 0, NULL, ICON_NONE);
 	
 	col= uiLayoutColumn(layout, 1);
-   /*uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);  Removed for now */
+	/*uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);  Removed for now */
 	uiItemR(col, ptr, "gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-   /*uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, NULL, ICON_NONE);  Removed for now*/
+	/*uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, NULL, ICON_NONE);  Removed for now*/
 }
 
 static void node_composit_buts_color_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -884,24 +884,24 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext *UNUSED(
 {	
 	uiLayout *col, *row;
 
-   uiItemL(layout, "Color Space:", ICON_NONE);
+	uiItemL(layout, "Color Space:", ICON_NONE);
 	row= uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "color_space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
-   col=uiLayoutColumn(layout, 0);  
-   uiItemL(col, "Key Channel:", ICON_NONE);
+	col=uiLayoutColumn(layout, 0);
+	uiItemL(col, "Key Channel:", ICON_NONE);
 	row= uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "matte_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
 	col =uiLayoutColumn(layout, 0);
 
-   uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
-   if(RNA_enum_get(ptr, "limit_method")==0) {
-	  uiItemL(col, "Limiting Channel:", ICON_NONE);
-	  row=uiLayoutRow(col,0);
-	  uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-   }
-   
+	uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
+	if(RNA_enum_get(ptr, "limit_method")==0) {
+		uiItemL(col, "Limiting Channel:", ICON_NONE);
+		row=uiLayoutRow(col,0);
+		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	}
+
 	uiItemR(col, ptr, "limit_max", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "limit_min", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
@@ -957,7 +957,7 @@ static void node_composit_buts_scale(uiLayout *layout, bContext *UNUSED(C), Poin
 
 static void node_composit_buts_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-   uiItemR(layout, ptr, "filter_type", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "filter_type", 0, "", ICON_NONE);
 }
 
 static void node_composit_buts_invert(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -1123,7 +1123,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_OUTPUT_FILE:
 			ntype->uifunc= node_composit_buts_file_output;
-			break;	
+			break;
 		case CMP_NODE_DIFF_MATTE:
 			ntype->uifunc=node_composit_buts_diff_matte;
 			break;
@@ -1142,9 +1142,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_SCALE:
 			ntype->uifunc= node_composit_buts_scale;
 			break;
-	  case CMP_NODE_ROTATE:
-		 ntype->uifunc=node_composit_buts_rotate;
-		 break;
+		case CMP_NODE_ROTATE:
+			ntype->uifunc=node_composit_buts_rotate;
+			break;
 		case CMP_NODE_CHANNEL_MATTE:
 			ntype->uifunc= node_composit_buts_channel_matte;
 			break;
@@ -1168,16 +1168,16 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_VIEW_LEVELS:
 			ntype->uifunc=node_composit_buts_view_levels;
-			 break;
+			break;
 		case CMP_NODE_COLORBALANCE:
 			ntype->uifunc=node_composit_buts_colorbalance;
-			 break;
+			break;
 		case CMP_NODE_HUECORRECT:
 			ntype->uifunc=node_composit_buts_huecorrect;
-			 break;
+			break;
 		case CMP_NODE_ZCOMBINE:
 			ntype->uifunc=node_composit_buts_zcombine;
-			 break;
+			break;
 		case CMP_NODE_COMBYCCA:
 		case CMP_NODE_SEPYCCA:
 			ntype->uifunc=node_composit_buts_ycc;
@@ -1499,7 +1499,7 @@ void draw_nodespace_color_info(ARegion *ar, int channels, int x, int y, char *cp
 			sprintf(str, "  R:%-.4f", fp[0]);
 		else if (cp)
 			sprintf(str, "  R:%-3d", cp[0]);
- 		else
+		else
 			sprintf(str, "  R:-");
 		BLF_position(blf_mono_font, dx, 6, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
@@ -1510,7 +1510,7 @@ void draw_nodespace_color_info(ARegion *ar, int channels, int x, int y, char *cp
 			sprintf(str, "  G:%-.4f", fp[1]);
 		else if (cp)
 			sprintf(str, "  G:%-3d", cp[1]);
- 		else
+		else
 			sprintf(str, "  G:-");
 		BLF_position(blf_mono_font, dx, 6, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
@@ -1521,7 +1521,7 @@ void draw_nodespace_color_info(ARegion *ar, int channels, int x, int y, char *cp
 			sprintf(str, "  B:%-.4f", fp[2]);
 		else if (cp)
 			sprintf(str, "  B:%-3d", cp[2]);
- 		else
+		else
 			sprintf(str, "  B:-");
 		BLF_position(blf_mono_font, dx, 6, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));

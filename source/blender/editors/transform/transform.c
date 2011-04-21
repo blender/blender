@@ -4485,11 +4485,11 @@ static int createSlideVerts(TransInfo *t)
 			for(eed=em->edges.first;eed;eed=eed->next) {
 				if(editedge_containsVert(eed, ev)) {
 					if(!(eed->f & SELECT)) {
-						 if(!tempsv->up) {
-							 tempsv->up = eed;
-						 } else if (!(tempsv->down)) {
-							 tempsv->down = eed;
-						 }
+						if(!tempsv->up) {
+							tempsv->up = eed;
+						} else if (!(tempsv->down)) {
+							tempsv->down = eed;
+						}
 					}
 				}
 			}
@@ -4501,33 +4501,33 @@ static int createSlideVerts(TransInfo *t)
 					for(efa = em->faces.first;efa;efa=efa->next) {
 						if(editface_containsEdge(efa, eed)) {
 							if(editedge_containsVert(efa->e1, ev) && efa->e1 != eed) {
-								 if(!tempsv->up) {
-									 tempsv->up = efa->e1;
-								 } else if (!(tempsv->down)) {
-									 tempsv->down = efa->e1;
-								 }
+								if(!tempsv->up) {
+									tempsv->up = efa->e1;
+								} else if (!(tempsv->down)) {
+									tempsv->down = efa->e1;
+								}
 							}
 							if(editedge_containsVert(efa->e2, ev) && efa->e2 != eed) {
-								 if(!tempsv->up) {
-									 tempsv->up = efa->e2;
-								 } else if (!(tempsv->down)) {
-									 tempsv->down = efa->e2;
-								 }
+								if(!tempsv->up) {
+									tempsv->up = efa->e2;
+								} else if (!(tempsv->down)) {
+									tempsv->down = efa->e2;
+								}
 							}
 							if(editedge_containsVert(efa->e3, ev) && efa->e3 != eed) {
-								 if(!tempsv->up) {
-									 tempsv->up = efa->e3;
-								 } else if (!(tempsv->down)) {
-									 tempsv->down = efa->e3;
-								 }
+								if(!tempsv->up) {
+									tempsv->up = efa->e3;
+								} else if (!(tempsv->down)) {
+									tempsv->down = efa->e3;
+								}
 							}
 							if(efa->e4) {
 								if(editedge_containsVert(efa->e4, ev) && efa->e4 != eed) {
-									 if(!tempsv->up) {
-										 tempsv->up = efa->e4;
-									 } else if (!(tempsv->down)) {
-										 tempsv->down = efa->e4;
-									 }
+									if(!tempsv->up) {
+										tempsv->up = efa->e4;
+									} else if (!(tempsv->down)) {
+										tempsv->down = efa->e4;
+									}
 								}
 							}
 

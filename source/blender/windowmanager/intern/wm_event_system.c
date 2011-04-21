@@ -1602,7 +1602,7 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 	if(wm_event_always_pass(event))
 		return 1;
 	if(BLI_in_rcti(rect, event->x, event->y))
-	   return 1;
+		return 1;
 	if(event->type==MOUSEMOVE) {
 		if( BLI_in_rcti(rect, event->prevx, event->prevy)) {
 			return 1;

@@ -2269,7 +2269,7 @@ void do_material_tex(ShadeInput *shi)
 				if(use_compat_bump) {
 					rgbnor = compatible_bump_compute(&compat_bump, shi, mtex, tex,
 						&texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);
- 				}
+				}
 				else if(use_ntap_bump) {
 					rgbnor = ntap_bump_compute(&ntap_bump, shi, mtex, tex,
 						&texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);

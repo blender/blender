@@ -140,7 +140,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 		return ret; \
 	} \
 	else if (PyTuple_GET_SIZE(args) > 1) { \
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
+		PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
 		return NULL; \
 	} \
 	srna= srna_from_self(self, #_func"(...):"); \
@@ -762,7 +762,7 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 	}
 
 	if(!RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
-		 PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup", error_prefix);
+		PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup", error_prefix);
 		return NULL;
 	}
 
@@ -884,7 +884,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		return ret;	
 	}
 	else if (PyTuple_GET_SIZE(args) > 1) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
+		PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
 		return NULL;
 	}
 

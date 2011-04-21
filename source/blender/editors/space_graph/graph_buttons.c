@@ -766,7 +766,7 @@ void GRAPH_OT_properties(wmOperatorType *ot)
 	
 	ot->exec= graph_properties;
 	ot->poll= ED_operator_graphedit_active;
- 	
+
 	/* flags */
 	ot->flag= 0;
 }

@@ -2572,7 +2572,7 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	int totfaces;
 	int countfaces = 0;
 #endif
- 	
+
 	rg = newReebGraph();
 	
 	rg->resolution = subdivisions;

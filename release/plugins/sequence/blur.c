@@ -41,7 +41,7 @@ char name[24]= "Blur";
 
 VarStruct varstr[]= {
 	LABEL,			"Input: 1 strip", 0.0, 0.0, 0.0, "", 
- 	NUMSLI|FLO,		"Blur",		0.5,	0.0,	10.0, "Maximum filtersize", 
+	NUMSLI|FLO,		"Blur",		0.5,	0.0,	10.0, "Maximum filtersize",
 	NUMSLI|FLO,		"Gamma",	1.0,	0.4,	2.0, "Gamma correction", 
 	TOG|INT,		"Animated",	0.0,	0.0,	1.0, "For (Ipo) animated blur", 
 	NUM|INT,        	"debug",        0.0,    0.0,    2.0,

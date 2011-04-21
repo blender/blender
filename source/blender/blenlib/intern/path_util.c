@@ -324,8 +324,8 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	/* Note, this should really be moved to the file selector,
 	 * since this function is used in many areas */
 	if(strcmp(dir, ".")==0) {	/* happens for example in FILE_MAIN */
-	   get_default_root(dir);
-	   return;
+		get_default_root(dir);
+		return;
 	}	
 
 	while ( (start = strstr(dir, "\\..\\")) ) {
@@ -353,9 +353,9 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	}
 #else
 	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
-	   dir[0]= '/';
-	   dir[1]= 0;
-	   return;
+		dir[0]= '/';
+		dir[1]= 0;
+		return;
 	}
 
 	/* support for odd paths: eg /../home/me --> /home/me
@@ -525,7 +525,7 @@ int BLI_parent_dir(char *path)
 	BLI_add_slash(tmp);
 	strcat(tmp, parent_dir);
 	BLI_cleanup_dir(NULL, tmp);
- 	
+
 	if (!BLI_testextensie(tmp, parent_dir)) {
 		BLI_strncpy(path, tmp, sizeof(tmp));	
 		return 1;

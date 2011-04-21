@@ -1123,7 +1123,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	det = INPR(edge1, pvec);
 
 	if (det == 0.0f)
-	  return 0;
+		return 0;
 	inv_det = 1.0f / det;
 
 	/* calculate distance from vert0 to ray origin */
@@ -1132,7 +1132,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	/* calculate U parameter and test bounds */
 	u = INPR(tvec, pvec) * inv_det;
 	if (u < -EPSILON || u > 1.0f+EPSILON)
-	  return 0;
+		return 0;
 
 	/* prepare to test V parameter */
 	cross_v3_v3v3(qvec, tvec, edge1);
@@ -1140,7 +1140,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	/* calculate V parameter and test bounds */
 	v = INPR(dir, qvec) * inv_det;
 	if (v < -EPSILON || u + v > 1.0f+EPSILON)
-	  return 0;
+		return 0;
 
 	isectco[0]= (1.0f - u - v)*vert0[0] + u*vert1[0] + v*vert2[0];
 	isectco[1]= (1.0f - u - v)*vert0[1] + u*vert1[1] + v*vert2[1];

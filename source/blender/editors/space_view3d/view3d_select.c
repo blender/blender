@@ -669,10 +669,10 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 				change= TRUE;
 			}
 			if(lasso_inside(mcords, moves, sco2[0], sco2[1])) {
-			   if(select) ebone->flag |= BONE_TIPSEL;
-			   else ebone->flag &= ~BONE_TIPSEL;
-			   didpoint= 1;
-			   change= TRUE;
+				if(select) ebone->flag |= BONE_TIPSEL;
+				else ebone->flag &= ~BONE_TIPSEL;
+				didpoint= 1;
+				change= TRUE;
 			}
 			/* if one of points selected, we skip the bone itself */
 			if(didpoint==0 && lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {

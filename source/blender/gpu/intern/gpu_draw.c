@@ -210,8 +210,8 @@ static int is_pow2_limit(int num)
 	/* take texture clamping into account */
 
 	/* XXX: texturepaint not global!
-	   if (G.f & G_TEXTUREPAINT)
-	   return 1;*/
+	if (G.f & G_TEXTUREPAINT)
+		return 1;*/
 
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return 0;
@@ -222,8 +222,8 @@ static int is_pow2_limit(int num)
 static int smaller_pow2_limit(int num)
 {
 	/* XXX: texturepaint not global!
-	   if (G.f & G_TEXTUREPAINT)
-	   return 1;*/
+	if (G.f & G_TEXTUREPAINT)
+		return 1;*/
 	
 	/* take texture clamping into account */
 	if (U.glreslimit != 0 && num > U.glreslimit)

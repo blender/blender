@@ -138,22 +138,22 @@ static int is_stl(const char *str)
 	return 1;
 }
 
-#define READSTLVERT {                                   \
-  if (fread(mvert->co, sizeof(float), 3, fpSTL) != 3) { \
-	char error_msg[255];                                \
-	MEM_freeN(vertdata);                                \
-	MEM_freeN(facedata);                                \
-	fclose(fpSTL);                                      \
-	sprintf(error_msg, "Problems reading face %d!", i); \
-	return;                                             \
-  }                                                     \
-  else {                                                \
-	if (ENDIAN_ORDER==B_ENDIAN) {                       \
-	  SWITCH_INT(mvert->co[0]);                         \
-	  SWITCH_INT(mvert->co[1]);                         \
-	  SWITCH_INT(mvert->co[2]);                         \
-	}                                                   \
-  }                                                     \
+#define READSTLVERT {                                             \
+	if (fread(mvert->co, sizeof(float), 3, fpSTL) != 3) {      \
+		char error_msg[255];                                \
+		MEM_freeN(vertdata);                                \
+		MEM_freeN(facedata);                                \
+		fclose(fpSTL);                                      \
+		sprintf(error_msg, "Problems reading face %d!", i); \
+		return;                                             \
+	}                                                          \
+	else {                                                     \
+		if (ENDIAN_ORDER==B_ENDIAN) {                       \
+			SWITCH_INT(mvert->co[0]);                    \
+			SWITCH_INT(mvert->co[1]);                    \
+			SWITCH_INT(mvert->co[2]);                    \
+		}                                                   \
+	}                                                          \
 }
 
 static void simple_vertex_normal_blend(short *no, short *ble)

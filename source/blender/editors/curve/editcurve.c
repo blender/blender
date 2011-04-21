@@ -2855,7 +2855,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 	int a, b, sel, amount, *usel, *vsel, i;
 	float factor;
 
-   // printf("*** subdivideNurb: entering subdivide\n");
+	// printf("*** subdivideNurb: entering subdivide\n");
 
 	for(nu= editnurb->nurbs.first; nu; nu= nu->next) {
 		amount= 0;
@@ -3231,8 +3231,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 						MEM_freeN(nu->bp);
 						nu->bp= bpnew;
 						nu->pntsu+= sel;
-						nurbs_knot_calc_u(nu); /* shift knots
-													 forward */
+						nurbs_knot_calc_u(nu); /* shift knots forward */
 					}
 				}
 			}
@@ -4997,8 +4996,8 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	int a, location[2], deselect;
 
 	deselect= RNA_boolean_get(op->ptr, "deselect");
- 	location[0]= event->x - ar->winrct.xmin;
- 	location[1]= event->y - ar->winrct.ymin;
+	location[0]= event->x - ar->winrct.xmin;
+	location[1]= event->y - ar->winrct.ymin;
 
 	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);

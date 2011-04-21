@@ -369,16 +369,16 @@ void *MEM_mapallocN(size_t len, const char *str)
 	{
 #include <fcntl.h>
 
-	  int fd;
-	  fd = open("/dev/zero", O_RDWR);
+		int fd;
+		fd = open("/dev/zero", O_RDWR);
 
-	  memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail),
-			PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	  close(fd);
+		memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail),
+				PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+		close(fd);
 	}
 #else
 	memh= mmap(NULL, len+sizeof(MemHead)+sizeof(MemTail),
-		   PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+			PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
 #endif
 
 	if(memh!=(MemHead *)-1) {
@@ -792,7 +792,7 @@ static const char *check_memlist(MemHead *memh)
 				forwok->nextname = backok->name;
 			} else{
 				forwok->next = NULL;
-  				membase->last = (struct localLink *) &forwok->next; 
+				membase->last = (struct localLink *) &forwok->next;
 /*  				membase->last = (struct Link *) &forwok->next; */
 			}
 		} else{

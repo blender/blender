@@ -188,7 +188,7 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 			sprintf(str, "  R:%-.4f", fp[0]);
 		else if (cp)
 			sprintf(str, "  R:%-3d", cp[0]);
- 		else
+		else
 			sprintf(str, "  R:-");
 		BLF_position(blf_mono_font, dx, 6, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
@@ -199,7 +199,7 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 			sprintf(str, "  G:%-.4f", fp[1]);
 		else if (cp)
 			sprintf(str, "  G:%-3d", cp[1]);
- 		else
+		else
 			sprintf(str, "  G:-");
 		BLF_position(blf_mono_font, dx, 6, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
@@ -210,7 +210,7 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 			sprintf(str, "  B:%-.4f", fp[2]);
 		else if (cp)
 			sprintf(str, "  B:%-3d", cp[2]);
- 		else
+		else
 			sprintf(str, "  B:-");
 		BLF_position(blf_mono_font, dx, 6, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));

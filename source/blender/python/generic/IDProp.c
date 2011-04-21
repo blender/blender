@@ -513,15 +513,15 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 			for (i=0; i<prop->len; i++) {
 				if (prop->subtype == IDP_FLOAT) {
 					PyList_SET_ITEM(seq, i,
-						PyFloat_FromDouble(((float*)prop->data.pointer)[i]));
+							PyFloat_FromDouble(((float*)prop->data.pointer)[i]));
 				}
 				else if (prop->subtype == IDP_DOUBLE) {
 					PyList_SET_ITEM(seq, i,
-						PyFloat_FromDouble(((double*)prop->data.pointer)[i]));
+							PyFloat_FromDouble(((double*)prop->data.pointer)[i]));
 				}
 				else 	{
 					PyList_SET_ITEM(seq, i,
-						  PyLong_FromLong(((int*)prop->data.pointer)[i]));
+							PyLong_FromLong(((int*)prop->data.pointer)[i]));
 				}
 			}
 			return seq;
@@ -588,7 +588,7 @@ static PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
 			/*ok something bad happened with the pyobject,
 			  so don't remove the prop from the group.  if pyform is
 			  NULL, then it already should have raised an exception.*/
-			  return NULL;
+			return NULL;
 		}
 
 		IDP_RemFromGroup(self->prop, idprop);

@@ -49,17 +49,17 @@ static bNodeSocketType cmp_node_chroma_out[]={
 
 static void do_rgba_to_ycca_normalized(bNode *UNUSED(node), float *out, float *in)
 {
-   rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
+	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 
-   //normalize to 0..1.0
-   out[0]=out[0]/255.0;
-   out[1]=out[1]/255.0;
-   out[2]=out[2]/255.0;
+	//normalize to 0..1.0
+	out[0]=out[0]/255.0;
+	out[1]=out[1]/255.0;
+	out[2]=out[2]/255.0;
 
-   //rescale to -1.0..1.0
-   out[0]=(out[0]*2.0)-1.0;
-   out[1]=(out[1]*2.0)-1.0;
-   out[2]=(out[2]*2.0)-1.0;
+	//rescale to -1.0..1.0
+	out[0]=(out[0]*2.0)-1.0;
+	out[1]=(out[1]*2.0)-1.0;
+	out[2]=(out[2]*2.0)-1.0;
 
 //	out[0]=((out[0])-16)/255.0;
 //	out[1]=((out[1])-128)/255.0;
@@ -69,16 +69,16 @@ static void do_rgba_to_ycca_normalized(bNode *UNUSED(node), float *out, float *i
 
 static void do_ycca_to_rgba_normalized(bNode *UNUSED(node), float *out, float *in)
 {
-   /*un-normalize the normalize from above */
-   in[0]=(in[0]+1.0)/2.0;
-   in[1]=(in[1]+1.0)/2.0;
-   in[2]=(in[2]+1.0)/2.0;
+	/*un-normalize the normalize from above */
+	in[0]=(in[0]+1.0)/2.0;
+	in[1]=(in[1]+1.0)/2.0;
+	in[2]=(in[2]+1.0)/2.0;
 
-   in[0]=(in[0]*255.0);
-   in[1]=(in[1]*255.0);
-   in[2]=(in[2]*255.0);
+	in[0]=(in[0]*255.0);
+	in[1]=(in[1]*255.0);
+	in[2]=(in[2]*255.0);
 
-//	in[0]=(in[0]*255.0)+16;
+	//	in[0]=(in[0]*255.0)+16;
 //	in[1]=(in[1]*255.0)+128;
 //	in[2]=(in[2]*255.0)+128;
 	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
@@ -180,13 +180,13 @@ static void node_composit_exec_chroma_matte(void *data, bNode *node, bNodeStack 
 
 static void node_composit_init_chroma_matte(bNode *node)
 {
-   NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
-   node->storage= c;
-   c->t1= 30.0f;
-   c->t2= 10.0f;
-   c->t3= 0.0f;
-   c->fsize= 0.0f;
-   c->fstrength= 1.0f;
+	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
+	node->storage= c;
+	c->t1= 30.0f;
+	c->t2= 10.0f;
+	c->t3= 0.0f;
+	c->fsize= 0.0f;
+	c->fstrength= 1.0f;
 }
 
 void register_node_type_cmp_chroma_matte(ListBase *lb)

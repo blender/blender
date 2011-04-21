@@ -174,7 +174,7 @@ void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_he
 	vertex_pack_indices = MEM_mallocN( len*3*sizeof(int), "boxPack Indices");
 	
 	for (box=boxarray, box_index=0, i=0; box_index < len; box_index++, box++) {
-		 		
+
 		vert->blb = vert->brb = vert->tlb =\
 			vert->isect_cache[0] = vert->isect_cache[1] =\
 			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
@@ -260,17 +260,17 @@ void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_he
 				if (vert->free & quad_flags[j]) {
 					switch (j) {
 					case BL:
-						 SET_BOXRIGHT(box, vert->x);
-						 SET_BOXTOP(box, vert->y);
-						 break;
+						SET_BOXRIGHT(box, vert->x);
+						SET_BOXTOP(box, vert->y);
+						break;
 					case TR:
-						 SET_BOXLEFT(box, vert->x);
-						 SET_BOXBOTTOM(box, vert->y);
-						 break;
+						SET_BOXLEFT(box, vert->x);
+						SET_BOXBOTTOM(box, vert->y);
+						break;
 					case TL:
-						 SET_BOXRIGHT(box, vert->x);
-						 SET_BOXBOTTOM(box, vert->y);
-						 break;
+						SET_BOXRIGHT(box, vert->x);
+						SET_BOXBOTTOM(box, vert->y);
+						break;
 					case BR:
 						SET_BOXLEFT(box, vert->x);
 						SET_BOXTOP(box, vert->y);

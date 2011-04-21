@@ -144,7 +144,7 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac)
 	if(c >= RE_FULL_COLOR_FLOAT) dest[3] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
-	   dest[3]= c;
+	dest[3]= c;
 
 }
 

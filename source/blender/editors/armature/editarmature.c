@@ -2724,7 +2724,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* cancel if nothing selected */
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
-	  return OPERATOR_CANCELLED;
+		return OPERATOR_CANCELLED;
 	
 	ED_armature_sync_selection(arm->edbo); // XXX why is this needed?
 
@@ -5806,7 +5806,7 @@ EditBone * test_subdivideByCorrelation(Scene *scene, Object *obedit, ReebArc *ar
 		lastBone = subdivideArcBy(arm, arm->edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
 	}
 	
-	  return lastBone;
+	return lastBone;
 }
 
 float arcLengthRatio(ReebArc *arc)

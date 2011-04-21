@@ -1206,7 +1206,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 	
 	/* used entries were restored, so we put them to zero */
 	for (i=0; i<fd->imamap->nentries; i++, entry++) {
-		 if (entry->nr>0)
+		if (entry->nr>0)
 			entry->newp= NULL;
 	}
 	
@@ -6516,7 +6516,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.max[0]= MAXFRAMEF;
 				ar->v2d.max[1]= FLT_MAX;
-			 	
+
 				ar->v2d.minzoom= 0.01f;
 				ar->v2d.maxzoom= 50;
 				ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);

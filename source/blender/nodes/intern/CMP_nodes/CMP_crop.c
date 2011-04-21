@@ -105,12 +105,12 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 
 static void node_composit_init_crop(bNode* node)
 {
-   NodeTwoXYs *nxy= MEM_callocN(sizeof(NodeTwoXYs), "node xy data");
-   node->storage= nxy;
-   nxy->x1= 0;
-   nxy->x2= 0;
-   nxy->y1= 0;
-   nxy->y2= 0;
+	NodeTwoXYs *nxy= MEM_callocN(sizeof(NodeTwoXYs), "node xy data");
+	node->storage= nxy;
+	nxy->x1= 0;
+	nxy->x2= 0;
+	nxy->y1= 0;
+	nxy->y2= 0;
 }
 
 void register_node_type_cmp_crop(ListBase *lb)

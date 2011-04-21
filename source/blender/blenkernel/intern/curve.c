@@ -1026,19 +1026,19 @@ void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int i
 	rt2= 3.0f*(q0-2.0f*q1+q2)/f;
 	f*= it;
 	rt3= (q3-q0+3.0f*(q1-q2))/f;
- 	
-	  q0= rt0;
+
+	q0= rt0;
 	q1= rt1+rt2+rt3;
 	q2= 2*rt2+6*rt3;
 	q3= 6*rt3;
-  
-	  for(a=0; a<=it; a++) {
+
+	for(a=0; a<=it; a++) {
 		*p= q0;
 		p = (float *)(((char *)p)+stride);
 		q0+= q1;
-		 q1+= q2;
-		 q2+= q3;
-	 }
+		q1+= q2;
+		q2+= q3;
+	}
 }
 
 static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float *p3, float *p, int it, int stride)
@@ -1048,7 +1048,7 @@ static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float
 	 *
 	 * This could also be optimized like forward_diff_bezier */
 	int a;
-	  for(a=0; a<=it; a++) {
+	for(a=0; a<=it; a++) {
 		float t = (float)a / (float)it;
 
 		int i;
@@ -1057,7 +1057,7 @@ static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float
 		}
 		normalize_v3(p);
 		p = (float *)(((char *)p)+stride);
-	 }
+	}
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1092,7 +1092,7 @@ float *make_orco_surf(Object *ob)
 		sizev = nu->pntsv*resolv;
 		if (nu->flagu & CU_NURB_CYCLIC) sizeu++;
 		if (nu->flagv & CU_NURB_CYCLIC) sizev++;
-		 if(nu->pntsv>1) tot+= sizeu * sizev;
+		if(nu->pntsv>1) tot+= sizeu * sizev;
 		
 		nu= nu->next;
 	}

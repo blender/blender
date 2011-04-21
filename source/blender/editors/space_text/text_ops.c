@@ -1483,7 +1483,7 @@ static int text_get_cursor_rel(SpaceText* st, ARegion *ar, TextLine *linein, int
 		}
 	}
 
-  return selc;
+	return selc;
 }
 
 static int cursor_skip_find_line(SpaceText* st, ARegion *ar,

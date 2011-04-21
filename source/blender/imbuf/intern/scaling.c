@@ -271,7 +271,7 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
 			for(x = ibuf2->x ; x>0 ; x--) *dest1++ = *dest2++ = *p1++;
 			dest1 = dest2;
 		}
-		 if (do_float) {
+		if (do_float) {
 			dest2f = dest1f + (4*ibuf2->x);
 			for(x = ibuf2->x*4 ; x>0 ; x--) *dest1f++ = *dest2f++ = *p1f++;
 			dest1f = dest2f;

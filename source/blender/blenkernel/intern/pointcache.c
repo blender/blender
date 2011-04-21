@@ -1003,15 +1003,15 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 		fp = fopen(filename, "rb+");
 	}
 
-	 if (!fp)
-		 return NULL;
-	
+	if (!fp)
+		return NULL;
+
 	pf= MEM_mallocN(sizeof(PTCacheFile), "PTCacheFile");
 	pf->fp= fp;
 	pf->old_format = 0;
 	pf->frame = cfra;
- 	
-	 return pf;
+
+	return pf;
 }
 static void ptcache_file_close(PTCacheFile *pf)
 {

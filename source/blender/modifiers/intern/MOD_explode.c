@@ -997,19 +997,19 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 
 			createFacepa(emd,psmd,derivedData);
 		}
-				 /* 2. create new mesh */
-				 if(emd->flag & eExplodeFlag_EdgeCut){
-					 int *facepa = emd->facepa;
-					 DerivedMesh *splitdm=cutEdges(emd,dm);
-					 DerivedMesh *explode=explodeMesh(emd, psmd, md->scene, ob, splitdm);
+		/* 2. create new mesh */
+		if(emd->flag & eExplodeFlag_EdgeCut){
+			int *facepa = emd->facepa;
+			DerivedMesh *splitdm=cutEdges(emd,dm);
+			DerivedMesh *explode=explodeMesh(emd, psmd, md->scene, ob, splitdm);
 
-					 MEM_freeN(emd->facepa);
-					 emd->facepa=facepa;
-					 splitdm->release(splitdm);
-					 return explode;
-				 }
-				 else
-					 return explodeMesh(emd, psmd, md->scene, ob, derivedData);
+			MEM_freeN(emd->facepa);
+			emd->facepa=facepa;
+			splitdm->release(splitdm);
+			return explode;
+		}
+		else
+			return explodeMesh(emd, psmd, md->scene, ob, derivedData);
 	}
 	return derivedData;
 }

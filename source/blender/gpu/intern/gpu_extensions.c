@@ -1218,11 +1218,11 @@ void GPU_pixelbuffer_texture(GPUTexture *tex, GPUPixelBuffer *pb)
 	int i;
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_EXT, tex->bindcode);
- 
-	 for (i = 0; i < pb->numbuffers; i++) {
+
+	for (i = 0; i < pb->numbuffers; i++) {
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, pb->bindcode[pb->current]);
 		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, pb->datasize, NULL,
-			GL_STREAM_DRAW_ARB);
+		GL_STREAM_DRAW_ARB);
 
 		pixels = glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
 		/*memcpy(pixels, _oImage.data(), pb->datasize);*/

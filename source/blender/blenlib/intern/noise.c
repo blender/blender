@@ -1098,7 +1098,7 @@ static float dist_Minkovsky4(float x, float y, float z, float e)
 /* Minkovsky, general case, slow, maybe too slow to be useful */
 static float dist_Minkovsky(float x, float y, float z, float e)
 {
- return pow(pow(fabs(x), e) + pow(fabs(y), e) + pow(fabs(z), e), 1.0/e);
+	return pow(pow(fabs(x), e) + pow(fabs(y), e) + pow(fabs(z), e), 1.0/e);
 }
 
 
@@ -1275,18 +1275,18 @@ static float voronoi_CrS(float x, float y, float z)
 /* returns unsigned cellnoise */
 static float cellNoiseU(float x, float y, float z)
 {
-  int xi = (int)(floor(x));
-  int yi = (int)(floor(y));
-  int zi = (int)(floor(z));
-  unsigned int n = xi + yi*1301 + zi*314159;
-  n ^= (n<<13);
-  return ((float)(n*(n*n*15731 + 789221) + 1376312589) / 4294967296.0);
+	int xi = (int)(floor(x));
+	int yi = (int)(floor(y));
+	int zi = (int)(floor(z));
+	unsigned int n = xi + yi*1301 + zi*314159;
+	n ^= (n<<13);
+	return ((float)(n*(n*n*15731 + 789221) + 1376312589) / 4294967296.0);
 }
 
 /* idem, signed */
 float cellNoise(float x, float y, float z)
 {
-  return (2.0*cellNoiseU(x, y, z)-1.0);
+	return (2.0*cellNoiseU(x, y, z)-1.0);
 }
 
 /* returns a vector/point/color in ca, using point hasharray directly */

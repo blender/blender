@@ -360,7 +360,7 @@ void flip_side_name (char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP
 		index= strrchr(name, '.'); // last occurrence
 		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
 			if(strip_number==0)
-				 BLI_strncpy(number, index, sizeof(number));
+				BLI_strncpy(number, index, sizeof(number));
 			*index= 0;
 			len= BLI_strnlen(name, MAX_VGROUP_NAME);
 		}
