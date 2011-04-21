@@ -1226,10 +1226,10 @@ void pchan_apply_mat4(bPoseChannel *pchan, float mat[][4], short use_compat)
  */
 void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float arm_mat[][4])
 {
-	 float imat[4][4];
- 
-	 invert_m4_m4(imat, arm_mat);
-	 mul_m4_m4m4(delta_mat, pose_mat, imat);
+	float imat[4][4];
+	
+	invert_m4_m4(imat, arm_mat);
+	mul_m4_m4m4(delta_mat, pose_mat, imat);
 }
 
 /* **************** Rotation Mode Conversions ****************************** */
