@@ -4692,7 +4692,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		mval[0]= event->x - vc.ar->winrct.xmin;
 		mval[1]= event->y - vc.ar->winrct.ymin;
 		
-		view3d_get_view_aligned_coordinate(&vc, location, mval);
+		view3d_get_view_aligned_coordinate(&vc, location, mval, TRUE);
 		RNA_float_set_array(op->ptr, "location", location);
 	}
 

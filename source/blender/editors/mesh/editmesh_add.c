@@ -198,7 +198,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		copy_v3_v3(min, cent);
 		
 		mul_m4_v3(vc.obedit->obmat, min);	// view space
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval, TRUE);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
 		sub_v3_v3(min, cent);
@@ -250,8 +250,8 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		const float *curs= give_cursor(vc.scene, vc.v3d);
 		
 		copy_v3_v3(min, curs);
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
-		
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval, TRUE);
+
 		eve= addvertlist(vc.em, 0, NULL);
 
 		invert_m4_m4(imat, vc.obedit->obmat);

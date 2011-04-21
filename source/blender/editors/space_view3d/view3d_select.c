@@ -93,7 +93,7 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->obedit= CTX_data_edit_object(C); 
 }
 
-void view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const short mval[2])
+int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const short mval[2], const short do_fallback)
 {
 	float dvec[3];
 	short mval_cpy[2];
@@ -108,6 +108,18 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const shor
 	if(mval_cpy[0]!=IS_CLIPPED) {
 		window_to_3d_delta(vc->ar, dvec, mval_cpy[0]-mval[0], mval_cpy[1]-mval[1]);
 		sub_v3_v3(fp, dvec);
+
+		return TRUE;
+	}
+	else {
+		/* fallback to the view center */
+		if(do_fallback) {
+			negate_v3_v3(fp, vc->rv3d->ofs);
+			return view3d_get_view_aligned_coordinate(vc, fp, mval, FALSE);
+		}
+		else {
+			return FALSE;
+		}
 	}
 }
 
