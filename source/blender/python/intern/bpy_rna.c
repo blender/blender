@@ -144,7 +144,7 @@ struct GHash *id_weakref_pool= NULL;
 static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref);
 static PyMethodDef id_free_weakref_cb_def= {"id_free_weakref_cb", (PyCFunction)id_free_weakref_cb, METH_O, NULL};
 
-/* adds a reference to the list, remember ot decref */
+/* adds a reference to the list, remember to decref */
 static GHash *id_weakref_pool_get(ID *id)
 {
 	GHash *weakinfo_hash= NULL;
@@ -548,7 +548,7 @@ static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_
 #endif // USE_MATHUTILS
 
 /* note that PROP_NONE is included as a vector subtype. this is because its handy to
- * have x/y access to fcurve keyframes and other fixed size float arrayas of length 2-4. */
+ * have x/y access to fcurve keyframes and other fixed size float arrays of length 2-4. */
 #define PROP_ALL_VECTOR_SUBTYPES PROP_COORDS: case PROP_TRANSLATION: case PROP_DIRECTION: case PROP_VELOCITY: case PROP_ACCELERATION: case PROP_XYZ: case PROP_XYZ_LENGTH
 
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
@@ -573,7 +573,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 
 	if (totdim == 1 || (totdim == 2 && subtype == PROP_MATRIX)) {
 		if(!is_thick)
-			ret= pyrna_prop_CreatePyObject(ptr, prop); /* owned by the Mathutils PyObject */
+			ret= pyrna_prop_CreatePyObject(ptr, prop); /* owned by the mathutils PyObject */
 
 		switch(RNA_property_subtype(prop)) {
 		case PROP_ALL_VECTOR_SUBTYPES:
@@ -668,7 +668,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 			ret= pyrna_prop_array_subscript_slice(NULL, ptr, prop, 0, len, len);
 		}
 		else {
-			ret= pyrna_prop_CreatePyObject(ptr, prop); /* owned by the Mathutils PyObject */
+			ret= pyrna_prop_CreatePyObject(ptr, prop); /* owned by the mathutils PyObject */
 		}
 	}
 #else // USE_MATHUTILS
@@ -1670,7 +1670,7 @@ static int pyrna_py_to_prop_array_index(BPy_PropertyArrayRNA *self, int index, P
 		}
 	}
 	else {
-		/* see if we can coorce into a python type - PropertyType */
+		/* see if we can coerce into a python type - PropertyType */
 		switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
 			{
@@ -1744,7 +1744,7 @@ static Py_ssize_t pyrna_prop_collection_length(BPy_PropertyRNA *self)
 	return RNA_property_collection_length(&self->ptr, self->prop);
 }
 
-/* bool funcs are for speed, so we can avoid getting the length
+/* bool functions are for speed, so we can avoid getting the length
  * of 1000's of items in a linked list for eg. */
 static int pyrna_prop_array_bool(BPy_PropertyRNA *self)
 {
@@ -1885,7 +1885,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 
 	tuple= PyTuple_New(stop - start);
 
-	/* PYRNA_PROP_CHECK_OBJ(self) isnt needed, internal use only */
+	/* PYRNA_PROP_CHECK_OBJ(self) isn't needed, internal use only */
 
 	totdim= RNA_property_array_dimension(ptr, prop, NULL);
 
@@ -2177,7 +2177,7 @@ static int prop_subscript_ass_array_int(BPy_PropertyArrayRNA *self, Py_ssize_t k
 	if(keynum >= 0 && keynum < len)
 		return pyrna_py_to_prop_array_index(self, keynum, value);
 
-	PyErr_SetString(PyExc_IndexError, "bpy_prop_array[index]= value: index out of range");
+	PyErr_SetString(PyExc_IndexError, "bpy_prop_array[index] = value: index out of range");
 	return -1;
 }
 
@@ -2309,7 +2309,7 @@ static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)
 	}
 
 	if(RNA_struct_idprops_check(self->ptr.type)==0) {
-		PyErr_SetString(PyExc_TypeError, "bpy_struct: this type doesnt support IDProperties");
+		PyErr_SetString(PyExc_TypeError, "bpy_struct: this type doesn't support IDProperties");
 		return -1;
 	}
 
@@ -2965,7 +2965,7 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
 	 * >>> bpy.types.Scene.foo= BoolProperty()
 	 * >>> bpy.types.Scene.foo
 	 * <bpy_struct, BooleanProperty("foo")>
-	 * ...rather then returning the defered class register tuple as checked by pyrna_is_deferred_prop()
+	 * ...rather then returning the deferred class register tuple as checked by pyrna_is_deferred_prop()
 	 *
 	 * Disable for now, this is faking internal behavior in a way thats too tricky to maintain well. */
 #if 0
@@ -3024,9 +3024,9 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
 			 * but gets confusing from script writers POV if the assigned value cant be read back. */
 		}
 		else {
-			/* remove existing property if its set or we also end up with confusement */
+			/* remove existing property if its set or we also end up with confusion */
 			const char *attr_str= _PyUnicode_AsString(attr);
-			RNA_def_property_free_identifier(srna, attr_str); /* ignore on failier */
+			RNA_def_property_free_identifier(srna, attr_str); /* ignore on failure */
 		}
 	}
 	else { /* __delattr__ */
@@ -3540,7 +3540,7 @@ static int foreach_parse_args(
 	}
 
 	/* check 'attr_tot' otherwise we dont know if any values were set
-	 * this isnt ideal because it means running on an empty list may fail silently when its not compatible. */
+	 * this isn't ideal because it means running on an empty list may fail silently when its not compatible. */
 	if (*size == 0 && *attr_tot != 0) {
 		PyErr_SetString(PyExc_AttributeError, "attribute does not support foreach method");
 		return -1;
@@ -3705,7 +3705,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 	if(PyErr_Occurred()) {
 		/* Maybe we could make our own error */
 		PyErr_Print();
-		PyErr_SetString(PyExc_TypeError, "could not access the py sequence");
+		PyErr_SetString(PyExc_TypeError, "couldn't access the py sequence");
 		return NULL;
 	}
 	if (!ok) {
@@ -3719,13 +3719,13 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 static char pyrna_prop_collection_foreach_get_doc[] =
 ".. method:: foreach_get(attr, seq)\n"
 "\n"
-"   This is a function to give fast access to attribites within a collection.\n"
+"   This is a function to give fast access to attributes within a collection.\n"
 "\n"
 "   .. code-block:: python\n"
 "\n"
 "      collection.foreach_get(someseq, attr)\n"
 "\n"
-"      # Python equivelent\n"
+"      # Python equivalent\n"
 "      for i in range(len(seq)): someseq[i]= getattr(collection, attr)\n"
 "\n"
 ;
@@ -3739,13 +3739,13 @@ static PyObject *pyrna_prop_collection_foreach_get(BPy_PropertyRNA *self, PyObje
 static char pyrna_prop_collection_foreach_set_doc[] =
 ".. method:: foreach_set(attr, seq)\n"
 "\n"
-"   This is a function to give fast access to attribites within a collection.\n"
+"   This is a function to give fast access to attributes within a collection.\n"
 "\n"
 "   .. code-block:: python\n"
 "\n"
 "      collection.foreach_set(seq, attr)\n"
 "\n"
-"      # Python equivelent\n"
+"      # Python equivalent\n"
 "      for i in range(len(seq)): setattr(collection[i], attr, seq[i])\n"
 "\n"
 ;
@@ -3872,7 +3872,7 @@ static PyObject *pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *
 		}
 		else if (PyType_IsSubtype(Py_TYPE(base), &pyrna_struct_Type)) {
 			/* this almost never runs, only when using user defined subclasses of built-in object.
-			 * this isnt common since its NOT related to registerable subclasses. eg:
+			 * this isn't common since its NOT related to registerable subclasses. eg:
 
 				>>> class MyObSubclass(bpy.types.Object):
 				...     def test_func(self):
@@ -4196,7 +4196,7 @@ static PyObject *pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 		err= pyrna_py_to_prop(&funcptr, parm, iter.data, item, "");
 
 		if(err!=0) {
-			/* the error generated isnt that useful, so generate it again with a useful prefix
+			/* the error generated isn't that useful, so generate it again with a useful prefix
 			 * could also write a function to prepend to error messages */
 			char error_prefix[512];
 			PyErr_Clear(); /* re-raise */
@@ -4214,7 +4214,7 @@ static PyObject *pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 
 	RNA_parameter_list_end(&iter);
 
-	/* Check if we gave args that dont exist in the function
+	/* Check if we gave args that don't exist in the function
 	 * printing the error is slow but it should only happen when developing.
 	 * the if below is quick, checking if it passed less keyword args then we gave.
 	 * (Dont overwrite the error if we have one, otherwise can skip important messages and confuse with args)
@@ -5018,7 +5018,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	/* Not 100% needed but useful,
 	 * having an instance within a type looks wrong however this instance IS an rna type */
 
-	/* python deals with the curcular ref */
+	/* python deals with the circular ref */
 	RNA_pointer_create(NULL, &RNA_Struct, srna, &ptr);
 	item= pyrna_struct_CreatePyObject(&ptr);
 
@@ -5116,7 +5116,7 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		/* stupid/simple case */
 	if (srna == NULL) {
 		newclass= NULL; /* Nothing to do */
-	}	/* the class may have alredy been declared & allocated */
+	}	/* the class may have already been declared & allocated */
 	else if ((newclass= RNA_struct_py_type_get(srna))) {
 		Py_INCREF(newclass);
 	}	/* check if bpy_types.py module has the class defined in it */
@@ -5124,9 +5124,9 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		pyrna_subtype_set_rna(newclass, srna);
 		Py_INCREF(newclass);
 	}	/* create a new class instance with the C api
-		 * maintly for the purposing of matching the C/rna type hierarchy */
+		 * mainly for the purposing of matching the C/rna type hierarchy */
 	else {
-		/* subclass equivelents
+		/* subclass equivalents
 		- class myClass(myBase):
 			some='value' # or ...
 		- myClass= type(name='myClass', bases=(myBase,), dict={'__module__':'bpy.types'})
@@ -5356,7 +5356,7 @@ PyObject *BPY_rna_doc(void)
 #endif
 
 
-/* pyrna_basetype_* - BPy_BaseTypeRNA is just a BPy_PropertyRNA struct with a differnt type
+/* pyrna_basetype_* - BPy_BaseTypeRNA is just a BPy_PropertyRNA struct with a different type
  * the self->ptr and self->prop are always set to the "structs" collection */
 //---------------getattr--------------------------------------------
 static PyObject *pyrna_basetype_getattro(BPy_BaseTypeRNA *self, PyObject *pyname)
@@ -5614,7 +5614,7 @@ static int pyrna_deferred_register_class_recursive(StructRNA *srna, PyTypeObject
 		PyTypeObject *py_superclass= (PyTypeObject *)PyTuple_GET_ITEM(py_class->tp_bases, i);
 
 		/* the rules for using these base classes are not clear,
-		 * 'object' is ofcourse not worth looking into and
+		 * 'object' is of course not worth looking into and
 		 * existing subclasses of RNA would cause a lot more dictionary
 		 * looping then is needed (SomeOperator would scan Operator.__dict__)
 		 * which is harmless but not at all useful.
@@ -5875,7 +5875,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			 * Although this is annoying to have to impliment a part of pythons typeobject.c:type_call().
 			 */
 			if(py_class->tp_init) {
-				/* true in most cases even when the class its self doesnt define an __init__ function. */
+				/* true in most cases even when the class its self doesn't define an __init__ function. */
 				args= PyTuple_New(0);
 				if (py_class->tp_init(py_srna, args, NULL) < 0) {
 					Py_DECREF(py_srna);
@@ -5888,7 +5888,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			py_class_instance= py_srna;
 
 #else
-			/* 'almost' all the time calling the class isnt needed.
+			/* 'almost' all the time calling the class isn't needed.
 			 * We could just do...
 			py_class_instance= py_srna;
 			Py_INCREF(py_class_instance);
@@ -5977,7 +5977,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 		}
 	}
 	else {
-		/* the error may be alredy set if the class instance couldnt be created */
+		/* the error may be already set if the class instance couldn't be created */
 		if(err != -1) {
 			PyErr_Format(PyExc_RuntimeError, "could not create instance of %.200s to call callback function %.200s", RNA_struct_identifier(ptr->type), RNA_function_identifier(func));
 			err= -1;
@@ -6140,7 +6140,7 @@ void pyrna_free_types(void)
  * There is currently a bug where moving registering a python class does
  * not properly manage refcounts from the python class, since the srna owns
  * the python class this should not be so tricky but changing the references as
- * youd expect when changing ownership crashes blender on exit so I had to comment out
+ * you'd expect when changing ownership crashes blender on exit so I had to comment out
  * the decref. This is not so bad because the leak only happens when re-registering (hold F8)
  * - Should still be fixed - Campbell
  * */
@@ -6178,7 +6178,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 	/* fails in cases, cant use this check but would like to :| */
 	/*
 	if(RNA_struct_py_type_get(srna)) {
-		PyErr_Format(PyExc_ValueError, "register_class(...): %.200s's parent class %.200s is alredy registered, this is not allowed", ((PyTypeObject*)py_class)->tp_name, RNA_struct_identifier(srna));
+		PyErr_Format(PyExc_ValueError, "register_class(...): %.200s's parent class %.200s is already registered, this is not allowed", ((PyTypeObject*)py_class)->tp_name, RNA_struct_identifier(srna));
 		return NULL;
 	}
 	*/
@@ -6214,7 +6214,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 	/* old srna still references us, keep the check incase registering somehow can free it */
 	if(RNA_struct_py_type_get(srna)) {
 		RNA_struct_py_type_set(srna, NULL);
-		// Py_DECREF(py_class); // shuld be able to do this XXX since the old rna adds a new ref.
+		// Py_DECREF(py_class); // should be able to do this XXX since the old rna adds a new ref.
 	}
 
 	/* Can't use this because it returns a dict proxy

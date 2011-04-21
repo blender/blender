@@ -187,7 +187,7 @@ void make_local_mball(MetaBall *mb)
 }
 
 /* most simple meta-element adding function
- * dont do context menipulation here (rna uses) */
+ * don't do context manipulation here (rna uses) */
 MetaElem *add_metaball_element(MetaBall *mb, const int type)
 {
 	MetaElem *ml= MEM_callocN(sizeof(MetaElem), "metaelem");
@@ -237,14 +237,14 @@ MetaElem *add_metaball_element(MetaBall *mb, const int type)
 /** Compute bounding box of all MetaElems/MetaBalls.
  *
  * Bounding box is computed from polygonized surface. Object *ob is
- * basic MetaBall (usaualy with name Meta). All other MetaBalls (whith
+ * basic MetaBall (usually with name Meta). All other MetaBalls (with
  * names Meta.001, Meta.002, etc) are included in this Bounding Box.
  */
 void tex_space_mball(Object *ob)
 {
 	DispList *dl;
 	BoundBox *bb;
-	float *data, min[3], max[3], loc[3], size[3];
+	float *data, min[3], max[3] /*, loc[3], size[3] */;
 	int tot, doit=0;
 
 	if(ob->bb==NULL) ob->bb= MEM_callocN(sizeof(BoundBox), "mb boundbox");
@@ -272,7 +272,7 @@ void tex_space_mball(Object *ob)
 		min[0] = min[1] = min[2] = -1.0f;
 		max[0] = max[1] = max[2] = 1.0f;
 	}
-	
+	/*
 	loc[0]= (min[0]+max[0])/2.0f;
 	loc[1]= (min[1]+max[1])/2.0f;
 	loc[2]= (min[2]+max[2])/2.0f;
@@ -280,7 +280,7 @@ void tex_space_mball(Object *ob)
 	size[0]= (max[0]-min[0])/2.0f;
 	size[1]= (max[1]-min[1])/2.0f;
 	size[2]= (max[2]-min[2])/2.0f;
-
+	*/
 	boundbox_set_from_min_max(bb, min, max);
 }
 
@@ -320,14 +320,14 @@ float *make_orco_mball(Object *ob, ListBase *dispbase)
 }
 
 /* Note on mball basis stuff 2.5x (this is a can of worms)
- * This really needs a rewrite/refactorm its totally broken in anything other then basic cases
+ * This really needs a rewrite/refactor its totally broken in anything other then basic cases
  * Multiple Scenes + Set Scenes & mixing mball basis SHOULD work but fails to update the depsgraph on rename
  * and linking into scenes or removal of basis mball. so take care when changing this code.
  * 
  * Main idiot thing here is that the system returns find_basis_mball() objects which fail a is_basis_mball() test.
  *
- * Not only that but the depsgraph and ther areas depend on this behavior!, so making small fixes here isnt worth it.
- * - campbell
+ * Not only that but the depsgraph and their areas depend on this behavior!, so making small fixes here isn't worth it.
+ * - Campbell
  */
 
 
@@ -725,7 +725,7 @@ void accum_mballfaces(int i1, int i2, int i3, int i4)
 	
 	cur= indices+4*curindex;
 
-	/* diplists now support array drawing, we treat trias as fake quad */
+	/* displists now support array drawing, we treat tri's as fake quad */
 	
 	cur[0]= i1;
 	cur[1]= i2;
@@ -1315,7 +1315,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 	dy = pos.y - neg.y;
 	dz = pos.z - neg.z;
 
-/* Aproximation by linear interpolation is faster then binary subdivision,
+/* Approximation by linear interpolation is faster then binary subdivision,
  * but it results sometimes (mb->thresh < 0.2) into the strange results */
 	if((mb->thresh > 0.2f) && (f==1)){
 	if((dy == 0.0f) && (dz == 0.0f)){
@@ -1625,7 +1625,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 				}
 			}
 
-			/* when metaball object hase zero scale, then MetaElem ot this MetaBall
+			/* when metaball object has zero scale, then MetaElem to this MetaBall
 			 * will not be put to mainb array */
 			if(bob->size[0]==0.0f || bob->size[1]==0.0f || bob->size[2]==0.0f) {
 				zero_size= 1;

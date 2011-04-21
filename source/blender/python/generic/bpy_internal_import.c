@@ -304,7 +304,7 @@ static PyObject *blender_reload(PyObject *UNUSED(self), PyObject * module)
 	}
 	else {
 		/* no blender text was found that could import the module
-		 * rause the original error from PyImport_ImportModuleEx */
+		 * reuse the original error from PyImport_ImportModuleEx */
 		PyErr_Restore(exception, err, tb);
 	}
 
@@ -326,8 +326,8 @@ PyMethodDef bpy_reload_meth= {"bpy_reload_meth", (PyCFunction)blender_reload, ME
  * it wont reload scripts between loading different blend files or while making the game.
  * - use 'clear_all' arg in this case.
  *
- * Since pythons bultins include a full path even for win32.
- * even if we remove a python module a reimport will bring it back again.
+ * Since pythons built-ins include a full path even for win32.
+ * even if we remove a python module a re-import will bring it back again.
  */
 
 #if 0 // not used anymore but may still come in handy later

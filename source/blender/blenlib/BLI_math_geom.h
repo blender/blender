@@ -86,10 +86,10 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
  * 2 - i1 and i2 are the nearest points on line 1 (v1, v2) and line 2 (v3, v4) respectively 
  * */
 
-int isect_line_line_v3(float v1[3], float v2[3],
-	float v3[3], float v4[3], float i1[3], float i2[3]);
-int isect_line_line_strict_v3(float v1[3], float v2[3],
-	float v3[3], float v4[3], float vi[3], float *lambda);
+int isect_line_line_v3(const float v1[3], const float v2[3],
+	const float v3[3], const float v4[3], float i1[3], float i2[3]);
+int isect_line_line_strict_v3(const float v1[3], const float v2[3],
+	const float v3[3], const float v4[3], float vi[3], float *lambda);
 
 /* line/ray triangle */
 int isect_line_tri_v3(const float p1[3], const float p2[3],

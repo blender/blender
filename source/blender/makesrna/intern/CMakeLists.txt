@@ -30,11 +30,86 @@ remove_strict_flags()
 
 # message(STATUS "Configuring makesrna")
 
-file(GLOB DEFSRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.c")
-file(GLOB APISRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*_api.c")
-list(REMOVE_ITEM DEFSRC rna_access.c rna_define.c makesrna.c)
-list(REMOVE_ITEM DEFSRC ${APISRC})
- 
+# files rna_access.c rna_define.c makesrna.c intentionally excluded.
+set(DEFSRC
+	rna_ID.c
+	rna_action.c
+	rna_actuator.c
+	rna_animation.c
+	rna_animviz.c
+	rna_armature.c
+	rna_boid.c
+	rna_brush.c
+	rna_camera.c
+	rna_cloth.c
+	rna_color.c
+	rna_constraint.c
+	rna_context.c
+	rna_controller.c
+	rna_curve.c
+	rna_fcurve.c
+	rna_fluidsim.c
+	rna_gpencil.c
+	rna_group.c
+	rna_image.c
+	rna_key.c
+	rna_lamp.c
+	rna_lattice.c
+	rna_main.c
+	rna_material.c
+	rna_mesh.c
+	rna_meta.c
+	rna_modifier.c
+	rna_nla.c
+	rna_nodetree.c
+	rna_object.c
+	rna_object_force.c
+	rna_packedfile.c
+	rna_particle.c
+	rna_pose.c
+	rna_property.c
+	rna_render.c
+	rna_rna.c
+	rna_scene.c
+	rna_screen.c
+	rna_sculpt_paint.c
+	rna_sensor.c
+	rna_sequencer.c
+	rna_smoke.c
+	rna_sound.c
+	rna_space.c
+	rna_test.c
+	rna_text.c
+	rna_texture.c
+	rna_timeline.c
+	rna_ui.c
+	rna_userdef.c
+	rna_vfont.c
+	rna_wm.c
+	rna_world.c
+)
+
+set(APISRC
+	rna_action_api.c
+	rna_actuator_api.c
+	rna_animation_api.c
+	rna_armature_api.c
+	rna_controller_api.c
+	rna_fcurve_api.c
+	rna_image_api.c
+	rna_main_api.c
+	rna_material_api.c
+	rna_mesh_api.c
+	rna_object_api.c
+	rna_pose_api.c
+	rna_scene_api.c
+	rna_sensor_api.c
+	rna_sequencer_api.c
+	rna_text_api.c
+	rna_ui_api.c
+	rna_wm_api.c
+)
+
 string(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")
 set_source_files_properties(GENSRC PROPERTIES GENERATED true)
 

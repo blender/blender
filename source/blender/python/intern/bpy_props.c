@@ -129,7 +129,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 }
 
 /* this define runs at the start of each function and deals with 
- * returning a deferred property (to be registed later) */
+ * returning a deferred property (to be registered later) */
 #define BPY_PROPDEF_HEAD(_func)	\
 	if (PyTuple_GET_SIZE(args) == 1) { \
 		PyObject *ret; \
@@ -948,7 +948,7 @@ PyObject *BPY_rna_props( void )
 
 	/* INCREF since its its assumed that all these functions return the
 	 * module with a new ref like PyDict_New, since they are passed to
-	  * PyModule_AddObject which steals a ref */
+	 * PyModule_AddObject which steals a ref */
 	Py_INCREF(submodule);
 	
 	/* api needs the PyObjects internally */

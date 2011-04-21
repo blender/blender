@@ -897,7 +897,7 @@ int isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3]
  * 1 - lines are coplanar, i1 is set to intersection
  * 2 - i1 and i2 are the nearest points on line 1 (v1, v2) and line 2 (v3, v4) respectively 
  * */
-int isect_line_line_v3(float v1[3], float v2[3], float v3[3], float v4[3], float i1[3], float i2[3])
+int isect_line_line_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3], float i1[3], float i2[3])
 {
 	float a[3], b[3], c[3], ab[3], cb[3], dir1[3], dir2[3];
 	float d;
@@ -961,7 +961,7 @@ int isect_line_line_v3(float v1[3], float v2[3], float v3[3], float v4[3], float
 /* Intersection point strictly between the two lines
  * 0 when no intersection is found 
  * */
-int isect_line_line_strict_v3(float v1[3], float v2[3], float v3[3], float v4[3], float vi[3], float *lambda)
+int isect_line_line_strict_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3], float vi[3], float *lambda)
 {
 	float a[3], b[3], c[3], ab[3], cb[3], ca[3], dir1[3], dir2[3];
 	float d;
