@@ -285,6 +285,7 @@ typedef struct ViewOpsData {
 
 	float oldquat[4];
 	float trackvec[3];
+	float mousevec[3]; /* dolly only */
 	float reverse, dist0;
 	float grid, far;
 	short axis_snap; /* view rotate only */
@@ -346,9 +347,9 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	vod->origy= vod->oldy= event->y;
 	vod->origkey= event->type; /* the key that triggered the operator.  */
 	vod->use_dyn_ofs= (U.uiflag & USER_ORBIT_SELECTION) ? 1:0;
+	copy_v3_v3(vod->ofs, rv3d->ofs);
 
 	if (vod->use_dyn_ofs) {
-		copy_v3_v3(vod->ofs, rv3d->ofs);
 		/* If there's no selection, lastofs is unmodified and last value since static */
 		calculateTransformCenter(C, V3D_CENTROID, lastofs);
 		negate_v3_v3(vod->dyn_ofs, lastofs);
@@ -393,6 +394,9 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 			vod->ofs[0] = vod->ofs[1] = vod->ofs[2] = 0.0f;
 		}
 	}
+
+	/* for dolly */
+	window_to_3d_vector(vod->ar, vod->mousevec, (vod->oldx - vod->ar->winrct.xmin)-(vod->ar->winx)/2, (vod->oldy - vod->ar->winrct.ymin)-(vod->ar->winy)/2);
 
 	/* lookup, we dont pass on v3d to prevent confusement */
 	vod->grid= v3d->grid;
@@ -1262,6 +1266,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/* viewdolly_invoke() copied this function, changes here may apply there */
 static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* if one or the other zoom position aren't set, set from event */
@@ -1338,6 +1343,232 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
 	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
 }
+
+
+/* ************************ viewdolly ******************************** */
+static void view_dolly_mouseloc(ARegion *ar, float orig_ofs[3], float dvec[3], float dfac)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, 1.0 - dfac);
+}
+
+static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_invert)
+{
+	float zfac=1.0;
+
+	{
+		float len1, len2;
+
+		if (U.uiflag & USER_ZOOM_HORIZ) {
+			len1 = (vod->ar->winrct.xmax - x) + 5;
+			len2 = (vod->ar->winrct.xmax - vod->origx) + 5;
+		}
+		else {
+			len1 = (vod->ar->winrct.ymax - y) + 5;
+			len2 = (vod->ar->winrct.ymax - vod->origy) + 5;
+		}
+		if (zoom_invert)
+			SWAP(float, len1, len2);
+
+		zfac =  1.0 + ((len2 - len1) * 0.01 * vod->rv3d->dist);
+	}
+
+	if(zfac != 1.0f)
+		view_dolly_mouseloc(vod->ar, vod->ofs, vod->mousevec, zfac);
+
+	if(vod->rv3d->viewlock & RV3D_BOXVIEW)
+		view3d_boxview_sync(vod->sa, vod->ar);
+
+	ED_region_tag_redraw(vod->ar);
+}
+
+
+static int viewdolly_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ViewOpsData *vod= op->customdata;
+	short event_code= VIEW_PASS;
+
+	/* execute the events */
+	if(event->type==MOUSEMOVE) {
+		event_code= VIEW_APPLY;
+	}
+	else if(event->type==EVT_MODAL_MAP) {
+		switch (event->val) {
+			case VIEW_MODAL_CONFIRM:
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_MOVE:
+				WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_ROTATE:
+				WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
+		}
+	}
+	else if(event->type==vod->origkey && event->val==KM_RELEASE) {
+		event_code= VIEW_CONFIRM;
+	}
+
+	if(event_code==VIEW_APPLY) {
+		viewdolly_apply(vod, event->x, event->y, (U.uiflag & USER_ZOOM_INVERT) != 0);
+	}
+	else if (event_code==VIEW_CONFIRM) {
+		request_depth_update(vod->rv3d);
+		viewops_data_free(C, op);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int viewdolly_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d;
+	RegionView3D *rv3d;
+	ScrArea *sa;
+	ARegion *ar;
+	float mousevec[3];
+
+	int delta= RNA_int_get(op->ptr, "delta");
+	int mx, my;
+
+	if(op->customdata) {
+		ViewOpsData *vod= op->customdata;
+
+		sa= vod->sa;
+		ar= vod->ar;
+		copy_v3_v3(mousevec, vod->mousevec);
+	}
+	else {
+		sa= CTX_wm_area(C);
+		ar= CTX_wm_region(C);
+		normalize_v3_v3(mousevec, ((RegionView3D *)ar->regiondata)->viewinv[2]);
+	}
+
+	v3d= sa->spacedata.first;
+	rv3d= ar->regiondata;
+
+	/* overwrite the mouse vector with the view direction (zoom into the center) */
+	if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) == 0) {
+		normalize_v3_v3(mousevec, rv3d->viewinv[2]);
+	}
+
+	mx= RNA_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
+	my= RNA_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
+
+
+
+	if(delta < 0) {
+		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 1.2f);
+	}
+	else {
+		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, .83333f);
+	}
+
+	if(rv3d->viewlock & RV3D_BOXVIEW)
+		view3d_boxview_sync(sa, ar);
+
+	request_depth_update(rv3d);
+	ED_region_tag_redraw(ar);
+
+	viewops_data_free(C, op);
+
+	return OPERATOR_FINISHED;
+}
+
+/* copied from viewzoom_invoke(), changes here may apply there */
+static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{	
+	/* if one or the other zoom position aren't set, set from event */
+	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
+	{
+		RNA_int_set(op->ptr, "mx", event->x);
+		RNA_int_set(op->ptr, "my", event->y);
+	}
+
+	if(RNA_property_is_set(op->ptr, "delta")) {
+		/* makes op->customdata */
+		viewops_data_create(C, op, event);
+		viewdolly_exec(C, op);
+	}
+	else {
+		ViewOpsData *vod;
+
+		/* makes op->customdata */
+		viewops_data_create(C, op, event);
+
+		vod= op->customdata;
+
+		/* overwrite the mouse vector with the view direction (zoom into the center) */
+		if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) == 0) {
+			normalize_v3_v3(vod->mousevec, vod->rv3d->viewinv[2]);
+		}
+
+		if (event->type == MOUSEZOOM) {
+			/* Bypass Zoom invert flag for track pads (pass FALSE always) */
+
+			if (U.uiflag & USER_ZOOM_HORIZ) {
+				vod->origx = vod->oldx = event->x;
+				viewdolly_apply(vod, event->prevx, event->prevy, FALSE);
+			}
+			else {
+
+				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
+				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
+				viewdolly_apply(vod, event->prevx, event->prevy, FALSE);
+			}
+			request_depth_update(vod->rv3d);
+
+			viewops_data_free(C, op);
+			return OPERATOR_FINISHED;
+		}
+		else {
+			/* add temp handler */
+			WM_event_add_modal_handler(C, op);
+
+			return OPERATOR_RUNNING_MODAL;
+		}
+	}
+	return OPERATOR_FINISHED;
+}
+
+/* like ED_operator_region_view3d_active but check its not in ortho view */
+static int viewdolly_poll(bContext *C)
+{
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+
+	if (rv3d && rv3d->persp == RV3D_PERSP) {
+		return 1;
+	}
+
+	return 0;
+}
+
+void VIEW3D_OT_dolly(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Dolly view";
+	ot->description = "Dolly in/out in the view";
+	ot->idname= "VIEW3D_OT_dolly";
+
+	/* api callbacks */
+	ot->invoke= viewdolly_invoke;
+	ot->exec= viewdolly_exec;
+	ot->modal= viewdolly_modal;
+	ot->poll= viewdolly_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
+
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
+}
+
+
 
 static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
 {

@@ -68,6 +68,7 @@ void view3d_operatortypes(void);
 
 /* view3d_edit.c */
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
+void VIEW3D_OT_dolly(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_camera_1_to_1(struct wmOperatorType *ot);
 void VIEW3D_OT_move(struct wmOperatorType *ot);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
