@@ -800,9 +800,9 @@ class USERPREF_PT_input(InputKeyMapPanel):
 
         sub.label(text="Zoom Style:")
         sub.row().prop(inputs, "view_zoom_method", text="")
-        if inputs.view_zoom_method == 'DOLLY':
+        if inputs.view_zoom_method in {'DOLLY', 'CONTINUE'}:
             sub.row().prop(inputs, "view_zoom_axis", expand=True)
-            sub.prop(inputs, "invert_mouse_wheel_zoom")
+            sub.prop(inputs, "invert_mouse_zoom")
 
         #sub.prop(inputs, "use_mouse_mmb_paste")
 

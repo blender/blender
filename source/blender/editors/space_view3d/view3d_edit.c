@@ -1075,16 +1075,28 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 }
 
 
-static void viewzoom_apply(ViewOpsData *vod, int x, int y, short viewzoom)
+static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom, const short zoom_invert)
 {
 	float zfac=1.0;
 
 	if(viewzoom==USER_ZOOM_CONT) {
 		double time= PIL_check_seconds_timer();
 		float time_step= (float)(time - vod->timer_lastdraw);
+		float fac;
+
+		if (U.uiflag & USER_ZOOM_HORIZ) {
+			fac= (float)(x - vod->origx);
+		}
+		else {
+			fac= (float)(y - vod->origy);
+		}
+
+		if(zoom_invert) {
+			fac= -fac;
+		}
 
 		// oldstyle zoom
-		zfac = 1.0f + (((float)(vod->origx - x + vod->origy - y) / 20.0f) * time_step);
+		zfac = 1.0f + ((fac / 20.0f) * time_step);
 		vod->timer_lastdraw= time;
 	}
 	else if(viewzoom==USER_ZOOM_SCALE) {
@@ -1102,7 +1114,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, short viewzoom)
 	else {	/* USER_ZOOM_DOLLY */
 		float len1, len2;
 		
-		if (U.uiflag & USER_ZOOM_DOLLY_HORIZ) {
+		if (U.uiflag & USER_ZOOM_HORIZ) {
 			len1 = (vod->ar->winrct.xmax - x) + 5;
 			len2 = (vod->ar->winrct.xmax - vod->origx) + 5;
 		}
@@ -1110,14 +1122,15 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, short viewzoom)
 			len1 = (vod->ar->winrct.ymax - y) + 5;
 			len2 = (vod->ar->winrct.ymax - vod->origy) + 5;
 		}
-		if (U.uiflag & USER_ZOOM_INVERT)
+		if (zoom_invert) {
 			SWAP(float, len1, len2);
+		}
 		
 		zfac = vod->dist0 * (2.0f * ((len2/len1)-1.0f) + 1.0f) / vod->rv3d->dist;
 	}
 
 	if(zfac != 1.0f && zfac*vod->rv3d->dist > 0.001f * vod->grid &&
-				zfac * vod->rv3d->dist < 10.0f * vod->far)
+			zfac * vod->rv3d->dist < 10.0f * vod->far)
 		view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
 
 
@@ -1179,7 +1192,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(event_code==VIEW_APPLY) {
-		viewzoom_apply(vod, event->x, event->y, U.viewzoom);
+		viewzoom_apply(vod, event->x, event->y, U.viewzoom, (U.uiflag & USER_ZOOM_INVERT) != 0);
 	}
 	else if (event_code==VIEW_CONFIRM) {
 		request_depth_update(vod->rv3d);
@@ -1272,18 +1285,16 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		vod= op->customdata;
 
 		if (event->type == MOUSEZOOM) {
-			if (U.uiflag & USER_ZOOM_INVERT) /* Bypass Zoom invert flag */
-				SWAP(int, event->x, event->prevx);
+			/* Bypass Zoom invert flag for track pads (pass FALSE always) */
 
-			if (U.uiflag & USER_ZOOM_DOLLY_HORIZ) {
+			if (U.uiflag & USER_ZOOM_HORIZ) {
 				vod->origx = vod->oldx = event->x;
-				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY);
+				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, FALSE);
 			}
 			else {
-				
 				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
 				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
-				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY);
+				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, FALSE);
 			}
 			request_depth_update(vod->rv3d);
 			
