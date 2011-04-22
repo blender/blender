@@ -940,6 +940,21 @@ BMOpDefine def_bevel = {
 	BMOP_UNTAN_MULTIRES
 };
 
+/*
+  Beautify Fill
+
+  Makes triangle a bit nicer
+ */
+BMOpDefine def_beautify_fill = {
+	"beautify_fill",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "constrain_edges"}, /* edges that can't be flipped */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, /* new flipped faces and edges */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_beautify_fill_exec,
+	BMOP_UNTAN_MULTIRES
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
@@ -1000,6 +1015,7 @@ BMOpDefine *opdefines[] = {
 	&def_create_cube,
 	&def_join_triangles,
 	&def_bevel,
+	&def_beautify_fill,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

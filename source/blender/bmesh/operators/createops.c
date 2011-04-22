@@ -964,42 +964,6 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(vdata);
 }
 
-/* evaluate if entire quad is a proper convex quad */
-static int convex(float *v1, float *v2, float *v3, float *v4)
-{
-	float nor[3], nor1[3], nor2[3], vec[4][2];
-	
-	/* define projection, do both trias apart, quad is undefined! */
-	normal_tri_v3( nor1,v1, v2, v3);
-	normal_tri_v3( nor2,v1, v3, v4);
-	nor[0]= ABS(nor1[0]) + ABS(nor2[0]);
-	nor[1]= ABS(nor1[1]) + ABS(nor2[1]);
-	nor[2]= ABS(nor1[2]) + ABS(nor2[2]);
-
-	if(nor[2] >= nor[0] && nor[2] >= nor[1]) {
-		vec[0][0]= v1[0]; vec[0][1]= v1[1];
-		vec[1][0]= v2[0]; vec[1][1]= v2[1];
-		vec[2][0]= v3[0]; vec[2][1]= v3[1];
-		vec[3][0]= v4[0]; vec[3][1]= v4[1];
-	}
-	else if(nor[1] >= nor[0] && nor[1]>= nor[2]) {
-		vec[0][0]= v1[0]; vec[0][1]= v1[2];
-		vec[1][0]= v2[0]; vec[1][1]= v2[2];
-		vec[2][0]= v3[0]; vec[2][1]= v3[2];
-		vec[3][0]= v4[0]; vec[3][1]= v4[2];
-	}
-	else {
-		vec[0][0]= v1[1]; vec[0][1]= v1[2];
-		vec[1][0]= v2[1]; vec[1][1]= v2[2];
-		vec[2][0]= v3[1]; vec[2][1]= v3[2];
-		vec[3][0]= v4[1]; vec[3][1]= v4[2];
-	}
-	
-	/* linetests, the 2 diagonals have to instersect to be convex */
-	if( isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0 ) return 1;
-	return 0;
-}
-
 BMEdge *edge_next(BMesh *bm, BMEdge *e)
 {
 	BMIter iter;
@@ -1257,22 +1221,22 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 		f = NULL;
 
 		/* the order of vertices can be anything, 6 cases to check */
-		if( convex(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co) ) {
+		if( is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co) ) {
 			f= BM_Make_QuadTri(bm, verts[0], verts[1], verts[2], verts[3], NULL, 1);
 		}
-		else if( convex(verts[0]->co, verts[2]->co, verts[3]->co, verts[1]->co) ) {
+		else if( is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[3]->co, verts[1]->co) ) {
 			f= BM_Make_QuadTri(bm, verts[0], verts[2], verts[3], verts[1], NULL, 1);
 		}
-		else if( convex(verts[0]->co, verts[2]->co, verts[1]->co, verts[3]->co) ) {
+		else if( is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[1]->co, verts[3]->co) ) {
 			f= BM_Make_QuadTri(bm, verts[0], verts[2], verts[1], verts[3], NULL, 1);
 		}
-		else if( convex(verts[0]->co, verts[1]->co, verts[3]->co, verts[2]->co) ) {
+		else if( is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[3]->co, verts[2]->co) ) {
 			f= BM_Make_QuadTri(bm, verts[0], verts[1], verts[3], verts[2], NULL, 1);
 		}
-		else if( convex(verts[0]->co, verts[3]->co, verts[2]->co, verts[1]->co) ) {
+		else if( is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[2]->co, verts[1]->co) ) {
 			f= BM_Make_QuadTri(bm, verts[0], verts[3], verts[2], verts[1], NULL, 1);
 		}
-		else if( convex(verts[0]->co, verts[3]->co, verts[1]->co, verts[2]->co) ) {
+		else if( is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[1]->co, verts[2]->co) ) {
 			f= BM_Make_QuadTri(bm, verts[0], verts[3], verts[1], verts[2], NULL, 1);
 		}
 		else {

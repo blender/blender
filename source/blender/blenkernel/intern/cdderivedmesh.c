@@ -2748,7 +2748,10 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 void CDDM_set_mvert(DerivedMesh *dm, MVert *mvert)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
-
+	
+	if (!CustomData_has_layer(&dm->vertData, CD_MVERT))
+		CustomData_add_layer(&dm->vertData, CD_MVERT, CD_ASSIGN, mvert, dm->numVertData);
+				
 	cddm->mvert = mvert;
 }
 
@@ -2756,12 +2759,18 @@ void CDDM_set_medge(DerivedMesh *dm, MEdge *medge)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 
+	if (!CustomData_has_layer(&dm->edgeData, CD_MEDGE))
+		CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_ASSIGN, medge, dm->numEdgeData);
+
 	cddm->medge = medge;
 }
 
 void CDDM_set_mface(DerivedMesh *dm, MFace *mface)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+
+	if (!CustomData_has_layer(&dm->faceData, CD_MFACE))
+		CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, mface, dm->numFaceData);
 
 	cddm->mface = mface;
 }

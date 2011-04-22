@@ -69,5 +69,6 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op);
 void bmesh_create_cube_exec(BMesh *bm, BMOperator *op);
 void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op);
 void bmesh_bevel_exec(BMesh *bm, BMOperator *op);
+void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op);
 
 #endif

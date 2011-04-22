@@ -804,9 +804,10 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 		ls = (BMLoop**)kcd->em->looptris[result->indexA];
 		
 		for (j=0; j<3; j++) {
-			BMLoop *l1 = ls[j];	
+			BMLoop *l1 = ls[j];
+			BMFace *hitf;
 			ListBase *lst = knife_get_face_kedges(kcd, l1->f);
-			Ref *ref;
+			Ref *ref, *ref2;
 			
 			for (ref=lst->first; ref; ref=ref->next) {			
 				KnifeEdge *kfe = ref->ref;
@@ -845,7 +846,13 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 					/*go backwards toward view a bit*/
 					add_v3_v3(p, no);
 					
-					if (!BMBVH_RayCast(bmtree, p, no, NULL) && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
+					hitf = BMBVH_RayCast(bmtree, p, no, NULL);
+					for (ref2=kfe->faces.first; ref2; ref2=ref2->next) {
+						if (ref2->ref == hitf)
+							hitf = NULL;
+					}
+					
+					if (!hitf && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
 						BMEdgeHit hit;
 						
 						if (len_v3v3(p, kcd->vertco) < FLT_EPSILON*50 || len_v3v3(p, kcd->prevco) < FLT_EPSILON*50)
@@ -1274,7 +1281,15 @@ static void remerge_faces(knifetool_opdata *kcd)
 	BLI_array_declare(stack);
 	BMFace **faces = NULL;
 	BLI_array_declare(faces);
+	BMOperator bmop;
 	int idx;
+	
+	BMO_InitOpf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", FACE_NEW, BOUNDARY);
+	
+	BMO_Exec_Op(bm, &bmop);
+	BMO_Flag_Buffer(bm, &bmop, "geomout", FACE_NEW, BM_FACE);
+	
+	BMO_Finish_Op(bm, &bmop);
 	
 	BLI_smallhash_init(visit);
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {

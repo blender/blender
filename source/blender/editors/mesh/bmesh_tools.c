@@ -3884,19 +3884,16 @@ void MESH_OT_fill(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int beauty_fill_exec(bContext *C, wmOperator *op)
+static int beautify_fill_exec(bContext *C, wmOperator *op)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 
-	beauty_fill(em);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
+	if (!EDBM_CallOpf(em, op, "beautify_fill faces=%hf", BM_SELECT))
+		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-#endif
 	return OPERATOR_FINISHED;
 }
 
@@ -3907,7 +3904,7 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 	ot->idname= "MESH_OT_beautify_fill";
 
 	/* api callbacks */
-	ot->exec= beauty_fill_exec;
+	ot->exec= beautify_fill_exec;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */

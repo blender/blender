@@ -70,6 +70,8 @@ void closest_to_line_segment_v3(float r[3], float p[3], float l1[3], float l2[3]
 
 /* TODO int return value consistency */
 
+ int is_quad_convex_v3(float *v1, float *v2, float *v3, float *v4);
+ 
 /* line-line */
 #define ISECT_LINE_LINE_COLINEAR	-1
 #define ISECT_LINE_LINE_NONE		 0
