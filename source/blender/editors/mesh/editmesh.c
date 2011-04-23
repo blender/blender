@@ -1177,13 +1177,14 @@ void load_editMesh(Scene *scene, Object *obedit)
 			}
 
 			if(act_is_basis) { /* active key is a base */
+				float (*fp)[3]= actkey->data;
 				i=0;
 				ofs= MEM_callocN(sizeof(float) * 3 * em->totvert,  "currkey->data");
 				eve= em->verts.first;
 				mvert = me->mvert;
 				while(eve) {
 					if(eve->keyindex>=0)
-						VECSUB(ofs[i], mvert->co, oldverts[eve->keyindex].co);
+						VECSUB(ofs[i], mvert->co, fp[eve->keyindex]);
 
 					eve= eve->next;
 					i++;
