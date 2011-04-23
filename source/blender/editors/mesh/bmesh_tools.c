@@ -3855,17 +3855,24 @@ void MESH_OT_separate(wmOperatorType *ot)
 
 static int fill_mesh_exec(bContext *C, wmOperator *op)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-
-	fill_mesh(em);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMOperator bmop;
+	
+	if (!EDBM_InitOpf(em, &bmop, op, "triangle_fill edges=%he", BM_SELECT))
+		return OPERATOR_CANCELLED;
+	
+	BMO_Exec_Op(em->bm, &bmop);
+	
+	/*select new geometry*/
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_FACE|BM_EDGE);
+	
+	if (!EDBM_FinishOp(em, &bmop, op, 1))
+		return OPERATOR_CANCELLED;
+	
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-#endif
+	
 	return OPERATOR_FINISHED;
 
 }
@@ -3894,6 +3901,7 @@ static int beautify_fill_exec(bContext *C, wmOperator *op)
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	
 	return OPERATOR_FINISHED;
 }
 

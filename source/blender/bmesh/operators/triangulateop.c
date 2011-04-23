@@ -1,15 +1,19 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_utildefines.h"
 
-#include "bmesh.h"
-#include "bmesh_private.h"
+#include "BLI_scanfill.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
+#include "BLI_editVert.h"
+#include "BLI_smallhash.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "bmesh.h"
+#include "bmesh_private.h"
 
 #define EDGE_NEW	1
 #define FACE_NEW	1
@@ -125,6 +129,68 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
+	
+	BMO_Flag_To_Slot(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);
+}
+
+void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMEdge *e;
+	BMOperator bmop;
+	EditEdge *eed;
+	EditVert *eve, *v1, *v2;
+	EditFace *efa;
+	SmallHash hash;
+
+	BLI_smallhash_init(&hash);
+	
+	BLI_begin_edgefill();
+	
+	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+		BMO_SetFlag(bm, e, EDGE_MARK);
+		
+		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v1)) {
+			eve = BLI_addfillvert(e->v1->co);
+			eve->tmp.p = e->v1;
+			BLI_smallhash_insert(&hash, (uintptr_t)e->v1, eve);
+		}
+		
+		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v2)) {
+			eve = BLI_addfillvert(e->v2->co);
+			eve->tmp.p = e->v2;
+			BLI_smallhash_insert(&hash, (uintptr_t)e->v2, eve);
+		}
+		
+		v1 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v1);
+		v2 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v2);
+		eed = BLI_addfilledge(v1, v2);
+		eed->tmp.p = e;
+	}
+	
+	BLI_edgefill(0);
+	
+	for (efa=fillfacebase.first; efa; efa=efa->next) {
+		BMFace *f = BM_Make_QuadTri(bm, efa->v1->tmp.p, efa->v2->tmp.p, efa->v3->tmp.p, NULL, NULL, 1);
+		BMLoop *l;
+		BMIter liter;
+		
+		BMO_SetFlag(bm, f, ELE_NEW);
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			if (!BMO_TestFlag(bm, l->e, EDGE_MARK)) {
+				BMO_SetFlag(bm, l->e, ELE_NEW);
+			}
+		}
+	}
+	
+	BLI_end_edgefill();
+	BLI_smallhash_release(&hash);
+	
+	/*clean up fill*/
+	BMO_InitOpf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", ELE_NEW, EDGE_MARK);
+	BMO_Exec_Op(bm, &bmop);
+	BMO_Flag_Buffer(bm, &bmop, "geomout", ELE_NEW, BM_FACE|BM_EDGE);
+	BMO_Finish_Op(bm, &bmop);
 	
 	BMO_Flag_To_Slot(bm, op, "geomout", ELE_NEW, BM_EDGE|BM_FACE);
 }
