@@ -313,7 +313,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 	if (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody)) {
 		str += sprintf(str, formatstr, "Particle Mode", OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
 	}
-
+	(void)str;
 	return (string);
 }
 

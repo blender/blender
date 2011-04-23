@@ -332,6 +332,8 @@ void draw_image_info(ARegion *ar, int color_manage, int channels, int x, int y, 
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 	}
+
+	(void)dx;
 }
 
 /* image drawing */

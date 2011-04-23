@@ -1144,6 +1144,8 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check)
 		ok= get_path_system(path, NULL, NULL, NULL, ver);
 		break;
 	default:
+		path[0]= '\0'; /* incase do_check is false */
+		ok= FALSE;
 		BLI_assert(!"incorrect ID");
 	}
 

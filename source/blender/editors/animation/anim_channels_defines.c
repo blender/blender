@@ -3224,7 +3224,7 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	View2D *v2d= &ac->ar->v2d;
-	float y, ymid, ytext;
+	float y, ymid /*, ytext*/;
 	short offset;
 	
 	/* sanity checks - don't draw anything */
@@ -3243,7 +3243,7 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 	y= (ymaxc - yminc)/2 + yminc;
 	ymid= y - 7;
 	/* y-coordinates for text is only 4 down from middle */
-	ytext= y - 4;
+	/* ytext= y - 4; */
 	
 	/* no button backdrop behind icons */
 	uiBlockSetEmboss(block, UI_EMBOSSN);

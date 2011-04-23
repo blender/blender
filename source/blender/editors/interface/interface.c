@@ -2093,6 +2093,8 @@ void ui_check_but(uiBut *but)
 					str= strcat(str, "Alt ");
 				if(but->modifier_key & KM_OSKEY)
 					str= strcat(str, "Cmd ");
+
+				(void)str; /* UNUSED */
 			}
 			else
 				strcat(but->drawstr, "Press a key  ");

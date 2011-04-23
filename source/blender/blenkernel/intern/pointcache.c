@@ -1373,11 +1373,13 @@ static void ptcache_find_frames_around(PTCacheID *pid, unsigned int frame, int *
 		while(pm->next && pm->next->frame < frame)
 			pm= pm->next;
 
-		if(pm2 && pm2->frame < frame)
+		if(pm2->frame < frame) {
 			pm2 = NULL;
+		}
 		else {
-			while(pm2->prev && pm2->prev->frame > frame)
+			while(pm2->prev && pm2->prev->frame > frame) {
 				pm2= pm2->prev;
+			}
 		}
 
 		if(pm && !pm2) {
