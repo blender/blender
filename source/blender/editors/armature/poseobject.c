@@ -1509,7 +1509,7 @@ static int pose_group_deselect_exec (bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_group_deselect (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Deselecte Bone Group";
+	ot->name= "Deselect Bone Group";
 	ot->idname= "POSE_OT_group_deselect";
 	ot->description= "Deselect bones of active Bone Group";
 	

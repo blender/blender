@@ -229,6 +229,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 {	
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
+	int i;
 	
 	keymap= WM_keymap_find(keyconf, "Mesh", 0, 0);
 	keymap->poll= ED_operator_editmesh;
@@ -321,6 +322,12 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_uv_map", UKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_vertex_group", GKEY, KM_PRESS, KM_CTRL, 0);
+	
+	/* useful stuff from object-mode */
+	for (i=0; i<=5; i++) {
+		kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0);
+		RNA_int_set(kmi->ptr, "level", i);
+	}
 	
 	ED_object_generic_keymap(keyconf, keymap, 3);
 }

@@ -100,7 +100,7 @@ typedef struct Mesh {
 
 	short totcol;
 
-	struct Multires *mr;		/* Multiresolution modeling data */
+	struct Multires *mr;		/* deprecated multiresolution modeling data, only keep for loading old files */
 	struct PartialVisibility *pv;
 } Mesh;
 

@@ -947,7 +947,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	
 	/* strings */
 	prop= RNA_def_property(srna, "family", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_maxlength(prop, (sizeof((ID *)NULL)->name)-2);
+	RNA_def_property_string_maxlength(prop, MAX_ID_NAME-2);
 	RNA_def_property_ui_text(prop, "Object Font", "Use Blender Objects as font characters. Give font objects a common name followed by the character it represents, eg. familya, familyb etc, and turn on Verts Duplication");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	

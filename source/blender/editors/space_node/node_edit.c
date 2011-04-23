@@ -460,6 +460,19 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		node_tree_from_ID(snode->id, &snode->nodetree, &snode->edittree, NULL);
 }
 
+static void snode_tag_changed(SpaceNode *snode, bNode *node)
+{
+	bNode *gnode;
+	
+	if (node)
+		NodeTagChanged(snode->edittree, node);
+	
+	/* if inside group, tag entire group */
+	gnode= node_tree_get_editgroup(snode->nodetree);
+	if(gnode)
+		NodeTagIDChanged(snode->nodetree, gnode->id);
+}
+
 void node_set_active(SpaceNode *snode, bNode *node)
 {
 	nodeSetActive(snode->edittree, node);
@@ -508,14 +521,7 @@ void node_set_active(SpaceNode *snode, bNode *node)
 				
 				node->flag |= NODE_DO_OUTPUT;
 				if(was_output==0) {
-					bNode *gnode;
-					
-					NodeTagChanged(snode->edittree, node);
-					
-					/* if inside group, tag entire group */
-					gnode= node_tree_get_editgroup(snode->nodetree);
-					if(gnode)
-						NodeTagIDChanged(snode->nodetree, gnode->id);
+					snode_tag_changed(snode, node);
 					
 					ED_node_changed_update(snode->id, node);
 				}
@@ -1029,7 +1035,7 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			MEM_freeN(nvm);
 			op->customdata= NULL;
-            
+
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_NODE, NULL);
 			
 			return OPERATOR_FINISHED;
@@ -1136,11 +1142,12 @@ typedef struct ImageSampleInfo {
 	int draw;
 } ImageSampleInfo;
 
-static void sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
+static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info= arg_info;
 
-	draw_nodespace_color_info(ar, info->channels, info->x, info->y, info->col, info->colf);
+	draw_nodespace_color_info(ar, (CTX_data_scene(C)->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
+							  info->x, info->y, info->col, info->colf);
 }
 
 static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
@@ -1553,7 +1560,7 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 				link->fromsock= sock;
 			}
 			ntreeSolveOrder(snode->edittree);
-			NodeTagChanged(snode->edittree, node);
+			snode_tag_changed(snode, node);
 		}
 	}
 }
@@ -1896,7 +1903,7 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 			if (replace)
 				nodeRemSocketLinks(snode->edittree, sock_to);
 			nodeAddLink(snode->edittree, node_fr, sock_fr, node_to, sock_to);
-			NodeTagChanged(snode->edittree, node_to);
+			snode_tag_changed(snode, node_to);
 			++numlinks;
 			break;
 		}
@@ -1960,7 +1967,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 		if(node->id)
 			id_us_plus(node->id);
 			
-		NodeTagChanged(snode->edittree, node);
+		snode_tag_changed(snode, node);
 	}
 	
 	if(snode->nodetree->type==NTREE_TEXTURE) {
@@ -2135,8 +2142,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MIDDLEMOUSE:
 			if(link->tosock && link->fromsock) {
 				/* send changed events for original tonode and new */
-				if(link->tonode)
-					NodeTagChanged(snode->edittree, link->tonode);
+				snode_tag_changed(snode, link->tonode);
 				
 				/* we might need to remove a link */
 				if(in_out==SOCK_OUT)
@@ -2209,7 +2215,7 @@ static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 			if(link) {
 				/* send changed event to original tonode */
 				if(link->tonode) 
-					NodeTagChanged(snode->edittree, link->tonode);
+					snode_tag_changed(snode, link->tonode);
 				
 				nldrag->node= link->fromnode;
 				nldrag->sock= link->fromsock;
@@ -2363,7 +2369,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 			next= link->next;
 			
 			if(cut_links_intersect(link, mcoords, i)) {
-				NodeTagChanged(snode->edittree, link->tonode);
+				snode_tag_changed(snode, link->tonode);
 				nodeRemLink(snode->edittree, link);
 			}
 		}
@@ -2746,7 +2752,7 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 		if(node->flag & SELECT) {
 			if(node->inputs.first && node->outputs.first) {
 				node->flag ^= NODE_MUTED;
-				NodeTagChanged(snode->edittree, node);
+				snode_tag_changed(snode, node);
 			}
 		}
 	}

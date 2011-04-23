@@ -59,9 +59,9 @@ static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack *
 
 static void node_composit_init_curves_time(bNode* node)
 {
-   node->custom1= 1;
-   node->custom2= 250;
-   node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+	node->custom1= 1;
+	node->custom2= 250;
+	node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void register_node_type_cmp_curve_time(ListBase *lb)
@@ -102,7 +102,7 @@ static void node_composit_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeS
 
 static void node_composit_init_curve_vec(bNode* node)
 {
-   node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
+	node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
 
 void register_node_type_cmp_curve_vec(ListBase *lb)
@@ -189,7 +189,7 @@ static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeS
 
 static void node_composit_init_curve_rgb(bNode* node)
 {
-   node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void register_node_type_cmp_curve_rgb(ListBase *lb)

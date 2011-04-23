@@ -101,7 +101,7 @@ EnumPropertyItem metaelem_type_items[] = {
 #define OBTYPE_CU_CURVE {OB_CURVE, "CURVE", 0, "Curve", ""}
 #define OBTYPE_CU_SURF {OB_SURF, "SURFACE", 0, "Surface", ""}
 #define OBTYPE_CU_FONT {OB_FONT, "FONT", 0, "Font", ""}
-    
+
 EnumPropertyItem object_type_items[] = {
 	{OB_MESH, "MESH", 0, "Mesh", ""},
 	OBTYPE_CU_CURVE,
@@ -1058,6 +1058,9 @@ static PointerRNA rna_Object_field_get(PointerRNA *ptr)
 static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
+
+	if(ob->type != OB_MESH)
+		return PointerRNA_NULL;
 
 	/* weak */
 	if(!ob->pd)

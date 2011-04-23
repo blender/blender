@@ -1171,13 +1171,13 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 
 
 /*   uiWidgetStateColors
- char inner_anim[4];
- char inner_anim_sel[4];
- char inner_key[4];
- char inner_key_sel[4];
- char inner_driven[4];
- char inner_driven_sel[4];
- float blend;
+	char inner_anim[4];
+	char inner_anim_sel[4];
+	char inner_key[4];
+	char inner_key_sel[4];
+	char inner_driven[4];
+	char inner_driven_sel[4];
+	float blend;
  
 */
 
@@ -1192,15 +1192,15 @@ static struct uiWidgetStateColors wcol_state_colors= {
 };
 
 /*  uiWidgetColors
- float outline[3];
- float inner[4];
- float inner_sel[4];
- float item[3];
- float text[3];
- float text_sel[3];
+	float outline[3];
+	float inner[4];
+	float inner_sel[4];
+	float item[3];
+	float text[3];
+	float text_sel[3];
 
- short shaded;
- float shadetop, shadedown;
+	short shaded;
+	float shadetop, shadedown;
 */	
 
 static struct uiWidgetColors wcol_num= {

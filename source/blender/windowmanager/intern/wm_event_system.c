@@ -1452,10 +1452,13 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 	/* modal handlers can get removed in this loop, we keep the loop this way */
 	for(handler= handlers->first; handler; handler= nexthandler) {
+		
 		nexthandler= handler->next;
-
-		/* optional boundbox */
-		if(handler_boundbox_test(handler, event)) {
+		
+		/* during this loop, ui handlers for nested menus can tag multiple handlers free */
+		if(handler->flag & WM_HANDLER_DO_FREE);
+			/* optional boundbox */
+		else if(handler_boundbox_test(handler, event)) {
 			/* in advance to avoid access to freed event on window close */
 			always_pass= wm_event_always_pass(event);
 		
@@ -1534,9 +1537,21 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 		
-		/* XXX fileread case */
-		if(CTX_wm_window(C)==NULL)
+		/* XXX fileread case, if the wm is freed then the handler's
+		 * will have been too so the code below need not run. */
+		if(CTX_wm_window(C)==NULL) {
 			return action;
+		}
+
+		/* XXX code this for all modal ops, and ensure free only happens here */
+		
+		/* modal ui handler can be tagged to be freed */ 
+		if(BLI_findindex(handlers, handler) != -1) { /* could be free'd already by regular modal ops */
+			if(handler->flag & WM_HANDLER_DO_FREE) {
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(handler);
+			}
+		}
 	}
 
 	/* test for CLICK event */
@@ -1589,7 +1604,7 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 	if(wm_event_always_pass(event))
 		return 1;
 	if(BLI_in_rcti(rect, event->x, event->y))
-	   return 1;
+		return 1;
 	if(event->type==MOUSEMOVE) {
 		if( BLI_in_rcti(rect, event->prevx, event->prevy)) {
 			return 1;
@@ -2067,14 +2082,21 @@ wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers, w
 	return handler;
 }
 
-void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata)
+/* set "postpone" for win->modalhandlers, this is in a running for() loop in wm_handlers_do() */
+void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata, int postpone)
 {
 	wmEventHandler *handler;
 	
 	for(handler= handlers->first; handler; handler= handler->next) {
 		if(handler->ui_handle == func && handler->ui_remove == remove && handler->ui_userdata == userdata) {
-			BLI_remlink(handlers, handler);
-			wm_event_free_handler(handler);
+			/* handlers will be freed in wm_handlers_do() */
+			if(postpone) {
+				handler->flag |= WM_HANDLER_DO_FREE;
+			}
+			else {
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(handler);
+			}
 			break;
 		}
 	}

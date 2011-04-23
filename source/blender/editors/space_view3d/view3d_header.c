@@ -313,7 +313,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 	if (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody)) {
 		str += sprintf(str, formatstr, "Particle Mode", OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
 	}
-
+	(void)str;
 	return (string);
 }
 
@@ -485,12 +485,12 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		/* NDOF */
 		/* Not implemented yet
-		 if (G.ndofdevice ==0 ) {
+		if (G.ndofdevice ==0 ) {
 			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), 0,0,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
-		
+
 			uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
-					  0,0,XIC,YIC,
-					  &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
+					0,0,XIC,YIC,
+					&v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");
 		}
 		 */
 
@@ -513,7 +513,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiDefButS(block, MENU, B_MAN_MODE, str_menu,0,0,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation");
 		MEM_freeN((void *)str_menu);
 	}
- 		
+
 	if(obedit==NULL && v3d->localvd==NULL) {
 		unsigned int ob_lay = ob ? ob->lay : 0;
 		

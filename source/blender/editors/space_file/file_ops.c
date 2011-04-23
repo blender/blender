@@ -363,7 +363,7 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	int numfiles = filelist_numfiles(sfile->files);
 	int i;
 	int is_selected = 0;
-    
+
 	sel.first = 0; 
 	sel.last = numfiles-1;
 

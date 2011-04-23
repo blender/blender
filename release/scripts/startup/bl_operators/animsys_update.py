@@ -689,7 +689,7 @@ import bpy
 
 
 class UpdateAnimData(bpy.types.Operator):
-    '''Update data paths from 2.53 to edited data paths of drivers and fcurves'''
+    """Update data paths from 2.56 and previous versions, modifying data paths of drivers and fcurves"""
     bl_idname = "anim.update_data_paths"
     bl_label = "Update Animation Data"
 

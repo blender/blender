@@ -690,7 +690,7 @@ static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], St
 		}
 	}
 }
-  
+
 static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandSegment *sseg, StrandPoint *p1, StrandPoint *p2, int depth)
 {
 	StrandPoint p;

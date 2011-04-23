@@ -1003,15 +1003,15 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 		fp = fopen(filename, "rb+");
 	}
 
-	 if (!fp)
-		 return NULL;
-	
+	if (!fp)
+		return NULL;
+
 	pf= MEM_mallocN(sizeof(PTCacheFile), "PTCacheFile");
 	pf->fp= fp;
 	pf->old_format = 0;
 	pf->frame = cfra;
- 	
-	 return pf;
+
+	return pf;
 }
 static void ptcache_file_close(PTCacheFile *pf)
 {
@@ -1308,8 +1308,8 @@ static void ptcache_data_copy(void *from[], void *to[])
 {
 	int i;
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
-        /* note, durian file 03.4b_comp crashes if to[i] is not tested
-         * its NULL, not sure if this should be fixed elsewhere but for now its needed */
+	/* note, durian file 03.4b_comp crashes if to[i] is not tested
+	 * its NULL, not sure if this should be fixed elsewhere but for now its needed */
 		if(from[i] && to[i])
 			memcpy(to[i], from[i], ptcache_data_size[i]);
 	}
@@ -1373,11 +1373,13 @@ static void ptcache_find_frames_around(PTCacheID *pid, unsigned int frame, int *
 		while(pm->next && pm->next->frame < frame)
 			pm= pm->next;
 
-		if(pm2 && pm2->frame < frame)
+		if(pm2->frame < frame) {
 			pm2 = NULL;
+		}
 		else {
-			while(pm2->prev && pm2->prev->frame > frame)
+			while(pm2->prev && pm2->prev->frame > frame) {
 				pm2= pm2->prev;
+			}
 		}
 
 		if(pm && !pm2) {

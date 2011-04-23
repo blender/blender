@@ -44,29 +44,36 @@ static bNodeSocketType cmp_node_lensdist_out[]= {
 	{	-1, 0, ""	}
 };
 
-
-static void lensDistort(CompBuf* dst, CompBuf* src, float kr, float kg, float kb, int jit, int proj, int fit)
+/* assumes *dst is type RGBA */
+static void lensDistort(CompBuf *dst, CompBuf *src, float kr, float kg, float kb, int jit, int proj, int fit)
 {
 	int x, y, z;
 	const float cx = 0.5f*(float)dst->x, cy = 0.5f*(float)dst->y;
 
 	if (proj) {
 		// shift
-		CompBuf* tsrc = dupalloc_compbuf(src);
+		CompBuf *tsrc = dupalloc_compbuf(src);
+		
 		for (z=0; z<tsrc->type; ++z)
 			IIR_gauss(tsrc, (kr+0.5f)*(kr+0.5f), z, 1);
 		kr *= 20.f;
+		
 		for (y=0; y<dst->y; y++) {
-			fRGB* colp = (fRGB*)&dst->rect[y*dst->x*dst->type];
+			fRGB *colp = (fRGB*)&dst->rect[y*dst->x*dst->type];
 			const float v = (y + 0.5f)/(float)dst->y;
+			
 			for (x=0; x<dst->x; x++) {
 				const float u = (x + 0.5f)/(float)dst->x;
+				
 				qd_getPixelLerpChan(tsrc, (u*dst->x + kr) - 0.5f, v*dst->y - 0.5f, 0, colp[x]);
 				if (tsrc->type == CB_VAL)
 					colp[x][1] = tsrc->rect[x + y*tsrc->x];
 				else
 					colp[x][1] = tsrc->rect[(x + y*tsrc->x)*tsrc->type + 1];
 				qd_getPixelLerpChan(tsrc, (u*dst->x - kr) - 0.5f, v*dst->y - 0.5f, 2, colp[x]+2);
+				
+				/* set alpha */
+				colp[x][3]= 1.0f;
 			}
 		}
 		free_compbuf(tsrc);
@@ -80,17 +87,20 @@ static void lensDistort(CompBuf* dst, CompBuf* src, float kr, float kg, float kb
 		const float mk = MAX3(kr, kg, kb);
 		const float sc = (fit && (mk > 0.f)) ? (1.f/(1.f + 2.f*mk)) : (1.f/(1.f + mk));
 		const float drg = 4.f*(kg - kr), dgb = 4.f*(kb - kg);
+		
 		kr *= 4.f, kg *= 4.f, kb *= 4.f;
 
 		for (y=0; y<dst->y; y++) {
-			fRGB* colp = (fRGB*)&dst->rect[y*dst->x*dst->type];
+			fRGB *colp = (fRGB*)&dst->rect[y*dst->x*dst->type];
 			const float v = sc*((y + 0.5f) - cy)/cy;
+			
 			for (x=0; x<dst->x; x++) {
 				int dr = 0, dg = 0, db = 0;
 				float d, t, ln[6] = {0, 0, 0, 0, 0, 0};
 				fRGB c1, tc = {0, 0, 0, 0};
 				const float u = sc*((x + 0.5f) - cx)/cx;
 				int sta = 0, mid = 0, end = 0;
+				
 				if ((t = 1.f - kr*(u*u + v*v)) >= 0.f) {
 					d = 1.f/(1.f + sqrtf(t));
 					ln[0] = (u*d + 0.5f)*dst->x - 0.5f, ln[1] = (v*d + 0.5f)*dst->y - 0.5f;
@@ -113,6 +123,7 @@ static void lensDistort(CompBuf* dst, CompBuf* src, float kr, float kg, float kb
 					const float dsf = sqrtf(dx*dx + dy*dy) + 1.f;
 					const int ds = (int)(jit ? ((dsf < 4.f) ? 2.f : sqrtf(dsf)) : dsf);
 					const float sd = 1.f/(float)ds;
+					
 					for (z=0; z<ds; ++z) {
 						const float tz = ((float)z + (jit ? BLI_frand() : 0.5f))*sd;
 						t = 1.f - (kr + tz*drg)*(u*u + v*v);
@@ -128,6 +139,7 @@ static void lensDistort(CompBuf* dst, CompBuf* src, float kr, float kg, float kb
 						const float dsf = sqrtf(dx*dx + dy*dy) + 1.f;
 						const int ds = (int)(jit ? ((dsf < 4.f) ? 2.f : sqrtf(dsf)) : dsf);
 						const float sd = 1.f/(float)ds;
+						
 						for (z=0; z<ds; ++z) {
 							const float tz = ((float)z + (jit ? BLI_frand() : 0.5f))*sd;
 							t = 1.f - (kg + tz*dgb)*(u*u + v*v);
@@ -144,18 +156,18 @@ static void lensDistort(CompBuf* dst, CompBuf* src, float kr, float kg, float kb
 				if (dg) colp[x][1] = 2.f*tc[1] / (float)dg;
 				if (db) colp[x][2] = 2.f*tc[2] / (float)db;
 	
+				/* set alpha */
+				colp[x][3]= 1.0f;
 			}
 		}
-
 	}
-
 }
 
 
 static void node_composit_exec_lensdist(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *new, *img = in[0]->data;
-	NodeLensDist* nld = node->storage;
+	NodeLensDist *nld = node->storage;
 	const float k = MAX2(MIN2(in[1]->vec[0], 1.f), -0.999f);
 	// smaller dispersion range for somewhat more control
 	const float d = 0.25f*MAX2(MIN2(in[2]->vec[0], 1.f), 0.f);

@@ -158,7 +158,7 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	avi = MEM_mallocN (sizeof(AviMovie), "avimovie");
 
 	/* RPW 11-21-2002 
-	 if (rd->imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
+	if (rd->imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
 	*/
 	if (rd->imtype != R_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
 	else format = AVI_FORMAT_MJPEG;

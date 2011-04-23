@@ -70,6 +70,41 @@ static int rna_AnimData_action_editable(PointerRNA *ptr)
 		return 1;
 }
 
+static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
+{
+	ID *ownerId = (ID *)ptr->id.data;
+	AnimData *adt = (AnimData *)ptr->data;
+	
+	/* assume that AnimData's action can in fact be edited... */
+	if ((value.data) && (ownerId)) {
+		bAction *act = (bAction *)value.data;
+		
+		/* action must have same type as owner */
+		if (ownerId) {
+			if (ELEM(act->idroot, 0, GS(ownerId->name))) {
+				/* can set */
+				adt->action = act;
+			}
+			else {
+				/* cannot set */
+				printf("ERROR: Couldn't set Action '%s' onto ID '%s', as it doesn't have suitably rooted paths for this purpose\n", 
+						act->id.name+2, ownerId->name);
+			}
+		}
+		else {
+			/* cannot tell if we can set, so let's just be generous... */
+			printf("Warning: Set Action '%s' onto AnimData block with an unknown ID-owner. May have attached invalid data\n",
+					act->id.name+2);
+				
+			adt->action = act;
+		}
+	}
+	else {
+		/* just clearing the action... */
+		adt->action = NULL;
+	}
+}
+
 /* ****************************** */
 
 /* wrapper for poll callback */
@@ -739,6 +774,7 @@ void rna_def_animdata(BlenderRNA *brna)
 	/* Active Action */
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE); /* this flag as well as the dynamic test must be defined for this to be editable... */
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Action_id_poll");
 	RNA_def_property_editable_func(prop, "rna_AnimData_action_editable");
 	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL); /* this will do? */

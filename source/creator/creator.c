@@ -188,13 +188,13 @@ static void blender_esc(int sig)
 #ifdef BUILD_DATE
 static void strip_quotes(char *str)
 {
-    if(str[0] == '"') {
-        int len= strlen(str) - 1;
-        memmove(str, str+1, len);
-        if(str[len-1] == '"') {
-            str[len-1]= '\0';
-        }
-    }
+	if(str[0] == '"') {
+		int len= strlen(str) - 1;
+		memmove(str, str+1, len);
+		if(str[len-1] == '"') {
+			str[len-1]= '\0';
+		}
+	}
 }
 #endif
 
@@ -406,7 +406,7 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 	/* OSX uses SSE for floating point by default, so here 
 	 * use SSE instructions to throw floating point exceptions */
 	_MM_SET_EXCEPTION_MASK(_MM_MASK_MASK &~
-						   (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO));
+			(_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO));
 # endif	/* OSX_SSE_FPE */
 # if defined(_WIN32) && defined(_MSC_VER)
 	_controlfp_s(NULL, 0, _MCW_EM); /* enables all fp exceptions */

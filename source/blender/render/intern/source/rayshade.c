@@ -445,7 +445,7 @@ void makeraytree(Render *re)
 	re->i.infostr= "Raytree.. preparing";
 	re->stats_draw(re->sdh, &re->i);
 
-	/* disable options not yet suported by octree,
+	/* disable options not yet supported by octree,
 	   they might actually never be supported (unless people really need it) */
 	if(re->r.raytrace_structure == R_RAYSTRUCTURE_OCTREE)
 		re->r.raytrace_options &= ~( R_RAYTRACE_USE_INSTANCES | R_RAYTRACE_USE_LOCAL_COORDS);

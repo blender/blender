@@ -243,7 +243,13 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 			
 			sub_v3_v3v3(v, i2, v);
 	
-			sub_v3_v3v3(out, i1, t->con.center);
+			sub_v3_v3v3(out, i1,  t->con.center);
+
+			/* possible some values become nan when
+			 * viewpoint and object are both zero */
+			if(!finite(out[0])) out[0]= 0.0f;
+			if(!finite(out[1])) out[1]= 0.0f;
+			if(!finite(out[2])) out[2]= 0.0f;
 		}
 	}
 }
@@ -870,7 +876,7 @@ static void setNearestAxis3d(TransInfo *t)
 		axis[1] = (float)(icoord[1] - t->center2d[1]);
 		axis[2] = 0.0f;
 
-		 if (normalize_v3(axis) != 0.0f) {
+		if (normalize_v3(axis) != 0.0f) {
 			project_v3_v3v3(proj, mvec, axis);
 			sub_v3_v3v3(axis, mvec, proj);
 			len[i] = normalize_v3(axis);

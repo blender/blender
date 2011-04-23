@@ -142,13 +142,12 @@ void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_b
 				float spread,float sun_brightness, float sun_size, float back_scatter,
 				float skyblendfac, short skyblendtype, float sky_exposure, float sky_colorspace)
 {
-    
-	   float theta2;
+	float theta2;
 	float theta3;
 	float T;
 	float T2;
 	float chi;
-        
+
 	sunsky->turbidity = turb;
 
 	sunsky->horizon_brightness = horizon_brightness;
@@ -247,8 +246,8 @@ void GetSkyXYZRadiance(struct SunSky* sunsky, float theta, float phi, float colo
 	float gamma;
 	float x,y,Y,X,Z;
 	float hfade=1, nfade=1;
-    
-    
+
+
 	if (theta>(0.5*M_PI)) {
 		hfade = 1.0-(theta*M_1_PI-0.5)*2.0;
 		hfade = hfade*hfade*(3.0-2.0*hfade);
@@ -320,7 +319,7 @@ void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 	float fTauR, fTauA;
 	float m ;
 	float fAlpha;
-    
+
 	int i;
 	float fLambda[3]; 
 	fLambda[0] = 0.65f;	

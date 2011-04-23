@@ -106,9 +106,19 @@ private:
 	AUD_convert_f m_convert;
 
 	/**
-	 * The memory file to read from, only saved to keep the buffer alive.
+	 * The memory file to read from.
 	 */
 	AUD_Reference<AUD_Buffer> m_membuffer;
+
+	/**
+	 * The buffer to read with.
+	 */
+	data_t* m_membuf;
+
+	/**
+	 * Reading position of the buffer.
+	 */
+	int64_t m_membufferpos;
 
 	/**
 	 * Decodes a packet into the given buffer.
@@ -148,6 +158,9 @@ public:
 	 * Destroys the reader and closes the file.
 	 */
 	virtual ~AUD_FFMPEGReader();
+
+	static int read_packet(void* opaque, uint8_t* buf, int buf_size);
+	static int64_t seek_packet(void* opaque, int64_t offset, int whence);
 
 	virtual bool isSeekable() const;
 	virtual void seek(int position);

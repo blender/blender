@@ -1704,7 +1704,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Duplicate";
+	ot->name= "Duplicate Objects";
 	ot->description = "Duplicate selected objects";
 	ot->idname= "OBJECT_OT_duplicate";
 	

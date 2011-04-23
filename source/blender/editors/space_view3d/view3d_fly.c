@@ -793,7 +793,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				/* transform the parent or the camera? */
 				if(fly->root_parent) {
 					Object *ob_update;
-                    
+
 					float view_mat[4][4];
 					float prev_view_imat[4][4];
 					float diff_mat[4][4];

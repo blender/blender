@@ -576,33 +576,33 @@ char *DNA_struct_get_compareflags(SDNA *sdna, SDNA *newsdna)
 			
 			/* compare length and amount of elems */
 			if( spcur[1] == spold[1]) {
-				 if( newsdna->typelens[spcur[0]] == sdna->typelens[spold[0]] ) {
-					 
-					 /* same length, same amount of elems, now per type and name */
-					 b= spold[1];
-					 spold+= 2;
-					 spcur+= 2;
-					 while(b > 0) {
-						 str1= newsdna->types[spcur[0]];
-						 str2= sdna->types[spold[0]];
-						 if(strcmp(str1, str2)!=0) break;
+				if( newsdna->typelens[spcur[0]] == sdna->typelens[spold[0]] ) {
 
-						 str1= newsdna->names[spcur[1]];
-						 str2= sdna->names[spold[1]];
-						 if(strcmp(str1, str2)!=0) break;
-						 
-						 /* same type and same name, now pointersize */
-						 if(ispointer(str1)) {
-							 if(sdna->pointerlen!=newsdna->pointerlen) break;
-						 }
-						 
-						 b--;
-						 spold+= 2;
-						 spcur+= 2;
-					 }
-					 if(b==0) compflags[a]= 1;
+					/* same length, same amount of elems, now per type and name */
+					b= spold[1];
+					spold+= 2;
+					spcur+= 2;
+					while(b > 0) {
+						str1= newsdna->types[spcur[0]];
+						str2= sdna->types[spold[0]];
+						if(strcmp(str1, str2)!=0) break;
 
-				 }
+						str1= newsdna->names[spcur[1]];
+						str2= sdna->names[spold[1]];
+						if(strcmp(str1, str2)!=0) break;
+
+						/* same type and same name, now pointersize */
+						if(ispointer(str1)) {
+							if(sdna->pointerlen!=newsdna->pointerlen) break;
+						}
+
+						b--;
+						spold+= 2;
+						spcur+= 2;
+					}
+					if(b==0) compflags[a]= 1;
+
+				}
 			}
 			
 		}

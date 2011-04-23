@@ -3346,7 +3346,7 @@ static int open_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSE
 {
 	if(drag->type==WM_DRAG_PATH) {
 		if(drag->icon==ICON_FILE_BLEND)
-		   return 1;
+			return 1;
 	}
 	return 0;
 }

@@ -497,18 +497,18 @@ static void rna_Actuator_Armature_update(Main *bmain, Scene *scene, PointerRNA *
 /* note: the following set functions exists only to avoid id refcounting */
 static void rna_Actuator_editobject_mesh_set(PointerRNA *ptr, PointerRNA value)
 {
-        bActuator *act = (bActuator *)ptr->data;
-        bEditObjectActuator *eoa = (bEditObjectActuator *) act->data;
+	bActuator *act = (bActuator *)ptr->data;
+	bEditObjectActuator *eoa = (bEditObjectActuator *) act->data;
 
-        eoa->me = value.data;
+	eoa->me = value.data;
 }
 
 static void rna_Actuator_action_action_set(PointerRNA *ptr, PointerRNA value)
 {
-        bActuator *act = (bActuator *)ptr->data;
-        bActionActuator *aa = (bActionActuator *) act->data;
+	bActuator *act = (bActuator *)ptr->data;
+	bActionActuator *aa = (bActionActuator *) act->data;
 
-        aa->act = value.data;
+	aa->act = value.data;
 }
 
 #else
@@ -579,8 +579,8 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Action");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Action", "");
-        /* note: custom set function is ONLY to avoid rna setting a user for this. */
-        RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL, NULL);
+	/* note: custom set function is ONLY to avoid rna setting a user for this. */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_continue_last_frame", PROP_BOOLEAN, PROP_NONE);
@@ -1811,8 +1811,8 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Action");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Action", "");
-        /* note: custom set function is ONLY to avoid rna setting a user for this. */
-        RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL, NULL);
+	/* note: custom set function is ONLY to avoid rna setting a user for this. */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_continue_last_frame", PROP_BOOLEAN, PROP_NONE);

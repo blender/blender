@@ -314,7 +314,7 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate";
+	ot->name= "Duplicate Metaelements";
 	ot->description= "Delete selected metaelement(s)";
 	ot->idname= "MBALL_OT_duplicate_metaelems";
 
@@ -455,7 +455,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 
 /* Select MetaElement with mouse click (user can select radius circle or
  * stiffness circle) */
-int mouse_mball(bContext *C, short mval[2], int extend)
+int mouse_mball(bContext *C, const short mval[2], int extend)
 {
 	static MetaElem *startelem=NULL;
 	Object *obedit= CTX_data_edit_object(C);

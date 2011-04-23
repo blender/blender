@@ -595,7 +595,7 @@ static void p_vert_load_pin_select_uvs(PHandle *handle, PVert *v)
 			if (e->flag & PEDGE_SELECT)
 				v->flag |= PVERT_SELECT;
 
-			 if (e->flag & PEDGE_PIN) {
+			if (e->flag & PEDGE_PIN) {
 				pinuv[0] += e->orig_uv[0]*handle->aspx;
 				pinuv[1] += e->orig_uv[1]*handle->aspy;
 				npins++;
@@ -1142,7 +1142,7 @@ static void p_chart_boundaries(PChart *chart, int *nboundaries, PEdge **outer)
 			(*nboundaries)++;
 
 		len = 0.0f;
-    
+
 		be = e;
 		do {
 			be->flag |= PEDGE_DONE;

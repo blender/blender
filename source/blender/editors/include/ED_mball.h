@@ -42,7 +42,7 @@ void ED_keymap_metaball(struct wmKeyConfig *keyconf);
 
 struct MetaElem *add_metaball_primitive(struct bContext *C, float mat[4][4], int type, int newname);
 
-int mouse_mball(struct bContext *C, short mval[2], int extend);
+int mouse_mball(struct bContext *C, const short mval[2], int extend);
 
 void free_editMball(struct Object *obedit);
 void make_editMball(struct Object *obedit);

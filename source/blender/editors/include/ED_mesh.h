@@ -169,7 +169,7 @@ void EM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Object
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
 void		EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em);
-int			mouse_mesh(struct bContext *C, short mval[2], short extend);
+int			mouse_mesh(struct bContext *C, const short mval[2], short extend);
 int			EM_check_backbuf(unsigned int index);
 int			EM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
 void		EM_free_backbuf(void);
@@ -187,7 +187,7 @@ void		EM_automerge(struct Scene *scene, struct Object *obedit, int update);
 /* editface.c */
 void paintface_flush_flags(struct Object *ob);
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
-int paintface_mouse_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
+int paintface_mouse_select(struct bContext *C, struct Object *ob, const short mval[2], int extend);
 int do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
 void paintface_deselect_all_visible(struct Object *ob, int action, short flush_flags);
 void paintface_select_linked(struct bContext *C, struct Object *ob, short mval[2], int mode);

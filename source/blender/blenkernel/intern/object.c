@@ -210,8 +210,8 @@ void object_link_modifiers(struct Object *ob, struct Object *from)
 		BLI_addtail(&ob->modifiers, nmd);
 	}
 
-	copy_object_particlesystems(from, ob);
-	copy_object_softbody(from, ob);
+	copy_object_particlesystems(ob, from);
+	copy_object_softbody(ob, from);
 
 	// TODO: smoke?, cloth?
 }
@@ -2281,7 +2281,7 @@ void what_does_parent(Scene *scene, Object *ob, Object *workob)
 	workob->constraints.first = ob->constraints.first;
 	workob->constraints.last = ob->constraints.last;
 
-	strcpy(workob->parsubstr, ob->parsubstr); 
+	BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 
 	where_is_object(scene, workob);
 }

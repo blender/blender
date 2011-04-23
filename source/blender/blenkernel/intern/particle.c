@@ -264,16 +264,9 @@ static void psys_create_frand(ParticleSystem *psys)
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd;
-	Mesh *me;
 
 	if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE || !psys->part)
 		return 0;
-
-	if(ob->type == OB_MESH) {
-		me= (Mesh*)ob->data;
-		if(me->mr && me->mr->current != 1)
-			return 0;
-	}
 
 	psmd= psys_get_modifier(ob, psys);
 	if(psys->renderdata || G.rendering) {
@@ -4371,7 +4364,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 	float loc[3], nor[3], vec[3], side[3], len, obrotmat[4][4], qmat[4][4];
 	float xvec[3] = {-1.0, 0.0, 0.0}, q[4], nmat[3][3];
 
-	sub_v3_v3v3(vec, (cache+cache->steps-1)->co, cache->co);
+	sub_v3_v3v3(vec, (cache+cache->steps)->co, cache->co);
 	len= normalize_v3(vec);
 
 	if(psys->part->rotmode) {
@@ -4431,22 +4424,22 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	xvec[0] = 1.0f; xvec[1] = 0.0f; xvec[2] = 0.0f;
 	yvec[0] = 0.0f; yvec[1] = 1.0f; yvec[2] = 0.0f;
 
-    /* can happen with bad pointcache or physics calculation
-     * since this becomes geometry, nan's and inf's crash raytrace code.
-     * better not allow this. */
-    if( !finite(bb->vec[0]) || !finite(bb->vec[1]) || !finite(bb->vec[2]) ||
-        !finite(bb->vel[0]) || !finite(bb->vel[1]) || !finite(bb->vel[2]) )
-    {
-        zero_v3(bb->vec);
-        zero_v3(bb->vel);
-        
-        zero_v3(xvec);
-        zero_v3(yvec);
-        zero_v3(zvec);
-        zero_v3(center);
+	/* can happen with bad pointcache or physics calculation
+	 * since this becomes geometry, nan's and inf's crash raytrace code.
+	 * better not allow this. */
+	if( !finite(bb->vec[0]) || !finite(bb->vec[1]) || !finite(bb->vec[2]) ||
+	    !finite(bb->vel[0]) || !finite(bb->vel[1]) || !finite(bb->vel[2]) )
+	{
+		zero_v3(bb->vec);
+		zero_v3(bb->vel);
 
-        return;
-    }
+		zero_v3(xvec);
+		zero_v3(yvec);
+		zero_v3(zvec);
+		zero_v3(center);
+
+		return;
+	}
 
 	if(bb->align < PART_BB_VIEW)
 		onevec[bb->align]=1.0f;

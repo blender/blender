@@ -856,10 +856,10 @@ static int cloth_collision_response_moving( ClothModifierData *clmd, CollisionMo
 #if 0
 static float projectPointOntoLine(float *p, float *a, float *b) 
 {
-   float ba[3], pa[3];
-   VECSUB(ba, b, a);
-   VECSUB(pa, p, a);
-   return INPR(pa, ba) / INPR(ba, ba);
+	float ba[3], pa[3];
+	VECSUB(ba, b, a);
+	VECSUB(pa, p, a);
+	return INPR(pa, ba) / INPR(ba, ba);
 }
 
 static void calculateEENormal(float *np1, float *np2, float *np3, float *np4,float *out_normal) 

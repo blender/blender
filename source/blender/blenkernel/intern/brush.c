@@ -1119,12 +1119,12 @@ float brush_curve_strength_clamp(Brush *br, float p, const float len)
  * used for sculpt only */
 float brush_curve_strength(Brush *br, float p, const float len)
 {
-    if(p >= len)
-        p= 1.0f;
-    else
-        p= p/len;
+	if(p >= len)
+		p= 1.0f;
+	else
+		p= p/len;
 
-    return curvemapping_evaluateF(br->curve, 0, p);
+	return curvemapping_evaluateF(br->curve, 0, p);
 }
 
 /* TODO: should probably be unified with BrushPainter stuff? */

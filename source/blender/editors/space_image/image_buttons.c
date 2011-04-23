@@ -447,7 +447,7 @@ static int is_preview_allowed(ScrArea *cur)
 	for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
 		if(sa!=cur && sa->spacetype==SPACE_IMAGE) {
 			if(image_preview_active(sa, NULL, NULL))
-			   return 0;
+				return 0;
 		}
 	}
 	/* check image type */

@@ -155,7 +155,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 
 	ibuf= BKE_image_get_ibuf(image, NULL);
 
- 	if(ibuf == NULL || ibuf->rect == NULL ) {
+	if(ibuf == NULL || ibuf->rect == NULL ) {
 		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name+2);
 		return (int)GL_INVALID_OPERATION;
 	}

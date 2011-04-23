@@ -1627,7 +1627,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 	}
 	else {
 		ScrArea *newa;
-		char newname[20];
+		char newname[MAX_ID_NAME-2];
 
 		oldscreen= win->screen;
 

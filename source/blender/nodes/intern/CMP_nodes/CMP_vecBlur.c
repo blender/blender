@@ -89,10 +89,10 @@ static void node_composit_exec_vecblur(void *UNUSED(data), bNode *node, bNodeSta
 
 static void node_composit_init_vecblur(bNode* node)
 {
-   NodeBlurData *nbd= MEM_callocN(sizeof(NodeBlurData), "node blur data");
-   node->storage= nbd;
-   nbd->samples= 32;
-   nbd->fac= 1.0f;
+	NodeBlurData *nbd= MEM_callocN(sizeof(NodeBlurData), "node blur data");
+	node->storage= nbd;
+	nbd->samples= 32;
+	nbd->fac= 1.0f;
 }
 
 /* custom1: itterations, custom2: maxspeed (0 = nolimit) */

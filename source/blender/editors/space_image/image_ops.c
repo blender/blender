@@ -768,13 +768,13 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	Image *ima= NULL;
 
 	if(sima) {
-		 ima= sima->image;
+		ima= sima->image;
 	}
 
 	if (ima==NULL) {
-		 Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-		 if(tex && tex->type==TEX_IMAGE)
-			 ima= tex->ima;
+		Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		if(tex && tex->type==TEX_IMAGE)
+			ima= tex->ima;
 	}
 
 	if(ima)
@@ -1279,7 +1279,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	Image *ima;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
-	char name[22];
+	char name[MAX_ID_NAME-2];
 	float color[4];
 	int width, height, floatbuf, uvtestgrid, alpha;
 
@@ -1352,7 +1352,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "untitled", 21, "Name", "Image datablock name.");
+	RNA_def_string(ot->srna, "name", "untitled", MAX_ID_NAME-2, "Name", "Image datablock name.");
 	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width.", 1, 16384);
 	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height.", 1, 16384);
 	prop= RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color.", 0.0f, 1.0f);
@@ -1538,7 +1538,7 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 
 	/* find the suppplied image by name */
 	if (RNA_property_is_set(op->ptr, "id")) {
-		char imaname[22];
+		char imaname[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "id", imaname);
 		ima = BLI_findstring(&CTX_data_main(C)->image, imaname, offsetof(ID, name) + 2);
 		if (!ima) ima = CTX_data_edit_image(C);
@@ -1604,7 +1604,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
-	RNA_def_string(ot->srna, "id", "", 21, "Image Name", "Image datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */
+	RNA_def_string(ot->srna, "id", "", MAX_ID_NAME-2, "Image Name", "Image datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */
 }
 
 /******************** sample image operator ********************/
@@ -1632,7 +1632,8 @@ static void sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info= arg_info;
 	if(info->draw) {
-		draw_image_info(ar, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
+		/* no color management needed for images (color_manage=0) */
+		draw_image_info(ar, 0, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
 	}
 }
 

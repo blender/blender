@@ -487,6 +487,9 @@ typedef struct bAction {
 	
 	int flag;			/* settings for this action */
 	int active_marker;	/* index of the active marker */
+	
+	int idroot;			/* type of ID-blocks that action can be assigned to (if 0, will be set to whatever ID first evaluates it) */
+	int pad;
 } bAction;
 
 

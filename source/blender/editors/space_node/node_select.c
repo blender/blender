@@ -70,7 +70,7 @@ static bNode *node_under_mouse(bNodeTree *ntree, int mx, int my)
 
 /* ****** Click Select ****** */
  
-static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short extend)
+static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, const short mval[2], short extend)
 {
 	bNode *node;
 	float mx, my;

@@ -1675,15 +1675,15 @@ float hyp3,hyp4,b4,b5
 					output = in_band(wipezone,width,hyp,facf0,1,1);
 				else
 					output = in_band(wipezone,width,hyp,facf0,0,1);
-			 }
+			}
 			else {
 				if(b1 < b2)
 					output = in_band(wipezone,width,hyp,facf0,0,1);
 				else
 					output = in_band(wipezone,width,hyp,facf0,1,1);
-			 }
+			}
 		break;
-	 
+
 		case DO_DOUBLE_WIPE:
 			if(!wipe->forward)
 				facf0 = 1.0f-facf0;   // Go the other direction
@@ -1726,45 +1726,45 @@ float hyp3,hyp4,b4,b5
 					  output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
 			}
 			if(!wipe->forward)output = 1-output;
-		 break;
-		 case DO_CLOCK_WIPE:
+		break;
+		case DO_CLOCK_WIPE:
 			  /*
 				  temp1: angle of effect center in rads
 				  temp2: angle of line through (halfx,halfy) and (x,y) in rads
 				  temp3: angle of low side of blur
 				  temp4: angle of high side of blur
 			  */
-			 output = 1.0f - facf0;
-			 widthf = wipe->edgeWidth*2.0f*(float)M_PI;
-			  temp1 = 2.0f * (float)M_PI * facf0;
-	 	 	
-			 if(wipe->forward){
-				 temp1 = 2.0f*(float)M_PI - temp1;
-			 }
- 	 		
-			  x = x - halfx;
-			  y = y - halfy;
+			output = 1.0f - facf0;
+			widthf = wipe->edgeWidth*2.0f*(float)M_PI;
+			temp1 = 2.0f * (float)M_PI * facf0;
 
-			  temp2 = asin(abs(y)/sqrt(x*x + y*y));
-			  if(x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
-			  else if(x<=0 && y <= 0) temp2 += (float)M_PI;
-			  else if(x >= 0 && y <= 0) temp2 = 2.0f*(float)M_PI - temp2;
-
-			  if(wipe->forward){
-				  temp3 = temp1-(widthf*0.5f)*facf0;
-				  temp4 = temp1+(widthf*0.5f)*(1-facf0);
-			  } else{
-				  temp3 = temp1-(widthf*0.5f)*(1-facf0);
-				  temp4 = temp1+(widthf*0.5f)*facf0;
+			if(wipe->forward){
+				temp1 = 2.0f*(float)M_PI - temp1;
 			}
-			  if (temp3 < 0) temp3 = 0;
-			  if (temp4 > 2.0f*(float)M_PI) temp4 = 2.0f*(float)M_PI;
- 	 		
- 	 		
-			  if(temp2 < temp3) output = 0;
-			  else if (temp2 > temp4) output = 1;
-			  else output = (temp2-temp3)/(temp4-temp3);
-			  if(x == 0 && y == 0) output = 1;
+
+			x = x - halfx;
+			y = y - halfy;
+
+			temp2 = asin(abs(y)/sqrt(x*x + y*y));
+			if(x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
+			else if(x<=0 && y <= 0) temp2 += (float)M_PI;
+			else if(x >= 0 && y <= 0) temp2 = 2.0f*(float)M_PI - temp2;
+
+			if(wipe->forward){
+				temp3 = temp1-(widthf*0.5f)*facf0;
+				temp4 = temp1+(widthf*0.5f)*(1-facf0);
+			} else{
+				temp3 = temp1-(widthf*0.5f)*(1-facf0);
+				temp4 = temp1+(widthf*0.5f)*facf0;
+			}
+			if (temp3 < 0) temp3 = 0;
+			if (temp4 > 2.0f*(float)M_PI) temp4 = 2.0f*(float)M_PI;
+
+
+			if(temp2 < temp3) output = 0;
+			else if (temp2 > temp4) output = 1;
+			else output = (temp2-temp3)/(temp4-temp3);
+			if(x == 0 && y == 0) output = 1;
 			if(output != output) output = 1;
 			if(wipe->forward) output = 1 - output;
 		break;
@@ -1840,12 +1840,12 @@ float hyp3,hyp4,b4,b5
 			hwidth = width*0.5f;
 
 			temp1 = (halfx-(halfx)*facf0);
-			 pointdist = sqrt(temp1*temp1 + temp1*temp1);
-		 
-			 temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
-			 if(temp2 > pointdist) output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,0,1);
-			 else output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,1,1);
-		 
+			pointdist = sqrt(temp1*temp1 + temp1*temp1);
+
+			temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
+			if(temp2 > pointdist) output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,0,1);
+			else output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,1,1);
+
 			if(!wipe->forward) output = 1-output;
 			
 		break;

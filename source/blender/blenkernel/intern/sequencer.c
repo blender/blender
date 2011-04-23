@@ -845,7 +845,7 @@ typedef struct SeqUniqueInfo {
 /*
 static void seqbase_unique_name(ListBase *seqbasep, Sequence *seq)
 {
-	 BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
+	BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
 }*/
 
 static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)

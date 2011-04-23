@@ -462,7 +462,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *r
 	node = nodeAddNodeType(ntree, type, group, NULL);
 
 	if (node == NULL) {
-		 BKE_reportf(reports, RPT_ERROR, "Unable to create node");
+		BKE_reportf(reports, RPT_ERROR, "Unable to create node");
 	}
 	else {
 		nodeGroupVerify(ntree); /* update group node socket links*/
@@ -1668,8 +1668,8 @@ static void def_cmp_channel_matte(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "limit_channel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "channel");
-   RNA_def_property_enum_items(prop, prop_tri_channel_items);
-   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_channel_itemf");
+	RNA_def_property_enum_items(prop, prop_tri_channel_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_channel_itemf");
 	RNA_def_property_ui_text(prop, "Limit Channel", "Limit by this channels value");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
@@ -1843,10 +1843,10 @@ static void def_cmp_crop(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Crop Image Size", "Whether to crop the size of the input image");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
-   prop = RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
-   RNA_def_property_boolean_sdna(prop, NULL, "custom2", 1);
-   RNA_def_property_ui_text(prop, "Relative", "Use relative values to crop image");
-   RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	prop = RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 1);
+	RNA_def_property_ui_text(prop, "Relative", "Use relative values to crop image");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeTwoXYs", "storage");
 
@@ -1874,29 +1874,29 @@ static void def_cmp_crop(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Y2", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
-   prop = RNA_def_property(srna, "rel_min_x", PROP_FLOAT, PROP_NONE);
-   RNA_def_property_float_sdna(prop, NULL, "fac_x1");
-   RNA_def_property_range(prop, 0.0, 1.0);
-   RNA_def_property_ui_text(prop, "X1", "");
-   RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	prop = RNA_def_property(srna, "rel_min_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fac_x1");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "X1", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
-   prop = RNA_def_property(srna, "rel_max_x", PROP_FLOAT, PROP_NONE);
-   RNA_def_property_float_sdna(prop, NULL, "fac_x2");
-   RNA_def_property_range(prop, 0.0, 1.0);
-   RNA_def_property_ui_text(prop, "X2", "");
-   RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	prop = RNA_def_property(srna, "rel_max_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fac_x2");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "X2", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
-   prop = RNA_def_property(srna, "rel_min_y", PROP_FLOAT, PROP_NONE);
-   RNA_def_property_float_sdna(prop, NULL, "fac_y1");
-   RNA_def_property_range(prop, 0.0, 1.0);
-   RNA_def_property_ui_text(prop, "Y1", "");
-   RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	prop = RNA_def_property(srna, "rel_min_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fac_y1");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Y1", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
-   prop = RNA_def_property(srna, "rel_max_y", PROP_FLOAT, PROP_NONE);
-   RNA_def_property_float_sdna(prop, NULL, "fac_y2");
-   RNA_def_property_range(prop, 0.0, 1.0);
-   RNA_def_property_ui_text(prop, "Y2", "");
-   RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	prop = RNA_def_property(srna, "rel_max_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fac_y2");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Y2", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_dblur(StructRNA *srna)

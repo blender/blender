@@ -1206,6 +1206,39 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 /* ***************************************** */
 /* Actions Evaluation */
 
+/* strictly not necessary for actual "evaluation", but it is a useful safety check
+ * to reduce the amount of times that users end up having to "revive" wrongly-assigned
+ * actions
+ */
+static void action_idcode_patch_check (ID *id, bAction *act)
+{
+	int idcode = 0;
+	
+	/* just in case */
+	if (ELEM(NULL, id, act))
+		return;
+	else
+		idcode = GS(id->name);
+	
+	/* the actual checks... hopefully not too much of a performance hit in the long run... */
+	if (act->idroot == 0) {
+		/* use the current root if not set already (i.e. newly created actions and actions from 2.50-2.57 builds)
+		 * 	- this has problems if there are 2 users, and the first one encountered is the invalid one
+		 *	  in which case, the user will need to manually fix this (?)
+		 */
+		act->idroot = idcode;
+	}
+	else if (act->idroot != idcode) {
+		/* only report this error if debug mode is enabled (to save performance everywhere else) */
+		if (G.f & G_DEBUG) {
+			printf("AnimSys Safety Check Failed: Action '%s' is not meant to be used from ID-Blocks of type %d such as '%s'\n",
+				act->id.name+2, idcode, id->name);
+		}
+	}
+}
+
+/* ----------------------------------------- */
+
 /* Evaluate Action Group */
 void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup *agrp, AnimMapper *remap, float ctime)
 {
@@ -1214,6 +1247,8 @@ void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup 
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
 	if ELEM(NULL, act, agrp) return;
 	if ((remap) && (remap->target != act)) remap= NULL;
+	
+	action_idcode_patch_check(ptr->id.data, act);
 	
 	/* if group is muted, don't evaluated any of the F-Curve */
 	if (agrp->flag & AGRP_MUTED)
@@ -1237,6 +1272,8 @@ void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, 
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
 	if (act == NULL) return;
 	if ((remap) && (remap->target != act)) remap= NULL;
+	
+	action_idcode_patch_check(ptr->id.data, act);
 	
 	/* calculate then execute each curve */
 	animsys_evaluate_fcurves(ptr, &act->curves, remap, ctime);
@@ -1636,6 +1673,17 @@ static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, L
 	NlaStrip *strip= nes->strip;
 	FCurve *fcu;
 	float evaltime;
+	
+	/* sanity checks for action */
+	if (strip == NULL)
+		return;
+		
+	if (strip->act == NULL) {
+		printf("NLA-Strip Eval Error: Strip '%s' has no Action\n", strip->name);
+		return;
+	}
+	
+	action_idcode_patch_check(ptr->id.data, strip->act);
 	
 	/* join this strip's modifiers to the parent's modifiers (own modifiers first) */
 	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers);

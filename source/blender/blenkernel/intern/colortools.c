@@ -793,7 +793,7 @@ void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const 
 /* basic error handler, if we dont do this blender will exit */
 static int ErrorReportingFunction(int ErrorCode, const char *ErrorText)
 {
-    fprintf(stderr, "%s:%d\n", ErrorText, ErrorCode);
+	fprintf(stderr, "%s:%d\n", ErrorText, ErrorCode);
 	return 1;
 }
 #endif

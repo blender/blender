@@ -74,7 +74,7 @@ struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
 
 	_p1 = (uchar *) ibuf1->rect;
 	dest=(uchar *) ibuf2->rect;
-         
+
 	_p1f = ibuf1->rect_float;
 	destf= ibuf2->rect_float;
 
@@ -271,7 +271,7 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
 			for(x = ibuf2->x ; x>0 ; x--) *dest1++ = *dest2++ = *p1++;
 			dest1 = dest2;
 		}
-		 if (do_float) {
+		if (do_float) {
 			dest2f = dest1f + (4*ibuf2->x);
 			for(x = ibuf2->x*4 ; x>0 ; x--) *dest1f++ = *dest2f++ = *p1f++;
 			dest1f = dest2f;
@@ -600,7 +600,7 @@ static void enlarge_picture_float(
 		if ((int) y_src == src_height - 1) {
 			line2 = line1;
 		}
-		       
+
 		x_src = 0;
 		for (x_dst = 0; x_dst < dst_width; x_dst++) {
 			const float weight1x = (float)(1.0 - (x_src - (int) x_src));

@@ -113,7 +113,8 @@ endif()
 		bf_blenlib 
 		bf_imbuf_cineon
 		bf_imbuf_openexr 
-		extern_openjpeg 
+		extern_openjpeg
+		extern_redcode
 		bf_imbuf_dds
 		bf_readblenfile 
 		bf_dna

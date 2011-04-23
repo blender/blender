@@ -271,6 +271,12 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 		//printf("Add strip - actname = '%s' \n", actname);
 		return OPERATOR_CANCELLED;
 	}
+	else if (act->idroot == 0) {
+		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
+		BKE_reportf(op->reports, RPT_WARNING,
+			"Action '%s' does not specify what datablocks it can be used on. Try setting the 'ID Root Type' setting from the Datablocks Editor for this Action to avoid future problems",
+			act->id.name+2);
+	}
 	
 	/* get a list of the editable tracks being shown in the NLA
 	 *	- this is limited to active ones for now, but could be expanded to 
@@ -288,6 +294,16 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		AnimData *adt= ale->adt;
 		NlaStrip *strip= NULL;
+		
+		/* sanity check: only apply actions of the right type for this ID 
+		 * NOTE: in the case that this hasn't been set, we've already warned the user about this already
+		 */
+		if ((act->idroot) && (act->idroot != GS(ale->id->name))) {
+			BKE_reportf(op->reports, RPT_ERROR, 
+				"Couldn't add action '%s' as it cannot be used relative to ID-blocks of type '%s'",
+				act->id.name+2, ale->id->name);
+			continue;
+		}
 		
 		/* create a new strip, and offset it to start on the current frame */
 		strip= add_nlastrip(act);
@@ -1002,7 +1018,7 @@ void NLA_OT_mute_toggle (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Muting";
 	ot->idname= "NLA_OT_mute_toggle";
-	ot->description= "Mute or un-muted selected strips";
+	ot->description= "Mute or un-mute selected strips";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_toggle_mute_exec;
@@ -1384,7 +1400,7 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Sync Action Length";
 	ot->idname= "NLA_OT_action_sync_length";
-	ot->description= "Sychronise the length of the referenced Action with the lengths used in the strip";
+	ot->description= "Synchronise the length of the referenced Action with the lengths used in the strip";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_sync_actlen_exec;
@@ -1803,7 +1819,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add F-Modifier";
 	ot->idname= "NLA_OT_fmodifier_add";
-	ot->description= "Add F-Modifier of the secified type to the selected NLA-Strips";
+	ot->description= "Add F-Modifier of the specified type to the selected NLA-Strips";
 	
 	/* api callbacks */
 	ot->invoke= nla_fmodifier_add_invoke;

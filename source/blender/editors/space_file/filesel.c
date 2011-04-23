@@ -493,7 +493,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		layout->tile_h = textheight*3/2;
 		layout->height= (int)(v2d->cur.ymax - v2d->cur.ymin - 2*layout->tile_border_y);
 		layout->rows = layout->height / (layout->tile_h + 2*layout->tile_border_y);
-        
+
 		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {

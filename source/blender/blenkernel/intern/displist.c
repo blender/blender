@@ -1869,9 +1869,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		   already applied, thats how it worked for years, so keep for compatibility (sergey) */
 		copy_displist(&cu->disp, dispbase);
 
-		 if (!forRender) {
-			 tex_space_curve(cu);
-		 }
+		if (!forRender) {
+			tex_space_curve(cu);
+		}
 
 		if(!forOrco) curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, originalVerts, deformedVerts);
 

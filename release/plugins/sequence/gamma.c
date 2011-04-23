@@ -85,7 +85,7 @@ static void make_gamma_table(float setup, float gain, float gamma,
 	int y;
 
 	for (y = 0; y < 256; y++) {
-	        float v = 1.0 * y / 255;
+		float v = 1.0 * y / 255;
 		v += setup;
 		v *= gain;
 		v = pow(v, gamma);

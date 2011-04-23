@@ -290,7 +290,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void TEXT_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open";
+	ot->name= "Open Text Block";
 	ot->idname= "TEXT_OT_open";
 	ot->description= "Open a new text data block";
 
@@ -1483,7 +1483,7 @@ static int text_get_cursor_rel(SpaceText* st, ARegion *ar, TextLine *linein, int
 		}
 	}
 
-  return selc;
+	return selc;
 }
 
 static int cursor_skip_find_line(SpaceText* st, ARegion *ar,
@@ -2283,7 +2283,7 @@ static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceText *st= CTX_wm_space_text(C);
 	ARegion *ar= CTX_wm_region(C);
 	TextScroll *tsc;
-	short *mval= event->mval;
+	const short *mval= event->mval;
 	int zone= -1;
 
 	if(RNA_property_is_set(op->ptr, "lines"))
@@ -2694,7 +2694,7 @@ static int line_number_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
 	ARegion *ar= CTX_wm_region(C);
-	short *mval= event->mval;
+	const short *mval= event->mval;
 	double time;
 	static int jump_to= 0;
 	static double last_jump= 0;

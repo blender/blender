@@ -252,8 +252,40 @@ struct CcdConstructionInfo
 		m_inertiaFactor(1.f),
 		m_do_anisotropic(false),
 		m_anisotropicFriction(1.f,1.f,1.f),
-		m_contactProcessingThreshold(1e10)
+		m_contactProcessingThreshold(1e10f),
+		m_soft_linStiff(1.f),
+		m_soft_angStiff(1.f),
+		m_soft_volume(1.f),
+		m_soft_viterations(0),
+		m_soft_piterations(1),
+		m_soft_diterations(0),
+		m_soft_citerations(4),
+		m_do_fh(false),
+		m_do_rot_fh(false),
+		m_fh_spring(0.f),
+		m_fh_damping(0.f),
+		m_fh_distance(1.f),
+		m_fh_normal(false),
+	m_soft_kVCF(1.f),
+	m_soft_kDG(0.f),
+	m_soft_kLF(0.f),
+	m_soft_kDP(0.f),
+	m_soft_kPR(0.f),
+	m_soft_kVC(0.f),
+	m_soft_kDF(0.2f),
+	m_soft_kMT(0),
+	m_soft_kCHR(1.0f),
+	m_soft_kKHR(0.1f),
+	m_soft_kSHR(1.0f),
+	m_soft_kAHR(0.7f),
+	m_soft_kSRHR_CL(0.1f),
+	m_soft_kSKHR_CL(1.f),
+	m_soft_kSSHR_CL(0.5f),
+	m_soft_kSR_SPLT_CL(0.5f),
+	m_soft_kSK_SPLT_CL(0.5f),
+	m_soft_kSS_SPLT_CL(0.5f)
 	{
+
 	}
 
 	btVector3	m_localInertiaTensor;

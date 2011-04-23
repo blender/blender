@@ -114,7 +114,7 @@ void *mmap(void *UNUSED(start), size_t len, int prot, int flags, int fd, off_t o
 	/*
 	if ( fd == -1 ) {
 		_set_errno( EBADF );
-        return MAP_FAILED;
+		return MAP_FAILED;
 	}
 	*/
 
@@ -128,16 +128,16 @@ void *mmap(void *UNUSED(start), size_t len, int prot, int flags, int fd, off_t o
 		}
 	} else {
 		if ( !DuplicateHandle( GetCurrentProcess(), fhandle, GetCurrentProcess(),
-							&fhandle, 0, FALSE, DUPLICATE_SAME_ACCESS ) ) {
+		&fhandle, 0, FALSE, DUPLICATE_SAME_ACCESS ) ) {
 			return MAP_FAILED;
 		}
 	}
 
 	maphandle = CreateFileMapping(fhandle, NULL, prot_flags, 0, len, NULL);
 	if ( maphandle == 0 ) {
-        errno = EBADF;
+		errno = EBADF;
 		return MAP_FAILED;
-    }
+	}
 
 	ptr = MapViewOfFile(maphandle, access_flags, 0, offset, 0);
 	if ( ptr == NULL ) {
@@ -159,7 +159,7 @@ void *mmap(void *UNUSED(start), size_t len, int prot, int flags, int fd, off_t o
 	mm->mmap = ptr;
 	mmap_addtail(mmapbase, mm);
 
-    return ptr;
+	return ptr;
 }
 
 /* munmap for windows */
@@ -168,14 +168,14 @@ intptr_t munmap(void *ptr, intptr_t UNUSED(size))
 	MemMap *mm = mmap_findlink(mmapbase, ptr);
 	if (!mm) {
 		errno=EINVAL;
-        return -1; 
+		return -1;
 	}
 	UnmapViewOfFile( mm->mmap );
 	CloseHandle( mm->maphandle );
 	CloseHandle( mm->fhandle);
 	mmap_remlink(mmapbase, mm);
 	free(mm);
-    return 0;
+	return 0;
 }
 
 /* --------------------------------------------------------------------- */
@@ -233,16 +233,16 @@ static int mmap_get_prot_flags (int flags)
 	int prot = PAGE_NOACCESS;
 
 	if ( ( flags & PROT_READ ) == PROT_READ ) {
-        if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
-            prot = (flags & PROT_EXEC) ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
+		if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
+			prot = (flags & PROT_EXEC) ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
 		} else {
 			prot = (flags & PROT_EXEC) ? PAGE_EXECUTE_READ : PAGE_READONLY;
 		}
-    } else if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
+	} else if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
 		prot = (flags & PROT_EXEC) ? PAGE_EXECUTE_READ : PAGE_WRITECOPY;
-    } else if ( ( flags & PROT_EXEC ) == PROT_EXEC ) {
-        prot = PAGE_EXECUTE_READ;
-    }
+	} else if ( ( flags & PROT_EXEC ) == PROT_EXEC ) {
+		prot = PAGE_EXECUTE_READ;
+	}
 	return prot;
 }
 
@@ -251,16 +251,16 @@ static int mmap_get_access_flags (int flags)
 	int access = 0;
 
 	if ( ( flags & PROT_READ ) == PROT_READ ) {
-        if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
-            access = FILE_MAP_WRITE;
+		if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
+			access = FILE_MAP_WRITE;
 		} else {
 			access = (flags & PROT_EXEC) ? FILE_MAP_EXECUTE : FILE_MAP_READ;
 		}
-    } else if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
+	} else if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
 		access = FILE_MAP_COPY;
-    } else if ( ( flags & PROT_EXEC ) == PROT_EXEC ) {
-        access = FILE_MAP_EXECUTE;
-    }
+	} else if ( ( flags & PROT_EXEC ) == PROT_EXEC ) {
+		access = FILE_MAP_EXECUTE;
+	}
 	return access;
 }
 

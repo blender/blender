@@ -959,7 +959,7 @@ static void alpha_clip_aniso(ImBuf *ibuf, float minx, float miny, float maxx, fl
 		rf.xmax= maxx*(ibuf->x);
 		rf.ymin= miny*(ibuf->y);
 		rf.ymax= maxy*(ibuf->y);
-   
+
 		alphaclip = clipx_rctf(&rf, 0.0, (float)(ibuf->x));
 		alphaclip*= clipy_rctf(&rf, 0.0, (float)(ibuf->y));
 		alphaclip= MAX2(alphaclip, 0.0f);
@@ -1421,7 +1421,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 		ibuf= BKE_image_get_ibuf(ima, &tex->iuser); 
 	}
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL))
-	   return retval;
+		return retval;
 	
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
@@ -1467,8 +1467,8 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 	
 	if(tex->imaflag & TEX_FILTER_MIN) {
 		/* make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy) */
-		 float addval= (0.5f * tex->filtersize) / (float) MIN2(ibuf->x, ibuf->y);
- 		
+		float addval= (0.5f * tex->filtersize) / (float) MIN2(ibuf->x, ibuf->y);
+
 		if(addval > minx)
 			minx= addval;
 		if(addval > miny)

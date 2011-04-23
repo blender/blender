@@ -197,8 +197,20 @@ static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	Mesh *me= ob->data;
+	int deformed= 0;
 
-	if(ob->sculpt->modifiers_active) return 0;
+	/* active modifiers means extra deformation, which can't be handled correct
+	   on bith of PBVH and sculpt "layer" levels, so use PBVH only for internal brush
+	   stuff and show final DerivedMesh so user would see actual object shape */
+	deformed|= ob->sculpt->modifiers_active;
+
+	/* as in case with modifiers, we can't synchronize deformation made against
+	   PBVH and non-locked keyblock, so also use PBVH only for brushes and
+	   final DM to give final result to user */
+	deformed|= ob->sculpt->kb && (ob->shapeflag&OB_SHAPE_LOCK) == 0;
+
+	if(deformed)
+		return 0;
 
 	return (cddm->mvert == me->mvert) || ob->sculpt->kb;
 }
