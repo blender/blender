@@ -989,11 +989,11 @@ static float pose_propagate_get_boneHoldEndFrame (Object *ob, tPChanFCurveLink *
 }
 
 /* get reference value from F-Curve using RNA */
-static float pose_propagate_get_refVal (Object *ob, FCurve *fcu)
+static float pose_propagate_get_refVal (Object *ob, FCurve *fcu, float *value)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
-	float value;
+	int found= FALSE;
 	
 	/* base pointer is always the object -> id_ptr */
 	RNA_id_pointer_create(&ob->id, &id_ptr);
@@ -1002,44 +1002,48 @@ static float pose_propagate_get_refVal (Object *ob, FCurve *fcu)
 	if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
 		if (RNA_property_array_check(&ptr, prop)) {
 			/* array */
-			if (fcu->array_index < RNA_property_array_length(&ptr, prop)) {	
+			if (fcu->array_index < RNA_property_array_length(&ptr, prop)) {
+				found= TRUE;
 				switch (RNA_property_type(prop)) {
 					case PROP_BOOLEAN:
-						value= (float)RNA_property_boolean_get_index(&ptr, prop, fcu->array_index);
+						*value= (float)RNA_property_boolean_get_index(&ptr, prop, fcu->array_index);
 						break;
 					case PROP_INT:
-						value= (float)RNA_property_int_get_index(&ptr, prop, fcu->array_index);
+						*value= (float)RNA_property_int_get_index(&ptr, prop, fcu->array_index);
 						break;
 					case PROP_FLOAT:
-						value= RNA_property_float_get_index(&ptr, prop, fcu->array_index);
+						*value= RNA_property_float_get_index(&ptr, prop, fcu->array_index);
 						break;
 					default:
+						found= FALSE;
 						break;
 				}
 			}
 		}
 		else {
 			/* not an array */
+			found= TRUE;
 			switch (RNA_property_type(prop)) {
 				case PROP_BOOLEAN:
-					value= (float)RNA_property_boolean_get(&ptr, prop);
+					*value= (float)RNA_property_boolean_get(&ptr, prop);
 					break;
 				case PROP_INT:
-					value= (float)RNA_property_int_get(&ptr, prop);
+					*value= (float)RNA_property_int_get(&ptr, prop);
 					break;
 				case PROP_ENUM:
-					value= (float)RNA_property_enum_get(&ptr, prop);
+					*value= (float)RNA_property_enum_get(&ptr, prop);
 					break;
 				case PROP_FLOAT:
-					value= RNA_property_float_get(&ptr, prop);
+					*value= RNA_property_float_get(&ptr, prop);
 					break;
 				default:
+					found= FALSE;
 					break;
 			}
 		}
 	}
 	
-	return value;
+	return found;
 }
 
 /* propagate just works along each F-Curve in turn */
@@ -1062,8 +1066,9 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, FCurve *fcu,
 	 * doesn't need to firstly keyframe the pose (though this doesn't mean that 
 	 * they can't either)
 	 */
-	refVal = pose_propagate_get_refVal(ob, fcu);
-	
+	if(!pose_propagate_get_refVal(ob, fcu, &refVal))
+		return;
+
 	/* find the first keyframe to start propagating from 
 	 *	- if there's a keyframe on the current frame, we probably want to save this value there too
 	 *	  since it may be as of yet unkeyed
