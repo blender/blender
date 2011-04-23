@@ -1997,11 +1997,23 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 	if (ntree->type==NTREE_COMPOSIT) {
 		bNodeSocket *sock;
 		bNodeStack *ns;
+		
+		/* clear hasoutput on all local stack data,
+		 * only the group output will be used from now on
+		 */
+		for (node=ntree->nodes.first; node; node=node->next) {
+			for (sock=node->outputs.first; sock; sock=sock->next) {
+				if (sock->stack_type==SOCK_STACK_LOCAL) {
+					ns= get_socket_stack(stack, sock, in);
+					ns->hasoutput = 0;
+				}
+			}
+		}
+		/* use the hasoutput flag to tag external sockets */
 		for (sock=ntree->outputs.first; sock; sock=sock->next) {
-			/* use the hasoutput flag to tag external sockets */
 			if (sock->stack_type==SOCK_STACK_LOCAL) {
 				ns= get_socket_stack(stack, sock, in);
-				ns->hasoutput = 0;
+				ns->hasoutput = 1;
 			}
 		}
 		/* now free all stacks that are not used from outside */
@@ -2009,11 +2021,9 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 			for (sock=node->outputs.first; sock; sock=sock->next) {
 				if (sock->stack_type==SOCK_STACK_LOCAL ) {
 					ns= get_socket_stack(stack, sock, in);
-					if (ns->hasoutput!=0 && ns->data) {
+					if (ns->hasoutput==0 && ns->data) {
 						free_compbuf(ns->data);
 						ns->data = NULL;
-						/* reset the flag */
-						ns->hasoutput = 1;
 					}
 				}
 			}
