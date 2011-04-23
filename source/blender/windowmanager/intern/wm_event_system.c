@@ -1537,6 +1537,12 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 		
+		/* XXX fileread case, if the wm is freed then the handler's
+		 * will have been too so the code below need not run. */
+		if(CTX_wm_window(C)==NULL) {
+			return action;
+		}
+
 		/* XXX code this for all modal ops, and ensure free only happens here */
 		
 		/* modal ui handler can be tagged to be freed */ 
@@ -1546,10 +1552,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				wm_event_free_handler(handler);
 			}
 		}
-		
-		/* XXX fileread case */
-		if(CTX_wm_window(C)==NULL)
-			return action;
 	}
 
 	/* test for CLICK event */
