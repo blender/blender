@@ -989,11 +989,11 @@ static float pose_propagate_get_boneHoldEndFrame (Object *ob, tPChanFCurveLink *
 }
 
 /* get reference value from F-Curve using RNA */
-static float pose_propagate_get_refVal (Object *ob, FCurve *fcu, float *value)
+static short pose_propagate_get_refVal (Object *ob, FCurve *fcu, float *value)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
-	int found= FALSE;
+	short found= FALSE;
 	
 	/* base pointer is always the object -> id_ptr */
 	RNA_id_pointer_create(&ob->id, &id_ptr);
@@ -1066,9 +1066,9 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, FCurve *fcu,
 	 * doesn't need to firstly keyframe the pose (though this doesn't mean that 
 	 * they can't either)
 	 */
-	if(!pose_propagate_get_refVal(ob, fcu, &refVal))
+	if( !pose_propagate_get_refVal(ob, fcu, &refVal))
 		return;
-
+	
 	/* find the first keyframe to start propagating from 
 	 *	- if there's a keyframe on the current frame, we probably want to save this value there too
 	 *	  since it may be as of yet unkeyed
