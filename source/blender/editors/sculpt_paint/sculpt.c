@@ -175,9 +175,14 @@ static int sculpt_has_active_modifiers(Scene *scene, Object *ob)
 int sculpt_modifiers_active(Scene *scene, Object *ob)
 {
 	ModifierData *md;
+	Mesh *me= (Mesh*)ob->data;
 	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
 
 	if(mmd) return 0;
+
+	/* non-locked shaoe keys could be handled in the same way as deformed mesh */
+	if((ob->shapeflag&OB_SHAPE_LOCK)==0 && me->key && ob->shapenr)
+		return 1;
 
 	md= modifiers_getVirtualModifierList(ob);
 
@@ -2708,7 +2713,7 @@ void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 
 	ss->modifiers_active= sculpt_modifiers_active(scene, ob);
 
-	if((ob->shapeflag & OB_SHAPE_LOCK) && !mmd) ss->kb= ob_get_keyblock(ob);
+	if(!mmd) ss->kb= ob_get_keyblock(ob);
 	else ss->kb= NULL;
 
 	if(mmd) {
@@ -3342,18 +3347,13 @@ static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
 	sculpt_update_tex(sd, ss);
 }
 
-static int sculpt_brush_stroke_init(bContext *C, ReportList *reports)
+static int sculpt_brush_stroke_init(bContext *C, ReportList *UNUSED(reports))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
-
-	if(ob_get_key(ob) && !(ob->shapeflag & OB_SHAPE_LOCK)) {
-		BKE_report(reports, RPT_ERROR, "Shape key sculpting requires a locked shape.");
-		return 0;
-	}
 
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_init_tex(sd, ss);
