@@ -508,7 +508,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup	*dg, int vertnum)
 
 static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 {
-	MDeformVert *dvert;
+	MDeformVert *dvert= NULL;
 	EditVert *eve;
 	Mesh *me;
 	int i;
@@ -519,7 +519,9 @@ static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 
 		if(me->edit_mesh) {
 			eve= BLI_findlink(&me->edit_mesh->verts, vertnum);
-			if(!eve) return 0.0f;
+			if(!eve) {
+				return 0.0f;
+			}
 			dvert= CustomData_em_get(&me->edit_mesh->vdata, eve->data, CD_MDEFORMVERT);
 			vertnum= 0;
 		}
