@@ -2868,16 +2868,9 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 				startvert= obr->totvert;
 				data= dl->verts;
 
-				n[0]= ob->imat[0][2];
-				n[1]= ob->imat[1][2];
-				n[2]= ob->imat[2][2];
-				normalize_v3(n);
-
 				for(a=0; a<dl->nr; a++, data+=3) {
 					ver= RE_findOrAddVert(obr, obr->totvert++);
 					VECCOPY(ver->co, data);
-
-					negate_v3_v3(ver->n, n);
 
 					mul_m4_v3(mat, ver->co);
 
@@ -2888,20 +2881,40 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 				}
 
 				if(timeoffset==0) {
+					float tmp[3];
+					const int startvlak= obr->totvlak;
+
+					zero_v3(n);
 					index= dl->index;
 					for(a=0; a<dl->parts; a++, index+=3) {
-
 						vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 						vlr->v1= RE_findOrAddVert(obr, startvert+index[0]);
 						vlr->v2= RE_findOrAddVert(obr, startvert+index[1]);
 						vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
 						vlr->v4= NULL;
 
-						negate_v3_v3(vlr->n, n);
+						normal_tri_v3(tmp, vlr->v3->co, vlr->v2->co, vlr->v1->co);
+						add_v3_v3(n, tmp);
 
 						vlr->mat= matar[ dl->col ];
 						vlr->flag= 0;
 						vlr->ec= 0;
+					}
+
+					normalize_v3(n);
+
+					/* vertex normals */
+					for(a= startvlak; a<obr->totvlak; a++) {
+						vlr= RE_findOrAddVlak(obr, a);
+
+						copy_v3_v3(vlr->n, n);
+						add_v3_v3(vlr->v1->n, vlr->n);
+						add_v3_v3(vlr->v3->n, vlr->n);
+						add_v3_v3(vlr->v2->n, vlr->n);
+					}
+					for(a=startvert; a<obr->totvert; a++) {
+						ver= RE_findOrAddVert(obr, a);
+						normalize_v3(ver->n);
 					}
 				}
 			}
