@@ -1442,7 +1442,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 	}
 }
 
-void draw_nodespace_color_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp)
+void draw_nodespace_color_info(ARegion *ar, int color_manage, int channels, int x, int y, char *cp, float *fp)
 {
 	char str[256];
 	float dx= 6;
@@ -1458,6 +1458,7 @@ void draw_nodespace_color_info(ARegion *ar, int channels, int x, int y, char *cp
 	unsigned char blue[3] = {255, 255, 255};
 	#endif
 	float hue=0, sat=0, val=0, lum=0, u=0, v=0;
+	float col[4], finalcol[4];
 
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -1541,31 +1542,47 @@ void draw_nodespace_color_info(ARegion *ar, int channels, int x, int y, char *cp
 		}
 	}
 	
-	glDisable(GL_BLEND);
+	/* color rectangle */
 	if (channels==1) {
 		if (fp)
-			glColor3f(fp[0], fp[0], fp[0]);
+			col[0] = col[1] = col[2] = fp[0];
 		else if (cp)
-			glColor3ub(cp[0], cp[0], cp[0]);
+			col[0] = col[1] = col[2] = (float)cp[0]/255.0f;
 		else
-			glColor3ub(0, 0, 0);
+			col[0] = col[1] = col[2] = 0.0f;
 	}
 	else if (channels==3) {
 		if (fp)
-			glColor3fv(fp);
-		else if (cp)
-			glColor3ub(cp[0], cp[1], cp[2]);
+			copy_v3_v3(col, fp);
+		else if (cp) {
+			col[0] = (float)cp[0]/255.0f;
+			col[1] = (float)cp[1]/255.0f;
+			col[2] = (float)cp[2]/255.0f;
+		}
 		else
-			glColor3ub(0, 0, 0);
+			zero_v3(col);
 	}
 	else if (channels==4) {
 		if (fp)
-			glColor4fv(fp);
-		else if (cp)
-			glColor4ub(cp[0], cp[1], cp[2], cp[3]);
+			copy_v4_v4(col, fp);
+		else if (cp) {
+			col[0] = (float)cp[0]/255.0f;
+			col[1] = (float)cp[1]/255.0f;
+			col[2] = (float)cp[2]/255.0f;
+			col[3] = (float)cp[3]/255.0f;
+		}
 		else
-			glColor3ub(0, 0, 0);
+			zero_v4(col);
 	}
+	if (color_manage) {
+		linearrgb_to_srgb_v3_v3(finalcol, col);
+		finalcol[3] = col[3];
+	}
+	else {
+		copy_v4_v4(finalcol, col);
+	}
+	glDisable(GL_BLEND);
+	glColor3fv(finalcol);
 	dx += 5;
 	glBegin(GL_QUADS);
 	glVertex2f(dx, 3);

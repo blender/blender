@@ -1142,11 +1142,12 @@ typedef struct ImageSampleInfo {
 	int draw;
 } ImageSampleInfo;
 
-static void sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
+static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info= arg_info;
 
-	draw_nodespace_color_info(ar, info->channels, info->x, info->y, info->col, info->colf);
+	draw_nodespace_color_info(ar, (CTX_data_scene(C)->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
+							  info->x, info->y, info->col, info->colf);
 }
 
 static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
