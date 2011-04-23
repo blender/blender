@@ -2043,7 +2043,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_DISABLE);
-	RNA_def_property_ui_text(prop, "Disabled", "Constraint has invalid settings and will not be evaluated");
+	RNA_def_property_ui_text(prop, "Valid", "Constraint has valid settings and can be evaluated");
 	
 		// TODO: setting this to true must ensure that all others in stack are turned off too...
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
