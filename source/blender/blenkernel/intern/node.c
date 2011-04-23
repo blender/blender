@@ -967,6 +967,11 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 	} else
 		ntype= node_get_type(ntree, type, id);
 
+	if(ntype == NULL) {
+		printf("nodeAddNodeType() error: '%d' type invalid\n", type);
+		return NULL;
+	}
+
 	node= MEM_callocN(sizeof(bNode), "new node");
 	BLI_addtail(&ntree->nodes, node);
 	node->typeinfo= ntype;
