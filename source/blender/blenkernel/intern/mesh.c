@@ -1663,9 +1663,9 @@ void mesh_delete_material_index(Mesh *me, int index)
 	int i;
 
 	for (i=0; i<me->totpoly; i++) {
-		MPoly *mf = &((MFace*) me->mpoly)[i];
-		if (mf->mat_nr && mf->mat_nr>=index) 
-			mf->mat_nr--;
+		MPoly *mp = &((MPoly*) me->mpoly)[i];
+		if (mp->mat_nr && mp->mat_nr>=index) 
+			mp->mat_nr--;
 	}
 	
 	for (i=0; i<me->totface; i++) {
