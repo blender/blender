@@ -4561,7 +4561,6 @@ static int createSlideVerts(TransInfo *t)
 					if (!BMBVH_EdgeVisible(btree, e2, v3d, t->obedit))
 						continue;
 					
-					
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 
 					if (tempsv[j].down) {

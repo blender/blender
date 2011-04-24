@@ -666,6 +666,9 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d, Object *obe
 	float origin[3], invmat[4][4];
 	float epsilon = 0.01f; 
 	
+	if (r3d->persp == RV3D_ORTHO) {
+		VECCOPY(origin, r3d->winmat[3]);
+	}
 	VECCOPY(origin, r3d->viewinv[3]);
 	invert_m4_m4(invmat, obedit->obmat);
 	mul_m4_v3(invmat, origin);

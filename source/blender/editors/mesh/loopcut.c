@@ -391,9 +391,6 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	if (!ringsel_init(C, op, 0))
 		return OPERATOR_CANCELLED;
 	
-	/* add a modal handler for this operator - handles loop selection */
-	WM_event_add_modal_handler(C, op);
-
 	lcd = op->customdata;
 	
 	if (lcd->em->selectmode == SCE_SELECT_FACE) {
@@ -406,12 +403,14 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	lcd->vc.mval[1] = evt->mval[1];
 	
 	edge = EDBM_findnearestedge(&lcd->vc, &dist);
-	if (edge != lcd->eed) {
-		lcd->eed = edge;
-		ringsel_find_edge(lcd, 1);
-	}
 
-	return OPERATOR_RUNNING_MODAL;
+	lcd->eed = edge;
+	
+	ringsel_find_edge(lcd, 1);
+	ringsel_finish(C, op);
+	ringsel_exit(C, op);
+
+	return OPERATOR_FINISHED;
 }
 
 static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
@@ -599,12 +598,10 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->invoke= ringsel_invoke;
-	ot->modal= ringsel_modal;
-	ot->cancel= ringcut_cancel;
 	ot->poll= ED_operator_editmesh_region_view3d; 
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 }
