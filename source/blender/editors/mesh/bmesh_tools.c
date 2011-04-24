@@ -1007,6 +1007,7 @@ static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, S
 /* Note, these values must match delete_mesh() event values */
 static EnumPropertyItem prop_mesh_delete_types[] = {
 	{7, "DISSOLVE",         0, "Dissolve", ""},
+	{12, "COLLAPSE", 0, "Collapse", ""},
 	{10,"VERT",		0, "Vertices", ""},
 	{1, "EDGE",		0, "Edges", ""},
 	{2, "FACE",		0, "Faces", ""},
@@ -1019,9 +1020,17 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 static int delete_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
 	Scene *scene = CTX_data_scene(C);
-
-	delete_mesh(C, obedit, op, RNA_enum_get(op->ptr, "type"), scene);
+	int type = RNA_enum_get(op->ptr, "type");
+	
+	if (type != 12) {
+		delete_mesh(C, obedit, op, type, scene);
+	} else {
+		if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_SELECT))
+			return OPERATOR_CANCELLED;
+	}
+		
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
 	
