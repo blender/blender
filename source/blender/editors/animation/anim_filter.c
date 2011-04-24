@@ -1017,7 +1017,7 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 		 * but the group isn't expanded...
 		 */
 		if ( (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) &&	/* care about selection status */
-			 (EXPANDED_AGRP(agrp)==0) )								/* group isn't expanded */
+			 (EXPANDED_AGRP(ac, agrp)==0) )								/* group isn't expanded */
 		{
 			/* if the group itself isn't selected appropriately, we shouldn't consider it's children either */
 			if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) == 0)
@@ -1076,7 +1076,7 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 				 *	- group is expanded
 				 *	- we just need the F-Curves present
 				 */
-				if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) ) 
+				if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(ac, agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) )
 				{
 					/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
 					 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 

@@ -951,7 +951,7 @@ static void calc_shapeKeys(Object *obedit)
 										++i;
 									}
 
-									fp+= 3; curofp+= 3;	/* alphas */
+									fp+= 3;	/* alphas */
 								} else {
 									for (j= 0; j < 3; ++j, ++i) {
 										VECCOPY(fp, bezt->vec[j]);
@@ -5662,7 +5662,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	Curve *cu= obedit->data;
 	EditNurb *editnurb= cu->editnurb;
 	ListBase *nubase= &editnurb->nurbs;
-	Nurb *nu, *next, *nu1;
+	Nurb *nu, *nu1;
 	BezTriple *bezt, *bezt1, *bezt2;
 	BPoint *bp, *bp1, *bp2;
 	int a, cut= 0, type= RNA_enum_get(op->ptr, "type");
@@ -5687,6 +5687,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 	if(type==0) {
 		/* first loop, can we remove entire pieces? */
+		Nurb *next;
 		nu= nubase->first;
 		while(nu) {
 			next= nu->next;
@@ -5815,7 +5816,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 		nu1= NULL;
 		nuindex= 0;
 		for(nu= nubase->first; nu; nu= nu->next) {
-			next= nu->next;
 			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				for(a=0; a<nu->pntsu-1; a++) {

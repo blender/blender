@@ -726,7 +726,7 @@ static float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
 /* in latter case, only last multiplication uses 'nl' */
 static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough )
 {
-	float i, nh, nv, vh, realnl, h[3];
+	float i/*, nh*/, nv, vh, realnl, h[3];
 	float a, b, t, A, B;
 	float Lit_A, View_A, Lit_B[3], View_B[3];
 	
@@ -735,8 +735,8 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	h[2]= v[2]+l[2];
 	normalize_v3(h);
 	
-	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
-	if(nh<0.0f) nh = 0.0f;
+	/* nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; */ /* Dot product between surface normal and half-way vector */
+	/* if(nh<0.0f) nh = 0.0f; */
 	
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
 	if(nv<=0.0f) nv= 0.0f;

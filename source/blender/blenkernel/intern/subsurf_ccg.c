@@ -1541,8 +1541,10 @@ static void ccgDM_drawFacesColored(DerivedMesh *dm, int UNUSED(useTwoSided), uns
 	}
 
 	glShadeModel(GL_SMOOTH);
-	if(col1 && col2)
+
+	if(col2) {
 		glEnable(GL_CULL_FACE);
+	}
 
 	glBegin(GL_QUADS);
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {

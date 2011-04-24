@@ -580,8 +580,9 @@ static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 	/* there's a conflict here... twosided colors versus culling...? */
 	/* defined by history, only texture faces have culling option */
 	/* we need that as mesh option builtin, next to double sided lighting */
-	if(col1 && col2)
+	if(col2) {
 		glEnable(GL_CULL_FACE);
+	}
 
 	cdDM_update_normals_from_pbvh(dm);
 

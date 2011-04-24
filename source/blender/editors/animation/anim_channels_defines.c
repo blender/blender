@@ -3275,6 +3275,7 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 			draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_SOLO);
 			offset += ICON_WIDTH; 
 		}
+		(void)offset;
 	}
 	
 	/* step 4) draw text... */
