@@ -1007,7 +1007,7 @@ void filelist_from_library(struct FileList* filelist)
 {
 	LinkNode *l, *names, *previews;
 	struct ImBuf* ima;
-	int ok, i, nnames, idcode;
+	int ok, i, nprevs, nnames, idcode;
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	char dir[FILE_MAX], group[GROUP_MAX];	
 	
@@ -1031,17 +1031,18 @@ void filelist_from_library(struct FileList* filelist)
 	
 	idcode= groupname_to_code(group);
 
-		// memory for strings is passed into filelist[i].relname
-		// and free'd in freefilelist
-	previews = NULL;
+	/* memory for strings is passed into filelist[i].relname
+	 * and free'd in freefilelist */
 	if (idcode) {
-		previews= BLO_blendhandle_get_previews(filelist->libfiledata, idcode);
+		previews= BLO_blendhandle_get_previews(filelist->libfiledata, idcode, &nprevs);
 		names= BLO_blendhandle_get_datablock_names(filelist->libfiledata, idcode, &nnames);
 		/* ugh, no rewind, need to reopen */
 		BLO_blendhandle_close(filelist->libfiledata);
 		filelist->libfiledata= BLO_blendhandle_from_file(dir, NULL);
 		
 	} else {
+		previews= NULL;
+		nprevs= 0;
 		names= BLO_blendhandle_get_linkable_groups(filelist->libfiledata);
 		nnames= BLI_linklist_length(names);
 	}
@@ -1064,7 +1065,10 @@ void filelist_from_library(struct FileList* filelist)
 		}
 	}
 	
-	if(previews) {
+	if(previews && (nnames != nprevs)) {
+		printf("filelist_from_library: error, found %d items, %d previews\n", nnames, nprevs);
+	}
+	else if(previews) {
 		for (i=0, l= previews; i<nnames; i++, l= l->next) {
 			PreviewImage *img= l->link;
 			
