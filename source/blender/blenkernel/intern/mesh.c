@@ -1662,6 +1662,12 @@ void mesh_delete_material_index(Mesh *me, int index)
 {
 	int i;
 
+	for (i=0; i<me->totpoly; i++) {
+		MPoly *mf = &((MFace*) me->mpoly)[i];
+		if (mf->mat_nr && mf->mat_nr>=index) 
+			mf->mat_nr--;
+	}
+	
 	for (i=0; i<me->totface; i++) {
 		MFace *mf = &((MFace*) me->mface)[i];
 		if (mf->mat_nr && mf->mat_nr>=index) 
@@ -1674,6 +1680,16 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 	Mesh *me = meshOb->data;
 	int i;
 
+	for (i=0; i<me->totpoly; i++) {
+		MPoly *mp = &((MPoly*) me->mpoly)[i];
+
+		if (enableSmooth) {
+			mp->flag |= ME_SMOOTH;
+		} else {
+			mp->flag &= ~ME_SMOOTH;
+		}
+	}
+	
 	for (i=0; i<me->totface; i++) {
 		MFace *mf = &((MFace*) me->mface)[i];
 

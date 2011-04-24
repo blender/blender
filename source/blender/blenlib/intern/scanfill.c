@@ -789,7 +789,7 @@ int BLI_edgefill(int mat_nr)
 	EditVert *eve;
 	EditEdge *eed,*nexted;
 	PolyFill *pflist,*pf;
-	float *minp, *maxp, *v1, *v2, norm[3], len;
+	float limit, *minp, *maxp, *v1, *v2, norm[3], len;
 	short a,c,poly=0,ok=0,toggle=0;
 
 	/* reset variables */
@@ -864,12 +864,13 @@ int BLI_edgefill(int mat_nr)
 	v1= eve->co;
 	v2= 0;
 	eve= fillvertbase.first;
+	limit = a < 5 ? FLT_EPSILON*200 : M_PI/24.0;
 	while(eve) {
 		if(v2) {
 			if( compare_v3v3(v2, eve->co, COMPLIMIT)==0) {
 				float inner = angle_v3v3v3(v1, v2, eve->co);
 				
-				if (fabs(inner-M_PI) < FLT_EPSILON*200 || fabs(inner) < FLT_EPSILON*200) {
+				if (fabs(inner-M_PI) < limit || fabs(inner) < limit) {
 					eve = eve->next;	
 					continue;
 				}
