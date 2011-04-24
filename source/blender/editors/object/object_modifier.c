@@ -1090,8 +1090,7 @@ void OBJECT_OT_multires_reshape(wmOperatorType *ot)
 
 static int multires_test_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_active_context(C), *secondob= NULL;
-	Scene *scene= CTX_data_scene(C);
+	Object *ob= ED_object_active_context(C);
 	Mesh *me = ob->data;
 	MPoly *mp;
 	MDisps *mdisps;

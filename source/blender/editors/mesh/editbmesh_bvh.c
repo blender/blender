@@ -659,17 +659,25 @@ void scale_point(float *c1, float *p, float s)
 	add_v3_v3(c1, p);
 }
 
-int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d, Object *obedit)
+
+int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Object *obedit)
 {
 	BMFace *f;
+	RegionView3D *rv3d = ar->regiondata;
 	float co1[3], co2[3], co3[3], dir1[4], dir2[4], dir3[4];
 	float origin[3], invmat[4][4];
 	float epsilon = 0.01f; 
+	float m[2], end[3];
 	
-	if (r3d->persp == RV3D_ORTHO) {
-		VECCOPY(origin, r3d->winmat[3]);
+	if (!ar) {
+		printf("error in BMBVH_EdgeVisible!\n");
+		return 0;
 	}
-	VECCOPY(origin, r3d->viewinv[3]);
+	
+	m[0] = ar->winx/2.0;
+	m[1] = ar->winy/2.0;
+	viewline(ar, v3d, m, origin, end);
+	
 	invert_m4_m4(invmat, obedit->obmat);
 	mul_m4_v3(invmat, origin);
 

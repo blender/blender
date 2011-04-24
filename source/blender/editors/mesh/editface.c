@@ -74,7 +74,7 @@ void paintface_flush_flags(Object *ob)
 {
 	Mesh *me= get_mesh(ob);
 	DerivedMesh *dm= ob->derivedFinal;
-	MPoly *faces, *mf, *mf_orig;
+	MPoly *mf_orig;
 	DMFaceIter *fiter;
 	int *index = NULL;
 	int totface;
@@ -150,8 +150,6 @@ static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, short *mv
 MTexPoly *EDBM_get_active_mtface(BMEditMesh *em, BMFace **act_efa, int sloppy)
 {
 	BMFace *efa = NULL;
-	BMLoop *l;
-	BMIter iter, liter;
 	
 	if(!EDBM_texFaceCheck(em))
 		return NULL;
@@ -524,7 +522,7 @@ void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *eed, int val)
 	}
 }
 
-static float bm_cdata_get_single_float(BMesh *bm, CustomData *cdata, void *element, int type)
+static float bm_cdata_get_single_float(BMesh *UNUSED(bm), CustomData *cdata, void *element, int type)
 {
 	BMHeader *ele = element;
 	float *f;

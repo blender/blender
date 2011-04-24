@@ -1811,7 +1811,8 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 static int bm_test_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	RegionView3D *r3d = CTX_wm_region_view3d(C);		
+	ARegion *ar = CTX_wm_region(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMBVHTree *tree = BMBVH_NewBVH(em);
 	BMIter iter;
@@ -1822,7 +1823,7 @@ static int bm_test_exec(bContext *C, wmOperator *UNUSED(op))
 		if (!BM_TestHFlag(e, BM_SELECT))
 			continue;
 
-		if (!BMBVH_EdgeVisible(tree, e, r3d, obedit))
+		if (!BMBVH_EdgeVisible(tree, e, ar, v3d, obedit))
 			BM_Select(em->bm, e, 0);
 	}
 
@@ -2716,6 +2717,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMOperator bmop;
@@ -2822,7 +2824,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		BMO_ITER(e, &siter, em->bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
 			float cent[3] = {0, 0, 0}, mid[4], vec[3];
 
-			if (!BMBVH_EdgeVisible(bvhtree, e, rv3d, obedit) || !e->l)
+			if (!BMBVH_EdgeVisible(bvhtree, e, ar, v3d, obedit) || !e->l)
 				continue;
 
 			/*method for calculating distance:
@@ -4810,9 +4812,6 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
-	Material *ma;
-	Tex *tex;
-	BMVert *eve;
 	BMIter iter;
 	BMEdge *eed;
 	BMOperator bmop;
@@ -4821,7 +4820,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	float p3 = RNA_float_get(op->ptr, "param3");
 	float p4 = RNA_float_get(op->ptr, "param4");
 	float p5 = RNA_float_get(op->ptr, "param5");*/
-	int i, tot, recursion = RNA_int_get(op->ptr, "recursion");
+	int i, recursion = RNA_int_get(op->ptr, "recursion");
 	float *w = NULL, ftot;
 	int li;
 	BLI_array_declare(w);

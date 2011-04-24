@@ -4363,7 +4363,8 @@ static int createSlideVerts(TransInfo *t)
 	BMBVHTree *btree = BMBVH_NewBVH(em);
 	SmallHash table;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
-	RegionView3D *v3d = t->ar ? t->ar->regiondata : NULL; /* background mode support */
+	View3D *v3d = t->sa ? t->sa->spacedata.first : NULL;
+	RegionView3D *rv3d = t->ar ? t->ar->regiondata : NULL; /* background mode support */
 	ARegion *ar = t->ar;
 	float projectMat[4][4];
 	float start[3] = {0.0f, 0.0f, 0.0f}, dir[3], end[3] = {0.0f, 0.0f, 0.0f};
@@ -4374,7 +4375,7 @@ static int createSlideVerts(TransInfo *t)
 		/*ok, let's try to survive this*/
 		unit_m4(projectMat);
 	} else {
-		view3d_get_object_project_mat(v3d, t->obedit, projectMat);
+		view3d_get_object_project_mat(rv3d, t->obedit, projectMat);
 	}
 	
 	BLI_smallhash_init(&sld->vhash);
@@ -4558,7 +4559,7 @@ static int createSlideVerts(TransInfo *t)
 					if (BM_TestHFlag(e2, BM_SELECT))
 						continue;
 					
-					if (!BMBVH_EdgeVisible(btree, e2, v3d, t->obedit))
+					if (!BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit))
 						continue;
 					
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));

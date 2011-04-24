@@ -20,7 +20,7 @@ struct BVHTree *BMBVH_BVHTree(struct BMBVHTree *tree);
 struct BMFace *BMBVH_RayCast(struct BMBVHTree *tree, float *co, float *dir, float *hitout);
 
 int BMBVH_EdgeVisible(struct BMBVHTree *tree, struct BMEdge *e, 
-                      struct RegionView3D *r3d, struct Object *obedit);
+                      struct ARegion *ar, struct View3D *v3d, struct Object *obedit);
 
 #define BM_SEARCH_MAXDIST	0.4f
 

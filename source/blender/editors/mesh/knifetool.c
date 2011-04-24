@@ -924,10 +924,13 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 		return;	
 
 	/*unproject screen line*/
-	view3d_unproject(&mats, v1, s1[0], s1[1], 0.0f);
+	viewline(kcd->ar, kcd->vc.v3d, s1, v1, v3);
+	viewline(kcd->ar, kcd->vc.v3d, s2, v2, v4);
+	
+	/*view3d_unproject(&mats, v1, s1[0], s1[1], 0.0f);
 	view3d_unproject(&mats, v2, s2[0], s2[1], 0.0f);
 	view3d_unproject(&mats, v3, s1[0], s1[1], 1.0f-FLT_EPSILON);
-	view3d_unproject(&mats, v4, s2[0], s2[1], 1.0f-FLT_EPSILON);
+	view3d_unproject(&mats, v4, s2[0], s2[1], 1.0f-FLT_EPSILON);*/
 	
 	mul_m4_v3(kcd->ob->imat, v1);
 	mul_m4_v3(kcd->ob->imat, v2);
