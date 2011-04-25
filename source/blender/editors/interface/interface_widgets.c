@@ -575,19 +575,17 @@ static void shadecolors4(char *coltop, char *coldown, const char *color, short s
 	coldown[3]= color[3];	
 }
 
-static void round_box_shade_col4(const char *col1, const char *col2, float fac)
+static void round_box_shade_col4(const char col1[4], const char col2[4], const float fac)
 {
-	int faci, facm;
 	unsigned char col[4];
-	
-	faci= floor(255.1f*fac);
-	facm= 255-faci;
-	
+	const int faci= FTOCHAR(fac);
+	const int facm= 255-faci;
+
 	col[0]= (faci*col1[0] + facm*col2[0])>>8;
 	col[1]= (faci*col1[1] + facm*col2[1])>>8;
 	col[2]= (faci*col1[2] + facm*col2[2])>>8;
 	col[3]= (faci*col1[3] + facm*col2[3])>>8;
-	
+
 	glColor4ubv(col);
 }
 
@@ -2316,7 +2314,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	double value;
 	float offs, toffs, fac;
 	char outline[3];
-	
+
 	widget_init(&wtb);
 	widget_init(&wtb1);
 	
