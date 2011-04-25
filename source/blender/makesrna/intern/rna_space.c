@@ -384,6 +384,25 @@ static void rna_RegionView3D_view_location_set(PointerRNA *ptr, const float *val
 	negate_v3_v3(rv3d->ofs, values);
 }
 
+static void rna_RegionView3D_view_rotation_get(PointerRNA *ptr, float *values)
+{
+	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
+	invert_qt_qt(values, rv3d->viewquat);
+}
+
+static void rna_RegionView3D_view_rotation_set(PointerRNA *ptr, const float *values)
+{
+	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
+	invert_qt_qt(rv3d->viewquat, values);
+}
+
+static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *values)
+{
+	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
+	negate_v3_v3(rv3d->ofs, values);
+	view3d_settings_from_mat((float (*)[4])values, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+}
+
 /* Space Image Editor */
 
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
@@ -1361,9 +1380,10 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "view_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "viewmat");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX: for now, it's too risky for users to do this
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_float_funcs(prop, NULL, "rna_RegionView3D_view_matrix_set", NULL);
 	RNA_def_property_ui_text(prop, "View Matrix", "Current view matrix of the 3D region");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "view_perspective", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "persp");
@@ -1382,8 +1402,13 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
-	prop= RNA_def_property(srna, "view_rotation", PROP_FLOAT, PROP_QUATERNION);
+	prop= RNA_def_property(srna, "view_rotation", PROP_FLOAT, PROP_QUATERNION); // cant use because its inverted
+#if 0
 	RNA_def_property_float_sdna(prop, NULL, "viewquat");
+#else
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_float_funcs(prop, "rna_RegionView3D_view_rotation_get", "rna_RegionView3D_view_rotation_set", NULL);
+#endif
 	RNA_def_property_ui_text(prop, "View Rotation", "Rotation in quaternions (keep normalized)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	

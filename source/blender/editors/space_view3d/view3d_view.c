@@ -106,9 +106,7 @@ float *give_cursor(Scene *scene, View3D *v3d)
 
 /* Gets the lens and clipping values from a camera of lamp type object */
 static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, float *clipend)
-{	
-	if (!ob) return;
-	
+{
 	if(ob->type==OB_LAMP ) {
 		Lamp *la = ob->data;
 		if (lens) {
@@ -137,39 +135,42 @@ static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, f
 * 
 * The dist is not modified for this function, if NULL its assimed zero
 * */
-void view3d_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
+void view3d_settings_from_mat(float mat[][4], float *ofs, float *quat, float *dist)
 {
-	if (!ob) return;
-
 	/* Offset */
 	if (ofs)
-		negate_v3_v3(ofs, ob->obmat[3]);
+		negate_v3_v3(ofs, mat[3]);
 
 	/* Quat */
 	if (quat) {
 		float imat[4][4];
-		invert_m4_m4(imat, ob->obmat);
+		invert_m4_m4(imat, mat);
 		mat4_to_quat(quat, imat);
 	}
 
 	if (dist) {
-		float tquat[4];
+		float nmat[3][3];
 		float vec[3];
 
 		vec[0]= 0.0f;
 		vec[1]= 0.0f;
 		vec[2]= -(*dist);
 
-		mat4_to_quat(tquat, ob->obmat);
+		copy_m3_m4(nmat, mat);
+		normalize_m3(nmat);
 
-		mul_qt_v3(tquat, vec);
-
+		mul_m3_v3(nmat, vec);;
 		sub_v3_v3(ofs, vec);
 	}
+}
 
-	/* Lens */
-	if (lens)
+void view3d_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
+{
+	view3d_settings_from_mat(ob->obmat, ofs, quat, dist);
+
+	if (lens) {
 		object_lens_clip_settings(ob, lens, NULL, NULL);
+	}
 }
 
 
