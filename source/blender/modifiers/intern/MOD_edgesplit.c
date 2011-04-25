@@ -280,8 +280,8 @@ static void smoothmesh_print(SmoothMesh *mesh)
 		dm->getVert(dm, vert->oldIndex, &mv);
 
 		printf("%3d: ind={%3d, %3d}, pos={% 5.1f, % 5.1f, % 5.1f}",
-				i, vert->oldIndex, vert->newIndex,
-				mv.co[0], mv.co[1], mv.co[2]);
+			i, vert->oldIndex, vert->newIndex,
+			mv.co[0], mv.co[1], mv.co[2]);
 		printf(", faces={");
 		for(node = vert->faces; node != NULL; node = node->next) {
 			printf(" %d", ((SmoothFace *)node->link)->newIndex);
@@ -295,9 +295,9 @@ static void smoothmesh_print(SmoothMesh *mesh)
 		LinkNode *node;
 
 		printf("%4d: indices={%4d, %4d}, verts={%4d, %4d}",
-			   i,
-		edge->oldIndex, edge->newIndex,
-		edge->verts[0]->newIndex, edge->verts[1]->newIndex);
+			i,
+			edge->oldIndex, edge->newIndex,
+			edge->verts[0]->newIndex, edge->verts[1]->newIndex);
 		if(edge->verts[0] == edge->verts[1]) printf(" <- DUPLICATE VERTEX");
 		printf(", faces={");
 		for(node = edge->faces; node != NULL; node = node->next) {
@@ -311,7 +311,7 @@ static void smoothmesh_print(SmoothMesh *mesh)
 		SmoothFace *face = &mesh->faces[i];
 
 		printf("%4d: indices={%4d, %4d}, edges={", i,
-				face->oldIndex, face->newIndex);
+			face->oldIndex, face->newIndex);
 		for(j = 0; j < SMOOTHFACE_MAX_EDGES && face->edges[j]; j++) {
 			if(face->flip[j])
 				printf(" -%-2d", face->edges[j]->newIndex);
@@ -514,18 +514,18 @@ static void linklist_copy(LinkNode **target, LinkNode *source)
 	for(; source; source = source->next) {
 		if(node) {
 			node->next = MEM_mallocN(sizeof(*node->next), "nlink_copy");
-										node = node->next;
-} else {
-										node = *target = MEM_mallocN(sizeof(**target), "nlink_copy");
-}
-										node->link = source->link;
-										node->next = NULL;
-}
+			node = node->next;
+		} else {
+			node = *target = MEM_mallocN(sizeof(**target), "nlink_copy");
+		}
+		node->link = source->link;
+		node->next = NULL;
+	}
 }
 #endif
 
-										/* appends source to target if it's not already in target */
-										static void linklist_append_unique(LinkNode **target, void *source) 
+/* appends source to target if it's not already in target */
+static void linklist_append_unique(LinkNode **target, void *source)
 {
 	LinkNode *node;
 	LinkNode *prev = NULL;
@@ -559,7 +559,7 @@ static void linklist_prepend_linklist(LinkNode **list, LinkNode *prepend)
 
 		node->next = *list;
 		*list = prepend;
-}
+	}
 }
 #endif
 
@@ -666,7 +666,7 @@ static void edge_replace_vert(void *ptr, void *userdata)
 
 #ifdef EDGESPLIT_DEBUG_3
 	printf("replacing vert %4d with %4d in edge %4d",
-			find->newIndex, replace->newIndex, edge->newIndex);
+		find->newIndex, replace->newIndex, edge->newIndex);
 	printf(": {%4d, %4d}", edge->verts[0]->newIndex, edge->verts[1]->newIndex);
 #endif
 
@@ -702,15 +702,15 @@ static void face_replace_edge(void *ptr, void *userdata)
 
 #ifdef EDGESPLIT_DEBUG_3
 	printf("replacing edge %4d with %4d in face %4d",
-			find->newIndex, replace->newIndex, face->newIndex);
+		find->newIndex, replace->newIndex, face->newIndex);
 	if(face->edges[3])
 		printf(": {%2d %2d %2d %2d}",
-				face->edges[0]->newIndex, face->edges[1]->newIndex,
-				face->edges[2]->newIndex, face->edges[3]->newIndex);
+			face->edges[0]->newIndex, face->edges[1]->newIndex,
+			face->edges[2]->newIndex, face->edges[3]->newIndex);
 	else
 		printf(": {%2d %2d %2d}",
-				face->edges[0]->newIndex, face->edges[1]->newIndex,
-				face->edges[2]->newIndex);
+			face->edges[0]->newIndex, face->edges[1]->newIndex,
+			face->edges[2]->newIndex);
 #endif
 
 	for(i = 0; i < SMOOTHFACE_MAX_EDGES && face->edges[i]; i++) {
@@ -724,12 +724,12 @@ static void face_replace_edge(void *ptr, void *userdata)
 #ifdef EDGESPLIT_DEBUG_3
 	if(face->edges[3])
 		printf(" -> {%2d %2d %2d %2d}\n",
-				face->edges[0]->newIndex, face->edges[1]->newIndex,
-				face->edges[2]->newIndex, face->edges[3]->newIndex);
+			face->edges[0]->newIndex, face->edges[1]->newIndex,
+			face->edges[2]->newIndex, face->edges[3]->newIndex);
 	else
 		printf(" -> {%2d %2d %2d}\n",
-				face->edges[0]->newIndex, face->edges[1]->newIndex,
-				face->edges[2]->newIndex);
+			face->edges[0]->newIndex, face->edges[1]->newIndex,
+			face->edges[2]->newIndex);
 #endif
 }
 
@@ -776,7 +776,7 @@ static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge, Lin
 	LinkNode *visited_edges = NULL;
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== START === find_other_sharp_edge(edge = %4d, vert = %4d)\n",
-			edge->newIndex, vert->newIndex);
+		edge->newIndex, vert->newIndex);
 #endif
 
 	/* get a face on which to start */
@@ -800,7 +800,7 @@ static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge, Lin
 			 && !linklist_contains(visited_edges, edge2)) {
 #ifdef EDGESPLIT_DEBUG_3
 		printf("current face %4d; current edge %4d\n", face->newIndex,
-				edge2->newIndex);
+			edge2->newIndex);
 #endif
 		/* get the next face */
 		face = other_face(edge2, face);
@@ -818,7 +818,7 @@ static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge, Lin
 			edge2 = other_edge(face, vert, edge2);
 #ifdef EDGESPLIT_DEBUG_3
 			printf("next face %4d; next edge %4d\n",
-					face->newIndex, edge2->newIndex);
+				face->newIndex, edge2->newIndex);
 		} else {
 			printf("loose edge: %4d\n", edge2->newIndex);
 #endif
@@ -834,8 +834,8 @@ static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge, Lin
 
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== END === find_other_sharp_edge(edge = %4d, vert = %4d), "
-					"returning edge %d\n",
-	edge->newIndex, vert->newIndex, edge2 ? edge2->newIndex : -1);
+		"returning edge %d\n",
+		edge->newIndex, vert->newIndex, edge2 ? edge2->newIndex : -1);
 #endif
 	return edge2;
 }
@@ -911,7 +911,7 @@ static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
 	LinkNode *visited_faces = NULL;
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== START === propagate_split(edge = %4d, vert = %4d)\n",
-			edge->newIndex, vert->newIndex);
+		edge->newIndex, vert->newIndex);
 #endif
 
 	edge2 = find_other_sharp_edge(vert, edge, &visited_faces);
@@ -956,7 +956,7 @@ static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
 	BLI_linklist_free(visited_faces, NULL);
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== END === propagate_split(edge = %4d, vert = %4d)\n",
-			edge->newIndex, vert->newIndex);
+		edge->newIndex, vert->newIndex);
 #endif
 }
 
@@ -969,7 +969,7 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 	LinkNode *visited_faces = NULL;
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== START === split_edge(edge = %4d, vert = %4d)\n",
-			edge->newIndex, vert->newIndex);
+		edge->newIndex, vert->newIndex);
 #endif
 
 	edge2 = find_other_sharp_edge(vert, edge, &visited_faces);
@@ -1042,7 +1042,7 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 	BLI_linklist_free(visited_faces, NULL);
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== END === split_edge(edge = %4d, vert = %4d)\n",
-			edge->newIndex, vert->newIndex);
+		edge->newIndex, vert->newIndex);
 #endif
 }
 
@@ -1243,8 +1243,8 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd, DerivedMesh
 
 #ifdef EDGESPLIT_DEBUG_0
 	printf("Edgesplit: Estimated %d verts & %d edges, "
-			"found %d verts & %d edges\n", max_verts, max_edges,
-			mesh->num_verts, mesh->num_edges);
+		"found %d verts & %d edges\n", max_verts, max_edges,
+		mesh->num_verts, mesh->num_edges);
 #endif
 
 	result = CDDM_from_smoothmesh(mesh);
