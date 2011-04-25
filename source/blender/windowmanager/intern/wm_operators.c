@@ -1948,11 +1948,14 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	RNA_string_get(op->ptr, "filepath", filename);
-	collada_export(CTX_data_scene(C), filename);
-	
-	return OPERATOR_FINISHED;
+	if(collada_export(CTX_data_scene(C), filename)) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static void WM_OT_collada_export(wmOperatorType *ot)
