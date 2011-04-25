@@ -1299,7 +1299,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 					bpa->data.mode = eBoidMode_OnLand;
 				}
 				/* fly above ground */
-				else {
+				else if(bpa->ground) {
 					pa->state.co[2] = ground_co[2] + pa->size * boids->height;
 					pa->state.vel[2] = 0.0f;
 				}
