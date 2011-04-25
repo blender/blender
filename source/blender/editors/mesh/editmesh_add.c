@@ -1081,6 +1081,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			}
 			eve= eve->next;
 		}
+		recalc_editnormals(em);
 		break;
 			
 	case PRIM_UVSPHERE: /*  UVsphere */
@@ -1102,7 +1103,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			eve= addvertlist(em, vec, NULL);
 			eve->f= 1+2+4;
 			if(a==0) v1= eve;
-			else addedgelist(em, eve->prev, eve, NULL);
+			else addedgelist(em, eve, eve->prev, NULL);
 			phi+= phid;
 		}
 		
@@ -1128,6 +1129,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			}
 			eve= eve->next;
 		}
+		recalc_editnormals(em);
 		break;
 	case PRIM_ICOSPHERE: /* Icosphere */
 		{
@@ -1320,9 +1322,9 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	EM_stats_update(em);
 	/* simple selection flush OK, based on fact it's a single model */
 	EM_select_flush(em); /* flushes vertex -> edge -> face selection */
-	
-	if(type!=PRIM_PLANE && type!=PRIM_MONKEY)
-		EM_recalc_normal_direction(em, 0, 0);	/* otherwise monkey has eyes in wrong direction */
+
+	if(!ELEM5(type, PRIM_GRID, PRIM_PLANE, PRIM_ICOSPHERE, PRIM_UVSPHERE, PRIM_MONKEY))
+		EM_recalc_normal_direction(em, FALSE, TRUE);	/* otherwise monkey has eyes in wrong direction */
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 }
