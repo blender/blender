@@ -942,10 +942,13 @@ static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
 				/* vert has more than one fan of faces attached; split it */
 				vert2 = smoothvert_copy(vert, mesh);
 
-				/* replace vert with its copy in visited_faces */
-				repdata.find = vert;
-				repdata.replace = vert2;
-				BLI_linklist_apply(visited_faces, face_replace_vert, &repdata);
+				/* fails in rare cases, see [#26993] */
+				if(vert2) {
+					/* replace vert with its copy in visited_faces */
+					repdata.find = vert;
+					repdata.replace = vert2;
+					BLI_linklist_apply(visited_faces, face_replace_vert, &repdata);
+				}
 			}
 		} else {
 			/* edge is not loose, so it must be sharp; split it */
