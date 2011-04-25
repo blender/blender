@@ -469,13 +469,12 @@ int folderlist_clear_next(struct SpaceFile *sfile)
 /* not listbase itself */
 void folderlist_free(ListBase* folderlist)
 {
-	FolderList *folder;
 	if (folderlist){
+		FolderList *folder;
 		for(folder= folderlist->first; folder; folder= folder->next)
 			MEM_freeN(folder->foldername);
 		BLI_freelistN(folderlist);
 	}
-	folderlist= NULL;
 }
 
 ListBase *folderlist_duplicate(ListBase* folderlist)
