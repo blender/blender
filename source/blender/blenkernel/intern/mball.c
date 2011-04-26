@@ -67,6 +67,7 @@
 #include "BKE_displist.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
+#include "BKE_material.h"
 
 /* Global variables */
 
@@ -139,10 +140,17 @@ MetaBall *copy_mball(MetaBall *mb)
 	return mbn;
 }
 
+static void extern_local_mball(MetaBall *mb)
+{
+	if(mb->mat) {
+		extern_local_matarar(mb->mat, mb->totcol);
+	}
+}
+
 void make_local_mball(MetaBall *mb)
 {
+	Main *bmain= G.main;
 	Object *ob;
-	MetaBall *mbn;
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
@@ -154,37 +162,38 @@ void make_local_mball(MetaBall *mb)
 	if(mb->id.us==1) {
 		mb->id.lib= NULL;
 		mb->id.flag= LIB_LOCAL;
+		new_id(&bmain->mball, (ID *)mb, NULL);
+		extern_local_mball(mb);
+		
 		return;
 	}
-	
-	ob= G.main->object.first;
-	while(ob) {
-		if(ob->data==mb) {
+
+	for(ob= G.main->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+		if(ob->data == mb) {
 			if(ob->id.lib) lib= 1;
 			else local= 1;
 		}
-		ob= ob->id.next;
 	}
 	
 	if(local && lib==0) {
 		mb->id.lib= NULL;
 		mb->id.flag= LIB_LOCAL;
+
+		new_id(&bmain->mball, (ID *)mb, NULL);
+		extern_local_mball(mb);
 	}
 	else if(local && lib) {
-		mbn= copy_mball(mb);
+		MetaBall *mbn= copy_mball(mb);
 		mbn->id.us= 0;
-		
-		ob= G.main->object.first;
-		while(ob) {
-			if(ob->data==mb) {
-				
+
+		for(ob= G.main->object.first; ob; ob= ob->id.next) {
+			if(ob->data == mb) {
 				if(ob->id.lib==NULL) {
 					ob->data= mbn;
 					mbn->id.us++;
 					mb->id.us--;
 				}
 			}
-			ob= ob->id.next;
 		}
 	}
 }

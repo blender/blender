@@ -267,6 +267,14 @@ Material *localize_material(Material *ma)
 	return man;
 }
 
+static void extern_local_material(Material *ma)
+{
+	int i;
+	for(i=0; i < MAX_MTEX; i++) {
+		if(ma->mtex[i]) id_lib_extern((ID *)ma->mtex[i]->tex);
+	}
+}
+
 void make_local_material(Material *ma)
 {
 	Main *bmain= G.main;
@@ -286,11 +294,9 @@ void make_local_material(Material *ma)
 	if(ma->id.us==1) {
 		ma->id.lib= NULL;
 		ma->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)ma, NULL);
-		for(a=0; a<MAX_MTEX; a++) {
-			if(ma->mtex[a]) id_lib_extern((ID *)ma->mtex[a]->tex);
-		}
-		
+
+		new_id(&bmain->mat, (ID *)ma, NULL);
+		extern_local_material(ma);
 		return;
 	}
 	
@@ -350,12 +356,9 @@ void make_local_material(Material *ma)
 	if(local && lib==0) {
 		ma->id.lib= NULL;
 		ma->id.flag= LIB_LOCAL;
-		
-		for(a=0; a<MAX_MTEX; a++) {
-			if(ma->mtex[a]) id_lib_extern((ID *)ma->mtex[a]->tex);
-		}
-		
-		new_id(NULL, (ID *)ma, NULL);
+
+		new_id(&bmain->mat, (ID *)ma, NULL);
+		extern_local_material(ma);
 	}
 	else if(local && lib) {
 		
@@ -426,6 +429,15 @@ void make_local_material(Material *ma)
 			}
 			mb= mb->id.next;
 		}
+	}
+}
+
+/* for curve, mball, mesh types */
+void extern_local_matarar(struct Material **matar, short totcol)
+{
+	short i;
+	for(i= 0; i < totcol; i++) {
+		id_lib_extern((ID *)matar[i]);
 	}
 }
 

@@ -3589,28 +3589,38 @@ ParticleSettings *psys_copy_settings(ParticleSettings *part)
 	return partn;
 }
 
+static void expand_local_particlesettings(ParticleSettings *part)
+{
+	int i;
+	id_lib_extern((ID *)part->dup_group);
+
+	for(i=0; i<MAX_MTEX; i++) {
+		if(part->mtex[i]) id_lib_extern((ID *)part->mtex[i]->tex);
+	}
+}
+
 void make_local_particlesettings(ParticleSettings *part)
 {
+	Main *bmain= G.main;
 	Object *ob;
-	ParticleSettings *par;
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
 	
 	if(part->id.lib==0) return;
 	if(part->id.us==1) {
 		part->id.lib= 0;
 		part->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)part, 0);
+		new_id(&bmain->particle, (ID *)part, 0);
+		expand_local_particlesettings(part);
 		return;
 	}
-	
+
 	/* test objects */
-	ob= G.main->object.first;
-	while(ob) {
+	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
 		ParticleSystem *psys=ob->particlesystem.first;
 		for(; psys; psys=psys->next){
 			if(psys->part==part) {
@@ -3618,31 +3628,28 @@ void make_local_particlesettings(ParticleSettings *part)
 				else local= 1;
 			}
 		}
-		ob= ob->id.next;
 	}
 	
 	if(local && lib==0) {
 		part->id.lib= 0;
 		part->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)part, 0);
+		new_id(&bmain->particle, (ID *)part, 0);
+		expand_local_particlesettings(part);
 	}
 	else if(local && lib) {
-		
-		par= psys_copy_settings(part);
-		par->id.us= 0;
+		ParticleSettings *partn= psys_copy_settings(part);
+		partn->id.us= 0;
 		
 		/* do objects */
-		ob= G.main->object.first;
-		while(ob) {
-			ParticleSystem *psys=ob->particlesystem.first;
-			for(; psys; psys=psys->next){
+		for(ob= bmain->object.first; ob; ob= ob->id.next) {
+			ParticleSystem *psys;
+			for(psys= ob->particlesystem.first; psys; psys=psys->next){
 				if(psys->part==part && ob->id.lib==0) {
-					psys->part= par;
-					par->id.us++;
+					psys->part= partn;
+					partn->id.us++;
 					part->id.us--;
 				}
 			}
-			ob= ob->id.next;
 		}
 	}
 }
