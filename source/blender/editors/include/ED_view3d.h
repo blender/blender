@@ -185,8 +185,8 @@ unsigned int ED_viewedit_datamask(struct bScreen *screen);
 
 
 /* assigning view matrix */
-void view3d_settings_from_mat(float mat[][4], float *ofs, float *quat, float *dist);
-void view3d_settings_from_ob(struct Object *ob, float *ofs, float *quat, float *dist, float *lens);
+void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist);
+void view3d_apply_ob(struct Object *ob, float *ofs, float *quat, float *dist, float *lens);
 int view3d_is_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
 
 #endif /* ED_VIEW3D_H */

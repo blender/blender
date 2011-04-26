@@ -38,6 +38,8 @@
 /* EdgeSplit modifier: Splits edges in the mesh according to sharpness flag
  * or edge angle (can be used to achieve autosmoothing) */
 
+#include <assert.h>
+
 #include "DNA_meshdata_types.h"
 
 #include "BLI_listbase.h"
@@ -124,6 +126,8 @@ typedef struct SmoothMesh {
 static SmoothVert *smoothvert_copy(SmoothVert *vert, SmoothMesh *mesh)
 {
 	SmoothVert *copy = &mesh->verts[mesh->num_verts];
+
+	assert(vert != NULL);
 
 	if(mesh->num_verts >= mesh->max_verts) {
 		printf("Attempted to add a SmoothMesh vert beyond end of array\n");

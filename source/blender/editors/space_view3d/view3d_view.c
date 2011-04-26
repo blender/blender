@@ -135,7 +135,7 @@ static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, f
 * 
 * The dist is not modified for this function, if NULL its assimed zero
 * */
-void view3d_settings_from_mat(float mat[][4], float *ofs, float *quat, float *dist)
+void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist)
 {
 	/* Offset */
 	if (ofs)
@@ -164,9 +164,9 @@ void view3d_settings_from_mat(float mat[][4], float *ofs, float *quat, float *di
 	}
 }
 
-void view3d_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
+void view3d_apply_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
 {
-	view3d_settings_from_mat(ob->obmat, ofs, quat, dist);
+	view3d_apply_mat4(ob->obmat, ofs, quat, dist);
 
 	if (lens) {
 		object_lens_clip_settings(ob, lens, NULL, NULL);
@@ -211,7 +211,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 	if(lens) sms.new_lens= *lens;
 
 	if (camera) {
-		view3d_settings_from_ob(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
+		view3d_apply_ob(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
 		sms.to_camera= 1; /* restore view3d values in end */
 	}
 	
@@ -236,7 +236,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 			/* original values */
 			if (oldcamera) {
 				sms.orig_dist= rv3d->dist; // below function does weird stuff with it...
-				view3d_settings_from_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
+				view3d_apply_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
 			}
 			else {
 				copy_v3_v3(sms.orig_ofs, rv3d->ofs);
@@ -1188,7 +1188,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			rv3d->persp=RV3D_PERSP;
 			rv3d->dist= 0.0;
 			
-			view3d_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
+			view3d_apply_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
 			smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 			
 			rv3d->persp=RV3D_CAMOB; /* just to be polite, not needed */
@@ -1931,7 +1931,7 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 		copy_v3_v3(orig_ofs, rv3d->ofs);
 		rv3d->persp= RV3D_PERSP;
 		rv3d->dist= 0.0;
-		view3d_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
+		view3d_apply_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
 		smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 	} else {
 		if (rv3d->persp==RV3D_CAMOB) rv3d->persp= RV3D_PERSP; /* switch out of camera mode */

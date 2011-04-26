@@ -790,7 +790,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			View3D *v3d = vod->sa->spacedata.first;
 
 			if(v3d->camera) {
-				view3d_settings_from_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+				view3d_apply_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 			}
 
 			if(rv3d->persp==RV3D_CAMOB) {
