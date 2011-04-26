@@ -194,7 +194,7 @@ AnimData *BKE_copy_animdata (AnimData *adt, const short do_action)
 	dadt= MEM_dupallocN(adt);
 	
 	/* make a copy of action - at worst, user has to delete copies... */
-	if(do_action) {
+	if (do_action) {
 		dadt->action= copy_action(adt->action);
 		dadt->tmpact= copy_action(adt->tmpact);
 	}
@@ -216,11 +216,11 @@ AnimData *BKE_copy_animdata (AnimData *adt, const short do_action)
 	return dadt;
 }
 
-int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from, const short do_action)
+int BKE_copy_animdata_id (ID *id_to, ID *id_from, const short do_action)
 {
 	AnimData *adt;
 
-	if((id_to && id_from) && (GS(id_to->name) != GS(id_from->name)))
+	if ((id_to && id_from) && (GS(id_to->name) != GS(id_from->name)))
 		return 0;
 
 	BKE_free_animdata(id_to);
@@ -237,13 +237,13 @@ int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from, const short do_ac
 void BKE_copy_animdata_id_action(struct ID *id)
 {
 	AnimData *adt= BKE_animdata_from_id(id);
-	if(adt) {
-		if(adt->action) {
-			((ID *)adt->action)->us--;
+	if (adt) {
+		if (adt->action) {
+			id_us_min((ID *)adt->action);
 			adt->action= copy_action(adt->action);
 		}
-		if(adt->tmpact) {
-			((ID *)adt->tmpact)->us--;
+		if (adt->tmpact) {
+			id_us_min((ID *)adt->tmpact);
 			adt->tmpact= copy_action(adt->tmpact);
 		}
 	}
