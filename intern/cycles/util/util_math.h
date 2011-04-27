@@ -62,7 +62,7 @@ __device_inline float fminf(float a, float b)
 
 #endif
 
-#ifndef __KERNEL_OPENCL__
+#ifndef __KERNEL_GPU__
 
 __device_inline int max(int a, int b)
 {
