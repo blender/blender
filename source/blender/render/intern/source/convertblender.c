@@ -170,6 +170,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	float fac, starmindist, clipend;
 	float mat[4][4], stargrid, maxrand, maxjit, force, alpha;
 	int x, y, z, sx, sy, sz, ex, ey, ez, done = 0;
+	unsigned int totstar= 0;
 	
 	if(initfunc) {
 		scene= scenev3d;
@@ -294,6 +295,17 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 						}
 					}
 				}
+
+				/* break out of the loop if generating stars takes too long */
+				if(re && !(totstar % 1000000)) {
+					if(re->test_break(re->tbh)) {
+						x= ex + 1;
+						y= ey + 1;
+						z= ez + 1;
+					}
+				}
+				
+				totstar++;
 			}
 			/* do not call blender_test_break() here, since it is used in UI as well, confusing the callback system */
 			/* main cause is G.afbreek of course, a global again... (ton) */
@@ -5045,9 +5057,13 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		
 		/* don't sort stars */
 		tothalo= re->tothalo;
-		if(!re->test_break(re->tbh))
-			if(re->wrld.mode & WO_STARS)
+		if(!re->test_break(re->tbh)) {
+			if(re->wrld.mode & WO_STARS) {
+				re->i.infostr= "Creating Starfield";
+				re->stats_draw(re->sdh, &re->i);
 				RE_make_stars(re, NULL, NULL, NULL, NULL);
+			}
+		}
 		sort_halos(re, tothalo);
 		
 		init_camera_inside_volumes(re);
