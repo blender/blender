@@ -85,6 +85,7 @@
 #include "ED_curve.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_object.h"
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -686,6 +687,7 @@ static const char *get_lamp_defname(int type)
 static int object_lamp_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob;
+	Lamp *la;
 	int type= RNA_enum_get(op->ptr, "type");
 	int enter_editmode;
 	unsigned int layer;
@@ -696,9 +698,14 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
-	((Lamp*)ob->data)->type= type;
-	rename_id((ID *)ob, get_lamp_defname(type));
-	rename_id((ID *)ob->data, get_lamp_defname(type));
+	la= (Lamp*)ob->data;
+
+	la->type= type;
+	rename_id(&ob->id, get_lamp_defname(type));
+	rename_id(&la->id, get_lamp_defname(type));
+
+	ED_node_shader_default(&la->id);
+	la->use_nodes= 1;
 	
 	return OPERATOR_FINISHED;
 }

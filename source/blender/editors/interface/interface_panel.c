@@ -421,12 +421,12 @@ static void ui_draw_panel_dragwidget(rctf *rect)
 	dy= 0.333f*(ymax-ymin);
 	
 	glEnable(GL_BLEND);
-	glColor4ub(255, 255, 255, 50);
+	glColor4ub(255, 255, 255, 20);
 	fdrawline(xmin, ymax, xmax, ymin);
 	fdrawline(xmin+dx, ymax, xmax, ymin+dy);
 	fdrawline(xmin+2*dx, ymax, xmax, ymin+2*dy);
 	
-	glColor4ub(0, 0, 0, 50);
+	glColor4ub(0, 0, 0, 20);
 	fdrawline(xmin, ymax+1, xmax, ymin+1);
 	fdrawline(xmin+dx, ymax+1, xmax, ymin+dy+1);
 	fdrawline(xmin+2*dx, ymax+1, xmax, ymin+2*dy+1);
@@ -493,24 +493,23 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	headrect.ymin= headrect.ymax;
 	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
-	if(!(panel->runtime_flag & PNL_FIRST)) {
+	{
 		float minx= rect->xmin+5.0f/block->aspect;
 		float maxx= rect->xmax-5.0f/block->aspect;
 		float y= headrect.ymax;
 		
 		glEnable(GL_BLEND);
-		glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-		fdrawline(minx, y+1, maxx, y+1);
-		glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-		fdrawline(minx, y, maxx, y);
+		glColor4f(0.0f, 0.0f, 0.0f, 0.1f);
+		uiSetRoundBox(15);
+		uiDrawBox(GL_POLYGON, minx, headrect.ymin, maxx, y+1, 4);
 		glDisable(GL_BLEND);
 	}
 	
 	/* horizontal title */
 	if(!(panel->flag & PNL_CLOSEDX)) {
 		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
-		
-		/* itemrect smaller */	
+
+		/* itemrect smaller */  
 		itemrect.xmax= headrect.xmax - 5.0f/block->aspect;
 		itemrect.xmin= itemrect.xmax - (headrect.ymax-headrect.ymin);
 		itemrect.ymin= headrect.ymin;
@@ -535,7 +534,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		/* in some occasions, draw a border */
 		if(panel->flag & PNL_SELECT) {
 			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
-			else uiSetRoundBox(3);
+			else uiSetRoundBox(0);
 			
 			UI_ThemeColorShade(TH_BACK, -120);
 			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax+1, 8);
@@ -564,7 +563,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	itemrect.ymin= headrect.ymin;
 	itemrect.ymax= headrect.ymax;
 	
-	rectf_scale(&itemrect, 0.5f);
+	rectf_scale(&itemrect, 0.35f);
 	
 	if(panel->flag & PNL_CLOSEDY)
 		ui_draw_tria_rect(&itemrect, 'h');
@@ -572,8 +571,6 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		ui_draw_tria_rect(&itemrect, 'h');
 	else
 		ui_draw_tria_rect(&itemrect, 'v');
-	
-	
 }
 
 /************************** panel alignment *************************/

@@ -33,12 +33,14 @@
 #ifndef ED_NODE_H
 #define ED_NODE_H
 
+struct ID;
+struct Main;
 struct Material;
 struct Scene;
 struct Tex;
 struct bContext;
 struct bNode;
-struct ID;
+struct bNodeTree;
 
 /* drawnode.c */
 void ED_init_node_butfuncs(void);
@@ -48,11 +50,14 @@ void ED_node_changed_update(struct ID *id, struct bNode *node);
 void ED_node_generic_update(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
 
 /* node_edit.c */
-void ED_node_shader_default(struct Material *ma);
+void ED_node_shader_default(struct ID *id);
 void ED_node_composit_default(struct Scene *sce);
 void ED_node_texture_default(struct Tex *tex);
 
-/* node ops.c */
+/* node_layout.c */
+void ED_node_tree_auto_layout(struct bNodeTree *ntree, struct bNode *root);
+
+/* node_ops.c */
 void ED_operatormacros_node(void);
 
 #endif /* ED_NODE_H */

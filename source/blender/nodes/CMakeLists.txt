@@ -113,6 +113,38 @@ set(SRC
 	intern/SHD_nodes/SHD_valToRgb.c
 	intern/SHD_nodes/SHD_value.c
 	intern/SHD_nodes/SHD_vectMath.c
+	intern/SHD_nodes/SHD_attribute.c
+	intern/SHD_nodes/SHD_background.c
+	intern/SHD_nodes/SHD_bsdf_anisotropic.c
+	intern/SHD_nodes/SHD_bsdf_diffuse.c
+	intern/SHD_nodes/SHD_bsdf_glossy.c
+	intern/SHD_nodes/SHD_bsdf_glass.c
+	intern/SHD_nodes/SHD_bsdf_translucent.c
+	intern/SHD_nodes/SHD_bsdf_transparent.c
+	intern/SHD_nodes/SHD_bsdf_velvet.c
+	intern/SHD_nodes/SHD_emission.c
+	intern/SHD_nodes/SHD_fresnel.c
+	intern/SHD_nodes/SHD_geometry.c
+	intern/SHD_nodes/SHD_light_path.c
+	intern/SHD_nodes/SHD_mix_closure.c
+	intern/SHD_nodes/SHD_add_closure.c
+	intern/SHD_nodes/SHD_output_lamp.c
+	intern/SHD_nodes/SHD_output_material.c
+	intern/SHD_nodes/SHD_output_world.c
+	intern/SHD_nodes/SHD_tex_blend.c
+	intern/SHD_nodes/SHD_tex_clouds.c
+	intern/SHD_nodes/SHD_tex_coord.c
+	intern/SHD_nodes/SHD_tex_distnoise.c
+	intern/SHD_nodes/SHD_tex_image.c
+	intern/SHD_nodes/SHD_tex_environment.c
+	intern/SHD_nodes/SHD_tex_magic.c
+	intern/SHD_nodes/SHD_tex_marble.c
+	intern/SHD_nodes/SHD_tex_musgrave.c
+	intern/SHD_nodes/SHD_tex_noise.c
+	intern/SHD_nodes/SHD_tex_sky.c
+	intern/SHD_nodes/SHD_tex_stucci.c
+	intern/SHD_nodes/SHD_tex_voronoi.c
+	intern/SHD_nodes/SHD_tex_wood.c
 	intern/SHD_util.c
 	intern/TEX_nodes/TEX_at.c
 	intern/TEX_nodes/TEX_bricks.c

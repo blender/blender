@@ -335,7 +335,7 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 {
 	uiLayout *row;
 	
-	uiItemL(layout, "Location:", ICON_NONE);
+	uiItemL(layout, "Translation:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "location", 0, "", ICON_NONE);
 	
@@ -347,6 +347,7 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "scale", 0, "", ICON_NONE);
 	
+#if 0
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "use_min", 0, "Min", ICON_NONE);
 	uiItemR(row, ptr, "min", 0, "", ICON_NONE);
@@ -354,7 +355,7 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "use_max", 0, "Max", ICON_NONE);
 	uiItemR(row, ptr, "max", 0, "", ICON_NONE);
-	
+#endif	
 }
 
 static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -379,6 +380,97 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA 
 		uiItemR(col, ptr, "uv_layer", 0, "UV", ICON_NONE);
 		uiItemR(col, ptr, "color_layer", 0, "VCol", ICON_NONE);
 	}
+}
+
+/*static void node_layout_prop(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname)
+{
+	if(C && CTX_wm_space_node(C)) {
+		uiItemR(layout, ptr, propname, 0, NULL, ICON_NONE);
+	}
+	else {
+		uiLayout *split = uiLayoutSplit(layout, 0.35f, 0);
+		PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+
+		uiItemL(uiLayoutColumn(split, 0), RNA_property_ui_name(prop), ICON_NONE);
+		uiItemR(uiLayoutColumn(split, 0), ptr, propname, 0, "", ICON_NONE);
+	}
+}*/
+
+static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	//uiItemR(layout, ptr, "image", 0, "", ICON_NONE);
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
+}
+
+static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "sun_direction", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "turbidity", 0, NULL, ICON_NONE);
+}
+
+static void node_shader_buts_tex_blend(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "progression", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "axis", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_clouds(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "noise_basis", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "noise_type", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "turbulence_depth", 0, NULL, ICON_NONE);
+}
+
+static void node_shader_buts_tex_distnoise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "noise_basis", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "noise_distortion", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_magic(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "turbulence_depth", 0, NULL, ICON_NONE);
+}
+
+static void node_shader_buts_tex_marble(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "marble_type", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "noise_basis", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "noise_type", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "turbulence_depth", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "wave_type", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "musgrave_type", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "noise_basis", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_stucci(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "stucci_type", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "noise_basis", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "noise_type", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "distance_metric", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "coloring", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_wood(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "noise_basis", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "noise_type", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "wood_type", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "wave_type", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "distribution", 0, "", ICON_NONE);
 }
 
 static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -463,8 +555,48 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		case SH_NODE_VECT_MATH: 
 			ntype->uifunc= node_shader_buts_vect_math;
 			break; 
-		case SH_NODE_GEOMETRY:
+		case SH_NODE_GEOM:
 			ntype->uifunc= node_shader_buts_geometry;
+			break;
+		case SH_NODE_TEX_SKY:
+			ntype->uifunc= node_shader_buts_tex_sky;
+			break;
+		case SH_NODE_TEX_IMAGE:
+			ntype->uifunc= node_shader_buts_tex_image;
+			break;
+		case SH_NODE_TEX_ENVIRONMENT:
+			ntype->uifunc= node_shader_buts_tex_image;
+			break;
+		case SH_NODE_TEX_BLEND:
+			ntype->uifunc= node_shader_buts_tex_blend;
+			break;
+		case SH_NODE_TEX_CLOUDS:
+			ntype->uifunc= node_shader_buts_tex_clouds;
+			break;
+		case SH_NODE_TEX_DISTNOISE:
+			ntype->uifunc= node_shader_buts_tex_distnoise;
+			break;
+		case SH_NODE_TEX_MAGIC:
+			ntype->uifunc= node_shader_buts_tex_magic;
+			break;
+		case SH_NODE_TEX_MARBLE:
+			ntype->uifunc= node_shader_buts_tex_marble;
+			break;
+		case SH_NODE_TEX_MUSGRAVE:
+			ntype->uifunc= node_shader_buts_tex_musgrave;
+			break;
+		case SH_NODE_TEX_STUCCI:
+			ntype->uifunc= node_shader_buts_tex_stucci;
+			break;
+		case SH_NODE_TEX_VORONOI:
+			ntype->uifunc= node_shader_buts_tex_voronoi;
+			break;
+		case SH_NODE_TEX_WOOD:
+			ntype->uifunc= node_shader_buts_tex_wood;
+			break;
+		case SH_NODE_BSDF_GLOSSY:
+		case SH_NODE_BSDF_GLASS:
+			ntype->uifunc= node_shader_buts_glossy;
 			break;
 		case NODE_DYNAMIC:
 			ntype->uifunc= node_shader_buts_dynamic;

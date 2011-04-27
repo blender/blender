@@ -36,6 +36,12 @@
 extern "C" {
 #endif
 
+#ifdef _WIN32
+#define LIBEXPORT __declspec(dllexport)
+#else
+#define LIBEXPORT
+#endif
+
 struct ParameterList;
 struct FunctionRNA;
 struct PropertyRNA;
@@ -332,6 +338,7 @@ typedef void (*StructFreeFunc)(void *data);
 typedef struct StructRNA *(*StructRegisterFunc)(struct bContext *C, struct ReportList *reports, void *data,
 	const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
 typedef void (*StructUnregisterFunc)(const struct bContext *C, struct StructRNA *type);
+typedef void **(*StructInstanceFunc)(PointerRNA *ptr);
 
 typedef struct StructRNA StructRNA;
 

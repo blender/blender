@@ -43,6 +43,7 @@ set(SRC
 	interface_icons.c
 	interface_layout.c
 	interface_ops.c
+	interface_node.c
 	interface_panel.c
 	interface_regions.c
 	interface_style.c

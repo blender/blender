@@ -48,6 +48,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RE_pipeline.h"
+
 EnumPropertyItem space_type_items[] = {
 	{SPACE_EMPTY, "EMPTY", 0, "Empty", ""},
 	{SPACE_VIEW3D, "VIEW_3D", 0, "3D View", ""},
@@ -103,6 +105,7 @@ EnumPropertyItem viewport_shade_items[] = {
 	{OB_SOLID, "SOLID", ICON_SOLID, "Solid", "Display the object solid, lit with default OpenGL lights"},
 	//{OB_SHADED, "SHADED", ICON_SMOOTH, "Shaded", "Display the object solid, with preview shading interpolated at vertices"},
 	{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Textured", "Display the object solid, with face-assigned textures"},
+	{OB_RENDER, "RENDERED", ICON_SMOOTH, "Rendered", "Display progressive render preview"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -317,6 +320,25 @@ static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
 static void rna_SpaceView3D_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_on_visible_update(bmain, FALSE);
+}
+
+static void rna_SpaceView3D_viewport_shade_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	View3D *v3d= (View3D*)(ptr->data);
+	ScrArea *sa= rna_area_from_space(ptr);
+
+	if(v3d->drawtype != OB_RENDER) {
+		ARegion *ar;
+
+		for(ar=sa->regionbase.first; ar; ar=ar->next) {
+			RegionView3D *rv3d = ar->regiondata;
+
+			if(rv3d && rv3d->render_engine) {
+				RE_engine_free(rv3d->render_engine);
+				rv3d->render_engine= NULL;
+			}
+		}
+	}
 }
 
 static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
@@ -1162,7 +1184,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
 	RNA_def_property_enum_items(prop, viewport_shade_items);
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 
 	prop= RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
@@ -1416,6 +1438,17 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "view_distance", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
 	RNA_def_property_ui_text(prop, "Distance", "Distance to the view location");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "view_camera_zoom", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "camzoom");
+	RNA_def_property_ui_text(prop, "Camera Zoom", "Zoom factor in camera view");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "view_camera_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "camdx");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Camera Offset", "View shift in camera view");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
@@ -2291,9 +2324,9 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "params");
 	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser");
 	
-	prop= RNA_def_property(srna, "operator", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "active_operator", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "op");
-	RNA_def_property_ui_text(prop, "Operator", "");
+	RNA_def_property_ui_text(prop, "Active Operator", "");
 }
 
 static void rna_def_space_info(BlenderRNA *brna)
@@ -2353,7 +2386,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem tree_type_items[] = {
-		{NTREE_SHADER, "MATERIAL", ICON_MATERIAL, "Material", "Material nodes"},
+		{NTREE_SHADER, "SHADER", ICON_MATERIAL, "Shader", "Shader nodes"},
 		{NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes"},
 		{NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes"},
 		{0, NULL, 0, NULL, NULL}};
@@ -2362,6 +2395,11 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object"},
 		{SNODE_TEX_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit texture nodes from World"},
 		{SNODE_TEX_BRUSH, "BRUSH", ICON_BRUSH_DATA, "Brush", "Edit texture nodes from Brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem shader_type_items[] = {
+		{SNODE_SHADER_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit shader nodes from Object"},
+		{SNODE_SHADER_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit shader nodes from World"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem backdrop_channels_items[] = {
@@ -2384,6 +2422,12 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "texfrom");
 	RNA_def_property_enum_items(prop, texture_type_items);
 	RNA_def_property_ui_text(prop, "Texture Type", "Type of data to take texture from");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
+
+	prop= RNA_def_property(srna, "shader_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "shaderfrom");
+	RNA_def_property_enum_items(prop, shader_type_items);
+	RNA_def_property_ui_text(prop, "Shader Type", "Type of data to take shader from");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
 
 	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);

@@ -43,14 +43,17 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_world.h"
 #include "BKE_library.h"
 #include "BKE_animsys.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_icons.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_node.h"
 
 void free_world(World *wrld)
 {
@@ -65,6 +68,12 @@ void free_world(World *wrld)
 	BKE_previewimg_free(&wrld->preview);
 
 	BKE_free_animdata((ID *)wrld);
+
+	/* is no lib link block, but world extension */
+	if(wrld->nodetree) {
+		ntreeFreeTree(wrld->nodetree);
+		MEM_freeN(wrld->nodetree);
+	}
 
 	BKE_icon_delete((struct ID*)wrld);
 	wrld->id.icon_id = 0;
@@ -117,17 +126,41 @@ World *copy_world(World *wrld)
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		if(wrld->mtex[a]) {
-			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "copymaterial");
+			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "copy_world");
 			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
 			id_us_plus((ID *)wrldn->mtex[a]->tex);
 		}
 	}
+
+	if(wrld->nodetree)
+		wrldn->nodetree= ntreeCopyTree(wrld->nodetree);
 	
 	if (wrld->preview) wrldn->preview = BKE_previewimg_copy(wrld->preview);
+	
+	return wrldn;
+}
 
-#if 0 // XXX old animation system
-	id_us_plus((ID *)wrldn->ipo);
-#endif // XXX old animation system
+World *localize_world(World *wrld)
+{
+	World *wrldn;
+	int a;
+	
+	wrldn= copy_libblock(wrld);
+	BLI_remlink(&G.main->world, wrldn);
+	
+	for(a=0; a<MAX_MTEX; a++) {
+		if(wrld->mtex[a]) {
+			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "localize_world");
+			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
+			/* free world decrements */
+			id_us_plus((ID *)wrldn->mtex[a]->tex);
+		}
+	}
+
+	if(wrld->nodetree)
+		wrldn->nodetree= ntreeLocalize(wrld->nodetree);
+	
+	wrldn->preview= NULL;
 	
 	return wrldn;
 }

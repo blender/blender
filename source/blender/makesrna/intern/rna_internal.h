@@ -30,6 +30,12 @@
 #ifndef RNA_INTERNAL_H
 #define RNA_INTERNAL_H
 
+#ifdef _WIN32
+#define LIBEXPORT __declspec(dllexport)
+#else
+#define LIBEXPORT
+#endif
+
 #include "UI_resources.h"
 
 #include "rna_internal_types.h"
@@ -298,8 +304,8 @@ extern CollectionPropertyRNA rna_PropertyGroupItem_idp_array;
 extern FloatPropertyRNA rna_PropertyGroupItem_double;
 extern FloatPropertyRNA rna_PropertyGroupItem_double_array;
 
-extern StructRNA RNA_PropertyGroupItem;
-extern StructRNA RNA_PropertyGroup;
+extern LIBEXPORT StructRNA RNA_PropertyGroupItem;
+extern LIBEXPORT StructRNA RNA_PropertyGroup;
 
 struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct PointerRNA *ptr);
 

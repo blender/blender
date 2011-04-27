@@ -226,6 +226,19 @@ else()
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
+# headers
+install(
+	FILES
+	${CMAKE_SOURCE_DIR}/source/blender/makesrna/RNA_access.h
+	${CMAKE_SOURCE_DIR}/source/blender/makesrna/RNA_types.h
+	${CMAKE_BINARY_DIR}/source/blender/makesrna/intern/RNA_blender.h
+	${CMAKE_BINARY_DIR}/source/blender/makesrna/intern/RNA_blender_cpp.h
+	${CMAKE_SOURCE_DIR}/intern/guardedalloc/MEM_sys_types.h
+	${CMAKE_SOURCE_DIR}/intern/guardedalloc/MEM_guardedalloc.h
+	${CMAKE_SOURCE_DIR}/source/blender/blenloader/BLO_sys_types.h
+	${CMAKE_SOURCE_DIR}/source/blender/makesdna/DNA_listBase.h
+	DESTINATION ${INCLUDE_OUTPUT_PATH})
+
 # install target
 if(UNIX AND NOT APPLE)
 

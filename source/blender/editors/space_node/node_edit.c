@@ -40,10 +40,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -51,6 +53,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -234,6 +237,11 @@ static bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive(ntree);
 }
 
+void snode_dag_update(bContext *UNUSED(C), SpaceNode *snode)
+{
+	DAG_id_tag_update(snode->id, 0);
+}
+
 void snode_notify(bContext *C, SpaceNode *snode)
 {
 	WM_event_add_notifier(C, NC_NODE|NA_EDITED, NULL);
@@ -259,33 +267,49 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
-void ED_node_shader_default(Material *ma)
+void ED_node_shader_default(ID *id)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
+	bNodeTree *ntree;
+	int output_type, closure_type;
 	
-	/* but lets check it anyway */
-	if(ma->nodetree) {
-		if (G.f & G_DEBUG)
-			printf("error in shader initialize\n");
-		return;
+	ntree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, FALSE);
+
+	switch(GS(id->name)) {
+		case ID_MA:
+			((Material*)id)->nodetree = ntree;
+			output_type = SH_NODE_OUTPUT_MATERIAL;
+			closure_type = SH_NODE_BSDF_DIFFUSE;
+			break;
+		case ID_WO:
+			((World*)id)->nodetree = ntree;
+			output_type = SH_NODE_OUTPUT_WORLD;
+			closure_type = SH_NODE_BACKGROUND;
+			break;
+		case ID_LA:
+			((Lamp*)id)->nodetree = ntree;
+			output_type = SH_NODE_OUTPUT_LAMP;
+			closure_type = SH_NODE_EMISSION;
+			break;
+		default:
+			printf("ED_node_shader_default called on wrong ID type.\n");
+			return;
 	}
 	
-	ma->nodetree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, FALSE);
-	
-	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT, NULL, NULL);
+	out= nodeAddNodeType(ntree, output_type, NULL, NULL);
 	out->locx= 300.0f; out->locy= 300.0f;
 	
-	in= nodeAddNodeType(ma->nodetree, SH_NODE_MATERIAL, NULL, NULL);
+	in= nodeAddNodeType(ntree, closure_type, NULL, NULL);
 	in->locx= 10.0f; in->locy= 300.0f;
-	nodeSetActive(ma->nodetree, in);
+	nodeSetActive(ntree, in);
 	
 	/* only a link from color to color */
 	fromsock= in->outputs.first;
 	tosock= out->inputs.first;
-	nodeAddLink(ma->nodetree, in, fromsock, out, tosock);
+	nodeAddLink(ntree, in, fromsock, out, tosock);
 	
-	ntreeSolveOrder(ma->nodetree);	/* needed for pointers */
+	ntreeSolveOrder(ntree);	/* needed for pointers */
 }
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
@@ -365,6 +389,14 @@ void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *tre
 		*ntree= ((Material*)id)->nodetree;
 		if(treetype) *treetype= NTREE_SHADER;
 	}
+	else if(idtype == ID_LA) {
+		*ntree= ((Lamp*)id)->nodetree;
+		if(treetype) *treetype= NTREE_SHADER;
+	}
+	else if(idtype == ID_WO) {
+		*ntree= ((World*)id)->nodetree;
+		if(treetype) *treetype= NTREE_SHADER;
+	}
 	else if(idtype == ID_SCE) {
 		*ntree= ((Scene*)id)->nodetree;
 		if(treetype) *treetype= NTREE_COMPOSIT;
@@ -403,11 +435,25 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 	
 	if(snode->treetype==NTREE_SHADER) {
 		/* need active object, or we allow pinning... */
-		if(ob) {
-			Material *ma= give_current_material(ob, ob->actcol);
-			if(ma) {
-				snode->from= &ob->id;
-				snode->id= &ma->id;
+		if(snode->shaderfrom == SNODE_SHADER_OBJECT) {
+			if(ob) {
+				if(ob->type == OB_LAMP) {
+					snode->from= &ob->id;
+					snode->id= ob->data;
+				}
+				else {
+					Material *ma= give_current_material(ob, ob->actcol);
+					if(ma) {
+						snode->from= &ob->id;
+						snode->id= &ma->id;
+					}
+				}
+			}
+		}
+		else { /* SNODE_SHADER_WORLD */
+			if(scene->world) {
+				snode->from= NULL;
+				snode->id= &scene->world->id;
 			}
 		}
 	}
@@ -483,7 +529,7 @@ void node_set_active(SpaceNode *snode, bNode *node)
 		/* tree specific activate calls */
 		if(snode->treetype==NTREE_SHADER) {
 			/* when we select a material, active texture is cleared, for buttons */
-			if(node->id && GS(node->id->name)==ID_MA)
+			if(node->id && ELEM3(GS(node->id->name), ID_MA, ID_LA, ID_WO))
 				nodeClearActiveID(snode->edittree, ID_TE);
 			
 			if(node->type==SH_NODE_OUTPUT) {
@@ -912,7 +958,8 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 
 	return OPERATOR_FINISHED;
 }
@@ -2014,6 +2061,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	node_tree_verify_groups(snode->nodetree);
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 
 	return OPERATOR_FINISHED;
 }
@@ -2169,6 +2217,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			ntreeSolveOrder(snode->edittree);
 			node_tree_verify_groups(snode->nodetree);
 			snode_notify(C, snode);
+			snode_dag_update(C, snode);
 			
 			BLI_remlink(&snode->linkdrag, nldrag);
 			MEM_freeN(nldrag);
@@ -2303,6 +2352,7 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 
 	node_tree_verify_groups(snode->nodetree);
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2377,6 +2427,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		ntreeSolveOrder(snode->edittree);
 		node_tree_verify_groups(snode->nodetree);
 		snode_notify(C, snode);
+		snode_dag_update(C, snode);
 		
 		return OPERATOR_FINISHED;
 	}
@@ -2436,6 +2487,8 @@ static int node_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2464,6 +2517,7 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 
 	RE_MergeFullSample(re, bmain, curscene, snode->nodetree);
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	WM_cursor_wait(0);
 	return OPERATOR_FINISHED;
@@ -2572,6 +2626,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 	}
 	
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2758,6 +2813,7 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2799,6 +2855,7 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	node_tree_verify_groups(snode->nodetree);
 
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2900,6 +2957,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	node->id = (ID *)ima;
 	
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2937,4 +2995,36 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
 	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign.");
 }
+
+/* ****************** Auto Layout Operator  ******************* */
+
+static int node_auto_layout_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNode *node;
+
+	for(node=snode->edittree->nodes.first; node; node=node->next)
+		if(node->flag & SELECT)
+			ED_node_tree_auto_layout(snode->edittree, node);
+
+	snode_notify(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_auto_layout(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Auto Layout Nodes";
+	ot->description= "Automatically layout nodes with the selected nodes as root";
+	ot->idname= "NODE_OT_auto_layout";
+	
+	/* callbacks */
+	ot->exec= node_auto_layout_exec;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 

@@ -78,6 +78,7 @@
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_render.h"
 #include "ED_screen.h"
 
@@ -159,6 +160,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 	/* find lamps */
 	for(la=bmain->lamp.first; la; la=la->id.next) {
 		if(mtex_use_tex(la->mtex, MAX_MTEX, tex));
+		else if(la->nodetree && nodes_use_tex(la->nodetree, tex));
 		else continue;
 
 		BKE_icon_changed(BKE_icon_getid(&la->id));
@@ -167,6 +169,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 	/* find worlds */
 	for(wo=bmain->world.first; wo; wo=wo->id.next) {
 		if(mtex_use_tex(wo->mtex, MAX_MTEX, tex));
+		else if(wo->nodetree && nodes_use_tex(wo->nodetree, tex));
 		else continue;
 
 		BKE_icon_changed(BKE_icon_getid(&wo->id));
@@ -232,10 +235,72 @@ static void scene_changed(Main *bmain, Scene *UNUSED(scene))
 			GPU_material_free(ma);
 }
 
+#include "DNA_screen_types.h"
+#include "DNA_view3d_types.h"
+
+#include "RE_pipeline.h"
+
+static void update_render_engines(Main *bmain, int tagged_only)
+{
+	Scene *scene = bmain->scene.first;
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
+
+	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
+		for(sa=sc->areabase.first; sa; sa=sa->next) {
+			if(sa->spacetype == SPACE_VIEW3D) {
+				for(ar=sa->regionbase.first; ar; ar=ar->next) {
+					if(ar->regiontype == RGN_TYPE_WINDOW) {
+						RegionView3D *rv3d = ar->regiondata;
+						RenderEngine *engine = rv3d->render_engine;
+
+						if(engine && (!tagged_only || engine->do_update)) {
+							engine->do_update = 0;
+							engine->type->update(engine, scene);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void ED_render_engine_update_tagged(Main *bmain)
+{
+	update_render_engines(bmain, 1);
+}
+
+void ED_render_engine_changed(Main *bmain)
+{
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
+
+	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
+		for(sa=sc->areabase.first; sa; sa=sa->next) {
+			if(sa->spacetype == SPACE_VIEW3D) {
+				for(ar=sa->regionbase.first; ar; ar=ar->next) {
+					if(ar->regiontype == RGN_TYPE_WINDOW) {
+						RegionView3D *rv3d = ar->regiondata;
+
+						if(rv3d->render_engine) {
+							RE_engine_free(rv3d->render_engine);
+							rv3d->render_engine= NULL;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
-	if(!id)
+	if(!id) {
+		update_render_engines(bmain, 0);
 		return;
+	}
 
 	switch(GS(id->name)) {
 		case ID_MA:
@@ -542,10 +607,14 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy material */
-	if(ma)
+	if(ma) {
 		ma= copy_material(ma);
-	else
+	}
+	else {
 		ma= add_material("Material");
+		ED_node_shader_default(&ma->id);
+		ma->use_nodes= 1;
+	}
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
@@ -634,10 +703,14 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy world */
-	if(wo)
+	if(wo) {
 		wo= copy_world(wo);
-	else
+	}
+	else {
 		wo= add_world("World");
+		ED_node_shader_default(&wo->id);
+		wo->use_nodes= 1;
+	}
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);

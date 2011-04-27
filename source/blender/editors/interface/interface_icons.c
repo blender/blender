@@ -946,6 +946,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
+	alpha *= 0.75f;
 	
 	if (icon==NULL) {
 		if (G.f & G_DEBUG)

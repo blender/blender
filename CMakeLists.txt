@@ -90,6 +90,7 @@ enable_testing()
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE )
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
+set(INCLUDE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/include CACHE INTERNAL "" FORCE )
 
 #-----------------------------------------------------------------------------
 # Load some macros.
@@ -170,6 +171,7 @@ if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
+option(WITH_API_INSTALL     "Copy API header files into the blender install folder" ON)
 
 # Debug
 option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)

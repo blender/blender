@@ -42,6 +42,7 @@ set(SRC
 	node_draw.c
 	node_edit.c
 	node_header.c
+	node_layout.c
 	node_ops.c
 	node_select.c
 	node_state.c

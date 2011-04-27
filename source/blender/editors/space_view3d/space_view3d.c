@@ -58,6 +58,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RE_pipeline.h"
 
 #include "RNA_access.h"
 
@@ -306,6 +307,9 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 		v3do->lay= v3dn->localvd->lay;
 		v3do->lay &= 0xFFFFFF;
 	}
+
+	if(v3dn->drawtype == OB_RENDER)
+		v3dn->drawtype = OB_SOLID;
 	
 	/* copy or clear inside new stuff */
 
@@ -507,6 +511,9 @@ static void view3d_main_area_free(ARegion *ar)
 		if(rv3d->ri) { 
 			// XXX		BIF_view3d_previewrender_free(rv3d);
 		}
+
+		if(rv3d->render_engine)
+			RE_engine_free(rv3d->render_engine);
 		
 		if(rv3d->depths) {
 			if(rv3d->depths->depths) MEM_freeN(rv3d->depths->depths);
@@ -531,6 +538,7 @@ static void *view3d_main_area_duplicate(void *poin)
 		
 		new->depths= NULL;
 		new->ri= NULL;
+		new->render_engine= NULL;
 		new->gpd= NULL;
 		new->sms= NULL;
 		new->smooth_timer= NULL;
@@ -570,9 +578,16 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 	}
 }
 
+static void view3d_main_area_render_update(RegionView3D *rv3d)
+{
+	if(rv3d->render_engine)
+		rv3d->render_engine->type->update(rv3d->render_engine, NULL);
+}
+
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	bScreen *sc;
+	RegionView3D *rv3d= ar->regiondata;
 
 	/* context changes */
 	switch(wmn->category) {
@@ -598,6 +613,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_LAYER_CONTENT:
 					view3d_recalc_used_layers(ar, wmn, wmn->reference);
 					ED_region_tag_redraw(ar);
+					view3d_main_area_render_update(rv3d);
 					break;
 				case ND_FRAME:
 				case ND_TRANSFORM:
@@ -696,10 +712,9 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_VIEW3D) {
-				if (wmn->subtype == NS_VIEW3D_GPU) {
-					RegionView3D *rv3d= ar->regiondata;
+				if (wmn->subtype == NS_VIEW3D_GPU)
 					rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
-				}
+
 				ED_region_tag_redraw(ar);
 			}
 			break;

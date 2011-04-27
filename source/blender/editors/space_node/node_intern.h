@@ -95,6 +95,7 @@ void draw_nodespace_color_info(struct ARegion *ar, int color_manage, int channel
 /* node_edit.c */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
 void snode_notify(bContext *C, SpaceNode *snode);
+void snode_dag_update(bContext *C, SpaceNode *snode);
 bNode *next_node(bNodeTree *ntree);
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
@@ -143,6 +144,8 @@ void NODE_OT_backimage_zoom(struct wmOperatorType *ot);
 void NODE_OT_backimage_sample(wmOperatorType *ot);
 
 void NODE_OT_add_file(struct wmOperatorType *ot);
+
+void NODE_OT_auto_layout(struct wmOperatorType *ot);
 
 extern const char *node_context_dir[];
 

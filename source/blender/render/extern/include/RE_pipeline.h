@@ -281,6 +281,8 @@ typedef struct RenderEngineType {
 	int flag;
 
 	void (*render)(struct RenderEngine *engine, struct Scene *scene);
+	void (*draw)(struct RenderEngine *engine, struct Scene *scene);
+	void (*update)(struct RenderEngine *engine, struct Scene *scene);
 
 	/* RNA integration */
 	ExtensionRNA ext;
@@ -290,17 +292,23 @@ typedef struct RenderEngine {
 	RenderEngineType *type;
 	struct Render *re;
 	ListBase fullresult;
+	void *py_instance;
+	int do_draw;
+	int do_update;
 } RenderEngine;
+
+RenderEngine *RE_engine_create(RenderEngineType *type);
+void RE_engine_free(RenderEngine *engine);
 
 void RE_layer_load_from_file(RenderLayer *layer, struct ReportList *reports, const char *filename, int x, int y);
 void RE_result_load_from_file(RenderResult *result, struct ReportList *reports, const char *filename);
 
-struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
-void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
-void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
+LIBEXPORT struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
+LIBEXPORT void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
+LIBEXPORT void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
 
-int RE_engine_test_break(RenderEngine *engine);
-void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
+LIBEXPORT int RE_engine_test_break(RenderEngine *engine);
+LIBEXPORT void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
 
 void RE_engines_init(void);
 void RE_engines_exit(void);

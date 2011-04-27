@@ -989,6 +989,8 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 	
 	if (scene->physics_settings.quick_cache_step)
 		BKE_ptcache_quick_cache_all(bmain, scene);
+	
+	DAG_ids_clear_recalc(bmain);
 
 	/* in the future this should handle updates for all datablocks, not
 	   only objects and scenes. - brecht */

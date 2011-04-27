@@ -2300,6 +2300,37 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 	BLF_draw_default(22,  ar->winy-17, 0.0f, printable, sizeof(printable)-1);
 }
 
+static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	RenderEngineType *type;
+
+	if(!rv3d->render_engine) {
+		for(type=R_engines.first; type; type=type->next)
+			if(strcmp(type->idname, scene->r.engine) == 0)
+				break;
+
+		if(!type || !type->draw)
+			return 0;
+
+		rv3d->render_engine = RE_engine_create(type);
+	}
+
+	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	ED_region_pixelspace(ar);
+
+	type = rv3d->render_engine->type;
+	type->draw(rv3d->render_engine, scene);
+
+	return 1;
+}
+
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
 void view3d_main_area_draw(const bContext *C, ARegion *ar)
 {
@@ -2311,6 +2342,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	float backcol[3];
 	unsigned int lay_used;
 	const char *grid_unit= NULL;
+
+	/* possible use (external) render engine instead */
+	if(v3d->drawtype == OB_RENDER && view3d_main_area_draw_engine(C, ar));
+	else {
 
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
@@ -2488,6 +2523,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	ED_region_pixelspace(ar);
+
+	}
 	
 //	retopo_paint_view_update(v3d);
 //	retopo_draw_paint_lines();
@@ -2536,3 +2573,4 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
+

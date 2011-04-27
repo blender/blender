@@ -95,5 +95,3 @@ void register_node_type_sh_hue_sat(ListBase *lb)
 	nodeRegisterType(lb, &ntype);
 }
 
-
-

@@ -68,6 +68,7 @@ typedef struct bNodeSocketType {
 	const char *name;
 	float val1, val2, val3, val4;	/* default alloc value for inputs */
 	float min, max;					/* default range for inputs */
+	int flag;
 	
 	/* after this line is used internal only */
 	struct bNodeSocket *sock;		/* used during verify_types */
@@ -124,8 +125,12 @@ typedef struct bNodeType {
 #define NODE_CLASS_MATTE		9
 #define NODE_CLASS_DISTORT		10
 #define NODE_CLASS_OP_DYNAMIC	11
-#define NODE_CLASS_PATTERN 12
-#define NODE_CLASS_TEXTURE 13
+#define NODE_CLASS_PATTERN 		12
+#define NODE_CLASS_TEXTURE 		13
+#define NODE_CLASS_CLOSURE 		14
+
+/* bNodeSocketType flag */
+#define SOCK_NO_VALUE			1
 
 /* enum values for input/output */
 #define SOCK_IN		1
@@ -256,7 +261,7 @@ struct ShadeResult;
 #define SH_NODE_RGBTOBW		105
 #define SH_NODE_TEXTURE		106
 #define SH_NODE_NORMAL		107
-#define SH_NODE_GEOMETRY	108
+#define SH_NODE_GEOM		108
 #define SH_NODE_MAPPING		109
 #define SH_NODE_CURVE_VEC	110
 #define SH_NODE_CURVE_RGB	111
@@ -270,6 +275,39 @@ struct ShadeResult;
 #define SH_NODE_COMBRGB		121
 #define SH_NODE_HUE_SAT		122
 #define NODE_DYNAMIC		123
+
+#define SH_NODE_OUTPUT_MATERIAL			124
+#define SH_NODE_OUTPUT_WORLD			125
+#define SH_NODE_OUTPUT_LAMP				126
+#define SH_NODE_FRESNEL					127
+#define SH_NODE_MIX_CLOSURE				128
+#define SH_NODE_ATTRIBUTE				129
+#define SH_NODE_BACKGROUND				130
+#define SH_NODE_BSDF_ANISOTROPIC		131
+#define SH_NODE_BSDF_DIFFUSE			132
+#define SH_NODE_BSDF_GLOSSY				133
+#define SH_NODE_BSDF_GLASS				134
+#define SH_NODE_BSDF_TRANSLUCENT		137
+#define SH_NODE_BSDF_TRANSPARENT		138
+#define SH_NODE_BSDF_VELVET				139
+#define SH_NODE_EMISSION				140
+#define SH_NODE_GEOMETRY				141
+#define SH_NODE_LIGHT_PATH				142
+#define SH_NODE_TEX_IMAGE				143
+#define SH_NODE_TEX_NOISE				144
+#define SH_NODE_TEX_SKY					145
+#define SH_NODE_TEX_BLEND				146
+#define SH_NODE_TEX_VORONOI				147
+#define SH_NODE_TEX_MAGIC				148
+#define SH_NODE_TEX_MARBLE				149
+#define SH_NODE_TEX_CLOUDS				150
+#define SH_NODE_TEX_WOOD				151
+#define SH_NODE_TEX_MUSGRAVE			152
+#define SH_NODE_TEX_STUCCI				153
+#define SH_NODE_TEX_DISTNOISE			154
+#define SH_NODE_TEX_COORD				155
+#define SH_NODE_ADD_CLOSURE				156
+#define SH_NODE_TEX_ENVIRONMENT			157
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

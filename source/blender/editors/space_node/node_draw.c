@@ -38,11 +38,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -90,7 +92,13 @@ void ED_node_changed_update(ID *id, bNode *node)
 
 	if(treetype==NTREE_SHADER) {
 		DAG_id_tag_update(id, 0);
-		WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
+
+		if(GS(id->name) == ID_MA)
+			WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
+		else if(GS(id->name) == ID_LA)
+			WM_main_add_notifier(NC_LAMP|ND_LIGHTING_DRAW, id);
+		else if(GS(id->name) == ID_WO)
+			WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
 		NodeTagChanged(edittree, node);
@@ -126,6 +134,8 @@ static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 void ED_node_generic_update(Main *bmain, bNodeTree *ntree, bNode *node)
 {
 	Material *ma;
+	Lamp *la;
+	World *wrld;
 	Tex *tex;
 	Scene *sce;
 	
@@ -133,7 +143,15 @@ void ED_node_generic_update(Main *bmain, bNodeTree *ntree, bNode *node)
 	for(ma=bmain->mat.first; ma; ma=ma->id.next)
 		if(ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
 			ED_node_changed_update(&ma->id, node);
-	
+
+	for(la=bmain->lamp.first; la; la=la->id.next)
+		if(la->nodetree && has_nodetree(la->nodetree, ntree))
+			ED_node_changed_update(&la->id, node);
+
+	for(wrld=bmain->world.first; wrld; wrld=wrld->id.next)
+		if(wrld->nodetree && has_nodetree(wrld->nodetree, ntree))
+			ED_node_changed_update(&wrld->id, node);
+
 	for(tex=bmain->tex.first; tex; tex=tex->id.next)
 		if(tex->nodetree && tex->use_nodes && has_nodetree(tex->nodetree, ntree))
 			ED_node_changed_update(&tex->id, node);
@@ -722,6 +740,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	int color_id= node_get_colorid(node);
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
+	int i;
 	
 	/* hurmf... another candidate for callback, have to see how this works first */
 	if(node->id && node->block && snode->treetype==NTREE_SHADER)
@@ -849,12 +868,20 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 	
 	/* socket inputs, buttons */
-	for(sock= node->inputs.first; sock; sock= sock->next) {
+	for(i= 0, sock= node->inputs.first; sock; sock= sock->next, i++) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+			bNodeSocketType *stype = (node->type == NODE_GROUP)? NULL: &node->typeinfo->inputs[i];
+
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
 			if(node->block && sock->link==NULL) {
-				node_draw_socket_button(ntree, sock, sock->name, node->block, sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY, node_sync_cb, snode, node);
+				if((stype && stype->flag & SOCK_NO_VALUE) || sock->type==SOCK_CLOSURE) {
+					uiDefBut(node->block, LABEL, 0, sock->name, (short)(sock->locx+7), (short)(sock->locy-9.0f), 
+							 (short)(node->width-NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
+				}
+				else {
+					node_draw_socket_button(ntree, sock, sock->name, node->block, sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY, node_sync_cb, snode, node);
+				}
 			}
 			else {
 				uiDefBut(node->block, LABEL, 0, sock->name, (short)(sock->locx+7), (short)(sock->locy-9.0f), 

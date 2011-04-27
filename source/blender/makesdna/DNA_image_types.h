@@ -42,7 +42,6 @@ struct ImBuf;
 struct RenderResult;
 struct GPUTexture;
 
-
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
 /* should be used in conjunction with an ID * to Image. */
 typedef struct ImageUser {

@@ -102,6 +102,7 @@ static void do_node_add(bContext *C, void *UNUSED(arg), int event)
 	}
 		
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 }
 
 static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
@@ -182,11 +183,12 @@ static void node_menu_add(const bContext *C, Menu *menu)
 	if(snode->treetype==NTREE_SHADER) {
 		uiItemMenuF(layout, "Input", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
 		uiItemMenuF(layout, "Output", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
+		uiItemMenuF(layout, "Closure", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CLOSURE));
 		uiItemMenuF(layout, "Color", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
 		uiItemMenuF(layout, "Vector", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_VECTOR));
 		uiItemMenuF(layout, "Convertor", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
 		uiItemMenuF(layout, "Group", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
-		uiItemMenuF(layout, "Dynamic", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_DYNAMIC));
+		uiItemMenuF(layout, "Texture", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_TEXTURE));
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		uiItemMenuF(layout, "Input", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));

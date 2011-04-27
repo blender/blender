@@ -196,7 +196,7 @@ static void widget_init(uiWidgetBase *wtb)
 	
 	wtb->inner= 1;
 	wtb->outline= 1;
-	wtb->emboss= 1;
+	wtb->emboss= 0;
 	wtb->shadedir= 1;
 }
 
@@ -1141,6 +1141,13 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 				dualset= BTST( *(((int *)but->poin)+1), but->bitnr);
 			
 			widget_draw_icon(but, ICON_DOT, dualset?1.0f:0.25f, rect);
+		}
+		else if(but->type==MENU && (but->flag & UI_BUT_NODE_LINK)) {
+			/* node link hacking */
+			int tmp = rect->xmin;
+			rect->xmin = rect->xmax - (rect->ymax - rect->ymin) - 1;
+			widget_draw_icon(but, ICON_LAYER_USED, 1.0f, rect);
+			rect->xmin = tmp;
 		}
 		
 		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
@@ -2489,6 +2496,34 @@ static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 	widgetbase_draw(&wtb, wcol);
 }
 
+static void widget_menunodebut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
+{
+	/* silly node link button hacks */
+	uiWidgetBase wtb;
+	unsigned char tmp[4];
+	unsigned char tmp2[4];
+	
+	widget_init(&wtb);
+	
+	/* half rounded */
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+
+	memcpy(tmp, wcol->inner, sizeof(char)*4);
+	memcpy(tmp2, wcol->outline, sizeof(char)*4);
+	wcol->inner[0] += 15;
+	wcol->inner[1] += 15;
+	wcol->inner[2] += 15;
+	wcol->outline[0] += 15;
+	wcol->outline[1] += 15;
+	wcol->outline[2] += 15;
+	
+	/* decoration */
+	widgetbase_draw(&wtb, wcol);
+
+	memcpy(wcol->inner, tmp, sizeof(char)*4);
+	memcpy(wcol->outline, tmp2, sizeof(char)*4);
+}
+
 static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
 {
 	if(state & UI_ACTIVE) {
@@ -2762,6 +2797,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme= &btheme->tui.wcol_menu;
 			wt.draw= widget_menubut;
 			break;
+
+		case UI_WTYPE_MENU_NODE_LINK:
+			wt.wcol_theme= &btheme->tui.wcol_menu;
+			wt.draw= widget_menunodebut;
+			break;
 			
 		case UI_WTYPE_PULLDOWN:
 			wt.wcol_theme= &btheme->tui.wcol_pulldown;
@@ -2964,7 +3004,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case MENU:
 			case BLOCK:
 			case ICONTEXTROW:
-				if(!but->str[0] && but->icon)
+				if(but->flag & UI_BUT_NODE_LINK)
+					wt= widget_type(UI_WTYPE_MENU_NODE_LINK);
+				else if(!but->str[0] && but->icon)
 					wt= widget_type(UI_WTYPE_MENU_ICON_RADIO);
 				else
 					wt= widget_type(UI_WTYPE_MENU_RADIO);

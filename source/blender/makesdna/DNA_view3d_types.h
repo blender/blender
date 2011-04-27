@@ -41,6 +41,7 @@ struct SpaceLink;
 struct Base;
 struct BoundBox;
 struct RenderInfo;
+struct RenderEngine;
 struct bGPdata;
 struct SmoothViewStore;
 struct wmTimer;
@@ -114,6 +115,7 @@ typedef struct RegionView3D {
 	
 	struct RegionView3D *localvd; /* allocated backup of its self while in localview */
 	struct RenderInfo *ri;
+	struct RenderEngine *render_engine;
 	struct ViewDepths *depths;
 	
 	/* animated smooth view */

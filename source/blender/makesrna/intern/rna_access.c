@@ -62,7 +62,7 @@
 
 #include "rna_internal.h"
 
-const PointerRNA PointerRNA_NULL= {{NULL}};
+LIBEXPORT const PointerRNA PointerRNA_NULL= {{NULL}};
 
 /* Init/Exit */
 
@@ -658,6 +658,18 @@ StructUnregisterFunc RNA_struct_unregister(StructRNA *type)
 	do {
 		if(type->unreg)
 			return type->unreg;
+	} while((type=type->base));
+
+	return NULL;
+}
+
+void **RNA_struct_instance(PointerRNA *ptr)
+{
+	StructRNA *type= ptr->type;
+
+	do {
+		if(type->instance)
+			return type->instance(ptr);
 	} while((type=type->base));
 
 	return NULL;
@@ -1314,6 +1326,11 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 			else
 				prop->update(bmain, scene, ptr);
 		}
+		else if(!(prop->flag & PROP_BUILTIN)) {
+			DAG_id_tag_update(ptr->id.data, OB_RECALC_ALL);
+			WM_main_add_notifier(NC_WINDOW, NULL);
+		}
+
 		if(prop->noteflag)
 			WM_main_add_notifier(prop->noteflag, ptr->id.data);
 	}

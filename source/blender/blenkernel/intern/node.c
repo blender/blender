@@ -45,6 +45,10 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
+#include "DNA_node_types.h"
+#include "DNA_world_types.h"
 #include "DNA_node_types.h"
 
 #include "BLI_listbase.h"
@@ -517,6 +521,9 @@ void nodeGroupVerify(bNodeTree *ngroup)
 	
 	if(ngroup->type==NTREE_SHADER) {
 		Material *ma;
+		Lamp *la;
+		World *wrld;
+
 		for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree) {
 				bNode *node;
@@ -525,6 +532,25 @@ void nodeGroupVerify(bNodeTree *ngroup)
 						nodeVerifyType(ma->nodetree, node);
 			}
 		}
+
+		for(la= G.main->lamp.first; la; la= la->id.next) {
+			if(la->nodetree) {
+				bNode *node;
+				for(node= la->nodetree->nodes.first; node; node= node->next)
+					if(node->id == (ID *)ngroup)
+						nodeVerifyType(la->nodetree, node);
+			}
+		}
+
+		for(wrld= G.main->world.first; wrld; wrld= wrld->id.next) {
+			if(wrld->nodetree) {
+				bNode *node;
+				for(node= wrld->nodetree->nodes.first; node; node= node->next)
+					if(node->id == (ID *)ngroup)
+						nodeVerifyType(wrld->nodetree, node);
+			}
+		}
+
 	}
 	else if(ngroup->type==NTREE_COMPOSIT) {
 		Scene *sce;
@@ -550,6 +576,28 @@ void nodeGroupVerify(bNodeTree *ngroup)
 	}
 }
 
+static void nodeGroupTagUseFlags(bNodeTree *ntree, bNodeTree *ngroup)
+{
+	bNode *node;
+	bNodeSocket *sock;
+
+	if(!ntree)
+		return;
+
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->id==(ID *)ngroup) {
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				if(sock->link)
+					if(sock->groupsock) 
+						sock->groupsock->flag |= SOCK_IN_USE;
+			for(sock= node->outputs.first; sock; sock= sock->next)
+				if(nodeCountSocketLinks(ntree, sock))
+					if(sock->groupsock) 
+						sock->groupsock->flag |= SOCK_IN_USE;
+		}
+	}
+}
+
 /* also to check all users of groups. Now only used in editor for hide/unhide */
 /* should become callbackable? */
 void nodeGroupSocketUseFlags(bNodeTree *ngroup)
@@ -568,62 +616,26 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 	/* tag all thats in use */
 	if(ngroup->type==NTREE_SHADER) {
 		Material *ma;
-		for(ma= G.main->mat.first; ma; ma= ma->id.next) {
-			if(ma->nodetree) {
-				for(node= ma->nodetree->nodes.first; node; node= node->next) {
-					if(node->id==&ngroup->id) {
-						for(sock= node->inputs.first; sock; sock= sock->next)
-							if(sock->link)
-								if(sock->groupsock) 
-									sock->groupsock->flag |= SOCK_IN_USE;
-						for(sock= node->outputs.first; sock; sock= sock->next)
-							if(nodeCountSocketLinks(ma->nodetree, sock))
-								if(sock->groupsock) 
-									sock->groupsock->flag |= SOCK_IN_USE;
-					}
-				}
-			}
-		}
+		Lamp *la;
+		World *wrld;
+
+		for(ma= G.main->mat.first; ma; ma= ma->id.next)
+			nodeGroupTagUseFlags(ma->nodetree, ngroup);
+		for(la= G.main->lamp.first; la; la= la->id.next)
+			nodeGroupTagUseFlags(la->nodetree, ngroup);
+		for(wrld= G.main->world.first; wrld; wrld= wrld->id.next)
+			nodeGroupTagUseFlags(wrld->nodetree, ngroup);
 	}
 	else if(ngroup->type==NTREE_COMPOSIT) {
 		Scene *sce;
-		for(sce= G.main->scene.first; sce; sce= sce->id.next) {
-			if(sce->nodetree) {
-				for(node= sce->nodetree->nodes.first; node; node= node->next) {
-					if(node->id==(ID *)ngroup) {
-						for(sock= node->inputs.first; sock; sock= sock->next)
-							if(sock->link)
-								if(sock->groupsock) 
-									sock->groupsock->flag |= SOCK_IN_USE;
-						for(sock= node->outputs.first; sock; sock= sock->next)
-							if(nodeCountSocketLinks(sce->nodetree, sock))
-								if(sock->groupsock) 
-									sock->groupsock->flag |= SOCK_IN_USE;
-					}
-				}
-			}
-		}
+		for(sce= G.main->scene.first; sce; sce= sce->id.next)
+			nodeGroupTagUseFlags(sce->nodetree, ngroup);
 	}
 	else if(ngroup->type==NTREE_TEXTURE) {
 		Tex *tx;
-		for(tx= G.main->tex.first; tx; tx= tx->id.next) {
-			if(tx->nodetree) {
-				for(node= tx->nodetree->nodes.first; node; node= node->next) {
-					if(node->id==(ID *)ngroup) {
-						for(sock= node->inputs.first; sock; sock= sock->next)
-							if(sock->link)
-								if(sock->groupsock) 
-									sock->groupsock->flag |= SOCK_IN_USE;
-						for(sock= node->outputs.first; sock; sock= sock->next)
-							if(nodeCountSocketLinks(tx->nodetree, sock))
-								if(sock->groupsock) 
-									sock->groupsock->flag |= SOCK_IN_USE;
-					}
-				}
-			}
-		}
+		for(tx= G.main->tex.first; tx; tx= tx->id.next)
+			nodeGroupTagUseFlags(tx->nodetree, ngroup);
 	}
-	
 }
 /* finds a node based on its name */
 bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
@@ -1478,6 +1490,9 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	/* now check users of groups... again typedepending, callback... */
 	if(ntree->type==NTREE_SHADER) {
 		Material *ma;
+		Lamp *la;
+		World *wrld;
+
 		for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree) {
 				bNode *node;
@@ -1486,6 +1501,48 @@ void ntreeMakeLocal(bNodeTree *ntree)
 				for(node= ma->nodetree->nodes.first; node; node= node->next) {
 					if(node->id == (ID *)ntree) {
 						if(ma->id.lib) lib= 1;
+						else local= 1;
+					}
+				}
+			}
+		}
+
+		for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+			if(ma->nodetree) {
+				bNode *node;
+				
+				/* find if group is in tree */
+				for(node= ma->nodetree->nodes.first; node; node= node->next) {
+					if(node->id == (ID *)ntree) {
+						if(ma->id.lib) lib= 1;
+						else local= 1;
+					}
+				}
+			}
+		}
+
+		for(la= G.main->lamp.first; la; la= la->id.next) {
+			if(la->nodetree) {
+				bNode *node;
+				
+				/* find if group is in tree */
+				for(node= la->nodetree->nodes.first; node; node= node->next) {
+					if(node->id == (ID *)ntree) {
+						if(la->id.lib) lib= 1;
+						else local= 1;
+					}
+				}
+			}
+		}
+
+		for(wrld= G.main->world.first; wrld; wrld= wrld->id.next) {
+			if(wrld->nodetree) {
+				bNode *node;
+				
+				/* find if group is in tree */
+				for(node= wrld->nodetree->nodes.first; node; node= node->next) {
+					if(node->id == (ID *)ntree) {
+						if(wrld->id.lib) lib= 1;
 						else local= 1;
 					}
 				}
@@ -1539,6 +1596,9 @@ void ntreeMakeLocal(bNodeTree *ntree)
 		
 		if(ntree->type==NTREE_SHADER) {
 			Material *ma;
+			Lamp *la;
+			World *wrld;
+
 			for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 				if(ma->nodetree) {
 					bNode *node;
@@ -1547,6 +1607,40 @@ void ntreeMakeLocal(bNodeTree *ntree)
 					for(node= ma->nodetree->nodes.first; node; node= node->next) {
 						if(node->id == (ID *)ntree) {
 							if(ma->id.lib==NULL) {
+								node->id= &newtree->id;
+								newtree->id.us++;
+								ntree->id.us--;
+							}
+						}
+					}
+				}
+			}
+
+			for(la= G.main->lamp.first; la; la= la->id.next) {
+				if(la->nodetree) {
+					bNode *node;
+					
+					/* find if group is in tree */
+					for(node= la->nodetree->nodes.first; node; node= node->next) {
+						if(node->id == (ID *)ntree) {
+							if(la->id.lib==NULL) {
+								node->id= &newtree->id;
+								newtree->id.us++;
+								ntree->id.us--;
+							}
+						}
+					}
+				}
+			}
+
+			for(wrld= G.main->world.first; wrld; wrld= wrld->id.next) {
+				if(wrld->nodetree) {
+					bNode *node;
+					
+					/* find if group is in tree */
+					for(node= wrld->nodetree->nodes.first; node; node= node->next) {
+						if(node->id == (ID *)ntree) {
+							if(wrld->id.lib==NULL) {
 								node->id= &newtree->id;
 								newtree->id.us++;
 								ntree->id.us--;
@@ -3504,30 +3598,49 @@ static void registerCompositNodes(ListBase *ntypelist)
 static void registerShaderNodes(ListBase *ntypelist) 
 {
 	register_node_type_group(ntypelist);
-	
-	register_node_type_sh_output(ntypelist);
-	register_node_type_sh_mix_rgb(ntypelist);
-	register_node_type_sh_valtorgb(ntypelist);
-	register_node_type_sh_rgbtobw(ntypelist);
-	register_node_type_sh_normal(ntypelist);
-	register_node_type_sh_geom(ntypelist);
-	register_node_type_sh_mapping(ntypelist);
-	register_node_type_sh_curve_vec(ntypelist);
-	register_node_type_sh_curve_rgb(ntypelist);
-	register_node_type_sh_math(ntypelist);
-	register_node_type_sh_vect_math(ntypelist);
-	register_node_type_sh_squeeze(ntypelist);
-	register_node_type_sh_camera(ntypelist);
-	register_node_type_sh_material(ntypelist);
-	register_node_type_sh_material_ext(ntypelist);
+
 	register_node_type_sh_value(ntypelist);
 	register_node_type_sh_rgb(ntypelist);
-	register_node_type_sh_texture(ntypelist);
-//	register_node_type_sh_dynamic(ntypelist);
-	register_node_type_sh_invert(ntypelist);
-	register_node_type_sh_seprgb(ntypelist);
-	register_node_type_sh_combrgb(ntypelist);
-	register_node_type_sh_hue_sat(ntypelist);
+	register_node_type_sh_math(ntypelist);
+	register_node_type_sh_vect_math(ntypelist);
+	register_node_type_sh_mix_rgb(ntypelist);
+	register_node_type_sh_rgbtobw(ntypelist);
+	register_node_type_sh_mapping(ntypelist);
+
+	register_node_type_sh_attribute(ntypelist);
+	register_node_type_sh_geometry(ntypelist);
+	register_node_type_sh_light_path(ntypelist);
+	register_node_type_sh_fresnel(ntypelist);
+	register_node_type_sh_tex_coord(ntypelist);
+
+	register_node_type_sh_background(ntypelist);
+	register_node_type_sh_bsdf_diffuse(ntypelist);
+	register_node_type_sh_bsdf_glass(ntypelist);
+	register_node_type_sh_bsdf_glossy(ntypelist);
+	register_node_type_sh_bsdf_translucent(ntypelist);
+	register_node_type_sh_bsdf_transparent(ntypelist);
+	register_node_type_sh_bsdf_velvet(ntypelist);
+	register_node_type_sh_emission(ntypelist);
+	register_node_type_sh_mix_closure(ntypelist);
+	register_node_type_sh_add_closure(ntypelist);
+
+	register_node_type_sh_output_lamp(ntypelist);
+	register_node_type_sh_output_material(ntypelist);
+	register_node_type_sh_output_world(ntypelist);
+
+	register_node_type_sh_tex_blend(ntypelist);
+	register_node_type_sh_tex_clouds(ntypelist);
+	register_node_type_sh_tex_distnoise(ntypelist);
+	register_node_type_sh_tex_image(ntypelist);
+	register_node_type_sh_tex_environment(ntypelist);
+	register_node_type_sh_tex_magic(ntypelist);
+	register_node_type_sh_tex_marble(ntypelist);
+	register_node_type_sh_tex_musgrave(ntypelist);
+	register_node_type_sh_tex_noise(ntypelist);
+	register_node_type_sh_tex_sky(ntypelist);
+	register_node_type_sh_tex_stucci(ntypelist);
+	register_node_type_sh_tex_voronoi(ntypelist);
+	register_node_type_sh_tex_wood(ntypelist);
 }
 
 static void registerTextureNodes(ListBase *ntypelist)

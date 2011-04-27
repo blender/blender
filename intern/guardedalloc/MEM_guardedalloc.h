@@ -61,6 +61,14 @@
 #ifndef MEM_MALLOCN_H
 #define MEM_MALLOCN_H
 
+#ifndef LIBEXPORT
+#ifdef _WIN32
+#define LIBEXPORT __declspec(dllexport)
+#else
+#define LIBEXPORT
+#endif
+#endif
+
 #include <stdio.h> /* needed for FILE* */
 #include "MEM_sys_types.h" /* needed for uintptr_t */
 
@@ -95,7 +103,7 @@ extern "C" {
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
-	void *MEM_dupallocN(void *vmemh) WARN_UNUSED;
+	LIBEXPORT void *MEM_dupallocN(void *vmemh) WARN_UNUSED;
 
 	/**
 	  * Reallocates a block of memory, and returns pointer to the newly

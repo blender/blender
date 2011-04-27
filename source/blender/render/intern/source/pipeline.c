@@ -70,6 +70,10 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#ifdef WITH_PYTHON
+#include "BPY_extern.h"
+#endif
+
 #include "intern/openexr/openexr_multi.h"
 
 #include "RE_pipeline.h"
@@ -867,18 +871,39 @@ static void *ml_addlayer_cb(void *base, char *str)
 {
 	RenderResult *rr= base;
 	RenderLayer *rl;
+
+	/* don't add if layer already exists */
+	for(rl=rr->layers.first; rl; rl=rl->next)
+		if(strcmp(rl->name, str) == 0)
+			return rl;
 	
+	/* add render layer */
 	rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
 	BLI_addtail(&rr->layers, rl);
 	
 	BLI_strncpy(rl->name, str, EXR_LAY_MAXNAME);
+	rl->rectx = rr->rectx;
+	rl->recty = rr->recty;
+
 	return rl;
 }
-static void ml_addpass_cb(void *UNUSED(base), void *lay, char *str, float *rect, int totchan, char *chan_id)
+static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id)
 {
+	RenderResult *rr= base;
 	RenderLayer *rl= lay;	
-	RenderPass *rpass= MEM_callocN(sizeof(RenderPass), "loaded pass");
+	RenderPass *rpass;
 	int a;
+
+	/* don't add if pass already exists */
+	for(rpass=rl->passes.first; rpass; rpass=rpass->next) {
+		if(strcmp(rpass->name, str) == 0) {
+			MEM_freeN(rect);
+			return;
+		}
+	}
+	
+	/* add render pass */
+	rpass = MEM_callocN(sizeof(RenderPass), "loaded pass");
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->channels= totchan;
@@ -892,6 +917,8 @@ static void ml_addpass_cb(void *UNUSED(base), void *lay, char *str, float *rect,
 	for(a=0; a<totchan; a++)
 		rpass->chan_id[a]= chan_id[a];
 	
+	rpass->rectx = rr->rectx;
+	rpass->recty = rr->recty;
 	rpass->rect= rect;
 }
 
@@ -899,24 +926,12 @@ static void ml_addpass_cb(void *UNUSED(base), void *lay, char *str, float *rect,
 RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
 {
 	RenderResult *rr= MEM_callocN(sizeof(RenderResult), "loaded render result");
-	RenderLayer *rl;
-	RenderPass *rpass;
 	
 	rr->rectx= rectx;
 	rr->recty= recty;
 	
 	IMB_exr_multilayer_convert(exrhandle, rr, ml_addlayer_cb, ml_addpass_cb);
 
-	for(rl=rr->layers.first; rl; rl=rl->next) {
-		rl->rectx= rectx;
-		rl->recty= recty;
-
-		for(rpass=rl->passes.first; rpass; rpass=rpass->next) {
-			rpass->rectx= rectx;
-			rpass->recty= recty;
-		}
-	}
-	
 	return rr;
 }
 
@@ -932,7 +947,7 @@ static void renderresult_add_names(RenderResult *rr)
 }
 
 /* called for reading temp files, and for external engines */
-static int read_render_result_from_file(const char *filename, RenderResult *rr)
+static int read_render_result_from_file(const char *filename, RenderResult *rr, int external)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
@@ -976,7 +991,7 @@ static int read_render_result_from_file(const char *filename, RenderResult *rr)
 		IMB_exr_read_channels(exrhandle);
 		renderresult_add_names(rr);
 	}
-	
+
 	IMB_exr_close(exrhandle);
 
 	return 1;
@@ -995,7 +1010,7 @@ static void read_render_result(Render *re, int sample)
 	render_unique_exr_name(re, str, sample);
 	printf("read exr tmp file: %s\n", str);
 
-	if(!read_render_result_from_file(str, re->result))
+	if(!read_render_result_from_file(str, re->result, 0))
 		printf("cannot read: %s\n", str);
 
 	BLI_rw_mutex_unlock(&re->resultmutex);
@@ -3210,6 +3225,27 @@ void RE_init_threadcount(Render *re)
 
 /************************** External Engines ***************************/
 
+RenderEngine *RE_engine_create(RenderEngineType *type)
+{
+	RenderEngine *engine = MEM_callocN(sizeof(RenderEngine), "RenderEngine");
+	engine->type= type;
+
+	return engine;
+}
+
+void RE_engine_free(RenderEngine *engine)
+{
+#ifdef WITH_PYTHON
+	if(engine->py_instance) {
+		/* do this first incase there are any __del__ functions or
+		 * similar that use properties */
+		BPY_DECREF(engine->py_instance);
+	}
+#endif
+
+	MEM_freeN(engine);
+}
+
 RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h)
 {
 	Render *re= engine->re;
@@ -3233,13 +3269,8 @@ RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, 
 	disprect.ymin= y;
 	disprect.ymax= y+h;
 
-	if(0) { // XXX (re->r.scemode & R_FULL_SAMPLE)) {
-		result= new_full_sample_buffers(re, &engine->fullresult, &disprect, 0);
-	}
-	else {
-		result= new_render_result(re, &disprect, 0, RR_USEMEM);
-		BLI_addtail(&engine->fullresult, result);
-	}
+	result= new_render_result(re, &disprect, 0, RR_USEMEM);
+	BLI_addtail(&engine->fullresult, result);
 
 	return result;
 }
@@ -3262,14 +3293,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result)
 		return;
 
 	/* merge */
-	if(re->result->exrhandle) {
-		RenderResult *rr, *rrpart;
-		
-		// XXX crashes, exr expects very particular part sizes
-		for(rr= re->result, rrpart= result; rr && rrpart; rr= rr->next, rrpart= rrpart->next)
-			save_render_result_tile(rr, rrpart);
-	}
-	else if(render_display_draw_enabled(re)) {
+	if(render_display_draw_enabled(re)) {
 		/* on break, don't merge in result for preview renders, looks nicer */
 		if(re->test_break(re->tbh) && (re->r.scemode & R_PREVIEWBUTS));
 		else merge_render_result(re->result, result);
@@ -3347,16 +3371,28 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char
 
 void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filename)
 {
-	if(!read_render_result_from_file(filename, result)) {
+	/* optionally also add layers/passes that were in the file but not setup
+	   for rendering, useful for external render engines or network render */
+	void *exrhandle= IMB_exr_get_handle();
+	int rectx, recty;
+
+	if(IMB_exr_begin_read(exrhandle, filename, &rectx, &recty))
+		IMB_exr_multilayer_convert(exrhandle, result, ml_addlayer_cb, ml_addpass_cb);
+
+	IMB_exr_close(exrhandle);
+	
+#if 0
+	if(!read_render_result_from_file(filename, result, 1)) {
 		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
 		return;
 	}
+#endif
 }
 
 static int external_render_3d(Render *re, int do_all)
 {
 	RenderEngineType *type= BLI_findstring(&R_engines, re->r.engine, offsetof(RenderEngineType, idname));
-	RenderEngine engine;
+	RenderEngine *engine;
 
 	if(!(type && type->render))
 		return 0;
@@ -3370,11 +3406,7 @@ static int external_render_3d(Render *re, int do_all)
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
 		RE_FreeRenderResult(re->result);
-	
-		if(0) // XXX re->r.scemode & R_FULL_SAMPLE)
-			re->result= new_full_sample_buffers_exr(re);
-		else
-			re->result= new_render_result(re, &re->disprect, 0, 0); // XXX re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE));
+		re->result= new_render_result(re, &re->disprect, 0, 0);
 	}
 	BLI_rw_mutex_unlock(&re->resultmutex);
 	
@@ -3382,31 +3414,14 @@ static int external_render_3d(Render *re, int do_all)
 		return 1;
 
 	/* external */
-	memset(&engine, 0, sizeof(engine));
-	engine.type= type;
-	engine.re= re;
+	engine = RE_engine_create(type);
+	engine->re= re;
 
-	type->render(&engine, re->scene);
+	type->render(engine, re->scene);
 
-	free_render_result(&engine.fullresult, engine.fullresult.first);
+	free_render_result(&engine->fullresult, engine->fullresult.first);
 
-	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-	if(re->result->exrhandle) {
-		RenderResult *rr;
-
-		save_empty_result_tiles(re);
-		
-		for(rr= re->result; rr; rr= rr->next) {
-			IMB_exr_close(rr->exrhandle);
-			rr->exrhandle= NULL;
-		}
-		
-		free_render_result(&re->fullresult, re->result);
-		re->result= NULL;
-		
-		read_render_result(re, 0);
-	}
-	BLI_rw_mutex_unlock(&re->resultmutex);
+	RE_engine_free(engine);
 
 	return 1;
 }

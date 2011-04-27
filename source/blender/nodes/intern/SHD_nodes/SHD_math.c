@@ -37,8 +37,8 @@
 
 /* **************** SCALAR MATH ******************** */ 
 static bNodeSocketType sh_node_math_in[]= { 
-	{ SOCK_VALUE, 1, "Value", 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f}, 
-	{ SOCK_VALUE, 1, "Value", 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f}, 
+	{ SOCK_VALUE, 1, "Value1", 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f}, 
+	{ SOCK_VALUE, 1, "Value2", 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f}, 
 	{ -1, 0, "" } 
 };
 

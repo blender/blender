@@ -384,7 +384,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "IDPropertyGroup");
 	RNA_def_struct_ui_text(srna, "ID Property Group", "Group of ID properties");
 	RNA_def_struct_idprops_func(srna, "rna_PropertyGroup_idprops");
-	RNA_def_struct_register_funcs(srna, "rna_PropertyGroup_register", "rna_PropertyGroup_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_PropertyGroup_register", "rna_PropertyGroup_unregister", NULL);
 	RNA_def_struct_refine_func(srna, "rna_PropertyGroup_refine");
 
 	/* important so python types can have their name used in list views
@@ -462,6 +462,16 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_DOIT);
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_ui_text(prop, "Tag", "Tools can use this to tag data, (initial state is undefined)");
+
+	prop= RNA_def_property(srna, "recalc", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Recalc", "Datablock is tagged for recalculation.");
+
+	prop= RNA_def_property(srna, "recalc_data", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC_DATA);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Recalc Data", "Datablock data is tagged for recalculation.");
 
 	prop= RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");

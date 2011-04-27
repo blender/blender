@@ -5765,7 +5765,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* maximum drawtype */
-	dt= MIN2(v3d->drawtype, ob->dt);
+	dt= v3d->drawtype;
+	if(dt==OB_RENDER) dt= OB_SOLID;
+	dt= MIN2(dt, ob->dt);
 	if(v3d->zbuf==0 && dt>OB_WIRE) dt= OB_WIRE;
 	dtx= 0;
 

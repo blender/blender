@@ -509,7 +509,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "KeyingSetInfo");
 	RNA_def_struct_ui_text(srna, "Keying Set Info", "Callback function defines for builtin Keying Sets");
 	RNA_def_struct_refine_func(srna, "rna_KeyingSetInfo_refine");
-	RNA_def_struct_register_funcs(srna, "rna_KeyingSetInfo_register", "rna_KeyingSetInfo_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_KeyingSetInfo_register", "rna_KeyingSetInfo_unregister", NULL);
 	
 	/* Properties --------------------- */
 	

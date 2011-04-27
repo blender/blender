@@ -41,13 +41,16 @@ class NODE_HT_header(bpy.types.Header):
         row = layout.row()
         row.prop(snode, "tree_type", text="", expand=True)
 
-        if snode.tree_type == 'MATERIAL':
-            ob = snode.id_from
-            snode_id = snode.id
-            if ob:
-                layout.template_ID(ob, "active_material", new="material.new")
-            if snode_id:
-                layout.prop(snode_id, "use_nodes")
+        if snode.tree_type == 'SHADER':
+            row.prop(snode, "shader_type", text="", expand=True)
+
+            if snode.shader_type == 'OBJECT':
+                ob = snode.id_from
+                snode_id = snode.id
+                if ob:
+                    layout.template_ID(ob, "active_material", new="material.new")
+                if snode_id:
+                    layout.prop(snode_id, "use_nodes")
 
         elif snode.tree_type == 'TEXTURE':
             row.prop(snode, "texture_type", text="", expand=True)

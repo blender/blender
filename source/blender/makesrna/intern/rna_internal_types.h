@@ -330,6 +330,7 @@ struct StructRNA {
 	/* function to register/unregister subclasses */
 	StructRegisterFunc reg; 
 	StructUnregisterFunc unreg; 
+	StructInstanceFunc instance;
 
 	/* callback to get id properties */
 	IDPropertiesFunc idproperties;

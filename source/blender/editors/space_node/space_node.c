@@ -34,10 +34,12 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -252,9 +254,21 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 	
 	if(snode->nodetree) {
 		if(snode->treetype==NTREE_SHADER) {
-			Material *ma= (Material *)snode->id;
-			if(ma->use_nodes)
-				ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
+			if(GS(snode->id->name) == ID_MA) {
+				Material *ma= (Material *)snode->id;
+				if(ma->use_nodes)
+					ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
+			}
+			else if(GS(snode->id->name) == ID_LA) {
+				Lamp *la= (Lamp *)snode->id;
+				if(la->use_nodes)
+					ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
+			}
+			else if(GS(snode->id->name) == ID_WO) {
+				World *wo= (World *)snode->id;
+				if(wo->use_nodes)
+					ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
+			}
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene *)snode->id;

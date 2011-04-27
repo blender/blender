@@ -48,6 +48,7 @@
 #include "BKE_main.h"
 #include "BKE_texture.h"
 
+#include "ED_node.h"
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -147,6 +148,14 @@ static void rna_Lamp_spot_size_set(PointerRNA *ptr, float value)
 	la->spotsize= RAD2DEGF(value);
 }
 
+static void rna_Lamp_use_nodes_set(PointerRNA *ptr, int value)
+{
+	Lamp *la= (Lamp*)ptr->data;
+
+	la->use_nodes= value;
+	if(la->use_nodes && la->nodetree==NULL)
+		ED_node_shader_default(&la->id);
+}
 
 #else
 
@@ -367,6 +376,17 @@ static void rna_def_lamp(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "mode", LA_NO_DIFF);
 	RNA_def_property_ui_text(prop, "Diffuse", "Lamp does diffuse shading");
+	RNA_def_property_update(prop, 0, "rna_Lamp_update");
+
+	/* nodes */
+	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
+	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node based lamps");
+
+	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Lamp_use_nodes_set");
+	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the lamp");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 	
 	/* common */

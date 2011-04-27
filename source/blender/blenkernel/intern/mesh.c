@@ -199,7 +199,6 @@ Mesh *add_mesh(const char *name)
 	me->smoothresh= 30;
 	me->texflag= AUTOSPACE;
 	me->flag= ME_TWOSIDED;
-	me->bb= unit_boundbox();
 	me->drawflag= ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
 	
 	return me;

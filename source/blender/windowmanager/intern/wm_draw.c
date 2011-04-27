@@ -57,6 +57,8 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
+#include "RE_pipeline.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
@@ -113,6 +115,19 @@ static int wm_area_test_invalid_backbuf(ScrArea *sa)
 		return (((View3D*)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF);
 	else
 		return 1;
+}
+
+static void wm_region_test_render_do_draw(ScrArea *sa, ARegion *ar)
+{
+	if(sa->spacetype == SPACE_VIEW3D) {
+		RegionView3D *rv3d = ar->regiondata;
+		RenderEngine *engine = (rv3d)? rv3d->render_engine: NULL;
+
+		if(engine && engine->do_draw) {
+			ar->do_draw = 1;
+			engine->do_draw = 0;
+		}
+	}
 }
 
 /********************** draw all **************************/
@@ -207,7 +222,7 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 	for(sa= screen->areabase.first; sa; sa= sa->next)
 		for(ar= sa->regionbase.first; ar; ar= ar->next)
 			if(ar->swinid && !wm_area_test_invalid_backbuf(sa))
-					ED_region_tag_redraw(ar);
+				ED_region_tag_redraw(ar);
 
 	/* flush overlapping regions */
 	if(screen->regionbase.first) {
@@ -664,13 +679,28 @@ static int wm_draw_update_test_window(wmWindow *win)
 {
 	ScrArea *sa;
 	ARegion *ar;
+	int do_draw= 0;
 
 	for(ar= win->screen->regionbase.first; ar; ar= ar->next) {
 		if(ar->do_draw_overlay) {
 			wm_tag_redraw_overlay(win, ar);
 			ar->do_draw_overlay= 0;
 		}
+		if(ar->swinid && ar->do_draw)
+			do_draw= 1;
 	}
+
+	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+		for(ar=sa->regionbase.first; ar; ar= ar->next) {
+			wm_region_test_render_do_draw(sa, ar);
+
+			if(ar->swinid && ar->do_draw)
+				do_draw = 1;
+		}
+	}
+
+	if(do_draw)
+		return 1;
 	
 	if(win->screen->do_refresh)
 		return 1;
@@ -683,15 +713,6 @@ static int wm_draw_update_test_window(wmWindow *win)
 	if(win->screen->do_draw_drag)
 		return 1;
 	
-	for(ar= win->screen->regionbase.first; ar; ar= ar->next)
-		if(ar->swinid && ar->do_draw)
-			return 1;
-		
-	for(sa= win->screen->areabase.first; sa; sa= sa->next)
-		for(ar=sa->regionbase.first; ar; ar= ar->next)
-			if(ar->swinid && ar->do_draw)
-				return 1;
-
 	return 0;
 }
 

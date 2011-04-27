@@ -24,6 +24,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifdef WITH_NETWORK
+
 class NetworkDevice : public Device
 {
 public:
@@ -377,6 +379,8 @@ void Device::server_run()
 		cerr << "Network server exception: " << e.what() << endl;
 	}
 }
+
+#endif
 
 CCL_NAMESPACE_END
 

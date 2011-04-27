@@ -269,7 +269,7 @@ static void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
 
 	ma->use_nodes= value;
 	if(ma->use_nodes && ma->nodetree==NULL)
-		ED_node_shader_default(ma);
+		ED_node_shader_default(&ma->id);
 }
 
 static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, PointerRNA *ptr, int *free)

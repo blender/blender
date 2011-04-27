@@ -139,6 +139,8 @@
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
 
+#include "RE_pipeline.h"
+
 #include "readfile.h"
 
 #include "PIL_time.h"
@@ -2101,6 +2103,8 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 {
 	Scene *sce;
 	Material *ma;
+	Lamp *la;
+	World *wrld;
 	Tex *tx;
 	bNodeTree *ntree;
 	
@@ -2153,6 +2157,16 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	for(ma= main->mat.first; ma; ma= ma->id.next) {
 		if(ma->nodetree)
 			ntreeVerifyTypes(ma->nodetree);
+	}
+	/* and world trees */
+	for(wrld= main->world.first; wrld; wrld= wrld->id.next) {
+		if(wrld->nodetree)
+			ntreeVerifyTypes(wrld->nodetree);
+	}
+	/* and lamp trees */
+	for(la= main->lamp.first; la; la= la->id.next) {
+		if(la->nodetree)
+			ntreeVerifyTypes(la->nodetree);
 	}
 	/* and scene trees */
 	for(sce= main->scene.first; sce; sce= sce->id.next) {
@@ -2471,6 +2485,9 @@ static void lib_link_lamp(FileData *fd, Main *main)
 			}
 			
 			la->ipo= newlibadr_us(fd, la->id.lib, la->ipo); // XXX depreceated - old animation system
+
+			if(la->nodetree)
+				lib_link_ntree(fd, &la->id, la->nodetree);
 			
 			la->id.flag -= LIB_NEEDLINK;
 		}
@@ -2492,6 +2509,10 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 	la->curfalloff= newdataadr(fd, la->curfalloff);
 	if(la->curfalloff)
 		direct_link_curvemapping(fd, la->curfalloff);
+
+	la->nodetree= newdataadr(fd, la->nodetree);
+	if(la->nodetree)
+		direct_link_nodetree(fd, la->nodetree);
 	
 	la->preview = direct_link_preview_image(fd, la->preview);
 }
@@ -2634,6 +2655,9 @@ static void lib_link_world(FileData *fd, Main *main)
 					mtex->object= newlibadr(fd, wrld->id.lib, mtex->object);
 				}
 			}
+
+			if(wrld->nodetree)
+				lib_link_ntree(fd, &wrld->id, wrld->nodetree);
 			
 			wrld->id.flag -= LIB_NEEDLINK;
 		}
@@ -2651,6 +2675,11 @@ static void direct_link_world(FileData *fd, World *wrld)
 	for(a=0; a<MAX_MTEX; a++) {
 		wrld->mtex[a]= newdataadr(fd, wrld->mtex[a]);
 	}
+
+	wrld->nodetree= newdataadr(fd, wrld->nodetree);
+	if(wrld->nodetree)
+		direct_link_nodetree(fd, wrld->nodetree);
+
 	wrld->preview = direct_link_preview_image(fd, wrld->preview);
 }
 
@@ -4924,6 +4953,10 @@ static void lib_link_screen(FileData *fd, Main *main)
 						if(snode->id) {
 							if(GS(snode->id->name)==ID_MA)
 								snode->nodetree= ((Material *)snode->id)->nodetree;
+							else if(GS(snode->id->name)==ID_WO)
+								snode->nodetree= ((World *)snode->id)->nodetree;
+							else if(GS(snode->id->name)==ID_LA)
+								snode->nodetree= ((Lamp *)snode->id)->nodetree;
 							else if(GS(snode->id->name)==ID_SCE)
 								snode->nodetree= ((Scene *)snode->id)->nodetree;
 							else if(GS(snode->id->name)==ID_TE)
@@ -5007,6 +5040,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 					BGpic *bgpic;
+					ARegion *ar;
 					
 					if(v3d->scenelock)
 						v3d->camera= NULL; /* always get from scene */
@@ -5042,6 +5076,15 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					/* not very nice, but could help */
 					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
 					
+					/* free render engines for now */
+					for(ar= sa->regionbase.first; ar; ar= ar->next) {
+						RegionView3D *rv3d= ar->regiondata;
+
+						if(rv3d && rv3d->render_engine) {
+							RE_engine_free(rv3d->render_engine);
+							rv3d->render_engine= NULL;
+						}
+					}
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
@@ -5152,6 +5195,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					else {
 						if(GS(snode->id->name)==ID_MA)
 							snode->nodetree= ((Material *)snode->id)->nodetree;
+						else if(GS(snode->id->name)==ID_WO)
+							snode->nodetree= ((World *)snode->id)->nodetree;
+						else if(GS(snode->id->name)==ID_LA)
+							snode->nodetree= ((Lamp *)snode->id)->nodetree;
 						else if(GS(snode->id->name)==ID_SCE)
 							snode->nodetree= ((Scene *)snode->id)->nodetree;
 						else if(GS(snode->id->name)==ID_TE)
@@ -5187,6 +5234,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 			
 			rv3d->depths= NULL;
 			rv3d->ri= NULL;
+			rv3d->render_engine= NULL;
 			rv3d->sms= NULL;
 			rv3d->smooth_timer= NULL;
 		}
@@ -5691,7 +5739,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	if(id->flag & LIB_FAKEUSER) id->us= 1;
 	else id->us= 0;
 	id->icon_id = 0;
-	id->flag &= ~LIB_ID_RECALC;
+	id->flag &= ~(LIB_ID_RECALC|LIB_ID_RECALC_DATA);
 
 	/* this case cannot be direct_linked: it's just the ID part */
 	if(bhead->code==ID_ID) {
@@ -12176,6 +12224,9 @@ static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
 	
 	if (la->adt)
 		expand_animdata(fd, mainvar, la->adt);
+
+	if(la->nodetree)
+		expand_nodetree(fd, mainvar, la->nodetree);
 }
 
 static void expand_lattice(FileData *fd, Main *mainvar, Lattice *lt)
@@ -12203,6 +12254,9 @@ static void expand_world(FileData *fd, Main *mainvar, World *wrld)
 	
 	if (wrld->adt)
 		expand_animdata(fd, mainvar, wrld->adt);
+
+	if(wrld->nodetree)
+		expand_nodetree(fd, mainvar, wrld->nodetree);
 }
 
 

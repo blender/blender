@@ -378,6 +378,7 @@ extern Object workob;
 #define OB_SOLID		3
 #define OB_SHADED		4
 #define OB_TEXTURE		5
+#define OB_RENDER		6
 
 /* dtx: flags, char! */
 #define OB_AXIS			2

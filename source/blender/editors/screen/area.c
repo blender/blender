@@ -152,6 +152,7 @@ void ED_area_do_refresh(bContext *C, ScrArea *sa)
 /* only exported for WM */
 void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 {
+#if 0
 	AZone *az;
 	
 	for(az= sa->actionzones.first; az; az= az->next) {
@@ -165,6 +166,7 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 			az->do_draw= 1;
 		}
 	}
+#endif
 }
 
 static void area_draw_azone(short x1, short y1, short x2, short y2)
@@ -231,6 +233,7 @@ static void region_draw_azone(AZone *az)
 /* only exported for WM */
 void ED_area_overdraw(bContext *C)
 {
+#if 0
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *sa;
@@ -256,7 +259,7 @@ void ED_area_overdraw(bContext *C)
 		}
 	}	
 	glDisable( GL_BLEND );
-	
+#endif
 }
 
 /* get scissor rect, checking overlapping regions */
@@ -334,6 +337,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
+
+	ar->do_draw= 0;
+	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	UI_SetTheme(sa?sa->spacetype:0, ar->type?ar->type->regionid:0);
 	
@@ -353,14 +359,11 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
 	
-	if(sa)
-		region_draw_emboss(ar, &winrct);
+	/*if(sa)
+		region_draw_emboss(ar, &winrct);*/
 	
 	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
 	ED_region_pixelspace(ar);
-	
-	ar->do_draw= 0;
-	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 }
 
 /* **********************************
@@ -1376,8 +1379,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		/* only allow scrolling in vertical direction */
 		v2d->keepofs |= V2D_LOCKOFS_X|V2D_KEEPOFS_Y;
 		v2d->keepofs &= ~(V2D_LOCKOFS_Y|V2D_KEEPOFS_X);
-		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
+		//v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+		//v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)
@@ -1392,8 +1395,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);
 		//v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
 		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
-		v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
-		v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_HIDE;
+		//v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
+		//v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)
@@ -1414,9 +1417,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
-	UI_view2d_scrollers_draw(C, v2d, scrollers);
-	UI_view2d_scrollers_free(scrollers);
+	//scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	//UI_view2d_scrollers_draw(C, v2d, scrollers);
+	//UI_view2d_scrollers_free(scrollers);
 }
 
 void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
@@ -1425,9 +1428,10 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 	
 	// XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
 		// scrollbars for button regions
-	ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
+	/*ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
 	ar->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-	ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
+	ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL_HIDE;*/
+	ar->v2d.scroll= 0;
 	ar->v2d.keepzoom |= V2D_KEEPZOOM;
 
 		// correctly initialised User-Prefs?
