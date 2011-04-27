@@ -558,6 +558,9 @@ void uiTemplateNodeView(uiLayout *layout, bContext *C, ID *id, bNodeTree *ntree,
 {
 	bNode *tnode;
 
+	if(!ntree)
+		return;
+
 	/* clear for cycle check */
 	for(tnode=ntree->nodes.first; tnode; tnode=tnode->next)
 		tnode->flag &= ~NODE_TEST;
