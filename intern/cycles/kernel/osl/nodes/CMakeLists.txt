@@ -1,0 +1,69 @@
+
+# OSL node shaders
+
+SET(osl_sources
+	node_add_closure.osl
+	node_attribute.osl
+	node_background.osl
+	node_blend_texture.osl
+	node_bump.osl
+	node_clouds_texture.osl
+	node_convert_from_color.osl
+	node_convert_from_float.osl
+	node_convert_from_normal.osl
+	node_convert_from_point.osl
+	node_convert_from_vector.osl
+	node_diffuse_bsdf.osl
+	node_distorted_noise_texture.osl
+	node_emission.osl
+	node_environment_texture.osl
+	node_fresnel.osl
+	node_geometry.osl
+	node_glass_bsdf.osl
+	node_glossy_bsdf.osl
+	node_image_texture.osl
+	node_light_path.osl
+	node_magic_texture.osl
+	node_mapping.osl
+	node_marble_texture.osl
+	node_math.osl
+	node_mix.osl
+	node_mix_closure.osl
+	node_musgrave_texture.osl
+	node_noise_texture.osl
+	node_output_displacement.osl
+	node_output_surface.osl
+	node_output_volume.osl
+	node_sky_texture.osl
+	node_stucci_texture.osl
+	node_texture_coordinate.osl
+	node_translucent_bsdf.osl
+	node_transparent_bsdf.osl
+	node_value.osl
+	node_vector_math.osl
+	node_velvet_bsdf.osl
+	node_voronoi_texture.osl
+	node_ward_bsdf.osl
+	node_wood_texture.osl)
+
+SET(osl_headers
+	node_texture.h
+	stdosl.h)
+
+SET(oso_sources)
+
+FOREACH(_file ${osl_sources})
+	SET(osl_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+	STRING(REPLACE ".osl" ".oso" oso_file ${osl_file})
+	STRING(REPLACE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} oso_file ${oso_file})
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${oso_file} 
+		COMMAND ${OSL_COMPILER} -O2 ${osl_file}
+		DEPENDS ${osl_file} ${osl_headers})
+	LIST(APPEND oso_sources ${oso_file})
+ENDFOREACH()
+
+ADD_CUSTOM_TARGET(shader ALL DEPENDS ${oso_sources} ${osl_headers})
+
+INSTALL(FILES ${oso_sources} DESTINATION ${INSTALL_PATH}/cycles/shader)
+
