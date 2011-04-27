@@ -135,14 +135,15 @@ ImBuf* get_brush_icon(Brush *brush)
 					if (path[0])
 						brush->icon_imbuf= IMB_loadiffname(path, flags);
 				}
+
+				if (brush->icon_imbuf)
+					BKE_icon_changed(BKE_icon_getid(&brush->id));
 			}
 		}
 	}
 
 	if (!(brush->icon_imbuf))
 		brush->id.icon_id = 0;
-	else
-		BKE_icon_changed(BKE_icon_getid(&(brush->id)));
 
 	return brush->icon_imbuf;
 }
@@ -1256,10 +1257,11 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 
 		br->icon_imbuf= get_brush_icon(br);
 
+		memset(sp->pr_rect, 0x888888, sp->sizex*sp->sizey*sizeof(unsigned int));
+
 		if(!(br->icon_imbuf) || !(br->icon_imbuf->rect))
 			return;
 
-		memset(sp->pr_rect, 0x888888, sp->sizex*sp->sizey*sizeof(unsigned int));
 		icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
 
 		*do_update= 1;
