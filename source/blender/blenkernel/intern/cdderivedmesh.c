@@ -172,11 +172,7 @@ static void cdDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
 static void cdDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
-	short *no = cddm->mvert[index].no;
-
-	no_r[0] = no[0]/32767.f;
-	no_r[1] = no[1]/32767.f;
-	no_r[2] = no[2]/32767.f;
+	normal_short_to_float_v3(no_r, cddm->mvert[index].no);
 }
 
 static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
