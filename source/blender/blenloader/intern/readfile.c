@@ -11591,26 +11591,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 
 	{
-		ARegion *ar;
-		/* screen view2d settings were not properly initialized [#27164] */
+		/* screen view2d settings were not properly initialized [#27164]
+		 * v2d->scroll caused the bug but best reset other values too which are in old blend files only.
+		 * need to make less ugly - possibly an iterator? */
 		bScreen *screen;
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			ScrArea *sa;
 			/* add regions */
 			for(sa= screen->areabase.first; sa; sa= sa->next) {
-				SpaceLink *sl;
+				SpaceLink *sl= sa->spacedata.first;
+				if(sl->spacetype==SPACE_IMAGE) {
+					ARegion *ar;
+					for (ar=sa->regionbase.first; ar; ar= ar->next) {
+						if(ar->regiontype == RGN_TYPE_WINDOW) {
+							View2D *v2d= &ar->v2d;
+							v2d->minzoom= v2d->maxzoom= v2d->scroll= v2d->keeptot= v2d->keepzoom= v2d->keepofs= v2d->align= 0;
+						}
+					}
+				}
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_IMAGE) {
-						for (ar=sa->regionbase.first; ar; ar= ar->next) {
+						ARegion *ar;
+						for (ar=sl->regionbase.first; ar; ar= ar->next) {
 							if(ar->regiontype == RGN_TYPE_WINDOW) {
 								View2D *v2d= &ar->v2d;
-								v2d->minzoom= 0;
-								v2d->maxzoom= 0;
-								v2d->scroll= 0; /* cause of bug, but set others just incase */
-								v2d->keeptot= 0;
-								v2d->keepzoom= 0;
-								v2d->keepofs= 0;
-								v2d->align= 0;
+								v2d->minzoom= v2d->maxzoom= v2d->scroll= v2d->keeptot= v2d->keepzoom= v2d->keepofs= v2d->align= 0;
 							}
 						}
 					}
