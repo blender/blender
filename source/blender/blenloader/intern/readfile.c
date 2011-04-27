@@ -11591,7 +11591,32 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 
 	{
-
+		ARegion *ar;
+		/* screen view2d settings were not properly initialized [#27164] */
+		bScreen *screen;
+		for(screen= main->screen.first; screen; screen= screen->id.next) {
+			ScrArea *sa;
+			/* add regions */
+			for(sa= screen->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_IMAGE) {
+						for (ar=sa->regionbase.first; ar; ar= ar->next) {
+							if(ar->regiontype == RGN_TYPE_WINDOW) {
+								View2D *v2d= &ar->v2d;
+								v2d->minzoom= 0;
+								v2d->maxzoom= 0;
+								v2d->scroll= 0; /* cause of bug, but set others just incase */
+								v2d->keeptot= 0;
+								v2d->keepzoom= 0;
+								v2d->keepofs= 0;
+								v2d->align= 0;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
