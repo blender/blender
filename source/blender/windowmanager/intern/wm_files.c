@@ -418,6 +418,12 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	if(success==0) {
 		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
+
+#ifdef WITH_PYTHON_SECURITY /* not default */
+		/* use alternative setting for security nuts
+		 * otherwise we'd need to patch the binary blob - startup.blend.c */
+		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
+#endif
 	}
 	
 	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise

@@ -140,8 +140,12 @@ void initglobals(void)
 	G.charstart = 0x0000;
 	G.charmin = 0x0000;
 	G.charmax = 0xffff;
-	
+
+#ifndef WITH_PYTHON_SECURITY /* default */
 	G.f |= G_SCRIPT_AUTOEXEC;
+#else
+	G.f &= ~G_SCRIPT_AUTOEXEC;
+#endif
 }
 
 /***/

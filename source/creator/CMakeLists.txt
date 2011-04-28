@@ -75,6 +75,10 @@ endif()
 if(WITH_PYTHON)
 	blender_include_dirs(../blender/python)
 	add_definitions(-DWITH_PYTHON)
+
+	if(WITH_PYTHON_SECURITY)
+		add_definitions(-DWITH_PYTHON_SECURITY)
+	endif()
 endif()
 
 if(WITH_GAMEENGINE)

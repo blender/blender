@@ -1074,10 +1074,22 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "/?", NULL, "\n\tPrint this help text and exit (windows only)", print_help, ba);
 
 	BLI_argsAdd(ba, 1, "-v", "--version", "\n\tPrint Blender version and exit", print_version, NULL);
+	
+	/* only to give help message */
+#ifndef WITH_PYTHON_SECURITY /* default */
+#  define 	PY_ENABLE_AUTO ", (default)"
+#  define 	PY_DISABLE_AUTO ""
+#else
+#  define 	PY_ENABLE_AUTO ""
+#  define 	PY_DISABLE_AUTO ", (compiled as non-standard default)"
+#endif
 
-	BLI_argsAdd(ba, 1, "-y", "--enable-autoexec", "\n\tEnable automatic python script execution (default)", enable_python, NULL);
-	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)", disable_python, NULL);
+	BLI_argsAdd(ba, 1, "-y", "--enable-autoexec", "\n\tEnable automatic python script execution" PY_ENABLE_AUTO, enable_python, NULL);
+	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)" PY_DISABLE_AUTO, disable_python, NULL);
 
+#undef PY_ENABLE_AUTO
+#undef PY_DISABLE_AUTO
+	
 	BLI_argsAdd(ba, 1, "-b", "--background", "<file>\n\tLoad <file> in background (often used for UI-less rendering)", background_mode, NULL);
 
 	BLI_argsAdd(ba, 1, "-a", NULL, playback_doc, playback_mode, NULL);
