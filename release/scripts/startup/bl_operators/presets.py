@@ -264,7 +264,7 @@ class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     preset_values = [
         "user_preferences.edit.use_drag_immediately",
         "user_preferences.edit.use_insertkey_xyz_to_rgb",
-        "user_preferences.inputs.invert_mouse_wheel_zoom",
+        "user_preferences.inputs.invert_mouse_zoom",
         "user_preferences.inputs.select_mouse",
         "user_preferences.inputs.use_emulate_numpad",
         "user_preferences.inputs.use_mouse_continuous",
