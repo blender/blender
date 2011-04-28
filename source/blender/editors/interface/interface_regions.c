@@ -362,6 +362,16 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* create tooltip data */
 	data= MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
+	/* special case, enum rna buttons only have enum item description, use general enum description too before the spesific one */
+	if(but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
+		const char *descr= RNA_property_description(but->rnaprop);
+		if(descr) {
+			BLI_strncpy(data->lines[data->totline], descr, sizeof(data->lines[0]));
+			data->color[data->totline]= 0xFFFFFF;
+			data->totline++;
+		}
+	}
+	
 	if(but->tip && strlen(but->tip)) {
 		BLI_strncpy(data->lines[data->totline], but->tip, sizeof(data->lines[0]));
 		data->color[data->totline]= 0xFFFFFF;
