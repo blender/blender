@@ -1635,10 +1635,10 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 
 		if (rv3d->persp==RV3D_CAMOB) {
 			rv3d->persp= RV3D_PERSP;
-			smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
+			smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 		}
 		else {
-			smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+			smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
 		}
 	}
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
@@ -1778,10 +1778,10 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 
 	if (rv3d->persp==RV3D_CAMOB) {
 		rv3d->persp= RV3D_PERSP;
-		smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
+		smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
 	else {
-		smooth_view(C, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
+		smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
 	}
 
 	/* smooth view does viewlock RV3D_BOXVIEW copy */
@@ -1814,10 +1814,12 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene= CTX_data_scene(C);
 	
 	if (rv3d) {
+		ARegion *ar= CTX_wm_region(C);
+
 		/* non camera center */
 		float new_ofs[3];
 		negate_v3_v3(new_ofs, give_cursor(scene, v3d));
-		smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
+		smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, NULL, NULL);
 		
 		/* smooth view does viewlock RV3D_BOXVIEW copy */
 	}
@@ -2047,7 +2049,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		new_dist = ((new_dist*scale) >= 0.001f * v3d->grid)? new_dist*scale:0.001f * v3d->grid;
 	}
 
-	smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+	smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), ar);
@@ -2149,6 +2151,7 @@ static EnumPropertyItem prop_view_items[] = {
 static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo, int align_active)
 {
 	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	float new_quat[4];
 
@@ -2194,7 +2197,7 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 	}
 
 	if(rv3d->viewlock) {
-		ED_region_tag_redraw(CTX_wm_region(C));
+		ED_region_tag_redraw(ar);
 		return;
 	}
 
@@ -2203,14 +2206,14 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= view ? RV3D_ORTHO : RV3D_PERSP;
 		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
-		smooth_view(C, v3d->camera, NULL, rv3d->ofs, new_quat, NULL, NULL);
+		smooth_view(C, v3d, ar, v3d->camera, NULL, rv3d->ofs, new_quat, NULL, NULL);
 	}
 	else {
 
 		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= view ? RV3D_ORTHO : RV3D_PERSP;
 		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
-		smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);
+		smooth_view(C, v3d, ar, NULL, NULL, NULL, new_quat, NULL, NULL);
 	}
 
 }
@@ -2218,6 +2221,7 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 static int viewnumpad_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	static int perspo=RV3D_PERSP;
@@ -2316,7 +2320,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 					/* finally do snazzy view zooming */
 					rv3d->persp= RV3D_CAMOB;
-					smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
+					smooth_view(C, v3d, ar, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
 
 				}
 				else{
@@ -2398,7 +2402,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				rv3d->view= 0;
 			}
 
-			smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);
+			smooth_view(C, CTX_wm_view3d(C), CTX_wm_region(C), NULL, NULL, NULL, new_quat, NULL, NULL);
 		}
 	}
 
