@@ -2151,8 +2151,8 @@ static EnumPropertyItem prop_view_items[] = {
 static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo, int align_active)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar= CTX_wm_region(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ARegion *ar= ED_view3d_context_region_unlock(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	float new_quat[4];
 
 	new_quat[0]= q1; new_quat[1]= q2;
@@ -2221,8 +2221,8 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 static int viewnumpad_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar= CTX_wm_region(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ARegion *ar= ED_view3d_context_region_unlock(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	Scene *scene= CTX_data_scene(C);
 	static int perspo=RV3D_PERSP;
 	int viewnum, align_active, nextperspo;
@@ -2350,7 +2350,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewnumpad_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->poll= ED_operator_rv3d_unlock_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2368,7 +2368,8 @@ static EnumPropertyItem prop_view_orbit_items[] = {
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
 {
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ARegion *ar= ED_view3d_context_region_unlock(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	float phi, q1[4], new_quat[4];
 	int orbitdir;
 
@@ -2402,7 +2403,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				rv3d->view= 0;
 			}
 
-			smooth_view(C, CTX_wm_view3d(C), CTX_wm_region(C), NULL, NULL, NULL, new_quat, NULL, NULL);
+			smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL, NULL, new_quat, NULL, NULL);
 		}
 	}
 
@@ -2418,7 +2419,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= vieworbit_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->poll= ED_operator_rv3d_unlock_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2474,8 +2475,8 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 
 static int viewpersportho_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ARegion *ar= CTX_wm_region(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ARegion *ar= ED_view3d_context_region_unlock(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 
 	if(rv3d->viewlock==0) {
 		if(rv3d->persp!=RV3D_ORTHO)
@@ -2497,11 +2498,12 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewpersportho_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->poll= ED_operator_rv3d_unlock_poll;
 
 	/* flags */
 	ot->flag= 0;
 }
+
 
 /* ******************** add background image operator **************** */
 

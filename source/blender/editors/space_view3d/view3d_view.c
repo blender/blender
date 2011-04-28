@@ -466,8 +466,8 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar= CTX_wm_region(C);
-	RegionView3D *rv3d= ar->regiondata;
+	ARegion *ar= ED_view3d_context_region_unlock(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	Scene *scene= CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 
@@ -487,12 +487,10 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int region3d_unlocked_poll(bContext *C)
+int ED_operator_rv3d_unlock_poll(bContext *C)
 {
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	return (rv3d && rv3d->viewlock==0);
+	return ED_view3d_context_region_unlock(C) != NULL;
 }
-
 
 void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 {
@@ -504,7 +502,7 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= view3d_setobjectascamera_exec;	
-	ot->poll= region3d_unlocked_poll;
+	ot->poll= ED_operator_rv3d_unlock_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
