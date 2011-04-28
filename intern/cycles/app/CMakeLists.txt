@@ -1,48 +1,54 @@
 
-INCLUDE_DIRECTORIES(. ../device ../kernel ../kernel/svm ../bvh ../util ../render ../subd)
+INCLUDE_DIRECTORIES(
+	.
+	../device
+	../kernel
+	../kernel/svm
+	../bvh
+	../util
+	../render
+	../subd)
 
 SET(LIBRARIES
-	device
-	kernel
-	render
-	bvh
-	subd
-	util
+	cycles_device
+	cycles_kernel
+	cycles_render
+	cycles_bvh
+	cycles_subd
+	cycles_util
 	${Boost_LIBRARIES}
 	${OPENGL_LIBRARIES}
-	${GLEW_LIBRARIES}
+	${GLEW_LIBRARY}
 	${OPENIMAGEIO_LIBRARY}
 	${GLUT_LIBRARIES})
 
-IF(WITH_OSL)
-	LIST(APPEND LIBRARIES kernel_osl ${OSL_LIBRARIES})
-ENDIF(WITH_OSL)
+IF(WITH_CYCLES_OSL)
+	LIST(APPEND LIBRARIES cycles_kernel_osl ${OSL_LIBRARIES})
+ENDIF()
 
-IF(WITH_PARTIO)
+IF(WITH_CYCLES_PARTIO)
 	LIST(APPEND LIBRARIES ${PARTIO_LIBRARIES})
-ENDIF(WITH_PARTIO)
+ENDIF()
 
-IF(WITH_OPENCL)
+IF(WITH_CYCLES_OPENCL)
 	LIST(APPEND LIBRARIES ${OPENCL_LIBRARIES})
-ENDIF(WITH_OPENCL)
+ENDIF()
 
 ADD_EXECUTABLE(cycles_test cycles_test.cpp cycles_xml.cpp cycles_xml.h)
 TARGET_LINK_LIBRARIES(cycles_test ${LIBRARIES})
-INSTALL(TARGETS cycles_test DESTINATION ${INSTALL_PATH}/cycles)
+INSTALL(TARGETS cycles_test DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
 
 IF(UNIX AND NOT APPLE)
 	SET_TARGET_PROPERTIES(cycles_test PROPERTIES INSTALL_RPATH $ORIGIN/lib)
 ENDIF()
 
-IF(WITH_NETWORK)
+IF(WITH_CYCLES_NETWORK)
 	ADD_EXECUTABLE(cycles_server cycles_server.cpp)
 	TARGET_LINK_LIBRARIES(cycles_server ${LIBRARIES})
-	INSTALL(TARGETS cycles_server DESTINATION ${INSTALL_PATH}/cycles)
+	INSTALL(TARGETS cycles_server DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
 
 	IF(UNIX AND NOT APPLE)
 		SET_TARGET_PROPERTIES(cycles_server PROPERTIES INSTALL_RPATH $ORIGIN/lib)
 	ENDIF()
 ENDIF()
-
-INSTALL(CODE "FILE(MAKE_DIRECTORY ${INSTALL_PATH}/cycles/cache)")
 

@@ -71,34 +71,38 @@ SET(headers
 
 # CUDA module
 
-IF(WITH_CUDA)
+IF(WITH_CYCLES_CUDA)
 	SET(cuda_sources kernel.cu ${headers})
 	SET(cuda_cubins)
 
-	FOREACH(arch ${CUDA_ARCH})
+	FOREACH(arch ${CYCLES_CUDA_ARCH})
 		SET(cuda_cubin kernel_${arch}.cubin)
 
 		ADD_CUSTOM_COMMAND(
 			OUTPUT ${cuda_cubin}
-			COMMAND ${CUDA_NVCC} -arch=${arch} -m64 --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu --use_fast_math -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} --ptxas-options="-v" --maxrregcount=${CUDA_MAXREG} --opencc-options -OPT:Olimit=0 -I${CMAKE_CURRENT_SOURCE_DIR}/../util -I${CMAKE_CURRENT_SOURCE_DIR}/svm -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END=
+			COMMAND ${CUDA_NVCC} -arch=${arch} -m64 --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu --use_fast_math -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} --ptxas-options="-v" --maxrregcount=${CYCLES_CUDA_MAXREG} --opencc-options -OPT:Olimit=0 -I${CMAKE_CURRENT_SOURCE_DIR}/../util -I${CMAKE_CURRENT_SOURCE_DIR}/svm -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END=
 			DEPENDS ${cuda_sources})
 
-		INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} DESTINATION ${INSTALL_PATH}/cycles/lib)
+		INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/lib)
 		LIST(APPEND cuda_cubins ${cuda_cubin})
 	ENDFOREACH()
 
-	ADD_CUSTOM_TARGET(kernel_cuda ALL DEPENDS ${cuda_cubins})
-ENDIF(WITH_CUDA)
+	ADD_CUSTOM_TARGET(cycles_kernel_cuda ALL DEPENDS ${cuda_cubins})
+ENDIF()
 
 # OSL module
 
-IF(WITH_OSL)
+IF(WITH_CYCLES_OSL)
 	ADD_SUBDIRECTORY(osl)
-ENDIF(WITH_OSL)
+ENDIF()
 
 # CPU module
 
 INCLUDE_DIRECTORIES(. ../util osl svm)
 
-ADD_LIBRARY(kernel ${sources} ${headers})
+ADD_LIBRARY(cycles_kernel ${sources} ${headers})
+
+IF(WITH_CYCLES_CUDA)
+	add_dependencies(cycles_kernel cycles_kernel_cuda)
+ENDIF()
 

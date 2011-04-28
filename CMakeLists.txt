@@ -173,6 +173,9 @@ endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 option(WITH_API_INSTALL     "Copy API header files into the blender install folder" ON)
 
+# Cycles
+option(WITH_CYCLES			"Enable Cycles Render Engine" ON)
+
 # Debug
 option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
 mark_as_advanced(WITH_CXX_GUARDEDALLOC)
@@ -1177,11 +1180,17 @@ add_subdirectory(extern)
 # Blender Application
 add_subdirectory(source/creator)
 
-
 #-----------------------------------------------------------------------------
 # Blender Player
 if(WITH_PLAYER)
 	add_subdirectory(source/blenderplayer)
+endif()
+
+#-----------------------------------------------------------------------------
+# Cycles
+
+if(WITH_CYCLES)
+	add_subdirectory(intern/cycles)
 endif()
 
 #-----------------------------------------------------------------------------

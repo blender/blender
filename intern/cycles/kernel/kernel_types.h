@@ -217,8 +217,7 @@ typedef struct ShaderData {
 	/* primitive id if there is one, ~0 otherwise */
 	int prim;
 	/* parametric coordinates
-	 * - barycentric weights for triangles
-	 * - latlong coordinates for background */
+	 * - barycentric weights for triangles */
 	float u, v;
 	/* object id if there is one, ~0 otherwise */
 	int object;

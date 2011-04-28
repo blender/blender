@@ -14,5 +14,5 @@ SET(headers
 	bvh_params.h
 	bvh_sort.h)
 
-ADD_LIBRARY(bvh ${sources} ${headers})
+ADD_LIBRARY(cycles_bvh ${sources} ${headers})
 

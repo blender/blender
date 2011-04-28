@@ -129,13 +129,15 @@ static bool transform_matrix4_gj_inverse(float R[][4], float M[][4])
 
 Transform transform_inverse(const Transform& tfm)
 {
-	Transform R = transform_identity();
-	Transform M = tfm;
+	union { Transform T; float M[4][4]; } R, M;
+	
+	R.T = transform_identity();
+	M.T = tfm;
 
-	if(!transform_matrix4_gj_inverse((float(*)[4])&R, (float(*)[4])&M))
+	if(!transform_matrix4_gj_inverse(R.M, M.M))
 		return transform_identity();
 
-	return R;
+	return R.T;
 }
 
 CCL_NAMESPACE_END

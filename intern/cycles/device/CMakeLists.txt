@@ -1,5 +1,13 @@
 
-INCLUDE_DIRECTORIES(. ../kernel ../kernel/svm ../kernel/osl ../util ../render)
+INCLUDE_DIRECTORIES(
+	.
+	../kernel
+	../kernel/svm
+	../kernel/osl
+	../util
+	../render
+	${OPENGL_INCLUDE_DIR}
+	${GLEW_INCLUDE_DIR})
 
 SET(sources
 	device.cpp
@@ -14,5 +22,5 @@ SET(headers
 	device_intern.h
 	device_network.h)
 
-ADD_LIBRARY(device ${sources} ${headers})
+ADD_LIBRARY(cycles_device ${sources} ${headers})
 

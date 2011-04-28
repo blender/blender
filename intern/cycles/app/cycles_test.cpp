@@ -185,7 +185,7 @@ static void options_parse(int argc, const char **argv)
 {
 	options.width= 1024;
 	options.height= 512;
-	options.filepath = path_get("../../../test/models/elephants.xml");
+	options.filepath = "";
 	options.session = NULL;
 	options.quiet = false;
 

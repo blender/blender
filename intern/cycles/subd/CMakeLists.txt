@@ -22,5 +22,5 @@ SET(headers
 	subd_stencil.h
 	subd_vert.h)
 
-ADD_LIBRARY(subd ${sources} ${headers})
+ADD_LIBRARY(cycles_subd ${sources} ${headers})
 

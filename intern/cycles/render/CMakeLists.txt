@@ -50,5 +50,5 @@ SET(headers
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RTTI_DISABLE_FLAGS}")
 
-ADD_LIBRARY(render ${sources} ${headers})
+ADD_LIBRARY(cycles_render ${sources} ${headers})
 

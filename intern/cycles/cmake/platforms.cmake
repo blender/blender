@@ -1,7 +1,7 @@
 
 # Platform specific build flags
 
-SET(GCC_WARNING_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-long-long") # -pedantic
+SET(GCC_WARNING_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-long-long")
 SET(GCC_OPTIM_FLAGS "-ffast-math -fPIC -msse -msse2 -msse3 -mtune=native")
 
 IF(APPLE)

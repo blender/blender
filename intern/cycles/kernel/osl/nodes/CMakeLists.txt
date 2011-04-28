@@ -65,5 +65,5 @@ ENDFOREACH()
 
 ADD_CUSTOM_TARGET(shader ALL DEPENDS ${oso_sources} ${osl_headers})
 
-INSTALL(FILES ${oso_sources} DESTINATION ${INSTALL_PATH}/cycles/shader)
+INSTALL(FILES ${oso_sources} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/shader)
 

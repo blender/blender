@@ -1,5 +1,5 @@
 
-INSTALL(DIRECTORY license DESTINATION ${INSTALL_PATH}/cycles)
+INSTALL(DIRECTORY license DESTINATION ${CYCLES_INSTALL_PATH}/cycles PATTERN ".svn" EXCLUDE)
 
 SET(doc_sources
 	index.html
@@ -76,12 +76,12 @@ SET(doc_templates
 	templates/nodes.html
 	templates/reference.html)
 
-IF(WITH_DOCS)
+IF(WITH_CYCLES_DOCS)
 	MACRO(install_doc_file source_file html_file)
 		GET_FILENAME_COMPONENT(subdir ${source_file} PATH)
 		INSTALL(
 			FILES ${html_file}
-			DESTINATION ${INSTALL_PATH}/cycles/doc/${subdir})
+			DESTINATION ${CYCLES_INSTALL_PATH}/cycles/doc/${subdir})
 	ENDMACRO()
 
 	FOREACH(_file ${doc_sources})
@@ -100,6 +100,6 @@ IF(WITH_DOCS)
 		install_doc_file(${_file} ${_file})
 	ENDFOREACH()
 
-	ADD_CUSTOM_TARGET(doc ALL DEPENDS ${html_files})
+	ADD_CUSTOM_TARGET(cycles_doc ALL DEPENDS ${html_files})
 ENDIF()
 

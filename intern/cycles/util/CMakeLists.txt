@@ -1,5 +1,8 @@
 
-INCLUDE_DIRECTORIES(.)
+INCLUDE_DIRECTORIES(
+	.
+	${GLEW_INCLUDE_PATH}
+	${OPENGL_INCLUDE_DIR})
 
 SET(sources
 	util_cache.cpp
@@ -43,5 +46,5 @@ SET(headers
 	util_vector.h
 	util_xml.h)
 
-ADD_LIBRARY(util ${sources} ${headers})
+ADD_LIBRARY(cycles_util ${sources} ${headers})
 
