@@ -770,7 +770,7 @@ static void rna_api_animdata_drivers(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *parm;
 	FunctionRNA *func;
 
-	PropertyRNA *prop;
+	// PropertyRNA *prop;
 	
 	RNA_def_property_srna(cprop, "AnimDataDrivers");
 	srna= RNA_def_struct(brna, "AnimDataDrivers", NULL);
