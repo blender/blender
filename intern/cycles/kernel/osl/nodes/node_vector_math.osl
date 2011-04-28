@@ -22,31 +22,31 @@ shader node_vector_math(
 	string type = "Add",
 	vector Vector1 = vector(0.0, 0.0, 0.0),
 	vector Vector2 = vector(0.0, 0.0, 0.0),
-	output float Fac = 0.0,
+	output float Value = 0.0,
 	output vector Vector = vector(0.0, 0.0, 0.0))
 {
 	if(type == "Add") {
 		Vector = Vector1 + Vector2;
-		Fac = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2]))/3.0;
+		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2]))/3.0;
 	}
 	if(type == "Subtract") {
 		Vector = Vector1 + Vector2;
-		Fac = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2]))/3.0;
+		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2]))/3.0;
 	}
 	if(type == "Average") {
-		Fac = length(Vector1 + Vector2);
+		Value = length(Vector1 + Vector2);
 		Vector = normalize(Vector1 + Vector2);
 	}
 	if(type == "Dot Product") {
-		Fac = dot(Vector1, Vector2);
+		Value = dot(Vector1, Vector2);
 	}
 	if(type == "Cross Product") {
 		vector c = cross(Vector1, Vector2);
-		Fac = length(c);
+		Value = length(c);
 		Vector = normalize(c);
 	}
 	if(type == "Normalize") {
-		Fac = length(Vector1);
+		Value = length(Vector1);
 		Vector = normalize(Vector1);
 	}
 }

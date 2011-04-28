@@ -1838,7 +1838,7 @@ VectorMathNode::VectorMathNode()
 
 	add_input("Vector1", SHADER_SOCKET_VECTOR);
 	add_input("Vector2", SHADER_SOCKET_VECTOR);
-	add_output("Fac",  SHADER_SOCKET_FLOAT);
+	add_output("Value",  SHADER_SOCKET_FLOAT);
 	add_output("Vector",  SHADER_SOCKET_VECTOR);
 }
 
@@ -1862,16 +1862,16 @@ void VectorMathNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *vector1_in = input("Vector1");
 	ShaderInput *vector2_in = input("Vector2");
-	ShaderOutput *fac_out = output("Fac");
+	ShaderOutput *value_out = output("Value");
 	ShaderOutput *vector_out = output("Vector");
 
 	compiler.stack_assign(vector1_in);
 	compiler.stack_assign(vector2_in);
-	compiler.stack_assign(fac_out);
+	compiler.stack_assign(value_out);
 	compiler.stack_assign(vector_out);
 
 	compiler.add_node(NODE_VECTOR_MATH, type_enum[type], vector1_in->stack_offset, vector2_in->stack_offset);
-	compiler.add_node(NODE_VECTOR_MATH, fac_out->stack_offset, vector_out->stack_offset);
+	compiler.add_node(NODE_VECTOR_MATH, value_out->stack_offset, vector_out->stack_offset);
 }
 
 void VectorMathNode::compile(OSLCompiler& compiler)
