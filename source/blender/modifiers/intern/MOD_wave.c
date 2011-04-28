@@ -352,6 +352,7 @@ static void waveModifier_do(WaveModifierData *md,
 			}
 
 			falloff_fac = (1.0f - (dist * falloff_inv));
+			CLAMP(falloff_fac, 0.0f, 1.0f);
 
 			if(wmd->flag & MOD_WAVE_X) {
 				if(wmd->flag & MOD_WAVE_Y) amplit = (float)sqrt(x*x + y*y);
