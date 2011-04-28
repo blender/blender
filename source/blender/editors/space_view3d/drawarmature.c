@@ -2440,7 +2440,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 		/* we use color for solid lighting */
 		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
 		glEnable(GL_COLOR_MATERIAL);
-		glColor3ub(255,0,255);	// clear spec
+		glColor3ub(255,255,255);	// clear spec
 		glDisable(GL_COLOR_MATERIAL);
 		
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
