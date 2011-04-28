@@ -23,6 +23,8 @@
 #include <OpenImageIO/sysutil.h>
 OIIO_NAMESPACE_USING
 
+#define BOOST_FILESYSTEM_VERSION 2
+
 #include <boost/filesystem.hpp> 
 
 CCL_NAMESPACE_BEGIN
