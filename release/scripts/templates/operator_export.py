@@ -17,7 +17,7 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 
 class ExportSomeData(bpy.types.Operator, ExportHelper):
-    '''This appiers in the tooltip of the operator and in the generated docs.'''
+    '''This appears in the tooltip of the operator and in the generated docs.'''
     bl_idname = "export.some_data"  # this is important since its how bpy.ops.export.some_data is constructed
     bl_label = "Export Some Data"
 

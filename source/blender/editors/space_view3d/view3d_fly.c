@@ -540,7 +540,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 {
 
 #define FLY_ROTATE_FAC 2.5f /* more is faster */
-#define FLY_ZUP_CORRECT_FAC 0.1f /* ammount to correct per step */
+#define FLY_ZUP_CORRECT_FAC 0.1f /* amount to correct per step */
 #define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
 
 	/*
