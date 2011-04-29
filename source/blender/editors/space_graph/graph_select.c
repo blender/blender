@@ -484,11 +484,8 @@ static void columnselect_graph_keys (bAnimContext *ac, short mode)
 		 */
 		for (ce= ked.list.first; ce; ce= ce->next) {
 			/* set frame for validation callback to refer to */
-			if (ale)
-				ked.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, NLATIME_CONVERT_UNMAP);
-			else
-				ked.f1= ce->cfra;
-			
+			ked.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, NLATIME_CONVERT_UNMAP);
+
 			/* select elements with frame number matching cfraelem */
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 		}

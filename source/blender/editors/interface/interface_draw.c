@@ -765,8 +765,6 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	//float alpha;
 	GLint scissor[4];
 	
-	if (hist==NULL) { printf("hist is null \n"); return; }
-	
 	rect.xmin = (float)recti->xmin+1;
 	rect.xmax = (float)recti->xmax-1;
 	rect.ymin = (float)recti->ymin+SCOPE_RESIZE_PAD+2;

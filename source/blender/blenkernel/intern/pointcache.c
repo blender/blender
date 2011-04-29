@@ -1382,7 +1382,7 @@ static void ptcache_find_frames_around(PTCacheID *pid, unsigned int frame, int *
 			}
 		}
 
-		if(pm && !pm2) {
+		if(!pm2) {
 			*fra1 = 0;
 			*fra2 = pm->frame;
 		}
@@ -1844,7 +1844,8 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 	if(cache->flag & PTCACHE_DISK_CACHE) {
 		error += !ptcache_mem_frame_to_disk(pid, pm);
 
-		if(pm) {
+		// if(pm) /* pm is always set */
+		{
 			ptcache_data_free(pm);
 			ptcache_extra_free(pm);
 			MEM_freeN(pm);

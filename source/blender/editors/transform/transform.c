@@ -3151,7 +3151,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 
 int Rotation(TransInfo *t, const short UNUSED(mval[2]))
 {
-	char str[128];
+	char str[128], *spos= str;
 	
 	float final;
 
@@ -3177,18 +3177,20 @@ int Rotation(TransInfo *t, const short UNUSED(mval[2]))
 		
 		outputNumInput(&(t->num), c);
 		
-		sprintf(str, "Rot: %s %s %s", &c[0], t->con.text, t->proptext);
+		spos+= sprintf(spos, "Rot: %s %s %s", &c[0], t->con.text, t->proptext);
 
 		/* Clamp between -180 and 180 */
 		final= angle_wrap_rad(DEG2RADF(final));
 	}
 	else {
-		sprintf(str, "Rot: %.2f%s %s", RAD2DEGF(final), t->con.text, t->proptext);
+		spos += sprintf(spos, "Rot: %.2f%s %s", RAD2DEGF(final), t->con.text, t->proptext);
 	}
 	
-	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
-		sprintf(str, "%s Proportional size: %.2f", str, t->prop_size);
-	
+	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED)) {
+		spos += sprintf(spos, " Proportional size: %.2f", t->prop_size);
+	}
+	(void)spos;
+
 	t->values[0] = final;
 	
 	applyRotation(t, final, t->axis);
@@ -3257,7 +3259,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 
 int Trackball(TransInfo *t, const short UNUSED(mval[2]))
 {
-	char str[128];
+	char str[128], *spos= str;
 	float axis1[3], axis2[3];
 	float mat[3][3], totmat[3][3], smat[3][3];
 	float phi[2];
@@ -3281,14 +3283,19 @@ int Trackball(TransInfo *t, const short UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, "Trackball: %s %s %s", &c[0], &c[20], t->proptext);
+		spos += sprintf(spos, "Trackball: %s %s %s", &c[0], &c[20], t->proptext);
 
 		phi[0] = DEG2RADF(phi[0]);
 		phi[1] = DEG2RADF(phi[1]);
 	}
 	else {
-		sprintf(str, "Trackball: %.2f %.2f %s", RAD2DEGF(phi[0]), RAD2DEGF(phi[1]), t->proptext);
+		spos += sprintf(spos, "Trackball: %.2f %.2f %s", RAD2DEGF(phi[0]), RAD2DEGF(phi[1]), t->proptext);
 	}
+
+	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED)) {
+		spos += sprintf(spos, " Proportional size: %.2f", t->prop_size);
+	}
+	(void)spos;
 
 	vec_rot_to_mat3( smat,axis1, phi[0]);
 	vec_rot_to_mat3( totmat,axis2, phi[1]);
@@ -3345,6 +3352,7 @@ void initTranslation(TransInfo *t)
 }
 
 static void headerTranslation(TransInfo *t, float vec[3], char *str) {
+	char *spos= str;
 	char tvec[60];
 	char distvec[20];
 	char autoik[20];
@@ -3395,24 +3403,26 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 	if (t->con.mode & CON_APPLY) {
 		switch(t->num.idx_max) {
 		case 0:
-			sprintf(str, "D: %s (%s)%s %s  %s", &tvec[0], distvec, t->con.text, t->proptext, &autoik[0]);
+			spos += sprintf(spos, "D: %s (%s)%s %s  %s", &tvec[0], distvec, t->con.text, t->proptext, &autoik[0]);
 			break;
 		case 1:
-			sprintf(str, "D: %s   D: %s (%s)%s %s  %s", &tvec[0], &tvec[20], distvec, t->con.text, t->proptext, &autoik[0]);
+			spos += sprintf(spos, "D: %s   D: %s (%s)%s %s  %s", &tvec[0], &tvec[20], distvec, t->con.text, t->proptext, &autoik[0]);
 			break;
 		case 2:
-			sprintf(str, "D: %s   D: %s  D: %s (%s)%s %s  %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext, &autoik[0]);
+			spos += sprintf(spos, "D: %s   D: %s  D: %s (%s)%s %s  %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext, &autoik[0]);
 		}
 	}
 	else {
 		if(t->flag & T_2D_EDIT)
-			sprintf(str, "Dx: %s   Dy: %s (%s)%s %s", &tvec[0], &tvec[20], distvec, t->con.text, t->proptext);
+			spos += sprintf(spos, "Dx: %s   Dy: %s (%s)%s %s", &tvec[0], &tvec[20], distvec, t->con.text, t->proptext);
 		else
-			sprintf(str, "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext, &autoik[0]);
+			spos += sprintf(spos, "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext, &autoik[0]);
 	}
 	
-	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
-		sprintf(str, "%s Proportional size: %.2f", str, t->prop_size);
+	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED)) {
+		spos += sprintf(spos, " Proportional size: %.2f", t->prop_size);
+	}
+	(void)spos;
 }
 
 static void applyTranslation(TransInfo *t, float vec[3]) {
