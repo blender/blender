@@ -145,7 +145,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 			for (block=me->key->block.first, j=0; block; block=block->next, j++) {
 				float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, 
 				                                   CD_SHAPEKEY, j);
-				VECCOPY(co, ((float*)block->data)+3*i);
+				if (co)
+					VECCOPY(co, ((float*)block->data)+3*i);
 			}
 		}
 	}

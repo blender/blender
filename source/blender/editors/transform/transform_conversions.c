@@ -1832,7 +1832,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	SmallHash svisit, *visit=&svisit;
 	BMVert *v;
 	BMIter viter;
-	int i;
+	int i, start;
 	
 	i = 0;
 	BM_ITER(v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -1841,66 +1841,61 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 		i++;
 	}
 	
+	BLI_smallhash_init(visit);
+
 	BM_ITER(v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BMVert *v2;
-		int start;
-		
 		if (BM_TestHFlag(v, BM_SELECT)==0 || BM_TestHFlag(v, BM_HIDDEN))
 			continue;
 			
-		BLI_smallhash_init(visit);
-
-		BLI_array_empty(queue);
+		
+		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);
 		BLI_array_append(queue, v);
 		BLI_array_append(dqueue, 0.0f);
 		dists[BMINDEX_GET(v)] = 0.0f;
-		
-		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);		
-		start = 0;
-		
-		while (start < BLI_array_count(queue)) {
-			BMIter eiter;
-			BMEdge *e;
-			BMVert *v3;
-			float d, d2, vec[3];
-			
-			v2 = queue[start];
-			d = dqueue[start];
-			
-			BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v2) {
-				float d2;
-				v3 = BM_OtherEdgeVert(e, v2);
-				
-				if (BM_TestHFlag(v3, BM_SELECT) || BM_TestHFlag(v3, BM_HIDDEN))
-					continue;
-				
-				sub_v3_v3v3(vec, v2->co, v3->co);
-				mul_m3_v3(mtx, vec);
-				
-				d2 = d + len_v3(vec);
-				
-				if (BLI_smallhash_haskey(visit, (uintptr_t)v3))
-					continue;
-				
-				if (dists[BMINDEX_GET(v3)] != FLT_MAX)
-					dists[BMINDEX_GET(v3)] += d2;
-				else
-					dists[BMINDEX_GET(v3)] = d2;
-				
-				tots[BMINDEX_GET(v3)]++;
-				
-				if (!BLI_smallhash_haskey(visit, (uintptr_t)v3))
-					BLI_smallhash_insert(visit, (uintptr_t)v3, NULL);
-				
-				BLI_array_append(queue, v3);
-				BLI_array_append(dqueue, d2);
-			}
-			
-			start++;
-		}
-
-		BLI_smallhash_release(visit);
 	}
+	
+	start = 0;
+	while (start < BLI_array_count(queue)) {
+		BMIter eiter;
+		BMEdge *e;
+		BMVert *v3, *v2;
+		float d, vec[3];
+		
+		v2 = queue[start];
+		d = dqueue[start];
+		
+		BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v2) {
+			float d2;
+			v3 = BM_OtherEdgeVert(e, v2);
+			
+			if (BM_TestHFlag(v3, BM_SELECT) || BM_TestHFlag(v3, BM_HIDDEN))
+				continue;
+			
+			sub_v3_v3v3(vec, v2->co, v3->co);
+			mul_m3_v3(mtx, vec);
+			
+			d2 = d + len_v3(vec);
+			
+			if (dists[BMINDEX_GET(v3)] != FLT_MAX)
+				dists[BMINDEX_GET(v3)] = MIN2(d2, dists[BMINDEX_GET(v3)]);
+			else
+				dists[BMINDEX_GET(v3)] = d2;
+			
+			tots[BMINDEX_GET(v3)] = 1;
+
+			if (BLI_smallhash_haskey(visit, (uintptr_t)v3))
+				continue;
+			
+			BLI_smallhash_insert(visit, (uintptr_t)v3, NULL);
+			
+			BLI_array_append(queue, v3);
+			BLI_array_append(dqueue, d2);
+		}
+		
+		start++;
+	}
+
+	BLI_smallhash_release(visit);
 	
 	for (i=0; i<em->bm->totvert; i++) {
 		if (tots[i])
