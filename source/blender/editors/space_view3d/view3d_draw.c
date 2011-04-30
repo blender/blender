@@ -2212,7 +2212,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 }
 
 /* creates own 3d views, used by the sequencer */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype, char err_out[256])
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height, unsigned int flag, int drawtype, char err_out[256])
 {
 	View3D v3d= {NULL};
 	ARegion ar= {NULL};
@@ -2223,7 +2223,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height
 	ar.regiondata= &rv3d;
 	ar.regiontype= RGN_TYPE_WINDOW;
 
-	v3d.camera= scene->camera;
+	v3d.camera= camera;
 	v3d.lay= scene->lay;
 	v3d.drawtype = drawtype;
 	v3d.flag2 = V3D_RENDER_OVERRIDE;

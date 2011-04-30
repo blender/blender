@@ -602,7 +602,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
-	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID, err_out);
+	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID, err_out);
 	
 	if(ibuf) {		
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);

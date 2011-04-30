@@ -1858,7 +1858,7 @@ static ImBuf * seq_render_scene_strip_impl(
 	ImBuf * ibuf = NULL;
 	float frame= seq->sfra + nr + seq->anim_startofs;
 	float oldcfra;
-	Object *oldcamera;
+	Object *camera;
 	ListBase oldmarkers;
 	
 	/* Old info:
@@ -1908,7 +1908,6 @@ static ImBuf * seq_render_scene_strip_impl(
 		return NULL;
 
 	oldcfra= seq->scene->r.cfra;
-	oldcamera= seq->scene->camera;
 
 	/* prevent eternal loop */
 	doseq= context.scene->r.scemode & R_DOSEQ;
@@ -1916,9 +1915,11 @@ static ImBuf * seq_render_scene_strip_impl(
 	
 	seq->scene->r.cfra= frame;
 	if(seq->scene_camera)	
-		seq->scene->camera= seq->scene_camera;
-	else	
+		camera= seq->scene_camera;
+	else {	
 		scene_camera_switch_update(seq->scene);
+		camera= seq->scene->camera;
+	}
 	
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
@@ -1934,7 +1935,7 @@ static ImBuf * seq_render_scene_strip_impl(
 
 		/* opengl offscreen render */
 		scene_update_for_newframe(context.bmain, seq->scene, seq->scene->lay);
-		ibuf= sequencer_view3d_cb(seq->scene, context.rectx, context.recty, IB_rect, context.scene->r.seq_prev_type, err_out);
+		ibuf= sequencer_view3d_cb(seq->scene, camera, context.rectx, context.recty, IB_rect, context.scene->r.seq_prev_type, err_out);
 		if(ibuf == NULL) {
 			fprintf(stderr, "seq_render_scene_strip_impl failed to get opengl buffer: %s\n", err_out);
 		}
@@ -1948,7 +1949,7 @@ static ImBuf * seq_render_scene_strip_impl(
 			if(re==NULL)
 				re= RE_NewRender(sce->id.name);
 			
-			RE_BlenderFrame(re, context.bmain, sce, NULL, NULL, sce->lay, frame, FALSE);
+			RE_BlenderFrame(re, context.bmain, sce, NULL, camera, sce->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
 			G.rendering = rendering;
@@ -1982,7 +1983,7 @@ static ImBuf * seq_render_scene_strip_impl(
 	context.scene->r.scemode |= doseq;
 	
 	seq->scene->r.cfra = oldcfra;
-	seq->scene->camera= oldcamera;
+
 	if(frame != oldcfra)
 		scene_update_for_newframe(context.bmain, seq->scene, seq->scene->lay);
 	

@@ -164,7 +164,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	World *wrld= NULL;
 	HaloRen *har;
 	Scene *scene;
-	Object *camera= re ? RE_GetCamera(re) : scene->camera;
+	Object *camera;
 	Camera *cam;
 	double dblrand, hlfrand;
 	float vec[4], fx, fy, fz;
@@ -181,7 +181,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 		scene= re->scene;
 		wrld= &(re->wrld);
 	}
-	
+
 	stargrid = wrld->stardist;			/* distance between stars */
 	maxrand = 2.0;						/* amount a star can be shifted (in grid units) */
 	maxjit = (wrld->starcolnoise);		/* amount a color is being shifted */
@@ -205,6 +205,8 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 		* x = -z | +z,
 		* y = -z | +z
 		*/
+
+	camera= re ? RE_GetCamera(re) : scene->camera;
 
 	if(camera==NULL || camera->type != OB_CAMERA)
 		return;
