@@ -1053,6 +1053,9 @@ typedef struct Scene {
 #define BASACT			(scene->basact)
 #define OBACT			(BASACT? BASACT->object: NULL)
 
+#define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
+#define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)
+
 #define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
 #define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}

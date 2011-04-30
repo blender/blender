@@ -472,7 +472,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = CTX_data_active_object(C);
 
 	if(ob) {
-		Object *camera_old= (rv3d->persp == RV3D_CAMOB && scene->camera) ? scene->camera : NULL;
+		Object *camera_old= (rv3d->persp == RV3D_CAMOB) ? V3D_CAMERA_SCENE(scene, v3d) : NULL;
 		rv3d->persp= RV3D_CAMOB;
 		v3d->camera= ob;
 		if(v3d->scenelock)
