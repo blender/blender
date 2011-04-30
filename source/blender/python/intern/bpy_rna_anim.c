@@ -53,14 +53,16 @@
 
 /* for keyframes and drivers */
 static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefix, const char *path,
-	const char **path_full, int *index)
+                                        const char **path_full, int *index)
 {
 	const int is_idbase= RNA_struct_is_ID(ptr->type);
 	PropertyRNA *prop;
 	PointerRNA r_ptr;
 
 	if (ptr->data==NULL) {
-		PyErr_Format(PyExc_TypeError, "%.200s this struct has no data, can't be animated", error_prefix);
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s this struct has no data, can't be animated",
+		             error_prefix);
 		return -1;
 	}
 
@@ -71,11 +73,15 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 			prop= NULL;
 		}
 		else if(r_index != -1) {
-			PyErr_Format(PyExc_ValueError, "%.200s path includes index, must be a separate argument", error_prefix, path);
+			PyErr_Format(PyExc_ValueError,
+			             "%.200s path includes index, must be a separate argument",
+			             error_prefix, path);
 			return -1;
 		}
 		else if(ptr->id.data != r_ptr.id.data) {
-			PyErr_Format(PyExc_ValueError, "%.200s path spans ID blocks", error_prefix, path);
+			PyErr_Format(PyExc_ValueError,
+			             "%.200s path spans ID blocks",
+			             error_prefix, path);
 			return -1;
 		}
 	}
@@ -85,12 +91,16 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 	}
 
 	if (prop==NULL) {
-		PyErr_Format(PyExc_TypeError, "%.200s property \"%s\" not found", error_prefix, path);
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s property \"%s\" not found",
+		             error_prefix, path);
 		return -1;
 	}
 
 	if (!RNA_property_animateable(&r_ptr, prop)) {
-		PyErr_Format(PyExc_TypeError, "%.200s property \"%s\" not animatable", error_prefix, path);
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s property \"%s\" not animatable",
+		             error_prefix, path);
 		return -1;
 	}
 
@@ -99,14 +109,18 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 			*index= 0;
 		}
 		else {
-			PyErr_Format(PyExc_TypeError, "%.200s index %d was given while property \"%s\" is not an array", error_prefix, *index, path);
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s index %d was given while property \"%s\" is not an array",
+			             error_prefix, *index, path);
 			return -1;
 		}
 	}
 	else {
 		int array_len= RNA_property_array_length(&r_ptr, prop);
 		if((*index) < -1 || (*index) >= array_len) {
-			PyErr_Format(PyExc_TypeError, "%.200s index out of range \"%s\", given %d, array length is %d", error_prefix, path, *index, array_len);
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s index out of range \"%s\", given %d, array length is %d",
+			             error_prefix, path, *index, array_len);
 			return -1;
 		}
 	}
@@ -118,7 +132,9 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 		*path_full= RNA_path_from_ID_to_property(&r_ptr, prop);
 
 		if (*path_full==NULL) {
-			PyErr_Format(PyExc_TypeError, "%.200s could not make path to \"%s\"", error_prefix, path);
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s could not make path to \"%s\"",
+			             error_prefix, path);
 			return -1;
 		}
 	}
@@ -128,7 +144,7 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 
 /* internal use for insert and delete */
 static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
-	const char **path_full, int *index, float *cfra, const char **group_name) /* return values */
+                                       const char **path_full, int *index, float *cfra, const char **group_name) /* return values */
 {
 	static const char *kwlist[]= {"data_path", "index", "frame", "group", NULL};
 	const char *path;
@@ -172,7 +188,10 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 
 	PYRNA_STRUCT_CHECK_OBJ(self)
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1) {
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw,
+	                               "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()",
+	                               &path_full, &index, &cfra, &group_name) == -1)
+	{
 		return NULL;
 	}
 	else {
@@ -217,7 +236,11 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
 
 	PYRNA_STRUCT_CHECK_OBJ(self)
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_delete()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1) {
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw,
+	                               "s|ifs:bpy_struct.keyframe_delete()",
+	                               "bpy_struct.keyframe_insert()",
+	                               &path_full, &index, &cfra, &group_name) == -1)
+	{
 		return NULL;
 	}
 	else {

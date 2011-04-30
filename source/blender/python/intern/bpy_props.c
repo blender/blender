@@ -223,8 +223,14 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssiO!s:BoolProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssiO!s:BoolProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &def,
+		                                 &PySet_Type, &pyopts, &pysubtype))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(BoolProperty, property_flag_items, property_subtype_number_items)
 
@@ -277,8 +283,14 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOO!si:BoolVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssOO!si:BoolVectorProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &pydef,
+		                                 &PySet_Type, &pyopts, &pysubtype,&size))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(BoolVectorProperty, property_flag_items, property_subtype_array_items)
 
@@ -335,8 +347,15 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssiiiiiiO!s:IntProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssiiiiiiO!s:IntProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &def,
+		                                 &min, &max, &soft_min, &soft_max,
+		                                 &step, &PySet_Type, &pyopts, &pysubtype))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(IntProperty, property_flag_items, property_subtype_number_items)
 
@@ -390,8 +409,16 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOiiiiiO!si:IntVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssOiiiiiO!si:IntVectorProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &pydef,
+		                                 &min, &max, &soft_min, &soft_max,
+		                                 &step, &PySet_Type, &pyopts,
+		                                 &pysubtype, &size))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(IntVectorProperty, property_flag_items, property_subtype_array_items)
 
@@ -454,8 +481,16 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pyunit= NULL;
 		int unit= PROP_UNIT_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssffffffiO!ss:FloatProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &pyunit))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssffffffiO!ss:FloatProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &def,
+		                                 &min, &max, &soft_min, &soft_max,
+		                                 &step, &precision, &PySet_Type,
+		                                 &pyopts, &pysubtype, &pyunit))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatProperty, property_flag_items, property_subtype_number_items)
 
@@ -514,8 +549,16 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOfffffiO!si:FloatVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssOfffffiO!si:FloatVectorProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &pydef,
+		                                 &min, &max, &soft_min, &soft_max,
+		                                 &step, &precision, &PySet_Type,
+		                                 &pyopts, &pysubtype, &size))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatVectorProperty, property_flag_items, property_subtype_array_items)
 
@@ -572,8 +615,14 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|sssiO!s:StringProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &maxlen, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|sssiO!s:StringProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &def,
+		                                 &maxlen, &PySet_Type, &pyopts, &pysubtype))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(StringProperty, property_flag_items, property_subtype_string_items)
 
@@ -607,7 +656,10 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 			return NULL;
 		}
 		if(def && !PySet_Check(def)) {
-			PyErr_Format(PyExc_TypeError, "EnumProperty(...): default option must be a 'set' type when ENUM_FLAG is enabled, not a '%.200s'", Py_TYPE(def)->tp_name);
+			PyErr_Format(PyExc_TypeError,
+			             "EnumProperty(...): default option must be a 'set' "
+			             "type when ENUM_FLAG is enabled, not a '%.200s'",
+			             Py_TYPE(def)->tp_name);
 			return NULL;
 		}
 	}
@@ -615,7 +667,10 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		if(def) {
 			def_cmp= _PyUnicode_AsString(def);
 			if(def_cmp==NULL) {
-				PyErr_Format(PyExc_TypeError, "EnumProperty(...): default option must be a 'str' type when ENUM_FLAG is disabled, not a '%.200s'", Py_TYPE(def)->tp_name);
+				PyErr_Format(PyExc_TypeError,
+				             "EnumProperty(...): default option must be a 'str' "
+				             "type when ENUM_FLAG is disabled, not a '%.200s'",
+				             Py_TYPE(def)->tp_name);
 				return NULL;
 			}
 		}
@@ -666,7 +721,9 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		if(def && def_used != PySet_GET_SIZE(def)) {
 			MEM_freeN(items);
 
-			PyErr_Format(PyExc_TypeError, "EnumProperty(..., default={...}): set has %d unused member(s)", PySet_GET_SIZE(def) - def_used);
+			PyErr_Format(PyExc_TypeError,
+			             "EnumProperty(..., default={...}): set has %d unused member(s)",
+			             PySet_GET_SIZE(def) - def_used);
 			return NULL;
 		}
 	}
@@ -674,7 +731,9 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		if(def && def_used == 0) {
 			MEM_freeN(items);
 
-			PyErr_Format(PyExc_TypeError, "EnumProperty(..., default=\'%s\'): not found in enum members", def);
+			PyErr_Format(PyExc_TypeError,
+			             "EnumProperty(..., default=\'%s\'): not found in enum members",
+			             def);
 			return NULL;
 		}
 	}
@@ -714,8 +773,14 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssOO!:EnumProperty", (char **)kwlist, &id, &id_len, &items, &name, &description, &def, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#O|ssOO!:EnumProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &items, &name, &description,
+		                                 &def, &PySet_Type, &pyopts))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_CHECK(EnumProperty, property_flag_enum_items)
 
@@ -752,17 +817,23 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 		if(PyErr_Occurred()) {
 			PyObject *msg= PyC_ExceptionBuffer();
 			char *msg_char= _PyUnicode_AsString(msg);
-			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup, failed with: %s", error_prefix, msg_char);
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s expected an RNA type derived from PropertyGroup, failed with: %s",
+			             error_prefix, msg_char);
 			Py_DECREF(msg);
 		}
 		else {
-			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup, failed with type '%s'", error_prefix, Py_TYPE(value)->tp_name);
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s expected an RNA type derived from PropertyGroup, failed with type '%s'",
+			             error_prefix, Py_TYPE(value)->tp_name);
 		}
 		return NULL;
 	}
 
 	if(!RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
-		PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup", error_prefix);
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s expected an RNA type derived from PropertyGroup",
+		             error_prefix);
 		return NULL;
 	}
 
@@ -797,8 +868,14 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssO!:PointerProperty", (char **)kwlist, &id, &id_len, &type, &name, &description, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#O|ssO!:PointerProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &type, &name, &description,
+		                                 &PySet_Type, &pyopts))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_CHECK(PointerProperty, property_flag_items)
 
@@ -844,8 +921,14 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssO!:CollectionProperty", (char **)kwlist, &id, &id_len, &type, &name, &description, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#O|ssO!:CollectionProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &type, &name, &description,
+		                                 &PySet_Type, &pyopts))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_CHECK(CollectionProperty, property_flag_items)
 
@@ -901,8 +984,12 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		
 		char *id=NULL;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s:RemoveProperty", (char **)kwlist, &id))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s:RemoveProperty",
+		                                 (char **)kwlist, &id))
+		{
 			return NULL;
+		}
 
 		if(RNA_def_property_free_identifier(srna, id) != 1) {
 			PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property", id);
