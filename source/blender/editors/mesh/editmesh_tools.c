@@ -891,12 +891,10 @@ void MESH_OT_split(wmOperatorType *ot)
 }
 
 
-static int extrude_repeat_mesh(bContext *C, wmOperator *op)
+static int extrude_repeat_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-
-	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 
 	int steps = RNA_int_get(op->ptr,"steps");
 
@@ -906,9 +904,7 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	short a;
 
 	/* dvec */
-	dvec[0]= rv3d->persinv[2][0];
-	dvec[1]= rv3d->persinv[2][1];
-	dvec[2]= rv3d->persinv[2][2];
+	RNA_float_get_array(op->ptr, "direction", dvec);
 	normalize_v3(dvec);
 	dvec[0]*= offs;
 	dvec[1]*= offs;
@@ -935,6 +931,17 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/* get center and axis, in global coords */
+static int extrude_repeat_mesh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+
+	if(rv3d)
+		RNA_float_set_array(op->ptr, "direction", rv3d->persinv[2]);
+
+	return extrude_repeat_mesh_exec(C, op);
+}
+
 void MESH_OT_extrude_repeat(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -943,15 +950,17 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 	ot->idname= "MESH_OT_extrude_repeat";
 
 	/* api callbacks */
-	ot->exec= extrude_repeat_mesh;
-	ot->poll= ED_operator_editmesh_region_view3d;
+	ot->invoke= extrude_repeat_mesh_invoke;
+	ot->exec= extrude_repeat_mesh_exec;
+	ot->poll= ED_operator_editmesh;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 100.0f, "Offset", "", 0.0f, FLT_MAX);
-	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, INT_MAX);
+	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 100.0f, "Offset", "", 0.0f, 100.0f);
+	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, 180);
+	RNA_def_float_vector(ot->srna, "direction", 3, NULL, -FLT_MAX, FLT_MAX, "Direction", "Direction of extrude", -FLT_MAX, FLT_MAX);
 }
 
 /* ************************** spin operator ******************** */
