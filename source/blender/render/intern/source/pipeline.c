@@ -1991,6 +1991,7 @@ static void merge_renderresult_fields(RenderResult *rr, RenderResult *rr1, Rende
 /* interleaves 2 frames */
 static void do_render_fields_3d(Render *re)
 {
+	Object *camera= RE_GetCamera(re);
 	RenderResult *rr1, *rr2= NULL;
 	
 	/* no render result was created, we can safely halve render y */
@@ -2002,7 +2003,7 @@ static void do_render_fields_3d(Render *re)
 	re->i.curfield= 1;	/* stats */
 	
 	/* first field, we have to call camera routine for correct aspect and subpixel offset */
-	RE_SetCamera(re, re->scene->camera);
+	RE_SetCamera(re, camera);
 	if(re->r.mode & R_MBLUR && (re->r.scemode & R_FULL_SAMPLE)==0)
 		do_render_blur_3d(re);
 	else
@@ -2022,7 +2023,7 @@ static void do_render_fields_3d(Render *re)
 		if((re->r.mode & R_FIELDSTILL)==0) {
 			re->field_offs = 0.5f;
 		}
-		RE_SetCamera(re, re->scene->camera);
+		RE_SetCamera(re, camera);
 		if(re->r.mode & R_MBLUR && (re->r.scemode & R_FULL_SAMPLE)==0)
 			do_render_blur_3d(re);
 		else
@@ -2097,8 +2098,9 @@ static void load_backbuffer(Render *re)
 /* main render routine, no compositing */
 static void do_render_fields_blur_3d(Render *re)
 {
+	Object *camera= RE_GetCamera(re);
 	/* also check for camera here */
-	if(re->scene->camera==NULL) {
+	if(camera == NULL) {
 		printf("ERROR: Cannot render, no camera\n");
 		G.afbreek= 1;
 		return;
@@ -2109,7 +2111,7 @@ static void do_render_fields_blur_3d(Render *re)
 		load_backbuffer(re);
 
 	/* now use renderdata and camera to set viewplane */
-	RE_SetCamera(re, re->scene->camera);
+	RE_SetCamera(re, camera);
 	
 	if(re->r.mode & R_FIELDS)
 		do_render_fields_3d(re);
@@ -2648,11 +2650,11 @@ static void do_render_all_options(Render *re)
 	}
 }
 
-static int check_valid_camera(Scene *scene)
+static int check_valid_camera(Scene *scene, Object *camera_override)
 {
 	int check_comp= 1;
 
-	if (scene->camera == NULL)
+	if (camera_override == NULL && scene->camera == NULL)
 		scene->camera= scene_find_camera(scene);
 
 	if(scene->r.scemode&R_DOSEQ) {
@@ -2697,13 +2699,15 @@ static int check_valid_camera(Scene *scene)
 
 				node= node->next;
 			}
-		} else return scene->camera != NULL;
+		} else {
+			return (camera_override != NULL || scene->camera != NULL);
+		}
 	}
 
 	return 1;
 }
 
-int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle, const char *str))
+int RE_is_rendering_allowed(Scene *scene, Object *camera_override, void *erh, void (*error)(void *handle, const char *str))
 {
 	SceneRenderLayer *srl;
 	
@@ -2764,13 +2768,13 @@ int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle,
 	}
 	
 	 /* check valid camera, without camera render is OK (compo, seq) */
-	if(!check_valid_camera(scene)) {
+	if(!check_valid_camera(scene, camera_override)) {
 		error(erh, "No camera");
 		return 0;
 	}
 	
 	/* get panorama & ortho, only after camera is set */
-	object_camera_mode(&scene->r, scene->camera);
+	object_camera_mode(&scene->r, camera_override ? camera_override : scene->camera);
 
 	/* forbidden combinations */
 	if(scene->r.mode & R_PANORAMA) {
@@ -2831,7 +2835,7 @@ static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init)
 	BKE_ptcache_bake(&baker);
 }
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int anim, int anim_init)
+static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay, int anim, int anim_init)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2859,6 +2863,7 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	
 	re->main= bmain;
 	re->scene= scene;
+	re->camera_override= camera_override;
 	re->lay= lay;
 	
 	/* not too nice, but it survives anim-border render */
@@ -2899,14 +2904,14 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 }
 
 /* general Blender frame render call */
-void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int frame, const short write_still)
+void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay, int frame, const short write_still)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	G.rendering= 1;
 	
 	scene->r.cfra= frame;
 	
-	if(render_initialize_from_main(re, bmain, scene, srl, lay, 0, 0)) {
+	if(render_initialize_from_main(re, bmain, scene, srl, camera_override, lay, 0, 0)) {
 		MEM_reset_peak_memory();
 		do_render_all_options(re);
 
@@ -3019,14 +3024,14 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int sfra, int efra, int tfra, ReportList *reports)
+void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override, unsigned int lay, int sfra, int efra, int tfra, ReportList *reports)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
 	int cfrao= scene->r.cfra;
 	int nfra;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
-	if(!render_initialize_from_main(re, bmain, scene, NULL, lay, 0, 1))
+	if(!render_initialize_from_main(re, bmain, scene, NULL, camera_override, lay, 0, 1))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
@@ -3059,7 +3064,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_main(re, bmain, scene, NULL, lay, 1, 0);
+			render_initialize_from_main(re, bmain, scene, NULL, camera_override, lay, 1, 0);
 
 			if(nfra!=scene->r.cfra) {
 				/*
@@ -3132,6 +3137,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int
 
 void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 {
+	Object *camera= RE_GetCamera(re);
 	int winx, winy;
 
 	winx= (sce->r.size*sce->r.xsch)/100;
@@ -3143,7 +3149,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 	re->scene = sce;
 	re->lay = sce->lay;
 
-	RE_SetCamera(re, sce->camera);
+	RE_SetCamera(re, camera);
 
 	do_render_3d(re);
 }

@@ -182,6 +182,7 @@ struct Render
 	Scene *scene;
 	RenderData r;
 	World wrld;
+	struct Object *camera_override;
 	unsigned int lay;
 	
 	ListBase parts;

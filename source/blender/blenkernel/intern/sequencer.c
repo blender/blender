@@ -1948,7 +1948,7 @@ static ImBuf * seq_render_scene_strip_impl(
 			if(re==NULL)
 				re= RE_NewRender(sce->id.name);
 			
-			RE_BlenderFrame(re, context.bmain, sce, NULL, sce->lay, frame, FALSE);
+			RE_BlenderFrame(re, context.bmain, sce, NULL, NULL, sce->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
 			G.rendering = rendering;
