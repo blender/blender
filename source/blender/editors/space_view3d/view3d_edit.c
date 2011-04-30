@@ -2148,15 +2148,14 @@ static EnumPropertyItem prop_view_items[] = {
 
 /* would like to make this a generic function - outside of transform */
 
-static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo, int align_active)
+static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar, float q1, float q2, float q3, float q4, short view, int perspo, int align_active)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar= ED_view3d_context_region_unlock(C);
 	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	float new_quat[4];
 
 	new_quat[0]= q1; new_quat[1]= q2;
 	new_quat[2]= q3; new_quat[3]= q4;
+	normalize_qt(new_quat);
 
 	if(align_active) {
 		/* align to active object */
@@ -2244,27 +2243,27 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 	switch (viewnum) {
 		case RV3D_VIEW_BOTTOM :
-			axis_set_view(C, 0.0, -1.0, 0.0, 0.0, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.0, -1.0, 0.0, 0.0, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_BACK:
-			axis_set_view(C, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_LEFT:
-			axis_set_view(C, 0.5, -0.5, 0.5, 0.5, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.5, -0.5, 0.5, 0.5, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_TOP:
-			axis_set_view(C, 1.0, 0.0, 0.0, 0.0, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 1.0, 0.0, 0.0, 0.0, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_FRONT:
-			axis_set_view(C, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_RIGHT:
-			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.5, -0.5, -0.5, -0.5, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_CAMERA:
@@ -2326,7 +2325,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				else{
 					/* return to settings of last view */
 					/* does smooth_view too */
-					axis_set_view(C, rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3], rv3d->lview, rv3d->lpersp, 0);
+					axis_set_view(C, v3d, ar, rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3], rv3d->lview, rv3d->lpersp, 0);
 				}
 			}
 			break;
