@@ -5659,7 +5659,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 */
 void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, int type, Object *actob)
 {
-	Object *camera= RE_GetCamera(re);
+	Object *camera;
 	float mat[4][4];
 	float amb[3];
 	int onlyselected, nolamps;
@@ -5700,6 +5700,8 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if(re->lay & 0xFF000000)
 		lay &= 0xFF000000;
+	
+	camera= RE_GetCamera(re);
 	
 	/* if no camera, set unit */
 	if(camera) {

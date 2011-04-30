@@ -3149,7 +3149,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 	re->scene = sce;
 	re->lay = sce->lay;
 
-    camera = RE_GetCamera(re);
+	camera = RE_GetCamera(re);
 	RE_SetCamera(re, camera);
 
 	do_render_3d(re);
