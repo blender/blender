@@ -1896,60 +1896,65 @@ static ImBuf * seq_render_scene_strip_impl(
 	int doseq;
 	int doseq_gl= G.rendering ? /*(scene->r.seq_flag & R_SEQ_GL_REND)*/ 0 : /*(scene->r.seq_flag & R_SEQ_GL_PREV)*/ 1;
 	int have_seq= FALSE;
-	Scene *sce= seq->scene; /* dont refer to seq->scene above this point!, it can be NULL */
-	int sce_valid= FALSE;
+	Scene *scene;
 
-	if(sce) {
-		have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
-		sce_valid= (sce->camera || have_seq);
+	/* dont refer to seq->scene above this point!, it can be NULL */
+	if(seq->scene == NULL) {
+		return NULL;
 	}
 
-	if (!sce_valid)
-		return NULL;
+	scene= seq->scene;
 
-	oldcfra= seq->scene->r.cfra;
+	have_seq= (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
+
+	oldcfra= scene->r.cfra;	
+	scene->r.cfra= frame;
+
+	if(seq->scene_camera)	
+		camera= seq->scene_camera;
+	else {	
+		scene_camera_switch_update(scene);
+		camera= scene->camera;
+	}
+
+	if(scene && have_seq==FALSE && camera==NULL) {
+		scene->r.cfra= oldcfra;
+		return NULL;
+	}
 
 	/* prevent eternal loop */
 	doseq= context.scene->r.scemode & R_DOSEQ;
 	context.scene->r.scemode &= ~R_DOSEQ;
 	
-	seq->scene->r.cfra= frame;
-	if(seq->scene_camera)	
-		camera= seq->scene_camera;
-	else {	
-		scene_camera_switch_update(seq->scene);
-		camera= seq->scene->camera;
-	}
-	
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
-	oldmarkers= seq->scene->markers;
-	seq->scene->markers.first= seq->scene->markers.last= NULL;
+	oldmarkers= scene->markers;
+	scene->markers.first= scene->markers.last= NULL;
 #endif
 	
-	if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (seq->scene == context.scene || have_seq==0) && seq->scene->camera) {
+	if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (scene == context.scene || have_seq==0) && camera) {
 		char err_out[256]= "unknown";
 		/* for old scened this can be uninitialized, should probably be added to do_versions at some point if the functionality stays */
 		if(context.scene->r.seq_prev_type==0)
 			context.scene->r.seq_prev_type = 3 /* ==OB_SOLID */; 
 
 		/* opengl offscreen render */
-		scene_update_for_newframe(context.bmain, seq->scene, seq->scene->lay);
-		ibuf= sequencer_view3d_cb(seq->scene, camera, context.rectx, context.recty, IB_rect, context.scene->r.seq_prev_type, err_out);
+		scene_update_for_newframe(context.bmain, scene, scene->lay);
+		ibuf= sequencer_view3d_cb(scene, camera, context.rectx, context.recty, IB_rect, context.scene->r.seq_prev_type, err_out);
 		if(ibuf == NULL) {
 			fprintf(stderr, "seq_render_scene_strip_impl failed to get opengl buffer: %s\n", err_out);
 		}
 	}
 	else {
-		Render *re = RE_GetRender(sce->id.name);
+		Render *re = RE_GetRender(scene->id.name);
 		RenderResult rres;
 
 		/* XXX: this if can be removed when sequence preview rendering uses the job system */
-		if(rendering || context.scene != sce) {
+		if(rendering || context.scene != scene) {
 			if(re==NULL)
-				re= RE_NewRender(sce->id.name);
+				re= RE_NewRender(scene->id.name);
 			
-			RE_BlenderFrame(re, context.bmain, sce, NULL, camera, sce->lay, frame, FALSE);
+			RE_BlenderFrame(re, context.bmain, scene, NULL, camera, scene->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
 			G.rendering = rendering;
@@ -1982,14 +1987,14 @@ static ImBuf * seq_render_scene_strip_impl(
 	/* restore */
 	context.scene->r.scemode |= doseq;
 	
-	seq->scene->r.cfra = oldcfra;
+	scene->r.cfra = oldcfra;
 
 	if(frame != oldcfra)
-		scene_update_for_newframe(context.bmain, seq->scene, seq->scene->lay);
+		scene_update_for_newframe(context.bmain, scene, scene->lay);
 	
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
-	seq->scene->markers= oldmarkers;
+	scene->markers= oldmarkers;
 #endif
 
 	return ibuf;
