@@ -114,6 +114,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	View3D *v3d= oglrender->v3d;
 	RegionView3D *rv3d= oglrender->rv3d;
 	RenderResult *rr;
+	Object *camera= NULL;
 	ImBuf *ibuf;
 	void *lock;
 	float winmat[4][4];
@@ -140,7 +141,8 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		/* render 3d view */
 		if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
 			/*int is_ortho= scene->r.mode & R_ORTHO;*/
-			RE_GetCameraWindow(oglrender->re, v3d->camera, scene->r.cfra, winmat);
+			camera= v3d->camera;
+			RE_GetCameraWindow(oglrender->re, camera, scene->r.cfra, winmat);
 			
 		}
 		else {
@@ -191,6 +193,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		/* shouldnt suddenly give errors mid-render but possible */
 		char err_out[256]= "unknown";
 		ImBuf *ibuf_view= ED_view3d_draw_offscreen_imbuf_simple(scene, oglrender->sizex, oglrender->sizey, IB_rectfloat, OB_SOLID, err_out);
+		camera= scene->camera;
 
 		if(ibuf_view) {
 			memcpy(rr->rectf, ibuf_view->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
@@ -204,7 +207,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	/* rr->rectf is now filled with image data */
 
 	if((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
-		BKE_stamp_buf(scene, NULL, rr->rectf, rr->rectx, rr->recty, 4);
+		BKE_stamp_buf(scene, camera, NULL, rr->rectf, rr->rectx, rr->recty, 4);
 
 	RE_ReleaseResult(oglrender->re);
 
@@ -218,7 +221,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			char name[FILE_MAX];
 			int ok;
 			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
-			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+			ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality); /* no need to stamp here */
 			if(ok)	printf("OpenGL Render written to '%s'\n", name);
 			else	printf("OpenGL Render failed to write '%s'\n", name);
 		}
@@ -387,6 +390,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	int ok= 0;
 	const short  view_context= (oglrender->v3d != NULL);
+	Object *camera= NULL;
 
 	/* update animated image textures for gpu, etc,
 	 * call before scene_update_for_newframe so modifiers with textuers dont lag 1 frame */
@@ -409,12 +413,17 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		if(oglrender->rv3d->persp==RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {
 			/* since scene_update_for_newframe() is used rather
 			 * then ED_update_for_newframe() the camera needs to be set */
-			if(scene_camera_switch_update(scene))
+			if(scene_camera_switch_update(scene)) {
 				oglrender->v3d->camera= scene->camera;
+			}
+
+			camera= oglrender->v3d->camera;
 		}
 	}
 	else {
 		scene_camera_switch_update(scene);
+
+		camera= scene->camera;
 	}
 
 	/* render into offscreen buffer */
@@ -433,7 +442,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		}
 		else {
 			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
-			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+			ok= BKE_write_ibuf_stamp(scene, camera, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 
 			if(ok==0) {
 				printf("Write error: cannot save %s\n", name);

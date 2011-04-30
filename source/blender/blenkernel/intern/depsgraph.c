@@ -1905,7 +1905,9 @@ static void dag_scene_flush_layers(Scene *sce, int lay)
 	}
 
 	/* ensure cameras are set as if they are on a visible layer, because
-	   they ared still used for rendering or setting the camera view */
+	 * they ared still used for rendering or setting the camera view
+	 *
+	 * XXX, this wont work for local view / unlocked camera's */
 	if(sce->camera) {
 		node= dag_get_node(sce->theDag, sce->camera);
 		node->scelay |= lay;

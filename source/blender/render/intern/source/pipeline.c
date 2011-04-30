@@ -2479,14 +2479,13 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	re->display_draw(re->ddh, re->result, NULL);
 }
 
-static void renderresult_stampinfo(Scene *scene)
+static void renderresult_stampinfo(Render *re)
 {
 	RenderResult rres;
-	Render *re= RE_GetRender(scene->id.name);
 
 	/* this is the basic trick to get the displayed float or char rect from render result */
 	RE_AcquireResultImage(re, &rres);
-	BKE_stamp_buf(scene, (unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
+	BKE_stamp_buf(re->scene, RE_GetCamera(re), (unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
 	RE_ReleaseResultImage(re);
 }
 
@@ -2645,7 +2644,7 @@ static void do_render_all_options(Render *re)
 	
 	/* stamp image info here */
 	if((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {
-		renderresult_stampinfo(re->scene);
+		renderresult_stampinfo(re);
 		re->display_draw(re->ddh, re->result, NULL);
 	}
 }
@@ -2938,6 +2937,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 {
 	char name[FILE_MAX];
 	RenderResult rres;
+	Object *camera= RE_GetCamera(re);
 	int ok= 1;
 	
 	RE_AcquireResultImage(re, &rres);
@@ -2992,7 +2992,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 				}
 			}
 
-			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+			ok= BKE_write_ibuf_stamp(scene, camera, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			
 			if(ok==0) {
 				printf("Render error: cannot save %s\n", name);
@@ -3005,7 +3005,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 					name[strlen(name)-4]= 0;
 				BKE_add_image_extension(name, R_JPEG90);
 				ibuf->depth= 24; 
-				BKE_write_ibuf(scene, ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
+				BKE_write_ibuf_stamp(scene, camera, ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
 				printf("\nSaved: %s", name);
 			}
 			

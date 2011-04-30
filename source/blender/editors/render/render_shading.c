@@ -874,7 +874,7 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 	/* to save, we first get absolute path */
 	BLI_path_abs(str, G.main->name);
 	
-	if (BKE_write_ibuf(scene, ibuf, str, imtype, scene->r.subimtype, scene->r.quality)) {
+	if (BKE_write_ibuf(ibuf, str, imtype, scene->r.subimtype, scene->r.quality)) {
 		retval = OPERATOR_FINISHED;
 	}
 	else {
