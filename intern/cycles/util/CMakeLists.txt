@@ -13,8 +13,11 @@ SET(sources
 	util_string.cpp
 	util_system.cpp
 	util_time.cpp
-	util_transform.cpp
-	util_view.cpp)
+	util_transform.cpp)
+
+IF(WITH_CYCLES_TEST)
+	LIST(APPEND sources util_view.cpp)
+ENDIF()
 
 SET(headers
 	util_algorithm.h

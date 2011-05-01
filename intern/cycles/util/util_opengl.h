@@ -23,12 +23,10 @@
  * platform differences in one central place. */
 
 #ifdef __APPLE__
-#include <GLUT/glut.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
 #include <GL/glew.h>
-#include <GL/glut.h>
 #endif
 
 #endif /* __UTIL_OPENGL_H__ */

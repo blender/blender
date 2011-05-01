@@ -1,7 +1,6 @@
 ###########################################################################
 # Boost setup
 
-MESSAGE(STATUS "CYCLES_BOOST ${CYCLES_BOOST}")
 SET(BOOST_ROOT ${CYCLES_BOOST})
 
 SET(Boost_ADDITIONAL_VERSIONS "1.45" "1.44" 
@@ -37,8 +36,6 @@ ENDIF()
 ###########################################################################
 # OpenImageIO
 
-MESSAGE(STATUS "CYCLES_OIIO = ${CYCLES_OIIO}")
-
 FIND_LIBRARY(OPENIMAGEIO_LIBRARY NAMES OpenImageIO PATHS ${CYCLES_OIIO}/lib)
 FIND_PATH(OPENIMAGEIO_INCLUDES OpenImageIO/imageio.h ${CYCLES_OIIO}/include)
 FIND_PROGRAM(OPENIMAGEIO_IDIFF NAMES idiff PATHS ${CYCLES_OIIO}/bin)
@@ -57,12 +54,14 @@ INCLUDE_DIRECTORIES(${OPENIMAGEIO_INCLUDES} ${OPENIMAGEIO_INCLUDES}/OpenImageIO)
 ###########################################################################
 # GLUT
 
-SET(GLUT_ROOT_PATH ${CYCLES_GLUT})
+IF(WITH_CYCLES_TEST)
+	SET(GLUT_ROOT_PATH ${CYCLES_GLUT})
 
-FIND_PACKAGE(GLUT)
-MESSAGE(STATUS "GLUT_FOUND=${GLUT_FOUND}")
+	FIND_PACKAGE(GLUT)
+	MESSAGE(STATUS "GLUT_FOUND=${GLUT_FOUND}")
 
-INCLUDE_DIRECTORIES(${GLUT_INCLUDE_DIR})
+	INCLUDE_DIRECTORIES(${GLUT_INCLUDE_DIR})
+ENDIF()
 
 ###########################################################################
 # OpenShadingLanguage
