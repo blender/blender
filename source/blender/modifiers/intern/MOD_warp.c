@@ -198,8 +198,14 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 	unit_m4(mat_unit);
 
 	if(strength < 0.0f) {
+		float loc[3];
 		strength = -strength;
+
+		/* inverted location is not useful, just use the negative */
+		copy_v3_v3(loc, mat_final[3]);
 		invert_m4(mat_final);
+		negate_v3_v3(mat_final[3], loc);
+
 	}
 	weight= strength;
 
