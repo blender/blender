@@ -59,6 +59,7 @@
 #include "BLI_linklist.h"
 #include "BLI_heap.h"
 #include "BLI_array.h"
+#include "BLI_smallhash.h"
 
 #include "BKE_material.h"
 #include "BKE_context.h"
@@ -4325,113 +4326,6 @@ void MESH_OT_screw(wmOperatorType *ot)
 
 	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
-}
-
-static int region_to_loop(bContext *C, wmOperator *op)
-{
-#if 0
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	EditEdge *eed;
-	EditFace *efa;
-	int selected= 0;
-
-	for(eed=em->edges.first; eed; eed=eed->next) eed->f1 = 0;
-
-	for(efa=em->faces.first; efa; efa=efa->next){
-		if(efa->f&SELECT){
-			efa->e1->f1++;
-			efa->e2->f1++;
-			efa->e3->f1++;
-			if(efa->e4)
-				efa->e4->f1++;
-
-			selected= 1;
-		}
-	}
-
-	if(!selected)
-		return OPERATOR_CANCELLED;
-
-	EM_clear_flag_all(em, SELECT);
-
-	for(eed=em->edges.first; eed; eed=eed->next){
-		if(eed->f1 == 1) EM_select_edge(eed, 1);
-	}
-
-	em->selectmode = SCE_SELECT_EDGE;
-	EM_selectmode_set(em);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-#endif
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_region_to_loop(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Region to Loop";
-	ot->idname= "MESH_OT_region_to_loop";
-
-	/* api callbacks */
-	ot->exec= region_to_loop;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-static int loop_to_region(bContext *C, wmOperator *op)
-{
-#if 0
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-
-
-	EditFace *efa;
-	ListBase allcollections={NULL,NULL};
-	Collection *edgecollection;
-	int testflag;
-
-	build_edgecollection(em, &allcollections);
-
-	for(edgecollection = (Collection *)allcollections.first; edgecollection; edgecollection=edgecollection->next){
-		if(validate_loop(em, edgecollection)){
-			testflag = loop_bisect(em, edgecollection);
-			for(efa=em->faces.first; efa; efa=efa->next){
-				if(efa->f1 == testflag){
-					if(efa->f&SELECT) EM_select_face(efa, 0);
-					else EM_select_face(efa,1);
-				}
-			}
-		}
-	}
-
-	for(efa=em->faces.first; efa; efa=efa->next){ /*fix this*/
-		if(efa->f&SELECT) EM_select_face(efa,1);
-	}
-
-	freecollections(&allcollections);
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-#endif
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_loop_to_region(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Loop to Region";
-	ot->idname= "MESH_OT_loop_to_region";
-
-	/* api callbacks */
-	ot->exec= loop_to_region;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 int select_by_number_vertices_exec(bContext *C, wmOperator *op)

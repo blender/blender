@@ -248,12 +248,15 @@ static void loops_of_loop_begin(BMIter *iter)
 
 	iter->firstloop = l;
 	iter->nextloop = bmesh_radial_nextloop(iter->firstloop);
+	
+	if (iter->nextloop == iter->firstloop)
+		iter->nextloop = NULL;
 }
 
 static void *loops_of_loop_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
-
+	
 	if(iter->nextloop) iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
 
 	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;

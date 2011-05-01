@@ -54,6 +54,7 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_array.h"
+#include "BLI_smallhash.h"
 
 #include "BKE_context.h"
 #include "BKE_displist.h"
@@ -2216,4 +2217,232 @@ void MESH_OT_select_next_loop(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+static int region_to_loop(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
+	BMFace *f;
+	BMEdge *e;
+	BMIter iter;
+	
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		BMINDEX_SET(e, 0);
+	}
+
+	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BMLoop *l1, *l2;
+		BMIter liter1, liter2;
+		
+		BM_ITER(l1, &liter1, em->bm, BM_LOOPS_OF_FACE, f) {
+			int tot=0, totsel=0;
+			
+			BM_ITER(l2, &liter2, em->bm, BM_LOOPS_OF_EDGE, l1->e) {
+				tot++;
+				totsel += BM_TestHFlag(l2->f, BM_SELECT) != 0;
+			}
+			
+			if ((tot != totsel && totsel > 0) || (totsel == 1 && tot == 1))
+				BMINDEX_SET(l1->e, 1);
+		}
+	}
+
+	EDBM_clear_flag_all(em, BM_SELECT);
+	
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BMINDEX_GET(e) && !BM_TestHFlag(e, BM_HIDDEN))
+			BM_Select_Edge(em->bm, e, 1);
+	}
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_region_to_loop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Region to Loop";
+	ot->idname= "MESH_OT_region_to_loop";
+
+	/* api callbacks */
+	ot->exec= region_to_loop;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int loop_find_region(BMEditMesh *em, BMLoop *l, int flag, 
+	SmallHash *fhash, BMFace ***region_out)
+{
+	BLI_array_declare(region);
+	BLI_array_declare(stack);
+	BMFace **region = NULL, *f;
+	BMFace **stack = NULL;
+	
+	BLI_array_append(stack, l->f);
+	BLI_smallhash_insert(fhash, (uintptr_t)l->f, NULL);
+	
+	while (BLI_array_count(stack) > 0) {
+		BMIter liter1, liter2;
+		BMLoop *l1, *l2;
+		
+		f = BLI_array_pop(stack);
+		BLI_array_append(region, f);
+		
+		BM_ITER(l1, &liter1, em->bm, BM_LOOPS_OF_FACE, f) {
+			if (BM_TestHFlag(l1->e, flag))
+				continue;
+			
+			BM_ITER(l2, &liter2, em->bm, BM_LOOPS_OF_EDGE, l1->e) {
+				if (BLI_smallhash_haskey(fhash, (uintptr_t)l2->f))
+					continue;
+				
+				BLI_array_append(stack, l2->f);
+				BLI_smallhash_insert(fhash, (uintptr_t)l2->f, NULL);
+			}
+		}
+	}
+	
+	BLI_array_free(stack);
+	
+	*region_out = region;
+	return BLI_array_count(region);
+}
+
+int verg_radial(const void *va, const void *vb)
+{
+	BMEdge *e1 = *((void**)va);
+	BMEdge *e2 = *((void**)vb);
+	int a, b;
+	
+	a = BM_Edge_FaceCount(e1);
+	b = BM_Edge_FaceCount(e2);
+	
+	if (a > b) return -1;
+	if (a == b) return 0;
+	if (a < b) return 1;
+	
+	return -1;
+}
+
+static int loop_find_regions(BMEditMesh *em, int selbigger)
+{
+	SmallHash visithash;
+	BMIter iter;
+	BMEdge *e, **edges=NULL;
+	BLI_array_declare(edges);
+	BMFace *f;
+	int count = 0, i;
+	
+	BLI_smallhash_init(&visithash);
+	
+	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BMINDEX_SET(f, 0);
+	}
+
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_TestHFlag(e, BM_SELECT)) {
+			BLI_array_append(edges, e);
+			BMINDEX_SET(e, 1);
+		} else {
+			BMINDEX_SET(e, 0);
+		}
+	}
+	
+	/*sort edges by radial cycle length*/
+	qsort(edges,  BLI_array_count(edges), sizeof(void*), verg_radial);
+	
+	for (i=0; i<BLI_array_count(edges); i++) {
+		BMIter liter;
+		BMLoop *l;
+		BMFace **region=NULL, **r;
+		int c, tot=0;
+		
+		e = edges[i];
+		
+		if (!BMINDEX_GET(e))
+			continue;
+		
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_EDGE, e) {
+			if (BLI_smallhash_haskey(&visithash, (uintptr_t)l->f))
+				continue;
+						
+			c = loop_find_region(em, l, BM_SELECT, &visithash, &r);
+			
+			if (!region || (selbigger ? c >= tot : c < tot)) {
+				tot = c;
+				if (region) 
+					MEM_freeN(region);
+				region = r;
+			}
+		}
+		
+		if (region) {
+			int j;
+			
+			for (j=0; j<tot; j++) {
+				BMINDEX_SET(region[j], 1);
+				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, region[j]) {
+					BMINDEX_SET(l->e, 0);
+				}
+			}
+			
+			count += tot;
+			
+			MEM_freeN(region);
+		}
+	}
+	
+	BLI_array_free(edges);
+	BLI_smallhash_release(&visithash);
+	
+	return count;
+}
+
+static int loop_to_region(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
+	BMIter iter;
+	BMFace *f;
+	int selbigger = RNA_boolean_get(op->ptr, "select_bigger");
+	int a, b;
+	
+	/*find the set of regions with smallest number of total faces*/
+ 	a = loop_find_regions(em, selbigger);
+	b = loop_find_regions(em, !selbigger);
+	
+	if ((a <= b) ^ selbigger) {
+		loop_find_regions(em, selbigger);
+	}
+	
+	EDBM_clear_flag_all(em, BM_SELECT);
+	
+	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		if (BMINDEX_GET(f) && !BM_TestHFlag(f, BM_HIDDEN)) {
+			BM_Select_Face(em->bm, f, 1);
+		}
+	}
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_loop_to_region(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Loop to Region";
+	ot->idname= "MESH_OT_loop_to_region";
+
+	/* api callbacks */
+	ot->exec= loop_to_region;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "select_bigger", 0, "Select Bigger", "Select bigger regions instead of smaller ones");
 }
