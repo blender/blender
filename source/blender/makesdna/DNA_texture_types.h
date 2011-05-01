@@ -52,6 +52,7 @@ struct Tex;
 struct Image;
 struct PreviewImage;
 struct ImBuf;
+struct CurveMapping;
 
 typedef struct MTex {
 
@@ -181,9 +182,10 @@ typedef struct PointDensity {
 	short pdpad3[3];
 	float noise_fac;
 	
-	float speed_scale;
+	float speed_scale, falloff_speed_scale, pdpad2;
 	struct ColorBand *coba;	/* for time -> color */
 	
+	struct CurveMapping *falloff_curve; /* falloff density curve */	
 } PointDensity;
 
 typedef struct VoxelData {
@@ -517,6 +519,8 @@ typedef struct TexMapping {
 #define TEX_PD_FALLOFF_SOFT		2
 #define TEX_PD_FALLOFF_CONSTANT	3
 #define TEX_PD_FALLOFF_ROOT		4
+#define TEX_PD_FALLOFF_PARTICLE_AGE 5
+#define TEX_PD_FALLOFF_PARTICLE_VEL 6
 
 /* psys_cache_space */
 #define TEX_PD_OBJECTLOC	0
@@ -524,8 +528,8 @@ typedef struct TexMapping {
 #define TEX_PD_WORLDSPACE	2
 
 /* flag */
-#define TEX_PD_TURBULENCE	1
-
+#define TEX_PD_TURBULENCE		1
+#define TEX_PD_FALLOFF_CURVE	2
 
 /* noise_influence */
 #define TEX_PD_NOISE_STATIC		0

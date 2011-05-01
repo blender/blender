@@ -1427,6 +1427,8 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 		{TEX_PD_FALLOFF_SOFT, "SOFT", 0, "Soft", ""},
 		{TEX_PD_FALLOFF_CONSTANT, "CONSTANT", 0, "Constant", "Density is constant within lookup radius"},
 		{TEX_PD_FALLOFF_ROOT, "ROOT", 0, "Root", ""},
+		{TEX_PD_FALLOFF_PARTICLE_AGE, "PARTICLE_AGE", 0, "Particle Age", ""},
+		{TEX_PD_FALLOFF_PARTICLE_VEL, "PARTICLE_VELOCITY", 0, "Particle Velocity", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem color_source_items[] = {
@@ -1509,12 +1511,30 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scale", "Multiplier to bring particle speed within an acceptable range");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
+	prop= RNA_def_property(srna, "falloff_speed_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "falloff_speed_scale");
+	RNA_def_property_range(prop, 0.001, 100.0);
+	RNA_def_property_ui_text(prop, "Velocity Scale", "Multiplier to bring particle speed within an acceptable range");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	
 	prop= RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "coba");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Color Ramp", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	prop= RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "falloff_curve");
+	RNA_def_property_struct_type(prop, "CurveMapping");
+	RNA_def_property_ui_text(prop, "Falloff Curve", "");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
+	prop= RNA_def_property(srna, "use_falloff_curve", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_PD_FALLOFF_CURVE);
+	RNA_def_property_ui_text(prop, "Falloff Curve", "Use a custom falloff curve");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
 	/* Turbulence */
 	prop= RNA_def_property(srna, "use_turbulence", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_PD_TURBULENCE);

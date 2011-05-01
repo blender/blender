@@ -73,7 +73,7 @@
 #include "BKE_icons.h"
 #include "BKE_node.h"
 #include "BKE_animsys.h"
-
+#include "BKE_colortools.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -1367,6 +1367,13 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->object = NULL;
 	pd->psys = 0;
 	pd->psys_cache_space= TEX_PD_WORLDSPACE;
+	pd->falloff_curve = curvemapping_add(1, 0, 0, 1, 1);
+
+	pd->falloff_curve->preset = CURVE_PRESET_LINE;
+	pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+	curvemap_reset(pd->falloff_curve->cm, &pd->falloff_curve->clipr, pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
+	curvemapping_changed(pd->falloff_curve, 0);
+
 	return pd;
 } 
 

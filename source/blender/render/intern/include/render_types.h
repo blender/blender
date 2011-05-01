@@ -486,6 +486,7 @@ typedef struct VolPrecachePart
 	float bbmin[3];
 	float voxel[3];
 	int working, done;
+	struct Render *re;
 } VolPrecachePart;
 
 typedef struct VolumePrecache

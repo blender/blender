@@ -1698,6 +1698,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if(tex->type == TEX_POINTDENSITY && tex->pd) {
 				writestruct(wd, DATA, "PointDensity", 1, tex->pd);
 				if(tex->pd->coba) writestruct(wd, DATA, "ColorBand", 1, tex->pd->coba);
+				if(tex->pd->falloff_curve) write_curvemapping(wd, tex->pd->falloff_curve);
 			}
 			if(tex->type == TEX_VOXELDATA && tex->vd) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
 			

@@ -2963,6 +2963,21 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	if(tex->pd) {
 		tex->pd->point_tree = NULL;
 		tex->pd->coba= newdataadr(fd, tex->pd->coba);
+		tex->pd->falloff_curve= newdataadr(fd, tex->pd->falloff_curve);
+		
+		/*hack to avoid a do_versions patch*/
+		if (tex->pd->falloff_speed_scale == 0.0)
+			tex->pd->falloff_speed_scale = 100.0;
+		
+		if (!tex->pd->falloff_curve) {
+			tex->pd->falloff_curve = curvemapping_add(1, 0, 0, 1, 1);
+			
+			tex->pd->falloff_curve->preset = CURVE_PRESET_LINE;
+			tex->pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+			curvemap_reset(tex->pd->falloff_curve->cm, &tex->pd->falloff_curve->clipr, tex->pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
+			curvemapping_changed(tex->pd->falloff_curve, 0);
+		} else
+			direct_link_curvemapping(fd, tex->pd->falloff_curve);
 	}
 	
 	tex->vd= newdataadr(fd, tex->vd);
