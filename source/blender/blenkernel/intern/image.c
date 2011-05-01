@@ -675,8 +675,10 @@ void BKE_image_all_free_anim_ibufs(int cfra)
 
 int BKE_imtype_to_ftype(int imtype)
 {
-	if(imtype==0)
+	if(imtype==R_TARGA)
 		return TGA;
+	else if(imtype==R_RAWTGA)
+		return RAWTGA;
 	else if(imtype== R_IRIS) 
 		return IMAGIC;
 #ifdef WITH_HDR
@@ -703,10 +705,6 @@ int BKE_imtype_to_ftype(int imtype)
 	else if (imtype==R_DPX)
 		return DPX;
 #endif
-	else if (imtype==R_TARGA)
-		return TGA;
-	else if(imtype==R_RAWTGA)
-		return RAWTGA;
 #ifdef WITH_OPENJPEG
 	else if(imtype==R_JP2)
 		return JP2;
@@ -1044,7 +1042,6 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_boundbox(mono, "j", &box);
 		y_ofs = (int)(baseline - box.ymin);
 		if(y_ofs < 0) y_ofs= 0; /* should never happen */
-		y_ofs++;
 	}
 
 	x= 0;
@@ -1063,7 +1060,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_draw_buffer(mono, stamp_data.file);
 
 		/* the extra pixel for background. */
-		y -= 4;
+		y -= 5;
 	}
 
 	/* Top left corner, below File */
@@ -1078,7 +1075,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_draw_buffer(mono, stamp_data.note);
 
 		/* the extra pixel for background. */
-		y -= 4;
+		y -= 5;
 	}
 	
 	/* Top left corner, below File (or Note) */
@@ -1093,7 +1090,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_draw_buffer(mono, stamp_data.date);
 
 		/* the extra pixel for background. */
-		y -= 4;
+		y -= 5;
 	}
 
 	/* Top left corner, below File, Date or Note */
