@@ -79,6 +79,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Shrinkwrap, "SHRINKWRAP", ICON_MOD_SHRINKWRAP, "Shrinkwrap", ""},
 	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
 	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
+    {eModifierType_Warp, "WARP", ICON_MOD_SUBSURF, "Warp", ""},
 	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
 	{0, "", 0, "Simulate", ""},
 	{eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
@@ -180,6 +181,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_SolidifyModifier;
 		case eModifierType_Screw:
 			return &RNA_ScrewModifier;
+		case eModifierType_Warp:
+			return &RNA_WarpModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -372,16 +375,22 @@ static void rna_SolidifyModifier_vgroup_set(PointerRNA *ptr, const char *value)
 	rna_object_vgroup_name_set(ptr, value, smd->defgrp_name, sizeof(smd->defgrp_name));
 }
 
-static void rna_DisplaceModifier_uvlayer_set(PointerRNA *ptr, const char *value)
+static void rna_MappingInfo_uvlayer_set(PointerRNA *ptr, const char *value)
 {
-	DisplaceModifierData *smd= (DisplaceModifierData*)ptr->data;
-	rna_object_uvlayer_name_set(ptr, value, smd->uvlayer_name, sizeof(smd->uvlayer_name));
+	MappingInfoModifierData *mmd= (MappingInfoModifierData *)ptr->data;
+	rna_object_uvlayer_name_set(ptr, value, mmd->uvlayer_name, sizeof(mmd->uvlayer_name));
 }
 
 static void rna_UVProjectModifier_uvlayer_set(PointerRNA *ptr, const char *value)
 {
 	UVProjectModifierData *umd= (UVProjectModifierData*)ptr->data;
 	rna_object_uvlayer_name_set(ptr, value, umd->uvlayer_name, sizeof(umd->uvlayer_name));
+}
+
+static void RNA_WarpModifier_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	WarpModifierData *tmd= (WarpModifierData*)ptr->data;
+	rna_object_vgroup_name_set(ptr, value, tmd->defgrp_name, sizeof(tmd->defgrp_name));
 }
 
 static void rna_WaveModifier_uvlayer_set(PointerRNA *ptr, const char *value)
@@ -617,6 +626,106 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_SubsurfUv);
 	RNA_def_property_ui_text(prop, "Subdivide UVs", "Use subsurf to subdivide UVs");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
+static void rna_def_modifier_generic_map_info(StructRNA *srna)
+{
+	static EnumPropertyItem prop_texture_coordinates_items[] = {
+		{MOD_DISP_MAP_LOCAL, "LOCAL", 0, "Map", ""},
+		{MOD_DISP_MAP_GLOBAL, "GLOBAL", 0, "Global", ""},
+		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object", ""},
+		{MOD_DISP_MAP_UV, "UV", 0, "UV", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	PropertyRNA *prop;
+
+	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Texture", "");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "texmapping");
+	RNA_def_property_enum_items(prop, prop_texture_coordinates_items);
+	RNA_def_property_ui_text(prop, "Texture Coordinates", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
+	RNA_def_property_ui_text(prop, "UV Layer", "UV layer name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MappingInfo_uvlayer_set");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "texture_coordinate_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "map_object");
+	RNA_def_property_ui_text(prop, "Texture Coordinate Object", "");
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+}
+
+static void rna_def_modifier_warp(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_falloff_items[] = {
+		{eWarp_Falloff_None,	"NONE", 0, "No Falloff", ""},
+		{eWarp_Falloff_Curve,	"CURVE", 0, "Curve", ""},
+		{eWarp_Falloff_Smooth,	"SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
+		{eWarp_Falloff_Sphere,	"SPHERE", ICON_SPHERECURVE, "Sphere", ""},
+		{eWarp_Falloff_Root,	"ROOT", ICON_ROOTCURVE, "Root", ""},
+		{eWarp_Falloff_Sharp,	"SHARP", ICON_SHARPCURVE, "Sharp", ""},
+		{eWarp_Falloff_Linear,	"LINEAR", ICON_LINCURVE, "Linear", ""},
+		{eWarp_Falloff_Const,	"CONSTANT", ICON_NOCURVE, "Constant", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "WarpModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Warp Modifier", "Warp modifier");
+	RNA_def_struct_sdna(srna, "WarpModifierData");
+	//RNA_def_struct_ui_icon(srna, ICON_MOD_SUBSURF);
+
+	prop= RNA_def_property(srna, "object_from", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "From", "Object to transform from");
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop= RNA_def_property(srna, "object_to", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "To", "Object to transform to");
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -100, 100, 10, 2);
+	RNA_def_property_ui_text(prop, "Strength", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_falloff_items);
+	RNA_def_property_ui_text(prop, "Falloff Type", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "Radius", "Radius to apply");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
+	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_volume_preserve", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WARP_VOLUME_PRESERVE);
+	RNA_def_property_ui_text(prop, "Preserve Volume", "Preserve volume when rotations are used");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name for modulating the deform");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "RNA_WarpModifier_vgroup_set");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	rna_def_modifier_generic_map_info(srna);
 }
 
 static void rna_def_modifier_multires(BlenderRNA *brna)
@@ -1287,13 +1396,6 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 		{MOD_DISP_DIR_RGB_XYZ, "RGB_TO_XYZ", 0, "RGB to XYZ", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem prop_texture_coordinates_items[] = {
-		{MOD_DISP_MAP_LOCAL, "LOCAL", 0, "Map", ""},
-		{MOD_DISP_MAP_GLOBAL, "GLOBAL", 0, "Global", ""},
-		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object", ""},
-		{MOD_DISP_MAP_UV, "UV", 0, "UV", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "DisplaceModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Displace Modifier", "Displacement modifier");
 	RNA_def_struct_sdna(srna, "DisplaceModifierData");
@@ -1303,11 +1405,6 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group", "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DisplaceModifier_vgroup_set");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Texture", "");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "mid_level", PROP_FLOAT, PROP_DISTANCE);
@@ -1328,23 +1425,7 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Direction", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "texmapping");
-	RNA_def_property_enum_items(prop, prop_texture_coordinates_items);
-	RNA_def_property_ui_text(prop, "Texture Coordinates", "");
-	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
-
-	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
-	RNA_def_property_ui_text(prop, "UV Layer", "UV layer name");
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DisplaceModifier_uvlayer_set");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop= RNA_def_property(srna, "texture_coordinate_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "map_object");
-	RNA_def_property_ui_text(prop, "Texture Coordinate Object", "");
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
-	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+	rna_def_modifier_generic_map_info(srna);
 }
 
 static void rna_def_modifier_uvproject(BlenderRNA *brna)
@@ -2375,6 +2456,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_fluidsim(brna);
 	rna_def_modifier_mask(brna);
 	rna_def_modifier_simpledeform(brna);
+	rna_def_modifier_warp(brna);
 	rna_def_modifier_multires(brna);
 	rna_def_modifier_surface(brna);
 	rna_def_modifier_smoke(brna);

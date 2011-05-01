@@ -4122,6 +4122,13 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 						SWITCH_INT(mmd->bindcos[a])
 			}
 		}
+		else if (md->type==eModifierType_Warp) {
+			WarpModifierData *tmd = (WarpModifierData *) md;
+
+			tmd->curfalloff= newdataadr(fd, tmd->curfalloff);
+			if(tmd->curfalloff)
+				direct_link_curvemapping(fd, tmd->curfalloff);
+		}
 	}
 }
 

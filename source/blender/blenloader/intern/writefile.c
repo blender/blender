@@ -1274,6 +1274,12 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->dyninfluences);
 			writedata(wd, DATA, sizeof(int)*mmd->totvert, mmd->dynverts);
 		}
+		else if (md->type==eModifierType_Warp) {
+			WarpModifierData *tmd = (WarpModifierData*) md;
+			if(tmd->curfalloff) {
+				write_curvemapping(wd, tmd->curfalloff);
+			}
+		}
 	}
 }
 

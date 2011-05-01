@@ -635,6 +635,48 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             sub.prop(md, "scale_x", text="Scale X")
             sub.prop(md, "scale_y", text="Scale Y")
 
+    def WARP(self, layout, ob, md):
+        use_falloff = (md.falloff_type != 'NONE')
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="From:")
+        col.prop(md, "object_from", text="")
+
+        col.prop(md, "use_volume_preserve")
+
+        col = split.column()
+        col.label(text="To:")
+        col.prop(md, "object_to", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+
+        col = layout.column()
+
+        row = col.row(align=True)
+        row.prop(md, "strength")
+        if use_falloff:
+            row.prop(md, "falloff_radius")
+
+        col.prop(md, "falloff_type")
+        if use_falloff:
+            if md.falloff_type == 'CURVE':
+                col.template_curve_mapping(md, "falloff_curve")
+
+        # 2 new columns
+        split = layout.split()
+        col = split.column()
+        col.label(text="Texture:")
+        col.prop(md, "texture", text="")
+
+        col = split.column()
+        col.label(text="Texture Coordinates:")
+        col.prop(md, "texture_coords", text="")
+
+        if md.texture_coords == 'OBJECT':
+            layout.prop(md, "texture_coordinate_object", text="Object")
+        elif md.texture_coords == 'UV' and ob.type == 'MESH':
+            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
+
     def WAVE(self, layout, ob, md):
         split = layout.split()
 

@@ -559,6 +559,7 @@ extern StructRNA RNA_VertexPaint;
 extern StructRNA RNA_VoronoiTexture;
 extern StructRNA RNA_VoxelData;
 extern StructRNA RNA_VoxelDataTexture;
+extern StructRNA RNA_WarpModifier;
 extern StructRNA RNA_WaveModifier;
 extern StructRNA RNA_Window;
 extern StructRNA RNA_WindowManager;
