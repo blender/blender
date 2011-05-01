@@ -179,6 +179,7 @@ typedef struct knifetool_opdata {
 	} mode;
 	
 	int snap_midpoints, prevmode, extend;
+	int ignore_edge_snapping, ignore_vert_snapping;
 	
 	int is_space, prev_is_space; /*1 if current cut location, vertco, isn't on the mesh*/
 } knifetool_opdata;
@@ -1095,11 +1096,15 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], BMF
 	BMFace *f;
 	float co[3], sco[3], maxdist = knife_snap_size(kcd, kcd->ethresh);
 	
+	if (kcd->ignore_vert_snapping)
+		maxdist *= 0.5;
+
 	f = knife_find_closest_face(kcd, co, NULL);
 	*is_space = !f;
 	
 	/*set p to co, in case we don't find anything, means a face cut*/
 	copy_v3_v3(p, co);
+	kcd->curbmface = f;
 	
 	if (f) {
 		KnifeEdge *cure = NULL;
@@ -1146,20 +1151,25 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], BMF
 		
 		if (cure && p) {
 			float d;
-			
-			closest_to_line_segment_v3(p, sco, cure->v1->sco, cure->v2->sco);
-			sub_v3_v3(p, cure->v1->sco);
-			
-			if (kcd->snap_midpoints) {
-				d = 0.5f;	
-			} else {
-				d = len_v3v3(cure->v1->sco, cure->v2->sco);
-				if (d != 0.0) {
-					d = len_v3(p) / d;
+
+			if (!kcd->ignore_edge_snapping || !(cure->e)) {
+				
+				closest_to_line_segment_v3(p, sco, cure->v1->sco, cure->v2->sco);
+				sub_v3_v3(p, cure->v1->sco);
+				
+				if (kcd->snap_midpoints) {
+					d = 0.5f;	
+				} else {
+					d = len_v3v3(cure->v1->sco, cure->v2->sco);
+					if (d != 0.0) {
+						d = len_v3(p) / d;
+					}
 				}
+				
+				interp_v3_v3v3(p, cure->v1->co, cure->v2->co, d);
+			} else {
+				return NULL;
 			}
-			
-			interp_v3_v3v3(p, cure->v1->co, cure->v2->co, d);
 		}
 		
 		return cure;
@@ -1177,10 +1187,14 @@ static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], BMF
 	BMFace *f;
 	float co[3], sco[3], maxdist = knife_snap_size(kcd, kcd->vthresh);
 	
+	if (kcd->ignore_vert_snapping)
+		maxdist *= 0.5;
+	
 	f = knife_find_closest_face(kcd, co, is_space);
 	
 	/*set p to co, in case we don't find anything, means a face cut*/
 	copy_v3_v3(p, co);
+	kcd->curbmface = f;
 	
 	if (f) {
 		ListBase *lst;
@@ -1220,14 +1234,21 @@ static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], BMF
 			}
 		}
 		
-		if (fptr)
-			*fptr = f;
+		if (!kcd->ignore_vert_snapping || !(curv && curv->v)) {
+			if (fptr)
+				*fptr = f;
 		
-		if (curv && p) {
-			copy_v3_v3(p, curv->co);
+			if (curv && p) {
+				copy_v3_v3(p, curv->co);
+			}
+			
+			return curv;
+		} else {
+			if (fptr)
+				*fptr = f;
+			
+			return NULL;
 		}
-		
-		return curv;
 	}
 		
 	if (fptr)
@@ -1745,6 +1766,8 @@ static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 		kcd->mode = kcd->prevmode;
 	
 	kcd->snap_midpoints = event->ctrl;
+	kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = event->shift;
+	
 	switch (event->type) {
 		case ESCKEY:
 		case RETKEY: /* confirm */ // XXX hardcoded
