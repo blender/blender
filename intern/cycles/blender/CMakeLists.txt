@@ -61,6 +61,7 @@ ENDIF()
 SET(CMAKE_MODULE_LINKER_FLAGS ${PYTHON_MODULE_FLAGS})
 
 ADD_LIBRARY(cycles_blender MODULE ${sources} ${headers})
+ADD_DEPENDENCIES(cycles_blender bf_rna)
 TARGET_LINK_LIBRARIES(cycles_blender ${LIBRARIES})
 
 INSTALL(FILES ${addonfiles} DESTINATION ${CYCLES_INSTALL_PATH}/cycles)

@@ -103,6 +103,6 @@ INCLUDE_DIRECTORIES(. ../util osl svm)
 ADD_LIBRARY(cycles_kernel ${sources} ${headers})
 
 IF(WITH_CYCLES_CUDA)
-	add_dependencies(cycles_kernel cycles_kernel_cuda)
+	ADD_DEPENDENCIES(cycles_kernel cycles_kernel_cuda)
 ENDIF()
 

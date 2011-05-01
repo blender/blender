@@ -119,7 +119,13 @@ ENDIF()
 # Blender
 
 IF(WITH_CYCLES_BLENDER)
-	FIND_PATH(BLENDER_INCLUDE_DIRS RNA_blender.h PATHS ${CMAKE_BINARY_DIR}/include)
+	# FIND_PATH(BLENDER_INCLUDE_DIRS RNA_blender.h PATHS ${CMAKE_BINARY_DIR}/include)
+	SET(BLENDER_INCLUDE_DIRS
+		${CMAKE_SOURCE_DIR}/intern/guardedalloc
+		${CMAKE_SOURCE_DIR}/source/blender/makesdna
+		${CMAKE_SOURCE_DIR}/source/blender/makesrna
+		${CMAKE_SOURCE_DIR}/source/blender/blenloader
+		${CMAKE_BINARY_DIR}/source/blender/makesrna/intern)
 	IF(WIN32)
 		SET(BLENDER_LIBRARIES ${CMAKE_BINARY_DIR}/bin/Release/blender.lib)
 	ENDIF()
