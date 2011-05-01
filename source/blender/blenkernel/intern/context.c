@@ -451,11 +451,10 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 
 		C->data.recursion= 1;
 
-		for(entry=C->wm.store->entries.first; entry; entry=entry->next) {
-			if(strcmp(entry->name, member) == 0) {
-				result->ptr= entry->ptr;
-				done= 1;
-			}
+		entry= BLI_findstring(&C->wm.store->entries, member, offsetof(bContextStoreEntry, name));
+		if(entry) {
+			result->ptr= entry->ptr;
+			done= 1;
 		}
 	}
 	if(done!=1 && recursion < 2 && C->wm.region) {
@@ -649,7 +648,7 @@ int CTX_data_equals(const char *member, const char *str)
 
 int CTX_data_dir(const char *member)
 {
-	return (strcmp(member, "") == 0);
+	return member[0] == '\0';
 }
 
 void CTX_data_id_pointer_set(bContextDataResult *result, ID *id)

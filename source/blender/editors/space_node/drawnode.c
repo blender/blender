@@ -1643,6 +1643,8 @@ void draw_nodespace_color_info(ARegion *ar, int color_manage, int channels, int 
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 	}
+
+	(void)dx;
 }
 
 #if 0

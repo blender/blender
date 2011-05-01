@@ -22,20 +22,14 @@ BF_EXPAT_LIB = ''
 WITH_BF_FFMPEG = True
 WITH_BF_STATICFFMPEG = True
 
-# Used for linking against system ffmpeg, but it gives pixelization,, so fall back to ffmpeg from 2.52 temporary
-#BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libavformat.a ${BF_FFMPEG_LIBPATH}/libavcodec.a ${BF_FFMPEG_LIBPATH}/libswscale.a ' + \
-#    '${BF_FFMPEG_LIBPATH}/libavutil.a ${BF_FFMPEG_LIBPATH}/libavdevice.a ${BF_FFMPEG_LIBPATH}/libdc1394.a ' + \
-#    '${BF_FFMPEG_LIBPATH}/libraw1394.a ${BF_FFMPEG_LIBPATH}/libdirac_encoder.a ${BF_FFMPEG_LIBPATH}/libschroedinger-1.0.a ' + \
-#    '${BF_FFMPEG_LIBPATH}/libfaad.a ${BF_FFMPEG_LIBPATH}/libtheora.a ' + \
-#    '${BF_FFMPEG_LIBPATH}/libspeex.a ${BF_FFMPEG_LIBPATH}/libbz2.a ${BF_FFMPEG_LIBPATH}/liboil-0.3.a ${BF_FFMPEG_LIBPATH}/libogg.a ' + \
-#    '${BF_FFMPEG_LIBPATH}/libvorbisenc.a ${BF_FFMPEG_LIBPATH}/libvorbis.a ${BF_FFMPEG_LIBPATH}/libgsm.a'
-
 BF_FFMPEG = '/home/sources/staticlibs/ffmpeg'
 BF_FFMPEG_LIBPATH = '${BF_FFMPEG}/lib64'
-BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libextern_libavformat.a ${BF_FFMPEG_LIBPATH}/libextern_libswscale.a ' + \
-    '${BF_FFMPEG_LIBPATH}/libextern_libavcodec.a ${BF_FFMPEG_LIBPATH}/libextern_libavdevice.a ' + \
-    '${BF_FFMPEG_LIBPATH}/libextern_libavutil.a ${BF_FFMPEG_LIBPATH}/libextern_xvidcore.a ' + \
-    '${BF_FFMPEG_LIBPATH}/libextern_libmp3lame.a ${BF_FFMPEG_LIBPATH}/libextern_x264.a'
+BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libavformat.a ${BF_FFMPEG_LIBPATH}/libswscale.a ' + \
+    '${BF_FFMPEG_LIBPATH}/libavcodec.a ${BF_FFMPEG_LIBPATH}/libavdevice.a ${BF_FFMPEG_LIBPATH}/libavutil.a ' + \
+    '${BF_FFMPEG_LIBPATH}/libxvidcore.a ${BF_FFMPEG_LIBPATH}/libx264.a ${BF_FFMPEG_LIBPATH}/libmp3lame.a ' + \
+    '${BF_FFMPEG_LIBPATH}/libvpx.a ${BF_FFMPEG_LIBPATH}/libvorbis.a ${BF_FFMPEG_LIBPATH}/libogg.a ' + \
+    '${BF_FFMPEG_LIBPATH}/libvorbisenc.a ${BF_FFMPEG_LIBPATH}/libtheora.a ' + \
+    '${BF_FFMPEG_LIBPATH}/libschroedinger-1.0.a ${BF_FFMPEG_LIBPATH}/liborc-0.4.a ${BF_FFMPEG_LIBPATH}/libdirac_encoder.a'
 
 # Don't depend on system's libstdc++
 WITH_BF_STATICCXX = True

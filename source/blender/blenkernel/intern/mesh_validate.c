@@ -307,7 +307,9 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 
 int BKE_mesh_validate(Mesh *me, int do_verbose)
 {
-	printf("MESH: %s\n", me->id.name+2);
+	if(do_verbose) {
+		printf("MESH: %s\n", me->id.name+2);
+	}
 	return BKE_mesh_validate_arrays(me, me->mvert, me->totvert, me->medge, me->totedge, me->mface, me->totface, do_verbose, TRUE);
 }
 

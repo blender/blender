@@ -2964,6 +2964,10 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	if(tex->pd) {
 		tex->pd->point_tree = NULL;
 		tex->pd->coba= newdataadr(fd, tex->pd->coba);
+		tex->pd->falloff_curve= newdataadr(fd, tex->pd->falloff_curve);
+		if(tex->pd->falloff_curve) {
+			direct_link_curvemapping(fd, tex->pd->falloff_curve);
+		}
 	}
 	
 	tex->vd= newdataadr(fd, tex->vd);
@@ -11741,7 +11745,57 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 
 	{
+		/* screen view2d settings were not properly initialized [#27164]
+		 * v2d->scroll caused the bug but best reset other values too which are in old blend files only.
+		 * need to make less ugly - possibly an iterator? */
+		bScreen *screen;
+		for(screen= main->screen.first; screen; screen= screen->id.next) {
+			ScrArea *sa;
+			/* add regions */
+			for(sa= screen->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl= sa->spacedata.first;
+				if(sl->spacetype==SPACE_IMAGE) {
+					ARegion *ar;
+					for (ar=sa->regionbase.first; ar; ar= ar->next) {
+						if(ar->regiontype == RGN_TYPE_WINDOW) {
+							View2D *v2d= &ar->v2d;
+							v2d->minzoom= v2d->maxzoom= v2d->scroll= v2d->keeptot= v2d->keepzoom= v2d->keepofs= v2d->align= 0;
+						}
+					}
+				}
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_IMAGE) {
+						ARegion *ar;
+						for (ar=sl->regionbase.first; ar; ar= ar->next) {
+							if(ar->regiontype == RGN_TYPE_WINDOW) {
+								View2D *v2d= &ar->v2d;
+								v2d->minzoom= v2d->maxzoom= v2d->scroll= v2d->keeptot= v2d->keepzoom= v2d->keepofs= v2d->align= 0;
+							}
+						}
+					}
+				}
+			}
+		}
 
+		{
+			/* Initialize texture point density curve falloff */
+			Tex *tex;
+			for(tex= main->tex.first; tex; tex= tex->id.next) {
+				if(tex->pd) {
+					if (tex->pd->falloff_speed_scale == 0.0)
+						tex->pd->falloff_speed_scale = 100.0;
+
+					if (!tex->pd->falloff_curve) {
+						tex->pd->falloff_curve = curvemapping_add(1, 0, 0, 1, 1);
+
+						tex->pd->falloff_curve->preset = CURVE_PRESET_LINE;
+						tex->pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+						curvemap_reset(tex->pd->falloff_curve->cm, &tex->pd->falloff_curve->clipr, tex->pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
+						curvemapping_changed(tex->pd->falloff_curve, 0);
+					}
+				}
+			}
+		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

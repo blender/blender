@@ -218,7 +218,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	FT_Vector delta;
 	FT_UInt glyph_index;
 	float a, *fbuf;
-	int pen_x, y, x, yb;
+	int pen_x, y, x;
 	int i, has_kerning, st, chx, chy;
 
 	if (!font->glyph_cache || (!font->b_fbuf && !font->b_cbuf))
@@ -276,13 +276,20 @@ void blf_font_buffer(FontBLF *font, const char *str)
 			/* dont draw beyond the buffer bounds */
 			int width_clip= g->width;
 			int height_clip= g->height;
+			int yb_start= g->pitch < 0 ? 0 : g->height-1;
 
 			if (width_clip + chx > font->bw)	width_clip  -= chx + width_clip - font->bw;
 			if (height_clip + pen_y > font->bh) height_clip -= pen_y + height_clip - font->bh;
-
-			yb= g->pitch < 0 ? 0 : g->height-1;
 			
+			/* drawing below the image? */
+			if(pen_y < 0) {
+				yb_start += (g->pitch < 0) ? -pen_y : pen_y;
+				height_clip += pen_y;
+				pen_y= 0;
+			}
+
 			if (font->b_fbuf) {
+				int yb= yb_start;
 				for (y=(chy >= 0 ? 0:-chy); y < height_clip; y++) {
 					for (x=(chx >= 0 ? 0:-chx); x < width_clip; x++) {
 						
@@ -311,6 +318,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 			}
 
 			if (font->b_cbuf) {
+				int yb= yb_start;
 				for (y= 0; y < height_clip; y++) {
 					for (x= 0; x < width_clip; x++) {
 						a= *(g->bitmap + x + (yb * g->pitch)) / 255.0f;

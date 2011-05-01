@@ -139,8 +139,6 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 				*lineno= -1;
 			}
 		}
-
-		/* this avoids an abort in Python 2.3's garbage collecting */
 	}
 	else {
 		PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);

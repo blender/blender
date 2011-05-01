@@ -97,6 +97,7 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_softbody.h"
+#include "BKE_material.h"
 
 #include "LBM_fluidsim.h"
 
@@ -746,51 +747,45 @@ void make_local_camera(Camera *cam)
 {
 	Main *bmain= G.main;
 	Object *ob;
-	Camera *camn;
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
 	
 	if(cam->id.lib==NULL) return;
 	if(cam->id.us==1) {
 		cam->id.lib= NULL;
 		cam->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)cam, NULL);
+		new_id(&bmain->camera, (ID *)cam, NULL);
 		return;
 	}
 	
-	ob= bmain->object.first;
-	while(ob) {
+	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
 		if(ob->data==cam) {
 			if(ob->id.lib) lib= 1;
 			else local= 1;
 		}
-		ob= ob->id.next;
 	}
 	
 	if(local && lib==0) {
 		cam->id.lib= NULL;
 		cam->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)cam, NULL);
+		new_id(&bmain->camera, (ID *)cam, NULL);
 	}
 	else if(local && lib) {
-		camn= copy_camera(cam);
+		Camera *camn= copy_camera(cam);
 		camn->id.us= 0;
 		
-		ob= bmain->object.first;
-		while(ob) {
-			if(ob->data==cam) {
-				
+		for(ob= bmain->object.first; ob; ob= ob->id.next) {
+			if(ob->data == cam) {
 				if(ob->id.lib==NULL) {
 					ob->data= camn;
 					camn->id.us++;
 					cam->id.us--;
 				}
 			}
-			ob= ob->id.next;
 		}
 	}
 }
@@ -907,7 +902,7 @@ void make_local_lamp(Lamp *la)
 	if(la->id.us==1) {
 		la->id.lib= NULL;
 		la->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)la, NULL);
+		new_id(&bmain->lamp, (ID *)la, NULL);
 		return;
 	}
 	
@@ -923,7 +918,7 @@ void make_local_lamp(Lamp *la)
 	if(local && lib==0) {
 		la->id.lib= NULL;
 		la->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)la, NULL);
+		new_id(&bmain->lamp, (ID *)la, NULL);
 	}
 	else if(local && lib) {
 		lan= copy_lamp(la);
@@ -1376,11 +1371,10 @@ Object *copy_object(Object *ob)
 	return obn;
 }
 
-void expand_local_object(Object *ob)
+static void extern_local_object(Object *ob)
 {
 	//bActionStrip *strip;
 	ParticleSystem *psys;
-	int a;
 
 #if 0 // XXX old animation system
 	id_lib_extern((ID *)ob->action);
@@ -1388,10 +1382,11 @@ void expand_local_object(Object *ob)
 #endif // XXX old animation system
 	id_lib_extern((ID *)ob->data);
 	id_lib_extern((ID *)ob->dup_group);
-	
-	for(a=0; a<ob->totcol; a++) {
-		id_lib_extern((ID *)ob->mat[a]);
-	}
+	id_lib_extern((ID *)ob->poselib);
+	id_lib_extern((ID *)ob->gpd);
+
+	extern_local_matarar(ob->mat, ob->totcol);
+
 #if 0 // XXX old animation system
 	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 		id_lib_extern((ID *)strip->act);
@@ -1404,16 +1399,15 @@ void expand_local_object(Object *ob)
 void make_local_object(Object *ob)
 {
 	Main *bmain= G.main;
-	Object *obn;
 	Scene *sce;
 	Base *base;
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
-	
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
+
 	if(ob->id.lib==NULL) return;
 	
 	ob->proxy= ob->proxy_from= NULL;
@@ -1421,31 +1415,23 @@ void make_local_object(Object *ob)
 	if(ob->id.us==1) {
 		ob->id.lib= NULL;
 		ob->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)ob, NULL);
-
+		new_id(&bmain->object, (ID *)ob, NULL);
 	}
 	else {
-		sce= bmain->scene.first;
-		while(sce) {
-			base= sce->base.first;
-			while(base) {
-				if(base->object==ob) {
-					if(sce->id.lib) lib++;
-					else local++;
-					break;
-				}
-				base= base->next;
+		for(sce= bmain->scene.first; sce && ELEM(0, lib, local); sce= sce->id.next) {
+			if(object_in_scene(ob, sce)) {
+				if(sce->id.lib) lib= 1;
+				else local= 1;
 			}
-			sce= sce->id.next;
 		}
-		
+
 		if(local && lib==0) {
 			ob->id.lib= NULL;
 			ob->id.flag= LIB_LOCAL;
-			new_id(NULL, (ID *)ob, NULL);
+			new_id(&bmain->object, (ID *)ob, NULL);
 		}
 		else if(local && lib) {
-			obn= copy_object(ob);
+			Object *obn= copy_object(ob);
 			obn->id.us= 0;
 			
 			sce= bmain->scene.first;
@@ -1466,7 +1452,7 @@ void make_local_object(Object *ob)
 		}
 	}
 	
-	expand_local_object(ob);
+	extern_local_object(ob);
 }
 
 /*
@@ -1574,7 +1560,10 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		ob->rotmode= target->rotmode;
 		mul_m4_m4m4(ob->obmat, target->obmat, gob->obmat);
 		if(gob->dup_group) { /* should always be true */
-			sub_v3_v3(ob->obmat[3], gob->dup_group->dupli_ofs);
+			float tvec[3];
+			copy_v3_v3(tvec, gob->dup_group->dupli_ofs);
+			mul_mat3_m4_v3(ob->obmat, tvec);
+			sub_v3_v3(ob->obmat[3], tvec);
 		}
 		object_apply_mat4(ob, ob->obmat, FALSE, TRUE);
 	}
@@ -2570,7 +2559,10 @@ void object_handle_update(Scene *scene, Object *ob)
 					invert_m4_m4(obg->imat, obg->obmat);
 					mul_m4_m4m4(ob->obmat, ob->proxy_from->obmat, obg->imat);
 					if(obg->dup_group) { /* should always be true */
-						add_v3_v3(ob->obmat[3], obg->dup_group->dupli_ofs);
+						float tvec[3];
+						copy_v3_v3(tvec, obg->dup_group->dupli_ofs);
+						mul_mat3_m4_v3(ob->obmat, tvec);
+						sub_v3_v3(ob->obmat[3], tvec);
 					}
 				}
 				else

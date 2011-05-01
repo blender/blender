@@ -55,6 +55,7 @@ struct Material *copy_material(struct Material *ma);
 struct Material *localize_material(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
 void make_local_material(struct Material *ma);
+void extern_local_matarar(struct Material **matar, short totcol);
 
 void automatname(struct Material *);
 

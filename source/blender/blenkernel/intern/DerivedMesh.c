@@ -2558,7 +2558,6 @@ static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const 
 	else {
 		const short *no= pMesh->mvert[(&pMesh->mface[face_num].v1)[vert_index]].no;
 		normal_short_to_float_v3(fNorm, no);
-		normalize_v3(fNorm); /* XXX, is this needed */
 	}
 }
 static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent[], const float fSign, const int face_num, const int iVert)

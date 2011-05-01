@@ -395,7 +395,7 @@ class WM_MT_context_menu_enum(bpy.types.Menu):
         base_path, prop_string = data_path.rsplit(".", 1)
         value_base = context_path_validate(context, base_path)
 
-        values = [(i.name, i.identifier) for i in value_base.bl_rna.properties[prop_string].items]
+        values = [(i.name, i.identifier) for i in value_base.bl_rna.properties[prop_string].enum_items]
 
         for name, identifier in values:
             prop = self.layout.operator("wm.context_set_enum", text=name)
@@ -835,6 +835,18 @@ class WM_OT_properties_add(bpy.types.Operator):
         property = unique_name(item.keys())
 
         item[property] = 1.0
+        return {'FINISHED'}
+
+class WM_OT_properties_context_change(bpy.types.Operator):
+    "Change the context tab in a Properties Window"
+    bl_idname = "wm.properties_context_change"
+    bl_label = ""
+
+    context = StringProperty(name="Context", maxlen=32)
+
+    def execute(self, context):
+        context.space_data.context = (self.context)
+		
         return {'FINISHED'}
 
 

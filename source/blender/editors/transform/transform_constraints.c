@@ -185,12 +185,44 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 	mul_m3_v3(t->con.mtx, vec);
 }
 
+static void viewAxisCorrectCenter(TransInfo *t, float t_con_center[3])
+{
+	if(t->spacetype == SPACE_VIEW3D) {
+		// View3D *v3d = t->sa->spacedata.first;
+		const float min_dist= 1.0f; // v3d->near;
+		float dir[3];
+		float l;
+
+		sub_v3_v3v3(dir, t_con_center, t->viewinv[3]);
+		if(dot_v3v3(dir, t->viewinv[2]) < 0.0f) {
+			negate_v3(dir);
+		}
+		project_v3_v3v3(dir, dir, t->viewinv[2]);
+
+		l= len_v3(dir);
+
+		if(l < min_dist) {
+			float diff[3];
+			normalize_v3_v3(diff, t->viewinv[2]);
+			mul_v3_fl(diff, min_dist - l);
+
+			sub_v3_v3(t_con_center, diff);
+		}
+	}
+}
+
 static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
 	float norm[3], vec[3], factor, angle;
+	float t_con_center[3];
 
 	if(in[0]==0.0f && in[1]==0.0f && in[2]==0.0f)
 		return;
 
+	copy_v3_v3(t_con_center, t->con.center);
+
+	/* checks for center being too close to the view center */
+	viewAxisCorrectCenter(t, t_con_center);
+	
 	angle = fabsf(angle_v3v3(axis, t->viewinv[2]));
 	if (angle > (float)M_PI / 2.0f) {
 		angle = (float)M_PI - angle;
@@ -217,13 +249,13 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 		float norm_center[3];
 		float plane[3];
 
-		getViewVector(t, t->con.center, norm_center);
+		getViewVector(t, t_con_center, norm_center);
 		cross_v3_v3v3(plane, norm_center, axis);
 
 		project_v3_v3v3(vec, in, plane);
 		sub_v3_v3v3(vec, in, vec);
 		
-		add_v3_v3v3(v, vec, t->con.center);
+		add_v3_v3v3(v, vec, t_con_center);
 		getViewVector(t, v, norm);
 
 		/* give arbitrary large value if projection is impossible */
@@ -236,14 +268,14 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 				mul_v3_fl(out, -1000000000.0f);
 			}
 		} else {
-			add_v3_v3v3(v2, t->con.center, axis);
+			add_v3_v3v3(v2, t_con_center, axis);
 			add_v3_v3v3(v4, v, norm);
 			
-			isect_line_line_v3(t->con.center, v2, v, v4, i1, i2);
+			isect_line_line_v3(t_con_center, v2, v, v4, i1, i2);
 			
 			sub_v3_v3v3(v, i2, v);
 	
-			sub_v3_v3v3(out, i1,  t->con.center);
+			sub_v3_v3v3(out, i1, t_con_center);
 
 			/* possible some values become nan when
 			 * viewpoint and object are both zero */

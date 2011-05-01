@@ -657,7 +657,7 @@ void BLF_shadow_offset(int fontid, int x, int y)
 	}
 }
 
-void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, unsigned int w, unsigned int h, int nch)
+void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch)
 {
 	FontBLF *font;
 

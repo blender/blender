@@ -163,6 +163,8 @@ int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, in
 
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
+struct ARegion *ED_view3d_context_region_unlock(struct bContext *C);
+int ED_operator_rv3d_unlock_poll(struct bContext *C);
 
 void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);
 
@@ -173,7 +175,7 @@ void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct AR
 	int winx, int winy, float viewmat[][4], float winmat[][4]);
 
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag, char err_out[256]);
-struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype, char err_out[256]);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype, char err_out[256]);
 
 
 Base *ED_view3d_give_base_under_cursor(struct bContext *C, const short mval[2]);
@@ -182,6 +184,12 @@ int ED_view3d_lock(struct RegionView3D *rv3d);
 
 unsigned int ED_view3d_datamask(struct Scene *scene, struct View3D *v3d);
 unsigned int ED_viewedit_datamask(struct bScreen *screen);
+
+
+/* assigning view matrix */
+void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist);
+void view3d_apply_ob(struct Object *ob, float *ofs, float *quat, float *dist, float *lens);
+int view3d_is_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
 
 #endif /* ED_VIEW3D_H */
 

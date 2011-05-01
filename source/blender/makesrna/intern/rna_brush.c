@@ -342,22 +342,22 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem brush_stroke_method_items[] = {
-		{0, "DOTS", 0, "Dots", ""},
-		{BRUSH_RESTORE_MESH, "DRAG_DOT", 0, "Drag Dot", ""},
-		{BRUSH_SPACE, "SPACE", 0, "Space", ""},
-		{BRUSH_ANCHORED, "ANCHORED", 0, "Anchored", ""},
-		{BRUSH_AIRBRUSH, "AIRBRUSH", 0, "Airbrush", ""},
+		{0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},
+		{BRUSH_RESTORE_MESH, "DRAG_DOT", 0, "Drag Dot", "Allows a single dot to be carefully positioned"},
+		{BRUSH_SPACE, "SPACE", 0, "Space", "Limit brush application to the distance specified by spacing"},
+		{BRUSH_ANCHORED, "ANCHORED", 0, "Anchored", "Keep the brush anchored to the initial location"},
+		{BRUSH_AIRBRUSH, "AIRBRUSH", 0, "Airbrush", "Keep applying paint effect while holding mouse (spray)"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem texture_angle_source_items[] = {
-		{0, "USER", 0, "User", ""},
-		{BRUSH_RAKE, "RAKE", 0, "Rake", ""},
-		{BRUSH_RANDOM_ROTATION, "RANDOM", 0, "Random", ""},
+		{0, "USER", 0, "User", "Rotate the brush texture by given angle"},
+		{BRUSH_RAKE, "RAKE", 0, "Rake", "Rotate the brush texture to match the stroke direction"},
+		{BRUSH_RANDOM_ROTATION, "RANDOM", 0, "Random", "Rotate the brush texture at random"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem texture_angle_source_no_random_items[] = {
-		{0, "USER", 0, "User", ""},
-		{BRUSH_RAKE, "RAKE", 0, "Rake", ""},
+		{0, "USER", 0, "User", "Rotate the brush texture by given angle"},
+		{BRUSH_RAKE, "RAKE", 0, "Rake", "Rotate the brush texture to match the stroke direction"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem brush_sculpt_plane_items[] = {

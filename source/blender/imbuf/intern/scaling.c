@@ -952,6 +952,7 @@ static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 		ibuf->mall |= IB_rectfloat;
 		ibuf->rect_float = _newrectf;
 	}
+	(void)rect_size; /* UNUSED in release builds */
 	
 	ibuf->x = newx;
 	return(ibuf);
@@ -1082,6 +1083,7 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 		ibuf->mall |= IB_rectfloat;
 		ibuf->rect_float = (float *) _newrectf;
 	}
+	(void)rect_size; /* UNUSED in release builds */
 	
 	ibuf->y = newy;
 	return(ibuf);

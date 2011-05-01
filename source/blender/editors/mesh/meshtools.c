@@ -226,8 +226,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 						}
 						if(b==totcol) {
 							matar[b]= ma;
-							if(ma)
-								ma->id.us++;
+							if(ma) {
+								id_us_plus(&ma->id);
+							}
 							totcol++;
 						}
 						if(totcol>=MAXMAT-1) 

@@ -170,8 +170,16 @@ static ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short imp
 		float *uv[4];
 		int nverts;
 		
-		if((efa->h) || (sel && (efa->f & SELECT)==0)) 
-			continue;
+		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+			if(efa->h) {
+				continue;
+			}
+		}
+		else {
+			if((efa->h) || (sel && (efa->f & SELECT)==0)) {
+				continue;
+			}
+		}
 
 		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		

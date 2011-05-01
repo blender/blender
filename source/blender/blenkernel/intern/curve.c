@@ -63,7 +63,8 @@
 #include "BKE_key.h"  
 #include "BKE_library.h"  
 #include "BKE_main.h"  
-#include "BKE_object.h"  
+#include "BKE_object.h"
+#include "BKE_material.h"
 
 
 #include "ED_curve.h"
@@ -216,10 +217,22 @@ Curve *copy_curve(Curve *cu)
 	return cun;
 }
 
+static void extern_local_curve(Curve *cu)
+{	
+	id_lib_extern((ID *)cu->vfont);
+	id_lib_extern((ID *)cu->vfontb);	
+	id_lib_extern((ID *)cu->vfonti);
+	id_lib_extern((ID *)cu->vfontbi);
+	
+	if(cu->mat) {
+		extern_local_matarar(cu->mat, cu->totcol);
+	}
+}
+
 void make_local_curve(Curve *cu)
 {
-	Object *ob = NULL;
-	Curve *cun;
+	Main *bmain= G.main;
+	Object *ob;
 	int local=0, lib=0;
 	
 	/* - when there are only lib users: don't do
@@ -229,47 +242,41 @@ void make_local_curve(Curve *cu)
 	
 	if(cu->id.lib==NULL) return;
 
-	if(cu->vfont) cu->vfont->id.lib= NULL;
-	if(cu->vfontb) cu->vfontb->id.lib= NULL;
-	if(cu->vfonti) cu->vfonti->id.lib= NULL;
-	if(cu->vfontbi) cu->vfontbi->id.lib= NULL;
-
 	if(cu->id.us==1) {
 		cu->id.lib= NULL;
 		cu->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)cu, NULL);
+
+		new_id(&bmain->curve, (ID *)cu, NULL);
+		extern_local_curve(cu);
 		return;
 	}
-	
-	ob= G.main->object.first;
-	while(ob) {
-		if(ob->data==cu) {
+
+	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+		if(ob->data == cu) {
 			if(ob->id.lib) lib= 1;
 			else local= 1;
 		}
-		ob= ob->id.next;
 	}
-	
+
 	if(local && lib==0) {
 		cu->id.lib= NULL;
 		cu->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)cu, NULL);
+
+		new_id(&bmain->curve, (ID *)cu, NULL);
+		extern_local_curve(cu);
 	}
 	else if(local && lib) {
-		cun= copy_curve(cu);
+		Curve *cun= copy_curve(cu);
 		cun->id.us= 0;
-		
-		ob= G.main->object.first;
-		while(ob) {
+
+		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data==cu) {
-				
 				if(ob->id.lib==NULL) {
 					ob->data= cun;
 					cun->id.us++;
 					cu->id.us--;
 				}
 			}
-			ob= ob->id.next;
 		}
 	}
 }

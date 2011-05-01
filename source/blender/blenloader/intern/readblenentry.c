@@ -144,7 +144,7 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, 
 	return names;
 }
 
-LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype) 
+LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *tot_prev)
 {
 	FileData *fd= (FileData*) bh;
 	LinkNode *previews= NULL;
@@ -153,6 +153,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 	int npreviews = 0;
 	PreviewImage* prv = NULL;
 	PreviewImage* new_prv = NULL;
+	int tot= 0;
 	
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code==ofblocktype) {
@@ -166,6 +167,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 				case ID_LA: /* fall through */
 					new_prv = MEM_callocN(sizeof(PreviewImage), "newpreview");
 					BLI_linklist_prepend(&previews, new_prv);
+					tot++;
 					looking = 1;
 					break;
 				default:
@@ -213,7 +215,8 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 		}
 		
 	}
-	
+
+	*tot_prev= tot;
 	return previews;
 }
 

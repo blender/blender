@@ -249,8 +249,8 @@ void free_lattice(Lattice *lt)
 
 void make_local_lattice(Lattice *lt)
 {
+	Main *bmain= G.main;
 	Object *ob;
-	Lattice *ltn;
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
@@ -262,39 +262,34 @@ void make_local_lattice(Lattice *lt)
 	if(lt->id.us==1) {
 		lt->id.lib= NULL;
 		lt->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)lt, NULL);
+		new_id(&bmain->latt, (ID *)lt, NULL);
 		return;
 	}
 	
-	ob= G.main->object.first;
-	while(ob) {
+	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
 		if(ob->data==lt) {
 			if(ob->id.lib) lib= 1;
 			else local= 1;
 		}
-		ob= ob->id.next;
 	}
 	
 	if(local && lib==0) {
 		lt->id.lib= NULL;
 		lt->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)lt, NULL);
+		new_id(&bmain->latt, (ID *)lt, NULL);
 	}
 	else if(local && lib) {
-		ltn= copy_lattice(lt);
+		Lattice *ltn= copy_lattice(lt);
 		ltn->id.us= 0;
-		
-		ob= G.main->object.first;
-		while(ob) {
+
+		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data==lt) {
-				
 				if(ob->id.lib==NULL) {
 					ob->data= ltn;
 					ltn->id.us++;
 					lt->id.us--;
 				}
 			}
-			ob= ob->id.next;
 		}
 	}
 }

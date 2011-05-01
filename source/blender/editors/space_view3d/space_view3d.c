@@ -156,6 +156,44 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 	return rv3d;
 }
 
+/* ideally would return an rv3d but in some cases the region is needed too
+ * so return that, the caller can then access the ar->regiondata */
+ARegion *ED_view3d_context_region_unlock(bContext *C)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	if(sa && sa->spacetype==SPACE_VIEW3D) {
+		ARegion *ar= CTX_wm_region(C);
+		if(ar) {
+			RegionView3D *rv3d= ar->regiondata;
+			if(rv3d && rv3d->viewlock == 0) {
+				return ar;
+			}
+			else {
+				ARegion *ar_unlock_user= NULL;
+				ARegion *ar_unlock= NULL;
+				for(ar= sa->regionbase.first; ar; ar= ar->next) {
+					/* find the first unlocked rv3d */
+					if(ar->regiondata && ar->regiontype == RGN_TYPE_WINDOW) {
+						rv3d= ar->regiondata;
+						if(rv3d->viewlock == 0) {
+							ar_unlock= ar;
+							if(rv3d->persp==RV3D_PERSP || rv3d->persp==RV3D_CAMOB) {
+								ar_unlock_user= ar;
+								break;
+							}
+						} 
+					}
+				}
+
+				/* camera/perspective view get priority when the active region is locked */
+				if(ar_unlock_user) return ar_unlock_user;
+				if(ar_unlock) return ar_unlock;
+			}
+		}
+	}
+	return NULL;
+}
+
 /* Most of the time this isn't needed since you could assume the view matrix was
  * set while drawing, however when functions like mesh_foreachScreenVert are
  * called by selection tools, we can't be sure this object was the last.

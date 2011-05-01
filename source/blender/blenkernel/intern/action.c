@@ -95,6 +95,7 @@ bAction *add_empty_action(const char name[])
 void make_local_action(bAction *act)
 {
 	// Object *ob;
+	Main *bmain= G.main;
 	bAction *actn;
 	int local=0, lib=0;
 	
@@ -102,7 +103,7 @@ void make_local_action(bAction *act)
 	if (act->id.us==1) {
 		act->id.lib= NULL;
 		act->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)act, NULL);
+		new_id(&bmain->action, (ID *)act, NULL);
 		return;
 	}
 	
@@ -121,7 +122,7 @@ void make_local_action(bAction *act)
 		act->id.lib= NULL;
 		act->id.flag= LIB_LOCAL;
 		//make_local_action_channels(act);
-		new_id(NULL, (ID *)act, NULL);
+		new_id(&bmain->action, (ID *)act, NULL);
 	}
 	else if(local && lib) {
 		actn= copy_action(act);
@@ -419,11 +420,11 @@ bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
 		return NULL;
 	
 	/* See if this channel exists */
-	for (chan=pose->chanbase.first; chan; chan=chan->next) {
-		if (!strcmp (name, chan->name))
-			return chan;
+	chan= BLI_findstring(&pose->chanbase, name, offsetof(bPoseChannel, name));
+	if(chan) {
+		return chan;
 	}
-	
+
 	/* If not, create it and add it */
 	chan = MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel");
 	

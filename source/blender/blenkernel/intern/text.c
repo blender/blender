@@ -2068,6 +2068,7 @@ void txt_do_redo(Text *text)
 			linep= linep+(text->undo_buf[text->undo_pos]<<8); text->undo_pos++;
 			linep= linep+(text->undo_buf[text->undo_pos]<<16); text->undo_pos++;
 			linep= linep+(text->undo_buf[text->undo_pos]<<24); text->undo_pos++;
+			(void)linep;
 
 			break;
 		case UNDO_INDENT:

@@ -138,7 +138,9 @@ int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, co
 
 	if(value_len != length) {
 		Py_DECREF(value);
-		PyErr_Format(PyExc_TypeError, "%.200s: invalid sequence length. expected %d, got %d", error_prefix, length, value_len);
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s: invalid sequence length. expected %d, got %d",
+		             error_prefix, length, value_len);
 		return -1;
 	}
 
@@ -163,14 +165,18 @@ int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, co
 	}
 	else {
 		Py_DECREF(value_fast);
-		PyErr_Format(PyExc_TypeError, "%s: internal error %s is invalid", error_prefix, type->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "%s: internal error %s is invalid",
+		             error_prefix, type->tp_name);
 		return -1;
 	}
 
 	Py_DECREF(value_fast);
 
 	if(PyErr_Occurred()) {
-		PyErr_Format(PyExc_TypeError, "%s: one or more items could not be used as a %s", error_prefix, type->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "%s: one or more items could not be used as a %s",
+		             error_prefix, type->tp_name);
 		return -1;
 	}
 

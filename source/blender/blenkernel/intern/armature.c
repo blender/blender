@@ -137,39 +137,42 @@ void free_armature(bArmature *arm)
 
 void make_local_armature(bArmature *arm)
 {
+	Main *bmain= G.main;
 	int local=0, lib=0;
 	Object *ob;
-	bArmature *newArm;
-	
-	if (arm->id.lib==NULL)
-		return;
+
+	if (arm->id.lib==NULL) return;
 	if (arm->id.us==1) {
 		arm->id.lib= NULL;
 		arm->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID*)arm, NULL);
+		new_id(&bmain->armature, (ID*)arm, NULL);
 		return;
 	}
-	
+
+	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+		if(ob->data == arm) {
+			if(ob->id.lib) lib= 1;
+			else local= 1;
+		}
+	}
+
 	if(local && lib==0) {
 		arm->id.lib= NULL;
 		arm->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)arm, NULL);
+		new_id(&bmain->armature, (ID *)arm, NULL);
 	}
 	else if(local && lib) {
-		newArm= copy_armature(arm);
-		newArm->id.us= 0;
+		bArmature *armn= copy_armature(arm);
+		armn->id.us= 0;
 		
-		ob= G.main->object.first;
-		while(ob) {
-			if(ob->data==arm) {
-				
+		for(ob= bmain->object.first; ob; ob= ob->id.next) {
+			if(ob->data == arm) {
 				if(ob->id.lib==NULL) {
-					ob->data= newArm;
-					newArm->id.us++;
+					ob->data= armn;
+					armn->id.us++;
 					arm->id.us--;
 				}
 			}
-			ob= ob->id.next;
 		}
 	}
 }

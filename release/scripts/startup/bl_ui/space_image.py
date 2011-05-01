@@ -91,7 +91,7 @@ class IMAGE_MT_select(bpy.types.Menu):
         layout.separator()
 
         layout.operator("uv.select_all")
-        layout.operator("uv.select_inverse")
+        layout.operator("uv.select_all", text="Inverse").action = 'INVERT'
         layout.operator("uv.unlink_selected")
 
         layout.separator()
@@ -263,7 +263,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         layout.operator("uv.average_islands_scale")
         layout.operator("uv.minimize_stretch")
         layout.operator("uv.stitch")
-        layout.operator("mesh.faces_miror_uv")
+        layout.operator("mesh.faces_mirror_uv")
 
         layout.separator()
 

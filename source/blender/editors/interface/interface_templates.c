@@ -673,6 +673,22 @@ static int modifier_can_delete(ModifierData *md)
 	return 1;
 }
 
+// Check wheter Modifier is a simulation or not, this is used for switching to the physics/particles context tab
+static int modifier_is_simulation(ModifierData *md)
+{
+	// Physic Tab
+	if(ELEM6(md->type, eModifierType_Cloth, eModifierType_Collision, eModifierType_Fluidsim, eModifierType_Smoke, eModifierType_Softbody, eModifierType_Surface)) {
+		return 1;
+	}
+	// Particle Tab
+	else if (md->type == eModifierType_ParticleSystem) {
+		return 2;
+	}
+	else {
+		return 0;
+	}
+}
+
 static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -765,8 +781,13 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		uiBlockEndAlign(block);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		if (modifier_can_delete(md))
+		// When Modifier is a simulation, show button to switch to context rather than the delete button. 
+		if (modifier_can_delete(md) && !modifier_is_simulation(md))
 			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
+		if (modifier_is_simulation(md) == 1)
+			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PHYSICS");
+		else if (modifier_is_simulation(md) == 2)
+			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PARTICLES");
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 

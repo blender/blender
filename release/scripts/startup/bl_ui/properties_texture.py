@@ -721,6 +721,15 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
         col.prop(pd, "falloff", text="")
         if pd.falloff == 'SOFT':
             col.prop(pd, "falloff_soft")
+        if pd.falloff == "PARTICLE_VELOCITY":
+            col.prop(pd, "falloff_speed_scale")
+        
+        col.prop(pd, "use_falloff_curve")
+        
+        if pd.use_falloff_curve:
+            col = layout.column()
+            col.label(text="Falloff Curve")
+            col.template_curve_mapping(pd, "falloff_curve", brush=False)
 
 
 class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):

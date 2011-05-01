@@ -91,7 +91,6 @@ struct Object *add_only_object(int type, const char *name);
 struct Object *add_object(struct Scene *scene, int type);
 
 struct Object *copy_object(struct Object *ob);
-void expand_local_object(struct Object *ob);
 void make_local_object(struct Object *ob);
 int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
