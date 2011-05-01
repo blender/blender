@@ -235,8 +235,8 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2]
 
 	/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
 	double deler = ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
-		/ (2.0 * (A*B?A*B:1.0));
-	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
+		/ (2.0 * ((A*B)?(A*B):1.0));
+	/* ((A*B)?(A*B):1.0) this takes care of potential divide by zero errors */
 
 	float dphi;
 

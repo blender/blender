@@ -206,8 +206,6 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 			}
 		} else if (bhead->code==ENDB) {
 			break;
-		} else if (bhead->code==DATA) {
-			/* DATA blocks between IDBlock and Preview */
 		} else {
 			looking = 0;
 			new_prv = NULL;

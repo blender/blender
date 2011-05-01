@@ -4811,10 +4811,16 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		 */
 		if ((saction->flag & SACTION_MARKERS_MOVE) && (cancelled == 0)) {
 			if (t->mode == TFM_TIME_TRANSLATE) {
-				if (ELEM(t->frame_side, 'L', 'R')) /* TFM_TIME_EXTEND */
+#if 0
+				if (ELEM(t->frame_side, 'L', 'R')) { /* TFM_TIME_EXTEND */
+					/* same as below */
 					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
+				}
 				else /* TFM_TIME_TRANSLATE */
+#endif
+				{
 					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
+				}
 			}
 			else if (t->mode == TFM_TIME_SCALE) {
 				ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);

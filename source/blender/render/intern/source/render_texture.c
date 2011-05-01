@@ -2544,7 +2544,6 @@ void do_material_tex(ShadeInput *shi)
 				}
 				else { /* add or sub */
 					if(mtex->blendtype==MTEX_SUB) factt= -factt;
-					else factt= factt;
 					shi->displace[0]+= factt*shi->vn[0];
 					shi->displace[1]+= factt*shi->vn[1];
 					shi->displace[2]+= factt*shi->vn[2];

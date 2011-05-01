@@ -1795,20 +1795,22 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	bDopeSheet ads= {NULL};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
-	float cfra= (scene)? (float)(CFRA) : 0.0f;
+	float cfra;
 	short next= RNA_boolean_get(op->ptr, "next");
 	short done = 0;
 	
 	/* sanity checks */
 	if (scene == NULL)
 		return OPERATOR_CANCELLED;
-	
+
+	cfra= (float)(CFRA);
+
 	/* init binarytree-list for getting keyframes */
 	BLI_dlrbTree_init(&keys);
 	
 	/* populate tree with keyframe nodes */
-	if (scene)
-		scene_to_keylist(&ads, scene, &keys, NULL);
+	scene_to_keylist(&ads, scene, &keys, NULL);
+
 	if (ob)
 		ob_to_keylist(&ads, ob, &keys, NULL);
 	
@@ -1844,7 +1846,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	
 	sound_seek_scene(C);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	
 	return OPERATOR_FINISHED;
 }

@@ -192,15 +192,18 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
 	else if(t->spacetype == SPACE_ACTION) {
-		SpaceAction *sact = t->sa->spacedata.first;
 		int out[2] = {0, 0};
+#if 0
+		SpaceAction *sact = t->sa->spacedata.first;
 
 		if (sact->flag & SACTION_DRAWTIME) {
 			//vec[0] = vec[0]/((t->scene->r.frs_sec / t->scene->r.frs_sec_base));
-
+			/* same as below */
 			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
 		} 
-		else {
+		else
+#endif
+		{
 			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
 		}
 
