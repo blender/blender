@@ -938,7 +938,7 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
 		len = ptcache_path(pid, filename);
 		newname += len;
 	}
-	if(strcmp(pid->cache->name, "")==0 && (pid->cache->flag & PTCACHE_EXTERNAL)==0) {
+	if(pid->cache->name[0] == '\0' && (pid->cache->flag & PTCACHE_EXTERNAL)==0) {
 		idname = (pid->ob->id.name+2);
 		/* convert chars to hex so they are always a valid filename */
 		while('\0' != *idname) {

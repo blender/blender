@@ -190,7 +190,7 @@ static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 		for(pid=pidlist.first; pid; pid=pid->next) {
 			if(pid->cache==cache)
 				pid2 = pid;
-			else if(strcmp(cache->name, "") && strcmp(cache->name,pid->cache->name)==0) {
+			else if(cache->name[0] != '\0' && strcmp(cache->name,pid->cache->name)==0) {
 				/*TODO: report "name exists" to user */
 				strcpy(cache->name, cache->prev_name);
 				new_name = 0;

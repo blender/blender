@@ -804,7 +804,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 						
 						for (ct= targets.first; ct; ct= ct->next) {
 							if (ct->tar == srcArm) {
-								if (strcmp(ct->subtarget, "")==0) {
+								if (ct->subtarget[0] == '\0') {
 									ct->tar = tarArm;
 								}
 								else if (strcmp(ct->subtarget, pchan->name)==0) {
@@ -851,7 +851,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 					
 					for (ct= targets.first; ct; ct= ct->next) {
 						if (ct->tar == srcArm) {
-							if (strcmp(ct->subtarget, "")==0) {
+							if (ct->subtarget[0] == '\0') {
 								ct->tar = tarArm;
 							}
 							else if (strcmp(ct->subtarget, pchan->name)==0) {

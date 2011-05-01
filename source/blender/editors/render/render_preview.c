@@ -314,15 +314,6 @@ void ED_preview_free_dbase(void)
 		free_main(pr_main);
 }
 
-static Object *find_object(ListBase *lb, const char *name)
-{
-	Object *ob;
-	for(ob= lb->first; ob; ob= ob->id.next)
-		if(strcmp(ob->id.name+2, name)==0)
-			break;
-	return ob;
-}
-
 static int preview_mat_has_sss(Material *mat, bNodeTree *ntree)
 {
 	if(mat) {
@@ -529,12 +520,12 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			if(la && la->type==LA_SUN && (la->sun_effect_type & LA_SUN_EFFECT_SKY)) {
 				sce->lay= 1<<MA_ATMOS;
 				sce->world= scene->world;
-				sce->camera= (Object *)find_object(&pr_main->object, "CameraAtmo");
+				sce->camera= (Object *)BLI_findstring(&pr_main->object, "CameraAtmo", offsetof(ID, name)+2);
 			}
 			else {
 				sce->lay= 1<<MA_LAMP;
 				sce->world= NULL;
-				sce->camera= (Object *)find_object(&pr_main->object, "Camera");
+				sce->camera= (Object *)BLI_findstring(&pr_main->object, "Camera", offsetof(ID, name)+2);
 			}
 			sce->r.mode &= ~R_SHADOW;
 			

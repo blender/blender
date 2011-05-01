@@ -420,11 +420,11 @@ bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
 		return NULL;
 	
 	/* See if this channel exists */
-	for (chan=pose->chanbase.first; chan; chan=chan->next) {
-		if (!strcmp (name, chan->name))
-			return chan;
+	chan= BLI_findstring(&pose->chanbase, name, offsetof(bPoseChannel, name));
+	if(chan) {
+		return chan;
 	}
-	
+
 	/* If not, create it and add it */
 	chan = MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel");
 	
