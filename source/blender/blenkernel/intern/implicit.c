@@ -50,7 +50,7 @@
 #include "BKE_global.h"
 
 
-#define CLOTH_OPENMP_LIMIT 25
+#define CLOTH_OPENMP_LIMIT 512
 
 #ifdef _WIN32
 #include <windows.h>
@@ -939,7 +939,7 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 	s = dot_lfvector(r, r, numverts);
 	starget = s * sqrt(conjgrad_epsilon);
 
-	while((s>starget && conjgrad_loopcount < conjgrad_looplimit))
+	while(s>starget && conjgrad_loopcount < conjgrad_looplimit)
 	{	
 		// Mul(q,A,d); // q = A*d;
 		mul_bfmatrix_lfvector(q, lA, d);
@@ -1749,15 +1749,93 @@ static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVect
 	del_lfvector(dFdXmV);
 }
 
+/*computes where the cloth would be if it were subject to perfectly stiff edges
+  (edge distance constraints) in a lagrangian solver.  then add forces to help
+  guide the implicit solver to that state.  this function is called after
+  collisions*/
+int cloth_calc_helper_forces(Object *ob, ClothModifierData * clmd, float (*initial_cos)[3], float step, float dt)
+{
+	Cloth *cloth= clmd->clothObject;
+	float (*cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "cos cloth_calc_helper_forces");
+	float *masses = MEM_callocN(sizeof(float)*cloth->numverts, "cos cloth_calc_helper_forces");
+	LinkNode *node;
+	ClothSpring *spring;
+	ClothVertex *cv;
+	int i, steps;
+	
+	cv = cloth->verts;
+	for (i=0; i<cloth->numverts; i++, cv++) {
+		copy_v3_v3(cos[i], cv->tx);
+		
+		if (cv->goal == 1.0f || len_v3v3(initial_cos[i], cv->tx) != 0.0) {
+			masses[i] = 1e+10;	
+		} else {
+			masses[i] = cv->mass;
+		}
+	}
+	
+	steps = 55;
+	for (i=0; i<steps; i++) {
+		for (node=cloth->springs; node; node=node->next) {
+			ClothVertex *cv1, *cv2;
+			int v1, v2;
+			float len, c, l, vec[3];
+			
+			spring = node->link;
+			if (spring->type != CLOTH_SPRING_TYPE_STRUCTURAL && spring->type != CLOTH_SPRING_TYPE_SHEAR) 
+				continue;
+			
+			v1 = spring->ij; v2 = spring->kl;
+			cv1 = cloth->verts + v1;
+			cv2 = cloth->verts + v2;
+			len = len_v3v3(cos[v1], cos[v2]);
+			
+			sub_v3_v3v3(vec, cos[v1], cos[v2]);
+			normalize_v3(vec);
+			
+			c = (len - spring->restlen);
+			if (c == 0.0)
+				continue;
+			
+			l = c / ((1.0/masses[v1]) + (1.0/masses[v2]));
+			
+			mul_v3_fl(vec, -(1.0/masses[v1])*l);
+			add_v3_v3(cos[v1], vec);
+	
+			sub_v3_v3v3(vec, cos[v2], cos[v1]);
+			normalize_v3(vec);
+			
+			mul_v3_fl(vec, -(1.0/masses[v2])*l);
+			add_v3_v3(cos[v2], vec);
+		}
+	}
+	
+	cv = cloth->verts;
+	for (i=0; i<cloth->numverts; i++, cv++) {
+		float vec[3];
+		
+		/*compute forces*/
+		sub_v3_v3v3(vec, cos[i], cv->tx);
+		mul_v3_fl(vec, cv->mass*dt*20.0);
+		add_v3_v3(cv->tv, vec);
+		//copy_v3_v3(cv->tx, cos[i]);
+	}
+	
+	MEM_freeN(cos);
+	MEM_freeN(masses);
+	
+	return 1;
+}
 int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 { 	 	
 	unsigned int i=0;
 	float step=0.0f, tf=clmd->sim_parms->timescale;
 	Cloth *cloth = clmd->clothObject;
-	ClothVertex *verts = cloth->verts;
+	ClothVertex *verts = cloth->verts, *cv;
 	unsigned int numverts = cloth->numverts;
 	float dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 	float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
+	float (*initial_cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "initial_cos implicit.c");
 	Implicit_Data *id = cloth->implicit;
 	int do_extra_solve;
 
@@ -1817,15 +1895,26 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				VECCOPY(verts[i].v, verts[i].tv);
 			}
 
+			for (i=0, cv=cloth->verts; i<cloth->numverts; i++, cv++) {
+				copy_v3_v3(initial_cos[i], cv->tx);
+			}
+			
 			// call collision function
 			// TODO: check if "step" or "step+dt" is correct - dg
 			do_extra_solve = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
-			
+						
 			// copy corrected positions back to simulation
 			for(i = 0; i < numverts; i++)
 			{		
 				// correct velocity again, just to be sure we had to change it due to adaptive collisions
 				VECSUB(verts[i].tv, verts[i].tx, id->X[i]);
+			}
+
+			//if (do_extra_solve)
+			//	cloth_calc_helper_forces(ob, clmd, initial_cos, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
+			
+			for(i = 0; i < numverts; i++)
+			{		
 
 				if(do_extra_solve)
 				{
@@ -1885,6 +1974,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			VECCOPY(verts[i].v, id->V[i]);
 		}
 	}
+	
+	MEM_freeN(initial_cos);
 	
 	return 1;
 }

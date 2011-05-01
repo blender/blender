@@ -31,6 +31,10 @@ if(WITH_BULLET)
 	add_subdirectory(bullet2)
 endif()
 
+if(WITH_ELTOPO)
+	add_subdirectory(eltopo)
+endif()
+
 if(WITH_BINRELOC)
 	add_subdirectory(binreloc)
 endif()

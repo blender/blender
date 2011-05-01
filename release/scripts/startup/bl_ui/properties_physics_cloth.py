@@ -157,6 +157,8 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(cloth, "collision_quality", slider=True, text="Quality")
         col.prop(cloth, "distance_min", slider=True, text="Distance")
+        col.prop(cloth, "repel_force", slider=True, text="Repel")
+        col.prop(cloth, "distance_repel", slider=True, text="Repel Distance")
         col.prop(cloth, "friction")
 
         col = split.column()
