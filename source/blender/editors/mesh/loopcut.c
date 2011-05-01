@@ -249,8 +249,11 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	}
 	
 	if (BM_Edge_Share_Faces(lasteed, startedge)) {
-		edgering_find_order(em, lasteed, startedge, lastv1, v);
+		v[1][0] = v[0][0];
+		v[1][1] = v[0][1];
 
+		edgering_find_order(em, lasteed, startedge, lastv1, v);
+		
 		for(i=1;i<=previewlines;i++){
 			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])
 				continue;
