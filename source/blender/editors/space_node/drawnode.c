@@ -482,6 +482,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	bNode *node= ptr->data;
 	PointerRNA imaptr;
 	PropertyRNA *prop;
+	int source;
 	
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	
@@ -495,7 +496,19 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	
 	uiItemR(col, &imaptr, "source", 0, NULL, ICON_NONE);
 	
-	if (ELEM(RNA_enum_get(&imaptr, "source"), IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+	source= RNA_enum_get(&imaptr, "source");
+
+	if(source == IMA_SRC_SEQUENCE) {
+		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
+		Scene *scene= CTX_data_scene(C);
+		ImageUser *iuser= node->storage;
+		char tstr[32];
+		const int framenr= BKE_image_user_get_frame(iuser, CFRA, 0);
+		BLI_snprintf(tstr, sizeof(tstr), "Frame: %d", framenr);
+		uiItemL(layout, tstr, ICON_NONE);
+	}
+
+	if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
 		col= uiLayoutColumn(layout, 1);
 		uiItemR(col, ptr, "frame_duration", 0, NULL, ICON_NONE);
 		uiItemR(col, ptr, "frame_start", 0, NULL, ICON_NONE);

@@ -119,53 +119,62 @@ static void do_image_panel_events(bContext *C, void *UNUSED(arg), int event)
 	WM_event_add_notifier(C, NC_IMAGE, sima->image);
 }
 
-static void image_info(Image *ima, ImBuf *ibuf, char *str)
+static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, char *str)
 {
 	int ofs= 0;
-	
+
 	str[0]= 0;
 	
 	if(ima==NULL) return;
+
 	if(ibuf==NULL) {
-		sprintf(str, "Can not get an image");
-		return;
-	}
-	
-	if(ima->source==IMA_SRC_MOVIE) {
-		ofs= sprintf(str, "Movie");
-		if(ima->anim) 
-			ofs+= sprintf(str+ofs, "%d frs", IMB_anim_get_duration(ima->anim));
-	}
-	else
-		 ofs= sprintf(str, "Image");
-	
-	ofs+= sprintf(str+ofs, ": size %d x %d,", ibuf->x, ibuf->y);
-	
-	if(ibuf->rect_float) {
-		if(ibuf->channels!=4) {
-			ofs+= sprintf(str+ofs, "%d float channel(s)", ibuf->channels);
-		}
-		else if(ibuf->depth==32)
-			ofs+= sprintf(str+ofs, " RGBA float");
-		else
-			ofs+= sprintf(str+ofs, " RGB float");
+		ofs+= sprintf(str, "Can't Load Image");
 	}
 	else {
-		if(ibuf->depth==32)
-			ofs+= sprintf(str+ofs, " RGBA byte");
+		if(ima->source==IMA_SRC_MOVIE) {
+			ofs+= sprintf(str, "Movie");
+			if(ima->anim)
+				ofs+= sprintf(str+ofs, "%d frs", IMB_anim_get_duration(ima->anim));
+		}
 		else
-			ofs+= sprintf(str+ofs, " RGB byte");
-	}
-	if(ibuf->zbuf || ibuf->zbuf_float)
-		ofs+= sprintf(str+ofs, " + Z");
+			ofs+= sprintf(str, "Image");
 
-	if(ima->source==IMA_SRC_SEQUENCE) {
-		char *file= BLI_last_slash(ibuf->name);
-		if(file==NULL)	file= ibuf->name;
-		else			file++;
-		sprintf(str+ofs, ", %s", file);
+		ofs+= sprintf(str+ofs, ": size %d x %d,", ibuf->x, ibuf->y);
+
+		if(ibuf->rect_float) {
+			if(ibuf->channels!=4) {
+				ofs+= sprintf(str+ofs, "%d float channel(s)", ibuf->channels);
+			}
+			else if(ibuf->depth==32)
+				ofs+= sprintf(str+ofs, " RGBA float");
+			else
+				ofs+= sprintf(str+ofs, " RGB float");
+		}
+		else {
+			if(ibuf->depth==32)
+				ofs+= sprintf(str+ofs, " RGBA byte");
+			else
+				ofs+= sprintf(str+ofs, " RGB byte");
+		}
+		if(ibuf->zbuf || ibuf->zbuf_float)
+			ofs+= sprintf(str+ofs, " + Z");
+
+		if(ima->source==IMA_SRC_SEQUENCE) {
+			char *file= BLI_last_slash(ibuf->name);
+			if(file==NULL)	file= ibuf->name;
+			else			file++;
+			ofs+= sprintf(str+ofs, ", %s", file);
+		}
 	}
-	
+
+	/* the frame number, even if we cant */
+	if(ima->source==IMA_SRC_SEQUENCE) {
+		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
+		const int framenr= BKE_image_user_get_frame(iuser, CFRA, 0);
+		ofs+= sprintf(str+ofs, ", Frame: %d", framenr);
+	}
+
+	(void)ofs;
 }
 
 /* gets active viewer user */
@@ -816,7 +825,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 		if(ima->source == IMA_SRC_VIEWER) {
 			ibuf= BKE_image_acquire_ibuf(ima, iuser, &lock);
-			image_info(ima, ibuf, str);
+			image_info(scene, iuser, ima, ibuf, str);
 			BKE_image_release_ibuf(ima, lock);
 
 			uiItemL(layout, ima->id.name+2, ICON_NONE);
@@ -888,7 +897,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			else if(ima->source != IMA_SRC_GENERATED) {
 				if(compact == 0) {
 					ibuf= BKE_image_acquire_ibuf(ima, iuser, &lock);
-					image_info(ima, ibuf, str);
+					image_info(scene, iuser, ima, ibuf, str);
 					BKE_image_release_ibuf(ima, lock);
 					uiItemL(layout, str, ICON_NONE);
 				}

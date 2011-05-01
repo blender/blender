@@ -1671,8 +1671,15 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, flag);
-	if(G.f & G_DEBUG) printf("loaded %s\n", name);
-	
+
+#if 0
+	if(ibuf) {
+		printf(AT" loaded %s\n", name);
+	} else {
+		printf(AT" missed %s\n", name);
+	}
+#endif
+
 	if (ibuf) {
 #ifdef WITH_OPENEXR
 		/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_get_ibuf */
@@ -2228,21 +2235,19 @@ void BKE_image_release_ibuf(Image *ima, void *lock)
 /* warning, this can allocate generated images */
 ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 {
+	/* here (+fie_ima/2-1) makes sure that division happens correctly */
 	return BKE_image_acquire_ibuf(ima, iuser, NULL);
 }
 
-void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
+int BKE_image_user_get_frame(const ImageUser *iuser, int cfra, int fieldnr)
 {
-	int len;
-	
-	/* here (+fie_ima/2-1) makes sure that division happens correctly */
-	len= (iuser->fie_ima*iuser->frames)/2;
-	
+	const int len= (iuser->fie_ima*iuser->frames)/2;
+
 	if(len==0) {
-		iuser->framenr= 0;
+		return 0;
 	}
 	else {
-		int imanr;
+		int framenr;
 		cfra= cfra - iuser->sfra+1;
 
 		/* cyclic */
@@ -2251,31 +2256,38 @@ void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
 			if(cfra < 0) cfra+= len;
 			if(cfra==0) cfra= len;
 		}
-		
+
 		if(cfra<0) cfra= 0;
 		else if(cfra>len) cfra= len;
-		
+
 		/* convert current frame to current field */
 		cfra= 2*(cfra);
 		if(fieldnr) cfra++;
-		
+
 		/* transform to images space */
-		imanr= (cfra+iuser->fie_ima-2)/iuser->fie_ima;
-		if(imanr>iuser->frames) imanr= iuser->frames;
-		imanr+= iuser->offset;
-		
+		framenr= (cfra+iuser->fie_ima-2)/iuser->fie_ima;
+		if(framenr>iuser->frames) framenr= iuser->frames;
+		framenr+= iuser->offset;
+
 		if(iuser->cycl) {
-			imanr= ( (imanr) % len );
-			while(imanr < 0) imanr+= len;
-			if(imanr==0) imanr= len;
+			framenr= ( (framenr) % len );
+			while(framenr < 0) framenr+= len;
+			if(framenr==0) framenr= len;
 		}
-	
-		/* allows image users to handle redraws */
-		if(iuser->flag & IMA_ANIM_ALWAYS)
-			if(imanr!=iuser->framenr)
-				iuser->flag |= IMA_ANIM_REFRESHED;
-		
-		iuser->framenr= imanr;
-		if(iuser->ok==0) iuser->ok= 1;
+
+		return framenr;
 	}
+}
+
+void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
+{
+	const int framenr= BKE_image_user_get_frame(iuser, cfra, fieldnr);
+
+	/* allows image users to handle redraws */
+	if(iuser->flag & IMA_ANIM_ALWAYS)
+		if(framenr!=iuser->framenr)
+			iuser->flag |= IMA_ANIM_REFRESHED;
+
+	iuser->framenr= framenr;
+	if(iuser->ok==0) iuser->ok= 1;
 }
