@@ -2263,7 +2263,7 @@ static int region_to_loop(bContext *C, wmOperator *op)
 void MESH_OT_region_to_loop(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Region to Loop";
+	ot->name= "Select Boundary Loop";
 	ot->idname= "MESH_OT_region_to_loop";
 
 	/* api callbacks */
@@ -2434,7 +2434,7 @@ static int loop_to_region(bContext *C, wmOperator *op)
 void MESH_OT_loop_to_region(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Loop to Region";
+	ot->name= "Select Loop Inner-Region";
 	ot->idname= "MESH_OT_loop_to_region";
 
 	/* api callbacks */
