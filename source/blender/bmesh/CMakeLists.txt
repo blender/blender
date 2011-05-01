@@ -84,7 +84,6 @@ set(SRC
 	intern/bmesh_mods.c
 	intern/bmesh_structure.h
 	intern/bmesh_construct.c
-	intern/bmesh_walkers.c
 	intern/bmesh_to_editmesh.c
 	intern/bmesh_operators_private.h
 	intern/editmesh_to_bmesh.c
@@ -96,6 +95,9 @@ set(SRC
 	intern/bmesh_eulers.c
 	intern/bmesh_operators.c
 	intern/bmesh_private.h
+	intern/bmesh_walkers.c
+	intern/bmesh_walkers_impl.c
+	intern/bmesh_walkers_private.h
 	bmesh_error.h
 	bmesh_queries.h
 	bmesh.h

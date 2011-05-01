@@ -6547,7 +6547,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	float loc[3], rot[3];
 	float mat[4][4];
 
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	if (!isSurf) { /* adding curve */

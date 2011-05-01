@@ -897,6 +897,7 @@ BMOpDefine def_create_cone = {
 	"create_cone",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
 	 {BMOP_OPSLOT_INT, "cap_ends"}, //wheter or not to fill in the ends with faces
+	 {BMOP_OPSLOT_INT, "cap_tris"}, //fill ends with triangles instead of ngons
 	 {BMOP_OPSLOT_INT, "segments"},
 	 {BMOP_OPSLOT_FLT, "diameter1"}, //diameter of one end
 	 {BMOP_OPSLOT_FLT, "diameter2"}, //diameter of the opposite
@@ -905,6 +906,22 @@ BMOpDefine def_create_cone = {
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_create_cone_exec,
 	0,
+};
+
+/*
+Creates a circle
+*/
+BMOpDefine def_create_circle = {
+  "create_circle",
+  {{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
+   {BMOP_OPSLOT_INT, "cap_ends"}, //wheter or not to fill in the ends with faces
+   {BMOP_OPSLOT_INT, "cap_tris"}, //fill ends with triangles instead of ngons
+   {BMOP_OPSLOT_INT, "segments"},
+   {BMOP_OPSLOT_FLT, "diameter"}, //diameter of one end
+   {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with--
+   {0, /*null-terminating sentinel*/}},
+  bmesh_create_circle_exec,
+  0,
 };
 
 /*
@@ -1025,8 +1042,9 @@ BMOpDefine *opdefines[] = {
 	&def_create_grid,
 	&def_create_icosphere,
 	&def_create_monkey,
-	&def_create_cone,
 	&def_create_cube,
+	&def_create_circle,
+	&def_create_cone,
 	&def_join_triangles,
 	&def_bevel,
 	&def_beautify_fill,

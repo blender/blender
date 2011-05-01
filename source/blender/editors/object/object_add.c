@@ -229,7 +229,8 @@ int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	return op->type->exec(C, op);
 }
 
-int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer)
+int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, 
+	float *rot, int *enter_editmode, unsigned int *layer, int *is_view_aligned)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	int a, layer_values[20];
@@ -275,7 +276,9 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 	else
 		RNA_float_get_array(op->ptr, "rotation", rot);
 	
-
+	if (is_view_aligned)
+		*is_view_aligned = view_align;
+	
 	RNA_float_get_array(op->ptr, "location", loc);
 
 	if(*layer == 0) {
@@ -288,7 +291,8 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 
 /* for object add primitive operators */
 /* do not call undo push in this function (users of this function have to) */
-Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer)
+Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, 
+	int enter_editmode, unsigned int layer)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -325,7 +329,7 @@ static int object_add_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	float loc[3], rot[3];
 	
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), loc, rot, enter_editmode, layer);
@@ -382,7 +386,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 	
 	object_add_generic_invoke_options(C, op);
 
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return NULL;
 
 	if(type==PFIELD_GUIDE) {
@@ -462,7 +466,7 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 	
 	object_add_generic_invoke_options(C, op);
 
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_CAMERA, loc, rot, FALSE, layer);
@@ -516,7 +520,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
@@ -585,7 +589,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 	
 	if(obedit && obedit->type==OB_FONT)
@@ -626,7 +630,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
@@ -692,7 +696,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op);
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
@@ -741,7 +745,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op);
-	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	if(group) {

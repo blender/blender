@@ -1,6 +1,8 @@
 #ifndef BM_OPERATORS_H
 #define BM_OPERATORS_H
 
+/*see comments in intern/bmesh_opdefines.c for documentation of specific operators*/
+
 /*--------defines/enumerations for specific operators-------*/
 
 /*del operator "context" slot values*/

@@ -214,6 +214,7 @@ signed char monkeyf[250][4]= {
 #define EDGE_MARK	2
 
 #define FACE_MARK	1
+#define FACE_NEW	2
 
 void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 {
@@ -442,6 +443,76 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
 
+
+void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
+{
+	BMVert *v1, *lastv1=NULL, *cent1, *firstv1=NULL;
+	float vec[3], mat[4][4], phi, phid;
+	float dia = BMO_Get_Float(op, "diameter");
+	int cap_ends = BMO_Get_Int(op, "cap_ends"), segs=BMO_Get_Int(op, "segments");
+	int cap_tris=BMO_Get_Int(op, "cap_tris");
+	int a;
+	
+	if (!segs)
+		return;
+	
+	BMO_Get_Mat4(op, "mat", mat);
+
+	phid= 2.0f*(float)M_PI/segs;
+	phi= .25f*(float)M_PI;
+
+	if (cap_ends) {
+		vec[0] = vec[1] = 0.0f;
+		vec[2] = 0.0;
+		mul_m4_v3(mat, vec);
+		
+		cent1 = BM_Make_Vert(bm, vec, NULL);
+	}
+
+	for (a=0; a<segs; a++, phi+=phid) {
+		vec[0]= dia*sin(phi);
+		vec[1]= dia*cos(phi);
+		vec[2]= 0.0f;
+		mul_m4_v3(mat, vec);
+		v1 = BM_Make_Vert(bm, vec, NULL);
+
+		BMO_SetFlag(bm, v1, VERT_MARK);
+		
+		if (lastv1)
+			BM_Make_Edge(bm, v1, lastv1, NULL, 0);
+		
+		if (a && cap_ends) {
+			BMFace *f;
+			
+			f = BM_Make_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, 0);
+			BMO_SetFlag(bm, f, FACE_NEW);
+		}
+		
+		if (!firstv1)
+			firstv1 = v1;
+
+		lastv1 = v1;
+	}
+
+	if (!a)
+		return;
+
+	BM_Make_Edge(bm, lastv1, firstv1, NULL, 0);
+
+	if (cap_ends) {
+		BMFace *f;
+		
+		f = BM_Make_QuadTri(bm, cent1, firstv1, v1, NULL, NULL, 0);
+		BMO_SetFlag(bm, f, FACE_NEW);
+	}
+	
+	if (!cap_tris) {
+		BMO_CallOpf(bm, "dissolvefaces faces=%ff", FACE_NEW);
+	}
+	
+	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+}
+
 void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *v1, *v2, *lastv1=NULL, *lastv2=NULL, *cent1, *cent2, *firstv1, *firstv2;
@@ -450,8 +521,12 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	float dia2 = BMO_Get_Float(op, "diameter2");
 	float depth = BMO_Get_Float(op, "depth");
 	int cap_ends = BMO_Get_Int(op, "cap_ends"), segs=BMO_Get_Int(op, "segments");
+	int cap_tris=BMO_Get_Int(op, "cap_tris");
 	int a;
-
+	
+	if (!segs)
+		return;
+	
 	BMO_Get_Mat4(op, "mat", mat);
 
 	phid= 2.0f*(float)M_PI/segs;
@@ -461,11 +536,14 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	if (cap_ends) {
 		vec[0] = vec[1] = 0.0f;
 		vec[2] = -depth;
-
+		mul_m4_v3(mat, vec);
+		
 		cent1 = BM_Make_Vert(bm, vec, NULL);
 
 		vec[0] = vec[1] = 0.0f;
 		vec[2] = depth;
+		mul_m4_v3(mat, vec);
+		
 		cent2 = BM_Make_Vert(bm, vec, NULL);
 
 		BMO_SetFlag(bm, cent1, VERT_MARK);
@@ -490,7 +568,12 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 
 		if (a) {
 			if (cap_ends) {
-				BM_Make_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, 0);
+				BMFace *f;
+				
+				f = BM_Make_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, 0);
+				BMO_SetFlag(bm, f, FACE_NEW);
+				f = BM_Make_QuadTri(bm, v2, lastv2, cent2, NULL, NULL, 0);
+				BMO_SetFlag(bm, f, FACE_NEW);
 			}
 			BM_Make_QuadTri(bm, lastv1, lastv2, v2, v1, NULL, 0);
 		} else {
@@ -506,9 +589,18 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 		return;
 
 	if (cap_ends) {
-		BM_Make_QuadTri(bm, cent1, firstv1, v1, NULL, NULL, 0);
+		BMFace *f;
+		
+		f = BM_Make_QuadTri(bm, cent1, firstv1, v1, NULL, NULL, 0);
+		BMO_SetFlag(bm, f, FACE_NEW);
+		f = BM_Make_QuadTri(bm, v2, firstv2, cent2, NULL, NULL, 0);
+		BMO_SetFlag(bm, f, FACE_NEW);
 	}
-
+	
+	if (!cap_tris) {
+		BMO_CallOpf(bm, "dissolvefaces faces=%ff", FACE_NEW);
+	}
+	
 	BM_Make_QuadTri(bm, firstv1, firstv2, v2, v1, NULL, 0);
 
 	BMO_CallOpf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, 0.000001);

@@ -166,7 +166,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	int state;
 	unsigned int layer;
 	
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
@@ -211,7 +211,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	int state;
 	unsigned int layer;
 	
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit= CTX_data_edit_object(C);
@@ -245,20 +245,41 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
+static const EnumPropertyItem fill_type_items[]= {
+	{0, "NOTHING", 0, "Nothing", "Don't fill at all"},
+	{1, "NGON", 0, "Ngon", "Use ngons"},
+	{2, "TRIFAN", 0, "Triangle Fan", "Use triangle fans"},
+	{0, NULL, 0, NULL, NULL}};
+
 static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 {
-#if 0
+	Object *obedit;
+	Mesh *me;
+	BMEditMesh *em;
+	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
-	float loc[3], rot[3];
+	int state, cap_end, cap_tri;
+	unsigned int layer;
 	
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode);
+	cap_end = RNA_enum_get(op->ptr, "fill_type");
+	cap_tri = cap_end==2;
+	
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
+	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
-			PRIM_CIRCLE, RNA_int_get(op->ptr, "vertices"), 0, 0,
-			RNA_float_get(op->ptr,"radius"), 0.0f, 0,
-			RNA_boolean_get(op->ptr, "fill"));
-#endif
-	return OPERATOR_FINISHED;	
+	obedit = CTX_data_edit_object(C);
+	me = obedit->data;
+	em = me->edit_btmesh;
+
+	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
+			"create_circle segments=%i diameter=%f cap_ends=%i cap_tris=%i mat=%m4", 
+			RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"), 
+			cap_end, cap_tri, mat))
+		return OPERATOR_CANCELLED;
+	
+	make_prim_finish(C, &state, enter_editmode);
+	
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_circle_add(wmOperatorType *ot)
@@ -279,7 +300,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 3, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "");
+	RNA_def_enum(ot->srna, "fill_type", &fill_type_items, 0, "Fill Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -291,10 +312,13 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
-	int state;
+	int state, cap_end, cap_tri;
 	unsigned int layer;
 	
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	cap_end = RNA_enum_get(op->ptr, "end_fill_type");
+	cap_tri = cap_end==2;
+	
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
@@ -302,9 +326,9 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 
 	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
-			"create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%i depth=%f mat=%m4", 
+			"create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%i cap_tris=%i depth=%f mat=%m4", 
 			RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"), 
-			RNA_float_get(op->ptr, "radius"), (int)RNA_boolean_get(op->ptr, "cap_end"), RNA_float_get(op->ptr, "depth"), mat))
+			RNA_float_get(op->ptr, "radius"), cap_end, cap_tri, RNA_float_get(op->ptr, "depth"), mat))
 		return OPERATOR_CANCELLED;
 	
 	make_prim_finish(C, &state, enter_editmode);
@@ -317,7 +341,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Tube";
 	ot->description= "Construct a tube mesh.";
-	ot->idname= "MESH_OT_primitive_tube_add";
+	ot->idname= "MESH_OT_primitive_cylinder_add";
 	
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
@@ -331,7 +355,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "cap_ends", 1, "Cap Ends", "");
+	RNA_def_enum(ot->srna, "end_fill_type", &fill_type_items, 1, "Cap Fill Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -343,10 +367,13 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
-	int state;
+	int state, cap_end, cap_tri;
 	unsigned int layer;
 	
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	cap_end = RNA_enum_get(op->ptr, "end_fill_type");
+	cap_tri = cap_end==2;
+	
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
@@ -354,9 +381,9 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 
 	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
-			"create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%i depth=%f mat=%m4", 
-			RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"), 
-			0.0f, (int)RNA_boolean_get(op->ptr, "cap_end"), RNA_float_get(op->ptr, "depth"), mat))
+			"create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%i cap_tris=%i depth=%f mat=%m4", 
+			RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius1"), 
+			RNA_float_get(op->ptr, "radius2"), cap_end, cap_tri, RNA_float_get(op->ptr, "depth"), mat))
 		return OPERATOR_CANCELLED;
 	
 	make_prim_finish(C, &state, enter_editmode);
@@ -381,10 +408,11 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "radius1", 1.0f, 0.0, FLT_MAX, "Radius 1", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "radius2", 0.0f, 0.0, FLT_MAX, "Radius 2", "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "cap_end", 0, "Cap End", "");
-
+	RNA_def_enum(ot->srna, "end_fill_type", &fill_type_items, 1, "Base Fill Type", "");
+	
 	ED_object_add_generic_props(ot, TRUE);
 }
 
@@ -398,7 +426,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	int state;
 	unsigned int layer;
 	
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
@@ -448,10 +476,13 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
-	int state;
+	int state, view_aligned;
 	unsigned int layer;
 	
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &view_aligned);
+	if (!view_aligned)
+		rot[0] += M_PI/2.0f;
+	
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
@@ -495,7 +526,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	int state;
 	unsigned int layer;
 	
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
@@ -546,7 +577,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	int state;
 	unsigned int layer;
 	
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
