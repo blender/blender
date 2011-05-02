@@ -227,6 +227,11 @@ public:
      * @return Indication whether the event was handled. 
      */
     GHOST_TSuccess handleApplicationBecomeActiveEvent();
+
+	/**
+	 * @see GHOST_ISystem
+	 */
+	int toggleConsole(int action) { return 0; }
 	
 	
 protected:
