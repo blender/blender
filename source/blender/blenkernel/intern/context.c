@@ -451,12 +451,10 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 
 		C->data.recursion= 1;
 
-		for(entry=C->wm.store->entries.last; entry; entry=entry->prev) {
-			if(strcmp(entry->name, member) == 0) {
-				result->ptr= entry->ptr;
-				done= 1;
-				break;
-			}
+		entry= BLI_rfindstring(&C->wm.store->entries, member, offsetof(bContextStoreEntry, name));
+		if(entry) {
+			result->ptr= entry->ptr;
+			done= 1;
 		}
 	}
 	if(done!=1 && recursion < 2 && C->wm.region) {

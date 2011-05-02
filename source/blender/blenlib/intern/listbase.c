@@ -366,14 +366,30 @@ void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 
 	if (listbase == NULL) return NULL;
 
-	link= listbase->first;
-	while (link) {
+	for (link= listbase->first; link; link= link->next) {
 		id_iter= ((const char *)link) + offset;
 
-		if(id[0] == id_iter[0] && strcmp(id, id_iter)==0)
+		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0) {
 			return link;
+		}
+	}
 
-		link= link->next;
+	return NULL;
+}
+/* same as above but find reverse */
+void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset)
+{
+	Link *link= NULL;
+	const char *id_iter;
+
+	if (listbase == NULL) return NULL;
+
+	for (link= listbase->last; link; link= link->prev) {
+		id_iter= ((const char *)link) + offset;
+
+		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0) {
+			return link;
+		}
 	}
 
 	return NULL;
@@ -386,15 +402,32 @@ void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int off
 
 	if (listbase == NULL) return NULL;
 
-	link= listbase->first;
-	while (link) {
+	for (link= listbase->first; link; link= link->next) {
 		/* exact copy of BLI_findstring(), except for this line */
 		id_iter= *((const char **)(((const char *)link) + offset));
 
-		if(id[0] == id_iter[0] && strcmp(id, id_iter)==0)
+		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0) {
 			return link;
+		}
+	}
 
-		link= link->next;
+	return NULL;
+}
+/* same as above but find reverse */
+void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int offset)
+{
+	Link *link= NULL;
+	const char *id_iter;
+
+	if (listbase == NULL) return NULL;
+
+	for (link= listbase->last; link; link= link->prev) {
+		/* exact copy of BLI_rfindstring(), except for this line */
+		id_iter= *((const char **)(((const char *)link) + offset));
+
+		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0) {
+			return link;
+		}
 	}
 
 	return NULL;
