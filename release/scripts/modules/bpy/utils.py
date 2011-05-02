@@ -226,21 +226,35 @@ def user_script_path():
         return None
 
 
-def script_paths(subdir=None, user=True):
+def script_paths(subdir=None, user_pref=True, all=False):
     """
-    Returns a list of valid script paths from the home directory and user preferences.
+    Returns a list of valid script paths.
 
-    Accepts any number of string arguments which are joined to make a path.
+    :arg subdir: Optional subdir.
+    :type subdir: string
+    :arg user_pref: Include the user preference script path.
+    :type user_pref: bool
+    :arg all: Include local, user and system paths rather just the paths blender uses.
+    :type all: bool
+    :return: script paths.
+    :rtype: list
     """
     scripts = list(_scripts)
 
     # add user scripts dir
-    if user:
+    if user_pref:
         user_script_path = _bpy.context.user_preferences.filepaths.script_directory
     else:
         user_script_path = None
 
-    for path in _bpy_script_paths() + (user_script_path, ):
+    if all:
+        # all possible paths
+        base_paths = tuple(_os.path.join(resource_path(res), "scripts") for res in ('LOCAL', 'USER', 'SYSTEM'))
+    else:
+        # only paths blender uses
+        base_paths = _bpy_script_paths()
+
+    for path in base_paths + (user_script_path, ):
         if path:
             path = _os.path.normpath(path)
             if path not in scripts and _os.path.isdir(path):
@@ -266,7 +280,7 @@ def preset_paths(subdir):
     Returns a list of paths for a specific preset.
     """
     dirs = []
-    for path in script_paths("presets"):
+    for path in script_paths("presets", all=True):
         directory = _os.path.join(path, subdir)
         if _os.path.isdir(directory):
             dirs.append(directory)

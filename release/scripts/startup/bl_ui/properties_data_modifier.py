@@ -581,7 +581,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
         col.prop(md, "use_rim")
-        
+
         sub = col.column()
         sub.label()
         row = sub.split(align=True, percentage=0.4)

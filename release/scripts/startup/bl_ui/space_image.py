@@ -370,7 +370,7 @@ class IMAGE_HT_header(bpy.types.Header):
             layout.prop(toolsettings, "use_uv_select_sync", text="")
 
             if toolsettings.use_uv_select_sync:
-            	layout.template_edit_mode_selection()
+                layout.template_edit_mode_selection()
             else:
                 layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_select_mode", text="", icon_only=True)

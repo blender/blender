@@ -837,6 +837,7 @@ class WM_OT_properties_add(bpy.types.Operator):
         item[property] = 1.0
         return {'FINISHED'}
 
+
 class WM_OT_properties_context_change(bpy.types.Operator):
     "Change the context tab in a Properties Window"
     bl_idname = "wm.properties_context_change"
@@ -846,7 +847,6 @@ class WM_OT_properties_context_change(bpy.types.Operator):
 
     def execute(self, context):
         context.space_data.context = (self.context)
-		
         return {'FINISHED'}
 
 

@@ -48,11 +48,11 @@ class AddPresetBase():
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
         if not self.remove_active:
-
-            if not self.name:
+            name = self.name.strip()
+            if not name:
                 return {'FINISHED'}
 
-            filename = self.as_filename(self.name)
+            filename = self.as_filename(name)
 
             target_path = bpy.utils.user_resource('SCRIPTS', os.path.join("presets", self.preset_subdir), create=True)
 
@@ -118,7 +118,7 @@ class AddPresetBase():
         return {'FINISHED'}
 
     def check(self, context):
-        self.name = self.as_filename(self.name)
+        self.name = self.as_filename(self.name.strip())
 
     def invoke(self, context, event):
         if not self.remove_active:
@@ -327,7 +327,7 @@ class AddPresetOperator(AddPresetBase, bpy.types.Operator):
         ret = []
         for prop_id, prop in operator_rna.properties.items():
             if (not prop.is_hidden) and prop_id not in properties_blacklist:
-                    ret.append("op.%s" % prop_id)
+                ret.append("op.%s" % prop_id)
 
         return ret
 
