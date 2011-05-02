@@ -5272,6 +5272,26 @@ static int sample_color_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* same as image_paint_poll but fail when face mask mode is enabled */
+static int image_paint_sample_color_poll(bContext *C)
+{
+	if(image_paint_poll(C)) {
+		if(CTX_wm_view3d(C)) {
+			Object *obact = CTX_data_active_object(C);
+			if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
+				Mesh *me= get_mesh(obact);
+				if(me) {
+					return !(me->editflag & ME_EDIT_PAINT_MASK);
+				}
+			}
+		}
+
+		return 1;
+	}
+
+	return 0;
+}
+
 void PAINT_OT_sample_color(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -5282,7 +5302,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	ot->exec= sample_color_exec;
 	ot->invoke= sample_color_invoke;
 	ot->modal= sample_color_modal;
-	ot->poll= image_paint_poll;
+	ot->poll= image_paint_sample_color_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
