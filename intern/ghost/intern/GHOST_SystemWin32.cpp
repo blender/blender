@@ -41,6 +41,10 @@
 
 #include <iostream>
 
+#ifdef FREE_WINDOWS
+#  define _WIN32_WINNT 0x0500 /* GetConsoleWindow() for MinGW */
+#endif
+
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
 
