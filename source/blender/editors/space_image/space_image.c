@@ -496,7 +496,6 @@ static void image_operatortypes(void)
 
 	WM_operatortype_append(IMAGE_OT_record_composite);
 
-	WM_operatortype_append(IMAGE_OT_toolbox);
 	WM_operatortype_append(IMAGE_OT_properties);
 	WM_operatortype_append(IMAGE_OT_scopes);
 }
@@ -543,8 +542,6 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "point", 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
-
-	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
 
 	/* toggle editmode is handy to have while UV unwrapping */
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
