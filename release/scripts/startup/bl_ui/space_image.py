@@ -370,10 +370,7 @@ class IMAGE_HT_header(bpy.types.Header):
             layout.prop(toolsettings, "use_uv_select_sync", text="")
 
             if toolsettings.use_uv_select_sync:
-                row = layout.row(align=True)
-                row.prop(toolsettings, "mesh_select_mode", text="", index=0, icon='VERTEXSEL')
-                row.prop(toolsettings, "mesh_select_mode", text="", index=1, icon='EDGESEL')
-                row.prop(toolsettings, "mesh_select_mode", text="", index=2, icon='FACESEL')
+            	layout.template_edit_mode_selection()
             else:
                 layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_select_mode", text="", icon_only=True)
