@@ -497,6 +497,7 @@ typedef struct GameData {
 #define GAME_IGNORE_DEPRECATION_WARNINGS	(1 << 12)
 #define GAME_ENABLE_ANIMATION_RECORD		(1 << 13)
 #define GAME_SHOW_MOUSE						(1 << 14)
+#define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0

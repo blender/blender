@@ -1909,6 +1909,11 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "GLSL Nodes", "Use nodes for GLSL rendering");
 	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
 
+	prop= RNA_def_property(srna, "use_glsl_color_management", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_COLOR_MANAGEMENT);
+	RNA_def_property_ui_text(prop, "GLSL Color Management", "Use color management for GLSL rendering");
+	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
+
 	prop= RNA_def_property(srna, "use_glsl_extra_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_EXTRA_TEX);
 	RNA_def_property_ui_text(prop, "GLSL Extra Textures", "Use extra textures like normal or specular maps for GLSL rendering");

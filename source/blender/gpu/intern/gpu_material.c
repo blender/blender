@@ -1011,7 +1011,8 @@ static void do_material_tex(GPUShadeInput *shi)
 				}
 
 				if(tex->type==TEX_IMAGE)
-					if(mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+					if((mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) &&
+					   !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT)))
 						GPU_link(mat, "srgb_to_linearrgb", tcol, &tcol);
 				
 				if(mtex->mapto & MAP_COL) {
@@ -1363,7 +1364,8 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		GPU_link(mat, "shade_alpha_obcolor", shr->combined, GPU_builtin(GPU_OBCOLOR), &shr->combined);
 	}
 
-	if(mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+	if((mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) &&
+	   !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT)))
 		GPU_link(mat, "linearrgb_to_srgb", shr->combined, &shr->combined);
 }
 
