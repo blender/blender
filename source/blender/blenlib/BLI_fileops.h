@@ -47,7 +47,7 @@ int BLI_link(const char *file, const char *to);
 int BLI_is_writable(const char *filename);
 
 /**
- * @attention Do not confuse with BLI_exist
+ * @attention Do not confuse with BLI_exist [joeedh--yet, it calls BLI_exist?]
  */
 int   BLI_exists(const char *file);
 int   BLI_copy_fileops(const char *file, const char *to);

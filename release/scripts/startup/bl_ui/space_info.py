@@ -164,6 +164,8 @@ class INFO_MT_file_export(bpy.types.Menu):
     bl_label = "Export"
 
     def draw(self, context):
+        self.layout.operator("export_mesh.wavefront", text="Wavefront (.obj)")
+        
         if hasattr(bpy.types, "WM_OT_collada_export"):
             self.layout.operator("wm.collada_export", text="COLLADA (.dae)")
 

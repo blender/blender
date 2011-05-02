@@ -64,6 +64,8 @@
 #include "BKE_material.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -4798,4 +4800,316 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	//RNA_def_float(ot->srna, "param3", 0.5f, -FLT_MAX, FLT_MAX, "Parameter 3", "", -1000.0f, 1000.0f);
 	//RNA_def_float(ot->srna, "param4", 0.5f, -FLT_MAX, FLT_MAX, "Parameter 4", "", -1000.0f, 1000.0f);
 	//RNA_def_float(ot->srna, "param5", 0.5f, -FLT_MAX, FLT_MAX, "Parameter 5", "", -1000.0f, 1000.0f);
+}
+
+static int mesh_export_obj_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	DerivedMesh *dm;
+	Scene *scene = CTX_data_scene(C);
+	Mesh *me;
+	Main *bmain = CTX_data_main(C);
+	MVert *mvert, *mv;
+	MLoop *mloop, *ml;
+	MPoly *mpoly, *mp;
+	MTexPoly *mtexpoly;
+	MLoopUV *luv, *mloopuv;
+	MLoopCol *lcol, *mloopcol;
+	FILE *file, *matfile;
+	int *face_mat_group;
+	struct {Material *mat; MTexPoly poly; int end;} **matlists;
+	char str[FILE_MAX], str2[FILE_MAX];
+	int i, j, c, free;
+	
+	if (ob->type != OB_MESH) {
+		BKE_report(op->reports, RPT_OPERATOR, "Only meshes can be exported");
+		return OPERATOR_CANCELLED;
+	}
+	
+	RNA_string_get(op->ptr, "filepath", str);
+	
+	sprintf(str2, "%s_materials.mtl", str);
+	file = fopen(str, "wb");
+	matfile = fopen(str2, "wb");
+	
+	if (!file) {
+		BKE_report(op->reports, RPT_OPERATOR, "Could not open file");
+		
+		if (matfile)
+			fclose(matfile);
+		return OPERATOR_CANCELLED;
+	}
+	
+	if (!matfile) {
+		BKE_report(op->reports, RPT_OPERATOR, "Could not open material file");
+		
+		if (file)
+			fclose(file);
+		return OPERATOR_CANCELLED;
+	}
+	
+	me = ob->data;
+	if (me->edit_btmesh) {
+		EDBM_LoadEditBMesh(scene, ob);
+	}
+	
+	if (!RNA_boolean_get(op->ptr, "apply_modifiers")) {
+		dm = CDDM_from_mesh(me, ob);
+		free = 1;
+	} else {
+		dm = mesh_get_derived_final(scene, ob, CD_MASK_DERIVEDMESH);
+		if (!CDDM_Check(dm)) {
+			dm = CDDM_copy(dm, 0);
+			free = 1;
+		} else {
+			free = 0;
+		}
+	}
+	
+	face_mat_group = MEM_callocN(sizeof(int)*dm->numPolyData, "face_mat_group");
+	
+	if (MAX2(ob->totcol, me->totcol))
+		matlists = MEM_callocN(sizeof(*matlists)*MAX2(me->totcol, ob->totcol), "matlists");
+	else matlists = NULL;
+	
+	for (i=0; i<MAX2(ob->totcol, me->totcol); i++) {
+		matlists[i] = MEM_callocN(sizeof(**matlists), "matlists[i]");
+		matlists[i][0].end = 1;
+	}
+	
+	
+	mvert = CDDM_get_verts(dm);
+	mloop = CDDM_get_loops(dm);
+	mpoly = CDDM_get_polys(dm);
+	mtexpoly = CustomData_get_layer(&dm->polyData, CD_MTEXPOLY);
+	mloopuv = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
+	mloopcol = CustomData_get_layer(&dm->loopData, CD_MLOOPCOL);
+	
+	/*build material list*/
+	mp = mpoly;
+	for (i=0; i<dm->numPolyData; i++, (mtexpoly ? mtexpoly++ : NULL), mp++) {
+		int found = 0;
+		
+		j = 0;
+		while (!matlists[mp->mat_nr][j].end) {
+			Material *mat = ob->matbits[mp->mat_nr] ? ob->mat[mp->mat_nr] : me->mat[mp->mat_nr];
+			
+			if (matlists[mp->mat_nr][j].mat == mat) {
+				if (mtexpoly) { 
+					if (matlists[mp->mat_nr][j].poly.tpage == mtexpoly->tpage) {
+						found = 1;
+						break;
+					}
+				} else {
+					found = 1;
+					break;
+				}
+			}
+			j++;
+		}
+		
+		if (!found) {
+			matlists[mp->mat_nr] = MEM_reallocN(matlists[mp->mat_nr], sizeof(**matlists)*(j+2));
+			
+			/*add sentinal*/
+			matlists[mp->mat_nr][j+1].end = 1;
+			matlists[mp->mat_nr][j].end = 0;
+			
+			if (ob->matbits && ob->matbits[mp->mat_nr]) {
+				matlists[mp->mat_nr][j].mat = ob->mat[mp->mat_nr];
+			} else {
+				matlists[mp->mat_nr][j].mat = me->mat[mp->mat_nr];
+			}
+			
+			if (mtexpoly)
+				matlists[mp->mat_nr][j].poly = *mtexpoly;
+		}
+		
+		face_mat_group[i] = j;
+	}
+
+	/*write material references*/
+	fprintf(file, "mtllib %s_materials.mtl\n", str);
+	fprintf(file, "o %s\n", (ob->id.name+2));
+	
+	for (mv=mvert, i=0; i<dm->numVertData; i++, mv++) {
+		fprintf(file, "v %.8f\t%.8f\t%.8f\n", mv->co[0], mv->co[1], mv->co[2]);
+		fprintf(file, "vn %.5f\t%.5f\t%.5f\n", (float)mv->no[0]/65535.0f, (float)mv->no[1]/65535.0f, (float)mv->no[2]/65535.0f);
+	}
+
+	/*write texture coordinates*/
+	if (mloopuv) {
+		fprintf(file, "\n");
+		for (mp=mpoly, i=0; i<dm->numPolyData; i++, mp++) {
+			luv = mloopuv + mp->loopstart;
+			for (j=0; j<mp->totloop; j++, luv++) {
+				fprintf(file, "vt %.8f\t%.8f\n", luv->uv[0], luv->uv[1]);
+			}
+		}
+	}
+	
+	fprintf(file, "\n");
+	c = 0;
+	for (mp=mpoly, i=0; i<dm->numPolyData; i++, mp++) {
+		char matname[256];
+		
+		if (mp->flag & ME_SMOOTH) {
+			fprintf(file, "s 1\n");
+		} else {
+			fprintf(file, "s off\n");
+		}
+		
+		if (matlists[mp->mat_nr][face_mat_group[i]].mat && matlists[mp->mat_nr][face_mat_group[i]].poly.tpage) {
+			sprintf(matname, "%s__%s", matlists[mp->mat_nr][face_mat_group[i]].mat->id.name+2, 
+				matlists[mp->mat_nr][face_mat_group[i]].poly.tpage->id.name+2);
+		} else if (matlists[mp->mat_nr][face_mat_group[i]].mat) {
+			sprintf(matname, "%s", matlists[mp->mat_nr][face_mat_group[i]].mat->id.name+2);
+		} else if (matlists[mp->mat_nr][face_mat_group[i]].poly.tpage != NULL) {
+			sprintf(matname, "texture_%s", matlists[mp->mat_nr][face_mat_group[i]].poly.tpage->id.name+2);
+		} else {
+			sprintf(matname, "__null_material_%d_%d", mp->mat_nr, face_mat_group[mp->mat_nr]);
+		}
+		
+		fprintf(file, "usemtl %s\n", matname);
+		fprintf(file, "f ");
+		
+		ml = mloop + mp->loopstart;
+		luv = mloopuv ? mloopuv + mp->loopstart : NULL;
+		for (j=0; j<mp->totloop; j++, ml++, (luv ? luv++ : NULL), c++) {
+			if (luv) {
+				fprintf(file, "%d/%d ", ml->v+1, c+1);
+			} else {
+				fprintf(file, "%d ", ml->v+1);
+			}
+		}
+		fprintf(file, "\n");
+	}
+	
+	fclose(file);
+	
+	/*write material library*/
+	fprintf(matfile, "#Blender MTL File\n\n");
+	for (i=0; i<MAX2(ob->totcol, me->totcol); i++) {
+		Material *mat;
+		char basedir[FILE_MAX], filename[FILE_MAX], str3[FILE_MAX];
+		
+		j = 0;
+		while (!matlists[i][j].end) {
+			mat = matlists[i][j].mat;
+			
+			if (mat && matlists[i][j].poly.tpage) {
+				fprintf(matfile, "newmtl %s__%s\n", mat->id.name+2, 
+					matlists[i][j].poly.tpage->id.name+2);
+			} else if (mat) {
+				fprintf(matfile, "newmtl %s\n", mat->id.name+2);
+			} else if (matlists[i][j].poly.tpage != NULL) {
+				fprintf(matfile, "newmtl texture_%s\n", matlists[i][j].poly.tpage->id.name+2);
+			} else {
+				fprintf(matfile, "newmtl __null_material_%d_%d\n", i, j);
+			}
+
+			if (mat) {
+				fprintf(matfile, "Kd %.6f %.6f %.6f\n", mat->r, mat->g, mat->b);
+				fprintf(matfile, "Ks %.6f %.6f %.6f\n", mat->specr, mat->specg, mat->specb);
+				fprintf(matfile, "Ns %.6f\n", mat->spec*1000.0f);
+			} else {
+				fprintf(matfile, "Kd %.6f %.6f %.6f\n", 0.45f, 0.45f, 0.45f);
+				fprintf(matfile, "Ks %.6f %.6f %.6f\n", 1.0f, 0.4f, 0.1f);
+				fprintf(matfile, "Ns %.6f\n", 300.0f);
+			}
+
+			fprintf(matfile, "illum 2\n");
+			
+			if (matlists[i][j].poly.tpage) {
+				BLI_strncpy(str2, matlists[i][j].poly.tpage->name, FILE_MAX);
+				BLI_strncpy(basedir, bmain->name, FILE_MAX);
+				
+				BLI_splitdirstring(basedir, filename);
+				BLI_cleanup_file(basedir, str2); /* fix any /foo/../foo/ */
+				
+				if (BLI_exists(str2)) {
+					char rel[3] = {0};
+					
+					BLI_strncpy(str3, str2, FILE_MAX);
+					if (RNA_boolean_get(op->ptr, "relpaths")) {
+						BLI_path_rel(str3, str);
+						
+						if (str3[2] != '.' && str3[2] != '/' && str3[2] != '\\') {
+							rel[0] = '.';
+							rel[1] = '/';
+						}
+					}
+						
+					fprintf(matfile, "map_Ka %s%s\n", rel, (str3+2*RNA_boolean_get(op->ptr, "relpaths")));
+					fprintf(matfile, "map_Kd %s%s\n", rel, (str3+2*RNA_boolean_get(op->ptr, "relpaths")));
+				}
+			}
+			
+			fprintf(matfile, "\n");
+			j++;
+		}
+	}
+	
+	fclose(matfile);
+	
+	for (i=0; i<MAX2(ob->totcol, me->totcol); i++) {
+		MEM_freeN(matlists[i]);
+	}
+	
+	if (matlists)
+		MEM_freeN(matlists);
+	
+	if (face_mat_group)
+		MEM_freeN(face_mat_group);
+
+	if (free) {
+		dm->needsFree = 1;
+		dm->release(dm);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+static void export_obj_filesel(bContext *C, wmOperator *op, const char *path)
+{
+	RNA_string_set(op->ptr, "filepath", path);
+	WM_event_add_fileselect(C, op); 
+}
+
+
+static int export_obj_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	char filename[FILE_MAX];
+	
+	BLI_strncpy(filename, "//untitled.obj", FILE_MAX);
+
+	if(RNA_property_is_set(op->ptr, "filepath"))
+		return mesh_export_obj_exec(C, op);
+	
+	export_obj_filesel(C, op, filename);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+
+void EXPORT_MESH_OT_wavefront(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Export Wavefront OBJ";
+	ot->description= "Export Wavefront (obj)";
+	ot->idname= "EXPORT_MESH_OT_wavefront";
+
+	/* api callbacks */
+	ot->exec= mesh_export_obj_exec;
+	ot->invoke= export_obj_invoke;
+	ot->poll= ED_operator_object_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);
+	
+	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers", "Apply Modifiers");
+	RNA_def_boolean(ot->srna, "relpaths", 0, "Relative Paths", "Use relative paths for textures");
 }

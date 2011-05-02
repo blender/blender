@@ -782,10 +782,12 @@ static void *get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free
 		   by a more flexible customdata system, but not simple */
 		if(!em) {
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-			KeyBlock *kb= key_get_keyblock(ob_get_key(ob), clmd->sim_parms->shapekey_rest);
-
-			if(kb->data)
-				return kb->data;
+			if (clmd) {
+				KeyBlock *kb= key_get_keyblock(ob_get_key(ob), clmd->sim_parms->shapekey_rest);
+	
+				if(kb->data)
+					return kb->data;
+			}
 		}
 
 		return NULL;
