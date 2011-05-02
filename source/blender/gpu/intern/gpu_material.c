@@ -557,7 +557,7 @@ static void add_to_diffuse(GPUMaterial *mat, Material *ma, GPUShadeInput *shi, G
 		addcol = shi->rgb;
 
 	/* output to */
-	GPU_link(mat, "shade_madd", *diff, rgb, addcol, diff);
+	GPU_link(mat, "shade_madd_clamped", *diff, rgb, addcol, diff);
 }
 
 static void ramp_spec_result(GPUShadeInput *shi, GPUNodeLink **spec)
@@ -730,7 +730,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 		if(lamp->type == LA_HEMI) {
 			GPU_link(mat, "shade_hemi_spec", vn, lv, view, GPU_uniform(&ma->spec), shi->har, visifac, &t);
 			GPU_link(mat, "shade_add_spec", t, GPU_dynamic_uniform(lamp->dyncol), shi->specrgb, &outcol);
-			GPU_link(mat, "shade_add", shr->spec, outcol, &shr->spec);
+			GPU_link(mat, "shade_add_clamped", shr->spec, outcol, &shr->spec);
 		}
 		else {
 			if(ma->spec_shader==MA_SPEC_PHONG)
@@ -753,11 +753,11 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 				GPUNodeLink *spec;
 				do_specular_ramp(shi, specfac, t, &spec);
 				GPU_link(mat, "shade_add_spec", t, GPU_dynamic_uniform(lamp->dyncol), spec, &outcol);
-				GPU_link(mat, "shade_add", shr->spec, outcol, &shr->spec);
+				GPU_link(mat, "shade_add_clamped", shr->spec, outcol, &shr->spec);
 			}
 			else {
 				GPU_link(mat, "shade_add_spec", t, GPU_dynamic_uniform(lamp->dyncol), shi->specrgb, &outcol);
-				GPU_link(mat, "shade_add", shr->spec, outcol, &shr->spec);
+				GPU_link(mat, "shade_add_clamped", shr->spec, outcol, &shr->spec);
 			}
 		}
 	}
