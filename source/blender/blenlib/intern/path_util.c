@@ -763,7 +763,7 @@ void BLI_splitdirstring(char *di, char *fi)
 	}
 }
 
-void BLI_getlastdir(const char* dir, char *last, int maxlen)
+void BLI_getlastdir(const char* dir, char *last, const size_t maxlen)
 {
 	const char *s = dir;
 	const char *lslash = NULL;
@@ -1441,7 +1441,7 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 }
 
 /* simple appending of filename to dir, does not check for valid path! */
-void BLI_join_dirfile(char *string, const int maxlen, const char *dir, const char *file)
+void BLI_join_dirfile(char *string, const size_t maxlen, const char *dir, const char *file)
 {
 	int sl_dir;
 	
@@ -1491,7 +1491,7 @@ char *BLI_path_basename(char *path)
   that a user gets his images in one place. It'll also provide
   consistent behaviour across exporters.
  */
-int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir)
+int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir)
 {
 	char path[FILE_MAX];
 	char dir[FILE_MAX];
@@ -1547,11 +1547,11 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 	}
 
 	if (abs)
-		BLI_strncpy(abs, dest_path, abs_size);
+		BLI_strncpy(abs, dest_path, abs_len);
 
 	if (rel) {
-		strncat(rel, rel_dir, rel_size);
-		strncat(rel, base, rel_size);
+		strncat(rel, rel_dir, rel_len);
+		strncat(rel, base, rel_len);
 	}
 
 	/* return 2 if src=dest */
@@ -1667,7 +1667,7 @@ static int add_win32_extension(char *name)
 }
 
 /* filename must be FILE_MAX length minimum */
-void BLI_where_am_i(char *fullname, const int maxlen, const char *name)
+void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	const char *path = NULL, *temp;
@@ -1756,7 +1756,7 @@ void BLI_where_am_i(char *fullname, const int maxlen, const char *name)
 	}
 }
 
-void BLI_where_is_temp(char *fullname, const int maxlen, int usertemp)
+void BLI_where_is_temp(char *fullname, const size_t maxlen, int usertemp)
 {
 	fullname[0] = '\0';
 	
