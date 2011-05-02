@@ -227,6 +227,8 @@ public:
 	 */
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
+	int toggleConsole(int action); /* dummy */
+
 	/**
 	 * Atom used for ICCCM, WM-spec and Motif.
 	 * We only need get this atom at the start, it's relative

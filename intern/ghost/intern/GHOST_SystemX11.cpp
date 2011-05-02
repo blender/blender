@@ -1492,3 +1492,9 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 }
 
 
+int GHOST_SystemX11::toggleConsole(int action)
+{
+	/* do nothing */
+	(void)action;
+	return 0;
+}

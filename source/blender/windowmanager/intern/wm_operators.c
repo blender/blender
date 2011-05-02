@@ -2030,7 +2030,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 
 /* *********************** */
 
-static int wm_console_toggle_op(bContext *C, wmOperator *UNUSED(op))
+static int wm_console_toggle_op(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 	GHOST_toggleConsole(2);
 	return OPERATOR_FINISHED;
