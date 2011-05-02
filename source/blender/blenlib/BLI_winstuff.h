@@ -127,7 +127,6 @@ typedef struct _DIR {
 	struct dirent direntry;
 } DIR;
 
-int IsConsoleEmpty(void);
 void RegisterBlendExtension(void);
 DIR *opendir (const char *path);
 struct dirent *readdir(DIR *dp);

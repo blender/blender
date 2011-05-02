@@ -75,6 +75,7 @@
 #include "SYS_System.h"
 #endif
 #include "GHOST_Path-api.h"
+#include "GHOST_C-api.h"
 
 #include "RNA_define.h"
 
@@ -104,7 +105,6 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_sound.h"
-#include "GHOST_C-api.h"
 
 static void wm_init_reports(bContext *C)
 {
@@ -120,17 +120,11 @@ int wm_start_with_console = 0;
 /* only called once, for startup */
 void WM_init(bContext *C, int argc, const char **argv)
 {
-
 	if (!G.background) {
 		wm_ghost_init(C);	/* note: it assigns C to ghost! */
 		wm_init_cursor_data();
-#ifdef WIN32
-		if (IsConsoleEmpty()) /* never hide if the console window pre-existed */
-			WM_console_toggle(C, wm_start_with_console);
-#endif
 	}
 	GHOST_CreateSystemPaths();
-
 	wm_operatortype_init();
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
@@ -144,7 +138,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
-	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL, G.factory_startup);
 
@@ -166,6 +159,9 @@ void WM_init(bContext *C, int argc, const char **argv)
 	(void)argc; /* unused */
 	(void)argv; /* unused */
 #endif
+
+	if (!G.background && !wm_start_with_console)
+		GHOST_toggleConsole(3);
 
 	wm_init_reports(C); /* reports cant be initialized before the wm */
 
@@ -194,7 +190,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 	*/
 
 	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
-
 }
 
 void WM_init_splash(bContext *C)
@@ -357,9 +352,6 @@ void WM_exit(bContext *C)
 
 	sound_exit();
 
-#ifdef WIN32
-	WM_console_toggle(C, 1); /* never leave behind invisible consoles */
-#endif
 
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
@@ -481,7 +473,6 @@ void WM_exit(bContext *C)
 		getchar();
 	}
 #endif 
-	
 	exit(G.afbreek==1);
 }
 

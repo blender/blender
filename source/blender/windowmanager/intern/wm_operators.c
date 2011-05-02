@@ -38,12 +38,7 @@
 #include <stddef.h>
 #include <assert.h>
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#include <windows.h>  
-
-#include <io.h>
-#endif
+#include "GHOST_C-api.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -2001,7 +1996,6 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 #endif
 
 
-
 /* *********************** */
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
@@ -2035,28 +2029,10 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 }
 
 /* *********************** */
-#if defined(WIN32)
-static int console= 1;
-void WM_console_toggle(bContext *UNUSED(C), short show)
-{
-	if(show) {
-		ShowWindow(GetConsoleWindow(),SW_SHOW);
-		console= 1;
-	}
-	else {
-		ShowWindow(GetConsoleWindow(),SW_HIDE);
-		console= 0;
-	}
-}
 
 static int wm_console_toggle_op(bContext *C, wmOperator *UNUSED(op))
 {
-	if(console) {
-		WM_console_toggle(C, 0);
-	}
-	else {
-		WM_console_toggle(C, 1);
-	}
+	GHOST_toggleConsole(2);
 	return OPERATOR_FINISHED;
 }
 
@@ -2069,7 +2045,6 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
 	ot->exec= wm_console_toggle_op;
 	ot->poll= WM_operator_winactive;
 }
-#endif
 
 /* ************ default paint cursors, draw always around cursor *********** */
 /*

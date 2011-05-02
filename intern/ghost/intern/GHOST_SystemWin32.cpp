@@ -174,6 +174,8 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
 	m_displayManager->initialize();
 
+	m_consoleStatus = 1;
+
 	// Check if current keyboard layout uses AltGr and save keylayout ID for
 	// specialized handling if keys like VK_OEM_*. I.e. french keylayout
 	// generates VK_OEM_8 for their exclamation key (key left of right shift)
@@ -186,6 +188,7 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
 {
 	// Shutdown COM
 	OleUninitialize();
+	toggleConsole(1);
 }
 
 
@@ -847,7 +850,14 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * a dead key that is pressed while holding down the alt key.
 					 * To prevent the sound, DefWindowProc must be avoided by return
 					 */
-					return 0;
+					break;
+				case WM_SYSCOMMAND:
+					/* The WM_SYSCHAR message is sent to the window when system commands such as 
+					 * maximize, minimize  or close the window are triggered. Also it is sent when ALT 
+					 * button is press for menu. To prevent this we must return preventing DefWindowProc.
+					 */
+					if(wParam==SC_KEYMENU) return 0;
+					break;
 				////////////////////////////////////////////////////////////////////////
 				// Tablet events, processed
 				////////////////////////////////////////////////////////////////////////
@@ -1047,8 +1057,12 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * DestroyWindow function sends the WM_NCDESTROY message to the window following the WM_DESTROY
 					 * message. WM_DESTROY is used to free the allocated memory object associated with the window. 
 					 */
+					break;
 				case WM_KILLFOCUS:
-					/* The WM_KILLFOCUS message is sent to a window immediately before it loses the keyboard focus. */
+					/* The WM_KILLFOCUS message is sent to a window immediately before it loses the keyboard focus. 
+					 * We want to prevent this if a window is still active and it loses focus to nowhere*/
+					if(!wParam && hwnd==GetActiveWindow())
+						SetFocus(hwnd);
 				case WM_SHOWWINDOW:
 					/* The WM_SHOWWINDOW message is sent to a window when the window is about to be hidden or shown. */
 				case WM_WINDOWPOSCHANGING:
@@ -1195,4 +1209,33 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	} else {
 		return;
 	}
+}
+
+int GHOST_SystemWin32::toggleConsole(int action)
+{
+	switch(action)
+	{
+		case 3: //hide if no console
+			{
+			CONSOLE_SCREEN_BUFFER_INFO csbi = {{0}};
+			if(!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi) || csbi.dwCursorPosition.X || csbi.dwCursorPosition.Y>1)
+				break;
+			}
+		case 0: //hide
+			ShowWindow(GetConsoleWindow(),SW_HIDE);
+			m_consoleStatus = 0;
+			break;
+		case 1: //show
+			ShowWindow(GetConsoleWindow(),SW_SHOW);
+			m_consoleStatus = 1;
+			break;
+		case 2: //toggle
+			ShowWindow(GetConsoleWindow(),m_consoleStatus?SW_HIDE:SW_SHOW);
+			m_consoleStatus=!m_consoleStatus;
+			break;
+
+	};
+
+
+	return m_consoleStatus;
 }
