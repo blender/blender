@@ -989,6 +989,7 @@ void ED_spacetype_image(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	image_buttons_register(art);
+	ED_uvedit_buttons_register(art);
 	
 	/* regions: statistics/scope buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");

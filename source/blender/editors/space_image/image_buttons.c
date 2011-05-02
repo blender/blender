@@ -63,8 +63,6 @@
 #include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_screen.h"
-#include "ED_uvedit.h"
-
 
 #include "RNA_access.h"
 
@@ -78,7 +76,6 @@
 
 #define B_REDR				1
 #define B_IMAGECHANGED		2
-#define B_TRANS_IMAGE		3
 #define B_NOP				0
 #define B_TWINANIM			5
 #define B_SIMAGETILE		6
@@ -100,8 +97,6 @@
 #define B_SIMACLONEDELETE	26
 
 /* proto */
-static void image_editvertex_buts(const bContext *C, uiBlock *block);
-
 
 static void do_image_panel_events(bContext *C, void *UNUSED(arg), int event)
 {
@@ -109,9 +104,6 @@ static void do_image_panel_events(bContext *C, void *UNUSED(arg), int event)
 	
 	switch(event) {
 		case B_REDR:
-			break;
-		case B_TRANS_IMAGE:
-			image_editvertex_buts(C, NULL);
 			break;
 	}
 
@@ -192,127 +184,6 @@ struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 
 
 /* ************ panel stuff ************* */
-
-/* this function gets the values for cursor and vertex number buttons */
-static void image_transform_but_attr(SpaceImage *sima, int *imx, int *imy, int *step, int *digits) /*, float *xcoord, float *ycoord)*/
-{
-	ED_space_image_size(sima, imx, imy);
-	
-	if (sima->flag & SI_COORDFLOATS) {
-		*step= 1;
-		*digits= 3;
-	}
-	else {
-		*step= 100;
-		*digits= 2;
-	}
-}
-
-
-/* is used for both read and write... */
-static void image_editvertex_buts(const bContext *C, uiBlock *block)
-{
-	Scene *scene= CTX_data_scene(C);
-	SpaceImage *sima= CTX_wm_space_image(C);
-	Image *ima= sima->image;
-	Object *obedit= CTX_data_edit_object(C);
-	static float ocent[2];
-	float cent[2]= {0.0, 0.0};
-	int imx= 256, imy= 256;
-	int nactive= 0, step, digits;
-	EditMesh *em;
-	EditFace *efa;
-	MTFace *tf;
-	
-	image_transform_but_attr(sima, &imx, &imy, &step, &digits);
-	
-	em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (uvedit_face_visible(scene, ima, efa, tf)) {
-			
-			if (uvedit_uv_selected(scene, efa, tf, 0)) {
-				cent[0]+= tf->uv[0][0];
-				cent[1]+= tf->uv[0][1];
-				nactive++;
-			}
-			if (uvedit_uv_selected(scene, efa, tf, 1)) {
-				cent[0]+= tf->uv[1][0];
-				cent[1]+= tf->uv[1][1];
-				nactive++;
-			}
-			if (uvedit_uv_selected(scene, efa, tf, 2)) {
-				cent[0]+= tf->uv[2][0];
-				cent[1]+= tf->uv[2][1];
-				nactive++;
-			}
-			if (efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) {
-				cent[0]+= tf->uv[3][0];
-				cent[1]+= tf->uv[3][1];
-				nactive++;
-			}
-		}
-	}
-		
-	if(block) {	// do the buttons
-		if (nactive) {
-			ocent[0]= cent[0]/nactive;
-			ocent[1]= cent[1]/nactive;
-			if (sima->flag & SI_COORDFLOATS) {
-			} else {
-				ocent[0] *= imx;
-				ocent[1] *= imy;
-			}
-			
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_TRANS_IMAGE, "X:",	10, 10, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-			uiDefButF(block, NUM, B_TRANS_IMAGE, "Y:",	165, 10, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
-			uiBlockEndAlign(block);
-		}
-	}
-	else {	// apply event
-		float delta[2];
-		
-		cent[0]= cent[0]/nactive;
-		cent[1]= cent[1]/nactive;
-			
-		if (sima->flag & SI_COORDFLOATS) {
-			delta[0]= ocent[0]-cent[0];
-			delta[1]= ocent[1]-cent[1];
-		}
-		else {
-			delta[0]= ocent[0]/imx - cent[0];
-			delta[1]= ocent[1]/imy - cent[1];
-		}
-
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (uvedit_face_visible(scene, ima, efa, tf)) {
-				if (uvedit_uv_selected(scene, efa, tf, 0)) {
-					tf->uv[0][0]+= delta[0];
-					tf->uv[0][1]+= delta[1];
-				}
-				if (uvedit_uv_selected(scene, efa, tf, 1)) {
-					tf->uv[1][0]+= delta[0];
-					tf->uv[1][1]+= delta[1];
-				}
-				if (uvedit_uv_selected(scene, efa, tf, 2)) {
-					tf->uv[2][0]+= delta[0];
-					tf->uv[2][1]+= delta[1];
-				}
-				if (efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) {
-					tf->uv[3][0]+= delta[0];
-					tf->uv[3][1]+= delta[1];
-				}
-			}
-		}
-		
-		WM_event_add_notifier(C, NC_IMAGE, sima->image);
-	}
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-}
-
 
 /* is used for both read and write... */
 
@@ -976,22 +847,6 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 	}
 }
 
-static int image_panel_uv_poll(const bContext *C, PanelType *UNUSED(pt))
-{
-	Object *obedit= CTX_data_edit_object(C);
-	return ED_uvedit_test(obedit);
-}
-
-static void image_panel_uv(const bContext *C, Panel *pa)
-{
-	uiBlock *block;
-	
-	block= uiLayoutAbsoluteBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
-
-	image_editvertex_buts(C, block);
-}	
-
 void image_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
@@ -1008,13 +863,6 @@ void image_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "IMAGE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");
 	pt->draw= gpencil_panel_standard;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
-	strcpy(pt->idname, "IMAGE_PT_uv");
-	strcpy(pt->label, "UV Vertex");
-	pt->draw= image_panel_uv;
-	pt->poll= image_panel_uv_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 
