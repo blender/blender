@@ -29,7 +29,7 @@ if env['WITH_BF_PYTHON']:
 
 if env['WITH_BF_ELTOPO']:
     incs += ' ../../../extern/eltopo'
-    defs.append('USE_ELTOPO')
+    defs.append('WITH_ELTOPO')
         
 if env['WITH_BF_QUICKTIME']:
     incs += ' ../quicktime'

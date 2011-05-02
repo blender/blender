@@ -66,7 +66,7 @@
 #include "BLI_kdopbvh.h"
 #include "BKE_collision.h"
 
-#ifdef USE_ELTOPO
+#ifdef WITH_ELTOPO
 #include "eltopo-capi.h"
 #endif
 
@@ -493,7 +493,7 @@ DO_INLINE void collision_interpolateOnTriangle ( float to[3], float v1[3], float
 	VECADDMUL ( to, v3, w3 );
 }
 
-#ifndef USE_ELTOPO
+#ifndef WITH_ELTOPO
 static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
 {
 	int result = 0;
@@ -608,9 +608,9 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 	}
 	return result;
 }
-#endif
+#endif /* !WITH_ELTOPO */
 
-#ifdef USE_ELTOPO
+#ifdef WITH_ELTOPO
 typedef struct edgepairkey {
 	int a1, a2, b1, b2;
 } edgepairkey;
@@ -1392,7 +1392,7 @@ static void machine_epsilon_offset(Cloth *cloth) {
 	}
 }
 
-#else
+#else /* !WITH_ELTOPO */
 
 //Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
 static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, 
@@ -1557,7 +1557,7 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2,
 	}
 	return collpair;
 }
-#endif
+#endif /* WITH_ELTOPO */
 
 
 #if 0
@@ -2269,7 +2269,7 @@ static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, Collis
 	CollPair **collisions, CollPair **collisions_index, int numresult, BVHTreeOverlap *overlap, double dt)
 {
 	int i;
-#ifdef USE_ELTOPO
+#ifdef WITH_ELTOPO
 	GHash *visithash = BLI_ghash_new(edgepair_hash, edgepair_cmp, "visthash, collision.c");
 	GHash *tri_visithash = BLI_ghash_new(tripair_hash, tripair_cmp, "tri_visthash, collision.c");
 	MemArena *arena = BLI_memarena_new(1<<16, "edge hash arena, collision.c");
@@ -2278,7 +2278,7 @@ static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, Collis
 	*collisions = ( CollPair* ) MEM_mallocN ( sizeof ( CollPair ) * numresult * 64, "collision array" ); //*4 since cloth_collision_static can return more than 1 collision
 	*collisions_index = *collisions;
 	
-#ifdef USE_ELTOPO
+#ifdef WITH_ELTOPO
 	machine_epsilon_offset(clmd->clothObject);
 
 	for ( i = 0; i < numresult; i++ )
@@ -2295,13 +2295,13 @@ static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, Collis
 	BLI_ghash_free(visithash, NULL, NULL);
 	BLI_ghash_free(tri_visithash, NULL, NULL);
 	BLI_memarena_free(arena);
-#else
+#else /* WITH_ELTOPO */
 	for ( i = 0; i < numresult; i++ )
 	{
 		*collisions_index = cloth_collision ( ( ModifierData * ) clmd, ( ModifierData * ) collmd,
 											  overlap+i, *collisions_index, dt );
 	}
-#endif	
+#endif /* WITH_ELTOPO */
 
 }
 
@@ -2327,13 +2327,13 @@ static int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, Collision
 
 		if ( collmd->bvhtree )
 		{
-#ifdef USE_ELTOPO
+#ifdef WITH_ELTOPO
 			result += cloth_collision_response_moving(clmd, collmd, collisions, collisions_index);
 			result += cloth_edge_collision_response_moving(clmd, collmd, collisions, collisions_index);
 #else
 			result += cloth_collision_response_static ( clmd, collmd, collisions, collisions_index );
 #endif
-#ifdef USE_ELTOPO
+#ifdef WITH_ELTOPO
 			{
 #else
 			// apply impulses in parallel

@@ -1753,7 +1753,7 @@ static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVect
   (edge distance constraints) in a lagrangian solver.  then add forces to help
   guide the implicit solver to that state.  this function is called after
   collisions*/
-int cloth_calc_helper_forces(Object *ob, ClothModifierData * clmd, float (*initial_cos)[3], float step, float dt)
+int cloth_calc_helper_forces(Object *UNUSED(ob), ClothModifierData * clmd, float (*initial_cos)[3], float UNUSED(step), float dt)
 {
 	Cloth *cloth= clmd->clothObject;
 	float (*cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "cos cloth_calc_helper_forces");
