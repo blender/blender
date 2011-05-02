@@ -252,6 +252,8 @@ public:
   }
 
   void setCurvatureInfo(CurvatureInfo* ci) {
+	if (_curvature_info) // Q. is this an error condition? (T.K. 02-May-2011)
+      delete _curvature_info;
     _curvature_info = ci;
   }
 
