@@ -373,6 +373,12 @@ void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
 
 /* Code generation */
 
+static int gpu_do_color_management(GPUMaterial *mat)
+{
+	return ((mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) &&
+	   !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT)));
+}
+
 static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **lv, GPUNodeLink **dist)
 {
 	GPUNodeLink *visifac, *inpr;
@@ -1011,8 +1017,7 @@ static void do_material_tex(GPUShadeInput *shi)
 				}
 
 				if(tex->type==TEX_IMAGE)
-					if((mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) &&
-					   !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT)))
+					if(gpu_do_color_management(mat))
 						GPU_link(mat, "srgb_to_linearrgb", tcol, &tcol);
 				
 				if(mtex->mapto & MAP_COL) {
@@ -1259,6 +1264,8 @@ void GPU_shadeinput_set(GPUMaterial *mat, Material *ma, GPUShadeInput *shi)
 	GPU_link(mat, "set_value", GPU_uniform(&ma->amb), &shi->amb);
 	GPU_link(mat, "shade_view", GPU_builtin(GPU_VIEW_POSITION), &shi->view);
 	GPU_link(mat, "vcol_attribute", GPU_attribute(CD_MCOL, ""), &shi->vcol);
+	if(gpu_do_color_management(mat))
+		GPU_link(mat, "srgb_to_linearrgb", shi->vcol, &shi->vcol);
 	GPU_link(mat, "texco_refl", shi->vn, shi->view, &shi->ref);
 }
 
@@ -1364,8 +1371,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		GPU_link(mat, "shade_alpha_obcolor", shr->combined, GPU_builtin(GPU_OBCOLOR), &shr->combined);
 	}
 
-	if((mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) &&
-	   !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT)))
+	if(gpu_do_color_management(mat))
 		GPU_link(mat, "linearrgb_to_srgb", shr->combined, &shr->combined);
 }
 
