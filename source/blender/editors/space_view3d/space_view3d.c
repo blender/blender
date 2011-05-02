@@ -975,7 +975,14 @@ static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 					break;
 			}
 			break;
-
+		case NC_MATERIAL:
+			switch(wmn->data) {
+				case ND_NODES:
+					if(v3d->drawtype == OB_TEXTURE)
+						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
+					break;
+			}
+			break;
 	}
 
 #if 0 // removed since BKE_image_user_calc_frame is now called in draw_bgpic because screen_ops doesnt call the notifier.
