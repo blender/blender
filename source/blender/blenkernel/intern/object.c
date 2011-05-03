@@ -2553,10 +2553,7 @@ void object_handle_update(Scene *scene, Object *ob)
 					invert_m4_m4(obg->imat, obg->obmat);
 					mul_m4_m4m4(ob->obmat, ob->proxy_from->obmat, obg->imat);
 					if(obg->dup_group) { /* should always be true */
-						float tvec[3];
-						copy_v3_v3(tvec, obg->dup_group->dupli_ofs);
-						mul_mat3_m4_v3(ob->obmat, tvec);
-						sub_v3_v3(ob->obmat[3], tvec);
+						add_v3_v3(ob->obmat[3], obg->dup_group->dupli_ofs);
 					}
 				}
 				else
