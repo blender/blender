@@ -227,7 +227,10 @@ public:
 	 */
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
-	int toggleConsole(int action); /* dummy */
+	/**
+	 * @see GHOST_ISystem
+	 */
+	int toggleConsole(int action) { return 0; }
 
 	/**
 	 * Atom used for ICCCM, WM-spec and Motif.

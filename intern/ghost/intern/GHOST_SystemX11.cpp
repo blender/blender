@@ -1485,16 +1485,8 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 			txt_select_buffer = (char*) malloc(strlen(buffer)+1);
 			strcpy(txt_select_buffer, buffer);
 		}
-	
+
 		if (owner != m_window)
 			fprintf(stderr, "failed to own primary\n");
 	}
-}
-
-
-int GHOST_SystemX11::toggleConsole(int action)
-{
-	/* do nothing */
-	(void)action;
-	return 0;
 }
