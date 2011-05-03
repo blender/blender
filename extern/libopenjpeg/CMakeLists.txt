@@ -28,12 +28,6 @@ set(INC
 	.
 )
 
-<<<<<<< .working
-FILE(GLOB SRC *.c except t1_generate_luts.c)
-ADD_DEFINITIONS(-DWITH_OPENJPEG)
-BLENDERLIB(extern_openjpeg "${SRC}" "${INC}")
-#, libtype=['international','player'], priority=[5, 210])
-=======
 set(SRC
 	bio.c
 	cio.c
@@ -80,4 +74,4 @@ set(SRC
 )
 
 blender_add_lib(extern_openjpeg "${SRC}" "${INC}")
->>>>>>> .merge-right.r35190
+
