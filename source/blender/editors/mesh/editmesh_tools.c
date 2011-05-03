@@ -483,10 +483,11 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	int totvert= em->totvert, totedge= em->totedge, totface= em->totface;
 
 	int count = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));
 	
-	if(count) {
+	if (totvert != em->totvert || totedge != em->totedge || totface != em->totface) {
 		recalc_editnormals(em);
 
 		DAG_id_tag_update(obedit->data, 0);
@@ -5919,6 +5920,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	int count= 0, uvs= RNA_boolean_get(op->ptr, "uvs");
 	EditSelection *ese;
+	int totvert= em->totvert, totedge= em->totedge, totface= em->totface;
 
 	switch(RNA_enum_get(op->ptr, "type")) {
 		case 3:
@@ -5949,7 +5951,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 			break;
 	}
 
-	if(!count)
+	if (!(totvert != em->totvert || totedge != em->totedge || totface != em->totface))
 		return OPERATOR_CANCELLED;
 
 	recalc_editnormals(em);
