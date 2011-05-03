@@ -146,7 +146,6 @@ void EM_automerge(Scene *scene, Object *obedit, int update)
 
 		len = removedoublesflag(em, 1, 1, scene->toolsettings->doublimit);
 		if (len) {
-			em->totvert -= len; /* saves doing a countall */
 			if (update) {
 				DAG_id_tag_update(&me->id, 0);
 			}
