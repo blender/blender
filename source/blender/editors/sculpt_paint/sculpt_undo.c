@@ -112,7 +112,6 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 
 				if (kb) {
 					ob->shapenr= BLI_findindex(&key->block, kb) + 1;
-					ob->shapeflag|= OB_SHAPE_LOCK;
 
 					sculpt_update_mesh_elements(scene, ob, 0);
 					WM_event_add_notifier(C, NC_OBJECT|ND_DATA, ob);
