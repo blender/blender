@@ -1603,6 +1603,10 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		
 		armature_set_id_extern(ob);
 	}
+	else if (target->type == OB_EMPTY) {
+		ob->empty_drawtype = target->empty_drawtype;
+		ob->empty_drawsize = target->empty_drawsize;
+	}
 
 	/* copy IDProperties */
 	if(ob->id.properties) {
