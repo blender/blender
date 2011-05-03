@@ -1802,26 +1802,6 @@ void BLI_where_is_temp(char *fullname, const size_t maxlen, int usertemp)
 	}
 }
 
-char *get_install_dir(void) {
-	char *tmpname = BLI_strdup(bprogname);
-	char *cut;
-
-#ifdef __APPLE__
-	cut = strstr(tmpname, ".app");
-	if (cut) cut[0] = 0;
-#endif
-
-	cut = BLI_last_slash(tmpname);
-
-	if (cut) {
-		cut[0] = 0;
-		return tmpname;
-	} else {
-		MEM_freeN(tmpname);
-		return NULL;
-	}
-}
-
 #ifdef WITH_ICONV
 
 void BLI_string_to_utf8(char *original, char *utf_8, const char *code)

@@ -197,7 +197,6 @@ void BLI_char_switch(char *string, char from, char to);
 	 */
 void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name);
 
-char *get_install_dir(void);
 	/**
 	 * Gets the temp directory when blender first runs.
 	 * If the default path is not found, use try $TEMP
