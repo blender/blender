@@ -28,7 +28,7 @@
 CCL_NAMESPACE_BEGIN
 
 class Device;
-class float4;
+struct float4;
 
 /* Render Buffers */
 

@@ -36,10 +36,16 @@
 extern "C" {
 #endif
 
+#ifndef LIBEXPORT
 #ifdef _WIN32
+#ifdef BLENDER_PLUGIN
+#define LIBEXPORT __declspec(dllimport)
+#else
 #define LIBEXPORT __declspec(dllexport)
+#endif
 #else
 #define LIBEXPORT
+#endif
 #endif
 
 struct ParameterList;

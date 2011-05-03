@@ -2450,11 +2450,17 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 				 "   Do not edit manually, changes will be overwritten.           */\n\n"
 				  "#define RNA_RUNTIME\n\n");
 
+	fprintf(f, "#ifndef LIBEXPORT\n");
 	fprintf(f, "#ifdef _WIN32\n");
+	fprintf(f, "#ifdef BLENDER_PLUGIN\n");
+	fprintf(f, "#define LIBEXPORT __declspec(dllimport)\n");
+	fprintf(f, "#else\n");
 	fprintf(f, "#define LIBEXPORT __declspec(dllexport)\n");
+	fprintf(f, "#endif\n");
 	fprintf(f, "#else\n");
 	fprintf(f, "#define LIBEXPORT\n");
-	fprintf(f, "#endif\n\n");
+	fprintf(f, "#endif\n");
+	fprintf(f, "#endif\n");
 
 	fprintf(f, "#include <float.h>\n");
 	fprintf(f, "#include <stdio.h>\n");
@@ -2580,7 +2586,7 @@ static const char *cpp_classes = ""
 "namespace BL {\n"
 "\n"
 "#define BOOLEAN_PROPERTY(sname, identifier) \\\n"
-"	inline bool sname::identifier(void) { return (bool)sname##_##identifier##_get(&ptr); }\n"
+"	inline bool sname::identifier(void) { return sname##_##identifier##_get(&ptr)? true: false; }\n"
 "\n"
 "#define BOOLEAN_ARRAY_PROPERTY(sname, size, identifier) \\\n"
 "	inline Array<int,size> sname::identifier(void) \\\n"
@@ -2622,7 +2628,7 @@ static const char *cpp_classes = ""
 "public:\n"
 "	Pointer(const PointerRNA& p) : ptr(p) { }\n"
 "	operator const PointerRNA&() { return ptr; }\n"
-"	bool is_a(StructRNA *type) { return RNA_struct_is_a(ptr.type, type); }\n"
+"	bool is_a(StructRNA *type) { return RNA_struct_is_a(ptr.type, type)? true: false; }\n"
 "	operator void*() { return ptr.data; }\n"
 "	operator bool() { return ptr.data != NULL; }\n"
 "\n"

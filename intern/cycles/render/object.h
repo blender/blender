@@ -31,7 +31,7 @@ class DeviceScene;
 class Mesh;
 class Progress;
 class Scene;
-class Transform;
+struct Transform;
 
 /* Object */
 

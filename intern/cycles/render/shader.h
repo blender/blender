@@ -35,7 +35,7 @@ class Mesh;
 class Progress;
 class Scene;
 class ShaderGraph;
-class float3;
+struct float3;
 
 /* Shader describing the appearance of a Mesh, Light or Background.
  *

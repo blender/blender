@@ -82,8 +82,8 @@ int DiagSplit::T(Patch *patch, float2 Pstart, float2 Pend)
 		Plast = P;
 	}
 
-	int tmin = ceil(Lsum/dicing_rate);
-	int tmax = ceil((test_steps-1)*Lmax/dicing_rate); // XXX paper says N instead of N-1, seems wrong?
+	int tmin = (int)ceil(Lsum/dicing_rate);
+	int tmax = (int)ceil((test_steps-1)*Lmax/dicing_rate); // XXX paper says N instead of N-1, seems wrong?
 
 	if(tmax - tmin > split_threshold)
 		return DSPLIT_NON_UNIFORM;

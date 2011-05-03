@@ -228,7 +228,7 @@ void SubdAccBuilder::computeEdgeStencil(SubdFaceRing *ring, GregoryAccStencil *s
 			computeBoundaryTangentStencils(ring, vert, r0, r1);
 
 			int k = valence - 1;
-			float omega = M_PI / k;
+			float omega = M_PI_F / k;
 
 			int eid1 = edge1Indices[primitiveOffset + v];
 			int eid2 = edge2Indices[primitiveOffset + v];
@@ -298,7 +298,7 @@ void SubdAccBuilder::computeEdgeStencil(SubdFaceRing *ring, GregoryAccStencil *s
 			}
 		}
 		else {
-			float costerm = cosf(M_PI / valence);
+			float costerm = cosf(M_PI_F / valence);
 			float sqrtterm = sqrtf(4.0f + costerm*costerm);
 
 			/* float tangentScale = 1.0f; */
@@ -319,11 +319,11 @@ void SubdAccBuilder::computeEdgeStencil(SubdFaceRing *ring, GregoryAccStencil *s
 				SubdEdge *edge = eit.current();
 				assert(vert->co == edge->from()->co);
 
-				float costerm1_a = cosf(M_PI * 2 * (j-i1) / valence);
-				float costerm1_b = cosf(M_PI * (2 * (j-i1)-1) / valence); /* -1 instead of +1 b/c of edge->next->to() */
+				float costerm1_a = cosf(M_PI_F * 2 * (j-i1) / valence);
+				float costerm1_b = cosf(M_PI_F * (2 * (j-i1)-1) / valence); /* -1 instead of +1 b/c of edge->next->to() */
 
-				float costerm2_a = cosf(M_PI * 2 * (j-i2) / valence);
-				float costerm2_b = cosf(M_PI * (2 * (j-i2)-1) / valence); /* -1 instead of +1 b/c of edge->next->to() */
+				float costerm2_a = cosf(M_PI_F * 2 * (j-i2) / valence);
+				float costerm2_b = cosf(M_PI_F * (2 * (j-i2)-1) / valence); /* -1 instead of +1 b/c of edge->next->to() */
 
 
 				stencil->get(eid1, edge->to()) += alpha * costerm1_a;
@@ -413,10 +413,10 @@ void SubdAccBuilder::computeInteriorStencil(SubdFaceRing *ring, GregoryAccStenci
 		}
 		else {
 			SubdVert *e0 = edge->from();
-			float costerm0 = cosf(2.0f * M_PI / pseudoValence(e0));
+			float costerm0 = cosf(2.0f * M_PI_F / pseudoValence(e0));
 
 			SubdVert *f0 = edge->to();
-			float costerm1 = cosf(2.0f * M_PI / pseudoValence(f0));
+			float costerm1 = cosf(2.0f * M_PI_F / pseudoValence(f0));
 
 			/*  p0 +------+ q0
 			 *	 |	  |
@@ -566,7 +566,7 @@ void SubdAccBuilder::computeBoundaryTangentStencils(SubdFaceRing *ring, SubdVert
 	int valence = vert->valence();
 
 	int k = valence - 1;
-	float omega = M_PI / k;
+	float omega = M_PI_F / k;
 	float s = sinf(omega);
 	float c = cosf(omega);
 

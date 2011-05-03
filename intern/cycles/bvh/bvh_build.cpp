@@ -359,8 +359,8 @@ BVHBuild::SpatialSplit BVHBuild::find_spatial_split(const NodeSpec& spec, float 
 		const Reference& ref = references[refIdx];
 		float3 firstBinf = (ref.bounds.min - origin) * invBinSize;
 		float3 lastBinf = (ref.bounds.max - origin) * invBinSize;
-		int3 firstBin = make_int3(firstBinf.x, firstBinf.y, firstBinf.z);
-		int3 lastBin = make_int3(lastBinf.x, lastBinf.y, lastBinf.z);
+		int3 firstBin = make_int3((int)firstBinf.x, (int)firstBinf.y, (int)firstBinf.z);
+		int3 lastBin = make_int3((int)lastBinf.x, (int)lastBinf.y, (int)lastBinf.z);
 
 		firstBin = clamp(firstBin, 0, BVHParams::NUM_SPATIAL_BINS - 1);
 		lastBin = clamp(lastBin, firstBin, BVHParams::NUM_SPATIAL_BINS - 1);

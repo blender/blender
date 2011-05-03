@@ -218,7 +218,7 @@ void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int 
 			blender_camera_from_object(&bcam, b_ob);
 
 			/* magic zoom formula */
-			bcam.zoom = b_rv3d.view_camera_zoom();
+			bcam.zoom = (float)b_rv3d.view_camera_zoom();
 			bcam.zoom = (1.41421f + bcam.zoom/50.0f);
 			bcam.zoom *= bcam.zoom;
 			bcam.zoom = 2.0f/bcam.zoom;

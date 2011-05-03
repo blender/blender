@@ -143,9 +143,9 @@ __device float perlin_periodic(float x, float y, float z, float3 pperiod)
 
 	int3 p;
 
-	p.x = fmaxf(quick_floor(pperiod.x), 1);
-	p.y = fmaxf(quick_floor(pperiod.y), 1);
-	p.z = fmaxf(quick_floor(pperiod.z), 1);
+	p.x = max(quick_floor(pperiod.x), 1);
+	p.y = max(quick_floor(pperiod.y), 1);
+	p.z = max(quick_floor(pperiod.z), 1);
 
 	float u = fade(fx);
 	float v = fade(fy);

@@ -1,5 +1,13 @@
 
-INCLUDE_DIRECTORIES(. ../device ../kernel ../kernel/svm ../kernel/osl ../bvh ../util)
+INCLUDE_DIRECTORIES(
+	.
+	../device
+	../kernel
+	../kernel/svm
+	../kernel/osl
+	../bvh
+	../util
+	${GLEW_INCLUDE_PATH})
 
 SET(sources
 	attribute.cpp

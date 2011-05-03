@@ -30,7 +30,7 @@ CCL_NAMESPACE_BEGIN
 class Device;
 class DeviceScene;
 class ImageManager;
-class KernelSunSky;
+struct KernelSunSky;
 class Scene;
 class ShaderGraph;
 class ShaderInput;

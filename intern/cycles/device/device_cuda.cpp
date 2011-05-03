@@ -356,7 +356,8 @@ public:
 		cuda_assert(cuParamSetv(cuPathTrace, offset, &d_rng_state, sizeof(d_rng_state)))
 		offset += sizeof(d_rng_state);
 
-		offset = cuda_align_up(offset, __alignof(task.pass));
+		int pass = task.pass;
+		offset = cuda_align_up(offset, __alignof(pass));
 
 		cuda_assert(cuParamSeti(cuPathTrace, offset, task.pass))
 		offset += sizeof(task.pass);
@@ -413,7 +414,8 @@ public:
 		cuda_assert(cuParamSetv(cuFilmConvert, offset, &d_buffer, sizeof(d_buffer)))
 		offset += sizeof(d_buffer);
 
-		offset = cuda_align_up(offset, __alignof(task.pass));
+		int pass = task.pass;
+		offset = cuda_align_up(offset, __alignof(pass));
 
 		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.pass))
 		offset += sizeof(task.pass);
@@ -475,7 +477,8 @@ public:
 		cuda_assert(cuParamSetv(cuDisplace, offset, &d_offset, sizeof(d_offset)))
 		offset += sizeof(d_offset);
 
-		offset = cuda_align_up(offset, __alignof(task.displace_x));
+		int displace_x = task.displace_x;
+		offset = cuda_align_up(offset, __alignof(displace_x));
 
 		cuda_assert(cuParamSeti(cuDisplace, offset, task.displace_x))
 		offset += sizeof(task.displace_x);
@@ -621,18 +624,18 @@ public:
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 			glPushMatrix();
-			glTranslatef(0, y, 0.0f);
+			glTranslatef(0.0f, (float)y, 0.0f);
 			
 			glBegin(GL_QUADS);
 			
-			glTexCoord2f(0, 0);
-			glVertex2f(0, 0);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2f(0.0f, 0.0f);
 			glTexCoord2f((float)w/(float)width, 0);
-			glVertex2f(width, 0);
+			glVertex2f((float)width, 0.0f);
 			glTexCoord2f((float)w/(float)width, (float)h/(float)height);
-			glVertex2f(width, height);
-			glTexCoord2f(0, (float)h/(float)height);
-			glVertex2f(0, height);
+			glVertex2f((float)width, (float)height);
+			glTexCoord2f(0.0f, (float)h/(float)height);
+			glVertex2f(0.0f, (float)height);
 
 			glEnd();
 

@@ -77,7 +77,7 @@ static inline void object_free_duplilist(BL::Object self)
 
 static inline bool object_is_modified(BL::Object self, BL::Scene scene, bool preview)
 {
-	return rna_Object_is_modified(self.ptr.data, scene.ptr.data, (preview)? (1<<0): (1<<1));
+	return rna_Object_is_modified(self.ptr.data, scene.ptr.data, (preview)? (1<<0): (1<<1))? true: false;
 }
 
 /* Utilities */
@@ -139,7 +139,7 @@ static inline uint get_layer(BL::Array<int, 20> array)
 
 static inline bool get_boolean(PointerRNA& ptr, const char *name)
 {
-	return RNA_boolean_get(&ptr, name);
+	return RNA_boolean_get(&ptr, name)? true: false;
 }
 
 static inline float get_float(PointerRNA& ptr, const char *name)

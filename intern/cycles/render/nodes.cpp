@@ -990,8 +990,8 @@ void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *
 
 	compiler.add_node(NODE_CLOSURE_BSDF,
 		closure,
-		(param1)? __float_as_int(param1->value.x): 0.0f,
-		(param2)? __float_as_int(param2->value.x): 0.0f);
+		__float_as_int((param1)? param1->value.x: 0.0f),
+		__float_as_int((param2)? param2->value.x: 0.0f));
 }
 
 void BsdfNode::compile(SVMCompiler& compiler)

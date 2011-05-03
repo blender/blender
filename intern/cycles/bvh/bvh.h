@@ -26,7 +26,7 @@
 CCL_NAMESPACE_BEGIN
 
 class BVHNode;
-class BVHStackEntry;
+struct BVHStackEntry;
 class BVHParams;
 class BoundBox;
 class CacheData;

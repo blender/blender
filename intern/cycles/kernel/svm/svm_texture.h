@@ -64,12 +64,12 @@ __device void voronoi(float3 p, NodeDistanceMetric distance_metric, float e, flo
 	for(xx = xi-1; xx <= xi+1; xx++) {
 		for(yy = yi-1; yy <= yi+1; yy++) {
 			for(zz = zi-1; zz <= zi+1; zz++) {
-				float3 ip = make_float3(xx, yy, zz);
+				float3 ip = make_float3((float)xx, (float)yy, (float)zz);
 				float3 vp = cellnoise_color(ip);
 				float3 pd = p - (vp + ip);
 				float d = voronoi_distance(distance_metric, pd, e);
 
-				vp += make_float3(xx, yy, zz);
+				vp += make_float3((float)xx, (float)yy, (float)zz);
 
 				if(d < da[0]) {
 					da[3] = da[2];

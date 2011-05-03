@@ -467,7 +467,7 @@ void RegularBVH::refit_nodes()
 	assert(!params.top_level);
 
 	BoundBox bbox;
-	refit_node(0, pack.is_leaf[0], bbox);
+	refit_node(0, (pack.is_leaf[0])? true: false, bbox);
 }
 
 void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox)

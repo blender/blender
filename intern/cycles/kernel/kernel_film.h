@@ -44,9 +44,9 @@ __device uchar4 film_float_to_byte(float4 color)
 	uchar4 result;
 
 	/* simple float to byte conversion */
-	result.x = clamp(color.x*255.0f, 0.0f, 255.0f);
-	result.y = clamp(color.y*255.0f, 0.0f, 255.0f);
-	result.z = clamp(color.z*255.0f, 0.0f, 255.0f);
+	result.x = (uchar)clamp(color.x*255.0f, 0.0f, 255.0f);
+	result.y = (uchar)clamp(color.y*255.0f, 0.0f, 255.0f);
+	result.z = (uchar)clamp(color.z*255.0f, 0.0f, 255.0f);
 	result.w = 255;
 
 	return result;

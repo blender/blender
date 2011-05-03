@@ -7,7 +7,7 @@ INCLUDE_DIRECTORIES(
 	../util
 	../render
 	${OPENGL_INCLUDE_DIR}
-	${GLEW_INCLUDE_DIR})
+	${GLEW_INCLUDE_PATH})
 
 SET(sources
 	device.cpp

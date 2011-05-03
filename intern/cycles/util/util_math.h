@@ -48,7 +48,8 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef _WIN32
 
-#define copysignf _copysign
+#define copysignf(x, y) ((float)_copysign(x, y))
+#define hypotf(x, y) _hypotf(x, y)
 
 __device_inline float fmaxf(float a, float b)
 {

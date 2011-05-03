@@ -8,9 +8,6 @@ SET(Boost_ADDITIONAL_VERSIONS "1.45" "1.44"
                                "1.41" "1.41.0" "1.40" "1.40.0"
                                "1.39" "1.39.0" "1.38" "1.38.0"
                                "1.37" "1.37.0" "1.34.1" "1_34_1")
-IF(LINKSTATIC)
-	SET(Boost_USE_STATIC_LIBS ON)
-ENDIF()
 
 SET(Boost_USE_MULTITHREADED ON)
 
@@ -24,6 +21,8 @@ MESSAGE(STATUS "Boost libraries ${Boost_LIBRARIES}")
 
 INCLUDE_DIRECTORIES("${Boost_INCLUDE_DIRS}")
 LINK_DIRECTORIES("${Boost_LIBRARY_DIRS}")
+
+ADD_DEFINITIONS(-DBOOST_ALL_NO_LIB)
 
 IF(WITH_CYCLES_NETWORK)
 	ADD_DEFINITIONS(-DWITH_NETWORK)
@@ -126,8 +125,10 @@ IF(WITH_CYCLES_BLENDER)
 		${CMAKE_SOURCE_DIR}/source/blender/blenloader
 		${CMAKE_BINARY_DIR}/source/blender/makesrna/intern)
 	IF(WIN32)
-		SET(BLENDER_LIBRARIES ${CMAKE_BINARY_DIR}/bin/Release/blender.lib)
+		SET(BLENDER_LIBRARIES ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/blender.lib)
 	ENDIF()
+
+	ADD_DEFINITIONS(-DBLENDER_PLUGIN)
 ENDIF()
 
 ###########################################################################
