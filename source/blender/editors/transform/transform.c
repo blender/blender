@@ -1521,7 +1521,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	t->mode = mode;
 
 	t->launch_event = event ? event->type : -1;
-
+	if (RNA_property_is_set(op->ptr, "launch_event"))
+		t->launch_event = RNA_int_get(op->ptr, "launch_event");
+	
 	if (t->launch_event == EVT_TWEAK_R)
 	{
 		t->launch_event = RIGHTMOUSE;

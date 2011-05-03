@@ -2676,6 +2676,10 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, view_zoom_axes);
 	RNA_def_property_ui_text(prop, "Zoom Axis", "Axis of mouse movement to zoom in or out on");
 	
+	prop= RNA_def_property(srna, "loopcut_finish_on_release", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "loopcut_finish_on_release", 1);
+	RNA_def_property_ui_text(prop, "End Loopcut Slide On Release", "End Loopcut Slide On Mouse Release, a 'click-drag-and-hold' workflow");
+
 	prop= RNA_def_property(srna, "invert_mouse_zoom", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZOOM_INVERT);
 	RNA_def_property_ui_text(prop, "Invert Zoom Direction", "Invert the axis of mouse movement for zooming");

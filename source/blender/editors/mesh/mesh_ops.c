@@ -175,8 +175,10 @@ void ED_operatormacros_mesh(void)
 	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loop Cut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Cut mesh loop and slide it";
 	WM_operatortype_macro_define(ot, "MESH_OT_loopcut");
-	WM_operatortype_macro_define(ot, "TRANSFORM_OT_edge_slide");
-
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_edge_slide");
+	RNA_boolean_set(otmacro->ptr, "release_confirm", 1);
+	RNA_int_set(otmacro->ptr, "launch_event", LEFTMOUSE);
+	
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Duplicate mesh and move";
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
