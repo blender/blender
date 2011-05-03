@@ -485,7 +485,13 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->fstyle.align= UI_STYLE_TEXT_CENTER;
 	uiStyleFontSet(&data->fstyle);
 
-	h= BLF_height(data->fstyle.uifont_id, data->lines[0]);
+	/* clipping is very strict & gives problems in some cases [#27218]
+	 * use the tallest line height. */
+	h= 0;
+	for(a=0; a<data->totline; a++) {
+		int h_tmp= BLF_height(data->fstyle.uifont_id, data->lines[a]);
+		h= MAX2(h, h_tmp);
+	}
 
 	for(a=0, fontw=0, fonth=0; a<data->totline; a++) {
 		w= BLF_width(data->fstyle.uifont_id, data->lines[a]);
