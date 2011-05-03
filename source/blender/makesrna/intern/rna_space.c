@@ -319,6 +319,32 @@ static void rna_SpaceView3D_layer_update(Main *bmain, Scene *scene, PointerRNA *
 	DAG_on_visible_update(bmain, FALSE);
 }
 
+static void rna_SpaceView3D_pivot_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	if (U.uiflag & USER_LOCKAROUND) {
+		View3D *v3d_act= (View3D*)(ptr->data);
+
+		/* TODO, space looper */
+		bScreen *screen;
+		for(screen= bmain->screen.first; screen; screen= screen->id.next) {
+			ScrArea *sa;
+			for(sa= screen->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for(sl= sa->spacedata.first; sl ;sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D *)sl;
+						if (v3d != v3d_act) {
+							v3d->around= v3d_act->around;
+							v3d->flag= (v3d->flag & ~V3D_ALIGN) | (v3d_act->flag & V3D_ALIGN);
+							ED_area_tag_redraw_regiontype(sa, RGN_TYPE_HEADER);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
 {
 	View3D *v3d= (View3D*)(ptr->data);
@@ -1277,13 +1303,13 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "around");
 	RNA_def_property_enum_items(prop, pivot_items);
 	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_SpaceView3D_pivot_update");
 	
 	prop= RNA_def_property(srna, "use_pivot_point_align", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ALIGN);
 	RNA_def_property_ui_text(prop, "Align", "Manipulate object centers only");
 	RNA_def_property_ui_icon(prop, ICON_ALIGN, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_SpaceView3D_pivot_update");
 
 	prop= RNA_def_property(srna, "show_manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_USE_MANIPULATOR);
