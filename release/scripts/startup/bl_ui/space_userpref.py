@@ -795,6 +795,9 @@ class USERPREF_PT_input(InputKeyMapPanel):
 
         sub.separator()
 
+        sub.label(text="Loop Cut:")
+        sub.prop(inputs, "loopcut_finish_on_release")
+        
         sub.label(text="Orbit Style:")
         sub.row().prop(inputs, "view_rotate_method", expand=True)
 

@@ -104,6 +104,9 @@ typedef struct tringselOpData {
 
 	int extend;
 	int do_cut;
+	
+	double leftmouse_time;
+	wmTimer *timer;
 } tringselOpData;
 
 /* modal loop selection drawing callback */
@@ -188,6 +191,8 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	BLI_array_declare(edges);
 	float co[2][3];
 	int i, tot=0;
+	
+	memset(v, 0, sizeof(v));
 	
 	if (!startedge)
 		return;
@@ -337,10 +342,13 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 }
 
 /* called when modal loop selection is done... */
-static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
+static void ringsel_exit(bContext *C, wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
-
+	
+	if (lcd->timer)
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), lcd->timer);
+	
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(lcd->ar->type, lcd->draw_handle);
 	
@@ -423,6 +431,10 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	BMEdge *edge;
 	int dist = 75;
 
+	/*if we're in the cut-n-slide macro, set release_confirm based on user pref*/
+	if (op->opm)
+		RNA_boolean_set(op->next->ptr, "release_confirm", U.loopcut_finish_on_release);
+	
 	if(modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
 		BKE_report(op->reports, RPT_WARNING, "Loop cut doesn't work well on deformed edit mesh display");
 	
@@ -448,75 +460,12 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
-{
-	int cuts= RNA_int_get(op->ptr,"number_cuts");
-	tringselOpData *lcd= op->customdata;
-
-	view3d_operator_needs_opengl(C);
-
-
-	switch (event->type) {
-		case LEFTMOUSE: /* abort */ // XXX hardcoded
-			ED_region_tag_redraw(lcd->ar);
-			ringsel_exit(C, op);
-
-			return OPERATOR_FINISHED;
-		case RETKEY:
-		case RIGHTMOUSE: /* confirm */ // XXX hardcoded
-			if (event->val == KM_PRESS) {
-				/* finish */
-				ED_region_tag_redraw(lcd->ar);
-				
-				ringsel_finish(C, op);
-				ringsel_exit(C, op);
-				ED_area_headerprint(CTX_wm_area(C), NULL);
-				
-				return OPERATOR_FINISHED;
-			}
-			
-			ED_region_tag_redraw(lcd->ar);
-			break;
-		case ESCKEY:
-			if (event->val == KM_RELEASE) {
-				/* cancel */
-				ED_region_tag_redraw(lcd->ar);
-				ED_area_headerprint(CTX_wm_area(C), NULL);
-				
-				return ringcut_cancel(C, op);
-			}
-			
-			ED_region_tag_redraw(lcd->ar);
-			break;
-		case MOUSEMOVE: { /* mouse moved somewhere to select another loop */
-			int dist = 75;
-			BMEdge *edge;
-
-			lcd->vc.mval[0] = event->mval[0];
-			lcd->vc.mval[1] = event->mval[1];
-			edge = EDBM_findnearestedge(&lcd->vc, &dist);
-
-			if (edge != lcd->eed) {
-				lcd->eed = edge;
-				ringsel_find_edge(lcd, cuts);
-			}
-
-			ED_region_tag_redraw(lcd->ar);
-			break;
-		}			
-	}
-	
-	/* keep going until the user confirms */
-	return OPERATOR_RUNNING_MODAL;
-}
-
 static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	int cuts= RNA_int_get(op->ptr,"number_cuts");
 	tringselOpData *lcd= op->customdata;
 
 	view3d_operator_needs_opengl(C);
-
 
 	switch (event->type) {
 		case RETKEY:
@@ -528,20 +477,37 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 				ringsel_finish(C, op);
 				ringsel_exit(C, op);
 				
-				return OPERATOR_FINISHED;
+				ED_area_headerprint(CTX_wm_area(C), NULL);
+				
+				return OPERATOR_FINISHED|OPERATOR_ABORT_MACRO;
+			} else {
+				lcd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER2, 0.12);
 			}
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
+		case TIMER2: 
+			/* finish */
+			ED_region_tag_redraw(lcd->ar);
+			
+			ringsel_finish(C, op);
+			ringsel_exit(C, op);
+			
+			ED_area_headerprint(CTX_wm_area(C), NULL);
+
+			return OPERATOR_FINISHED;
+		
 		case RIGHTMOUSE: /* abort */ // XXX hardcoded
 			ED_region_tag_redraw(lcd->ar);
 			ringsel_exit(C, op);
+			ED_area_headerprint(CTX_wm_area(C), NULL);
 
 			return OPERATOR_FINISHED;
 		case ESCKEY:
 			if (event->val == KM_RELEASE) {
 				/* cancel */
 				ED_region_tag_redraw(lcd->ar);
+				ED_area_headerprint(CTX_wm_area(C), NULL);
 				
 				return ringcut_cancel(C, op);
 			}
