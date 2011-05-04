@@ -53,10 +53,10 @@
 
 #ifdef GHOST_DEBUG
 	#define GHOST_PRINT(x) { std::cout << x; }
-	//#define GHOST_PRINTF(x) { printf(x); }
+	#define GHOST_PRINTF(x, ...) { printf(x, __VA_ARGS__); }
 #else  // GHOST_DEBUG
 	#define GHOST_PRINT(x)
-	//#define GHOST_PRINTF(x)
+	#define GHOST_PRINTF(x, ...)
 #endif // GHOST_DEBUG
 
 

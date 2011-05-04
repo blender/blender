@@ -238,7 +238,7 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	bool stereoVisual, const GHOST_TUns16 numOfAASamples, const GHOST_TEmbedderWindowID parentWindow )
 {
 	GHOST_Window* window = 0;
-	window = new GHOST_WindowWin32 (this, title, left, top, width, height, state, type, stereoVisual, numOfAASamples);
+	window = new GHOST_WindowWin32 (this, title, left, top, width, height, state, type, stereoVisual, numOfAASamples, parentWindow);
 	if (window) {
 		if (window->getValid()) {
 			// Store the pointer to the window
@@ -247,6 +247,14 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 //			}
 		}
 		else {
+
+			// Invalid parent window hwnd
+			if (((GHOST_WindowWin32*)window)->getNextWindow() == NULL) {
+				delete window;
+				window = 0;
+				return window;
+			}
+
 			// An invalid window could be one that was used to test for AA
 			window = ((GHOST_WindowWin32*)window)->getNextWindow();
 			

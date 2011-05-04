@@ -233,7 +233,8 @@ static HWND findGhostWindowHWND(GHOST_IWindow* window)
 bool GPG_Application::startScreenSaverPreview(
 	HWND parentWindow,
 	const bool stereoVisual,
-	const int stereoMode)
+	const int stereoMode,
+	const GHOST_TUns16 samples)
 {
 	bool success = false;
 
@@ -245,7 +246,7 @@ bool GPG_Application::startScreenSaverPreview(
 		STR_String title = "";
 							
 		m_mainWindow = fSystem->createWindow(title, 0, 0, windowWidth, windowHeight, GHOST_kWindowStateMinimized,
-			GHOST_kDrawingContextTypeOpenGL, stereoVisual);
+			GHOST_kDrawingContextTypeOpenGL, stereoVisual, samples);
 		if (!m_mainWindow) {
 			printf("error: could not create main window\n");
 			exit(-1);
@@ -287,9 +288,10 @@ bool GPG_Application::startScreenSaverFullScreen(
 		int height,
 		int bpp,int frequency,
 		const bool stereoVisual,
-		const int stereoMode)
+		const int stereoMode,
+		const GHOST_TUns16 samples)
 {
-	bool ret = startFullScreen(width, height, bpp, frequency, stereoVisual, stereoMode);
+	bool ret = startFullScreen(width, height, bpp, frequency, stereoVisual, stereoMode, samples);
 	if (ret)
 	{
 		HWND ghost_hwnd = findGhostWindowHWND(m_mainWindow);
@@ -311,13 +313,14 @@ bool GPG_Application::startWindow(STR_String& title,
 	int windowWidth,
 	int windowHeight,
 	const bool stereoVisual,
-	const int stereoMode)
+	const int stereoMode,
+	const GHOST_TUns16 samples)
 {
 	bool success;
 	// Create the main window
 	//STR_String title ("Blender Player - GHOST");
 	m_mainWindow = fSystem->createWindow(title, windowLeft, windowTop, windowWidth, windowHeight, GHOST_kWindowStateNormal,
-		GHOST_kDrawingContextTypeOpenGL, stereoVisual);
+		GHOST_kDrawingContextTypeOpenGL, stereoVisual, samples);
 	if (!m_mainWindow) {
 		printf("error: could not create main window\n");
 		exit(-1);
@@ -339,10 +342,13 @@ bool GPG_Application::startWindow(STR_String& title,
 bool GPG_Application::startEmbeddedWindow(STR_String& title,
 	const GHOST_TEmbedderWindowID parentWindow, 
 	const bool stereoVisual, 
-	const int stereoMode) {
-
-	m_mainWindow = fSystem->createWindow(title, 0, 0, 0, 0, GHOST_kWindowStateNormal,
-		GHOST_kDrawingContextTypeOpenGL, stereoVisual, parentWindow);
+	const int stereoMode,
+	const GHOST_TUns16 samples) {
+	GHOST_TWindowState state = GHOST_kWindowStateNormal;
+	if (parentWindow != 0)
+		state = GHOST_kWindowStateEmbedded;
+	m_mainWindow = fSystem->createWindow(title, 0, 0, 0, 0, state,
+		GHOST_kDrawingContextTypeOpenGL, stereoVisual, samples, parentWindow);
 
 	if (!m_mainWindow) {
 		printf("error: could not create main window\n");
@@ -363,7 +369,8 @@ bool GPG_Application::startFullScreen(
 		int height,
 		int bpp,int frequency,
 		const bool stereoVisual,
-		const int stereoMode)
+		const int stereoMode,
+		const GHOST_TUns16 samples)
 {
 	bool success;
 	// Create the main window
