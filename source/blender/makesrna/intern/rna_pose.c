@@ -475,16 +475,13 @@ static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, Repo
 		const short is_ik= ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
 
 		remove_constraint(&pchan->constraints, con);
-
 		ED_object_constraint_update(ob);
-
 		constraints_set_active(&pchan->constraints, NULL);
+		WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, id);
 
 		if (is_ik) {
 			BIK_clear_data(ob->pose);
 		}
-
-		WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, id);
 	}
 }
 
