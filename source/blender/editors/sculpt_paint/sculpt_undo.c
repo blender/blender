@@ -84,6 +84,7 @@ static void sculpt_restore_deformed(SculptSession *ss, SculptUndoNode *unode, in
 static void sculpt_undo_restore(bContext *C, ListBase *lb)
 {
 	Scene *scene = CTX_data_scene(C);
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob = CTX_data_active_object(C);
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, 0);
 	SculptSession *ss = ob->sculpt;
@@ -93,7 +94,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	int *index;
 	int i, j, update= 0;
 
-	sculpt_update_mesh_elements(scene, ob, 0);
+	sculpt_update_mesh_elements(scene, sd, ob, 0);
 
 	for(unode=lb->first; unode; unode=unode->next) {
 		if(!(strcmp(unode->idname, ob->id.name)==0))
@@ -113,7 +114,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 				if (kb) {
 					ob->shapenr= BLI_findindex(&key->block, kb) + 1;
 
-					sculpt_update_mesh_elements(scene, ob, 0);
+					sculpt_update_mesh_elements(scene, sd, ob, 0);
 					WM_event_add_notifier(C, NC_OBJECT|ND_DATA, ob);
 				} else {
 					/* key has been removed -- skip this undo node */

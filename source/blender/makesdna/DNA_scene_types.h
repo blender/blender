@@ -1159,6 +1159,7 @@ typedef enum SculptFlags {
 	SCULPT_LOCK_Z = (1<<5),
 	SCULPT_SYMMETRY_FEATHER = (1<<6),
 	SCULPT_USE_OPENMP = (1<<7),
+	SCULPT_ONLY_DEFORM = (1<<8),
 } SculptFlags;
 
 /* sculpt_paint_settings */

@@ -172,7 +172,7 @@ static int sculpt_has_active_modifiers(Scene *scene, Object *ob)
 }
 
 /* Checks if there are any supported deformation modifiers active */
-int sculpt_modifiers_active(Scene *scene, Object *ob)
+static int sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 {
 	ModifierData *md;
 	Mesh *me= (Mesh*)ob->data;
@@ -189,12 +189,11 @@ int sculpt_modifiers_active(Scene *scene, Object *ob)
 	/* exception for shape keys because we can edit those */
 	for(; md; md= md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
 		if(!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 		if(md->type==eModifierType_ShapeKey) continue;
 
-		if(mti->type==eModifierTypeType_OnlyDeform)
-			return 1;
+		if(mti->type==eModifierTypeType_OnlyDeform) return 1;
+		else if((sd->flags & SCULPT_ONLY_DEFORM)==0) return 1;
 	}
 
 	return 0;
@@ -2705,13 +2704,13 @@ void sculpt_free_deformMats(SculptSession *ss)
 	ss->deform_imats = NULL;
 }
 
-void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
+void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_fmap)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	SculptSession *ss = ob->sculpt;
 	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
 
-	ss->modifiers_active= sculpt_modifiers_active(scene, ob);
+	ss->modifiers_active= sculpt_modifiers_active(scene, sd, ob);
 
 	if(!mmd) ss->kb= ob_get_keyblock(ob);
 	else ss->kb= NULL;
@@ -3256,7 +3255,7 @@ static void sculpt_stroke_modifiers_check(bContext *C, Object *ob)
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(&sd->paint);
 
-		sculpt_update_mesh_elements(CTX_data_scene(C), ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
 	}
 }
 
@@ -3358,7 +3357,7 @@ static int sculpt_brush_stroke_init(bContext *C, ReportList *UNUSED(reports))
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_init_tex(sd, ss);
 
-	sculpt_update_mesh_elements(scene, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+	sculpt_update_mesh_elements(scene, sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
 
 	return 1;
 }
@@ -3685,7 +3684,7 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 {
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-	sculpt_update_mesh_elements(scene, ob, 0);
+	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0);
 }
 
 static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))

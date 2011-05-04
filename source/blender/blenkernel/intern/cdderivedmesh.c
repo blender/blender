@@ -231,19 +231,21 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	   this derivedmesh is just original mesh. it's the multires subsurf dm
 	   that this is actually for, to support a pbvh on a modified mesh */
 	if(!cddm->pbvh && ob->type == OB_MESH) {
+		SculptSession *ss= ob->sculpt;
 		Mesh *me= ob->data;
 		cddm->pbvh = BLI_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 				   me->totface, me->totvert);
 
-		if(ob->sculpt->modifiers_active) {
+		if(ss->modifiers_active && ob->derivedDeform) {
+			DerivedMesh *deformdm= ob->derivedDeform;
 			float (*vertCos)[3];
 			int totvert;
 
-			totvert= dm->getNumVerts(dm);
+			totvert= deformdm->getNumVerts(deformdm);
 			vertCos= MEM_callocN(3*totvert*sizeof(float), "cdDM_getPBVH vertCos");
-			dm->getVertCos(dm, vertCos);
+			deformdm->getVertCos(deformdm, vertCos);
 			BLI_pbvh_apply_vertCos(cddm->pbvh, vertCos);
 			MEM_freeN(vertCos);
 		}

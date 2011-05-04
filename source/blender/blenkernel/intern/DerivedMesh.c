@@ -1772,11 +1772,20 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			modifier_setError(md, "Modifier requires original data, bad stack position.");
 			continue;
 		}
-		if(sculpt_mode && (!has_multires || multires_applied))
-			if(mti->type != eModifierTypeType_OnlyDeform || multires_applied) {
+		if(sculpt_mode && (!has_multires || multires_applied)) {
+			int unsupported= 0;
+
+			if(scene->toolsettings->sculpt->flags & SCULPT_ONLY_DEFORM)
+				unsupported|= mti->type != eModifierTypeType_OnlyDeform;
+
+			unsupported|= md->type == eModifierType_Multires && ((MultiresModifierData*)md)->sculptlvl==0;
+			unsupported|= multires_applied;
+
+			if(unsupported) {
 				modifier_setError(md, "Not supported in sculpt mode.");
 				continue;
 			}
+		}
 		if(needMapping && !modifier_supportsMapping(md)) continue;
 		if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
