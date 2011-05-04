@@ -469,11 +469,13 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 			}
 
 			/* mesh vertex/triangle index is global, not per object, so we sneak
-			   a correct for that in here */
+			   a correction for that in here */
 			if(req.element == ATTR_ELEMENT_VERTEX)
 				req.offset -= mesh->vert_offset;
-			else
+			else if(mattr->element == Attribute::FACE)
 				req.offset -= mesh->tri_offset;
+			else if(mattr->element == Attribute::CORNER)
+				req.offset -= 3*mesh->tri_offset;
 
 			if(progress.get_cancel()) return;
 		}

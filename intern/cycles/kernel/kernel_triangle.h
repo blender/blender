@@ -116,10 +116,10 @@ __device float triangle_attribute_float(KernelGlobals *kg, const ShaderData *sd,
 		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
 	}
 	else if(elem == ATTR_ELEMENT_CORNER) {
-		int tri = offset + sd->prim;
-		float f0 = kernel_tex_fetch(__attributes_float, tri*3 + 0);
-		float f1 = kernel_tex_fetch(__attributes_float, tri*3 + 1);
-		float f2 = kernel_tex_fetch(__attributes_float, tri*3 + 2);
+		int tri = offset + sd->prim*3;
+		float f0 = kernel_tex_fetch(__attributes_float, tri + 0);
+		float f1 = kernel_tex_fetch(__attributes_float, tri + 1);
+		float f2 = kernel_tex_fetch(__attributes_float, tri + 2);
 
 #ifdef __RAY_DIFFERENTIALS__
 		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
@@ -159,10 +159,10 @@ __device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData *s
 		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
 	}
 	else if(elem == ATTR_ELEMENT_CORNER) {
-		int tri = offset + sd->prim;
-		float3 f0 = as_float3(kernel_tex_fetch(__attributes_float3, tri*3 + 0));
-		float3 f1 = as_float3(kernel_tex_fetch(__attributes_float3, tri*3 + 1));
-		float3 f2 = as_float3(kernel_tex_fetch(__attributes_float3, tri*3 + 2));
+		int tri = offset + sd->prim*3;
+		float3 f0 = as_float3(kernel_tex_fetch(__attributes_float3, tri + 0));
+		float3 f1 = as_float3(kernel_tex_fetch(__attributes_float3, tri + 1));
+		float3 f2 = as_float3(kernel_tex_fetch(__attributes_float3, tri + 2));
 
 #ifdef __RAY_DIFFERENTIALS__
 		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
