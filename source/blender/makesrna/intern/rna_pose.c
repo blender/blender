@@ -470,11 +470,22 @@ static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, Repo
 		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in pose bone '%s'.", con->name, pchan->name);
 		return;
 	}
+	else {
+		Object *ob= (Object *)id;
+		const short is_ik= ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
 
-	// TODO
-	//ED_object_constraint_set_active(id, NULL);
-	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, id);
-	remove_constraint(&pchan->constraints, con);
+		remove_constraint(&pchan->constraints, con);
+
+		ED_object_constraint_update(ob);
+
+		constraints_set_active(&pchan->constraints, NULL);
+
+		if (is_ik) {
+			BIK_clear_data(ob->pose);
+		}
+
+		WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, id);
+	}
 }
 
 static int rna_PoseChannel_proxy_editable(PointerRNA *ptr)
