@@ -71,6 +71,12 @@ SET(headers
 
 # CUDA module
 
+IF("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+	SET(CUDA_BITS 64)
+ELSE()
+	SET(CUDA_BITS 32)
+ENDIF()
+
 IF(WITH_CYCLES_CUDA)
 	SET(cuda_sources kernel.cu ${headers})
 	SET(cuda_cubins)
@@ -80,7 +86,7 @@ IF(WITH_CYCLES_CUDA)
 
 		ADD_CUSTOM_COMMAND(
 			OUTPUT ${cuda_cubin}
-			COMMAND ${CUDA_NVCC} -arch=${arch} -m64 --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu --use_fast_math -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} --ptxas-options="-v" --maxrregcount=${CYCLES_CUDA_MAXREG} --opencc-options -OPT:Olimit=0 -I${CMAKE_CURRENT_SOURCE_DIR}/../util -I${CMAKE_CURRENT_SOURCE_DIR}/svm -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END=
+			COMMAND ${CUDA_NVCC} -arch=${arch} -m${CUDA_BITS} --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu --use_fast_math -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} --ptxas-options="-v" --maxrregcount=${CYCLES_CUDA_MAXREG} --opencc-options -OPT:Olimit=0 -I${CMAKE_CURRENT_SOURCE_DIR}/../util -I${CMAKE_CURRENT_SOURCE_DIR}/svm -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC
 			DEPENDS ${cuda_sources})
 
 		INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/lib)

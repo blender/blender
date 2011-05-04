@@ -48,8 +48,12 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef _WIN32
 
+#ifndef __KERNEL_GPU__
+
 #define copysignf(x, y) ((float)_copysign(x, y))
 #define hypotf(x, y) _hypotf(x, y)
+
+#endif
 
 __device_inline float fmaxf(float a, float b)
 {
