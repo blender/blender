@@ -896,10 +896,19 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 {
 	PaintStroke *stroke = op->customdata;
 
+	/* only when executed for the first time */
+	if(stroke->stroke_started == 0) {
+		/* XXX stroke->last_mouse_position is unset, this may cause problems */
+		stroke->test_start(C, op, NULL);
+		stroke->stroke_started= 1;
+	}
+
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		stroke->update_step(C, stroke, &itemptr);
 	}
 	RNA_END;
+
+	stroke->done(C, stroke);
 
 	MEM_freeN(stroke);
 	op->customdata = NULL;

@@ -3462,8 +3462,9 @@ static int over_mesh(bContext *C, struct wmOperator *op, float x, float y)
 static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
 					wmEvent *event)
 {
-	/* Don't start the stroke until mouse goes over the mesh */
-	if(over_mesh(C, op, event->x, event->y)) {
+	/* Don't start the stroke until mouse goes over the mesh.
+	 * note: event will only be null when re-executing the saved stroke. */
+	if(event==NULL || over_mesh(C, op, event->x, event->y)) {
 		Object *ob = CTX_data_active_object(C);
 		SculptSession *ss = ob->sculpt;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -3604,21 +3605,14 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 
 static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
-	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	SculptSession *ss = CTX_data_active_object(C)->sculpt;
-
 	if(!sculpt_brush_stroke_init(C, op->reports))
 		return OPERATOR_CANCELLED;
 
 	op->customdata = paint_stroke_new(C, sculpt_stroke_get_location, sculpt_stroke_test_start,
 					  sculpt_stroke_update_step, sculpt_stroke_done, 0);
 
-	sculpt_update_cache_invariants(C, sd, ss, op, NULL);
-
+	/* frees op->customdata */
 	paint_stroke_exec(C, op);
-
-	sculpt_flush_update(C);
-	sculpt_cache_free(ss->cache);
 
 	return OPERATOR_FINISHED;
 }
