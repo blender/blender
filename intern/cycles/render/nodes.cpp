@@ -1251,7 +1251,7 @@ GeometryNode::GeometryNode()
 	add_output("Tangent", SHADER_SOCKET_NORMAL);
 	add_output("True Normal", SHADER_SOCKET_NORMAL);
 	add_output("Incoming", SHADER_SOCKET_VECTOR);
-	add_output("UV", SHADER_SOCKET_POINT);
+	add_output("Parametric", SHADER_SOCKET_POINT);
 	add_output("Backfacing", SHADER_SOCKET_FLOAT);
 }
 
@@ -1295,7 +1295,7 @@ void GeometryNode::compile(SVMCompiler& compiler)
 		compiler.add_node(geom_node, NODE_GEOM_I, out->stack_offset);
 	}
 
-	out = output("UV");
+	out = output("Parametric");
 	if(!out->links.empty()) {
 		compiler.stack_assign(out);
 		compiler.add_node(geom_node, NODE_GEOM_uv, out->stack_offset);

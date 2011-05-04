@@ -27,7 +27,7 @@ shader node_geometry(
 	output normal Tangent = normal(0.0, 0.0, 0.0),
 	output normal TrueNormal = normal(0.0, 0.0, 0.0),
 	output vector Incoming = vector(0.0, 0.0, 0.0),
-	output point UV = point(0.0, 0.0, 0.0),
+	output point Parametric = point(0.0, 0.0, 0.0),
 	output float Backfacing = 0.0)
 {
 	Position = P;
@@ -35,16 +35,16 @@ shader node_geometry(
 	Tangent = normalize(dPdu);
 	TrueNormal = Ng;
 	Incoming = I;
-	UV = point(u, v, 0.0);
+	Parametric = point(u, v, 0.0);
 	Backfacing = backfacing();
 
 	if(bump_offset == "dx") {
 		Position += Dx(Position);
-		UV += Dx(UV);
+		Parametric += Dx(Parametric);
 	}
 	else if(bump_offset == "dy") {
 		Position += Dy(Position);
-		UV += Dy(UV);
+		Parametric += Dy(Parametric);
 	}
 }
 
