@@ -2725,7 +2725,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 
 		glEnable(GL_TEXTURE_2D);
 		glBegin(GL_QUADS);
-		glColor4f(rc->tex_col[0], rc->tex_col[1], rc->tex_col[2], rc->tex_col[3]);
+		glColor4fv(rc->tex_col);
 		glTexCoord2f(0,0);
 		glVertex2f(-r3, -r3);
 		glTexCoord2f(1,0);
@@ -2739,7 +2739,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	}
 
 	if(rc->mode == WM_RADIALCONTROL_ANGLE) {
-		glColor4f(rc->col[0], rc->col[1], rc->col[2], rc->col[3]);
+		glColor4fv(rc->col);
 		glEnable(GL_LINE_SMOOTH);
 		glRotatef(-angle, 0, 0, 1);
 		fdrawline(0.0f, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
@@ -2748,7 +2748,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 		glDisable(GL_LINE_SMOOTH);
 	}
 
-	glColor4f(rc->col[0], rc->col[1], rc->col[2], rc->col[3]);
+	glColor4fv(rc->col);
 	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r1, 40);
 	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r2, 40);
 	glDisable(GL_BLEND);
