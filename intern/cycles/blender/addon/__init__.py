@@ -48,6 +48,7 @@ class CyclesRender(bpy.types.RenderEngine):
 		engine.free(self)
 
 	def render(self, scene):
+		scene.frame_set(scene.frame_current) # should this be done already?
 		engine.create(self, scene, True)
 		engine.render(self, scene)
 
