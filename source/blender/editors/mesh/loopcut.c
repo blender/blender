@@ -100,7 +100,6 @@ typedef struct tringselOpData {
 
 	int extend;
 	int do_cut;
-	wmTimer *timer;
 } tringselOpData;
 
 /* modal loop selection drawing callback */
@@ -316,12 +315,9 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 }
 
 /* called when modal loop selection is done... */
-static void ringsel_exit(bContext *C, wmOperator *op)
+static void ringsel_exit(wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
-
-	if (lcd->timer)
-		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), lcd->timer);
 
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(lcd->ar->type, lcd->draw_handle);
@@ -358,10 +354,10 @@ static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
 	return 1;
 }
 
-static int ringcut_cancel (bContext *C, wmOperator *op)
+static int ringcut_cancel (bContext *UNUSED(C), wmOperator *op)
 {
 	/* this is just a wrapper around exit() */
-	ringsel_exit(C, op);
+	ringsel_exit(op);
 	return OPERATOR_CANCELLED;
 }
 
@@ -379,7 +375,7 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	lcd = op->customdata;
 	
 	if (lcd->em->selectmode == SCE_SELECT_FACE) {
-		ringsel_exit(C, op);
+		ringsel_exit(op);
 		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, NULL);
 		return OPERATOR_CANCELLED;
 	}
@@ -389,7 +385,7 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	
 	edge = findnearestedge(&lcd->vc, &dist);
 	if(!edge) {
-		ringsel_exit(C, op);
+		ringsel_exit(op);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -397,7 +393,7 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	ringsel_find_edge(lcd, 1);
 
 	ringsel_finish(C, op);
-	ringsel_exit(C, op);
+	ringsel_exit(op);
 
 	return OPERATOR_FINISHED;
 }
@@ -408,11 +404,7 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	tringselOpData *lcd;
 	EditEdge *edge;
 	int dist = 75;
-	
-	/*if we're in the cut-n-slide macro, set release_confirm based on user pref*/
-	if (op->opm)
-		RNA_boolean_set(op->next->ptr, "release_confirm", U.loopcut_finish_on_release);
-	
+
 	if(modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
 		BKE_report(op->reports, RPT_WARNING, "Loop cut doesn't work well on deformed edit mesh display");
 	
@@ -445,34 +437,22 @@ static int ringcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 	view3d_operator_needs_opengl(C);
 
+
 	switch (event->type) {
 		case LEFTMOUSE: /* confirm */ // XXX hardcoded
-			if (event->val == KM_RELEASE) {
+			if (event->val == KM_PRESS) {
 				/* finish */
 				ED_region_tag_redraw(lcd->ar);
 				
 				ringsel_finish(C, op);
-				ringsel_exit(C, op);
+				ringsel_exit(op);
 				ED_area_headerprint(CTX_wm_area(C), NULL);
 				
-				return OPERATOR_FINISHED|OPERATOR_ABORT_MACRO;
-			}else {
-				lcd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER2, 0.12);
+				return OPERATOR_FINISHED;
 			}
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
-			
-		case TIMER2: 
-			/* finish */
-			ED_region_tag_redraw(lcd->ar);
-			
-			ringsel_finish(C, op);
-			ringsel_exit(C, op);
-			
-			ED_area_headerprint(CTX_wm_area(C), NULL);
-
-			return OPERATOR_FINISHED;
 		case RIGHTMOUSE: /* abort */ // XXX hardcoded
 		case ESCKEY:
 			if (event->val == KM_RELEASE) {

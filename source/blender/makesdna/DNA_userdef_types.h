@@ -383,13 +383,13 @@ typedef struct UserDef {
 	short autokey_mode;		/* autokeying mode */
 	short autokey_flag;		/* flags for autokeying */
 	
-	short text_render, dsm_maxmem;		/*options for text rendering*/
+	short text_render, pad9;		/*options for text rendering*/
 	float pad10;
 
 	struct ColorBand coba_weight;	/* from texture.h */
 
 	float sculpt_paint_overlay_col[3];
-	int loopcut_finish_on_release;
+	int pad3;
 
 	char author[80];	/* author name for file formats supporting it */
 } UserDef;
