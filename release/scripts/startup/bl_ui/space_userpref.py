@@ -1106,7 +1106,8 @@ class WM_OT_addon_install(bpy.types.Operator):
         del pyfile_dir
         # done checking for exceptional case
 
-        contents = set(os.listdir(path_addons))
+        addon_files_old = set(os.listdir(path_addons))
+        addons_old = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)}
 
         #check to see if the file is in compressed format (.zip)
         if zipfile.is_zipfile(pyfile):
@@ -1155,11 +1156,13 @@ class WM_OT_addon_install(bpy.types.Operator):
                 traceback.print_exc()
                 return {'CANCELLED'}
 
+        addons_new = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)} - addons_old
+        addons_new.discard("modules")
+
         # disable any addons we may have enabled previously and removed.
         # this is unlikely but do just incase. bug [#23978]
-        addons_new = set(os.listdir(path_addons)) - contents
         for new_addon in addons_new:
-            addon_utils.disable(os.path.splitext(new_addon)[0])
+            addon_utils.disable(new_addon)
 
         # possible the zip contains multiple addons, we could disallow this
         # but for now just use the first
@@ -1171,6 +1174,9 @@ class WM_OT_addon_install(bpy.types.Operator):
                 context.window_manager.addon_filter = 'All'
                 context.window_manager.addon_search = info["name"]
                 break
+
+        # incase a new module path was created to install this addon.
+        bpy.utils.refresh_script_paths()
 
         # TODO, should not be a warning.
         # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)

@@ -33,6 +33,7 @@ import sys as _sys
 
 import addon_utils as _addon_utils
 
+_script_module_dirs = "startup", "modules"
 
 def _test_import(module_name, loaded_modules):
     use_time = _bpy.app.debug
@@ -183,7 +184,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         _global_loaded_modules[:] = []
 
     for base_path in script_paths():
-        for path_subdir in ("startup", "modules"):
+        for path_subdir in _script_module_dirs:
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 _sys_path_ensure(path)
@@ -260,7 +261,7 @@ def script_paths(subdir=None, user_pref=True, all=False):
             if path not in scripts and _os.path.isdir(path):
                 scripts.append(path)
 
-    if not subdir:
+    if subdir is None:
         return scripts
 
     script_paths = []
@@ -270,6 +271,24 @@ def script_paths(subdir=None, user_pref=True, all=False):
             script_paths.append(path_subdir)
 
     return script_paths
+
+
+def refresh_script_paths():
+    """
+    Run this after creating new script paths to update sys.path
+    """
+
+    for base_path in script_paths():
+        for path_subdir in _script_module_dirs:
+            path = _os.path.join(base_path, path_subdir)
+            if _os.path.isdir(path):
+                _sys_path_ensure(path)
+
+    for path in _addon_utils.paths():
+        _sys_path_ensure(path)
+        path = _os.path.join(path, "modules")
+        if _os.path.isdir(path):
+            _sys_path_ensure(path)
 
 
 _presets = _os.path.join(_scripts[0], "presets")  # FIXME - multiple paths
