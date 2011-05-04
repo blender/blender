@@ -313,7 +313,7 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 	scene->lay= ED_view3d_scene_layer_set(scene->lay, values, &scene->layact);
 }
 
-static void rna_Scene_view3d_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_Scene_view3d_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->data;
 
@@ -740,14 +740,14 @@ static int rna_RenderSettings_engine_get(PointerRNA *ptr)
 	return 0;
 }
 
-static void rna_Scene_glsl_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_Scene_glsl_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
 	DAG_id_tag_update(&scene->id, 0);
 }
 
-static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	/* reset image nodes */
 	Scene *scene= (Scene*)ptr->id.data;
@@ -769,7 +769,7 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unuse
 		}
 	}
 
-	rna_Scene_glsl_update(bmain, unused, ptr);
+	rna_Scene_glsl_update(bmain, scene, ptr);
 }
 
 static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
@@ -815,7 +815,7 @@ static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 	rl->lay= ED_view3d_scene_layer_set(rl->lay, values, NULL);
 }
 
-static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
@@ -832,7 +832,7 @@ static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_composit_default(scene);
 }
 
-static void rna_Physics_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_Physics_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 	Base *base;

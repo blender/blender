@@ -3518,13 +3518,11 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 		ntreeEndExecTree(mtex->tex->nodetree);
 }
 
-static void sculpt_stroke_done(bContext *C, struct PaintStroke *unused)
+static void sculpt_stroke_done(bContext *C, struct PaintStroke *UNUSED(stroke))
 {
 	Object *ob= CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-
-	(void)unused;
 
 	// reset values used to draw brush after completing the stroke
 	sd->draw_anchored= 0;
@@ -3655,11 +3653,9 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/
 
-static int sculpt_set_persistent_base(bContext *C, wmOperator *unused)
+static int sculpt_set_persistent_base(bContext *C, wmOperator *UNUSED(op))
 {
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
-
-	(void)unused;
 
 	if(ss) {
 		if(ss->layer_co)
@@ -3692,15 +3688,13 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 	sculpt_update_mesh_elements(scene, ob, 0);
 }
 
-static int sculpt_toggle_mode(bContext *C, wmOperator *unused)
+static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
 	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
 	int flush_recalc= 0;
-
-	(void)unused;
 
 	/* multires in sculpt mode could have different from object mode subdivision level */
 	flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;
