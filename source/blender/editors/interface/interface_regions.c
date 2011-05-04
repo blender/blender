@@ -485,18 +485,17 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->fstyle.align= UI_STYLE_TEXT_CENTER;
 	uiStyleFontSet(&data->fstyle);
 
-	/* clipping is very strict & gives problems in some cases [#27218]
-	 * use the tallest line height. */
-	h= 0;
-	for(a=0; a<data->totline; a++) {
-		int h_tmp= BLF_height(data->fstyle.uifont_id, data->lines[a]);
-		h= MAX2(h, h_tmp);
-	}
+	/* these defines may need to be tweaked depending on font */
+#define TIP_MARGIN_Y 2
+#define TIP_BORDER_X 16.0f
+#define TIP_BORDER_Y 6.0f
+
+	h= BLF_height_max(data->fstyle.uifont_id);
 
 	for(a=0, fontw=0, fonth=0; a<data->totline; a++) {
 		w= BLF_width(data->fstyle.uifont_id, data->lines[a]);
 		fontw= MAX2(fontw, w);
-		fonth += (a == 0)? h: h+5;
+		fonth += (a == 0)? h: h+TIP_MARGIN_Y;
 	}
 
 	fontw *= aspect;
@@ -505,17 +504,22 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	data->toth= fonth;
 	data->lineh= h;
-	data->spaceh= 5;
+	data->spaceh= TIP_MARGIN_Y;
+
 
 	/* compute position */
 	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
 	ofsy= (but->block->panel)? but->block->panel->ofsy: 0;
 
-	x1f= (but->x1+but->x2)/2.0f + ofsx - 16.0f*aspect;
-	x2f= x1f + fontw + 16.0f*aspect;
-	y2f= but->y1 + ofsy - 15.0f*aspect;
-	y1f= y2f - fonth*aspect - 15.0f*aspect;
+	x1f= (but->x1 + but->x2) * 0.5f + ofsx - (TIP_BORDER_X * aspect);
+	x2f= x1f + fontw + (TIP_BORDER_X * aspect);
+	y2f= but->y1 + ofsy - (TIP_BORDER_Y * aspect);
+	y1f= y2f - fonth*aspect - (TIP_BORDER_Y * aspect);
 	
+#undef TIP_MARGIN_Y
+#undef TIP_BORDER_X
+#undef TIP_BORDER_Y
+
 	/* copy to int, gets projected if possible too */
 	x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
 	

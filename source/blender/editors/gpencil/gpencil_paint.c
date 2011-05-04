@@ -1144,15 +1144,8 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 		switch (p->sa->spacetype) {
 			case SPACE_VIEW3D:
 			{
-				View3D *v3d= p->sa->spacedata.first;
 				RegionView3D *rv3d= p->ar->regiondata;
 				float rvec[3];
-				
-				/* for camera view set the subrect */
-				if (rv3d->persp == RV3D_CAMOB) {
-					view3d_calc_camera_border(p->scene, p->ar, NULL, v3d, &p->subrect_data, -1); /* negative shift */
-					p->subrect= &p->subrect_data;
-				}
 				
 				/* get reference point for 3d space placement */
 				gp_get_3d_reference(p, rvec);

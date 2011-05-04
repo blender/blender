@@ -1011,7 +1011,10 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	int x, y, y_ofs;
 	float h_fixed;
 	const int mono= blf_mono_font_render; // XXX
-	
+
+#define BUFF_MARGIN_X 2
+#define BUFF_MARGIN_Y 1
+
 	if (!rect && !rectf)
 		return;
 	
@@ -1026,23 +1029,11 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	
 	BLF_buffer(mono, rectf, rect, width, height, channels);
 	BLF_buffer_col(mono, scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
-	pad= BLF_width(mono, "--");
+	pad= BLF_width_max(mono);
 
 	/* use 'h_fixed' rather then 'h', aligns better */
-	// BLF_width_and_height(mono, "^|/_AgPpJjlYy", &w, &h_fixed);
-	{
-		rctf box;
-		float baseline;
-		BLF_boundbox(mono, "^|/_AgPpJjlYy", &box);
-		h_fixed= box.ymax - box.ymin;
-		
-		/* crude way to get the decent line from A->j*/
-		BLF_boundbox(mono, "A", &box);
-		baseline= box.ymin;
-		BLF_boundbox(mono, "j", &box);
-		y_ofs = (int)(baseline - box.ymin);
-		if(y_ofs < 0) y_ofs= 0; /* should never happen */
-	}
+	h_fixed= BLF_height_max(mono);
+	y_ofs = -BLF_descender(mono);
 
 	x= 0;
 	y= height;
@@ -1053,14 +1044,14 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* also a little of space to the background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y-3, w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and draw the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.file);
 
 		/* the extra pixel for background. */
-		y -= 5;
+		y -= BUFF_MARGIN_Y * 2;
 	}
 
 	/* Top left corner, below File */
@@ -1069,13 +1060,13 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-3, w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.note);
 
 		/* the extra pixel for background. */
-		y -= 5;
+		y -= BUFF_MARGIN_Y * 2;
 	}
 	
 	/* Top left corner, below File (or Note) */
@@ -1084,13 +1075,13 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-3, w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.date);
 
 		/* the extra pixel for background. */
-		y -= 5;
+		y -= BUFF_MARGIN_Y * 2;
 	}
 
 	/* Top left corner, below File, Date or Note */
@@ -1099,7 +1090,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-3, w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.rendertime);
@@ -1113,7 +1104,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.marker, &w, &h); h= h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1128,7 +1119,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.time, &w, &h); h= h_fixed;
 
 		/* extra space for background */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1142,7 +1133,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.frame, &w, &h); h= h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1156,7 +1147,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.camera, &w, &h); h= h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.camera);
 
@@ -1168,7 +1159,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.cameralens, &w, &h); h= h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.cameralens);
 	}
@@ -1180,7 +1171,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		x= width - w - 2;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and pad the text. */
 		BLF_position(mono, x, y+y_ofs, 0.0);
@@ -1195,7 +1186,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y= height - h;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y-3, x+w+pad, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.strip);
@@ -1203,6 +1194,9 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 
 	/* cleanup the buffer. */
 	BLF_buffer(mono, NULL, NULL, 0, 0, 0);
+
+#undef BUFF_MARGIN_X
+#undef BUFF_MARGIN_Y
 }
 
 void BKE_stamp_info(Scene *scene, Object *camera, struct ImBuf *ibuf)
