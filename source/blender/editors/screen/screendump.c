@@ -182,6 +182,8 @@ static int screenshot_cancel(bContext *UNUSED(C), wmOperator *op)
 
 void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	ot->name= "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
 	ot->idname= "SCREEN_OT_screenshot";
 	
@@ -193,7 +195,8 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	ot->flag= 0;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);
-	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
+	prop= RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN); /* hide because once the file sel is displayed, the option no longer does anything */
 }
 
 /* *************** screenshot movie job ************************* */
