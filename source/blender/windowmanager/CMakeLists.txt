@@ -43,6 +43,7 @@ set(INC
 	../../../intern/elbeem/extern
 	../../../intern/ghost
 	../../../intern/opennl/extern
+	${ZLIB_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 	${GLEW_INCLUDE_PATH}
 )
