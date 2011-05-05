@@ -35,6 +35,7 @@
 
 #include "rna_internal.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 #include "BKE_utildefines.h"

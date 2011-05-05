@@ -70,12 +70,9 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#ifdef WITH_PYTHON
-#include "BPY_extern.h"
-#endif
-
 #include "intern/openexr/openexr_multi.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 /* internal */
@@ -216,7 +213,7 @@ void RE_FreeRenderResult(RenderResult *res)
 }
 
 /* version that's compatible with fullsample buffers */
-static void free_render_result(ListBase *lb, RenderResult *rr)
+void free_render_result(ListBase *lb, RenderResult *rr)
 {
 	RenderResult *rrnext;
 	
@@ -539,12 +536,11 @@ RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
 	return NULL;
 }
 
-#define RR_USEMEM	0
 /* called by main render as well for parts */
 /* will read info from Render *re to define layers */
 /* called in threads */
 /* re->winx,winy is coordinate space of entire image, partrct the part within */
-static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int savebuffers)
+RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int savebuffers)
 {
 	RenderResult *rr;
 	RenderLayer *rl;
@@ -721,7 +717,7 @@ static void do_merge_tile(RenderResult *rr, RenderResult *rrpart, float *target,
 /* used when rendering to a full buffer, or when reading the exr part-layer-pass file */
 /* no test happens here if it fits... we also assume layers are in sync */
 /* is used within threads */
-static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
+void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 {
 	RenderLayer *rl, *rlp;
 	RenderPass *rpass, *rpassp;
@@ -1799,12 +1795,10 @@ void RE_TileProcessor(Render *re)
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
-static int external_render_3d(Render *re, int do_all);
-
 static void do_render_3d(Render *re)
 {
 	/* try external */
-	if(external_render_3d(re, 0))
+	if(RE_engine_render(re, 0))
 		return;
 
 	/* internal */
@@ -2632,7 +2626,7 @@ static void do_render_all_options(Render *re)
 	/* ensure no images are in memory from previous animated sequences */
 	BKE_image_all_free_anim_ibufs(re->r.cfra);
 
-	if(external_render_3d(re, 1)) {
+	if(RE_engine_render(re, 1)) {
 		/* in this case external render overrides all */
 	}
 	else if(seq_render_active(re)) {
@@ -3223,110 +3217,6 @@ void RE_init_threadcount(Render *re)
 	}
 }
 
-/************************** External Engines ***************************/
-
-RenderEngine *RE_engine_create(RenderEngineType *type)
-{
-	RenderEngine *engine = MEM_callocN(sizeof(RenderEngine), "RenderEngine");
-	engine->type= type;
-
-	return engine;
-}
-
-void RE_engine_free(RenderEngine *engine)
-{
-#ifdef WITH_PYTHON
-	if(engine->py_instance) {
-		/* do this first incase there are any __del__ functions or
-		 * similar that use properties */
-		BPY_DECREF(engine->py_instance);
-	}
-#endif
-
-	MEM_freeN(engine);
-}
-
-RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h)
-{
-	Render *re= engine->re;
-	RenderResult *result;
-	rcti disprect;
-
-	/* ensure the coordinates are within the right limits */
-	CLAMP(x, 0, re->result->rectx);
-	CLAMP(y, 0, re->result->recty);
-	CLAMP(w, 0, re->result->rectx);
-	CLAMP(h, 0, re->result->recty);
-
-	if(x + w > re->result->rectx)
-		w= re->result->rectx - x;
-	if(y + h > re->result->recty)
-		h= re->result->recty - y;
-
-	/* allocate a render result */
-	disprect.xmin= x;
-	disprect.xmax= x+w;
-	disprect.ymin= y;
-	disprect.ymax= y+h;
-
-	result= new_render_result(re, &disprect, 0, RR_USEMEM);
-	BLI_addtail(&engine->fullresult, result);
-
-	return result;
-}
-
-void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
-{
-	Render *re= engine->re;
-
-	if(result && render_display_draw_enabled(re)) {
-		result->renlay= result->layers.first; // weak
-		re->display_draw(re->ddh, result, NULL);
-	}
-}
-
-void RE_engine_end_result(RenderEngine *engine, RenderResult *result)
-{
-	Render *re= engine->re;
-
-	if(!result)
-		return;
-
-	/* merge */
-	if(render_display_draw_enabled(re)) {
-		/* on break, don't merge in result for preview renders, looks nicer */
-		if(re->test_break(re->tbh) && (re->r.scemode & R_PREVIEWBUTS));
-		else merge_render_result(re->result, result);
-	}
-
-	/* draw */
-	if(!re->test_break(re->tbh) && render_display_draw_enabled(re)) {
-		result->renlay= result->layers.first; // weak
-		re->display_draw(re->ddh, result, NULL);
-	}
-
-	/* free */
-	free_render_result(&engine->fullresult, result);
-}
-
-int RE_engine_test_break(RenderEngine *engine)
-{
-	Render *re= engine->re;
-
-	return re->test_break(re->tbh);
-}
-
-void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info)
-{
-	Render *re= engine->re;
-
-	re->i.statstr= stats;
-	re->i.infostr= info;
-	re->stats_draw(re->sdh, &re->i);
-	re->i.infostr= NULL;
-	re->i.statstr= NULL;
-}
-
 /* loads in image into a result, size must match
  * x/y offsets are only used on a partial copy when dimensions dont match */
 void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
@@ -3389,40 +3279,4 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
 #endif
 }
 
-static int external_render_3d(Render *re, int do_all)
-{
-	RenderEngineType *type= BLI_findstring(&R_engines, re->r.engine, offsetof(RenderEngineType, idname));
-	RenderEngine *engine;
-
-	if(!(type && type->render))
-		return 0;
-	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_DO_PREVIEW))
-		return 0;
-	if(do_all && !(type->flag & RE_DO_ALL))
-		return 0;
-	if(!do_all && (type->flag & RE_DO_ALL))
-		return 0;
-
-	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
-		RE_FreeRenderResult(re->result);
-		re->result= new_render_result(re, &re->disprect, 0, 0);
-	}
-	BLI_rw_mutex_unlock(&re->resultmutex);
-	
-	if(re->result==NULL)
-		return 1;
-
-	/* external */
-	engine = RE_engine_create(type);
-	engine->re= re;
-
-	type->render(engine, re->scene);
-
-	free_render_result(&engine->fullresult, engine->fullresult.first);
-
-	RE_engine_free(engine);
-
-	return 1;
-}
 

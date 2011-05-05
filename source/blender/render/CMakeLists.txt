@@ -77,7 +77,9 @@ set(SRC
 	intern/source/volumetric.c
 	intern/source/voxeldata.c
 	intern/source/zbuf.c
+	intern/pipeline/engine.c
 
+	extern/include/RE_engine.h
 	extern/include/RE_pipeline.h
 	extern/include/RE_render_ext.h
 	extern/include/RE_shader_ext.h

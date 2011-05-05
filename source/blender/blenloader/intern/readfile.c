@@ -139,7 +139,7 @@
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
 
-#include "RE_pipeline.h"
+#include "RE_engine.h"
 
 #include "readfile.h"
 

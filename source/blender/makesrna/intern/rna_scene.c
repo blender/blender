@@ -41,6 +41,7 @@
 #include "DNA_userdef_types.h"
 
 /* Include for Bake Options */
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 #ifdef WITH_QUICKTIME

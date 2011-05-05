@@ -58,7 +58,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "RE_pipeline.h"
+#include "RE_engine.h"
 
 #include "RNA_access.h"
 

@@ -57,7 +57,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
-#include "RE_pipeline.h"
+#include "RE_engine.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

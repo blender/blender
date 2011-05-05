@@ -63,6 +63,7 @@
 #include "BKE_scene.h"
 #include "BKE_unit.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"	// make_stars
 
 #include "IMB_imbuf_types.h"

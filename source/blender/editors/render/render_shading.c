@@ -238,7 +238,7 @@ static void scene_changed(Main *bmain, Scene *UNUSED(scene))
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "RE_pipeline.h"
+#include "RE_engine.h"
 
 static void update_render_engines(Main *bmain, int tagged_only)
 {
