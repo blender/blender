@@ -272,7 +272,7 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 static char *view3d_modeselect_pup(Scene *scene)
 {
 	Object *ob= OBACT;
-	static char string[1024];
+	static char string[256];
 	static char formatstr[] = "|%s %%x%d %%i%d";
 	char *str = string;
 
@@ -465,6 +465,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	uiLayout *row;
+	const float dpi_fac= UI_DPI_FAC;
 	
 	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
@@ -484,7 +485,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 	uiBlockBeginAlign(block);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 
-			  0,0,126,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode");
+			  0,0,126 * dpi_fac,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode");
 	uiBlockEndAlign(block);
 	
 	/* Draw type */
@@ -531,7 +532,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 			
 		str_menu = BIF_menustringTransformOrientation(C, "Orientation");
-		uiDefButS(block, MENU, B_MAN_MODE, str_menu,0,0,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation");
+		uiDefButS(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation");
 		MEM_freeN((void *)str_menu);
 	}
 

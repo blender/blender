@@ -593,6 +593,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiLayout *row;
 	uiBut *but;
+	const float dpi_fac= UI_DPI_FAC;
 	
 	row= uiLayoutRow(layout, 1);
 
@@ -609,7 +610,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Layer");
 	uiButSetFunc(but, image_multi_inclay_cb, rr, iuser);
 
-	uiblock_layer_pass_buttons(row, rr, iuser, 230, render_slot);
+	uiblock_layer_pass_buttons(row, rr, iuser, 230 * dpi_fac, render_slot);
 
 	/* decrease, increase arrows */
 	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Pass");
@@ -841,8 +842,9 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 	/* render layers and passes */
 	if(ima && iuser) {
+		const float dpi_fac= UI_DPI_FAC;
 		rr= BKE_image_acquire_renderresult(scene, ima);
-		uiblock_layer_pass_buttons(layout, rr, iuser, 160, (ima->type==IMA_TYPE_R_RESULT)? &ima->render_slot: NULL);
+		uiblock_layer_pass_buttons(layout, rr, iuser, 160 * dpi_fac, (ima->type==IMA_TYPE_R_RESULT)? &ima->render_slot: NULL);
 		BKE_image_release_renderresult(scene, ima);
 	}
 }
