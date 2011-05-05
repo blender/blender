@@ -810,7 +810,9 @@ def pyrna2sphinx(BASEPATH):
 
     # operators
     def write_ops():
-        API_BASEURL = "https://svn.blender.org/svnroot/bf-blender/trunk/blender/release/scripts"
+        API_BASEURL = "http://svn.blender.org/svnroot/bf-blender/trunk/blender/release/scripts"
+        API_BASEURL_ADDON = "http://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts"
+        API_BASEURL_ADDON_CONTRIB = "http://svn.blender.org/svnroot/bf-extensions/contrib/py/scripts"
 
         op_modules = {}
         for op in ops.values():
@@ -849,7 +851,14 @@ def pyrna2sphinx(BASEPATH):
 
                 location = op.get_location()
                 if location != (None, None):
-                    fw("   :file: `%s <%s/%s>`_:%d\n\n" % (location[0], API_BASEURL, location[0], location[1]))
+                    if location[0].startswith("addons_contrib" + os.sep):
+                        url_base = API_BASEURL_ADDON_CONTRIB
+                    elif location[0].startswith("addons" + os.sep):
+                        url_base = API_BASEURL_ADDON
+                    else:
+                        url_base = API_BASEURL
+
+                    fw("   :file: `%s <%s/%s>`_:%d\n\n" % (location[0], url_base, location[0], location[1]))
 
             file.close()
 
