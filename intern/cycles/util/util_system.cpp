@@ -60,7 +60,18 @@ int system_cpu_thread_count()
 #ifndef _WIN32
 static void __cpuid(int data[4], int selector)
 {
+#ifdef __x86_64__
 	asm("cpuid" : "=a" (data[0]), "=b" (data[1]), "=c" (data[2]), "=d" (data[3]) : "a"(selector));
+#else
+#ifdef __i386__
+	asm("pushl %%ebx    \n\t"
+		"cpuid          \n\t"
+		"movl %%ebx, %1 \n\t"
+		"popl %%ebx     \n\t" : "=a" (data[0]), "=r" (data[1]), "=c" (data[2]), "=d" (data[3]) : "a"(selector));
+#else
+	data[0] = data[1] = data[2] = data[3] = 0;
+#endif
+#endif
 }
 #endif
 

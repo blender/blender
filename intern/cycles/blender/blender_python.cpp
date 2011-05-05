@@ -41,34 +41,34 @@ static PyObject *init_func(PyObject *self, PyObject *args)
 
 static PyObject *create_func(PyObject *self, PyObject *args)
 {
-	Py_ssize_t pyengine, pydata, pyscene, pyregion, pyv3d, pyrv3d;
+	PyObject *pyengine, *pydata, *pyscene, *pyregion, *pyv3d, *pyrv3d;
 
-	if(!PyArg_ParseTuple(args, "nnnnnn", &pyengine, &pydata, &pyscene, &pyregion, &pyv3d, &pyrv3d))
+	if(!PyArg_ParseTuple(args, "OOOOOO", &pyengine, &pydata, &pyscene, &pyregion, &pyv3d, &pyrv3d))
 		return NULL;
 
 	/* RNA */
 	PointerRNA engineptr;
-	RNA_pointer_create(NULL, &RNA_RenderEngine, (void*)pyengine, &engineptr);
+	RNA_pointer_create(NULL, &RNA_RenderEngine, (void*)PyLong_AsVoidPtr(pyengine), &engineptr);
 	BL::RenderEngine engine(engineptr);
 
 	PointerRNA dataptr;
-	RNA_id_pointer_create((ID*)pydata, &dataptr);
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pydata), &dataptr);
 	BL::BlendData data(dataptr);
 
 	PointerRNA sceneptr;
-	RNA_id_pointer_create((ID*)pyscene, &sceneptr);
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
 	BL::Scene scene(sceneptr);
 
 	PointerRNA regionptr;
-	RNA_id_pointer_create((ID*)pyregion, &regionptr);
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyregion), &regionptr);
 	BL::Region region(regionptr);
 
 	PointerRNA v3dptr;
-	RNA_id_pointer_create((ID*)pyv3d, &v3dptr);
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyv3d), &v3dptr);
 	BL::SpaceView3D v3d(v3dptr);
 
 	PointerRNA rv3dptr;
-	RNA_id_pointer_create((ID*)pyrv3d, &rv3dptr);
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyrv3d), &rv3dptr);
 	BL::RegionView3D rv3d(rv3dptr);
 
 	/* create session */
@@ -91,12 +91,12 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 
 static PyObject *free_func(PyObject *self, PyObject *args)
 {
-	Py_ssize_t pysession;
+	PyObject *pysession;
 
-	if(!PyArg_ParseTuple(args, "n", &pysession))
+	if(!PyArg_ParseTuple(args, "O", &pysession))
 		return NULL;
 
-	delete (BlenderSession*)pysession;
+	delete (BlenderSession*)PyLong_AsVoidPtr(pysession);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -104,14 +104,14 @@ static PyObject *free_func(PyObject *self, PyObject *args)
 
 static PyObject *render_func(PyObject *self, PyObject *args)
 {
-	Py_ssize_t pysession;
+	PyObject *pysession;
 
-	if(!PyArg_ParseTuple(args, "n", &pysession))
+	if(!PyArg_ParseTuple(args, "O", &pysession))
 		return NULL;
 	
 	Py_BEGIN_ALLOW_THREADS
 
-	BlenderSession *session = (BlenderSession*)pysession;
+	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
 	session->render();
 
 	Py_END_ALLOW_THREADS
@@ -122,16 +122,16 @@ static PyObject *render_func(PyObject *self, PyObject *args)
 
 static PyObject *draw_func(PyObject *self, PyObject *args)
 {
-	Py_ssize_t pysession, pyv3d, pyrv3d;
+	PyObject *pysession, *pyv3d, *pyrv3d;
 
-	if(!PyArg_ParseTuple(args, "nnn", &pysession, &pyv3d, &pyrv3d))
+	if(!PyArg_ParseTuple(args, "OOO", &pysession, &pyv3d, &pyrv3d))
 		return NULL;
 	
-	BlenderSession *session = (BlenderSession*)pysession;
+	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
 
 	bool draw_text = false;
 
-	if(pyrv3d) {
+	if(PyLong_AsVoidPtr(pyrv3d)) {
 		/* 3d view drawing */
 		int viewport[4];
 		glGetIntegerv(GL_VIEWPORT, viewport);
@@ -164,12 +164,12 @@ static PyObject *draw_func(PyObject *self, PyObject *args)
 
 static PyObject *sync_func(PyObject *self, PyObject *args)
 {
-	Py_ssize_t pysession;
+	PyObject *pysession;
 
-	if(!PyArg_ParseTuple(args, "n", &pysession))
+	if(!PyArg_ParseTuple(args, "O", &pysession))
 		return NULL;
 
-	BlenderSession *session = (BlenderSession*)pysession;
+	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
 	session->synchronize();
 
 	Py_INCREF(Py_None);
