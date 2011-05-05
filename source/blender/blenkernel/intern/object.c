@@ -1583,7 +1583,10 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		ob->rotmode= target->rotmode;
 		mul_m4_m4m4(ob->obmat, target->obmat, gob->obmat);
 		if(gob->dup_group) { /* should always be true */
-			sub_v3_v3(ob->obmat[3], gob->dup_group->dupli_ofs);
+			float tvec[3];
+			copy_v3_v3(tvec, gob->dup_group->dupli_ofs);
+			mul_mat3_m4_v3(ob->obmat, tvec);
+			sub_v3_v3(ob->obmat[3], tvec);
 		}
 		object_apply_mat4(ob, ob->obmat, FALSE, TRUE);
 	}
@@ -1632,6 +1635,10 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		armature_rebuild_pose(ob, ob->data);	/* set all internal links */
 		
 		armature_set_id_extern(ob);
+	}
+	else if (target->type == OB_EMPTY) {
+		ob->empty_drawtype = target->empty_drawtype;
+		ob->empty_drawsize = target->empty_drawsize;
 	}
 
 	/* copy IDProperties */

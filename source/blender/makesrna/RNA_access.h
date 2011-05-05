@@ -559,6 +559,7 @@ extern LIBEXPORT StructRNA RNA_VertexPaint;
 extern LIBEXPORT StructRNA RNA_VoronoiTexture;
 extern LIBEXPORT StructRNA RNA_VoxelData;
 extern LIBEXPORT StructRNA RNA_VoxelDataTexture;
+extern LIBEXPORT StructRNA RNA_WarpModifier;
 extern LIBEXPORT StructRNA RNA_WaveModifier;
 extern LIBEXPORT StructRNA RNA_Window;
 extern LIBEXPORT StructRNA RNA_WindowManager;
@@ -619,7 +620,7 @@ LIBEXPORT void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 LIBEXPORT struct IDProperty *RNA_struct_idprops(PointerRNA *ptr, int create);
 LIBEXPORT int RNA_struct_idprops_check(StructRNA *srna);
 LIBEXPORT int RNA_struct_idprops_register_check(StructRNA *type);
-
+int RNA_struct_idprops_unset(PointerRNA *ptr, const char *identifier);
 
 LIBEXPORT PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 LIBEXPORT int RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test);

@@ -4019,7 +4019,9 @@ bConstraintTypeInfo *constraint_get_typeinfo (bConstraint *con)
  
 /* ---------- Data Management ------- */
 
-/* Free data of a specific constraint if it has any info */
+/* Free data of a specific constraint if it has any info.
+ * be sure to run BIK_clear_data() when freeing an IK constraint,
+ * unless DAG_scene_sort is called. */
 void free_constraint_data (bConstraint *con)
 {
 	if (con->data) {

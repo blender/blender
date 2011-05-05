@@ -75,6 +75,10 @@ endif()
 if(WITH_PYTHON)
 	blender_include_dirs(../blender/python)
 	add_definitions(-DWITH_PYTHON)
+
+	if(WITH_PYTHON_SECURITY)
+		add_definitions(-DWITH_PYTHON_SECURITY)
+	endif()
 endif()
 
 if(WITH_GAMEENGINE)
@@ -824,6 +828,10 @@ endif()
 		bf_intern_audaspace
 		bf_intern_mikktspace
 	)
+
+    if(WITH_MOD_CLOTH_ELTOPO)
+		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
+    endif()
 
     if(WITH_BUILTIN_GLEW)
 		list(APPEND BLENDER_SORTED_LIBS extern_glew)

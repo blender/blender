@@ -48,8 +48,8 @@
 // jesterKing: renamed to superlu_sys_types.h
 */
 
-#ifndef BLO_SYS_TYPES_H
-#define BLO_SYS_TYPES_H
+#ifndef SUPERLU_SYS_TYPES_H
+#define SUPERLU_SYS_TYPES_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -129,5 +129,5 @@ typedef unsigned long uintptr_t;
 }
 #endif
 
-#endif /* eof */
+#endif /* SUPERLU_SYS_TYPES_H */
 

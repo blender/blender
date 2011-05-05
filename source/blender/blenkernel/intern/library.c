@@ -1381,7 +1381,7 @@ void text_idbutton(struct ID *id, char *text)
 	if(id) {
 		if(GS(id->name)==ID_SCE)
 			strcpy(text, "SCE: ");
-		else if(GS(id->name)==ID_SCE)
+		else if(GS(id->name)==ID_SCR)
 			strcpy(text, "SCR: ");
 		else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
 			strcpy(text, "NT: ");

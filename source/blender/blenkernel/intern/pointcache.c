@@ -938,7 +938,7 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
 		len = ptcache_path(pid, filename);
 		newname += len;
 	}
-	if(strcmp(pid->cache->name, "")==0 && (pid->cache->flag & PTCACHE_EXTERNAL)==0) {
+	if(pid->cache->name[0] == '\0' && (pid->cache->flag & PTCACHE_EXTERNAL)==0) {
 		idname = (pid->ob->id.name+2);
 		/* convert chars to hex so they are always a valid filename */
 		while('\0' != *idname) {
@@ -1382,7 +1382,7 @@ static void ptcache_find_frames_around(PTCacheID *pid, unsigned int frame, int *
 			}
 		}
 
-		if(pm && !pm2) {
+		if(!pm2) {
 			*fra1 = 0;
 			*fra2 = pm->frame;
 		}
@@ -1844,7 +1844,8 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 	if(cache->flag & PTCACHE_DISK_CACHE) {
 		error += !ptcache_mem_frame_to_disk(pid, pm);
 
-		if(pm) {
+		// if(pm) /* pm is always set */
+		{
 			ptcache_data_free(pm);
 			ptcache_extra_free(pm);
 			MEM_freeN(pm);

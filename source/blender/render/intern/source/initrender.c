@@ -447,6 +447,11 @@ void make_sample_tables(Render *re)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+struct Object *RE_GetCamera(Render *re)
+{
+	return re->camera_override ? re->camera_override : re->scene->camera;
+}
+
 /* call this after InitState() */
 /* per render, there's one persistant viewplane. Parts will set their own viewplanes */
 void RE_SetCamera(Render *re, Object *camera)

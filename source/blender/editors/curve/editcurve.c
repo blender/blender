@@ -1234,7 +1234,6 @@ void make_editNurb(Object *obedit)
 	Nurb *nu, *newnu, *nu_act= NULL;
 	KeyBlock *actkey;
 
-	if(obedit==NULL) return;
 
 	set_actNurb(obedit, NULL);
 
@@ -1591,7 +1590,7 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 	BPoint *bp, *bpn, *newbp;
 	int a, b, newu, newv, sel;
 
-	if(obedit && obedit->type==OB_SURF);
+	if(obedit->type==OB_SURF);
 	else return OPERATOR_CANCELLED;
 
 	cu->lastsel= NULL;

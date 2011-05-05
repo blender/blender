@@ -74,6 +74,7 @@ set(SRC
 	intern/MOD_surface.c
 	intern/MOD_util.c
 	intern/MOD_uvproject.c
+	intern/MOD_warp.c
 	intern/MOD_wave.c
 
 	MOD_modifiertypes.h

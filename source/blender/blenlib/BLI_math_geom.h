@@ -91,6 +91,11 @@ int isect_line_line_v3(const float v1[3], const float v2[3],
 int isect_line_line_strict_v3(const float v1[3], const float v2[3],
 	const float v3[3], const float v4[3], float vi[3], float *lambda);
 
+/*if clip is nonzero, will only return true if lambda is >= 0.0
+  (i.e. intersection point is along positive d)*/
+int isect_ray_plane_v3(float p1[3], float d[3], float v0[3], 
+					   float v1[3], float v2[3], float *lambda, int clip);
+
 /* line/ray triangle */
 int isect_line_tri_v3(const float p1[3], const float p2[3],
 	const float v0[3], const float v1[3], const float v2[3], float *lambda, float uv[2]);

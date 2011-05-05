@@ -145,7 +145,7 @@ set(SRC
 	intern/writeavi.c
 	intern/writeffmpeg.c
 	intern/writeframeserver.c
-
+	
 	BKE_DerivedMesh.h
 	BKE_action.h
 	BKE_anim.h
@@ -240,6 +240,11 @@ if(WITH_BULLET)
 	add_definitions(-DUSE_BULLET)
 endif()
 
+if(WITH_MOD_CLOTH_ELTOPO)
+	list(APPEND INC ../../../extern/eltopo)
+	add_definitions(-DWITH_ELTOPO)
+endif()
+
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()
@@ -282,6 +287,10 @@ endif()
 if(WITH_PYTHON)
 	list(APPEND INC ../python ${PYTHON_INCLUDE_DIRS})
 	add_definitions(-DWITH_PYTHON)
+
+	if(WITH_PYTHON_SECURITY)
+		add_definitions(-DWITH_PYTHON_SECURITY)
+	endif()
 endif()
 
 if(WITH_OPENMP)

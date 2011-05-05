@@ -200,9 +200,9 @@ typedef struct FontBLF {
 	/* the same but unsigned char */
 	unsigned char *b_cbuf;
 
-	/* buffer size. */
-	unsigned int bw;
-	unsigned int bh;
+	/* buffer size, keep signed so comparisons with negative values work */
+	int bw;
+	int bh;
 
 	/* number of channels. */
 	int bch;

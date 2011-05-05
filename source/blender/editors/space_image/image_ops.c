@@ -925,7 +925,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			}
 			BKE_image_release_renderresult(scene, ima);
 		}
-		else if (BKE_write_ibuf(scene, ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
+		else if (BKE_write_ibuf(ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
 			ok= TRUE;
 		}
 

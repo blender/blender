@@ -2992,6 +2992,10 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	if(tex->pd) {
 		tex->pd->point_tree = NULL;
 		tex->pd->coba= newdataadr(fd, tex->pd->coba);
+		tex->pd->falloff_curve= newdataadr(fd, tex->pd->falloff_curve);
+		if(tex->pd->falloff_curve) {
+			direct_link_curvemapping(fd, tex->pd->falloff_curve);
+		}
 	}
 	
 	tex->vd= newdataadr(fd, tex->vd);
@@ -3794,7 +3798,12 @@ static void lib_link_object(FileData *fd, Main *main)
 				}
 				else if(act->type==ACT_OBJECT) {
 					bObjectActuator *oa= act->data;
-					oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
+					if(oa==NULL) {
+						init_actuator(act);
+					}
+					else {
+						oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
+					}
 				}
 				else if(act->type==ACT_EDIT_OBJECT) {
 					bEditObjectActuator *eoa= act->data;
@@ -3804,15 +3813,6 @@ static void lib_link_object(FileData *fd, Main *main)
 					else {
 						eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 						eoa->me= newlibadr(fd, ob->id.lib, eoa->me);
-					}
-				}
-				else if(act->type==ACT_OBJECT) {
-					bObjectActuator *oa= act->data;
-					if(oa==NULL) {
-						init_actuator(act);
-					}
-					else {
-						oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
 					}
 				}
 				else if(act->type==ACT_SCENE) {
@@ -4150,6 +4150,13 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					for(a=0; a<mmd->totcagevert*3; a++)
 						SWITCH_INT(mmd->bindcos[a])
 			}
+		}
+		else if (md->type==eModifierType_Warp) {
+			WarpModifierData *tmd = (WarpModifierData *) md;
+
+			tmd->curfalloff= newdataadr(fd, tmd->curfalloff);
+			if(tmd->curfalloff)
+				direct_link_curvemapping(fd, tmd->curfalloff);
 		}
 	}
 }
@@ -8760,11 +8767,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ima->gen_x= 256; ima->gen_y= 256;
 				ima->gen_type= 1;
 				
-				if(0==strncmp(ima->id.name+2, "Viewer Node", sizeof(ima->id.name+2))) {
+				if(0==strncmp(ima->id.name+2, "Viewer Node", sizeof(ima->id.name)-2)) {
 					ima->source= IMA_SRC_VIEWER;
 					ima->type= IMA_TYPE_COMPOSITE;
 				}
-				if(0==strncmp(ima->id.name+2, "Render Result", sizeof(ima->id.name+2))) {
+				if(0==strncmp(ima->id.name+2, "Render Result", sizeof(ima->id.name)-2)) {
 					ima->source= IMA_SRC_VIEWER;
 					ima->type= IMA_TYPE_R_RESULT;
 				}
@@ -11639,28 +11646,53 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 
 	{
-		ARegion *ar;
-		/* screen view2d settings were not properly initialized [#27164] */
+		/* screen view2d settings were not properly initialized [#27164]
+		 * v2d->scroll caused the bug but best reset other values too which are in old blend files only.
+		 * need to make less ugly - possibly an iterator? */
 		bScreen *screen;
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			ScrArea *sa;
 			/* add regions */
 			for(sa= screen->areabase.first; sa; sa= sa->next) {
-				SpaceLink *sl;
+				SpaceLink *sl= sa->spacedata.first;
+				if(sl->spacetype==SPACE_IMAGE) {
+					ARegion *ar;
+					for (ar=sa->regionbase.first; ar; ar= ar->next) {
+						if(ar->regiontype == RGN_TYPE_WINDOW) {
+							View2D *v2d= &ar->v2d;
+							v2d->minzoom= v2d->maxzoom= v2d->scroll= v2d->keeptot= v2d->keepzoom= v2d->keepofs= v2d->align= 0;
+						}
+					}
+				}
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_IMAGE) {
-						for (ar=sa->regionbase.first; ar; ar= ar->next) {
+						ARegion *ar;
+						for (ar=sl->regionbase.first; ar; ar= ar->next) {
 							if(ar->regiontype == RGN_TYPE_WINDOW) {
 								View2D *v2d= &ar->v2d;
-								v2d->minzoom= 0;
-								v2d->maxzoom= 0;
-								v2d->scroll= 0; /* cause of bug, but set others just incase */
-								v2d->keeptot= 0;
-								v2d->keepzoom= 0;
-								v2d->keepofs= 0;
-								v2d->align= 0;
+								v2d->minzoom= v2d->maxzoom= v2d->scroll= v2d->keeptot= v2d->keepzoom= v2d->keepofs= v2d->align= 0;
 							}
 						}
+					}
+				}
+			}
+		}
+
+		{
+			/* Initialize texture point density curve falloff */
+			Tex *tex;
+			for(tex= main->tex.first; tex; tex= tex->id.next) {
+				if(tex->pd) {
+					if (tex->pd->falloff_speed_scale == 0.0)
+						tex->pd->falloff_speed_scale = 100.0;
+
+					if (!tex->pd->falloff_curve) {
+						tex->pd->falloff_curve = curvemapping_add(1, 0, 0, 1, 1);
+
+						tex->pd->falloff_curve->preset = CURVE_PRESET_LINE;
+						tex->pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+						curvemap_reset(tex->pd->falloff_curve->cm, &tex->pd->falloff_curve->clipr, tex->pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
+						curvemapping_changed(tex->pd->falloff_curve, 0);
 					}
 				}
 			}

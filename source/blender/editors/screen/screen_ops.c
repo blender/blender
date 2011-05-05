@@ -1795,20 +1795,22 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	bDopeSheet ads= {NULL};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
-	float cfra= (scene)? (float)(CFRA) : 0.0f;
+	float cfra;
 	short next= RNA_boolean_get(op->ptr, "next");
 	short done = 0;
 	
 	/* sanity checks */
 	if (scene == NULL)
 		return OPERATOR_CANCELLED;
-	
+
+	cfra= (float)(CFRA);
+
 	/* init binarytree-list for getting keyframes */
 	BLI_dlrbTree_init(&keys);
 	
 	/* populate tree with keyframe nodes */
-	if (scene)
-		scene_to_keylist(&ads, scene, &keys, NULL);
+	scene_to_keylist(&ads, scene, &keys, NULL);
+
 	if (ob)
 		ob_to_keylist(&ads, ob, &keys, NULL);
 	
@@ -1844,7 +1846,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	
 	sound_seek_scene(C);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1871,6 +1873,8 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 static int screen_set_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen= CTX_wm_screen(C);
+	bScreen *screen_prev= screen;
+	
 	ScrArea *sa= CTX_wm_area(C);
 	int tot= BLI_countlist(&CTX_data_main(C)->screen);
 	int delta= RNA_int_get(op->ptr, "delta");
@@ -1879,15 +1883,11 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 	if(screen->temp)
 		return OPERATOR_CANCELLED;
 	
-	/* return to previous state before switching screens */
-	if(sa && sa->full)
-		ED_screen_full_restore(C, sa);
-	
 	if(delta==1) {
 		while(tot--) {
 			screen= screen->id.next;
 			if(screen==NULL) screen= CTX_data_main(C)->screen.first;
-			if(screen->winid==0 && screen->full==0)
+			if(screen->winid==0 && screen->full==0 && screen != screen_prev)
 				break;
 		}
 	}
@@ -1895,7 +1895,7 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 		while(tot--) {
 			screen= screen->id.prev;
 			if(screen==NULL) screen= CTX_data_main(C)->screen.last;
-			if(screen->winid==0 && screen->full==0)
+			if(screen->winid==0 && screen->full==0 && screen != screen_prev)
 				break;
 		}
 	}
@@ -1903,7 +1903,12 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 		screen= NULL;
 	}
 	
-	if(screen) {
+	if(screen && screen_prev != screen) {
+		/* return to previous state before switching screens */
+		if(sa && sa->full) {
+			ED_screen_full_restore(C, sa); /* may free 'screen_prev' */
+		}
+		
 		ED_screen_set(C, screen);
 		return OPERATOR_FINISHED;
 	}

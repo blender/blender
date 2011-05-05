@@ -1096,8 +1096,9 @@ static void rna_Object_constraints_remove(Object *object, ReportList *reports, b
 	}
 
 	remove_constraint(&object->constraints, con);
+	ED_object_constraint_update(object);
 	ED_object_constraint_set_active(object, NULL);
-	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, object);
+	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, object);
 }
 
 static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, ReportList *reports, const char *name, int type)
@@ -1826,13 +1827,13 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
 	RNA_def_property_enum_items(prop, track_items);
-	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points in 'forward' direction");
+	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points in 'forward' direction (applies to DupliFrame when parent 'Follow' is enabled)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_internal_update");
 
 	prop= RNA_def_property(srna, "up_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "upflag");
 	RNA_def_property_enum_items(prop, up_items);
-	RNA_def_property_ui_text(prop, "Up Axis", "Axis that points in the upward direction");
+	RNA_def_property_ui_text(prop, "Up Axis", "Axis that points in the upward direction (applies to DupliFrame when parent 'Follow' is enabled)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_internal_update");
 	
 	/* proxy */

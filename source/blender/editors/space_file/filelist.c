@@ -797,8 +797,6 @@ int ED_file_extension_icon(char *relname)
 		return ICON_FILE_MOVIE;
 	else if (type ==  PYSCRIPTFILE)
 		return ICON_FILE_SCRIPT;
-	else if (type ==  PYSCRIPTFILE)
-		return ICON_FILE_SCRIPT;
 	else if (type ==  SOUNDFILE) 
 		return ICON_FILE_SOUND;
 	else if (type ==  FTFONTFILE) 

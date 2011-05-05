@@ -7,4 +7,4 @@ bpy.context.user_preferences.inputs.select_mouse = 'LEFT'
 bpy.context.user_preferences.inputs.view_zoom_method = 'DOLLY'
 bpy.context.user_preferences.inputs.view_zoom_axis = 'HORIZONTAL'
 bpy.context.user_preferences.inputs.view_rotate_method = 'TURNTABLE'
-bpy.context.user_preferences.inputs.invert_mouse_wheel_zoom = True
+bpy.context.user_preferences.inputs.invert_mouse_zoom = True

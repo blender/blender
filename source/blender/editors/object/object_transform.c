@@ -386,7 +386,7 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob )
 	}
 }
 
-static int apply_objects_internal(bContext *C, ReportList *reports, int apply_loc, int apply_scale, int apply_rot)
+static int apply_objects_internal(bContext *C, ReportList *reports, int apply_loc, int apply_rot, int apply_scale)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -595,64 +595,37 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int location_apply_exec(bContext *C, wmOperator *op)
+static int object_transform_apply_exec(bContext *C, wmOperator *op)
 {
-	return apply_objects_internal(C, op->reports, 1, 0, 0);
+	const int loc= RNA_boolean_get(op->ptr, "location");
+	const int rot= RNA_boolean_get(op->ptr, "rotation");
+	const int sca= RNA_boolean_get(op->ptr, "scale");
+
+	if(loc || rot || sca) {
+		return apply_objects_internal(C, op->reports, loc, rot, sca);
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
-void OBJECT_OT_location_apply(wmOperatorType *ot)
+void OBJECT_OT_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Location";
-	ot->description = "Apply the object's location to its data";
-	ot->idname= "OBJECT_OT_location_apply";
-	
-	/* api callbacks */
-	ot->exec= location_apply_exec;
-	ot->poll= ED_operator_objectmode; /* editmode will crash */
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
+	ot->name= "Apply Object Transform";
+	ot->description = "Apply the object's transformation to its data";
+	ot->idname= "OBJECT_OT_transform_apply";
 
-static int scale_apply_exec(bContext *C, wmOperator *op)
-{
-	return apply_objects_internal(C, op->reports, 0, 1, 0);
-}
-
-void OBJECT_OT_scale_apply(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Apply Scale";
-	ot->description = "Apply the object's scale to its data";
-	ot->idname= "OBJECT_OT_scale_apply";
-	
 	/* api callbacks */
-	ot->exec= scale_apply_exec;
+	ot->exec= object_transform_apply_exec;
 	ot->poll= ED_operator_objectmode;
-	
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
 
-static int rotation_apply_exec(bContext *C, wmOperator *op)
-{
-	return apply_objects_internal(C, op->reports, 0, 0, 1);
-}
-
-void OBJECT_OT_rotation_apply(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Apply Rotation";
-	ot->description = "Apply the object's rotation to its data";
-	ot->idname= "OBJECT_OT_rotation_apply";
-	
-	/* api callbacks */
-	ot->exec= rotation_apply_exec;
-	ot->poll= ED_operator_objectmode;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	RNA_def_boolean(ot->srna, "location", 0, "Location", "");
+	RNA_def_boolean(ot->srna, "rotation", 0, "Rotation", "");
+	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "");
 }
 
 /********************* Set Object Center ************************/

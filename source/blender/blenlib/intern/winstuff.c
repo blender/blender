@@ -66,14 +66,6 @@ int BLI_getInstallationDir( char * str ) {
 	return 1;
 }
 
-int IsConsoleEmpty(void)
-{
-	CONSOLE_SCREEN_BUFFER_INFO csbi = {{0}};
-	HANDLE hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	return GetConsoleScreenBufferInfo(hStdOutput, &csbi) && csbi.dwCursorPosition.X == 0 && csbi.dwCursorPosition.Y == 0;
-}
-
 void RegisterBlendExtension_Fail(HKEY root)
 {
 	printf("failed\n");

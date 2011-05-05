@@ -73,7 +73,7 @@
 #include "BKE_icons.h"
 #include "BKE_node.h"
 #include "BKE_animsys.h"
-
+#include "BKE_colortools.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -762,9 +762,8 @@ Tex *copy_texture(Tex *tex)
 	
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
-	if(texn->pd) texn->pd= MEM_dupallocN(texn->pd);
+	if(texn->pd) texn->pd= BKE_copy_pointdensity(texn->pd);
 	if(texn->vd) texn->vd= MEM_dupallocN(texn->vd);
-	
 	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
 	if(tex->nodetree) {
@@ -795,14 +794,7 @@ Tex *localize_texture(Tex *tex)
 		texn->env= BKE_copy_envmap(texn->env);
 		id_us_min(&texn->env->ima->id);
 	}
-	if(texn->pd) {
-		texn->pd= MEM_dupallocN(texn->pd);
-		if(texn->pd->coba) {
-			texn->pd->point_tree = NULL;
-			texn->pd->coba= MEM_dupallocN(texn->pd->coba);
-		}
-
-	}
+	if(texn->pd) texn->pd= BKE_copy_pointdensity(texn->pd);
 	if(texn->vd) {
 		texn->vd= MEM_dupallocN(texn->vd);
 		if(texn->vd->dataset)
@@ -1367,6 +1359,13 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->object = NULL;
 	pd->psys = 0;
 	pd->psys_cache_space= TEX_PD_WORLDSPACE;
+	pd->falloff_curve = curvemapping_add(1, 0, 0, 1, 1);
+
+	pd->falloff_curve->preset = CURVE_PRESET_LINE;
+	pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+	curvemap_reset(pd->falloff_curve->cm, &pd->falloff_curve->clipr, pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
+	curvemapping_changed(pd->falloff_curve, 0);
+
 	return pd;
 } 
 
@@ -1378,7 +1377,7 @@ PointDensity *BKE_copy_pointdensity(PointDensity *pd)
 	pdn->point_tree = NULL;
 	pdn->point_data = NULL;
 	if(pdn->coba) pdn->coba= MEM_dupallocN(pdn->coba);
-	
+	pdn->falloff_curve = curvemapping_copy(pdn->falloff_curve); /* can be NULL */
 	return pdn;
 }
 
@@ -1396,6 +1395,8 @@ void BKE_free_pointdensitydata(PointDensity *pd)
 		MEM_freeN(pd->coba);
 		pd->coba = NULL;
 	}
+
+	curvemapping_free(pd->falloff_curve); /* can be NULL */
 }
 
 void BKE_free_pointdensity(PointDensity *pd)

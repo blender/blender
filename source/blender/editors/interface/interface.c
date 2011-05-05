@@ -1919,14 +1919,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 
 uiBlock *uiGetBlock(const char *name, ARegion *ar)
 {
-	uiBlock *block= ar->uiblocks.first;
-	
-	while(block) {
-		if( strcmp(name, block->name)==0 ) return block;
-		block= block->next;
-	}
-	
-	return NULL;
+	return BLI_findstring(&ar->uiblocks, name, offsetof(uiBlock, name));
 }
 
 void uiBlockSetEmboss(uiBlock *block, char dt)

@@ -84,7 +84,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 			const float dither_back= ibuf->dither; 
 			ibuf->depth= scene->r.planes;
 			ibuf->dither= scene->r.dither_intensity;
-			if (!BKE_write_ibuf(NULL, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
+			if (!BKE_write_ibuf(ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
 				BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 			}
 			ibuf->depth= imb_depth_back;

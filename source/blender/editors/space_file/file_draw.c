@@ -269,8 +269,6 @@ static int get_file_icon(struct direntry *file)
 		return ICON_FILE_MOVIE;
 	else if (file->flags & PYSCRIPTFILE)
 		return ICON_FILE_SCRIPT;
-	else if (file->flags & PYSCRIPTFILE)
-		return ICON_FILE_SCRIPT;
 	else if (file->flags & SOUNDFILE) 
 		return ICON_FILE_SOUND;
 	else if (file->flags & FTFONTFILE) 

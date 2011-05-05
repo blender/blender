@@ -91,6 +91,14 @@ float BLF_width(int fontid, const char *str);
 float BLF_height(int fontid, const char *str);
 
 /*
+ * Return dimensions of the font without any sample text.
+ */
+float BLF_height_max(int fontid);
+float BLF_width_max(int fontid);
+float BLF_descender(int fontid);
+float BLF_ascender(int fontid);
+
+/*
  * The following function return the width and height of the string, but
  * just in one call, so avoid extra freetype2 stuff.
  */
@@ -157,7 +165,7 @@ void BLF_shadow_offset(int fontid, int x, int y);
  *
  *	BLF_buffer(NULL, NULL, 0, 0, 0);
  */
-void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, unsigned int w, unsigned int h, int nch);
+void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch);
 
 /*
  * Set the color to be used for text.

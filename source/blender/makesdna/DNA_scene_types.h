@@ -497,6 +497,7 @@ typedef struct GameData {
 #define GAME_IGNORE_DEPRECATION_WARNINGS	(1 << 12)
 #define GAME_ENABLE_ANIMATION_RECORD		(1 << 13)
 #define GAME_SHOW_MOUSE						(1 << 14)
+#define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0
@@ -1053,6 +1054,9 @@ typedef struct Scene {
 #define BASACT			(scene->basact)
 #define OBACT			(BASACT? BASACT->object: NULL)
 
+#define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
+#define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)
+
 #define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
 #define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}
@@ -1155,6 +1159,7 @@ typedef enum SculptFlags {
 	SCULPT_LOCK_Z = (1<<5),
 	SCULPT_SYMMETRY_FEATHER = (1<<6),
 	SCULPT_USE_OPENMP = (1<<7),
+	SCULPT_ONLY_DEFORM = (1<<8),
 } SculptFlags;
 
 /* sculpt_paint_settings */

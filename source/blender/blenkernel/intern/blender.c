@@ -140,8 +140,12 @@ void initglobals(void)
 	G.charstart = 0x0000;
 	G.charmin = 0x0000;
 	G.charmax = 0xffff;
-	
+
+#ifndef WITH_PYTHON_SECURITY /* default */
 	G.f |= G_SCRIPT_AUTOEXEC;
+#else
+	G.f &= ~G_SCRIPT_AUTOEXEC;
+#endif
 }
 
 /***/
@@ -615,24 +619,14 @@ void BKE_reset_undo(void)
 /* based on index nr it does a restore */
 void BKE_undo_number(bContext *C, int nr)
 {
-	UndoElem *uel;
-	int a=1;
-	
-	for(uel= undobase.first; uel; uel= uel->next, a++) {
-		if(a==nr) break;
-	}
-	curundo= uel;
+	curundo= BLI_findlink(&undobase, nr - 1);
 	BKE_undo_step(C, 0);
 }
 
 /* go back to the last occurance of name in stack */
 void BKE_undo_name(bContext *C, const char *name)
 {
-	UndoElem *uel;
-
-	for(uel= undobase.last; uel; uel= uel->prev)
-		if(strcmp(name, uel->name)==0)
-			break;
+	UndoElem *uel= BLI_rfindstring(&undobase, name, offsetof(UndoElem, name));
 
 	if(uel && uel->prev) {
 		curundo= uel->prev;
@@ -644,12 +638,7 @@ void BKE_undo_name(bContext *C, const char *name)
 int BKE_undo_valid(const char *name)
 {
 	if(name) {
-		UndoElem *uel;
-		
-		for(uel= undobase.last; uel; uel= uel->prev)
-			if(strcmp(name, uel->name)==0)
-				break;
-		
+		UndoElem *uel= BLI_rfindstring(&undobase, name, offsetof(UndoElem, name));
 		return uel && uel->prev;
 	}
 	

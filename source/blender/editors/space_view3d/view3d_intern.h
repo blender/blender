@@ -158,7 +158,7 @@ int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 
 void centerview(struct ARegion *ar, View3D *v3d);
 
-void smooth_view(struct bContext *C, struct Object *, struct Object *, float *ofs, float *quat, float *dist, float *lens);
+void smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *, float *ofs, float *quat, float *dist, float *lens);
 
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for picking */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);

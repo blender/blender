@@ -415,6 +415,17 @@ protected:
 	 * Initiates WM_INPUT messages from keyboard 
 	 */
 	GHOST_TInt32 initKeyboardRawInput(void);
+
+	/**
+ * Toggles console
+ * @action	0 - Hides
+ *			1 - Shows
+ *			2 - Toggles
+ *			3 - Hides if it runs not from  command line
+ *			* - Does nothing
+ * @return current status (1 -visible, 0 - hidden)
+ */
+	int toggleConsole(int action);
 	
 	/** The current state of the modifier keys. */
 	GHOST_ModifierKeys m_modifierKeys;
@@ -430,6 +441,9 @@ protected:
 	WORD m_langId;
 	/** stores keyboard layout. */
 	HKL m_keylayout;
+
+	/** Console status */
+	int m_consoleStatus;
 
 	/** handle for user32.dll*/
 	HMODULE user32;
@@ -471,6 +485,5 @@ inline void GHOST_SystemWin32::handleKeyboardChange(void)
 		}
 	}
 }
-
 #endif // _GHOST_SYSTEM_WIN32_H_
 

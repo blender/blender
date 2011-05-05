@@ -355,6 +355,16 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
 
+	/**
+	 * Toggles console
+	 * @action	0 - Hides
+	 *			1 - Shows
+	 *			2 - Toggles
+	 *			3 - Hides if it runs not from  command line
+	 *			* - Does nothing
+	 * @return current status (1 -visible, 0 - hidden)
+	 */
+	virtual int toggleConsole(int action) = 0;
 	
 	/***************************************************************************************
 	 ** Access to clipboard.

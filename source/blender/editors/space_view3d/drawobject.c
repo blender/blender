@@ -4217,7 +4217,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glShadeModel(GL_FLAT);
-	glEnable(GL_DEPTH_TEST);
+	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 	glPointSize(1.0);
 }

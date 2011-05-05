@@ -1635,10 +1635,10 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 
 		if (rv3d->persp==RV3D_CAMOB) {
 			rv3d->persp= RV3D_PERSP;
-			smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
+			smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 		}
 		else {
-			smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+			smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
 		}
 	}
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
@@ -1778,10 +1778,10 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 
 	if (rv3d->persp==RV3D_CAMOB) {
 		rv3d->persp= RV3D_PERSP;
-		smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
+		smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
 	else {
-		smooth_view(C, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
+		smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
 	}
 
 	/* smooth view does viewlock RV3D_BOXVIEW copy */
@@ -1814,10 +1814,12 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene= CTX_data_scene(C);
 	
 	if (rv3d) {
+		ARegion *ar= CTX_wm_region(C);
+
 		/* non camera center */
 		float new_ofs[3];
 		negate_v3_v3(new_ofs, give_cursor(scene, v3d));
-		smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
+		smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, NULL, NULL);
 		
 		/* smooth view does viewlock RV3D_BOXVIEW copy */
 	}
@@ -2047,7 +2049,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		new_dist = ((new_dist*scale) >= 0.001f * v3d->grid)? new_dist*scale:0.001f * v3d->grid;
 	}
 
-	smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+	smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), ar);
@@ -2146,14 +2148,14 @@ static EnumPropertyItem prop_view_items[] = {
 
 /* would like to make this a generic function - outside of transform */
 
-static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo, int align_active)
+static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar, float q1, float q2, float q3, float q4, short view, int perspo, int align_active)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	float new_quat[4];
 
 	new_quat[0]= q1; new_quat[1]= q2;
 	new_quat[2]= q3; new_quat[3]= q4;
+	normalize_qt(new_quat);
 
 	if(align_active) {
 		/* align to active object */
@@ -2194,7 +2196,7 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 	}
 
 	if(rv3d->viewlock) {
-		ED_region_tag_redraw(CTX_wm_region(C));
+		ED_region_tag_redraw(ar);
 		return;
 	}
 
@@ -2203,14 +2205,14 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= view ? RV3D_ORTHO : RV3D_PERSP;
 		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
-		smooth_view(C, v3d->camera, NULL, rv3d->ofs, new_quat, NULL, NULL);
+		smooth_view(C, v3d, ar, v3d->camera, NULL, rv3d->ofs, new_quat, NULL, NULL);
 	}
 	else {
 
 		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= view ? RV3D_ORTHO : RV3D_PERSP;
 		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
-		smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);
+		smooth_view(C, v3d, ar, NULL, NULL, NULL, new_quat, NULL, NULL);
 	}
 
 }
@@ -2218,7 +2220,8 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 static int viewnumpad_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ARegion *ar= ED_view3d_context_region_unlock(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	Scene *scene= CTX_data_scene(C);
 	static int perspo=RV3D_PERSP;
 	int viewnum, align_active, nextperspo;
@@ -2240,27 +2243,27 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 	switch (viewnum) {
 		case RV3D_VIEW_BOTTOM :
-			axis_set_view(C, 0.0, -1.0, 0.0, 0.0, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.0, -1.0, 0.0, 0.0, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_BACK:
-			axis_set_view(C, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_LEFT:
-			axis_set_view(C, 0.5, -0.5, 0.5, 0.5, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.5, -0.5, 0.5, 0.5, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_TOP:
-			axis_set_view(C, 1.0, 0.0, 0.0, 0.0, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 1.0, 0.0, 0.0, 0.0, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_FRONT:
-			axis_set_view(C, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_RIGHT:
-			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, viewnum, nextperspo, align_active);
+			axis_set_view(C, v3d, ar, 0.5, -0.5, -0.5, -0.5, viewnum, nextperspo, align_active);
 			break;
 
 		case RV3D_VIEW_CAMERA:
@@ -2316,13 +2319,13 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 					/* finally do snazzy view zooming */
 					rv3d->persp= RV3D_CAMOB;
-					smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
+					smooth_view(C, v3d, ar, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
 
 				}
 				else{
 					/* return to settings of last view */
 					/* does smooth_view too */
-					axis_set_view(C, rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3], rv3d->lview, rv3d->lpersp, 0);
+					axis_set_view(C, v3d, ar, rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3], rv3d->lview, rv3d->lpersp, 0);
 				}
 			}
 			break;
@@ -2346,7 +2349,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewnumpad_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->poll= ED_operator_rv3d_unlock_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2364,7 +2367,8 @@ static EnumPropertyItem prop_view_orbit_items[] = {
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
 {
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ARegion *ar= ED_view3d_context_region_unlock(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	float phi, q1[4], new_quat[4];
 	int orbitdir;
 
@@ -2398,7 +2402,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				rv3d->view= 0;
 			}
 
-			smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);
+			smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL, NULL, new_quat, NULL, NULL);
 		}
 	}
 
@@ -2414,7 +2418,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= vieworbit_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->poll= ED_operator_rv3d_unlock_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2470,8 +2474,8 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 
 static int viewpersportho_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ARegion *ar= CTX_wm_region(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ARegion *ar= ED_view3d_context_region_unlock(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 
 	if(rv3d->viewlock==0) {
 		if(rv3d->persp!=RV3D_ORTHO)
@@ -2493,11 +2497,12 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewpersportho_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->poll= ED_operator_rv3d_unlock_poll;
 
 	/* flags */
 	ot->flag= 0;
 }
+
 
 /* ******************** add background image operator **************** */
 
