@@ -91,7 +91,6 @@ set(SRC
 	intern/depsgraph.c
 	intern/displist.c
 	intern/effect.c
-	intern/exotic.c
 	intern/fcurve.c
 	intern/fluidsim.c
 	intern/fmodifier.c
@@ -176,7 +175,6 @@ set(SRC
 	BKE_displist.h
 	BKE_effect.h
 	BKE_endian.h
-	BKE_exotic.h
 	BKE_fcurve.h
 	BKE_fluidsim.h
 	BKE_font.h

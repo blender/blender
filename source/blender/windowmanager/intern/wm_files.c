@@ -49,6 +49,8 @@
 #include <unistd.h> /* getpid */
 #endif
 
+#include "zlib.h" /* wm_read_exotic() */
+
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
@@ -69,7 +71,6 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_exotic.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -277,6 +278,61 @@ static void wm_init_userdef(bContext *C)
 	if(U.tempdir[0]) BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
+
+
+/* return codes */
+#define BKE_READ_EXOTIC_FAIL_PATH		-3 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_FORMAT		-2 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_OPEN		-1 /* Can't open the file */
+#define BKE_READ_EXOTIC_OK_BLEND		 0 /* .blend file */
+#define BKE_READ_EXOTIC_OK_OTHER		 1 /* other supported formats */
+
+/* intended to check for non-blender formats but for now it only reads blends */
+static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
+{
+	int len;
+	gzFile gzfile;
+	char header[7];
+	int retval;
+
+	// make sure we're not trying to read a directory....
+
+	len= strlen(name);
+	if (ELEM(name[len-1], '/', '\\')) {
+		retval= BKE_READ_EXOTIC_FAIL_PATH;
+	}
+	else {
+		gzfile = gzopen(name,"rb");
+
+		if (gzfile == NULL) {
+			retval= BKE_READ_EXOTIC_FAIL_OPEN;
+		}
+		else {
+			len= gzread(gzfile, header, sizeof(header));
+			gzclose(gzfile);
+			if (len == sizeof(header) && strncmp(header, "BLENDER", 7) == 0) {
+				retval= BKE_READ_EXOTIC_OK_BLEND;
+			}
+			else {
+				//XXX waitcursor(1);
+				/*
+				if(is_foo_format(name)) {
+					read_foo(name);
+					retval= BKE_READ_EXOTIC_OK_OTHER;
+				}
+				else
+				 */
+				{
+					retval= BKE_READ_EXOTIC_FAIL_FORMAT;
+				}
+				//XXX waitcursor(0);
+			}
+		}
+	}
+
+	return retval;
+}
+
 void WM_read_file(bContext *C, const char *name, ReportList *reports)
 {
 	int retval;
@@ -289,7 +345,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
-	retval= BKE_read_exotic(CTX_data_scene(C), name);
+	retval= wm_read_exotic(CTX_data_scene(C), name);
 	
 	/* we didn't succeed, now try to read Blender file */
 	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
