@@ -37,6 +37,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include "zlib.h" /* wm_read_exotic() */
+
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
 #ifndef _WIN32_IE
@@ -48,8 +50,6 @@
 #else
 #include <unistd.h> /* getpid */
 #endif
-
-#include "zlib.h" /* wm_read_exotic() */
 
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"

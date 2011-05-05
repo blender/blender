@@ -14,6 +14,8 @@ incs += ' ../makesrna ../gpu ../blenfont'
 incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost'
 incs += ' #/intern/elbeem #/extern/glew/include'
 
+incs += ' ' + env['BF_ZLIB_INC']
+
 defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
