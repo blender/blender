@@ -2553,7 +2553,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 
 	/* damp affects final velocity */
 	if(part->dampfac != 0.f)
-		mul_v3_fl(pa->state.vel, 1.f - part->dampfac * efdata.ptex.damp);
+		mul_v3_fl(pa->state.vel, 1.f - part->dampfac * efdata.ptex.damp * 25.f * dtime);
 
 	//VECCOPY(pa->state.ave, states->ave);
 
