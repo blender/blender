@@ -4,7 +4,6 @@ Import ('env')
 sources = 'CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp CcdGraphicController.cpp'
 
 incs = '. ../common'
-incs += ' #source/kernel/gen_system'
 incs += ' #intern/string'
 incs += ' #intern/moto/include'
 incs += ' #extern/glew/include'
@@ -17,6 +16,7 @@ incs += ' #source/blender/makesdna'
 incs += ' #source/blender/blenkernel'
 incs += ' #source/blender/blenlib'
 incs += ' #intern/guardedalloc'
+incs += ' #intern/container'
 
 incs += ' ' + env['BF_BULLET_INC']
 

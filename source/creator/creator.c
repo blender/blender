@@ -108,8 +108,7 @@
 
 /* for passing information between creator and gameengine */
 #ifdef WITH_GAMEENGINE
-#include "GEN_messaging.h"
-#include "SYS_System.h"
+#include "BL_System.h"
 #else /* dummy */
 #define SYS_SystemHandle int
 #endif
@@ -1216,7 +1215,6 @@ int main(int argc, const char **argv)
 
 #ifdef WITH_GAMEENGINE
 	syshandle = SYS_GetSystem();
-	GEN_init_messaging_system();
 #else
 	syshandle= 0;
 #endif

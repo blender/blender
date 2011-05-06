@@ -25,39 +25,33 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ *
  */
 
-/** \file kernel/gen_messaging/GEN_messaging.h
- *  \ingroup genmess
+/** \file container/CTR_HashedPtr.h
+ *  \ingroup ctr
  */
 
-#ifndef GEN_MESSAGING_H
-#define GEN_MESSAGING_H
+#ifndef CTR_HASHEDPTR_H
+#define CTR_HASHEDPTR_H
 
-#include <stdio.h>
+#include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-	/**
-	 * Stream for error messages.
-	 */
-	extern FILE* GEN_errorstream;
-
-	/**
-	 * Stream for notices to the user.
-	 */
-	extern FILE* GEN_userstream;
-
-	/**
-	 * Initialise the messaging system. If the system is not
-	 * initialised, the streams cannot be used. */
-	void GEN_init_messaging_system(void);
-	
-#ifdef __cplusplus
+inline unsigned int CTR_Hash(void *inDWord)
+{
+	size_t key = (size_t)inDWord;
+	return (unsigned int)(key ^ (key>>4));
 }
-#endif
 
-#endif /* GEN_MESSAGING_H */
+class CTR_HashedPtr
+{
+	void* m_valptr;
+public:
+	CTR_HashedPtr(void* val) : m_valptr(val) {};
+	unsigned int hash() const { return CTR_Hash(m_valptr);};
+	inline friend bool operator ==(const CTR_HashedPtr & rhs, const CTR_HashedPtr & lhs) { return rhs.m_valptr == lhs.m_valptr;};
+	void *getValue() const { return m_valptr; }
+};
+
+#endif //CTR_HASHEDPTR_H
 

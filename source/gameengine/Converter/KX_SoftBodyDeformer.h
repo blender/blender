@@ -60,7 +60,7 @@ public:
 	{
 		//printf("~KX_SoftBodyDeformer\n");
 	};
-	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map);
+	virtual void Relink(CTR_Map<class CTR_HashedPtr, void*>*map);
 	virtual bool Apply(class RAS_IPolyMaterial *polymat);
 	virtual bool Update(void)
 	{

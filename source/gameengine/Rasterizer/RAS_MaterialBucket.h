@@ -35,7 +35,7 @@
 #define __RAS_MATERIALBUCKET
 
 #include "RAS_TexVert.h"
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 #include "STR_HashedString.h"
 #include "SG_QList.h"
 
@@ -193,7 +193,7 @@ class RAS_MeshMaterial
 public:
 	RAS_MeshSlot *m_baseslot;
 	class RAS_MaterialBucket *m_bucket;
-	GEN_Map<GEN_HashedPtr,RAS_MeshSlot*> m_slots;
+	CTR_Map<CTR_HashedPtr,RAS_MeshSlot*> m_slots;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

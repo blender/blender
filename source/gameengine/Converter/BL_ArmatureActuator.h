@@ -67,7 +67,7 @@ public:
 	};
 	virtual void ProcessReplica();
 	virtual bool UnlinkObject(SCA_IObject* clientobj);
-	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	virtual void Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 	virtual bool Update(double curtime, bool frame);
 	virtual void ReParent(SCA_IObject* parent);
 	

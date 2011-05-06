@@ -34,7 +34,6 @@
 
 
 #include <stdio.h>
-#include "GEN_messaging.h"
 
 int BLO_readblenfilememory( char *fromBuffer, int fromBufferSize);
 int BLO_readblenfilename( char *fileName);
@@ -47,7 +46,7 @@ BLO_readblenfilememory(
 	char *fromBuffer, int fromBufferSize)
 {
 #if defined(DEBUG)
-	fprintf(GEN_errorstream,
+	fprintf(stderr,
 			"Error BLO_readblenfilename is a stub\n");
 #endif
 	return(1);
@@ -58,7 +57,7 @@ BLO_readblenfilename(
 	char *fileName)
 {
 #if defined(DEBUG)
-	fprintf(GEN_errorstream,
+	fprintf(stderr,
 			"Error BLO_readblenfilename is a stub\n");
 #endif
 	return(1);
@@ -69,7 +68,7 @@ BLO_readblenfilehandle(
 	int fileHandle)
 {
 #if defined(DEBUG)
-	fprintf(GEN_errorstream,
+	fprintf(stderr,
 			"Error BLO_readblenfilehandle is a stub\n");
 #endif
 	return(1);
@@ -80,7 +79,7 @@ BLO_is_a_runtime(
 	char *file)
 {
 #if defined(DEBUG)
-	fprintf(GEN_errorstream,
+	fprintf(stderr,
 			"Error BLO_is_a_runtime is a stub\n");
 #endif
 	return 0;
@@ -91,7 +90,7 @@ BLO_read_runtime(
 	char *file) 
 {
 #if defined(DEBUG)
-	fprintf(GEN_errorstream,
+	fprintf(stderr,
 			"Error BLO_read_runtime is a stub\n");
 #endif
 	return 0;

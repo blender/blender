@@ -25,55 +25,80 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * System specific information / access.
  * Interface to the commandline arguments
  */
 
-/** \file kernel/gen_system/SYS_System.cpp
- *  \ingroup gensys
+/** \file gameengine/BlenderRoutines/BL_System.cpp
+ *  \ingroup blroutines
  */
 
-#include "SYS_System.h"
-#include "SYS_SingletonSystem.h"
+#include "CTR_Map.h"
+#include "STR_HashedString.h"
+#include "BL_System.h"
+
+struct SingletonSystem {
+	CTR_Map<STR_HashedString,int> int_params;
+	CTR_Map<STR_HashedString,float> float_params;
+	CTR_Map<STR_HashedString,STR_String> string_params;
+};
+
+static SingletonSystem *_system_instance = NULL;
 
 SYS_SystemHandle SYS_GetSystem()
 {
-	return (SYS_SystemHandle) SYS_SingletonSystem::Instance();
+	if(!_system_instance)
+		_system_instance = new SingletonSystem();
+
+	return (SYS_SystemHandle)_system_instance;
 }
 
 void SYS_DeleteSystem(SYS_SystemHandle sys)
 {
-	if (sys) {
-		((SYS_SingletonSystem *) sys)->Destruct();
+	if(_system_instance) {
+		delete _system_instance;
+		_system_instance = NULL;
 	}
 }
 
 int SYS_GetCommandLineInt(SYS_SystemHandle sys, const char *paramname, int defaultvalue)
 {
-	return ((SYS_SingletonSystem *) sys)->SYS_GetCommandLineInt(paramname, defaultvalue);
+	int *result = ((SingletonSystem *)sys)->int_params[paramname];
+	if(result)
+		return *result;
+
+	return defaultvalue;
 }
 
 float SYS_GetCommandLineFloat(SYS_SystemHandle sys, const char *paramname, float defaultvalue)
 {
-	return ((SYS_SingletonSystem *) sys)->SYS_GetCommandLineFloat(paramname, defaultvalue);
+	float *result = ((SingletonSystem *)sys)->float_params[paramname];
+	if(result)
+		return *result;
+
+	return defaultvalue;
 }
 
 const char *SYS_GetCommandLineString(SYS_SystemHandle sys, const char *paramname, const char *defaultvalue)
 {
-	return ((SYS_SingletonSystem *) sys)->SYS_GetCommandLineString(paramname, defaultvalue);
+	STR_String *result = ((SingletonSystem *)sys)->string_params[paramname];
+	if(result)
+		return *result;
+
+	return defaultvalue;
 }
 
 void SYS_WriteCommandLineInt(SYS_SystemHandle sys, const char *paramname, int value)
 {
-	((SYS_SingletonSystem *) sys)->SYS_WriteCommandLineInt(paramname, value);
+	((SingletonSystem *)sys)->int_params.insert(paramname, value);
 }
 
 void SYS_WriteCommandLineFloat(SYS_SystemHandle sys, const char *paramname, float value)
 {
-	((SYS_SingletonSystem *) sys)->SYS_WriteCommandLineFloat(paramname, value);
+	((SingletonSystem *)sys)->float_params.insert(paramname, value);
 }
 
 void SYS_WriteCommandLineString(SYS_SystemHandle sys, const char *paramname, const char *value)
 {
-	((SYS_SingletonSystem *) sys)->SYS_WriteCommandLineString(paramname, value);
+	((SingletonSystem *)sys)->string_params.insert(paramname, value);
 }
+

@@ -8,7 +8,7 @@ defs = [ 'GLEW_STATIC' ]
 
 incs = '. #source/blender/python/generic' # Only for Mathutils! and bpy_internal_import.h, be very careful
 
-incs += ' #source/kernel/gen_system #intern/string #intern/guardedalloc'
+incs += ' #intern/string #intern/guardedalloc #intern/container'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
 incs += ' #intern/audaspace/intern #source/gameengine/Converter'
 incs += ' #source/gameengine/BlenderRoutines #source/blender/imbuf #intern/moto/include'

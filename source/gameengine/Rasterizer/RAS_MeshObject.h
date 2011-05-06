@@ -47,7 +47,7 @@
 #include "RAS_MaterialBucket.h"
 #include "MT_Transform.h"
 
-#include "GEN_HashedPtr.h"
+#include "CTR_HashedPtr.h"
 
 struct Mesh;
 class RAS_Deformer;

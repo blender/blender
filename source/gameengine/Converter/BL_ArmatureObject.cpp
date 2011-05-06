@@ -45,8 +45,8 @@
 #include "BKE_armature.h"
 
 #include "BKE_constraint.h"
-#include "GEN_Map.h"
-#include "GEN_HashedPtr.h"
+#include "CTR_Map.h"
+#include "CTR_HashedPtr.h"
 #include "MEM_guardedalloc.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -439,7 +439,7 @@ void BL_ArmatureObject::ReParentLogic()
 	KX_GameObject::ReParentLogic();
 }
 
-void BL_ArmatureObject::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void BL_ArmatureObject::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	SG_DList::iterator<BL_ArmatureConstraint> cit(m_controlledConstraints);
 	for (cit.begin(); !cit.end(); ++cit) {

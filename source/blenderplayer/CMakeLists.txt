@@ -110,7 +110,6 @@ endif()
 		bf_intern_smoke
 		bf_modifiers
 		bf_intern_moto 
-		bf_gen_system 
 		bf_nodes
 		bf_gpu
 		bf_imbuf

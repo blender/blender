@@ -299,7 +299,7 @@ bool KX_ObjectActuator::UnlinkObject(SCA_IObject* clientobj)
 	return false;
 }
 
-void KX_ObjectActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void KX_ObjectActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_reference];
 	if (h_obj) {

@@ -342,17 +342,5 @@
 
 /* ================================ */
 
-/** \defgroup kernel kernel */
-
-/** \defgroup genmess gen_messaging
- *  \ingroup kernel
- */
-
-/** \defgroup gensys gen_system
- *  \ingroup kernel
- */
-
-/* ================================ */
-
 /** \defgroup undoc Undocumented
  *  \brief Modules and libraries that are still undocumented, or lacking proper integration into the doxygen system, are marked in this group. */

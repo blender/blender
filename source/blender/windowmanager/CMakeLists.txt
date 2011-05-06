@@ -37,12 +37,12 @@ set(INC
 	../blenloader
 	../editors/include
 	../render/extern/include
-	../../kernel/gen_system
 	../../../intern/guardedalloc
 	../../../intern/memutil
 	../../../intern/elbeem/extern
 	../../../intern/ghost
 	../../../intern/opennl/extern
+	../../../source/gameengine/BlenderRoutines
 	${ZLIB_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 	${GLEW_INCLUDE_PATH}

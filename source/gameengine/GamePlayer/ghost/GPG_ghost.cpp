@@ -47,7 +47,6 @@
 //#include <Carbon/Carbon.h>
 //#include <CFBundle.h>
 #endif // __APPLE__
-#include "GEN_messaging.h"
 #include "KX_KetsjiEngine.h"
 #include "KX_PythonInit.h"
 
@@ -92,7 +91,7 @@ extern char datatoc_bfont_ttf[];
 * End Blender include block
 **********************************/
 
-#include "SYS_System.h"
+#include "BL_System.h"
 #include "GPG_Application.h"
 
 #include "GHOST_ISystem.h"
@@ -402,8 +401,6 @@ int main(int argc, char** argv)
 	init_nodesystem();
 	
 	initglobals();
-
-	GEN_init_messaging_system();
 
 	IMB_init();
 

@@ -72,7 +72,7 @@
 #endif
 
 #ifdef WITH_GAMEENGINE
-#include "SYS_System.h"
+#include "BL_System.h"
 #endif
 #include "GHOST_Path-api.h"
 #include "GHOST_C-api.h"

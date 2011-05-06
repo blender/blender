@@ -8,11 +8,12 @@ sources = env.Glob('intern/*.c')
 
 incs = '. ../editors/include ../python ../makesdna ../blenlib ../blenkernel'
 incs += ' ../nodes ../imbuf ../blenloader ../render/extern/include'
-incs += ' ../radiosity/extern/include ../../kernel/gen_system'
+incs += ' ../radiosity/extern/include'
 incs += ' ../makesrna ../gpu ../blenfont'
 
 incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost'
 incs += ' #/intern/elbeem #/extern/glew/include'
+incs += ' #source/gameengine/BlenderRoutines'
 
 incs += ' ' + env['BF_ZLIB_INC']
 

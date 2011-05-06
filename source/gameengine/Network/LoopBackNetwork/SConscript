@@ -3,6 +3,6 @@ Import ('env')
 
 sources = 'NG_LoopBackNetworkDeviceInterface.cpp'
 
-incs = '. #source/kernel/gen_system #intern/string #source/gameengine/Network'
+incs = '. #intern/string #intern/container #source/gameengine/Network'
 
 env.BlenderLib ( 'ge_logic_loopbacknetwork', Split(sources), Split(incs), defines=[],libtype=['core','player'], priority=[400,135] )

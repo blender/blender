@@ -568,9 +568,10 @@ pluglist.append('source/blender/blenpluginapi/plugin.DEF')
 plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], VERSION, 'plugins', 'include', 'plugin.def'))
 
 plugininstall = []
-for targetdir,srcfile in zip(plugtargetlist, pluglist):
-    td, tf = os.path.split(targetdir)
-    plugininstall.append(env.Install(dir=td, source=srcfile))
+# plugins in blender 2.5 don't work at the moment.
+#for targetdir,srcfile in zip(plugtargetlist, pluglist):
+#    td, tf = os.path.split(targetdir)
+#    plugininstall.append(env.Install(dir=td, source=srcfile))
 
 textlist = []
 texttargetlist = []

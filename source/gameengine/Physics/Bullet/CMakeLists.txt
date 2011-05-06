@@ -33,7 +33,7 @@ set(INC
 	../../../../extern/bullet2/src
 	../../../../intern/moto/include
 	../../../../intern/guardedalloc
-	../../../kernel/gen_system
+	../../../../intern/container
 	../../../../intern/string
 	../../Rasterizer
 	../../Ketsji

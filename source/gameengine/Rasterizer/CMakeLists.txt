@@ -26,11 +26,11 @@
 
 set(INC
 	.
-	../../../source/kernel/gen_system
 	../../../source/blender/makesdna
 	../../../source/gameengine/SceneGraph
 	../../../source/gameengine/Ketsji
 	../../../intern/string
+	../../../intern/container
 	../../../intern/moto/include
 	../../../intern/guardedalloc
 	../Expressions

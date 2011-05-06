@@ -64,7 +64,7 @@
 
 #include "NG_LoopBackNetworkDeviceInterface.h"
 
-#include "SYS_System.h"
+#include "BL_System.h"
 
 #include "GPU_extensions.h"
 #include "Value.h"

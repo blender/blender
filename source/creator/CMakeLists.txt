@@ -82,10 +82,7 @@ if(WITH_PYTHON)
 endif()
 
 if(WITH_GAMEENGINE)
-	blender_include_dirs(
-		../kernel/gen_messaging
-		../kernel/gen_system
-	)
+	blender_include_dirs(../gameengine/BlenderRoutines)
 
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
@@ -778,7 +775,6 @@ endif()
 		bf_collada
 		bf_intern_bsp
 		bf_intern_bop
-		bf_gen_system
 		bf_intern_decimate
 		bf_intern_elbeem
 		bf_intern_ik
@@ -800,7 +796,6 @@ endif()
 		ge_logic_expressions
 		ge_scenegraph
 		ge_logic_network
-		bf_gen_system
 		bf_python # duplicate for BPY_driver_exec
 		ge_logic_ngnetwork
 		extern_bullet
