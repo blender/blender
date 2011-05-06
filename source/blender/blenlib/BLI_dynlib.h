@@ -27,31 +27,19 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/PIL_dynlib.h
+/** \file blender/blenlib/BLI_dynlib.h
  *  \ingroup bli
  */
 
-#ifndef __PIL_DYNLIB_H__
-#define __PIL_DYNLIB_H__
+#ifndef __BLI_DYNLIB_H__
+#define __BLI_DYNLIB_H__
 
-typedef struct PILdynlib PILdynlib;
+typedef struct DynamicLibrary DynamicLibrary;
 
-	PILdynlib*
-PIL_dynlib_open(
-	char *name);
+DynamicLibrary *BLI_dynlib_open(char *name);
+void *BLI_dynlib_find_symbol(DynamicLibrary* lib, const char *symname);
+char *BLI_dynlib_get_error_as_string(DynamicLibrary* lib);
+void BLI_dynlib_close(DynamicLibrary* lib);
 
-	void*
-PIL_dynlib_find_symbol(
-	PILdynlib* lib, 
-	const char *symname);
-
-	char*
-PIL_dynlib_get_error_as_string(
-	PILdynlib* lib);
-	
-	void
-PIL_dynlib_close(
-	PILdynlib* lib);
-
-#endif /* __PIL_DYNLIB_H__ */
+#endif /* __BLI_DYNLIB_H__ */
 

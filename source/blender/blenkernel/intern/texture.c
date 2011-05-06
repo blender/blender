@@ -41,9 +41,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "PIL_dynlib.h"
-
 #include "BLI_blenlib.h"
+#include "BLI_dynlib.h"
 #include "BLI_math.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
@@ -82,7 +81,7 @@ int test_dlerr(const char *name, const char *symbol)
 {
 	char *err;
 	
-	err= PIL_dynlib_get_error_as_string(NULL);
+	err= BLI_dynlib_get_error_as_string(NULL);
 	if(err) {
 		printf("var1: %s, var2: %s, var3: %s\n", name, symbol, err);
 		return 1;
@@ -108,19 +107,19 @@ void open_plugin_tex(PluginTex *pit)
 	pit->instance_init= NULL;
 	
 	/* clear the error list */
-	PIL_dynlib_get_error_as_string(NULL);
+	BLI_dynlib_get_error_as_string(NULL);
 
-	/* no PIL_dynlib_close! multiple opened plugins... */
-	/* if(pit->handle) PIL_dynlib_close(pit->handle); */
+	/* no BLI_dynlib_close! multiple opened plugins... */
+	/* if(pit->handle) BLI_dynlib_close(pit->handle); */
 	/* pit->handle= 0; */
 
 	/* open the needed object */
-	pit->handle= PIL_dynlib_open(pit->name);
+	pit->handle= BLI_dynlib_open(pit->name);
 	if(test_dlerr(pit->name, pit->name)) return;
 
 	if (pit->handle != NULL) {
 		/* find the address of the version function */
-		version= (int (*)(void)) PIL_dynlib_find_symbol(pit->handle, "plugin_tex_getversion");
+		version= (int (*)(void)) BLI_dynlib_find_symbol(pit->handle, "plugin_tex_getversion");
 		if (test_dlerr(pit->name, "plugin_tex_getversion")) return;
 		
 		if (version != NULL) {
@@ -129,7 +128,7 @@ void open_plugin_tex(PluginTex *pit)
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info"); 
 
-				info_func= (int (*)(PluginInfo *))PIL_dynlib_find_symbol(pit->handle, "plugin_getinfo");
+				info_func= (int (*)(PluginInfo *))BLI_dynlib_find_symbol(pit->handle, "plugin_getinfo");
 				if (!test_dlerr(pit->name, "plugin_getinfo")) {
 					info->instance_init = NULL;
 
@@ -200,7 +199,7 @@ void free_plugin_tex(PluginTex *pit)
 {
 	if(pit==NULL) return;
 		
-	/* no PIL_dynlib_close: same plugin can be opened multiple times, 1 handle */
+	/* no BLI_dynlib_close: same plugin can be opened multiple times, 1 handle */
 	MEM_freeN(pit);	
 }
 
