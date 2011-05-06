@@ -675,7 +675,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         if md.texture_coords == 'OBJECT':
             layout.prop(md, "texture_coordinate_object", text="Object")
         elif md.texture_coords == 'UV' and ob.type == 'MESH':
-            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
+            layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
 
     def WAVE(self, layout, ob, md):
         split = layout.split()
