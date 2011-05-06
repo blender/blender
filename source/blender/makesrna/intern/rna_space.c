@@ -48,6 +48,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 EnumPropertyItem space_type_items[] = {
