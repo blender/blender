@@ -645,6 +645,9 @@ static const EnumPropertyItem image_file_type_items[] = {
 		{R_TARGA, "TARGA", 0, "Targa", ""},
 		{R_RAWTGA, "TARGA RAW", 0, "Targa Raw", ""},
 		{R_PNG, "PNG", 0, "PNG", ""},
+#ifdef WITH_DDS
+		{R_DDS, "DDS", 0, "DirectDraw Surface", ""},
+#endif
 		{R_BMP, "BMP", 0, "BMP", ""},
 		{R_JPEG90, "JPEG", 0, "Jpeg", ""},
 #ifdef WITH_OPENJPEG

@@ -101,7 +101,9 @@ EnumPropertyItem snap_element_items[] = {
 EnumPropertyItem image_type_items[] = {
 	{0, "", 0, "Image", NULL},
 	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
-	//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
+#ifdef WITH_DDS
+	{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""},
+#endif
 	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
 	{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", ""},
 	{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", ""},
