@@ -824,6 +824,7 @@ enum {
 #define	ST_FIND_WRAP			0x0020
 #define	ST_FIND_ALL				0x0040
 #define	ST_SHOW_MARGIN			0x0080
+#define	ST_MATCH_CASE			0x0100
 
 
 /* stext->findstr/replacestr */

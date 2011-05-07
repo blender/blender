@@ -1825,6 +1825,11 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Find Wrap", "Search again from the start of the file when reaching the end");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
 
+	prop= RNA_def_property(srna, "use_match_case", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", ST_MATCH_CASE);
+	RNA_def_property_ui_text(prop, "Match case", "Search string is sensitive to uppercase and lowercase letters");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
+
 	prop= RNA_def_property(srna, "find_text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "findstr");
 	RNA_def_property_ui_text(prop, "Find Text", "Text to search for with the find tool");
