@@ -307,6 +307,15 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		}
 	}
 
+	if (parentwindowhwnd != 0) {
+		RAWINPUTDEVICE device = {0};
+		device.usUsagePage	= 0x01; /* usUsagePage & usUsage for keyboard*/
+		device.usUsage		= 0x06; /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
+		device.dwFlags |= RIDEV_INPUTSINK; // makes WM_INPUT is visible for ghost when has parent window
+		device.hwndTarget = m_hWnd;
+		RegisterRawInputDevices(&device, 1, sizeof(device));
+	}
+
 	m_wintab = ::LoadLibrary("Wintab32.dll");
 	if (m_wintab) {
 		GHOST_WIN32_WTInfo fpWTInfo = ( GHOST_WIN32_WTInfo ) ::GetProcAddress( m_wintab, "WTInfoA" );
