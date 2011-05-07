@@ -249,7 +249,7 @@ int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 	return 1;
 }
 
-int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me, const char *name, int active_set)
+int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mesh *me, const char *name, int active_set)
 {
 	BMEditMesh *em;
 	MLoopCol *mcol;

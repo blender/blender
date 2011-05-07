@@ -1319,36 +1319,36 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 		switch (con->type) {
 			case CONSTRAINT_TYPE_KINEMATIC:
 			{
-			bKinematicConstraint *data = (bKinematicConstraint*)con->data;
-			int segcount= 0;
-			
-			/* if only_temp, only draw if it is a temporary ik-chain */
-			if ((only_temp) && !(data->flag & CONSTRAINT_IK_TEMP))
-				continue;
-			
-			setlinestyle(3);
-			glBegin(GL_LINES);
-			
-			/* exclude tip from chain? */
-			if ((data->flag & CONSTRAINT_IK_TIP)==0)
-				parchan= pchan->parent;
-			else
-				parchan= pchan;
-			
-			glVertex3fv(parchan->pose_tail);
-			
-			/* Find the chain's root */
-			while (parchan->parent) {
-				segcount++;
-				if(segcount==data->rootbone || segcount>255) break; // 255 is weak
-				parchan= parchan->parent;
+				bKinematicConstraint *data = (bKinematicConstraint*)con->data;
+				int segcount= 0;
+				
+				/* if only_temp, only draw if it is a temporary ik-chain */
+				if ((only_temp) && !(data->flag & CONSTRAINT_IK_TEMP))
+					continue;
+				
+				setlinestyle(3);
+				glBegin(GL_LINES);
+				
+				/* exclude tip from chain? */
+				if ((data->flag & CONSTRAINT_IK_TIP)==0)
+					parchan= pchan->parent;
+				else
+					parchan= pchan;
+				
+				glVertex3fv(parchan->pose_tail);
+				
+				/* Find the chain's root */
+				while (parchan->parent) {
+					segcount++;
+					if(segcount==data->rootbone || segcount>255) break; // 255 is weak
+					parchan= parchan->parent;
+				}
+				if (parchan)
+					glVertex3fv(parchan->pose_head);
+				
+				glEnd();
+				setlinestyle(0);
 			}
-			if (parchan)
-				glVertex3fv(parchan->pose_head);
-			
-			glEnd();
-			setlinestyle(0);
-		}
 				break;
 			case CONSTRAINT_TYPE_SPLINEIK: 
 			{
@@ -1367,7 +1367,7 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 					// FIXME: revise the breaking conditions
 					if(segcount==data->chainlen || segcount>255) break; // 255 is weak
 					parchan= parchan->parent;
-	}
+				}
 				if (parchan) // XXX revise the breaking conditions to only stop at the tail?
 					glVertex3fv(parchan->pose_head);
 				
@@ -1826,9 +1826,9 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 									
 									glLoadName(index & 0xFFFF);
 									pchan_draw_IK_root_lines(pchan, !(do_dashed & 2));
-						}
+								}
 							}	
-					}
+						}
 					}
 					
 					glPushMatrix();

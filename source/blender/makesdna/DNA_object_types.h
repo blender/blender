@@ -131,7 +131,7 @@ typedef struct Object {
 
 	/* materials */
 	struct Material **mat;	/* material slots */
-	char *matbits;	/* a bitfield, with each bit 1 if corrusponding material linked to object */
+	char *matbits;	/* a boolean field, with each byte 1 if corrusponding material is linked to object */
 	int totcol;				/* copy of mesh or curve or meta */
 	int actcol;				/* currently selected material in the UI */
 	

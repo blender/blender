@@ -146,7 +146,7 @@ int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *f
 
 /*returns 0 on error, 1 on success.  executes and finishes a bmesh operator*/
 int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report) {
-	char *errmsg;
+	const char *errmsg;
 	
 	BMO_Finish_Op(em->bm, bmop);
 
@@ -262,10 +262,9 @@ void EDBM_selectmode_to_scene(Scene *scene, Object *obedit)
 	scene->toolsettings->selectmode = em->selectmode;
 }
 
-void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *scene, Object *ob)
+void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 {
 	Mesh *me = ob->data;
-	EditMesh *em;
 	BMesh *bm;
 
 	if (!me->mpoly && me->totface) {
@@ -418,7 +417,7 @@ void EDBM_select_flush(BMEditMesh *em, int selectmode)
 }
 
 /*BMESH_TODO*/
-void EDBM_deselect_flush(BMEditMesh *em)
+void EDBM_deselect_flush(BMEditMesh *UNUSED(em))
 {
 }
 
@@ -588,7 +587,7 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	return me;
 }
 
-static void undoMesh_to_editbtMesh(void *umv, void *emv, void *obdata)
+static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 {
 	BMEditMesh *em = emv, *em2;
 	Object *ob;
@@ -823,8 +822,8 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 		em->mirr_free_arrays = 1;
 	}
 
-	if (!CustomData_get_layer_named(&em->bm->vdata, CD_PROP_INT, "__mirror_index")) {
-		BM_add_data_layer_named(em->bm, &em->bm->vdata, CD_PROP_INT, "__mirror_index");
+	if (!CustomData_get_layer_named(&em->bm->vdata, CD_PROP_INT, (char*)"__mirror_index")) {
+		BM_add_data_layer_named(em->bm, &em->bm->vdata, CD_PROP_INT, (char*)"__mirror_index");
 	}
 
 	li = CustomData_get_named_layer_index(&em->bm->vdata, CD_PROP_INT, "__mirror_index");

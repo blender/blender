@@ -30,7 +30,7 @@
 	Simple, fast memory allocator that uses many BLI_mempools for allocation.
 	this is meant to be used by lots of relatively small objects.
 
-	this is a temporary and inperfect fix for performance issues caused
+	this is a temporary and imperfect fix for performance issues caused
 	by vgroups.  it needs to be replaced with something better, preferably
 	integrated into guardedalloc.
 	

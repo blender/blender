@@ -120,7 +120,6 @@ void EDBM_select_mirrored(Object *obedit, BMEditMesh *em)
 void EDBM_automerge(Scene *scene, Object *obedit, int update)
 {
 	BMEditMesh *em;
-	int len;
 	
 	if ((scene->toolsettings->automerge) &&
 	    (obedit && obedit->type==OB_MESH) &&
@@ -453,7 +452,7 @@ float labda_PdistVL2Dfl( float *v1, float *v2, float *v3)
 }
 
 /* note; uses v3d, so needs active 3d window */
-static void findnearestedge__doClosest(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index)
+static void findnearestedge__doClosest(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
 {
 	struct { ViewContext vc; float mval[2]; int dist; BMEdge *closest; } *data = userData;
 	float v1[2], v2[2];
@@ -525,7 +524,7 @@ BMEdge *EDBM_findnearestedge(ViewContext *vc, int *dist)
 	}
 }
 
-static void findnearestface__getDistance(void *userData, BMFace *efa, int x, int y, int index)
+static void findnearestface__getDistance(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
 {
 	struct { short mval[2]; int dist; BMFace *toFace; } *data = userData;
 
@@ -690,7 +689,6 @@ static EnumPropertyItem prop_similar_types[] = {
 
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 	BMOperator bmop;
@@ -731,7 +729,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 	BMOperator bmop;
@@ -778,7 +775,6 @@ VERT GROUP
 
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 	BMOperator bmop;
@@ -824,7 +820,7 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 		return similar_face_select_exec(C, op);
 }
 
-static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;
@@ -899,7 +895,7 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	BMW_End(&walker);
 }
 
-static int loop_multiselect(bContext *C, wmOperator *op)
+static int loop_multiselect(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 #if 0 //BMESH_TODO
 	Object *obedit= CTX_data_edit_object(C);
@@ -1056,7 +1052,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static void mouse_mesh_shortest_path(bContext *C, short mval[2])
+static void mouse_mesh_shortest_path(bContext *UNUSED(C), short UNUSED(mval[2]))
 {
 #if 0 //BMESH_TODO
 	ViewContext vc;
@@ -1125,7 +1121,7 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 }
 
 
-static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	
 	view3d_operator_needs_opengl(C);
@@ -1306,7 +1302,6 @@ void EDBM_selectmode_set(BMEditMesh *em)
 
 void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
 {
-	BMVert *eve;
 	BMEdge *eed;
 	BMFace *efa;
 	BMIter iter;
@@ -1392,7 +1387,7 @@ void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 //	if (EM_texFaceCheck())
 }
 
-static int select_inverse_mesh_exec(bContext *C, wmOperator *op)
+static int select_inverse_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
@@ -1429,9 +1424,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	BMVert *eve;
 	BMEdge *e, *eed;
 	BMFace *efa;
-	short done=1, toggle=0;
 	int sel= !RNA_boolean_get(op->ptr, "deselect");
-	int limit= RNA_boolean_get(op->ptr, "limit");
 	
 	/* unified_finednearest needs ogl */
 	view3d_operator_needs_opengl(C);
@@ -1501,7 +1494,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 }
 
 
-static int select_linked_exec(bContext *C, wmOperator *op)
+static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
@@ -1875,9 +1868,9 @@ void em_deselect_nth_vert(EditMesh *em, int nth, EditVert *eve_act)
 }
 #endif
 
-int EM_deselect_nth(EditMesh *em, int nth)
+int EM_deselect_nth(BMEditMesh *em, int nth)
 {
-#if 0
+#if 0 //BMESH_TODO
 	EditSelection *ese;
 	ese = ((EditSelection*)em->selected.last);
 	if(ese) {
@@ -1933,7 +1926,6 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMIter iter;
 	BMEdge *e;
-	BLI_array_declare(stack);
 	BMLoop *l1, *l2;
 	float sharp = RNA_float_get(op->ptr, "sharpness"), angle;
 
@@ -2170,7 +2162,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
-static int select_next_loop(bContext *C, wmOperator *op)
+static int select_next_loop(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
@@ -2220,7 +2212,7 @@ void MESH_OT_select_next_loop(wmOperatorType *ot)
 }
 
 
-static int region_to_loop(bContext *C, wmOperator *op)
+static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;

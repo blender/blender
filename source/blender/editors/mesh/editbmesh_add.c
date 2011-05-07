@@ -300,7 +300,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 3, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_enum(ot->srna, "fill_type", &fill_type_items, 0, "Fill Type", "");
+	RNA_def_enum(ot->srna, "fill_type", fill_type_items, 0, "Fill Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -355,7 +355,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
-	RNA_def_enum(ot->srna, "end_fill_type", &fill_type_items, 1, "Cap Fill Type", "");
+	RNA_def_enum(ot->srna, "end_fill_type", fill_type_items, 1, "Cap Fill Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -411,7 +411,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "radius1", 1.0f, 0.0, FLT_MAX, "Radius 1", "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "radius2", 0.0f, 0.0, FLT_MAX, "Radius 2", "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
-	RNA_def_enum(ot->srna, "end_fill_type", &fill_type_items, 1, "Base Fill Type", "");
+	RNA_def_enum(ot->srna, "end_fill_type", fill_type_items, 1, "Base Fill Type", "");
 	
 	ED_object_add_generic_props(ot, TRUE);
 }

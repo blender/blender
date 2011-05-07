@@ -34,10 +34,10 @@ typedef struct EdgeTag {
 
 void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 {
-	float  no[3], tan[3], vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
-	float p1[3], p2[3], w[3];
-	float l1, l2;
-	int ret, inv=0;
+	float  no[3], /*tan[3]*,*/ vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
+	/*float p1[3], p2[3], w[3];
+	float l1, l2;*/
+	int /*ret,*/ inv=0;
 	
 	if (l->f->len > 2) {
 		copy_v3_v3(v1, l->prev->v->co);

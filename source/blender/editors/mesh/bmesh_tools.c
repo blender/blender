@@ -377,7 +377,7 @@ short EDBM_Extrude_edges_indiv(BMEditMesh *em, short flag, float *nor)
 #endif
 
 /* extrudes individual vertices */
-short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float *nor) 
+short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
 {
 	BMOperator bmop;
 
@@ -3806,12 +3806,14 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	return 1;
 }
 
-static int mesh_separate_material(Main *bmain, Scene *scene, Base *editbase, wmOperator *wmop)
+//BMESH_TODO
+static int mesh_separate_material(Main *UNUSED(bmain), Scene *UNUSED(scene), Base *UNUSED(editbase), wmOperator *UNUSED(wmop))
 {
 	return 0;
 }
 
-static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOperator *wmop)
+//BMESH_TODO
+static int mesh_separate_loose(Main *UNUSED(bmain), Scene *UNUSED(scene), Base *UNUSED(editbase), wmOperator *UNUSED(wmop))
 {
 	return 0;
 }
@@ -4010,7 +4012,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 
 }
 
-static int edge_flip_exec(bContext *C, wmOperator *op)
+static int edge_flip_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 #if 0
 	Object *obedit= CTX_data_edit_object(C);
@@ -4040,7 +4042,8 @@ void MESH_OT_edge_flip(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int split_mesh(bContext *C, wmOperator *op)
+//BMESH_TODO
+static int split_mesh(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 #if 0
 	Object *obedit= CTX_data_edit_object(C);
@@ -4079,7 +4082,7 @@ void MESH_OT_split(wmOperatorType *ot)
 }
 
 
-static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float degr, int dupli )
+static int spin_mesh(bContext *UNUSED(C), wmOperator *UNUSED(op), float *UNUSED(dvec), int UNUSED(steps), float UNUSED(degr), int UNUSED(dupli) )
 {
 #if 0
 	Object *obedit= CTX_data_edit_object(C);
@@ -4164,7 +4167,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 	return OPERATOR_CANCELLED;
 }
 
-static int spin_mesh_exec(bContext *C, wmOperator *op)
+static int spin_mesh_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 #if 0
 	Object *obedit= CTX_data_edit_object(C);
@@ -4183,7 +4186,7 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 }
 
 /* get center and axis, in global coords */
-static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 #if 0
 	Scene *scene = CTX_data_scene(C);
@@ -4221,7 +4224,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 
 }
 
-static int screw_mesh_exec(bContext *C, wmOperator *op)
+static int screw_mesh_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 #if 0
 	Object *obedit= CTX_data_edit_object(C);
@@ -4295,7 +4298,7 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 }
 
 /* get center and axis, in global coords */
-static int screw_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int screw_mesh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 #if 0
 	Scene *scene = CTX_data_scene(C);
@@ -4330,7 +4333,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
 }
 
-int select_by_number_vertices_exec(bContext *C, wmOperator *op)
+int select_by_number_vertices_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 #if 0
 	Object *obedit= CTX_data_edit_object(C);
@@ -4490,7 +4493,7 @@ static void xsortvert_flag__doSetX(void *userData, EditVert *UNUSED(eve), int x,
 }
 
 /* all verts with (flag & 'flag') are sorted */
-static void xsortvert_flag(bContext *C, int flag)
+static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
 {
 #if 0 //hrm, geometry isn't in linked lists anymore. . .
 	ViewContext vc;
@@ -4814,7 +4817,7 @@ static int mesh_export_obj_exec(bContext *C, wmOperator *op)
 	MPoly *mpoly, *mp;
 	MTexPoly *mtexpoly;
 	MLoopUV *luv, *mloopuv;
-	MLoopCol *lcol, *mloopcol;
+	MLoopCol *mloopcol;
 	FILE *file, *matfile;
 	int *face_mat_group;
 	struct {Material *mat; MTexPoly poly; int end;} **matlists;

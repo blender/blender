@@ -663,7 +663,6 @@ void scale_point(float *c1, float *p, float s)
 int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Object *obedit)
 {
 	BMFace *f;
-	RegionView3D *rv3d = ar->regiondata;
 	float co1[3], co2[3], co3[3], dir1[4], dir2[4], dir3[4];
 	float origin[3], invmat[4][4];
 	float epsilon = 0.01f; 

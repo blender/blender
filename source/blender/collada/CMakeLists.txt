@@ -106,17 +106,9 @@ if(WITH_BUILDINFO)
 	add_definitions(-DNAN_BUILDINFO)
 endif()
 
-<<<<<<< .working
-IF(WITH_BUILDINFO)
-	ADD_DEFINITIONS(-DNAN_BUILDINFO)
-ENDIF(WITH_BUILDINFO)
-
-BLENDERLIB(bf_collada "${SRC}" "${INC}")
-=======
 if(CMAKE_COMPILER_IS_GNUCXX)
 	# COLLADAFWArray.h gives error with gcc 4.5
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
 blender_add_lib(bf_collada "${SRC}" "${INC}")
->>>>>>> .merge-right.r35190

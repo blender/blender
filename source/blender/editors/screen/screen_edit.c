@@ -1455,8 +1455,8 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 
 										if(rv3d->persp==RV3D_CAMOB)
 											rv3d->persp= RV3D_PERSP;
-						}
-					}
+									}
+								}
 							}
 						}
 					}
