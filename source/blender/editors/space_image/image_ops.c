@@ -1423,6 +1423,9 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 	}
 
 	ibuf->userflags |= IB_BITMAPDIRTY;
+	if(ibuf->mipmap[0])
+		ibuf->userflags |= IB_MIPMAP_INVALID;
+
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	return OPERATOR_FINISHED;
 }
