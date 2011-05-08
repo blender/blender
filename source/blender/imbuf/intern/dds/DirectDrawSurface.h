@@ -126,11 +126,25 @@ struct DDSHeader
 	void setLinearSize(uint size);
 	void setPitch(uint pitch);
 	void setFourCC(uint8 c0, uint8 c1, uint8 c2, uint8 c3);
+	void setFormatCode(uint code);
+	void setSwizzleCode(uint8 c0, uint8 c1, uint8 c2, uint8 c3);
 	void setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask);
 	void setDX10Format(uint format);
 	void setNormalFlag(bool b);
+    void setSrgbFlag(bool b);
+	void setHasAlphaFlag(bool b);
+        void setUserVersion(int version);
+	
+	/*void swapBytes();*/
 	
 	bool hasDX10Header() const;
+    uint signature() const;
+    uint toolVersion() const;
+    uint userVersion() const;
+    bool isNormalMap() const;
+    bool isSrgb() const;
+    bool hasAlpha() const;
+    uint d3d9Format() const;
 };
 
 /// DirectDraw Surface. (DDS)
@@ -142,6 +156,8 @@ public:
 	
 	bool isValid() const;
 	bool isSupported() const;
+
+	bool hasAlpha() const;
 	
 	uint mipmapCount() const;
 	uint width() const;
@@ -153,8 +169,8 @@ public:
 	bool isTextureCube() const;
 
 	void setNormalFlag(bool b);
-
-	bool hasAlpha() const; /* false for DXT1, true for all other DXTs */
+	void setHasAlphaFlag(bool b);
+        void setUserVersion(int version);
 	
 	void mipmap(Image * img, uint f, uint m);
 	//	void mipmap(FloatImage * img, uint f, uint m);

@@ -55,4 +55,10 @@ typedef unsigned int       uint;
 typedef unsigned int       uint32;
 typedef unsigned long long uint64;
 
+// copied from nvtt src/nvimage/nvimage.h
+inline uint computePitch(uint w, uint bitsize, uint alignment)
+{
+	return ((w * bitsize +  8 * alignment - 1) / (8 * alignment)) * alignment;
+}
+
 #endif

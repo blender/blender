@@ -123,6 +123,53 @@ uint BlockDXT1::evaluatePalette(Color32 color_array[4]) const
 	}
 }
 
+
+uint BlockDXT1::evaluatePaletteNV5x(Color32 color_array[4]) const
+{
+	// Does bit expansion before interpolation.
+	color_array[0].b = (3 * col0.b * 22) / 8;
+	color_array[0].g = (col0.g << 2) | (col0.g >> 4);
+	color_array[0].r = (3 * col0.r * 22) / 8;
+	color_array[0].a = 0xFF;
+
+	color_array[1].r = (3 * col1.r * 22) / 8;
+	color_array[1].g = (col1.g << 2) | (col1.g >> 4);
+	color_array[1].b = (3 * col1.b * 22) / 8;
+	color_array[1].a = 0xFF;
+	
+    int gdiff = color_array[1].g - color_array[0].g;
+
+	if( col0.u > col1.u ) {
+		// Four-color block: derive the other two colors.
+        color_array[2].r = ((2 * col0.r + col1.r) * 22) / 8;
+        color_array[2].g = (256 * color_array[0].g + gdiff / 4 + 128 + gdiff * 80) / 256;
+        color_array[2].b = ((2 * col0.b + col1.b) * 22) / 8;
+		color_array[2].a = 0xFF;
+		
+        color_array[3].r = ((2 * col1.r + col0.r) * 22) / 8;
+        color_array[3].g = (256 * color_array[1].g - gdiff / 4 + 128 - gdiff * 80) / 256;
+        color_array[3].b = ((2 * col1.b + col0.b) * 22) / 8;
+		color_array[3].a = 0xFF;
+
+		return 4;
+	}
+	else {
+		// Three-color block: derive the other color.
+        color_array[2].r = ((col0.r + col1.r) * 33) / 8;
+        color_array[2].g = (256 * color_array[0].g + gdiff / 4 + 128 + gdiff * 128) / 256;
+        color_array[2].b = ((col0.b + col1.b) * 33) / 8;
+		color_array[2].a = 0xFF;
+		
+		// Set all components to 0 to match DXT specs.
+		color_array[3].r = 0x00; // color_array[2].r;
+		color_array[3].g = 0x00; // color_array[2].g;
+		color_array[3].b = 0x00; // color_array[2].b;
+		color_array[3].a = 0x00;
+		
+		return 3;
+	}
+}
+
 // Evaluate palette assuming 3 color block.
 void BlockDXT1::evaluatePalette3(Color32 color_array[4]) const
 {
@@ -174,6 +221,7 @@ void BlockDXT1::evaluatePalette4(Color32 color_array[4]) const
 	color_array[3].a = 0xFF;
 }
 
+
 void BlockDXT1::decodeBlock(ColorBlock * block) const
 {
 	// Decode color block.
@@ -187,6 +235,21 @@ void BlockDXT1::decodeBlock(ColorBlock * block) const
 			block->color(i, j) = color_array[idx];
 		}
 	}	
+}
+
+void BlockDXT1::decodeBlockNV5x(ColorBlock * block) const
+{
+	// Decode color block.
+	Color32 color_array[4];
+	evaluatePaletteNV5x(color_array);
+
+	// Write color block.
+	for( uint j = 0; j < 4; j++ ) {
+		for( uint i = 0; i < 4; i++ ) {
+			uint idx = (row[j] >> (2 * i)) & 3;
+			block->color(i, j) = color_array[idx];
+		}
+	}
 }
 
 void BlockDXT1::setIndices(int * idx)
@@ -222,6 +285,12 @@ void BlockDXT3::decodeBlock(ColorBlock * block) const
 	color.decodeBlock(block);
 	
 	// Decode alpha.
+	alpha.decodeBlock(block);
+}
+
+void BlockDXT3::decodeBlockNV5x(ColorBlock * block) const
+{
+	color.decodeBlockNV5x(block);
 	alpha.decodeBlock(block);
 }
 
@@ -394,7 +463,15 @@ void BlockDXT5::decodeBlock(ColorBlock * block) const
 	
 	// Decode alpha.
 	alpha.decodeBlock(block);
+}
 
+void BlockDXT5::decodeBlockNV5x(ColorBlock * block) const
+{
+	// Decode color.
+	color.decodeBlockNV5x(block);
+	
+	// Decode alpha.
+	alpha.decodeBlock(block);
 }
 
 /// Flip DXT5 block vertically.

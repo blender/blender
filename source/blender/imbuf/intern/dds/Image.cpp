@@ -41,7 +41,7 @@
 
 #include <stdio.h> // printf
 
-Image::Image() : m_width(0), m_height(0), m_format(Format_RGB), m_data(0)
+Image::Image() : m_width(0), m_height(0), m_format(Format_RGB), m_data(NULL)
 {
 }
 
@@ -61,7 +61,7 @@ void Image::allocate(uint w, uint h)
 void Image::free()
 {
 	if (m_data) delete [] m_data;
-	m_data = 0;
+	m_data = NULL;
 }
 
 
@@ -131,4 +131,5 @@ void Image::setFormat(Image::Format f)
 {
 	m_format = f;
 }
+
 

@@ -83,65 +83,90 @@ ColorBlock::ColorBlock(const Image * img, uint x, uint y)
 
 void ColorBlock::init(const Image * img, uint x, uint y)
 {
-	const uint bw = min(img->width() - x, 4U);
-	const uint bh = min(img->height() - y, 4U);
+    init(img->width(), img->height(), (const uint *)img->pixels(), x, y);
+}
 
-	static int remainder[] = {
-		0, 0, 0, 0,
-		0, 1, 0, 1,
-		0, 1, 2, 0,
-		0, 1, 2, 3,
-	};
+void ColorBlock::init(uint w, uint h, const uint * data, uint x, uint y)
+{
+	const uint bw = min(w - x, 4U);
+	const uint bh = min(h - y, 4U);
+
+    // Blocks that are smaller than 4x4 are handled by repeating the pixels.
+    // @@ Thats only correct when block size is 1, 2 or 4, but not with 3. :(
+    // @@ Ideally we should zero the weights of the pixels out of range.
+
+    for (uint i = 0; i < 4; i++)
+    {
+        const int by = i % bh;
+
+        for (uint e = 0; e < 4; e++)
+        {
+            const int bx = e % bw;
+            const uint idx = (y + by) * w + x + bx;
+
+            color(e, i).u = data[idx];
+        }
+    }
+}
+
+void ColorBlock::init(uint w, uint h, const float * data, uint x, uint y)
+{
+    const uint bw = min(w - x, 4U);
+    const uint bh = min(h - y, 4U);
 
 	// Blocks that are smaller than 4x4 are handled by repeating the pixels.
 	// @@ Thats only correct when block size is 1, 2 or 4, but not with 3. :(
+    // @@ Ideally we should zero the weights of the pixels out of range.
 
-	for(uint i = 0; i < 4; i++) {
-		//const int by = i % bh;
-		const int by = remainder[(bh - 1) * 4 + i];
-		for(uint e = 0; e < 4; e++) {
-			//const int bx = e % bw;
-			const int bx = remainder[(bw - 1) * 4 + e];
-			color(e, i) = img->pixel(x + bx, y + by);
+    uint srcPlane = w * h;
+
+	for (uint i = 0; i < 4; i++)
+	{
+		const uint by = i % bh;
+		
+		for (uint e = 0; e < 4; e++)
+		{
+			const uint bx = e % bw;
+            const uint idx = ((y + by) * w + x + bx);
+			
+			Color32 & c = color(e, i);
+            c.r = uint8(255 * clamp(data[idx + 0 * srcPlane], 0.0f, 1.0f)); // @@ Is this the right way to quantize floats to bytes?
+            c.g = uint8(255 * clamp(data[idx + 1 * srcPlane], 0.0f, 1.0f));
+            c.b = uint8(255 * clamp(data[idx + 2 * srcPlane], 0.0f, 1.0f));
+            c.a = uint8(255 * clamp(data[idx + 3 * srcPlane], 0.0f, 1.0f));
 		}
 	}
 }
 
-
-void ColorBlock::swizzleDXT5n()
+static inline uint8 component(Color32 c, uint i)
 {
-	for(int i = 0; i < 16; i++)
+	if (i == 0) return c.r;
+	if (i == 1) return c.g;
+	if (i == 2) return c.b;
+	if (i == 3) return c.a;
+	if (i == 4) return 0xFF;
+	return 0;
+}
+
+void ColorBlock::swizzle(uint x, uint y, uint z, uint w)
+{
+	for (int i = 0; i < 16; i++)
 	{
 		Color32 c = m_color[i];
-		m_color[i] = Color32(0xFF, c.g, 0, c.r);
+		m_color[i].r = component(c, x);
+		m_color[i].g = component(c, y);
+		m_color[i].b = component(c, z);
+		m_color[i].a = component(c, w);
 	}
 }
 
-void ColorBlock::splatX()
-{
-	for(int i = 0; i < 16; i++)
-	{
-		uint8 x = m_color[i].r;
-		m_color[i] = Color32(x, x, x, x);
-	}
-}
-
-void ColorBlock::splatY()
-{
-	for(int i = 0; i < 16; i++)
-	{
-		uint8 y = m_color[i].g;
-		m_color[i] = Color32(y, y, y, y);
-	}
-}
 
 /// Returns true if the block has a single color.
-bool ColorBlock::isSingleColor() const
+bool ColorBlock::isSingleColor(Color32 mask/*= Color32(0xFF, 0xFF, 0xFF, 0x00)*/) const
 {
-	Color32 mask(0xFF, 0xFF, 0xFF, 0x00);
 	uint u = m_color[0].u & mask.u;
 	
-	for(int i = 1; i < 16; i++)
+	for (int i = 1; i < 16; i++)
 	{
 		if (u != (m_color[i].u & mask.u))
 		{
@@ -152,6 +177,7 @@ bool ColorBlock::isSingleColor() const
 	return true;
 }
 
+/*
 /// Returns true if the block has a single color, ignoring transparent pixels.
 bool ColorBlock::isSingleColorNoAlpha() const
 {
@@ -159,7 +185,7 @@ bool ColorBlock::isSingleColorNoAlpha() const
 	int i;
 	for(i = 0; i < 16; i++)
 	{
-		if (m_color[i].a != 0) c = m_color[i];
+        if (m_color[i].a != 0) c = m_color[i];
 	}
 
 	Color32 mask(0xFF, 0xFF, 0xFF, 0x00);
@@ -175,9 +201,10 @@ bool ColorBlock::isSingleColorNoAlpha() const
 	
 	return true;
 }
+*/
 
 /// Count number of unique colors in this color block.
-uint ColorBlock::countUniqueColors() const
+/*uint ColorBlock::countUniqueColors() const
 {
 	uint count = 0;
 
@@ -197,9 +224,9 @@ uint ColorBlock::countUniqueColors() const
 	}
 	
 	return count;
-}
+}*/
 
-/// Get average color of the block.
+/*/// Get average color of the block.
 Color32 ColorBlock::averageColor() const
 {
 	uint r, g, b, a;
@@ -213,7 +240,7 @@ Color32 ColorBlock::averageColor() const
 	}
 	
 	return Color32(uint8(r / 16), uint8(g / 16), uint8(b / 16), uint8(a / 16));
-}
+}*/
 
 /// Return true if the block is not fully opaque.
 bool ColorBlock::hasAlpha() const
@@ -225,6 +252,7 @@ bool ColorBlock::hasAlpha() const
 	return false;
 }
 
+#if 0
 
 /// Get diameter color range.
 void ColorBlock::diameterRange(Color32 * start, Color32 * end) const
@@ -345,8 +373,9 @@ void ColorBlock::boundsRangeAlpha(Color32 * start, Color32 * end) const
 	*start = minColor;
 	*end = maxColor;
 }
+#endif
 
-/// Sort colors by abosolute value in their 16 bit representation.
+/*/// Sort colors by abosolute value in their 16 bit representation.
 void ColorBlock::sortColorsByAbsoluteValue()
 {
 	// Dummy selection sort.
@@ -364,4 +393,75 @@ void ColorBlock::sortColorsByAbsoluteValue()
 		}
 		swap( m_color[a], m_color[max] );
 	}
+}*/
+
+
+/*/// Find extreme colors in the given axis.
+void ColorBlock::computeRange(Vector3::Arg axis, Color32 * start, Color32 * end) const
+{
+	
+	int mini, maxi;
+	mini = maxi = 0;
+	
+	float min, max;	
+	min = max = dot(Vector3(m_color[0].r, m_color[0].g, m_color[0].b), axis);
+
+	for(uint i = 1; i < 16; i++)
+	{
+		const Vector3 vec(m_color[i].r, m_color[i].g, m_color[i].b);
+		
+		float val = dot(vec, axis);
+		if( val < min ) {
+			mini = i;
+			min = val;
+		}
+		else if( val > max ) {
+			maxi = i;
+			max = val;
+		}
+	}
+	
+	*start = m_color[mini];
+	*end = m_color[maxi];
+}*/
+
+
+/*/// Sort colors in the given axis.
+void ColorBlock::sortColors(const Vector3 & axis)
+{
+	float luma_array[16];
+	
+	for(uint i = 0; i < 16; i++) {
+		const Vector3 vec(m_color[i].r, m_color[i].g, m_color[i].b);
+		luma_array[i] = dot(vec, axis);
+	}
+	
+	// Dummy selection sort.
+	for( uint a = 0; a < 16; a++ ) {
+		uint min = a;
+		for( uint b = a+1; b < 16; b++ ) {
+			if( luma_array[b] < luma_array[min] ) {
+				min = b;
+			}
+		}
+		swap( luma_array[a], luma_array[min] );
+		swap( m_color[a], m_color[min] );
+	}
+}*/
+
+
+/*/// Get the volume of the color block.
+float ColorBlock::volume() const
+{
+	Box bounds;
+	bounds.clearBounds();
+	
+	for(int i = 0; i < 16; i++) {
+		const Vector3 point(m_color[i].r, m_color[i].g, m_color[i].b);
+		bounds.addPointToBounds(point);
+	}
+	
+	return bounds.volume();
 }
+*/
+
