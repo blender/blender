@@ -428,6 +428,20 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_COLLSETTINGS_FLAG_ENABLED);
 	RNA_def_property_ui_text(prop, "Enable Collision", "Enable collisions with other objects");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop= RNA_def_property(srna, "repel_force", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "repel_force");
+	RNA_def_property_range(prop, 0.0f, 20.0f);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Repulsion Force", "Repulsion force to apply on cloth when close to colliding");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop= RNA_def_property(srna, "distance_repel", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "distance_repel");
+	RNA_def_property_range(prop, 0.001f, 10.0f);
+	RNA_def_property_float_default(prop, 0.005f);
+	RNA_def_property_ui_text(prop, "Repulsion Distance", "Maximum distance to apply repulsion force, must be greater then minimum distance");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
 	
 	prop= RNA_def_property(srna, "distance_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "epsilon");

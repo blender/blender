@@ -1157,7 +1157,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 int new_id(ListBase *lb, ID *id, const char *tname)
 {
 	int result;
-	char name[22];
+	char name[MAX_ID_NAME-2];
 
 	/* if library, don't rename */
 	if(id->lib) return 0;
@@ -1381,7 +1381,7 @@ void text_idbutton(struct ID *id, char *text)
 	if(id) {
 		if(GS(id->name)==ID_SCE)
 			strcpy(text, "SCE: ");
-		else if(GS(id->name)==ID_SCE)
+		else if(GS(id->name)==ID_SCR)
 			strcpy(text, "SCR: ");
 		else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
 			strcpy(text, "NT: ");

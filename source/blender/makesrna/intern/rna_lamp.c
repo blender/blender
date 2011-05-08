@@ -607,13 +607,13 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_halo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_HALO);
-	RNA_def_property_ui_text(prop, "Halo", "Renders spotlight with a volumetric halo (Buffer Shadows)");
+	RNA_def_property_ui_text(prop, "Halo", "Renders spotlight with a volumetric halo");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop= RNA_def_property(srna, "halo_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "haint");
 	RNA_def_property_ui_range(prop, 0, 5.0, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Halo Intensity", "Brightness of the spotlight's halo cone  (Buffer Shadows)");
+	RNA_def_property_ui_text(prop, "Halo Intensity", "Brightness of the spotlight's halo cone");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop= RNA_def_property(srna, "halo_step", PROP_INT, PROP_NONE);

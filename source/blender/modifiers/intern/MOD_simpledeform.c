@@ -56,7 +56,7 @@
 
 
 /* Clamps/Limits the given coordinate to:  limits[0] <= co[axis] <= limits[1]
- * The ammount of clamp is saved on dcut */
+ * The amount of clamp is saved on dcut */
 static void axis_limit(int axis, const float limits[2], float co[3], float dcut[3])
 {
 	float val = co[axis];

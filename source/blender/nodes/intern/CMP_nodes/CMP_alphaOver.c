@@ -142,7 +142,7 @@ static void node_composit_exec_alphaover(void *UNUSED(data), bNode *node, bNodeS
 
 static void node_alphaover_init(bNode* node)
 {
-   node->storage= MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
+	node->storage= MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
 }
 
 void register_node_type_cmp_alphaover(ListBase *lb)

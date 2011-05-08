@@ -1,5 +1,6 @@
 BF_BUILDDIR = '../blender-build/linux-glibc27-x86_64'
 BF_INSTALLDIR = '../blender-install/linux-glibc27-x86_64'
+BF_NUMJOBS = 2
 
 # Python configuration
 BF_PYTHON_VERSION = '3.2'
@@ -46,7 +47,6 @@ WITH_BF_ZLIB = True
 WITH_BF_STATICZLIB = True
 BF_ZLIB_LIB_STATIC = '${BF_ZLIB}/lib/libz.a'
 
-WITH_BF_STATICZLIB = False
 WITH_BF_SDL = True
 WITH_BF_OGG = False
 

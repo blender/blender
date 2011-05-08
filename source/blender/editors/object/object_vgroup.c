@@ -352,7 +352,7 @@ static void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
 		 */
 		if(dvert->dw[i].def_nr == def_nr) {
 			dvert->totweight--;
-        
+
 			/* if there are still other deform weights
 			 * attached to this vert then remove this
 			 * deform weight, and reshuffle the others
@@ -461,10 +461,10 @@ static void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float wei
 			BLI_cellalloc_free(dv->dw);
 		}
 		dv->dw=newdw;
-    
+
 		dv->dw[dv->totweight].weight=weight;
 		dv->dw[dv->totweight].def_nr=def_nr;
-    
+
 		dv->totweight++;
 		break;
 	}
@@ -513,7 +513,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup	*dg, int vertnum)
 
 static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 {
-	MDeformVert *dvert;
+	MDeformVert *dvert= NULL;
 	BMVert *eve;
 	Mesh *me;
 	int i;
@@ -524,7 +524,9 @@ static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 
 		if(me->edit_btmesh) {
 			eve= BMIter_AtIndex(me->edit_btmesh->bm, BM_VERTS_OF_MESH, NULL, vertnum);
-			if(!eve) return 0.0f;
+			if(!eve) {
+				return 0.0f;
+			}
 			dvert= CustomData_bmesh_get(&me->edit_btmesh->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 			vertnum= 0;
 		}

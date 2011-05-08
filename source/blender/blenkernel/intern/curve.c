@@ -64,7 +64,8 @@
 #include "BKE_key.h"  
 #include "BKE_library.h"  
 #include "BKE_main.h"  
-#include "BKE_object.h"  
+#include "BKE_object.h"
+#include "BKE_material.h"
 
 
 #include "ED_curve.h"
@@ -202,6 +203,7 @@ Curve *copy_curve(Curve *cu)
 
 	cun->editnurb= NULL;
 	cun->editfont= NULL;
+	cun->selboxes= NULL;
 
 #if 0	// XXX old animation system
 	/* single user ipo too */
@@ -216,10 +218,22 @@ Curve *copy_curve(Curve *cu)
 	return cun;
 }
 
+static void extern_local_curve(Curve *cu)
+{	
+	id_lib_extern((ID *)cu->vfont);
+	id_lib_extern((ID *)cu->vfontb);	
+	id_lib_extern((ID *)cu->vfonti);
+	id_lib_extern((ID *)cu->vfontbi);
+	
+	if(cu->mat) {
+		extern_local_matarar(cu->mat, cu->totcol);
+	}
+}
+
 void make_local_curve(Curve *cu)
 {
-	Object *ob = NULL;
-	Curve *cun;
+	Main *bmain= G.main;
+	Object *ob;
 	int local=0, lib=0;
 	
 	/* - when there are only lib users: don't do
@@ -229,47 +243,41 @@ void make_local_curve(Curve *cu)
 	
 	if(cu->id.lib==NULL) return;
 
-	if(cu->vfont) cu->vfont->id.lib= NULL;
-	if(cu->vfontb) cu->vfontb->id.lib= NULL;
-	if(cu->vfonti) cu->vfonti->id.lib= NULL;
-	if(cu->vfontbi) cu->vfontbi->id.lib= NULL;
-
 	if(cu->id.us==1) {
 		cu->id.lib= NULL;
 		cu->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)cu, NULL);
+
+		new_id(&bmain->curve, (ID *)cu, NULL);
+		extern_local_curve(cu);
 		return;
 	}
-	
-	ob= G.main->object.first;
-	while(ob) {
-		if(ob->data==cu) {
+
+	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+		if(ob->data == cu) {
 			if(ob->id.lib) lib= 1;
 			else local= 1;
 		}
-		ob= ob->id.next;
 	}
-	
+
 	if(local && lib==0) {
 		cu->id.lib= NULL;
 		cu->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)cu, NULL);
+
+		new_id(&bmain->curve, (ID *)cu, NULL);
+		extern_local_curve(cu);
 	}
 	else if(local && lib) {
-		cun= copy_curve(cu);
+		Curve *cun= copy_curve(cu);
 		cun->id.us= 0;
-		
-		ob= G.main->object.first;
-		while(ob) {
+
+		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data==cu) {
-				
 				if(ob->id.lib==NULL) {
 					ob->data= cun;
 					cun->id.us++;
 					cu->id.us--;
 				}
 			}
-			ob= ob->id.next;
 		}
 	}
 }
@@ -1026,19 +1034,19 @@ void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int i
 	rt2= 3.0f*(q0-2.0f*q1+q2)/f;
 	f*= it;
 	rt3= (q3-q0+3.0f*(q1-q2))/f;
- 	
-	  q0= rt0;
+
+	q0= rt0;
 	q1= rt1+rt2+rt3;
 	q2= 2*rt2+6*rt3;
 	q3= 6*rt3;
-  
-	  for(a=0; a<=it; a++) {
+
+	for(a=0; a<=it; a++) {
 		*p= q0;
 		p = (float *)(((char *)p)+stride);
 		q0+= q1;
-		 q1+= q2;
-		 q2+= q3;
-	 }
+		q1+= q2;
+		q2+= q3;
+	}
 }
 
 static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float *p3, float *p, int it, int stride)
@@ -1048,7 +1056,7 @@ static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float
 	 *
 	 * This could also be optimized like forward_diff_bezier */
 	int a;
-	  for(a=0; a<=it; a++) {
+	for(a=0; a<=it; a++) {
 		float t = (float)a / (float)it;
 
 		int i;
@@ -1057,7 +1065,7 @@ static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float
 		}
 		normalize_v3(p);
 		p = (float *)(((char *)p)+stride);
-	 }
+	}
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1092,7 +1100,7 @@ float *make_orco_surf(Object *ob)
 		sizev = nu->pntsv*resolv;
 		if (nu->flagu & CU_NURB_CYCLIC) sizeu++;
 		if (nu->flagv & CU_NURB_CYCLIC) sizev++;
-		 if(nu->pntsv>1) tot+= sizeu * sizev;
+		if(nu->pntsv>1) tot+= sizeu * sizev;
 		
 		nu= nu->next;
 	}

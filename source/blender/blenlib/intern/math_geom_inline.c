@@ -42,12 +42,12 @@ MINLINE void zero_sh(float r[9])
 	memset(r, 0, sizeof(float)*9);
 }
 
-MINLINE void copy_sh_sh(float r[9], float a[9])
+MINLINE void copy_sh_sh(float r[9], const float a[9])
 {
 	memcpy(r, a, sizeof(float)*9);
 }
 
-MINLINE void mul_sh_fl(float r[9], float f)
+MINLINE void mul_sh_fl(float r[9], const float f)
 {
 	int i;
 
@@ -55,7 +55,7 @@ MINLINE void mul_sh_fl(float r[9], float f)
 		r[i] *= f;
 }
 
-MINLINE void add_sh_shsh(float r[9], float a[9], float b[9])
+MINLINE void add_sh_shsh(float r[9], const float a[9], const float b[9])
 {
 	int i;
 
@@ -74,7 +74,7 @@ MINLINE float dot_shsh(float a[9], float b[9])
 	return r;
 }
 
-MINLINE float diffuse_shv3(float sh[9], float v[3])
+MINLINE float diffuse_shv3(float sh[9], const float v[3])
 {
 	/* See formula (13) in:
 	   "An Efficient Representation for Irradiance Environment Maps" */
@@ -96,7 +96,7 @@ MINLINE float diffuse_shv3(float sh[9], float v[3])
 	return sum;
 }
 
-MINLINE void vec_fac_to_sh(float r[9], float v[3], float f)
+MINLINE void vec_fac_to_sh(float r[9], const float v[3], const float f)
 {
 	/* See formula (3) in:
 	   "An Efficient Representation for Irradiance Environment Maps" */
@@ -122,7 +122,7 @@ MINLINE void vec_fac_to_sh(float r[9], float v[3], float f)
 	copy_sh_sh(r, sh);
 }
 
-MINLINE float eval_shv3(float sh[9], float v[3])
+MINLINE float eval_shv3(float sh[9], const float v[3])
 {
 	float tmp[9];
 
@@ -130,7 +130,7 @@ MINLINE float eval_shv3(float sh[9], float v[3])
 	return dot_shsh(tmp, sh);
 }
 
-MINLINE void madd_sh_shfl(float r[9], float sh[3], float f)
+MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f)
 {
 	float tmp[9];
 

@@ -363,7 +363,7 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	int numfiles = filelist_numfiles(sfile->files);
 	int i;
 	int is_selected = 0;
-    
+
 	sel.first = 0; 
 	sel.last = numfiles-1;
 
@@ -854,7 +854,7 @@ int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 		folderlist_popdir(sfile->folders_next, sfile->params->dir);
 
-		// update folder_prev so we can check for it in folderlist_clear_next()
+		// update folders_prev so we can check for it in folderlist_clear_next()
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
 		file_change_dir(C, 1);

@@ -90,11 +90,6 @@ struct Mesh *add_mesh(const char *name);
 struct Mesh *copy_mesh(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me);
 
-/*this ensures grouped customdata (e.g. mtexpoly and mloopuv and mtface, or
-  mloopcol and mcol) have the same relative active/render/clone/mask indices.*/
-void mesh_update_linked_customdata(struct Mesh *me);
-
-void make_local_tface(struct Mesh *me);
 void make_local_mesh(struct Mesh *me);
 void boundbox_mesh(struct Mesh *me, float *loc, float *size);
 void tex_space_mesh(struct Mesh *me);

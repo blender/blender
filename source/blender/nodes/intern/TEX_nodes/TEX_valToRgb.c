@@ -80,12 +80,12 @@ void register_node_type_tex_valtorgb(ListBase *lb)
 
 /* **************** RGBTOBW ******************** */
 static bNodeSocketType rgbtobw_in[]= {
-   {	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
-   {	-1, 0, ""	}
+	{	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
 };
 static bNodeSocketType rgbtobw_out[]= {
-   {	SOCK_VALUE, 0, "Val",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-   {	-1, 0, ""	}
+	{	SOCK_VALUE, 0, "Val",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
 };
 
 

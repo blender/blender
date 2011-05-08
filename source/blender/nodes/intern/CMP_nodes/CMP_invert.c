@@ -116,7 +116,7 @@ static void node_composit_exec_invert(void *UNUSED(data), bNode *node, bNodeStac
 
 static void node_composit_init_invert(bNode *node)
 {
-   node->custom1 |= CMP_CHAN_RGB;
+	node->custom1 |= CMP_CHAN_RGB;
 }
 
 /* custom1 = mix type */

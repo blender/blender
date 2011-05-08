@@ -156,7 +156,7 @@ extern "C" {
 #include "KX_ScalarInterpolator.h"
 
 #include "KX_IpoConvert.h"
-#include "SYS_System.h"
+#include "BL_System.h"
 
 #include "SG_Node.h"
 #include "SG_BBox.h"

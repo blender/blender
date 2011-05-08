@@ -175,7 +175,7 @@ unsigned int BLI_ghashutil_inthash(const void *ptr) {
 	key += ~(key <<  9);
 	key ^=  (key >> 17);
 
-	  return (unsigned int)(key & 0xffffffff);
+	return (unsigned int)(key & 0xffffffff);
 }
 
 int BLI_ghashutil_intcmp(const void *a, const void *b) {

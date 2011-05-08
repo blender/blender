@@ -254,15 +254,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			add_v3_v3(cos[j], cent);
 		}
 
-		copy_v3_v3(co, mvert + mf2->v1);
+		copy_v3_v3(co, (mvert + mf2->v1)->co);
 		interp_weights_poly_v3(w, cos, mp->totloop, co);
 		CustomData_interp(&dm->loopData, &dummy->loopData, loops, w, NULL, mp->totloop, 0);
 		
-		copy_v3_v3(co, mvert + mf2->v2);
+		copy_v3_v3(co, (mvert + mf2->v2)->co);
 		interp_weights_poly_v3(w, cos, mp->totloop, co);
 		CustomData_interp(&dm->loopData, &dummy->loopData, loops, w, NULL, mp->totloop, 1);
 	
-		copy_v3_v3(co, mvert + mf2->v3);
+		copy_v3_v3(co, (mvert + mf2->v3)->co);
 		interp_weights_poly_v3(w, cos, mp->totloop, co);
 		CustomData_interp(&dm->loopData, &dummy->loopData, loops, w, NULL, mp->totloop, 2);
 		

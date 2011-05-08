@@ -486,22 +486,22 @@ static int project_bucket_offset_safe(const ProjPaintState *ps, const float proj
 /* still use 2D X,Y space but this works for verts transformed by a perspective matrix, using their 4th component as a weight */
 static void barycentric_weights_v2_persp(float v1[4], float v2[4], float v3[4], float co[2], float w[3])
 {
-   float wtot_inv, wtot;
+	float wtot_inv, wtot;
 
-   w[0] = area_tri_signed_v2(v2, v3, co) / v1[3];
-   w[1] = area_tri_signed_v2(v3, v1, co) / v2[3];
-   w[2] = area_tri_signed_v2(v1, v2, co) / v3[3];
-   wtot = w[0]+w[1]+w[2];
+	w[0] = area_tri_signed_v2(v2, v3, co) / v1[3];
+	w[1] = area_tri_signed_v2(v3, v1, co) / v2[3];
+	w[2] = area_tri_signed_v2(v1, v2, co) / v3[3];
+	wtot = w[0]+w[1]+w[2];
 
-   if (wtot != 0.0f) {
-	   wtot_inv = 1.0f/wtot;
+	if (wtot != 0.0f) {
+		wtot_inv = 1.0f/wtot;
 
-	   w[0] = w[0]*wtot_inv;
-	   w[1] = w[1]*wtot_inv;
-	   w[2] = w[2]*wtot_inv;
-   }
-   else /* dummy values for zero area face */
-	   w[0] = w[1] = w[2] = 1.0f/3.0f;
+		w[0] = w[0]*wtot_inv;
+		w[1] = w[1]*wtot_inv;
+		w[2] = w[2]*wtot_inv;
+	}
+	else /* dummy values for zero area face */
+		w[0] = w[1] = w[2] = 1.0f/3.0f;
 }
 
 static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
@@ -1740,7 +1740,7 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 	 */
 	
 	if((bucket_bounds->xmin <= cent[0] && bucket_bounds->xmax >= cent[0]) || (bucket_bounds->ymin <= cent[1] && bucket_bounds->ymax >= cent[1]) ) {
-	   return 1;
+		return 1;
 	}
 	
 	/* out of bounds left */
@@ -2995,6 +2995,7 @@ static void project_paint_begin(ProjPaintState *ps)
 				invert_m4_m4(viewmat, viewinv);
 
 				/* camera winmat */
+				object_camera_mode(&ps->scene->r, camera);
 				object_camera_matrix(&ps->scene->r, camera, ps->winx, ps->winy, 0,
 						winmat, &_viewplane, &ps->clipsta, &ps->clipend,
 						&_lens, &_ycor, &_viewdx, &_viewdy);
@@ -5295,6 +5296,26 @@ static int sample_color_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* same as image_paint_poll but fail when face mask mode is enabled */
+static int image_paint_sample_color_poll(bContext *C)
+{
+	if(image_paint_poll(C)) {
+		if(CTX_wm_view3d(C)) {
+			Object *obact = CTX_data_active_object(C);
+			if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
+				Mesh *me= get_mesh(obact);
+				if(me) {
+					return !(me->editflag & ME_EDIT_PAINT_MASK);
+				}
+			}
+		}
+
+		return 1;
+	}
+
+	return 0;
+}
+
 void PAINT_OT_sample_color(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -5305,7 +5326,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	ot->exec= sample_color_exec;
 	ot->invoke= sample_color_invoke;
 	ot->modal= sample_color_modal;
-	ot->poll= image_paint_poll;
+	ot->poll= image_paint_sample_color_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

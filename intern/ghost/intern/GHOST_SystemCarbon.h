@@ -191,6 +191,11 @@ public:
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
+	/**
+	 * @see GHOST_ISystem
+	 */
+	int toggleConsole(int action) { return 0; }
+
 protected:
 	/**
 	 * Initializes the system.

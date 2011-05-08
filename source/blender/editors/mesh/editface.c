@@ -101,7 +101,7 @@ void paintface_flush_flags(Object *ob)
 }
 
 /* returns 0 if not found, otherwise 1 */
-static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, short *mval, unsigned int *index, short rect)
+static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, const short mval[2], unsigned int *index, short rect)
 {
 	Scene *scene = CTX_data_scene(C);
 	ViewContext vc;
@@ -748,7 +748,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 }
 #endif
 
-int paintface_mouse_select(struct bContext *C, Object *ob, short mval[2], int extend)
+int paintface_mouse_select(struct bContext *C, Object *ob, const short mval[2], int extend)
 {
 	Mesh *me;
 	MPoly *mface, *msel;

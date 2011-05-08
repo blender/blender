@@ -61,7 +61,7 @@ static void node_shader_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeStac
 
 static void node_shader_init_valtorgb(bNode *node)
 {
-   node->storage= add_colorband(1);
+	node->storage= add_colorband(1);
 }
 
 static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
@@ -102,10 +102,10 @@ static bNodeSocketType sh_node_rgbtobw_out[]= {
 
 static void node_shader_exec_rgbtobw(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, bNodeStack **out)
 {
-   /* stack order out: bw */
-   /* stack order in: col */
+	/* stack order out: bw */
+	/* stack order in: col */
 
-   out[0]->vec[0]= in[0]->vec[0]*0.35f + in[0]->vec[1]*0.45f + in[0]->vec[2]*0.2f;
+	out[0]->vec[0]= in[0]->vec[0]*0.35f + in[0]->vec[1]*0.45f + in[0]->vec[2]*0.2f;
 }
 
 static int gpu_shader_rgbtobw(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)

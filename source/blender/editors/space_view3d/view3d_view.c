@@ -65,7 +65,7 @@
 #include "ED_armature.h"
 
 #ifdef WITH_GAMEENGINE
-#include "SYS_System.h"
+#include "BL_System.h"
 #endif
 
 #include "view3d_intern.h"	// own include
@@ -106,9 +106,7 @@ float *give_cursor(Scene *scene, View3D *v3d)
 
 /* Gets the lens and clipping values from a camera of lamp type object */
 static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, float *clipend)
-{	
-	if (!ob) return;
-	
+{
 	if(ob->type==OB_LAMP ) {
 		Lamp *la = ob->data;
 		if (lens) {
@@ -137,39 +135,42 @@ static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, f
 * 
 * The dist is not modified for this function, if NULL its assimed zero
 * */
-void view3d_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
+void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist)
 {
-	if (!ob) return;
-
 	/* Offset */
 	if (ofs)
-		negate_v3_v3(ofs, ob->obmat[3]);
+		negate_v3_v3(ofs, mat[3]);
 
 	/* Quat */
 	if (quat) {
 		float imat[4][4];
-		invert_m4_m4(imat, ob->obmat);
+		invert_m4_m4(imat, mat);
 		mat4_to_quat(quat, imat);
 	}
 
 	if (dist) {
-		float tquat[4];
+		float nmat[3][3];
 		float vec[3];
 
 		vec[0]= 0.0f;
 		vec[1]= 0.0f;
 		vec[2]= -(*dist);
 
-		mat4_to_quat(tquat, ob->obmat);
+		copy_m3_m4(nmat, mat);
+		normalize_m3(nmat);
 
-		mul_qt_v3(tquat, vec);
-
+		mul_m3_v3(nmat, vec);;
 		sub_v3_v3(ofs, vec);
 	}
+}
 
-	/* Lens */
-	if (lens)
+void view3d_apply_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
+{
+	view3d_apply_mat4(ob->obmat, ofs, quat, dist);
+
+	if (lens) {
 		object_lens_clip_settings(ob, lens, NULL, NULL);
+	}
 }
 
 
@@ -189,10 +190,13 @@ struct SmoothViewStore {
 
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
-void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, float *quat, float *dist, float *lens)
+void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera, float *ofs, float *quat, float *dist, float *lens)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *win= CTX_wm_window(C);
+	ScrArea *sa= CTX_wm_area(C);
+
+	RegionView3D *rv3d= ar->regiondata;
 	struct SmoothViewStore sms= {0};
 	short ok= FALSE;
 	
@@ -210,7 +214,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 	if(lens) sms.new_lens= *lens;
 
 	if (camera) {
-		view3d_settings_from_ob(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
+		view3d_apply_ob(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
 		sms.to_camera= 1; /* restore view3d values in end */
 	}
 	
@@ -235,7 +239,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 			/* original values */
 			if (oldcamera) {
 				sms.orig_dist= rv3d->dist; // below function does weird stuff with it...
-				view3d_settings_from_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
+				view3d_apply_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
 			}
 			else {
 				copy_v3_v3(sms.orig_ofs, rv3d->ofs);
@@ -280,9 +284,9 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				rv3d->sms= MEM_mallocN(sizeof(struct SmoothViewStore), "smoothview v3d");
 			*rv3d->sms= sms;
 			if(rv3d->smooth_timer)
-				WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rv3d->smooth_timer);
+				WM_event_remove_timer(wm, win, rv3d->smooth_timer);
 			/* TIMER1 is hardcoded in keymap */
-			rv3d->smooth_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/100.0);	/* max 30 frs/sec */
+			rv3d->smooth_timer= WM_event_add_timer(wm, win, TIMER1, 1.0/100.0);	/* max 30 frs/sec */
 			
 			ok= TRUE;
 		}
@@ -290,8 +294,6 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 	
 	/* if we get here nothing happens */
 	if(ok == FALSE) {
-		ARegion *ar= CTX_wm_region(C);
-
 		if(sms.to_camera==0) {
 			copy_v3_v3(rv3d->ofs, sms.new_ofs);
 			copy_qt_qt(rv3d->viewquat, sms.new_quat);
@@ -300,7 +302,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 		}
 
 		if(rv3d->viewlock & RV3D_BOXVIEW)
-			view3d_boxview_copy(CTX_wm_area(C), ar);
+			view3d_boxview_copy(sa, ar);
 
 		ED_region_tag_redraw(ar);
 	}
@@ -464,19 +466,20 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ARegion *ar= ED_view3d_context_region_unlock(C);
+	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	Scene *scene= CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 
 	if(ob) {
-		Object *camera_old= (rv3d->persp == RV3D_CAMOB && scene->camera) ? scene->camera : NULL;
+		Object *camera_old= (rv3d->persp == RV3D_CAMOB) ? V3D_CAMERA_SCENE(scene, v3d) : NULL;
 		rv3d->persp= RV3D_CAMOB;
 		v3d->camera= ob;
 		if(v3d->scenelock)
 			scene->camera= ob;
 
 		if(camera_old != ob) /* unlikely but looks like a glitch when set to the same */
-			smooth_view(C, camera_old, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
+			smooth_view(C, v3d, ar, camera_old, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT|ND_DRAW, CTX_data_scene(C));
 	}
@@ -484,12 +487,10 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int region3d_unlocked_poll(bContext *C)
+int ED_operator_rv3d_unlock_poll(bContext *C)
 {
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	return (rv3d && rv3d->viewlock==0);
+	return ED_view3d_context_region_unlock(C) != NULL;
 }
-
 
 void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 {
@@ -501,7 +502,7 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= view3d_setobjectascamera_exec;	
-	ot->poll= region3d_unlocked_poll;
+	ot->poll= ED_operator_rv3d_unlock_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -646,25 +647,25 @@ int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 }
 
 /* always call initgrabz */
-void window_to_3d(ARegion *ar, float *vec, short mx, short my)
+void window_to_3d(ARegion *ar, float out[3], short mx, short my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
 	float dx= ((float)(mx-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
 	float dy= ((float)(my-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
 	
-	float fz= rv3d->persmat[0][3]*vec[0]+ rv3d->persmat[1][3]*vec[1]+ rv3d->persmat[2][3]*vec[2]+ rv3d->persmat[3][3];
+	float fz= rv3d->persmat[0][3]*out[0]+ rv3d->persmat[1][3]*out[1]+ rv3d->persmat[2][3]*out[2]+ rv3d->persmat[3][3];
 	fz= fz/rv3d->zfac;
 	
-	vec[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy+ rv3d->persinv[2][0]*fz)-rv3d->ofs[0];
-	vec[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy+ rv3d->persinv[2][1]*fz)-rv3d->ofs[1];
-	vec[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy+ rv3d->persinv[2][2]*fz)-rv3d->ofs[2];
+	out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy+ rv3d->persinv[2][0]*fz)-rv3d->ofs[0];
+	out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy+ rv3d->persinv[2][1]*fz)-rv3d->ofs[1];
+	out[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy+ rv3d->persinv[2][2]*fz)-rv3d->ofs[2];
 	
 }
 
 /* always call initgrabz */
 /* only to detect delta motion */
-void window_to_3d_delta(ARegion *ar, float *vec, short mx, short my)
+void window_to_3d_delta(ARegion *ar, float out[3], short mx, short my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float dx, dy;
@@ -672,15 +673,15 @@ void window_to_3d_delta(ARegion *ar, float *vec, short mx, short my)
 	dx= 2.0f*mx*rv3d->zfac/ar->winx;
 	dy= 2.0f*my*rv3d->zfac/ar->winy;
 	
-	vec[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
-	vec[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
-	vec[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
+	out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
+	out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
+	out[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
 }
 
 /* doesn't rely on initgrabz */
 /* for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector */
-void window_to_3d_vector(ARegion *ar, float *vec, short mx, short my)
+void window_to_3d_vector(ARegion *ar, float out[3], short mx, short my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float dx, dy;
@@ -692,11 +693,11 @@ void window_to_3d_vector(ARegion *ar, float *vec, short mx, short my)
 	/* normalize here so vecs are proportional to eachother */
 	normalize_v3_v3(viewvec, rv3d->viewinv[2]);
 
-	vec[0]= viewvec[0] - (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
-	vec[1]= viewvec[1] - (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
-	vec[2]= viewvec[2] - (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
+	out[0]= viewvec[0] - (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
+	out[1]= viewvec[1] - (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
+	out[2]= viewvec[2] - (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
 
-	normalize_v3(vec);
+	normalize_v3(out);
 }
 
 float read_cached_depth(ViewContext *vc, int x, int y)
@@ -740,7 +741,7 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 }
 
 /* use view3d_get_object_project_mat to get projecting mat */
-void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
+void view3d_project_float(ARegion *ar, const float vec[3], float adr[2], float mat[4][4])
 {
 	float vec4[4];
 	
@@ -814,7 +815,7 @@ int boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
 	return 0;
 }
 
-void project_short(ARegion *ar, float *vec, short *adr)	/* clips */
+void project_short(ARegion *ar, const float vec[3], short adr[2])	/* clips */
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -845,7 +846,7 @@ void project_short(ARegion *ar, float *vec, short *adr)	/* clips */
 	}
 }
 
-void project_int(ARegion *ar, float *vec, int *adr)
+void project_int(ARegion *ar, const float vec[3], int adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -870,7 +871,7 @@ void project_int(ARegion *ar, float *vec, int *adr)
 	}
 }
 
-void project_int_noclip(ARegion *ar, float *vec, int *adr)
+void project_int_noclip(ARegion *ar, const float vec[3], int adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -894,7 +895,7 @@ void project_int_noclip(ARegion *ar, float *vec, int *adr)
 	}
 }
 
-void project_short_noclip(ARegion *ar, float *vec, short *adr)
+void project_short_noclip(ARegion *ar, const float vec[3], short adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -920,7 +921,7 @@ void project_short_noclip(ARegion *ar, float *vec, short *adr)
 	}
 }
 
-void project_float(ARegion *ar, float *vec, float *adr)
+void project_float(ARegion *ar, const float vec[3], float adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float vec4[4];
@@ -937,7 +938,7 @@ void project_float(ARegion *ar, float *vec, float *adr)
 	}
 }
 
-void project_float_noclip(ARegion *ar, float *vec, float *adr)
+void project_float_noclip(ARegion *ar, const float vec[3], float adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float vec4[4];
@@ -960,25 +961,25 @@ void project_float_noclip(ARegion *ar, float *vec, float *adr)
 
 int get_view3d_ortho(View3D *v3d, RegionView3D *rv3d)
 {
-  Camera *cam;
-  
-  if(rv3d->persp==RV3D_CAMOB) {
-	  if(v3d->camera && v3d->camera->type==OB_CAMERA) {
-		  cam= v3d->camera->data;
+	Camera *cam;
 
-		  if(cam && cam->type==CAM_ORTHO)
-			  return 1;
-		  else
-			  return 0;
-	  }
-	  else
-		  return 0;
-  }
-  
-  if(rv3d->persp==RV3D_ORTHO)
-	  return 1;
+	if(rv3d->persp==RV3D_CAMOB) {
+		if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+			cam= v3d->camera->data;
 
-  return 0;
+			if(cam && cam->type==CAM_ORTHO)
+				return 1;
+			else
+				return 0;
+		}
+		else
+			return 0;
+	}
+
+	if(rv3d->persp==RV3D_ORTHO)
+		return 1;
+
+	return 0;
 }
 
 /* copies logic of get_view3d_viewplane(), keep in sync */
@@ -1208,14 +1209,14 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			rv3d->persp=RV3D_PERSP;
 			rv3d->dist= 0.0;
 			
-			view3d_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
-			smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
+			view3d_apply_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
+			smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 			
 			rv3d->persp=RV3D_CAMOB; /* just to be polite, not needed */
 			
 		} else {
 			mat3_to_quat( new_quat,tmat);
-			smooth_view(NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
+			smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
 		}
 	} else {
 		mat3_to_quat( rv3d->viewquat,tmat);
@@ -1691,6 +1692,7 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= localview_exec;
+	ot->flag= OPTYPE_UNDO; /* localview changes object layer bitflags */
 	
 	ot->poll= ED_operator_view3d_active;
 }
@@ -1782,9 +1784,6 @@ static void game_set_commmandline_options(GameData *gm)
 
 	}
 }
-
-/* maybe we need this defined somewhere else */
-extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_frame, int always_use_expand_framing);
 
 #endif // WITH_GAMEENGINE
 
@@ -1950,11 +1949,11 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 		copy_v3_v3(orig_ofs, rv3d->ofs);
 		rv3d->persp= RV3D_PERSP;
 		rv3d->dist= 0.0;
-		view3d_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
-		smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
+		view3d_apply_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
+		smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 	} else {
 		if (rv3d->persp==RV3D_CAMOB) rv3d->persp= RV3D_PERSP; /* switch out of camera mode */
-		smooth_view(NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
+		smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
 	}
 }
 

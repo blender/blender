@@ -177,6 +177,9 @@ class SubdivisionSet(bpy.types.Operator):
         if relative and level == 0:
             return {'CANCELLED'}  # nothing to do
 
+        if not relative and level < 0:
+            self.level = level = 0
+
         def set_object_subd(obj):
             for mod in obj.modifiers:
                 if mod.type == 'MULTIRES':

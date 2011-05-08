@@ -66,14 +66,6 @@ int BLI_getInstallationDir( char * str ) {
 	return 1;
 }
 
-int IsConsoleEmpty(void)
-{
-	CONSOLE_SCREEN_BUFFER_INFO csbi = {{0}};
-	HANDLE hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	return GetConsoleScreenBufferInfo(hStdOutput, &csbi) && csbi.dwCursorPosition.X == 0 && csbi.dwCursorPosition.Y == 0;
-}
-
 void RegisterBlendExtension_Fail(HKEY root)
 {
 	printf("failed\n");
@@ -307,21 +299,21 @@ int check_file_chars(char *filename)
 #include <string.h>
 char* dirname(char *path)
 {
-	   char *p;
-	   if( path == NULL || *path == '\0' )
-			   return ".";
-	   p = path + strlen(path) - 1;
-	   while( *p == '/' ) {
-			   if( p == path )
-					   return path;
-			   *p-- = '\0';
-	   }
-	   while( p >= path && *p != '/' )
-			   p--;
-	   return
-			   p < path ? "." :
-			   p == path ? "/" :
-			   (*p = '\0', path);
+	char *p;
+	if( path == NULL || *path == '\0' )
+	return ".";
+	p = path + strlen(path) - 1;
+	while( *p == '/' ) {
+		if( p == path )
+			return path;
+		*p-- = '\0';
+	}
+	while( p >= path && *p != '/' )
+	p--;
+	return
+	p < path ? "." :
+	p == path ? "/" :
+	(*p = '\0', path);
 }
 /* End of copied part */
 

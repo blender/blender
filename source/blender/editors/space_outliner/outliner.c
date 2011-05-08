@@ -1340,8 +1340,8 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	int show_opened= (soops->treestore==NULL); /* on first view, we open scenes */
 
 	if(soops->tree.first && (soops->storeflag & SO_TREESTORE_REDRAW))
-	   return;
-	   
+		return;
+
 	outliner_free_tree(&soops->tree);
 	outliner_storage_cleanup(soops);
 	
@@ -1729,7 +1729,7 @@ void OUTLINER_OT_renderability_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Renderability";
 	ot->idname= "OUTLINER_OT_renderability_toggle";
-	ot->description= "Toggle the renderbility of selected items";
+	ot->description= "Toggle the renderability of selected items";
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_renderability_exec;
@@ -3533,8 +3533,8 @@ static EnumPropertyItem prop_group_op_types[] = {
 	{2, "LOCAL", 0, "Make Local", ""},
 	{3, "LINK", 0, "Link Group Objects to Scene", ""},
 	{4, "TOGVIS", 0, "Toggle Visible", ""},
- 	{5, "TOGSEL", 0, "Toggle Selectable", ""},
- 	{6, "TOGREN", 0, "Toggle Renderable", ""},
+	{5, "TOGSEL", 0, "Toggle Selectable", ""},
+	{6, "TOGREN", 0, "Toggle Renderable", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3561,7 +3561,7 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	else if(event==3) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb);
 		ED_undo_push(C, "Link Group Objects to Scene");
- 	}   
+	}
 	
 	
 	WM_event_add_notifier(C, NC_GROUP, NULL);
@@ -4667,16 +4667,24 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				Object *ob= (Object *)tselem->id;
 				
 				if(ob==OBACT || (ob->flag & SELECT)) {
-					char col[4];
+					char col[4]= {0, 0, 0, 0};
 					
-					active= 2;
+					/* outliner active ob: always white text, circle color now similar to view3d */
+					
+					active= 2; /* means it draws a color circle */
 					if(ob==OBACT) {
-						UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
-						/* so black text is drawn when active and not selected */
-						if (ob->flag & SELECT) active= 1;
+						if(ob->flag & SELECT) {
+							UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
+							col[3]= 100;
+						}
+						
+						active= 1; /* means it draws white text */
 					}
-					else UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-					col[3]= 100;
+					else if(ob->flag & SELECT) {
+						UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
+						col[3]= 100;
+					}
+					
 					glColor4ubv((GLubyte *)col);
 				}
 
@@ -5247,7 +5255,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 			if(tselem->type==0 && te->idcode==ID_GR){ 
 				int restrict_bool;
 				gr = (Group *)tselem->id;
- 				
+
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 
 				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_VIEW);
@@ -5263,7 +5271,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiButSetFunc(bt, restrictbutton_gr_restrict_render, scene, gr);
 
 				uiBlockSetEmboss(block, UI_EMBOSS);
- 			}
+			}
 			/* scene render layers and passes have toggle-able flags too! */
 			else if(tselem->type==TSE_R_LAYER) {
 				uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -5665,7 +5673,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				if(tselem->type==TSE_EBONE) len = sizeof(((EditBone*) 0)->name);
 				else if (tselem->type==TSE_MODIFIER) len = sizeof(((ModifierData*) 0)->name);
 				else if(tselem->id && GS(tselem->id->name)==ID_LI) len = sizeof(((Library*) 0)->name);
-				else len= sizeof(((ID*) 0)->name)-2;
+				else len= MAX_ID_NAME-2;
 				
 
 				dx= (int)UI_GetStringWidth(te->name);

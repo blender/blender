@@ -867,7 +867,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		VECCOPY(min, cent);
 		
 		mul_m4_v3(vc.obedit->obmat, min);	// view space
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval, 0);
 		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
@@ -912,7 +912,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		
 		VECCOPY(min, curs);
 
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval, 0);
 		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		

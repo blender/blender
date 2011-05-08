@@ -95,9 +95,9 @@ int imb_is_a_jpeg(unsigned char *mem) {
 //----------------------------------------------------------
 
 typedef struct my_error_mgr {
-  struct jpeg_error_mgr pub;	/* "public" fields */
+	struct jpeg_error_mgr pub;	/* "public" fields */
 
-  jmp_buf setjmp_buffer;	/* for return to caller */
+	jmp_buf setjmp_buffer;	/* for return to caller */
 } my_error_mgr;
 
 typedef my_error_mgr * my_error_ptr;

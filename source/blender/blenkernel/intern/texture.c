@@ -41,9 +41,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "PIL_dynlib.h"
-
 #include "BLI_blenlib.h"
+#include "BLI_dynlib.h"
 #include "BLI_math.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
@@ -73,7 +72,7 @@
 #include "BKE_icons.h"
 #include "BKE_node.h"
 #include "BKE_animsys.h"
-
+#include "BKE_colortools.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -82,7 +81,7 @@ int test_dlerr(const char *name, const char *symbol)
 {
 	char *err;
 	
-	err= PIL_dynlib_get_error_as_string(NULL);
+	err= BLI_dynlib_get_error_as_string(NULL);
 	if(err) {
 		printf("var1: %s, var2: %s, var3: %s\n", name, symbol, err);
 		return 1;
@@ -108,19 +107,19 @@ void open_plugin_tex(PluginTex *pit)
 	pit->instance_init= NULL;
 	
 	/* clear the error list */
-	PIL_dynlib_get_error_as_string(NULL);
+	BLI_dynlib_get_error_as_string(NULL);
 
-	/* no PIL_dynlib_close! multiple opened plugins... */
-	/* if(pit->handle) PIL_dynlib_close(pit->handle); */
+	/* no BLI_dynlib_close! multiple opened plugins... */
+	/* if(pit->handle) BLI_dynlib_close(pit->handle); */
 	/* pit->handle= 0; */
 
 	/* open the needed object */
-	pit->handle= PIL_dynlib_open(pit->name);
+	pit->handle= BLI_dynlib_open(pit->name);
 	if(test_dlerr(pit->name, pit->name)) return;
 
 	if (pit->handle != NULL) {
 		/* find the address of the version function */
-		version= (int (*)(void)) PIL_dynlib_find_symbol(pit->handle, "plugin_tex_getversion");
+		version= (int (*)(void)) BLI_dynlib_find_symbol(pit->handle, "plugin_tex_getversion");
 		if (test_dlerr(pit->name, "plugin_tex_getversion")) return;
 		
 		if (version != NULL) {
@@ -129,7 +128,7 @@ void open_plugin_tex(PluginTex *pit)
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info"); 
 
-				info_func= (int (*)(PluginInfo *))PIL_dynlib_find_symbol(pit->handle, "plugin_getinfo");
+				info_func= (int (*)(PluginInfo *))BLI_dynlib_find_symbol(pit->handle, "plugin_getinfo");
 				if (!test_dlerr(pit->name, "plugin_getinfo")) {
 					info->instance_init = NULL;
 
@@ -200,7 +199,7 @@ void free_plugin_tex(PluginTex *pit)
 {
 	if(pit==NULL) return;
 		
-	/* no PIL_dynlib_close: same plugin can be opened multiple times, 1 handle */
+	/* no BLI_dynlib_close: same plugin can be opened multiple times, 1 handle */
 	MEM_freeN(pit);	
 }
 
@@ -762,9 +761,8 @@ Tex *copy_texture(Tex *tex)
 	
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
-	if(texn->pd) texn->pd= MEM_dupallocN(texn->pd);
+	if(texn->pd) texn->pd= BKE_copy_pointdensity(texn->pd);
 	if(texn->vd) texn->vd= MEM_dupallocN(texn->vd);
-	
 	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
 	if(tex->nodetree) {
@@ -795,14 +793,7 @@ Tex *localize_texture(Tex *tex)
 		texn->env= BKE_copy_envmap(texn->env);
 		id_us_min(&texn->env->ima->id);
 	}
-	if(texn->pd) {
-		texn->pd= MEM_dupallocN(texn->pd);
-		if(texn->pd->coba) {
-			texn->pd->point_tree = NULL;
-			texn->pd->coba= MEM_dupallocN(texn->pd->coba);
-		}
-
-	}
+	if(texn->pd) texn->pd= BKE_copy_pointdensity(texn->pd);
 	if(texn->vd) {
 		texn->vd= MEM_dupallocN(texn->vd);
 		if(texn->vd->dataset)
@@ -843,13 +834,13 @@ void make_local_texture(Tex *tex)
 	if(tex->ima) {
 		tex->ima->id.lib= NULL;
 		tex->ima->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)tex->ima, NULL);
+		new_id(&bmain->image, (ID *)tex->ima, NULL);
 	}
 
 	if(tex->id.us==1) {
 		tex->id.lib= NULL;
 		tex->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)tex, NULL);
+		new_id(&bmain->tex, (ID *)tex, NULL);
 
 		return;
 	}
@@ -906,7 +897,7 @@ void make_local_texture(Tex *tex)
 	if(local && lib==0) {
 		tex->id.lib= NULL;
 		tex->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)tex, NULL);
+		new_id(&bmain->tex, (ID *)tex, NULL);
 	}
 	else if(local && lib) {
 		texn= copy_texture(tex);
@@ -1367,6 +1358,13 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->object = NULL;
 	pd->psys = 0;
 	pd->psys_cache_space= TEX_PD_WORLDSPACE;
+	pd->falloff_curve = curvemapping_add(1, 0, 0, 1, 1);
+
+	pd->falloff_curve->preset = CURVE_PRESET_LINE;
+	pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+	curvemap_reset(pd->falloff_curve->cm, &pd->falloff_curve->clipr, pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
+	curvemapping_changed(pd->falloff_curve, 0);
+
 	return pd;
 } 
 
@@ -1378,7 +1376,7 @@ PointDensity *BKE_copy_pointdensity(PointDensity *pd)
 	pdn->point_tree = NULL;
 	pdn->point_data = NULL;
 	if(pdn->coba) pdn->coba= MEM_dupallocN(pdn->coba);
-	
+	pdn->falloff_curve = curvemapping_copy(pdn->falloff_curve); /* can be NULL */
 	return pdn;
 }
 
@@ -1396,6 +1394,8 @@ void BKE_free_pointdensitydata(PointDensity *pd)
 		MEM_freeN(pd->coba);
 		pd->coba = NULL;
 	}
+
+	curvemapping_free(pd->falloff_curve); /* can be NULL */
 }
 
 void BKE_free_pointdensity(PointDensity *pd)

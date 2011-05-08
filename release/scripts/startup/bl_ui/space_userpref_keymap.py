@@ -555,13 +555,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
         config_name = basename(self.filepath)
 
-        path = bpy.utils.preset_paths("keyconfig")[0]  # we need some way to tell the user and system preset path
-        print(path)
-
-        # create config folder if needed
-        if not os.path.exists(path):
-            os.mkdir(path)
-
+        path = bpy.utils.user_resource('SCRIPTS', os.path.join("presets", "keyconfig"), create=True)
         path = os.path.join(path, config_name)
 
         if self.keep_original:

@@ -58,9 +58,6 @@ int CDDM_Check(struct DerivedMesh *dm);
    data to not overwrite the original */
 struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh, struct Object *ob);
 
-/* creates a CDDerivedMesh from the given EditMesh */
-struct DerivedMesh *CDDM_from_editmesh(struct EditMesh *em, struct Mesh *me);
-
 /* creates a CDDerivedMesh from the given BMEditMesh */
 DerivedMesh *CDDM_from_BMEditMesh(struct BMEditMesh *em, struct Mesh *me, int use_mdisps);
 

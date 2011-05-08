@@ -1470,20 +1470,20 @@ static float calc_voxel_transp(float *result, float *input, int res[3], int *pix
 
 long long smoke_get_mem_req(int xres, int yres, int zres, int amplify)
 {
-	  int totalCells = xres * yres * zres;
-	  int amplifiedCells = totalCells * amplify * amplify * amplify;
+	int totalCells = xres * yres * zres;
+	int amplifiedCells = totalCells * amplify * amplify * amplify;
 
-	  // print out memory requirements
-	  long long int coarseSize = sizeof(float) * totalCells * 22 +
-					   sizeof(unsigned char) * totalCells;
+	// print out memory requirements
+	long long int coarseSize = sizeof(float) * totalCells * 22 +
+	sizeof(unsigned char) * totalCells;
 
-	  long long int fineSize = sizeof(float) * amplifiedCells * 7 + // big grids
-					 sizeof(float) * totalCells * 8 +     // small grids
-					 sizeof(float) * 128 * 128 * 128;     // noise tile
+	long long int fineSize = sizeof(float) * amplifiedCells * 7 + // big grids
+	sizeof(float) * totalCells * 8 +     // small grids
+	sizeof(float) * 128 * 128 * 128;     // noise tile
 
-	  long long int totalMB = (coarseSize + fineSize) / (1024 * 1024);
+	long long int totalMB = (coarseSize + fineSize) / (1024 * 1024);
 
-	  return totalMB;
+	return totalMB;
 }
 
 static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, float *tRay, bresenham_callback cb, float *result, float *input, int res[3], float correct)

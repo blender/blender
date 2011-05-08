@@ -89,6 +89,7 @@ void	txt_split_curline	(struct Text *text);
 void	txt_backspace_char	(struct Text *text);
 void	txt_backspace_word	(struct Text *text);
 int		txt_add_char		(struct Text *text, char add);
+int		txt_add_raw_char	(struct Text *text, char add);
 int		txt_replace_char	(struct Text *text, char add);
 void	txt_export_to_object	(struct Text *text);
 void	txt_export_to_objects(struct Text *text);

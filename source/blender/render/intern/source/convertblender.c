@@ -164,12 +164,14 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	World *wrld= NULL;
 	HaloRen *har;
 	Scene *scene;
-	Camera *camera;
+	Object *camera;
+	Camera *cam;
 	double dblrand, hlfrand;
 	float vec[4], fx, fy, fz;
 	float fac, starmindist, clipend;
 	float mat[4][4], stargrid, maxrand, maxjit, force, alpha;
 	int x, y, z, sx, sy, sz, ex, ey, ez, done = 0;
+	unsigned int totstar= 0;
 	
 	if(initfunc) {
 		scene= scenev3d;
@@ -179,7 +181,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 		scene= re->scene;
 		wrld= &(re->wrld);
 	}
-	
+
 	stargrid = wrld->stardist;			/* distance between stars */
 	maxrand = 2.0;						/* amount a star can be shifted (in grid units) */
 	maxjit = (wrld->starcolnoise);		/* amount a color is being shifted */
@@ -204,11 +206,13 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 		* y = -z | +z
 		*/
 
-	if(scene->camera==NULL || scene->camera->type != OB_CAMERA)
+	camera= re ? RE_GetCamera(re) : scene->camera;
+
+	if(camera==NULL || camera->type != OB_CAMERA)
 		return;
 
-	camera = scene->camera->data;
-	clipend = camera->clipend;
+	cam = camera->data;
+	clipend = cam->clipend;
 	
 	/* convert to grid coordinates */
 	
@@ -294,6 +298,17 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 						}
 					}
 				}
+
+				/* break out of the loop if generating stars takes too long */
+				if(re && !(totstar % 1000000)) {
+					if(re->test_break(re->tbh)) {
+						x= ex + 1;
+						y= ey + 1;
+						z= ez + 1;
+					}
+				}
+				
+				totstar++;
 			}
 			/* do not call blender_test_break() here, since it is used in UI as well, confusing the callback system */
 			/* main cause is G.afbreek of course, a global again... (ton) */
@@ -531,8 +546,8 @@ static void GetPosition(const SMikkTSpaceContext * pContext, float fPos[], const
 	//assert(vert_index>=0 && vert_index<4);
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
-	VertRen * pVerts[] = {vlr->v1, vlr->v2, vlr->v3, vlr->v4};
-	VECCOPY(fPos, pVerts[vert_index]->co);
+	const float *co= (&vlr->v1)[vert_index]->co;
+	VECCOPY(fPos, co);
 }
 
 static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[], const int face_num, const int vert_index)
@@ -541,16 +556,17 @@ static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
 	MTFace *tface= RE_vlakren_get_tface(pMesh->obr, vlr, pMesh->obr->actmtface, NULL, 0);
+	const float *coord;
 	
-	if(tface!=NULL)
-	{
-		float * pTexCo = tface->uv[vert_index];
-		fUV[0]=pTexCo[0]; fUV[1]=pTexCo[1];
+	if(tface != NULL)	{
+		coord= tface->uv[vert_index];
+		fUV[0]= coord[0]; fUV[1]= coord[1];
 	}
-	else
-	{
-		VertRen * pVerts[] = {vlr->v1, vlr->v2, vlr->v3, vlr->v4};
-		map_to_sphere(&fUV[0], &fUV[1], pVerts[vert_index]->orco[0], pVerts[vert_index]->orco[1], pVerts[vert_index]->orco[2]);
+	else if((coord= (&vlr->v1)[vert_index]->orco)) {
+		map_to_sphere(&fUV[0], &fUV[1], coord[0], coord[1], coord[2]);
+	}
+	else { /* else we get un-initialized value, 0.0 ok default? */
+		fUV[0]= fUV[1]= 0.0f;
 	}
 }
 
@@ -559,8 +575,8 @@ static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const 
 	//assert(vert_index>=0 && vert_index<4);
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
-	VertRen * pVerts[] = {vlr->v1, vlr->v2, vlr->v3, vlr->v4};
-	VECCOPY(fNorm, pVerts[vert_index]->n);
+	const float *n= (&vlr->v1)[vert_index]->n;
+	VECCOPY(fNorm, n);
 }
 static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent[], const float fSign, const int face_num, const int iVert)
 {
@@ -568,8 +584,7 @@ static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
 	float * ftang= RE_vlakren_get_nmap_tangent(pMesh->obr, vlr, 1);
-	if(ftang!=NULL)
-	{
+	if(ftang!=NULL)	{
 		VECCOPY(&ftang[iVert*4+0], fvTangent);
 		ftang[iVert*4+3]=fSign;
 	}
@@ -1664,7 +1679,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		bb.align = part->bb_align;
 		bb.anim = part->bb_anim;
 		bb.lock = part->draw & PART_DRAW_BB_LOCK;
-		bb.ob = (part->bb_ob ? part->bb_ob : re->scene->camera);
+		bb.ob = (part->bb_ob ? part->bb_ob : RE_GetCamera(re));
 		bb.offset[0] = part->bb_offset[0];
 		bb.offset[1] = part->bb_offset[1];
 		bb.split_offset = part->bb_split_offset;
@@ -2868,16 +2883,9 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 				startvert= obr->totvert;
 				data= dl->verts;
 
-				n[0]= ob->imat[0][2];
-				n[1]= ob->imat[1][2];
-				n[2]= ob->imat[2][2];
-				normalize_v3(n);
-
 				for(a=0; a<dl->nr; a++, data+=3) {
 					ver= RE_findOrAddVert(obr, obr->totvert++);
 					VECCOPY(ver->co, data);
-
-					negate_v3_v3(ver->n, n);
 
 					mul_m4_v3(mat, ver->co);
 
@@ -2888,20 +2896,40 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 				}
 
 				if(timeoffset==0) {
+					float tmp[3];
+					const int startvlak= obr->totvlak;
+
+					zero_v3(n);
 					index= dl->index;
 					for(a=0; a<dl->parts; a++, index+=3) {
-
 						vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 						vlr->v1= RE_findOrAddVert(obr, startvert+index[0]);
 						vlr->v2= RE_findOrAddVert(obr, startvert+index[1]);
 						vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
 						vlr->v4= NULL;
 
-						negate_v3_v3(vlr->n, n);
+						normal_tri_v3(tmp, vlr->v3->co, vlr->v2->co, vlr->v1->co);
+						add_v3_v3(n, tmp);
 
 						vlr->mat= matar[ dl->col ];
 						vlr->flag= 0;
 						vlr->ec= 0;
+					}
+
+					normalize_v3(n);
+
+					/* vertex normals */
+					for(a= startvlak; a<obr->totvlak; a++) {
+						vlr= RE_findOrAddVlak(obr, a);
+
+						copy_v3_v3(vlr->n, n);
+						add_v3_v3(vlr->v1->n, vlr->n);
+						add_v3_v3(vlr->v3->n, vlr->n);
+						add_v3_v3(vlr->v2->n, vlr->n);
+					}
+					for(a=startvert; a<obr->totvert; a++) {
+						ver= RE_findOrAddVert(obr, a);
+						normalize_v3(ver->n);
 					}
 				}
 			}
@@ -3726,7 +3754,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		
 			VECCOPY(vec,ob->obmat[2]);
 			normalize_v3(vec);
-		    
+
 			InitSunSky(lar->sunsky, la->atm_turbidity, vec, la->horizon_brightness, 
 					la->spread, la->sun_brightness, la->sun_size, la->backscattered_light,
 					   la->skyblendfac, la->skyblendtype, la->sky_exposure, la->sky_colorspace);
@@ -4954,6 +4982,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	Scene *sce;
 	float mat[4][4];
 	float amb[3];
+	Object *camera= RE_GetCamera(re);
 
 	re->main= bmain;
 	re->scene= scene;
@@ -4983,16 +5012,16 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
-	if(use_camera_view && re->scene->camera) {
+	if(use_camera_view && camera) {
 		/* called before but need to call again incase of lens animation from the
 		 * above call to scene_update_for_newframe, fixes bug. [#22702].
 		 * following calls dont depend on 'RE_SetCamera' */
-		RE_SetCamera(re, scene->camera);
+		RE_SetCamera(re, camera);
 
-		normalize_m4(re->scene->camera->obmat);
-		invert_m4_m4(mat, re->scene->camera->obmat);
+		normalize_m4(camera->obmat);
+		invert_m4_m4(mat, camera->obmat);
 		RE_SetView(re, mat);
-		re->scene->camera->recalc= OB_RECALC_OB; /* force correct matrix for scaled cameras */
+		camera->recalc= OB_RECALC_OB; /* force correct matrix for scaled cameras */
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
@@ -5032,9 +5061,13 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		
 		/* don't sort stars */
 		tothalo= re->tothalo;
-		if(!re->test_break(re->tbh))
-			if(re->wrld.mode & WO_STARS)
+		if(!re->test_break(re->tbh)) {
+			if(re->wrld.mode & WO_STARS) {
+				re->i.infostr= "Creating Starfield";
+				re->stats_draw(re->sdh, &re->i);
 				RE_make_stars(re, NULL, NULL, NULL, NULL);
+			}
+		}
 		sort_halos(re, tothalo);
 		
 		init_camera_inside_volumes(re);
@@ -5113,6 +5146,7 @@ void RE_DataBase_GetView(Render *re, float mat[][4])
 
 static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int lay, int timeoffset)
 {
+	Object *camera= RE_GetCamera(re);
 	float mat[4][4];
 	
 	re->scene= scene;
@@ -5136,9 +5170,9 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
-	if(re->scene->camera) {
-		normalize_m4(re->scene->camera->obmat);
-		invert_m4_m4(mat, re->scene->camera->obmat);
+	if(camera) {
+		normalize_m4(camera->obmat);
+		invert_m4_m4(mat, camera->obmat);
 		RE_SetView(re, mat);
 	}
 	
@@ -5625,6 +5659,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 */
 void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, int type, Object *actob)
 {
+	Object *camera;
 	float mat[4][4];
 	float amb[3];
 	int onlyselected, nolamps;
@@ -5666,10 +5701,12 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	if(re->lay & 0xFF000000)
 		lay &= 0xFF000000;
 	
+	camera= RE_GetCamera(re);
+	
 	/* if no camera, set unit */
-	if(re->scene->camera) {
-		normalize_m4(re->scene->camera->obmat);
-		invert_m4_m4(mat, re->scene->camera->obmat);
+	if(camera) {
+		normalize_m4(camera->obmat);
+		invert_m4_m4(mat, camera->obmat);
 		RE_SetView(re, mat);
 	}
 	else {
@@ -5733,13 +5770,17 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 	Render *re;
 	float ho[4], mat[4][4];
 	int a;
-	
+	Object *camera= NULL;
+
 	if(v3d==NULL) {
 		printf("Need a 3d view to make sticky\n");
 		return;
 	}
-	
-	if(scene->camera==NULL) {
+
+	if(v3d)				camera= V3D_CAMERA_LOCAL(v3d);
+	if(camera == NULL)	camera= scene->camera;
+
+	if(camera==NULL) {
 		printf("Need camera to make sticky\n");
 		return;
 	}
@@ -5752,11 +5793,11 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 	RE_InitState(re, NULL, &scene->r, NULL, scene->r.xsch, scene->r.ysch, NULL);
 	
 	/* use renderdata and camera to set viewplane */
-	RE_SetCamera(re, scene->camera);
+	RE_SetCamera(re, camera);
 
 	/* and set view matrix */
-	normalize_m4(scene->camera->obmat);
-	invert_m4_m4(mat, scene->camera->obmat);
+	normalize_m4(camera->obmat);
+	invert_m4_m4(mat, camera->obmat);
 	RE_SetView(re, mat);
 	
 	for(base= FIRSTBASE; base; base= base->next) {

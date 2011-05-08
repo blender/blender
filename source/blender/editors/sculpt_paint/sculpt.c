@@ -172,24 +172,28 @@ static int sculpt_has_active_modifiers(Scene *scene, Object *ob)
 }
 
 /* Checks if there are any supported deformation modifiers active */
-int sculpt_modifiers_active(Scene *scene, Object *ob)
+static int sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 {
 	ModifierData *md;
+	Mesh *me= (Mesh*)ob->data;
 	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
 
 	if(mmd) return 0;
+
+	/* non-locked shaoe keys could be handled in the same way as deformed mesh */
+	if((ob->shapeflag&OB_SHAPE_LOCK)==0 && me->key && ob->shapenr)
+		return 1;
 
 	md= modifiers_getVirtualModifierList(ob);
 
 	/* exception for shape keys because we can edit those */
 	for(; md; md= md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
 		if(!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 		if(md->type==eModifierType_ShapeKey) continue;
 
-		if(mti->type==eModifierTypeType_OnlyDeform)
-			return 1;
+		if(mti->type==eModifierTypeType_OnlyDeform) return 1;
+		else if((sd->flags & SCULPT_ONLY_DEFORM)==0) return 1;
 	}
 
 	return 0;
@@ -318,7 +322,23 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 		}
 	}
 	
-	return rect->xmin < rect->xmax && rect->ymin < rect->ymax;
+	if (rect->xmin < rect->xmax && rect->ymin < rect->ymax) {
+		/* expand redraw rect with redraw rect from previous step to prevent
+		   partial-redraw issues caused by fast strokes. This is needed here (not in sculpt_flush_update)
+		   as it was before because redraw rectangle should be the same in both of
+		   optimized PBVH draw function and 3d view redraw (if not -- some mesh parts could
+		   disapper from screen (sergey) */
+		SculptSession *ss = ob->sculpt;
+
+		if (ss->cache) {
+			if (!BLI_rcti_is_empty(&ss->cache->previous_r))
+				BLI_union_rcti(rect, &ss->cache->previous_r);
+		}
+
+		return 1;
+	}
+
+	return 0;
 }
 
 void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
@@ -1886,9 +1906,9 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 /* Projects a point onto a plane along the plane's normal */
 static void point_plane_project(float intr[3], float co[3], float plane_normal[3], float plane_center[3])
 {
-    sub_v3_v3v3(intr, co, plane_center);
-    mul_v3_v3fl(intr, plane_normal, dot_v3v3(plane_normal, intr));
-    sub_v3_v3v3(intr, co, intr); 
+	sub_v3_v3v3(intr, co, plane_center);
+	mul_v3_v3fl(intr, plane_normal, dot_v3v3(plane_normal, intr));
+	sub_v3_v3v3(intr, co, intr);
 }
 
 static int plane_trim(StrokeCache *cache, Brush *brush, float val[3])
@@ -1898,23 +1918,23 @@ static int plane_trim(StrokeCache *cache, Brush *brush, float val[3])
 
 static int plane_point_side_flip(float co[3], float plane_normal[3], float plane_center[3], int flip)
 {
-    float delta[3];
-    float d;
+	float delta[3];
+	float d;
 
-    sub_v3_v3v3(delta, co, plane_center);
-    d = dot_v3v3(plane_normal, delta);
+	sub_v3_v3v3(delta, co, plane_center);
+	d = dot_v3v3(plane_normal, delta);
 
-    if (flip) d = -d;
+	if (flip) d = -d;
 
-    return d <= 0.0f;
+	return d <= 0.0f;
 }
 
 static int plane_point_side(float co[3], float plane_normal[3], float plane_center[3])
 {
-    float delta[3];
+	float delta[3];
 
-    sub_v3_v3v3(delta, co, plane_center);
-    return  dot_v3v3(plane_normal, delta) <= 0.0f;
+	sub_v3_v3v3(delta, co, plane_center);
+	return  dot_v3v3(plane_normal, delta) <= 0.0f;
 }
 
 static float get_offset(Sculpt *sd, SculptSession *ss)
@@ -2705,15 +2725,15 @@ void sculpt_free_deformMats(SculptSession *ss)
 	ss->deform_imats = NULL;
 }
 
-void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
+void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_fmap)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	SculptSession *ss = ob->sculpt;
 	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
 
-	ss->modifiers_active= sculpt_modifiers_active(scene, ob);
+	ss->modifiers_active= sculpt_modifiers_active(scene, sd, ob);
 
-	if((ob->shapeflag & OB_SHAPE_LOCK) && !mmd) ss->kb= ob_get_keyblock(ob);
+	if(!mmd) ss->kb= ob_get_keyblock(ob);
 	else ss->kb= NULL;
 
 	if(mmd) {
@@ -3261,7 +3281,7 @@ static void sculpt_stroke_modifiers_check(bContext *C, Object *ob)
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(&sd->paint);
 
-		sculpt_update_mesh_elements(CTX_data_scene(C), ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
 	}
 }
 
@@ -3352,7 +3372,7 @@ static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
 	sculpt_update_tex(sd, ss);
 }
 
-static int sculpt_brush_stroke_init(bContext *C, ReportList *reports)
+static int sculpt_brush_stroke_init(bContext *C, ReportList *UNUSED(reports))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -3360,15 +3380,10 @@ static int sculpt_brush_stroke_init(bContext *C, ReportList *reports)
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
 
-	if(ob_get_key(ob) && !(ob->shapeflag & OB_SHAPE_LOCK)) {
-		BKE_report(reports, RPT_ERROR, "Shape key sculpting requires a locked shape.");
-		return 0;
-	}
-
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_init_tex(sd, ss);
 
-	sculpt_update_mesh_elements(scene, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+	sculpt_update_mesh_elements(scene, sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
 
 	return 1;
 }
@@ -3440,23 +3455,16 @@ static void sculpt_flush_update(bContext *C)
 	}
 	else {
 		rcti r;
-		int off = 0;
 
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB, NULL);
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
-			r.xmin += ar->winrct.xmin + 1 + off;
-			r.xmax += ar->winrct.xmin - 1 - off;
-			r.ymin += ar->winrct.ymin + 1 + off;
-			r.ymax += ar->winrct.ymin - 1 - off;
+			if (ss->cache)
+				ss->cache->previous_r= r;
 
-			if (ss->cache) {
-				rcti tmp = r;
-
-				if (!BLI_rcti_is_empty(&ss->cache->previous_r))
-					BLI_union_rcti(&r, &ss->cache->previous_r);
-
-				ss->cache->previous_r= tmp;
-			}
+			r.xmin += ar->winrct.xmin + 1;
+			r.xmax += ar->winrct.xmin - 1;
+			r.ymin += ar->winrct.ymin + 1;
+			r.ymax += ar->winrct.ymin - 1;
 
 			ss->partial_redraw = 1;
 			ED_region_tag_redraw_partial(ar, &r);
@@ -3479,8 +3487,9 @@ static int over_mesh(bContext *C, struct wmOperator *op, float x, float y)
 static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
 					wmEvent *event)
 {
-	/* Don't start the stroke until mouse goes over the mesh */
-	if(over_mesh(C, op, event->x, event->y)) {
+	/* Don't start the stroke until mouse goes over the mesh.
+	 * note: event will only be null when re-executing the saved stroke. */
+	if(event==NULL || over_mesh(C, op, event->x, event->y)) {
 		Object *ob = CTX_data_active_object(C);
 		SculptSession *ss = ob->sculpt;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -3534,13 +3543,11 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 		ntreeEndExecTree(mtex->tex->nodetree);
 }
 
-static void sculpt_stroke_done(bContext *C, struct PaintStroke *unused)
+static void sculpt_stroke_done(bContext *C, struct PaintStroke *UNUSED(stroke))
 {
 	Object *ob= CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-
-	(void)unused;
 
 	// reset values used to draw brush after completing the stroke
 	sd->draw_anchored= 0;
@@ -3621,21 +3628,14 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 
 static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
-	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	SculptSession *ss = CTX_data_active_object(C)->sculpt;
-
 	if(!sculpt_brush_stroke_init(C, op->reports))
 		return OPERATOR_CANCELLED;
 
 	op->customdata = paint_stroke_new(C, sculpt_stroke_get_location, sculpt_stroke_test_start,
 					  sculpt_stroke_update_step, sculpt_stroke_done, 0);
 
-	sculpt_update_cache_invariants(C, sd, ss, op, NULL);
-
+	/* frees op->customdata */
 	paint_stroke_exec(C, op);
-
-	sculpt_flush_update(C);
-	sculpt_cache_free(ss->cache);
 
 	return OPERATOR_FINISHED;
 }
@@ -3678,11 +3678,9 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/
 
-static int sculpt_set_persistent_base(bContext *C, wmOperator *unused)
+static int sculpt_set_persistent_base(bContext *C, wmOperator *UNUSED(op))
 {
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
-
-	(void)unused;
 
 	if(ss) {
 		if(ss->layer_co)
@@ -3712,18 +3710,16 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 {
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-	sculpt_update_mesh_elements(scene, ob, 0);
+	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0);
 }
 
-static int sculpt_toggle_mode(bContext *C, wmOperator *unused)
+static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
 	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
 	int flush_recalc= 0;
-
-	(void)unused;
 
 	/* multires in sculpt mode could have different from object mode subdivision level */
 	flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;

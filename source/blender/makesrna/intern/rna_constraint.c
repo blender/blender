@@ -1329,7 +1329,7 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 4);
 	RNA_def_property_ui_text(prop, "Limit Z", "Use minimum/maximum z limit");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-    
+
 	prop= RNA_def_property(srna, "use_angular_limit_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 8);
 	RNA_def_property_ui_text(prop, "Angular X Limit", "Use minimum/maximum x angular limit");
@@ -1344,7 +1344,6 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 32);
 	RNA_def_property_ui_text(prop, "Angular Z Limit", "Use minimum/maximum z angular limit");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-    
 }
 
 static void rna_def_constraint_clamp_to(BlenderRNA *brna)
@@ -2044,7 +2043,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_DISABLE);
-	RNA_def_property_ui_text(prop, "Disabled", "Constraint has invalid settings and will not be evaluated");
+	RNA_def_property_ui_text(prop, "Valid", "Constraint has valid settings and can be evaluated");
 	
 		// TODO: setting this to true must ensure that all others in stack are turned off too...
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);

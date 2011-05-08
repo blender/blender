@@ -38,12 +38,7 @@
 #include <stddef.h>
 #include <assert.h>
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#include <windows.h>  
-
-#include <io.h>
-#endif
+#include "GHOST_C-api.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1194,7 +1189,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemL(col, "Links", ICON_NONE);
 	uiItemStringO(col, "Donations", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment/");
 	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-257/");
-	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:Manual");
+	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.5/Manual");
 	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
 	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/"); // 
 	if(strcmp(STRINGIFY(BLENDER_VERSION_CYCLE), "release")==0) {
@@ -1948,11 +1943,14 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	RNA_string_get(op->ptr, "filepath", filename);
-	collada_export(CTX_data_scene(C), filename);
-	
-	return OPERATOR_FINISHED;
+	if(collada_export(CTX_data_scene(C), filename)) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static void WM_OT_collada_export(wmOperatorType *ot)
@@ -1998,7 +1996,6 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 #endif
 
 
-
 /* *********************** */
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
@@ -2032,28 +2029,10 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 }
 
 /* *********************** */
-#if defined(WIN32)
-static int console= 1;
-void WM_console_toggle(bContext *UNUSED(C), short show)
-{
-	if(show) {
-		ShowWindow(GetConsoleWindow(),SW_SHOW);
-		console= 1;
-	}
-	else {
-		ShowWindow(GetConsoleWindow(),SW_HIDE);
-		console= 0;
-	}
-}
 
-static int wm_console_toggle_op(bContext *C, wmOperator *UNUSED(op))
+static int wm_console_toggle_op(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
-	if(console) {
-		WM_console_toggle(C, 0);
-	}
-	else {
-		WM_console_toggle(C, 1);
-	}
+	GHOST_toggleConsole(2);
 	return OPERATOR_FINISHED;
 }
 
@@ -2066,7 +2045,6 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
 	ot->exec= wm_console_toggle_op;
 	ot->poll= WM_operator_winactive;
 }
-#endif
 
 /* ************ default paint cursors, draw always around cursor *********** */
 /*
@@ -2739,7 +2717,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 
 		glEnable(GL_TEXTURE_2D);
 		glBegin(GL_QUADS);
-		glColor4f(rc->tex_col[0], rc->tex_col[1], rc->tex_col[2], rc->tex_col[3]);
+		glColor4fv(rc->tex_col);
 		glTexCoord2f(0,0);
 		glVertex2f(-r3, -r3);
 		glTexCoord2f(1,0);
@@ -2753,7 +2731,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	}
 
 	if(rc->mode == WM_RADIALCONTROL_ANGLE) {
-		glColor4f(rc->col[0], rc->col[1], rc->col[2], rc->col[3]);
+		glColor4fv(rc->col);
 		glEnable(GL_LINE_SMOOTH);
 		glRotatef(-angle, 0, 0, 1);
 		fdrawline(0.0f, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
@@ -2762,7 +2740,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 		glDisable(GL_LINE_SMOOTH);
 	}
 
-	glColor4f(rc->col[0], rc->col[1], rc->col[2], rc->col[3]);
+	glColor4fv(rc->col);
 	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r1, 40);
 	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r2, 40);
 	glDisable(GL_BLEND);

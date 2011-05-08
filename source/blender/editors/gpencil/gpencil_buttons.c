@@ -219,9 +219,11 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, con
 		subcol= uiLayoutColumn(col, 1);
 			uiItemR(subcol, &ptr, "use_onion_skinning", 0, "Onion Skinning", ICON_NONE);
 			uiItemR(subcol, &ptr, "ghost_range_max", 0, "Frames", ICON_NONE); // XXX shorter name here? i.e. GStep
-
-		if(is_v3d) {
-			uiItemR(subcol, &ptr, "show_x_ray", 0, "X-Ray", ICON_NONE);
+		
+		/* 3d-view specific drawing options */
+		if (is_v3d) {
+			subcol= uiLayoutColumn(col, 0);
+				uiItemR(subcol, &ptr, "show_x_ray", 0, "X-Ray", ICON_NONE);
 		}
 		
 	}

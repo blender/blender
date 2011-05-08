@@ -51,35 +51,35 @@ static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *
 {
 	NodeChroma *c= (NodeChroma *)node->storage;
 	float tolerence=c->t1;
-   float falloff=c->t2;
+	float falloff=c->t2;
 	float difference;
-   float alpha;
-	
-   difference=fabs(inColor2[0]-inColor1[0])+
+	float alpha;
+
+	difference= fabs(inColor2[0]-inColor1[0])+
 			   fabs(inColor2[1]-inColor1[1])+
 			   fabs(inColor2[2]-inColor1[2]);
 
-   /*average together the distances*/
-   difference=difference/3.0;
+	/*average together the distances*/
+	difference=difference/3.0;
 
-   VECCOPY(outColor, inColor1);
+	VECCOPY(outColor, inColor1);
 
-   /*make 100% transparent*/
-	if(difference < tolerence){
-	  outColor[3]=0.0;
+	/*make 100% transparent*/
+	if(difference < tolerence) {
+		outColor[3]=0.0;
 	}
-   /*in the falloff region, make partially transparent */
-   else if(difference < falloff+tolerence){
-	  difference=difference-tolerence;
-	  alpha=difference/falloff;
-	  /*only change if more transparent than before */
-	  if(alpha < inColor1[3]) {      
-		 outColor[3]=alpha;
-	  }
-	  else { /* leave as before */
-		 outColor[3]=inColor1[3];
-	  }
-   }
+	/*in the falloff region, make partially transparent */
+	else if(difference < falloff+tolerence) {
+		difference=difference-tolerence;
+		alpha=difference/falloff;
+		/*only change if more transparent than before */
+		if(alpha < inColor1[3]) {
+			outColor[3]=alpha;
+		}
+		else { /* leave as before */
+			outColor[3]=inColor1[3];
+		}
+	}
 	else {
 		/*foreground object*/
 		outColor[3]= inColor1[3];
@@ -90,29 +90,29 @@ static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **
 {
 	CompBuf *outbuf=0;
 	CompBuf *imbuf1=0;
-   CompBuf *imbuf2=0;
+	CompBuf *imbuf2=0;
 	NodeChroma *c;
-	
+
 	/*is anything connected?*/
 	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
 
 	/*must have an image imput*/
 	if(in[0]->data==NULL) return;
 
-	
+
 	imbuf1=typecheck_compbuf(in[0]->data, CB_RGBA);
 
-   /* if there's an image, use that, if not use the color */
-   if(in[1]->data) {
-	  imbuf2=typecheck_compbuf(in[1]->data, CB_RGBA);
-   }
-	
+	/* if there's an image, use that, if not use the color */
+	if(in[1]->data) {
+		imbuf2=typecheck_compbuf(in[1]->data, CB_RGBA);
+	}
+
 	c=node->storage;
 	outbuf=dupalloc_compbuf(imbuf1);
-	
+
 	/* note, processor gets a keyvals array passed on as buffer constant */
 	composit2_pixel_processor(node, outbuf, imbuf1, in[0]->vec, imbuf2, in[1]->vec, do_diff_matte, CB_RGBA, CB_RGBA);
-	
+
 	out[0]->data=outbuf;
 	if(out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
@@ -127,10 +127,10 @@ static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **
 
 static void node_composit_init_diff_matte(bNode *node)
 {
-   NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
-   node->storage= c;
-   c->t1= 0.1f;
-   c->t2= 0.1f;
+	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
+	node->storage= c;
+	c->t1= 0.1f;
+	c->t2= 0.1f;
 }
 
 void register_node_type_cmp_diff_matte(ListBase *lb)

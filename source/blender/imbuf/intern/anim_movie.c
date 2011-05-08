@@ -185,7 +185,7 @@ static ImBuf * movie_fetchibuf(struct anim * anim, int position) {
 	if (anim->interlacing == DM_IMAGE_INTERLACED_EVEN) {
 		rect1 = ibuf->rect + (ibuf->x * ibuf->y) - 1;
 		rect2 = rect1 - ibuf->x;
-    
+
 		for (size = ibuf->x * (ibuf->y - 1); size > 0; size--){
 			*rect1-- = *rect2--;
 		}

@@ -208,6 +208,10 @@ extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 intptr_t	mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
 long		mesh_mirrtopo_table(struct Object *ob, char mode);
 
+//BMESH_TODO void		EM_cache_x_mirror_vert(struct Object *ob, struct BMEditMesh *em);
+
+int			mouse_mesh(struct bContext *C, const short mval[2], short extend);
+
 struct BMVert   *editbmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em, struct BMVert *eve, float *co, int index);
 int			mesh_get_x_mirror_vert(struct Object *ob, int index);
 int			*mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em);
@@ -229,12 +233,10 @@ void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
 /* bmesh_mods.c */
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
-int mouse_mesh(struct bContext *C, short mval[2], short extend);
-
 /* editface.c */
 void paintface_flush_flags(struct Object *ob);
 struct MTexPoly	*EM_get_active_mtexpoly(struct BMEditMesh *em, struct BMFace **act_efa, struct MLoopCol **col, int sloppy);
-int paintface_mouse_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
+int paintface_mouse_select(struct bContext *C, struct Object *ob, const short mval[2], int extend);
 int do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
 void paintface_deselect_all_visible(struct Object *ob, int action, short flush_flags);
 void paintface_select_linked(struct bContext *C, struct Object *ob, short mval[2], int mode);

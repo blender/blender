@@ -37,12 +37,13 @@ set(INC
 	../blenloader
 	../editors/include
 	../render/extern/include
-	../../kernel/gen_system
 	../../../intern/guardedalloc
 	../../../intern/memutil
 	../../../intern/elbeem/extern
 	../../../intern/ghost
 	../../../intern/opennl/extern
+	../../../source/gameengine/BlenderRoutines
+	${ZLIB_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 	${GLEW_INCLUDE_PATH}
 )
@@ -98,6 +99,10 @@ endif()
 if(WITH_PYTHON)
 	list(APPEND INC ../python ${PYTHON_INCLUDE_DIRS})
 	add_definitions(-DWITH_PYTHON)
+
+	if(WITH_PYTHON_SECURITY)
+		add_definitions(-DWITH_PYTHON_SECURITY)
+	endif()
 endif()
 
 if(WITH_GAMEENGINE)

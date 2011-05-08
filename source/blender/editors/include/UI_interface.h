@@ -160,6 +160,10 @@ typedef struct uiLayout uiLayout;
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
 
+/* scale fixed button widths by this to account for DPI
+ * 8.4852 == sqrtf(72.0f)) */
+#define UI_DPI_FAC (sqrtf((float)U.dpi) / 8.48528137423857f)
+
 /* Button types, bits stored in 1 value... and a short even!
 - bits 0-4:  bitnr (0-31)
 - bits 5-7:  pointer type
@@ -712,6 +716,7 @@ void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *i
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
+void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 

@@ -487,7 +487,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	int drawfaces, interpedges;
 	int i;
 	Image *ima= sima->image;
- 	
+
 	em= me->edit_btmesh;
 	activetf= EDBM_get_active_mtexpoly(em, &efa_act, 0); /* will be set to NULL if hidden */
 	activef = EDBM_get_actFace(em, 0);

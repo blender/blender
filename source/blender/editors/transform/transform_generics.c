@@ -967,7 +967,22 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->options |= CTX_EDGE;
 	}
 
-	t->spacetype = sa ? sa->spacetype : SPACE_EMPTY; /* background mode */
+
+	/* Assign the space type, some exceptions for running in different mode */
+	if(sa == NULL) {
+		/* background mode */
+		t->spacetype= SPACE_EMPTY;
+	}
+	else if ((ar == NULL) && (sa->spacetype == SPACE_VIEW3D)) {
+		/* running in the text editor */
+		t->spacetype= SPACE_EMPTY;
+	}
+	else {
+		/* normal operation */
+		t->spacetype= sa->spacetype;
+	}
+
+
 	if(t->spacetype == SPACE_VIEW3D)
 	{
 		View3D *v3d = sa->spacedata.first;
@@ -1006,12 +1021,18 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			}
 		}
 	}
-	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
+	else if(t->spacetype==SPACE_IMAGE)
 	{
 		SpaceImage *sima = sa->spacedata.first;
-		// XXX for now, get View2D  from the active region
+		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
-		t->around = (sima ? sima->around : 0);
+		t->around = sima->around;
+	}
+	else if(t->spacetype==SPACE_NODE)
+	{
+		// XXX for now, get View2D from the active region
+		t->view = &ar->v2d;
+		t->around = V3D_CENTER;
 	}
 	else if(t->spacetype==SPACE_IPO) 
 	{

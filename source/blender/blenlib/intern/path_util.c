@@ -324,8 +324,8 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	/* Note, this should really be moved to the file selector,
 	 * since this function is used in many areas */
 	if(strcmp(dir, ".")==0) {	/* happens for example in FILE_MAIN */
-	   get_default_root(dir);
-	   return;
+		get_default_root(dir);
+		return;
 	}	
 
 	while ( (start = strstr(dir, "\\..\\")) ) {
@@ -353,9 +353,9 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	}
 #else
 	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
-	   dir[0]= '/';
-	   dir[1]= 0;
-	   return;
+		dir[0]= '/';
+		dir[1]= 0;
+		return;
 	}
 
 	/* support for odd paths: eg /../home/me --> /home/me
@@ -525,7 +525,7 @@ int BLI_parent_dir(char *path)
 	BLI_add_slash(tmp);
 	strcat(tmp, parent_dir);
 	BLI_cleanup_dir(NULL, tmp);
- 	
+
 	if (!BLI_testextensie(tmp, parent_dir)) {
 		BLI_strncpy(path, tmp, sizeof(tmp));	
 		return 1;
@@ -763,7 +763,7 @@ void BLI_splitdirstring(char *di, char *fi)
 	}
 }
 
-void BLI_getlastdir(const char* dir, char *last, int maxlen)
+void BLI_getlastdir(const char* dir, char *last, const size_t maxlen)
 {
 	const char *s = dir;
 	const char *lslash = NULL;
@@ -1144,6 +1144,8 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check)
 		ok= get_path_system(path, NULL, NULL, NULL, ver);
 		break;
 	default:
+		path[0]= '\0'; /* incase do_check is false */
+		ok= FALSE;
 		BLI_assert(!"incorrect ID");
 	}
 
@@ -1439,7 +1441,7 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 }
 
 /* simple appending of filename to dir, does not check for valid path! */
-void BLI_join_dirfile(char *string, const int maxlen, const char *dir, const char *file)
+void BLI_join_dirfile(char *string, const size_t maxlen, const char *dir, const char *file)
 {
 	int sl_dir;
 	
@@ -1489,7 +1491,7 @@ char *BLI_path_basename(char *path)
   that a user gets his images in one place. It'll also provide
   consistent behaviour across exporters.
  */
-int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir)
+int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir)
 {
 	char path[FILE_MAX];
 	char dir[FILE_MAX];
@@ -1545,11 +1547,11 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 	}
 
 	if (abs)
-		BLI_strncpy(abs, dest_path, abs_size);
+		BLI_strncpy(abs, dest_path, abs_len);
 
 	if (rel) {
-		strncat(rel, rel_dir, rel_size);
-		strncat(rel, base, rel_size);
+		strncat(rel, rel_dir, rel_len);
+		strncat(rel, base, rel_len);
 	}
 
 	/* return 2 if src=dest */
@@ -1665,7 +1667,7 @@ static int add_win32_extension(char *name)
 }
 
 /* filename must be FILE_MAX length minimum */
-void BLI_where_am_i(char *fullname, const int maxlen, const char *name)
+void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	const char *path = NULL, *temp;
@@ -1690,6 +1692,10 @@ void BLI_where_am_i(char *fullname, const int maxlen, const char *name)
 #ifdef _WIN32
 	if(GetModuleFileName(0, fullname, maxlen)) {
 		GetShortPathName(fullname, fullname, maxlen);
+		if(!BLI_exists(fullname)) {
+			printf("path can't be found: \"%.*s\"\n", maxlen, fullname);
+			MessageBox(NULL, "path constains invalid characters or is too long (see console)", "Error", MB_OK);
+		}
 		return;
 	}
 #endif
@@ -1754,7 +1760,7 @@ void BLI_where_am_i(char *fullname, const int maxlen, const char *name)
 	}
 }
 
-void BLI_where_is_temp(char *fullname, const int maxlen, int usertemp)
+void BLI_where_is_temp(char *fullname, const size_t maxlen, int usertemp)
 {
 	fullname[0] = '\0';
 	
@@ -1797,26 +1803,6 @@ void BLI_where_is_temp(char *fullname, const int maxlen, int usertemp)
 			BLI_strncpy(U.tempdir, fullname, maxlen); /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
 		}
 #endif
-	}
-}
-
-char *get_install_dir(void) {
-	char *tmpname = BLI_strdup(bprogname);
-	char *cut;
-
-#ifdef __APPLE__
-	cut = strstr(tmpname, ".app");
-	if (cut) cut[0] = 0;
-#endif
-
-	cut = BLI_last_slash(tmpname);
-
-	if (cut) {
-		cut[0] = 0;
-		return tmpname;
-	} else {
-		MEM_freeN(tmpname);
-		return NULL;
 	}
 }
 

@@ -37,7 +37,7 @@
 #endif //WIN32
 
 #include "BL_SkinDeformer.h"
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 #include "STR_HashedString.h"
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_MeshObject.h"
@@ -108,7 +108,7 @@ BL_SkinDeformer::~BL_SkinDeformer()
 		m_armobj->Release();
 }
 
-void BL_SkinDeformer::Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
+void BL_SkinDeformer::Relink(CTR_Map<class CTR_HashedPtr, void*>*map)
 {
 	if (m_armobj) {
 		void **h_obj = (*map)[m_armobj];

@@ -90,11 +90,11 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 
 static void init(bNode* node)
 {
-   ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
-   node->storage= iuser;
-   iuser->sfra= 1;
-   iuser->fie_ima= 2;
-   iuser->ok= 1;
+	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
+	node->storage= iuser;
+	iuser->sfra= 1;
+	iuser->fie_ima= 2;
+	iuser->ok= 1;
 }
 
 void register_node_type_tex_image(ListBase *lb)

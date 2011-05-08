@@ -109,8 +109,7 @@
 
 /* for passing information between creator and gameengine */
 #ifdef WITH_GAMEENGINE
-#include "GEN_messaging.h"
-#include "SYS_System.h"
+#include "BL_System.h"
 #else /* dummy */
 #define SYS_SystemHandle int
 #endif
@@ -189,13 +188,13 @@ static void blender_esc(int sig)
 #ifdef BUILD_DATE
 static void strip_quotes(char *str)
 {
-    if(str[0] == '"') {
-        int len= strlen(str) - 1;
-        memmove(str, str+1, len);
-        if(str[len-1] == '"') {
-            str[len-1]= '\0';
-        }
-    }
+	if(str[0] == '"') {
+		int len= strlen(str) - 1;
+		memmove(str, str+1, len);
+		if(str[len-1] == '"') {
+			str[len-1]= '\0';
+		}
+	}
 }
 #endif
 
@@ -438,7 +437,7 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 	/* OSX uses SSE for floating point by default, so here 
 	 * use SSE instructions to throw floating point exceptions */
 	_MM_SET_EXCEPTION_MASK(_MM_MASK_MASK &~
-						   (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO));
+			(_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO));
 # endif	/* OSX_SSE_FPE */
 # if defined(_WIN32) && defined(_MSC_VER)
 	_controlfp_s(NULL, 0, _MCW_EM); /* enables all fp exceptions */
@@ -815,7 +814,7 @@ static int render_frame(int argc, const char **argv, void *data)
 
 			frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 
-			RE_BlenderAnim(re, bmain, scene, scene->lay, frame, frame, scene->r.frame_step, &reports);
+			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step, &reports);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-f / --render-frame'.\n");
@@ -836,7 +835,7 @@ static int render_animation(int UNUSED(argc), const char **UNUSED(argv), void *d
 		Render *re= RE_NewRender(scene->id.name);
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
-		RE_BlenderAnim(re, bmain, scene, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
+		RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
 	} else {
 		printf("\nError: no blend loaded. cannot use '-a'.\n");
 	}
@@ -1122,10 +1121,22 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "/?", NULL, "\n\tPrint this help text and exit (windows only)", print_help, ba);
 
 	BLI_argsAdd(ba, 1, "-v", "--version", "\n\tPrint Blender version and exit", print_version, NULL);
+	
+	/* only to give help message */
+#ifndef WITH_PYTHON_SECURITY /* default */
+#  define 	PY_ENABLE_AUTO ", (default)"
+#  define 	PY_DISABLE_AUTO ""
+#else
+#  define 	PY_ENABLE_AUTO ""
+#  define 	PY_DISABLE_AUTO ", (compiled as non-standard default)"
+#endif
 
-	BLI_argsAdd(ba, 1, "-y", "--enable-autoexec", "\n\tEnable automatic python script execution (default)", enable_python, NULL);
-	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)", disable_python, NULL);
+	BLI_argsAdd(ba, 1, "-y", "--enable-autoexec", "\n\tEnable automatic python script execution" PY_ENABLE_AUTO, enable_python, NULL);
+	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)" PY_DISABLE_AUTO, disable_python, NULL);
 
+#undef PY_ENABLE_AUTO
+#undef PY_DISABLE_AUTO
+	
 	BLI_argsAdd(ba, 1, "-b", "--background", "<file>\n\tLoad <file> in background (often used for UI-less rendering)", background_mode, NULL);
 
 	BLI_argsAdd(ba, 1, "-a", NULL, playback_doc, playback_mode, NULL);
@@ -1257,7 +1268,6 @@ int main(int argc, const char **argv)
 
 #ifdef WITH_GAMEENGINE
 	syshandle = SYS_GetSystem();
-	GEN_init_messaging_system();
 #else
 	syshandle= 0;
 #endif

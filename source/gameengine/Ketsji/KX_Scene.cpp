@@ -67,7 +67,7 @@
 #include "SCA_IController.h"
 #include "SCA_IActuator.h"
 #include "SG_Node.h"
-#include "SYS_System.h"
+#include "BL_System.h"
 #include "SG_Controller.h"
 #include "SG_IObject.h"
 #include "SG_Tree.h"
@@ -1514,7 +1514,7 @@ void KX_Scene::LogicUpdateFrame(double curtime, bool frame)
 void KX_Scene::LogicEndFrame()
 {
 	m_logicmgr->EndFrame();
-	int numobj = m_euthanasyobjects->GetCount();
+	int numobj;
 
 	KX_GameObject* obj;
 

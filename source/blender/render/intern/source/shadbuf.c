@@ -952,7 +952,7 @@ static int firstreadshadbuf(ShadBuf *shb, ShadSampleBuf *shsample, int **rz, int
 	/* always test borders of shadowbuffer */
 	if(xs<0) xs= 0; else if(xs>=shb->size) xs= shb->size-1;
 	if(ys<0) ys= 0; else if(ys>=shb->size) ys= shb->size-1;
-   
+
 	/* calc z */
 	ofs= (ys>>4)*(shb->size>>4) + (xs>>4);
 	ct= shsample->cbuf+ofs;

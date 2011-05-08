@@ -54,6 +54,7 @@
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -420,6 +421,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	unsigned int lay= (v3d)? v3d->lay: scene->lay;
 	const short is_animation= RNA_boolean_get(op->ptr, "animation");
 	const short is_write_still= RNA_boolean_get(op->ptr, "write_still");
+	struct Object *camera_override= v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 
 	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected.");
@@ -445,9 +447,9 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	seq_stripelem_cache_cleanup();
 
 	if(is_animation)
-		RE_BlenderAnim(re, mainp, scene, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
+		RE_BlenderAnim(re, mainp, scene, camera_override, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
 	else
-		RE_BlenderFrame(re, mainp, scene, NULL, lay, scene->r.cfra, is_write_still);
+		RE_BlenderFrame(re, mainp, scene, NULL, camera_override, lay, scene->r.cfra, is_write_still);
 
 	// no redraw needed, we leave state as we entered it
 	ED_update_for_newframe(mainp, scene, CTX_wm_screen(C), 1);
@@ -463,6 +465,7 @@ typedef struct RenderJob {
 	Render *re;
 	wmWindow *win;
 	SceneRenderLayer *srl;
+	struct Object *camera_override;
 	int lay;
 	short anim, write_still;
 	Image *image;
@@ -589,9 +592,9 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
 	rj->progress= progress;
 
 	if(rj->anim)
-		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
+		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->camera_override, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
 	else
-		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->srl, rj->lay, rj->scene->r.cfra, rj->write_still);
+		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->srl, rj->camera_override, rj->lay, rj->scene->r.cfra, rj->write_still);
 }
 
 static void render_endjob(void *rjv)
@@ -678,12 +681,13 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int jobflag;
 	const short is_animation= RNA_boolean_get(op->ptr, "animation");
 	const short is_write_still= RNA_boolean_get(op->ptr, "write_still");
+	struct Object *camera_override= v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 	
 	/* only one render job at a time */
 	if(WM_jobs_test(CTX_wm_manager(C), scene))
 		return OPERATOR_CANCELLED;
 
-	if(!RE_is_rendering_allowed(scene, op->reports, render_error_reports)) {
+	if(!RE_is_rendering_allowed(scene, camera_override, op->reports, render_error_reports)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -735,7 +739,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(RNA_property_is_set(op->ptr, "layer")) {
 		SceneRenderLayer *rl;
 		Scene *scn;
-		char scene_name[19], rl_name[RE_MAXNAME];
+		char scene_name[MAX_ID_NAME-2], rl_name[RE_MAXNAME];
 
 		RNA_string_get(op->ptr, "layer", rl_name);
 		RNA_string_get(op->ptr, "scene", scene_name);
@@ -744,6 +748,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		rl = (SceneRenderLayer *)BLI_findstring(&scene->r.layers, rl_name, offsetof(SceneRenderLayer, name));
 		
 		if (scn && rl) {
+			/* camera switch wont have updated */
+			scn->r.cfra= scene->r.cfra;
+			scene_camera_switch_update(scn);
+
 			scene = scn;
 			srl = rl;
 		}
@@ -756,6 +764,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
 	rj->srl = srl;
+	rj->camera_override = camera_override;
 	rj->lay = (v3d)? v3d->lay: scene->lay;
 	rj->anim= is_animation;
 	rj->write_still= is_write_still && !is_animation;
@@ -823,7 +832,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
 	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
 	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render");
-	RNA_def_string(ot->srna, "scene", "", 19, "Scene", "Re-render single layer in this scene");
+	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene", "Re-render single layer in this scene");
 }
 
 /* ****************************** opengl render *************************** */
@@ -831,7 +840,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 
 /* *********************** cancel render viewer *************** */
 
-static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(unused))
+static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -878,7 +887,7 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot)
 
 /* *********************** show render viewer *************** */
 
-static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(unused), wmEvent *event)
+static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	wmWindow *wincur = CTX_wm_window(C);
 	

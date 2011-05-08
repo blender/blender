@@ -4,10 +4,10 @@ Import ('env')
 sources = env.Glob('*.cpp')
 defs = [ 'GLEW_STATIC' ]
 
-incs = '. #source/kernel/gen_system #intern/string #intern/guardedalloc'
+incs = '. #intern/string #intern/guardedalloc'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
 incs += ' #source/gameengine/Converter #source/blender/imbuf'
-incs += ' #intern/ghost/include'
+incs += ' #intern/ghost/include #intern/container'
 incs += ' #intern/audaspace/intern'
 incs += ' #intern/moto/include #source/gameengine/Ketsji #source/blender/blenlib'
 incs += ' #source/blender/blenkernel #source/blender'

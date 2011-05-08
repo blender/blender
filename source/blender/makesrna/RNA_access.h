@@ -559,6 +559,7 @@ extern StructRNA RNA_VertexPaint;
 extern StructRNA RNA_VoronoiTexture;
 extern StructRNA RNA_VoxelData;
 extern StructRNA RNA_VoxelDataTexture;
+extern StructRNA RNA_WarpModifier;
 extern StructRNA RNA_WaveModifier;
 extern StructRNA RNA_Window;
 extern StructRNA RNA_WindowManager;
@@ -619,7 +620,7 @@ void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 struct IDProperty *RNA_struct_idprops(PointerRNA *ptr, int create);
 int RNA_struct_idprops_check(StructRNA *srna);
 int RNA_struct_idprops_register_check(StructRNA *type);
-
+int RNA_struct_idprops_unset(PointerRNA *ptr, const char *identifier);
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 int RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test);

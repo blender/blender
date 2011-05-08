@@ -34,7 +34,7 @@
 #ifndef BL_ACTIONACTUATOR
 #define BL_ACTIONACTUATOR
 
-#include "GEN_HashedPtr.h"
+#include "CTR_HashedPtr.h"
 #include "SCA_IActuator.h"
 #include "DNA_actuator_types.h"
 #include "MT_Point3.h"

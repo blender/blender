@@ -230,7 +230,9 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
 
 	if(self->blo_handle == NULL) {
 		if(BPy_reports_to_error(&reports, PyExc_IOError, TRUE) != -1) {
-			PyErr_Format(PyExc_IOError, "load: %s failed to open blend file", self->abspath);
+			PyErr_Format(PyExc_IOError,
+			             "load: %s failed to open blend file",
+			             self->abspath);
 		}
 		return NULL;
 	}
@@ -301,7 +303,9 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 
 						if(item_str) {
 							if(!BLO_library_append_named_part(NULL, mainl, &(self->blo_handle), item_str, code, self->flag)) {
-								PyErr_Format(PyExc_KeyError, "load: %s does not contain %s[\"%s\"]", self->abspath, name_plural, item_str);
+								PyErr_Format(PyExc_KeyError,
+								             "load: %s does not contain %s[\"%s\"]",
+								             self->abspath, name_plural, item_str);
 								err= -1;
 								break;
 							}

@@ -673,116 +673,116 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 
 void do_rgba_to_yuva(bNode *UNUSED(node), float *out, float *in)
 {
-   rgb_to_yuv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
-   out[3]=in[3];
+	rgb_to_yuv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	out[3]=in[3];
 }
 
 void do_rgba_to_hsva(bNode *UNUSED(node), float *out, float *in)
 {
-   rgb_to_hsv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
-   out[3]=in[3];
+	rgb_to_hsv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	out[3]=in[3];
 }
 
 void do_rgba_to_ycca(bNode *UNUSED(node), float *out, float *in)
 {
-   rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
-   out[3]=in[3];
+	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
+	out[3]=in[3];
 }
 
 void do_yuva_to_rgba(bNode *UNUSED(node), float *out, float *in)
 {
-   yuv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
-   out[3]=in[3];
+	yuv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	out[3]=in[3];
 }
 
 void do_hsva_to_rgba(bNode *UNUSED(node), float *out, float *in)
 {
-   hsv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
-   out[3]=in[3];
+	hsv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	out[3]=in[3];
 }
 
 void do_ycca_to_rgba(bNode *UNUSED(node), float *out, float *in)
 {
-   ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
-   out[3]=in[3];
+	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
+	out[3]=in[3];
 }
 
 void do_copy_rgba(bNode *UNUSED(node), float *out, float *in)
 {
-   QUATCOPY(out, in);
+	QUATCOPY(out, in);
 }
 
 void do_copy_rgb(bNode *UNUSED(node), float *out, float *in)
 {
-   VECCOPY(out, in);
-   out[3]= 1.0f;
+	VECCOPY(out, in);
+	out[3]= 1.0f;
 }
 
 void do_copy_value(bNode *UNUSED(node), float *out, float *in)
 {
-   out[0]= in[0];
+	out[0]= in[0];
 }
 
 void do_copy_a_rgba(bNode *UNUSED(node), float *out, float *in, float *fac)
 {
-   VECCOPY(out, in);
-   out[3]= *fac;
+	VECCOPY(out, in);
+	out[3]= *fac;
 }
 
 /* only accepts RGBA buffers */
 void gamma_correct_compbuf(CompBuf *img, int inversed)
 {
-   float *drect;
-   int x;
+	float *drect;
+	int x;
 
-   if(img->type!=CB_RGBA) return;
+	if(img->type!=CB_RGBA) return;
 
-   drect= img->rect;
-   if(inversed) {
-	  for(x=img->x*img->y; x>0; x--, drect+=4) {
-		 if(drect[0]>0.0f) drect[0]= sqrt(drect[0]); else drect[0]= 0.0f;
-		 if(drect[1]>0.0f) drect[1]= sqrt(drect[1]); else drect[1]= 0.0f;
-		 if(drect[2]>0.0f) drect[2]= sqrt(drect[2]); else drect[2]= 0.0f;
-	  }
-   }
-   else {
-	  for(x=img->x*img->y; x>0; x--, drect+=4) {
-		 if(drect[0]>0.0f) drect[0]*= drect[0]; else drect[0]= 0.0f;
-		 if(drect[1]>0.0f) drect[1]*= drect[1]; else drect[1]= 0.0f;
-		 if(drect[2]>0.0f) drect[2]*= drect[2]; else drect[2]= 0.0f;
-	  }
-   }
+	drect= img->rect;
+	if(inversed) {
+		for(x=img->x*img->y; x>0; x--, drect+=4) {
+			if(drect[0]>0.0f) drect[0]= sqrt(drect[0]); else drect[0]= 0.0f;
+			if(drect[1]>0.0f) drect[1]= sqrt(drect[1]); else drect[1]= 0.0f;
+			if(drect[2]>0.0f) drect[2]= sqrt(drect[2]); else drect[2]= 0.0f;
+		}
+	}
+	else {
+		for(x=img->x*img->y; x>0; x--, drect+=4) {
+			if(drect[0]>0.0f) drect[0]*= drect[0]; else drect[0]= 0.0f;
+			if(drect[1]>0.0f) drect[1]*= drect[1]; else drect[1]= 0.0f;
+			if(drect[2]>0.0f) drect[2]*= drect[2]; else drect[2]= 0.0f;
+		}
+	}
 }
 
 void premul_compbuf(CompBuf *img, int inversed)
 {
-   float *drect;
-   int x;
+	float *drect;
+	int x;
 
-   if(img->type!=CB_RGBA) return;
+	if(img->type!=CB_RGBA) return;
 
-   drect= img->rect;
-   if(inversed) {
-	  for(x=img->x*img->y; x>0; x--, drect+=4) {
-		 if(fabs(drect[3]) < 1e-5f) {
-			 drect[0]= 0.0f;
-			 drect[1]= 0.0f;
-			 drect[2]= 0.0f;
-		 }
-		 else {
-			 drect[0] /= drect[3];
-			 drect[1] /= drect[3];
-			 drect[2] /= drect[3];
-		 }
-	  }
-   }
-   else {
-	  for(x=img->x*img->y; x>0; x--, drect+=4) {
-		 drect[0] *= drect[3];
-		 drect[1] *= drect[3];
-		 drect[2] *= drect[3];
-	  }
-   }
+	drect= img->rect;
+	if(inversed) {
+		for(x=img->x*img->y; x>0; x--, drect+=4) {
+			if(fabs(drect[3]) < 1e-5f) {
+				drect[0]= 0.0f;
+				drect[1]= 0.0f;
+				drect[2]= 0.0f;
+			}
+			else {
+				drect[0] /= drect[3];
+				drect[1] /= drect[3];
+				drect[2] /= drect[3];
+			}
+		}
+	}
+	else {
+		for(x=img->x*img->y; x>0; x--, drect+=4) {
+			drect[0] *= drect[3];
+			drect[1] *= drect[3];
+			drect[2] *= drect[3];
+		}
+	}
 }
 
 

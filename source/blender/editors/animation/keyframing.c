@@ -1287,7 +1287,7 @@ void ANIM_OT_keyframe_delete (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Delete Keyframe";
+	ot->name= "Delete Keying-Set Keyframe";
 	ot->idname= "ANIM_OT_keyframe_delete";
 	ot->description= "Delete keyframes on the current frame for all properties in the specified Keying Set";
 	

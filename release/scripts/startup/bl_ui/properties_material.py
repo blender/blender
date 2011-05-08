@@ -549,6 +549,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(mat, "alpha")
         col.prop(mat, "diffuse_color", text="")
+        col.prop(halo, "seed")
 
         col = split.column()
         col.prop(halo, "size")

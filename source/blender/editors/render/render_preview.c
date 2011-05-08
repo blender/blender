@@ -135,14 +135,15 @@ ImBuf* get_brush_icon(Brush *brush)
 					if (path[0])
 						brush->icon_imbuf= IMB_loadiffname(path, flags);
 				}
+
+				if (brush->icon_imbuf)
+					BKE_icon_changed(BKE_icon_getid(&brush->id));
 			}
 		}
 	}
 
 	if (!(brush->icon_imbuf))
 		brush->id.icon_id = 0;
-	else
-		BKE_icon_changed(BKE_icon_getid(&(brush->id)));
 
 	return brush->icon_imbuf;
 }
@@ -311,15 +312,6 @@ void ED_preview_free_dbase(void)
 {
 	if(pr_main)
 		free_main(pr_main);
-}
-
-static Object *find_object(ListBase *lb, const char *name)
-{
-	Object *ob;
-	for(ob= lb->first; ob; ob= ob->id.next)
-		if(strcmp(ob->id.name+2, name)==0)
-			break;
-	return ob;
 }
 
 static int preview_mat_has_sss(Material *mat, bNodeTree *ntree)
@@ -528,12 +520,12 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			if(la && la->type==LA_SUN && (la->sun_effect_type & LA_SUN_EFFECT_SKY)) {
 				sce->lay= 1<<MA_ATMOS;
 				sce->world= scene->world;
-				sce->camera= (Object *)find_object(&pr_main->object, "CameraAtmo");
+				sce->camera= (Object *)BLI_findstring(&pr_main->object, "CameraAtmo", offsetof(ID, name)+2);
 			}
 			else {
 				sce->lay= 1<<MA_LAMP;
 				sce->world= NULL;
-				sce->camera= (Object *)find_object(&pr_main->object, "Camera");
+				sce->camera= (Object *)BLI_findstring(&pr_main->object, "Camera", offsetof(ID, name)+2);
 			}
 			sce->r.mode &= ~R_SHADOW;
 			
@@ -1256,10 +1248,11 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 
 		br->icon_imbuf= get_brush_icon(br);
 
+		memset(sp->pr_rect, 0x888888, sp->sizex*sp->sizey*sizeof(unsigned int));
+
 		if(!(br->icon_imbuf) || !(br->icon_imbuf->rect))
 			return;
 
-		memset(sp->pr_rect, 0x888888, sp->sizex*sp->sizey*sizeof(unsigned int));
 		icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
 
 		*do_update= 1;

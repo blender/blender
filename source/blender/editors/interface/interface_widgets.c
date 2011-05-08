@@ -575,19 +575,17 @@ static void shadecolors4(char *coltop, char *coldown, const char *color, short s
 	coldown[3]= color[3];	
 }
 
-static void round_box_shade_col4(const char *col1, const char *col2, float fac)
+static void round_box_shade_col4(const char col1[4], const char col2[4], const float fac)
 {
-	int faci, facm;
 	unsigned char col[4];
-	
-	faci= floor(255.1f*fac);
-	facm= 255-faci;
-	
+	const int faci= FTOCHAR(fac);
+	const int facm= 255-faci;
+
 	col[0]= (faci*col1[0] + facm*col2[0])>>8;
 	col[1]= (faci*col1[1] + facm*col2[1])>>8;
 	col[2]= (faci*col1[2] + facm*col2[2])>>8;
 	col[3]= (faci*col1[3] + facm*col2[3])>>8;
-	
+
 	glColor4ubv(col);
 }
 
@@ -1171,13 +1169,13 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 
 
 /*   uiWidgetStateColors
- char inner_anim[4];
- char inner_anim_sel[4];
- char inner_key[4];
- char inner_key_sel[4];
- char inner_driven[4];
- char inner_driven_sel[4];
- float blend;
+	char inner_anim[4];
+	char inner_anim_sel[4];
+	char inner_key[4];
+	char inner_key_sel[4];
+	char inner_driven[4];
+	char inner_driven_sel[4];
+	float blend;
  
 */
 
@@ -1192,15 +1190,15 @@ static struct uiWidgetStateColors wcol_state_colors= {
 };
 
 /*  uiWidgetColors
- float outline[3];
- float inner[4];
- float inner_sel[4];
- float item[3];
- float text[3];
- float text_sel[3];
+	float outline[3];
+	float inner[4];
+	float inner_sel[4];
+	float item[3];
+	float text[3];
+	float text_sel[3];
 
- short shaded;
- float shadetop, shadedown;
+	short shaded;
+	float shadetop, shadedown;
 */	
 
 static struct uiWidgetColors wcol_num= {
@@ -1293,7 +1291,7 @@ static struct uiWidgetColors wcol_menu_item= {
 	{255, 255, 255, 255},
 	{0, 0, 0, 255},
 	
-	0,
+	1,
 	38, 0
 };
 
@@ -1602,8 +1600,6 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 	else if(state & UI_ACTIVE) {
 		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
-		
-		wt->wcol.shaded= 1;
 	}
 }
 
@@ -2316,7 +2312,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	double value;
 	float offs, toffs, fac;
 	char outline[3];
-	
+
 	widget_init(&wtb);
 	widget_init(&wtb1);
 	

@@ -164,52 +164,6 @@ void BPY_modules_update(bContext *C)
 	bpy_context_module->ptr.data= (void *)C;
 }
 
-/* must be called before Py_Initialize */
-#ifndef WITH_PYTHON_MODULE
-static void bpy_python_start_path(void)
-{
-	char *py_path_bundle= BLI_get_folder(BLENDER_PYTHON, NULL);
-
-	if(py_path_bundle==NULL) {
-		/* Common enough to have bundled *nix python but complain on OSX/Win */
-#if defined(__APPLE__) || defined(_WIN32)
-		fprintf(stderr, "Warning! bundled python not found and is expected on this platform. (if you built with CMake: 'install' target may have not been built)\n");
-#endif
-		return;
-	}
-	/* set the environment path */
-	printf("found bundled python: %s\n", py_path_bundle);
-
-#ifdef __APPLE__
-	/* OSX allow file/directory names to contain : character (represented as / in the Finder)
-	 but current Python lib (release 3.1.1) doesn't handle these correctly */
-	if(strchr(py_path_bundle, ':'))
-		printf("Warning : Blender application is located in a path containing : or / chars\
-			   \nThis may make python import function fail\n");
-#endif
-	
-#ifdef _WIN32
-	/* cmake/MSVC debug build crashes without this, why only
-	   in this case is unknown.. */
-	{
-		BLI_setenv("PYTHONPATH", py_path_bundle);	
-	}
-#endif
-
-	{
-		static wchar_t py_path_bundle_wchar[FILE_MAX];
-
-		/* cant use this, on linux gives bug: #23018, TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 22008 */
-		/* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */
-
-		utf8towchar(py_path_bundle_wchar, py_path_bundle);
-
-		Py_SetPythonHome(py_path_bundle_wchar);
-		// printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);
-	}
-}
-#endif
-
 void BPY_context_set(bContext *C)
 {
 	BPy_SetContext(C);
@@ -242,7 +196,8 @@ void BPY_python_start(int argc, const char **argv)
 	/* must run before python initializes */
 	PyImport_ExtendInittab(bpy_internal_modules);
 
-	bpy_python_start_path(); /* allow to use our own included python */
+	/* allow to use our own included python */
+	PyC_SetHomePath(BLI_get_folder(BLENDER_PYTHON, NULL));
 
 	/* Python 3.2 now looks for '2.57/python/include/python3.2d/pyconfig.h' to parse
 	 * from the 'sysconfig' module which is used by 'site', so for now disable site.
@@ -415,7 +370,9 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 #endif
 		}
 		else {
-			PyErr_Format(PyExc_IOError, "Python file \"%s\" could not be opened: %s", fn, strerror(errno));
+			PyErr_Format(PyExc_IOError,
+			             "Python file \"%s\" could not be opened: %s",
+			             fn, strerror(errno));
 			py_result= NULL;
 		}
 	}
@@ -471,7 +428,8 @@ void BPY_DECREF(void *pyob_ptr)
 	PyGILState_Release(gilstate);
 }
 
-int BPY_button_exec(bContext *C, const char *expr, double *value)
+/* return -1 on error, else 0 */
+int BPY_button_exec(bContext *C, const char *expr, double *value, const short verbose)
 {
 	PyGILState_STATE gilstate;
 	PyObject *py_dict, *mod, *retval;
@@ -536,7 +494,12 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 	}
 	
 	if(error_ret) {
-		BPy_errors_to_report(CTX_wm_reports(C));
+		if(verbose) {
+			BPy_errors_to_report(CTX_wm_reports(C));
+		}
+		else {
+			PyErr_Clear();
+		}
 	}
 
 	PyC_MainModule_Backup(&main_mod);
@@ -707,8 +670,8 @@ static struct PyModuleDef bpy_proxy_def= {
 };	
 
 typedef struct {
-    PyObject_HEAD
-    /* Type-specific fields go here. */
+	PyObject_HEAD
+	/* Type-specific fields go here. */
 	PyObject *mod;
 } dealloc_obj;
 

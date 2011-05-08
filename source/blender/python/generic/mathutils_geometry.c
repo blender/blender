@@ -841,10 +841,10 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 		vec_t1_tar->size != 3 ||
 		vec_t2_tar->size != 3 ||
 		vec_t3_tar->size != 3)
-	 {
-		 PyErr_SetString(PyExc_ValueError, "One of more of the vector arguments wasnt a 3D vector");
-		 return NULL;
-	 }
+	{
+		PyErr_SetString(PyExc_ValueError, "One of more of the vector arguments wasnt a 3D vector");
+		return NULL;
+	}
 
 	barycentric_transform(vec, vec_pt->vec,
 			vec_t1_tar->vec, vec_t2_tar->vec, vec_t3_tar->vec,

@@ -29,11 +29,11 @@ set(INC
 	../../../../intern/string
 	../../../../intern/ghost
 	../../../../intern/guardedalloc
+	../../../../intern/container
 	../../../../intern/moto/include
 	../../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-	../../../../source/kernel/gen_system
-	../../../../source/kernel/gen_messaging
 	../../../../source/gameengine/Converter
+	../../../../source/gameengine/BlenderRoutines
 	../../../../source/blender/imbuf
 	../../../../source/gameengine/Ketsji
 	../../../../source/blender/blenlib

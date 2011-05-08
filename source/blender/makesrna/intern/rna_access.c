@@ -521,6 +521,24 @@ int RNA_struct_idprops_register_check(StructRNA *type)
 	return (type->flag & STRUCT_NO_IDPROPERTIES) == 0;
 }
 
+/* remove an id-property */
+int RNA_struct_idprops_unset(PointerRNA *ptr, const char *identifier)
+{
+	IDProperty *group= RNA_struct_idprops(ptr, 0);
+
+	if(group) {
+		IDProperty *idp= IDP_GetPropertyFromGroup(group, identifier);
+		if(idp) {
+			IDP_RemFromGroup(group, idp);
+			IDP_FreeProperty(idp);
+			MEM_freeN(idp);
+
+			return 1;
+		}
+	}
+	return 0;
+}
+
 int RNA_struct_is_a(StructRNA *type, StructRNA *srna)
 {
 	StructRNA *base;

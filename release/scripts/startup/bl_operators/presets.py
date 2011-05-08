@@ -48,11 +48,11 @@ class AddPresetBase():
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
         if not self.remove_active:
-
-            if not self.name:
+            name = self.name.strip()
+            if not name:
                 return {'FINISHED'}
 
-            filename = self.as_filename(self.name)
+            filename = self.as_filename(name)
 
             target_path = bpy.utils.user_resource('SCRIPTS', os.path.join("presets", self.preset_subdir), create=True)
 
@@ -118,7 +118,7 @@ class AddPresetBase():
         return {'FINISHED'}
 
     def check(self, context):
-        self.name = self.as_filename(self.name)
+        self.name = self.as_filename(self.name.strip())
 
     def invoke(self, context, event):
         if not self.remove_active:
@@ -242,10 +242,10 @@ class AddPresetSunSky(AddPresetBase, bpy.types.Operator):
         "sky.sun_brightness",
         "sky.sun_intensity",
         "sky.sun_size",
-        "sky.use_sky_blend",
-        "sky.use_sky_blend_type",
-        "sky.use_sky_color_space",
-        "sky.use_sky_exposure",
+        "sky.sky_blend",
+        "sky.sky_blend_type",
+        "sky.sky_color_space",
+        "sky.sky_exposure",
     ]
 
     preset_subdir = "sunsky"
@@ -264,7 +264,7 @@ class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     preset_values = [
         "user_preferences.edit.use_drag_immediately",
         "user_preferences.edit.use_insertkey_xyz_to_rgb",
-        "user_preferences.inputs.invert_mouse_wheel_zoom",
+        "user_preferences.inputs.invert_mouse_zoom",
         "user_preferences.inputs.select_mouse",
         "user_preferences.inputs.use_emulate_numpad",
         "user_preferences.inputs.use_mouse_continuous",
@@ -327,7 +327,7 @@ class AddPresetOperator(AddPresetBase, bpy.types.Operator):
         ret = []
         for prop_id, prop in operator_rna.properties.items():
             if (not prop.is_hidden) and prop_id not in properties_blacklist:
-                    ret.append("op.%s" % prop_id)
+                ret.append("op.%s" % prop_id)
 
         return ret
 

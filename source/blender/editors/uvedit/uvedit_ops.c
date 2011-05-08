@@ -1517,62 +1517,6 @@ static void UV_OT_stitch(wmOperatorType *ot)
 
 /* ******************** (de)select all operator **************** */
 
-static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Scene *scene;
-	ToolSettings *ts;
-	Object *obedit;
-	BMEditMesh *em;
-	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	Image *ima;
-	MTexPoly *tf;
-	MLoopUV *luv;
-	
-	scene= CTX_data_scene(C);
-	ts= CTX_data_tool_settings(C);
-	obedit= CTX_data_edit_object(C);
-	em= ((Mesh*)obedit->data)->edit_btmesh;
-	ima= CTX_data_edit_image(C);
-
-	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		EDBM_select_swap(em);
-	}
-	else {
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-
-			if(!uvedit_face_visible(scene, ima, efa, tf))
-				continue;
-
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				luv->flag = luv->flag ^ MLOOPUV_VERTSEL;
-			}
-		}
-	}
-
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	return OPERATOR_FINISHED;
-}
-
-static void UV_OT_select_inverse(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->description= "Select inverse of (un)selected UV vertices";
-	ot->idname= "UV_OT_select_inverse";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* api callbacks */
-	ot->exec= select_inverse_exec;
-	ot->poll= ED_operator_uvedit;
-}
-
-/* ******************** (de)select all operator **************** */
-
 static int select_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene;
@@ -2013,7 +1957,7 @@ static void UV_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select";
-	ot->description= "Select UV vertice";
+	ot->description= "Select UV vertices";
 	ot->idname= "UV_OT_select";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2551,7 +2495,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
 	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
-    
+
 	/* get operator properties */
 	select= (gesture_mode == GESTURE_MODAL_SELECT);
 	x= RNA_int_get(op->ptr, "x");
@@ -3325,7 +3269,6 @@ static void UV_OT_tile_set(wmOperatorType *ot)
 void ED_operatortypes_uvedit(void)
 {
 	WM_operatortype_append(UV_OT_select_all);
-	WM_operatortype_append(UV_OT_select_inverse);
 	WM_operatortype_append(UV_OT_select);
 	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
@@ -3387,7 +3330,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "UV_OT_unlink_selected", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "UV_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_weldalign", WKEY, KM_PRESS, 0, 0);

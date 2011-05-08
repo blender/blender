@@ -180,14 +180,20 @@ void free_brush(Brush *brush)
 	curvemapping_free(brush->curve);
 }
 
+static void extern_local_brush(Brush *brush)
+{
+	id_lib_extern((ID *)brush->mtex.tex);
+}
+
 void make_local_brush(Brush *brush)
 {
+
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
-	
-	Brush *brushn;
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
+
+	Main *bmain= G.main;
 	Scene *scene;
 	int local= 0, lib= 0;
 
@@ -197,19 +203,22 @@ void make_local_brush(Brush *brush)
 		/* special case: ima always local immediately */
 		brush->clone.image->id.lib= NULL;
 		brush->clone.image->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)brush->clone.image, NULL);
+		new_id(&bmain->brush, (ID *)brush->clone.image, NULL);
+		extern_local_brush(brush);
 	}
 
-	for(scene= G.main->scene.first; scene; scene=scene->id.next)
+	for(scene= bmain->scene.first; scene && ELEM(0, lib, local); scene=scene->id.next) {
 		if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
 			if(scene->id.lib) lib= 1;
 			else local= 1;
 		}
+	}
 
 	if(local && lib==0) {
 		brush->id.lib= NULL;
 		brush->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)brush, NULL);
+		new_id(&bmain->brush, (ID *)brush, NULL);
+		extern_local_brush(brush);
 
 		/* enable fake user by default */
 		if (!(brush->id.flag & LIB_FAKEUSER)) {
@@ -218,17 +227,19 @@ void make_local_brush(Brush *brush)
 		}
 	}
 	else if(local && lib) {
-		brushn= copy_brush(brush);
+		Brush *brushn= copy_brush(brush);
 		brushn->id.us= 1; /* only keep fake user */
 		brushn->id.flag |= LIB_FAKEUSER;
 		
-		for(scene= G.main->scene.first; scene; scene=scene->id.next)
-			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush)
+		for(scene= bmain->scene.first; scene; scene=scene->id.next) {
+			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
 				if(scene->id.lib==NULL) {
 					paint_brush_set(&scene->toolsettings->imapaint.paint, brushn);
 					brushn->id.us++;
 					brush->id.us--;
 				}
+			}
+		}
 	}
 }
 
@@ -1119,12 +1130,12 @@ float brush_curve_strength_clamp(Brush *br, float p, const float len)
  * used for sculpt only */
 float brush_curve_strength(Brush *br, float p, const float len)
 {
-    if(p >= len)
-        p= 1.0f;
-    else
-        p= p/len;
+	if(p >= len)
+		p= 1.0f;
+	else
+		p= p/len;
 
-    return curvemapping_evaluateF(br->curve, 0, p);
+	return curvemapping_evaluateF(br->curve, 0, p);
 }
 
 /* TODO: should probably be unified with BrushPainter stuff? */

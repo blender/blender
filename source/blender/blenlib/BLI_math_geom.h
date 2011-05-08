@@ -93,6 +93,11 @@ int isect_line_line_v3(const float v1[3], const float v2[3],
 int isect_line_line_strict_v3(const float v1[3], const float v2[3],
 	const float v3[3], const float v4[3], float vi[3], float *lambda);
 
+/*if clip is nonzero, will only return true if lambda is >= 0.0
+  (i.e. intersection point is along positive d)*/
+int isect_ray_plane_v3(float p1[3], float d[3], float v0[3], 
+					   float v1[3], float v2[3], float *lambda, int clip);
+
 /* line/ray triangle */
 int isect_line_tri_v3(const float p1[3], const float p2[3],
 	const float v0[3], const float v1[3], const float v2[3], float *lambda, float uv[2]);
@@ -202,7 +207,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,
    0 = (0,0),
    1 = (1,-1), 2 = (1,0), 3 = (1,1),
    4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
-/*
+
 MINLINE void zero_sh(float r[9]);
 MINLINE void copy_sh_sh(float r[9], const float a[9]);
 MINLINE void mul_sh_fl(float r[9], const float f);
@@ -212,7 +217,6 @@ MINLINE float eval_shv3(float r[9], const float v[3]);
 MINLINE float diffuse_shv3(float r[9], const float v[3]);
 MINLINE void vec_fac_to_sh(float r[9], const float v[3], const float f);
 MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f);
-*/
 
 /********************************* Form Factor *******************************/
 

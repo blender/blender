@@ -839,9 +839,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 			VECCOPY(curs, centroid);
 		}
 		else {
-			curs[0]= (min[0]+max[0])/2;
-			curs[1]= (min[1]+max[1])/2;
-			curs[2]= (min[2]+max[2])/2;
+			mid_v3_v3v3(curs, min, max);
 		}
 		MEM_freeN(transvmain);
 		transvmain= NULL;
@@ -879,9 +877,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 				VECCOPY(curs, centroid);
 			}
 			else {
-				curs[0]= (min[0]+max[0])/2;
-				curs[1]= (min[1]+max[1])/2;
-				curs[2]= (min[2]+max[2])/2;
+				mid_v3_v3v3(curs, min, max);
 			}
 		}
 	}
@@ -1022,4 +1018,3 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	
 	return 1;
 }
-

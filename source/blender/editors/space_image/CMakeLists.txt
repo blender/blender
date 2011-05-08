@@ -38,7 +38,6 @@ set(INC
 set(SRC
 	image_buttons.c
 	image_draw.c
-	image_header.c
 	image_ops.c
 	image_render.c
 	space_image.c

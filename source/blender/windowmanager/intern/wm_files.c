@@ -37,6 +37,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include "zlib.h" /* wm_read_exotic() */
+
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
 #ifndef _WIN32_IE
@@ -69,7 +71,6 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_exotic.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -277,6 +278,61 @@ static void wm_init_userdef(bContext *C)
 	if(U.tempdir[0]) BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
+
+
+/* return codes */
+#define BKE_READ_EXOTIC_FAIL_PATH		-3 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_FORMAT		-2 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_OPEN		-1 /* Can't open the file */
+#define BKE_READ_EXOTIC_OK_BLEND		 0 /* .blend file */
+#define BKE_READ_EXOTIC_OK_OTHER		 1 /* other supported formats */
+
+/* intended to check for non-blender formats but for now it only reads blends */
+static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
+{
+	int len;
+	gzFile gzfile;
+	char header[7];
+	int retval;
+
+	// make sure we're not trying to read a directory....
+
+	len= strlen(name);
+	if (ELEM(name[len-1], '/', '\\')) {
+		retval= BKE_READ_EXOTIC_FAIL_PATH;
+	}
+	else {
+		gzfile = gzopen(name,"rb");
+
+		if (gzfile == NULL) {
+			retval= BKE_READ_EXOTIC_FAIL_OPEN;
+		}
+		else {
+			len= gzread(gzfile, header, sizeof(header));
+			gzclose(gzfile);
+			if (len == sizeof(header) && strncmp(header, "BLENDER", 7) == 0) {
+				retval= BKE_READ_EXOTIC_OK_BLEND;
+			}
+			else {
+				//XXX waitcursor(1);
+				/*
+				if(is_foo_format(name)) {
+					read_foo(name);
+					retval= BKE_READ_EXOTIC_OK_OTHER;
+				}
+				else
+				 */
+				{
+					retval= BKE_READ_EXOTIC_FAIL_FORMAT;
+				}
+				//XXX waitcursor(0);
+			}
+		}
+	}
+
+	return retval;
+}
+
 void WM_read_file(bContext *C, const char *name, ReportList *reports)
 {
 	int retval;
@@ -289,7 +345,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
-	retval= BKE_read_exotic(CTX_data_scene(C), name);
+	retval= wm_read_exotic(CTX_data_scene(C), name);
 	
 	/* we didn't succeed, now try to read Blender file */
 	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
@@ -418,6 +474,12 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	if(success==0) {
 		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
+
+#ifdef WITH_PYTHON_SECURITY /* not default */
+		/* use alternative setting for security nuts
+		 * otherwise we'd need to patch the binary blob - startup.blend.c */
+		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
+#endif
 	}
 	
 	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
@@ -596,7 +658,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
-	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID, err_out);
+	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID, err_out);
 	
 	if(ibuf) {		
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);

@@ -55,6 +55,7 @@
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 #include "BKE_multires.h"
+#include "BKE_armature.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -386,17 +387,10 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob )
 	}
 }
 
-static int apply_objects_internal(bContext *C, ReportList *reports, int apply_loc, int apply_scale, int apply_rot)
+static int apply_objects_internal(bContext *C, ReportList *reports, int apply_loc, int apply_rot, int apply_scale)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	bArmature *arm;
-	Mesh *me;
-	Curve *cu;
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	MVert *mvert;
 	float rsmat[3][3], tmat[3][3], obmat[3][3], iobmat[3][3], mat[4][4], scale;
 	int a, change = 0;
 	
@@ -404,28 +398,27 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
 		if(ob->type==OB_MESH) {
-			me= ob->data;
-			
-			if(ID_REAL_USERS(me) > 1) {
+			if(ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user mesh, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
 		}
 		else if(ob->type==OB_ARMATURE) {
-			arm= ob->data;
-			
-			if(ID_REAL_USERS(arm) > 1) {
+			if(ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user armature, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
-			cu= ob->data;
-			
-			if(ID_REAL_USERS(cu) > 1) {
+			Curve *cu;
+
+			if(ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
+
+			cu= ob->data;
+
 			if(!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
 				BKE_report(reports, RPT_ERROR, "Neither rotation nor location could be applied to a 2d curve, doing nothing.");
 				return OPERATOR_CANCELLED;
@@ -478,8 +471,9 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 		/* apply to object data */
 		if(ob->type==OB_MESH) {
-			me= ob->data;
-			
+			Mesh *me= ob->data;
+			MVert *mvert;
+
 			multiresModifier_scale_disp(scene, ob);
 			
 			/* adjust data */
@@ -505,7 +499,11 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			ED_armature_apply_transform(ob, mat);
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
-			cu= ob->data;
+			Curve *cu= ob->data;
+
+			Nurb *nu;
+			BPoint *bp;
+			BezTriple *bezt;
 
 			scale = mat3_to_scale(rsmat);
 
@@ -540,6 +538,10 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		}
 
 		where_is_object(scene, ob);
+		if(ob->type==OB_ARMATURE) {
+			where_is_pose(scene, ob); /* needed for bone parents */
+		}
+
 		ignore_parent_tx(bmain, scene, ob);
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
@@ -594,64 +596,37 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int location_apply_exec(bContext *C, wmOperator *op)
+static int object_transform_apply_exec(bContext *C, wmOperator *op)
 {
-	return apply_objects_internal(C, op->reports, 1, 0, 0);
+	const int loc= RNA_boolean_get(op->ptr, "location");
+	const int rot= RNA_boolean_get(op->ptr, "rotation");
+	const int sca= RNA_boolean_get(op->ptr, "scale");
+
+	if(loc || rot || sca) {
+		return apply_objects_internal(C, op->reports, loc, rot, sca);
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
-void OBJECT_OT_location_apply(wmOperatorType *ot)
+void OBJECT_OT_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Location";
-	ot->description = "Apply the object's location to its data";
-	ot->idname= "OBJECT_OT_location_apply";
-	
-	/* api callbacks */
-	ot->exec= location_apply_exec;
-	ot->poll= ED_operator_objectmode; /* editmode will crash */
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
+	ot->name= "Apply Object Transform";
+	ot->description = "Apply the object's transformation to its data";
+	ot->idname= "OBJECT_OT_transform_apply";
 
-static int scale_apply_exec(bContext *C, wmOperator *op)
-{
-	return apply_objects_internal(C, op->reports, 0, 1, 0);
-}
-
-void OBJECT_OT_scale_apply(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Apply Scale";
-	ot->description = "Apply the object's scale to its data";
-	ot->idname= "OBJECT_OT_scale_apply";
-	
 	/* api callbacks */
-	ot->exec= scale_apply_exec;
+	ot->exec= object_transform_apply_exec;
 	ot->poll= ED_operator_objectmode;
-	
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
 
-static int rotation_apply_exec(bContext *C, wmOperator *op)
-{
-	return apply_objects_internal(C, op->reports, 0, 0, 1);
-}
-
-void OBJECT_OT_rotation_apply(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Apply Rotation";
-	ot->description = "Apply the object's rotation to its data";
-	ot->idname= "OBJECT_OT_rotation_apply";
-	
-	/* api callbacks */
-	ot->exec= rotation_apply_exec;
-	ot->poll= ED_operator_objectmode;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	RNA_def_boolean(ot->srna, "location", 0, "Location", "");
+	RNA_def_boolean(ot->srna, "rotation", 0, "Rotation", "");
+	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "");
 }
 
 /********************* Set Object Center ************************/
@@ -864,6 +839,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					/* do_inverse_offset= TRUE; */ /* docenter_armature() handles this */
 
 					where_is_object(scene, ob);
+					where_is_pose(scene, ob); /* needed for bone parents */
+
 					ignore_parent_tx(bmain, scene, ob);
 
 					if(obedit)
@@ -880,6 +857,10 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				add_v3_v3(ob->loc, centn);
 
 				where_is_object(scene, ob);
+				if(ob->type==OB_ARMATURE) {
+					where_is_pose(scene, ob); /* needed for bone parents */
+				}
+
 				ignore_parent_tx(bmain, scene, ob);
 				
 				/* other users? */
@@ -896,6 +877,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						add_v3_v3(ob_other->loc, centn);
 
 						where_is_object(scene, ob_other);
+						if(ob_other->type==OB_ARMATURE) {
+							where_is_pose(scene, ob_other); /* needed for bone parents */
+						}
 						ignore_parent_tx(bmain, scene, ob_other);
 					}
 				}

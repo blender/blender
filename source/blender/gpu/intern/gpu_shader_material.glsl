@@ -1686,6 +1686,16 @@ void shade_madd(vec4 col, vec4 col1, vec4 col2, out vec4 outcol)
 	outcol = col + col1*col2;
 }
 
+void shade_add_clamped(vec4 col1, vec4 col2, out vec4 outcol)
+{
+	outcol = col1 + max(col2, vec4(0.0, 0.0, 0.0, 0.0));
+}
+
+void shade_madd_clamped(vec4 col, vec4 col1, vec4 col2, out vec4 outcol)
+{
+	outcol = col + max(col1*col2, vec4(0.0, 0.0, 0.0, 0.0));
+}
+
 void shade_maddf(vec4 col, float f, vec4 col1, out vec4 outcol)
 {
 	outcol = col + f*col1;

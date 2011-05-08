@@ -284,7 +284,7 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
 }
 
 
-Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, short mval[2])
+Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const short mval[2])
 {
 	Sequence *seq;
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -614,7 +614,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 			}
 		}
 	}
-       
+
 	/* make sequence selection a little bit more intuitive
 	   for 3 strips: the last-strip should be sequence3 */
 	if (seq3 != NULL && seq2 != NULL) {
@@ -1666,7 +1666,7 @@ static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *
 void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate";
+	ot->name= "Duplicate Strips";
 	ot->idname= "SEQUENCER_OT_duplicate";
 	ot->description="Duplicate the selected strips";
 	

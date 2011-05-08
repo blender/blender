@@ -188,8 +188,15 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		float *uv[4];
 		int lsel;
 		
-		if((BM_TestHFlag(efa, BM_HIDDEN)) || (sel && BM_TestHFlag(efa, BM_SELECT)==0)) 
-			continue;
+		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+			if(BM_TestHFlag(efa, BM_HIDDEN)) {
+				continue;
+			}
+		}
+		else {
+			if((BM_TestHFlag(efa, BM_HIDDEN)) || (sel && BM_TestHFlag(efa, BM_SELECT)==0)) 
+				continue;
+		}
 
 		tf= (MTexPoly *)CustomData_em_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		lsel = 0;
@@ -679,7 +686,7 @@ static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object
 	rotside[1][0]= (float)sin(sideangle);
 	rotside[1][1]= (float)cos(sideangle);
 	rotside[2][2]= 1.0f;
-      
+
 	upangle= (float)M_PI*upangledeg/180.0f;
 	rotup[1][1]= (float)cos(upangle)/radius;
 	rotup[1][2]= -(float)sin(upangle)/radius;

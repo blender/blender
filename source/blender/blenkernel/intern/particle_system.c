@@ -644,7 +644,7 @@ static void hammersley_create(float *out, int n, int seed, float amount)
 		for (p = 0.5, kk = k; kk; p *= 0.5, kk >>= 1)
 			if (kk & 1) /* kk mod 2 = 1 */
 				t += p;
-    
+
 		out[2*k + 0]= fmod((double)k/(double)n + offs[0], 1.0);
 		out[2*k + 1]= fmod(t + offs[1], 1.0);
 	}
@@ -2552,7 +2552,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 
 	/* damp affects final velocity */
 	if(part->dampfac != 0.f)
-		mul_v3_fl(pa->state.vel, 1.f - part->dampfac * efdata.ptex.damp);
+		mul_v3_fl(pa->state.vel, 1.f - part->dampfac * efdata.ptex.damp * 25.f * dtime);
 
 	//VECCOPY(pa->state.ave, states->ave);
 

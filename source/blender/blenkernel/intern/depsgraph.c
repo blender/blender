@@ -492,7 +492,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			}
 		}
 	}
-    
+
 	/* softbody collision  */
 	if ((ob->type==OB_MESH) || (ob->type==OB_CURVE) || (ob->type==OB_LATTICE)) {
 		if(modifiers_isSoftbodyEnabled(ob) || modifiers_isClothEnabled(ob) || ob->particlesystem.first)
@@ -1092,10 +1092,10 @@ void graph_bfs(void)
 					push_queue(nqueue,itA->node);
 				}
 				
-				 else {
+				else {
 					fprintf(stderr,"bfs not dag tree edge color :%i \n",itA->node->color);
 				}
-				 
+
 				
 				itA = itA->next;
 			}
@@ -1225,7 +1225,7 @@ DagNodeQueue * graph_dfs(void)
 		while(nqueue->count) {
 			//graph_print_queue(nqueue);
 
-			 skip = 0;
+			skip = 0;
 			node = get_top_node_queue(nqueue);
 			
 			minheight = pos[node->DFS_dist];
@@ -1253,7 +1253,7 @@ DagNodeQueue * graph_dfs(void)
 						*/
 						/*if (node->DFS_dist >= itA->node->DFS_dist)
 							itA->node->DFS_dist = node->DFS_dist + 1;
-						 	
+
 							fprintf(stderr,"dfs forward or cross edge :%15s %i-%i %15s %i-%i \n",
 								((ID *) node->ob)->name,
 								node->DFS_dvtm, 
@@ -1287,17 +1287,17 @@ DagNodeQueue * graph_dfs(void)
 				/*
 				 fprintf(stderr,"DFS node : %20s %i %i %i %i\n",((ID *) node->ob)->name,node->BFS_dist, node->DFS_dist, node->DFS_dvtm, node->DFS_fntm ); 	
 				*/
-				 push_stack(retqueue,node);
+				push_stack(retqueue,node);
 				
 			}
 		}
 	}
 		node = node->next;
 	} while (node);
-//	  fprintf(stderr,"i size : %i \n", maxpos);
-	  
+//	fprintf(stderr,"i size : %i \n", maxpos);
+
 	queue_delete(nqueue);
-	  return(retqueue);
+	return(retqueue);
 }
 
 /* unused */
@@ -1905,7 +1905,9 @@ static void dag_scene_flush_layers(Scene *sce, int lay)
 	}
 
 	/* ensure cameras are set as if they are on a visible layer, because
-	   they ared still used for rendering or setting the camera view */
+	 * they ared still used for rendering or setting the camera view
+	 *
+	 * XXX, this wont work for local view / unlocked camera's */
 	if(sce->camera) {
 		node= dag_get_node(sce->theDag, sce->camera);
 		node->scelay |= lay;

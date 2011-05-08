@@ -31,15 +31,20 @@
 # build the libs and objects in it.
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-message(FATAL_ERROR "CMake generation for blender is not allowed within the source directory! 
-Remove the CMakeCache.txt file and try again from another folder, e.g.: 
-
-	rm CMakeCache.txt 
-	cd ..
-	mkdir cmake-make 
-	cd cmake-make
-	cmake ../blender
-")
+	if(NOT DEFINED WITH_IN_SOURCE_BUILD)
+		message(FATAL_ERROR
+			"CMake generation for blender is not allowed within the source directory!"
+			"\n Remove the CMakeCache.txt file and try again from another folder, e.g.:"
+			"\n "
+			"\n rm CMakeCache.txt"
+			"\n cd .."
+			"\n mkdir cmake-make"
+			"\n cd cmake-make"
+			"\n cmake ../blender"
+			"\n "
+			"\n Alternately define WITH_IN_SOURCE_BUILD to force this option (not recommended!)"
+		)
+	endif()
 endif()
 
 cmake_minimum_required(VERSION 2.8)
@@ -97,8 +102,12 @@ get_blender_version()
 
 # Blender internal features
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
+
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
+option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default (recommend to leave off)" OFF)
 mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they really know what they are doing.
+mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather then have them patch it, make a build option.
+
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
 option(WITH_PYTHON_MODULE "Enable building as a python module (experemental, only enable for development)" OFF)
 option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)

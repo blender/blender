@@ -1152,7 +1152,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 /* ************************************************** */
 /* here actual select happens */
 /* gets called via generic mouse select operator */
-int mouse_mesh(bContext *C, short mval[2], short extend)
+int mouse_mesh(bContext *C, const short mval[2], short extend)
 {
 	ViewContext vc;
 	BMVert *eve = NULL;
@@ -1627,8 +1627,8 @@ void MESH_OT_select_less(wmOperatorType *ot)
 static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	int nth = RNA_int_get(op->ptr, "nth");
+//	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+//	int nth = RNA_int_get(op->ptr, "nth");
 
 #if 0 //BMESH_TODO
 	if(EM_deselect_nth(em, nth) == 0) {

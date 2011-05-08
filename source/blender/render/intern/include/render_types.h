@@ -182,6 +182,7 @@ struct Render
 	Scene *scene;
 	RenderData r;
 	World wrld;
+	struct Object *camera_override;
 	unsigned int lay;
 	
 	ListBase parts;
@@ -485,6 +486,7 @@ typedef struct VolPrecachePart
 	float bbmin[3];
 	float voxel[3];
 	int working, done;
+	struct Render *re;
 } VolPrecachePart;
 
 typedef struct VolumePrecache

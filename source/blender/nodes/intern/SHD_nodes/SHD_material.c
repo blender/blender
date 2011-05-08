@@ -195,7 +195,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 
 static void node_shader_init_material(bNode* node)
 {
-   node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
+	node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
 }
 
 static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

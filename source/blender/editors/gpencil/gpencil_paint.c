@@ -239,7 +239,7 @@ static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
 
 /* convert screen-coordinates to buffer-coordinates */
 // XXX this method needs a total overhaul!
-static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[], float *depth)
+static void gp_stroke_convertcoords (tGPsdata *p, short mval[2], float out[3], float *depth)
 {
 	bGPdata *gpd= p->gpd;
 	
@@ -1124,20 +1124,28 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 	/* set 'initial run' flag, which is only used to denote when a new stroke is starting */
 	p->flags |= GP_PAINTFLAG_FIRSTRUN;
 	
+
+	/* when drawing in the camera view, in 2D space, set the subrect */
+	if (!(p->gpd->flag & GP_DATA_VIEWALIGN)) {
+		if (p->sa->spacetype == SPACE_VIEW3D) {
+			View3D *v3d= p->sa->spacedata.first;
+			RegionView3D *rv3d= p->ar->regiondata;
+
+			/* for camera view set the subrect */
+			if (rv3d->persp == RV3D_CAMOB) {
+				view3d_calc_camera_border(p->scene, p->ar, NULL, v3d, &p->subrect_data, -1); /* negative shift */
+				p->subrect= &p->subrect_data;
+			}
+		}
+	}
+
 	/* check if points will need to be made in view-aligned space */
 	if (p->gpd->flag & GP_DATA_VIEWALIGN) {
 		switch (p->sa->spacetype) {
 			case SPACE_VIEW3D:
 			{
-				View3D *v3d= p->sa->spacedata.first;
 				RegionView3D *rv3d= p->ar->regiondata;
 				float rvec[3];
-				
-				/* for camera view set the subrect */
-				if (rv3d->persp == RV3D_CAMOB) {
-					view3d_calc_camera_border(p->scene, p->ar, NULL, v3d, &p->subrect_data, -1); /* negative shift */
-					p->subrect= &p->subrect_data;
-				}
 				
 				/* get reference point for 3d space placement */
 				gp_get_3d_reference(p, rvec);

@@ -2157,7 +2157,7 @@ static void sk_applyGesture(bContext *C, SK_Sketch *sketch)
 /********************************************/
 
 
-static int sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
+static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const short mval[2], int extend)
 {
 	ViewContext vc;
 	rcti rect;
@@ -2473,7 +2473,7 @@ static int sketch_delete(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(ev
 	return OPERATOR_FINISHED;
 }
 
-void BIF_sk_selectStroke(bContext *C, short mval[2], short extend)
+void BIF_sk_selectStroke(bContext *C, const short mval[2], short extend)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *sketch = contextSketch(C, 0);

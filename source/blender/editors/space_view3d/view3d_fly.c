@@ -540,7 +540,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 {
 
 #define FLY_ROTATE_FAC 2.5f /* more is faster */
-#define FLY_ZUP_CORRECT_FAC 0.1f /* ammount to correct per step */
+#define FLY_ZUP_CORRECT_FAC 0.1f /* amount to correct per step */
 #define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
 
 	/*
@@ -793,7 +793,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				/* transform the parent or the camera? */
 				if(fly->root_parent) {
 					Object *ob_update;
-                    
+
 					float view_mat[4][4];
 					float prev_view_imat[4][4];
 					float diff_mat[4][4];

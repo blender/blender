@@ -37,7 +37,7 @@
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
-#include "PIL_dynlib.h"
+#include "BLI_dynlib.h"
 
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_utildefines.h"
@@ -138,18 +138,18 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 	pis->instance_private_data = NULL;
 
 	/* clear the error list */
-	PIL_dynlib_get_error_as_string(NULL);
+	BLI_dynlib_get_error_as_string(NULL);
 
-	/* if(pis->handle) PIL_dynlib_close(pis->handle); */
+	/* if(pis->handle) BLI_dynlib_close(pis->handle); */
 	/* pis->handle= 0; */
 
 	/* open the needed object */
-	pis->handle= PIL_dynlib_open(pis->name);
+	pis->handle= BLI_dynlib_open(pis->name);
 	if(test_dlerr(pis->name, pis->name)) return;
 
 	if (pis->handle != NULL) {
 		/* find the address of the version function */
-		version= (int (*)(void))PIL_dynlib_find_symbol(pis->handle, "plugin_seq_getversion");
+		version= (int (*)(void))BLI_dynlib_find_symbol(pis->handle, "plugin_seq_getversion");
 		if (test_dlerr(pis->name, "plugin_seq_getversion")) return;
 
 		if (version != NULL) {
@@ -158,7 +158,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info");
 
-				info_func= (int (*)(PluginInfo *))PIL_dynlib_find_symbol(pis->handle, "plugin_getinfo");
+				info_func= (int (*)(PluginInfo *))BLI_dynlib_find_symbol(pis->handle, "plugin_getinfo");
 
 				if(info_func == NULL) error("No info func");
 				else {
@@ -176,21 +176,21 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 				}
 				MEM_freeN(info);
 
-				cp= PIL_dynlib_find_symbol(pis->handle, "seqname");
+				cp= BLI_dynlib_find_symbol(pis->handle, "seqname");
 				if(cp) strncpy(cp, seqname, 21);
 			} else {
 				printf ("Plugin returned unrecognized version number\n");
 				return;
 			}
 		}
-		alloc_private = (void* (*)(void))PIL_dynlib_find_symbol(
+		alloc_private = (void* (*)(void))BLI_dynlib_find_symbol(
 			pis->handle, "plugin_seq_alloc_private_data");
 		if (alloc_private) {
 			pis->instance_private_data = alloc_private();
 		}
 		
 		pis->current_private_data = (void**) 
-			PIL_dynlib_find_symbol(
+			BLI_dynlib_find_symbol(
 				pis->handle, "plugin_private_data");
 	}
 }
@@ -229,12 +229,12 @@ static void free_plugin_seq(PluginSeq *pis)
 {
 	if(pis==NULL) return;
 
-	/* no PIL_dynlib_close: same plugin can be opened multiple times with 1 handle */
+	/* no BLI_dynlib_close: same plugin can be opened multiple times with 1 handle */
 
 	if (pis->instance_private_data) {
 		void (*free_private)(void *);
 
-		free_private = (void (*)(void *))PIL_dynlib_find_symbol(
+		free_private = (void (*)(void *))BLI_dynlib_find_symbol(
 			pis->handle, "plugin_seq_free_private_data");
 		if (free_private) {
 			free_private(pis->instance_private_data);
@@ -301,7 +301,7 @@ static struct ImBuf * do_plugin_effect(
 		if(seq->plugin->cfra) 
 			*(seq->plugin->cfra)= cfra;
 		
-		cp = PIL_dynlib_find_symbol(
+		cp = BLI_dynlib_find_symbol(
 			seq->plugin->handle, "seqname");
 
 		if(cp) strncpy(cp, seq->name+2, 22);
@@ -1675,15 +1675,15 @@ float hyp3,hyp4,b4,b5
 					output = in_band(wipezone,width,hyp,facf0,1,1);
 				else
 					output = in_band(wipezone,width,hyp,facf0,0,1);
-			 }
+			}
 			else {
 				if(b1 < b2)
 					output = in_band(wipezone,width,hyp,facf0,0,1);
 				else
 					output = in_band(wipezone,width,hyp,facf0,1,1);
-			 }
+			}
 		break;
-	 
+
 		case DO_DOUBLE_WIPE:
 			if(!wipe->forward)
 				facf0 = 1.0f-facf0;   // Go the other direction
@@ -1726,45 +1726,45 @@ float hyp3,hyp4,b4,b5
 					  output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
 			}
 			if(!wipe->forward)output = 1-output;
-		 break;
-		 case DO_CLOCK_WIPE:
+		break;
+		case DO_CLOCK_WIPE:
 			  /*
 				  temp1: angle of effect center in rads
 				  temp2: angle of line through (halfx,halfy) and (x,y) in rads
 				  temp3: angle of low side of blur
 				  temp4: angle of high side of blur
 			  */
-			 output = 1.0f - facf0;
-			 widthf = wipe->edgeWidth*2.0f*(float)M_PI;
-			  temp1 = 2.0f * (float)M_PI * facf0;
-	 	 	
-			 if(wipe->forward){
-				 temp1 = 2.0f*(float)M_PI - temp1;
-			 }
- 	 		
-			  x = x - halfx;
-			  y = y - halfy;
+			output = 1.0f - facf0;
+			widthf = wipe->edgeWidth*2.0f*(float)M_PI;
+			temp1 = 2.0f * (float)M_PI * facf0;
 
-			  temp2 = asin(abs(y)/sqrt(x*x + y*y));
-			  if(x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
-			  else if(x<=0 && y <= 0) temp2 += (float)M_PI;
-			  else if(x >= 0 && y <= 0) temp2 = 2.0f*(float)M_PI - temp2;
-
-			  if(wipe->forward){
-				  temp3 = temp1-(widthf*0.5f)*facf0;
-				  temp4 = temp1+(widthf*0.5f)*(1-facf0);
-			  } else{
-				  temp3 = temp1-(widthf*0.5f)*(1-facf0);
-				  temp4 = temp1+(widthf*0.5f)*facf0;
+			if(wipe->forward){
+				temp1 = 2.0f*(float)M_PI - temp1;
 			}
-			  if (temp3 < 0) temp3 = 0;
-			  if (temp4 > 2.0f*(float)M_PI) temp4 = 2.0f*(float)M_PI;
- 	 		
- 	 		
-			  if(temp2 < temp3) output = 0;
-			  else if (temp2 > temp4) output = 1;
-			  else output = (temp2-temp3)/(temp4-temp3);
-			  if(x == 0 && y == 0) output = 1;
+
+			x = x - halfx;
+			y = y - halfy;
+
+			temp2 = asin(abs(y)/sqrt(x*x + y*y));
+			if(x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
+			else if(x<=0 && y <= 0) temp2 += (float)M_PI;
+			else if(x >= 0 && y <= 0) temp2 = 2.0f*(float)M_PI - temp2;
+
+			if(wipe->forward){
+				temp3 = temp1-(widthf*0.5f)*facf0;
+				temp4 = temp1+(widthf*0.5f)*(1-facf0);
+			} else{
+				temp3 = temp1-(widthf*0.5f)*(1-facf0);
+				temp4 = temp1+(widthf*0.5f)*facf0;
+			}
+			if (temp3 < 0) temp3 = 0;
+			if (temp4 > 2.0f*(float)M_PI) temp4 = 2.0f*(float)M_PI;
+
+
+			if(temp2 < temp3) output = 0;
+			else if (temp2 > temp4) output = 1;
+			else output = (temp2-temp3)/(temp4-temp3);
+			if(x == 0 && y == 0) output = 1;
 			if(output != output) output = 1;
 			if(wipe->forward) output = 1 - output;
 		break;
@@ -1840,12 +1840,12 @@ float hyp3,hyp4,b4,b5
 			hwidth = width*0.5f;
 
 			temp1 = (halfx-(halfx)*facf0);
-			 pointdist = sqrt(temp1*temp1 + temp1*temp1);
-		 
-			 temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
-			 if(temp2 > pointdist) output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,0,1);
-			 else output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,1,1);
-		 
+			pointdist = sqrt(temp1*temp1 + temp1*temp1);
+
+			temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
+			if(temp2 > pointdist) output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,0,1);
+			else output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,1,1);
+
 			if(!wipe->forward) output = 1-output;
 			
 		break;

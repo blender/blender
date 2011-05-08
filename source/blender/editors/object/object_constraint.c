@@ -844,13 +844,19 @@ static int constraint_delete_exec (bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ptr.id.data;
 	bConstraint *con= ptr.data;
 	ListBase *lb = get_constraint_lb(ob, con, NULL);
-	
+	const short is_ik= ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
+
 	/* free the constraint */
 	if (remove_constraint(lb, con)) {
 		/* there's no active constraint now, so make sure this is the case */
 		constraints_set_active(lb, NULL);
 		
 		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
+
+		/* ITASC needs to be rebuilt once a constraint is removed [#26920] */
+		if(is_ik) {
+			BIK_clear_data(ob->pose);
+		}
 
 		/* notifiers */
 		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, ob);
@@ -993,6 +999,8 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	/* force depsgraph to get recalculated since relationships removed */
 	DAG_scene_sort(bmain, scene);		/* sort order of objects */	
 	
+	/* note, calling BIK_clear_data() isnt needed here */
+
 	/* do updates */
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
@@ -1003,7 +1011,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_constraints_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Clear Constraints";
+	ot->name = "Clear Pose Constraints";
 	ot->idname= "POSE_OT_constraints_clear";
 	ot->description= "Clear all the constraints for the selected bones";
 	
@@ -1038,7 +1046,7 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Clear Constraints";
+	ot->name = "Clear Object Constraints";
 	ot->idname= "OBJECT_OT_constraints_clear";
 	ot->description= "Clear all the constraints for the active Object only";
 	

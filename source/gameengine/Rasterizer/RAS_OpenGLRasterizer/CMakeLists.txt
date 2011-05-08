@@ -25,12 +25,13 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../../../../source/kernel/gen_system
 	../../../../intern/string
+	../../../../intern/container
 	../../../../intern/moto/include
 	../../../../source/gameengine/Rasterizer
 	../../../../source/gameengine/Ketsji
 	../../../../source/gameengine/SceneGraph
+	../../../../source/gameengine/BlenderRoutines
 	../../../../source/blender/gpu
 	../../../../source/blender/makesdna
 	../../../../source/blender/blenkernel

@@ -152,7 +152,7 @@ void sk_endContinuousStroke(SK_Stroke *stk);
 
 void sk_updateNextPoint(SK_Sketch *sketch, SK_Stroke *stk);
 
-void sk_initDrawData(SK_DrawData *dd, short mval[2]);
+void sk_initDrawData(SK_DrawData *dd, const short mval[2]);
 
 void sk_deleteSelectedStrokes(SK_Sketch *sketch);
 void sk_selectAllSketch(SK_Sketch *sketch, int mode);

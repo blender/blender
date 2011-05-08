@@ -436,7 +436,7 @@ GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
 {
 	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
 	GHOST_TSuccess result;
-	bool isdown;
+	bool isdown= false;
 	
 	result = system->getModifierKeyState(mask, isdown);
 	*isDown = (int) isdown;
@@ -452,7 +452,7 @@ GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
 {
 	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
 	GHOST_TSuccess result;
-	bool isdown;
+	bool isdown= false;
 	
 	result = system->getButtonState(mask, isdown);
 	*isDown = (int) isdown;
@@ -909,4 +909,10 @@ void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection)
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
 	system->putClipboard(buffer, selection);
+}
+
+int GHOST_toggleConsole(int action)
+{
+	GHOST_ISystem* system = GHOST_ISystem::getSystem();
+	return system->toggleConsole(action);
 }

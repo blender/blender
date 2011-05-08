@@ -1220,7 +1220,7 @@ void ACTION_OT_keyframe_type (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Keyframe Type";
 	ot->idname= "ACTION_OT_keyframe_type";
-	ot->description= "Set type of keyframe for the seleced keyframes";
+	ot->description= "Set type of keyframe for the selected keyframes";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;

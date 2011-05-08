@@ -41,7 +41,7 @@ set(INC
 	../../../source/blender/python
 	../../../source/blender/python/generic
 	../../../source/blender/gpu
-	../../../source/kernel/gen_system
+	../../../intern/container
 	../../../intern/string
 	../../../intern/moto/include
 	../../../intern/guardedalloc

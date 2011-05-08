@@ -65,9 +65,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_scale_clear);
 	WM_operatortype_append(OBJECT_OT_origin_clear);
 	WM_operatortype_append(OBJECT_OT_visual_transform_apply);
-	WM_operatortype_append(OBJECT_OT_location_apply);
-	WM_operatortype_append(OBJECT_OT_scale_apply);
-	WM_operatortype_append(OBJECT_OT_rotation_apply);
+	WM_operatortype_append(OBJECT_OT_transform_apply);
 	WM_operatortype_append(OBJECT_OT_origin_set);
 	
 	WM_operatortype_append(OBJECT_OT_mode_set);
@@ -223,7 +221,7 @@ void ED_operatormacros_object(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate Objects", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");

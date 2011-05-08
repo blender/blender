@@ -4,7 +4,7 @@ Import ('env')
 sources = env.Glob('*.cpp')
 
 
-incs = '. #intern/guardedalloc #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/BlenderRoutines #extern/glew/include #source/gameengine/Expressions #source/gameengine/SceneGraph #source/blender/blenkernel #source/blender/makesdna'
+incs = '. #intern/guardedalloc #intern/string #intern/moto/include #intern/container #source/gameengine/BlenderRoutines #extern/glew/include #source/gameengine/Expressions #source/gameengine/SceneGraph #source/blender/blenkernel #source/blender/makesdna'
 
 defs = [ 'GLEW_STATIC' ]
 

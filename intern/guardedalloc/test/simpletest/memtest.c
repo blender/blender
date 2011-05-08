@@ -60,7 +60,7 @@ int main (int argc, char *argv[])
 	int i = 0;
 
 	/* ----------------------------------------------------------------- */
-   	switch (argc) {
+	switch (argc) {
 	case 2:		
 		verbose = atoi(argv[1]);
 		if (verbose < 0) verbose = 0;

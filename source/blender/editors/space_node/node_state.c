@@ -158,7 +158,7 @@ static int do_header_hidden_node(bNode *node, float mx, float my)
 	return 0;
 }
 
-static int node_toggle_visibility(SpaceNode *snode, ARegion *ar, short *mval)
+static int node_toggle_visibility(SpaceNode *snode, ARegion *ar, const short mval[2])
 {
 	bNode *node;
 	float mx, my;

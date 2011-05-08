@@ -63,7 +63,6 @@ for (ele = BMIter_New(iter, bm, type, data); ele; ele=BMIter_Step(iter)) {\
 for (ele = BMIter_New(iter, bm, type, data); ele; ele=BMIter_Step(iter)) {\
 	if (BM_TestHFlag(ele, BM_HIDDEN) || BM_TestHFlag(ele, BM_SELECT)) continue;
 
-
 /*Iterator Structure*/
 typedef struct BMIter {
 	BLI_mempool_iter pooliter;

@@ -7,8 +7,8 @@ sources = 'creator.c'
 incs = '#/intern/guardedalloc ../blender/blenlib ../blender/blenkernel'
 incs += ' ../blender/editors/include ../blender/blenloader ../blender/imbuf'
 incs += ' ../blender/renderconverter ../blender/render/extern/include ../blender/windowmanager'
-incs += ' ../blender/makesdna ../blender/makesrna ../kernel/gen_messaging'
-incs += ' ../kernel/gen_system #/extern/glew/include ../blender/gpu'
+incs += ' ../blender/makesdna ../blender/makesrna'
+incs += ' ../gameengine/BlenderRoutines #/extern/glew/include ../blender/gpu'
 incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []

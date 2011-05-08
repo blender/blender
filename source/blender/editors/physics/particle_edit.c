@@ -338,7 +338,7 @@ typedef struct PEData {
 	DerivedMesh *dm;
 	PTCacheEdit *edit;
 
-	short *mval;
+	const short *mval;
 	rcti *rect;
 	float rad;
 	float dist;
@@ -1369,7 +1369,7 @@ void PARTICLE_OT_select_all(wmOperatorType *ot)
 
 /************************ pick select operator ************************/
 
-int PE_mouse_particles(bContext *C, short *mval, int extend)
+int PE_mouse_particles(bContext *C, const short mval[2], int extend)
 {
 	PEData data;
 	Scene *scene= CTX_data_scene(C);
@@ -1574,7 +1574,7 @@ int PE_border_select(bContext *C, rcti *rect, int select, int extend)
 
 /************************ circle select operator ************************/
 
-int PE_circle_select(bContext *C, int selecting, short *mval, float rad)
+int PE_circle_select(bContext *C, int selecting, const short mval[2], float rad)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -2445,7 +2445,7 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 	HairKey *hkey;
 	float weight;
 	ParticleBrushData *brush= &pset->brush[pset->brushtype];
-    float factor= RNA_float_get(op->ptr, "factor");
+	float factor= RNA_float_get(op->ptr, "factor");
 
 	weight= brush->strength;
 	edit= psys->edit;
@@ -2477,8 +2477,8 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-    
-    RNA_def_float(ot->srna, "factor", 1, 0, 1, "Factor", "", 0, 1);
+
+	RNA_def_float(ot->srna, "factor", 1, 0, 1, "Factor", "", 0, 1);
 }
 
 /************************ cursor drawing *******************************/
@@ -2672,7 +2672,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 	PTCacheEditPoint *newpoint, *new_points;
 	POINT_P; KEY_K;
 	HairKey *hkey;
-	int *mirrorfaces;
+	int *mirrorfaces = NULL;
 	int rotation, totpart, newtotpart;
 
 	if(psys->flag & PSYS_GLOBAL_HAIR)
@@ -2703,7 +2703,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 			}
 		}
 
-		if((point->flag & PEP_TAG) && mirrorfaces[pa->num*2] != -1)
+		if((point->flag & PEP_TAG) && mirrorfaces && mirrorfaces[pa->num*2] != -1)
 			newtotpart++;
 	}
 
@@ -2740,7 +2740,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 
 			if(point->flag & PEP_HIDE)
 				continue;
-			if(!(point->flag & PEP_TAG) || mirrorfaces[pa->num*2] == -1)
+			if(!(point->flag & PEP_TAG) || (mirrorfaces && mirrorfaces[pa->num*2] == -1))
 				continue;
 
 			/* duplicate */
@@ -2750,7 +2750,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 			if(point->keys) newpoint->keys= MEM_dupallocN(point->keys);
 
 			/* rotate weights according to vertex index rotation */
-			rotation= mirrorfaces[pa->num*2+1];
+			rotation= mirrorfaces ? mirrorfaces[pa->num*2+1] : 0;
 			newpa->fuv[0]= pa->fuv[2];
 			newpa->fuv[1]= pa->fuv[1];
 			newpa->fuv[2]= pa->fuv[0];
@@ -2762,7 +2762,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 					SHIFT3(float, newpa->fuv[0], newpa->fuv[1], newpa->fuv[2])
 
 			/* assign face inddex */
-			newpa->num= mirrorfaces[pa->num*2];
+					newpa->num= mirrorfaces ? mirrorfaces[pa->num*2] : 0;
 			newpa->num_dmcache= psys_particle_dm_face_lookup(ob,psmd->dm,newpa->num,newpa->fuv, NULL);
 
 			/* update edit key pointers */
@@ -2784,7 +2784,8 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 		point->flag &= ~PEP_TAG;
 	}
 
-	MEM_freeN(mirrorfaces);
+	if (mirrorfaces)
+		MEM_freeN(mirrorfaces);
 }
 
 static int mirror_exec(bContext *C, wmOperator *UNUSED(op))

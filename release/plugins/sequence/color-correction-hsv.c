@@ -196,7 +196,7 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 	src1f= ibuf1->rect_float;
 
 	for (y = 0; y < 256; y++) {
-	        float v = 1.0 * y / 255;
+		float v = 1.0 * y / 255;
 		v += cast->setup_y;
 		v *= cast->gain_y;
 		v = pow(v, cast->gamma_y);

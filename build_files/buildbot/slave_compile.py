@@ -60,31 +60,14 @@ else:
     if builder.startswith('linux'):
         import shutil
 
-        cores = 1
-        if hasattr(os, 'sysconf'):
-            if 'SC_NPROCESSORS_ONLN' in os.sysconf_names:
-                cores = os.sysconf('SC_NPROCESSORS_ONLN')
-
-            if cores > 1:
-                # there're two chroot environments in one machine,
-                # so use only a half of power for better performance
-                cores = cores / 2
-
         # We're using the same rules as release builder, so tweak
         # build and install dirs
         build_dir = os.path.join('..', 'build', builder)
         install_dir = os.path.join('..', 'install', builder)
 
-        common_options = ['BF_NUMJOBS=' + str(cores),
-            'BF_BUILDDIR=' + build_dir,
-            'BF_INSTALLDIR=' + install_dir]
+        common_options = ['BF_INSTALLDIR=' + install_dir]
 
-        # Clean all directories first
-        retcode = subprocess.call(scons_cmd + common_options + ['clean'])
-        if retcode != 0:
-            print('Error cleaning build directory')
-            sys.exit(retcode)
-
+        # Clean install directory so we'll be sure there's no
         if os.path.isdir(install_dir):
             shutil.rmtree(install_dir)
 
@@ -103,6 +86,12 @@ else:
             config_fpath = os.path.join(config_dir, config)
 
             scons_options = []
+
+            if config.find('player') != -1:
+                scons_options.append('BF_BUILDDIR=%s_player' % (build_dir))
+            else:
+                scons_options.append('BF_BUILDDIR=%s' % (build_dir))
+
             scons_options += common_options
 
             if config.find('player') == -1:

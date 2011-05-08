@@ -1048,7 +1048,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void VIEW2D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom View";
+	ot->name= "Zoom 2D View";
 	ot->description= "Zoom in/out the view";
 	ot->idname= "VIEW2D_OT_zoom";
 	

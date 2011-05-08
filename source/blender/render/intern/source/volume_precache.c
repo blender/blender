@@ -414,7 +414,7 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 		SWAP(float *,sr,sr0);
 		SWAP(float *,sg,sg0);
 		SWAP(float *,sb,sb0);
-               
+
 		/* main diffusion simulation */
 		ms_diffuse(sr0, sr, diff, n);
 		ms_diffuse(sg0, sg, diff, n);
@@ -506,6 +506,9 @@ static void *vol_precache_part(void *data)
 			
 			for (x=pa->minx; x < pa->maxx; x++) {
 				co[0] = pa->bbmin[0] + (pa->voxel[0] * (x + 0.5f));
+				
+				if (pa->re->test_break && pa->re->test_break(pa->re->tbh))
+					break;
 				
 				/* convert from world->camera space for shading */
 				mul_v3_m4v3(cco, pa->viewmat, co);
@@ -604,6 +607,7 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 				pa->done = 0;
 				pa->working = 0;
 				
+				pa->re = re;
 				pa->num = i;
 				pa->tree = tree;
 				pa->shi = shi;

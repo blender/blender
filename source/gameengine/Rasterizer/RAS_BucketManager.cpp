@@ -36,7 +36,7 @@
 #pragma warning (disable:4786)
 #endif
 
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 #include "RAS_MaterialBucket.h"
 #include "STR_HashedString.h"
 #include "RAS_MeshObject.h"

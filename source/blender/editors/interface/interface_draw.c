@@ -765,8 +765,6 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	//float alpha;
 	GLint scissor[4];
 	
-	if (hist==NULL) { printf("hist is null \n"); return; }
-	
 	rect.xmin = (float)recti->xmin+1;
 	rect.xmax = (float)recti->xmax-1;
 	rect.ymin = (float)recti->ymin+SCOPE_RESIZE_PAD+2;
@@ -1580,7 +1578,7 @@ void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, fl
 }
 
 
-void ui_dropshadow(rctf *rct, float radius, float aspect, int select)
+void ui_dropshadow(rctf *rct, float radius, float aspect, int UNUSED(select))
 {
 	int i;
 	float rad;
@@ -1595,7 +1593,17 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, int select)
 		rad= radius;
 
 	i= 12;
-	if(select) a= i*aspect; else a= i*aspect;
+#if 0
+	if(select) {
+		a= i*aspect; /* same as below */
+	}
+	else
+#endif
+	{
+		a= i*aspect;
+
+	}
+
 	for(; i--; a-=aspect) {
 		/* alpha ranges from 2 to 20 or so */
 		glColor4ub(0, 0, 0, alpha);

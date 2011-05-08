@@ -455,7 +455,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 			if(!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 
 			if(mti->type==eModifierTypeType_OnlyDeform) {
-				/* skip leading modifiers which have been alredy
+				/* skip leading modifiers which have been already
 				   handled in sculpt_get_first_deform_matrices */
 				if(mti->deformMatrices && !deformed)
 					continue;
@@ -479,5 +479,16 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 
 		MEM_freeN(origVerts);
 		MEM_freeN(quats);
+	}
+
+	if(!*deformmats) {
+		int a, numVerts;
+		Mesh *me= (Mesh*)ob->data;
+
+		*deformcos= mesh_getVertexCos(me, &numVerts);
+		*deformmats= MEM_callocN(sizeof(*(*deformmats))*numVerts, "defmats");
+
+		for(a=0; a<numVerts; a++)
+			unit_m3((*deformmats)[a]);
 	}
 }

@@ -134,7 +134,7 @@ void reorganize(Node *root)
 
 /*
  * Prunes useless nodes from trees:
- *  erases nodes with total ammount of primitives = 0
+ *  erases nodes with total amount of primitives = 0
  *  prunes nodes with only one child (except if that child is a primitive)
  */
 template<class Node>

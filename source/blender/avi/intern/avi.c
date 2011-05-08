@@ -402,7 +402,7 @@ int AVI_is_avi (const char *name) {
 
 	/* at least one video track is needed */
 	return (movie_tracks != 0); 
-				       
+
 }
 
 AviError AVI_open_movie (const char *name, AviMovie *movie) {

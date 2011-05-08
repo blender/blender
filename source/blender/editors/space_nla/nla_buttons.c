@@ -504,7 +504,7 @@ void NLA_OT_properties(wmOperatorType *ot)
 	
 	ot->exec= nla_properties;
 	ot->poll= ED_operator_nla_active;
- 	
+
 	/* flags */
 	ot->flag= 0;
 }

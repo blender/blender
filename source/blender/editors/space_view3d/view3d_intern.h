@@ -68,6 +68,7 @@ void view3d_operatortypes(void);
 
 /* view3d_edit.c */
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
+void VIEW3D_OT_dolly(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_camera_1_to_1(struct wmOperatorType *ot);
 void VIEW3D_OT_move(struct wmOperatorType *ot);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
@@ -146,10 +147,6 @@ void VIEW3D_OT_select_circle(struct wmOperatorType *ot);
 void VIEW3D_OT_select_border(struct wmOperatorType *ot);
 void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
 
-/* view3d_view.c */
-void view3d_settings_from_ob(struct Object *ob, float *ofs, float *quat, float *dist, float *lens);
-int view3d_is_ortho(View3D *v3d, RegionView3D *rv3d);
-
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 void VIEW3D_OT_object_as_camera(struct wmOperatorType *ot);
@@ -161,7 +158,7 @@ int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 
 void centerview(struct ARegion *ar, View3D *v3d);
 
-void smooth_view(struct bContext *C, struct Object *, struct Object *, float *ofs, float *quat, float *dist, float *lens);
+void smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *, float *ofs, float *quat, float *dist, float *lens);
 
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for picking */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);

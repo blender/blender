@@ -237,9 +237,7 @@ void seq_stripelem_cache_put(
 	key->cfra = cfra - seq->start;
 	key->type = type;
 
-	/* Normally we want our own version, but start and end stills are duplicates of the original. */
-	if(ELEM(type, SEQ_STRIPELEM_IBUF_STARTSTILL, SEQ_STRIPELEM_IBUF_ENDSTILL)==0)
-		IMB_refImBuf(i);
+	IMB_refImBuf(i);
 
 	e = (seqCacheEntry*) BLI_mempool_alloc(entrypool);
 

@@ -2269,7 +2269,7 @@ void do_material_tex(ShadeInput *shi)
 				if(use_compat_bump) {
 					rgbnor = compatible_bump_compute(&compat_bump, shi, mtex, tex,
 						&texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);
- 				}
+				}
 				else if(use_ntap_bump) {
 					rgbnor = ntap_bump_compute(&ntap_bump, shi, mtex, tex,
 						&texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);
@@ -2544,7 +2544,6 @@ void do_material_tex(ShadeInput *shi)
 				}
 				else { /* add or sub */
 					if(mtex->blendtype==MTEX_SUB) factt= -factt;
-					else factt= factt;
 					shi->displace[0]+= factt*shi->vn[0];
 					shi->displace[1]+= factt*shi->vn[1];
 					shi->displace[2]+= factt*shi->vn[2];
@@ -3198,7 +3197,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 				if(la->type==LA_SPOT) {
 					tempvec[0]*= la->spottexfac;
 					tempvec[1]*= la->spottexfac;
-                    /* project from 3d to 2d */
+				/* project from 3d to 2d */
 					tempvec[0] /= -tempvec[2];
 					tempvec[1] /= -tempvec[2];
 				}

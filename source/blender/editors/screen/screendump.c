@@ -95,7 +95,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 			ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
 			ibuf->rect= scd->dumprect;
 			
-			BKE_write_ibuf(scene, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+			BKE_write_ibuf(ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 
 			IMB_freeImBuf(ibuf);
 
@@ -182,6 +182,8 @@ static int screenshot_cancel(bContext *UNUSED(C), wmOperator *op)
 
 void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	ot->name= "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
 	ot->idname= "SCREEN_OT_screenshot";
 	
@@ -193,7 +195,8 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	ot->flag= 0;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);
-	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
+	prop= RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN); /* hide because once the file sel is displayed, the option no longer does anything */
 }
 
 /* *************** screenshot movie job ************************* */
@@ -280,7 +283,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				BKE_makepicstring(name, rd.pic, cfra, rd.imtype, rd.scemode & R_EXTENSION, TRUE);
 				
 				ibuf->rect= sj->dumprect;
-				ok= BKE_write_ibuf(sj->scene, ibuf, name, rd.imtype, rd.subimtype, rd.quality);
+				ok= BKE_write_ibuf(ibuf, name, rd.imtype, rd.subimtype, rd.quality);
 				
 				if(ok==0) {
 					printf("Write error: cannot save %s\n", name);

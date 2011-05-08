@@ -20,6 +20,8 @@
 
 import bpy
 
+from bpy.props import EnumProperty
+
 
 class MeshSelectInteriorFaces(bpy.types.Operator):
     '''Select faces where all edges have more then 2 face users.'''
@@ -66,9 +68,15 @@ class MeshSelectInteriorFaces(bpy.types.Operator):
 
 class MeshMirrorUV(bpy.types.Operator):
     '''Copy mirror UV coordinates on the X axis based on a mirrored mesh'''
-    bl_idname = "mesh.faces_miror_uv"
+    bl_idname = "mesh.faces_mirror_uv"
     bl_label = "Copy Mirrored UV coords"
     bl_options = {'REGISTER', 'UNDO'}
+
+    direction = EnumProperty(items=(
+                        ('POSITIVE', "Positive", ""),
+                        ('NEGATIVE', "Negative", "")),
+                name="Axis Direction",
+                description="")
 
     @classmethod
     def poll(cls, context):
@@ -76,7 +84,7 @@ class MeshMirrorUV(bpy.types.Operator):
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        DIR = 1  # TODO, make an option
+        DIR = (self.direction == 'NEGATIVE')
 
         from mathutils import Vector
 

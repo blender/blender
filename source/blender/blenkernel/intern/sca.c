@@ -333,12 +333,12 @@ void free_actuator(bActuator *act)
 
 	if(act->data) {
 		switch (act->type) {
-			case ACT_SOUND:
-				sa = (bSoundActuator *) act->data;
-                        	if(sa->sound)
-                                	id_us_min((ID *) sa->sound);
-                	        break;
-        	}
+		case ACT_SOUND:
+			sa = (bSoundActuator *) act->data;
+			if(sa->sound)
+				id_us_min((ID *) sa->sound);
+			break;
+		}
 
 		MEM_freeN(act->data);
 	}

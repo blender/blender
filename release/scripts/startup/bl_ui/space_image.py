@@ -91,7 +91,7 @@ class IMAGE_MT_select(bpy.types.Menu):
         layout.separator()
 
         layout.operator("uv.select_all")
-        layout.operator("uv.select_inverse")
+        layout.operator("uv.select_all", text="Inverse").action = 'INVERT'
         layout.operator("uv.unlink_selected")
 
         layout.separator()
@@ -263,7 +263,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         layout.operator("uv.average_islands_scale")
         layout.operator("uv.minimize_stretch")
         layout.operator("uv.stitch")
-        layout.operator("mesh.faces_miror_uv")
+        layout.operator("mesh.faces_mirror_uv")
 
         layout.separator()
 
@@ -370,10 +370,7 @@ class IMAGE_HT_header(bpy.types.Header):
             layout.prop(toolsettings, "use_uv_select_sync", text="")
 
             if toolsettings.use_uv_select_sync:
-                row = layout.row(align=True)
-                row.prop(toolsettings, "mesh_select_mode", text="", index=0, icon='VERTEXSEL')
-                row.prop(toolsettings, "mesh_select_mode", text="", index=1, icon='EDGESEL')
-                row.prop(toolsettings, "mesh_select_mode", text="", index=2, icon='FACESEL')
+                layout.template_edit_mode_selection()
             else:
                 layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_select_mode", text="", icon_only=True)

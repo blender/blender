@@ -78,9 +78,12 @@ IDProperty *IDP_NewIDPArray(const char *name)
 
 IDProperty *IDP_CopyIDPArray(IDProperty *array)
 {
-	IDProperty *narray = MEM_dupallocN(array), *tmp;
+	/* dont use MEM_dupallocN because this may be part of an array */
+	IDProperty *narray = MEM_mallocN(sizeof(IDProperty), "IDP_CopyIDPArray"), *tmp;
 	int i;
-	
+
+	*narray= *array;
+
 	narray->data.pointer = MEM_dupallocN(array->data.pointer);
 	for (i=0; i<narray->len; i++) {
 		/*ok, the copy functions always allocate a new structure,
@@ -423,35 +426,30 @@ static IDProperty *IDP_CopyGroup(IDProperty *prop)
  * When values name and types match, copy the values, else ignore */
 void IDP_SyncGroupValues(IDProperty *dest, IDProperty *src)
 {
-	IDProperty *loop, *prop;
+	IDProperty *other, *prop;
 	for (prop=src->data.group.first; prop; prop=prop->next) {
-		for (loop=dest->data.group.first; loop; loop=loop->next) {
-			if (strcmp(loop->name, prop->name)==0) {
-				if(prop->type==loop->type) {
+		other= BLI_findstring(&dest->data.group, prop->name, offsetof(IDProperty, name));
+		if (other && prop->type==other->type) {
+			switch (prop->type) {
+				case IDP_INT:
+				case IDP_FLOAT:
+				case IDP_DOUBLE:
+					other->data= prop->data;
+					break;
+				case IDP_GROUP:
+					IDP_SyncGroupValues(other, prop);
+					break;
+				default:
+				{
+					IDProperty *tmp= other;
+					IDProperty *copy= IDP_CopyProperty(prop);
 
-					switch (prop->type) {
-						case IDP_INT:
-						case IDP_FLOAT:
-						case IDP_DOUBLE:
-							loop->data= prop->data;
-							break;
-						case IDP_GROUP:
-							IDP_SyncGroupValues(loop, prop);
-							break;
-						default:
-						{
-							IDProperty *tmp= loop;
-							IDProperty *copy= IDP_CopyProperty(prop);
+					BLI_insertlinkafter(&dest->data.group, other, copy);
+					BLI_remlink(&dest->data.group, tmp);
 
-							BLI_insertlinkafter(&dest->data.group, loop, copy);
-							BLI_remlink(&dest->data.group, tmp);
-
-							IDP_FreeProperty(tmp);
-							MEM_freeN(tmp);
-						}
-					}
+					IDP_FreeProperty(tmp);
+					MEM_freeN(tmp);
 				}
-				break;
 			}
 		}
 	}

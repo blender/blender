@@ -3,7 +3,8 @@ Import ('env')
 
 sources = env.Glob('*.cpp')
 
-incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Ketsji'
+incs = '. #intern/string #intern/moto/include'
+incs += ' #source/gameengine/Ketsji #intern/container'
 incs += ' #source/gameengine/GameLogic #source/gameengine/Expressions'
 incs += ' #source/gameengine/Network #source/gameengine/SceneGraph'
 

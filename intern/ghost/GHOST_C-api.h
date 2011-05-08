@@ -852,6 +852,18 @@ extern GHOST_TSuccess GHOST_PlaybackEvents(GHOST_SystemHandle systemhandle, FILE
 extern int GHOST_PlayingEvents(GHOST_SystemHandle systemhandle);
 extern int GHOST_RecordingEvents(GHOST_SystemHandle systemhandle);
 
+
+/**
+ * Toggles console
+ * @action	0 - Hides
+ *			1 - Shows
+ *			2 - Toggles
+ *			3 - Hides if it runs not from  command line
+ *			* - Does nothing
+ * @return current status (1 -visible, 0 - hidden)
+ */
+extern int GHOST_toggleConsole(int action);
+
 #ifdef __cplusplus
 }
 #endif

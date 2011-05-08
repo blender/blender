@@ -113,7 +113,7 @@ void delete_fcurve_keys(FCurve *fcu)
 	
 	if(fcu->bezt==NULL) /* ignore baked curves */
 		return;
-    
+
 	/* Delete selected BezTriples */
 	for (i=0; i < fcu->totvert; i++) {
 		if (fcu->bezt[i].f2 & SELECT) {

@@ -101,7 +101,6 @@ void quicktime_init(void)
 	nerr = InitializeQTML(0);
 	if (nerr != noErr) {
 		G.have_quicktime = FALSE;
-		printf("Error initializing quicktime\n");
 	}
 	else
 		G.have_quicktime = TRUE;

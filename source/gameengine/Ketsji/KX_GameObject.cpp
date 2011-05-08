@@ -156,7 +156,7 @@ KX_GameObject::~KX_GameObject()
 	}
 #ifdef WITH_PYTHON
 	if (m_attr_dict) {
-		PyDict_Clear(m_attr_dict); /* incase of circular refs or other weired cases */
+		PyDict_Clear(m_attr_dict); /* incase of circular refs or other weird cases */
 		/* Py_CLEAR: Py_DECREF's and NULL's */
 		Py_CLEAR(m_attr_dict);
 	}
@@ -1224,7 +1224,7 @@ CListValue* KX_GameObject::GetChildrenRecursive()
 /* ---------------------------------------------------------------------
  * Some stuff taken from the header
  * --------------------------------------------------------------------- */
-void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
+void KX_GameObject::Relink(CTR_Map<CTR_HashedPtr, void*> *map_parameter)
 {
 	// we will relink the sensors and actuators that use object references
 	// if the object is part of the replicated hierarchy, use the new

@@ -266,16 +266,9 @@ static void psys_create_frand(ParticleSystem *psys)
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd;
-	Mesh *me;
 
 	if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE || !psys->part)
 		return 0;
-
-	if(ob->type == OB_MESH) {
-		me= (Mesh*)ob->data;
-		if(me->mr && me->mr->current != 1)
-			return 0;
-	}
 
 	psmd= psys_get_modifier(ob, psys);
 	if(psys->renderdata || G.rendering) {
@@ -3039,7 +3032,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 
 	psys->totcached = totpart;
 
-	if(psys && psys->lattice){
+	if(psys->lattice){
 		end_latt_deform(psys->lattice);
 		psys->lattice= NULL;
 	}
@@ -3598,28 +3591,38 @@ ParticleSettings *psys_copy_settings(ParticleSettings *part)
 	return partn;
 }
 
+static void expand_local_particlesettings(ParticleSettings *part)
+{
+	int i;
+	id_lib_extern((ID *)part->dup_group);
+
+	for(i=0; i<MAX_MTEX; i++) {
+		if(part->mtex[i]) id_lib_extern((ID *)part->mtex[i]->tex);
+	}
+}
+
 void make_local_particlesettings(ParticleSettings *part)
 {
+	Main *bmain= G.main;
 	Object *ob;
-	ParticleSettings *par;
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
 	
 	if(part->id.lib==0) return;
 	if(part->id.us==1) {
 		part->id.lib= 0;
 		part->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)part, 0);
+		new_id(&bmain->particle, (ID *)part, 0);
+		expand_local_particlesettings(part);
 		return;
 	}
-	
+
 	/* test objects */
-	ob= G.main->object.first;
-	while(ob) {
+	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
 		ParticleSystem *psys=ob->particlesystem.first;
 		for(; psys; psys=psys->next){
 			if(psys->part==part) {
@@ -3627,31 +3630,28 @@ void make_local_particlesettings(ParticleSettings *part)
 				else local= 1;
 			}
 		}
-		ob= ob->id.next;
 	}
 	
 	if(local && lib==0) {
 		part->id.lib= 0;
 		part->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)part, 0);
+		new_id(&bmain->particle, (ID *)part, 0);
+		expand_local_particlesettings(part);
 	}
 	else if(local && lib) {
-		
-		par= psys_copy_settings(part);
-		par->id.us= 0;
+		ParticleSettings *partn= psys_copy_settings(part);
+		partn->id.us= 0;
 		
 		/* do objects */
-		ob= G.main->object.first;
-		while(ob) {
-			ParticleSystem *psys=ob->particlesystem.first;
-			for(; psys; psys=psys->next){
+		for(ob= bmain->object.first; ob; ob= ob->id.next) {
+			ParticleSystem *psys;
+			for(psys= ob->particlesystem.first; psys; psys=psys->next){
 				if(psys->part==part && ob->id.lib==0) {
-					psys->part= par;
-					par->id.us++;
+					psys->part= partn;
+					partn->id.us++;
 					part->id.us--;
 				}
 			}
-			ob= ob->id.next;
 		}
 	}
 }
@@ -4373,7 +4373,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 	float loc[3], nor[3], vec[3], side[3], len, obrotmat[4][4], qmat[4][4];
 	float xvec[3] = {-1.0, 0.0, 0.0}, q[4], nmat[3][3];
 
-	sub_v3_v3v3(vec, (cache+cache->steps-1)->co, cache->co);
+	sub_v3_v3v3(vec, (cache+cache->steps)->co, cache->co);
 	len= normalize_v3(vec);
 
 	if(psys->part->rotmode) {
@@ -4433,22 +4433,22 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	xvec[0] = 1.0f; xvec[1] = 0.0f; xvec[2] = 0.0f;
 	yvec[0] = 0.0f; yvec[1] = 1.0f; yvec[2] = 0.0f;
 
-    /* can happen with bad pointcache or physics calculation
-     * since this becomes geometry, nan's and inf's crash raytrace code.
-     * better not allow this. */
-    if( !finite(bb->vec[0]) || !finite(bb->vec[1]) || !finite(bb->vec[2]) ||
-        !finite(bb->vel[0]) || !finite(bb->vel[1]) || !finite(bb->vel[2]) )
-    {
-        zero_v3(bb->vec);
-        zero_v3(bb->vel);
-        
-        zero_v3(xvec);
-        zero_v3(yvec);
-        zero_v3(zvec);
-        zero_v3(center);
+	/* can happen with bad pointcache or physics calculation
+	 * since this becomes geometry, nan's and inf's crash raytrace code.
+	 * better not allow this. */
+	if( !finite(bb->vec[0]) || !finite(bb->vec[1]) || !finite(bb->vec[2]) ||
+	    !finite(bb->vel[0]) || !finite(bb->vel[1]) || !finite(bb->vel[2]) )
+	{
+		zero_v3(bb->vec);
+		zero_v3(bb->vel);
 
-        return;
-    }
+		zero_v3(xvec);
+		zero_v3(yvec);
+		zero_v3(zvec);
+		zero_v3(center);
+
+		return;
+	}
 
 	if(bb->align < PART_BB_VIEW)
 		onevec[bb->align]=1.0f;

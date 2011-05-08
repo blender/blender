@@ -122,7 +122,6 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
         col = layout.column(align=True)
         col.label(text="Deform:")
         col.operator("transform.edge_slide")
-        col.operator("mesh.rip_move")
         col.operator("mesh.noise")
         col.operator("mesh.vertices_smooth")
 
@@ -947,25 +946,20 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
         sculpt = tool_settings.sculpt
         settings = __class__.paint_settings(context)
 
-        split = layout.split()
-
-        col = split.column()
-
-        col.prop(sculpt, "use_threaded", text="Threaded Sculpt")
-        col.prop(sculpt, "show_low_resolution")
-        col.prop(sculpt, "show_brush")
-
-        col.label(text="Unified Settings:")
-        col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
-        col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
-
-        col = split.column()
-
-        col.label(text="Lock:")
-        row = col.row(align=True)
+        layout.label(text="Lock:")
+        row = layout.row(align=True)
         row.prop(sculpt, "lock_x", text="X", toggle=True)
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
         row.prop(sculpt, "lock_z", text="Z", toggle=True)
+
+        layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
+        layout.prop(sculpt, "show_low_resolution")
+        layout.prop(sculpt, "show_brush")
+        layout.prop(sculpt, "use_deform_only")
+
+        layout.label(text="Unified Settings:")
+        layout.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
+        layout.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
 
 
 class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):

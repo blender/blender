@@ -1536,7 +1536,7 @@ RigGraph *RIG_graphFromArmature(const bContext *C, Object *ob, bArmature *arm)
 	Scene *scene = CTX_data_scene(C);
 	EditBone *ebone;
 	RigGraph *rg;
- 	
+
 	rg = newRigGraph();
 	
 	if (obedit == ob)
@@ -1588,7 +1588,7 @@ static RigGraph *armatureSelectedToGraph(bContext *C, Object *ob, bArmature *arm
 	Scene *scene = CTX_data_scene(C);
 	EditBone *ebone;
 	RigGraph *rg;
- 	
+
 	rg = newRigGraph();
 	
 	if (obedit == ob)
@@ -2829,7 +2829,7 @@ void BIF_retargetArmature(bContext *C)
 		{
 			RigGraph *rigg;
 			bArmature *arm;
-		 	
+
 			arm = ob->data;
 		
 			/* Put the armature into editmode */

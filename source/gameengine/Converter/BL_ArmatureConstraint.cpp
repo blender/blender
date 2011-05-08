@@ -147,7 +147,7 @@ void BL_ArmatureConstraint::ReParent(BL_ArmatureObject* armature)
 	}
 }
 
-void BL_ArmatureConstraint::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void BL_ArmatureConstraint::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_target];
 	if (h_obj) {

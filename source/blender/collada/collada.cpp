@@ -38,6 +38,11 @@ extern "C"
 #include "BKE_scene.h"
 #include "BKE_context.h"
 
+/* make dummy file */
+#include "BLI_storage.h"
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
+
 	int collada_import(bContext *C, const char *filepath)
 	{
 		DocumentImporter imp (C, filepath);
@@ -48,8 +53,17 @@ extern "C"
 
 	int collada_export(Scene *sce, const char *filepath)
 	{
-
 		DocumentExporter exp;
+
+		/* annoying, collada crashes if file cant be created! [#27162] */
+		if(!BLI_exist(filepath)) {
+			BLI_make_existing_file(filepath); /* makes the dir if its not there */
+			if(BLI_touch(filepath) == 0) {
+				return 0;
+			}
+		}
+		/* end! */
+
 		exp.exportCurrentScene(sce, filepath);
 
 		return 1;
