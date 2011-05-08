@@ -698,11 +698,16 @@ static void operator_enum_call_cb(struct bContext *C, void *arg1, void *arg2)
 	wmOperatorType *ot= arg1;
 
 	if(ot) {
-		PointerRNA props_ptr;
-		WM_operator_properties_create_ptr(&props_ptr, ot);
-		RNA_property_enum_set(&props_ptr, ot->prop, GET_INT_FROM_POINTER(arg2));
-		WM_operator_name_call(C, ot->idname, WM_OP_EXEC_DEFAULT, &props_ptr);
-		WM_operator_properties_free(&props_ptr);
+		if(ot->prop) {
+			PointerRNA props_ptr;
+			WM_operator_properties_create_ptr(&props_ptr, ot);
+			RNA_property_enum_set(&props_ptr, ot->prop, GET_INT_FROM_POINTER(arg2));
+			WM_operator_name_call(C, ot->idname, WM_OP_EXEC_DEFAULT, &props_ptr);
+			WM_operator_properties_free(&props_ptr);
+		}
+		else {
+			printf("operator_enum_call_cb: op->prop for '%s' is NULL\n", ot->idname);
+		}
 	}
 }
 

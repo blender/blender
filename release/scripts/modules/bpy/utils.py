@@ -35,6 +35,7 @@ import addon_utils as _addon_utils
 
 _script_module_dirs = "startup", "modules"
 
+
 def _test_import(module_name, loaded_modules):
     use_time = _bpy.app.debug
 
