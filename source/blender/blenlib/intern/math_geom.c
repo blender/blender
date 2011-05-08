@@ -529,8 +529,9 @@ int isect_ray_tri_v3(const float p1[3], const float d[3], const float v0[3], con
 int isect_ray_plane_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, int clip)
 {
 	float p[3], s[3], e1[3], e2[3], q[3];
-	float a, f, u, v;
-	
+	float a, f;
+	/* float  u, v; */ /*UNUSED*/
+
 	sub_v3_v3v3(e1, v1, v0);
 	sub_v3_v3v3(e2, v2, v0);
 	
@@ -543,11 +544,11 @@ int isect_ray_plane_v3(float p1[3], float d[3], float v0[3], float v1[3], float 
 	
 	sub_v3_v3v3(s, p1, v0);
 	
-	u = f * dot_v3v3(s, p);
+	/* u = f * dot_v3v3(s, p); */ /*UNUSED*/
 
 	cross_v3_v3v3(q, s, e1);
 	
-	v = f * dot_v3v3(d, q);
+	/* v = f * dot_v3v3(d, q); */ /*UNUSED*/
 
 	*lambda = f * dot_v3v3(e2, q);
 	if (clip && (*lambda < 0.0f)) return 0;

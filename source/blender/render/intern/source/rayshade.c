@@ -1729,7 +1729,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 			/* end warning! - Campbell */
 			
 			shade_ray(&isec, &shi, &shr_t);
-			fac= isec.dist*isec.dist;
+			/* fac= isec.dist*isec.dist; */
 			fac= 1.0f;
 			accum[0]+= fac*(shr_t.diff[0]+shr_t.spec[0]);
 			accum[1]+= fac*(shr_t.diff[1]+shr_t.spec[1]);

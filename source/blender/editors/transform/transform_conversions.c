@@ -4927,13 +4927,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {
 		bArmature *arm;
-		bPose	*pose;
 		bPoseChannel *pchan;
 		short targetless_ik= 0;
 
 		ob= t->poseobj;
 		arm= ob->data;
-		pose= ob->pose;
 
 		if((t->flag & T_AUTOIK) && (t->options & CTX_AUTOCONFIRM)) {
 			/* when running transform non-interactively (operator exec),
