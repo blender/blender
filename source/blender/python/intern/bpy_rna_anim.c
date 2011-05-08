@@ -44,6 +44,9 @@
 
 #include "RNA_access.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "bpy_rna.h"
 #include "bpy_util.h"
 #include "bpy_rna_anim.h"
@@ -320,6 +323,8 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 				RNA_pointer_create(id, &RNA_FCurve, fcu, &tptr);
 				ret= pyrna_struct_CreatePyObject(&tptr);
 			}
+			
+			WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION|ND_FCURVES_ORDER, NULL);
 		}
 		else {
 			/* XXX, should be handled by reports, */
@@ -371,6 +376,8 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 
 		if(BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
 			return NULL;
+		
+		WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION|ND_FCURVES_ORDER, NULL);
 
 		return PyBool_FromLong(result);
 	}
