@@ -931,8 +931,9 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 
 	/*create region face*/
 	newf = BM_Make_Ngon(bm, v1, v2, edges, tote, 0);
-	if (!newf) {
-		err = "Invalid boundary region to join faces";
+	if (!newf || BMO_HasError(bm)) {
+		if (!BMO_HasError(bm)) 
+			err = "Invalid boundary region to join faces";
 		goto error;
 	}
 
@@ -965,7 +966,7 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 
 		l = l->next;
 	} while (l != bm_firstfaceloop(newf));
-
+	
 	BM_Copy_Attributes(bm, bm, faces[0], newf);
 
 	/*add holes*/
