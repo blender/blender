@@ -41,6 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -193,6 +194,9 @@ int RE_engine_render(Render *re, int do_all)
 	/* render */
 	engine = RE_engine_create(type);
 	engine->re= re;
+
+	if((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
+		scene_update_for_newframe(re->main, re->scene, re->lay);
 
 	type->render(engine, re->scene);
 
