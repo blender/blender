@@ -130,14 +130,17 @@ void BlenderSession::write_render_result()
 
 	vector<float4> buffer(width*height);
 	float fac = 1.0f/255.0f;
+	bool color_management = b_scene.render().use_color_management();
 
 	/* normalize */
 	for(int i = width*height - 1; i >= 0; i--) {
 		uchar4 f = rgba[i];
-		float r = color_srgb_to_scene_linear(f.x*fac);
-		float g = color_srgb_to_scene_linear(f.y*fac);
-		float b = color_srgb_to_scene_linear(f.z*fac);
-		buffer[i] = make_float4(r, g, b, 1.0f);
+		float3 rgb = make_float3(f.x, f.y, f.z)*fac;
+
+		if(color_management)
+			rgb = color_srgb_to_scene_linear(rgb);
+
+		buffer[i] = make_float4(rgb.x, rgb.y, rgb.z, 1.0f);
 	}
 
 	struct RenderResult *rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, 0, 0, width, height);

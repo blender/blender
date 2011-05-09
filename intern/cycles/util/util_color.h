@@ -40,6 +40,22 @@ __device float color_scene_linear_to_srgb(float c)
 		return 1.055f * pow(c, 1.0f/2.4f) - 0.055f;
 }
 
+__device float3 color_srgb_to_scene_linear(float3 c)
+{
+	return make_float3(
+		color_srgb_to_scene_linear(c.x),
+		color_srgb_to_scene_linear(c.y),
+		color_srgb_to_scene_linear(c.z));
+}
+
+__device float3 color_scene_linear_to_srgb(float3 c)
+{
+	return make_float3(
+		color_scene_linear_to_srgb(c.x),
+		color_scene_linear_to_srgb(c.y),
+		color_scene_linear_to_srgb(c.z));
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_COLOR_H__ */
