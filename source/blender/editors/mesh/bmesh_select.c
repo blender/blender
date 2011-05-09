@@ -50,6 +50,7 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
@@ -65,7 +66,6 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 #include "BKE_paint.h"

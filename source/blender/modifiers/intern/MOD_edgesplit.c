@@ -31,12 +31,12 @@
 
 #include "DNA_meshdata_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_memarena.h"
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"

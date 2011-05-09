@@ -37,6 +37,7 @@
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
@@ -47,6 +48,7 @@
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
+
 
 #ifdef _WIN32
 void tstart ( void )

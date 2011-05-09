@@ -50,9 +50,8 @@ typedef struct BMEditMesh {
 	struct BMFace **face_index;
 
 	/*selection mode*/
-	int selectmode;
-
-	int mat_nr;
+	short selectmode;
+	short mat_nr;
 
 	/*Mesh structure this editmesh came from, if it came from one*/
 	struct Mesh *me;

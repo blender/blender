@@ -1,6 +1,5 @@
 #if 0
 /**
-/*
  * BME_eulers.c    jan 2007
  *
  *	BMesh Euler construction API.

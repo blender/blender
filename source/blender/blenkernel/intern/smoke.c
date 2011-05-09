@@ -45,6 +45,7 @@
 #include <stdio.h>
 #include <string.h> /* memset */
 
+#include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 #include "BLI_rand.h"
 #include "BLI_jitter.h"
@@ -53,7 +54,6 @@
 #include "BLI_edgehash.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_cdderivedmesh.h"

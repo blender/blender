@@ -39,7 +39,6 @@
 
 #include <math.h>
 #include <string.h>
-
 #include <assert.h>
 
 #include "MEM_guardedalloc.h"
@@ -47,6 +46,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_ID.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_path_util.h"
 #include "BLI_linklist.h"
@@ -59,7 +59,6 @@
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
 #include "BKE_multires.h"
 
 #include "bmesh.h"
@@ -298,7 +297,6 @@ static void layerInterp_tface(void **sources, float *weights,
 	}
 
 	*tf = *(MTFace *)sources[0];
-
 	for(j = 0; j < 4; ++j) {
 		tf->uv[j][0] = uv[j][0];
 		tf->uv[j][1] = uv[j][1];
@@ -659,7 +657,6 @@ static void layerDefault_mloopcol(void *data, int count)
 	MLoopCol default_mloopcol = {255,255,255,255};
 	MLoopCol *mlcol = (MLoopCol*)data;
 	int i;
-
 	for(i = 0; i < count; i++)
 		mlcol[i] = default_mloopcol;
 
@@ -1037,7 +1034,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 	/*const LayerTypeInfo *typeInfo;*/
 	CustomDataLayer *layer, *newlayer;
 	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, lastflag = 0;
-	
+
 	for(i = 0; i < source->totlayer; ++i) {
 		layer = &source->layers[i];
 		/*typeInfo = layerType_getInfo(layer->type);*/ /*UNUSED*/
@@ -1373,9 +1370,8 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	int size = typeInfo->size * totelem, flag = 0, index = data->totlayer;
 	void *newlayerdata;
 
-	if (!typeInfo->defaultname && CustomData_has_layer(data, type)) {
+	if (!typeInfo->defaultname && CustomData_has_layer(data, type))
 		return &data->layers[CustomData_get_layer_index(data, type)];
-	}
 
 	if((alloctype == CD_ASSIGN) || (alloctype == CD_REFERENCE)) {
 		newlayerdata = layerdata;
@@ -1589,10 +1585,10 @@ void CustomData_free_temporary(CustomData *data, int totelem)
 
 		if (i != j)
 			data->layers[j] = data->layers[i];
-		
-		if ((layer->flag & CD_FLAG_TEMPORARY) == CD_FLAG_TEMPORARY) {
+
+		if ((layer->flag & CD_FLAG_TEMPORARY) == CD_FLAG_TEMPORARY)
 			customData_free_layer__internal(layer, totelem);
-		} else
+		else
 			j++;
 	}
 

@@ -1,6 +1,5 @@
 #if 0
 /**
-/*
  * BME_customdata.c    jan 2007
  *
  *	Custom Data functions for Bmesh

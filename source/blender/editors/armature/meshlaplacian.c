@@ -43,10 +43,10 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_memarena.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"

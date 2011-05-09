@@ -37,6 +37,8 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
 #include "BLI_mempool.h"
 

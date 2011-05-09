@@ -53,6 +53,7 @@
 #include "RNA_define.h"
 #include "RNA_access.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
@@ -70,7 +71,6 @@
 #include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"

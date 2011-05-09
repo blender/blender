@@ -83,6 +83,10 @@ set(SRC
 	intern/voxel.c
 	intern/winstuff.c
 
+	BLI_array.h
+	BLI_cellalloc.h
+	BLI_smallhash.h
+	BLI_sparsemap.h
 	BLI_args.h
 	BLI_blenlib.h
 	BLI_boxpack2d.h

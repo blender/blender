@@ -87,16 +87,9 @@ extern "C" {
 #define BROW(min, max)	(((max)>=31? 0xFFFFFFFF: (1<<(max+1))-1) - ((min)? ((1<<(min))-1):0) )
 
 #define BMEMSET(mem, val, size) {unsigned int _i; char *_c = (char*) mem; for (_i=0; _i<size; _i++) *_c++ = val;}
-/*little macro so inline keyword works*/
-#if defined(_MSC_VER)
-#define BM_INLINE static __forceinline
-#else
-#define BM_INLINE static inline __attribute((always_inline))
-#endif
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif // BKE_UTILDEFINES_H
-

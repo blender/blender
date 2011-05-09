@@ -43,6 +43,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"

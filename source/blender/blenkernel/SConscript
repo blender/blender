@@ -1,12 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-import os
-
 sources = env.Glob('intern/*.c')
-
-# bmesh doesn't use booleanops.c - probably remove
-sources.remove('intern' + os.sep + 'booleanops.c')
 
 incs = '. #/intern/guardedalloc #/intern/memutil ../editors/include'
 incs += ' ../blenlib ../blenfont ../makesdna ../windowmanager'

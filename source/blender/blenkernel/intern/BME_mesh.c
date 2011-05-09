@@ -1,6 +1,5 @@
 #if 0
 /**
-/*
  * BME_mesh.c    jan 2007
  *
  *	BMesh mesh level functions.

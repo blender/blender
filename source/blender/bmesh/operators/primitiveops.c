@@ -6,7 +6,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_math.h"
 #include "BLI_ghash.h"

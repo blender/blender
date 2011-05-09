@@ -52,6 +52,7 @@
 #include "DNA_space_types.h"
 #include "DNA_particle_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -61,7 +62,6 @@
 #include "BLI_scanfill.h"
 #include "BLI_ghash.h"
 #include "BLI_array.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
@@ -78,7 +78,6 @@
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_particle.h"
 #include "BKE_tessmesh.h"
 
@@ -755,7 +754,7 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 	BMFace *efa;
 	BMVert *eve;
 	BMIter iter;
-	MLoopUV *luv[3], dummyluv = {0};
+	MLoopUV *luv[3], dummyluv = {{0}};
 	MLoopCol *lcol[3], dummylcol = {0};
 	int i, has_vcol = CustomData_has_layer(&bm->ldata, CD_MLOOPCOL);
 	int has_uv = CustomData_has_layer(&bm->pdata, CD_MTEXPOLY);
@@ -781,7 +780,7 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 		for (i=0; i<em->tottri; i++) {
 			BMLoop **ls = em->looptris[i];
 			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
-			MTFace mtf = {0};
+			MTFace mtf = {{{0}}};
 			unsigned char *cp= NULL;
 			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_SMOOTH);
 			int flag;
@@ -856,7 +855,7 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 		for (i=0; i<em->tottri; i++) {
 			BMLoop **ls = em->looptris[i];
 			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
-			MTFace mtf = {0};
+			MTFace mtf = {{{0}}};
 			unsigned char *cp= NULL;
 			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_SMOOTH);
 			int flag;

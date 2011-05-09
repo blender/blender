@@ -1,12 +1,11 @@
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
-
-#include "BKE_utildefines.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"

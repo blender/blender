@@ -278,7 +278,7 @@ int CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
 
 int CTX_rec_events(bContext *C);
 FILE *CTX_rec_file(bContext *C);
-int CTX_set_events_path(bContext *C, char *path);
+int CTX_set_events_path(bContext *C, const char *path);
 int CTX_play_events(bContext *C, char **playpath);
 int CTX_rec_events_set(bContext *C, int state);
 double CTX_rec_lasttime(bContext *C, double newtime);

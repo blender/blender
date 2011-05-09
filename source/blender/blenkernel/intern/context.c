@@ -147,7 +147,7 @@ FILE *CTX_rec_file(bContext *C)
 	return f;
 }
 
-int CTX_set_events_path(bContext *C, char *path)
+int CTX_set_events_path(bContext *C, const char *path)
 {
 	if (!path) {
 		C->evtplaypath[0] = 0;

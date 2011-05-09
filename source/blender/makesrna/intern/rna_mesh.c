@@ -53,7 +53,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
 #include "WM_api.h"
@@ -362,7 +361,7 @@ static PointerRNA rna_Mesh_active_uv_texture_get(PointerRNA *ptr)
 
 static PointerRNA rna_Mesh_uv_texture_clone_get(PointerRNA *ptr)
 {
-	PointerRNA pnull = {0,};
+	PointerRNA pnull = {{0}};
 #if 0
 	Mesh *me= (Mesh*)ptr->data;
 	CustomData *fdata= rna_mesh_fdata(me);
@@ -376,7 +375,7 @@ static PointerRNA rna_Mesh_uv_texture_clone_get(PointerRNA *ptr)
 
 static PointerRNA rna_Mesh_uv_texture_stencil_get(PointerRNA *ptr)
 {
-	PointerRNA pnull = {0,};
+	PointerRNA pnull = {{0}};
 #if 0
 	Mesh *me= (Mesh*)ptr->data;
 	CustomData *fdata= rna_mesh_fdata(me);
@@ -897,17 +896,17 @@ static char *rna_VertexGroupElement_path(PointerRNA *ptr)
 
 static char *rna_MeshFace_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("faces[%d]", (MFace*)ptr->data - ((Mesh*)ptr->id.data)->mface);
+	return BLI_sprintfN("faces[%d]", (int)((MFace*)ptr->data - ((Mesh*)ptr->id.data)->mface));
 }
 
 static char *rna_MeshEdge_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("edges[%d]", (MEdge*)ptr->data - ((Mesh*)ptr->id.data)->medge);
+	return BLI_sprintfN("edges[%d]", (int)((MEdge*)ptr->data - ((Mesh*)ptr->id.data)->medge));
 }
 
 static char *rna_MeshVertex_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("verts[%d]", (MVert*)ptr->data - ((Mesh*)ptr->id.data)->mvert);
+	return BLI_sprintfN("verts[%d]", (int)((MVert*)ptr->data - ((Mesh*)ptr->id.data)->mvert));
 }
 
 static char *rna_MeshTextureFaceLayer_path(PointerRNA *ptr)
@@ -950,7 +949,7 @@ static char *rna_MeshColor_path(PointerRNA *ptr)
 
 static char *rna_MeshSticky_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("sticky[%d]", (MSticky*)ptr->data - ((Mesh*)ptr->id.data)->msticky);
+	return BLI_sprintfN("sticky[%d]", (int)((MSticky*)ptr->data - ((Mesh*)ptr->id.data)->msticky));
 }
 
 static char *rna_MeshIntPropertyLayer_path(PointerRNA *ptr)

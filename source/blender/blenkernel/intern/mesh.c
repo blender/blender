@@ -49,11 +49,11 @@
 #include "DNA_ipo_types.h"
 #include "DNA_customdata_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
-#include "BLI_utildefines.h"
 #include "BLI_scanfill.h"
 
 #include "BKE_animsys.h"
@@ -623,7 +623,6 @@ static void make_local_tface(Main *bmain, Mesh *me)
 			}
 		}
 	}
-
 }
 
 static void expand_local_mesh(Main *bmain, Mesh *me)

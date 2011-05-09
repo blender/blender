@@ -376,7 +376,7 @@ int segmentation_handler(int sig)
 	return 0;
 }
 
-static int nocrashhandler(int argc, char **argv, void *data)
+static int nocrashhandler(int argc, const char **argv, void *data)
 {
 	no_handler = 1;
 
@@ -877,7 +877,7 @@ static int set_start_frame(int argc, const char **argv, void *data)
 }
 
 #ifdef EVENT_RECORDER
-static int set_macro_playback(int argc, char **argv, void *data)
+static int set_macro_playback(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
 	

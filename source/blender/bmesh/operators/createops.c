@@ -1,6 +1,6 @@
 #include "MEM_guardedalloc.h"
 
-#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
