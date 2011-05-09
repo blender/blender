@@ -221,7 +221,12 @@ static void get_face_uv_map_vert(UvVertMap *vmap, struct MFace *mf, int fi, CCGV
 }
 
 static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, MTFace *tface) {
-#if 0
+#if 1 /*BMESH_TODO*/
+	(void)ss;
+	(void)origss;
+	(void)dm;
+	(void)tface;
+#else
 	MFace *mface = dm->getTessFaceArray(dm);
 	MVert *mvert = dm->getVertArray(dm);
 	int totvert = dm->getNumVerts(dm);
@@ -1758,7 +1763,7 @@ static void cgdm_drawFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *at
 	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
 }
 
-static void cgdm_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2) {
+static void cgdm_drawFacesColored(DerivedMesh *dm, int UNUSED(useTwoSided), unsigned char *col1, unsigned char *col2) {
 	CCGDerivedMesh *cgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = cgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);

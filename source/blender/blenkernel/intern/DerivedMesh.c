@@ -1023,7 +1023,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 	}
 }
 
-static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *ob)
+static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
 {
 	KeyBlock *kb;
 	Key *key = me->key;

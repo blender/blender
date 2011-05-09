@@ -64,7 +64,7 @@
 
 /* UV Utilities */
 
-static int uvedit_center(Scene *scene, BMEditMesh *em, Image *ima, float center[2])
+static int uvedit_center(Scene *scene, BMEditMesh *em, Image *UNUSED(ima), float center[2])
 {
 	BMFace *f;
 	BMLoop *l;
@@ -91,7 +91,7 @@ static int uvedit_center(Scene *scene, BMEditMesh *em, Image *ima, float center[
 	return tot;
 }
 
-static void uvedit_translate(Scene *scene, BMEditMesh *em, Image *ima, float delta[2])
+static void uvedit_translate(Scene *scene, BMEditMesh *em, Image *UNUSED(ima), float delta[2])
 {
 	BMFace *f;
 	BMLoop *l;

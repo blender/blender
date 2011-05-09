@@ -173,7 +173,6 @@ typedef struct BMFaceCut {
 here as well (except it's not saved in files obviously, or interpolating, or all the other things the CD
 system does)*/
 #define BMSC_GETSELF(bm, e, type) (void*)(((char*)((BMHeader*)(e))->layerdata) + bm->layer_offsets[(type)->__index])
-#define BMSC_DEFAULT_LAYERSIZE sizeof(LayerType)
 
 #define BM_SUBCLASS_HEAD	struct BMLayerType *type; int __index;
 

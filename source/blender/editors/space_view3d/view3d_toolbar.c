@@ -280,7 +280,7 @@ void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 
 
 #ifdef EVENT_RECORDER
-static int view3d_evtrec(bContext *C, wmOperator *op)
+static int view3d_evtrec(bContext *C, wmOperator *UNUSED(op))
 {
 
 	CTX_rec_events_set(C, !CTX_rec_events(C));

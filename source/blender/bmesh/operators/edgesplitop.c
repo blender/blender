@@ -120,7 +120,7 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts)
 	return f2;
 }
 
-void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *op)
+void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 {
 	EdgeTag *et;
 	BMIter iter;

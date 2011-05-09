@@ -1806,7 +1806,7 @@ static int check_pinned_face(BMesh *bm, BMFace *efa)
 }
 
 static void draw_dm_vert_pins__mapFunc(void *userData, int index, 
-                                       float *co, float *no_f, short *no_s)
+                                       float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	struct {BMEditMesh *em; Mesh *me;} *data = userData;
 	BMVert *eve = EDBM_get_vert_for_index(data->em, index);
@@ -2301,7 +2301,13 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, 
 				  Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
-#if 0
+#if 1
+	(void)v3d;
+	(void)rv3d;
+	(void)ob;
+	(void)em;
+	(void)unit;
+#else /*BMESH_TODO*/
 	Mesh *me= ob->data;
 	EditEdge *eed;
 	EditFace *efa;
@@ -2677,7 +2683,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 	}
 }
 
-static int wpaint__setSolidDrawOptions(void *userData, int UNUSED(index), int *drawSmooth_r)
+static int wpaint__setSolidDrawOptions(void *UNUSED(userData), int UNUSED(index), int *drawSmooth_r)
 {
 	*drawSmooth_r = 1;
 	return 1;
@@ -6622,7 +6628,7 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 	}
 }
 
-static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *UNUSED(drawSmooth_r))
+static int bbs_mesh_solid__setDrawOpts(void *UNUSED(userData), int index, int *UNUSED(drawSmooth_r))
 {
 	WM_set_framebuffer_index_color(index+1);
 	return 1;

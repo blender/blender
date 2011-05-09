@@ -690,7 +690,7 @@ static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, float
 	}
 }
 
-static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int nverts, int id, 
+static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), int id,
 			      float co[2], float uv[2])
 {
 	BMLoop *l;
@@ -2461,7 +2461,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 
 /* ******************** circle select operator **************** */
 
-static void select_uv_inside_ellipse(BMEditMesh *em, SpaceImage *sima, Scene *scene, int select, 
+static void select_uv_inside_ellipse(BMEditMesh *em, SpaceImage *UNUSED(sima), Scene *scene, int select,
 									 float *offset, float *ell, BMLoop *l, MLoopUV *luv)
 {
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */

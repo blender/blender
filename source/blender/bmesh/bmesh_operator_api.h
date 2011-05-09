@@ -1,5 +1,5 @@
-#ifndef _BMESH_OPERATOR_H
-#define _BMESH_OPERATOR_H
+#ifndef _BMESH_OPERATOR_API_H
+#define _BMESH_OPERATOR_API_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -493,4 +493,4 @@ BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, const char *slotna
 }
 #endif
 
-#endif /* _BMESH_OPERATOR_H */
+#endif /* _BMESH_OPERATOR_API_H */

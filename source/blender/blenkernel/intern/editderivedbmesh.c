@@ -397,7 +397,7 @@ static void bmdm_recalc_lookups(EditDerivedBMesh *bmdm)
 	}
 }
 
-static void bmDM_recalcTesselation(DerivedMesh *dm)
+static void bmDM_recalcTesselation(DerivedMesh *UNUSED(dm))
 {
 	//EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 
@@ -488,7 +488,7 @@ static void bmDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	}
 }
 
-static void bmDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges)
+static void bmDM_drawEdges(DerivedMesh *dm, int UNUSED(drawLooseEdges), int UNUSED(drawAllEdges))
 {
 	bmDM_drawMappedEdges(dm, NULL, NULL);
 }
@@ -631,6 +631,10 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 	BMFace *efa;
 	BMIter iter;
 	int i, draw;
+
+	/*BMESH_TODO*/
+	(void)useColors;
+	(void)setMaterial;
 
 	if (bmdm->vertexCos) {
 		BMVert *eve;
@@ -956,9 +960,15 @@ static void bmDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void 
 
 static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
                int (*setMaterial)(int, void *attribs),
-               int (*setDrawOptions)(void *userData, int index), void *userData) 
+               int (*setDrawOptions)(void *userData, int index), void *userData)
 {
-#if 0
+#if 1
+	(void)dm;
+	(void)setMaterial;
+	(void)setDrawOptions;
+	(void)userData;
+#else /*BMESH_TODO*/
+
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMesh *bm= bmdm->tc->bm;
 	float (*vertexCos)[3]= bmdm->vertexCos;
@@ -1469,7 +1479,7 @@ void bmDM_iterFree(void *self)
 	MEM_freeN(self);
 }
 
-void bmDM_nulliterFree(void *self)
+void bmDM_nulliterFree(void *UNUSED(self))
 {
 }
 
@@ -1590,7 +1600,7 @@ CustomData *bmDm_getFaceDataLayout(DerivedMesh *dm)
 }
 
 
-DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
+DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
                                            float (*vertexCos)[3])
 {
 	EditDerivedBMesh *bmdm = MEM_callocN(sizeof(*bmdm), "bmdm");

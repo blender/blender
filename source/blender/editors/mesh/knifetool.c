@@ -584,13 +584,13 @@ static void knife_add_cut(knifetool_opdata *kcd)
 	}
 }
 
-static void knife_finish_cut(knifetool_opdata *kcd)
+static void knife_finish_cut(knifetool_opdata *UNUSED(kcd))
 {
 
 }
 
 /* modal loop selection drawing callback */
-static void knifetool_draw(const bContext *C, ARegion *ar, void *arg)
+static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
 	knifetool_opdata *kcd = arg;
 	
@@ -891,7 +891,7 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 	return edges;
 }
 
-void knife_bgl_get_mats(knifetool_opdata *kcd, bglMats *mats)
+void knife_bgl_get_mats(knifetool_opdata *UNUSED(kcd), bglMats *mats)
 {
 	bgl_get_mats(mats);
 	//copy_m4_m4(mats->modelview, kcd->vc.rv3d->viewmat);
@@ -1656,7 +1656,7 @@ void knife_recalc_projmat(knifetool_opdata *kcd)
 }
 
 /* called when modal loop selection is done... */
-static void knifetool_exit (bContext *C, wmOperator *op)
+static void knifetool_exit (bContext *UNUSED(C), wmOperator *op)
 {
 	knifetool_opdata *kcd= op->customdata;
 	
@@ -1687,7 +1687,7 @@ static void knifetool_exit (bContext *C, wmOperator *op)
 }
 
 /* called when modal loop selection gets set up... */
-static int knifetool_init (bContext *C, wmOperator *op, int do_cut)
+static int knifetool_init (bContext *C, wmOperator *op, int UNUSED(do_cut))
 {
 	knifetool_opdata *kcd;
 	

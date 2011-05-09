@@ -356,7 +356,7 @@ double PIL_check_seconds_timer(void);
 	}
 }*/
 
-void segmentation_handler(int sig)
+void segmentation_handler(int UNUSED(sig))
 {
 	char fname[256];
 
@@ -374,7 +374,7 @@ void segmentation_handler(int sig)
 	*(int*)NULL = 0;
 }
 
-static int nocrashhandler(int argc, const char **argv, void *data)
+static int nocrashhandler(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	no_handler = 1;
 

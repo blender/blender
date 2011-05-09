@@ -44,6 +44,7 @@
 
 #include "RNA_access.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "PIL_time.h"
@@ -122,7 +123,7 @@ bContext *CTX_copy(const bContext *C)
 #if defined(EVENT_RECORDER) && !defined(BUILDING_GAMEPLAYER)
 extern GHOST_SystemHandle g_system;
 
-int CTX_rec_events(bContext *C)
+int CTX_rec_events(bContext *UNUSED(C))
 {
 	return GHOST_RecordingEvents(g_system);
 }
@@ -139,7 +140,7 @@ int CTX_rec_events_set(bContext *C, int state)
 	return 1;
 }
 
-FILE *CTX_rec_file(bContext *C)
+FILE *CTX_rec_file(bContext *UNUSED(C))
 {
 	static FILE *f = NULL;
 	if (!f)

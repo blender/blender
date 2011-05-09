@@ -191,7 +191,7 @@ static void special_transvert_update(Object *obedit)
 	}
 }
 
-static void set_mapped_co(void *vuserdata, int index, float *co, float *no, short *no_s)
+static void set_mapped_co(void *vuserdata, int index, float *co, float *UNUSED(no), short *UNUSED(no_s))
 {
 	void **	userdata = vuserdata;
 	BMEditMesh *em = userdata[0];

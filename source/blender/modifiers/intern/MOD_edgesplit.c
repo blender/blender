@@ -90,7 +90,7 @@ BM_INLINE EdgeNode *edge_get_node(EdgeData *e, int ov)
 		return NULL;
 }
 
-BM_INLINE VertUser *edge_get_vuser(MemBase *b, EdgeData *edge, int ov)
+BM_INLINE VertUser *edge_get_vuser(MemBase *UNUSED(b), EdgeData *edge, int ov)
 {
 	if (ov == edge->v1)
 		return edge->v1user;
@@ -377,7 +377,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 }
 
 static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
-					 Object *ob, DerivedMesh *dm)
+					 Object *UNUSED(ob), DerivedMesh *dm)
 {
 	if(!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
 		return dm;
@@ -387,7 +387,7 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 
 static DerivedMesh *applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+		int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
@@ -401,7 +401,7 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-									BMEditMesh *editData, DerivedMesh *derivedData)
+									BMEditMesh *UNUSED(editData), DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }

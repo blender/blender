@@ -1162,7 +1162,7 @@ static void uv_sphere_project(float target[2], float source[3], float center[3],
 		target[0] -= 1.0f;  
 }
 
-static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *tf)
+static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 {
 	BMLoop *l;
 	BMIter liter;

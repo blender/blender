@@ -107,8 +107,8 @@ static void foreachObjectLink(
 	walk(userData, ob, &amd->offset_ob);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					 Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
+					 Object *UNUSED(ob), DagNode *obNode)
 {
 	ArrayModifierData *amd = (ArrayModifierData*) md;
 
@@ -309,7 +309,7 @@ static int calc_mapping(IndexMapEntry *indexMap, int oldIndex, int copyNum)
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,
-										  int initFlags)
+										  int UNUSED(initFlags))
 {
 	DerivedMesh *cddm = dm; //copying shouldn't be necassary here, as all modifiers return CDDM's
 	BMEditMesh *em = CDDM_To_BMesh(ob, cddm, NULL);
@@ -515,7 +515,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 static DerivedMesh *applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+		int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData*) md;
@@ -529,7 +529,7 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct BMEditMesh *editData,
+		ModifierData *md, Object *ob, struct BMEditMesh *UNUSED(editData),
   DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

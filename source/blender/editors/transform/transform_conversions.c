@@ -1989,7 +1989,7 @@ inline void VertsToTransData(TransInfo *t, TransData *td, BMesh *em, BMVert *eve
 
 /* *********************** CrazySpace correction. Now without doing subsurf optimal ****************** */
 
-static void make_vertexcos__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+static void make_vertexcos__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	float *vec = userData;
 

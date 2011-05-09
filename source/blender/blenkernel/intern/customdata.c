@@ -471,7 +471,7 @@ static void layerSwap_mdisps(void *data, const int *ci)
 }
 
 static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
-				float *sub_weights, int count, void *dest)
+				float *UNUSED(sub_weights), int UNUSED(count), void *dest)
 {
 	MDisps *d = dest;
 
@@ -505,7 +505,10 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 
 static void layerValidate_mdisps(void *data, int sub_elements)
 {
-#if 0
+#if 1 /*BMESH_TODO*/
+	(void)data;
+	(void)sub_elements;
+#else
 	MDisps *disps = data;
 	if(disps->disps) {
 		int corners = multires_mdisp_corners(disps);
@@ -864,7 +867,7 @@ static void layerDefault_mcol(void *data, int count)
 }
 
 static void layerInterp_bweight(void **sources, float *weights,
-                             float *sub_weights, int count, void *dest)
+                             float *UNUSED(sub_weights), int count, void *dest)
 {
 	float *f = dest, *src;
 	float **in = (float **)sources;
@@ -883,10 +886,10 @@ static void layerInterp_bweight(void **sources, float *weights,
 }
 
 static void layerInterp_shapekey(void **sources, float *weights,
-                             float *sub_weights, int count, void *dest)
+                             float *UNUSED(sub_weights), int count, void *dest)
 {
 	float *co = dest, *src;
-	float **in = sources;
+	float **in = (float **)sources;
 	int i, j, k;
 
 	if(count <= 0) return;

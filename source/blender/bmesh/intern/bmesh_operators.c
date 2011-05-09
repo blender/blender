@@ -48,7 +48,7 @@ const int BMOP_OPSLOT_TYPEINFO[] = {
 	sizeof(element_mapping)
 };
 
-void BMO_Set_OpFlag(BMesh *bm, BMOperator *op, int flag)
+void BMO_Set_OpFlag(BMesh *UNUSED(bm), BMOperator *op, int flag)
 {
 	op->flag |= flag;
 }

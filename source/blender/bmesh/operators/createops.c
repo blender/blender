@@ -65,7 +65,7 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 /****  rotation system code ***/
 
-#define rs_get_edge_link(e, v, ed) (Link*)((v) == ((BMEdge*)(e))->v1 ? &(((EdgeData*)(ed))->dlink1) : &(((EdgeData*)(ed))->dlink2))
+#define rs_get_edge_link(e, v, ed) ((v) == ((BMEdge*)(e))->v1 ? (Link*)&(((EdgeData*)(ed))->dlink1) : (Link*)&(((EdgeData*)(ed))->dlink2))
 
 int rotsys_append_edge(struct BMEdge *e, struct BMVert *v, 
 						EdgeData *edata, VertData *vdata)
@@ -122,7 +122,7 @@ void rotsys_remove_edge(struct BMEdge *e, struct BMVert *v,
 }
 
 struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v, 
-									EdgeData *edata, VertData *vdata)
+									EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
 		return edata[BMINDEX_GET(e)].dlink1.next;
@@ -132,7 +132,7 @@ struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v,
 }
 
 BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v, 
-						EdgeData *edata, VertData *vdata)
+						EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
 		return edata[BMINDEX_GET(e)].dlink1.prev;
@@ -141,7 +141,7 @@ BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v,
 	return NULL;
 }
 
-struct BMEdge *rotsys_reverse(struct BMEdge *e, struct BMVert *v, EdgeData *edata, VertData *vdata)
+struct BMEdge *rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData *edata, VertData *vdata)
 {
 	BMEdge **edges = NULL;
 	BMEdge *e2;
@@ -644,7 +644,7 @@ EPath *edge_path_new(PathBase *pb, BMVert *start, BMEdge *starte)
 	return path;
 }
 
-float edge_weight_path(EPath *path, EdgeData *edata, VertData *vdata)
+float edge_weight_path(EPath *path, EdgeData *edata, VertData *UNUSED(vdata))
 {
 	EPathNode *node, *first=path->nodes.first;
 	float w = 0.0;
@@ -653,6 +653,7 @@ float edge_weight_path(EPath *path, EdgeData *edata, VertData *vdata)
 		if (node->e && node != path->nodes.first) {
 			w += edata[BMINDEX_GET(node->e)].ftag;
 			if (node->prev) {
+				/*BMESH_TODO*/
 				//w += len_v3v3(node->v->co, first->e->v1->co)*0.0001f;
 				//w += len_v3v3(node->v->co, first->e->v2->co)*0.0001f;				
 			}

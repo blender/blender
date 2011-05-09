@@ -955,7 +955,7 @@ static void mfaces_strip_loose(MFace *mface, int *totface)
 
 /* Create edges based on known verts and faces */
 static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *allloop,
-	MPoly *allpoly, int UNUSED(totvert), int totface, int totloop, int totpoly, 
+	MPoly *allpoly, int UNUSED(totvert), int totface, int UNUSED(totloop), int totpoly,
 	int old, MEdge **alledge, int *_totedge)
 {
 	MPoly *mpoly;
@@ -2263,7 +2263,7 @@ void mesh_loops_to_tri_corners(CustomData *fdata, CustomData *ldata,
  */
 int mesh_recalcTesselation(CustomData *fdata, 
                            CustomData *ldata, CustomData *pdata,
-                           MVert *mvert, int totface, int totloop, 
+                           MVert *mvert, int totface, int UNUSED(totloop),
                            int totpoly, int use_poly_origindex, 
 			   int use_face_origindex)
 {

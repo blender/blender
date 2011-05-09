@@ -6955,7 +6955,7 @@ static void *undo_check_lastsel(void *lastsel, Nurb *nu, Nurb *newnu)
 	return NULL;
 }
 
-static void undoCurve_to_editCurve(void *ucu, void *edata, void *obe)
+static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *obe)
 {
 	Object *obedit= obe;
 	Curve *cu= (Curve*)obedit->data;
@@ -7005,7 +7005,7 @@ static void undoCurve_to_editCurve(void *ucu, void *edata, void *obe)
 	ED_curve_updateAnimPaths(obedit);
 }
 
-static void *editCurve_to_undoCurve(void *edata, void *obe)
+static void *editCurve_to_undoCurve(void *UNUSED(edata), void *obe)
 {
 	Object *obedit= obe;
 	Curve *cu= (Curve*)obedit->data;

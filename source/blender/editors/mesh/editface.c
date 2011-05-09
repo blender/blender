@@ -349,7 +349,7 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, short UNUSED(mval[
 }
 
 /* note: caller needs to run paintface_flush_flags(ob) after this */
-void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
+void paintface_deselect_all_visible(Object *ob, int action, short UNUSED(flush_flags))
 {
 	Mesh *me;
 	MPoly *mface;

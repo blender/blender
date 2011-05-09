@@ -77,7 +77,7 @@ enum {
 	BMW_ISLAND,
 	/*do not intitialze function pointers and struct size in BMW_Init*/
 	BMW_CUSTOM,
-	BMW_MAXWALKERS,
+	BMW_MAXWALKERS
 };
 
 #endif

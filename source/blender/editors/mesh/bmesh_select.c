@@ -1870,7 +1870,10 @@ void em_deselect_nth_vert(EditMesh *em, int nth, EditVert *eve_act)
 
 int EM_deselect_nth(BMEditMesh *em, int nth)
 {
-#if 0 //BMESH_TODO
+#if 1 /*BMESH_TODO*/
+	(void)em;
+	(void)nth;
+#else
 	EditSelection *ese;
 	ese = ((EditSelection*)em->selected.last);
 	if(ese) {

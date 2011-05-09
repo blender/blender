@@ -1,5 +1,5 @@
-#ifndef BM_OPERATORS_H
-#define BM_OPERATORS_H
+#ifndef _BMESH_OPERATORS_H
+#define _BMESH_OPERATORS_H
 
 /*see comments in intern/bmesh_opdefines.c for documentation of specific operators*/
 
@@ -13,7 +13,7 @@ enum {
 	DEL_EDGESFACES,
 	DEL_FACES,
 	DEL_ALL	,
-	DEL_ONLYTAGGED,
+	DEL_ONLYTAGGED
 };
 
 /*quad innervert values*/
@@ -21,7 +21,7 @@ enum {
 	SUBD_INNERVERT,
 	SUBD_PATH,
 	SUBD_FAN,
-	SUBD_STRAIGHT_CUT,
+	SUBD_STRAIGHT_CUT
 };
 
 /* similar face selection slot values */
@@ -31,7 +31,7 @@ enum {
 	SIMFACE_AREA,
 	SIMFACE_PERIMETER,
 	SIMFACE_NORMAL,
-	SIMFACE_COPLANAR,
+	SIMFACE_COPLANAR
 };
 
 /* similar edge selection slot values */
@@ -42,14 +42,14 @@ enum {
 	SIMEDGE_FACE_ANGLE,
 	SIMEDGE_CREASE,
 	SIMEDGE_SEAM,
-	SIMEDGE_SHARP,
+	SIMEDGE_SHARP
 };
 
 /* similar vertex selection slot values */
 enum {
 	SIMVERT_NORMAL = 0,
 	SIMVERT_FACE,
-	SIMVERT_VGROUP,
+	SIMVERT_VGROUP
 };
 
 enum {

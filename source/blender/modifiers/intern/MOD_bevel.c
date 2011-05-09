@@ -91,7 +91,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 						int UNUSED(useRenderParams),
 						int UNUSED(isFinalCalc))
 {
-#if 0
+#if 1 /*BMESH_TODO*/
+	(void)md;
+	return CDDM_copy(derivedData, 0);
+#else
 	DerivedMesh *result;
 	BME_Mesh *bm;
 
@@ -115,8 +118,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 
 	CDDM_calc_normals(result);
 #endif
-
-	return CDDM_copy(derivedData, 0);
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
