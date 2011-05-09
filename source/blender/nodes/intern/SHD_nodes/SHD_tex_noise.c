@@ -37,8 +37,8 @@ static bNodeSocketType sh_node_tex_noise_in[]= {
 };
 
 static bNodeSocketType sh_node_tex_noise_out[]= {
-	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Fac",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Fac",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

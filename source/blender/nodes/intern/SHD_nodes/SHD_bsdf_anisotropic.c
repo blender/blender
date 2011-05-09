@@ -39,7 +39,7 @@ static bNodeSocketType sh_node_bsdf_anisotropic_in[]= {
 };
 
 static bNodeSocketType sh_node_bsdf_anisotropic_out[]= {
-	{	SOCK_CLOSURE, 1, "BSDF",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_CLOSURE, 0, "BSDF",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

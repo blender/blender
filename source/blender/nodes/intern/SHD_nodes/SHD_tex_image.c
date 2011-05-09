@@ -37,7 +37,7 @@ static bNodeSocketType sh_node_tex_image_in[]= {
 };
 
 static bNodeSocketType sh_node_tex_image_out[]= {
-	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

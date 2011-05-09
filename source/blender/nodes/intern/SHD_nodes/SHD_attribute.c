@@ -32,7 +32,7 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketType sh_node_attribute_out[]= {
-	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

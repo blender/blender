@@ -38,7 +38,7 @@ static bNodeSocketType sh_node_background_in[]= {
 };
 
 static bNodeSocketType sh_node_background_out[]= {
-	{	SOCK_CLOSURE, 1, "Background",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_CLOSURE, 0, "Background",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

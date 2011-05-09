@@ -38,7 +38,7 @@ static bNodeSocketType sh_node_emission_in[]= {
 };
 
 static bNodeSocketType sh_node_emission_out[]= {
-	{	SOCK_CLOSURE, 1, "Emission",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_CLOSURE, 0, "Emission",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

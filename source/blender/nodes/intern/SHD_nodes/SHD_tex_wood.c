@@ -39,7 +39,7 @@ static bNodeSocketType sh_node_tex_wood_in[]= {
 };
 
 static bNodeSocketType sh_node_tex_wood_out[]= {
-	{	SOCK_VALUE, 1, "Fac",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Fac",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
