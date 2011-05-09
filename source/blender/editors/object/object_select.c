@@ -894,7 +894,7 @@ static int object_select_name_exec(bContext *C, wmOperator *op)
 
 	if(!extend) {
 		CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
-			if((base->flag & SELECT) == 0) {
+			if(base->flag & SELECT) {
 				ED_base_object_select(base, BA_DESELECT);
 				changed= 1;
 			}

@@ -231,19 +231,21 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	   this derivedmesh is just original mesh. it's the multires subsurf dm
 	   that this is actually for, to support a pbvh on a modified mesh */
 	if(!cddm->pbvh && ob->type == OB_MESH) {
+		SculptSession *ss= ob->sculpt;
 		Mesh *me= ob->data;
 		cddm->pbvh = BLI_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 				   me->totface, me->totvert);
 
-		if(ob->sculpt->modifiers_active) {
+		if(ss->modifiers_active && ob->derivedDeform) {
+			DerivedMesh *deformdm= ob->derivedDeform;
 			float (*vertCos)[3];
 			int totvert;
 
-			totvert= dm->getNumVerts(dm);
+			totvert= deformdm->getNumVerts(deformdm);
 			vertCos= MEM_callocN(3*totvert*sizeof(float), "cdDM_getPBVH vertCos");
-			dm->getVertCos(dm, vertCos);
+			deformdm->getVertCos(deformdm, vertCos);
 			BLI_pbvh_apply_vertCos(cddm->pbvh, vertCos);
 			MEM_freeN(vertCos);
 		}
@@ -594,26 +596,26 @@ static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 				glBegin(glmode = new_glmode);
 			}
 				
-			glColor3ub(cp1[0], cp1[1], cp1[2]);
+			glColor3ubv(cp1+0);
 			glVertex3fv(mvert[mface->v1].co);
-			glColor3ub(cp1[4], cp1[5], cp1[6]);
+			glColor3ubv(cp1+4);
 			glVertex3fv(mvert[mface->v2].co);
-			glColor3ub(cp1[8], cp1[9], cp1[10]);
+			glColor3ubv(cp1+8);
 			glVertex3fv(mvert[mface->v3].co);
 			if(mface->v4) {
-				glColor3ub(cp1[12], cp1[13], cp1[14]);
+				glColor3ubv(cp1+12);
 				glVertex3fv(mvert[mface->v4].co);
 			}
 				
 			if(useTwoSided) {
-				glColor3ub(cp2[8], cp2[9], cp2[10]);
+				glColor3ubv(cp2+8);
 				glVertex3fv(mvert[mface->v3].co );
-				glColor3ub(cp2[4], cp2[5], cp2[6]);
+				glColor3ubv(cp2+4);
 				glVertex3fv(mvert[mface->v2].co );
-				glColor3ub(cp2[0], cp2[1], cp2[2]);
+				glColor3ubv(cp2+0);
 				glVertex3fv(mvert[mface->v1].co );
 				if(mface->v4) {
-					glColor3ub(cp2[12], cp2[13], cp2[14]);
+					glColor3ubv(cp2+12);
 					glVertex3fv(mvert[mface->v4].co );
 				}
 			}

@@ -129,6 +129,7 @@ class TEXT_PT_find(bpy.types.Panel):
         layout.operator("text.mark_all")
 
         # settings
+        layout.prop(st, "use_match_case")
         row = layout.row()
         row.prop(st, "use_find_wrap", text="Wrap")
         row.prop(st, "use_find_all", text="All")

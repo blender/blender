@@ -3770,7 +3770,12 @@ static void lib_link_object(FileData *fd, Main *main)
 				}
 				else if(act->type==ACT_OBJECT) {
 					bObjectActuator *oa= act->data;
-					oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
+					if(oa==NULL) {
+						init_actuator(act);
+					}
+					else {
+						oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
+					}
 				}
 				else if(act->type==ACT_EDIT_OBJECT) {
 					bEditObjectActuator *eoa= act->data;
@@ -3780,15 +3785,6 @@ static void lib_link_object(FileData *fd, Main *main)
 					else {
 						eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 						eoa->me= newlibadr(fd, ob->id.lib, eoa->me);
-					}
-				}
-				else if(act->type==ACT_OBJECT) {
-					bObjectActuator *oa= act->data;
-					if(oa==NULL) {
-						init_actuator(act);
-					}
-					else {
-						oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
 					}
 				}
 				else if(act->type==ACT_SCENE) {
@@ -4126,6 +4122,13 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					for(a=0; a<mmd->totcagevert*3; a++)
 						SWITCH_INT(mmd->bindcos[a])
 			}
+		}
+		else if (md->type==eModifierType_Warp) {
+			WarpModifierData *tmd = (WarpModifierData *) md;
+
+			tmd->curfalloff= newdataadr(fd, tmd->curfalloff);
+			if(tmd->curfalloff)
+				direct_link_curvemapping(fd, tmd->curfalloff);
 		}
 	}
 }
@@ -8866,11 +8869,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ima->gen_x= 256; ima->gen_y= 256;
 				ima->gen_type= 1;
 				
-				if(0==strncmp(ima->id.name+2, "Viewer Node", sizeof(ima->id.name+2))) {
+				if(0==strncmp(ima->id.name+2, "Viewer Node", sizeof(ima->id.name)-2)) {
 					ima->source= IMA_SRC_VIEWER;
 					ima->type= IMA_TYPE_COMPOSITE;
 				}
-				if(0==strncmp(ima->id.name+2, "Render Result", sizeof(ima->id.name+2))) {
+				if(0==strncmp(ima->id.name+2, "Render Result", sizeof(ima->id.name)-2)) {
 					ima->source= IMA_SRC_VIEWER;
 					ima->type= IMA_TYPE_R_RESULT;
 				}

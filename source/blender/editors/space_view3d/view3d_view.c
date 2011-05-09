@@ -65,7 +65,7 @@
 #include "ED_armature.h"
 
 #ifdef WITH_GAMEENGINE
-#include "SYS_System.h"
+#include "BL_System.h"
 #endif
 
 #include "view3d_intern.h"	// own include
@@ -1763,9 +1763,6 @@ static void game_set_commmandline_options(GameData *gm)
 
 	}
 }
-
-/* maybe we need this defined somewhere else */
-extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_frame, int always_use_expand_framing);
 
 #endif // WITH_GAMEENGINE
 

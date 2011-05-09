@@ -26,8 +26,8 @@
 
 set(INC
 	.
-	../../../source/kernel/gen_system
 	../../../intern/string
+	../../../intern/container
 	../../../intern/moto/include
 )
 

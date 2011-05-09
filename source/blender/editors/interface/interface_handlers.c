@@ -2801,10 +2801,16 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			
 			tempf= data->value;
 			temp= (int)data->value;
-			
-			/* XXX useles "if", same result for f, uh??? */
-			if(but->type==SLI) f= (float)(mx-but->x1)/(but->x2-but->x1);
-			else f= (float)(mx- but->x1)/(but->x2-but->x1);
+
+#if 0
+			if(but->type==SLI) {
+				f= (float)(mx-but->x1)/(but->x2-but->x1); /* same as below */
+			}
+			else
+#endif
+			{
+				f= (float)(mx- but->x1)/(but->x2-but->x1);
+			}
 			
 			f= softmin + f*softrange;
 			

@@ -47,7 +47,6 @@
 //#include <Carbon/Carbon.h>
 //#include <CFBundle.h>
 #endif // __APPLE__
-#include "GEN_messaging.h"
 #include "KX_KetsjiEngine.h"
 #include "KX_PythonInit.h"
 
@@ -92,7 +91,7 @@ extern char datatoc_bfont_ttf[];
 * End Blender include block
 **********************************/
 
-#include "SYS_System.h"
+#include "BL_System.h"
 #include "GPG_Application.h"
 
 #include "GHOST_ISystem.h"
@@ -199,7 +198,7 @@ void usage(const char* program, bool isBlenderPlayer)
 	}
 	
 	printf("usage:   %s [-w [w h l t]] [-f [fw fh fb ff]] %s[-g gamengineoptions] "
-		"[-s stereomode] %s\n", program, consoleoption, filename);
+		"[-s stereomode] [-m aasamples] %s\n", program, consoleoption, filename);
 	printf("  -h: Prints this command summary\n\n");
 	printf("  -w: display in a window\n");
 	printf("       --Optional parameters--\n"); 
@@ -235,9 +234,8 @@ void usage(const char* program, bool isBlenderPlayer)
 	printf("             cubemap                (Cube Map)\n");
 	printf("             sphericalpanoramic     (Spherical Panoramic)\n");
 	printf("                             depending on the type of dome you are using\n\n");
-#ifndef _WIN32
+	printf("  -m: maximum anti-aliasing (eg. 2,4,8,16)\n\n");
 	printf("  -i: parent windows ID \n\n");
-#endif
 #ifdef _WIN32
 	printf("  -c: keep console window open\n\n");
 #endif
@@ -257,6 +255,7 @@ void usage(const char* program, bool isBlenderPlayer)
 	printf("\n");
 	printf("example: %s -w 320 200 10 10 -g noaudio%s%s\n", program, pathname, filename);
 	printf("example: %s -g show_framerate = 0 %s%s\n", program, pathname, filename);
+	printf("example: %s -i 232421 -m 16 %s%s\n\n", program, pathname, filename);
 }
 
 static void get_filename(int argc, char **argv, char *filename)
@@ -367,6 +366,7 @@ int main(int argc, char** argv)
 	GHOST_TEmbedderWindowID parentWindow = 0;
 	bool isBlenderPlayer = false;
 	int validArguments=0;
+	GHOST_TUns16 aasamples = 0;
 	
 #ifdef __linux__
 #ifdef __alpha__
@@ -401,8 +401,6 @@ int main(int argc, char** argv)
 	init_nodesystem();
 	
 	initglobals();
-
-	GEN_init_messaging_system();
 
 	IMB_init();
 
@@ -553,7 +551,6 @@ int main(int argc, char** argv)
 				usage(argv[0], isBlenderPlayer);
 				return 0;
 				break;
-#ifndef _WIN32
 			case 'i':
 				i++;
 				if ( (i + 1) <= validArguments )
@@ -562,12 +559,15 @@ int main(int argc, char** argv)
 					error = true;
 					printf("error: too few options for parent window argument.\n");
 				}
-
 #if defined(DEBUG)
 				printf("XWindows ID = %d\n", parentWindow);
 #endif // defined(DEBUG)
-
-#endif  // _WIN32			
+				break;
+			case 'm':
+				i++;
+				if ((i+1) <= validArguments )
+				aasamples = atoi(argv[i++]);
+				break;
 			case 'c':
 				i++;
 				closeConsole = false;
@@ -857,13 +857,13 @@ int main(int argc, char** argv)
 								if (scr_saver_mode == SCREEN_SAVER_MODE_SAVER)
 								{
 									app.startScreenSaverFullScreen(fullScreenWidth, fullScreenHeight, fullScreenBpp, fullScreenFrequency,
-										stereoWindow, stereomode);
+										stereoWindow, stereomode, aasamples);
 								}
 								else
 #endif
 								{
 									app.startFullScreen(fullScreenWidth, fullScreenHeight, fullScreenBpp, fullScreenFrequency,
-										stereoWindow, stereomode);
+										stereoWindow, stereomode, aasamples);
 								}
 							}
 							else
@@ -903,16 +903,16 @@ int main(int argc, char** argv)
 #ifdef WIN32
 								if (scr_saver_mode == SCREEN_SAVER_MODE_PREVIEW)
 								{
-									app.startScreenSaverPreview(scr_saver_hwnd, stereoWindow, stereomode);
+									app.startScreenSaverPreview(scr_saver_hwnd, stereoWindow, stereomode, aasamples);
 								}
 								else
 #endif
 								{
 																										if (parentWindow != 0)
-										app.startEmbeddedWindow(title, parentWindow, stereoWindow, stereomode);
+										app.startEmbeddedWindow(title, parentWindow, stereoWindow, stereomode, aasamples);
 									else
 										app.startWindow(title, windowLeft, windowTop, windowWidth, windowHeight,
-										stereoWindow, stereomode);
+										stereoWindow, stereomode, aasamples);
 								}
 							}
 						}

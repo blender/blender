@@ -1495,6 +1495,8 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 				glRecti(x-4, y, ar->winx, y-st->lheight),  y-=st->lheight;
 
 			glRecti(x-4, y, x+toc*st->cwidth, y-st->lheight);  y-=st->lheight;
+
+			(void)y;
 		}
 	}
 	else {

@@ -144,6 +144,9 @@ def resolve_ncase(path):
             dirpath = os.path.dirname(dirpath)
 
         if not os.path.exists(dirpath):
+            if dirpath == path:
+                return path, False
+
             dirpath, found = _ncase_path_found(dirpath)
 
             if not found:

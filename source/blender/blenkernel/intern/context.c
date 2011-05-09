@@ -451,7 +451,7 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 
 		C->data.recursion= 1;
 
-		entry= BLI_findstring(&C->wm.store->entries, member, offsetof(bContextStoreEntry, name));
+		entry= BLI_rfindstring(&C->wm.store->entries, member, offsetof(bContextStoreEntry, name));
 		if(entry) {
 			result->ptr= entry->ptr;
 			done= 1;

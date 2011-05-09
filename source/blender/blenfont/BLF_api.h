@@ -91,6 +91,14 @@ float BLF_width(int fontid, const char *str);
 float BLF_height(int fontid, const char *str);
 
 /*
+ * Return dimensions of the font without any sample text.
+ */
+float BLF_height_max(int fontid);
+float BLF_width_max(int fontid);
+float BLF_descender(int fontid);
+float BLF_ascender(int fontid);
+
+/*
  * The following function return the width and height of the string, but
  * just in one call, so avoid extra freetype2 stuff.
  */

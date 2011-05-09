@@ -143,10 +143,10 @@ void EM_automerge(Scene *scene, Object *obedit, int update)
 		(obedit && obedit->type==OB_MESH && (obedit->mode & OB_MODE_EDIT))
 	  ) {
 		EditMesh *em= me->edit_mesh;
+		int totvert= em->totvert, totedge= em->totedge, totface= em->totface;
 
 		len = removedoublesflag(em, 1, 1, scene->toolsettings->doublimit);
-		if (len) {
-			em->totvert -= len; /* saves doing a countall */
+		if (totvert != em->totvert || totedge != em->totedge || totface != em->totface) {
 			if (update) {
 				DAG_id_tag_update(&me->id, 0);
 			}

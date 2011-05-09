@@ -92,7 +92,6 @@ set(SRC
 	intern/depsgraph.c
 	intern/displist.c
 	intern/effect.c
-	intern/exotic.c
 	intern/fcurve.c
 	intern/fluidsim.c
 	intern/fmodifier.c
@@ -147,7 +146,7 @@ set(SRC
 	intern/writeavi.c
 	intern/writeffmpeg.c
 	intern/writeframeserver.c
-
+	
 	BKE_DerivedMesh.h
 	BKE_action.h
 	BKE_anim.h
@@ -178,7 +177,6 @@ set(SRC
 	BKE_displist.h
 	BKE_effect.h
 	BKE_endian.h
-	BKE_exotic.h
 	BKE_fcurve.h
 	BKE_fluidsim.h
 	BKE_font.h
@@ -240,6 +238,11 @@ add_definitions(-DGLEW_STATIC)
 if(WITH_BULLET)
 	list(APPEND INC ../../../extern/bullet2/src)
 	add_definitions(-DUSE_BULLET)
+endif()
+
+if(WITH_MOD_CLOTH_ELTOPO)
+	list(APPEND INC ../../../extern/eltopo)
+	add_definitions(-DWITH_ELTOPO)
 endif()
 
 if(WITH_IMAGE_OPENEXR)

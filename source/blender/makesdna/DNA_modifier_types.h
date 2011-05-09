@@ -70,8 +70,6 @@ typedef enum ModifierType {
 	eModifierType_ShapeKey,
 	eModifierType_Solidify,
 	eModifierType_Screw,
-	/* placeholder, keep this so durian files load in
-	 * trunk with the correct modifier once its merged */
 	eModifierType_Warp,
 	NUM_MODIFIER_TYPES
 } ModifierType;
@@ -106,6 +104,17 @@ typedef enum {
 	eSubsurfModifierFlag_ControlEdges = (1<<2),
 	eSubsurfModifierFlag_SubsurfUv = (1<<3)
 } SubsurfModifierFlag;
+
+/* not a real modifier */
+typedef struct MappingInfoModifierData {
+	ModifierData modifier;
+
+	struct Tex *texture;
+	struct Object *map_object;
+	char uvlayer_name[32];
+	int uvlayer_tmp;
+	int texmapping;
+} MappingInfoModifierData;
 
 typedef struct SubsurfModifierData {
 	ModifierData modifier;
@@ -292,15 +301,19 @@ typedef struct SmokeModifierData {
 typedef struct DisplaceModifierData {
 	ModifierData modifier;
 
+	/* keep in sync with MappingInfoModifierData */
 	struct Tex *texture;
+	struct Object *map_object;
+	char uvlayer_name[32];
+	int uvlayer_tmp;
+	int texmapping;
+	int pad10;
+	/* end MappingInfoModifierData */
+
 	float strength;
 	int direction;
 	char defgrp_name[32];
 	float midlevel;
-	int texmapping;
-	struct Object *map_object;
-	char uvlayer_name[32];
-	int uvlayer_tmp, pad;
 } DisplaceModifierData;
 
 /* DisplaceModifierData->direction */
@@ -733,5 +746,42 @@ typedef struct ScrewModifierData {
 #define MOD_SCREW_OBJECT_OFFSET	(1<<2)
 // #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
 
+typedef struct WarpModifierData {
+	ModifierData modifier;
+
+	/* keep in sync with MappingInfoModifierData */
+	struct Tex *texture;
+	struct Object *map_object;
+	char uvlayer_name[32];
+	int uvlayer_tmp;
+	int texmapping;
+	int pad10;
+	/* end MappingInfoModifierData */
+
+	float strength;
+
+	struct Object *object_from;
+	struct Object *object_to;
+	struct CurveMapping *curfalloff;
+	char defgrp_name[32];			/* optional vertexgroup name */
+	float falloff_radius;
+	char flag; /* not used yet */
+	char falloff_type;
+	char pad[2];
+} WarpModifierData;
+
+#define MOD_WARP_VOLUME_PRESERVE 1
+
+typedef enum {
+	eWarp_Falloff_None =		0,
+	eWarp_Falloff_Curve =		1,
+	eWarp_Falloff_Sharp =		2, /* PROP_SHARP */
+	eWarp_Falloff_Smooth =		3, /* PROP_SMOOTH */
+	eWarp_Falloff_Root =		4, /* PROP_ROOT */
+	eWarp_Falloff_Linear =		5, /* PROP_LIN */
+	eWarp_Falloff_Const =		6, /* PROP_CONST */
+	eWarp_Falloff_Sphere =		7, /* PROP_SPHERE */
+	/* PROP_RANDOM not used */
+} WarpModifierFalloff;
 
 #endif

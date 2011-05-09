@@ -115,7 +115,7 @@ bool BL_ArmatureActuator::UnlinkObject(SCA_IObject* clientobj)
 	return res;
 }
 
-void BL_ArmatureActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void BL_ArmatureActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_gametarget];
 	if (h_obj) {

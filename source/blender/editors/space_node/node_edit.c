@@ -51,6 +51,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -232,6 +233,11 @@ static bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive((bNodeTree *)node->id);
 	else
 		return nodeGetActive(ntree);
+}
+
+void snode_dag_update(bContext *UNUSED(C), SpaceNode *snode)
+{
+	DAG_id_tag_update(snode->id, 0);
 }
 
 void snode_notify(bContext *C, SpaceNode *snode)
@@ -912,7 +918,8 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 
 	return OPERATOR_FINISHED;
 }
@@ -2014,6 +2021,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	node_tree_verify_groups(snode->nodetree);
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 
 	return OPERATOR_FINISHED;
 }
@@ -2169,6 +2177,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			ntreeSolveOrder(snode->edittree);
 			node_tree_verify_groups(snode->nodetree);
 			snode_notify(C, snode);
+			snode_dag_update(C, snode);
 			
 			BLI_remlink(&snode->linkdrag, nldrag);
 			MEM_freeN(nldrag);
@@ -2303,6 +2312,7 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 
 	node_tree_verify_groups(snode->nodetree);
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2377,6 +2387,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		ntreeSolveOrder(snode->edittree);
 		node_tree_verify_groups(snode->nodetree);
 		snode_notify(C, snode);
+		snode_dag_update(C, snode);
 		
 		return OPERATOR_FINISHED;
 	}
@@ -2436,6 +2447,8 @@ static int node_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2464,6 +2477,7 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 
 	RE_MergeFullSample(re, bmain, curscene, snode->nodetree);
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	WM_cursor_wait(0);
 	return OPERATOR_FINISHED;
@@ -2572,6 +2586,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 	}
 	
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2758,6 +2773,7 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2799,6 +2815,7 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	node_tree_verify_groups(snode->nodetree);
 
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2900,6 +2917,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	node->id = (ID *)ima;
 	
 	snode_notify(C, snode);
+	snode_dag_update(C, snode);
 	
 	return OPERATOR_FINISHED;
 }

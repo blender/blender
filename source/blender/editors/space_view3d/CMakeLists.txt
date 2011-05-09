@@ -58,7 +58,7 @@ set(SRC
 )
 
 if(WITH_GAMEENGINE)
-	list(APPEND INC ../../../kernel/gen_system)
+	list(APPEND INC ../../../../source/gameengine/BlenderRoutines)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 

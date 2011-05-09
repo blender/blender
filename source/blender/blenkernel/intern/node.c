@@ -1193,7 +1193,9 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 		newtree= MEM_dupallocN(ntree);
 		copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
 	}
-	
+
+	id_us_plus((ID *)newtree->gpd);
+
 	/* in case a running nodetree is copied */
 	newtree->init &= ~(NTREE_EXEC_INIT);
 	newtree->threadstack= NULL;
@@ -1434,6 +1436,8 @@ void ntreeFreeTree(bNodeTree *ntree)
 	ntreeEndExecTree(ntree);	/* checks for if it is still initialized */
 	
 	BKE_free_animdata((ID *)ntree);
+
+	id_us_min((ID *)ntree->gpd);
 
 	BLI_freelistN(&ntree->links);	/* do first, then unlink_node goes fast */
 	
@@ -2324,13 +2328,18 @@ static void tex_end_exec(bNodeTree *ntree)
 	bNodeStack *ns;
 	int th, a;
 	
-	if(ntree->threadstack)
-		for(th=0; th<BLENDER_MAX_THREADS; th++)
-			for(nts=ntree->threadstack[th].first; nts; nts=nts->next)
-				for(ns= nts->stack, a=0; a<ntree->stacksize; a++, ns++)
-					if(ns->data)
+	if(ntree->threadstack) {
+		for(th=0; th<BLENDER_MAX_THREADS; th++) {
+			for(nts=ntree->threadstack[th].first; nts; nts=nts->next) {
+				for(ns= nts->stack, a=0; a<ntree->stacksize; a++, ns++) {
+					if(ns->data) {
 						MEM_freeN(ns->data);
-						
+						ns->data= NULL;
+					}
+				}
+			}
+		}
+	}
 }
 
 void ntreeBeginExecTree(bNodeTree *ntree)

@@ -64,7 +64,7 @@ struct Brush *sculptmode_brush(void);
 void sculpt(Sculpt *sd);
 
 int sculpt_poll(struct bContext *C);
-void sculpt_update_mesh_elements(struct Scene *scene, struct Object *ob, int need_fmap);
+void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob, int need_fmap);
 
 /* Deformed mesh sculpt */
 void sculpt_free_deformMats(struct SculptSession *ss);
@@ -112,7 +112,6 @@ SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
 void sculpt_undo_push_begin(const char *name);
 void sculpt_undo_push_end(void);
 
-int sculpt_modifiers_active(Scene *scene, Object *ob);
 void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
 
 #endif

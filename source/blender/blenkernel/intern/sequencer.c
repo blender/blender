@@ -1917,7 +1917,7 @@ static ImBuf * seq_render_scene_strip_impl(
 		camera= scene->camera;
 	}
 
-	if(scene && have_seq==FALSE && camera==NULL) {
+	if(have_seq==FALSE && camera==NULL) {
 		scene->r.cfra= oldcfra;
 		return NULL;
 	}

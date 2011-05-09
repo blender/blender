@@ -675,8 +675,10 @@ void BKE_image_all_free_anim_ibufs(int cfra)
 
 int BKE_imtype_to_ftype(int imtype)
 {
-	if(imtype==0)
+	if(imtype==R_TARGA)
 		return TGA;
+	else if(imtype==R_RAWTGA)
+		return RAWTGA;
 	else if(imtype== R_IRIS) 
 		return IMAGIC;
 #ifdef WITH_HDR
@@ -703,10 +705,6 @@ int BKE_imtype_to_ftype(int imtype)
 	else if (imtype==R_DPX)
 		return DPX;
 #endif
-	else if (imtype==R_TARGA)
-		return TGA;
-	else if(imtype==R_RAWTGA)
-		return RAWTGA;
 #ifdef WITH_OPENJPEG
 	else if(imtype==R_JP2)
 		return JP2;
@@ -1013,7 +1011,10 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	int x, y, y_ofs;
 	float h_fixed;
 	const int mono= blf_mono_font_render; // XXX
-	
+
+#define BUFF_MARGIN_X 2
+#define BUFF_MARGIN_Y 1
+
 	if (!rect && !rectf)
 		return;
 	
@@ -1028,24 +1029,11 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	
 	BLF_buffer(mono, rectf, rect, width, height, channels);
 	BLF_buffer_col(mono, scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
-	pad= BLF_width(mono, "--");
+	pad= BLF_width_max(mono);
 
 	/* use 'h_fixed' rather then 'h', aligns better */
-	// BLF_width_and_height(mono, "^|/_AgPpJjlYy", &w, &h_fixed);
-	{
-		rctf box;
-		float baseline;
-		BLF_boundbox(mono, "^|/_AgPpJjlYy", &box);
-		h_fixed= box.ymax - box.ymin;
-		
-		/* crude way to get the decent line from A->j*/
-		BLF_boundbox(mono, "A", &box);
-		baseline= box.ymin;
-		BLF_boundbox(mono, "j", &box);
-		y_ofs = (int)(baseline - box.ymin);
-		if(y_ofs < 0) y_ofs= 0; /* should never happen */
-		y_ofs++;
-	}
+	h_fixed= BLF_height_max(mono);
+	y_ofs = -BLF_descender(mono);
 
 	x= 0;
 	y= height;
@@ -1056,14 +1044,14 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* also a little of space to the background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y-3, w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and draw the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.file);
 
 		/* the extra pixel for background. */
-		y -= 4;
+		y -= BUFF_MARGIN_Y * 2;
 	}
 
 	/* Top left corner, below File */
@@ -1072,13 +1060,13 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-3, w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.note);
 
 		/* the extra pixel for background. */
-		y -= 4;
+		y -= BUFF_MARGIN_Y * 2;
 	}
 	
 	/* Top left corner, below File (or Note) */
@@ -1087,13 +1075,13 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-3, w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.date);
 
 		/* the extra pixel for background. */
-		y -= 4;
+		y -= BUFF_MARGIN_Y * 2;
 	}
 
 	/* Top left corner, below File, Date or Note */
@@ -1102,7 +1090,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-3, w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.rendertime);
@@ -1116,7 +1104,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.marker, &w, &h); h= h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1131,7 +1119,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.time, &w, &h); h= h_fixed;
 
 		/* extra space for background */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1145,7 +1133,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.frame, &w, &h); h= h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1159,7 +1147,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.camera, &w, &h); h= h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.camera);
 
@@ -1171,7 +1159,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.cameralens, &w, &h); h= h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.cameralens);
 	}
@@ -1183,7 +1171,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		x= width - w - 2;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+3, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		/* and pad the text. */
 		BLF_position(mono, x, y+y_ofs, 0.0);
@@ -1198,7 +1186,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y= height - h;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y-3, x+w+pad, y+h+2);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-BUFF_MARGIN_X, y-BUFF_MARGIN_Y, x+w+BUFF_MARGIN_X, y+h+BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.strip);
@@ -1206,6 +1194,9 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 
 	/* cleanup the buffer. */
 	BLF_buffer(mono, NULL, NULL, 0, 0, 0);
+
+#undef BUFF_MARGIN_X
+#undef BUFF_MARGIN_Y
 }
 
 void BKE_stamp_info(Scene *scene, Object *camera, struct ImBuf *ibuf)
@@ -1674,8 +1665,15 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, flag);
-	if(G.f & G_DEBUG) printf("loaded %s\n", name);
-	
+
+#if 0
+	if(ibuf) {
+		printf(AT" loaded %s\n", name);
+	} else {
+		printf(AT" missed %s\n", name);
+	}
+#endif
+
 	if (ibuf) {
 #ifdef WITH_OPENEXR
 		/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_get_ibuf */
@@ -2231,21 +2229,19 @@ void BKE_image_release_ibuf(Image *ima, void *lock)
 /* warning, this can allocate generated images */
 ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 {
+	/* here (+fie_ima/2-1) makes sure that division happens correctly */
 	return BKE_image_acquire_ibuf(ima, iuser, NULL);
 }
 
-void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
+int BKE_image_user_get_frame(const ImageUser *iuser, int cfra, int fieldnr)
 {
-	int len;
-	
-	/* here (+fie_ima/2-1) makes sure that division happens correctly */
-	len= (iuser->fie_ima*iuser->frames)/2;
-	
+	const int len= (iuser->fie_ima*iuser->frames)/2;
+
 	if(len==0) {
-		iuser->framenr= 0;
+		return 0;
 	}
 	else {
-		int imanr;
+		int framenr;
 		cfra= cfra - iuser->sfra+1;
 
 		/* cyclic */
@@ -2254,31 +2250,38 @@ void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
 			if(cfra < 0) cfra+= len;
 			if(cfra==0) cfra= len;
 		}
-		
+
 		if(cfra<0) cfra= 0;
 		else if(cfra>len) cfra= len;
-		
+
 		/* convert current frame to current field */
 		cfra= 2*(cfra);
 		if(fieldnr) cfra++;
-		
+
 		/* transform to images space */
-		imanr= (cfra+iuser->fie_ima-2)/iuser->fie_ima;
-		if(imanr>iuser->frames) imanr= iuser->frames;
-		imanr+= iuser->offset;
-		
+		framenr= (cfra+iuser->fie_ima-2)/iuser->fie_ima;
+		if(framenr>iuser->frames) framenr= iuser->frames;
+		framenr+= iuser->offset;
+
 		if(iuser->cycl) {
-			imanr= ( (imanr) % len );
-			while(imanr < 0) imanr+= len;
-			if(imanr==0) imanr= len;
+			framenr= ( (framenr) % len );
+			while(framenr < 0) framenr+= len;
+			if(framenr==0) framenr= len;
 		}
-	
-		/* allows image users to handle redraws */
-		if(iuser->flag & IMA_ANIM_ALWAYS)
-			if(imanr!=iuser->framenr)
-				iuser->flag |= IMA_ANIM_REFRESHED;
-		
-		iuser->framenr= imanr;
-		if(iuser->ok==0) iuser->ok= 1;
+
+		return framenr;
 	}
+}
+
+void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
+{
+	const int framenr= BKE_image_user_get_frame(iuser, cfra, fieldnr);
+
+	/* allows image users to handle redraws */
+	if(iuser->flag & IMA_ANIM_ALWAYS)
+		if(framenr!=iuser->framenr)
+			iuser->flag |= IMA_ANIM_REFRESHED;
+
+	iuser->framenr= framenr;
+	if(iuser->ok==0) iuser->ok= 1;
 }

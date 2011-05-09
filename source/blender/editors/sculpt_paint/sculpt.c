@@ -172,7 +172,7 @@ static int sculpt_has_active_modifiers(Scene *scene, Object *ob)
 }
 
 /* Checks if there are any supported deformation modifiers active */
-int sculpt_modifiers_active(Scene *scene, Object *ob)
+static int sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 {
 	ModifierData *md;
 	Mesh *me= (Mesh*)ob->data;
@@ -189,12 +189,11 @@ int sculpt_modifiers_active(Scene *scene, Object *ob)
 	/* exception for shape keys because we can edit those */
 	for(; md; md= md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
 		if(!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 		if(md->type==eModifierType_ShapeKey) continue;
 
-		if(mti->type==eModifierTypeType_OnlyDeform)
-			return 1;
+		if(mti->type==eModifierTypeType_OnlyDeform) return 1;
+		else if((sd->flags & SCULPT_ONLY_DEFORM)==0) return 1;
 	}
 
 	return 0;
@@ -2705,13 +2704,13 @@ void sculpt_free_deformMats(SculptSession *ss)
 	ss->deform_imats = NULL;
 }
 
-void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
+void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_fmap)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	SculptSession *ss = ob->sculpt;
 	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
 
-	ss->modifiers_active= sculpt_modifiers_active(scene, ob);
+	ss->modifiers_active= sculpt_modifiers_active(scene, sd, ob);
 
 	if(!mmd) ss->kb= ob_get_keyblock(ob);
 	else ss->kb= NULL;
@@ -3256,7 +3255,7 @@ static void sculpt_stroke_modifiers_check(bContext *C, Object *ob)
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(&sd->paint);
 
-		sculpt_update_mesh_elements(CTX_data_scene(C), ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
 	}
 }
 
@@ -3358,7 +3357,7 @@ static int sculpt_brush_stroke_init(bContext *C, ReportList *UNUSED(reports))
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_init_tex(sd, ss);
 
-	sculpt_update_mesh_elements(scene, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+	sculpt_update_mesh_elements(scene, sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
 
 	return 1;
 }
@@ -3462,8 +3461,9 @@ static int over_mesh(bContext *C, struct wmOperator *op, float x, float y)
 static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
 					wmEvent *event)
 {
-	/* Don't start the stroke until mouse goes over the mesh */
-	if(over_mesh(C, op, event->x, event->y)) {
+	/* Don't start the stroke until mouse goes over the mesh.
+	 * note: event will only be null when re-executing the saved stroke. */
+	if(event==NULL || over_mesh(C, op, event->x, event->y)) {
 		Object *ob = CTX_data_active_object(C);
 		SculptSession *ss = ob->sculpt;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -3517,13 +3517,11 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 		ntreeEndExecTree(mtex->tex->nodetree);
 }
 
-static void sculpt_stroke_done(bContext *C, struct PaintStroke *unused)
+static void sculpt_stroke_done(bContext *C, struct PaintStroke *UNUSED(stroke))
 {
 	Object *ob= CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-
-	(void)unused;
 
 	// reset values used to draw brush after completing the stroke
 	sd->draw_anchored= 0;
@@ -3604,21 +3602,14 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 
 static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
-	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	SculptSession *ss = CTX_data_active_object(C)->sculpt;
-
 	if(!sculpt_brush_stroke_init(C, op->reports))
 		return OPERATOR_CANCELLED;
 
 	op->customdata = paint_stroke_new(C, sculpt_stroke_get_location, sculpt_stroke_test_start,
 					  sculpt_stroke_update_step, sculpt_stroke_done, 0);
 
-	sculpt_update_cache_invariants(C, sd, ss, op, NULL);
-
+	/* frees op->customdata */
 	paint_stroke_exec(C, op);
-
-	sculpt_flush_update(C);
-	sculpt_cache_free(ss->cache);
 
 	return OPERATOR_FINISHED;
 }
@@ -3661,11 +3652,9 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/
 
-static int sculpt_set_persistent_base(bContext *C, wmOperator *unused)
+static int sculpt_set_persistent_base(bContext *C, wmOperator *UNUSED(op))
 {
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
-
-	(void)unused;
 
 	if(ss) {
 		if(ss->layer_co)
@@ -3695,18 +3684,16 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 {
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-	sculpt_update_mesh_elements(scene, ob, 0);
+	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0);
 }
 
-static int sculpt_toggle_mode(bContext *C, wmOperator *unused)
+static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
 	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
 	int flush_recalc= 0;
-
-	(void)unused;
 
 	/* multires in sculpt mode could have different from object mode subdivision level */
 	flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;

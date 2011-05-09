@@ -275,6 +275,15 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			return NULL; /* unknown size */
 	}
 
+	/* exception, skip images over 100mb */
+	if(source == THB_SOURCE_IMAGE) {
+		const size_t size= BLI_filepathsize(path);
+		if(size != -1 && size > THUMB_SIZE_MAX) {
+			// printf("file too big: %d, skipping %s\n", (int)size, path);
+			return NULL;
+		}
+	}
+
 	uri_from_filename(path, uri);
 	thumbname_from_uri(uri, thumb, sizeof(thumb));
 	if (get_thumb_dir(tdir, size)) {

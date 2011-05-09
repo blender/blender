@@ -36,7 +36,7 @@
 
 #include "MT_Transform.h"
 #include "RAS_MaterialBucket.h"
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 
 #include <vector>
 

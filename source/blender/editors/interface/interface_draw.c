@@ -1578,7 +1578,7 @@ void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, fl
 }
 
 
-void ui_dropshadow(rctf *rct, float radius, float aspect, int select)
+void ui_dropshadow(rctf *rct, float radius, float aspect, int UNUSED(select))
 {
 	int i;
 	float rad;
@@ -1593,7 +1593,17 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, int select)
 		rad= radius;
 
 	i= 12;
-	if(select) a= i*aspect; else a= i*aspect;
+#if 0
+	if(select) {
+		a= i*aspect; /* same as below */
+	}
+	else
+#endif
+	{
+		a= i*aspect;
+
+	}
+
 	for(; i--; a-=aspect) {
 		/* alpha ranges from 2 to 20 or so */
 		glColor4ub(0, 0, 0, alpha);

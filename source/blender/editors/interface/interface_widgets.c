@@ -1291,7 +1291,7 @@ static struct uiWidgetColors wcol_menu_item= {
 	{255, 255, 255, 255},
 	{0, 0, 0, 255},
 	
-	0,
+	1,
 	38, 0
 };
 
@@ -1600,8 +1600,6 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 	else if(state & UI_ACTIVE) {
 		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
-		
-		wt->wcol.shaded= 1;
 	}
 }
 

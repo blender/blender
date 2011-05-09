@@ -1018,12 +1018,18 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			}
 		}
 	}
-	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
+	else if(t->spacetype==SPACE_IMAGE)
 	{
 		SpaceImage *sima = sa->spacedata.first;
-		// XXX for now, get View2D  from the active region
+		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
-		t->around = (sima ? sima->around : 0);
+		t->around = sima->around;
+	}
+	else if(t->spacetype==SPACE_NODE)
+	{
+		// XXX for now, get View2D from the active region
+		t->view = &ar->v2d;
+		t->around = V3D_CENTER;
 	}
 	else if(t->spacetype==SPACE_IPO) 
 	{

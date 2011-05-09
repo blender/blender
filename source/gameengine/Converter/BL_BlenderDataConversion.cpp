@@ -156,7 +156,7 @@ extern "C" {
 #include "KX_ScalarInterpolator.h"
 
 #include "KX_IpoConvert.h"
-#include "SYS_System.h"
+#include "BL_System.h"
 
 #include "SG_Node.h"
 #include "SG_BBox.h"
@@ -1831,6 +1831,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	{
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
+		gameobj->SetObjectColor(ob->col);
 		/* set the visibility state based on the objects render option in the outliner */
 		if(ob->restrictflag & OB_RESTRICT_RENDER) gameobj->SetVisible(0, 0);
 	}

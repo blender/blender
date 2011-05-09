@@ -1096,8 +1096,9 @@ static void rna_Object_constraints_remove(Object *object, ReportList *reports, b
 	}
 
 	remove_constraint(&object->constraints, con);
+	ED_object_constraint_update(object);
 	ED_object_constraint_set_active(object, NULL);
-	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, object);
+	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, object);
 }
 
 static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, ReportList *reports, const char *name, int type)

@@ -135,7 +135,7 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_range(parm, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(parm, "Time Step", "Interval in seconds between timer events");
-	parm= RNA_def_pointer(func, "window", "Window", "", "Window to attach the timer to or None.");
+	RNA_def_pointer(func, "window", "Window", "", "Window to attach the timer to or None.");
 	parm= RNA_def_pointer(func, "result", "Timer", "", "");
 	RNA_def_function_return(func, parm);
 

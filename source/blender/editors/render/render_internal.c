@@ -840,7 +840,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 
 /* *********************** cancel render viewer *************** */
 
-static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(unused))
+static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -887,7 +887,7 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot)
 
 /* *********************** show render viewer *************** */
 
-static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(unused), wmEvent *event)
+static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	wmWindow *wincur = CTX_wm_window(C);
 	

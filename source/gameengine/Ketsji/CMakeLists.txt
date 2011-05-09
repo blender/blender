@@ -26,11 +26,12 @@
 
 set(INC
 	.
-	../../../source/kernel/gen_system
 	../../../intern/string
 	../../../intern/guardedalloc
+	../../../intern/container
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
 	../../../source/gameengine/Converter
+	../../../source/gameengine/BlenderRoutines
 	../../../source/blender/imbuf
 	../../../intern/moto/include
 	../../../source/gameengine/Ketsji 

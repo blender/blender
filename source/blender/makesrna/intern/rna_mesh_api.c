@@ -65,7 +65,7 @@ void RNA_api_mesh(StructRNA *srna)
 
 	func= RNA_def_function(srna, "validate", "BKE_mesh_validate");
 	RNA_def_function_ui_description(func, "validate geometry, return True when the mesh has had invalid geometry corrected/removed.");
-	parm= RNA_def_boolean(func, "verbose", 0, "Verbose", "Output information about the errors found");
+	RNA_def_boolean(func, "verbose", 0, "Verbose", "Output information about the errors found");
 	parm= RNA_def_boolean(func, "result", 0, "Result", "");
 	RNA_def_function_return(func, parm);
 }

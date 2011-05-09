@@ -272,7 +272,7 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 static char *view3d_modeselect_pup(Scene *scene)
 {
 	Object *ob= OBACT;
-	static char string[1024];
+	static char string[256];
 	static char formatstr[] = "|%s %%x%d %%i%d";
 	char *str = string;
 
@@ -432,6 +432,27 @@ static int object_mode_icon(int mode)
 	return ICON_OBJECT_DATAMODE;
 }
 
+void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	uiBlock *block= uiLayoutGetBlock(layout);
+
+	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
+
+	if(obedit && (obedit->type == OB_MESH)) {
+		EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+		uiLayout *row;
+
+		row= uiLayoutRow(layout, 1);
+		block= uiLayoutGetBlock(row);
+		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
+
+		BKE_mesh_end_editmesh(obedit->data, em);
+	}
+}
+
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 {
 	bScreen *screen= CTX_wm_screen(C);
@@ -444,6 +465,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	uiLayout *row;
+	const float dpi_fac= UI_DPI_FAC;
 	
 	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
@@ -463,7 +485,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 	uiBlockBeginAlign(block);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 
-			  0,0,126,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode");
+			  0,0,126 * dpi_fac,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode");
 	uiBlockEndAlign(block);
 	
 	/* Draw type */
@@ -510,7 +532,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 			
 		str_menu = BIF_menustringTransformOrientation(C, "Orientation");
-		uiDefButS(block, MENU, B_MAN_MODE, str_menu,0,0,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation");
+		uiDefButS(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation");
 		MEM_freeN((void *)str_menu);
 	}
 
@@ -527,16 +549,6 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiItemR(layout, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	}
 	
-	/* selection modus, dont use python for this since it cant do the toggle buttons with shift+click as well as clicking to set one. */
-	if(obedit && (obedit->type == OB_MESH)) {
-		EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-
-		row= uiLayoutRow(layout, 1);
-		block= uiLayoutGetBlock(row);
-		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
-
-		BKE_mesh_end_editmesh(obedit->data, em);
-	}
+	uiTemplateEditModeSelection(layout, C);
 }
+

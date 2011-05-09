@@ -645,6 +645,9 @@ static const EnumPropertyItem image_file_type_items[] = {
 		{R_TARGA, "TARGA", 0, "Targa", ""},
 		{R_RAWTGA, "TARGA RAW", 0, "Targa Raw", ""},
 		{R_PNG, "PNG", 0, "PNG", ""},
+#ifdef WITH_DDS
+		{R_DDS, "DDS", 0, "DirectDraw Surface", ""},
+#endif
 		{R_BMP, "BMP", 0, "BMP", ""},
 		{R_JPEG90, "JPEG", 0, "Jpeg", ""},
 #ifdef WITH_OPENJPEG
@@ -1420,6 +1423,9 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 	}
 
 	ibuf->userflags |= IB_BITMAPDIRTY;
+	if(ibuf->mipmap[0])
+		ibuf->userflags |= IB_MIPMAP_INVALID;
+
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	return OPERATOR_FINISHED;
 }

@@ -129,7 +129,7 @@ static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
 }
 
 /* This function is for brightening/darkening a given color (like UI_ThemeColorShade()) */
-static void cp_shade_color3ub (char cp[], int offset)
+static void cp_shade_color3ub (unsigned char cp[3], const int offset)
 {
 	int r, g, b;
 	
@@ -152,7 +152,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_NORMAL:
 	{
 		if (bcolor) {
-			char cp[3];
+			unsigned char cp[3];
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
@@ -169,7 +169,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 				cp_shade_color3ub(cp, -50);
 			}
 			
-			glColor3ub(cp[0], cp[1], cp[2]);
+			glColor3ubv(cp);
 		}
 		else {
 			if (boneflag & BONE_DRAW_ACTIVE && boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_BONE_POSE, 40);
@@ -185,8 +185,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_SOLID:
 	{
 		if (bcolor) {
-			char *cp= bcolor->solid;
-			glColor3ub(cp[0], cp[1], cp[2]);
+			glColor3ubv((unsigned char *)bcolor->solid);
 		}
 		else 
 			UI_ThemeColor(TH_BONE_SOLID);
@@ -215,7 +214,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_SPHEREBONE_BASE:
 	{
 		if (bcolor) {
-			char cp[3];
+			unsigned char cp[3];
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
@@ -227,7 +226,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 				VECCOPY(cp, bcolor->solid);
 			}
 			
-			glColor3ub(cp[0], cp[1], cp[2]);
+			glColor3ubv(cp);
 		}
 		else {
 			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 40);
@@ -241,7 +240,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_SPHEREBONE_END:
 	{
 		if (bcolor) {
-			char cp[3];
+			unsigned char cp[3];
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
@@ -256,7 +255,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 				cp_shade_color3ub(cp, -30);
 			}
 			
-			glColor3ub(cp[0], cp[1], cp[2]);
+			glColor3ubv(cp);
 		}
 		else {
 			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 10);
