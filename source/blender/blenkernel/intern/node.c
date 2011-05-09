@@ -3655,3 +3655,4 @@ void clear_scene_in_nodes(Main *bmain, Scene *sce)
 		}
 	}
 }
+

@@ -41,7 +41,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_cellalloc.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"

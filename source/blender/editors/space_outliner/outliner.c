@@ -5757,7 +5757,7 @@ void draw_outliner(const bContext *C)
 	outliner_back(ar);
 	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS);
 	outliner_draw_tree((bContext *)C, block, scene, ar, soops);
-
+	
 	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* draw rna buttons */
 		outliner_draw_rnacols(ar, sizex_rna);
@@ -5771,9 +5771,6 @@ void draw_outliner(const bContext *C)
 		outliner_draw_restrictcols(ar);
 		outliner_draw_restrictbuts(block, scene, ar, soops, &soops->tree);
 	}
-
-	/* draw edit buttons if nessecery */
-	outliner_buttons(C, block, ar, soops, &soops->tree);	
 
 	/* draw edit buttons if nessecery */
 	outliner_buttons(C, block, ar, soops, &soops->tree);	

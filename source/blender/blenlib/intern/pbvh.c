@@ -1405,8 +1405,7 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	return hit;
 }
 
-//#include "BIF_gl.h"
-//#include "BIF_glutil.h"
+//#include <GL/glew.h>
 
 void BLI_pbvh_node_draw(PBVHNode *node, void *UNUSED(data))
 {

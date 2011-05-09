@@ -67,7 +67,6 @@
 
 
 #include "RNA_access.h"
-#include "BLI_cellalloc.h"
 
 #define KEY_MODE_DUMMY		0 /* use where mode isn't checked for */
 #define KEY_MODE_BPOINT		1

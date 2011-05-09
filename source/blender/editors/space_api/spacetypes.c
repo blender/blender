@@ -40,7 +40,6 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
-#include "BKE_tessmesh.h"
 
 #include "bmesh.h"
 

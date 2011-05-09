@@ -55,7 +55,6 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_tessmesh.h"
 
 
 #include "BIF_gl.h"
@@ -1686,7 +1685,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 	INIT_MINMAX(min, max);
 
 	if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
-		/* hardcoded exception, we look for the one selectedW armature */
+		/* hardcoded exception, we look for the one selected armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
 		Base *base;
 		for(base=scene->base.first; base; base= base->next) {
@@ -2182,18 +2181,18 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar, float q1, float
 
 	if(align_active==FALSE) {
 		/* normal operation */
-	if(rv3d->viewlock) {
-		/* only pass on if */
+		if(rv3d->viewlock) {
+			/* only pass on if */
 			if(rv3d->view==RV3D_VIEW_FRONT && view==RV3D_VIEW_BACK);
 			else if(rv3d->view==RV3D_VIEW_BACK && view==RV3D_VIEW_FRONT);
 			else if(rv3d->view==RV3D_VIEW_RIGHT && view==RV3D_VIEW_LEFT);
 			else if(rv3d->view==RV3D_VIEW_LEFT && view==RV3D_VIEW_RIGHT);
 			else if(rv3d->view==RV3D_VIEW_BOTTOM && view==RV3D_VIEW_TOP);
 			else if(rv3d->view==RV3D_VIEW_TOP && view==RV3D_VIEW_BOTTOM);
-		else return;
-	}
+			else return;
+		}
 
-	rv3d->view= view;
+		rv3d->view= view;
 	}
 
 	if(rv3d->viewlock) {

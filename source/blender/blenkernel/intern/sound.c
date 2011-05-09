@@ -454,8 +454,8 @@ void sound_seek_scene(struct bContext *C)
 		AUD_resume(scene->sound_scene_handle);
 		if(AUD_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID)
 			AUD_seek(scene->sound_scrub_handle, 0);
-		//XXX merge EEK! else
-			//scene->sound_scrub_handle = AUD_pauseAfter(scene->sound_scene_handle, 1 / FPS);
+		else
+			scene->sound_scrub_handle = AUD_pauseAfter(scene->sound_scene_handle, 1 / FPS);
 	}
 	else
 	{

@@ -594,15 +594,6 @@ void set_sca_new_poins_ob(Object *ob)
 				bPropertyActuator *pa= act->data;
 				ID_NEW(pa->ob);
 			}
-			else if(act->type==ACT_ARMATURE) {
-				bArmatureActuator *aa = act->data;
-				ID_NEW(aa->target);
-				ID_NEW(aa->subtarget);
-			}
-			else if(act->type==ACT_PROPERTY) {
-				bPropertyActuator *pa= act->data;
-				ID_NEW(pa->ob);
-			}
 		}
 		act= act->next;
 	}

@@ -44,7 +44,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
-#include "BLI_cellalloc.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"

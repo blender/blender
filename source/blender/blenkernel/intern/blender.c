@@ -456,8 +456,6 @@ static int read_undosave(bContext *C, UndoElem *uel)
 
 	BLI_strncpy(mainstr, G.main->name, sizeof(mainstr));	/* temporal store */
 
-	strcpy(mainstr, G.main->name);	/* temporal store */
-
 	fileflags= G.fileflags;
 	G.fileflags |= G_FILE_NO_UI;
 

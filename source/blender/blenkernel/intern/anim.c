@@ -52,8 +52,6 @@
 #include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_windowmanager_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BKE_animsys.h"

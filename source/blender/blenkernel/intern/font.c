@@ -258,7 +258,7 @@ static PackedFile *get_builtin_packedfile(void)
 void free_ttfont(void)
 {
 	struct TmpFont *tf;
-	
+
 	for(tf= ttfdata.first; tf; tf= tf->next) {
 		if(tf->pf) freePackedFile(tf->pf); /* NULL when the font file can't be found on disk */
 		tf->pf= NULL;
