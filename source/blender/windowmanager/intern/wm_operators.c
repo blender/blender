@@ -208,7 +208,7 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 		if(opm->type->exec) {
 			retval= opm->type->exec(C, opm);
 		
-			if ((retval & OPERATOR_FINISHED) && !(retval & OPERATOR_ABORT_MACRO)) {
+			if (retval & OPERATOR_FINISHED) {
 				MacroData *md = op->customdata;
 				md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
 			} else {
@@ -233,7 +233,7 @@ static int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event,
 
 		BLI_movelisttolist(&op->reports->list, &opm->reports->list);
 		
-		if ((retval & OPERATOR_FINISHED) && !(retval & OPERATOR_ABORT_MACRO)) {
+		if (retval & OPERATOR_FINISHED) {
 			MacroData *md = op->customdata;
 			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
 		} else {
@@ -261,7 +261,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 		retval = opm->type->modal(C, opm, event);
 
 		/* if this one is done but it's not the last operator in the macro */
-		if (opm->next && (retval & OPERATOR_FINISHED) && !(retval & OPERATOR_ABORT_MACRO)) {
+		if (opm->next && (retval & OPERATOR_FINISHED)) {
 			MacroData *md = op->customdata;
 
 			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */

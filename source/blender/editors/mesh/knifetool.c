@@ -1707,6 +1707,8 @@ static int knifetool_init (bContext *C, wmOperator *op, int UNUSED(do_cut))
 	kcd->vthresh = KMAXDIST-1;
 	kcd->ethresh = KMAXDIST;
 	
+	kcd->extend = 1;
+	
 	knife_recalc_projmat(kcd);
 	
 	ED_region_tag_redraw(kcd->ar);
@@ -1825,7 +1827,11 @@ static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_RUNNING_MODAL;
 			
 		case EKEY:
-			kcd->extend = event->val!=KM_RELEASE;
+			kcd->extend = event->val==KM_RELEASE;
+			if (event->val == KM_RELEASE) {
+				knife_finish_cut(kcd);
+				kcd->mode = MODE_IDLE;
+			}
 			return OPERATOR_RUNNING_MODAL;
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:

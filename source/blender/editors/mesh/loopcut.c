@@ -104,9 +104,6 @@ typedef struct tringselOpData {
 
 	int extend;
 	int do_cut;
-	
-	double leftmouse_time;
-	wmTimer *timer;
 } tringselOpData;
 
 /* modal loop selection drawing callback */
@@ -346,9 +343,6 @@ static void ringsel_exit(bContext *C, wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
 	
-	if (lcd->timer)
-		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), lcd->timer);
-	
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(lcd->ar->type, lcd->draw_handle);
 	
@@ -431,10 +425,6 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	BMEdge *edge;
 	int dist = 75;
 
-	/*if we're in the cut-n-slide macro, set release_confirm based on user pref*/
-	if (op->opm)
-		RNA_boolean_set(op->next->ptr, "release_confirm", U.loopcut_finish_on_release);
-	
 	if(modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
 		BKE_report(op->reports, RPT_WARNING, "Loop cut doesn't work well on deformed edit mesh display");
 	
@@ -470,7 +460,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 	switch (event->type) {
 		case RETKEY:
 		case LEFTMOUSE: /* confirm */ // XXX hardcoded
-			if (event->val == KM_RELEASE) {
+			if (event->val == KM_PRESS) {
 				/* finish */
 				ED_region_tag_redraw(lcd->ar);
 				
@@ -479,24 +469,11 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 				
 				ED_area_headerprint(CTX_wm_area(C), NULL);
 				
-				return OPERATOR_FINISHED|OPERATOR_ABORT_MACRO;
-			} else {
-				lcd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER2, 0.12);
+				return OPERATOR_FINISHED;
 			}
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
-		case TIMER2: 
-			/* finish */
-			ED_region_tag_redraw(lcd->ar);
-			
-			ringsel_finish(C, op);
-			ringsel_exit(C, op);
-			
-			ED_area_headerprint(CTX_wm_area(C), NULL);
-
-			return OPERATOR_FINISHED;
-		
 		case RIGHTMOUSE: /* abort */ // XXX hardcoded
 			ED_region_tag_redraw(lcd->ar);
 			ringsel_exit(C, op);
