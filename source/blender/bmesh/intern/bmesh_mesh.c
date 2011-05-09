@@ -345,7 +345,7 @@ void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 		MDisps *mdisps;
 		BMFace *f;
 		BMIter iter;
-		int i;
+		// int i= 0; // UNUSED
 		
 		multires_set_space(dm, ob, from, to);
 		
@@ -372,7 +372,7 @@ void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 				}
 				
 				mdisps++;
-				i += 1;	
+				// i += 1;
 			}
 		}
 		

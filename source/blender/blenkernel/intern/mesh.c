@@ -98,7 +98,7 @@ enum {
 	MESHCMP_CDLAYERS_MISMATCH,
 };
 
-static char *cmpcode_to_str(int code)
+static const char *cmpcode_to_str(int code)
 {
 	switch (code) {
 		case MESHCMP_DVERT_WEIGHTMISMATCH:
@@ -276,7 +276,7 @@ int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2, float
 }
 
 /*used for testing.  returns an error string the two meshes don't match*/
-char *mesh_cmp(Mesh *me1, Mesh *me2, float thresh)
+const char *mesh_cmp(Mesh *me1, Mesh *me2, float thresh)
 {
 	int c;
 	

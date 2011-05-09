@@ -868,7 +868,7 @@ static void foreachObjectLink(
 static DerivedMesh *applyModifierEM(
 						ModifierData *md,
 						Object *ob,
-						struct EditMesh *UNUSED(editData),
+						struct BMEditMesh *UNUSED(editData),
 						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

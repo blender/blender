@@ -64,7 +64,7 @@ behaviour, though it may not be the best in practice.
 
 /*this returns the entire size of the array, including any buffering.*/
 #define BLI_array_totalsize_dyn(arr) ((arr)==NULL ? 0 : MEM_allocN_len(arr) / sizeof(*arr))
-#define BLI_array_totalsize(arr) ((signed int)((arr == _##arr##_static && arr != NULL) ? (sizeof(_##arr##_static) / sizeof(*arr)) : BLI_array_totalsize_dyn(arr)))
+#define BLI_array_totalsize(arr) ((signed int)(((void *)(arr) == (void *)_##arr##_static && (void *)(arr) != NULL) ? (sizeof(_##arr##_static) / sizeof(*arr)) : BLI_array_totalsize_dyn(arr)))
 
 /*this returns the logical size of the array, not including buffering.*/
 #define BLI_array_count(arr) _##arr##_count
@@ -74,12 +74,12 @@ behaviour, though it may not be the best in practice.
 	BLI_array_totalsize(arr) > _##arr##_count ? ++_##arr##_count : \
 	((_##arr##_tmp = MEM_callocN(sizeof(*arr)*(_##arr##_count*2+2), #arr " " __FILE__ " ")),\
 	(arr && memcpy(_##arr##_tmp, arr, sizeof(*arr) * _##arr##_count)),\
-	(arr && (arr != (void*)_##arr##_static ? (MEM_freeN(arr), arr) : arr)),\
+	(arr && ((void *)(arr) != (void*)_##arr##_static ? (MEM_freeN(arr), arr) : arr)),\
 	(arr = _##arr##_tmp),\
 	_##arr##_count++)
 
 /*returns length of array*/
-#define BLI_array_growone(arr) (arr==NULL && _##arr##_static != NULL  ?  ((arr=(void*)_##arr##_static), ++_##arr##_count) : _BLI_array_growone(arr))
+#define BLI_array_growone(arr) ((void *)(arr)==NULL && (void *)(_##arr##_static) != NULL  ?  ((arr=(void*)_##arr##_static), ++_##arr##_count) : _BLI_array_growone(arr))
 
 	/*appends an item to the array and returns a pointer to the item in the array.
   item is not a pointer, but actual data value.*/
@@ -87,7 +87,7 @@ behaviour, though it may not be the best in practice.
 
 /*grow an array by a specified number of items.*/
 #define BLI_array_growitems(arr, num) {int _i; for (_i=0; _i<(num); _i++) {BLI_array_growone(arr);}}
-#define BLI_array_free(arr) if (arr && arr != _##arr##_static) MEM_freeN(arr)
+#define BLI_array_free(arr) if (arr && (char *)arr != _##arr##_static) MEM_freeN(arr)
 
 #define BLI_array_pop(arr) ((arr&&_##arr##_count) ? arr[--_##arr##_count] : 0)
 /*resets the logical size of an array to zero, but doesn't

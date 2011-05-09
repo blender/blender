@@ -867,7 +867,7 @@ static void layerInterp_bweight(void **sources, float *weights,
                              float *sub_weights, int count, void *dest)
 {
 	float *f = dest, *src;
-	float **in = sources;
+	float **in = (float **)sources;
 	int i;
 	
 	if(count <= 0) return;

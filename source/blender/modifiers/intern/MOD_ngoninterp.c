@@ -71,7 +71,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						int UNUSED(useRenderParams),
 						int UNUSED(isFinalCalc))
 {
-	NgonInterpModifierData *nmd= (MaskModifierData *)md;
+	NgonInterpModifierData *nmd= (NgonInterpModifierData *)md;
 	DerivedMesh *dm= derivedData, *result= NULL;
 	DerivedMesh *cddm, *dummy;
 	MFace *mf;

@@ -1179,7 +1179,7 @@ DMFaceIter *cgdm_newFaceIter(DerivedMesh *dm)
 
 	fiter->head.step(fiter);
 
-	return fiter;
+	return (DMFaceIter *)fiter;
 }
 
 static void ccgDM_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)

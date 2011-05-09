@@ -1048,7 +1048,7 @@ static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *ob)
 		}
 		
 		for (b=0; b<kb->totelem; b++, cos++) {
-			copy_v3_v3(cos, ((float*)kb->data)+b*3);
+			copy_v3_v3((float *)cos, ((float*)kb->data)+b*3);
 		}
 	}
 }

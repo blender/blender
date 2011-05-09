@@ -118,7 +118,7 @@ void mesh_calc_tessface_normals(struct MVert *mverts, int numVerts,struct  MFace
   differences we care about.  should be usable with leaf's
   testing framework I get RNA work done, will use hackish
   testing code for now.*/
-char *mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
+const char *mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
 
 struct BoundBox *mesh_get_bb(struct Object *ob);
 void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_r);

@@ -4499,6 +4499,7 @@ static void xsortvert_flag__doSetX(void *userData, EditVert *UNUSED(eve), int x,
 /* all verts with (flag & 'flag') are sorted */
 static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
 {
+	/*BMESH_TODO*/
 #if 0 //hrm, geometry isn't in linked lists anymore. . .
 	ViewContext vc;
 	BMEditMesh *em;
@@ -4627,7 +4628,9 @@ static int mesh_vertices_randomize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	//hashvert_flag(em, SELECT);
+#if 0 /*BMESH TODO*/
+	hashvert_flag(em, SELECT);
+#endif
 	return OPERATOR_FINISHED;
 }
 

@@ -116,7 +116,7 @@ void rotsys_remove_edge(struct BMEdge *e, struct BMVert *v,
 	}
 
 	if (vd->e == e)
-		vd->e = e!=e1->next ? (BMEdge*)e1->next : NULL;
+		vd->e = (e != (BMEdge *)e1->next) ? (BMEdge*)e1->next : NULL;
 
 	e1->next = e1->prev = NULL;
 }

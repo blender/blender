@@ -101,7 +101,7 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask, int flag)
 	
 	if (type >= BMW_MAXWALKERS || type < 0) {
 		bmesh_error();
-		printf(stderr, "Invalid walker type in BMW_Init; type: %d, searchmask: %d, flag: %d\n", type, searchmask, flag);
+		fprintf(stderr, "Invalid walker type in BMW_Init; type: %d, searchmask: %d, flag: %d\n", type, searchmask, flag);
 	}
 	
 	if (type != BMW_CUSTOM) {

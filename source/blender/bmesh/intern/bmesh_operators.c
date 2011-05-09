@@ -895,7 +895,7 @@ void *BMO_FirstElem(BMOperator *op, const char *slotname)
 }
 
 void *BMO_IterNew(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
-		  const char *slotname, int restrict)
+		  const char *slotname, int restrictmask)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
@@ -903,7 +903,7 @@ void *BMO_IterNew(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
 
 	iter->slot = slot;
 	iter->cur = 0;
-	iter->restrict = restrict;
+	iter->restrictmask = restrictmask;
 
 	if (iter->slot->slottype == BMOP_OPSLOT_MAPPING) {
 		if (iter->slot->data.ghash)
@@ -922,7 +922,7 @@ void *BMO_IterStep(BMOIter *iter)
 		if (iter->cur >= iter->slot->len) return NULL;
 
 		h = ((void**)iter->slot->data.buf)[iter->cur++];
-		while (!(iter->restrict & h->type)) {
+		while (!(iter->restrictmask & h->type)) {
 			if (iter->cur >= iter->slot->len) return NULL;
 			h = ((void**)iter->slot->data.buf)[iter->cur++];
 		}

@@ -356,7 +356,7 @@ typedef struct BMOIter {
 	int cur; //for arrays
 	struct GHashIterator giter;
 	void *val;
-	int restrict;
+	int restrictmask;
 } BMOIter;
 
 void *BMO_FirstElem(BMOperator *op, const char *slotname);
