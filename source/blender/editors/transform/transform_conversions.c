@@ -2485,7 +2485,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 				countsel++;
 
 			if(propmode)
-				count += efa->len;
+				count++;
 		}
 	}
 

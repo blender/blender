@@ -1780,7 +1780,7 @@ wmKeyMap* knifetool_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return NULL;
 	
-	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Knife Tool Modal Map", modal_items);
 	
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
