@@ -1750,6 +1750,61 @@ static int knifetool_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+enum {
+	KNF_MODAL_CANCEL=1,
+	KNF_MODAL_CONFIRM,
+	KNF_MODAL_MIDPOINT_ON,
+	KNF_MODAL_MIDPOINT_OFF,
+	KNF_MODAL_NEW_CUT,
+	KNF_MODEL_IGNORE_SNAP_ON,
+	KNF_MODEL_IGNORE_SNAP_OFF,
+	KNF_MODAL_ADD_CUT,
+};
+
+wmKeyMap* knifetool_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{KNF_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+	{KNF_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
+	{KNF_MODAL_MIDPOINT_ON, "SNAP_MIDPOINTS_ON", 0, "Snap To Midpoints On", ""},
+	{KNF_MODAL_MIDPOINT_OFF, "SNAP_MIDPOINTS_OFF", 0, "Snap To Midpoints Off", ""},
+	{KNF_MODEL_IGNORE_SNAP_ON, "IGNORE_SNAP_ON", 0, "Ignore Snapping On", ""},
+	{KNF_MODEL_IGNORE_SNAP_OFF, "IGNORE_SNAP_OFF", 0, "Ignore Snapping Off", ""},
+	{KNF_MODAL_NEW_CUT, "NEW_CUT", 0, "End Current Cut", ""},
+	{KNF_MODAL_ADD_CUT, "ADD_CUT", 0, "Add Cut", ""},
+
+	{0, NULL, 0, NULL, NULL}};
+	
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Knife Tool Modal Map");
+	
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return NULL;
+	
+	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
+	
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_ADD_CUT);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, EKEY, KM_PRESS, 0, 0, KNF_MODAL_NEW_CUT);
+
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_MIDPOINT_ON);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, KNF_MODAL_MIDPOINT_OFF);
+	WM_modalkeymap_add_item(keymap, RIGHTCTRLKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_MIDPOINT_ON);
+	WM_modalkeymap_add_item(keymap, RIGHTCTRLKEY, KM_RELEASE, KM_ANY, 0, KNF_MODAL_MIDPOINT_OFF);
+
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, KNF_MODEL_IGNORE_SNAP_ON);
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, KNF_MODEL_IGNORE_SNAP_OFF);
+	WM_modalkeymap_add_item(keymap, RIGHTSHIFTKEY, KM_PRESS, KM_ANY, 0, KNF_MODEL_IGNORE_SNAP_ON);
+	WM_modalkeymap_add_item(keymap, RIGHTSHIFTKEY, KM_RELEASE, KM_ANY, 0, KNF_MODEL_IGNORE_SNAP_OFF);
+	
+	WM_modalkeymap_assign(keymap, "MESH_OT_knifetool");
+	
+	return keymap;
+}
+
 static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit;
@@ -1768,84 +1823,91 @@ static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 	if (kcd->mode == MODE_PANNING)
 		kcd->mode = kcd->prevmode;
 	
-	kcd->snap_midpoints = event->ctrl;
-	kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = event->shift;
-	
-	switch (event->type) {
-		case ESCKEY:
-		case RETKEY: /* confirm */ // XXX hardcoded
-			if (event->val == KM_RELEASE) {
-				if (kcd->mode == MODE_DRAGGING && event->type == ESCKEY) {
-					kcd->mode = MODE_IDLE;
-					ED_region_tag_redraw(kcd->ar);					
-				} else {				
-					/* finish */
-					ED_region_tag_redraw(kcd->ar);
-					
-					knifetool_finish(C, op);
-					knifetool_exit(C, op);
-					
-					return OPERATOR_FINISHED;
-				}
-			}
-			
-			ED_region_tag_redraw(kcd->ar);
-			return OPERATOR_RUNNING_MODAL;
-		
-		case WHEELUPMOUSE:
-		case WHEELDOWNMOUSE:
-			return OPERATOR_PASS_THROUGH;
-		case MIDDLEMOUSE:
-			if (event->val != KM_RELEASE) {
-				if (kcd->mode != MODE_PANNING)
-					kcd->prevmode = kcd->mode;
-				kcd->mode = MODE_PANNING;
-			} else {
-				kcd->mode = kcd->prevmode;
-			}
-			
-			ED_region_tag_redraw(kcd->ar);
-			return OPERATOR_PASS_THROUGH;
-			
-		case LEFTMOUSE:
-			knife_recalc_projmat(kcd);
-			if (event->val != KM_RELEASE)
+	/* handle modal keymap */
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case KNF_MODAL_CANCEL:
+				/* finish */
+				ED_region_tag_redraw(kcd->ar);
+				
+				knifetool_exit(C, op);
+				
+				return OPERATOR_CANCELLED;
+			case KNF_MODAL_CONFIRM:
+				/* finish */
+				ED_region_tag_redraw(kcd->ar);
+				
+				knifetool_finish(C, op);
+				knifetool_exit(C, op);
+				
+				return OPERATOR_FINISHED;
+			case KNF_MODAL_MIDPOINT_ON:
+				ED_region_tag_redraw(kcd->ar);
+				kcd->snap_midpoints = 1;
 				break;
-			
-			if (kcd->mode == MODE_DRAGGING) {
-				knife_add_cut(kcd);
-				if (!kcd->extend) {
-					knife_finish_cut(kcd);
-					kcd->mode = MODE_IDLE;
-				}
-			} else if (kcd->mode != MODE_PANNING) {
-				knife_start_cut(kcd);
-				kcd->mode = MODE_DRAGGING;
-			}
-
-			ED_region_tag_redraw(kcd->ar);
-			return OPERATOR_RUNNING_MODAL;
-			
-		case EKEY:
-			kcd->extend = event->val==KM_RELEASE;
-			if (event->val == KM_RELEASE) {
+			case KNF_MODAL_MIDPOINT_OFF:
+				ED_region_tag_redraw(kcd->ar);
+				kcd->snap_midpoints = 0;
+				break;
+			case KNF_MODEL_IGNORE_SNAP_ON:
+				ED_region_tag_redraw(kcd->ar);
+				kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = 1;
+				break;
+			case KNF_MODEL_IGNORE_SNAP_OFF:
+				ED_region_tag_redraw(kcd->ar);
+				kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = 0;
+				break;
+			case KNF_MODAL_NEW_CUT:
+				ED_region_tag_redraw(kcd->ar);
 				knife_finish_cut(kcd);
 				kcd->mode = MODE_IDLE;
-			}
-			return OPERATOR_RUNNING_MODAL;
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
-		case MOUSEMOVE:  /* mouse moved somewhere to select another loop */
-			if (kcd->mode != MODE_PANNING) {
+				break;
+			case KNF_MODAL_ADD_CUT:
 				knife_recalc_projmat(kcd);
-				kcd->vc.mval[0] = event->mval[0];
-				kcd->vc.mval[1] = event->mval[1];
-				
-				if (knife_update_active(kcd))					
-					ED_region_tag_redraw(kcd->ar);
-			}
 
-			break;
+				if (kcd->mode == MODE_DRAGGING) {
+					knife_add_cut(kcd);
+					if (!kcd->extend) {
+						knife_finish_cut(kcd);
+						kcd->mode = MODE_IDLE;
+					}
+				} else if (kcd->mode != MODE_PANNING) {
+					knife_start_cut(kcd);
+					kcd->mode = MODE_DRAGGING;
+				}
+		
+				ED_region_tag_redraw(kcd->ar);
+				break;
+			}
+	} else { /*non-modal-mapped events*/
+		switch (event->type) {
+			case WHEELUPMOUSE:
+			case WHEELDOWNMOUSE:
+				return OPERATOR_PASS_THROUGH;
+			case MIDDLEMOUSE:
+				if (event->val != KM_RELEASE) {
+					if (kcd->mode != MODE_PANNING)
+						kcd->prevmode = kcd->mode;
+					kcd->mode = MODE_PANNING;
+				} else {
+					kcd->mode = kcd->prevmode;
+				}
+				
+				ED_region_tag_redraw(kcd->ar);
+				return OPERATOR_PASS_THROUGH;
+				
+			case MOUSEMOVE:  /* mouse moved somewhere to select another loop */
+				if (kcd->mode != MODE_PANNING) {
+					knife_recalc_projmat(kcd);
+					kcd->vc.mval[0] = event->mval[0];
+					kcd->vc.mval[1] = event->mval[1];
+					
+					if (knife_update_active(kcd))					
+						ED_region_tag_redraw(kcd->ar);
+				}
+	
+				break;
+		}
 	}
 	
 	/* keep going until the user confirms */

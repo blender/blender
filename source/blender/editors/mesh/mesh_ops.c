@@ -338,5 +338,6 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	}
 	
 	ED_object_generic_keymap(keyconf, keymap, 3);
+	knifetool_modal_keymap(keyconf);
 }
 

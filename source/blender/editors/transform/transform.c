@@ -1577,21 +1577,22 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	{
 		wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
-
-		for (kmi = keymap->items.first; kmi; kmi = kmi->next)
-		{
-			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
+		
+		if (keymap) {
+			for (kmi = keymap->items.first; kmi; kmi = kmi->next)
 			{
-				if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) && event->ctrl) ||
-					(ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
-					(ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) && event->alt) ||
-					(kmi->type == OSKEY && event->oskey)) {
-					t->modifiers |= MOD_SNAP_INVERT;
+				if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
+				{
+					if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) && event->ctrl) ||
+						(ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
+						(ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) && event->alt) ||
+						(kmi->type == OSKEY && event->oskey)) {
+						t->modifiers |= MOD_SNAP_INVERT;
+					}
+					break;
 				}
-				break;
 			}
 		}
-
 	}
 
 	initSnapping(t, op); // Initialize snapping data AFTER mode flags

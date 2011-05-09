@@ -192,6 +192,8 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 
 extern int EM_view3d_poll(struct bContext *C);
 
+struct wmKeyMap* knifetool_modal_keymap(struct wmKeyConfig *keyconf);
+
 /* ******************* knifetool.c */
 
 void MESH_OT_knife_cut(struct wmOperatorType *ot);
