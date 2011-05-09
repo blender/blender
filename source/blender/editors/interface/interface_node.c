@@ -74,7 +74,7 @@ static void ui_node_tag_recursive(bNode *node)
 {
 	bNodeSocket *input;
 
-	if(node->flag & NODE_TEST)
+	if(!node || (node->flag & NODE_TEST))
 		return; /* in case of cycles */
 	
 	node->flag |= NODE_TEST;
@@ -88,7 +88,7 @@ static void ui_node_clear_recursive(bNode *node)
 {
 	bNodeSocket *input;
 
-	if(!(node->flag & NODE_TEST))
+	if(!node || !(node->flag & NODE_TEST))
 		return; /* in case of cycles */
 	
 	node->flag &= ~NODE_TEST;
@@ -114,6 +114,9 @@ static void ui_node_remove_linked(bNodeTree *ntree, bNode *rem_node)
 {
 	bNode *node, *next;
 	bNodeSocket *sock;
+
+	if(!node)
+		return;
 
 	/* tag linked nodes to be removed */
 	for(node=ntree->nodes.first; node; node=node->next)
@@ -144,7 +147,7 @@ static void ui_node_remove_linked(bNodeTree *ntree, bNode *rem_node)
 
 static void ui_node_sock_name(bNodeSocket *sock, char name[UI_MAX_NAME_STR])
 {
-	if(sock->link) {
+	if(sock->link && sock->link->fromnode) {
 		bNode *node = sock->link->fromnode;
 
 		if(node->type == NODE_GROUP)
@@ -229,7 +232,7 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 					if(strcmp(sock_prev->name, sock_from->name) == 0 && sock_prev->type == sock_from->type) {
 						bNodeLink *link = sock_prev->link;
 
-						if(link) {
+						if(link && link->fromnode) {
 							nodeAddLink(ntree, link->fromnode, link->fromsock, node_from, sock_from);
 							nodeRemLink(ntree, link);
 						}
