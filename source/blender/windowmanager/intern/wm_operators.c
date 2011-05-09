@@ -2035,6 +2035,8 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 
 /* *********************** */
 
+#if defined(WIN32)
+
 static int wm_console_toggle_op(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 	GHOST_toggleConsole(2);
@@ -2050,6 +2052,8 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
 	ot->exec= wm_console_toggle_op;
 	ot->poll= WM_operator_winactive;
 }
+
+#endif
 
 /* ************ default paint cursors, draw always around cursor *********** */
 /*
