@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributors: Amorilia (amorilia@gamebox.net)
+ * Contributors: Amorilia (amorilia@users.sourceforge.net)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -106,6 +106,38 @@
 				mask >>= 1;
 			}
 		}
+
+        inline float quantizeCeil(float f, int inbits, int outbits)
+        {
+            //uint i = f * (float(1 << inbits) - 1);
+            //i = convert(i, inbits, outbits);
+            //float result = float(i) / (float(1 << outbits) - 1);
+            //nvCheck(result >= f);
+            float result;
+            int offset = 0;
+            do {
+                uint i = offset + uint(f * (float(1 << inbits) - 1));
+                i = convert(i, inbits, outbits);
+                result = float(i) / (float(1 << outbits) - 1);
+                offset++;
+            } while (result < f);
+
+            return result;
+        }
+
+        /*
+        inline float quantizeRound(float f, int bits)
+        {
+            float scale = float(1 << bits);
+            return fround(f * scale) / scale;
+        }
+
+        inline float quantizeFloor(float f, int bits)
+        {
+            float scale = float(1 << bits);
+            return floor(f * scale) / scale;
+        }
+        */
 
 	} // PixelFormat namespace
 

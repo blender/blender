@@ -304,7 +304,6 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 
 		// Process all the events waiting for us
 		while (::PeekMessage(&msg, 0, 0, 0, PM_REMOVE) != 0) {
-			::TranslateMessage(&msg);
 			::DispatchMessage(&msg);
 			anyProcessed = true;
 		}
@@ -819,6 +818,11 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				// Keyboard events, processed
 				////////////////////////////////////////////////////////////////////////
 				case WM_INPUT:
+					// check WM_INPUT from input sink when ghost window is not in the foreground
+					if (wParam == RIM_INPUTSINK) {
+						if (GetFocus() != hwnd) // WM_INPUT message not for this window
+							return 0;
+					} //else wPAram == RIM_INPUT
 					event = processKeyEvent(window, wParam, lParam);
 					if (!event) {
 						GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")

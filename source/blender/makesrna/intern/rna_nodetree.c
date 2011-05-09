@@ -1323,6 +1323,9 @@ static void def_cmp_output_file(StructRNA *srna)
 		{R_TARGA,   "TARGA",        0, "Targa",        ""},
 		{R_RAWTGA,  "RAW_TARGA",    0, "Targa Raw",    ""},
 		{R_PNG,     "PNG",          0, "PNG",          ""},
+#ifdef WITH_DDS
+		{R_DDS,     "DDS",          0, "DirectDraw Surface", ""},
+#endif
 		{R_BMP,     "BMP",          0, "BMP",          ""},
 		{R_JPEG90,  "JPEG",         0, "JPEG",         ""},
 		{R_IRIS,    "IRIS",         0, "IRIS",         ""},

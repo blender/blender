@@ -1831,6 +1831,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	{
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
+		gameobj->SetObjectColor(ob->col);
 		/* set the visibility state based on the objects render option in the outliner */
 		if(ob->restrictflag & OB_RESTRICT_RENDER) gameobj->SetVisible(0, 0);
 	}

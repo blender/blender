@@ -339,8 +339,8 @@ static void rna_def_render_layer(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	prop= RNA_def_string(func, "filename", "", 0, "Filename", "Filename to load into this render tile, must be no smaller than the renderlayer");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop= RNA_def_int(func, "x", 0, 0, INT_MAX, "Offset X", "Offset the position to copy from if the image is larger than the render layer", 0, INT_MAX);
-	prop= RNA_def_int(func, "y", 0, 0, INT_MAX, "Offset Y", "Offset the position to copy from if the image is larger than the render layer", 0, INT_MAX);
+	RNA_def_int(func, "x", 0, 0, INT_MAX, "Offset X", "Offset the position to copy from if the image is larger than the render layer", 0, INT_MAX);
+	RNA_def_int(func, "y", 0, 0, INT_MAX, "Offset Y", "Offset the position to copy from if the image is larger than the render layer", 0, INT_MAX);
 
 	RNA_define_verify_sdna(0);
 

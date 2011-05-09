@@ -1232,7 +1232,7 @@ char *txt_to_buf (Text *text)
 	return buf;
 }
 
-int txt_find_string(Text *text, char *findstr, int wrap)
+int txt_find_string(Text *text, char *findstr, int wrap, int match_case)
 {
 	TextLine *tl, *startl;
 	char *s= NULL;
@@ -1246,7 +1246,8 @@ int txt_find_string(Text *text, char *findstr, int wrap)
 	oldsl= txt_get_span(text->lines.first, text->sell);
 	tl= startl= text->sell;
 	
-	s= strstr(&tl->line[text->selc], findstr);
+	if(match_case) s= strstr(&tl->line[text->selc], findstr);
+	else s= BLI_strcasestr(&tl->line[text->selc], findstr);
 	while (!s) {
 		tl= tl->next;
 		if (!tl) {
@@ -1256,7 +1257,8 @@ int txt_find_string(Text *text, char *findstr, int wrap)
 				break;
 		}
 
-		s= strstr(tl->line, findstr);
+		if(match_case) s= strstr(tl->line, findstr);
+		else s= BLI_strcasestr(tl->line, findstr);
 		if (tl==startl)
 			break;
 	}

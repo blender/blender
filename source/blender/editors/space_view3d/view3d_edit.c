@@ -1426,14 +1426,13 @@ static int viewdolly_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static int viewdolly_exec(bContext *C, wmOperator *op)
 {
-	View3D *v3d;
+	/* View3D *v3d; */
 	RegionView3D *rv3d;
 	ScrArea *sa;
 	ARegion *ar;
 	float mousevec[3];
 
 	int delta= RNA_int_get(op->ptr, "delta");
-	int mx, my;
 
 	if(op->customdata) {
 		ViewOpsData *vod= op->customdata;
@@ -1448,18 +1447,13 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 		normalize_v3_v3(mousevec, ((RegionView3D *)ar->regiondata)->viewinv[2]);
 	}
 
-	v3d= sa->spacedata.first;
+	/* v3d= sa->spacedata.first; */ /* UNUSED */
 	rv3d= ar->regiondata;
 
 	/* overwrite the mouse vector with the view direction (zoom into the center) */
 	if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) == 0) {
 		normalize_v3_v3(mousevec, rv3d->viewinv[2]);
 	}
-
-	mx= RNA_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
-	my= RNA_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
-
-
 
 	if(delta < 0) {
 		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 1.2f);

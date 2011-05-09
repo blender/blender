@@ -58,7 +58,7 @@ void			write_text(struct Text *text, const char *str);
 char*	txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
 void	txt_order_cursors	(struct Text *text);
-int		txt_find_string		(struct Text *text, char *findstr, int wrap);
+int		txt_find_string		(struct Text *text, char *findstr, int wrap, int match_case);
 int		txt_has_sel			(struct Text *text);
 int		txt_get_span		(struct TextLine *from, struct TextLine *to);
 void	txt_move_up			(struct Text *text, short sel);
