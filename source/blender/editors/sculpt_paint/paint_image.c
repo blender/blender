@@ -440,6 +440,8 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 		GPU_free_image(ima); /* force OpenGL reload */
 		if(ibuf->rect_float)
 			ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
+		if(ibuf->mipmap[0])
+			ibuf->userflags |= IB_MIPMAP_INVALID; /* force mipmap recreatiom */
 
 	}
 
