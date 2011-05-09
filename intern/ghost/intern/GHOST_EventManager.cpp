@@ -249,7 +249,7 @@ bool GHOST_EventManager::dispatchEvents()
 		wm = sys->getWindowManager();
 		windows = wm->getWindows();
 
-		while (str = fgets(buf, 256, m_playfile)) {
+		while ((str = fgets(buf, 256, m_playfile))) {
 			GHOST_IWindow *iwin = NULL;
 			GHOST_TEventType type;
 			double time;

@@ -3493,7 +3493,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 				memcpy(disp2, mdisps[i].disps, MEM_allocN_len(mdisps[i].disps));
 				
 				MEM_freeN(mdisps[i].disps);
-				mdisps[i].disps = disp2;
+				mdisps[i].disps = (float (*)[3])disp2;
 			}
 			
 			if( (fd->flags & FD_FLAGS_SWITCH_ENDIAN) && (mdisps[i].disps) ) {

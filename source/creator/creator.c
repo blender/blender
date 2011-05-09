@@ -356,7 +356,7 @@ double PIL_check_seconds_timer(void);
 	}
 }*/
 
-int segmentation_handler(int sig)
+void segmentation_handler(int sig)
 {
 	char fname[256];
 
@@ -372,8 +372,6 @@ int segmentation_handler(int sig)
 	/*induce a real crash*/
 	signal(SIGSEGV, SIG_DFL);
 	*(int*)NULL = 0;
-
-	return 0;
 }
 
 static int nocrashhandler(int argc, const char **argv, void *data)
