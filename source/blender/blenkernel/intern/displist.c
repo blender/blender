@@ -1973,8 +1973,9 @@ static void boundbox_displist(Object *ob)
 		}
 		
 		if(!doit) {
-			min[0] = min[1] = min[2] = -1.0f;
-			max[0] = max[1] = max[2] = 1.0f;
+			/* there's no geometry in displist, use zero-sized boundbox */
+			zero_v3(min);
+			zero_v3(max);
 		}
 		
 	}
