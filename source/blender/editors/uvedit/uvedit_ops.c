@@ -2157,7 +2157,7 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 			continue;
 
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-			luv = CustomData_bmesh_get(&em->bm->pdata, l->head.data, CD_MLOOPUV);
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			
 			if (!(luv->flag & MLOOPUV_VERTSEL)) {
 				desel = 1;
@@ -2167,7 +2167,7 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 
 		if (desel) {
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				luv = CustomData_bmesh_get(&em->bm->pdata, l->head.data, CD_MLOOPUV);
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				luv->flag &= ~MLOOPUV_VERTSEL;
 			}
 		}
