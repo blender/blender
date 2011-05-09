@@ -4455,8 +4455,8 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			/* RMB has two options now */
 			if (ui_but_menu(C, but)) {
 				return WM_UI_HANDLER_BREAK;
+			}
 		}
-	}
 	}
 
 	/* verify if we can edit this button */

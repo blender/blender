@@ -1764,7 +1764,7 @@ void wm_event_do_handlers(bContext *C)
 		
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
-		
+
 			if((G.f & G_DEBUG) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))
 				printf("pass on evt %d val %d\n", event->type, event->val); 
 			
@@ -1904,7 +1904,6 @@ void wm_event_do_handlers(bContext *C)
 			win->lasttime = PIL_check_seconds_timer();
 		}
 		
-			
 		/* only add mousemove when queue was read entirely */
 		if(win->addmousemove && win->eventstate) {
 			wmEvent tevent= *(win->eventstate);
@@ -2348,8 +2347,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 	switch (type) {
 		/* mouse move */
 		case GHOST_kEventCursorMove: {
-				if(win->active) {
-
+			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
 				wmEvent *lastevent= win->queue.last;
 				
@@ -2410,7 +2408,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 					event.type= MOUSEPAN;
 					break;
 			}
-			
 #if defined(__APPLE__) && defined(GHOST_COCOA)
 			//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
 			event.x= evt->x = pd->x;
@@ -2436,7 +2433,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventButtonUp: {
 			GHOST_TEventButtonData *bd= customdata;
 			event.val= (type==GHOST_kEventButtonDown) ? KM_PRESS:KM_RELEASE; /* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
-							
+			
 			if (bd->button == GHOST_kButtonMaskLeft)
 				event.type= LEFTMOUSE;
 			else if (bd->button == GHOST_kButtonMaskRight)

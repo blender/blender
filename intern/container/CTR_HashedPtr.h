@@ -1,8 +1,4 @@
 /*
- * SND_DependKludge.h
- *
- * who needs what?
- *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -19,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -29,22 +25,33 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ *
  */
 
-#ifndef HAVE_CONFIG_H
+/** \file container/CTR_HashedPtr.h
+ *  \ingroup ctr
+ */
 
-#ifndef NO_SOUND
+#ifndef CTR_HASHEDPTR_H
+#define CTR_HASHEDPTR_H
 
-#if defined (_WIN32) && !defined(FREE_WINDOWS)
-#   define USE_OPENAL
-#elif defined (__linux__) || (__FreeBSD__) || defined(__APPLE__) || defined(__sun)
-#	define USE_OPENAL
-#else
-#	ifdef USE_OPENAL
-#		undef USE_OPENAL
-#	endif
-#endif
+#include <stdlib.h>
 
-#endif /* NO_SOUND */
+inline unsigned int CTR_Hash(void *inDWord)
+{
+	size_t key = (size_t)inDWord;
+	return (unsigned int)(key ^ (key>>4));
+}
 
-#endif /* HAVE_CONFIG_H */
+class CTR_HashedPtr
+{
+	void* m_valptr;
+public:
+	CTR_HashedPtr(void* val) : m_valptr(val) {};
+	unsigned int hash() const { return CTR_Hash(m_valptr);};
+	inline friend bool operator ==(const CTR_HashedPtr & rhs, const CTR_HashedPtr & lhs) { return rhs.m_valptr == lhs.m_valptr;};
+	void *getValue() const { return m_valptr; }
+};
+
+#endif //CTR_HASHEDPTR_H
+

@@ -31,7 +31,6 @@
 
 /* --- bpy build options --- */
 #ifdef WITH_PYTHON_SAFETY
-#include <Python.h>
 
 /* play it safe and keep optional for now, need to test further now this affects looping on 10000's of verts for eg. */
 #define USE_WEAKREFS

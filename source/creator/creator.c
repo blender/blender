@@ -1168,7 +1168,6 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAddCase(ba, 3, "-noaudio", 1, NULL, 0, "\n\tForce sound system to None", no_audio, NULL);
 	BLI_argsAddCase(ba, 3, "-setaudio", 1, NULL, 0, "\n\tForce sound system to a specific device\n\tNULL SDL OPENAL JACK", set_audio, NULL);
 
-
 	/* fourth pass: processing arguments */
 	BLI_argsAdd(ba, 4, "-g", NULL, game_doc, set_ge_parameters, syshandle);
 	BLI_argsAdd(ba, 4, "-f", "--render-frame", "<frame>\n\tRender frame <frame> and save it.\n\t+<frame> start frame relative, -<frame> end frame relative.", render_frame, C);
@@ -1204,6 +1203,7 @@ int main(int argc, const char **argv)
 	SYS_SystemHandle syshandle;
 	bContext *C= CTX_create();
 	bArgs *ba;
+
 #ifdef WITH_PYTHON_MODULE
 #undef main
 #endif
@@ -1370,7 +1370,7 @@ int main(int argc, const char **argv)
 	}
 
 	WM_main(C);
-	
+
 
 	/*XXX if (scr_init==0) {
 		main_init_screen();

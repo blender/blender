@@ -28,7 +28,8 @@ set(INC
 	.
 	../nodes
 	../gpu
-	../blenfont ../bmesh
+	../blenfont
+	../bmesh
 	../blenlib
 	../makesdna
 	../makesrna

@@ -32,7 +32,6 @@ if env['WITH_BF_PYTHON']:
     incs += ' ' + env['BF_PYTHON_INC']
     defs.append('WITH_PYTHON')
 
-
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     

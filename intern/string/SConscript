@@ -11,4 +11,3 @@ if env['WITH_BF_CXX_GUARDEDALLOC']:
     incs += ' #intern/guardedalloc'
 
 env.BlenderLib ('bf_intern_string', sources, Split(incs), defs, libtype=['intern','player'], priority = [50,10] )
-

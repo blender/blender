@@ -214,7 +214,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 	
 	for(i=0; i < pd->totpoints; i++, mvert++) {
 		float co[3];
-	
+		
 		VECCOPY(co, mvert->co);
 
 		switch(pd->ob_cache_space) {
@@ -264,7 +264,7 @@ static void cache_pointdensity(Render *re, Tex *tex)
 		Object *ob = pd->object;
 		if (ob && ob->type == OB_MESH)
 			pointdensity_cache_object(re, pd, ob);
-			}
+	}
 }
 
 static void free_pointdensity(Render *UNUSED(re), Tex *tex)

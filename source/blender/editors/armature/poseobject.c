@@ -1339,9 +1339,9 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	/* add selected bones to group then */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
-				pchan->agrp_index= pose->active_group;
-				done= 1;
-			}
+		pchan->agrp_index= pose->active_group;
+		done= 1;
+	}
 	CTX_DATA_END;
 
 	/* notifiers for updates */

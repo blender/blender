@@ -2255,15 +2255,15 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int sx, sy;
 
 	if(event->type== MOUSEMOVE) {
-			wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
+		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
-			rect->xmin= event->x - sx;
-			rect->ymin= event->y - sy;
+		rect->xmin= event->x - sx;
+		rect->ymin= event->y - sy;
 
-			wm_gesture_tag_redraw(C);
+		wm_gesture_tag_redraw(C);
 
-			if(gesture->mode)
-				gesture_circle_apply(C, op);
+		if(gesture->mode)
+			gesture_circle_apply(C, op);
 	}
 	else if (event->type==EVT_MODAL_MAP) {
 		switch (event->val) {

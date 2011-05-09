@@ -983,8 +983,6 @@ int make_structDNA(char *baseDirectory, FILE *file)
 		dna_write(file, str, 4);
 		len= nr_names;
 		dna_write(file, &len, 4);
-		printf("LEEEN %d\n", len);
-		
 		
 		/* calculate size of datablock with strings */
 		cp= names[nr_names-1];

@@ -661,12 +661,13 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 		if(v3d && !RNA_property_is_set(op->ptr, "around"))
 			around= v3d->around;
 	}
+
 	zero_v3(cent);
 
 	if(obedit) {
-	    INIT_MINMAX(min, max);
-	    
-	    if(obedit->type==OB_MESH) {
+		INIT_MINMAX(min, max);
+
+		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
 			BMEditMesh *em = me->edit_btmesh;
 			BMVert *eve;
@@ -694,7 +695,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				sub_v3_v3(eve->co, cent);
 			}
-	
+
 			EDBM_RecalcNormals(em);
 			tot_change++;
 			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);

@@ -384,6 +384,25 @@ void renderspothalo(ShadeInput *shi, float *col, float alpha)
 
 /* ---------------- shaders ----------------------- */
 
+static double Normalize_d(double *n)
+{
+	double d;
+	
+	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
+
+	if(d>0.00000000000000001) {
+		d= sqrt(d);
+
+		n[0]/=d; 
+		n[1]/=d; 
+		n[2]/=d;
+	} else {
+		n[0]=n[1]=n[2]= 0.0;
+		d= 0.0;
+	}
+	return d;
+}
+
 /* mix of 'real' fresnel and allowing control. grad defines blending gradient */
 float fresnel_fac(float *view, float *vn, float grad, float fac)
 {
@@ -422,10 +441,10 @@ static float area_lamp_energy(float (*area)[3], float *co, float *vn)
 	VECSUB(vec[2], co, area[2]);
 	VECSUB(vec[3], co, area[3]);
 	
-	normalize_dv3(vec[0]);
-	normalize_dv3(vec[1]);
-	normalize_dv3(vec[2]);
-	normalize_dv3(vec[3]);
+	Normalize_d(vec[0]);
+	Normalize_d(vec[1]);
+	Normalize_d(vec[2]);
+	Normalize_d(vec[3]);
 
 	/* cross product */
 	CROSS(cross[0], vec[0], vec[1]);
@@ -433,10 +452,10 @@ static float area_lamp_energy(float (*area)[3], float *co, float *vn)
 	CROSS(cross[2], vec[2], vec[3]);
 	CROSS(cross[3], vec[3], vec[0]);
 
-	normalize_dv3(cross[0]);
-	normalize_dv3(cross[1]);
-	normalize_dv3(cross[2]);
-	normalize_dv3(cross[3]);
+	Normalize_d(cross[0]);
+	Normalize_d(cross[1]);
+	Normalize_d(cross[2]);
+	Normalize_d(cross[3]);
 
 	/* angles */
 	rad[0]= vec[0][0]*vec[1][0]+ vec[0][1]*vec[1][1]+ vec[0][2]*vec[1][2];

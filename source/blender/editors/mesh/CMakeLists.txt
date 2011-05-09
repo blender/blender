@@ -40,16 +40,17 @@ set(SRC
 	loopcut.c
 	mesh_ops.c
 	editbmesh_bvh.c
-	editbmesh_bvh.h
 	editbmesh_add.c
 	bmeshutils.c
-	mesh_intern.h
 	bmesh_selecthistory.c
 	bmesh_select.c
 	mesh_data.c
 	bmesh_tools.c
 	knifetool.c
 	editface.c
+
+	editbmesh_bvh.h
+	mesh_intern.h
 )
 
 blender_add_lib(bf_editor_mesh "${SRC}" "${INC}")

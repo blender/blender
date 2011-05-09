@@ -43,7 +43,7 @@ static bNodeSocketType sh_node_output_in[]= {
 
 static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
-	if(data && in[0] && in[1]) {
+	if(data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		float col[4];
 		

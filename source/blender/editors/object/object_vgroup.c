@@ -510,7 +510,6 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup	*dg, int vertnum)
 	ED_vgroup_nr_vert_remove(ob, def_nr, vertnum);
 }
 
-
 static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 {
 	MDeformVert *dvert= NULL;
@@ -1173,6 +1172,7 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 		ob->actdef= 1;
 
 }
+
 /* only in editmode */
 /* removes from active defgroup, if allverts==0 only selected vertices */
 static void vgroup_active_remove_verts(Object *ob, const int allverts, bDeformGroup *dg)

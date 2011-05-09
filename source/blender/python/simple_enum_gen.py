@@ -19,24 +19,24 @@
  # #**** END GPL LICENSE BLOCK #****
 
 defs = """
-	SPACE_EMPTY,
-	SPACE_VIEW3D,
-	SPACE_IPO,
-	SPACE_OUTLINER,
-	SPACE_BUTS,
-	SPACE_FILE,
+    SPACE_EMPTY,
+    SPACE_VIEW3D,
+    SPACE_IPO,
+    SPACE_OUTLINER,
+    SPACE_BUTS,
+    SPACE_FILE,
     SPACE_IMAGE,
-	SPACE_INFO,
-	SPACE_SEQ,
-	SPACE_TEXT,
-	SPACE_IMASEL,
-	SPACE_SOUND,
-	SPACE_ACTION,
-	SPACE_NLA,
-	SPACE_SCRIPT,
-	SPACE_TIME,
-	SPACE_NODE,
-	SPACEICONMAX
+    SPACE_INFO,
+    SPACE_SEQ,
+    SPACE_TEXT,
+    SPACE_IMASEL,
+    SPACE_SOUND,
+    SPACE_ACTION,
+    SPACE_NLA,
+    SPACE_SCRIPT,
+    SPACE_TIME,
+    SPACE_NODE,
+    SPACEICONMAX
 """
 
 print '\tmod = PyModule_New("dummy");'
@@ -44,21 +44,21 @@ print '\tPyModule_AddObject( submodule, "key", mod );'
 
 for d in defs.split('\n'):
 
-	d = d.replace(',', ' ')
-	w = d.split()
+    d = d.replace(',', ' ')
+    w = d.split()
 
-	if not w:
-		continue
+    if not w:
+        continue
 
-	try:		w.remove("#define")
-	except:	pass
+    try:		w.remove("#define")
+    except:	pass
 
-	# print w
+    # print w
 
-	val = w[0]
-	py_val = w[0]
+    val = w[0]
+    py_val = w[0]
 
-	print '\tPyModule_AddObject( mod, "%s", PyLong_FromSize_t(%s) );' % (val, py_val)
+    print '\tPyModule_AddObject( mod, "%s", PyLong_FromSize_t(%s) );' % (val, py_val)
 
 
 

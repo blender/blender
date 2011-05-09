@@ -4474,6 +4474,7 @@ struct facesort {
 	struct EditFace *efa;
 };
 
+#if 0 /* UNUSED */
 static int vergface(const void *v1, const void *v2)
 {
 	const struct facesort *x1=v1, *x2=v2;
@@ -4482,15 +4483,18 @@ static int vergface(const void *v1, const void *v2)
 	else if( x1->x < x2->x) return -1;
 	return 0;
 }
+#endif
 
 // XXX is this needed?
 /* called from buttons */
+#if 0 /* UNUSED */
 static void xsortvert_flag__doSetX(void *userData, EditVert *UNUSED(eve), int x, int UNUSED(y), int index)
 {
 	xvertsort *sortblock = userData;
 
 	sortblock[index].x = x;
 }
+#endif
 
 /* all verts with (flag & 'flag') are sorted */
 static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))

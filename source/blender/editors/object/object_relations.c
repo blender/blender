@@ -954,7 +954,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 	Object *obact= ED_object_active_context(C); 
 	
 	int type= RNA_enum_get(op->ptr, "type");
-		
+	
 	if(type == 1) {
 		bConstraint *con;
 		bDampTrackConstraint *data;
@@ -1194,7 +1194,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	if(scene_to == CTX_data_scene(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
 		return OPERATOR_CANCELLED;
-		}
+	}
 
 	if(scene_to->id.lib) {
 		BKE_report(op->reports, RPT_ERROR, "Can't link objects into a linked scene");
@@ -1205,11 +1205,11 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	{
 		if(!object_in_scene(base->object, scene_to)) {
 			Base *nbase= MEM_mallocN( sizeof(Base), "newbase");
-					*nbase= *base;
+			*nbase= *base;
 			BLI_addhead( &(scene_to->base), nbase);
-					id_us_plus((ID *)base->object);
-				}
-			}
+			id_us_plus((ID *)base->object);
+		}
+	}
 	CTX_DATA_END;
 
 	DAG_ids_flush_update(bmain, 0);
@@ -1299,7 +1299,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 					object_link_modifiers(obt, ob);
 					obt->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 					break;
-						}
+				}
 			}
 		}
 	}

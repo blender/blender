@@ -912,9 +912,7 @@ static int wm_window_timer(const bContext *C)
 
 void wm_window_process_events(const bContext *C) 
 {
-	int hasevent= 0;
-	
-	hasevent = GHOST_ProcessEvents(g_system, 0);	/* 0 is no wait */
+	int hasevent= GHOST_ProcessEvents(g_system, 0);	/* 0 is no wait */
 	
 	if(hasevent)
 		GHOST_DispatchEvents(g_system);

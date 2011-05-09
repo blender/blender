@@ -236,12 +236,14 @@ if(UNIX AND NOT APPLE)
 	else()
 		set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION})
 	endif()
+
 	# important to make a clean  install each time
 	# else old scripts get loaded.
 	install(
 		CODE
 		"file(REMOVE_RECURSE ${TARGETDIR_VER})"
 	)
+
 	# message after building.
 	add_custom_command(
 		TARGET blender POST_BUILD MAIN_DEPENDENCY blender
@@ -414,9 +416,6 @@ elseif(WIN32)
 			install(
 				FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
 				DESTINATION ${TARGETDIR}/
-					COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\"
-					COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\\" 
-					COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\\\"
 			)
 
 			install(
@@ -813,6 +812,7 @@ endif()
 		bf_intern_audaspace
 		bf_intern_mikktspace
 	)
+
     if(WITH_MOD_CLOTH_ELTOPO)
 		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
     endif()

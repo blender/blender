@@ -74,4 +74,3 @@ set(SRC
 )
 
 blender_add_lib(extern_openjpeg "${SRC}" "${INC}")
-

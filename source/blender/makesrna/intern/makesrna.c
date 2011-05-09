@@ -1588,7 +1588,6 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			fprintf(f, "\t_retdata= _data;\n");
 		else  {
 			const char *data_str;
-
 			if (cptr || (flag & PROP_DYNAMIC)) {
 				ptrstr= "**";
 				valstr= "*";

@@ -2540,7 +2540,7 @@ static void do_render_seq(Render * re)
 		if(ibuf->rect_float) {
 			if (!rr->rectf)
 				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
-
+			
 			/* color management: when off ensure rectf is non-lin, since thats what the internal
 			 * render engine delivers */
 			if(re->r.color_mgt_flag & R_COLOR_MANAGEMENT) {

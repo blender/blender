@@ -388,7 +388,7 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 			}
 			else if (curcon->type == CONSTRAINT_TYPE_SPLINEIK) {
 				bSplineIKConstraint *data = curcon->data;
-			
+				
 				/* if the number of points does not match the amount required by the chain length,
 				 * free the points array and request a rebind...
 				 */

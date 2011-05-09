@@ -1809,6 +1809,7 @@ static int join_poll(bContext *C)
 		return 0;
 }
 
+
 static int join_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -1822,7 +1823,7 @@ static int join_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	if(ob->type == OB_MESH)
 		return join_mesh_exec(C, op);
 	else if(ELEM(ob->type, OB_CURVE, OB_SURF))

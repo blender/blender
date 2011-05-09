@@ -11,4 +11,3 @@ mv out_work_lost_work.txt rna_properties_lost.txt
 cat rna_properties.txt | grep -v "^#" > rna_properties_edits.txt
 ./rna_cleaner.py rna_properties.txt
 echo "Updated: rna_properties.txt rna_properties_edits.txt rna_properties_lost.txt "
-

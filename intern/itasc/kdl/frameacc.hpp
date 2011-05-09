@@ -98,9 +98,9 @@ public:
     Vector   dw;    //!< angular acceration vector
 public:
     RotationAcc():R(),w() {}
-    explicit RotationAcc(const Rotation& _R):R(_R),w(Vector::Zero()){}
-    RotationAcc(const Rotation& _R,const Vector& _w,const Vector& _dw):
-        R(_R),w(_w),dw(_dw) {}
+    explicit RotationAcc(const Rotation& R_):R(R_),w(Vector::Zero()){}
+    RotationAcc(const Rotation& R_,const Vector& _w,const Vector& _dw):
+        R(R_),w(_w),dw(_dw) {}
     IMETHOD RotationAcc& operator = (const RotationAcc& arg);
     IMETHOD RotationAcc& operator = (const Rotation& arg);
     IMETHOD static RotationAcc Identity();
@@ -152,9 +152,9 @@ public:
     VectorAcc   p;   //!< Translation, velocity and acceleration of origin.
 public:
     FrameAcc(){}
-    explicit FrameAcc(const Frame& _T):M(_T.M),p(_T.p) {}
-    FrameAcc(const Frame& _T,const Twist& _t,const Twist& _dt):
-        M(_T.M,_t.rot,_dt.rot),p(_T.p,_t.vel,_dt.vel) {}
+    explicit FrameAcc(const Frame& T_):M(T_.M),p(T_.p) {}
+    FrameAcc(const Frame& T_,const Twist& _t,const Twist& _dt):
+        M(T_.M,_t.rot,_dt.rot),p(T_.p,_t.vel,_dt.vel) {}
     FrameAcc(const RotationAcc& _M,const VectorAcc& _p):M(_M),p(_p) {}
 
     IMETHOD FrameAcc& operator = (const FrameAcc& arg);

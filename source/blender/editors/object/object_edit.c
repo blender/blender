@@ -415,7 +415,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 		if(base==NULL) return;
 		else if(v3d && (base->lay & v3d->lay)==0) return;
-	else if(!v3d && (base->lay & scene->lay)==0) return;
+		else if(!v3d && (base->lay & scene->lay)==0) return;
 	}
 	else {
 		base= scene->basact;
@@ -1847,7 +1847,7 @@ static void ofs_timeoffs(Scene *scene, View3D *v3d)
 		ob->sf += offset;
 		if (ob->sf < -MAXFRAMEF)		ob->sf = -MAXFRAMEF;
 		else if (ob->sf > MAXFRAMEF)	ob->sf = MAXFRAMEF;
-		}
+	}
 	CTX_DATA_END;
 
 }
