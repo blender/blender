@@ -191,10 +191,10 @@ if(WITH_PYTHON_MODULE)
 	set_target_properties(
 		blender
 		PROPERTIES
-			 PREFIX ""
-			 OUTPUT_NAME bpy
-			 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/
-			 RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/  # only needed on windows
+				PREFIX ""
+				OUTPUT_NAME bpy
+				LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/
+				RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/  # only needed on windows
 	)
 	
 	if(WIN32)
@@ -202,7 +202,7 @@ if(WITH_PYTHON_MODULE)
 		set_target_properties(
 			blender
 			PROPERTIES
-				 SUFFIX ".pyd"
+			SUFFIX ".pyd"
 		)	
 	endif()
 	
@@ -574,19 +574,19 @@ elseif(WIN32)
 		endif()
 	endif()
 
-    if(NOT CMAKE_CL_64)
+	if(NOT CMAKE_CL_64)
 		install(
 			FILES
-	    	${LIBDIR}/thumbhandler/lib/BlendThumb.dll
-    		DESTINATION ${TARGETDIR}/
-	    )
-    else()
+			${LIBDIR}/thumbhandler/lib/BlendThumb.dll
+			DESTINATION ${TARGETDIR}/
+		)
+	else()
 		install(
 			FILES
-	    	${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
-    		DESTINATION ${TARGETDIR}/
-	    )
-    endif()
+			${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
+			DESTINATION ${TARGETDIR}/
+		)
+	endif()
 
 elseif(APPLE)
 	set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
@@ -811,13 +811,13 @@ endif()
 		bf_intern_mikktspace
 	)
 
-    if(WITH_MOD_CLOTH_ELTOPO)
+	if(WITH_MOD_CLOTH_ELTOPO)
 		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
-    endif()
+	endif()
 
-    if(WITH_BUILTIN_GLEW)
+	if(WITH_BUILTIN_GLEW)
 		list(APPEND BLENDER_SORTED_LIBS extern_glew)
-    endif()
+	endif()
 
 	if(WITH_BINRELOC)
 		list(APPEND BLENDER_SORTED_LIBS extern_binreloc)

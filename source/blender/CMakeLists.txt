@@ -123,6 +123,5 @@ if(WITH_PYTHON)
 endif()
 
 if(WITH_OPENCOLLADA)
-  add_subdirectory(collada)
+	add_subdirectory(collada)
 endif()
-

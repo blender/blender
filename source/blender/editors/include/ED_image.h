@@ -68,8 +68,5 @@ int ED_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit)
 /* UI level image (texture) updating... render calls own stuff (too) */
 void ED_image_update_frame(const struct Main *mainp, int cfra);
 
-/* image_render.c, export for screen_ops.c, render operator */
-void ED_space_image_output(struct bContext *C);
-
 #endif /* ED_IMAGE_H */
 
