@@ -1409,7 +1409,7 @@ typedef struct bmDM_faceIter {
 	bmDM_loopIter loopiter;
 } bmDM_faceIter;
 
-void bmDM_faceIterStep(void *self)
+static void bmDM_faceIterStep(void *self)
 {
 	bmDM_faceIter *iter = self;
 	
@@ -1431,7 +1431,7 @@ void bmDM_faceIterStep(void *self)
 	if (!iter->nextf) iter->head.done = 1;
 }
 
-void *bmDM_getFaceCDData(void *self, int type, int layer)
+static void *bmDM_getFaceCDData(void *self, int type, int layer)
 {
 	bmDM_faceIter *iter = self;
 
@@ -1440,7 +1440,7 @@ void *bmDM_getFaceCDData(void *self, int type, int layer)
 	else return CustomData_bmesh_get_n(&iter->bm->pdata, iter->f->head.data, type, layer);
 }
 
-void bmDM_loopIterStep(void *self)
+static void bmDM_loopIterStep(void *self)
 {
 	bmDM_loopIter *iter = self;
 
@@ -1456,7 +1456,7 @@ void bmDM_loopIterStep(void *self)
 	iter->head.eindex = BMINDEX_GET(iter->l->e);
 }
 
-void *bmDM_getLoopCDData(void *self, int type, int layer)
+static void *bmDM_getLoopCDData(void *self, int type, int layer)
 {
 	bmDM_loopIter *iter = self;
 
@@ -1465,7 +1465,7 @@ void *bmDM_getLoopCDData(void *self, int type, int layer)
 	else return CustomData_bmesh_get_n(&iter->bm->ldata, iter->l->head.data, type, layer);
 }
 
-void *bmDM_getVertCDData(void *self, int type, int layer)
+static void *bmDM_getVertCDData(void *self, int type, int layer)
 {
 	bmDM_loopIter *iter = self;
 
@@ -1479,7 +1479,7 @@ void bmDM_iterFree(void *self)
 	MEM_freeN(self);
 }
 
-void bmDM_nulliterFree(void *UNUSED(self))
+static void bmDM_nulliterFree(void *UNUSED(self))
 {
 }
 
@@ -1539,6 +1539,24 @@ static DMFaceIter *bmDM_getFaceIter(DerivedMesh *dm)
 	}
 
 	return (DMFaceIter*) iter;
+}
+
+static void bmDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
+{
+	EditDerivedBMesh *emdm= (EditDerivedBMesh*) dm;
+	BMVert *eve;
+	BMIter iter;
+	int i;
+	
+	BM_ITER(eve, &iter, emdm->tc->bm, BM_VERTS_OF_MESH, NULL) {
+		if (emdm->vertexCos) {
+			copy_v3_v3(cos_r[i], emdm->vertexCos[i]);
+		} else {
+			copy_v3_v3(cos_r[i], eve->co);
+		}
+		
+		i++;
+	}
 }
 
 static void bmDM_release(DerivedMesh *dm)
@@ -1625,7 +1643,8 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 	bmdm->dm.numFaceData = em->tottri;
 	bmdm->dm.numLoopData = bm->totloop;
 	bmdm->dm.numPolyData = bm->totface;
-
+	
+	bmdm->dm.getVertCos = bmDM_getVertCos;
 	bmdm->dm.getMinMax = bmDM_getMinMax;
 
 	bmdm->dm.getVertDataLayout = bmDm_getVertDataLayout;
