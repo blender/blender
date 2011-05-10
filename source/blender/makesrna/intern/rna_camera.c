@@ -94,7 +94,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "dtx");
 	RNA_def_property_enum_items(prop, prop_draw_type_extra_items);
 	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
-	RNA_def_property_ui_text(prop, "Comosition Guide",  "Draw overlay");
+	RNA_def_property_ui_text(prop, "Composition Guides",  "Draw overlay");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
 	/* Number values */
