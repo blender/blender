@@ -86,7 +86,6 @@ void	undo_editmode_step			(struct bContext *C, int step);
 float *crazyspace_get_mapped_editverts(struct Scene *scene, struct Object *obedit);
 void crazyspace_set_quats_editmesh(struct EditMesh *em, float *origcos, float *mappedcos, float *quats);
 void crazyspace_set_quats_mesh(struct Mesh *me, float *origcos, float *mappedcos, float *quats);
-int editmesh_get_first_deform_matrices(struct Scene *scene, struct Object *ob, struct EditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3]);
 int sculpt_get_first_deform_matrices(struct Scene *scene, struct Object *ob, float (**deformmats)[3][3], float (**deformcos)[3]);
 void crazyspace_build_sculpt(struct Scene *scene, struct Object *ob, float (**deformmats)[3][3], float (**deformcos)[3]);
 
