@@ -1069,7 +1069,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	LinkNode *datamasks, *curr;
 	CustomDataMask mask, nextmask;
 	float (*deformedVerts)[3] = NULL;
-	DerivedMesh *dm, *orcodm, *clothorcodm, *finaldm;
+	DerivedMesh *dm=NULL, *orcodm, *clothorcodm, *finaldm;
 	int numVerts = me->totvert;
 	int required_mode;
 	int isPrevDeform= FALSE;
@@ -2178,7 +2178,25 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->tface[a].array = tfdata->layers[layer].data;
 				attribs->tface[a].emOffset = tfdata->layers[layer].offset;
 				attribs->tface[a].glIndex = gattribs->layer[b].glindex;
-			}
+			} /*else {
+				int player;
+				CustomData *pdata = dm->getFaceDataLayout(dm);
+				
+				if(gattribs->layer[b].name[0])
+					player = CustomData_get_named_layer_index(pdata, CD_MTEXPOLY,
+						gattribs->layer[b].name);
+				else
+					player = CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
+				
+				if (player != -1) {
+					a = attribs->tottface++;
+	
+					attribs->tface[a].array = NULL;
+					attribs->tface[a].emOffset = pdata->layers[layer].offset;
+					attribs->tface[a].glIndex = gattribs->layer[b].glindex;
+					
+				}
+			}*/
 		}
 		else if(gattribs->layer[b].type == CD_MCOL) {
 			/* vertex colors */

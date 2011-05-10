@@ -229,6 +229,8 @@ void *CustomData_bmesh_get_n(const struct CustomData *data, void *block, int typ
  */
 void *CustomData_bmesh_get_layer_n(const struct CustomData *data, void *block, int n);
 
+int CustomData_set_layer_name(const struct CustomData *data, int type, int n, const char *name);
+
 /* gets a pointer to the active or first layer of type
  * returns NULL if there is no layer of type
  */

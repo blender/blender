@@ -60,7 +60,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	float (*keyco)[3]= NULL;
 	int *keyi;
 	int set_key = BMO_Get_Int(op, "set_shapekey");
-	int i, j, li, allocsize[4] = {512, 512, 2048, 512};
+	int totuv, i, j, li, allocsize[4] = {512, 512, 2048, 512};
 
 	if (!me || !me->totvert) return; /*sanity check*/
 	
@@ -71,7 +71,14 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&me->ldata, &bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&me->pdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
-
+	
+	/*make sure uv layer names are consistent*/
+	totuv = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	for (i=0; i<totuv; i++) {
+		int li = CustomData_get_layer_index_n(&bm->pdata, CD_MTEXPOLY, i);
+		CustomData_set_layer_name(&bm->ldata, CD_MLOOPUV, i, bm->pdata.layers[li].name);
+	}
+	
 	CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
 
 	if (!CustomData_has_layer(&bm->edata, CD_CREASE))

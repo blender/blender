@@ -202,6 +202,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 
 		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
 		CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
+		CustomData_set_layer_name(&em->bm->pdata, CD_MTEXPOLY, layernum, name);
 
 		if(layernum) /* copy data from active UV */
 			copy_editface_active_customdata(em, CD_MTFACE, layernum);
@@ -210,6 +211,8 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 			CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
 
 		BM_add_data_layer(em->bm, &em->bm->ldata, CD_MLOOPUV);
+		CustomData_set_layer_name(&em->bm->ldata, CD_MLOOPUV, layernum, name);
+		
 		CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPUV, layernum);
 		if(active_set || layernum==0)
 			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPUV, layernum);

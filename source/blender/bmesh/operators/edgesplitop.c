@@ -260,8 +260,6 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			BMO_SetFlag(bm, l->e, EDGE_DEL);
-
 			nextl = (BMLoop*) l->next;
 			prevl = (BMLoop*) l->prev;
 			

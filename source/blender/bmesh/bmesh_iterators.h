@@ -51,6 +51,10 @@ a different face hole boundary*/
 	ele = BMIter_New(iter, bm, type, data); \
 	for ( ; ele; ele=BMIter_Step(iter))
 
+#define BM_ITER_INDEX(ele, iter, bm, type, data, indexvar) \
+	ele = BMIter_New(iter, bm, type, data); \
+	for (indexvar=0; ele; indexvar++, ele=BMIter_Step(iter))
+
 #define BM_ITER_SELECT(ele, iter, bm, type, data)\
 for (ele = BMIter_New(iter, bm, type, data); ele; ele=BMIter_Step(iter)) {\
 	if (BM_TestHFlag(ele, BM_HIDDEN) || !BM_TestHFlag(ele, BM_SELECT)) continue;

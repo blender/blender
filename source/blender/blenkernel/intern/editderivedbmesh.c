@@ -336,9 +336,6 @@ typedef struct EditDerivedBMesh {
 	/*private variables, for number of verts/edges/faces
 	  within the above hash/table members*/
 	int tv, te, tf;
-
-	/*customdata layout of the tesselated faces*/
-	CustomData tessface_layout;
 } EditDerivedBMesh;
 
 static void bmdm_recalc_lookups(EditDerivedBMesh *bmdm)
@@ -962,7 +959,7 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
                int (*setMaterial)(int, void *attribs),
                int (*setDrawOptions)(void *userData, int index), void *userData)
 {
-#if 1
+#if 0
 	(void)dm;
 	(void)setMaterial;
 	(void)setDrawOptions;
@@ -971,13 +968,16 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMesh *bm= bmdm->tc->bm;
+	BMEditMesh *em = bmdm->tc;
 	float (*vertexCos)[3]= bmdm->vertexCos;
 	float (*vertexNos)[3]= bmdm->vertexNos;
 	BMVert *eve;
 	BMFace *efa;
+	BMIter iter;
+	BMLoop **ltri;
 	DMVertexAttribs attribs;
 	GPUVertexAttribs gattribs;
-	MTFace *tf;
+	MTexPoly *tp;
 	int transp, new_transp, orig_transp, tfoffset;
 	int i, b, matnr, new_matnr, dodraw, layer;
 
@@ -986,42 +986,47 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 
 	transp = GPU_get_material_blend_mode();
 	orig_transp = transp;
-	layer = CustomData_get_layer_index(&bm->pdata, CD_MTFACE);
-	tfoffset = (layer == -1)? -1: bm->pdata.layers[layer].offset;
 
 	memset(&attribs, 0, sizeof(attribs));
 
 	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
 	glShadeModel(GL_SMOOTH);
+	BM_ITER_INDEX(eve, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
+		 BMINDEX_SET(eve, i);
+	}
 
-	for (i=0,eve=bm->verts.first; eve; eve= eve->next)
-		BMINDEX_SET(eve, i++);
-
-#define PASSATTRIB(efa, eve, vert) {											\
+#define PASSATTRIB(loop, eve, vert) {											\
 	if(attribs.totorco) {														\
-		float *orco = attribs.orco.array[BMINDEX_GET(eve)];							\
+		float *orco = attribs.orco.array[BMINDEX_GET(eve)];						\
 		glVertexAttrib3fvARB(attribs.orco.glIndex, orco);						\
 	}																			\
 	for(b = 0; b < attribs.tottface; b++) {										\
-		MTFace *_tf = (MTFace*)((char*)efa->data + attribs.tface[b].bmOffset);	\
-		glVertexAttrib2fvARB(attribs.tface[b].glIndex, _tf->uv[vert]);			\
+		MLoopUV *_luv = CustomData_bmesh_get_n(&bm->ldata, loop->head.data, CD_MLOOPUV, b);\
+		glVertexAttrib2fvARB(attribs.tface[b].glIndex, _luv->uv);				\
 	}																			\
 	for(b = 0; b < attribs.totmcol; b++) {										\
-		MCol *cp = (MCol*)((char*)efa->data + attribs.mcol[b].bmOffset);		\
-		GLubyte col[4];															\
-		col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;				\
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);					\
+		MLoopCol *_cp = CustomData_bmesh_get_n(&bm->ldata, loop->head.data, CD_MLOOPCOL, b);\
+		GLubyte _col[4];														\
+		_col[0]= _cp->b; _col[1]= _cp->g; _col[2]= _cp->r; _col[3]= _cp->a;		\
+		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, _col);					\
 	}																			\
 	if(attribs.tottang) {														\
 		float *tang = attribs.tang.array[i*4 + vert];							\
 		glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
 	}																			\
-}
+	}
+	
+	BM_ITER_INDEX(efa, &iter, bm, BM_FACES_OF_MESH, NULL, i) {
+		BMINDEX_SET(efa, i);
+	}
+	
+	for (i=0, ltri=em->looptris[0]; i<em->tottri; i++, ltri += 3) {
+		int drawSmooth;
 
-	for (i=0,efa= bm->faces.first; efa; i++,efa= efa->next) {
-		int drawSmooth= (efa->flag & ME_SMOOTH);
-
-		if(setDrawOptions && !setDrawOptions(userData, i))
+		efa = ltri[0]->f;
+		drawSmooth= BM_TestHFlag(efa, BM_SMOOTH);
+		
+		if(setDrawOptions && !setDrawOptions(userData, BMINDEX_GET(efa)))
 			continue;
 
 		new_matnr = efa->mat_nr + 1;
@@ -1031,9 +1036,9 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 		}
 
-		if(tfoffset != -1) {
-			tf = (MTFace*)((char*)efa->data)+tfoffset;
-			new_transp = tf->transp;
+		if(attribs.tottface) {
+			tp = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+			new_transp = tp->transp;
 
 			if(new_transp != transp) {
 				if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
@@ -1045,69 +1050,51 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		}
 
 		if(dodraw) {
-			glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+			glBegin(GL_TRIANGLES);
 			if (!drawSmooth) {
 				if(vertexCos) glNormal3fv(bmdm->faceNos[i]);
-				else glNormal3fv(efa->n);
+				else glNormal3fv(efa->no);
 
-				PASSATTRIB(efa, efa->v1, 0);
-				if(vertexCos) glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
-				else glVertex3fv(efa->v1->co);
+				PASSATTRIB(ltri[0], ltri[0]->v, 0);
+				if(vertexCos) glVertex3fv(vertexCos[BMINDEX_GET(ltri[0]->v)]);
+				else glVertex3fv(ltri[0]->v->co);
 
-				PASSATTRIB(efa, efa->v2, 1);
-				if(vertexCos) glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
-				else glVertex3fv(efa->v2->co);
+				PASSATTRIB(ltri[1], ltri[1]->v, 1);
+				if(vertexCos) glVertex3fv(vertexCos[BMINDEX_GET(ltri[1]->v)]);
+				else glVertex3fv(ltri[1]->v->co);
 
-				PASSATTRIB(efa, efa->v3, 2);
-				if(vertexCos) glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
-				else glVertex3fv(efa->v3->co);
-
-				if(efa->v4) {
-					PASSATTRIB(efa, efa->v4, 3);
-					if(vertexCos) glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
-					else glVertex3fv(efa->v4->co);
-				}
+				PASSATTRIB(ltri[2], ltri[2]->v, 2);
+				if(vertexCos) glVertex3fv(vertexCos[BMINDEX_GET(ltri[2]->v)]);
+				else glVertex3fv(ltri[2]->v->co);
 			} else {
-				PASSATTRIB(efa, efa->v1, 0);
+				PASSATTRIB(ltri[0], ltri[0]->v, 0);
 				if(vertexCos) {
-					glNormal3fv(vertexNos[(int) efa->v1->tmp.l]);
-					glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+					glNormal3fv(vertexNos[BMINDEX_GET(ltri[0]->v)]);
+					glVertex3fv(vertexCos[BMINDEX_GET(ltri[0]->v)]);
 				}
 				else {
-					glNormal3fv(efa->v1->no);
-					glVertex3fv(efa->v1->co);
+					glNormal3fv(ltri[0]->v->no);
+					glVertex3fv(ltri[0]->v->co);
 				}
 
-				PASSATTRIB(efa, efa->v2, 1);
+				PASSATTRIB(ltri[1], ltri[1]->v, 1);
 				if(vertexCos) {
-					glNormal3fv(vertexNos[(int) efa->v2->tmp.l]);
-					glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+					glNormal3fv(vertexNos[BMINDEX_GET(ltri[1]->v)]);
+					glVertex3fv(vertexCos[BMINDEX_GET(ltri[1]->v)]);
 				}
 				else {
-					glNormal3fv(efa->v2->no);
-					glVertex3fv(efa->v2->co);
+					glNormal3fv(ltri[1]->v->no);
+					glVertex3fv(ltri[1]->v->co);
 				}
 
-				PASSATTRIB(efa, efa->v3, 2);
+				PASSATTRIB(ltri[2], ltri[2]->v, 2);
 				if(vertexCos) {
-					glNormal3fv(vertexNos[(int) efa->v3->tmp.l]);
-					glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+					glNormal3fv(vertexNos[BMINDEX_GET(ltri[2]->v)]);
+					glVertex3fv(vertexCos[BMINDEX_GET(ltri[2]->v)]);
 				}
 				else {
-					glNormal3fv(efa->v3->no);
-					glVertex3fv(efa->v3->co);
-				}
-
-				if(efa->v4) {
-					PASSATTRIB(efa, efa->v4, 3);
-					if(vertexCos) {
-						glNormal3fv(vertexNos[(int) efa->v4->tmp.l]);
-						glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
-					}
-					else {
-						glNormal3fv(efa->v4->no);
-						glVertex3fv(efa->v4->co);
-					}
+					glNormal3fv(ltri[2]->v->no);
+					glVertex3fv(ltri[2]->v->co);
 				}
 			}
 			glEnd();
@@ -1600,7 +1587,7 @@ CustomData *bmDm_getTessFaceDataLayout(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
 
-	return &bmdm->tessface_layout;
+	return &bmdm->dm.faceData;
 }
 
 CustomData *bmDm_getLoopDataLayout(DerivedMesh *dm)
@@ -1630,14 +1617,8 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 	DM_init((DerivedMesh*)bmdm, DM_TYPE_EDITBMESH, em->bm->totvert, 
 		 em->bm->totedge, em->tottri, em->bm->totloop, em->bm->totface);
 	
-	for (i=0; i<bm->ldata.totlayer; i++) {
-		if (bm->ldata.layers[i].type == CD_MLOOPCOL) {
-			CustomData_add_layer(&bmdm->tessface_layout, CD_MCOL, CD_ASSIGN, NULL, 0);
-		} else if (bm->ldata.layers[i].type == CD_MLOOPUV) {
-			CustomData_add_layer(&bmdm->tessface_layout, CD_MTFACE, CD_ASSIGN, NULL, 0);
-		}
-	}
-
+	CustomData_from_bmeshpoly(&bmdm->dm.faceData, &em->bm->pdata, &em->bm->ldata, 0);
+	
 	bmdm->dm.numVertData = bm->totvert;
 	bmdm->dm.numEdgeData = bm->totedge;
 	bmdm->dm.numFaceData = em->tottri;
