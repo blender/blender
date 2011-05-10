@@ -413,40 +413,21 @@ double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3], int a1
 	if (fabs(2*(x-y+z)) > DBL_EPSILON*10.0) {
 		f1 = (sqrt(y*y-4.0*x*z) - y + 2.0*z) / (2.0*(x-y+z));
 		f2 = (-sqrt(y*y-4.0*x*z) - y + 2.0*z) / (2.0*(x-y+z));
-	} else f1 = -1;
-	
-	if (isnan(f1) || f1 == -1.0 || f1 < 0.0 || f1 > 1.0+DBL_EPSILON*50)  {
-		int i, tot=55;
-		double d, lastd=-1.0;
-		
-		/*this is a bisecting root solver that's fudged to avoid false
-         roots*/
-		f1 = 0.0;
-		f2 = 0.5;
-		for (i=0; i<tot; i++) {
-			double f3, v1[3], v2[3], origin[3] = {0.0, 0.0, 0.0};
-			
-			VECINTERP(v1, aa, bb, f1);
-			VECINTERP(v2, cc, dd, f1);
-			
-			d = dist_to_line_segment_v2_d(origin, v1, v2);
-			
-			f3 = f1;
-			if (d < lastd && i != 0) {
-				f1 += (f1 - f2)*0.75;
-			} else {
-				f1 -= (f1 - f2)*0.5;
-			}
-		
-			f2 = f3;
-			lastd = d;
-		}
-		
-		if (d > 0.0001 || f1 < 0.0 || f1 >= 1.0+DBL_EPSILON*10)
-			return -1.0;
-		
+	} else {
+		f1 = -z/(y - 2*z);
 		CLAMP(f1, 0.0, 1.0+DBL_EPSILON);
-		return 1.0 - f1;
+		
+		if (isnan(f1) || f1 > 1.0 || f1 < 0.0) {
+			int i;
+			
+			for (i=0; i<2; i++) {
+				if (fabs(aa[i]) < FLT_EPSILON*100)
+					return aa[(i+1)%2] / fabs(bb[(i+1)%2] - aa[(i+1)%2]);
+				if (fabs(cc[i]) < FLT_EPSILON*100)
+					return cc[(i+1)%2] / fabs(dd[(i+1)%2] - cc[(i+1)%2]);
+			}
+		}
+		return f1;
 	}
 	
 	f1 = MIN2(fabs(f1), fabs(f2));
@@ -504,7 +485,7 @@ int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], doub
 static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], double *x, double *y, int res)
 {
 	double v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
-	double eps = FLT_EPSILON*40000;
+	double eps = FLT_EPSILON*4000;
 	
 	if (len_v3(l->v->no) == 0.0)
 		BM_Vert_UpdateAllNormals(bm, l->v);
@@ -619,9 +600,9 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		MDisps *mdp = CustomData_bmesh_get(&bm->ldata, l->prev->head.data, CD_MDISPS);
 		MDisps *mdl = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
 		MDisps *mdn = CustomData_bmesh_get(&bm->ldata, l->next->head.data, CD_MDISPS);
-		float co[3];
+		float co1[3], co2[3], co[3];
 		int sides;
-		int x, y;
+		int y;
 		
 		/*****
 		mdisps is a grid of displacements, ordered thus:
@@ -639,15 +620,71 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		  
 		sides = sqrt(mdp->totdisp);
 		for (y=0; y<sides; y++) {
-			add_v3_v3v3(co, mdn->disps[y*sides], mdl->disps[y]);
-			mul_v3_fl(co, 0.5);
-			/*
-			copy_v3_v3(co, mdn->disps[y*sides]);
-			copy_v3_v3(mdn->disps[y*sides], mdl->disps[y]);
-			copy_v3_v3(mdl->disps[y], co);
-			//*/
-			copy_v3_v3(mdn->disps[y*sides], co);
-			copy_v3_v3(mdl->disps[y], co);
+			add_v3_v3v3(co1, mdn->disps[y*sides], mdl->disps[y]);
+			mul_v3_fl(co1, 0.5);
+
+			copy_v3_v3(mdn->disps[y*sides], co1);
+			copy_v3_v3(mdl->disps[y], co1);
+		}
+	}
+	
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		MDisps *mdl1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
+		MDisps *mdl2;
+		float co1[3], co2[3], co[3];
+		int sides;
+		int y;
+		
+		/*****
+		mdisps is a grid of displacements, ordered thus:
+		
+		              v4/next
+		                |		                
+		 |       v1/cent-mid2 ---> x
+		 |       |       | 
+		 |       |       |
+		v2/prev--mid1--v3/cur
+		         |
+		         V
+		         y
+		*****/
+		 
+		if (l->radial_next == l)
+			continue;
+
+		if (l->radial_next->v == l->v)
+			mdl2 = CustomData_bmesh_get(&bm->ldata, l->radial_next->head.data, CD_MDISPS);
+		else
+			mdl2 = CustomData_bmesh_get(&bm->ldata, l->radial_next->next->head.data, CD_MDISPS);
+			
+		sides = sqrt(mdl1->totdisp);
+		for (y=0; y<sides; y++) {
+			int a1, a2, o1, o2;
+			
+			if (l->v != l->radial_next->v) {
+				a1 = sides*y + sides-2;
+				a2 = (sides-2)*sides + y;
+				
+				o1 = sides*y + sides-1;
+				o2 = (sides-1)*sides + y;
+			} else {
+				a1 = sides*y + sides-2;
+				a2 = sides*y + sides-2;
+				o1 = sides*y + sides-1;
+				o2 = sides*y + sides-1;
+			}
+			
+			/*magic blending numbers, hardcoded!*/
+			add_v3_v3v3(co1, mdl1->disps[a1], mdl2->disps[a2]);
+			mul_v3_fl(co1, 0.18);
+			
+			add_v3_v3v3(co2, mdl1->disps[o1], mdl2->disps[o2]);
+			mul_v3_fl(co2, 0.32);
+			
+			add_v3_v3v3(co, co1, co2);
+			
+			copy_v3_v3(mdl1->disps[o1], co);
+			copy_v3_v3(mdl2->disps[o2], co); //*/
 		}
 	}
 }
