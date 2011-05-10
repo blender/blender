@@ -29,7 +29,7 @@ set(INC
 	../editors/include
 	../blenkernel
 	../../../intern/guardedalloc
-    ${GLEW_INCLUDE_PATH}
+	${GLEW_INCLUDE_PATH}
 	${FREETYPE_INCLUDE_DIRS}
 )
 

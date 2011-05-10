@@ -34,7 +34,7 @@ set(INC
 	../makesrna
 	../../../intern/guardedalloc
 	../../../intern/smoke/extern
-    ${GLEW_INCLUDE_PATH}
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

@@ -389,7 +389,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
 	parm= RNA_def_pointer(func, "image_user", "ImageUser", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	RNA_def_boolean(func, "compact", 0, "", "Use more compact layout.");
 
 	func= RNA_def_function(srna, "template_list", "uiTemplateList");

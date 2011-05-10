@@ -870,7 +870,7 @@ elseif(APPLE)
 		set(GETTEXT_LIB intl iconv)
 		set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 	endif()
-  
+
 	if(WITH_FFTW3)
 		set(FFTW3 ${LIBDIR}/fftw3)
 		set(FFTW3_INC ${FFTW3}/include)
