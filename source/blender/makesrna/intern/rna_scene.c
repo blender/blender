@@ -1788,7 +1788,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "physics_gravity", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_float_sdna(prop, NULL, "gravity");
-	RNA_def_property_range(prop, 0.0, 25.0);
+	RNA_def_property_ui_range(prop, 0.0, 25.0, 1, 2);
+	RNA_def_property_range(prop, 0.0, 10000.0);
 	RNA_def_property_ui_text(prop, "Physics Gravity", "Gravitational constant used for physics simulation in the game engine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
