@@ -67,6 +67,14 @@ void RNA_def_camera(BlenderRNA *brna)
 		{CAM_PERSP, "PERSP", 0, "Perspective", ""},
 		{CAM_ORTHO, "ORTHO", 0, "Orthographic", ""},
 		{0, NULL, 0, NULL, NULL}};
+	static EnumPropertyItem prop_draw_type_extra_items[] = {
+		{CAM_DTX_CENTER, "CENTER", 0, "Center", ""},
+		{CAM_DTX_CENTER_DIAG, "CENTER_DIAGONAL", 0, "Center Diagonal", ""},
+		{CAM_DTX_THIRDS, "THIRDS", 0, "Thirds", ""},
+		{CAM_DTX_GOLDEN, "GOLDEN", 0, "Golden", ""},
+		{CAM_DTX_GOLDEN_DIAG_H, "GOLDEN_DIAGONAL_H", 0, "Golden Diagonal Hoz", ""},
+		{CAM_DTX_GOLDEN_DIAG_V, "GOLDEN_DIAGONAL_V", 0, "Golden Diagonal Vert", ""},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_lens_unit_items[] = {
 		{0, "MILLIMETERS", 0, "Millimeters", ""},
 		{CAM_ANGLETOGGLE, "DEGREES", 0, "Degrees", ""},
@@ -80,6 +88,13 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Camera types");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "show_guide", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "dtx");
+	RNA_def_property_enum_items(prop, prop_draw_type_extra_items);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Comosition Guide",  "Draw overlay");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
 	/* Number values */
