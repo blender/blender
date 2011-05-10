@@ -27,6 +27,8 @@
 
 #include "logImageCore.h"
 
+#include "logmemfile.h" /* own include */
+
 int logimage_fseek(void* logfile, intptr_t offsett, int origin)
 {	
 	struct _Log_Image_File_t_ *file = (struct _Log_Image_File_t_*) logfile;

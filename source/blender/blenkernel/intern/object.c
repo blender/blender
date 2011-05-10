@@ -1913,9 +1913,10 @@ static void give_parvert(Object *par, int nr, float *vec)
 		if(dm) {
 			MVert *mvert= dm->getVertArray(dm);
 			int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-			int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
+			int i, vindex, numVerts = dm->getNumVerts(dm);
 
 			/* get the average of all verts with (original index == nr) */
+			count= 0;
 			for(i = 0; i < numVerts; i++) {
 				vindex= (index)? index[i]: i;
 

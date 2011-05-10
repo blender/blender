@@ -37,7 +37,7 @@ struct LampRen;
 struct VlakRen;
 struct StrandSegment;
 struct StrandPoint;
-struct ObjectInstanceRen obi;
+struct ObjectInstanceRen;
 struct Isect;
 
 /* shadeinput.c */

@@ -210,7 +210,7 @@ static void interpolate_vec4(float *v1, float *v2, float t, float negt, float *v
 	v[3]= negt*v1[3] + t*v2[3];
 }
 
-void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, ShadeResult *shr, int addpassflag)
+static void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, ShadeResult *shr, int addpassflag)
 {
 	float negt= 1.0f - t;
 
@@ -252,7 +252,7 @@ void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, Sha
 	}
 }
 
-void strand_apply_shaderesult_alpha(ShadeResult *shr, float alpha)
+static void strand_apply_shaderesult_alpha(ShadeResult *shr, float alpha)
 {
 	if(alpha < 1.0f) {
 		shr->combined[0] *= alpha;
