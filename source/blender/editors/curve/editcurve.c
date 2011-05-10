@@ -6118,6 +6118,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 								mul_m4_v3(cmat, bezt->vec[2]);
 								bezt++;
 							}
+							calchandlesNurb(newnu);
 						}
 						if( (bp= newnu->bp) ) {
 							a= newnu->pntsu*nu->pntsv;
