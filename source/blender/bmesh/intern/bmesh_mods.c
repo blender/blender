@@ -80,7 +80,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	BMFace *f, *f2;
 	BMEdge *e, *keepedge=NULL, *baseedge=NULL;
 	BMLoop *loop;
-	int done, len;
+	int done, len= 0;
 
 	if(BM_Nonmanifold_Vert(bm, v)) {
 		return 0;
@@ -89,7 +89,6 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	if(v->e){
 		/*v->e we keep, what else?*/
 		e = v->e;
-		len = 0;
 		do{
 			e = bmesh_disk_nextedge(e,v);
 			if(!(BM_Edge_Share_Faces(e, v->e))){

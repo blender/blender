@@ -103,7 +103,8 @@ void EDBM_select_mirrored(Object *obedit, BMEditMesh *em)
 		BMVert *eve, *v1;
 		BMIter iter;
 		int i;
-		
+
+		i= 0;
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_TestHFlag(eve, BM_SELECT) && !BM_TestHFlag(eve, BM_HIDDEN)) {
 				v1= editbmesh_get_x_mirror_vert(obedit, em, eve, eve->co, i);

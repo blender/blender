@@ -2084,7 +2084,7 @@ static int draw_dm_edges_pins__setDrawOptions(void *userData, int index)
 	BMIter feiter;
 	BMFace *fe;
 
-	int fcount, fpcount = 0;
+	int fcount = 0, fpcount = 0;
 	int pin = 0;
 
 	/* If pinned faces are drawn then only draw pinned edges at the borders.

@@ -177,8 +177,13 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	}
 }
 
-static void copy_editface_active_customdata(EditMesh *em, int type, int index)
+static void copy_editface_active_customdata(BMEditMesh *em, int type, int index)
 {
+#if 1 /*BMESH_TODO*/
+	(void)em;
+	(void)type;
+	(void)index;
+#else
 	EditFace *efa;
 	int n= CustomData_get_active_layer(&em->fdata, type);
 
@@ -186,6 +191,7 @@ static void copy_editface_active_customdata(EditMesh *em, int type, int index)
 		void *data= CustomData_em_get_n(&em->fdata, efa->data, type, n);
 		CustomData_em_set_n(&em->fdata, efa->data, type, index, data);
 	}
+#endif
 }
 
 int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_set)

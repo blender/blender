@@ -55,6 +55,8 @@ struct BMesh;
 struct BMEdge;
 struct BMFace;
 struct wmOperator;
+struct wmKeyMap;
+struct wmKeyConfig;
 
 /* ******************** bmeshutils.c */
 

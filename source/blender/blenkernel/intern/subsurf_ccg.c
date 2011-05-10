@@ -1165,8 +1165,8 @@ DMFaceIter *cgdm_newFaceIter(DerivedMesh *dm)
 	MEdge medge;
 	int i, totedge = cgdm_getNumEdges(dm);
 
-	fiter->cgdm = dm;
-	fiter->liter.cgdm = dm;
+	fiter->cgdm = (CCGDerivedMesh *)dm;
+	fiter->liter.cgdm = (CCGDerivedMesh *)dm;
 	fiter->mface = fiter->mf = dm->dupTessFaceArray(dm);
 	fiter->mf--;
 
@@ -3113,7 +3113,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		}
 	}
 	
-	return result;
+	return (DerivedMesh *)result;
 }
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 

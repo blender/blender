@@ -339,7 +339,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 }
 
 /* called when modal loop selection is done... */
-static void ringsel_exit(bContext *C, wmOperator *op)
+static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
 	

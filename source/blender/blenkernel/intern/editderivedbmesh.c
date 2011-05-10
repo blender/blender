@@ -236,7 +236,7 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 	}
 
 	tm->tottri = i;
-	tm->looptris = looptris;
+	tm->looptris = (BMLoop *(*)[3])looptris;
 }
 
 void BMEdit_RecalcTesselation(BMEditMesh *tm)
@@ -1534,7 +1534,8 @@ static void bmDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
 	BMVert *eve;
 	BMIter iter;
 	int i;
-	
+
+	i= 0;
 	BM_ITER(eve, &iter, emdm->tc->bm, BM_VERTS_OF_MESH, NULL) {
 		if (emdm->vertexCos) {
 			copy_v3_v3(cos_r[i], emdm->vertexCos[i]);

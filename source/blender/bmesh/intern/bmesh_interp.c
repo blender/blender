@@ -402,17 +402,24 @@ static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3
 }
 
 /*funnily enough, I think this is identical to face_to_crn_interp, heh*/
-double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3], int a1, int a2)
+static double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3], int a1, int a2)
 {
-	double x, y, z, c, f1, f2;
+	double x, y, z, f1;
 	
 	x = aa[a1]*cc[a2]-cc[a1]*aa[a2];
 	y = aa[a1]*dd[a2]+bb[a1]*cc[a2]-cc[a1]*bb[a2]-dd[a1]*aa[a2];
 	z = bb[a1]*dd[a2]-dd[a1]*bb[a2];
 	
 	if (fabs(2*(x-y+z)) > DBL_EPSILON*10.0) {
+		double f2;
+
 		f1 = (sqrt(y*y-4.0*x*z) - y + 2.0*z) / (2.0*(x-y+z));
 		f2 = (-sqrt(y*y-4.0*x*z) - y + 2.0*z) / (2.0*(x-y+z));
+
+		f1= fabs(f1);
+		f2= fabs(f2);
+		f1 = MIN2(f1, f2);
+		CLAMP(f1, 0.0, 1.0+DBL_EPSILON);
 	} else {
 		f1 = -z/(y - 2*z);
 		CLAMP(f1, 0.0, 1.0+DBL_EPSILON);
@@ -427,12 +434,8 @@ double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3], int a1
 					return cc[(i+1)%2] / fabs(dd[(i+1)%2] - cc[(i+1)%2]);
 			}
 		}
-		return f1;
 	}
-	
-	f1 = MIN2(fabs(f1), fabs(f2));
-	CLAMP(f1, 0.0, 1.0+DBL_EPSILON);
-	
+
 	return f1;
 }
 

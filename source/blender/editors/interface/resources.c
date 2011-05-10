@@ -408,7 +408,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 			case TH_PIN:
 				cp= ts->pin; break;
 			case TH_PIN_OPAC:
-				cp= &ts->pin_opac; break;
+				cp= &ts->pin_opac; break; /*XXX BMESH_TODO*/
 					
 			case TH_PREVIEW_BACK:
 				cp= ts->preview_back;

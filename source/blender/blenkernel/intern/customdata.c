@@ -2215,6 +2215,9 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 			t = BM_LOOPS_OF_FACE; break;
 		case BM_FACE:
 			t = BM_FACES_OF_MESH; break;
+		default: /* should never happen */
+			BLI_assert(!"invalid type given");
+			t = BM_VERTS_OF_MESH;
 	}
 
 	if (t != BM_LOOPS_OF_FACE) {

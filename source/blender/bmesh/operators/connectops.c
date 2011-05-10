@@ -68,7 +68,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 			loops[BLI_array_count(loops)-1] = loops[0];
 		}
 
-		BM_LegalSplits(bm, f, loops, BLI_array_count(loops)/2);
+		BM_LegalSplits(bm, f, (BMLoop *(*)[2])loops, BLI_array_count(loops)/2);
 		
 		for (i=0; i<BLI_array_count(loops)/2; i++) {
 			if (loops[i*2]==NULL) continue;
