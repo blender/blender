@@ -27,11 +27,13 @@
  * ***** END GPL LICENSE BLOCK *****
  *
  */
+
 /**
- * \file BLO_readblenfile.c
- * \brief This file handles the loading if .blend files
- * \ingroup blo
+ * \file runtime.c
+ * \brief This file handles the loading of .blend files embedded in runtimes
+ * \ingroup blenloader
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,90 +48,56 @@
 #endif
 
 #include "BLO_readfile.h"
-#include "BLO_readblenfile.h"
+#include "BLO_runtime.h"
 
 #include "BKE_blender.h"
 #include "BKE_report.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 
-/** Magic number for the file header */
-const char *headerMagic = "BLENDFI";
-
-/**
- * \brief Set the version number into the array.
- *
- * version contains the integer number of the version
- * i.e. 227
- * array[1] gets set to the div of the number by 100 i.e. 2
- * array[2] gets the remainder i.e. 27
- */
-void BLO_setversionnumber(char array[4], int version)
-{
-	memset(array, 0, sizeof(char)*4);
-
-	array[1] = version / 100;
-	array[2] = version % 100;
-}
-
-/**
- * Sets version number using BLENDER_VERSION
- * Function that calls the setversionnumber(char[],int) with 
- * the BLENDER_VERSION constant and sets the resultant array
- * with the version parts.  
- * see BLO_setversionnumber(char[],int).
- */
-void BLO_setcurrentversionnumber(char array[4])
-{
-	BLO_setversionnumber(array, BLENDER_VERSION);
-}
-
-#ifndef O_BINARY
-#define O_BINARY 0
-#endif
-
 /* Runtime reading */
 
-static int handle_read_msb_int(int handle) {
+static int handle_read_msb_int(int handle)
+{
 	unsigned char buf[4];
 
-	if (read(handle, buf, 4)!=4)
+	if(read(handle, buf, 4) != 4)
 		return -1;
-	else
-		return (buf[0]<<24) + (buf[1]<<16) + (buf[2]<<8) + (buf[3]<<0);
+
+	return (buf[0]<<24) + (buf[1]<<16) + (buf[2]<<8) + (buf[3]<<0);
 }
 
-int blo_is_a_runtime(char *path) {
+int BLO_is_a_runtime(char *path)
+{
 	int res= 0, fd= open(path, O_BINARY|O_RDONLY, 0);
 	int datastart;
 	char buf[8];
 
-	if (fd==-1)
+	if(fd==-1)
 		goto cleanup;
 	
 	lseek(fd, -12, SEEK_END);
 	
 	datastart= handle_read_msb_int(fd);
-	if (datastart==-1)
+
+	if(datastart==-1)
 		goto cleanup;
-	else if (read(fd, buf, 8)!=8)
+	else if(read(fd, buf, 8)!=8)
 		goto cleanup;
-	else if (memcmp(buf, "BRUNTIME", 8)!=0)
+	else if(memcmp(buf, "BRUNTIME", 8)!=0)
 		goto cleanup;
 	else
 		res= 1;
 
 cleanup:
-	if (fd!=-1)
+	if(fd!=-1)
 		close(fd);
 
 	return res;	
 }
 
-BlendFileData *
-blo_read_runtime(
-	char *path, 
-	ReportList *reports)
+BlendFileData *BLO_read_runtime(char *path, ReportList *reports)
 {
 	BlendFileData *bfd= NULL;
 	size_t actualsize;
@@ -137,7 +105,8 @@ blo_read_runtime(
 	char buf[8];
 
 	fd= open(path, O_BINARY|O_RDONLY, 0);
-	if (fd==-1) {
+
+	if(fd==-1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", path, strerror(errno));
 		goto cleanup;
 	}
@@ -147,16 +116,20 @@ blo_read_runtime(
 	lseek(fd, -12, SEEK_END);
 
 	datastart= handle_read_msb_int(fd);
-	if (datastart==-1) {
+
+	if(datastart==-1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (problem seeking)", path);
 		goto cleanup;
-	} else if (read(fd, buf, 8)!=8) {
+	}
+	else if(read(fd, buf, 8)!=8) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (truncated header)", path);
 		goto cleanup;
-	} else if (memcmp(buf, "BRUNTIME", 8)!=0) {
+	}
+	else if(memcmp(buf, "BRUNTIME", 8)!=0) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (not a blend file)", path);
 		goto cleanup;
-	} else {	
+	}
+	else {	
 		//printf("starting to read runtime from %s at datastart %d\n", path, datastart);
 		lseek(fd, datastart, SEEK_SET);
 		bfd = blo_read_blendafterruntime(fd, path, actualsize-datastart, reports);
@@ -164,7 +137,7 @@ blo_read_runtime(
 	}
 	
 cleanup:
-	if (fd!=-1)
+	if(fd!=-1)
 		close(fd);
 	
 	return bfd;

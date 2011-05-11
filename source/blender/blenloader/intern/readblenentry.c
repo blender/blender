@@ -62,8 +62,6 @@
 
 #include "readfile.h"
 
-#include "BLO_readblenfile.h"
-
 #include "BLO_sys_types.h" // needed for intptr_t
 
 #ifdef _WIN32

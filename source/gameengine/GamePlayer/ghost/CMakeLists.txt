@@ -39,7 +39,6 @@ set(INC
 	../../../../source/blender/blenfont
 	../../../../source/blender/blenlib
 	../../../../source/blender/blenkernel
-	../../../../source/blender/readblenfile
 	../../../../source/blender
 	../../../../source/blender/makesdna
 	../../../../source/blender/makesrna

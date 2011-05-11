@@ -145,10 +145,6 @@
  *   merged in docs.
  */
 
-/** \defgroup blo readblenfile
- *  \ingroup blender data
- */
-
 /** \defgroup quicktime quicktime
  *  \ingroup blender
 

@@ -127,7 +127,6 @@ endif()
 		extern_openjpeg
 		extern_redcode
 		bf_imbuf_dds
-		bf_readblenfile 
 		bf_dna
 		ge_videotex
 		bf_blenfont

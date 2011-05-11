@@ -771,7 +771,6 @@ endif()
 		bf_imbuf_cineon
 		bf_imbuf_openexr
 		bf_imbuf_dds
-		bf_readblenfile
 		bf_collada
 		bf_intern_bsp
 		bf_intern_bop
