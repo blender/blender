@@ -1004,8 +1004,8 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	 * obscures the 3D camera border */
 	x1i= (int)(x1 - 1.0001f);
 	y1i= (int)(y1 - 1.0001f);
-	x2i= (int)(x2 + 1.0f);
-	y2i= (int)(y2 + 1.0f);
+	x2i= (int)(x2 + (1.0f-0.0001f));
+	y2i= (int)(y2 + (1.0f-0.0001f));
 	
 	/* passepartout, specified in camera edit buttons */
 	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001f) {
