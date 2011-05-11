@@ -57,7 +57,6 @@
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
-#include "DNA_windowmanager_types.h"
 
 
 #include "BKE_action.h"
@@ -2540,9 +2539,9 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		}
 			break;
 		default:
-			{
-				unit_m3(totmat);
-			}
+		{
+			unit_m3(totmat);
+		}
 			break;
 		}
 		/* Block to keep matrix heading */

@@ -22,4 +22,3 @@ if env['BF_NO_ELBEEM']:
 env.BlenderLib ( libname = 'bf_modifiers', sources = sources,
                  includes = Split(incs), defines=defs,
                  libtype=['core','player'], priority = [80, 40] )
-

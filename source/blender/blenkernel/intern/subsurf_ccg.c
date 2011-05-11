@@ -533,7 +533,7 @@ static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 	for(i = 0; i < totedge; i++, me++) {
 		CCGEdge *e;
 		float crease;
-		
+
 		crease = useFlatSubdiv ? creaseFactor :
 								 me->crease * creaseFactor / 255.0f;
 
@@ -1525,6 +1525,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 	int step = (fast)? gridSize-1: 1;
 
 	ccgdm_pbvh_update(ccgdm);
+
 	if(ccgdm->pbvh && ccgdm->multires.mmd && !fast) {
 		if(dm->numFaceData) {
 			/* should be per face */
@@ -1538,8 +1539,6 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 
 		return;
 	}
-
-	gridSize = ccgSubSurf_getGridSize(ss);
 
 	fi = ccgSubSurf_getFaceIterator(ss);
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {

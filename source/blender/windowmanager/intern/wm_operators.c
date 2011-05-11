@@ -261,7 +261,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 		retval = opm->type->modal(C, opm, event);
 
 		/* if this one is done but it's not the last operator in the macro */
-		if (opm->next && (retval & OPERATOR_FINISHED)) {
+		if ((retval & OPERATOR_FINISHED) && opm->next) {
 			MacroData *md = op->customdata;
 
 			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */

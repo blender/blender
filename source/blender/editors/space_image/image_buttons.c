@@ -54,7 +54,6 @@
 #include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
-#include "BKE_tessmesh.h"
 
 #include "RE_pipeline.h"
 

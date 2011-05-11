@@ -93,7 +93,6 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->obedit= CTX_data_edit_object(C); 
 }
 
-
 int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const short mval[2], const short do_fallback)
 {
 	float dvec[3];
@@ -123,7 +122,6 @@ int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const short
 		}
 	}
 }
-
 
 /*
  * ob == NULL if you want global matrices
@@ -689,10 +687,10 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 				change= TRUE;
 			}
 			if(lasso_inside(mcords, moves, sco2[0], sco2[1])) {
-			   if(select) ebone->flag |= BONE_TIPSEL;
-			   else ebone->flag &= ~BONE_TIPSEL;
-			   didpoint= 1;
-			   change= TRUE;
+				if(select) ebone->flag |= BONE_TIPSEL;
+				else ebone->flag &= ~BONE_TIPSEL;
+				didpoint= 1;
+				change= TRUE;
 			}
 			/* if one of points selected, we skip the bone itself */
 			if(didpoint==0 && lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
@@ -1047,7 +1045,7 @@ static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffe
 
 /* we want a select buffer with bones, if there are... */
 /* so check three selection levels and compare */
-static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buffer, const short *mval)
+static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buffer, const short mval[2])
 {
 	rcti rect;
 	int offs;
@@ -1104,7 +1102,7 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 }
 
 /* returns basact */
-static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int hits, const short *mval, Base *startbase, int has_bones)
+static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int hits, const short mval[2], Base *startbase, int has_bones)
 {
 	Scene *scene= vc->scene;
 	View3D *v3d= vc->v3d;
@@ -1197,7 +1195,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 }
 
 /* mval comes from event->mval, only use within region handlers */
-Base *ED_view3d_give_base_under_cursor(bContext *C, const short *mval)
+Base *ED_view3d_give_base_under_cursor(bContext *C, const short mval[2])
 {
 	ViewContext vc;
 	Base *basact= NULL;
@@ -1222,7 +1220,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const short *mval)
 }
 
 /* mval is region coords */
-static int mouse_select(bContext *C, const short *mval, short extend, short obcenter, short enumerate)
+static int mouse_select(bContext *C, const short mval[2], short extend, short obcenter, short enumerate)
 {
 	ViewContext vc;
 	ARegion *ar= CTX_wm_region(C);
@@ -1940,7 +1938,7 @@ static void mesh_circle_doSelectFace(void *userData, BMFace *efa, int x, int y, 
 	}
 }
 
-static void mesh_circle_select(ViewContext *vc, int select, const short *mval, float rad)
+static void mesh_circle_select(ViewContext *vc, int select, const short mval[2], float rad)
 {
 	ToolSettings *ts= vc->scene->toolsettings;
 	int bbsel;
@@ -1985,7 +1983,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const short *mval, f
 	EDBM_selectmode_flush(vc->em);
 }
 
-static void paint_facesel_circle_select(ViewContext *vc, int select, const short *mval, float rad)
+static void paint_facesel_circle_select(ViewContext *vc, int select, const short mval[2], float rad)
 {
 	Object *ob= vc->obact;
 	Mesh *me = ob?ob->data:NULL;
@@ -2032,7 +2030,7 @@ static void nurbscurve_circle_doSelect(void *userData, Nurb *UNUSED(nu), BPoint 
 		}
 	}
 }
-static void nurbscurve_circle_select(ViewContext *vc, int select, const short *mval, float rad)
+static void nurbscurve_circle_select(ViewContext *vc, int select, const short mval[2], float rad)
 {
 	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 
@@ -2059,7 +2057,7 @@ static void latticecurve_circle_doSelect(void *userData, BPoint *bp, int x, int 
 		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
-static void lattice_circle_select(ViewContext *vc, int select, const short *mval, float rad)
+static void lattice_circle_select(ViewContext *vc, int select, const short mval[2], float rad)
 {
 	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 
@@ -2091,7 +2089,7 @@ static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, int
 	}
 	return 0;
 }
-static void pose_circle_select(ViewContext *vc, int select, const short *mval, float rad)
+static void pose_circle_select(ViewContext *vc, int select, const short mval[2], float rad)
 {
 	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 	bPose *pose = vc->obact->pose;
@@ -2159,7 +2157,7 @@ static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, int 
 	}
 	return 0;
 }
-static void armature_circle_select(ViewContext *vc, int select, const short *mval, float rad)
+static void armature_circle_select(ViewContext *vc, int select, const short mval[2], float rad)
 {
 	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 	bArmature *arm= vc->obedit->data;
@@ -2218,7 +2216,7 @@ static void armature_circle_select(ViewContext *vc, int select, const short *mva
 
 /** Callbacks for circle selection in Editmode */
 
-static void obedit_circle_select(ViewContext *vc, short select, const short *mval, float rad) 
+static void obedit_circle_select(ViewContext *vc, short select, const short mval[2], float rad)
 {
 	switch(vc->obedit->type) {		
 	case OB_MESH:
@@ -2254,7 +2252,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int select;
 	
 	select= (gesture_mode==GESTURE_MODAL_SELECT);
-    
+
 	if( CTX_data_edit_object(C) || paint_facesel_test(obact) ||
 		(obact && (obact->mode & (OB_MODE_PARTICLE_EDIT|OB_MODE_POSE))) )
 	{

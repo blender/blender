@@ -1015,10 +1015,10 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 //	row= uiLayoutRow(layout, 0);
 
 	RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
-		
+	
 	col= uiLayoutColumn(layout, 0);
 	uiItemR(col, &ptr, "co", 0, "Location", ICON_NONE);
-		
+	
 	uiItemR(col, &ptr, "radius", 0, "Radius", ICON_NONE);
 	uiItemR(col, &ptr, "stiffness", 0, "Stiffness", ICON_NONE);
 	
@@ -1080,7 +1080,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 		break;
 
-				
+	
 	case B_OBJECTPANELMEDIAN:
 		if(ob) {
 			v3d_editvertex_buts(NULL, v3d, ob, 1.0);
@@ -1278,7 +1278,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	else {
 
 		v3d_transform_butsR(col, &obptr);
-		}
+	}
 }
 
 #if 0

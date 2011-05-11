@@ -36,7 +36,6 @@
 #include "BLI_array.h"
 
 #include "DNA_object_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "ED_mesh.h"
 

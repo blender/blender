@@ -25,8 +25,6 @@ set(INC
 	../../blenloader
 	../../blenlib
 	../../bmesh
-	../include
-	../../../../intern/guardedalloc
 	../../makesdna
 	../../makesrna
 	../../windowmanager

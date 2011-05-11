@@ -51,7 +51,6 @@
 #include "BKE_image.h"
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
-#include "BKE_tessmesh.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -277,7 +276,7 @@ int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 		return 0;
 
 	if(obedit && obedit->type == OB_MESH) {
-		BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
+		struct BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
 		int ret;
 		
 		ret = EDBM_texFaceCheck(em);
@@ -295,7 +294,7 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 	
 	if(ED_space_image_show_paint(sima))
 		if(obedit && obedit->type == OB_MESH) {
-			BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
+			struct BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
 			int ret;
 			
 			ret = EDBM_texFaceCheck(em);
@@ -588,7 +587,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
 	else if(obedit && obedit->type == OB_MESH) {
 		Mesh *me= (Mesh*)obedit->data;
-		BMEditMesh *em= me->edit_btmesh;
+		struct BMEditMesh *em= me->edit_btmesh;
 		MTexPoly *tf;
 		
 		if(em && EDBM_texFaceCheck(em)) {
@@ -1008,3 +1007,4 @@ void ED_spacetype_image(void)
 	
 	BKE_spacetype_register(st);
 }
+

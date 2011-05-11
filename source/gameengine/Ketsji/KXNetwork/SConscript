@@ -14,5 +14,4 @@ if env['WITH_BF_PYTHON']:
     incs += ' ' + env['BF_PYTHON_INC']
     defs.append('WITH_PYTHON')
 
-
 env.BlenderLib ( 'bf_network', Split(sources), Split(incs), defines=defs,libtype=['core','player'], priority=[400,125], cxx_compileflags=env['BGE_CXXFLAGS'])

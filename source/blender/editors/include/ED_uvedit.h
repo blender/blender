@@ -40,6 +40,10 @@ struct Object;
 struct Scene;
 struct bContext;
 struct wmKeyConfig;
+struct BMEditMesh;
+struct BMLoop;
+struct BMFace;
+struct MTexPoly;
 
 /* uvedit_ops.c */
 void ED_operatortypes_uvedit(void);

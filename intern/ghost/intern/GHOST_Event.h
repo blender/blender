@@ -36,14 +36,6 @@
 
 #include "GHOST_IEvent.h"
 
-/* INTEGER CODES */
-#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
-	/* Big Endian */
-#define MAKE_ID(a,b,c,d) ( (int)(a)<<24 | (int)(b)<<16 | (c)<<8 | (d) )
-#else
-	/* Little Endian */
-#define MAKE_ID(a,b,c,d) ( (int)(d)<<24 | (int)(c)<<16 | (b)<<8 | (a) )
-#endif
 
 /**
  * Base class for events received the operating system.

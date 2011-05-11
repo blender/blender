@@ -3460,20 +3460,20 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 		return;
 	}
 
-	for (i=0; i<count; i++) {
-		void *tmp;
-
-		mdverts[i].dw=newdataadr(fd, mdverts[i].dw);
-		
+	for (i= count; i > 0; i--, mdverts++) {
 		/*convert to vgroup allocation system*/
-		if (mdverts[i].dw) {
-			tmp = BLI_cellalloc_malloc(MEM_allocN_len(mdverts[i].dw), "vgroups from readfile.c");
-			memcpy(tmp, mdverts[i].dw, MEM_allocN_len(mdverts[i].dw));
-
-			MEM_freeN(mdverts[i].dw);
-			mdverts[i].dw = tmp;
-		} else
-			mdverts[i].totweight=0;
+		MDeformWeight *dw;
+		if(mdverts->dw && (dw= newdataadr(fd, mdverts->dw))) {
+			const ssize_t dw_len= mdverts->totweight * sizeof(MDeformWeight);
+			void *dw_tmp= BLI_cellalloc_malloc(dw_len, "direct_link_dverts");
+			memcpy(dw_tmp, dw, dw_len);
+			mdverts->dw= dw_tmp;
+			MEM_freeN(dw);
+		}
+		else {
+			mdverts->dw= NULL;
+			mdverts->totweight= 0;
+		}
 	}
 }
 

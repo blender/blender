@@ -45,7 +45,6 @@
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -57,7 +56,6 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
-#include "BKE_tessmesh.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -67,8 +65,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
-
-#include "bmesh.h"
 
 #include "ED_image.h"
 #include "ED_render.h"
