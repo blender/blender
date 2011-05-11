@@ -3554,7 +3554,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	BMO_Exec_Op(bm, &bmop);
 	BMO_Finish_Op(bm, &bmop);
 	
-	BLI_ghash_free(gh, NULL, (GHashValFreeFP)WMEM_freeN);
+	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
