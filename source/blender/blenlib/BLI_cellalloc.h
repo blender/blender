@@ -33,6 +33,18 @@
  is found we can get rid of this code, but until then this is necassary
  (though, disabling it if jedmalloc is in use might be feasible).
  
+ ideas for replacement:
+	ok, mdisps could store a mempool in CustomDataLayer.  there might be
+	one there already?  vgroups, uh. . .not sure what to do with vgroups,
+	they do cause a significant performance problem.
+	
+	it's tempting to split vgroups into lots of little customdata layers,
+	but that would waste a LOT of memory.  ugh.  can we plug in jemalloc
+	to guardedalloc, on all platforms?  that would work.
+	
+	I really hate this little library; it really should be replaced before trunk
+	reintegration.
+	
  - joeedh
 */
 
