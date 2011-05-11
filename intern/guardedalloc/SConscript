@@ -1,0 +1,15 @@
+#!/usr/bin/python
+
+Import('env')
+
+defs = []
+
+sources = ['intern/mallocn.c', 'intern/mmap_win.c']
+
+if env['WITH_BF_CXX_GUARDEDALLOC']:
+    sources.append('cpp/mallocn.cpp')
+    defs.append('WITH_CXX_GUARDEDALLOC')
+
+incs = '.'
+
+env.BlenderLib ('bf_intern_guardedalloc', sources, Split(incs), defs, libtype=['intern','player'], priority = [5,150] )
