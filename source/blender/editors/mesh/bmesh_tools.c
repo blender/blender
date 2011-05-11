@@ -172,6 +172,26 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
 }
 
+
+void EMBM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, BMEditMesh *em)
+{
+	BMIter iter;
+	BMVert *eve;
+
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_TestHFlag(eve, BM_SELECT)) {
+			float mval[2], vec[3], no_dummy[3];
+			int dist_dummy;
+			mul_v3_m4v3(vec, obedit->obmat, eve->co);
+			project_float_noclip(ar, vec, mval);
+			if(snapObjectsContext(C, mval, &dist_dummy, vec, no_dummy, SNAP_NOT_OBEDIT)) {
+				mul_v3_m4v3(eve->co, obedit->imat, vec);
+			}
+		}
+	}
+}
+
+
 /* individual face extrude */
 /* will use vertex normals for extrusion directions, so *nor is unaffected */
 static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
@@ -822,7 +842,7 @@ void MESH_OT_select_all(wmOperatorType *ot)
 }
 
 /* *************** add-click-mesh (extrude) operator ************** */
-
+/* in trunk see: 'editmesh_add.c' */
 static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewContext vc;
@@ -830,73 +850,122 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	BMIter iter;
 	float min[3], max[3];
 	int done= 0;
+	short use_proj;
 	
 	em_setup_viewcontext(C, &vc);
 	
+	use_proj= (vc.scene->toolsettings->snap_flag & SCE_SNAP) &&	(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE);
+
 	INIT_MINMAX(min, max);
 	
-	BM_ITER_SELECT(v1, &iter, vc.em->bm, BM_VERTS_OF_MESH, NULL)
-		DO_MINMAX(v1->co, min, max);
-		done= 1;
+	BM_ITER(v1, &iter, vc.em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_TestHFlag(v1, BM_SELECT)) {
+			DO_MINMAX(v1->co, min, max);
+			done= 1;
+		}
 	}
 
 	/* call extrude? */
 	if(done) {
+		const short rot_src= RNA_boolean_get(op->ptr, "rotate_source");
 		BMEdge *eed;
 		float vec[3], cent[3], mat[3][3];
 		float nor[3]= {0.0, 0.0, 0.0};
-		
+
+		/* 2D normal calc */
+		float mval_f[2];
+
+		mval_f[0]= (float)event->mval[0];
+		mval_f[1]= (float)event->mval[1];
+
 		/* check for edges that are half selected, use for rotation */
 		done= 0;
 		BM_ITER(eed, &iter, vc.em->bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_TestHFlag(eed->v1, BM_SELECT) ^ BM_TestHFlag(eed->v2, BM_SELECT)) {
-				if(BM_TestHFlag(eed->v1, BM_SELECT)) 
-					sub_v3_v3v3(vec, eed->v1->co, eed->v2->co);
-				else 
-					sub_v3_v3v3(vec, eed->v2->co, eed->v1->co);
-				add_v3_v3v3(nor, nor, vec);
-				done= 1;
+			if (BM_TestHFlag(eed, BM_SELECT)) {
+				float co1[3], co2[3];
+				mul_v3_m4v3(co1, vc.obedit->obmat, eed->v1->co);
+				mul_v3_m4v3(co2, vc.obedit->obmat, eed->v2->co);
+				project_float_noclip(vc.ar, co1, co1);
+				project_float_noclip(vc.ar, co2, co2);
+
+				/* 2D rotate by 90d while adding.
+				 *  (x, y) = (y, -x)
+				 *
+				 * accumulate the screenspace normal in 2D,
+				 * with screenspace edge length weighting the result. */
+				if(line_point_side_v2(co1, co2, mval_f) >= 0.0f) {
+					nor[0] +=  (co1[1] - co2[1]);
+					nor[1] += -(co1[0] - co2[0]);
+				}
+				else {
+					nor[0] +=  (co2[1] - co1[1]);
+					nor[1] += -(co2[0] - co1[0]);
+				}
 			}
+			done= 1;
 		}
-		if(done) normalize_v3(nor);
+
+		if(done) {
+			float view_vec[3], cross[3];
+
+			/* convert the 2D nomal into 3D */
+			mul_mat3_m4_v3(vc.rv3d->viewinv, nor); /* worldspace */
+			mul_mat3_m4_v3(vc.obedit->imat, nor); /* local space */
+
+			/* correct the normal to be aligned on the view plane */
+			copy_v3_v3(view_vec, vc.rv3d->viewinv[2]);
+			mul_mat3_m4_v3(vc.obedit->imat, view_vec);
+			cross_v3_v3v3(cross, nor, view_vec);
+			cross_v3_v3v3(nor, view_vec, cross);
+			normalize_v3(nor);
+		}
 		
 		/* center */
-		add_v3_v3v3(cent, min, max);
-		mul_v3_fl(cent, 0.5f);
-		VECCOPY(min, cent);
-		
+		mid_v3_v3v3(cent, min, max);
+		copy_v3_v3(min, cent);
+
 		mul_m4_v3(vc.obedit->obmat, min);	// view space
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval, 0);
-		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval, TRUE);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
-		
-		sub_v3_v3v3(min, min, cent);
+
+		sub_v3_v3(min, cent);
 		
 		/* calculate rotation */
 		unit_m3(mat);
 		if(done) {
 			float dot;
-			
-			VECCOPY(vec, min);
+
+			copy_v3_v3(vec, min);
 			normalize_v3(vec);
 			dot= INPR(vec, nor);
 
 			if( fabs(dot)<0.999) {
 				float cross[3], si, q1[4];
-				
+
 				cross_v3_v3v3(cross, nor, vec);
 				normalize_v3(cross);
 				dot= 0.5f*saacos(dot);
+
+				/* halve the rotation if its applied twice */
+				if(rot_src) dot *= 0.5f;
+
 				si= (float)sin(dot);
 				q1[0]= (float)cos(dot);
 				q1[1]= cross[0]*si;
 				q1[2]= cross[1]*si;
 				q1[3]= cross[2]*si;
-				
 				quat_to_mat3( mat,q1);
 			}
 		}
 		
+		if(rot_src) {
+			EDBM_CallOpf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
+				BM_SELECT, cent, mat);
+
+			/* also project the source, for retopo workflow */
+			if(use_proj)
+				EMBM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
+		}
 
 		EDBM_Extrude_edge(vc.obedit, vc.em, SELECT, nor);
 		EDBM_CallOpf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
@@ -909,9 +978,9 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		BMOperator bmop;
 		BMOIter oiter;
 		
-		VECCOPY(min, curs);
-
+		copy_v3_v3(min, curs);
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval, 0);
+
 		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
@@ -926,7 +995,9 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_CANCELLED;
 	}
 
-	//retopo_do_all();
+	if(use_proj)
+		EMBM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
+
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, vc.obedit->data); 
 	DAG_id_tag_update(vc.obedit->data, OB_RECALC_DATA);
 	
@@ -946,6 +1017,8 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "rotate_source", 1, "Rotate Source", "Rotate initial selection giving better shape");
 }
 
 static int delete_mesh(bContext *C, Object *obedit, wmOperator *op, int event, Scene *UNUSED(scene))

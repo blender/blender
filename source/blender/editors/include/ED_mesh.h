@@ -198,10 +198,6 @@ void EDBM_set_flag_all(struct BMEditMesh *em, int flag);
 void EDBM_clear_flag_all(struct BMEditMesh *em, int flag);
 void EDBM_automerge(struct Scene *scene, struct Object *ob, int update);
 
-/* meshtools.c */
-
-void EM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Object *obedit, struct BMEditMesh *em);
-
 /* editmesh_mods.c */
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
@@ -232,6 +228,9 @@ void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
 /* bmesh_mods.c */
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
+
+/* bmesh_tools.c (could be moved) */
+void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Object *obedit, struct BMEditMesh *em);
 
 /* editface.c */
 void paintface_flush_flags(struct Object *ob);
