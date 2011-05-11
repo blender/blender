@@ -53,10 +53,6 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
-#ifdef EVENT_RECORDER
-#include "../../../../intern/ghost/GHOST_C-api.h"
-#endif
-
 #ifndef DISABLE_PYTHON
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -94,12 +90,6 @@ struct bContext {
 	struct {
 		int render;
 	} eval;
-	
-#ifdef EVENT_RECORDER
-	int evtrec, evtplay;
-	char evtplaypath[300];
-	double evtlasttime;
-#endif
 };
 
 /* context */
@@ -119,62 +109,6 @@ bContext *CTX_copy(const bContext *C)
 
 	return newC;
 }
-
-#if defined(EVENT_RECORDER) && !defined(BUILDING_GAMEPLAYER)
-extern GHOST_SystemHandle g_system;
-
-int CTX_rec_events(bContext *UNUSED(C))
-{
-	return GHOST_RecordingEvents(g_system);
-}
-
-int CTX_rec_events_set(bContext *C, int state)
-{
-	FILE *f = CTX_rec_file(C);
-	
-	if (GHOST_RecordingEvents(g_system) && !state)
-		GHOST_StopRecording(g_system);
-	else if (!GHOST_RecordingEvents(g_system) && state) 
-		GHOST_RecordEvents(g_system, f);
-	
-	return 1;
-}
-
-FILE *CTX_rec_file(bContext *UNUSED(C))
-{
-	static FILE *f = NULL;
-	if (!f)
-		f = fopen("eventlog.txt", "wb");
-	return f;
-}
-
-int CTX_set_events_path(bContext *C, const char *path)
-{
-	if (!path) {
-		C->evtplaypath[0] = 0;
-	} else {
-		FILE *file = fopen(path, "rb");
-		
-		if (!file)
-			return 0;
-		
-		strcpy(C->evtplaypath, path);
-		if (g_system)
-			GHOST_PlaybackEvents(g_system, file);
-	}
-	
-	return 1;
-}
-
-extern int erec_playing;
-int CTX_play_events(bContext *C, char **playpath)
-{
-	if (playpath)
-		*playpath = C->evtplaypath[0] ? C->evtplaypath : NULL;
-
-	return GHOST_PlayingEvents(g_system);
-}
-#endif
 
 void CTX_free(bContext *C)
 {

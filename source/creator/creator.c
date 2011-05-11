@@ -260,9 +260,6 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf ("Misc Options:\n");
 	BLI_argsPrintArgDoc(ba, "--debug");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
-#ifdef EVENT_RECORDER
-	BLI_argsPrintArgDoc(ba, "--eventmacro");
-#endif
 	printf("\n");
 	BLI_argsPrintArgDoc(ba, "--factory-startup");
 	printf("\n");
@@ -874,20 +871,6 @@ static int set_start_frame(int argc, const char **argv, void *data)
 	}
 }
 
-#ifdef EVENT_RECORDER
-static int set_macro_playback(int argc, const char **argv, void *data)
-{
-	bContext *C = data;
-	
-	if (argc < 2)
-		return 0;
-		
-	CTX_set_events_path(C, argv[1]);
-	
-	return 0;
-}
-#endif
-
 static int set_end_frame(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
@@ -1184,11 +1167,6 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-F", "--render-format", format_doc, set_image_type, C);
 	BLI_argsAdd(ba, 4, "-t", "--threads", "<threads>\n\tUse amount of <threads> for rendering in background\n\t[1-" STRINGIFY(BLENDER_MAX_THREADS) "], 0 for systems processor count.", set_threads, NULL);
 	BLI_argsAdd(ba, 4, "-x", "--use-extension", "<bool>\n\tSet option to add the file extension to the end of the file", set_extension, C);
-
-#ifdef EVENT_RECORDER
-	BLI_argsAdd(ba, 4, "--eventmacro", NULL, "<file>\n\tevent macro", set_macro_playback, C);
-#endif
-	
 }
 
 #ifdef WITH_PYTHON_MODULE
@@ -1359,11 +1337,7 @@ int main(int argc, const char **argv)
 			if(WM_init_game(C))
 				return 0;
 		}
-#ifdef EVENT_RECORDER
-		else if(!G.file_loaded && !CTX_play_events(C, NULL))
-#else
-			else if(!G.file_loaded)
-#endif
+		else if(!G.file_loaded)
 			WM_init_splash(C);
 	}
 
