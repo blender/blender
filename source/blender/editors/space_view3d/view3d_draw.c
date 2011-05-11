@@ -921,6 +921,60 @@ void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, Vi
 	}
 }
 
+static void drawviewborder_grid3(float x1, float x2, float y1, float y2, float fac, char diagonal)
+{
+	float x3, y3, x4, y4;
+
+	x3= x1 + fac * (x2-x1);
+	y3= y1 + fac * (y2-y1);
+	x4= x1 + (1.0f - fac) * (x2-x1);
+	y4= y1 + (1.0f - fac) * (y2-y1);
+
+	glBegin(GL_LINES);
+	switch(diagonal) {
+	case '\0':
+		glVertex2f(x1, y3);
+		glVertex2f(x2, y3);
+
+		glVertex2f(x1, y4);
+		glVertex2f(x2, y4);
+
+		glVertex2f(x3, y1);
+		glVertex2f(x3, y2);
+
+		glVertex2f(x4, y1);
+		glVertex2f(x4, y2);
+		break;
+	case 'H': /* hoz */
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y4);
+
+		glVertex2f(x1, y3);
+		glVertex2f(x2, y2);
+
+		glVertex2f(x2, y1);
+		glVertex2f(x1, y4);
+
+		glVertex2f(x2, y3);
+		glVertex2f(x1, y2);
+		break;
+	case 'V': /* vert */
+		glVertex2f(x1, y1);
+		glVertex2f(x4, y2);
+
+		glVertex2f(x3, y1);
+		glVertex2f(x2, y2);
+
+		glVertex2f(x1, y2);
+		glVertex2f(x4, y1);
+
+		glVertex2f(x3, y2);
+		glVertex2f(x2, y1);
+		break;
+	}
+	glEnd();
+}
+
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	float fac, a;
@@ -995,21 +1049,70 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 
 	/* safety border */
-	if (ca && (ca->flag & CAM_SHOWTITLESAFE)) {
-		fac= 0.1;
-		
-		a= fac*(x2-x1);
-		x1+= a; 
-		x2-= a;
-		
-		a= fac*(y2-y1);
-		y1+= a;
-		y2-= a;
-		
-		UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
-		
-		uiSetRoundBox(15);
-		uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+	if(ca) {
+		if (ca->dtx & CAM_DTX_CENTER) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+
+			x3= x1+ 0.5f*(x2-x1);
+			y3= y1+ 0.5f*(y2-y1);
+
+			glBegin(GL_LINES);
+			glVertex2f(x1, y3);
+			glVertex2f(x2, y3);
+
+			glVertex2f(x3, y1);
+			glVertex2f(x3, y2);
+			glEnd();
+		}
+
+		if (ca->dtx & CAM_DTX_CENTER_DIAG) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+
+			glBegin(GL_LINES);
+			glVertex2f(x1, y1);
+			glVertex2f(x2, y2);
+
+			glVertex2f(x1, y2);
+			glVertex2f(x2, y1);
+			glEnd();
+		}
+
+		if (ca->dtx & CAM_DTX_THIRDS) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_grid3(x1, x2, y1, y2, 1.0f/3.0f, '\0');
+		}
+
+		if (ca->dtx & CAM_DTX_GOLDEN) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_grid3(x1, x2, y1, y2, 1.0f-(1.0f/1.61803399), '\0');
+		}
+
+		if (ca->dtx & CAM_DTX_GOLDEN_DIAG_H) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_grid3(x1, x2, y1, y2, 1.0f-(1.0f/1.61803399), 'H');
+		}
+
+		if (ca->dtx & CAM_DTX_GOLDEN_DIAG_V) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_grid3(x1, x2, y1, y2, 1.0f-(1.0f/1.61803399), 'V');
+		}
+
+		if (ca->flag & CAM_SHOWTITLESAFE) {
+			fac= 0.1;
+
+			a= fac*(x2-x1);
+			x1+= a;
+			x2-= a;
+
+			a= fac*(y2-y1);
+			y1+= a;
+			y2-= a;
+
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+
+			uiSetRoundBox(15);
+			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+		}
 	}
 
 	setlinestyle(0);

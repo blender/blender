@@ -612,7 +612,7 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	bAnimContext ac;
 	Scene *scene;
 	ARegion *ar;
-	View2D *v2d;
+	// View2D *v2d; /*UNUSED*/
 	short selectmode;
 	int mval[2];
 	
@@ -623,7 +623,7 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	/* get useful pointers from animation context data */
 	scene= ac.scene;
 	ar= ac.ar;
-	v2d= &ar->v2d;
+	// v2d= &ar->v2d;
 	
 	/* get mouse coordinates (in region coordinates) */
 	mval[0]= (event->x - ar->winrct.xmin);

@@ -529,7 +529,7 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float
 	return sel;
 }
 
-int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3])
+static int ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[3])
 {
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	BMFace *efa;

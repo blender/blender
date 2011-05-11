@@ -37,7 +37,6 @@
 /* internal exports only */
 
 /* editmode_undo.c */
-void undo_editmode_clear(void);
 void undo_editmode_name(bContext *C, const char *undoname);
 int undo_editmode_valid(const char *undoname);
 

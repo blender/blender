@@ -76,6 +76,8 @@
 
 #include "smoke_API.h"
 
+extern Material defmaterial; /* from material.c */
+
 /* These are some obscure rendering functions shared between the
  * game engine and the blender, in this module to avoid duplicaten
  * and abstract them away from the rest a bit */
@@ -951,7 +953,6 @@ static Material *gpu_active_node_material(Material *ma)
 
 void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, Object *ob, int glsl, int *do_alpha_pass)
 {
-	extern Material defmaterial; /* from material.c */
 	Material *ma;
 	GPUMaterial *gpumat;
 	GPUBlendMode blendmode;
@@ -1042,7 +1043,6 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 int GPU_enable_material(int nr, void *attribs)
 {
-	extern Material defmaterial; /* from material.c */
 	GPUVertexAttribs *gattribs = attribs;
 	GPUMaterial *gpumat;
 	GPUBlendMode blendmode;
