@@ -812,8 +812,8 @@ void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		else
 		{
 			found = snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect);
-			}
-				
+		}
+		
 		if (found == 1)
 		{
 			float tangent[3];

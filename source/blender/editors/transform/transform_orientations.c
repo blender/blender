@@ -76,9 +76,9 @@ void BIF_clearTransformOrientation(bContext *C)
 	// Need to loop over all view3d
 	if(v3d && v3d->twmode >= V3D_MANIP_CUSTOM) {
 		v3d->twmode = V3D_MANIP_GLOBAL;	/* fallback to global	*/
+	}
 }
-}
- 
+
 static TransformOrientation* findOrientationName(ListBase *lb, const char *name)
 {
 	TransformOrientation *ts= NULL;
@@ -137,16 +137,16 @@ TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports)
 
 
 	ob = base->object;
-
+	
 	copy_m3_m4(mat, ob->obmat);
 	normalize_m3(mat);
 
 	/* use object name if no name is given */
 	if (name[0] == 0)
-{
+	{
 		strncpy(name, ob->id.name+2, 35);
 	}
-	
+
 	return addMatrixSpace(C, mat, name, overwrite);	
 }
 
@@ -155,7 +155,7 @@ TransformOrientation *createBoneSpace(bContext *C, ReportList *reports, char *na
 	float normal[3], plane[3];
 
 	getTransformOrientation(C, normal, plane, 0);
-	
+
 	if (createSpaceNormalTangent(mat, normal, plane) == 0) {
 		BKE_reports_prepend(reports, "Cannot use zero-length bone");
 		return NULL;
@@ -163,7 +163,7 @@ TransformOrientation *createBoneSpace(bContext *C, ReportList *reports, char *na
 
 	if (name[0] == 0)
 	{
-	strcpy(name, "Bone");
+		strcpy(name, "Bone");
 	}
 
 	return addMatrixSpace(C, mat, name, overwrite);
@@ -186,7 +186,7 @@ TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *na
 	
 			if (name[0] == 0)
 			{
-			strcpy(name, "Vertex");
+				strcpy(name, "Vertex");
 			}
 			break;
 		case ORIENTATION_EDGE:
@@ -197,7 +197,7 @@ TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *na
 	
 			if (name[0] == 0)
 			{
-			strcpy(name, "Edge");
+				strcpy(name, "Edge");
 			}
 			break;
 		case ORIENTATION_FACE:
@@ -208,7 +208,7 @@ TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *na
 	
 			if (name[0] == 0)
 			{
-			strcpy(name, "Face");
+				strcpy(name, "Face");
 			}
 			break;
 		default:
@@ -274,7 +274,7 @@ TransformOrientation* addMatrixSpace(bContext *C, float mat[3][3], char name[], 
 	if (overwrite)
 	{
 		ts = findOrientationName(transform_spaces, name);
-		}
+	}
 	else
 	{
 		uniqueOrientationName(transform_spaces, name);
@@ -305,14 +305,14 @@ void BIF_removeTransformOrientation(bContext *C, TransformOrientation *target) {
 			if(v3d) {
 				int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
 				
-			// Transform_fix_me NEED TO DO THIS FOR ALL VIEW3D
+				// Transform_fix_me NEED TO DO THIS FOR ALL VIEW3D
 				if (selected_index == i) {
 					v3d->twmode = V3D_MANIP_GLOBAL;	/* fallback to global	*/
 				}
 				else if (selected_index > i) {
 					v3d->twmode--;
 				}
-
+				
 			}
 
 			BLI_freelinkN(transform_spaces, ts);
@@ -361,7 +361,7 @@ void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target) {
 void BIF_selectTransformOrientationValue(bContext *C, int orientation) {
 	View3D *v3d = CTX_wm_view3d(C);
 	if(v3d) /* currently using generic poll */
-	v3d->twmode = orientation;
+		v3d->twmode = orientation;
 }
 
 EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
@@ -507,15 +507,15 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		if(obedit || (ob && ob->mode & OB_MODE_POSE)) {
 			strcpy(t->spacename, "normal");
 			ED_getTransformOrientationMatrix(C, t->spacemtx, (v3d->around == V3D_ACTIVE));
-					break;
-					}
+			break;
+		}
 		/* no break we define 'normal' as 'local' in Object mode */
 	case V3D_MANIP_LOCAL:
 		strcpy(t->spacename, "local");
 		
 		if(ob) {
-		copy_m3_m4(t->spacemtx, ob->obmat);
-		normalize_m3(t->spacemtx);
+			copy_m3_m4(t->spacemtx, ob->obmat);
+			normalize_m3(t->spacemtx);
 		} else {
 			unit_m3(t->spacemtx);
 		}
@@ -553,8 +553,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	Object *ob = OBACT;
 	int result = ORIENTATION_NONE;
 
-	normal[0] = normal[1] = normal[2] = 0.0f;
-	plane[0] = plane[1] = plane[2] = 0.0f;
+	normal[0] = normal[1] = normal[2] = 0;
+	plane[0] = plane[1] = plane[2] = 0;
 
 	if(obedit)
 	{
@@ -896,18 +896,18 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			}
 		}
 		
-		if (!ob) {
+		if (ob) {
+			VECCOPY(normal, ob->obmat[2]);
+			VECCOPY(plane, ob->obmat[1]);
+		}
+		else {
 			normal[0] = 0.0f;
 			normal[1] = 0.0f;
 			normal[2] = 1.0f;
 			plane[0] = 1.0f;
 			plane[1] = 0.0f;
 			plane[2] = 0.0f;
-		} else {
-			VECCOPY(normal, ob->obmat[2]);
-			VECCOPY(plane, ob->obmat[1]);
 		}
-
 		result = ORIENTATION_NORMAL;
 	}
 	

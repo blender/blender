@@ -266,7 +266,7 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 				mul_v3_fl(out, 1000000000.0f);
 			} else {
 				mul_v3_fl(out, -1000000000.0f);
-	}
+			}
 		} else {
 			add_v3_v3v3(v2, t_con_center, axis);
 			add_v3_v3v3(v4, v, norm);

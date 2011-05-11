@@ -2288,7 +2288,6 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		}
 	}
 	
-
 	/* crazy space free */
 	if(quats)
 		MEM_freeN(quats);
@@ -5114,8 +5113,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		for (i = 0; i < t->total; i++) {
 			TransData *td = t->data + i;
-				ListBase pidlist;
-				PTCacheID *pid;
+			ListBase pidlist;
+			PTCacheID *pid;
 			ob = td->ob;
 
 			if (td->flag & TD_NOACTION)
@@ -5132,9 +5131,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			}
 			BLI_freelistN(&pidlist);
 
-				/* pointcache refresh */
+			/* pointcache refresh */
 			if (BKE_ptcache_object_reset(t->scene, ob, PTCACHE_RESET_OUTDATED))
-					ob->recalc |= OB_RECALC_DATA;
+				ob->recalc |= OB_RECALC_DATA;
 
 			/* Needed for proper updating of "quick cached" dynamics. */
 			/* Creates troubles for moving animated objects without */
@@ -5185,7 +5184,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 #endif
 }
 
-static void createTransObject(struct bContext *C, TransInfo *t)
+static void createTransObject(bContext *C, TransInfo *t)
 {
 	TransData *td = NULL;
 	TransDataExtension *tx;

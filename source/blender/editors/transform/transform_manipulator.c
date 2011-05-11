@@ -511,7 +511,7 @@ int calc_manipulator_stats(const bContext *C)
 
 		case V3D_MANIP_GIMBAL:
 		{
-				float mat[3][3];
+			float mat[3][3];
 			if (gimbal_axis(ob, mat)) {
 				copy_m4_m3(rv3d->twmat, mat);
 				break;
@@ -523,8 +523,8 @@ int calc_manipulator_stats(const bContext *C)
 				float mat[3][3];
 				ED_getTransformOrientationMatrix(C, mat, (v3d->around == V3D_ACTIVE));
 				copy_m4_m3(rv3d->twmat, mat);
-						break;
-						}
+				break;
+			}
 			/* no break we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
 			copy_m4_m4(rv3d->twmat, ob->obmat);
@@ -926,11 +926,11 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 					glBegin(GL_LINES);
 					glVertex3f(0.0f, 0.0f, 0.2f);
 					glVertex3f(0.0f, 0.0f, 1.0f);
-				glEnd();
+					glEnd();
 					postOrtho(ortho);
+				}
 			}
 		}
-	}
 	}
 
 	if(arcs==0 && moving) {

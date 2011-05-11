@@ -1577,22 +1577,21 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	{
 		wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
-		
-		if (keymap) {
-			for (kmi = keymap->items.first; kmi; kmi = kmi->next)
+
+		for (kmi = keymap->items.first; kmi; kmi = kmi->next)
+		{
+			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
 			{
-				if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
-				{
-					if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) && event->ctrl) ||
-						(ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
-						(ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) && event->alt) ||
-						(kmi->type == OSKEY && event->oskey)) {
-						t->modifiers |= MOD_SNAP_INVERT;
-					}
-					break;
+				if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) && event->ctrl) ||
+					(ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
+					(ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) && event->alt) ||
+					(kmi->type == OSKEY && event->oskey)) {
+					t->modifiers |= MOD_SNAP_INVERT;
 				}
+				break;
 			}
 		}
+
 	}
 
 	initSnapping(t, op); // Initialize snapping data AFTER mode flags
@@ -4744,7 +4743,7 @@ void freeSlideVerts(TransInfo *t)
 	SmallHashIter hiter;
 	BMFace *copyf;
 	
-#if 0
+#if 0 /*BMESH_TODO*/
 	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		TransDataSlideVert *tempsv;
 		LinkNode *look = sld->vertlist;
