@@ -521,7 +521,7 @@ static void *alloc_slot_buffer(BMOperator *op, const char *slotname, int len){
  *
 */
 
-void BMO_All_To_Slot(BMesh *bm, BMOperator *op, const char *slotname, int type)
+static void BMO_All_To_Slot(BMesh *bm, BMOperator *op, const char *slotname, int type)
 {
 	BMIter elements;
 	BMHeader *e;
@@ -1306,7 +1306,7 @@ int BMO_CallOpf(BMesh *bm, const char *fmt, ...) {
 #ifdef BMO_ToggleFlag
 #undef BMO_ToggleFlag
 #endif
-void BMO_ToggleFlag(BMesh *bm, void *element, int flag)
+static void BMO_ToggleFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
 	head->flags[bm->stackdepth-1].f ^= flag;
@@ -1321,7 +1321,7 @@ void BMO_ToggleFlag(BMesh *bm, void *element, int flag)
 #ifdef BMO_SetFlag
 #undef BMO_SetFlag
 #endif
-void BMO_SetFlag(BMesh *bm, void *element, int flag)
+static void BMO_SetFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
 	head->flags[bm->stackdepth-1].f |= flag;
@@ -1337,7 +1337,7 @@ void BMO_SetFlag(BMesh *bm, void *element, int flag)
 #ifdef BMO_ClearFlag
 #undef BMO_ClearFlag
 #endif
-void BMO_ClearFlag(BMesh *bm, void *element, int flag)
+static void BMO_ClearFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
 	head->flags[bm->stackdepth-1].f &= ~flag;
@@ -1354,7 +1354,7 @@ void BMO_ClearFlag(BMesh *bm, void *element, int flag)
 #ifdef BMO_TestFlag
 #undef BMO_TestFlag
 #endif
-int BMO_TestFlag(BMesh *bm, void *element, int flag)
+static int BMO_TestFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
 	if(head->flags[bm->stackdepth-1].f & flag)

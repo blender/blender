@@ -27,6 +27,8 @@
 
 #include "bmesh.h"
 
+#include "bmesh_operators_private.h" /* own include */
+
 /*
  * JOIN_TRIANGLES.C
  *

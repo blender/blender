@@ -523,7 +523,7 @@ void BM_flip_normal(BMesh *bm, BMFace *f)
 
 /* detects if two line segments cross each other (intersects).
    note, there could be more winding cases then there needs to be. */
-int linecrosses(double *v1, double *v2, double *v3, double *v4)
+static int linecrosses(double *v1, double *v2, double *v3, double *v4)
 {
 	int w1, w2, w3, w4, w5;
 	
@@ -544,7 +544,7 @@ int linecrosses(double *v1, double *v2, double *v3, double *v4)
 
 /* detects if two line segments cross each other (intersects).
    note, there could be more winding cases then there needs to be. */
-int linecrossesf(float *v1, float *v2, float *v3, float *v4)
+static int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 {
 	int w1, w2, w3, w4, w5 /*, ret*/;
 	float mv1[2], mv2[2], mv3[2], mv4[2];
@@ -649,7 +649,7 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, float co[3])
 	return crosses%2 != 0;
 }
 
-int goodline(float (*projectverts)[3], BMFace *f, int v1i,
+static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 		 int v2i, int v3i, int UNUSED(nvert)) {
 	BMLoop *l = bm_firstfaceloop(f);
 	double v1[3], v2[3], v3[3], pv1[3], pv2[3];

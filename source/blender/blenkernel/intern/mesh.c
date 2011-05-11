@@ -130,7 +130,7 @@ static const char *cmpcode_to_str(int code)
 
 /*thresh is threshold for comparing vertices, uvs, vertex colors,
   weights, etc.*/
-int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2, float thresh)
+static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2, float thresh)
 {
 	CustomDataLayer *l1, *l2;
 	int i, i1=0, i2=0, tot, j;
@@ -1825,7 +1825,7 @@ void mesh_calc_tessface_normals(MVert *mverts, int numVerts, MFace *mfaces, int 
 }
 
 
-void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol) 
+static void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol)
 {
 	MTFace *texface;
 	MTexPoly *texpoly;
@@ -1835,10 +1835,11 @@ void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int
 	MFace *mf;
 	int i;
 
+	mf = me->mface + findex;
+
 	for(i=0; i < numTex; i++){
 		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_get_n(&me->pdata, CD_MTEXPOLY, findex, i); 
-		mf = me->mface + findex;
 		
 		texpoly->tpage = texface->tpage;
 		texpoly->flag = texface->flag;
@@ -1858,7 +1859,6 @@ void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int
 	}
 
 	for(i=0; i < numCol; i++){
-		mf = me->mface + findex;
 		mloopcol = CustomData_get_n(&me->ldata, CD_MLOOPCOL, loopstart, i);
 		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
 

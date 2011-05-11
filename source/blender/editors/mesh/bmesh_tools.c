@@ -175,7 +175,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 
 /* individual face extrude */
 /* will use vertex normals for extrusion directions, so *nor is unaffected */
-short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
+static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
 {
 	BMOIter siter;
 	BMIter liter;
@@ -293,7 +293,7 @@ short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float 
 #endif
 
 /* extrudes individual edges */
-short EDBM_Extrude_edges_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
+static short EDBM_Extrude_edges_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
 {
 	BMOperator bmop;
 
@@ -377,7 +377,7 @@ short EDBM_Extrude_edges_indiv(BMEditMesh *em, short flag, float *nor)
 #endif
 
 /* extrudes individual vertices */
-short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
+static short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
 {
 	BMOperator bmop;
 
@@ -394,7 +394,7 @@ short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float
 	return 'g'; // g is grab
 }
 
-short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
+static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
 {
 	BMesh *bm = em->bm;
 	BMIter iter;
@@ -493,7 +493,7 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
 	return 'n'; // normal constraint 
 
 }
-short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, short flag, float *nor)
+static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, short flag, float *nor)
 {
 		BMIter iter;
 		BMEdge *eed;
@@ -584,7 +584,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 }
 
 /* generic extern called extruder */
-int EDBM_Extrude_Mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOperator *op, float *norin)
+static int EDBM_Extrude_Mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOperator *op, float *norin)
 {
 	short nr, transmode= 0;
 	float stacknor[3] = {0.0f, 0.0f, 0.0f};
@@ -1132,7 +1132,7 @@ static int mesh_selection_type_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_selection_type(wmOperatorType *ot)
+static void MESH_OT_selection_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Selection Mode";
@@ -1896,7 +1896,7 @@ void MESH_OT_bm_test(wmOperatorType *ot)
 
 /********************** Smooth/Solid Operators *************************/
 
-void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
+static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 {
 	BMIter iter;
 	BMFace *efa;
@@ -2459,7 +2459,7 @@ typedef struct PathEdge {
 
 
 
-int select_vertex_path_exec(bContext *C, wmOperator *op)
+static int select_vertex_path_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
@@ -4106,7 +4106,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
 }
 
-int select_by_number_vertices_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int select_by_number_vertices_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 #if 0
 	Object *obedit= CTX_data_edit_object(C);
@@ -4168,7 +4168,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 
 #define MIRROR_THRESH	1.0f
 
-int select_mirror_exec(bContext *C, wmOperator *op)
+static int select_mirror_exec(bContext *C, wmOperator *op)
 {
 	
 	Object *obedit= CTX_data_edit_object(C);

@@ -652,7 +652,7 @@ static BMFace *edge_ray_cast(BMBVHTree *tree, float *co, float *dir, float *hito
 	return f;
 }
 
-void scale_point(float *c1, float *p, float s)
+static void scale_point(float *c1, float *p, float s)
 {
 	sub_v3_v3(c1, p);
 	mul_v3_fl(c1, s);

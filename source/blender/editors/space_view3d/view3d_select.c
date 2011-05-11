@@ -156,7 +156,7 @@ void view3d_get_transformation(ARegion *ar, RegionView3D *rv3d, Object *ob, bglM
 
 /* local prototypes */
 
-void EDBM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
+static void EDBM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
 {
 	BMVert *eve;
 	BMIter iter;
@@ -172,7 +172,7 @@ void EDBM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
 	}
 }
 
-void EDBM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
+static void EDBM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 {
 	BMEdge *eed;
 	BMIter iter;
@@ -188,7 +188,7 @@ void EDBM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 	}
 }
 
-void EDBM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
+static void EDBM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 {
 	BMFace *efa;
 	BMIter iter;
@@ -204,7 +204,7 @@ void EDBM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 	}
 }
 
-void EDBM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
+static void EDBM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 {
 	MPoly *mpoly = me->mpoly;
 	int a;

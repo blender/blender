@@ -1666,7 +1666,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 	return dm;
 }
 
-DerivedMesh *disabled__CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
+static DerivedMesh *disabled__CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
 {
 	DerivedMesh *dm = CDDM_new(BLI_countlist(&em->verts),
 	                           BLI_countlist(&em->edges),
@@ -2028,12 +2028,12 @@ typedef struct CDDM_FaceIter {
 	CDDM_LoopIter liter;
 } CDDM_FaceIter;
 
-void cddm_freeiter(void *self)
+static void cddm_freeiter(void *self)
 {
 	MEM_freeN(self);
 }
 
-void cddm_stepiter(void *self)
+static void cddm_stepiter(void *self)
 {
 	CDDM_FaceIter *iter = self;
 	MPoly *mp;
@@ -2055,7 +2055,7 @@ void cddm_stepiter(void *self)
 	iter->head.len = mp->totloop;
 }
 
-void *cddm_faceiter_getcddata(void *self, int type, int layer)
+static void *cddm_faceiter_getcddata(void *self, int type, int layer)
 {
 	CDDM_FaceIter *iter = self;
 
@@ -2065,7 +2065,7 @@ void *cddm_faceiter_getcddata(void *self, int type, int layer)
 		                    iter->head.index, layer);
 }
 
-void *cddm_loopiter_getcddata(void *self, int type, int layer)
+static void *cddm_loopiter_getcddata(void *self, int type, int layer)
 {
 	CDDM_LoopIter *iter = self;
 
@@ -2075,7 +2075,7 @@ void *cddm_loopiter_getcddata(void *self, int type, int layer)
 	                             iter->head.index, layer);
 }
 
-void *cddm_loopiter_getvertcddata(void *self, int type, int layer)
+static void *cddm_loopiter_getvertcddata(void *self, int type, int layer)
 {
 	CDDM_LoopIter *iter = self;
 
@@ -2086,7 +2086,7 @@ void *cddm_loopiter_getvertcddata(void *self, int type, int layer)
 	                             iter->cddm->mloop[iter->head.index].v, layer);
 }
 
-DMLoopIter *cddmiter_get_loopiter(void *self)
+static DMLoopIter *cddmiter_get_loopiter(void *self)
 {
 	CDDM_FaceIter *iter = self;
 	CDDM_LoopIter *liter = &iter->liter;
@@ -2102,7 +2102,7 @@ DMLoopIter *cddmiter_get_loopiter(void *self)
 	return (DMLoopIter*) liter;
 }
 
-void cddm_loopiter_step(void *self)
+static void cddm_loopiter_step(void *self)
 {
 	CDDM_LoopIter *liter = self;
 	MLoop *ml;

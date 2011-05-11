@@ -148,7 +148,7 @@ static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, const sho
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
-MTexPoly *EDBM_get_active_mtface(BMEditMesh *em, BMFace **act_efa, int sloppy)
+static MTexPoly *EDBM_get_active_mtface(BMEditMesh *em, BMFace **act_efa, int sloppy)
 {
 	BMFace *efa = NULL;
 	
@@ -387,7 +387,7 @@ void paintface_deselect_all_visible(Object *ob, int action, short UNUSED(flush_f
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
-void selectswap_tface(Scene *scene)
+static void selectswap_tface(Scene *scene)
 {
 	Mesh *me;
 	MPoly *mface;

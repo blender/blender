@@ -208,7 +208,7 @@ struct BMEdge *bmesh_disk_nextedge(struct BMEdge *e, struct BMVert *v)
 	return NULL;
 }
 
-BMEdge *bmesh_disk_prevedge(BMEdge *e, BMVert *v)
+static BMEdge *bmesh_disk_prevedge(BMEdge *e, BMVert *v)
 {
 	if (v == e->v1)
 		return e->dlink1.prev;

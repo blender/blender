@@ -456,7 +456,7 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
 	return wtable->weight_table[faceLen].w;
 }
 
-void free_ss_weights(WeightTable *wtable)
+static void free_ss_weights(WeightTable *wtable)
 {
 	int i;
 
@@ -586,15 +586,15 @@ static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 
 /***/
 
-int ccgDM_getVertMapIndex(CCGSubSurf *ss, CCGVert *v) {
+static int ccgDM_getVertMapIndex(CCGSubSurf *ss, CCGVert *v) {
 	return ((int*) ccgSubSurf_getVertUserData(ss, v))[1];
 }
 
-int ccgDM_getEdgeMapIndex(CCGSubSurf *ss, CCGEdge *e) {
+static int ccgDM_getEdgeMapIndex(CCGSubSurf *ss, CCGEdge *e) {
 	return ((int*) ccgSubSurf_getEdgeUserData(ss, e))[1];
 }
 
-int ccgDM_getFaceMapIndex(CCGSubSurf *ss, CCGFace *f) {
+static int ccgDM_getFaceMapIndex(CCGSubSurf *ss, CCGFace *f) {
 	return ((int*) ccgSubSurf_getFaceUserData(ss, f))[1];
 }
 
@@ -1049,7 +1049,7 @@ typedef struct cgdm_faceIter {
 	EdgeHash *ehash; /*edge map for populating loopiter->eindex*/
 } cgdm_faceIter;
 
-void cgdm_faceIterStep(void *self)
+static void cgdm_faceIterStep(void *self)
 {
 	cgdm_faceIter *fiter = self;
 
@@ -1072,7 +1072,7 @@ void cgdm_faceIterStep(void *self)
 	fiter->head.len = 4;
 }
 
-void *cgdm_faceIterCData(void *self, int type, int layer)
+static void *cgdm_faceIterCData(void *self, int type, int layer)
 {
 	cgdm_faceIter *fiter = self;
 	
@@ -1082,7 +1082,7 @@ void *cgdm_faceIterCData(void *self, int type, int layer)
 		return CustomData_get_n(&fiter->cgdm->dm.polyData, type, fiter->head.index, layer);
 }
 
-void cgdm_loopIterStep(void *self)
+static void cgdm_loopIterStep(void *self)
 {
 	cgdm_loopIter *liter = self;
 	MFace *mf = liter->fiter->mface;
@@ -1122,7 +1122,7 @@ void cgdm_loopIterStep(void *self)
 	ccgDM_getFinalVert((DerivedMesh*)liter->cgdm, v1, &liter->head.v);
 }
 
-void *cgdm_loopIterGetVCData(void *self, int type, int layer)
+static void *cgdm_loopIterGetVCData(void *self, int type, int layer)
 {
 	cgdm_loopIter *liter = self;
 
@@ -1131,7 +1131,7 @@ void *cgdm_loopIterGetVCData(void *self, int type, int layer)
 	else return CustomData_get_n(&liter->cgdm->dm.vertData, type, liter->head.vindex, layer);
 }
 
-void *cgdm_loopIterGetCData(void *self, int type, int layer)
+static void *cgdm_loopIterGetCData(void *self, int type, int layer)
 {
 	cgdm_loopIter *liter = self;
 
@@ -1140,7 +1140,7 @@ void *cgdm_loopIterGetCData(void *self, int type, int layer)
 	else return CustomData_get_n(&liter->cgdm->dm.loopData, type, liter->lindex, layer);
 }
 
-DMLoopIter *cgdm_faceIterGetLIter(void *self)
+static DMLoopIter *cgdm_faceIterGetLIter(void *self)
 {
 	cgdm_faceIter *fiter = self;
 	
@@ -1151,7 +1151,7 @@ DMLoopIter *cgdm_faceIterGetLIter(void *self)
 	return (DMLoopIter*) &fiter->liter;
 }
 
-void cgdm_faceIterFree(void *vfiter)
+static void cgdm_faceIterFree(void *vfiter)
 {
 	cgdm_faceIter *fiter = vfiter;
 
@@ -1159,7 +1159,7 @@ void cgdm_faceIterFree(void *vfiter)
 	MEM_freeN(fiter);
 }
 
-DMFaceIter *cgdm_newFaceIter(DerivedMesh *dm)
+static DMFaceIter *cgdm_newFaceIter(DerivedMesh *dm)
 {
 	cgdm_faceIter *fiter = MEM_callocN(sizeof(cgdm_faceIter), "cgdm_faceIter");
 	MEdge medge;
@@ -1501,7 +1501,7 @@ static void ccgDM_drawLooseEdges(DerivedMesh *dm) {
 	ccgEdgeIterator_free(ei);
 }
 
-void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
+static void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 {
 	float a_cX = c[0]-a[0], a_cY = c[1]-a[1], a_cZ = c[2]-a[2];
 	float b_dX = d[0]-b[0], b_dY = d[1]-b[1], b_dZ = d[2]-b[2];
@@ -2245,7 +2245,7 @@ static void cgdm_release(DerivedMesh *dm) {
 	}
 }
 
-void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata, 
+static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata, 
 			  CustomData *pdata, int loopstart, int findex, 
 			  int polyindex, int numTex, int numCol) 
 {

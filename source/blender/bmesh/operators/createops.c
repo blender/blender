@@ -67,7 +67,7 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 #define rs_get_edge_link(e, v, ed) ((v) == ((BMEdge*)(e))->v1 ? (Link*)&(((EdgeData*)(ed))->dlink1) : (Link*)&(((EdgeData*)(ed))->dlink2))
 
-int rotsys_append_edge(struct BMEdge *e, struct BMVert *v, 
+static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v, 
 						EdgeData *edata, VertData *vdata)
 {
 	EdgeData *ed = &edata[BMINDEX_GET(e)];
@@ -97,7 +97,7 @@ int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 	return 1;
 }
 
-void rotsys_remove_edge(struct BMEdge *e, struct BMVert *v, 
+static void rotsys_remove_edge(struct BMEdge *e, struct BMVert *v, 
 						EdgeData *edata, VertData *vdata)
 {
 	EdgeData *ed = edata + BMINDEX_GET(e);
@@ -121,7 +121,7 @@ void rotsys_remove_edge(struct BMEdge *e, struct BMVert *v,
 	e1->next = e1->prev = NULL;
 }
 
-struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v, 
+static struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v, 
 									EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
@@ -131,7 +131,7 @@ struct BMEdge *rotsys_nextedge(struct BMEdge *e, struct BMVert *v,
 	return NULL;
 }
 
-BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v, 
+static BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v, 
 						EdgeData *edata, VertData *UNUSED(vdata))
 {
 	if (v == e->v1)
@@ -141,7 +141,7 @@ BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v,
 	return NULL;
 }
 
-struct BMEdge *rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData *edata, VertData *vdata)
+static struct BMEdge *rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData *edata, VertData *vdata)
 {
 	BMEdge **edges = NULL;
 	BMEdge *e2;
@@ -169,7 +169,7 @@ struct BMEdge *rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeDa
 	return 0;
 }
 
-int rotsys_count(struct BMVert *v, EdgeData *edata, VertData *vdata)
+static int rotsys_count(struct BMVert *v, EdgeData *edata, VertData *vdata)
 {
 	BMEdge *e = vdata[BMINDEX_GET(v)].e;
 	int i=0;
@@ -193,7 +193,7 @@ int rotsys_count(struct BMVert *v, EdgeData *edata, VertData *vdata)
 	return i;
 }
 
-int rotsys_fill_faces(BMesh *bm, EdgeData *edata, VertData *vdata)
+static int rotsys_fill_faces(BMesh *bm, EdgeData *edata, VertData *vdata)
 {
 	BMIter iter;
 	BMEdge *e, **edges = NULL;
@@ -259,7 +259,7 @@ int rotsys_fill_faces(BMesh *bm, EdgeData *edata, VertData *vdata)
 	return 0;
 }
 
-void rotsys_make_consistent(BMesh *bm, EdgeData *edata, VertData *vdata)
+static void rotsys_make_consistent(BMesh *bm, EdgeData *edata, VertData *vdata)
 {
 	BMIter iter;
 	BMEdge *e;
@@ -328,14 +328,14 @@ void rotsys_make_consistent(BMesh *bm, EdgeData *edata, VertData *vdata)
 	
 }
 
-void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
+static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 {
 	BMIter iter;
 	BMEdge *e;
 	BMEdge **edges = NULL;
 	BLI_array_staticdeclare(edges, 256);
 	BMVert *v, *lastv, **verts = NULL;
-	BLI_array_staticdeclare(verts, 256);
+	/*BLI_array_staticdeclare(verts, 256);*/ /*UNUSED*/
 	int i;
 	
 	#define SIGN(n) ((n)<0.0f)
@@ -581,7 +581,7 @@ void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	BLI_array_free(edges);
 }
 
-PathBase *edge_pathbase_new(void)
+static PathBase *edge_pathbase_new(void)
 {
 	PathBase *pb = MEM_callocN(sizeof(PathBase), "PathBase");
 
@@ -591,14 +591,14 @@ PathBase *edge_pathbase_new(void)
 	return pb;
 }
 
-void edge_pathbase_free(PathBase *pathbase)
+static void edge_pathbase_free(PathBase *pathbase)
 {
 	BLI_mempool_destroy(pathbase->nodepool);
 	BLI_mempool_destroy(pathbase->pathpool);
 	MEM_freeN(pathbase);
 }
 
-EPath *edge_copy_add_path(PathBase *pb, EPath *path, BMVert *appendv, BMEdge *e)
+static EPath *edge_copy_add_path(PathBase *pb, EPath *path, BMVert *appendv, BMEdge *e)
 {
 	EPath *path2;
 	EPathNode *node, *node2;
@@ -624,7 +624,7 @@ EPath *edge_copy_add_path(PathBase *pb, EPath *path, BMVert *appendv, BMEdge *e)
 	return path2;
 }
 
-EPath *edge_path_new(PathBase *pb, BMVert *start, BMEdge *starte)
+static EPath *edge_path_new(PathBase *pb, BMVert *start, BMEdge *starte)
 {
 	EPath *path;
 	EPathNode *node;
@@ -644,7 +644,7 @@ EPath *edge_path_new(PathBase *pb, BMVert *start, BMEdge *starte)
 	return path;
 }
 
-float edge_weight_path(EPath *path, EdgeData *edata, VertData *UNUSED(vdata))
+static float edge_weight_path(EPath *path, EdgeData *edata, VertData *UNUSED(vdata))
 {
 	EPathNode *node, *first=path->nodes.first;
 	float w = 0.0;
@@ -666,7 +666,7 @@ float edge_weight_path(EPath *path, EdgeData *edata, VertData *UNUSED(vdata))
 }
 
 
-void edge_free_path(PathBase *pathbase, EPath *path)
+static void edge_free_path(PathBase *pathbase, EPath *path)
 {
 	EPathNode *node, *next;
 
@@ -678,7 +678,7 @@ void edge_free_path(PathBase *pathbase, EPath *path)
 	BLI_mempool_free(pathbase->pathpool, path);
 }
 
-EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, EdgeData *edata, 
+static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, EdgeData *edata, 
 								VertData *vdata, PathBase *pathbase, int group)
 {
 	BMEdge *e, *starte;
@@ -965,7 +965,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(vdata);
 }
 
-BMEdge *edge_next(BMesh *bm, BMEdge *e)
+static BMEdge *edge_next(BMesh *bm, BMEdge *e)
 {
 	BMIter iter;
 	BMEdge *e2;

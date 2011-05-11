@@ -23,7 +23,7 @@
 
 #define BL(ptr) ((BMLoop*)(ptr))
 
-void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
+static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 {
 	BMIter liter;
 	BMLoop *l;
@@ -383,7 +383,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 }
 
 /*uv collapse function*/
-void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
+static void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 {
 	BMIter iter, liter;
 	BMFace *f;

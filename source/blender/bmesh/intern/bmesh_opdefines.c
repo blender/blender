@@ -71,7 +71,7 @@ note that slots default to being input slots.
 
   Smoothes vertices by using a basic vertex averaging scheme.
 */
-BMOpDefine def_vertexsmooth = {
+static BMOpDefine def_vertexsmooth = {
 	"vertexsmooth",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
 	 {BMOP_OPSLOT_INT, "mirror_clip_x"}, //set vertices close to the x axis before the operation to 0
@@ -90,7 +90,7 @@ BMOpDefine def_vertexsmooth = {
   Computes an "outside" normal for the specified input faces.
 */
 
-BMOpDefine def_righthandfaces = {
+static BMOpDefine def_righthandfaces = {
 	"righthandfaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
 	 {BMOP_OPSLOT_INT, "doflip"}, //internal flag, used by bmesh_rationalize_normals
@@ -110,7 +110,7 @@ BMOpDefine def_righthandfaces = {
   if usefaces is 0 then geomout spits out verts and edges, 
   otherwise it spits out faces.
   */
-BMOpDefine def_regionextend = {
+static BMOpDefine def_regionextend = {
 	"regionextend",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, //input geometry
 	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output slot, computed boundary geometry.
@@ -128,7 +128,7 @@ BMOpDefine def_regionextend = {
   Rotates edges topologically.  Also known as "spin edge" to some people.
   Simple example: [/] becomes [|] then [\].
 */
-BMOpDefine def_edgerotate = {
+static BMOpDefine def_edgerotate = {
 	"edgerotate",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
 	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //newly spun edges
@@ -145,7 +145,7 @@ BMOpDefine def_edgerotate = {
   Reverses the winding (vertex order) of faces.  This has the effect of
   flipping the normal.
 */
-BMOpDefine def_reversefaces = {
+static BMOpDefine def_reversefaces = {
 	"reversefaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, //input faces
 	{0} /*null-terminating sentinel*/,
@@ -160,7 +160,7 @@ BMOpDefine def_reversefaces = {
   Splits input edges (but doesn't do anything else).
   This creates a 2-valence vert.
 */
-BMOpDefine def_edgebisect = {
+static BMOpDefine def_edgebisect = {
 	"edgebisect",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
 	{BMOP_OPSLOT_INT, "numcuts"}, //number of cuts
@@ -179,7 +179,7 @@ BMOpDefine def_edgebisect = {
   parameter (which defines the minimum distance for welding to happen).
 */
 
-BMOpDefine def_mirror = {
+static BMOpDefine def_mirror = {
 	"mirror",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, //input geometry
 	 {BMOP_OPSLOT_MAT, "mat"}, //matrix defining the mirror transformation
@@ -199,7 +199,7 @@ BMOpDefine def_mirror = {
   Takes input verts and find vertices they should weld to.  Outputs a
   mapping slot suitable for use with the weld verts bmop.
 */
-BMOpDefine def_finddoubles = {
+static BMOpDefine def_finddoubles = {
 	"finddoubles",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
 	 {BMOP_OPSLOT_ELEMENT_BUF, "keepverts"}, //list of verts to keep
@@ -216,7 +216,7 @@ BMOpDefine def_finddoubles = {
   Finds groups of vertices closer then dist and merges them together,
   using the weld verts bmop.
 */
-BMOpDefine def_removedoubles = {
+static BMOpDefine def_removedoubles = {
 	"removedoubles",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input verts
 	 {BMOP_OPSLOT_FLT,         "dist"}, //minimum distance
@@ -232,7 +232,7 @@ BMOpDefine def_removedoubles = {
   using the weld verts bmop.  The merges must go from a vert not in
   verts to one in verts.
 */
-BMOpDefine def_automerge = {
+static BMOpDefine def_automerge = {
 	"automerge",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input verts
 	 {BMOP_OPSLOT_FLT,         "dist"}, //minimum distance
@@ -246,7 +246,7 @@ BMOpDefine def_automerge = {
 
   Collapses connected vertices
 */
-BMOpDefine def_collapse = {
+static BMOpDefine def_collapse = {
 	"collapse",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /*input edges*/
 	 {0, /*null-terminating sentinel*/}},
@@ -260,7 +260,7 @@ BMOpDefine def_collapse = {
 
   Merge uv/vcols at a specific vertex.
 */
-BMOpDefine def_pointmerge_facedata = {
+static BMOpDefine def_pointmerge_facedata = {
 	"pointmerge_facedata",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, /*input vertices*/
 	 {BMOP_OPSLOT_ELEMENT_BUF, "snapv"}, /*snap vertex*/
@@ -276,7 +276,7 @@ BMOpDefine def_pointmerge_facedata = {
   the bounding box center. (I know, it's not averaging but
   the vert_snap_to_bb_center is just too long).
 */
-BMOpDefine def_vert_average_facedata = {
+static BMOpDefine def_vert_average_facedata = {
 	"vert_average_facedata",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, /*input vertices*/
 	 {0, /*null-terminating sentinel*/}},
@@ -289,7 +289,7 @@ BMOpDefine def_vert_average_facedata = {
 
   Merge verts together at a point.
 */
-BMOpDefine def_pointmerge = {
+static BMOpDefine def_pointmerge = {
 	"pointmerge",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, /*input vertices*/
 	 {BMOP_OPSLOT_VEC,         "mergeco"},
@@ -303,7 +303,7 @@ BMOpDefine def_pointmerge = {
 
   Collapses connected UV vertices.
 */
-BMOpDefine def_collapse_uvs = {
+static BMOpDefine def_collapse_uvs = {
 	"collapse_uvs",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /*input edges*/
 	 {0, /*null-terminating sentinel*/}},
@@ -318,7 +318,7 @@ BMOpDefine def_collapse_uvs = {
   use or will use this bmop).  You pass in mappings from vertices to the vertices
   they weld with.
 */
-BMOpDefine def_weldverts = {
+static BMOpDefine def_weldverts = {
 	"weldverts",
 	{{BMOP_OPSLOT_MAPPING, "targetmap"}, /*maps welded vertices to verts they should weld to.*/
 	 {0, /*null-terminating sentinel*/}},
@@ -332,7 +332,7 @@ BMOpDefine def_weldverts = {
   Creates a single vertex; this bmop was necassary
   for click-create-vertex.
 */
-BMOpDefine def_makevert = {
+static BMOpDefine def_makevert = {
 	"makevert",
 	{{BMOP_OPSLOT_VEC, "co"}, //the coordinate of the new vert
 	{BMOP_OPSLOT_ELEMENT_BUF, "newvertout"}, //the new vert
@@ -348,7 +348,7 @@ BMOpDefine def_makevert = {
   to various settings and stuff.
 
   */
-BMOpDefine def_join_triangles= {
+static BMOpDefine def_join_triangles= {
 	"join_triangles",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, //input geometry.
 	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, //joined faces
@@ -373,7 +373,7 @@ BMOpDefine def_join_triangles= {
   Three verts become a triangle, four become a quad.  Two
   become a wire edge.
   */
-BMOpDefine def_contextual_create= {
+static BMOpDefine def_contextual_create= {
 	"contextual_create",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, //input geometry.
 	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, //newly-made face(s)
@@ -382,7 +382,7 @@ BMOpDefine def_contextual_create= {
 	BMOP_UNTAN_MULTIRES,
 };
 
-BMOpDefine def_edgenet_fill= {
+static BMOpDefine def_edgenet_fill= {
 	"edgenet_fill",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /*input edges*/
 	 {BMOP_OPSLOT_MAPPING,     "restrict"}, /*restricts edges to groups.  maps edges to integers*/
@@ -405,7 +405,7 @@ BMOpDefine def_edgenet_fill= {
   * Two loops; two edges are added to connect the endpoints (based on the
     shortest distance between each endpont).
 */
-BMOpDefine def_edgenet_prepare= {
+static BMOpDefine def_edgenet_prepare= {
 	"edgenet_prepare",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
 	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //new edges
@@ -420,7 +420,7 @@ BMOpDefine def_edgenet_prepare= {
   Rotate vertices around a center, using a 3x3 rotation
   matrix.  Equivilent of the old rotateflag function.
 */
-BMOpDefine def_rotate = {
+static BMOpDefine def_rotate = {
 	"rotate",
 	{{BMOP_OPSLOT_VEC, "cent"}, //center of rotation
 	 {BMOP_OPSLOT_MAT, "mat"}, //matrix defining rotation
@@ -436,7 +436,7 @@ BMOpDefine def_rotate = {
   Translate vertices by an offset.  Equivelent of the
   old translateflag function.
 */
-BMOpDefine def_translate= {
+static BMOpDefine def_translate= {
 	"translate",
 	{{BMOP_OPSLOT_VEC, "vec"}, //translation offset
 	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
@@ -450,7 +450,7 @@ BMOpDefine def_translate= {
 
   Scales vertices by an offset.
 */
-BMOpDefine def_scale= {
+static BMOpDefine def_scale= {
 	"scale",
 	{{BMOP_OPSLOT_VEC, "vec"}, //scale factor
 	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
@@ -466,7 +466,7 @@ BMOpDefine def_scale= {
   Transforms a set of vertices by a matrix.  Multiplies
   the vertex coordinates with the matrix.
 */
-BMOpDefine def_transform = {
+static BMOpDefine def_transform = {
 	"transform",
 	{{BMOP_OPSLOT_MAT, "mat"}, //transform matrix
 	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
@@ -481,7 +481,7 @@ BMOpDefine def_transform = {
   Loads a bmesh into an object/mesh.  This is a "private"
   bmop.
 */
-BMOpDefine def_object_load_bmesh = {
+static BMOpDefine def_object_load_bmesh = {
 	"object_load_bmesh",
 	{{BMOP_OPSLOT_PNT, "scene"},
 	{BMOP_OPSLOT_PNT, "object"},
@@ -496,7 +496,7 @@ BMOpDefine def_object_load_bmesh = {
 
   Converts a bmesh to a Mesh.  This is reserved for exiting editmode.
 */
-BMOpDefine def_bmesh_to_mesh = {
+static BMOpDefine def_bmesh_to_mesh = {
 	"bmesh_to_mesh",
 	{{BMOP_OPSLOT_PNT, "mesh"}, //pointer to a mesh structure to fill in
 	 {BMOP_OPSLOT_PNT, "object"}, //pointer to an object structure
@@ -512,7 +512,7 @@ BMOpDefine def_bmesh_to_mesh = {
   Load the contents of a mesh into the bmesh.  this bmop is private, it's
   reserved exclusively for entering editmode.
 */
-BMOpDefine def_mesh_to_bmesh = {
+static BMOpDefine def_mesh_to_bmesh = {
 	"mesh_to_bmesh",
 	{{BMOP_OPSLOT_PNT, "mesh"}, //pointer to a Mesh structure
 	 {BMOP_OPSLOT_PNT, "object"}, //pointer to an Object structure
@@ -527,7 +527,7 @@ BMOpDefine def_mesh_to_bmesh = {
 
   Extrudes faces individually.
 */
-BMOpDefine def_extrude_indivface = {
+static BMOpDefine def_extrude_indivface = {
 	"extrude_face_indiv",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, //input faces
 	{BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, //output faces
@@ -543,7 +543,7 @@ BMOpDefine def_extrude_indivface = {
   Extrudes Edges into faces, note that this is very simple, there's no fancy
   winged extrusion.
 */
-BMOpDefine def_extrude_onlyedge = {
+static BMOpDefine def_extrude_onlyedge = {
 	"extrude_edge_only",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input vertices
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output geometry
@@ -557,7 +557,7 @@ BMOpDefine def_extrude_onlyedge = {
 
   Extrudes wire edges from vertices.
 */
-BMOpDefine def_extrudeverts_indiv = {
+static BMOpDefine def_extrudeverts_indiv = {
 	"extrude_vert_indiv",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
 	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //output wire edges
@@ -567,7 +567,7 @@ BMOpDefine def_extrudeverts_indiv = {
 	0
 };
 
-BMOpDefine def_connectverts = {
+static BMOpDefine def_connectverts = {
 	"connectverts",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
@@ -576,7 +576,7 @@ BMOpDefine def_connectverts = {
 	BMOP_UNTAN_MULTIRES
 };
 
-BMOpDefine def_extrudefaceregion = {
+static BMOpDefine def_extrudefaceregion = {
 	"extrudefaceregion",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edgefacein"},
 	{BMOP_OPSLOT_MAPPING, "exclude"},
@@ -586,7 +586,7 @@ BMOpDefine def_extrudefaceregion = {
 	0
 };
 
-BMOpDefine def_dissolvevertsop = {
+static BMOpDefine def_dissolvevertsop = {
 	"dissolveverts",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
 	{0} /*null-terminating sentinel*/},
@@ -594,7 +594,7 @@ BMOpDefine def_dissolvevertsop = {
 	BMOP_UNTAN_MULTIRES
 };
 
-BMOpDefine def_dissolveedgessop = {
+static BMOpDefine def_dissolveedgessop = {
 	"dissolveedges",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
@@ -603,7 +603,7 @@ BMOpDefine def_dissolveedgessop = {
 	BMOP_UNTAN_MULTIRES
 };
 
-BMOpDefine def_dissolveedgeloopsop = {
+static BMOpDefine def_dissolveedgeloopsop = {
 	"dissolveedgeloop",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
@@ -612,7 +612,7 @@ BMOpDefine def_dissolveedgeloopsop = {
 	BMOP_UNTAN_MULTIRES
 };
 
-BMOpDefine def_dissolvefacesop = {
+static BMOpDefine def_dissolvefacesop = {
 	"dissolvefaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
@@ -622,7 +622,7 @@ BMOpDefine def_dissolvefacesop = {
 };
 
 
-BMOpDefine def_triangop = {
+static BMOpDefine def_triangop = {
 	"triangulate",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
@@ -633,7 +633,7 @@ BMOpDefine def_triangop = {
 	BMOP_UNTAN_MULTIRES
 };
 
-BMOpDefine def_subdop = {
+static BMOpDefine def_subdop = {
 	"esubd",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
 	{BMOP_OPSLOT_INT, "numcuts"},
@@ -659,7 +659,7 @@ BMOpDefine def_subdop = {
 	BMOP_UNTAN_MULTIRES
 };
 
-BMOpDefine def_delop = {
+static BMOpDefine def_delop = {
 	"del",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, {BMOP_OPSLOT_INT, "context"},
 	{0} /*null-terminating sentinel*/},
@@ -667,7 +667,7 @@ BMOpDefine def_delop = {
 	0
 };
 
-BMOpDefine def_dupeop = {
+static BMOpDefine def_dupeop = {
 	"dupe",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "origout"},
@@ -683,7 +683,7 @@ BMOpDefine def_dupeop = {
 	0
 };
 
-BMOpDefine def_splitop = {
+static BMOpDefine def_splitop = {
 	"split",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
@@ -700,7 +700,7 @@ BMOpDefine def_splitop = {
 
   Find similar faces (area/material/perimeter....).
 */
-BMOpDefine def_similarfaces = {
+static BMOpDefine def_similarfaces = {
 	"similarfaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, /* output faces */
@@ -716,7 +716,7 @@ BMOpDefine def_similarfaces = {
 
   Find similar edges (length, direction, edge, seam,....).
 */
-BMOpDefine def_similaredges = {
+static BMOpDefine def_similaredges = {
 	"similaredges",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /* input edges */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, /* output edges */
@@ -732,7 +732,7 @@ BMOpDefine def_similaredges = {
 
   Find similar vertices (normal, face, vertex group,....).
 */
-BMOpDefine def_similarverts = {
+static BMOpDefine def_similarverts = {
 	"similarverts",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, /* input vertices */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, /* output vertices */
@@ -747,7 +747,7 @@ BMOpDefine def_similarverts = {
 ** uv rotation
 ** cycle the uvs
 */
-BMOpDefine def_meshrotateuvs = {
+static BMOpDefine def_meshrotateuvs = {
 	"meshrotateuvs",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {BMOP_OPSLOT_INT, "dir"},			/* direction */
@@ -760,7 +760,7 @@ BMOpDefine def_meshrotateuvs = {
 ** uv reverse
 ** reverse the uvs
 */
-BMOpDefine def_meshreverseuvs = {
+static BMOpDefine def_meshreverseuvs = {
 	"meshreverseuvs",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {0} /*null-terminating sentinel*/},
@@ -772,7 +772,7 @@ BMOpDefine def_meshreverseuvs = {
 ** color rotation
 ** cycle the colors
 */
-BMOpDefine def_meshrotatecolors = {
+static BMOpDefine def_meshrotatecolors = {
 	"meshrotatecolors",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {BMOP_OPSLOT_INT, "dir"},			/* direction */
@@ -785,7 +785,7 @@ BMOpDefine def_meshrotatecolors = {
 ** color reverse
 ** reverse the colors
 */
-BMOpDefine def_meshreversecolors = {
+static BMOpDefine def_meshreversecolors = {
 	"meshreversecolors",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {0} /*null-terminating sentinel*/},
@@ -798,7 +798,7 @@ BMOpDefine def_meshreversecolors = {
 
   Find similar vertices (normal, face, vertex group,....).
 */
-BMOpDefine def_vertexshortestpath = {
+static BMOpDefine def_vertexshortestpath = {
 	"vertexshortestpath",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "startv"}, /* start vertex */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "endv"}, /* end vertex */
@@ -814,7 +814,7 @@ BMOpDefine def_vertexshortestpath = {
 
   Disconnects faces along input edges.
  */
-BMOpDefine def_edgesplit = {
+static BMOpDefine def_edgesplit = {
 	"edgesplit",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /* input edges */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout1"}, /* old output disconnected edges */
@@ -829,7 +829,7 @@ BMOpDefine def_edgesplit = {
 
   Creates a grid with a variable number of subdivisions
 */
-BMOpDefine def_create_grid = {
+static BMOpDefine def_create_grid = {
 	"create_grid",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
 	 {BMOP_OPSLOT_INT,         "xsegments"}, //number of x segments
@@ -846,7 +846,7 @@ BMOpDefine def_create_grid = {
 
   Creates a grid with a variable number of subdivisions
 */
-BMOpDefine def_create_uvsphere = {
+static BMOpDefine def_create_uvsphere = {
 	"create_uvsphere",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
 	 {BMOP_OPSLOT_INT,         "segments"}, //number of u segments
@@ -863,7 +863,7 @@ BMOpDefine def_create_uvsphere = {
 
   Creates a grid with a variable number of subdivisions
 */
-BMOpDefine def_create_icosphere = {
+static BMOpDefine def_create_icosphere = {
 	"create_icosphere",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
 	 {BMOP_OPSLOT_INT,         "subdivisions"}, //how many times to recursively subdivide the sphere
@@ -879,7 +879,7 @@ BMOpDefine def_create_icosphere = {
 
   Creates a monkey.  Be wary.
 */
-BMOpDefine def_create_monkey = {
+static BMOpDefine def_create_monkey = {
 	"create_monkey",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
 	 {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with--
@@ -893,7 +893,7 @@ BMOpDefine def_create_monkey = {
 
   Creates a cone with variable depth at both ends
 */
-BMOpDefine def_create_cone = {
+static BMOpDefine def_create_cone = {
 	"create_cone",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
 	 {BMOP_OPSLOT_INT, "cap_ends"}, //wheter or not to fill in the ends with faces
@@ -911,7 +911,7 @@ BMOpDefine def_create_cone = {
 /*
 Creates a circle
 */
-BMOpDefine def_create_circle = {
+static BMOpDefine def_create_circle = {
   "create_circle",
   {{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
    {BMOP_OPSLOT_INT, "cap_ends"}, //wheter or not to fill in the ends with faces
@@ -929,7 +929,7 @@ BMOpDefine def_create_circle = {
 
   Creates a cone with variable depth at both ends
 */
-BMOpDefine def_create_cube = {
+static BMOpDefine def_create_cube = {
 	"create_cube",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
 	 {BMOP_OPSLOT_FLT, "size"}, //size of the cube
@@ -944,7 +944,7 @@ BMOpDefine def_create_cube = {
 
   Bevels edges and vertices
  */
-BMOpDefine def_bevel = {
+static BMOpDefine def_bevel = {
 	"bevel",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "face_spans"}, /* new geometry */
@@ -962,7 +962,7 @@ BMOpDefine def_bevel = {
 
   Makes triangle a bit nicer
  */
-BMOpDefine def_beautify_fill = {
+static BMOpDefine def_beautify_fill = {
 "beautify_fill",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "constrain_edges"}, /* edges that can't be flipped */
@@ -977,7 +977,7 @@ BMOpDefine def_beautify_fill = {
 
   Fill edges with triangles
  */
-BMOpDefine def_triangle_fill = {
+static BMOpDefine def_triangle_fill = {
 	"triangle_fill",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /* input edges */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, /* new faces and edges */

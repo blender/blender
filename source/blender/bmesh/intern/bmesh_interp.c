@@ -82,7 +82,7 @@ void BM_Data_Interp_From_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, flo
 */
 
 
-void BM_Data_Vert_Average(BMesh *UNUSED(bm), BMFace *UNUSED(f))
+static void BM_Data_Vert_Average(BMesh *UNUSED(bm), BMFace *UNUSED(f))
 {
 	// BMIter iter;
 }
@@ -294,7 +294,7 @@ static void cross_v3_v3v3_d(double r[3], const double a[3], const double b[3])
 }
 
 /* distance v1 to line-piece v2-v3 */
-double dist_to_line_segment_v2_d(double v1[3], double v2[3], double v3[3]) 
+static double dist_to_line_segment_v2_d(double v1[3], double v2[3], double v3[3]) 
 {
 	double labda, rc[2], pt[2], len;
 	
@@ -334,7 +334,7 @@ MINLINE double line_point_side_v2_d(const double *l1, const double *l2, const do
 }
 
 /* point in quad - only convex quads */
-int isect_point_quad_v2_d(double pt[2], double v1[2], double v2[2], double v3[2], double v4[2])
+static int isect_point_quad_v2_d(double pt[2], double v1[2], double v2[2], double v3[2], double v4[2])
 {
 	if (line_point_side_v2_d(v1,v2,pt)>=0.0) {
 		if (line_point_side_v2_d(v2,v3,pt)>=0.0) {
@@ -439,7 +439,7 @@ static double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3],
 	return f1;
 }
 
-int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], double v4[3], double p[3], float n[3])
+static int quad_co(double *x, double *y, double v1[3], double v2[3], double v3[3], double v4[3], double p[3], float n[3])
 {
 	float projverts[5][3], n2[3];
 	double dprojverts[4][3], origin[3]={0.0f, 0.0f, 0.0f};

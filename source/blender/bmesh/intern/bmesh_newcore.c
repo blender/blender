@@ -79,7 +79,7 @@ static void inherit_face(BMesh *bm, BMBaseFace *basef)
 }
 */
 
-void BM_SubClass(BMesh *UNUSED(bm), BMLayerType *UNUSED(type))
+static void BM_SubClass(BMesh *UNUSED(bm), BMLayerType *UNUSED(type))
 {
 }
 
@@ -201,7 +201,7 @@ static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, BML
 	return l;
 }
 
-BMLoop *BM_Add_FaceBoundary(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte) {
+static BMLoop *BM_Add_FaceBoundary(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte) {
 	BMBaseLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
 	BMLoop *l = (BMLoop*)bmesh_create_loop(bm, startv, starte, f, NULL);
 	int i;
@@ -464,7 +464,7 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, int type) {
 	return err;
 }
 
-void bmesh_kill_loop(BMesh *bm, BMLoop *l) {
+static void bmesh_kill_loop(BMesh *bm, BMLoop *l) {
 	int i;
 	
 	for (i=0; i<bm->totlayer; i++) {
@@ -655,7 +655,7 @@ void BM_Kill_Vert(BMesh *bm, BMVert *v) {
  *	1 for success, 0 for failure.
  */
 
-int bmesh_loop_length(BMLoop *l)
+static int bmesh_loop_length(BMLoop *l)
 {
 	BMLoop *ol = l;
 	int i = 0;
@@ -668,7 +668,7 @@ int bmesh_loop_length(BMLoop *l)
 	return i;
 }
 
-int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst){
+static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst){
 	BMLoop *l = lst->first, *curloop, *oldprev, *oldnext;
 	BMEdge **edar = NULL;
 	MDisps *md;
@@ -754,7 +754,7 @@ int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 	return bmesh_loop_reverse_loop(bm, f, f->loops.first);
 }
 
-void bmesh_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int flag)
+static void bmesh_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int flag)
 {
 	BMHeader **eles = veles;
 	int i;
@@ -764,7 +764,7 @@ void bmesh_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int flag)
 	}
 }
 
-void bmesh_clear_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int flag)
+static void bmesh_clear_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int flag)
 {
 	BMHeader **eles = veles;
 	int i;

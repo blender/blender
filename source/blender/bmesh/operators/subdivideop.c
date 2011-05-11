@@ -141,7 +141,7 @@ for (i=0; i<lvl; i++, df /= 4.0f) {
 #endif
 /*connects face with smallest len, which I think should always be correct for
   edge subdivision*/
-BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
+static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 	BMIter iter, iter2;
 	BMVert *v;
 	BMLoop *nl;
@@ -382,7 +382,7 @@ static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 	}
 }
 
-subdpattern quad_1edge = {
+static subdpattern quad_1edge = {
 	{1, 0, 0, 0},
 	quad_1edge_split,
 	4,
@@ -411,7 +411,7 @@ static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **vert
 	connect_smallest_face(bm, verts[numcuts*2+3], verts[numcuts*2+1], &nf);
 }
 
-subdpattern quad_2edge_path = {
+static subdpattern quad_2edge_path = {
 	{1, 1, 0, 0},
 	quad_2edge_split_path,
 	4,
@@ -452,7 +452,7 @@ static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert *
 	connect_smallest_face(bm, lastv, verts[numcuts*2+2], &nf);	
 }
 
-subdpattern quad_2edge_innervert = {
+static subdpattern quad_2edge_innervert = {
 	{1, 1, 0, 0},
 	quad_2edge_split_innervert,
 	4,
@@ -485,7 +485,7 @@ static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 	}
 }
 
-subdpattern quad_2edge_fan = {
+static subdpattern quad_2edge_fan = {
 	{1, 1, 0, 0},
 	quad_2edge_split_fan,
 	4,
@@ -525,7 +525,7 @@ static void quad_3edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	}
 }
 
-subdpattern quad_3edge = {
+static subdpattern quad_3edge = {
 	{1, 1, 1, 0},
 	quad_3edge_split,
 	4,
@@ -632,7 +632,7 @@ static void tri_1edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	}
 }
 
-subdpattern tri_1edge = {
+static subdpattern tri_1edge = {
 	{1, 0, 0},
 	tri_1edge_split,
 	3,
@@ -732,20 +732,20 @@ cleanup:
 	MEM_freeN(lines);
 }
 
-subdpattern tri_3edge = {
+static subdpattern tri_3edge = {
 	{1, 1, 1},
 	tri_3edge_subdivide,
 	3,
 };
 
 
-subdpattern quad_4edge = {
+static subdpattern quad_4edge = {
 	{1, 1, 1, 1},
 	quad_4edge_subdivide,
 	4,
 };
 
-subdpattern *patterns[] = {
+static subdpattern *patterns[] = {
 	NULL, //quad single edge pattern is inserted here
 	NULL, //quad corner vert pattern is inserted here
 	NULL, //tri single edge pattern is inserted here

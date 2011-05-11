@@ -27,6 +27,7 @@
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"
+#include "bmesh_operators_private.h" /* own include */
 
 /*
  * MIRROR.C

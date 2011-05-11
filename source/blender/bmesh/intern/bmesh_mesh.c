@@ -335,7 +335,7 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo) {
 	BMO_Finish_Op(bm, &bmop);
 }
 
-void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
+static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 {
 	/*switch multires data out of tangent space*/
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {

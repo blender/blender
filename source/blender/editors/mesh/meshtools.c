@@ -1192,7 +1192,7 @@ BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *e
 
 
 
-float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float *mirrCent, float *face_cent)
+static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float *mirrCent, float *face_cent)
 {
 	float vec[2];
 	float cent_vec[2];

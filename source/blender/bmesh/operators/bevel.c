@@ -31,7 +31,7 @@ typedef struct EdgeTag {
 	BMVert *newv1, *newv2;
 } EdgeTag;
 
-void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
+static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 {
 	float  no[3], /*tan[3]*,*/ vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
 	/*float p1[3], p2[3], w[3];

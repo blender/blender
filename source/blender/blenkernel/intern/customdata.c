@@ -1015,7 +1015,7 @@ static void customData_update_offsets(CustomData *data);
 static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	int type, int alloctype, void *layerdata, int totelem, const char *name);
 
-void customData_update_typemap(CustomData *data)
+void CustomData_update_typemap(CustomData *data)
 {
 	int i, lasttype = -1;
 
@@ -1078,7 +1078,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 		}
 	}
 
-	customData_update_typemap(dest);
+	CustomData_update_typemap(dest);
 }
 
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
@@ -1143,7 +1143,7 @@ static void customData_update_offsets(CustomData *data)
 	}
 
 	data->totsize = offset;
-	customData_update_typemap(data);
+	CustomData_update_typemap(data);
 }
 
 int CustomData_get_layer_index(const CustomData *data, int type)
@@ -1448,7 +1448,7 @@ void *CustomData_add_layer(CustomData *data, int type, int alloctype,
 	
 	layer = customData_add_layer__internal(data, type, alloctype, layerdata,
 										   totelem, typeInfo->defaultname);
-	customData_update_typemap(data);
+	CustomData_update_typemap(data);
 
 	if(layer)
 		return layer->data;
@@ -1464,7 +1464,7 @@ void *CustomData_add_layer_named(CustomData *data, int type, int alloctype,
 	
 	layer = customData_add_layer__internal(data, type, alloctype, layerdata,
 										   totelem, name);
-	customData_update_typemap(data);
+	CustomData_update_typemap(data);
 
 	if(layer)
 		return layer->data;
@@ -1503,7 +1503,7 @@ int CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 		customData_resize(data, -CUSTOMDATA_GROW);
 
 	customData_update_offsets(data);
-	customData_update_typemap(data);
+	CustomData_update_typemap(data);
 
 	return 1;
 }

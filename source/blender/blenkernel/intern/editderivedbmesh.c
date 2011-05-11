@@ -1461,7 +1461,7 @@ static void *bmDM_getVertCDData(void *self, int type, int layer)
 	else return CustomData_bmesh_get_n(&iter->bm->vdata, iter->l->v->head.data, type, layer);
 }
 
-void bmDM_iterFree(void *self)
+static void bmDM_iterFree(void *self)
 {
 	MEM_freeN(self);
 }
@@ -1470,7 +1470,7 @@ static void bmDM_nulliterFree(void *UNUSED(self))
 {
 }
 
-DMLoopIter *bmDM_newLoopsIter(void *faceiter)
+static DMLoopIter *bmDM_newLoopsIter(void *faceiter)
 {
 	bmDM_faceIter *fiter = faceiter;
 	bmDM_loopIter *iter = &fiter->loopiter;
@@ -1570,35 +1570,35 @@ static void bmDM_release(DerivedMesh *dm)
 	}
 }
 
-CustomData *bmDm_getVertDataLayout(DerivedMesh *dm)
+static CustomData *bmDm_getVertDataLayout(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
 
 	return &bmdm->tc->bm->vdata;
 }
 
-CustomData *bmDm_getEdgeDataLayout(DerivedMesh *dm)
+static CustomData *bmDm_getEdgeDataLayout(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
 
 	return &bmdm->tc->bm->edata;
 }
 
-CustomData *bmDm_getTessFaceDataLayout(DerivedMesh *dm)
+static CustomData *bmDm_getTessFaceDataLayout(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
 
 	return &bmdm->dm.faceData;
 }
 
-CustomData *bmDm_getLoopDataLayout(DerivedMesh *dm)
+static CustomData *bmDm_getLoopDataLayout(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
 
 	return &bmdm->tc->bm->ldata;
 }
 
-CustomData *bmDm_getFaceDataLayout(DerivedMesh *dm)
+static CustomData *bmDm_getFaceDataLayout(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
 

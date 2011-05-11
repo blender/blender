@@ -155,27 +155,27 @@ static MFace *dm_dupFaceArray(DerivedMesh *dm)
 	return tmp;
 }
 
-CustomData *dm_getVertCData(DerivedMesh *dm)
+static CustomData *dm_getVertCData(DerivedMesh *dm)
 {
 	return &dm->vertData;
 }
 
-CustomData *dm_getEdgeCData(DerivedMesh *dm)
+static CustomData *dm_getEdgeCData(DerivedMesh *dm)
 {
 	return &dm->edgeData;
 }
 
-CustomData *dm_getFaceCData(DerivedMesh *dm)
+static CustomData *dm_getFaceCData(DerivedMesh *dm)
 {
 	return &dm->faceData;
 }
 
-CustomData *dm_getLoopCData(DerivedMesh *dm)
+static CustomData *dm_getLoopCData(DerivedMesh *dm)
 {
 	return &dm->loopData;
 }
 
-CustomData *dm_getPolyCData(DerivedMesh *dm)
+static CustomData *dm_getPolyCData(DerivedMesh *dm)
 {
 	return &dm->polyData;
 }
@@ -272,7 +272,7 @@ int DM_release(DerivedMesh *dm)
 	}
 }
 
-void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *dm, int totloop)
+static void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *dm, int totloop)
 {
 	DMFaceIter *iter = dm->newFaceIter(dm);
 	DMLoopIter *liter;
@@ -507,7 +507,7 @@ void DM_add_tessface_layer(DerivedMesh *dm, int type, int alloctype, void *layer
 	CustomData_add_layer(&dm->faceData, type, alloctype, layer, dm->numFaceData);
 }
 
-void DM_add_loop_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
+static void DM_add_loop_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 {
 	CustomData_add_layer(&dm->loopData, type, alloctype, layer, dm->numLoopData);
 }

@@ -660,14 +660,14 @@ static void *uvedgeWalker_step(BMWalker *walker)
 }
 
 
-BMWalker shell_walker_type = {
+static BMWalker shell_walker_type = {
 	shellWalker_begin,
 	shellWalker_step,
 	shellWalker_yield,
 	sizeof(shellWalker),
 };
 
-BMWalker islandbound_walker_type = {
+static BMWalker islandbound_walker_type = {
 	islandboundWalker_begin,
 	islandboundWalker_step,
 	islandboundWalker_yield,
@@ -675,14 +675,14 @@ BMWalker islandbound_walker_type = {
 };
 
 
-BMWalker island_walker_type = {
+static BMWalker island_walker_type = {
 	islandWalker_begin,
 	islandWalker_step,
 	islandWalker_yield,
 	sizeof(islandWalker),
 };
 
-BMWalker loop_walker_type = {
+static BMWalker loop_walker_type = {
 	loopWalker_begin,
 	loopWalker_step,
 	loopWalker_yield,
@@ -690,21 +690,21 @@ BMWalker loop_walker_type = {
 };
 
 
-BMWalker faceloop_walker_type = {
+static BMWalker faceloop_walker_type = {
 	faceloopWalker_begin,
 	faceloopWalker_step,
 	faceloopWalker_yield,
 	sizeof(faceloopWalker),
 };
 
-BMWalker edgering_walker_type = {
+static BMWalker edgering_walker_type = {
 	edgeringWalker_begin,
 	edgeringWalker_step,
 	edgeringWalker_yield,
 	sizeof(edgeringWalker),
 };
 
-BMWalker loopdata_region_walker_type = {
+static BMWalker loopdata_region_walker_type = {
 	uvedgeWalker_begin,
 	uvedgeWalker_step,
 	uvedgeWalker_yield,

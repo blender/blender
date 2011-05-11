@@ -430,7 +430,7 @@ void EDBM_selectmode_flush(BMEditMesh *em)
 
 /*EDBM_select_[more/less] are api functions, I think the uv editor
   uses them? though the select more/less ops themselves do not.*/
-void EDBM_select_more(BMEditMesh *em)
+static void EDBM_select_more(BMEditMesh *em)
 {
 	BMOperator bmop;
 	int usefaces = em->selectmode > SCE_SELECT_EDGE;
@@ -445,7 +445,7 @@ void EDBM_select_more(BMEditMesh *em)
 	EDBM_selectmode_flush(em);
 }
 
-void EDBM_select_less(BMEditMesh *em)
+static void EDBM_select_less(BMEditMesh *em)
 {
 	BMOperator bmop;
 	int usefaces = em->selectmode > SCE_SELECT_EDGE;

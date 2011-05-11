@@ -44,6 +44,8 @@
 #include "mesh_intern.h"
 #include "subdivideop.h"
 
+#include "bmesh_operators_private.h" /* own include */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -120,7 +122,7 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts)
 	return f2;
 }
 
-void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
+static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 {
 	EdgeTag *et;
 	BMIter iter;

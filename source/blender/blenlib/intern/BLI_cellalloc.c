@@ -48,11 +48,13 @@
 #include "DNA_listBase.h"
 #include "BLI_mempool.h"
 
+#include "BLI_cellalloc.h" /* own include */
+
 #include <string.h> 
 
 static BLI_mempool **pools;
 static int totpool = 0;
-ListBase active_mem = {NULL, NULL};
+static ListBase active_mem = {NULL, NULL};
 static int celltotblock = 0;
 
 #define MEMIDCHECK	('a' | ('b' << 4) | ('c' << 8) | ('d' << 12))
@@ -61,13 +63,13 @@ typedef struct MemHeader {
 	struct MemHeader *next, *prev;
 
 	int size;
-	char *tag;
+	const char *tag;
 	int idcheck;
 } MemHeader;
 
 //#define USE_GUARDEDALLOC
 
-void *BLI_cellalloc_malloc(long size, char *tag)
+void *BLI_cellalloc_malloc(long size, const char *tag)
 {
 	MemHeader *memh;
 	int slot = size + sizeof(MemHeader);
@@ -110,7 +112,7 @@ void *BLI_cellalloc_malloc(long size, char *tag)
 	return memh + 1;
 }
 
-void *BLI_cellalloc_calloc(long size, char *tag)
+void *BLI_cellalloc_calloc(long size, const char *tag)
 {
 	void *mem = BLI_cellalloc_malloc(size, tag);
 	BMEMSET(mem, 0, size);

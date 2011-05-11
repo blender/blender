@@ -95,6 +95,9 @@ void EDBM_validate_selections(struct BMEditMesh *em);
 void EDBM_remove_selection(struct BMEditMesh *em, void *data);
 void EDBM_stats_update(struct BMEditMesh *em);
 
+/* TODO, move to math_geometry.c */
+float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3]);
+
 /* ******************** editface.c */
 
 int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *eed);
@@ -227,6 +230,7 @@ void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_noise(struct wmOperatorType *ot);
+void EXPORT_MESH_OT_wavefront(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
 void MESH_OT_select_nth(struct wmOperatorType *ot);

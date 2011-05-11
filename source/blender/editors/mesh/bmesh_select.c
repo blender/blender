@@ -97,7 +97,7 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 
 /* ****************************** MIRROR **************** */
 
-void EDBM_select_mirrored(Object *obedit, BMEditMesh *em)
+static void EDBM_select_mirrored(Object *obedit, BMEditMesh *em)
 {
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		BMVert *eve, *v1;
@@ -439,7 +439,7 @@ BMVert *EDBM_findnearestvert(ViewContext *vc, int *dist, short sel, short strict
 }
 
 /* returns labda for closest distance v1 to line-piece v2-v3 */
-float labda_PdistVL2Dfl( float *v1, float *v2, float *v3) 
+float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3])
 {
 	float rc[2], len;
 	
@@ -1869,7 +1869,7 @@ void em_deselect_nth_vert(EditMesh *em, int nth, EditVert *eve_act)
 }
 #endif
 
-int EM_deselect_nth(BMEditMesh *em, int nth)
+static int EM_deselect_nth(BMEditMesh *em, int nth)
 {
 #if 1 /*BMESH_TODO*/
 	(void)em;
@@ -2308,7 +2308,7 @@ static int loop_find_region(BMEditMesh *em, BMLoop *l, int flag,
 	return BLI_array_count(region);
 }
 
-int verg_radial(const void *va, const void *vb)
+static int verg_radial(const void *va, const void *vb)
 {
 	BMEdge *e1 = *((void**)va);
 	BMEdge *e2 = *((void**)vb);

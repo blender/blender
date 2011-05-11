@@ -187,7 +187,7 @@ typedef struct knifetool_opdata {
 
 static ListBase *knife_get_face_kedges(knifetool_opdata *kcd, BMFace *f);
 
-void knife_project_v3(knifetool_opdata *kcd, float co[3], float sco[3])
+static void knife_project_v3(knifetool_opdata *kcd, float co[3], float sco[3])
 {
 	if (kcd->is_ortho) {
 		mul_v3_m4v3(sco, kcd->projmat, co);
@@ -318,7 +318,7 @@ static ListBase *knife_get_face_kedges(knifetool_opdata *kcd, BMFace *f)
 }
 
 /*finds the proper face to restrict face fill to*/
-void knife_find_basef(knifetool_opdata *kcd, KnifeEdge *kfe)
+static void knife_find_basef(knifetool_opdata *kcd, KnifeEdge *kfe)
 {
 	if (!kfe->basef) {
 		Ref *r1, *r2, *r3, *r4;
@@ -730,7 +730,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 	glEnable(GL_DEPTH_TEST);
 }
 
-void _print_smhash(SmallHash *hash)
+static void _print_smhash(SmallHash *hash)
 {
 	int i, linecol=79, c=0;
 	
@@ -779,7 +779,7 @@ static int point_on_line(float p[3], float v1[3], float v2[3])
 	return 0;
 }
 
-BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float v1[3], 
+static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float v1[3], 
                               float v2[3], float v3[3], SmallHash *ehash, bglMats *mats, int *count)
 {
 	BVHTree *tree2 = BLI_bvhtree_new(3, FLT_EPSILON*4, 8, 8), *tree = BMBVH_BVHTree(bmtree);
@@ -891,7 +891,7 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 	return edges;
 }
 
-void knife_bgl_get_mats(knifetool_opdata *UNUSED(kcd), bglMats *mats)
+static void knife_bgl_get_mats(knifetool_opdata *UNUSED(kcd), bglMats *mats)
 {
 	bgl_get_mats(mats);
 	//copy_m4_m4(mats->modelview, kcd->vc.rv3d->viewmat);
@@ -1127,7 +1127,6 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], BMF
 			dis = dist_to_line_segment_v2(sco, kfe->v1->sco, kfe->v2->sco);
 			if (dis < curdis && dis < maxdist) {
 				if(kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
-					float labda_PdistVL2Dfl(float *v1, float *v2, float *v3);
 					float labda= labda_PdistVL2Dfl(sco, kfe->v1->sco, kfe->v2->sco);
 					float vec[3];
 		
@@ -1370,7 +1369,7 @@ static void remerge_faces(knifetool_opdata *kcd)
 }
 
 /*use edgenet to fill faces.  this is a bit annoying and convoluted.*/
-void knifenet_fill_faces(knifetool_opdata *kcd)
+static void knifenet_fill_faces(knifetool_opdata *kcd)
 {
 	BMesh *bm = kcd->em->bm;
 	BMIter bmiter;
@@ -1640,7 +1639,7 @@ static int project_knife_view_clip(View3D *v3d, RegionView3D *rv3d, float *clips
 	return orth;
 }
 
-void knife_recalc_projmat(knifetool_opdata *kcd)
+static void knife_recalc_projmat(knifetool_opdata *kcd)
 {
 	ARegion *ar = CTX_wm_region(kcd->C);
 	
