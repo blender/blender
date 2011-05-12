@@ -131,7 +131,7 @@ typedef struct Object {
 
 	/* materials */
 	struct Material **mat;	/* material slots */
-	char *matbits;	/* a boolean field, with each byte 1 if corrusponding material is linked to object */
+	char *matbits;			/* a boolean field, with each byte 1 if corrusponding material is linked to object */
 	int totcol;				/* copy of mesh or curve or meta */
 	int actcol;				/* currently selected material in the UI */
 	
@@ -413,7 +413,6 @@ extern Object workob;
 #define OB_BOUND_POLYT		5
 /* #define OB_BOUND_DYN_MESH   6 */ /*UNUSED*/
 #define OB_BOUND_CAPSULE	7
-#define OB_BOUND_CAPSULE	7
 
 
 /* **************** BASE ********************* */
@@ -434,7 +433,7 @@ extern Object workob;
 
 
 /* an initial attempt as making selection more specific! */
-#define BA_DESELECT	0
+#define BA_DESELECT		0
 #define BA_SELECT		1
 
 

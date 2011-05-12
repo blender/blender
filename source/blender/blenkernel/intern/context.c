@@ -44,19 +44,15 @@
 
 #include "RNA_access.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "PIL_time.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
-#ifndef DISABLE_PYTHON
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
-#endif
 #endif
 
 /* struct */

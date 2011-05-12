@@ -978,16 +978,6 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "pin", PROP_INT, PROP_COLOR);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Pin", "");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-
-	prop= RNA_def_property(srna, "pin_opac", PROP_INT, PROP_PERCENTAGE);
-	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "Pin Face Opacity", "");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-
 	prop= RNA_def_property(srna, "outline_width", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 5);
 	RNA_def_property_ui_text(prop, "Outline Width", "");
@@ -2685,10 +2675,6 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
 	RNA_def_property_enum_items(prop, view_zoom_axes);
 	RNA_def_property_ui_text(prop, "Zoom Axis", "Axis of mouse movement to zoom in or out on");
-
-	prop= RNA_def_property(srna, "loopcut_finish_on_release", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "loopcut_finish_on_release", 1);
-	RNA_def_property_ui_text(prop, "End Loopcut Slide On Release", "End Loopcut Slide On Mouse Release, a 'click-drag-and-hold' workflow");
 	
 	prop= RNA_def_property(srna, "invert_mouse_zoom", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZOOM_INVERT);

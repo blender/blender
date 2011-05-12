@@ -8,9 +8,9 @@ incs += ' #/source/blender/makesdna'
 incs += ' #/source/blender/makesrna'
 incs += ' #/source/blender/blenloader'
 
-defs = 'BUILDING_GAMEPLAYER'
+defs = ''
 if env['WITH_BF_INTERNATIONAL']:
-    defs += ' WITH_FREETYPE2'
+    defs += 'WITH_FREETYPE2'
 
 if env['WITH_BF_GAMEENGINE']:
     defs += ' WITH_GAMEENGINE'

@@ -42,7 +42,6 @@ blender_include_dirs(
 	../blender/makesdna
 	../blender/gpu
 	../blender/windowmanager
-    ../blender/bmesh
 )
 
 if(WITH_CODEC_QUICKTIME)

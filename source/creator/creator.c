@@ -358,11 +358,11 @@ void segmentation_handler(int UNUSED(sig))
 	char fname[256];
 
 	if (!G.main->name[0]) {
-		char str[FILE_MAXDIR+FILE_MAXFILE];
-
 		BLI_make_file_string("/", fname, btempdir, "crash.blend");
-	} else
+	}
+	else {
 		sprintf(fname, "%s.crash.blend", G.main->name);
+	}
 
 	BKE_undo_save(fname);
 

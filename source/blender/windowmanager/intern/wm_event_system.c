@@ -1759,9 +1759,6 @@ void wm_event_do_handlers(bContext *C)
 			}
 		}
 		
-		if (win->lasttime == 0.0)
-			win->lasttime = PIL_check_seconds_timer();
-		
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
@@ -1901,7 +1898,6 @@ void wm_event_do_handlers(bContext *C)
 			BLI_remlink(&win->queue, event);
 			wm_event_free(event);
 			
-			win->lasttime = PIL_check_seconds_timer();
 		}
 		
 		/* only add mousemove when queue was read entirely */

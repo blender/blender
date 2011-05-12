@@ -404,6 +404,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 			case TH_DOPESHEET_CHANNELSUBOB:
 				cp= ts->ds_subchannel;
 				break;	
+					
 			case TH_PREVIEW_BACK:
 				cp= ts->preview_back;
 				break;	
@@ -638,9 +639,6 @@ void ui_theme_init_default(void)
 
 	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
 	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);               // alpha 80 is not meant editable, used for wire+action draw
-
-	SETCOL(btheme->tv3d.pin, 115, 171, 209, 255);
-	btheme->tv3d.pin_opac = 40;
 	
 	
 	/* space buttons */

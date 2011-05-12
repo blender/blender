@@ -236,9 +236,6 @@ typedef struct ThemeSpace {
 	char hpad[7];
 	
 	char preview_back[4];
-
-	char pin[4];
-	int pin_opac;
 	
 } ThemeSpace;
 

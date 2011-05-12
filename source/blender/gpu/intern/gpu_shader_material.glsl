@@ -1751,6 +1751,11 @@ void test_shadowbuf(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, flo
 	}
 }
 
+void shade_exposure_correct(vec3 col, float linfac, float logfac, out vec3 outcol)
+{
+	outcol = linfac*(1.0 - exp(col*logfac));
+}
+
 void shade_mist_factor(vec3 co, float miststa, float mistdist, float misttype, float misi, out float outfac)
 {
 	float fac, zcor;

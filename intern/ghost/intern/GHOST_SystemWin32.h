@@ -52,6 +52,9 @@
 #ifndef RID_INPUT
 #define RID_INPUT 0x10000003
 #endif
+#ifndef RIM_INPUTSINK
+#define RIM_INPUTSINK 0x1
+#endif
 #ifndef RI_KEY_BREAK
 #define RI_KEY_BREAK 0x1
 #endif
