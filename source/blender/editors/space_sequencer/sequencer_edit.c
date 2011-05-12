@@ -191,7 +191,7 @@ void boundbox_seq(Scene *scene, rctf *rect)
 
 static int mouse_frame_side(View2D *v2d, short mouse_x, int frame ) 
 {
-	short mval[2];
+	int mval[2];
 	float mouseloc[2];
 	
 	mval[0]= mouse_x;
@@ -284,7 +284,7 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
 }
 
 
-Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const short mval[2])
+Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[2])
 {
 	Sequence *seq;
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1084,7 +1084,7 @@ static int seq_get_snaplimit(View2D *v2d)
 	/* fake mouse coords to get the snap value
 	a bit lazy but its only done once pre transform */
 	float xmouse, ymouse, x;
-	short mval[2] = {24, 0}; /* 24 screen px snap */
+	int mval[2] = {24, 0}; /* 24 screen px snap */
 	
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &xmouse, &ymouse);
 	x = xmouse;

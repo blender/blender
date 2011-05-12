@@ -666,7 +666,7 @@ typedef struct ViewCachedString {
 		unsigned char ub[4];
 		int pack;
 	} col;
-	short mval[2];
+	short sco[2];
 	short xoffs;
 	short flag;
 	int str_len, pad;
@@ -708,8 +708,8 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	for(vos= strings->first; vos; vos= vos->next) {
 		if(mat && !(vos->flag & V3D_CACHE_TEXT_WORLDSPACE))
 			mul_m4_v3(mat, vos->vec);
-		view3d_project_short_clip(ar, vos->vec, vos->mval, 0);
-		if(vos->mval[0]!=IS_CLIPPED)
+		view3d_project_short_clip(ar, vos->vec, vos->sco, 0);
+		if(vos->sco[0]!=IS_CLIPPED)
 			tot++;
 	}
 
@@ -749,7 +749,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 					continue;
 			}
 #endif
-			if(vos->mval[0]!=IS_CLIPPED) {
+			if(vos->sco[0]!=IS_CLIPPED) {
 				const char *str= (char *)(vos+1);
 
 				if(col_pack_prev != vos->col.pack) {
@@ -757,10 +757,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 					col_pack_prev= vos->col.pack;
 				}
 				if(vos->flag & V3D_CACHE_TEXT_ASCII) {
-					BLF_draw_default_ascii((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
+					BLF_draw_default_ascii((float)vos->sco[0]+vos->xoffs, (float)vos->sco[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
 				}
 				else {
-					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
+					BLF_draw_default((float)vos->sco[0]+vos->xoffs, (float)vos->sco[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
 				}
 			}
 		}

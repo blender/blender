@@ -4169,7 +4169,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 
 /***************** pick select from 3d view **********************/
 
-int mouse_nurb(bContext *C, const short mval[2], int extend)
+int mouse_nurb(bContext *C, const int mval[2], int extend)
 {
 	Object *obedit= CTX_data_edit_object(C); 
 	Curve *cu= obedit->data;
@@ -4666,7 +4666,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		Curve *cu;
 		ViewContext vc;
 		float location[3];
-		short mval[2];
+		int mval[2];
 
 		Nurb *nu;
 		BezTriple *bezt;

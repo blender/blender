@@ -736,10 +736,10 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], fl
 	Brush *brush = paint_brush(&vp->paint);
 	float fac, fac_2, size, dx, dy;
 	float alpha;
-	short vertco[2];
+	int vertco[2];
 	const int radius= brush_size(brush);
 
-	project_short_noclip(vc->ar, vert_nor, vertco);
+	project_int_noclip(vc->ar, vert_nor, vertco);
 	dx= mval[0]-vertco[0];
 	dy= mval[1]-vertco[1];
 	
@@ -868,7 +868,7 @@ static void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mo
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
 	int index;
-	short mval[2] = {0, 0}, sco[2];
+	int mval[2] = {0, 0}, sco[2];
 	int vgroup= ob->actdef-1;
 
 	if (!me) return;
@@ -953,20 +953,20 @@ static void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mo
 			else {
 				/* calc 3 or 4 corner weights */
 				dm->getVertCo(dm, mface->v1, co);
-				project_short_noclip(ar, co, sco);
+				project_int_noclip(ar, co, sco);
 				w1= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				
 				dm->getVertCo(dm, mface->v2, co);
-				project_short_noclip(ar, co, sco);
+				project_int_noclip(ar, co, sco);
 				w2= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				
 				dm->getVertCo(dm, mface->v3, co);
-				project_short_noclip(ar, co, sco);
+				project_int_noclip(ar, co, sco);
 				w3= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				
 				if(mface->v4) {
 					dm->getVertCo(dm, mface->v4, co);
-					project_short_noclip(ar, co, sco);
+					project_int_noclip(ar, co, sco);
 					w4= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				}
 				else w4= 1.0e10;

@@ -1698,7 +1698,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
-static EditBone *get_nearest_editbonepoint (ViewContext *vc, const short mval[2], ListBase *edbo, int findunsel, int *selmask)
+static EditBone *get_nearest_editbonepoint (ViewContext *vc, const int mval[2], ListBase *edbo, int findunsel, int *selmask)
 {
 	EditBone *ebone;
 	rcti rect;
@@ -1958,7 +1958,7 @@ static int ebone_select_flag(EditBone *ebone)
 }
 
 /* context: editmode armature in view3d */
-int mouse_armature(bContext *C, const short mval[2], int extend)
+int mouse_armature(bContext *C, const int mval[2], int extend)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
@@ -2499,7 +2499,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	View3D *v3d;
 	RegionView3D *rv3d;
 	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
-	short mx, my, mval[2];
+	int mx, my, mval[2];
 	int retv;
 
 	scene= CTX_data_scene(C);
@@ -2513,7 +2513,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	
 	mx= event->x - ar->winrct.xmin;
 	my= event->y - ar->winrct.ymin;
-	project_short_noclip(ar, fp, mval);
+	project_int_noclip(ar, fp, mval);
 	
 	initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	

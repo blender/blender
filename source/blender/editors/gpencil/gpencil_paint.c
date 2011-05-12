@@ -239,7 +239,7 @@ static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
 
 /* convert screen-coordinates to buffer-coordinates */
 // XXX this method needs a total overhaul!
-static void gp_stroke_convertcoords (tGPsdata *p, short mval[2], float out[3], float *depth)
+static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], float *depth)
 {
 	bGPdata *gpd= p->gpd;
 	
@@ -251,7 +251,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[2], float out[3], f
 			 */
 		}
 		else {
-			const short mx=mval[0], my=mval[1];
+			const int mx=mval[0], my=mval[1];
 			float rvec[3], dvec[3];
 			
 			/* Current method just converts each point in screen-coordinates to
@@ -266,7 +266,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[2], float out[3], f
 			gp_get_3d_reference(p, rvec);
 			
 			/* method taken from editview.c - mouse_cursor() */
-			project_short_noclip(p->ar, rvec, mval);
+			project_int_noclip(p->ar, rvec, mval);
 			window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
 			sub_v3_v3v3(out, rvec, dvec);
 		}
@@ -387,8 +387,8 @@ static short gp_stroke_addpoint (tGPsdata *p, int mval[2], float pressure)
 
 /* temp struct for gp_stroke_smooth() */
 typedef struct tGpSmoothCo {
-	short x;
-	short y;
+	int x;
+	int y;
 } tGpSmoothCo;
 
 /* smooth a stroke (in buffer) before storing it */
@@ -417,8 +417,8 @@ static void gp_stroke_smooth (tGPsdata *p)
 		const tGPspoint *pd= (i+1 < cmx)?(pc+1):(pc);
 		const tGPspoint *pe= (i+2 < cmx)?(pc+2):(pd);
 		
-		spc->x= (short)(0.1*pa->x + 0.2*pb->x + 0.4*pc->x + 0.2*pd->x + 0.1*pe->x);
-		spc->y= (short)(0.1*pa->y + 0.2*pb->y + 0.4*pc->y + 0.2*pd->y + 0.1*pe->y);
+		spc->x= (int)(0.1*pa->x + 0.2*pb->x + 0.4*pc->x + 0.2*pd->x + 0.1*pe->x);
+		spc->y= (int)(0.1*pa->y + 0.2*pb->y + 0.4*pc->y + 0.2*pd->y + 0.1*pe->y);
 	}
 	
 	/* second pass: apply smoothed coordinates */
@@ -574,7 +574,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 		
 		/* get an array of depths, far depths are blended */
 		if (gpencil_project_check(p)) {
-			short mval[2], mval_prev[2]= {0};
+			int mval[2], mval_prev[2]= {0};
 			int interp_depth = 0;
 			int found_depth = 0;
 			
@@ -738,7 +738,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 {
 	bGPDspoint *pt1, *pt2;
 	int x0=0, y0=0, x1=0, y1=0;
-	short xyval[2];
+	int xyval[2];
 	int i;
 	
 	if (gps->totpoints == 0) {
@@ -750,7 +750,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 	else if (gps->totpoints == 1) {
 		/* get coordinates */
 		if (gps->flag & GP_STROKE_3DSPACE) {
-			project_short(p->ar, &gps->points->x, xyval);
+			project_int(p->ar, &gps->points->x, xyval);
 			x0= xyval[0];
 			y0= xyval[1];
 		}
@@ -804,11 +804,11 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 			
 			/* get coordinates */
 			if (gps->flag & GP_STROKE_3DSPACE) {
-				project_short(p->ar, &pt1->x, xyval);
+				project_int(p->ar, &pt1->x, xyval);
 				x0= xyval[0];
 				y0= xyval[1];
 				
-				project_short(p->ar, &pt2->x, xyval);
+				project_int(p->ar, &pt2->x, xyval);
 				x1= xyval[0];
 				y1= xyval[1];
 			}
@@ -1501,8 +1501,8 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 		
 		/* get relevant data for this point from stroke */
 		RNA_float_get_array(&itemptr, "mouse", mousef);
-		p->mval[0] = (short)mousef[0];
-		p->mval[1] = (short)mousef[1];
+		p->mval[0] = (int)mousef[0];
+		p->mval[1] = (int)mousef[1];
 		p->pressure= RNA_float_get(&itemptr, "pressure");
 		
 		if (RNA_boolean_get(&itemptr, "is_start")) {

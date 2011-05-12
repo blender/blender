@@ -98,7 +98,7 @@ void paintface_flush_flags(Object *ob)
 }
 
 /* returns 0 if not found, otherwise 1 */
-static int facesel_face_pick(struct bContext *C, Mesh *me, const short mval[2], unsigned int *index, short rect)
+static int facesel_face_pick(struct bContext *C, Mesh *me, const int mval[2], unsigned int *index, short rect)
 {
 	ViewContext vc;
 	view3d_set_viewcontext(C, &vc);
@@ -327,7 +327,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 	MEM_freeN(linkflag);
 }
 
-void paintface_select_linked(bContext *UNUSED(C), Object *ob, short UNUSED(mval[2]), int mode)
+void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]), int mode)
 {
 	Mesh *me;
 	unsigned int index=0;
@@ -716,7 +716,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 }
 #endif
 
-int paintface_mouse_select(struct bContext *C, Object *ob, const short mval[2], int extend)
+int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], int extend)
 {
 	Mesh *me;
 	MFace *mface, *msel;

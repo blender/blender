@@ -607,7 +607,7 @@ static void spot_interactive(Object *ob, int mode)
 	Lamp *la= ob->data;
 	float transfac, dx, dy, ratio, origval;
 	int keep_running= 1, center2d[2];
-	short mval[2], mvalo[2];
+	int mval[2], mvalo[2];
 	
 //	getmouseco_areawin(mval);
 //	getmouseco_areawin(mvalo);

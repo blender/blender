@@ -702,7 +702,7 @@ static void draw_image_view_tool(Scene *scene)
 {
 	ToolSettings *settings= scene->toolsettings;
 	Brush *brush= settings->imapaint.brush;
-	short mval[2];
+	int mval[2];
 	float radius;
 	int draw= 0;
 

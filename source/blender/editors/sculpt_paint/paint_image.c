@@ -5284,7 +5284,7 @@ static int set_clone_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	View3D *v3d= CTX_wm_view3d(C);
 	ARegion *ar= CTX_wm_region(C);
 	float location[3];
-	short mval[2];
+	int mval[2];
 
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;

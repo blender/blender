@@ -564,13 +564,13 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 {
-	short mx,my,co[2];
+	int mx, my, co[2];
 	int flag;
 	
 	/* we dont want the clipping for cursor */
 	flag= v3d->flag;
 	v3d->flag= 0;
-	project_short(ar, give_cursor(scene, v3d), co);
+	project_int(ar, give_cursor(scene, v3d), co);
 	v3d->flag= flag;
 	
 	mx = co[0];
@@ -1279,7 +1279,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const short mval[2], int size,
+unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int size,
 										unsigned int min, unsigned int max, int *dist, short strict, 
 										void *handle, unsigned int (*indextest)(void *handle, unsigned int index))
 {

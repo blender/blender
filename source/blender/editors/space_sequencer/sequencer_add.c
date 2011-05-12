@@ -120,7 +120,7 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	
-	short mval[2];	
+	int mval[2];
 	float mval_v2d[2];
 	
 

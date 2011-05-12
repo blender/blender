@@ -378,7 +378,7 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 	else {
 		float *fp= give_cursor(scene, v3d);
 		float dvec[3];
-		short mval[2];
+		int mval[2];
 		int mx, my;
 		
 		/* get screen coordinate */
@@ -390,13 +390,13 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 			mx= (int)(pt->x / 100 * ar->winx);
 			my= (int)(pt->y / 100 * ar->winy);
 		}
-		mval[0]= (short)mx;
-		mval[1]= (short)my;
+		mval[0]= mx;
+		mval[1]= my;
 		
 		/* convert screen coordinate to 3d coordinates 
 		 *	- method taken from editview.c - mouse_cursor() 
 		 */
-		project_short_noclip(ar, fp, mval);
+		project_int_noclip(ar, fp, mval);
 		window_to_3d(ar, dvec, mval[0]-mx, mval[1]-my);
 		sub_v3_v3v3(p3d, fp, dvec);
 	}

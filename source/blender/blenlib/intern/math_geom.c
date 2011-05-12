@@ -239,7 +239,7 @@ float dist_to_line_segment_v3(const float v1[3], const float v2[3], const float 
 /******************************* Intersection ********************************/
 
 /* intersect Line-Line, shorts */
-int isect_line_line_v2_short(const short v1[2], const short v2[2], const short v3[2], const short v4[2])
+int isect_line_line_v2_int(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
 {
 	float div, labda, mu;
 	
