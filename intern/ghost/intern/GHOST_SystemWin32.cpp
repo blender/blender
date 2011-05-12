@@ -1186,6 +1186,7 @@ GHOST_TUns8* GHOST_SystemWin32::getClipboard(bool selection) const
 		}
 		buffer = (char*)GlobalLock( hData );
 		if (!buffer) {
+			CloseClipboard();
 			return NULL;
 		}
 		
