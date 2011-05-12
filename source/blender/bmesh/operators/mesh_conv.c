@@ -78,8 +78,6 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		CustomData_set_layer_name(&bm->ldata, CD_MLOOPUV, i, bm->pdata.layers[li].name);
 	}
 	
-	CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
-
 	if (!CustomData_has_layer(&bm->edata, CD_CREASE))
 		CustomData_add_layer(&bm->edata, CD_CREASE, CD_ASSIGN, NULL, 0);
 
@@ -96,6 +94,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 	actkey = ob_get_keyblock(ob);
 	if(actkey && actkey->totelem == me->totvert) {
+		CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
+		
 		/*check if we need to generate unique ids for the shapekeys.
 		  this also exists in the file reading code, but is here for
 		  a sanity check*/
@@ -142,12 +142,12 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		/*Copy Custom Data*/
 		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data);
 
-		/*set shape key original index*/
-		keyi = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX);
-		*keyi = i;
-
 		/*set shapekey data*/
 		if (me->key) {
+			/*set shape key original index*/
+			keyi = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX);
+			*keyi = i;
+			
 			for (block=me->key->block.first, j=0; block; block=block->next, j++) {
 				float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, 
 				                                   CD_SHAPEKEY, j);

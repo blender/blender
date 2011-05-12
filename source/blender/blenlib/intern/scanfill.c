@@ -172,8 +172,8 @@ static void *new_mem_element(int size)
 		/*reset the block we're keeping*/
 		BLI_addtail(&lb, first);
 		memset(first->data, 0, blocksize);
-		cur = first;
-		offs = 0;
+		cur= first;
+		offs= 0;
 
 		return NULL;	
 	}
