@@ -1178,25 +1178,28 @@ GHOST_TUns8* GHOST_SystemWin32::getClipboard(bool selection) const
 	char *temp_buff;
 	
 	if ( IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(NULL) ) {
+		size_t len = 0;
 		HANDLE hData = GetClipboardData( CF_TEXT );
 		if (hData == NULL) {
 			CloseClipboard();
 			return NULL;
 		}
 		buffer = (char*)GlobalLock( hData );
+		if (!buffer) {
+			return NULL;
+		}
 		
-		temp_buff = (char*) malloc(strlen(buffer)+1);
-		strcpy(temp_buff, buffer);
+		len = strlen(buffer);
+		temp_buff = (char*) malloc(len+1);
+		strncpy(temp_buff, buffer, len);
+		temp_buff[len] = '\0';
 		
+		/* Buffer mustn't be accessed after CloseClipboard
+		   it would like accessing free-d memory */
 		GlobalUnlock( hData );
 		CloseClipboard();
 		
-		temp_buff[strlen(buffer)] = '\0';
-		if (buffer) {
-			return (GHOST_TUns8*)temp_buff;
-		} else {
-			return NULL;
-		}
+		return (GHOST_TUns8*)temp_buff;
 	} else {
 		return NULL;
 	}
