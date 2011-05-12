@@ -427,7 +427,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		e = BM_Make_Edge(bm, firstv, lastv, bm_firstfaceloop(faces[i])->e, 1);
-		BM_Copy_Attributes(bm, bm, bm_firstfaceloop(faces[i])->prev->e, e);
+		if (bm_firstfaceloop(faces[i])->prev->e != e) 
+			BM_Copy_Attributes(bm, bm, bm_firstfaceloop(faces[i])->prev->e, e);
 		BLI_array_append(edges, e);
 		
 		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(verts), 0);

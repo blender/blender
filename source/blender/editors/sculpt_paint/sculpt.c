@@ -1414,7 +1414,7 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		proxy= BLI_pbvh_node_add_proxy(ss->pbvh, nodes[n])->co;
 
 		sculpt_brush_test_init(ss, &test);
-
+		
 		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength*tex_strength(ss, brush, vd.co, test.dist)*frontface(brush, an, vd.no, vd.fno);
@@ -3390,8 +3390,9 @@ static void sculpt_flush_update(bContext *C)
 	if(ob->derivedFinal) /* VBO no longer valid */
 		GPU_drawobject_free(ob->derivedFinal);
 
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	
 	if(ss->modifiers_active) {
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		ED_region_tag_redraw(ar);
 	}
 	else {
