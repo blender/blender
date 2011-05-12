@@ -175,6 +175,10 @@ if(UNIX AND NOT APPLE)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
+# disable for now, but plan to support on all platforms eventually
+option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
+mark_as_advanced(WITH_MEM_JEMALLOC)
+
 # Debug
 option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
 mark_as_advanced(WITH_CXX_GUARDEDALLOC)
@@ -422,6 +426,15 @@ if(UNIX AND NOT APPLE)
 		mark_as_advanced(EXPAT)
 		set(EXPAT_LIBPATH ${EXPAT}/lib)
 		set(EXPAT_LIB expat)
+	endif()
+
+	if(WITH_MEM_JEMALLOC)
+		set(JEMALLOC /usr)
+		set(JEMALLOC_LIBRARY ljemalloc CACHE STRING "JeMalloc library")
+		set(JEMALLOC_LIBPATH ${JEMALLOC}/lib  CACHE FILEPATH "JeMalloc library path")
+		# no use for this yet.
+		# set(JEMALLOC_INCLUDE_DIR ${JEMALLOC}/include  CACHE FILEPATH "JeMalloc include path")
+		unset(JEMALLOC)
 	endif()
 
 	find_package(X11 REQUIRED)
