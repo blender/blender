@@ -61,6 +61,7 @@
 #include "BLO_readfile.h"
 
 #include "BKE_blender.h"
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
@@ -2674,272 +2675,465 @@ void WM_OT_straightline_gesture(wmOperatorType *ot)
 
 static const int WM_RADIAL_CONTROL_DISPLAY_SIZE = 200;
 
-typedef struct wmRadialControl {
-	int mode;
-	float initial_value, value, max_value;
-	float col[4], tex_col[4];
+typedef struct {
+	PropertyType type;
+	PropertySubType subtype;
+	PointerRNA ptr, col_ptr, fill_col_ptr, rot_ptr, zoom_ptr, image_id_ptr;
+	PropertyRNA *prop, *col_prop, *fill_col_prop, *rot_prop, *zoom_prop;
+	StructRNA *image_id_srna;
+	float initial_value, current_value, min_value, max_value;
 	int initial_mouse[2];
+	unsigned int gltex;
+	ListBase orig_paintcursors;
 	void *cursor;
-	GLuint tex;
-} wmRadialControl;
+} RadialControl;
 
-static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
+static void radial_control_set_initial_mouse(RadialControl *rc, wmEvent *event)
 {
-	wmRadialControl *rc = (wmRadialControl*)customdata;
+	float d[2] = {0, 0};
+	float zoom[2] = {1, 1};
+
+	rc->initial_mouse[0]= event->x;
+	rc->initial_mouse[1]= event->y;
+
+	switch(rc->subtype) {
+	case PROP_DISTANCE:
+		d[0] = rc->initial_value;
+		break;
+	case PROP_FACTOR:
+		d[0] = WM_RADIAL_CONTROL_DISPLAY_SIZE * (1 - rc->initial_value);
+		break;
+	case PROP_ANGLE:
+		d[0] = WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(rc->initial_value);
+		d[1] = WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(rc->initial_value);
+		break;
+	default:
+		return;
+	}
+
+	if(rc->zoom_prop) {
+		RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
+		d[0] *= zoom[0];
+		d[1] *= zoom[1];
+	}
+
+	rc->initial_mouse[0]-= d[0];
+	rc->initial_mouse[1]-= d[1];
+}
+
+static void radial_control_set_tex(RadialControl *rc)
+{
+	ImBuf *ibuf;
+
+	switch(RNA_type_to_ID_code(rc->image_id_ptr.type)) {
+	case ID_BR:
+		if((ibuf = brush_gen_radial_control_imbuf(rc->image_id_ptr.data))) {
+			glGenTextures(1, &rc->gltex);
+			glBindTexture(GL_TEXTURE_2D, rc->gltex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, ibuf->x, ibuf->y, 0,
+				     GL_ALPHA, GL_FLOAT, ibuf->rect_float);
+			MEM_freeN(ibuf->rect_float);
+			MEM_freeN(ibuf);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+static void radial_control_paint_tex(RadialControl *rc, float radius, float alpha)
+{
+	float col[3] = {0, 0, 0};
+	float rot;
+
+	/* set fill color */
+	if(rc->fill_col_prop)
+		RNA_property_float_get_array(&rc->fill_col_ptr, rc->fill_col_prop, col);
+	glColor4f(col[0], col[1], col[2], alpha);
+
+	if(rc->gltex) {
+		glBindTexture(GL_TEXTURE_2D, rc->gltex);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		/* set up rotation if available */
+		if(rc->rot_prop) {
+			rot = RNA_property_float_get(&rc->rot_ptr, rc->rot_prop);
+			glPushMatrix();
+			glRotatef(RAD2DEGF(rot), 0, 0, 1);
+		}
+
+		/* draw textured quad */
+		glEnable(GL_TEXTURE_2D);
+		glBegin(GL_QUADS);
+		glTexCoord2f(0,0);
+		glVertex2f(-radius, -radius);
+		glTexCoord2f(1,0);
+		glVertex2f(radius, -radius);
+		glTexCoord2f(1,1);
+		glVertex2f(radius, radius);
+		glTexCoord2f(0,1);
+		glVertex2f(-radius, radius);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
+
+		/* undo rotation */
+		if(rc->rot_prop)
+			glPopMatrix();
+	}
+	else {
+		/* flat color if no texture available */
+		glutil_draw_filled_arc(0, M_PI * 2, radius, 40);
+	}
+}
+
+static void radial_control_paint_cursor(bContext *C, int x, int y, void *customdata)
+{
+	RadialControl *rc = customdata;
 	ARegion *ar = CTX_wm_region(C);
-	float r1=0.0f, r2=0.0f, r3=0.0f, angle=0.0f;
+	float r1=0.0f, r2=0.0f, tex_radius, alpha;
+	float zoom[2], col[3] = {1, 1, 1};
 
-	// int hit = 0;
-	
-	if(rc->mode == WM_RADIALCONTROL_STRENGTH)
-		rc->tex_col[3]= (rc->value + 0.5f);
-
-	if(rc->mode == WM_RADIALCONTROL_SIZE) {
-		r1= rc->value;
+	switch(rc->subtype) {
+	case PROP_DISTANCE:
+		r1= rc->current_value;
 		r2= rc->initial_value;
-		r3= r1;
-	} else if(rc->mode == WM_RADIALCONTROL_STRENGTH) {
-		r1= (1 - rc->value) * WM_RADIAL_CONTROL_DISPLAY_SIZE;
-		r2= r3= (float)WM_RADIAL_CONTROL_DISPLAY_SIZE;
-	} else if(rc->mode == WM_RADIALCONTROL_ANGLE) {
-		r1= r2= r3= (float)WM_RADIAL_CONTROL_DISPLAY_SIZE;
-		angle = rc->value;
+		tex_radius= r1;
+		alpha = 0.75;
+		break;
+	case PROP_FACTOR:
+		r1= (1 - rc->current_value) * WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		r2= tex_radius= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		alpha = rc->current_value / 2 + 0.5;
+		break;
+	case PROP_ANGLE:
+		r1= r2= tex_radius= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		alpha = 0.75;
+		break;
+	default:
+		break;
 	}
 
 	/* Keep cursor in the original place */
 	x = rc->initial_mouse[0] - ar->winrct.xmin;
 	y = rc->initial_mouse[1] - ar->winrct.ymin;
-
 	glTranslatef((float)x, (float)y, 0.0f);
 
 	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
 
-	if(rc->mode == WM_RADIALCONTROL_ANGLE) {
-		glRotatef(angle, 0, 0, 1);
+	/* apply zoom if available */
+	if(rc->zoom_prop) {
+		RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
+		glScalef(zoom[0], zoom[1], 1);
 	}
 
-	if (rc->tex) {
-		glBindTexture(GL_TEXTURE_2D, rc->tex);
+	/* draw rotated texture */
+	radial_control_paint_tex(rc, tex_radius, alpha);
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	/* set line color */
+	if(rc->col_prop)
+		RNA_property_float_get_array(&rc->col_ptr, rc->col_prop, col);
+	glColor4f(col[0], col[1], col[2], 0.5);
 
-		glEnable(GL_TEXTURE_2D);
-		glBegin(GL_QUADS);
-		glColor4fv(rc->tex_col);
-		glTexCoord2f(0,0);
-		glVertex2f(-r3, -r3);
-		glTexCoord2f(1,0);
-		glVertex2f(r3, -r3);
-		glTexCoord2f(1,1);
-		glVertex2f(r3, r3);
-		glTexCoord2f(0,1);
-		glVertex2f(-r3, r3);
-		glEnd();
-		glDisable(GL_TEXTURE_2D);
-	}
-
-	if(rc->mode == WM_RADIALCONTROL_ANGLE) {
-		glColor4fv(rc->col);
-		glEnable(GL_LINE_SMOOTH);
-		glRotatef(-angle, 0, 0, 1);
+	if(rc->subtype == PROP_ANGLE) {
+		glPushMatrix();
+		/* draw original angle line */
+		glRotatef(RAD2DEGF(rc->initial_value), 0, 0, 1);
 		fdrawline(0.0f, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
-		glRotatef(angle, 0, 0, 1);
+		/* draw new angle line */
+		glRotatef(RAD2DEGF(rc->current_value - rc->initial_value), 0, 0, 1);
 		fdrawline(0.0f, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
-		glDisable(GL_LINE_SMOOTH);
+		glPopMatrix();
 	}
 
-	glColor4fv(rc->col);
+	/* draw circles on top */
 	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r1, 40);
 	glutil_draw_lined_arc(0.0, (float)(M_PI*2.0), r2, 40);
+
 	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
 }
 
-int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+/* attempt to retrieve the rna pointer/property from an rna path;
+   returns 0 for failure, 1 for success, and also 1 if property is not
+   set */
+static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
+				   const char *name, PointerRNA *r_ptr,
+				   PropertyRNA **r_prop, int req_float,
+				   int req_length, int allow_missing)
 {
-	wmRadialControl *rc = (wmRadialControl*)op->customdata;
-	int mode, initial_mouse[2], delta[2];
-	float dist;
-	double new_value = RNA_float_get(op->ptr, "new_value");
-	int ret = OPERATOR_RUNNING_MODAL;
-	// float initial_value = RNA_float_get(op->ptr, "initial_value");
+	PropertyRNA *unused_prop;
+	int len;
+	char *str;
 
-	mode = RNA_enum_get(op->ptr, "mode");
-	RNA_int_get_array(op->ptr, "initial_mouse", initial_mouse);
+	/* get an rna string path from the operator's properties */
+	if(!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0)))
+		return 1;
+
+	if(str[0] == '\0') {
+		MEM_freeN(str);
+		return 1;
+	}
+
+	if(!r_prop)
+		r_prop = &unused_prop;
+
+	/* get rna from path */
+	if(!RNA_path_resolve(ctx_ptr, str, r_ptr, r_prop)) {
+		MEM_freeN(str);
+		if(allow_missing)
+			return 1;
+		else {
+			BKE_reportf(op->reports, RPT_ERROR, "Couldn't resolve path %s", name);
+			return 0;
+		}
+	}
+
+	/* if property is expected to be a float, check its type */
+	if(req_float) {
+		if(!(*r_prop) || (RNA_property_type(*r_prop) != PROP_FLOAT)) {
+			MEM_freeN(str);
+			BKE_reportf(op->reports, RPT_ERROR,
+				    "Property from path %s is not a float", name);
+			return 0;
+		}
+	}
+	
+	/* check property's array length */
+	if(*r_prop && (len = RNA_property_array_length(r_ptr, *r_prop)) != req_length) {
+		MEM_freeN(str);
+		BKE_reportf(op->reports, RPT_ERROR,
+			    "Property from path %s has length %d instead of %d",
+			    name, len, req_length);
+		return 0;
+	}
+
+	/* success */
+	MEM_freeN(str);
+	return 1;
+}
+
+/* initialize the rna pointers and properties using rna paths */
+static int radial_control_get_properties(bContext *C, wmOperator *op)
+{
+	RadialControl *rc = op->customdata;
+	PointerRNA ctx_ptr;
+
+	RNA_pointer_create(NULL, &RNA_Context, C, &ctx_ptr);
+
+	if(!radial_control_get_path(&ctx_ptr, op, "data_path", &rc->ptr, &rc->prop, 0, 0, 0))
+		return 0;
+
+	/* data path is required */
+	if(!rc->prop)
+		return 0;
+	
+	if(!radial_control_get_path(&ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 1, 0, 0))
+		return 0;
+	if(!radial_control_get_path(&ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 1, 3, 0))
+		return 0;
+	if(!radial_control_get_path(&ctx_ptr, op, "fill_color_path", &rc->fill_col_ptr, &rc->fill_col_prop, 1, 3, 0))
+		return 0;
+	
+	/* slightly ugly; allow this property to not resolve
+	   correctly. needed because 3d texture paint shares the same
+	   keymap as 2d image paint */
+	if(!radial_control_get_path(&ctx_ptr, op, "zoom_path", &rc->zoom_ptr, &rc->zoom_prop, 1, 2, 1))
+		return 0;
+	
+	if(!radial_control_get_path(&ctx_ptr, op, "image_id", &rc->image_id_ptr, NULL, 0, 0, 0))
+		return 0;
+	else if(rc->image_id_ptr.data) {
+		/* extra check, pointer must be to an ID */
+		if(!RNA_struct_is_ID(rc->image_id_ptr.type)) {
+			BKE_report(op->reports, RPT_ERROR,
+				   "Pointer from path image_id is not an ID");
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindowManager *wm;
+	RadialControl *rc;
+	int min_value_int, max_value_int, step_int;
+	float step_float, precision;
+
+	if(!(op->customdata = rc = MEM_callocN(sizeof(RadialControl), "RadialControl")))
+		return OPERATOR_CANCELLED;
+
+	if(!radial_control_get_properties(C, op)) {
+		MEM_freeN(rc);
+		return OPERATOR_CANCELLED;
+	}
+
+	/* get type, initial, min, and max values of the property */
+	switch((rc->type = RNA_property_type(rc->prop))) {
+	case PROP_INT:
+		rc->initial_value = RNA_property_int_get(&rc->ptr, rc->prop);
+		RNA_property_int_ui_range(&rc->ptr, rc->prop, &min_value_int,
+					  &max_value_int, &step_int);
+		rc->min_value = min_value_int;
+		rc->max_value = max_value_int;
+		break;
+	case PROP_FLOAT:
+		rc->initial_value = RNA_property_float_get(&rc->ptr, rc->prop);
+		RNA_property_float_ui_range(&rc->ptr, rc->prop, &rc->min_value,
+					    &rc->max_value, &step_float, &precision);
+		break;
+	default:
+		BKE_report(op->reports, RPT_ERROR, "Property must be an integer or a float");
+		MEM_freeN(rc);
+		return OPERATOR_CANCELLED;
+	}
+
+	/* get subtype of property */
+	rc->subtype = RNA_property_subtype(rc->prop);
+	if(!ELEM3(rc->subtype, PROP_DISTANCE, PROP_FACTOR, PROP_ANGLE)) {
+		BKE_report(op->reports, RPT_ERROR, "Property must be a distance, a factor, or an angle");
+		MEM_freeN(rc);
+		return OPERATOR_CANCELLED;
+	}
+		
+	rc->current_value = rc->initial_value;
+	radial_control_set_initial_mouse(rc, event);
+	radial_control_set_tex(rc);
+
+	/* temporarily disable other paint cursors */
+	wm = CTX_wm_manager(C);
+	rc->orig_paintcursors = wm->paintcursors;
+	wm->paintcursors.first = wm->paintcursors.last = NULL;
+
+	/* add radial control paint cursor */
+	rc->cursor = WM_paint_cursor_activate(wm, op->type->poll,
+					      radial_control_paint_cursor, rc);
+
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static void radial_control_set_value(RadialControl *rc, float val)
+{
+	switch(rc->type) {
+	case PROP_INT:
+		RNA_property_int_set(&rc->ptr, rc->prop, val);
+		break;
+	case PROP_FLOAT:
+		RNA_property_float_set(&rc->ptr, rc->prop, val);
+		break;
+	default:
+		break;
+	}
+}
+
+static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	RadialControl *rc = op->customdata;
+	wmWindowManager *wm;
+	float new_value, dist, zoom[2];
+	float delta[2], snap, ret = OPERATOR_RUNNING_MODAL;
+
+	/* TODO: fix hardcoded events */
+
+	snap = event->ctrl;
 
 	switch(event->type) {
 	case MOUSEMOVE:
-		delta[0]= initial_mouse[0] - event->x;
-		delta[1]= initial_mouse[1] - event->y;
+		delta[0]= rc->initial_mouse[0] - event->x;
+		delta[1]= rc->initial_mouse[1] - event->y;
 
-		//if (mode == WM_RADIALCONTROL_SIZE) 
-		//	delta[0]+= initial_value;
-		//else if(mode == WM_RADIALCONTROL_STRENGTH)
-		//	delta[0]+= WM_RADIAL_CONTROL_DISPLAY_SIZE * (1 - initial_value);
-		//else if(mode == WM_RADIALCONTROL_ANGLE) {
-		//	delta[0]+= WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(initial_value*M_PI/180.0f);
-		//	delta[1]+= WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(initial_value*M_PI/180.0f);
-		//}
-
-		dist= sqrtf(delta[0]*delta[0]+delta[1]*delta[1]);
-
-		if(mode == WM_RADIALCONTROL_SIZE)
-			new_value = dist;
-		else if(mode == WM_RADIALCONTROL_STRENGTH) {
-			new_value = 1 - dist / WM_RADIAL_CONTROL_DISPLAY_SIZE;
-		} else if(mode == WM_RADIALCONTROL_ANGLE)
-			new_value = ((int)(atan2f(delta[1], delta[0]) * (float)(180.0 / M_PI)) + 180);
-		
-		if(event->ctrl) {
-			if(mode == WM_RADIALCONTROL_STRENGTH)
-				new_value = ((int)ceilf(new_value * 10.f) * 10.0f) / 100.f;
-			else
-				new_value = ((int)new_value + 5) / 10*10;
+		if(rc->zoom_prop) {
+			RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
+			delta[0] /= zoom[0];
+			delta[1] /= zoom[1];
 		}
-		
+
+		dist= sqrt(delta[0]*delta[0]+delta[1]*delta[1]);
+
+		/* calculate new value and apply snapping  */
+		switch(rc->subtype) {
+		case PROP_DISTANCE:
+			new_value = dist;
+			if(snap) new_value = ((int)new_value + 5) / 10*10;
+			break;
+		case PROP_FACTOR:
+			new_value = 1 - dist / WM_RADIAL_CONTROL_DISPLAY_SIZE;
+			if(snap) new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
+			break;
+		case PROP_ANGLE:
+			new_value = atan2(delta[1], delta[0]) + M_PI;
+			if(snap) new_value = DEG2RADF(((int)RAD2DEGF(new_value) + 5) / 10*10);
+			break;
+		default:
+			break;
+		}
+
+		/* clamp and update */
+		CLAMP(new_value, rc->min_value, rc->max_value);
+		radial_control_set_value(rc, new_value);
+		rc->current_value = new_value;
 		break;
+
 	case ESCKEY:
 	case RIGHTMOUSE:
+		/* cancelled; restore original value */
+		radial_control_set_value(rc, rc->initial_value);
 		ret = OPERATOR_CANCELLED;
 		break;
+		
 	case LEFTMOUSE:
 	case PADENTER:
-		op->type->exec(C, op);
+		/* done; value already set */
 		ret = OPERATOR_FINISHED;
 		break;
 	}
 
-	/* Clamp */
-	if(new_value > rc->max_value)
-		new_value = rc->max_value;
-	else if(new_value < 0)
-		new_value = 0;
-
-	/* Update paint data */
-	rc->value = (float)new_value;
-
-	RNA_float_set(op->ptr, "new_value", rc->value);
-
-	if(ret != OPERATOR_RUNNING_MODAL) {
-		WM_paint_cursor_end(CTX_wm_manager(C), rc->cursor);
-		MEM_freeN(rc);
-	}
-	
 	ED_region_tag_redraw(CTX_wm_region(C));
 
-	//if (ret != OPERATOR_RUNNING_MODAL) {
-	//	wmWindow *win = CTX_wm_window(C);
-	//	WM_cursor_restore(win);
-	//}
+	if(ret != OPERATOR_RUNNING_MODAL) {
+		wm = CTX_wm_manager(C);
+
+		WM_paint_cursor_end(wm, rc->cursor);
+
+		/* restore original paint cursors */
+		wm->paintcursors = rc->orig_paintcursors;
+
+		/* not sure if this is a good notifier to use;
+		   intended purpose is to update the UI so that the
+		   new value is displayed in sliders/numfields */
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+		glDeleteTextures(1, &rc->gltex);
+
+		MEM_freeN(rc);
+	}
 
 	return ret;
 }
 
-/* Expects the operator customdata to be an ImBuf (or NULL) */
-int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static void WM_OT_radial_control(wmOperatorType *ot)
 {
-	wmRadialControl *rc = MEM_callocN(sizeof(wmRadialControl), "radial control");
-	// wmWindow *win = CTX_wm_window(C);
-	int mode = RNA_enum_get(op->ptr, "mode");
-	float initial_value = RNA_float_get(op->ptr, "initial_value");
-	//float initial_size = RNA_float_get(op->ptr, "initial_size");
-	int mouse[2];
+	ot->name= "Radial Control";
+	ot->idname= "WM_OT_radial_control";
 
-	mouse[0]= event->x;
-	mouse[1]= event->y;
+	ot->invoke= radial_control_invoke;
+	ot->modal= radial_control_modal;
 
-	//if (initial_size == 0)
-	//	initial_size = WM_RADIAL_CONTROL_DISPLAY_SIZE;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
-	if(mode == WM_RADIALCONTROL_SIZE) {
-		rc->max_value = 200;
-		mouse[0]-= (int)initial_value;
-	}
-	else if(mode == WM_RADIALCONTROL_STRENGTH) {
-		rc->max_value = 1;
-		mouse[0]-= (int)(WM_RADIAL_CONTROL_DISPLAY_SIZE * (1.0f - initial_value));
-	}
-	else if(mode == WM_RADIALCONTROL_ANGLE) {
-		rc->max_value = 360;
-		mouse[0]-= (int)(WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(initial_value));
-		mouse[1]-= (int)(WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(initial_value));
-		initial_value *= 180.0f/(float)M_PI;
-	}
-
-	if(op->customdata) {
-		ImBuf *im = (ImBuf*)op->customdata;
-		/* Build GL texture */
-		glGenTextures(1, &rc->tex);
-		glBindTexture(GL_TEXTURE_2D, rc->tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, im->x, im->y, 0, GL_ALPHA, GL_FLOAT, im->rect_float);
-		MEM_freeN(im->rect_float);
-		MEM_freeN(im);
-	}
-
-	RNA_float_get_array(op->ptr, "color", rc->col);
-	RNA_float_get_array(op->ptr, "texture_color", rc->tex_col);
-
-	RNA_int_set_array(op->ptr, "initial_mouse", mouse);
-	RNA_float_set(op->ptr, "new_value", initial_value);
-		
-	op->customdata = rc;
-	rc->mode = mode;
-	rc->initial_value = initial_value;
-	rc->initial_mouse[0] = mouse[0];
-	rc->initial_mouse[1] = mouse[1];
-	rc->cursor = WM_paint_cursor_activate(CTX_wm_manager(C), op->type->poll,
-						  wm_radial_control_paint, op->customdata);
-
-	//WM_cursor_modal(win, CURSOR_NONE);
-
-	/* add modal handler */
-	WM_event_add_modal_handler(C, op);
-	
-	WM_radial_control_modal(C, op, event);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-/* Gets a descriptive string of the operation */
-void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
-{
-	int mode = RNA_enum_get(op->ptr, "mode");
-	float v = RNA_float_get(op->ptr, "new_value");
-
-	if(mode == WM_RADIALCONTROL_SIZE)
-		BLI_snprintf(str, maxlen, "Size: %d", (int)v);
-	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		BLI_snprintf(str, maxlen, "Strength: %d", (int)v);
-	else if(mode == WM_RADIALCONTROL_ANGLE)
-		BLI_snprintf(str, maxlen, "Angle: %d", (int)(v * 180.0f/(float)M_PI));
-}
-
-/** Important: this doesn't define an actual operator, it
-	just sets up the common parts of the radial control op. **/
-void WM_OT_radial_control_partial(wmOperatorType *ot)
-{
-	static EnumPropertyItem radial_mode_items[] = {
-		{WM_RADIALCONTROL_SIZE, "SIZE", 0, "Size", ""},
-		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", 0, "Strength", ""},
-		{WM_RADIALCONTROL_ANGLE, "ANGLE", 0, "Angle", ""},
-		{0, NULL, 0, NULL, NULL}};
-	static float color[4] = {1.0f, 1.0f, 1.0f, 0.5f};
-	static float tex_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-
-	/* Should be set in custom invoke() */
-	RNA_def_float(ot->srna, "initial_value", 0, 0, FLT_MAX, "Initial Value", "", 0, FLT_MAX);
-
-	/* Set internally, should be used in custom exec() to get final value */
-	RNA_def_float(ot->srna, "new_value", 0, 0, FLT_MAX, "New Value", "", 0, FLT_MAX);
-
-	/* Should be set before calling operator */
-	RNA_def_enum(ot->srna, "mode", radial_mode_items, 0, "Mode", "");
-
-	/* Internal */
-	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "Initial Mouse", "", INT_MIN, INT_MAX);
-
-	RNA_def_float_color(ot->srna, "color", 4, color, 0.0f, FLT_MAX, "Color", "Radial control color", 0.0f, 1.0f);
-	RNA_def_float_color(ot->srna, "texture_color", 4, tex_color, 0.0f, FLT_MAX, "Texture Color", "Radial control texture color", 0.0f, 1.0f);
+	/* all paths relative to the context */
+	RNA_def_string(ot->srna, "data_path", "", 0, "Data Path", "Path of property to be set by the radial control.");
+	RNA_def_string(ot->srna, "rotation_path", "", 0, "Rotation Path", "Path of property used to rotate the texture display.");
+	RNA_def_string(ot->srna, "color_path", "", 0, "Color Path", "Path of property used to set the color of the control.");
+	RNA_def_string(ot->srna, "fill_color_path", "", 0, "Fill Color Path", "Path of property used to set the fill color of the control.");
+	RNA_def_string(ot->srna, "zoom_path", "", 0, "Zoom Path", "Path of property used to set the zoom level for the control.");
+	RNA_def_string(ot->srna, "image_id", "", 0, "Image ID", "Path of ID that is used to generate an image for the control.");
 }
 
 /* ************************** timer for testing ***************** */
@@ -3133,6 +3327,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
+	WM_operatortype_append(WM_OT_radial_control);
 #if defined(WIN32)
 	WM_operatortype_append(WM_OT_console_toggle);
 #endif

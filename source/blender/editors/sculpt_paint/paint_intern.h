@@ -81,12 +81,10 @@ void vpaint_fill(struct Object *ob, unsigned int paintcol);
 void wpaint_fill(struct VPaint *wp, struct Object *ob, float paintweight);
 
 void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
-void PAINT_OT_weight_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint(struct wmOperatorType *ot);
 void PAINT_OT_weight_set(struct wmOperatorType *ot);
 void PAINT_OT_weight_from_bones(struct wmOperatorType *ot);
 
-void PAINT_OT_vertex_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
@@ -96,12 +94,10 @@ unsigned int vpaint_get_current_col(struct VPaint *vp);
 int image_texture_paint_poll(struct bContext *C);
 
 void PAINT_OT_image_paint(struct wmOperatorType *ot);
-void PAINT_OT_image_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_grab_clone(struct wmOperatorType *ot);
 void PAINT_OT_sample_color(struct wmOperatorType *ot);
 void PAINT_OT_clone_cursor_set(struct wmOperatorType *ot);
 void PAINT_OT_texture_paint_toggle(struct wmOperatorType *ot);
-void PAINT_OT_texture_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_project_image(struct wmOperatorType *ot);
 void PAINT_OT_image_from_view(struct wmOperatorType *ot);
 

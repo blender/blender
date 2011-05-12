@@ -508,6 +508,27 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	return item;
 }
 
+static void rna_SpaceImageEditor_zoom_get(PointerRNA *ptr, float *values)
+{
+	SpaceImage *sima= (SpaceImage*)ptr->data;
+	ScrArea *sa;
+	ARegion *ar;
+
+	values[0] = values[1] = 1;
+
+	sa = rna_area_from_space(ptr);
+	if(!sa) return;
+	
+	/* find aregion */
+	for(ar=sa->regionbase.first; ar; ar=ar->next) {
+		if(ar->regiontype == RGN_TYPE_WINDOW)
+			break;
+	}
+	if(!ar) return;
+
+	ED_space_image_zoom(sima, ar, &values[0], &values[1]);
+}
+
 static void rna_SpaceImageEditor_cursor_location_get(PointerRNA *ptr, float *values)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
@@ -1556,6 +1577,12 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "sample_line_hist");
 	RNA_def_property_struct_type(prop, "Histogram");
 	RNA_def_property_ui_text(prop, "Line sample", "Sampled colors along line");
+
+	prop= RNA_def_property(srna, "zoom", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_SpaceImageEditor_zoom_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Zoom", "Zoom factor");
 	
 	/* image draw */
 	prop= RNA_def_property(srna, "show_repeat", PROP_BOOLEAN, PROP_NONE);

@@ -66,7 +66,6 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_mirror);
 
 	WM_operatortype_append(PARTICLE_OT_brush_edit);
-	WM_operatortype_append(PARTICLE_OT_brush_radial_control);
 
 	WM_operatortype_append(PARTICLE_OT_particle_edit_toggle);
 	WM_operatortype_append(PARTICLE_OT_edited_clear);
@@ -91,6 +90,7 @@ static void operatortypes_particle(void)
 
 static void keymap_particle(wmKeyConfig *keyconf)
 {
+	wmKeyMapItem *kmi;
 	wmKeyMap *keymap;
 	
 	keymap= WM_keymap_find(keyconf, "Particle", 0, 0);
@@ -112,8 +112,14 @@ static void keymap_particle(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
+
+	/* size radial control */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.particle_edit.brush.size");
+
+	/* size radial control */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.particle_edit.brush.strength");
 
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_particle_specials", WKEY, KM_PRESS, 0, 0);
 	
