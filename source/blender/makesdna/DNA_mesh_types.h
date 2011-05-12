@@ -174,8 +174,6 @@ typedef struct TFace {
 #define ME_DRAWEXTRA_FACEAREA (1 << 11)
 #define ME_DRAWEXTRA_FACEANG  (1 << 12)
 
-#define ME_DRAW_PINS (1 << 13)
-
 /* old global flags:
 #define G_DRAWEDGES		(1 << 18)
 #define G_DRAWFACES		(1 <<  7)

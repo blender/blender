@@ -404,12 +404,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 			case TH_DOPESHEET_CHANNELSUBOB:
 				cp= ts->ds_subchannel;
 				break;	
-
-			case TH_PIN:
-				cp= ts->pin; break;
-			case TH_PIN_OPAC:
-				//cp= &ts->pin_opac; break; /*XXX BMESH_TODO*/
-					
 			case TH_PREVIEW_BACK:
 				cp= ts->preview_back;
 				break;	

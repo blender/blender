@@ -115,23 +115,13 @@ BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
 	/*allocate the structure*/
 	BMesh *bm = MEM_callocN(sizeof(BMesh),"BM");
 	int vsize, esize, lsize, fsize, lstsize;
-	int baselevel = LAYER_ADJ;
 
-	if (baselevel == LAYER_BASE) {
-		vsize = sizeof(BMBaseVert);
-		esize = sizeof(BMBaseEdge);
-		lsize = sizeof(BMBaseLoop);
-		fsize = sizeof(BMBaseFace);
-		lstsize = sizeof(BMBaseLoopList);
-	} else {
-		vsize = sizeof(BMVert);
-		esize = sizeof(BMEdge);
-		lsize = sizeof(BMLoop);
-		fsize = sizeof(BMFace);
-		lstsize = sizeof(BMLoopList);
-	}
+	vsize = sizeof(BMVert);
+	esize = sizeof(BMEdge);
+	lsize = sizeof(BMLoop);
+	fsize = sizeof(BMFace);
+	lstsize = sizeof(BMLoopList);
 
-	bm->baselevel = baselevel;
 	bm->ob = ob;
 	
 /*allocate the memory pools for the mesh elements*/
@@ -192,15 +182,6 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	BLI_mempool_destroy(bm->epool);
 	BLI_mempool_destroy(bm->lpool);
 	BLI_mempool_destroy(bm->fpool);
-
-	if (bm->svpool)
-		BLI_mempool_destroy(bm->svpool);
-	if (bm->sepool)
-		BLI_mempool_destroy(bm->sepool);
-	if (bm->slpool)
-		BLI_mempool_destroy(bm->slpool);
-	if (bm->sfpool)
-		BLI_mempool_destroy(bm->sfpool);
 
 	/*destroy flag pool*/
 	BLI_mempool_destroy(bm->toolflagpool);

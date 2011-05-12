@@ -3,7 +3,7 @@
  *
  *	BMesh API.
  *
- * $Id: BKE_bmesh.h,v 1.00 2007/01/17 17:42:01 Briggs Exp $
+ * $Id: bmesh.h,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -42,6 +42,8 @@ extern "C" {
 
 #include "BKE_customdata.h"
 
+#include "BLI_utildefines.h"
+	
 /*
 short introduction:
 
@@ -106,8 +108,7 @@ struct EditMesh;
 #define BM_SMOOTH	(1<<5)
 #define BM_ACTIVE	(1<<6)
 #define BM_NONORMCALC	(1<<7)
-#define BM_PINNED	(1<<8)
-#define BM_FLIPPED	(1<<9) /*internal flag, used for ensuring correct normals during multires interpolation*/
+#define BM_FLIPPED	(1<<8) /*internal flag, used for ensuring correct normals during multires interpolation*/
 
 #include "bmesh_class.h"
 
@@ -142,14 +143,18 @@ defining edges[0], and define the winding of the new face.*/
 struct BMFace *BM_Make_Ngon ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble );
 
 /*stuff for dealing with header flags*/
-#define BM_TestHFlag(ele, f) (ele && (((BMHeader*)ele)->flag & (f)))
-#define BM_SetHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag | (f))
-#define BM_ClearHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag & ~(f))
-#define BM_ToggleHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag ^ (f))
+BM_INLINE int BM_TestHFlag(void *element, int flag);
 
-/*stuff for setting indices in elements.*/
-#define BMINDEX_SET(ele, i) (((BMHeader*)ele)->index = i)
-#define BMINDEX_GET(ele) (((BMHeader*)ele)->index)
+/*stuff for dealing with header flags*/
+BM_INLINE void BM_SetHFlag(void *element, int flag);
+
+/*stuff for dealing with header flags*/
+BM_INLINE void BM_ClearHFlag(void *element, int flag);
+
+/*stuff for dealing BM_ToggleHFlag header flags*/
+BM_INLINE void BM_ToggleHFlag(void *element, int flag);
+BM_INLINE void BMINDEX_SET(void *element, int index);
+BM_INLINE int BMINDEX_GET(void *element);
 
 /*copies loop data from adjacent faces*/
 void BM_Face_CopyShared ( BMesh *bm, BMFace *f );
@@ -309,126 +314,10 @@ void bmesh_end_edit(struct BMesh *bm, int flag);
 #include "bmesh_error.h"
 #include "bmesh_queries.h"
 #include "bmesh_walkers.h"
+#include "intern/bmesh_inline.c"
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* BMESH_H */
-
-/*old structures*/
-#if 0
-
-typedef struct BMHeader
-{
-    struct BMHeader *next, *prev;
-    int 		EID;  /*Consider removing this/making it ifdeffed for debugging*/
-
-    /*don't confuse this with tool flags.  this flag
-      member is what "header flag" means.*/
-    int		flag;
-    int		type; /*the element type, can be BM_VERT, BM_EDGE, BM_LOOP, or BM_FACE*/
-    int		eflag1, eflag2;	/*Flags used by eulers. Try and get rid of/minimize some of these*/
-
-    /*this is only used to store temporary integers.
-      don't use it for anything else.
-      use the BMINDEX_GET and BMINDEX_SET macros to access it*/
-    int index;
-    struct BMFlagLayer *flags; /*Dynamically allocated block of flag layers for operators to use*/
-    void *data; /*customdata block*/
-} BMHeader;
-
-typedef struct BMFlagLayer
-{
-    int f1;
-    short mask, pflag;
-} BMFlagLayer;
-
-#define BM_OVERLAP	(1<<14) /*used by bmesh_verts_in_face*/
-#define BM_EDGEVERT	(1<<15) /*used by bmesh_make_ngon*/
-
-/*
- * BMNode
- *
- * Used for circular/linked list functions that form basis of
- * adjacency system in BMesh. This should probably be hidden
- * somewhere since tool authors never need to know about it.
- *
-*/
-
-typedef struct BMNode
-{
-    struct BMNode *next, *prev;
-    void *data;
-} BMNode;
-
-typedef struct BMesh
-{
-    ListBase verts, edges, polys;
-    struct BLI_mempool *vpool;
-    struct BLI_mempool *epool;
-    struct BLI_mempool *lpool;
-    struct BLI_mempool *ppool;
-    struct BMVert **vtar;
-    struct BMEdge **edar;
-    struct BMLoop **lpar;
-    struct BMFace **plar;
-    int vtarlen, edarlen, lparlen, plarlen;
-    int totvert, totedge, totface, totloop;
-    int totvertsel, totedgesel, totfacesel;
-    int nextv, nexte, nextp, nextl;
-    struct CustomData vdata, edata, pdata, ldata;
-    int selectmode; /*now uses defines in DNA_scene_types.h*/
-    struct BLI_mempool *flagpool;					/*memory pool for dynamically allocated flag layers*/
-    int stackdepth;									/*current depth of operator stack*/
-    int totflags, walkers;							/*total number of tool flag layers*/
-    ListBase errorstack;
-
-    /*selection order list*/
-    ListBase selected;
-
-    /*active face pointer*/
-    struct BMFace *act_face;
-
-    /*active shape key number, should really be in BMEditMesh, not here*/
-    int shapenr;
-} BMesh;
-
-typedef struct BMVert
-{
-    struct BMHeader head;
-    float co[3];
-    float no[3];
-    struct BMEdge *edge;
-    float bweight;			/*please, someone just get rid of me...*/
-} BMVert;
-
-typedef struct BMEdge
-{
-    struct BMHeader head;
-    struct BMVert *v1, *v2;
-    struct BMNode d1, d2;
-    struct BMLoop *loop;
-    float crease, bweight; /*make these custom data.... no really, please....*/
-} BMEdge;
-
-typedef struct BMLoop
-{
-    struct BMHeader head;
-    struct BMNode radial;
-    struct BMVert *v;
-    struct BMEdge *e;
-    struct BMFace *f;
-} BMLoop;
-
-typedef struct BMFace
-{
-    struct BMHeader head;
-    struct BMLoop *loopbase;
-    int len;
-    float no[3];
-
-    /*custom data again*/
-    short mat_nr;
-} BMFace;
-#endif

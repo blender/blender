@@ -1507,8 +1507,8 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 	int i, tot;
 
 	tot = 0;
-		BM_ITER_SELECT(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
-		if (BM_TestHFlag(v, BM_SELECT)) {
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_TestHFlag(v, BM_SELECT) && !BM_TestHFlag(v, BM_HIDDEN)) {
 			BLI_array_growone(verts);
 			verts[tot++] = v;
 		}

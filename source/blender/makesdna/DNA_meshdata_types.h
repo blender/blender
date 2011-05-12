@@ -213,7 +213,6 @@ typedef struct PartialVisibility {
 #define ME_SPHERETEST		2
 #define ME_VERT_TMP_TAG		4
 #define ME_HIDE				16
-#define ME_PIN			64
 #define ME_VERT_MERGED		(1<<6)
 #define ME_VERT_PBVH_UPDATE	(1<<7)
 

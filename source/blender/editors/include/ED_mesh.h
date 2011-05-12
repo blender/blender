@@ -169,9 +169,6 @@ void EDBM_editselection_normal(float *normal, struct BMEditSelection *ese);
 int EDBM_vertColorCheck(struct BMEditMesh *em);
 void EDBM_validate_selections(struct BMEditMesh *em);
 
-void EDBM_pin_mesh(struct BMEditMesh *em, int swap);
-void EDBM_unpin_mesh(struct BMEditMesh *em, int swap);
-
 void EDBM_hide_mesh(struct BMEditMesh *em, int swap);
 void EDBM_reveal_mesh(struct BMEditMesh *em);
 

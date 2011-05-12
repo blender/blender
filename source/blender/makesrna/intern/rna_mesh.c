@@ -1897,10 +1897,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Face Area", "Displays the area of selected faces, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
-	prop= RNA_def_property(srna, "draw_pins", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_PINS);
-	RNA_def_property_ui_text(prop, "Draw Pins", "Displays pinned mesh elements");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 	/* editflag */
 	prop= RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_X);
