@@ -687,15 +687,15 @@ void window_to_3d_vector(ARegion *ar, float out[3], short mx, short my)
 	float dx, dy;
 	float viewvec[3];
 
-	dx= 2.0f*mx/ar->winx;
-	dy= 2.0f*my/ar->winy;
+	dx= (2.0f * mx / ar->winx) - 1.0f;
+	dy= (2.0f * my / ar->winy) - 1.0f;
 
 	/* normalize here so vecs are proportional to eachother */
 	normalize_v3_v3(viewvec, rv3d->viewinv[2]);
 
-	out[0]= viewvec[0] - (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
-	out[1]= viewvec[1] - (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
-	out[2]= viewvec[2] - (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy);
+	out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy) - viewvec[0];
+	out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy) - viewvec[1];
+	out[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy) - viewvec[2];
 
 	normalize_v3(out);
 }

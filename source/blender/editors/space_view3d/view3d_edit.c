@@ -396,7 +396,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	/* for dolly */
-	window_to_3d_vector(vod->ar, vod->mousevec, (vod->oldx - vod->ar->winrct.xmin)-(vod->ar->winx)/2, (vod->oldy - vod->ar->winrct.ymin)-(vod->ar->winy)/2);
+	window_to_3d_vector(vod->ar, vod->mousevec, vod->oldx - vod->ar->winrct.xmin, vod->oldy - vod->ar->winrct.ymin);
 
 	/* lookup, we dont pass on v3d to prevent confusement */
 	vod->grid= v3d->grid;
@@ -1349,7 +1349,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 static void view_dolly_mouseloc(ARegion *ar, float orig_ofs[3], float dvec[3], float dfac)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, 1.0 - dfac);
+	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0 - dfac));
 }
 
 static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_invert)
@@ -1444,7 +1444,8 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 	else {
 		sa= CTX_wm_area(C);
 		ar= CTX_wm_region(C);
-		normalize_v3_v3(mousevec, ((RegionView3D *)ar->regiondata)->viewinv[2]);
+		negate_v3_v3(mousevec, ((RegionView3D *)ar->regiondata)->viewinv[2]);
+		normalize_v3(mousevec);
 	}
 
 	/* v3d= sa->spacedata.first; */ /* UNUSED */
@@ -1498,7 +1499,8 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* overwrite the mouse vector with the view direction (zoom into the center) */
 		if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) == 0) {
-			normalize_v3_v3(vod->mousevec, vod->rv3d->viewinv[2]);
+			negate_v3_v3(vod->mousevec, vod->rv3d->viewinv[2]);
+			normalize_v3(vod->mousevec);
 		}
 
 		if (event->type == MOUSEZOOM) {

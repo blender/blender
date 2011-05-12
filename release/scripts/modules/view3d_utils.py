@@ -65,7 +65,7 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
     from mathutils.geometry import intersect_point_line
     origin_start = rv3d.view_matrix.inverted()[3].to_3d()
     origin_end = origin_start + region_2d_to_vector_3d(region, rv3d, coord)
-    return intersect_point_line(depth_vector, origin_start, origin_end)[0]
+    return intersect_point_line(depth_location, origin_start, origin_end)[0]
 
 
 def location_3d_to_region_2d(region, rv3d, coord):
