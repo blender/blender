@@ -173,8 +173,8 @@ __device_inline Transform transform_euler(float3 euler)
 {
 	return
 		transform_rotate(euler.x, make_float3(1.0f, 0.0f, 0.0f)) *
-		transform_rotate(euler.y, make_float3(1.0f, 0.0f, 0.0f)) *
-		transform_rotate(euler.z, make_float3(1.0f, 0.0f, 0.0f));
+		transform_rotate(euler.y, make_float3(0.0f, 1.0f, 0.0f)) *
+		transform_rotate(euler.z, make_float3(0.0f, 0.0f, 1.0f));
 }
 
 __device_inline Transform transform_orthographic(float znear, float zfar)
