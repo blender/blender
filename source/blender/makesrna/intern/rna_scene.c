@@ -3226,6 +3226,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	
+	prop= RNA_def_property(srna, "frame_subframe", PROP_FLOAT, PROP_TIME);
+	RNA_def_property_float_sdna(prop, NULL, "r.subframe");
+	RNA_def_property_ui_text(prop, "Current Sub-Frame", "");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE|PROP_EDITABLE);
+	
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");

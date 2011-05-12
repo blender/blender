@@ -139,8 +139,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fluid_get_bb(mesh->mvert, mesh->totvert, ob->obmat, fss->bbStart, fss->bbSize);	
 		*/
 		
-		// (ab)used to store velocities
-		fss->meshSurfNormals = NULL;
+		fss->meshVelocities = NULL;
 		
 		fss->lastgoodframe = -1;
 		
@@ -158,10 +157,10 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 #ifndef DISABLE_ELBEEM
 	if(fluidmd)
 	{
-		if(fluidmd->fss->meshSurfNormals)
+		if(fluidmd->fss->meshVelocities)
 		{
-			MEM_freeN(fluidmd->fss->meshSurfNormals);
-			fluidmd->fss->meshSurfNormals = NULL;
+			MEM_freeN(fluidmd->fss->meshVelocities);
+			fluidmd->fss->meshVelocities = NULL;
 		}
 		MEM_freeN(fluidmd->fss);
 	}
@@ -394,12 +393,12 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 	FluidsimSettings *fss = fluidmd->fss;
 	int len = strlen(filename);
 	int totvert = dm->getNumVerts(dm);
-	float *velarray = NULL;
+	FluidVertexVelocity *velarray = NULL;
 
 	// mesh and vverts have to be valid from loading...
 
-	if(fss->meshSurfNormals)
-		MEM_freeN(fss->meshSurfNormals);
+	if(fss->meshVelocities)
+		MEM_freeN(fss->meshVelocities);
 
 	if(len<7)
 	{
@@ -408,12 +407,10 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 
 	if(fss->domainNovecgen>0) return;
 
-	// abusing pointer to hold an array of 3d-velocities
-	fss->meshSurfNormals = MEM_callocN(sizeof(float)*3*dm->getNumVerts(dm), "Fluidsim_velocities");
-	// abusing pointer to hold an INT
-	fss->meshSurface = SET_INT_IN_POINTER(totvert);
+	fss->meshVelocities = MEM_callocN(sizeof(FluidVertexVelocity)*dm->getNumVerts(dm), "Fluidsim_velocities");
+	fss->totvert = totvert;
 
-	velarray = (float *)fss->meshSurfNormals;
+	velarray = fss->meshVelocities;
 
 	// .bobj.gz , correct filename
 	// 87654321
@@ -424,16 +421,16 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 	gzf = gzopen(filename, "rb");
 	if (!gzf)
 	{
-		MEM_freeN(fss->meshSurfNormals);
-		fss->meshSurfNormals = NULL;
+		MEM_freeN(fss->meshVelocities);
+		fss->meshVelocities = NULL;
 		return;
 	}
 
 	gzread(gzf, &wri, sizeof( wri ));
 	if(wri != totvert)
 	{
-		MEM_freeN(fss->meshSurfNormals);
-		fss->meshSurfNormals = NULL;
+		MEM_freeN(fss->meshVelocities);
+		fss->meshVelocities = NULL;
 		return;
 	}
 
@@ -442,7 +439,7 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 		for(j=0; j<3; j++)
 		{
 			gzread(gzf, &wrf, sizeof( wrf ));
-			velarray[3*i + j] = wrf;
+			velarray[i].vel[j] = wrf;
 		}
 	}
 
@@ -531,10 +528,10 @@ static DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData
 	}
 	else
 	{
-		if(fss->meshSurfNormals)
-			MEM_freeN(fss->meshSurfNormals);
+		if(fss->meshVelocities)
+			MEM_freeN(fss->meshVelocities);
 
-		fss->meshSurfNormals = NULL;
+		fss->meshVelocities = NULL;
 	}
 
 	return dm;
