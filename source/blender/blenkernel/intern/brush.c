@@ -426,13 +426,6 @@ void brush_curve_preset(Brush *b, /*CurveMappingPreset*/int preset)
 	curvemapping_changed(b->curve, 0);
 }
 
-static MTex *brush_active_texture(Brush *brush)
-{
-	if(brush)
-		return &brush->mtex;
-	return NULL;
-}
-
 int brush_texture_set_nr(Brush *brush, int nr)
 {
 	ID *idtest, *id=NULL;
@@ -1185,7 +1178,7 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 }
 
 /**** Radial Control ****/
-static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
+struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 {
 	ImBuf *im = MEM_callocN(sizeof(ImBuf), "radial control texture");
 	unsigned int *texcache;
@@ -1217,50 +1210,6 @@ static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 	}
 
 	return im;
-}
-
-void brush_radial_control_invoke(wmOperator *op, Brush *br, float size_weight)
-{
-	int mode = RNA_enum_get(op->ptr, "mode");
-	float original_value= 0;
-
-	if(mode == WM_RADIALCONTROL_SIZE)
-		original_value = brush_size(br) * size_weight;
-	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		original_value = brush_alpha(br);
-	else if(mode == WM_RADIALCONTROL_ANGLE) {
-		MTex *mtex = brush_active_texture(br);
-		if(mtex)
-			original_value = mtex->rot;
-	}
-
-	RNA_float_set(op->ptr, "initial_value", original_value);
-	op->customdata = brush_gen_radial_control_imbuf(br);
-}
-
-int brush_radial_control_exec(wmOperator *op, Brush *br, float size_weight)
-{
-	int mode = RNA_enum_get(op->ptr, "mode");
-	float new_value = RNA_float_get(op->ptr, "new_value");
-	const float conv = 0.017453293;
-
-	if(mode == WM_RADIALCONTROL_SIZE)
-		if (brush_use_locked_size(br)) {
-			float initial_value = RNA_float_get(op->ptr, "initial_value");
-			const float unprojected_radius = brush_unprojected_radius(br);
-			brush_set_unprojected_radius(br, unprojected_radius * new_value/initial_value * size_weight);
-		}
-		else
-			brush_set_size(br, new_value * size_weight);
-	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		brush_set_alpha(br, new_value);
-	else if(mode == WM_RADIALCONTROL_ANGLE) {
-		MTex *mtex = brush_active_texture(br);
-		if(mtex)
-			mtex->rot = new_value * conv;
-	}
-
-	return OPERATOR_FINISHED;
 }
 
 /* Unified Size and Strength */
