@@ -325,7 +325,8 @@ static void rotsys_make_consistent(BMesh *bm, EdgeData *edata, VertData *vdata)
 			} while (e != vd->e);
 		}
 	}
-	
+
+	BLI_array_free(stack);
 }
 
 static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)

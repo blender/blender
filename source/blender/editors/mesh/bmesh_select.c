@@ -123,8 +123,7 @@ void EDBM_automerge(Scene *scene, Object *obedit, int update)
 	BMEditMesh *em;
 	
 	if ((scene->toolsettings->automerge) &&
-	    (obedit && obedit->type==OB_MESH) &&
-	    (((Mesh*)obedit->data)->mr==NULL))
+	    (obedit && obedit->type==OB_MESH))
 	{
 		em = ((Mesh*)obedit->data)->edit_btmesh;
 		if (!em)
