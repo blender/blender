@@ -63,45 +63,6 @@ void bmesh_error(void)
 }
 
 /*
- * BMESH SET SYSFLAG
- *
- * Sets a bitflag for a given element.
- *
-*/
-
-void bmesh_set_sysflag(BMHeader *head, int flag)
-{
-	head->flag |= flag;
-}
-
-/*
- * BMESH CLEAR SYSFLAG
- * 
- * Clears a bitflag for a given element.
- *
-*/
-
-void bmesh_clear_sysflag(BMHeader *head, int flag)
-{
-	head->flag &= ~flag;
-}
-
-
-/*
- * BMESH TEST SYSFLAG
- *
- * Tests whether a bitflag is set for a given element.
- *
-*/
-
-int bmesh_test_sysflag(BMHeader *head, int flag)
-{
-	if(head->flag & flag)
-		return 1;
-	return 0;
-}
-
-/*
  *	BMESH MAKE MESH
  *
  *  Allocates a new BMesh structure.

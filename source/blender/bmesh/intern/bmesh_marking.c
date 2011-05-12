@@ -93,7 +93,7 @@ void BM_SelectMode_Flush(BMesh *bm)
 			totsel = 0;
 			l=(BMLoop*) bm_firstfaceloop(f);
 			do{
-				if(bmesh_test_sysflag(&(l->e->head), BM_SELECT)) 
+				if(BM_TestHFlag(&(l->e->head), BM_SELECT)) 
 					totsel++;
 				l = ((BMLoop*)(l->next));
 			}while(l!=bm_firstfaceloop(f));

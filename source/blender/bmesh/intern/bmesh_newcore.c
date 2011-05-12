@@ -535,8 +535,6 @@ static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst){
 	len = bmesh_loop_length(l);
 
 	for(i=0, curloop = l; i< len; i++, curloop= ((BMLoop*)(curloop->next)) ){
-		curloop->e->head.eflag1 = 0;
-		curloop->e->head.eflag2 = bmesh_radial_length(curloop);
 		bmesh_radial_remove_loop(curloop, curloop->e);
 		/*in case of border edges we HAVE to zero out curloop->radial Next/Prev*/
 		curloop->radial_next = curloop->radial_prev = NULL;

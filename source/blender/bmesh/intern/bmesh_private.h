@@ -63,11 +63,6 @@ void bmesh_selectmode_flush(struct BMesh *bm);
 void *bmesh_get_filter_callback(int type);
 int bmesh_get_filter_argtype(int type);
 
-/*system flag access*/
-void bmesh_set_sysflag(struct BMHeader *element, int flag);
-void bmesh_clear_sysflag(struct BMHeader *element, int flag);
-int bmesh_test_sysflag(struct BMHeader *element, int flag);
-
 /*NOTE: ensure different parts of the API do not conflict
   on using these internal flags!*/
 #define _FLAG_JF	1 /*join faces*/

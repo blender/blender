@@ -61,11 +61,9 @@ struct Object;
 typedef struct BMHeader {
 	void *data; /*customdata layers*/
 	struct BMFlagLayer *flags;
-	int eid; /*element id*/
 	short type; /*element geometric type (verts/edges/loops/faces)*/
 	short flag; /*this would be a CD layer, see below*/
-	short eflag1, eflag2;
-	int sysflag, index; /*note: do *not* touch sysflag! and use BMINDEX_GET/SET macros for index*/
+	int index; /*note: use BMINDEX_GET/SET macros for index*/
 } BMHeader;
 
 /*note: need some way to specify custom locations for custom data layers.  so we can
