@@ -886,7 +886,9 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 	if (results)
 		MEM_freeN(results);
 	
+	BLI_bvhtree_free(tree2);
 	*count = BLI_array_count(edges);
+	
 	return edges;
 }
 
@@ -1813,8 +1815,10 @@ static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	obedit = CTX_data_edit_object(C);
-	if (!obedit || obedit->type != OB_MESH || ((Mesh*)obedit->data)->edit_btmesh != kcd->em)
+	if (!obedit || obedit->type != OB_MESH || ((Mesh*)obedit->data)->edit_btmesh != kcd->em) {
+		knifetool_exit(C, op);
 		return OPERATOR_FINISHED;
+	}
 
 	view3d_operator_needs_opengl(C);
 	

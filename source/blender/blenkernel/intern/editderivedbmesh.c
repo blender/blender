@@ -133,45 +133,6 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 	
 	if (tm->looptris) MEM_freeN(tm->looptris);
 
-#if 0 //simple quad/triangle code for performance testing purposes
-	looptris = MEM_callocN(sizeof(void*)*bm->totface*8, "looptris");
-
-	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
-	for ( ; f; f=BMIter_Step(&iter)) {
-		EditVert *v, *lastv=NULL, *firstv=NULL;
-		EditEdge *e;
-		EditFace *efa;
-
-		/*don't consider two-edged faces*/
-		if (f->len < 3) continue;
-		
-		//BLI_array_growone(looptris);
-		//BLI_array_growone(looptris);
-		//BLI_array_growone(looptris);
-
-		looptris[i*3] = f->loopbase;
-		looptris[i*3+1] = f->loopbase->head.next;
-		looptris[i*3+2] = f->loopbase->head.next->next;
-		i++;
-
-		if (f->len > 3) {
-			//BLI_array_growone(looptris);
-			//BLI_array_growone(looptris);
-			//BLI_array_growone(looptris);
-
-			looptris[i*3] = f->loopbase;
-			looptris[i*3+1] = f->loopbase->head.next->next;
-			looptris[i*3+2] = f->loopbase->head.next->next->next;
-			i++;
-		}
-
-	}
-
-	tm->tottri = i;
-	tm->looptris = looptris;
-	return;
-#endif
-
 	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 	for ( ; f; f=BMIter_Step(&iter)) {
 		EditVert *v, *lastv=NULL, *firstv=NULL;
