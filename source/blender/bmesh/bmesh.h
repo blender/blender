@@ -143,18 +143,18 @@ defining edges[0], and define the winding of the new face.*/
 struct BMFace *BM_Make_Ngon ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble );
 
 /*stuff for dealing with header flags*/
-BM_INLINE int BM_TestHFlag(void *element, int flag);
+BM_INLINE int BM_TestHFlag(void *element, const int flag);
 
 /*stuff for dealing with header flags*/
-BM_INLINE void BM_SetHFlag(void *element, int flag);
+BM_INLINE void BM_SetHFlag(void *element, const int flag);
 
 /*stuff for dealing with header flags*/
-BM_INLINE void BM_ClearHFlag(void *element, int flag);
+BM_INLINE void BM_ClearHFlag(void *element, const int flag);
 
 /*stuff for dealing BM_ToggleHFlag header flags*/
-BM_INLINE void BM_ToggleHFlag(void *element, int flag);
-BM_INLINE void BM_SetIndex(void *element, int index);
-BM_INLINE int BM_GetIndex(void *element);
+BM_INLINE void BM_ToggleHFlag(void *element, const int flag);
+BM_INLINE void BM_SetIndex(void *element, const int index);
+BM_INLINE int BM_GetIndex(const void *element);
 
 /*copies loop data from adjacent faces*/
 void BM_Face_CopyShared ( BMesh *bm, BMFace *f );

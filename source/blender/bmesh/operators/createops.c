@@ -335,7 +335,8 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	BMEdge *e;
 	BMEdge **edges = NULL;
 	BLI_array_staticdeclare(edges, 256);
-	BMVert *v, *lastv, **verts = NULL;
+	BMVert *v, *lastv;
+	/*BMVert **verts = NULL; */
 	/*BLI_array_staticdeclare(verts, 256);*/ /*UNUSED*/
 	int i;
 	
@@ -655,6 +656,7 @@ static float edge_weight_path(EPath *path, EdgeData *edata, VertData *UNUSED(vda
 			w += edata[BM_GetIndex(node->e)].ftag;
 			if (node->prev) {
 				/*BMESH_TODO*/
+				(void)first;
 				//w += len_v3v3(node->v->co, first->e->v1->co)*0.0001f;
 				//w += len_v3v3(node->v->co, first->e->v2->co)*0.0001f;				
 			}
@@ -682,7 +684,7 @@ static void edge_free_path(PathBase *pathbase, EPath *path)
 static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, EdgeData *edata, 
 								VertData *vdata, PathBase *pathbase, int group)
 {
-	BMEdge *e, *starte;
+	BMEdge *e;
 	GHash *gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createops find shortest path");
 	BMVert *v1, *v2;
 	BMVert **verts = NULL;
@@ -988,8 +990,7 @@ static BMEdge *edge_next(BMesh *bm, BMEdge *e)
 void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
-	BMIter iter;
-	BMEdge *e, *e2;
+	BMEdge *e;
 	BMEdge **edges1 = NULL, **edges2 = NULL, **edges;
 	BLI_array_declare(edges1);
 	BLI_array_declare(edges2);

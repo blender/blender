@@ -901,7 +901,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	/* BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh; */ /*UNUSED*/
 	ParamHandle *handle;
 	int method = RNA_enum_get(op->ptr, "method");
 	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
@@ -1066,7 +1066,6 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	BLI_array_declare(uvs);
 	float **uvs = NULL;

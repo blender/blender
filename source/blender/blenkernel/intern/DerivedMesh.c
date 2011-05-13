@@ -358,7 +358,6 @@ static void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, Derived
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
 {
 	DMFaceIter *iter = source->newFaceIter(source);
-	DMLoopIter *liter;
 	int totloop = source->numLoopData;
 
 	dm_add_polys_from_iter(&target->loopData, &target->polyData, source, totloop);
@@ -921,7 +920,7 @@ void vDM_ColorBand_store(ColorBand *coba)
 
 static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 {
-	Mesh *me = ob->data;
+	// Mesh *me = ob->data; // UNUSED
 	MFace *mf = dm->getTessFaceArray(dm);
 	DMFaceIter *dfiter;
 	DMLoopIter *dliter;

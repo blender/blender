@@ -140,8 +140,8 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 #endif
 }
 
-#define ETAG_SET(e, v, nv) (v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1 = (nv)) : (etags[BMINDEX_GET((e))].newv2 = (nv))
-#define ETAG_GET(e, v) ((v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1) : (etags[BMINDEX_GET((e))].newv2))
+#define ETAG_SET(e, v, nv) (v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1 = (nv)) : (etags[BM_GetIndex((e))].newv2 = (nv))
+#define ETAG_GET(e, v) ((v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1) : (etags[BM_GetIndex((e))].newv2))
 
 void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 {

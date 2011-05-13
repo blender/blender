@@ -121,7 +121,6 @@ static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, BML
 static BMLoop *BM_Add_FaceBoundary(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte) {
 	BMLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
 	BMLoop *l = (BMLoop*)bmesh_create_loop(bm, startv, starte, f, NULL);
-	int i;
 	
 	bmesh_radial_append(starte, l);
 
@@ -356,8 +355,6 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, int type) {
 }
 
 static void bmesh_kill_loop(BMesh *bm, BMLoop *l) {
-	int i;
-	
 	bm->totloop--;
 	if (l->head.data)
 		CustomData_bmesh_free_block(&bm->ldata, &l->head.data);
@@ -407,8 +404,7 @@ void BM_Kill_Face_Verts(BMesh *bm, BMFace *f) {
 
 void BM_Kill_Face(BMesh *bm, BMFace *f) {
 	BMLoopList *ls, *lsnext;
-	int i;
-	
+
 	CHECK_ELEMENT(bm, f);
 
 	for (ls=f->loops.first; ls; ls=lsnext) {
@@ -442,8 +438,7 @@ void BM_Kill_Face(BMesh *bm, BMFace *f) {
 }
 
 void BM_Kill_Edge(BMesh *bm, BMEdge *e) {
-	int i;
-	
+
 	bmesh_disk_remove_edge(e, e->v1);
 	bmesh_disk_remove_edge(e, e->v2);
 		
@@ -934,7 +929,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 				   BMLoop **rl, ListBase *holes)
 {
 
-	BMFace *f2, *of1, *of2;
+	BMFace *f2;
 	BMLoop *v1loop = NULL, *v2loop = NULL, *curloop, *f1loop=NULL, *f2loop=NULL;
 	BMEdge *e;
 	BMLoopList *lst, *lst2;

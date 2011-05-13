@@ -3,43 +3,38 @@
 
 #include "bmesh.h"
 
-BM_INLINE int BM_TestHFlag(void *element, int flag)
+BM_INLINE int BM_TestHFlag(void *element, const int flag)
 {
 	BMHeader *e = element;
 	return e->flag & flag;
 }
 
 /*stuff for dealing with header flags*/
-BM_INLINE void BM_SetHFlag(void *element, int flag)
+BM_INLINE void BM_SetHFlag(void *element, const int flag)
 {
-	BMHeader *e = element;
-	e->flag |= flag;
+	((BMHeader *)element)->flag |= flag;
 }
 
 /*stuff for dealing with header flags*/
-BM_INLINE void BM_ClearHFlag(void *element, int flag)
+BM_INLINE void BM_ClearHFlag(void *element, const int flag)
 {
-	BMHeader *e = element;
-	e->flag &= ~flag;
+	((BMHeader *)element)->flag &= ~flag;
 }
 
 /*stuff for dealing BM_ToggleHFlag header flags*/
-BM_INLINE void BM_ToggleHFlag(void *element, int flag)
+BM_INLINE void BM_ToggleHFlag(void *element, const int flag)
 {
-	BMHeader *e = element;
-	e->flag ^= flag;
+	((BMHeader *)element)->flag ^= flag;
 }
 
-BM_INLINE void BM_SetIndex(void *element, int index)
+BM_INLINE void BM_SetIndex(void *element, const int index)
 {
-	BMHeader *e = element;
-	e->index = index;
+	((BMHeader *)element)->index = index;
 }
 
-BM_INLINE int BM_GetIndex(void *element)
+BM_INLINE int BM_GetIndex(const void *element)
 {
-	BMHeader *e = element;
-	return e->index;
+	return ((BMHeader *)element)->index;
 }
 
 #endif /*BM_INLINE_C*/

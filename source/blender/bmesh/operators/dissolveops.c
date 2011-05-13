@@ -50,15 +50,13 @@ static int check_hole_in_region(BMesh *bm, BMFace *f) {
 void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter oiter;
-	BMIter liter, liter2, liter3;
-	BMLoop *l, *l2, *l3;
 	BMFace *f, *f2 /* , *nf = NULL */;
 	BLI_array_declare(faces);
 	BLI_array_declare(regions);
 	BMFace ***regions = NULL;
 	BMFace **faces = NULL;
 	BMWalker regwalker;
-	int i, j, fcopied;
+	int i;
 
 	BMO_Flag_Buffer(bm, op, "faces", FACE_MARK, BM_FACE);
 	
