@@ -987,9 +987,16 @@ void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *
 	}
 	else
 		compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color_in->value);
+	
+	if(param1)
+		compiler.stack_assign(param1);
+	if(param2)
+		compiler.stack_assign(param2);
 
 	compiler.add_node(NODE_CLOSURE_BSDF,
-		closure,
+		compiler.encode_uchar4(closure,
+			(param1)? param1->stack_offset: SVM_STACK_INVALID,
+			(param2)? param2->stack_offset: SVM_STACK_INVALID),
 		__float_as_int((param1)? param1->value.x: 0.0f),
 		__float_as_int((param2)? param2->value.x: 0.0f));
 }

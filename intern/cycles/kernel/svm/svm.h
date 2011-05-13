@@ -167,7 +167,7 @@ __device void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type,
 			else return;
 		}
 		else if(node.x == NODE_CLOSURE_BSDF)
-			svm_node_closure_bsdf(sd, node.y, node.z, node.w, randb);
+			svm_node_closure_bsdf(sd, stack, node, randb);
 		else if(node.x == NODE_CLOSURE_EMISSION)
 			svm_node_closure_emission(sd);
 		else if(node.x == NODE_CLOSURE_BACKGROUND)

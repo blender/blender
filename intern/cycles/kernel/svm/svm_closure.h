@@ -20,10 +20,13 @@ CCL_NAMESPACE_BEGIN
 
 /* Closure Nodes */
 
-__device void svm_node_closure_bsdf(ShaderData *sd, uint type, int iparam1, int iparam2, float randb)
+__device void svm_node_closure_bsdf(ShaderData *sd, float *stack, uint4 node, float randb)
 {
-	float param1 = __int_as_float(iparam1);
-	float param2 = __int_as_float(iparam2);
+	uint type, param1_offset, param2_offset;
+	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, NULL);
+
+	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __int_as_float(node.z);
+	float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __int_as_float(node.w);
 
 	switch(type) {
 		case CLOSURE_BSDF_DIFFUSE_ID:
