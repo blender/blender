@@ -84,11 +84,15 @@ typedef struct ImBuf {
 
 	/* pixels */
 	unsigned int *rect;		/* pixel values stored here */
-	unsigned int *crect;	/* color corrected pixel values stored here */
 	float *rect_float;		/* floating point Rect equivalent
 							Linear RGB color space - may need gamma correction to 
 							sRGB when generating 8bit representations */
-	
+
+#ifdef WITH_LCMS
+	unsigned int *crect;	/* color corrected pixel values stored here */
+	char profile_filename[256];	/* to be implemented properly, specific filename for custom profiles */
+#endif
+
 	/* tiled pixel storage */
 	int tilex, tiley;
 	int xtiles, ytiles;
@@ -101,7 +105,6 @@ typedef struct ImBuf {
 	/* parameters used by conversion between byte and float */
 	float dither;				/* random dither value, for conversion from float -> byte rect */
 	short profile;				/* color space/profile preset that the byte rect buffer represents */
-	char profile_filename[256];	/* to be implemented properly, specific filename for custom profiles */
 
 	/* mipmapping */
 	struct ImBuf *mipmap[IB_MIPMAP_LEVELS]; /* MipMap levels, a series of halved images */

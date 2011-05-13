@@ -84,17 +84,19 @@ void imb_freerectfloatImBuf(ImBuf *ibuf)
 void imb_freerectImBuf(ImBuf *ibuf)
 {
 	if(ibuf==NULL) return;
-	
+
+#ifdef WITH_LCMS
 	if(ibuf->crect)
 		MEM_freeN(ibuf->crect);
+	ibuf->crect= NULL;
+#endif
 
 	if(ibuf->rect && (ibuf->mall & IB_rect))
 		MEM_freeN(ibuf->rect);
+	ibuf->rect= NULL;
 	
 	imb_freemipmapImBuf(ibuf);
-	
-	ibuf->rect= NULL;
-	ibuf->crect= NULL;
+
 	ibuf->mall &= ~IB_rect;
 }
 
