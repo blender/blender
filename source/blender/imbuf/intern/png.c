@@ -257,6 +257,10 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 
 	}
 
+	if(ibuf->ppm[0] > 0.0 && ibuf->ppm[1] > 0.0) {
+		png_set_pHYs(png_ptr, info_ptr, (unsigned int)(ibuf->ppm[0] + 0.5), (unsigned int)(ibuf->ppm[1] + 0.5), PNG_RESOLUTION_METER);
+	}
+
 	// write the file header information
 	png_write_info(png_ptr, info_ptr);
 
@@ -384,7 +388,19 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 	if (ibuf) {
 		ibuf->ftype = PNG;
 		ibuf->profile = IB_PROFILE_SRGB;
-	} else {
+
+		if (png_get_valid (png_ptr, info_ptr, PNG_INFO_pHYs)) {
+			int unit_type;
+			unsigned int xres, yres;
+
+			if(png_get_pHYs(png_ptr, info_ptr, &xres, &yres, &unit_type))
+			if(unit_type == PNG_RESOLUTION_METER) {
+				ibuf->ppm[0]= xres;
+				ibuf->ppm[1]= yres;
+			}
+		}
+	}
+	else {
 		printf("Couldn't allocate memory for PNG image\n");
 	}
 

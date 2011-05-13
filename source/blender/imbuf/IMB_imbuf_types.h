@@ -93,6 +93,9 @@ typedef struct ImBuf {
 	char profile_filename[256];	/* to be implemented properly, specific filename for custom profiles */
 #endif
 
+	/* resolution - pixels per meter */
+	double ppm[2];
+
 	/* tiled pixel storage */
 	int tilex, tiley;
 	int xtiles, ytiles;
