@@ -981,16 +981,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 			dl= dl->next;
 		}
 		
-		if(totvert && BLI_edgefill(0)) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
-
-			/* count faces  */
-			tot= 0;
-			efa= fillfacebase.first;
-			while(efa) {
-				tot++;
-				efa= efa->next;
-			}
-
+		if(totvert && (tot= BLI_edgefill(0))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
 			if(tot) {
 				dlnew= MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type= DL_INDEX3;
