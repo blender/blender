@@ -115,7 +115,7 @@ static void ui_node_remove_linked(bNodeTree *ntree, bNode *rem_node)
 	bNode *node, *next;
 	bNodeSocket *sock;
 
-	if(!node)
+	if(!rem_node)
 		return;
 
 	/* tag linked nodes to be removed */
