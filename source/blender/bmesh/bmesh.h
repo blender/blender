@@ -153,8 +153,8 @@ BM_INLINE void BM_ClearHFlag(void *element, int flag);
 
 /*stuff for dealing BM_ToggleHFlag header flags*/
 BM_INLINE void BM_ToggleHFlag(void *element, int flag);
-BM_INLINE void BMINDEX_SET(void *element, int index);
-BM_INLINE int BMINDEX_GET(void *element);
+BM_INLINE void BM_SetIndex(void *element, int index);
+BM_INLINE int BM_GetIndex(void *element);
 
 /*copies loop data from adjacent faces*/
 void BM_Face_CopyShared ( BMesh *bm, BMFace *f );

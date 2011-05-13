@@ -174,7 +174,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	/* we need the vert indices */
 	a = 0;
 	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BMINDEX_SET(ev, a);
+		BM_SetIndex(ev, a);
 		a++;
 	}
 	
@@ -252,9 +252,9 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 			luvs[1] = CustomData_bmesh_get(&em->bm->ldata, ls[1]->head.data, CD_MLOOPUV);
 			luvs[2] = CustomData_bmesh_get(&em->bm->ldata, ls[2]->head.data, CD_MLOOPUV);
 
-			vkeys[0] = (ParamKey)BMINDEX_GET(ls[0]->v);
-			vkeys[1] = (ParamKey)BMINDEX_GET(ls[1]->v);
-			vkeys[2] = (ParamKey)BMINDEX_GET(ls[2]->v);
+			vkeys[0] = (ParamKey)BM_GetIndex(ls[0]->v);
+			vkeys[1] = (ParamKey)BM_GetIndex(ls[1]->v);
+			vkeys[2] = (ParamKey)BM_GetIndex(ls[2]->v);
 
 			co[0] = ls[0]->v->co;
 			co[1] = ls[1]->v->co;
@@ -283,8 +283,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 			if(BM_TestHFlag(eed, BM_SEAM)) {
 				ParamKey vkeys[2];
-				vkeys[0] = (ParamKey)BMINDEX_GET(eed->v1);
-				vkeys[1] = (ParamKey)BMINDEX_GET(eed->v2);
+				vkeys[0] = (ParamKey)BM_GetIndex(eed->v1);
+				vkeys[1] = (ParamKey)BM_GetIndex(eed->v2);
 				param_edge_set_seam(handle, vkeys);
 			}
 		}

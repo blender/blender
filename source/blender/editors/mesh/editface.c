@@ -451,8 +451,8 @@ static float edgetag_cut_cost(BMEditMesh *em, int e1, int e2, int vert)
 {
 	BMVert *v = EDBM_get_vert_for_index(em, vert);
 	BMEdge *eed1 = EDBM_get_edge_for_index(em, e1), *eed2 = EDBM_get_edge_for_index(em, e2);
-	BMVert *v1 = EDBM_get_vert_for_index(em, (BMINDEX_GET(eed1->v1) == vert)? BMINDEX_GET(eed1->v2): BMINDEX_GET(eed1->v1) );
-	BMVert *v2 = EDBM_get_vert_for_index(em, (BMINDEX_GET(eed2->v1) == vert)? BMINDEX_GET(eed2->v2): BMINDEX_GET(eed2->v1) );
+	BMVert *v1 = EDBM_get_vert_for_index(em, (BM_GetIndex(eed1->v1) == vert)? BM_GetIndex(eed1->v2): vert );
+	BMVert *v2 = EDBM_get_vert_for_index(em, (BM_GetIndex(eed2->v1) == vert)? BM_GetIndex(eed2->v2): vert );
 	float cost, d1[3], d2[3];
 
 	cost = len_v3v3(v1->co, v->co);
@@ -566,7 +566,7 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 
 	/* we need the vert */
 	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BMINDEX_SET(ev, totvert);
+		BM_SetIndex(ev, totvert);
 		totvert++;
 	}
 
@@ -576,7 +576,7 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 			eed->head.flags[0].f |= ME_SEAM_DONE;
 		}
 
-		BMINDEX_SET(eed, totedge);
+		BM_SetIndex(eed, totedge);
 		totedge++;
 	}
 
@@ -588,8 +588,8 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 
 	/* count edges, compute adjacent edges offsets and fill adjacent edges */
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		nedges[BMINDEX_GET(eed->v1)+1]++;
-		nedges[BMINDEX_GET(eed->v2)+1]++;
+		nedges[BM_GetIndex(eed->v1)+1]++;
+		nedges[BM_GetIndex(eed->v2)+1]++;
 	}
 
 	for (a=1; a<totvert; a++) {
@@ -600,8 +600,8 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 	nedges[0] = nedges[1] = 0;
 
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		edges[nedges[BMINDEX_GET(eed->v1)+1]++] = a;
-		edges[nedges[BMINDEX_GET(eed->v2)+1]++] = a;
+		edges[nedges[BM_GetIndex(eed->v1)+1]++] = a;
+		edges[nedges[BM_GetIndex(eed->v2)+1]++] = a;
 
 		cost[a] = 1e20f;
 		prevedge[a] = -1;
@@ -610,8 +610,8 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
 	heap = BLI_heap_new();
-	BLI_heap_insert(heap, 0.0f, SET_INT_IN_POINTER(BMINDEX_GET(source)));
-	cost[BMINDEX_GET(source)] = 0.0f;
+	BLI_heap_insert(heap, 0.0f, SET_INT_IN_POINTER(BM_GetIndex(source)));
+	cost[BM_GetIndex(source)] = 0.0f;
 
 	EDBM_init_index_arrays(em, 1, 1, 0);
 
@@ -619,7 +619,7 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 		mednum = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
 		eed = EDBM_get_edge_for_index(em, mednum);
 
-		if (mednum == BMINDEX_GET(target))
+		if (mednum == BM_GetIndex(target))
 			break;
 
 		if (eed->head.flags[0].f & ME_SEAM_DONE)
@@ -627,8 +627,8 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 
 		eed->head.flags[0].f |= ME_SEAM_DONE;
 
-		edgetag_add_adjacent(em, heap, mednum, BMINDEX_GET(eed->v1), nedges, edges, prevedge, cost);
-		edgetag_add_adjacent(em, heap, mednum, BMINDEX_GET(eed->v2), nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(em, heap, mednum, BM_GetIndex(eed->v1), nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(em, heap, mednum, BM_GetIndex(eed->v2), nedges, edges, prevedge, cost);
 	}
 	
 	MEM_freeN(nedges);
@@ -640,17 +640,17 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 		eed->head.flags[0].f &= ~ME_SEAM_DONE;
 	}
 
-	if (mednum != BMINDEX_GET(target)) {
+	if (mednum != BM_GetIndex(target)) {
 		MEM_freeN(prevedge);
 		EDBM_free_index_arrays(em);
 		return 0;
 	}
 
 	/* follow path back to source and mark as seam */
-	if (mednum == BMINDEX_GET(target)) {
+	if (mednum == BM_GetIndex(target)) {
 		short allseams = 1;
 
-		mednum = BMINDEX_GET(target);
+		mednum = BM_GetIndex(target);
 		do {
 			eed = EDBM_get_edge_for_index(em, mednum);
 			if (!edgetag_context_check(scene, em, eed)) {
@@ -658,9 +658,9 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 				break;
 			}
 			mednum = prevedge[mednum];
-		} while (mednum != BMINDEX_GET(source));
+		} while (mednum != BM_GetIndex(source));
 
-		mednum = BMINDEX_GET(target);
+		mednum = BM_GetIndex(target);
 		do {
 			eed = EDBM_get_edge_for_index(em, mednum);
 			if (allseams)

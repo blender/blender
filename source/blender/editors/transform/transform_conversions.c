@@ -1836,7 +1836,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	
 	i = 0;
 	BM_ITER(v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BMINDEX_SET(v, i);
+		BM_SetIndex(v, i);
 		dists[i] = FLT_MAX;
 		i++;
 	}
@@ -1851,7 +1851,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 		BLI_smallhash_insert(visit, (uintptr_t)v, NULL);
 		BLI_array_append(queue, v);
 		BLI_array_append(dqueue, 0.0f);
-		dists[BMINDEX_GET(v)] = 0.0f;
+		dists[BM_GetIndex(v)] = 0.0f;
 	}
 	
 	start = 0;
@@ -1876,12 +1876,12 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 			
 			d2 = d + len_v3(vec);
 			
-			if (dists[BMINDEX_GET(v3)] != FLT_MAX)
-				dists[BMINDEX_GET(v3)] = MIN2(d2, dists[BMINDEX_GET(v3)]);
+			if (dists[BM_GetIndex(v3)] != FLT_MAX)
+				dists[BM_GetIndex(v3)] = MIN2(d2, dists[BM_GetIndex(v3)]);
 			else
-				dists[BMINDEX_GET(v3)] = d2;
+				dists[BM_GetIndex(v3)] = d2;
 			
-			tots[BMINDEX_GET(v3)] = 1;
+			tots[BM_GetIndex(v3)] = 1;
 
 			if (BLI_smallhash_haskey(visit, (uintptr_t)v3))
 				continue;
@@ -2090,27 +2090,27 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if(selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT))
-				BMINDEX_SET(eve, SELECT);
+				BM_SetIndex(eve, SELECT);
 			else
-				BMINDEX_SET(eve, 0);
+				BM_SetIndex(eve, 0);
 		}
 	}
 	else if(selectmode & SCE_SELECT_EDGE) {
 		BMEdge *eed;
 
 		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for( ; eve; eve=BMIter_Step(&iter)) BMINDEX_SET(eve, 0);
+		for( ; eve; eve=BMIter_Step(&iter)) BM_SetIndex(eve, 0);
 
 		eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
 		for( ; eed; eed=BMIter_Step(&iter)) {
 			if(!BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SELECT))
-				BMINDEX_SET(eed->v1, SELECT), BMINDEX_SET(eed->v2, SELECT);
+				BM_SetIndex(eed->v1, SELECT), BM_SetIndex(eed->v2, SELECT);
 		}
 	}
 	else {
 		BMFace *efa;
 		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for( ; eve; eve=BMIter_Step(&iter)) BMINDEX_SET(eve, 0);
+		for( ; eve; eve=BMIter_Step(&iter)) BM_SetIndex(eve, 0);
 
 		efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 		for( ; efa; efa=BMIter_Step(&iter)) {
@@ -2120,7 +2120,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 				l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, efa);
 				for (; l; l=BMIter_Step(&liter)) {
-					BMINDEX_SET(l->v, SELECT);
+					BM_SetIndex(l->v, SELECT);
 				}
 			}
 		}
@@ -2134,7 +2134,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		BLI_array_growone(selstate);
 
 		if(!BM_TestHFlag(eve, BM_HIDDEN)) {	
-			if(BMINDEX_GET(eve)) {
+			if(BM_GetIndex(eve)) {
 				selstate[a] = 1;
 				countsel++;
 			}
@@ -2233,12 +2233,12 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				}
 
 				/* CrazySpace */
-				if(defmats || (quats && BMINDEX_GET(eve) != -1)) {
+				if(defmats || (quats && BM_GetIndex(eve) != -1)) {
 					float mat[3][3], qmat[3][3], imat[3][3];
 
 					/* use both or either quat and defmat correction */
-					if(quats && BMINDEX_GET(eve) != -1) {
-						quat_to_mat3(qmat, quats + 4*BMINDEX_GET(eve));
+					if(quats && BM_GetIndex(eve) != -1) {
+						quat_to_mat3(qmat, quats + 4*BM_GetIndex(eve));
 
 						if(defmats)
 							mul_serie_m3(mat, mtx, qmat, defmats[a],
@@ -2471,11 +2471,11 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 		if(!uvedit_face_visible(scene, ima, efa, tf)) {
-			BMINDEX_SET(efa, 0);
+			BM_SetIndex(efa, 0);
 			continue;
 		}
 		
-		BMINDEX_SET(efa, 1);
+		BM_SetIndex(efa, 1);
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			if (uvedit_uv_selected(em, scene, l)) 
 				countsel++;
@@ -2501,7 +2501,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	td2d= t->data2d;
 
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!BMINDEX_GET(efa))
+		if (!BM_GetIndex(efa))
 			continue;
 
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);

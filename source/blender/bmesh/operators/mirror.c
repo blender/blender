@@ -72,7 +72,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 		BLI_array_growone(vmap);
 		vmap[i] = v;
 
-		BMINDEX_SET(v2, i);
+		BM_SetIndex(v2, i);
 		v2 = BMIter_Step(&iter);
 
 		i += 1;

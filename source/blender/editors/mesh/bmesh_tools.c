@@ -2692,8 +2692,8 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_SELECT))
-			BMINDEX_SET(e, 1);
-		else BMINDEX_SET(e, 0);
+			BM_SetIndex(e, 1);
+		else BM_SetIndex(e, 0);
 	}
 
 	/*handle case of one vert selected.  we identify
@@ -2730,17 +2730,17 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			l = e2->l;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 
-			BMINDEX_SET(e, 1);
+			BM_SetIndex(e, 1);
 			BM_SetHFlag(e, BM_SELECT);
 		} else if (BM_Edge_FaceCount(e2) == 2) {
 			l = e2->l;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
-			BMINDEX_SET(e, 1);
+			BM_SetIndex(e, 1);
 			BM_SetHFlag(e, BM_SELECT);
 			
 			l = e2->l->radial_next;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
-			BMINDEX_SET(e, 1);
+			BM_SetIndex(e, 1);
 			BM_SetHFlag(e, BM_SELECT);
 		}
 
@@ -2751,7 +2751,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			e2 = NULL;
 			i = 0;
 			BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
-				if (BMINDEX_GET(e)) {
+				if (BM_GetIndex(e)) {
 					e2 = e;
 					i++;
 				}
@@ -2821,8 +2821,8 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_SELECT))
-			BMINDEX_SET(e, 1);
-		else BMINDEX_SET(e, 0);
+			BM_SetIndex(e, 1);
+		else BM_SetIndex(e, 0);
 	}
 
 	/*constrict edge selection again*/
@@ -2830,7 +2830,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		e2 = NULL;
 		i = 0;
 		BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
-			if (BMINDEX_GET(e)) {
+			if (BM_GetIndex(e)) {
 				e2 = e;
 				i++;
 			}
@@ -4148,15 +4148,15 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 
 	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BM_TestHFlag(v1, BM_SELECT) || BM_TestHFlag(v1, BM_HIDDEN))
-			BMINDEX_SET(v1, 0);
-		else BMINDEX_SET(v1, 1);
+			BM_SetIndex(v1, 0);
+		else BM_SetIndex(v1, 1);
 	}
 
 	if (!extend)
 		EDBM_clear_flag_all(em, BM_SELECT);
 
 	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BMINDEX_GET(v1) || BM_TestHFlag(v1, BM_HIDDEN))
+		if (!BM_GetIndex(v1) || BM_TestHFlag(v1, BM_HIDDEN))
 			continue;
 
 		VECCOPY(mirror_co, v1->co);

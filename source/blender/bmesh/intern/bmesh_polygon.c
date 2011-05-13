@@ -663,14 +663,14 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	
 	//for (i=0; i<nvert; i++) {
 	do {
-		i = BMINDEX_GET(l->v);
+		i = BM_GetIndex(l->v);
 		if (i == v1i || i == v2i || i == v3i) {
 			l = (BMLoop*)l->next;
 			continue;
 		}
 		
-		VECCOPY(pv1, projectverts[BMINDEX_GET(l->v)]);
-		VECCOPY(pv2, projectverts[BMINDEX_GET(((BMLoop*)l->next)->v)]);
+		VECCOPY(pv1, projectverts[BM_GetIndex(l->v)]);
+		VECCOPY(pv2, projectverts[BM_GetIndex(((BMLoop*)l->next)->v)]);
 		
 		//if (linecrosses(pv1, pv2, v1, v3)) return 0;
 		if (point_in_triangle(v1, v2, v3, pv1)) return 0;
@@ -707,8 +707,8 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 
 		if (BM_Edge_Exist(v1, v3)) isear = 0;
 
-		if (isear && !goodline(verts, f, BMINDEX_GET(v1), BMINDEX_GET(v2),
-			               BMINDEX_GET(v3), nvert))
+		if (isear && !goodline(verts, f, BM_GetIndex(v1), BM_GetIndex(v2),
+			               BM_GetIndex(v3), nvert))
 			isear = 0;
 		
 		if(isear) {
@@ -759,7 +759,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	l = bm_firstfaceloop(f);
 	do{
 		VECCOPY(projectverts[i], l->v->co);
-		BMINDEX_SET(l->v, i);
+		BM_SetIndex(l->v, i);
 		i++;
 		l = (BMLoop*)(l->next);
 	}while(l != bm_firstfaceloop(f));
@@ -860,7 +860,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	i = 0;
 	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
 	for (; l; l=BMIter_Step(&iter)) {
-		BMINDEX_SET(l, i);
+		BM_SetIndex(l, i);
 		VECCOPY(projverts[i], l->v->co);
 		i++;
 	}

@@ -120,12 +120,12 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BMINDEX_SET(f, 0);
+		BM_SetIndex(f, 0);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (BMO_TestFlag(bm, l->v, ELE_DEL))
 				BMO_SetFlag(bm, f, FACE_MARK|ELE_DEL);
 			if (BMO_TestFlag(bm, l->e, EDGE_COL)) 
-				BMINDEX_SET(f, BMINDEX_GET(f)+1);
+				BM_SetIndex(f, BM_GetIndex(f)+1);
 		}
 	}
 
@@ -133,7 +133,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_TestFlag(bm, f, FACE_MARK))
 			continue;
 
-		if (f->len - BMINDEX_GET(f) < 3) {
+		if (f->len - BM_GetIndex(f) < 3) {
 			BMO_SetFlag(bm, f, ELE_DEL);
 			continue;
 		}

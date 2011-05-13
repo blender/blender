@@ -140,8 +140,8 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 #endif
 }
 
-#define ETAG_SET(e, v, nv) (v) == (e)->v1 ? (etags[BMINDEX_GET((e))].newv1 = (nv)) : (etags[BMINDEX_GET((e))].newv2 = (nv))
-#define ETAG_GET(e, v) ((v) == (e)->v1 ? (etags[BMINDEX_GET((e))].newv1) : (etags[BMINDEX_GET((e))].newv2))
+#define ETAG_SET(e, v, nv) (v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1 = (nv)) : (etags[BMINDEX_GET((e))].newv2 = (nv))
+#define ETAG_GET(e, v) ((v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1) : (etags[BMINDEX_GET((e))].newv2))
 
 void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 {
@@ -204,7 +204,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMLoop *l;
 			
 			if (!BMO_TestFlag(bm, e, EDGE_OLD)) {
-				BMINDEX_SET(e, BLI_array_count(etags));
+				BM_SetIndex(e, BLI_array_count(etags));
 				BLI_array_growone(etags);
 				
 				BMO_SetFlag(bm, e, EDGE_OLD);
@@ -218,11 +218,11 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					continue;
 			
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
-					BMINDEX_SET(l2, BLI_array_count(tags));
+					BM_SetIndex(l2, BLI_array_count(tags));
 					BLI_array_growone(tags);
 
 					if (!BMO_TestFlag(bm, l2->e, EDGE_OLD)) {
-						BMINDEX_SET(l2->e, BLI_array_count(etags));
+						BM_SetIndex(l2->e, BLI_array_count(etags));
 						BLI_array_growone(etags);
 						
 						BMO_SetFlag(bm, l2->e, EDGE_OLD);
@@ -233,7 +233,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				BLI_array_append(faces, l->f);
 			}
 		} else {
-			BMINDEX_SET(e, -1);
+			BM_SetIndex(e, -1);
 		}
 	}
 #endif
@@ -254,7 +254,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		
 		if (!BLI_smallhash_haskey(&hash, (intptr_t)e)) {
 			BLI_array_growone(etags);
-			BMINDEX_SET(e, BLI_array_count(etags)-1);
+			BM_SetIndex(e, BLI_array_count(etags)-1);
 			BLI_smallhash_insert(&hash, (intptr_t)e, NULL);
 			BMO_SetFlag(bm, e, EDGE_OLD);
 		}
@@ -272,11 +272,11 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				/*create tags for all loops in l->f*/
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
 					BLI_array_growone(tags);
-					BMINDEX_SET(l2, BLI_array_count(tags)-1);
+					BM_SetIndex(l2, BLI_array_count(tags)-1);
 					
 					if (!BLI_smallhash_haskey(&hash, (intptr_t)l2->e)) {
 						BLI_array_growone(etags);
-						BMINDEX_SET(l2->e, BLI_array_count(etags)-1);
+						BM_SetIndex(l2->e, BLI_array_count(etags)-1);
 						BLI_smallhash_insert(&hash, (intptr_t)l2->e, NULL);						
 						BMO_SetFlag(bm, l2->e, EDGE_OLD);
 					}
@@ -330,11 +330,11 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			if (BMO_TestFlag(bm, l->e, BEVEL_FLAG)) {
 				if (BMO_TestFlag(bm, l->prev->e, BEVEL_FLAG))
 				{
-					tag = tags + BMINDEX_GET(l);
+					tag = tags + BM_GetIndex(l);
 					calc_corner_co(bm, l, co, fac);
 					tag->newv = BM_Make_Vert(bm, co, l->v);
 				} else {
-					tag = tags + BMINDEX_GET(l);
+					tag = tags + BM_GetIndex(l);
 					tag->newv = ETAG_GET(l->prev->e, l->v);
 					
 					if (!tag->newv) {
@@ -355,7 +355,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					}
 				}
 			} else if (BMO_TestFlag(bm, l->v, BEVEL_FLAG)) {
-				tag = tags + BMINDEX_GET(l);
+				tag = tags + BM_GetIndex(l);
 				tag->newv = ETAG_GET(l->e, l->v);				
 		
 				if (!tag->newv) {
@@ -370,13 +370,13 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					mul_v3_fl(co, fac);
 					add_v3_v3(co, l->v->co);
 			
-					tag = tags + BMINDEX_GET(l);
+					tag = tags + BM_GetIndex(l);
 					tag->newv = BM_Make_Vert(bm, co, l->v);
 					
 					ETAG_SET(l->e, l->v, tag->newv);
 				}					
 			} else {
-				tag = tags + BMINDEX_GET(l);
+				tag = tags + BM_GetIndex(l);
 				tag->newv = l->v;
 				BMO_ClearFlag(bm, l->v, BEVEL_DEL);
 			}
@@ -398,7 +398,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, faces[i]) {
 			BMVert *v2;
 			
-			tag = tags + BMINDEX_GET(l);
+			tag = tags + BM_GetIndex(l);
 			BLI_array_append(verts, tag->newv);
 			
 			if (!firstv)
@@ -411,10 +411,10 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 			lastv=tag->newv;
 			
-			etag = etags + BMINDEX_GET(l->e);
+			etag = etags + BM_GetIndex(l->e);
 			v2 = l->next->v == l->e->v1 ? etag->newv1 : etag->newv2;
 			
-			tag = tags + BMINDEX_GET(l->next);
+			tag = tags + BM_GetIndex(l->next);
 			if (!BMO_TestFlag(bm, l->e, BEVEL_FLAG) && v2 && v2 != tag->newv) {
 				BLI_array_append(verts, v2);
 				
@@ -453,15 +453,15 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			if (!BMO_TestFlag(bm, l->e, BEVEL_FLAG))
 				continue;
 			
-			v1 = tags[BMINDEX_GET(l)].newv;
-			v2 = tags[BMINDEX_GET(l->next)].newv;
+			v1 = tags[BM_GetIndex(l)].newv;
+			v2 = tags[BM_GetIndex(l->next)].newv;
 			if (l->radial_next != l) {
-				v3 = tags[BMINDEX_GET(l->radial_next)].newv;
+				v3 = tags[BM_GetIndex(l->radial_next)].newv;
 				if (l->radial_next->next->v == l->next->v) {
 					v4 = v3;
-					v3 = tags[BMINDEX_GET(l->radial_next->next)].newv;
+					v3 = tags[BM_GetIndex(l->radial_next->next)].newv;
 				} else {
-					v4 = tags[BMINDEX_GET(l->radial_next->next)].newv;
+					v4 = tags[BM_GetIndex(l->radial_next->next)].newv;
 				}
 			} else {
 				v3 = l->next->v;
@@ -586,9 +586,9 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				rad++;
 				
 				if (l->v == v)
-					tag = tags + BMINDEX_GET(l);
+					tag = tags + BM_GetIndex(l);
 				else
-					tag = tags + BMINDEX_GET(l->next);
+					tag = tags + BM_GetIndex(l->next);
 				
 				if (!v1)
 					v1 = tag->newv;
@@ -731,7 +731,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMLoop *l2;
 			BMIter liter2;
 			
-			tag = tags + BMINDEX_GET(l);
+			tag = tags + BM_GetIndex(l);
 			if (!tag->newv)
 				continue;
 			

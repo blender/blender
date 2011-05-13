@@ -899,7 +899,7 @@ static void vgroup_blend(Object *ob)
 
 		i= 0;
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			BMINDEX_SET(eve, i);
+			BM_SetIndex(eve, i);
 			i++;
 		}
 		dvert_tot= i;
@@ -914,13 +914,13 @@ static void vgroup_blend(Object *ob)
 			if(sel1 != sel2) {
 				/* i1 is always the selected one */
 				if(sel1==TRUE && sel2==FALSE) {
-					i1= BMINDEX_GET(eed->v1);
-					i2= BMINDEX_GET(eed->v2);
+					i1= BM_GetIndex(eed->v1);
+					i2= BM_GetIndex(eed->v2);
 					eve= eed->v2;
 				}
 				else {
-					i2= BMINDEX_GET(eed->v1);
-					i1= BMINDEX_GET(eed->v2);
+					i2= BM_GetIndex(eed->v1);
+					i1= BM_GetIndex(eed->v2);
 					eve= eed->v1;
 				}
 

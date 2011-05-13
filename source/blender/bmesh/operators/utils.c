@@ -1252,7 +1252,7 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 		vert_list[i].v = v;
 		vert_list[i].parent = NULL;
 		vert_list[i].weight = FLT_MAX;
-		BMINDEX_SET(v, i);
+		BM_SetIndex(v, i);
 		i++;
 	}
 
@@ -1261,7 +1261,7 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 	*/
 
 	/* set the distance/weight of the start vertex to 0 */
-	vert_list[BMINDEX_GET(sv)].weight = 0.0f;
+	vert_list[BM_GetIndex(sv)].weight = 0.0f;
 
 	h = BLI_heap_new();
 
@@ -1276,10 +1276,10 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 		/* take the vertex with the lowest weight out of the heap */
 		BMVert *v = (BMVert*)BLI_heap_popmin(h);
 
-		if( vert_list[BMINDEX_GET(v)].weight == FLT_MAX ) /* this means that there is no path */
+		if( vert_list[BM_GetIndex(v)].weight == FLT_MAX ) /* this means that there is no path */
 			break;
 
-		v_weight = vert_list[BMINDEX_GET(v)].weight;
+		v_weight = vert_list[BM_GetIndex(v)].weight;
 
 		BM_ITER(e, &e_i, bm, BM_EDGES_OF_VERT, v) {
 			BMVert *u;
@@ -1291,13 +1291,13 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 
 			u = ( e->v1 == v ) ? e->v2 : e->v1;
 
-			if( e_weight < vert_list[BMINDEX_GET(u)].weight ) { /* is this path shorter ? */
+			if( e_weight < vert_list[BM_GetIndex(u)].weight ) { /* is this path shorter ? */
 				/* add it if so */
-				vert_list[BMINDEX_GET(u)].parent = v;
-				vert_list[BMINDEX_GET(u)].weight = e_weight;
+				vert_list[BM_GetIndex(u)].parent = v;
+				vert_list[BM_GetIndex(u)].weight = e_weight;
 
 				/* we should do a heap update node function!!! :-/ */
-				BLI_heap_remove(h, vert_list[BMINDEX_GET(u)].hn);
+				BLI_heap_remove(h, vert_list[BM_GetIndex(u)].hn);
 				BLI_heap_insert(h, e_weight, u);
 			}
 		}
@@ -1306,9 +1306,9 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 	/* now we trace the path (if it exists) */
 	v = ev;
 
-	while( vert_list[BMINDEX_GET(v)].parent != NULL ) {
+	while( vert_list[BM_GetIndex(v)].parent != NULL ) {
 		BMO_SetFlag(bm, v, VERT_MARK);
-		v = vert_list[BMINDEX_GET(v)].parent;
+		v = vert_list[BM_GetIndex(v)].parent;
 	}
 
 	BLI_heap_free(h, NULL);

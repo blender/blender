@@ -453,12 +453,12 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 			i = 0;
 			BMO_ITER(h, &oiter, em->bm, &op, "geom", BM_ALL) {
-				BMINDEX_SET(h, i);
+				BM_SetIndex(h, i);
 				i++;
 			}
 
 			BMO_ITER(h, &oiter, em->bm, &op, "newout", BM_ALL) {
-				BMINDEX_SET(h, i);
+				BM_SetIndex(h, i);
 				i++;
 			}
 
@@ -471,7 +471,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			BMO_ITER(v, &oiter, em->bm, &findop, "targetmapout", 0) {
 				v2 = BMO_IterMapValp(&oiter);
 
-				indexMap[BMINDEX_GET(v)] = BMINDEX_GET(v2)+1;
+				indexMap[BM_GetIndex(v)] = BM_GetIndex(v2)+1;
 			}
 
 			BMO_Finish_Op(em->bm, &findop);

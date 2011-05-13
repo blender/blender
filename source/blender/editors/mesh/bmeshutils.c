@@ -650,7 +650,7 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 	/* we need the vert */
 	totverts=0;
 	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BMINDEX_SET(ev, totverts);
+		BM_SetIndex(ev, totverts);
 		totverts++;
 	}
 	
@@ -693,8 +693,8 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 				buf->f= a;
 				buf->separate = 0;
 				
-				buf->next= vmap->vert[BMINDEX_GET(l->v)];
-				vmap->vert[BMINDEX_GET(l->v)]= buf;
+				buf->next= vmap->vert[BM_GetIndex(l->v)];
+				vmap->vert[BM_GetIndex(l->v)]= buf;
 				
 				buf++;
 				i++;
@@ -838,7 +838,7 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 
 	i = 0;
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BMINDEX_SET(v, i);
+		BM_SetIndex(v, i);
 		i++;
 
 		if (em->ob) 
@@ -856,9 +856,9 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 		
 		mirr = BMBVH_FindClosestVertTopo(tree, co, BM_SEARCH_MAXDIST, v);
 		if (mirr && mirr != v) {
-			*idx = BMINDEX_GET(mirr);
+			*idx = BM_GetIndex(mirr);
 			idx = CustomData_bmesh_get_layer_n(&em->bm->vdata,mirr->head.data, li);
-			*idx = BMINDEX_GET(v);
+			*idx = BM_GetIndex(v);
 		} else *idx = -1;
 	}
 
@@ -867,7 +867,7 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 		i = 0;
 		invert_m4_m4(invmat, em->ob->obmat);
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			BMINDEX_SET(v, i);
+			BM_SetIndex(v, i);
 			i++;
 
 			mul_m4_v3(invmat, v->co);

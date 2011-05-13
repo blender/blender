@@ -1358,12 +1358,12 @@ static void remerge_faces(knifetool_opdata *kcd)
 		} while (BLI_array_count(stack) > 0);
 		
 		if (BLI_array_count(faces) > 0) {
-			idx = BMINDEX_GET(faces[0]);
+			idx = BM_GetIndex(faces[0]);
 			
 			f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
 			if (f2)  {
 				BMO_SetFlag(bm, f2, FACE_NEW);
-				BMINDEX_SET(f2, idx);
+				BM_SetIndex(f2, idx);
 			}
 		}
 	}
@@ -1391,7 +1391,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	
 	i = 0;
 	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
-		BMINDEX_SET(f, i);
+		BM_SetIndex(f, i);
 		faces[i] = f;
 		i++;
 	}
@@ -1449,7 +1449,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			
 			entry = BLI_memarena_alloc(arena, sizeof(*entry));
 			entry->kfe = kfe;
-			BLI_addtail(face_nets+BMINDEX_GET(f), entry);
+			BLI_addtail(face_nets+BM_GetIndex(f), entry);
 		}
 	}
 	
@@ -1471,10 +1471,10 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		for (ref=kfe->faces.first; ref; ref=ref->next) {
 			f = ref->ref;
 			
-			if (face_nets[BMINDEX_GET(f)].first) {
+			if (face_nets[BM_GetIndex(f)].first) {
 				entry = BLI_memarena_alloc(arena, sizeof(*entry));
 				entry->kfe = kfe;
-				BLI_addtail(face_nets+BMINDEX_GET(f), entry);
+				BLI_addtail(face_nets+BM_GetIndex(f), entry);
 			}
 		}
 	}
@@ -1561,7 +1561,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			} while (l != bm_firstfaceloop(f2));
 	
 			BMO_ClearFlag(bm, f2, DEL);
-			BMINDEX_SET(f2, i);
+			BM_SetIndex(f2, i);
 			
 			BM_Face_UpdateNormal(bm, f2);
 			if (dot_v3v3(f->no, f2->no) < 0.0) {
@@ -1582,8 +1582,8 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		if (!BMO_TestFlag(bm, f, FACE_NEW))
 			continue;
 		
-		f2 = faces[BMINDEX_GET(f)];
-		if (BMINDEX_GET(f) < 0 || BMINDEX_GET(f) >= totface) {
+		f2 = faces[BM_GetIndex(f)];
+		if (BM_GetIndex(f) < 0 || BM_GetIndex(f) >= totface) {
 			printf("eek!!\n");
 		}
 

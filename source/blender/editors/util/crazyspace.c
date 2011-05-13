@@ -150,7 +150,7 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 	int index = 0;
 	
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BMINDEX_SET(v, index);
+		BM_SetIndex(v, index);
 		index++;
 	}
 	
@@ -163,18 +163,18 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 			BMLoop *l2 = BM_OtherFaceLoop(l->e, l->f, v);
 			
 			/* retrieve mapped coordinates */
-			v1= mappedcos + 3*BMINDEX_GET(l->v);
-			v2= mappedcos + 3*BMINDEX_GET(BM_OtherEdgeVert(l2->e, l->v));
-			v3= mappedcos + 3*BMINDEX_GET(BM_OtherEdgeVert(l->e, l->v));
+			v1= mappedcos + 3*BM_GetIndex(l->v);
+			v2= mappedcos + 3*BM_GetIndex(BM_OtherEdgeVert(l2->e, l->v));
+			v3= mappedcos + 3*BM_GetIndex(BM_OtherEdgeVert(l->e, l->v));
 			
-			co1= (origcos)? origcos + 3*BMINDEX_GET(l->v) : l->v->co;
-			co2= (origcos)? origcos + 3*BMINDEX_GET(BM_OtherEdgeVert(l2->e, l->v)) : BM_OtherEdgeVert(l2->e, l->v)->co;
-			co3= (origcos)? origcos + 3*BMINDEX_GET(BM_OtherEdgeVert(l->e, l->v)) : BM_OtherEdgeVert(l->e, l->v)->co;
+			co1= (origcos)? origcos + 3*BM_GetIndex(l->v) : l->v->co;
+			co2= (origcos)? origcos + 3*BM_GetIndex(BM_OtherEdgeVert(l2->e, l->v)) : BM_OtherEdgeVert(l2->e, l->v)->co;
+			co3= (origcos)? origcos + 3*BM_GetIndex(BM_OtherEdgeVert(l->e, l->v)) : BM_OtherEdgeVert(l->e, l->v)->co;
 			
 			set_crazy_vertex_quat(quats, v1, v2, v3, co1, co2, co3);
 			quats+= 4;
 			
-			vert_table[BMINDEX_GET(l->v)] = index+1;
+			vert_table[BM_GetIndex(l->v)] = index+1;
 			
 			index++;
 			break; /*just do one corner*/
@@ -184,9 +184,9 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 	index = 0;
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (vert_table[index] != 0)
-			BMINDEX_SET(v, vert_table[index]-1);
+			BM_SetIndex(v, vert_table[index]-1);
 		else
-			BMINDEX_SET(v, -1);
+			BM_SetIndex(v, -1);
 		
 		index++;
 	}

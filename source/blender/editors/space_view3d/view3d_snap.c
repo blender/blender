@@ -199,9 +199,9 @@ static void set_mapped_co(void *vuserdata, int index, float *co, float *UNUSED(n
 	TransVert *tv = userdata[1];
 	BMVert *eve = EDBM_get_vert_for_index(em, index);
 	
-	if (BMINDEX_GET(eve) != -1 && !tv[BMINDEX_GET(eve)].f1) {
-		copy_v3_v3(tv[BMINDEX_GET(eve)].maploc, co);
-		tv[BMINDEX_GET(eve)].f1 = 1;
+	if (BM_GetIndex(eve) != -1 && !tv[BM_GetIndex(eve)].f1) {
+		copy_v3_v3(tv[BM_GetIndex(eve)].maploc, co);
+		tv[BM_GetIndex(eve)].f1 = 1;
 	}
 }
 
@@ -239,31 +239,31 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		if(em->bm->selectmode & SCE_SELECT_VERTEX) {
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT)) {
-					BMINDEX_SET(eve, 1);
+					BM_SetIndex(eve, 1);
 					tottrans++;
 				}
-				else BMINDEX_SET(eve, 0);
+				else BM_SetIndex(eve, 0);
 			}
 		}
 		else if(em->bm->selectmode & SCE_SELECT_EDGE) {
 			BMEdge *eed;
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				BMINDEX_SET(eve, 0);
+				BM_SetIndex(eve, 0);
 
 			BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 				if(!BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SELECT))
-					BMINDEX_SET(eed->v1, 1), BMINDEX_SET(eed->v2, 1);
+					BM_SetIndex(eed->v1, 1), BM_SetIndex(eed->v2, 1);
 			}
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				if(BMINDEX_GET(eve)) tottrans++;
+				if(BM_GetIndex(eve)) tottrans++;
 		}
 		else {
 			BMFace *efa;
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				BMINDEX_SET(eve, 0);
+				BM_SetIndex(eve, 0);
 
 			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
 				if(!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)) {
@@ -271,13 +271,13 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 					BMLoop *l;
 					
 					BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-						BMINDEX_SET(l->v, 1);
+						BM_SetIndex(l->v, 1);
 					}
 				}
 			}
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				if(BMINDEX_GET(eve)) tottrans++;
+				if(BM_GetIndex(eve)) tottrans++;
 		}
 		
 		/* and now make transverts */
@@ -286,16 +286,16 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		
 			a = 0;
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-				if(BMINDEX_GET(eve)) {
-					BMINDEX_SET(eve, a);
+				if(BM_GetIndex(eve)) {
+					BM_SetIndex(eve, a);
 					VECCOPY(tv->oldloc, eve->co);
 					tv->loc= eve->co;
 					if(eve->no[0] != 0.0f || eve->no[1] != 0.0f ||eve->no[2] != 0.0f)
 						tv->nor= eve->no; // note this is a hackish signal (ton)
-					tv->flag= BMINDEX_GET(eve) & SELECT;
+					tv->flag= BM_GetIndex(eve) & SELECT;
 					tv++;
 					a++;
-				} else BMINDEX_SET(eve, -1);
+				} else BM_SetIndex(eve, -1);
 			}
 			
 			userdata[1] = transvmain;

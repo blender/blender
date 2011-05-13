@@ -209,12 +209,12 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				totuvarea += poly_uv_area(tf_uv, efa->len);
 				
 				if(uvedit_face_visible(scene, ima, efa, tf)) {
-					BMINDEX_SET(efa, 1);
+					BM_SetIndex(efa, 1);
 				}
 				else {
 					if(tf == activetf)
 						activetf= NULL;
-					BMINDEX_SET(efa, 0);
+					BM_SetIndex(efa, 0);
 				}
 			}
 			
@@ -223,7 +223,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				col[1] = col[2] = 0.0;
 				glColor3fv(col);
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					if(BMINDEX_GET(efa)) {
+					if(BM_GetIndex(efa)) {
 						glBegin(GL_POLYGON);
 						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 							luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -235,7 +235,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			}
 			else {
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					if(BMINDEX_GET(efa)) {
+					if(BM_GetIndex(efa)) {
 						area = BM_face_area(efa) / totarea;
 
 						BLI_array_empty(tf_uv);
@@ -538,7 +538,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			
 			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				BMINDEX_SET(efa, 1);
+				BM_SetIndex(efa, 1);
 				if(tf==activetf) continue; /* important the temp boolean is set above */
 
 				if(uvedit_face_selected(scene, em, efa))
@@ -556,7 +556,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			else {
 				if(tf == activetf)
 					activetf= NULL;
-				BMINDEX_SET(efa, 0);
+				BM_SetIndex(efa, 0);
 			}
 		}
 		glDisable(GL_BLEND);
@@ -568,12 +568,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 			if(uvedit_face_visible(scene, ima, efa, tf)) {		
-				BMINDEX_SET(efa, 1);
+				BM_SetIndex(efa, 1);
 			}
 			else {
 				if(tf == activetf)
 					activetf= NULL;
-				BMINDEX_SET(efa, 0);
+				BM_SetIndex(efa, 0);
 			}
 		}
 		
@@ -611,7 +611,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	switch(sima->dt_uv) {
 		case SI_UVDT_DASH:
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-				if (!BMINDEX_GET(efa))
+				if (!BM_GetIndex(efa))
 					continue;
 				tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
@@ -652,7 +652,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			else glColor3f(0.0f, 0.0f, 0.0f);
 
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-				if (!BMINDEX_GET(efa))
+				if (!BM_GetIndex(efa))
 					continue;
 
 				glBegin(GL_LINE_LOOP);
@@ -668,7 +668,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			cpack(0x0);
 			
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-				if (!BMINDEX_GET(efa))
+				if (!BM_GetIndex(efa))
 					continue;
 
 				glBegin(GL_LINE_LOOP);
@@ -691,7 +691,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 					glShadeModel(GL_SMOOTH);
 
 					BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-						if (!BMINDEX_GET(efa))
+						if (!BM_GetIndex(efa))
 							continue;
 
 						glBegin(GL_LINE_LOOP);
@@ -713,7 +713,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				}
 				else {
 					BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-						if (!BMINDEX_GET(efa))
+						if (!BM_GetIndex(efa))
 							continue;
 
 						glBegin(GL_LINE_LOOP);
@@ -735,7 +735,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			else {
 				/* no nice edges */
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					if (!BMINDEX_GET(efa))
+					if (!BM_GetIndex(efa))
 						continue;
 				
 					glBegin(GL_LINE_LOOP);
@@ -768,7 +768,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 		bglBegin(GL_POINTS);
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if (!BMINDEX_GET(efa))
+			if (!BM_GetIndex(efa))
 				continue;
 
 			if(!uvedit_face_selected(scene, em, efa)) {
@@ -783,7 +783,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 		bglBegin(GL_POINTS);
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if (!BMINDEX_GET(efa))
+			if (!BM_GetIndex(efa))
 				continue;
 
 			if(uvedit_face_selected(scene, em, efa)) {
@@ -804,7 +804,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 		bglBegin(GL_POINTS);
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if (!BMINDEX_GET(efa))
+			if (!BM_GetIndex(efa))
 				continue;
 
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -822,7 +822,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 		bglBegin(GL_POINTS);
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if (!BMINDEX_GET(efa))
+			if (!BM_GetIndex(efa))
 				continue;
 
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -840,7 +840,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 		bglBegin(GL_POINTS);
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if (!BMINDEX_GET(efa))
+			if (!BM_GetIndex(efa))
 				continue;
 
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {

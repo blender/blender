@@ -970,7 +970,7 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 
 			totvert= 0;
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				BMINDEX_SET(eve, totvert);
+				BM_SetIndex(eve, totvert);
 				totvert++;
 			}
 		}
@@ -983,8 +983,8 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		/* Initialize the vert-edge-user counts used to detect unique topology */
 		if(em) {
 			BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-				MirrTopoHash[BMINDEX_GET(eed->v1)]++;
-				MirrTopoHash[BMINDEX_GET(eed->v2)]++;
+				MirrTopoHash[BM_GetIndex(eed->v1)]++;
+				MirrTopoHash[BM_GetIndex(eed->v2)]++;
 			}
 		} else {
 			for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
@@ -1001,8 +1001,8 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 
 			if(em) {
 				BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-					MirrTopoHash[BMINDEX_GET(eed->v1)] += MirrTopoHash_Prev[BMINDEX_GET(eed->v2)];
-					MirrTopoHash[BMINDEX_GET(eed->v2)] += MirrTopoHash_Prev[BMINDEX_GET(eed->v1)];
+					MirrTopoHash[BM_GetIndex(eed->v1)] += MirrTopoHash_Prev[BM_GetIndex(eed->v2)];
+					MirrTopoHash[BM_GetIndex(eed->v2)] += MirrTopoHash_Prev[BM_GetIndex(eed->v1)];
 				}
 			} else {
 				for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {

@@ -130,7 +130,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		normal_short_to_float_v3(v->no, mvert->no);
 
 		vt[i] = v;
-		BMINDEX_SET(v, i);
+		BM_SetIndex(v, i);
 
 		/*this is necassary for selection counts to work properly*/
 		if(v->head.flag & BM_SELECT) BM_Select_Vert(bm, v, 1);
@@ -398,7 +398,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		
 		mvert->flag = BMFlags_To_MEFlags(v);
 
-		BMINDEX_SET(v, i);
+		BM_SetIndex(v, i);
 
 		/*copy over customdata*/
 		CustomData_from_bmesh_block(&bm->vdata, &me->vdata, v->head.data, i);
@@ -414,14 +414,14 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		float *crease = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
 		float *bweight = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
 		
-		medge->v1 = BMINDEX_GET(e->v1);
-		medge->v2 = BMINDEX_GET(e->v2);
+		medge->v1 = BM_GetIndex(e->v1);
+		medge->v2 = BM_GetIndex(e->v2);
 		medge->crease = crease ? (char)((*crease)*255) : 0;
 		medge->bweight = bweight ? (char)((*bweight)*255) : 0;
 		
 		medge->flag = BMFlags_To_MEFlags(e);
 		
-		BMINDEX_SET(e, i);
+		BM_SetIndex(e, i);
 
 		/*copy over customdata*/
 		CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
@@ -445,7 +445,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				eve = BLI_addfillvert(l->v->co);
 				eve->tmp.p = l;
 				
-				BMINDEX_SET(l, i);
+				BM_SetIndex(l, i);
 
 				if (lasteve) {
 					BLI_addfilledge(lasteve, eve);
@@ -510,22 +510,22 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				
 				/*ensure correct winding.  I believe this is
 				  analogous to bubble sort on three elements.*/
-				if (BMINDEX_GET(ls[0]) > BMINDEX_GET(ls[1])) {
+				if (BM_GetIndex(ls[0]) > BM_GetIndex(ls[1])) {
 					SWAP(BMLoop*, ls[0], ls[1]);
 				}
-				if (BMINDEX_GET(ls[1]) > BMINDEX_GET(ls[2])) {
+				if (BM_GetIndex(ls[1]) > BM_GetIndex(ls[2])) {
 					SWAP(BMLoop*, ls[1], ls[2]);
 				}
-				if (BMINDEX_GET(ls[0]) > BMINDEX_GET(ls[1])) {
+				if (BM_GetIndex(ls[0]) > BM_GetIndex(ls[1])) {
 					SWAP(BMLoop*, ls[0], ls[1]);
 				}
 
 				mface->mat_nr = f->mat_nr;
 				mface->flag = BMFlags_To_MEFlags(f);
 				
-				mface->v1 = BMINDEX_GET(ls[0]->v);
-				mface->v2 = BMINDEX_GET(ls[1]->v);
-				mface->v3 = BMINDEX_GET(ls[2]->v);
+				mface->v1 = BM_GetIndex(ls[0]->v);
+				mface->v2 = BM_GetIndex(ls[1]->v);
+				mface->v3 = BM_GetIndex(ls[2]->v);
 
 				test_index_face(mface, &me->fdata, i, 1);
 				
@@ -550,8 +550,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 		for ( ; l; l=BMIter_Step(&liter), j++, mloop++) {
-			mloop->e = BMINDEX_GET(l->e);
-			mloop->v = BMINDEX_GET(l->v);
+			mloop->e = BM_GetIndex(l->e);
+			mloop->v = BM_GetIndex(l->v);
 
 			/*copy over customdata*/
 			CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l->head.data, j);
@@ -592,15 +592,15 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				}
 				if(ob->par1 < ototvert) {
 					eve = vertMap[ob->par1];
-					if(eve) ob->par1= BMINDEX_GET(eve);
+					if(eve) ob->par1= BM_GetIndex(eve);
 				}
 				if(ob->par2 < ototvert) {
 					eve = vertMap[ob->par2];
-					if(eve) ob->par2= BMINDEX_GET(eve);
+					if(eve) ob->par2= BM_GetIndex(eve);
 				}
 				if(ob->par3 < ototvert) {
 					eve = vertMap[ob->par3];
-					if(eve) ob->par3= BMINDEX_GET(eve);
+					if(eve) ob->par3= BM_GetIndex(eve);
 				}
 				
 			}
@@ -624,7 +624,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 								eve = vertMap[hmd->indexar[i]];
 								
 								if (eve) {
-									hmd->indexar[j++] = BMINDEX_GET(eve);
+									hmd->indexar[j++] = BM_GetIndex(eve);
 								}
 							}
 							else j++;

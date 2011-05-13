@@ -30,13 +30,13 @@ BM_INLINE void BM_ToggleHFlag(void *element, int flag)
 	e->flag ^= flag;
 }
 
-BM_INLINE void BMINDEX_SET(void *element, int index)
+BM_INLINE void BM_SetIndex(void *element, int index)
 {
 	BMHeader *e = element;
 	e->index = index;
 }
 
-BM_INLINE int BMINDEX_GET(void *element)
+BM_INLINE int BM_GetIndex(void *element)
 {
 	BMHeader *e = element;
 	return e->index;

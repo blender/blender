@@ -503,21 +503,21 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 
 		vtable[BLI_array_count(vtable)-1] = v2;
 
-		BMINDEX_SET(v, i);
-		BMINDEX_SET(v2, i);
+		BM_SetIndex(v, i);
+		BM_SetIndex(v2, i);
 	}
 	
 	e = BMIter_New(&iter, bmold, BM_EDGES_OF_MESH, NULL);
 	for (i=0; e; e=BMIter_Step(&iter), i++) {
-		e2 = BM_Make_Edge(bm, vtable[BMINDEX_GET(e->v1)],
-			          vtable[BMINDEX_GET(e->v2)], e, 0);
+		e2 = BM_Make_Edge(bm, vtable[BM_GetIndex(e->v1)],
+			          vtable[BM_GetIndex(e->v2)], e, 0);
 
 		BM_Copy_Attributes(bmold, bm, e, e2);
 		BLI_array_growone(etable);
 		etable[BLI_array_count(etable)-1] = e2;
 
-		BMINDEX_SET(e, i);
-		BMINDEX_SET(e2, i);
+		BM_SetIndex(e, i);
+		BM_SetIndex(e2, i);
 	}
 	
 	f = BMIter_New(&iter, bmold, BM_FACES_OF_MESH, NULL);
@@ -529,22 +529,22 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 			BLI_array_growone(loops);
 			BLI_array_growone(edges);
 			loops[j] = l;
-			edges[j] = etable[BMINDEX_GET(l->e)];
+			edges[j] = etable[BM_GetIndex(l->e)];
 		}
 
-		v = vtable[BMINDEX_GET(loops[0]->v)];
-		v2 = vtable[BMINDEX_GET(loops[1]->v)];
+		v = vtable[BM_GetIndex(loops[0]->v)];
+		v2 = vtable[BM_GetIndex(loops[1]->v)];
 
 		if (!bmesh_verts_in_edge(v, v2, edges[0])) {
-			v = vtable[BMINDEX_GET(loops[BLI_array_count(loops)-1]->v)];
-			v2 = vtable[BMINDEX_GET(loops[0]->v)];
+			v = vtable[BM_GetIndex(loops[BLI_array_count(loops)-1]->v)];
+			v2 = vtable[BM_GetIndex(loops[0]->v)];
 		}
 
 		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, 0);
 		if (!f2)
 			continue;
 		
-		BMINDEX_SET(f, i);
+		BM_SetIndex(f, i);
 		BLI_array_growone(ftable);
 		ftable[i] = f2;
 		
@@ -564,11 +564,11 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		void *ele;
 
 		if (ese->type == BM_VERT)
-			ele = vtable[BMINDEX_GET(ese->data)];
+			ele = vtable[BM_GetIndex(ese->data)];
 		else if (ese->type == BM_EDGE)
-			ele = etable[BMINDEX_GET(ese->data)];
+			ele = etable[BM_GetIndex(ese->data)];
 		else if (ese->type == BM_FACE) {
-			ele = ftable[BMINDEX_GET(ese->data)];
+			ele = ftable[BM_GetIndex(ese->data)];
 		}
 
 		BM_store_selection(bm, ele);
