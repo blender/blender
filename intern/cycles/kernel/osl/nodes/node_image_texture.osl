@@ -21,8 +21,12 @@
 shader node_image_texture(
 	point Vector = P,
 	string filename = "",
+	string color_space = "sRGB",
 	output color Color = color(0.0, 0.0, 0.0))
 {
 	Color = (color)texture(filename, Vector[0], 1.0-Vector[1], "wrap", "periodic");
+
+	if(color_space == "sRGB")
+		Color = color_srgb_to_scene_linear(Color);
 }
 

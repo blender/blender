@@ -400,6 +400,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 {
 	//uiItemR(layout, ptr, "image", 0, "", ICON_NONE);
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
+	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 }
 
 static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

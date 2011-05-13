@@ -140,22 +140,40 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 	return r;
 }
 
-__device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack, uint id, uint co_offset, uint out_offset)
+__device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
+	uint id = node.y;
+	uint co_offset, out_offset, srgb;
+
+	decode_node_uchar4(node.z, &co_offset, &out_offset, &srgb, NULL);
+
 	float3 co = stack_load_float3(stack, co_offset);
 	float4 f = svm_image_texture(kg, id, co.x, co.y);
+	float3 r = make_float3(f.x, f.y, f.z);
 
-	stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
+	if(srgb)
+		r = color_srgb_to_scene_linear(r);
+
+	stack_store_float3(stack, out_offset, r);
 }
 
-__device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float *stack, uint id, uint co_offset, uint out_offset)
+__device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
+	uint id = node.y;
+	uint co_offset, out_offset, srgb;
+
+	decode_node_uchar4(node.z, &co_offset, &out_offset, &srgb, NULL);
+
 	float3 co = stack_load_float3(stack, co_offset);
 	float u = (atan2f(co.y, co.x) + M_PI_F)/(2*M_PI_F);
 	float v = atan2f(co.z, hypotf(co.x, co.y))/M_PI_F + 0.5f;
 	float4 f = svm_image_texture(kg, id, u, v);
+	float3 r = make_float3(f.x, f.y, f.z);
 
-	stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
+	if(srgb)
+		r = color_srgb_to_scene_linear(r);
+
+	stack_store_float3(stack, out_offset, r);
 }
 
 CCL_NAMESPACE_END

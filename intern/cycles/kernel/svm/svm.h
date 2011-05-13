@@ -190,9 +190,9 @@ __device void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type,
 		else if(node.x == NODE_TEX_NOISE_V)
 			svm_node_tex_noise_v(sd, stack, node.y, node.z);
 		else if(node.x == NODE_TEX_IMAGE)
-			svm_node_tex_image(kg, sd, stack, node.y, node.z, node.w);
+			svm_node_tex_image(kg, sd, stack, node);
 		else if(node.x == NODE_TEX_ENVIRONMENT)
-			svm_node_tex_environment(kg, sd, stack, node.y, node.z, node.w);
+			svm_node_tex_environment(kg, sd, stack, node);
 		else if(node.x == NODE_TEX_SKY)
 			svm_node_tex_sky(kg, sd, stack, node.y, node.z);
 		else if(node.x == NODE_TEX_BLEND)

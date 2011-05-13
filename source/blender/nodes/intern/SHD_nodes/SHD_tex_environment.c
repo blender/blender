@@ -44,6 +44,7 @@ static bNodeSocketType sh_node_tex_environment_out[]= {
 static void node_shader_init_tex_environment(bNode *node)
 {
 	NodeTexEnvironment *tex = MEM_callocN(sizeof(NodeTexEnvironment), "NodeTexEnvironment");
+	tex->color_space = SHD_COLORSPACE_SRGB;
 
 	node->storage = tex;
 }

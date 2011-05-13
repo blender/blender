@@ -21,8 +21,12 @@
 shader node_environment_texture(
 	vector Vector = P,
 	string filename = "",
+	string color_space = "sRGB",
 	output color Color = color(0.0, 0.0, 0.0))
 {
 	Color = (color)environment(filename, Vector);
+
+	if(color_space == "sRGB")
+		Color = color_srgb_to_scene_linear(Color);
 }
 

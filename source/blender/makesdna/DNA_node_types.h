@@ -355,11 +355,11 @@ typedef struct NodeTexSky {
 } NodeTexSky;
 
 typedef struct NodeTexImage {
-	int pad;
+	int color_space;
 } NodeTexImage;
 
 typedef struct NodeTexEnvironment {
-	int pad;
+	int color_space;
 } NodeTexEnvironment;
 
 typedef struct NodeTexBlend {
@@ -498,6 +498,10 @@ typedef struct TexNodeOutput {
 #define SHD_WOOD_RINGS		1
 #define SHD_WOOD_BAND_NOISE	2
 #define SHD_WOOD_RING_NOISE	3
+
+/* image/environment texture */
+#define SHD_COLORSPACE_LINEAR	0
+#define SHD_COLORSPACE_SRGB		1
 
 /* blur node */
 #define CMP_NODE_BLUR_ASPECT_NONE		0

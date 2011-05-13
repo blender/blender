@@ -282,15 +282,17 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			/* todo: handle generated/builtin images */
 			if(b_image)
 				image->filename = blender_absolute_path(b_data, b_image, b_image.filepath());
+			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
 			node = image;
 			break;
 		}
 		case BL::ShaderNode::type_TEX_ENVIRONMENT: {
-			BL::ShaderNodeTexEnvironment b_environment_node(b_node);
-			BL::Image b_image(b_environment_node.image());
+			BL::ShaderNodeTexEnvironment b_env_node(b_node);
+			BL::Image b_image(b_env_node.image());
 			EnvironmentTextureNode *env = new EnvironmentTextureNode();
 			if(b_image)
 				env->filename = blender_absolute_path(b_data, b_image, b_image.filepath());
+			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
 			node = env;
 			break;
 		}

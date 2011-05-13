@@ -27,12 +27,25 @@ CCL_NAMESPACE_BEGIN
 
 /* Image Texture */
 
+static ShaderEnum color_space_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Linear", 0);
+	enm.insert("sRGB", 1);
+
+	return enm;
+}
+
+ShaderEnum ImageTextureNode::color_space_enum = color_space_init();
+
 ImageTextureNode::ImageTextureNode()
 : ShaderNode("image_texture")
 {
 	image_manager = NULL;
 	slot = -1;
 	filename = "";
+	color_space = ustring("sRGB");
 
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -65,7 +78,12 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 
 	if(slot != -1) {
 		compiler.stack_assign(vector_in);
-		compiler.add_node(NODE_TEX_IMAGE, slot, vector_in->stack_offset, color_out->stack_offset);
+		compiler.add_node(NODE_TEX_IMAGE,
+			slot,
+			compiler.encode_uchar4(
+				vector_in->stack_offset,
+				color_out->stack_offset,
+				color_space_enum[color_space]));
 	}
 	else {
 		/* image not found */
@@ -77,10 +95,13 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 void ImageTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("filename", filename.c_str());
+	compiler.parameter("color_space", color_space.c_str());
 	compiler.add(this, "node_image_texture");
 }
 
 /* Environment Texture */
+
+ShaderEnum EnvironmentTextureNode::color_space_enum = color_space_init();
 
 EnvironmentTextureNode::EnvironmentTextureNode()
 : ShaderNode("environment_texture")
@@ -88,6 +109,7 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 	image_manager = NULL;
 	slot = -1;
 	filename = "";
+	color_space = ustring("sRGB");
 
 	add_input("Vector", SHADER_SOCKET_VECTOR, ShaderInput::POSITION);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -120,7 +142,12 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 
 	if(slot != -1) {
 		compiler.stack_assign(vector_in);
-		compiler.add_node(NODE_TEX_ENVIRONMENT, slot, vector_in->stack_offset, color_out->stack_offset);
+		compiler.add_node(NODE_TEX_ENVIRONMENT,
+			slot,
+			compiler.encode_uchar4(
+				vector_in->stack_offset,
+				color_out->stack_offset,
+				color_space_enum[color_space]));
 	}
 	else {
 		/* image not found */
@@ -132,6 +159,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("filename", filename.c_str());
+	compiler.parameter("color_space", color_space.c_str());
 	compiler.add(this, "node_environment_texture");
 }
 

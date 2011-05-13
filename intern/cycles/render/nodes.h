@@ -39,6 +39,9 @@ public:
 	ImageManager *image_manager;
 	int slot;
 	string filename;
+	ustring color_space;
+
+	static ShaderEnum color_space_enum;
 };
 
 class EnvironmentTextureNode : public ShaderNode {
@@ -50,6 +53,9 @@ public:
 	ImageManager *image_manager;
 	int slot;
 	string filename;
+	ustring color_space;
+
+	static ShaderEnum color_space_enum;
 };
 
 class SkyTextureNode : public ShaderNode {
