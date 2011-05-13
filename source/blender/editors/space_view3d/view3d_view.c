@@ -396,7 +396,7 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
 /* ****************** change view operators ****************** */
 
-static void setcameratoview3d(RegionView3D *rv3d, Object *ob)
+void view3d_to_ob(RegionView3D *rv3d, Object *ob)
 {
 	float dvec[3];
 	float mat3[3][3];
@@ -426,7 +426,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 		rv3d->lpersp= rv3d->persp;
 	}
 
-	setcameratoview3d(rv3d, v3d->camera);
+	view3d_to_ob(rv3d, v3d->camera);
 	DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 	rv3d->persp = RV3D_CAMOB;
 	
