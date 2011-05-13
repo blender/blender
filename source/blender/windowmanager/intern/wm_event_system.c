@@ -2293,7 +2293,7 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 /* imperfect but probably usable... draw/enable drags to other windows */
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *evt)
 {
-	short mx= evt->x, my= evt->y;
+	int mx= evt->x, my= evt->y;
 	
 	if(wm->windows.first== wm->windows.last)
 		return NULL;
@@ -2310,8 +2310,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 				return NULL;
 		
 		/* to desktop space */
-		mx+= win->posx;
-		my+= win->posy;
+		mx += (int)win->posx;
+		my += (int)win->posy;
 		
 		/* check other windows to see if it has mouse inside */
 		for(owin= wm->windows.first; owin; owin= owin->next) {
@@ -2319,8 +2319,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 			if(owin!=win) {
 				if(mx-owin->posx >= 0 && my-owin->posy >= 0 &&
 				   mx-owin->posx <= owin->sizex && my-owin->posy <= owin->sizey) {
-					evt->x= mx-owin->posx;
-					evt->y= my-owin->posy;
+					evt->x= mx - (int)owin->posx;
+					evt->y= my - (int)owin->posy;
 					
 					return owin;
 				}

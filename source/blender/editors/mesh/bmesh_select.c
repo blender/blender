@@ -144,7 +144,7 @@ unsigned int bm_solidoffs=0, bm_wireoffs=0, bm_vertoffs=0;	/* set in drawobject.
 static char *selbuf= NULL;
 
 /* opengl doesn't support concave... */
-static void draw_triangulated(short mcords[][2], short tot)
+static void draw_triangulated(int mcords[][2], short tot)
 {
 	ListBase lb={NULL, NULL};
 	DispList *dl;
@@ -238,7 +238,7 @@ void EDBM_free_backbuf(void)
    - grab again and compare
    returns 'OK' 
 */
-int EDBM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
+int EDBM_mask_init_backbuf_border(ViewContext *vc, int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
 {
 	unsigned int *dr, *drm;
 	struct ImBuf *buf, *bufmask;
@@ -267,7 +267,7 @@ int EDBM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot,
  	draw_triangulated(mcords, tot);	
 	
 	glBegin(GL_LINE_LOOP);	/* for zero sized masks, lines */
-	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
+	for(a=0; a<tot; a++) glVertex2iv(mcords[a]);
 	glEnd();
 	
 	glFinish();	/* to be sure readpixels sees mask */
@@ -967,7 +967,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 
 /* ***************** loop select (non modal) ************** */
 
-static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring)
+static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 {
 	ViewContext vc;
 	BMEditMesh *em;
@@ -1052,7 +1052,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static void mouse_mesh_shortest_path(bContext *UNUSED(C), short UNUSED(mval[2]))
+static void mouse_mesh_shortest_path(bContext *UNUSED(C), int UNUSED(mval[2]))
 {
 #if 0 //BMESH_TODO
 	ViewContext vc;
@@ -1152,7 +1152,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 /* ************************************************** */
 /* here actual select happens */
 /* gets called via generic mouse select operator */
-int mouse_mesh(bContext *C, const short mval[2], short extend)
+int mouse_mesh(bContext *C, const int mval[2], short extend)
 {
 	ViewContext vc;
 	BMVert *eve = NULL;

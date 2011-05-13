@@ -206,7 +206,7 @@ void POSE_OT_propagate(struct wmOperatorType *ot);
 /* editarmature.c */
 
 EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent, struct Bone *actBone);
-void BIF_sk_selectStroke(struct bContext *C, const short mval[2], short extend);
+void BIF_sk_selectStroke(struct bContext *C, const int mval[2], short extend);
 
 /* duplicate method */
 void preEditBoneDuplicate(struct ListBase *editbones);

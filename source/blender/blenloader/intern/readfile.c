@@ -4033,7 +4033,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
 			fluidmd->fss->fmd= fluidmd;
-			fluidmd->fss->meshSurfNormals = NULL;
+			fluidmd->fss->meshVelocities = NULL;
 		}
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
@@ -9689,7 +9689,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				fluidmd->fss->lastgoodframe = INT_MAX;
 				fluidmd->fss->flag = 0;
-				fluidmd->fss->meshSurfNormals = NULL;
+				fluidmd->fss->meshVelocities = NULL;
 			}
 		}
 	}

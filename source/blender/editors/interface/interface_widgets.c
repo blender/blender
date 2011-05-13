@@ -888,7 +888,7 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		/* textbut exception, clip right when... */
 		if(but->editstr && but->pos >= 0) {
 			float width;
-			char buf[256];
+			char buf[UI_MAX_DRAW_STR];
 			
 			/* copy draw string */
 			BLI_strncpy(buf, but->drawstr, sizeof(buf));

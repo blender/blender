@@ -341,7 +341,7 @@ static void make_vertexcol(Object *ob)	/* single ob */
 	//else
 
 	memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
-
+	
 	DAG_id_tag_update(&me->id, 0);
 	
 }
@@ -810,10 +810,10 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], fl
 	Brush *brush = paint_brush(&vp->paint);
 	float fac, fac_2, size, dx, dy;
 	float alpha;
-	short vertco[2];
+	int vertco[2];
 	const int radius= brush_size(brush);
 
-	project_short_noclip(vc->ar, vert_nor, vertco);
+	project_int_noclip(vc->ar, vert_nor, vertco);
 	dx= mval[0]-vertco[0];
 	dy= mval[1]-vertco[1];
 	
@@ -1036,7 +1036,6 @@ static void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mo
 				else if(w4==fac) {
 					if(mface->v4) {
 						ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v4, vgroup);
->>>>>>> .merge-right.r23146
 					}
 				}
 

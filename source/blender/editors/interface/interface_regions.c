@@ -1625,7 +1625,7 @@ void ui_block_func_ICONTEXTROW(bContext *UNUSED(C), uiLayout *layout, void *arg_
 }
 
 #if 0
-static void ui_warp_pointer(short x, short y)
+static void ui_warp_pointer(int x, int y)
 {
 	/* XXX 2.50 which function to use for this? */
 	/* OSX has very poor mousewarp support, it sends events;

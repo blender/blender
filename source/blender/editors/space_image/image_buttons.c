@@ -268,7 +268,7 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 	rcti *disprect= &G.scene->r.disprect;
 	int winx= (G.scene->r.size*G.scene->r.xsch)/100;
 	int winy= (G.scene->r.size*G.scene->r.ysch)/100;
-	short mval[2];
+	int mval[2];
 	
 	if(G.scene->r.mode & R_BORDER) {
 		winx*= (G.scene->r.border.xmax - G.scene->r.border.xmin);

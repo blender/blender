@@ -173,7 +173,7 @@ void EDBM_hide_mesh(struct BMEditMesh *em, int swap);
 void EDBM_reveal_mesh(struct BMEditMesh *em);
 
 int			EDBM_check_backbuf(unsigned int index);
-int			EDBM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
+int			EDBM_mask_init_backbuf_border(struct ViewContext *vc, int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
 void		EDBM_free_backbuf(void);
 int			EDBM_init_backbuf_border(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 int			EDBM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short rads);
@@ -203,7 +203,7 @@ long		mesh_mirrtopo_table(struct Object *ob, char mode);
 
 //BMESH_TODO void		EM_cache_x_mirror_vert(struct Object *ob, struct BMEditMesh *em);
 
-int			mouse_mesh(struct bContext *C, const short mval[2], short extend);
+int			mouse_mesh(struct bContext *C, const int mval[2], short extend);
 
 struct BMVert   *editbmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em, struct BMVert *eve, float *co, int index);
 int			mesh_get_x_mirror_vert(struct Object *ob, int index);
@@ -232,10 +232,10 @@ void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Obje
 /* editface.c */
 void paintface_flush_flags(struct Object *ob);
 struct MTexPoly	*EM_get_active_mtexpoly(struct BMEditMesh *em, struct BMFace **act_efa, struct MLoopCol **col, int sloppy);
-int paintface_mouse_select(struct bContext *C, struct Object *ob, const short mval[2], int extend);
+int paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], int extend);
 int do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
 void paintface_deselect_all_visible(struct Object *ob, int action, short flush_flags);
-void paintface_select_linked(struct bContext *C, struct Object *ob, short mval[2], int mode);
+void paintface_select_linked(struct bContext *C, struct Object *ob, int mval[2], int mode);
 int paintface_minmax(struct Object *ob, float *min, float *max);
 
 void paintface_hide(struct Object *ob, const int unselected);

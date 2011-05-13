@@ -2657,7 +2657,7 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 /********************** Rip Operator *************************/
 
 /* helper to find edge for edge_rip */
-static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, short *mval)
+static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const int mval[2])
 {
 	float vec1[3], vec2[3], mvalf[2];
 

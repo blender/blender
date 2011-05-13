@@ -86,6 +86,7 @@ typedef struct v2dViewPanData {
 		/* options for version 1 */
 	int startx, starty;		/* mouse x/y values in window when operator was initiated */
 	int lastx, lasty;		/* previous x/y values of mouse in window */
+	int invoke_event;		/* event starting pan, for modal exit */
 	
 	short in_scroller;		/* for MMB in scrollers (old feature in past, but now not that useful) */
 } v2dViewPanData;
@@ -202,7 +203,8 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* set initial settings */
 	vpd->startx= vpd->lastx= event->x;
 	vpd->starty= vpd->lasty= event->y;
-
+	vpd->invoke_event= event->type;
+	
 	if (event->type == MOUSEPAN) {
 		RNA_int_set(op->ptr, "deltax", event->prevx - event->x);
 		RNA_int_set(op->ptr, "deltay", event->prevy - event->y);
@@ -261,17 +263,19 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 				WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
 				return OPERATOR_FINISHED;
 			}
-		case MIDDLEMOUSE:
-		case ESCKEY:
-			if (event->val==KM_RELEASE) {
-				/* calculate overall delta mouse-movement for redo */
-				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
-				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
-				
-				view_pan_exit(op);
-				WM_cursor_restore(CTX_wm_window(C));
-				
-				return OPERATOR_FINISHED;
+			
+		default:
+			if (event->type == vpd->invoke_event || event->type==ESCKEY) {
+				if (event->val==KM_RELEASE) {
+					/* calculate overall delta mouse-movement for redo */
+					RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
+					RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
+					
+					view_pan_exit(op);
+					WM_cursor_restore(CTX_wm_window(C));
+					
+					return OPERATOR_FINISHED;
+				}
 			}
 			break;
 	}
@@ -519,6 +523,7 @@ typedef struct v2dViewZoomData {
 	double timer_lastdraw;
 
 	int lastx, lasty;		/* previous x/y values of mouse in window */
+	int invoke_event;		/* event type that invoked, for modal exits */
 	float dx, dy;			/* running tally of previous delta values (for obtaining final zoom) */
 	float mx_2d, my_2d;		/* initial mouse location in v2d coords */
 } v2dViewZoomData;
@@ -923,6 +928,9 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_float_set(op->ptr, "deltax", 0);
 	RNA_float_set(op->ptr, "deltay", 0);
 	
+	/* for modal exit test */
+	vzd->invoke_event= event->type;
+	
 	if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
 		ARegion *ar= CTX_wm_region(C);
 		
@@ -1021,8 +1029,9 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 		/* apply zooming */
 		view_zoomdrag_apply(C, op);
 	} 
-	else if (ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) { /* XXX needs modal keymap */
-		if (event->val==KM_RELEASE) {
+	else if (event->type == vzd->invoke_event || event->type==ESCKEY) {
+		if (event->val == KM_RELEASE) {
+			
 			/* for redo, store the overall deltas - need to respect zoom-locks here... */
 			if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0)
 				RNA_float_set(op->ptr, "deltax", vzd->dx);

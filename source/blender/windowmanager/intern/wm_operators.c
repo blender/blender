@@ -2492,7 +2492,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 
 			{
-				short x, y;
+				int x, y;
 				short *lasso= gesture->customdata;
 				
 				lasso += (2 * gesture->points - 2);

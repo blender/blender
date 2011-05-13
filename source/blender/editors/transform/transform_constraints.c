@@ -665,7 +665,7 @@ void drawConstraint(TransInfo *t)
 			char col2[3] = {255,255,255};
 			int depth_test_enabled;
 
-			convertViewVec(t, vec, (short)(t->mval[0] - t->con.imval[0]), (short)(t->mval[1] - t->con.imval[1]));
+			convertViewVec(t, vec, (t->mval[0] - t->con.imval[0]), (t->mval[1] - t->con.imval[1]));
 			add_v3_v3(vec, tc->center);
 
 			drawLine(t, tc->center, tc->mtx[0], 'X', 0);
