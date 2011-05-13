@@ -4,28 +4,6 @@ INSTALL(DIRECTORY license DESTINATION ${CYCLES_INSTALL_PATH}/cycles PATTERN ".sv
 SET(doc_sources
 	index.html
 
-	development/build.html
-	development/bvh.html
-	development/design.html
-	development/device_abstraction.html
-	development/displacement.html
-	development/feature_todo.html
-	development/known_issues.html
-	development/geometric_issues.html
-	development/ideas.html
-	development/index.html
-	development/kernel.html
-	development/license.html
-	development/node_guidelines.html
-	development/optimization.html
-	development/osl_gpu.html
-	development/papers.html
-	development/sobol.html
-	development/source.html
-	development/subdivision.html
-	development/threads.html
-	development/units_colors.html
-
 	reference/camera.html
 	reference/curve.html
 	reference/devices.html
@@ -60,9 +38,6 @@ SET(doc_sources
 	reference/shader/volume_textures.html)
 
 SET(doc_extra
-	development/images/rng_lcg_50_pass.png
-	development/images/rng_sobol_50_pass.png
-	development/threads.svg
 	reference/camera_ortho.svg
 	reference/camera_persp.svg
 	reference/material/material.svg
@@ -70,7 +45,6 @@ SET(doc_extra
 	style/style.css)
 
 SET(doc_templates
-	templates/development.html
 	templates/footer.html
 	templates/header.html
 	templates/nodes.html
