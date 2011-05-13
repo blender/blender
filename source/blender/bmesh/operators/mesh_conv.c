@@ -437,7 +437,6 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		totface = 0;
 		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 			EditVert *eve, *lasteve = NULL, *firsteve = NULL;
-			EditFace *efa;
 			
 			BLI_begin_edgefill();
 			i = 0;
@@ -458,10 +457,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			}
 
 			BLI_addfilledge(lasteve, firsteve);
-			BLI_edgefill(0);
-
-			for (efa=fillfacebase.first; efa; efa=efa->next)
-				totface++;
+			totface += BLI_edgefill(0);
 
 			BLI_end_edgefill();
 		}

@@ -134,7 +134,8 @@ def validate_arguments(args, bc):
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
             'BF_NO_ELBEEM',
-            'WITH_BF_CXX_GUARDEDALLOC'
+            'WITH_BF_CXX_GUARDEDALLOC',
+            'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC'
             ]
     
     # Have options here that scons expects to be lists
@@ -429,6 +430,14 @@ def read_opts(env, cfg, args):
         ('BF_EXPAT_LIB', 'Expat library', ''),
         ('BF_EXPAT_LIBPATH', 'Expat library path', ''),
         
+        (BoolVariable('WITH_BF_JEMALLOC', 'Use jemalloc if true', False)),
+        (BoolVariable('WITH_BF_STATICJEMALLOC', 'Staticly link to jemalloc', False)),
+        ('BF_JEMALLOC', 'jemalloc base path', ''),
+        ('BF_JEMALLOC_INC', 'jemalloc include path', ''),
+        ('BF_JEMALLOC_LIB', 'jemalloc library', ''),
+        ('BF_JEMALLOC_LIBPATH', 'jemalloc library path', ''),
+        ('BF_JEMALLOC_LIB_STATIC', 'jemalloc static library', ''),
+
         (BoolVariable('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
         (BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 

@@ -203,6 +203,11 @@ def setup_staticlibs(lenv):
     if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         libincs.append('/usr/lib')
 
+    if lenv['WITH_BF_JEMALLOC']:
+        libincs += Split(lenv['BF_JEMALLOC_LIBPATH'])
+        if lenv['WITH_BF_STATICJEMALLOC']:
+            statlibs += Split(lenv['BF_JEMALLOC_LIB_STATIC'])
+
     return statlibs, libincs
 
 def setup_syslibs(lenv):
@@ -263,6 +268,9 @@ def setup_syslibs(lenv):
     if not lenv['WITH_BF_STATICLIBSAMPLERATE']:
         syslibs += Split(lenv['BF_LIBSAMPLERATE_LIB'])
 
+    if lenv['WITH_BF_JEMALLOC']:
+        if not lenv['WITH_BF_STATICJEMALLOC']:
+            syslibs += Split(lenv['BF_JEMALLOC_LIB'])
 
     syslibs += lenv['LLIBS']
 
