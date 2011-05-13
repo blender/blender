@@ -335,7 +335,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	BMEdge *e;
 	BMEdge **edges = NULL;
 	BLI_array_staticdeclare(edges, 256);
-	BMVert *v, *lastv;
+	BMVert *v;
 	/*BMVert **verts = NULL; */
 	/*BLI_array_staticdeclare(verts, 256);*/ /*UNUSED*/
 	int i;
@@ -532,6 +532,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 
 #if 0
 	/*create visualizing geometry*/
+	BMVert *lastv;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		BMVert *v2;
 		BMFace *f;

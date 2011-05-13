@@ -143,9 +143,8 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 {
 	BMVert *v;
 	BMIter iter, liter;
-	BMEdge *e;
 	BMLoop *l;
-	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
+	float *v1, *v2, *v3, *co1, *co2, *co3;
 	int *vert_table = MEM_callocN(sizeof(int)*em->bm->totvert, "vert_table");
 	int index = 0;
 	

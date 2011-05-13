@@ -520,7 +520,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 {
 	MDisps *mdisps;
 	BMLoop *l2;
-	double x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3], e3[3], e4[3];
+	double x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3];
 	int ix, iy, res;
 	
 	/*ignore 2-edged faces*/
@@ -603,7 +603,7 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		MDisps *mdp = CustomData_bmesh_get(&bm->ldata, l->prev->head.data, CD_MDISPS);
 		MDisps *mdl = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
 		MDisps *mdn = CustomData_bmesh_get(&bm->ldata, l->next->head.data, CD_MDISPS);
-		float co1[3], co2[3], co[3];
+		float co1[3];
 		int sides;
 		int y;
 		

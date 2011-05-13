@@ -5053,7 +5053,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->obedit) {
 		if (t->obedit->type == OB_MESH)
 		{
-			BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+			// BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
 			/* table needs to be created for each edit command, since vertices can move etc */
 			// BMESH_TODO mesh_octree_table(t->obedit, em, NULL, 'e');
 		}

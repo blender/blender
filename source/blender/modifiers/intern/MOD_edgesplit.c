@@ -340,7 +340,9 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 	CustomData_set_layer(&cddm->edgeData, CD_MEDGE, medge);
 	
 	free_membase(membase);
-	MEM_freeN(etags);
+	BLI_array_free(etags);
+	BLI_array_fake_user(mvert);
+	BLI_array_fake_user(medge);
 
 	/*edge calculation isn't working correctly, so just brute force it*/
 	cddm->numEdgeData = 0;

@@ -443,7 +443,6 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	for (i=0; i<BLI_array_count(faces); i++) {
 		BMLoop *l;
 		BMIter liter;
-		BMVert *lastv=NULL, *firstv=NULL;
 		int j;
 		
 		/*create quad spans between split edges*/
@@ -498,7 +497,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			if (v1 != v2 && v2 != v3 && v3 != v4) {
 				BMIter liter2;
 				BMLoop *l2, *l3;
-				BMEdge *e1, *e2, *e3, *e4;
+				BMEdge *e1, *e2;
 				float d1, d2, *d3;
 				
 				f = BM_Make_QuadTri(bm, v4, v3, v2, v1, l->f, 1);

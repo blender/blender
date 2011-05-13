@@ -82,7 +82,7 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		stop = 1;
 		
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			BMVert *v1, *v2, *v3, *v4, *d1, *d2;
+			BMVert *v1, *v2, *v3, *v4;
 			float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
 			int ok;
 			

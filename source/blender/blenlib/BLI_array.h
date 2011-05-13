@@ -87,7 +87,7 @@ behaviour, though it may not be the best in practice.
 
 /*grow an array by a specified number of items.*/
 #define BLI_array_growitems(arr, num) {int _i; for (_i=0; _i<(num); _i++) {BLI_array_growone(arr);}}
-#define BLI_array_free(arr) if (arr && (char *)arr != _##arr##_static) MEM_freeN(arr)
+#define BLI_array_free(arr) if (arr && (char *)arr != _##arr##_static) {  BLI_array_fake_user(arr); MEM_freeN(arr); }
 
 #define BLI_array_pop(arr) ((arr&&_##arr##_count) ? arr[--_##arr##_count] : 0)
 /*resets the logical size of an array to zero, but doesn't
@@ -97,3 +97,6 @@ behaviour, though it may not be the best in practice.
 /*set the count of the array, doesn't actually increase the allocated array
   size.  don't use this unless you know what you're doing.*/
 #define BLI_array_set_length(arr, count) _##arr##_count = (count)
+
+/*only to prevent unused warnings*/
+#define BLI_array_fake_user(arr) (void)_##arr##_count, (void)_##arr##_tmp, (void)_##arr##_static

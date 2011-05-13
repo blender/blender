@@ -890,7 +890,7 @@ static void layerInterp_shapekey(void **sources, float *weights,
 {
 	float *co = dest, *src;
 	float **in = (float **)sources;
-	int i, j, k;
+	int i;
 
 	if(count <= 0) return;
 

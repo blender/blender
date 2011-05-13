@@ -110,7 +110,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	MEdge *me;
 	MLoop *ml;
 	MPoly *mp;
-	float mtx[4][4], imtx[4][4];
+	float mtx[4][4];
 	int i, j, *vtargetmap = NULL;
 	BLI_array_declare(vtargetmap);
 	int vector_size=0, a, b, totshape;

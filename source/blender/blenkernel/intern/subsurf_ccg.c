@@ -499,8 +499,8 @@ static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 	BLI_array_declare(fVerts);
 	int totvert = dm->getNumVerts(dm);
 	int totedge = dm->getNumEdges(dm);
-	int totface = dm->getNumTessFaces(dm);
-	int totpoly = dm->getNumFaces(dm);
+	/*int totface = dm->getNumTessFaces(dm);*/ /*UNUSED*/
+	/*int totpoly = dm->getNumFaces(dm);*/ /*UNUSED*/
 	int i;
 	int *index;
 	MVert *mvert = dm->getVertArray(dm);
@@ -508,7 +508,7 @@ static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 	MFace *mface = dm->getTessFaceArray(dm);
 	MVert *mv;
 	MEdge *me;
-	MFace *mf;
+	/*MFace *mf;*/ /*UNUSED*/
 	DMFaceIter *fiter;
 	DMLoopIter *liter;
 
@@ -851,7 +851,7 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	int offset;
 	int grid;
 	int x, y;
-	int lastface = ccgSubSurf_getNumFaces(ss) - 1;
+	/*int lastface = ccgSubSurf_getNumFaces(ss) - 1;*/ /*UNUSED*/
 	char *faceFlags = cgdm->faceFlags;
 
 	memset(mf, 0, sizeof(*mf));
@@ -1085,7 +1085,7 @@ static void *cgdm_faceIterCData(void *self, int type, int layer)
 static void cgdm_loopIterStep(void *self)
 {
 	cgdm_loopIter *liter = self;
-	MFace *mf = liter->fiter->mface;
+	/* MFace *mf = liter->fiter->mface; */ /*UNUSED*/
 	int i, v1, v2;
 
 	liter->head.index++;
@@ -1162,8 +1162,8 @@ static void cgdm_faceIterFree(void *vfiter)
 static DMFaceIter *cgdm_newFaceIter(DerivedMesh *dm)
 {
 	cgdm_faceIter *fiter = MEM_callocN(sizeof(cgdm_faceIter), "cgdm_faceIter");
-	MEdge medge;
-	int i, totedge = cgdm_getNumEdges(dm);
+	/*MEdge medge;*/ /*UNUSED*/
+	/*int totedge = cgdm_getNumEdges(dm);*/ /*UNUSED*/
 
 	fiter->cgdm = (CCGDerivedMesh *)dm;
 	fiter->liter.cgdm = (CCGDerivedMesh *)dm;

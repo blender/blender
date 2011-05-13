@@ -4368,7 +4368,9 @@ static int mesh_vertices_randomize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-#if 0 /*BMESH TODO*/
+#if 1 /*BMESH TODO*/
+	(void)em;
+#else
 	hashvert_flag(em, SELECT);
 #endif
 	return OPERATOR_FINISHED;

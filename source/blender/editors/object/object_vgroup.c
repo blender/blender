@@ -1032,7 +1032,15 @@ void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 		Mesh *me= ob->data;
 		BMEditMesh *em = me->edit_btmesh;
 		BMIter iter;
-#if 0 //BMESH_TODO
+#if 1 //BMESH_TODO
+		(void)eve;
+		(void)eve_mirr;
+		(void)dvert;
+		(void)dvert_mirr;
+		(void)flip_map;
+		(void)iter;
+		(void)em;
+#else
 		EM_cache_x_mirror_vert(ob, em);
 
 		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))

@@ -72,13 +72,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 						int UNUSED(isFinalCalc))
 {
 	NgonInterpModifierData *nmd= (NgonInterpModifierData *)md;
-	DerivedMesh *dm= derivedData, *result= NULL;
+	DerivedMesh *dm= derivedData;
 	DerivedMesh *cddm, *dummy;
 	MFace *mf;
 	MPoly *mpoly;
 	MLoop *mloop;
 	MFace *mface = NULL, *mf2;
-	MVert *mvert = NULL, *mv2, *omvert;
+	MVert *mvert = NULL, *omvert;
 	BLI_array_declare(mface);
 	BLI_array_declare(mvert);
 	int *verts=NULL, *loops=NULL;
@@ -181,8 +181,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 				y++;
 				continue;
 			} else {
-				float co[3];
-				int lindex[3] = {0, 1, 2};
+				/*int lindex[3] = {0, 1, 2};*/ /*UNUSED*/
 				
 				v1 = verts[x];
 				v2 = verts[x+1];
@@ -247,8 +246,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		  edge will work.*/
 		mul_v3_fl(cent, 1.0/(float)(mp->totloop));
 		for (j=0; j<mp->totloop; j++) {
-			float vec[3];
-			
 			sub_v3_v3(cos[j], cent);
 			mul_v3_fl(cos[j], 1.0+FLT_EPSILON*1500.0f);
 			add_v3_v3(cos[j], cent);

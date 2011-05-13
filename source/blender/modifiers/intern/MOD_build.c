@@ -89,7 +89,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int numFaces, numEdges, numLoops;
 	int *vertMap, *edgeMap, *faceMap;
 	float frac;
-	MPoly *mpoly, *mpolys, *mpolyd;
+	MPoly *mpolys, *mpolyd;
 	MLoop *mld, *mloops, *mls, *mloopd;
 	GHashIterator *hashIter;
 	/* maps vert indices in old mesh to indices in new mesh */
@@ -207,6 +207,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	} else {
 		int numVerts = dm->getNumVerts(dm) * frac;
+		numLoops= 0;
 
 		if(bmd->randomize)
 			BLI_array_randomize(vertMap, sizeof(*vertMap),

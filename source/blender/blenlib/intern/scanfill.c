@@ -158,7 +158,7 @@ static void *new_mem_element(int size)
 		printf("incorrect use of new_mem_element\n");
 	}
 	else if(size== -1) {
-		/*keep the first block*/
+		/*BMESH_TODO: keep the first block, gives memory leak on exit with 'newmem' */
 		first = lb.first;
 		BLI_remlink(&lb, first);
 

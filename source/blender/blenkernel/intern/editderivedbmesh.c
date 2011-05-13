@@ -743,7 +743,7 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 			BMLoop **ls = em->looptris[i];
 			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
 			MTFace mtf = {{{0}}};
-			unsigned char *cp= NULL;
+			/*unsigned char *cp= NULL;*/ /*UNUSED*/
 			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_SMOOTH);
 			int flag;
 
@@ -818,7 +818,7 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 			BMLoop **ls = em->looptris[i];
 			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
 			MTFace mtf = {{{0}}};
-			unsigned char *cp= NULL;
+			/*unsigned char *cp= NULL;*/ /*UNUSED*/
 			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_SMOOTH);
 			int flag;
 
@@ -939,8 +939,8 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	DMVertexAttribs attribs;
 	GPUVertexAttribs gattribs;
 	MTexPoly *tp;
-	int transp, new_transp, orig_transp, tfoffset;
-	int i, b, matnr, new_matnr, dodraw, layer;
+	int transp, new_transp, orig_transp;
+	int i, b, matnr, new_matnr, dodraw;
 
 	dodraw = 0;
 	matnr = -1;
@@ -1572,7 +1572,6 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 {
 	EditDerivedBMesh *bmdm = MEM_callocN(sizeof(*bmdm), "bmdm");
 	BMesh *bm = em->bm;
-	int i;
 	
 	bmdm->tc = em;
 

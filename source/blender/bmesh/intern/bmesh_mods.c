@@ -346,7 +346,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  */
  
 void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
-	BMFace **faces = NULL, **oldfaces=NULL, *f;
+	BMFace **faces = NULL, *f;
 	BLI_array_staticdeclare(faces, 8);
 	BMIter iter;
 	BMLoop *l=NULL, *kvloop=NULL, *tvloop=NULL;

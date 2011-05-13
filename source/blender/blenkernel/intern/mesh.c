@@ -2388,7 +2388,7 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 	MVert *v1, *v2, *v3;
 	double u[3],  v[3], w[3];
 	double n[3] = {0.0, 0.0, 0.0}, l;
-	int i, s=0;
+	int i;
 
 	for(i = 0; i < mpoly->totloop; i++){
 		v1 = mvert + loopstart[i].v;

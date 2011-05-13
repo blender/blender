@@ -2491,7 +2491,6 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
-	MTexPoly *tface;
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
 	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
@@ -2940,7 +2939,6 @@ static int hide_exec(bContext *C, wmOperator *op)
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	int swap= RNA_boolean_get(op->ptr, "unselected");
 	int facemode= sima ? sima->flag & SI_SELACTFACE : 0;
@@ -3031,13 +3029,12 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
+	/*Scene *scene = CTX_data_scene(C);*/ /*UNUSED*/
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	BMFace *efa;
 	BMLoop *l;
 	BMVert *v;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	int facemode= sima ? sima->flag & SI_SELACTFACE : 0;
 	int stickymode= sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;

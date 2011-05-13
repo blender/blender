@@ -515,7 +515,7 @@ static int verge_linehit(const void *vlh1, const void *vlh2)
 
 static void knife_add_cut(knifetool_opdata *kcd)
 {
-	BMEditMesh *em = kcd->em;
+	/*BMEditMesh *em = kcd->em;*/ /*UNUSED*/
 	knifetool_opdata oldkcd = *kcd;
 	
 	if (kcd->linehits) {
@@ -1041,7 +1041,6 @@ static int knife_sample_screen_density(knifetool_opdata *kcd, float radius)
 	if (f && !is_space) {
 		ListBase *lst;
 		Ref *ref;
-		KnifeVert *curv = NULL;
 		float dis;
 		int c = 0;
 		
@@ -1383,7 +1382,8 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	ListBase *face_nets = MEM_callocN(sizeof(ListBase)*bm->totface, "face_nets");
 	BMFace **faces = MEM_callocN(sizeof(BMFace*)*bm->totface, "faces knife");
 	MemArena *arena = BLI_memarena_new(1<<16, "knifenet_fill_faces");
-	SmallHash shash, shash2, *hash = &shash, *visited = &shash2;
+	SmallHash shash, *hash = &shash;
+	/* SmallHash shash2, *visited = &shash2; */ /*UNUSED*/
 	int i, j, k=0, totface=bm->totface;
 	
 	BMO_push(bm, NULL);
@@ -1512,8 +1512,6 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		}
 		
 		for (j=0, entry=face_nets[i].first; entry; entry=entry->next, j++) {
-			EditEdge *eed;
-
 			lasteve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
 			eve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
 			

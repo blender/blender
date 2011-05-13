@@ -232,7 +232,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		BMesh *bm = em->bm;
 		BMIter iter;
 		void *userdata[2] = {em, NULL};
-		int proptrans= 0;
+		/*int proptrans= 0; */ /*UNUSED*/
 		
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
 		tottrans= 0;

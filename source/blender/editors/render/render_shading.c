@@ -399,8 +399,8 @@ static int material_slot_de_select(bContext *C, int select)
 		return OPERATOR_CANCELLED;
 
 	if(ob->type == OB_MESH) {
-		BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
 /*BMESH_TODO
+		BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
 		if(em) {
 			if(select)
 				EM_select_by_material(em, ob->actcol-1);

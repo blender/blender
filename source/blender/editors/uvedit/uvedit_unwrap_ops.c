@@ -816,7 +816,6 @@ static void uv_map_clip_correct(BMEditMesh *em, wmOperator *op)
 	BMIter iter, liter;
 	MLoopUV *luv;
 	float dx, dy, min[2], max[2];
-	int b, nverts;
 	int correct_aspect= RNA_boolean_get(op->ptr, "correct_aspect");
 	int clip_to_bounds= RNA_boolean_get(op->ptr, "clip_to_bounds");
 	int scale_to_bounds= RNA_boolean_get(op->ptr, "scale_to_bounds");
@@ -902,7 +901,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	/* BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh; */ /*UNUSED*/
-	ParamHandle *handle;
+	/* ParamHandle *handle; */ /*UNUSED*/
 	int method = RNA_enum_get(op->ptr, "method");
 	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
 	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
