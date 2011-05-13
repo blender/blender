@@ -398,10 +398,14 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
 void view3d_to_ob(RegionView3D *rv3d, Object *ob)
 {
-	float dvec[3];
 	float mat3[3][3];
+	float iviewquat[4];
+	float dvec[3]= {0.0f, 0.0f, rv3d->dist};
 
-	mul_v3_v3fl(dvec, rv3d->viewinv[2], rv3d->dist);
+	invert_qt_qt(iviewquat, rv3d->viewquat);
+	normalize_qt(iviewquat);
+	mul_qt_v3(iviewquat, dvec);
+
 	sub_v3_v3v3(ob->loc, dvec, rv3d->ofs);
 	rv3d->viewquat[0]= -rv3d->viewquat[0];
 
