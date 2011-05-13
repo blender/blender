@@ -74,6 +74,12 @@ WITH_BF_BULLET = True
 # Blender player (would be enabled in it's own config)
 WITH_BF_PLAYER = False
 
+# Use jemalloc memory manager
+WITH_BF_JEMALLOC = True
+WITH_BF_STATICJEMALLOC = True
+BF_JEMALLOC = '/home/sources/staticlibs/jemalloc'
+BF_JEMALLOC_LIBPATH = '${BF_JEMALLOC}/lib32'
+
 # Compilation and optimization
 BF_DEBUG = False
 REL_CFLAGS = ['-O2']
