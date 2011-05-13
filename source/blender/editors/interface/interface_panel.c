@@ -509,7 +509,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	if(!(panel->flag & PNL_CLOSEDX)) {
 		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
 
-		/* itemrect smaller */  
+		/* itemrect smaller */
 		itemrect.xmax= headrect.xmax - 5.0f/block->aspect;
 		itemrect.xmin= itemrect.xmax - (headrect.ymax-headrect.ymin);
 		itemrect.ymin= headrect.ymin;

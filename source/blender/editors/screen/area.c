@@ -69,39 +69,6 @@
 
 /* general area and region code */
 
-static void region_draw_emboss(ARegion *ar, rcti *scirct)
-{
-	rcti rect;
-	
-	/* translate scissor rect to region space */
-	rect.xmin= scirct->xmin - ar->winrct.xmin;
-	rect.ymin= scirct->ymin - ar->winrct.ymin;
-	rect.xmax= scirct->xmax - ar->winrct.xmin;
-	rect.ymax= scirct->ymax - ar->winrct.ymin;
-	
-	/* set transp line */
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	/* right  */
-	glColor4ub(0,0,0, 50);
-	sdrawline(rect.xmax, rect.ymin, rect.xmax, rect.ymax);
-	
-	/* bottom  */
-	glColor4ub(0,0,0, 80);
-	sdrawline(rect.xmin, rect.ymin, rect.xmax, rect.ymin);
-	
-	/* top  */
-	glColor4ub(255,255,255, 60);
-	sdrawline(rect.xmin, rect.ymax, rect.xmax, rect.ymax);
-
-	/* left  */
-	glColor4ub(255,255,255, 50);
-	sdrawline(rect.xmin, rect.ymin, rect.xmin, rect.ymax);
-	
-	glDisable( GL_BLEND );
-}
-
 void ED_region_pixelspace(ARegion *ar)
 {
 	int width= ar->winrct.xmax-ar->winrct.xmin+1;
@@ -152,7 +119,6 @@ void ED_area_do_refresh(bContext *C, ScrArea *sa)
 /* only exported for WM */
 void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 {
-#if 0
 	AZone *az;
 	
 	for(az= sa->actionzones.first; az; az= az->next) {
@@ -166,29 +132,20 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 			az->do_draw= 1;
 		}
 	}
-#endif
 }
 
 static void area_draw_azone(short x1, short y1, short x2, short y2)
 {
-	int dx= floor(0.3f*(x2-x1));
-	int dy= floor(0.3f*(y2-y1));
-	
-	glColor4ub(255, 255, 255, 180);
-	fdrawline(x1, y2, x2, y1);
-	glColor4ub(255, 255, 255, 130);
-	fdrawline(x1, y2-dy, x2-dx, y1);
-	glColor4ub(255, 255, 255, 80);
-	fdrawline(x1, y2-2*dy, x2-2*dx, y1);
-	
-	glColor4ub(0, 0, 0, 210);
-	fdrawline(x1, y2+1, x2+1, y1);
-	glColor4ub(0, 0, 0, 180);
-	fdrawline(x1, y2-dy+1, x2-dx+1, y1);
-	glColor4ub(0, 0, 0, 150);
-	fdrawline(x1, y2-2*dy+1, x2-2*dx+1, y1);
-}
+	int dx= floor(0.9f*(x2-x1));
+	int dy= floor(0.9f*(y2-y1));
 
+	glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
+	glBegin(GL_TRIANGLES);
+	glVertex2f(x1, y1);
+	glVertex2f(x1+dx, y1);
+	glVertex2f(x1, y1+dy);
+	glEnd();
+}
 
 static void region_draw_azone(AZone *az)
 {
@@ -233,7 +190,6 @@ static void region_draw_azone(AZone *az)
 /* only exported for WM */
 void ED_area_overdraw(bContext *C)
 {
-#if 0
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *sa;
@@ -259,7 +215,7 @@ void ED_area_overdraw(bContext *C)
 		}
 	}	
 	glDisable( GL_BLEND );
-#endif
+	
 }
 
 /* get scissor rect, checking overlapping regions */
