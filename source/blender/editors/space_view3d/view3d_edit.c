@@ -391,8 +391,6 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			negate_v3(vod->dyn_ofs);
 			copy_v3_v3(vod->ofs, rv3d->ofs);
-		} else {
-			vod->ofs[0] = vod->ofs[1] = vod->ofs[2] = 0.0f;
 		}
 	}
 
