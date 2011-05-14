@@ -40,6 +40,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_lamp_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -790,7 +791,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			View3D *v3d = vod->sa->spacedata.first;
 
 			if(v3d->camera) {
-				view3d_apply_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+				ED_view3d_from_object(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 			}
 
 			if(rv3d->persp==RV3D_CAMOB) {
@@ -3447,4 +3448,63 @@ void view3d_persp_mat4(RegionView3D *rv3d, float mat[][4])
 	translate_m4(mat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
 	mul_v3_v3fl(dvec, mat[2], -rv3d->dist);
 	sub_v3_v3v3(mat[3], dvec, rv3d->ofs);
+}
+
+
+/* Gets the view trasnformation from a camera
+* currently dosnt take camzoom into account
+*
+* The dist is not modified for this function, if NULL its assimed zero
+* */
+void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
+{
+	/* Offset */
+	if (ofs)
+		negate_v3_v3(ofs, mat[3]);
+
+	/* Quat */
+	if (quat) {
+		float imat[4][4];
+		invert_m4_m4(imat, mat);
+		mat4_to_quat(quat, imat);
+	}
+
+	if (dist) {
+		float nmat[3][3];
+		float vec[3];
+
+		vec[0]= 0.0f;
+		vec[1]= 0.0f;
+		vec[2]= -(*dist);
+
+		copy_m3_m4(nmat, mat);
+		normalize_m3(nmat);
+
+		mul_m3_v3(nmat, vec);;
+		sub_v3_v3(ofs, vec);
+	}
+}
+
+
+/* object -> view */
+void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist, float *lens)
+{
+	ED_view3d_from_m4(ob->obmat, ofs, quat, dist);
+
+	if (lens) {
+		get_object_clip_range(ob, lens, NULL, NULL);
+	}
+}
+
+/* view -> object */
+void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], const float dist)
+{
+	float mat4[4][4];
+	float dvec[3]= {0.0f, 0.0f, dist};
+	float iviewquat[4]= {-quat[0], quat[1], quat[2], quat[3]};
+
+	quat_to_mat4(mat4, iviewquat);
+	mul_mat3_m4_v3(mat4, dvec);
+	sub_v3_v3v3(mat4[3], dvec, ofs);
+	object_apply_mat4(ob, mat4, TRUE, TRUE);
 }

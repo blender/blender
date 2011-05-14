@@ -109,6 +109,7 @@ void viewvector(struct RegionView3D *rv3d, float coord[3], float vec[3]);
 void viewline(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_end[3]);
 void viewray(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_normal[3]);
 
+void get_object_clip_range(struct Object *ob, float *lens, float *clipsta, float *clipend);
 int get_view3d_cliprange(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
 int get_view3d_viewplane(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 int get_view3d_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
@@ -187,10 +188,10 @@ unsigned int ED_viewedit_datamask(struct bScreen *screen);
 
 
 /* assigning view matrix */
-void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist);
+void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist);
 
-void view3d_apply_ob(struct Object *ob, float *ofs, float *quat, float *dist, float *lens);
-void view3d_to_ob(struct RegionView3D *rv3d, struct Object *ob);
+void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
+void ED_view3d_to_object(struct Object *ob, const float ofs[3], const float quat[4], const float dist);
 
 int view3d_is_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
 

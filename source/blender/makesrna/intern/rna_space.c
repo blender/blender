@@ -426,7 +426,7 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 {
 	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
 	negate_v3_v3(rv3d->ofs, values);
-	view3d_apply_mat4((float (*)[4])values, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+	ED_view3d_from_m4((float (*)[4])values, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
 }
 
 /* Space Image Editor */
