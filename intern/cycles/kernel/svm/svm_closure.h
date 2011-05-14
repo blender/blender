@@ -183,10 +183,10 @@ __device void svm_node_mix_closure(ShaderData *sd, float *stack,
 	   offset from the current node, so we jump */
 	if(*randb < weight) {
 		*offset += node_jump;
-		*randb = (*randb - weight)/(1.0f - weight);
+		*randb = *randb/weight;
 	}
 	else
-		*randb = *randb/weight;
+		*randb = (*randb - weight)/(1.0f - weight);
 }
 
 __device void svm_node_add_closure(ShaderData *sd, float *stack, uint unused,
@@ -199,10 +199,10 @@ __device void svm_node_add_closure(ShaderData *sd, float *stack, uint unused,
 	   of the two closures being added */
 	if(*randb < weight) {
 		*offset += node_jump;
-		*randb = (*randb - weight)/(1.0f - weight);
+		*randb = *randb/weight;
 	}
 	else
-		*randb = *randb/weight;
+		*randb = (*randb - weight)/(1.0f - weight);
 	
 	*closure_weight *= 2.0f;
 }
