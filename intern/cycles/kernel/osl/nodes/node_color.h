@@ -1,6 +1,4 @@
 /*
- * Copyright 2011, Blender Foundation.
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -16,18 +14,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "stdosl.h"
-#include "node_color.h"
+/* Color Management */
 
-shader node_environment_texture(
-	vector Vector = P,
-	string filename = "",
-	string color_space = "sRGB",
-	output color Color = color(0.0, 0.0, 0.0))
+float color_srgb_to_scene_linear(float c)
 {
-	Color = (color)environment(filename, Vector);
+	if(c < 0.04045)
+		return (c < 0.0)? 0.0: c * (1.0/12.92);
+	else
+		return pow((c + 0.055)*(1.0/1.055), 2.4);
+}
 
-	if(color_space == "sRGB")
-		Color = color_srgb_to_scene_linear(Color);
+float color_scene_linear_to_srgb(float c)
+{
+	if(c < 0.0031308)
+		return (c < 0.0)? 0.0: c * 12.92;
+    else
+		return 1.055 * pow(c, 1.0/2.4) - 0.055;
+}
+
+color color_srgb_to_scene_linear(color c)
+{
+	return color(
+		color_srgb_to_scene_linear(c[0]),
+		color_srgb_to_scene_linear(c[1]),
+		color_srgb_to_scene_linear(c[2]));
+}
+
+color color_scene_linear_to_srgb(color c)
+{
+	return color(
+		color_scene_linear_to_srgb(c[0]),
+		color_scene_linear_to_srgb(c[1]),
+		color_scene_linear_to_srgb(c[2]));
 }
 

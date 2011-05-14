@@ -17,6 +17,7 @@
  */
 
 #include "stdosl.h"
+#include "node_color.h"
 
 shader node_image_texture(
 	point Vector = P,

@@ -27,7 +27,7 @@ SET(headers
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RTTI_DISABLE_FLAGS}")
 
-ADD_LIBRARY(kernel_osl ${sources} ${headers})
+ADD_LIBRARY(cycles_kernel_osl ${sources} ${headers})
 
 ADD_SUBDIRECTORY(nodes)
 

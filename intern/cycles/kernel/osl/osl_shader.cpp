@@ -31,7 +31,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-tls_ptr(ThreadData, OSLGlobals::thread_data);
+tls_ptr(OSLGlobals::ThreadData, OSLGlobals::thread_data);
 
 /* Threads */
 
