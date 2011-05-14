@@ -278,6 +278,7 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar, short do_clip)
 typedef struct ViewOpsData {
 	ScrArea *sa;
 	ARegion *ar;
+	View3D *v3d;
 	RegionView3D *rv3d;
 
 	/* needed for continuous zoom */
@@ -332,7 +333,6 @@ static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
 static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 {
 	static float lastofs[3] = {0,0,0};
-	View3D *v3d;
 	RegionView3D *rv3d;
 	ViewOpsData *vod= MEM_callocN(sizeof(ViewOpsData), "viewops data");
 
@@ -340,7 +340,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= vod;
 	vod->sa= CTX_wm_area(C);
 	vod->ar= CTX_wm_region(C);
-	v3d= vod->sa->spacedata.first;
+	vod->v3d= vod->sa->spacedata.first;
 	vod->rv3d= rv3d= vod->ar->regiondata;
 	vod->dist0= rv3d->dist;
 	copy_qt_qt(vod->oldquat, rv3d->viewquat);
@@ -359,7 +359,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
 
-		if((vod->use_dyn_ofs=view_autodist(CTX_data_scene(C), vod->ar, v3d, event->mval, vod->dyn_ofs))) {
+		if((vod->use_dyn_ofs=view_autodist(CTX_data_scene(C), vod->ar, vod->v3d, event->mval, vod->dyn_ofs))) {
 			if (rv3d->persp==RV3D_PERSP) {
 				float my_origin[3]; /* original G.vd->ofs */
 				float my_pivot[3]; /* view */
@@ -400,8 +400,8 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	window_to_3d_vector(vod->ar, vod->mousevec, vod->oldx - vod->ar->winrct.xmin, vod->oldy - vod->ar->winrct.ymin);
 
 	/* lookup, we dont pass on v3d to prevent confusement */
-	vod->grid= v3d->grid;
-	vod->far= v3d->far;
+	vod->grid= vod->v3d->grid;
+	vod->far= vod->v3d->far;
 
 	calctrackballvec(&vod->ar->winrct, event->x, event->y, vod->trackvec);
 
@@ -788,10 +788,8 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		else if(rv3d->persp==RV3D_CAMOB) {
 
 			/* changed since 2.4x, use the camera view */
-			View3D *v3d = vod->sa->spacedata.first;
-
-			if(v3d->camera) {
-				ED_view3d_from_object(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+			if(vod->v3d->camera) {
+				ED_view3d_from_object(vod->v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 			}
 
 			if(rv3d->persp==RV3D_CAMOB) {
@@ -1270,6 +1268,12 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 /* viewdolly_invoke() copied this function, changes here may apply there */
 static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ViewOpsData *vod;
+
+	/* makes op->customdata */
+	viewops_data_create(C, op, event);
+	vod= op->customdata;
+
 	/* if one or the other zoom position aren't set, set from event */
 	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
 	{
@@ -1278,18 +1282,9 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(RNA_property_is_set(op->ptr, "delta")) {
-		/* makes op->customdata */
-		viewops_data_create(C, op, event);
 		viewzoom_exec(C, op);
 	}
 	else {
-		ViewOpsData *vod;
-
-		/* makes op->customdata */
-		viewops_data_create(C, op, event);
-
-		vod= op->customdata;
-
 		if (event->type == MOUSEZOOM) {
 			/* Bypass Zoom invert flag for track pads (pass FALSE always) */
 
@@ -1477,7 +1472,14 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 
 /* copied from viewzoom_invoke(), changes here may apply there */
 static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{	
+{
+	ViewOpsData *vod;
+
+	/* makes op->customdata */
+	viewops_data_create(C, op, event);
+
+	vod= op->customdata;
+
 	/* if one or the other zoom position aren't set, set from event */
 	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
 	{
@@ -1486,18 +1488,9 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(RNA_property_is_set(op->ptr, "delta")) {
-		/* makes op->customdata */
-		viewops_data_create(C, op, event);
 		viewdolly_exec(C, op);
 	}
 	else {
-		ViewOpsData *vod;
-
-		/* makes op->customdata */
-		viewops_data_create(C, op, event);
-
-		vod= op->customdata;
-
 		/* overwrite the mouse vector with the view direction (zoom into the center) */
 		if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) == 0) {
 			negate_v3_v3(vod->mousevec, vod->rv3d->viewinv[2]);
