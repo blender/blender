@@ -244,6 +244,7 @@ typedef struct View3D {
 #define V3D_RENDER_OVERRIDE		4
 #define V3D_SOLID_TEX			8
 #define V3D_DISPGP				16
+#define V3D_LOCK_CAMERA			32
 
 /* View3D->around */
 #define V3D_CENTER		 0

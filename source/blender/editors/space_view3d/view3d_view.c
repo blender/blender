@@ -161,7 +161,19 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 	sms.new_dist= rv3d->dist;
 	sms.new_lens= v3d->lens;
 	sms.to_camera= 0;
-	
+
+	/* note on camera locking, this is a little confusing but works ok.
+	 * we may be changing the view 'as if' there is no active camera, but infact
+	 * there is an active camera which is locked to the view.
+	 *
+	 * In the case where smooth view is moving _to_ a camera we dont want that
+	 * camera to be moved or changed, so only when the camera is not being set should
+	 * we allow camera option locking to initialize the view settings from the camera.
+	 */
+	if(camera == NULL && oldcamera == NULL) {
+		ED_view3d_camera_lock_init(v3d, rv3d);
+	}
+
 	/* store the options we want to end with */
 	if(ofs) copy_v3_v3(sms.new_ofs, ofs);
 	if(quat) copy_qt_qt(sms.new_quat, quat);
@@ -325,6 +337,8 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 		
 		rv3d->dist = sms->new_dist * step + sms->orig_dist*step_inv;
 		v3d->lens = sms->new_lens * step + sms->orig_lens*step_inv;
+
+		ED_view3d_camera_lock_sync(v3d, rv3d);
 	}
 	
 	if(rv3d->viewlock & RV3D_BOXVIEW)
