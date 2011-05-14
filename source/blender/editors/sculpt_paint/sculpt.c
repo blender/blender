@@ -3287,18 +3287,23 @@ static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
 	sculpt_update_tex(sd, ss);
 }
 
-static int sculpt_brush_stroke_init(bContext *C, ReportList *UNUSED(reports))
+static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
+	int mode= RNA_enum_get(op->ptr, "mode");
+	int is_smooth= 0;
 
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_init_tex(sd, ss);
 
-	sculpt_update_mesh_elements(scene, sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+	is_smooth|= mode == BRUSH_STROKE_SMOOTH;
+	is_smooth|= brush->sculpt_tool == SCULPT_TOOL_SMOOTH;
+
+	sculpt_update_mesh_elements(scene, sd, ob, is_smooth);
 
 	return 1;
 }
@@ -3514,7 +3519,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	struct PaintStroke *stroke;
 	int ignore_background_click;
 
-	if(!sculpt_brush_stroke_init(C, op->reports))
+	if(!sculpt_brush_stroke_init(C, op))
 		return OPERATOR_CANCELLED;
 
 	stroke = paint_stroke_new(C, sculpt_stroke_get_location,
@@ -3543,7 +3548,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 
 static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
-	if(!sculpt_brush_stroke_init(C, op->reports))
+	if(!sculpt_brush_stroke_init(C, op))
 		return OPERATOR_CANCELLED;
 
 	op->customdata = paint_stroke_new(C, sculpt_stroke_get_location, sculpt_stroke_test_start,
