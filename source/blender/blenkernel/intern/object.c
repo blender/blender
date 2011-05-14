@@ -1719,9 +1719,22 @@ void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 		ob->rotAngle -= ob->drotAngle;
 		break;
 	default: /* euler */
-		if(use_compat)	mat3_to_compatible_eulO(ob->rot, ob->rot, ob->rotmode, mat);
-		else			mat3_to_eulO(ob->rot, ob->rotmode, mat);
-		sub_v3_v3(ob->rot, ob->drot);
+		{
+			float quat[4];
+			float dquat[4];
+			float tmat[3][3];
+
+			/* without drot we could apply 'mat' directly */
+			mat3_to_quat(quat, mat);
+			eulO_to_quat(dquat, ob->drot, ob->rotmode);
+			invert_qt(dquat);
+			mul_qt_qtqt(quat, dquat, quat);
+			quat_to_mat3(tmat, quat);
+			/* end drot correction */
+
+			if(use_compat)	mat3_to_compatible_eulO(ob->rot, ob->rot, ob->rotmode, tmat);
+			else			mat3_to_eulO(ob->rot, ob->rotmode, tmat);
+		}
 	}
 }
 
