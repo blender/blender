@@ -1886,9 +1886,22 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 
 static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
 {
+	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Scene *scene= CTX_data_scene(C);
+	float xfac, yfac;
+	float size[2];
 
 	rv3d->camdx= rv3d->camdy= 0.0f;
+
+	view3d_viewborder_size_get(scene, ar, size);
+
+	/* 4px is just a little room from the edge of the area */
+	xfac= (float)ar->winx / (float)(size[0] + 4);
+	yfac= (float)ar->winy / (float)(size[1] + 4);
+
+	rv3d->camzoom= (sqrtf(4.0f * MIN2(xfac, yfac)) - (float)M_SQRT2) * 50.0f;
+	rv3d->camzoom= CLAMPIS(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 
