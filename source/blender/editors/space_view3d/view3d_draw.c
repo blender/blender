@@ -763,7 +763,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 /* draw info beside axes in bottom left-corner: 
 * 	framenum, object name, bone name (if available), marker name (if available)
 */
-static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
+static void draw_selected_name(Scene *scene, Object *ob)
 {
 	char info[256], *markern;
 	short offset=30;
@@ -832,7 +832,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 		}
 		
 		/* color depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /*BKE_curframe(scene)*/(float)(CFRA), v3d->keyflags))
+		if (id_frame_has_keyframe((ID *)ob, /*BKE_curframe(scene)*/(float)(CFRA), ANIMFILTER_KEYS_LOCAL))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -2469,7 +2469,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
 
-	if(rv3d->view==0 || rv3d->persp != RV3D_ORTHO) {
+	if((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 			drawfloor(scene, v3d, &grid_unit);
 		}
@@ -2641,7 +2641,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	ob= OBACT;
 	if(U.uiflag & USER_DRAWVIEWINFO) 
-		draw_selected_name(scene, ob, v3d);
+		draw_selected_name(scene, ob);
 	
 	/* XXX here was the blockhandlers for floating panels */
 

@@ -218,7 +218,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 			if((rv3d->viewlock & RV3D_LOCKED)==0) {
 				/* use existing if exists, means multiple calls to smooth view wont loose the original 'view' setting */
 				sms.orig_view= rv3d->sms ? rv3d->sms->orig_view : rv3d->view;
-				rv3d->view= 0;
+				rv3d->view= RV3D_VIEW_USER;
 			}
 
 			sms.time_allowed= (double)U.smooth_viewtx / 1000.0;
@@ -1116,7 +1116,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 	float bmat[4][4];
 	float tmat[3][3];
 	
-	rv3d->view= 0; /* dont show the grid */
+	rv3d->view= RV3D_VIEW_USER; /* dont show the grid */
 	
 	copy_m4_m4(bmat, ob->obmat);
 	normalize_m4(bmat);
@@ -1869,7 +1869,7 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 	cross_v3_v3v3(axis, alignaxis, norm);
 	axis_angle_to_quat( new_quat,axis, -angle);
 	
-	rv3d->view= 0;
+	rv3d->view= RV3D_VIEW_USER;
 	
 	if (rv3d->persp==RV3D_CAMOB && v3d->camera) {
 		/* switch out of camera view */
