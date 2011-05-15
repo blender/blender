@@ -193,7 +193,10 @@ void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
 void ED_view3d_to_object(struct Object *ob, const float ofs[3], const float quat[4], const float dist);
 
+/* camera lock functions */
+/* copy the camera to the view before starting a view transformation */
 void ED_view3d_camera_lock_init(struct View3D *v3d, struct RegionView3D *rv3d);
+/* copy the view to the camera */
 void ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
 
 int view3d_is_ortho(struct View3D *v3d, struct RegionView3D *rv3d);

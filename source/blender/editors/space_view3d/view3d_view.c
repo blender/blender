@@ -308,6 +308,8 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 			copy_qt_qt(rv3d->viewquat, sms->new_quat);
 			rv3d->dist = sms->new_dist;
 			v3d->lens = sms->new_lens;
+
+			ED_view3d_camera_lock_sync(v3d, rv3d);
 		}
 		
 		if((rv3d->viewlock & RV3D_LOCKED)==0) {

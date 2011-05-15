@@ -93,6 +93,7 @@ void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 	if(v3d->camera && (v3d->flag2 & V3D_LOCK_CAMERA) && (rv3d->persp==RV3D_CAMOB)) {
 		ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 		DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
+		WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, v3d->camera);
 	}
 }
 
@@ -802,7 +803,9 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(rv3d->persp != RV3D_PERSP) {
 
 		if (U.uiflag & USER_AUTOPERSP) {
-			rv3d->persp= RV3D_PERSP;
+			if(!((rv3d->persp==RV3D_CAMOB) && (vod->v3d->flag2 & V3D_LOCK_CAMERA))) {
+				rv3d->persp= RV3D_PERSP;
+			}
 		}
 		else if(rv3d->persp==RV3D_CAMOB) {
 
@@ -2103,10 +2106,11 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	View3D *v3d= CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	/* if in camera view do not exec the operator so we do not conflict with set render border*/
-	if (rv3d->persp != RV3D_CAMOB)
+	if ((rv3d->persp != RV3D_CAMOB) || (v3d->flag2 & V3D_LOCK_CAMERA))
 		return WM_border_select_invoke(C, op, event);
 	else
 		return OPERATOR_PASS_THROUGH;
