@@ -360,6 +360,11 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	vod->ar= CTX_wm_region(C);
 	vod->v3d= vod->sa->spacedata.first;
 	vod->rv3d= rv3d= vod->ar->regiondata;
+
+	/* set the view from the camera, if view locking is enabled.
+	 * we may want to make this optional but for now its needed always */
+	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
+
 	vod->dist0= rv3d->dist;
 	copy_qt_qt(vod->oldquat, rv3d->viewquat);
 	vod->origx= vod->oldx= event->x;
@@ -797,8 +802,6 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 	}
 
-	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
-
 	/* switch from camera view when: */
 	if(rv3d->persp != RV3D_PERSP) {
 
@@ -993,10 +996,7 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* makes op->customdata */
 	viewops_data_create(C, op, event);
-
 	vod= op->customdata;
-
-	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
 
 	if (event->type == MOUSEPAN) {
 		viewmove_apply(vod, event->prevx, event->prevy);
@@ -1308,8 +1308,6 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	viewops_data_create(C, op, event);
 	vod= op->customdata;
 
-	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
-
 	/* if one or the other zoom position aren't set, set from event */
 	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
 	{
@@ -1515,10 +1513,7 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* makes op->customdata */
 	viewops_data_create(C, op, event);
-
 	vod= op->customdata;
-
-	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
 
 	/* if one or the other zoom position aren't set, set from event */
 	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
