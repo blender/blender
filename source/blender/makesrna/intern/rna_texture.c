@@ -56,21 +56,21 @@ EnumPropertyItem texture_filter_items[] = {
 
 EnumPropertyItem texture_type_items[] = {
 	{0, "NONE", 0, "None", ""},
-	{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
-	{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
-	{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", ""},
-	{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
-	{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", ""},
-	{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", ""},
-	{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
-	{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
-	{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
+	{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", "Procedural - Creates a ramp texture"},
+	{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", "Procedural - Creates a cloud-like fractal noise texture"},
+	{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", "Procedural - Noise texture distorted by two noise algorithms"},
+	{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", "Creates a render of the environment mapped to a texture"},
+	{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", "Allows for images or movies to be used as textures"},
+	{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", "Procedural - Color texture based on trigonometric functions"},
+	{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", "Procedural - Marble-like noise texture with wave generated bands"},
+	{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", "Procedural - Highly flexible fractal noise texture"},
+	{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", "Procedural - Random noise, gives a different result every time, for every frame, for every pixel"},
 	//{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""}, /* Nothing yet */
 	{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
-	{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
-	{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
-	{TEX_VOXELDATA, "VOXEL_DATA", ICON_TEXTURE, "Voxel Data", ""},
-	{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
+	{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", "Procedural - Creates a fractal noise texture"},
+	{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", "Procedural - Creates cell-like patterns based on Worley noise"},
+	{TEX_VOXELDATA, "VOXEL_DATA", ICON_TEXTURE, "Voxel Data", "Creates a 3d texture based on volumetric data"},
+	{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", "Procedural - Wave generated bands or rings, with optional noise"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -509,7 +509,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "blendtype");
 	RNA_def_property_enum_items(prop, prop_blend_type_items);
-	RNA_def_property_ui_text(prop, "Blend Type", "");
+	RNA_def_property_ui_text(prop, "Blend Type", "The mode used to apply the texture");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "use_stencil", PROP_BOOLEAN, PROP_NONE);
@@ -665,21 +665,21 @@ static void rna_def_environment_map(BlenderRNA *brna)
 }
 
 static EnumPropertyItem prop_noise_basis_items[] = {
-	{TEX_BLENDER, "BLENDER_ORIGINAL", 0, "Blender Original", ""},
-	{TEX_STDPERLIN, "ORIGINAL_PERLIN", 0, "Original Perlin", ""},
-	{TEX_NEWPERLIN, "IMPROVED_PERLIN", 0, "Improved Perlin", ""},
-	{TEX_VORONOI_F1, "VORONOI_F1", 0, "Voronoi F1", ""},
-	{TEX_VORONOI_F2, "VORONOI_F2", 0, "Voronoi F2", ""},
-	{TEX_VORONOI_F3, "VORONOI_F3", 0, "Voronoi F3", ""},
-	{TEX_VORONOI_F4, "VORONOI_F4", 0, "Voronoi F4", ""},
-	{TEX_VORONOI_F2F1, "VORONOI_F2_F1", 0, "Voronoi F2-F1", ""},
-	{TEX_VORONOI_CRACKLE, "VORONOI_CRACKLE", 0, "Voronoi Crackle", ""},
-	{TEX_CELLNOISE, "CELL_NOISE", 0, "Cell Noise", ""},
+	{TEX_BLENDER, "BLENDER_ORIGINAL", 0, "Blender Original", "Noise algorithm - Blender original: Smooth interpolated noise"},
+	{TEX_STDPERLIN, "ORIGINAL_PERLIN", 0, "Original Perlin", "Noise algorithm - Original Perlin: Smooth interpolated noise"},
+	{TEX_NEWPERLIN, "IMPROVED_PERLIN", 0, "Improved Perlin", "Noise algorithm - Improved Perlin: Smooth interpolated noise"},
+	{TEX_VORONOI_F1, "VORONOI_F1", 0, "Voronoi F1", "Noise algorithm - Voronoi F1: Returns distance to the closest feature point"},
+	{TEX_VORONOI_F2, "VORONOI_F2", 0, "Voronoi F2", "Noise algorithm - Voronoi F2: Returns distance to the 2nd closest feature point"},
+	{TEX_VORONOI_F3, "VORONOI_F3", 0, "Voronoi F3", "Noise algorithm - Voronoi F3: Returns distance to the 3rd closest feature point"},
+	{TEX_VORONOI_F4, "VORONOI_F4", 0, "Voronoi F4", "Noise algorithm - Voronoi F4: Returns distance to the 4th closest feature point"},
+	{TEX_VORONOI_F2F1, "VORONOI_F2_F1", 0, "Voronoi F2-F1", "Noise algorithm - Voronoi F1-F2"},
+	{TEX_VORONOI_CRACKLE, "VORONOI_CRACKLE", 0, "Voronoi Crackle", "Noise algorithm - Voronoi Crackle: Voronoi tessellation with sharp edges"},
+	{TEX_CELLNOISE, "CELL_NOISE", 0, "Cell Noise", "Noise algorithm - Cell Noise: Square cell tessallation"},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem prop_noise_type[] = {
-	{TEX_NOISESOFT, "SOFT_NOISE", 0, "Soft", ""},
-	{TEX_NOISEPERL, "HARD_NOISE", 0, "Hard", ""},
+	{TEX_NOISESOFT, "SOFT_NOISE", 0, "Soft", "Generate soft noise (smooth transitions)"},
+	{TEX_NOISEPERL, "HARD_NOISE", 0, "Hard", "Generate hard noise (sharp transitions)"},
 	{0, NULL, 0, NULL, NULL}};
 
 
@@ -726,7 +726,7 @@ static void rna_def_texture_clouds(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "cloud_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_clouds_stype);
-	RNA_def_property_ui_text(prop, "Color", "");
+	RNA_def_property_ui_text(prop, "Color", "Determines whether Noise returns grayscale or RGB values");
 	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
@@ -1195,11 +1195,11 @@ static void rna_def_texture_musgrave(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_musgrave_type[] = {
-		{TEX_MFRACTAL, "MULTIFRACTAL", 0, "Multifractal", ""},
-		{TEX_RIDGEDMF, "RIDGED_MULTIFRACTAL", 0, "Ridged Multifractal", ""},
-		{TEX_HYBRIDMF, "HYBRID_MULTIFRACTAL", 0, "Hybrid Multifractal", ""},
-		{TEX_FBM, "FBM", 0, "fBM", ""},
-		{TEX_HTERRAIN, "HETERO_TERRAIN", 0, "Hetero Terrain", ""},
+		{TEX_MFRACTAL, "MULTIFRACTAL", 0, "Multifractal", "Fractal noise algorithm. Multifractal: Uses Perlin noise as a basis"},
+		{TEX_RIDGEDMF, "RIDGED_MULTIFRACTAL", 0, "Ridged Multifractal", "Fractal noise algorithm. Ridged Multifractal: Uses Perlin noise with inflection as a basis"},
+		{TEX_HYBRIDMF, "HYBRID_MULTIFRACTAL", 0, "Hybrid Multifractal", "Fractal noise algorithm.Hybrid Multifractal: Uses Perlin noise as a basis, with extended controls"},
+		{TEX_FBM, "FBM", 0, "fBM", "Fractal noise algorithm. Fractal Brownian Motion: Uses Brownian noise as a basis"},
+		{TEX_HTERRAIN, "HETERO_TERRAIN", 0, "Hetero Terrain", "Fractal noise algorithm. Hetero Terrain: similar to multifractal"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MusgraveTexture", "Texture");
@@ -1245,7 +1245,7 @@ static void rna_def_texture_musgrave(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "noise_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ns_outscale");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Noise Intensity", "");
+	RNA_def_property_ui_text(prop, "Noise Intensity", "Scales the intensity of the noise");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_scale", PROP_FLOAT, PROP_NONE);
@@ -1274,13 +1274,13 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_distance_metric_items[] = {
-		{TEX_DISTANCE, "DISTANCE", 0, "Actual Distance", ""},
-		{TEX_DISTANCE_SQUARED, "DISTANCE_SQUARED", 0, "Distance Squared", ""},
-		{TEX_MANHATTAN, "MANHATTAN", 0, "Manhattan", ""},
-		{TEX_CHEBYCHEV, "CHEBYCHEV", 0, "Chebychev", ""},
-		{TEX_MINKOVSKY_HALF, "MINKOVSKY_HALF", 0, "Minkovsky 1/2", ""},
-		{TEX_MINKOVSKY_FOUR, "MINKOVSKY_FOUR", 0, "Minkovsky 4", ""},
-		{TEX_MINKOVSKY, "MINKOVSKY", 0, "Minkovsky", ""},
+		{TEX_DISTANCE, "DISTANCE", 0, "Actual Distance", "Algorithm used to calculate distance of sample points to feature points. Actual Distance: sqrt(x*x+y*y+z*z)"},
+		{TEX_DISTANCE_SQUARED, "DISTANCE_SQUARED", 0, "Distance Squared", "Algorithm used to calculate distance of sample points to feature points. Distance squared: (x*x+y*y+z*z)"},
+		{TEX_MANHATTAN, "MANHATTAN", 0, "Manhattan", "Algorithm used to calculate distance of sample points to feature points. Manhattan: The length of the distance in axial directions"},
+		{TEX_CHEBYCHEV, "CHEBYCHEV", 0, "Chebychev", "Algorithm used to calculate distance of sample points to feature points. Chebychev: The length of the longest Axial journey"},
+		{TEX_MINKOVSKY_HALF, "MINKOVSKY_HALF", 0, "Minkovsky 1/2", "Algorithm used to calculate distance of sample points to feature points. Minovsky 1/2: Sets Minkovsky variable to 0.5"},
+		{TEX_MINKOVSKY_FOUR, "MINKOVSKY_FOUR", 0, "Minkovsky 4", "Algorithm used to calculate distance of sample points to feature points. Minkovsky 4: Sets Minkovsky variable to 4"},
+		{TEX_MINKOVSKY, "MINKOVSKY", 0, "Minkovsky", "Algorithm used to calculate distance of sample points to feature points. Minkovsky: Uses the Minkowsky function to calculate distance. Exponent value determines the shape of the boundaries"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_coloring_items[] = {
@@ -1340,7 +1340,7 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "noise_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ns_outscale");
 	RNA_def_property_range(prop, 0.01, 10);
-	RNA_def_property_ui_text(prop, "Noise Intensity", "");
+	RNA_def_property_ui_text(prop, "Noise Intensity", "Scales the intensity of the noise");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_scale", PROP_FLOAT, PROP_NONE);
@@ -1369,7 +1369,7 @@ static void rna_def_texture_distorted_noise(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "distortion", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dist_amount");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Distortion Amount", "");
+	RNA_def_property_ui_text(prop, "Distortion Amount", "Amount of distortion");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_scale", PROP_FLOAT, PROP_NONE);
@@ -1550,7 +1550,6 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "turbulence_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noise_fac");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Strength", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "turbulence_depth", PROP_INT, PROP_NONE);
@@ -1737,17 +1736,17 @@ static void rna_def_texture(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bright");
 	RNA_def_property_range(prop, 0, 2);
-	RNA_def_property_ui_text(prop, "Brightness", "");
+	RNA_def_property_ui_text(prop, "Brightness", "Adjusts the brightness of the texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 5);
-	RNA_def_property_ui_text(prop, "Contrast", "");
+	RNA_def_property_ui_text(prop, "Contrast", "Adjusts the contrast of the texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "saturation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 2);
-	RNA_def_property_ui_text(prop, "Saturation", "");
+	RNA_def_property_ui_text(prop, "Saturation", "Adjusts the saturation of colors in the texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	/* RGB Factor */

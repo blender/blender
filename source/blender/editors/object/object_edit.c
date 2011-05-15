@@ -1689,6 +1689,7 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Flat";
+	ot->description= "Display faces 'smooth' (using vertext normals)";
 	ot->idname= "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
@@ -1703,6 +1704,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Smooth";
+	ot->description= "Display faces 'flat'";
 	ot->idname= "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
@@ -2053,6 +2055,7 @@ void OBJECT_OT_game_property_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "New Game Property";
+	ot->description= "Create a new property available to the game engine";
 	ot->idname= "OBJECT_OT_game_property_new";
 
 	/* api callbacks */
@@ -2090,6 +2093,7 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Game Property";
+	ot->description= "Remove game property";
 	ot->idname= "OBJECT_OT_game_property_remove";
 
 	/* api callbacks */

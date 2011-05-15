@@ -1682,7 +1682,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, type_items);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_ui_text(prop, "Type", "Particle Type");
 	RNA_def_property_update(prop, 0, "rna_Particle_change_type");
 
 	prop= RNA_def_property(srna, "emit_from", PROP_ENUM, PROP_NONE);
@@ -1896,7 +1896,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "integrator", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, integrator_type_items);
-	RNA_def_property_ui_text(prop, "Integration", "Select physics integrator type");
+	RNA_def_property_ui_text(prop, "Integration", "Algorithm used to calculate physics. Fastest to most stable/accurate: Midpoint, Euler, Verlet, RK4 (Old)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "kink", PROP_ENUM, PROP_NONE);

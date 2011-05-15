@@ -1038,18 +1038,18 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem display_mode_items[] = {
-		{SO_ALL_SCENES, "ALL_SCENES", 0, "All Scenes", ""},
-		{SO_CUR_SCENE, "CURRENT_SCENE", 0, "Current Scene", ""},
-		{SO_VISIBLE, "VISIBLE_LAYERS", 0, "Visible Layers", ""},
-		{SO_SELECTED, "SELECTED", 0, "Selected", ""},
-		{SO_ACTIVE, "ACTIVE", 0, "Active", ""},
-		{SO_SAME_TYPE, "SAME_TYPES", 0, "Same Types", ""},
-		{SO_GROUPS, "GROUPS", 0, "Groups", ""},
-		{SO_LIBRARIES, "LIBRARIES", 0, "Libraries", ""},
-		{SO_SEQUENCE, "SEQUENCE", 0, "Sequence", ""},
-		{SO_DATABLOCKS, "DATABLOCKS", 0, "Datablocks", ""},
-		{SO_USERDEF, "USER_PREFERENCES", 0, "User Preferences", ""},
-		{SO_KEYMAP, "KEYMAPS", 0, "Key Maps", ""},
+		{SO_ALL_SCENES, "ALL_SCENES", 0, "All Scenes", "Display datablocks in all scenes"},
+		{SO_CUR_SCENE, "CURRENT_SCENE", 0, "Current Scene", "Display datablocks in current scene"},
+		{SO_VISIBLE, "VISIBLE_LAYERS", 0, "Visible Layers", "Display datablocks in visible layers"},
+		{SO_SELECTED, "SELECTED", 0, "Selected", "Display datablocks of selected objects"},
+		{SO_ACTIVE, "ACTIVE", 0, "Active", "Display datablocks of active object"},
+		{SO_SAME_TYPE, "SAME_TYPES", 0, "Same Types", "Display datablocks of all objects of same type as selected object"},
+		{SO_GROUPS, "GROUPS", 0, "Groups", "Display groups and their datablocks"},
+		{SO_LIBRARIES, "LIBRARIES", 0, "Libraries", "Display libraries"},
+		{SO_SEQUENCE, "SEQUENCE", 0, "Sequence", "Display sequence datablocks"},
+		{SO_DATABLOCKS, "DATABLOCKS", 0, "Datablocks", "Display raw datablocks"},
+		{SO_USERDEF, "USER_PREFERENCES", 0, "User Preferences", "Display the user preference datablocks"},
+		{SO_KEYMAP, "KEYMAPS", 0, "Key Maps", "Display keymap datablocks"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SpaceOutliner", "Space");
@@ -1091,20 +1091,20 @@ static void rna_def_background_image(BlenderRNA *brna)
 	/* note: combinations work but dont flip so arnt that useful */
 	static EnumPropertyItem bgpic_axis_items[] = {
 		{0, "", 0, "X Axis", ""},
-		{(1<<RV3D_VIEW_LEFT), "LEFT", 0, "Left", ""},
-		{(1<<RV3D_VIEW_RIGHT), "RIGHT", 0, "Right", ""},
+		{(1<<RV3D_VIEW_LEFT), "LEFT", 0, "Left", "Show background image while looking to the left"},
+		{(1<<RV3D_VIEW_RIGHT), "RIGHT", 0, "Right", "Show background image while looking to the right"},
 		/*{(1<<RV3D_VIEW_LEFT)|(1<<RV3D_VIEW_RIGHT), "LEFT_RIGHT", 0, "Left/Right", ""},*/
 		{0, "", 0, "Y Axis", ""},
-		{(1<<RV3D_VIEW_BACK), "BACK", 0, "Back", ""},
-		{(1<<RV3D_VIEW_FRONT), "FRONT", 0, "Front", ""},
+		{(1<<RV3D_VIEW_BACK), "BACK", 0, "Back", "Show background image in back view"},
+		{(1<<RV3D_VIEW_FRONT), "FRONT", 0, "Front", "Show background image in front view"},
 		/*{(1<<RV3D_VIEW_BACK)|(1<<RV3D_VIEW_FRONT), "BACK_FRONT", 0, "Back/Front", ""},*/
 		{0, "", 0, "Z Axis", ""},
-		{(1<<RV3D_VIEW_BOTTOM), "BOTTOM", 0, "Bottom", ""},
-		{(1<<RV3D_VIEW_TOP), "TOP", 0, "Top", ""},
+		{(1<<RV3D_VIEW_BOTTOM), "BOTTOM", 0, "Bottom", "Show background image in bottom view"},
+		{(1<<RV3D_VIEW_TOP), "TOP", 0, "Top", "Show background image in top view"},
 		/*{(1<<RV3D_VIEW_BOTTOM)|(1<<RV3D_VIEW_TOP), "BOTTOM_TOP", 0, "Top/Bottom", ""},*/
 		{0, "", 0, "Other", ""},
-		{0, "ALL", 0, "All Views", ""},
-		{(1<<RV3D_VIEW_CAMERA), "CAMERA", 0, "Camera", ""},
+		{0, "ALL", 0, "All Views", "Show background image in all views"},
+		{(1<<RV3D_VIEW_CAMERA), "CAMERA", 0, "Camera", "Show background image in camera view"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "BackgroundImage", NULL);
@@ -1166,11 +1166,11 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	const int matrix_dimsize[]= {4, 4};
 		
 	static EnumPropertyItem pivot_items[] = {
-		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center", ""},
-		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", ""},
-		{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION, "Individual Origins", ""},
-		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point", ""},
-		{V3D_ACTIVE, "ACTIVE_ELEMENT", ICON_ROTACTIVE, "Active Element", ""},
+		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center", "Pivot around bounding box center of selected object(s)"},
+		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", "Pivot around the 3D cursor"},
+		{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION, "Individual Origins", "Pivot around each object's own origin"},
+		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point", "Pivot around the median point of selected objects"},
+		{V3D_ACTIVE, "ACTIVE_ELEMENT", ICON_ROTACTIVE, "Active Element", "Pivot around active object"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem rv3d_persp_items[] = {
@@ -1879,10 +1879,10 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem mode_items[] = {
-		{SACTCONT_DOPESHEET, "DOPESHEET", 0, "DopeSheet", ""},
-		{SACTCONT_ACTION, "ACTION", 0, "Action Editor", ""},
-		{SACTCONT_SHAPEKEY, "SHAPEKEY", 0, "ShapeKey Editor", ""},
-		{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", ""},
+		{SACTCONT_DOPESHEET, "DOPESHEET", 0, "DopeSheet", "DopeSheet Editor"},
+		{SACTCONT_ACTION, "ACTION", 0, "Action Editor", "Action Editor"},
+		{SACTCONT_SHAPEKEY, "SHAPEKEY", 0, "ShapeKey Editor", "ShapeKey Editor"},
+		{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", "Grease Pencil"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	
@@ -1961,8 +1961,8 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem mode_items[] = {
-		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curve Editor", ""},
-		{SIPO_MODE_DRIVERS, "DRIVERS", 0, "Drivers", ""},
+		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curve Editor", "Edit f-curves"},
+		{SIPO_MODE_DRIVERS, "DRIVERS", 0, "Drivers", "Edit drivers"},
 		{0, NULL, 0, NULL, NULL}};
 		
 		/* this is basically the same as the one for the 3D-View, but with some entries ommitted */

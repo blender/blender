@@ -68,14 +68,14 @@ EnumPropertyItem object_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem parent_type_items[] = {
-	{PAROBJECT, "OBJECT", 0, "Object", ""},
-	{PARCURVE, "CURVE", 0, "Curve", ""},
+	{PAROBJECT, "OBJECT", 0, "Object", "The object is parented to an object"},
+	{PARCURVE, "CURVE", 0, "Curve", "The object is parented to a curve"},
 	{PARKEY, "KEY", 0, "Key", ""},
 	{PARSKEL, "ARMATURE", 0, "Armature", ""},
-	{PARSKEL, "LATTICE", 0, "Lattice", ""}, // PARSKEL reuse will give issues
-	{PARVERT1, "VERTEX", 0, "Vertex", ""},
+	{PARSKEL, "LATTICE", 0, "Lattice", "The object is parented to a lattice"}, // PARSKEL reuse will give issues
+	{PARVERT1, "VERTEX", 0, "Vertex", "The object is parented to a vertex"},
 	{PARVERT3, "VERTEX_3", 0, "3 Vertices", ""},
-	{PARBONE, "BONE", 0, "Bone", ""},
+	{PARBONE, "BONE", 0, "Bone", "The object is parented to a bone"},
 	{0, NULL, 0, NULL, NULL}};
 	
 static EnumPropertyItem collision_bounds_items[] = {
@@ -1715,20 +1715,20 @@ static void rna_def_object(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem drawtype_items[] = {
-		{OB_BOUNDBOX, "BOUNDS", 0, "Bounds", ""},
-		{OB_WIRE, "WIRE", 0, "Wire", ""},
-		{OB_SOLID, "SOLID", 0, "Solid", ""},
+		{OB_BOUNDBOX, "BOUNDS", 0, "Bounds", "Draw the bounding box of the object"},
+		{OB_WIRE, "WIRE", 0, "Wire", "Draw the object as a wireframe"},
+		{OB_SOLID, "SOLID", 0, "Solid", "Draw the object as a solid (If solid drawing is enabled in the viewport)"},
 		// disabled {OB_SHADED, "SHADED", 0, "Shaded", ""},
-		{OB_TEXTURE, "TEXTURED", 0, "Textured", ""},
+		{OB_TEXTURE, "TEXTURED", 0, "Textured", "Draw the object with textures (If textures are enabled in the viewport)"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem boundtype_items[] = {
-		{OB_BOUND_BOX, "BOX", 0, "Box", ""},
-		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
-		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
-		{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
-		{OB_BOUND_POLYH, "POLYHEDRON", 0, "Polyhedron", ""},
-		{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", ""},
+		{OB_BOUND_BOX, "BOX", 0, "Box", "Draw bounds as box"},
+		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", "Draw bounds as sphere"},
+		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", "Draw bounds as cylinder"},
+		{OB_BOUND_CONE, "CONE", 0, "Cone", "Draw bounds as cone"},
+		{OB_BOUND_POLYH, "POLYHEDRON", 0, "Polyhedron", "Draw bounds as polyhedron"},
+		{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", "Draw bounds as capsule"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dupli_items[] = {

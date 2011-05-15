@@ -982,6 +982,7 @@ static int multires_higher_levels_delete_invoke(bContext *C, wmOperator *op, wmE
 void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
 {
 	ot->name= "Delete Higher Levels";
+	ot->description= "Deletes the higher resolution mesh, potential loss of detail";
 	ot->idname= "OBJECT_OT_multires_higher_levels_delete";
 
 	ot->poll= multires_poll;
