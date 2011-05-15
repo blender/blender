@@ -204,17 +204,28 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 		ob->dt = OB_TEXTURE;
 	}
 	else if(md->type == eModifierType_Multires) {
+		int ok= 1;
 		Mesh *me= ob->data;
+		ModifierData *tmpmd;
 
-		if(me->edit_mesh) {
-			EditMesh *em= me->edit_mesh;
-			/* CustomData_external_remove is used here only to mark layer as non-external
-			   for further free-ing, so zero element count looks safer than em->totface */
-			CustomData_external_remove(&em->fdata, &me->id, CD_MDISPS, 0);
-			EM_free_data_layer(em, &em->fdata, CD_MDISPS);
-		} else {
-			CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
-			CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+		/* ensure MDISPS CustomData layer is't used by another multires modifiers */
+		for(tmpmd= ob->modifiers.first; tmpmd; tmpmd= tmpmd->next)
+			if(tmpmd!=md && tmpmd->type == eModifierType_Multires) {
+				ok= 0;
+				break;
+			}
+
+		if(ok) {
+			if(me->edit_mesh) {
+				EditMesh *em= me->edit_mesh;
+				/* CustomData_external_remove is used here only to mark layer as non-external
+				   for further free-ing, so zero element count looks safer than em->totface */
+				CustomData_external_remove(&em->fdata, &me->id, CD_MDISPS, 0);
+				EM_free_data_layer(em, &em->fdata, CD_MDISPS);
+			} else {
+				CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
+				CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+			}
 		}
 	}
 
