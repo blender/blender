@@ -1583,7 +1583,7 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 
 	if (prv) {
 		int i;
-		for (i=0; i < PREVIEW_MIPMAPS; ++i) {
+		for (i=0; i < NUM_ICON_SIZES; ++i) {
 			if (prv->rect[i]) {
 				prv->rect[i] = newdataadr(fd, prv->rect[i]);
 			}

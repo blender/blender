@@ -1070,9 +1070,9 @@ void filelist_from_library(struct FileList* filelist)
 			PreviewImage *img= l->link;
 			
 			if (img) {
-				unsigned int w = img->w[PREVIEW_MIPMAP_LARGE];
-				unsigned int h = img->h[PREVIEW_MIPMAP_LARGE];
-				unsigned int *rect = img->rect[PREVIEW_MIPMAP_LARGE];
+				unsigned int w = img->w[ICON_SIZE_PREVIEW];
+				unsigned int h = img->h[ICON_SIZE_PREVIEW];
+				unsigned int *rect = img->rect[ICON_SIZE_PREVIEW];
 
 				/* first allocate imbuf for copying preview into it */
 				if (w > 0 && h > 0 && rect) {

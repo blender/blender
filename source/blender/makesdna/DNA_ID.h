@@ -123,12 +123,14 @@ typedef struct Library {
 	struct Library *parent;	/* set for indirectly linked libs, used in the outliner and while reading */
 } Library;
 
-#define PREVIEW_MIPMAPS 2
-#define PREVIEW_MIPMAP_ZERO 0
-#define PREVIEW_MIPMAP_LARGE 1
+enum eIconSizes {
+	ICON_SIZE_ICON,
+	ICON_SIZE_PREVIEW,
+	NUM_ICON_SIZES
+};
 
 typedef struct PreviewImage {
-	/* All values of 2 are really PREVIEW_MIPMAPS */
+	/* All values of 2 are really NUM_ICON_SIZES */
 	unsigned int w[2];
 	unsigned int h[2];
 	short changed[2];
