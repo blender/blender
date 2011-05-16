@@ -79,9 +79,15 @@
 #define snprintf _snprintf
 #endif
 
-/* **** XXX ******** */
-//static void waitcursor(int val) {}
-//static int blender_test_break() {return 0;}
+
+static ImBuf* seq_render_strip_stack( 
+	SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown);
+
+static ImBuf * seq_render_strip(
+	SeqRenderData context, Sequence * seq, float cfra);
+
+static void seq_free_animdata(Scene *scene, Sequence *seq);
+
 
 /* **** XXX ******** */
 #define SELECT 1
@@ -177,8 +183,6 @@ void seq_free_strip(Strip *strip)
 	MEM_freeN(strip);
 }
 
-static void seq_free_animdata(Scene *scene, Sequence *seq);
-
 void seq_free_sequence(Scene *scene, Sequence *seq)
 {
 	if(seq->strip) seq_free_strip(seq->strip);
@@ -189,6 +193,10 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 		struct SeqEffectHandle sh = get_sequence_effect(seq);
 
 		sh.free(seq);
+	}
+
+	if(seq->sound) {
+		((ID *)seq->sound)->us--; 
 	}
 
 	/* clipboard has no scene and will never have a sound handle or be active */
@@ -446,51 +454,6 @@ void seq_end(SeqIterator *iter)
   * in metastrips!)
   **********************************************************************
 */
-#if 0 /* UNUSED */
-static void do_seq_count(ListBase *seqbase, int *totseq)
-{
-	Sequence *seq;
-
-	seq= seqbase->first;
-	while(seq) {
-		(*totseq)++;
-		if(seq->seqbase.first) do_seq_count(&seq->seqbase, totseq);
-		seq= seq->next;
-	}
-}
-
-static void do_build_seqar(ListBase *seqbase, Sequence ***seqar, int depth)
-{
-	Sequence *seq;
-
-	seq= seqbase->first;
-	while(seq) {
-		seq->depth= depth;
-		if(seq->seqbase.first) do_build_seqar(&seq->seqbase, seqar, depth+1);
-		**seqar= seq;
-		(*seqar)++;
-		seq= seq->next;
-	}
-}
-
-static void build_seqar(ListBase *seqbase, Sequence  ***seqar, int *totseq)
-{
-	Sequence **tseqar;
-
-	*totseq= 0;
-	do_seq_count(seqbase, totseq);
-
-	if(*totseq==0) {
-		*seqar= NULL;
-		return;
-	}
-	*seqar= MEM_mallocN(sizeof(void *)* *totseq, "seqar");
-	tseqar= *seqar;
-
-	do_build_seqar(seqbase, seqar, 0);
-	*seqar= tseqar;
-}
-#endif /* UNUSED */
 
 static void do_seq_count_cb(ListBase *seqbase, int *totseq,
 				int (*test_func)(Sequence * seq))
@@ -916,6 +879,7 @@ static const char *give_seqname_by_type(int type)
 	case SEQ_TRANSFORM:  return "Transform";
 	case SEQ_COLOR:      return "Color";
 	case SEQ_MULTICAM:   return "Multicam";
+	case SEQ_ADJUSTMENT: return "Adjustment";
 	case SEQ_SPEED:      return "Speed";
 	default:
 		return NULL;
@@ -1093,15 +1057,12 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
 	}
 
 	if(evaluate_seq_frame_gen(seq_arr, seqbasep, cfra)) {
-		if (b > 0) {
-			if (seq_arr[b] == NULL) {
-				return 0;
-			}
-		} else {
-			for (b = MAXSEQ; b > 0; b--) {
-				if (video_seq_is_rendered(seq_arr[b])) {
-					break;
-				}
+		if (b == 0) {
+			b = MAXSEQ;
+		}
+		for (; b > 0; b--) {
+			if (video_seq_is_rendered(seq_arr[b])) {
+				break;
 			}
 		}
 	}
@@ -2855,7 +2816,10 @@ void seq_tx_set_final_right(Sequence *seq, int val)
    since they work a bit differently to normal image seq's (during transform) */
 int seq_single_check(Sequence *seq)
 {
-	return (seq->len==1 && ELEM3(seq->type, SEQ_IMAGE, SEQ_COLOR, SEQ_MULTICAM));
+	return (seq->len==1 && (
+			seq->type == SEQ_IMAGE 
+			|| ((seq->type & SEQ_EFFECT) && 
+			    get_sequence_effect_num_inputs(seq->type) == 0)));
 }
 
 /* check if the selected seq's reference unselected seq's */
@@ -3208,6 +3172,24 @@ ListBase *seq_seqbase(ListBase *seqbase, Sequence *seq)
 		}
 		else if(iseq->seqbase.first && (lb= seq_seqbase(&iseq->seqbase, seq))) {
 			return lb;
+		}
+	}
+
+	return NULL;
+}
+
+Sequence *seq_metastrip(ListBase * seqbase, Sequence * meta, Sequence *seq)
+{
+	Sequence * iseq;
+
+	for(iseq = seqbase->first; iseq; iseq = iseq->next) {
+		Sequence * rval;
+
+		if (seq == iseq) {
+			return meta;
+		} else if(iseq->seqbase.first && 
+			(rval = seq_metastrip(&iseq->seqbase, iseq, seq))) {
+			return rval;
 		}
 	}
 

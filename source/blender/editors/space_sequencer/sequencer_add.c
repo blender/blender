@@ -633,12 +633,13 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 			BKE_reportf(op->reports, RPT_ERROR, "Sequencer plugin \"%s\" could not load.", path);
 			return OPERATOR_CANCELLED;
 		}
-	}
-	else if (seq->type==SEQ_COLOR) {
+	} else if (seq->type == SEQ_COLOR) {
 		SolidColorVars *colvars= (SolidColorVars *)seq->effectdata;
 		RNA_float_get_array(op->ptr, "color", colvars->col);
 		seq->blend_mode= SEQ_CROSS; /* so alpha adjustment fade to the strip below */
 
+	} else if (seq->type == SEQ_ADJUSTMENT) {
+		seq->blend_mode= SEQ_CROSS;
 	}
 
 	// XXX, this conflicts with giving a channel with invoke, perhaps we should have an active channel

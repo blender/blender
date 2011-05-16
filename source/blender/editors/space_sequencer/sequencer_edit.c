@@ -100,6 +100,7 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 	{SEQ_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
 	{SEQ_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
 	{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+	{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -406,6 +407,7 @@ int event_to_efftype(int event)
 	if(event==15) return SEQ_TRANSFORM;
 	if(event==16) return SEQ_COLOR;
 	if(event==17) return SEQ_SPEED;
+	if(event==18) return SEQ_ADJUSTMENT;
 	return 0;
 }
 
@@ -517,7 +519,8 @@ static void change_sequence(Scene *scene)
 				"|Glow%x14"
 				"|Transform%x15"
 				"|Color Generator%x16"
-				"|Speed Control%x17");
+				"|Speed Control%x17"
+				"|Adjustment Layer%x18");
 		if(event > 0) {
 			if(event==1) {
 				SWAP(Sequence *,last_seq->seq1,last_seq->seq2);
@@ -703,15 +706,9 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 	while(seq) {
 		seqn= seq->next;
 		if((seq->flag & flag) || deleteall) {
-			if(seq->type==SEQ_SOUND && seq->sound) {
-				((ID *)seq->sound)->us--; /* TODO, could be moved into seq_free_sequence() */
-			}
-
 			BLI_remlink(lb, seq);
 			if(seq==last_seq) seq_active_set(scene, NULL);
 			if(seq->type==SEQ_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
-			/* if(seq->ipo) seq->ipo->id.us--; */
-			/* XXX, remove fcurve */
 			seq_free_sequence(scene, seq);
 		}
 		seq= seqn;
@@ -1705,11 +1702,6 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (nothingSelected)
 		return OPERATOR_FINISHED;
-
-	/* free imbufs of all dependent strips */
-	for(seq=ed->seqbasep->first; seq; seq=seq->next)
-		if(seq->flag & SELECT)
-			update_changed_seq_and_deps(scene, seq, 1, 0);
 
 	/* for effects, try to find a replacement input */
 	for(seq=ed->seqbasep->first; seq; seq=seq->next)

@@ -387,6 +387,8 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 			return &RNA_EffectSequence;
 		case SEQ_MULTICAM:
 			return &RNA_MulticamSequence;
+		case SEQ_ADJUSTMENT:
+			return &RNA_AdjustmentSequence;
 		case SEQ_PLUGIN:
 			return &RNA_PluginSequence;
 		case SEQ_WIPE:
@@ -844,6 +846,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_COLOR, "COLOR", 0, "Color", ""}, 
 		{SEQ_SPEED, "SPEED", 0, "Speed", ""}, 
 		{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+		{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem blend_mode_items[]= {
@@ -1371,6 +1374,20 @@ static void rna_def_multicam(BlenderRNA *brna)
 	rna_def_input(srna);
 }
 
+static void rna_def_adjustment(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "AdjustmentSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Adjustment Layer Sequence", "Sequence strip to perform filter adjustments to layers below");
+	RNA_def_struct_sdna(srna, "Sequence");
+
+	rna_def_filter_video(srna);
+	rna_def_proxy(srna);
+	rna_def_input(srna);
+}
+
 static void rna_def_plugin(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1620,6 +1637,7 @@ void RNA_def_sequencer(BlenderRNA *brna)
 	rna_def_sound(brna);
 	rna_def_effect(brna);
 	rna_def_multicam(brna);
+	rna_def_adjustment(brna);
 	rna_def_plugin(brna);
 	rna_def_wipe(brna);
 	rna_def_glow(brna);
