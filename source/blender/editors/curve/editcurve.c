@@ -7006,10 +7006,9 @@ static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *obe)
 	ED_curve_updateAnimPaths(obedit);
 }
 
-static void *editCurve_to_undoCurve(void *UNUSED(edata), void *obe)
+static void *editCurve_to_undoCurve(void *UNUSED(edata), void *obdata)
 {
-	Object *obedit= obe;
-	Curve *cu= (Curve*)obedit->data;
+	Curve *cu= obdata;
 	ListBase *nubase= ED_curve_editnurbs(cu);
 	UndoCurve *undoCurve;
 	EditNurb *editnurb= cu->editnurb, tmpEditnurb;

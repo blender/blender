@@ -27,7 +27,7 @@ type name (e.g. edges).  for double-type slots, use the two type names plus
 for output slots, for single-type geometry slots, use the type name plus "out",
 (e.g. vertout), for double-type slots, use the two type names plus "out",
 (e.g. vertfaceout), for three-type slots, use geom.  note that you can also
-use more esohteric names (e.g. skirtout) do long as the comment next to the
+use more esohteric names (e.g. skirtout) so long as the comment next to the
 slot definition tells you what types of elements are in it.
 
 */
