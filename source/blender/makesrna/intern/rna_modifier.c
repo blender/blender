@@ -1409,7 +1409,7 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mid_level", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "midlevel");
-	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Midlevel", "Material value that gives no displacement");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
