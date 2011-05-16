@@ -1377,7 +1377,7 @@ static void rna_def_multicam(BlenderRNA *brna)
 static void rna_def_adjustment(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
+//	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "AdjustmentSequence", "Sequence");
 	RNA_def_struct_ui_text(srna, "Adjustment Layer Sequence", "Sequence strip to perform filter adjustments to layers below");
