@@ -1003,7 +1003,11 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 {
 	StripElem *se= seq->strip->stripdata;
 
-	if(seq->type != SEQ_MOVIE) { /* movie use the first */
+	if(seq->type == SEQ_IMAGE) { /* only 
+					IMAGE strips use the whole array,
+					MOVIE strips use only 
+					the first element, all other strips
+					don't use this... */
 		int nr = (int) give_stripelem_index(seq, cfra);
 
 		if (nr == -1 || se == NULL) return NULL;
@@ -3505,7 +3509,8 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	strip->len = seq->len = ceil(info.length * FPS);
 	strip->us= 1;
 
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	/* we only need 1 element to store the filename */
+	strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
 	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
 
@@ -3554,7 +3559,8 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	strip->len = seq->len = IMB_anim_get_duration( an );
 	strip->us= 1;
 
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	/* we only need 1 element for MOVIE strips */
+	strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
 	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
 
