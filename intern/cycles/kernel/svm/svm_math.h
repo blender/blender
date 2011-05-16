@@ -121,7 +121,7 @@ __device void svm_vector_math(float *Fac, float3 *Vector, NodeVectorMath type, f
 		*Fac = (fabsf(Vector->x) + fabsf(Vector->y) + fabsf(Vector->z))/3.0f;
 	}
 	else if(type == NODE_VECTOR_MATH_SUBTRACT) {
-		*Vector = Vector1 + Vector2;
+		*Vector = Vector1 - Vector2;
 		*Fac = (fabsf(Vector->x) + fabsf(Vector->y) + fabsf(Vector->z))/3.0f;
 	}
 	else if(type == NODE_VECTOR_MATH_AVERAGE) {
