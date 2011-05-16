@@ -151,7 +151,7 @@ char btempdir[FILE_MAX];
 
 #define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d)\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
 
-/* Initialise callbacks for the modules that need them */
+/* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
@@ -337,18 +337,6 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 
 double PIL_check_seconds_timer(void);
-
-/* XXX This was here to fix a crash when running python scripts
- * with -P that used the screen.
- *
- * static void main_init_screen( void )
-{
-	setscreen(G.curscreen);
-	
-	if(G.main->scene.first==0) {
-		set_scene( add_scene("1") );
-	}
-}*/
 
 static int end_arguments(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
