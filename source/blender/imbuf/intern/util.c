@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -28,6 +28,11 @@
  *
  * $Id$
  */
+
+/** \file blender/imbuf/intern/util.c
+ *  \ingroup imbuf
+ */
+
 
 #ifdef _WIN32
 #include <io.h>

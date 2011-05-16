@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/twist.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <twist_png> */
 
 int datatoc_twist_png_size= 10889;

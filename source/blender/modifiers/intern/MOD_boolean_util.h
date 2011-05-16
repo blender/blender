@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/modifiers/intern/MOD_boolean_util.h
+ *  \ingroup modifiers
+ */
+
 
 #ifndef MOD_BOOLEAN_UTILS_H
 #define MOD_BOOLEAN_UTILS_H

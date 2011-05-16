@@ -25,17 +25,19 @@ bool btGjkEpaPenetrationDepthSolver::calcPenDepth( btSimplexSolverInterface& sim
 											  const btConvexShape* pConvexA, const btConvexShape* pConvexB,
 											  const btTransform& transformA, const btTransform& transformB,
 											  btVector3& v, btVector3& wWitnessOnA, btVector3& wWitnessOnB,
-											  class btIDebugDraw* debugDraw )
+											  class btIDebugDraw* debugDraw, btStackAlloc* stackAlloc )
 {
 
 	(void)debugDraw;
 	(void)v;
 	(void)simplexSolver;
 
-	const btScalar				radialmargin(btScalar(0.));
+//	const btScalar				radialmargin(btScalar(0.));
 	
 	btVector3	guessVector(transformA.getOrigin()-transformB.getOrigin());
 	btGjkEpaSolver2::sResults	results;
+	
+
 	if(btGjkEpaSolver2::Penetration(pConvexA,transformA,
 								pConvexB,transformB,
 								guessVector,results))
@@ -45,8 +47,18 @@ bool btGjkEpaPenetrationDepthSolver::calcPenDepth( btSimplexSolverInterface& sim
 		//resultOut->addContactPoint(results.normal,results.witnesses[1],-results.depth);
 		wWitnessOnA = results.witnesses[0];
 		wWitnessOnB = results.witnesses[1];
+		v = results.normal;
 		return true;		
+		} else
+	{
+		if(btGjkEpaSolver2::Distance(pConvexA,transformA,pConvexB,transformB,guessVector,results))
+		{
+			wWitnessOnA = results.witnesses[0];
+			wWitnessOnB = results.witnesses[1];
+			v = results.normal;
+			return false;
 		}
+	}
 
 	return false;
 }

@@ -1,3 +1,6 @@
+/** \file elbeem/intern/solver_util.cpp
+ *  \ingroup elbeem
+ */
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method

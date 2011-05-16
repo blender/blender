@@ -1,4 +1,4 @@
-/**
+/*
  *
  * $Id$
  *
@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file boolop/intern/BOP_MathUtils.h
+ *  \ingroup boolopintern
+ */
+
  
 #ifndef BOP_MATHUTILS_H
 #define BOP_MATHUTILS_H

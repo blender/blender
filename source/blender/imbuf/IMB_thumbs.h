@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/IMB_thumbs.h
+ *  \ingroup imbuf
+ */
+
+
 #ifndef _IMB_THUMBS_H
 #define _IMB_THUMBS_H
 
@@ -53,6 +58,9 @@ typedef enum ThumbSource {
 	THB_SOURCE_MOVIE,
 	THB_SOURCE_BLEND
 } ThumbSource;
+
+/* dont generate thumbs for images bigger then this (100mb) */
+#define THUMB_SIZE_MAX (100 * 1024*1024)
 
 // IB_metadata
 

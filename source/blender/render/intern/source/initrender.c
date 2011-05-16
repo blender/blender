@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/source/initrender.c
+ *  \ingroup render
+ */
+
 
 
 /* Global includes */
@@ -442,10 +447,17 @@ void make_sample_tables(Render *re)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+struct Object *RE_GetCamera(Render *re)
+{
+	return re->camera_override ? re->camera_override : re->scene->camera;
+}
+
 /* call this after InitState() */
 /* per render, there's one persistant viewplane. Parts will set their own viewplanes */
 void RE_SetCamera(Render *re, Object *camera)
 {
+	object_camera_mode(&re->r, camera);
+
 	object_camera_matrix(&re->r, camera, re->winx, re->winy, re->flag & R_SEC_FIELD,
 			re->winmat, &re->viewplane, &re->clipsta, &re->clipend,
 			&re->lens, &re->ycor, &re->viewdx, &re->viewdy);

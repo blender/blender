@@ -1,6 +1,4 @@
-/**
- * Do an object ipo
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_IpoActuator.h
+ *  \ingroup ketsji
+ *  \brief Do an object ipo
  */
 
 #ifndef __KX_IPOACTUATOR

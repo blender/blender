@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -23,6 +23,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_sequencer/sequencer_select.c
+ *  \ingroup spseq
+ */
+
 
 #include <stdlib.h>
 #include <math.h>
@@ -60,7 +65,7 @@
 #include "sequencer_intern.h"
 static void *find_nearest_marker(int UNUSED(d1), int UNUSED(d2)) {return NULL;}
 	
-void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
+static void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
 {
 	Sequence *neighbor;
 	
@@ -154,7 +159,7 @@ void select_surround_from_last(Scene *scene)
 #endif
 
 
-void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING BACK */
+static void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING BACK */
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
@@ -176,8 +181,8 @@ void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING B
 
 // remove this function, replace with invert operator
 //void swap_select_seq(Scene *scene)
-
-void select_neighbor_from_last(Scene *scene, int lr)
+#if 0
+static void select_neighbor_from_last(Scene *scene, int lr)
 {
 	Sequence *seq= seq_active_get(scene);
 	Sequence *neighbor;
@@ -206,7 +211,7 @@ void select_neighbor_from_last(Scene *scene, int lr)
 	if (change) {
 	}
 }
-
+#endif
 
 /* (de)select operator */
 static int sequencer_deselect_exec(bContext *C, wmOperator *UNUSED(op))

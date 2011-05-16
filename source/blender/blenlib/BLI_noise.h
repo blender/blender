@@ -31,6 +31,10 @@
 #ifndef BLI_NOISE_H
 #define BLI_NOISE_H
 
+/** \file BLI_noise.h
+ *  \ingroup bli
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,7 +60,6 @@ void voronoi(float x, float y, float z, float* da, float* pa, float me, int dtyp
 /* newnoise: cellNoise & cellNoiseV (for vector/point/color) */
 float cellNoise(float x, float y, float z);
 void cellNoiseV(float x, float y, float z, float *ca);
-
 
 #ifdef __cplusplus
 }

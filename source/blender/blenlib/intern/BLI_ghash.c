@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * A general (pointer -> pointer) hash table ADT
  */
+
+/** \file blender/blenlib/intern/BLI_ghash.c
+ *  \ingroup bli
+ */
+
 
 #include "MEM_guardedalloc.h"
 
@@ -90,7 +95,7 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 	
 	MEM_freeN(gh->buckets);
 	BLI_mempool_destroy(gh->entrypool);
-	gh->buckets = 0;
+	gh->buckets = NULL;
 	gh->nentries = 0;
 	gh->nbuckets = 0;
 	MEM_freeN(gh);
@@ -170,7 +175,7 @@ unsigned int BLI_ghashutil_inthash(const void *ptr) {
 	key += ~(key <<  9);
 	key ^=  (key >> 17);
 
-	  return (unsigned int)(key & 0xffffffff);
+	return (unsigned int)(key & 0xffffffff);
 }
 
 int BLI_ghashutil_intcmp(const void *a, const void *b) {

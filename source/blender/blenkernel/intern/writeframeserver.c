@@ -1,3 +1,6 @@
+/** \file blender/blenkernel/intern/writeframeserver.c
+ *  \ingroup bke
+ */
 /*
  * $Id$
  *
@@ -49,10 +52,9 @@
 
 #include "BLI_utildefines.h"
 
-
+#include "BKE_writeframeserver.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
-
 
 #include "DNA_scene_types.h"
 

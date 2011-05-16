@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_wave.c
+ *  \ingroup modifiers
+ */
+
+
 #include "BLI_math.h"
 
 #include "DNA_meshdata_types.h"
@@ -258,6 +263,9 @@ static void waveModifier_do(WaveModifierData *md,
 			(float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;
 	float (*tex_co)[3] = NULL;
+	const int wmd_axis= wmd->flag & (MOD_WAVE_X|MOD_WAVE_Y);
+	const float falloff= wmd->falloff;
+	float falloff_fac= 1.0f; /* when falloff == 0.0f this stays at 1.0f */
 
 	if(wmd->flag & MOD_WAVE_NORM && ob->type == OB_MESH)
 		mvert = dm->getVertArray(dm);
@@ -281,7 +289,7 @@ static void waveModifier_do(WaveModifierData *md,
 
 	if(wmd->damp == 0) wmd->damp = 10.0f;
 
-	if(wmd->lifetime != 0.0) {
+	if(wmd->lifetime != 0.0f) {
 		float x = ctime - wmd->timeoffs;
 
 		if(x > wmd->lifetime) {
@@ -289,7 +297,7 @@ static void waveModifier_do(WaveModifierData *md,
 
 			if(lifefac > wmd->damp) lifefac = 0.0;
 			else lifefac =
-				(float)(wmd->height * (1.0 - sqrt(lifefac / wmd->damp)));
+				(float)(wmd->height * (1.0f - sqrtf(lifefac / wmd->damp)));
 		}
 	}
 
@@ -299,9 +307,9 @@ static void waveModifier_do(WaveModifierData *md,
 		wavemod_get_texture_coords(wmd, ob, dm, vertexCos, tex_co, numVerts);
 	}
 
-	if(lifefac != 0.0) {		
+	if(lifefac != 0.0f) {
 		/* avoid divide by zero checks within the loop */
-		float falloff_inv= wmd->falloff ? 1.0f / wmd->falloff : 1.0;
+		float falloff_inv= falloff ? 1.0f / falloff : 1.0f;
 		int i;
 
 		for(i = 0; i < numVerts; i++) {
@@ -309,76 +317,72 @@ static void waveModifier_do(WaveModifierData *md,
 			float x = co[0] - wmd->startx;
 			float y = co[1] - wmd->starty;
 			float amplit= 0.0f;
-			float dist = 0.0f;
-			float falloff_fac = 0.0f;
-			TexResult texres;
-			MDeformWeight *def_weight = NULL;
+			float def_weight= 1.0f;
 
 			/* get weights */
 			if(dvert) {
-				int j;
-				for(j = 0; j < dvert[i].totweight; ++j) {
-					if(dvert[i].dw[j].def_nr == defgrp_index) {
-						def_weight = &dvert[i].dw[j];
-						break;
-					}
-				}
+				def_weight= defvert_find_weight(&dvert[i], defgrp_index);
 
 				/* if this vert isn't in the vgroup, don't deform it */
-				if(!def_weight) continue;
-			}
-
-			if(wmd->texture) {
-				texres.nor = NULL;
-				get_texture_value(wmd->texture, tex_co[i], &texres);
-			}
-
-			/*get dist*/
-			if(wmd->flag & MOD_WAVE_X) {
-				if(wmd->flag & MOD_WAVE_Y){
-					dist = (float)sqrt(x*x + y*y);
-				}
-				else{
-					dist = fabs(x);
+				if(def_weight == 0.0f) {
+					continue;
 				}
 			}
-			else if(wmd->flag & MOD_WAVE_Y) {
-				dist = fabs(y);
-			}
 
-			falloff_fac = (1.0f - (dist * falloff_inv));
-
-			if(wmd->flag & MOD_WAVE_X) {
-				if(wmd->flag & MOD_WAVE_Y) amplit = (float)sqrt(x*x + y*y);
-				else amplit = x;
+			switch(wmd_axis) {
+			case MOD_WAVE_X|MOD_WAVE_Y:
+				amplit = sqrtf(x*x + y*y);
+				break;
+			case MOD_WAVE_X:
+				amplit = x;
+				break;
+			case MOD_WAVE_Y:
+				amplit = y;
+				break;
 			}
-			else if(wmd->flag & MOD_WAVE_Y)
-				amplit= y;
 
 			/* this way it makes nice circles */
 			amplit -= (ctime - wmd->timeoffs) * wmd->speed;
 
 			if(wmd->flag & MOD_WAVE_CYCL) {
-				amplit = (float)fmod(amplit - wmd->width, 2.0 * wmd->width)
+				amplit = (float)fmodf(amplit - wmd->width, 2.0f * wmd->width)
 						+ wmd->width;
 			}
 
+			if(falloff != 0.0f) {
+				float dist = 0.0f;
+
+				switch(wmd_axis) {
+				case MOD_WAVE_X|MOD_WAVE_Y:
+					dist = sqrtf(x*x + y*y);
+					break;
+				case MOD_WAVE_X:
+					dist = fabsf(x);
+					break;
+				case MOD_WAVE_Y:
+					dist = fabsf(y);
+					break;
+				}
+
+				falloff_fac = (1.0f - (dist * falloff_inv));
+				CLAMP(falloff_fac, 0.0f, 1.0f);
+			}
+
 			/* GAUSSIAN */
-			if(amplit > -wmd->width && amplit < wmd->width) {
+			if((falloff_fac != 0.0f) && (amplit > -wmd->width) && (amplit < wmd->width)) {
 				amplit = amplit * wmd->narrow;
-				amplit = (float)(1.0 / exp(amplit * amplit) - minfac);
+				amplit = (float)(1.0f / expf(amplit * amplit) - minfac);
 
 				/*apply texture*/
-				if(wmd->texture)
-					amplit = amplit * texres.tin;
+				if(wmd->texture) {
+					TexResult texres;
+					texres.nor = NULL;
+					get_texture_value(wmd->texture, tex_co[i], &texres);
+					amplit *= texres.tin;
+				}
 
-				/*apply weight*/
-				if(def_weight)
-					amplit = amplit * def_weight->weight;
-
-				/*apply falloff*/
-				if (wmd->falloff > 0)
-					amplit = amplit * falloff_fac;
+				/*apply weight & falloff */
+				amplit *= def_weight * falloff_fac;
 
 				if(mvert) {
 					/* move along normals */
@@ -452,18 +456,18 @@ ModifierTypeInfo modifierType_Wave = {
 							| eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
-	/* deformMatrices */    0,
+	/* deformMatrices */    NULL,
 	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  0,
-	/* applyModifier */     0,
-	/* applyModifierEM */   0,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          0,
-	/* isDisabled */        0,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
-	/* dependsOnNormals */	0,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
 };

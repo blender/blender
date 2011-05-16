@@ -1,3 +1,6 @@
+/** \file elbeem/intern/mcubes_tables.h
+ *  \ingroup elbeem
+ */
 
 /* which edges are needed ? */
 /* cf. http://astronomy.swin.edu.au/~pbourke/modelling/polygonise/ */

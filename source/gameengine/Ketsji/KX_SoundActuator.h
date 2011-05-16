@@ -1,6 +1,4 @@
-/**
- * KX_SoundActuator.h
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_SoundActuator.h
+ *  \ingroup ketsji
  */
 
 #ifndef __KX_SOUNDACTUATOR

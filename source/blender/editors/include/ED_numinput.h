@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -20,6 +20,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_numinput.h
+ *  \ingroup editors
  */
 
 #ifndef ED_NUMINPUT_H

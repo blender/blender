@@ -1,3 +1,6 @@
+/** \file itasc/kdl/utilities/kdl-config.h
+ *  \ingroup itasc
+ */
 /* Copyright  (C)  2007  Ruben Smits <ruben dot smits at mech dot kuleuven dot be> */
 
 /* Version: 1.0 */

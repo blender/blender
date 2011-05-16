@@ -13,6 +13,11 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+/** \file CcdPhysicsEnvironment.h
+ *  \ingroup physbullet
+ *  See also \ref bulletdoc
+ */
+
 #ifndef CCDPHYSICSENVIRONMENT
 #define CCDPHYSICSENVIRONMENT
 
@@ -47,10 +52,11 @@ class btIDebugDraw;
 class PHY_IVehicle;
 class CcdOverlapFilterCallBack;
 
-/// CcdPhysicsEnvironment is an experimental mainloop for physics simulation using optional continuous collision detection.
-/// Physics Environment takes care of stepping the simulation and is a container for physics entities.
-/// It stores rigidbodies,constraints, materials etc.
-/// A derived class may be able to 'construct' entities by loading and/or converting
+/** CcdPhysicsEnvironment is an experimental mainloop for physics simulation using optional continuous collision detection.
+ * Physics Environment takes care of stepping the simulation and is a container for physics entities.
+ * It stores rigidbodies,constraints, materials etc.
+ * A derived class may be able to 'construct' entities by loading and/or converting
+ */
 class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
 	friend class CcdOverlapFilterCallBack;
@@ -119,7 +125,11 @@ protected:
 		virtual void		debugDrawWorld();
 //		virtual bool		proceedDeltaTimeOneStep(float timeStep);
 
-		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep){};
+		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)
+		{
+			//based on DEFAULT_PHYSICS_TIC_RATE of 60 hertz
+			setNumTimeSubSteps(fixedTimeStep/60.f);
+		}
 		//returns 0.f if no fixed timestep is used
 
 		virtual	float		getFixedTimeStep(){ return 0.f;};
@@ -273,6 +283,8 @@ protected:
 		class btDispatcher* m_ownDispatcher;
 
 		bool	m_scalingPropagated;
+
+		virtual void	exportFile(const char* filename);
 
 		
 #ifdef WITH_CXX_GUARDEDALLOC

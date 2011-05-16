@@ -26,8 +26,8 @@
 
 set(INC
 	. 
-	../../../source/kernel/gen_system 
 	../../../intern/string
+	../../../intern/container
 	../../../source/gameengine/Expressions 
 	../../../source/gameengine/SceneGraph
 	../../../intern/moto/include

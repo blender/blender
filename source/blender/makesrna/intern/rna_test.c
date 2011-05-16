@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_test.c
+ *  \ingroup RNA
+ */
+
 
 /* Defines a structure with properties used for array manipulation tests in BPY. */
 

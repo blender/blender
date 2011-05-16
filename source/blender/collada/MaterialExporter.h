@@ -1,5 +1,5 @@
-/**
- * $Id: MaterialExporter.h 32355 2010-10-06 20:40:16Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,10 @@
  *                 Nathan Letwory
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file MaterialExporter.h
+ *  \ingroup collada
  */
 
 #ifndef __MATERIALEXPORTER_H__

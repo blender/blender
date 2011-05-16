@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/SHD_nodes/SHD_geom.c
+ *  \ingroup shdnodes
+ */
+
 
 #include "../SHD_util.h"
 
@@ -115,7 +120,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 
 static void node_shader_init_geometry(bNode *node)
 {
-   node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
+	node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
 }
 
 static int gpu_shader_geom(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

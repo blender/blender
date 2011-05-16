@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_sequencer/space_sequencer.c
+ *  \ingroup spseq
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -43,6 +48,8 @@
 #include "BKE_sequencer.h"
 #include "BKE_global.h"
 
+#include "ED_space_api.h"
+#include "ED_sequencer.h"
 #include "ED_screen.h"
 #include "ED_view3d.h" /* only for sequencer view3d drawing callback */
 
@@ -83,7 +90,7 @@ ARegion *sequencer_has_buttons_region(ScrArea *sa)
 	return arnew;
 }
 
-ARegion *sequencer_find_region(ScrArea *sa, short type)
+static ARegion *sequencer_find_region(ScrArea *sa, short type)
 {
 	ARegion *ar=NULL;
 	

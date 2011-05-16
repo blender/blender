@@ -1,5 +1,5 @@
-/**
- * $Id: SkinInfo.cpp 34787 2011-02-12 06:25:04Z campbellbarton $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/collada/SkinInfo.cpp
+ *  \ingroup collada
+ */
+
 
 #include <algorithm>
 

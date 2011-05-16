@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file collada.h
+ *  \ingroup collada
+ */
+
 #ifndef BLENDER_COLLADA_H
 #define BLENDER_COLLADA_H
 

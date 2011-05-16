@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/intern/wm_jobs.c
+ *  \ingroup wm
+ */
+
 
 #include <string.h>
 
@@ -265,8 +270,8 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 			
 			/* if new job is render, any render job should be stopped */
 			if(test->flag & WM_JOB_EXCL_RENDER)
-			   if(0==(steve->flag & WM_JOB_EXCL_RENDER)) 
-				   continue;
+				if(0==(steve->flag & WM_JOB_EXCL_RENDER))
+					continue;
 
 			suspend= 1;
 

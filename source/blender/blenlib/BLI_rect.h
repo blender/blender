@@ -31,6 +31,10 @@
 #ifndef BLI_RECT_H
 #define BLI_RECT_H
 
+/** \file BLI_rect.h
+ *  \ingroup bli
+ */
+
 struct rctf;
 struct rcti;
 

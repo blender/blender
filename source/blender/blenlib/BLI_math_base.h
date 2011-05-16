@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,9 +28,9 @@
 #ifndef BLI_MATH_BASE_H
 #define BLI_MATH_BASE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/** \file BLI_math_base.h
+ *  \ingroup bli
+ */
 
 #ifdef WIN32
 #define _USE_MATH_DEFINES
@@ -167,11 +167,12 @@ MINLINE float power_of_2(float f);
 
 MINLINE float shell_angle_to_dist(float angle);
 
-double double_round(double x, int ndigits);
-
-#ifdef __cplusplus
-}
+#if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
+extern double copysign(double x, double y);
+extern double round(double x);
 #endif
+
+double double_round(double x, int ndigits);
 
 #endif /* BLI_MATH_BASE_H */
 

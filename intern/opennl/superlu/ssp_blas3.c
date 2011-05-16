@@ -1,3 +1,6 @@
+/** \file opennl/superlu/ssp_blas3.c
+ *  \ingroup opennl
+ */
 
 
 /*

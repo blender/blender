@@ -32,6 +32,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/deform.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 #include <math.h>
 #include "ctype.h"
@@ -50,7 +55,7 @@ void defgroup_copy_list (ListBase *outbase, ListBase *inbase)
 {
 	bDeformGroup *defgroup, *defgroupn;
 
-	outbase->first= outbase->last= 0;
+	outbase->first= outbase->last= NULL;
 
 	for (defgroup = inbase->first; defgroup; defgroup=defgroup->next){
 		defgroupn= defgroup_duplicate(defgroup);
@@ -249,7 +254,6 @@ int defgroup_find_index (Object *ob, bDeformGroup *dg)
 	if (eg == NULL) return -1;
 	
 	return def_nr;
-    
 }
 
 /* note, must be freed */
@@ -335,33 +339,34 @@ void defgroup_unique_name (bDeformGroup *dg, Object *ob)
 }
 
 /* finds the best possible flipped name. For renaming; check for unique names afterwards */
-/* if strip_number: removes number extensions */
-void flip_side_name (char *name, const char *from_name, int strip_number)
+/* if strip_number: removes number extensions
+ * note: dont use sizeof() for 'name' or 'from_name' */
+void flip_side_name (char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_NAME], int strip_number)
 {
 	int     len;
-	char    prefix[sizeof(((bDeformGroup *)NULL)->name)]= {""};   /* The part before the facing */
-	char    suffix[sizeof(((bDeformGroup *)NULL)->name)]= {""};   /* The part after the facing */
-	char    replace[sizeof(((bDeformGroup *)NULL)->name)]=  {""};  /* The replacement string */
-	char    number[sizeof(((bDeformGroup *)NULL)->name)]=  {""};   /* The number extension string */
+	char    prefix[MAX_VGROUP_NAME]=  "";   /* The part before the facing */
+	char    suffix[MAX_VGROUP_NAME]=  "";   /* The part after the facing */
+	char    replace[MAX_VGROUP_NAME]= "";   /* The replacement string */
+	char    number[MAX_VGROUP_NAME]=  "";   /* The number extension string */
 	char    *index=NULL;
 
-	len= strlen(from_name);
+	len= BLI_strnlen(from_name, MAX_VGROUP_NAME);
 	if(len<3) return; // we don't do names like .R or .L
 
-	strcpy(name, from_name);
+	BLI_strncpy(name, from_name, MAX_VGROUP_NAME);
 
 	/* We first check the case with a .### extension, let's find the last period */
 	if(isdigit(name[len-1])) {
 		index= strrchr(name, '.'); // last occurrence
 		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
 			if(strip_number==0)
-				strcpy(number, index);
+				BLI_strncpy(number, index, sizeof(number));
 			*index= 0;
-			len= strlen(name);
+			len= BLI_strnlen(name, MAX_VGROUP_NAME);
 		}
 	}
 
-	strcpy (prefix, name);
+	BLI_strncpy(prefix, name, sizeof(prefix));
 
 #define IS_SEPARATOR(a) ((a)=='.' || (a)==' ' || (a)=='-' || (a)=='_')
 
@@ -445,7 +450,7 @@ void flip_side_name (char *name, const char *from_name, int strip_number)
 
 #undef IS_SEPARATOR
 
-	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
+	BLI_snprintf (name, MAX_VGROUP_NAME, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
 float defvert_find_weight(const struct MDeformVert *dvert, const int group_num)

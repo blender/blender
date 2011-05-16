@@ -1,6 +1,4 @@
-/**
- * Compatibility-like things for windows.
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
  
 #ifndef __WINSTUFF_H__
 #define __WINSTUFF_H__
+
+/** \file BLI_winstuff.h
+ *  \ingroup bli
+ *  \brief Compatibility-like things for windows.
+ */
 
 #ifdef _WIN32
 
@@ -72,7 +75,7 @@
 
 #undef small
 
-// These definitions are also in arithb for simplicity
+// These definitions are also in BLI_math for simplicity
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,7 +127,7 @@ typedef struct _DIR {
 	struct dirent direntry;
 } DIR;
 
-void RegisterBlendExtension(char * str);
+void RegisterBlendExtension(void);
 DIR *opendir (const char *path);
 struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,7 +26,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_curves.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
+#include "TEX_node.h"
 
 /* **************** CURVE Time  ******************** */
 
@@ -56,9 +62,9 @@ static void time_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out
 
 static void time_init(bNode* node)
 {
-   node->custom1= 1;
-   node->custom2= 250;
-   node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+	node->custom1= 1;
+	node->custom2= 250;
+	node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void register_node_type_tex_curve_time(ListBase *lb)

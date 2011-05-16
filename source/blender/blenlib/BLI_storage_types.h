@@ -1,8 +1,4 @@
-/**
- * blenlib/BLI_storage_types.h
- *
- * Some types for dealing with directories
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,6 +29,11 @@
 #ifndef BLI_STORAGE_TYPES_H
 #define BLI_STORAGE_TYPES_H
 
+/** \file BLI_storage_types.h
+ *  \ingroup bli
+ *  \brief Some types for dealing with directories.
+ */
+
 #include <sys/stat.h>
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
@@ -53,7 +54,7 @@ struct direntry{
 #else
 	struct	stat s;
 #endif
-	unsigned int	flags;
+	unsigned int flags;
 	char	size[16];
 	char	mode1[4];
 	char	mode2[4];
@@ -65,6 +66,7 @@ struct direntry{
 	void	*poin;
 	int		nr;
 	struct ImBuf *image;
+	unsigned int selflag; /* selection flag */
 };
 
 struct dirlink

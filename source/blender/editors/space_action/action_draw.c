@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_action/action_draw.c
+ *  \ingroup spaction
+ */
+
 
 /* System includes ----------------------------------------------------- */
 
@@ -58,6 +63,7 @@
 #include "ED_anim_api.h"
 #include "ED_keyframes_draw.h"
 
+#include "action_intern.h"
 
 /* ************************************************************************* */
 /* Channel List */

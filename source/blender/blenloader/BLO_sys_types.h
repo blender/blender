@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blenloader/BLO_sys_types.h
+ *  \ingroup blenloader
+ *
  * A platform-independent definition of [u]intXX_t
  * Plus the accompanying header include for htonl/ntohl
  *

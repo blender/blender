@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform_ops.c
+ *  \ingroup edtransform
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -35,11 +40,13 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_armature.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "ED_screen.h"
 
@@ -54,20 +61,20 @@ typedef struct TransformModeItem
 
 static float VecOne[3] = {1, 1, 1};
 
-char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
-char OP_ROTATION[] = "TRANSFORM_OT_rotate";
-char OP_TOSPHERE[] = "TRANSFORM_OT_tosphere";
-char OP_RESIZE[] = "TRANSFORM_OT_resize";
-char OP_SHEAR[] = "TRANSFORM_OT_shear";
-char OP_WARP[] = "TRANSFORM_OT_warp";
-char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
-char OP_PUSH_PULL[] = "TRANSFORM_OT_push_pull";
-char OP_TILT[] = "TRANSFORM_OT_tilt";
-char OP_TRACKBALL[] = "TRANSFORM_OT_trackball";
-char OP_MIRROR[] = "TRANSFORM_OT_mirror";
-char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
-char OP_EDGE_CREASE[] = "TRANSFORM_OT_edge_crease";
-char OP_SEQ_SLIDE[] = "TRANSFORM_OT_seq_slide";
+static char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
+static char OP_ROTATION[] = "TRANSFORM_OT_rotate";
+static char OP_TOSPHERE[] = "TRANSFORM_OT_tosphere";
+static char OP_RESIZE[] = "TRANSFORM_OT_resize";
+static char OP_SHEAR[] = "TRANSFORM_OT_shear";
+static char OP_WARP[] = "TRANSFORM_OT_warp";
+static char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
+static char OP_PUSH_PULL[] = "TRANSFORM_OT_push_pull";
+static char OP_TILT[] = "TRANSFORM_OT_tilt";
+static char OP_TRACKBALL[] = "TRANSFORM_OT_trackball";
+static char OP_MIRROR[] = "TRANSFORM_OT_mirror";
+static char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
+static char OP_EDGE_CREASE[] = "TRANSFORM_OT_edge_crease";
+static char OP_SEQ_SLIDE[] = "TRANSFORM_OT_seq_slide";
 
 void TRANSFORM_OT_translate(struct wmOperatorType *ot);
 void TRANSFORM_OT_rotate(struct wmOperatorType *ot);
@@ -84,7 +91,7 @@ void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot);
 void TRANSFORM_OT_edge_crease(struct wmOperatorType *ot);
 void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot);
 
-TransformModeItem transform_modes[] =
+static TransformModeItem transform_modes[] =
 {
 	{OP_TRANSLATION, TFM_TRANSLATION, TRANSFORM_OT_translate},
 	{OP_ROTATION, TFM_ROTATION, TRANSFORM_OT_rotate},
@@ -103,6 +110,39 @@ TransformModeItem transform_modes[] =
 	{NULL, 0}
 };
 
+EnumPropertyItem transform_mode_types[] =
+{
+	{TFM_INIT, "INIT", 0, "Init", ""},
+	{TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
+	{TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
+	{TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
+	{TFM_RESIZE, "RESIZE", 0, "Resize", ""},
+	{TFM_TOSPHERE, "TOSPHERE", 0, "Tosphere", ""},
+	{TFM_SHEAR, "SHEAR", 0, "Shear", ""},
+	{TFM_WARP, "WARP", 0, "Warp", ""},
+	{TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrinkfatten", ""},
+	{TFM_TILT, "TILT", 0, "Tilt", ""},
+	{TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
+	{TFM_PUSHPULL, "PUSHPULL", 0, "Pushpull", ""},
+	{TFM_CREASE, "CREASE", 0, "Crease", ""},
+	{TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
+	{TFM_BONESIZE, "BONE_SIZE", 0, "Bonesize", ""},
+	{TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone_Envelope", ""},
+	{TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve_Shrinkfatten", ""},
+	{TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone_Roll", ""},
+	{TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time_Translate", ""},
+	{TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time_Slide", ""},
+	{TFM_TIME_SCALE, "TIME_SCALE", 0, "Time_Scale", ""},
+	{TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time_Extend", ""},
+	{TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake_Time", ""},
+	{TFM_BEVEL, "BEVEL", 0, "Bevel", ""},
+	{TFM_BWEIGHT, "BWEIGHT", 0, "Bweight", ""},
+	{TFM_ALIGN, "ALIGN", 0, "Align", ""},
+	{TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
+	{TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static int snap_type_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
@@ -114,7 +154,7 @@ static int snap_type_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TRANSFORM_OT_snap_type(wmOperatorType *ot)
+static void TRANSFORM_OT_snap_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Snap Type";
@@ -151,7 +191,7 @@ static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), wmEven
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup= uiPupMenuBegin(C, "Orientation", ICON_NULL);
+	pup= uiPupMenuBegin(C, "Orientation", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	uiItemsEnumO(layout, "TRANSFORM_OT_select_orientation", "orientation");
 	uiPupMenuEnd(C, pup);
@@ -159,7 +199,7 @@ static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), wmEven
 	return OPERATOR_CANCELLED;
 }
 
-void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)
+static void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
@@ -214,7 +254,7 @@ static int delete_orientation_poll(bContext *C)
 	return selected_index >= 0;
 }
 
-void TRANSFORM_OT_delete_orientation(struct wmOperatorType *ot)
+static void TRANSFORM_OT_delete_orientation(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Delete Orientation";
@@ -249,7 +289,7 @@ static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 	return create_orientation_exec(C, op);
 }
 
-void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
+static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Create Orientation";
@@ -296,7 +336,7 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (mode == -1)
 		{
-			mode = RNA_int_get(op->ptr, "mode");
+			mode = RNA_enum_get(op->ptr, "mode");
 		}
 
 		retval = initTransform(C, t, op, event, mode);
@@ -368,6 +408,8 @@ static int transform_exec(bContext *C, wmOperator *op)
 	transformEnd(C, t);
 
 	transformops_exit(C, op);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -746,37 +788,7 @@ void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
 
 void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 {
-	static EnumPropertyItem transform_mode_types[] = {
-			{TFM_INIT, "INIT", 0, "Init", ""},
-			{TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
-			{TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
-			{TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
-			{TFM_RESIZE, "RESIZE", 0, "Resize", ""},
-			{TFM_TOSPHERE, "TOSPHERE", 0, "Tosphere", ""},
-			{TFM_SHEAR, "SHEAR", 0, "Shear", ""},
-			{TFM_WARP, "WARP", 0, "Warp", ""},
-			{TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrinkfatten", ""},
-			{TFM_TILT, "TILT", 0, "Tilt", ""},
-			{TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
-			{TFM_PUSHPULL, "PUSHPULL", 0, "Pushpull", ""},
-			{TFM_CREASE, "CREASE", 0, "Crease", ""},
-			{TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
-			{TFM_BONESIZE, "BONE_SIZE", 0, "Bonesize", ""},
-			{TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone_Envelope", ""},
-			{TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve_Shrinkfatten", ""},
-			{TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone_Roll", ""},
-			{TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time_Translate", ""},
-			{TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time_Slide", ""},
-			{TFM_TIME_SCALE, "TIME_SCALE", 0, "Time_Scale", ""},
-			{TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time_Extend", ""},
-			{TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake_Time", ""},
-			{TFM_BEVEL, "BEVEL", 0, "Bevel", ""},
-			{TFM_BWEIGHT, "BWEIGHT", 0, "Bweight", ""},
-			{TFM_ALIGN, "ALIGN", 0, "Align", ""},
-			{TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
-			{TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
-			{0, NULL, 0, NULL, NULL}
-	};
+	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name   = "Transform";
@@ -791,7 +803,8 @@ void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, 0, "Mode", "");
+	prop= RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	RNA_def_float_vector(ot->srna, "value", 4, NULL, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
 
@@ -873,19 +886,19 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			break;
 		case SPACE_ACTION:
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", GKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_SCALE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_SCALE);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", TKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_SLIDE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_SLIDE);
 			break;
 		case SPACE_IPO:
 			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
@@ -893,7 +906,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_S, KM_ANY, 0, 0);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			
 			WM_keymap_add_item(keymap, OP_ROTATION, RKEY, KM_PRESS, 0, 0);
 			
@@ -901,24 +914,24 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			break;
 		case SPACE_NLA:
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", GKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			RNA_enum_set(km->ptr, "mode", TFM_TRANSLATION);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			RNA_enum_set(km->ptr, "mode", TFM_TRANSLATION);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_SCALE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_SCALE);
 			break;
 		case SPACE_NODE:
 			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
 
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_A, KM_ANY, 0, 0);
-			RNA_enum_set(km->ptr, "release_confirm", 1);
+			RNA_boolean_set(km->ptr, "release_confirm", 1);
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_S, KM_ANY, 0, 0);
-			RNA_enum_set(km->ptr, "release_confirm", 1);
+			RNA_boolean_set(km->ptr, "release_confirm", 1);
 
 			WM_keymap_add_item(keymap, OP_ROTATION, RKEY, KM_PRESS, 0, 0);
 
@@ -930,7 +943,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			WM_keymap_add_item(keymap, OP_SEQ_SLIDE, EVT_TWEAK_S, KM_ANY, 0, 0);
 
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			break;
 		case SPACE_IMAGE:
 			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);

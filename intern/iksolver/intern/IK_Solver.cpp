@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file iksolver/intern/IK_Solver.cpp
+ *  \ingroup iksolver
+ */
+
 
 #include "../extern/IK_solver.h"
 

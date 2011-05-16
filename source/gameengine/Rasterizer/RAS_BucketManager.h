@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,14 +26,17 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-// this will be put in a class later on
+
+/** \file RAS_BucketManager.h
+ *  \ingroup bgerast
+ */
 
 #ifndef __RAS_BUCKETMANAGER
 #define __RAS_BUCKETMANAGER
 
 #include "MT_Transform.h"
 #include "RAS_MaterialBucket.h"
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 
 #include <vector>
 

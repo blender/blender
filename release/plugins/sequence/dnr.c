@@ -66,7 +66,7 @@ static void precalculate(unsigned char * table, int level)
 			}
 		
 			*table++ = ap;
-                }
+		}
 	}
 }
 

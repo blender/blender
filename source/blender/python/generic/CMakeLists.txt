@@ -23,8 +23,9 @@ set(INC
 	../../blenlib
 	../../makesdna
 	../../blenkernel
+	../../blenloader
 	../../../../intern/guardedalloc
-	../../../../extern/glew/include
+	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 )
 
@@ -34,13 +35,13 @@ set(SRC
 	blf_py_api.c
 	bpy_internal_import.c
 	mathutils.c
-	mathutils_color.c
-	mathutils_euler.c
+	mathutils_Color.c
+	mathutils_Euler.c
+	mathutils_Matrix.c
+	mathutils_Quaternion.c
+	mathutils_Vector.c
 	mathutils_geometry.c
-	mathutils_matrix.c
-	mathutils_quat.c
-	mathutils_vector.c
-	noise.c
+	noise_py_api.c
 	py_capi_utils.c
 
 	IDProp.h
@@ -48,13 +49,15 @@ set(SRC
 	blf_py_api.h
 	bpy_internal_import.h
 	mathutils.h
-	mathutils_color.h
-	mathutils_euler.h
+	mathutils_Color.h
+	mathutils_Euler.h
+	mathutils_Matrix.h
+	mathutils_Quaternion.h
+	mathutils_Vector.h
 	mathutils_geometry.h
-	mathutils_matrix.h
-	mathutils_quat.h
-	mathutils_vector.h
+	noise_py_api.h
 	py_capi_utils.h
 )
+
 
 blender_add_lib(bf_python_ext "${SRC}" "${INC}")

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/include/rayobject.h
+ *  \ingroup render
+ */
+
 
 #ifndef RE_RAYOBJECT_H
 #define RE_RAYOBJECT_H

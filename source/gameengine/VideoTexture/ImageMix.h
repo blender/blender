@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file ImageMix.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined IMAGEMIX_H
 #define IMAGEMIX_H
 

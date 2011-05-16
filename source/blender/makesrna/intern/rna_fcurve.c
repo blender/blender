@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_fcurve.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 
@@ -159,8 +164,8 @@ static void rna_DriverTarget_update_name(Main *bmain, Scene *scene, PointerRNA *
 /* note: this function exists only to avoid id refcounting */
 static void rna_DriverTarget_id_set(PointerRNA *ptr, PointerRNA value)
 {
-    DriverTarget *dtar= (DriverTarget*)ptr->data;
-    dtar->id= value.data;
+	DriverTarget *dtar= (DriverTarget*)ptr->data;
+	dtar->id= value.data;
 }
 
 static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
@@ -556,6 +561,7 @@ static BezTriple *rna_FKeyframe_points_insert(FCurve *fcu, float frame, float va
 static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
 {
 	if(tot > 0) {
+		BezTriple *bezt;
 		if(fcu->totvert) {
 			BezTriple *nbezt= MEM_callocN(sizeof(BezTriple) * (fcu->totvert + tot), "rna_FKeyframe_points_add");
 			memcpy(nbezt, fcu->bezt, sizeof(BezTriple) * fcu->totvert);
@@ -566,7 +572,16 @@ static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
 			fcu->bezt= MEM_callocN(sizeof(BezTriple) * tot, "rna_FKeyframe_points_add");
 		}
 
+		bezt= fcu->bezt + fcu->totvert;
 		fcu->totvert += tot;
+
+		while(tot--) {
+			/* defaults, no userprefs gives pradictable results for API */
+			bezt->f1= bezt->f2= bezt->f3= SELECT;
+			bezt->ipo= BEZT_IPO_BEZ;
+			bezt->h1= bezt->h2= HD_AUTO;
+			bezt++;
+		}
 	}
 }
 
@@ -583,7 +598,7 @@ static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTri
 
 static void rna_fcurve_range(FCurve *fcu, float range[2])
 {
-	calc_fcurve_range(fcu, range, range+1);
+	calc_fcurve_range(fcu, range, range+1, FALSE);
 }
 
 #else
@@ -1029,7 +1044,7 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_editable");
-    /* note: custom set function is ONLY to avoid rna setting a user for this. */
+	/* note: custom set function is ONLY to avoid rna setting a user for this. */
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_DriverTarget_id_set", "rna_DriverTarget_id_typef", NULL);
 	RNA_def_property_ui_text(prop, "ID", "ID-block that the specific property used can be found from (id_type property must be set first)");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
@@ -1204,7 +1219,7 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	/* Vector value */
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_XYZ);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_COORDS); /* keyframes are dimensionless */
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
@@ -1266,19 +1281,19 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	/* Vector values */
-	prop= RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_COORDS); /* keyframes are dimensionless */
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_FKeyframe_handle1_get", "rna_FKeyframe_handle1_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_COORDS); /* keyframes are dimensionless */
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_FKeyframe_ctrlpoint_get", "rna_FKeyframe_ctrlpoint_set", NULL);
 	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_COORDS); /* keyframes are dimensionless */
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_FKeyframe_handle2_get", "rna_FKeyframe_handle2_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
@@ -1414,7 +1429,8 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_FCurve_RnaPath_get", "rna_FCurve_RnaPath_length", "rna_FCurve_RnaPath_set");
 	RNA_def_property_ui_text(prop, "Data Path", "RNA Path to property affected by F-Curve");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this to that animation gets evaluated
-	
+
+	/* called 'index' when given as function arg */
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property affected by F-Curve if applicable");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this so that animation gets evaluated

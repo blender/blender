@@ -1,4 +1,4 @@
-/**
+/*
  * imbuf.h (mar-2001 nzc)
  *
  * This header might have to become external...
@@ -30,6 +30,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/imbuf/intern/imbuf.h
+ *  \ingroup imbuf
+ */
+
 
 #ifndef IMBUF_H
 #define IMBUF_H

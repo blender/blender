@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file SCA_Joystick.h
+ *  \ingroup gamelogic
+ */
+
 #ifndef _SCA_JOYSTICK_H_
 #define _SCA_JOYSTICK_H_
 
@@ -33,7 +37,7 @@
 #include "SDL.h"
 #endif
 
-/*
+/**
  * Basic Joystick class
  * I will make this class a singleton because there should be only one joystick
  * even if there are more than one scene using it and count how many scene are using it.
@@ -53,22 +57,22 @@ class SCA_Joystick
 #endif
 	int				m_joyindex;
 
-	/* 
+	/** 
 	 *support for JOYAXIS_MAX axes (in pairs)
 	 */
 	int m_axis_array[JOYAXIS_MAX];
 
-	/* 
+	/** 
 	 *support for JOYHAT_MAX hats (each is a direction)
 	 */
 	int m_hat_array[JOYHAT_MAX];	
 	
-	/*
+	/**
 	 * Precision or range of the axes
 	 */
 	int 			m_prec;
 
-	/*
+	/**
 	 * max # of buttons avail
 	*/
 	
@@ -76,17 +80,17 @@ class SCA_Joystick
 	int 			m_buttonmax;
 	int 			m_hatmax;
 	
-	/* is the joystick initialized ?*/
+	/** is the joystick initialized ?*/
 	bool			m_isinit;
 
 	
-	/* is triggered for each event type */
+	/** is triggered for each event type */
 	bool			m_istrig_axis;
 	bool			m_istrig_button;
 	bool			m_istrig_hat;
 
 #ifndef DISABLE_SDL
-	/*
+	/**
 	 * event callbacks
 	 */
 	void OnAxisMotion(SDL_Event *sdl_event);
@@ -99,27 +103,27 @@ class SCA_Joystick
 #endif
 		
 #endif
-	/*
+	/**
 	 * Open the joystick
 	 */
 	bool CreateJoystickDevice(void);
 
-	/*
+	/**
 	 * Close the joystick
 	 */
 	void DestroyJoystickDevice(void);
 
-	/*
+	/**
 	 * fills the axis mnember values 
 	 */
 	void pFillButtons(void);
 
-	/*
+	/**
 	 * returns m_axis_array
 	 */
 
 	int pAxisTest(int axisnum);
-	/*
+	/**
 	 * returns m_axis_array
 	 */
 	int pGetAxis(int axisnum, int udlr);
@@ -146,7 +150,7 @@ public:
 	bool aButtonReleaseIsPositive(int button);
 	bool aHatIsPositive(int hatnum, int dir);
 
-	/*
+	/**
 	 * precision is default '3200' which is overridden by input
 	 */
 
@@ -176,7 +180,7 @@ public:
 		return m_istrig_hat;
 	}
 
-	/*
+	/**
 	 * returns the # of...
 	 */
 
@@ -184,7 +188,7 @@ public:
 	int GetNumberOfButtons(void);
 	int GetNumberOfHats(void);
 	
-	/*
+	/**
 	 * Test if the joystick is connected
 	 */
 	int Connected(void);

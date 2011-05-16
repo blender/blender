@@ -48,6 +48,10 @@ void	btContinuousDynamicsWorld::internalSingleStepSimulation( btScalar timeStep)
 	
 	startProfiling(timeStep);
 	
+	if(0 != m_internalPreTickCallback) {
+		(*m_internalPreTickCallback)(this, timeStep);
+	}
+
 
 	///update aabbs information
 	updateAabbs();

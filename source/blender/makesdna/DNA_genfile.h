@@ -25,11 +25,15 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * blenloader genfile private function prototypes
  */
 
 #ifndef GENFILE_H
 #define GENFILE_H
+
+/** \file DNA_genfile.h
+ *  \ingroup DNA
+ *  \brief blenloader genfile private function prototypes
+ */
 
 struct SDNA;
 

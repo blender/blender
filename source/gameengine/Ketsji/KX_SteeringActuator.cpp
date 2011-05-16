@@ -137,7 +137,7 @@ bool KX_SteeringActuator::UnlinkObject(SCA_IObject* clientobj)
 	return false;
 }
 
-void KX_SteeringActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void KX_SteeringActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_target];
 	if (h_obj) {

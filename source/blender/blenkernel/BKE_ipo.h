@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_ipo.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,13 @@
  */
 #ifndef BKE_IPO_H
 #define BKE_IPO_H
+
+/** \file BKE_ipo.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ *  \author Joshua Leung
+ */
 
 #ifdef __cplusplus
 extern "C" {

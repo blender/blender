@@ -1,23 +1,4 @@
-/**
- * @mainpage SG_ParentRelation   
-
- * @section 
- * 
- * This is an abstract interface class to the Scene Graph library. 
- * It allows you to specify how child nodes react to parent nodes.
- * Normally a child will use it's parent's transforms to compute
- * it's own global transforms. How this is performed depends on
- * the type of relation. For example if the parent is a vertex 
- * parent to this child then the child should not inherit any 
- * rotation information from the parent. Or if the parent is a
- * 'slow parent' to this child then the child should react 
- * slowly to changes in the parent's position. The exact relation
- * is left for you to implement by filling out this interface 
- * with concrete examples. 
- * 
- * There is exactly one SG_ParentRelation per SG_Node. Subclasses
- * should not be value types and should be allocated on the heap.
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -47,6 +28,29 @@
  * 
  */
 
+/** \file SG_ParentRelation.h
+ *  \ingroup bgesg
+ * @page SG_ParentRelationPage SG_ParentRelation   
+
+ * @section SG_ParentRelationSection SG_ParentRelation
+ * 
+ * This is an abstract interface class to the Scene Graph library. 
+ * It allows you to specify how child nodes react to parent nodes.
+ * Normally a child will use it's parent's transforms to compute
+ * it's own global transforms. How this is performed depends on
+ * the type of relation. For example if the parent is a vertex 
+ * parent to this child then the child should not inherit any 
+ * rotation information from the parent. Or if the parent is a
+ * 'slow parent' to this child then the child should react 
+ * slowly to changes in the parent's position. The exact relation
+ * is left for you to implement by filling out this interface 
+ * with concrete examples. 
+ * 
+ * There is exactly one SG_ParentRelation per SG_Node. Subclasses
+ * should not be value types and should be allocated on the heap.
+ *
+ */
+ 
 #ifndef __SG_ParentRelation_h
 #define __SG_ParentRelation_h
 

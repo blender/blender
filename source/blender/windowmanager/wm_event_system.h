@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/wm_event_system.h
+ *  \ingroup wm
+ */
+
 #ifndef WM_EVENT_SYSTEM_H
 #define WM_EVENT_SYSTEM_H
 
@@ -73,6 +78,8 @@ typedef struct wmEventHandler {
 /* handler flag */
 		/* after this handler all others are ignored */
 #define WM_HANDLER_BLOCKING		1
+		/* handler tagged to be freed in wm_handlers_do() */
+#define WM_HANDLER_DO_FREE		2
 
 
 

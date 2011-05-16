@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/mesh_intern.h
+ *  \ingroup edmesh
+ */
+
+
 /* Internal for editmesh_xxxx.c functions */
 
 #ifndef MESH_INTERN_H
@@ -46,7 +51,7 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 
 extern void free_editvert(EditMesh *em, EditVert *eve);
 extern void free_editedge(EditMesh *em, EditEdge *eed);
-extern void free_editface(EditMesh *em, EditFace *efa);;
+extern void free_editface(EditMesh *em, EditFace *efa);
 
 extern void free_vertlist(EditMesh *em, ListBase *edve);
 extern void free_edgelist(EditMesh *em, ListBase *lb);
@@ -205,6 +210,8 @@ int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
 void MESH_OT_remove_doubles(struct wmOperatorType *ot);
+void MESH_OT_vertices_randomize(struct wmOperatorType *ot);
+void MESH_OT_vertices_sort(struct wmOperatorType *ot);
 void MESH_OT_extrude(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);

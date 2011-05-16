@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_ui_api.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -41,7 +46,7 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname,
 	int flag= 0;
 
 	if(!prop) {
-		printf("rna_uiItemR: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		RNA_warning("rna_uiItemR: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -202,14 +207,14 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 	RNA_def_function_ui_description(func, "Item. Places a button into the layout to call an Operator.");
 
-/*	func= RNA_def_function(srna, "operator_enum", "uiItemEnumO_string");
+/*	func= RNA_def_function(srna, "operator_enum_single", "uiItemEnumO_string");
 	api_ui_item_op_common(func);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "value", "", 0, "", "Enum property value.");
 	RNA_def_property_flag(parm, PROP_REQUIRED); */
 
-	func= RNA_def_function(srna, "operator_enums", "uiItemsEnumO");
+	func= RNA_def_function(srna, "operator_enum", "uiItemsEnumO");
 	parm= RNA_def_string(func, "operator", "", 0, "", "Identifier of the operator.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator.");
@@ -408,6 +413,9 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function(srna, "template_operator_search", "uiTemplateOperatorSearch");
 
 	func= RNA_def_function(srna, "template_header_3D", "uiTemplateHeader3D");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	func= RNA_def_function(srna, "template_edit_mode_selection", "uiTemplateEditModeSelection");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	
 	func= RNA_def_function(srna, "template_reports_banner", "uiTemplateReportsBanner");

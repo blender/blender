@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Expressions/PyObjectPlus.cpp
+ *  \ingroup expressions
+ */
+
+
 /*------------------------------
  * PyObjectPlus cpp
  *
@@ -40,8 +45,9 @@
  * http://www.python.org/doc/PyCPP.html
  *
 ------------------------------*/
-#include <MT_assert.h>
-#include "stdlib.h"
+#include <stdlib.h>
+#include <stddef.h>
+
 #include "PyObjectPlus.h"
 #include "STR_String.h"
 #include "MT_Vector3.h"
@@ -103,19 +109,26 @@ void PyObjectPlus::InvalidateProxy()		// check typename of each parent
 
 PyTypeObject PyObjectPlus::Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"PyObjectPlus",			/*tp_name*/
+	"PyObjectPlus",					/*tp_name*/
 	sizeof(PyObjectPlus_Proxy),		/*tp_basicsize*/
-	0,				/*tp_itemsize*/
+	0,								/*tp_itemsize*/
 	/* methods */
-	py_base_dealloc,
+	py_base_dealloc,				/* tp_dealloc */
+	0,								/* printfunc tp_print; */
+	0,								/* getattrfunc tp_getattr; */
+	0,								/* setattrfunc tp_setattr; */
+	0,								/* tp_compare */ /* DEPRECATED in python 3.0! */
+	py_base_repr,					/* tp_repr */
+	0,0,0,0,0,0,0,0,0,				/* Method suites for standard classes */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,/* long tp_flags; */
+	0,0,0,0,
+	/* weak reference enabler */
+#ifdef USE_WEAKREFS
+	offsetof(PyObjectPlus_Proxy, in_weakreflist),	/* long tp_weaklistoffset; */
+#else
 	0,
-	0,
-	0,
-	0,
-	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
+#endif
+	0,0,
 	Methods,
 	0,
 	0,
@@ -204,8 +217,16 @@ PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObjec
 	return (PyObject *)ret;
 }
 
+/**
+  * @param self A PyObjectPlus_Proxy
+  */
 void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 {
+#ifdef USE_WEAKREFS
+	if (BGE_PROXY_WKREF(self) != NULL)
+		PyObject_ClearWeakRefs((PyObject *) self);
+#endif
+
 	if (BGE_PROXY_PYREF(self)) {
 		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 		if(self_plus) {
@@ -1102,6 +1123,9 @@ PyObject *PyObjectPlus::GetProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 		self->m_proxy = reinterpret_cast<PyObject *>PyObject_NEW( PyObjectPlus_Proxy, tp);
 		BGE_PROXY_PYOWNS(self->m_proxy) = false;
 		BGE_PROXY_PYREF(self->m_proxy) = true;
+#ifdef USE_WEAKREFS
+		BGE_PROXY_WKREF(self->m_proxy) = NULL;
+#endif
 	}
 	//PyObject_Print(self->m_proxy, stdout, 0);
 	//printf("ref %d\n", self->m_proxy->ob_refcnt);
@@ -1122,6 +1146,9 @@ PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 		BGE_PROXY_PYOWNS(proxy) = py_owns;
 		BGE_PROXY_REF(proxy) = NULL; 
 		BGE_PROXY_PTR(proxy) = ptr;
+#ifdef USE_WEAKREFS
+		BGE_PROXY_WKREF(self->m_proxy) = NULL;
+#endif
 		return proxy;
 	}
 	if (self->m_proxy)

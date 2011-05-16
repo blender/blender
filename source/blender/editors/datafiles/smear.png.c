@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/smear.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <smear_png> */
 
 int datatoc_smear_png_size= 9358;

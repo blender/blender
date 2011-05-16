@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -20,6 +20,10 @@
  * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file DocumentExporter.h
+ *  \ingroup collada
  */
 
 #ifndef __DOCUMENTEXPORTER_H__

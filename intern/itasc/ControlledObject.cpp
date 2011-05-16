@@ -1,3 +1,6 @@
+/** \file itasc/ControlledObject.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * ControlledObject.cpp
  *

@@ -1,33 +1,40 @@
 /*
  * $Id$
  *
- * ***** BEGIN LGPL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * Copyright 2009 Jörg Hermann Müller
+ * Copyright 2009-2011 Jörg Hermann Müller
  *
  * This file is part of AudaSpace.
  *
- * AudaSpace is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * Audaspace is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * AudaSpace is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with AudaSpace.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Audaspace; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * ***** END LGPL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file audaspace/intern/AUD_IDevice.h
+ *  \ingroup audaspaceintern
+ */
+
 
 #ifndef AUD_IDEVICE
 #define AUD_IDEVICE
 
 #include "AUD_Space.h"
 class AUD_IFactory;
+class AUD_IReader;
 
 /// Handle structure, for inherition.
 struct AUD_Handle
@@ -56,6 +63,18 @@ public:
 	 * Returns the specification of the device.
 	 */
 	virtual AUD_DeviceSpecs getSpecs() const=0;
+
+	/**
+	 * Plays a sound source.
+	 * \param reader The reader to play.
+	 * \param keep When keep is true the sound source will not be deleted but
+	 *             set to paused when its end has been reached.
+	 * \return Returns a handle with which the playback can be controlled.
+	 *         This is NULL if the sound couldn't be played back.
+	 * \exception AUD_Exception Thrown if there's an unexpected (from the
+	 *            device side) error during creation of the reader.
+	 */
+	virtual AUD_Handle* play(AUD_IReader* reader, bool keep = false)=0;
 
 	/**
 	 * Plays a sound source.

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_node/node_buttons.c
+ *  \ingroup spnode
+ */
+
 
 #include <string.h>
 #include <stdio.h>
@@ -107,8 +112,10 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	uiBlockSetHandleFunc(block, do_node_region_buttons, NULL);
 	
 	/* draw this node's name, etc. */
+	uiItemR(layout, &ptr, "label", 0, NULL, ICON_NODE);
+	uiItemS(layout);
 	uiItemR(layout, &ptr, "name", 0, NULL, ICON_NODE);
-	// TODO: a separator would be nice...
+	uiItemS(layout);
 	
 	/* draw this node's settings */
 	if (node->typeinfo && node->typeinfo->uifunc)

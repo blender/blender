@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_image/image_ops.c
+ *  \ingroup spimage
+ */
+
 
 #include <stddef.h>
 #include <string.h>
@@ -62,6 +67,7 @@
 #include "RNA_enum_types.h"
 
 #include "ED_image.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
@@ -170,6 +176,7 @@ int space_image_main_area_poll(bContext *C)
 typedef struct ViewPanData {
 	float x, y;
 	float xof, yof;
+	int event_type;
 } ViewPanData;
 
 static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
@@ -184,6 +191,7 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->y= event->y;
 	vpd->xof= sima->xof;
 	vpd->yof= sima->yof;
+	vpd->event_type= event->type;
 
 	WM_event_add_modal_handler(C, op);
 }
@@ -260,9 +268,8 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			RNA_float_set_array(op->ptr, "offset", offset);
 			view_pan_exec(C, op);
 			break;
-		case MIDDLEMOUSE:
-		case LEFTMOUSE:
-			if(event->val==KM_RELEASE) {
+		default:
+			if(event->type==vpd->event_type &&  event->val==KM_RELEASE) {
 				view_pan_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
@@ -304,6 +311,7 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 typedef struct ViewZoomData {
 	float x, y;
 	float zoom;
+	int event_type;
 } ViewZoomData;
 
 static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
@@ -317,7 +325,8 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->x= event->x;
 	vpd->y= event->y;
 	vpd->zoom= sima->zoom;
-
+	vpd->event_type= event->type;
+	
 	WM_event_add_modal_handler(C, op);
 }
 
@@ -363,7 +372,7 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		ARegion *ar= CTX_wm_region(C);
 		float factor;
 		
-		factor= 1.0 + (event->x-event->prevx+event->y-event->prevy)/300.0f;
+		factor= 1.0f + (event->x-event->prevx+event->y-event->prevy)/300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
 		sima_zoom_set(sima, ar, sima->zoom*factor);
 		ED_region_tag_redraw(CTX_wm_region(C));
@@ -385,14 +394,13 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	switch(event->type) {
 		case MOUSEMOVE:
-			factor= 1.0 + (vpd->x-event->x+vpd->y-event->y)/300.0f;
+			factor= 1.0f + (vpd->x-event->x+vpd->y-event->y)/300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
 			sima_zoom_set(sima, ar, vpd->zoom*factor);
 			ED_region_tag_redraw(CTX_wm_region(C));
 			break;
-		case MIDDLEMOUSE:
-		case LEFTMOUSE:
-			if(event->val==KM_RELEASE) {
+		default:
+			if(event->type==vpd->event_type && event->val==KM_RELEASE) {
 				view_zoom_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
@@ -514,10 +522,10 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	d[0]= max[0] - min[0];
 	d[1]= max[1] - min[1];
-	size= 0.5*MAX2(d[0], d[1])*MAX2(width, height)/256.0f;
+	size= 0.5f*MAX2(d[0], d[1])*MAX2(width, height)/256.0f;
 	
-	if(size<=0.01) size= 0.01;
-	sima_zoom_set(sima, ar, 0.7/size);
+	if(size<=0.01f) size= 0.01f;
+	sima_zoom_set(sima, ar, 0.7f/size);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 	
@@ -637,6 +645,9 @@ static const EnumPropertyItem image_file_type_items[] = {
 		{R_TARGA, "TARGA", 0, "Targa", ""},
 		{R_RAWTGA, "TARGA RAW", 0, "Targa Raw", ""},
 		{R_PNG, "PNG", 0, "PNG", ""},
+#ifdef WITH_DDS
+		{R_DDS, "DDS", 0, "DirectDraw Surface", ""},
+#endif
 		{R_BMP, "BMP", 0, "BMP", ""},
 		{R_JPEG90, "JPEG", 0, "Jpeg", ""},
 #ifdef WITH_OPENJPEG
@@ -742,6 +753,9 @@ static int open_exec(bContext *C, wmOperator *op)
 		iuser->fie_ima= 2;
 	}
 
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	BKE_image_signal(ima, iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	
@@ -757,13 +771,13 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	Image *ima= NULL;
 
 	if(sima) {
-		 ima= sima->image;
+		ima= sima->image;
 	}
 
 	if (ima==NULL) {
-		 Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-		 if(tex && tex->type==TEX_IMAGE)
-			 ima= tex->ima;
+		Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		if(tex && tex->type==TEX_IMAGE)
+			ima= tex->ima;
 	}
 
 	if(ima)
@@ -787,7 +801,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open";
+	ot->name= "Open Image";
 	ot->idname= "IMAGE_OT_open";
 	
 	/* api callbacks */
@@ -815,6 +829,9 @@ static int replace_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", str);
 	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)); /* we cant do much if the str is longer then 240 :/ */
 
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
@@ -842,7 +859,7 @@ static int replace_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void IMAGE_OT_replace(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Replace";
+	ot->name= "Replace Image";
 	ot->idname= "IMAGE_OT_replace";
 	
 	/* api callbacks */
@@ -911,7 +928,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			}
 			BKE_image_release_renderresult(scene, ima);
 		}
-		else if (BKE_write_ibuf(scene, ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
+		else if (BKE_write_ibuf(ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
 			ok= TRUE;
 		}
 
@@ -1062,7 +1079,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void IMAGE_OT_save_as(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Save As";
+	ot->name= "Save As Image";
 	ot->idname= "IMAGE_OT_save_as";
 	
 	/* api callbacks */
@@ -1133,7 +1150,7 @@ static int save_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_save(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Save";
+	ot->name= "Save Image";
 	ot->idname= "IMAGE_OT_save";
 	
 	/* api callbacks */
@@ -1231,6 +1248,9 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 	if(!ima)
 		return OPERATOR_CANCELLED;
 
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	// XXX other users?
 	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
 
@@ -1242,7 +1262,7 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 void IMAGE_OT_reload(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reload";
+	ot->name= "Reload Image";
 	ot->idname= "IMAGE_OT_reload";
 	
 	/* api callbacks */
@@ -1262,7 +1282,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	Image *ima;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
-	char name[22];
+	char name[MAX_ID_NAME-2];
 	float color[4];
 	int width, height, floatbuf, uvtestgrid, alpha;
 
@@ -1324,7 +1344,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	static float default_color[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 	
 	/* identifiers */
-	ot->name= "New";
+	ot->name= "New Image";
 	ot->idname= "IMAGE_OT_new";
 	
 	/* api callbacks */
@@ -1332,10 +1352,10 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->invoke= image_new_invoke;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "untitled", 21, "Name", "Image datablock name.");
+	RNA_def_string(ot->srna, "name", "untitled", MAX_ID_NAME-2, "Name", "Image datablock name.");
 	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width.", 1, 16384);
 	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height.", 1, 16384);
 	prop= RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color.", 0.0f, 1.0f);
@@ -1343,6 +1363,91 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel.");
 	RNA_def_boolean(ot->srna, "uv_test_grid", 0, "UV Test Grid", "Fill the image with a grid for UV map testing.");
 	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth.");
+}
+
+/********************* invert operators *********************/
+
+static int image_invert_poll(bContext *C)
+{
+	Image *ima= CTX_data_edit_image(C);
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+	
+	if( ibuf != NULL )
+		return 1;
+	return 0;
+}
+
+static int image_invert_exec(bContext *C, wmOperator *op)
+{
+	Image *ima= CTX_data_edit_image(C);
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+
+	// flags indicate if this channel should be inverted
+	const short r= RNA_boolean_get(op->ptr, "invert_r");
+	const short g= RNA_boolean_get(op->ptr, "invert_g");
+	const short b= RNA_boolean_get(op->ptr, "invert_b");
+	const short a= RNA_boolean_get(op->ptr, "invert_a");
+
+	int i;
+
+	if( ibuf == NULL) // TODO: this should actually never happen, but does for render-results -> cleanup
+		return OPERATOR_CANCELLED;
+
+	/* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */
+	if (ibuf->rect_float) {
+		
+		float *fp = (float *) ibuf->rect_float;
+		for( i = ibuf->x * ibuf->y; i > 0; i--, fp+=4 ) {
+			if( r ) fp[0] = 1.0f - fp[0];
+			if( g ) fp[1] = 1.0f - fp[1];
+			if( b ) fp[2] = 1.0f - fp[2];
+			if( a ) fp[3] = 1.0f - fp[3];
+		}
+
+		if(ibuf->rect) {
+			IMB_rect_from_float(ibuf);
+		}
+	}
+	else if(ibuf->rect) {
+		
+		char *cp = (char *) ibuf->rect;
+		for( i = ibuf->x * ibuf->y; i > 0; i--, cp+=4 ) {
+			if( r ) cp[0] = 255 - cp[0];
+			if( g ) cp[1] = 255 - cp[1];
+			if( b ) cp[2] = 255 - cp[2];
+			if( a ) cp[3] = 255 - cp[3];
+		}
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+
+	ibuf->userflags |= IB_BITMAPDIRTY;
+	if(ibuf->mipmap[0])
+		ibuf->userflags |= IB_MIPMAP_INVALID;
+
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
+	return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_invert(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Invert Channels";
+	ot->idname= "IMAGE_OT_invert";
+	
+	/* api callbacks */
+	ot->exec= image_invert_exec;
+	ot->poll= image_invert_poll;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
+	RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert Green Channel");
+	RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert Blue Channel");
+	RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************* pack operator *********************/
@@ -1403,7 +1508,7 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
 		pup= uiPupMenuBegin(C, "OK", ICON_QUESTION);
 		layout= uiPupMenuLayout(pup);
-		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", ICON_NULL, op->idname, "as_png", 1);
+		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", ICON_NONE, op->idname, "as_png", 1);
 		uiPupMenuEnd(C, pup);
 
 		return OPERATOR_CANCELLED;
@@ -1415,7 +1520,7 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void IMAGE_OT_pack(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pack";
+	ot->name= "Pack Image";
 	ot->description= "Pack an image as embedded data into the .blend file"; 
 	ot->idname= "IMAGE_OT_pack";
 	
@@ -1439,7 +1544,7 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 
 	/* find the suppplied image by name */
 	if (RNA_property_is_set(op->ptr, "id")) {
-		char imaname[22];
+		char imaname[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "id", imaname);
 		ima = BLI_findstring(&CTX_data_main(C)->image, imaname, offsetof(ID, name) + 2);
 		if (!ima) ima = CTX_data_edit_image(C);
@@ -1455,7 +1560,10 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 
 	if(G.fileflags & G_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
-		
+	
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	unpackImage(op->reports, ima, method);
 	
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
@@ -1489,7 +1597,7 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 void IMAGE_OT_unpack(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Unpack";
+	ot->name= "Unpack Image";
 	ot->description= "Save an image packed in the .blend file to disk"; 
 	ot->idname= "IMAGE_OT_unpack";
 	
@@ -1499,10 +1607,10 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
+	
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
-	RNA_def_string(ot->srna, "id", "", 21, "Image Name", "Image datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */
+	RNA_def_string(ot->srna, "id", "", MAX_ID_NAME-2, "Image Name", "Image datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */
 }
 
 /******************** sample image operator ********************/
@@ -1529,9 +1637,10 @@ typedef struct ImageSampleInfo {
 static void sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info= arg_info;
-
-	draw_image_info(ar, info->channels, info->x, info->y, info->colp,
-		info->colfp, info->zp, info->zfp);
+	if(info->draw) {
+		/* no color management needed for images (color_manage=0) */
+		draw_image_info(ar, 0, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
+	}
 }
 
 static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
@@ -1553,7 +1662,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	my= event->y - ar->winrct.ymin;
 	UI_view2d_region_to_view(&ar->v2d, mx, my, &fx, &fy);
 
-	if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
+	if(fx>=0.0f && fy>=0.0f && fx<1.0f && fy<1.0f) {
 		float *fp;
 		char *cp;
 		int x= (int)(fx*ibuf->x), y= (int)(fy*ibuf->y);
@@ -1701,7 +1810,7 @@ static int sample_cancel(bContext *C, wmOperator *op)
 void IMAGE_OT_sample(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sample";
+	ot->name= "Sample Color";
 	ot->idname= "IMAGE_OT_sample";
 	
 	/* api callbacks */
@@ -1858,7 +1967,7 @@ typedef struct RecordCompositeData {
 	int sfra, efra;
 } RecordCompositeData;
 
-int record_composite_apply(bContext *C, wmOperator *op)
+static int record_composite_apply(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	RecordCompositeData *rcd= op->customdata;
@@ -2033,6 +2142,10 @@ static int cycle_render_slot_exec(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 
+	/* no undo push for browsing existing */
+	if(ima->renders[ima->render_slot] || ima->render_slot==ima->last_render_slot)
+		return OPERATOR_CANCELLED;
+	
 	return OPERATOR_FINISHED;
 }
 

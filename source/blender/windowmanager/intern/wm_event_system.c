@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/intern/wm_event_system.c
+ *  \ingroup wm
+ */
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -178,6 +183,7 @@ void wm_event_do_notifiers(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmNotifier *note, *next;
 	wmWindow *win;
+	unsigned int win_combine_v3d_datamask= 0;
 	
 	if(wm==NULL)
 		return;
@@ -265,7 +271,7 @@ void wm_event_do_notifiers(bContext *C)
 				CTX_wm_window_set(C, win);
 
 				/* printf("notifier win %d screen %s cat %x\n", win->winid, win->screen->id.name+2, note->category); */
-				ED_screen_do_listen(win, note);
+				ED_screen_do_listen(C, note);
 
 				for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
 					ED_region_do_listen(ar, note);
@@ -283,6 +289,11 @@ void wm_event_do_notifiers(bContext *C)
 		MEM_freeN(note);
 	}
 	
+	/* combine datamasks so 1 win doesn't disable UV's in another [#26448] */
+	for(win= wm->windows.first; win; win= win->next) {
+		win_combine_v3d_datamask |= ED_viewedit_datamask(win->screen);
+	}
+
 	/* cached: editor refresh callbacks now, they get context */
 	for(win= wm->windows.first; win; win= win->next) {
 		ScrArea *sa;
@@ -300,7 +311,10 @@ void wm_event_do_notifiers(bContext *C)
 			/* depsgraph & animation: update tagged datablocks */
 
 			/* copied to set's in scene_update_tagged_recursive() */
-			win->screen->scene->customdata_mask= ED_viewedit_datamask(win->screen);
+			win->screen->scene->customdata_mask= win_combine_v3d_datamask;
+
+			/* XXX, hack so operators can enforce datamasks [#26482], gl render */
+			win->screen->scene->customdata_mask |= win->screen->scene->customdata_mask_modal;
 
 			scene_update_tagged(CTX_data_main(C), win->screen->scene);
 		}
@@ -431,15 +445,19 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		if(G.f & G_DEBUG)
 			wm_operator_print(C, op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 		
+		BKE_reports_print(op->reports, RPT_DEBUG); /* print out reports to console. */
 		if (op->type->flag & OPTYPE_REGISTER) {
-			/* Report the python string representation of the operator */
-			char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
-			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
-			MEM_freeN(buf);
+			if(G.background == 0) { /* ends up printing these in the terminal, gets annoying */
+				/* Report the python string representation of the operator */
+				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+				MEM_freeN(buf);
+			}
 		}
 	}
 
-	if (op->reports->list.first) {
+	/* if the caller owns them them handle this */
+	if (op->reports->list.first && (op->reports->flag & RPT_OP_HOLD) == 0) {
 
 		wmWindowManager *wm = CTX_wm_manager(C);
 		ReportList *wm_reports= CTX_wm_reports(C);
@@ -452,7 +470,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
 		
 		/* Records time since last report was added */
-		wm_reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.05);
+		wm_reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMERREPORT, 0.05);
 		
 		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
 		wm_reports->reporttimer->customdata = rti;
@@ -645,7 +663,7 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
+static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
@@ -688,7 +706,6 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 		if (!(retval & OPERATOR_HANDLED) && retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 			/* only show the report if the report list was not given in the function */
 			wm_operator_reports(C, op, retval, (reports==NULL));
-			
 		
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
@@ -707,6 +724,14 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
 				} else {
 					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				}
+
+				/* exception, cont. grab in header is annoying */
+				if(wrap) {
+					ARegion *ar= CTX_wm_region(C);
+					if(ar && ar->regiontype == RGN_TYPE_HEADER) {
+						wrap= FALSE;
+					}
 				}
 
 				if(wrap) {
@@ -1427,10 +1452,13 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 	/* modal handlers can get removed in this loop, we keep the loop this way */
 	for(handler= handlers->first; handler; handler= nexthandler) {
+		
 		nexthandler= handler->next;
-
-		/* optional boundbox */
-		if(handler_boundbox_test(handler, event)) {
+		
+		/* during this loop, ui handlers for nested menus can tag multiple handlers free */
+		if(handler->flag & WM_HANDLER_DO_FREE);
+			/* optional boundbox */
+		else if(handler_boundbox_test(handler, event)) {
 			/* in advance to avoid access to freed event on window close */
 			always_pass= wm_event_always_pass(event);
 		
@@ -1509,9 +1537,21 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 		
-		/* XXX fileread case */
-		if(CTX_wm_window(C)==NULL)
+		/* XXX fileread case, if the wm is freed then the handler's
+		 * will have been too so the code below need not run. */
+		if(CTX_wm_window(C)==NULL) {
 			return action;
+		}
+
+		/* XXX code this for all modal ops, and ensure free only happens here */
+		
+		/* modal ui handler can be tagged to be freed */ 
+		if(BLI_findindex(handlers, handler) != -1) { /* could be free'd already by regular modal ops */
+			if(handler->flag & WM_HANDLER_DO_FREE) {
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(handler);
+			}
+		}
 	}
 
 	/* test for CLICK event */
@@ -1552,6 +1592,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 	}
+	
+	if(action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL))
+		wm_cursor_arrow_move(CTX_wm_window(C), event);
 
 	return action;
 }
@@ -1561,7 +1604,7 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 	if(wm_event_always_pass(event))
 		return 1;
 	if(BLI_in_rcti(rect, event->x, event->y))
-	   return 1;
+		return 1;
 	if(event->type==MOUSEMOVE) {
 		if( BLI_in_rcti(rect, event->prevx, event->prevy)) {
 			return 1;
@@ -1617,6 +1660,7 @@ static void wm_paintcursor_test(bContext *C, wmEvent *event)
 	
 	if(wm->paintcursors.first) {
 		ARegion *ar= CTX_wm_region(C);
+		
 		if(ar)
 			wm_paintcursor_tag(C, wm->paintcursors.first, ar);
 		
@@ -1700,7 +1744,7 @@ void wm_event_do_handlers(bContext *C)
 					}
 					
 					if(playing == 0) {
-						int ncfra = sound_sync_scene(scene) * FPS + 0.5;
+						int ncfra = sound_sync_scene(scene) * (float)FPS + 0.5f;
 						if(ncfra != scene->r.cfra)	{
 							scene->r.cfra = ncfra;
 							ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);
@@ -1749,15 +1793,15 @@ void wm_event_do_handlers(bContext *C)
 				ScrArea *sa;
 				ARegion *ar;
 				int doit= 0;
-				
-				/* XXX to solve, here screen handlers? */
+	
+				/* Note: setting subwin active should be done here, after modal handlers have been done */
 				if(event->type==MOUSEMOVE) {
-					/* state variables in screen, cursors */
-					ED_screen_set_subwinactive(win, event);	
+					/* state variables in screen, cursors. Also used in wm_draw.c, fails for modal handlers though */
+					ED_screen_set_subwinactive(C, event);	
 					/* for regions having custom cursors */
 					wm_paintcursor_test(C, event);
 				}
-
+				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
@@ -1933,11 +1977,13 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	WM_event_fileselect_event(C, op, full?EVT_FILESELECT_FULL_OPEN:EVT_FILESELECT_OPEN);
 }
 
+#if 0
 /* lets not expose struct outside wm? */
-void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
+static void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 {
 	handler->flag= flag;
 }
+#endif
 
 wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 {
@@ -2036,14 +2082,21 @@ wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers, w
 	return handler;
 }
 
-void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata)
+/* set "postpone" for win->modalhandlers, this is in a running for() loop in wm_handlers_do() */
+void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata, int postpone)
 {
 	wmEventHandler *handler;
 	
 	for(handler= handlers->first; handler; handler= handler->next) {
 		if(handler->ui_handle == func && handler->ui_remove == remove && handler->ui_userdata == userdata) {
-			BLI_remlink(handlers, handler);
-			wm_event_free_handler(handler);
+			/* handlers will be freed in wm_handlers_do() */
+			if(postpone) {
+				handler->flag |= WM_HANDLER_DO_FREE;
+			}
+			else {
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(handler);
+			}
 			break;
 		}
 	}
@@ -2083,11 +2136,13 @@ void WM_event_remove_area_handler(ListBase *handlers, void *area)
 	}
 }
 
-void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
+#if 0
+static void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
 {
 	BLI_remlink(handlers, handler);
 	wm_event_free_handler(handler);
 }
+#endif
 
 void WM_event_add_mousemove(bContext *C)
 {
@@ -2099,21 +2154,36 @@ void WM_event_add_mousemove(bContext *C)
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */
 int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 {
-	/* user preset or keymap? dunno... */
-	// XXX WTH is this?
-	int tweak_modal= (U.flag & USER_RELEASECONFIRM)==0;
-	
-	switch(tweak_event) {
-		case EVT_TWEAK_L:
-		case EVT_TWEAK_M:
-		case EVT_TWEAK_R:
-			if(evt->val==tweak_modal)
+	/* if the release-confirm userpref setting is enabled, 
+	 * tweak events can be cancelled when mouse is released
+	 */
+	if (U.flag & USER_RELEASECONFIRM) {
+		/* option on, so can exit with km-release */
+		if (evt->val == KM_RELEASE) {
+			switch (tweak_event) {
+				case EVT_TWEAK_L:
+				case EVT_TWEAK_M:
+				case EVT_TWEAK_R:
+					return 1;
+			}
+		}
+		else {
+			/* if the initial event wasn't a tweak event then
+			 * ignore USER_RELEASECONFIRM setting: see [#26756] */
+			if(ELEM3(tweak_event, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) == 0) {
 				return 1;
-		default:
-			/* this case is when modal callcback didnt get started with a tweak */
-			if(evt->val)
-				return 1;
+			}
+		}
 	}
+	else {
+		/* this is fine as long as not doing km-release, otherwise
+		 * some items (i.e. markers) being tweaked may end up getting
+		 * dropped all over
+		 */
+		if (evt->val != KM_RELEASE)
+			return 1;
+	}
+	
 	return 0;
 }
 
@@ -2188,7 +2258,12 @@ static int convert_key(GHOST_TKey key)
 			case GHOST_kKeyNumpadSlash:		return PADSLASHKEY;
 				
 			case GHOST_kKeyGrLess:		    return GRLESSKEY; 
-				
+			
+			case GHOST_kKeyMediaPlay:		return MEDIAPLAY;
+			case GHOST_kKeyMediaStop:		return MEDIASTOP;
+			case GHOST_kKeyMediaFirst:		return MEDIAFIRST;
+			case GHOST_kKeyMediaLast:		return MEDIALAST;
+			
 			default:
 				return UNKNOWNKEY;	/* GHOST_kKeyUnknown */
 		}

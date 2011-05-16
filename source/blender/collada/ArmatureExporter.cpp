@@ -1,5 +1,5 @@
-/**
- * $Id: ArmatureExporter.cpp 34533 2011-01-27 19:39:06Z jesterking $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -22,6 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/collada/ArmatureExporter.cpp
+ *  \ingroup collada
+ */
+
 
 #include "COLLADASWBaseInputElement.h"
 #include "COLLADASWInstanceController.h"

@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_particleinstance.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_meshdata_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -45,6 +50,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
+#include "MOD_util.h"
 
 #include "depsgraph_private.h"
 
@@ -109,8 +115,8 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	DerivedMesh *dm = derivedData, *result;
 	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
 	ParticleSimulationData sim;
-	ParticleSystem * psys=0;
-	ParticleData *pa=0, *pars=0;
+	ParticleSystem *psys= NULL;
+	ParticleData *pa= NULL, *pars= NULL;
 	MFace *mface, *orig_mface;
 	MVert *mvert, *orig_mvert;
 	int i,totvert, totpart=0, totface, maxvert, maxface, first_particle=0;
@@ -121,13 +127,13 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	trackneg=((ob->trackflag>2)?1:0);
 
 	if(pimd->ob==ob){
-		pimd->ob=0;
+		pimd->ob= NULL;
 		return derivedData;
 	}
 
 	if(pimd->ob){
 		psys = BLI_findlink(&pimd->ob->particlesystem,pimd->psys-1);
-		if(psys==0 || psys->totpart==0)
+		if(psys==NULL || psys->totpart==0)
 			return derivedData;
 	}
 	else return derivedData;
@@ -230,7 +236,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 			normalize_v3(state.vel);
 
 			/* TODO: incremental rotations somehow */
-			if(state.vel[axis] < -0.9999 || state.vel[axis] > 0.9999) {
+			if(state.vel[axis] < -0.9999f || state.vel[axis] > 0.9999f) {
 				state.rot[0] = 1;
 				state.rot[1] = state.rot[2] = state.rot[3] = 0.0f;
 			}
@@ -268,7 +274,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 				if(psys->part->childtype==PART_CHILD_PARTICLES)
 					pa=psys->particles+(psys->child+i/totface-psys->totpart)->parent;
 				else
-					pa=0;
+					pa= NULL;
 			}
 			else
 				pa=pars+i/totface;
@@ -277,7 +283,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 			if(psys->part->childtype==PART_CHILD_PARTICLES)
 				pa=psys->particles+(psys->child+i/totface)->parent;
 			else
-				pa=0;
+				pa= NULL;
 		}
 
 		if(pa){
@@ -329,19 +335,19 @@ ModifierTypeInfo modifierType_ParticleInstance = {
 							| eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
-	/* deformVerts */       0,
-	/* deformMatrices */    0,
-	/* deformVertsEM */     0,
-	/* deformMatricesEM */  0,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   applyModifierEM,
 	/* initData */          initData,
-	/* requiredDataMask */  0,
-	/* freeData */          0,
-	/* isDisabled */        0,
+	/* requiredDataMask */  NULL,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
-	/* dependsOnNormals */	0,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     0,
+	/* foreachIDLink */     NULL,
 };

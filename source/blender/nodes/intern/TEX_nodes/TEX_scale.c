@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/TEX_nodes/TEX_scale.c
+ *  \ingroup texnodes
+ */
+
 
 #include <math.h>
 #include "../TEX_util.h"

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_ILogicBrick.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include <stddef.h>
 
@@ -73,7 +78,7 @@ void SCA_ILogicBrick::ReParent(SCA_IObject* parent)
 	m_gameobj = parent;
 }
 
-void SCA_ILogicBrick::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void SCA_ILogicBrick::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	// nothing to do
 }

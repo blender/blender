@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,6 +23,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/screen/screen_edit.c
+ *  \ingroup edscr
+ */
+
 
 #include <string.h>
 #include <math.h>
@@ -222,16 +227,16 @@ void removenotused_scredges(bScreen *sc)
 	sa= sc->areabase.first;
 	while(sa) {
 		se= screen_findedge(sc, sa->v1, sa->v2);
-		if(se==0) printf("error: area %d edge 1 doesn't exist\n", a);
+		if(se==NULL) printf("error: area %d edge 1 doesn't exist\n", a);
 		else se->flag= 1;
 		se= screen_findedge(sc, sa->v2, sa->v3);
-		if(se==0) printf("error: area %d edge 2 doesn't exist\n", a);
+		if(se==NULL) printf("error: area %d edge 2 doesn't exist\n", a);
 		else se->flag= 1;
 		se= screen_findedge(sc, sa->v3, sa->v4);
-		if(se==0) printf("error: area %d edge 3 doesn't exist\n", a);
+		if(se==NULL) printf("error: area %d edge 3 doesn't exist\n", a);
 		else se->flag= 1;
 		se= screen_findedge(sc, sa->v4, sa->v1);
-		if(se==0) printf("error: area %d edge 4 doesn't exist\n", a);
+		if(se==NULL) printf("error: area %d edge 4 doesn't exist\n", a);
 		else se->flag= 1;
 		sa= sa->next;
 		a++;
@@ -319,8 +324,7 @@ static short testsplitpoint(ScrArea *sa, char dir, float fac)
 	if(dir=='h' && (sa->v2->vec.y- sa->v1->vec.y <= 2*AREAMINY)) return 0;
 	
 	// to be sure
-	if(fac<0.0) fac= 0.0;
-	if(fac>1.0) fac= 1.0;
+	CLAMP(fac, 0.0f, 1.0f);
 	
 	if(dir=='h') {
 		y= sa->v1->vec.y+ fac*(sa->v2->vec.y- sa->v1->vec.y);
@@ -649,14 +653,14 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 			/* FIXME, this resizing logic is no good when resizing the window + redrawing [#24428]
 			 * need some way to store these as floats internally and re-apply from there. */
 			tempf= ((float)sv->vec.x)*facx;
-			sv->vec.x= (short)(tempf+0.5);
+			sv->vec.x= (short)(tempf+0.5f);
 			sv->vec.x+= AREAGRID-1;
 			sv->vec.x-=  (sv->vec.x % AREAGRID); 
 
 			CLAMP(sv->vec.x, 0, winsizex);
 			
 			tempf= ((float)sv->vec.y)*facy;
-			sv->vec.y= (short)(tempf+0.5);
+			sv->vec.y= (short)(tempf+0.5f);
 			sv->vec.y+= AREAGRID-1;
 			sv->vec.y-=  (sv->vec.y % AREAGRID); 
 
@@ -955,8 +959,9 @@ static void region_cursor_set(wmWindow *win, int swinid)
 	}
 }
 
-void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
+void ED_screen_do_listen(bContext *C, wmNotifier *note)
 {
+	wmWindow *win= CTX_wm_window(C);
 	
 	/* generic notes */
 	switch(note->category) {
@@ -968,8 +973,11 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 			win->screen->do_draw= 1;
 			break;
 		case NC_SCREEN:
+			if(note->data==ND_SUBWINACTIVE)
+				uiFreeActiveButtons(C, win->screen);
 			if(note->action==NA_EDITED)
 				win->screen->do_draw= win->screen->do_refresh= 1;
+			break;
 		case NC_SCENE:
 			if(note->data==ND_MODE)
 				region_cursor_set(win, note->swinid);				
@@ -981,8 +989,9 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 void ED_screen_draw(wmWindow *win)
 {
 	ScrArea *sa;
-	ScrArea *sa1=NULL;
-	ScrArea *sa2=NULL;
+	ScrArea *sa1= NULL;
+	ScrArea *sa2= NULL;
+	ScrArea *sa3= NULL;
 	int dir = -1;
 	int dira = -1;
 
@@ -991,6 +1000,7 @@ void ED_screen_draw(wmWindow *win)
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
 		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
+		if (sa->flag & (AREA_FLAG_DRAWSPLIT_H|AREA_FLAG_DRAWSPLIT_V)) sa3 = sa;
 		drawscredge_area(sa, win->sizex, win->sizey, 0);
 	}
 	for(sa= win->screen->areabase.first; sa; sa= sa->next)
@@ -1023,7 +1033,25 @@ void ED_screen_draw(wmWindow *win)
 		scrarea_draw_shape_light(sa1, dira);
 	}
 	
-//	if(G.f & G_DEBUG) printf("draw screen\n");
+	/* splitpoint */
+	if(sa3) {
+		glEnable(GL_BLEND);
+		glColor4ub(255, 255, 255, 100);
+		
+		if(sa3->flag & AREA_FLAG_DRAWSPLIT_H) {
+			sdrawline(sa3->totrct.xmin, win->eventstate->y, sa3->totrct.xmax, win->eventstate->y);
+			glColor4ub(0, 0, 0, 100);
+			sdrawline(sa3->totrct.xmin, win->eventstate->y+1, sa3->totrct.xmax, win->eventstate->y+1);
+		}
+		else {
+			sdrawline(win->eventstate->x, sa3->totrct.ymin, win->eventstate->x, sa3->totrct.ymax);
+			glColor4ub(0, 0, 0, 100);
+			sdrawline(win->eventstate->x+1, sa3->totrct.ymin, win->eventstate->x+1, sa3->totrct.ymax);
+		}
+		
+		glDisable(GL_BLEND);
+	}
+	
 	win->screen->do_draw= 0;
 }
 
@@ -1105,7 +1133,10 @@ void ED_area_exit(bContext *C, ScrArea *sa)
 	ARegion *ar;
 
 	if (sa->spacetype == SPACE_FILE) {
-		ED_fileselect_exit(C, (SpaceFile*)(sa) ? sa->spacedata.first : CTX_wm_space_data(C));
+		SpaceLink *sl= sa->spacedata.first;
+		if(sl && sl->spacetype == SPACE_FILE) {
+			ED_fileselect_exit(C, (SpaceFile *)sl);
+		}
 	}
 
 	CTX_wm_area_set(C, sa);
@@ -1192,8 +1223,10 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 
 /* called in wm_event_system.c. sets state vars in screen, cursors */
 /* event type is mouse move */
-void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
+void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 {
+	wmWindow *win= CTX_wm_window(C);
+	
 	if(win->screen) {
 		bScreen *scr= win->screen;
 		ScrArea *sa;
@@ -1239,6 +1272,7 @@ void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
 		}
 		else if(oldswin!=scr->subwinactive) {
 			region_cursor_set(win, scr->subwinactive);
+			WM_event_add_notifier(C, NC_SCREEN|ND_SUBWINACTIVE, scr);
 		}
 	}
 }
@@ -1470,7 +1504,7 @@ int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *newsa= NULL;
 
-	if(!sa || sa->full==0) {
+	if(!sa || sa->full==NULL) {
 		newsa= ED_screen_full_toggle(C, win, sa);
 	}
 	
@@ -1554,6 +1588,9 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		   are no longer in the same screen */
 		for(ar=sa->regionbase.first; ar; ar=ar->next)
 			uiFreeBlocks(C, &ar->uiblocks);
+		
+		/* prevent hanging header prints */
+		ED_area_headerprint(sa, NULL);
 	}
 
 	if(sa && sa->full) {
@@ -1593,7 +1630,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 	}
 	else {
 		ScrArea *newa;
-		char newname[20];
+		char newname[MAX_ID_NAME-2];
 
 		oldscreen= win->screen;
 

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * $Id$
  *
@@ -20,6 +20,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenlib/intern/cpu.c
+ *  \ingroup bli
+ */
+
 
 #include "BLI_cpu.h"
 

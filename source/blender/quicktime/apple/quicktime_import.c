@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * quicktime_import.c
@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/quicktime/apple/quicktime_import.c
+ *  \ingroup quicktime
+ */
+
 #ifdef WITH_QUICKTIME
 
 #if defined(_WIN32) || defined(__APPLE__)
@@ -96,7 +101,6 @@ void quicktime_init(void)
 	nerr = InitializeQTML(0);
 	if (nerr != noErr) {
 		G.have_quicktime = FALSE;
-		printf("Error initializing quicktime\n");
 	}
 	else
 		G.have_quicktime = TRUE;

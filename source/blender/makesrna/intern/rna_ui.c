@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_ui.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 
@@ -166,8 +171,8 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 static StructRNA *rna_Panel_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
-	PanelType *pt, dummypt = {0};
-	Panel dummypanel= {0};
+	PanelType *pt, dummypt = {NULL};
+	Panel dummypanel= {NULL};
 	PointerRNA dummyptr;
 	int have_function[3];
 
@@ -281,8 +286,8 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 static StructRNA *rna_Header_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
-	HeaderType *ht, dummyht = {0};
-	Header dummyheader= {0};
+	HeaderType *ht, dummyht = {NULL};
+	Header dummyheader= {NULL};
 	PointerRNA dummyhtr;
 	int have_function[1];
 
@@ -399,8 +404,8 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 
 static StructRNA *rna_Menu_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
-	MenuType *mt, dummymt = {0};
-	Menu dummymenu= {0};
+	MenuType *mt, dummymt = {NULL};
+	Menu dummymenu= {NULL};
 	PointerRNA dummymtr;
 	int have_function[2];
 
@@ -620,20 +625,20 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw UI elements into the panel UI layout.");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	func= RNA_def_function(srna, "draw_header", NULL);
 	RNA_def_function_ui_description(func, "Draw UI elements into the panel's header UI layout.");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");

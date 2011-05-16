@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file VideoBase.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined VIDEOBASE_H
 #define VIDEOBASE_H
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Implementationclass to derive controllers from
  *
  * $Id$
@@ -29,6 +29,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file SG_Controller.h
+ *  \ingroup bgesg
+ */
+ 
 #ifndef __SG_CONTROLLER_H
 #define __SG_CONTROLLER_H
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_Scene.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_SCENE_H
 #define __KX_SCENE_H
 
@@ -36,8 +41,8 @@
 #include <set>
 #include <list>
 
-#include "GEN_Map.h"
-#include "GEN_HashedPtr.h"
+#include "CTR_Map.h"
+#include "CTR_HashedPtr.h"
 #include "SG_IObject.h"
 #include "SCA_IScene.h"
 #include "MT_Transform.h"
@@ -56,7 +61,7 @@ struct SM_MaterialProps;
 struct SM_ShapeProps;
 struct Scene;
 
-class GEN_HashedPtr;
+class CTR_HashedPtr;
 class CListValue;
 class CValue;
 class SCA_LogicManager;
@@ -203,7 +208,7 @@ protected:
 	 * used in AddReplicaObject to map game objects to their
 	 * replicas so pointers can be updated.
 	 */
-	GEN_Map	<GEN_HashedPtr, void*> m_map_gameobject_to_replica;
+	CTR_Map	<CTR_HashedPtr, void*> m_map_gameobject_to_replica;
 
 	/**
 	 * Another temporary variable outstaying its welcome

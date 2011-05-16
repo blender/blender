@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,13 +27,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/BL_ShapeDeformer.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif //WIN32
 
 #include "MEM_guardedalloc.h"
 #include "BL_ShapeDeformer.h"
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 #include "STR_HashedString.h"
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_MeshObject.h"

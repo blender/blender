@@ -1,5 +1,5 @@
-/**
- * $Id: textview.h 33431 2010-12-02 21:48:46Z campbellbarton $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_info/textview.h
+ *  \ingroup spinfo
+ */
+
 
 typedef struct TextViewContext {
 	int lheight;

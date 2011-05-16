@@ -1,3 +1,6 @@
+/** \file itasc/kdl/frameacc.cpp
+ *  \ingroup itasc
+ */
 /*****************************************************************************
  *  \author
  *  	Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven

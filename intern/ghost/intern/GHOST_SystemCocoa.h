@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,8 +26,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_SystemCocoa.h
+
+/** \file ghost/intern/GHOST_SystemCocoa.h
+ *  \ingroup GHOST
  * Declaration of GHOST_SystemCocoa class.
  */
 
@@ -226,6 +227,11 @@ public:
      * @return Indication whether the event was handled. 
      */
     GHOST_TSuccess handleApplicationBecomeActiveEvent();
+
+	/**
+	 * @see GHOST_ISystem
+	 */
+	int toggleConsole(int action) { return 0; }
 	
 	
 protected:

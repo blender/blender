@@ -1,4 +1,4 @@
-/**
+/*
  * Generate random pulses
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_RandomSensor.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include <stddef.h>
 

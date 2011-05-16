@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/Expression.cpp
+ *  \ingroup expressions
+ */
 // Expression.cpp: implementation of the CExpression class.
 /*
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>

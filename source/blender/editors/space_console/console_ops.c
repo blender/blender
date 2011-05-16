@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_console/console_ops.c
+ *  \ingroup spconsole
+ */
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -75,7 +80,7 @@ void console_scrollback_free(SpaceConsole *sc, ConsoleLine *cl)
 	MEM_freeN(cl);
 }
 
-void console_scrollback_limit(SpaceConsole *sc)
+static void console_scrollback_limit(SpaceConsole *sc)
 {
 	int tot;
 	
@@ -712,7 +717,7 @@ static int copy_exec(bContext *C, wmOperator *UNUSED(op))
 	int sel[2];
 	int offset= 0;
 
-	ConsoleLine cl_dummy= {0};
+	ConsoleLine cl_dummy= {NULL};
 
 #if 0
 	/* copy whole file */

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_view3d/drawarmature.c
+ *  \ingroup spview3d
+ */
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -124,7 +129,7 @@ static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
 }
 
 /* This function is for brightening/darkening a given color (like UI_ThemeColorShade()) */
-static void cp_shade_color3ub (char cp[], int offset)
+static void cp_shade_color3ub (unsigned char cp[3], const int offset)
 {
 	int r, g, b;
 	
@@ -147,7 +152,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_NORMAL:
 	{
 		if (bcolor) {
-			char cp[3];
+			unsigned char cp[3];
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
@@ -164,7 +169,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 				cp_shade_color3ub(cp, -50);
 			}
 			
-			glColor3ub(cp[0], cp[1], cp[2]);
+			glColor3ubv(cp);
 		}
 		else {
 			if (boneflag & BONE_DRAW_ACTIVE && boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_BONE_POSE, 40);
@@ -180,8 +185,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_SOLID:
 	{
 		if (bcolor) {
-			char *cp= bcolor->solid;
-			glColor3ub(cp[0], cp[1], cp[2]);
+			glColor3ubv((unsigned char *)bcolor->solid);
 		}
 		else 
 			UI_ThemeColor(TH_BONE_SOLID);
@@ -210,7 +214,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_SPHEREBONE_BASE:
 	{
 		if (bcolor) {
-			char cp[3];
+			unsigned char cp[3];
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
@@ -222,7 +226,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 				VECCOPY(cp, bcolor->solid);
 			}
 			
-			glColor3ub(cp[0], cp[1], cp[2]);
+			glColor3ubv(cp);
 		}
 		else {
 			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 40);
@@ -236,7 +240,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_SPHEREBONE_END:
 	{
 		if (bcolor) {
-			char cp[3];
+			unsigned char cp[3];
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
@@ -251,7 +255,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 				cp_shade_color3ub(cp, -30);
 			}
 			
-			glColor3ub(cp[0], cp[1], cp[2]);
+			glColor3ubv(cp);
 		}
 		else {
 			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 10);
@@ -1510,7 +1514,7 @@ static void draw_pose_dofs(Object *ob)
 							/* arcs */
 							if (pchan->ikflag & BONE_IK_ZLIMIT) {
 								/* OpenGL requires rotations in degrees; so we're taking the average angle here */
-								theta= 0.5f*(pchan->limitmin[2]+pchan->limitmax[2]) * (float)(180.0f/M_PI);
+								theta= RAD2DEGF(0.5f * (pchan->limitmin[2]+pchan->limitmax[2]));
 								glRotatef(theta, 0.0f, 0.0f, 1.0f);
 								
 								glColor3ub(50, 50, 255);	// blue, Z axis limit
@@ -1532,8 +1536,8 @@ static void draw_pose_dofs(Object *ob)
 							}					
 							
 							if (pchan->ikflag & BONE_IK_XLIMIT) {
-							/* OpenGL requires rotations in degrees; so we're taking the average angle here */
-								theta= 0.5f*(pchan->limitmin[0] + pchan->limitmax[0]) * (float)(180.0f/M_PI);
+								/* OpenGL requires rotations in degrees; so we're taking the average angle here */
+								theta= RAD2DEGF(0.5f * (pchan->limitmin[0] + pchan->limitmax[0]));
 								glRotatef(theta, 1.0f, 0.0f, 0.0f);
 								
 								glColor3ub(255, 50, 50);	// Red, X axis limit
@@ -1591,7 +1595,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 	
 	/* hacky... prevent outline select from drawing dashed helplines */
 	glGetFloatv(GL_LINE_WIDTH, &tmp);
-	if (tmp > 1.1) do_dashed &= ~1;
+	if (tmp > 1.1f) do_dashed &= ~1;
 	if (v3d->flag & V3D_HIDE_HELPLINES) do_dashed &= ~2;
 	
 	/* precalc inverse matrix for drawing screen aligned */
@@ -1610,10 +1614,17 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			
 			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				bone= pchan->bone;
-				if (bone && !(bone->flag & (BONE_HIDDEN_P|BONE_NO_DEFORM|BONE_HIDDEN_PG))) {
-					if (bone->flag & (BONE_SELECTED)) {
-						if (bone->layer & arm->layer)
-							draw_sphere_bone_dist(smat, imat, pchan, NULL);
+				if (bone) {
+					/* 1) bone must be visible, 2) for OpenGL select-drawing cannot have unselectable [#27194] 
+					 * NOTE: this is the only case with NO_DEFORM==0 flag, as this is for envelope influence drawing 
+					 */
+					if ( (bone->flag & (BONE_HIDDEN_P|BONE_NO_DEFORM|BONE_HIDDEN_PG))==0 && 
+						 ((G.f & G_PICKSEL)==0 || (bone->flag & BONE_UNSELECTABLE)==0) ) 
+					{
+						if (bone->flag & (BONE_SELECTED)) {
+							if (bone->layer & arm->layer)
+								draw_sphere_bone_dist(smat, imat, pchan, NULL);
+						}
 					}
 				}
 			}
@@ -1637,14 +1648,18 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			bone= pchan->bone;
 			arm->layer_used |= bone->layer;
 			
-			if ( (bone) && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)) ) {
+			/* 1) bone must be visible, 2) for OpenGL select-drawing cannot have unselectable [#27194] */
+			if ( (bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))==0 && 
+				 ((G.f & G_PICKSEL)==0 || (bone->flag & BONE_UNSELECTABLE)==0) ) 
+			{
 				if (bone->layer & arm->layer) {
 					int use_custom = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
 					glPushMatrix();
-
+					
 					if(use_custom && pchan->custom_tx) {
 						glMultMatrixf(pchan->custom_tx->pose_mat);
-					} else {
+					} 
+					else {
 						glMultMatrixf(pchan->pose_mat);
 					}
 					
@@ -1705,15 +1720,19 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
 			
-			if ((bone) && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
+			/* 1) bone must be visible, 2) for OpenGL select-drawing cannot have unselectable [#27194] */
+			if ( (bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))==0 && 
+				 ((G.f & G_PICKSEL)==0 || (bone->flag & BONE_UNSELECTABLE)==0) ) 
+			{
 				if (bone->layer & arm->layer) {
 					if (pchan->custom) {
 						if ((dt < OB_SOLID) || (bone->flag & BONE_DRAWWIRE)) {
 							glPushMatrix();
-
+							
 							if(pchan->custom_tx) {
 								glMultMatrixf(pchan->custom_tx->pose_mat);
-							} else {
+							} 
+							else {
 								glMultMatrixf(pchan->pose_mat);
 							}
 							
@@ -1783,7 +1802,10 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			bone= pchan->bone;
 			arm->layer_used |= bone->layer;
 			
-			if ((bone) && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
+			/* 1) bone must be visible, 2) for OpenGL select-drawing cannot have unselectable [#27194] */
+			if ( (bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))==0 && 
+				 ((G.f & G_PICKSEL)==0 || (bone->flag & BONE_UNSELECTABLE)==0) ) 
+			{
 				if (bone->layer & arm->layer) {
 					if ((do_dashed & 1) && (pchan->parent)) {
 						/* Draw a line from our root to the parent's tip 
@@ -1887,9 +1909,9 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 		/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
-
+			
 			unsigned char col[4];
-			float col_f[3];
+			float col_f[4];
 			glGetFloatv(GL_CURRENT_COLOR, col_f); /* incase this is not set below */
 			rgb_float_to_byte(col_f, col);
 			col[3]= 255;
@@ -1906,7 +1928,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 						else if (dt > OB_WIRE) {
 							UI_GetThemeColor3ubv(TH_TEXT, col);
 						}
-
+						
 						/* 	Draw names of bone 	*/
 						if (arm->flag & ARM_DRAWNAMES) {
 							mid_v3_v3v3(vec, pchan->pose_head, pchan->pose_tail);
@@ -1919,10 +1941,10 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 							copy_m4_m4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
 							glMultMatrixf(bmat);
-
+							
 							glColor3ubv(col);
 							drawaxes(pchan->bone->length*0.25f, OB_ARROWS);
-
+							
 							glPopMatrix();
 						}
 					}
@@ -2435,7 +2457,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 		/* we use color for solid lighting */
 		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
 		glEnable(GL_COLOR_MATERIAL);
-		glColor3ub(255,0,255);	// clear spec
+		glColor3ub(255,255,255);	// clear spec
 		glDisable(GL_COLOR_MATERIAL);
 		
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
@@ -2455,12 +2477,16 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 			/* drawing posemode selection indices or colors only in these cases */
 			if(!(base->flag & OB_FROMDUPLI)) {
 				if(G.f & G_PICKSEL) {
+#if 0				/* nifty but actually confusing to allow bone selection out of posemode */
 					if(OBACT && (OBACT->mode & OB_MODE_WEIGHT_PAINT)) {
 						if(ob==modifiers_isDeformedByArmature(OBACT))
 							arm->flag |= ARM_POSEMODE;
 					}
-					else if(ob->mode & OB_MODE_POSE) 
+					else
+#endif
+					if(ob->mode & OB_MODE_POSE) {
 						arm->flag |= ARM_POSEMODE;
+					}
 				}
 				else if(ob->mode & OB_MODE_POSE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {

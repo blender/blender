@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_object.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_OBJECT_H
 #define ED_OBJECT_H
 
@@ -121,7 +126,7 @@ void ED_object_constraint_update(struct Object *ob);
 void ED_object_constraint_dependency_update(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* object_lattice.c */
-int  mouse_lattice(struct bContext *C, short mval[2], int extend);
+int  mouse_lattice(struct bContext *C, const short mval[2], int extend);
 void undo_push_lattice(struct bContext *C, const char *name);
 
 /* object_lattice.c */

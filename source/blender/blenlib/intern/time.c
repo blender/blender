@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,8 +27,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WIN32
+/** \file blender/blenlib/intern/time.c
+ *  \ingroup bli
+ */
+
+
 #include "PIL_time.h"
+
+#ifdef WIN32
 #include <windows.h>
 
 double PIL_check_seconds_timer(void) 

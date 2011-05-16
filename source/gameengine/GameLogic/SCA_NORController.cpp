@@ -1,4 +1,4 @@
-/**
+/*
  * 'Nor' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_NORController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_NORController.h"
 #include "SCA_ISensor.h"

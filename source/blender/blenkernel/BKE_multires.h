@@ -30,6 +30,10 @@
 #ifndef BKE_MULTIRES_H
 #define BKE_MULTIRES_H
 
+/** \file BKE_multires.h
+ *  \ingroup bke
+ */
+
 struct DerivedMesh;
 struct Mesh;
 struct MFace;

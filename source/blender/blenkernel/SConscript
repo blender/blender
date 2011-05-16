@@ -12,6 +12,7 @@ incs += ' #/extern/bullet2/src'
 incs += ' #/intern/opennl/extern #/intern/bsp/extern'
 incs += ' ../gpu #/extern/glew/include'
 incs += ' #/intern/smoke/extern'
+incs += ' #/intern/mikktspace'
 incs += ' #/intern/audaspace/intern'
 
 incs += ' ' + env['BF_OPENGL_INC']
@@ -26,6 +27,10 @@ if env['WITH_BF_PYTHON']:
     if env['BF_DEBUG']:
         defs.append('DEBUG')
 
+if env['WITH_BF_ELTOPO']:
+    incs += ' ../../../extern/eltopo'
+    defs.append('WITH_ELTOPO')
+        
 if env['WITH_BF_QUICKTIME']:
     incs += ' ../quicktime'
 

@@ -5,6 +5,7 @@ source_files = env.Glob('*.c')
 
 incs = ['.',
     '../../../blenkernel',
+    '../../../blenloader',
     '../../',
     '..',
     '../../../blenlib',

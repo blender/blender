@@ -1,5 +1,5 @@
-/**
- * $Id: collada_utils.h 32310 2010-10-05 00:49:39Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,6 +20,10 @@
  * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file collada_utils.h
+ *  \ingroup collada
  */
 
 #ifndef __BC_UTILS_H__

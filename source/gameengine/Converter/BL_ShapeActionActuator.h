@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,10 +27,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file BL_ShapeActionActuator.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef BL_SHAPEACTIONACTUATOR
 #define BL_SHAPEACTIONACTUATOR
 
-#include "GEN_HashedPtr.h"
+#include "CTR_HashedPtr.h"
 #include "SCA_IActuator.h"
 #include "BL_ActionActuator.h"
 #include "MT_Point3.h"
@@ -113,6 +117,7 @@ public:
 
 		switch (act->m_playtype) {
 			case ACT_ACTION_PLAY:
+			case ACT_ACTION_PINGPONG:
 			case ACT_ACTION_FLIPPER:
 			case ACT_ACTION_LOOP_STOP:
 			case ACT_ACTION_LOOP_END:

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_EmptyObject.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_EMPTYOBJECT
 #define  __KX_EMPTYOBJECT
 #include "KX_GameObject.h"

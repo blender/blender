@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenloader/intern/writefile.c
+ *  \ingroup blenloader
+ */
+
+
 /*
 FILEFORMAT: IFF-style structure  (but not IFF compatible!)
 
@@ -214,8 +219,6 @@ static void writedata_free(WriteData *wd)
 
 /***/
 
-int mywfile;
-
 /**
  * Low level WRITE(2) wrapper that buffers data
  * @param adr Pointer to new chunk of data
@@ -343,7 +346,7 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 {
 	BHead bh;
 
-	if(adr==0) return;
+	if(adr==NULL) return;
 	if(len==0) return;
 
 	len+= 3;
@@ -465,7 +468,7 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 					
 					/* write envelope data */
 					if (data->data)
-						writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
+						writestruct(wd, DATA, "FCM_EnvelopeData", data->totvert, data->data);
 				}
 					break;
 				case FMODIFIER_TYPE_PYTHON:
@@ -672,6 +675,12 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	
 	for(link= ntree->links.first; link; link= link->next)
 		writestruct(wd, DATA, "bNodeLink", 1, link);
+	
+	/* external sockets */
+	for(sock= ntree->inputs.first; sock; sock= sock->next)
+		writestruct(wd, DATA, "bNodeSocket", 1, sock);
+	for(sock= ntree->outputs.first; sock; sock= sock->next)
+		writestruct(wd, DATA, "bNodeSocket", 1, sock);
 }
 
 static void current_screen_compat(Main *mainvar, bScreen **screen)
@@ -823,6 +832,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 {
 	ParticleSettings *part;
 	ParticleDupliWeight *dw;
+	int a;
 
 	part= idbase->first;
 	while(part) {
@@ -849,6 +859,10 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			}
 			if(part->fluid && part->phystype == PART_PHYS_FLUID){
 				writestruct(wd, DATA, "SPHFluidSettings", 1, part->fluid); 
+			}
+
+			for(a=0; a<MAX_MTEX; a++) {
+				if(part->mtex[a]) writestruct(wd, DATA, "MTex", 1, part->mtex[a]);
 			}
 		}
 		part= part->id.next;
@@ -1214,7 +1228,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 
 					/* create fake pointcache so that old blender versions can read it */
 					smd->domain->point_cache[1] = BKE_ptcache_add(&smd->domain->ptcaches[1]);
-					smd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE;
+					smd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE|PTCACHE_FAKE_SMOKE;
 					smd->domain->point_cache[1]->step = 1;
 
 					write_pointcaches(wd, &(smd->domain->ptcaches[1]));
@@ -1263,6 +1277,12 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->dyninfluences);
 			writedata(wd, DATA, sizeof(int)*mmd->totvert, mmd->dynverts);
 		}
+		else if (md->type==eModifierType_Warp) {
+			WarpModifierData *tmd = (WarpModifierData*) md;
+			if(tmd->curfalloff) {
+				write_curvemapping(wd, tmd->curfalloff);
+			}
+		}
 	}
 }
 
@@ -1294,7 +1314,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			if (ob->type == OB_ARMATURE) {
 				bArmature *arm = ob->data;
 				if (arm && ob->pose && arm->act_bone) {
-					strcpy(ob->pose->proxy_act_bone, arm->act_bone->name);
+					BLI_strncpy(ob->pose->proxy_act_bone, arm->act_bone->name, sizeof(ob->pose->proxy_act_bone));
 				}
 			}
 
@@ -1687,6 +1707,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if(tex->type == TEX_POINTDENSITY && tex->pd) {
 				writestruct(wd, DATA, "PointDensity", 1, tex->pd);
 				if(tex->pd->coba) writestruct(wd, DATA, "ColorBand", 1, tex->pd->coba);
+				if(tex->pd->falloff_curve) write_curvemapping(wd, tex->pd->falloff_curve);
 			}
 			if(tex->type == TEX_VOXELDATA && tex->vd) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
 			
@@ -2536,7 +2557,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 	}
 
 	BLI_make_file_string(G.main->name, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
-	write_user_block= BLI_streq(dir, userfilename);
+	write_user_block= (BLI_path_cmp(dir, userfilename) == 0);
 
 	if(write_flags & G_FILE_RELATIVE_REMAP)
 		makeFilesRelative(mainvar, dir, NULL); /* note, making relative to something OTHER then G.main->name */
@@ -2600,197 +2621,3 @@ int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int wr
 	if(err==0) return 1;
 	return 0;
 }
-
-
-	/* Runtime writing */
-
-#ifdef WIN32
-#define PATHSEPERATOR		"\\"
-#else
-#define PATHSEPERATOR		"/"
-#endif
-
-static char *get_runtime_path(char *exename) {
-	char *installpath= get_install_dir();
-
-	if (!installpath) {
-		return NULL;
-	} else {
-		char *path= MEM_mallocN(strlen(installpath)+strlen(PATHSEPERATOR)+strlen(exename)+1, "runtimepath");
-
-		if (path == NULL) {
-			MEM_freeN(installpath);
-			return NULL;
-		}
-
-		strcpy(path, installpath);
-		strcat(path, PATHSEPERATOR);
-		strcat(path, exename);
-
-		MEM_freeN(installpath);
-
-		return path;
-	}
-}
-
-#ifdef __APPLE__
-
-static int recursive_copy_runtime(char *outname, char *exename, ReportList *reports)
-{
-	char *runtime = get_runtime_path(exename);
-	char command[2 * (FILE_MAXDIR+FILE_MAXFILE) + 32];
-	int progfd = -1, error= 0;
-
-	if (!runtime) {
-		BKE_report(reports, RPT_ERROR, "Unable to find runtime");
-		error= 1;
-		goto cleanup;
-	}
-	//printf("runtimepath %s\n", runtime);
-		
-	progfd= open(runtime, O_BINARY|O_RDONLY, 0);
-	if (progfd==-1) {
-		BKE_report(reports, RPT_ERROR, "Unable to find runtime");
-		error= 1;
-		goto cleanup;
-	}
-
-	sprintf(command, "/bin/cp -R \"%s\" \"%s\"", runtime, outname);
-	//printf("command %s\n", command);
-	if (system(command) == -1) {
-		BKE_report(reports, RPT_ERROR, "Couldn't copy runtime");
-		error= 1;
-	}
-
-cleanup:
-	if (progfd!=-1)
-		close(progfd);
-	if (runtime)
-		MEM_freeN(runtime);
-
-	return !error;
-}
-
-int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *reports) 
-{
-	char gamename[FILE_MAXDIR+FILE_MAXFILE];
-	int outfd = -1, error= 0;
-
-	// remove existing file / bundle
-	//printf("Delete file %s\n", file);
-	BLI_delete(file, 0, TRUE);
-
-	if (!recursive_copy_runtime(file, exename, reports)) {
-		error= 1;
-		goto cleanup;
-	}
-
-	strcpy(gamename, file);
-	strcat(gamename, "/Contents/Resources/game.blend");
-	//printf("gamename %s\n", gamename);
-	outfd= open(gamename, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
-	if (outfd != -1) {
-
-		write_file_handle(mainvar, outfd, NULL,NULL, 0, G.fileflags, NULL);
-
-		if (write(outfd, " ", 1) != 1) {
-			BKE_report(reports, RPT_ERROR, "Unable to write to output file.");
-			error= 1;
-			goto cleanup;
-		}
-	} else {
-		BKE_report(reports, RPT_ERROR, "Unable to open blenderfile.");
-		error= 1;
-	}
-
-cleanup:
-	if (outfd!=-1)
-		close(outfd);
-
-	BKE_reports_prepend(reports, "Unable to make runtime: ");
-	return !error;
-}
-
-#else /* !__APPLE__ */
-
-static int handle_append_runtime(int handle, char *exename, ReportList *reports)
-{
-	char *runtime= get_runtime_path(exename);
-	unsigned char buf[1024];
-	int count, progfd= -1, error= 0;
-
-	if (!BLI_exists(runtime)) {
-		BKE_report(reports, RPT_ERROR, "Unable to find runtime.");
-		error= 1;
-		goto cleanup;
-	}
-
-	progfd= open(runtime, O_BINARY|O_RDONLY, 0);
-	if (progfd==-1) {
-		BKE_report(reports, RPT_ERROR, "Unable to find runtime.@");
-		error= 1;
-		goto cleanup;
-	}
-
-	while ((count= read(progfd, buf, sizeof(buf)))>0) {
-		if (write(handle, buf, count)!=count) {
-			BKE_report(reports, RPT_ERROR, "Unable to write to output file.");
-			error= 1;
-			goto cleanup;
-		}
-	}
-
-cleanup:
-	if (progfd!=-1)
-		close(progfd);
-	if (runtime)
-		MEM_freeN(runtime);
-
-	return !error;
-}
-
-static int handle_write_msb_int(int handle, int i) 
-{
-	unsigned char buf[4];
-	buf[0]= (i>>24)&0xFF;
-	buf[1]= (i>>16)&0xFF;
-	buf[2]= (i>>8)&0xFF;
-	buf[3]= (i>>0)&0xFF;
-
-	return (write(handle, buf, 4)==4);
-}
-
-int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *reports)
-{
-	int outfd= open(file, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
-	int datastart, error= 0;
-
-	if (!outfd) {
-		BKE_report(reports, RPT_ERROR, "Unable to open output file.");
-		error= 1;
-		goto cleanup;
-	}
-	if (!handle_append_runtime(outfd, exename, reports)) {
-		error= 1;
-		goto cleanup;
-	}
-
-	datastart= lseek(outfd, 0, SEEK_CUR);
-
-	write_file_handle(mainvar, outfd, NULL,NULL, 0, G.fileflags, NULL);
-
-	if (!handle_write_msb_int(outfd, datastart) || (write(outfd, "BRUNTIME", 8)!=8)) {
-		BKE_report(reports, RPT_ERROR, "Unable to write to output file.");
-		error= 1;
-		goto cleanup;
-	}
-
-cleanup:
-	if (outfd!=-1)
-		close(outfd);
-
-	BKE_reports_prepend(reports, "Unable to make runtime: ");
-	return !error;
-}
-
-#endif /* !__APPLE__ */

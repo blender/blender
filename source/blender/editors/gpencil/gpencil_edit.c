@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/gpencil/gpencil_edit.c
+ *  \ingroup edgpencil
+ */
+
  
 
 #include <stdio.h>
@@ -64,6 +69,7 @@
 
 #include "UI_view2d.h"
 
+#include "ED_gpencil.h"
 #include "ED_view3d.h"
 
 #include "gpencil_intern.h"
@@ -195,6 +201,7 @@ void GPENCIL_OT_data_add (wmOperatorType *ot)
 	ot->name= "Grease Pencil Add New";
 	ot->idname= "GPENCIL_OT_data_add";
 	ot->description= "Add new Grease Pencil datablock";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->exec= gp_data_add_exec;
@@ -242,6 +249,7 @@ void GPENCIL_OT_data_unlink (wmOperatorType *ot)
 	ot->name= "Grease Pencil Unlink";
 	ot->idname= "GPENCIL_OT_data_unlink";
 	ot->description= "Unlink active Grease Pencil datablock";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->exec= gp_data_unlink_exec;
@@ -278,6 +286,7 @@ void GPENCIL_OT_layer_add (wmOperatorType *ot)
 	ot->name= "Add New Layer";
 	ot->idname= "GPENCIL_OT_layer_add";
 	ot->description= "Add new Grease Pencil layer for the active Grease Pencil datablock";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->exec= gp_layer_add_exec;
@@ -328,6 +337,7 @@ void GPENCIL_OT_active_frame_delete (wmOperatorType *ot)
 	ot->name= "Delete Active Frame";
 	ot->idname= "GPENCIL_OT_active_frame_delete";
 	ot->description= "Delete the active frame for the active Grease Pencil datablock";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->exec= gp_actframe_delete_exec;
@@ -482,7 +492,7 @@ static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, C
 		copy_v3_v3(p3d_prev, p3d_cur);
 		copy_v3_v3(p3d_cur, p3d_next);
 
-		if (i < tot) {
+		if (i + 1 < tot) {
 			gp_strokepoint_convertcoords(C, gps, pt+1, p3d_next);
 		}
 	}
@@ -543,9 +553,10 @@ static int gp_convert_poll (bContext *C)
 {
 	bGPdata *gpd= gpencil_data_get_active(C);
 	ScrArea *sa= CTX_wm_area(C);
+	Scene *scene= CTX_data_scene(C);
 
 	/* only if there's valid data, and the current view is 3D View */
-	return ((sa && sa->spacetype == SPACE_VIEW3D) && gpencil_layer_getactive(gpd));
+	return ((sa && sa->spacetype == SPACE_VIEW3D) && gpencil_layer_getactive(gpd) && (scene->obedit == NULL));
 }
 
 static int gp_convert_layer_exec (bContext *C, wmOperator *op)
@@ -592,6 +603,7 @@ void GPENCIL_OT_convert (wmOperatorType *ot)
 	ot->name= "Convert Grease Pencil";
 	ot->idname= "GPENCIL_OT_convert";
 	ot->description= "Convert the active Grease Pencil layer to a new Object";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->invoke= WM_menu_invoke;

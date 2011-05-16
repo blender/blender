@@ -1,3 +1,6 @@
+/** \file itasc/Cache.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * Cache.cpp
  *

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/object/object_intern.h
+ *  \ingroup edobj
+ */
+
 #ifndef ED_OBJECT_INTERN_H
 #define ED_OBJECT_INTERN_H
 
@@ -50,9 +55,7 @@ void OBJECT_OT_rotation_clear(struct wmOperatorType *ot);
 void OBJECT_OT_scale_clear(struct wmOperatorType *ot);
 void OBJECT_OT_origin_clear(struct wmOperatorType *ot);
 void OBJECT_OT_visual_transform_apply(struct wmOperatorType *ot);
-void OBJECT_OT_location_apply(struct wmOperatorType *ot);
-void OBJECT_OT_scale_apply(struct wmOperatorType *ot);
-void OBJECT_OT_rotation_apply(struct wmOperatorType *ot);
+void OBJECT_OT_transform_apply(struct wmOperatorType *ot);
 void OBJECT_OT_origin_set(struct wmOperatorType *ot);
 
 /* object_relations.c */

@@ -25,12 +25,16 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * NetworkSceneManagement generic class
+ */
+
+/** \file NG_NetworkScene.h
+ *  \ingroup bgenet
+ *  \brief NetworkSceneManagement generic class
  */
 #ifndef __NG_NETWORKSCENE_H
 #define __NG_NETWORKSCENE_H
 
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 #include "STR_HashedString.h"
 #include <vector>
 
@@ -48,10 +52,10 @@ class NG_NetworkDeviceInterface;
 class NG_NetworkScene
 {
 	class NG_NetworkDeviceInterface *m_networkdevice;	
-	GEN_Map<STR_HashedString, class NG_NetworkObject *> m_networkObjects;
+	CTR_Map<STR_HashedString, class NG_NetworkObject *> m_networkObjects;
 
-	// GEN_Maps used as a 'Bloom' filter
-	typedef GEN_Map<STR_HashedString, std::vector<class NG_NetworkMessage*>* > TMessageMap;
+	// CTR_Maps used as a 'Bloom' filter
+	typedef CTR_Map<STR_HashedString, std::vector<class NG_NetworkMessage*>* > TMessageMap;
 	TMessageMap m_messagesByDestinationName;
 	TMessageMap m_messagesBySenderName;
 	TMessageMap m_messagesBySubject;

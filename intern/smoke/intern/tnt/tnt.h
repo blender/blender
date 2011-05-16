@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/tnt.h
+ *  \ingroup smoke
+ */
 /*
 *
 * Template Numerical Toolkit (TNT): Linear Algebra Module

@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -18,26 +18,21 @@ subject to the following restrictions:
 
 #include "btConvexInternalShape.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btAabbUtil2.h"
 
-#define MAX_NUM_SPHERES 5
+
 
 ///The btMultiSphereShape represents the convex hull of a collection of spheres. You can create special capsules or other smooth volumes.
-///It is possible to animate the spheres for deformation.
-class btMultiSphereShape : public btConvexInternalShape
-
+///It is possible to animate the spheres for deformation, but call 'recalcLocalAabb' after changing any sphere position/radius
+class btMultiSphereShape : public btConvexInternalAabbCachingShape
 {
 	
-	btVector3 m_localPositions[MAX_NUM_SPHERES];
-	btScalar  m_radi[MAX_NUM_SPHERES];
-	btVector3	m_inertiaHalfExtents;
-
-	int m_numSpheres;
+	btAlignedObjectArray<btVector3> m_localPositionArray;
+	btAlignedObjectArray<btScalar>  m_radiArray;
 	
-
-
-
 public:
-	btMultiSphereShape (const btVector3& inertiaHalfExtents,const btVector3* positions,const btScalar* radi,int numSpheres);
+	btMultiSphereShape (const btVector3* positions,const btScalar* radi,int numSpheres);
 
 	///CollisionShape Interface
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
@@ -49,17 +44,17 @@ public:
 	
 	int	getSphereCount() const
 	{
-		return m_numSpheres;
+		return m_localPositionArray.size();
 	}
 
 	const btVector3&	getSpherePosition(int index) const
 	{
-		return m_localPositions[index];
+		return m_localPositionArray[index];
 	}
 
 	btScalar	getSphereRadius(int index) const
 	{
-		return m_radi[index];
+		return m_radiArray[index];
 	}
 
 
@@ -68,7 +63,37 @@ public:
 		return "MultiSphere";
 	}
 
+	virtual	int	calculateSerializeBufferSize() const;
+
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+	virtual	const char*	serialize(void* dataBuffer, btSerializer* serializer) const;
+
+
 };
+
+
+struct	btPositionAndRadius
+{
+	btVector3FloatData	m_pos;
+	float		m_radius;
+};
+
+struct	btMultiSphereShapeData
+{
+	btConvexInternalShapeData	m_convexInternalShapeData;
+
+	btPositionAndRadius	*m_localPositionArrayPtr;
+	int				m_localPositionArraySize;
+	char	m_padding[4];
+};
+
+
+
+SIMD_FORCE_INLINE	int	btMultiSphereShape::calculateSerializeBufferSize() const
+{
+	return sizeof(btMultiSphereShapeData);
+}
+
 
 
 #endif //MULTI_SPHERE_MINKOWSKI_H

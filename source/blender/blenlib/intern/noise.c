@@ -29,12 +29,19 @@
  *
  */
 
+/** \file blender/blenlib/intern/noise.c
+ *  \ingroup bli
+ */
+
+
 #ifdef _WIN32 	 
 #pragma warning (disable : 4244) // "conversion from double to float"
 #pragma warning (disable : 4305) // "truncation from const double to float" 
 #endif
 
 #include <math.h>
+
+#include "BLI_noise.h"
 
 /* local */
 static float noise3_perlin(float vec[3]);
@@ -388,7 +395,7 @@ static char p[512+2]= {
 0xA2,0xA0};
 
 
-float g[512+2][3]= {
+static float g[512+2][3]= {
 	{0.33783, 0.715698, -0.611206},
 	{-0.944031, -0.326599, -0.045624},
 	{-0.101074, -0.416443, -0.903503},
@@ -1091,7 +1098,7 @@ static float dist_Minkovsky4(float x, float y, float z, float e)
 /* Minkovsky, general case, slow, maybe too slow to be useful */
 static float dist_Minkovsky(float x, float y, float z, float e)
 {
- return pow(pow(fabs(x), e) + pow(fabs(y), e) + pow(fabs(z), e), 1.0/e);
+	return pow(pow(fabs(x), e) + pow(fabs(y), e) + pow(fabs(z), e), 1.0/e);
 }
 
 
@@ -1268,18 +1275,18 @@ static float voronoi_CrS(float x, float y, float z)
 /* returns unsigned cellnoise */
 static float cellNoiseU(float x, float y, float z)
 {
-  int xi = (int)(floor(x));
-  int yi = (int)(floor(y));
-  int zi = (int)(floor(z));
-  unsigned int n = xi + yi*1301 + zi*314159;
-  n ^= (n<<13);
-  return ((float)(n*(n*n*15731 + 789221) + 1376312589) / 4294967296.0);
+	int xi = (int)(floor(x));
+	int yi = (int)(floor(y));
+	int zi = (int)(floor(z));
+	unsigned int n = xi + yi*1301 + zi*314159;
+	n ^= (n<<13);
+	return ((float)(n*(n*n*15731 + 789221) + 1376312589) / 4294967296.0);
 }
 
 /* idem, signed */
 float cellNoise(float x, float y, float z)
 {
-  return (2.0*cellNoiseU(x, y, z)-1.0);
+	return (2.0*cellNoiseU(x, y, z)-1.0);
 }
 
 /* returns a vector/point/color in ca, using point hasharray directly */

@@ -22,12 +22,14 @@
 set(INC
 	../include
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../editors/interface
 	../../../../intern/guardedalloc
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

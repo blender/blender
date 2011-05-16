@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/util/util_intern.h
+ *  \ingroup edutil
+ */
+
 
 #ifndef ED_UTIL_INTERN_H
 #define ED_UTIL_INTERN_H

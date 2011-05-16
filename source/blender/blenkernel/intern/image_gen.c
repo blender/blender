@@ -23,8 +23,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/image_gen.c
+ *  \ingroup bke
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
+
+#include "BKE_image.h"
 #include "BLI_math_color.h"
 #include "BLF_api.h"
 
@@ -73,10 +80,10 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
  
 	int checkerwidth= 32, dark= 1;
 	int x, y;
-    
+
 	unsigned char *rect_orig= rect;
 	float *rect_float_orig= rect_float;
-    
+
 	
 	float h=0.0, hoffs=0.0, hue=0.0, s=0.9, v=0.9, r, g, b;
 
@@ -154,8 +161,8 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 
 /* Utility functions for BKE_image_buf_fill_checker_color */
 
-#define BLEND_FLOAT(real, add)  (real+add <= 1.0) ? (real+add) : 1.0
-#define BLEND_CHAR(real, add) ((real + (char)(add * 255.0)) <= 255) ? (real + (char)(add * 255.0)) : 255
+#define BLEND_FLOAT(real, add)  (real+add <= 1.0f) ? (real+add) : 1.0f
+#define BLEND_CHAR(real, add) ((real + (char)(add * 255.0f)) <= 255) ? (real + (char)(add * 255.0f)) : 255
 
 static int is_pow2(int n)
 {
@@ -184,7 +191,7 @@ static void checker_board_color_fill(unsigned char *rect, float *rect_float, int
 
 	for(y= 0; y < height; y++)
 	{
-        
+
 		val= 0.1 + (y * (0.4 / height)); /* use a number lower then 1.0 else its too bright */
 		for(x= 0; x < width; x++)
 		{
@@ -309,17 +316,17 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 	BLF_size(mono, 54, 72); /* hard coded size! */
 
 	BLF_buffer(mono, rect_float, rect, width, height, 4);
-    
+
 	for(y= 0; y < height; y+=step)
 	{
 		text[1]= '1';
-        
+
 		for(x= 0; x < width; x+=step)
 		{
 			/* hard coded offset */
 			pen_x = x + 33;
 			pen_y = y + 44;
-            
+
 			/* terribly crappy outline font! */
 			BLF_buffer_col(mono, 1.0, 1.0, 1.0, 1.0);
 
@@ -331,7 +338,7 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 			BLF_draw_buffer(mono, text);
 			BLF_position(mono, pen_x, pen_y+outline, 0.0);
 			BLF_draw_buffer(mono, text);
-            
+
 			BLF_position(mono, pen_x-outline, pen_y-outline, 0.0);
 			BLF_draw_buffer(mono, text);
 			BLF_position(mono, pen_x+outline, pen_y+outline, 0.0);
@@ -344,12 +351,12 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 			BLF_buffer_col(mono, 0.0, 0.0, 0.0, 1.0);
 			BLF_position(mono, pen_x, pen_y, 0.0);
 			BLF_draw_buffer(mono, text);
-            
+
 			text[1]++;
 		}
 		text[0]++;
 	}
-    
+
 	/* cleanup the buffer. */
 	BLF_buffer(mono, NULL, NULL, 0, 0, 0);
 }

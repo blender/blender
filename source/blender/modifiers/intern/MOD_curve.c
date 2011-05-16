@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_curve.c
+ *  \ingroup modifiers
+ */
+
+
 #include <string.h>
 
 #include "DNA_scene_types.h"
@@ -44,6 +49,7 @@
 
 #include "depsgraph_private.h"
 
+#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {
@@ -142,18 +148,18 @@ ModifierTypeInfo modifierType_Curve = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
-	/* deformMatrices */    0,
+	/* deformMatrices */    NULL,
 	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  0,
-	/* applyModifier */     0,
-	/* applyModifierEM */   0,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          0,
+	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
-	/* dependsOnTime */     0,
-	/* dependsOnNormals */	0,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     0,
+	/* foreachIDLink */     NULL,
 };

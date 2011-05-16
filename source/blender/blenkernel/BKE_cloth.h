@@ -1,6 +1,4 @@
-/**
- * BKE_cloth.h
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,7 +29,13 @@
 #ifndef BKE_CLOTH_H
 #define BKE_CLOTH_H
 
+/** \file BKE_cloth.h
+ *  \ingroup bke
+ *  \author Daniel Genrich
+ */
+
 #include <float.h>
+#include "BLI_math_inline.h"
 
 struct Object;
 struct ListBase;
@@ -41,16 +45,7 @@ struct DerivedMesh;
 struct ClothModifierData;
 struct CollisionTree;
 
-// this is needed for inlining behaviour
-#if defined _WIN32
-#   define DO_INLINE __inline
-#elif defined (__sgi)
-#   define DO_INLINE
-#elif defined (__sun) || defined (__sun__)
-#   define DO_INLINE
-#else
-#   define DO_INLINE static inline
-#endif
+#define DO_INLINE MALWAYS_INLINE
 
 #define CLOTH_MAX_THREAD 2
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_ConvertProperties.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef __KX_CONVERTPROPERTIES
 #define __KX_CONVERTPROPERTIES
 

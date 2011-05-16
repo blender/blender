@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/armature/armature_intern.h
+ *  \ingroup edarmature
+ */
+
 #ifndef ED_ARMATURE_INTERN_H
 #define ED_ARMATURE_INTERN_H
 
@@ -103,6 +108,7 @@ void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
 void POSE_OT_select_linked(struct wmOperatorType *ot);
 void POSE_OT_select_constraint_target(struct wmOperatorType *ot);
 void POSE_OT_select_grouped(struct wmOperatorType *ot);
+void POSE_OT_select_flip_active(struct wmOperatorType *ot);
 
 void POSE_OT_group_add(struct wmOperatorType *ot);
 void POSE_OT_group_remove(struct wmOperatorType *ot);
@@ -144,16 +150,19 @@ void SKETCH_OT_select(struct wmOperatorType *ot);
 typedef struct tPChanFCurveLink {
 	struct tPChanFCurveLink *next, *prev;
 	
-	ListBase fcurves;			/* F-Curves for this PoseChannel (wrapped with LinkData) */
-	struct bPoseChannel *pchan;	/* Pose Channel which data is attached to */
+	ListBase fcurves;				/* F-Curves for this PoseChannel (wrapped with LinkData) */
+	struct bPoseChannel *pchan;		/* Pose Channel which data is attached to */
 	
-	char *pchan_path;			/* RNA Path to this Pose Channel (needs to be freed when we're done) */
+	char *pchan_path;				/* RNA Path to this Pose Channel (needs to be freed when we're done) */
 	
-		// TODO: need to include axis-angle here at some stage
-	float oldloc[3];			/* transform values at start of operator (to be restored before each modal step) */
+	float oldloc[3];				/* transform values at start of operator (to be restored before each modal step) */
 	float oldrot[3];
 	float oldscale[3];
 	float oldquat[4];
+	float oldangle;
+	float oldaxis[3];
+	
+	struct IDProperty *oldprops;	/* copy of custom properties at start of operator (to be restored before each modal step) */	
 } tPChanFCurveLink;
 
 /* ----------- */
@@ -171,10 +180,17 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, cha
 /* PoseLib */
 /* poselib.c */
 
+void POSELIB_OT_new(struct wmOperatorType *ot);
+void POSELIB_OT_unlink(struct wmOperatorType *ot);
+
+void POSELIB_OT_action_sanitise(struct wmOperatorType *ot);
+
 void POSELIB_OT_pose_add(struct wmOperatorType *ot);
 void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
 void POSELIB_OT_pose_rename(struct wmOperatorType *ot);
+
 void POSELIB_OT_browse_interactive(struct wmOperatorType *ot);
+void POSELIB_OT_apply_pose(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Pose Sliding Tools */
@@ -184,11 +200,13 @@ void POSE_OT_push(struct wmOperatorType *ot);
 void POSE_OT_relax(struct wmOperatorType *ot);
 void POSE_OT_breakdown(struct wmOperatorType *ot);
 
+void POSE_OT_propagate(struct wmOperatorType *ot);
+
 /* ******************************************************* */
 /* editarmature.c */
 
 EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent, struct Bone *actBone);
-void BIF_sk_selectStroke(struct bContext *C, short mval[2], short extend);
+void BIF_sk_selectStroke(struct bContext *C, const short mval[2], short extend);
 
 /* duplicate method */
 void preEditBoneDuplicate(struct ListBase *editbones);

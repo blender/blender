@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,9 +22,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_action.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -141,7 +147,7 @@ static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports
 static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, TimeMarker *marker)
 {
 	if (!BLI_remlink_safe(&act->markers, marker)) {
-		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in action '%s'", marker->name, act->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in Action '%s'", marker->name, act->id.name+2);
 		return;
 	}
 
@@ -149,9 +155,94 @@ static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, Ti
 	MEM_freeN(marker);
 }
 
+static PointerRNA rna_Action_active_pose_marker_get(PointerRNA *ptr)
+{
+	bAction *act= (bAction*)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_TimelineMarker, BLI_findlink(&act->markers, act->active_marker-1));
+}
+
+static void rna_Action_active_pose_marker_set(PointerRNA *ptr, PointerRNA value)
+{
+	bAction *act= (bAction*)ptr->data;
+	act->active_marker= BLI_findindex(&act->markers, value.data) + 1;
+}
+
+static int rna_Action_active_pose_marker_index_get(PointerRNA *ptr)
+{
+	bAction *act= (bAction*)ptr->data;
+	return MAX2(act->active_marker-1, 0);
+}
+
+static void rna_Action_active_pose_marker_index_set(PointerRNA *ptr, int value)
+{
+	bAction *act= (bAction*)ptr->data;
+	act->active_marker= value+1;
+}
+
+static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	bAction *act= (bAction*)ptr->data;
+
+	*min= 0;
+	*max= BLI_countlist(&act->markers)-1;
+	*max= MAX2(0, *max);
+}
+
+
+
 static void rna_Action_frame_range_get(PointerRNA *ptr,float *values)
 {
 	calc_action_range(ptr->id.data, values, values+1, 1);
+}
+
+
+/* used to check if an action (value pointer) is suitable to be assigned to the ID-block that is ptr */
+int rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
+{
+	ID *srcId = (ID *)ptr->id.data;
+	bAction *act = (bAction *)value.id.data;
+	
+	if (act) {
+		/* there can still be actions that will have undefined id-root 
+		 * (i.e. floating "action-library" members) which we will not
+		 * be able to resolve an idroot for automatically, so let these through
+		 */
+		if (act->idroot == 0)
+			return 1;
+		else if (srcId)
+			return GS(srcId->name) == act->idroot;
+	}
+	
+	return 0;
+}
+
+/* used to check if an action (value pointer) can be assigned to Action Editor given current mode */
+int rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceAction *saction = (SpaceAction *)ptr->data;
+	bAction *act = (bAction *)value.id.data;
+	
+	if (act) {
+		/* there can still be actions that will have undefined id-root 
+		 * (i.e. floating "action-library" members) which we will not
+		 * be able to resolve an idroot for automatically, so let these through
+		 */
+		if (act->idroot == 0)
+			return 1;
+		
+		if (saction) {
+			if (saction->mode == SACTCONT_ACTION) {
+				/* this is only Object-level for now... */
+				return act->idroot == ID_OB;
+			}
+			else if (saction->mode == SACTCONT_SHAPEKEY) {
+				/* obviously shapekeys only */
+				return act->idroot == ID_KE;
+			}
+		}
+	}
+	
+	return 0;
 }
 
 #else
@@ -194,6 +285,18 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "filter_grp");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filtering Group", "Group that included Object should be a member of");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
+	
+	/* FCurve Display Name Search Settings */
+	prop= RNA_def_property(srna, "show_only_matching_fcurves", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_BY_FCU_NAME);
+	RNA_def_property_ui_text(prop, "Only Matching F-Curves", "Only include F-Curves with names containing search text");
+	RNA_def_property_ui_icon(prop, ICON_VIEWZOOM, 0);
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
+	
+	prop= RNA_def_property(srna, "filter_fcurve_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "searchstr");
+	RNA_def_property_ui_text(prop, "F-Curve Name Filter", "F-Curve live filtering string");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	/* NLA Specific Settings */
@@ -405,7 +508,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "data_path", "", 0, "Data Path", "FCurve data path to use.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
+	RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
 	RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this fcurve into.");
 
 	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created fcurve");
@@ -422,6 +525,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
@@ -445,40 +549,60 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "TimelineMarker");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_Action_active_pose_marker_get", "rna_Action_active_pose_marker_set", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Pose Marker", "Active pose marker for this Action");
+	
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "active_marker");
+	RNA_def_property_int_funcs(prop, "rna_Action_active_pose_marker_index_get", "rna_Action_active_pose_marker_index_set", "rna_Action_active_pose_marker_index_range");
+	RNA_def_property_ui_text(prop, "Active Pose Marker Index", "Index of active pose marker");
 }
 
 static void rna_def_action(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
+	
 	srna= RNA_def_struct(brna, "Action", "ID");
 	RNA_def_struct_sdna(srna, "bAction");
 	RNA_def_struct_ui_text(srna, "Action", "A collection of F-Curves for animation");
 	RNA_def_struct_ui_icon(srna, ICON_ACTION);
-
+	
+	/* collections */
 	prop= RNA_def_property(srna, "fcurves", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "curves", NULL);
 	RNA_def_property_struct_type(prop, "FCurve");
 	RNA_def_property_ui_text(prop, "F-Curves", "The individual F-Curves that make up the Action");
 	rna_def_action_fcurves(brna, prop);
-
+	
 	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "groups", NULL);
 	RNA_def_property_struct_type(prop, "ActionGroup");
 	RNA_def_property_ui_text(prop, "Groups", "Convenient groupings of F-Curves");
 	rna_def_action_groups(brna, prop);
-
+	
 	prop= RNA_def_property(srna, "pose_markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses");
 	rna_def_action_pose_markers(brna, prop);
-
+	
+	/* properties */
 	prop= RNA_def_float_vector(srna, "frame_range" , 2 , NULL , 0, 0, "Frame Range" , "The final frame range of all fcurves within this action" , 0 , 0);
 	RNA_def_property_float_funcs(prop, "rna_Action_frame_range_get" , NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
+	
+	/* special "type" limiter - should not really be edited in general, but is still available/editable in 'emergencies' */
+	prop= RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "idroot");
+	RNA_def_property_enum_items(prop, id_type_items);
+	RNA_def_property_ui_text(prop, "ID Root Type", "Type of ID-block that action can be used on. DO NOT CHANGE UNLESS YOU KNOW WHAT YOU'RE DOING");
+	
+	/* API calls */
 	RNA_api_action(srna);
 }
 

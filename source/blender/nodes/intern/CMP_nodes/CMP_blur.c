@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_blur.c
+ *  \ingroup cmpnodes
+ */
+
 
 #include "../CMP_util.h"
 
@@ -598,9 +603,8 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	}
 	else if (nbd->filtertype == R_FILTER_FAST_GAUSS) {
 		CompBuf *new, *img = in[0]->data;
-		/*from eeshlo's original patch, removed to fit in with the existing blur node */
-		/*const float sx = in[1]->vec[0], sy = in[2]->vec[0];*/
-		const float sx = ((float)nbd->sizex)/2.0f, sy = ((float)nbd->sizey)/2.0f;
+		// TODO: can this be mapped with reference, too?
+		const float sx = ((float)nbd->sizex*in[1]->vec[0])/2.0f, sy = ((float)nbd->sizey*in[1]->vec[0])/2.0f;
 		int c;
 
 		if ((img==NULL) || (out[0]->hasoutput==0)) return;
@@ -711,7 +715,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 
 static void node_composit_init_blur(bNode* node)
 {
-   node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
+	node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
 }
 
 void register_node_type_cmp_blur(ListBase *lb)

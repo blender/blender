@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_sequencer.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 #include <limits.h>
@@ -446,7 +451,7 @@ static void rna_Sequence_filepath_get(PointerRNA *ptr, char *value)
 	Sequence *seq= (Sequence*)(ptr->data);
 	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, seq->strip->dir, seq->strip->stripdata->name);
+	BLI_join_dirfile(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
 	BLI_strncpy(value, path, strlen(path)+1);
 }
 
@@ -455,7 +460,7 @@ static int rna_Sequence_filepath_length(PointerRNA *ptr)
 	Sequence *seq= (Sequence*)(ptr->data);
 	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, seq->strip->dir, seq->strip->stripdata->name);
+	BLI_join_dirfile(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
 	return strlen(path)+1;
 }
 
@@ -474,7 +479,7 @@ static void rna_Sequence_proxy_filepath_get(PointerRNA *ptr, char *value)
 	StripProxy *proxy= (StripProxy*)(ptr->data);
 	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, proxy->dir, proxy->file);
+	BLI_join_dirfile(path, sizeof(path), proxy->dir, proxy->file);
 	BLI_strncpy(value, path, strlen(path)+1);
 }
 
@@ -483,7 +488,7 @@ static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
 	StripProxy *proxy= (StripProxy*)(ptr->data);
 	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, proxy->dir, proxy->file);
+	BLI_join_dirfile(path, sizeof(path), proxy->dir, proxy->file);
 	return strlen(path)+1;
 }
 
@@ -1055,7 +1060,7 @@ static void rna_def_editor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "show_overlay", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "over_flag", SEQ_EDIT_OVERLAY_SHOW);
-	RNA_def_property_ui_text(prop, "Draw Axes", "Partial overlay ontop of the sequencer");
+	RNA_def_property_ui_text(prop, "Draw Axes", "Partial overlay on top of the sequencer");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 
 	prop= RNA_def_property(srna, "overlay_lock", PROP_BOOLEAN, PROP_NONE);

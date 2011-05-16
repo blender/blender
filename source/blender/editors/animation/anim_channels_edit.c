@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/animation/anim_channels_edit.c
+ *  \ingroup edanimation
+ */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -164,9 +169,9 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
 			case ANIMTYPE_DSLAT:
 			{
 				/* need to verify that this data is valid for now */
-				// XXX: ale may be null!
-				if (ale->adt)
+				if (ale && ale->adt) {
 					ale->adt->flag |= ADT_UI_ACTIVE;
+				}
 			}
 				break;
 		}
@@ -527,7 +532,7 @@ void ANIM_fcurve_delete_from_animdata (bAnimContext *ac, AnimData *adt, FCurve *
 /* ****************** Operator Utilities ********************************** */
 
 /* poll callback for being in an Animation Editor channels list region */
-int animedit_poll_channels_active (bContext *C)
+static int animedit_poll_channels_active (bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	
@@ -543,7 +548,7 @@ int animedit_poll_channels_active (bContext *C)
 }
 
 /* poll callback for Animation Editor channels list region + not in NLA-tweakmode for NLA */
-int animedit_poll_channels_nla_tweakmode_off (bContext *C)
+static int animedit_poll_channels_nla_tweakmode_off (bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
@@ -577,7 +582,7 @@ enum {
 };
 
 /* defines for rearranging channels */
-EnumPropertyItem prop_animchannel_rearrange_types[] = {
+static EnumPropertyItem prop_animchannel_rearrange_types[] = {
 	{REARRANGE_ANIMCHAN_TOP, "TOP", 0, "To Top", ""},
 	{REARRANGE_ANIMCHAN_UP, "UP", 0, "Up", ""},
 	{REARRANGE_ANIMCHAN_DOWN, "DOWN", 0, "Down", ""},
@@ -996,7 +1001,7 @@ static void rearrange_action_channels (bAnimContext *ac, bAction *act, short mod
 		
 		for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 			/* only consider F-Curves if they're visible (group expanded) */
-			if (EXPANDED_AGRP(agrp)) {
+			if (EXPANDED_AGRP(ac, agrp)) {
 				rearrange_animchannel_islands(&agrp->channels, rearrange_func, mode, ANIMTYPE_FCURVE);
 			}
 		}
@@ -1067,7 +1072,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_channels_move (wmOperatorType *ot)
+static void ANIM_OT_channels_move (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Channels";
@@ -1170,7 +1175,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void ANIM_OT_channels_delete (wmOperatorType *ot)
+static void ANIM_OT_channels_delete (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Channels";
@@ -1247,7 +1252,7 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_channels_visibility_set (wmOperatorType *ot)
+static void ANIM_OT_channels_visibility_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Visibility";
@@ -1320,7 +1325,7 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_channels_visibility_toggle (wmOperatorType *ot)
+static void ANIM_OT_channels_visibility_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Visibility";
@@ -1338,7 +1343,7 @@ void ANIM_OT_channels_visibility_toggle (wmOperatorType *ot)
 /* ********************** Set Flags Operator *********************** */
 
 /* defines for setting animation-channel flags */
-EnumPropertyItem prop_animchannel_setflag_types[] = {
+static EnumPropertyItem prop_animchannel_setflag_types[] = {
 	{ACHANNEL_SETFLAG_TOGGLE, "TOGGLE", 0, "Toggle", ""},
 	{ACHANNEL_SETFLAG_CLEAR, "DISABLE", 0, "Disable", ""},
 	{ACHANNEL_SETFLAG_ADD, "ENABLE", 0, "Enable", ""},
@@ -1348,7 +1353,7 @@ EnumPropertyItem prop_animchannel_setflag_types[] = {
 
 /* defines for set animation-channel settings */
 // TODO: could add some more types, but those are really quite dependent on the mode...
-EnumPropertyItem prop_animchannel_settings_types[] = {
+static EnumPropertyItem prop_animchannel_settings_types[] = {
 	{ACHANNEL_SETTING_PROTECT, "PROTECT", 0, "Protect", ""},
 	{ACHANNEL_SETTING_MUTE, "MUTE", 0, "Mute", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -1452,7 +1457,7 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 }
 
 
-void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
+static void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Enable Channel Setting";
@@ -1474,7 +1479,7 @@ void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
-void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
+static void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Disable Channel Setting";
@@ -1496,7 +1501,7 @@ void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
-void ANIM_OT_channels_setting_invert (wmOperatorType *ot)
+static void ANIM_OT_channels_setting_invert (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Invert Channel Setting";
@@ -1518,7 +1523,7 @@ void ANIM_OT_channels_setting_invert (wmOperatorType *ot)
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
-void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
+static void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Channel Setting";
@@ -1540,7 +1545,7 @@ void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
-void ANIM_OT_channels_editable_toggle (wmOperatorType *ot)
+static void ANIM_OT_channels_editable_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Channel Editability";
@@ -1585,7 +1590,7 @@ static int animchannels_expand_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_channels_expand (wmOperatorType *ot)
+static void ANIM_OT_channels_expand (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Expand Channels";
@@ -1627,7 +1632,7 @@ static int animchannels_collapse_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_channels_collapse (wmOperatorType *ot)
+static void ANIM_OT_channels_collapse (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Collapse Channels";
@@ -1682,7 +1687,16 @@ static int animchannels_enable_exec (bContext *C, wmOperator *UNUSED(op))
 	/* loop through filtered data and clean curves */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu = (FCurve *)ale->data;
+		
+		/* remove disabled flags from F-Curves */
 		fcu->flag &= ~FCURVE_DISABLED;
+		
+		/* for drivers, let's do the same too */
+		if (fcu->driver)
+			fcu->driver->flag &= ~DRIVER_FLAG_INVALID;
+			
+		/* tag everything for updates - in particular, this is needed to get drivers working again */
+		ANIM_list_elem_update(ac.scene, ale);
 	}
 	
 	/* free temp data */
@@ -1694,7 +1708,7 @@ static int animchannels_enable_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_channels_fcurves_enable (wmOperatorType *ot)
+static void ANIM_OT_channels_fcurves_enable (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Revive Disabled F-Curves";
@@ -1731,7 +1745,7 @@ static int animchannels_deselectall_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
+static void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
@@ -1856,7 +1870,7 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ANIM_OT_channels_select_border(wmOperatorType *ot)
+static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
@@ -2177,7 +2191,7 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 	return OPERATOR_FINISHED;
 }
  
-void ANIM_OT_channels_click (wmOperatorType *ot)
+static void ANIM_OT_channels_click (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mouse Click on Channels";

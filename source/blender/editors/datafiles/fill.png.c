@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/fill.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <fill_png> */
 
 int datatoc_fill_png_size= 16892;

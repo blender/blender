@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_VAOpenGLRasterizer.h
+ *  \ingroup bgerastogl
+ */
+
 #ifndef __KX_VERTEXARRAYOPENGLRASTERIZER
 #define __KX_VERTEXARRAYOPENGLRASTERIZER
 

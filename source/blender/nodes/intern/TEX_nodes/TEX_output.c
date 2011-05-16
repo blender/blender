@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,7 +26,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_output.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
+#include "TEX_node.h"
 
 /* **************** COMPOSITE ******************** */
 static bNodeSocketType inputs[]= {
@@ -60,13 +66,13 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
 		
 			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
-			target->talpha = 1.0f;
+			target->talpha = 1;
 		
 			if(target->nor) {
 				if(in[1] && in[1]->hasinput)
 					tex_input_vec(target->nor, in[1], &params, cdata->thread);
 				else
-					target->nor = 0;
+					target->nor = NULL;
 			}
 		}
 	}
@@ -75,7 +81,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 static void unique_name(bNode *node)
 {
 	TexNodeOutput *tno = (TexNodeOutput *)node->storage;
-	char *new_name = 0;
+	char *new_name = NULL;
 	int new_len = 0;
 	int suffix;
 	bNode *i;

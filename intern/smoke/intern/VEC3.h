@@ -1,3 +1,6 @@
+/** \file smoke/intern/VEC3.h
+ *  \ingroup smoke
+ */
 /******************************************************************************
  * Copyright 2007 Nils Thuerey
  * Basic vector class 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/animation/anim_draw.c
+ *  \ingroup edanimation
+ */
+
 #include "BLO_sys_types.h"
 
 #include "DNA_anim_types.h"
@@ -95,7 +100,7 @@ void ANIM_timecode_string_from_frame (char *str, Scene *scene, int power, short 
 			 *	to cope with 'half' frames, etc., which should be fine in most cases
 			 */
 			seconds= (int)cfra;
-			frames= (int)floor( ((cfra - seconds) * FPS) + 0.5f );
+			frames= (int)floor( (((double)cfra - (double)seconds) * FPS) + 0.5 );
 		}
 		else {
 			/* seconds (with pixel offset rounding) */
@@ -232,7 +237,7 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 	
 	/* Draw dark green line if slow-parenting/time-offset is enabled */
 	if (flag & DRAWCFRA_SHOW_TIMEOFS) {
-		Object *ob= (scene->basact) ? (scene->basact->object) : 0;
+		Object *ob= OBACT;
 		if(ob) {
 			float timeoffset= give_timeoffset(ob);
 			// XXX ob->ipoflag is depreceated!
@@ -352,7 +357,7 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
  */
 void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, short only_keys)
 {
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc map_cb;
 	
 	/* init edit data 
@@ -394,9 +399,9 @@ float ANIM_unit_mapping_get_factor (Scene *scene, ID *id, FCurve *fcu, short res
 				/* if the radians flag is not set, default to using degrees which need conversions */
 				if ((scene) && (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) == 0) {
 					if (restore)
-						return M_PI / 180.0f;	/* degrees to radians */
+						return M_PI / 180.0;	/* degrees to radians */
 					else
-						return 180.0f / M_PI;	/* radians to degrees */
+						return 180.0 / M_PI;	/* radians to degrees */
 				}
 			}
 			
@@ -465,7 +470,7 @@ void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short fl
 	// TODO: only sel?
 	if (fcu->fpt) {
 		FPoint *fpt;
-		int i;
+		unsigned int i;
 		
 		for (i=0, fpt=fcu->fpt; i < fcu->totvert; i++, fpt++) {
 			/* apply unit mapping */

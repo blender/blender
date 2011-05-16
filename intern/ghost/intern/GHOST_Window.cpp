@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_Window.cpp
+ *  \ingroup GHOST
+ */
+
 
 /**
  * Copyright (C) 2001 NaN Technologies B.V.

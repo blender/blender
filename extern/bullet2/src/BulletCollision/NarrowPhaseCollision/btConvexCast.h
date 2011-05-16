@@ -41,7 +41,7 @@ public:
 		virtual void	drawCoordSystem(const btTransform& trans) {(void)trans;}
 
 		CastResult()
-			:m_fraction(btScalar(1e30)),
+			:m_fraction(btScalar(BT_LARGE_FLOAT)),
 			m_debugDrawer(0),
 			m_allowedPenetration(btScalar(0))
 		{

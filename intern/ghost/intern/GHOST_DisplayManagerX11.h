@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_DisplayManagerX11.h
+
+/** \file ghost/intern/GHOST_DisplayManagerX11.h
+ *  \ingroup GHOST
  * Declaration of GHOST_DisplayManagerX11 class.
  */
 

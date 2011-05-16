@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
+/** \file blender/blenlib/intern/math_base_inline.c
+ *  \ingroup bli
+ */
+
+
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +45,7 @@
 
 MINLINE float sqrt3f(float f)
 {
-	if(f==0.0) return 0;
+	if(f==0.0f) return 0.0f;
 	if(f<0) return (float)(-exp(log(-f)/3));
 	else return (float)(exp(log(f)/3));
 }
@@ -68,7 +73,7 @@ MINLINE float saasin(float fac)
 
 MINLINE float sasqrt(float fac)
 {
-	if(fac<=0.0) return 0.0;
+	if(fac<=0.0f) return 0.0f;
 	return (float)sqrt(fac);
 }
 
@@ -88,7 +93,7 @@ MINLINE float saasinf(float fac)
 
 MINLINE float sasqrtf(float fac)
 {
-	if(fac<=0.0) return 0.0;
+	if(fac<=0.0f) return 0.0f;
 	return (float)sqrtf(fac);
 }
 
@@ -103,7 +108,7 @@ MINLINE float interpf(float target, float origin, float fac)
  * the distance gets very high, 180d would be inf, but this case isn't valid */
 MINLINE float shell_angle_to_dist(const float angle)
 {
-	return (angle < SMALL_NUMBER) ? 1.0f : fabsf(1.0f / cosf(angle));
+	return (angle < (float)SMALL_NUMBER) ? 1.0f : fabsf(1.0f / cosf(angle));
 }
 
 /* used for zoom values*/

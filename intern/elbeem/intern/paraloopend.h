@@ -1,3 +1,6 @@
+/** \file elbeem/intern/paraloopend.h
+ *  \ingroup elbeem
+ */
 
 // same as grid loop_end + barrier
 

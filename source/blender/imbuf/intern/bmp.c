@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/imbuf/intern/bmp.c
+ *  \ingroup imbuf
+ */
+
 
 #include "BLI_blenlib.h"
 
@@ -103,7 +108,7 @@ int imb_is_a_bmp(unsigned char *buf) {
 
 struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 {
-	struct ImBuf *ibuf = 0;
+	struct ImBuf *ibuf = NULL;
 	BMPINFOHEADER bmi;
 	int x, y, depth, skip, i;
 	unsigned char *bmp, *rect;
@@ -111,7 +116,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 	
 	(void)size; /* unused */
 
-	if (checkbmp(mem) == 0) return(0);
+	if (checkbmp(mem) == 0) return(NULL);
 
 	if ((mem[0] == 'B') && (mem[1] == 'M')) {
 		/* skip fileheader */

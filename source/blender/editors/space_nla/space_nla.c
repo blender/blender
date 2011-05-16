@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_nla/space_nla.c
+ *  \ingroup spnla
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -44,6 +49,7 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_anim_api.h"
 #include "ED_markers.h"
 #include "ED_screen.h"
@@ -153,7 +159,7 @@ static SpaceLink *nla_new(const bContext *C)
 	
 	ar->v2d.max[0]= MAXFRAMEF;
 	ar->v2d.max[1]= 10000.0f;
- 	
+
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;
 	ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);

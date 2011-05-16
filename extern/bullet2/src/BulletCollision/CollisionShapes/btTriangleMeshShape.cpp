@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -91,7 +91,7 @@ public:
 	btVector3 m_supportVecLocal;
 
 	SupportVertexCallback(const btVector3& supportVecWorld,const btTransform& trans)
-		: m_supportVertexLocal(btScalar(0.),btScalar(0.),btScalar(0.)), m_worldTrans(trans) ,m_maxDot(btScalar(-1e30))
+		: m_supportVertexLocal(btScalar(0.),btScalar(0.),btScalar(0.)), m_worldTrans(trans) ,m_maxDot(btScalar(-BT_LARGE_FLOAT))
 		
 	{
 		m_supportVecLocal = supportVecWorld * m_worldTrans.getBasis();
@@ -199,7 +199,7 @@ btVector3 btTriangleMeshShape::localGetSupportingVertex(const btVector3& vec) co
 
 	SupportVertexCallback supportCallback(vec,ident);
 
-	btVector3 aabbMax(btScalar(1e30),btScalar(1e30),btScalar(1e30));
+	btVector3 aabbMax(btScalar(BT_LARGE_FLOAT),btScalar(BT_LARGE_FLOAT),btScalar(BT_LARGE_FLOAT));
 	
 	processAllTriangles(&supportCallback,-aabbMax,aabbMax);
 		
@@ -207,3 +207,5 @@ btVector3 btTriangleMeshShape::localGetSupportingVertex(const btVector3& vec) co
 
 	return supportVertex;
 }
+
+

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_info/info_ops.c
+ *  \ingroup spinfo
+ */
+
 
 #include <string.h>
 #include <stdio.h>
@@ -53,6 +58,7 @@
 
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -155,7 +161,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	else
 		sprintf(title, "Unpack %d files", count);
 	
-	pup= uiPupMenuBegin(C, title, ICON_NULL);
+	pup= uiPupMenuBegin(C, title, ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
@@ -251,10 +257,6 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 
 static int report_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 {
-	char txtname[24]; /* text block name */
-
-	txtname[0] = '\0';
-	
 	/* run the missing file check */
 	checkMissingFiles(G.main, op->reports);
 	
@@ -320,11 +322,11 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
  * inactive regions, so use this for now. --matt
  */
 
-#define INFO_TIMEOUT		5.0
-#define INFO_COLOR_TIMEOUT	3.0
-#define ERROR_TIMEOUT		10.0
-#define ERROR_COLOR_TIMEOUT	6.0
-#define COLLAPSE_TIMEOUT	0.25
+#define INFO_TIMEOUT		5.0f
+#define INFO_COLOR_TIMEOUT	3.0f
+#define ERROR_TIMEOUT		10.0f
+#define ERROR_COLOR_TIMEOUT	6.0f
+#define COLLAPSE_TIMEOUT	0.25f
 static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -351,7 +353,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	color_timeout = (report->type & RPT_ERROR_ALL)?ERROR_COLOR_TIMEOUT:INFO_COLOR_TIMEOUT;
 	
 	/* clear the report display after timeout */
-	if (reports->reporttimer->duration > timeout) {
+	if ((float)reports->reporttimer->duration > timeout) {
 		WM_event_remove_timer(wm, NULL, reports->reporttimer);
 		reports->reporttimer = NULL;
 		
@@ -360,7 +362,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 		return (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH);
 	}
 
-	if (rti->widthfac == 0.0) {
+	if (rti->widthfac == 0.0f) {
 		/* initialise colors based on report type */
 		if(report->type & RPT_ERROR_ALL) {
 			rti->col[0] = 1.0;
@@ -379,8 +381,8 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 		rti->widthfac=1.0;
 	}
 	
-	progress = reports->reporttimer->duration / timeout;
-	color_progress = reports->reporttimer->duration / color_timeout;
+	progress = (float)reports->reporttimer->duration / timeout;
+	color_progress = (float)reports->reporttimer->duration / color_timeout;
 	
 	/* save us from too many draws */
 	if(color_progress <= 1.0f) {
@@ -394,7 +396,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	/* collapse report at end of timeout */
 	if (progress*timeout > timeout - COLLAPSE_TIMEOUT) {
 		rti->widthfac = (progress*timeout - (timeout - COLLAPSE_TIMEOUT)) / COLLAPSE_TIMEOUT;
-		rti->widthfac = 1.0 - rti->widthfac;
+		rti->widthfac = 1.0f - rti->widthfac;
 		send_note= 1;
 	}
 	

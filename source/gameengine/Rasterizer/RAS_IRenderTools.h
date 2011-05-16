@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_IRenderTools.h
+ *  \ingroup bgerast
+ */
+
 #ifndef __RAS_IRENDERTOOLS
 #define __RAS_IRENDERTOOLS
 

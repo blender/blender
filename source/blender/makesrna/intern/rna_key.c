@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_key.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 
@@ -80,7 +85,7 @@ void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 	}
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("keys", oldname, kb->name);
+	BKE_all_animdata_fix_paths_rename("key_blocks", oldname, kb->name);
 }
 
 static void rna_ShapeKey_value_set(PointerRNA *ptr, float value)
@@ -99,7 +104,7 @@ static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
 }
 
 /* epsilon for how close one end of shapekey range can get to the other */
-#define SHAPEKEY_SLIDER_TOL 0.001
+#define SHAPEKEY_SLIDER_TOL 0.001f
 
 static void rna_ShapeKey_slider_min_range(PointerRNA *ptr, float *min, float *max)
 {
@@ -343,9 +348,9 @@ static char *rna_ShapeKey_path(PointerRNA *ptr)
 	ID *id= ptr->id.data;
 	
 	if ((id) && (GS(id->name) != ID_KE))
-		return BLI_sprintfN("shape_keys.keys[\"%s\"]", kb->name);
+		return BLI_sprintfN("shape_keys.key_blocks[\"%s\"]", kb->name);
 	else
-		return BLI_sprintfN("keys[\"%s\"]", kb->name);
+		return BLI_sprintfN("key_blocks[\"%s\"]", kb->name);
 }
 
 static void rna_Key_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -429,9 +434,9 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 		int index = rna_ShapeKeyPoint_get_index(key, kb, point);
 		
 		if (GS(id->name) == ID_KE)
-			return BLI_sprintfN("keys[\"%s\"].data[%d]", kb->name, index);
+			return BLI_sprintfN("key_blocks[\"%s\"].data[%d]", kb->name, index);
 		else
-			return BLI_sprintfN("shape_keys.keys[\"%s\"].data[%d]", kb->name, index);
+			return BLI_sprintfN("shape_keys.key_blocks[\"%s\"].data[%d]", kb->name, index);
 	}
 	else
 		return NULL; // XXX: there's really no way to resolve this...
@@ -470,7 +475,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	srna= RNA_def_struct(brna, "ShapeKeyBezierPoint", NULL);
-	RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "Point in a shape key for bezier curves");
+	RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "Point in a shape key for Bezier curves");
 	RNA_def_struct_path_func(srna, "rna_ShapeKeyPoint_path"); /* there's nothing type specific here, so this is fine for now */
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
@@ -594,10 +599,10 @@ static void rna_def_key(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "refkey");
 	RNA_def_property_ui_text(prop, "Reference Key", "");
 
-	prop= RNA_def_property(srna, "keys", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "key_blocks", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "block", NULL);
 	RNA_def_property_struct_type(prop, "ShapeKey");
-	RNA_def_property_ui_text(prop, "Keys", "Shape keys");
+	RNA_def_property_ui_text(prop, "Key Blocks", "Shape keys");
 
 	rna_def_animdata_common(srna);
 

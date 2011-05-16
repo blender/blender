@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/KX_SoftBodyDeformer.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif //WIN32
@@ -36,8 +41,8 @@
 #include "KX_ConvertPhysicsObject.h"
 #include "KX_SoftBodyDeformer.h"
 #include "RAS_MeshObject.h"
-#include "GEN_Map.h"
-#include "GEN_HashedPtr.h"
+#include "CTR_Map.h"
+#include "CTR_HashedPtr.h"
 
 #ifdef USE_BULLET
 
@@ -48,7 +53,7 @@
 #include "KX_BulletPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
 
-void KX_SoftBodyDeformer::Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
+void KX_SoftBodyDeformer::Relink(CTR_Map<class CTR_HashedPtr, void*>*map)
 {
 	void **h_obj = (*map)[m_gameobj];
 

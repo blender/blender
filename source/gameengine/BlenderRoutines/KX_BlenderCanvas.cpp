@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,9 +26,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/BlenderRoutines/KX_BlenderCanvas.cpp
+ *  \ingroup blroutines
+ */
+
+
 #include "KX_BlenderCanvas.h"
 #include "DNA_screen_types.h"
-#include "stdio.h"
+#include <stdio.h>
 
 
 KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, RAS_Rect &rect, struct ARegion *ar) :

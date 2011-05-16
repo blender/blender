@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_script/script_header.c
+ *  \ingroup spscript
+ */
+
 
 #include <string.h>
 #include <stdio.h>
@@ -78,10 +83,10 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	return block;
 }
 
-static void do_script_buttons(bContext *UNUSED(C), void *UNUSED(arg), int event)
+static void do_script_buttons(bContext *UNUSED(C), void *UNUSED(arg), int UNUSED(event))
 {
-	switch(event) {
-	}
+	//switch(event) {
+	//}
 }
 
 

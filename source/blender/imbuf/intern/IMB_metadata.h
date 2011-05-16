@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/imbuf/intern/IMB_metadata.h
+ *  \ingroup imbuf
+ */
+
 
 #ifndef _IMB_IMGINFO_H
 #define _IMB_IMGINFO_H

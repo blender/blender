@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_node/node_select.c
+ *  \ingroup spnode
+ */
+
 
 #include <stdio.h>
 
@@ -65,7 +70,7 @@ static bNode *node_under_mouse(bNodeTree *ntree, int mx, int my)
 
 /* ****** Click Select ****** */
  
-static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short extend)
+static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, const short mval[2], short extend)
 {
 	bNode *node;
 	float mx, my;
@@ -288,7 +293,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 		node->flag &= ~NODE_TEST;
 
 	for (link=snode->edittree->links.first; link; link=link->next) {
-		if (link->fromnode->flag & NODE_SELECT)
+		if (link->fromnode && link->tonode && (link->fromnode->flag & NODE_SELECT))
 			link->tonode->flag |= NODE_TEST;
 	}
 	
@@ -328,7 +333,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 		node->flag &= ~NODE_TEST;
 
 	for(link=snode->edittree->links.first; link; link=link->next) {
-		if(link->tonode->flag & NODE_SELECT)
+		if(link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT))
 			link->fromnode->flag |= NODE_TEST;
 	}
 	

@@ -1,5 +1,5 @@
 /*! \file btGenericPoolAllocator.h
-\author Francisco Len Nßjera. email projectileman@yahoo.com
+\author Francisco Leon Najera. email projectileman@yahoo.com
 
 General purpose allocator class
 */
@@ -23,7 +23,7 @@ subject to the following restrictions:
 
 #include <limits.h>
 #include <stdio.h>
-#include <memory.h>
+#include <string.h>
 #include "LinearMath/btAlignedAllocator.h"
 
 #define BT_UINT_MAX UINT_MAX

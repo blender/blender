@@ -27,7 +27,11 @@
 * ***** END GPL LICENSE BLOCK *****
 */ 
 
-/* CustomData interface, see also DNA_customdata_types.h. */
+/** \file BKE_customdata.h
+ *  \ingroup bke
+ *  \author Ben Batt
+ *  \brief CustomData interface, see also DNA_customdata_types.h.
+ */
 
 #ifndef BKE_CUSTOMDATA_H
 #define BKE_CUSTOMDATA_H

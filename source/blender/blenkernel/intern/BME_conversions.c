@@ -1,4 +1,4 @@
-/**
+/*
  * BME_mesh.c    jan 2007
  *
  *	BMesh mesh level functions.
@@ -31,6 +31,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/BME_conversions.c
+ *  \ingroup bke
+ */
+
 
 #include "MEM_guardedalloc.h"
 

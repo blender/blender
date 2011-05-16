@@ -1,5 +1,5 @@
-/**
- * $Id: KX_FontObject.h 34077 2011-01-04 21:27:44Z dfelinto $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_FontObject.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_FONTOBJECT
 #define  __KX_FONTOBJECT
 #include "KX_GameObject.h"

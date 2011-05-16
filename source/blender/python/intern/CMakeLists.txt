@@ -29,6 +29,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../blenkernel
+	../../blenloader
 	../../windowmanager
 	../../editors/include
 	../../../../intern/guardedalloc
@@ -41,22 +42,28 @@ set(SRC
 	bpy_app.c
 	bpy_driver.c
 	bpy_interface.c
+	bpy_library.c
 	bpy_operator.c
 	bpy_operator_wrap.c
 	bpy_props.c
 	bpy_rna.c
+	bpy_rna_anim.c
 	bpy_rna_array.c
 	bpy_rna_callback.c
+	bpy_traceback.c
 	bpy_util.c
 	stubs.c
 
 	bpy.h
 	bpy_app.h
+	bpy_driver.h
 	bpy_operator.h
 	bpy_operator_wrap.h
 	bpy_props.h
 	bpy_rna.h
+	bpy_rna_anim.h
 	bpy_rna_callback.h
+	bpy_traceback.h
 	bpy_util.h
 	../BPY_extern.h
 )
@@ -64,6 +71,14 @@ set(SRC
 # only to check if buildinfo is available
 if(WITH_BUILDINFO)
 	add_definitions(-DBUILD_DATE)
+endif()
+
+if(WITH_PYTHON_MODULE)
+	add_definitions(-DWITH_PYTHON_MODULE)
+endif()
+
+if(WITH_PYTHON_SAFETY)
+	add_definitions(-DWITH_PYTHON_SAFETY)
 endif()
 
 blender_add_lib(bf_python "${SRC}" "${INC}")

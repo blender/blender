@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GamePlayer/ghost/GPG_Canvas.cpp
+ *  \ingroup player
+ */
+
 
 #include "GPG_Canvas.h"
 #include <assert.h>

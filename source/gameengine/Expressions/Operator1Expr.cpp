@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/Operator1Expr.cpp
+ *  \ingroup expressions
+ */
 // Operator1Expr.cpp: implementation of the COperator1Expr class.
 /*
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>

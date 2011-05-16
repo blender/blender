@@ -1,4 +1,4 @@
-/**
+/*
  * @file SG_Controller.cpp
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/SceneGraph/SG_Controller.cpp
+ *  \ingroup bgesg
+ */
+
 
 #include "SG_Controller.h"
 

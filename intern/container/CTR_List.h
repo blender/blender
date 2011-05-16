@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file container/CTR_List.h
+ *  \ingroup ctr
+ */
+
 
 
 #ifndef CTR_LIST_H

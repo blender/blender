@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,11 +26,17 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  * Are we little or big endian?  From Harbison&Steele.
- * BKE_ENDIANNESS(a) returns 1 if big endian and returns 0 if little endian
  */
 #ifndef BKE_ENDIAN_H
 #define BKE_ENDIAN_H
 
+/** \file BKE_endian.h
+ *  \ingroup bke
+ */
+
+/**
+ * BKE_ENDIANNESS(a) returns 1 if big endian and returns 0 if little endian
+ */
 #define BKE_ENDIANNESS(a) {  \
 	union {  \
 		intptr_t l;  \

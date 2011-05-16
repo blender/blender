@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file FilterBlueScreen.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined FILTERBLUESCREEN_H
 #define FILTERBLUESCREEN_H
 

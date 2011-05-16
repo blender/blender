@@ -147,6 +147,7 @@ extern "C" {
 	extern  void plSetPosition(plRigidBodyHandle object, const plVector3 position);
 	extern  void plSetOrientation(plRigidBodyHandle object, const plQuaternion orientation);
 	extern	void plSetEuler(plReal yaw,plReal pitch,plReal roll, plQuaternion orient);
+	extern	void plSetOpenGLMatrix(plRigidBodyHandle object, plReal* matrix);
 
 	typedef struct plRayCastResult {
 		plRigidBodyHandle		m_body;  

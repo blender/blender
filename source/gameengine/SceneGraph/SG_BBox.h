@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Bounding Box
+ */
+
+/** \file SG_BBox.h
+ *  \ingroup bgesg
+ *  \brief Bounding Box
  */
  
 #ifndef __SG_BBOX_H__

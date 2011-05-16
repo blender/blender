@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/subsurf_ccg.c
+ *  \ingroup bke
+ */
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -69,6 +74,7 @@
 static int ccgDM_getVertMapIndex(CCGSubSurf *ss, CCGVert *v);
 static int ccgDM_getEdgeMapIndex(CCGSubSurf *ss, CCGEdge *e);
 static int ccgDM_getFaceMapIndex(CCGSubSurf *ss, CCGFace *f);
+static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm);
 
 ///
 
@@ -846,7 +852,11 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		for(x = 1; x < edgeSize - 1; x++, i++) {
 			vd= ccgSubSurf_getEdgeData(ss, e, x);
 			copy_v3_v3(mvert[i].co, vd->co);
-			/* XXX, This gives errors with -fpe, the normals dont seem to be unit length - campbell */
+			/* This gives errors with -debug-fpe
+			 * the normals dont seem to be unit length.
+			 * this is most likely caused by edges with no
+			 * faces which are now zerod out, see comment in:
+			 * ccgSubSurf__calcVertNormals(), - campbell */
 			normal_float_to_short_v3(mvert[i].no, vd->no);
 		}
 	}
@@ -1148,7 +1158,7 @@ static void ccgDM_drawVerts(DerivedMesh *dm) {
 
 static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
 {
-	if(ccgdm->pbvh) {
+	if(ccgdm->pbvh && ccgDM_use_grid_pbvh(ccgdm)) {
 		CCGFace **faces;
 		int totface;
 
@@ -1359,7 +1369,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
 	GPUVertexAttribs gattribs;
-	DMVertexAttribs attribs= {{{0}}};
+	DMVertexAttribs attribs= {{{NULL}}};
 	MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
@@ -1392,7 +1402,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 	}																			\
 	if(attribs.tottang) {														\
 		float *tang = attribs.tang.array[a*4 + vert];							\
-		glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
+		glVertexAttrib4fvARB(attribs.tang.glIndex, tang);						\
 	}																			\
 }
 
@@ -1532,8 +1542,10 @@ static void ccgDM_drawFacesColored(DerivedMesh *dm, int UNUSED(useTwoSided), uns
 	}
 
 	glShadeModel(GL_SMOOTH);
-	if(col1 && col2)
+
+	if(col2) {
 		glEnable(GL_CULL_FACE);
+	}
 
 	glBegin(GL_QUADS);
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
@@ -2238,10 +2250,22 @@ static ListBase *ccgDM_getFaceMap(Object *ob, DerivedMesh *dm)
 	return ccgdm->fmap;
 }
 
+static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm)
+{
+	MultiresModifierData *mmd= ccgdm->multires.mmd;
+
+	/* both of multires and subsurm modifiers are CCG, but
+	   grids should only be used when sculpting on multires */
+	if(!mmd)
+		return 0;
+
+	return 1;
+}
+
 static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
-	int gridSize, numGrids;
+	int gridSize, numGrids, grid_pbvh;
 
 	if(!ob) {
 		ccgdm->pbvh= NULL;
@@ -2251,8 +2275,20 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	if(!ob->sculpt)
 		return NULL;
 
-	if(ob->sculpt->pbvh)
+	grid_pbvh= ccgDM_use_grid_pbvh(ccgdm);
+
+	if(ob->sculpt->pbvh) {
+		if(grid_pbvh) {
+			/* pbvh's grids, gridadj and gridfaces points to data inside ccgdm
+			   but this can be freed on ccgdm release, this updates the pointers
+			   when the ccgdm gets remade, the assumption is that the topology
+			   does not change. */
+			ccgdm_create_grids(dm);
+			BLI_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, ccgdm->gridAdjacency, (void**)ccgdm->gridFaces);
+		}
+
 		ccgdm->pbvh = ob->sculpt->pbvh;
+	}
 
 	if(ccgdm->pbvh)
 		return ccgdm->pbvh;
@@ -2260,14 +2296,21 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	/* no pbvh exists yet, we need to create one. only in case of multires
 	   we build a pbvh over the modified mesh, in other cases the base mesh
 	   is being sculpted, so we build a pbvh from that. */
-	ccgdm_create_grids(dm);
+	if(grid_pbvh) {
+		ccgdm_create_grids(dm);
 
-	gridSize = ccgDM_getGridSize(dm);
-	numGrids = ccgDM_getNumGrids(dm);
+		gridSize = ccgDM_getGridSize(dm);
+		numGrids = ccgDM_getNumGrids(dm);
 
-	ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
-	BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
-		numGrids, gridSize, (void**)ccgdm->gridFaces);
+		ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
+		BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
+			numGrids, gridSize, (void**)ccgdm->gridFaces);
+	} else if(ob->type == OB_MESH) {
+		Mesh *me= ob->data;
+		ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
+		BLI_pbvh_build_mesh(ccgdm->pbvh, me->mface, me->mvert,
+				   me->totface, me->totvert);
+	}
 
 	return ccgdm->pbvh;
 }
@@ -2679,7 +2722,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 		int numFaces = ccgSubSurf_getVertNumFaces(v);
 		float *co;
 		int i;
-                
+
 		edge_sum[0]= edge_sum[1]= edge_sum[2]= 0.0;
 		face_sum[0]= face_sum[1]= face_sum[2]= 0.0;
 

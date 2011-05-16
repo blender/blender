@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  * Contributor(s): Bob Holcomb.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file CMP_node.h
+ *  \ingroup nodes
  */
 
 #ifndef CMP_NODE_H

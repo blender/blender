@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/ikplugin/BIK_api.h
+ *  \ingroup ikplugin
+ */
+
 
 #ifndef BIK_API_H
 #define BIK_API_H

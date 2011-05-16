@@ -44,7 +44,7 @@ struct btCollisionAlgorithmConstructionInfo
 	btDispatcher*	m_dispatcher1;
 	btPersistentManifold*	m_manifold;
 
-	int	getDispatcherId();
+//	int	getDispatcherId();
 
 };
 
@@ -59,7 +59,7 @@ protected:
 	btDispatcher*	m_dispatcher;
 
 protected:
-	int	getDispatcherId();
+//	int	getDispatcherId();
 	
 public:
 

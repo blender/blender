@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_shapekey.c
+ *  \ingroup modifiers
+ */
+
+
 #include "BLI_math.h"
 
 #include "DNA_key_types.h"
@@ -70,11 +75,12 @@ static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedDat
 	Key *key= ob_get_key(ob);
 	KeyBlock *kb= ob_get_keyblock(ob);
 	float scale[3][3];
-	int a;
 
 	(void)vertexCos; /* unused */
 
 	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
+		int a;
+
 		if(ob->shapeflag & OB_SHAPE_LOCK) scale_m3_fl(scale, 1);
 		else scale_m3_fl(scale, kb->curval);
 
@@ -107,11 +113,11 @@ static void deformMatricesEM(ModifierData *UNUSED(md), Object *ob,
 	Key *key= ob_get_key(ob);
 	KeyBlock *kb= ob_get_keyblock(ob);
 	float scale[3][3];
-	int a;
 
 	(void)vertexCos; /* unused */
 
 	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
+		int a;
 		scale_m3_fl(scale, kb->curval);
 
 		for(a=0; a<numVerts; a++)
@@ -127,20 +133,20 @@ ModifierTypeInfo modifierType_ShapeKey = {
 	/* flags */             eModifierTypeFlag_AcceptsCVs
 							| eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          0,
+	/* copyData */          NULL,
 	/* deformVerts */       deformVerts,
 	/* deformMatrices */    deformMatrices,
 	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  deformMatricesEM,
-	/* applyModifier */     0,
-	/* applyModifierEM */   0,
-	/* initData */          0,
-	/* requiredDataMask */  0,
-	/* freeData */          0,
-	/* isDisabled */        0,
-	/* updateDepgraph */    0,
-	/* dependsOnTime */     0,
-	/* dependsOnNormals */	0,
-	/* foreachObjectLink */ 0,
-	/* foreachIDLink */     0,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
+	/* initData */          NULL,
+	/* requiredDataMask */  NULL,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
+	/* updateDepgraph */    NULL,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */	NULL,
+	/* foreachObjectLink */ NULL,
+	/* foreachIDLink */     NULL
 };

@@ -13,6 +13,10 @@
  *
  */
 
+/** \file ConstExpr.h
+ *  \ingroup expressions
+ */
+
 #ifndef __CONSTEXPR_H__
 #define __CONSTEXPR_H__
 

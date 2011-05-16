@@ -26,6 +26,7 @@
 * ***** END GPL LICENSE BLOCK *****
 */
 
+#include "BLI_math_vector.h"
 #include "KX_NavMeshObject.h"
 #include "RAS_MeshObject.h"
 
@@ -37,7 +38,7 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
-#include "BLI_math_vector.h"
+
 
 #include "ED_navmesh_conversion.h"
 }

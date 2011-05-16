@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/mix.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <mix_png> */
 
 int datatoc_mix_png_size= 10448;

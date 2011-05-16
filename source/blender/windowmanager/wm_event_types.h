@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/wm_event_types.h
+ *  \ingroup wm
+ */
+
+
 /*
  *  These define have its origin at sgi, where all device defines were written down in device.h.
  *  Blender copied the conventions quite some, and expanded it with internal new defines (ton)
@@ -81,8 +86,14 @@
 #define TIMER0			0x0111	/* timer event, slot for internal use */
 #define TIMER1			0x0112	/* timer event, slot for internal use */
 #define TIMER2			0x0113	/* timer event, slot for internal use */
-#define TIMERJOBS		0x0114  /* timer event, internal use */
-#define TIMERAUTOSAVE	0x0115  /* timer event, internal use */
+#define TIMERJOBS		0x0114  /* timer event, jobs system */
+#define TIMERAUTOSAVE	0x0115  /* timer event, autosave */
+#define TIMERREPORT		0x0116	/* timer event, reports */
+#define TIMERF			0x011F	/* last timer */
+
+/* test whether the event is timer event */
+#define ISTIMER(event)	(event >= TIMER && event <= TIMERF)
+
 
 /* standard keyboard */
 #define AKEY		'a'
@@ -207,6 +218,12 @@
 #define OSKEY		172
 #define GRLESSKEY	173
 
+// XXX: are these codes ok?
+#define MEDIAPLAY	174
+#define MEDIASTOP	175
+#define MEDIAFIRST	176
+#define MEDIALAST	177
+
 /* for event checks */
 	/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
 #define ISTEXTINPUT(event)	(event >=' ' && event <=255)
@@ -219,9 +236,6 @@
 
 	/* test whether the event is a mouse button */
 #define ISMOUSE(event)	(event >= LEFTMOUSE && event <= MOUSEROTATE)
-
-	/* test whether the event is timer event */
-#define ISTIMER(event)	(event >= TIMER && event <= TIMERAUTOSAVE)
 
 	/* test whether the event is tweak event */
 #define ISTWEAK(event)	(event >= EVT_TWEAK_L && event <= EVT_GESTURE)

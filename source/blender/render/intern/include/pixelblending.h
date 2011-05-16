@@ -25,6 +25,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/pixelblending.h
+ *  \ingroup render
+ */
+
+
 #ifndef PIXELBLENDING_EXT_H
 #define PIXELBLENDING_EXT_H 
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/transform/transform_generics.c
+ *  \ingroup edtransform
+ */
+
 
 #include <string.h>
 #include <math.h>
@@ -333,7 +338,7 @@ void recalcData(TransInfo *t)
 		Scene *scene= t->scene;
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
-		bAnimContext ac= {0};
+		bAnimContext ac= {NULL};
 		ListBase anim_data = {NULL, NULL};
 		bAnimListElem *ale;
 		int filter;
@@ -959,7 +964,22 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->options |= CTX_EDGE;
 	}
 
-	t->spacetype = sa->spacetype;
+
+	/* Assign the space type, some exceptions for running in different mode */
+	if(sa == NULL) {
+		/* background mode */
+		t->spacetype= SPACE_EMPTY;
+	}
+	else if ((ar == NULL) && (sa->spacetype == SPACE_VIEW3D)) {
+		/* running in the text editor */
+		t->spacetype= SPACE_EMPTY;
+	}
+	else {
+		/* normal operation */
+		t->spacetype= sa->spacetype;
+	}
+
+
 	if(t->spacetype == SPACE_VIEW3D)
 	{
 		View3D *v3d = sa->spacedata.first;
@@ -998,12 +1018,18 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			}
 		}
 	}
-	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
+	else if(t->spacetype==SPACE_IMAGE)
 	{
 		SpaceImage *sima = sa->spacedata.first;
-		// XXX for now, get View2D  from the active region
+		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
 		t->around = sima->around;
+	}
+	else if(t->spacetype==SPACE_NODE)
+	{
+		// XXX for now, get View2D from the active region
+		t->view = &ar->v2d;
+		t->around = V3D_CENTER;
 	}
 	else if(t->spacetype==SPACE_IPO) 
 	{
@@ -1318,7 +1344,7 @@ void calculateCenterCursor2D(TransInfo *t)
 	calculateCenter2D(t);
 }
 
-void calculateCenterCursorGraph2D(TransInfo *t)
+static void calculateCenterCursorGraph2D(TransInfo *t)
 {
 	SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
 	Scene *scene= t->scene;

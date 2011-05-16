@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/Joystick/SCA_Joystick.cpp
+ *  \ingroup gamelogic
+ */
+
 #ifndef DISABLE_SDL
 #include <SDL.h>
 #endif

@@ -12,6 +12,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file IfExpr.h
+ *  \ingroup expressions
+ */
+
 #if !defined(AFX_IFEXPR_H__1F691841_C5C7_11D1_A863_0000B4542BD8__INCLUDED_)
 #define AFX_IFEXPR_H__1F691841_C5C7_11D1_A863_0000B4542BD8__INCLUDED_
 

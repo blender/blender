@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file moto/include/NM_Scalar.h
+ *  \ingroup moto
+ */
+
 
 #include <math.h>
 #include <iostream>

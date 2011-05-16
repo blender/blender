@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file decimation/intern/LOD_EdgeCollapser.h
+ *  \ingroup decimation
+ */
+
 
 #ifndef NAN_INCLDUED_EgdeCollapser_h
 #define NAN_INCLDUED_EgdeCollapser_h

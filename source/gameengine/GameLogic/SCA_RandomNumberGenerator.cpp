@@ -1,3 +1,6 @@
+/** \file gameengine/GameLogic/SCA_RandomNumberGenerator.cpp
+ *  \ingroup gamelogic
+ */
 /**
  * Generate random numbers that can be used by other components. We 
  * convert to different types/distributions elsewhere. This just 

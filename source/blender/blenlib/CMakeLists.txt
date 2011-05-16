@@ -28,6 +28,7 @@ set(INC
 	.
 	../makesdna
 	../blenkernel
+	../blenloader
 	../gpu
 	../../../intern/ghost
 	../../../intern/guardedalloc
@@ -87,6 +88,7 @@ set(SRC
 	BLI_bpath.h
 	BLI_cpu.h
 	BLI_dlrbTree.h
+	BLI_dynlib.h
 	BLI_dynstr.h
 	BLI_edgehash.h
 	BLI_editVert.h
@@ -126,13 +128,13 @@ set(SRC
 	BLI_vfontdata.h
 	BLI_voxel.h
 	BLI_winstuff.h
-	PIL_dynlib.h
 	PIL_time.h
 	intern/BLI_callbacks.h
 	intern/dynamiclist.h
 )
 
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(WITH_BINRELOC)
+	add_definitions(-DWITH_BINRELOC)
 	list(APPEND INC "${BINRELOC_INC}")
 endif()
 

@@ -1,4 +1,4 @@
-/** mball.c
+/* mball.c
  *  
  * MetaBalls are created from a single Object (with a name without number in it),
  * here the DispList and BoundBox also is located.
@@ -32,6 +32,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/mball.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -62,6 +67,7 @@
 #include "BKE_displist.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
+#include "BKE_material.h"
 
 /* Global variables */
 
@@ -77,7 +83,7 @@ void unlink_mball(MetaBall *mb)
 	
 	for(a=0; a<mb->totcol; a++) {
 		if(mb->mat[a]) mb->mat[a]->id.us--;
-		mb->mat[a]= 0;
+		mb->mat[a]= NULL;
 	}
 }
 
@@ -127,14 +133,24 @@ MetaBall *copy_mball(MetaBall *mb)
 		id_us_plus((ID *)mbn->mat[a]);
 	}
 	mbn->bb= MEM_dupallocN(mb->bb);
+
+	mbn->editelems= NULL;
+	mbn->lastelem= NULL;
 	
 	return mbn;
 }
 
+static void extern_local_mball(MetaBall *mb)
+{
+	if(mb->mat) {
+		extern_local_matarar(mb->mat, mb->totcol);
+	}
+}
+
 void make_local_mball(MetaBall *mb)
 {
+	Main *bmain= G.main;
 	Object *ob;
-	MetaBall *mbn;
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
@@ -142,47 +158,48 @@ void make_local_mball(MetaBall *mb)
 	 * - mixed: make copy
 	 */
 	
-	if(mb->id.lib==0) return;
+	if(mb->id.lib==NULL) return;
 	if(mb->id.us==1) {
-		mb->id.lib= 0;
+		mb->id.lib= NULL;
 		mb->id.flag= LIB_LOCAL;
+		new_id(&bmain->mball, (ID *)mb, NULL);
+		extern_local_mball(mb);
+		
 		return;
 	}
-	
-	ob= G.main->object.first;
-	while(ob) {
-		if(ob->data==mb) {
+
+	for(ob= G.main->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+		if(ob->data == mb) {
 			if(ob->id.lib) lib= 1;
 			else local= 1;
 		}
-		ob= ob->id.next;
 	}
 	
 	if(local && lib==0) {
-		mb->id.lib= 0;
+		mb->id.lib= NULL;
 		mb->id.flag= LIB_LOCAL;
+
+		new_id(&bmain->mball, (ID *)mb, NULL);
+		extern_local_mball(mb);
 	}
 	else if(local && lib) {
-		mbn= copy_mball(mb);
+		MetaBall *mbn= copy_mball(mb);
 		mbn->id.us= 0;
-		
-		ob= G.main->object.first;
-		while(ob) {
-			if(ob->data==mb) {
-				
-				if(ob->id.lib==0) {
+
+		for(ob= G.main->object.first; ob; ob= ob->id.next) {
+			if(ob->data == mb) {
+				if(ob->id.lib==NULL) {
 					ob->data= mbn;
 					mbn->id.us++;
 					mb->id.us--;
 				}
 			}
-			ob= ob->id.next;
 		}
 	}
 }
 
 /* most simple meta-element adding function
- * dont do context menipulation here (rna uses) */
+ * don't do context manipulation here (rna uses) */
 MetaElem *add_metaball_element(MetaBall *mb, const int type)
 {
 	MetaElem *ml= MEM_callocN(sizeof(MetaElem), "metaelem");
@@ -232,17 +249,17 @@ MetaElem *add_metaball_element(MetaBall *mb, const int type)
 /** Compute bounding box of all MetaElems/MetaBalls.
  *
  * Bounding box is computed from polygonized surface. Object *ob is
- * basic MetaBall (usaualy with name Meta). All other MetaBalls (whith
+ * basic MetaBall (usually with name Meta). All other MetaBalls (with
  * names Meta.001, Meta.002, etc) are included in this Bounding Box.
  */
 void tex_space_mball(Object *ob)
 {
 	DispList *dl;
 	BoundBox *bb;
-	float *data, min[3], max[3], loc[3], size[3];
+	float *data, min[3], max[3] /*, loc[3], size[3] */;
 	int tot, doit=0;
 
-	if(ob->bb==0) ob->bb= MEM_callocN(sizeof(BoundBox), "mb boundbox");
+	if(ob->bb==NULL) ob->bb= MEM_callocN(sizeof(BoundBox), "mb boundbox");
 	bb= ob->bb;
 	
 	/* Weird one, this. */
@@ -267,7 +284,7 @@ void tex_space_mball(Object *ob)
 		min[0] = min[1] = min[2] = -1.0f;
 		max[0] = max[1] = max[2] = 1.0f;
 	}
-	
+	/*
 	loc[0]= (min[0]+max[0])/2.0f;
 	loc[1]= (min[1]+max[1])/2.0f;
 	loc[2]= (min[2]+max[2])/2.0f;
@@ -275,7 +292,7 @@ void tex_space_mball(Object *ob)
 	size[0]= (max[0]-min[0])/2.0f;
 	size[1]= (max[1]-min[1])/2.0f;
 	size[2]= (max[2]-min[2])/2.0f;
-
+	*/
 	boundbox_set_from_min_max(bb, min, max);
 }
 
@@ -315,14 +332,14 @@ float *make_orco_mball(Object *ob, ListBase *dispbase)
 }
 
 /* Note on mball basis stuff 2.5x (this is a can of worms)
- * This really needs a rewrite/refactorm its totally broken in anything other then basic cases
+ * This really needs a rewrite/refactor its totally broken in anything other then basic cases
  * Multiple Scenes + Set Scenes & mixing mball basis SHOULD work but fails to update the depsgraph on rename
  * and linking into scenes or removal of basis mball. so take care when changing this code.
  * 
  * Main idiot thing here is that the system returns find_basis_mball() objects which fail a is_basis_mball() test.
  *
- * Not only that but the depsgraph and ther areas depend on this behavior!, so making small fixes here isnt worth it.
- * - campbell
+ * Not only that but the depsgraph and their areas depend on this behavior!, so making small fixes here isn't worth it.
+ * - Campbell
  */
 
 
@@ -372,7 +389,7 @@ void copy_mball_properties(Scene *scene, Object *active_object)
 	BLI_split_name_num(basisname, &basisnr, active_object->id.name+2, '.');
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
 		return;
 	
 	while(next_object(&sce_iter, 1, &base, &ob)) {
@@ -418,7 +435,7 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 	totelem= 0;
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
 		return NULL;
 	
 	while(next_object(&sce_iter, 1, &base, &ob)) {
@@ -582,13 +599,13 @@ float densfunc(MetaElem *ball, float x, float y, float z)
 
 	if(ball->flag & MB_NEGATIVE) {
 		dist2= 1.0f-(dist2/ball->rad2);
-		if(dist2 < 0.0) return 0.5f;
+		if(dist2 < 0.0f) return 0.5f;
 
 		return 0.5f-ball->s*dist2*dist2*dist2;
 	}
 	else {
 		dist2= 1.0f-(dist2/ball->rad2);
-		if(dist2 < 0.0) return -0.5f;
+		if(dist2 < 0.0f) return -0.5f;
 
 		return ball->s*dist2*dist2*dist2 -0.5f;
 	}
@@ -680,8 +697,8 @@ float metaball(float x, float y, float z)
 				ml_p= ml_p->next;
 			}
 
-			dens+= -0.5*(metaball_tree->pos - node->pos);
-			dens+= 0.5*(metaball_tree->neg - node->neg);
+			dens+= -0.5f*(metaball_tree->pos - node->pos);
+			dens+= 0.5f*(metaball_tree->neg - node->neg);
 		}
 		else{
 			for(a=0; a<totelem; a++) {
@@ -698,8 +715,8 @@ float metaball(float x, float y, float z)
 
 /* ******************************************** */
 
-int *indices=NULL;
-int totindex, curindex;
+static int *indices=NULL;
+static int totindex, curindex;
 
 
 void accum_mballfaces(int i1, int i2, int i3, int i4)
@@ -720,7 +737,7 @@ void accum_mballfaces(int i1, int i2, int i3, int i4)
 	
 	cur= indices+4*curindex;
 
-	/* diplists now support array drawing, we treat trias as fake quad */
+	/* displists now support array drawing, we treat tri's as fake quad */
 	
 	cur[0]= i1;
 	cur[1]= i2;
@@ -742,8 +759,8 @@ void *new_pgn_element(int size)
 	 */
 	int blocksize= 16384;
 	static int offs= 0;		/* the current free address */
-	static struct pgn_elements *cur= 0;
-	static ListBase lb= {0, 0};
+	static struct pgn_elements *cur= NULL;
+	static ListBase lb= {NULL, NULL};
 	void *adr;
 	
 	if(size>10000 || size==0) {
@@ -827,7 +844,7 @@ void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
 	CORNER *c1, *c2;
 	int i, index = 0, count, indexar[8];
 	
-	for (i = 0; i < 8; i++) if (cube->corners[i]->value > 0.0) index += (1<<i);
+	for (i = 0; i < 8; i++) if (cube->corners[i]->value > 0.0f) index += (1<<i);
 	
 	for (polys = cubetable[index]; polys; polys = polys->next) {
 		INTLIST *edges;
@@ -901,7 +918,7 @@ void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, i
 	corn3= old->corners[c3];
 	corn4= old->corners[c4];
 	
-	pos = corn1->value > 0.0 ? 1 : 0;
+	pos = corn1->value > 0.0f ? 1 : 0;
 
 	/* test if no surface crossing */
 	if( (corn2->value > 0) == pos && (corn3->value > 0) == pos && (corn4->value > 0) == pos) return;
@@ -925,14 +942,14 @@ void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, i
 	newc.corners[FLIP(c3, bit)] = corn3;
 	newc.corners[FLIP(c4, bit)] = corn4;
 
-	if(newc.corners[0]==0) newc.corners[0] = setcorner(p, i, j, k);
-	if(newc.corners[1]==0) newc.corners[1] = setcorner(p, i, j, k+1);
-	if(newc.corners[2]==0) newc.corners[2] = setcorner(p, i, j+1, k);
-	if(newc.corners[3]==0) newc.corners[3] = setcorner(p, i, j+1, k+1);
-	if(newc.corners[4]==0) newc.corners[4] = setcorner(p, i+1, j, k);
-	if(newc.corners[5]==0) newc.corners[5] = setcorner(p, i+1, j, k+1);
-	if(newc.corners[6]==0) newc.corners[6] = setcorner(p, i+1, j+1, k);
-	if(newc.corners[7]==0) newc.corners[7] = setcorner(p, i+1, j+1, k+1);
+	if(newc.corners[0]==NULL) newc.corners[0] = setcorner(p, i, j, k);
+	if(newc.corners[1]==NULL) newc.corners[1] = setcorner(p, i, j, k+1);
+	if(newc.corners[2]==NULL) newc.corners[2] = setcorner(p, i, j+1, k);
+	if(newc.corners[3]==NULL) newc.corners[3] = setcorner(p, i, j+1, k+1);
+	if(newc.corners[4]==NULL) newc.corners[4] = setcorner(p, i+1, j, k);
+	if(newc.corners[5]==NULL) newc.corners[5] = setcorner(p, i+1, j, k+1);
+	if(newc.corners[6]==NULL) newc.corners[6] = setcorner(p, i+1, j+1, k);
+	if(newc.corners[7]==NULL) newc.corners[7] = setcorner(p, i+1, j+1, k+1);
 
 	p->cubes->cube= newc;	
 }
@@ -1031,7 +1048,7 @@ void makecubetable (void)
 		for (c = 0; c < 8; c++) pos[c] = MB_BIT(i, c);
 		for (e = 0; e < 12; e++)
 			if (!done[e] && (pos[corner1[e]] != pos[corner2[e]])) {
-				INTLIST *ints = 0;
+				INTLIST *ints = NULL;
 				INTLISTS *lists = (INTLISTS *) MEM_callocN(sizeof(INTLISTS), "mball_intlist");
 				int start = e, edge = e;
 				
@@ -1080,7 +1097,7 @@ void BKE_freecubetable(void)
 			MEM_freeN(lists);
 			lists= nlists;
 		}
-		cubetable[i]= 0;
+		cubetable[i]= NULL;
 	}
 }
 
@@ -1214,9 +1231,9 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 	v->x = p->function(point->x+delta, point->y, point->z)-f;
 	v->y = p->function(point->x, point->y+delta, point->z)-f;
 	v->z = p->function(point->x, point->y, point->z+delta)-f;
-	f = (float)sqrt(v->x*v->x + v->y*v->y + v->z*v->z);
+	f = sqrtf(v->x*v->x + v->y*v->y + v->z*v->z);
 
-	if (f != 0.0) {
+	if (f != 0.0f) {
 		v->x /= f; 
 		v->y /= f; 
 		v->z /= f;
@@ -1225,16 +1242,16 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 	if(FALSE) {
 		MB_POINT temp;
 		
-		delta*= 2.0;
+		delta *= 2.0f;
 		
 		f = p->function(point->x, point->y, point->z);
 	
 		temp.x = p->function(point->x+delta, point->y, point->z)-f;
 		temp.y = p->function(point->x, point->y+delta, point->z)-f;
 		temp.z = p->function(point->x, point->y, point->z+delta)-f;
-		f = (float)sqrt(temp.x*temp.x + temp.y*temp.y + temp.z*temp.z);
+		f = sqrtf(temp.x*temp.x + temp.y*temp.y + temp.z*temp.z);
 	
-		if (f != 0.0) {
+		if (f != 0.0f) {
 			temp.x /= f; 
 			temp.y /= f; 
 			temp.z /= f;
@@ -1243,9 +1260,9 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 			v->y+= temp.y;
 			v->z+= temp.z;
 			
-			f = (float)sqrt(v->x*v->x + v->y*v->y + v->z*v->z);
+			f = sqrtf(v->x*v->x + v->y*v->y + v->z*v->z);
 		
-			if (f != 0.0) {
+			if (f != 0.0f) {
 				v->x /= f; 
 				v->y /= f; 
 				v->z /= f;
@@ -1310,9 +1327,9 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 	dy = pos.y - neg.y;
 	dz = pos.z - neg.z;
 
-/* Aproximation by linear interpolation is faster then binary subdivision,
+/* Approximation by linear interpolation is faster then binary subdivision,
  * but it results sometimes (mb->thresh < 0.2) into the strange results */
-	if((mb->thresh >0.2) && (f==1)){
+	if((mb->thresh > 0.2f) && (f==1)){
 	if((dy == 0.0f) && (dz == 0.0f)){
 		p->x = neg.x - negative*dx/(positive-negative);
 		p->y = neg.y;
@@ -1339,7 +1356,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p->x = 0.5f*(pos.x + neg.x);
-			if ((function(p->x,p->y,p->z)) > 0.0)	pos.x = p->x; else neg.x = p->x; 
+			if ((function(p->x,p->y,p->z)) > 0.0f)	pos.x = p->x; else neg.x = p->x;
 		}
 	}
 
@@ -1349,7 +1366,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p->y = 0.5f*(pos.y + neg.y);
-			if ((function(p->x,p->y,p->z)) > 0.0)	pos.y = p->y; else neg.y = p->y;
+			if ((function(p->x,p->y,p->z)) > 0.0f)	pos.y = p->y; else neg.y = p->y;
 		}
 	  }
    
@@ -1359,7 +1376,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		while (1) {
 			if (i++ == RES) return;
 			p->z = 0.5f*(pos.z + neg.z);
-			if ((function(p->x,p->y,p->z)) > 0.0)	pos.z = p->z; else neg.z = p->z;
+			if ((function(p->x,p->y,p->z)) > 0.0f)	pos.z = p->z; else neg.z = p->z;
 		}
 	}
 
@@ -1368,10 +1385,10 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		p->x = 0.5f*(pos.x + neg.x);
 		p->y = 0.5f*(pos.y + neg.y);
 		p->z = 0.5f*(pos.z + neg.z);
-    
+
 		if (i++ == RES) return;
    
-		if ((function(p->x, p->y, p->z)) > 0.0){
+		if ((function(p->x, p->y, p->z)) > 0.0f){
 			pos.x = p->x;
 			pos.y = p->y;
 			pos.z = p->z;
@@ -1432,7 +1449,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 
 	/* Skip, when Stiffness of MetaElement is too small ... MetaElement can't be
 	 * visible alone ... but still can influence others MetaElements :-) */
-	if(f > 0.0) {
+	if(f > 0.0f) {
 		OUT.x = IN.x = in.x= 0.0;
 		OUT.y = IN.y = in.y= 0.0;
 		OUT.z = IN.z = in.z= 0.0;
@@ -1490,7 +1507,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 					workp.y = in.y;
 					workp.z = in.z;
 					workp_v = in_v;
-					max_len = sqrt((out.x-in.x)*(out.x-in.x) + (out.y-in.y)*(out.y-in.y) + (out.z-in.z)*(out.z-in.z));
+					max_len = sqrtf((out.x-in.x)*(out.x-in.x) + (out.y-in.y)*(out.y-in.y) + (out.z-in.z)*(out.z-in.z));
 
 					nx = abs((out.x - in.x)/mbproc->size);
 					ny = abs((out.y - in.y)/mbproc->size);
@@ -1510,7 +1527,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 							/* compute value of implicite function */
 							tmp_v = mbproc->function(workp.x, workp.y, workp.z);
 							/* add cube to the stack, when value of implicite function crosses zero value */
-							if((tmp_v<0.0 && workp_v>=0.0)||(tmp_v>0.0 && workp_v<=0.0)) {
+							if((tmp_v<0.0f && workp_v>=0.0f)||(tmp_v>0.0f && workp_v<=0.0f)) {
 
 								/* indexes of CUBE, which includes "first point" */
 								c_i= (int)floor(workp.x/mbproc->size);
@@ -1524,7 +1541,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 								else
 									add_cube(mbproc, c_i, c_j, c_k, 1);
 							}
-							len = sqrt((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
+							len = sqrtf((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
 							workp_v = tmp_v;
 
 						}
@@ -1594,7 +1611,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	BLI_split_name_num(obname, &obnr, ob->id.name+2, '.');
 	
 	/* make main array */
-	next_object(&sce_iter, 0, 0, 0);
+	next_object(&sce_iter, 0, NULL, NULL);
 	while(next_object(&sce_iter, 1, &base, &bob)) {
 
 		if(bob->type==OB_MBALL) {
@@ -1620,15 +1637,15 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 				}
 			}
 
-			/* when metaball object hase zero scale, then MetaElem ot this MetaBall
+			/* when metaball object has zero scale, then MetaElem to this MetaBall
 			 * will not be put to mainb array */
-			if(bob->size[0]==0.0 || bob->size[1]==0.0 || bob->size[2]==0.0) {
+			if(bob->size[0]==0.0f || bob->size[1]==0.0f || bob->size[2]==0.0f) {
 				zero_size= 1;
 			}
 			else if(bob->parent) {
 				struct Object *pob=bob->parent;
 				while(pob) {
-					if(pob->size[0]==0.0 || pob->size[1]==0.0 || pob->size[2]==0.0) {
+					if(pob->size[0]==0.0f || pob->size[1]==0.0f || pob->size[2]==0.0f) {
 						zero_size= 1;
 						break;
 					}
@@ -1657,7 +1674,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 
 					/* too big stiffness seems only ugly due to linear interpolation
 					 * no need to have possibility for too big stiffness */
-					if(ml->s > 10.0) ml->s = 10.0;
+					if(ml->s > 10.0f) ml->s = 10.0f;
 					
 					/* Rotation of MetaElem is stored in quat */
 					 quat_to_mat4( temp3,ml->quat);
@@ -1683,11 +1700,11 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					mul_m4_m4m4(temp2, bob->obmat, obinv);
 					/* MetaBall transformation */
 					mul_m4_m4m4(mat, temp1, temp2);
-        
+
 					invert_m4_m4(imat,mat);				
-        
+
 					mainb[a]->rad2= ml->rad*ml->rad;
-        
+
 					mainb[a]->mat= (float*) mat;
 					mainb[a]->imat= (float*) imat;
 
@@ -2174,7 +2191,7 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
 	curindex= totindex= 0;
-	indices= 0;
+	indices= NULL;
 	thresh= mb->thresh;
 
 	/* total number of MetaElems (totelem) is precomputed in find_basis_mball() function */
@@ -2223,13 +2240,13 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 		if(G.moving && mb->flag==MB_UPDATE_HALFRES) width*= 2;
 	}
 	/* nr_cubes is just for safety, minimum is totsize */
-	nr_cubes= (int)(0.5+totsize/width);
+	nr_cubes= (int)(0.5f+totsize/width);
 
 	/* init process */
 	mbproc.function = metaball;
 	mbproc.size = width;
 	mbproc.bounds = nr_cubes;
-	mbproc.cubes= 0;
+	mbproc.cubes= NULL;
 	mbproc.delta = width/(float)(RES*RES);
 
 	polygonize(&mbproc, mb);
@@ -2251,7 +2268,7 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 		dl->parts= curindex;
 
 		dl->index= indices;
-		indices= 0;
+		indices= NULL;
 		
 		a= mbproc.vertices.count;
 		dl->verts= ve= MEM_mallocN(sizeof(float)*3*a, "mballverts");

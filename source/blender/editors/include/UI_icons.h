@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,12 +26,16 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file UI_icons.h
+ *  \ingroup editorui
+ */
+
 /* Note: this is included twice with different #defines for DEF_ICON
    once from UI_resources.h for the internal icon enum and
    once for interface_api.c for the definition of the RNA enum for the icons */
 
 /* ICON_ prefix added */
-DEF_ICON(BLENDER)
+DEF_ICON(NONE)
 DEF_ICON(QUESTION)
 DEF_ICON(ERROR)
 DEF_ICON(CANCEL)
@@ -46,8 +50,8 @@ DEF_ICON(DISCLOSURE_TRI_RIGHT)
 DEF_ICON(RADIOBUT_OFF)
 DEF_ICON(RADIOBUT_ON)
 DEF_ICON(MENU_PANEL)
+DEF_ICON(BLENDER)
 #ifndef DEF_ICON_BLANK_SKIP
-	DEF_ICON(BLANK002)
 	DEF_ICON(BLANK003)
 #endif
 DEF_ICON(DOT)

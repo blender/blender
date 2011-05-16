@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_view3d/view3d_ops.c
+ *  \ingroup spview3d
+ */
+
 
 #include <stdlib.h>
 #include <math.h>
@@ -57,6 +62,8 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_rotate);
 	WM_operatortype_append(VIEW3D_OT_move);
 	WM_operatortype_append(VIEW3D_OT_zoom);
+	WM_operatortype_append(VIEW3D_OT_zoom_camera_1_to_1);
+	WM_operatortype_append(VIEW3D_OT_dolly);
 	WM_operatortype_append(VIEW3D_OT_view_all);
 	WM_operatortype_append(VIEW3D_OT_viewnumpad);
 	WM_operatortype_append(VIEW3D_OT_view_orbit);
@@ -123,6 +130,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_rotate", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_move", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_dolly", MIDDLEMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center_cursor", PADPERIOD, KM_PRESS, KM_CTRL, 0);
 	
@@ -146,6 +154,8 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/*wheel mouse forward/back*/
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELINMOUSE, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELOUTMOUSE, KM_PRESS, 0, 0)->ptr, "delta", -1);
+
+	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom_camera_1_to_1", PADENTER, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_camera", HOMEKEY, KM_PRESS, 0, 0); /* only with camera view */
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0)->ptr, "center", 0); /* only without camera view */
@@ -181,26 +191,6 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "type", V3D_VIEW_STEPDOWN);
 	
 	/* active aligned, replaces '*' key in 2.4x */
-#ifdef WIN32
-	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BACK);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_LEFT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-#else
 	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
 	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
@@ -219,7 +209,6 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
 	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-#endif
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_localview", PADSLASHKEY, KM_PRESS, 0, 0);
 	

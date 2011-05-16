@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_view3d/view3d_snap.c
+ *  \ingroup spview3d
+ */
+
 
 #include <math.h>
 #include <string.h>
@@ -247,7 +252,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				if(eve->f1) {
 					VECCOPY(tv->oldloc, eve->co);
 					tv->loc= eve->co;
-					if(eve->no[0]!=0.0 || eve->no[1]!=0.0 ||eve->no[2]!=0.0)
+					if(eve->no[0] != 0.0f || eve->no[1] != 0.0f ||eve->no[2] != 0.0f)
 						tv->nor= eve->no; // note this is a hackish signal (ton)
 					tv->flag= eve->f1 & SELECT;
 					tv++;
@@ -431,11 +436,11 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	for(a=0; a<tottrans; a++, tv++) {
 		if(tv->flag & SELECT) {
 			add_v3_v3(centroid, tv->oldloc);
-			total+= 1.0;
+			total += 1.0f;
 			DO_MINMAX(tv->oldloc, min, max);
 		}
 	}
-	if(total!=0.0) {
+	if(total != 0.0f) {
 		mul_v3_fl(centroid, 1.0f/total);
 	}
 
@@ -473,9 +478,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 			VECCOPY(vec, tv->loc);
 			mul_m3_v3(bmat, vec);
 			add_v3_v3(vec, obedit->obmat[3]);
-			vec[0]= gridf*floor(.5+ vec[0]/gridf);
-			vec[1]= gridf*floor(.5+ vec[1]/gridf);
-			vec[2]= gridf*floor(.5+ vec[2]/gridf);
+			vec[0]= gridf*floorf(0.5f+ vec[0]/gridf);
+			vec[1]= gridf*floorf(0.5f+ vec[1]/gridf);
+			vec[2]= gridf*floorf(0.5f+ vec[2]/gridf);
 			sub_v3_v3(vec, obedit->obmat[3]);
 			
 			mul_m3_v3(imat, vec);
@@ -503,9 +508,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 								
 								/* get nearest grid point to snap to */
 								VECCOPY(nLoc, pchan->pose_mat[3]);
-								vec[0]= gridf * (float)(floor(.5+ nLoc[0]/gridf));
-								vec[1]= gridf * (float)(floor(.5+ nLoc[1]/gridf));
-								vec[2]= gridf * (float)(floor(.5+ nLoc[2]/gridf));
+								vec[0]= gridf * (float)(floor(0.5f+ nLoc[0]/gridf));
+								vec[1]= gridf * (float)(floor(0.5f+ nLoc[1]/gridf));
+								vec[2]= gridf * (float)(floor(0.5f+ nLoc[2]/gridf));
 								
 								/* get bone-space location of grid point */
 								armature_loc_pose_to_bone(pchan, vec, vecN);
@@ -533,9 +538,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 			else {
 				ob->recalc |= OB_RECALC_OB;
 				
-				vec[0]= -ob->obmat[3][0]+gridf*floor(.5+ ob->obmat[3][0]/gridf);
-				vec[1]= -ob->obmat[3][1]+gridf*floor(.5+ ob->obmat[3][1]/gridf);
-				vec[2]= -ob->obmat[3][2]+gridf*floor(.5+ ob->obmat[3][2]/gridf);
+				vec[0]= -ob->obmat[3][0]+gridf*floorf(0.5f+ ob->obmat[3][0]/gridf);
+				vec[1]= -ob->obmat[3][1]+gridf*floorf(0.5f+ ob->obmat[3][1]/gridf);
+				vec[2]= -ob->obmat[3][2]+gridf*floorf(0.5f+ ob->obmat[3][2]/gridf);
 				
 				if(ob->parent) {
 					where_is_object(scene, ob);
@@ -718,9 +723,9 @@ static int snap_curs_to_grid(bContext *C, wmOperator *UNUSED(op))
 	gridf= rv3d->gridview;
 	curs= give_cursor(scene, v3d);
 
-	curs[0]= gridf*floor(.5+curs[0]/gridf);
-	curs[1]= gridf*floor(.5+curs[1]/gridf);
-	curs[2]= gridf*floor(.5+curs[2]/gridf);
+	curs[0]= gridf*floorf(0.5f+curs[0]/gridf);
+	curs[1]= gridf*floorf(0.5f+curs[1]/gridf);
+	curs[2]= gridf*floorf(0.5f+curs[2]/gridf);
 	
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);	// hrm
 	
@@ -779,13 +784,11 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 		}
 		
 		if(v3d->around==V3D_CENTROID) {
-			mul_v3_fl(centroid, 1.0/(float)tottrans);
+			mul_v3_fl(centroid, 1.0f/(float)tottrans);
 			VECCOPY(curs, centroid);
 		}
 		else {
-			curs[0]= (min[0]+max[0])/2;
-			curs[1]= (min[1]+max[1])/2;
-			curs[2]= (min[2]+max[2])/2;
+			mid_v3_v3v3(curs, min, max);
 		}
 		MEM_freeN(transvmain);
 		transvmain= NULL;
@@ -819,13 +822,11 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 		}
 		if(count) {
 			if(v3d->around==V3D_CENTROID) {
-				mul_v3_fl(centroid, 1.0/(float)count);
+				mul_v3_fl(centroid, 1.0f/(float)count);
 				VECCOPY(curs, centroid);
 			}
 			else {
-				curs[0]= (min[0]+max[0])/2;
-				curs[1]= (min[1]+max[1])/2;
-				curs[2]= (min[2]+max[2])/2;
+				mid_v3_v3v3(curs, min, max);
 			}
 		}
 	}

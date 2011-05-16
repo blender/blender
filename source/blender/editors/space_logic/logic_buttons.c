@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_logic/logic_buttons.c
+ *  \ingroup splogic
+ */
+
 
 #include <string.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/keyframes_general.c
+ *  \ingroup edanimation
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -48,6 +53,7 @@
 #include "BKE_global.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
@@ -107,7 +113,7 @@ void delete_fcurve_keys(FCurve *fcu)
 	
 	if(fcu->bezt==NULL) /* ignore baked curves */
 		return;
-    
+
 	/* Delete selected BezTriples */
 	for (i=0; i < fcu->totvert; i++) {
 		if (fcu->bezt[i].f2 & SELECT) {
@@ -273,28 +279,21 @@ void clean_fcurve(FCurve *fcu, float thresh)
 /* temp struct used for smooth_fcurve */
 typedef struct tSmooth_Bezt {
 	float *h1, *h2, *h3;	/* bezt->vec[0,1,2][1] */
+	float y1, y2, y3;		/* averaged before/new/after y-values */
 } tSmooth_Bezt;
 
 /* Use a weighted moving-means method to reduce intensity of fluctuations */
+// TODO: introduce scaling factor for weighting falloff
 void smooth_fcurve (FCurve *fcu)
 {
 	BezTriple *bezt;
 	int i, x, totSel = 0;
 	
-	/* first loop through - count how many verts are selected, and fix up handles 
-	 *	this is done for both modes
-	 */
+	/* first loop through - count how many verts are selected */
 	bezt= fcu->bezt;
 	for (i=0; i < fcu->totvert; i++, bezt++) {						
-		if (BEZSELECTED(bezt)) {							
-			/* line point's handles up with point's vertical position */
-			bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
-			if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
-			if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
-			
-			/* add value to total */
+		if (BEZSELECTED(bezt))
 			totSel++;
-		}
 	}
 	
 	/* if any points were selected, allocate tSmooth_Bezt points to work on */
@@ -314,7 +313,7 @@ void smooth_fcurve (FCurve *fcu)
 				tsb->h3 = &bezt->vec[2][1];
 				
 				/* advance to the next tsb to populate */
-				if (x < totSel- 1) 
+				if (x < totSel-1) 
 					tsb++;
 				else
 					break;
@@ -322,16 +321,16 @@ void smooth_fcurve (FCurve *fcu)
 		}
 			
 		/* calculate the new smoothed F-Curve's with weighted averages:
-		 *	- this is done with two passes
+		 *	- this is done with two passes to avoid progressive corruption errors
 		 *	- uses 5 points for each operation (which stores in the relevant handles)
 		 *	-	previous: w/a ratio = 3:5:2:1:1
 		 *	- 	next: w/a ratio = 1:1:2:5:3
 		 */
 		
-		/* round 1: calculate previous and next */ 
+		/* round 1: calculate smoothing deltas and new values */ 
 		tsb= tarray;
 		for (i=0; i < totSel; i++, tsb++) {
-			/* don't touch end points (otherwise, curves slowly explode) */
+			/* don't touch end points (otherwise, curves slowly explode, as we don't have enough data there) */
 			if (ELEM(i, 0, (totSel-1)) == 0) {
 				const tSmooth_Bezt *tP1 = tsb - 1;
 				const tSmooth_Bezt *tP2 = (i-2 > 0) ? (tsb - 2) : (NULL);
@@ -344,21 +343,26 @@ void smooth_fcurve (FCurve *fcu)
 				const float n1 = *tN1->h2;
 				const float n2 = (tN2) ? (*tN2->h2) : (*tN1->h2);
 				
-				/* calculate previous and next */
-				*tsb->h1= (3*p2 + 5*p1 + 2*c1 + n1 + n2) / 12;
-				*tsb->h3= (p2 + p1 + 2*c1 + 5*n1 + 3*n2) / 12;
+				/* calculate previous and next, then new position by averaging these */
+				tsb->y1= (3*p2 + 5*p1 + 2*c1 + n1 + n2) / 12;
+				tsb->y3= (p2 + p1 + 2*c1 + 5*n1 + 3*n2) / 12;
+				
+				tsb->y2 = (tsb->y1 + tsb->y3) / 2;
 			}
 		}
 		
-		/* round 2: calculate new values and reset handles */
+		/* round 2: apply new values */
 		tsb= tarray;
 		for (i=0; i < totSel; i++, tsb++) {
-			/* calculate new position by averaging handles */
-			*tsb->h2 = (*tsb->h1 + *tsb->h3) / 2;
-			
-			/* reset handles now */
-			*tsb->h1 = *tsb->h2;
-			*tsb->h3 = *tsb->h2;
+			/* don't touch end points, as their values were't touched above */
+			if (ELEM(i, 0, (totSel-1)) == 0) {
+				/* y2 takes the average of the 2 points */
+				*tsb->h2 = tsb->y2;
+				
+				/* handles are weighted between their original values and the averaged values */
+				*tsb->h1 = ((*tsb->h1) * 0.7f) + (tsb->y1 * 0.3f); 
+				*tsb->h3 = ((*tsb->h3) * 0.7f) + (tsb->y3 * 0.3f);
+			}
 		}
 		
 		/* free memory required for tarray */
@@ -452,7 +456,7 @@ void sample_fcurve (FCurve *fcu)
  */
 
 /* globals for copy/paste data (like for other copy/paste buffers) */
-ListBase animcopybuf = {NULL, NULL};
+static ListBase animcopybuf = {NULL, NULL};
 static float animcopy_firstframe= 999999999.0f;
 static float animcopy_lastframe= -999999999.0f;
 static float animcopy_cfra= 0.0;

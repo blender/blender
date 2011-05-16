@@ -1,3 +1,6 @@
+/** \file smoke/intern/FLUID_3D.h
+ *  \ingroup smoke
+ */
 //////////////////////////////////////////////////////////////////////
 // This file is part of Wavelet Turbulence.
 // 

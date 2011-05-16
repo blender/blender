@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -20,8 +20,23 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+/** \file blender/python/generic/py_capi_utils.c
+ *  \ingroup pygen
+ */
+
+
 #include <Python.h>
+#include <frameobject.h>
+
 #include "py_capi_utils.h"
+
+#include "BKE_font.h" /* only for utf8towchar, should replace with py funcs but too late in release now */
+
+#ifdef _WIN32 /* BLI_setenv */
+#include "BLI_path_util.h"
+#endif
+
+#define PYC_INTERPRETER_ACTIVE (((PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
 
 /* for debugging */
 void PyC_ObSpit(const char *name, PyObject *var) {
@@ -44,8 +59,15 @@ void PyC_ObSpit(const char *name, PyObject *var) {
 }
 
 void PyC_LineSpit(void) {
+
 	const char *filename;
 	int lineno;
+
+	/* Note, allow calling from outside python (RNA) */
+	if(!PYC_INTERPRETER_ACTIVE) {
+		fprintf(stderr, "python line lookup failed, interpreter inactive\n");
+		return;
+	}
 
 	PyErr_Clear();
 	PyC_FileAndNum(&filename, &lineno);
@@ -55,37 +77,20 @@ void PyC_LineSpit(void) {
 
 void PyC_FileAndNum(const char **filename, int *lineno)
 {
-	PyObject *getframe, *frame;
-	PyObject *f_lineno= NULL, *co_filename= NULL;
+	PyFrameObject *frame;
 	
 	if (filename)	*filename= NULL;
 	if (lineno)		*lineno = -1;
-	
-	getframe = PySys_GetObject("_getframe"); // borrowed
-	if (getframe==NULL) {
-		PyErr_Clear();
+
+	if (!(frame= PyThreadState_GET()->frame)) {
 		return;
 	}
-	
-	frame = PyObject_CallObject(getframe, NULL);
-	if (frame==NULL) {
-		PyErr_Clear();
-		return;
-	}
-	
+
 	/* when executing a script */
 	if (filename) {
-		co_filename= PyC_Object_GetAttrStringArgs(frame, 2, "f_code", "co_filename");
-		if (co_filename==NULL) {
-			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_code.co_filename");
-			Py_DECREF(frame);
-			return;
-		}
-		
-		*filename = _PyUnicode_AsString(co_filename);
-		Py_DECREF(co_filename);
+		*filename = _PyUnicode_AsString(frame->f_code->co_filename);
 	}
-	
+
 	/* when executing a module */
 	if(filename && *filename == NULL) {
 		/* try an alternative method to get the filename - module based
@@ -103,21 +108,10 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 			}
 		}
 	}
-		
-	
-	if (lineno) {
-		f_lineno= PyObject_GetAttrString(frame, "f_lineno");
-		if (f_lineno==NULL) {
-			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_lineno");
-			Py_DECREF(frame);
-			return;
-		}
-		
-		*lineno = (int)PyLong_AsSsize_t(f_lineno);
-		Py_DECREF(f_lineno);
-	}
 
-	Py_DECREF(frame);
+	if (lineno) {
+		*lineno = PyFrame_GetLineNumber(frame);
+	}
 }
 
 /* Would be nice if python had this built in */
@@ -171,9 +165,11 @@ PyObject *PyC_ExceptionBuffer(void)
 	
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
 		goto error_cleanup;
-	} else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
+	}
+	else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
 		goto error_cleanup;
-	} else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
+	}
+	else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
 		goto error_cleanup;
 	}
 	
@@ -233,29 +229,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 		return PyBytes_AS_STRING(py_str);
 	}
 	else {
-		/* mostly copied from fileio.c's, fileio_init */
-		PyObject *stringobj;
-		PyObject *u;
-
-		PyErr_Clear();
-		
-		u= PyUnicode_FromObject(py_str); /* coerce into unicode */
-		
-		if (u == NULL)
-			return NULL;
-
-		stringobj= PyUnicode_EncodeUTF8(PyUnicode_AS_UNICODE(u), PyUnicode_GET_SIZE(u), "surrogateescape");
-		Py_DECREF(u);
-		if (stringobj == NULL)
-			return NULL;
-		if (!PyBytes_Check(stringobj)) { /* this seems wrong but it works fine */
-			// printf("encoder failed to return bytes\n");
-			Py_DECREF(stringobj);
-			return NULL;
-		}
-		*coerce= stringobj;
-
-		return PyBytes_AS_STRING(stringobj);
+		return PyBytes_AS_STRING((*coerce= PyUnicode_EncodeFSDefault(py_str)));
 	}
 }
 
@@ -314,6 +288,48 @@ void PyC_MainModule_Restore(PyObject *main_mod)
 	PyInterpreterState *interp= PyThreadState_GET()->interp;
 	PyDict_SetItemString(interp->modules, "__main__", main_mod);
 	Py_XDECREF(main_mod);
+}
+
+/* must be called before Py_Initialize, expects output of BLI_get_folder(BLENDER_PYTHON, NULL) */
+void PyC_SetHomePath(const char *py_path_bundle)
+{
+	if(py_path_bundle==NULL) {
+		/* Common enough to have bundled *nix python but complain on OSX/Win */
+#if defined(__APPLE__) || defined(_WIN32)
+		fprintf(stderr, "Warning! bundled python not found and is expected on this platform. (if you built with CMake: 'install' target may have not been built)\n");
+#endif
+		return;
+	}
+	/* set the environment path */
+	printf("found bundled python: %s\n", py_path_bundle);
+
+#ifdef __APPLE__
+	/* OSX allow file/directory names to contain : character (represented as / in the Finder)
+	 but current Python lib (release 3.1.1) doesn't handle these correctly */
+	if(strchr(py_path_bundle, ':'))
+		printf("Warning : Blender application is located in a path containing : or / chars\
+			   \nThis may make python import function fail\n");
+#endif
+
+#ifdef _WIN32
+	/* cmake/MSVC debug build crashes without this, why only
+	   in this case is unknown.. */
+	{
+		BLI_setenv("PYTHONPATH", py_path_bundle);
+	}
+#endif
+
+	{
+		static wchar_t py_path_bundle_wchar[1024];
+
+		/* cant use this, on linux gives bug: #23018, TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 22008 */
+		/* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */
+
+		utf8towchar(py_path_bundle_wchar, py_path_bundle);
+
+		Py_SetPythonHome(py_path_bundle_wchar);
+		// printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);
+	}
 }
 
 /* Would be nice if python had this built in */

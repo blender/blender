@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file BlenderWorldInfo.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef __BLENDERWORLDINFO_H
 #define __BLENDERWORLDINFO_H
 #include "MT_CmMatrix4x4.h"

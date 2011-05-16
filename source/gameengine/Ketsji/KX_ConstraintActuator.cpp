@@ -1,4 +1,4 @@
-/**
+/*
  * Apply a constraint to a position or rotation value
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_ConstraintActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "SCA_IActuator.h"
 #include "KX_ConstraintActuator.h"

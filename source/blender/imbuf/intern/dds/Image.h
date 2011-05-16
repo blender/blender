@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -17,10 +17,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributors: Amorilia (amorilia@gamebox.net)
+ * Contributors: Amorilia (amorilia@users.sourceforge.net)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/imbuf/intern/dds/Image.h
+ *  \ingroup imbdds
+ */
+
 
 /*
  * This file is based on a similar file from the NVIDIA texture tools

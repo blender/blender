@@ -1,4 +1,4 @@
-/**
+/*
  *
  * $Id$
  *
@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/bvhutils.c
+ *  \ingroup bke
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -126,7 +131,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 					}
 					else
 					{
-						if(fabs(A00) > FLT_EPSILON)
+						if(fabsf(A00) > FLT_EPSILON)
 							S = -B0/A00;
 						else
 							S = 0.0f;
@@ -151,7 +156,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 					}
 					else
 					{
-						if(fabs(A11) > FLT_EPSILON)
+						if(fabsf(A11) > FLT_EPSILON)
 							T = -B1 / A11;
 						else
 							T = 0.0f;
@@ -177,7 +182,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 				}
 				else
 				{
-					if(fabs(A11) > FLT_EPSILON)
+					if(fabsf(A11) > FLT_EPSILON)
 						T = -B1 / A11;
 					else
 						T = 0.0;
@@ -203,7 +208,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 			}
 			else
 			{
-				if(fabs(A00) > FLT_EPSILON)
+				if(fabsf(A00) > FLT_EPSILON)
 					S = -B0 / A00;
 				else
 					S = 0.0f;
@@ -215,7 +220,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 		{
 			// Minimum at interior lv
 			float invDet;
-			if(fabs(Det) > FLT_EPSILON)
+			if(fabsf(Det) > FLT_EPSILON)
 				invDet = 1.0f / Det;
 			else
 				invDet = 0.0f;
@@ -246,7 +251,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 				}
 				else
 				{
-					if(fabs(denom) > FLT_EPSILON)
+					if(fabsf(denom) > FLT_EPSILON)
 						S = numer / denom;
 					else
 						S = 0.0f;
@@ -273,7 +278,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 				}
 				else
 				{
-					if(fabs(A11) > FLT_EPSILON)
+					if(fabsf(A11) > FLT_EPSILON)
 						T = -B1 / A11;
 					else
 						T = 0.0f;
@@ -299,7 +304,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 				}
 				else
 				{
-					if(fabs(denom) > FLT_EPSILON)
+					if(fabsf(denom) > FLT_EPSILON)
 						T = numer / denom;
 					else
 						T = 0.0f;
@@ -326,7 +331,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 				}
 				else
 				{
-					if(fabs(A00) > FLT_EPSILON)
+					if(fabsf(A00) > FLT_EPSILON)
 						S = -B0 / A00;
 					else
 						S = 0.0f;
@@ -357,7 +362,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 				}
 				else
 				{
-					if(fabs(denom) > FLT_EPSILON)
+					if(fabsf(denom) > FLT_EPSILON)
 						S = numer / denom;
 					else
 						S = 0.0f;

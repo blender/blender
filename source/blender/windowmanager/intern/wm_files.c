@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,12 +25,19 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/intern/wm_files.c
+ *  \ingroup wm
+ */
+
+
 	/* placed up here because of crappy
 	 * winsock stuff.
 	 */
-#include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <errno.h>
+
+#include "zlib.h" /* wm_read_exotic() */
 
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
@@ -64,7 +71,6 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_exotic.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -91,6 +97,8 @@
 #include "ED_view3d.h"
 #include "ED_util.h"
 
+#include "RE_pipeline.h" /* only to report missing engine */
+
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.h"
 
@@ -105,6 +113,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
+#include "wm_files.h"
 #include "wm_window.h"
 #include "wm_event_system.h"
 
@@ -256,10 +265,72 @@ static void wm_init_userdef(bContext *C)
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 	sound_init(CTX_data_main(C));
 
+	/* needed so loading a file from the command line respects user-pref [#26156] */
+	if(U.flag & USER_FILENOUI)	G.fileflags |= G_FILE_NO_UI;
+	else						G.fileflags &= ~G_FILE_NO_UI;
+
 	/* set the python auto-execute setting from user prefs */
-	/* disabled by default, unless explicitly enabled in the command line */
-	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
-	if(U.tempdir[0]) BLI_where_is_temp(btempdir, 1);
+	/* enabled by default, unless explicitly enabled in the command line which overrides */
+	if((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
+		if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
+		else											  G.f &= ~G_SCRIPT_AUTOEXEC;
+	}
+	if(U.tempdir[0]) BLI_where_is_temp(btempdir, FILE_MAX, 1);
+}
+
+
+
+/* return codes */
+#define BKE_READ_EXOTIC_FAIL_PATH		-3 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_FORMAT		-2 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_OPEN		-1 /* Can't open the file */
+#define BKE_READ_EXOTIC_OK_BLEND		 0 /* .blend file */
+#define BKE_READ_EXOTIC_OK_OTHER		 1 /* other supported formats */
+
+/* intended to check for non-blender formats but for now it only reads blends */
+static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
+{
+	int len;
+	gzFile gzfile;
+	char header[7];
+	int retval;
+
+	// make sure we're not trying to read a directory....
+
+	len= strlen(name);
+	if (ELEM(name[len-1], '/', '\\')) {
+		retval= BKE_READ_EXOTIC_FAIL_PATH;
+	}
+	else {
+		gzfile = gzopen(name,"rb");
+
+		if (gzfile == NULL) {
+			retval= BKE_READ_EXOTIC_FAIL_OPEN;
+		}
+		else {
+			len= gzread(gzfile, header, sizeof(header));
+			gzclose(gzfile);
+			if (len == sizeof(header) && strncmp(header, "BLENDER", 7) == 0) {
+				retval= BKE_READ_EXOTIC_OK_BLEND;
+			}
+			else {
+				//XXX waitcursor(1);
+				/*
+				if(is_foo_format(name)) {
+					read_foo(name);
+					retval= BKE_READ_EXOTIC_OK_OTHER;
+				}
+				else
+				 */
+				{
+					retval= BKE_READ_EXOTIC_FAIL_FORMAT;
+				}
+				//XXX waitcursor(0);
+			}
+		}
+	}
+
+	return retval;
 }
 
 void WM_read_file(bContext *C, const char *name, ReportList *reports)
@@ -274,7 +345,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
-	retval= BKE_read_exotic(CTX_data_scene(C), name);
+	retval= wm_read_exotic(CTX_data_scene(C), name);
 	
 	/* we didn't succeed, now try to read Blender file */
 	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
@@ -290,8 +361,10 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 
 		/* this flag is initialized by the operator but overwritten on read.
 		 * need to re-enable it here else drivers + registered scripts wont work. */
-		if(G_f & G_SCRIPT_AUTOEXEC) G.f |= G_SCRIPT_AUTOEXEC;
-		else						G.f &= ~G_SCRIPT_AUTOEXEC;
+		if(G.f != G_f) {
+			const int flags_keep= (G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+			G.f= (G.f & ~flags_keep) | (G_f & flags_keep);
+		}
 
 		/* match the read WM with current WM */
 		wm_window_match_do(C, &wmbase);
@@ -314,7 +387,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 		ED_editors_init(C);
-		DAG_on_load_update(CTX_data_main(C), TRUE);
+		DAG_on_visible_update(CTX_data_main(C), TRUE);
 
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
@@ -322,6 +395,18 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 		BPY_modules_load_user(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
+
+#if 0	/* gives popups on windows but not linux, bug in report API but disable for now to stop users getting annoyed  */
+		/* TODO, make this show in header info window */
+		{
+			Scene *sce;
+			for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+				if(sce->r.engine[0] && BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
+					BKE_reportf(reports, RPT_WARNING, "Engine not available: '%s' for scene: %s, an addon may need to be installed or enabled", sce->r.engine, sce->id.name+2);
+				}
+			}
+		}
+#endif
 
 		// XXX		undo_editmode_clear();
 		BKE_reset_undo();
@@ -389,6 +474,12 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	if(success==0) {
 		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
+
+#ifdef WITH_PYTHON_SECURITY /* not default */
+		/* use alternative setting for security nuts
+		 * otherwise we'd need to patch the binary blob - startup.blend.c */
+		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
+#endif
 	}
 	
 	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
@@ -418,12 +509,12 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	BKE_write_undo(C, "original");	/* save current state */
 
 	ED_editors_init(C);
-	DAG_on_load_update(CTX_data_main(C), TRUE);
+	DAG_on_visible_update(CTX_data_main(C), TRUE);
 
 #ifdef WITH_PYTHON
 	if(CTX_py_init_get(C)) {
 		/* sync addons, these may have changed from the defaults */
-		BPY_string_exec(C, "__import__('bpy').utils.addon_reset_all()");
+		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
 
 		BPY_driver_reset();
 		BPY_modules_load_user(C);
@@ -446,7 +537,7 @@ int WM_read_homefile_exec(bContext *C, wmOperator *op)
 	return WM_read_homefile(C, op->reports, from_memory) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-void read_history(void)
+void WM_read_history(void)
 {
 	char name[FILE_MAX];
 	LinkNode *l, *lines;
@@ -469,10 +560,7 @@ void read_history(void)
 		if (line[0] && BLI_exists(line)) {
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
-			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
-			recent->filepath[0] = '\0';
-			
-			strcpy(recent->filepath, line);
+			recent->filepath = BLI_strdup(line);
 			num++;
 		}
 	}
@@ -498,14 +586,12 @@ static void write_history(void)
 
 	recent = G.recent_files.first;
 	/* refresh recent-files.txt of recent opened files, when current file was changed */
-	if(!(recent) || (strcmp(recent->filepath, G.main->name)!=0)) {
+	if(!(recent) || (BLI_path_cmp(recent->filepath, G.main->name)!=0)) {
 		fp= fopen(name, "w");
 		if (fp) {
 			/* add current file to the beginning of list */
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
-			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(G.main->name)+1), "name of file");
-			recent->filepath[0] = '\0';
-			strcpy(recent->filepath, G.main->name);
+			recent->filepath = BLI_strdup(G.main->name);
 			BLI_addhead(&(G.recent_files), recent);
 			/* write current file to recent-files.txt */
 			fprintf(fp, "%s\n", recent->filepath);
@@ -514,7 +600,7 @@ static void write_history(void)
 			/* write rest of recent opened files to recent-files.txt */
 			while((i<U.recent_files) && (recent)){
 				/* this prevents to have duplicities in list */
-				if (strcmp(recent->filepath, G.main->name)!=0) {
+				if (BLI_path_cmp(recent->filepath, G.main->name)!=0) {
 					fprintf(fp, "%s\n", recent->filepath);
 					recent = recent->next;
 				}
@@ -543,18 +629,18 @@ static void do_history(char *name, ReportList *reports)
 	if(strlen(name)<2) return;
 		
 	while(hisnr > 1) {
-		sprintf(tempname1, "%s%d", name, hisnr-1);
-		sprintf(tempname2, "%s%d", name, hisnr);
+		BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr-1);
+		BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
 	
 		if(BLI_rename(tempname1, tempname2))
 			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 			
 		hisnr--;
 	}
-		
+
 	/* is needed when hisnr==1 */
-	sprintf(tempname1, "%s%d", name, hisnr);
-	
+	BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr);
+
 	if(BLI_rename(name, tempname1))
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
@@ -564,6 +650,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
 	int *thumb;
+	char err_out[256]= "unknown";
 
 	*thumb_pt= NULL;
 	
@@ -571,7 +658,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
-	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID);
+	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID, err_out);
 	
 	if(ibuf) {		
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
@@ -592,6 +679,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	}
 	else {
 		/* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
+		fprintf(stderr, "blend_file_thumb failed to create thumbnail: %s\n", err_out);
 		thumb= NULL;
 	}
 	
@@ -644,7 +732,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {
-		if (strcmp(li->filepath, di) == 0) {
+		if (BLI_path_cmp(li->filepath, di) == 0) {
 			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%.200s'", di);
 			return -1;
 		}
@@ -671,7 +759,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
 		if(!copy) {
 			G.relbase_valid = 1;
-			strcpy(G.main->name, di);	/* is guaranteed current file */
+			BLI_strncpy(G.main->name, di, sizeof(G.main->name));	/* is guaranteed current file */
 	
 			G.save_over = 1; /* disable untitled.blend convention */
 		}
@@ -744,8 +832,8 @@ void wm_autosave_location(char *filename)
 	char *savedir;
 #endif
 
-	sprintf(pidstr, "%d.blend", abs(getpid()));
-	
+	BLI_snprintf(pidstr, sizeof(pidstr), "%d.blend", abs(getpid()));
+
 #ifdef WIN32
 	/* XXX Need to investigate how to handle default location of '/tmp/'
 	 * This is a relative directory on Windows, and it may be

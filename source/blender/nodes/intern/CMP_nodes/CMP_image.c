@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_image.c
+ *  \ingroup cmpnodes
+ */
+
 
 #include "../CMP_util.h"
 
@@ -75,9 +80,9 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 		IMB_float_from_rect(ibuf);
 	}
 
-	/* now we need a float buffer from the image
-	 * with matching color management */
-	if(ibuf->channels == 4) {
+	/* now we need a float buffer from the image with matching color management */
+	/* XXX weak code, multilayer is excluded from this */
+	if(ibuf->channels == 4 && ima->rr==NULL) {
 		if(rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
 			if(ibuf->profile != IB_PROFILE_NONE) {
 				rect= ibuf->rect_float;
@@ -136,7 +141,7 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 	}
 	*/
 	return stackbuf;
-};
+}
 
 static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
 {
@@ -153,7 +158,7 @@ static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
 		}
 	}
 	return zbuf;
-};
+}
 
 /* check if layer is available, returns pass buffer */
 static CompBuf *compbuf_multilayer_get(RenderData *rd, RenderLayer *rl, Image *ima, ImageUser *iuser, int passtype)
@@ -175,9 +180,9 @@ static CompBuf *compbuf_multilayer_get(RenderData *rd, RenderLayer *rl, Image *i
 		return cbuf;
 	}
 	return NULL;
-};
+}
 
-void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, Image *ima, ImageUser *iuser)
+static void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, Image *ima, ImageUser *iuser)
 {
 	if(out[RRES_OUT_Z]->hasoutput)
 		out[RRES_OUT_Z]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_Z);
@@ -212,7 +217,7 @@ void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, I
 		out[RRES_OUT_EMIT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_EMIT);
 	if(out[RRES_OUT_ENV]->hasoutput)
 		out[RRES_OUT_ENV]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_ENVIRONMENT);
-};
+}
 
 
 static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
@@ -285,16 +290,16 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 			generate_preview(data, node, stackbuf);
 		}
 	}	
-};
+}
 
 static void node_composit_init_image(bNode* node)
 {
-   ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
-   node->storage= iuser;
-   iuser->frames= 1;
-   iuser->sfra= 1;
-   iuser->fie_ima= 2;
-   iuser->ok= 1;
+	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
+	node->storage= iuser;
+	iuser->frames= 1;
+	iuser->sfra= 1;
+	iuser->fie_ima= 2;
+	iuser->ok= 1;
 }
 
 void register_node_type_cmp_image(ListBase *lb)
@@ -316,30 +321,30 @@ void register_node_type_cmp_image(ListBase *lb)
 
 static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, int recty, int passcode)
 {
-   float *fp= RE_RenderLayerGetPass(rl, passcode);
-   if(fp) {
-	  CompBuf *buf;
-	  int buftype= CB_VEC3;
+	float *fp= RE_RenderLayerGetPass(rl, passcode);
+	if(fp) {
+		CompBuf *buf;
+		int buftype= CB_VEC3;
 
-	  if(ELEM3(passcode, SCE_PASS_Z, SCE_PASS_INDEXOB, SCE_PASS_MIST))
-		 buftype= CB_VAL;
-	  else if(passcode==SCE_PASS_VECTOR)
-		 buftype= CB_VEC4;
-	  else if(ELEM(passcode, SCE_PASS_COMBINED, SCE_PASS_RGBA))
-		 buftype= CB_RGBA;
+		if(ELEM3(passcode, SCE_PASS_Z, SCE_PASS_INDEXOB, SCE_PASS_MIST))
+			buftype= CB_VAL;
+		else if(passcode==SCE_PASS_VECTOR)
+			buftype= CB_VEC4;
+		else if(ELEM(passcode, SCE_PASS_COMBINED, SCE_PASS_RGBA))
+			buftype= CB_RGBA;
 
-	  if(rd->scemode & R_COMP_CROP)
-		 buf= get_cropped_compbuf(&rd->disprect, fp, rectx, recty, buftype);
-	  else {
-		 buf= alloc_compbuf(rectx, recty, buftype, 0);
-		 buf->rect= fp;
-	  }
-	  return buf;
-   }
-   return NULL;
-};
+		if(rd->scemode & R_COMP_CROP)
+			buf= get_cropped_compbuf(&rd->disprect, fp, rectx, recty, buftype);
+		else {
+			buf= alloc_compbuf(rectx, recty, buftype, 0);
+			buf->rect= fp;
+		}
+		return buf;
+	}
+	return NULL;
+}
 
-void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out, int rectx, int recty)
+static void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out, int rectx, int recty)
 {
    if(out[RRES_OUT_Z]->hasoutput)
 	  out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_Z);
@@ -374,56 +379,56 @@ void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out
 	   out[RRES_OUT_EMIT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_EMIT);
    if(out[RRES_OUT_ENV]->hasoutput)
 	   out[RRES_OUT_ENV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_ENVIRONMENT);
-};
+}
 
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
-   Scene *sce= (Scene *)node->id;
-   Render *re= (sce)? RE_GetRender(sce->id.name): NULL;
-   RenderData *rd= data;
-   RenderResult *rr= NULL;
+	Scene *sce= (Scene *)node->id;
+	Render *re= (sce)? RE_GetRender(sce->id.name): NULL;
+	RenderData *rd= data;
+	RenderResult *rr= NULL;
 
-   if(re)
-	   rr= RE_AcquireResultRead(re);
+	if(re)
+		rr= RE_AcquireResultRead(re);
 
-   if(rr) {
-	  SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
-	  if(srl) {
-		 RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
-		 if(rl && rl->rectf) {
-			CompBuf *stackbuf;
+	if(rr) {
+		SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+		if(srl) {
+			RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
+			if(rl && rl->rectf) {
+				CompBuf *stackbuf;
 
-			/* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
-			if(rd->scemode & R_COMP_CROP)
-			   stackbuf= get_cropped_compbuf(&rd->disprect, rl->rectf, rr->rectx, rr->recty, CB_RGBA);
-			else {
-			   stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
-			   stackbuf->rect= rl->rectf;
+				/* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
+				if(rd->scemode & R_COMP_CROP)
+					stackbuf= get_cropped_compbuf(&rd->disprect, rl->rectf, rr->rectx, rr->recty, CB_RGBA);
+				else {
+					stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
+					stackbuf->rect= rl->rectf;
+				}
+				if(stackbuf==NULL) {
+					printf("Error; Preview Panel in UV Window returns zero sized image\n");
+				}
+				else {
+					stackbuf->xof= rr->xof;
+					stackbuf->yof= rr->yof;
+
+					/* put on stack */
+					out[RRES_OUT_IMAGE]->data= stackbuf;
+
+					if(out[RRES_OUT_ALPHA]->hasoutput)
+						out[RRES_OUT_ALPHA]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+
+					node_composit_rlayers_out(rd, rl, out, rr->rectx, rr->recty);
+
+					generate_preview(data, node, stackbuf);
+				}
 			}
-			if(stackbuf==NULL) {
-			   printf("Error; Preview Panel in UV Window returns zero sized image\n");
-			}
-			else {
-			   stackbuf->xof= rr->xof;
-			   stackbuf->yof= rr->yof;
+		}
+	}
 
-			   /* put on stack */	
-			   out[RRES_OUT_IMAGE]->data= stackbuf;
-
-			   if(out[RRES_OUT_ALPHA]->hasoutput)
-				  out[RRES_OUT_ALPHA]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
-
-			   node_composit_rlayers_out(rd, rl, out, rr->rectx, rr->recty);
-
-			   generate_preview(data, node, stackbuf);
-			}
-		 }
-	  }
-   }
-
-   if(re)
-	   RE_ReleaseResult(re);
-};
+	if(re)
+		RE_ReleaseResult(re);
+}
 
 
 void register_node_type_cmp_rlayers(ListBase *lb)

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -30,6 +30,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/** \file UI_resources.h
+ *  \ingroup editorui
+ */
+
 #ifndef UI_RESOURCES_H
 #define UI_RESOURCES_H
 
@@ -39,12 +43,14 @@
 #define DEF_VICO(name) VICO_##name,
 
 typedef enum {
-#define BIFICONID_FIRST		(ICON_BLENDER)
 	/* ui */
 #include "UI_icons.h"
 	BIFICONID_LAST
-#define BIFNICONIDS			(BIFICONID_LAST-BIFICONID_FIRST + 1)
 } BIFIconID;
+
+#define BIFICONID_FIRST		(ICON_NONE)
+#define BIFNICONIDS			(BIFICONID_LAST-BIFICONID_FIRST + 1)
+
 #undef DEF_ICON
 #undef DEF_VICO
 
@@ -155,6 +161,7 @@ enum {
 	TH_VERTEX,
 	TH_VERTEX_SELECT,
 	TH_VERTEX_SIZE,
+	TH_OUTLINE_WIDTH,
 	TH_EDGE,
 	TH_EDGE_SELECT,
 	TH_EDGE_SEAM,

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,10 +25,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_C-api.h
- * GHOST C-API function and type declarations.
- * The C-API wraps the C++ objects with the 
+/** \ingroup GHOST
+ *
+ * \file	GHOST_C-api.h
+ * \brief GHOST C-API function and type declarations.
  */
 
 #ifndef	GHOST_C_API_H
@@ -44,7 +44,7 @@ extern "C" {
  * Creates a &quot;handle&quot; for a C++ GHOST object.
  * A handle is just an opaque pointer to an empty struct.
  * In the API the pointer is casted to the actual C++ class.
- * @param	name	Name of the handle to create.
+ * \param	name	Name of the handle to create.
  */
 
 GHOST_DECLARE_HANDLE(GHOST_SystemHandle);
@@ -262,7 +262,16 @@ extern int GHOST_DispatchEvents(GHOST_SystemHandle systemhandle);
  */
 extern GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle,
 											  GHOST_EventConsumerHandle consumerhandle);
-	
+
+/**
+ * Remove the given event consumer to our list.
+ * @param systemhandle The handle to the system
+ * @param consumerhandle The event consumer to remove.
+ * @return Indication of success.
+ */
+extern GHOST_TSuccess GHOST_RemoveEventConsumer(GHOST_SystemHandle systemhandle,
+											  GHOST_EventConsumerHandle consumerhandle);
+
 /***************************************************************************************
  ** Progress bar functionality
  ***************************************************************************************/
@@ -835,6 +844,18 @@ extern GHOST_TUns8* GHOST_getClipboard(int selection);
  */
 extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
 
+
+
+/**
+ * Toggles console
+ * @action	0 - Hides
+ *			1 - Shows
+ *			2 - Toggles
+ *			3 - Hides if it runs not from  command line
+ *			* - Does nothing
+ * @return current status (1 -visible, 0 - hidden)
+ */
+extern int GHOST_toggleConsole(int action);
 
 #ifdef __cplusplus
 }

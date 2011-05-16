@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,12 +26,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_ICanvas.h
+ *  \ingroup bgerast
+ */
+
 #ifndef __RAS_ICANVAS
 #define __RAS_ICANVAS
-
-/**
- * 2D rendering device context. The connection from 3d rendercontext to 2d surface.
- */
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -39,7 +40,9 @@
 
 class RAS_Rect;
 
-
+/**
+ * 2D rendering device context. The connection from 3d rendercontext to 2d surface.
+ */
 class RAS_ICanvas
 {
 public:

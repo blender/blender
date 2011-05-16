@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_EventButton.h
+
+/** \file ghost/intern/GHOST_EventButton.h
+ *  \ingroup GHOST
  * Declaration of GHOST_EventButton class.
  */
 

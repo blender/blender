@@ -1,3 +1,6 @@
+/** \file itasc/ConstraintSet.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * ConstraintSet.cpp
  *

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_image/space_image.c
+ *  \ingroup spimage
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -49,6 +54,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -198,7 +204,7 @@ void ED_image_aspect(Image *ima, float *aspx, float *aspy)
 	*aspx= *aspy= 1.0;
 	
 	if((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
-	   (ima->aspx==0.0 || ima->aspy==0.0))
+	   (ima->aspx==0.0f || ima->aspy==0.0f))
 		return;
 	
 	/* x is always 1 */
@@ -454,11 +460,13 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	if(simagen->cumap)
 		simagen->cumap= curvemapping_copy(simagen->cumap);
-	
+
+	scopes_new(&simagen->scopes);
+
 	return (SpaceLink *)simagen;
 }
 
-void image_operatortypes(void)
+static void image_operatortypes(void)
 {
 	WM_operatortype_append(IMAGE_OT_view_all);
 	WM_operatortype_append(IMAGE_OT_view_pan);
@@ -477,6 +485,8 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_save_sequence);
 	WM_operatortype_append(IMAGE_OT_pack);
 	WM_operatortype_append(IMAGE_OT_unpack);
+	
+	WM_operatortype_append(IMAGE_OT_invert);
 
 	WM_operatortype_append(IMAGE_OT_cycle_render_slot);
 
@@ -486,12 +496,11 @@ void image_operatortypes(void)
 
 	WM_operatortype_append(IMAGE_OT_record_composite);
 
-	WM_operatortype_append(IMAGE_OT_toolbox);
 	WM_operatortype_append(IMAGE_OT_properties);
 	WM_operatortype_append(IMAGE_OT_scopes);
 }
 
-void image_keymap(struct wmKeyConfig *keyconf)
+static void image_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Image Generic", SPACE_IMAGE, 0);
 	wmKeyMapItem *kmi;
@@ -502,7 +511,7 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_save_as", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_properties", NKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "IMAGE_OT_scopes", PKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_scopes", TKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, KM_ALT, 0)->ptr, "reverse", TRUE);
@@ -533,8 +542,6 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "point", 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
-
-	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
 
 	/* toggle editmode is handy to have while UV unwrapping */
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
@@ -664,13 +671,14 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
+const char *image_context_dir[] = {"edit_image", NULL};
+
 static int image_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {"edit_image", NULL};
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, image_context_dir);
 	}
 	else if(CTX_data_equals(member, "edit_image")) {
 		CTX_data_id_pointer_set(result, (ID*)ED_space_image(sima));
@@ -978,6 +986,7 @@ void ED_spacetype_image(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	image_buttons_register(art);
+	ED_uvedit_buttons_register(art);
 	
 	/* regions: statistics/scope buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Blender Player system on GHOST.
  */
+
+/** \file gameengine/GamePlayer/ghost/GPG_System.cpp
+ *  \ingroup player
+ */
+
 
 #include "GPG_System.h"
 #include <assert.h>

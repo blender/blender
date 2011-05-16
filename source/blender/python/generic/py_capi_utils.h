@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/generic/py_capi_utils.h
+ *  \ingroup pygen
+ */
+
  
 #ifndef PY_CAPI_UTILS_H
 #define PY_CAPI_UTILS_H
@@ -42,4 +47,7 @@ void			PyC_RunQuicky(const char *filepath, int n, ...);
 
 void PyC_MainModule_Backup(PyObject **main_mod);
 void PyC_MainModule_Restore(PyObject *main_mod);
+
+void PyC_SetHomePath(const char *py_path_bundle);
+
 #endif // PY_CAPI_UTILS_H

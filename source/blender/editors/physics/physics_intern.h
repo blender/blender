@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/physics/physics_intern.h
+ *  \ingroup edphys
+ */
+
+
 #ifndef ED_PHYSICS_INTERN_H
 #define ED_PHYSICS_INTERN_H
 

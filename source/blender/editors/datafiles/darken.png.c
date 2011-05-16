@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/darken.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <darken_png> */
 
 int datatoc_darken_png_size= 9653;

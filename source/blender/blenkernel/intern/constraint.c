@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/constraint.c
+ *  \ingroup bke
+ */
+
 
 #include <stdio.h> 
 #include <stddef.h>
@@ -616,7 +621,7 @@ static void constraint_target_to_mat4 (Scene *scene, Object *ob, const char *sub
 			 * PoseChannel by the Armature Object's Matrix to get a worldspace
 			 * matrix.
 			 */
-			if (headtail < 0.000001) {
+			if (headtail < 0.000001f) {
 				/* skip length interpolation if set to head */
 				mul_m4_m4m4(mat, pchan->pose_mat, ob->obmat);
 			}
@@ -752,7 +757,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 			bConstraintTarget *ctn = ct->next; \
 			if (nocopy == 0) { \
 				datatar= ct->tar; \
-				strcpy(datasubtarget, ct->subtarget); \
+				BLI_strncpy(datasubtarget, ct->subtarget, sizeof(datasubtarget)); \
 				con->tarspace= (char)ct->space; \
 			} \
 			 \
@@ -989,10 +994,10 @@ static void vectomat (float *vec, float *target_up, short axis, short upflag, sh
 	float neg = -1;
 	int right_index;
 
-	if (normalize_v3_v3(n, vec) == 0.0) { 
-		n[0] = 0.0;
-		n[1] = 0.0;
-		n[2] = 1.0;
+	if (normalize_v3_v3(n, vec) == 0.0f) {
+		n[0] = 0.0f;
+		n[1] = 0.0f;
+		n[2] = 1.0f;
 	}
 	if (axis > 2) axis -= 3;
 	else negate_v3(n);
@@ -1014,10 +1019,10 @@ static void vectomat (float *vec, float *target_up, short axis, short upflag, sh
 	sub_v3_v3v3(proj, u, proj); /* then onto the plane */
 	/* proj specifies the transformation of the up axis */
 
-	if (normalize_v3(proj) == 0.0) { /* degenerate projection */
-		proj[0] = 0.0;
-		proj[1] = 1.0;
-		proj[2] = 0.0;
+	if (normalize_v3(proj) == 0.0f) { /* degenerate projection */
+		proj[0] = 0.0f;
+		proj[1] = 1.0f;
+		proj[2] = 0.0f;
 	}
 
 	/* Normalized cross product of n and proj specifies transformation of the right axis */
@@ -1273,7 +1278,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 				 */
 				curvetime /= cu->pathlen;
-				CLAMP(curvetime, 0.0, 1.0);
+				CLAMP(curvetime, 0.0f, 1.0f);
 			}
 			else {
 				/* fixed position along curve */
@@ -1920,7 +1925,7 @@ static void samevolume_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 	
 	/* calculate normalising scale factor for non-essential values */
 	if (obsize[data->flag] != 0) 
-		fac = sqrt(volume / obsize[data->flag]) / obsize[data->flag];
+		fac = sqrtf(volume / obsize[data->flag]) / obsize[data->flag];
 	
 	/* apply scaling factor to the channels not being kept */
 	switch (data->flag) {
@@ -2149,7 +2154,6 @@ static void actcon_flush_tars (bConstraint *con, ListBase *list, short nocopy)
 
 static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
-	extern void chan_calc_mat(bPoseChannel *chan);
 	bActionConstraint *data = con->data;
 	
 	if (VALID_CONS_TARGET(ct)) {
@@ -2172,9 +2176,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		if (data->type < 10) {
 			/* extract rotation (is in whatever space target should be in) */
 			mat4_to_eul(vec, tempmat);
-			vec[0] *= (float)(180.0/M_PI);
-			vec[1] *= (float)(180.0/M_PI);
-			vec[2] *= (float)(180.0/M_PI);
+			mul_v3_fl(vec, (float)(180.0/M_PI)); /* rad -> deg */
 			axis= data->type;
 		}
 		else if (data->type < 20) {
@@ -2217,7 +2219,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, pchan->name, t);
 			
 			/* convert animation to matrices for use here */
-			chan_calc_mat(tchan);
+			pchan_calc_mat(tchan);
 			copy_m4_m4(ct->matrix, tchan->chan_mat);
 			
 			/* Clean up */
@@ -2665,7 +2667,7 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			else if (data->flag & LIMITDIST_USESOFT) {
 				// FIXME: there's a problem with "jumping" when this kicks in
 				if (dist >= (data->dist - data->soft)) {
-					sfac = (float)( data->soft*(1.0 - exp(-(dist - data->dist)/data->soft)) + data->dist );
+					sfac = (float)( data->soft*(1.0f - expf(-(dist - data->dist)/data->soft)) + data->dist );
 					sfac /= dist;
 					
 					clamp_surf= 1;
@@ -2673,7 +2675,7 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			}
 		}
 		else {
-			if (IS_EQ(dist, data->dist)==0) {
+			if (IS_EQF(dist, data->dist)==0) {
 				clamp_surf= 1;
 				sfac= data->dist / dist;
 			}
@@ -3070,7 +3072,7 @@ static void rbj_flush_tars (bConstraint *con, ListBase *list, short nocopy)
 static bConstraintTypeInfo CTI_RIGIDBODYJOINT = {
 	CONSTRAINT_TYPE_RIGIDBODYJOINT, /* type */
 	sizeof(bRigidBodyJointConstraint), /* size */
-	"RigidBody Joint", /* name */
+	"Rigid Body Joint", /* name */
 	"bRigidBodyJointConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
@@ -3332,8 +3334,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 				break;
 			case 1: /* rotation (convert to degrees first) */
 				mat4_to_eulO(dvec, cob->rotOrder, ct->matrix);
-				for (i=0; i<3; i++)
-					dvec[i] = (float)(dvec[i] / M_PI * 180);
+				mul_v3_fl(dvec, (float)(180.0/M_PI)); /* rad -> deg */
 				break;
 			default: /* location */
 				copy_v3_v3(dvec, ct->matrix[3]);
@@ -3383,7 +3384,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					eul[i]= tmin + (sval[(int)data->map[i]] * (tmax - tmin)); 
 					
 					/* now convert final value back to radians */
-					eul[i] = (float)(eul[i] / 180 * M_PI);
+					eul[i] = DEG2RADF(eul[i]);
 				}
 				break;
 			default: /* location */
@@ -3469,7 +3470,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		BVHTreeRayHit hit;
 		BVHTreeNearest nearest;
 		
-		BVHTreeFromMesh treeData= {0};
+		BVHTreeFromMesh treeData= {NULL};
 		
 		nearest.index = -1;
 		nearest.dist = FLT_MAX;
@@ -4018,7 +4019,9 @@ bConstraintTypeInfo *constraint_get_typeinfo (bConstraint *con)
  
 /* ---------- Data Management ------- */
 
-/* Free data of a specific constraint if it has any info */
+/* Free data of a specific constraint if it has any info.
+ * be sure to run BIK_clear_data() when freeing an IK constraint,
+ * unless DAG_scene_sort is called. */
 void free_constraint_data (bConstraint *con)
 {
 	if (con->data) {
@@ -4461,9 +4464,11 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		 */
 		enf = con->enforce;
 		
+		/* make copy of worldspace matrix pre-constraint for use with blending later */
+		copy_m4_m4(oldmat, cob->matrix);
+		
 		/* move owner matrix into right space */
 		constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, CONSTRAINT_SPACE_WORLD, con->ownspace);
-		copy_m4_m4(oldmat, cob->matrix);
 		
 		/* prepare targets for constraint solving */
 		if (cti->get_constraint_targets) {
@@ -4499,16 +4504,20 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 			cti->flush_constraint_targets(con, &targets, 1);
 		}
 		
-		/* Interpolate the enforcement, to blend result of constraint into final owner transform */
+		/* move owner back into worldspace for next constraint/other business */
+		if ((con->flag & CONSTRAINT_SPACEONCE) == 0) 
+			constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, con->ownspace, CONSTRAINT_SPACE_WORLD);
+			
+		/* Interpolate the enforcement, to blend result of constraint into final owner transform 
+		 * 	- all this happens in worldspace to prevent any weirdness creeping in ([#26014] and [#25725]),
+		 *	  since some constraints may not convert the solution back to the input space before blending
+		 *	  but all are guaranteed to end up in good "worldspace" result
+		 */
 		/* Note: all kind of stuff here before (caused trouble), much easier to just interpolate, or did I miss something? -jahka */
-		if (enf < 1.0) {
+		if (enf < 1.0f) {
 			float solution[4][4];
 			copy_m4_m4(solution, cob->matrix);
 			blend_m4_m4m4(cob->matrix, oldmat, solution, enf);
 		}
-		
-		/* move owner back into worldspace for next constraint/other business */
-		if ((con->flag & CONSTRAINT_SPACEONCE) == 0) 
-			constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, con->ownspace, CONSTRAINT_SPACE_WORLD);
 	}
 }

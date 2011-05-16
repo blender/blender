@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  * Contributor(s): Brecht Van Lommel.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file GPU_draw.h
+ *  \ingroup gpu
  */
 
 #ifndef GPU_GAME_H

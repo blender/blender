@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/object/object_hook.c
+ *  \ingroup edobj
+ */
+
 
 #include <stdlib.h>
 #include <string.h>

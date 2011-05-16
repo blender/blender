@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_time/time_ops.c
+ *  \ingroup sptime
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -41,16 +46,18 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* ****************** Start/End Frame Operators *******************************/
+#include "time_intern.h"
 
+/* ****************** Start/End Frame Operators *******************************/
 static int time_set_sfra_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	int frame= CFRA;
-	
+	int frame;
+
 	if (scene == NULL)
 		return OPERATOR_CANCELLED;
-		
+
+	frame= CFRA;
 	/* if 'end frame' (Preview Range or Actual) is less than 'frame', 
 	 * clamp 'frame' to 'end frame'
 	 */
@@ -67,7 +74,7 @@ static int time_set_sfra_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void TIME_OT_start_frame_set (wmOperatorType *ot)
+static void TIME_OT_start_frame_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Start Frame";
@@ -86,11 +93,13 @@ void TIME_OT_start_frame_set (wmOperatorType *ot)
 static int time_set_efra_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	int frame= CFRA;
-	
+	int frame;
+
 	if (scene == NULL)
 		return OPERATOR_CANCELLED;
-		
+
+	frame= CFRA;
+
 	/* if 'start frame' (Preview Range or Actual) is greater than 'frame', 
 	 * clamp 'frame' to 'end frame'
 	 */
@@ -107,7 +116,7 @@ static int time_set_efra_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void TIME_OT_end_frame_set (wmOperatorType *ot)
+static void TIME_OT_end_frame_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set End Frame";
@@ -149,7 +158,7 @@ static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void TIME_OT_view_all (wmOperatorType *ot)
+static void TIME_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View All";

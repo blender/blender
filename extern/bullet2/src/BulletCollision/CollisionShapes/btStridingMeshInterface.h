@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -19,6 +19,8 @@ subject to the following restrictions:
 #include "LinearMath/btVector3.h"
 #include "btTriangleCallback.h"
 #include "btConcaveShape.h"
+
+
 
 
 
@@ -89,8 +91,72 @@ class  btStridingMeshInterface
 			m_scaling = scaling;
 		}
 
-	
+		virtual	int	calculateSerializeBufferSize() const;
+
+		///fills the dataBuffer and returns the struct name (and 0 on failure)
+		virtual	const char*	serialize(void* dataBuffer, btSerializer* serializer) const;
+
 
 };
+
+struct	btIntIndexData
+{
+	int	m_value;
+};
+
+struct	btShortIntIndexData
+{
+	short m_value;
+	char m_pad[2];
+};
+
+struct	btShortIntIndexTripletData
+{
+	short	m_values[3];
+	char	m_pad[2];
+};
+
+struct	btCharIndexTripletData
+{
+	unsigned char m_values[3];
+	char	m_pad;
+};
+
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btMeshPartData
+{
+	btVector3FloatData			*m_vertices3f;
+	btVector3DoubleData			*m_vertices3d;
+
+	btIntIndexData				*m_indices32;
+	btShortIntIndexTripletData	*m_3indices16;
+	btCharIndexTripletData		*m_3indices8;
+
+	btShortIntIndexData			*m_indices16;//backwards compatibility
+
+	int                     m_numTriangles;//length of m_indices = m_numTriangles
+	int                     m_numVertices;
+};
+
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btStridingMeshInterfaceData
+{
+	btMeshPartData	*m_meshPartsPtr;
+	btVector3FloatData	m_scaling;
+	int	m_numMeshParts;
+	char m_padding[4];
+};
+
+
+
+
+SIMD_FORCE_INLINE	int	btStridingMeshInterface::calculateSerializeBufferSize() const
+{
+	return sizeof(btStridingMeshInterfaceData);
+}
+
+
 
 #endif //STRIDING_MESHINTERFACE_H

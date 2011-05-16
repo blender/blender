@@ -1,5 +1,4 @@
 /*
- *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,6 +22,10 @@
 
 #ifndef BLI_CPU_H
 #define BLI_CPU_H 
+
+/** \file BLI_cpu.h
+ *  \ingroup bli
+ */
 
 int BLI_cpu_support_sse2(void);
 

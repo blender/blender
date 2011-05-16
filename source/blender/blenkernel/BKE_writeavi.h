@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +29,10 @@
 
 #ifndef BKE_WRITEAVI_H
 #define BKE_WRITEAVI_H
+
+/** \file BKE_writeavi.h
+ *  \ingroup bke
+ */
 
 #ifdef __cplusplus
 extern "C" {

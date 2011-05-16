@@ -1,8 +1,4 @@
-/**
- * blenlib/DNA_object_types.h (mar-2001 nzc)
- *	
- * Object is a sort of wrapper for general info.
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,6 +28,11 @@
  */
 #ifndef DNA_OBJECT_TYPES_H
 #define DNA_OBJECT_TYPES_H
+
+/** \file DNA_object_types.h
+ *  \ingroup DNA
+ *  \brief Object is a sort of wrapper for general info.
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
@@ -144,7 +145,13 @@ typedef struct Object {
 	float obmat[4][4];		/* final worldspace matrix with constraints & animsys applied */
 	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
 	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
-	float imat[4][4];	/* inverse matrix of 'obmat' for during render, old game engine, temporally: ipokeys of transform  */
+	float imat[4][4];	/* inverse matrix of 'obmat' for any other use than rendering! */
+	
+	/* Previously 'imat' was used at render time, but as other places use it too
+	 * the interactive ui of 2.5 creates problems. So now only 'imat_ren' should
+	 * be used when ever the inverse of ob->obmat * re->viewmat is needed! - jahka
+	 */
+	float imat_ren[4][4];
 	
 	unsigned int lay;				/* copy of Base */
 	

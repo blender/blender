@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GamePlayer/common/GPC_Engine.cpp
+ *  \ingroup player
+ */
+
+
 #ifdef WIN32
 	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif // WIN32
@@ -45,7 +50,7 @@
 
 // include files needed by "KX_BlenderSceneConverter.h"
 
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 #include "SCA_IActuator.h"
 #include "RAS_MeshObject.h"
 

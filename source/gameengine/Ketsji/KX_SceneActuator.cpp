@@ -1,4 +1,4 @@
-/**
+/*
 * Set scene/camera stuff
 *
 * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
 */
+
+/** \file gameengine/Ketsji/KX_SceneActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "SCA_IActuator.h"
 #include "KX_SceneActuator.h"
@@ -92,7 +97,7 @@ bool KX_SceneActuator::UnlinkObject(SCA_IObject* clientobj)
 	return false;
 }
 
-void KX_SceneActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void KX_SceneActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_camera];
 	if (h_obj) {

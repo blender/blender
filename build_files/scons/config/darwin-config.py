@@ -86,7 +86,7 @@ BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore 
 #bz2 is a standard osx dynlib
 
 # python 3.1 uses precompiled libraries in bf svn /lib by default
-BF_PYTHON_VERSION = '3.1'
+BF_PYTHON_VERSION = '3.2'
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 # BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
@@ -312,14 +312,14 @@ if USE_SDK==True:
 
 #Intel Macs are CoreDuo and Up	
 if MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'x86_64':
-	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
-	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
+	REL_CFLAGS = ['-DNDEBUG', '-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
+	REL_CCFLAGS = ['-DNDEBUG', '-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
 else:
 	CFLAGS = CFLAGS+['-fno-strict-aliasing']
 	CCFLAGS =  CCFLAGS+['-fno-strict-aliasing']
 	CXXFLAGS = CXXFLAGS+['-fno-strict-aliasing']
-	REL_CFLAGS = ['-O2']
-	REL_CCFLAGS = ['-O2']
+	REL_CFLAGS = ['-DNDEBUG', '-O2']
+	REL_CCFLAGS = ['-DNDEBUG', '-O2']
 
 # Intel 64bit Macs are Core2Duo and up
 if MACOSX_ARCHITECTURE == 'x86_64':
@@ -340,7 +340,7 @@ BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g', '-DDEBUG']
+BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']
 
 #############################################################################
 ###################           Output directories           ##################

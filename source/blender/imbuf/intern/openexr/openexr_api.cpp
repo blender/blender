@@ -1,4 +1,7 @@
-/**
+/** \file blender/imbuf/intern/openexr/openexr_api.cpp
+ *  \ingroup openexr
+ */
+/*
 *
  * ***** BEGIN GPLLICENSE BLOCK *****
  *

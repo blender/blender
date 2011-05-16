@@ -30,10 +30,15 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_shrinkwrap.c
+ *  \ingroup modifiers
+ */
+
+
 #include <string.h>
 
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
-
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
@@ -65,7 +70,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->target	= smd->target;
 	tsmd->auxTarget = smd->auxTarget;
 
-	strcpy(tsmd->vgroup_name, smd->vgroup_name);
+	BLI_strncpy(tsmd->vgroup_name, smd->vgroup_name, sizeof(tsmd->vgroup_name));
 
 	tsmd->keepDist	= smd->keepDist;
 	tsmd->shrinkType= smd->shrinkType;
@@ -167,18 +172,18 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
-	/* deformMatrices */    0,
+	/* deformMatrices */    NULL,
 	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  0,
-	/* applyModifier */     0,
-	/* applyModifierEM */   0,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          0,
+	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
-	/* dependsOnTime */     0,
-	/* dependsOnNormals */	0,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     0,
+	/* foreachIDLink */     NULL,
 };

@@ -1,4 +1,4 @@
-/**
+/*
 * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/interface/interface_style.c
+ *  \ingroup edinterface
+ */
+
 
 #include <limits.h>
 #include <math.h>
@@ -148,10 +153,16 @@ void uiStyleFontDrawExt(uiFontStyle *fs, rcti *rect, const char *str,
 	height= BLF_height(fs->uifont_id, "2"); /* correct offset is on baseline, the j is below that */
 	yofs= floor( 0.5f*(rect->ymax - rect->ymin - height));
 
-	if(fs->align==UI_STYLE_TEXT_CENTER)
+	if(fs->align==UI_STYLE_TEXT_CENTER) {
 		xofs= floor( 0.5f*(rect->xmax - rect->xmin - BLF_width(fs->uifont_id, str)));
-	else if(fs->align==UI_STYLE_TEXT_RIGHT)
+		/* don't center text if it chops off the start of the text, 2 gives some margin */
+		if(xofs < 2) {
+			xofs= 2;
+		}
+	}
+	else if(fs->align==UI_STYLE_TEXT_RIGHT) {
 		xofs= rect->xmax - rect->xmin - BLF_width(fs->uifont_id, str) - 1;
+	}
 	
 	/* clip is very strict, so we give it some space */
 	BLF_clipping(fs->uifont_id, rect->xmin-1, rect->ymin-4, rect->xmax+1, rect->ymax+4);
@@ -286,7 +297,9 @@ void uiStyleInit(void)
 	uiStyle *style= U.uistyles.first;
 	
 	/* recover from uninitialized dpi */
-	CLAMP(U.dpi, 72, 240);
+	if(U.dpi == 0)
+		U.dpi= 72;
+	CLAMP(U.dpi, 48, 128);
 	
 	/* default builtin */
 	if(font==NULL) {

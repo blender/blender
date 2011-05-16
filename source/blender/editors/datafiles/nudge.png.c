@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/nudge.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <nudge_png> */
 
 int datatoc_nudge_png_size= 18012;

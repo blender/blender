@@ -1,5 +1,5 @@
-/**
- * $Id: GeometryExporter.h 34533 2011-01-27 19:39:06Z jesterking $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,10 @@
  *                 Nathan Letwory
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file GeometryExporter.h
+ *  \ingroup collada
  */
 
 #ifndef __GEOMETRYEXPORTER_H__

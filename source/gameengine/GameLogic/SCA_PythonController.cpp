@@ -1,4 +1,4 @@
-/**
+/*
  * Execute Python scripts
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_PythonController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include <stddef.h>
 
@@ -257,10 +262,7 @@ PyAttributeDef SCA_PythonController::Attributes[] = {
 
 void SCA_PythonController::ErrorPrint(const char *error_msg)
 {
-	// didn't compile, so instead of compile, complain
-	// something is wrong, tell the user what went wrong
-	printf("%s - controller \"%s\":\n", error_msg, GetName().Ptr());
-	//PyRun_SimpleString(m_scriptText.Ptr());
+	printf("%s - object '%s', controller '%s':\n", error_msg, GetParent()->GetName().Ptr(), GetName().Ptr());
 	PyErr_Print();
 	
 	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
@@ -309,7 +311,7 @@ bool SCA_PythonController::Import()
 	function_string= strrchr(mod_path, '.');
 
 	if(function_string == NULL) {
-		printf("Python module name formatting error \"%s\":\n\texpected \"SomeModule.Func\", got \"%s\"\n", GetName().Ptr(), m_scriptText.Ptr());
+		printf("Python module name formatting error in object '%s', controller '%s':\n\texpected 'SomeModule.Func', got '%s'\n", GetParent()->GetName().Ptr(), GetName().Ptr(), m_scriptText.Ptr());
 		return false;
 	}
 
@@ -342,13 +344,14 @@ bool SCA_PythonController::Import()
 		if(PyErr_Occurred())
 			ErrorPrint("Python controller found the module but could not access the function");
 		else
-			printf("Python module error \"%s\":\n \"%s\" module found but function missing\n", GetName().Ptr(), m_scriptText.Ptr());
+			printf("Python module error in object '%s', controller '%s':\n '%s' module found but function missing\n", GetParent()->GetName().Ptr(), GetName().Ptr(), m_scriptText.Ptr());
 		return false;
 	}
 	
 	if(!PyCallable_Check(m_function)) {
 		Py_DECREF(m_function);
-		printf("Python module function error \"%s\":\n \"%s\" not callable\n", GetName().Ptr(), m_scriptText.Ptr());
+		m_function = NULL;
+		printf("Python module function error in object '%s', controller '%s':\n '%s' not callable\n", GetParent()->GetName().Ptr(), GetName().Ptr(), m_scriptText.Ptr());
 		return false;
 	}
 	
@@ -366,7 +369,8 @@ bool SCA_PythonController::Import()
 	
 	if(m_function_argc > 1) {
 		Py_DECREF(m_function);
-		printf("Python module function has \"%s\":\n \"%s\" takes %d args, should be zero or 1 controller arg\n", GetName().Ptr(), m_scriptText.Ptr(), m_function_argc);
+		m_function = NULL;
+		printf("Python module function in object '%s', controller '%s':\n '%s' takes %d args, should be zero or 1 controller arg\n", GetParent()->GetName().Ptr(), GetName().Ptr(), m_scriptText.Ptr(), m_function_argc);
 		return false;
 	}
 	
@@ -411,11 +415,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 
 		excdict= PyDict_Copy(m_pythondictionary);
 
-#if PY_VERSION_HEX >=  0x03020000
 		resultobj = PyEval_EvalCode((PyObject *)m_bytecode, excdict, excdict);
-#else
-		resultobj = PyEval_EvalCode((PyCodeObject *)m_bytecode, excdict, excdict);
-#endif
 
 		/* PyRun_SimpleString(m_scriptText.Ptr()); */
 		break;
@@ -446,22 +446,9 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	
 	/* Free the return value and print the error */
 	if (resultobj)
-	{
 		Py_DECREF(resultobj);
-	}
 	else
-	{
-		// something is wrong, tell the user what went wrong
-		printf("Python script error from controller \"%s\":\n", GetName().Ptr());
-		PyErr_Print();
-		
-		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
-		 * their user count. Not to mention holding references to wrapped data.
-		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
-		 * has already dealocated the pointer */
-		PySys_SetObject( (char *)"last_traceback", NULL);
-		PyErr_Clear(); /* just to be sure */
-	}
+		ErrorPrint("Python script error");
 	
 	if(excdict) /* Only for SCA_PYEXEC_SCRIPT types */
 	{

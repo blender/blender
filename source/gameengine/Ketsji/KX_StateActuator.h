@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Actuator to toggle visibility/invisibility of objects
+ */
+
+/** \file KX_StateActuator.h
+ *  \ingroup ketsji
+ *  \brief Actuator to toggle visibility/invisibility of objects
  */
 
 #ifndef __KX_STATEACTUATOR

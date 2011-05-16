@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,10 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+/** \file RE_shader_ext.h
+ *  \ingroup render
+ */
+
 
 #ifndef RE_SHADER_EXT_H
 #define RE_SHADER_EXT_H
@@ -136,7 +140,7 @@ typedef struct ShadeInput
 	/* texture coordinates */
 	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4];
 	float refcol[4], displace[3];
-	float strandco, tang[3], nmaptang[3], stress, winspeed[4];
+	float strandco, tang[3], nmapnorm[3], nmaptang[4], stress, winspeed[4];
 	float duplilo[3], dupliuv[3];
 
 	ShadeInputUV uv[8];   /* 8 = MAX_MTFACE */
@@ -170,6 +174,7 @@ typedef struct ShadeInput
 
 	/* from initialize, part or renderlayer */
 	short do_preview;		/* for nodes, in previewrender */
+	short do_manage;		/* color management flag */
 	short thread, sample;	/* sample: ShadeSample array index */
 	short nodes;			/* indicate node shading, temp hack to prevent recursion */
 	

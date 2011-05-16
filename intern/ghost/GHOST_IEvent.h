@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,14 +25,16 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_IEvent.h
+
+/** \file ghost/GHOST_IEvent.h
+ *  \ingroup GHOST
  * Declaration of GHOST_IEvent interface class.
  */
 
 #ifndef _GHOST_IEVENT_H_
 #define _GHOST_IEVENT_H_
 
+#include <stddef.h>
 #include "GHOST_Types.h"
 
 class GHOST_IWindow;

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_node/space_node.c
+ *  \ingroup spnode
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -45,6 +50,7 @@
 #include "BKE_screen.h"
 #include "BKE_node.h"
 
+#include "ED_space_api.h"
 #include "ED_render.h"
 #include "ED_screen.h"
 
@@ -226,7 +232,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				if(type==NTREE_COMPOSIT) {
 					Scene *scene= wmn->window->screen->scene;
 					
-					/* note that NodeTagIDChanged is alredy called by BKE_image_signal() on all
+					/* note that NodeTagIDChanged is already called by BKE_image_signal() on all
 					 * scenes so really this is just to know if the images is used in the compo else
 					 * painting on images could become very slow when the compositor is open. */
 					if(NodeTagIDChanged(scene->nodetree, wmn->reference))
@@ -277,6 +283,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 	
 	/* clear or remove stuff from old */
 	snoden->nodetree= NULL;
+	snoden->linkdrag.first= snoden->linkdrag.last= NULL;
 	
 	return (SpaceLink *)snoden;
 }
@@ -410,20 +417,21 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+const char *node_context_dir[] = {"selected_nodes", NULL};
+
 static int node_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {"selected_nodes", NULL};
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, node_context_dir);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selected_nodes")) {
 		bNode *node;
 		
 		for(next_node(snode->edittree); (node=next_node(NULL));) {
-			if(node->flag & SELECT) {
+			if(node->flag & NODE_SELECT) {
 				CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
 			}
 		}

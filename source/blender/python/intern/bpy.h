@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -20,6 +20,11 @@
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK ***** */
+
+/** \file blender/python/intern/bpy.h
+ *  \ingroup pythonintern
+ */
+
  
 void BPy_init_modules( void );
- 
+extern PyObject *bpy_package_py;

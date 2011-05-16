@@ -2,7 +2,7 @@
 #define GIM_BOX_SET_H_INCLUDED
 
 /*! \file gim_box_set.h
-\author Francisco Len Nßjera
+\author Francisco Leon Najera
 */
 /*
 -----------------------------------------------------------------------------
@@ -91,6 +91,7 @@ class GIM_PRIMITIVE_MANAGER_PROTOTYPE
 {
 public:
 
+	virtual ~GIM_PRIMITIVE_MANAGER_PROTOTYPE() {}
 	//! determines if this manager consist on only triangles, which special case will be optimized
 	virtual bool is_trimesh() = 0;
 	virtual GUINT get_primitive_count() = 0;
@@ -669,3 +670,5 @@ public:
 
 
 #endif // GIM_BOXPRUNING_H_INCLUDED
+
+

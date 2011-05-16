@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
 */
+
+/** \file gameengine/Converter/BL_ShapeActionActuator.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #if defined (__sgi)
 #include <math.h>
@@ -226,6 +231,16 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 			apply=false;
 		}
 		break;
+	case ACT_ACTION_PINGPONG:
+		if (bPositiveEvent){
+			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
+				m_flag &= ~ACT_FLAG_KEYUP;
+				m_localtime = m_starttime;
+				m_starttime = curtime;
+				m_flag |= ACT_FLAG_LOCKINPUT;
+			}
+		}
+		break;
 	case ACT_ACTION_FLIPPER:
 		if (bPositiveEvent){
 			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
@@ -299,6 +314,18 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	case ACT_ACTION_MOTION:
 		break;
 	case ACT_ACTION_LOOP_STOP:
+		break;
+	case ACT_ACTION_PINGPONG:
+		if (wrap){
+			if (!(m_flag & ACT_FLAG_REVERSE))
+				m_localtime = m_endframe;
+			else 
+				m_localtime = m_startframe;
+
+			m_flag &= ~ACT_FLAG_LOCKINPUT;
+			m_flag ^= ACT_FLAG_REVERSE; //flip direction
+			keepgoing = false;
+		}
 		break;
 	case ACT_ACTION_FLIPPER:
 		if (wrap){

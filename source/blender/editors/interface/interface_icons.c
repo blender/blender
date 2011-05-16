@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/interface/interface_icons.c
+ *  \ingroup edinterface
+ */
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -124,7 +129,7 @@ typedef struct IconTexture {
 /* ******************* STATIC LOCAL VARS ******************* */
 /* static here to cache results of icon directory scan, so it's not 
  * scanning the filesystem each time the menu is drawn */
-static struct ListBase iconfilelist = {0, 0};
+static struct ListBase iconfilelist = {NULL, NULL};
 static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
 /* **************************************************** */
@@ -139,7 +144,7 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
-	new_icon->obj = 0; /* icon is not for library object */
+	new_icon->obj = NULL; /* icon is not for library object */
 	new_icon->type = 0;	
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
@@ -179,14 +184,14 @@ static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
-	new_icon->obj = 0; /* icon is not for library object */
+	new_icon->obj = NULL; /* icon is not for library object */
 	new_icon->type = 0;
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type= ICON_TYPE_VECTOR;
 	di->data.vector.func =drawFunc;
 
-	new_icon->drawinfo_free = 0;
+	new_icon->drawinfo_free = NULL;
 	new_icon->drawinfo = di;
 
 	BKE_icon_set(icon_id, new_icon);
@@ -509,18 +514,14 @@ static void init_internal_icons(void)
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
 	
 	if ((btheme!=NULL) && btheme->tui.iconfile[0]) {
-		char *datadir= BLI_get_folder(BLENDER_DATAFILES, NULL);
-		if (datadir) {
-			BLI_make_file_string("/", iconfilestr, datadir, btheme->tui.iconfile);
-			
-			if (BLI_exists(iconfilestr)) {
-				bbuf = IMB_loadiffname(iconfilestr, IB_rect);
-				if(bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H) {
-					if (G.f & G_DEBUG)
-						printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
-					IMB_freeImBuf(bbuf);
-					bbuf= NULL;
-				}
+		char *icondir= BLI_get_folder(BLENDER_DATAFILES, "icons");
+		if (icondir) {
+			BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
+			bbuf = IMB_loadiffname(iconfilestr, IB_rect); /* if the image is missing bbuf will just be NULL */
+			if(bbuf && (bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H)) {
+				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
+				IMB_freeImBuf(bbuf);
+				bbuf= NULL;
 			}
 		}
 	}
@@ -592,31 +593,23 @@ static void init_internal_icons(void)
 static void init_iconfile_list(struct ListBase *list)
 {
 	IconFile *ifile;
-	ImBuf *bbuf= NULL;
 	struct direntry *dir;
 	int restoredir = 1; /* restore to current directory */
 	int totfile, i, index=1;
-	int ifilex, ifiley;
-	char icondirstr[FILE_MAX];
-	char iconfilestr[FILE_MAX+16]; /* allow 256 chars for file+dir */
+	const char *icondir;
 	char olddir[FILE_MAX];
-	char *datadir= NULL;
 
 	list->first = list->last = NULL;
-	datadir = BLI_get_folder(BLENDER_DATAFILES, NULL);
+	icondir = BLI_get_folder(BLENDER_DATAFILES, "icons");
 
-	if (!datadir) return;
-
-	BLI_make_file_string("/", icondirstr, datadir, "");
-	
-	if(BLI_exists(icondirstr)==0)
+	if(icondir==NULL)
 		return;
 	
 	/* since BLI_getdir changes the current working directory, restore it 
 	   back to old value afterwards */
-	if(!BLI_getwdN(olddir)) 
+	if(!BLI_getwdN(olddir, sizeof(olddir))) 
 		restoredir = 0;
-	totfile = BLI_getdir(icondirstr, &dir);
+	totfile = BLI_getdir(icondir, &dir);
 	if (restoredir && !chdir(olddir)) {} /* fix warning about checking return value */
 
 	for(i=0; i<totfile; i++) {
@@ -624,16 +617,17 @@ static void init_iconfile_list(struct ListBase *list)
 			char *filename = dir[i].relname;
 			
 			if(BLI_testextensie(filename, ".png")) {
-
+				/* loading all icons on file start is overkill & slows startup
+				 * its possible they change size after blender load anyway. */
+#if 0
+				int ifilex, ifiley;
+				char iconfilestr[FILE_MAX+16]; /* allow 256 chars for file+dir */
+				ImBuf *bbuf= NULL;
 				/* check to see if the image is the right size, continue if not */
 				/* copying strings here should go ok, assuming that we never get back
 				   a complete path to file longer than 256 chars */
-				sprintf(iconfilestr, "%s/%s", icondirstr, filename);
-				if(BLI_exists(iconfilestr))
-					bbuf= IMB_loadiffname(iconfilestr, IB_rect);
-				else
-					bbuf= NULL;
-
+				BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, filename);
+				bbuf= IMB_loadiffname(iconfilestr, IB_rect);
 
 				if(bbuf) {
 					ifilex = bbuf->x;
@@ -645,8 +639,11 @@ static void init_iconfile_list(struct ListBase *list)
 				}
 				
 				/* bad size or failed to load */
-				if ((ifilex != ICON_IMAGE_W) || (ifiley != ICON_IMAGE_H))
+				if ((ifilex != ICON_IMAGE_W) || (ifiley != ICON_IMAGE_H)) {
+					printf("icon '%s' is wrong size %dx%d\n", iconfilestr, ifilex, ifiley);
 					continue;
+				}
+#endif			/* removed */
 
 				/* found a potential icon file, so make an entry for it in the cache list */
 				ifile = MEM_callocN(sizeof(IconFile), "IconFile");
@@ -670,7 +667,7 @@ static void init_iconfile_list(struct ListBase *list)
 		if (dir[i].string) MEM_freeN(dir[i].string);
 	}
 	free(dir);
-	dir= 0;
+	dir= NULL;
 }
 
 static void free_iconfile_list(struct ListBase *list)
@@ -689,7 +686,7 @@ int UI_iconfile_get_index(const char *filename)
 	ListBase *list=&(iconfilelist);
 	
 	for(ifile=list->first; ifile; ifile=ifile->next) {
-		if ( BLI_streq(filename, ifile->filename)) {
+		if (BLI_path_cmp(filename, ifile->filename) == 0) {
 			return ifile->index;
 		}
 	}
@@ -705,7 +702,7 @@ ListBase *UI_iconfile_list(void)
 }
 
 
-void UI_icons_free()
+void UI_icons_free(void)
 {
 	if(icongltex.id) {
 		glDeleteTextures(1, &icongltex.id);
@@ -749,7 +746,7 @@ int UI_icon_get_width(int icon_id)
 
 	icon = BKE_icon_get(icon_id);
 	
-	if (icon==ICON_NULL) {
+	if (icon==NULL) {
 		if (G.f & G_DEBUG)
 			printf("UI_icon_get_width: Internal error, no icon for icon ID: %d\n", icon_id);
 		return 0;
@@ -774,7 +771,7 @@ int UI_icon_get_height(int icon_id)
 
 	icon = BKE_icon_get(icon_id);
 	
-	if (icon==ICON_NULL) {
+	if (icon==NULL) {
 		if (G.f & G_DEBUG)
 			printf("UI_icon_get_height: Internal error, no icon for icon ID: %d\n", icon_id);
 		return 0;
@@ -950,7 +947,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	
 	icon = BKE_icon_get(icon_id);
 	
-	if (icon==ICON_NULL) {
+	if (icon==NULL) {
 		if (G.f & G_DEBUG)
 			printf("icon_draw_mipmap: Internal error, no icon for icon ID: %d\n", icon_id);
 		return;
@@ -972,10 +969,10 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	if(di->type == ICON_TYPE_VECTOR) {
 		/* vector icons use the uiBlock transformation, they are not drawn
 		with untransformed coordinates like the other icons */
-		di->data.vector.func(x, y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
+		di->data.vector.func((int)x, (int)y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	} 
 	else if(di->type == ICON_TYPE_TEXTURE) {
-		icon_draw_texture(x, y, w, h, di->data.texture.x, di->data.texture.y,
+		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
 			di->data.texture.w, di->data.texture.h, alpha, rgb);
 	}
 	else if(di->type == ICON_TYPE_BUFFER) {
@@ -1075,11 +1072,11 @@ static int ui_id_brush_get_icon(bContext *C, ID *id)
 			tool = br->sculpt_tool;
 		}
 		else if(mode == OB_MODE_VERTEX_PAINT) {
-			items = brush_vertexpaint_tool_items;
+			items = brush_vertex_tool_items;
 			tool = br->vertexpaint_tool;
 		}
 		else if(mode == OB_MODE_TEXTURE_PAINT) {
-			items = brush_imagepaint_tool_items;
+			items = brush_image_tool_items;
 			tool = br->imagepaint_tool;
 		}
 

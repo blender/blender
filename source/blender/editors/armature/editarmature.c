@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/armature/editarmature.c
+ *  \ingroup edarmature
+ */
+
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -82,6 +87,7 @@
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "armature_intern.h"
 #include "meshlaplacian.h"
@@ -410,7 +416,9 @@ void ED_armature_from_edit(Object *obedit)
 		newBone->flag= eBone->flag;
 		
 		if (eBone == arm->act_edbone) {
-			newBone->flag |= BONE_SELECTED;	/* important, editbones can be active with only 1 point selected */
+			/* don't change active selection, this messes up separate which uses
+			 * editmode toggle and can separate active bone which is de-selected originally */
+			/* newBone->flag |= BONE_SELECTED; */ /* important, editbones can be active with only 1 point selected */
 			arm->act_edbone= NULL;
 			arm->act_bone= newBone;
 		}
@@ -498,6 +506,10 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 		ebone->rad_head	*= scale;
 		ebone->rad_tail	*= scale;
 		ebone->dist		*= scale;
+
+		/* we could be smarter and scale by the matrix along the x & z axis */
+		ebone->xwidth	*= scale;
+		ebone->zwidth	*= scale;
 	}
 	
 	/* Turn the list into an armature */
@@ -632,6 +644,8 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	
 	/* helpful warnings... */
 	// TODO: add warnings to be careful about actions, applying deforms first, etc.
+	if (ob->adt && ob->adt->action) 
+		BKE_report(op->reports, RPT_WARNING, "Actions on this armature will be destroyed by this new rest pose as the transforms stored are relative to the old rest pose");
 	
 	/* Get editbones of active armature to alter */
 	ED_armature_to_edit(ob);	
@@ -790,7 +804,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 						
 						for (ct= targets.first; ct; ct= ct->next) {
 							if (ct->tar == srcArm) {
-								if (strcmp(ct->subtarget, "")==0) {
+								if (ct->subtarget[0] == '\0') {
 									ct->tar = tarArm;
 								}
 								else if (strcmp(ct->subtarget, pchan->name)==0) {
@@ -837,7 +851,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 					
 					for (ct= targets.first; ct; ct= ct->next) {
 						if (ct->tar == srcArm) {
-							if (strcmp(ct->subtarget, "")==0) {
+							if (ct->subtarget[0] == '\0') {
 								ct->tar = tarArm;
 							}
 							else if (strcmp(ct->subtarget, pchan->name)==0) {
@@ -985,7 +999,7 @@ int join_armature_exec(bContext *C, wmOperator *UNUSED(op))
 static void separated_armature_fix_links(Object *origArm, Object *newArm)
 {
 	Object *ob;
-	bPoseChannel *pchan, *pcha, *pchb;
+	bPoseChannel *pchan;
 	bConstraint *con;
 	ListBase *opchans, *npchans;
 	
@@ -1012,38 +1026,23 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 							 *	- the target isn't origArm/newArm itself
 							 *	- the target is one that can be found in newArm/origArm
 							 */
-							if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
-								for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-									/* check if either one matches */
-									if ( (strcmp(pcha->name, ct->subtarget)==0) ||
-										 (strcmp(pchb->name, ct->subtarget)==0) )
-									{
+							if (ct->subtarget[0] != 0) {
+								if (ct->tar == origArm) {
+									if(BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 										ct->tar= newArm;
-										break;
 									}
-									
-									/* check if both ends have met (to stop checking) */
-									if (pcha == pchb) break;
-								}								
-							}
-							else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
-								for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-									/* check if either one matches */
-									if ( (strcmp(pcha->name, ct->subtarget)==0) ||
-										 (strcmp(pchb->name, ct->subtarget)==0) )
-									{
+								}
+								else if (ct->tar == newArm) {
+									if(BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 										ct->tar= origArm;
-										break;
 									}
-									
-									/* check if both ends have met (to stop checking) */
-									if (pcha == pchb) break;
-								}								
+								}
 							}
 						}
-						
-						if (cti->flush_constraint_targets)
+
+						if (cti->flush_constraint_targets) {
 							cti->flush_constraint_targets(con, &targets, 0);
+						}
 					}
 				}
 			}
@@ -1065,58 +1064,33 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 						 *	- the target isn't origArm/newArm itself
 						 *	- the target is one that can be found in newArm/origArm
 						 */
-						if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
-							for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-								/* check if either one matches */
-								if ( (strcmp(pcha->name, ct->subtarget)==0) ||
-									 (strcmp(pchb->name, ct->subtarget)==0) )
-								{
+						if(ct->subtarget[0] != '\0')  {
+							if (ct->tar == origArm) {
+								if(BLI_findstring(npchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 									ct->tar= newArm;
-									break;
 								}
-								
-								/* check if both ends have met (to stop checking) */
-								if (pcha == pchb) break;
-							}								
-						}
-						else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
-							for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-								/* check if either one matches */
-								if ( (strcmp(pcha->name, ct->subtarget)==0) ||
-									 (strcmp(pchb->name, ct->subtarget)==0) )
-								{
+							}
+							else if (ct->tar == newArm) {
+								if(BLI_findstring(opchans, ct->subtarget, offsetof(bPoseChannel, name))) {
 									ct->tar= origArm;
-									break;
 								}
-								
-								/* check if both ends have met (to stop checking) */
-								if (pcha == pchb) break;
-							}								
+							}
 						}
 					}
-					
-					if (cti->flush_constraint_targets)
+
+					if (cti->flush_constraint_targets) {
 						cti->flush_constraint_targets(con, &targets, 0);
+					}
 				}
 			}
 		}
 		
 		/* See if an object is parented to this armature */
-		if ((ob->parent) && (ob->parent == origArm)) {
+		if (ob->parent && (ob->parent == origArm)) {
 			/* Is object parented to a bone of this src armature? */
-			if (ob->partype==PARBONE) {
-				/* bone name in object */
-				for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
-					/* check if either one matches */
-					if ( (strcmp(pcha->name, ob->parsubstr)==0) ||
-						 (strcmp(pchb->name, ob->parsubstr)==0) )
-					{
-						ob->parent= newArm;
-						break;
-					}
-					
-					/* check if both ends have met (to stop checking) */
-					if (pcha == pchb) break;
+			if ((ob->partype == PARBONE) && (ob->parsubstr[0] != '\0')) {
+				if(BLI_findstring(npchans, ob->parsubstr, offsetof(bPoseChannel, name))) {
+					ob->parent= newArm;
 				}
 			}
 		}
@@ -1724,7 +1698,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
-static EditBone *get_nearest_editbonepoint (ViewContext *vc, short mval[2], ListBase *edbo, int findunsel, int *selmask)
+static EditBone *get_nearest_editbonepoint (ViewContext *vc, const short mval[2], ListBase *edbo, int findunsel, int *selmask)
 {
 	EditBone *ebone;
 	rcti rect;
@@ -1984,7 +1958,7 @@ static int ebone_select_flag(EditBone *ebone)
 }
 
 /* context: editmode armature in view3d */
-int mouse_armature(bContext *C, short mval[2], int extend)
+int mouse_armature(bContext *C, const short mval[2], int extend)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
@@ -2119,7 +2093,7 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const short
 		sub_v3_v3v3(align_axis_proj, align_axis, vec);
 		
 		if(axis_only) {
-			if(angle_v3v3(align_axis_proj, mat[2]) > M_PI/2) {
+			if(angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI/2.0)) {
 				negate_v3(align_axis_proj);
 			}
 		}
@@ -2198,10 +2172,8 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			mul_m3_v3(imat, vec);
 		}
 		else if (type==5) {
-			bArmature *arm= ob->data;
-			EditBone *ebone= (EditBone *)arm->act_edbone;
 			float mat[3][3], nor[3];
-
+			ebone= (EditBone *)arm->act_edbone;
 			if(ebone==NULL) {
 				BKE_report(op->reports, RPT_ERROR, "No active bone set");
 				return OPERATOR_CANCELLED;
@@ -2752,7 +2724,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* cancel if nothing selected */
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
-	  return OPERATOR_CANCELLED;
+		return OPERATOR_CANCELLED;
 	
 	ED_armature_sync_selection(arm->edbo); // XXX why is this needed?
 
@@ -3318,11 +3290,12 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 /* ************** END Add/Remove stuff in editmode ************ */
 /* *************** Tools in editmode *********** */
 
-static int armature_hide_exec(bContext *C, wmOperator *UNUSED(op))
+static int armature_hide_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
 	EditBone *ebone;
+	const int invert= RNA_boolean_get(op->ptr, "unselected") ? BONE_SELECTED : 0;
 
 	/* cancel if nothing selected */
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
@@ -3330,7 +3303,7 @@ static int armature_hide_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
 		if (EBONE_VISIBLE(arm, ebone)) {
-			if (ebone->flag & BONE_SELECTED) {
+			if ((ebone->flag & BONE_SELECTED) != invert) {
 				ebone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
 				ebone->flag |= BONE_HIDDEN_A;
 			}
@@ -3357,6 +3330,9 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
 }
 
 static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3394,9 +3370,10 @@ void ARMATURE_OT_reveal(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
 
-void hide_selected_armature_bones(Scene *scene)
+}
+#if 0 // remove this?
+static void hide_selected_armature_bones(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX get from context
 	bArmature *arm= obedit->data;
@@ -3414,8 +3391,6 @@ void hide_selected_armature_bones(Scene *scene)
 	ED_armature_sync_selection(arm->edbo);
 }
 
-
-#if 0 // remove this?
 static void hide_unselected_armature_bones(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX get from context
@@ -3435,9 +3410,7 @@ static void hide_unselected_armature_bones(Scene *scene)
 	ED_armature_validate_active(arm);
 	ED_armature_sync_selection(arm->edbo);
 }
-#endif
 
-#if 0 // remove this?
 void show_all_armature_bones(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX get from context
@@ -4001,7 +3974,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	EditBone *actbone = CTX_data_active_bone(C);
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Make Parent ", ICON_NULL);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Make Parent ", ICON_NONE);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	int allchildbones = 0;
 	
@@ -4697,14 +4670,14 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 				bone->rad_head * scale, bone->rad_tail * scale, bone->dist * scale);
 			
 			/* add the vert to the deform group if weight!=0.0 */
-			if (distance!=0.0)
+			if (distance != 0.0f)
 				ED_vgroup_vert_add (ob, dgroup, i, distance, WEIGHT_REPLACE);
 			else
 				ED_vgroup_vert_remove (ob, dgroup, i);
 			
 			/* do same for mirror */
 			if (dgroupflip && dgroupflip[j] && iflip >= 0) {
-				if (distance!=0.0)
+				if (distance != 0.0f)
 					ED_vgroup_vert_add (ob, dgroupflip[j], iflip, distance,
 						WEIGHT_REPLACE);
 				else
@@ -4714,7 +4687,7 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 	}
 }
 
-void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object *par, int heat, int mirror)
+static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object *par, int heat, int mirror)
 {
 	/* This functions implements the automatic computation of vertex group
 	 * weights, either through envelopes or using a heat equilibrium.
@@ -4953,7 +4926,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 					pchan->rotAxis[2]= 0.0f;
 					
 				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
-				if (IS_EQ(pchan->rotAxis[0], pchan->rotAxis[1]) && IS_EQ(pchan->rotAxis[1], pchan->rotAxis[2]))
+				if (IS_EQF(pchan->rotAxis[0], pchan->rotAxis[1]) && IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2]))
 					pchan->rotAxis[1] = 1.0f;
 			}
 			else if (pchan->rotmode == ROT_MODE_QUAT) {
@@ -5434,13 +5407,11 @@ static int bone_unique_check(void *arg, const char *name)
 	return get_named_bone((bArmature *)arg, name) != NULL;
 }
 
-void unique_bone_name(bArmature *arm, char *name)
+static void unique_bone_name(bArmature *arm, char *name)
 {
 	BLI_uniquename_cb(bone_unique_check, (void *)arm, "Bone", '.', name, sizeof(((Bone *)NULL)->name));
 }
 
-
-#define MAXBONENAME 32
 /* helper call for armature_bone_rename */
 static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldname, char *newname)
 {
@@ -5835,7 +5806,7 @@ EditBone * test_subdivideByCorrelation(Scene *scene, Object *obedit, ReebArc *ar
 		lastBone = subdivideArcBy(arm, arm->edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
 	}
 	
-	  return lastBone;
+	return lastBone;
 }
 
 float arcLengthRatio(ReebArc *arc)

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_text/space_text.c
+ *  \ingroup sptext
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -42,6 +47,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -70,6 +76,7 @@ static SpaceLink *text_new(const bContext *UNUSED(C))
 
 	stext->lheight= 12;
 	stext->tabnumber= 4;
+	stext->margin_column= 80;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for text");
@@ -185,6 +192,7 @@ static void text_operatortypes(void)
 
 	WM_operatortype_append(TEXT_OT_select_line);
 	WM_operatortype_append(TEXT_OT_select_all);
+	WM_operatortype_append(TEXT_OT_select_word);
 
 	WM_operatortype_append(TEXT_OT_jump);
 	WM_operatortype_append(TEXT_OT_move);
@@ -192,6 +200,7 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_delete);
 	WM_operatortype_append(TEXT_OT_overwrite_toggle);
 
+	WM_operatortype_append(TEXT_OT_selection_set);
 	WM_operatortype_append(TEXT_OT_cursor_set);
 	WM_operatortype_append(TEXT_OT_scroll);
 	WM_operatortype_append(TEXT_OT_scroll_bar);
@@ -277,6 +286,10 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 
+	WM_keymap_add_item(keymap, "TEXT_OT_cut", DELKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_copy", INSERTKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_paste", INSERTKEY, KM_PRESS, KM_SHIFT, 0);
+
 	if(U.uiflag & USER_MMB_PASTE) // XXX not dynamic
 		RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_paste", MIDDLEMOUSE, KM_PRESS, 0, 0)->ptr, "selection", 1);
 
@@ -287,9 +300,11 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_replace", HKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_CTRL, 0)->ptr, "split_lines", 1);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_select_all", AKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_line", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_select_word", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
 	
 
 	WM_keymap_add_item(keymap, "TEXT_OT_indent", TABKEY, KM_PRESS, 0, 0);
@@ -328,6 +343,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_NEXT_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", DEL_PREV_CHAR); /* same as above [#26623] */
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_PREV_WORD);
 	
@@ -336,8 +352,9 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll_bar", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_selection_set", EVT_TWEAK_L, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_selection_set", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELUPMOUSE, KM_PRESS, 0, 0)->ptr, "lines", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELDOWNMOUSE, KM_PRESS, 0, 0)->ptr, "lines", 1);
 
@@ -350,13 +367,14 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
 
+const char *text_context_dir[] = {"edit_text", NULL};
+
 static int text_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {"edit_text", NULL};
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, text_context_dir);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "edit_text")) {

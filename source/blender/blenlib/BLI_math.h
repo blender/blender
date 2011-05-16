@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,29 +28,30 @@
 #ifndef BLI_MATH_H
 #define BLI_MATH_H
 
-/* Abbreviations:
+/** \file BLI_math.h
+ *  \ingroup bli
+ *  \section mathabbrev Abbreviations
  *
- * fl = float
- * db = double
- * v2 = vec2 = vector 2
- * v3 = vec3 = vector 3
- * v4 = vec4 = vector 4
- * qt = quat = quaternion
- * dq = dquat = dual quaternion
- * m2 = mat2 = matrix 2x2
- * m3 = mat3 = matrix 3x3
- * m4 = mat4 = matrix 4x4
- * eul = euler rotation
- * eulO = euler with order
+ *  - fl = float
+ *  - db = double
+ *  - v2 = vec2 = vector 2
+ *  - v3 = vec3 = vector 3
+ *  - v4 = vec4 = vector 4
+ *  - qt = quat = quaternion
+ *  - dq = dquat = dual quaternion
+ *  - m2 = mat2 = matrix 2x2
+ *  - m3 = mat3 = matrix 3x3
+ *  - m4 = mat4 = matrix 4x4
+ *  - eul = euler rotation
+ *  - eulO = euler with order
  *
- * Variable Names:
+ *  \section mathvarnames Variable Names
  *
- * f = single value
- * a, b, c = vectors
- * r = result vector
- * A, B, C = matrices
- * R = result matrix
- *
+ *  - f = single value
+ *  - a, b, c = vectors
+ *  - r = result vector
+ *  - A, B, C = matrices
+ *  - R = result matrix
  */
 
 #include "BLI_math_base.h"

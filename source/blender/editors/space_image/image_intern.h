@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_image/image_intern.h
+ *  \ingroup spimage
+ */
+
+
 #ifndef ED_IMAGE_INTERN_H
 #define ED_IMAGE_INTERN_H
 
@@ -46,6 +51,8 @@ struct bNodeTree;
 struct ARegion *image_has_buttons_region(struct ScrArea *sa);
 struct ARegion *image_has_scope_region(struct ScrArea *sa);
 
+extern const char *image_context_dir[]; /* doc access */
+
 /* image_header.c */
 void image_header_buttons(const struct bContext *C, struct ARegion *ar);
 
@@ -53,7 +60,7 @@ void IMAGE_OT_toolbox(struct wmOperatorType *ot);
 
 /* image_draw.c */
 void draw_image_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene);
-void draw_image_info(struct ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf);
+void draw_image_info(struct ARegion *ar, int color_manage, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf);
 void draw_image_grease_pencil(struct bContext *C, short onlyv2d);
 
 /* image_ops.c */
@@ -77,6 +84,8 @@ void IMAGE_OT_save_sequence(struct wmOperatorType *ot);
 void IMAGE_OT_pack(struct wmOperatorType *ot);
 void IMAGE_OT_unpack(struct wmOperatorType *ot);
 
+void IMAGE_OT_invert(struct wmOperatorType *ot);
+
 void IMAGE_OT_cycle_render_slot(struct wmOperatorType *ot);
 
 void IMAGE_OT_sample(struct wmOperatorType *ot);
@@ -84,9 +93,6 @@ void IMAGE_OT_sample_line(struct wmOperatorType *ot);
 void IMAGE_OT_curves_point_set(struct wmOperatorType *ot);
 
 void IMAGE_OT_record_composite(struct wmOperatorType *ot);
-
-/* uvedit_draw.c */
-void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit);
 
 /* image_panels.c */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);

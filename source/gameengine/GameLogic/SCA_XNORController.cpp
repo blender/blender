@@ -1,4 +1,4 @@
-/**
+/*
  * 'Xnor' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_XNORController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_XNORController.h"
 #include "SCA_ISensor.h"

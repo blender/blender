@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/context.c
+ *  \ingroup bke
+ */
+
 
 #include <string.h>
 #include <stddef.h>
@@ -85,7 +90,7 @@ struct bContext {
 
 /* context */
 
-bContext *CTX_create()
+bContext *CTX_create(void)
 {
 	bContext *C;
 	
@@ -446,11 +451,10 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 
 		C->data.recursion= 1;
 
-		for(entry=C->wm.store->entries.first; entry; entry=entry->next) {
-			if(strcmp(entry->name, member) == 0) {
-				result->ptr= entry->ptr;
-				done= 1;
-			}
+		entry= BLI_rfindstring(&C->wm.store->entries, member, offsetof(bContextStoreEntry, name));
+		if(entry) {
+			result->ptr= entry->ptr;
+			done= 1;
 		}
 	}
 	if(done!=1 && recursion < 2 && C->wm.region) {
@@ -644,7 +648,7 @@ int CTX_data_equals(const char *member, const char *str)
 
 int CTX_data_dir(const char *member)
 {
-	return (strcmp(member, "") == 0);
+	return member[0] == '\0';
 }
 
 void CTX_data_id_pointer_set(bContextDataResult *result, ID *id)
@@ -785,10 +789,10 @@ static const char *data_mode_strings[] = {
 	"sculpt_mode",
 	"weightpaint",
 	"vertexpaint",
-	"texturepaint",
+	"imagepaint",
 	"particlemode",
 	"objectmode",
-	0
+	NULL
 };
 const char *CTX_data_mode_string(const bContext *C)
 {

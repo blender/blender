@@ -1,27 +1,33 @@
 /*
  * $Id$
  *
- * ***** BEGIN LGPL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * Copyright 2009 Jörg Hermann Müller
+ * Copyright 2009-2011 Jörg Hermann Müller
  *
  * This file is part of AudaSpace.
  *
- * AudaSpace is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * Audaspace is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * AudaSpace is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with AudaSpace.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Audaspace; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * ***** END LGPL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file audaspace/intern/AUD_SequencerFactory.h
+ *  \ingroup audaspaceintern
+ */
+
 
 #ifndef AUD_SEQUENCERFACTORY
 #define AUD_SEQUENCERFACTORY
@@ -57,6 +63,7 @@ private:
 
 	std::list<AUD_SequencerEntry*> m_entries;
 	std::list<AUD_SequencerReader*> m_readers;
+	bool m_muted;
 	void* m_data;
 	AUD_volumeFunction m_volume;
 
@@ -67,9 +74,11 @@ private:
 	AUD_SequencerFactory& operator=(const AUD_SequencerFactory&);
 
 public:
-	AUD_SequencerFactory(AUD_Specs specs, void* data, AUD_volumeFunction volume);
+	AUD_SequencerFactory(AUD_Specs specs, bool muted, void* data, AUD_volumeFunction volume);
 	~AUD_SequencerFactory();
 
+	void mute(bool muted);
+	bool getMute() const;
 	AUD_SequencerEntry* add(AUD_IFactory** sound, float begin, float end, float skip, void* data);
 	void remove(AUD_SequencerEntry* entry);
 	void move(AUD_SequencerEntry* entry, float begin, float end, float skip);

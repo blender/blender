@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file moto/include/MT_Stream.h
+ *  \ingroup moto
+ */
+
 
 #ifndef GEN_STREAM_H
 #define GEN_STREAM_H

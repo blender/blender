@@ -29,6 +29,10 @@
 #ifndef BLI_STORAGE_H
 #define BLI_STORAGE_H
 
+/** \file BLI_storage.h
+ *  \ingroup bli
+ */
+
 #ifdef WIN32
 /* for size_t, only needed on win32 for some reason */
 #include <stddef.h>
@@ -44,7 +48,7 @@ int    BLI_compare(struct direntry *entry1, struct direntry *entry2);
 size_t BLI_filesize(int file);
 size_t BLI_filepathsize(const char *path);
 double BLI_diskfree(const char *dir);
-char *BLI_getwdN(const char *dir);
+char *BLI_getwdN(char *dir, const int maxncpy);
 
 unsigned int BLI_getdir(const char *dirname, struct direntry **filelist);
 /**

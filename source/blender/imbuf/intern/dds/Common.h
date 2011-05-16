@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -17,10 +17,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributors: Amorilia (amorilia@gamebox.net)
+ * Contributors: Amorilia (amorilia@users.sourceforge.net)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/imbuf/intern/dds/Common.h
+ *  \ingroup imbdds
+ */
+
 
 #ifndef _DDS_COMMON_H
 #define _DDS_COMMON_H
@@ -49,5 +54,11 @@ typedef unsigned short     uint16;
 typedef unsigned int       uint;
 typedef unsigned int       uint32;
 typedef unsigned long long uint64;
+
+// copied from nvtt src/nvimage/nvimage.h
+inline uint computePitch(uint w, uint bitsize, uint alignment)
+{
+	return ((w * bitsize +  8 * alignment - 1) / (8 * alignment)) * alignment;
+}
 
 #endif

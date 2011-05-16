@@ -4,7 +4,7 @@ LCGDIR = os.getcwd()+"/../lib/irix-6.5-mips"
 LIBDIR = LCGDIR
 
 BF_PYTHON = LCGDIR+'/python'
-BF_PYTHON_VERSION = '3.1'
+BF_PYTHON_VERSION = '3.2'
 WITH_BF_STATICPYTHON = 'true'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
@@ -163,8 +163,8 @@ CCFLAGS = ['-pipe','-fPIC', '-n32']
 
 CPPFLAGS = []
 CXXFLAGS = ['-pipe','-fPIC', '-n32']
-REL_CFLAGS = ['-O2']
-REL_CCFLAGS = ['-O2']
+REL_CFLAGS = ['-DNDEBUG', '-O2']
+REL_CCFLAGS = ['-DNDEBUG', '-O2']
 ##BF_DEPEND = 'true'
 ##
 ##AR = ar

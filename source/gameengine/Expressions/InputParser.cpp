@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/InputParser.cpp
+ *  \ingroup expressions
+ */
 // Parser.cpp: implementation of the CParser class.
 /*
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>
@@ -151,6 +154,28 @@ void CParser::GrabString(int start)
 
 
 
+void CParser::GrabRealString(int start)
+{
+	// works like GrabString but converting \\n to \n
+	// puts part of the input string into the global variable
+	// const_as_string, from position start, to position chchount
+
+	int i;
+	char tmpch;
+
+	const_as_string = STR_String();
+	for (i=start;i<chcount;i++) {
+		tmpch= text[i];
+		if ((tmpch =='\\') && (text[i+1] == 'n')){
+			tmpch = '\n';
+			i++;
+		}
+		const_as_string += tmpch;
+	}
+}
+
+
+
 void CParser::NextSym()
 {
 	// sets the global variable sym to the next symbol, and
@@ -244,7 +269,7 @@ void CParser::NextSym()
 		start = chcount;
 		while ((ch != '\"') && (ch != 0x0))
 			NextCh();
-		GrabString(start);
+		GrabRealString(start);
 		TermChar('\"');	// check for eol before '\"'
 		break;
 				}

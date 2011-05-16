@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file ImageBuff.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined IMAGEBUFF_H
 #define IMAGEBUFF_H
 

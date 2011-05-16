@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,12 +25,15 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * General operations, lookup, etc. for materials.
  */
 
 #ifndef BKE_MATERIAL_H
 #define BKE_MATERIAL_H
 
+/** \file BKE_material.h
+ *  \ingroup bke
+ *  \brief General operations, lookup, etc. for materials.
+ */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -52,6 +55,7 @@ struct Material *copy_material(struct Material *ma);
 struct Material *localize_material(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
 void make_local_material(struct Material *ma);
+void extern_local_matarar(struct Material **matar, short totcol);
 
 void automatname(struct Material *);
 

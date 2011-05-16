@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/modifiers/intern/MOD_fluidsim_util.h
+ *  \ingroup modifiers
+ */
+
+
 #ifndef MOD_FLUIDSIM_UTIL_H
 #define MOD_FLUIDSIM_UTIL_H
 
@@ -42,6 +47,6 @@ void fluidsim_free(struct FluidsimModifierData *fluidmd);
 struct DerivedMesh *fluidsimModifier_do(struct FluidsimModifierData *fluidmd,
 	struct Scene *scene, struct Object *ob, struct DerivedMesh *dm,
 	int useRenderParams, int isFinalCalc);
-	
+
 #endif
 

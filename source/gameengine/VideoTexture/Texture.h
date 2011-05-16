@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file VideoTexture/Texture.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined TEXTURE_H
 #define TEXTURE_H
 

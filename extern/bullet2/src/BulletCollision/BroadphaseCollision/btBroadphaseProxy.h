@@ -46,6 +46,8 @@ IMPLICIT_CONVEX_SHAPES_START_HERE,
 	UNIFORM_SCALING_SHAPE_PROXYTYPE,
 	MINKOWSKI_SUM_SHAPE_PROXYTYPE,
 	MINKOWSKI_DIFFERENCE_SHAPE_PROXYTYPE,
+	BOX_2D_SHAPE_PROXYTYPE,
+	CONVEX_2D_SHAPE_PROXYTYPE,
 	CUSTOM_CONVEX_SHAPE_TYPE,
 //concave shapes
 CONCAVE_SHAPES_START_HERE,
@@ -139,6 +141,11 @@ BT_DECLARE_ALIGNED_ALLOCATOR();
 		return (proxyType < CONCAVE_SHAPES_START_HERE);
 	}
 
+	static SIMD_FORCE_INLINE bool	isNonMoving(int proxyType)
+	{
+		return (isConcave(proxyType) && !(proxyType==GIMPACT_SHAPE_PROXYTYPE));
+	}
+
 	static SIMD_FORCE_INLINE bool	isConcave(int proxyType)
 	{
 		return ((proxyType > CONCAVE_SHAPES_START_HERE) &&
@@ -148,14 +155,22 @@ BT_DECLARE_ALIGNED_ALLOCATOR();
 	{
 		return (proxyType == COMPOUND_SHAPE_PROXYTYPE);
 	}
+
+	static SIMD_FORCE_INLINE bool	isSoftBody(int proxyType)
+	{
+		return (proxyType == SOFTBODY_SHAPE_PROXYTYPE);
+	}
+
 	static SIMD_FORCE_INLINE bool isInfinite(int proxyType)
 	{
 		return (proxyType == STATIC_PLANE_PROXYTYPE);
 	}
-	static SIMD_FORCE_INLINE bool isSoftBody(int proxyType)
+
+	static SIMD_FORCE_INLINE bool isConvex2d(int proxyType)
 	{
-		return (proxyType == SOFTBODY_SHAPE_PROXYTYPE);
+		return (proxyType == BOX_2D_SHAPE_PROXYTYPE) ||	(proxyType == CONVEX_2D_SHAPE_PROXYTYPE);
 	}
+
 	
 }
 ;

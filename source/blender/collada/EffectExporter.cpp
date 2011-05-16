@@ -1,5 +1,5 @@
-/**
- * $Id: EffectExporter.cpp 32360 2010-10-07 01:20:59Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -22,6 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/collada/EffectExporter.cpp
+ *  \ingroup collada
+ */
+
 
 #include <map>
 
@@ -50,15 +55,66 @@ static std::string getActiveUVLayerName(Object *ob)
 	return "";
 }
 
-
 EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryEffects(sw){}
+
+bool EffectsExporter::hasEffects(Scene *sce)
+{
+	Base *base = (Base *)sce->base.first;
+	
+	while(base) {
+		Object *ob= base->object;
+		int a;
+		for(a = 0; a < ob->totcol; a++)
+		{
+			Material *ma = give_current_material(ob, a+1);
+
+			// no material, but check all of the slots
+			if (!ma) continue;
+
+			return true;
+		}
+		base= base->next;
+	}
+	return false;
+}
+
 void EffectsExporter::exportEffects(Scene *sce)
 {
-	openLibrary();
-	MaterialFunctor mf;
-	mf.forEachMaterialInScene<EffectsExporter>(sce, *this);
+	if(hasEffects(sce)) {
+		openLibrary();
+		MaterialFunctor mf;
+		mf.forEachMaterialInScene<EffectsExporter>(sce, *this);
 
-	closeLibrary();
+		closeLibrary();
+	}
+}
+
+void EffectsExporter::writeBlinn(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	COLLADASW::ColorOrTexture cot;
+	ep.setShaderType(COLLADASW::EffectProfile::BLINN);
+	// shininess
+	ep.setShininess(ma->har);
+	// specular
+	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+	ep.setSpecular(cot);
+}
+
+void EffectsExporter::writeLambert(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	COLLADASW::ColorOrTexture cot;
+	ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
+}
+
+void EffectsExporter::writePhong(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	COLLADASW::ColorOrTexture cot;
+	ep.setShaderType(COLLADASW::EffectProfile::PHONG);
+	// shininess
+	ep.setShininess(ma->har);
+	// specular
+	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+	ep.setSpecular(cot);
 }
 
 void EffectsExporter::operator()(Material *ma, Object *ob)
@@ -73,20 +129,25 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
 	// set shader type - one of three blinn, phong or lambert
-	if (ma->spec_shader == MA_SPEC_BLINN) {
-		ep.setShaderType(COLLADASW::EffectProfile::BLINN);
-		// shininess
-		ep.setShininess(ma->har);
+	if(ma->spec>0.0f) {
+		if (ma->spec_shader == MA_SPEC_BLINN) {
+			writeBlinn(ep, ma);
+		}
+		else {
+			// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
+			// for now set phong in case spec shader is not blinn
+			writePhong(ep, ma);
+		}
+	} else {
+		if(ma->diff_shader == MA_DIFF_LAMBERT) {
+			writeLambert(ep, ma);
+		}
+		else {
+		// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
+		writePhong(ep, ma);
+		}
 	}
-	else if (ma->spec_shader == MA_SPEC_PHONG) {
-		ep.setShaderType(COLLADASW::EffectProfile::PHONG);
-		// shininess
-		ep.setShininess(ma->har);
-	}
-	else {
-		// XXX write warning "Current shader type is not supported" 
-		ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
-	}
+	
 	// index of refraction
 	if (ma->mode & MA_RAYTRANSP) {
 		ep.setIndexOfRefraction(ma->ang);
@@ -258,7 +319,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			twoSided = true;
 	}
 	if (twoSided)
-		ep.addExtraTechniqueParameter("GOOGLEEARTH", "show_double_sided", 1);
+		ep.addExtraTechniqueParameter("GOOGLEEARTH", "double_sided", 1);
 	ep.addExtraTechniques(mSW);
 
 	ep.closeProfile();

@@ -1,4 +1,4 @@
-/**
+/*
  * allocimbuf.h
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/imbuf/intern/IMB_anim.h
+ *  \ingroup imbuf
+ */
+
 
 #ifndef IMB_ANIM_H
 #define IMB_ANIM_H

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * $Id$
  *
@@ -22,6 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/sketch.c
+ *  \ingroup bke
+ */
+
 
 #include <string.h>
 #include <math.h>
@@ -54,7 +59,7 @@ void freeSketch(SK_Sketch *sketch)
 	MEM_freeN(sketch);
 }
 
-SK_Sketch* createSketch()
+SK_Sketch* createSketch(void)
 {
 	SK_Sketch *sketch;
 
@@ -102,7 +107,7 @@ void sk_freeStroke(SK_Stroke *stk)
 	MEM_freeN(stk);
 }
 
-SK_Stroke* sk_createStroke()
+SK_Stroke* sk_createStroke(void)
 {
 	SK_Stroke *stk;
 
@@ -538,7 +543,7 @@ int sk_stroke_filtermval(SK_DrawData *dd)
 	return retval;
 }
 
-void sk_initDrawData(SK_DrawData *dd, short mval[2])
+void sk_initDrawData(SK_DrawData *dd, const short mval[2])
 {
 	dd->mval[0] = mval[0];
 	dd->mval[1] = mval[1];

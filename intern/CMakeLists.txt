@@ -33,6 +33,7 @@ add_subdirectory(memutil)
 add_subdirectory(iksolver)
 add_subdirectory(opennl)
 add_subdirectory(smoke)
+add_subdirectory(mikktspace)
 
 if(WITH_MOD_FLUID)
 	add_subdirectory(elbeem)

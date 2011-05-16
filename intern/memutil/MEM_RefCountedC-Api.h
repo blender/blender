@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file memutil/MEM_RefCountedC-Api.h
+ *  \ingroup memutil
+ */
+
 /**
  * @file	MEM_RefCountedC-Api.h
  * Interface for C access to functionality relating to shared objects in the foundation library.

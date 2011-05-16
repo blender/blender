@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,7 +22,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <Python.h>
+/** \file blender/python/generic/IDProp.h
+ *  \ingroup pygen
+ */
+
+
+#ifndef IDPROP_H
+#define IDPROP_H
 
 struct ID;
 struct IDProperty;
@@ -62,3 +68,5 @@ void IDProp_Init_Types(void);
 
 #define IDPROP_ITER_KEYS	0
 #define IDPROP_ITER_ITEMS	1
+
+#endif /* IDPROP_H */

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_text/text_draw.c
+ *  \ingroup sptext
+ */
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -250,7 +255,7 @@ static int find_bool(char *string)
 
 /* Ensures the format string for the given line is long enough, reallocating
  as needed. Allocation is done here, alone, to ensure consistency. */
-int text_check_format_len(TextLine *line, unsigned int len)
+static int text_check_format_len(TextLine *line, unsigned int len)
 {
 	if(line->format) {
 		if(strlen(line->format) < len) {
@@ -954,7 +959,7 @@ void text_free_caches(SpaceText *st)
 /************************ word-wrap utilities *****************************/
 
 /* cache should be updated in caller */
-int text_get_visible_lines_no(SpaceText *st, int lineno)
+static int text_get_visible_lines_no(SpaceText *st, int lineno)
 {
 	DrawCache *drawcache= (DrawCache *)st->drawcache;
 
@@ -1103,7 +1108,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 	CLAMP(st->txtbar.ymax, pix_bottom_margin, ar->winy - pix_top_margin);
 
 	st->pix_per_line= (pix_available > 0)? (float) ltexth/pix_available: 0;
-	if(st->pix_per_line<.1) st->pix_per_line=.1f;
+	if(st->pix_per_line < 0.1f) st->pix_per_line=0.1f;
 
 	curl_off= text_get_span_wrap(st, ar, st->text->lines.first, st->text->curl);
 	sell_off= text_get_span_wrap(st, ar, st->text->lines.first, st->text->sell);
@@ -1490,6 +1495,8 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 				glRecti(x-4, y, ar->winx, y-st->lheight),  y-=st->lheight;
 
 			glRecti(x-4, y, x+toc*st->cwidth, y-st->lheight);  y-=st->lheight;
+
+			(void)y;
 		}
 	}
 	else {
@@ -1758,7 +1765,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 			else
 				UI_ThemeColor(TH_TEXT);
 
-			sprintf(linenr, "%d", i + linecount + 1);
+			sprintf(linenr, "%*d", st->linenrs_tot, i + linecount + 1);
 			/* itoa(i + linecount + 1, linenr, 10); */ /* not ansi-c :/ */
 			text_font_draw(st, TXT_OFFSET - 7, y, linenr);
 
@@ -1779,6 +1786,15 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		wrap_skip= 0;
 	}
 	
+	if(st->flags&ST_SHOW_MARGIN) {
+		UI_ThemeColor(TH_HILITE);
+
+		glBegin(GL_LINES);
+		glVertex2i(x+st->cwidth*st->margin_column, 0);
+		glVertex2i(x+st->cwidth*st->margin_column, ar->winy - 2);
+		glEnd();
+	}
+
 	/* draw other stuff */
 	draw_brackets(st, ar);
 	draw_markers(st, ar);

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file moto/intern/MT_Plane3.cpp
+ *  \ingroup moto
+ */
+
 
 #ifndef GEN_INLINED
 #include "MT_Plane3.h"

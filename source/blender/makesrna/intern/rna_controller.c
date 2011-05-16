@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_controller.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "WM_types.h"
@@ -39,7 +44,7 @@ EnumPropertyItem controller_type_items[] ={
 	{CONT_LOGIC_XOR, "LOGIC_XOR", 0, "Xor", "Logic Xor"},
 	{CONT_LOGIC_XNOR, "LOGIC_XNOR", 0, "Xnor", "Logic Xnor"},
 	{CONT_EXPRESSION, "EXPRESSION", 0, "Expression", ""},
-	{CONT_PYTHON, "PYTHON", 0, "Python Script", ""},
+	{CONT_PYTHON, "PYTHON", 0, "Python", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -51,24 +56,24 @@ static struct StructRNA* rna_Controller_refine(struct PointerRNA *ptr)
 	bController *controller= (bController*)ptr->data;
 
 	switch(controller->type) {
-		case CONT_LOGIC_AND:
-			return &RNA_AndController;
-		case CONT_LOGIC_OR:
-			return &RNA_OrController;
-		case CONT_LOGIC_NAND:
-			return &RNA_NandController;
-		case CONT_LOGIC_NOR:
-			return &RNA_NorController;
-		case CONT_LOGIC_XOR:
-			return &RNA_XorController;
-		case CONT_LOGIC_XNOR:
-			return &RNA_XnorController;
-		 case CONT_EXPRESSION:
-			return &RNA_ExpressionController;
-		case CONT_PYTHON:
-			return &RNA_PythonController;
-		default:
-			return &RNA_Controller;
+	case CONT_LOGIC_AND:
+		return &RNA_AndController;
+	case CONT_LOGIC_OR:
+		return &RNA_OrController;
+	case CONT_LOGIC_NAND:
+		return &RNA_NandController;
+	case CONT_LOGIC_NOR:
+		return &RNA_NorController;
+	case CONT_LOGIC_XOR:
+		return &RNA_XorController;
+	case CONT_LOGIC_XNOR:
+		return &RNA_XnorController;
+	case CONT_EXPRESSION:
+		return &RNA_ExpressionController;
+	case CONT_PYTHON:
+		return &RNA_PythonController;
+	default:
+		return &RNA_Controller;
 	}
 }
 

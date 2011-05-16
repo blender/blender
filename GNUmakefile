@@ -1,6 +1,6 @@
 # -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
 # vim: tabstop=8
-# $Id: GNUmakefile 34680 2011-02-07 05:05:41Z campbellbarton $
+# $Id$
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
@@ -37,13 +37,22 @@ BLENDER_DIR:=$(shell pwd -P)
 BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
 
 
+# support 'make debug'
+ifneq "$(findstring debug, $(MAKECMDGOALS))" ""
+	BUILD_DIR:=$(BUILD_DIR)_debug
+	BUILD_TYPE:=Debug
+else
+	BUILD_TYPE:=Release
+endif
+
+
 # Get the number of cores for threaded build
 NPROCS:=1
 ifeq ($(OS), Linux)
 	NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 endif
 ifeq ($(OS), Darwin)
-	NPROCS:=$(shell system_profiler | awk '/Number Of CPUs/{print $4}{next;}')
+	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3)
 endif
 ifeq ($(OS), FreeBSD)
 	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3 )
@@ -61,14 +70,45 @@ all:
 	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
 		mkdir -p $(BUILD_DIR) ; \
 		cd $(BUILD_DIR) ; \
-		cmake $(BLENDER_DIR) -DCMAKE_BUILD_TYPE:STRING=Release ; \
+		cmake $(BLENDER_DIR) -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE) ; \
 	fi
 
 	@echo 
 	@echo Building Blender ...
-	cd $(BUILD_DIR) ; make -s -j $(NPROCS)
+	cd $(BUILD_DIR) ; make -s -j $(NPROCS) install
 	@echo 
 	@echo run blender from "$(BUILD_DIR)/bin/blender"
 	@echo 
+
+debug: all
+	# pass
+
+# package types
+package_debian:
+	cd build_files/package_spec ; DEB_BUILD_OPTIONS="parallel=$(NPROCS)" sh ./build_debian.sh
+
+package_pacman:
+	cd build_files/package_spec/pacman ; MAKEFLAGS="-j$(NPROCS)" makepkg --asroot
+
+package_archive:
+	cd $(BUILD_DIR) ; make -s package_archive
+	@echo archive in "$(BUILD_DIR)/release"
+
+# forward build targets
+test:
+	cd $(BUILD_DIR) ; ctest . --output-on-failure
+
+# run pep8 check check on scripts we distribute.
+test_pep8:
+	python source/tests/pep8.py > test_pep8.log 2>&1
+	@echo "written: test_pep8.log"
+
+# run some checks on our cmakefiles.
+test_cmake:
+	python build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
+	@echo "written: test_cmake_consistency.log"
+
+clean:
+	cd $(BUILD_DIR) ; make clean
 
 .PHONY: all

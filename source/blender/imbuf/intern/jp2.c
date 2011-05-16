@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,6 +20,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/imbuf/intern/jp2.c
+ *  \ingroup imbuf
+ */
+
 
 #ifdef WITH_OPENJPEG
 
@@ -69,21 +74,21 @@ int imb_is_a_jp2(unsigned char *buf)
 /**
 sample error callback expecting a FILE* client object
 */
-void error_callback(const char *msg, void *client_data) {
+static void error_callback(const char *msg, void *client_data) {
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[ERROR] %s", msg);
 }
 /**
 sample warning callback expecting a FILE* client object
 */
-void warning_callback(const char *msg, void *client_data) {
+static void warning_callback(const char *msg, void *client_data) {
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[WARNING] %s", msg);
 }
 /**
 sample debug callback expecting no client object
 */
-void info_callback(const char *msg, void *client_data) {
+static void info_callback(const char *msg, void *client_data) {
 	(void)client_data;
 	fprintf(stdout, "[INFO] %s", msg);
 }
@@ -322,7 +327,7 @@ static int initialise_4K_poc(opj_poc_t *POC, int numres){
 	return 2;
 }
 
-void cinema_parameters(opj_cparameters_t *parameters){
+static void cinema_parameters(opj_cparameters_t *parameters){
 	parameters->tile_size_on = false;
 	parameters->cp_tdx=1;
 	parameters->cp_tdy=1;
@@ -355,7 +360,7 @@ void cinema_parameters(opj_cparameters_t *parameters){
 
 }
 
-void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *image, img_fol_t *img_fol){
+static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *image, img_fol_t *img_fol){
 	int i;
 	float temp_rate;
 

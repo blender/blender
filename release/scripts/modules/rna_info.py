@@ -152,6 +152,14 @@ class InfoStructRNA:
                 functions.append((identifier, attr))
         return functions
 
+    def get_py_c_functions(self):
+        import types
+        functions = []
+        for identifier, attr in self._get_py_visible_attrs():
+            if type(attr) in (types.BuiltinMethodType, types.BuiltinFunctionType):
+                functions.append((identifier, attr))
+        return functions
+
     def __str__(self):
 
         txt = ""
@@ -199,10 +207,15 @@ class InfoPropertyRNA:
             self.fixed_type = None
 
         if self.type == "enum":
-            self.enum_items[:] = rna_prop.items.keys()
+            self.enum_items[:] = rna_prop.enum_items.keys()
+            self.is_enum_flag = rna_prop.is_enum_flag
+        else:
+            self.is_enum_flag = False
 
         if self.array_length:
             self.default = tuple(getattr(rna_prop, "default_array", ()))
+        elif self.type == "enum" and self.is_enum_flag:
+            self.default = getattr(rna_prop, "default_flag", set())
         else:
             self.default = getattr(rna_prop, "default", None)
         self.default_str = ""  # fallback
@@ -214,7 +227,10 @@ class InfoPropertyRNA:
         elif self.type == "string":
             self.default_str = "\"%s\"" % self.default
         elif self.type == "enum":
-            self.default_str = "'%s'" % self.default
+            if self.is_enum_flag:
+                self.default_str = "%r" % self.default  # repr or set()
+            else:
+                self.default_str = "'%s'" % self.default
         elif self.array_length:
             self.default_str = ''
             # special case for floats
@@ -237,7 +253,7 @@ class InfoPropertyRNA:
             return "%s=%s" % (self.identifier, default)
         return self.identifier
 
-    def get_type_description(self, as_ret=False, as_arg=False, class_fmt="%s"):
+    def get_type_description(self, as_ret=False, as_arg=False, class_fmt="%s", collection_id="Collection"):
         type_str = ""
         if self.fixed_type is None:
             type_str += self.type
@@ -247,7 +263,10 @@ class InfoPropertyRNA:
             if self.type in ("float", "int"):
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
             elif self.type == "enum":
-                type_str += " in [%s]" % ", ".join(("'%s'" % s) for s in self.enum_items)
+                if self.is_enum_flag:
+                    type_str += " set in {%s}" % ", ".join(("'%s'" % s) for s in self.enum_items)
+                else:
+                    type_str += " in [%s]" % ", ".join(("'%s'" % s) for s in self.enum_items)
 
             if not (as_arg or as_ret):
                 # write default property, ignore function args for this
@@ -258,9 +277,9 @@ class InfoPropertyRNA:
         else:
             if self.type == "collection":
                 if self.collection_type:
-                    collection_str = (class_fmt % self.collection_type.identifier) + " collection of "
+                    collection_str = (class_fmt % self.collection_type.identifier) + (" %s of " % collection_id)
                 else:
-                    collection_str = "Collection of "
+                    collection_str = "%s of " % collection_id
             else:
                 collection_str = ""
 

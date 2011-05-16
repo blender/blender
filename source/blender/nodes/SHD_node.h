@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SHD_node.h
+ *  \ingroup nodes
  */
 
 #ifndef SHD_NODE_H

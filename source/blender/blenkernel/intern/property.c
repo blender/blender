@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/property.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -42,6 +47,8 @@
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
+
+#include "BKE_property.h"
 
 void free_property(bProperty *prop)
 {
@@ -93,7 +100,7 @@ void init_property(bProperty *prop)
 	/* also use when property changes type */
 	
 	if(prop->poin && prop->poin != &prop->data) MEM_freeN(prop->poin);
-	prop->poin= 0;
+	prop->poin= NULL;
 	
 	prop->data= 0;
 	

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_sequencer/sequencer_intern.h
+ *  \ingroup spseq
+ */
+
 #ifndef ED_SEQUENCER_INTERN_H
 #define ED_SEQUENCER_INTERN_H
 
@@ -56,7 +61,7 @@ void seq_reset_imageofs(struct SpaceSeq *sseq);
 struct View2D;
 void seq_rectf(struct Sequence *seq, struct rctf *rectf);
 void boundbox_seq(struct Scene *scene, struct rctf *rect);
-struct Sequence *find_nearest_seq(struct Scene *scene, struct View2D *v2d, int *hand, short mval[2]);
+struct Sequence *find_nearest_seq(struct Scene *scene, struct View2D *v2d, int *hand, const short mval[2]);
 struct Sequence *find_neighboring_sequence(struct Scene *scene, struct Sequence *test, int lr, int sel);
 void deselect_all_seq(struct Scene *scene);
 void recurs_sel_seq(struct Sequence *seqm);

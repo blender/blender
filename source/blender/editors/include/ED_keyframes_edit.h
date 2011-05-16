@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,10 @@
  * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_keyframes_edit.h
+ *  \ingroup editors
  */
 
 #ifndef ED_KEYFRAMES_EDIT_H

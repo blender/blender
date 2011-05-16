@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/source/renderdatabase.c
+ *  \ingroup render
+ */
+
 
 /*
  * Storage, retrieval and query of render specific data.
@@ -109,7 +114,7 @@
 #define RE_RADFACE_ELEMS	1
 #define RE_SIMPLIFY_ELEMS	2
 #define RE_FACE_ELEMS		1
-#define RE_NMAP_TANGENT_ELEMS	12
+#define RE_NMAP_TANGENT_ELEMS	16
 
 float *RE_vertren_get_sticky(ObjectRen *obr, VertRen *ver, int verify)
 {
@@ -1000,6 +1005,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 	if(ma->mtex[0]) {
 
 		if( (ma->mode & MA_HALOTEX) ) har->tex= 1;
+		else if(har->mat->septex & (1<<0));	/* only 1 level textures */
 		else {
 
 			mtex= ma->mtex[0];
@@ -1123,16 +1129,8 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				;
 			}
 			else if(mtex->texco & TEXCO_OBJECT) {
-				if(mtex->object){
-					float imat[4][4];
-					/* imat should really be cached somewhere before this */
-					invert_m4_m4(imat,mtex->object->obmat);
-					mul_m4_v3(imat,texvec);
-				}
-				/* texvec[0]+= imatbase->ivec[0]; */
-				/* texvec[1]+= imatbase->ivec[1]; */
-				/* texvec[2]+= imatbase->ivec[2]; */
-				/* mul_m3_v3(imatbase->imat, texvec); */
+				if(mtex->object)
+					mul_m4_v3(mtex->object->imat_ren,texvec);
 			}
 			else if(mtex->texco & TEXCO_GLOB){
 				VECCOPY(texvec,vec);

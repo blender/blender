@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,7 +26,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_invert.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
+#include "TEX_node.h"
 
 /* **************** INVERT ******************** */ 
 static bNodeSocketType inputs[]= { 

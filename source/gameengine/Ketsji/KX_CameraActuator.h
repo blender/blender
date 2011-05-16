@@ -1,4 +1,4 @@
-/**
+/*
  * KX_CameraActuator.h
  *
  * $Id$
@@ -27,6 +27,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_CameraActuator.h
+ *  \ingroup ketsji
  */
 
 #ifndef __KX_CAMERAACTUATOR
@@ -112,7 +116,7 @@ private :
 	virtual bool	UnlinkObject(SCA_IObject* clientobj);
 
 	/** Methods inherited from SCA_ILogicBrick */
-	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	virtual void	Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 
 #ifdef WITH_PYTHON
 

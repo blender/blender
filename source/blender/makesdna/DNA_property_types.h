@@ -1,8 +1,5 @@
-/**
- * blenlib/DNA_property_types.h (mar-2001 nzc)
+/*
  *
- * Renderrecipe and scene decription. The fact that there is a
- * hierarchy here is a bit strange, and not desirable.
  *
  * $Id$ 
  *
@@ -33,6 +30,14 @@
  */
 #ifndef DNA_PROPERTY_TYPES_H
 #define DNA_PROPERTY_TYPES_H
+
+/** \file DNA_property_types.h
+ *  \ingroup DNA
+ *  \since mar-2001
+ *  \author nzc
+ *  \attention Renderrecipe and scene decription. The fact that there is a
+ *             hierarchy here is a bit strange, and not desirable.
+ */
 
 /* ********************* PROPERTY ************************ */
 

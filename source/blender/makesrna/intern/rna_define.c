@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_define.c
+ *  \ingroup RNA
+ */
+
+
 #include <float.h>
 #include <limits.h>
 #include <stdio.h>
@@ -44,7 +49,7 @@
 
 /* Global used during defining */
 
-BlenderDefRNA DefRNA = {0, {0, 0}, {0, 0}, 0, 0, 0, 0, 1};
+BlenderDefRNA DefRNA = {NULL, {NULL, NULL}, {NULL, NULL}, NULL, 0, 0, 0, 1};
 
 /* Duplicated code since we can't link in blenkernel or blenlib */
 
@@ -61,7 +66,7 @@ void rna_addtail(ListBase *listbase, void *vlink)
 	link->prev = listbase->last;
 
 	if (listbase->last) ((Link *)listbase->last)->next = link;
-	if (listbase->first == 0) listbase->first = link;
+	if (listbase->first == NULL) listbase->first = link;
 	listbase->last = link;
 }
 
@@ -390,7 +395,7 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 		}
 
 		if (identifier[a]==' ') {
-			strcpy(error, "spaces are not ok in identifier names");
+			strcpy(error, "spaces are not okay in identifier names");
 			return 0;
 		}
 
@@ -406,13 +411,28 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 			return 0;
 		}
 	}
+
+	if(property) {
+		static const char *kwlist_prop[] = {
+			/* not keywords but reserved all the same because py uses */
+			"keys", "values", "items", "get",
+			NULL
+		};
+
+		for(a=0; kwlist_prop[a]; a++) {
+			if (strcmp(identifier, kwlist_prop[a]) == 0) {
+				strcpy(error, "this keyword is reserved by python");
+				return 0;
+			}
+		}
+	}
 	
 	return 1;
 }
 
 /* Blender Data Definition */
 
-BlenderRNA *RNA_create()
+BlenderRNA *RNA_create(void)
 {
 	BlenderRNA *brna;
 
@@ -654,7 +674,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
-			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, "rna_builtin_properties_lookup_string");
+			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", NULL, NULL, "rna_builtin_properties_lookup_string");
 		}
 		else {
 #ifdef RNA_RUNTIME
@@ -1810,7 +1830,7 @@ void RNA_def_property_editable_array_func(PropertyRNA *prop, const char *editabl
 void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 {
 	if(!DefRNA.preprocess) {
-		fprintf(stderr, "RNA_def_struct_refine_func: only during preprocessing.\n");
+		fprintf(stderr, "RNA_def_property_update: only during preprocessing.\n");
 		return;
 	}
 
@@ -2835,7 +2855,7 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 	}
 }
 
-void RNA_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
+static void rna_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
 {
 	ContainerRNA *cont= cont_;
 	
@@ -2860,7 +2880,7 @@ int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *ide
 	for(prop= cont->properties.first; prop; prop= prop->next) {
 		if(strcmp(prop->identifier, identifier)==0) {
 			if(prop->flag & PROP_RUNTIME) {
-				RNA_def_property_free(cont_, prop);
+				rna_def_property_free(cont_, prop);
 				return 1;
 			}
 			else {

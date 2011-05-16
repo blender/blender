@@ -1,3 +1,6 @@
+/** \file elbeem/intern/loop_tools.h
+ *  \ingroup elbeem
+ */
 
 // advance pointer in main loop
 #define ADVANCE_POINTERS(p)	\

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,13 +22,16 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <Python.h>
+/** \file blender/python/intern/bpy_util.h
+ *  \ingroup pythonintern
+ */
+
 
 #ifndef BPY_UTIL_H
 #define BPY_UTIL_H
 
-#if PY_VERSION_HEX <  0x03010000
-#error "Python versions below 3.1 are not supported anymore, you'll need to update your python."
+#if PY_VERSION_HEX <  0x03020000
+#error "Python 3.2 or greater is required, you'll need to update your python."
 #endif
 
 #include "RNA_types.h" /* for EnumPropertyItem only */
@@ -36,28 +39,12 @@
 struct EnumPropertyItem;
 struct ReportList;
 
-/* Class type checking, use for checking classes can be added as operators, panels etc */
-typedef struct BPY_class_attr_check {
-	const char	*name;		/* name of the class attribute */
-	char		type;		/* 's' = string, 'f' = function, 'l' = list, (add as needed) */
-	int			arg_count;	/* only for function types, -1 for undefined, includes self arg */
-	int 		len;		/* only for string types currently */
-	int			flag;		/* other options */
-} BPY_class_attr_check;
-
-/* BPY_class_attr_check, flag */
-#define BPY_CLASS_ATTR_OPTIONAL 1
-#define BPY_CLASS_ATTR_NONE_OK	2
-
-int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_class, BPY_class_attr_check* class_attrs, PyObject **py_class_attrs);
-
 char *BPy_enum_as_string(struct EnumPropertyItem *item);
 
-
-#define BLANK_PYTHON_TYPE {PyVarObject_HEAD_INIT(NULL, 0) 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+#define BLANK_PYTHON_TYPE {PyVarObject_HEAD_INIT(NULL, 0) NULL}
 
 /* error reporting */
-short BPy_reports_to_error(struct ReportList *reports, const short clear);
+short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, const short clear);
 short BPy_errors_to_report(struct ReportList *reports);
 
 /* TODO - find a better solution! */

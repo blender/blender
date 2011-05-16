@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * KX_MouseFocusSensor determines mouse in/out/over events.
+ */
+
+/** \file KX_MouseFocusSensor.h
+ *  \ingroup ketsji
+ *  \brief KX_MouseFocusSensor determines mouse in/out/over events.
  */
 
 #ifndef __KX_MOUSEFOCUSSENSOR

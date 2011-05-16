@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenlib/intern/BLI_kdopbvh.c
+ *  \ingroup bli
+ */
+
 
 #include <assert.h>
 
@@ -161,7 +166,8 @@ static float KDOP_AXES[13][3] =
 	heap[parent] = element;							\
 }
 
-int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_size, int size_per_item)
+#if 0
+static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_size, int size_per_item)
 {
 	int   new_max_size = *max_size * 2;
 	void *new_memblock = NULL;
@@ -186,7 +192,7 @@ int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_
 	else
 		return FALSE;
 }
-
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Introsort 
@@ -1137,11 +1143,11 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 	
 	// check for compatibility of both trees (can't compare 14-DOP with 18-DOP)
 	if((tree1->axis != tree2->axis) && (tree1->axis == 14 || tree2->axis == 14) && (tree1->axis == 18 || tree2->axis == 18))
-		return 0;
+		return NULL;
 	
 	// fast check root nodes for collision before doing big splitting + traversal
 	if(!tree_overlap(tree1->nodes[tree1->totleaf], tree2->nodes[tree2->totleaf], MIN2(tree1->start_axis, tree2->start_axis), MIN2(tree1->stop_axis, tree2->stop_axis)))
-		return 0;
+		return NULL;
 
 	data = MEM_callocN(sizeof(BVHOverlapData *)* tree1->tree_type, "BVHOverlapData_star");
 	

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/intern/wm_keymap.c
+ *  \ingroup wm
+ */
+
 
 #include <string.h>
 
@@ -99,7 +104,7 @@ wmKeyConfig *WM_keyconfig_new_user(wmWindowManager *wm, const char *idname)
 void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 {
 	if (keyconf) {
-		if (BLI_streq(U.keyconfigstr, keyconf->idname)) {
+		if (strncmp(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr)) == 0) {
 			BLI_strncpy(U.keyconfigstr, wm->defaultconf->idname, sizeof(U.keyconfigstr));
 		}
 
@@ -435,6 +440,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C, ListBase *h
 
 		if(keymap && (!keymap->poll || keymap->poll((bContext*)C))) {
 			for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
+				
 				if(strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0]) {
 					if (hotkey)
 						if (!ISHOTKEY(kmi->type))
@@ -798,9 +804,19 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	/* Editing Modes */
 	else if (strstr(opname, "MESH_OT")) {
 		km = WM_keymap_find_all(C, "Mesh", 0, 0);
+		
+		/* some mesh operators are active in object mode too, like add-prim */
+		if(km && km->poll && km->poll((bContext *)C)==0) {
+			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
+		}
 	}
 	else if (strstr(opname, "CURVE_OT")) {
 		km = WM_keymap_find_all(C, "Curve", 0, 0);
+		
+		/* some curve operators are active in object mode too, like add-prim */
+		if(km && km->poll && km->poll((bContext *)C)==0) {
+			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
+		}
 	}
 	else if (strstr(opname, "ARMATURE_OT")) {
 		km = WM_keymap_find_all(C, "Armature", 0, 0);
@@ -813,6 +829,11 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	}
 	else if (strstr(opname, "MBALL_OT")) {
 		km = WM_keymap_find_all(C, "Metaball", 0, 0);
+		
+		/* some mball operators are active in object mode too, like add-prim */
+		if(km && km->poll && km->poll((bContext *)C)==0) {
+			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
+		}
 	}
 	else if (strstr(opname, "LATTICE_OT")) {
 		km = WM_keymap_find_all(C, "Lattice", 0, 0);

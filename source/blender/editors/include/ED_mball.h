@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ED_mball.h
+ *  \ingroup editors
+ */
+
+#ifndef _ED_MBALL_H_
+#define _ED_MBALL_H_
+
 struct bContext;
 struct Object;
 struct wmKeyConfig;
@@ -35,11 +42,13 @@ void ED_keymap_metaball(struct wmKeyConfig *keyconf);
 
 struct MetaElem *add_metaball_primitive(struct bContext *C, float mat[4][4], int type, int newname);
 
-int mouse_mball(struct bContext *C, short mval[2], int extend);
+int mouse_mball(struct bContext *C, const short mval[2], int extend);
 
 void free_editMball(struct Object *obedit);
 void make_editMball(struct Object *obedit);
 void load_editMball(struct Object *obedit);
 
 void undo_push_mball(struct bContext *C, const char *name);
+
+#endif
 

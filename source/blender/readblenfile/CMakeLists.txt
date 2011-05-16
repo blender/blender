@@ -31,7 +31,6 @@ set(INC
 	../blenkernel
 	../blenlib
 	../makesdna
-	../../kernel/gen_messaging
 )
 
 set(SRC

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/gpencil/gpencil_intern.h
+ *  \ingroup edgpencil
+ */
+
 #ifndef ED_GPENCIL_INTERN_H
 #define ED_GPENCIL_INTERN_H
 

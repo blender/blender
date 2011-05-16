@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/metaball/mball_edit.c
+ *  \ingroup edmeta
+ */
+
+
 #include <math.h>
 #include <string.h>
 
@@ -43,11 +48,13 @@
 
 #include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_context.h"
 #include "BKE_mball.h"
 
+#include "ED_mball.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_transform.h"
@@ -55,6 +62,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "mball_intern.h"
 
 /* This function is used to free all MetaElems from MetaBall */
 void free_editMball(Object *obedit)
@@ -222,7 +231,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 	MetaElem *ml;
 	float percent= RNA_float_get(op->ptr, "percent");
 	
-	if(percent == 0.0)
+	if(percent == 0.0f)
 		return OPERATOR_CANCELLED;
 	
 	ml= mb->editelems->first;
@@ -294,7 +303,7 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 	int retv= duplicate_metaelems_exec(C, op);
 	
 	if (retv == OPERATOR_FINISHED) {
-		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+		RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
 		WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	}
 	
@@ -305,7 +314,7 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate";
+	ot->name= "Duplicate Metaelements";
 	ot->description= "Delete selected metaelement(s)";
 	ot->idname= "MBALL_OT_duplicate_metaelems";
 
@@ -318,7 +327,7 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /***************************** Delete operator *****************************/
@@ -371,25 +380,15 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb= (MetaBall*)obedit->data;
 	MetaElem *ml;
-	int hide_unselected= RNA_boolean_get(op->ptr, "unselected");
+	const int invert= RNA_boolean_get(op->ptr, "unselected") ? SELECT : 0;
 
 	ml= mb->editelems->first;
 
 	if(ml) {
-		/* Hide unselected metaelems */
-		if(hide_unselected) {
-			while(ml){
-				if(!(ml->flag & SELECT))
-					ml->flag |= MB_HIDE;
-				ml= ml->next;
-			}
-		/* Hide selected metaelems */	
-		} else {
-			while(ml){
-				if(ml->flag & SELECT)
-					ml->flag |= MB_HIDE;
-				ml= ml->next;
-			}
+		while(ml){
+			if((ml->flag & SELECT) != invert)
+				ml->flag |= MB_HIDE;
+			ml= ml->next;
 		}
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
 		DAG_id_tag_update(obedit->data, 0);
@@ -456,7 +455,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 
 /* Select MetaElement with mouse click (user can select radius circle or
  * stiffness circle) */
-int mouse_mball(bContext *C, short mval[2], int extend)
+int mouse_mball(bContext *C, const short mval[2], int extend)
 {
 	static MetaElem *startelem=NULL;
 	Object *obedit= CTX_data_edit_object(C);
@@ -605,7 +604,7 @@ static void free_undoMball(void *lbv)
 	MEM_freeN(lb);
 }
 
-ListBase *metaball_get_editelems(Object *ob)
+static ListBase *metaball_get_editelems(Object *ob)
 {
 	if(ob && ob->type==OB_MBALL) {
 		struct MetaBall *mb= (struct MetaBall*)ob->data;

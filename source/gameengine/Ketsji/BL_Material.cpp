@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/BL_Material.cpp
+ *  \ingroup ketsji
+ */
 // ------------------------------------
 #include "BL_Material.h"
 #include "DNA_material_types.h"

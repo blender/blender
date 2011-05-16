@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/SHD_nodes/SHD_material.c
+ *  \ingroup shdnodes
+ */
+
 
 #include "../SHD_util.h"
 
@@ -150,7 +155,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		col[3]= shrnode.alpha;
 		
 		if(shi->do_preview)
-			nodeAddToPreview(node, col, shi->xs, shi->ys);
+			nodeAddToPreview(node, col, shi->xs, shi->ys, shi->do_manage);
 		
 		VECCOPY(out[MAT_OUT_COLOR]->vec, col);
 		out[MAT_OUT_ALPHA]->vec[0]= shrnode.alpha;
@@ -190,7 +195,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 
 static void node_shader_init_material(bNode* node)
 {
-   node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
+	node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
 }
 
 static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

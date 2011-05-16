@@ -1,4 +1,4 @@
-/**
+/*
  * Functions for writing avi-format files.
  * Added interface for generic movie support (ton)
  *
@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * 
  */
+
+/** \file blender/blenkernel/intern/writeavi.c
+ *  \ingroup bke
+ */
+
 
 #include <string.h>
 
@@ -153,7 +158,7 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	avi = MEM_mallocN (sizeof(AviMovie), "avimovie");
 
 	/* RPW 11-21-2002 
-	 if (rd->imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
+	if (rd->imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
 	*/
 	if (rd->imtype != R_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
 	else format = AVI_FORMAT_MJPEG;
@@ -214,7 +219,7 @@ static int append_avi(RenderData *UNUSED(rd), int frame, int *pixels, int rectx,
 	return 1;
 }
 
-void end_avi(void)
+static void end_avi(void)
 {
 	if (avi == NULL) return;
 

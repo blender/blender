@@ -1,3 +1,6 @@
+/** \file opennl/superlu/scopy_to_ucol.c
+ *  \ingroup opennl
+ */
 
 
 /*

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_graph/graph_intern.h
+ *  \ingroup spgraph
+ */
+
 #ifndef ED_GRAPH_INTERN_H
 #define ED_GRAPH_INTERN_H
 
@@ -66,14 +71,14 @@ void GRAPH_OT_select_column(struct wmOperatorType *ot);
 void GRAPH_OT_select_linked(struct wmOperatorType *ot);
 void GRAPH_OT_select_more(struct wmOperatorType *ot);
 void GRAPH_OT_select_less(struct wmOperatorType *ot);
+void GRAPH_OT_select_leftright(struct wmOperatorType *ot);
 void GRAPH_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {
-	GRAPHKEYS_LRSEL_TEST	= -1,
-	GRAPHKEYS_LRSEL_NONE,
+	GRAPHKEYS_LRSEL_TEST	= 0,
 	GRAPHKEYS_LRSEL_LEFT,
-	GRAPHKEYS_LRSEL_RIGHT,
+	GRAPHKEYS_LRSEL_RIGHT
 } eGraphKeys_LeftRightSelect_Mode;
 
 /* defines for column-select mode */
@@ -87,10 +92,11 @@ enum {
 /* ***************************************** */
 /* graph_edit.c */
 
-void get_graph_keyframe_extents (struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax);
+void get_graph_keyframe_extents (struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, const short do_selected);
 
 void GRAPH_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPH_OT_view_all(struct wmOperatorType *ot);
+void GRAPH_OT_view_selected(struct wmOperatorType *ot);
 
 void GRAPH_OT_click_insert(struct wmOperatorType *ot);
 void GRAPH_OT_keyframe_insert(struct wmOperatorType *ot);
@@ -105,6 +111,7 @@ void GRAPH_OT_sample(struct wmOperatorType *ot);
 void GRAPH_OT_bake(struct wmOperatorType *ot);
 void GRAPH_OT_sound_bake(struct wmOperatorType *ot);
 void GRAPH_OT_smooth(struct wmOperatorType *ot);
+void GRAPH_OT_euler_filter(struct wmOperatorType *ot);
 
 void GRAPH_OT_handle_type(struct wmOperatorType *ot);
 void GRAPH_OT_interpolation_type(struct wmOperatorType *ot);

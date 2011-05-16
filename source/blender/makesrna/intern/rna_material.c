@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_material.c
+ *  \ingroup RNA
+ */
+
 
 #include <float.h>
 #include <stdlib.h>
@@ -47,6 +52,27 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 {TEXCO_REFL, "REFLECTION", 0, "Reflection", "Uses reflection vector as texture coordinates"},
 {TEXCO_STRESS, "STRESS", 0, "Stress", "Uses the difference of edge lengths compared to original coordinates of the mesh"},
 {TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Uses the optional tangent vector as texture coordinates"},
+{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem ramp_blend_items[] = {
+{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
+{MA_RAMP_ADD, "ADD", 0, "Add", ""},
+{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
+{MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
+{MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
+{MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
+{MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
+{MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
+{MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
+{MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+{MA_RAMP_DODGE, "DODGE", 0, "Dodge", ""},
+{MA_RAMP_BURN, "BURN", 0, "Burn", ""},
+{MA_RAMP_HUE, "HUE", 0, "Hue", ""},
+{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
+{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
+{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
+{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""}, 
+{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""}, 
 {0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -706,27 +732,6 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 static void rna_def_material_colors(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
-	static EnumPropertyItem prop_ramp_blend_diffuse_items[] = {
-		{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
-		{MA_RAMP_ADD, "ADD", 0, "Add", ""},
-		{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
-		{MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
-		{MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
-		{MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
-		{MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
-		{MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
-		{MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
-		{MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},
-		{MA_RAMP_DODGE, "DODGE", 0, "Dodge", ""},
-		{MA_RAMP_BURN, "BURN", 0, "Burn", ""},
-		{MA_RAMP_HUE, "HUE", 0, "Hue", ""},
-		{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
-		{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
-		{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
-		{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""}, 
-		{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""}, 
-		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_ramp_input_items[] = {
 		{MA_RAMP_IN_SHADER, "SHADER", 0, "Shader", ""},
@@ -791,13 +796,13 @@ static void rna_def_material_colors(StructRNA *srna)
 	
 	prop= RNA_def_property(srna, "diffuse_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_col");
-	RNA_def_property_enum_items(prop, prop_ramp_blend_diffuse_items);
+	RNA_def_property_enum_items(prop, ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "specular_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_spec");
-	RNA_def_property_enum_items(prop, prop_ramp_blend_diffuse_items);
+	RNA_def_property_enum_items(prop, ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
@@ -1235,7 +1240,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_flare_mode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO_FLARE); /* use bitflags */
-	RNA_def_property_ui_text(prop, "Flare", "Renders halo as a lensflare");
+	RNA_def_property_ui_text(prop, "Flare", "Renders halo as a lens flare");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "flare_size", PROP_FLOAT, PROP_NONE);
@@ -1247,7 +1252,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "flare_subflare_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "subsize");
 	RNA_def_property_range(prop, 0.1f, 25.0f);
-	RNA_def_property_ui_text(prop, "Flare Subsize", "Sets the dimension of the subflares, dots and circles");
+	RNA_def_property_ui_text(prop, "Flare Subsize", "Sets the dimension of the sub-flares, dots and circles");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "flare_boost", PROP_FLOAT, PROP_NONE);
@@ -1265,7 +1270,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "flare_subflare_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "flarec");
 	RNA_def_property_range(prop, 1, 32);
-	RNA_def_property_ui_text(prop, "Flares Sub", "Sets the number of subflares");
+	RNA_def_property_ui_text(prop, "Flares Sub", "Sets the number of sub-flares");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_ring", PROP_BOOLEAN, PROP_NONE);
@@ -1520,31 +1525,33 @@ static void rna_def_material_physics(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Physics", "Physics settings for a Material datablock");
 	
-	prop= RNA_def_property(srna, "use_normal_align", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "dynamode", MA_FH_NOR);
-	RNA_def_property_ui_text(prop, "Align to Normal", "Align dynamic game objects along the surface normal, when inside the physics distance area");
-	
 	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "friction");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Friction", "Coulomb friction coefficient, when inside the physics distance area");
 
-	prop= RNA_def_property(srna, "force", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "fh");
-	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Force", "Upward spring force, when inside the physics distance area");
-	
 	prop= RNA_def_property(srna, "elasticity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "reflect");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Elasticity", "Elasticity of collisions");
+
+	/* FH/Force Field Settings */
+	prop= RNA_def_property(srna, "use_fh_normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dynamode", MA_FH_NOR);
+	RNA_def_property_ui_text(prop, "Align to Normal", "Align dynamic game objects along the surface normal, when inside the physics distance area");
+
+	prop= RNA_def_property(srna, "fh_force", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fh");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 2);
+	RNA_def_property_ui_text(prop, "Force", "Upward spring force, when inside the physics distance area");
 	
-	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "fh_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fhdist");
 	RNA_def_property_range(prop, 0, 20);
 	RNA_def_property_ui_text(prop, "Distance", "Distance of the physics area");
 	
-	prop= RNA_def_property(srna, "damping", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "fh_damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xyfrict");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Damping", "Damping of the spring force, when inside the physics distance area");
@@ -1562,6 +1569,7 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_TYPE_HALO, "HALO", 0, "Halo", "Render object as halo particles"},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem transparency_items[] = {
+		{0, "MASK", 0, "Mask", "Mask the background"},
 		{MA_ZTRANSP, "Z_TRANSPARENCY", 0, "Z Transparency", "Use alpha buffer for transparent faces"},
 		{MA_RAYTRANSP, "RAYTRACE", 0, "Raytrace", "Use raytracing for transparent refraction rendering"},
 		{0, NULL, 0, NULL, NULL}};
@@ -1574,6 +1582,12 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_MONKEY, "MONKEY", ICON_MONKEY, "Flat", "Preview type: Monkey"},
 		{MA_HAIR, "HAIR", ICON_HAIR, "Flat", "Preview type: Hair strands"},
 		{MA_SPHERE_A, "SPHERE_A", ICON_MAT_SPHERE_SKY, "Flat", "Preview type: Large sphere with sky"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_shadows_only_items[] = {
+		{MA_SO_OLD, "SHADOW_ONLY_OLD", 0, "Shadow and Distance", ""},
+		{MA_SO_SHADOW, "SHADOW_ONLY", 0, "Shadow Only", ""},
+		{MA_SO_SHADED, "SHADOW_ONLY_SHADED", 0, "Shadow and Shading", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Material", "ID");
@@ -1706,6 +1720,12 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ONLYSHADOW);
 	RNA_def_property_ui_text(prop, "Only Shadow", "Renders shadows as the material's alpha value, making materials transparent except for shadowed areas");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	prop= RNA_def_property(srna, "shadow_only_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "shadowonly_flag");
+	RNA_def_property_enum_items(prop, prop_shadows_only_items);
+	RNA_def_property_ui_text(prop, "Shadow Type", "How to draw shadows");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_face_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_FACETEXTURE);
@@ -1729,7 +1749,7 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_transparent_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_SHADOW_TRA);
-	RNA_def_property_ui_text(prop, "Receive Transparent Shadows", "Allow this object to receive transparent shadows casted through other objects");
+	RNA_def_property_ui_text(prop, "Receive Transparent Shadows", "Allow this object to receive transparent shadows cast through other objects");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_ray_shadow_bias", PROP_BOOLEAN, PROP_NONE);
@@ -1875,7 +1895,7 @@ static void rna_def_texture_slots(BlenderRNA *brna, PropertyRNA *cprop, const ch
 	
 	func= RNA_def_function(srna, "clear", "rna_mtex_texture_slots_clear");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Slot index to clar.", 0, INT_MAX);
+	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Slot index to clear.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 

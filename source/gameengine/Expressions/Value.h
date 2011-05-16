@@ -13,29 +13,14 @@
  *
  */
 
+/** \file Value.h
+ *  \ingroup expressions
+ */
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786)
 #endif //WIN32
 
-/////////////////////////////////////////////////////////////////////////////////////
-//// Baseclass CValue
-//// Together with CExpression, CValue and it's derived classes can be used to
-//// parse expressions into a parsetree with error detecting/correcting capabilities
-//// also expandible by a CFactory pluginsystem 
-//// 
-//// Features:
-//// Reference Counting (AddRef() / Release())
-//// Calculations (Calc() / CalcFinal())
-//// Configuration (Configure())
-//// Serialization (EdSerialize() / EdIdSerialize() / EdPtrSerialize() and macro PLUGIN_DECLARE_SERIAL
-//// Property system (SetProperty() / GetProperty() / FindIdentifier())
-//// Replication (GetReplica())
-//// Flags (IsSelected() / IsModified() / SetSelected()...)
-//// 
-//// Some small editor-specific things added
-//// A helperclass CompressorArchive handles the serialization
-//// 
-/////////////////////////////////////////////////////////////////////////////////////
 #ifndef __VALUE_H__
 #define __VALUE_H__
 
@@ -184,21 +169,35 @@ public:
 #endif
 };
 
-//
-// CValue
-//
-// Base class for all editor functionality, flexible object type that allows
-// calculations and uses reference counting for memory management.
-// 
-//
-
-
-
 
 #include "PyObjectPlus.h"
 #ifdef WITH_PYTHON
 #include "object.h"
 #endif
+
+/**
+ * Baseclass CValue
+ *
+ * Together with CExpression, CValue and it's derived classes can be used to
+ * parse expressions into a parsetree with error detecting/correcting capabilities
+ * also expandible by a CFactory pluginsystem 
+ *
+ * Base class for all editor functionality, flexible object type that allows
+ * calculations and uses reference counting for memory management.
+ * 
+ * Features:
+ * - Reference Counting (AddRef() / Release())
+ * - Calculations (Calc() / CalcFinal())
+ * - Configuration (Configure())
+ * - Serialization (EdSerialize() / EdIdSerialize() / EdPtrSerialize() and macro PLUGIN_DECLARE_SERIAL
+ * - Property system (SetProperty() / GetProperty() / FindIdentifier())
+ * - Replication (GetReplica())
+ * - Flags (IsSelected() / IsModified() / SetSelected()...)
+ * 
+ * - Some small editor-specific things added
+ * - A helperclass CompressorArchive handles the serialization
+ * 
+ */
 class CValue  : public PyObjectPlus
 
 {

@@ -1,6 +1,4 @@
-/**
- * SCA_XORController.h
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_XORController.h
+ *  \ingroup gamelogic
  */
 
 #ifndef __KX_XORCONTROLLER

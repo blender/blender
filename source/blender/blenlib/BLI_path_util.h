@@ -1,8 +1,4 @@
-/**
- * blenlib/BLI_storage_types.h
- *
- * Some types for dealing with directories
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,6 +29,10 @@
 #ifndef BLI_PATH_UTIL_H
 #define BLI_PATH_UTIL_H
 
+/** \file BLI_path_util.h
+ *  \ingroup bli
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,11 +40,12 @@ extern "C" {
 struct ListBase;
 struct direntry;
 
-char *BLI_getDefaultDocumentFolder(void);
+const char *BLI_getDefaultDocumentFolder(void);
 
 char *BLI_get_folder(int folder_id, const char *subfolder);
 char *BLI_get_folder_create(int folder_id, const char *subfolder);
 char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
+char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 
 /* folder_id */
 
@@ -72,6 +73,11 @@ char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
 #define BLENDER_TEMP				80
 
 #define BLENDER_USERFOLDER(id) (id >= BLENDER_USER_CONFIG && id <= BLENDER_USER_PLUGINS)
+
+/* for BLI_get_folder_version only */
+#define BLENDER_RESOURCE_PATH_USER		0
+#define BLENDER_RESOURCE_PATH_LOCAL		1
+#define BLENDER_RESOURCE_PATH_SYSTEM	2
 
 #define BLENDER_STARTUP_FILE	"startup.blend"
 #define BLENDER_BOOKMARK_FILE	"bookmarks.txt"
@@ -103,19 +109,19 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(const char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file);
-void BLI_join_dirfile(char *string, const char *dir, const char *file);
+void BLI_join_dirfile(char *string, const size_t maxlen, const char *dir, const char *file);
 char *BLI_path_basename(char *path);
-int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir);
+int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir);
 char *BLI_last_slash(const char *string);
 int	  BLI_add_slash(char *string);
 void  BLI_del_slash(char *string);
 char *BLI_first_slash(char *string);
 
-void BLI_getlastdir(const char* dir, char *last, int maxlen);
+void BLI_getlastdir(const char* dir, char *last, const size_t maxlen);
 int BLI_testextensie(const char *str, const char *ext);
 int BLI_testextensie_array(const char *str, const char **ext_array);
 int BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
-int BLI_replace_extension(char *path, int maxlen, const char *ext);
+int BLI_replace_extension(char *path, size_t maxlen, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len);
 int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, const char defname[], char delim, char *name, short name_len);
 void BLI_newname(char * name, int add);
@@ -132,8 +138,9 @@ void BLI_clean(char *path);
 	 * converts it to a regular full path.
 	 * Also removes garbage from directory paths, like /../ or double slashes etc 
 	 */
-void BLI_cleanup_file(const char *relabase, char *dir);
+void BLI_cleanup_file(const char *relabase, char *dir); /* removes trailing slash */
 void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds a trailing slash */
+void BLI_cleanup_path(const char *relabase, char *dir); /* doesn't touch trailing slash */
 
 /* go back one directory */
 int BLI_parent_dir(char *path);
@@ -157,8 +164,15 @@ int BLI_path_abs(char *path, const char *basepath);
 int BLI_path_frame(char *path, int frame, int digits);
 int BLI_path_frame_range(char *path, int sta, int end, int digits);
 int BLI_path_cwd(char *path);
-
 void BLI_path_rel(char *file, const char *relfile);
+
+#ifdef WIN32
+#  define BLI_path_cmp BLI_strcasecmp
+#  define BLI_path_ncmp BLI_strncasecmp
+#else
+#  define BLI_path_cmp strcmp
+#  define BLI_path_ncmp strncmp
+#endif
 
 	/**
 	 * Change every @a from in @a string into @a to. The
@@ -181,9 +195,8 @@ void BLI_char_switch(char *string, char from, char to);
 	 * @param fullname The full path and full name of the executable
 	 * @param name The name of the executable (usually argv[0]) to be checked
 	 */
-void BLI_where_am_i(char *fullname, const char *name);
+void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name);
 
-char *get_install_dir(void);
 	/**
 	 * Gets the temp directory when blender first runs.
 	 * If the default path is not found, use try $TEMP
@@ -192,7 +205,7 @@ char *get_install_dir(void);
 	 *
 	 * @param fullname The full path to the temp directory
 	 */
-void BLI_where_is_temp(char *fullname, int usertemp);
+void BLI_where_is_temp(char *fullname, const size_t maxlen, int usertemp);
 
 
 #ifdef WITH_ICONV

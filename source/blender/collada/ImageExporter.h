@@ -1,5 +1,5 @@
-/**
- * $Id: ImageExporter.h 32355 2010-10-06 20:40:16Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,10 @@
  *                 Nathan Letwory
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ImageExporter.h
+ *  \ingroup collada
  */
 
 #ifndef __IMAGEEXPORTER_H__
@@ -45,6 +49,8 @@ public:
 	
 	void exportImages(Scene *sce);
 	void operator()(Material *ma, Object *ob);
+private:
+	bool hasImages(Scene *sce);
 };
 
 #endif

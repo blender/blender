@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_valToRgb.c
+ *  \ingroup cmpnodes
+ */
+
 
 #include "../CMP_util.h"
 
@@ -77,7 +82,7 @@ static void node_composit_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeSt
 
 static void node_composit_init_valtorgb(bNode* node)
 {
-   node->storage= add_colorband(1);
+	node->storage= add_colorband(1);
 }
 
 void register_node_type_cmp_valtorgb(ListBase *lb)

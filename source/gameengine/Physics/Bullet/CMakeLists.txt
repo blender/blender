@@ -31,10 +31,9 @@ set(INC
 	.
 	../common
 	../../../../extern/bullet2/src
-	../../../../extern/glew/include
 	../../../../intern/moto/include
 	../../../../intern/guardedalloc
-	../../../kernel/gen_system
+	../../../../intern/container
 	../../../../intern/string
 	../../Rasterizer
 	../../Ketsji
@@ -44,6 +43,7 @@ set(INC
 	../../../../source/blender/makesdna
 	../../../../source/blender/blenlib
 	../../../../source/blender/blenkernel
+	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 )
 

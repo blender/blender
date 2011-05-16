@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef BLO_SOUNDFILE_H
 #define BLO_SOUNDFILE_H
+
+/** \file BLO_soundfile.h
+ *  \ingroup blenloader
+ */
 
 #include "DNA_sound_types.h"
 #include "DNA_packedFile_types.h"

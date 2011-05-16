@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_mapValue.c
+ *  \ingroup cmpnodes
+ */
+
 
 #include "../CMP_util.h"
 
@@ -76,7 +81,7 @@ static void node_composit_exec_map_value(void *UNUSED(data), bNode *node, bNodeS
 
 static void node_composit_init_map_value(bNode* node)
 {
-   node->storage= add_mapping();
+	node->storage= add_mapping();
 }
 
 void register_node_type_cmp_map_value(ListBase *lb)

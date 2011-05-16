@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,6 +23,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/animation/keyframes_edit.c
+ *  \ingroup edanimation
+ */
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -90,7 +95,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 {
 	BezTriple *bezt;
 	short ok = 0;
-	int i;
+	unsigned int i;
 
 	/* sanity check */
 	if (ELEM(NULL, fcu, fcu->bezt))
@@ -510,7 +515,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 
 /* run the given check on the 3 handles 
  *	- check should be a macro, which takes the handle index as its single arg, which it substitutes later
- *	- requires that a var, of type short, is named 'ok', and has been initialised ot 0
+ *	- requires that a var, of type short, is named 'ok', and has been initialized to 0
  */
 #define KEYFRAME_OK_CHECKS(check) \
 	{ \
@@ -532,7 +537,7 @@ static short ok_bezier_frame(KeyframeEditData *ked, BezTriple *bezt)
 	short ok = 0;
 	
 	/* frame is stored in f1 property (this float accuracy check may need to be dropped?) */
-	#define KEY_CHECK_OK(_index) IS_EQ(bezt->vec[_index][0], ked->f1)
+	#define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][0], ked->f1)
 		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
 	#undef KEY_CHECK_OK
 	
@@ -572,7 +577,7 @@ static short ok_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 	 *	- this float accuracy check may need to be dropped?
 	 *	- should value be stored in f2 instead so that we won't have conflicts when using f1 for frames too?
 	 */
-	#define KEY_CHECK_OK(_index) IS_EQ(bezt->vec[_index][1], ked->f1)
+	#define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][1], ked->f1)
 		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
 	#undef KEY_CHECK_OK
 	
@@ -692,7 +697,7 @@ void bezt_remap_times(KeyframeEditData *ked, BezTriple *bezt)
 static short snap_bezier_nearest(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT)
-		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]+0.5));
+		bezt->vec[1][0]= (float)(floorf(bezt->vec[1][0]+0.5f));
 	return 0;
 }
 

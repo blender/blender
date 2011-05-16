@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_sculpt_paint.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 
@@ -179,6 +184,16 @@ static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 	return brush->ob_mode & mode;
 }
 
+static void rna_Sculpt_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Object *ob= (scene->basact)? scene->basact->object: NULL;
+
+	if(ob) {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+	}
+}
+
 #else
 
 static void rna_def_paint(BlenderRNA *brna)
@@ -255,6 +270,11 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "use_threaded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_USE_OPENMP);
 	RNA_def_property_ui_text(prop, "Use OpenMP", "Take advantage of multiple CPU cores to improve sculpting performance");
+
+	prop= RNA_def_property(srna, "use_deform_only", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_ONLY_DEFORM);
+	RNA_def_property_ui_text(prop, "Use Deform Only", "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Sculpt_update");
 }
 
 static void rna_def_vertex_paint(BlenderRNA *brna)
@@ -464,7 +484,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 1, 100, 10, 3);
-	RNA_def_property_ui_text(prop, "Size", "Brush size");
+	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
 
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 1.0);

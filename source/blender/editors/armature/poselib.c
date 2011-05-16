@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/armature/poselib.c
+ *  \ingroup edarmature
+ */
+
  
 #include <stdlib.h>
 #include <stdio.h>
@@ -49,6 +54,8 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
+#include "BKE_idprop.h"
+#include "BKE_library.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -95,41 +102,11 @@ static void action_set_activemarker(void *UNUSED(a), void *UNUSED(b), void *UNUS
  */
 /* ************************************************************* */
 
-/* gets list of poses in poselib as a string usable for pupmenu() */
-char *poselib_build_poses_menu (bAction *act, char title[])
-{
-	DynStr *pupds= BLI_dynstr_new();
-	TimeMarker *marker;
-	char *str;
-	char buf[64];
-	int i;
-	
-	/* add title first */
-	sprintf(buf, "%s%%t|", title);
-	BLI_dynstr_append(pupds, buf);
-	
-	/* loop through markers, adding them */
-	for (marker=act->markers.first, i=1; marker; marker=marker->next, i++) {
-		BLI_dynstr_append(pupds, marker->name);
-		
-		sprintf(buf, "%%x%d", i);
-		BLI_dynstr_append(pupds, buf);
-		
-		if (marker->next)
-			BLI_dynstr_append(pupds, "|");
-	}
-	
-	/* convert to normal MEM_malloc'd string */
-	str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-	
-	return str;
-}
 
 /* gets the first available frame in poselib to store a pose on 
  *	- frames start from 1, and a pose should occur on every frame... 0 is error!
  */
-int poselib_get_free_index (bAction *act)
+static int poselib_get_free_index (bAction *act)
 {
 	TimeMarker *marker;
 	int low=0, high=0;
@@ -160,7 +137,7 @@ int poselib_get_free_index (bAction *act)
 }
 
 /* returns the active pose for a poselib */
-TimeMarker *poselib_get_active_pose (bAction *act)
+static TimeMarker *poselib_get_active_pose (bAction *act)
 {	
 	if ((act) && (act->active_marker))
 		return BLI_findlink(&act->markers, act->active_marker-1);
@@ -168,10 +145,35 @@ TimeMarker *poselib_get_active_pose (bAction *act)
 		return NULL;
 }
 
-/* ************************************************************* */
+/* Get object that Pose Lib should be found on */
+ /* XXX C can be zero */
+static Object *get_poselib_object (bContext *C)
+{
+	ScrArea *sa;
+	
+	/* sanity check */
+	if (C == NULL)
+		return NULL;
+	
+	sa = CTX_wm_area(C);
+	
+	if (sa && (sa->spacetype == SPACE_BUTS)) 
+		return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		return ED_object_pose_armature(CTX_data_active_object(C));
+}
+
+/* Poll callback for operators that require existing PoseLib data (with poses) to work */
+static int has_poselib_pose_data_poll (bContext *C)
+{
+	Object *ob = get_poselib_object(C);
+	return (ob && ob->poselib);
+}
+
+/* ----------------------------------- */
 
 /* Initialise a new poselib (whether it is needed or not) */
-bAction *poselib_init_new (Object *ob)
+static bAction *poselib_init_new (Object *ob)
 {
 	/* sanity checks - only for armatures */
 	if (ELEM(NULL, ob, ob->pose))
@@ -179,14 +181,14 @@ bAction *poselib_init_new (Object *ob)
 	
 	/* init object's poselib action (unlink old one if there) */
 	if (ob->poselib)
-		ob->poselib->id.us--;
+		id_us_min(&ob->poselib->id);
 	ob->poselib= add_empty_action("PoseLib");
 	
 	return ob->poselib;
 }
 
 /* Initialise a new poselib (checks if that needs to happen) */
-bAction *poselib_validate (Object *ob)
+static bAction *poselib_validate (Object *ob)
 {
 	if (ELEM(NULL, ob, ob->pose))
 		return NULL;
@@ -196,34 +198,107 @@ bAction *poselib_validate (Object *ob)
 		return ob->poselib;
 }
 
+/* ************************************************************* */
+/* Pose Lib UI Operators */
+
+static int poselib_new_exec (bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = get_poselib_object(C);
+	
+	/* sanity checks */
+	if (ob == NULL)
+		return OPERATOR_CANCELLED;
+		
+	/* new method here deals with the rest... */
+	poselib_init_new(ob);
+	
+	/* notifier here might evolve? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSELIB_OT_new (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "New Pose Library";
+	ot->idname = "POSELIB_OT_new";
+	ot->description = "Add New Pose Library to active Object";
+	
+	/* callbacks */
+	ot->exec = poselib_new_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ------------------------------------------------ */
+
+static int poselib_unlink_exec (bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = get_poselib_object(C);
+	
+	/* sanity checks */
+	if (ELEM(NULL, ob, ob->poselib))
+		return OPERATOR_CANCELLED;
+		
+	/* there should be a poselib (we just checked above!), so just lower its user count and remove */
+	id_us_min(&ob->poselib->id);
+	ob->poselib = NULL;
+	
+	/* notifier here might evolve? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSELIB_OT_unlink (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unlink Pose Library";
+	ot->idname = "POSELIB_OT_unlink";
+	ot->description = "Remove Pose Library from active Object";
+	
+	/* callbacks */
+	ot->exec = poselib_unlink_exec;
+	ot->poll= has_poselib_pose_data_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ************************************************************* */
+/* Pose Editing Operators */
 
 /* This tool automagically generates/validates poselib data so that it corresponds to the data 
  * in the action. This is for use in making existing actions usable as poselibs.
  */
-// TODO: operatorfy me!
-void poselib_validate_act (bAction *act)
+static int poselib_sanitise_exec (bContext *C, wmOperator *op)
 {
-	DLRBT_Tree keys = {NULL, NULL};
+	Object *ob = get_poselib_object(C);
+	bAction *act = (ob)? ob->poselib : NULL;
+	DLRBT_Tree keys;
 	ActKeyColumn *ak;
 	TimeMarker *marker, *markern;
 	
-	/* validate action and poselib */
+	/* validate action */
 	if (act == NULL)  {
-		//error("No Action to validate");
-		return;
+		BKE_report(op->reports, RPT_WARNING, "No Action to validate");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* determine which frames have keys */
 	BLI_dlrbTree_init(&keys);
-	action_to_keylist(NULL, act, &keys, NULL);
+		action_to_keylist(NULL, act, &keys, NULL);
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
-	/* for each key, make sure there is a correspnding pose */
+	/* for each key, make sure there is a corresponding pose */
 	for (ak= keys.first; ak; ak= ak->next) {
 		/* check if any pose matches this */
 		// TODO: don't go looking through the list like this every time...
 		for (marker= act->markers.first; marker; marker= marker->next) {
-			if (IS_EQ(marker->frame, ak->cfra)) {
+			if (IS_EQ(marker->frame, (double)ak->cfra)) {
 				marker->flag = -1;
 				break;
 			}
@@ -231,13 +306,10 @@ void poselib_validate_act (bAction *act)
 		
 		/* add new if none found */
 		if (marker == NULL) {
-			char name[64];
-			
 			/* add pose to poselib */
 			marker= MEM_callocN(sizeof(TimeMarker), "ActionMarker");
 			
-			strcpy(name, "Pose");
-			BLI_strncpy(marker->name, name, sizeof(marker->name));
+			BLI_strncpy(marker->name, "Pose", sizeof(marker->name));
 			
 			marker->frame= (int)ak->cfra;
 			marker->flag= -1;
@@ -257,22 +329,32 @@ void poselib_validate_act (bAction *act)
 	}
 	
 	/* free temp memory */
-	BLI_freelistN((ListBase *)&keys);
+	BLI_dlrbTree_free(&keys);
 	
-	//BIF_undo_push("PoseLib Validate Action");
+	return OPERATOR_FINISHED;
 }
 
-/* ************************************************************* */
+void POSELIB_OT_action_sanitise (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Sanitise Pose Library Action";
+	ot->idname = "POSELIB_OT_action_sanitise";
+	ot->description = "Make action suitable for use as a Pose Library";
+	
+	/* callbacks */
+	ot->exec = poselib_sanitise_exec;
+	ot->poll = has_poselib_pose_data_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
-/* Pointers to the builtin KeyingSets that we want to use */
-static KeyingSet *poselib_ks_locrotscale = NULL;		/* the only keyingset we'll need */
-
-/* ----- */
+/* ------------------------------------------ */
 
 static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	bAction *act= ob->poselib;
+	Object *ob= get_poselib_object(C);
+	bAction *act= ob->poselib; /* never NULL */
 	TimeMarker *marker;
 	
 	/* set the operator execution context correctly */
@@ -294,28 +376,27 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout,
 static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	bArmature *arm= (ob) ? ob->data : NULL;
+	Object *ob= get_poselib_object(C);
 	bPose *pose= (ob) ? ob->pose : NULL;
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	
 	/* sanity check */
-	if (ELEM3(NULL, ob, arm, pose)) 
+	if (ELEM(NULL, ob, pose)) 
 		return OPERATOR_CANCELLED;
 	
 	/* start building */
-	pup= uiPupMenuBegin(C, op->type->name, ICON_NULL);
+	pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add new (adds to the first unoccupied frame) */
-	uiItemIntO(layout, "Add New", ICON_NULL, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
+	uiItemIntO(layout, "Add New", ICON_NONE, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
 	
 	/* check if we have any choices to add a new pose in any other way */
 	if ((ob->poselib) && (ob->poselib->markers.first)) {
 		/* add new (on current frame) */
-		uiItemIntO(layout, "Add New (Current Frame)", ICON_NULL, "POSELIB_OT_pose_add", "frame", CFRA);
+		uiItemIntO(layout, "Add New (Current Frame)", ICON_NONE, "POSELIB_OT_pose_add", "frame", CFRA);
 		
 		/* replace existing - submenu */
 		uiItemMenuF(layout, "Replace Existing...", 0, poselib_add_menu_invoke__replacemenu, NULL);
@@ -330,16 +411,16 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 
 static int poselib_add_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	bAction *act = poselib_validate(ob);
-	bArmature *arm= (ob) ? ob->data : NULL;
 	bPose *pose= (ob) ? ob->pose : NULL;
 	TimeMarker *marker;
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Whole Character"); /* this includes custom props :)*/
 	int frame= RNA_int_get(op->ptr, "frame");
 	char name[64];
 	
 	/* sanity check (invoke should have checked this anyway) */
-	if (ELEM3(NULL, ob, arm, pose)) 
+	if (ELEM(NULL, ob, pose)) 
 		return OPERATOR_CANCELLED;
 	
 	/* get name to give to pose */
@@ -367,12 +448,10 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	/* validate name */
 	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
-	/* KeyingSet to use depends on rotation mode (but that's handled by the templates code)  */
-	if (poselib_ks_locrotscale == NULL)
-		poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-		
-	/* make the keyingset use context info to determine where to add keyframes */
-	ANIM_apply_keyingset(C, NULL, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
+	/* use Keying Set to determine what to store for the pose */
+	// FIXME: in the past, the Keying Set respected selections (LocRotScale), but the current one doesn't (Whole Character)
+	// so perhaps we need either a new Keying Set, or just to add overrides here...
+	ANIM_apply_keyingset(C, NULL, act, ks, MODIFYKEY_MODE_INSERT, (float)frame);
 	
 	/* store new 'active' pose number */
 	act->active_marker= BLI_countlist(&act->markers);
@@ -403,16 +482,17 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 
 /* ----- */
 
+/* can be called with C == NULL */
 static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	bAction *act= (ob) ? ob->poselib : NULL;
+	Object *ob = get_poselib_object(C);
+	bAction *act = (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	EnumPropertyItem *item= NULL, item_tmp= {0};
 	int totitem= 0;
 	int i= 0;
 
-	if (C==NULL) {
+	if (C == NULL) {
 		return DummyRNA_DEFAULT_items;
 	}
 	
@@ -435,7 +515,7 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUS
 
 static int poselib_remove_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	FCurve *fcu;
@@ -449,14 +529,14 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	/* get index (and pointer) of pose to remove */
 	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "pose"));
 	if (marker == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		BKE_reportf(op->reports, RPT_ERROR, "Invalid Pose specified %d", RNA_int_get(op->ptr, "pose"));
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* remove relevant keyframes */
 	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 		BezTriple *bezt;
-		int i;
+		unsigned int i;
 		
 		if (fcu->bezt) {
 			for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -491,20 +571,20 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= poselib_remove_exec;
-	ot->poll= ED_operator_posemode;
+	ot->poll= has_poselib_pose_data_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "pose", DummyRNA_DEFAULT_items, 0, "Pose", "The pose to remove");
-	RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
+		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 	ot->prop= prop;
 }
 
 static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	
@@ -571,23 +651,25 @@ void POSELIB_OT_pose_rename (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "PoseLib Rename Pose";
 	ot->idname= "POSELIB_OT_pose_rename";
-	ot->description= "Rename nth pose from the active Pose Library";
+	ot->description= "Rename specified pose from the active Pose Library";
 	
 	/* api callbacks */
 	ot->invoke= poselib_rename_invoke;
 	ot->exec= poselib_rename_exec;
-	ot->poll= ED_operator_posemode;
+	ot->poll= has_poselib_pose_data_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
+		/* NOTE: name not pose is the operator's "main" property, so that it will get activated in the popup for easy renaming */
+	ot->prop= RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
 	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to rename");
 		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
-	RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
 }
 
 /* ************************************************************* */
+/* Pose-Lib Browsing/Previewing Operator */
 
 /* Simple struct for storing settings/data for use during PoseLib preview */
 typedef struct tPoseLib_PreviewData {
@@ -646,8 +728,10 @@ enum {
 typedef struct tPoseLib_Backup {
 	struct tPoseLib_Backup *next, *prev;
 	
-	bPoseChannel *pchan;
-	bPoseChannel olddata;
+	bPoseChannel *pchan;		/* pose channel backups are for */
+	
+	bPoseChannel olddata;		/* copy of pose channel's old data (at start) */
+	IDProperty *oldprops;		/* copy (needs freeing) of pose channel's properties (at start) */
 } tPoseLib_Backup;
 
 /* Makes a copy of the current pose for restoration purposes - doesn't do constraints currently */
@@ -671,6 +755,9 @@ static void poselib_backup_posecopy (tPoseLib_PreviewData *pld)
 			plb->pchan= pchan;
 			memcpy(&plb->olddata, plb->pchan, sizeof(bPoseChannel));
 			
+			if (pchan->prop)
+				plb->oldprops= IDP_CopyProperty(pchan->prop);
+			
 			BLI_addtail(&pld->backups, plb);
 			
 			/* mark as being affected */
@@ -681,13 +768,39 @@ static void poselib_backup_posecopy (tPoseLib_PreviewData *pld)
 	}
 }
 
-/* Restores original pose - doesn't do constraints currently */
+/* Restores original pose */
 static void poselib_backup_restore (tPoseLib_PreviewData *pld)
 {
 	tPoseLib_Backup *plb;
 	
 	for (plb= pld->backups.first; plb; plb= plb->next) {
+		/* copy most of data straight back */
 		memcpy(plb->pchan, &plb->olddata, sizeof(bPoseChannel));
+		
+		/* just overwrite values of properties from the stored copies (there should be some) */
+		if (plb->oldprops)
+			IDP_SyncGroupValues(plb->pchan->prop, plb->oldprops);
+			
+		// TODO: constraints settings aren't restored yet, even though these could change (though not that likely)
+	}
+}
+
+/* Free list of backups, including any side data it may use */
+static void poselib_backup_free_data (tPoseLib_PreviewData *pld)
+{
+	tPoseLib_Backup *plb, *plbn;
+	
+	for (plb= pld->backups.first; plb; plb= plbn) {
+		plbn= plb->next;
+		
+		/* free custom data */
+		if (plb->oldprops) {
+			IDP_FreeProperty(plb->oldprops);
+			MEM_freeN(plb->oldprops);
+		}
+		
+		/* free backup element now */
+		BLI_freelinkN(&pld->backups, plb);
 	}
 }
 
@@ -707,7 +820,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc group_ok_cb;
 	int frame= 1;
 	
@@ -762,6 +875,10 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
+	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Whole Character");
+	ListBase dsources = {NULL, NULL};
+	short autokey = autokeyframe_cfra_can_key(scene, &pld->ob->id);
+	
 	/* start tagging/keying */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* only for selected action channels */
@@ -769,20 +886,9 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 			pchan= get_pose_channel(pose, agrp->name);
 			
 			if (pchan) {
-				if (autokeyframe_cfra_can_key(scene, &pld->ob->id)) {
-					ListBase dsources = {NULL, NULL};
-					
-					/* get KeyingSet to use */
-					KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "LocRotScale");
-					
-					/* now insert the keyframe(s) using the Keying Set
-					 *	1) add datasource override for the PoseChannel
-					 *	2) insert keyframes
-					 *	3) free the extra info 
-					 */
+				if (autokey) {
+					/* add datasource override for the PoseChannel, to be used later */
 					ANIM_relative_keyingset_add_source(&dsources, &pld->ob->id, &RNA_PoseBone, pchan); 
-					ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-					BLI_freelistN(&dsources);
 					
 					/* clear any unkeyed tags */
 					if (pchan->bone)
@@ -795,6 +901,13 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 				}
 			}
 		}
+	}
+	
+	/* perform actual auto-keying now */
+	if (autokey) {
+		/* insert keyframes for all relevant bones in one go */
+		ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		BLI_freelistN(&dsources);
 	}
 	
 	/* send notifiers for this */
@@ -1235,7 +1348,7 @@ static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wm
 static void poselib_preview_init_data (bContext *C, wmOperator *op)
 {
 	tPoseLib_PreviewData *pld;
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	int pose_index = RNA_int_get(op->ptr, "pose_index");
 	
 	/* set up preview state info */
@@ -1342,7 +1455,7 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		
 		/* change active pose setting */
 		act->active_marker= BLI_findindex(&act->markers, marker) + 1;
-		action_set_activemarker(act, marker, 0);
+		action_set_activemarker(act, marker, NULL);
 		
 		/* Update event for pose and deformation children */
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -1351,15 +1464,12 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		if (IS_AUTOKEY_MODE(scene, NORMAL)) {
 			//remake_action_ipos(ob->action);
 		}
-		else {
-			/* need to trick depgraph, action is not allowed to execute on pose */
+		else
 			where_is_pose(scene, ob);
-			ob->recalc= 0;
-		}
 	}
 	
-	/* free memory used for backups */
-	BLI_freelistN(&pld->backups);
+	/* free memory used for backups and searching */
+	poselib_backup_free_data(pld);
 	BLI_freelistN(&pld->searchp);
 	
 	/* free temp data for operator */
@@ -1371,11 +1481,12 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 static int poselib_preview_exit (bContext *C, wmOperator *op)
 {
 	tPoseLib_PreviewData *pld= op->customdata;
+	int exit_state = pld->state;
 	
 	/* finish up */
 	poselib_preview_cleanup(C, op);
 	
-	if (ELEM(pld->state, PL_PREVIEW_CANCEL, PL_PREVIEW_ERROR))
+	if (ELEM(exit_state, PL_PREVIEW_CANCEL, PL_PREVIEW_ERROR))
 		return OPERATOR_CANCELLED;
 	else
 		return OPERATOR_FINISHED;
@@ -1469,12 +1580,12 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	ot->idname= "POSELIB_OT_browse_interactive";
 	ot->description= "Interactively browse poses in 3D-View";
 	
-	/* api callbacks */
+	/* callbacks */
 	ot->invoke= poselib_preview_invoke;
 	ot->modal= poselib_preview_modal;
 	ot->cancel= poselib_preview_cancel;
 	ot->exec= poselib_preview_exec;
-	ot->poll= ED_operator_posemode;
+	ot->poll= has_poselib_pose_data_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -1486,4 +1597,23 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	// XXX: percentage vs factor?
 	/* not used yet */
 	/* RNA_def_float_factor(ot->srna, "blend_factor", 1.0f, 0.0f, 1.0f, "Blend Factor", "Amount that the pose is applied on top of the existing poses", 0.0f, 1.0f); */
+}
+
+void POSELIB_OT_apply_pose (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Apply Pose Library Pose";
+	ot->idname = "POSELIB_OT_apply_pose";
+	ot->description = "Apply specified Pose Library pose to the rig";
+	
+	/* callbacks */
+	ot->exec= poselib_preview_exec;
+	ot->poll= has_poselib_pose_data_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */	
+		// TODO: make the pose_index into a proper enum instead of a cryptic int...
+	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
 }

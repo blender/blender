@@ -1,4 +1,4 @@
-/**
+/*
  * bmfont.c
  *
  * 04-10-2000 frank
@@ -32,6 +32,11 @@
  *
  */
 
+/** \file blender/blenkernel/intern/bmfont.c
+ *  \ingroup bke
+ */
+
+
 /**
  * Two external functions:
  *
@@ -54,6 +59,7 @@
 #include "BKE_global.h"
 #include "IMB_imbuf_types.h"
 
+#include "BKE_bmfont.h"
 #include "BKE_bmfont_types.h"
 
 void printfGlyph(bmGlyph * glyph)

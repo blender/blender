@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_userpref/space_userpref.c
+ *  \ingroup spuserpref
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -39,9 +44,12 @@
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
+#include "ED_space_api.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "UI_view2d.h"
 
 #include "userpref_intern.h"	// own include
 
@@ -104,14 +112,17 @@ static void userpref_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void userpref_main_area_draw(const bContext *C, ARegion *ar)
 {
+	/* this solves "vibrating UI" bug #25422 */
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
+	
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-void userpref_operatortypes(void)
+static void userpref_operatortypes(void)
 {
 }
 
-void userpref_keymap(struct wmKeyConfig *UNUSED(keyconf))
+static void userpref_keymap(struct wmKeyConfig *UNUSED(keyconf))
 {
 	
 }

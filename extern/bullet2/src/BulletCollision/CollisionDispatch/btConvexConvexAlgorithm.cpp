@@ -13,6 +13,11 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+///Specialized capsule-capsule collision algorithm has been added for Bullet 2.75 release to increase ragdoll performance
+///If you experience problems with capsule-capsule collision, try to define BT_DISABLE_CAPSULE_CAPSULE_COLLIDER and report it in the Bullet forums
+///with reproduction case
+//define BT_DISABLE_CAPSULE_CAPSULE_COLLIDER 1
+
 #include "btConvexConvexAlgorithm.h"
 
 //#include <stdio.h>
@@ -20,6 +25,9 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
+#include "BulletCollision/CollisionShapes/btCapsuleShape.h"
+
+
 #include "BulletCollision/NarrowPhaseCollision/btGjkPairDetector.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
@@ -43,7 +51,126 @@ subject to the following restrictions:
 
 
 
+///////////
 
+
+
+static SIMD_FORCE_INLINE void segmentsClosestPoints(
+	btVector3& ptsVector,
+	btVector3& offsetA,
+	btVector3& offsetB,
+	btScalar& tA, btScalar& tB,
+	const btVector3& translation,
+	const btVector3& dirA, btScalar hlenA,
+	const btVector3& dirB, btScalar hlenB )
+{
+	// compute the parameters of the closest points on each line segment
+
+	btScalar dirA_dot_dirB = btDot(dirA,dirB);
+	btScalar dirA_dot_trans = btDot(dirA,translation);
+	btScalar dirB_dot_trans = btDot(dirB,translation);
+
+	btScalar denom = 1.0f - dirA_dot_dirB * dirA_dot_dirB;
+
+	if ( denom == 0.0f ) {
+		tA = 0.0f;
+	} else {
+		tA = ( dirA_dot_trans - dirB_dot_trans * dirA_dot_dirB ) / denom;
+		if ( tA < -hlenA )
+			tA = -hlenA;
+		else if ( tA > hlenA )
+			tA = hlenA;
+	}
+
+	tB = tA * dirA_dot_dirB - dirB_dot_trans;
+
+	if ( tB < -hlenB ) {
+		tB = -hlenB;
+		tA = tB * dirA_dot_dirB + dirA_dot_trans;
+
+		if ( tA < -hlenA )
+			tA = -hlenA;
+		else if ( tA > hlenA )
+			tA = hlenA;
+	} else if ( tB > hlenB ) {
+		tB = hlenB;
+		tA = tB * dirA_dot_dirB + dirA_dot_trans;
+
+		if ( tA < -hlenA )
+			tA = -hlenA;
+		else if ( tA > hlenA )
+			tA = hlenA;
+	}
+
+	// compute the closest points relative to segment centers.
+
+	offsetA = dirA * tA;
+	offsetB = dirB * tB;
+
+	ptsVector = translation - offsetA + offsetB;
+}
+
+
+static SIMD_FORCE_INLINE btScalar capsuleCapsuleDistance(
+	btVector3& normalOnB,
+	btVector3& pointOnB,
+	btScalar capsuleLengthA,
+	btScalar	capsuleRadiusA,
+	btScalar capsuleLengthB,
+	btScalar	capsuleRadiusB,
+	int capsuleAxisA,
+	int capsuleAxisB,
+	const btTransform& transformA,
+	const btTransform& transformB,
+	btScalar distanceThreshold )
+{
+	btVector3 directionA = transformA.getBasis().getColumn(capsuleAxisA);
+	btVector3 translationA = transformA.getOrigin();
+	btVector3 directionB = transformB.getBasis().getColumn(capsuleAxisB);
+	btVector3 translationB = transformB.getOrigin();
+
+	// translation between centers
+
+	btVector3 translation = translationB - translationA;
+
+	// compute the closest points of the capsule line segments
+
+	btVector3 ptsVector;           // the vector between the closest points
+	
+	btVector3 offsetA, offsetB;    // offsets from segment centers to their closest points
+	btScalar tA, tB;              // parameters on line segment
+
+	segmentsClosestPoints( ptsVector, offsetA, offsetB, tA, tB, translation,
+						   directionA, capsuleLengthA, directionB, capsuleLengthB );
+
+	btScalar distance = ptsVector.length() - capsuleRadiusA - capsuleRadiusB;
+
+	if ( distance > distanceThreshold )
+		return distance;
+
+	btScalar lenSqr = ptsVector.length2();
+	if (lenSqr<= (SIMD_EPSILON*SIMD_EPSILON))
+	{
+		//degenerate case where 2 capsules are likely at the same location: take a vector tangential to 'directionA'
+		btVector3 q;
+		btPlaneSpace1(directionA,normalOnB,q);
+	} else
+	{
+		// compute the contact normal
+		normalOnB = ptsVector*-btRecipSqrt(lenSqr);
+	}
+	pointOnB = transformB.getOrigin()+offsetB + normalOnB * capsuleRadiusB;
+
+	return distance;
+}
+
+
+
+
+
+
+
+//////////
 
 
 
@@ -69,7 +196,7 @@ m_ownManifold (false),
 m_manifoldPtr(mf),
 m_lowLevelOfDetail(false),
 #ifdef USE_SEPDISTANCE_UTIL2
-,m_sepDistance((static_cast<btConvexShape*>(body0->getCollisionShape()))->getAngularMotionDisc(),
+m_sepDistance((static_cast<btConvexShape*>(body0->getCollisionShape()))->getAngularMotionDisc(),
 			  (static_cast<btConvexShape*>(body1->getCollisionShape()))->getAngularMotionDisc()),
 #endif
 m_numPerturbationIterations(numPerturbationIterations),
@@ -111,8 +238,8 @@ struct btPerturbedContactResult : public btManifoldResult
 		:m_originalManifoldResult(originalResult),
 		m_transformA(transformA),
 		m_transformB(transformB),
-		m_perturbA(perturbA),
 		m_unPerturbedTransform(unPerturbedTransform),
+		m_perturbA(perturbA),
 		m_debugDrawer(debugDrawer)
 	{
 	}
@@ -155,6 +282,7 @@ struct btPerturbedContactResult : public btManifoldResult
 
 extern btScalar gContactBreakingThreshold;
 
+
 //
 // Convex-Convex collision algorithm
 //
@@ -176,8 +304,39 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	btConvexShape* min0 = static_cast<btConvexShape*>(body0->getCollisionShape());
 	btConvexShape* min1 = static_cast<btConvexShape*>(body1->getCollisionShape());
 
+	btVector3  normalOnB;
+		btVector3  pointOnBWorld;
+#ifndef BT_DISABLE_CAPSULE_CAPSULE_COLLIDER
+	if ((min0->getShapeType() == CAPSULE_SHAPE_PROXYTYPE) && (min1->getShapeType() == CAPSULE_SHAPE_PROXYTYPE))
+	{
+		btCapsuleShape* capsuleA = (btCapsuleShape*) min0;
+		btCapsuleShape* capsuleB = (btCapsuleShape*) min1;
+		btVector3 localScalingA = capsuleA->getLocalScaling();
+		btVector3 localScalingB = capsuleB->getLocalScaling();
+		
+		btScalar threshold = m_manifoldPtr->getContactBreakingThreshold();
+
+		btScalar dist = capsuleCapsuleDistance(normalOnB,	pointOnBWorld,capsuleA->getHalfHeight(),capsuleA->getRadius(),
+			capsuleB->getHalfHeight(),capsuleB->getRadius(),capsuleA->getUpAxis(),capsuleB->getUpAxis(),
+			body0->getWorldTransform(),body1->getWorldTransform(),threshold);
+
+		if (dist<threshold)
+		{
+			btAssert(normalOnB.length2()>=(SIMD_EPSILON*SIMD_EPSILON));
+			resultOut->addContactPoint(normalOnB,pointOnBWorld,dist);	
+		}
+		resultOut->refreshContactPoints();
+		return;
+	}
+#endif //BT_DISABLE_CAPSULE_CAPSULE_COLLIDER
+
+
 #ifdef USE_SEPDISTANCE_UTIL2
-	m_sepDistance.updateSeparatingDistance(body0->getWorldTransform(),body1->getWorldTransform());
+	if (dispatchInfo.m_useConvexConservativeDistanceUtil)
+	{
+		m_sepDistance.updateSeparatingDistance(body0->getWorldTransform(),body1->getWorldTransform());
+	}
+
 	if (!dispatchInfo.m_useConvexConservativeDistanceUtil || m_sepDistance.getConservativeSeparatingDistance()<=0.f)
 #endif //USE_SEPDISTANCE_UTIL2
 
@@ -194,31 +353,55 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 #ifdef USE_SEPDISTANCE_UTIL2
 	if (dispatchInfo.m_useConvexConservativeDistanceUtil)
 	{
-		input.m_maximumDistanceSquared = 1e30f;
+		input.m_maximumDistanceSquared = BT_LARGE_FLOAT;
 	} else
 #endif //USE_SEPDISTANCE_UTIL2
 	{
-		input.m_maximumDistanceSquared = min0->getMargin() + min1->getMargin() + m_manifoldPtr->getContactBreakingThreshold();
+		if (dispatchInfo.m_convexMaxDistanceUseCPT)
+		{
+			input.m_maximumDistanceSquared = min0->getMargin() + min1->getMargin() + m_manifoldPtr->getContactProcessingThreshold();
+		} else
+		{
+			input.m_maximumDistanceSquared = min0->getMargin() + min1->getMargin() + m_manifoldPtr->getContactBreakingThreshold();
+		}
 		input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
 	}
 
+	input.m_stackAlloc = dispatchInfo.m_stackAllocator;
 	input.m_transformA = body0->getWorldTransform();
 	input.m_transformB = body1->getWorldTransform();
 
 	gjkPairDetector.getClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw);
-	btScalar sepDist = gjkPairDetector.getCachedSeparatingDistance()+dispatchInfo.m_convexConservativeDistanceThreshold;
 
-	//now perturbe directions to get multiple contact points
-	btVector3 v0,v1;
-	btVector3 sepNormalWorldSpace = gjkPairDetector.getCachedSeparatingAxis().normalized();
-	btPlaneSpace1(sepNormalWorldSpace,v0,v1);
+	
+
+#ifdef USE_SEPDISTANCE_UTIL2
+	btScalar sepDist = 0.f;
+	if (dispatchInfo.m_useConvexConservativeDistanceUtil)
+	{
+		sepDist = gjkPairDetector.getCachedSeparatingDistance();
+		if (sepDist>SIMD_EPSILON)
+		{
+			sepDist += dispatchInfo.m_convexConservativeDistanceThreshold;
+			//now perturbe directions to get multiple contact points
+			
+		}
+	}
+#endif //USE_SEPDISTANCE_UTIL2
+
 	//now perform 'm_numPerturbationIterations' collision queries with the perturbated collision objects
 	
 	//perform perturbation when more then 'm_minimumPointsPerturbationThreshold' points
-	if (resultOut->getPersistentManifold()->getNumContacts() < m_minimumPointsPerturbationThreshold)
+	if (m_numPerturbationIterations && resultOut->getPersistentManifold()->getNumContacts() < m_minimumPointsPerturbationThreshold)
 	{
 		
 		int i;
+		btVector3 v0,v1;
+		btVector3 sepNormalWorldSpace;
+	
+		sepNormalWorldSpace = gjkPairDetector.getCachedSeparatingAxis().normalized();
+		btPlaneSpace1(sepNormalWorldSpace,v0,v1);
+
 
 		bool perturbeA = true;
 		const btScalar angleLimit = 0.125f * SIMD_PI;
@@ -248,6 +431,8 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 		
 		for ( i=0;i<m_numPerturbationIterations;i++)
 		{
+			if (v0.length2()>SIMD_EPSILON)
+			{
 			btQuaternion perturbeRot(v0,perturbeAngle);
 			btScalar iterationAngle = i*(SIMD_2_PI/btScalar(m_numPerturbationIterations));
 			btQuaternion rotq(sepNormalWorldSpace,iterationAngle);
@@ -271,7 +456,7 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 			
 			btPerturbedContactResult perturbedResultOut(resultOut,input.m_transformA,input.m_transformB,unPerturbedTransform,perturbeA,dispatchInfo.m_debugDraw);
 			gjkPairDetector.getClosestPoints(input,perturbedResultOut,dispatchInfo.m_debugDraw);
-			
+			}
 			
 		}
 	}
@@ -279,7 +464,7 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	
 
 #ifdef USE_SEPDISTANCE_UTIL2
-	if (dispatchInfo.m_useConvexConservativeDistanceUtil)
+	if (dispatchInfo.m_useConvexConservativeDistanceUtil && (sepDist>SIMD_EPSILON))
 	{
 		m_sepDistance.initSeparatingDistance(gjkPairDetector.getCachedSeparatingAxis(),sepDist,body0->getWorldTransform(),body1->getWorldTransform());
 	}

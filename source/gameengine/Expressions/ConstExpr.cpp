@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/ConstExpr.cpp
+ *  \ingroup expressions
+ */
 // ConstExpr.cpp: implementation of the CConstExpr class.
 
 /*

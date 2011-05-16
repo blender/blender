@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/collada/DocumentExporter.cpp
+ *  \ingroup collada
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -302,15 +307,19 @@ public:
 
 	AnimationExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) { this->sw = sw; }
 
+
+
 	void exportAnimations(Scene *sce)
 	{
-		this->scene = sce;
+		if(hasAnimations(sce)) {
+			this->scene = sce;
 
-		openLibrary();
-		
-		forEachObjectInScene(sce, *this);
-		
-		closeLibrary();
+			openLibrary();
+
+			forEachObjectInScene(sce, *this);
+
+			closeLibrary();
+		}
 	}
 
 	// called for each exported object
@@ -900,6 +909,24 @@ protected:
 			}
 		}
 	}
+	
+	bool hasAnimations(Scene *sce)
+	{
+		Base *base= (Base*) sce->base.first;
+		while(base) {
+			Object *ob = base->object;
+			
+			FCurve *fcu = 0;
+			if(ob->adt && ob->adt->action)
+				fcu = (FCurve*)ob->adt->action->curves.first;
+				
+			if ((ob->type == OB_ARMATURE && ob->data) || fcu) {
+				return true;
+			}
+			base= base->next;
+		}
+		return false;
+	}
 };
 
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
@@ -982,12 +1009,16 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	asset.add();
 	
 	// <library_cameras>
-	CamerasExporter ce(&sw);
-	ce.exportCameras(sce);
+	if(has_object_type(sce, OB_CAMERA)) {
+		CamerasExporter ce(&sw);
+		ce.exportCameras(sce);
+	}
 	
 	// <library_lights>
-	LightsExporter le(&sw);
-	le.exportLights(sce);
+	if(has_object_type(sce, OB_LAMP)) {
+		LightsExporter le(&sw);
+		le.exportLights(sce);
+	}
 
 	// <library_images>
 	ImagesExporter ie(&sw, filename);
@@ -1002,8 +1033,10 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	me.exportMaterials(sce);
 
 	// <library_geometries>
-	GeometryExporter ge(&sw);
-	ge.exportGeom(sce);
+	if(has_object_type(sce, OB_MESH)) {
+		GeometryExporter ge(&sw);
+		ge.exportGeom(sce);
+	}
 
 	// <library_animations>
 	AnimationExporter ae(&sw);
@@ -1011,7 +1044,9 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 
 	// <library_controllers>
 	ArmatureExporter arm_exporter(&sw);
-	arm_exporter.export_controllers(sce);
+	if(has_object_type(sce, OB_ARMATURE)) {
+		arm_exporter.export_controllers(sce);
+	}
 
 	// <library_visual_scenes>
 	SceneExporter se(&sw, &arm_exporter);

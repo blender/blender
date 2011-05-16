@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_collision.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
@@ -48,6 +53,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 
+#include "MOD_util.h"
 
 static void initData(ModifierData *md) 
 {
@@ -58,7 +64,7 @@ static void initData(ModifierData *md)
 	collmd->current_x = NULL;
 	collmd->current_xnew = NULL;
 	collmd->current_v = NULL;
-	collmd->time = -1000;
+	collmd->time_x = collmd->time_xnew = -1000;
 	collmd->numverts = 0;
 	collmd->bvhtree = NULL;
 }
@@ -89,7 +95,7 @@ static void freeData(ModifierData *md)
 		collmd->current_x = NULL;
 		collmd->current_xnew = NULL;
 		collmd->current_v = NULL;
-		collmd->time = -1000;
+		collmd->time_x = collmd->time_xnew = -1000;
 		collmd->numverts = 0;
 		collmd->bvhtree = NULL;
 		collmd->mfaces = NULL;
@@ -110,8 +116,6 @@ static void deformVerts(ModifierData *md, Object *ob,
 {
 	CollisionModifierData *collmd = (CollisionModifierData*) md;
 	DerivedMesh *dm = NULL;
-	float current_time = 0;
-	unsigned int numverts = 0, i = 0;
 	MVert *tempVert = NULL;
 	
 	/* if possible use/create DerivedMesh */
@@ -126,23 +130,28 @@ static void deformVerts(ModifierData *md, Object *ob,
 	
 	if(dm)
 	{
+		float current_time = 0;
+		unsigned int numverts = 0;
+
 		CDDM_apply_vert_coords(dm, vertexCos);
 		CDDM_calc_normals(dm);
 		
 		current_time = BKE_curframe(md->scene);
 		
 		if(G.rt > 0)
-			printf("current_time %f, collmd->time %f\n", current_time, collmd->time);
+			printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
 		
 		numverts = dm->getNumVerts ( dm );
 		
-		if((current_time > collmd->time)|| (BKE_ptcache_get_continue_physics()))
-		{	
+		if((current_time > collmd->time_xnew)|| (BKE_ptcache_get_continue_physics()))
+		{
+			unsigned int i;
+
 			// check if mesh has changed
 			if(collmd->x && (numverts != collmd->numverts))
 				freeData((ModifierData *)collmd);
 			
-			if(collmd->time == -1000) // first time
+			if(collmd->time_xnew == -1000) // first time
 			{
 				collmd->x = dm->dupVertArray(dm); // frame start position
 				
@@ -165,7 +174,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				// create bounding box hierarchy
 				collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
 				
-				collmd->time = current_time;
+				collmd->time_x = collmd->time_xnew = current_time;
 			}
 			else if(numverts == collmd->numverts)
 			{
@@ -173,6 +182,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				tempVert = collmd->x;
 				collmd->x = collmd->xnew;
 				collmd->xnew = tempVert;
+				collmd->time_x = collmd->time_xnew;
 				
 				memcpy(collmd->xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
 				
@@ -207,7 +217,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 				}
 				
-				collmd->time = current_time;
+				collmd->time_xnew = current_time;
 			}
 			else if(numverts != collmd->numverts)
 			{
@@ -215,7 +225,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 			}
 			
 		}
-		else if(current_time < collmd->time)
+		else if(current_time < collmd->time_xnew)
 		{	
 			freeData((ModifierData *)collmd);
 		}
@@ -241,20 +251,20 @@ ModifierTypeInfo modifierType_Collision = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh
 							| eModifierTypeFlag_Single,
 
-	/* copyData */          0,
+	/* copyData */          NULL,
 	/* deformVerts */       deformVerts,
-	/* deformMatrices */    0,
-	/* deformVertsEM */     0,
-	/* deformMatricesEM */  0,
-	/* applyModifier */     0,
-	/* applyModifierEM */   0,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
-	/* requiredDataMask */  0,
+	/* requiredDataMask */  NULL,
 	/* freeData */          freeData,
-	/* isDisabled */        0,
-	/* updateDepgraph */    0,
+	/* isDisabled */        NULL,
+	/* updateDepgraph */    NULL,
 	/* dependsOnTime */     dependsOnTime,
-	/* dependsOnNormals */	0,
-	/* foreachObjectLink */ 0,
-	/* foreachIDLink */     0,
+	/* dependsOnNormals */	NULL,
+	/* foreachObjectLink */ NULL,
+	/* foreachIDLink */     NULL,
 };

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SCA_AlwaysEventManager.h
+ *  \ingroup gamelogic
+ */
+
 #ifndef __KX_ALWAYSEVENTMGR
 #define __KX_ALWAYSEVENTMGR
 #include "SCA_EventManager.h"

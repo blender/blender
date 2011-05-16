@@ -1,9 +1,4 @@
-/**
- * blenlib/BKE_plugin_types.h (mar-2001 nzc)
- *
- * Renderrecipe and scene decription. The fact that there is a
- * hierarchy here is a bit strange, and not desirable.
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,6 +28,11 @@
  */
 #ifndef BKE_PLUGIN_TYPES_H
 #define BKE_PLUGIN_TYPES_H
+
+/** \file BKE_plugin_types.h
+ *  \ingroup bke
+ *  \author nzc
+ */
 
 struct ImBuf;
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Rasterizer/RAS_FramingManager.cpp
+ *  \ingroup bgerast
+ */
+
 
 #include "RAS_FramingManager.h"
 #include "RAS_Rect.h"

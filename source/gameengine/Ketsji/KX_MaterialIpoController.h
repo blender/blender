@@ -1,3 +1,8 @@
+
+/** \file KX_MaterialIpoController.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_MATERIALIPOCONTROLLER_H__
 #define __KX_MATERIALIPOCONTROLLER_H__
 

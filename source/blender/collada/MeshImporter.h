@@ -1,5 +1,5 @@
-/**
- * $Id: MeshImporter.h 34533 2011-01-27 19:39:06Z jesterking $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,6 +20,10 @@
  * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file MeshImporter.h
+ *  \ingroup collada
  */
 
 #ifndef __BC__MESHIMPORTER_H__
@@ -87,6 +91,7 @@ private:
 	};
 	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
 	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map; // crazy name!
+	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom; //< materials that have already been mapped to a geometry. A pair of geom uid and mat uid, one geometry can have several materials
 	
 
 	void set_face_indices(MFace *mface, unsigned int *indices, bool quad);

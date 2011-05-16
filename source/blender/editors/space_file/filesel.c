@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_file/filesel.c
+ *  \ingroup spfile
+ */
+
 
 #include <string.h>
 #include <stdio.h>
@@ -242,34 +247,76 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 	int numfiles;
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
-		int width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
-		numfiles = (float)width/(float)layout->tile_w+0.5;
+		int width = (int)(ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x);
+		numfiles = (int)((float)width / (float)layout->tile_w + 0.5f);
 		return numfiles*layout->rows;
 	} else {
-		int height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
-		numfiles = (float)height/(float)layout->tile_h+0.5;
+		int height = (int)(ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y);
+		numfiles = (int)((float)height/(float)layout->tile_h + 0.5f);
 		return numfiles*layout->columns;
 	}
 }
 
-int ED_fileselect_layout_offset(FileLayout* layout, int clamp_bounds, int x, int y)
+static int is_inside(int x, int y, int cols, int rows)
+{
+	return ( (x >= 0) && (x<cols) && (y>=0) && (y<rows) );
+}
+
+FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const rcti* rect)
+{
+	int colmin, colmax, rowmin, rowmax;
+	FileSelection sel;
+	sel.first = sel.last = -1;
+
+	if (layout == NULL)
+		return sel;
+	
+	colmin = (rect->xmin)/(layout->tile_w + 2*layout->tile_border_x);
+	rowmin = (rect->ymin)/(layout->tile_h + 2*layout->tile_border_y);
+	colmax = (rect->xmax)/(layout->tile_w + 2*layout->tile_border_x);
+	rowmax = (rect->ymax)/(layout->tile_h + 2*layout->tile_border_y);
+	
+	if ( is_inside(colmin, rowmin, layout->columns, layout->rows) || 
+		 is_inside(colmax, rowmax, layout->columns, layout->rows) ) {
+		CLAMP(colmin, 0, layout->columns-1);
+		CLAMP(rowmin, 0, layout->rows-1);
+		CLAMP(colmax, 0, layout->columns-1);
+		CLAMP(rowmax, 0, layout->rows-1);
+	} 
+	
+	if  ( (colmin > layout->columns-1) || (rowmin > layout->rows-1) ) {
+		sel.first = -1;
+	} else {
+		if (layout->flag & FILE_LAYOUT_HOR) 
+			sel.first = layout->rows*colmin + rowmin;
+		else
+			sel.first = colmin + layout->columns*rowmin;
+	}
+	if  ( (colmax > layout->columns-1) || (rowmax > layout->rows-1) ) {
+		sel.last = -1;
+	} else {
+		if (layout->flag & FILE_LAYOUT_HOR) 
+			sel.last = layout->rows*colmax + rowmax;
+		else
+			sel.last = colmax + layout->columns*rowmax;
+	}
+
+	return sel;
+}
+
+int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 {
 	int offsetx, offsety;
 	int active_file;
 
 	if (layout == NULL)
-		return 0;
+		return -1;
 	
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if (clamp_bounds) {
-		CLAMP(offsetx, 0, layout->columns-1);
-		CLAMP(offsety, 0, layout->rows-1);
-	} else {
-		if (offsetx > layout->columns-1) return -1 ;
-		if (offsety > layout->rows-1) return -1 ;
-	}
+	if (offsetx > layout->columns-1) return -1 ;
+	if (offsety > layout->rows-1) return -1 ;
 	
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;
@@ -347,7 +394,7 @@ float file_string_width(const char* str)
 	return BLF_width(style->widget.uifont_id, str);
 }
 
-float file_font_pointsize()
+float file_font_pointsize(void)
 {
 #if 0
 	float s;
@@ -376,7 +423,7 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 	{
 		struct direntry* file = filelist_file(files, i);	
 		if (file) {
-			int len;
+			float len;
 			len = file_string_width(file->relname);
 			if (len > layout->column_widths[COLUMN_NAME]) layout->column_widths[COLUMN_NAME] = len;
 			len = file_string_width(file->date);
@@ -400,12 +447,12 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 {
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
-	FileLayout *layout=0;
+	FileLayout *layout= NULL;
 	View2D *v2d= &ar->v2d;
 	int maxlen = 0;
 	int numfiles;
 	int textheight;
-	if (sfile->layout == 0) {
+	if (sfile->layout == NULL) {
 		sfile->layout = MEM_callocN(sizeof(struct FileLayout), "file_layout");
 		sfile->layout->dirty = 1;
 	} 
@@ -413,7 +460,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 	if (!sfile->layout->dirty) return;
 
 	numfiles = filelist_numfiles(sfile->files);
-	textheight = file_font_pointsize();
+	textheight = (int)file_font_pointsize();
 	layout = sfile->layout;
 	layout->textheight = textheight;
 
@@ -426,7 +473,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		layout->prv_border_y = 6;
 		layout->tile_w = layout->prv_w + 2*layout->prv_border_x;
 		layout->tile_h = layout->prv_h + 2*layout->prv_border_y + textheight;
-		layout->width= (v2d->cur.xmax - v2d->cur.xmin - 2*layout->tile_border_x);
+		layout->width= (int)(v2d->cur.xmax - v2d->cur.xmin - 2*layout->tile_border_x);
 		layout->columns= layout->width / (layout->tile_w + 2*layout->tile_border_x);
 		if(layout->columns > 0)
 			layout->rows= numfiles/layout->columns + 1; // XXX dirty, modulo is zero
@@ -444,27 +491,27 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		layout->prv_border_x = 0;
 		layout->prv_border_y = 0;
 		layout->tile_h = textheight*3/2;
-		layout->height= v2d->cur.ymax - v2d->cur.ymin - 2*layout->tile_border_y;
+		layout->height= (int)(v2d->cur.ymax - v2d->cur.ymin - 2*layout->tile_border_y);
 		layout->rows = layout->height / (layout->tile_h + 2*layout->tile_border_y);
-        
+
 		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
 			maxlen = ICON_DEFAULT_WIDTH + 4 +
-					 layout->column_widths[COLUMN_NAME] + 12 +
-					 layout->column_widths[COLUMN_SIZE] + 12;
+					 (int)layout->column_widths[COLUMN_NAME] + 12 +
+					 (int)layout->column_widths[COLUMN_SIZE] + 12;
 		} else {
 			maxlen = ICON_DEFAULT_WIDTH + 4 +
-					 layout->column_widths[COLUMN_NAME] + 12 +
+					 (int)layout->column_widths[COLUMN_NAME] + 12 +
 #ifndef WIN32
-					 layout->column_widths[COLUMN_MODE1] + 12 +
-					 layout->column_widths[COLUMN_MODE2] + 12 +
-					 layout->column_widths[COLUMN_MODE3] + 12 +
-					 layout->column_widths[COLUMN_OWNER] + 12 +
+					 (int)layout->column_widths[COLUMN_MODE1] + 12 +
+					 (int)layout->column_widths[COLUMN_MODE2] + 12 +
+					 (int)layout->column_widths[COLUMN_MODE3] + 12 +
+					 (int)layout->column_widths[COLUMN_OWNER] + 12 +
 #endif
-					 layout->column_widths[COLUMN_DATE] + 12 +
-					 layout->column_widths[COLUMN_TIME] + 12 +
-					 layout->column_widths[COLUMN_SIZE] + 12;
+					 (int)layout->column_widths[COLUMN_DATE] + 12 +
+					 (int)layout->column_widths[COLUMN_TIME] + 12 +
+					 (int)layout->column_widths[COLUMN_SIZE] + 12;
 
 		}
 		layout->tile_w = maxlen;
@@ -521,7 +568,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 		for (i = 0; i < n; i++) {
 			file = filelist_file(sfile->files, i);
 			if (fnmatch(pattern, file->relname, 0) == 0) {
-				file->flags |= ACTIVEFILE;
+				file->selflag |= SELECTED_FILE;
 				match = 1;
 			}
 		}
@@ -555,7 +602,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 					char path[FILE_MAX];
 					struct stat status;
 					
-					BLI_join_dirfile(path, dirname, de->d_name);
+					BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
 					if (stat(path, &status) == 0) {
 						if (S_ISDIR(status.st_mode)) { /* is subdir */
@@ -608,9 +655,10 @@ void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile)
 void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile)
 {
 	if(!sfile) return;
-	if(sfile->op)
+	if(sfile->op) {
 		WM_event_fileselect_event(C, sfile->op, EVT_FILESELECT_EXTERNAL_CANCEL);
-	sfile->op = NULL;
+		sfile->op = NULL;
+	}
 
 	folderlist_free(sfile->folders_prev);
 	folderlist_free(sfile->folders_next);

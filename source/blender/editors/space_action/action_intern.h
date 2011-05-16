@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_action/action_intern.h
+ *  \ingroup spaction
+ */
+
 #ifndef ED_ACTION_INTERN_H
 #define ED_ACTION_INTERN_H
 
@@ -59,14 +64,14 @@ void ACTION_OT_select_column(struct wmOperatorType *ot);
 void ACTION_OT_select_linked(struct wmOperatorType *ot);
 void ACTION_OT_select_more(struct wmOperatorType *ot);
 void ACTION_OT_select_less(struct wmOperatorType *ot);
+void ACTION_OT_select_leftright(struct wmOperatorType *ot);
 void ACTION_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {
-	ACTKEYS_LRSEL_TEST	= -1,
-	ACTKEYS_LRSEL_NONE,
+	ACTKEYS_LRSEL_TEST	= 0,
 	ACTKEYS_LRSEL_LEFT,
-	ACTKEYS_LRSEL_RIGHT,
+	ACTKEYS_LRSEL_RIGHT
 } eActKeys_LeftRightSelect_Mode;
 
 /* defines for column-select mode */
@@ -82,6 +87,7 @@ enum {
 
 void ACTION_OT_previewrange_set(struct wmOperatorType *ot);
 void ACTION_OT_view_all(struct wmOperatorType *ot);
+void ACTION_OT_view_selected(struct wmOperatorType *ot);
 
 void ACTION_OT_copy(struct wmOperatorType *ot);
 void ACTION_OT_paste(struct wmOperatorType *ot);
@@ -103,6 +109,8 @@ void ACTION_OT_snap(struct wmOperatorType *ot);
 void ACTION_OT_mirror(struct wmOperatorType *ot);
 
 void ACTION_OT_new(struct wmOperatorType *ot);
+
+void ACTION_OT_markers_make_local(struct wmOperatorType *ot);
 
 /* defines for snap keyframes 
  * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)

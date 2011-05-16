@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/tnt_stopwatch.h
+ *  \ingroup smoke
+ */
 /*
 *
 * Mathematical and Computational Sciences Division

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * GHOST Blender Player application declaration file.
+ */
+
+/** \file GPG_Application.h
+ *  \ingroup player
+ *  \brief GHOST Blender Player application declaration file.
  */
 
 #include "GHOST_IEventConsumer.h"
@@ -59,12 +63,12 @@ public:
 
 			bool SetGameEngineData(struct Main* maggie, struct Scene* scene, int argc, char** argv);
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
-			const bool stereoVisual, const int stereoMode);
-			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
-			bool startEmbeddedWindow(STR_String& title, const GHOST_TEmbedderWindowID parent_window, const bool stereoVisual, const int stereoMode);
+			const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
+			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
+			bool startEmbeddedWindow(STR_String& title, const GHOST_TEmbedderWindowID parent_window, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
 #ifdef WIN32
-			bool startScreenSaverFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
-			bool startScreenSaverPreview(HWND parentWindow,	const bool stereoVisual, const int stereoMode);
+			bool startScreenSaverFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
+			bool startScreenSaverPreview(HWND parentWindow,	const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
 #endif
 
 	virtual	bool processEvent(GHOST_IEvent* event);

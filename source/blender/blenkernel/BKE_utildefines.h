@@ -27,8 +27,12 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
-/* This file shold contain blender format spesific macros
- * generic defines should go in BLI_utildefines.h */
+/** \file BKE_utildefines.h
+ *  \ingroup bke
+ *  \brief blender format spesific macros
+ *  \note generic defines should go in BLI_utildefines.h
+ */
+
 
 #ifndef BKE_UTILDEFINES_H
 #define BKE_UTILDEFINES_H

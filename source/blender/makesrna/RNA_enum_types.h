@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,10 @@
 
 #ifndef RNA_ENUM_TYPES_H
 #define RNA_ENUM_TYPES_H
+
+/** \file RNA_enum_types.h
+ *  \ingroup RNA
+ */
 
 #include "RNA_types.h"
 
@@ -70,8 +74,8 @@ extern EnumPropertyItem event_type_items[];
 extern EnumPropertyItem operator_return_items[];
 
 extern EnumPropertyItem brush_sculpt_tool_items[];
-extern EnumPropertyItem brush_vertexpaint_tool_items[];
-extern EnumPropertyItem brush_imagepaint_tool_items[];
+extern EnumPropertyItem brush_vertex_tool_items[];
+extern EnumPropertyItem brush_image_tool_items[];
 
 extern EnumPropertyItem texture_type_items[];
 
@@ -91,15 +95,20 @@ extern EnumPropertyItem operator_context_items[];
 
 extern EnumPropertyItem wm_report_items[];
 
+extern EnumPropertyItem transform_mode_types[];
+
 extern EnumPropertyItem property_type_items[];
 extern EnumPropertyItem property_unit_items[];
 
 extern EnumPropertyItem viewport_shade_items[];
 
-extern EnumPropertyItem node_blend_type_items[];
+extern EnumPropertyItem node_socket_type_items[];
+
 extern EnumPropertyItem node_math_items[];
 extern EnumPropertyItem node_vec_math_items[];
 extern EnumPropertyItem node_filter_items[];
+
+extern EnumPropertyItem ramp_blend_items[];
 
 struct bContext;
 struct PointerRNA;

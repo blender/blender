@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/BlenderRoutines/KX_BlenderMouseDevice.cpp
+ *  \ingroup blroutines
+ */
+
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 // annoying warnings about truncated STL debug info

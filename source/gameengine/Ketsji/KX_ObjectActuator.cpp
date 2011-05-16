@@ -1,4 +1,4 @@
-/**
+/*
  * Do translation/rotation actions
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_ObjectActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_ObjectActuator.h"
 #include "KX_GameObject.h"
@@ -294,7 +299,7 @@ bool KX_ObjectActuator::UnlinkObject(SCA_IObject* clientobj)
 	return false;
 }
 
-void KX_ObjectActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void KX_ObjectActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_reference];
 	if (h_obj) {
@@ -387,16 +392,16 @@ static int mathutils_obactu_generic_check(BaseMathObject *bmo)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 
-	return 1;
+	return 0;
 }
 
 static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_LINV:
@@ -407,14 +412,14 @@ static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype)
 			break;
 	}
 
-	return 1;
+	return 0;
 }
 
 static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_LINV:
@@ -425,15 +430,15 @@ static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 			break;
 	}
 
-	return 1;
+	return 0;
 }
 
 static int mathutils_obactu_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_obactu_vector_get(bmo, subtype))
-		return 0;
-	return 1;
+	if(mathutils_obactu_vector_get(bmo, subtype) == -1)
+		return -1;
+	return 0;
 }
 
 static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, int index)
@@ -441,8 +446,8 @@ static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, i
 	float f= bmo->data[index];
 
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_obactu_vector_get(bmo, subtype))
-		return 0;
+	if(mathutils_obactu_vector_get(bmo, subtype) == -1)
+		return -1;
 
 	bmo->data[index]= f;
 	return mathutils_obactu_vector_set(bmo, subtype);

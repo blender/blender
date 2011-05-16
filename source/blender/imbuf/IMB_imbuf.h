@@ -1,43 +1,3 @@
-/**
- * @file IMB_imbuf.h
- * @brief IMage Buffer module.
- *
- * This module offers import/export of several graphical file formats.
- * \ref IMB
- * @ingroup imbuf
- * @ingroup undoc
- *
- * @page IMB - Imbuf module external interface
- *
- *
- * @section about About the IMB module
- *
- * External interface of the IMage Buffer module. This module offers
- * import/export of several graphical file formats. It offers the
- * ImBuf type as a common structure to refer to different graphical
- * file formats, and to enable a uniform way of handling them.
- *
- * @section issues Known issues with IMB
- *
- * - imbuf is written in C.
- * - Endianness issues are dealt with internally.
- * - File I/O must be done externally. The module uses FILE*'s to
- *   direct input/output.
- * - Platform dependency is limited. Some minor patches for
- *   amiga and Irix are present. A 'posix-compliancy-patch'
- *   provides the interface to windows.
- *
- * @section dependencies Dependencies
- *
- * IMB needs:
- * - SDNA module
- *     The listbase types are used for handling the memory
- *     management.
- * - blenlib module
- *     blenlib handles guarded memory management in blender-style.
- *     BLI_winstuff.h makes a few windows specific behaviours
- *     posix-compliant.
- */
 /*
  * $Id$ 
  *
@@ -65,6 +25,49 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/imbuf/IMB_imbuf.h
+ *  \ingroup imbuf
+ */
+
+/**
+ * @file IMB_imbuf.h
+ * @brief IMage Buffer module.
+ *
+ * This module offers import/export of several graphical file formats.
+ * @ingroup imbuf
+ *
+ * @page IMB Imbuf module external interface
+ *
+ *
+ * @section about About the IMB module
+ *
+ * External interface of the IMage Buffer module. This module offers
+ * import/export of several graphical file formats. It offers the
+ * ImBuf type as a common structure to refer to different graphical
+ * file formats, and to enable a uniform way of handling them.
+ *
+ * @section issues Known issues with IMB
+ *
+ * - imbuf is written in C.
+ * - Endianness issues are dealt with internally.
+ * - File I/O must be done externally. The module uses FILE*'s to
+ *   direct input/output.
+ * - Platform dependency is limited. Some minor patches for
+ *   amiga and Irix are present. A 'posix-compliancy-patch'
+ *   provides the interface to windows.
+ *
+ * @section dependencies Dependencies
+ *
+ * IMB needs:
+ * - \ref DNA module
+ *     The listbase types are used for handling the memory
+ *     management.
+ * - \ref blenlib module
+ *     blenlib handles guarded memory management in blender-style.
+ *     BLI_winstuff.h makes a few windows specific behaviours
+ *     posix-compliant.
  */
 
 #ifndef IMB_IMBUF_H

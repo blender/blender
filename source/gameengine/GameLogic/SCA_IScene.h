@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SCA_IScene.h
+ *  \ingroup gamelogic
+ */
+
 #ifndef __KX_ISCENE_H
 #define __KX_ISCENE_H
 

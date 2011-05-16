@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_Path-api.cpp
+ *  \ingroup GHOST
+ */
+
 
 #include "intern/GHOST_Debug.h"
 #include "GHOST_Types.h"

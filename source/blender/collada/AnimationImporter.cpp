@@ -1,5 +1,5 @@
-/**
- * $Id: AnimationImporter.cpp 34787 2011-02-12 06:25:04Z campbellbarton $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,12 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/collada/AnimationImporter.cpp
+ *  \ingroup collada
+ */
+
+#include <stddef.h>
 
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"
@@ -400,6 +406,9 @@ bool AnimationImporter::write_animation_list(const COLLADAFW::AnimationList* ani
 	return true;
 }
 
+// \todo refactor read_node_transform to not automatically apply anything,
+// but rather return the transform matrix, so caller can do with it what is
+// necessary. Same for \ref get_node_mat
 void AnimationImporter::read_node_transform(COLLADAFW::Node *node, Object *ob)
 {
 	float mat[4][4];

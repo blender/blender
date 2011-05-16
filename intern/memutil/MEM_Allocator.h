@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,11 +21,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file memutil/MEM_Allocator.h
+ *  \ingroup memutil
+ */
+
+
 #ifndef MEM_ALLOCATOR_H
 #define MEM_ALLOCATOR_H
 
+#include <stddef.h>
 #include "guardedalloc/MEM_guardedalloc.h"
-#include "guardedalloc/BLO_sys_types.h"
+#include "guardedalloc/MEM_sys_types.h"
 
 template<typename _Tp>
 struct MEM_Allocator

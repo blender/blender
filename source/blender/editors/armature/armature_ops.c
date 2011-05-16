@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/armature/armature_ops.c
+ *  \ingroup edarmature
+ */
+
 
 #include <stdlib.h>
 #include <math.h>
@@ -119,6 +124,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_select_linked);
 	WM_operatortype_append(POSE_OT_select_constraint_target);
 	WM_operatortype_append(POSE_OT_select_grouped);
+	WM_operatortype_append(POSE_OT_select_flip_active);
 	
 	WM_operatortype_append(POSE_OT_group_add);
 	WM_operatortype_append(POSE_OT_group_remove);
@@ -132,7 +138,7 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(POSE_OT_autoside_names);
 	WM_operatortype_append(POSE_OT_flip_names);
-	
+
 	WM_operatortype_append(POSE_OT_quaternions_flip);
 	
 	WM_operatortype_append(POSE_OT_flags_set);
@@ -140,12 +146,20 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_armature_layers);
 	WM_operatortype_append(POSE_OT_bone_layers);
 	
+	WM_operatortype_append(POSE_OT_propagate);
+	
 	/* POSELIB */
 	WM_operatortype_append(POSELIB_OT_browse_interactive);
+	WM_operatortype_append(POSELIB_OT_apply_pose);
 	
 	WM_operatortype_append(POSELIB_OT_pose_add);
 	WM_operatortype_append(POSELIB_OT_pose_remove);
 	WM_operatortype_append(POSELIB_OT_pose_rename);
+	
+	WM_operatortype_append(POSELIB_OT_new);
+	WM_operatortype_append(POSELIB_OT_unlink);
+	
+	WM_operatortype_append(POSELIB_OT_action_sanitise);
 	
 	/* POSE SLIDING */
 	WM_operatortype_append(POSE_OT_push);
@@ -159,23 +173,29 @@ void ED_operatormacros_armature(void)
 	wmOperatorTypeMacro *otmacro;
 	
 	ot= WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
-	WM_operatortype_macro_define(ot, "ARMATURE_OT_duplicate");
-	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	if(ot) {
+		WM_operatortype_macro_define(ot, "ARMATURE_OT_duplicate");
+		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+		RNA_enum_set(otmacro->ptr, "proportional", 0);
+	}
 
 	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
-	otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
-	RNA_enum_set(otmacro->ptr, "forked", 0);
-	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	if(ot) {
+		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
+		RNA_boolean_set(otmacro->ptr, "forked", 0);
+		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+		RNA_enum_set(otmacro->ptr, "proportional", 0);
+	}
 	
 	// XXX would it be nicer to just be able to have standard extrude_move, but set the forked property separate?
 	// that would require fixing a properties bug 19733
 	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_forked", "Extrude Forked", OPTYPE_UNDO|OPTYPE_REGISTER);
-	otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
-	RNA_enum_set(otmacro->ptr, "forked", 1);
-	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	if(ot) {
+		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
+		RNA_boolean_set(otmacro->ptr, "forked", 1);
+		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+		RNA_enum_set(otmacro->ptr, "proportional", 0);
+	}
 }
 
 void ED_keymap_armature(wmKeyConfig *keyconf)
@@ -206,6 +226,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
 	/* only set in editmode armature, by space_view3d listener */
 	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "unselected", 1);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_align", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_CTRL, 0);
@@ -317,6 +339,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_select_flip_active", FKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_constraint_add_with_targets", CKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_constraints_clear", CKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);

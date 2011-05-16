@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file RE_pipeline.h
+ *  \ingroup render
  */
 
 #ifndef RE_PIPELINE_H
@@ -187,6 +191,7 @@ void RE_InitState (struct Render *re, struct Render *source, struct RenderData *
 void RE_SetDispRect (struct Render *re, rcti *disprect);
 
 /* set up the viewplane/perspective matrix, three choices */
+struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
 void RE_SetCamera(struct Render *re, struct Object *camera);
 void RE_SetWindow (struct Render *re, rctf *viewplane, float clipsta, float clipend);
 void RE_SetOrtho (struct Render *re, rctf *viewplane, float clipsta, float clipend);
@@ -212,8 +217,8 @@ void RE_init_threadcount(Render *re);
 void RE_TileProcessor(struct Render *re);
 
 /* only RE_NewRender() needed, main Blender render calls */
-void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, unsigned int lay, int frame, const short write_still);
-void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
+void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, struct Object *camera_override, unsigned int lay, int frame, const short write_still);
+void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
 
 /* main preview render call */
 void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene);
@@ -235,6 +240,7 @@ void RE_display_clear_cb(struct Render *re, void *handle, void (*f)(void *handle
 void RE_display_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr, volatile struct rcti *rect));
 void RE_stats_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderStats *rs));
 void RE_progress_cb	(struct Render *re, void *handle, void (*f)(void *handle, float));
+void RE_draw_lock_cb		(struct Render *re, void *handle, void (*f)(void *handle, int));
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
 void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, const char *str));
 
@@ -300,7 +306,7 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 void RE_engines_init(void);
 void RE_engines_exit(void);
 
-int RE_is_rendering_allowed(struct Scene *scene, void *erh, void (*error)(void *handle, const char *str));
+int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, void *erh, void (*error)(void *handle, const char *str));
 
 #endif /* RE_PIPELINE_H */
 

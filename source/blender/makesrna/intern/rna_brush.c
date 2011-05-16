@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_brush.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 
@@ -64,7 +69,7 @@ EnumPropertyItem brush_sculpt_tool_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 
-EnumPropertyItem brush_vertexpaint_tool_items[] = {
+EnumPropertyItem brush_vertex_tool_items[] = {
 	{0, "MIX", ICON_BRUSH_MIX, "Mix", "Use mix blending mode while painting"},
 	{1, "ADD", ICON_BRUSH_ADD, "Add", "Use add blending mode while painting"},
 	{2, "SUB", ICON_BRUSH_SUBTRACT, "Subtract", "Use subtract blending mode while painting"},
@@ -74,7 +79,7 @@ EnumPropertyItem brush_vertexpaint_tool_items[] = {
 	{6, "DARKEN", ICON_BRUSH_DARKEN, "Darken", "Use darken blending mode while painting"},
 	{0, NULL, 0, NULL, NULL}};
 	
-EnumPropertyItem brush_imagepaint_tool_items[] = {
+EnumPropertyItem brush_image_tool_items[] = {
 	{PAINT_TOOL_DRAW, "DRAW", ICON_BRUSH_TEXDRAW, "Draw", ""},
 	{PAINT_TOOL_SOFTEN, "SOFTEN", ICON_BRUSH_SOFTEN, "Soften", ""},
 	{PAINT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SMEAR, "Smear", ""},
@@ -106,7 +111,7 @@ static void rna_Brush_reset_icon(Brush *br, const char *UNUSED(type))
 	if(id->icon_id >= BIFICONID_LAST) {
 		BKE_icon_delete(id);
 		BKE_previewimg_free_id(id);
- 	}
+	}
 
 	id->icon_id = 0;
 }
@@ -125,7 +130,7 @@ static void rna_Brush_sculpt_tool_update(Main *bmain, Scene *scene, PointerRNA *
 	rna_Brush_update(bmain, scene, ptr);
 }
  
-static void rna_Brush_vertexpaint_tool_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Brush_vertex_tool_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
 	rna_Brush_reset_icon(br, "vertex_paint");
@@ -135,7 +140,7 @@ static void rna_Brush_vertexpaint_tool_update(Main *bmain, Scene *scene, Pointer
 static void rna_Brush_imagepaint_tool_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
-	rna_Brush_reset_icon(br, "texture_paint");
+	rna_Brush_reset_icon(br, "image_paint");
 	rna_Brush_update(bmain, scene, ptr);
 }
 
@@ -337,22 +342,22 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem brush_stroke_method_items[] = {
-		{0, "DOTS", 0, "Dots", ""},
-		{BRUSH_RESTORE_MESH, "DRAG_DOT", 0, "Drag Dot", ""},
-		{BRUSH_SPACE, "SPACE", 0, "Space", ""},
-		{BRUSH_ANCHORED, "ANCHORED", 0, "Anchored", ""},
-		{BRUSH_AIRBRUSH, "AIRBRUSH", 0, "Airbrush", ""},
+		{0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},
+		{BRUSH_RESTORE_MESH, "DRAG_DOT", 0, "Drag Dot", "Allows a single dot to be carefully positioned"},
+		{BRUSH_SPACE, "SPACE", 0, "Space", "Limit brush application to the distance specified by spacing"},
+		{BRUSH_ANCHORED, "ANCHORED", 0, "Anchored", "Keep the brush anchored to the initial location"},
+		{BRUSH_AIRBRUSH, "AIRBRUSH", 0, "Airbrush", "Keep applying paint effect while holding mouse (spray)"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem texture_angle_source_items[] = {
-		{0, "USER", 0, "User", ""},
-		{BRUSH_RAKE, "RAKE", 0, "Rake", ""},
-		{BRUSH_RANDOM_ROTATION, "RANDOM", 0, "Random", ""},
+		{0, "USER", 0, "User", "Rotate the brush texture by given angle"},
+		{BRUSH_RAKE, "RAKE", 0, "Rake", "Rotate the brush texture to match the stroke direction"},
+		{BRUSH_RANDOM_ROTATION, "RANDOM", 0, "Random", "Rotate the brush texture at random"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem texture_angle_source_no_random_items[] = {
-		{0, "USER", 0, "User", ""},
-		{BRUSH_RAKE, "RAKE", 0, "Rake", ""},
+		{0, "USER", 0, "User", "Rotate the brush texture by given angle"},
+		{BRUSH_RAKE, "RAKE", 0, "Rake", "Rotate the brush texture to match the stroke direction"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem brush_sculpt_plane_items[] = {
@@ -378,13 +383,15 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sculpt Tool", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_sculpt_tool_update");
 
-	prop= RNA_def_property(srna, "vertexpaint_tool", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, brush_vertexpaint_tool_items);
+	prop= RNA_def_property(srna, "vertex_tool", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "vertexpaint_tool");
+	RNA_def_property_enum_items(prop, brush_vertex_tool_items);
 	RNA_def_property_ui_text(prop, "Vertex/Weight Paint Tool", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_vertexpaint_tool_update");
+	RNA_def_property_update(prop, 0, "rna_Brush_vertex_tool_update");
 	
-	prop= RNA_def_property(srna, "imagepaint_tool", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, brush_imagepaint_tool_items);
+	prop= RNA_def_property(srna, "image_tool", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "imagepaint_tool");
+	RNA_def_property_enum_items(prop, brush_image_tool_items);
 	RNA_def_property_ui_text(prop, "Image Paint Tool", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_Brush_imagepaint_tool_update");
 
@@ -423,7 +430,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Brush_get_size", "rna_Brush_set_size", NULL);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS*10);
 	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, 0);
-	RNA_def_property_ui_text(prop, "Size", "Radius of the brush in pixels");
+	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
@@ -491,6 +498,13 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0, 1.0f);
 	RNA_def_property_ui_text(prop, "Plane Trim", "If a vertex is further from offset plane than this then it is not affected");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "height");
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0, 1.0f);
+	RNA_def_property_ui_text(prop, "Brush Height", "Affectable height of brush (layer height for layer tool, i.e.)");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "texture_sample_bias", PROP_FLOAT, PROP_DISTANCE);
@@ -653,11 +667,10 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Restore Mesh", "Allows a single dot to be carefully positioned");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	/* not exposed in the interface yet
-	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_fixed_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FIXED_TEX);
 	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position");
-	RNA_def_property_update(prop, 0, "rna_Brush_update"); */
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	/* only for projection paint, TODO, other paint modes */
 	prop= RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
@@ -683,7 +696,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_WEIGHT_PAINT);
 	RNA_def_property_ui_text(prop, "Use Weight", "Use this brush in weight paint mode");	
 
-	prop= RNA_def_property(srna, "use_paint_texture", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_paint_image", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_TEXTURE_PAINT);
 	RNA_def_property_ui_text(prop, "Use Texture", "Use this brush in texture paint mode");	
 
@@ -715,7 +728,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "cursor_color_subtract", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "sub_col");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Subract Color", "Color of cursor when subtracting");
+	RNA_def_property_ui_text(prop, "Subtract Color", "Color of cursor when subtracting");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "use_custom_icon", PROP_BOOLEAN, PROP_NONE);
@@ -764,7 +777,7 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "OperatorStrokeElement", "IDPropertyGroup");
+	srna= RNA_def_struct(brna, "OperatorStrokeElement", "PropertyGroup");
 	RNA_def_struct_ui_text(srna, "Operator Stroke Element", "");
 
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);

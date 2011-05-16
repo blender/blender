@@ -26,15 +26,15 @@
 
 set(INC
 	.
-	../../../source/kernel/gen_system
 	../../../source/blender/makesdna
 	../../../source/gameengine/SceneGraph
 	../../../source/gameengine/Ketsji
 	../../../intern/string
+	../../../intern/container
 	../../../intern/moto/include
-	../../../extern/glew/include
 	../../../intern/guardedalloc
 	../Expressions
+	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 )
 

@@ -28,6 +28,11 @@
  * LoopbackNetworkDeviceInterface derived from NG_NetworkDeviceInterface
  */
 
+/** \file gameengine/Network/LoopBackNetwork/NG_LoopBackNetworkDeviceInterface.cpp
+ *  \ingroup bgenetlb
+ */
+
+
 #include "NG_LoopBackNetworkDeviceInterface.h"
 #include "NG_NetworkMessage.h"
 

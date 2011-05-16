@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_image.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -39,9 +44,9 @@
 #include "WM_types.h"
 
 static EnumPropertyItem image_source_items[]= {
-	{IMA_SRC_FILE, "FILE", 0, "File", "Single image file"},
-	{IMA_SRC_SEQUENCE, "SEQUENCE", 0, "Sequence", "Multiple image files, as a sequence"},
-	{IMA_SRC_MOVIE, "MOVIE", 0, "Movie", "Movie file"},
+	{IMA_SRC_FILE, "FILE", 0, "Single Image", "Single image file"},
+	{IMA_SRC_SEQUENCE, "SEQUENCE", 0, "Image Sequence", "Multiple image files, as a sequence"},
+	{IMA_SRC_MOVIE, "MOVIE", 0, "Movie File", "Movie file"},
 	{IMA_SRC_GENERATED, "GENERATED", 0, "Generated", "Generated image"},
 	{IMA_SRC_VIEWER, "VIEWER", 0, "Viewer", "Compositing node viewer"},
 	{0, NULL, 0, NULL, NULL}};
@@ -229,13 +234,81 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 	if(!ibuf)
 		depth= 0;
 	else if(ibuf->rect_float)
-		depth= 128;
+		depth= ibuf->depth * 4;
 	else
 		depth= ibuf->depth;
 
 	BKE_image_release_ibuf(im, lock);
 
 	return depth;
+}
+
+static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+	Image *ima= ptr->id.data;
+	ImBuf *ibuf;
+	void *lock;
+
+	ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+	if(ibuf)
+		length[0]= ibuf->x*ibuf->y*ibuf->channels;
+	else
+		length[0]= 0;
+
+	BKE_image_release_ibuf(ima, lock);
+
+	return length[0];
+}
+
+static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
+{
+	Image *ima= ptr->id.data;
+	ImBuf *ibuf;
+	void *lock;
+	int i, size;
+
+	ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+	if(ibuf) {
+		size= ibuf->x*ibuf->y*ibuf->channels;
+
+		if(ibuf->rect_float) {
+			memcpy(values, ibuf->rect_float, sizeof(float)*size);
+		}
+		else {
+			for(i = 0; i < size; i++)
+				values[i] = ((unsigned char*)ibuf->rect)[i]*(1.0f/255.0f);
+		}
+	}
+
+	BKE_image_release_ibuf(ima, lock);
+}
+
+static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
+{
+	Image *ima= ptr->id.data;
+	ImBuf *ibuf;
+	void *lock;
+	int i, size;
+
+	ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+	if(ibuf) {
+		size= ibuf->x*ibuf->y*ibuf->channels;
+
+		if(ibuf->rect_float) {
+			memcpy(ibuf->rect_float, values, sizeof(float)*size);
+		}
+		else {
+			for(i = 0; i < size; i++)
+				((unsigned char*)ibuf->rect)[i] = FTOCHAR(values[i]);
+		}
+
+		ibuf->userflags |= IB_BITMAPDIRTY;
+	}
+
+	BKE_image_release_ibuf(ima, lock);
 }
 
 #else
@@ -483,6 +556,13 @@ static void rna_def_image(BlenderRNA *brna)
 	prop= RNA_def_int_vector(srna, "size" , 2 , NULL , 0, 0, "Size" , "Width and height in pixels, zero when image data cant be loaded" , 0 , 0);
 	RNA_def_property_int_funcs(prop, "rna_Image_size_get" , NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "pixels", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_multi_array(prop, 1, NULL);
+	RNA_def_property_ui_text(prop, "Pixels", "Image pixels in floating point values");
+	RNA_def_property_dynamic_array_funcs(prop, "rna_Image_pixels_get_length");
+	RNA_def_property_float_funcs(prop, "rna_Image_pixels_get", "rna_Image_pixels_set", NULL);
 
 	RNA_api_image(srna);
 }

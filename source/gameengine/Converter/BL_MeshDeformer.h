@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file BL_MeshDeformer.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef BL_MESHDEFORMER
 #define BL_MESHDEFORMER
 
@@ -47,7 +51,7 @@ class BL_MeshDeformer : public RAS_Deformer
 public:
 	void VerifyStorage();
 	void RecalcNormals();
-	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map);
+	virtual void Relink(CTR_Map<class CTR_HashedPtr, void*>*map);
 	BL_MeshDeformer(BL_DeformableGameObject *gameobj,
 					struct Object* obj,
 					class RAS_MeshObject *meshobj ):

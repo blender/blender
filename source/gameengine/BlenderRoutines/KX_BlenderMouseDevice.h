@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_BlenderMouseDevice.h
+ *  \ingroup blroutines
+ */
+
 #ifndef __KX_BLENDERMOUSEDEVICE
 #define __KX_BLENDERMOUSEDEVICE
 

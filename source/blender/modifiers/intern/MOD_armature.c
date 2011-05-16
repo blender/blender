@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_armature.c
+ *  \ingroup modifiers
+ */
+
+
 #include <string.h>
 
 #include "DNA_armature_types.h"
@@ -189,15 +194,15 @@ ModifierTypeInfo modifierType_Armature = {
 	/* deformMatrices */    deformMatrices,
 	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  deformMatricesEM,
-	/* applyModifier */     0,
-	/* applyModifierEM */   0,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          0,
+	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
-	/* dependsOnTime */     0,
-	/* dependsOnNormals */	0,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     0,
+	/* foreachIDLink */     NULL,
 };

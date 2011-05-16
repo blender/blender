@@ -25,10 +25,14 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * NetworkGameengine_NetworkDeviceInterface
- * Functions like (de)initialize network, get library version
+ */
+
+/** \file NG_NetworkDeviceInterface.h
+ *  \ingroup bgenet
+ *  \brief Functions like (de)initialize network, get library version
  * To be derived by loopback and network libraries
  */
+
 #ifndef NG_NETWORKDEVICEINTERFACE_H
 #define NG_NETWORKDEVICEINTERFACE_H
 

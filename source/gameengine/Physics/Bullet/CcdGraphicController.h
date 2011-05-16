@@ -13,6 +13,10 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+/** \file CcdGraphicController.h
+ *  \ingroup physbullet
+ */
+
 
 #ifndef BULLET2_GRAPHICCONTROLLER_H
 #define BULLET2_GRAPHICCONTROLLER_H

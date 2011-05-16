@@ -1,4 +1,4 @@
-/**
+/*
  * Sensor for mouse input
  *
  *
@@ -29,6 +29,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_MouseSensor.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include <stddef.h>
 

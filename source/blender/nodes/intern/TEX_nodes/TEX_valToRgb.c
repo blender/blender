@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,7 +27,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_valToRgb.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
+#include "TEX_node.h"
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketType valtorgb_in[]= {
@@ -74,12 +80,12 @@ void register_node_type_tex_valtorgb(ListBase *lb)
 
 /* **************** RGBTOBW ******************** */
 static bNodeSocketType rgbtobw_in[]= {
-   {	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
-   {	-1, 0, ""	}
+	{	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
 };
 static bNodeSocketType rgbtobw_out[]= {
-   {	SOCK_VALUE, 0, "Val",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-   {	-1, 0, ""	}
+	{	SOCK_VALUE, 0, "Val",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
 };
 
 

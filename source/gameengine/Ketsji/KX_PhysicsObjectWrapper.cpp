@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_PhysicsObjectWrapper.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "PyObjectPlus.h"
 

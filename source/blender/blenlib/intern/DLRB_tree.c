@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenlib/intern/DLRB_tree.c
+ *  \ingroup bli
+ */
+
 
 #include "MEM_guardedalloc.h"
 

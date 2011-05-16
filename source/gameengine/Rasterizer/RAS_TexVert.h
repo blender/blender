@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_TexVert.h
+ *  \ingroup bgerast
+ */
+
 #ifndef __RAS_TEXVERT
 #define __RAS_TEXVERT
 

@@ -1,3 +1,6 @@
+/** \file opennl/superlu/mmd.c
+ *  \ingroup opennl
+ */
 
 typedef int shortint;
 

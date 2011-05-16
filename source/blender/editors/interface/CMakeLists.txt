@@ -23,6 +23,7 @@ set(INC
 	../include
 	../../blenfont
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../gpu
 	../../imbuf
@@ -31,6 +32,7 @@ set(INC
 	../../python
 	../../windowmanager
 	../../../../intern/guardedalloc
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

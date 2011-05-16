@@ -1,3 +1,6 @@
+/** \file blender/imbuf/intern/cineon/dpxlib.c
+ *  \ingroup imbcineon
+ */
 /*
  *	 Dpx image file format library routines.
  *

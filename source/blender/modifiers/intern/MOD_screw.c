@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_screw.c
+ *  \ingroup modifiers
+ */
+
+
 /* Screw modifier: revolves the edges about an axis */
 
 #include "DNA_meshdata_types.h"
@@ -267,7 +272,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	/* will the screw be closed?
 	 * Note! smaller then FLT_EPSILON*100 gives problems with float precision so its never closed. */
-	if (fabs(screw_ofs) <= (FLT_EPSILON*100) && fabs(fabs(angle) - (M_PI * 2)) <= (FLT_EPSILON*100)) {
+	if (fabsf(screw_ofs) <= (FLT_EPSILON*100.0f) && fabsf(fabsf(angle) - ((float)M_PI * 2.0f)) <= (FLT_EPSILON*100.0f)) {
 		close= 1;
 		step_tot--;
 		if(step_tot < 2) step_tot= 2;
@@ -433,15 +438,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* find the first vert */
 			vc= vert_connect;
 			for (i=0; i < totvert; i++, vc++) {
-				int v_best=-1, ed_loop_closed=0; /* vert and vert new */
-				int ed_loop_flip= 0; /* compiler complains if not initialized, but it should be initialized below */
-				float fl= -1.0f;
-				ScrewVertIter lt_iter;
-
 				/* Now do search for connected verts, order all edges and flip them
 				 * so resulting faces are flipped the right way */
 				vc_tot_linked= 0; /* count the number of linked verts for this loop */
 				if (vc->flag == 0) {
+					int v_best=-1, ed_loop_closed=0; /* vert and vert new */
+					ScrewVertIter lt_iter;
+					int ed_loop_flip= 0; /* compiler complains if not initialized, but it should be initialized below */
+					float fl= -1.0f;
+
 					/*printf("Loop on connected vert: %i\n", i);*/
 
 					for(j=0; j<2; j++) {
@@ -883,19 +888,19 @@ ModifierTypeInfo modifierType_Screw = {
 							| eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
-	/* deformVerts */       0,
-	/* deformMatrices */    0,
-	/* deformVertsEM */     0,
-	/* deformMatricesEM */  0,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   applyModifierEM,
 	/* initData */          initData,
-	/* requiredDataMask */  0,
-	/* freeData */          0,
-	/* isDisabled */        0,
+	/* requiredDataMask */  NULL,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
-	/* dependsOnNormals */	0,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     0,
+	/* foreachIDLink */     NULL,
 };

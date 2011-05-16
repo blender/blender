@@ -1,4 +1,4 @@
-/**
+/*
  * blenlib/BKE_mesh.h (mar-2001 nzc)
  *	
  * $Id$ 
@@ -31,6 +31,10 @@
 #ifndef BKE_MESH_H
 #define BKE_MESH_H
 
+/** \file BKE_mesh.h
+ *  \ingroup bke
+ */
+
 /***/
 
 struct BoundBox;
@@ -62,7 +66,6 @@ void free_mesh(struct Mesh *me);
 struct Mesh *add_mesh(const char *name);
 struct Mesh *copy_mesh(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me);
-void make_local_tface(struct Mesh *me);
 void make_local_mesh(struct Mesh *me);
 void boundbox_mesh(struct Mesh *me, float *loc, float *size);
 void tex_space_mesh(struct Mesh *me);
@@ -96,7 +99,7 @@ void mesh_strip_loose_edges(struct Mesh *me);
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
 	 * and vertex normals are stored in actual mverts.
 	 */
-void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float **faceNors_r);
+void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
 
 	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
 	 * (_numVerts_r_ may be NULL) */
@@ -152,7 +155,7 @@ int mesh_center_bounds(struct Mesh *me, float cent[3]);
 void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 /* mesh_validate.c */
-int BKE_mesh_validate_arrays(struct Mesh *me, struct MVert *mverts, int totvert, struct MEdge *medges, int totedge, struct MFace *mfaces, int totface, const short do_verbose, const short do_fixes);
+int BKE_mesh_validate_arrays(struct Mesh *me, struct MVert *mverts, unsigned int totvert, struct MEdge *medges, unsigned int totedge, struct MFace *mfaces, unsigned int totface, const short do_verbose, const short do_fixes);
 int BKE_mesh_validate(struct Mesh *me, int do_verbose);
 int BKE_mesh_validate_dm(struct DerivedMesh *dm);
 

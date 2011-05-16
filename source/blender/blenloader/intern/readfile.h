@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * blenloader readfile private function prototypes
  */
+
+/** \file blender/blenloader/intern/readfile.h
+ *  \ingroup blenloader
+ */
+
 #ifndef READFILE_H
 #define READFILE_H
 

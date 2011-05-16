@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file moto/intern/MT_Vector4.cpp
+ *  \ingroup moto
+ */
+
 
 #include "MT_Vector4.h"
 

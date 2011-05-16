@@ -1,5 +1,4 @@
-/**
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +28,11 @@
 #ifndef BLI_VOXEL_H
 #define BLI_VOXEL_H
 
-/* find the index number of a voxel, given x/y/z integer coords and resolution vector */
+/** \file BLI_voxel.h
+ *  \ingroup bli
+ */
+
+/** find the index number of a voxel, given x/y/z integer coords and resolution vector */
 #define V_I(x, y, z, res) ( (z)*(res)[1]*(res)[0] + (y)*(res)[0] + (x) )
 
 /* all input coordinates must be in bounding box 0.0 - 1.0 */

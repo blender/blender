@@ -23,6 +23,7 @@ set(INC
 	../include
 	../../blenfont
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../gpu
 	../../imbuf
@@ -32,6 +33,7 @@ set(INC
 	../../render/extern/include
 	../../../../intern/guardedalloc
 	../../../../intern/smoke/extern
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
@@ -56,7 +58,7 @@ set(SRC
 )
 
 if(WITH_GAMEENGINE)
-	list(APPEND INC ../../../kernel/gen_system)
+	list(APPEND INC ../../../../source/gameengine/BlenderRoutines)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 

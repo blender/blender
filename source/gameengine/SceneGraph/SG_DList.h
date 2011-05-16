@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SG_DList.h
+ *  \ingroup bgesg
+ */
+ 
 #ifndef __SG_DLIST
 #define __SG_DLIST
 

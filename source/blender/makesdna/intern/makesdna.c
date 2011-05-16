@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,9 +25,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/**  \file makesdna.c
+ *   \brief Struct muncher for making SDNA.
+ *   \ingroup DNA
  *
- * Struct muncher for making SDNA
- *
+ * \section aboutmakesdnac About makesdna tool
  * Originally by Ton, some mods by Frank, and some cleaning and
  * extension by Nzc.
  *
@@ -42,7 +46,7 @@
  * and the offsets for reaching a particular one.
  *
  * There is a facility to get verbose output from sdna. Search for
- * debugSDNA. This int can be set to 0 (no output) to some int. Higher
+ * \ref debugSDNA. This int can be set to 0 (no output) to some int. Higher
  * numbers give more output.
  * */
 
@@ -145,7 +149,8 @@ short **structs, *structdata;	/* at sp= structs[a] is the first address of a str
 								   sp[0] is type number
 								   sp[1] is amount of elements
 								   sp[2] sp[3] is typenr,  namenr (etc) */
-/*
+/**
+ * Variable to control debug output of makesdna.
  * debugSDNA:
  *  - 0 = no output, except errors
  *  - 1 = detail actions
@@ -160,12 +165,15 @@ int additional_slen_offset;
 /* ************************************************************************** */
 
 /**
- * Add type <str> to struct indexed by <len>, if it was not yet found.
+ * Add type \c str to struct indexed by \c len, if it was not yet found.
+ * \param str char
+ * \param len int
  */
 int add_type(const char *str, int len);
 
 /**
- * Add variable <str> to 
+ * Add variable \c str to 
+ * \param str
  */
 int add_name(char *str);
 
@@ -607,7 +615,7 @@ int convert_include(char *filename)
 										sp[0]= type;
 										sp[1]= name;
 
-										if ((debugSDNA>1) && (names[name] != 0 )) printf("%s |", names[name]);
+										if ((debugSDNA>1) && (names[name] != NULL)) printf("%s |", names[name]);
 
 										structpoin[1]++;
 										sp+= 2;
@@ -622,7 +630,7 @@ int convert_include(char *filename)
 
 									sp[0]= type;
 									sp[1]= name;
-									if ((debugSDNA > 1) && (names[name] != 0 )) printf("%s ||", names[name]);
+									if ((debugSDNA > 1) && (names[name] != NULL)) printf("%s ||", names[name]);
 
 									structpoin[1]++;
 									sp+= 2;
@@ -652,7 +660,7 @@ int convert_include(char *filename)
 int arraysize(char *astr, int len)
 {
 	int a, mul=1;
-	char str[100], *cp=0;
+	char str[100], *cp=NULL;
 
 	memcpy(str, astr, len+1);
 	
@@ -1057,7 +1065,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 	MEM_freeN(names);
 	MEM_freeN(types);
 	MEM_freeN(typelens);
-    MEM_freeN(alphalens);
+	MEM_freeN(alphalens);
 	MEM_freeN(structs);
 
 	if (debugSDNA > -1) printf("done.\n");

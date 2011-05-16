@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_armature_api.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 #include <stdio.h>

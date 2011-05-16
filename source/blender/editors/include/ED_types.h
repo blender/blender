@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_types.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_TYPES_H
 #define ED_TYPES_H
 
@@ -40,8 +45,8 @@
 #define YIC 20
 
 /* proposal = put scene pointers on function calls? */
-#define BASACT                    (scene->basact)
-#define OBACT                     (BASACT? BASACT->object: 0)
+// #define BASACT                    (scene->basact)
+// #define OBACT                     (BASACT? BASACT->object: NULL)
 
 
 

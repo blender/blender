@@ -1,3 +1,6 @@
+/** \file opennl/extern/ONL_opennl.h
+ *  \ingroup opennlextern
+ */
 /*
  *  $Id$
  *

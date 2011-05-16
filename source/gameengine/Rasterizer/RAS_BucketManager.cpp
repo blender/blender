@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,12 +26,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Rasterizer/RAS_BucketManager.cpp
+ *  \ingroup bgerast
+ */
+
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 // don't show these anoying STL warnings
 #pragma warning (disable:4786)
 #endif
 
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 #include "RAS_MaterialBucket.h"
 #include "STR_HashedString.h"
 #include "RAS_MeshObject.h"

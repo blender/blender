@@ -4,14 +4,15 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 
 cflags=''
-incs = '. ../makesdna ../blenkernel #/intern/guardedalloc #/intern/ghost ../editors/include ../gpu'
+incs = '. ../makesdna ../blenkernel #/intern/guardedalloc #/intern/ghost ../editors/include ../gpu ../blenloader'
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_ZLIB_INC']
-defs = ''
+defs = []
 
-if env['OURPLATFORM'] == 'linux2':
+if env['WITH_BF_BINRELOC']:
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
+    defs.append('WITH_BINRELOC')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']

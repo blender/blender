@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,9 +25,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_ISystem.h
- * Main interface file for C++ Api with declaration of GHOST_ISystem interface
+
+/** \file ghost/GHOST_ISystem.h
+ *  \ingroup GHOST
+ * %Main interface file for C++ Api with declaration of GHOST_ISystem interface
  * class.
  * Contains the doxygen documentation main page.
  */
@@ -42,7 +43,7 @@
 class GHOST_IEventConsumer;
 
 /**
- *! \mainpage GHOST Main Page
+ * \page GHOSTPage GHOST
  *
  * \section intro Introduction
  *
@@ -88,8 +89,6 @@ class GHOST_IEventConsumer;
  * <ul>
  * <li>GHOST_IEvent.h</li>
  * <li>GHOST_IEventConsumer.h</li>
- * <li>GHOST_IMenu.h (in progress)</li>
- * <li>GHOST_IMenuBar.h (in progress)</li>
  * <li>GHOST_ISystem.h</li>
  * <li>GHOST_ITimerTask.h</li>
  * <li>GHOST_IWindow.h</li>
@@ -108,14 +107,10 @@ class GHOST_IEventConsumer;
  * in the ?/ghost/test/gears/ directory.
  *
  * \section work Work in progress
- *
- * \subsection menus Menu functionality
- * Menu bars with pull-down menu's for windows are in development in the 
- * current version of GHOST. The file GHOST_MenuDependKludge.h contains a 
- * setting to turn menu functionality on or off.
+ * \todo write WIP section
  */
  
-/**
+/** \interface GHOST_ISystem
  * Interface for classes that provide access to the operating system.
  * There should be only one system class in an application.
  * Therefore, the routines to create and dispose the system are static.
@@ -295,7 +290,14 @@ public:
 	 * @return Indication of success.
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer) = 0;
-	
+
+	/**
+	 * Removes the given event consumer to our list.
+	 * @param consumer The event consumer to remove.
+	 * @return Indication of success.
+	 */
+	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer* consumer) = 0;
+
 	 /***************************************************************************************
 	 ** N-degree of freedom device management functionality
 	 ***************************************************************************************/
@@ -353,6 +355,16 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
 
+	/**
+	 * Toggles console
+	 * @action	0 - Hides
+	 *			1 - Shows
+	 *			2 - Toggles
+	 *			3 - Hides if it runs not from  command line
+	 *			* - Does nothing
+	 * @return current status (1 -visible, 0 - hidden)
+	 */
+	virtual int toggleConsole(int action) = 0;
 	
 	/***************************************************************************************
 	 ** Access to clipboard.

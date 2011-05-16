@@ -1,3 +1,6 @@
+/** \file opennl/superlu/sp_preorder.c
+ *  \ingroup opennl
+ */
 #include "ssp_defs.h"
 
 int check_perm(char *, int , int *);

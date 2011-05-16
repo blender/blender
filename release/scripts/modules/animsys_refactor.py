@@ -28,6 +28,12 @@ The main function to use is: update_data_paths(...)
 IS_TESTING = False
 
 
+def drepr(string):
+    # is there a less crappy way to do this in python?, re.escape also escapes
+    # single quotes strings so cant use it.
+    return '"%s"' % repr(string)[1:-1].replace("\"", "\\\"").replace("\\'", "'")
+
+
 class DataPathBuilder(object):
     __slots__ = ("data_path", )
     """ Dummy class used to parse fcurve and driver data paths.
@@ -40,7 +46,12 @@ class DataPathBuilder(object):
         return DataPathBuilder(self.data_path + (str_value, ))
 
     def __getitem__(self, key):
-        str_value = '["%s"]' % key
+        if type(key) is int:
+            str_value = '[%d]' % key
+        elif type(key) is str:
+            str_value = '[%s]' % drepr(key)
+        else:
+            raise Exception("unsupported accessor %r of type %r (internal error)" % (key, type(key)))
         return DataPathBuilder(self.data_path + (str_value, ))
 
     def resolve(self, real_base, rna_update_from_map=None):
@@ -170,6 +181,15 @@ def update_data_paths(rna_update):
                 continue
 
             for fcurve in anim_data.drivers:
+                data_path = fcurve.data_path
+                data_path_new = find_path_new(anim_data_base, data_path, rna_update_dict, rna_update_from_map)
+                # print(data_path_new)
+                if data_path_new != data_path:
+                    if not IS_TESTING:
+                        fcurve.data_path = data_path_new
+                        fcurve.driver.is_valid = True  # reset to allow this to work again
+                    print("driver-fcurve (%s): %s -> %s" % (id_data.name, data_path, data_path_new))
+
                 for var in fcurve.driver.variables:
                     if var.type == 'SINGLE_PROP':
                         for tar in var.targets:

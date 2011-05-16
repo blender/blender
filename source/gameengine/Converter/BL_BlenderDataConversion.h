@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,10 +26,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file BL_BlenderDataConversion.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef __BLENDER_CONVERT
 #define __BLENDER_CONVERT
 
-#include "GEN_HashedPtr.h"
+#include "CTR_HashedPtr.h"
 #include "STR_String.h"
 #include "KX_Python.h"
 #include "KX_PhysicsEngineEnums.h"

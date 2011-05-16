@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,7 +26,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "../TEX_util.h"                                                   
+/** \file blender/nodes/intern/TEX_nodes/TEX_bricks.c
+ *  \ingroup texnodes
+ */
+
+
+#include "../TEX_util.h"
+#include "TEX_node.h"
+
 #include <math.h>
 
 static bNodeSocketType inputs[]= {

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Bounding Box
  */
+
+/** \file gameengine/SceneGraph/SG_Tree.cpp
+ *  \ingroup bgesg
+ */
+
 
 #include <math.h>
  

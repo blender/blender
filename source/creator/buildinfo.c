@@ -27,15 +27,26 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file creator/buildinfo.c
+ *  \ingroup creator
+ */
+
+
+#ifdef WITH_BUILDINFO_HEADER
+#include "buildinfo.h"
+#endif
+
 #ifdef BUILD_DATE
 
 /* copied from BLI_utildefines.h */
 #define STRINGIFY_ARG(x) #x
 #define STRINGIFY(x) STRINGIFY_ARG(x)
 
+/* currently only these are defined in the header */
 char build_date[]= STRINGIFY(BUILD_DATE);
 char build_time[]= STRINGIFY(BUILD_TIME);
 char build_rev[]= STRINGIFY(BUILD_REV);
+
 char build_platform[]= STRINGIFY(BUILD_PLATFORM);
 char build_type[]= STRINGIFY(BUILD_TYPE);
 

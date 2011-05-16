@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/include/raycounter.h
+ *  \ingroup render
+ */
+
 
 #ifndef RE_RAYCOUNTER_H
 #define RE_RAYCOUNTER_H

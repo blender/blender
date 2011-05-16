@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_viewer.c
+ *  \ingroup cmpnodes
+ */
+
 
 #include "../CMP_util.h"
 
@@ -121,11 +126,11 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 
 static void node_composit_init_viewer(bNode* node)
 {
-   ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
-   node->storage= iuser;
-   iuser->sfra= 1;
-   iuser->fie_ima= 2;
-   iuser->ok= 1;
+	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
+	node->storage= iuser;
+	iuser->sfra= 1;
+	iuser->fie_ima= 2;
+	iuser->ok= 1;
 }
 
 void register_node_type_cmp_viewer(ListBase *lb)

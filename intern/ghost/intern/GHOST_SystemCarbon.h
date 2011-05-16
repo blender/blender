@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_SystemCarbon.h
+
+/** \file ghost/intern/GHOST_SystemCarbon.h
+ *  \ingroup GHOST
  * Declaration of GHOST_SystemCarbon class.
  */
 
@@ -189,6 +190,11 @@ public:
 	 * @param selection	Indicates which buffer to copy too, only used on X11
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
+
+	/**
+	 * @see GHOST_ISystem
+	 */
+	int toggleConsole(int action) { return 0; }
 
 protected:
 	/**

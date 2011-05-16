@@ -28,6 +28,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/softbody.c
+ *  \ingroup bke
+ */
+
+
 /*
 ******
 variables on the UI for now
@@ -161,7 +166,7 @@ typedef struct  SB_thread_context {
 #define BFF_CLOSEVERT   2 /* collider vertex repulses face */
 
 
-float SoftHeunTol = 1.0f; /* humm .. this should be calculated from sb parameters and sizes */
+static float SoftHeunTol = 1.0f; /* humm .. this should be calculated from sb parameters and sizes */
 
 /* local prototypes */
 static void free_softbody_intern(SoftBody *sb);
@@ -261,7 +266,7 @@ float operations still
 /* just an ID here to reduce the prob for killing objects
 ** ob->sumohandle points to we should not kill :)
 */
-const int CCD_SAVETY = 190561;
+static const int CCD_SAVETY = 190561;
 
 typedef struct ccdf_minmax{
 float minx,miny,minz,maxx,maxy,maxz;
@@ -549,7 +554,7 @@ static void ccd_build_deflector_hash(Scene *scene, Object *vertexowner, GHash *h
 			}
 
 			/*+++ only with deflecting set */
-			if(ob->pd && ob->pd->deflect && BLI_ghash_lookup(hash, ob) == 0) {
+			if(ob->pd && ob->pd->deflect && BLI_ghash_lookup(hash, ob) == NULL) {
 				DerivedMesh *dm= NULL;
 
 				if(ob->softflag & OB_SB_COLLFINAL) /* so maybe someone wants overkill to collide with subsurfed */
@@ -1643,21 +1648,19 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 
 static void scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow)
 {
-  SoftBody *sb = ob->soft;
-  ListBase *do_effector = NULL;
+	SoftBody *sb = ob->soft;
+	ListBase *do_effector = NULL;
 
-  do_effector = pdInitEffectors(scene, ob, NULL, sb->effector_weights);
-  if (sb){
-	  _scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
-  }
-  pdEndEffectors(&do_effector);
+	do_effector = pdInitEffectors(scene, ob, NULL, sb->effector_weights);
+	_scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
+	pdEndEffectors(&do_effector);
 }
 
 static void *exec_scan_for_ext_spring_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
 	_scan_for_ext_spring_forces(pctx->scene, pctx->ob, pctx->timenow, pctx->ifirst, pctx->ilast, pctx->do_effector);
-	return 0;
+	return NULL;
 }
 
 static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,int totsprings,int *UNUSED(ptr_to_break_func(void)))
@@ -2213,50 +2216,50 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 		/* naive ball self collision */
 		/* needs to be done if goal snaps or not */
 		if(do_selfcollision){
-				 int attached;
-				BodyPoint   *obp;
-				BodySpring *bs;
-				int c,b;
-				float velcenter[3],dvel[3],def[3];
-				float distance;
-				float compare;
-				 float bstune = sb->ballstiff;
+			int attached;
+			BodyPoint   *obp;
+			BodySpring *bs;
+			int c,b;
+			float velcenter[3],dvel[3],def[3];
+			float distance;
+			float compare;
+			float bstune = sb->ballstiff;
 
-				for(c=sb->totpoint, obp= sb->bpoint; c>=ifirst+bb; c--, obp++) {
-					compare = (obp->colball + bp->colball);
-					sub_v3_v3v3(def, bp->pos, obp->pos);
-					/* rather check the AABBoxes before ever calulating the real distance */
-					/* mathematically it is completly nuts, but performace is pretty much (3) times faster */
-					if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) continue;
-					distance = normalize_v3(def);
-					if (distance < compare ){
-						/* exclude body points attached with a spring */
-						attached = 0;
-						for(b=obp->nofsprings;b>0;b--){
-							bs = sb->bspring + obp->springs[b-1];
-							if (( ilast-bb == bs->v2)  || ( ilast-bb == bs->v1)){
-								attached=1;
-								continue;}
-						}
-						if (!attached){
-							float f = bstune/(distance) + bstune/(compare*compare)*distance - 2.0f*bstune/compare ;
+			for(c=sb->totpoint, obp= sb->bpoint; c>=ifirst+bb; c--, obp++) {
+				compare = (obp->colball + bp->colball);
+				sub_v3_v3v3(def, bp->pos, obp->pos);
+				/* rather check the AABBoxes before ever calulating the real distance */
+				/* mathematically it is completly nuts, but performace is pretty much (3) times faster */
+				if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) continue;
+				distance = normalize_v3(def);
+				if (distance < compare ){
+					/* exclude body points attached with a spring */
+					attached = 0;
+					for(b=obp->nofsprings;b>0;b--){
+						bs = sb->bspring + obp->springs[b-1];
+						if (( ilast-bb == bs->v2)  || ( ilast-bb == bs->v1)){
+							attached=1;
+							continue;}
+					}
+					if (!attached){
+						float f = bstune/(distance) + bstune/(compare*compare)*distance - 2.0f*bstune/compare ;
 
-							mid_v3_v3v3(velcenter, bp->vec, obp->vec);
-							sub_v3_v3v3(dvel,velcenter,bp->vec);
-							mul_v3_fl(dvel,_final_mass(ob,bp));
+						mid_v3_v3v3(velcenter, bp->vec, obp->vec);
+						sub_v3_v3v3(dvel,velcenter,bp->vec);
+						mul_v3_fl(dvel,_final_mass(ob,bp));
 
-							Vec3PlusStVec(bp->force,f*(1.0f-sb->balldamp),def);
-							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
+						Vec3PlusStVec(bp->force,f*(1.0f-sb->balldamp),def);
+						Vec3PlusStVec(bp->force,sb->balldamp,dvel);
 
-							/* exploit force(a,b) == -force(b,a) part2/2 */
-							sub_v3_v3v3(dvel,velcenter,obp->vec);
-							mul_v3_fl(dvel,_final_mass(ob,bp));
+						/* exploit force(a,b) == -force(b,a) part2/2 */
+						sub_v3_v3v3(dvel,velcenter,obp->vec);
+						mul_v3_fl(dvel,_final_mass(ob,bp));
 
-							Vec3PlusStVec(obp->force,sb->balldamp,dvel);
-							Vec3PlusStVec(obp->force,-f*(1.0f-sb->balldamp),def);
-						}
+						Vec3PlusStVec(obp->force,sb->balldamp,dvel);
+						Vec3PlusStVec(obp->force,-f*(1.0f-sb->balldamp),def);
 					}
 				}
+			}
 		}
 		/* naive ball self collision done */
 
@@ -2384,7 +2387,7 @@ static void *exec_softbody_calc_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
 	_softbody_calc_forces_slice_in_a_thread(pctx->scene, pctx->ob, pctx->forcetime, pctx->timenow, pctx->ifirst, pctx->ilast, NULL, pctx->do_effector,pctx->do_deflector,pctx->fieldfactor,pctx->windfactor);
-	return 0;
+	return NULL;
 }
 
 static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float timenow,int totpoint,int *UNUSED(ptr_to_break_func(void)),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
@@ -2927,7 +2930,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 /* now we have individual masses   */
 /* claim a minimum mass for vertex */
 		if (_final_mass(ob,bp) > 0.009999f) timeovermass = forcetime/_final_mass(ob,bp);
-		  else timeovermass = forcetime/0.009999f;
+		else timeovermass = forcetime/0.009999f;
 
 
 		if(_final_goal(ob,bp) < SOFTGOALSNAP){
@@ -3824,7 +3827,7 @@ void SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscal
 {
 	BodyPoint *bp;
 	ReferenceVert *rp;
-	SoftBody *sb = 0;
+	SoftBody *sb = NULL;
 	float (*opos)[3];
 	float (*rpos)[3];
 	float com[3],rcom[3];

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_script/space_script.c
+ *  \ingroup spscript
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -39,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"

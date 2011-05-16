@@ -30,6 +30,7 @@ set(INC
 	../blenlib
 	../imbuf
 	../makesdna
+	../blenloader
 	../../../intern/guardedalloc
 )
 

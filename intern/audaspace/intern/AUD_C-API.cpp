@@ -1,27 +1,33 @@
 /*
  * $Id$
  *
- * ***** BEGIN LGPL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * Copyright 2009 Jörg Hermann Müller
+ * Copyright 2009-2011 Jörg Hermann Müller
  *
  * This file is part of AudaSpace.
  *
- * AudaSpace is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * Audaspace is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * AudaSpace is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with AudaSpace.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Audaspace; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * ***** END LGPL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file audaspace/intern/AUD_C-API.cpp
+ *  \ingroup audaspaceintern
+ */
+
 
 // needed for INT64_C
 #ifndef __STDC_CONSTANT_MACROS
@@ -858,7 +864,7 @@ AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds)
 	}
 }
 
-AUD_Sound* AUD_createSequencer(void* data, AUD_volumeFunction volume)
+AUD_Sound* AUD_createSequencer(int muted, void* data, AUD_volumeFunction volume)
 {
 /* AUD_XXX should be this: but AUD_createSequencer is called before the device
  * is initialized.
@@ -868,12 +874,17 @@ AUD_Sound* AUD_createSequencer(void* data, AUD_volumeFunction volume)
 	AUD_Specs specs;
 	specs.channels = AUD_CHANNELS_STEREO;
 	specs.rate = AUD_RATE_44100;
-	return new AUD_SequencerFactory(specs, data, volume);
+	return new AUD_SequencerFactory(specs, muted, data, volume);
 }
 
 void AUD_destroySequencer(AUD_Sound* sequencer)
 {
 	delete ((AUD_SequencerFactory*)sequencer);
+}
+
+void AUD_setSequencerMuted(AUD_Sound* sequencer, int muted)
+{
+	((AUD_SequencerFactory*)sequencer)->mute(muted);
 }
 
 AUD_SequencerEntry* AUD_addSequencer(AUD_Sound** sequencer, AUD_Sound* sound,

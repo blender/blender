@@ -25,10 +25,14 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file BLI_blenlib.h
+ *  \ingroup bli
  *
- * @mainpage BLI - Blender LIbrary external interface
+ * \section aboutbli Blender LIbrary external interface
  *
- * @section about About the BLI module
+ * \subsection about About the BLI module
  *
  * This is the external interface of the Blender Library. If you find
  * a call to a BLI function that is not prototyped here, please add a
@@ -39,25 +43,19 @@
  * allocation/deallocation. There is also a patch to make MS Windows
  * behave more or less Posix-compliant.
  *
- * @section issues Known issues with BLI
+ * \subsection issues Known issues with BLI
  *
  * - blenlib is written in C.
  * - The posix-compliancy may move to a separate lib that deals with 
  *   platform dependencies. (There are other platform-dependent 
  *   fixes as well.)
  * - The file i/o has some redundant code. It should be cleaned.
- * - arithb.c is a very messy matrix library. We need a better 
- *   solution.
- * - vectorops.c is close to superfluous. It may disappear in the 
- *   near future.
  * 
- * @section dependencies Dependencies
+ * \subsection dependencies Dependencies
  *
- * - The blenlib uses type defines from makesdna/, and functions from
+ * - The blenlib uses type defines from \ref DNA, and functions from
  * standard libraries.
- * 
- * $Id$ 
-*/
+ */
 
 #ifndef BLI_BLENLIB_H
 #define BLI_BLENLIB_H

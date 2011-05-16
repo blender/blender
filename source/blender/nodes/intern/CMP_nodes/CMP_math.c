@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_math.c
+ *  \ingroup cmpnodes
+ */
+
 
 #include "../CMP_util.h"
 
@@ -94,11 +99,18 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		break;
 	case 10: /* Power */
 		{
-			/* Don't want any imaginary numbers... */
-			if( in[0] >= 0 )
+			/* Only raise negative numbers by full integers */
+			if( in[0] >= 0 ) {
 				out[0]= pow(in[0], in2[0]);
-			else
-				out[0]= 0.0;
+			} else {
+				float y_mod_1 = fmod(in2[0], 1);
+				/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
+				if (y_mod_1 > 0.999 || y_mod_1 < 0.001) {
+					out[0]= pow(in[0], floor(in2[0] + 0.5));
+				} else {
+					out[0] = 0.0;
+				}
+			}
 		}
 		break;
 	case 11: /* Logarithm */
@@ -128,7 +140,7 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		break;
 	case 14: /* Round */
 		{
-				out[0]= (int)(in[0] + 0.5f);
+				out[0]= (out[0]<0)?(int)(in[0] - 0.5f):(int)(in[0] + 0.5f);
 		}
 		break;
 	case 15: /* Less Than */

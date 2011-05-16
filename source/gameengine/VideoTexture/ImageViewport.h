@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file ImageViewport.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined IMAGEVIEWPORT_H
 #define IMAGEVIEWPORT_H
 

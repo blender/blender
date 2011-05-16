@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,15 +25,23 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_util.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_UTIL_H
 #define ED_UTIL_H
 
+struct Scene;
 struct Object;
 struct bContext;
 struct ARegion;
 struct uiBlock;
 struct wmOperator;
 struct wmOperatorType;
+struct EditMesh;
+struct Mesh;
 
 /* ed_util.c */
 
@@ -49,6 +57,7 @@ void	ED_undo_pop_op			(struct bContext *C, struct wmOperator *op);
 void	ED_undo_pop				(struct bContext *C);
 void	ED_undo_redo			(struct bContext *C);
 void	ED_OT_undo				(struct wmOperatorType *ot);
+void	ED_OT_undo_push			(struct wmOperatorType *ot);
 void	ED_OT_redo				(struct wmOperatorType *ot);
 
 int		ED_undo_operator_repeat(struct bContext *C, struct wmOperator *op);
@@ -72,6 +81,15 @@ struct uiBlock *editmode_undohistorymenu(struct bContext *C, struct ARegion *ar,
 void	undo_editmode_menu			(struct bContext *C);
 void	undo_editmode_clear			(void);
 void	undo_editmode_step			(struct bContext *C, int step);
+
+/* crazyspace.c */
+float *crazyspace_get_mapped_editverts(struct Scene *scene, struct Object *obedit);
+void crazyspace_set_quats_editmesh(struct EditMesh *em, float *origcos, float *mappedcos, float *quats);
+void crazyspace_set_quats_mesh(struct Mesh *me, float *origcos, float *mappedcos, float *quats);
+int editmesh_get_first_deform_matrices(struct Scene *scene, struct Object *ob, struct EditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3]);
+int sculpt_get_first_deform_matrices(struct Scene *scene, struct Object *ob, float (**deformmats)[3][3], float (**deformcos)[3]);
+void crazyspace_build_sculpt(struct Scene *scene, struct Object *ob, float (**deformmats)[3][3], float (**deformcos)[3]);
+
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 

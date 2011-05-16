@@ -23,6 +23,7 @@ set(INC
 	../include
 	../../blenfont
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../imbuf
 	../../makesdna
@@ -30,14 +31,13 @@ set(INC
 	../../windowmanager
 	../../render/extern/include
 	../../../../intern/guardedalloc
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
 	image_buttons.c
 	image_draw.c
-	image_header.c
 	image_ops.c
-	image_render.c
 	space_image.c
 
 	image_intern.h

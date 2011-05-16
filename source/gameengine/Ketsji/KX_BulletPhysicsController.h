@@ -1,3 +1,8 @@
+
+/** \file KX_BulletPhysicsController.h
+ *  \ingroup ketsji
+ */
+
 #ifndef KX_BULLET2PHYSICS_CONTROLLER
 #define KX_BULLET2PHYSICS_CONTROLLER
 
@@ -75,6 +80,8 @@ public:
 	virtual bool Update(double time);
 	void*	GetUserData() { return m_userdata;}
 	
+	virtual const char* getName();
+
 	void
 	SetOption(
 		int option,

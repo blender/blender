@@ -1,6 +1,4 @@
-/**
- * Do translation/rotation actions
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_ObjectActuator.h
+ *  \ingroup ketsji
+ *  \brief Do translation/rotation actions
  */
 
 #ifndef __KX_OBJECTACTUATOR
@@ -141,7 +144,7 @@ public:
 	CValue* GetReplica();
 	void ProcessReplica();
 	bool UnlinkObject(SCA_IObject* clientobj);
-	void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	void Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 
 	void SetForceLoc(const double force[3])	{ /*m_force=force;*/ }
 	void UpdateFuzzyFlags()

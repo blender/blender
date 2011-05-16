@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_WindowWin32.cpp
+ *  \ingroup GHOST
+ */
+
 
 /**
 
@@ -100,6 +105,22 @@ static PIXELFORMATDESCRIPTOR sPreferredFormat = {
 	0, 0, 0                         /* no layer, visible, damage masks */
 };
 
+/* Intel videocards don't work fine with multiple contexts and
+   have to share the same context for all windows.
+   But if we just share context for all windows it could work incorrect
+   with multiple videocards configuration. Suppose, that Intel videocards
+   can't be in multiple-devices configuration. */
+static int is_crappy_intel_card(void)
+{
+	int crappy = 0;
+	const char *vendor = (const char*)glGetString(GL_VENDOR);
+
+	if (strstr(vendor, "Intel"))
+		crappy = 1;
+
+	return crappy;
+}
+
 GHOST_WindowWin32::GHOST_WindowWin32(
 	GHOST_SystemWin32 * system,
 	const STR_String& title,
@@ -111,6 +132,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual,
 	const GHOST_TUns16 numOfAASamples,
+	GHOST_TEmbedderWindowID parentwindowhwnd,
 	GHOST_TSuccess msEnabled,
 	int msPixelFormat)
 :
@@ -120,6 +142,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_hDC(0),
 	m_hGlRc(0),
 	m_hasMouseCaptured(false),
+	m_hasGrabMouse(false),
 	m_nPressedButtons(0),
 	m_customCursor(0),
 	m_wintab(NULL),
@@ -127,6 +150,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_tablet(0),
 	m_maxPressure(0),
 	m_multisample(numOfAASamples),
+	m_parentWindowHwnd(parentwindowhwnd),
 	m_multisampleEnabled(msEnabled),
 	m_msPixelFormat(msPixelFormat),
 	//For recreation
@@ -201,15 +225,26 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		else if(top < monitor.rcWork.top)
 			top = monitor.rcWork.top;
 
+		int wintype = WS_OVERLAPPEDWINDOW;
+		if (m_parentWindowHwnd != 0)
+		{
+			wintype = WS_CHILD;
+			GetWindowRect((HWND)m_parentWindowHwnd, &rect);
+			left = 0;
+			top = 0;
+			width = rect.right - rect.left;
+			height = rect.bottom - rect.top;
+		}
+		
 		m_hWnd = ::CreateWindow(
 			s_windowClassName,			// pointer to registered class name
 			title,						// pointer to window name
-			WS_OVERLAPPEDWINDOW,		// window style
+			wintype,					// window style
 			left,					// horizontal position of window
 			top,					// vertical position of window
 			width,						// window width
 			height,						// window height
-			HWND_DESKTOP,				// handle to parent or owner window
+			(HWND) m_parentWindowHwnd,	// handle to parent or owner window
 			0,							// handle to menu or child-window identifier
 			::GetModuleHandle(0),		// handle to application instance
 			0);							// pointer to window-creation data
@@ -270,6 +305,15 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			//invalidate the window
 			m_hWnd = 0;
 		}
+	}
+
+	if (parentwindowhwnd != 0) {
+		RAWINPUTDEVICE device = {0};
+		device.usUsagePage	= 0x01; /* usUsagePage & usUsage for keyboard*/
+		device.usUsage		= 0x06; /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
+		device.dwFlags |= RIDEV_INPUTSINK; // makes WM_INPUT is visible for ghost when has parent window
+		device.hwndTarget = m_hWnd;
+		RegisterRawInputDevices(&device, 1, sizeof(device));
 	}
 
 	m_wintab = ::LoadLibrary("Wintab32.dll");
@@ -430,6 +474,11 @@ void GHOST_WindowWin32::getClientBounds(GHOST_Rect& bounds) const
 			bounds.m_l = rect.left + sm_cysizeframe;
 			bounds.m_r = rect.right - sm_cysizeframe;
 			bounds.m_t = rect.top;
+		} else if (state == GHOST_kWindowStateEmbedded) {
+			bounds.m_b = rect.bottom;
+			bounds.m_l = rect.left;
+			bounds.m_r = rect.right;
+			bounds.m_t = rect.top;
 		} else {
 			bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)-sm_cysizeframe*2;
 			bounds.m_l = rect.left;
@@ -437,7 +486,6 @@ void GHOST_WindowWin32::getClientBounds(GHOST_Rect& bounds) const
 			bounds.m_t = rect.top;
 		}
 	} else {
-		::GetWindowRect(m_hWnd, &rect);
 		bounds.m_b = rect.bottom;
 		bounds.m_l = rect.left;
 		bounds.m_r = rect.right;
@@ -506,6 +554,15 @@ GHOST_TSuccess GHOST_WindowWin32::setClientSize(GHOST_TUns32 width, GHOST_TUns32
 GHOST_TWindowState GHOST_WindowWin32::getState() const
 {
 	GHOST_TWindowState state;
+
+	// XXX 27.04.2011
+	// we need to find a way to combine parented windows + resizing if we simply set the
+	// state as GHOST_kWindowStateEmbedded we will need to check for them somewhere else.
+	// It's also strange that in Windows is the only platform we need to make this separation.
+	if (m_parentWindowHwnd != 0) {
+		state = GHOST_kWindowStateEmbedded;
+		return state;
+	}
 	if (::IsIconic(m_hWnd)) {
 		state = GHOST_kWindowStateMinimized;
 	}
@@ -567,6 +624,9 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 		wp.ptMaxPosition.y = 0;
 		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_POPUP | WS_MAXIMIZE);
 		break;
+	case GHOST_kWindowStateEmbedded:
+		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_CHILD);
+		break;
 	case GHOST_kWindowStateNormal:
 	default:
 		ShowWindow(m_hWnd, SW_HIDE);
@@ -587,7 +647,12 @@ GHOST_TSuccess GHOST_WindowWin32::setOrder(GHOST_TWindowOrder order)
 
 GHOST_TSuccess GHOST_WindowWin32::swapBuffers()
 {
-	return ::SwapBuffers(m_hDC) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+	HDC hDC = m_hDC;
+
+	if (is_crappy_intel_card())
+		hDC = ::wglGetCurrentDC();
+
+	return ::SwapBuffers(hDC) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 
@@ -624,10 +689,11 @@ GHOST_TSuccess GHOST_WindowWin32::invalidate()
 GHOST_TSuccess GHOST_WindowWin32::initMultisample(PIXELFORMATDESCRIPTOR pfd)
 {
 	int pixelFormat;
-	bool success;
+	bool success = FALSE;
 	UINT numFormats;
 	HDC hDC = GetDC(getHWND());
 	float fAttributes[] = {0, 0};
+	UINT nMaxFormats = 1;
 
 	// The attributes to look for
 	int iAttributes[] = {
@@ -652,36 +718,24 @@ GHOST_TSuccess GHOST_WindowWin32::initMultisample(PIXELFORMATDESCRIPTOR pfd)
 		return GHOST_kFailure;
 	}
 
-	// See if the format is valid
-	success = wglChoosePixelFormatARB(hDC, iAttributes, fAttributes, 1, &pixelFormat, &numFormats);
+	// iAttributes[17] is the initial multisample. If not valid try to use the closest valid value under it.
+	while (iAttributes[17] > 0) {
+		// See if the format is valid
+		success = wglChoosePixelFormatARB(hDC, iAttributes, fAttributes, nMaxFormats, &pixelFormat, &numFormats);
+		GHOST_PRINTF("WGL_SAMPLES_ARB = %i --> success = %i, %i formats\n", iAttributes[17], success, numFormats);
 
-	if (success && numFormats >= 1)
-	{
-		m_multisampleEnabled = GHOST_kSuccess;
-		m_msPixelFormat = pixelFormat;
+		if (success && numFormats >= 1 && m_multisampleEnabled == GHOST_kFailure) {
+			GHOST_PRINTF("valid pixel format with %i multisamples\n", iAttributes[17]);
+			m_multisampleEnabled = GHOST_kSuccess;
+			m_msPixelFormat = pixelFormat;
+		}
+		iAttributes[17] -= 1;
+		success = GHOST_kFailure;
+	}
+	if (m_multisampleEnabled == GHOST_kSuccess)	{
 		return GHOST_kSuccess;
 	}
-	else
-	{
-		// See if any formats are supported
-		while (!success && iAttributes[19] != 0)
-		{
-			iAttributes[19] /= 2;
-
-			success = wglChoosePixelFormatARB(m_hDC, iAttributes, fAttributes, 1, &pixelFormat, &numFormats);
-
-			if (success && numFormats >= 1)
-			{
-				m_multisampleEnabled = GHOST_kSuccess;
-				m_msPixelFormat = pixelFormat;
-				return GHOST_kSuccess;
-			}
-
-			success = GHOST_kFailure;
-		}
-	}
-
-	// No available pixel format...
+	GHOST_PRINT("no available pixel format\n");
 	return GHOST_kFailure;
 }
 
@@ -703,18 +757,44 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 			// Create the context
 			m_hGlRc = ::wglCreateContext(m_hDC);
 			if (m_hGlRc) {
-				if (s_firsthGLRc) {
-					::wglCopyContext(s_firsthGLRc, m_hGlRc, GL_ALL_ATTRIB_BITS);
-					wglShareLists(s_firsthGLRc, m_hGlRc);
-				} else {
-					s_firsthGLRc = m_hGlRc;
-				}
+				if (::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE) {
+					if (s_firsthGLRc) {
+						if (is_crappy_intel_card()) {
+							if (::wglMakeCurrent(NULL, NULL) == TRUE) {
+								::wglDeleteContext(m_hGlRc);
+								m_hGlRc = s_firsthGLRc;
+							}
+							else {
+								::wglDeleteContext(m_hGlRc);
+								m_hGlRc = NULL;
+							}
+						}
+						else {
+							::wglCopyContext(s_firsthGLRc, m_hGlRc, GL_ALL_ATTRIB_BITS);
+							::wglShareLists(s_firsthGLRc, m_hGlRc);
+						}
+					}
+					else {
+						s_firsthGLRc = m_hGlRc;
+					}
 
-				success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+					if (m_hGlRc) {
+						success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+					}
+					else {
+						success = GHOST_kFailure;
+					}
+				}
+				else {
+					success = GHOST_kFailure;
+				}
 			}
 			else {
-				printf("Failed to get a context....\n");
 				success = GHOST_kFailure;
+			}
+
+			if (success == GHOST_kFailure) {
+				printf("Failed to get a context....\n");
 			}
 		}
 		else
@@ -739,17 +819,43 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 			// Create the context
 			m_hGlRc = ::wglCreateContext(m_hDC);
 			if (m_hGlRc) {
-				if (s_firsthGLRc) {
-					::wglShareLists(s_firsthGLRc, m_hGlRc);
-				} else {
-					s_firsthGLRc = m_hGlRc;
-				}
+				if (::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE) {
+					if (s_firsthGLRc) {
+						if (is_crappy_intel_card()) {
+							if (::wglMakeCurrent(NULL, NULL) == TRUE) {
+								::wglDeleteContext(m_hGlRc);
+								m_hGlRc = s_firsthGLRc;
+							}
+							else {
+								::wglDeleteContext(m_hGlRc);
+								m_hGlRc = NULL;
+							}
+						}
+						else {
+							::wglShareLists(s_firsthGLRc, m_hGlRc);
+						}
+					}
+					else {
+						s_firsthGLRc = m_hGlRc;
+					}
 
-				success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+					if (m_hGlRc) {
+						success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+					}
+					else {
+						success = GHOST_kFailure;
+					}
+				}
+				else {
+					success = GHOST_kFailure;
+				}
 			}
 			else {
-				printf("Failed to get a context....\n");
 				success = GHOST_kFailure;
+			}
+
+			if (success == GHOST_kFailure) {
+				printf("Failed to get a context....\n");
 			}
 					
 			// Attempt to enable multisample
@@ -777,12 +883,17 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 													type,
 													m_stereo,
 													m_multisample,
+													m_parentWindowHwnd,
 													m_multisampleEnabled,
 													m_msPixelFormat);
 
 					// Return failure so we can trash this window.
 					success = GHOST_kFailure;
 					break;
+				} else {
+					m_multisampleEnabled = GHOST_kSuccess;
+					printf("Multisample failed to initialized\n");
+					success = GHOST_kSuccess;
 				}
 			}
 		}
@@ -826,28 +937,34 @@ GHOST_TSuccess GHOST_WindowWin32::removeDrawingContext()
 
 void GHOST_WindowWin32::lostMouseCapture()
 {
-	if (m_hasMouseCaptured) {
-		m_hasMouseCaptured = false;
-		m_nPressedButtons = 0;
-	}
+	if(m_hasMouseCaptured)
+		{	m_hasGrabMouse = false;
+			m_nPressedButtons = 0;
+			m_hasMouseCaptured = false;
+		};
 }
 
-void GHOST_WindowWin32::registerMouseClickEvent(bool press)
+void GHOST_WindowWin32::registerMouseClickEvent(int press)
 {
-	if (press) {
-		if (!m_hasMouseCaptured) {
+
+	switch(press)
+	{
+		case 0:	m_nPressedButtons++;	break;
+		case 1:	if(m_nPressedButtons)	m_nPressedButtons--; break;
+		case 2:	m_hasGrabMouse=true;	break;
+		case 3: m_hasGrabMouse=false;	break;
+	}
+
+	if(!m_nPressedButtons && !m_hasGrabMouse && m_hasMouseCaptured)
+	{
+			::ReleaseCapture();
+			m_hasMouseCaptured = false;
+	}
+	else if((m_nPressedButtons || m_hasGrabMouse) && !m_hasMouseCaptured)
+	{
 			::SetCapture(m_hWnd);
 			m_hasMouseCaptured = true;
-		}
-		m_nPressedButtons++;
-	} else {
-		if (m_nPressedButtons) {
-			m_nPressedButtons--;
-			if (!m_nPressedButtons) {
-				::ReleaseCapture();
-				m_hasMouseCaptured = false;
-			}
-		}
+
 	}
 }
 
@@ -919,7 +1036,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 			if(mode == GHOST_kGrabHide)
 				setWindowCursorVisibility(false);
 		}
-		registerMouseClickEvent(true);
+		registerMouseClickEvent(2);
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {
@@ -938,7 +1055,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
 		setCursorGrabAccum(0, 0);
 		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
-		registerMouseClickEvent(false);
+		registerMouseClickEvent(3);
 	}
 	
 	return GHOST_kSuccess;

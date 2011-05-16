@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_SG_NodeRelationships.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_SG_NodeRelationships.h"
 

@@ -29,11 +29,11 @@ set(INC
 	../../../../intern/string
 	../../../../intern/ghost
 	../../../../intern/guardedalloc
+	../../../../intern/container
 	../../../../intern/moto/include
 	../../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-	../../../../source/kernel/gen_system
-	../../../../source/kernel/gen_messaging
 	../../../../source/gameengine/Converter
+	../../../../source/gameengine/BlenderRoutines
 	../../../../source/blender/imbuf
 	../../../../source/gameengine/Ketsji
 	../../../../source/blender/blenlib
@@ -51,7 +51,7 @@ set(INC
 	../../../../source/gameengine/GamePlayer/ghost
 	../../../../source/blender/blenloader
 	../../../../source/blender/gpu
-	../../../../extern/glew/include
+	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 	${PNG_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,10 +25,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/render/render_ops.c
+ *  \ingroup edrend
+ */
+
+
 #include <stdlib.h>
 
 
 #include "WM_api.h"
+
+#include "ED_render.h"
 
 #include "render_intern.h" // own include
 

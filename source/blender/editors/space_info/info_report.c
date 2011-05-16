@@ -1,5 +1,5 @@
-/**
- * $Id: info_report.c 34719 2011-02-08 13:48:06Z ton $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_info/info_report.c
+ *  \ingroup spinfo
+ */
+
 
 #include <stdlib.h>
 #include <string.h>

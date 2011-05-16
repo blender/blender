@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,6 +23,10 @@
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_text.h
+ *  \ingroup editors
  */
 
 #ifndef ED_TEXT_H

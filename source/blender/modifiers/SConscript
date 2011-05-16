@@ -4,8 +4,8 @@ Import ('env')
 sources = env.Glob('intern/*.c') + env.Glob('intern/*.cpp')
 
 incs = '. ./intern'
-incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern'
-incs += ' ../render/extern/include'
+incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern #/extern/glew/include'
+incs += ' ../render/extern/include ../blenloader'
 incs += ' ../include ../blenlib ../makesdna ../blenkernel ../blenkernel/intern'
 incs += ' ../editors/include ../gpu'
 incs += ' #extern/recastnavigation/Recast/Include'
@@ -23,4 +23,4 @@ if env['BF_NO_ELBEEM']:
 
 env.BlenderLib ( libname = 'bf_modifiers', sources = sources,
                  includes = Split(incs), defines=defs,
-                 libtype=['core','player'], priority = [180, 40] )
+                 libtype=['core','player'], priority = [80, 40] )

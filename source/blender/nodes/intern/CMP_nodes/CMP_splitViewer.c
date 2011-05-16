@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_splitViewer.c
+ *  \ingroup cmpnodes
+ */
+
 
 #include "../CMP_util.h"
 
@@ -138,12 +143,12 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 
 static void node_composit_init_splitviewer(bNode* node)
 {
-   ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
-   node->storage= iuser;
-   iuser->sfra= 1;
-   iuser->fie_ima= 2;
-   iuser->ok= 1;
-   node->custom1= 50;	/* default 50% split */
+	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
+	node->storage= iuser;
+	iuser->sfra= 1;
+	iuser->fie_ima= 2;
+	iuser->ok= 1;
+	node->custom1= 50;	/* default 50% split */
 }
 
 void register_node_type_cmp_splitviewer(ListBase *lb)

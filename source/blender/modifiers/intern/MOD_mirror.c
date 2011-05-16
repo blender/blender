@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_mirror.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
@@ -44,6 +49,8 @@
 
 #include "MEM_guardedalloc.h"
 #include "depsgraph_private.h"
+
+#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {
@@ -341,19 +348,19 @@ ModifierTypeInfo modifierType_Mirror = {
 							| eModifierTypeFlag_AcceptsCVs,
 
 	/* copyData */          copyData,
-	/* deformVerts */       0,
-	/* deformMatrices */    0,
-	/* deformVertsEM */     0,
-	/* deformMatricesEM */  0,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   applyModifierEM,
 	/* initData */          initData,
-	/* requiredDataMask */  0,
-	/* freeData */          0,
-	/* isDisabled */        0,
+	/* requiredDataMask */  NULL,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
-	/* dependsOnTime */     0,
-	/* dependsOnNormals */	0,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     0,
+	/* foreachIDLink */     NULL,
 };

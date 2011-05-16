@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_buttons/buttons_ops.c
+ *  \ingroup spbuttons
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,6 +55,7 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "buttons_intern.h"	// own include
 
@@ -65,7 +71,7 @@ static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(e
 
 	RNA_pointer_create(&sc->id, &RNA_SpaceProperties, sbuts, &ptr);
 
-	pup= uiPupMenuBegin(C, "Align", ICON_NULL);
+	pup= uiPupMenuBegin(C, "Align", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	uiItemsEnumR(layout, &ptr, "align");
 	uiPupMenuEnd(C, pup);
@@ -101,7 +107,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	if (RNA_property_is_set(op->ptr, "filepath")==0 || fbo==NULL)
 		return OPERATOR_CANCELLED;
 	
-	str= RNA_string_get_alloc(op->ptr, "filepath", 0, 0);
+	str= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
 
 	/* add slash for directories, important for some properties */
 	if(RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
@@ -149,7 +155,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!prop)
 		return OPERATOR_CANCELLED;
 
-	str= RNA_property_string_get_alloc(&ptr, prop, 0, 0);
+	str= RNA_property_string_get_alloc(&ptr, prop, NULL, 0);
 
 	/* useful yet irritating feature, Shift+Click to open the file
 	 * Alt+Click to browse a folder in the OS's browser */

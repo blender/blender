@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,10 @@
  * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_anim_api.h
+ *  \ingroup editors
  */
 
 #ifndef ED_ANIM_API_H
@@ -247,7 +251,7 @@ typedef enum eAnimFilter_Flags {
 /* Actions (also used for Dopesheet) */
 	/* Action Channel Group */
 #define EDITABLE_AGRP(agrp) ((agrp->flag & AGRP_PROTECTED)==0)
-#define EXPANDED_AGRP(agrp) \
+#define EXPANDED_AGRP(ac, agrp) \
 	( ( ((ac)->spacetype == SPACE_IPO) && (agrp->flag & AGRP_EXPANDED_G) ) || \
 	  ( ((ac)->spacetype != SPACE_IPO) && (agrp->flag & AGRP_EXPANDED)   ) )
 #define SEL_AGRP(agrp) ((agrp->flag & AGRP_SELECTED) || (agrp->flag & AGRP_ACTIVE))
@@ -581,6 +585,11 @@ void ED_keymap_animchannels(struct wmKeyConfig *keyconf);
 	/* generic time editing */
 void ED_operatortypes_anim(void);
 void ED_keymap_anim(struct wmKeyConfig *keyconf);
+	
+	/* space_graph */
+void ED_operatormacros_graph(void);
+	/* space_action */
+void ED_operatormacros_action(void);
 
 /* ************************************************ */
 

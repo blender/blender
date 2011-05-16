@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_IActuator.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_IActuator.h"
 #include <stdio.h>

@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_JoystickSensor.cpp
+ *  \ingroup gamelogic
+ */
+
 #include "SCA_JoystickManager.h"
 #include "SCA_JoystickSensor.h"
 
@@ -33,6 +38,7 @@
 #include "PyObjectPlus.h"
 
 #include <stdio.h>
+#include <stddef.h>
 #include <iostream>
 
 

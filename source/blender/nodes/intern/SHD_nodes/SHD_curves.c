@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/SHD_nodes/SHD_curves.c
+ *  \ingroup shdnodes
+ */
+
+
 #include "../SHD_util.h"
 
 
@@ -54,7 +59,7 @@ static void node_shader_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeSta
 
 static void node_shader_init_curve_vec(bNode* node)
 {
-   node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
+	node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_vec(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
@@ -109,7 +114,7 @@ static void node_shader_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeSta
 
 static void node_shader_init_curve_rgb(bNode *node)
 {
-   node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

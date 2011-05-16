@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_action/action_ops.c
+ *  \ingroup spaction
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -34,8 +39,7 @@
 
 #include "BLI_blenlib.h"
 
-
-
+#include "ED_anim_api.h"
 #include "ED_transform.h"
 
 #include "action_intern.h"
@@ -58,6 +62,7 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACTION_OT_select_linked);
 	WM_operatortype_append(ACTION_OT_select_more);
 	WM_operatortype_append(ACTION_OT_select_less);
+	WM_operatortype_append(ACTION_OT_select_leftright);
 	
 		/* editing */
 	WM_operatortype_append(ACTION_OT_snap);
@@ -78,6 +83,23 @@ void action_operatortypes(void)
 	
 	WM_operatortype_append(ACTION_OT_previewrange_set);
 	WM_operatortype_append(ACTION_OT_view_all);
+	WM_operatortype_append(ACTION_OT_view_selected);
+	
+	WM_operatortype_append(ACTION_OT_markers_make_local);
+}
+
+void ED_operatormacros_action(void)
+{
+	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
+	
+	ot= WM_operatortype_append_macro("ACTION_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	if (ot) {
+		WM_operatortype_macro_define(ot, "ACTION_OT_duplicate");
+		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
+		RNA_enum_set(otmacro->ptr, "mode", TFM_TIME_DUPLICATE);
+	}
+	
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -96,8 +118,16 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	kmi= WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT|KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "extend", 1);
 		RNA_boolean_set(kmi->ptr, "column", 1);
-	kmi= WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-		RNA_enum_set(kmi->ptr, "left_right", ACTKEYS_LRSEL_TEST);
+		
+		/* select left/right */
+	WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "extend", 1);
+	
+	kmi= WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", LEFTBRACKETKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_LEFT);
+	kmi= WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "ACTION_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
@@ -143,7 +173,7 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACTION_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "ACTION_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
 	
 		/* copy/paste */
@@ -153,6 +183,7 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* auto-set range */
 	WM_keymap_add_item(keymap, "ACTION_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	
 	/* animation module */
 		/* channels list 

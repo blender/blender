@@ -1,3 +1,6 @@
+/** \file opennl/superlu/strsv.c
+ *  \ingroup opennl
+ */
 int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
 
 

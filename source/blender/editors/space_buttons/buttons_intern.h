@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_buttons/buttons_intern.h
+ *  \ingroup spbuttons
+ */
+
 #ifndef ED_BUTTONS_INTERN_H
 #define ED_BUTTONS_INTERN_H
 
@@ -64,6 +69,8 @@ int buttons_context(const struct bContext *C, const char *member, struct bContex
 void buttons_context_draw(const struct bContext *C, struct uiLayout *layout);
 void buttons_context_register(struct ARegionType *art);
 struct ID *buttons_context_id_path(const struct bContext *C);
+
+extern const char *buttons_context_dir[]; /* doc access */
 
 /* buttons_ops.c */
 void BUTTONS_OT_file_browse(struct wmOperatorType *ot);

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * meshlaplacian.c: Algorithms using the mesh laplacian.
  */
+
+/** \file blender/editors/armature/meshlaplacian.c
+ *  \ingroup edarmature
+ */
+
 
 #include <math.h>
 #include <string.h>
@@ -57,6 +62,7 @@
 #include "BLO_sys_types.h" // for intptr_t support
 
 #include "ED_mesh.h"
+#include "ED_armature.h"
 
 #include "meshlaplacian.h"
 
@@ -176,16 +182,16 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
 	t2= cotan_weight(v2, v3, v1);
 	t3= cotan_weight(v3, v1, v2);
 
-	if(RAD2DEG(angle_v3v3v3(v2, v1, v3)) > 90) obtuse= 1;
-	else if(RAD2DEG(angle_v3v3v3(v1, v2, v3)) > 90) obtuse= 2;
-	else if(RAD2DEG(angle_v3v3v3(v1, v3, v2)) > 90) obtuse= 3;
+	if(RAD2DEGF(angle_v3v3v3(v2, v1, v3)) > 90) obtuse= 1;
+	else if(RAD2DEGF(angle_v3v3v3(v1, v2, v3)) > 90) obtuse= 2;
+	else if(RAD2DEGF(angle_v3v3v3(v1, v3, v2)) > 90) obtuse= 3;
 
 	if (obtuse > 0) {
 		area= area_tri_v3(v1, v2, v3);
 
-		varea[i1] += (obtuse == 1)? area: area*0.5;
-		varea[i2] += (obtuse == 2)? area: area*0.5;
-		varea[i3] += (obtuse == 3)? area: area*0.5;
+		varea[i1] += (obtuse == 1)? area: area*0.5f;
+		varea[i2] += (obtuse == 2)? area: area*0.5f;
+		varea[i3] += (obtuse == 3)? area: area*0.5f;
 	}
 	else {
 		len1= len_v3v3(v2, v3);
@@ -237,7 +243,7 @@ static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int 
 	}
 }
 
-LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface, int lsq)
+static LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface, int lsq)
 {
 	LaplacianSystem *sys;
 
@@ -279,7 +285,7 @@ void laplacian_add_triangle(LaplacianSystem *sys, int v1, int v2, int v3)
 	sys->totface++;
 }
 
-void laplacian_system_construct_end(LaplacianSystem *sys)
+static void laplacian_system_construct_end(LaplacianSystem *sys)
 {
 	int (*face)[3];
 	int a, totvert=sys->totvert, totface=sys->totface;
@@ -330,7 +336,7 @@ void laplacian_system_construct_end(LaplacianSystem *sys)
 	sys->edgehash= NULL;
 }
 
-void laplacian_system_delete(LaplacianSystem *sys)
+static void laplacian_system_delete(LaplacianSystem *sys)
 {
 	if(sys->verts) MEM_freeN(sys->verts);
 	if(sys->varea) MEM_freeN(sys->varea);
@@ -465,7 +471,7 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 
 static int heat_ray_source_visible(LaplacianSystem *sys, int vertex, int source)
 {
-    BVHTreeRayHit hit;
+	BVHTreeRayHit hit;
 	BVHCallbackUserData data;
 	MFace *mface;
 	float end[3];
@@ -486,7 +492,7 @@ static int heat_ray_source_visible(LaplacianSystem *sys, int vertex, int source)
 
 	sub_v3_v3v3(data.vec, end, data.start);
 	madd_v3_v3v3fl(data.start, data.start, data.vec, 1e-5);
-	mul_v3_fl(data.vec, 1.0f - 2e-5);
+	mul_v3_fl(data.vec, 1.0f - 2e-5f);
 
 	/* pass normalized vec + distance to bvh */
 	hit.index = -1;
@@ -565,7 +571,7 @@ static void heat_set_H(LaplacianSystem *sys, int vertex)
 	sys->heat.H[vertex]= h;
 }
 
-void heat_calc_vnormals(LaplacianSystem *sys)
+static void heat_calc_vnormals(LaplacianSystem *sys)
 {
 	float fnor[3];
 	int a, v1, v2, v3, (*face)[3];
@@ -1035,9 +1041,9 @@ void rigid_deform_end(int cancel)
 #define MESHDEFORM_TAG_INTERIOR 2
 #define MESHDEFORM_TAG_EXTERIOR 3
 
-#define MESHDEFORM_LEN_THRESHOLD 1e-6
+#define MESHDEFORM_LEN_THRESHOLD 1e-6f
 
-#define MESHDEFORM_MIN_INFLUENCE 0.0005
+#define MESHDEFORM_MIN_INFLUENCE 0.0005f
 
 static int MESHDEFORM_OFFSET[7][3] =
 		{{0,0,0}, {1,0,0}, {-1,0,0}, {0,1,0}, {0,-1,0}, {0,0,1}, {0,0,-1}};
@@ -1117,7 +1123,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	det = INPR(edge1, pvec);
 
 	if (det == 0.0f)
-	  return 0;
+		return 0;
 	inv_det = 1.0f / det;
 
 	/* calculate distance from vert0 to ray origin */
@@ -1126,7 +1132,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	/* calculate U parameter and test bounds */
 	u = INPR(tvec, pvec) * inv_det;
 	if (u < -EPSILON || u > 1.0f+EPSILON)
-	  return 0;
+		return 0;
 
 	/* prepare to test V parameter */
 	cross_v3_v3v3(qvec, tvec, edge1);
@@ -1134,13 +1140,13 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	/* calculate V parameter and test bounds */
 	v = INPR(dir, qvec) * inv_det;
 	if (v < -EPSILON || u + v > 1.0f+EPSILON)
-	  return 0;
+		return 0;
 
 	isectco[0]= (1.0f - u - v)*vert0[0] + u*vert1[0] + v*vert2[0];
 	isectco[1]= (1.0f - u - v)*vert0[1] + u*vert1[1] + v*vert2[1];
 	isectco[2]= (1.0f - u - v)*vert0[2] + u*vert1[2] + v*vert2[2];
 
-	uvw[0]= 1.0 - u - v;
+	uvw[0]= 1.0f - u - v;
 	uvw[1]= u;
 	uvw[2]= v;
 

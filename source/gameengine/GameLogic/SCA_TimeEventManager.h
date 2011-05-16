@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SCA_TimeEventManager.h
+ *  \ingroup gamelogic
+ */
+
 #ifndef __KX_TIMEEVENTMANAGER
 #define __KX_TIMEEVENTMANAGER
 
@@ -49,6 +54,7 @@ public:
 	void			AddTimeProperty(CValue* timeval);
 	void			RemoveTimeProperty(CValue* timeval);
 
+	vector<CValue*>	GetTimeValues();
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:

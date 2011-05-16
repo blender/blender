@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/mesh/loopcut.c
+ *  \ingroup edmesh
+ */
+
 
 #include <float.h>
 #include <string.h>

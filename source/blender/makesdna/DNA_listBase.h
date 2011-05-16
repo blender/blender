@@ -1,6 +1,4 @@
-/**
- * blenlib/BLI_listBase.h    mar 2001 Nzc
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,13 +26,17 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  *
- * These structs are the foundation for all linked lists in the
- * library system.
  *
  */
 
 #ifndef DNA_LISTBASE_H
 #define DNA_LISTBASE_H
+
+/** \file DNA_listBase.h
+ *  \ingroup DNA
+ *  \brief These structs are the foundation for all linked lists in the
+ *         library system.
+ */
 
 #ifdef __cplusplus
 extern "C" {

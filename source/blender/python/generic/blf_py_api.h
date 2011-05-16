@@ -1,5 +1,5 @@
-/**
- * $Id: blf_py_api.h 33573 2010-12-09 17:31:42Z dfelinto $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,5 +21,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/generic/blf_py_api.h
+ *  \ingroup pygen
+ */
+
 
 PyObject *BPyInit_blf(void);

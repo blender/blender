@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file memutil/MEM_RefCounted.h
+ *  \ingroup memutil
+ */
+
 /**
  * @file	MEM_RefCounted.h
  * Declaration of MEM_RefCounted class.

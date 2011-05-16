@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_TimeCategoryLogger.h
+ *  \ingroup ketsji
  */
 
 #ifndef __KX_TIME_CATEGORY_LOGGER_H

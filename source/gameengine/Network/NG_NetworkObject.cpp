@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * NetworkGame_NetworkObject generic Network Object implementation
  */
+
+/** \file gameengine/Network/NG_NetworkObject.cpp
+ *  \ingroup bgenet
+ */
+
 #include "NG_NetworkObject.h"
 
 NG_NetworkObject::NG_NetworkObject()

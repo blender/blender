@@ -1,5 +1,5 @@
-/**
- * $Id: EffectExporter.h 32360 2010-10-07 01:20:59Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,10 @@
  *                 Nathan Letwory
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file EffectExporter.h
+ *  \ingroup collada
  */
 
 #ifndef __EFFECTEXPORTER_H__
@@ -53,10 +57,15 @@ public:
 											/*COLLADASW::Surface *surface*/);
 	
 	COLLADASW::ColorOrTexture getcol(float r, float g, float b, float a);
-	
-	//returns the array of mtex indices which have image 
-	//need this for exporting textures
+private:
+	/** Fills the array of mtex indices which have image. Used for exporting images. */
 	void createTextureIndices(Material *ma, std::vector<int> &indices);
+	
+	void writeBlinn(COLLADASW::EffectProfile &ep, Material *ma);
+	void writeLambert(COLLADASW::EffectProfile &ep, Material *ma);
+	void writePhong(COLLADASW::EffectProfile &ep, Material *ma);
+	
+	bool hasEffects(Scene *sce);
 };
 
 #endif

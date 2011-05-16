@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_nla/nla_ops.c
+ *  \ingroup spnla
+ */
+
 
 #include <string.h>
 #include <stdio.h>
@@ -122,6 +127,7 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_click_select);
 	WM_operatortype_append(NLA_OT_select_border);
 	WM_operatortype_append(NLA_OT_select_all_toggle);
+	WM_operatortype_append(NLA_OT_select_leftright);
 	
 	/* edit */
 	WM_operatortype_append(NLA_OT_tweakmode_enter);
@@ -185,8 +191,17 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	kmi= WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "extend", 1);
-	kmi= WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-		RNA_enum_set(kmi->ptr, "left_right", NLAEDIT_LRSEL_TEST);	
+		
+		/* select left/right */
+	WM_keymap_add_item(keymap, "NLA_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "NLA_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "extend", 1);
+	
+	kmi= WM_keymap_add_item(keymap, "NLA_OT_select_leftright", LEFTBRACKETKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "mode", NLAEDIT_LRSEL_LEFT);
+	kmi= WM_keymap_add_item(keymap, "NLA_OT_select_leftright", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "mode", NLAEDIT_LRSEL_RIGHT);
+		
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "NLA_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);

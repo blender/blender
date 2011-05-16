@@ -1,27 +1,33 @@
 /*
  * $Id$
  *
- * ***** BEGIN LGPL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * Copyright 2009 Jörg Hermann Müller
+ * Copyright 2009-2011 Jörg Hermann Müller
  *
  * This file is part of AudaSpace.
  *
- * AudaSpace is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * Audaspace is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * AudaSpace is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with AudaSpace.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Audaspace; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * ***** END LGPL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file audaspace/ffmpeg/AUD_FFMPEGReader.h
+ *  \ingroup audffmpeg
+ */
+
 
 #ifndef AUD_FFMPEGREADER
 #define AUD_FFMPEGREADER
@@ -100,9 +106,19 @@ private:
 	AUD_convert_f m_convert;
 
 	/**
-	 * The memory file to read from, only saved to keep the buffer alive.
+	 * The memory file to read from.
 	 */
 	AUD_Reference<AUD_Buffer> m_membuffer;
+
+	/**
+	 * The buffer to read with.
+	 */
+	data_t* m_membuf;
+
+	/**
+	 * Reading position of the buffer.
+	 */
+	int64_t m_membufferpos;
 
 	/**
 	 * Decodes a packet into the given buffer.
@@ -142,6 +158,9 @@ public:
 	 * Destroys the reader and closes the file.
 	 */
 	virtual ~AUD_FFMPEGReader();
+
+	static int read_packet(void* opaque, uint8_t* buf, int buf_size);
+	static int64_t seek_packet(void* opaque, int64_t offset, int whence);
 
 	virtual bool isSeekable() const;
 	virtual void seek(int position);

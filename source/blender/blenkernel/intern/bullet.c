@@ -28,6 +28,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/bullet.c
+ *  \ingroup bke
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 /* types */

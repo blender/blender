@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_object_force.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 
@@ -185,7 +190,7 @@ static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 		for(pid=pidlist.first; pid; pid=pid->next) {
 			if(pid->cache==cache)
 				pid2 = pid;
-			else if(strcmp(cache->name, "") && strcmp(cache->name,pid->cache->name)==0) {
+			else if(cache->name[0] != '\0' && strcmp(cache->name,pid->cache->name)==0) {
 				/*TODO: report "name exists" to user */
 				strcpy(cache->name, cache->prev_name);
 				new_name = 0;
@@ -317,10 +322,21 @@ static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max)
 
 static char *rna_CollisionSettings_path(PointerRNA *ptr)
 {
+	/* both methods work ok, but return the shorter path */
+#if 0
 	Object *ob= (Object*)ptr->id.data;
 	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Collision);
-	
-	return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
+
+	if(md) {
+		return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
+	}
+	else {
+		return BLI_strdup("");
+	}
+#else
+	/* more reliable */
+	return BLI_strdup("collision");
+#endif
 }
 
 static int rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
@@ -472,12 +488,12 @@ static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 		if(part->pd->forcefield != PFIELD_TEXTURE && part->pd->tex) {
 			part->pd->tex->id.us--;
-			part->pd->tex= 0;
+			part->pd->tex= NULL;
 		}
 
 		if(part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
 			part->pd2->tex->id.us--;
-			part->pd2->tex= 0;
+			part->pd2->tex= NULL;
 		}
 
 		DAG_id_tag_update(&part->id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME|PSYS_RECALC_RESET);
@@ -489,7 +505,7 @@ static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 		if(ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
 			ob->pd->tex->id.us--;
-			ob->pd->tex= 0;
+			ob->pd->tex= NULL;
 		}
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -804,7 +820,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_EXTERNAL);
 	RNA_def_property_ui_text(prop, "External", "Read cache from an external location");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
-    
+
 	prop= RNA_def_property(srna, "use_library_path", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", PTCACHE_IGNORE_LIBPATH);
 	RNA_def_property_ui_text(prop, "Library Path", "Use this files path when library linked into another file.");
@@ -1169,7 +1185,7 @@ static void rna_def_field(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "f_size");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Size", "Size of the noise");
+	RNA_def_property_ui_text(prop, "Size", "Size of the turbulence");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
 	prop= RNA_def_property(srna, "rest_length", PROP_FLOAT, PROP_NONE);
@@ -1223,7 +1239,7 @@ static void rna_def_field(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "noise", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "f_noise");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Noise", "Noise of the force");
+	RNA_def_property_ui_text(prop, "Noise", "Amount of noise for the force strength");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
 	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_UNSIGNED);
@@ -1653,7 +1669,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "fuzzy", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fuzzyness");
 	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_text(prop, "Fuzzy", "Fuzziness while on collision, high values make collsion handling faster but less stable");
+	RNA_def_property_ui_text(prop, "Fuzzy", "Fuzziness while on collision, high values make collision handling faster but less stable");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "use_auto_step", PROP_BOOLEAN, PROP_NONE);

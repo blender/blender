@@ -1,4 +1,4 @@
-/**
+/*
  * Manager for sensor that only need to call Update
  *
  * $Id$
@@ -27,6 +27,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_BasicEventManager.h
+ *  \ingroup gamelogic
  */
 
 #ifndef __SCA_BASICEVENTMGR

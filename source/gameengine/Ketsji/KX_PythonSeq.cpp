@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,11 @@
  * Readonly sequence wrapper for lookups on logic bricks
  */
 
+/** \file gameengine/Ketsji/KX_PythonSeq.cpp
+ *  \ingroup ketsji
+ */
+
+
 #ifdef WITH_PYTHON
 
 #include "KX_PythonSeq.h"
@@ -40,18 +45,30 @@
 
 PyObject *KX_PythonSeq_CreatePyObject( PyObject *base, short type )
 {
-	KX_PythonSeq *seq = PyObject_NEW( KX_PythonSeq, &KX_PythonSeq_Type);
+	KX_PythonSeq *seq = PyObject_GC_New(KX_PythonSeq, &KX_PythonSeq_Type);
 	seq->base = base;
 	Py_INCREF(base); /* so we can always access to check if its valid */
 	seq->type = type;
 	seq->iter = -1; /* init */
 	return (PyObject *)seq;
- }
- 
- static void KX_PythonSeq_dealloc( KX_PythonSeq * self )
+}
+
+static int KX_PythonSeq_traverse(KX_PythonSeq *self, visitproc visit, void *arg)
 {
-	Py_DECREF(self->base);
-	PyObject_DEL( self );
+	Py_VISIT(self->base);
+	return 0;
+}
+
+static int KX_PythonSeq_clear(KX_PythonSeq *self)
+{
+	Py_CLEAR(self->base);
+	return 0;
+}
+
+static void KX_PythonSeq_dealloc(KX_PythonSeq * self)
+{
+	KX_PythonSeq_clear(self);
+	PyObject_GC_Del(self);
 }
 
 static Py_ssize_t KX_PythonSeq_len( PyObject * self )
@@ -465,15 +482,15 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* long tp_flags; */
 
 	NULL,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
 	/* call function for all accessible objects */
-	NULL,						/* traverseproc tp_traverse; */
+	(traverseproc)KX_PythonSeq_traverse,	/* traverseproc tp_traverse; */
 
 	/* delete references to contained objects */
-	NULL,                       /* inquiry tp_clear; */
+	(inquiry)KX_PythonSeq_clear,	/* inquiry tp_clear; */
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/

@@ -1,4 +1,4 @@
-/**
+/*
  * KX_SoundActuator.cpp
  *
  * $Id$
@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  *
  */
+
+/** \file gameengine/Ketsji/KX_SoundActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_SoundActuator.h"
 #include "AUD_C-API.h"

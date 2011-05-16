@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_view3d/drawmesh.c
+ *  \ingroup spview3d
+ */
+
 
 #include <string.h>
 #include <math.h>
@@ -81,7 +86,7 @@ static void get_marked_edge_info__orFlags(EdgeHash *eh, int v0, int v1, int flag
 	int *flags_p;
 
 	if (!BLI_edgehash_haskey(eh, v0, v1)) {
-		BLI_edgehash_insert(eh, v0, v1, 0);
+		BLI_edgehash_insert(eh, v0, v1, NULL);
 	}
 
 	flags_p = (int*) BLI_edgehash_lookup_p(eh, v0, v1);
@@ -323,6 +328,7 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
 			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, CLAMPIS(ma->har, 0, 128));
 			glEnable(GL_LIGHTING);
 			glEnable(GL_COLOR_MATERIAL);
 		}
@@ -340,7 +346,7 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 
 /* Icky globals, fix with userdata parameter */
 
-struct TextureDrawState {
+static struct TextureDrawState {
 	Object *ob;
 	int islit, istex;
 	int color_profile;
@@ -376,7 +382,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.istex = istex;
 	Gtexdraw.color_profile = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
-	set_draw_settings_cached(1, 0, 0, Gtexdraw.islit, 0, 0, 0);
+	set_draw_settings_cached(1, 0, NULL, Gtexdraw.islit, NULL, 0, 0);
 	glShadeModel(GL_SMOOTH);
 }
 
@@ -562,7 +568,7 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 	return 1;
 }
 
-void draw_mesh_text(Scene *scene, Object *ob, int glsl)
+static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *ddm;

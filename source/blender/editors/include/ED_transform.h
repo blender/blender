@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_transform.h
+ *  \ingroup editors
  */
 
 #ifndef ED_TRANSFORM_H
@@ -73,6 +77,7 @@ enum {
 	TFM_TIME_SLIDE,
 	TFM_TIME_SCALE,
 	TFM_TIME_EXTEND,
+	TFM_TIME_DUPLICATE,
 	TFM_BAKE_TIME,
 	TFM_BEVEL,
 	TFM_BWEIGHT,

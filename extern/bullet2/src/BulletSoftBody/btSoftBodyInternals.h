@@ -19,12 +19,13 @@ subject to the following restrictions:
 
 #include "btSoftBody.h"
 
+
 #include "LinearMath/btQuickprof.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
 #include "BulletCollision/CollisionShapes/btConvexInternalShape.h"
 #include "BulletCollision/NarrowPhaseCollision/btGjkEpa2.h"
-
+#include <string.h> //for memset
 //
 // btSymMatrix
 //
@@ -124,11 +125,11 @@ public:
 	virtual btVector3	localGetSupportingVertex(const btVector3& vec) const
 	{
 		btSoftBody::Node* const *						n=&m_cluster->m_nodes[0];
-		btScalar										d=dot(vec,n[0]->m_x);
+		btScalar										d=btDot(vec,n[0]->m_x);
 		int												j=0;
 		for(int i=1,ni=m_cluster->m_nodes.size();i<ni;++i)
 		{
-			const btScalar	k=dot(vec,n[i]->m_x);
+			const btScalar	k=btDot(vec,n[i]->m_x);
 			if(k>d) { d=k;j=i; }
 		}
 		return(n[j]->m_x);
@@ -171,8 +172,7 @@ public:
 template <typename T>
 static inline void			ZeroInitialize(T& value)
 {
-	static const T	zerodummy;
-	value=zerodummy;
+	memset(&value,0,sizeof(T));
 }
 //
 template <typename T>
@@ -296,9 +296,9 @@ static inline btMatrix3x3	Mul(const btMatrix3x3& a,
 //
 static inline void			Orthogonalize(btMatrix3x3& m)
 {
-	m[2]=cross(m[0],m[1]).normalized();
-	m[1]=cross(m[2],m[0]).normalized();
-	m[0]=cross(m[1],m[2]).normalized();
+	m[2]=btCross(m[0],m[1]).normalized();
+	m[1]=btCross(m[2],m[0]).normalized();
+	m[0]=btCross(m[1],m[2]).normalized();
 }
 //
 static inline btMatrix3x3	MassMatrix(btScalar im,const btMatrix3x3& iwi,const btVector3& r)
@@ -335,7 +335,7 @@ static inline btMatrix3x3	AngularImpulseMatrix(	const btMatrix3x3& iia,
 static inline btVector3		ProjectOnAxis(	const btVector3& v,
 										  const btVector3& a)
 {
-	return(a*dot(v,a));
+	return(a*btDot(v,a));
 }
 //
 static inline btVector3		ProjectOnPlane(	const btVector3& v,
@@ -354,7 +354,7 @@ static inline void			ProjectOrigin(	const btVector3& a,
 	const btScalar	m2=d.length2();
 	if(m2>SIMD_EPSILON)
 	{	
-		const btScalar	t=Clamp<btScalar>(-dot(a,d)/m2,0,1);
+		const btScalar	t=Clamp<btScalar>(-btDot(a,d)/m2,0,1);
 		const btVector3	p=a+d*t;
 		const btScalar	l2=p.length2();
 		if(l2<sqd)
@@ -371,19 +371,19 @@ static inline void			ProjectOrigin(	const btVector3& a,
 										  btVector3& prj,
 										  btScalar& sqd)
 {
-	const btVector3&	q=cross(b-a,c-a);
+	const btVector3&	q=btCross(b-a,c-a);
 	const btScalar		m2=q.length2();
 	if(m2>SIMD_EPSILON)
 	{
 		const btVector3	n=q/btSqrt(m2);
-		const btScalar	k=dot(a,n);
+		const btScalar	k=btDot(a,n);
 		const btScalar	k2=k*k;
 		if(k2<sqd)
 		{
 			const btVector3	p=n*k;
-			if(	(dot(cross(a-p,b-p),q)>0)&&
-				(dot(cross(b-p,c-p),q)>0)&&
-				(dot(cross(c-p,a-p),q)>0))
+			if(	(btDot(btCross(a-p,b-p),q)>0)&&
+				(btDot(btCross(b-p,c-p),q)>0)&&
+				(btDot(btCross(c-p,a-p),q)>0))
 			{			
 				prj=p;
 				sqd=k2;
@@ -413,9 +413,9 @@ static inline btVector3		BaryCoord(	const btVector3& a,
 									  const btVector3& c,
 									  const btVector3& p)
 {
-	const btScalar	w[]={	cross(a-p,b-p).length(),
-		cross(b-p,c-p).length(),
-		cross(c-p,a-p).length()};
+	const btScalar	w[]={	btCross(a-p,b-p).length(),
+		btCross(b-p,c-p).length(),
+		btCross(c-p,a-p).length()};
 	const btScalar	isum=1/(w[0]+w[1]+w[2]);
 	return(btVector3(w[1]*isum,w[2]*isum,w[0]*isum));
 }
@@ -485,7 +485,7 @@ static inline btScalar			AreaOf(		const btVector3& x0,
 {
 	const btVector3	a=x1-x0;
 	const btVector3	b=x2-x0;
-	const btVector3	cr=cross(a,b);
+	const btVector3	cr=btCross(a,b);
 	const btScalar	area=cr.length();
 	return(area);
 }
@@ -499,7 +499,7 @@ static inline btScalar		VolumeOf(	const btVector3& x0,
 	const btVector3	a=x1-x0;
 	const btVector3	b=x2-x0;
 	const btVector3	c=x3-x0;
-	return(dot(a,cross(b,c)));
+	return(btDot(a,btCross(b,c)));
 }
 
 //
@@ -512,7 +512,7 @@ static void					EvaluateMedium(	const btSoftBodyWorldInfo* wfi,
 	medium.m_density	=	wfi->air_density;
 	if(wfi->water_density>0)
 	{
-		const btScalar	depth=-(dot(x,wfi->water_normal)+wfi->water_offset);
+		const btScalar	depth=-(btDot(x,wfi->water_normal)+wfi->water_offset);
 		if(depth>0)
 		{
 			medium.m_density	=	wfi->water_density;
@@ -654,14 +654,14 @@ struct btSoftColliders
 	{
 		btScalar			erp;
 		btScalar			idt;
-		btScalar			margin;
+		btScalar			m_margin;
 		btScalar			friction;
 		btScalar			threshold;
 		ClusterBase()
 		{
 			erp			=(btScalar)1;
 			idt			=0;
-			margin		=0;
+			m_margin		=0;
 			friction	=0;
 			threshold	=(btScalar)0;
 		}
@@ -669,16 +669,21 @@ struct btSoftColliders
 			btSoftBody::Body ba,btSoftBody::Body bb,
 			btSoftBody::CJoint& joint)
 		{
-			if(res.distance<margin)
+			if(res.distance<m_margin)
 			{
+				btVector3 norm = res.normal;
+				norm.normalize();//is it necessary?
+
 				const btVector3		ra=res.witnesses[0]-ba.xform().getOrigin();
 				const btVector3		rb=res.witnesses[1]-bb.xform().getOrigin();
 				const btVector3		va=ba.velocity(ra);
 				const btVector3		vb=bb.velocity(rb);
 				const btVector3		vrel=va-vb;
-				const btScalar		rvac=dot(vrel,res.normal);
-				const btScalar		depth=res.distance-margin;
-				const btVector3		iv=res.normal*rvac;
+				const btScalar		rvac=btDot(vrel,norm);
+				 btScalar		depth=res.distance-m_margin;
+				
+//				printf("depth=%f\n",depth);
+				const btVector3		iv=norm*rvac;
 				const btVector3		fv=vrel-iv;
 				joint.m_bodies[0]	=	ba;
 				joint.m_bodies[1]	=	bb;
@@ -691,12 +696,16 @@ struct btSoftColliders
 				joint.m_life		=	0;
 				joint.m_maxlife		=	0;
 				joint.m_split		=	1;
-				joint.m_drift		=	depth*res.normal;
-				joint.m_normal		=	res.normal;
+				
+				joint.m_drift		=	depth*norm;
+
+				joint.m_normal		=	norm;
+//				printf("normal=%f,%f,%f\n",res.normal.getX(),res.normal.getY(),res.normal.getZ());
 				joint.m_delete		=	false;
 				joint.m_friction	=	fv.length2()<(-rvac*friction)?1:friction;
 				joint.m_massmatrix	=	ImpulseMatrix(	ba.invMass(),ba.invWorldInertia(),joint.m_rpos[0],
 					bb.invMass(),bb.invWorldInertia(),joint.m_rpos[1]);
+
 				return(true);
 			}
 			return(false);
@@ -714,10 +723,16 @@ struct btSoftColliders
 		{
 			btSoftBody::Cluster*		cluster=(btSoftBody::Cluster*)leaf->data;
 			btSoftClusterCollisionShape	cshape(cluster);
+			
 			const btConvexShape*		rshape=(const btConvexShape*)m_colObj->getCollisionShape();
+
+			///don't collide an anchored cluster with a static/kinematic object
+			if(m_colObj->isStaticOrKinematicObject() && cluster->m_containsAnchor)
+				return;
+
 			btGjkEpaSolver2::sResults	res;		
 			if(btGjkEpaSolver2::SignedDistance(	&cshape,btTransform::getIdentity(),
-				rshape,m_colObj->getInterpolationWorldTransform(),
+				rshape,m_colObj->getWorldTransform(),
 				btVector3(1,0,0),res))
 			{
 				btSoftBody::CJoint	joint;
@@ -743,16 +758,16 @@ struct btSoftColliders
 			psb			=	ps;
 			m_colObj			=	colOb;
 			idt			=	ps->m_sst.isdt;
-			margin		=	m_colObj->getCollisionShape()->getMargin();
+			m_margin		=	m_colObj->getCollisionShape()->getMargin()+psb->getCollisionShape()->getMargin();
 			///Bullet rigid body uses multiply instead of minimum to determine combined friction. Some customization would be useful.
 			friction	=	btMin(psb->m_cfg.kDF,m_colObj->getFriction());
 			btVector3			mins;
 			btVector3			maxs;
 
 			ATTRIBUTE_ALIGNED16(btDbvtVolume)		volume;
-			colOb->getCollisionShape()->getAabb(colOb->getInterpolationWorldTransform(),mins,maxs);
+			colOb->getCollisionShape()->getAabb(colOb->getWorldTransform(),mins,maxs);
 			volume=btDbvtVolume::FromMM(mins,maxs);
-			volume.Expand(btVector3(1,1,1)*margin);
+			volume.Expand(btVector3(1,1,1)*m_margin);
 			ps->m_cdbvt.collideTV(ps->m_cdbvt.m_root,volume,*this);
 		}	
 	};
@@ -803,7 +818,8 @@ struct btSoftColliders
 		void		Process(btSoftBody* psa,btSoftBody* psb)
 		{
 			idt			=	psa->m_sst.isdt;
-			margin		=	(psa->getCollisionShape()->getMargin()+psb->getCollisionShape()->getMargin())/2;
+			//m_margin		=	(psa->getCollisionShape()->getMargin()+psb->getCollisionShape()->getMargin())/2;
+			m_margin		=	(psa->getCollisionShape()->getMargin()+psb->getCollisionShape()->getMargin());
 			friction	=	btMin(psa->m_cfg.kDF,psb->m_cfg.kDF);
 			bodies[0]	=	psa;
 			bodies[1]	=	psb;
@@ -832,14 +848,14 @@ struct btSoftColliders
 				const btScalar	ms=ima+imb;
 				if(ms>0)
 				{
-					const btTransform&	wtr=m_rigidBody?m_rigidBody->getInterpolationWorldTransform() : m_colObj1->getWorldTransform();
+					const btTransform&	wtr=m_rigidBody?m_rigidBody->getWorldTransform() : m_colObj1->getWorldTransform();
 					static const btMatrix3x3	iwiStatic(0,0,0,0,0,0,0,0,0);
 					const btMatrix3x3&	iwi=m_rigidBody?m_rigidBody->getInvInertiaTensorWorld() : iwiStatic;
 					const btVector3		ra=n.m_x-wtr.getOrigin();
 					const btVector3		va=m_rigidBody ? m_rigidBody->getVelocityInLocalPoint(ra)*psb->m_sst.sdt : btVector3(0,0,0);
 					const btVector3		vb=n.m_x-n.m_q;	
 					const btVector3		vr=vb-va;
-					const btScalar		dn=dot(vr,c.m_cti.m_normal);
+					const btScalar		dn=btDot(vr,c.m_cti.m_normal);
 					const btVector3		fv=vr-c.m_cti.m_normal*dn;
 					const btScalar		fc=psb->m_cfg.kDF*m_colObj1->getFriction();
 					c.m_node	=	&n;

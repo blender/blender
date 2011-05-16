@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+/** \file blender/imbuf/intern/radiance_hdr.c
+ *  \ingroup imbuf
+ */
+
+
 #ifdef WITH_HDR
 
 /* ----------------------------------------------------------------------

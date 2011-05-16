@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_C-api.cpp
+ *  \ingroup GHOST
+ */
+
 
 /*
 
@@ -248,6 +253,13 @@ GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle, GHOST_Eve
 	return system->addEventConsumer((GHOST_CallbackEventConsumer*)consumerhandle);
 }
 
+GHOST_TSuccess GHOST_RemoveEventConsumer(GHOST_SystemHandle systemhandle, GHOST_EventConsumerHandle consumerhandle)
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+
+	return system->removeEventConsumer((GHOST_CallbackEventConsumer*)consumerhandle);
+}
+
 GHOST_TSuccess GHOST_SetProgressBar(GHOST_WindowHandle windowhandle,float progress)
 {
 	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
@@ -391,7 +403,7 @@ GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
 {
 	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
 	GHOST_TSuccess result;
-	bool isdown;
+	bool isdown= false;
 	
 	result = system->getModifierKeyState(mask, isdown);
 	*isDown = (int) isdown;
@@ -407,7 +419,7 @@ GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
 {
 	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
 	GHOST_TSuccess result;
-	bool isdown;
+	bool isdown= false;
 	
 	result = system->getButtonState(mask, isdown);
 	*isDown = (int) isdown;
@@ -864,4 +876,10 @@ void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection)
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
 	system->putClipboard(buffer, selection);
+}
+
+int GHOST_toggleConsole(int action)
+{
+	GHOST_ISystem* system = GHOST_ISystem::getSystem();
+	return system->toggleConsole(action);
 }

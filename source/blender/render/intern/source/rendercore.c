@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/source/rendercore.c
+ *  \ingroup render
+ */
+
 
 /* system includes */
 #include <stdio.h>
@@ -1053,14 +1058,14 @@ static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 
 static unsigned short *make_solid_mask(RenderPart *pa)
 { 
-	 intptr_t *rd= pa->rectdaps;
-	 unsigned short *solidmask, *sp;
-	 int x;
- 	
+	intptr_t *rd= pa->rectdaps;
+	unsigned short *solidmask, *sp;
+	int x;
+
 	if(rd==NULL) return NULL;
- 	
+
 	sp=solidmask= MEM_mallocN(sizeof(short)*pa->rectx*pa->recty, "solidmask");
- 	
+
 	for(x=pa->rectx*pa->recty; x>0; x--, rd++, sp++) {
 		if(*rd) {
 			PixStr *ps= (PixStr *)*rd;
@@ -1072,7 +1077,7 @@ static unsigned short *make_solid_mask(RenderPart *pa)
 		else
 			*sp= 0;
 	}
- 			
+
 	return solidmask;
 }
 
@@ -1538,6 +1543,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	if(shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
 		negate_v3(shi->vn);
 		negate_v3(shi->vno);
+		negate_v3(shi->nmapnorm);
 	}
 
 	/* if nodetree, use the material that we are currently preprocessing
@@ -2160,26 +2166,34 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 				if(tvn && ttang) {
 					VECCOPY(mat[0], ttang);
 					cross_v3_v3v3(mat[1], tvn, ttang);
+					mul_v3_fl(mat[1], ttang[3]);
 					VECCOPY(mat[2], tvn);
 				}
 				else {
 					VECCOPY(mat[0], shi->nmaptang);
-					cross_v3_v3v3(mat[1], shi->vn, shi->nmaptang);
-					VECCOPY(mat[2], shi->vn);
+					cross_v3_v3v3(mat[1], shi->nmapnorm, shi->nmaptang);
+					mul_v3_fl(mat[1], shi->nmaptang[3]);
+					VECCOPY(mat[2], shi->nmapnorm);
 				}
 
 				invert_m3_m3(imat, mat);
 				mul_m3_v3(imat, nor);
 			}
 			else if(R.r.bake_normal_space == R_BAKE_SPACE_OBJECT)
-				mul_mat3_m4_v3(ob->imat, nor); /* ob->imat includes viewinv! */
+				mul_mat3_m4_v3(ob->imat_ren, nor); /* ob->imat_ren includes viewinv! */
 			else if(R.r.bake_normal_space == R_BAKE_SPACE_WORLD)
 				mul_mat3_m4_v3(R.viewinv, nor);
 
 			normalize_v3(nor); /* in case object has scaling */
 
-			shr.combined[0]= nor[0]/2.0f + 0.5f;
-			shr.combined[1]= 0.5f - nor[1]/2.0f;
+			// The invert of the red channel is to make
+			// the normal map compliant with the outside world.
+			// It needs to be done because in Blender
+			// the normal used in the renderer points inward. It is generated
+			// this way in calc_vertexnormals(). Should this ever change
+			// this negate must be removed.
+			shr.combined[0]= (-nor[0])/2.0f + 0.5f;
+			shr.combined[1]= nor[1]/2.0f + 0.5f;
 			shr.combined[2]= nor[2]/2.0f + 0.5f;
 		}
 		else if(bs->type==RE_BAKE_TEXTURE) {
@@ -2347,7 +2361,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	VlakRen *vlr= bs->vlr;
 	ObjectInstanceRen *obi= bs->obi;
 	Object *ob= obi->obr->ob;
-	float l, *v1, *v2, *v3, tvn[3], ttang[3];
+	float l, *v1, *v2, *v3, tvn[3], ttang[4];
 	int quad;
 	ShadeSample *ssamp= &bs->ssamp;
 	ShadeInput *shi= ssamp->shi;
@@ -2386,8 +2400,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 
 	if(bs->type==RE_BAKE_NORMALS && R.r.bake_normal_space==R_BAKE_SPACE_TANGENT) {
 		shade_input_set_shade_texco(shi);
-		VECCOPY(tvn, shi->vn);
-		VECCOPY(ttang, shi->nmaptang);
+		VECCOPY(tvn, shi->nmapnorm);
+		QUATCOPY(ttang, shi->nmaptang);
 	}
 
 	/* if we are doing selected to active baking, find point on other face */

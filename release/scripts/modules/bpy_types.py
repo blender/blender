@@ -23,8 +23,10 @@ import _bpy
 from mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
-StructMetaIDProp = _bpy.StructMetaIDProp
+StructMetaPropGroup = _bpy.StructMetaPropGroup
 # StructRNA = bpy_types.Struct
+
+bpy_types.BlendDataLibraries.load = _bpy._library_load
 
 
 class Context(StructRNA):
@@ -188,7 +190,7 @@ class _GenericBone:
 
     @length.setter
     def length(self, value):
-        self.tail = self.head + ((self.tail - self.head).normalize() * value)
+        self.tail = self.head + ((self.tail - self.head).normalized() * value)
 
     @property
     def vector(self):
@@ -258,15 +260,15 @@ class _GenericBone:
         return bones
 
 
-class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
+class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
 
 
-class Bone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
+class Bone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
 
 
-class EditBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
+class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
 
     def align_orientation(self, other):
@@ -278,19 +280,29 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
         self.tail = self.head + vec
         self.roll = other.roll
 
-    def transform(self, matrix):
+    def transform(self, matrix, scale=True, roll=True):
         """
         Transform the the bones head, tail, roll and envalope (when the matrix has a scale component).
-        Expects a 4x4 or 3x3 matrix.
+
+        :arg matrix: 3x3 or 4x4 transformation matrix.
+        :type matrix: :class:`Matrix`
+        :arg scale: Scale the bone envalope by the matrix.
+        :type scale: bool
+        :arg roll: Correct the roll to point in the same relative direction to the head and tail.
+        :type roll: bool
         """
         from mathutils import Vector
         z_vec = Vector((0.0, 0.0, 1.0)) * self.matrix.to_3x3()
         self.tail = self.tail * matrix
         self.head = self.head * matrix
-        scalar = matrix.median_scale
-        self.head_radius *= scalar
-        self.tail_radius *= scalar
-        self.align_roll(z_vec * matrix)
+
+        if scale:
+            scalar = matrix.median_scale
+            self.head_radius *= scalar
+            self.tail_radius *= scalar
+
+        if roll:
+            self.align_roll(z_vec * matrix)
 
 
 def ord_ind(i1, i2):
@@ -557,37 +569,49 @@ TypeMap = {}
 class RNAMeta(type):
     def __new__(cls, name, bases, classdict, **args):
         result = type.__new__(cls, name, bases, classdict)
-        if bases and bases[0] != StructRNA:
-            import traceback
-            import weakref
+        if bases and bases[0] is not StructRNA:
+            from _weakref import ref as ref
             module = result.__module__
 
             # first part of packages only
             if "." in module:
                 module = module[:module.index(".")]
 
-            sf = traceback.extract_stack(limit=2)[0]
-
-            TypeMap.setdefault(module, []).append((weakref.ref(result), sf[0], sf[1]))
+            TypeMap.setdefault(module, []).append(ref(result))
 
         return result
 
+    @property
+    def is_registered(cls):
+        return "bl_rna" in cls.__dict__
 
-import collections
+
+class OrderedDictMini(dict):
+    def __init__(self, *args):
+        self.order = []
+        dict.__init__(self, args)
+
+    def __setitem__(self, key, val):
+        dict.__setitem__(self, key, val)
+        if key not in self.order:
+            self.order.append(key)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        self.order.remove(key)
 
 
-class RNAMetaIDProp(RNAMeta, StructMetaIDProp):
+class RNAMetaPropGroup(RNAMeta, StructMetaPropGroup):
     pass
 
 
 class OrderedMeta(RNAMeta):
-
     def __init__(cls, name, bases, attributes):
-        super(OrderedMeta, cls).__init__(name, bases, attributes)
-        cls.order = list(attributes.keys())
+        if attributes.__class__ is OrderedDictMini:
+            cls.order = attributes.order
 
     def __prepare__(name, bases, **kwargs):
-        return collections.OrderedDict()
+        return OrderedDictMini()  # collections.OrderedDict()
 
 
 # Only defined so operators members can be used by accessing self.order
@@ -634,7 +658,7 @@ class Macro(StructRNA, metaclass=OrderedMeta):
         return ops.macro_define(self, opname)
 
 
-class IDPropertyGroup(StructRNA, metaclass=RNAMetaIDProp):
+class PropertyGroup(StructRNA, metaclass=RNAMetaPropGroup):
         __slots__ = ()
 
 
@@ -656,6 +680,9 @@ class _GenericUI:
         if draw_funcs is None:
 
             def draw_ls(self, context):
+                # ensure menus always get default context
+                operator_context_default = self.layout.operator_context
+
                 for func in draw_ls._draw_funcs:
                     # so bad menu functions dont stop the entire menu from drawing.
                     try:
@@ -664,6 +691,8 @@ class _GenericUI:
                         import traceback
                         traceback.print_exc()
 
+                    self.layout.operator_context = operator_context_default
+
             draw_funcs = draw_ls._draw_funcs = [cls.draw]
             cls.draw = draw_ls
 
@@ -671,7 +700,7 @@ class _GenericUI:
 
     @classmethod
     def append(cls, draw_func):
-        """Prepend an draw function to this menu, takes the same arguments as the menus draw function."""
+        """Append a draw function to this menu, takes the same arguments as the menus draw function."""
         draw_funcs = cls._dyn_ui_initialize()
         draw_funcs.append(draw_func)
 

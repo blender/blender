@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,6 +23,10 @@
  * Contributor(s): Nicholas Bishop
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_sculpt.h
+ *  \ingroup editors
  */
 
 #ifndef ED_SCULPT_H

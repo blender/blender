@@ -1,3 +1,6 @@
+/** \file itasc/kdl/treejnttojacsolver.cpp
+ *  \ingroup itasc
+ */
 /*
  * TreeJntToJacSolver.cpp
  *

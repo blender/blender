@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,6 +23,10 @@
  * Contributor(s): Blender Foundation 2002-2008
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file BIF_glutil.h
+ *  \ingroup editorui
  */
 
 #ifndef BIF_GLUTIL_H

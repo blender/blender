@@ -1,5 +1,5 @@
-/**
- * $Id: GHOST_SystemPathsX11.cpp 34106 2011-01-05 19:19:49Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ghost/intern/GHOST_SystemPathsX11.cpp
+ *  \ingroup GHOST
+ */
+
+
 #include "GHOST_SystemPathsX11.h"
 
 #include "GHOST_Debug.h"
@@ -37,11 +42,6 @@
 
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
-
-#ifndef PREFIX
-#  define PREFIX "/usr/local"
-#endif
-
 
 using namespace std;
 
@@ -55,12 +55,17 @@ GHOST_SystemPathsX11::~GHOST_SystemPathsX11()
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getSystemDir() const
 {
+	/* no prefix assumes a portable build which only uses bundled scripts */
+#ifdef PREFIX
 	return (GHOST_TUns8*) PREFIX "/share";
+#else
+	return NULL;
+#endif
 }
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getUserDir() const
 {
-	char* env = getenv("HOME");
+	const char* env = getenv("HOME");
 	if(env) {
 		return (GHOST_TUns8*) env;
 	} else {

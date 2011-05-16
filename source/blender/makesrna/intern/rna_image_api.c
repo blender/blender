@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * 
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_image_api.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -79,7 +84,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 			const float dither_back= ibuf->dither; 
 			ibuf->depth= scene->r.planes;
 			ibuf->dither= scene->r.dither_intensity;
-			if (!BKE_write_ibuf(NULL, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
+			if (!BKE_write_ibuf(ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
 				BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 			}
 			ibuf->depth= imb_depth_back;
@@ -150,7 +155,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 
 	ibuf= BKE_image_get_ibuf(image, NULL);
 
- 	if(ibuf == NULL || ibuf->rect == NULL ) {
+	if(ibuf == NULL || ibuf->rect == NULL ) {
 		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name+2);
 		return (int)GL_INVALID_OPERATION;
 	}

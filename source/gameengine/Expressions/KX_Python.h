@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_Python.h
+ *  \ingroup expressions
+ */
+
 #ifndef KX_PYTHON_H
 #define KX_PYTHON_H
 

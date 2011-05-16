@@ -26,6 +26,11 @@
  *
  */
 
+/** \file blender/editors/sculpt_paint/paint_stroke.c
+ *  \ingroup edsculpt
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
@@ -74,7 +79,9 @@ typedef struct PaintStroke {
 	   e.g. in sculpt mode, stroke doesn't start until cursor
 	   passes over the mesh */
 	int stroke_started;
-
+	/* event that started stroke, for modal() return */
+	int event_type;
+	
 	StrokeGetLocation get_location;
 	StrokeTestStart test_start;
 	StrokeUpdateStep update_step;
@@ -160,7 +167,7 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 	static Snapshot snap;
 	static int old_size = -1;
 
-	GLubyte* buffer = 0;
+	GLubyte* buffer = NULL;
 
 	int size;
 	int j;
@@ -258,11 +265,11 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 					/* it is probably worth optimizing for those cases where 
 					   the texture is not rotated by skipping the calls to
 					   atan2, sqrtf, sin, and cos. */
-					if (br->mtex.tex && (rotation > 0.001 || rotation < -0.001)) {
-						const float angle    = atan2(y, x) + rotation;
+					if (br->mtex.tex && (rotation > 0.001f || rotation < -0.001f)) {
+						const float angle    = atan2f(y, x) + rotation;
 
-						x = len * cos(angle);
-						y = len * sin(angle);
+						x = len * cosf(angle);
+						y = len * sinf(angle);
 					}
 
 					x *= br->mtex.size[0];
@@ -330,20 +337,20 @@ static int project_brush_radius(RegionView3D* rv3d, float radius, float location
 
 	// create a vector that is not orthogonal to view
 
-	if (fabsf(view[0]) < 0.1) {
-		nonortho[0] = view[0] + 1;
+	if (fabsf(view[0]) < 0.1f) {
+		nonortho[0] = view[0] + 1.0f;
 		nonortho[1] = view[1];
 		nonortho[2] = view[2];
 	}
-	else if (fabsf(view[1]) < 0.1) {
+	else if (fabsf(view[1]) < 0.1f) {
 		nonortho[0] = view[0];
-		nonortho[1] = view[1] + 1;
+		nonortho[1] = view[1] + 1.0f;
 		nonortho[2] = view[2];
 	}
 	else {
 		nonortho[0] = view[0];
 		nonortho[1] = view[1];
-		nonortho[2] = view[2] + 1;
+		nonortho[2] = view[2] + 1.0f;
 	}
 
 	// get a vector in the plane of the view
@@ -362,14 +369,14 @@ static int project_brush_radius(RegionView3D* rv3d, float radius, float location
 	return len_v2v2(p1, p2);
 }
 
-int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius,
+static int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius,
 			      float location[3])
 {
 	struct PaintStroke *stroke;
 	float window[2];
 	int hit;
 
-	stroke = paint_stroke_new(C, NULL, NULL, NULL, NULL);
+	stroke = paint_stroke_new(C, NULL, NULL, NULL, NULL, 0);
 
 	window[0] = x + stroke->vc.ar->winrct.xmin;
 	window[1] = y + stroke->vc.ar->winrct.ymin;
@@ -383,7 +390,7 @@ int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius,
 		if (*pixel_radius == 0)
 			*pixel_radius = brush_size(stroke->brush);
 
-		mul_m4_v3(stroke->vc.obact->sculpt->ob->obmat, location);
+		mul_m4_v3(stroke->vc.obact->obmat, location);
 
 		hit = 1;
 	}
@@ -439,10 +446,10 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 
 		if(brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
 			/* brush rotation */
-			glTranslatef(0.5f, 0.5f, 0);
-			glRotatef(((brush->flag & BRUSH_RAKE) ?
-				   sd->last_angle : sd->special_rotation) * (180.0f/M_PI),
-				  0, 0, 1);
+			glTranslatef(0.5, 0.5, 0);
+			glRotatef((double)((brush->flag & BRUSH_RAKE) ?
+				   sd->last_angle : sd->special_rotation) * (180.0/M_PI),
+				  0.0, 0.0, 1.0);
 			glTranslatef(-0.5f, -0.5f, 0);
 
 			/* scale based on tablet pressure */
@@ -723,7 +730,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
 	{
-		float u = stroke->brush->smooth_stroke_factor, v = 1.0 - u;
+		float u = stroke->brush->smooth_stroke_factor, v = 1.0f - u;
 		float dx = stroke->last_mouse_position[0] - event->x, dy = stroke->last_mouse_position[1] - event->y;
 
 		/* If the mouse is moving within the radius of the last move,
@@ -789,7 +796,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 				  StrokeGetLocation get_location,
 				  StrokeTestStart test_start,
 				  StrokeUpdateStep update_step,
-				  StrokeDone done)
+				  StrokeDone done, int event_type)
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 
@@ -801,7 +808,8 @@ PaintStroke *paint_stroke_new(bContext *C,
 	stroke->test_start = test_start;
 	stroke->update_step = update_step;
 	stroke->done = done;
-
+	stroke->event_type= event_type;	/* for modal, return event */
+	
 	return stroke;
 }
 
@@ -841,8 +849,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		//ED_region_tag_redraw(ar);
 	}
 
-	/* TODO: fix hardcoded events here */
-	if(event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+	if(event->type == stroke->event_type && event->val == KM_RELEASE) {
 		/* exit stroke, free data */
 		if(stroke->smooth_stroke_cursor)
 			WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
@@ -889,10 +896,19 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 {
 	PaintStroke *stroke = op->customdata;
 
+	/* only when executed for the first time */
+	if(stroke->stroke_started == 0) {
+		/* XXX stroke->last_mouse_position is unset, this may cause problems */
+		stroke->test_start(C, op, NULL);
+		stroke->stroke_started= 1;
+	}
+
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		stroke->update_step(C, stroke, &itemptr);
 	}
 	RNA_END;
+
+	stroke->done(C, stroke);
 
 	MEM_freeN(stroke);
 	op->customdata = NULL;

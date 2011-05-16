@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 * ***** BEGIN GPL LICENSE BLOCK *****
 *
@@ -25,6 +25,11 @@
 *
 * ***** END GPL LICENSE BLOCK *****
 */
+
+/** \file moto/include/MT_assert.h
+ *  \ingroup moto
+ */
+
 
 #ifndef MT_ASSERT_H
 #define MT_ASSERT_H

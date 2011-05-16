@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,6 +23,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_graph/graph_select.c
+ *  \ingroup spgraph
+ */
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -86,7 +91,7 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 	int filter;
 	
 	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc test_cb, sel_cb;
 	
 	/* determine type-based settings */
@@ -234,7 +239,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 		 * guess when a callback might use something different
 		 */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, incl_handles==0);
 		
 		/* set horizontal range (if applicable) 
 		 * NOTE: these values are only used for x-range and y-range but not region 
@@ -264,7 +269,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 		
 		/* un-apply NLA mapping from all the keyframes */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, incl_handles==0);
 			
 		/* unapply unit corrections */
 		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE|ANIM_UNITCONV_ONLYKEYS);
@@ -454,7 +459,7 @@ static void columnselect_graph_keys (bAnimContext *ac, short mode)
 			break;
 			
 		case GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
-			ED_markers_make_cfra_list(ac->markers, &ked.list, 1);
+			ED_markers_make_cfra_list(ac->markers, &ked.list, SELECT);
 			break;
 			
 		default: /* invalid option */
@@ -479,11 +484,8 @@ static void columnselect_graph_keys (bAnimContext *ac, short mode)
 		 */
 		for (ce= ked.list.first; ce; ce= ce->next) {
 			/* set frame for validation callback to refer to */
-			if (ale)
-				ked.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, NLATIME_CONVERT_UNMAP);
-			else
-				ked.f1= ce->cfra;
-			
+			ked.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, NLATIME_CONVERT_UNMAP);
+
 			/* select elements with frame number matching cfraelem */
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 		}
@@ -704,6 +706,157 @@ void GRAPH_OT_select_less (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
+/* ******************** Select Left/Right Operator ************************* */
+/* Select keyframes left/right of the current frame indicator */
+
+/* defines for left-right select tool */
+static EnumPropertyItem prop_graphkeys_leftright_select_types[] = {
+	{GRAPHKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
+	{GRAPHKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
+	{GRAPHKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* --------------------------------- */
+
+static void graphkeys_select_leftright (bAnimContext *ac, short leftright, short select_mode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	KeyframeEditFunc ok_cb, select_cb;
+	KeyframeEditData ked= {{NULL}};
+	Scene *scene= ac->scene;
+	
+	/* if select mode is replace, deselect all keyframes (and channels) first */
+	if (select_mode==SELECT_REPLACE) {
+		select_mode= SELECT_ADD;
+		
+		/* deselect all other channels and keyframes */
+		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		deselect_graph_keys(ac, 0, SELECT_SUBTRACT);
+	}
+	
+	/* set callbacks and editing data */
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
+	select_cb= ANIM_editkeyframes_select(select_mode);
+	
+	if (leftright == GRAPHKEYS_LRSEL_LEFT) {
+		ked.f1 = MINAFRAMEF;
+		ked.f2 = (float)(CFRA + 0.1f);
+	} 
+	else {
+		ked.f1 = (float)(CFRA - 0.1f);
+		ked.f2 = MAXFRAMEF;
+	}
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+		
+	/* select keys */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
+		
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+		}
+		else
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
+	}
+
+	/* Cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ----------------- */
+
+static int graphkeys_select_leftright_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short leftright = RNA_enum_get(op->ptr, "mode");
+	short selectmode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* select mode is either replace (deselect all, then add) or add/extend */
+	if (RNA_boolean_get(op->ptr, "extend"))
+		selectmode= SELECT_INVERT;
+	else
+		selectmode= SELECT_REPLACE;
+		
+	/* if "test" mode is set, we don't have any info to set this with */
+	if (leftright == GRAPHKEYS_LRSEL_TEST)
+		return OPERATOR_CANCELLED;
+	
+	/* do the selecting now */
+	graphkeys_select_leftright(&ac, leftright, selectmode);
+	
+	/* set notifier that keyframe selection (and channels too) have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|ND_ANIMCHAN|NA_SELECTED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int graphkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	bAnimContext ac;
+	short leftright = RNA_enum_get(op->ptr, "mode");
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* handle mode-based testing */
+	if (leftright == GRAPHKEYS_LRSEL_TEST) {
+		Scene *scene= ac.scene;
+		ARegion *ar= ac.ar;
+		View2D *v2d= &ar->v2d;
+		
+		short mval[2];
+		float x;
+		
+		/* get mouse coordinates (in region coordinates) */
+		mval[0]= (event->x - ar->winrct.xmin);
+		mval[1]= (event->y - ar->winrct.ymin);
+		
+		/* determine which side of the current frame mouse is on */
+		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+		if (x < CFRA)
+			RNA_int_set(op->ptr, "mode", GRAPHKEYS_LRSEL_LEFT);
+		else 	
+			RNA_int_set(op->ptr, "mode", GRAPHKEYS_LRSEL_RIGHT);
+	}
+	
+	/* perform selection */
+	return graphkeys_select_leftright_exec(C, op);
+}
+
+void GRAPH_OT_select_leftright (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Left/Right";
+	ot->idname= "GRAPH_OT_select_leftright";
+	ot->description= "Select keyframes to the left or the right of the current frame";
+	
+	/* api callbacks  */
+	ot->invoke=	graphkeys_select_leftright_invoke;
+	ot->exec= graphkeys_select_leftright_exec;
+	ot->poll= graphop_visible_keyframes_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	ot->prop= RNA_def_enum(ot->srna, "mode", prop_graphkeys_leftright_select_types, GRAPHKEYS_LRSEL_TEST, "Mode", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+}
+
 /* ******************** Mouse-Click Select Operator *********************** */
 /* This operator works in one of three ways:
  *	- 1) keyframe under mouse - no special modifiers
@@ -713,17 +866,6 @@ void GRAPH_OT_select_less (wmOperatorType *ot)
  * In addition to these basic options, the SHIFT modifier can be used to toggle the 
  * selection mode between replacing the selection (without) and inverting the selection (with).
  */
-
-/* defines for left-right select tool */
-static EnumPropertyItem prop_graphkeys_leftright_select_types[] = {
-	{GRAPHKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
-	{GRAPHKEYS_LRSEL_NONE, "OFF", 0, "Don't select", ""},
-	{GRAPHKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
-	{GRAPHKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-/* ------------------- */
 
 /* temp info for caching handle vertices close */
 typedef struct tNearestVertInfo {
@@ -842,7 +984,7 @@ static void get_nearest_fcurve_verts_list (bAnimContext *ac, int mval[2], ListBa
 		
 		/* apply NLA mapping to all the keyframes */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
 		
 		if (fcu->bezt) {
 			BezTriple *bezt1=fcu->bezt, *prevbezt=NULL;
@@ -875,7 +1017,7 @@ static void get_nearest_fcurve_verts_list (bAnimContext *ac, int mval[2], ListBa
 		
 		/* un-apply NLA mapping from all the keyframes */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
 		
 		/* unapply unit corrections */
 		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE);
@@ -1042,96 +1184,37 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 	/* only change selection of channel when the visibility of keyframes doesn't depend on this */
 	if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
 		/* select or deselect curve? */
-
-		/* when a single point is selected then dont toggle channel selection */
-		if(bezt) {
-			if((bezt->f2|bezt->f1|bezt->f3) & SELECT) {
+		if (bezt) {
+			/* take selection status from item that got hit, to prevent flip/flop on channel 
+			 * selection status when shift-selecting (i.e. "SELECT_INVERT") points
+			 */
+			if (BEZSELECTED(bezt))
 				nvi->fcu->flag |= FCURVE_SELECTED;
-			}
-			else {
+			else
 				nvi->fcu->flag &= ~FCURVE_SELECTED;
-			}
 		}
 		else {
+			/* didn't hit any channel, so just apply that selection mode to the curve's selection status */
 			if (select_mode == SELECT_INVERT)
 				nvi->fcu->flag ^= FCURVE_SELECTED;
 			else if (select_mode == SELECT_ADD)
 				nvi->fcu->flag |= FCURVE_SELECTED;
 		}
-
-		/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
-		if (nvi->fcu->flag & FCURVE_SELECTED) {
-			int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
-			ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nvi->fcu, ANIMTYPE_FCURVE);
-		}
 	}
-	
+
+	/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
+	/* needs to be called with (sipo->flag & SIPO_SELCUVERTSONLY) otherwise the active flag won't be set [#26452] */
+	if (nvi->fcu->flag & FCURVE_SELECTED) {
+		int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+		ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nvi->fcu, ANIMTYPE_FCURVE);
+	}
+
 	/* free temp sample data for filtering */
 	MEM_freeN(nvi);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
-static void graphkeys_mselect_leftright (bAnimContext *ac, short leftright, short select_mode)
-{
-	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
-	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
-	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked;
-	Scene *scene= ac->scene;
-	
-	/* if select mode is replace, deselect all keyframes (and channels) first */
-	if (select_mode==SELECT_REPLACE) {
-		/* reset selection mode to add to selection */
-		select_mode= SELECT_ADD;
-		
-		/* deselect all other keyframes */
-		deselect_graph_keys(ac, 0, SELECT_SUBTRACT);
-		
-		/* deselect other channels too, but only only do this if 
-		 * selection of channel when the visibility of keyframes 
-		 * doesn't depend on this 
-		 */
-		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0)
-			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-	}
-	
-	/* set callbacks and editing data */
-	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
-	select_cb= ANIM_editkeyframes_select(select_mode);
-	
-	memset(&ked, 0, sizeof(KeyframeEditFunc));
-	if (leftright == GRAPHKEYS_LRSEL_LEFT) {
-		ked.f1 = MINAFRAMEF;
-		ked.f2 = (float)(CFRA + 0.1f);
-	} 
-	else {
-		ked.f1 = (float)(CFRA - 0.1f);
-		ked.f2 = MAXFRAMEF;
-	}
-	
-	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
-	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-		
-	/* select keys on the side where most data occurs */
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-		
-		if (adt) {
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
-			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
-		}
-		else
-			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
-	}
-	
-	/* Cleanup */
-	BLI_freelistN(&anim_data);
-}
+/* (see graphkeys_select_leftright) */
 
 /* Option 3) Selects all visible keyframes in the same frame as the mouse click */
 static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short select_mode)
@@ -1214,9 +1297,7 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	Scene *scene;
 	ARegion *ar;
-	View2D *v2d;
 	short selectmode;
 	int mval[2];
 	
@@ -1225,9 +1306,7 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		return OPERATOR_CANCELLED;
 	
 	/* get useful pointers from animation context data */
-	scene= ac.scene;
 	ar= ac.ar;
-	v2d= &ar->v2d;
 	
 	/* get mouse coordinates (in region coordinates) */
 	mval[0]= (event->x - ar->winrct.xmin);
@@ -1240,24 +1319,12 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		selectmode= SELECT_REPLACE;
 	
 	/* figure out action to take */
-	if (RNA_enum_get(op->ptr, "left_right")) {
-		/* select all keys on same side of current frame as mouse */
-		float x;
-		
-		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
-		if (x < CFRA)
-			RNA_int_set(op->ptr, "left_right", GRAPHKEYS_LRSEL_LEFT);
-		else 	
-			RNA_int_set(op->ptr, "left_right", GRAPHKEYS_LRSEL_RIGHT);
-		
-		graphkeys_mselect_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
-	}
-	else if (RNA_boolean_get(op->ptr, "column")) {
+	if (RNA_boolean_get(op->ptr, "column")) {
 		/* select all keyframes in the same frame as the one that was under the mouse */
 		graphkeys_mselect_column(&ac, mval, selectmode);
 	}
 	else if (RNA_boolean_get(op->ptr, "curves")) {
-		/* select all keyframes in F-Curve under mouse */
+		/* select all keyframes in the same F-Curve as the one under the mouse */
 		mouse_graph_keys(&ac, mval, selectmode, 1);
 	}
 	else {
@@ -1284,8 +1351,6 @@ void GRAPH_OT_clickselect (wmOperatorType *ot)
 	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* id-props */
-	// XXX should we make this into separate operators?
-	RNA_def_enum(ot->srna, "left_right", prop_graphkeys_leftright_select_types, 0, "Left Right", ""); // CTRLKEY
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
 	RNA_def_boolean(ot->srna, "column", 0, "Column Select", "Select all keyframes that occur on the same frame as the one under the mouse"); // ALTKEY
 	RNA_def_boolean(ot->srna, "curves", 0, "Only Curves", "Select all the keyframes in the curve"); // CTRLKEY + ALTKEY

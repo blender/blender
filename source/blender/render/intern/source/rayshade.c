@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/source/rayshade.c
+ *  \ingroup render
+ */
+
 
 #include <stdio.h>
 #include <math.h>
@@ -440,7 +445,7 @@ void makeraytree(Render *re)
 	re->i.infostr= "Raytree.. preparing";
 	re->stats_draw(re->sdh, &re->i);
 
-	/* disable options not yet suported by octree,
+	/* disable options not yet supported by octree,
 	   they might actually never be supported (unless people really need it) */
 	if(re->r.raytrace_structure == R_RAYSTRUCTURE_OCTREE)
 		re->r.raytrace_options &= ~( R_RAYTRACE_USE_INSTANCES | R_RAYTRACE_USE_LOCAL_COORDS);
@@ -482,12 +487,9 @@ void makeraytree(Render *re)
 /* 	if(shi->osatex)  */
 static void shade_ray_set_derivative(ShadeInput *shi)
 {
-	float *v1= shi->v1->co;
-	float *v2= shi->v2->co;
-	float *v3= shi->v3->co;
 	float detsh, t00, t10, t01, t11, xn, yn, zn;
 	int axis1, axis2;
-	
+
 	/* find most stable axis to project */
 	xn= fabs(shi->facenor[0]);
 	yn= fabs(shi->facenor[1]);
@@ -498,9 +500,27 @@ static void shade_ray_set_derivative(ShadeInput *shi)
 	else { axis1= 1; axis2= 2; }
 	
 	/* compute u,v and derivatives */
-	t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
-	t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
-	
+	if(shi->obi->flag & R_TRANSFORMED) {
+		float v1[3], v2[3], v3[3];
+
+		mul_v3_m3v3(v1, shi->obi->nmat, shi->v1->co);
+		mul_v3_m3v3(v2, shi->obi->nmat, shi->v2->co);
+		mul_v3_m3v3(v3, shi->obi->nmat, shi->v3->co);
+
+		/* same as below */
+		t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
+		t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
+	}
+	else {
+		float *v1= shi->v1->co;
+		float *v2= shi->v2->co;
+		float *v3= shi->v3->co;
+
+		/* same as above */
+		t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
+		t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
+	}
+
 	detsh= 1.0f/(t00*t11-t10*t01);
 	t00*= detsh; t01*=detsh; 
 	t10*=detsh; t11*=detsh;
@@ -757,7 +777,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 		if(depth>0) {
 			float fr, fg, fb, f, f1;
 
-			if((shi.mat->mode_l & MA_TRANSP) && shr.alpha < 1.0f) {
+			if((shi.mat->mode_l & MA_TRANSP) && shr.alpha < 1.0f && (shi.mat->mode_l & (MA_ZTRANSP | MA_RAYTRANSP))) { 
 				float nf, f, refract[3], tracol[4];
 				
 				tracol[0]= shi.r;
@@ -1502,7 +1522,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	float diff[3];
 	int do_tra, do_mir;
 	
-	do_tra= ((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f && (shi->depth <= shi->mat->ray_depth_tra));
+	do_tra= ((shi->mode & MA_TRANSP) && (shi->mode & MA_RAYTRANSP) && shr->alpha!=1.0f && (shi->depth <= shi->mat->ray_depth_tra));
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f && (shi->depth <= shi->mat->ray_depth));
 	
 	/* raytrace mirror amd refract like to separate the spec color */
@@ -1709,7 +1729,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 			/* end warning! - Campbell */
 			
 			shade_ray(&isec, &shi, &shr_t);
-			fac= isec.dist*isec.dist;
+			/* fac= isec.dist*isec.dist; */
 			fac= 1.0f;
 			accum[0]+= fac*(shr_t.diff[0]+shr_t.spec[0]);
 			accum[1]+= fac*(shr_t.diff[1]+shr_t.spec[1]);
@@ -1819,7 +1839,7 @@ static float *threadsafe_table_sphere(int test, int thread, int xs, int ys, int 
 	return R.wrld.aotables+ thread*tot*3;
 }
 
-static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
+static float *sphere_sampler(int type, int resol, int thread, int xs, int ys, int reset)
 {
 	int tot;
 	float *vec;
@@ -1847,8 +1867,8 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 		float ang, *vec1;
 		int a;
 		
-		// returns table if xs and ys were equal to last call
-		sphere= threadsafe_table_sphere(1, thread, xs, ys, tot);
+		// returns table if xs and ys were equal to last call, and not resetting
+		sphere= (reset)? NULL: threadsafe_table_sphere(1, thread, xs, ys, tot);
 		if(sphere==NULL) {
 			sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
 			
@@ -2066,8 +2086,10 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *ao, float *env)
 		envcolor= WO_AOPLAIN;
 	
 	if(resol>32) resol= 32;
-	
-	vec= sphere_sampler(R.wrld.aomode, resol, shi->thread, shi->xs, shi->ys);
+
+	/* get sphere samples. for faces we get the same samples for sample x/y values,
+	   for strand render we always require a new sampler because x/y are not set */
+	vec= sphere_sampler(R.wrld.aomode, resol, shi->thread, shi->xs, shi->ys, shi->strand != NULL);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
 	tot= 2*resol*resol;
@@ -2342,7 +2364,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		
 		samples++;
 		
-		if ((lar->ray_samp_method == LA_SAMP_HALTON)) {
+		if (lar->ray_samp_method == LA_SAMP_HALTON) {
 		
 			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */
 			if ((max_samples > min_adapt_samples) && (adapt_thresh > 0.0) && (samples > max_samples / 3)) {

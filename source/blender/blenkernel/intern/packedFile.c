@@ -1,4 +1,4 @@
-/**
+/*
  * blenkernel/packedFile.c - (cleaned up mar-01 nzc)
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/packedFile.c
+ *  \ingroup bke
+ */
+
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -459,7 +464,7 @@ int unpackVFont(ReportList *reports, VFont *vfont, int how)
 		if (newname != NULL) {
 			ret_value = RET_OK;
 			freePackedFile(vfont->packedfile);
-			vfont->packedfile = 0;
+			vfont->packedfile = NULL;
 			strcpy(vfont->name, newname);
 			MEM_freeN(newname);
 		}
@@ -485,7 +490,7 @@ int unpackSound(Main *bmain, ReportList *reports, bSound *sound, int how)
 			MEM_freeN(newname);
 
 			freePackedFile(sound->packedfile);
-			sound->packedfile = 0;
+			sound->packedfile = NULL;
 
 			sound_load(bmain, sound);
 

@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/jama_lu.h
+ *  \ingroup smoke
+ */
 #ifndef JAMA_LU_H
 #define JAMA_LU_H
 

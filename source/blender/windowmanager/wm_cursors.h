@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/wm_cursors.h
+ *  \ingroup wm
+ */
+
 
 
 
@@ -110,6 +115,12 @@ enum {
 
 #define SMALL_CURSOR 	0
 #define BIG_CURSOR 		1
+
+struct wmWindow;
+struct wmEvent;
+
+int wm_cursor_arrow_move(struct wmWindow *win, struct wmEvent *event);
+
 
 #endif /* WM_CURSORS_H */
 

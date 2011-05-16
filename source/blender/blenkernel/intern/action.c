@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/action.c
+ *  \ingroup bke
+ */
+
 
 #include <string.h>
 #include <math.h>
@@ -90,14 +95,15 @@ bAction *add_empty_action(const char name[])
 void make_local_action(bAction *act)
 {
 	// Object *ob;
+	Main *bmain= G.main;
 	bAction *actn;
 	int local=0, lib=0;
 	
-	if (act->id.lib==0) return;
+	if (act->id.lib==NULL) return;
 	if (act->id.us==1) {
-		act->id.lib= 0;
+		act->id.lib= NULL;
 		act->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)act, 0);
+		new_id(&bmain->action, (ID *)act, NULL);
 		return;
 	}
 	
@@ -113,10 +119,10 @@ void make_local_action(bAction *act)
 #endif
 	
 	if(local && lib==0) {
-		act->id.lib= 0;
+		act->id.lib= NULL;
 		act->id.flag= LIB_LOCAL;
 		//make_local_action_channels(act);
-		new_id(0, (ID *)act, 0);
+		new_id(&bmain->action, (ID *)act, NULL);
 	}
 	else if(local && lib) {
 		actn= copy_action(act);
@@ -414,11 +420,11 @@ bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
 		return NULL;
 	
 	/* See if this channel exists */
-	for (chan=pose->chanbase.first; chan; chan=chan->next) {
-		if (!strcmp (name, chan->name))
-			return chan;
+	chan= BLI_findstring(&pose->chanbase, name, offsetof(bPoseChannel, name));
+	if(chan) {
+		return chan;
 	}
-	
+
 	/* If not, create it and add it */
 	chan = MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel");
 	
@@ -862,7 +868,8 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				float nmin, nmax;
 				
 				/* get extents for this curve */
-				calc_fcurve_range(fcu, &nmin, &nmax);
+				// TODO: allow enabling/disabling this?
+				calc_fcurve_range(fcu, &nmin, &nmax, FALSE);
 				
 				/* compare to the running tally */
 				min= MIN2(min, nmin);
@@ -968,6 +975,11 @@ short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan,
 		bPtr= strstr(fcu->rna_path, basePath);
 		
 		if (bPtr) {
+			/* we must add len(basePath) bytes to the match so that we are at the end of the 
+			 * base path so that we don't get false positives with these strings in the names
+			 */
+			bPtr += strlen(basePath);
+			
 			/* step 2: check for some property with transforms 
 			 *	- to speed things up, only check for the ones not yet found 
 			 * 	  unless we're getting the curves too
@@ -976,8 +988,8 @@ short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan,
 			 *	- once a match has been found, the curve cannot possibly be any other one
 			 */
 			if ((curves) || (flags & ACT_TRANS_LOC) == 0) {
-				pPtr= strstr(fcu->rna_path, "location");
-				if ((pPtr) && (pPtr >= bPtr)) {
+				pPtr= strstr(bPtr, "location");
+				if (pPtr) {
 					flags |= ACT_TRANS_LOC;
 					
 					if (curves) 
@@ -987,8 +999,8 @@ short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan,
 			}
 			
 			if ((curves) || (flags & ACT_TRANS_SCALE) == 0) {
-				pPtr= strstr(fcu->rna_path, "scale");
-				if ((pPtr) && (pPtr >= bPtr)) {
+				pPtr= strstr(bPtr, "scale");
+				if (pPtr) {
 					flags |= ACT_TRANS_SCALE;
 					
 					if (curves) 
@@ -998,11 +1010,23 @@ short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan,
 			}
 			
 			if ((curves) || (flags & ACT_TRANS_ROT) == 0) {
-				pPtr= strstr(fcu->rna_path, "rotation");
-				if ((pPtr) && (pPtr >= bPtr)) {
+				pPtr= strstr(bPtr, "rotation");
+				if (pPtr) {
 					flags |= ACT_TRANS_ROT;
 					
 					if (curves) 
+						BLI_addtail(curves, BLI_genericNodeN(fcu));
+					continue;
+				}
+			}
+			
+			if ((curves) || (flags & ACT_TRANS_PROP) == 0) {
+				/* custom properties only */
+				pPtr= strstr(bPtr, "[\""); /* extra '"' comment here to keep my texteditor functionlist working :) */  
+				if (pPtr) {
+					flags |= ACT_TRANS_PROP;
+					
+					if (curves)
 						BLI_addtail(curves, BLI_genericNodeN(fcu));
 					continue;
 				}
@@ -1066,7 +1090,7 @@ void copy_pose_result(bPose *to, bPose *from)
 	bPoseChannel *pchanto, *pchanfrom;
 	
 	if(to==NULL || from==NULL) {
-		printf("pose result copy error to:%p from:%p\n", to, from); // debug temp
+		printf("pose result copy error to:%p from:%p\n", (void *)to, (void *)from); // debug temp
 		return;
 	}
 
@@ -1144,7 +1168,7 @@ void what_does_obaction (Scene *UNUSED(scene), Object *ob, Object *workob, bPose
 		animsys_evaluate_action_group(&id_ptr, act, agrp, NULL, cframe);
 	}
 	else {
-		AnimData adt= {0};
+		AnimData adt= {NULL};
 		
 		/* init animdata, and attach to workob */
 		workob->adt= &adt;

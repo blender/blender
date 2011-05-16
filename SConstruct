@@ -60,6 +60,10 @@ import bcolors
 
 EnsureSConsVersion(1,0,0)
 
+# Before we do anything, let's check if we have a sane os.environ
+if not btools.check_environ():
+    Exit()
+
 BlenderEnvironment = Blender.BlenderEnvironment
 B = Blender
 
@@ -149,13 +153,11 @@ if cc:
 if cxx:
     env['CXX'] = cxx
 
-if env['CC'] in ['cl', 'cl.exe'] and sys.platform=='win32':
-    if bitness == 64:
-        platform = 'win64-vc'
-    else:
-        platform = 'win32-vc'
-elif env['CC'] in ['gcc'] and sys.platform=='win32':
-    platform = 'win32-mingw'
+if sys.platform=='win32':
+    if env['CC'] in ['cl', 'cl.exe']:
+         platform = 'win64-vc' if bitness == 64 else 'win32-vc'
+    elif env['CC'] in ['gcc']:
+        platform = 'win32-mingw'
 
 env.SConscriptChdir(0)
 
@@ -192,6 +194,10 @@ else:
 
 opts = btools.read_opts(env, optfiles, B.arguments)
 opts.Update(env)
+
+if sys.platform=='win32':
+    if bitness==64:
+        env.Append(CFLAGS=['-DWIN64']) # -DWIN32 needed too, as it's used all over to target Windows generally
 
 if not env['BF_FANCY']:
     B.bc.disable()
@@ -562,9 +568,10 @@ pluglist.append('source/blender/blenpluginapi/plugin.DEF')
 plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], VERSION, 'plugins', 'include', 'plugin.def'))
 
 plugininstall = []
-for targetdir,srcfile in zip(plugtargetlist, pluglist):
-    td, tf = os.path.split(targetdir)
-    plugininstall.append(env.Install(dir=td, source=srcfile))
+# plugins in blender 2.5 don't work at the moment.
+#for targetdir,srcfile in zip(plugtargetlist, pluglist):
+#    td, tf = os.path.split(targetdir)
+#    plugininstall.append(env.Install(dir=td, source=srcfile))
 
 textlist = []
 texttargetlist = []
@@ -637,6 +644,16 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
                     '${BF_FFMPEG_LIBPATH}/avdevice-52.dll',
                     '${BF_FFMPEG_LIBPATH}/avutil-50.dll',
                     '${BF_FFMPEG_LIBPATH}/swscale-0.dll']
+
+    # Since the thumb handler is loaded by Explorer, architecture is
+    # strict: the x86 build fails on x64 Windows. We need to ship
+    # both builds in x86 packages.
+    if bitness == 32:
+        dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb.dll')	
+    dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
+
+    dllsources.append('#source/icons/blender.exe.manifest')
+
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
     allinstall += windlls
 
@@ -665,7 +682,14 @@ if 'blenderlite' in B.targets:
 
 Depends(nsiscmd, allinstall)
 
+buildslave_action = env.Action(btools.buildslave, btools.buildslave_print)
+buildslave_cmd = env.Command('buildslave_exec', None, buildslave_action)
+buildslave_alias = env.Alias('buildslave', buildslave_cmd)
+
+Depends(buildslave_cmd, allinstall)
+
 Default(B.program_list)
 
 if not env['WITHOUT_BF_INSTALL']:
         Default(installtarget)
+

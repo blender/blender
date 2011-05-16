@@ -26,7 +26,7 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_class(OBJECT_PT_hello)    
+    bpy.utils.unregister_class(OBJECT_PT_hello)
 
 
 if __name__ == "__main__":

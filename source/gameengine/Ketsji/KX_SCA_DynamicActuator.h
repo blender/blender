@@ -1,6 +1,3 @@
-//
-// Add object to the game world on action of this actuator
-//
 // $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +25,11 @@
 //
 // ***** END GPL LICENSE BLOCK *****
 //
+
+/** \file KX_SCA_DynamicActuator.h
+ *  \ingroup ketsji
+ *  \brief Add object to the game world on action of this actuator
+ */
 
 #ifndef __KX_SCA_DYNAMICACTUATOR
 #define __KX_SCA_DYNAMICACTUATOR

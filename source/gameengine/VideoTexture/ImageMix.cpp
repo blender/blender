@@ -1,3 +1,6 @@
+/** \file gameengine/VideoTexture/ImageMix.cpp
+ *  \ingroup bgevideotex
+ */
 /* $Id$
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library

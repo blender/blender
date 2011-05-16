@@ -1,8 +1,4 @@
-/**
- * blenlib/BKE_bmfont.h (mar-2001 nzc)
- *
- *
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,6 +28,12 @@
  */
 #ifndef BKE_BMFONT_H
 #define BKE_BMFONT_H
+
+/** \file BKE_bmfont.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 
 #ifdef __cplusplus
 extern "C" {

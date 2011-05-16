@@ -1,3 +1,6 @@
+/** \file opennl/intern/opennl.c
+ *  \ingroup opennlintern
+ */
 /*
  *  $Id$
  *

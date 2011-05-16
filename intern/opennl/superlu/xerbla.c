@@ -1,3 +1,6 @@
+/** \file opennl/superlu/xerbla.c
+ *  \ingroup opennl
+ */
 
 #include <stdio.h>
 int xerbla_(char *, int *);

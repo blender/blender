@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -20,6 +20,10 @@
  * The Original Code is Copyright (C) 2009, Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_info.h
+ *  \ingroup editors
  */
 
 #ifndef ED_INFO_H

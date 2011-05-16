@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_fluidsim_util.c
+ *  \ingroup modifiers
+ */
+
+
 #include <stddef.h>
 #include <zlib.h>
 
@@ -45,11 +50,13 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_main.h"
+#include "BKE_fluidsim.h" /* ensure definitions here match */
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h" /* G.main->name only */
 
+#include "MOD_fluidsim_util.h"
 #include "MOD_modifiertypes.h"
 
 #include "MEM_guardedalloc.h"
@@ -167,7 +174,7 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 
 #ifndef DISABLE_ELBEEM
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
-DerivedMesh *fluidsim_read_obj(char *filename)
+static DerivedMesh *fluidsim_read_obj(const char *filename)
 {
 	int wri = 0,i;
 	int gotBytes;
@@ -379,7 +386,7 @@ void fluid_estimate_memory(Object *ob, FluidsimSettings *fss, char *value)
 
 
 /* read zipped fluidsim velocities into the co's of the fluidsimsettings normals struct */
-void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *dm, char *filename)
+static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *dm, char *filename)
 {
 	int wri, i, j;
 	float wrf;
@@ -442,7 +449,7 @@ void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *dm, cha
 	gzclose(gzf);
 }
 
-DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
+static DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int displaymode = 0;
 	int curFrame = framenr - 1 /*scene->r.sfra*/; /* start with 0 at start frame */
@@ -459,7 +466,7 @@ DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluid
 		displaymode = fss->renderDisplayMode;
 	}
 
-	strncpy(targetDir, fss->surfdataPath, FILE_MAXDIR);
+	BLI_strncpy(targetDir, fss->surfdataPath, sizeof(targetDir));
 
 	// use preview or final mesh?
 	if(displaymode==1)
@@ -479,8 +486,7 @@ DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluid
 	BLI_path_abs(targetDir, G.main->name);
 	BLI_path_frame(targetDir, curFrame, 0); // fixed #frame-no
 
-	strcpy(targetFile,targetDir);
-	strcat(targetFile, ".bobj.gz");
+	BLI_snprintf(targetFile, sizeof(targetFile), "%s.bobj.gz", targetDir);
 
 	dm = fluidsim_read_obj(targetFile);
 
@@ -538,7 +544,7 @@ DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluid
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 						Object *UNUSED(ob),
 						DerivedMesh *dm,
-						int useRenderParams)
+						int useRenderParams, int UNUSED(isFinalCalc))
 {
 #ifndef DISABLE_ELBEEM
 	DerivedMesh *result = NULL;

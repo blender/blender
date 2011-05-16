@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/divers.c
+ *  \ingroup imbuf
+ */
+
+
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_math.h"
@@ -47,7 +52,7 @@ void IMB_de_interlace(struct ImBuf *ibuf)
 {
 	struct ImBuf * tbuf1, * tbuf2;
 	
-	if (ibuf == 0) return;
+	if (ibuf == NULL) return;
 	if (ibuf->flags & IB_fields) return;
 	ibuf->flags |= IB_fields;
 	
@@ -74,7 +79,7 @@ void IMB_interlace(struct ImBuf *ibuf)
 {
 	struct ImBuf * tbuf1, * tbuf2;
 
-	if (ibuf == 0) return;
+	if (ibuf == NULL) return;
 	ibuf->flags &= ~IB_fields;
 
 	ibuf->y *= 2;
@@ -104,7 +109,7 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 	/* quick method to convert floatbuf to byte */
 	float *tof = (float *)ibuf->rect_float;
 //	int do_dither = ibuf->dither != 0.f;
-	float dither= ibuf->dither / 255.0;
+	float dither= ibuf->dither / 255.0f;
 	float srgb[4];
 	int i, channels= ibuf->channels;
 	short profile= ibuf->profile;
@@ -136,7 +141,7 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 		else if (channels == 4) {
 			if (dither != 0.f) {
 				for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=4) {
-					const float d = (BLI_frand()-0.5)*dither;
+					const float d = (BLI_frand()-0.5f)*dither;
 					
 					srgb[0]= d + linearrgb_to_srgb(tof[0]);
 					srgb[1]= d + linearrgb_to_srgb(tof[1]);
@@ -165,7 +170,7 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 		else {
 			if (dither != 0.f) {
 				for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=4) {
-					const float d = (BLI_frand()-0.5)*dither;
+					const float d = (BLI_frand()-0.5f)*dither;
 					float col[4];
 
 					col[0]= d + tof[0];

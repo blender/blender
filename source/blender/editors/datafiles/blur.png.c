@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/blur.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <blur_png> */
 
 int datatoc_blur_png_size= 9327;

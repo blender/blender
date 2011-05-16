@@ -1,5 +1,5 @@
-/**
- * $Id: rayobject_octree.cpp 34664 2011-02-06 00:49:58Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/raytrace/rayobject_octree.cpp
+ *  \ingroup render
+ */
+
 
 /* IMPORTANT NOTE: this code must be independent of any other render code
    to use it outside the renderer! */

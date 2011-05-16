@@ -1,4 +1,4 @@
-/**
+/*
  * Quicktime_import.h
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/quicktime/quicktime_import.h
+ *  \ingroup quicktime
+ */
+
 
 
 #ifndef __QUICKTIME_IMP_H__

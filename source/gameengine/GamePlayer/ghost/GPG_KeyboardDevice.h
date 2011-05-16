@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * GHOST Blender Player keyboard device.
+ */
+
+/** \file GPG_KeyboardDevice.h
+ *  \ingroup player
+ *  \brief GHOST Blender Player keyboard device.
  */
 
 #ifndef _GPG_KEYBOARDDEVICE_H_

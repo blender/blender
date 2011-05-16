@@ -1,3 +1,6 @@
+/** \file itasc/MovingFrame.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * MovingFrame.cpp
  *

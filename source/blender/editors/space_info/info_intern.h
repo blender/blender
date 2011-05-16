@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_info/info_intern.h
+ *  \ingroup spinfo
+ */
+
 #ifndef ED_INFO_INTERN_H
 #define ED_INFO_INTERN_H
 

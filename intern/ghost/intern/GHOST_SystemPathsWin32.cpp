@@ -1,5 +1,5 @@
-/**
- * $Id: GHOST_SystemPathsWin32.cpp 34372 2011-01-17 19:39:25Z elubie $
+/*
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_SystemPathsWin32.cpp
+ *  \ingroup GHOST
+ */
+
 
 #include "GHOST_SystemPathsWin32.h"
 

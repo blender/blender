@@ -1,5 +1,5 @@
-/**
- * $Id: ArmatureImporter.h 33832 2010-12-21 10:43:47Z jesterking $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,6 +20,10 @@
  * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ArmatureImporter.h
+ *  \ingroup collada
  */
 
 #ifndef __BC_ARMATUREIMPORTER_H__

@@ -1,0 +1,9 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = ['mikktspace.c']
+
+incs = ''
+defs = ''
+
+env.BlenderLib ('bf_intern_mikktspace', sources, Split(incs), Split(defs), libtype=['intern'], priority=[100] )

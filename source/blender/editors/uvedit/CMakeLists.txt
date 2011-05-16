@@ -22,15 +22,18 @@
 set(INC
 	../include
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
 	../../../../intern/opennl/extern
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
+	uvedit_buttons.c
 	uvedit_draw.c
 	uvedit_ops.c
 	uvedit_parametrizer.c

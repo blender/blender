@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_actuator_types.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file DNA_actuator_types.h
+ *  \ingroup DNA
+ */
+
 #ifndef DNA_ACTUATOR_TYPES_H
 #define DNA_ACTUATOR_TYPES_H
 
@@ -241,14 +244,14 @@ typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
 	short type;
 	/**
-	 * Tells what type of actuator data <data> holds. 
+	 * Tells what type of actuator data \ref data holds. 
 	 */
 	short flag;
 	short otype, go;
 	char name[32];
 
 	/**
-	 * Data must point to an object actuator type struct.
+	 * data must point to an object actuator type struct.
 	 */
 	void *data;
 

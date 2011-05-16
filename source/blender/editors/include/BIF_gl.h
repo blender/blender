@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,10 +28,14 @@
  * os dependent include locations of gl.h
  */
 
+/** \file BIF_gl.h
+ *  \ingroup editorui
+ */
+
 #ifndef BIF_GL_H
 #define BIF_GL_H
 
-#include "../../../../extern/glew/include/GL/glew.h"
+#include "GL/glew.h"
 
 	/*
 	 * these should be phased out. cpack should be replaced in

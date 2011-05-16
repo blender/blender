@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_texture_types.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,12 @@
 #ifndef DNA_TEXTURE_TYPES_H
 #define DNA_TEXTURE_TYPES_H
 
+/** \file DNA_texture_types.h
+ *  \ingroup DNA
+ *  \since mar-2001
+ *  \author nzc
+ */
+
 #include "DNA_ID.h"
 #include "DNA_image_types.h" /* ImageUser */
 
@@ -48,6 +52,7 @@ struct Tex;
 struct Image;
 struct PreviewImage;
 struct ImBuf;
+struct CurveMapping;
 
 typedef struct MTex {
 
@@ -77,9 +82,9 @@ typedef struct MTex {
 	float densfac, scatterfac, reflfac;
 
 	/* particles */
-	float timefac, lengthfac, clumpfac;
-	float kinkfac, roughfac, padensfac;
-	float lifefac, sizefac, ivelfac, pvelfac;
+	float timefac, lengthfac, clumpfac, dampfac;
+	float kinkfac, roughfac, padensfac, gravityfac;
+	float lifefac, sizefac, ivelfac, fieldfac;
 
 	/* lamp */
 	float shadowfac;
@@ -177,9 +182,10 @@ typedef struct PointDensity {
 	short pdpad3[3];
 	float noise_fac;
 	
-	float speed_scale;
+	float speed_scale, falloff_speed_scale, pdpad2;
 	struct ColorBand *coba;	/* for time -> color */
 	
+	struct CurveMapping *falloff_curve; /* falloff density curve */	
 } PointDensity;
 
 typedef struct VoxelData {
@@ -513,6 +519,8 @@ typedef struct TexMapping {
 #define TEX_PD_FALLOFF_SOFT		2
 #define TEX_PD_FALLOFF_CONSTANT	3
 #define TEX_PD_FALLOFF_ROOT		4
+#define TEX_PD_FALLOFF_PARTICLE_AGE 5
+#define TEX_PD_FALLOFF_PARTICLE_VEL 6
 
 /* psys_cache_space */
 #define TEX_PD_OBJECTLOC	0
@@ -520,8 +528,8 @@ typedef struct TexMapping {
 #define TEX_PD_WORLDSPACE	2
 
 /* flag */
-#define TEX_PD_TURBULENCE	1
-
+#define TEX_PD_TURBULENCE		1
+#define TEX_PD_FALLOFF_CURVE	2
 
 /* noise_influence */
 #define TEX_PD_NOISE_STATIC		0

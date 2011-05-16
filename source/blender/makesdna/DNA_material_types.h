@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_material_types.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,10 @@
  */
 #ifndef DNA_MATERIAL_TYPES_H
 #define DNA_MATERIAL_TYPES_H
+
+/** \file DNA_material_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
@@ -158,7 +160,8 @@ typedef struct Material {
 	short sss_flag, sss_preset;
 
 	int mapto_textured;	/* render-time cache to optimise texture lookups */
-	int pad4;
+	short shadowonly_flag;		/* "shadowsonly" type */
+	short pad;
 
 	ListBase gpumaterial;		/* runtime */
 } Material;
@@ -235,6 +238,11 @@ typedef struct Material {
 /* ray mirror fadeout */
 #define MA_RAYMIR_FADETOSKY	0
 #define MA_RAYMIR_FADETOMAT	1
+
+/* shadowonly_flag */
+#define MA_SO_OLD			0
+#define MA_SO_SHADOW		1
+#define MA_SO_SHADED		2
 
 /* shade_flag */
 #define MA_CUBIC			1

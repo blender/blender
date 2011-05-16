@@ -35,9 +35,15 @@
  *
  */
 
-#include "DNA_vec_types.h"
+/** \file blender/blenlib/intern/rct.c
+ *  \ingroup bli
+ */
+
 #include <stdio.h>
 #include <math.h>
+
+#include "DNA_vec_types.h"
+#include "BLI_rect.h"
 
 int BLI_rcti_is_empty(rcti * rect)
 {
@@ -235,10 +241,10 @@ void BLI_copy_rcti_rctf(rcti *tar, const rctf *src)
 
 void print_rctf(const char *str, rctf *rect)
 {
-	printf("%s: xmin %.3f, xmax %.3f, ymin %.3f, ymax %.3f\n", str, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+	printf("%s: xmin %.3f, xmax %.3f, ymin %.3f, ymax %.3f (%.3fx%.3f)\n", str, rect->xmin, rect->xmax, rect->ymin, rect->xmax, rect->xmax - rect->xmin, rect->ymax - rect->ymin);
 }
 
 void print_rcti(const char *str, rcti *rect)
 {
-	printf("%s: xmin %d, xmax %d, ymin %d, ymax %d\n", str, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+	printf("%s: xmin %d, xmax %d, ymin %d, ymax %d (%dx%d)\n", str, rect->xmin, rect->xmax, rect->ymin, rect->ymax, rect->xmax - rect->xmin, rect->ymax - rect->ymin);
 }

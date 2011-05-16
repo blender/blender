@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,14 +22,24 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/intern/bpy_props.c
+ *  \ingroup pythonintern
+ */
+
+
+#include <Python.h>
+
+#include "RNA_types.h"
+
 #include "bpy_props.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
 #include "BLI_utildefines.h"
 
+#include "BKE_idprop.h"
 
-
+#include "RNA_access.h"
 #include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"
 
@@ -37,19 +47,19 @@
 
 #include "../generic/py_capi_utils.h"
 
-EnumPropertyItem property_flag_items[] = {
+static EnumPropertyItem property_flag_items[]= {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem property_flag_enum_items[] = {
+static EnumPropertyItem property_flag_enum_items[]= {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
 	{PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* subtypes */
-EnumPropertyItem property_subtype_string_items[] = {
+static EnumPropertyItem property_subtype_string_items[]= {
 	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
 	{PROP_FILENAME, "FILENAME", 0, "Filename", ""},
@@ -57,7 +67,7 @@ EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem property_subtype_number_items[] = {
+static EnumPropertyItem property_subtype_number_items[]= {
 	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},
 	{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
 	{PROP_FACTOR, "FACTOR", 0, "Factor", ""},
@@ -68,7 +78,7 @@ EnumPropertyItem property_subtype_number_items[] = {
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem property_subtype_array_items[] = {
+static EnumPropertyItem property_subtype_array_items[]= {
 	{PROP_COLOR, "COLOR", 0, "Color", ""},
 	{PROP_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
 	{PROP_DIRECTION, "DIRECTION", 0, "Direction", ""},
@@ -86,17 +96,17 @@ EnumPropertyItem property_subtype_array_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 /* PyObject's */
-static PyObject *pymeth_BoolProperty = NULL;
-static PyObject *pymeth_BoolVectorProperty = NULL;
-static PyObject *pymeth_IntProperty = NULL;
-static PyObject *pymeth_IntVectorProperty = NULL;
-static PyObject *pymeth_FloatProperty = NULL;
-static PyObject *pymeth_FloatVectorProperty = NULL;
-static PyObject *pymeth_StringProperty = NULL;
-static PyObject *pymeth_EnumProperty = NULL;
-static PyObject *pymeth_PointerProperty = NULL;
-static PyObject *pymeth_CollectionProperty = NULL;
-static PyObject *pymeth_RemoveProperty = NULL;
+static PyObject *pymeth_BoolProperty= NULL;
+static PyObject *pymeth_BoolVectorProperty= NULL;
+static PyObject *pymeth_IntProperty= NULL;
+static PyObject *pymeth_IntVectorProperty= NULL;
+static PyObject *pymeth_FloatProperty= NULL;
+static PyObject *pymeth_FloatVectorProperty= NULL;
+static PyObject *pymeth_StringProperty= NULL;
+static PyObject *pymeth_EnumProperty= NULL;
+static PyObject *pymeth_PointerProperty= NULL;
+static PyObject *pymeth_CollectionProperty= NULL;
+static PyObject *pymeth_RemoveProperty= NULL;
 
 
 /* operators and classes use this so it can store the args given but defer
@@ -104,7 +114,7 @@ static PyObject *pymeth_RemoveProperty = NULL;
  * the default args for that operator instance */
 static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 {
-	PyObject *ret = PyTuple_New(2);
+	PyObject *ret= PyTuple_New(2);
 	PyTuple_SET_ITEM(ret, 0, func);
 	Py_INCREF(func);
 
@@ -119,7 +129,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 }
 
 /* this define runs at the start of each function and deals with 
- * returning a deferred property (to be registed later) */
+ * returning a deferred property (to be registered later) */
 #define BPY_PROPDEF_HEAD(_func)	\
 	if (PyTuple_GET_SIZE(args) == 1) { \
 		PyObject *ret; \
@@ -130,7 +140,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 		return ret; \
 	} \
 	else if (PyTuple_GET_SIZE(args) > 1) { \
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
+		PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
 		return NULL; \
 	} \
 	srna= srna_from_self(self, #_func"(...):"); \
@@ -162,6 +172,16 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 	} \
 
 
+#define BPY_PROPDEF_NAME_DOC \
+"   :arg name: Name used in the user interface.\n" \
+"   :type name: string\n" \
+
+
+#define BPY_PROPDEF_DESC_DOC \
+"   :arg description: Text used for the tooltip and api documentation.\n" \
+"   :type description: string\n" \
+
+
 #if 0
 static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 {
@@ -179,11 +199,13 @@ static char BPy_BoolProperty_doc[] =
 "\n"
 "   Returns a new boolean property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
-"   :type subtype: string";
-
+"   :type subtype: string\n"
+;
 static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -191,7 +213,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	BPY_PROPDEF_HEAD(BoolProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "options", "subtype", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int def=0;
@@ -201,8 +223,14 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssiO!s:BoolProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssiO!s:BoolProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &def,
+		                                 &PySet_Type, &pyopts, &pysubtype))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(BoolProperty, property_flag_items, property_subtype_number_items)
 
@@ -225,10 +253,17 @@ static char BPy_BoolVectorProperty_doc[] =
 "\n"
 "   Returns a new vector boolean property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
+"   :arg default: sequence of booleans the length of *size*.\n"
+"   :type default: sequence\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+"   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
+"   :type size: int\n"
+;
 static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -236,7 +271,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 	BPY_PROPDEF_HEAD(BoolVectorProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", "size", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "options", "subtype", "size", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int def[PYRNA_STACK_ARRAY]={0};
@@ -248,8 +283,14 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOO!si:BoolVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssOO!si:BoolVectorProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &pydef,
+		                                 &PySet_Type, &pyopts, &pysubtype,&size))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(BoolVectorProperty, property_flag_items, property_subtype_array_items)
 
@@ -282,10 +323,13 @@ static char BPy_IntProperty_doc[] =
 "\n"
 "   Returns a new int property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+;
 static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -293,7 +337,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	BPY_PROPDEF_HEAD(IntProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def=0;
@@ -303,8 +347,15 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssiiiiiiO!s:IntProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssiiiiiiO!s:IntProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &def,
+		                                 &min, &max, &soft_min, &soft_max,
+		                                 &step, &PySet_Type, &pyopts, &pysubtype))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(IntProperty, property_flag_items, property_subtype_number_items)
 
@@ -328,10 +379,17 @@ static char BPy_IntVectorProperty_doc[] =
 "\n"
 "   Returns a new vector int property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
+"   :arg default: sequence of ints the length of *size*.\n"
+"   :type default: sequence\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+"   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
+"   :type size: int\n"
+;
 static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -339,7 +397,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 	BPY_PROPDEF_HEAD(IntVectorProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "size", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "size", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def[PYRNA_STACK_ARRAY]={0};
@@ -351,8 +409,16 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOiiiiiO!si:IntVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssOiiiiiO!si:IntVectorProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &pydef,
+		                                 &min, &max, &soft_min, &soft_max,
+		                                 &step, &PySet_Type, &pyopts,
+		                                 &pysubtype, &size))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(IntVectorProperty, property_flag_items, property_subtype_array_items)
 
@@ -386,12 +452,15 @@ static char BPy_FloatProperty_doc[] =
 "\n"
 "   Returns a new float property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string\n"
 "   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', 'VELOCITY', 'ACCELERATION'].\n"
-"   :type unit: string\n";
+"   :type unit: string\n"
+;
 static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -399,7 +468,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	BPY_PROPDEF_HEAD(FloatProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
@@ -412,8 +481,16 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pyunit= NULL;
 		int unit= PROP_UNIT_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssffffffiO!ss:FloatProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &pyunit))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssffffffiO!ss:FloatProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &def,
+		                                 &min, &max, &soft_min, &soft_max,
+		                                 &step, &precision, &PySet_Type,
+		                                 &pyopts, &pysubtype, &pyunit))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatProperty, property_flag_items, property_subtype_number_items)
 
@@ -442,10 +519,17 @@ static char BPy_FloatVectorProperty_doc[] =
 "\n"
 "   Returns a new vector float property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
+"   :arg default: sequence of floats the length of *size*.\n"
+"   :type default: sequence\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+"   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
+"   :type size: int\n"
+;
 static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -453,7 +537,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 	BPY_PROPDEF_HEAD(FloatVectorProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "size", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "size", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def[PYRNA_STACK_ARRAY]={0.0f};
@@ -465,8 +549,16 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOfffffiO!si:FloatVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|ssOfffffiO!si:FloatVectorProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &pydef,
+		                                 &min, &max, &soft_min, &soft_max,
+		                                 &step, &precision, &PySet_Type,
+		                                 &pyopts, &pysubtype, &size))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatVectorProperty, property_flag_items, property_subtype_array_items)
 
@@ -499,10 +591,13 @@ static char BPy_StringProperty_doc[] =
 "\n"
 "   Returns a new string property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILENAME', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+;
 static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -510,7 +605,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 	BPY_PROPDEF_HEAD(StringProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "name", "description", "default", "maxlen", "options", "subtype", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "maxlen", "options", "subtype", NULL};
 		const char *id=NULL, *name="", *description="", *def="";
 		int id_len;
 		int maxlen=0;
@@ -520,8 +615,14 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|sssiO!s:StringProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &maxlen, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#|sssiO!s:StringProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &name, &description, &def,
+		                                 &maxlen, &PySet_Type, &pyopts, &pysubtype))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(StringProperty, property_flag_items, property_subtype_string_items)
 
@@ -555,7 +656,10 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 			return NULL;
 		}
 		if(def && !PySet_Check(def)) {
-			PyErr_Format(PyExc_TypeError, "EnumProperty(...): default option must be a 'set' type when ENUM_FLAG is enabled, not a '%.200s'", Py_TYPE(def)->tp_name);
+			PyErr_Format(PyExc_TypeError,
+			             "EnumProperty(...): default option must be a 'set' "
+			             "type when ENUM_FLAG is enabled, not a '%.200s'",
+			             Py_TYPE(def)->tp_name);
 			return NULL;
 		}
 	}
@@ -563,7 +667,10 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		if(def) {
 			def_cmp= _PyUnicode_AsString(def);
 			if(def_cmp==NULL) {
-				PyErr_Format(PyExc_TypeError, "EnumProperty(...): default option must be a 'str' type when ENUM_FLAG is disabled, not a '%.200s'", Py_TYPE(def)->tp_name);
+				PyErr_Format(PyExc_TypeError,
+				             "EnumProperty(...): default option must be a 'str' "
+				             "type when ENUM_FLAG is disabled, not a '%.200s'",
+				             Py_TYPE(def)->tp_name);
 				return NULL;
 			}
 		}
@@ -614,7 +721,9 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		if(def && def_used != PySet_GET_SIZE(def)) {
 			MEM_freeN(items);
 
-			PyErr_Format(PyExc_TypeError, "EnumProperty(..., default={...}): set has %d unused member(s)", PySet_GET_SIZE(def) - def_used);
+			PyErr_Format(PyExc_TypeError,
+			             "EnumProperty(..., default={...}): set has %d unused member(s)",
+			             PySet_GET_SIZE(def) - def_used);
 			return NULL;
 		}
 	}
@@ -622,7 +731,9 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		if(def && def_used == 0) {
 			MEM_freeN(items);
 
-			PyErr_Format(PyExc_TypeError, "EnumProperty(..., default=\'%s\'): not found in enum members", def);
+			PyErr_Format(PyExc_TypeError,
+			             "EnumProperty(..., default=\'%s\'): not found in enum members",
+			             def);
 			return NULL;
 		}
 	}
@@ -635,12 +746,15 @@ static char BPy_EnumProperty_doc[] =
 "\n"
 "   Returns a new enumerator property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg default: The default value for this enum, A string when *ENUM_FLAG* is disabled otherwise a set which may only contain string identifiers used in *items*.\n"
 "   :type default: string or set\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE', 'ENUM_FLAG'].\n"
 "   :type options: set\n"
 "   :arg items: sequence of enum items formatted: [(identifier, name, description), ...] where the identifier is used for python access and other values are used for the interface.\n"
-"   :type items: sequence of string triplets";
+"   :type items: sequence of string triplets\n"
+;
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -648,7 +762,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 	BPY_PROPDEF_HEAD(EnumProperty)
 	
 	if(srna) {
-		static const char *kwlist[] = {"attr", "items", "name", "description", "default", "options", NULL};
+		static const char *kwlist[]= {"attr", "items", "name", "description", "default", "options", NULL};
 		const char *id=NULL, *name="", *description="";
 		PyObject *def= NULL;
 		int id_len;
@@ -659,8 +773,14 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssOO!:EnumProperty", (char **)kwlist, &id, &id_len, &items, &name, &description, &def, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#O|ssOO!:EnumProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &items, &name, &description,
+		                                 &def, &PySet_Type, &pyopts))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_CHECK(EnumProperty, property_flag_enum_items)
 
@@ -697,17 +817,23 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 		if(PyErr_Occurred()) {
 			PyObject *msg= PyC_ExceptionBuffer();
 			char *msg_char= _PyUnicode_AsString(msg);
-			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with: %s", error_prefix, msg_char);
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s expected an RNA type derived from PropertyGroup, failed with: %s",
+			             error_prefix, msg_char);
 			Py_DECREF(msg);
 		}
 		else {
-			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with type '%s'", error_prefix, Py_TYPE(value)->tp_name);
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s expected an RNA type derived from PropertyGroup, failed with type '%s'",
+			             error_prefix, Py_TYPE(value)->tp_name);
 		}
 		return NULL;
 	}
 
-	if(!RNA_struct_is_a(srna, &RNA_IDPropertyGroup)) {
-		 PyErr_Format(PyExc_SystemError, "%.200s expected an RNA type derived from IDPropertyGroup", error_prefix);
+	if(!RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s expected an RNA type derived from PropertyGroup",
+		             error_prefix);
 		return NULL;
 	}
 
@@ -715,14 +841,17 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 }
 
 static char BPy_PointerProperty_doc[] =
-".. function:: PointerProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
+".. function:: PointerProperty(type=\"\", description=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new pointer property definition.\n"
 "\n"
+"   :arg type: A subclass of :class:`bpy.types.PropertyGroup`.\n"
+"   :type type: class\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
-"   :arg type: Dynamic type from :mod:`bpy.types`.\n"
-"   :type type: class";
+;
 static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -730,7 +859,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 	BPY_PROPDEF_HEAD(PointerProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
+		static const char *kwlist[]= {"attr", "type", "name", "description", "options", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		PropertyRNA *prop;
@@ -739,8 +868,14 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssO!:PointerProperty", (char **)kwlist, &id, &id_len, &type, &name, &description, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#O|ssO!:PointerProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &type, &name, &description,
+		                                 &PySet_Type, &pyopts))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_CHECK(PointerProperty, property_flag_items)
 
@@ -763,10 +898,13 @@ static char BPy_CollectionProperty_doc[] =
 "\n"
 "   Returns a new collection property definition.\n"
 "\n"
+"   :arg type: A subclass of :class:`bpy.types.PropertyGroup`.\n"
+"   :type type: class\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
-"   :arg type: Dynamic type from :mod:`bpy.types`.\n"
-"   :type type: class";
+;
 static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -774,7 +912,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 	BPY_PROPDEF_HEAD(CollectionProperty)
 
 	if(srna) {
-		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
+		static const char *kwlist[]= {"attr", "type", "name", "description", "options", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		PropertyRNA *prop;
@@ -783,8 +921,14 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssO!:CollectionProperty", (char **)kwlist, &id, &id_len, &type, &name, &description, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s#O|ssO!:CollectionProperty",
+		                                 (char **)kwlist, &id, &id_len,
+		                                 &type, &name, &description,
+		                                 &PySet_Type, &pyopts))
+		{
 			return NULL;
+		}
 
 		BPY_PROPDEF_CHECK(CollectionProperty, property_flag_items)
 
@@ -808,7 +952,8 @@ static char BPy_RemoveProperty_doc[] =
 "   Removes a dynamically defined property.\n"
 "\n"
 "   :arg attr: Property name.\n"
-"   :type attr: string";
+"   :type attr: string\n"
+;
 static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -822,7 +967,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		return ret;	
 	}
 	else if (PyTuple_GET_SIZE(args) > 1) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
+		PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
 		return NULL;
 	}
 
@@ -835,12 +980,16 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		return NULL;
 	}
 	else {
-		static const char *kwlist[] = {"attr", NULL};
+		static const char *kwlist[]= {"attr", NULL};
 		
 		char *id=NULL;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s:RemoveProperty", (char **)kwlist, &id))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "s:RemoveProperty",
+		                                 (char **)kwlist, &id))
+		{
 			return NULL;
+		}
 
 		if(RNA_def_property_free_identifier(srna, id) != 1) {
 			PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property", id);
@@ -850,7 +999,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 	Py_RETURN_NONE;
 }
 
-static struct PyMethodDef props_methods[] = {
+static struct PyMethodDef props_methods[]= {
 	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolProperty_doc},
 	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolVectorProperty_doc},
 	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, BPy_IntProperty_doc},
@@ -866,7 +1015,7 @@ static struct PyMethodDef props_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-static struct PyModuleDef props_module = {
+static struct PyModuleDef props_module= {
 	PyModuleDef_HEAD_INIT,
 	"bpy.props",
 	"This module defines properties to extend blenders internal data, the result of these functions"
@@ -886,13 +1035,13 @@ PyObject *BPY_rna_props( void )
 
 	/* INCREF since its its assumed that all these functions return the
 	 * module with a new ref like PyDict_New, since they are passed to
-	  * PyModule_AddObject which steals a ref */
+	 * PyModule_AddObject which steals a ref */
 	Py_INCREF(submodule);
 	
 	/* api needs the PyObjects internally */
 	submodule_dict= PyModule_GetDict(submodule);
 
-#define ASSIGN_STATIC(_name) pymeth_##_name = PyDict_GetItemString(submodule_dict, #_name)
+#define ASSIGN_STATIC(_name) pymeth_##_name= PyDict_GetItemString(submodule_dict, #_name)
 
 	ASSIGN_STATIC(BoolProperty);
 	ASSIGN_STATIC(BoolVectorProperty);

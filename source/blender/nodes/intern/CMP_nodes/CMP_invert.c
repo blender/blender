@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_invert.c
+ *  \ingroup cmpnodes
+ */
+
 #include "../CMP_util.h"
 
 /* **************** INVERT ******************** */
@@ -111,7 +116,7 @@ static void node_composit_exec_invert(void *UNUSED(data), bNode *node, bNodeStac
 
 static void node_composit_init_invert(bNode *node)
 {
-   node->custom1 |= CMP_CHAN_RGB;
+	node->custom1 |= CMP_CHAN_RGB;
 }
 
 /* custom1 = mix type */

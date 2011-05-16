@@ -25,18 +25,19 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../../../../source/kernel/gen_system
 	../../../../intern/string
+	../../../../intern/container
 	../../../../intern/moto/include
 	../../../../source/gameengine/Rasterizer
 	../../../../source/gameengine/Ketsji
 	../../../../source/gameengine/SceneGraph
-	../../../../extern/glew/include
+	../../../../source/gameengine/BlenderRoutines
 	../../../../source/blender/gpu
 	../../../../source/blender/makesdna
 	../../../../source/blender/blenkernel
 	../../../../source/blender/blenlib
 	../../../../source/blender/blenloader
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

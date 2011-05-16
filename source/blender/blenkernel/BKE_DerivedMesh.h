@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,15 +30,17 @@
 #ifndef BKE_DERIVEDMESH_H
 #define BKE_DERIVEDMESH_H
 
-/* TODO (Probably)
+/** \file BKE_DerivedMesh.h
+ *  \ingroup bke
  *
- *  o Make drawMapped* functions take a predicate function that
+ *  \todo
+ *  - Make drawMapped* functions take a predicate function that
  *    determines whether to draw the edge (this predicate can
  *    also set color, etc). This will be slightly more general 
  *    and allow some of the functions to be collapsed.
- *  o Once accessor functions are added then single element draw
+ *  - Once accessor functions are added then single element draw
  *    functions can be implemented using primitive accessors.
- *  o Add function to dispatch to renderer instead of using
+ *  - Add function to dispatch to renderer instead of using
  *    conversion to DLM.
  */
 
@@ -204,7 +206,7 @@ struct DerivedMesh {
 	/* Fill the array (of length .getNumVerts()) with all vertex locations */
 	void (*getVertCos)(DerivedMesh *dm, float (*cos_r)[3]);
 
-	/* Get vertex normal, undefined if index is not valid */
+	/* Get smooth vertex normal, undefined if index is not valid */
 	void (*getVertNo)(DerivedMesh *dm, int index, float no_r[3]);
 
 	/* Get a map of vertices to faces
@@ -512,8 +514,9 @@ void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em
 int editmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct EditMesh *em,
 									   float (**deformmats)[3][3], float (**deformcos)[3]);
 
-/* returns an array of deform matrices for crazyspace correction when sculpting */
-void sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
+/* returns an array of deform matrices for crazyspace correction when sculpting,
+   and the number of modifiers left */
+int sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
 								float (**deformmats)[3][3], float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
@@ -532,7 +535,7 @@ typedef struct DMVertexAttribs {
 	} mcol[MAX_MCOL];
 
 	struct {
-		float (*array)[3];
+		float (*array)[4];
 		int emOffset, glIndex;
 	} tang;
 

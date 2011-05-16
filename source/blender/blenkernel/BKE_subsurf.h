@@ -28,6 +28,10 @@
 #ifndef BKE_SUBSURF_H
 #define BKE_SUBSURF_H
 
+/** \file BKE_subsurf.h
+ *  \ingroup bke
+ */
+
 struct DMGridAdjacency;
 struct DMGridData;
 struct DerivedMesh;

@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * NetworkGame_NetworkMessage generic Network Message class
+ */
+
+/** \file NG_NetworkMessage.h
+ *  \ingroup bgenet
+ *  \brief generic Network Message class
  */
 #ifndef NG_NETWORKMESSAGE_H
 #define NG_NETWORKMESSAGE_H

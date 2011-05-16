@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * graph.c: Common graph interface and methods
  */
+
+/** \file blender/blenlib/intern/graph.c
+ *  \ingroup bli
+ */
+
 
 #include <float.h> 
 #include <math.h>
@@ -296,7 +301,7 @@ BNode * BLI_FindNodeByPosition(BGraph *graph, float *p, float limit)
 }
 /************************************* SUBGRAPH DETECTION **********************************************/
 
-void flagSubgraph(BNode *node, int subgraph)
+static void flagSubgraph(BNode *node, int subgraph)
 {
 	if (node->subgraph_index == 0)
 	{
@@ -425,7 +430,7 @@ BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 
 /*********************************** GRAPH AS TREE FUNCTIONS *******************************************/
 
-int subtreeShape(BNode *node, BArc *rootArc, int include_root)
+static int subtreeShape(BNode *node, BArc *rootArc, int include_root)
 {
 	int depth = 0;
 	

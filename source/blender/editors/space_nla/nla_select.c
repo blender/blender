@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_nla/nla_select.c
+ *  \ingroup spnla
+ */
+
 
 #include <string.h>
 #include <stdio.h>
@@ -90,7 +95,7 @@ enum {
 	DESELECT_STRIPS_NOTEST = 0,
 	DESELECT_STRIPS_TEST,
 	DESELECT_STRIPS_CLEARACTIVE,
-} eDeselectNlaStrips;
+} /*eDeselectNlaStrips*/;
  
 /* Deselects strips in the NLA Editor
  *	- This is called by the deselect all operator, as well as other ones!
@@ -199,10 +204,10 @@ void NLA_OT_select_all_toggle (wmOperatorType *ot)
 
 /* ******************** Border Select Operator **************************** */
 /* This operator currently works in one of three ways:
- *	-> BKEY 	- 1) all strips within region are selected (ACTKEYS_BORDERSEL_ALLSTRIPS)
+ *	-> BKEY 	- 1) all strips within region are selected (NLAEDIT_BORDERSEL_ALLSTRIPS)
  *	-> ALT-BKEY - depending on which axis of the region was larger...
- *		-> 2) x-axis, so select all frames within frame range (ACTKEYS_BORDERSEL_FRAMERANGE)
- *		-> 3) y-axis, so select all frames within channels that region included (ACTKEYS_BORDERSEL_CHANNELS)
+ *		-> 2) x-axis, so select all frames within frame range (NLAEDIT_BORDERSEL_FRAMERANGE)
+ *		-> 3) y-axis, so select all frames within channels that region included (NLAEDIT_BORDERSEL_CHANNELS)
  */
 
 /* defines for borderselect mode */
@@ -210,7 +215,7 @@ enum {
 	NLA_BORDERSEL_ALLSTRIPS	= 0,
 	NLA_BORDERSEL_FRAMERANGE,
 	NLA_BORDERSEL_CHANNELS,
-} eActKeys_BorderSelect_Mode;
+} /* eNLAEDIT_BorderSelect_Mode */;
 
 
 static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, short selectmode)
@@ -340,28 +345,164 @@ void NLA_OT_select_border(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }
 
-/* ******************** Mouse-Click Select Operator *********************** */
-/* This operator works in one of 2 ways:
- *	1) Select the strip directly under the mouse
- *	2) Select all the strips to one side of the mouse
- */
+/* ******************** Select Left/Right Operator ************************* */
+/* Select keyframes left/right of the current frame indicator */
 
 /* defines for left-right select tool */
 static EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
 	{NLAEDIT_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
-	{NLAEDIT_LRSEL_NONE, "OFF", 0, "Don't select", ""},
 	{NLAEDIT_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
 	{NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* sensitivity factor for frame-selections */
-#define FRAME_CLICK_THRESH 		0.1f
+/* ------------------- */
 
+static void nlaedit_select_leftright (bContext *C, bAnimContext *ac, short leftright, short select_mode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	Scene *scene= ac->scene;
+	float xmin, xmax;
+	
+	/* if currently in tweakmode, exit tweakmode first */
+	if (scene->flag & SCE_NLA_EDIT_ON)
+		WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
+	
+	/* if select mode is replace, deselect all keyframes (and channels) first */
+	if (select_mode==SELECT_REPLACE) {
+		select_mode= SELECT_ADD;
+		
+		/* deselect all other channels and keyframes */
+		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
+	}
+	
+	/* get range, and get the right flag-setting mode */
+	if (leftright == NLAEDIT_LRSEL_LEFT) {
+		xmin = MINAFRAMEF;
+		xmax = (float)(CFRA + 0.1f);
+	} 
+	else {
+		xmin = (float)(CFRA - 0.1f);
+		xmax = MAXFRAMEF;
+	}
+	
+	select_mode= selmodes_to_flagmodes(select_mode);
+	
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* select strips on the side where most data occurs */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		/* check each strip to see if it is appropriate */
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			if (BKE_nlastrip_within_bounds(strip, xmin, xmax)) {
+				ACHANNEL_SET_FLAG(strip, select_mode, NLASTRIP_FLAG_SELECT);
+			}
+		}
+	}
+	
+	/* Cleanup */
+	BLI_freelistN(&anim_data);
+}
 
 /* ------------------- */
 
-/* option 1) select strip directly under mouse */
+static int nlaedit_select_leftright_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short leftright = RNA_enum_get(op->ptr, "mode");
+	short selectmode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* select mode is either replace (deselect all, then add) or add/extend */
+	if (RNA_boolean_get(op->ptr, "extend"))
+		selectmode= SELECT_INVERT;
+	else
+		selectmode= SELECT_REPLACE;
+		
+	/* if "test" mode is set, we don't have any info to set this with */
+	if (leftright == NLAEDIT_LRSEL_TEST)
+		return OPERATOR_CANCELLED;
+	
+	/* do the selecting now */
+	nlaedit_select_leftright(C, &ac, leftright, selectmode);
+	
+	/* set notifier that keyframe selection (and channels too) have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|ND_ANIMCHAN|NA_SELECTED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int nlaedit_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	bAnimContext ac;
+	short leftright = RNA_enum_get(op->ptr, "mode");
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* handle mode-based testing */
+	if (leftright == NLAEDIT_LRSEL_TEST) {
+		Scene *scene= ac.scene;
+		ARegion *ar= ac.ar;
+		View2D *v2d= &ar->v2d;
+		
+		int mval[2];
+		float x;
+		
+		/* get mouse coordinates (in region coordinates) */
+		mval[0]= (event->x - ar->winrct.xmin);
+		mval[1]= (event->y - ar->winrct.ymin);
+		
+		/* determine which side of the current frame mouse is on */
+		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+		if (x < CFRA)
+			RNA_int_set(op->ptr, "mode", NLAEDIT_LRSEL_LEFT);
+		else 	
+			RNA_int_set(op->ptr, "mode", NLAEDIT_LRSEL_RIGHT);
+	}
+	
+	/* perform selection */
+	return nlaedit_select_leftright_exec(C, op);
+}
+
+void NLA_OT_select_leftright (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Left/Right";
+	ot->idname= "NLA_OT_select_leftright";
+	ot->description= "Select strips to the left or the right of the current frame ";
+	
+	/* api callbacks  */
+	ot->invoke= nlaedit_select_leftright_invoke;
+	ot->exec= nlaedit_select_leftright_exec;
+	ot->poll= ED_operator_nla_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	ot->prop= RNA_def_enum(ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+}
+
+
+/* ******************** Mouse-Click Select Operator *********************** */
+
+/* select strip directly under mouse */
 static void mouse_nla_strips (bContext *C, bAnimContext *ac, int mval[2], short select_mode)
 {
 	ListBase anim_data = {NULL, NULL};
@@ -463,63 +604,6 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, int mval[2], short 
 	}
 }
 
-/* Option 2) Selects all the strips on either side of the current frame (depends on which side the mouse is on) */
-static void nlaedit_mselect_leftright (bContext *C, bAnimContext *ac, short leftright, short select_mode)
-{
-	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
-	Scene *scene= ac->scene;
-	float xmin, xmax;
-	
-	/* if currently in tweakmode, exit tweakmode first */
-	if (scene->flag & SCE_NLA_EDIT_ON)
-		WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
-	
-	/* if select mode is replace, deselect all keyframes (and channels) first */
-	if (select_mode==SELECT_REPLACE) {
-		select_mode= SELECT_ADD;
-		
-		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-		deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
-	}
-	
-	/* get range, and get the right flag-setting mode */
-	if (leftright == NLAEDIT_LRSEL_LEFT) {
-		xmin = MINAFRAMEF;
-		xmax = (float)(CFRA + FRAME_CLICK_THRESH);
-	} 
-	else {
-		xmin = (float)(CFRA - FRAME_CLICK_THRESH);
-		xmax = MAXFRAMEF;
-	}
-	
-	select_mode= selmodes_to_flagmodes(select_mode);
-	
-	
-	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS);
-	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-	
-	/* select strips on the side where most data occurs */
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		NlaTrack *nlt= (NlaTrack *)ale->data;
-		NlaStrip *strip;
-		
-		/* check each strip to see if it is appropriate */
-		for (strip= nlt->strips.first; strip; strip= strip->next) {
-			if (BKE_nlastrip_within_bounds(strip, xmin, xmax)) {
-				ACHANNEL_SET_FLAG(strip, select_mode, NLASTRIP_FLAG_SELECT);
-			}
-		}
-	}
-	
-	/* Cleanup */
-	BLI_freelistN(&anim_data);
-}
-
 /* ------------------- */
 
 /* handle clicking */
@@ -550,24 +634,9 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		selectmode= SELECT_INVERT;
 	else
 		selectmode= SELECT_REPLACE;
-	
-	/* figure out action to take */
-	if (RNA_enum_get(op->ptr, "left_right")) {
-		/* select all keys on same side of current frame as mouse */
-		float x;
 		
-		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
-		if (x < CFRA)
-			RNA_int_set(op->ptr, "left_right", NLAEDIT_LRSEL_LEFT);
-		else 	
-			RNA_int_set(op->ptr, "left_right", NLAEDIT_LRSEL_RIGHT);
-		
-		nlaedit_mselect_leftright(C, &ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
-	}
-	else {
-		/* select strips based upon mouse position */
-		mouse_nla_strips(C, &ac, mval, selectmode);
-	}
+	/* select strips based upon mouse position */
+	mouse_nla_strips(C, &ac, mval, selectmode);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_SELECTED, NULL);
@@ -591,8 +660,6 @@ void NLA_OT_click_select (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	// XXX should we make this into separate operators?
-	RNA_def_enum(ot->srna, "left_right", prop_nlaedit_leftright_select_types, 0, "Left Right", ""); // CTRLKEY
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
 }
 

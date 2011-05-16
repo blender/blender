@@ -1,3 +1,6 @@
+/** \file itasc/UncontrolledObject.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * UncontrolledObject.cpp
  *

@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file DNA_action_types.h
+ *  \ingroup DNA
+ */
+
 
 #ifndef DNA_ACTION_TYPES_H
 #define DNA_ACTION_TYPES_H
@@ -299,8 +303,8 @@ typedef enum eRotationModes {
 		/* quaternion rotations (default, and for older Blender versions) */
 	ROT_MODE_QUAT	= 0,
 		/* euler rotations - keep in sync with enum in BLI_math.h */
-	ROT_MODE_EUL = 1,		/* Blender 'default' (classic) - must be as 1 to sync with arithb defines */
-	ROT_MODE_XYZ = 1,		/* Blender 'default' (classic) - must be as 1 to sync with arithb defines */
+	ROT_MODE_EUL = 1,		/* Blender 'default' (classic) - must be as 1 to sync with BLI_math_rotation.h defines */
+	ROT_MODE_XYZ = 1,
 	ROT_MODE_XZY,
 	ROT_MODE_YXZ,
 	ROT_MODE_YZX,
@@ -483,6 +487,9 @@ typedef struct bAction {
 	
 	int flag;			/* settings for this action */
 	int active_marker;	/* index of the active marker */
+	
+	int idroot;			/* type of ID-blocks that action can be assigned to (if 0, will be set to whatever ID first evaluates it) */
+	int pad;
 } bAction;
 
 
@@ -507,7 +514,8 @@ typedef struct bDopeSheet {
 	ID 		*source;			/* currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil) */
 	ListBase chanbase;			/* cache for channels (only initialised when pinned) */  // XXX not used!
 	
-	struct Group *filter_grp;	/* object group for ADS_FILTER_ONLYOBGROUP filtering option */ 
+	struct Group *filter_grp;	/* object group for ADS_FILTER_ONLYOBGROUP filtering option */
+	char searchstr[64];			/* string to search for in displayed names of F-Curves for ADS_FILTER_BY_FCU_NAME filtering option */
 	
 	int filterflag;				/* flags to use for filtering data */
 	int flag;					/* standard flags */
@@ -550,6 +558,7 @@ typedef enum eDopeSheet_FilterFlag {
 	
 		/* general filtering 3 */
 	ADS_FILTER_INCL_HIDDEN		= (1<<26),	/* include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
+	ADS_FILTER_BY_FCU_NAME		= (1<<27),	/* for F-Curves, filter by the displayed name (i.e. to isolate all Location curves only) */
 	
 		/* combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM)

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/screen.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -109,7 +114,7 @@ ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
 }
 
 
-const ListBase *BKE_spacetypes_list()
+const ListBase *BKE_spacetypes_list(void)
 {
 	return &spacetypes;
 }
@@ -230,6 +235,26 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 		}
 	}
 }
+
+/* facility to set locks for drawing to survive (render) threads accessing drawing data */
+/* lock can become bitflag too */
+/* should be replaced in future by better local data handling for threads */
+void BKE_spacedata_draw_locks(int set)
+{
+	SpaceType *st;
+	
+	for(st= spacetypes.first; st; st= st->next) {
+		ARegionType *art;
+	
+		for(art= st->regiontypes.first; art; art= art->next) {
+			if(set) 
+				art->do_lock= art->lock;
+			else 
+				art->do_lock= 0;
+		}
+	}
+}
+
 
 /* not region itself */
 void BKE_area_region_free(SpaceType *st, ARegion *ar)
@@ -390,3 +415,4 @@ void BKE_screen_view3d_main_sync(ListBase *screen_lb, Scene *scene)
 					BKE_screen_view3d_sync((View3D*)sl, scene);
 	}
 }
+

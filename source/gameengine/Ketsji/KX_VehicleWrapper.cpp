@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_VehicleWrapper.cpp
+ *  \ingroup ketsji
+ */
 
 
 #include "PyObjectPlus.h"

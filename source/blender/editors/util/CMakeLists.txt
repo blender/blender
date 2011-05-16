@@ -22,6 +22,7 @@
 set(INC
 	../include
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../../../extern/recastnavigation/Recast/Include
 	../../makesdna
@@ -36,6 +37,7 @@ set(SRC
 	numinput.c
 	undo.c
 	navmesh_conversion.cpp
+	crazyspace.c
 
 	util_intern.h
 	# general includes

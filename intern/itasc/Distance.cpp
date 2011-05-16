@@ -1,3 +1,6 @@
+/** \file itasc/Distance.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * Distance.cpp
  *

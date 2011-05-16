@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file IdentifierExpr.h
+ *  \ingroup expressions
+ */
+
 #ifndef __IDENTIFIER_EXPR
 #define __IDENTIFIER_EXPR
 

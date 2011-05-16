@@ -1,12 +1,4 @@
-/**
- * @file BLI_dynstr.h
- * 
- * A dynamically sized string ADT.
- * This ADT is designed purely for dynamic string creation
- * through appending, not for general usage, the intent is
- * to build up dynamic strings using a DynStr object, then
- * convert it to a c-string and work with that.
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,6 +29,16 @@
  
 #ifndef BLI_DYNSTR_H
 #define BLI_DYNSTR_H
+
+/** \file BLI_dynstr.h
+ *  \ingroup bli
+ *  \brief A dynamically sized string ADT.
+ *  \section aboutdynstr Dynamic String
+ * This ADT is designed purely for dynamic string creation
+ * through appending, not for general usage, the intent is
+ * to build up dynamic strings using a DynStr object, then
+ * convert it to a c-string and work with that.
+ */
 
 #include <stdarg.h>
 
@@ -77,7 +79,7 @@ void	BLI_dynstr_nappend				(DynStr *ds, const char *cstr, int len);
 	 */
 void	BLI_dynstr_appendf				(DynStr *ds, const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 2, 3)));
+__attribute__ ((format (printf, 2, 3)))
 #endif
 ;
 void	BLI_dynstr_vappendf				(DynStr *ds, const char *format, va_list args);

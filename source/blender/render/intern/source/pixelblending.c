@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/pixelblending.c
+ *  \ingroup render
+ */
+
+
 #include <math.h>
 #include <string.h>
 
@@ -76,7 +81,7 @@ void addAlphaOverFloat(float *dest, float *source)
 {
 	/* d = s + (1-alpha_s)d*/
 	float mul;
-    
+
 	mul= 1.0 - source[3];
 
 	dest[0]= (mul*dest[0]) + source[0];
@@ -126,7 +131,7 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac)
 	else 
 #endif
 		dest[1]= c;
-    
+
 	c= (m * dest[2]) + source[2];
 #ifdef RE_FLOAT_COLOR_CLIPPING
 	if(c >= RE_FULL_COLOR_FLOAT) dest[2] = RE_FULL_COLOR_FLOAT; 
@@ -139,7 +144,7 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac)
 	if(c >= RE_FULL_COLOR_FLOAT) dest[3] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
-	   dest[3]= c;
+	dest[3]= c;
 
 }
 

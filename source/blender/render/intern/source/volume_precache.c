@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/source/volume_precache.c
+ *  \ingroup render
+ */
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -397,7 +402,7 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 					/* Displays progress every second */
 					if(time-lasttime>1.0f) {
 						char str[64];
-						sprintf(str, "Simulating multiple scattering: %d%%", (int)(100.0f * (c / total)));
+						BLI_snprintf(str, sizeof(str), "Simulating multiple scattering: %d%%", (int)(100.0f * (c / total)));
 						re->i.infostr= str;
 						re->stats_draw(re->sdh, &re->i);
 						re->i.infostr= NULL;
@@ -409,7 +414,7 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 		SWAP(float *,sr,sr0);
 		SWAP(float *,sg,sg0);
 		SWAP(float *,sb,sb0);
-               
+
 		/* main diffusion simulation */
 		ms_diffuse(sr0, sr, diff, n);
 		ms_diffuse(sg0, sg, diff, n);
@@ -501,6 +506,9 @@ static void *vol_precache_part(void *data)
 			
 			for (x=pa->minx; x < pa->maxx; x++) {
 				co[0] = pa->bbmin[0] + (pa->voxel[0] * (x + 0.5f));
+				
+				if (pa->re->test_break && pa->re->test_break(pa->re->tbh))
+					break;
 				
 				/* convert from world->camera space for shading */
 				mul_v3_m4v3(cco, pa->viewmat, co);
@@ -599,6 +607,7 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 				pa->done = 0;
 				pa->working = 0;
 				
+				pa->re = re;
 				pa->num = i;
 				pa->tree = tree;
 				pa->shi = shi;
@@ -742,7 +751,7 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 		time= PIL_check_seconds_timer();
 		if(time-lasttime>1.0f) {
 			char str[64];
-			sprintf(str, "Precaching volume: %d%%", (int)(100.0f * ((float)counter / (float)totparts)));
+			BLI_snprintf(str, sizeof(str), "Precaching volume: %d%%", (int)(100.0f * ((float)counter / (float)totparts)));
 			re->i.infostr= str;
 			re->stats_draw(re->sdh, &re->i);
 			re->i.infostr= NULL;

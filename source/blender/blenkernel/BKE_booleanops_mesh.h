@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef BKE_PyBooleanOps_h
 #define BKE_PyBooleanOps_h
+
+/** \file BKE_booleanops_mesh.h
+ *  \ingroup bke
+ */
 
 #include "CSG_BooleanOps.h"
 

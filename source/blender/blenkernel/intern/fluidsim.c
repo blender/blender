@@ -1,6 +1,5 @@
-/**
- * fluidsim.c
- * 
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -27,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/fluidsim.c
+ *  \ingroup bke
+ */
+
 
 #include <stddef.h>
 #include "BLI_storage.h" /* _LARGEFILE_SOURCE */

@@ -1,3 +1,6 @@
+/** \file elbeem/intern/mvmcoords.h
+ *  \ingroup elbeem
+ */
 /******************************************************************************
  *
 // El'Beem - the visual lattice boltzmann freesurface simulator

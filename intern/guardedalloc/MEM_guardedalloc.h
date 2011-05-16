@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,45 +26,51 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/**
- * Copyright (C) 2001 NaN Technologies B.V.
- * Guarded memory (de)allocation
+/** \file MEM_guardedalloc.h
+ *  \ingroup MEM
  *
+ *  \author Copyright (C) 2001 NaN Technologies B.V.
+ *  \brief Read \ref MEMPage
+ */
+
+/** 
+ * \page MEMPage Guarded memory(de)allocation
  *
- * @mainpage MEM - c-style guarded memory allocation
+ * \section aboutmem c-style guarded memory allocation
  *
- * @section about About the MEM module
+ * \subsection memabout About the MEM module
  *
  * MEM provides guarded malloc/calloc calls. All memory is enclosed by
  * pads, to detect out-of-bound writes. All blocks are placed in a
  * linked list, so they remain reachable at all times. There is no
  * back-up in case the linked-list related data is lost.
  *
- * @section issues Known issues with MEM
+ * \subsection memissues Known issues with MEM
  *
  * There are currently no known issues with MEM. Note that there is a
  * second intern/ module with MEM_ prefix, for use in c++.
  * 
- * @section dependencies Dependencies
- *
+ * \subsection memdependencies Dependencies
  * - stdlib
- *
  * - stdio
- *
- * */
+ * 
+ * \subsection memdocs API Documentation
+ * See \ref MEM_guardedalloc.h
+ */
 
 #ifndef MEM_MALLOCN_H
 #define MEM_MALLOCN_H
 
-#include "stdio.h" /* needed for FILE* */
-#include "BLO_sys_types.h" /* needed for uintptr_t */
+#include <stdio.h> /* needed for FILE* */
+#include "MEM_sys_types.h" /* needed for uintptr_t */
 
-#ifdef __GNUC__
-#  define WARN_UNUSED  __attribute__((warn_unused_result))
-#else
-#  define WARN_UNUSED
+#ifndef WARN_UNUSED
+#  ifdef __GNUC__
+#    define WARN_UNUSED  __attribute__((warn_unused_result))
+#  else
+#    define WARN_UNUSED
+#  endif
 #endif
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -144,17 +150,19 @@ extern "C" {
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 	void MEM_set_memory_debug(void);
 
-	/* Memory usage stats
+	/** Memory usage stats
 	 * - MEM_get_memory_in_use is all memory
 	 * - MEM_get_mapped_memory_in_use is a subset of all memory */
 	uintptr_t MEM_get_memory_in_use(void);
+	/** Get mapped memory usage. */
 	uintptr_t MEM_get_mapped_memory_in_use(void);
+	/** Get amount of memory blocks in use. */
 	int MEM_get_memory_blocks_in_use(void);
 
-	/*reset the peak memory statistic to zero*/
+	/** Reset the peak memory statistic to zero. */
 	void MEM_reset_peak_memory(void);
 
-	/*get the peak memory usage in bytes, including mmap allocations*/
+	/** Get the peak memory usage in bytes, including mmap allocations. */
 	uintptr_t MEM_get_peak_memory(void) WARN_UNUSED;
 
 #ifndef NDEBUG

@@ -25,7 +25,8 @@ ContactProcessedCallback	gContactProcessedCallback = 0;
 
 
 btPersistentManifold::btPersistentManifold()
-:m_body0(0),
+:btTypedObject(BT_PERSISTENT_MANIFOLD_TYPE),
+m_body0(0),
 m_body1(0),
 m_cachedPoints (0),
 m_index1a(0)
@@ -172,9 +173,6 @@ int btPersistentManifold::addManifoldPoint(const btManifoldPoint& newPoint)
 #if MANIFOLD_CACHE_SIZE >= 4
 		//sort cache so best points come first, based on area
 		insertIndex = sortCachedPoints(newPoint);
-		
-		if (insertIndex<0)
-			insertIndex=0;
 #else
 		insertIndex = 0;
 #endif
@@ -183,7 +181,11 @@ int btPersistentManifold::addManifoldPoint(const btManifoldPoint& newPoint)
 	} else
 	{
 		m_cachedPoints++;
+
+		
 	}
+	if (insertIndex<0)
+		insertIndex=0;
 
 	btAssert(m_pointCache[insertIndex].m_userPersistentData==0);
 	m_pointCache[insertIndex] = newPoint;

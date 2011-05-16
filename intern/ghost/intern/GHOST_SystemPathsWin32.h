@@ -1,5 +1,5 @@
-/**
- * $Id: GHOST_SystemPathsWin32.h 34106 2011-01-05 19:19:49Z gsrb3d $
+/*
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_SystemPathsWin32.h
+ *  \ingroup GHOST
+ */
+
 
 #ifndef _GHOST_SYSTEM_PATHS_WIN32_H_
 #define _GHOST_SYSTEM_PATHS_WIN32_H_

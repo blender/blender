@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file bsp/extern/CSG_BooleanOps.h
+ *  \ingroup bsp
+ */
+
 
 #ifndef CSG_BOOLEANOPS_H
 #define CSG_BOOLEANOPS_H

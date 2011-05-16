@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Converter/BL_ArmatureActuator.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
@@ -110,7 +115,7 @@ bool BL_ArmatureActuator::UnlinkObject(SCA_IObject* clientobj)
 	return res;
 }
 
-void BL_ArmatureActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void BL_ArmatureActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_gametarget];
 	if (h_obj) {

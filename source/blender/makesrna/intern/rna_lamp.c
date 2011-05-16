@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,9 +22,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_lamp.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -132,13 +138,13 @@ static void rna_Lamp_sky_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static float rna_Lamp_spot_size_get(PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
-	return la->spotsize * (M_PI / 180.0);
+	return DEG2RADF(la->spotsize);
 }
 
 static void rna_Lamp_spot_size_set(PointerRNA *ptr, float value)
 {
 	Lamp *la= ptr->id.data;
-	la->spotsize= value * (180.0 / M_PI);
+	la->spotsize= RAD2DEGF(value);
 }
 
 
@@ -212,25 +218,6 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 		{2, "CIE", 0, "CIE", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
-	static EnumPropertyItem prop_blendmode_items[] = {
-		{0, "MIX", 0, "Mix", ""},
-		{1, "ADD", 0, "Add", ""},
-		{2, "MULTIPLY", 0, "Multiply", ""},
-		{3, "SUBTRACT", 0, "Subtract", ""},
-		{4, "SCREEN", 0, "Screen", ""},
-		{5, "DIVIDE", 0, "Divide", ""},
-		{6, "DIFFERENCE", 0, "Difference", ""},
-		{7, "DARKEN", 0, "Darken", ""},
-		{8, "LIGHTEN", 0, "Lighten", ""},
-		{9, "OVERLAY", 0, "Overlay", ""},
-		{10, "DODGE", 0, "Dodge", ""},
-		{11, "BURN", 0, "Burn", ""},
-		{12, "HUE", 0, "Hue", ""},
-		{13, "SATURATION", 0, "Saturation", ""},
-		{14, "VALUE", 0, "Value", ""},
-		{15, "COLOR", 0, "Color", ""},
-		{0, NULL, 0, NULL, NULL}};
-		
 	srna= RNA_def_struct(brna, "LampSkySettings", NULL);
 	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_nested(brna, srna, "SunLamp");
@@ -244,7 +231,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "sky_blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "skyblendtype");
-	RNA_def_property_enum_items(prop, prop_blendmode_items);
+	RNA_def_property_enum_items(prop, ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Sky Blend Mode", "Blend mode for combining sun sky with world sky");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
 	
@@ -588,7 +575,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_shadbuftype_items[] = {
 		{LA_SHADBUF_REGULAR	, "REGULAR", 0, "Classical", "Classic shadow buffer"},
-		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifaces"},
+		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifacts"},
 		{LA_SHADBUF_IRREGULAR, "IRREGULAR", 0, "Irregular", "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing"},
 		{LA_SHADBUF_DEEP, "DEEP", 0, "Deep", "Deep shadow buffer supports transparency and better filtering, at the cost of more memory usage and processing time"},
 		{0, NULL, 0, NULL, NULL}};
@@ -620,13 +607,13 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_halo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_HALO);
-	RNA_def_property_ui_text(prop, "Halo", "Renders spotlight with a volumetric halo (Buffer Shadows)");
+	RNA_def_property_ui_text(prop, "Halo", "Renders spotlight with a volumetric halo");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop= RNA_def_property(srna, "halo_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "haint");
 	RNA_def_property_ui_range(prop, 0, 5.0, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Halo Intensity", "Brightness of the spotlight's halo cone  (Buffer Shadows)");
+	RNA_def_property_ui_text(prop, "Halo Intensity", "Brightness of the spotlight's halo cone");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop= RNA_def_property(srna, "halo_step", PROP_INT, PROP_NONE);
@@ -662,7 +649,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "spot_size", PROP_FLOAT, PROP_ANGLE);
 	// RNA_def_property_float_sdna(prop, NULL, "spotsize");
-	RNA_def_property_range(prop, M_PI/180.0f, M_PI);
+	RNA_def_property_range(prop, M_PI/180.0, M_PI);
 	RNA_def_property_ui_text(prop, "Spot Size", "Angle of the spotlight beam in degrees");
 	RNA_def_property_float_funcs(prop, "rna_Lamp_spot_size_get", "rna_Lamp_spot_size_set", NULL); /* only for deg/rad conversion */
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file BL_SkinDeformer.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef BL_SKINDEFORMER
 #define BL_SKINDEFORMER
 
@@ -34,7 +38,7 @@
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
-#include "GEN_HashedPtr.h"
+#include "CTR_HashedPtr.h"
 #include "BL_MeshDeformer.h"
 #include "BL_ArmatureObject.h"
 
@@ -50,7 +54,7 @@ class BL_SkinDeformer : public BL_MeshDeformer
 {
 public:
 //	void SetArmatureController (BL_ArmatureController *cont);
-	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map);
+	virtual void Relink(CTR_Map<class CTR_HashedPtr, void*>*map);
 	void SetArmature (class BL_ArmatureObject *armobj);
 
 	BL_SkinDeformer(BL_DeformableGameObject *gameobj,

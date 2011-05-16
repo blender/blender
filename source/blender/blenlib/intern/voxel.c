@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenlib/intern/voxel.c
+ *  \ingroup bli
+ */
+
 
 #include "BLI_voxel.h"
 #include "BLI_utildefines.h"

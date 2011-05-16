@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/blender.c
+ *  \ingroup bke
+ */
+
+
 #ifndef _WIN32 
 	#include <unistd.h> // for read close
 #else
@@ -88,10 +93,10 @@
 
 Global G;
 UserDef U;
-ListBase WMlist= {NULL, NULL};
+/* ListBase = {NULL, NULL}; */
 short ENDIAN_ORDER;
 
-char versionstr[48]= "";
+static char versionstr[48]= "";
 
 /* ********** free ********** */
 
@@ -124,9 +129,9 @@ void initglobals(void)
 	ENDIAN_ORDER= (((char*)&ENDIAN_ORDER)[0])? L_ENDIAN: B_ENDIAN;
 
 	if(BLENDER_SUBVERSION)
-		sprintf(versionstr, "www.blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
 	else
-		sprintf(versionstr, "www.blender.org %d", BLENDER_VERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d", BLENDER_VERSION);
 
 #ifdef _WIN32	// FULLSCREEN
 	G.windowstate = G_WINDOWSTATE_USERDEF;
@@ -135,8 +140,12 @@ void initglobals(void)
 	G.charstart = 0x0000;
 	G.charmin = 0x0000;
 	G.charmax = 0xffff;
-	
+
+#ifndef WITH_PYTHON_SECURITY /* default */
 	G.f |= G_SCRIPT_AUTOEXEC;
+#else
+	G.f &= ~G_SCRIPT_AUTOEXEC;
+#endif
 }
 
 /***/
@@ -266,12 +275,11 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename
 	}
 
 	/* special cases, override loaded flags: */
-	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
-	else bfd->globalf &= ~G_DEBUG;
-	if (G.f & G_SWAP_EXCHANGE) bfd->globalf |= G_SWAP_EXCHANGE;
-	else bfd->globalf &= ~G_SWAP_EXCHANGE;
-	if (G.f & G_SCRIPT_AUTOEXEC) bfd->globalf |= G_SCRIPT_AUTOEXEC;
-	else bfd->globalf &= ~G_SCRIPT_AUTOEXEC;
+	if(G.f != bfd->globalf) {
+		const int flags_keep= (G_DEBUG | G_SWAP_EXCHANGE | G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+		bfd->globalf= (bfd->globalf & ~flags_keep) | (G.f & flags_keep);
+	}
+
 
 	G.f= bfd->globalf;
 
@@ -314,7 +322,7 @@ static int handle_subversion_warning(Main *main)
 		
 		char str[128];
 		
-		sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
+		BLI_snprintf(str, sizeof(str), "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
 // XXX		error(str);
 	}
 	return 1;
@@ -348,20 +356,20 @@ void BKE_userdef_free(void)
 int BKE_read_file(bContext *C, const char *dir, ReportList *reports) 
 {
 	BlendFileData *bfd;
-	int retval= 1;
+	int retval= BKE_READ_FILE_OK;
 
-	if(strstr(dir, BLENDER_STARTUP_FILE)==0) /* dont print user-pref loading */
+	if(strstr(dir, BLENDER_STARTUP_FILE)==NULL) /* dont print user-pref loading */
 		printf("read blend: %s\n", dir);
 
 	bfd= BLO_read_from_file(dir, reports);
 	if (bfd) {
-		if(bfd->user) retval= 2;
+		if(bfd->user) retval= BKE_READ_FILE_OK_USERPREFS;
 		
 		if(0==handle_subversion_warning(bfd->main)) {
 			free_main(bfd->main);
 			MEM_freeN(bfd);
 			bfd= NULL;
-			retval= 0;
+			retval= BKE_READ_FILE_FAIL;
 		}
 		else
 			setup_app_data(C, bfd, dir); // frees BFD
@@ -369,7 +377,7 @@ int BKE_read_file(bContext *C, const char *dir, ReportList *reports)
 	else
 		BKE_reports_prependf(reports, "Loading %s failed: ", dir);
 		
-	return (bfd?retval:0);
+	return (bfd?retval:BKE_READ_FILE_FAIL);
 }
 
 int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, ReportList *reports)
@@ -457,12 +465,12 @@ static int read_undosave(bContext *C, UndoElem *uel)
 		success= BKE_read_file_from_memfile(C, &uel->memfile, NULL);
 
 	/* restore */
-	strcpy(G.main->name, mainstr); /* restore */
+	BLI_strncpy(G.main->name, mainstr, sizeof(G.main->name)); /* restore */
 	G.fileflags= fileflags;
 
 	if(success) {
 		/* important not to update time here, else non keyed tranforms are lost */
-		DAG_on_load_update(G.main, FALSE);
+		DAG_on_visible_update(G.main, FALSE);
 	}
 
 	return success;
@@ -520,12 +528,12 @@ void BKE_write_undo(bContext *C, const char *name)
 		counter++;
 		counter= counter % U.undosteps;	
 	
-		sprintf(numstr, "%d.blend", counter);
+		BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
 		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
 		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL, NULL);
 		
-		strcpy(curundo->str, tstr);
+		BLI_strncpy(curundo->str, tstr, sizeof(curundo->str));
 	}
 	else {
 		MemFile *prevfile=NULL;
@@ -611,24 +619,14 @@ void BKE_reset_undo(void)
 /* based on index nr it does a restore */
 void BKE_undo_number(bContext *C, int nr)
 {
-	UndoElem *uel;
-	int a=1;
-	
-	for(uel= undobase.first; uel; uel= uel->next, a++) {
-		if(a==nr) break;
-	}
-	curundo= uel;
+	curundo= BLI_findlink(&undobase, nr - 1);
 	BKE_undo_step(C, 0);
 }
 
 /* go back to the last occurance of name in stack */
 void BKE_undo_name(bContext *C, const char *name)
 {
-	UndoElem *uel;
-
-	for(uel= undobase.last; uel; uel= uel->prev)
-		if(strcmp(name, uel->name)==0)
-			break;
+	UndoElem *uel= BLI_rfindstring(&undobase, name, offsetof(UndoElem, name));
 
 	if(uel && uel->prev) {
 		curundo= uel->prev;
@@ -640,12 +638,7 @@ void BKE_undo_name(bContext *C, const char *name)
 int BKE_undo_valid(const char *name)
 {
 	if(name) {
-		UndoElem *uel;
-		
-		for(uel= undobase.last; uel; uel= uel->prev)
-			if(strcmp(name, uel->name)==0)
-				break;
-		
+		UndoElem *uel= BLI_rfindstring(&undobase, name, offsetof(UndoElem, name));
 		return uel && uel->prev;
 	}
 	

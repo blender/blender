@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_SCA_AddObjectActuator.cpp
+ *  \ingroup ketsji
+ */
 //
 // Add an object when this actuator is triggered
 //
@@ -148,7 +151,7 @@ bool KX_SCA_AddObjectActuator::UnlinkObject(SCA_IObject* clientobj)
 	return false;
 }
 
-void KX_SCA_AddObjectActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void KX_SCA_AddObjectActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_OriginalObject];
 	if (h_obj) {

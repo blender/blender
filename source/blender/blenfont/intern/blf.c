@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenfont/intern/blf.c
+ *  \ingroup blf
+ */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,15 +61,15 @@
 #define BLF_MAX_FONT 16
 
 /* Font array. */
-FontBLF *global_font[BLF_MAX_FONT];
+static FontBLF *global_font[BLF_MAX_FONT];
 
 /* Number of font. */
-int global_font_num= 0;
+static int global_font_num= 0;
 
 /* Default size and dpi, for BLF_draw_default. */
-int global_font_default= -1;
-int global_font_points= 11;
-int global_font_dpi= 72;
+static int global_font_default= -1;
+static int global_font_points= 11;
+static int global_font_dpi= 72;
 
 // XXX, should these be made into global_font_'s too?
 int blf_mono_font= -1;
@@ -575,6 +580,54 @@ float BLF_height(int fontid, const char *str)
 	return(0.0f);
 }
 
+float BLF_height_max(int fontid)
+{
+	FontBLF *font;
+
+	font= BLF_get(fontid);
+	if (font) {
+		if(font->glyph_cache)
+			return(font->glyph_cache->max_glyph_height);
+	}
+	return(0.0f);
+}
+
+float BLF_width_max(int fontid)
+{
+	FontBLF *font;
+
+	font= BLF_get(fontid);
+	if (font) {
+		if(font->glyph_cache)
+			return(font->glyph_cache->max_glyph_width);
+	}
+	return(0.0f);
+}
+
+float BLF_descender(int fontid)
+{
+	FontBLF *font;
+
+	font= BLF_get(fontid);
+	if (font) {
+		if(font->glyph_cache)
+			return(font->glyph_cache->descender);
+	}
+	return(0.0f);
+}
+
+float BLF_ascender(int fontid)
+{
+	FontBLF *font;
+
+	font= BLF_get(fontid);
+	if (font) {
+		if(font->glyph_cache)
+			return(font->glyph_cache->ascender);
+	}
+	return(0.0f);
+}
+
 float BLF_height_default(const char *str)
 {
 	float height;
@@ -652,7 +705,7 @@ void BLF_shadow_offset(int fontid, int x, int y)
 	}
 }
 
-void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, unsigned int w, unsigned int h, int nch)
+void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch)
 {
 	FontBLF *font;
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_console/console_draw.c
+ *  \ingroup spconsole
+ */
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -188,7 +193,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 
 static int console_textview_main__internal(struct SpaceConsole *sc, struct ARegion *ar, int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
-	ConsoleLine cl_dummy= {0};
+	ConsoleLine cl_dummy= {NULL};
 	int ret= 0;
 	
 	View2D *v2d= &ar->v2d;
@@ -231,18 +236,6 @@ int console_textview_height(struct SpaceConsole *sc, struct ARegion *ar)
 {
 	int mval[2] = {INT_MAX, INT_MAX};
 	return console_textview_main__internal(sc, ar, 0,  mval, NULL, NULL);
-}
-
-void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, int mouse_y)
-{
-	void *mouse_pick= NULL;
-	int mval[2];
-
-	mval[0]= 0;
-	mval[1]= mouse_y;
-
-	console_textview_main__internal(sc, ar, 0, mval, &mouse_pick, NULL);
-	return (void *)mouse_pick;
 }
 
 int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, int mval[2])

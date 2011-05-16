@@ -32,6 +32,11 @@
  * 
  */
 
+/** \file blender/blenlib/intern/string.c
+ *  \ingroup bli
+ */
+
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -42,7 +47,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
 
-char *BLI_strdupn(const char *str, int len) {
+char *BLI_strdupn(const char *str, const size_t len) {
 	char *n= MEM_mallocN(len+1, "strdup");
 	memcpy(n, str, len);
 	n[len]= '\0';
@@ -55,7 +60,7 @@ char *BLI_strdup(const char *str) {
 
 char *BLI_strdupcat(const char *str1, const char *str2)
 {
-	int len;
+	size_t len;
 	char *n;
 	
 	len= strlen(str1)+strlen(str2);
@@ -66,9 +71,9 @@ char *BLI_strdupcat(const char *str1, const char *str2)
 	return n;
 }
 
-char *BLI_strncpy(char *dst, const char *src, int maxncpy) {
-	int srclen= strlen(src);
-	int cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
+char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy) {
+	size_t srclen= strlen(src);
+	size_t cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
 	
 	memcpy(dst, src, cpylen);
 	dst[cpylen]= '\0';
@@ -76,9 +81,9 @@ char *BLI_strncpy(char *dst, const char *src, int maxncpy) {
 	return dst;
 }
 
-int BLI_snprintf(char *buffer, size_t count, const char *format, ...)
+size_t BLI_snprintf(char *buffer, size_t count, const char *format, ...)
 {
-	int n;
+	size_t n;
 	va_list arg;
 
 	va_start(arg, format);
@@ -123,7 +128,7 @@ char *BLI_sprintfN(const char *format, ...)
  */
 char *BLI_getQuotedStr (const char *str, const char *prefix)
 {
-	int prefixLen = strlen(prefix);
+	size_t prefixLen = strlen(prefix);
 	char *startMatch, *endMatch;
 	
 	/* get the starting point (i.e. where prefix starts, and add prefixLen+1 to it to get be after the first " */
@@ -133,7 +138,7 @@ char *BLI_getQuotedStr (const char *str, const char *prefix)
 	endMatch= strchr(startMatch, '"'); // "  NOTE: this comment here is just so that my text editor still shows the functions ok...
 	
 	/* return the slice indicated */
-	return BLI_strdupn(startMatch, (int)(endMatch-startMatch));
+	return BLI_strdupn(startMatch, (size_t)(endMatch-startMatch));
 }
 
 /* Replaces all occurances of oldText with newText in str, returning a new string that doesn't 
@@ -144,7 +149,7 @@ char *BLI_getQuotedStr (const char *str, const char *prefix)
 char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 {
 	DynStr *ds= NULL;
-	int lenOld= strlen(oldText);
+	size_t lenOld= strlen(oldText);
 	char *match;
 	
 	/* sanity checks */
@@ -258,10 +263,10 @@ int BLI_strcasecmp(const char *s1, const char *s2) {
 	return 0;
 }
 
-int BLI_strncasecmp(const char *s1, const char *s2, int n) {
+int BLI_strncasecmp(const char *s1, const char *s2, size_t len) {
 	int i;
 
-	for (i=0; i<n; i++) {
+	for (i=0; i<len; i++) {
 		char c1 = tolower(s1[i]);
 		char c2 = tolower(s2[i]);
 
@@ -376,64 +381,64 @@ static const char trailingBytesForUTF8[256] = {
 
 int BLI_utf8_invalid_byte(const char *str, int length)
 {
-    const unsigned char *p, *pend = (unsigned char*)str + length;
-    unsigned char c;
-    int ab;
+	const unsigned char *p, *pend = (unsigned char*)str + length;
+	unsigned char c;
+	int ab;
 
-    for (p = (unsigned char*)str; p < pend; p++) {
-        c = *p;
-        if (c < 128)
-            continue;
-        if ((c & 0xc0) != 0xc0)
-            goto utf8_error;
-        ab = trailingBytesForUTF8[c];
-        if (length < ab)
-            goto utf8_error;
-        length -= ab;
+	for (p = (unsigned char*)str; p < pend; p++) {
+		c = *p;
+		if (c < 128)
+			continue;
+		if ((c & 0xc0) != 0xc0)
+			goto utf8_error;
+		ab = trailingBytesForUTF8[c];
+		if (length < ab)
+			goto utf8_error;
+		length -= ab;
 
-        p++;
-        /* Check top bits in the second byte */
-        if ((*p & 0xc0) != 0x80)
-            goto utf8_error;
+		p++;
+		/* Check top bits in the second byte */
+		if ((*p & 0xc0) != 0x80)
+			goto utf8_error;
 
-        /* Check for overlong sequences for each different length */
-        switch (ab) {
-            /* Check for xx00 000x */
-        case 1:
-            if ((c & 0x3e) == 0) goto utf8_error;
-            continue;   /* We know there aren't any more bytes to check */
+		/* Check for overlong sequences for each different length */
+		switch (ab) {
+			/* Check for xx00 000x */
+		case 1:
+			if ((c & 0x3e) == 0) goto utf8_error;
+			continue;   /* We know there aren't any more bytes to check */
 
-            /* Check for 1110 0000, xx0x xxxx */
-        case 2:
-            if (c == 0xe0 && (*p & 0x20) == 0) goto utf8_error;
-            break;
+			/* Check for 1110 0000, xx0x xxxx */
+		case 2:
+			if (c == 0xe0 && (*p & 0x20) == 0) goto utf8_error;
+			break;
 
-            /* Check for 1111 0000, xx00 xxxx */
-        case 3:
-            if (c == 0xf0 && (*p & 0x30) == 0) goto utf8_error;
-            break;
+			/* Check for 1111 0000, xx00 xxxx */
+		case 3:
+			if (c == 0xf0 && (*p & 0x30) == 0) goto utf8_error;
+			break;
 
-            /* Check for 1111 1000, xx00 0xxx */
-        case 4:
-            if (c == 0xf8 && (*p & 0x38) == 0) goto utf8_error;
-            break;
+			/* Check for 1111 1000, xx00 0xxx */
+		case 4:
+			if (c == 0xf8 && (*p & 0x38) == 0) goto utf8_error;
+			break;
 
-            /* Check for leading 0xfe or 0xff,
-               and then for 1111 1100, xx00 00xx */
-        case 5:
-            if (c == 0xfe || c == 0xff ||
-                (c == 0xfc && (*p & 0x3c) == 0)) goto utf8_error;
-            break;
-        }
+			/* Check for leading 0xfe or 0xff,
+			   and then for 1111 1100, xx00 00xx */
+		case 5:
+			if (c == 0xfe || c == 0xff ||
+				(c == 0xfc && (*p & 0x3c) == 0)) goto utf8_error;
+			break;
+		}
 
-        /* Check for valid bytes after the 2nd, if any; all must start 10 */
-        while (--ab > 0) {
-            if ((*(p+1) & 0xc0) != 0x80) goto utf8_error;
+		/* Check for valid bytes after the 2nd, if any; all must start 10 */
+		while (--ab > 0) {
+			if ((*(p+1) & 0xc0) != 0x80) goto utf8_error;
 			p++; /* do this after so we get usable offset - campbell */
-        }
-    }
+		}
+	}
 
-    return -1;
+	return -1;
 
 utf8_error:
 

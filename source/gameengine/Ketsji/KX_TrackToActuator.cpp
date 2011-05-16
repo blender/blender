@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_TrackToActuator.cpp
+ *  \ingroup ketsji
+ */
 //
 // Replace the mesh for this actuator's parent
 //
@@ -216,7 +219,7 @@ bool KX_TrackToActuator::UnlinkObject(SCA_IObject* clientobj)
 	return false;
 }
 
-void KX_TrackToActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void KX_TrackToActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_object];
 	if (h_obj) {

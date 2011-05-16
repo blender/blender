@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,11 @@
  * Simple deformation controller that restores a mesh to its rest position
  */
 
+/** \file gameengine/Converter/BL_MeshDeformer.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.
@@ -41,7 +46,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "GEN_Map.h"
+#include "CTR_Map.h"
 #include "STR_HashedString.h"
 #include "BLI_math.h"
 
@@ -96,7 +101,7 @@ void BL_MeshDeformer::ProcessReplica()
 	m_lastDeformUpdate = -1;
 }
 
-void BL_MeshDeformer::Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
+void BL_MeshDeformer::Relink(CTR_Map<class CTR_HashedPtr, void*>*map)
 {
 	void **h_obj = (*map)[m_gameobj];
 

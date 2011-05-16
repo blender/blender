@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file BlendType.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined BLENDTYPE_H
 #define BLENDTYPE_H
 

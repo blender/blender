@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_curve.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_CURVE_H
 #define ED_CURVE_H
 
@@ -61,7 +66,7 @@ void	free_editNurb	(struct Object *obedit);
 
 void	free_curve_editNurb	(struct Curve *cu);
 
-int 	mouse_nurb		(struct bContext *C, short mval[2], int extend);
+int 	mouse_nurb		(struct bContext *C, const short mval[2], int extend);
 
 struct Nurb *add_nurbs_primitive(struct bContext *C, float mat[4][4], int type, int newob);
 
@@ -84,6 +89,9 @@ void ED_curve_beztcpy(struct EditNurb *editnurb, struct BezTriple *dst, struct B
 void ED_curve_bpcpy(struct EditNurb *editnurb, struct BPoint *dst, struct BPoint *src, int count);
 
 int ED_curve_updateAnimPaths(struct Object *obedit);
+
+/* debug only */
+void printknots(struct Object *obedit);
 
 #endif /* ED_CURVE_H */
 

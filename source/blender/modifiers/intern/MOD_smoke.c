@@ -30,7 +30,12 @@
 *
 */
 
-#include "stddef.h"
+/** \file blender/modifiers/intern/MOD_smoke.c
+ *  \ingroup modifiers
+ */
+
+
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -142,6 +147,17 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
+static void foreachIDLink(ModifierData *md, Object *ob,
+					   IDWalkFunc walk, void *userData)
+{
+	SmokeModifierData *smd = (SmokeModifierData*) md;
+
+	if(smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
+		walk(userData, ob, (ID **)&smd->domain->coll_group);
+		walk(userData, ob, (ID **)&smd->domain->fluid_group);
+		walk(userData, ob, (ID **)&smd->domain->eff_group);
+	}
+}
 
 ModifierTypeInfo modifierType_Smoke = {
 	/* name */              "Smoke",
@@ -154,18 +170,18 @@ ModifierTypeInfo modifierType_Smoke = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
-	/* deformMatrices */    0,
-	/* deformVertsEM */     0,
-	/* deformMatricesEM */  0,
-	/* applyModifier */     0,
-	/* applyModifierEM */   0,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
-	/* requiredDataMask */  0,
+	/* requiredDataMask */  NULL,
 	/* freeData */          freeData,
-	/* isDisabled */        0,
+	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
-	/* dependsOnNormals */	0,
-	/* foreachObjectLink */ 0,
-	/* foreachIDLink */     0,
+	/* dependsOnNormals */	NULL,
+	/* foreachObjectLink */ NULL,
+	/* foreachIDLink */     foreachIDLink,
 };

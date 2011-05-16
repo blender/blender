@@ -1,6 +1,4 @@
-/* BKE_particle.h
- *
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,10 @@
 
 #ifndef BKE_PARTICLE_H
 #define BKE_PARTICLE_H
+
+/** \file BKE_particle.h
+ *  \ingroup bke
+ */
 
 #include "DNA_particle_types.h"
 #include "DNA_object_types.h"
@@ -80,20 +82,10 @@ typedef struct ParticleSimulationData {
 	struct ListBase *colliders;
 } ParticleSimulationData;
 
-//typedef struct ParticleReactEvent {
-//	struct ParticleReactEvent *next, *prev;
-//	int event, pa_num;
-//	Object *ob;
-//	struct ParticleSystem *psys;
-//	struct ParticleKey state;
-//
-//	float time, size;
-//}ParticleReactEvent;
-
 typedef struct ParticleTexture{
 	float ivel;							/* used in reset */
 	float time, life, exist, size;		/* used in init */
-	float pvel[3];						/* used in physics */
+	float damp, gravity, field;			/* used in physics */
 	float length, clump, kink, effector;/* used in path caching */
 	float rough1, rough2, roughe;		/* used in path caching */
 } ParticleTexture;
@@ -159,22 +151,62 @@ typedef struct ParticleBillboardData
 	int uv[3];
 	int lock, num;
 	int totnum;
+	int lifetime;
 	short align, uv_split, anim, split_offset;
 } ParticleBillboardData;
+
+typedef struct ParticleCollisionElement
+{
+	/* pointers to original data */
+	float *x[4], *v[4];
+
+	/* values interpolated from original data*/
+	float x0[3], x1[3], x2[3], p[3];
+	
+	/* results for found intersection point */
+	float nor[3], vel[3], uv[2];
+
+	/* count of original data (1-4) */
+	int tot;
+
+	/* index of the collision face */
+	int index;
+
+	/* flags for inversed normal / particle already inside element at start */
+	short inv_nor, inside;
+} ParticleCollisionElement;
 
 /* container for moving data between deflet_particle and particle_intersect_face */
 typedef struct ParticleCollision
 {
-	struct Object *ob, *hit_ob; // collided and current objects
-	struct CollisionModifierData *md, *hit_md; // collision modifiers for current and hit object;
-	float nor[3]; // normal at collision point
-	float vel[3]; // velocity of collision point
-	float co1[3], co2[3]; // ray start and end points
-	float ve1[3], ve2[3]; // particle velocities
-	float ray_len; // original length of co2-co1, needed for collision time evaluation
+	struct Object *current;
+	struct Object *hit;
+	struct Object *prev;
+	struct Object *skip;
+	struct Object *emitter;
+
+	struct CollisionModifierData *md; // collision modifier for current object;
+
 	float f;	// time factor of previous collision, needed for substracting face velocity
-	float cfra; // start of the timestep (during frame change, since previous integer frame)
-	float dfra; // duration of timestep in frames
+	float fac1, fac2;
+
+	float cfra, old_cfra;
+
+	float original_ray_length; //original length of co2-co1, needed for collision time evaluation
+
+	int prev_index;
+
+	ParticleCollisionElement pce;
+
+	float total_time, inv_timestep;
+
+	float radius;
+	float co1[3], co2[3];
+	float ve1[3], ve2[3];
+
+	float acc[3], boid_z;
+
+	int boid;
 } ParticleCollision;
 
 typedef struct ParticleDrawData {
@@ -249,7 +281,7 @@ void psys_get_particle_on_path(struct ParticleSimulationData *sim, int pa_num, s
 int psys_get_particle_state(struct ParticleSimulationData *sim, int p, struct ParticleKey *state, int always);
 
 /* for anim.c */
-void psys_get_dupli_texture(struct Object *ob, struct ParticleSettings *part, struct ParticleSystemModifierData *psmd, struct ParticleData *pa, struct ChildParticle *cpa, float *uv, float *orco);
+void psys_get_dupli_texture(struct ParticleSystem *psys, struct ParticleSettings *part, struct ParticleSystemModifierData *psmd, struct ParticleData *pa, struct ChildParticle *cpa, float *uv, float *orco);
 void psys_get_dupli_path_transform(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ChildParticle *cpa, struct ParticleCacheKey *cache, float mat[][4], float *scale);
 
 ParticleThread *psys_threads_create(struct ParticleSimulationData *sim);
@@ -291,15 +323,13 @@ float psys_get_dietime_from_cache(struct PointCache *cache, int index);
 void psys_free_pdd(struct ParticleSystem *psys);
 
 float *psys_cache_vgroup(struct DerivedMesh *dm, struct ParticleSystem *psys, int vgroup);
-void psys_get_texture(struct ParticleSimulationData *sim, struct Material *ma, struct ParticleData *pa, struct ParticleTexture *ptex, int event);
+void psys_get_texture(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ParticleTexture *ptex, int event, float cfra);
 void psys_interpolate_face(struct MVert *mvert, struct MFace *mface, struct MTFace *tface, float (*orcodata)[3], float *uv, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
 float psys_particle_value_from_verts(struct DerivedMesh *dm, short from, struct ParticleData *pa, float *values);
 void psys_get_from_key(struct ParticleKey *key, float *loc, float *vel, float *rot, float *time);
 
-/* only in edisparticle.c*/
-int psys_intersect_dm(struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float *vert_cos, float *co1, float* co2, float *min_d, int *min_face, float *min_uv, float *face_minmax, float *pa_minmax, float radius, float *ipoint);
 /* BLI_bvhtree_ray_cast callback */
-void particle_intersect_face(void *userdata, int index, const struct BVHTreeRay *ray, struct BVHTreeRayHit *hit);
+void BKE_psys_collision_neartest_cb(void *userdata, int index, const struct BVHTreeRay *ray, struct BVHTreeRayHit *hit);
 void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
 
 /* particle_system.c */

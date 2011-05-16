@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/prvicons.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <prvicons> */
 
 int datatoc_prvicons_size= 12311;

@@ -2,7 +2,7 @@ LCGDIR = '../lib/sunos5'
 LIBDIR = '${LCGDIR}'
 
 BF_PYTHON = '/usr/local'
-BF_PYTHON_VERSION = '3.1'
+BF_PYTHON_VERSION = '3.2'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}' #BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
@@ -138,8 +138,8 @@ CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 
 CPPFLAGS = ['-DSUN_OGL_NO_VERTEX_MACROS']
 CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
-REL_CFLAGS = ['-O2']
-REL_CCFLAGS = ['-O2']
+REL_CFLAGS = ['-DNDEBUG', '-O2']
+REL_CCFLAGS = ['-DNDEBUG', '-O2']
 ##BF_DEPEND = True
 ##
 ##AR = ar
@@ -161,7 +161,7 @@ BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-DDEBUG']
+BF_DEBUG_CCFLAGS = ['-D_DEBUG']
 
 BF_BUILDDIR = '../build/sunos5'
 BF_INSTALLDIR='../install/sunos5'

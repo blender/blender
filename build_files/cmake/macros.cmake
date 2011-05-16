@@ -66,7 +66,7 @@ macro(SETUP_LIBDIRS)
 
 	link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
 
-	if(WITH_PYTHON)
+	if(WITH_PYTHON)  #  AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		link_directories(${PYTHON_LIBPATH})
 	endif()
 	if(WITH_INTERNATIONAL)
@@ -84,6 +84,9 @@ macro(SETUP_LIBDIRS)
 	endif()
 	if(WITH_IMAGE_TIFF)
 		link_directories(${TIFF_LIBPATH})
+	endif()
+	if(WITH_IMAGE_OPENJPEG AND UNIX AND NOT APPLE)
+		link_directories(${OPENJPEG_LIBPATH})
 	endif()
 	if(WITH_LCMS)
 		link_directories(${LCMS_LIBPATH})
@@ -124,7 +127,7 @@ macro(setup_liblinks
 	target_link_libraries(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
-	if(WITH_PYTHON)
+	if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
 		if(WIN32 AND NOT UNIX)
@@ -133,6 +136,10 @@ macro(setup_liblinks
 		else()
 			target_link_libraries(${target} ${PYTHON_LIBRARY})
 		endif()
+	endif()
+
+	if(NOT WITH_BUILTIN_GLEW)
+		target_link_libraries(${target} ${GLEW_LIBRARY})
 	endif()
 
 	target_link_libraries(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
@@ -179,6 +186,9 @@ macro(setup_liblinks
 		else()
 			target_link_libraries(${target} ${OPENEXR_LIB})
 		endif()
+	endif()
+	if(WITH_IMAGE_OPENJPEG AND UNIX AND NOT APPLE)
+		target_link_libraries(${target} ${OPENJPEG_LIB})
 	endif()
 	if(WITH_LCMS)
 		target_link_libraries(${target} ${LCMS_LIBRARY})
@@ -259,7 +269,7 @@ endmacro()
 # needs to be removed for some external libs which we dont maintain.
 
 # utility macro
-macro(_remove_strict_flags
+macro(remove_flag
 	flag)
 
 	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
@@ -279,12 +289,12 @@ endmacro()
 macro(remove_strict_flags)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
-		_remove_strict_flags("-Wstrict-prototypes")
-		_remove_strict_flags("-Wunused-parameter")
-		_remove_strict_flags("-Wwrite-strings")
-		_remove_strict_flags("-Wshadow")
-		_remove_strict_flags("-Werror=[^ ]+")
-		_remove_strict_flags("-Werror")
+		remove_flag("-Wstrict-prototypes")
+		remove_flag("-Wunused-parameter")
+		remove_flag("-Wwrite-strings")
+		remove_flag("-Wshadow")
+		remove_flag("-Werror=[^ ]+")
+		remove_flag("-Werror")
 	endif()
 
 	if(MSVC)
@@ -293,32 +303,14 @@ macro(remove_strict_flags)
 
 endmacro()
 
-
-# XXX, until cmake 2.8.4 is released.
-INCLUDE(CheckCSourceCompiles)
-MACRO (CHECK_C_COMPILER_FLAG__INTERNAL _FLAG _RESULT)
-   SET(SAFE_CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS}")
-   SET(CMAKE_REQUIRED_DEFINITIONS "${_FLAG}")
-   CHECK_C_SOURCE_COMPILES("int main(void) { return 0;}" ${_RESULT}
-     # Some compilers do not fail with a bad flag
-     FAIL_REGEX "unrecognized .*option"                     # GNU
-     FAIL_REGEX "ignoring unknown option"                   # MSVC
-     FAIL_REGEX "[Uu]nknown option"                         # HP
-     FAIL_REGEX "[Ww]arning: [Oo]ption"                     # SunPro
-     FAIL_REGEX "command option .* is not recognized"       # XL
-     )
-   SET (CMAKE_REQUIRED_DEFINITIONS "${SAFE_CMAKE_REQUIRED_DEFINITIONS}")
-ENDMACRO (CHECK_C_COMPILER_FLAG__INTERNAL)
-# XXX, end duplicate code.
-
 macro(ADD_CHECK_C_COMPILER_FLAG
 	_CFLAGS
 	_CACHE_VAR
 	_FLAG)
 
-	# include(CheckCCompilerFlag)
+	include(CheckCCompilerFlag)
 
-	CHECK_C_COMPILER_FLAG__INTERNAL("${_FLAG}" "${_CACHE_VAR}")
+	CHECK_C_COMPILER_FLAG("${_FLAG}" "${_CACHE_VAR}")
 	if(${_CACHE_VAR})
 		# message(STATUS "Using CFLAG: ${_FLAG}")
 		set(${_CFLAGS} "${${_CFLAGS}} ${_FLAG}")
@@ -344,35 +336,61 @@ macro(ADD_CHECK_CXX_COMPILER_FLAG
 endmacro()
 
 macro(get_blender_version)
-	file(READ ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h CONTENT)
-	string(REGEX REPLACE "\n" ";" CONTENT "${CONTENT}")
-	string(REGEX REPLACE "\t" ";" CONTENT "${CONTENT}")
-	string(REGEX REPLACE " " ";" CONTENT "${CONTENT}")
+	# So cmake depends on BKE_blender.h, beware of inf-loops!
+	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender.h.done)
 
-	foreach(ITEM ${CONTENT})
-		if(LASTITEM MATCHES "BLENDER_VERSION")
-			MATH(EXPR BLENDER_VERSION_MAJOR "${ITEM} / 100")
-			MATH(EXPR BLENDER_VERSION_MINOR "${ITEM} % 100")
-			set(BLENDER_VERSION "${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}")
-		endif()
+	file(STRINGS ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h _contents REGEX "^#define[ \t]+BLENDER_.*$")
 
-		if(LASTITEM MATCHES "BLENDER_SUBVERSION")
-			set(BLENDER_SUBVERSION ${ITEM})
-		endif()
+	string(REGEX REPLACE ".*#define[ \t]+BLENDER_VERSION[ \t]+([0-9]+).*" "\\1" _out_version "${_contents}")
+	string(REGEX REPLACE ".*#define[ \t]+BLENDER_SUBVERSION[ \t]+([0-9]+).*" "\\1" _out_subversion "${_contents}")
+	string(REGEX REPLACE ".*#define[ \t]+BLENDER_VERSION_CHAR[ \t]+([a-z]+).*" "\\1" _out_version_char "${_contents}")
+	string(REGEX REPLACE ".*#define[ \t]+BLENDER_VERSION_CYCLE[ \t]+([a-z]+).*" "\\1" _out_version_cycle "${_contents}")
 
-		if(LASTITEM MATCHES "BLENDER_MINVERSION")
-			MATH(EXPR BLENDER_MINVERSION_MAJOR "${ITEM} / 100")
-			MATH(EXPR BLENDER_MINVERSION_MINOR "${ITEM} % 100")
-			set(BLENDER_MINVERSION "${BLENDER_MINVERSION_MAJOR}.${BLENDER_MINVERSION_MINOR}")
-		endif()
+	if(NOT ${_out_version} MATCHES "[0-9]+")
+		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION")
+	endif()
 
-		if(LASTITEM MATCHES "BLENDER_MINSUBVERSION")
-			set(BLENDER_MINSUBVERSION ${ITEM})
-		endif()
+	if(NOT ${_out_subversion} MATCHES "[0-9]+")
+		message(FATAL_ERROR "Version parsing failed for BLENDER_SUBVERSION")
+	endif()
 
-		set(LASTITEM ${ITEM})
-	endforeach()
+	# clumsy regex, only single char are ok but it could be unset
 
-	# message(STATUS "Version major: ${BLENDER_VERSION_MAJOR}, Version minor: ${BLENDER_VERSION_MINOR}, Subversion: ${BLENDER_SUBVERSION}, Version: ${BLENDER_VERSION}")
-	# message(STATUS "Minversion major: ${BLENDER_MINVERSION_MAJOR}, Minversion minor: ${BLENDER_MINVERSION_MINOR}, MinSubversion: ${BLENDER_MINSUBVERSION}, Minversion: ${BLENDER_MINVERSION}")
+	string(LENGTH "${_out_version_char}" _out_version_char_len)
+	if(NOT _out_version_char_len EQUAL 1)
+		set(_out_version_char "")
+	elseif(NOT ${_out_version_char} MATCHES "[a-z]+")
+		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_CHAR")
+	endif()
+
+	if(NOT ${_out_version_cycle} MATCHES "[a-z]+")
+		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_CYCLE")
+	endif()
+
+	math(EXPR BLENDER_VERSION_MAJOR "${_out_version} / 100")
+	math(EXPR BLENDER_VERSION_MINOR "${_out_version} % 100")
+	set(BLENDER_VERSION "${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}")
+
+	set(BLENDER_SUBVERSION ${_out_subversion})
+	set(BLENDER_VERSION_CHAR ${_out_version_char})
+	set(BLENDER_VERSION_CYCLE ${_out_version_cycle})
+
+	# for packaging, alpha to numbers
+	string(COMPARE EQUAL "${BLENDER_VERSION_CHAR}" "" _out_version_char_empty)
+	if(${_out_version_char_empty})
+		set(BLENDER_VERSION_CHAR_INDEX "0")
+	else()
+		set(_char_ls a b c d e f g h i j k l m n o p q r s t u v w q y z)
+		list(FIND _char_ls ${BLENDER_VERSION_CHAR} _out_version_char_index)
+		math(EXPR BLENDER_VERSION_CHAR_INDEX "${_out_version_char_index} + 1")
+		unset(_char_ls)
+		unset(_out_version_char_index)
+	endif()
+
+	unset(_out_subversion)
+	unset(_out_version_char)
+	unset(_out_version_char_empty)
+	unset(_out_version_cycle)
+
+	# message(STATUS "Version (Internal): ${BLENDER_VERSION}.${BLENDER_SUBVERSION}, Version (external): ${BLENDER_VERSION}${BLENDER_VERSION_CHAR}-${BLENDER_VERSION_CYCLE}")
 endmacro()

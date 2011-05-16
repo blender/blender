@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_ModifierKeys.h
+
+/** \file ghost/intern/GHOST_ModifierKeys.h
+ *  \ingroup GHOST
  * Declaration of GHOST_ModifierKeys struct.
  */
 

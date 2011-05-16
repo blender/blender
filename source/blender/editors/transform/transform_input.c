@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform_input.c
+ *  \ingroup edtransform
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -38,7 +43,7 @@
 
 /* ************************** INPUT FROM MOUSE *************************** */
 
-void InputVector(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
+static void InputVector(TransInfo *t, MouseInput *mi, const short mval[2], float output[3])
 {
 	float vec[3], dvec[3];
 	if(mi->precision)
@@ -56,7 +61,7 @@ void InputVector(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 
 }
 
-void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float output[3])
+static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
 {
 	float ratio, precise_ratio, dx, dy;
 	if(mi->precision)
@@ -82,19 +87,20 @@ void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float outp
 	output[0] = ratio;
 }
 
-void InputSpringFlip(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
+static void InputSpringFlip(TransInfo *t, MouseInput *mi, const short mval[2], float output[3])
 {
 	InputSpring(t, mi, mval, output);
 
 	/* flip scale */
-	if	((mi->center[0] - mval[0]) * (mi->center[0] - mi->imval[0]) +
-		 (mi->center[1] - mval[1]) * (mi->center[1] - mi->imval[1]) < 0)
+	/* values can become really big when zoomed in so use longs [#26598] */
+	if	((long long int)(mi->center[0] - mval[0]) * (long long int)(mi->center[0] - mi->imval[0]) +
+		 (long long int)(mi->center[1] - mval[1]) * (long long int)(mi->center[1] - mi->imval[1]) < 0)
 	 {
 		output[0] *= -1.0f;
 	 }
 }
 
-void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float output[3])
+static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
 {
 
 	if(mi->precision)
@@ -112,7 +118,7 @@ void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float o
 	output[1] *= mi->factor;
 }
 
-void InputHorizontalRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
+static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
 	float x, pad;
 
 	pad = t->ar->winx / 10;
@@ -129,7 +135,7 @@ void InputHorizontalRatio(TransInfo *t, MouseInput *mi, short mval[2], float out
 	output[0] = (x - pad) / (t->ar->winx - 2 * pad);
 }
 
-void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
+static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
@@ -138,7 +144,7 @@ void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float 
 	output[0] = dot_v3v3(t->viewinv[0], vec) * 2.0f;
 }
 
-void InputVerticalRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
+static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
 	float y, pad;
 
 	pad = t->ar->winy / 10;
@@ -154,7 +160,7 @@ void InputVerticalRatio(TransInfo *t, MouseInput *mi, short mval[2], float outpu
 	output[0] = (y - pad) / (t->ar->winy - 2 * pad);
 }
 
-void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float output[3]) {
+static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
@@ -179,7 +185,7 @@ void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, short start[2], short
 	data[3] = end[1];
 }
 
-void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float output[3])
+static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
 {
 	float length;
 	float distance;
@@ -212,7 +218,7 @@ void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float
 	}
 }
 
-void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float output[3])
+static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
 {
 	double dx2 = mval[0] - mi->center[0];
 	double dy2 = mval[1] - mi->center[1];
@@ -229,8 +235,8 @@ void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float outpu
 
 	/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
 	double deler = ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
-		/ (2.0 * (A*B?A*B:1.0));
-	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
+		/ (2.0 * ((A*B)?(A*B):1.0));
+	/* ((A*B)?(A*B):1.0) this takes care of potential divide by zero errors */
 
 	float dphi;
 
@@ -268,7 +274,7 @@ void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, short mval[2], float outpu
 		mi->imval[1] = mval[1];
 	}
 
-	*angle += dphi;
+	*angle += (double)dphi;
 
 	output[0] = *angle;
 }

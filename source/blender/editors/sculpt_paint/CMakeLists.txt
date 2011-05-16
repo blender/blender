@@ -22,6 +22,7 @@
 set(INC
 	../include
 	../../blenkernel
+	../../blenloader
 	../../imbuf
 	../../gpu
 	../../blenlib
@@ -30,6 +31,7 @@ set(INC
 	../../windowmanager
 	../../render/extern/include
 	../../../../intern/guardedalloc
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

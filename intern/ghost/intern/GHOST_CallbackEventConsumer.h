@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_CallbackEventConsumer.h
+
+/** \file ghost/intern/GHOST_CallbackEventConsumer.h
+ *  \ingroup GHOST
  * Declaration of GHOST_CallbackEventConsumer class.
  */
 

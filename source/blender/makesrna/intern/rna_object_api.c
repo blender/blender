@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_object_api.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -34,6 +39,7 @@
 #include "RNA_define.h"
 
 #include "DNA_object_types.h"
+#include "DNA_modifier_types.h"
 
 // #include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
 
@@ -72,19 +78,19 @@
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
-static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
+static Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL;
 	Object *tmpobj = NULL;
-	int render = settings, i;
+	int render = settings == eModifierMode_Render, i;
 	int cage = !apply_modifiers;
 
 	/* perform the mesh extraction based on type */
-	 switch (ob->type) {
-	 case OB_FONT:
-	 case OB_CURVE:
-	 case OB_SURF:
+	switch (ob->type) {
+	case OB_FONT:
+	case OB_CURVE:
+	case OB_SURF:
 
 		/* copies object and modifiers (but not the data) */
 		tmpobj= copy_object(ob);
@@ -124,7 +130,7 @@ static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce,
 		free_libblock_us( &G.main->object, tmpobj );
 		break;
 
-	 case OB_MBALL:
+	case OB_MBALL:
 		/* metaballs don't have modifiers, so just convert to mesh */
 		ob = find_basis_mball( sce, ob );
 		/* todo, re-generatre for render-res */
@@ -132,9 +138,9 @@ static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce,
 
 		tmpmesh = add_mesh("Mesh");
 		mball_to_mesh( &ob->disp, tmpmesh );
-		 break;
+		break;
 
-	 case OB_MESH:
+	case OB_MESH:
 		/* copies object and modifiers (but not the data) */
 		if (cage) {
 			/* copies the data */
@@ -159,10 +165,10 @@ static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce,
 		}
 		
 		break;
-	 default:
+	default:
 		BKE_report(reports, RPT_ERROR, "Object does not have geometry data");
-		 return NULL;
-	  }
+		return NULL;
+	}
 
 	/* Copy materials to new mesh */
 	switch (ob->type) {
@@ -235,6 +241,50 @@ static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce,
 	return tmpmesh;
 }
 
+/* mostly a copy from convertblender.c */
+static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int enable)
+{
+	/* ugly function, but we need to set particle systems to their render
+	 * settings before calling object_duplilist, to get render level duplis */
+	Group *group;
+	GroupObject *go;
+	ParticleSystem *psys;
+	DerivedMesh *dm;
+	float mat[4][4];
+
+	unit_m4(mat);
+
+	if(level >= MAX_DUPLI_RECUR)
+		return;
+	
+	if(ob->transflag & OB_DUPLIPARTS) {
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			if(ELEM(psys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
+				if(enable)
+					psys_render_set(ob, psys, mat, mat, 1, 1, 0.f);
+				else
+					psys_render_restore(ob, psys);
+			}
+		}
+
+		if(level == 0 && enable) {
+			/* this is to make sure we get render level duplis in groups:
+			* the derivedmesh must be created before init_render_mesh,
+			* since object_duplilist does dupliparticles before that */
+			dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm->release(dm);
+
+			for(psys=ob->particlesystem.first; psys; psys=psys->next)
+				psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
+		}
+	}
+
+	if(ob->dup_group==NULL) return;
+	group= ob->dup_group;
+
+	for(go= group->gobject.first; go; go= go->next)
+		dupli_render_particle_set(scene, go->ob, level+1, enable);
+}
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
 static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
 {
@@ -250,13 +300,15 @@ static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *
 		free_object_duplilist(ob->duplilist);
 		ob->duplilist= NULL;
 	}
-
+	if(G.rendering)
+		dupli_render_particle_set(sce, ob, 0, 1);
 	ob->duplilist= object_duplilist(sce, ob);
-
+	if(G.rendering)
+		dupli_render_particle_set(sce, ob, 0, 0);
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
 
-static void rna_Object_free_duplilist(Object *ob, ReportList *reports)
+static void rna_Object_free_duplilist(Object *ob)
 {
 	if (ob->duplilist) {
 		free_object_duplilist(ob->duplilist);
@@ -285,7 +337,7 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 
 int rna_Object_is_visible(Object *ob, Scene *sce)
 {
-	return !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->lay & sce->lay;
+	return !(ob->restrictflag & OB_RESTRICT_VIEW) && (ob->lay & sce->lay);
 }
 
 /*
@@ -326,7 +378,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 
 void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3], float r_location[3], float r_normal[3], int *index)
 {
-	BVHTreeFromMesh treeData= {0};
+	BVHTreeFromMesh treeData= {NULL};
 	
 	if(ob->derivedFinal==NULL) {
 		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for ray casting.", ob->id.name+2);
@@ -370,6 +422,11 @@ void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
 	base->lay= base->object->lay= v3d->lay;
 }
 
+int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
+{
+	return object_is_modified(scene, ob) & settings;
+}
+
 #else
 
 void RNA_api_object(StructRNA *srna)
@@ -378,13 +435,13 @@ void RNA_api_object(StructRNA *srna)
 	PropertyRNA *parm;
 
 	static EnumPropertyItem mesh_type_items[] = {
-		{0, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
-		{1, "RENDER", 0, "Render", "Apply modifier render settings"},
+		{eModifierMode_Realtime, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
+		{eModifierMode_Render, "RENDER", 0, "Render", "Apply modifier render settings"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* mesh */
-	func= RNA_def_function(srna, "create_mesh", "rna_Object_create_mesh");
+	func= RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with modifiers applied.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers.");
@@ -397,15 +454,14 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	/* duplis */
-	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
-	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list.");
+	func= RNA_def_function(srna, "dupli_list_create", "rna_Object_create_duplilist");
+	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list to restore the objects real matrix and layers.");
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
-	func= RNA_def_function(srna, "free_dupli_list", "rna_Object_free_duplilist");
+	func= RNA_def_function(srna, "dupli_list_clear", "rna_Object_free_duplilist");
 	RNA_def_function_ui_description(func, "Free the list of dupli objects.");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	/* Armature */
 	func= RNA_def_function(srna, "find_armature", "modifiers_isDeformedByArmature");
@@ -450,7 +506,17 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Determine if object is visible in a given scene.");
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
-	parm= RNA_def_boolean(func, "is_visible", 0, "", "Object visibility.");
+	parm= RNA_def_boolean(func, "result", 0, "", "Object visibility.");
+	RNA_def_function_return(func, parm);
+
+	/* utility function for checking if the object is modified */
+	func= RNA_def_function(srna, "is_modified", "rna_Object_is_modified");
+	RNA_def_function_ui_description(func, "Determine if this object is modified from the base mesh data.");
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	parm= RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_boolean(func, "result", 0, "", "Object visibility.");
 	RNA_def_function_return(func, parm);
 }
 

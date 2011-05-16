@@ -1,3 +1,6 @@
+/** \file blender/render/intern/raytrace/rayobject_internal.h
+ *  \ingroup render
+ */
 
 #ifndef RE_RAYOBJECT_INTERNAL_H
 #define RE_RAYOBJECT_INTERNAL_H

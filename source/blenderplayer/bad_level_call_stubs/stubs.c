@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * BKE_bad_level_calls function stubs
  */
+
+/** \file blenderplayer/bad_level_call_stubs/stubs.c
+ *  \ingroup blc
+ */
+
 
 #ifdef WITH_GAMEENGINE
 #include <stdlib.h>
@@ -87,9 +92,16 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
+struct wmWindow;
 struct wmWindowManager;
 struct View3D;
 struct ToolSettings;
+struct bContextDataResult;
+struct bConstraintTarget;
+struct bPythonConstraint;
+struct bConstraintOb;
+struct Context;
+struct ChannelDriver;
 
 
 /*new render funcs */
@@ -155,7 +167,9 @@ int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEv
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
 void WM_main_add_notifier(unsigned int type, void *reference){}
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep){}
-struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;};
+struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;}
+struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep){return (struct wmTimer *)NULL;}
+void WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer){}
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone){}
 void object_test_constraints (struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
@@ -178,7 +192,9 @@ int ED_space_image_show_paint(struct SpaceImage *sima){return 0;}
 void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings){}
 void ED_space_image_set(struct bContext *C, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima){}
 struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima){return (struct ImBuf *) NULL;}
-void	ED_screen_set_scene(struct bContext *C, struct Scene *scene){}
+void ED_screen_set_scene(struct bContext *C, struct Scene *scene){}
+
+void ED_area_tag_redraw_regiontype(struct ScrArea *sa, int regiontype){}
 
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob){return (struct PTCacheEdit *) NULL;}
 void PE_current_changed(struct Scene *scene, struct Object *ob){}
@@ -227,6 +243,7 @@ void ED_node_generic_update(struct Main *bmain, struct bNodeTree *ntree, struct 
 void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene){}
 int ED_view3d_scene_layer_set(int lay, const int *values){return 0;}
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar){}
+void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist){}
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
 void ED_screen_animation_timer_update(struct bContext *C, int redraws){}
@@ -334,6 +351,7 @@ ListBase uiTemplateList(struct uiLayout *layout, struct bContext *C, struct Poin
 void uiTemplateRunningJobs(struct uiLayout *layout, struct bContext *C){}
 void uiTemplateOperatorSearch(struct uiLayout *layout){}
 void uiTemplateHeader3D(struct uiLayout *layout, struct bContext *C){}
+void uiTemplateEditModeSelection(struct uiLayout *layout, struct bContext *C){}
 void uiTemplateTextureImage(struct uiLayout *layout, struct bContext *C, struct Tex *tex){}
 void uiTemplateImage(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact){}
 void uiTemplateDopeSheetFilter(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr){}
@@ -383,47 +401,9 @@ char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return (struct wmKeyMapItem *)NULL;}
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return (struct wmKeyMap *) NULL;}
 
-/* intern/decimation */
-#if 1
-int LOD_FreeDecimationData(struct LOD_Decimation_Info *info){return 0;}
-int LOD_CollapseEdge(struct LOD_Decimation_Info *info){return 0;}
-int LOD_PreprocessMesh(struct LOD_Decimation_Info *info){return 0;}
-int LOD_LoadMesh(struct LOD_Decimation_Info *info){return 0;}
-#endif
+/* RNA COLLADA dependency */
+int collada_export(struct Scene *sce, const char *filepath){ return 0; }
 
-/* smoke */
-void LzmaCompress(void) { return; }
-void LzmaUncompress(void) {return;}
-/* smoke is included anyway
-void smoke_export(void) {return;}
-void smoke_init(void) {return;}
-void smoke_turbulence_init(void) {return;}
-void smoke_turbulence_initBlenderRNA(void) {return;}
-void smoke_initBlenderRNA(void) {return;}
-void smoke_free(void) {return;}
-void smoke_turbulence_free(void) {return;}
-void smoke_turbulence_step(void) {return;}
-void smoke_dissolve(void) {return;}
-void smoke_get_density(void) {return;}
-void smoke_get_heat(void) {return;}
-void smoke_get_velocity_x(void) {return;}
-void smoke_get_velocity_y(void) {return;}
-void smoke_get_velocity_z(void) {return;}
-void smoke_get_obstacle(void) {return;}
-void smoke_get_index(void) {return;}
-void smoke_step(void) {return;}
-*/
-
-/* sculpt */
-/*
- void ED_sculpt_force_update(struct bContext *C) {}
-struct SculptUndoNode *sculpt_undo_push_node(struct SculptSession *ss, struct PBVHNode *node) {return (struct SculptUndoNode *)NULL;}
-void sculpt_undo_push_end(void) {}
-void sculpt_undo_push_begin(char *name) {}
-struct SculptUndoNode *sculpt_undo_get_node(struct PBVHNode *node) {return (struct SculptUndoNode *) NULL;}
-struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob) {return (struct MultiresModifierData *) NULL;}
-int sculpt_modifiers_active(struct Scene *scene, struct Object *ob) {return 0;}
-*/
 int sculpt_get_brush_size(struct Brush *brush) {return 0;}
 void sculpt_set_brush_size(struct Brush *brush, int size) {}
 int sculpt_get_lock_brush_size(struct Brush *brush){ return 0;}
@@ -433,29 +413,19 @@ float sculpt_get_brush_alpha(struct Brush *brush){return 0.0f;}
 void sculpt_set_brush_alpha(struct Brush *brush, float alpha){}
 void ED_sculpt_modifiers_changed(struct Object *ob){};
 
+
+/* bpy/python internal api */
+void operator_wrapper(struct wmOperatorType *ot, void *userdata) {}
+void BPY_text_free_code(struct Text *text) {}
+void BPY_id_release(struct Text *text) {}
+int BPY_context_member_get(struct Context *C, const char *member, struct bContextDataResult *result) { return 0; }
+void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) {}
+float BPY_driver_exec(struct ChannelDriver *driver) {return 0.0f;} /* might need this one! */
+void BPY_DECREF(void *pyob_ptr) {}
+void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
+void macro_wrapper(struct wmOperatorType *ot, void *userdata) {} ;
+
+
 char blender_path[] = "";
 
-/* CSG */
-#if 1
-struct CSG_BooleanOperation * CSG_NewBooleanFunction( void ){return (struct CSG_BooleanOperation *) NULL;}
-void CSG_FreeBooleanOperation(struct CSG_BooleanOperation *operation){return;}
-void CSG_FreeFaceDescriptor(struct CSG_FaceIteratorDescriptor * f_descriptor){return;}
-void CSG_FreeVertexDescriptor(struct CSG_VertexIteratorDescriptor * v_descriptor){return;}	
-int CSG_OutputFaceDescriptor(struct CSG_BooleanOperation * operation, struct CSG_FaceIteratorDescriptor * output){return 0;}
-int CSG_OutputVertexDescriptor(struct CSG_BooleanOperation * operation, struct CSG_VertexIteratorDescriptor *output){return 0;}
-
-typedef struct CSG_VertexIteratorDescriptor {int a;} CSG_VertexIteratorDescriptor; //workaround to build CSG_PerformanceBoolean Operation
-typedef struct CSG_FaceIteratorDescriptor {int a;} CSG_FaceIteratorDescriptor; //workaround to build CSG_PerformanceBoolean Operation
-typedef struct CSG_OperationType {int a;} CSG_OperationType; //workaround to build CSG_PerformanceBoolean Operation
-
-int CSG_PerformBooleanOperation(
-	struct CSG_BooleanOperation			*operation,
-	CSG_OperationType				op_type,
-	CSG_FaceIteratorDescriptor		obAFaces,
-	CSG_VertexIteratorDescriptor	obAVertices,
-	CSG_FaceIteratorDescriptor		obBFaces,
-	CSG_VertexIteratorDescriptor	obBVertices)
-	{ return 0;}
-
-#endif
 #endif // WITH_GAMEENGINE

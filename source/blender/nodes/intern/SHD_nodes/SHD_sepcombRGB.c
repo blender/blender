@@ -1,4 +1,4 @@
-/**
+/*
  *
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/SHD_nodes/SHD_sepcombRGB.c
+ *  \ingroup shdnodes
+ */
+
 
 #include "../SHD_util.h"
 

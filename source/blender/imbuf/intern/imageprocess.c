@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,6 +29,11 @@
  * other functions were only used during rendering. This single
  * function remained. It should probably move to imbuf/intern/util.c,
  * but we'll keep it here for the time being. (nzc)*/
+
+/** \file blender/imbuf/intern/imageprocess.c
+ *  \ingroup imbuf
+ */
+
 
 /*  imageprocess.c        MIXED MODEL
  * 
@@ -269,8 +274,8 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 		if (x2>in->x-1 || y2>in->y-1) row4= empty;
 		else row4= (float *)in->rect_float + in->x * y2 * 4 + 4*x2;
 		
-		a= u-floor(u);
-		b= v-floor(v);
+		a= u-floorf(u);
+		b= v-floorf(v);
 		a_b= a*b; ma_b= (1.0f-a)*b; a_mb= a*(1.0f-b); ma_mb= (1.0f-a)*(1.0f-b);
 		
 		outF[0]= ma_mb*row1[0] + a_mb*row3[0] + ma_b*row2[0]+ a_b*row4[0];
@@ -292,8 +297,8 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 		if (x2>in->x-1 || y2>in->y-1) row4I= emptyI;
 		else row4I= (unsigned char *)in->rect + in->x * y2 * 4 + 4*x2;
 		
-		a= u-floor(u);
-		b= v-floor(v);
+		a= u-floorf(u);
+		b= v-floorf(v);
 		a_b= a*b; ma_b= (1.0f-a)*b; a_mb= a*(1.0f-b); ma_mb= (1.0f-a)*(1.0f-b);
 		
 		/* need to add 0.5 to avoid rounding down (causes darken with the smear brush)
@@ -343,8 +348,8 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 		row3= (float *)in->rect_float + in->x * y1 * 4 + 4*x2;
 		row4= (float *)in->rect_float + in->x * y2 * 4 + 4*x2;
 		
-		a= u-floor(u);
-		b= v-floor(v);
+		a= u-floorf(u);
+		b= v-floorf(v);
 		a_b= a*b; ma_b= (1.0f-a)*b; a_mb= a*(1.0f-b); ma_mb= (1.0f-a)*(1.0f-b);
 		
 		outF[0]= ma_mb*row1[0] + a_mb*row3[0] + ma_b*row2[0]+ a_b*row4[0];
@@ -359,8 +364,8 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 		row3I= (unsigned char *)in->rect + in->x * y1 * 4 + 4*x2;
 		row4I= (unsigned char *)in->rect + in->x * y2 * 4 + 4*x2;
 		
-		a= u-floor(u);
-		b= v-floor(v);
+		a= u-floorf(u);
+		b= v-floorf(v);
 		a_b= a*b; ma_b= (1.0f-a)*b; a_mb= a*(1.0f-b); ma_mb= (1.0f-a)*(1.0f-b);
 		
 		/* need to add 0.5 to avoid rounding down (causes darken with the smear brush)

@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_BlenderMaterial.cpp
+ *  \ingroup ketsji
+ */
 
 // ------------------------------------
 // ...

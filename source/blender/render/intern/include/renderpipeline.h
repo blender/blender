@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/include/renderpipeline.h
+ *  \ingroup render
+ */
+
 
 #ifndef PIPELINE_H
 #define PIPELINE_H

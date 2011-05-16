@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Converter/KX_IpoConvert.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 // don't show stl-warnings

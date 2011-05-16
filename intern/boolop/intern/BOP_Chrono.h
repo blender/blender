@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file boolop/intern/BOP_Chrono.h
+ *  \ingroup boolopintern
+ */
+
 
 #ifndef BOP_CHRONO_H
 #define BOP_CHRONO_H

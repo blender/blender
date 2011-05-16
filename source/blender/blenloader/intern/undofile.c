@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * .blend file reading entry point
  */
+
+/** \file blender/blenloader/intern/undofile.c
+ *  \ingroup blenloader
+ */
+
 
 #include <stdlib.h>
 #include <string.h>

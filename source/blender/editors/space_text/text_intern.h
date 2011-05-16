@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_text/text_intern.h
+ *  \ingroup sptext
+ */
+
 #ifndef ED_TEXT_INTERN_H
 #define ED_TEXT_INTERN_H
 
@@ -133,6 +138,7 @@ void TEXT_OT_previous_marker(struct wmOperatorType *ot);
 
 void TEXT_OT_select_line(struct wmOperatorType *ot);
 void TEXT_OT_select_all(struct wmOperatorType *ot);
+void TEXT_OT_select_word(struct wmOperatorType *ot);
 
 void TEXT_OT_jump(struct wmOperatorType *ot);
 void TEXT_OT_move(struct wmOperatorType *ot);
@@ -142,6 +148,7 @@ void TEXT_OT_overwrite_toggle(struct wmOperatorType *ot);
 
 void TEXT_OT_scroll(struct wmOperatorType *ot);
 void TEXT_OT_scroll_bar(struct wmOperatorType *ot);
+void TEXT_OT_selection_set(struct wmOperatorType *ot);
 void TEXT_OT_cursor_set(struct wmOperatorType *ot);
 void TEXT_OT_line_number(struct wmOperatorType *ot);
 
@@ -156,6 +163,9 @@ void TEXT_OT_mark_all(struct wmOperatorType *ot);
 void TEXT_OT_to_3d_object(struct wmOperatorType *ot);
 
 void TEXT_OT_resolve_conflict(struct wmOperatorType *ot);
+
+/* space_text.c */
+extern const char *text_context_dir[]; /* doc access */
 
 #endif /* ED_TEXT_INTERN_H */
 

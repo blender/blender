@@ -1,5 +1,5 @@
-/**
- * $Id: rayobject_instance.cpp 34664 2011-02-06 00:49:58Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/raytrace/rayobject_instance.cpp
+ *  \ingroup render
+ */
+
 
 #include <assert.h>
 

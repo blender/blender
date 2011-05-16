@@ -28,7 +28,9 @@
 #ifndef BKE_PAINT_H
 #define BKE_PAINT_H
 
-#include "DNA_vec_types.h"
+/** \file BKE_paint.h
+ *  \ingroup bke
+ */
 
 struct Brush;
 struct MFace;
@@ -61,15 +63,12 @@ int paint_facesel_test(struct Object *ob);
 /* Session data (mode-specific) */
 
 typedef struct SculptSession {
-	struct ProjVert *projverts;
-
 	/* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
 	struct MultiresModifierData *multires; /* Special handling for multires meshes */
 	struct MVert *mvert;
 	struct MFace *mface;
 	int totvert, totface;
 	float *face_normals;
-	struct Object *ob;
 	struct KeyBlock *kb;
 	
 	/* Mesh connectivity */
@@ -95,10 +94,6 @@ typedef struct SculptSession {
 
 	struct SculptStroke *stroke;
 	struct StrokeCache *cache;
-
-	struct GPUDrawObject *drawobject;
-
-	rcti previous_r;
 } SculptSession;
 
 void free_sculptsession(struct Object *ob);

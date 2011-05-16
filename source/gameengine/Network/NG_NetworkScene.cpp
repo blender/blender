@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * NetworkSceneManagement generic implementation
  */
+
+/** \file gameengine/Network/NG_NetworkScene.cpp
+ *  \ingroup bgenet
+ */
+
 #include <stdio.h>
 #include <MT_assert.h>
 #include <algorithm>

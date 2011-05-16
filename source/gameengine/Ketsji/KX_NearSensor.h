@@ -1,6 +1,4 @@
-/**
- * Sense if other objects are near
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_NearSensor.h
+ *  \ingroup ketsji
+ *  \brief Sense if other objects are near
  */
 
 #ifndef KX_NEARSENSOR_H

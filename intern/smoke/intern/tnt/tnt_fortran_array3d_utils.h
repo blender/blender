@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/tnt_fortran_array3d_utils.h
+ *  \ingroup smoke
+ */
 /*
 *
 * Template Numerical Toolkit (TNT)

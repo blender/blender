@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/object/object_vgroup.c
+ *  \ingroup edobj
+ */
+
 
 #include <string.h>
 #include <stddef.h>
@@ -75,12 +80,9 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg);
 
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
-	if(ob->type==OB_LATTICE) {
-		Lattice *lt= ob->data;
-		return (lt->editlatt)? lt->editlatt->latt: lt;
-	}
-
-	return NULL;
+	Lattice *lt= ob->data;
+	BLI_assert(ob->type==OB_LATTICE);
+	return (lt->editlatt)? lt->editlatt->latt: lt;
 }
 
 int ED_vgroup_object_is_edit_mode(Object *ob)
@@ -150,7 +152,7 @@ void ED_vgroup_data_create(ID *id)
 	}
 }
 
-int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
+static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 {
 	if(id) {
 		switch(GS(id->name)) {
@@ -203,14 +205,19 @@ int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 				Lattice *lt= (Lattice *)id;
 				lt= (lt->editlatt)? lt->editlatt->latt: lt;
 
-				*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
-				*dvert_arr= MEM_mallocN(sizeof(void*)*(*dvert_tot), "vgroup parray from me");
+				if(lt->dvert) {
+					*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
+					*dvert_arr= MEM_mallocN(sizeof(void*)*(*dvert_tot), "vgroup parray from me");
 
-				for (i=0; i<*dvert_tot; i++) {
-					(*dvert_arr)[i] = lt->dvert + i;
+					for (i=0; i<*dvert_tot; i++) {
+						(*dvert_arr)[i] = lt->dvert + i;
+					}
+
+					return 1;
 				}
-
-				return 1;
+				else {
+					return 0;
+				}
 			}
 		}
 	}
@@ -304,7 +311,7 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 
 /* for mesh in object mode
    lattice can be in editmode */
-void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
+static void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
 {
 	/* This routine removes the vertex from the deform
 	 * group with number def_nr.
@@ -341,7 +348,7 @@ void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
 		 */
 		if(dvert->dw[i].def_nr == def_nr) {
 			dvert->totweight--;
-        
+
 			/* if there are still other deform weights
 			 * attached to this vert then remove this
 			 * deform weight, and reshuffle the others
@@ -372,7 +379,7 @@ void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
 
 /* for Mesh in Object mode */
 /* allows editmode for Lattice */
-void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float weight, int assignmode)
+static void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float weight, int assignmode)
 {
 	/* add the vert to the deform group with the
 	 * specified number
@@ -411,15 +418,15 @@ void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float weight, in
 				break;
 			case WEIGHT_ADD:
 				dv->dw[i].weight+=weight;
-				if(dv->dw[i].weight >= 1.0)
-					dv->dw[i].weight = 1.0;
+				if(dv->dw[i].weight >= 1.0f)
+					dv->dw[i].weight = 1.0f;
 				break;
 			case WEIGHT_SUBTRACT:
 				dv->dw[i].weight-=weight;
 				/* if the weight is zero or less then
 				 * remove the vert from the deform group
 				 */
-				if(dv->dw[i].weight <= 0.0)
+				if(dv->dw[i].weight <= 0.0f)
 					ED_vgroup_nr_vert_remove(ob, def_nr, vertnum);
 				break;
 			}
@@ -450,10 +457,10 @@ void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float weight, in
 			MEM_freeN(dv->dw);
 		}
 		dv->dw=newdw;
-    
+
 		dv->dw[dv->totweight].weight=weight;
 		dv->dw[dv->totweight].def_nr=def_nr;
-    
+
 		dv->totweight++;
 		break;
 	}
@@ -512,18 +519,28 @@ static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 
 		if(me->edit_mesh) {
 			eve= BLI_findlink(&me->edit_mesh->verts, vertnum);
-			if(!eve) return 0.0f;
+			if(!eve) {
+				return 0.0f;
+			}
 			dvert= CustomData_em_get(&me->edit_mesh->vdata, eve->data, CD_MDEFORMVERT);
 			vertnum= 0;
 		}
-		else
+		else {
+			if(vertnum >= me->totvert) {
+				return 0.0f;
+			}
 			dvert = me->dvert;
+		}
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
-		
-		if(lt->dvert)
+
+		if(lt->dvert) {
+			if(vertnum >= lt->pntsu*lt->pntsv*lt->pntsw) {
+				return 0.0f;
+			}
 			dvert = lt->dvert;
+		}
 	}
 	
 	if(dvert==NULL)
@@ -2045,6 +2062,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "Editmode lattice isnt supported yet.");
+			MEM_freeN(sort_map_update);
 			return OPERATOR_CANCELLED;
 		}
 	}

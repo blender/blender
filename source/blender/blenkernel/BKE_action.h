@@ -1,9 +1,4 @@
-/*  BKE_action.h   May 2001
- *  
- *  Blender kernel action and pose functionality
- *
- *	Reevan McKay
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,6 +28,14 @@
 
 #ifndef BKE_ACTION_H
 #define BKE_ACTION_H
+/** \file BKE_action.h
+ *  \ingroup bke
+ *  \brief Blender kernel action and pose functionality.
+ *  \author Reevan McKay
+ *  \author Ton Roosendaal (full recode 2005)
+ *  \author Joshua Leung (full recode 2009)
+ *  \since may 2001
+ */
 
 #include "DNA_listBase.h"
 
@@ -79,9 +82,15 @@ typedef enum eAction_TransformFlags {
 	ACT_TRANS_ROT	= (1<<1),
 		/* scaling */
 	ACT_TRANS_SCALE	= (1<<2),
+	
+		/* strictly not a transform, but custom properties are also
+		 * quite often used in modern rigs
+		 */
+	ACT_TRANS_PROP 	= (1<<3),
 		
 		/* all flags */
-	ACT_TRANS_ALL	= (ACT_TRANS_LOC|ACT_TRANS_ROT|ACT_TRANS_SCALE),
+	ACT_TRANS_ONLY 	= (ACT_TRANS_LOC|ACT_TRANS_ROT|ACT_TRANS_SCALE),
+	ACT_TRANS_ALL	= (ACT_TRANS_ONLY|ACT_TRANS_PROP)
 } eAction_TransformFlags;
 
 /* Return flags indicating which transforms the given object/posechannel has 

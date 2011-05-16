@@ -13,6 +13,9 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+/** \file PHY_DynamicTypes.h
+ *  \ingroup phys
+ */
 
 #ifndef __PHY_DYNAMIC_TYPES
 #define __PHY_DYNAMIC_TYPES

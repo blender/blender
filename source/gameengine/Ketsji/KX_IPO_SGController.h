@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_IPO_SGController.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __IPO_SGCONTROLLER_H
 #define __IPO_SGCONTROLLER_H
 

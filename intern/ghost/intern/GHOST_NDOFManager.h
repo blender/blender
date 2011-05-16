@@ -19,6 +19,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_NDOFManager.h
+ *  \ingroup GHOST
+ */
+
  
 #ifndef _GHOST_NDOFMANAGER_H_
 #define _GHOST_NDOFMANAGER_H_

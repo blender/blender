@@ -31,6 +31,10 @@
 #ifndef BLO_UNDOFILE_H
 #define BLO_UNDOFILE_H
 
+/** \file BLO_undofile.h
+ *  \ingroup blenloader
+ */
+
 typedef struct {
 	void *next, *prev;
 	

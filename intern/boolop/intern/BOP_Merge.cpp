@@ -1,4 +1,4 @@
-/**
+/*
  *
  * $Id$
  *
@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file boolop/intern/BOP_Merge.cpp
+ *  \ingroup boolopintern
+ */
+
  
 #include "BOP_Merge.h"
 

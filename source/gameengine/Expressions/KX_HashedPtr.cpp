@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Expressions/KX_HashedPtr.cpp
+ *  \ingroup expressions
+ */
+
 
 #include "KX_HashedPtr.h"
 

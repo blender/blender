@@ -2,7 +2,7 @@
 #define GIM_BOX_SET_H_INCLUDED
 
 /*! \file gim_box_set.h
-\author Francisco Len Nßjera
+\author Francisco Leon Najera
 */
 /*
 This source file is part of GIMPACT Library.
@@ -231,6 +231,8 @@ class btPrimitiveManagerBase
 {
 public:
 
+	virtual ~btPrimitiveManagerBase() {}
+
 	//! determines if this manager consist on only triangles, which special case will be optimized
 	virtual bool is_trimesh() const = 0;
 	virtual int get_primitive_count() const = 0;
@@ -381,9 +383,9 @@ public:
 		return m_box_tree.get_node_pointer(index);
 	}
 
-
+#ifdef TRI_COLLISION_PROFILING
 	static float getAverageTreeCollisionTime();
-
+#endif //TRI_COLLISION_PROFILING
 
 	static void find_collision(btGImpactBvh * boxset1, const btTransform & trans1,
 		btGImpactBvh * boxset2, const btTransform & trans2,

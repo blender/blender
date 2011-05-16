@@ -1,6 +1,4 @@
-/**
- * Property sensor
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_PropertySensor.h
+ *  \ingroup gamelogic
+ *  \brief Property sensor
  */
 
 #ifndef __KX_PROPERTYSENSOR

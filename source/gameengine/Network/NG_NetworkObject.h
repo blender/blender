@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * NetworkGame_NetworkObject generic Network Object class
+ */
+
+/** \file NG_NetworkObject.h
+ *  \ingroup bgenet
+ *  \brief generic Network Object class
  */
 #ifndef NG_NETWORKOBJECT_H
 #define NG_NETWORKOBJECT_H

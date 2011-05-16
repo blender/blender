@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,11 +25,16 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * june-2001 ton
  */
 
 #ifndef BKE_LATTICE_H
 #define BKE_LATTICE_H
+
+/** \file BKE_lattice.h
+ *  \ingroup bke
+ *  \author Ton Roosendaal
+ *  \since June 2001
+ */
 
 struct Lattice;
 struct Object;

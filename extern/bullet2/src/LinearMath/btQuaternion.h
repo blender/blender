@@ -209,8 +209,17 @@ public:
 		return s;
 	}
 
+	/**@brief Return the axis of the rotation represented by this quaternion */
+	btVector3 getAxis() const
+	{
+		btScalar s_squared = btScalar(1.) - btPow(m_floats[3], btScalar(2.));
+		if (s_squared < btScalar(10.) * SIMD_EPSILON) //Check for divide by zero
+			return btVector3(1.0, 0.0, 0.0);  // Arbitrary
+		btScalar s = btSqrt(s_squared);
+		return btVector3(m_floats[0] / s, m_floats[1] / s, m_floats[2] / s);
+	}
 
-  /**@brief Return the inverse of this quaternion */
+	/**@brief Return the inverse of this quaternion */
 	btQuaternion inverse() const
 	{
 		return btQuaternion(-m_floats[0], -m_floats[1], -m_floats[2], m_floats[3]);
@@ -252,6 +261,18 @@ public:
 		return (-qd);
 	}
 
+	/**@todo document this and it's use */
+	SIMD_FORCE_INLINE btQuaternion nearest( const btQuaternion& qd) const 
+	{
+		btQuaternion diff,sum;
+		diff = *this - qd;
+		sum = *this + qd;
+		if( diff.dot(diff) < sum.dot(sum) )
+			return qd;
+		return (-qd);
+	}
+
+
   /**@brief Return the quaternion which is the result of Spherical Linear Interpolation between this and the other quaternion
    * @param q The other quaternion to interpolate with 
    * @param t The ratio between this and q to interpolate.  If t = 0 the result is this, if t=1 the result is q.
@@ -264,10 +285,17 @@ public:
 			btScalar d = btScalar(1.0) / btSin(theta);
 			btScalar s0 = btSin((btScalar(1.0) - t) * theta);
 			btScalar s1 = btSin(t * theta);   
-			return btQuaternion((m_floats[0] * s0 + q.x() * s1) * d,
-				(m_floats[1] * s0 + q.y() * s1) * d,
-				(m_floats[2] * s0 + q.z() * s1) * d,
-				(m_floats[3] * s0 + q.m_floats[3] * s1) * d);
+                        if (dot(q) < 0) // Take care of long angle case see http://en.wikipedia.org/wiki/Slerp
+                          return btQuaternion((m_floats[0] * s0 + -q.x() * s1) * d,
+                                              (m_floats[1] * s0 + -q.y() * s1) * d,
+                                              (m_floats[2] * s0 + -q.z() * s1) * d,
+                                              (m_floats[3] * s0 + -q.m_floats[3] * s1) * d);
+                        else
+                          return btQuaternion((m_floats[0] * s0 + q.x() * s1) * d,
+                                              (m_floats[1] * s0 + q.y() * s1) * d,
+                                              (m_floats[2] * s0 + q.z() * s1) * d,
+                                              (m_floats[3] * s0 + q.m_floats[3] * s1) * d);
+                        
 		}
 		else
 		{
@@ -378,7 +406,11 @@ shortestArcQuat(const btVector3& v0, const btVector3& v1) // Game Programming Ge
 	btScalar  d = v0.dot(v1);
 
 	if (d < -1.0 + SIMD_EPSILON)
-		return btQuaternion(0.0f,1.0f,0.0f,0.0f); // just pick any vector
+	{
+		btVector3 n,unused;
+		btPlaneSpace1(v0,n,unused);
+		return btQuaternion(n.x(),n.y(),n.z(),0.0f); // just pick any vector that is orthogonal to v0
+	}
 
 	btScalar  s = btSqrt((1.0f + d) * 2.0f);
 	btScalar rs = 1.0f / s;

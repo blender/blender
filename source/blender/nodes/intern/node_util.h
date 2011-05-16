@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/node_util.h
+ *  \ingroup nodes
+ */
+
 
 #ifndef NODE_UTIL_H_
 #define NODE_UTIL_H_

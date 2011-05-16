@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file moto/include/MT_Optimize.h
+ *  \ingroup moto
+ */
+
 
 #ifndef GEN_OPTIMIZE_H
 #define GEN_OPTIMIZE_H

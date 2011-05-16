@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,8 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* Based on ghash, difference is ghash is not a fixed size,
- * so for BPath we dont need to malloc  */
+/** \file BLI_bpath.h
+ *  \ingroup bli
+ *  \attention Based on ghash, difference is ghash is not a fixed size,
+ *   so for BPath we dont need to malloc
+ */
 
 #ifndef BLI_BPATH_H
 #define BLI_BPATH_H
@@ -41,7 +44,7 @@ void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
 const char*		BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
 const char*		BLI_bpathIterator_getName			(struct BPathIterator *bpi);
 int				BLI_bpathIterator_getType			(struct BPathIterator *bpi);
-int				BLI_bpathIterator_getPathMaxLen		(struct BPathIterator *bpi);
+unsigned int	BLI_bpathIterator_getPathMaxLen		(struct BPathIterator *bpi);
 const char*		BLI_bpathIterator_getBasePath		(struct BPathIterator *bpi);
 void			BLI_bpathIterator_step				(struct BPathIterator *bpi);
 int				BLI_bpathIterator_isDone			(struct BPathIterator *bpi);

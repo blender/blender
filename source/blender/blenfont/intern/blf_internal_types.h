@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenfont/intern/blf_internal_types.h
+ *  \ingroup blf
+ */
+
 
 #ifndef BLF_INTERNAL_TYPES_H
 #define BLF_INTERNAL_TYPES_H
@@ -183,6 +188,9 @@ typedef struct FontBLF {
 	/* fast ascii lookip */
 	GlyphBLF *glyph_ascii_table[256];
 
+	/* freetype2 lib handle. */
+	FT_Library ft_lib;
+
 	/* freetype2 face. */
 	FT_Face face;
 
@@ -192,9 +200,9 @@ typedef struct FontBLF {
 	/* the same but unsigned char */
 	unsigned char *b_cbuf;
 
-	/* buffer size. */
-	unsigned int bw;
-	unsigned int bh;
+	/* buffer size, keep signed so comparisons with negative values work */
+	int bw;
+	int bh;
 
 	/* number of channels. */
 	int bch;

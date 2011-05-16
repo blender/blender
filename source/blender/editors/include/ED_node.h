@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_node.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_NODE_H
 #define ED_NODE_H
 

@@ -6,6 +6,7 @@ sources = 'stubs.c'
 incs = '#/intern/guardedalloc'
 incs += ' #/source/blender/makesdna'
 incs += ' #/source/blender/makesrna'
+incs += ' #/source/blender/blenloader'
 
 defs = ''
 if env['WITH_BF_INTERNATIONAL']:

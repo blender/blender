@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
 * ***** END GPL LICENSE BLOCK *****
 *
 */
+
+/** \file blender/blenkernel/intern/icons.c
+ *  \ingroup bke
+ */
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -106,14 +111,14 @@ void BKE_icons_init(int first_dyn_id)
 		gIcons = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "icons_init gh");
 }
 
-void BKE_icons_free()
+void BKE_icons_free(void)
 {
 	if(gIcons)
-		BLI_ghash_free(gIcons, 0, icon_free);
+		BLI_ghash_free(gIcons, NULL, icon_free);
 	gIcons = NULL;
 }
 
-struct PreviewImage* BKE_previewimg_create() 
+struct PreviewImage* BKE_previewimg_create(void) 
 {
 	PreviewImage* prv_img = NULL;
 	int i;
@@ -219,7 +224,7 @@ PreviewImage* BKE_previewimg_get(ID *id)
 
 void BKE_icon_changed(int id)
 {
-	Icon* icon = 0;
+	Icon* icon = NULL;
 	
 	if (!id || G.background) return;
 
@@ -242,7 +247,7 @@ void BKE_icon_changed(int id)
 
 int BKE_icon_getid(struct ID* id)
 {
-	Icon* new_icon = 0;
+	Icon* new_icon = NULL;
 
 	if (!id || G.background)
 		return 0;
@@ -263,8 +268,8 @@ int BKE_icon_getid(struct ID* id)
 	new_icon->type = GS(id->name);
 	
 	/* next two lines make sure image gets created */
-	new_icon->drawinfo = 0;
-	new_icon->drawinfo_free = 0;
+	new_icon->drawinfo = NULL;
+	new_icon->drawinfo_free = NULL;
 
 	BLI_ghash_insert(gIcons, SET_INT_IN_POINTER(id->icon_id), new_icon);
 	
@@ -273,13 +278,13 @@ int BKE_icon_getid(struct ID* id)
 
 Icon* BKE_icon_get(int icon_id)
 {
-	Icon* icon = 0;
+	Icon* icon = NULL;
 
 	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 	
 	if (!icon) {
 		printf("BKE_icon_get: Internal error, no icon for icon ID: %d\n", icon_id);
-		return 0;
+		return NULL;
 	}
 
 	return icon;
@@ -287,7 +292,7 @@ Icon* BKE_icon_get(int icon_id)
 
 void BKE_icon_set(int icon_id, struct Icon* icon)
 {
-	Icon* old_icon = 0;
+	Icon* old_icon = NULL;
 
 	old_icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 
@@ -305,6 +310,6 @@ void BKE_icon_delete(struct ID* id)
 
 	if (!id->icon_id) return; /* no icon defined for library object */
 
-	BLI_ghash_remove(gIcons, SET_INT_IN_POINTER(id->icon_id), 0, icon_free);
+	BLI_ghash_remove(gIcons, SET_INT_IN_POINTER(id->icon_id), NULL, icon_free);
 	id->icon_id = 0;
 }

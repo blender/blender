@@ -1,3 +1,6 @@
+/** \file opennl/superlu/heap_relax_snode.c
+ *  \ingroup opennl
+ */
 /*
  * -- SuperLU routine (version 3.0) --
  * Univ. of California Berkeley, Xerox Palo Alto Research Center,

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/transform/transform_conversions.c
+ *  \ingroup edtransform
+ */
+
 
 #ifndef WIN32
 #include <unistd.h>
@@ -85,6 +90,7 @@
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_curve.h" /* for ED_curve_editnurbs */
+#include "ED_util.h"  /* for crazyspace correction */
 
 #include "UI_view2d.h"
 
@@ -350,7 +356,7 @@ static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 	bConstraint *con= pchan->constraints.first;
 
 	for(;con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0f)) {
 			bKinematicConstraint *data= con->data;
 
 			if(data->tar==NULL)
@@ -573,16 +579,16 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, bmat, pmat, omat, cmat, 0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, pmat, omat, cmat, NULL,NULL,NULL,NULL);    // dang mulserie swaps args
 		}
 		else
-			mul_serie_m3(td->mtx, bmat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, pmat, omat, NULL,NULL,NULL,NULL,NULL);    // dang mulserie swaps args
 	}
 	else {
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, bmat, omat, cmat, 0,0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, omat, cmat, NULL,NULL,NULL,NULL,NULL);    // dang mulserie swaps args
 		}
 		else
 			mul_m3_m3m3(td->mtx, omat, bmat);  // Mat3MulMat3 has swapped args!
@@ -751,7 +757,7 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 
 	/* check if pchan has ik-constraint */
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0f)) {
 			bKinematicConstraint *data= con->data;
 			
 			/* only accept if a temporary one (for auto-ik) */
@@ -1358,7 +1364,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 }
 
 /* Utility function for getting the handle data from bezier's */
-TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt) {
+static TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt) {
 	TransDataCurveHandleFlags *hdata;
 	td->flag |= TD_BEZTRIPLE;
 	hdata = td->hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
@@ -1736,10 +1742,10 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 				td->ival = *(key->time);
 				/* abuse size and quat for min/max values */
 				td->flag |= TD_NO_EXT;
-				if(k==0) tx->size = 0;
+				if(k==0) tx->size = NULL;
 				else tx->size = (key - 1)->time;
 
-				if(k == point->totkey - 1) tx->quat = 0;
+				if(k == point->totkey - 1) tx->quat = NULL;
 				else tx->quat = (key + 1)->time;
 			}
 
@@ -1940,148 +1946,8 @@ static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert
 	}
 }
 
-/* *********************** CrazySpace correction. Now without doing subsurf optimal ****************** */
-
-static void make_vertexcos__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
-{
-	float *vec = userData;
-
-	vec+= 3*index;
-	VECCOPY(vec, co);
-}
-
-static int modifiers_disable_subsurf_temporary(Object *ob)
-{
-	ModifierData *md;
-	int disabled = 0;
-
-	for(md=ob->modifiers.first; md; md=md->next)
-		if(md->type==eModifierType_Subsurf)
-			if(md->mode & eModifierMode_OnCage) {
-				md->mode ^= eModifierMode_DisableTemporary;
-				disabled= 1;
-			}
-
-	return disabled;
-}
-
-/* disable subsurf temporal, get mapped cos, and enable it */
-static float *get_crazy_mapped_editverts(TransInfo *t)
-{
-	Mesh *me= t->obedit->data;
-	DerivedMesh *dm;
-	float *vertexcos;
-
-	/* disable subsurf temporal, get mapped cos, and enable it */
-	if(modifiers_disable_subsurf_temporary(t->obedit)) {
-		/* need to make new derivemesh */
-		makeDerivedMesh(t->scene, t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
-	}
-
-	/* now get the cage */
-	dm= editmesh_get_derived_cage(t->scene, t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
-
-	vertexcos= MEM_mallocN(3*sizeof(float)*me->edit_mesh->totvert, "vertexcos map");
-	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
-
-	dm->release(dm);
-
-	/* set back the flag, no new cage needs to be built, transform does it */
-	modifiers_disable_subsurf_temporary(t->obedit);
-
-	return vertexcos;
-}
-
-#define TAN_MAKE_VEC(a, b, c)	a[0]= b[0] + 0.2f*(b[0]-c[0]); a[1]= b[1] + 0.2f*(b[1]-c[1]); a[2]= b[2] + 0.2f*(b[2]-c[2])
-static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, float *def1, float *def2, float *def3)
-{
-	float vecu[3], vecv[3];
-	float q1[4], q2[4];
-
-	TAN_MAKE_VEC(vecu, v1, v2);
-	TAN_MAKE_VEC(vecv, v1, v3);
-	tri_to_quat( q1,v1, vecu, vecv);
-
-	TAN_MAKE_VEC(vecu, def1, def2);
-	TAN_MAKE_VEC(vecv, def1, def3);
-	tri_to_quat( q2,def1, vecu, vecv);
-
-	sub_qt_qtqt(quat, q2, q1);
-}
-#undef TAN_MAKE_VEC
-
-static void set_crazyspace_quats(EditMesh *em, float *origcos, float *mappedcos, float *quats)
-{
-	EditVert *eve, *prev;
-	EditFace *efa;
-	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
-	intptr_t index= 0;
-
-	/* two abused locations in vertices */
-	for(eve= em->verts.first; eve; eve= eve->next, index++) {
-		eve->tmp.p = NULL;
-		eve->prev= (EditVert *)index;
-	}
-
-	/* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
-	for(efa= em->faces.first; efa; efa= efa->next) {
-
-		/* retrieve mapped coordinates */
-		v1= mappedcos + 3*(intptr_t)(efa->v1->prev);
-		v2= mappedcos + 3*(intptr_t)(efa->v2->prev);
-		v3= mappedcos + 3*(intptr_t)(efa->v3->prev);
-
-		co1= (origcos)? origcos + 3*(intptr_t)(efa->v1->prev): efa->v1->co;
-		co2= (origcos)? origcos + 3*(intptr_t)(efa->v2->prev): efa->v2->co;
-		co3= (origcos)? origcos + 3*(intptr_t)(efa->v3->prev): efa->v3->co;
-
-		if(efa->v2->tmp.p==NULL && efa->v2->f1) {
-			set_crazy_vertex_quat(quats, co2, co3, co1, v2, v3, v1);
-			efa->v2->tmp.p= (void*)quats;
-			quats+= 4;
-		}
-
-		if(efa->v4) {
-			v4= mappedcos + 3*(intptr_t)(efa->v4->prev);
-			co4= (origcos)? origcos + 3*(intptr_t)(efa->v4->prev): efa->v4->co;
-
-			if(efa->v1->tmp.p==NULL && efa->v1->f1) {
-				set_crazy_vertex_quat(quats, co1, co2, co4, v1, v2, v4);
-				efa->v1->tmp.p= (void*)quats;
-				quats+= 4;
-			}
-			if(efa->v3->tmp.p==NULL && efa->v3->f1) {
-				set_crazy_vertex_quat(quats, co3, co4, co2, v3, v4, v2);
-				efa->v3->tmp.p= (void*)quats;
-				quats+= 4;
-			}
-			if(efa->v4->tmp.p==NULL && efa->v4->f1) {
-				set_crazy_vertex_quat(quats, co4, co1, co3, v4, v1, v3);
-				efa->v4->tmp.p= (void*)quats;
-				quats+= 4;
-			}
-		}
-		else {
-			if(efa->v1->tmp.p==NULL && efa->v1->f1) {
-				set_crazy_vertex_quat(quats, co1, co2, co3, v1, v2, v3);
-				efa->v1->tmp.p= (void*)quats;
-				quats+= 4;
-			}
-			if(efa->v3->tmp.p==NULL && efa->v3->f1) {
-				set_crazy_vertex_quat(quats, co3, co1, co2, v3, v1, v2);
-				efa->v3->tmp.p= (void*)quats;
-				quats+= 4;
-			}
-		}
-	}
-
-	/* restore abused prev pointer */
-	for(prev= NULL, eve= em->verts.first; eve; prev= eve, eve= eve->next)
-		eve->prev= prev;
-
-}
-
-void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
+#if 0
+static void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
 	BME_Vert *v;
 	BME_TransData *vtd;
 	TransData *tob;
@@ -2105,6 +1971,7 @@ void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
 	 * (i.e. we can't depend on td->len to determine the number of actual elements) */
 	t->total = i;
 }
+#endif
 
 static void createTransEditVerts(bContext *C, TransInfo *t)
 {
@@ -2189,27 +2056,25 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if(propmode) editmesh_set_connectivity_distance(em, mtx);
 
 	/* detect CrazySpace [tm] */
-	if(propmode==0) {
-		if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
-			if(modifiers_isCorrectableDeformed(t->obedit)) {
-				/* check if we can use deform matrices for modifier from the
-				   start up to stack, they are more accurate than quats */
-				totleft= editmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
+	if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
+		if(modifiers_isCorrectableDeformed(t->obedit)) {
+			/* check if we can use deform matrices for modifier from the
+			   start up to stack, they are more accurate than quats */
+			totleft= editmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
 
-				/* if we still have more modifiers, also do crazyspace
-				   correction with quats, relative to the coordinates after
-				   the modifiers that support deform matrices (defcos) */
-				if(totleft > 0) {
-					mappedcos= get_crazy_mapped_editverts(t);
-					quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
-					set_crazyspace_quats(em, (float*)defcos, mappedcos, quats);
-					if(mappedcos)
-						MEM_freeN(mappedcos);
-				}
-
-				if(defcos)
-					MEM_freeN(defcos);
+			/* if we still have more modifiers, also do crazyspace
+			   correction with quats, relative to the coordinates after
+			   the modifiers that support deform matrices (defcos) */
+			if(totleft > 0) {
+				mappedcos= crazyspace_get_mapped_editverts(t->scene, t->obedit);
+				quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
+				crazyspace_set_quats_editmesh(em, (float*)defcos, mappedcos, quats);
+				if(mappedcos)
+					MEM_freeN(mappedcos);
 			}
+
+			if(defcos)
+				MEM_freeN(defcos);
 		}
 	}
 
@@ -2748,6 +2613,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								unit_m3(td->smtx);
 							}
 							else {
+								/* time scaling only needs single value */
 								td->val= &tdn->h1[0];
 								td->ival= tdn->h1[0];
 							}
@@ -2779,6 +2645,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								unit_m3(td->smtx);
 							}
 							else {
+								/* time scaling only needs single value */
 								td->val= &tdn->h2[0];
 								td->ival= tdn->h2[0];
 							}
@@ -2799,7 +2666,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 			}
 		}
 	}
-
+	
 	/* cleanup temp list */
 	BLI_freelistN(&anim_data);
 }
@@ -2937,7 +2804,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 			if (BEZSELECTED(bezt) == 0) {
 				/* check beztriple should be removed according to cache */
 				for (index= 0; index < len; index++) {
-					if (IS_EQ(bezt->vec[1][0], selcache[index])) {
+					if (IS_EQF(bezt->vec[1][0], selcache[index])) {
 						delete_fcurve_key(fcu, i, 0);
 						break;
 					}
@@ -3110,7 +2977,7 @@ void flushTransGPactionData (TransInfo *t)
 
 	/* flush data! */
 	for (i = 0; i < t->total; i++, tfd++) {
-		*(tfd->sdata)= (int)floor(tfd->val + 0.5);
+		*(tfd->sdata)= (int)floor(tfd->val + 0.5f);
 	}
 }
 
@@ -3493,8 +3360,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		mul_v3_fl(mtx[1], yscale);
 		
 		/* smtx is global (i.e. view) to data conversion */
-		if (IS_EQ(xscale, 0.0f) == 0) mul_v3_fl(smtx[0], 1.0f/xscale);
-		if (IS_EQ(yscale, 0.0f) == 0) mul_v3_fl(smtx[1], 1.0f/yscale);
+		if (IS_EQF(xscale, 0.0f) == 0) mul_v3_fl(smtx[0], 1.0f/xscale);
+		if (IS_EQF(yscale, 0.0f) == 0) mul_v3_fl(smtx[1], 1.0f/yscale);
 	}
 	
 	/* loop 2: build transdata arrays */
@@ -3676,11 +3543,12 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert, const short UNUSED(
 }
 
 /* This function firstly adjusts the pointers that the transdata has to each BezTriple */
-static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totvert, const short use_handle)
+static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totvert, const short UNUSED(use_handle))
 {
 	BezTriple *bezts = fcu->bezt;
 	BeztMap *bezm;
-	TransData2D *td;
+	TransData2D *td2d;
+	TransData *td;
 	int i, j;
 	char *adjusted;
 	
@@ -3696,43 +3564,50 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 		/* loop through transdata, testing if we have a hit
 		 * for the handles (vec[0]/vec[2]), we must also check if they need to be swapped...
 		 */
-		td= t->data2d;
-		for (j= 0; j < t->total; j++, td++) {
+		td2d= t->data2d;
+		td= t->data;
+		for (j= 0; j < t->total; j++, td2d++, td++) {
 			/* skip item if already marked */
 			if (adjusted[j] != 0) continue;
 			
-			/* only selected verts */
-			if (bezm->pipo == BEZT_IPO_BEZ) {
-				if (use_handle && bezm->bezt->f1 & SELECT) {
-					if (td->loc2d == bezm->bezt->vec[0]) {
-						if (bezm->swapHs == 1)
-							td->loc2d= (bezts + bezm->newIndex)->vec[2];
-						else
-							td->loc2d= (bezts + bezm->newIndex)->vec[0];
-						adjusted[j] = 1;
-					}
-				}
+			/* update all transdata pointers, no need to check for selections etc,
+			 * since only points that are really needed were created as transdata
+			 */
+			if (td2d->loc2d == bezm->bezt->vec[0]) {
+				if (bezm->swapHs == 1)
+					td2d->loc2d= (bezts + bezm->newIndex)->vec[2];
+				else
+					td2d->loc2d= (bezts + bezm->newIndex)->vec[0];
+				adjusted[j] = 1;
 			}
-			if (bezm->cipo == BEZT_IPO_BEZ) {
-				if (use_handle && bezm->bezt->f3 & SELECT) {
-					if (td->loc2d == bezm->bezt->vec[2]) {
-						if (bezm->swapHs == 1)
-							td->loc2d= (bezts + bezm->newIndex)->vec[0];
-						else
-							td->loc2d= (bezts + bezm->newIndex)->vec[2];
-						adjusted[j] = 1;
-					}
-				}
+			else if (td2d->loc2d == bezm->bezt->vec[2]) {
+				if (bezm->swapHs == 1)
+					td2d->loc2d= (bezts + bezm->newIndex)->vec[0];
+				else
+					td2d->loc2d= (bezts + bezm->newIndex)->vec[2];
+				adjusted[j] = 1;
 			}
-			if (bezm->bezt->f2 & SELECT) {
-				if (td->loc2d == bezm->bezt->vec[1]) {
-					td->loc2d= (bezts + bezm->newIndex)->vec[1];
+			else if (td2d->loc2d == bezm->bezt->vec[1]) {
+				td2d->loc2d= (bezts + bezm->newIndex)->vec[1];
 					
-					/* if only control point is selected, the handle pointers need to be updated as well */
-					td->h1= (bezts + bezm->newIndex)->vec[0];
-					td->h2= (bezts + bezm->newIndex)->vec[2];
+				/* if only control point is selected, the handle pointers need to be updated as well */
+				if(td2d->h1)
+					td2d->h1= (bezts + bezm->newIndex)->vec[0];
+				if(td2d->h2)
+					td2d->h2= (bezts + bezm->newIndex)->vec[2];
 					
-					adjusted[j] = 1;
+				adjusted[j] = 1;
+			}
+
+			/* the handle type pointer has to be updated too */
+			if (adjusted[j] && td->flag & TD_BEZTRIPLE && td->hdata) {
+				if(bezm->swapHs == 1) {
+					td->hdata->h1 = &(bezts + bezm->newIndex)->h2;
+					td->hdata->h2 = &(bezts + bezm->newIndex)->h1;
+				}
+				else {
+					td->hdata->h1 = &(bezts + bezm->newIndex)->h1;
+					td->hdata->h2 = &(bezts + bezm->newIndex)->h2;
 				}
 			}
 		}
@@ -3764,6 +3639,7 @@ void remake_graph_transdata (TransInfo *t, ListBase *anim_data)
 			BeztMap *bezm;
 			
 			/* adjust transform-data pointers */
+			/* note, none of these functions use 'use_handle', it could be removed */
 			bezm= bezt_to_beztmaps(fcu->bezt, fcu->totvert, use_handle);
 			sort_time_beztmaps(bezm, fcu->totvert, use_handle);
 			beztmap_to_data(t, fcu, bezm, fcu->totvert, use_handle);
@@ -3869,7 +3745,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 		}
 	}
 #endif
-    
+
 	/* for extend we need to do some tricks */
 	if (t->mode == TFM_TIME_EXTEND) {
 
@@ -4263,7 +4139,7 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list)
 	if (list) {
 		for (con= list->first; con; con=con->next) {
 			/* only consider constraint if it is enabled, and has influence on result */
-			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) {
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0f)) {
 				/* (affirmative) returns for specific constraints here... */
 					/* constraints that require this regardless  */
 				if (con->type == CONSTRAINT_TYPE_CHILDOF) return 1;
@@ -4805,7 +4681,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
-	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0; /* see bugreport #21229 for reasons for this data */
+	short duplicate= (t->mode == TFM_TIME_DUPLICATE);
 	
 	/* early out when nothing happened */
 	if (t->total == 0 || t->mode == TFM_DUMMY)
@@ -4833,10 +4709,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			if(t->mode == TFM_SEQ_SLIDE) {
 				if(t->frame_side == 'B')
-					scene_marker_tfm_translate(t->scene, floor(t->values[0] + 0.5f), SELECT);
+					ED_markers_post_apply_transform(&t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->vec[0], t->frame_side);
 			}
 			else if (ELEM(t->frame_side, 'L', 'R')) {
-				scene_marker_tfm_extend(t->scene, floor(t->vec[0] + 0.5f), SELECT, t->scene->r.cfra, t->frame_side);
+				ED_markers_post_apply_transform(&t->scene->markers, t->scene, TFM_TIME_EXTEND, t->vec[0], t->frame_side);
 			}
 		}
 
@@ -4867,6 +4743,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
 				
+				/* 3 cases here for curve cleanups:
+				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+				 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+				 */
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
 					 ((cancelled == 0) || (duplicate)) )
 				{
@@ -4893,34 +4774,26 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 			
-			/* Do curve cleanups? */
+			/* 3 cases here for curve cleanups:
+			 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+			 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
+			 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+			 */
 			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
 				 ((cancelled == 0) || (duplicate)) )
 			{
 				posttrans_action_clean(&ac, (bAction *)ac.data);
 			}
 		}
-
-		/* marker transform, not especially nice but we may want to move markers
-		 * at the same time as keyframes in the dope sheet. */
-		if ((saction->flag & SACTION_MARKERS_MOVE) && (cancelled == 0)) {
-			/* cant use , TFM_TIME_EXTEND
-			 * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead */
-
-			if(t->mode == TFM_TIME_TRANSLATE) {
-				if(t->frame_side == 'B')
-					scene_marker_tfm_translate(t->scene, floor(t->vec[0] + 0.5f), SELECT);
-				else if (ELEM(t->frame_side, 'L', 'R'))
-					scene_marker_tfm_extend(t->scene, floor(t->vec[0] + 0.5f), SELECT, t->scene->r.cfra, t->frame_side);
-			}
-			else if(t->mode == TFM_TIME_SCALE) {
-				scene_marker_tfm_scale(t->scene, t->vec[0], SELECT);
-			}
-		}
-		
 		else if (ac.datatype == ANIMCONT_GPENCIL) {
 			/* remove duplicate frames and also make sure points are in order! */
-			if ((cancelled == 0) || (duplicate))
+				/* 3 cases here for curve cleanups:
+				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+				 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+				 */
+			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
+				 ((cancelled == 0) || (duplicate)) )
 			{
 				bGPdata *gpd;
 				
@@ -4930,6 +4803,27 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					if (ID_REAL_USERS(gpd) > 1)
 						posttrans_gpd_clean(gpd);
 				}
+			}
+		}
+		
+		/* marker transform, not especially nice but we may want to move markers
+		 * at the same time as keyframes in the dope sheet. 
+		 */
+		if ((saction->flag & SACTION_MARKERS_MOVE) && (cancelled == 0)) {
+			if (t->mode == TFM_TIME_TRANSLATE) {
+#if 0
+				if (ELEM(t->frame_side, 'L', 'R')) { /* TFM_TIME_EXTEND */
+					/* same as below */
+					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
+				}
+				else /* TFM_TIME_TRANSLATE */
+#endif
+				{
+					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
+				}
+			}
+			else if (t->mode == TFM_TIME_SCALE) {
+				ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
 			}
 		}
 		
@@ -4960,13 +4854,18 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
 				
+				/* 3 cases here for curve cleanups:
+				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+				 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+				 */
 				if ( (sipo->flag & SIPO_NOTRANSKEYCULL)==0 &&
 					 ((cancelled == 0) || (duplicate)) )
 				{
 					if (adt) {
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
 						posttrans_fcurve_clean(fcu);
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
 					}
 					else
 						posttrans_fcurve_clean(fcu);
@@ -5028,13 +4927,19 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {
 		bArmature *arm;
-		bPose	*pose;
 		bPoseChannel *pchan;
 		short targetless_ik= 0;
 
 		ob= t->poseobj;
 		arm= ob->data;
-		pose= ob->pose;
+
+		if((t->flag & T_AUTOIK) && (t->options & CTX_AUTOCONFIRM)) {
+			/* when running transform non-interactively (operator exec),
+			 * we need to update the pose otherwise no updates get called during
+			 * transform and the auto-ik is not applied. see [#26164] */
+			struct Object *ob=t->poseobj;
+			where_is_pose(t->scene, ob);
+		}
 
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if (!cancelled && t->mode==TFM_TRANSLATION)
@@ -5184,7 +5089,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 		}
 		
 		/* select linked objects, but skip them later */
-		if (ob->id.lib != 0) {
+		if (ob->id.lib != NULL) {
 			td->flag |= TD_SKIP;
 		}
 		
@@ -5246,7 +5151,7 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	unit_m3(td->smtx);
 }
 
-void createTransNodeData(bContext *C, TransInfo *t)
+static void createTransNodeData(bContext *C, TransInfo *t)
 {
 	TransData *td;
 	TransData2D *td2d;

@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/inflate.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <inflate_png> */
 
 int datatoc_inflate_png_size= 8840;

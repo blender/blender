@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/fcurve.c
+ *  \ingroup bke
+ */
+
  
 
 #include <math.h>
@@ -421,8 +426,52 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 	return start;
 }
 
+/* ...................................... */
+
+/* helper for calc_fcurve_* functions -> find first and last BezTriple to be used */
+static void get_fcurve_end_keyframes (FCurve *fcu, BezTriple **first, BezTriple **last, const short selOnly)
+{
+	/* init outputs */
+	*first = NULL;
+	*last = NULL;
+	
+	/* sanity checks */
+	if (fcu->bezt == NULL)
+		return;
+	
+	/* only include selected items? */
+	if (selOnly) {
+		BezTriple *bezt;
+		unsigned int i;
+		
+		/* find first selected */
+		bezt = fcu->bezt;
+		for (i=0; i < fcu->totvert; bezt++, i++) {
+			if (BEZSELECTED(bezt)) {
+				*first= bezt;
+				break;
+			}
+		}
+		
+		/* find last selected */
+		bezt = ARRAY_LAST_ITEM(fcu->bezt, BezTriple, sizeof(BezTriple), fcu->totvert);
+		for (i=0; i < fcu->totvert; bezt--, i++) {
+			if (BEZSELECTED(bezt)) {
+				*last= bezt;
+				break;
+			}
+		}
+	}
+	else {
+		/* just full array */
+		*first = fcu->bezt;
+		*last = ARRAY_LAST_ITEM(fcu->bezt, BezTriple, sizeof(BezTriple), fcu->totvert);
+	}
+}
+
+
 /* Calculate the extents of F-Curve's data */
-void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax)
+void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax, const short selOnly)
 {
 	float xminv=999999999.0f, xmaxv=-999999999.0f;
 	float yminv=999999999.0f, ymaxv=-999999999.0f;
@@ -431,21 +480,31 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 	
 	if (fcu->totvert) {
 		if (fcu->bezt) {
-			/* frame range can be directly calculated from end verts */
+			BezTriple *bezt_first= NULL, *bezt_last= NULL;
+			
 			if (xmin || xmax) {
-				xminv= MIN2(xminv, fcu->bezt[0].vec[1][0]);
-				xmaxv= MAX2(xmaxv, fcu->bezt[fcu->totvert-1].vec[1][0]);
+				/* get endpoint keyframes */
+				get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, selOnly);
+				
+				if (bezt_first) {
+					BLI_assert(bezt_last != NULL);
+					
+					xminv= MIN2(xminv, bezt_first->vec[1][0]);
+					xmaxv= MAX2(xmaxv, bezt_last->vec[1][0]);
+				}
 			}
 			
 			/* only loop over keyframes to find extents for values if needed */
-			if (ymin || ymax) {
+			if (ymin || ymax) {	
 				BezTriple *bezt;
 				
 				for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
-					if (bezt->vec[1][1] < yminv)
-						yminv= bezt->vec[1][1];
-					if (bezt->vec[1][1] > ymaxv)
-						ymaxv= bezt->vec[1][1];
+					if ((selOnly == 0) || BEZSELECTED(bezt)) {
+						if (bezt->vec[1][1] < yminv)
+							yminv= bezt->vec[1][1];
+						if (bezt->vec[1][1] > ymaxv)
+							ymaxv= bezt->vec[1][1];
+					}
 				}
 			}
 		}
@@ -492,15 +551,24 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 }
 
 /* Calculate the extents of F-Curve's keyframes */
-void calc_fcurve_range (FCurve *fcu, float *start, float *end)
+void calc_fcurve_range (FCurve *fcu, float *start, float *end, const short selOnly)
 {
 	float min=999999999.0f, max=-999999999.0f;
 	short foundvert=0;
 
 	if (fcu->totvert) {
 		if (fcu->bezt) {
-			min= MIN2(min, fcu->bezt[0].vec[1][0]);
-			max= MAX2(max, fcu->bezt[fcu->totvert-1].vec[1][0]);
+			BezTriple *bezt_first= NULL, *bezt_last= NULL;
+			
+			/* get endpoint keyframes */
+			get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, selOnly);
+			
+			if (bezt_first) {
+				BLI_assert(bezt_last != NULL);
+				
+				min= MIN2(min, bezt_first->vec[1][0]);
+				max= MAX2(max, bezt_last->vec[1][0]);
+			}
 		}
 		else if (fcu->fpt) {
 			min= MIN2(min, fcu->fpt[0].vec[0]);
@@ -1051,7 +1119,7 @@ static float dvar_eval_rotDiff (ChannelDriver *driver, DriverVar *dvar)
 	angle = 2.0f * (saacos(quat[0]));
 	angle= ABS(angle);
 	
-	return (angle > M_PI) ? (float)((2.0f * M_PI) - angle) : (float)(angle);
+	return (angle > (float)M_PI) ? (float)((2.0f * (float)M_PI) - angle) : (float)(angle);
 }
 
 /* evaluate 'location difference' driver variable */
@@ -1202,7 +1270,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 /* ......... */
 
 /* Table of Driver Varaiable Type Info Data */
-DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
+static DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
 	BEGIN_DVAR_TYPEDEF(DVAR_TYPE_SINGLE_PROP)
 		dvar_eval_singleProp, /* eval callback */
 		1, /* number of targets used */
@@ -1233,7 +1301,7 @@ DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
 };
 
 /* Get driver variable typeinfo */
-DriverVarTypeInfo *get_dvar_typeinfo (int type)
+static DriverVarTypeInfo *get_dvar_typeinfo (int type)
 {
 	/* check if valid type */
 	if ((type >= 0) && (type < MAX_DVAR_TYPES))
@@ -1584,9 +1652,9 @@ static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 	int nr= 0;
 
 	c0= q0 - x;
-	c1= 3.0 * (q1 - q0);
-	c2= 3.0 * (q0 - 2.0*q1 + q2);
-	c3= q3 - q0 + 3.0 * (q1 - q2);
+	c1= 3.0f * (q1 - q0);
+	c2= 3.0f * (q0 - 2.0f*q1 + q2);
+	c3= q3 - q0 + 3.0f * (q1 - q2);
 	
 	if (c3 != 0.0) {
 		a= c2/c3;
@@ -1602,17 +1670,17 @@ static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 			t= sqrt(d);
 			o[0]= (float)(sqrt3d(-q+t) + sqrt3d(-q-t) - a);
 			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
+			if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) return 1;
 			else return 0;
 		}
 		else if (d == 0.0) {
 			t= sqrt3d(-q);
 			o[0]= (float)(2*t - a);
 			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;
+			if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) nr++;
 			o[nr]= (float)(-t-a);
 			
-			if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) return nr+1;
+			if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) return nr+1;
 			else return nr;
 		}
 		else {
@@ -1622,13 +1690,13 @@ static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 			q= sqrt(3 - 3*p*p);
 			o[0]= (float)(2*t*p - a);
 			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;
+			if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) nr++;
 			o[nr]= (float)(-t * (p + q) - a);
 			
-			if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) nr++;
+			if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) nr++;
 			o[nr]= (float)(-t * (p - q) - a);
 			
-			if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) return nr+1;
+			if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) return nr+1;
 			else return nr;
 		}
 	}
@@ -1645,22 +1713,22 @@ static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 				p= sqrt(p);
 				o[0]= (float)((-b-p) / (2 * a));
 				
-				if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;
+				if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) nr++;
 				o[nr]= (float)((-b+p)/(2*a));
 				
-				if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) return nr+1;
+				if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) return nr+1;
 				else return nr;
 			}
 			else if (p == 0) {
 				o[0]= (float)(-b / (2 * a));
-				if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
+				if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) return 1;
 				else return 0;
 			}
 		}
 		else if (b != 0.0) {
 			o[0]= (float)(-c/b);
 			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
+			if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) return 1;
 			else return 0;
 		}
 		else if (c == 0.0) {

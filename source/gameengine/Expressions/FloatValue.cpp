@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/FloatValue.cpp
+ *  \ingroup expressions
+ */
 // FloatValue.cpp: implementation of the CFloatValue class.
 /*
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SG_IObject.h
+ *  \ingroup bgesg
+ */
+ 
 #ifndef __SG_IOBJECT
 #define __SG_IOBJECT
 

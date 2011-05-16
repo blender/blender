@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_texture.c
+ *  \ingroup RNA
+ */
+
 
 #include <float.h>
 #include <stdio.h>
@@ -144,7 +149,9 @@ static void rna_Texture_voxeldata_image_update(Main *bmain, Scene *scene, Pointe
 {
 	Tex *tex= ptr->id.data;
 	
-	tex->ima->source = IMA_SRC_SEQUENCE;
+	if(tex->ima) { /* may be getting cleared too */
+		tex->ima->source = IMA_SRC_SEQUENCE;
+	}
 	rna_Texture_voxeldata_update(bmain, scene, ptr);
 }
 
@@ -185,6 +192,20 @@ void rna_TextureSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		case ID_BR: 
 			WM_main_add_notifier(NC_BRUSH, id);
 			break;
+		case ID_PA:
+		{
+			MTex *mtex= ptr->data;
+			int recalc = OB_RECALC_DATA;
+
+			if(mtex->mapto & PAMAP_INIT)
+				recalc |= PSYS_RECALC_RESET;
+			if(mtex->mapto & PAMAP_CHILD)
+				recalc |= PSYS_RECALC_CHILD;
+
+			DAG_id_tag_update(id, recalc);
+			WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
+			break;
+		}
 	}
 }
 
@@ -769,7 +790,7 @@ static void rna_def_texture_wood(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pattern", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
-	prop= RNA_def_property(srna, "noisebasis_2", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "noise_basis_2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_wood_noisebasis2);
 	RNA_def_property_ui_text(prop, "Noise Basis 2", "");
@@ -843,7 +864,7 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
 	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
-	prop= RNA_def_property(srna, "noisebasis_2", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "noise_basis_2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_marble_noisebasis2);
 	RNA_def_property_ui_text(prop, "Noise Basis 2", "");
@@ -995,7 +1016,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_interpolation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_INTERPOL);
-	RNA_def_property_ui_text(prop, "Interpolation", "Interpolates pixels using Area filter");
+	RNA_def_property_ui_text(prop, "Interpolation", "Interpolates pixels using selected filter");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	/* XXX: I think flip_axis should be a generic Texture property, enabled for all the texture types */
@@ -1406,6 +1427,8 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 		{TEX_PD_FALLOFF_SOFT, "SOFT", 0, "Soft", ""},
 		{TEX_PD_FALLOFF_CONSTANT, "CONSTANT", 0, "Constant", "Density is constant within lookup radius"},
 		{TEX_PD_FALLOFF_ROOT, "ROOT", 0, "Root", ""},
+		{TEX_PD_FALLOFF_PARTICLE_AGE, "PARTICLE_AGE", 0, "Particle Age", ""},
+		{TEX_PD_FALLOFF_PARTICLE_VEL, "PARTICLE_VELOCITY", 0, "Particle Velocity", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem color_source_items[] = {
@@ -1488,12 +1511,30 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scale", "Multiplier to bring particle speed within an acceptable range");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
+	prop= RNA_def_property(srna, "falloff_speed_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "falloff_speed_scale");
+	RNA_def_property_range(prop, 0.001, 100.0);
+	RNA_def_property_ui_text(prop, "Velocity Scale", "Multiplier to bring particle speed within an acceptable range");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	
 	prop= RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "coba");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Color Ramp", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	prop= RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "falloff_curve");
+	RNA_def_property_struct_type(prop, "CurveMapping");
+	RNA_def_property_ui_text(prop, "Falloff Curve", "");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
+	prop= RNA_def_property(srna, "use_falloff_curve", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_PD_FALLOFF_CURVE);
+	RNA_def_property_ui_text(prop, "Falloff Curve", "Use a custom falloff curve");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
 	/* Turbulence */
 	prop= RNA_def_property(srna, "use_turbulence", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_PD_TURBULENCE);
@@ -1617,6 +1658,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resol");
+	RNA_def_property_range(prop, 1, 100000);
 	RNA_def_property_ui_text(prop, "Resolution", "Resolution of the voxel grid");
 	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 	

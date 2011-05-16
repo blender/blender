@@ -26,11 +26,12 @@
 
 set(INC
 	.
-	../../../source/kernel/gen_system
 	../../../intern/string
 	../../../intern/guardedalloc
+	../../../intern/container
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
 	../../../source/gameengine/Converter
+	../../../source/gameengine/BlenderRoutines
 	../../../source/blender/imbuf
 	../../../intern/moto/include
 	../../../source/gameengine/Ketsji 
@@ -52,7 +53,7 @@ set(INC
 	../../../intern/audaspace/intern
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
-	../../../extern/glew/include
+	${GLEW_INCLUDE_PATH}
 	../../../extern/recastnavigation/Recast/Include
 	../../../extern/recastnavigation/Detour/Include
 	../../../source/blender/editors/include

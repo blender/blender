@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * generic Network Message implementation
  */
+
+/** \file gameengine/Network/NG_NetworkMessage.cpp
+ *  \ingroup bgenet
+ */
+
 #include "NG_NetworkMessage.h"
 #include <assert.h>
 

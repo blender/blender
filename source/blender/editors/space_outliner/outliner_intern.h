@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_outliner/outliner_intern.h
+ *  \ingroup spoutliner
+ */
+
 
 #ifndef ED_OUTLINER_INTERN_H
 #define ED_OUTLINER_INTERN_H

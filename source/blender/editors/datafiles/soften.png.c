@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/soften.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <soften_png> */
 
 int datatoc_soften_png_size= 9219;

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_scene.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 
@@ -50,6 +55,7 @@
 #include <libavformat/avformat.h>
 #endif
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "BLI_threads.h"
@@ -73,9 +79,9 @@ EnumPropertyItem proportional_falloff_items[] ={
 
 
 EnumPropertyItem proportional_editing_items[] = {
-	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", ""},
-	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", ""},
-	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected", ""},
+	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", "Proportional Editing disabled"},
+	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", "Proportional Editing enabled"},
+	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected", "Proportional Editing using connected geometry only"},
 	{0, NULL, 0, NULL, NULL}};
 
 /* keep for operators, not used here */
@@ -96,7 +102,9 @@ EnumPropertyItem snap_element_items[] = {
 EnumPropertyItem image_type_items[] = {
 	{0, "", 0, "Image", NULL},
 	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
-	//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
+#ifdef WITH_DDS
+	{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""},
+#endif
 	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
 	{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", ""},
 	{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", ""},
@@ -217,7 +225,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	}
 
 	base= scene_add_base(scene, ob);
-	ob->id.us++;
+	id_us_plus(&ob->id);
 
 	/* this is similar to what object_add_type and add_object do */
 	base->lay= scene->lay;
@@ -308,11 +316,17 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 	scene->lay= ED_view3d_scene_layer_set(scene->lay, values, &scene->layact);
 }
 
-static void rna_Scene_view3d_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_Scene_view3d_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->data;
 
 	BKE_screen_view3d_main_sync(&bmain->screen, scene);
+}
+
+static void rna_Scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	rna_Scene_view3d_update(bmain, scene, ptr);
+	DAG_on_visible_update(bmain, FALSE);
 }
 
 static void rna_Scene_framelen_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -729,14 +743,14 @@ static int rna_RenderSettings_engine_get(PointerRNA *ptr)
 	return 0;
 }
 
-static void rna_Scene_glsl_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_Scene_glsl_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
 	DAG_id_tag_update(&scene->id, 0);
 }
 
-static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	/* reset image nodes */
 	Scene *scene= (Scene*)ptr->id.data;
@@ -744,6 +758,9 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unuse
 	bNode *node;
 	
 	if(ntree && scene->use_nodes) {
+		/* XXX images are freed here, stop render and preview threads, until Image is threadsafe */
+		WM_jobs_stop_all(bmain->wm.first);
+		
 		for (node=ntree->nodes.first; node; node=node->next) {
 			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
 				ED_node_changed_update(&scene->id, node);
@@ -755,7 +772,7 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unuse
 		}
 	}
 
-	rna_Scene_glsl_update(bmain, unused, ptr);
+	rna_Scene_glsl_update(bmain, scene, ptr);
 }
 
 static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
@@ -801,7 +818,7 @@ static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 	rl->lay= ED_view3d_scene_layer_set(rl->lay, values, NULL);
 }
 
-static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
@@ -818,7 +835,7 @@ static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_composit_default(scene);
 }
 
-static void rna_Physics_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_Physics_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 	Base *base;
@@ -896,6 +913,24 @@ static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr
 {
 	if(scene->r.mode & R_SIMPLIFY)
 		rna_Scene_use_simplify_update(bmain, scene, ptr);
+}
+
+static int rna_Scene_use_audio_get(PointerRNA *ptr)
+{
+	Scene *scene= (Scene*)ptr->data;
+	return scene->audio.flag & AUDIO_MUTE;
+}
+
+static void rna_Scene_use_audio_set(PointerRNA *ptr, int value)
+{
+	Scene *scene= (Scene*)ptr->data;
+
+	if(value)
+		scene->audio.flag |= AUDIO_MUTE;
+	else
+		scene->audio.flag &= ~AUDIO_MUTE;
+
+	sound_mute_scene(scene, value);
 }
 
 static int rna_Scene_sync_mode_get(PointerRNA *ptr)
@@ -1073,7 +1108,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "proportional_edit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "proportional");
 	RNA_def_property_enum_items(prop, proportional_editing_items);
-	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional editing mode");
+	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional Editing mode, allows transforms with distance fall-off");
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "use_proportional_edit_objects", PROP_BOOLEAN, PROP_NONE);
@@ -1201,6 +1236,10 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "edge_mode");
 	RNA_def_property_enum_items(prop, edge_tag_items);
 	RNA_def_property_ui_text(prop, "Edge Tag Mode", "The edge flag to tag when selecting the shortest path");
+
+	prop= RNA_def_property(srna, "edge_path_live_unwrap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_mode_live_unwrap", 1);
+	RNA_def_property_ui_text(prop, "Live Unwrap", "Changing edges seam re-calculates UV unwrap");
 
 	/* etch-a-ton */
 	prop= RNA_def_property(srna, "use_bone_sketching", PROP_BOOLEAN, PROP_NONE);
@@ -1969,6 +2008,11 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "GLSL Nodes", "Use nodes for GLSL rendering");
 	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
 
+	prop= RNA_def_property(srna, "use_glsl_color_management", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_COLOR_MANAGEMENT);
+	RNA_def_property_ui_text(prop, "GLSL Color Management", "Use color management for GLSL rendering");
+	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
+
 	prop= RNA_def_property(srna, "use_glsl_extra_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_EXTRA_TEX);
 	RNA_def_property_ui_text(prop, "GLSL Extra Textures", "Use extra textures like normal or specular maps for GLSL rendering");
@@ -2064,7 +2108,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem color_mode_items[] ={
-		{R_PLANESBW, "BW", 0, "BW", "Images are saved with BW (grayscale) data"},
+		{R_PLANESBW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
 		{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
 		{R_PLANES32, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
 		{0, NULL, 0, NULL, NULL}};
@@ -2073,6 +2117,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in full Screen"},
 		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in Image Editor"},
 		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in new Window"},
+		{R_OUTPUT_NONE, "NONE", 0, "Keep UI", "Images are rendered without forcing UI changes, optionally showing result"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* Bake */
@@ -2148,7 +2193,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{1, "CINE_24FPS", 0, "Cinema 24fps 2048x1080", ""},
 		{2, "CINE_48FPS", 0, "Cinema 48fps 2048x1080", ""},
 		{3, "CINE_24FPS_4K", 0, "Cinema 24fps 4096x2160", ""},
-		{4, "CINE_SCOPE_48FPS", 0, "Cine-Scope 24fps 2048x858", ""},
+		{4, "CINE_SCOPE_24FPS", 0, "Cine-Scope 24fps 2048x858", ""},
 		{5, "CINE_SCOPE_48FPS", 0, "Cine-Scope 48fps 2048x858", ""},
 		{6, "CINE_FLAT_24FPS", 0, "Cine-Flat 24fps 1998x1080", ""},
 		{7, "CINE_FLAT_48FPS", 0, "Cine-Flat 48fps 1998x1080", ""},
@@ -2269,6 +2314,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "resolution_percentage", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "size");
+	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 1, 100, 10, 1);
 	RNA_def_property_ui_text(prop, "Resolution %", "Percentage scale for render resolution");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
@@ -2353,7 +2399,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "exr_zbuf", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_OPENEXR_ZBUF);
-	RNA_def_property_ui_text(prop, "Zbuf", "Save the z-depth per pixel (32 bit unsigned int zbuffer)");
+	RNA_def_property_ui_text(prop, "Zbuf", "Save the z-depth per pixel (32 bit unsigned int z-buffer)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "exr_preview", PROP_BOOLEAN, PROP_NONE);
@@ -3091,7 +3137,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Object", "Active object for this scene");
 	/* Could call: ED_base_object_activate(C, scene->basact);
 	 * but would be a bad level call and it seems the notifier is enough */
@@ -3286,11 +3332,12 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	/* Layers */
 	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); // this seems to be too much trouble with depsgraph updates/etc. currently (20110420)
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
 	RNA_def_property_ui_text(prop, "Layers", "Layers visible when rendering the scene");
-	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_view3d_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_layer_update");
 	
 	/* Frame Range Stuff */
 	prop= RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
@@ -3453,7 +3500,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	/* Audio Settings */
 	prop= RNA_def_property(srna, "use_audio", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "audio.flag", AUDIO_MUTE);
+	RNA_def_property_boolean_funcs(prop, "rna_Scene_use_audio_get", "rna_Scene_use_audio_set");
 	RNA_def_property_ui_text(prop, "Audio Muted", "Play back of audio from Sequence Editor will be muted");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 

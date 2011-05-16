@@ -1,5 +1,5 @@
-/**
- * $Id: view3d_fly.c 34159 2011-01-07 18:36:47Z campbellbarton $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_view3d/view3d_fly.c
+ *  \ingroup spview3d
+ */
+
 
 /* defines VIEW3D_OT_fly modal operator */
 
@@ -199,10 +204,10 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), struct ARegion *UNUSE
 	mouse can move during fly mode without spinning the view */
 	float x1, x2, y1, y2;
 	
-	x1= 0.45*(float)fly->ar->winx;
-	y1= 0.45*(float)fly->ar->winy;
-	x2= 0.55*(float)fly->ar->winx;
-	y2= 0.55*(float)fly->ar->winy;
+	x1= 0.45f * (float)fly->ar->winx;
+	y1= 0.45f * (float)fly->ar->winy;
+	x2= 0.55f * (float)fly->ar->winx;
+	y2= 0.55f * (float)fly->ar->winy;
 	cpack(0);
 	
 	
@@ -435,14 +440,14 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				fly->time_lastwheel = time_currwheel;
 				/*printf("Wheel %f\n", time_wheel);*/
 				/*Mouse wheel delays range from 0.5==slow to 0.01==fast*/
-				time_wheel = 1+ (10 - (20*MIN2(time_wheel, 0.5))); /* 0-0.5 -> 0-5.0 */
+				time_wheel = 1.0f + (10.0f - (20.0f * MIN2(time_wheel, 0.5f))); /* 0-0.5 -> 0-5.0 */
 
 				if (fly->speed<0.0f) fly->speed= 0.0f;
 				else {
 					if (event->shift)
-						fly->speed+= fly->grid*time_wheel*0.1;
+						fly->speed += fly->grid*time_wheel * 0.1f;
 					else
-						fly->speed+= fly->grid*time_wheel;
+						fly->speed += fly->grid*time_wheel;
 				}
 				break;
 			}
@@ -454,12 +459,12 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				time_currwheel= PIL_check_seconds_timer();
 				time_wheel = (float)(time_currwheel - fly->time_lastwheel);
 				fly->time_lastwheel = time_currwheel;
-				time_wheel = 1+ (10 - (20*MIN2(time_wheel, 0.5))); /* 0-0.5 -> 0-5.0 */
+				time_wheel = 1.0f + (10.0f - (20.0f * MIN2(time_wheel, 0.5f))); /* 0-0.5 -> 0-5.0 */
 
 				if (fly->speed>0) fly->speed=0;
 				else {
 					if (event->shift)
-						fly->speed-= fly->grid*time_wheel*0.1;
+						fly->speed-= fly->grid*time_wheel * 0.1f;
 					else
 						fly->speed-= fly->grid*time_wheel;
 				}
@@ -535,7 +540,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 {
 
 #define FLY_ROTATE_FAC 2.5f /* more is faster */
-#define FLY_ZUP_CORRECT_FAC 0.1f /* ammount to correct per step */
+#define FLY_ZUP_CORRECT_FAC 0.1f /* amount to correct per step */
 #define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
 
 	/*
@@ -558,7 +563,8 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	moffset[2], /* mouse offset from the views center */
 	tmp_quat[4]; /* used for rotating the view */
 
-	int cent_orig[2], /* view center */
+	int
+//	cent_orig[2], /* view center */
 //XXX- can avoid using // 	cent[2], /* view center modified */
 	xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
 	unsigned char
@@ -577,8 +583,9 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	xmargin= ar->winx/20.0f;
 	ymargin= ar->winy/20.0f;
 
-	cent_orig[0]= ar->winrct.xmin + ar->winx/2;
-	cent_orig[1]= ar->winrct.ymin + ar->winy/2;
+	// UNUSED
+	// cent_orig[0]= ar->winrct.xmin + ar->winx/2;
+	// cent_orig[1]= ar->winrct.ymin + ar->winy/2;
 
 	{
 
@@ -603,18 +610,19 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 		if(moffset[0]) {
 			moffset[0] /= ar->winx - (xmargin*2);
-			moffset[0] *= fabs(moffset[0]);
+			moffset[0] *= fabsf(moffset[0]);
 		}
 
 		if(moffset[1]) {
 			moffset[1] /= ar->winy - (ymargin*2);
-			moffset[1] *= fabs(moffset[1]);
+			moffset[1] *= fabsf(moffset[1]);
 		}
 
 		/* Should we redraw? */
 		if(fly->speed != 0.0f || moffset[0] || moffset[1] || fly->zlock || fly->xlock || dvec[0] || dvec[1] || dvec[2] ) {
 			float dvec_tmp[3];
-			double time_current, time_redraw; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
+			double time_current; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
+			float time_redraw;
 			float time_redraw_clamped;
 
 			time_current= PIL_check_seconds_timer();
@@ -637,12 +645,12 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				dvec_tmp[2]= 0;
 
 				if (fly->use_precision) {
-					dvec_tmp[0] *= 0.1;
-					dvec_tmp[1] *= 0.1;
+					dvec_tmp[0] *= 0.1f;
+					dvec_tmp[1] *= 0.1f;
 				}
 
 				mul_m3_v3(mat, dvec_tmp);
-				mul_v3_fl(dvec_tmp, time_redraw*200.0 * fly->grid);
+				mul_v3_fl(dvec_tmp, time_redraw * 200.0f * fly->grid);
 
 			} else {
 				float roll; /* similar to the angle between the camera's up and the Z-up, but its very rough so just roll*/
@@ -699,7 +707,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					mul_m3_v3(mat, upvec);
 
 					/*make sure we have some z rolling*/
-					if (fabs(upvec[2]) > 0.00001f) {
+					if (fabsf(upvec[2]) > 0.00001f) {
 						roll= upvec[2]*5;
 						upvec[0]=0; /*rotate the view about this axis*/
 						upvec[1]=0;
@@ -785,7 +793,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				/* transform the parent or the camera? */
 				if(fly->root_parent) {
 					Object *ob_update;
-                    
+
 					float view_mat[4][4];
 					float prev_view_imat[4][4];
 					float diff_mat[4][4];

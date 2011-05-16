@@ -1,5 +1,5 @@
-/**
- * $Id: textview.c 34160 2011-01-07 19:18:31Z campbellbarton $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_info/textview.c
+ *  \ingroup spinfo
+ */
+
 
 #include <math.h>
 #include <string.h>

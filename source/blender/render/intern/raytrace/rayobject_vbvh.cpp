@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/raytrace/rayobject_vbvh.cpp
+ *  \ingroup render
+ */
+
 
 int tot_pushup   = 0;
 int tot_pushdown = 0;
@@ -93,13 +98,17 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 			return;
 		}
 
-		reorganize(root);
-		remove_useless(root, &root);
-		bvh_refit(root);
-	
-		pushup(root);
-		pushdown(root);
-		obj->root = root;
+		if(root) {
+			reorganize(root);
+			remove_useless(root, &root);
+			bvh_refit(root);
+		
+			pushup(root);
+			pushdown(root);
+			obj->root = root;
+		}
+		else
+			obj->root = NULL;
 	}
 	else
 	{

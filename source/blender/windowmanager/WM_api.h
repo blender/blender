@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,17 @@
  */
 #ifndef WM_API_H
 #define WM_API_H
+
+/** \file WM_api.h
+ *  \ingroup wm
+ *
+ *  \page wmpage windowmanager
+ *  \section wmabout About windowmanager
+ *  \ref wm handles events received from \ref GHOST and manages
+ *  the screens, areas and input for Blender
+ *  \section wmnote NOTE
+ *  \todo document
+ */
 
 /* dna-savable wmStructs here */
 #include "DNA_windowmanager_types.h"
@@ -59,7 +70,7 @@ void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
 void		WM_setinitialstate_fullscreen(void);
 void		WM_setinitialstate_normal(void);
 
-void		WM_init				(struct bContext *C, int argc, char **argv);
+void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
@@ -162,7 +173,7 @@ struct wmEventHandler *WM_event_add_ui_handler(const struct bContext *C, ListBas
 			void (*remove)(struct bContext *C, void *userdata), void *userdata);
 void		WM_event_remove_ui_handler(ListBase *handlers,
 			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
-			void (*remove)(struct bContext *C, void *userdata), void *userdata);
+			void (*remove)(struct bContext *C, void *userdata), void *userdata, int postpone);
 void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
 
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
@@ -348,8 +359,11 @@ void		WM_progress_clear(struct wmWindow *win);
 
 #ifdef WIN32
 			/* Windows System Console */
-void		WM_toggle_console(struct bContext *C, short show);
+void		WM_console_toggle(struct bContext *C, short show);
 #endif
+
+/* debugging only, convenience function to write on crash */
+int write_crash_blend(void);
 
 #ifdef __cplusplus
 }

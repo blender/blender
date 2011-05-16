@@ -1,3 +1,6 @@
+/** \file smoke/intern/FFT_NOISE.h
+ *  \ingroup smoke
+ */
 //////////////////////////////////////////////////////////////////////
 // This file is part of Wavelet Turbulence.
 // 

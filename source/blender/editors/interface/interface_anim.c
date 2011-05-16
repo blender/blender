@@ -1,3 +1,6 @@
+/** \file blender/editors/interface/interface_anim.c
+ *  \ingroup edinterface
+ */
 
 #include <stdio.h>
 #include <stdlib.h>

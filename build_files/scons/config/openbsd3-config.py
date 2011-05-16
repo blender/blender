@@ -2,7 +2,7 @@ LCGDIR = '../lib/openbsd3'
 LIBDIR = '${LCGDIR}'
 
 BF_PYTHON = '/usr/local'
-BF_PYTHON_VERSION = '3.1'
+BF_PYTHON_VERSION = '3.2'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
@@ -122,8 +122,8 @@ CFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 CPPFLAGS = []
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
-REL_CFLAGS = ['-O2']
-REL_CCFLAGS = ['-O2']
+REL_CFLAGS = ['-DNDEBUG', '-O2']
+REL_CCFLAGS = ['-DNDEBUG', '-O2']
 ##BF_DEPEND = True
 ##
 ##AR = ar
@@ -147,7 +147,7 @@ BF_PROFILE_CCFLAGS = ['-pg','-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g', '-DDEBUG']
+BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']
 
 BF_BUILDDIR='../build/openbsd3'
 BF_INSTALLDIR='../install/openbsd3'

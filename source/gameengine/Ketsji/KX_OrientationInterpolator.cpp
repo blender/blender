@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_OrientationInterpolator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_OrientationInterpolator.h"
 #include "MT_Matrix3x3.h"

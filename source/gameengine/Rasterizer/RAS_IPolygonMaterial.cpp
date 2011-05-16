@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Rasterizer/RAS_IPolygonMaterial.cpp
+ *  \ingroup bgerast
+ */
+
 
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_IRasterizer.h"
@@ -236,7 +241,7 @@ bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 	else if(rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID);
 	else if(rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW);
 	else
-		dolights = (m_drawingmode & 16)!=0;
+		dolights = (m_drawingmode & RAS_IRasterizer::KX_LIGHT)!=0;
 	
 	return dolights;
 }

@@ -27,7 +27,6 @@
 add_subdirectory(blender)
 
 if(WITH_GAMEENGINE)
-	add_subdirectory(kernel)
 	add_subdirectory(gameengine)
 endif()
 	

@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_sequence_types.h (mar-2001 nzc)
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,11 @@
  */
 #ifndef DNA_SEQUENCE_TYPES_H
 #define DNA_SEQUENCE_TYPES_H
+/** \file DNA_sequence_types.h
+ *  \ingroup DNA
+ *  \since mar-2001
+ *  \author nzc
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"

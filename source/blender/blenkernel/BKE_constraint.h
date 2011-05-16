@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +29,11 @@
 
 #ifndef BKE_CONSTRAINT_H
 #define BKE_CONSTRAINT_H
+
+/** \file BKE_constraint.h
+ *  \ingroup bke
+ *  \author Joshua Leung (major recode 2007)
+ */
 
 struct ID;
 struct bConstraint;

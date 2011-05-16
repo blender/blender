@@ -12,6 +12,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file IntValue.h
+ *  \ingroup expressions
+ */
+
 #if !defined _INTVALUE_H
 #define _INTVALUE_H
 

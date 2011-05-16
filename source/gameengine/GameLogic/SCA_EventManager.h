@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SCA_EventManager.h
+ *  \ingroup gamelogic
+ */
+
 #ifndef __KX_EVENTMANAGER
 #define __KX_EVENTMANAGER
 

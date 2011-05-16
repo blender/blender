@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * .blend file reading entry point
  */
+
+/** \file blender/blenloader/intern/readblenentry.c
+ *  \ingroup blenloader
+ */
+
 
 #include <stddef.h>
 #include "BLI_storage.h" /* _LARGEFILE_SOURCE */
@@ -70,11 +75,11 @@ void BLO_blendhandle_print_sizes(BlendHandle *, void *);
 
 	/* Access routines used by filesel. */
 	 
-BlendHandle *BLO_blendhandle_from_file(char *file) 
+BlendHandle *BLO_blendhandle_from_file(char *file, ReportList *reports)
 {
 	BlendHandle *bh;
 
-	bh= (BlendHandle*)blo_openblenderfile(file, NULL);
+	bh= (BlendHandle*)blo_openblenderfile(file, reports);
 
 	return bh;
 }
@@ -118,25 +123,28 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 	fprintf(fp, "]\n");
 }
 
-LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype) 
+LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, int *tot_names)
 {
 	FileData *fd= (FileData*) bh;
 	LinkNode *names= NULL;
 	BHead *bhead;
+	int tot= 0;
 
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code==ofblocktype) {
 			char *idname= bhead_id_name(fd, bhead);
-			
+
 			BLI_linklist_prepend(&names, strdup(idname+2));
+			tot++;
 		} else if (bhead->code==ENDB)
 			break;
 	}
-	
+
+	*tot_names= tot;
 	return names;
 }
 
-LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype) 
+LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *tot_prev)
 {
 	FileData *fd= (FileData*) bh;
 	LinkNode *previews= NULL;
@@ -145,6 +153,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 	int npreviews = 0;
 	PreviewImage* prv = NULL;
 	PreviewImage* new_prv = NULL;
+	int tot= 0;
 	
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code==ofblocktype) {
@@ -158,6 +167,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 				case ID_LA: /* fall through */
 					new_prv = MEM_callocN(sizeof(PreviewImage), "newpreview");
 					BLI_linklist_prepend(&previews, new_prv);
+					tot++;
 					looking = 1;
 					break;
 				default:
@@ -196,8 +206,6 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 			}
 		} else if (bhead->code==ENDB) {
 			break;
-		} else if (bhead->code==DATA) {
-			/* DATA blocks between IDBlock and Preview */
 		} else {
 			looking = 0;
 			new_prv = NULL;
@@ -205,7 +213,8 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 		}
 		
 	}
-	
+
+	*tot_prev= tot;
 	return previews;
 }
 

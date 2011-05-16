@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Dynamically sized string ADT
  */
+
+/** \file blender/blenlib/intern/BLI_dynstr.c
+ *  \ingroup bli
+ */
+
 
 #include <stdarg.h>
 #include <string.h>

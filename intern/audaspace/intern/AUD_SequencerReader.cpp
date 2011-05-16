@@ -1,27 +1,33 @@
 /*
  * $Id$
  *
- * ***** BEGIN LGPL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * Copyright 2009 Jörg Hermann Müller
+ * Copyright 2009-2011 Jörg Hermann Müller
  *
  * This file is part of AudaSpace.
  *
- * AudaSpace is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * Audaspace is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * AudaSpace is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with AudaSpace.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Audaspace; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * ***** END LGPL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file audaspace/intern/AUD_SequencerReader.cpp
+ *  \ingroup audaspaceintern
+ */
+
 
 #include "AUD_SequencerReader.h"
 #include "AUD_DefaultMixer.h"
@@ -176,55 +182,58 @@ void AUD_SequencerReader::read(int & length, sample_t* & buffer)
 		m_buffer.resize(size);
 	buffer = m_buffer.getBuffer();
 
-	for(AUD_StripIterator i = m_strips.begin(); i != m_strips.end(); i++)
+	if(!m_factory->getMute())
 	{
-		strip = *i;
-		if(!strip->entry->muted)
+		for(AUD_StripIterator i = m_strips.begin(); i != m_strips.end(); i++)
 		{
-			if(strip->old_sound != *strip->entry->sound)
+			strip = *i;
+			if(!strip->entry->muted)
 			{
-				strip->old_sound = *strip->entry->sound;
-				if(strip->reader)
-					delete strip->reader;
-
-				if(strip->old_sound)
+				if(strip->old_sound != *strip->entry->sound)
 				{
-					try
-					{
-						strip->reader = m_mixer->prepare(strip->old_sound->createReader());
-					}
-					catch(AUD_Exception)
-					{
-						strip->reader = NULL;
-					}
-				}
-				else
-					strip->reader = NULL;
-			}
+					strip->old_sound = *strip->entry->sound;
+					if(strip->reader)
+						delete strip->reader;
 
-			if(strip->reader)
-			{
-				end = floor(strip->entry->end * rate);
-				if(m_position < end)
-				{
-					start = floor(strip->entry->begin * rate);
-					if(m_position + length > start)
+					if(strip->old_sound)
 					{
-						current = m_position - start;
-						if(current < 0)
+						try
 						{
-							skip = -current;
-							current = 0;
+							strip->reader = m_mixer->prepare(strip->old_sound->createReader());
 						}
-						else
-							skip = 0;
-						current += strip->entry->skip * rate;
-						len = length > end - m_position ? end - m_position : length;
-						len -= skip;
-						if(strip->reader->getPosition() != current)
-							strip->reader->seek(current);
-						strip->reader->read(len, buf);
-						m_mixer->add(buf, skip, len, m_volume(m_data, strip->entry->data, (float)m_position / (float)rate));
+						catch(AUD_Exception)
+						{
+							strip->reader = NULL;
+						}
+					}
+					else
+						strip->reader = NULL;
+				}
+
+				if(strip->reader)
+				{
+					end = floor(strip->entry->end * rate);
+					if(m_position < end)
+					{
+						start = floor(strip->entry->begin * rate);
+						if(m_position + length > start)
+						{
+							current = m_position - start;
+							if(current < 0)
+							{
+								skip = -current;
+								current = 0;
+							}
+							else
+								skip = 0;
+							current += strip->entry->skip * rate;
+							len = length > end - m_position ? end - m_position : length;
+							len -= skip;
+							if(strip->reader->getPosition() != current)
+								strip->reader->seek(current);
+							strip->reader->read(len, buf);
+							m_mixer->add(buf, skip, len, m_volume(m_data, strip->entry->data, (float)m_position / (float)rate));
+						}
 					}
 				}
 			}

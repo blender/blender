@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
- * Readonly sequence wrapper for lookups on logic bricks
+ */
+
+/** \file KX_PythonSeq.h
+ *  \ingroup ketsji
+ *  \brief Readonly sequence wrapper for lookups on logic bricks
  */
  
 #ifndef _adr_py_seq_h_				// only process once,

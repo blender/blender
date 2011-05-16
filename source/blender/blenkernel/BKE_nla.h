@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +29,11 @@
 
 #ifndef BKE_NLA_H
 #define BKE_NLA_H
+
+/** \file BKE_nla.h
+ *  \ingroup bke
+ *  \author Joshua Leung (full recode)
+ */
 
 struct AnimData;
 struct NlaStrip;

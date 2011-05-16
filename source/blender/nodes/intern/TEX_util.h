@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/TEX_util.h
+ *  \ingroup nodes
+ */
+
 
 #ifndef TEX_NODE_UTIL_H_
 #define TEX_NODE_UTIL_H_

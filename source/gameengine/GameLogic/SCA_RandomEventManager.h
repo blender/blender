@@ -1,6 +1,4 @@
-/**
- * Manager for random events
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_RandomEventManager.h
+ *  \ingroup gamelogic
+ *  \brief Manager for random events
  */
 
 #ifndef __KX_RANDOMEVENTMGR

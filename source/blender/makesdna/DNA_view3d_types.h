@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_view3d_types.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,10 @@
 #ifndef DNA_VIEW3D_TYPES_H
 #define DNA_VIEW3D_TYPES_H
 
+/** \file DNA_view3d_types.h
+ *  \ingroup DNA
+ */
+
 struct ViewDepths;
 struct Object;
 struct Image;
@@ -39,7 +41,6 @@ struct SpaceLink;
 struct Base;
 struct BoundBox;
 struct RenderInfo;
-struct RetopoViewData;
 struct bGPdata;
 struct SmoothViewStore;
 struct wmTimer;
@@ -111,9 +112,8 @@ typedef struct RegionView3D {
 	
 	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
 	
-	struct RegionView3D *localvd;
+	struct RegionView3D *localvd; /* allocated backup of its self while in localview */
 	struct RenderInfo *ri;
-	struct RetopoViewData *retopo_view_data;
 	struct ViewDepths *depths;
 	
 	/* animated smooth view */
@@ -151,7 +151,7 @@ typedef struct View3D {
 	struct ListBase bgpicbase;
 	struct BGpic *bgpic; /* deprecated, use bgpicbase, only kept for do_versions(...) */
 
-	struct View3D *localvd;
+	struct View3D *localvd; /* allocated backup of its self while in localview */
 	
 	char ob_centre_bone[32];		/* optional string for armature bone to define center */
 	

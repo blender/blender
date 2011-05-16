@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_MeshProxy.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_MESHPROXY
 #define __KX_MESHPROXY
 

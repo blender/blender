@@ -1,4 +1,4 @@
-/**
+/*
  *
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_crop.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 /* **************** Crop  ******************** */
@@ -48,14 +53,14 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 		CompBuf *stackbuf;
 		int x, y;
 		float *srcfp, *outfp;
-      rcti outputrect;
+		rcti outputrect;
 
-      if(node->custom2) {
-         ntxy->x1= cbuf->x* ntxy->fac_x1;
-         ntxy->x2= cbuf->x* ntxy->fac_x2;
-         ntxy->y1= cbuf->y* ntxy->fac_y1;
-         ntxy->y2= cbuf->y* ntxy->fac_y2;
-      }
+		if(node->custom2) {
+			ntxy->x1= cbuf->x* ntxy->fac_x1;
+			ntxy->x2= cbuf->x* ntxy->fac_x2;
+			ntxy->y1= cbuf->y* ntxy->fac_y1;
+			ntxy->y2= cbuf->y* ntxy->fac_y2;
+		}
 
 		/* check input image size */
 		if(cbuf->x <= ntxy->x1 + 1)
@@ -100,12 +105,12 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 
 static void node_composit_init_crop(bNode* node)
 {
-   NodeTwoXYs *nxy= MEM_callocN(sizeof(NodeTwoXYs), "node xy data");
-   node->storage= nxy;
-   nxy->x1= 0;
-   nxy->x2= 0;
-   nxy->y1= 0;
-   nxy->y2= 0;
+	NodeTwoXYs *nxy= MEM_callocN(sizeof(NodeTwoXYs), "node xy data");
+	node->storage= nxy;
+	nxy->x1= 0;
+	nxy->x2= 0;
+	nxy->y1= 0;
+	nxy->y2= 0;
 }
 
 void register_node_type_cmp_crop(ListBase *lb)

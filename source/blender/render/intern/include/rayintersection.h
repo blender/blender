@@ -1,5 +1,5 @@
-/**
- * $Id: rayintersection.h 34664 2011-02-06 00:49:58Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * RE_raytrace.h: ray tracing api, can be used independently from the renderer. 
  */
+
+/** \file blender/render/intern/include/rayintersection.h
+ *  \ingroup render
+ */
+
 
 #ifndef __RENDER_RAYINTERSECTION_H__
 #define __RENDER_RAYINTERSECTION_H__

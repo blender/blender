@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/tiff.c
+ *  \ingroup imbuf
+ */
+
+
 /**
  * Provides TIFF file loading and saving for Blender, via libtiff.
  *
@@ -331,7 +336,7 @@ static void scanline_contig_32bit(float *rectf, float *fbuf, int scanline_w, int
 		rectf[i*4 + 0] = fbuf[i*spp + 0];
 		rectf[i*4 + 1] = fbuf[i*spp + 1];
 		rectf[i*4 + 2] = fbuf[i*spp + 2];
-		rectf[i*4 + 3] = (spp==4)?fbuf[i*spp + 3]:1.0;
+		rectf[i*4 + 3] = (spp==4)?fbuf[i*spp + 3]:1.0f;
 	}
 }
 
@@ -435,9 +440,11 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 
 	if(success) {
 		ibuf->profile = (bitspersample==32)?IB_PROFILE_LINEAR_RGB:IB_PROFILE_SRGB;
-			
-		if(ENDIAN_ORDER == B_ENDIAN)
-			IMB_convert_rgba_to_abgr(tmpibuf);
+
+//		Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton)
+		if(bitspersample < 16)
+			if(ENDIAN_ORDER == B_ENDIAN)
+				IMB_convert_rgba_to_abgr(tmpibuf);
 		if(premul) {
 			IMB_premultiply_alpha(tmpibuf);
 			ibuf->flags |= IB_premul;
@@ -598,8 +605,7 @@ void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int 
 		return;
 	}
 
-   	if(TIFFSetDirectory(image, ibuf->miplevel)) {
-		/* allocate the image buffer */
+	if(TIFFSetDirectory(image, ibuf->miplevel)) { /* allocate the image buffer */
 		TIFFGetField(image, TIFFTAG_IMAGEWIDTH,  &width);
 		TIFFGetField(image, TIFFTAG_IMAGELENGTH, &height);
 

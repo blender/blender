@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,6 +20,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file memutil/MEM_CacheLimiterC-Api.h
+ *  \ingroup memutil
+ */
+
 
 #ifndef MEM_CACHELIMITERC_API_H
 #define MEM_CACHELIMITERC_API_H

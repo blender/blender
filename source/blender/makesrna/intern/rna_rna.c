@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_rna.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 
@@ -305,7 +310,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	PointerRNA propptr= {{0}};
+	PointerRNA propptr= {{NULL}};
 
 	srna= ptr->type;
 
@@ -486,6 +491,12 @@ static int rna_Property_is_hidden_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	return prop->flag & PROP_HIDDEN ? 1:0;
+}
+
+static int rna_Property_is_enum_flag_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_ENUM_FLAG ? 1:0;
 }
 
 static int rna_Property_array_length_get(PointerRNA *ptr)
@@ -723,12 +734,12 @@ static int rna_enum_check_separator(CollectionPropertyIterator *iter, void *data
 static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	EnumPropertyRNA *eprop;
+	// EnumPropertyRNA *eprop; // UNUSED
 	EnumPropertyItem *item= NULL;
 	int totitem, free= 0;
 	
 	rna_idproperty_check(&prop, ptr);
-	eprop= (EnumPropertyRNA*)prop;
+	// eprop= (EnumPropertyRNA*)prop;
 	
 	RNA_property_enum_items(NULL, ptr, prop, &item, &totitem, &free);
 	rna_iterator_array_begin(iter, (void*)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);
@@ -956,6 +967,7 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_QUATERNION, "QUATERNION", 0, "Quaternion", ""},
 		{PROP_XYZ, "XYZ", 0, "XYZ", ""},
 		{PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Gamma Corrected Color", ""},
+		{PROP_COORDS, "COORDINATES", 0, "Vector Coordinates", ""},
 		{PROP_LAYER, "LAYER", 0, "Layer", ""},
 		{PROP_LAYER_MEMBER, "LAYER_MEMBERSHIP", 0, "Layer Membership", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -1044,6 +1056,11 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_runtime_get", NULL);
 	RNA_def_property_ui_text(prop, "Read Only", "Property is editable through RNA");
+
+	prop= RNA_def_property(srna, "is_enum_flag", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_enum_flag_get", NULL);
+	RNA_def_property_ui_text(prop, "Enum Flag", "True when multiple enums ");
 }
 
 static void rna_def_function(BlenderRNA *brna)
@@ -1209,7 +1226,15 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_enum_funcs(prop, "rna_EnumProperty_default_get", NULL, "rna_EnumProperty_default_itemf");
 	RNA_def_property_ui_text(prop, "Default", "Default value for this enum");
 
-	prop= RNA_def_property(srna, "items", PROP_COLLECTION, PROP_NONE);
+	/* same 'default' but uses 'PROP_ENUM_FLAG' */
+	prop= RNA_def_property(srna, "default_flag", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_enum_items(prop, default_dummy_items);
+	RNA_def_property_enum_funcs(prop, "rna_EnumProperty_default_get", NULL, "rna_EnumProperty_default_itemf");
+	RNA_def_property_ui_text(prop, "Default", "Default value for this enum");
+
+	prop= RNA_def_property(srna, "enum_items", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "EnumPropertyItem");
 	RNA_def_property_collection_funcs(prop, "rna_EnumProperty_items_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);

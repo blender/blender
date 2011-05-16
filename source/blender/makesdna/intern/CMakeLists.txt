@@ -29,6 +29,7 @@
 
 blender_include_dirs(
 	../../../../intern/guardedalloc
+	../../blenloader
 	..
 )
 
@@ -56,6 +57,9 @@ add_custom_command(
 )
 
 # Build bf_dna library
+set(INC
+)
+
 set(SRC
 	dna_genfile.c
 	dna.c

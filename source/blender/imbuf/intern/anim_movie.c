@@ -1,7 +1,7 @@
-/**
+/*
  * anim.c
  *
- * $Id: anim_movie.c 34160 2011-01-07 19:18:31Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/imbuf/intern/anim_movie.c
+ *  \ingroup imbuf
+ */
+
 
 #ifdef _WIN32
 #define INC_OLE2
@@ -180,7 +185,7 @@ static ImBuf * movie_fetchibuf(struct anim * anim, int position) {
 	if (anim->interlacing == DM_IMAGE_INTERLACED_EVEN) {
 		rect1 = ibuf->rect + (ibuf->x * ibuf->y) - 1;
 		rect2 = rect1 - ibuf->x;
-    
+
 		for (size = ibuf->x * (ibuf->y - 1); size > 0; size--){
 			*rect1-- = *rect2--;
 		}
@@ -348,7 +353,7 @@ void IMB_free_anim(struct anim * anim) {
 }
 
 void IMB_close_anim(struct anim * anim) {
-	if (anim == 0) return;
+	if (anim == NULL) return;
 
 	IMB_free_anim(anim);
 }
@@ -449,7 +454,7 @@ static int startavi (struct anim *anim) {
 	}
 	
 	anim->duration = anim->avi->header->TotalFrames;
-	anim->params = 0;
+	anim->params = NULL;
 
 	anim->x = anim->avi->header->Width;
 	anim->y = anim->avi->header->Height;
@@ -1029,9 +1034,9 @@ static void free_anim_redcode(struct anim * anim) {
 /* gelukt, haal dan eerste plaatje van animatie */
 
 static struct ImBuf * anim_getnew(struct anim * anim) {
-	struct ImBuf *ibuf = 0;
+	struct ImBuf *ibuf = NULL;
 
-	if (anim == NULL) return(0);
+	if (anim == NULL) return(NULL);
 
 	free_anim_movie(anim);
 	free_anim_avi(anim);
@@ -1046,7 +1051,7 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 #endif
 
 
-	if (anim->curtype != 0) return (0);
+	if (anim->curtype != 0) return (NULL);
 	anim->curtype = imb_get_anim_type(anim->name);	
 
 	switch (anim->curtype) {
@@ -1058,13 +1063,13 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 		}
 		break;
 	case ANIM_MOVIE:
-		if (startmovie(anim)) return (0);
+		if (startmovie(anim)) return (NULL);
 		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0); /* fake */
 		break;
 	case ANIM_AVI:
 		if (startavi(anim)) {
 			printf("couldnt start avi\n"); 
-			return (0);
+			return (NULL);
 		}
 		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0);
 		break;
@@ -1091,7 +1096,7 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 }
 
 struct ImBuf * IMB_anim_previewframe(struct anim * anim) {
-	struct ImBuf * ibuf = 0;
+	struct ImBuf * ibuf = NULL;
 	int position = 0;
 	
 	ibuf = IMB_anim_absolute(anim, 0);
@@ -1104,27 +1109,27 @@ struct ImBuf * IMB_anim_previewframe(struct anim * anim) {
 }
 
 struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
-	struct ImBuf * ibuf = 0;
+	struct ImBuf * ibuf = NULL;
 	char head[256], tail[256];
 	unsigned short digits;
 	int pic;
 	int filter_y;
-	if (anim == NULL) return(0);
+	if (anim == NULL) return(NULL);
 
 	filter_y = (anim->ib_flags & IB_animdeinterlace);
 
 	if (anim->curtype == 0)	{
 		ibuf = anim_getnew(anim);
 		if (ibuf == NULL) {
-			return (0);
+			return(NULL);
 		}
 
 		IMB_freeImBuf(ibuf); /* ???? */
 		ibuf= NULL;
 	}
 
-	if (position < 0) return(0);
-	if (position >= anim->duration) return(0);
+	if (position < 0) return(NULL);
+	if (position >= anim->duration) return(NULL);
 
 	switch(anim->curtype) {
 	case ANIM_SEQUENCE:

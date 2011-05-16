@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/GHOST_Types.h
+ *  \ingroup GHOST
+ */
+
 
 #ifndef _GHOST_TYPES_H_
 #define _GHOST_TYPES_H_
@@ -353,7 +358,13 @@ typedef enum {
 	GHOST_kKeyF21,
 	GHOST_kKeyF22,
 	GHOST_kKeyF23,
-	GHOST_kKeyF24
+	GHOST_kKeyF24,
+	
+	// Multimedia keypad buttons
+	GHOST_kKeyMediaPlay,
+	GHOST_kKeyMediaStop,
+	GHOST_kKeyMediaFirst,
+	GHOST_kKeyMediaLast
 } GHOST_TKey;
 
 typedef enum {

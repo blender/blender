@@ -1,19 +1,4 @@
-/**
- * @mainpage KX_SG_NodeRelationships   
-
- * @section 
- *
- * This file provides common concrete implementations of 
- * SG_ParentRelation used by the game engine. These are
- * KX_SlowParentRelation a slow parent relationship.
- * KX_NormalParentRelation a normal parent relationship where 
- * orientation and position are inherited from the parent by
- * the child.
- * KX_VertexParentRelation only location information is 
- * inherited by the child. 
- *
- * interface	  
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -43,6 +28,19 @@
  * 
  */
  
+/** \file KX_SG_NodeRelationships.h
+ *  \ingroup ketsji
+ *  \section KX_SG_NodeRelationships   
+ * This file provides common concrete implementations of 
+ * SG_ParentRelation used by the game engine. These are
+ * KX_SlowParentRelation a slow parent relationship.
+ * KX_NormalParentRelation a normal parent relationship where 
+ * orientation and position are inherited from the parent by
+ * the child.
+ * KX_VertexParentRelation only location information is 
+ * inherited by the child. 
+ */
+
 #ifndef __KX_SG_NODERELATIONS_H__
 #define __KX_SG_NODERELATIONS_H__
 

@@ -1,3 +1,6 @@
+/** \file itasc/kdl/treefksolverpos_recursive.cpp
+ *  \ingroup itasc
+ */
 // Copyright  (C)  2007  Ruben Smits <ruben dot smits at mech dot kuleuven dot be>
 // Copyright  (C)  2008 Julia Jesse
 

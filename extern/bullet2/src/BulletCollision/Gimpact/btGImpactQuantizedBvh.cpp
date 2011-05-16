@@ -1,5 +1,5 @@
 /*! \file gim_box_set.h
-\author Francisco Len Nßjera
+\author Francisco Leon Najera
 */
 /*
 This source file is part of GIMPACT Library.

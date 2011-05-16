@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/displist.c
+ *  \ingroup bke
+ */
+
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -121,7 +126,7 @@ DispList *find_displist(ListBase *lb, int type)
 		dl= dl->next;
 	}
 
-	return 0;
+	return NULL;
 }
 
 int displist_has_faces(ListBase *lb)
@@ -173,8 +178,8 @@ void addnormalsDispList(ListBase *lb)
 		if(dl->type==DL_INDEX3) {
 			if(dl->nors==NULL) {
 				dl->nors= MEM_callocN(sizeof(float)*3, "dlnors");
-				if(dl->verts[2]<0.0) dl->nors[2]= -1.0;
-				else dl->nors[2]= 1.0;
+				if(dl->verts[2] < 0.0f) dl->nors[2]= -1.0f;
+				else dl->nors[2]= 1.0f;
 			}
 		}
 		else if(dl->type==DL_SURF) {
@@ -408,10 +413,10 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			VECCOPY(shi.orn, shi.vn);
 		}
 		if(ma->texco & TEXCO_REFL) {
-			float inp= 2.0*(shi.vn[2]);
+			float inp= 2.0f * (shi.vn[2]);
 			shi.ref[0]= (inp*shi.vn[0]);
 			shi.ref[1]= (inp*shi.vn[1]);
-			shi.ref[2]= (-1.0+inp*shi.vn[2]);
+			shi.ref[2]= (-1.0f + inp*shi.vn[2]);
 		}
 	}
 	
@@ -584,9 +589,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 
 			mul_v3_m4v3(vec, mat, mv->co);
 
-			vec[0]+= 0.001*vn[0];
-			vec[1]+= 0.001*vn[1];
-			vec[2]+= 0.001*vn[2];
+			mul_v3_v3fl(vec, vn, 0.001f);
 
 			fastshade_customdata(&dm->faceData, i, j, ma);
 			fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, ma, col1, col2);
@@ -930,13 +933,13 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 {
 	EditVert *eve, *v1, *vlast;
 	EditFace *efa;
-	DispList *dlnew=0, *dl;
+	DispList *dlnew=NULL, *dl;
 	float *f1;
 	int colnr=0, charidx=0, cont=1, tot, a, *index, nextcol= 0;
 	intptr_t totvert;
 	
-	if(dispbase==0) return;
-	if(dispbase->first==0) return;
+	if(dispbase==NULL) return;
+	if(dispbase->first==NULL) return;
 
 	while(cont) {
 		cont= 0;
@@ -953,7 +956,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 						/* make editverts and edges */
 						f1= dl->verts;
 						a= dl->nr;
-						eve= v1= 0;
+						eve= v1= NULL;
 						
 						while(a--) {
 							vlast= eve;
@@ -961,14 +964,14 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 							eve= BLI_addfillvert(f1);
 							totvert++;
 
-							if(vlast==0) v1= eve;
+							if(vlast==NULL) v1= eve;
 							else {
 								BLI_addfilledge(vlast, eve);
 							}
 							f1+=3;
 						}
 
-						if(eve!=0 && v1!=0) {
+						if(eve!=NULL && v1!=NULL) {
 							BLI_addfilledge(eve, v1);
 						}
 					} else if (colnr<dl->col) {
@@ -1058,7 +1061,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	float *fp, *fp1;
 	int a, dpoly;
 	
-	front.first= front.last= back.first= back.last= 0;
+	front.first= front.last= back.first= back.last= NULL;
 	
 	dl= dispbase->first;
 	while(dl) {
@@ -1155,7 +1158,7 @@ float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 		/* horizontal size */
 		minx= dl->verts[0];
 		dx= dl->verts[3*(dl->nr-1)] - minx;
-		if(dx>0.0) {
+		if(dx > 0.0f) {
 		
 			fp= dl->verts;
 			for(a=0; a<dl->nr; a++, fp+=3) {
@@ -1736,7 +1739,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if (!dlbev.first && cu->width==1.0f) {
 			curve_to_displist(cu, nubase, dispbase, forRender);
 		} else {
-			float widfac= cu->width-1.0;
+			float widfac= cu->width - 1.0f;
 			BevList *bl= cu->bev.first;
 			Nurb *nu= nubase->first;
 
@@ -1866,9 +1869,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		   already applied, thats how it worked for years, so keep for compatibility (sergey) */
 		copy_displist(&cu->disp, dispbase);
 
-		 if (!forRender) {
-			 tex_space_curve(cu);
-		 }
+		if (!forRender) {
+			tex_space_curve(cu);
+		}
 
 		if(!forOrco) curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, originalVerts, deformedVerts);
 
@@ -1936,15 +1939,10 @@ float *makeOrcoDispList(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int
 	return orco;
 }
 
-void imagestodisplist(void)
-{
-	/* removed */
-}
-
 /* this is confusing, there's also min_max_object, appplying the obmat... */
 static void boundbox_displist(Object *ob)
 {
-	BoundBox *bb=0;
+	BoundBox *bb=NULL;
 	float min[3], max[3];
 	DispList *dl;
 	float *vert;
@@ -1956,7 +1954,7 @@ static void boundbox_displist(Object *ob)
 		Curve *cu= ob->data;
 		int doit= 0;
 
-		if(cu->bb==0) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
+		if(cu->bb==NULL) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
 		bb= cu->bb;
 		
 		dl= ob->disp.first;

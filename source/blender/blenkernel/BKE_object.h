@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,12 +25,15 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * General operations, lookup, etc. for blender objects.
  */
 
 #ifndef BKE_OBJECT_H
 #define BKE_OBJECT_H
 
+/** \file BKE_object.h
+ *  \ingroup bke
+ *  \brief General operations, lookup, etc. for blender objects.
+ */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,7 +91,6 @@ struct Object *add_only_object(int type, const char *name);
 struct Object *add_object(struct Scene *scene, int type);
 
 struct Object *copy_object(struct Object *ob);
-void expand_local_object(struct Object *ob);
 void make_local_object(struct Object *ob);
 int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
@@ -133,10 +135,15 @@ int object_insert_ptcache(struct Object *ob);
 // void object_delete_ptcache(struct Object *ob, int index);
 struct KeyBlock *object_insert_shape_key(struct Scene *scene, struct Object *ob, const char *name, int from_mix);
 
+int object_is_modified(struct Scene *scene, struct Object *ob);
+
+void object_camera_mode(struct RenderData *rd, struct Object *camera);
 void object_camera_matrix(
 		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
 		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens, float *ycor,
 		float *viewdx, float *viewdy);
+
+void object_relink(struct Object *ob);
 
 #ifdef __cplusplus
 }

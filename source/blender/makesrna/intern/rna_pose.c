@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_pose.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -465,11 +470,19 @@ static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, Repo
 		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in pose bone '%s'.", con->name, pchan->name);
 		return;
 	}
+	else {
+		Object *ob= (Object *)id;
+		const short is_ik= ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
 
-	// TODO
-	//ED_object_constraint_set_active(id, NULL);
-	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, id);
-	remove_constraint(&pchan->constraints, con);
+		remove_constraint(&pchan->constraints, con);
+		ED_object_constraint_update(ob);
+		constraints_set_active(&pchan->constraints, NULL);
+		WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, id);
+
+		if (is_ik) {
+			BIK_clear_data(ob->pose);
+		}
+	}
 }
 
 static int rna_PoseChannel_proxy_editable(PointerRNA *ptr)
@@ -818,7 +831,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
-	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix for this channel");
+	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix after constraints and drivers are applied (object space)");
 
 	/* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */
 	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
@@ -1206,7 +1219,7 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "chanbase", NULL);
 	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_ui_text(prop, "Pose Bones", "Individual pose bones for the armature");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, "rna_PoseBones_lookup_string"); /* can be removed, only for fast lookup */
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, "rna_PoseBones_lookup_string"); /* can be removed, only for fast lookup */
 	/* bone groups */
 	prop= RNA_def_property(srna, "bone_groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "agroups", NULL);

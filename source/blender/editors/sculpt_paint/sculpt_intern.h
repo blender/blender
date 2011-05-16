@@ -25,7 +25,12 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- */ 
+ */
+
+/** \file blender/editors/sculpt_paint/sculpt_intern.h
+ *  \ingroup edsculpt
+ */
+ 
 
 #ifndef BDR_SCULPTMODE_H
 #define BDR_SCULPTMODE_H
@@ -59,7 +64,7 @@ struct Brush *sculptmode_brush(void);
 void sculpt(Sculpt *sd);
 
 int sculpt_poll(struct bContext *C);
-void sculpt_update_mesh_elements(struct Scene *scene, struct Object *ob, int need_fmap);
+void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob, int need_fmap);
 
 /* Deformed mesh sculpt */
 void sculpt_free_deformMats(struct SculptSession *ss);
@@ -99,15 +104,14 @@ typedef struct SculptUndoNode {
 	float *layer_disp;
 
 	/* shape keys */
-	char *shapeName[32]; /* keep size in sync with keyblock dna */
+	char shapeName[sizeof(((KeyBlock *)0))->name];
 } SculptUndoNode;
 
-SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node);
+SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node);
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
 void sculpt_undo_push_begin(const char *name);
 void sculpt_undo_push_end(void);
 
-int sculpt_modifiers_active(Scene *scene, Object *ob);
 void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
 
 #endif

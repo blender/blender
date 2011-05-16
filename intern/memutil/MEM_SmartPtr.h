@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file memutil/MEM_SmartPtr.h
+ *  \ingroup memutil
+ */
+
 /**
  * @file	MEM_SmartPtr.h
  * Declaration of MEM_RefCounted and MEM_RefCountable classes.

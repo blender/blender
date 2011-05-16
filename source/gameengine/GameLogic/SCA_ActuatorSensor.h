@@ -1,4 +1,4 @@
-/**
+/*
  * Actuator sensor
  *
  * $Id$
@@ -27,6 +27,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_ActuatorSensor.h
+ *  \ingroup gamelogic
  */
 
 #ifndef __KX_ACTUATORSENSOR

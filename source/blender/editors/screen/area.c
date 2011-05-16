@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/screen/area.c
+ *  \ingroup edscr
+ */
+
 
 #include <string.h>
 #include <stdio.h>
@@ -102,7 +107,7 @@ void ED_region_pixelspace(ARegion *ar)
 	int width= ar->winrct.xmax-ar->winrct.xmin+1;
 	int height= ar->winrct.ymax-ar->winrct.ymin+1;
 	
-	wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
+	wmOrtho2(-0.375f, (float)width-0.375f, -0.375f, (float)height-0.375f);
 	glLoadIdentity();
 }
 
@@ -309,6 +314,10 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ARegionType *at= ar->type;
 	rcti winrct;
 	
+	/* see BKE_spacedata_draw_locks() */
+	if(at->do_lock)
+		return;
+	
 	/* checks other overlapping regions */
 	region_scissor_winrct(ar, &winrct);
 	
@@ -426,7 +435,11 @@ void ED_area_tag_refresh(ScrArea *sa)
 void ED_area_headerprint(ScrArea *sa, const char *str)
 {
 	ARegion *ar;
-	
+
+	/* happens when running transform operators in backround mode */
+	if(sa == NULL)
+		return;
+
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		if(ar->regiontype==RGN_TYPE_HEADER) {
 			if(str) {
@@ -838,7 +851,7 @@ static void region_subwindow(wmWindow *win, ARegion *ar)
 		wm_subwindow_position(win, ar->swinid, &ar->winrct);
 }
 
-static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int flag)
+static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *handlers, int flag)
 {
 	/* note, add-handler checks if it already exists */
 	
@@ -855,8 +868,20 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 	if(flag & ED_KEYMAP_MARKERS) {
 		/* time-markers */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Markers", 0, 0);
-		WM_event_add_keymap_handler(handlers, keymap);
-		// XXX need boundbox check urgently!!!
+		
+		/* time space only has this keymap, the others get a boundbox restricted map */
+		if(sa->spacetype!=SPACE_TIME) {
+			ARegion *ar;
+			static rcti rect= {0, 10000, 0, 30};	/* same local check for all areas */
+
+			for(ar= sa->regionbase.first; ar; ar= ar->next)
+				if(ar->regiontype == RGN_TYPE_WINDOW)
+					break;
+			if(ar)
+				WM_event_add_keymap_handler_bb(handlers, keymap, &rect, &ar->winrct);
+		}
+		else
+			WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_ANIMATION) {
 		/* frame changing and timeline operators (for time spaces) */
@@ -909,7 +934,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	region_rect_recursive(sa, sa->regionbase.first, &rect, 0);
 	
 	/* default area handlers */
-	ed_default_handlers(wm, &sa->handlers, sa->type->keymapflag);
+	ed_default_handlers(wm, sa, &sa->handlers, sa->type->keymapflag);
 	/* checks spacedata, adds own handlers */
 	if(sa->type->init)
 		sa->type->init(wm, sa);
@@ -920,7 +945,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		
 		if(ar->swinid) {
 			/* default region handlers */
-			ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
+			ed_default_handlers(wm, sa, &ar->handlers, ar->type->keymapflag);
 			/* own handlers */
 			if(ar->type->init)
 				ar->type->init(wm, ar);
@@ -1062,6 +1087,9 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 		if(sl && sl->regionbase.first==NULL) {
 			st->free(sl);
 			BLI_freelinkN(&sa->spacedata, sl);
+			if(slold == sl) {
+				slold= NULL;
+			}
 			sl= NULL;
 		}
 		
@@ -1284,6 +1312,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 				panel->labelofs= xco - triangle;
 				panel->layout= NULL;
 			}
+			else {
+				panel->labelofs= 0;
+			}
 
 			if(open) {
 				short panelContext;
@@ -1415,7 +1446,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	uiLayout *layout;
 	HeaderType *ht;
-	Header header = {0};
+	Header header = {NULL};
 	int maxco, xco, yco;
 
 	/* clear */	
@@ -1426,7 +1457,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(&ar->v2d);
 
 	xco= maxco= 8;
-	yco= HEADERY-3;
+	yco= HEADERY-4;
 
 	/* draw all headers types */
 	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {

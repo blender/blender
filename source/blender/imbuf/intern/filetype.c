@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/filetype.c
+ *  \ingroup imbuf
+ */
+
+
 #include <stddef.h>
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -56,11 +61,11 @@ void quicktime_exit(void);
 #endif
 
 ImFileType IMB_FILE_TYPES[]= {
-	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC},
 	{NULL, NULL, imb_is_a_jpeg, imb_ftype_default, imb_load_jpeg, imb_savejpeg, NULL, 0, JPG},
 	{NULL, NULL, imb_is_a_png, imb_ftype_default, imb_loadpng, imb_savepng, NULL, 0, PNG},
 	{NULL, NULL, imb_is_a_bmp, imb_ftype_default, imb_bmp_decode, imb_savebmp, NULL, 0, BMP},
 	{NULL, NULL, imb_is_a_targa, imb_ftype_default, imb_loadtarga, imb_savetarga, NULL, 0, TGA},
+	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC},
 #ifdef WITH_CINEON
 	{NULL, NULL, imb_is_dpx, imb_ftype_default, imb_loaddpx, imb_save_dpx, NULL, IM_FTYPE_FLOAT, DPX},
 	{NULL, NULL, imb_is_cineon, imb_ftype_default, imb_loadcineon, imb_savecineon, NULL, IM_FTYPE_FLOAT, CINEON},
@@ -85,7 +90,7 @@ ImFileType IMB_FILE_TYPES[]= {
 #ifdef WITH_QUICKTIME
 	{quicktime_init, quicktime_exit, imb_is_a_quicktime, imb_ftype_quicktime, imb_quicktime_decode, NULL, NULL, 0, QUICKTIME},
 #endif	
-	{NULL, NULL, NULL, NULL, NULL, NULL, 0}};
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0}};
 	
 void imb_filetypes_init(void)
 {

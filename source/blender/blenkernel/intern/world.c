@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/world.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 #include <math.h>
 #include "MEM_guardedalloc.h"
@@ -38,6 +43,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_utildefines.h"
+
+#include "BKE_world.h"
 #include "BKE_library.h"
 #include "BKE_animsys.h"
 #include "BKE_global.h"
@@ -128,7 +136,6 @@ void make_local_world(World *wrld)
 {
 	Main *bmain= G.main;
 	Scene *sce;
-	World *wrldn;
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
@@ -136,42 +143,38 @@ void make_local_world(World *wrld)
 		* - mixed: make copy
 		*/
 	
-	if(wrld->id.lib==0) return;
+	if(wrld->id.lib==NULL) return;
 	if(wrld->id.us==1) {
-		wrld->id.lib= 0;
+		wrld->id.lib= NULL;
 		wrld->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)wrld, 0);
+		new_id(NULL, (ID *)wrld, NULL);
 		return;
 	}
 	
-	sce= bmain->scene.first;
-	while(sce) {
-		if(sce->world==wrld) {
+	for(sce= bmain->scene.first; sce && ELEM(0, lib, local); sce= sce->id.next) {
+		if(sce->world == wrld) {
 			if(sce->id.lib) lib= 1;
 			else local= 1;
 		}
-		sce= sce->id.next;
 	}
-	
+
 	if(local && lib==0) {
-		wrld->id.lib= 0;
+		wrld->id.lib= NULL;
 		wrld->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)wrld, 0);
+		new_id(NULL, (ID *)wrld, NULL);
 	}
 	else if(local && lib) {
-		wrldn= copy_world(wrld);
+		World *wrldn= copy_world(wrld);
 		wrldn->id.us= 0;
 		
-		sce= bmain->scene.first;
-		while(sce) {
-			if(sce->world==wrld) {
-				if(sce->id.lib==0) {
+		for(sce= bmain->scene.first; sce; sce= sce->id.next) {
+			if(sce->world == wrld) {
+				if(sce->id.lib==NULL) {
 					sce->world= wrldn;
 					wrldn->id.us++;
 					wrld->id.us--;
 				}
 			}
-			sce= sce->id.next;
 		}
 	}
 }

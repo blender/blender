@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenfont/intern/blf_font.c
+ *  \ingroup blf
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,17 +57,17 @@
 #include "blf_internal.h"
 
 
-/* freetype2 handle. */
-FT_Library global_ft_lib;
+/* freetype2 handle ONLY for this file!. */
+static FT_Library ft_lib;
 
 int blf_font_init(void)
 {
-	return(FT_Init_FreeType(&global_ft_lib));
+	return(FT_Init_FreeType(&ft_lib));
 }
 
 void blf_font_exit(void)
 {
-	FT_Done_FreeType(global_ft_lib);
+	FT_Done_FreeType(ft_lib);
 }
 
 void blf_font_size(FontBLF *font, int size, int dpi)
@@ -213,7 +218,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	FT_Vector delta;
 	FT_UInt glyph_index;
 	float a, *fbuf;
-	int pen_x, y, x, yb;
+	int pen_x, y, x;
 	int i, has_kerning, st, chx, chy;
 
 	if (!font->glyph_cache || (!font->b_fbuf && !font->b_cbuf))
@@ -271,13 +276,20 @@ void blf_font_buffer(FontBLF *font, const char *str)
 			/* dont draw beyond the buffer bounds */
 			int width_clip= g->width;
 			int height_clip= g->height;
+			int yb_start= g->pitch < 0 ? 0 : g->height-1;
 
 			if (width_clip + chx > font->bw)	width_clip  -= chx + width_clip - font->bw;
 			if (height_clip + pen_y > font->bh) height_clip -= pen_y + height_clip - font->bh;
-
-			yb= g->pitch < 0 ? 0 : g->height-1;
 			
+			/* drawing below the image? */
+			if(pen_y < 0) {
+				yb_start += (g->pitch < 0) ? -pen_y : pen_y;
+				height_clip += pen_y;
+				pen_y= 0;
+			}
+
 			if (font->b_fbuf) {
+				int yb= yb_start;
 				for (y=(chy >= 0 ? 0:-chy); y < height_clip; y++) {
 					for (x=(chx >= 0 ? 0:-chx); x < width_clip; x++) {
 						
@@ -306,6 +318,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 			}
 
 			if (font->b_cbuf) {
+				int yb= yb_start;
 				for (y= 0; y < height_clip; y++) {
 					for (x= 0; x < width_clip; x++) {
 						a= *(g->bitmap + x + (yb * g->pitch)) / 255.0f;
@@ -547,6 +560,7 @@ static void blf_font_fill(FontBLF *font)
 	font->b_col[1]= 0;
 	font->b_col[2]= 0;
 	font->b_col[3]= 0;
+	font->ft_lib= ft_lib;
 
 	memset(font->glyph_ascii_table, 0, sizeof(font->glyph_ascii_table));
 }
@@ -558,7 +572,7 @@ FontBLF *blf_font_new(const char *name, const char *filename)
 	char *mfile;
 
 	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
-	err= FT_New_Face(global_ft_lib, filename, 0, &font->face);
+	err= FT_New_Face(ft_lib, filename, 0, &font->face);
 	if (err) {
 		MEM_freeN(font);
 		return(NULL);
@@ -600,7 +614,7 @@ FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_siz
 	FT_Error err;
 
 	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new_from_mem");
-	err= FT_New_Memory_Face(global_ft_lib, mem, mem_size, 0, &font->face);
+	err= FT_New_Memory_Face(ft_lib, mem, mem_size, 0, &font->face);
 	if (err) {
 		MEM_freeN(font);
 		return(NULL);

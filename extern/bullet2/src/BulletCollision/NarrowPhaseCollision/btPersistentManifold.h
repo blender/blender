@@ -30,9 +30,14 @@ extern btScalar gContactBreakingThreshold;
 typedef bool (*ContactDestroyedCallback)(void* userPersistentData);
 typedef bool (*ContactProcessedCallback)(btManifoldPoint& cp,void* body0,void* body1);
 extern ContactDestroyedCallback	gContactDestroyedCallback;
+extern ContactProcessedCallback gContactProcessedCallback;
 
-
-
+//the enum starts at 1024 to avoid type conflicts with btTypedConstraint
+enum btContactManifoldTypes
+{
+	MIN_CONTACT_MANIFOLD_TYPE = 1024,
+	BT_PERSISTENT_MANIFOLD_TYPE
+};
 
 #define MANIFOLD_CACHE_SIZE 4
 
@@ -43,7 +48,10 @@ extern ContactDestroyedCallback	gContactDestroyedCallback;
 ///reduces the cache to 4 points, when more then 4 points are added, using following rules:
 ///the contact point with deepest penetration is always kept, and it tries to maximuze the area covered by the points
 ///note that some pairs of objects might have more then one contact manifold.
-ATTRIBUTE_ALIGNED16( class) btPersistentManifold 
+
+
+ATTRIBUTE_ALIGNED128( class) btPersistentManifold : public btTypedObject
+//ATTRIBUTE_ALIGNED16( class) btPersistentManifold : public btTypedObject
 {
 
 	btManifoldPoint m_pointCache[MANIFOLD_CACHE_SIZE];
@@ -52,6 +60,7 @@ ATTRIBUTE_ALIGNED16( class) btPersistentManifold
 	/// void* will allow any rigidbody class
 	void* m_body0;
 	void* m_body1;
+
 	int	m_cachedPoints;
 
 	btScalar	m_contactBreakingThreshold;
@@ -67,16 +76,19 @@ public:
 
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 
+	int	m_companionIdA;
+	int	m_companionIdB;
+
 	int m_index1a;
 
 	btPersistentManifold();
 
 	btPersistentManifold(void* body0,void* body1,int , btScalar contactBreakingThreshold,btScalar contactProcessingThreshold)
-		: m_body0(body0),m_body1(body1),m_cachedPoints(0),
+		: btTypedObject(BT_PERSISTENT_MANIFOLD_TYPE),
+	m_body0(body0),m_body1(body1),m_cachedPoints(0),
 		m_contactBreakingThreshold(contactBreakingThreshold),
 		m_contactProcessingThreshold(contactProcessingThreshold)
 	{
-		
 	}
 
 	SIMD_FORCE_INLINE void* getBody0() { return m_body0;}
@@ -134,6 +146,10 @@ public:
 			m_pointCache[index] = m_pointCache[lastUsedIndex]; 
 			//get rid of duplicated userPersistentData pointer
 			m_pointCache[lastUsedIndex].m_userPersistentData = 0;
+			m_pointCache[lastUsedIndex].mConstraintRow[0].m_accumImpulse = 0.f;
+			m_pointCache[lastUsedIndex].mConstraintRow[1].m_accumImpulse = 0.f;
+			m_pointCache[lastUsedIndex].mConstraintRow[2].m_accumImpulse = 0.f;
+
 			m_pointCache[lastUsedIndex].m_appliedImpulse = 0.f;
 			m_pointCache[lastUsedIndex].m_lateralFrictionInitialized = false;
 			m_pointCache[lastUsedIndex].m_appliedImpulseLateral1 = 0.f;
@@ -151,10 +167,13 @@ public:
 #define MAINTAIN_PERSISTENCY 1
 #ifdef MAINTAIN_PERSISTENCY
 		int	lifeTime = m_pointCache[insertIndex].getLifeTime();
-		btScalar	appliedImpulse = m_pointCache[insertIndex].m_appliedImpulse;
-		btScalar	appliedLateralImpulse1 = m_pointCache[insertIndex].m_appliedImpulseLateral1;
-		btScalar	appliedLateralImpulse2 = m_pointCache[insertIndex].m_appliedImpulseLateral2;
-				
+		btScalar	appliedImpulse = m_pointCache[insertIndex].mConstraintRow[0].m_accumImpulse;
+		btScalar	appliedLateralImpulse1 = m_pointCache[insertIndex].mConstraintRow[1].m_accumImpulse;
+		btScalar	appliedLateralImpulse2 = m_pointCache[insertIndex].mConstraintRow[2].m_accumImpulse;
+//		bool isLateralFrictionInitialized = m_pointCache[insertIndex].m_lateralFrictionInitialized;
+		
+		
+			
 		btAssert(lifeTime>=0);
 		void* cache = m_pointCache[insertIndex].m_userPersistentData;
 		
@@ -165,6 +184,11 @@ public:
 		m_pointCache[insertIndex].m_appliedImpulseLateral1 = appliedLateralImpulse1;
 		m_pointCache[insertIndex].m_appliedImpulseLateral2 = appliedLateralImpulse2;
 		
+		m_pointCache[insertIndex].mConstraintRow[0].m_accumImpulse =  appliedImpulse;
+		m_pointCache[insertIndex].mConstraintRow[1].m_accumImpulse = appliedLateralImpulse1;
+		m_pointCache[insertIndex].mConstraintRow[2].m_accumImpulse = appliedLateralImpulse2;
+
+
 		m_pointCache[insertIndex].m_lifeTime = lifeTime;
 #else
 		clearUserCache(m_pointCache[insertIndex]);
@@ -175,7 +199,12 @@ public:
 
 	bool validContactDistance(const btManifoldPoint& pt) const
 	{
-		return pt.m_distance1 <= getContactBreakingThreshold();
+		if (pt.m_lifeTime >1)
+		{
+			return pt.m_distance1 <= getContactBreakingThreshold();
+		}
+		return pt.m_distance1 <= getContactProcessingThreshold();
+	
 	}
 	/// calculated new worldspace coordinates and depth, and reject points that exceed the collision margin
 	void	refreshContactPoints(  const btTransform& trA,const btTransform& trB);

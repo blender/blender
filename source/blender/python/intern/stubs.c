@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/stubs.c
+ *  \ingroup pythonintern
+ */
+
 
 /* python, will come back */
 //void BPY_script_exec(void) {}

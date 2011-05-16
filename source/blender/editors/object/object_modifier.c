@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/object/object_modifier.c
+ *  \ingroup edobj
+ */
+
 
 #include <math.h>
 #include <stdio.h>
@@ -291,7 +296,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	psys=((ParticleSystemModifierData *)md)->psys;
 	part= psys->part;
 
-	if(part->ren_as != PART_DRAW_PATH || psys->pathcache == 0)
+	if(part->ren_as != PART_DRAW_PATH || psys->pathcache == NULL)
 		return 0;
 
 	totpart= psys->totcached;
@@ -304,15 +309,21 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	cache= psys->pathcache;
 	for(a=0; a<totpart; a++) {
 		key= cache[a];
-		totvert+= key->steps+1;
-		totedge+= key->steps;
+
+		if(key->steps > 0) {
+			totvert+= key->steps+1;
+			totedge+= key->steps;
+		}
 	}
 
 	cache= psys->childcache;
 	for(a=0; a<totchild; a++) {
 		key= cache[a];
-		totvert+= key->steps+1;
-		totedge+= key->steps;
+
+		if(key->steps > 0) {
+			totvert+= key->steps+1;
+			totedge+= key->steps;
+		}
 	}
 
 	if(totvert==0) return 0;

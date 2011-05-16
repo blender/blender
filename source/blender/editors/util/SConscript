@@ -7,5 +7,6 @@ incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../makesrna'
 incs += ' #extern/recastnavigation/Recast/Include'
+incs += ' ../../blenloader'
 
 env.BlenderLib ( 'bf_editors_util', sources, Split(incs), [], libtype=['core','player'], priority=[130,210] )

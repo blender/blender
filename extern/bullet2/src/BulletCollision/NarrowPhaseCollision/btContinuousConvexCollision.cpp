@@ -96,7 +96,7 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 
 	{
 		
-		btGjkPairDetector gjk(m_convexA,m_convexB,m_simplexSolver,m_penetrationDepthSolver);		
+		btGjkPairDetector gjk(m_convexA,m_convexB,m_convexA->getShapeType(),m_convexB->getShapeType(),m_convexA->getMargin(),m_convexB->getMargin(),m_simplexSolver,m_penetrationDepthSolver);		
 		btGjkPairDetector::ClosestPointInput input;
 	
 		//we don't use margins during CCD
@@ -121,6 +121,10 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 		//not close enough
 		while (dist > radius)
 		{
+			if (result.m_debugDrawer)
+			{
+				result.m_debugDrawer->drawSphere(c,0.2f,btVector3(1,1,1));
+			}
 			numIter++;
 			if (numIter > maxIter)
 			{
@@ -170,6 +174,11 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 			btTransformUtil::integrateTransform(fromB,linVelB,angVelB,lambda,interpolatedTransB);
 			relativeTrans = interpolatedTransB.inverseTimes(interpolatedTransA);
 
+			if (result.m_debugDrawer)
+			{
+				result.m_debugDrawer->drawSphere(interpolatedTransA.getOrigin(),0.2f,btVector3(1,0,0));
+			}
+
 			result.DebugDraw( lambda );
 
 			btPointCollector	pointCollector;
@@ -197,6 +206,7 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 				//??
 				return false;
 			}
+			
 
 		}
 	
@@ -224,4 +234,3 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 */
 
 }
-

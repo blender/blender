@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
 */
 #ifndef DNA_CLOTH_TYPES_H
 #define DNA_CLOTH_TYPES_H
+
+/** \file DNA_cloth_types.h
+ *  \ingroup DNA
+ */
 
 /**
 * This struct contains all the global data required to run a simulation.
@@ -92,6 +96,7 @@ typedef struct ClothCollSettings
 	float	self_friction;		/* Fiction/damping with self contact.		 	*/
 	float	friction;		/* Friction/damping applied on contact with other object.*/
 	float 	selfepsilon; 		/* for selfcollision */
+	float repel_force, distance_repel;
 	int	flags;			/* collision flags defined in BKE_cloth.h */
 	short	self_loop_count;	/* How many iterations for the selfcollision loop	*/
 	short	loop_count;		/* How many iterations for the collision loop.		*/

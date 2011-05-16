@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -28,6 +28,11 @@
  *
  * $Id$
  */
+
+/** \file blender/imbuf/intern/writeimage.c
+ *  \ingroup imbuf
+ */
+
 
 #include <stdio.h>
 

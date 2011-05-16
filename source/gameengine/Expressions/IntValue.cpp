@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/IntValue.cpp
+ *  \ingroup expressions
+ */
 // IntValue.cpp: implementation of the CIntValue class.
 /*
 * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/intern/wm_gesture.c
+ *  \ingroup wm
+ */
+
 
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
@@ -129,7 +134,7 @@ int wm_gesture_evaluate(wmGesture *gesture)
 		int dx= rect->xmax - rect->xmin;
 		int dy= rect->ymax - rect->ymin;
 		if(ABS(dx)+ABS(dy) > TWEAK_THRESHOLD) {
-			int theta= (int)floor(4.0f*atan2((float)dy, (float)dx)/M_PI + 0.5);
+			int theta= (int)floor(4.0f*atan2f((float)dy, (float)dx)/(float)M_PI + 0.5f);
 			int val= EVT_GESTURE_W;
 			
 			if(theta==0) val= EVT_GESTURE_E;

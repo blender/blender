@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_mask.c
+ *  \ingroup modifiers
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -47,13 +52,14 @@
 
 #include "depsgraph_private.h"
 
+#include "MOD_util.h"
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
 	MaskModifierData *mmd = (MaskModifierData*) md;
 	MaskModifierData *tmmd = (MaskModifierData*) target;
 	
-	strcpy(tmmd->vgroup, mmd->vgroup);
+	BLI_strncpy(tmmd->vgroup, mmd->vgroup, sizeof(tmmd->vgroup));
 	tmmd->flag = mmd->flag;
 }
 
@@ -398,19 +404,19 @@ ModifierTypeInfo modifierType_Mask = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_SupportsMapping|eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
-	/* deformVerts */       0,
-	/* deformMatrices */    0,
-	/* deformVertsEM */     0,
-	/* deformMatricesEM */  0,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
-	/* applyModifierEM */   0,
-	/* initData */          0,
+	/* applyModifierEM */   NULL,
+	/* initData */          NULL,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          0,
-	/* isDisabled */        0,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
-	/* dependsOnTime */     0,
-	/* dependsOnNormals */	0,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     0,
+	/* foreachIDLink */     NULL,
 };

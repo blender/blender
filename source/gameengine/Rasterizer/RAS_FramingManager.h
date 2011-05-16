@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_FramingManager.h
+ *  \ingroup bgerast
+ */
+
 #ifndef RAS_FRAMINGMANAGER_H
 #define RAS_FRAMINGMANAGER_H
 

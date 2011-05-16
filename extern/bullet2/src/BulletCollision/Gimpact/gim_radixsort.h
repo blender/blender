@@ -1,7 +1,7 @@
 #ifndef GIM_RADIXSORT_H_INCLUDED
 #define GIM_RADIXSORT_H_INCLUDED
 /*! \file gim_radixsort.h
-\author Francisco Len Nßjera.
+\author Francisco Leon Najera.
 Based on the work of Michael Herf : "fast floating-point radix sort"
 Avaliable on http://www.stereopsis.com/radix.html
 */

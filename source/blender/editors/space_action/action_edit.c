@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_action/action_edit.c
+ *  \ingroup spaction
+ */
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -121,7 +126,7 @@ static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_new (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New";
+	ot->name= "New Action";
 	ot->idname= "ACTION_OT_new";
 	ot->description= "Create new action";
 	
@@ -135,12 +140,94 @@ void ACTION_OT_new (wmOperatorType *ot)
 }
 
 /* ************************************************************************** */
+/* POSE MARKERS STUFF */
+
+/* *************************** Localise Markers ***************************** */
+
+/* ensure that there is:
+ *	1) an active action editor
+ * 	2) that the mode will have an active action available 
+ * 	3) that the set of markers being shown are the scene markers, not the list we're merging
+ *	4) that there are some selected markers
+ */
+static int act_markers_make_local_poll(bContext *C)
+{
+	SpaceAction *sact = CTX_wm_space_action(C);
+	
+	/* 1) */
+	if (sact == NULL)
+		return 0;
+	
+	/* 2) */
+	if (ELEM(sact->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) == 0)
+		return 0;
+	if (sact->action == NULL)
+		return 0;
+		
+	/* 3) */
+	if (sact->flag & SACTION_POSEMARKERS_SHOW)
+		return 0;
+		
+	/* 4) */
+	return ED_markers_get_first_selected(ED_context_get_markers(C)) != NULL;
+}
+
+static int act_markers_make_local_exec (bContext *C, wmOperator *UNUSED(op))
+{	
+	ListBase *markers = ED_context_get_markers(C);
+	
+	SpaceAction *sact = CTX_wm_space_action(C);
+	bAction *act = (sact)? sact->action : NULL;
+	
+	TimeMarker *marker, *markern=NULL;
+	
+	/* sanity checks */
+	if (ELEM(NULL, markers, act))
+		return OPERATOR_CANCELLED;
+		
+	/* migrate markers */
+	for (marker = markers->first; marker; marker = markern) {
+		markern = marker->next;
+		
+		/* move if marker is selected */
+		if (marker->flag & SELECT) {
+			BLI_remlink(markers, marker);
+			BLI_addtail(&act->markers, marker);
+		}
+	}
+	
+	/* now enable the "show posemarkers only" setting, so that we can see that something did happen */
+	sact->flag |= SACTION_POSEMARKERS_SHOW;
+	
+	/* notifiers - both sets, as this change affects both */
+	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_markers_make_local (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Markers Local";
+	ot->idname= "ACTION_OT_markers_make_local";
+	ot->description= "Move selected scene markers to the active Action as local 'pose' markers";
+	
+	/* callbacks */
+	ot->exec = act_markers_make_local_exec;
+	ot->poll = act_markers_make_local_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ************************************************************************** */
 /* KEYFRAME-RANGE STUFF */
 
 /* *************************** Calculate Range ************************** */
 
 /* Get the min/max keyframes*/
-static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
+static void get_keyframe_extents (bAnimContext *ac, float *min, float *max, const short onlySel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -162,8 +249,8 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 			FCurve *fcu= (FCurve *)ale->key_data;
 			float tmin, tmax;
 			
-			/* get range and apply necessary scaling before */
-			calc_fcurve_range(fcu, &tmin, &tmax);
+			/* get range and apply necessary scaling before processing */
+			calc_fcurve_range(fcu, &tmin, &tmax, onlySel);
 			
 			if (adt) {
 				tmin= BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
@@ -208,7 +295,7 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 		scene= ac.scene;
 	
 	/* set the range directly */
-	get_keyframe_extents(&ac, &min, &max);
+	get_keyframe_extents(&ac, &min, &max, FALSE);
 	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra= (int)floor(min + 0.5f);
 	scene->r.pefra= (int)floor(max + 0.5f);
@@ -237,7 +324,7 @@ void ACTION_OT_previewrange_set (wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
+static int actkeys_viewall(bContext *C, const short onlySel)
 {
 	bAnimContext ac;
 	View2D *v2d;
@@ -249,7 +336,7 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 	v2d= &ac.ar->v2d;
 	
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
-	get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax);
+	get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, onlySel);
 	
 	extra= 0.1f * (v2d->cur.xmax - v2d->cur.xmin);
 	v2d->cur.xmin -= extra;
@@ -267,6 +354,20 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	return OPERATOR_FINISHED;
 }
+
+/* ......... */
+
+static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
+{	
+	/* whole range */
+	return actkeys_viewall(C, FALSE);
+}
+
+static int actkeys_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	/* only selected */
+	return actkeys_viewall(C, TRUE);
+}
  
 void ACTION_OT_view_all (wmOperatorType *ot)
 {
@@ -277,6 +378,21 @@ void ACTION_OT_view_all (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_viewall_exec;
+	ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void ACTION_OT_view_selected (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Selected";
+	ot->idname= "ACTION_OT_view_selected";
+	ot->description= "Reset viewable area to show selected keyframes range";
+	
+	/* api callbacks */
+	ot->exec= actkeys_viewsel_exec;
 	ot->poll= ED_operator_action_active;
 	
 	/* flags */
@@ -426,7 +542,7 @@ void ACTION_OT_paste (wmOperatorType *ot)
 /* ******************** Insert Keyframes Operator ************************* */
 
 /* defines for insert keyframes tool */
-EnumPropertyItem prop_actkeys_insertkey_types[] = {
+static EnumPropertyItem prop_actkeys_insertkey_types[] = {
 	{1, "ALL", 0, "All Channels", ""},
 	{2, "SEL", 0, "Only Selected Channels", ""},
 	{3, "GROUP", 0, "In Active Group", ""}, // xxx not in all cases
@@ -576,9 +692,6 @@ static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 {
 	actkeys_duplicate_exec(C, op);
 	
-	RNA_int_set(op->ptr, "mode", TFM_TIME_TRANSLATE);
-	WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
 	return OPERATOR_FINISHED;
 }
  
@@ -598,7 +711,7 @@ void ACTION_OT_duplicate (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TIME_TRANSLATE, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /* ******************** Delete Keyframes Operator ************************* */
@@ -808,7 +921,7 @@ void ACTION_OT_sample (wmOperatorType *ot)
 /* ******************** Set Extrapolation-Type Operator *********************** */
 
 /* defines for set extrapolation-type for selected keyframes tool */
-EnumPropertyItem prop_actkeys_expo_types[] = {
+static EnumPropertyItem prop_actkeys_expo_types[] = {
 	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", ""},
 	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -955,7 +1068,7 @@ void ACTION_OT_interpolation_type (wmOperatorType *ot)
 
 /* ******************** Set Handle-Type Operator *********************** */
 
-EnumPropertyItem actkeys_handle_type_items[] = {
+static EnumPropertyItem actkeys_handle_type_items[] = {
 	{HD_FREE, "FREE", 0, "Free", ""},
 	{HD_VECT, "VECTOR", 0, "Vector", ""},
 	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
@@ -1107,7 +1220,7 @@ void ACTION_OT_keyframe_type (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Keyframe Type";
 	ot->idname= "ACTION_OT_keyframe_type";
-	ot->description= "Set type of keyframe for the seleced keyframes";
+	ot->description= "Set type of keyframe for the selected keyframes";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1133,7 +1246,7 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 	ListBase anim_data= {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1188,7 +1301,7 @@ void ACTION_OT_frame_jump (wmOperatorType *ot)
 /* ******************** Snap Keyframes Operator *********************** */
 
 /* defines for snap keyframes tool */
-EnumPropertyItem prop_actkeys_snap_types[] = {
+static EnumPropertyItem prop_actkeys_snap_types[] = {
 	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
 	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
 	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
@@ -1203,7 +1316,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc edit_cb;
 	
 	/* filter data */
@@ -1288,7 +1401,7 @@ void ACTION_OT_snap (wmOperatorType *ot)
 /* ******************** Mirror Keyframes Operator *********************** */
 
 /* defines for mirror keyframes tool */
-EnumPropertyItem prop_actkeys_mirror_types[] = {
+static EnumPropertyItem prop_actkeys_mirror_types[] = {
 	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
 	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
 	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
@@ -1302,7 +1415,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc edit_cb;
 	
 	/* get beztriple editing callbacks */

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GamePlayer/common/GPC_RawImage.cpp
+ *  \ingroup player
+ */
+
    
 #include <iostream>
 #include <string.h>

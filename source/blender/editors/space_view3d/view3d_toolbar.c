@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_view3d/view3d_toolbar.c
+ *  \ingroup spview3d
+ */
+
 
 #include <string.h>
 #include <stdio.h>
@@ -94,7 +99,7 @@ static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wm
 {
 	if(op->type->flag & OPTYPE_MACRO) {
 		for(op= op->macro.first; op; op= op->next) {
-			uiItemL(pa->layout, op->type->name, ICON_NULL);
+			uiItemL(pa->layout, op->type->name, ICON_NONE);
 			view3d_panel_operator_redo_operator(C, pa, op);
 		}
 	}
@@ -215,7 +220,7 @@ static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 		for(ct= st->toolshelf.first; ct; ct= ct->next) {
 			if(0==strncmp(context, ct->context, OP_MAX_TYPENAME)) {
 				col= uiLayoutColumn(pa->layout, 1);
-				uiItemFullO(col, ct->opname, NULL, ICON_NULL, NULL, WM_OP_INVOKE_REGION_WIN, 0);
+				uiItemFullO(col, ct->opname, NULL, ICON_NONE, NULL, WM_OP_INVOKE_REGION_WIN, 0);
 			}
 		}
 	}

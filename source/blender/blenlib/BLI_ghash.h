@@ -1,6 +1,4 @@
-/**
- * A general (pointer -> pointer) hash table ADT
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
  
 #ifndef BLI_GHASH_H
 #define BLI_GHASH_H
+
+/** \file BLI_ghash.h
+ *  \ingroup bli
+ *  \brief A general (pointer -> pointer) hash table ADT
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -228,7 +231,7 @@ BM_INLINE int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, 
 {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 	Entry *e;
-	Entry *p = 0;
+	Entry *p = NULL;
 
 	for (e= gh->buckets[hash]; e; e= e->next) {
 		if (gh->cmpfp(key, e->key)==0) {

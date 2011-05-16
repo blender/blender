@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,15 +26,16 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_IPolygonMaterial.h
+ *  \ingroup bgerast
+ */
+
 #ifndef __RAS_IPOLYGONMATERIAL
 #define __RAS_IPOLYGONMATERIAL
 
 #include "STR_HashedString.h"
 
-/**
- * Polygon Material on which the material buckets are sorted
- *
- */
 #include "MT_Vector3.h"
 #include "STR_HashedString.h"
 
@@ -65,7 +66,8 @@ enum MaterialProps
 };
 
 /**
- * Material properties.
+ * Polygon Material on which the material buckets are sorted
+ *
  */
 class RAS_IPolyMaterial
 {

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_Light.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_LIGHT
 #define __KX_LIGHT
 

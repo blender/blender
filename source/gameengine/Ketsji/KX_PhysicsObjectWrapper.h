@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_PhysicsObjectWrapper.h
+ *  \ingroup ketsji
+ */
+
 #ifndef PHYP_PHYSICSOBJECT_WRAPPER
 #define PHYP_PHYSICSOBJECT_WRAPPER
 

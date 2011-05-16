@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file BL_ArmatureObject.h
+ *  \ingroup bgeconv
  */
 
 #ifndef BL_ARMATUREOBJECT
@@ -56,7 +60,7 @@ public:
 	short GetActivePriority();
 	virtual void ProcessReplica();
 	virtual void ReParentLogic();
-	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	virtual void Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 	virtual bool UnlinkObject(SCA_IObject* clientobj);
 
 	class BL_ActionActuator * GetActiveAction();

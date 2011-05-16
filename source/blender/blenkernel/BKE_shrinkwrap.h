@@ -1,6 +1,4 @@
-/**
- * BKE_shrinkwrap.h
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +26,10 @@
  */
 #ifndef BKE_SHRINKWRAP_H
 #define BKE_SHRINKWRAP_H
+
+/** \file BKE_shrinkwrap.h
+ *  \ingroup bke
+ */
 
 /* mesh util */
 
@@ -88,7 +90,7 @@ void space_transform_invert(const struct SpaceTransform *data, float *co);
  *    - Normal projection
  *
  * ShrinkwrapCalcData encapsulates all needed data for shrinkwrap functions.
- * (So that you dont have to pass an enormous ammount of arguments to functions)
+ * (So that you dont have to pass an enormous amount of arguments to functions)
  */
 
 struct Object;

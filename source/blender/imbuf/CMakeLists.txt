@@ -24,11 +24,17 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+if(WITH_CODEC_FFMPEG)
+	# FFMPEG gives warnigns which are hard to avoid across multiple versions.
+	remove_strict_flags()
+endif()
+
 set(INC 
 	.
 	../avi
 	../blenlib
 	../blenkernel
+	../blenloader
 	../makesdna
 	../../../intern/memutil
 	../../../intern/guardedalloc

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -19,6 +19,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/curve/lorem.c
+ *  \ingroup edcurve
+ */
+
 
 #include "curve_intern.h"
 

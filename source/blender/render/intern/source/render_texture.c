@@ -1,5 +1,5 @@
 /*
- * $Id: render_texture.c 34699 2011-02-07 21:55:54Z lmg $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/source/render_texture.c
+ *  \ingroup render
+ */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,7 +88,7 @@ extern struct Render R;
 
 
 
-void init_render_texture(Render *re, Tex *tex)
+static void init_render_texture(Render *re, Tex *tex)
 {
 	int cfra= re->scene->r.cfra;
 	
@@ -137,7 +142,7 @@ void init_render_textures(Render *re)
 	}
 }
 
-void end_render_texture(Tex *tex)
+static void end_render_texture(Tex *tex)
 {
 	if(tex && tex->use_nodes && tex->nodetree)
 		ntreeEndExecTree(tex->nodetree);
@@ -759,12 +764,12 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 			if(osatex) rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
 				pit->data, texvec, dxt, dyt);
 			else rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
-				pit->data, texvec, 0, 0);
+				pit->data, texvec, NULL, NULL);
 		} else {
 			if(osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype, 
 				pit->data, texvec, dxt, dyt, result);
 			else rgbnor= ((TexDoit)pit->doit)(tex->stype, 
-				pit->data, texvec, 0, 0, result);
+				pit->data, texvec, NULL, NULL, result);
 		}
 
 		if (pit->version < 6) {
@@ -1825,8 +1830,8 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		idv = (dv < 1e-5f) ? bf : (bf/dv);
 
 		if ((mtex->texco == TEXCO_ORCO) && shi->obr && shi->obr->ob) {
-			mul_mat3_m4_v3(shi->obr->ob->imat, tu);
-			mul_mat3_m4_v3(shi->obr->ob->imat, tv);
+			mul_mat3_m4_v3(shi->obr->ob->imat_ren, tu);
+			mul_mat3_m4_v3(shi->obr->ob->imat_ren, tv);
 			normalize_v3(tu);
 			normalize_v3(tv);
 		}
@@ -1835,8 +1840,8 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 			mul_mat3_m4_v3(R.viewinv, tv);
 		}
 		else if (mtex->texco == TEXCO_OBJECT && mtex->object) {
-			mul_mat3_m4_v3(mtex->object->imat, tu);
-			mul_mat3_m4_v3(mtex->object->imat, tv);
+			mul_mat3_m4_v3(mtex->object->imat_ren, tu);
+			mul_mat3_m4_v3(mtex->object->imat_ren, tv);
 			normalize_v3(tu);
 			normalize_v3(tv);
 		}
@@ -2114,6 +2119,7 @@ void do_material_tex(ShadeInput *shi)
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
 	int use_compat_bump, use_ntap_bump;
+	int iFirstTimeNMap=1;
 
 	compatible_bump_init(&compat_bump);
 	ntap_bump_init(&ntap_bump);
@@ -2171,12 +2177,12 @@ void do_material_tex(ShadeInput *shi)
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG)
 						if(shi->obi && shi->obi->duplitexmat)
 							mul_m4_v3(shi->obi->duplitexmat, tempvec);
-					mul_m4_v3(ob->imat, tempvec);
+					mul_m4_v3(ob->imat_ren, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						mul_mat3_m4_v3(ob->imat, dxt);
-						mul_mat3_m4_v3(ob->imat, dyt);
+						mul_mat3_m4_v3(ob->imat_ren, dxt);
+						mul_mat3_m4_v3(ob->imat_ren, dyt);
 					}
 				}
 				else {
@@ -2263,7 +2269,7 @@ void do_material_tex(ShadeInput *shi)
 				if(use_compat_bump) {
 					rgbnor = compatible_bump_compute(&compat_bump, shi, mtex, tex,
 						&texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);
- 				}
+				}
 				else if(use_ntap_bump) {
 					rgbnor = ntap_bump_compute(&ntap_bump, shi, mtex, tex,
 						&texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);
@@ -2333,9 +2339,16 @@ void do_material_tex(ShadeInput *shi)
 				}
 				// warping, local space
 				if(mtex->mapto & MAP_WARP) {
-					warpvec[0]= mtex->warpfac*texres.nor[0];
-					warpvec[1]= mtex->warpfac*texres.nor[1];
-					warpvec[2]= mtex->warpfac*texres.nor[2];
+					float *warpnor= texres.nor, warpnor_[3];
+					
+					if(use_ntap_bump) {
+						VECCOPY(warpnor_, texres.nor);
+						warpnor= warpnor_;
+						normalize_v3(warpnor_);
+					}
+					warpvec[0]= mtex->warpfac*warpnor[0];
+					warpvec[1]= mtex->warpfac*warpnor[1];
+					warpvec[2]= mtex->warpfac*warpnor[2];
 					warpdone= 1;
 				}
 #if 0				
@@ -2427,14 +2440,17 @@ void do_material_tex(ShadeInput *shi)
 						if(mtex->normapspace == MTEX_NSPACE_TANGENT) {
 							/* qdn: tangent space */
 							float B[3], tv[3];
-							cross_v3_v3v3(B, shi->vn, shi->nmaptang);	/* bitangent */
+							const float * no = iFirstTimeNMap!=0 ? shi->nmapnorm : shi->vn;
+							iFirstTimeNMap=0;
+							cross_v3_v3v3(B, no, shi->nmaptang);	/* bitangent */
+							mul_v3_fl(B, shi->nmaptang[3]);
 							/* transform norvec from tangent space to object surface in camera space */
-							tv[0] = texres.nor[0]*shi->nmaptang[0] + texres.nor[1]*B[0] + texres.nor[2]*shi->vn[0];
-							tv[1] = texres.nor[0]*shi->nmaptang[1] + texres.nor[1]*B[1] + texres.nor[2]*shi->vn[1];
-							tv[2] = texres.nor[0]*shi->nmaptang[2] + texres.nor[1]*B[2] + texres.nor[2]*shi->vn[2];
-							shi->vn[0]= facm*shi->vn[0] + fact*tv[0];
-							shi->vn[1]= facm*shi->vn[1] + fact*tv[1];
-							shi->vn[2]= facm*shi->vn[2] + fact*tv[2];
+							tv[0] = texres.nor[0]*shi->nmaptang[0] + texres.nor[1]*B[0] + texres.nor[2]*no[0];
+							tv[1] = texres.nor[0]*shi->nmaptang[1] + texres.nor[1]*B[1] + texres.nor[2]*no[1];
+							tv[2] = texres.nor[0]*shi->nmaptang[2] + texres.nor[1]*B[2] + texres.nor[2]*no[2];
+							shi->vn[0]= facm*no[0] + fact*tv[0];
+							shi->vn[1]= facm*no[1] + fact*tv[1];
+							shi->vn[2]= facm*no[2] + fact*tv[2];
 						}
 						else {
 							float nor[3];
@@ -2528,7 +2544,6 @@ void do_material_tex(ShadeInput *shi)
 				}
 				else { /* add or sub */
 					if(mtex->blendtype==MTEX_SUB) factt= -factt;
-					else factt= factt;
 					shi->displace[0]+= factt*shi->vn[0];
 					shi->displace[1]+= factt*shi->vn[1];
 					shi->displace[2]+= factt*shi->vn[2];
@@ -2644,7 +2659,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 						if(shi->obi && shi->obi->duplitexmat)
 							mul_m4_v3(shi->obi->duplitexmat, co);					
 					} 
-					mul_m4_v3(ob->imat, co);
+					mul_m4_v3(ob->imat_ren, co);
 				}
 			}
 			/* not really orco, but 'local' */
@@ -2656,7 +2671,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 				else {
 					Object *ob= shi->obi->ob;
 					VECCOPY(co, xyz);
-					mul_m4_v3(ob->imat, co);
+					mul_m4_v3(ob->imat_ren, co);
 				}
 			}
 			else if(mtex->texco==TEXCO_GLOB) {							
@@ -3007,7 +3022,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_OBJECT:
 				if(mtex->object) {
 					VECCOPY(tempvec, lo);
-					mul_m4_v3(mtex->object->imat, tempvec);
+					mul_m4_v3(mtex->object->imat_ren, tempvec);
 					co= tempvec;
 				}
 				break;
@@ -3156,12 +3171,12 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					dx= dxt;
 					dy= dyt;
 					VECCOPY(tempvec, shi->co);
-					mul_m4_v3(ob->imat, tempvec);
+					mul_m4_v3(ob->imat_ren, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						mul_mat3_m4_v3(ob->imat, dxt);
-						mul_mat3_m4_v3(ob->imat, dyt);
+						mul_mat3_m4_v3(ob->imat_ren, dxt);
+						mul_mat3_m4_v3(ob->imat_ren, dyt);
 					}
 				}
 				else {
@@ -3182,7 +3197,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 				if(la->type==LA_SPOT) {
 					tempvec[0]*= la->spottexfac;
 					tempvec[1]*= la->spottexfac;
-                    /* project from 3d to 2d */
+				/* project from 3d to 2d */
 					tempvec[0] /= -tempvec[2];
 					tempvec[1] /= -tempvec[2];
 				}

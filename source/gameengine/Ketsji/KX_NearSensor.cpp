@@ -1,4 +1,4 @@
-/**
+/*
  * Sense if other objects are near
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_NearSensor.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_NearSensor.h"
 #include "SCA_LogicManager.h"

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * KX_MouseFocusSensor determines mouse in/out/over events.
  */
+
+/** \file gameengine/Ketsji/KX_RayCast.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include <stdlib.h>
 #include <stdio.h>

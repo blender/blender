@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_System.h
+
+/** \file ghost/intern/GHOST_System.h
+ *  \ingroup GHOST
  * Declaration of GHOST_System class.
  */
 
@@ -182,7 +183,12 @@ public:
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer);
 
-
+	/**
+	 * Remove the given event consumer to our list.
+	 * @param consumer The event consumer to remove.
+	 * @return Indication of success.
+	 */
+	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer* consumer);
 
 	/***************************************************************************************
 	 ** N-degree of freedom devcice management functionality

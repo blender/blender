@@ -1,9 +1,7 @@
-/**
- * mjpeg.c
+/*
+ * $Id$
  *
  * This is external code. Converts between avi and mpeg/jpeg.
- *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,7 +27,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- *  */
+ *
+ */
+
+/** \file blender/avi/intern/mjpeg.c
+ *  \ingroup avi
+ */
+
 
 #include "AVI_avi.h"
 #include <stdlib.h>

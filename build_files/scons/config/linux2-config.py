@@ -1,15 +1,16 @@
 LCGDIR = '../lib/linux2'
 LIBDIR = "${LCGDIR}"
 
+BF_PYTHON_ABI_FLAGS = 'm'  # Most common for linux distros
 BF_PYTHON = '/usr'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
-BF_PYTHON_VERSION = '3.1'
+BF_PYTHON_VERSION = '3.2'
 WITH_BF_STATICPYTHON = False
-BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
+BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}${BF_PYTHON_ABI_FLAGS}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
-BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}' #BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
+BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}${BF_PYTHON_ABI_FLAGS}'  # BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
 BF_PYTHON_LINKFLAGS = ['-Xlinker', '-export-dynamic']
-BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/libpython${BF_PYTHON_VERSION}.a'
+BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/libpython${BF_PYTHON_VERSION}${BF_PYTHON_ABI_FLAGS}.a'
 
 WITH_BF_OPENAL = True
 WITH_BF_STATICOPENAL = False
@@ -198,8 +199,8 @@ CXXFLAGS += ['-fpermissive']
 if WITH_BF_FFMPEG:
   # libavutil needs UINT64_C()
   CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
-REL_CFLAGS = ['-O2']
-REL_CCFLAGS = ['-O2']
+REL_CFLAGS = ['-DNDEBUG', '-O2']
+REL_CCFLAGS = ['-DNDEBUG', '-O2']
 ##BF_DEPEND = True
 ##
 ##AR = ar
@@ -222,7 +223,7 @@ BF_PROFILE_CCFLAGS = ['-pg','-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g', '-DDEBUG']
+BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']
 
 BF_BUILDDIR = '../build/linux2'
 BF_INSTALLDIR='../install/linux2'

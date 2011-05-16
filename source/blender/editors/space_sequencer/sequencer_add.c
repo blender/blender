@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -23,6 +23,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_sequencer/sequencer_add.c
+ *  \ingroup spseq
+ */
+
 
 #include <stdlib.h>
 #include <math.h>
@@ -315,7 +320,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 
 		RNA_BEGIN(op->ptr, itemptr, "files") {
 			RNA_string_get(&itemptr, "name", file_only);
-			BLI_join_dirfile(seq_load.path, dir_only, file_only);
+			BLI_join_dirfile(seq_load.path, sizeof(seq_load.path), dir_only, file_only);
 
 			seq= seq_load_func(C, ed->seqbasep, &seq_load);
 		}

@@ -1,3 +1,6 @@
+/** \file smoke/intern/WTURBULENCE.h
+ *  \ingroup smoke
+ */
 //////////////////////////////////////////////////////////////////////
 // This file is part of Wavelet Turbulence.
 // 

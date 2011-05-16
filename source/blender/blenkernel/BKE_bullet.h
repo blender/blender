@@ -1,4 +1,4 @@
-/**
+/*
  *	
  * $Id$
  *
@@ -29,6 +29,10 @@
  */
 #ifndef BKE_BULLET_H
 #define BKE_BULLET_H
+
+/** \file BKE_bullet.h
+ *  \ingroup bke
+ */
 
 struct BulletSoftBody;
 

@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_vfont.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,10 @@
  */
 #ifndef BKE_VFONT_H
 #define BKE_VFONT_H
+
+/** \file BKE_font.h
+ *  \ingroup bke
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,10 +84,10 @@ struct chartrans *BKE_text_to_curve(struct Scene *scene, struct Object *ob, int 
 
 int BKE_font_getselection(struct Object *ob, int *start, int *end);
 
-void chtoutf8(unsigned long c, char *o);
-void wcs2utf8s(char *dst, wchar_t *src);
-int wcsleninu8(wchar_t *src);
-int utf8towchar(wchar_t *w, char *c);
+size_t chtoutf8(const unsigned long c, char o[4]);
+void wcs2utf8s(char *dst, const wchar_t *src);
+size_t wcsleninu8(wchar_t *src);
+size_t utf8towchar(wchar_t *w, const char *c);
 
 #ifdef __cplusplus
 }

@@ -12,6 +12,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file VectorValue.h
+ *  \ingroup expressions
+ */
+
 #if !defined _VECTORVALUE_H
 #define _VECTORVALUE_H
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_screen.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_SCREEN_H
 #define ED_SCREEN_H
 
@@ -90,14 +95,14 @@ void	ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
 void	ED_screens_initialize(struct wmWindowManager *wm);
 void	ED_screen_draw(struct wmWindow *win);
 void	ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
-void	ED_screen_do_listen(struct wmWindow *win, struct wmNotifier *note);
+void	ED_screen_do_listen(struct bContext *C, struct wmNotifier *note);
 bScreen *ED_screen_duplicate(struct wmWindow *win, struct bScreen *sc);
 bScreen *ED_screen_add(struct wmWindow *win, struct Scene *scene, const char *name);
 void	ED_screen_set(struct bContext *C, struct bScreen *sc);
 void	ED_screen_delete(struct bContext *C, struct bScreen *sc);
 void	ED_screen_set_scene(struct bContext *C, struct Scene *scene);
 void	ED_screen_delete_scene(struct bContext *C, struct Scene *scene);
-void	ED_screen_set_subwinactive(struct wmWindow *win, struct wmEvent *event);
+void	ED_screen_set_subwinactive(struct bContext *C, struct wmEvent *event);
 void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 void	ED_screen_animation_timer(struct bContext *C, int redraws, int refresh, int sync, int enable);
 void	ED_screen_animation_timer_update(struct bScreen *screen, int redraws, int refresh);
@@ -149,6 +154,7 @@ int		ED_operator_console_active(struct bContext *C);
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_object_active_editable(struct bContext *C);
 int		ED_operator_object_active_editable_mesh(struct bContext *C);
+int		ED_operator_object_active_editable_font(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);
 int		ED_operator_editmesh_view3d(struct bContext *C);
 int		ED_operator_editmesh_region_view3d(struct bContext *C);

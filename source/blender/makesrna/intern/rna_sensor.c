@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/makesrna/intern/rna_sensor.c
+ *  \ingroup RNA
+ */
+
 
 #include <stdlib.h>
 
@@ -238,10 +243,10 @@ static void rna_Sensor_Armature_update(Main *bmain, Scene *scene, PointerRNA *pt
 /* note: the following set functions exists only to avoid id refcounting */
 static void rna_Sensor_touch_material_set(PointerRNA *ptr, PointerRNA value)
 {
-        bSensor *sens = (bSensor *)ptr->data;
-        bTouchSensor *ts = (bTouchSensor *) sens->data;
+	bSensor *sens = (bSensor *)ptr->data;
+	bTouchSensor *ts = (bTouchSensor *) sens->data;
 
-        ts->ma = value.data;
+	ts->ma = value.data;
 }
 #else
 
@@ -629,9 +634,10 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis", "Specify along which axis the radar cone is cast");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+	//XXX TODO - use radians internally then change to PROP_ANGLE
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 179.9);
-	RNA_def_property_ui_text(prop, "Angle", "Opening angle of the radar cone");
+	RNA_def_property_ui_text(prop, "Angle", "Opening angle of the radar cone (in degrees)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);

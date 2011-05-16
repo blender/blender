@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/object/object_relations.c
+ *  \ingroup edobj
+ */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -282,7 +287,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		uiLayout *layout= uiPupMenuLayout(pup);
 		
 		/* create operator menu item with relevant properties filled in */
-		uiItemFullO(layout, op->idname, op->type->name, ICON_NULL, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		uiItemFullO(layout, op->idname, op->type->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -397,7 +402,7 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "object", "", 19, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
+	RNA_def_string(ot->srna, "object", "", MAX_ID_NAME-2, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Type", "Group object"); /* XXX, relies on hard coded ID at the moment */
 	RNA_def_enum_funcs(prop, proxy_group_object_itemf);
 	ot->prop= prop;
@@ -689,7 +694,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	Object *ob= ED_object_active_context(C);
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", ICON_NULL);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", ICON_NONE);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
@@ -1156,9 +1161,9 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 
 /************************** Link to Scene Operator *****************************/
 
-void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
-{
 #if 0
+static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
+{
 	Scene *sce= (Scene*) BLI_findlink(&bmain->scene, G.curscreen->scenenr-1);
 	Base *base, *nbase;
 	
@@ -1174,8 +1179,8 @@ void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 			id_us_plus((ID *)base->object);
 		}
 	}
-#endif
 }
+#endif
 
 static int make_links_scene_exec(bContext *C, wmOperator *op)
 {
@@ -1249,7 +1254,7 @@ static int allow_make_links_data(int ev, Object *ob, Object *obt)
 static int make_links_data_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
-	int event = RNA_int_get(op->ptr, "type");
+	int event = RNA_enum_get(op->ptr, "type");
 	Object *ob;
 	ID *id;
 	int a;
@@ -1349,7 +1354,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= make_links_data_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= ED_operator_object_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1361,12 +1366,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 /**************************** Make Single User ********************************/
 
-static void single_object_users__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob), Object **obpoin)
-{
-	ID_NEW(*obpoin);
-}
-
-void single_object_users(Scene *scene, View3D *v3d, int flag)	
+static void single_object_users(Scene *scene, View3D *v3d, int flag)	
 {
 	Base *base;
 	Object *ob, *obn;
@@ -1397,32 +1397,20 @@ void single_object_users(Scene *scene, View3D *v3d, int flag)
 	
 	/* object pointers */
 	for(base= FIRSTBASE; base; base= base->next) {
-		ob= base->object;
-		if(ob->id.lib==NULL) {
-			relink_constraints(&base->object->constraints);
-			if (base->object->pose){
-				bPoseChannel *chan;
-				for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
-					relink_constraints(&chan->constraints);
-				}
-			}
-			modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
-			
-			ID_NEW(ob->parent);
-		}
+		object_relink(base->object);
 	}
 
 	set_sca_new_poins();
 }
 
-void new_id_matar(Material **matar, int totcol)
+static void new_id_matar(Material **matar, int totcol)
 {
 	ID *id;
 	int a;
 	
 	for(a=0; a<totcol; a++) {
 		id= (ID *)matar[a];
-		if(id && id->lib==0) {
+		if(id && id->lib == NULL) {
 			if(id->newid) {
 				matar[a]= (Material *)id->newid;
 				id_us_plus(id->newid);
@@ -1437,7 +1425,7 @@ void new_id_matar(Material **matar, int totcol)
 	}
 }
 
-void single_obdata_users(Main *bmain, Scene *scene, int flag)
+static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 {
 	Object *ob;
 	Lamp *la;
@@ -1571,12 +1559,12 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 	}
 }
 
-void do_single_tex_user(Tex **from)
+static void do_single_tex_user(Tex **from)
 {
 	Tex *tex, *texn;
 	
 	tex= *from;
-	if(tex==0) return;
+	if(tex==NULL) return;
 	
 	if(tex->id.newid) {
 		*from= (Tex *)tex->id.newid;
@@ -1592,7 +1580,7 @@ void do_single_tex_user(Tex **from)
 	}
 }
 
-void single_tex_users_expand(Main *bmain)
+static void single_tex_users_expand(Main *bmain)
 {
 	/* only when 'parent' blocks are LIB_NEW */
 	Material *ma;

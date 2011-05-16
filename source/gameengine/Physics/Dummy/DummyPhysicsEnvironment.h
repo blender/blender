@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file DummyPhysicsEnvironment.h
+ *  \ingroup physdummy
+ */
+
 #ifndef _DUMMYPHYSICSENVIRONMENT
 #define _DUMMYPHYSICSENVIRONMENT
 

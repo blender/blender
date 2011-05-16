@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_MeshObject.h
+ *  \ingroup bgerast
+ */
+
 #ifndef __RAS_MESHOBJECT
 #define __RAS_MESHOBJECT
 
@@ -42,7 +47,7 @@
 #include "RAS_MaterialBucket.h"
 #include "MT_Transform.h"
 
-#include "GEN_HashedPtr.h"
+#include "CTR_HashedPtr.h"
 
 struct Mesh;
 class RAS_Deformer;

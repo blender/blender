@@ -27,6 +27,7 @@
 set(INC 
 	. ./intern
 	../blenlib
+	../blenloader
 	../makesdna
 	../blenkernel
 	../blenkernel/intern
@@ -37,6 +38,7 @@ set(INC
 	../../../intern/elbeem/extern
 	../../../extern/recastnavigation/Recast/Include
 	${ZLIB_INCLUDE_DIRS}
+        ${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
@@ -77,6 +79,7 @@ set(SRC
 	intern/MOD_surface.c
 	intern/MOD_util.c
 	intern/MOD_uvproject.c
+	intern/MOD_warp.c
 	intern/MOD_wave.c
 
 	MOD_modifiertypes.h

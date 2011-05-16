@@ -1,3 +1,8 @@
+
+/** \file BL_Shader.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __BL_SHADER_H__
 #define __BL_SHADER_H__
 

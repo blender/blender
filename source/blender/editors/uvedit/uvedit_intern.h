@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/uvedit/uvedit_intern.h
+ *  \ingroup eduv
+ */
+
 
 #ifndef ED_UVEDIT_INTERN_H
 #define ED_UVEDIT_INTERN_H

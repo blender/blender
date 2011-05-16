@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +30,10 @@
 
 #ifndef BLO_READBLENFILE_H
 #define BLO_READBLENFILE_H
+
+/** \file BLO_readblenfile.h
+ *  \ingroup blo
+ */
 
 #ifdef __cplusplus
 extern "C" {

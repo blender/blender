@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/cache.c
+ *  \ingroup imbuf
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file PHY_IGraphicController.h
+ *  \ingroup phys
+ */
+
 #ifndef PHY_IGRAPHICCONTROLLER_H
 #define PHY_IGRAPHICCONTROLLER_H
 

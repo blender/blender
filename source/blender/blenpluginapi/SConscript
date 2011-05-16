@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
-incs = '. .. #/intern/guardedalloc ../blenlib ../imbuf ../makesdna'
+incs = '. .. #/intern/guardedalloc ../blenlib ../imbuf ../makesdna ../blenloader'
 
 defs = []
 

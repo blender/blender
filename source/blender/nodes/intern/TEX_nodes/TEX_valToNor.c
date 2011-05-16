@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,7 +26,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_valToNor.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
+#include "TEX_node.h"
 
 static bNodeSocketType inputs[]= { 
 	{ SOCK_VALUE, 1, "Val",   0.0f,   0.0f, 0.0f, 1.0f,  0.0f,   1.0f },

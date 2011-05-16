@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,12 +26,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/BL_ArmatureChannel.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include "DNA_armature_types.h"
 #include "BL_ArmatureChannel.h"
 #include "BL_ArmatureObject.h"
 #include "BL_ArmatureConstraint.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include <stddef.h>
 
 #ifdef WITH_PYTHON
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_logic/logic_intern.h
+ *  \ingroup splogic
+ */
+
 
 #ifndef ED_LOGIC_INTERN_H
 #define ED_LOGIC_INTERN_H

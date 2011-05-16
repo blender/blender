@@ -1,6 +1,4 @@
-/**
- * sound.h (mar-2001 nzc)
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,12 @@
 #ifndef BKE_SOUND_H
 #define BKE_SOUND_H
 
+/** \file BKE_sound.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
+
 struct PackedFile;
 struct bSound;
 struct bContext;
@@ -45,7 +49,7 @@ void sound_init(struct Main *main);
 void sound_exit(void);
 
 void sound_force_device(int device);
-int sound_define_from_str(char *str);
+int sound_define_from_str(const char *str);
 
 struct bSound* sound_new_file(struct Main *main, const char *filename);
 
@@ -73,6 +77,8 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start,
 void sound_create_scene(struct Scene *scene);
 
 void sound_destroy_scene(struct Scene *scene);
+
+void sound_mute_scene(struct Scene *scene, int muted);
 
 void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip);
 

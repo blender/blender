@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file moto/include/GEN_Map.h
+ *  \ingroup moto
+ */
+
 
 #ifndef GEN_MAP_H
 #define GEN_MAP_H

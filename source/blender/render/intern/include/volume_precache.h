@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/include/volume_precache.h
+ *  \ingroup render
+ */
+
 
 void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float *bbmin, float *bbmax);
 int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, float *co);

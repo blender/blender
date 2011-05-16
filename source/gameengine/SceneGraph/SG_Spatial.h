@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file SG_Spatial.h
+ *  \ingroup bgesg
+ */
+ 
 #ifndef __SG_SPATIAL_H
 #define __SG_SPATIAL_H
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,8 +25,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenfont/intern/blf_internal.h
+ *  \ingroup blf
+ */
+
+
 #ifndef BLF_INTERNAL_H
 #define BLF_INTERNAL_H
+
+struct FontBLF;
+struct GlyphBLF;
+struct GlyphCacheBLF;
+struct rctf;
 
 unsigned int blf_next_p2(unsigned int x);
 unsigned int blf_hash(unsigned int val);
@@ -39,30 +49,30 @@ int blf_dir_split(const char *str, char *file, int *size);
 int blf_font_init(void);
 void blf_font_exit(void);
 
-FontBLF *blf_font_new(const char *name, const char *filename);
-FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_size);
-void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_size);
+struct FontBLF *blf_font_new(const char *name, const char *filename);
+struct FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_size);
+void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, int mem_size);
 
-void blf_font_size(FontBLF *font, int size, int dpi);
-void blf_font_draw(FontBLF *font, const char *str, unsigned int len);
-void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len);
-void blf_font_buffer(FontBLF *font, const char *str);
-void blf_font_boundbox(FontBLF *font, const char *str, rctf *box);
-void blf_font_width_and_height(FontBLF *font, const char *str, float *width, float *height);
-float blf_font_width(FontBLF *font, const char *str);
-float blf_font_height(FontBLF *font, const char *str);
-float blf_font_fixed_width(FontBLF *font);
-void blf_font_free(FontBLF *font);
+void blf_font_size(struct FontBLF *font, int size, int dpi);
+void blf_font_draw(struct FontBLF *font, const char *str, unsigned int len);
+void blf_font_draw_ascii(struct FontBLF *font, const char *str, unsigned int len);
+void blf_font_buffer(struct FontBLF *font, const char *str);
+void blf_font_boundbox(struct FontBLF *font, const char *str, struct rctf *box);
+void blf_font_width_and_height(struct FontBLF *font, const char *str, float *width, float *height);
+float blf_font_width(struct FontBLF *font, const char *str);
+float blf_font_height(struct FontBLF *font, const char *str);
+float blf_font_fixed_width(struct FontBLF *font);
+void blf_font_free(struct FontBLF *font);
 
-GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi);
-GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font);
-void blf_glyph_cache_clear(FontBLF *font);
-void blf_glyph_cache_free(GlyphCacheBLF *gc);
+struct GlyphCacheBLF *blf_glyph_cache_find(struct FontBLF *font, int size, int dpi);
+struct GlyphCacheBLF *blf_glyph_cache_new(struct FontBLF *font);
+void blf_glyph_cache_clear(struct FontBLF *font);
+void blf_glyph_cache_free(struct GlyphCacheBLF *gc);
 
-GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c);
-GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c);
+struct GlyphBLF *blf_glyph_search(struct GlyphCacheBLF *gc, unsigned int c);
+struct GlyphBLF *blf_glyph_add(struct FontBLF *font, unsigned int index, unsigned int c);
 
-void blf_glyph_free(GlyphBLF *g);
-int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y);
+void blf_glyph_free(struct GlyphBLF *g);
+int blf_glyph_render(struct FontBLF *font, struct GlyphBLF *g, float x, float y);
 
 #endif /* BLF_INTERNAL_H */

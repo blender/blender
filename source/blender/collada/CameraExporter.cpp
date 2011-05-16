@@ -1,5 +1,5 @@
-/**
- * $Id: CameraExporter.cpp 32546 2010-10-18 00:46:41Z jesterking $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -22,6 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/collada/CameraExporter.cpp
+ *  \ingroup collada
+ */
+
 
 #include <string>
 

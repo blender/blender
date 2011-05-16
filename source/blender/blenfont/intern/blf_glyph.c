@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenfont/intern/blf_glyph.c
+ *  \ingroup blf
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,7 +56,6 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
-FT_Library global_ft_lib;
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 {
@@ -131,6 +135,8 @@ void blf_glyph_cache_clear(FontBLF *font)
 			}
 		}
 	}
+
+	memset(font->glyph_ascii_table, 0, sizeof(font->glyph_ascii_table));
 }
 
 void blf_glyph_cache_free(GlyphCacheBLF *gc)
@@ -205,7 +211,7 @@ GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c)
 	return(NULL);
 }
 
-GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
+GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 {
 	FT_GlyphSlot slot;
 	GlyphBLF *g;
@@ -220,9 +226,9 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 		return(g);
 
 	if (sharp)
-		err = FT_Load_Glyph(font->face, index, FT_LOAD_TARGET_MONO);
+		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_MONO);
 	else
-		err = FT_Load_Glyph(font->face, index, FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP); /* Sure about NO_* flags? */
+		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP); /* Sure about NO_* flags? */
 	if (err)
 		return(NULL);
 
@@ -235,9 +241,9 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 		/* Convert result from 1 bit per pixel to 8 bit per pixel */
 		/* Accum errors for later, fine if not interested beyond "ok vs any error" */
 		FT_Bitmap_New(&tempbitmap);
-		err += FT_Bitmap_Convert(global_ft_lib, &slot->bitmap, &tempbitmap, 1); /* Does Blender use Pitch 1 always? It works so far */
-		err += FT_Bitmap_Copy(global_ft_lib, &tempbitmap, &slot->bitmap);
-		err += FT_Bitmap_Done(global_ft_lib, &tempbitmap);
+		err += FT_Bitmap_Convert(font->ft_lib, &slot->bitmap, &tempbitmap, 1); /* Does Blender use Pitch 1 always? It works so far */
+		err += FT_Bitmap_Copy(font->ft_lib, &tempbitmap, &slot->bitmap);
+		err += FT_Bitmap_Done(font->ft_lib, &tempbitmap);
 	} else {
 		err = FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
 	}
@@ -249,7 +255,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	g->next= NULL;
 	g->prev= NULL;
 	g->c= c;
-	g->idx= index;
+	g->idx= (FT_UInt)index;
 	g->tex= 0;
 	g->build_tex= 0;
 	g->bitmap= NULL;

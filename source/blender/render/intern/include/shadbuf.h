@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/shadbuf.h
+ *  \ingroup render
+ */
+
+
 #ifndef SHADBUF_EXT_H
 #define SHADBUF_EXT_H
 

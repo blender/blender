@@ -1,4 +1,4 @@
-/** 
+/* 
  * $Id$
  * 
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/library.c
+ *  \ingroup bke
+ */
+
 
 /*
  *  Contains management of ID's and libraries
@@ -103,6 +108,10 @@
 #include "BKE_particle.h"
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
+
+#ifdef WITH_PYTHON
+#include "BPY_extern.h"
+#endif
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -419,7 +428,7 @@ ListBase *which_libbase(Main *mainlib, short type)
 		case ID_GD:
 			return &(mainlib->gpencil);
 	}
-	return 0;
+	return NULL;
 }
 
 /* Flag all ids in listbase */
@@ -688,7 +697,7 @@ void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
 	free_windowmanager_cb= func;
 }
 
-void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata)
+static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata)
 {
 	ChannelDriver *driver;
 	FCurve *fcu;
@@ -716,7 +725,11 @@ void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata)
 void free_libblock(ListBase *lb, void *idv)
 {
 	ID *id= idv;
-	
+
+#ifdef WITH_PYTHON
+	BPY_id_release(id);
+#endif
+
 	switch( GS(id->name) ) {	/* GetShort from util.h */
 		case ID_SCE:
 			free_scene((Scene *)id);
@@ -920,7 +933,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 				
 			BLI_dynstr_append(pupds, buf);
 			BLI_dynstr_append(pupds, id->name+2);
-			sprintf(buf, "%%x%d", i+1);
+			BLI_snprintf(buf, sizeof(buf), "%%x%d", i+1);
 			BLI_dynstr_append(pupds, buf);
 			
 			/* icon */
@@ -931,7 +944,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			case ID_IM: /* fall through */
 			case ID_WO: /* fall through */
 			case ID_LA: /* fall through */
-				sprintf(buf, "%%i%d", BKE_icon_getid(id) );
+				BLI_snprintf(buf, sizeof(buf), "%%i%d", BKE_icon_getid(id) );
 				BLI_dynstr_append(pupds, buf);
 				break;
 			default:
@@ -1007,7 +1020,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 			idtest= idtest->next;
 		}
 		/* as last */
-		if(idtest==0) {
+		if(idtest==NULL) {
 			BLI_addtail(lb, id);
 		}
 	}
@@ -1128,7 +1141,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 			continue;
 		}
 		/* this format specifier is from hell... */
-		sprintf(name, "%s.%.3d", left, nr);
+		BLI_snprintf(name, sizeof(id->name) - 2,"%s.%.3d", left, nr);
 
 		return 1;
 	}
@@ -1144,7 +1157,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 int new_id(ListBase *lb, ID *id, const char *tname)
 {
 	int result;
-	char name[22];
+	char name[MAX_ID_NAME-2];
 
 	/* if library, don't rename */
 	if(id->lib) return 0;
@@ -1189,7 +1202,7 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
-void clear_id_newpoins()
+void clear_id_newpoins(void)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id;
@@ -1199,7 +1212,7 @@ void clear_id_newpoins()
 	while(a--) {
 		id= lbarray[a]->first;
 		while(id) {
-			id->newid= 0;
+			id->newid= NULL;
 			id->flag &= ~LIB_NEW;
 			id= id->next;
 		}
@@ -1293,7 +1306,7 @@ void tag_main(struct Main *mainvar, const short tag)
 /* if lib!=NULL, only all from lib local */
 void all_local(Library *lib, int untagged_only)
 {
-	ListBase *lbarray[MAX_LIBARRAY], tempbase={0, 0};
+	ListBase *lbarray[MAX_LIBARRAY], tempbase={NULL, NULL};
 	ID *id, *idn;
 	int a;
 
@@ -1322,7 +1335,7 @@ void all_local(Library *lib, int untagged_only)
 							image_fix_relative_path((Image *)id);
 						
 						id->lib= NULL;
-						new_id(lbarray[a], id, 0);	/* new_id only does it with double names */
+						new_id(lbarray[a], id, NULL);	/* new_id only does it with double names */
 						sort_alpha_id(lbarray[a], id);
 					}
 				}
@@ -1334,7 +1347,7 @@ void all_local(Library *lib, int untagged_only)
 		while( (id=tempbase.first) ) {
 			BLI_remlink(&tempbase, id);
 			BLI_addtail(lbarray[a], id);
-			new_id(lbarray[a], id, 0);
+			new_id(lbarray[a], id, NULL);
 		}
 	}
 
@@ -1355,7 +1368,7 @@ void test_idbutton(char *name)
 	
 
 	lb= which_libbase(G.main, GS(name-2) );
-	if(lb==0) return;
+	if(lb==NULL) return;
 	
 	/* search for id */
 	idtest= BLI_findstring(lb, name, offsetof(ID, name) + 2);
@@ -1368,7 +1381,7 @@ void text_idbutton(struct ID *id, char *text)
 	if(id) {
 		if(GS(id->name)==ID_SCE)
 			strcpy(text, "SCE: ");
-		else if(GS(id->name)==ID_SCE)
+		else if(GS(id->name)==ID_SCR)
 			strcpy(text, "SCR: ");
 		else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
 			strcpy(text, "NT: ");

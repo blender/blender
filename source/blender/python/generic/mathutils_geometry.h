@@ -1,5 +1,5 @@
 /* 
- * $Id: mathutils_geometry.h 34335 2011-01-15 16:14:57Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,12 +26,16 @@
  *
  * ***** END GPL LICENSE BLOCK *****
 */
+
+/** \file blender/python/generic/mathutils_geometry.h
+ *  \ingroup pygen
+ */
+
 /*Include this file for access to vector, quat, matrix, euler, etc...*/
 
 #ifndef MATHUTILS_GEOMETRY_H
 #define MATHUTILS_GEOMETRY_H
 
-#include <Python.h>
 #include "mathutils.h"
 
 PyMODINIT_FUNC BPyInit_mathutils_geometry(void);

@@ -1,3 +1,6 @@
+/** \file opennl/superlu/spanel_dfs.c
+ *  \ingroup opennl
+ */
 
 
 /*

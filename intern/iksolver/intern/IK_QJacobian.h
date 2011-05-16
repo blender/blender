@@ -1,5 +1,5 @@
 
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file iksolver/intern/IK_QJacobian.h
+ *  \ingroup iksolver
+ */
+
 
 #ifndef NAN_INCLUDED_IK_QJacobian_h
 

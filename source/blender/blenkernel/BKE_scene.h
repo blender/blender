@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_scene.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,12 @@
 #ifndef BKE_SCENE_H
 #define BKE_SCENE_H
 
+/** \file BKE_scene.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,10 +50,11 @@ struct Scene;
 struct Text;
 struct Text;
 
-#define SCE_COPY_EMPTY		0
-#define SCE_COPY_LINK_OB	1
-#define SCE_COPY_LINK_DATA	2
-#define SCE_COPY_FULL		3
+#define SCE_COPY_NEW		0
+#define SCE_COPY_EMPTY		1
+#define SCE_COPY_LINK_OB	2
+#define SCE_COPY_LINK_DATA	3
+#define SCE_COPY_FULL		4
 
 #define SETLOOPER(_sce_basis, _sce_iter, _base) _sce_iter= _sce_basis, _base= _setlooper_base_step(&_sce_iter, NULL); _base; _base= _setlooper_base_step(&_sce_iter, _base)
 struct Base *_setlooper_base_step(struct Scene **sce_iter, struct Base *base);
@@ -74,9 +79,6 @@ int scene_camera_switch_update(struct Scene *scene);
 
 char *scene_find_marker_name(struct Scene *scene, int frame);
 char *scene_find_last_marker_name(struct Scene *scene, int frame);
-int scene_marker_tfm_translate(struct Scene *scene, int delta, int flag);
-int scene_marker_tfm_extend(struct Scene *scene, int delta, int flag, int frame, char side);
-int scene_marker_tfm_scale(struct Scene *scene, float value, int flag);
 
 struct Base *scene_add_base(struct Scene *sce, struct Object *ob);
 void scene_deselect_all(struct Scene *sce);

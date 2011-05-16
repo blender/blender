@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_logic.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_LOGIC_H
 #define ED_LOGIC_H
 

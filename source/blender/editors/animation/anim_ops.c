@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/anim_ops.c
+ *  \ingroup edanimation
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -37,6 +42,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_sound.h"
 
 #include "UI_view2d.h"
@@ -47,6 +53,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_anim_api.h"
 #include "ED_screen.h"
 
 #include "anim_intern.h"
@@ -57,6 +64,9 @@
 static int change_frame_poll(bContext *C)
 {
 	ScrArea *curarea= CTX_wm_area(C);
+	
+	/* XXX temp? prevent changes during render */
+	if(G.rendering) return 0;
 	
 	/* as long as there is an active area, and it isn't a Graph Editor 
 	 * (since the Graph Editor has its own version which does extra stuff),
@@ -153,7 +163,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void ANIM_OT_change_frame(wmOperatorType *ot)
+static void ANIM_OT_change_frame(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Change frame";
@@ -208,7 +218,7 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ANIM_OT_previewrange_set(wmOperatorType *ot)
+static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Preview Range";
@@ -255,7 +265,7 @@ static int previewrange_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 } 
 
-void ANIM_OT_previewrange_clear(wmOperatorType *ot)
+static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Preview Range";
@@ -323,7 +333,7 @@ static int toggle_time_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_time_toggle(wmOperatorType *ot)
+static void ANIM_OT_time_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Frames/Seconds";

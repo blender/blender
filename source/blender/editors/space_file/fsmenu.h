@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * 
  */
+
+/** \file blender/editors/space_file/fsmenu.h
+ *  \ingroup spfile
+ */
+
 
 #ifndef BSE_FSMENU_H
 #define BSE_FSMENU_H

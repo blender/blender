@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,8 +25,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Ketsji Logic Extenstion: Network Message Actuator class
  */
+
+/** \file KX_NetworkMessageActuator.h
+ *  \ingroup ketsjinet
+ *  \brief Ketsji Logic Extenstion: Network Message Actuator class
+ */
+
 #ifndef __KX_NETWORKMESSAGEACTUATOR_H
 #define __KX_NETWORKMESSAGEACTUATOR_H
 

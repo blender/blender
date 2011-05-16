@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_SystemX11.h
+
+/** \file ghost/intern/GHOST_SystemX11.h
+ *  \ingroup GHOST
  * Declaration of GHOST_SystemX11 class.
  */
 
@@ -181,7 +182,7 @@ public:
 	) const;
 
 	/**
-	 * @section
+	 * @section Interface Dirty
 	 * Flag a window as dirty. This will
 	 * generate a GHOST window update event on a call to processEvents() 
 	 */
@@ -225,6 +226,11 @@ public:
 	 * @param selection	Set the selection into the clipboard, X11 only feature
 	 */
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
+
+	/**
+	 * @see GHOST_ISystem
+	 */
+	int toggleConsole(int action) { return 0; }
 
 	/**
 	 * Atom used for ICCCM, WM-spec and Motif.

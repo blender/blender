@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/physics/physics_pointcache.c
+ *  \ingroup edphys
+ */
+
+
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
@@ -75,13 +80,13 @@ static int ptcache_poll(bContext *C)
 	return (ptr.data && ptr.id.data);
 }
 
-void bake_console_progress(void *UNUSED(arg), int nr)
+static void bake_console_progress(void *UNUSED(arg), int nr)
 {
 	printf("\rbake: %3i%%", nr);
 	fflush(stdout);
 }
 
-void bake_console_progress_end(void *UNUSED(arg))
+static void bake_console_progress_end(void *UNUSED(arg))
 {
 	printf("\rbake: done!\n");
 }

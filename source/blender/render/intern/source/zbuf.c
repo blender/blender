@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/source/zbuf.c
+ *  \ingroup render
+ */
+
 
 
 /*---------------------------------------------------------------------------*/
@@ -3766,7 +3771,10 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 					shi->samplenr= R.shadowsamplenr[shi->thread]++;
 					shade_input_set_viewco(shi, x, y, xs, ys, (float)z);
 					shade_input_set_uv(shi);
-					shade_input_set_normals(shi);
+					if(shi_inc==0)
+						shade_input_set_normals(shi);
+					else /* XXX shi->flippednor messes up otherwise */
+						shade_input_set_vertex_normals(shi);
 					
 					shi_inc= 1;
 				}
@@ -3848,7 +3856,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 		ShadeInput *shi= ssamp->shi;
 		ShadeResult *shr= ssamp->shr;
 		
-		 for(sample=0; sample<ssamp->tot; sample++, shi++, shr++) {
+		for(sample=0; sample<ssamp->tot; sample++, shi++, shr++) {
 		
 			if(shi->mask & (1<<a)) {
 				float fac= (1.0f - samp_shr->combined[3])*shr->combined[3];

@@ -1,9 +1,4 @@
-/*  BKE_deform.h   June 2001
- *  
- *  support for deformation groups and hooks
- * 
- *	Reevan McKay et al
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -35,6 +30,13 @@
 #ifndef BKE_DEFORM_H
 #define BKE_DEFORM_H
 
+/** \file BKE_deform.h
+ *  \ingroup bke
+ *  \since June 2001
+ *  \author Reevan McKay et al
+ *  \brief support for deformation groups and hooks.
+ */
+
 struct Object;
 struct ListBase;
 struct bDeformGroup;
@@ -64,7 +66,7 @@ void defvert_normalize(struct MDeformVert *dvert);
 
 /* utility function, note that 32 chars is the maximum string length since its only
  * used with defgroups currently */
-void flip_side_name(char *name, const char *from_name, int strip_number);
+void flip_side_name(char name[32], const char from_name[32], int strip_number);
 
 #endif
 

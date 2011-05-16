@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -12,14 +12,16 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
+
 #include "btCylinderShape.h"
 
 btCylinderShape::btCylinderShape (const btVector3& halfExtents)
-:btBoxShape(halfExtents),
+:btConvexInternalShape(),
 m_upAxis(1)
 {
+	btVector3 margin(getMargin(),getMargin(),getMargin());
+	m_implicitShapeDimensions = (halfExtents * m_localScaling) - margin;
 	m_shapeType = CYLINDER_SHAPE_PROXYTYPE;
-	recalcLocalAabb();
 }
 
 
@@ -27,7 +29,7 @@ btCylinderShapeX::btCylinderShapeX (const btVector3& halfExtents)
 :btCylinderShape(halfExtents)
 {
 	m_upAxis = 0;
-	recalcLocalAabb();
+
 }
 
 
@@ -35,13 +37,84 @@ btCylinderShapeZ::btCylinderShapeZ (const btVector3& halfExtents)
 :btCylinderShape(halfExtents)
 {
 	m_upAxis = 2;
-	recalcLocalAabb();
+
 }
 
 void btCylinderShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
 {
-	//skip the box 'getAabb'
-	btPolyhedralConvexShape::getAabb(t,aabbMin,aabbMax);
+	btTransformAabb(getHalfExtentsWithoutMargin(),getMargin(),t,aabbMin,aabbMax);
+}
+
+void	btCylinderShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
+{
+
+//Until Bullet 2.77 a box approximation was used, so uncomment this if you need backwards compatibility
+//#define USE_BOX_INERTIA_APPROXIMATION 1
+#ifndef USE_BOX_INERTIA_APPROXIMATION
+
+	/*
+	cylinder is defined as following:
+	*
+	* - principle axis aligned along y by default, radius in x, z-value not used
+	* - for btCylinderShapeX: principle axis aligned along x, radius in y direction, z-value not used
+	* - for btCylinderShapeZ: principle axis aligned along z, radius in x direction, y-value not used
+	*
+	*/
+
+	btScalar radius2;	// square of cylinder radius
+	btScalar height2;	// square of cylinder height
+	btVector3 halfExtents = getHalfExtentsWithMargin();	// get cylinder dimension
+	btScalar div12 = mass / 12.f;
+	btScalar div4 = mass / 4.f;
+	btScalar div2 = mass / 2.f;
+	int idxRadius, idxHeight;
+
+	switch (m_upAxis)	// get indices of radius and height of cylinder
+	{
+		case 0:		// cylinder is aligned along x
+			idxRadius = 1;
+			idxHeight = 0;
+			break;
+		case 2:		// cylinder is aligned along z
+			idxRadius = 0;
+			idxHeight = 2;
+			break;
+		default:	// cylinder is aligned along y
+			idxRadius = 0;
+			idxHeight = 1;
+	}
+
+	// calculate squares
+	radius2 = halfExtents[idxRadius] * halfExtents[idxRadius];
+	height2 = btScalar(4.) * halfExtents[idxHeight] * halfExtents[idxHeight];
+
+	// calculate tensor terms
+	btScalar t1 = div12 * height2 + div4 * radius2;
+	btScalar t2 = div2 * radius2;
+
+	switch (m_upAxis)	// set diagonal elements of inertia tensor
+	{
+		case 0:		// cylinder is aligned along x
+			inertia.setValue(t2,t1,t1);
+			break;
+		case 2:		// cylinder is aligned along z
+			inertia.setValue(t1,t1,t2);
+			break;
+		default:	// cylinder is aligned along y
+			inertia.setValue(t1,t2,t1);
+	}
+#else //USE_BOX_INERTIA_APPROXIMATION
+	//approximation of box shape
+	btVector3 halfExtents = getHalfExtentsWithMargin();
+
+	btScalar lx=btScalar(2.)*(halfExtents.x());
+	btScalar ly=btScalar(2.)*(halfExtents.y());
+	btScalar lz=btScalar(2.)*(halfExtents.z());
+
+	inertia.setValue(mass/(btScalar(12.0)) * (ly*ly + lz*lz),
+					mass/(btScalar(12.0)) * (lx*lx + lz*lz),
+					mass/(btScalar(12.0)) * (lx*lx + ly*ly));
+#endif //USE_BOX_INERTIA_APPROXIMATION
 }
 
 

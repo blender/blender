@@ -1,5 +1,5 @@
-/**
- * $Id: KX_FontObject.cpp 34077 2011-01-04 21:27:44Z dfelinto $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_FontObject.cpp
+ *  \ingroup ketsji
+ */
+
 #include "KX_FontObject.h"
 #include "DNA_curve_types.h"
 #include "KX_Scene.h"

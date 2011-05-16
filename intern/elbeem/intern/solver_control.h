@@ -1,3 +1,6 @@
+/** \file elbeem/intern/solver_control.h
+ *  \ingroup elbeem
+ */
 /******************************************************************************
  *
  * El'Beem - the visual lattice boltzmann freesurface simulator

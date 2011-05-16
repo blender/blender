@@ -22,6 +22,10 @@ Developed as part of a Research and Development project for SAT - La Soci�t�
 -----------------------------------------------------------------------------
 */
 
+/** \file KX_Dome.h
+ *  \ingroup ketsji
+ */
+
 #if !defined KX_DOME_H
 #define KX_DOME_H
 

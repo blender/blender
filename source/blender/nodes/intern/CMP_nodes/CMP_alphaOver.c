@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/CMP_nodes/CMP_alphaOver.c
+ *  \ingroup cmpnodes
+ */
+
 
 #include "../CMP_util.h"
 
@@ -137,7 +142,7 @@ static void node_composit_exec_alphaover(void *UNUSED(data), bNode *node, bNodeS
 
 static void node_alphaover_init(bNode* node)
 {
-   node->storage= MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
+	node->storage= MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
 }
 
 void register_node_type_cmp_alphaover(ListBase *lb)

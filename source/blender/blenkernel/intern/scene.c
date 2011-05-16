@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/scene.c
+ *  \ingroup bke
+ */
+
+
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -844,54 +849,6 @@ char *scene_find_last_marker_name(Scene *scene, int frame)
 	return best_marker ? best_marker->name : NULL;
 }
 
-/* markers need transforming from different parts of the code so have
- * a generic function to do this */
-int scene_marker_tfm_translate(Scene *scene, int delta, int flag)
-{
-	TimeMarker *marker;
-	int tot= 0;
-
-	for (marker= scene->markers.first; marker; marker= marker->next) {
-		if ((marker->flag & flag) == flag) {
-			marker->frame += delta;
-			tot++;
-		}
-	}
-
-	return tot;
-}
-
-int scene_marker_tfm_extend(Scene *scene, int delta, int flag, int frame, char side)
-{
-	TimeMarker *marker;
-	int tot= 0;
-
-	for (marker= scene->markers.first; marker; marker= marker->next) {
-		if ((marker->flag & flag) == flag) {
-			if((side=='L' && marker->frame < frame) || (side=='R' && marker->frame >= frame)) {
-				marker->frame += delta;
-				tot++;
-			}
-		}
-	}
-
-	return tot;
-}
-
-int scene_marker_tfm_scale(struct Scene *scene, float value, int flag)
-{
-	TimeMarker *marker;
-	int tot= 0;
-
-	for (marker= scene->markers.first; marker; marker= marker->next) {
-		if ((marker->flag & flag) == flag) {
-			marker->frame= CFRA + (int)floorf(((float)(marker->frame - CFRA) * value) + 0.5f);
-			tot++;
-		}
-	}
-
-	return tot;
-}
 
 Base *scene_add_base(Scene *sce, Object *ob)
 {
@@ -1140,23 +1097,23 @@ float get_render_aosss_error(RenderData *r, float error)
 /* helper function for the SETLOOPER macro */
 Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 {
-    if(base && base->next) {
-        /* common case, step to the next */
-        return base->next;
-    }
+	if(base && base->next) {
+		/* common case, step to the next */
+		return base->next;
+	}
 	else if(base==NULL && (*sce_iter)->base.first) {
-        /* first time looping, return the scenes first base */
+		/* first time looping, return the scenes first base */
 		return (Base *)(*sce_iter)->base.first;
-    }
-    else {
-        /* reached the end, get the next base in the set */
+	}
+	else {
+		/* reached the end, get the next base in the set */
 		while((*sce_iter= (*sce_iter)->set)) {
 			base= (Base *)(*sce_iter)->base.first;
-            if(base) {
-                return base;
-            }
-        }
-    }
+			if(base) {
+				return base;
+			}
+		}
+	}
 
-    return NULL;
+	return NULL;
 }

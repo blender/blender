@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_WindowX11.h
+
+/** \file ghost/intern/GHOST_WindowX11.h
+ *  \ingroup GHOST
  * Declaration of GHOST_WindowX11 class.
  */
 
@@ -170,8 +171,7 @@ public:
 	 ~GHOST_WindowX11();
 
 	/**
-	 * @section 
-	 * X11 system specific calls.
+	 * @section x11specific X11 system specific calls
 	 */
 
 	/**

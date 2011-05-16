@@ -1,7 +1,3 @@
- 
-//
-// Add object to the game world on action of this actuator
-//
 // $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +25,10 @@
 //
 // ***** END GPL LICENSE BLOCK *****
 //
+
+/** \file KX_SceneActuator.h
+ *  \ingroup ketsji
+ */
 
 #ifndef __KX_SCENEACTUATOR
 #define __KX_SCENEACTUATOR
@@ -85,7 +85,7 @@ class KX_SceneActuator : public SCA_IActuator
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
 	virtual bool UnlinkObject(SCA_IObject* clientobj);
-	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	virtual void Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 
 	virtual bool Update();
 	

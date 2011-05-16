@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_BulletPhysicsController.cpp
+ *  \ingroup ketsji
+ */
 //under visual studio the #define in KX_ConvertPhysicsObject.h is quicker for recompilation
 #include "KX_ConvertPhysicsObject.h"
 
@@ -519,6 +522,17 @@ bool KX_BulletPhysicsController::Update(double time)
 	//	return false;//true;
 //	}
 //	return false;
+}
+
+
+const char* KX_BulletPhysicsController::getName()
+{
+	if (m_pObject)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*)	m_pObject->GetSGClientObject();
+		return gameobj->GetName();
+	}
+	return 0;
 }
 
 #endif // USE_BULLET

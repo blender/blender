@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,11 +26,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_node/node_ops.c
+ *  \ingroup spnode
+ */
+
+
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 
+#include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -73,6 +79,10 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_group_make);
 	WM_operatortype_append(NODE_OT_group_ungroup);
 	WM_operatortype_append(NODE_OT_group_edit);
+	WM_operatortype_append(NODE_OT_group_socket_add);
+	WM_operatortype_append(NODE_OT_group_socket_remove);
+	WM_operatortype_append(NODE_OT_group_socket_move_up);
+	WM_operatortype_append(NODE_OT_group_socket_move_down);
 	
 	WM_operatortype_append(NODE_OT_link_viewer);
 	

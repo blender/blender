@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file decimation/intern/LOD_Quadric.h
+ *  \ingroup decimation
+ */
+
 
 #ifndef NAN_INCLUDED_LOD_Quadric_h
 #define NAN_INCLUDED_LOD_Quadric_h

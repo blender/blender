@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_image_types.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,10 @@
  */
 #ifndef DNA_IMAGE_TYPES_H
 #define DNA_IMAGE_TYPES_H
+
+/** \file DNA_image_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_ID.h"
 

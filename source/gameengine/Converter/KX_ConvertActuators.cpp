@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,9 +28,16 @@
 * Convert Blender actuators for use in the GameEngine
 */
 
+/** \file gameengine/Converter/KX_ConvertActuators.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786) 
 #endif //WIN32
+
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -392,7 +399,7 @@ void BL_ConvertActuators(char* maggiename,
 						new KX_SoundActuator(gameobj,
 						snd_sound,
 						soundact->volume,
-						exp((soundact->pitch / 12.0) * log(2.0)),
+						(float)(exp((soundact->pitch / 12.0) * log(2.0))),
 						is3d,
 						settings,
 						soundActuatorType);
@@ -539,8 +546,8 @@ void BL_ConvertActuators(char* maggiename,
 				/* convert settings... degrees in the ui become radians  */ 
 				/* internally                                            */ 
 				if (conact->type == ACT_CONST_TYPE_ORI) {
-					min = (MT_2_PI * conact->minloc[0])/360.0;
-					max = (MT_2_PI * conact->maxloc[0])/360.0;
+					min = (float)((MT_2_PI * conact->minloc[0])/360.0);
+					max = (float)((MT_2_PI * conact->maxloc[0])/360.0);
 					switch (conact->mode) {
 					case ACT_CONST_DIRPX:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIX;
@@ -639,18 +646,18 @@ void BL_ConvertActuators(char* maggiename,
 						break;
 					case ACT_CONST_ROTX:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ROTX;
-						min = MT_2_PI * conact->minrot[0] / 360.0;
-						max = MT_2_PI * conact->maxrot[0] / 360.0;
+						min = conact->minrot[0] * (float)MT_RADS_PER_DEG;
+						max = conact->maxrot[0] * (float)MT_RADS_PER_DEG;
 						break;
 					case ACT_CONST_ROTY:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ROTY;
-						min = MT_2_PI * conact->minrot[1] / 360.0;
-						max = MT_2_PI * conact->maxrot[1] / 360.0;
+						min = conact->minrot[1] * (float)MT_RADS_PER_DEG;
+						max = conact->maxrot[1] * (float)MT_RADS_PER_DEG;
 						break;
 					case ACT_CONST_ROTZ:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ROTZ;
-						min = MT_2_PI * conact->minrot[2] / 360.0;
-						max = MT_2_PI * conact->maxrot[2] / 360.0;
+						min = conact->minrot[2] * (float)MT_RADS_PER_DEG;
+						max = conact->maxrot[2] * (float)MT_RADS_PER_DEG;
 						break;
 					default:
 						; /* error */ 

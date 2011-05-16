@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/IfExpr.cpp
+ *  \ingroup expressions
+ */
 // IfExpr.cpp: implementation of the CIfExpr class.
 /*
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>
