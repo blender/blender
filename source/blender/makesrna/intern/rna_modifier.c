@@ -656,7 +656,7 @@ static void rna_def_modifier_generic_map_info(StructRNA *srna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MappingInfo_uvlayer_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "texture_coordinate_object", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "texture_coords_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "map_object");
 	RNA_def_property_ui_text(prop, "Texture Coordinate Object", "Object to set the texture coordinates");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
