@@ -145,7 +145,10 @@ def create_nb_project_main():
         f.write('    </logicalFolder>\n')
 
         f.write('  </logicalFolder>\n')
-        f.write('  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>\n')
+        # default, but this dir is infact not in blender dir so we can ignore it
+        # f.write('  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>\n')
+        f.write('  <sourceFolderFilter>^(__pycache__|.*\.py)$</sourceFolderFilter>\n')
+
         f.write('  <sourceRootList>\n')
         f.write('    <Elem>%s</Elem>\n' % SOURCE_DIR)  # base_root_rel
         f.write('  </sourceRootList>\n')

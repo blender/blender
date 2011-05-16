@@ -430,7 +430,7 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_MEM_JEMALLOC)
 		set(JEMALLOC /usr)
-		set(JEMALLOC_LIBRARY ljemalloc CACHE STRING "JeMalloc library")
+		set(JEMALLOC_LIBRARY jemalloc CACHE STRING "JeMalloc library")
 		set(JEMALLOC_LIBPATH ${JEMALLOC}/lib  CACHE FILEPATH "JeMalloc library path")
 		# no use for this yet.
 		# set(JEMALLOC_INCLUDE_DIR ${JEMALLOC}/include  CACHE FILEPATH "JeMalloc include path")
