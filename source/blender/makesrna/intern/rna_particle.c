@@ -1840,15 +1840,15 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop= RNA_def_property(srna, "draw_step", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 7);
-	RNA_def_property_ui_range(prop, 0, 10, 1, 0);
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_range(prop, 0, 7, 1, 0);
 	RNA_def_property_ui_text(prop, "Steps", "How many steps paths are drawn with (power of 2)");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop= RNA_def_property(srna, "render_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ren_step");
-	RNA_def_property_range(prop, 0, 9);
-	RNA_def_property_ui_range(prop, 0, 20, 1, 0);
+	RNA_def_property_range(prop, 0, 20);
+	RNA_def_property_ui_range(prop, 0, 9, 1, 0);
 	RNA_def_property_ui_text(prop, "Render", "How many steps paths are rendered with (power of 2)");
 
 	prop= RNA_def_property(srna, "hair_step", PROP_INT, PROP_NONE);
