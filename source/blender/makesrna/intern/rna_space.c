@@ -76,9 +76,6 @@ static EnumPropertyItem draw_channels_items[] = {
 	{SI_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha", "Draw image with RGB colors and alpha transparency"},
 	{SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel"},
 	{SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)"},
-#ifdef WITH_LCMS
-	{SI_COLOR_CORRECTION, "COLOR_CORRECTED", ICON_IMAGE_ALPHA, "Color Corrected", "Display color corrected image"},
-#endif
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem transform_orientation_items[] = {
@@ -497,10 +494,6 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	else if(zbuf) {
 		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ZBUF);
 	}
-
-#ifdef WITH_LCMS
-	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_COLOR_CORRECTION);
-#endif
 
 	RNA_enum_item_end(&item, &totitem);
 	*free= 1;

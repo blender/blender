@@ -202,9 +202,6 @@ if(APPLE)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 endif()
 
-# only for developers who want to make this functional
-# option(WITH_LCMS          "Enable color correction with lcms" OFF)
-
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
@@ -378,13 +375,6 @@ if(UNIX AND NOT APPLE)
 	find_package(PNG REQUIRED)
 
 	find_package(ZLIB REQUIRED)
-
-	if(WITH_LCMS)
-		set(LCMS /usr CACHE FILEPATH "LCMS directory")
-		set(LCMS_INCLUDE_DIR ${LCMS}/include)
-		set(LCMS_LIBRARY lcms)
-		set(LCMS_LIBPATH ${LCMS}/lib)
-	endif()
 
 	if(WITH_CODEC_FFMPEG)
 		set(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
@@ -640,14 +630,7 @@ elseif(WIN32)
 			set(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser xml2 buffer ftoa UTF)
 			set(PCRE_LIB pcre)
 		endif()
-		
-		if(WITH_LCMS)
-			set(LCMS ${LIBDIR}/lcms)
-			set(LCMS_INCLUDE_DIR ${LCMS}/include)
-			set(LCMS_LIBPATH ${LCMS}/lib)
-			set(LCMS_LIB lcms)
-		endif()
-
+	
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg)
 			set(FFMPEG_INC ${FFMPEG}/include ${FFMPEG}/include/msvc)
@@ -908,13 +891,6 @@ elseif(APPLE)
 		set(OPENEXR_INC ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
 		set(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-	endif()
-
-	if(WITH_LCMS)
-		set(LCMS ${LIBDIR}/lcms)
-		set(LCMS_INCLUDE_DIR ${LCMS}/include)
-		set(LCMS_LIBRARY lcms)
-		set(LCMS_LIBPATH ${LCMS}/lib)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)

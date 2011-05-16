@@ -59,9 +59,4 @@ if(WITH_IMAGE_CINEON)
 	add_definitions(-DWITH_CINEON)
 endif()
 
-if(WITH_LCMS)
-	set(INC ${INC} ${LCMS_INCLUDE_DIR})
-	add_definitions(-DWITH_LCMS)
-endif()
-
 blender_add_lib(bf_editor_space_image "${SRC}" "${INC}")

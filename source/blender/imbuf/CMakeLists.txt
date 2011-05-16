@@ -146,8 +146,4 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
-if(WITH_LCMS)
-	add_definitions(-DWITH_LCMS)
-endif()
-
 blender_add_lib(bf_imbuf "${SRC}" "${INC}")

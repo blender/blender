@@ -58,10 +58,6 @@
 #include "BKE_image.h"
 #include "BKE_paint.h"
 
-#ifdef WITH_LCMS
-#include "BKE_colortools.h"
-#endif
-
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -452,20 +448,6 @@ static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, fl
 //	glColorMask(1, 1, 1, 1);
 }
 
-#ifdef WITH_LCMS
-static int sima_draw_colorcorrected_pixels(float x1, float y1, ImBuf *ibuf)
-{
-	colorcorrection_do_ibuf(ibuf, "MONOSCNR.ICM"); /* path is hardcoded here, find some place better */
-
-	if(ibuf->crect) {
-		glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->crect);
-		return 1;
-	}
-
-	return 0;
-}
-#endif
-
 static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int *recti)
 {
 	/* zbuffer values are signed, so we need to shift color range */
@@ -544,17 +526,6 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 		else if(ibuf->channels==1)
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
-#ifdef WITH_LCMS
-	else if(sima->flag & SI_COLOR_CORRECTION) {
-		image_verify_buffer_float(ima, ibuf, color_manage);
-		
-		if(sima_draw_colorcorrected_pixels(x, y, ibuf)==0) {
-			unsigned char col1[3]= {100, 0, 100}, col2[3]= {160, 0, 160}; /* pink says 'warning' in blender land */
-			sima_draw_alpha_backdrop(x, y, ibuf->x, ibuf->y, zoomx, zoomy, col1, col2);
-		}
-
-	}
-#endif
 	else {
 		if(sima->flag & SI_USE_ALPHA) {
 			unsigned char col1[3]= {100, 100, 100}, col2[3]= {160, 160, 160};
