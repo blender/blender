@@ -102,7 +102,8 @@ def register():
                    ('Render', "Render", ""),
                    ('Rigging', "Rigging", ""),
                    ('Text Editor', "Text Editor", ""),
-                   ('System', "System", "")
+                   ('System', "System", ""),
+                   ('Other', "Other", ""),
                    ],
             name="Category",
             description="Filter add-ons by category",
