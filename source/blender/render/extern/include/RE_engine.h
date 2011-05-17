@@ -99,6 +99,7 @@ LIBEXPORT void RE_engine_end_result(RenderEngine *engine, struct RenderResult *r
 
 LIBEXPORT int RE_engine_test_break(RenderEngine *engine);
 LIBEXPORT void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
+LIBEXPORT void RE_engine_update_progress(RenderEngine *engine, float progress);
 LIBEXPORT void RE_engine_report(RenderEngine *engine, int type, const char *msg);
 
 int RE_engine_render(struct Render *re, int do_all);

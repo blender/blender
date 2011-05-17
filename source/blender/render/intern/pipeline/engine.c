@@ -209,6 +209,14 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 	re->i.statstr= NULL;
 }
 
+void RE_engine_update_progress(RenderEngine *engine, float progress)
+{
+	Render *re= engine->re;
+
+	CLAMP(progress, 0.0f, 1.0f);
+	re->progress(re->prh, progress);
+}
+
 void RE_engine_report(RenderEngine *engine, int type, const char *msg)
 {
 	BKE_report(engine->re->reports, type, msg);

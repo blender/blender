@@ -374,6 +374,10 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop= RNA_def_string(func, "info", "", 0, "Info", "");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 
+	func= RNA_def_function(srna, "update_progress", "RE_engine_update_progress");
+	prop= RNA_def_float(func, "progress", 0, 0.0f, 1.0f, "", "Percentage of render that's done.", 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+
 	func= RNA_def_function(srna, "report", "RE_engine_report");
 	prop= RNA_def_enum_flag(func, "type", wm_report_items, 0, "Type", "");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
