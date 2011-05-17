@@ -494,13 +494,13 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
 	{
-		float minx= rect->xmin+5.0f/block->aspect;
-		float maxx= rect->xmax-5.0f/block->aspect;
+		float minx= rect->xmin/block->aspect;
+		float maxx= rect->xmax/block->aspect;
 		float y= headrect.ymax;
 		
 		glEnable(GL_BLEND);
 		glColor4f(0.0f, 0.0f, 0.0f, 0.1f);
-		uiSetRoundBox(15);
+		uiSetRoundBox(0);
 		uiDrawBox(GL_POLYGON, minx, headrect.ymin, maxx, y+1, 4);
 		glDisable(GL_BLEND);
 	}
