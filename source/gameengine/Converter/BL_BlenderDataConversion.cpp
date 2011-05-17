@@ -143,9 +143,11 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_material.h" /* give_current_material */
+
+extern Material defmaterial;	/* material.c */
 }
 
-#include "BKE_material.h" /* give_current_material */
 /* end of blender include block */
 
 #include "KX_BlenderInputDevice.h"
@@ -839,7 +841,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 
 		/* ckeck for texface since texface _only_ is used as a fallback */
 		if(ma == NULL && tface == NULL) {
-			extern Material defmaterial;	/* material.c */
 			ma= &defmaterial;
 		}
 
