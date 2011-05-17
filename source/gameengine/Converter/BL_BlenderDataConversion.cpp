@@ -460,7 +460,9 @@ bool ConvertMaterial(
 							}
 						}
 					}
-					material->flag[i] |= (mat->ipo!=0)?HASIPO:0;
+#if 0				/* this flag isnt used anymore */
+					material->flag[i] |= (BKE_animdata_from_id(mat->id) != NULL) ? HASIPO : 0;
+#endif
 					/// --------------------------------
 					// mapping methods
 					material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
@@ -834,6 +836,12 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 			ma = give_current_material(blenderobj, mface->mat_nr+1);
 		else
 			ma = mesh->mat ? mesh->mat[mface->mat_nr]:NULL;
+
+		/* ckeck for texface since texface _only_ is used as a fallback */
+		if(ma == NULL && tface == NULL) {
+			extern Material defmaterial;	/* material.c */
+			ma= &defmaterial;
+		}
 
 		{
 			bool visible = true;
