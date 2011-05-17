@@ -104,8 +104,12 @@ LIBEXPORT void RE_engine_report(RenderEngine *engine, int type, const char *msg)
 
 int RE_engine_render(struct Render *re, int do_all);
 
+/* Engine Types */
+
 void RE_engines_init(void);
 void RE_engines_exit(void);
+
+RenderEngineType *RE_engines_find(const char *idname);
 
 #endif /* RE_ENGINE_H */
 

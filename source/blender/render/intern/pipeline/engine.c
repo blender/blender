@@ -104,6 +104,17 @@ void RE_engines_exit(void)
 	}
 }
 
+RenderEngineType *RE_engines_find(const char *idname)
+{
+	RenderEngineType *type;
+	
+	type= BLI_findstring(&R_engines, idname, offsetof(RenderEngineType, idname));
+	if(!type)
+		type= &internal_render_type;
+
+	return type;
+}
+
 /* Create, Free */
 
 RenderEngine *RE_engine_create(RenderEngineType *type)
@@ -226,11 +237,11 @@ void RE_engine_report(RenderEngine *engine, int type, const char *msg)
 
 int RE_engine_render(Render *re, int do_all)
 {
-	RenderEngineType *type= BLI_findstring(&R_engines, re->r.engine, offsetof(RenderEngineType, idname));
+	RenderEngineType *type= RE_engines_find(re->r.engine);
 	RenderEngine *engine;
 
 	/* verify if we can render */
-	if(!(type && type->render))
+	if(!type->render)
 		return 0;
 	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_DO_PREVIEW))
 		return 0;
