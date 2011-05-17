@@ -126,8 +126,8 @@ typedef struct Library {
 enum eIconSizes {
 	ICON_SIZE_ICON,
 	ICON_SIZE_PREVIEW,
-	NUM_ICON_SIZES
 };
+#define NUM_ICON_SIZES (ICON_SIZE_PREVIEW + 1)
 
 typedef struct PreviewImage {
 	/* All values of 2 are really NUM_ICON_SIZES */
