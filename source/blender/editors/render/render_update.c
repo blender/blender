@@ -43,6 +43,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_icons.h"

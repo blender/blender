@@ -209,6 +209,11 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 	re->i.statstr= NULL;
 }
 
+void RE_engine_report(RenderEngine *engine, int type, const char *msg)
+{
+	BKE_report(engine->re->reports, type, msg);
+}
+
 /* Render */
 
 int RE_engine_render(Render *re, int do_all)

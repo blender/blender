@@ -446,10 +446,14 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	   since sequence rendering can call that recursively... (peter) */
 	seq_stripelem_cache_cleanup();
 
+	RE_SetReports(re, op->reports);
+
 	if(is_animation)
-		RE_BlenderAnim(re, mainp, scene, camera_override, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
+		RE_BlenderAnim(re, mainp, scene, camera_override, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 	else
 		RE_BlenderFrame(re, mainp, scene, NULL, camera_override, lay, scene->r.cfra, is_write_still);
+
+	RE_SetReports(re, NULL);
 
 	// no redraw needed, we leave state as we entered it
 	ED_update_for_newframe(mainp, scene, CTX_wm_screen(C), 1);
@@ -591,10 +595,14 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
 	rj->do_update= do_update;
 	rj->progress= progress;
 
+	RE_SetReports(rj->re, rj->reports);
+
 	if(rj->anim)
-		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->camera_override, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
+		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->camera_override, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
 	else
 		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->srl, rj->camera_override, rj->lay, rj->scene->r.cfra, rj->write_still);
+
+	RE_SetReports(rj->re, NULL);
 }
 
 static void render_endjob(void *rjv)

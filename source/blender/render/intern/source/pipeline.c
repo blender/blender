@@ -128,7 +128,7 @@ Render R;
 
 /* ********* alloc and free ******** */
 
-static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports, const char *name_override);
+static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, const char *name_override);
 
 static volatile int g_break= 0;
 static int thread_break(void *UNUSED(arg))
@@ -2911,6 +2911,11 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	return 1;
 }
 
+void RE_SetReports(Render *re, ReportList *reports)
+{
+	re->reports= reports;
+}
+
 /* general Blender frame render call */
 void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay, int frame, const short write_still)
 {
@@ -2933,7 +2938,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
 	
 				/* reports only used for Movie */
-				do_write_image_or_movie(re, scene, NULL, NULL, name);
+				do_write_image_or_movie(re, scene, NULL, name);
 			}
 		}
 	}
@@ -2942,7 +2947,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	G.rendering= 0;
 }
 
-static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports, const char *name_override)
+static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, const char *name_override)
 {
 	char name[FILE_MAX];
 	RenderResult rres;
@@ -2960,7 +2965,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 			dofree = 1;
 		}
 		RE_ResultGet32(re, (unsigned int *)rres.rect32);
-		ok= mh->append_movie(&re->r, scene->r.cfra, rres.rect32, rres.rectx, rres.recty, reports);
+		ok= mh->append_movie(&re->r, scene->r.cfra, rres.rect32, rres.rectx, rres.recty, re->reports);
 		if(dofree) {
 			MEM_freeN(rres.rect32);
 		}
@@ -3033,7 +3038,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override, unsigned int lay, int sfra, int efra, int tfra, ReportList *reports)
+void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override, unsigned int lay, int sfra, int efra, int tfra)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
 	int cfrao= scene->r.cfra;
@@ -3046,21 +3051,21 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
-	
+
 	if(BKE_imtype_is_movie(scene->r.imtype))
-		if(!mh->start_movie(scene, &re->r, re->rectx, re->recty, reports))
+		if(!mh->start_movie(scene, &re->r, re->rectx, re->recty, re->reports))
 			G.afbreek= 1;
 
 	if (mh->get_next_frame) {
 		while (!(G.afbreek == 1)) {
-			int nf = mh->get_next_frame(&re->r, reports);
+			int nf = mh->get_next_frame(&re->r, re->reports);
 			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
 				scene->r.cfra = re->r.cfra = nf;
 				
 				do_render_all_options(re);
 
 				if(re->test_break(re->tbh) == 0) {
-					if(!do_write_image_or_movie(re, scene, mh, reports, NULL))
+					if(!do_write_image_or_movie(re, scene, mh, NULL))
 						G.afbreek= 1;
 				}
 			} else {
@@ -3115,7 +3120,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			
 			if(re->test_break(re->tbh) == 0) {
 				if(!G.afbreek)
-					if(!do_write_image_or_movie(re, scene, mh, reports, NULL))
+					if(!do_write_image_or_movie(re, scene, mh, NULL))
 						G.afbreek= 1;
 			}
 			else

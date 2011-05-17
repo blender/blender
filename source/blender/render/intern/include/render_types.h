@@ -60,6 +60,7 @@ struct RenderBuckets;
 struct ObjectInstanceRen;
 struct RayObject;
 struct RayFace;
+struct ReportList;
 struct Main;
 
 #define TABLEINITSIZE 1024
@@ -256,6 +257,8 @@ struct Render
 	void *erh;
 	
 	RenderStats i;
+
+	struct ReportList *reports;
 };
 
 /* ------------------------------------------------------------------------- */
