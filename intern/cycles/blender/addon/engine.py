@@ -23,19 +23,17 @@ def init():
 	import os.path
 	lib.init(os.path.dirname(__file__))
 
-def create(engine, scene, offline):
+def create(engine, data, scene, region = 0, v3d = 0, rv3d = 0):
 	from cycles import libcycles_blender as lib
-	data = bpy.data.as_pointer()
-	scene = scene.as_pointer()
 
-	if not offline and bpy.context.area.type == 'VIEW_3D':
-		region = bpy.context.region.as_pointer()
-		v3d = bpy.context.space_data.as_pointer()
-		rv3d = bpy.context.region_data.as_pointer()
-	else:
-		region = 0
-		v3d = 0
-		rv3d = 0
+	data = data.as_pointer()
+	scene = scene.as_pointer()
+	if region:
+		region = region.as_pointer()
+	if v3d:
+		v3d = v3d.as_pointer()
+	if rv3d:
+		rv3d = rv3d.as_pointer()
 
 	engine.session = lib.create(engine.as_pointer(), data, scene, region, v3d, rv3d)
 
@@ -46,19 +44,18 @@ def free(engine):
 			lib.free(engine.session)
 		del engine.session
 
-def render(engine, scene):
+def render(engine):
 	from cycles import libcycles_blender as lib
 	lib.render(engine.session)
 
-def update(engine, scene):
+def update(engine, data, scene):
 	from cycles import libcycles_blender as lib
 	lib.sync(engine.session)
 
-def draw(engine, scene):
+def draw(engine, region, v3d, rv3d):
 	from cycles import libcycles_blender as lib
-	v3d = bpy.context.space_data.as_pointer()
-	rv3d = bpy.context.region_data.as_pointer()
-	region = bpy.context.region
+	v3d = v3d.as_pointer()
+	rv3d = rv3d.as_pointer()
 
 	# draw render image
 	status, substatus = lib.draw(engine.session, v3d, rv3d)

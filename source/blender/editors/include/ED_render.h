@@ -45,7 +45,7 @@ void ED_operatortypes_render(void);
 
 void ED_render_id_flush_update(struct Main *bmain, struct ID *id);
 void ED_render_engine_changed(struct Main *bmain);
-void ED_render_engine_update_tagged(struct Main *bmain);
+void ED_render_engine_update_tagged(struct bContext *C, struct Main *bmain);
 
 /* render_preview.c */
 

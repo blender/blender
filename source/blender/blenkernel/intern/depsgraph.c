@@ -2508,10 +2508,10 @@ void DAG_ids_flush_tagged(Main *bmain)
 		DAG_scene_flush_update(bmain, sce, lay, 0);
 }
 
-void DAG_ids_clear_recalc(Main *bmain)
+void DAG_ids_check_recalc(Main *bmain)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
-	int a, first_tag = 1;
+	int a;
 
 	/* loop over all ID types */
 	a  = set_listbasepointers(bmain, lbarray);
@@ -2524,11 +2524,28 @@ void DAG_ids_clear_recalc(Main *bmain)
 		   looping over all ID's in case there are no tags */
 		if(id && bmain->id_tag_update[id->name[0]]) {
 			/* do editors update */
-			if(first_tag) {
-				dag_editors_update(bmain, NULL);
-				first_tag = 0;
-			}
+			dag_editors_update(bmain, NULL);
+			return;
+		}
+	}
+}
 
+
+void DAG_ids_clear_recalc(Main *bmain)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	int a;
+
+	/* loop over all ID types */
+	a  = set_listbasepointers(bmain, lbarray);
+
+	while(a--) {
+		ListBase *lb = lbarray[a];
+		ID *id = lb->first;
+
+		/* we tag based on first ID type character to avoid 
+		   looping over all ID's in case there are no tags */
+		if(id && bmain->id_tag_update[id->name[0]]) {
 			for(; id; id=id->next)
 				if(id->flag & (LIB_ID_RECALC|LIB_ID_RECALC_DATA))
 					id->flag &= ~(LIB_ID_RECALC|LIB_ID_RECALC_DATA);

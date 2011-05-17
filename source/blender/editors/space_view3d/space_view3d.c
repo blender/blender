@@ -616,12 +616,6 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 	}
 }
 
-static void view3d_main_area_render_update(RegionView3D *rv3d)
-{
-	if(rv3d->render_engine)
-		rv3d->render_engine->type->update(rv3d->render_engine, NULL);
-}
-
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	bScreen *sc;
@@ -651,7 +645,6 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_LAYER_CONTENT:
 					view3d_recalc_used_layers(ar, wmn, wmn->reference);
 					ED_region_tag_redraw(ar);
-					view3d_main_area_render_update(rv3d);
 					break;
 				case ND_FRAME:
 				case ND_TRANSFORM:

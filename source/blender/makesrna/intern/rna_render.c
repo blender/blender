@@ -49,43 +49,6 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-/* RenderEngine */
-
-static RenderEngineType internal_render_type = {
-	NULL, NULL, "BLENDER_RENDER", "Blender Render", RE_INTERNAL, NULL, NULL, NULL, {NULL, NULL, NULL}};
-#ifdef WITH_GAMEENGINE
-static RenderEngineType internal_game_type = {
-	NULL, NULL, "BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME, NULL, NULL, NULL, {NULL, NULL, NULL}};
-#endif
-
-ListBase R_engines = {NULL, NULL};
-
-void RE_engines_init(void)
-{
-	BLI_addtail(&R_engines, &internal_render_type);
-#ifdef WITH_GAMEENGINE
-	BLI_addtail(&R_engines, &internal_game_type);
-#endif
-}
-
-void RE_engines_exit(void)
-{
-	RenderEngineType *type, *next;
-
-	for(type=R_engines.first; type; type=next) {
-		next= type->next;
-
-		BLI_remlink(&R_engines, type);
-
-		if(!(type->flag & RE_INTERNAL)) {
-			if(type->ext.free)
-				type->ext.free(type->ext.data);
-
-			MEM_freeN(type);
-		}
-	}
-}
-
 LIBEXPORT void engine_tag_redraw(RenderEngine *engine)
 {
 	engine->do_draw = 1;
@@ -96,39 +59,9 @@ LIBEXPORT void engine_tag_update(RenderEngine *engine)
 	engine->do_update = 1;
 }
 
-static void engine_render(RenderEngine *engine, struct Scene *scene)
-{
-	PointerRNA ptr;
-	ParameterList list;
-	FunctionRNA *func;
+/* RenderEngine Callbacks */
 
-	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func= RNA_struct_find_function(&ptr, "render");
-
-	RNA_parameter_list_create(&list, &ptr, func);
-	RNA_parameter_set_lookup(&list, "scene", &scene);
-	engine->type->ext.call(NULL, &ptr, func, &list);
-
-	RNA_parameter_list_free(&list);
-}
-
-static void engine_draw(RenderEngine *engine, struct Scene *scene)
-{
-	PointerRNA ptr;
-	ParameterList list;
-	FunctionRNA *func;
-
-	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func= RNA_struct_find_function(&ptr, "draw");
-
-	RNA_parameter_list_create(&list, &ptr, func);
-	RNA_parameter_set_lookup(&list, "scene", &scene);
-	engine->type->ext.call(NULL, &ptr, func, &list);
-
-	RNA_parameter_list_free(&list);
-}
-
-static void engine_update(RenderEngine *engine, struct Scene *scene)
+static void engine_update(RenderEngine *engine, Main *bmain, Scene *scene)
 {
 	PointerRNA ptr;
 	ParameterList list;
@@ -138,13 +71,95 @@ static void engine_update(RenderEngine *engine, struct Scene *scene)
 	func= RNA_struct_find_function(&ptr, "update");
 
 	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "data", &bmain);
 	RNA_parameter_set_lookup(&list, "scene", &scene);
 	engine->type->ext.call(NULL, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_RenderEngine_unregister(const bContext *C, StructRNA *type)
+static void engine_render(RenderEngine *engine)
+{
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
+	func= RNA_struct_find_function(&ptr, "render");
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	engine->type->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+static void engine_preview_update(RenderEngine *engine, const struct bContext *context, struct ID *id)
+{
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
+	func= RNA_struct_find_function(&ptr, "preview_update");
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &context);
+	RNA_parameter_set_lookup(&list, "id", &id);
+	engine->type->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+static void engine_preview_render(RenderEngine *engine)
+{
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
+	func= RNA_struct_find_function(&ptr, "preview_render");
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	engine->type->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+static void engine_view_update(RenderEngine *engine, const struct bContext *context)
+{
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
+	func= RNA_struct_find_function(&ptr, "view_update");
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &context);
+	engine->type->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+static void engine_view_draw(RenderEngine *engine, const struct bContext *context)
+{
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
+	func= RNA_struct_find_function(&ptr, "view_draw");
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &context);
+	engine->type->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+/* RenderEngine registration */
+
+static void rna_RenderEngine_unregister(const struct bContext *C, StructRNA *type)
 {
 	RenderEngineType *et= RNA_struct_blender_type_get(type);
 
@@ -161,7 +176,7 @@ static StructRNA *rna_RenderEngine_register(bContext *C, ReportList *reports, vo
 	RenderEngineType *et, dummyet = {NULL};
 	RenderEngine dummyengine= {NULL};
 	PointerRNA dummyptr;
-	int have_function[3];
+	int have_function[6];
 
 	/* setup dummy engine & engine type to store static properties in */
 	dummyengine.type= &dummyet;
@@ -186,7 +201,7 @@ static StructRNA *rna_RenderEngine_register(bContext *C, ReportList *reports, vo
 	}
 	
 	/* create a new engine type */
-	et= MEM_callocN(sizeof(RenderEngineType), "python buttons engine");
+	et= MEM_callocN(sizeof(RenderEngineType), "python render engine");
 	memcpy(et, &dummyet, sizeof(dummyet));
 
 	et->ext.srna= RNA_def_struct(&BLENDER_RNA, et->idname, "RenderEngine"); 
@@ -195,9 +210,12 @@ static StructRNA *rna_RenderEngine_register(bContext *C, ReportList *reports, vo
 	et->ext.free= free;
 	RNA_struct_blender_type_set(et->ext.srna, et);
 
-	et->render= (have_function[0])? engine_render: NULL;
-	et->draw= (have_function[1])? engine_draw: NULL;
-	et->update= (have_function[2])? engine_update: NULL;
+	et->update= (have_function[0])? engine_update: NULL;
+	et->render= (have_function[1])? engine_render: NULL;
+	et->preview_update= (have_function[2])? engine_preview_update: NULL;
+	et->preview_render= (have_function[3])? engine_preview_render: NULL;
+	et->view_update= (have_function[4])? engine_view_update: NULL;
+	et->view_draw= (have_function[5])? engine_view_draw: NULL;
 
 	BLI_addtail(&R_engines, et);
 
@@ -286,22 +304,38 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_RenderEngine_refine");
 	RNA_def_struct_register_funcs(srna, "rna_RenderEngine_register", "rna_RenderEngine_unregister", "rna_RenderEngine_instance");
 
-	/* render */
-	func= RNA_def_function(srna, "render", NULL);
-	RNA_def_function_ui_description(func, "Render scene into an image.");
-	RNA_def_function_flag(func, FUNC_REGISTER);
-	RNA_def_pointer(func, "scene", "Scene", "", "");
-
-	/* draw */
-	func= RNA_def_function(srna, "draw", NULL);
-	RNA_def_function_ui_description(func, "Draw progressive render into viewport.");
-	RNA_def_function_flag(func, FUNC_REGISTER);
-	RNA_def_pointer(func, "scene", "Scene", "", "");
-
+	/* final render callbacks */
 	func= RNA_def_function(srna, "update", NULL);
-	RNA_def_function_ui_description(func, "Notify data has changed for progressive viewport render.");
+	RNA_def_function_ui_description(func, "Export scene data for render");
 	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_pointer(func, "data", "BlendData", "", "");
 	RNA_def_pointer(func, "scene", "Scene", "", "");
+
+	func= RNA_def_function(srna, "render", NULL);
+	RNA_def_function_ui_description(func, "Execute render");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+
+	/* preview render callbacks */
+	func= RNA_def_function(srna, "preview_update", NULL);
+	RNA_def_function_ui_description(func, "Export scene data for preview render of the given datablock");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_pointer(func, "id", "ID", "", "");
+
+	func= RNA_def_function(srna, "preview_render", NULL);
+	RNA_def_function_ui_description(func, "Execute preview render");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+
+	/* viewport render callbacks */
+	func= RNA_def_function(srna, "view_update", NULL);
+	RNA_def_function_ui_description(func, "Update on data changes for viewport render");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_pointer(func, "context", "Context", "", "");
+
+	func= RNA_def_function(srna, "view_draw", NULL);
+	RNA_def_function_ui_description(func, "Draw viewport render");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_pointer(func, "context", "Context", "", "");
 
 	/* tag for redraw */
 	RNA_def_function(srna, "tag_redraw", "engine_tag_redraw");

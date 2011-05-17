@@ -63,9 +63,14 @@ typedef struct RenderEngineType {
 	char name[64];
 	int flag;
 
-	void (*render)(struct RenderEngine *engine, struct Scene *scene);
-	void (*draw)(struct RenderEngine *engine, struct Scene *scene);
-	void (*update)(struct RenderEngine *engine, struct Scene *scene);
+	void (*update)(struct RenderEngine *engine, struct Main *bmain, struct Scene *scene);
+	void (*render)(struct RenderEngine *engine);
+
+	void (*preview_update)(struct RenderEngine *engine, const struct bContext *context, struct ID *id);
+	void (*preview_render)(struct RenderEngine *engine);
+
+	void (*view_update)(struct RenderEngine *engine, const struct bContext *context);
+	void (*view_draw)(struct RenderEngine *engine, const struct bContext *context);
 
 	/* RNA integration */
 	ExtensionRNA ext;
@@ -73,9 +78,11 @@ typedef struct RenderEngineType {
 
 typedef struct RenderEngine {
 	RenderEngineType *type;
+	void *py_instance;
+
 	struct Render *re;
 	ListBase fullresult;
-	void *py_instance;
+
 	int do_draw;
 	int do_update;
 } RenderEngine;

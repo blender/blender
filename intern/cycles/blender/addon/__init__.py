@@ -47,17 +47,30 @@ class CyclesRender(bpy.types.RenderEngine):
 	def __del__(self):
 		engine.free(self)
 
-	def render(self, scene):
-		engine.create(self, scene, True)
-		engine.render(self, scene)
+	# final render
+	def update(self, data, scene):
+		engine.create(self, data, scene)
+		engine.update(self, data, scene)
 
-	def draw(self, scene):
+	def render(self):
+		engine.render(self)
+
+	# preview render
+	# def preview_update(self, context, id):
+	#	pass
+	#
+	# def preview_render(self):
+	#	pass
+	
+	# viewport render
+	def view_update(self, context):
 		if not self.session:
-			engine.create(self, scene, False)
-		engine.draw(self, scene)
+			engine.create(self, context.blend_data, context.scene,
+				context.region, context.space_data, context.region_data)
+		engine.update(self, context.blend_data, context.scene)
 
-	def update(self, scene):
-		engine.update(self, scene)
+	def view_draw(self, context):
+		engine.draw(self, context.region, context.space_data, context.region_data)
 
 def register():
 	properties.register()

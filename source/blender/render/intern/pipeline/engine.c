@@ -58,6 +58,52 @@
 #include "render_types.h"
 #include "renderpipeline.h"
 
+/* Render Engine Types */
+
+static RenderEngineType internal_render_type = {
+	NULL, NULL,
+	"BLENDER_RENDER", "Blender Render", RE_INTERNAL,
+	NULL, NULL, NULL, NULL, NULL, NULL,
+	{NULL, NULL, NULL}};
+
+#ifdef WITH_GAMEENGINE
+
+static RenderEngineType internal_game_type = {
+	NULL, NULL,
+	"BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME,
+	NULL, NULL, NULL, NULL, NULL, NULL,
+	{NULL, NULL, NULL}};
+
+#endif
+
+ListBase R_engines = {NULL, NULL};
+
+void RE_engines_init(void)
+{
+	BLI_addtail(&R_engines, &internal_render_type);
+#ifdef WITH_GAMEENGINE
+	BLI_addtail(&R_engines, &internal_game_type);
+#endif
+}
+
+void RE_engines_exit(void)
+{
+	RenderEngineType *type, *next;
+
+	for(type=R_engines.first; type; type=next) {
+		next= type->next;
+
+		BLI_remlink(&R_engines, type);
+
+		if(!(type->flag & RE_INTERNAL)) {
+			if(type->ext.free)
+				type->ext.free(type->ext.data);
+
+			MEM_freeN(type);
+		}
+	}
+}
+
 /* Create, Free */
 
 RenderEngine *RE_engine_create(RenderEngineType *type)
@@ -198,7 +244,14 @@ int RE_engine_render(Render *re, int do_all)
 	if((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
 		scene_update_for_newframe(re->main, re->scene, re->lay);
 
-	type->render(engine, re->scene);
+	if(re->r.scemode & R_PREVIEWBUTS) {
+		//type->preview_update(engine, scene, id);
+		type->preview_render(engine);
+	}
+	else {
+		type->update(engine, re->main, re->scene);
+		type->render(engine);
+	}
 
 	free_render_result(&engine->fullresult, engine->fullresult.first);
 

@@ -2313,10 +2313,11 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 			if(strcmp(type->idname, scene->r.engine) == 0)
 				break;
 
-		if(!type || !type->draw)
+		if(!type || !type->view_draw)
 			return 0;
 
 		rv3d->render_engine = RE_engine_create(type);
+		type->view_update(rv3d->render_engine, C);
 	}
 
 	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
@@ -2327,7 +2328,7 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 	ED_region_pixelspace(ar);
 
 	type = rv3d->render_engine->type;
-	type->draw(rv3d->render_engine, scene);
+	type->view_draw(rv3d->render_engine, C);
 
 	return 1;
 }

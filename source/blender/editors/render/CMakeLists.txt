@@ -41,6 +41,7 @@ set(SRC
 	render_ops.c
 	render_preview.c
 	render_shading.c
+	render_update.c
 
 	render_intern.h
 )
