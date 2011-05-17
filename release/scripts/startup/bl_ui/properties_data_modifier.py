@@ -223,7 +223,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.label(text="Texture Coordinates:")
         col.prop(md, "texture_coords", text="")
         if md.texture_coords == 'OBJECT':
-            layout.prop(md, "texture_coordinate_object", text="Object")
+            layout.prop(md, "texture_coords_object", text="Object")
         elif md.texture_coords == 'UV' and ob.type == 'MESH':
             layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
 
@@ -677,7 +677,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "texture_coords", text="")
 
         if md.texture_coords == 'OBJECT':
-            layout.prop(md, "texture_coordinate_object", text="Object")
+            layout.prop(md, "texture_coords_object", text="Object")
         elif md.texture_coords == 'UV' and ob.type == 'MESH':
             layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
 

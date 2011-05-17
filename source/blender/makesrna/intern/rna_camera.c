@@ -72,8 +72,10 @@ void RNA_def_camera(BlenderRNA *brna)
 		{CAM_DTX_CENTER_DIAG, "CENTER_DIAGONAL", 0, "Center Diagonal", ""},
 		{CAM_DTX_THIRDS, "THIRDS", 0, "Thirds", ""},
 		{CAM_DTX_GOLDEN, "GOLDEN", 0, "Golden", ""},
-		{CAM_DTX_GOLDEN_DIAG_H, "GOLDEN_DIAGONAL_H", 0, "Golden Diagonal Hoz", ""},
-		{CAM_DTX_GOLDEN_DIAG_V, "GOLDEN_DIAGONAL_V", 0, "Golden Diagonal Vert", ""},
+		{CAM_DTX_GOLDEN_TRI_A, "GOLDEN_TRIANGLE_A", 0, "Golden Triangle A", ""},
+		{CAM_DTX_GOLDEN_TRI_B, "GOLDEN_TRIANGLE_B", 0, "Golden Triangle B", ""},
+		{CAM_DTX_HARMONY_TRI_A, "HARMONY_TRIANGLE_A", 0, "Harmonious Triangle A", ""},
+		{CAM_DTX_HARMONY_TRI_B, "HARMONY_TRIANGLE_B", 0, "Harmonious Triangle B", ""},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_lens_unit_items[] = {
 		{0, "MILLIMETERS", 0, "Millimeters", ""},
@@ -106,7 +108,7 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
-	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_range(prop, 0.001f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip Start", "Camera near clipping distance");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 

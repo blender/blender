@@ -9,9 +9,6 @@ incs += ' ../../bmesh ../../render/extern/include ../../makesrna ../../blenloade
 
 defs = []
 
-if env['WITH_BF_LCMS']:
-    defs.append('WITH_LCMS')
-    incs += ' ' + env['BF_LCMS_INC']
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 if env['WITH_BF_OPENJPEG']:

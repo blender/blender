@@ -858,9 +858,9 @@ static int actkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 		/* determine which side of the current frame mouse is on */
 		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
 		if (x < CFRA)
-			RNA_int_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
+			RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
 		else 	
-			RNA_int_set(op->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
+			RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
 	}
 	
 	/* perform selection */

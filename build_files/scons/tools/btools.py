@@ -125,7 +125,6 @@ def validate_arguments(args, bc):
             'BF_FANCY', 'BF_QUIET', 'BF_LINE_OVERWRITE',
             'BF_X264_CONFIG',
             'BF_XVIDCORE_CONFIG',
-            'WITH_BF_LCMS', 'BF_LCMS', 'BF_LCMS_INC', 'BF_LCMS_LIB', 'BF_LCMS_LIBPATH',
             'WITH_BF_DOCS',
             'BF_NUMJOBS',
             'BF_MSVS',
@@ -333,12 +332,6 @@ def read_opts(env, cfg, args):
         ('BF_TIFF_LIB', 'TIFF library', ''),
         ('BF_TIFF_LIBPATH', 'TIFF library path', ''),
         ('BF_TIFF_LIB_STATIC', 'TIFF static library', ''),
-
-        (BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
-        ('BF_LCMS', 'LCMS base path', ''),
-        ('BF_LCMS_INC', 'LCMS include path', ''),
-        ('BF_LCMS_LIB', 'LCMS library', ''),
-        ('BF_LCMS_LIBPATH', 'LCMS library path', ''),
 
         (BoolVariable('WITH_BF_ZLIB', 'Use ZLib if true', True)),
         (BoolVariable('WITH_BF_STATICZLIB', 'Staticly link to ZLib', False)),

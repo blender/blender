@@ -32,9 +32,9 @@
 
 
 #include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_lamp_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -105,7 +105,7 @@ float *give_cursor(Scene *scene, View3D *v3d)
 
 
 /* Gets the lens and clipping values from a camera of lamp type object */
-static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, float *clipend)
+void get_object_clip_range(Object *ob, float *lens, float *clipsta, float *clipend)
 {
 	if(ob->type==OB_LAMP ) {
 		Lamp *la = ob->data;
@@ -128,51 +128,6 @@ static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, f
 		if (lens)		*lens= 35.0f;
 	}
 }
-
-
-/* Gets the view trasnformation from a camera
-* currently dosnt take camzoom into account
-* 
-* The dist is not modified for this function, if NULL its assimed zero
-* */
-void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist)
-{
-	/* Offset */
-	if (ofs)
-		negate_v3_v3(ofs, mat[3]);
-
-	/* Quat */
-	if (quat) {
-		float imat[4][4];
-		invert_m4_m4(imat, mat);
-		mat4_to_quat(quat, imat);
-	}
-
-	if (dist) {
-		float nmat[3][3];
-		float vec[3];
-
-		vec[0]= 0.0f;
-		vec[1]= 0.0f;
-		vec[2]= -(*dist);
-
-		copy_m3_m4(nmat, mat);
-		normalize_m3(nmat);
-
-		mul_m3_v3(nmat, vec);;
-		sub_v3_v3(ofs, vec);
-	}
-}
-
-void view3d_apply_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
-{
-	view3d_apply_mat4(ob->obmat, ofs, quat, dist);
-
-	if (lens) {
-		object_lens_clip_settings(ob, lens, NULL, NULL);
-	}
-}
-
 
 /* ****************** smooth view operator ****************** */
 /* This operator is one of the 'timer refresh' ones like animation playback */
@@ -206,7 +161,19 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 	sms.new_dist= rv3d->dist;
 	sms.new_lens= v3d->lens;
 	sms.to_camera= 0;
-	
+
+	/* note on camera locking, this is a little confusing but works ok.
+	 * we may be changing the view 'as if' there is no active camera, but infact
+	 * there is an active camera which is locked to the view.
+	 *
+	 * In the case where smooth view is moving _to_ a camera we dont want that
+	 * camera to be moved or changed, so only when the camera is not being set should
+	 * we allow camera option locking to initialize the view settings from the camera.
+	 */
+	if(camera == NULL && oldcamera == NULL) {
+		ED_view3d_camera_lock_init(v3d, rv3d);
+	}
+
 	/* store the options we want to end with */
 	if(ofs) copy_v3_v3(sms.new_ofs, ofs);
 	if(quat) copy_qt_qt(sms.new_quat, quat);
@@ -214,7 +181,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 	if(lens) sms.new_lens= *lens;
 
 	if (camera) {
-		view3d_apply_ob(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
+		ED_view3d_from_object(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
 		sms.to_camera= 1; /* restore view3d values in end */
 	}
 	
@@ -239,7 +206,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 			/* original values */
 			if (oldcamera) {
 				sms.orig_dist= rv3d->dist; // below function does weird stuff with it...
-				view3d_apply_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
+				ED_view3d_from_object(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
 			}
 			else {
 				copy_v3_v3(sms.orig_ofs, rv3d->ofs);
@@ -251,7 +218,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 			if((rv3d->viewlock & RV3D_LOCKED)==0) {
 				/* use existing if exists, means multiple calls to smooth view wont loose the original 'view' setting */
 				sms.orig_view= rv3d->sms ? rv3d->sms->orig_view : rv3d->view;
-				rv3d->view= 0;
+				rv3d->view= RV3D_VIEW_USER;
 			}
 
 			sms.time_allowed= (double)U.smooth_viewtx / 1000.0;
@@ -341,6 +308,8 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 			copy_qt_qt(rv3d->viewquat, sms->new_quat);
 			rv3d->dist = sms->new_dist;
 			v3d->lens = sms->new_lens;
+
+			ED_view3d_camera_lock_sync(v3d, rv3d);
 		}
 		
 		if((rv3d->viewlock & RV3D_LOCKED)==0) {
@@ -370,6 +339,8 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 		
 		rv3d->dist = sms->new_dist * step + sms->orig_dist*step_inv;
 		v3d->lens = sms->new_lens * step + sms->orig_lens*step_inv;
+
+		ED_view3d_camera_lock_sync(v3d, rv3d);
 	}
 	
 	if(rv3d->viewlock & RV3D_BOXVIEW)
@@ -396,25 +367,6 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
 /* ****************** change view operators ****************** */
 
-static void setcameratoview3d(RegionView3D *rv3d, Object *ob)
-{
-	float dvec[3];
-	float mat3[3][3];
-
-	mul_v3_v3fl(dvec, rv3d->viewinv[2], rv3d->dist);
-	sub_v3_v3v3(ob->loc, dvec, rv3d->ofs);
-	rv3d->viewquat[0]= -rv3d->viewquat[0];
-
-	// quat_to_eul( ob->rot,rv3d->viewquat); // in 2.4x for xyz eulers only
-	quat_to_mat3(mat3, rv3d->viewquat);
-	object_mat3_to_rot(ob, mat3, 0);
-
-	rv3d->viewquat[0]= -rv3d->viewquat[0];
-	
-	ob->recalc= OB_RECALC_OB;
-}
-
-
 static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
@@ -426,7 +378,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 		rv3d->lpersp= rv3d->persp;
 	}
 
-	setcameratoview3d(rv3d, v3d->camera);
+	ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 	DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 	rv3d->persp = RV3D_CAMOB;
 	
@@ -1185,7 +1137,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 	float bmat[4][4];
 	float tmat[3][3];
 	
-	rv3d->view= 0; /* dont show the grid */
+	rv3d->view= RV3D_VIEW_USER; /* dont show the grid */
 	
 	copy_m4_m4(bmat, ob->obmat);
 	normalize_m4(bmat);
@@ -1209,7 +1161,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			rv3d->persp=RV3D_PERSP;
 			rv3d->dist= 0.0;
 			
-			view3d_apply_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
+			ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
 			smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 			
 			rv3d->persp=RV3D_CAMOB; /* just to be polite, not needed */
@@ -1938,7 +1890,7 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 	cross_v3_v3v3(axis, alignaxis, norm);
 	axis_angle_to_quat( new_quat,axis, -angle);
 	
-	rv3d->view= 0;
+	rv3d->view= RV3D_VIEW_USER;
 	
 	if (rv3d->persp==RV3D_CAMOB && v3d->camera) {
 		/* switch out of camera view */
@@ -1949,7 +1901,7 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 		copy_v3_v3(orig_ofs, rv3d->ofs);
 		rv3d->persp= RV3D_PERSP;
 		rv3d->dist= 0.0;
-		view3d_apply_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
+		ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
 		smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 	} else {
 		if (rv3d->persp==RV3D_CAMOB) rv3d->persp= RV3D_PERSP; /* switch out of camera mode */

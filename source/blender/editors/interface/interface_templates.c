@@ -461,7 +461,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetNFunc(but, NULL, MEM_dupallocN(template), NULL);
 		}
 		else {
-			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Unlink datablock. Shift + Click to set users to zero, data gets not saved");
+			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Unlink datablock. Shift + Click to set users to zero, data will then not be saved");
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
 
 			if(RNA_property_flag(template->prop) & PROP_NEVER_NULL)

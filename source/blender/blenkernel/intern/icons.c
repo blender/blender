@@ -125,7 +125,7 @@ struct PreviewImage* BKE_previewimg_create(void)
 
 	prv_img = MEM_callocN(sizeof(PreviewImage), "img_prv");
 
-	for (i=0; i<PREVIEW_MIPMAPS; ++i) {
+	for (i=0; i<NUM_ICON_SIZES; ++i) {
 		prv_img->changed[i] = 1;
 		prv_img->changed_timestamp[i] = 0;
 	}
@@ -137,7 +137,7 @@ void BKE_previewimg_free(PreviewImage **prv)
 	if(prv && (*prv)) {
 		int i;
 		
-		for (i=0; i<PREVIEW_MIPMAPS;++i) {
+		for (i=0; i<NUM_ICON_SIZES;++i) {
 			if ((*prv)->rect[i]) {
 				MEM_freeN((*prv)->rect[i]);
 				(*prv)->rect[i] = NULL;
@@ -155,7 +155,7 @@ struct PreviewImage* BKE_previewimg_copy(PreviewImage *prv)
 
 	if (prv) {
 		prv_img = MEM_dupallocN(prv);
-		for (i=0; i < PREVIEW_MIPMAPS; ++i) {
+		for (i=0; i < NUM_ICON_SIZES; ++i) {
 			if (prv->rect[i]) {
 				prv_img->rect[i] = MEM_dupallocN(prv->rect[i]);
 			} else {
@@ -237,7 +237,7 @@ void BKE_icon_changed(int id)
 		/* all previews changed */
 		if (prv) {
 			int i;
-			for (i=0; i<PREVIEW_MIPMAPS; ++i) {
+			for (i=0; i<NUM_ICON_SIZES; ++i) {
 				prv->changed[i] = 1;
 				prv->changed_timestamp[i]++;
 			}

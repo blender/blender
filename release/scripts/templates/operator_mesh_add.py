@@ -80,8 +80,8 @@ class AddBox(bpy.types.Operator):
         mesh.update()
 
         # add the mesh as an object into the scene with this utility module
-        import add_object_utils
-        add_object_utils.object_data_add(context, mesh, operator=self)
+        from bpy_extras import object_utils
+        object_utils.object_data_add(context, mesh, operator=self)
 
         return {'FINISHED'}
 

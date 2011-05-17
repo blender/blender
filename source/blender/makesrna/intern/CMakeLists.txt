@@ -175,11 +175,6 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-if(WITH_LCMS)
-	list(APPEND INC ${LCMS_INCLUDE_DIR})
-	add_definitions(-DWITH_LCMS)
-endif()
-
 if(NOT WITH_MOD_FLUID)
 	add_definitions(-DDISABLE_ELBEEM)
 endif()

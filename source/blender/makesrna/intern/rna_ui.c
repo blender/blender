@@ -622,7 +622,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
 	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the panel can be drawn.");
-	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
@@ -741,7 +741,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
 	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the menu can be drawn.");
-	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

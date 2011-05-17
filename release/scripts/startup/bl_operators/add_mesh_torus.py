@@ -132,7 +132,7 @@ class AddTorus(bpy.types.Operator):
         mesh.faces.foreach_set("vertices_raw", faces)
         mesh.update()
 
-        import add_object_utils
-        add_object_utils.object_data_add(context, mesh, operator=self)
+        from bpy_extras import object_utils
+        object_utils.object_data_add(context, mesh, operator=self)
 
         return {'FINISHED'}

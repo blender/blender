@@ -88,11 +88,6 @@ typedef struct ImBuf {
 							Linear RGB color space - may need gamma correction to 
 							sRGB when generating 8bit representations */
 
-#ifdef WITH_LCMS
-	unsigned int *crect;	/* color corrected pixel values stored here */
-	char profile_filename[256];	/* to be implemented properly, specific filename for custom profiles */
-#endif
-
 	/* resolution - pixels per meter */
 	double ppm[2];
 

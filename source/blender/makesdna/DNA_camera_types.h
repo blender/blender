@@ -76,8 +76,10 @@ typedef struct Camera {
 #define CAM_DTX_CENTER_DIAG		2
 #define CAM_DTX_THIRDS			4
 #define CAM_DTX_GOLDEN			8
-#define CAM_DTX_GOLDEN_DIAG_H	16
-#define CAM_DTX_GOLDEN_DIAG_V	32
+#define CAM_DTX_GOLDEN_TRI_A	16
+#define CAM_DTX_GOLDEN_TRI_B	32
+#define CAM_DTX_HARMONY_TRI_A	64
+#define CAM_DTX_HARMONY_TRI_B	128
 
 /* flag */
 #define CAM_SHOWLIMITS	1

@@ -802,6 +802,7 @@ void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Open Image";
+	ot->description= "Open image";
 	ot->idname= "IMAGE_OT_open";
 	
 	/* api callbacks */
@@ -1345,6 +1346,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "New Image";
+	ot->description= "Create a new image";
 	ot->idname= "IMAGE_OT_new";
 	
 	/* api callbacks */

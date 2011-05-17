@@ -743,7 +743,7 @@ static void rna_def_material_colors(StructRNA *srna)
 	prop= RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Diffuse Color", "");
+	RNA_def_property_ui_text(prop, "Diffuse Color", "Diffuse color of the material");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
 	prop= RNA_def_property(srna, "specular_color", PROP_FLOAT, PROP_COLOR);
@@ -797,25 +797,25 @@ static void rna_def_material_colors(StructRNA *srna)
 	prop= RNA_def_property(srna, "diffuse_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_col");
 	RNA_def_property_enum_items(prop, ramp_blend_items);
-	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "Blending method of the ramp and the diffuse color");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "specular_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_spec");
 	RNA_def_property_enum_items(prop, ramp_blend_items);
-	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "Blending method of the ramp and the specular color");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "diffuse_ramp_input", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampin_col");
 	RNA_def_property_enum_items(prop, prop_ramp_input_items);
-	RNA_def_property_ui_text(prop, "Diffuse Ramp Input", "");
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Input", "Determines how the ramp maps on the surface");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "specular_ramp_input", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampin_spec");
 	RNA_def_property_enum_items(prop, prop_ramp_input_items);
-	RNA_def_property_ui_text(prop, "Specular Ramp Input", "");
+	RNA_def_property_ui_text(prop, "Specular Ramp Input", "Determines how the ramp maps on the surface");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "diffuse_ramp_factor", PROP_FLOAT, PROP_FACTOR);
@@ -836,11 +836,11 @@ static void rna_def_material_diffuse(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_diff_shader_items[] = {
-		{MA_DIFF_LAMBERT, "LAMBERT", 0, "Lambert", ""},
-		{MA_DIFF_ORENNAYAR, "OREN_NAYAR", 0, "Oren-Nayar", ""},
-		{MA_DIFF_TOON, "TOON", 0, "Toon", ""},
-		{MA_DIFF_MINNAERT, "MINNAERT", 0, "Minnaert", ""},
-		{MA_DIFF_FRESNEL, "FRESNEL", 0, "Fresnel", ""},
+		{MA_DIFF_LAMBERT, "LAMBERT", 0, "Lambert", "Use a Lambertian shader"},
+		{MA_DIFF_ORENNAYAR, "OREN_NAYAR", 0, "Oren-Nayar", "Use an Oren-Nayar shader"},
+		{MA_DIFF_TOON, "TOON", 0, "Toon", "Use a toon shader"},
+		{MA_DIFF_MINNAERT, "MINNAERT", 0, "Minnaert", "Use a Minnaert shader"},
+		{MA_DIFF_FRESNEL, "FRESNEL", 0, "Fresnel", "Use a Fresnel shader"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	prop= RNA_def_property(srna, "diffuse_shader", PROP_ENUM, PROP_NONE);
@@ -1048,7 +1048,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_lighting_items[] = {
-		{MA_VOL_SHADE_SHADELESS, "SHADELESS", 0, "Shadeless", ""},
+		{MA_VOL_SHADE_SHADELESS, "SHADELESS", 0, "Shadeless", "Do not calculate lighting and shadows"},
 		{MA_VOL_SHADE_SHADOWED, "SHADOWED", 0, "Shadowed", ""},
 		{MA_VOL_SHADE_SHADED, "SHADED", 0, "Shaded", ""},
 		{MA_VOL_SHADE_MULTIPLE, "MULTIPLE_SCATTERING", 0, "Multiple Scattering", ""},
@@ -1168,7 +1168,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "emission_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "emission_col");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Emission Color", "");
+	RNA_def_property_ui_text(prop, "Emission Color", "Color of emitted light");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
 	prop= RNA_def_property(srna, "emission", PROP_FLOAT, PROP_NONE);
@@ -1389,11 +1389,11 @@ static void rna_def_material_specularity(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_specular_shader_items[] = {
-		{MA_SPEC_COOKTORR, "COOKTORR", 0, "CookTorr", ""},
-		{MA_SPEC_PHONG, "PHONG", 0, "Phong", ""},
-		{MA_SPEC_BLINN, "BLINN", 0, "Blinn", ""},
-		{MA_SPEC_TOON, "TOON", 0, "Toon", ""},
-		{MA_SPEC_WARDISO, "WARDISO", 0, "WardIso", ""},
+		{MA_SPEC_COOKTORR, "COOKTORR", 0, "CookTorr", "Use a Cook-Torrance shader"},
+		{MA_SPEC_PHONG, "PHONG", 0, "Phong", "Use a Phong shader"},
+		{MA_SPEC_BLINN, "BLINN", 0, "Blinn", "Use a Blinn shader"},
+		{MA_SPEC_TOON, "TOON", 0, "Toon", "Use a toon shader"},
+		{MA_SPEC_WARDISO, "WARDISO", 0, "WardIso", "Use a Ward anisotropic shader"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	prop= RNA_def_property(srna, "specular_shader", PROP_ENUM, PROP_NONE);
@@ -1405,7 +1405,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 	prop= RNA_def_property(srna, "specular_intensity", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "spec");
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Specular Intensity", "");
+	RNA_def_property_ui_text(prop, "Specular Intensity", "How intense (bright) the specular reflection is");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	/* NOTE: "har", "param", etc are used for multiple purposes depending on
@@ -1416,13 +1416,13 @@ static void rna_def_material_specularity(StructRNA *srna)
 	prop= RNA_def_property(srna, "specular_hardness", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "har");
 	RNA_def_property_range(prop, 1, 511);
-	RNA_def_property_ui_text(prop, "Specular Hardness", "");
+	RNA_def_property_ui_text(prop, "Specular Hardness", "How hard (sharp) the specular reflection is");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop= RNA_def_property(srna, "specular_ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "refrac");
 	RNA_def_property_range(prop, 1, 10);
-	RNA_def_property_ui_text(prop, "Specular IOR", "");
+	RNA_def_property_ui_text(prop, "Specular IOR", "Specular index of refraction");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "specular_toon_size", PROP_FLOAT, PROP_NONE);
@@ -1585,9 +1585,9 @@ void RNA_def_material(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadows_only_items[] = {
-		{MA_SO_OLD, "SHADOW_ONLY_OLD", 0, "Shadow and Distance", ""},
-		{MA_SO_SHADOW, "SHADOW_ONLY", 0, "Shadow Only", ""},
-		{MA_SO_SHADED, "SHADOW_ONLY_SHADED", 0, "Shadow and Shading", ""},
+		{MA_SO_OLD, "SHADOW_ONLY_OLD", 0, "Shadow and Distance", "Old shadow only method"},
+		{MA_SO_SHADOW, "SHADOW_ONLY", 0, "Shadow Only", "Improved shadow only method"},
+		{MA_SO_SHADED, "SHADOW_ONLY_SHADED", 0, "Shadow and Shading", "Improved shadow only method which also renders lightless areas as shadows"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Material", "ID");

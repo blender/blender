@@ -1328,10 +1328,20 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 /* op->poll */
 static int wm_search_menu_poll(bContext *C)
 {
-	if(CTX_wm_window(C)==NULL) return 0;
-	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_CONSOLE) return 0;  // XXX - so we can use the shortcut in the console
-	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_TEXT) return 0;  // XXX - so we can use the spacebar in the text editor
-	if(CTX_data_edit_object(C) && CTX_data_edit_object(C)->type==OB_FONT) return 0; // XXX - so we can use the spacebar for entering text
+	if(CTX_wm_window(C)==NULL) {
+		return 0;
+	}
+	else {
+		ScrArea *sa= CTX_wm_area(C);
+		if(sa) {
+			if(sa->spacetype==SPACE_CONSOLE) return 0;  // XXX - so we can use the shortcut in the console
+			if(sa->spacetype==SPACE_TEXT) return 0;  // XXX - so we can use the spacebar in the text editor			
+		}
+		else {
+			Object *editob= CTX_data_edit_object(C);
+			if(editob && editob->type==OB_FONT) return 0; // XXX - so we can use the spacebar for entering text
+		}
+	}
 	return 1;
 }
 
