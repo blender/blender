@@ -903,7 +903,7 @@ int RNA_property_is_idprop(PropertyRNA *prop);
 
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
-char *RNA_pointer_as_string(PointerRNA *ptr);
+char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr);
 
 /* Function */
 

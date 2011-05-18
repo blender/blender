@@ -4036,8 +4036,9 @@ int RNA_property_is_idprop(PropertyRNA *prop)
 }
 
 /* string representation of a property, python
- * compatible but can be used for display too*/
-char *RNA_pointer_as_string(PointerRNA *ptr)
+ * compatible but can be used for display too,
+ * context may be NULL */
+char *RNA_pointer_as_string(bContext *C, PointerRNA *ptr)
 {
 	DynStr *dynstr= BLI_dynstr_new();
 	char *cstring;
@@ -4057,7 +4058,7 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 			BLI_dynstr_append(dynstr, ", ");
 		first_time= 0;
 		
-		cstring = RNA_property_as_string(NULL, ptr, prop);
+		cstring = RNA_property_as_string(C, ptr, prop);
 		BLI_dynstr_appendf(dynstr, "\"%s\":%s", propname, cstring);
 		MEM_freeN(cstring);
 	}
@@ -4175,7 +4176,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 	case PROP_POINTER:
 	{
 		PointerRNA tptr= RNA_property_pointer_get(ptr, prop);
-		cstring= RNA_pointer_as_string(&tptr);
+		cstring= RNA_pointer_as_string(C, &tptr);
 		BLI_dynstr_append(dynstr, cstring);
 		MEM_freeN(cstring);
 		break;
@@ -4194,7 +4195,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 			first_time= 0;
 			
 			/* now get every prop of the collection */
-			cstring= RNA_pointer_as_string(&itemptr);
+			cstring= RNA_pointer_as_string(C, &itemptr);
 			BLI_dynstr_append(dynstr, cstring);
 			MEM_freeN(cstring);
 		}
