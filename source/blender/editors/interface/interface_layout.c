@@ -1496,8 +1496,10 @@ void uiItemMenuF(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc 
 
 typedef struct MenuItemLevel {
 	int opcontext;
-	const char *opname;
-	const char *propname;
+	/* dont use pointers to the strings because python can dynamically
+	 * allocate strings and free before the menu draws, see [#27304] */
+	char opname[OP_MAX_TYPENAME];
+	char propname[MAX_IDPROP_NAME];
 	PointerRNA rnapoin;
 } MenuItemLevel;
 
@@ -1514,9 +1516,14 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 	wmOperatorType *ot= WM_operatortype_find(opname, 1);
 	MenuItemLevel *lvl;
 
-	if(!ot || !ot->srna) {
+	if(!ot) {
 		ui_item_disabled(layout, opname);
-		RNA_warning("uiItemMenuEnumO: %s '%s'\n", ot ? "unknown operator" : "operator missing srna", name);
+		RNA_warning("uiItemMenuEnumO: unknown operator '%s'\n", opname);
+		return;
+	}
+	if(!ot->srna) {
+		ui_item_disabled(layout, opname);
+		RNA_warning("uiItemMenuEnumO: operator missing srna '%s'\n", opname);
 		return;
 	}
 
@@ -1526,8 +1533,8 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 		icon= ICON_BLANK1;
 
 	lvl= MEM_callocN(sizeof(MenuItemLevel), "MenuItemLevel");
-	lvl->opname= opname;
-	lvl->propname= propname;
+	BLI_strncpy(lvl->opname, opname, sizeof(lvl->opname));
+	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext= layout->root->opcontext;
 
 	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl);
@@ -1560,7 +1567,7 @@ void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propn
 
 	lvl= MEM_callocN(sizeof(MenuItemLevel), "MenuItemLevel");
 	lvl->rnapoin= *ptr;
-	lvl->propname= propname;
+	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext= layout->root->opcontext;
 
 	ui_item_menu(layout, name, icon, menu_item_enum_rna_menu, NULL, lvl);

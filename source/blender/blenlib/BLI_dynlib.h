@@ -27,37 +27,19 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file kernel/gen_messaging/GEN_messaging.h
- *  \ingroup genmess
+/** \file blender/blenlib/BLI_dynlib.h
+ *  \ingroup bli
  */
 
-#ifndef GEN_MESSAGING_H
-#define GEN_MESSAGING_H
+#ifndef __BLI_DYNLIB_H__
+#define __BLI_DYNLIB_H__
 
-#include <stdio.h>
+typedef struct DynamicLibrary DynamicLibrary;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+DynamicLibrary *BLI_dynlib_open(char *name);
+void *BLI_dynlib_find_symbol(DynamicLibrary* lib, const char *symname);
+char *BLI_dynlib_get_error_as_string(DynamicLibrary* lib);
+void BLI_dynlib_close(DynamicLibrary* lib);
 
-	/**
-	 * Stream for error messages.
-	 */
-	extern FILE* GEN_errorstream;
-
-	/**
-	 * Stream for notices to the user.
-	 */
-	extern FILE* GEN_userstream;
-
-	/**
-	 * Initialise the messaging system. If the system is not
-	 * initialised, the streams cannot be used. */
-	void GEN_init_messaging_system(void);
-	
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* GEN_MESSAGING_H */
+#endif /* __BLI_DYNLIB_H__ */
 

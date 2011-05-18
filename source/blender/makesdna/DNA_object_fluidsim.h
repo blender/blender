@@ -42,7 +42,10 @@ extern "C" {
 	
 struct Mesh;
 struct Ipo;
-struct MVert;
+
+typedef struct FluidVertexVelocity {
+	float vel[3];
+} FluidVertexVelocity;
 	
 typedef struct FluidsimSettings {
 	struct FluidsimModifierData *fmd; /* for fast RNA access */
@@ -82,8 +85,6 @@ typedef struct FluidsimSettings {
 
 	/* store pointer to original mesh (for replacing the current one) */
 	struct Mesh *orgMesh;
-	/* pointer to the currently loaded fluidsim mesh */
-	struct Mesh *meshSurface;
 	/* a mesh to display the bounding box used for simulation */
 	struct Mesh *meshBB;
 
@@ -122,8 +123,10 @@ typedef struct FluidsimSettings {
 	/* testing vars */
 	float farFieldSize;
 
-	/* save fluidsurface normals in mvert.no, and surface vertex velocities (if available) in mvert.co */
-	struct MVert *meshSurfNormals;
+	/* vertex velocities of simulated fluid mesh */
+	struct FluidVertexVelocity *meshVelocities;
+	/* number of vertices in simulated fluid mesh */
+	int totvert;
 	
 	/* Fluid control settings */
 	float cpsTimeStart;
@@ -136,6 +139,8 @@ typedef struct FluidsimSettings {
 	float velocityforceRadius;
 
 	int lastgoodframe;
+	
+	int pad;
 
 } FluidsimSettings;
 

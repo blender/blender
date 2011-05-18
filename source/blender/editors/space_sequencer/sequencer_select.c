@@ -307,7 +307,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short left_right= RNA_boolean_get(op->ptr, "left_right");
 	short linked_time= RNA_boolean_get(op->ptr, "linked_time");
 
-	short mval[2];	
+	int mval[2];
 	
 	Sequence *seq,*neighbor, *act_orig;
 	int hand,sel_side;
@@ -489,7 +489,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* marker transform */
 #if 0 // XXX probably need to redo this differently for 2.5
 	if (marker) {
-		short mval[2], xo, yo;
+		int mval[2], xo, yo;
 //		getmouseco_areawin(mval);
 		xo= mval[0]; 
 		yo= mval[1];
@@ -656,7 +656,7 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 	View2D *v2d= UI_view2d_fromcontext(C);
 	
 	short extend= RNA_boolean_get(op->ptr, "extend");
-	short mval[2];	
+	int mval[2];
 	
 	Sequence *mouse_seq;
 	int selected, hand;
@@ -837,7 +837,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	rctf rectf, rq;
 	short selecting = (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
-	short mval[2];
+	int mval[2];
 
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;

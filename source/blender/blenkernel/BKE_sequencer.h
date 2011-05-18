@@ -268,6 +268,10 @@ void seq_translate(struct Scene *scene, struct Sequence *seq, int delta);
 void seq_sound_init(struct Scene *scene, struct Sequence *seq);
 struct Sequence *seq_foreground_frame_get(struct Scene *scene, int frame);
 struct ListBase *seq_seqbase(struct ListBase *seqbase, struct Sequence *seq);
+struct Sequence *seq_metastrip(
+	ListBase * seqbase /* = ed->seqbase */, 
+	struct Sequence * meta /* = NULL */, struct Sequence *seq);
+
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 void seq_dupe_animdata(struct Scene *scene, char *name_from, char *name_to);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test, struct Scene *evil_scene);

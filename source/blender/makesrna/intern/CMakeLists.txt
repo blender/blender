@@ -175,11 +175,6 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-if(WITH_LCMS)
-	list(APPEND INC ${LCMS_INCLUDE_DIR})
-	add_definitions(-DWITH_LCMS)
-endif()
-
 if(NOT WITH_MOD_FLUID)
 	add_definitions(-DDISABLE_ELBEEM)
 endif()
@@ -222,7 +217,7 @@ blender_include_dirs(
 	../../../../intern/audaspace/intern
 	../../../../intern/guardedalloc
 	../../../../intern/memutil
-    ${GLEW_INCLUDE_PATH}
+	${GLEW_INCLUDE_PATH}
 )
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})

@@ -2533,14 +2533,14 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 }
 
 /* return: success (1) */
-int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *reports, int *thumb)
+int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportList *reports, int *thumb)
 {
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
 	char tempname[FILE_MAXDIR+FILE_MAXFILE+1];
 	int file, err, write_user_block;
 
 	/* open temporary file, so we preserve the original in case we crash */
-	BLI_snprintf(tempname, sizeof(tempname), "%s@", dir);
+	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
 	file = open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
@@ -2552,24 +2552,32 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 	if(write_flags & G_FILE_RELATIVE_REMAP) {
 		char dir1[FILE_MAXDIR+FILE_MAXFILE];
 		char dir2[FILE_MAXDIR+FILE_MAXFILE];
-		BLI_split_dirfile(dir, dir1, NULL);
+		BLI_split_dirfile(filepath, dir1, NULL);
 		BLI_split_dirfile(mainvar->name, dir2, NULL);
 
 		/* just incase there is some subtle difference */
 		BLI_cleanup_dir(mainvar->name, dir1);
 		BLI_cleanup_dir(mainvar->name, dir2);
 
-		if(strcmp(dir1, dir2)==0)
+		if(BLI_path_cmp(dir1, dir2)==0) {
 			write_flags &= ~G_FILE_RELATIVE_REMAP;
-		else
-			makeFilesAbsolute(mainvar, G.main->name, NULL);
+		}
+		else {
+			if(G.relbase_valid) {
+				/* blend may not have been saved before. Tn this case
+				 * we should not have any relative paths, but if there
+				 * is somehow, an invalid or empty G.main->name it will
+				 * print an error, dont try make the absolute in this case. */
+				makeFilesAbsolute(mainvar, G.main->name, NULL);
+			}
+		}
 	}
 
 	BLI_make_file_string(G.main->name, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
-	write_user_block= (BLI_path_cmp(dir, userfilename) == 0);
+	write_user_block= (BLI_path_cmp(filepath, userfilename) == 0);
 
 	if(write_flags & G_FILE_RELATIVE_REMAP)
-		makeFilesRelative(mainvar, dir, NULL); /* note, making relative to something OTHER then G.main->name */
+		makeFilesRelative(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
 	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags, thumb);
@@ -2583,12 +2591,12 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 			int ret;
 
 			/* first write compressed to separate @.gz */
-			BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", dir);
+			BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", filepath);
 			ret = BLI_gzip(tempname, gzname);
 			
 			if(0==ret) {
 				/* now rename to real file name, and delete temp @ file too */
-				if(BLI_rename(gzname, dir) != 0) {
+				if(BLI_rename(gzname, filepath) != 0) {
 					BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @.");
 					return 0;
 				}
@@ -2604,7 +2612,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 				return 0;
 			}
 		}
-		else if(BLI_rename(tempname, dir) != 0) {
+		else if(BLI_rename(tempname, filepath) != 0) {
 			BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @");
 			return 0;
 		}

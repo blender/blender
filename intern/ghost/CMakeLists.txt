@@ -29,7 +29,7 @@ set(INC
 	../string
 	../../source/blender/imbuf
 	../../source/blender/makesdna
-    ${GLEW_INCLUDE_PATH}
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

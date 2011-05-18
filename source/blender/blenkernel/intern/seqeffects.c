@@ -37,7 +37,7 @@
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
-#include "PIL_dynlib.h"
+#include "BLI_dynlib.h"
 
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_utildefines.h"
@@ -138,18 +138,18 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 	pis->instance_private_data = NULL;
 
 	/* clear the error list */
-	PIL_dynlib_get_error_as_string(NULL);
+	BLI_dynlib_get_error_as_string(NULL);
 
-	/* if(pis->handle) PIL_dynlib_close(pis->handle); */
+	/* if(pis->handle) BLI_dynlib_close(pis->handle); */
 	/* pis->handle= 0; */
 
 	/* open the needed object */
-	pis->handle= PIL_dynlib_open(pis->name);
+	pis->handle= BLI_dynlib_open(pis->name);
 	if(test_dlerr(pis->name, pis->name)) return;
 
 	if (pis->handle != NULL) {
 		/* find the address of the version function */
-		version= (int (*)(void))PIL_dynlib_find_symbol(pis->handle, "plugin_seq_getversion");
+		version= (int (*)(void))BLI_dynlib_find_symbol(pis->handle, "plugin_seq_getversion");
 		if (test_dlerr(pis->name, "plugin_seq_getversion")) return;
 
 		if (version != NULL) {
@@ -158,7 +158,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info");
 
-				info_func= (int (*)(PluginInfo *))PIL_dynlib_find_symbol(pis->handle, "plugin_getinfo");
+				info_func= (int (*)(PluginInfo *))BLI_dynlib_find_symbol(pis->handle, "plugin_getinfo");
 
 				if(info_func == NULL) error("No info func");
 				else {
@@ -176,21 +176,21 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 				}
 				MEM_freeN(info);
 
-				cp= PIL_dynlib_find_symbol(pis->handle, "seqname");
+				cp= BLI_dynlib_find_symbol(pis->handle, "seqname");
 				if(cp) strncpy(cp, seqname, 21);
 			} else {
 				printf ("Plugin returned unrecognized version number\n");
 				return;
 			}
 		}
-		alloc_private = (void* (*)(void))PIL_dynlib_find_symbol(
+		alloc_private = (void* (*)(void))BLI_dynlib_find_symbol(
 			pis->handle, "plugin_seq_alloc_private_data");
 		if (alloc_private) {
 			pis->instance_private_data = alloc_private();
 		}
 		
 		pis->current_private_data = (void**) 
-			PIL_dynlib_find_symbol(
+			BLI_dynlib_find_symbol(
 				pis->handle, "plugin_private_data");
 	}
 }
@@ -229,12 +229,12 @@ static void free_plugin_seq(PluginSeq *pis)
 {
 	if(pis==NULL) return;
 
-	/* no PIL_dynlib_close: same plugin can be opened multiple times with 1 handle */
+	/* no BLI_dynlib_close: same plugin can be opened multiple times with 1 handle */
 
 	if (pis->instance_private_data) {
 		void (*free_private)(void *);
 
-		free_private = (void (*)(void *))PIL_dynlib_find_symbol(
+		free_private = (void (*)(void *))BLI_dynlib_find_symbol(
 			pis->handle, "plugin_seq_free_private_data");
 		if (free_private) {
 			free_private(pis->instance_private_data);
@@ -301,7 +301,7 @@ static struct ImBuf * do_plugin_effect(
 		if(seq->plugin->cfra) 
 			*(seq->plugin->cfra)= cfra;
 		
-		cp = PIL_dynlib_find_symbol(
+		cp = BLI_dynlib_find_symbol(
 			seq->plugin->handle, "seqname");
 
 		if(cp) strncpy(cp, seq->name+2, 22);
@@ -2859,6 +2859,83 @@ static struct ImBuf * do_multicam(
 }
 
 /* **********************************************************************
+   ADJUSTMENT
+   ********************************************************************** */
+
+/* no effect inputs for adjustment, we use give_ibuf_seq */
+static int num_inputs_adjustment(void)
+{
+	return 0;
+}
+
+static int early_out_adjustment(struct Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
+{
+	return -1;
+}
+
+static struct ImBuf * do_adjustment_impl(SeqRenderData context, Sequence * seq,
+					 float cfra)
+{
+	Editing * ed;
+	ListBase * seqbasep;
+	struct ImBuf * i = 0;
+
+	ed = context.scene->ed;
+
+	seqbasep = seq_seqbase(&ed->seqbase, seq);
+
+	if (seq->machine > 0) {
+		i = give_ibuf_seqbase(context, cfra,
+				      seq->machine - 1, seqbasep);
+	}
+
+	/* found nothing? so let's work the way up the metastrip stack, so
+	   that it is possible to group a bunch of adjustment strips into
+	   a metastrip and have that work on everything below the metastrip
+	*/
+	   
+	if (!i) {
+		Sequence * meta;
+
+		meta = seq_metastrip(&ed->seqbase, NULL, seq);
+
+		if (meta) {
+			i = do_adjustment_impl(context, meta, cfra);
+		}
+	}
+
+	return i;
+}
+
+static struct ImBuf * do_adjustment(
+	SeqRenderData context, Sequence *seq, float cfra,
+	float UNUSED(facf0), float UNUSED(facf1),
+	struct ImBuf *UNUSED(ibuf1), struct ImBuf *UNUSED(ibuf2), 
+	struct ImBuf *UNUSED(ibuf3))
+{
+	struct ImBuf * i = 0;
+	struct ImBuf * out;
+	Editing * ed;
+
+	ed = context.scene->ed;
+
+	if (!ed) {
+		return NULL;
+	}
+
+	i = do_adjustment_impl(context, seq, cfra);
+
+	if (input_have_to_preprocess(context, seq, cfra)) {
+		out = IMB_dupImBuf(i);
+		IMB_freeImBuf(i);
+	} else {
+		out = i;
+	}
+	
+	return out;
+}
+
+/* **********************************************************************
    SPEED
    ********************************************************************** */
 static void init_speed_effect(Sequence *seq)
@@ -3255,6 +3332,11 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 		rval.num_inputs = num_inputs_multicam;
 		rval.early_out = early_out_multicam;
 		rval.execute = do_multicam;
+		break;
+	case SEQ_ADJUSTMENT:
+		rval.num_inputs = num_inputs_adjustment;
+		rval.early_out = early_out_adjustment;
+		rval.execute = do_adjustment;
 		break;
 	}
 

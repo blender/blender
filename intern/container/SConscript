@@ -2,6 +2,6 @@
 Import ('env')
 
 sources = env.Glob('intern/*.cpp')
-incs = '.'
+incs = '. #intern/guardedalloc'
 
 env.BlenderLib ('bf_intern_ctr', sources, Split(incs) , [], libtype='intern', priority = 10 )

@@ -440,6 +440,8 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 		GPU_free_image(ima); /* force OpenGL reload */
 		if(ibuf->rect_float)
 			ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
+		if(ibuf->mipmap[0])
+			ibuf->userflags |= IB_MIPMAP_INVALID; /* force mipmap recreatiom */
 
 	}
 
@@ -5066,56 +5068,6 @@ void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 	}
 }
 
-/* ************ image paint radial control *************/
-static int paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	float zoom;
-	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
-	get_imapaint_zoom(C, &zoom, &zoom);
-	toggle_paint_cursor(C, 0);
-	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), zoom);
-	return WM_radial_control_invoke(C, op, event);
-}
-
-static int paint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int ret = WM_radial_control_modal(C, op, event);
-	if(ret != OPERATOR_RUNNING_MODAL)
-		toggle_paint_cursor(C, 1);
-	return ret;
-}
-
-static int paint_radial_control_exec(bContext *C, wmOperator *op)
-{
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->imapaint.paint);
-	float zoom;
-	int ret;
-	char str[64];
-	get_imapaint_zoom(C, &zoom, &zoom);
-	ret = brush_radial_control_exec(op, brush, 1.0f / zoom);
-	WM_radial_control_string(op, str, sizeof(str));
-	
-	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
-
-	return ret;
-}
-
-void PAINT_OT_image_paint_radial_control(wmOperatorType *ot)
-{
-	WM_OT_radial_control_partial(ot);
-
-	ot->name= "Image Paint Radial Control";
-	ot->idname= "PAINT_OT_image_paint_radial_control";
-
-	ot->invoke= paint_radial_control_invoke;
-	ot->modal= paint_radial_control_modal;
-	ot->exec= paint_radial_control_exec;
-	ot->poll= image_paint_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-}
-
 /************************ grab clone operator ************************/
 
 typedef struct GrabClone {
@@ -5332,7 +5284,7 @@ static int set_clone_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	View3D *v3d= CTX_wm_view3d(C);
 	ARegion *ar= CTX_wm_region(C);
 	float location[3];
-	short mval[2];
+	int mval[2];
 
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;
@@ -5443,28 +5395,6 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/************* texture paint radial control *************/
-
-static int texture_paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
-	toggle_paint_cursor(C, !ts->imapaint.paintcursor);
-	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), 1);
-	return WM_radial_control_invoke(C, op, event);
-}
-
-static int texture_paint_radial_control_exec(bContext *C, wmOperator *op)
-{
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->imapaint.paint);
-	int ret = brush_radial_control_exec(op, brush, 1);
-	char str[64];
-	WM_radial_control_string(op, str, sizeof(str));
-
-	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
-
-	return ret;
-}
-
 static int texture_paint_poll(bContext *C)
 {
 	if(texture_paint_toggle_poll(C))
@@ -5478,23 +5408,6 @@ int image_texture_paint_poll(bContext *C)
 {
 	return (texture_paint_poll(C) || image_paint_poll(C));
 }
-
-void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
-{
-	WM_OT_radial_control_partial(ot);
-
-	ot->name= "Texture Paint Radial Control";
-	ot->idname= "PAINT_OT_texture_paint_radial_control";
-
-	ot->invoke= texture_paint_radial_control_invoke;
-	ot->modal= paint_radial_control_modal;
-	ot->exec= texture_paint_radial_control_exec;
-	ot->poll= texture_paint_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-}
-
 
 int facemask_paint_poll(bContext *C)
 {

@@ -158,7 +158,7 @@ typedef struct FlyInfo {
 	short state;
 	short use_precision;
 	short redraw;
-	short mval[2];
+	int mval[2];
 
 	/* fly state state */
 	float speed; /* the speed the view is moving per redraw */

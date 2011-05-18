@@ -4243,6 +4243,14 @@ static PyObject *pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	PropertyRNA *pret_single= NULL;
 	void *retdata_single= NULL;
 
+	/* enable this so all strings are copied and freed after calling.
+	 * this exposes bugs where the pointer to the string is held and re-used */
+// #define DEBUG_STRING_FREE
+
+#ifdef DEBUG_STRING_FREE
+	PyObject *string_free_ls= PyList_New(0);
+#endif
+
 	/* Should never happen but it does in rare cases */
 	BLI_assert(self_ptr != NULL);
 
@@ -4331,10 +4339,20 @@ static PyObject *pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 				err= -1;
 				break;
 			}
-			else /* PyDict_GetItemString wont raise an error */
+			else { /* PyDict_GetItemString wont raise an error */
 				continue;
+			}
 		}
 
+#ifdef DEBUG_STRING_FREE
+		if(item) {
+			if(PyUnicode_Check(item)) {
+				item= PyUnicode_FromString(_PyUnicode_AsString(item));
+				PyList_Append(string_free_ls, item);
+				Py_DECREF(item);
+			}
+		}
+#endif
 		err= pyrna_py_to_prop(&funcptr, parm, iter.data, item, "");
 
 		if(err!=0) {
@@ -4469,6 +4487,13 @@ static PyObject *pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 			}
 		}
 	}
+
+
+#ifdef DEBUG_STRING_FREE
+	// if(PyList_Size(string_free_ls)) printf("%.200s.%.200s():  has %d strings\n", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), (int)PyList_Size(string_free_ls));
+	Py_DECREF(string_free_ls);
+#undef DEBUG_STRING_FREE
+#endif
 
 	/* cleanup */
 	RNA_parameter_list_end(&iter);
@@ -6394,7 +6419,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 
 	identifier= ((PyTypeObject*)py_class)->tp_name;
 
-	srna_new= reg(C, &reports, py_class, identifier, bpy_class_validate, bpy_class_call, bpy_class_free);
+	srna_new= reg(CTX_data_main(C), &reports, py_class, identifier, bpy_class_validate, bpy_class_call, bpy_class_free);
 
 	if(BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
 		return NULL;
@@ -6544,7 +6569,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	C= BPy_GetContext();
 
 	/* call unregister */
-	unreg(C, srna); /* calls bpy_class_free, this decref's py_class */
+	unreg(CTX_data_main(C), srna); /* calls bpy_class_free, this decref's py_class */
 
 	PyDict_DelItemString(((PyTypeObject *)py_class)->tp_dict, "bl_rna");
 	if(PyErr_Occurred())

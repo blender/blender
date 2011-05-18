@@ -1692,6 +1692,10 @@ void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
 #ifdef _WIN32
 	if(GetModuleFileName(0, fullname, maxlen)) {
 		GetShortPathName(fullname, fullname, maxlen);
+		if(!BLI_exists(fullname)) {
+			printf("path can't be found: \"%.*s\"\n", maxlen, fullname);
+			MessageBox(NULL, "path constains invalid characters or is too long (see console)", "Error", MB_OK);
+		}
 		return;
 	}
 #endif

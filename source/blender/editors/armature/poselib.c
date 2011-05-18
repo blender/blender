@@ -527,7 +527,7 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* get index (and pointer) of pose to remove */
-	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "pose"));
+	marker= BLI_findlink(&act->markers, RNA_enum_get(op->ptr, "pose"));
 	if (marker == NULL) {
 		BKE_reportf(op->reports, RPT_ERROR, "Invalid Pose specified %d", RNA_int_get(op->ptr, "pose"));
 		return OPERATOR_CANCELLED;

@@ -143,9 +143,11 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_material.h" /* give_current_material */
+
+extern Material defmaterial;	/* material.c */
 }
 
-#include "BKE_material.h" /* give_current_material */
 /* end of blender include block */
 
 #include "KX_BlenderInputDevice.h"
@@ -156,7 +158,7 @@ extern "C" {
 #include "KX_ScalarInterpolator.h"
 
 #include "KX_IpoConvert.h"
-#include "SYS_System.h"
+#include "BL_System.h"
 
 #include "SG_Node.h"
 #include "SG_BBox.h"
@@ -460,7 +462,9 @@ bool ConvertMaterial(
 							}
 						}
 					}
-					material->flag[i] |= (mat->ipo!=0)?HASIPO:0;
+#if 0				/* this flag isnt used anymore */
+					material->flag[i] |= (BKE_animdata_from_id(mat->id) != NULL) ? HASIPO : 0;
+#endif
 					/// --------------------------------
 					// mapping methods
 					material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
@@ -834,6 +838,11 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 			ma = give_current_material(blenderobj, mface->mat_nr+1);
 		else
 			ma = mesh->mat ? mesh->mat[mface->mat_nr]:NULL;
+
+		/* ckeck for texface since texface _only_ is used as a fallback */
+		if(ma == NULL && tface == NULL) {
+			ma= &defmaterial;
+		}
 
 		{
 			bool visible = true;
@@ -1831,6 +1840,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	{
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
+		gameobj->SetObjectColor(ob->col);
 		/* set the visibility state based on the objects render option in the outliner */
 		if(ob->restrictflag & OB_RESTRICT_RENDER) gameobj->SetVisible(0, 0);
 	}

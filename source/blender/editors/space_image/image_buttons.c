@@ -98,19 +98,6 @@
 
 /* proto */
 
-static void do_image_panel_events(bContext *C, void *UNUSED(arg), int event)
-{
-	SpaceImage *sima= CTX_wm_space_image(C);
-	
-	switch(event) {
-		case B_REDR:
-			break;
-	}
-
-	/* all events now */
-	WM_event_add_notifier(C, NC_IMAGE, sima->image);
-}
-
 static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, char *str)
 {
 	int ofs= 0;
@@ -281,7 +268,7 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 	rcti *disprect= &G.scene->r.disprect;
 	int winx= (G.scene->r.size*G.scene->r.xsch)/100;
 	int winy= (G.scene->r.size*G.scene->r.ysch)/100;
-	short mval[2];
+	int mval[2];
 	
 	if(G.scene->r.mode & R_BORDER) {
 		winx*= (G.scene->r.border.xmax - G.scene->r.border.xmin);
@@ -593,6 +580,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiLayout *row;
 	uiBut *but;
+	const float dpi_fac= UI_DPI_FAC;
 	
 	row= uiLayoutRow(layout, 1);
 
@@ -609,7 +597,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Layer");
 	uiButSetFunc(but, image_multi_inclay_cb, rr, iuser);
 
-	uiblock_layer_pass_buttons(row, rr, iuser, 230, render_slot);
+	uiblock_layer_pass_buttons(row, rr, iuser, 230 * dpi_fac, render_slot);
 
 	/* decrease, increase arrows */
 	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Pass");
@@ -841,8 +829,9 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 	/* render layers and passes */
 	if(ima && iuser) {
+		const float dpi_fac= UI_DPI_FAC;
 		rr= BKE_image_acquire_renderresult(scene, ima);
-		uiblock_layer_pass_buttons(layout, rr, iuser, 160, (ima->type==IMA_TYPE_R_RESULT)? &ima->render_slot: NULL);
+		uiblock_layer_pass_buttons(layout, rr, iuser, 160 * dpi_fac, (ima->type==IMA_TYPE_R_RESULT)? &ima->render_slot: NULL);
 		BKE_image_release_renderresult(scene, ima);
 	}
 }

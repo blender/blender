@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('*.cpp') #'NG_NetworkMessage.cpp NG_NetworkObject.cpp NG_NetworkScene.cpp'
 
-incs = '. #source/kernel/gen_system #intern/string #intern/moto/include'
+incs = '. #intern/string #intern/moto/include #intern/container'
 
 defs = []
 

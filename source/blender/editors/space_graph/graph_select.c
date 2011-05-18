@@ -818,7 +818,7 @@ static int graphkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEve
 		ARegion *ar= ac.ar;
 		View2D *v2d= &ar->v2d;
 		
-		short mval[2];
+		int mval[2];
 		float x;
 		
 		/* get mouse coordinates (in region coordinates) */

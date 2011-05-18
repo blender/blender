@@ -82,10 +82,7 @@ if(WITH_PYTHON)
 endif()
 
 if(WITH_GAMEENGINE)
-	blender_include_dirs(
-		../kernel/gen_messaging
-		../kernel/gen_system
-	)
+	blender_include_dirs(../gameengine/BlenderRoutines)
 
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
@@ -194,10 +191,10 @@ if(WITH_PYTHON_MODULE)
 	set_target_properties(
 		blender
 		PROPERTIES
-			 PREFIX ""
-			 OUTPUT_NAME bpy
-			 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/
-			 RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/  # only needed on windows
+				PREFIX ""
+				OUTPUT_NAME bpy
+				LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/
+				RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/  # only needed on windows
 	)
 	
 	if(WIN32)
@@ -205,7 +202,7 @@ if(WITH_PYTHON_MODULE)
 		set_target_properties(
 			blender
 			PROPERTIES
-				 SUFFIX ".pyd"
+			SUFFIX ".pyd"
 		)	
 	endif()
 	
@@ -590,19 +587,19 @@ elseif(WIN32)
 		endif()
 	endif()
 
-    if(NOT CMAKE_CL_64)
+	if(NOT CMAKE_CL_64)
 		install(
 			FILES
-	    	${LIBDIR}/thumbhandler/lib/BlendThumb.dll
-    		DESTINATION ${TARGETDIR}/
-	    )
-    else()
+			${LIBDIR}/thumbhandler/lib/BlendThumb.dll
+			DESTINATION ${TARGETDIR}/
+		)
+	else()
 		install(
 			FILES
-	    	${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
-    		DESTINATION ${TARGETDIR}/
-	    )
-    endif()
+			${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
+			DESTINATION ${TARGETDIR}/
+		)
+	endif()
 
 elseif(APPLE)
 	set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
@@ -787,11 +784,9 @@ endif()
 		bf_imbuf_cineon
 		bf_imbuf_openexr
 		bf_imbuf_dds
-		bf_readblenfile
 		bf_collada
 		bf_intern_bsp
 		bf_intern_bop
-		bf_gen_system
 		bf_intern_decimate
 		bf_intern_elbeem
 		bf_intern_ik
@@ -813,7 +808,6 @@ endif()
 		ge_logic_expressions
 		ge_scenegraph
 		ge_logic_network
-		bf_gen_system
 		bf_python # duplicate for BPY_driver_exec
 		ge_logic_ngnetwork
 		extern_bullet
@@ -829,13 +823,13 @@ endif()
 		bf_intern_mikktspace
 	)
 
-    if(WITH_MOD_CLOTH_ELTOPO)
+	if(WITH_MOD_CLOTH_ELTOPO)
 		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
-    endif()
+	endif()
 
-    if(WITH_BUILTIN_GLEW)
+	if(WITH_BUILTIN_GLEW)
 		list(APPEND BLENDER_SORTED_LIBS extern_glew)
-    endif()
+	endif()
 
 	if(WITH_BINRELOC)
 		list(APPEND BLENDER_SORTED_LIBS extern_binreloc)

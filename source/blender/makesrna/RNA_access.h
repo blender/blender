@@ -53,6 +53,7 @@ extern LIBEXPORT StructRNA RNA_ActionGroup;
 extern LIBEXPORT StructRNA RNA_Actuator;
 extern LIBEXPORT StructRNA RNA_ActuatorSensor;
 extern LIBEXPORT StructRNA RNA_Addon;
+extern LIBEXPORT StructRNA RNA_AdjustmentSequence;
 extern LIBEXPORT StructRNA RNA_AlwaysSensor;
 extern LIBEXPORT StructRNA RNA_AndController;
 extern LIBEXPORT StructRNA RNA_AnimData;
@@ -610,6 +611,7 @@ LIBEXPORT int RNA_struct_is_a(StructRNA *type, StructRNA *srna);
 LIBEXPORT StructRegisterFunc RNA_struct_register(StructRNA *type);
 LIBEXPORT StructUnregisterFunc RNA_struct_unregister(StructRNA *type);
 LIBEXPORT void **RNA_struct_instance(PointerRNA *ptr);
+void **RNA_struct_instance(PointerRNA *ptr);
 
 LIBEXPORT void *RNA_struct_py_type_get(StructRNA *srna);
 LIBEXPORT void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
@@ -888,7 +890,7 @@ LIBEXPORT int RNA_property_is_idprop(PropertyRNA *prop);
 
 /* python compatible string representation of this property, (must be freed!) */
 LIBEXPORT char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
-LIBEXPORT char *RNA_pointer_as_string(PointerRNA *ptr);
+LIBEXPORT char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr);
 
 /* Function */
 

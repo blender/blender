@@ -75,18 +75,25 @@ EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", ICON_CONSTRAINT_DATA, "Shrinkwrap", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem space_pchan_items[] = {
-	{0, "WORLD", 0, "World Space", ""},
-	{2, "POSE", 0, "Pose Space", ""},
-	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", ""},
-	{1, "LOCAL", 0, "Local Space", ""},
+static EnumPropertyItem target_space_pchan_items[] = {
+	{0, "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
+	{2, "POSE", 0, "Pose Space", "The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored"},
+	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The transformation of the target bone is evaluated relative its local coordinate system, with the parent transformation added"},
+	{1, "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
+	{0, NULL, 0, NULL, NULL}};
+
+static EnumPropertyItem owner_space_pchan_items[] = {
+	{0, "WORLD", 0, "World Space", "The constraint is applied relative to the world coordinate system"},
+	{2, "POSE", 0, "Pose Space", "The constraint is applied in Pose Space, the object transformation is ignored"},
+	{3, "LOCAL_WITH_PARENT", 0, "The constraint is applied relative to the local coordinate system of the object, with the parent transformation added"},
+	{1, "LOCAL", 0, "Local Space", "The constraint is applied relative to the local coordinate sytem of the object"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
 static EnumPropertyItem space_object_items[] = {
-	{0, "WORLD", 0, "World Space", ""},
-	{1, "LOCAL", 0, "Local Space", ""},
+	{0, "WORLD", 0, "World Space", "The transformation of the target is evaluated relative to the world coordinate system"},
+	{1, "LOCAL", 0, "Local Space", "The transformation of the target is evaluated relative to its local coordinate system"},
 	{0, NULL, 0, NULL, NULL}};
 
 #include "BKE_animsys.h"
@@ -242,7 +249,7 @@ static EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *C, PointerRN
 	bConstraint *con= (bConstraint*)ptr->data;
 	
 	if(BLI_findindex(&ob->constraints, con) == -1)
-		return space_pchan_items;
+		return owner_space_pchan_items;
 	else /* object */
 		return space_object_items;
 }
@@ -265,7 +272,7 @@ static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *C, PointerR
 			cti->flush_constraint_targets(con, &targets, 1);
 
 		if(ct)
-			return space_pchan_items;
+			return target_space_pchan_items;
 	}
 
 	return space_object_items;
@@ -318,9 +325,9 @@ static void rna_SplineIKConstraint_joint_bindings_set(PointerRNA *ptr, const flo
 #else
 
 EnumPropertyItem constraint_distance_items[] = {
-	{LIMITDIST_INSIDE, "LIMITDIST_INSIDE", 0, "Inside", ""},
-	{LIMITDIST_OUTSIDE, "LIMITDIST_OUTSIDE", 0, "Outside", ""},
-	{LIMITDIST_ONSURFACE, "LIMITDIST_ONSURFACE", 0, "On Surface", ""},
+	{LIMITDIST_INSIDE, "LIMITDIST_INSIDE", 0, "Inside", "The object is constrained inside a virtual sphere around the target object, with a radius defined by the limit distance"},
+	{LIMITDIST_OUTSIDE, "LIMITDIST_OUTSIDE", 0, "Outside", "The object is constrained outside a virtual sphere around the target object, with a radius defined by the limit distance"},
+	{LIMITDIST_ONSURFACE, "LIMITDIST_ONSURFACE", 0, "On Surface", "The object is constrained on the surface of a virtual sphere around the target object, with a radius defined by the limit distance"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -966,7 +973,7 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act");
-	RNA_def_property_ui_text(prop, "Action", "");
+	RNA_def_property_ui_text(prop, "Action", "The constraining action");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -1183,10 +1190,10 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem pivot_items[] = {
-		{CONSTRAINT_RB_BALL, "BALL", 0, "Ball", ""},
-		{CONSTRAINT_RB_HINGE, "HINGE", 0, "Hinge", ""},
-		{CONSTRAINT_RB_CONETWIST, "CONE_TWIST", 0, "Cone Twist", ""},
-		{CONSTRAINT_RB_GENERIC6DOF, "GENERIC_6_DOF", 0, "Generic 6 DoF", ""},
+		{CONSTRAINT_RB_BALL, "BALL", 0, "Ball", "Allows rotations around all axes"},
+		{CONSTRAINT_RB_HINGE, "HINGE", 0, "Hinge", "Works in one plane, allows rotations around one axis only"},
+		{CONSTRAINT_RB_CONETWIST, "CONE_TWIST", 0, "Cone Twist", "Allows rotations around all axes with limits for the cone and twist axes"},
+		{CONSTRAINT_RB_GENERIC6DOF, "GENERIC_6_DOF", 0, "Generic 6 DoF", "No constraints by default, limits can be set individually"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RigidBodyJointConstraint", "Constraint");
@@ -1788,9 +1795,9 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem type_items[] = {
-		{MOD_SHRINKWRAP_NEAREST_SURFACE, "NEAREST_SURFACE", 0, "Nearest Surface Point", ""},
-		{MOD_SHRINKWRAP_PROJECT, "PROJECT", 0, "Project", ""},
-		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", 0, "Nearest Vertex", ""},
+		{MOD_SHRINKWRAP_NEAREST_SURFACE, "NEAREST_SURFACE", 0, "Nearest Surface Point", "Shrinks the location to the nearest target surface"},
+		{MOD_SHRINKWRAP_PROJECT, "PROJECT", 0, "Project", "Shrinks the location to the nearest target surface along a given axis"},
+		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", 0, "Nearest Vertex", "Shrinks the location to the nearest target vertex"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "ShrinkwrapConstraint", "Constraint"); 
@@ -1940,13 +1947,13 @@ static void rna_def_constraint_pivot(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem pivot_rotAxis_items[] = {
-		{PIVOTCON_AXIS_NONE, "ALWAYS_ACTIVE", 0, "Always", ""},
-		{PIVOTCON_AXIS_X_NEG, "NX", 0, "-X Rot", ""},
-		{PIVOTCON_AXIS_Y_NEG, "NY", 0, "-Y Rot", ""},
-		{PIVOTCON_AXIS_Z_NEG, "NZ", 0, "-Z Rot", ""},
-		{PIVOTCON_AXIS_X, "X", 0, "X Rot", ""},
-		{PIVOTCON_AXIS_Y, "Y", 0, "Y Rot", ""},
-		{PIVOTCON_AXIS_Z, "Z", 0, "Z Rot", ""},
+		{PIVOTCON_AXIS_NONE, "ALWAYS_ACTIVE", 0, "Always", "Use the pivot point in every rotation"},
+		{PIVOTCON_AXIS_X_NEG, "NX", 0, "-X Rot", "Use the pivot point in the negative rotation range around the X-axis"},
+		{PIVOTCON_AXIS_Y_NEG, "NY", 0, "-Y Rot", "Use the pivot point in the negative rotation range around the Y-axis"},
+		{PIVOTCON_AXIS_Z_NEG, "NZ", 0, "-Z Rot", "Use the pivot point in the negative rotation range around the Z-axis"},
+		{PIVOTCON_AXIS_X, "X", 0, "X Rot", "Use the pivot point in the positive rotation range around the X-axis"},
+		{PIVOTCON_AXIS_Y, "Y", 0, "Y Rot", "Use the pivot point in the positive rotation range around the Y-axis"},
+		{PIVOTCON_AXIS_Z, "Z", 0, "Z Rot", "Use the pivot point in the positive rotation range around the Z-axis"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "PivotConstraint", "Constraint");
@@ -2019,13 +2026,13 @@ void RNA_def_constraint(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "owner_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ownspace");
-	RNA_def_property_enum_items(prop, space_pchan_items);
+	RNA_def_property_enum_items(prop, owner_space_pchan_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Constraint_owner_space_itemf");
 	RNA_def_property_ui_text(prop, "Owner Space", "Space that owner is evaluated in");
 
 	prop= RNA_def_property(srna, "target_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "tarspace");
-	RNA_def_property_enum_items(prop, space_pchan_items);
+	RNA_def_property_enum_items(prop, target_space_pchan_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Constraint_target_space_itemf");
 	RNA_def_property_ui_text(prop, "Target Space", "Space that target is evaluated in");
 

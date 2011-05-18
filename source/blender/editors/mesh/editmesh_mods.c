@@ -162,7 +162,7 @@ unsigned int em_solidoffs=0, em_wireoffs=0, em_vertoffs=0;	/* set in drawobject.
 static char *selbuf= NULL;
 
 /* opengl doesn't support concave... */
-static void draw_triangulated(short mcords[][2], short tot)
+static void draw_triangulated(int mcords[][2], short tot)
 {
 	ListBase lb={NULL, NULL};
 	DispList *dl;
@@ -256,7 +256,7 @@ void EM_free_backbuf(void)
    - grab again and compare
    returns 'OK' 
 */
-int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
+int EM_mask_init_backbuf_border(ViewContext *vc, int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
 {
 	unsigned int *dr, *drm;
 	struct ImBuf *buf, *bufmask;
@@ -290,7 +290,7 @@ int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, s
 	draw_triangulated(mcords, tot);
 	
 	glBegin(GL_LINE_LOOP);	/* for zero sized masks, lines */
-	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
+	for(a=0; a<tot; a++) glVertex2iv(mcords[a]);
 	glEnd();
 	
 	glFinish();	/* to be sure readpixels sees mask */
@@ -358,7 +358,7 @@ int EM_init_backbuf_circle(ViewContext *vc, short xs, short ys, short rads)
 
 static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int y, int index)
 {
-	struct { short mval[2], pass, select, strict; int dist, lastIndex, closestIndex; EditVert *closest; } *data = userData;
+	struct { int mval[2]; short pass, select, strict; int dist, lastIndex, closestIndex; EditVert *closest; } *data = userData;
 
 	if (data->pass==0) {
 		if (index<=data->lastIndex)
@@ -426,7 +426,7 @@ EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 			
 	}
 	else {
-		struct { short mval[2], pass, select, strict; int dist, lastIndex, closestIndex; EditVert *closest; } data;
+		struct { int mval[2]; short pass, select, strict; int dist, lastIndex, closestIndex; EditVert *closest; } data;
 		static int lastSelectedIndex=0;
 		static EditVert *lastSelected=NULL;
 
@@ -549,7 +549,7 @@ EditEdge *findnearestedge(ViewContext *vc, int *dist)
 
 static void findnearestface__getDistance(void *userData, EditFace *efa, int x, int y, int UNUSED(index))
 {
-	struct { short mval[2]; int dist; EditFace *toFace; } *data = userData;
+	struct { int mval[2]; int dist; EditFace *toFace; } *data = userData;
 
 	if (efa==data->toFace) {
 		int temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
@@ -560,7 +560,7 @@ static void findnearestface__getDistance(void *userData, EditFace *efa, int x, i
 }
 static void findnearestface__doClosest(void *userData, EditFace *efa, int x, int y, int index)
 {
-	struct { short mval[2], pass; int dist, lastIndex, closestIndex; EditFace *closest; } *data = userData;
+	struct { int mval[2]; short pass; int dist, lastIndex, closestIndex; EditFace *closest; } *data = userData;
 
 	if (data->pass==0) {
 		if (index<=data->lastIndex)
@@ -588,7 +588,7 @@ static EditFace *findnearestface(ViewContext *vc, int *dist)
 		EditFace *efa = BLI_findlink(&vc->em->faces, index-1);
 
 		if (efa) {
-			struct { short mval[2]; int dist; EditFace *toFace; } data;
+			struct { int mval[2]; int dist; EditFace *toFace; } data;
 
 			data.mval[0] = vc->mval[0];
 			data.mval[1] = vc->mval[1];
@@ -607,7 +607,7 @@ static EditFace *findnearestface(ViewContext *vc, int *dist)
 		return NULL;
 	}
 	else {
-		struct { short mval[2], pass; int dist, lastIndex, closestIndex; EditFace *closest; } data;
+		struct { int mval[2]; short pass; int dist, lastIndex, closestIndex; EditFace *closest; } data;
 		static int lastSelectedIndex=0;
 		static EditFace *lastSelected=NULL;
 
@@ -2061,7 +2061,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 
 /* ***************** loop select (non modal) ************** */
 
-static void mouse_mesh_loop(bContext *C, const short mval[2], short extend, short ring)
+static void mouse_mesh_loop(bContext *C, const int mval[2], short extend, short ring)
 {
 	ViewContext vc;
 	EditMesh *em;
@@ -2149,7 +2149,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static void mouse_mesh_shortest_path(bContext *C, const short mval[2])
+static void mouse_mesh_shortest_path(bContext *C, const int mval[2])
 {
 	ViewContext vc;
 	EditMesh *em;
@@ -2282,7 +2282,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 
 /* here actual select happens */
 /* gets called via generic mouse select operator */
-int mouse_mesh(bContext *C, const short mval[2], short extend)
+int mouse_mesh(bContext *C, const int mval[2], short extend)
 {
 	ViewContext vc;
 	EditVert *eve;

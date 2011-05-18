@@ -156,6 +156,7 @@ void PTCACHE_OT_bake_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Bake All Physics";
+	ot->description= "Bake all physics";
 	ot->idname= "PTCACHE_OT_bake_all";
 	
 	/* api callbacks */
@@ -171,6 +172,7 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Free All Physics Bakes";
+	ot->name= "Free all physics bakes";
 	ot->idname= "PTCACHE_OT_free_bake_all";
 	
 	/* api callbacks */
@@ -268,6 +270,7 @@ void PTCACHE_OT_bake(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Bake Physics";
+	ot->description= "Bake physics";
 	ot->idname= "PTCACHE_OT_bake";
 	
 	/* api callbacks */
@@ -283,6 +286,7 @@ void PTCACHE_OT_free_bake(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Free Physics Bake";
+	ot->description= "Free physics bake";
 	ot->idname= "PTCACHE_OT_free_bake";
 	
 	/* api callbacks */
@@ -296,6 +300,7 @@ void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Bake From Cache";
+	ot->description= "Bake from cache";
 	ot->idname= "PTCACHE_OT_bake_from_cache";
 	
 	/* api callbacks */
@@ -364,7 +369,8 @@ static int ptcache_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void PTCACHE_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add new cache";
+	ot->name= "Add New Cache";
+	ot->description= "Add new cache";
 	ot->idname= "PTCACHE_OT_add";
 	
 	/* api callbacks */
@@ -377,7 +383,8 @@ void PTCACHE_OT_add(wmOperatorType *ot)
 void PTCACHE_OT_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete current cache";
+	ot->name= "Delete Current Cache";
+	ot->description= "Delete current cache";
 	ot->idname= "PTCACHE_OT_remove";
 	
 	/* api callbacks */

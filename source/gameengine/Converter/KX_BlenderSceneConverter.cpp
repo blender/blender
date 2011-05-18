@@ -50,7 +50,7 @@
 #include "KX_PolygonMaterial.h"
 
 
-#include "SYS_System.h"
+#include "BL_System.h"
 
 #include "DummyPhysicsEnvironment.h"
 
@@ -1126,7 +1126,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 			
 			/* incase the mesh might be refered to later */
 			{
-				GEN_Map<STR_HashedString,void*> &mapStringToMeshes = scene->GetLogicManager()->GetMeshMap();
+				CTR_Map<STR_HashedString,void*> &mapStringToMeshes = scene->GetLogicManager()->GetMeshMap();
 				
 				for(int i=0; i<mapStringToMeshes.size(); i++)
 				{
@@ -1143,7 +1143,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 
 			/* Now unregister actions */
 			{
-				GEN_Map<STR_HashedString,void*> &mapStringToActions = scene->GetLogicManager()->GetActionMap();
+				CTR_Map<STR_HashedString,void*> &mapStringToActions = scene->GetLogicManager()->GetActionMap();
 
 				for(int i=0; i<mapStringToActions.size(); i++)
 				{

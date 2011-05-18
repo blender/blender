@@ -9,7 +9,7 @@ incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include ../../blenloader'
 incs += ' ../../gpu ../../makesrna ../../blenfont'
 incs += ' #/intern/smoke/extern'
-incs += ' #source/kernel/gen_system'
+incs += ' #source/gameengine/BlenderRoutines'
 
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')

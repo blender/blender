@@ -1050,7 +1050,7 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 /* **************************** */
 
 typedef struct NodeViewMove {
-	short mvalo[2];
+	int mvalo[2];
 	int xmin, ymin, xmax, ymax;
 } NodeViewMove;
 
@@ -1655,7 +1655,7 @@ static int node_mouse_groupheader(SpaceNode *snode)
 {
 	bNode *gnode;
 	float mx=0, my=0;
-// XXX	short mval[2];
+// XXX	int mval[2];
 	
 	gnode= node_tree_get_editgroup(snode->nodetree);
 	if(gnode==NULL) return 0;

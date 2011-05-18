@@ -28,7 +28,6 @@
  *  \ingroup edrend
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 

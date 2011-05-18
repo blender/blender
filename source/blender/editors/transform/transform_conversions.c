@@ -4927,13 +4927,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {
 		bArmature *arm;
-		bPose	*pose;
 		bPoseChannel *pchan;
 		short targetless_ik= 0;
 
 		ob= t->poseobj;
 		arm= ob->data;
-		pose= ob->pose;
 
 		if((t->flag & T_AUTOIK) && (t->options & CTX_AUTOCONFIRM)) {
 			/* when running transform non-interactively (operator exec),
@@ -5325,7 +5323,7 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 
-		if (t->ar->regiontype == RGN_TYPE_WINDOW)
+		if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW))
 		{
 			View3D *v3d = t->view;
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);

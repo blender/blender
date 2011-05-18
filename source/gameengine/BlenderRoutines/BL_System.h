@@ -29,30 +29,20 @@
  * Interface to the commandline arguments
  */
 
-/** \file kernel/gen_system/SYS_System.h
- *  \ingroup gensys
+/** \file gameengine/BlenderRoutines/BL_System.h
+ *  \ingroup blroutines
  */
 
-
-#ifndef __SYSTEM_INCLUDE
-#define __SYSTEM_INCLUDE
-
-#define SYS_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
-
-SYS_DECLARE_HANDLE(SYS_SystemHandle);
-
-/**
- System specific information / access.
- For now, only used for commandline parameters.
- One of the available implementations must be linked to the application
- that uses this system routines. 
- Please note that this protocol/interface is just for testing, 
- it needs discussion in the development group for a more final version.
-*/
+#ifndef BL_SYSTEM_H
+#define BL_SYSTEM_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Game Engine command line parameters */
+
+typedef void* SYS_SystemHandle;
 
 extern SYS_SystemHandle SYS_GetSystem(void);
 extern void SYS_DeleteSystem(SYS_SystemHandle sys);
@@ -65,9 +55,18 @@ extern void SYS_WriteCommandLineInt(SYS_SystemHandle sys, const char *paramname,
 extern void SYS_WriteCommandLineFloat(SYS_SystemHandle sys, const char *paramname, float value);
 extern void SYS_WriteCommandLineString(SYS_SystemHandle sys, const char *paramname, const char *value);
 
+/* Start game engine */
+
+struct bContext;
+struct ARegion;
+struct rcti;
+
+extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar,
+	struct rcti *cam_frame, int always_use_expand_framing);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__SYSTEM_INCLUDE
+#endif /* BL_SYSTEM_H */
 

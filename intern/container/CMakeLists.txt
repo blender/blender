@@ -26,11 +26,13 @@
 
 set(INC
 	.
+	../guardedalloc
 )
 
 set(SRC
 	intern/CTR_List.cpp
 
+	CTR_HashedPtr.h
 	CTR_List.h
 	CTR_Map.h
 	CTR_TaggedIndex.h

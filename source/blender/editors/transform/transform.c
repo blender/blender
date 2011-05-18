@@ -120,7 +120,7 @@ void setTransformViewMatrices(TransInfo *t)
 	calculateCenter2D(t);
 }
 
-void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
+void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->ar->regiontype == RGN_TYPE_WINDOW)
@@ -783,7 +783,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case SPACEKEY:
 			if ((t->spacetype==SPACE_VIEW3D) && event->alt) {
 #if 0 // TRANSFORM_FIX_ME
-				short mval[2];
+				int mval[2];
 
 				getmouseco_sc(mval);
 				BIF_selectOrientation();
@@ -1270,7 +1270,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 				setlinestyle(3);
 				glBegin(GL_LINE_STRIP);
-				glVertex2sv(t->mval);
+				glVertex2iv(t->mval);
 				glVertex2fv(cent);
 				glEnd();
 
@@ -1315,7 +1315,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 					setlinestyle(3);
 					glBegin(GL_LINE_STRIP);
-					glVertex2sv(t->mval);
+					glVertex2iv(t->mval);
 					glVertex2fv(cent);
 					glEnd();
 
@@ -2286,7 +2286,7 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 	return status;
 }
 
-int Warp(TransInfo *t, const short UNUSED(mval[2]))
+int Warp(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	float vec[3], circumfac, dist, phi0, co, si, *curs, cursor[3], gcursor[3];
@@ -2434,7 +2434,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 }
 
 
-int Shear(TransInfo *t, const short UNUSED(mval[2]))
+int Shear(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	float vec[3];
@@ -2700,7 +2700,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	constraintTransLim(t, td);
 }
 
-int Resize(TransInfo *t, const short mval[2])
+int Resize(TransInfo *t, const int mval[2])
 {
 	TransData *td;
 	float size[3], mat[3][3];
@@ -2805,7 +2805,7 @@ void initToSphere(TransInfo *t)
 	t->val /= (float)t->total;
 }
 
-int ToSphere(TransInfo *t, const short UNUSED(mval[2]))
+int ToSphere(TransInfo *t, const int UNUSED(mval[2]))
 {
 	float vec[3];
 	float ratio, radius;
@@ -3152,7 +3152,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	}
 }
 
-int Rotation(TransInfo *t, const short UNUSED(mval[2]))
+int Rotation(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[128], *spos= str;
 	
@@ -3260,7 +3260,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 	}
 }
 
-int Trackball(TransInfo *t, const short UNUSED(mval[2]))
+int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[128], *spos= str;
 	float axis1[3], axis2[3];
@@ -3490,7 +3490,7 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 }
 
 /* uses t->vec to store actual translation in */
-int Translation(TransInfo *t, const short UNUSED(mval[2]))
+int Translation(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[250];
 
@@ -3557,7 +3557,7 @@ void initShrinkFatten(TransInfo *t)
 
 
 
-int ShrinkFatten(TransInfo *t, const short UNUSED(mval[2]))
+int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
 	float vec[3];
 	float distance;
@@ -3632,7 +3632,7 @@ void initTilt(TransInfo *t)
 
 
 
-int Tilt(TransInfo *t, const short UNUSED(mval[2]))
+int Tilt(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	int i;
@@ -3704,7 +3704,7 @@ void initCurveShrinkFatten(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT;
 }
 
-int CurveShrinkFatten(TransInfo *t, const short UNUSED(mval[2]))
+int CurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	float ratio;
@@ -3772,7 +3772,7 @@ void initPushPull(TransInfo *t)
 }
 
 
-int PushPull(TransInfo *t, const short UNUSED(mval[2]))
+int PushPull(TransInfo *t, const int UNUSED(mval[2]))
 {
 	float vec[3], axis[3];
 	float distance;
@@ -3905,7 +3905,7 @@ int handleEventBevel(TransInfo *t, wmEvent *event)
 	return 0;
 }
 
-int Bevel(TransInfo *t, const short UNUSED(mval[2]))
+int Bevel(TransInfo *t, const int UNUSED(mval[2]))
 {
 	float distance,d;
 	int i;
@@ -3973,7 +3973,7 @@ void initBevelWeight(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
-int BevelWeight(TransInfo *t, const short UNUSED(mval[2]))
+int BevelWeight(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	float weight;
@@ -4046,7 +4046,7 @@ void initCrease(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
-int Crease(TransInfo *t, const short UNUSED(mval[2]))
+int Crease(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	float crease;
@@ -4165,7 +4165,7 @@ static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3])
 	td->loc[1]= oldy;
 }
 
-int BoneSize(TransInfo *t, const short mval[2])
+int BoneSize(TransInfo *t, const int mval[2])
 {
 	TransData *td = t->data;
 	float size[3], mat[3][3];
@@ -4241,7 +4241,7 @@ void initBoneEnvelope(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
-int BoneEnvelope(TransInfo *t, const short UNUSED(mval[2]))
+int BoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	float ratio;
@@ -4672,10 +4672,10 @@ static int createSlideVerts(TransInfo *t)
 #undef EDGE_SLIDE_MIN
 
 
-	sld->start[0] = (short) start[0];
-	sld->start[1] = (short) start[1];
-	sld->end[0] = (short) end[0];
-	sld->end[1] = (short) end[1];
+	sld->start[0] = (int) start[0];
+	sld->start[1] = (int) start[1];
+	sld->end[0] = (int) end[0];
+	sld->end[1] = (int) end[1];
 	
 	if (uvlay_tot) { // XXX && (scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)) {
 		int maxnum = 0;
@@ -4975,7 +4975,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 	return 1;
 }
 
-int EdgeSlide(TransInfo *t, const short UNUSED(mval[2]))
+int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[50];
 	float final;
@@ -5034,7 +5034,7 @@ void initBoneRoll(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
-int BoneRoll(TransInfo *t, const short UNUSED(mval[2]))
+int BoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	int i;
@@ -5095,7 +5095,7 @@ void initBakeTime(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
-int BakeTime(TransInfo *t, const short mval[2])
+int BakeTime(TransInfo *t, const int mval[2])
 {
 	TransData *td = t->data;
 	float time;
@@ -5170,7 +5170,7 @@ void initMirror(TransInfo *t)
 	}
 }
 
-int Mirror(TransInfo *t, const short UNUSED(mval[2]))
+int Mirror(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td;
 	float size[3], mat[3][3];
@@ -5247,7 +5247,7 @@ void initAlign(TransInfo *t)
 	initMouseInputMode(t, &t->mouse, INPUT_NONE);
 }
 
-int Align(TransInfo *t, const short UNUSED(mval[2]))
+int Align(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
 	float center[3];
@@ -5350,7 +5350,7 @@ static void applySeqSlide(TransInfo *t, float val[2]) {
 	}
 }
 
-int SeqSlide(TransInfo *t, const short UNUSED(mval[2]))
+int SeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[200];
 
@@ -5640,7 +5640,7 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 	}
 }
 
-int TimeTranslate(TransInfo *t, const short mval[2])
+int TimeTranslate(TransInfo *t, const int mval[2])
 {
 	View2D *v2d = (View2D *)t->view;
 	float cval[2], sval[2];
@@ -5770,7 +5770,7 @@ static void applyTimeSlide(TransInfo *t, float sval)
 	}
 }
 
-int TimeSlide(TransInfo *t, const short mval[2])
+int TimeSlide(TransInfo *t, const int mval[2])
 {
 	View2D *v2d = (View2D *)t->view;
 	float cval[2], sval[2];
@@ -5895,7 +5895,7 @@ static void applyTimeScale(TransInfo *t) {
 	}
 }
 
-int TimeScale(TransInfo *t, const short UNUSED(mval[2]))
+int TimeScale(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[200];
 	

@@ -43,25 +43,25 @@
 
 /* ************************** INPUT FROM MOUSE *************************** */
 
-static void InputVector(TransInfo *t, MouseInput *mi, const short mval[2], float output[3])
+static void InputVector(TransInfo *t, MouseInput *mi, const int mval[2], float output[3])
 {
 	float vec[3], dvec[3];
 	if(mi->precision)
 	{
 		/* calculate the main translation and the precise one separate */
-		convertViewVec(t, dvec, (short)(mval[0] - mi->precision_mval[0]), (short)(mval[1] - mi->precision_mval[1]));
+		convertViewVec(t, dvec, (mval[0] - mi->precision_mval[0]), (mval[1] - mi->precision_mval[1]));
 		mul_v3_fl(dvec, 0.1f);
-		convertViewVec(t, vec, (short)(mi->precision_mval[0] - t->imval[0]), (short)(mi->precision_mval[1] - t->imval[1]));
+		convertViewVec(t, vec, (mi->precision_mval[0] - t->imval[0]), (mi->precision_mval[1] - t->imval[1]));
 		add_v3_v3v3(output, vec, dvec);
 	}
 	else
 	{
-		convertViewVec(t, output, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
+		convertViewVec(t, output, (mval[0] - t->imval[0]), (mval[1] - t->imval[1]));
 	}
 
 }
 
-static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
+static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
 {
 	float ratio, precise_ratio, dx, dy;
 	if(mi->precision)
@@ -87,7 +87,7 @@ static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2
 	output[0] = ratio;
 }
 
-static void InputSpringFlip(TransInfo *t, MouseInput *mi, const short mval[2], float output[3])
+static void InputSpringFlip(TransInfo *t, MouseInput *mi, const int mval[2], float output[3])
 {
 	InputSpring(t, mi, mval, output);
 
@@ -100,7 +100,7 @@ static void InputSpringFlip(TransInfo *t, MouseInput *mi, const short mval[2], f
 	 }
 }
 
-static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
+static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
 {
 
 	if(mi->precision)
@@ -118,7 +118,7 @@ static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const short mva
 	output[1] *= mi->factor;
 }
 
-static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
+static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, const int mval[2], float output[3]) {
 	float x, pad;
 
 	pad = t->ar->winx / 10;
@@ -135,7 +135,7 @@ static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, const short mval[
 	output[0] = (x - pad) / (t->ar->winx - 2 * pad);
 }
 
-static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
+static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, const int mval[2], float output[3]) {
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
@@ -144,7 +144,7 @@ static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, const short mv
 	output[0] = dot_v3v3(t->viewinv[0], vec) * 2.0f;
 }
 
-static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
+static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const int mval[2], float output[3]) {
 	float y, pad;
 
 	pad = t->ar->winy / 10;
@@ -160,7 +160,7 @@ static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const short mval[2]
 	output[0] = (y - pad) / (t->ar->winy - 2 * pad);
 }
 
-static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, const short mval[2], float output[3]) {
+static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, const int mval[2], float output[3]) {
 	float vec[3];
 
 	InputVector(t, mi, mval, vec);
@@ -169,12 +169,12 @@ static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, const short mval
 	output[0] = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 }
 
-void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, short start[2], short end[2])
+void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, int start[2], int end[2])
 {
-	short *data;
+	int *data;
 
 	if (mi->data == NULL) {
-		mi->data = MEM_callocN(sizeof(short) * 4, "custom points");
+		mi->data = MEM_callocN(sizeof(int) * 4, "custom points");
 	}
 	
 	data = mi->data;
@@ -185,12 +185,12 @@ void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, short start[2], short
 	data[3] = end[1];
 }
 
-static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
+static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
 {
 	float length;
 	float distance;
-	short *data = mi->data;
-	short dx, dy;
+	int *data = mi->data;
+	int dx, dy;
 	
 	if (data) {
 		dx = data[2] - data[0];
@@ -200,14 +200,14 @@ static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const short m
 		
 		if (mi->precision) {
 			/* deal with Shift key by adding motion / 10 to motion before shift press */
-			short mdx, mdy;
+			int mdx, mdy;
 			mdx = (mi->precision_mval[0] + (float)(mval[0] - mi->precision_mval[0]) / 10.0f) - data[2];
 			mdy = (mi->precision_mval[1] + (float)(mval[1] - mi->precision_mval[1]) / 10.0f) - data[3];
 
 			distance = (length != 0.0f)? (mdx*dx + mdy*dy) / length: 0.0f;
 		}
 		else {
-			short mdx, mdy;
+			int mdx, mdy;
 			mdx = mval[0] - data[2];
 			mdy = mval[1] - data[3];
 
@@ -218,7 +218,7 @@ static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const short m
 	}
 }
 
-static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2], float output[3])
+static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
 {
 	double dx2 = mval[0] - mi->center[0];
 	double dy2 = mval[1] - mi->center[1];
@@ -279,7 +279,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const short mval[2]
 	output[0] = *angle;
 }
 
-void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, int center[2], short mval[2])
+void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, int center[2], int mval[2])
 {
 	mi->factor = 0;
 	mi->precision = 0;
@@ -372,7 +372,7 @@ void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *, float [3])
 	mi->post = post;
 }
 
-void applyMouseInput(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
+void applyMouseInput(TransInfo *t, MouseInput *mi, int mval[2], float output[3])
 {
 	if (mi->apply != NULL)
 	{

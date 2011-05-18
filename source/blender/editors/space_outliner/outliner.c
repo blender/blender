@@ -5640,10 +5640,11 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 				xstart+= butw3+5;
 				
 				/* rna property */
-				if(kmi->ptr && kmi->ptr->data)
+				if(kmi->ptr && kmi->ptr->data) {
 					uiDefBut(block, LABEL, 0, "(RNA property)",	xstart, (int)te->ys+1, butw2, OL_H-1, &kmi->oskey, 0, 0, 0, 0, ""); xstart+= butw2;
-					
-				
+				}
+
+				(void)xstart;
 			}
 		}
 		

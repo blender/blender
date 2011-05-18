@@ -702,7 +702,7 @@ static void sk_drawStrokeSubdivision(ToolSettings *toolsettings, SK_Stroke *stk)
 	}
 }
 
-static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, short mval[2], int *dist, int *index, int all_pts)
+static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, int mval[2], int *dist, int *index, int all_pts)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SK_Point *pt = NULL;
@@ -736,7 +736,7 @@ static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, short mval[2], 
 }
 
 #if 0 /* UNUSED 2.5 */
-static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones, short mval[2], int *dist)
+static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones, int mval[2], int *dist)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SK_Point *pt = NULL;
@@ -2157,7 +2157,7 @@ static void sk_applyGesture(bContext *C, SK_Sketch *sketch)
 /********************************************/
 
 
-static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const short mval[2], int extend)
+static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], int extend)
 {
 	ViewContext vc;
 	rcti rect;
@@ -2473,7 +2473,7 @@ static int sketch_delete(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(ev
 	return OPERATOR_FINISHED;
 }
 
-void BIF_sk_selectStroke(bContext *C, const short mval[2], short extend)
+void BIF_sk_selectStroke(bContext *C, const int mval[2], short extend)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *sketch = contextSketch(C, 0);

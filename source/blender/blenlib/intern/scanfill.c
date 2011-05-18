@@ -85,7 +85,6 @@ typedef struct PolyFill {
 typedef struct ScFillVert {
 	EditVert *v1;
 	EditEdge *first,*last;
-	short f,f1;
 } ScFillVert;
 
 
@@ -95,9 +94,9 @@ typedef struct ScFillVert {
 
 static ScFillVert *scdata;
 
-ListBase fillvertbase = {0,0};
-ListBase filledgebase = {0,0};
-ListBase fillfacebase = {0,0};
+ListBase fillvertbase = {NULL, NULL};
+ListBase filledgebase = {NULL, NULL};
+ListBase fillfacebase = {NULL, NULL};
 
 static short cox, coy;
 
@@ -219,7 +218,7 @@ EditEdge *BLI_addfilledge(EditVert *v1, EditVert *v2)
 	return newed;
 }
 
-static void addfillface(EditVert *v1, EditVert *v2, EditVert *v3, int mat_nr)
+static void addfillface(EditVert *v1, EditVert *v2, EditVert *v3, short mat_nr)
 {
 	/* does not make edges */
 	EditFace *evl;
@@ -495,7 +494,7 @@ static void splitlist(ListBase *tempve, ListBase *temped, short nr)
 }
 
 
-static void scanfill(PolyFill *pf, int mat_nr)
+static int scanfill(PolyFill *pf, short mat_nr)
 {
 	ScFillVert *sc = NULL, *sc1;
 	EditVert *eve,*v1,*v2,*v3;
@@ -748,11 +747,13 @@ static void scanfill(PolyFill *pf, int mat_nr)
 	}
 
 	MEM_freeN(scdata);
+
+	return totface;
 }
 
 
 
-int BLI_edgefill(int mat_nr)
+int BLI_edgefill(short mat_nr)
 {
 	/*
 	  - fill works with its own lists, so create that first (no faces!)
@@ -760,6 +761,7 @@ int BLI_edgefill(int mat_nr)
 	  - struct elements xs en ys are not used here: don't hide stuff in it
 	  - edge flag ->f becomes 2 when it's a new edge
 	  - mode: & 1 is check for crossings, then create edges (TO DO )
+	  - returns number of triangle faces added.
 	*/
 	ListBase tempve, temped;
 	EditVert *eve;
@@ -767,6 +769,7 @@ int BLI_edgefill(int mat_nr)
 	PolyFill *pflist,*pf;
 	float *minp, *maxp, *v1, *v2, norm[3], len;
 	short a,c,poly=0,ok=0,toggle=0;
+	int totfaces= 0; /* total faces added */
 
 	/* reset variables */
 	eve= fillvertbase.first;
@@ -1030,7 +1033,7 @@ int BLI_edgefill(int mat_nr)
 	for(a=0;a<poly;a++) {
 		if(pf->edges>1) {
 			splitlist(&tempve,&temped,pf->nr);
-			scanfill(pf, mat_nr);
+			totfaces += scanfill(pf, mat_nr);
 		}
 		pf++;
 	}
@@ -1040,6 +1043,6 @@ int BLI_edgefill(int mat_nr)
 	/* FREE */
 
 	MEM_freeN(pflist);
-	return 1;
 
+	return totfaces;
 }

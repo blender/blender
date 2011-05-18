@@ -1250,7 +1250,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		double step, pos;
 		
 		step= (totpart < 2) ? 0.5 : 1.0/(double)totpart;
-		pos= 1e-16; /* tiny offset to avoid zero weight face */
+		pos= 1e-6; /* tiny offset to avoid zero weight face */
 		i= 0;
 
 		for(p=0; p<totpart; p++, pos+=step) {
@@ -2553,7 +2553,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 
 	/* damp affects final velocity */
 	if(part->dampfac != 0.f)
-		mul_v3_fl(pa->state.vel, 1.f - part->dampfac * efdata.ptex.damp);
+		mul_v3_fl(pa->state.vel, 1.f - part->dampfac * efdata.ptex.damp * 25.f * dtime);
 
 	//VECCOPY(pa->state.ave, states->ave);
 

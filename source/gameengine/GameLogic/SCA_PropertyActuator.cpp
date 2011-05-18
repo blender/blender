@@ -213,7 +213,7 @@ bool SCA_PropertyActuator::UnlinkObject(SCA_IObject* clientobj)
 	return false;
 }
 
-void SCA_PropertyActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+void SCA_PropertyActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 {
 	void **h_obj = (*obj_map)[m_sourceObj];
 	if (h_obj) {

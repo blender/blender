@@ -32,7 +32,7 @@ set(INC
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
-    ${GLEW_INCLUDE_PATH}
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

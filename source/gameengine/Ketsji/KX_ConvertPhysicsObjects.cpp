@@ -42,13 +42,13 @@
 #include "BL_DeformableGameObject.h"
 #include "RAS_MeshObject.h"
 #include "KX_Scene.h"
-#include "SYS_System.h"
+#include "BL_System.h"
 
 #include "PHY_Pro.h" //todo cleanup
 #include "KX_ClientObjectInfo.h"
 
-#include "GEN_Map.h"
-#include "GEN_HashedPtr.h"
+#include "CTR_Map.h"
+#include "CTR_HashedPtr.h"
 
 #include "KX_PhysicsEngineEnums.h"
 #include "PHY_Pro.h"

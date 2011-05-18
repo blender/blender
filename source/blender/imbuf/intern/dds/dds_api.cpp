@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributors: Amorilia (amorilia@gamebox.net)
+ * Contributors: Amorilia (amorilia@users.sourceforge.net)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -106,10 +106,21 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags)
 	}
 
 	/* convert DDS into ImBuf */
-	// TODO use the image RGB or RGBA tag to determine the bits per pixel
-	if (dds.hasAlpha()) bits_per_pixel = 32;
-	else bits_per_pixel = 24;
-	ibuf = IMB_allocImBuf(dds.width(), dds.height(), bits_per_pixel, 0);
+	dds.mipmap(&img, 0, 0); /* load first face, first mipmap */
+	pixels = img.pixels();
+	numpixels = dds.width() * dds.height();
+	bits_per_pixel = 24;
+	if (img.format() == Image::Format_ARGB) {
+		/* check that there is effectively an alpha channel */
+		for (unsigned int i = 0; i < numpixels; i++) {
+			pixel = pixels[i];
+			if (pixel.a != 255) {
+				bits_per_pixel = 32;
+				break;
+			};
+		};
+	};
+	ibuf = IMB_allocImBuf(dds.width(), dds.height(), bits_per_pixel, 0); 
 	if (ibuf == 0) return(0); /* memory allocation failed */
 
 	ibuf->ftype = DDS;
@@ -120,9 +131,6 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags)
 		if (ibuf->rect == 0) return(ibuf);
 
 		rect = ibuf->rect;
-		dds.mipmap(&img, 0, 0); /* load first face, first mipmap */
-		pixels = img.pixels();
-		numpixels = dds.width() * dds.height();
 		cp[3] = 0xff; /* default alpha if alpha channel is not present */
 
 		for (unsigned int i = 0; i < numpixels; i++) {

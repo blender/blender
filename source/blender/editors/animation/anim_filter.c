@@ -1645,10 +1645,6 @@ static int animdata_filter_dopesheet_obdata (bAnimContext *ac, ListBase *anim_da
 			break;
 	}
 	
-	/* special exception for drivers instead of action */
-	if (ads->filterflag & ADS_FILTER_ONLYDRIVERS)
-		expanded= EXPANDED_DRVD(adt);
-	
 	/* include data-expand widget? */
 	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {	
 		/* check if filtering by active status */

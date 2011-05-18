@@ -96,7 +96,7 @@ static void RE_rayobject_config_control(RayObject *r, Render *re)
 	}
 }
 
-RayObject*  RE_rayobject_create(Render *re, int type, int size)
+static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 {
 	RayObject * res = NULL;
 
@@ -1679,7 +1679,7 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 
 /* not used, test function for ambient occlusion (yaf: pathlight) */
 /* main problem; has to be called within shading loop, giving unwanted recursion */
-int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
+static int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 {
 	static int counter=0, only_one= 0;
 	extern float hashvectf[];
@@ -1729,7 +1729,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 			/* end warning! - Campbell */
 			
 			shade_ray(&isec, &shi, &shr_t);
-			fac= isec.dist*isec.dist;
+			/* fac= isec.dist*isec.dist; */
 			fac= 1.0f;
 			accum[0]+= fac*(shr_t.diff[0]+shr_t.spec[0]);
 			accum[1]+= fac*(shr_t.diff[1]+shr_t.spec[1]);

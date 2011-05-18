@@ -350,7 +350,7 @@ ModifierTypeInfo modifierType_Warp = {
 	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     deformVertsEM,
-    /* deformMatricesEM */  NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     0,
 	/* applyModifierEM */   0,
 	/* initData */          initData,
@@ -359,7 +359,7 @@ ModifierTypeInfo modifierType_Warp = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
-    /* dependsOnNormals */	NULL,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
 };

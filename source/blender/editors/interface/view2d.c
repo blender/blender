@@ -2029,7 +2029,7 @@ typedef struct View2DString {
 		unsigned char ub[4];
 		int pack;
 	} col;
-	short mval[2];
+	int mval[2];
 	rcti rect;
 } View2DString;
 

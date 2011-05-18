@@ -34,7 +34,7 @@
 #ifndef BL_SHAPEACTIONACTUATOR
 #define BL_SHAPEACTIONACTUATOR
 
-#include "GEN_HashedPtr.h"
+#include "CTR_HashedPtr.h"
 #include "SCA_IActuator.h"
 #include "BL_ActionActuator.h"
 #include "MT_Point3.h"

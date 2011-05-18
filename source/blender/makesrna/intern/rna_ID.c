@@ -210,12 +210,12 @@ IDProperty *rna_PropertyGroup_idprops(PointerRNA *ptr, int create)
 	return ptr->data;
 }
 
-void rna_PropertyGroup_unregister(const bContext *C, StructRNA *type)
+void rna_PropertyGroup_unregister(Main *bmain, StructRNA *type)
 {
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-StructRNA *rna_PropertyGroup_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+StructRNA *rna_PropertyGroup_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	PointerRNA dummyptr;
 

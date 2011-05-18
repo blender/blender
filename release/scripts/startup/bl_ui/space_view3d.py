@@ -2024,6 +2024,9 @@ class VIEW3D_PT_view3d_properties(bpy.types.Panel):
         elif not view.lock_object:
             col.prop(view, "lock_cursor", text="Lock to Cursor")
 
+        col = layout.column()
+        col.prop(view, "lock_camera")
+
         col = layout.column(align=True)
         col.label(text="Clip:")
         col.prop(view, "clip_start", text="Start")

@@ -35,8 +35,8 @@
 #define __BL_ARMATURECHANNEL
 
 #include "DNA_action_types.h"
-#include "GEN_HashedPtr.h"
-#include "GEN_Map.h"
+#include "CTR_HashedPtr.h"
+#include "CTR_Map.h"
 #include "PyObjectPlus.h"
 
 class SCA_IObject;

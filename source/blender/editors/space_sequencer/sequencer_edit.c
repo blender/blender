@@ -100,6 +100,7 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 	{SEQ_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
 	{SEQ_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
 	{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+	{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -191,7 +192,7 @@ void boundbox_seq(Scene *scene, rctf *rect)
 
 static int mouse_frame_side(View2D *v2d, short mouse_x, int frame ) 
 {
-	short mval[2];
+	int mval[2];
 	float mouseloc[2];
 	
 	mval[0]= mouse_x;
@@ -284,7 +285,7 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
 }
 
 
-Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const short mval[2])
+Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[2])
 {
 	Sequence *seq;
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -406,6 +407,7 @@ int event_to_efftype(int event)
 	if(event==15) return SEQ_TRANSFORM;
 	if(event==16) return SEQ_COLOR;
 	if(event==17) return SEQ_SPEED;
+	if(event==18) return SEQ_ADJUSTMENT;
 	return 0;
 }
 
@@ -517,7 +519,8 @@ static void change_sequence(Scene *scene)
 				"|Glow%x14"
 				"|Transform%x15"
 				"|Color Generator%x16"
-				"|Speed Control%x17");
+				"|Speed Control%x17"
+				"|Adjustment Layer%x18");
 		if(event > 0) {
 			if(event==1) {
 				SWAP(Sequence *,last_seq->seq1,last_seq->seq2);
@@ -703,15 +706,9 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 	while(seq) {
 		seqn= seq->next;
 		if((seq->flag & flag) || deleteall) {
-			if(seq->type==SEQ_SOUND && seq->sound) {
-				((ID *)seq->sound)->us--; /* TODO, could be moved into seq_free_sequence() */
-			}
-
 			BLI_remlink(lb, seq);
 			if(seq==last_seq) seq_active_set(scene, NULL);
 			if(seq->type==SEQ_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
-			/* if(seq->ipo) seq->ipo->id.us--; */
-			/* XXX, remove fcurve */
 			seq_free_sequence(scene, seq);
 		}
 		seq= seqn;
@@ -1084,7 +1081,7 @@ static int seq_get_snaplimit(View2D *v2d)
 	/* fake mouse coords to get the snap value
 	a bit lazy but its only done once pre transform */
 	float xmouse, ymouse, x;
-	short mval[2] = {24, 0}; /* 24 screen px snap */
+	int mval[2] = {24, 0}; /* 24 screen px snap */
 	
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &xmouse, &ymouse);
 	x = xmouse;
@@ -1705,11 +1702,6 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (nothingSelected)
 		return OPERATOR_FINISHED;
-
-	/* free imbufs of all dependent strips */
-	for(seq=ed->seqbasep->first; seq; seq=seq->next)
-		if(seq->flag & SELECT)
-			update_changed_seq_and_deps(scene, seq, 1, 0);
 
 	/* for effects, try to find a replacement input */
 	for(seq=ed->seqbasep->first; seq; seq=seq->next)

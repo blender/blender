@@ -65,9 +65,6 @@ if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ../../quicktime'
 
-if env['WITH_BF_LCMS']:
-    defs.append('WITH_LCMS')
-
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
     

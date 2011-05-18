@@ -2109,7 +2109,7 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceText *st= CTX_wm_space_text(C);
 	ARegion *ar= CTX_wm_region(C);
 	TextScroll *tsc= op->customdata;
-	short mval[2]= {event->x, event->y};
+	int mval[2]= {event->x, event->y};
 	short txtdelta[2] = {0, 0};
 
 	text_update_character_width(st);
@@ -2283,7 +2283,7 @@ static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceText *st= CTX_wm_space_text(C);
 	ARegion *ar= CTX_wm_region(C);
 	TextScroll *tsc;
-	const short *mval= event->mval;
+	const int *mval= event->mval;
 	int zone= -1;
 
 	if(RNA_property_is_set(op->ptr, "lines"))
@@ -2694,7 +2694,7 @@ static int line_number_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
 	ARegion *ar= CTX_wm_region(C);
-	const short *mval= event->mval;
+	const int *mval= event->mval;
 	double time;
 	static int jump_to= 0;
 	static double last_jump= 0;
@@ -2841,8 +2841,14 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 		flags ^= ST_FIND_WRAP;
 
 	do {
-		if(first)
+		int proceed= 0;
+
+		if(first) {
+			if(text->markers.first)
+				WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+
 			txt_clear_markers(text, TMARK_GRP_FINDALL, 0);
+		}
 
 		first= 0;
 		
@@ -2850,7 +2856,10 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 		if(mode!=TEXT_FIND && txt_has_sel(text)) {
 			tmp= txt_sel_to_buf(text);
 
-			if(strcmp(st->findstr, tmp)==0) {
+			if(flags & ST_MATCH_CASE) proceed= strcmp(st->findstr, tmp)==0;
+			else proceed= BLI_strcasecmp(st->findstr, tmp)==0;
+
+			if(proceed) {
 				if(mode==TEXT_REPLACE) {
 					txt_insert_buf(text, st->replacestr);
 					if(text->curl && text->curl->format) {
@@ -2880,7 +2889,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 		}
 
 		/* Find next */
-		if(txt_find_string(text, st->findstr, flags & ST_FIND_WRAP)) {
+		if(txt_find_string(text, st->findstr, flags & ST_FIND_WRAP, flags & ST_MATCH_CASE)) {
 			text_update_cursor_moved(C);
 			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 		}
@@ -2897,7 +2906,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 			first= 1;
 		}
 		else {
-			if(!found) BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
+			if(!found && !proceed) BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
 			break;
 		}
 		found = 1;

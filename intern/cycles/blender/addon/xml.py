@@ -20,7 +20,7 @@
 
 import os
 import bpy
-import io_utils
+from bpy_extras.io_utils import ExportHelper
 import xml.etree.ElementTree as etree
 import xml.dom.minidom as dom
 
@@ -40,7 +40,7 @@ def write(node, fname):
 	f = open(fname, "w")
 	f.write(s)
 
-class ExportCyclesXML(bpy.types.Operator, io_utils.ExportHelper):
+class ExportCyclesXML(bpy.types.Operator, ExportHelper):
 	''''''
 	bl_idname = "export_mesh.cycles_xml"
 	bl_label = "Export Cycles XML"

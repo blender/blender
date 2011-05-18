@@ -47,7 +47,6 @@
 //#include <Carbon/Carbon.h>
 //#include <CFBundle.h>
 #endif // __APPLE__
-#include "GEN_messaging.h"
 #include "KX_KetsjiEngine.h"
 #include "KX_PythonInit.h"
 
@@ -68,7 +67,7 @@ extern "C"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "BLO_readfile.h"
-#include "BLO_readblenfile.h"
+#include "BLO_runtime.h"
 #include "IMB_imbuf.h"
 #include "BKE_text.h"
 	
@@ -92,7 +91,7 @@ extern char datatoc_bfont_ttf[];
 * End Blender include block
 **********************************/
 
-#include "SYS_System.h"
+#include "BL_System.h"
 #include "GPG_Application.h"
 
 #include "GHOST_ISystem.h"
@@ -314,8 +313,8 @@ static BlendFileData *load_game_data(char *progname, char *filename = NULL, char
 	BKE_reports_init(&reports, RPT_STORE);
 	
 	/* try to load ourself, will only work if we are a runtime */
-	if (blo_is_a_runtime(progname)) {
-		bfd= blo_read_runtime(progname, &reports);
+	if (BLO_is_a_runtime(progname)) {
+		bfd= BLO_read_runtime(progname, &reports);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_RUNTIME;
 			strcpy(bfd->main->name, progname);
@@ -346,7 +345,9 @@ int main(int argc, char** argv)
 	bool fullScreen = false;
 	bool fullScreenParFound = false;
 	bool windowParFound = false;
+#ifdef WIN32
 	bool closeConsole = true;
+#endif
 	RAS_IRasterizer::StereoMode stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
 	bool stereoWindow = false;
 	bool stereoParFound = false;
@@ -403,8 +404,6 @@ int main(int argc, char** argv)
 	
 	initglobals();
 
-	GEN_init_messaging_system();
-
 	IMB_init();
 
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
@@ -447,7 +446,7 @@ int main(int argc, char** argv)
 	U.audiochannels = 2;
 
 	/* if running blenderplayer the last argument can't be parsed since it has to be the filename. */
-	isBlenderPlayer = !blo_is_a_runtime(argv[0]);
+	isBlenderPlayer = !BLO_is_a_runtime(argv[0]);
 	if (isBlenderPlayer)
 		validArguments = argc - 1;
 	else
@@ -573,7 +572,9 @@ int main(int argc, char** argv)
 				break;
 			case 'c':
 				i++;
+#ifdef WIN32
 				closeConsole = false;
+#endif
 				break;
 			case 's':  // stereo
 				i++;

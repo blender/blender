@@ -45,12 +45,6 @@
 #include "py_capi_utils.h"
 #endif
 
-PyObject *		PyC_UnicodeFromByte(const char *str);
-const char *	PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
-
-/*** Function to wrap ID properties ***/
-PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent);
-
 extern PyTypeObject IDArray_Type;
 extern PyTypeObject IDGroup_Iter_Type;
 

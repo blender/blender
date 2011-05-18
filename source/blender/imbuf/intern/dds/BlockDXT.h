@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributors: Amorilia (amorilia@gamebox.net)
+ * Contributors: Amorilia (amorilia@users.sourceforge.net)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -78,11 +78,13 @@ struct BlockDXT1
 	bool isFourColorMode() const;
 
 	uint evaluatePalette(Color32 color_array[4]) const;
-	uint evaluatePaletteFast(Color32 color_array[4]) const;
+	uint evaluatePaletteNV5x(Color32 color_array[4]) const;
+
 	void evaluatePalette3(Color32 color_array[4]) const;
 	void evaluatePalette4(Color32 color_array[4]) const;
 	
 	void decodeBlock(ColorBlock * block) const;
+	void decodeBlockNV5x(ColorBlock * block) const;
 	
 	void setIndices(int * idx);
 
@@ -136,6 +138,7 @@ struct BlockDXT3
 	BlockDXT1 color;
 	
 	void decodeBlock(ColorBlock * block) const;
+	void decodeBlockNV5x(ColorBlock * block) const;
 	
 	void flip4();
 	void flip2();
@@ -213,6 +216,7 @@ struct BlockDXT5
 	BlockDXT1 color;
 	
 	void decodeBlock(ColorBlock * block) const;
+	void decodeBlockNV5x(ColorBlock * block) const;
 	
 	void flip4();
 	void flip2();

@@ -125,7 +125,6 @@ def validate_arguments(args, bc):
             'BF_FANCY', 'BF_QUIET', 'BF_LINE_OVERWRITE',
             'BF_X264_CONFIG',
             'BF_XVIDCORE_CONFIG',
-            'WITH_BF_LCMS', 'BF_LCMS', 'BF_LCMS_INC', 'BF_LCMS_LIB', 'BF_LCMS_LIBPATH',
             'WITH_BF_DOCS',
             'BF_NUMJOBS',
             'BF_MSVS',
@@ -134,7 +133,8 @@ def validate_arguments(args, bc):
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
             'BF_NO_ELBEEM',
-            'WITH_BF_CXX_GUARDEDALLOC'
+            'WITH_BF_CXX_GUARDEDALLOC',
+            'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC'
             ]
     
     # Have options here that scons expects to be lists
@@ -333,12 +333,6 @@ def read_opts(env, cfg, args):
         ('BF_TIFF_LIBPATH', 'TIFF library path', ''),
         ('BF_TIFF_LIB_STATIC', 'TIFF static library', ''),
 
-        (BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
-        ('BF_LCMS', 'LCMS base path', ''),
-        ('BF_LCMS_INC', 'LCMS include path', ''),
-        ('BF_LCMS_LIB', 'LCMS library', ''),
-        ('BF_LCMS_LIBPATH', 'LCMS library path', ''),
-
         (BoolVariable('WITH_BF_ZLIB', 'Use ZLib if true', True)),
         (BoolVariable('WITH_BF_STATICZLIB', 'Staticly link to ZLib', False)),
         ('BF_ZLIB', 'ZLib base path', ''),
@@ -429,6 +423,14 @@ def read_opts(env, cfg, args):
         ('BF_EXPAT_LIB', 'Expat library', ''),
         ('BF_EXPAT_LIBPATH', 'Expat library path', ''),
         
+        (BoolVariable('WITH_BF_JEMALLOC', 'Use jemalloc if true', False)),
+        (BoolVariable('WITH_BF_STATICJEMALLOC', 'Staticly link to jemalloc', False)),
+        ('BF_JEMALLOC', 'jemalloc base path', ''),
+        ('BF_JEMALLOC_INC', 'jemalloc include path', ''),
+        ('BF_JEMALLOC_LIB', 'jemalloc library', ''),
+        ('BF_JEMALLOC_LIBPATH', 'jemalloc library path', ''),
+        ('BF_JEMALLOC_LIB_STATIC', 'jemalloc static library', ''),
+
         (BoolVariable('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
         (BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 

@@ -145,10 +145,6 @@
  *   merged in docs.
  */
 
-/** \defgroup blo readblenfile
- *  \ingroup blender data
- */
-
 /** \defgroup quicktime quicktime
  *  \ingroup blender
 
@@ -338,18 +334,6 @@
 
 /** \defgroup openexr OpenEXR
  *  \ingroup imbuf
- */
-
-/* ================================ */
-
-/** \defgroup kernel kernel */
-
-/** \defgroup genmess gen_messaging
- *  \ingroup kernel
- */
-
-/** \defgroup gensys gen_system
- *  \ingroup kernel
  */
 
 /* ================================ */
