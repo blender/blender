@@ -216,7 +216,7 @@ int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, con
 
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
-void		WM_operator_stack_clear(struct bContext *C);
+void		WM_operator_stack_clear(struct wmWindowManager *wm);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
 struct wmOperatorType *WM_operatortype_first(void);

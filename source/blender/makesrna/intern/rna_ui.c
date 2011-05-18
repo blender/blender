@@ -148,7 +148,7 @@ static void panel_draw_header(const bContext *C, Panel *pnl)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_Panel_unregister(const bContext *C, StructRNA *type)
+static void rna_Panel_unregister(Main *bmain, StructRNA *type)
 {
 	ARegionType *art;
 	PanelType *pt= RNA_struct_blender_type_get(type);
@@ -164,11 +164,10 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Panel_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	PanelType *pt, dummypt = {NULL};
@@ -196,7 +195,7 @@ static StructRNA *rna_Panel_register(bContext *C, ReportList *reports, void *dat
 	for(pt=art->paneltypes.first; pt; pt=pt->next) {
 		if(strcmp(pt->idname, dummypt.idname) == 0) {
 			if(pt->ext.srna)
-				rna_Panel_unregister(C, pt->ext.srna);
+				rna_Panel_unregister(bmain, pt->ext.srna);
 			else
 				BLI_freelinkN(&art->paneltypes, pt);
 			break;
@@ -233,8 +232,7 @@ static StructRNA *rna_Panel_register(bContext *C, ReportList *reports, void *dat
 		BLI_addtail(&art->paneltypes, pt);
 
 	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 	
 	return pt->ext.srna;
 }
@@ -263,7 +261,7 @@ static void header_draw(const bContext *C, Header *hdr)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_Header_unregister(const bContext *C, StructRNA *type)
+static void rna_Header_unregister(Main *bmain, StructRNA *type)
 {
 	ARegionType *art;
 	HeaderType *ht= RNA_struct_blender_type_get(type);
@@ -279,11 +277,10 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Header_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	HeaderType *ht, dummyht = {NULL};
@@ -311,7 +308,7 @@ static StructRNA *rna_Header_register(bContext *C, ReportList *reports, void *da
 	for(ht=art->headertypes.first; ht; ht=ht->next) {
 		if(strcmp(ht->idname, dummyht.idname) == 0) {
 			if(ht->ext.srna)
-				rna_Header_unregister(C, ht->ext.srna);
+				rna_Header_unregister(bmain, ht->ext.srna);
 			break;
 		}
 	}
@@ -331,8 +328,7 @@ static StructRNA *rna_Header_register(bContext *C, ReportList *reports, void *da
 	BLI_addtail(&art->headertypes, ht);
 
 	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 	
 	return ht->ext.srna;
 }
@@ -384,7 +380,7 @@ static void menu_draw(const bContext *C, Menu *hdr)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_Menu_unregister(const bContext *C, StructRNA *type)
+static void rna_Menu_unregister(Main *bmain, StructRNA *type)
 {
 	MenuType *mt= RNA_struct_blender_type_get(type);
 
@@ -398,11 +394,10 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Menu_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	MenuType *mt, dummymt = {NULL};
 	Menu dummymenu= {NULL};
@@ -425,7 +420,7 @@ static StructRNA *rna_Menu_register(bContext *C, ReportList *reports, void *data
 	/* check if we have registered this menu type before, and remove it */
 	mt= WM_menutype_find(dummymt.idname, TRUE);
 	if(mt && mt->ext.srna)
-		rna_Menu_unregister(C, mt->ext.srna);
+		rna_Menu_unregister(bmain, mt->ext.srna);
 	
 	/* create a new menu type */
 	mt= MEM_callocN(sizeof(MenuType), "python buttons menu");
@@ -444,8 +439,7 @@ static StructRNA *rna_Menu_register(bContext *C, ReportList *reports, void *data
 	WM_menutype_add(mt);
 
 	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 	
 	return mt->ext.srna;
 }

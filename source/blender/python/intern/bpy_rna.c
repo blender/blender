@@ -6418,7 +6418,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 
 	identifier= ((PyTypeObject*)py_class)->tp_name;
 
-	srna_new= reg(C, &reports, py_class, identifier, bpy_class_validate, bpy_class_call, bpy_class_free);
+	srna_new= reg(CTX_data_main(C), &reports, py_class, identifier, bpy_class_validate, bpy_class_call, bpy_class_free);
 
 	if(BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
 		return NULL;
@@ -6568,7 +6568,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	C= BPy_GetContext();
 
 	/* call unregister */
-	unreg(C, srna); /* calls bpy_class_free, this decref's py_class */
+	unreg(CTX_data_main(C), srna); /* calls bpy_class_free, this decref's py_class */
 
 	PyDict_DelItemString(((PyTypeObject *)py_class)->tp_dict, "bl_rna");
 	if(PyErr_Occurred())

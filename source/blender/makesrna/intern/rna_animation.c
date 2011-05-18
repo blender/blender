@@ -188,7 +188,7 @@ static StructRNA *rna_KeyingSetInfo_refine(PointerRNA *ptr)
 	return (ksi->ext.srna)? ksi->ext.srna: &RNA_KeyingSetInfo;
 }
 
-static void rna_KeyingSetInfo_unregister(const bContext *C, StructRNA *type)
+static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 {
 	KeyingSetInfo *ksi= RNA_struct_blender_type_get(type);
 
@@ -200,10 +200,10 @@ static void rna_KeyingSetInfo_unregister(const bContext *C, StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 	
 	/* unlink Blender-side data */
-	ANIM_keyingset_info_unregister(C, ksi);
+	ANIM_keyingset_info_unregister(bmain, ksi);
 }
 
-static StructRNA *rna_KeyingSetInfo_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	KeyingSetInfo dummyksi = {NULL};
 	KeyingSetInfo *ksi;
@@ -226,7 +226,7 @@ static StructRNA *rna_KeyingSetInfo_register(bContext *C, ReportList *reports, v
 	/* check if we have registered this info before, and remove it */
 	ksi = ANIM_keyingset_info_find_named(dummyksi.idname);
 	if (ksi && ksi->ext.srna)
-		rna_KeyingSetInfo_unregister(C, ksi->ext.srna);
+		rna_KeyingSetInfo_unregister(bmain, ksi->ext.srna);
 	
 	/* create a new KeyingSetInfo type */
 	ksi= MEM_callocN(sizeof(KeyingSetInfo), "python keying set info");
