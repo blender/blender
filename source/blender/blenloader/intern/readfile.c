@@ -13030,6 +13030,11 @@ void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle**
 	*bh= (BlendHandle*)fd;
 }
 
+void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)
+{
+	return read_struct(fd, bh, blockname);
+}
+
 /* ************* READ LIBRARY ************** */
 
 static int mainvar_count_libread_blocks(Main *mainvar)

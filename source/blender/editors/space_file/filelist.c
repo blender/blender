@@ -59,6 +59,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_icons.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BLO_readfile.h"
@@ -999,7 +1000,7 @@ static int groupname_to_code(char *group)
 
 	return BKE_idcode_from_name(buf);
 }
-
+ 
 void filelist_from_library(struct FileList* filelist)
 {
 	LinkNode *l, *names, *previews;
@@ -1086,7 +1087,7 @@ void filelist_from_library(struct FileList* filelist)
 	}
 
 	BLI_linklist_free(names, free);
-	if (previews) BLI_linklist_free(previews, (void(*)(void*)) MEM_freeN);
+	if (previews) BLI_linklist_free(previews, BKE_previewimg_freefunc);
 
 	filelist_sort(filelist, FILE_SORT_ALPHA);
 
