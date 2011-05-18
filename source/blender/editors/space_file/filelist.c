@@ -433,7 +433,7 @@ void folderlist_pushdir(ListBase* folderlist, const char *dir)
 
 	// check if already exists
 	if(previous_folder && previous_folder->foldername){
-		if(! strcmp(previous_folder->foldername, dir)){
+		if(BLI_path_cmp(previous_folder->foldername, dir)==0){
 			return;
 		}
 	}

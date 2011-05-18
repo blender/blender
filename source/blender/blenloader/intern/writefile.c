@@ -2547,10 +2547,18 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		BLI_cleanup_dir(mainvar->name, dir1);
 		BLI_cleanup_dir(mainvar->name, dir2);
 
-		if(strcmp(dir1, dir2)==0)
+		if(BLI_path_cmp(dir1, dir2)==0) {
 			write_flags &= ~G_FILE_RELATIVE_REMAP;
-		else
-			makeFilesAbsolute(mainvar, G.main->name, NULL);
+		}
+		else {
+			if(G.relbase_valid) {
+				/* blend may not have been saved before. Tn this case
+				 * we should not have any relative paths, but if there
+				 * is somehow, an invalid or empty G.main->name it will
+				 * print an error, dont try make the absolute in this case. */
+				makeFilesAbsolute(mainvar, G.main->name, NULL);
+			}
+		}
 	}
 
 	BLI_make_file_string(G.main->name, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);

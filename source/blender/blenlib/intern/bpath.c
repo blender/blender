@@ -699,7 +699,12 @@ void makeFilesRelative(Main *bmain, const char *basedir, ReportList *reports) {
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_relative[(FILE_MAXDIR * 2) + FILE_MAXFILE];
-	
+
+	if(basedir[0] == '\0') {
+		printf("makeFilesRelative: basedir='', this is a bug\n");
+		return;
+	}
+
 	BLI_bpathIterator_init(&bpi, bmain, basedir, 0);
 	while (!BLI_bpathIterator_isDone(bpi)) {
 		BLI_bpathIterator_getPath(bpi, filepath);
@@ -751,7 +756,10 @@ void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
 	/* be sure there is low chance of the path being too short */
 	char filepath_absolute[(FILE_MAXDIR * 2) + FILE_MAXFILE];
 
-	BLI_assert(basedir[0] != '\0');
+	if(basedir[0] == '\0') {
+		printf("makeFilesAbsolute: basedir='', this is a bug\n");
+		return;
+	}
 
 	BLI_bpathIterator_init(&bpi, bmain, basedir, 0);
 	while (!BLI_bpathIterator_isDone(bpi)) {
