@@ -1107,21 +1107,26 @@ int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, con
 {	
 	EnumPropertyItem *item, *item_array;
 	int free, found;
-	
+
 	RNA_property_enum_items(C, ptr, prop, &item_array, NULL, &free);
-	
-	for(item= item_array; item->identifier; item++) {
-		if(item->identifier[0] && strcmp(item->identifier, identifier)==0) {
-			*value = item->value;
-			break;
+
+	if(item_array) {
+		for(item= item_array; item->identifier; item++) {
+			if(item->identifier[0] && strcmp(item->identifier, identifier)==0) {
+				*value = item->value;
+				break;
+			}
+		}
+
+		found= (item->identifier != NULL); /* could be alloc'd, assign before free */
+
+		if(free) {
+			MEM_freeN(item_array);
 		}
 	}
-	
-	found= (item->identifier != NULL); /* could be alloc'd, assign before free */
-
-	if(free)
-		MEM_freeN(item_array);
-
+	else {
+		found= 0;
+	}
 	return found;
 }
 
