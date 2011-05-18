@@ -1435,6 +1435,11 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, rv3d_persp_items);
 	RNA_def_property_ui_text(prop, "Perspective", "View Perspective");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "is_perspective", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "is_persp", 1);
+	RNA_def_property_ui_text(prop, "Is Perspective", "");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	
 	prop= RNA_def_property(srna, "view_location", PROP_FLOAT, PROP_TRANSLATION);
 #if 0

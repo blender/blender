@@ -96,10 +96,13 @@ typedef struct RegionView3D {
 	float zfac;					/* initgrabz() result */
 	float camdx, camdy;			/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float pixsize;				/* runtime only */
-	float ofs[3];				/* view center & orbit pivot, negative of worldspace location */
+	float ofs[3];				/* view center & orbit pivot, negative of worldspace location,
+								 * also matches -viewinv[3][0:3] in ortho mode.*/
 	short camzoom;
 	short twdrawflag;
-	int pad;
+	char is_persp;				/* check if persp/ortho view, since 'persp' cant be used for this since
+								 * it can have cameras assigned as well. (only set in setwinmatrixview3d) */
+	char pad[3];
 	
 	short rflag, viewlock;
 	short persp;

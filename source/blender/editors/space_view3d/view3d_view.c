@@ -507,7 +507,7 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 	float vec[4];
 	int a;
 	
-	if(!get_view3d_ortho(v3d, rv3d)) {
+	if(rv3d->is_persp) {
 		vec[0]= 2.0f * mval[0] / ar->winx - 1;
 		vec[1]= 2.0f * mval[1] / ar->winy - 1;
 		vec[2]= -1.0f;
@@ -636,19 +636,24 @@ void window_to_3d_delta(ARegion *ar, float out[3], const int mx, const int my)
 void window_to_3d_vector(ARegion *ar, float out[3], const int mx, const int my)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	float dx, dy;
-	float viewvec[3];
 
-	dx= (2.0f * mx / ar->winx) - 1.0f;
-	dy= (2.0f * my / ar->winy) - 1.0f;
+	if(rv3d->is_persp) {
+		float dx, dy;
+		float viewvec[3];
 
-	/* normalize here so vecs are proportional to eachother */
-	normalize_v3_v3(viewvec, rv3d->viewinv[2]);
+		dx= (2.0f * mx / ar->winx) - 1.0f;
+		dy= (2.0f * my / ar->winy) - 1.0f;
 
-	out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy) - viewvec[0];
-	out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy) - viewvec[1];
-	out[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy) - viewvec[2];
+		/* normalize here so vecs are proportional to eachother */
+		normalize_v3_v3(viewvec, rv3d->viewinv[2]);
 
+		out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy) - viewvec[0];
+		out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy) - viewvec[1];
+		out[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy) - viewvec[2];
+	}
+	else {
+		copy_v3_v3(out, rv3d->viewinv[2]);
+	}
 	normalize_v3(out);
 }
 
@@ -890,29 +895,6 @@ void project_float_noclip(ARegion *ar, const float vec[3], float adr[2])
 	}
 }
 
-int get_view3d_ortho(View3D *v3d, RegionView3D *rv3d)
-{
-	Camera *cam;
-
-	if(rv3d->persp==RV3D_CAMOB) {
-		if(v3d->camera && v3d->camera->type==OB_CAMERA) {
-			cam= v3d->camera->data;
-
-			if(cam && cam->type==CAM_ORTHO)
-				return 1;
-			else
-				return 0;
-		}
-		else
-			return 0;
-	}
-
-	if(rv3d->persp==RV3D_ORTHO)
-		return 1;
-
-	return 0;
-}
-
 /* copies logic of get_view3d_viewplane(), keep in sync */
 int get_view3d_cliprange(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
 {
@@ -1082,6 +1064,8 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)		/* rect: for pick
 	int orth;
 	
 	orth= get_view3d_viewplane(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
+	rv3d->is_persp= !orth;
+
 	//	printf("%d %d %f %f %f %f %f %f\n", winx, winy, viewplane.xmin, viewplane.ymin, viewplane.xmax, viewplane.ymax, clipsta, clipend);
 	x1= viewplane.xmin;
 	y1= viewplane.ymin;

@@ -112,7 +112,6 @@ void viewray(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_st
 void get_object_clip_range(struct Object *ob, float *lens, float *clipsta, float *clipend);
 int get_view3d_cliprange(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
 int get_view3d_viewplane(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
-int get_view3d_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
 void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void view3d_project_float(struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
 void view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct RegionView3D *rv3d, struct View3D *v3d, struct rctf *viewborder_r, short do_shift);

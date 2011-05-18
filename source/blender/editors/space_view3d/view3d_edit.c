@@ -383,7 +383,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
 
 		if((vod->use_dyn_ofs=view_autodist(CTX_data_scene(C), vod->ar, vod->v3d, event->mval, vod->dyn_ofs))) {
-			if (rv3d->persp==RV3D_PERSP || (rv3d->persp==RV3D_CAMOB && (vod->v3d->flag2 & V3D_LOCK_CAMERA))) {
+			if (rv3d->is_persp) {
 				float my_origin[3]; /* original G.vd->ofs */
 				float my_pivot[3]; /* view */
 				float dvec[3];
