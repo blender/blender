@@ -2005,6 +2005,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{RE_BAKE_NORMALS, "NORMALS", 0, "Normals", "Bake normals"},
 		{RE_BAKE_TEXTURE, "TEXTURE", 0, "Textures", "Bake textures"},
 		{RE_BAKE_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", "Bake displacement"},
+		{RE_BAKE_EMIT, "EMIT", 0, "Emission", "Bake Emit values (glow)"},
+		{RE_BAKE_ALPHA, "ALPHA", 0, "Alpha", "Bake Alpha values (transparency)"},
+		{RE_BAKE_MIRROR_INTENSITY, "MIRROR_INTENSITY", 0, "Mirror Intensity", "Bake Mirror values"},
+		{RE_BAKE_MIRROR_COLOR, "MIRROR_COLOR", 0, "Mirror Colors", "Bake Mirror colors"},
+		{RE_BAKE_SPEC_INTENSITY, "SPEC_INTENSITY", 0, "Specular Intensity", "Bake Specular values"},
+		{RE_BAKE_SPEC_COLOR, "SPEC_COLOR", 0, "Specular Colors", "Bake Specular colors"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem bake_normal_space_items[] ={
