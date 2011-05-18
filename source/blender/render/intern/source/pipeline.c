@@ -141,7 +141,6 @@ static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr)) {}
 static void result_rcti_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect)) {}
 static void stats_nothing(void *UNUSED(arg), RenderStats *UNUSED(rs)) {}
 static void float_nothing(void *UNUSED(arg), float UNUSED(val)) {}
-static void print_error(void *UNUSED(arg), const char *str) {printf("ERROR: %s\n", str);}
 static int default_break(void *UNUSED(arg)) {return G.afbreek == 1;}
 
 static void stats_background(void *UNUSED(arg), RenderStats *rs)
@@ -1200,13 +1199,12 @@ void RE_InitRenderCB(Render *re)
 	re->display_draw= result_rcti_nothing;
 	re->progress= float_nothing;
 	re->test_break= default_break;
-	re->error= print_error;
 	if(G.background)
 		re->stats_draw= stats_background;
 	else
 		re->stats_draw= stats_nothing;
 	/* clear callback handles */
-	re->dih= re->dch= re->ddh= re->sdh= re->prh= re->tbh= re->erh= NULL;
+	re->dih= re->dch= re->ddh= re->sdh= re->prh= re->tbh= NULL;
 }
 
 /* only call this while you know it will remove the link too */
@@ -1261,7 +1259,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	
 	if(re->rectx < 2 || re->recty < 2 || (BKE_imtype_is_movie(rd->imtype) &&
 										  (re->rectx < 16 || re->recty < 16) )) {
-		re->error(re->erh, "Image too small");
+		BKE_report(re->reports, RPT_ERROR, "Image too small");
 		re->ok= 0;
 		return;
 	}
@@ -1426,11 +1424,6 @@ void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
 {
 	re->test_break= f;
 	re->tbh= handle;
-}
-void RE_error_cb(Render *re, void *handle, void (*f)(void *handle, const char *str))
-{
-	re->error= f;
-	re->erh= handle;
 }
 
 
@@ -2715,14 +2708,14 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 	return 1;
 }
 
-int RE_is_rendering_allowed(Scene *scene, Object *camera_override, void *erh, void (*error)(void *handle, const char *str))
+int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *reports)
 {
 	SceneRenderLayer *srl;
 	
 	if(scene->r.mode & R_BORDER) {
 		if(scene->r.border.xmax <= scene->r.border.xmin ||
 		   scene->r.border.ymax <= scene->r.border.ymin) {
-			error(erh, "No border area selected.");
+			BKE_report(reports, RPT_ERROR, "No border area selected.");
 			return 0;
 		}
 	}
@@ -2733,13 +2726,13 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, void *erh, vo
 		scene_unique_exr_name(scene, str, 0);
 		
 		if (BLI_is_writable(str)==0) {
-			error(erh, "Can not save render buffers, check the temp default path");
+			BKE_report(reports, RPT_ERROR, "Can not save render buffers, check the temp default path");
 			return 0;
 		}
 		
 		/* no fullsample and edge */
 		if((scene->r.scemode & R_FULL_SAMPLE) && (scene->r.mode & R_EDGE)) {
-			error(erh, "Full Sample doesn't support Edge Enhance");
+			BKE_report(reports, RPT_ERROR, "Full Sample doesn't support Edge Enhance");
 			return 0;
 		}
 		
@@ -2753,7 +2746,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, void *erh, vo
 			bNode *node;
 		
 			if(ntree==NULL) {
-				error(erh, "No Nodetree in Scene");
+				BKE_report(reports, RPT_ERROR, "No Nodetree in Scene");
 				return 0;
 			}
 			
@@ -2762,13 +2755,13 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, void *erh, vo
 					break;
 			
 			if(node==NULL) {
-				error(erh, "No Render Output Node in Scene");
+				BKE_report(reports, RPT_ERROR, "No Render Output Node in Scene");
 				return 0;
 			}
 			
 			if(scene->r.scemode & R_FULL_SAMPLE) {
 				if(composite_needs_render(scene)==0) {
-					error(erh, "Full Sample AA not supported without 3d rendering");
+					BKE_report(reports, RPT_ERROR, "Full Sample AA not supported without 3d rendering");
 					return 0;
 				}
 			}
@@ -2777,7 +2770,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, void *erh, vo
 	
 	 /* check valid camera, without camera render is OK (compo, seq) */
 	if(!check_valid_camera(scene, camera_override)) {
-		error(erh, "No camera");
+		BKE_report(reports, RPT_ERROR, "No camera");
 		return 0;
 	}
 	
@@ -2787,7 +2780,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, void *erh, vo
 	/* forbidden combinations */
 	if(scene->r.mode & R_PANORAMA) {
 		if(scene->r.mode & R_ORTHO) {
-			error(erh, "No Ortho render possible for Panorama");
+			BKE_report(reports, RPT_ERROR, "No Ortho render possible for Panorama");
 			return 0;
 		}
 	}
@@ -2803,13 +2796,13 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, void *erh, vo
 		if(!(srl->layflag & SCE_LAY_DISABLE))
 			break;
 	if(srl==NULL) {
-		error(erh, "All RenderLayers are disabled");
+		BKE_report(reports, RPT_ERROR, "All RenderLayers are disabled");
 		return 0;
 	}
 	
 	/* renderer */
 	if(!ELEM(scene->r.renderer, R_INTERN, R_YAFRAY)) {
-		error(erh, "Unknown render engine set");
+		BKE_report(reports, RPT_ERROR, "Unknown render engine set");
 		return 0;
 	}
 

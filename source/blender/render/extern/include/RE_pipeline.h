@@ -241,7 +241,6 @@ void RE_stats_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, 
 void RE_progress_cb	(struct Render *re, void *handle, void (*f)(void *handle, float));
 void RE_draw_lock_cb		(struct Render *re, void *handle, void (*f)(void *handle, int));
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
-void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, const char *str));
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);
@@ -263,7 +262,7 @@ void RE_DataBase_GetView(struct Render *re, float mat[][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[][4]);
 struct Scene *RE_GetScene(struct Render *re);
 
-int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, void *erh, void (*error)(void *handle, const char *str));
+int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);
 
 #endif /* RE_PIPELINE_H */
 
