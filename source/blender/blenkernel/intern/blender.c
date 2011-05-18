@@ -191,7 +191,7 @@ static void clean_paths(Main *main)
 /* note, this is called on Undo so any slow conversion functions here
  * should be avoided or check (mode!='u') */
 
-static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename) 
+static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath)
 {
 	bScreen *curscreen= NULL;
 	Scene *curscene= NULL;
@@ -295,18 +295,18 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename
 	if(recover && bfd->filename[0] && G.relbase_valid) {
 		/* in case of autosave or quit.blend, use original filename instead
 		 * use relbase_valid to make sure the file is saved, else we get <memory2> in the filename */
-		filename= bfd->filename;
+		filepath= bfd->filename;
 	}
 #if 0
 	else if (!G.relbase_valid) {
 		/* otherwise, use an empty string as filename, rather than <memory2> */
-		filename="";
+		filepath="";
 	}
 #endif
 	
 	/* these are the same at times, should never copy to the same location */
-	if(G.main->name != filename)
-		BLI_strncpy(G.main->name, filename, FILE_MAX);
+	if(G.main->name != filepath)
+		BLI_strncpy(G.main->name, filepath, FILE_MAX);
 
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(G.main, CTX_data_scene(C));
@@ -353,15 +353,15 @@ void BKE_userdef_free(void)
 	BLI_freelistN(&U.addons);
 }
 
-int BKE_read_file(bContext *C, const char *dir, ReportList *reports) 
+int BKE_read_file(bContext *C, const char *filepath, ReportList *reports)
 {
 	BlendFileData *bfd;
 	int retval= BKE_READ_FILE_OK;
 
-	if(strstr(dir, BLENDER_STARTUP_FILE)==NULL) /* dont print user-pref loading */
-		printf("read blend: %s\n", dir);
+	if(strstr(filepath, BLENDER_STARTUP_FILE)==NULL) /* dont print user-pref loading */
+		printf("read blend: %s\n", filepath);
 
-	bfd= BLO_read_from_file(dir, reports);
+	bfd= BLO_read_from_file(filepath, reports);
 	if (bfd) {
 		if(bfd->user) retval= BKE_READ_FILE_OK_USERPREFS;
 		
@@ -372,10 +372,10 @@ int BKE_read_file(bContext *C, const char *dir, ReportList *reports)
 			retval= BKE_READ_FILE_FAIL;
 		}
 		else
-			setup_app_data(C, bfd, dir); // frees BFD
+			setup_app_data(C, bfd, filepath); // frees BFD
 	} 
 	else
-		BKE_reports_prependf(reports, "Loading %s failed: ", dir);
+		BKE_reports_prependf(reports, "Loading %s failed: ", filepath);
 		
 	return (bfd?retval:BKE_READ_FILE_FAIL);
 }
@@ -521,19 +521,19 @@ void BKE_write_undo(bContext *C, const char *name)
 	/* disk save version */
 	if(UNDO_DISK) {
 		static int counter= 0;
-		char tstr[FILE_MAXDIR+FILE_MAXFILE];
+		char filepath[FILE_MAXDIR+FILE_MAXFILE];
 		char numstr[32];
 		
-		/* calculate current filename */
+		/* calculate current filepath */
 		counter++;
 		counter= counter % U.undosteps;	
 	
 		BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
-		BLI_make_file_string("/", tstr, btempdir, numstr);
+		BLI_make_file_string("/", filepath, btempdir, numstr);
 	
-		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL, NULL);
+		success= BLO_write_file(CTX_data_main(C), filepath, G.fileflags, NULL, NULL);
 		
-		BLI_strncpy(curundo->str, tstr, sizeof(curundo->str));
+		BLI_strncpy(curundo->str, filepath, sizeof(curundo->str));
 	}
 	else {
 		MemFile *prevfile=NULL;

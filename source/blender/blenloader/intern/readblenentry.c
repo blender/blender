@@ -251,15 +251,15 @@ void BLO_blendhandle_close(BlendHandle *bh) {
 
 	/**********/
 
-BlendFileData *BLO_read_from_file(const char *file, ReportList *reports)
+BlendFileData *BLO_read_from_file(const char *filepath, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
-	fd = blo_openblenderfile(file, reports);
+	fd = blo_openblenderfile(filepath, reports);
 	if (fd) {
 		fd->reports= reports;
-		bfd= blo_read_file_internal(fd, file);
+		bfd= blo_read_file_internal(fd, filepath);
 		blo_freefiledata(fd);			
 	}
 

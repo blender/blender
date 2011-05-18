@@ -487,13 +487,13 @@ static void read_file_version(FileData *fd, Main *main)
 }
 
 
-static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *name, const char *relabase)
+static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *filepath, const char *relabase)
 {
 	Main *m;
 	Library *lib;
 	char name1[FILE_MAXDIR+FILE_MAXFILE];
 	
-	strncpy(name1, name, sizeof(name1)-1);
+	BLI_strncpy(name1, filepath, sizeof(name1));
 	cleanup_path(relabase, name1);
 //	printf("blo_find_main: original in  %s\n", name);
 //	printf("blo_find_main: converted to %s\n", name1);
@@ -511,14 +511,14 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *name, c
 	BLI_addtail(mainlist, m);
 
 	lib= alloc_libblock(&m->library, ID_LI, "lib");
-	strncpy(lib->name, name, sizeof(lib->name)-1);
+	strncpy(lib->name, filepath, sizeof(lib->name)-1);
 	BLI_strncpy(lib->filepath, name1, sizeof(lib->filepath));
 	
 	m->curlib= lib;
 	
 	read_file_version(fd, m);
 	
-	if(G.f & G_DEBUG) printf("blo_find_main: added new lib %s\n", name);
+	if(G.f & G_DEBUG) printf("blo_find_main: added new lib %s\n", filepath);
 	return m;
 }
 
@@ -944,14 +944,14 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 
 /* cannot be called with relative paths anymore! */
 /* on each new library added, it now checks for the current FileData and expands relativeness */
-FileData *blo_openblenderfile(const char *name, ReportList *reports)
+FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 {
 	gzFile gzfile;
 	errno= 0;
-	gzfile= gzopen(name, "rb");
+	gzfile= gzopen(filepath, "rb");
 
 	if (gzfile == (gzFile)Z_NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", name, errno ? strerror(errno) : "Unknown error reading file");
+		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", filepath, errno ? strerror(errno) : "Unknown error reading file");
 		return NULL;
 	} else {
 		FileData *fd = filedata_new();
@@ -959,7 +959,7 @@ FileData *blo_openblenderfile(const char *name, ReportList *reports)
 		fd->read = fd_read_gzip_from_file;
 
 		/* needed for library_append and read_libraries */
-		BLI_strncpy(fd->relabase, name, sizeof(fd->relabase));
+		BLI_strncpy(fd->relabase, filepath, sizeof(fd->relabase));
 
 		return blo_decode_and_check(fd, reports);
 	}
@@ -11750,7 +11750,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	return bhead;
 }
 
-BlendFileData *blo_read_file_internal(FileData *fd, const char *filename)
+BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 {
 	BHead *bhead= blo_firstbhead(fd);
 	BlendFileData *bfd;
@@ -11762,7 +11762,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filename)
 	bfd->main->versionfile= fd->fileversion;
 	
 	bfd->type= BLENFILETYPE_BLEND;
-	strncpy(bfd->main->name, filename, sizeof(bfd->main->name)-1);
+	strncpy(bfd->main->name, filepath, sizeof(bfd->main->name)-1);
 
 	while(bhead) {
 		switch(bhead->code) {
@@ -12790,7 +12790,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 
 /* returns true if the item was found
  * but it may already have already been appended/linked */
-static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *name, int idcode, short flag)
+static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *idname, int idcode, short flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
@@ -12805,9 +12805,9 @@ static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const
 
 		if(bhead->code==ENDB) endloop= 1;
 		else if(bhead->code==idcode) {
-			char *idname= bhead_id_name(fd, bhead);
+			const char *idname_test= bhead_id_name(fd, bhead);
 				
-			if(strcmp(idname+2, name)==0) {
+			if(strcmp(idname_test + 2, idname)==0) {
 				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
 				if(id==NULL) {
@@ -12859,10 +12859,10 @@ static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const
 	return found;
 }
 
-int BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag)
+int BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag)
 {
 	FileData *fd= (FileData*)(*bh);
-	return append_named_part(C, mainl, fd, name, idcode, flag);
+	return append_named_part(C, mainl, fd, idname, idcode, flag);
 }
 
 static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
@@ -12887,7 +12887,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 /* common routine to append/link something from a library */
 
-static Main* library_append_begin(const bContext *C, FileData **fd, char *dir)
+static Main* library_append_begin(const bContext *C, FileData **fd, const char *filepath)
 {
 	Main *mainvar= CTX_data_main(C);
 	Main *mainl;
@@ -12896,7 +12896,7 @@ static Main* library_append_begin(const bContext *C, FileData **fd, char *dir)
 	blo_split_main(&(*fd)->mainlist, mainvar);
 
 	/* which one do we need? */
-	mainl = blo_find_main(*fd, &(*fd)->mainlist, dir, G.main->name);
+	mainl = blo_find_main(*fd, &(*fd)->mainlist, filepath, G.main->name);
 	
 	/* needed for do_version */
 	mainl->versionfile= (*fd)->fileversion;
@@ -12905,10 +12905,10 @@ static Main* library_append_begin(const bContext *C, FileData **fd, char *dir)
 	return mainl;
 }
 
-Main* BLO_library_append_begin(const bContext *C, BlendHandle** bh, char *dir)
+Main* BLO_library_append_begin(const bContext *C, BlendHandle** bh, const char *filepath)
 {
 	FileData *fd= (FileData*)(*bh);
-	return library_append_begin(C, &fd, dir);
+	return library_append_begin(C, &fd, filepath);
 }
 
 static void append_do_cursor(Scene *scene, Library *curlib, short flag)
@@ -13029,31 +13029,6 @@ void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle**
 	library_append_end(C, mainl, &fd, idcode, flag);
 	*bh= (BlendHandle*)fd;
 }
-
-/* this is a version of BLO_library_append needed by the BPython API, so
- * scripts can load data from .blend files -- see Blender.Library module.*/
-/* append to scene */
-/* this should probably be moved into the Python code anyway */
-/* tentatively removed, Python should be able to use the split functions too: */
-/* BLO_library_append_begin, BLO_library_append_end, BLO_library_append_named_part */
-#if 0 
-void BLO_script_library_append(BlendHandle **bh, char *dir, const char *name, 
-		int idcode, short flag, Main *mainvar, Scene *scene, ReportList *reports)
-{
-	FileData *fd= (FileData*)(*bh);
-
-	/* try to append the requested object */
-	fd->reports= reports;
-	library_append(mainvar, scene, name, dir, idcode, 0, &fd, NULL, 0, flag );
-	if(fd) fd->reports= NULL;
-
-	/* do we need to do this? */
-	if(scene)
-		DAG_scene_sort(bmain, scene);
-
-	*bh= (BlendHandle*)fd;
-}
-#endif
 
 /* ************* READ LIBRARY ************** */
 
