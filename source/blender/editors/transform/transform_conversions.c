@@ -5323,7 +5323,7 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 
-		if (t->ar->regiontype == RGN_TYPE_WINDOW)
+		if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW))
 		{
 			View3D *v3d = t->view;
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
