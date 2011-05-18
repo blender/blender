@@ -813,7 +813,7 @@ void RNA_def_struct_idprops_func(StructRNA *srna, const char *idproperties)
 	if(idproperties) srna->idproperties= (IDPropertiesFunc)idproperties;
 }
 
-void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char *unreg)
+void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char *unreg, const char *instance)
 {
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_struct_register_funcs: only during preprocessing.\n");
@@ -822,6 +822,7 @@ void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char 
 
 	if(reg) srna->reg= (StructRegisterFunc)reg;
 	if(unreg) srna->unreg= (StructUnregisterFunc)unreg;
+	if(instance) srna->instance= (StructInstanceFunc)instance;
 }
 
 void RNA_def_struct_path_func(StructRNA *srna, const char *path)

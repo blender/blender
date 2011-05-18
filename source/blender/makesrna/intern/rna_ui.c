@@ -611,7 +611,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Panel", "Panel containing UI elements");
 	RNA_def_struct_sdna(srna, "Panel");
 	RNA_def_struct_refine_func(srna, "rna_Panel_refine");
-	RNA_def_struct_register_funcs(srna, "rna_Panel_register", "rna_Panel_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_Panel_register", "rna_Panel_unregister", NULL);
 
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
@@ -688,7 +688,7 @@ static void rna_def_header(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Header", "Editor header containing UI elements.");
 	RNA_def_struct_sdna(srna, "Header");
 	RNA_def_struct_refine_func(srna, "rna_Header_refine");
-	RNA_def_struct_register_funcs(srna, "rna_Header_register", "rna_Header_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_Header_register", "rna_Header_unregister", NULL);
 
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
@@ -730,7 +730,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Menu", "Editor menu containing buttons");
 	RNA_def_struct_sdna(srna, "Menu");
 	RNA_def_struct_refine_func(srna, "rna_Menu_refine");
-	RNA_def_struct_register_funcs(srna, "rna_Menu_register", "rna_Menu_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_Menu_register", "rna_Menu_unregister", NULL);
 
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);

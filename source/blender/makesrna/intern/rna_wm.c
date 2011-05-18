@@ -961,6 +961,11 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	return dummyot.ext.srna;
 }
 
+void **rna_Operator_instance(PointerRNA *ptr)
+{
+	wmOperator *op = ptr->data;
+	return &op->py_instance;
+}
 
 static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
@@ -1160,7 +1165,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "wmOperator");
 	RNA_def_struct_refine_func(srna, "rna_Operator_refine");
 #ifdef WITH_PYTHON
-	RNA_def_struct_register_funcs(srna, "rna_Operator_register", "rna_Operator_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_Operator_register", "rna_Operator_unregister", "rna_Operator_instance");
 #endif
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -1229,7 +1234,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "wmOperator");
 	RNA_def_struct_refine_func(srna, "rna_MacroOperator_refine");
 #ifdef WITH_PYTHON
-	RNA_def_struct_register_funcs(srna, "rna_MacroOperator_register", "rna_Operator_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_MacroOperator_register", "rna_Operator_unregister", "rna_Operator_instance");
 #endif
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);

@@ -6040,17 +6040,18 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	bpy_context_set(C, &gilstate);
 
 	if (!is_static) {
-		/* exception, operators store their PyObjects for re-use */
+		/* some datatypes (operator, render engine) can store PyObjects for re-use */
 		if(ptr->data) {
-			if(RNA_struct_is_a(ptr->type, &RNA_Operator)) {
-				wmOperator *op= ptr->data;
-				if(op->py_instance) {
-					py_class_instance= op->py_instance;
+			void **instance = RNA_struct_instance(ptr);
+
+			if(instance) {
+				if(*instance) {
+					py_class_instance= *instance;
 					Py_INCREF(py_class_instance);
 				}
 				else {
 					/* store the instance here once its created */
-					py_class_instance_store= &op->py_instance;
+					py_class_instance_store= instance;
 				}
 			}
 		}

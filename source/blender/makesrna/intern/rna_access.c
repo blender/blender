@@ -681,6 +681,18 @@ StructUnregisterFunc RNA_struct_unregister(StructRNA *type)
 	return NULL;
 }
 
+void **RNA_struct_instance(PointerRNA *ptr)
+{
+	StructRNA *type= ptr->type;
+
+	do {
+		if(type->instance)
+			return type->instance(ptr);
+	} while((type=type->base));
+
+	return NULL;
+}
+
 void *RNA_struct_py_type_get(StructRNA *srna)
 {
 	return srna->py_type;
