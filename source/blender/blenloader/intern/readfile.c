@@ -5511,20 +5511,31 @@ static void lib_link_library(FileData *UNUSED(fd), Main *main)
 	}
 }
 
-/* Always call this once you havbe loaded new library data to set the relative paths correctly in relation to the blend file */
+/* Always call this once you have loaded new library data to set the relative paths correctly in relation to the blend file */
 static void fix_relpaths_library(const char *basepath, Main *main)
 {
 	Library *lib;
 	/* BLO_read_from_memory uses a blank filename */
-	if (basepath==NULL || basepath[0] == '\0')
-		return;
-		
-	for(lib= main->library.first; lib; lib= lib->id.next) {
-		/* Libraries store both relative and abs paths, recreate relative paths,
-		 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
-		if (strncmp(lib->name, "//", 2)==0) { /* if this is relative to begin with? */
-			strncpy(lib->name, lib->filepath, sizeof(lib->name));
-			BLI_path_rel(lib->name, basepath);
+	if (basepath==NULL || basepath[0] == '\0') {
+		for(lib= main->library.first; lib; lib= lib->id.next) {
+			/* when loading a linked lib into a file which has not been saved,
+			 * there is nothing we can be relative to, so instead we need to make
+			 * it absolute. This can happen when appending an object with a relative
+			 * link into an unsaved blend file. See [#27405].
+			 * The remap relative option will make it relative again on save - campbell */
+			if (strncmp(lib->name, "//", 2)==0) {
+				strncpy(lib->name, lib->filepath, sizeof(lib->name));
+			}
+		}
+	}
+	else {
+		for(lib= main->library.first; lib; lib= lib->id.next) {
+			/* Libraries store both relative and abs paths, recreate relative paths,
+			 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
+			if (strncmp(lib->name, "//", 2)==0) { /* if this is relative to begin with? */
+				strncpy(lib->name, lib->filepath, sizeof(lib->name));
+				BLI_path_rel(lib->name, basepath);
+			}
 		}
 	}
 }

@@ -750,7 +750,9 @@ void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_absolute[(FILE_MAXDIR * 2) + FILE_MAXFILE];
-	
+
+	BLI_assert(basedir[0] != '\0');
+
 	BLI_bpathIterator_init(&bpi, bmain, basedir, 0);
 	while (!BLI_bpathIterator_isDone(bpi)) {
 		BLI_bpathIterator_getPath(bpi, filepath);
