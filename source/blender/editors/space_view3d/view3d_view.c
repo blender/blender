@@ -598,21 +598,37 @@ int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	return flip;
 }
 
-/* always call initgrabz */
-void window_to_3d(ARegion *ar, float out[3], const int mx, const int my)
+void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const int mx, const int my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
-	float dx= ((float)(mx-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
-	float dy= ((float)(my-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
-	
-	float fz= rv3d->persmat[0][3]*out[0]+ rv3d->persmat[1][3]*out[1]+ rv3d->persmat[2][3]*out[2]+ rv3d->persmat[3][3];
-	fz= fz/rv3d->zfac;
-	
-	out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy+ rv3d->persinv[2][0]*fz)-rv3d->ofs[0];
-	out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy+ rv3d->persinv[2][1]*fz)-rv3d->ofs[1];
-	out[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy+ rv3d->persinv[2][2]*fz)-rv3d->ofs[2];
-	
+	float line_sta[3];
+	float line_end[3];
+
+	if(rv3d->is_persp) {
+		float mousevec[3];
+		float view_z[3];
+		float pt_mid[3];
+
+		window_to_3d_vector(ar, mousevec, mx, my);
+
+		copy_v3_v3(line_sta, rv3d->viewinv[3]);
+		normalize_v3_v3(view_z, rv3d->viewinv[2]);
+		add_v3_v3v3(line_end, line_sta, view_z);
+		closest_to_line_v3(pt_mid, depth_pt, line_sta, line_end);
+		mul_v3_fl(mousevec, shell_angle_to_dist(angle_normalized_v3v3(view_z, mousevec)) * len_v3v3(line_sta, pt_mid));
+		add_v3_v3v3(out, line_sta, mousevec);
+	}
+	else {
+        const float dx= (2.0f * (float)mx / (float)ar->winx) - 1.0f;
+        const float dy= (2.0f * (float)my / (float)ar->winy) - 1.0f;
+		line_sta[0]= (rv3d->persinv[0][0] * dx) + (rv3d->persinv[1][0] * dy) + rv3d->viewinv[3][0];
+		line_sta[1]= (rv3d->persinv[0][1] * dx) + (rv3d->persinv[1][1] * dy) + rv3d->viewinv[3][1];
+		line_sta[2]= (rv3d->persinv[0][2] * dx) + (rv3d->persinv[1][2] * dy) + rv3d->viewinv[3][2];
+
+		add_v3_v3v3(line_end, line_sta, rv3d->viewinv[2]);
+		closest_to_line_v3(out, depth_pt, line_sta, line_end);
+	}
 }
 
 /* always call initgrabz */
