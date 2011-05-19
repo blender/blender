@@ -598,7 +598,7 @@ int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	return flip;
 }
 
-void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const int mx, const int my)
+void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const float mx, const float my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
@@ -630,7 +630,7 @@ void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const int 
 
 /* always call initgrabz */
 /* only to detect delta motion */
-void window_to_3d_delta(ARegion *ar, float out[3], const int mx, const int my)
+void window_to_3d_delta(ARegion *ar, float out[3], const float mx, const float my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float dx, dy;
@@ -646,7 +646,7 @@ void window_to_3d_delta(ARegion *ar, float out[3], const int mx, const int my)
 /* doesn't rely on initgrabz */
 /* for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector */
-void window_to_3d_vector(ARegion *ar, float out[3], const int mx, const int my)
+void window_to_3d_vector(ARegion *ar, float out[3], const float mx, const float my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 

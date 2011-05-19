@@ -377,24 +377,27 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 	}
 	else {
 		float *fp= give_cursor(scene, v3d);
-		int mx, my;
+		float mx, my;
 		
 		/* get screen coordinate */
 		if (gps->flag & GP_STROKE_2DSPACE) {
+			int mxi, myi;
 			View2D *v2d= &ar->v2d;
-			UI_view2d_view_to_region(v2d, pt->x, pt->y, &mx, &my);
+			UI_view2d_view_to_region(v2d, pt->x, pt->y, &mxi, &myi);
+			mx= mxi;
+			my= myi;
 		}
 		else {
 			if(subrect) {
-				mx= (int)((pt->x/100.0f) * (subrect->xmax - subrect->xmin)) + subrect->xmin;
-				my= (int)((pt->y/100.0f) * (subrect->ymax - subrect->ymin)) + subrect->ymin;
+				mx= (((float)pt->x/100.0f) * (subrect->xmax - subrect->xmin)) + subrect->xmin;
+				my= (((float)pt->y/100.0f) * (subrect->ymax - subrect->ymin)) + subrect->ymin;
 			}
 			else {
-				mx= (int)(pt->x / 100 * ar->winx);
-				my= (int)(pt->y / 100 * ar->winy);
+				mx= (float)pt->x / 100.0f * ar->winx;
+				my= (float)pt->y / 100.0f * ar->winy;
 			}
 		}
-		
+
 		/* convert screen coordinate to 3d coordinates 
 		 *	- method taken from editview.c - mouse_cursor() 
 		 */

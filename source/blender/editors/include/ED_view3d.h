@@ -80,9 +80,9 @@ typedef struct ViewDepths {
 float *give_cursor(struct Scene *scene, struct View3D *v3d);
 
 int initgrabz(struct RegionView3D *rv3d, float x, float y, float z);
-void window_to_3d(struct ARegion *ar, float out[3], const float depth_pt[3], const int mx, const int my);
-void window_to_3d_delta(struct ARegion *ar, float out[3], const int mx, const int my);
-void window_to_3d_vector(struct ARegion *ar, float out[3], const int mx, const int my);
+void window_to_3d(struct ARegion *ar, float out[3], const float depth_pt[3], const float mx, const float my);
+void window_to_3d_delta(struct ARegion *ar, float out[3], const float mx, const float my);
+void window_to_3d_vector(struct ARegion *ar, float out[3], const float mx, const float my);
 void view3d_unproject(struct bglMats *mats, float out[3], const short x, const short y, const float z);
 
 /* Depth buffer */
