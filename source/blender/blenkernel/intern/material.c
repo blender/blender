@@ -258,9 +258,8 @@ Material *localize_material(Material *ma)
 	
 	man->preview = NULL;
 	
-	if(ma->nodetree) {
+	if(ma->nodetree)
 		man->nodetree= ntreeLocalize(ma->nodetree);
-	}
 	
 	man->gpumaterial.first= man->gpumaterial.last= NULL;
 	

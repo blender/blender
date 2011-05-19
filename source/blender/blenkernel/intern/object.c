@@ -867,11 +867,32 @@ Lamp *copy_lamp(Lamp *la)
 	
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 	
-#if 0 // XXX old animation system
-	id_us_plus((ID *)lan->ipo);
-#endif // XXX old animation system
+	if(la->preview)
+		lan->preview = BKE_previewimg_copy(la->preview);
+	
+	return lan;
+}
 
-	if (la->preview) lan->preview = BKE_previewimg_copy(la->preview);
+Lamp *localize_lamp(Lamp *la)
+{
+	Lamp *lan;
+	int a;
+	
+	lan= copy_libblock(la);
+	BLI_remlink(&G.main->lamp, lan);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(lan->mtex[a]) {
+			lan->mtex[a]= MEM_mallocN(sizeof(MTex), "localize_lamp");
+			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
+			/* free lamp decrements */
+			id_us_plus((ID *)lan->mtex[a]->tex);
+		}
+	}
+	
+	lan->curfalloff = curvemapping_copy(la->curfalloff);
+
+	lan->preview= NULL;
 	
 	return lan;
 }

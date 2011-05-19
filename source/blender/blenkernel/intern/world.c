@@ -117,17 +117,36 @@ World *copy_world(World *wrld)
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		if(wrld->mtex[a]) {
-			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "copymaterial");
+			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "copy_world");
 			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
 			id_us_plus((ID *)wrldn->mtex[a]->tex);
 		}
 	}
 	
-	if (wrld->preview) wrldn->preview = BKE_previewimg_copy(wrld->preview);
+	if(wrld->preview)
+		wrldn->preview = BKE_previewimg_copy(wrld->preview);
 
-#if 0 // XXX old animation system
-	id_us_plus((ID *)wrldn->ipo);
-#endif // XXX old animation system
+	return wrldn;
+}
+
+World *localize_world(World *wrld)
+{
+	World *wrldn;
+	int a;
+	
+	wrldn= copy_libblock(wrld);
+	BLI_remlink(&G.main->world, wrldn);
+	
+	for(a=0; a<MAX_MTEX; a++) {
+		if(wrld->mtex[a]) {
+			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "localize_world");
+			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
+			/* free world decrements */
+			id_us_plus((ID *)wrldn->mtex[a]->tex);
+		}
+	}
+
+	wrldn->preview= NULL;
 	
 	return wrldn;
 }
