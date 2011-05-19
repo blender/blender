@@ -752,7 +752,7 @@ class USERPREF_PT_file(bpy.types.Panel):
 from bl_ui.space_userpref_keymap import InputKeyMapPanel
 
 
-class USERPREF_PT_input(InputKeyMapPanel):
+class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
 
