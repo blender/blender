@@ -2039,7 +2039,7 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 	 * here so that the curve can be sampled correctly
 	 */
 	if (fcu->flag & FCURVE_INT_VALUES)
-		cvalue= (float)((int)cvalue);
+		cvalue= floorf(cvalue + 0.5f);
 	
 	/* return evaluated value */
 	return cvalue;
