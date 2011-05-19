@@ -527,7 +527,7 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	}
 	
 	oglrender= op->customdata;
-	screen_set_image_output(C, event->x, event->y);
+	render_view_open(C, event->x, event->y);
 	
 	WM_event_add_modal_handler(C, op);
 	oglrender->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
