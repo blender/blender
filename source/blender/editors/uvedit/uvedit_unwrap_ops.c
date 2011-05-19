@@ -893,6 +893,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Unwrap";
+	ot->description= "Unwrap the mesh of the object being edited";
 	ot->idname= "UV_OT_unwrap";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	

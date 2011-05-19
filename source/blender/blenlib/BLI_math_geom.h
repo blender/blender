@@ -77,7 +77,7 @@ void closest_to_line_segment_v3(float r[3], const float p[3], const float l1[3],
 #define ISECT_LINE_LINE_CROSS		 2
 
 int isect_line_line_v2(const float a1[2], const float a2[2], const float b1[2], const float b2[2]);
-int isect_line_line_v2_short(const short a1[2], const short a2[2], const short b1[2], const short b2[2]);
+int isect_line_line_v2_int(const int a1[2], const int a2[2], const int b1[2], const int b2[2]);
 int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2]);
 
 /* Returns the number of point of interests

@@ -25,27 +25,29 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ * 
  */
-#include <string.h>    // strlen
-#include "BLO_readblenfile.h"
 
-struct streamGlueControlStruct *Global_streamGlueControl;
+#ifndef BLO_RUNTIME_H
+#define BLO_RUNTIME_H
 
-		int
-streamGlueWrite(
-		struct streamGlueControlStruct *streamGlueControl,
-		struct streamGlueStruct **streamGlue,
-		unsigned char *data,
-		unsigned int dataIn,
-		int finishUp)
-{
-	printf("called with %d bytes in buffer [%s]\n", dataIn, data);
-	return (0);
+/** \file BLO_runtime.h
+ *  \ingroup blenloader
+ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct BlendFileData;
+struct ReportList;
+
+int BLO_is_a_runtime(char *file);
+struct BlendFileData *BLO_read_runtime(char *file, struct ReportList *reports);
+
+#ifdef __cplusplus
 }
+#endif
 
-main()
-{
-	int err;
+#endif /* BLO_RUNTIME_H */
 
-	err = BLO_readblenfile();
-}

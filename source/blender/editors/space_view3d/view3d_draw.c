@@ -564,13 +564,13 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 {
-	short mx,my,co[2];
+	int mx, my, co[2];
 	int flag;
 	
 	/* we dont want the clipping for cursor */
 	flag= v3d->flag;
 	v3d->flag= 0;
-	project_short(ar, give_cursor(scene, v3d), co);
+	project_int(ar, give_cursor(scene, v3d), co);
 	v3d->flag= flag;
 	
 	mx = co[0];
@@ -763,7 +763,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 /* draw info beside axes in bottom left-corner: 
 * 	framenum, object name, bone name (if available), marker name (if available)
 */
-static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
+static void draw_selected_name(Scene *scene, Object *ob)
 {
 	char info[256], *markern;
 	short offset=30;
@@ -832,7 +832,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 		}
 		
 		/* color depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /*BKE_curframe(scene)*/(float)(CFRA), v3d->keyflags))
+		if (id_frame_has_keyframe((ID *)ob, /*BKE_curframe(scene)*/(float)(CFRA), ANIMFILTER_KEYS_LOCAL))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -921,6 +921,77 @@ void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, Vi
 	}
 }
 
+static void drawviewborder_grid3(float x1, float x2, float y1, float y2, float fac)
+{
+	float x3, y3, x4, y4;
+
+	x3= x1 + fac * (x2-x1);
+	y3= y1 + fac * (y2-y1);
+	x4= x1 + (1.0f - fac) * (x2-x1);
+	y4= y1 + (1.0f - fac) * (y2-y1);
+
+	glBegin(GL_LINES);
+	glVertex2f(x1, y3);
+	glVertex2f(x2, y3);
+
+	glVertex2f(x1, y4);
+	glVertex2f(x2, y4);
+
+	glVertex2f(x3, y1);
+	glVertex2f(x3, y2);
+
+	glVertex2f(x4, y1);
+	glVertex2f(x4, y2);
+	glEnd();
+}
+
+/* harmonious triangle */
+static void drawviewborder_triangle(float x1, float x2, float y1, float y2, const char golden, const char dir)
+{
+	float ofs;
+	float w= x2 - x1;
+	float h= y2 - y1;
+
+	glBegin(GL_LINES);
+	if(w > h) {
+		if(golden) {
+			ofs = w * (1.0f-(1.0f/1.61803399));
+		}
+		else {
+			ofs = h * (h / w);
+		}
+		if(dir == 'B') SWAP(float, y1, y2);
+
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y2);
+
+		glVertex2f(x2, y1);
+		glVertex2f(x1 + (w - ofs), y2);
+
+		glVertex2f(x1, y2);
+		glVertex2f(x1 + ofs, y1);
+	}
+	else {
+		if(golden) {
+			ofs = h * (1.0f-(1.0f/1.61803399));
+		}
+		else {
+			ofs = w * (w / h);
+		}
+		if(dir == 'B') SWAP(float, x1, x2);
+
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y2);
+
+		glVertex2f(x2, y1);
+		glVertex2f(x1, y1 + ofs);
+
+		glVertex2f(x1, y2);
+		glVertex2f(x2, y1 + (h - ofs));
+	}
+	glEnd();
+}
+
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	float fac, a;
@@ -944,10 +1015,14 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	y2= viewborder.ymax;
 	
 	/* apply offsets so the real 3D camera shows through */
-	x1i= (int)(x1 - 1.0f);
-	y1i= (int)(y1 - 1.0f);
-	x2i= (int)(x2 + 1.0f);
-	y2i= (int)(y2 + 1.0f);
+
+	/* note: quite un-scientific but without this bit extra
+	 * 0.0001 on the lower left the 2D border sometimes
+	 * obscures the 3D camera border */
+	x1i= (int)(x1 - 1.0001f);
+	y1i= (int)(y1 - 1.0001f);
+	x2i= (int)(x2 + (1.0f-0.0001f));
+	y2i= (int)(y2 + (1.0f-0.0001f));
 	
 	/* passepartout, specified in camera edit buttons */
 	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001f) {
@@ -995,21 +1070,80 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 
 	/* safety border */
-	if (ca && (ca->flag & CAM_SHOWTITLESAFE)) {
-		fac= 0.1;
-		
-		a= fac*(x2-x1);
-		x1+= a; 
-		x2-= a;
-		
-		a= fac*(y2-y1);
-		y1+= a;
-		y2-= a;
-		
-		UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
-		
-		uiSetRoundBox(15);
-		uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+	if(ca) {
+		if (ca->dtx & CAM_DTX_CENTER) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+
+			x3= x1+ 0.5f*(x2-x1);
+			y3= y1+ 0.5f*(y2-y1);
+
+			glBegin(GL_LINES);
+			glVertex2f(x1, y3);
+			glVertex2f(x2, y3);
+
+			glVertex2f(x3, y1);
+			glVertex2f(x3, y2);
+			glEnd();
+		}
+
+		if (ca->dtx & CAM_DTX_CENTER_DIAG) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+
+			glBegin(GL_LINES);
+			glVertex2f(x1, y1);
+			glVertex2f(x2, y2);
+
+			glVertex2f(x1, y2);
+			glVertex2f(x2, y1);
+			glEnd();
+		}
+
+		if (ca->dtx & CAM_DTX_THIRDS) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_grid3(x1, x2, y1, y2, 1.0f/3.0f);
+		}
+
+		if (ca->dtx & CAM_DTX_GOLDEN) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_grid3(x1, x2, y1, y2, 1.0f-(1.0f/1.61803399));
+		}
+
+		if (ca->dtx & CAM_DTX_GOLDEN_TRI_A) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_triangle(x1, x2, y1, y2, 0, 'A');
+		}
+
+		if (ca->dtx & CAM_DTX_GOLDEN_TRI_B) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_triangle(x1, x2, y1, y2, 0, 'B');
+		}
+
+		if (ca->dtx & CAM_DTX_HARMONY_TRI_A) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_triangle(x1, x2, y1, y2, 1, 'A');
+		}
+
+		if (ca->dtx & CAM_DTX_HARMONY_TRI_B) {
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			drawviewborder_triangle(x1, x2, y1, y2, 1, 'B');
+		}
+
+		if (ca->flag & CAM_SHOWTITLESAFE) {
+			fac= 0.1;
+
+			a= fac*(x2-x1);
+			x1+= a;
+			x2-= a;
+
+			a= fac*(y2-y1);
+			y1+= a;
+			y2-= a;
+
+			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+
+			uiSetRoundBox(15);
+			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+		}
 	}
 
 	setlinestyle(0);
@@ -1172,7 +1306,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const short mval[2], int size,
+unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int size,
 										unsigned int min, unsigned int max, int *dist, short strict, 
 										void *handle, unsigned int (*indextest)(void *handle, unsigned int index))
 {
@@ -2362,7 +2496,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
 
-	if(rv3d->view==0 || rv3d->persp != RV3D_ORTHO) {
+	if((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 			drawfloor(scene, v3d, &grid_unit);
 		}
@@ -2534,7 +2668,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	ob= OBACT;
 	if(U.uiflag & USER_DRAWVIEWINFO) 
-		draw_selected_name(scene, ob, v3d);
+		draw_selected_name(scene, ob);
 	
 	/* XXX here was the blockhandlers for floating panels */
 

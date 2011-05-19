@@ -4011,7 +4011,7 @@ useless:
 	LinkNode *fuv_link;
 
 	short event, draw=1;
-	short mval[2], mvalo[2];
+	int mval[2], mvalo[2];
 	char str[128];
 	float labda = 0.0f;
 
@@ -4416,7 +4416,7 @@ useless:
 	percp = -1;
 	while(draw) {
 		 /* For the % calculation */
-		short mval[2];
+		int mval[2];
 		float rc[2];
 		float v2[2], v3[2];
 		EditVert *centerVert, *upVert, *downVert;
@@ -4867,7 +4867,7 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 /********************** Rip Operator *************************/
 
 /* helper to find edge for edge_rip */
-static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const short mval[2])
+static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const int mval[2])
 {
 	float vec1[3], vec2[3], mvalf[2];
 
@@ -4910,7 +4910,8 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	EditEdge *eed, *seed= NULL;
 	EditFace *efa, *sefa= NULL;
 	float projectMat[4][4], vec[3], dist, mindist;
-	short doit= 1, *mval= event->mval;
+	short doit= 1;
+	int *mval= event->mval;
 
 	/* select flush... vertices are important */
 	EM_selectmode_set(em);

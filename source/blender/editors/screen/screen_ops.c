@@ -110,7 +110,7 @@ int ED_operator_screenactive(bContext *C)
 }
 
 /* XXX added this to prevent anim state to change during renders */
-int ED_operator_screenactive_norender(bContext *C)
+static int ED_operator_screenactive_norender(bContext *C)
 {
 	if(G.rendering) return 0;
 	if(CTX_wm_window(C)==NULL) return 0;

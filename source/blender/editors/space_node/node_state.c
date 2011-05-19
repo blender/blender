@@ -158,7 +158,7 @@ static int do_header_hidden_node(bNode *node, float mx, float my)
 	return 0;
 }
 
-static int node_toggle_visibility(SpaceNode *snode, ARegion *ar, const short mval[2])
+static int node_toggle_visibility(SpaceNode *snode, ARegion *ar, const int mval[2])
 {
 	bNode *node;
 	float mx, my;
@@ -189,7 +189,7 @@ static int node_toggle_visibility_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
-	short mval[2];
+	int mval[2];
 
 	mval[0] = RNA_int_get(op->ptr, "mouse_x");
 	mval[1] = RNA_int_get(op->ptr, "mouse_y");
@@ -202,7 +202,7 @@ static int node_toggle_visibility_exec(bContext *C, wmOperator *op)
 static int node_toggle_visibility_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
-	short mval[2];	
+	int mval[2];	
 	
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;

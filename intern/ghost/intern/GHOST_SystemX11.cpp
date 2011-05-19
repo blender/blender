@@ -700,19 +700,24 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case EnterNotify:
 		case LeaveNotify:
 		{
-			// XCrossingEvents pointer leave enter window.
-			// also do cursor move here, MotionNotify only
-			// happens when motion starts & ends inside window
+			/* XCrossingEvents pointer leave enter window.
+			   also do cursor move here, MotionNotify only
+			   happens when motion starts & ends inside window.
+			   we only do moves when the crossing mode is 'normal'
+			   (really crossing between windows) since some windowmanagers
+			   also send grab/ungrab crossings for mousewheel events.
+			*/
 			XCrossingEvent &xce = xe->xcrossing;
-			
-			g_event = new 
-			GHOST_EventCursor(
-				getMilliSeconds(),
-				GHOST_kEventCursorMove,
-				window,
-				xce.x_root,
-				xce.y_root
-			);
+			if( xce.mode == NotifyNormal ) {
+				g_event = new 
+				GHOST_EventCursor(
+					getMilliSeconds(),
+					GHOST_kEventCursorMove,
+					window,
+					xce.x_root,
+					xce.y_root
+				);
+			}
 			break;
 		}
 		case MapNotify:

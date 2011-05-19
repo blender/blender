@@ -187,12 +187,8 @@ int pyrna_write_check(void);
 int pyrna_struct_validity_check(BPy_StructRNA *pysrna);
 int pyrna_prop_validity_check(BPy_PropertyRNA *self);
 
-void BPY_modules_update(struct bContext *C); //XXX temp solution
-
 /* bpy.utils.(un)register_class */
 extern PyMethodDef meth_bpy_register_class;
 extern PyMethodDef meth_bpy_unregister_class;
-
-void BPY_id_release(struct ID *id);
 
 #endif

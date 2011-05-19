@@ -736,10 +736,10 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], fl
 	Brush *brush = paint_brush(&vp->paint);
 	float fac, fac_2, size, dx, dy;
 	float alpha;
-	short vertco[2];
+	int vertco[2];
 	const int radius= brush_size(brush);
 
-	project_short_noclip(vc->ar, vert_nor, vertco);
+	project_int_noclip(vc->ar, vert_nor, vertco);
 	dx= mval[0]-vertco[0];
 	dy= mval[1]-vertco[1];
 	
@@ -868,7 +868,7 @@ static void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mo
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
 	int index;
-	short mval[2] = {0, 0}, sco[2];
+	int mval[2] = {0, 0}, sco[2];
 	int vgroup= ob->actdef-1;
 
 	if (!me) return;
@@ -953,20 +953,20 @@ static void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mo
 			else {
 				/* calc 3 or 4 corner weights */
 				dm->getVertCo(dm, mface->v1, co);
-				project_short_noclip(ar, co, sco);
+				project_int_noclip(ar, co, sco);
 				w1= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				
 				dm->getVertCo(dm, mface->v2, co);
-				project_short_noclip(ar, co, sco);
+				project_int_noclip(ar, co, sco);
 				w2= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				
 				dm->getVertCo(dm, mface->v3, co);
-				project_short_noclip(ar, co, sco);
+				project_int_noclip(ar, co, sco);
 				w3= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				
 				if(mface->v4) {
 					dm->getVertCo(dm, mface->v4, co);
-					project_short_noclip(ar, co, sco);
+					project_int_noclip(ar, co, sco);
 					w4= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				}
 				else w4= 1.0e10;
@@ -1145,110 +1145,6 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-}
-
-/* ************ paint radial controls *************/
-
-static int vpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Paint *p = paint_get_active(CTX_data_scene(C));
-	Brush *brush = paint_brush(p);
-	float col[4];
-	
-	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
-	p->paint_cursor = NULL;
-	brush_radial_control_invoke(op, brush, 1);
-
-	copy_v3_v3(col, brush->add_col);
-	col[3]= 0.5f;
-	RNA_float_set_array(op->ptr, "color", col);
-
-	return WM_radial_control_invoke(C, op, event);
-}
-
-static int vpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int ret = WM_radial_control_modal(C, op, event);
-	if(ret != OPERATOR_RUNNING_MODAL)
-		paint_cursor_start(C, vertex_paint_poll);
-	return ret;
-}
-
-static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
-{
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->vpaint->paint);
-	int ret = brush_radial_control_exec(op, brush, 1);
-	
-	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
-	
-	return ret;
-}
-
-static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Paint *p = paint_get_active(CTX_data_scene(C));
-	Brush *brush = paint_brush(p);
-	float col[4];
-	
-	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
-	p->paint_cursor = NULL;
-	brush_radial_control_invoke(op, brush, 1);
-
-	copy_v3_v3(col, brush->add_col);
-	col[3]= 0.5f;
-	RNA_float_set_array(op->ptr, "color", col);
-
-	return WM_radial_control_invoke(C, op, event);
-}
-
-static int wpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int ret = WM_radial_control_modal(C, op, event);
-	if(ret != OPERATOR_RUNNING_MODAL)
-		paint_cursor_start(C, weight_paint_poll);
-	return ret;
-}
-
-static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
-{
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->wpaint->paint);
-	int ret = brush_radial_control_exec(op, brush, 1);
-	
-	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
-	
-	return ret;
-}
-
-void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
-{
-	WM_OT_radial_control_partial(ot);
-
-	ot->name= "Weight Paint Radial Control";
-	ot->idname= "PAINT_OT_weight_paint_radial_control";
-
-	ot->invoke= wpaint_radial_control_invoke;
-	ot->modal= wpaint_radial_control_modal;
-	ot->exec= wpaint_radial_control_exec;
-	ot->poll= weight_paint_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-}
-
-void PAINT_OT_vertex_paint_radial_control(wmOperatorType *ot)
-{
-	WM_OT_radial_control_partial(ot);
-
-	ot->name= "Vertex Paint Radial Control";
-	ot->idname= "PAINT_OT_vertex_paint_radial_control";
-
-	ot->invoke= vpaint_radial_control_invoke;
-	ot->modal= vpaint_radial_control_modal;
-	ot->exec= vpaint_radial_control_exec;
-	ot->poll= vertex_paint_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /* ************ weight paint operator ********** */

@@ -54,7 +54,7 @@ set(INC
 	../../../intern/opennl/extern
 	../../../intern/smoke/extern
 	../../../intern/mikktspace
-    ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
+	../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
 	${GLEW_INCLUDE_PATH}
 	${ZLIB_INCLUDE_DIRS}
 )
@@ -279,11 +279,6 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-if(WITH_LCMS)
-	list(APPEND INC ${LCMS_INCLUDE_DIR})
-	add_definitions(-DWITH_LCMS)
-endif()
-
 if(WITH_PYTHON)
 	list(APPEND INC ../python ${PYTHON_INCLUDE_DIRS})
 	add_definitions(-DWITH_PYTHON)
@@ -316,7 +311,7 @@ if(WITH_LZMA)
 endif()
 
 if(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif()
 
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}")

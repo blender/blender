@@ -316,10 +316,4 @@ typedef struct wmOperator {
 /* wmOperator flag */
 #define OP_GRAB_POINTER			1
 
-typedef enum wmRadialControlMode {
-	WM_RADIALCONTROL_SIZE,
-	WM_RADIALCONTROL_STRENGTH,
-	WM_RADIALCONTROL_ANGLE
-} wmRadialControlMode;
-
 #endif /* DNA_WINDOWMANAGER_TYPES_H */

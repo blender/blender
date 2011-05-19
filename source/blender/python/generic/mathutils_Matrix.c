@@ -1674,7 +1674,7 @@ static PyObject *Matrix_getColSize(MatrixObject *self, void *UNUSED(closure))
 	return PyLong_FromLong((long) self->col_size);
 }
 
-static PyObject *Matrix_getMedianScale(MatrixObject *self, void *UNUSED(closure))
+static PyObject *Matrix_median_scale_get(MatrixObject *self, void *UNUSED(closure))
 {
 	float mat[3][3];
 
@@ -1692,7 +1692,7 @@ static PyObject *Matrix_getMedianScale(MatrixObject *self, void *UNUSED(closure)
 	return PyFloat_FromDouble(mat3_to_scale(mat));
 }
 
-static PyObject *Matrix_getIsNegative(MatrixObject *self, void *UNUSED(closure))
+static PyObject *Matrix_is_negative_get(MatrixObject *self, void *UNUSED(closure))
 {
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
@@ -1708,6 +1708,21 @@ static PyObject *Matrix_getIsNegative(MatrixObject *self, void *UNUSED(closure))
 	}
 }
 
+static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closure))
+{
+	if(BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	/*must be 3-4 cols, 3-4 rows, square matrix*/
+	if(self->col_size == 4 && self->row_size == 4)
+		return PyBool_FromLong(is_orthogonal_m4((float (*)[4])self->contigPtr));
+	else if(self->col_size == 3 && self->row_size == 3)
+		return PyBool_FromLong(is_orthogonal_m3((float (*)[3])self->contigPtr));
+	else {
+		PyErr_SetString(PyExc_AttributeError, "Matrix.is_orthogonal: inappropriate matrix size - expects 3x3 or 4x4 matrix");
+		return NULL;
+	}
+}
 
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
@@ -1715,8 +1730,9 @@ static PyObject *Matrix_getIsNegative(MatrixObject *self, void *UNUSED(closure))
 static PyGetSetDef Matrix_getseters[] = {
 	{(char *)"row_size", (getter)Matrix_getRowSize, (setter)NULL, (char *)"The row size of the matrix (readonly).\n\n:type: int", NULL},
 	{(char *)"col_size", (getter)Matrix_getColSize, (setter)NULL, (char *)"The column size of the matrix (readonly).\n\n:type: int", NULL},
-	{(char *)"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, (char *)"The average scale applied to each axis (readonly).\n\n:type: float", NULL},
-	{(char *)"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, (char *)"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
+	{(char *)"median_scale", (getter)Matrix_median_scale_get, (setter)NULL, (char *)"The average scale applied to each axis (readonly).\n\n:type: float", NULL},
+	{(char *)"is_negative", (getter)Matrix_is_negative_get, (setter)NULL, (char *)"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
+	{(char *)"is_orthogonal", (getter)Matrix_is_orthogonal_get, (setter)NULL, (char *)"True if this matrix is orthogonal, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
 	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
 	{(char *)"owner",(getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */

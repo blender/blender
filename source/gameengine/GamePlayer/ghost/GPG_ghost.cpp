@@ -67,7 +67,7 @@ extern "C"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "BLO_readfile.h"
-#include "BLO_readblenfile.h"
+#include "BLO_runtime.h"
 #include "IMB_imbuf.h"
 #include "BKE_text.h"
 	
@@ -313,8 +313,8 @@ static BlendFileData *load_game_data(char *progname, char *filename = NULL, char
 	BKE_reports_init(&reports, RPT_STORE);
 	
 	/* try to load ourself, will only work if we are a runtime */
-	if (blo_is_a_runtime(progname)) {
-		bfd= blo_read_runtime(progname, &reports);
+	if (BLO_is_a_runtime(progname)) {
+		bfd= BLO_read_runtime(progname, &reports);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_RUNTIME;
 			strcpy(bfd->main->name, progname);
@@ -345,7 +345,9 @@ int main(int argc, char** argv)
 	bool fullScreen = false;
 	bool fullScreenParFound = false;
 	bool windowParFound = false;
+#ifdef WIN32
 	bool closeConsole = true;
+#endif
 	RAS_IRasterizer::StereoMode stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
 	bool stereoWindow = false;
 	bool stereoParFound = false;
@@ -444,7 +446,7 @@ int main(int argc, char** argv)
 	U.audiochannels = 2;
 
 	/* if running blenderplayer the last argument can't be parsed since it has to be the filename. */
-	isBlenderPlayer = !blo_is_a_runtime(argv[0]);
+	isBlenderPlayer = !BLO_is_a_runtime(argv[0]);
 	if (isBlenderPlayer)
 		validArguments = argc - 1;
 	else
@@ -570,7 +572,9 @@ int main(int argc, char** argv)
 				break;
 			case 'c':
 				i++;
+#ifdef WIN32
 				closeConsole = false;
+#endif
 				break;
 			case 's':  // stereo
 				i++;

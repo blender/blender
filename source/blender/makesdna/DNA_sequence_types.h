@@ -310,7 +310,8 @@ typedef struct SpeedControlVars {
 #define SEQ_COLOR               28
 #define SEQ_SPEED               29
 #define SEQ_MULTICAM            30
-#define SEQ_EFFECT_MAX          30
+#define SEQ_ADJUSTMENT          31
+#define SEQ_EFFECT_MAX          31
 
 #define STRIPELEM_FAILED       0
 #define STRIPELEM_OK           1

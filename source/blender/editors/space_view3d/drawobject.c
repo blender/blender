@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_world_types.h"
+#include "DNA_armature_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -75,6 +76,9 @@
 #include "BKE_unit.h"
 
 #include "smoke_API.h"
+
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -515,6 +519,96 @@ void drawaxes(float size, char drawtype)
 	}
 }
 
+
+/* Function to draw an Image on a empty Object */
+static void draw_empty_image(Object *ob)
+{
+	Image *ima = (Image*)ob->data;
+	ImBuf *ibuf = ima ? BKE_image_get_ibuf(ima, NULL) : NULL;
+
+	float scale, ofs_x, ofs_y, sca_x, sca_y;
+	int ima_x, ima_y;
+
+	if(ibuf && (ibuf->rect == NULL) && (ibuf->rect_float != NULL)) {
+		IMB_rect_from_float(ibuf);
+	}
+
+	/* Get the buffer dimensions so we can fallback to fake ones */
+	if(ibuf && ibuf->rect) {
+		ima_x= ibuf->x;
+		ima_y= ibuf->y;
+	}
+	else {
+		ima_x= 1;
+		ima_y= 1;
+	}
+
+	/* Get the image aspect even if the buffer is invalid */
+	if(ima) {
+		if(ima->aspx > ima->aspy) {
+			sca_x= 1.0f;
+			sca_y= ima->aspy / ima->aspx;
+		}
+		else if(ima->aspx < ima->aspy) {
+			sca_x= ima->aspx / ima->aspy;
+			sca_y= 1.0f;
+		}
+		else {
+			sca_x= 1.0f;
+			sca_y= 1.0f;
+		}
+	}
+	else {
+		sca_x= 1.0f;
+		sca_y= 1.0f;
+	}
+
+	/* Calculate the scale center based on objects origin */
+	ofs_x= ob->ima_ofs[0] * ima_x;
+	ofs_y= ob->ima_ofs[1] * ima_y;
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+	/* Make sure we are drawing at the origin */
+	glTranslatef(0.0f,  0.0f,  0.0f);
+
+	/* Calculate Image scale */
+	scale= (ob->empty_drawsize / (float)MAX2(ima_x * sca_x, ima_y * sca_y));
+
+	/* Set the object scale */
+	glScalef(scale * sca_x, scale * sca_y, 1.0f);
+
+	if(ibuf && ibuf->rect) {
+		/* Setup GL params */
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+
+		/* Use the object color and alpha */
+		glColor4fv(ob->col);
+
+		/* Draw the Image on the screen */
+		glaDrawPixelsTex(ofs_x, ofs_y, ima_x, ima_y, GL_UNSIGNED_BYTE, ibuf->rect);
+		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
+
+		glDisable(GL_BLEND);
+	}
+
+	UI_ThemeColor((ob->flag & SELECT) ? TH_SELECT : TH_WIRE);
+
+	/* Calculate the outline vertex positions */
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(ofs_x, ofs_y);
+	glVertex2f(ofs_x + ima_x, ofs_y);
+	glVertex2f(ofs_x + ima_x, ofs_y + ima_y);
+	glVertex2f(ofs_x, ofs_y + ima_y);
+	glEnd();
+
+	/* Reset GL settings */
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+}
+
 void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
 {
 	float vec[3], vx[3], vy[3];
@@ -572,7 +666,7 @@ typedef struct ViewCachedString {
 		unsigned char ub[4];
 		int pack;
 	} col;
-	short mval[2];
+	short sco[2];
 	short xoffs;
 	short flag;
 	int str_len, pad;
@@ -614,8 +708,8 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	for(vos= strings->first; vos; vos= vos->next) {
 		if(mat && !(vos->flag & V3D_CACHE_TEXT_WORLDSPACE))
 			mul_m4_v3(mat, vos->vec);
-		view3d_project_short_clip(ar, vos->vec, vos->mval, 0);
-		if(vos->mval[0]!=IS_CLIPPED)
+		view3d_project_short_clip(ar, vos->vec, vos->sco, 0);
+		if(vos->sco[0]!=IS_CLIPPED)
 			tot++;
 	}
 
@@ -655,7 +749,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 					continue;
 			}
 #endif
-			if(vos->mval[0]!=IS_CLIPPED) {
+			if(vos->sco[0]!=IS_CLIPPED) {
 				const char *str= (char *)(vos+1);
 
 				if(col_pack_prev != vos->col.pack) {
@@ -663,10 +757,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 					col_pack_prev= vos->col.pack;
 				}
 				if(vos->flag & V3D_CACHE_TEXT_ASCII) {
-					BLF_draw_default_ascii((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
+					BLF_draw_default_ascii((float)vos->sco[0]+vos->xoffs, (float)vos->sco[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
 				}
 				else {
-					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
+					BLF_draw_default((float)vos->sco[0]+vos->xoffs, (float)vos->sco[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
 				}
 			}
 		}
@@ -5954,8 +6048,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		}
 		case OB_EMPTY:
-			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
-				drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+				if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
+					draw_empty_image(ob);
+				}
+				else {
+					drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+				}
+			}
 			break;
 		case OB_LAMP:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
@@ -6564,7 +6664,12 @@ void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			draw_object_mesh_instance(scene, v3d, rv3d, ob, dt, outline);
 			break;
 		case OB_EMPTY:
-			drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+			if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
+				draw_empty_image(ob);
+			}
+			else {
+				drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+			}
 			break;
 	}
 }

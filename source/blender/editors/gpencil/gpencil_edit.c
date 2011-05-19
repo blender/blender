@@ -377,8 +377,7 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 	}
 	else {
 		float *fp= give_cursor(scene, v3d);
-		float dvec[3];
-		short mval[2];
+		int mval[2];
 		int mx, my;
 		
 		/* get screen coordinate */
@@ -390,15 +389,13 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 			mx= (int)(pt->x / 100 * ar->winx);
 			my= (int)(pt->y / 100 * ar->winy);
 		}
-		mval[0]= (short)mx;
-		mval[1]= (short)my;
+		mval[0]= mx;
+		mval[1]= my;
 		
 		/* convert screen coordinate to 3d coordinates 
 		 *	- method taken from editview.c - mouse_cursor() 
 		 */
-		project_short_noclip(ar, fp, mval);
-		window_to_3d(ar, dvec, mval[0]-mx, mval[1]-my);
-		sub_v3_v3v3(p3d, fp, dvec);
+		window_to_3d(ar, p3d, fp, mval[0], mval[1]);
 	}
 }
 
@@ -564,8 +561,6 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 	bGPdata *gpd= gpencil_data_get_active(C);
 	bGPDlayer *gpl= gpencil_layer_getactive(gpd);
 	Scene *scene= CTX_data_scene(C);
-	View3D *v3d= CTX_wm_view3d(C);
-	float *fp= give_cursor(scene, v3d);
 	int mode= RNA_enum_get(op->ptr, "type");
 
 	/* check if there's data to work with */
@@ -573,9 +568,6 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data to work on.");
 		return OPERATOR_CANCELLED;
 	}
-
-	/* initialise 3d-cursor correction globals */
-	initgrabz(CTX_wm_region_view3d(C), fp[0], fp[1], fp[2]);
 
 	/* handle conversion modes */
 	switch (mode) {

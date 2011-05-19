@@ -175,6 +175,10 @@ if(UNIX AND NOT APPLE)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
+# disable for now, but plan to support on all platforms eventually
+option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
+mark_as_advanced(WITH_MEM_JEMALLOC)
+
 # Debug
 option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
 mark_as_advanced(WITH_CXX_GUARDEDALLOC)
@@ -197,9 +201,6 @@ if(APPLE)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 endif()
-
-# only for developers who want to make this functional
-# option(WITH_LCMS          "Enable color correction with lcms" OFF)
 
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
@@ -375,13 +376,6 @@ if(UNIX AND NOT APPLE)
 
 	find_package(ZLIB REQUIRED)
 
-	if(WITH_LCMS)
-		set(LCMS /usr CACHE FILEPATH "LCMS directory")
-		set(LCMS_INCLUDE_DIR ${LCMS}/include)
-		set(LCMS_LIBRARY lcms)
-		set(LCMS_LIBPATH ${LCMS}/lib)
-	endif()
-
 	if(WITH_CODEC_FFMPEG)
 		set(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
 		mark_as_advanced(FFMPEG)
@@ -422,6 +416,15 @@ if(UNIX AND NOT APPLE)
 		mark_as_advanced(EXPAT)
 		set(EXPAT_LIBPATH ${EXPAT}/lib)
 		set(EXPAT_LIB expat)
+	endif()
+
+	if(WITH_MEM_JEMALLOC)
+		set(JEMALLOC /usr)
+		set(JEMALLOC_LIBRARY jemalloc CACHE STRING "JeMalloc library")
+		set(JEMALLOC_LIBPATH ${JEMALLOC}/lib  CACHE FILEPATH "JeMalloc library path")
+		# no use for this yet.
+		# set(JEMALLOC_INCLUDE_DIR ${JEMALLOC}/include  CACHE FILEPATH "JeMalloc include path")
+		unset(JEMALLOC)
 	endif()
 
 	find_package(X11 REQUIRED)
@@ -627,14 +630,7 @@ elseif(WIN32)
 			set(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser xml2 buffer ftoa UTF)
 			set(PCRE_LIB pcre)
 		endif()
-		
-		if(WITH_LCMS)
-			set(LCMS ${LIBDIR}/lcms)
-			set(LCMS_INCLUDE_DIR ${LCMS}/include)
-			set(LCMS_LIBPATH ${LCMS}/lib)
-			set(LCMS_LIB lcms)
-		endif()
-
+	
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg)
 			set(FFMPEG_INC ${FFMPEG}/include ${FFMPEG}/include/msvc)
@@ -870,7 +866,7 @@ elseif(APPLE)
 		set(GETTEXT_LIB intl iconv)
 		set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 	endif()
-  
+
 	if(WITH_FFTW3)
 		set(FFTW3 ${LIBDIR}/fftw3)
 		set(FFTW3_INC ${FFTW3}/include)
@@ -895,13 +891,6 @@ elseif(APPLE)
 		set(OPENEXR_INC ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
 		set(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-	endif()
-
-	if(WITH_LCMS)
-		set(LCMS ${LIBDIR}/lcms)
-		set(LCMS_INCLUDE_DIR ${LCMS}/include)
-		set(LCMS_LIBRARY lcms)
-		set(LCMS_LIBPATH ${LCMS}/lib)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)

@@ -79,9 +79,15 @@
 #define snprintf _snprintf
 #endif
 
-/* **** XXX ******** */
-//static void waitcursor(int val) {}
-//static int blender_test_break() {return 0;}
+
+static ImBuf* seq_render_strip_stack( 
+	SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown);
+
+static ImBuf * seq_render_strip(
+	SeqRenderData context, Sequence * seq, float cfra);
+
+static void seq_free_animdata(Scene *scene, Sequence *seq);
+
 
 /* **** XXX ******** */
 #define SELECT 1
@@ -177,8 +183,6 @@ void seq_free_strip(Strip *strip)
 	MEM_freeN(strip);
 }
 
-static void seq_free_animdata(Scene *scene, Sequence *seq);
-
 void seq_free_sequence(Scene *scene, Sequence *seq)
 {
 	if(seq->strip) seq_free_strip(seq->strip);
@@ -189,6 +193,10 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 		struct SeqEffectHandle sh = get_sequence_effect(seq);
 
 		sh.free(seq);
+	}
+
+	if(seq->sound) {
+		((ID *)seq->sound)->us--; 
 	}
 
 	/* clipboard has no scene and will never have a sound handle or be active */
@@ -446,51 +454,6 @@ void seq_end(SeqIterator *iter)
   * in metastrips!)
   **********************************************************************
 */
-#if 0 /* UNUSED */
-static void do_seq_count(ListBase *seqbase, int *totseq)
-{
-	Sequence *seq;
-
-	seq= seqbase->first;
-	while(seq) {
-		(*totseq)++;
-		if(seq->seqbase.first) do_seq_count(&seq->seqbase, totseq);
-		seq= seq->next;
-	}
-}
-
-static void do_build_seqar(ListBase *seqbase, Sequence ***seqar, int depth)
-{
-	Sequence *seq;
-
-	seq= seqbase->first;
-	while(seq) {
-		seq->depth= depth;
-		if(seq->seqbase.first) do_build_seqar(&seq->seqbase, seqar, depth+1);
-		**seqar= seq;
-		(*seqar)++;
-		seq= seq->next;
-	}
-}
-
-static void build_seqar(ListBase *seqbase, Sequence  ***seqar, int *totseq)
-{
-	Sequence **tseqar;
-
-	*totseq= 0;
-	do_seq_count(seqbase, totseq);
-
-	if(*totseq==0) {
-		*seqar= NULL;
-		return;
-	}
-	*seqar= MEM_mallocN(sizeof(void *)* *totseq, "seqar");
-	tseqar= *seqar;
-
-	do_build_seqar(seqbase, seqar, 0);
-	*seqar= tseqar;
-}
-#endif /* UNUSED */
 
 static void do_seq_count_cb(ListBase *seqbase, int *totseq,
 				int (*test_func)(Sequence * seq))
@@ -916,6 +879,7 @@ static const char *give_seqname_by_type(int type)
 	case SEQ_TRANSFORM:  return "Transform";
 	case SEQ_COLOR:      return "Color";
 	case SEQ_MULTICAM:   return "Multicam";
+	case SEQ_ADJUSTMENT: return "Adjustment";
 	case SEQ_SPEED:      return "Speed";
 	default:
 		return NULL;
@@ -1013,16 +977,22 @@ static float give_stripelem_index(Sequence *seq, float cfra)
 	int sta = seq->start;
 	int end = seq->start+seq->len-1;
 
-	if(seq->len == 0) return -1;
+	if (seq->type & SEQ_EFFECT) {
+		end = seq->enddisp;
+	} 
+
+	if(end < sta) {
+		return -1;
+	}
 
 	if(seq->flag&SEQ_REVERSE_FRAMES) {	
 		/*reverse frame in this sequence */
-		if(cfra <= sta) nr= seq->len-1;
+		if(cfra <= sta) nr= end - sta;
 		else if(cfra >= end) nr= 0;
 		else nr= end - cfra;
 	} else {
 		if(cfra <= sta) nr= 0;
-		else if(cfra >= end) nr= seq->len-1;
+		else if(cfra >= end) nr= end - sta;
 		else nr= cfra - sta;
 	}
 	
@@ -1039,7 +1009,11 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 {
 	StripElem *se= seq->strip->stripdata;
 
-	if(seq->type != SEQ_MOVIE) { /* movie use the first */
+	if(seq->type == SEQ_IMAGE) { /* only 
+					IMAGE strips use the whole array,
+					MOVIE strips use only 
+					the first element, all other strips
+					don't use this... */
 		int nr = (int) give_stripelem_index(seq, cfra);
 
 		if (nr == -1 || se == NULL) return NULL;
@@ -1093,15 +1067,12 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
 	}
 
 	if(evaluate_seq_frame_gen(seq_arr, seqbasep, cfra)) {
-		if (b > 0) {
-			if (seq_arr[b] == NULL) {
-				return 0;
-			}
-		} else {
-			for (b = MAXSEQ; b > 0; b--) {
-				if (video_seq_is_rendered(seq_arr[b])) {
-					break;
-				}
+		if (b == 0) {
+			b = MAXSEQ;
+		}
+		for (; b > 0; b--) {
+			if (video_seq_is_rendered(seq_arr[b])) {
+				break;
 			}
 		}
 	}
@@ -2071,8 +2042,9 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 			break;
 		}
 		case SEQ_EFFECT:
-		{	
-			ibuf = seq_render_effect_strip_impl(context, seq, cfra);
+		{
+			ibuf = seq_render_effect_strip_impl(
+				context, seq, seq->start + nr);
 			break;
 		}
 		case SEQ_IMAGE:
@@ -2855,7 +2827,10 @@ void seq_tx_set_final_right(Sequence *seq, int val)
    since they work a bit differently to normal image seq's (during transform) */
 int seq_single_check(Sequence *seq)
 {
-	return (seq->len==1 && ELEM3(seq->type, SEQ_IMAGE, SEQ_COLOR, SEQ_MULTICAM));
+	return (seq->len==1 && (
+			seq->type == SEQ_IMAGE 
+			|| ((seq->type & SEQ_EFFECT) && 
+			    get_sequence_effect_num_inputs(seq->type) == 0)));
 }
 
 /* check if the selected seq's reference unselected seq's */
@@ -3214,6 +3189,24 @@ ListBase *seq_seqbase(ListBase *seqbase, Sequence *seq)
 	return NULL;
 }
 
+Sequence *seq_metastrip(ListBase * seqbase, Sequence * meta, Sequence *seq)
+{
+	Sequence * iseq;
+
+	for(iseq = seqbase->first; iseq; iseq = iseq->next) {
+		Sequence * rval;
+
+		if (seq == iseq) {
+			return meta;
+		} else if(iseq->seqbase.first && 
+			(rval = seq_metastrip(&iseq->seqbase, iseq, seq))) {
+			return rval;
+		}
+	}
+
+	return NULL;
+}
+
 int seq_swap(Sequence *seq_a, Sequence *seq_b)
 {
 	char name[sizeof(seq_a->name)];
@@ -3523,7 +3516,8 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	strip->len = seq->len = ceil(info.length * FPS);
 	strip->us= 1;
 
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	/* we only need 1 element to store the filename */
+	strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
 	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
 
@@ -3572,7 +3566,8 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	strip->len = seq->len = IMB_anim_get_duration( an );
 	strip->us= 1;
 
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	/* we only need 1 element for MOVIE strips */
+	strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
 	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
 

@@ -213,6 +213,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.operator("sequencer.effect_strip_add", text="Color").type = 'COLOR'
         layout.operator("sequencer.effect_strip_add", text="Speed Control").type = 'SPEED'
         layout.operator("sequencer.effect_strip_add", text="Multicam Selector").type = 'MULTICAM'
+        layout.operator("sequencer.effect_strip_add", text="Adjustment Layer").type = 'ADJUSTMENT'
 
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
@@ -391,7 +392,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
-                              'MULTICAM'}
+                              'MULTICAM', 'ADJUSTMENT'}
 
     def draw(self, context):
         layout = self.layout
@@ -530,7 +531,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-                              'MULTICAM', 'SPEED'}
+                              'MULTICAM', 'SPEED', 'ADJUSTMENT'}
 
     def draw(self, context):
         layout = self.layout
@@ -680,7 +681,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-                              'MULTICAM', 'SPEED'}
+                              'MULTICAM', 'SPEED', 'ADJUSTMENT'}
 
     def draw(self, context):
         layout = self.layout

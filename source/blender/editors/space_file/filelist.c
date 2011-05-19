@@ -59,6 +59,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_icons.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BLO_readfile.h"
@@ -433,7 +434,7 @@ void folderlist_pushdir(ListBase* folderlist, const char *dir)
 
 	// check if already exists
 	if(previous_folder && previous_folder->foldername){
-		if(! strcmp(previous_folder->foldername, dir)){
+		if(BLI_path_cmp(previous_folder->foldername, dir)==0){
 			return;
 		}
 	}
@@ -999,7 +1000,7 @@ static int groupname_to_code(char *group)
 
 	return BKE_idcode_from_name(buf);
 }
-
+ 
 void filelist_from_library(struct FileList* filelist)
 {
 	LinkNode *l, *names, *previews;
@@ -1070,9 +1071,9 @@ void filelist_from_library(struct FileList* filelist)
 			PreviewImage *img= l->link;
 			
 			if (img) {
-				unsigned int w = img->w[PREVIEW_MIPMAP_LARGE];
-				unsigned int h = img->h[PREVIEW_MIPMAP_LARGE];
-				unsigned int *rect = img->rect[PREVIEW_MIPMAP_LARGE];
+				unsigned int w = img->w[ICON_SIZE_PREVIEW];
+				unsigned int h = img->h[ICON_SIZE_PREVIEW];
+				unsigned int *rect = img->rect[ICON_SIZE_PREVIEW];
 
 				/* first allocate imbuf for copying preview into it */
 				if (w > 0 && h > 0 && rect) {
@@ -1086,7 +1087,7 @@ void filelist_from_library(struct FileList* filelist)
 	}
 
 	BLI_linklist_free(names, free);
-	if (previews) BLI_linklist_free(previews, (void(*)(void*)) MEM_freeN);
+	if (previews) BLI_linklist_free(previews, BKE_previewimg_freefunc);
 
 	filelist_sort(filelist, FILE_SORT_ALPHA);
 

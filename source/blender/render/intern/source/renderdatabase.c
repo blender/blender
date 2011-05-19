@@ -782,7 +782,7 @@ void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
 	MEM_freeN(vlaknodes);
 }
 
-void free_renderdata_strandnodes(StrandTableNode *strandnodes)
+static void free_renderdata_strandnodes(StrandTableNode *strandnodes)
 {
 	int a;
 	

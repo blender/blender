@@ -798,36 +798,39 @@ void UI_icons_init(int first_dyn_id)
 	init_brush_icons();
 }
 
-/* Render size for preview images at level miplevel */
-static int preview_render_size(int miplevel)
+/* Render size for preview images and icons
+ */
+static int preview_render_size(enum eIconSizes size)
 {
-	switch (miplevel) {
-		case 0: return 32;
-		case 1: return PREVIEW_DEFAULT_HEIGHT;
+	switch (size) {
+		case ICON_SIZE_ICON:	return 32;
+		case ICON_SIZE_PREVIEW: return PREVIEW_DEFAULT_HEIGHT;
 	}
 	return 0;
 }
 
-static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel) 
+/* Create rect for the icon
+ */
+static void icon_create_rect(struct PreviewImage* prv_img, enum eIconSizes size) 
 {
-	unsigned int size = preview_render_size(miplevel);
+	unsigned int render_size = preview_render_size(size);
 
 	if (!prv_img) {
 		if (G.f & G_DEBUG)
 			printf("Error: requested preview image does not exist");
 	}
-	if (!prv_img->rect[miplevel]) {
-		prv_img->w[miplevel] = size;
-		prv_img->h[miplevel] = size;
-		prv_img->changed[miplevel] = 1;
-		prv_img->changed_timestamp[miplevel] = 0;
-		prv_img->rect[miplevel] = MEM_callocN(size*size*sizeof(unsigned int), "prv_rect"); 
+	if (!prv_img->rect[size]) {
+		prv_img->w[size] = render_size;
+		prv_img->h[size] = render_size;
+		prv_img->changed[size] = 1;
+		prv_img->changed_timestamp[size] = 0;
+		prv_img->rect[size] = MEM_callocN(render_size*render_size*sizeof(unsigned int), "prv_rect"); 
 	}
 }
 
 /* only called when icon has changed */
 /* only call with valid pointer from UI_icon_draw */
-static void icon_set_image(bContext *C, ID *id, PreviewImage* prv_img, int miplevel)
+static void icon_set_image(bContext *C, ID *id, PreviewImage* prv_img, enum eIconSizes size)
 {
 	if (!prv_img) {
 		if (G.f & G_DEBUG)
@@ -835,11 +838,10 @@ static void icon_set_image(bContext *C, ID *id, PreviewImage* prv_img, int miple
 		return;
 	}	
 
-	/* create the preview rect */
-	icon_create_mipmap(prv_img, miplevel);
+	icon_create_rect(prv_img, size);
 
-	ED_preview_icon_job(C, prv_img, id, prv_img->rect[miplevel],
-		prv_img->w[miplevel], prv_img->h[miplevel]);
+	ED_preview_icon_job(C, prv_img, id, prv_img->rect[size],
+		prv_img->w[size], prv_img->h[size]);
 }
 
 static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect), int rw, int rh, unsigned int *rect, float alpha, float *rgb, short is_preview)
@@ -928,17 +930,17 @@ static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy
 	glDisable(GL_TEXTURE_2D);
 }
 
-/* Drawing size for preview images at level miplevel */
-static int preview_size(int miplevel)
+/* Drawing size for preview images */
+static int get_draw_size(enum eIconSizes size)
 {
-	switch (miplevel) {
-		case 0: return ICON_DEFAULT_HEIGHT;
-		case 1: return PREVIEW_DEFAULT_HEIGHT;
+	switch (size) {
+		case ICON_SIZE_ICON: return ICON_DEFAULT_HEIGHT;
+		case ICON_SIZE_PREVIEW: return PREVIEW_DEFAULT_HEIGHT;
 	}
 	return 0;
 }
 
-static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, float *rgb, int miplevel, int draw_size, int UNUSED(nocreate), int is_preview)
+static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, float *rgb, enum eIconSizes size, int draw_size, int UNUSED(nocreate), int is_preview)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
@@ -988,11 +990,11 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 
 		if(pi) {			
 			/* no create icon on this level in code */
-			if(!pi->rect[miplevel]) return; /* something has gone wrong! */
+			if(!pi->rect[size]) return; /* something has gone wrong! */
 			
 			/* preview images use premul alpha ... */
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-			icon_draw_rect(x, y, w, h, aspect, pi->w[miplevel], pi->h[miplevel], pi->rect[miplevel], 1.0f, NULL, is_preview);
+			icon_draw_rect(x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], 1.0f, NULL, is_preview);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
@@ -1024,7 +1026,7 @@ static void ui_id_brush_render(bContext *C, ID *id)
 	if(!pi)
 		return;
 	
-	for(i = 0; i < PREVIEW_MIPMAPS; i++) {
+	for(i = 0; i < NUM_ICON_SIZES; i++) {
 		/* check if rect needs to be created; changed
 		 only set by dynamic icons */
 		if((pi->changed[i] || !pi->rect[i])) {
@@ -1113,21 +1115,21 @@ int ui_id_icon_get(bContext *C, ID *id, int big)
 	return iconid;
 }
 
-static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, float alpha, int miplevel, int nocreate)
+static void icon_draw_at_size(float x, float y, int icon_id, float aspect, float alpha, enum eIconSizes size, int nocreate)
 {
-	int draw_size = preview_size(miplevel);
-	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, miplevel, draw_size, nocreate, FALSE);
+	int draw_size = get_draw_size(size);
+	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, size, draw_size, nocreate, FALSE);
 }
 
 void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect, float alpha)
 {
-	icon_draw_mipmap(x, y, icon_id, aspect, alpha, PREVIEW_MIPMAP_ZERO, 0);
+	icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, 0);
 }
 
 void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, float *rgb)
 {
-	int draw_size = preview_size(PREVIEW_MIPMAP_ZERO);
-	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, PREVIEW_MIPMAP_ZERO, draw_size, FALSE, FALSE);
+	int draw_size = get_draw_size(ICON_SIZE_ICON);
+	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, ICON_SIZE_ICON, draw_size, FALSE, FALSE);
 }
 
 void UI_icon_draw(float x, float y, int icon_id)
@@ -1137,21 +1139,21 @@ void UI_icon_draw(float x, float y, int icon_id)
 
 void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)
 {
-	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, PREVIEW_MIPMAP_ZERO, size, TRUE, FALSE);
+	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, ICON_SIZE_ICON, size, TRUE, FALSE);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id)
 {
-	icon_draw_mipmap(x, y, icon_id, 1.0f, 1.0f, PREVIEW_MIPMAP_LARGE, 0);
+	icon_draw_at_size(x, y, icon_id, 1.0f, 1.0f, ICON_SIZE_PREVIEW, 0);
 }
 
 void UI_icon_draw_preview_aspect(float x, float y, int icon_id, float aspect)
 {
-	icon_draw_mipmap(x, y, icon_id, aspect, 1.0f, PREVIEW_MIPMAP_LARGE, 0);
+	icon_draw_at_size(x, y, icon_id, aspect, 1.0f, ICON_SIZE_PREVIEW, 0);
 }
 
 void UI_icon_draw_preview_aspect_size(float x, float y, int icon_id, float aspect, int size)
 {
-	icon_draw_size(x, y, icon_id, aspect, 1.0f, NULL, PREVIEW_MIPMAP_LARGE, size, FALSE, TRUE);
+	icon_draw_size(x, y, icon_id, aspect, 1.0f, NULL, ICON_SIZE_PREVIEW, size, FALSE, TRUE);
 }
 

@@ -36,6 +36,7 @@
 
 #include "RNA_types.h"
 
+#include "BPY_extern.h"
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */

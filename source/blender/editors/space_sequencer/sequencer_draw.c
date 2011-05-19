@@ -126,6 +126,7 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 	case SEQ_OVERDROP:
 	case SEQ_GLOW:
 	case SEQ_MULTICAM:
+	case SEQ_ADJUSTMENT:
 		UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
 		
 		/* slightly offset hue to distinguish different effects */
@@ -137,6 +138,8 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 		if (seq->type == SEQ_OVERDROP)		rgb_byte_set_hue_float_offset(col,0.24);
 		if (seq->type == SEQ_GLOW)			rgb_byte_set_hue_float_offset(col,0.28);
 		if (seq->type == SEQ_TRANSFORM)		rgb_byte_set_hue_float_offset(col,0.36);
+		if (seq->type == SEQ_MULTICAM)		rgb_byte_set_hue_float_offset(col,0.32);
+		if (seq->type == SEQ_ADJUSTMENT)		rgb_byte_set_hue_float_offset(col,0.40);
 		break;
 		
 	case SEQ_COLOR:
@@ -476,7 +479,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	if(name[0]=='\0')
 		name= give_seqname(seq);
 
-	if(seq->type == SEQ_META) {
+	if(seq->type == SEQ_META || seq->type == SEQ_ADJUSTMENT) {
 		sprintf(str, "%d | %s", seq->len, name);
 	}
 	else if(seq->type == SEQ_SCENE) {

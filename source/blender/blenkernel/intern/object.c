@@ -1680,21 +1680,20 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 {
 	float rmat[3][3], dmat[3][3];
 	
-	/* initialise the delta-rotation matrix, which will get (pre)multiplied 
+	/* 'dmat' is the delta-rotation matrix, which will get (pre)multiplied
 	 * with the rotation matrix to yield the appropriate rotation
 	 */
-	unit_m3(dmat);
-	
+
 	/* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
 	if (ob->rotmode > 0) {
 		/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
-		eulO_to_mat3( rmat,ob->rot, ob->rotmode);
-		eulO_to_mat3( dmat,ob->drot, ob->rotmode);
+		eulO_to_mat3(rmat, ob->rot, ob->rotmode);
+		eulO_to_mat3(dmat, ob->drot, ob->rotmode);
 	}
 	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
 		/* axis-angle -  not really that great for 3D-changing orientations */
-		axis_angle_to_mat3( rmat,ob->rotAxis, ob->rotAngle);
-		axis_angle_to_mat3( dmat,ob->drotAxis, ob->drotAngle);
+		axis_angle_to_mat3(rmat, ob->rotAxis, ob->rotAngle);
+		axis_angle_to_mat3(dmat, ob->drotAxis, ob->drotAngle);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */
@@ -1729,9 +1728,22 @@ void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 		ob->rotAngle -= ob->drotAngle;
 		break;
 	default: /* euler */
-		if(use_compat)	mat3_to_compatible_eulO(ob->rot, ob->rot, ob->rotmode, mat);
-		else			mat3_to_eulO(ob->rot, ob->rotmode, mat);
-		sub_v3_v3(ob->rot, ob->drot);
+		{
+			float quat[4];
+			float dquat[4];
+			float tmat[3][3];
+
+			/* without drot we could apply 'mat' directly */
+			mat3_to_quat(quat, mat);
+			eulO_to_quat(dquat, ob->drot, ob->rotmode);
+			invert_qt(dquat);
+			mul_qt_qtqt(quat, dquat, quat);
+			quat_to_mat3(tmat, quat);
+			/* end drot correction */
+
+			if(use_compat)	mat3_to_compatible_eulO(ob->rot, ob->rot, ob->rotmode, tmat);
+			else			mat3_to_eulO(ob->rot, ob->rotmode, tmat);
+		}
 	}
 }
 
@@ -1923,9 +1935,10 @@ static void give_parvert(Object *par, int nr, float *vec)
 		if(dm) {
 			MVert *mvert= dm->getVertArray(dm);
 			int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-			int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
+			int i, vindex, numVerts = dm->getNumVerts(dm);
 
 			/* get the average of all verts with (original index == nr) */
+			count= 0;
 			for(i = 0; i < numVerts; i++) {
 				vindex= (index)? index[i]: i;
 

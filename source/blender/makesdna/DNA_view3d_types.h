@@ -96,10 +96,13 @@ typedef struct RegionView3D {
 	float zfac;					/* initgrabz() result */
 	float camdx, camdy;			/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float pixsize;				/* runtime only */
-	float ofs[3];				/* view center & orbit pivot, negative of worldspace location */
+	float ofs[3];				/* view center & orbit pivot, negative of worldspace location,
+								 * also matches -viewinv[3][0:3] in ortho mode.*/
 	short camzoom;
 	short twdrawflag;
-	int pad;
+	char is_persp;				/* check if persp/ortho view, since 'persp' cant be used for this since
+								 * it can have cameras assigned as well. (only set in setwinmatrixview3d) */
+	char pad[3];
 	
 	short rflag, viewlock;
 	short persp;
@@ -163,26 +166,21 @@ typedef struct View3D {
 	 * OB_SHADED or OB_TEXTURE */
 	short drawtype;
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
-	short scenelock, around, pad3;
+	short scenelock, around;
 	short flag, flag2;
 	
-	short pivot_last; /* pivot_last is for rotating around the last edited element */
-	
 	float lens, grid;
-	float gridview; /* XXX deprecated, now in RegionView3D */
 	float near, far;
 	float ofs[3];			/* XXX deprecated */
 	float cursor[3];
 
-	short gridlines, pad4;
-	short gridflag;
-	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	short modeselect;
-	short keyflags;		/* flags for display of keyframes */
-	
+	short gridlines;
+	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
+	char gridflag;
+
 	/* transform widget info */
-	short twtype, twmode, twflag;
-	short twdrawflag; /* XXX deprecated */
+	char twtype, twmode, twflag, pad2[2];
 	
 	/* afterdraw, for xray & transparent */
 	struct ListBase afterdraw_transp;
@@ -195,7 +193,7 @@ typedef struct View3D {
 	char ndofmode;			/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
 	char ndoffilter;		/* filter for 6DOF devices 0 normal, 1 dominant */
 	
-	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
+	void *properties_storage;	/* Nkey panel stores stuff here (runtime only!) */
 	
 	/* XXX depricated? */
 	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
@@ -231,10 +229,11 @@ typedef struct View3D {
 #define RV3D_BOXCLIP		4
 
 /* RegionView3d->view */
-#define RV3D_VIEW_FRONT		 1
+#define RV3D_VIEW_USER			 0
+#define RV3D_VIEW_FRONT			 1
 #define RV3D_VIEW_BACK			 2
 #define RV3D_VIEW_LEFT			 3
-#define RV3D_VIEW_RIGHT		 4
+#define RV3D_VIEW_RIGHT			 4
 #define RV3D_VIEW_TOP			 5
 #define RV3D_VIEW_BOTTOM		 6
 #define RV3D_VIEW_PERSPORTHO	 7
@@ -244,6 +243,7 @@ typedef struct View3D {
 #define V3D_RENDER_OVERRIDE		4
 #define V3D_SOLID_TEX			8
 #define V3D_DISPGP				16
+#define V3D_LOCK_CAMERA			32
 
 /* View3D->around */
 #define V3D_CENTER		 0

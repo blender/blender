@@ -1,8 +1,0 @@
-#!/usr/bin/python
-Import ('env')
-
-sources = env.Glob('intern/*.c')
-
-incs = '.  ../blenloader ../blenloader/intern ../blenkernel ../blenlib ../makesdna'
-
-env.BlenderLib ( 'bf_readblenfile', sources, Split(incs), [], libtype=['core','player'], priority = [0,5] )

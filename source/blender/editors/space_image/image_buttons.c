@@ -98,19 +98,6 @@
 
 /* proto */
 
-static void do_image_panel_events(bContext *C, void *UNUSED(arg), int event)
-{
-	SpaceImage *sima= CTX_wm_space_image(C);
-	
-	switch(event) {
-		case B_REDR:
-			break;
-	}
-
-	/* all events now */
-	WM_event_add_notifier(C, NC_IMAGE, sima->image);
-}
-
 static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, char *str)
 {
 	int ofs= 0;
@@ -281,7 +268,7 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 	rcti *disprect= &G.scene->r.disprect;
 	int winx= (G.scene->r.size*G.scene->r.xsch)/100;
 	int winy= (G.scene->r.size*G.scene->r.ysch)/100;
-	short mval[2];
+	int mval[2];
 	
 	if(G.scene->r.mode & R_BORDER) {
 		winx*= (G.scene->r.border.xmax - G.scene->r.border.xmin);

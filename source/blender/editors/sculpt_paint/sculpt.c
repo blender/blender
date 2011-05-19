@@ -2816,65 +2816,6 @@ static const char *sculpt_tool_name(Sculpt *sd)
 	}
 }
 
-/**** Radial control ****/
-static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Paint *p = paint_get_active(CTX_data_scene(C));
-	Brush *brush = paint_brush(p);
-	float col[4], tex_col[4];
-
-	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
-	p->paint_cursor = NULL;
-	brush_radial_control_invoke(op, brush, 1);
-
-	if((brush->flag & BRUSH_DIR_IN) && ELEM4(brush->sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_PINCH))
-		copy_v3_v3(col, brush->sub_col);
-	else
-		copy_v3_v3(col, brush->add_col);
-	col[3]= 0.5f;
-									    
-	copy_v3_v3(tex_col, U.sculpt_paint_overlay_col);
-	tex_col[3]= (brush->texture_overlay_alpha / 100.0f);
-
-	RNA_float_set_array(op->ptr, "color", col);
-	RNA_float_set_array(op->ptr, "texture_color", tex_col);
-
-	return WM_radial_control_invoke(C, op, event);
-}
-
-static int sculpt_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int ret = WM_radial_control_modal(C, op, event);
-	if(ret != OPERATOR_RUNNING_MODAL)
-		paint_cursor_start(C, sculpt_poll);
-	return ret;
-}
-
-static int sculpt_radial_control_exec(bContext *C, wmOperator *op)
-{
-	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->sculpt->paint);
-	int ret = brush_radial_control_exec(op, brush, 1);
-
-	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
-
-	return ret;
-}
-
-static void SCULPT_OT_radial_control(wmOperatorType *ot)
-{
-	WM_OT_radial_control_partial(ot);
-
-	ot->name= "Sculpt Radial Control";
-	ot->idname= "SCULPT_OT_radial_control";
-
-	ot->invoke= sculpt_radial_control_invoke;
-	ot->modal= sculpt_radial_control_modal;
-	ot->exec= sculpt_radial_control_exec;
-	ot->poll= sculpt_poll;
-
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-}
-
 /**** Operator for applying a stroke (various attributes including mouse path)
 	  using the current brush. ****/
 
@@ -3346,18 +3287,23 @@ static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
 	sculpt_update_tex(sd, ss);
 }
 
-static int sculpt_brush_stroke_init(bContext *C, ReportList *UNUSED(reports))
+static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
+	int mode= RNA_enum_get(op->ptr, "mode");
+	int is_smooth= 0;
 
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_init_tex(sd, ss);
 
-	sculpt_update_mesh_elements(scene, sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+	is_smooth|= mode == BRUSH_STROKE_SMOOTH;
+	is_smooth|= brush->sculpt_tool == SCULPT_TOOL_SMOOTH;
+
+	sculpt_update_mesh_elements(scene, sd, ob, is_smooth);
 
 	return 1;
 }
@@ -3573,7 +3519,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	struct PaintStroke *stroke;
 	int ignore_background_click;
 
-	if(!sculpt_brush_stroke_init(C, op->reports))
+	if(!sculpt_brush_stroke_init(C, op))
 		return OPERATOR_CANCELLED;
 
 	stroke = paint_stroke_new(C, sculpt_stroke_get_location,
@@ -3602,7 +3548,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 
 static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
-	if(!sculpt_brush_stroke_init(C, op->reports))
+	if(!sculpt_brush_stroke_init(C, op))
 		return OPERATOR_CANCELLED;
 
 	op->customdata = paint_stroke_new(C, sculpt_stroke_get_location, sculpt_stroke_test_start,
@@ -3758,7 +3704,6 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 
 void ED_operatortypes_sculpt(void)
 {
-	WM_operatortype_append(SCULPT_OT_radial_control);
 	WM_operatortype_append(SCULPT_OT_brush_stroke);
 	WM_operatortype_append(SCULPT_OT_sculptmode_toggle);
 	WM_operatortype_append(SCULPT_OT_set_persistent_base);

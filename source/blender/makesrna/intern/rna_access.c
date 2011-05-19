@@ -681,6 +681,18 @@ StructUnregisterFunc RNA_struct_unregister(StructRNA *type)
 	return NULL;
 }
 
+void **RNA_struct_instance(PointerRNA *ptr)
+{
+	StructRNA *type= ptr->type;
+
+	do {
+		if(type->instance)
+			return type->instance(ptr);
+	} while((type=type->base));
+
+	return NULL;
+}
+
 void *RNA_struct_py_type_get(StructRNA *srna)
 {
 	return srna->py_type;
@@ -1107,21 +1119,26 @@ int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, con
 {	
 	EnumPropertyItem *item, *item_array;
 	int free, found;
-	
+
 	RNA_property_enum_items(C, ptr, prop, &item_array, NULL, &free);
-	
-	for(item= item_array; item->identifier; item++) {
-		if(item->identifier[0] && strcmp(item->identifier, identifier)==0) {
-			*value = item->value;
-			break;
+
+	if(item_array) {
+		for(item= item_array; item->identifier; item++) {
+			if(item->identifier[0] && strcmp(item->identifier, identifier)==0) {
+				*value = item->value;
+				break;
+			}
+		}
+
+		found= (item->identifier != NULL); /* could be alloc'd, assign before free */
+
+		if(free) {
+			MEM_freeN(item_array);
 		}
 	}
-	
-	found= (item->identifier != NULL); /* could be alloc'd, assign before free */
-
-	if(free)
-		MEM_freeN(item_array);
-
+	else {
+		found= 0;
+	}
 	return found;
 }
 
@@ -4036,8 +4053,9 @@ int RNA_property_is_idprop(PropertyRNA *prop)
 }
 
 /* string representation of a property, python
- * compatible but can be used for display too*/
-char *RNA_pointer_as_string(PointerRNA *ptr)
+ * compatible but can be used for display too,
+ * context may be NULL */
+char *RNA_pointer_as_string(bContext *C, PointerRNA *ptr)
 {
 	DynStr *dynstr= BLI_dynstr_new();
 	char *cstring;
@@ -4057,7 +4075,7 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 			BLI_dynstr_append(dynstr, ", ");
 		first_time= 0;
 		
-		cstring = RNA_property_as_string(NULL, ptr, prop);
+		cstring = RNA_property_as_string(C, ptr, prop);
 		BLI_dynstr_appendf(dynstr, "\"%s\":%s", propname, cstring);
 		MEM_freeN(cstring);
 	}
@@ -4175,7 +4193,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 	case PROP_POINTER:
 	{
 		PointerRNA tptr= RNA_property_pointer_get(ptr, prop);
-		cstring= RNA_pointer_as_string(&tptr);
+		cstring= RNA_pointer_as_string(C, &tptr);
 		BLI_dynstr_append(dynstr, cstring);
 		MEM_freeN(cstring);
 		break;
@@ -4194,7 +4212,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 			first_time= 0;
 			
 			/* now get every prop of the collection */
-			cstring= RNA_pointer_as_string(&itemptr);
+			cstring= RNA_pointer_as_string(C, &itemptr);
 			BLI_dynstr_append(dynstr, cstring);
 			MEM_freeN(cstring);
 		}
