@@ -607,17 +607,14 @@ void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const int 
 
 	if(rv3d->is_persp) {
 		float mousevec[3];
-		float view_z[3];
-		float pt_mid[3];
-
-		window_to_3d_vector(ar, mousevec, mx, my);
-
 		copy_v3_v3(line_sta, rv3d->viewinv[3]);
-		normalize_v3_v3(view_z, rv3d->viewinv[2]);
-		add_v3_v3v3(line_end, line_sta, view_z);
-		closest_to_line_v3(pt_mid, depth_pt, line_sta, line_end);
-		mul_v3_fl(mousevec, shell_angle_to_dist(angle_normalized_v3v3(view_z, mousevec)) * len_v3v3(line_sta, pt_mid));
-		add_v3_v3v3(out, line_sta, mousevec);
+		window_to_3d_vector(ar, mousevec, mx, my);
+		add_v3_v3v3(line_end, line_sta, mousevec);
+
+		if(isect_line_plane_v3(out, line_sta, line_end, depth_pt, rv3d->viewinv[2], TRUE) == 0) {
+			/* highly unlikely to ever happen, mouse vec paralelle with view plane */
+			zero_v3(out);
+		}
 	}
 	else {
         const float dx= (2.0f * (float)mx / (float)ar->winx) - 1.0f;
