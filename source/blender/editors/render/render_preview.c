@@ -74,7 +74,9 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_texture.h"
+#include "BKE_world.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -149,9 +151,11 @@ typedef struct ShaderPreview {
 	ID *parent;
 	MTex *slot;
 	
-	/* node materials/texture need full copy during preview render, glsl uses it too */
+	/* datablocks with nodes need full copy during preview render, glsl uses it too */
 	Material *matcopy;
 	Tex *texcopy;
+	Lamp *lampcopy;
+	World *worldcopy;
 	
 	float col[4];		/* active object color */
 	
@@ -259,7 +263,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		if(id_type==ID_MA) {
 			Material *mat= NULL, *origmat= (Material *)id;
 			
-			if(id) {
+			if(origmat) {
 				/* work on a copy */
 				mat= localize_material(origmat);
 				sp->matcopy= mat;
@@ -389,7 +393,14 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			}
 		}
 		else if(id_type==ID_LA) {
-			Lamp *la= (Lamp *)id;
+			Lamp *la= NULL, *origla= (Lamp *)id;
+
+			/* work on a copy */
+			if(origla) {
+				la= localize_lamp(origla);
+				sp->lampcopy= la;
+				BLI_addtail(&pr_main->lamp, la);
+			}
 			
 			if(la && la->type==LA_SUN && (la->sun_effect_type & LA_SUN_EFFECT_SKY)) {
 				sce->lay= 1<<MA_ATMOS;
@@ -411,8 +422,16 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			}
 		}
 		else if(id_type==ID_WO) {
+			World *wrld= NULL, *origwrld= (World *)id;
+
+			if(origwrld) {
+				wrld= localize_world(origwrld);
+				sp->worldcopy= wrld;
+				BLI_addtail(&pr_main->world, wrld);
+			}
+
 			sce->lay= 1<<MA_SKY;
-			sce->world= (World *)id;
+			sce->world= wrld;
 		}
 		
 		return sce;
@@ -706,6 +725,38 @@ static void shader_preview_free(void *customdata)
 			MEM_freeN(properties);
 		}
 		MEM_freeN(sp->texcopy);
+	}
+	if(sp->worldcopy) {
+		struct IDProperty *properties;
+		/* node previews */
+		shader_preview_updatejob(sp);
+		
+		/* get rid of copied world */
+		BLI_remlink(&pr_main->world, sp->worldcopy);
+		free_world(sp->worldcopy);
+		
+		properties= IDP_GetProperties((ID *)sp->worldcopy, FALSE);
+		if (properties) {
+			IDP_FreeProperty(properties);
+			MEM_freeN(properties);
+		}
+		MEM_freeN(sp->worldcopy);
+	}
+	if(sp->lampcopy) {
+		struct IDProperty *properties;
+		/* node previews */
+		shader_preview_updatejob(sp);
+		
+		/* get rid of copied lamp */
+		BLI_remlink(&pr_main->lamp, sp->lampcopy);
+		free_lamp(sp->lampcopy);
+		
+		properties= IDP_GetProperties((ID *)sp->lampcopy, FALSE);
+		if (properties) {
+			IDP_FreeProperty(properties);
+			MEM_freeN(properties);
+		}
+		MEM_freeN(sp->lampcopy);
 	}
 	
 	MEM_freeN(sp);
