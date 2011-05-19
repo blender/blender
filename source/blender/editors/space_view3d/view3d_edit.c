@@ -1165,24 +1165,9 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 			zfac * vod->rv3d->dist < 10.0f * vod->far)
 		view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
 
-
-	if ((U.uiflag & USER_ORBIT_ZBUF) && (viewzoom==USER_ZOOM_CONT) && (vod->rv3d->persp==RV3D_PERSP)) {
-		float upvec[3], mat[3][3];
-
-		/* Secret apricot feature, translate the view when in continues mode */
-		upvec[0] = upvec[1] = 0.0f;
-		upvec[2] = (vod->dist0 - vod->rv3d->dist) * vod->grid;
-		vod->rv3d->dist = vod->dist0;
-		copy_m3_m4(mat, vod->rv3d->viewinv);
-		mul_m3_v3(mat, upvec);
-		add_v3_v3(vod->rv3d->ofs, upvec);
-	} else {
-		/* these limits were in old code too */
-		if(vod->rv3d->dist<0.001f * vod->grid) vod->rv3d->dist= 0.001f * vod->grid;
-		if(vod->rv3d->dist>10.0f * vod->far) vod->rv3d->dist=10.0f * vod->far;
-	}
-
-// XXX	if(vod->rv3d->persp==RV3D_ORTHO || vod->rv3d->persp==RV3D_CAMOB) preview3d_event= 0;
+	/* these limits were in old code too */
+	if(vod->rv3d->dist<0.001f * vod->grid) vod->rv3d->dist= 0.001f * vod->grid;
+	if(vod->rv3d->dist>10.0f * vod->far) vod->rv3d->dist=10.0f * vod->far;
 
 	if(vod->rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(vod->sa, vod->ar);
@@ -1244,6 +1229,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d;
 	ScrArea *sa;
 	ARegion *ar;
+	short use_cam_zoom;
 
 	int delta= RNA_int_get(op->ptr, "delta");
 	int mx, my;
@@ -1265,9 +1251,11 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	mx= RNA_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
 	my= RNA_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
 
+	use_cam_zoom= (rv3d->persp==RV3D_CAMOB) && !((v3d->flag2 & V3D_LOCK_CAMERA) && rv3d->is_persp);
+
 	if(delta < 0) {
 		/* this min and max is also in viewmove() */
-		if((rv3d->persp==RV3D_CAMOB) && !(v3d->flag2 & V3D_LOCK_CAMERA)) {
+		if(use_cam_zoom) {
 			rv3d->camzoom-= 10;
 			if(rv3d->camzoom < RV3D_CAMZOOM_MIN) rv3d->camzoom= RV3D_CAMZOOM_MIN;
 		}
@@ -1276,7 +1264,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		if((rv3d->persp==RV3D_CAMOB) && !(v3d->flag2 & V3D_LOCK_CAMERA)) {
+		if(use_cam_zoom) {
 			rv3d->camzoom+= 10;
 			if(rv3d->camzoom > RV3D_CAMZOOM_MAX) rv3d->camzoom= RV3D_CAMZOOM_MAX;
 		}
