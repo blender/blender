@@ -72,41 +72,6 @@ typedef struct ScreenshotData {
 	int dumpsx, dumpsy;
 } ScreenshotData;
 
-static int screenshot_exec(bContext *C, wmOperator *op)
-{
-	ScreenshotData *scd= op->customdata;
-	
-	if(scd) {
-		if(scd->dumprect) {
-			Scene *scene= CTX_data_scene(C);
-			ImBuf *ibuf;
-			char path[FILE_MAX];
-		
-			RNA_string_get(op->ptr, "filepath", path);
-		
-			strcpy(G.ima, path);
-			BLI_path_abs(path, G.main->name);
-			
-			/* BKE_add_image_extension() checks for if extension was already set */
-			if(scene->r.scemode & R_EXTENSION) 
-				if(strlen(path)<FILE_MAXDIR+FILE_MAXFILE-5)
-					BKE_add_image_extension(path, scene->r.imtype);
-			
-			ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
-			ibuf->rect= scd->dumprect;
-			
-			BKE_write_ibuf(ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality);
-
-			IMB_freeImBuf(ibuf);
-
-			MEM_freeN(scd->dumprect);
-		}
-		MEM_freeN(scd);
-		op->customdata= NULL;
-	}
-	return OPERATOR_FINISHED;
-}
-
 /* get shot from frontbuffer */
 static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy, int fscreen)
 {
@@ -140,8 +105,8 @@ static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy, int fscre
 	return dumprect;
 }
 
-
-static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+/* call from both exec and invoke */
+static int screenshot_data_create(bContext *C, wmOperator *op)
 {
 	unsigned int *dumprect;
 	int dumpsx, dumpsy;
@@ -154,7 +119,68 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 		scd->dumpsy= dumpsy;
 		scd->dumprect= dumprect;
 		op->customdata= scd;
-		
+		return TRUE;
+	}
+	else {
+		op->customdata= NULL;
+		return FALSE;
+	}
+}
+
+static void screenshot_data_free(wmOperator *op)
+{
+	ScreenshotData *scd= op->customdata;
+
+	if(scd) {
+		if(scd->dumprect)
+			MEM_freeN(scd->dumprect);
+		MEM_freeN(scd);
+		op->customdata= NULL;
+	}
+}
+
+static int screenshot_exec(bContext *C, wmOperator *op)
+{
+	ScreenshotData *scd= op->customdata;
+
+	if(scd == NULL) {
+		/* when running exec directly */
+		screenshot_data_create(C, op);
+		scd= op->customdata;
+	}
+
+	if(scd) {
+		if(scd->dumprect) {
+			Scene *scene= CTX_data_scene(C);
+			ImBuf *ibuf;
+			char path[FILE_MAX];
+
+			RNA_string_get(op->ptr, "filepath", path);
+
+			strcpy(G.ima, path);
+			BLI_path_abs(path, G.main->name);
+
+			/* BKE_add_image_extension() checks for if extension was already set */
+			if(scene->r.scemode & R_EXTENSION)
+				if(strlen(path)<FILE_MAXDIR+FILE_MAXFILE-5)
+					BKE_add_image_extension(path, scene->r.imtype);
+
+			ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
+			ibuf->rect= scd->dumprect;
+
+			BKE_write_ibuf(ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+
+			IMB_freeImBuf(ibuf);
+		}
+	}
+
+	screenshot_data_free(op);
+	return OPERATOR_FINISHED;
+}
+
+static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	if(screenshot_data_create(C, op)) {
 		if(RNA_property_is_set(op->ptr, "filepath"))
 			return screenshot_exec(C, op);
 		
@@ -169,14 +195,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 
 static int screenshot_cancel(bContext *UNUSED(C), wmOperator *op)
 {
-	ScreenshotData *scd= op->customdata;
-
-	if(scd) {
-		if(scd->dumprect)
-			MEM_freeN(scd->dumprect);
-		MEM_freeN(scd);
-		op->customdata= NULL;
-	}
+	screenshot_data_free(op);
 	return OPERATOR_CANCELLED;
 }
 
