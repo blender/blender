@@ -5534,10 +5534,6 @@ static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *men
 	int closer;
 
 	if(!menu->dotowards) return 0;
-	if((block->direction & UI_TOP) || (block->direction & UI_DOWN)) {
-		menu->dotowards= 0;
-		return menu->dotowards;
-	}
 
 	/* verify that we are moving towards one of the edges of the
 	 * menu block, in other words, in the triangle formed by the
