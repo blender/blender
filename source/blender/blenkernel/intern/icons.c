@@ -132,18 +132,26 @@ struct PreviewImage* BKE_previewimg_create(void)
 	return prv_img;
 }
 
+void BKE_previewimg_freefunc(void *link)
+{
+	PreviewImage *prv = (PreviewImage *)link;
+	if (prv) {
+		int i;
+
+		for (i=0; i<NUM_ICON_SIZES;++i) {
+			if (prv->rect[i]) {
+				MEM_freeN(prv->rect[i]);
+				prv->rect[i] = NULL;
+			}
+		}
+		MEM_freeN(prv);
+	}
+}
+
 void BKE_previewimg_free(PreviewImage **prv)
 {
 	if(prv && (*prv)) {
-		int i;
-		
-		for (i=0; i<NUM_ICON_SIZES;++i) {
-			if ((*prv)->rect[i]) {
-				MEM_freeN((*prv)->rect[i]);
-				(*prv)->rect[i] = NULL;
-			}
-		}
-		MEM_freeN((*prv));
+		BKE_previewimg_freefunc(*prv);
 		*prv = NULL;
 	}
 }

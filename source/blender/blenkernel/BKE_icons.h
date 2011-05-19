@@ -52,6 +52,7 @@ struct Icon
 typedef struct Icon Icon;
 
 struct PreviewImage;
+struct ID;
 
 void BKE_icons_init(int first_dyn_id);
 
@@ -74,11 +75,14 @@ void BKE_icon_changed(int icon_id);
 /* free all icons */
 void BKE_icons_free(void);
 
+/* free the preview image for use in list */
+void BKE_previewimg_freefunc(void *link);
+
 /* free the preview image */
 void BKE_previewimg_free(struct PreviewImage **prv);
 
 /* free the preview image belonging to the id */
-void BKE_previewimg_free_id(ID *id);
+void BKE_previewimg_free_id(struct ID *id);
 
 /* create a new preview image */
 struct PreviewImage* BKE_previewimg_create(void) ;
@@ -87,6 +91,6 @@ struct PreviewImage* BKE_previewimg_create(void) ;
 struct PreviewImage* BKE_previewimg_copy(struct PreviewImage *prv);
 
 /* retrieve existing or create new preview image */
-PreviewImage* BKE_previewimg_get(ID *id);
+struct PreviewImage* BKE_previewimg_get(struct ID *id);
 
 #endif /*  BKE_ICONS_H */

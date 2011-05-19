@@ -4169,7 +4169,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	bActuator *act;
 	int a;
 	
-	/* weak weak... this was only meant as draw flag, now is used in give_base too */
+	/* weak weak... this was only meant as draw flag, now is used in give_base_to_objects too */
 	ob->flag &= ~OB_FROMGROUP;
 
 	/* loading saved files with editmode enabled works, but for undo we like
@@ -12789,12 +12789,22 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 				
 				int do_it= 0;
 				
-				if(ob->id.us==0)
+				if(ob->id.us==0) {
 					do_it= 1;
-				else if(ob->id.us==1 && lib)
-					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0)
+				}
+				else if (lib==NULL) { /* appending */
+					if(object_in_any_scene(mainvar, ob)==0) {
+						/* when appending, make sure any indirectly loaded objects
+						 * get a base else they cant be accessed at all [#27437] */
 						do_it= 1;
-						
+					}
+				}
+				else if(ob->id.us==1 && lib) {
+					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0) {
+						do_it= 1;
+					}
+				}
+
 				if(do_it) {
 					base= MEM_callocN( sizeof(Base), "add_ext_base");
 					BLI_addtail(&(sce->base), base);
@@ -13064,6 +13074,9 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 			give_base_to_objects(mainvar, scene, NULL, 0);
 		}
 	}
+	else {
+		printf("library_append_end, scene is NULL (objects wont get bases)\n");
+	}
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
 	/* 20041208: put back. It only linked direct, not indirect objects (ton) */
@@ -13082,6 +13095,11 @@ void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle**
 	FileData *fd= (FileData*)(*bh);
 	library_append_end(C, mainl, &fd, idcode, flag);
 	*bh= (BlendHandle*)fd;
+}
+
+void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)
+{
+	return read_struct(fd, bh, blockname);
 }
 
 /* ************* READ LIBRARY ************** */

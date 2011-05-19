@@ -148,15 +148,14 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 	LinkNode *previews= NULL;
 	BHead *bhead;
 	int looking=0;
-	int npreviews = 0;
 	PreviewImage* prv = NULL;
 	PreviewImage* new_prv = NULL;
 	int tot= 0;
 	
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code==ofblocktype) {
-			ID *id= (ID*) (bhead+1);
-			switch(GS(id->name))
+			char *idname= bhead_id_name(fd, bhead);
+			switch(GS(idname))
 			{
 				case ID_MA: /* fall through */
 				case ID_TE: /* fall through */
@@ -174,31 +173,29 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 		} else if (bhead->code==DATA) {
 			if (looking) {
 				if (bhead->SDNAnr == DNA_struct_find_nr(fd->filesdna, "PreviewImage") ) {
-					prv = (PreviewImage*) (bhead+1);
-					npreviews = 0;				
-					memcpy(new_prv, prv, sizeof(PreviewImage));
-					if (prv->rect[0]) {
-						unsigned int *rect = NULL;
-						// int rectlen = 0;
-						new_prv->rect[0] = MEM_callocN(new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int), "prvrect");
-						bhead= blo_nextbhead(fd, bhead);
-						rect = (unsigned int*)(bhead+1);
-						// rectlen = new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int);
-						memcpy(new_prv->rect[0], rect, bhead->len);					
-					} else {
-						new_prv->rect[0] = NULL;
-					}
-					
-					if (prv->rect[1]) {
-						unsigned int *rect = NULL;
-						// int rectlen = 0;
-						new_prv->rect[1] = MEM_callocN(new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int), "prvrect");
-						bhead= blo_nextbhead(fd, bhead);
-						rect = (unsigned int*)(bhead+1);
-						// rectlen = new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int);
-						memcpy(new_prv->rect[1], rect, bhead->len);							
-					} else {
-						new_prv->rect[1] = NULL;
+					prv = BLO_library_read_struct(fd, bhead, "PreviewImage");	
+					if (prv) {
+						memcpy(new_prv, prv, sizeof(PreviewImage));
+						if (prv->rect[0]) {
+							unsigned int *rect = NULL;
+							new_prv->rect[0] = MEM_callocN(new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int), "prvrect");
+							bhead= blo_nextbhead(fd, bhead);
+							rect = (unsigned int*)(bhead+1);
+							memcpy(new_prv->rect[0], rect, bhead->len);					
+						} else {
+							new_prv->rect[0] = NULL;
+						}
+						
+						if (prv->rect[1]) {
+							unsigned int *rect = NULL;
+							new_prv->rect[1] = MEM_callocN(new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int), "prvrect");
+							bhead= blo_nextbhead(fd, bhead);
+							rect = (unsigned int*)(bhead+1);
+							memcpy(new_prv->rect[1], rect, bhead->len);							
+						} else {
+							new_prv->rect[1] = NULL;
+						}
+						MEM_freeN(prv);
 					}
 				}
 			}

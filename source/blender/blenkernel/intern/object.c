@@ -871,7 +871,8 @@ Lamp *copy_lamp(Lamp *la)
 	if(la->nodetree)
 		lan->nodetree= ntreeCopyTree(la->nodetree);
 	
-	if (la->preview) lan->preview = BKE_previewimg_copy(la->preview);
+	if(la->preview)
+		lan->preview = BKE_previewimg_copy(la->preview);
 	
 	return lan;
 }

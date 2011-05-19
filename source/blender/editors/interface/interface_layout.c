@@ -419,7 +419,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		}
 	}
 	else if(subtype == PROP_DIRECTION) {
-		uiDefButR(block, BUT_NORMAL, 0, name, x, y, 100, 100, ptr, RNA_property_identifier(prop), 0, 0, 0, -1, -1, NULL);
+		uiDefButR(block, BUT_NORMAL, 0, name, x, y, UI_UNIT_X*3, UI_UNIT_Y*3, ptr, RNA_property_identifier(prop), 0, 0, 0, -1, -1, NULL);
 	}
 	else {
 		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)

@@ -49,6 +49,8 @@ struct SpaceFile;
 struct SpaceImaSel;
 struct UserDef;
 struct bContext;
+struct BHead;
+struct FileData;
 
 typedef struct BlendHandle	BlendHandle;
 
@@ -224,6 +226,8 @@ struct Main* BLO_library_append_begin(const struct bContext *C, BlendHandle** bh
  */
 int BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag);
 void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag);
+
+void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
 /* deprecated */
 #if 1
