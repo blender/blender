@@ -19,17 +19,6 @@
 # <pep8 compliant>
 
 
-def _is_persp_matrix(persmat, eps=0.00001):
-    """
-    crummy way to check if its a perspective matrix
-    """
-    return not (
-            abs(persmat[0][3]) < eps and \
-            abs(persmat[1][3]) < eps and \
-            abs(persmat[2][3]) < eps and \
-            abs(persmat[3][3] - 1.0) < eps)
-
-
 def region_2d_to_vector_3d(region, rv3d, coord):
     """
     Return a direction vector from the viewport at the spesific 2d region
@@ -47,13 +36,13 @@ def region_2d_to_vector_3d(region, rv3d, coord):
     """
     from mathutils import Vector
 
-    persmat = rv3d.perspective_matrix.copy()
     viewvec = rv3d.view_matrix.inverted()[2].xyz.normalized()
 
-    if _is_persp_matrix(persmat):
+    if rv3d.is_perspective:
         dx = (2.0 * coord[0] / region.width) - 1.0
         dy = (2.0 * coord[1] / region.height) - 1.0
-        
+
+        persmat = rv3d.perspective_matrix.copy()
         perspinv_x, perspinv_y = persmat.inverted().to_3x3()[0:2]
         return ((perspinv_x * dx + perspinv_y * dy) - viewvec).normalized()
     else:
@@ -78,22 +67,28 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
     :return: normalized 3d vector.
     :rtype: :class:`Vector`
     """
+    from mathutils import Vector
     from mathutils.geometry import intersect_point_line
 
     persmat = rv3d.perspective_matrix.copy()
+    coord_vec = region_2d_to_vector_3d(region, rv3d, coord)
+    depth_location = Vector(depth_location)
 
-    if _is_persp_matrix(persmat):
+    if rv3d.is_perspective:
+        from mathutils.geometry import intersect_line_plane
+
         origin_start = rv3d.view_matrix.inverted()[3].to_3d()
+        origin_end = origin_start + coord_vec
+        view_vec = rv3d.view_matrix.inverted()[2]
+        return intersect_line_plane(origin_start, origin_end, depth_location, view_vec, 1)
     else:
         dx = (2.0 * coord[0] / region.width) - 1.0
         dy = (2.0 * coord[1] / region.height) - 1.0
         persinv = persmat.inverted()
         viewinv = rv3d.view_matrix.inverted()
         origin_start = (persinv[0].xyz * dx) + (persinv[1].xyz * dy) + viewinv[3].xyz
-
-    origin_end = origin_start + region_2d_to_vector_3d(region, rv3d, coord)
-    
-    return intersect_point_line(depth_location, origin_start, origin_end)[0]
+        origin_end = origin_start + coord_vec
+        return intersect_point_line(depth_location, origin_start, origin_end)[0]
 
 
 def location_3d_to_region_2d(region, rv3d, coord):
