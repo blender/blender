@@ -379,7 +379,9 @@ def preset_find(name, preset_path, display_name=False):
 def keyconfig_set(filepath):
     from os.path import basename, splitext
 
-    print("loading preset:", filepath)
+    if _bpy.app.debug:
+        print("loading preset:", filepath)
+
     keyconfigs = _bpy.context.window_manager.keyconfigs
 
     keyconfigs_old = keyconfigs[:]
