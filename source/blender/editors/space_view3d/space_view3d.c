@@ -70,16 +70,13 @@
 ARegion *view3d_has_buttons_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
-	
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
-		if(ar->regiontype==RGN_TYPE_UI)
-			return ar;
+
+	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
+	if(ar) return ar;
 	
 	/* add subdiv level; after header */
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
-		if(ar->regiontype==RGN_TYPE_HEADER)
-			break;
-	
+	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+
 	/* is error! */
 	if(ar==NULL) return NULL;
 	
@@ -147,10 +144,10 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 	if(rv3d==NULL) {
 		ScrArea *sa =CTX_wm_area(C);
 		if(sa && sa->spacetype==SPACE_VIEW3D) {
-			ARegion *ar;
-			for(ar= sa->regionbase.first; ar; ar= ar->next)
-				if(ar->regiontype==RGN_TYPE_WINDOW)
-					return ar->regiondata;
+			ARegion *ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+			if(ar) {
+				rv3d= ar->regiondata;
+			}
 		}
 	}
 	return rv3d;

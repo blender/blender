@@ -2561,16 +2561,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	if(v3d->lay_used != lay_used) { /* happens when loading old files or loading with UI load */
-		ARegion *ar_iter;
-		ScrArea *sa= CTX_wm_area(C);
-
 		/* find header and force tag redraw */
-		for(ar_iter= sa->regionbase.first; ar_iter; ar_iter= ar_iter->next)
-			if(ar_iter->regiontype==RGN_TYPE_HEADER) {
-				ED_region_tag_redraw(ar_iter);
-				break;
-			}
-
+		ScrArea *sa= CTX_wm_area(C);
+		ARegion *ar_header= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+		ED_region_tag_redraw(ar_header); /* can be NULL */
 		v3d->lay_used= lay_used;
 	}
 

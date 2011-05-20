@@ -2616,13 +2616,8 @@ static int header_flip_exec(bContext *C, wmOperator *UNUSED(op))
 	 */
 	if((ar == NULL) || (ar->regiontype != RGN_TYPE_HEADER)) {
 		ScrArea *sa= CTX_wm_area(C);
-		
-		/* loop over all regions until a matching one is found */
-		for (ar= sa->regionbase.first; ar; ar= ar->next) {
-			if(ar->regiontype == RGN_TYPE_HEADER)
-				break;
-		}
-		
+		ARegion *ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+
 		/* don't do anything if no region */
 		if(ar == NULL)
 			return OPERATOR_CANCELLED;
