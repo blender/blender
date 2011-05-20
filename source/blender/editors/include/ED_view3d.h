@@ -104,10 +104,10 @@ void project_int_noclip(struct ARegion *ar, const float vec[3], int adr[2]);
 void project_float(struct ARegion *ar, const float vec[3], float adr[2]);
 void project_float_noclip(struct ARegion *ar, const float vec[3], float adr[2]);
 
-void viewvector(struct RegionView3D *rv3d, float coord[3], float vec[3]);
+void viewvector(struct RegionView3D *rv3d, const float coord[3], float vec[3]);
 
-void viewline(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_end[3]);
-void viewray(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_normal[3]);
+void viewline(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
+void viewray(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3]);
 
 void get_object_clip_range(struct Object *ob, float *lens, float *clipsta, float *clipend);
 int get_view3d_cliprange(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
@@ -198,8 +198,4 @@ void ED_view3d_camera_lock_init(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the view to the camera */
 void ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
 
-int view3d_is_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
-
-
 #endif /* ED_VIEW3D_H */
-

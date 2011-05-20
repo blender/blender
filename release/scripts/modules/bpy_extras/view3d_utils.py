@@ -36,17 +36,19 @@ def region_2d_to_vector_3d(region, rv3d, coord):
     """
     from mathutils import Vector
 
-    viewvec = rv3d.view_matrix.inverted()[2].xyz.normalized()
-
     if rv3d.is_perspective:
-        dx = (2.0 * coord[0] / region.width) - 1.0
-        dy = (2.0 * coord[1] / region.height) - 1.0
+        persinv = rv3d.perspective_matrix.inverted()
 
-        persmat = rv3d.perspective_matrix.copy()
-        perspinv_x, perspinv_y = persmat.inverted().to_3x3()[0:2]
-        return ((perspinv_x * dx + perspinv_y * dy) - viewvec).normalized()
+        out = Vector(((2.0 * coord[0] / region.width) - 1.0,
+                      (2.0 * coord[1] / region.height) - 1.0,
+                      -0.5
+                    ))        
+
+        w = (out[0] * persinv[0][3]) + (out[1] * persinv[1][3]) + (out[2] * persinv[2][3]) + persinv[3][3]
+        
+        return ((out * persinv) / w) - rv3d.view_matrix.inverted()[3].xyz
     else:
-        return viewvec
+        return rv3d.view_matrix.inverted()[2].xyz.normalized()
 
 
 def region_2d_to_location_3d(region, rv3d, coord, depth_location):

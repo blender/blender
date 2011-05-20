@@ -419,7 +419,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	/* for dolly */
-	window_to_3d_vector(vod->ar, vod->mousevec, vod->oldx - vod->ar->winrct.xmin, vod->oldy - vod->ar->winrct.ymin);
+	window_to_3d_vector(vod->ar, vod->mousevec, event->mval[0], event->mval[1]);
 
 	/* lookup, we dont pass on v3d to prevent confusement */
 	vod->grid= vod->v3d->grid;
