@@ -2829,7 +2829,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 
 		if(depth_used==0) {
 			float mval_f[2];
-			VECSUB(mval_f, mval, event->mval);
+			VECSUB2D(mval_f, mval, event->mval);
 			ED_view3d_win_to_delta(ar, mval_f, dvec);
 			sub_v3_v3(fp, dvec);
 		}
