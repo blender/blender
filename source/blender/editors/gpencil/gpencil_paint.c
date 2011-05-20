@@ -239,7 +239,7 @@ static short gp_stroke_filtermval (tGPsdata *p, const int mval[2], int pmval[2])
 
 /* convert screen-coordinates to buffer-coordinates */
 // XXX this method needs a total overhaul!
-static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], float *depth)
+static void gp_stroke_convertcoords (tGPsdata *p, const int mval[2], float out[3], float *depth)
 {
 	bGPdata *gpd= p->gpd;
 	
@@ -251,10 +251,10 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 			 */
 		}
 		else {
-			const int mx=mval[0], my=mval[1];
+			int mval_prj[2];
 			float rvec[3], dvec[3];
 			float mval_f[2];
-			
+
 			/* Current method just converts each point in screen-coordinates to
 			 * 3D-coordinates using the 3D-cursor as reference. In general, this
 			 * works OK, but it could of course be improved.
@@ -267,10 +267,9 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 			gp_get_3d_reference(p, rvec);
 			
 			/* method taken from editview.c - mouse_cursor() */
-			project_int_noclip(p->ar, rvec, mval);
+			project_int_noclip(p->ar, rvec, mval_prj);
 
-			mval_f[0]= mval[0] - mx;
-			mval_f[0]= mval[1] - my;
+			VECSUB2D(mval_f, mval_prj, mval);
 			ED_view3d_win_to_delta(p->ar, mval_f, dvec);
 			sub_v3_v3v3(out, rvec, dvec);
 		}
@@ -278,12 +277,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 	
 	/* 2d - on 'canvas' (assume that p->v2d is set) */
 	else if ((gpd->sbuffer_sflag & GP_STROKE_2DSPACE) && (p->v2d)) {
-		float x, y;
-		
-		UI_view2d_region_to_view(p->v2d, mval[0], mval[1], &x, &y);
-		
-		out[0]= x;
-		out[1]= y;
+		UI_view2d_region_to_view(p->v2d, mval[0], mval[1], &out[0], &out[1]);
 	}
 	
 #if 0

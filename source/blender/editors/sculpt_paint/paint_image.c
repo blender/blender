@@ -3975,7 +3975,7 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), float *lastpos, f
 }
 
 
-static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, int *UNUSED(prevmval_i), int *mval_i, double time, float pressure)
+static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, const int UNUSED(prevmval_i[2]), const int mval_i[2], double time, float pressure)
 {
 	
 	/* Use mouse coords as floats for projection painting */
@@ -3994,7 +3994,7 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, i
 }
 
 
-static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, int *prevmval_i, int *mval_i, double time, float pressure)
+static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, const int prevmval_i[2], const int mval_i[2], double time, float pressure)
 {
 	int a, redraw;
 	
@@ -4417,7 +4417,7 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	else return 0;
 }
 
-static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPainter *painter, short texpaint, int *prevmval, int *mval, double time, float pressure)
+static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPainter *painter, short texpaint, const int prevmval[2], const int mval[2], double time, float pressure)
 {
 	Image *newimage = NULL;
 	float fwuv[2], bkuv[2], newuv[2];

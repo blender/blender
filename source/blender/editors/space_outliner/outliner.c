@@ -2482,7 +2482,7 @@ static int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 	return 0;
 }
 
-static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int extend, float *mval)
+static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int extend, const float mval[2])
 {
 	
 	if(mval[1]>te->ys && mval[1]<te->ys+OL_H) {
@@ -2628,7 +2628,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 
 /* *********** */
 
-static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement *te, int all, float *mval)
+static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement *te, int all, const float mval[2])
 {
 	
 	if(mval[1]>te->ys && mval[1]<te->ys+OL_H) {
@@ -2693,7 +2693,7 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 
 /* ********************************************** */
 
-static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, TreeElement *te, float *mval)
+static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, TreeElement *te, const float mval[2])
 {
 	
 	if(mval[1]>te->ys && mval[1]<te->ys+OL_H) {
@@ -3728,7 +3728,7 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 /* ******************** */
 
 
-static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, wmEvent *event, float *mval)
+static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, wmEvent *event, const float mval[2])
 {
 	
 	if(mval[1]>te->ys && mval[1]<te->ys+OL_H) {
