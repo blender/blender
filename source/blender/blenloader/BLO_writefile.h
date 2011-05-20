@@ -39,7 +39,7 @@ struct MemFile;
 struct Main;
 struct ReportList;
 
-extern int BLO_write_file(struct Main *mainvar, char *dir, int write_flags, struct ReportList *reports, int *thumb);
+extern int BLO_write_file(struct Main *mainvar, const char *filepath, int write_flags, struct ReportList *reports, int *thumb);
 extern int BLO_write_file_mem(struct Main *mainvar, struct MemFile *compare, struct MemFile *current, int write_flags);
 extern int BLO_write_runtime(struct Main *mainvar, const char *file, char *exename, struct ReportList *reports);
 

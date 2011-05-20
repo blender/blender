@@ -578,9 +578,8 @@ void ANIM_keyingset_info_register (KeyingSetInfo *ksi)
 }
 
 /* Remove the given KeyingSetInfo from the list of type infos, and also remove the builtin set if appropriate */
-void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
+void ANIM_keyingset_info_unregister (Main *bmain, KeyingSetInfo *ksi)
 {
-	Main *bmain= CTX_data_main(C);
 	KeyingSet *ks, *ksn;
 	
 	/* find relevant builtin KeyingSets which use this, and remove them */

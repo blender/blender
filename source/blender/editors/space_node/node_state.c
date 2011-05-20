@@ -201,14 +201,8 @@ static int node_toggle_visibility_exec(bContext *C, wmOperator *op)
 
 static int node_toggle_visibility_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	int mval[2];	
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
-	
-	RNA_int_set(op->ptr, "mouse_x", mval[0]);
-	RNA_int_set(op->ptr, "mouse_y", mval[1]);
+	RNA_int_set(op->ptr, "mouse_x", event->mval[0]);
+	RNA_int_set(op->ptr, "mouse_y", event->mval[1]);
 
 	return node_toggle_visibility_exec(C,op);
 }

@@ -977,16 +977,22 @@ static float give_stripelem_index(Sequence *seq, float cfra)
 	int sta = seq->start;
 	int end = seq->start+seq->len-1;
 
-	if(seq->len == 0) return -1;
+	if (seq->type & SEQ_EFFECT) {
+		end = seq->enddisp;
+	} 
+
+	if(end < sta) {
+		return -1;
+	}
 
 	if(seq->flag&SEQ_REVERSE_FRAMES) {	
 		/*reverse frame in this sequence */
-		if(cfra <= sta) nr= seq->len-1;
+		if(cfra <= sta) nr= end - sta;
 		else if(cfra >= end) nr= 0;
 		else nr= end - cfra;
 	} else {
 		if(cfra <= sta) nr= 0;
-		else if(cfra >= end) nr= seq->len-1;
+		else if(cfra >= end) nr= end - sta;
 		else nr= cfra - sta;
 	}
 	
@@ -2036,8 +2042,9 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 			break;
 		}
 		case SEQ_EFFECT:
-		{	
-			ibuf = seq_render_effect_strip_impl(context, seq, cfra);
+		{
+			ibuf = seq_render_effect_strip_impl(
+				context, seq, seq->start + nr);
 			break;
 		}
 		case SEQ_IMAGE:

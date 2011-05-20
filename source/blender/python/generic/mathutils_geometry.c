@@ -497,6 +497,60 @@ static PyObject *M_Geometry_intersect_line_line_2d(PyObject *UNUSED(self), PyObj
 }
 
 
+static char M_Geometry_intersect_line_plane_doc[] =
+".. function:: intersect_line_plane(line_a, line_b, plane_co, plane_no, no_flip=False)\n"
+"\n"
+"   Takes 2 lines (as 4 vectors) and returns a vector for their point of intersection or None.\n"
+"\n"
+"   :arg line_a: First point of the first line\n"
+"   :type line_a: :class:`mathutils.Vector`\n"
+"   :arg line_b: Second point of the first line\n"
+"   :type line_b: :class:`mathutils.Vector`\n"
+"   :arg plane_co: A point on the plane\n"
+"   :type plane_co: :class:`mathutils.Vector`\n"
+"   :arg plane_no: The direction the plane is facing\n"
+"   :type plane_no: :class:`mathutils.Vector`\n"
+"   :arg no_flip: Always return an intersection on the directon defined bt line_a -> line_b\n"
+"   :type no_flip: :boolean\n"
+"   :return: The point of intersection or None when not found\n"
+"   :rtype: :class:`mathutils.Vector` or None\n"
+;
+static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObject* args)
+{
+	VectorObject *line_a, *line_b, *plane_co, *plane_no;
+	int no_flip= 0;
+	float isect[3];
+	if(!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_line_line_2d",
+	  &vector_Type, &line_a,
+	  &vector_Type, &line_b,
+	  &vector_Type, &plane_co,
+	  &vector_Type, &plane_no,
+	  &no_flip)
+	) {
+		return NULL;
+	}
+
+	if(		BaseMath_ReadCallback(line_a) == -1 ||
+	        BaseMath_ReadCallback(line_b) == -1 ||
+	        BaseMath_ReadCallback(plane_co) == -1 ||
+	        BaseMath_ReadCallback(plane_no) == -1
+	) {
+		return NULL;
+	}
+
+	if(ELEM4(2, line_a->size, line_b->size, plane_co->size, plane_no->size)) {
+		PyErr_SetString(PyExc_RuntimeError, "geometry.intersect_line_plane(...) can't use 2D Vectors");
+		return NULL;
+	}
+
+	if(isect_line_plane_v3(isect, line_a->vec, line_b->vec, plane_co->vec, plane_no->vec, no_flip) == 1) {
+		return newVectorObject(isect, 3, Py_NEW, NULL);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
 static char M_Geometry_intersect_point_line_doc[] =
 ".. function:: intersect_point_line(pt, line_p1, line_p2)\n"
 "\n"
@@ -860,6 +914,7 @@ static PyMethodDef M_Geometry_methods[]= {
 	{"intersect_point_quad_2d", (PyCFunction) M_Geometry_intersect_point_quad_2d, METH_VARARGS, M_Geometry_intersect_point_quad_2d_doc},
 	{"intersect_line_line", (PyCFunction) M_Geometry_intersect_line_line, METH_VARARGS, M_Geometry_intersect_line_line_doc},
 	{"intersect_line_line_2d", (PyCFunction) M_Geometry_intersect_line_line_2d, METH_VARARGS, M_Geometry_intersect_line_line_2d_doc},
+	{"intersect_line_plane", (PyCFunction) M_Geometry_intersect_line_plane, METH_VARARGS, M_Geometry_intersect_line_plane_doc},
 	{"interpolate_bezier", (PyCFunction) M_Geometry_interpolate_bezier, METH_VARARGS, M_Geometry_interpolate_bezier_doc},
 	{"area_tri", (PyCFunction) M_Geometry_area_tri, METH_VARARGS, M_Geometry_area_tri_doc},
 	{"normal", (PyCFunction) M_Geometry_normal, METH_VARARGS, M_Geometry_normal_doc},

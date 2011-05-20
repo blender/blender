@@ -817,16 +817,10 @@ static int graphkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEve
 		Scene *scene= ac.scene;
 		ARegion *ar= ac.ar;
 		View2D *v2d= &ar->v2d;
-		
-		int mval[2];
 		float x;
-		
-		/* get mouse coordinates (in region coordinates) */
-		mval[0]= (event->x - ar->winrct.xmin);
-		mval[1]= (event->y - ar->winrct.ymin);
-		
+
 		/* determine which side of the current frame mouse is on */
-		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 		if (x < CFRA)
 			RNA_int_set(op->ptr, "mode", GRAPHKEYS_LRSEL_LEFT);
 		else 	
@@ -905,7 +899,7 @@ static int fcurve_handle_sel_check(SpaceIpo *sipo, BezTriple *bezt)
 
 /* check if the given vertex is within bounds or not */
 // TODO: should we return if we hit something?
-static void nearest_fcurve_vert_store (ListBase *matches, View2D *v2d, FCurve *fcu, BezTriple *bezt, FPoint *fpt, short hpoint, int mval[2])
+static void nearest_fcurve_vert_store (ListBase *matches, View2D *v2d, FCurve *fcu, BezTriple *bezt, FPoint *fpt, short hpoint, const int mval[2])
 {
 	/* Keyframes or Samples? */
 	if (bezt) {
@@ -957,7 +951,7 @@ static void nearest_fcurve_vert_store (ListBase *matches, View2D *v2d, FCurve *f
 } 
 
 /* helper for find_nearest_fcurve_vert() - build the list of nearest matches */
-static void get_nearest_fcurve_verts_list (bAnimContext *ac, int mval[2], ListBase *matches)
+static void get_nearest_fcurve_verts_list (bAnimContext *ac, const int mval[2], ListBase *matches)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -1074,7 +1068,7 @@ static tNearestVertInfo *get_best_nearest_fcurve_vert (ListBase *matches)
 /* Find the nearest vertices (either a handle or the keyframe) that are nearest to the mouse cursor (in area coordinates) 
  * NOTE: the match info found must still be freed 
  */
-static tNearestVertInfo *find_nearest_fcurve_vert (bAnimContext *ac, int mval[2])
+static tNearestVertInfo *find_nearest_fcurve_vert (bAnimContext *ac, const int mval[2])
 {
 	ListBase matches = {NULL, NULL};
 	tNearestVertInfo *nvi;
@@ -1094,7 +1088,7 @@ static tNearestVertInfo *find_nearest_fcurve_vert (bAnimContext *ac, int mval[2]
 /* ------------------- */
 
 /* option 1) select keyframe directly under mouse */
-static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, short curves_only)
+static void mouse_graph_keys (bAnimContext *ac, const int mval[2], short select_mode, short curves_only)
 {
 	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
 	tNearestVertInfo *nvi;
@@ -1217,7 +1211,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 /* (see graphkeys_select_leftright) */
 
 /* Option 3) Selects all visible keyframes in the same frame as the mouse click */
-static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short select_mode)
+static void graphkeys_mselect_column (bAnimContext *ac, const int mval[2], short select_mode)
 {
 	ListBase anim_data= {NULL, NULL};
 	bAnimListElem *ale;
@@ -1299,19 +1293,14 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	bAnimContext ac;
 	ARegion *ar;
 	short selectmode;
-	int mval[2];
-	
+
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
 	/* get useful pointers from animation context data */
 	ar= ac.ar;
-	
-	/* get mouse coordinates (in region coordinates) */
-	mval[0]= (event->x - ar->winrct.xmin);
-	mval[1]= (event->y - ar->winrct.ymin);
-	
+
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend"))
 		selectmode= SELECT_INVERT;
@@ -1321,15 +1310,15 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	/* figure out action to take */
 	if (RNA_boolean_get(op->ptr, "column")) {
 		/* select all keyframes in the same frame as the one that was under the mouse */
-		graphkeys_mselect_column(&ac, mval, selectmode);
+		graphkeys_mselect_column(&ac, event->mval, selectmode);
 	}
 	else if (RNA_boolean_get(op->ptr, "curves")) {
 		/* select all keyframes in the same F-Curve as the one under the mouse */
-		mouse_graph_keys(&ac, mval, selectmode, 1);
+		mouse_graph_keys(&ac, event->mval, selectmode, 1);
 	}
 	else {
 		/* select keyframe under mouse */
-		mouse_graph_keys(&ac, mval, selectmode, 0);
+		mouse_graph_keys(&ac, event->mval, selectmode, 0);
 	}
 	
 	/* set notifier that keyframe selection (and also channel selection in some cases) has changed */

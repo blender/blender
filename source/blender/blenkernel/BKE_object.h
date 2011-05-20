@@ -83,6 +83,7 @@ float dof_camera(struct Object *ob);
 	
 void *add_lamp(const char *name);
 struct Lamp *copy_lamp(struct Lamp *la);
+struct Lamp *localize_lamp(struct Lamp *la);
 void make_local_lamp(struct Lamp *la);
 void free_camera(struct Camera *ca);
 void free_lamp(struct Lamp *la);

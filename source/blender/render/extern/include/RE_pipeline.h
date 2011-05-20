@@ -250,13 +250,19 @@ float RE_filter_value(int type, float x);
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect);
 
 /* shaded view or baking options */
-#define RE_BAKE_LIGHT			0
-#define RE_BAKE_ALL				1
-#define RE_BAKE_AO				2
-#define RE_BAKE_NORMALS			3
-#define RE_BAKE_TEXTURE			4
-#define RE_BAKE_DISPLACEMENT	5
-#define RE_BAKE_SHADOW			6
+#define RE_BAKE_LIGHT				0	/* not listed in rna_scene.c -> can't be enabled! */
+#define RE_BAKE_ALL					1
+#define RE_BAKE_AO					2
+#define RE_BAKE_NORMALS				3
+#define RE_BAKE_TEXTURE				4
+#define RE_BAKE_DISPLACEMENT		5
+#define RE_BAKE_SHADOW				6
+#define RE_BAKE_SPEC_COLOR			7
+#define RE_BAKE_SPEC_INTENSITY		8
+#define RE_BAKE_MIRROR_COLOR		9
+#define RE_BAKE_MIRROR_INTENSITY	10
+#define RE_BAKE_ALPHA				11
+#define RE_BAKE_EMIT				12
 
 void RE_Database_Baking(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int type, struct Object *actob);
 

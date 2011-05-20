@@ -55,9 +55,6 @@ struct ID;
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
 
-#define BUTS_HEADERY		(HEADERY*1.2)
-#define BUTS_UI_UNIT		(UI_UNIT_Y*1.2)
-
 /* internal exports only */
 
 /* buttons_header.c */

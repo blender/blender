@@ -418,6 +418,9 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 				but->type= NUMSLI;
 		}
 	}
+	else if(subtype == PROP_DIRECTION) {
+		uiDefButR(block, BUT_NORMAL, 0, name, x, y, UI_UNIT_X*3, UI_UNIT_Y*3, ptr, RNA_property_identifier(prop), 0, 0, 0, -1, -1, NULL);
+	}
 	else {
 		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)
 			uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, 0, 0, w, UI_UNIT_Y);
@@ -532,9 +535,6 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
 		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
-	}
-	else if(subtype == PROP_DIRECTION) {
-		uiDefButR(block, BUT_NORMAL, 0, name, x, y, 100, 100, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
 	}
 	else if(flag & UI_ITEM_R_EVENT) {
 		uiDefButR(block, KEYEVT, 0, name, x, y, w, h, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);

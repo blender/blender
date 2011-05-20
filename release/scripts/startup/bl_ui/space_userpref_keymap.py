@@ -138,7 +138,7 @@ class USERPREF_MT_keyconfigs(bpy.types.Menu):
         bpy.types.Menu.draw_preset(self, context)
 
 
-class InputKeyMapPanel(bpy.types.Panel):
+class InputKeyMapPanel:
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
     bl_region_type = 'WINDOW'

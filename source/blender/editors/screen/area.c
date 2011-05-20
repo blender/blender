@@ -873,12 +873,10 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 		if(sa->spacetype!=SPACE_TIME) {
 			ARegion *ar;
 			static rcti rect= {0, 10000, 0, 30};	/* same local check for all areas */
-
-			for(ar= sa->regionbase.first; ar; ar= ar->next)
-				if(ar->regiontype == RGN_TYPE_WINDOW)
-					break;
-			if(ar)
+			ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+			if(ar) {
 				WM_event_add_keymap_handler_bb(handlers, keymap, &rect, &ar->winrct);
+			}
 		}
 		else
 			WM_event_add_keymap_handler(handlers, keymap);

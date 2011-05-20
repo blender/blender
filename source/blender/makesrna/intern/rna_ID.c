@@ -210,12 +210,12 @@ IDProperty *rna_PropertyGroup_idprops(PointerRNA *ptr, int create)
 	return ptr->data;
 }
 
-void rna_PropertyGroup_unregister(const bContext *C, StructRNA *type)
+void rna_PropertyGroup_unregister(Main *bmain, StructRNA *type)
 {
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-StructRNA *rna_PropertyGroup_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+StructRNA *rna_PropertyGroup_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	PointerRNA dummyptr;
 
@@ -384,7 +384,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "IDPropertyGroup");
 	RNA_def_struct_ui_text(srna, "ID Property Group", "Group of ID properties");
 	RNA_def_struct_idprops_func(srna, "rna_PropertyGroup_idprops");
-	RNA_def_struct_register_funcs(srna, "rna_PropertyGroup_register", "rna_PropertyGroup_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_PropertyGroup_register", "rna_PropertyGroup_unregister", NULL);
 	RNA_def_struct_refine_func(srna, "rna_PropertyGroup_refine");
 
 	/* important so python types can have their name used in list views

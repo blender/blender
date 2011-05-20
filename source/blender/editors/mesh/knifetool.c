@@ -927,8 +927,8 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 		return;	
 
 	/*unproject screen line*/
-	viewline(kcd->ar, kcd->vc.v3d, s1, v1, v3);
-	viewline(kcd->ar, kcd->vc.v3d, s2, v2, v4);
+	ED_view3d_win_to_segment_clip(kcd->ar, kcd->vc.v3d, s1, v1, v3);
+	ED_view3d_win_to_segment_clip(kcd->ar, kcd->vc.v3d, s2, v2, v4);
 	
 	/*view3d_unproject(&mats, v1, s1[0], s1[1], 0.0f);
 	view3d_unproject(&mats, v2, s2[0], s2[1], 0.0f);

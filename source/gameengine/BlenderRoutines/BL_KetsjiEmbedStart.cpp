@@ -81,6 +81,8 @@ extern "C" {
 #include "DNA_windowmanager_types.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+/* #include "BKE_screen.h" */ /* cant include this because of 'new' function name */
+extern float BKE_screen_view3d_zoom_to_fac(float camzoom);
 
 
 //XXX #include "BIF_screen.h"
@@ -254,9 +256,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				camzoom = 1.0f;
 			}
 			else {
-				camzoom = (1.41421 + (rv3d->camzoom / 50.0));
-				camzoom *= camzoom;
-				camzoom = 4.0 / camzoom;
+				camzoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
 			}
 		}
 		else {

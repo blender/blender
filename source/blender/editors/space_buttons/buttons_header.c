@@ -98,11 +98,13 @@ static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 	sbuts->mainbuser= sbuts->mainb;
 }
 
+#define BUT_UNIT_X (UI_UNIT_X+2)
+
 void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	uiBlock *block;
-	int xco, yco= 3;
+	int xco, yco= 1;
 
 	buttons_context_compute(C, sbuts);
 	
@@ -118,32 +120,32 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	// Default panels
 	uiBlockBeginAlign(block);
 	if(sbuts->pathflag & (1<<BCONTEXT_RENDER))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_RENDER, 0, 0, "Render");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_RENDER, 0, 0, "Render");
 	if(sbuts->pathflag & (1<<BCONTEXT_SCENE))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE_DATA,			xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE_DATA,			xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
 	if(sbuts->pathflag & (1<<BCONTEXT_WORLD))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
 	if(sbuts->pathflag & (1<<BCONTEXT_OBJECT))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
 	if(sbuts->pathflag & (1<<BCONTEXT_CONSTRAINT))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_CONSTRAINT, 0, 0, "Object Constraints");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_CONSTRAINT, 0, 0, "Object Constraints");
 	if(sbuts->pathflag & (1<<BCONTEXT_MODIFIER))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MODIFIER,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_MODIFIER, 0, 0, "Modifiers");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MODIFIER,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_MODIFIER, 0, 0, "Modifiers");
 	if(sbuts->pathflag & (1<<BCONTEXT_DATA))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	sbuts->dataicon,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	sbuts->dataicon,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
 	if(sbuts->pathflag & (1<<BCONTEXT_BONE))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_BONE_DATA,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE, 0, 0, "Bone");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_BONE_DATA,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE, 0, 0, "Bone");
 	if(sbuts->pathflag & (1<<BCONTEXT_BONE_CONSTRAINT))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT_BONE,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE_CONSTRAINT, 0, 0, "Bone Constraints");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT_BONE,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE_CONSTRAINT, 0, 0, "Bone Constraints");
 	if(sbuts->pathflag & (1<<BCONTEXT_MATERIAL))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MATERIAL,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MATERIAL,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
 	if(sbuts->pathflag & (1<<BCONTEXT_TEXTURE))
-		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
+		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
 	if(sbuts->pathflag & (1<<BCONTEXT_PARTICLE))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
 	if(sbuts->pathflag & (1<<BCONTEXT_PHYSICS))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
-	xco+= BUTS_UI_UNIT;
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
+	xco+= BUT_UNIT_X;
 	
 	uiBlockEndAlign(block);
 	

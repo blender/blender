@@ -1573,14 +1573,13 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 static int sequencer_cut_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
-	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 
 	int cut_side= SEQ_SIDE_BOTH;
 	int cut_frame= CFRA;
 
 	if (ED_operator_sequencer_active(C) && v2d)
-		cut_side= mouse_frame_side(v2d, event->x - ar->winrct.xmin, cut_frame);
+		cut_side= mouse_frame_side(v2d, event->mval[0], cut_frame);
 	
 	RNA_int_set(op->ptr, "frame", cut_frame);
 	RNA_enum_set(op->ptr, "side", cut_side);

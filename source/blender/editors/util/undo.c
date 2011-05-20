@@ -260,7 +260,7 @@ int ED_undo_valid(const bContext *C, const char *undoname)
 static int ed_undo_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/* "last operator" should disappear, later we can tie ths with undo stack nicer */
-	WM_operator_stack_clear(C);
+	WM_operator_stack_clear(CTX_wm_manager(C));
 	return ed_undo_step(C, 1, NULL);
 }
 

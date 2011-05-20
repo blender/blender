@@ -101,7 +101,7 @@ static void engine_render(RenderEngine *engine, struct Scene *scene)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_RenderEngine_unregister(const bContext *C, StructRNA *type)
+static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
 {
 	RenderEngineType *et= RNA_struct_blender_type_get(type);
 
@@ -113,7 +113,7 @@ static void rna_RenderEngine_unregister(const bContext *C, StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-static StructRNA *rna_RenderEngine_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	RenderEngineType *et, dummyet = {NULL};
 	RenderEngine dummyengine= {NULL};
@@ -137,7 +137,7 @@ static StructRNA *rna_RenderEngine_register(bContext *C, ReportList *reports, vo
 	for(et=R_engines.first; et; et=et->next) {
 		if(strcmp(et->idname, dummyet.idname) == 0) {
 			if(et->ext.srna)
-				rna_RenderEngine_unregister(C, et->ext.srna);
+				rna_RenderEngine_unregister(bmain, et->ext.srna);
 			break;
 		}
 	}
@@ -233,7 +233,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "RenderEngine");
 	RNA_def_struct_ui_text(srna, "Render Engine", "Render engine");
 	RNA_def_struct_refine_func(srna, "rna_RenderEngine_refine");
-	RNA_def_struct_register_funcs(srna, "rna_RenderEngine_register", "rna_RenderEngine_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_RenderEngine_register", "rna_RenderEngine_unregister", NULL);
 
 	/* render */
 	func= RNA_def_function(srna, "render", NULL);

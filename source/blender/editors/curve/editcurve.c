@@ -3309,7 +3309,7 @@ static void findnearestNurbvert__doClosest(void *userData, Nurb *nu, BPoint *bp,
 	}
 }
 
-static short findnearestNurbvert(ViewContext *vc, short sel, int mval[2], Nurb **nurb, BezTriple **bezt, BPoint **bp)
+static short findnearestNurbvert(ViewContext *vc, short sel, const int mval[2], Nurb **nurb, BezTriple **bezt, BPoint **bp)
 {
 		/* sel==1: selected gets a disadvantage */
 		/* in nurb and bezt or bp the nearest is written */
@@ -4666,7 +4666,6 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		Curve *cu;
 		ViewContext vc;
 		float location[3];
-		int mval[2];
 
 		Nurb *nu;
 		BezTriple *bezt;
@@ -4688,10 +4687,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			copy_v3_v3(location, give_cursor(vc.scene, vc.v3d));
 		}
 
-		mval[0]= event->x - vc.ar->winrct.xmin;
-		mval[1]= event->y - vc.ar->winrct.ymin;
-		
-		view3d_get_view_aligned_coordinate(&vc, location, mval, TRUE);
+		view3d_get_view_aligned_coordinate(&vc, location, event->mval, TRUE);
 		RNA_float_set_array(op->ptr, "location", location);
 	}
 
@@ -4987,21 +4983,18 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ARegion *ar= CTX_wm_region(C);
 	ViewContext vc;
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	int a, location[2], deselect;
+	int a, deselect;
 
 	deselect= RNA_boolean_get(op->ptr, "deselect");
-	location[0]= event->x - ar->winrct.xmin;
-	location[1]= event->y - ar->winrct.ymin;
 
 	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
 
-	findnearestNurbvert(&vc, 1, location, &nu, &bezt, &bp);
+	findnearestNurbvert(&vc, 1, event->mval, &nu, &bezt, &bp);
 
 	if(bezt) {
 		a= nu->pntsu;

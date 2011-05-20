@@ -61,6 +61,7 @@
 #include "BKE_global.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_unit.h"
 
 #include "RE_pipeline.h"	// make_stars
@@ -870,25 +871,15 @@ void view3d_viewborder_size_get(Scene *scene, ARegion *ar, float size_r[2])
 
 void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r, short do_shift)
 {
-	float zoomfac, size[2];
+	const float zoomfac= BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom);
+	float size[2];
 	float dx= 0.0f, dy= 0.0f;
 	
 	view3d_viewborder_size_get(scene, ar, size);
 	
 	if (rv3d == NULL)
 		rv3d = ar->regiondata;
-	
-	/* magic zoom calculation, no idea what
-		* it signifies, if you find out, tell me! -zr
-		*/
-	/* simple, its magic dude!
-		* well, to be honest, this gives a natural feeling zooming
-		* with multiple keypad presses (ton)
-		*/
-	
-	zoomfac= ((float)M_SQRT2 + rv3d->camzoom/50.0f);
-	zoomfac= (zoomfac*zoomfac) * 0.25f;
-	
+
 	size[0]= size[0]*zoomfac;
 	size[1]= size[1]*zoomfac;
 	
@@ -1416,10 +1407,11 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			}
 			else {
 				float sco[2];
+				const float mval_f[2]= {1.0f, 0.0f};
 
 				/* calc window coord */
 				initgrabz(rv3d, 0.0, 0.0, 0.0);
-				window_to_3d_delta(ar, vec, 1, 0);
+				ED_view3d_win_to_delta(ar, mval_f, vec);
 				fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
 				fac= 1.0f/fac;
 
@@ -2570,16 +2562,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	if(v3d->lay_used != lay_used) { /* happens when loading old files or loading with UI load */
-		ARegion *ar_iter;
-		ScrArea *sa= CTX_wm_area(C);
-
 		/* find header and force tag redraw */
-		for(ar_iter= sa->regionbase.first; ar_iter; ar_iter= ar_iter->next)
-			if(ar_iter->regiontype==RGN_TYPE_HEADER) {
-				ED_region_tag_redraw(ar_iter);
-				break;
-			}
-
+		ScrArea *sa= CTX_wm_area(C);
+		ARegion *ar_header= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+		ED_region_tag_redraw(ar_header); /* can be NULL */
 		v3d->lay_used= lay_used;
 	}
 

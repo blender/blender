@@ -110,6 +110,7 @@ EnumPropertyItem viewport_shade_items[] = {
 
 #include "BLI_math.h"
 
+#include "BKE_screen.h"
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -509,17 +510,12 @@ static void rna_SpaceImageEditor_zoom_get(PointerRNA *ptr, float *values)
 
 	values[0] = values[1] = 1;
 
-	sa = rna_area_from_space(ptr);
-	if(!sa) return;
-	
 	/* find aregion */
-	for(ar=sa->regionbase.first; ar; ar=ar->next) {
-		if(ar->regiontype == RGN_TYPE_WINDOW)
-			break;
+	sa= rna_area_from_space(ptr); /* can be NULL */
+	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	if(ar) {
+		ED_space_image_zoom(sima, ar, &values[0], &values[1]);
 	}
-	if(!ar) return;
-
-	ED_space_image_zoom(sima, ar, &values[0], &values[1]);
 }
 
 static void rna_SpaceImageEditor_cursor_location_get(PointerRNA *ptr, float *values)
@@ -1435,6 +1431,11 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, rv3d_persp_items);
 	RNA_def_property_ui_text(prop, "Perspective", "View Perspective");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "is_perspective", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "is_persp", 1);
+	RNA_def_property_ui_text(prop, "Is Perspective", "");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	
 	prop= RNA_def_property(srna, "view_location", PROP_FLOAT, PROP_TRANSLATION);
 #if 0

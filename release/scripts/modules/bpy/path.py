@@ -135,7 +135,7 @@ def resolve_ncase(path):
         filename = os.path.basename(path)  # filename may be a directory or a file
         dirpath = os.path.dirname(path)
 
-        suffix = ""
+        suffix = path[:0]  # "" but ensure byte/str match
         if not filename:  # dir ends with a slash?
             if len(dirpath) < len(path):
                 suffix = path[:len(path) - len(dirpath)]

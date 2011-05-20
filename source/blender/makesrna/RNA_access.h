@@ -31,7 +31,6 @@
 
 #include <stdarg.h>
 
-#include "DNA_listBase.h"
 #include "RNA_types.h"
 
 #ifdef __cplusplus
@@ -40,6 +39,7 @@ extern "C" {
 
 struct bContext;
 struct ID;
+struct ListBase;
 struct Main;
 struct ReportList;
 struct Scene;
@@ -611,6 +611,7 @@ int RNA_struct_is_a(StructRNA *type, StructRNA *srna);
 
 StructRegisterFunc RNA_struct_register(StructRNA *type);
 StructUnregisterFunc RNA_struct_unregister(StructRNA *type);
+void **RNA_struct_instance(PointerRNA *ptr);
 
 void *RNA_struct_py_type_get(StructRNA *srna);
 void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
@@ -903,7 +904,7 @@ int RNA_property_is_idprop(PropertyRNA *prop);
 
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
-char *RNA_pointer_as_string(PointerRNA *ptr);
+char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr);
 
 /* Function */
 

@@ -298,7 +298,6 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 
 static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -318,10 +317,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	marker=find_nearest_marker(SCE_MARKERS, 1); //XXX - dummy function for now
 	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
-	
-	seq= find_nearest_seq(scene, v2d, &hand, mval);
+	seq= find_nearest_seq(scene, v2d, &hand, event->mval);
 
 	// XXX - not nice, Ctrl+RMB needs to do left_right only when not over a strip
 	if(seq && linked_time && left_right)
@@ -652,20 +648,15 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
 static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
-	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	
 	short extend= RNA_boolean_get(op->ptr, "extend");
-	int mval[2];
 	
 	Sequence *mouse_seq;
 	int selected, hand;
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
-	
+
 	/* this works like UV, not mesh */
-	mouse_seq= find_nearest_seq(scene, v2d, &hand, mval);
+	mouse_seq= find_nearest_seq(scene, v2d, &hand, event->mval);
 	if (!mouse_seq)
 		return OPERATOR_FINISHED; /* user error as with mesh?? */
 	
