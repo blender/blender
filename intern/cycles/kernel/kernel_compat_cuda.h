@@ -35,7 +35,7 @@ CCL_NAMESPACE_BEGIN
 #define __device_inline  __device__ __inline__
 #define __global
 #define __shared __shared__
-#define __constant __constant__
+#define __constant
 
 /* No assert supported for CUDA */
 

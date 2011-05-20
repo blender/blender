@@ -41,7 +41,7 @@ __device float svm_blend(float3 p, NodeBlendType type, NodeBlendAxis axis)
 		return r*r;
 	}
 	else if(type == NODE_BLEND_EASING) {
-		float r = min(fmaxf((1.0f + x)/2.0f, 0.0f), 1.0f);
+		float r = fminf(fmaxf((1.0f + x)/2.0f, 0.0f), 1.0f);
 		float t = r*r;
 		
 		return (3.0f*t - 2.0f*t*r);

@@ -88,8 +88,8 @@ __device int bsdf_diffuse_sample(const ShaderData *sd, float randu, float randv,
 		// TODO: find a better approximation for the diffuse bounce
 		*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
 		*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
-		*domega_in_dx *= 125;
-		*domega_in_dy *= 125;
+		*domega_in_dx *= 125.0f;
+		*domega_in_dy *= 125.0f;
 #endif
 	}
 	else
@@ -151,8 +151,8 @@ __device int bsdf_translucent_sample(const ShaderData *sd, float randu, float ra
 		// TODO: find a better approximation for the diffuse bounce
 		*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
 		*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
-		*domega_in_dx *= -125;
-		*domega_in_dy *= -125;
+		*domega_in_dx *= -125.0f;
+		*domega_in_dy *= -125.0f;
 #endif
 	} else
 		*pdf = 0;

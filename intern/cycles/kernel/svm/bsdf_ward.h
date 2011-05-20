@@ -187,8 +187,8 @@ __device int bsdf_ward_sample(const ShaderData *sd, float randu, float randv, fl
 				// derivatives a bit bigger. In theory this varies with the
 				// roughness but the exact relationship is complex and
 				// requires more ops than are practical.
-				*domega_in_dx *= 10;
-				*domega_in_dy *= 10;
+				*domega_in_dx *= 10.0f;
+				*domega_in_dy *= 10.0f;
 #endif
 			}
 		}

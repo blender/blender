@@ -23,12 +23,13 @@ CCL_NAMESPACE_BEGIN
 __device float svm_distorted_noise(float3 p, float size, NodeNoiseBasis basis, NodeNoiseBasis distortion_basis, float distortion)
 {
 	float3 r;
+	float3 offset = make_float3(13.5f, 13.5f, 13.5f);
 
 	p /= size;
 
-	r.x = noise_basis(p + make_float3(13.5f, 13.5f, 13.5f), basis) * distortion;
+	r.x = noise_basis(p + offset, basis) * distortion;
 	r.y = noise_basis(p, basis) * distortion;
-	r.z = noise_basis(p - make_float3(13.5f, 13.5f, 13.5f), basis) * distortion;
+	r.z = noise_basis(p - offset, basis) * distortion;
 
     return noise_basis(p + r, distortion_basis); /* distorted-domain noise */
 }

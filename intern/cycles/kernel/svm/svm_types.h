@@ -35,7 +35,7 @@ CCL_NAMESPACE_BEGIN
  * happens i have no idea, but consecutive values are problematic, maybe it
  * generates an incorrect jump table. */
 
-enum NodeType {
+typedef enum NodeType {
 	NODE_END = 0,
 	NODE_CLOSURE_BSDF = 100,
 	NODE_CLOSURE_EMISSION = 200,
@@ -82,23 +82,23 @@ enum NodeType {
 	NODE_ATTR_BUMP_DX = 4400,
 	NODE_ATTR_BUMP_DY = 4500,
 	NODE_TEX_ENVIRONMENT = 4600
-};
+} NodeType;
 
-enum NodeAttributeType {
+typedef enum NodeAttributeType {
 	NODE_ATTR_FLOAT = 0,
 	NODE_ATTR_FLOAT3
-};
+} NodeAttributeType;
 
-enum NodeGeometry {
+typedef enum NodeGeometry {
 	NODE_GEOM_P = 0,
 	NODE_GEOM_N,
 	NODE_GEOM_T,
 	NODE_GEOM_I,
 	NODE_GEOM_Ng,
 	NODE_GEOM_uv
-};
+} NodeGeometry;
 
-enum NodeLightPath {
+typedef enum NodeLightPath {
 	NODE_LP_camera = 0,
 	NODE_LP_shadow,
 	NODE_LP_diffuse,
@@ -106,16 +106,16 @@ enum NodeLightPath {
 	NODE_LP_reflection,
 	NODE_LP_transmission,
 	NODE_LP_backfacing
-};
+} NodeLightPath;
 
-enum NodeTexCoord {
+typedef enum NodeTexCoord {
 	NODE_TEXCO_OBJECT,
 	NODE_TEXCO_CAMERA,
 	NODE_TEXCO_WINDOW,
 	NODE_TEXCO_REFLECTION
-};
+} NodeTexCoord;
 
-enum NodeMix {
+typedef enum NodeMix {
 	NODE_MIX_BLEND = 0,
 	NODE_MIX_ADD,
 	NODE_MIX_MUL,
@@ -134,9 +134,9 @@ enum NodeMix {
 	NODE_MIX_COLOR,
 	NODE_MIX_SOFT,
 	NODE_MIX_LINEAR
-};
+} NodeMix;
 
-enum NodeMath {
+typedef enum NodeMath {
 	NODE_MATH_ADD,
 	NODE_MATH_SUBTRACT,
 	NODE_MATH_MULTIPLY,
@@ -154,24 +154,24 @@ enum NodeMath {
 	NODE_MATH_ROUND,
 	NODE_MATH_LESS_THAN,
 	NODE_MATH_GREATER_THAN
-};
+} NodeMath;
 
-enum NodeVectorMath {
+typedef enum NodeVectorMath {
 	NODE_VECTOR_MATH_ADD,
 	NODE_VECTOR_MATH_SUBTRACT,
 	NODE_VECTOR_MATH_AVERAGE,
 	NODE_VECTOR_MATH_DOT_PRODUCT,
 	NODE_VECTOR_MATH_CROSS_PRODUCT,
 	NODE_VECTOR_MATH_NORMALIZE
-};
+} NodeVectorMath;
 
-enum NodeConvert {
+typedef enum NodeConvert {
 	NODE_CONVERT_FV,
 	NODE_CONVERT_CF,
 	NODE_CONVERT_VF
-};
+} NodeConvert;
 
-enum NodeDistanceMetric {
+typedef enum NodeDistanceMetric {
 	NODE_VORONOI_DISTANCE_SQUARED,
 	NODE_VORONOI_ACTUAL_DISTANCE,
 	NODE_VORONOI_MANHATTAN,
@@ -179,9 +179,9 @@ enum NodeDistanceMetric {
 	NODE_VORONOI_MINKOVSKY_H,
 	NODE_VORONOI_MINKOVSKY_4,
 	NODE_VORONOI_MINKOVSKY
-};
+} NodeDistanceMetric;
 
-enum NodeNoiseBasis {
+typedef enum NodeNoiseBasis {
 	NODE_NOISE_PERLIN,
 	NODE_NOISE_VORONOI_F1,
 	NODE_NOISE_VORONOI_F2,
@@ -190,30 +190,30 @@ enum NodeNoiseBasis {
 	NODE_NOISE_VORONOI_F2_F1,
 	NODE_NOISE_VORONOI_CRACKLE,
 	NODE_NOISE_CELL_NOISE
-};
+} NodeNoiseBasis;
 
-enum NodeWaveType {
+typedef enum NodeWaveType {
 	NODE_WAVE_SINE,
 	NODE_WAVE_SAW,
 	NODE_WAVE_TRI
-};
+} NodeWaveType;
 
-enum NodeMusgraveType {
+typedef enum NodeMusgraveType {
 	NODE_MUSGRAVE_MULTIFRACTAL,
 	NODE_MUSGRAVE_FBM,
 	NODE_MUSGRAVE_HYBRID_MULTIFRACTAL,
 	NODE_MUSGRAVE_RIDGED_MULTIFRACTAL,
 	NODE_MUSGRAVE_HETERO_TERRAIN
-};
+} NodeMusgraveType;
 
-enum NodeWoodType {
+typedef enum NodeWoodType {
 	NODE_WOOD_BANDS,
 	NODE_WOOD_RINGS,
 	NODE_WOOD_BAND_NOISE,
 	NODE_WOOD_RING_NOISE
-};
+} NodeWoodType;
 
-enum NodeBlendType {
+typedef enum NodeBlendType {
 	NODE_BLEND_LINEAR,
 	NODE_BLEND_QUADRATIC,
 	NODE_BLEND_EASING,
@@ -221,37 +221,37 @@ enum NodeBlendType {
 	NODE_BLEND_RADIAL,
 	NODE_BLEND_QUADRATIC_SPHERE,
 	NODE_BLEND_SPHERICAL
-};
+} NodeBlendType;
 
-enum NodeBlendAxis {
+typedef enum NodeBlendAxis {
 	NODE_BLEND_HORIZONTAL,
 	NODE_BLEND_VERTICAL
-};
+} NodeBlendAxis;
 
-enum NodeMarbleType {
+typedef enum NodeMarbleType {
 	NODE_MARBLE_SOFT,
 	NODE_MARBLE_SHARP,
 	NODE_MARBLE_SHARPER
-};
+} NodeMarbleType;
 
-enum NodeStucciType {
+typedef enum NodeStucciType {
 	NODE_STUCCI_PLASTIC,
 	NODE_STUCCI_WALL_IN,
 	NODE_STUCCI_WALL_OUT
-};
+} NodeStucciType;
 
-enum NodeVoronoiColoring {
+typedef enum NodeVoronoiColoring {
 	NODE_VORONOI_INTENSITY,
 	NODE_VORONOI_POSITION,
 	NODE_VORONOI_POSITION_OUTLINE,
 	NODE_VORONOI_POSITION_OUTLINE_INTENSITY
-};
+} NodeVoronoiColoring;
 
-enum ShaderType {
+typedef enum ShaderType {
 	SHADER_TYPE_SURFACE,
 	SHADER_TYPE_VOLUME,
 	SHADER_TYPE_DISPLACEMENT
-};
+} ShaderType;
 
 /* Closure */
 

@@ -29,6 +29,8 @@ CCL_NAMESPACE_BEGIN
 #define __device
 #define __device_inline
 
+#define kernel_assert(cond)
+
 __device float kernel_tex_interp_(__global float *data, int width, float x)
 {
 	x = clamp(x, 0.0f, 1.0f)*width;
@@ -40,9 +42,20 @@ __device float kernel_tex_interp_(__global float *data, int width, float x)
 	return (1.0f - t)*data[index] + t*data[nindex];
 }
 
+#define make_float3(x, y, z) ((float3)(x, y, z)) /* todo 1.1 */
+
+#define __uint_as_float(x) as_float(x)
+#define __float_as_uint(x) as_uint(x)
+#define __int_as_float(x) as_float(x)
+#define __float_as_int(x) as_int(x)
+
 #define kernel_data (*kg->data)
 #define kernel_tex_interp(t, x) \
-	kernel_tex_interp_(kg->t, kg->t##_width, x);
+	kernel_tex_interp_(kg->t, kg->t##_width, x)
+#define kernel_tex_fetch(t, index) \
+	kg->t[index]
+
+#define NULL 0
 
 CCL_NAMESPACE_END
 

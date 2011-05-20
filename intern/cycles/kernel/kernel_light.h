@@ -18,14 +18,14 @@
 
 CCL_NAMESPACE_BEGIN
 
-struct LightSample {
+typedef struct LightSample {
 	float3 P;
 	float3 Ng;
 	int object;
 	int prim;
 	int shader;
 	float weight;
-};
+} LightSample;
 
 /* Point Light */
 

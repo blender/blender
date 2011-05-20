@@ -25,8 +25,11 @@ SET(headers
 	kernel_qbvh.h
 	kernel_random.h
 	kernel_shader.h
+	kernel_textures.h
 	kernel_triangle.h
-	kernel_types.h
+	kernel_types.h)
+
+SET(svm_headers
 	svm/bsdf.h
 	svm/bsdf_ashikhmin_velvet.h
 	svm/bsdf_diffuse.h
@@ -78,7 +81,7 @@ ELSE()
 ENDIF()
 
 IF(WITH_CYCLES_CUDA)
-	SET(cuda_sources kernel.cu ${headers})
+	SET(cuda_sources kernel.cu ${headers} ${svm_headers})
 	SET(cuda_cubins)
 
 	FOREACH(arch ${CYCLES_CUDA_ARCH})
@@ -106,9 +109,23 @@ ENDIF()
 
 INCLUDE_DIRECTORIES(. ../util osl svm)
 
-ADD_LIBRARY(cycles_kernel ${sources} ${headers})
+ADD_LIBRARY(cycles_kernel ${sources} ${headers} ${svm_headers})
 
 IF(WITH_CYCLES_CUDA)
 	ADD_DEPENDENCIES(cycles_kernel cycles_kernel_cuda)
+ENDIF()
+
+# OPENCL kernel
+
+IF(WITH_CYCLES_OPENCL)
+	SET(util_headers
+		../util/util_color.h
+		../util/util_math.h
+		../util/util_transform.h
+		../util/util_types.h)
+
+	INSTALL(FILES kernel.cl ${headers} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel)
+	INSTALL(FILES ${svm_headers} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel/svm)
+	INSTALL(FILES ${util_headers} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel)
 ENDIF()
 

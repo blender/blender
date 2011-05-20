@@ -21,11 +21,7 @@
 
 #include "kernel_math.h"
 
-#ifndef __KERNEL_OPENCL__
-
-#include "svm_types.h"
-
-#endif
+#include "svm/svm_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -239,9 +235,7 @@ typedef struct ShaderData {
 
 	/* SVM closure data. we always sample a single closure, to get fixed
 	 * memory usage, svm_closure_data contains closure parameters. */
-#ifndef __KERNEL_OPENCL__
 	ClosureType svm_closure;
-#endif
 	float3 svm_closure_weight;
 	float svm_closure_data[3]; /* CUDA gives compile error if out of bounds */
 
@@ -291,11 +285,15 @@ typedef struct KernelCamera {
 	float shutterclose;
 
 	/* differentials */
-	float3 dx, dy;
+	float3 dx;
+	float pad1;
+	float3 dy;
+	float pad2;
 
 	/* clipping */
 	float nearclip;
 	float cliplength;
+	float pad3, pad4;
 
 	/* more matrices */
 	Transform screentoworld;
@@ -321,13 +319,14 @@ typedef struct KernelBackground {
 
 typedef struct KernelSunSky {
 	/* sun direction in spherical and cartesian */
-	float theta, phi;
+	float theta, phi, pad3, pad4;
 	float3 dir;
 	float pad;
 
 	/* perez function parameters */
-	float zenith_Y, zenith_x, zenith_y;
+	float zenith_Y, zenith_x, zenith_y, pad2;
 	float perez_Y[5], perez_x[5], perez_y[5];
+	float pad5;
 } KernelSunSky;
 
 typedef struct KernelIntegrator {
@@ -348,7 +347,7 @@ typedef struct KernelIntegrator {
 	float blur_caustics;
 
 	/* padding */
-	int pad;
+	int pad[2];
 } KernelIntegrator;
 
 typedef struct KernelBVH {

@@ -55,6 +55,7 @@ public:
 	cl_int ciErr;
 	map<string, device_vector<uchar>*> const_mem_map;
 	map<string, device_memory*> mem_map;
+	device_ptr null_mem;
 
 	const char *opencl_error_string(cl_int err)
 	{
@@ -125,10 +126,10 @@ public:
 		ciErr = clGetPlatformIDs(1, &cpPlatform, NULL);
 		opencl_assert(ciErr);
 
-		ciErr = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU, 1, &cdDevice, NULL);
+		ciErr = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_CPU, 1, &cdDevice, NULL);
 		opencl_assert(ciErr);
 
-		cxGPUContext = clCreateContext(0, 1, &cdDevice, NULL /*clLogMessagesToStdoutAPPLE */, NULL, &ciErr);
+		cxGPUContext = clCreateContext(0, 1, &cdDevice, NULL, NULL, &ciErr);
 		opencl_assert(ciErr);
 
 		cqCommandQueue = clCreateCommandQueue(cxGPUContext, cdDevice, 0, &ciErr);
@@ -137,10 +138,16 @@ public:
 		/* compile kernel */
 		string source = string_printf("#include \"kernel.cl\" // %lf\n", time_dt());
 		size_t source_len = source.size();
-		string build_options = "-I ../kernel -I ../util -Werror -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END="; //" + path_get("kernel") + " -Werror";
-		//printf("path %s\n", path_get("kernel").c_str());
 
-		//clUnloadCompiler();
+		string build_options = "";
+
+		//string csource = "../blender/intern/cycles";
+		//build_options += "-I " + csource + "/kernel -I " + csource + "/util";
+
+		build_options += " -I " + path_get("kernel"); /* todo: escape path */
+
+		build_options += " -Werror";
+		build_options += " -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END=";
 
 		cpProgram = clCreateProgramWithSource(cxGPUContext, 1, (const char **)&source, &source_len, &ciErr);
 
@@ -170,10 +177,15 @@ public:
 		opencl_assert(ciErr);
 		ckFilmConvertKernel = clCreateKernel(cpProgram, "kernel_ocl_tonemap", &ciErr);
 		opencl_assert(ciErr);
+
+		null_mem = (device_ptr)clCreateBuffer(cxGPUContext, CL_MEM_READ_ONLY, 1, NULL, &ciErr);
 	}
 
 	~OpenCLDevice()
 	{
+
+		clReleaseMemObject(CL_MEM_PTR(null_mem));
+
 		map<string, device_vector<uchar>*>::iterator mt;
 		for(mt = const_mem_map.begin(); mt != const_mem_map.end(); mt++) {
 			mem_free(*(mt->second));
@@ -261,6 +273,7 @@ public:
 	void tex_alloc(const char *name, device_memory& mem, bool interpolation, bool periodic)
 	{
 		mem_alloc(mem, MEM_READ_ONLY);
+		mem_copy_to(mem);
 		mem_map[name] = &mem;
 	}
 
@@ -295,6 +308,11 @@ public:
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_data), (void*)&d_data);
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_buffer), (void*)&d_buffer);
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_rng_state), (void*)&d_rng_state);
+
+#define KERNEL_TEX(type, ttype, name) \
+	ciErr |= set_kernel_arg_mem(ckPathTraceKernel, &narg, #name);
+#include "kernel_textures.h"
+
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_pass), (void*)&d_pass);
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_x), (void*)&d_x);
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_y), (void*)&d_y);
@@ -314,10 +332,20 @@ public:
 
 	cl_int set_kernel_arg_mem(cl_kernel kernel, int *narg, const char *name)
 	{
-		device_memory *mem = mem_map[name];
-		cl_mem ptr = CL_MEM_PTR(mem->device_pointer);
-		cl_int size = mem->data_width;
-		cl_int err = 0;
+		cl_mem ptr;
+		cl_int size, err = 0;
+
+		if(mem_map.find(name) != mem_map.end()) {
+			device_memory *mem = mem_map[name];
+		
+			ptr = CL_MEM_PTR(mem->device_pointer);
+			size = mem->data_width;
+		}
+		else {
+			/* work around NULL not working, even though the spec says otherwise */
+			ptr = CL_MEM_PTR(null_mem);
+			size = 1;
+		}
 		
 		err |= clSetKernelArg(kernel, (*narg)++, sizeof(ptr), (void*)&ptr);
 		opencl_assert(err);
@@ -347,9 +375,11 @@ public:
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_data), (void*)&d_data);
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_rgba), (void*)&d_rgba);
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_buffer), (void*)&d_buffer);
-		ciErr |= set_kernel_arg_mem(ckFilmConvertKernel, &narg, "__response_curve_R");
-		ciErr |= set_kernel_arg_mem(ckFilmConvertKernel, &narg, "__response_curve_G");
-		ciErr |= set_kernel_arg_mem(ckFilmConvertKernel, &narg, "__response_curve_B");
+
+#define KERNEL_TEX(type, ttype, name) \
+	ciErr |= set_kernel_arg_mem(ckFilmConvertKernel, &narg, #name);
+#include "kernel_textures.h"
+
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_pass), (void*)&d_pass);
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_resolution), (void*)&d_resolution);
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_x), (void*)&d_x);

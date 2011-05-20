@@ -69,7 +69,7 @@ __device void voronoi(float3 p, NodeDistanceMetric distance_metric, float e, flo
 				float3 pd = p - (vp + ip);
 				float d = voronoi_distance(distance_metric, pd, e);
 
-				vp += make_float3((float)xx, (float)yy, (float)zz);
+				vp += ip;
 
 				if(d < da[0]) {
 					da[3] = da[2];

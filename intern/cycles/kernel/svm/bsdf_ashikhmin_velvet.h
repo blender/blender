@@ -139,8 +139,8 @@ __device int bsdf_ashikhmin_velvet_sample(const ShaderData *sd, float randu, flo
 		// TODO: find a better approximation for the retroreflective bounce
 		*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
 		*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
-		*domega_in_dx *= 125;
-		*domega_in_dy *= 125;
+		*domega_in_dx *= 125.0f;
+		*domega_in_dy *= 125.0f;
 #endif
 	} else
 		*pdf = 0.0f;

@@ -506,12 +506,12 @@ __device_inline float3 fabs(float3 a)
 	return make_float3(fabsf(a.x), fabsf(a.y), fabsf(a.z));
 }
 
-__device_inline float3 as_float3(const float4& a)
+#endif
+
+__device_inline float3 float4_to_float3(const float4 a)
 {
 	return make_float3(a.x, a.y, a.z);
 }
-
-#endif
 
 #ifndef __KERNEL_GPU__
 

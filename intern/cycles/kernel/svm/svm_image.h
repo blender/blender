@@ -31,6 +31,9 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 	   also note that cuda has 128 textures limit, we use 100 now, since
 	   we still need some for other storage */
 
+#ifdef __KERNEL_OPENCL__
+	r = make_float4(0.0f, 0.0f, 0.0f, 0.0f); /* todo */
+#else
 	switch(id) {
 		case 0: r = kernel_tex_image_interp(__tex_image_000, x, y); break;
 		case 1: r = kernel_tex_image_interp(__tex_image_001, x, y); break;
@@ -136,6 +139,7 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 			kernel_assert(0);
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
+#endif
 
 	return r;
 }
@@ -151,8 +155,11 @@ __device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack
 	float4 f = svm_image_texture(kg, id, co.x, co.y);
 	float3 r = make_float3(f.x, f.y, f.z);
 
-	if(srgb)
-		r = color_srgb_to_scene_linear(r);
+	if(srgb) {
+		r.x = color_srgb_to_scene_linear(r.x);
+		r.y = color_srgb_to_scene_linear(r.y);
+		r.z = color_srgb_to_scene_linear(r.z);
+	}
 
 	stack_store_float3(stack, out_offset, r);
 }
@@ -170,8 +177,11 @@ __device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float 
 	float4 f = svm_image_texture(kg, id, u, v);
 	float3 r = make_float3(f.x, f.y, f.z);
 
-	if(srgb)
-		r = color_srgb_to_scene_linear(r);
+	if(srgb) {
+		r.x = color_srgb_to_scene_linear(r.x);
+		r.y = color_srgb_to_scene_linear(r.y);
+		r.z = color_srgb_to_scene_linear(r.z);
+	}
 
 	stack_store_float3(stack, out_offset, r);
 }

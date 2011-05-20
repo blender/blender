@@ -41,7 +41,8 @@ __device float3 rgb_to_hsv(float3 rgb)
 		h = 0.0f;
 	}
 	else {
-		c = (make_float3(cmax, cmax, cmax) - rgb)/cdelta;
+		float3 cmax3 = make_float3(cmax, cmax, cmax);
+		c = (cmax3 - rgb)/cdelta;
 
 		if(rgb.x == cmax) h = c.z - c.y;
 		else if(rgb.y == cmax) h = 2.0f + c.x -  c.z;
@@ -91,26 +92,33 @@ __device float3 hsv_to_rgb(float3 hsv)
 	return rgb;
 }
 
+__device float3 svm_lerp(const float3 a, const float3 b, float t)
+{
+	return (a * (1.0f - t) + b * t);
+}
+
 __device float3 svm_mix_blend(float t, float3 col1, float3 col2)
 {
-	return lerp(col1, col2, t);
+	return svm_lerp(col1, col2, t);
 }
 
 __device float3 svm_mix_add(float t, float3 col1, float3 col2)
 {
-	return lerp(col1, col1 + col2, t);
+	return svm_lerp(col1, col1 + col2, t);
 }
 
 __device float3 svm_mix_mul(float t, float3 col1, float3 col2)
 {
-	return lerp(col1, col1 * col2, t);
+	return svm_lerp(col1, col1 * col2, t);
 }
 
 __device float3 svm_mix_screen(float t, float3 col1, float3 col2)
 {
 	float tm = 1.0f - t;
+	float3 one = make_float3(1.0f, 1.0f, 1.0f);
+	float3 tm3 = make_float3(tm, tm, tm);
 
-	return make_float3(1.0f, 1.0f, 1.0f) - (make_float3(tm, tm, tm) + t*(make_float3(1.0f, 1.0f, 1.0f) - col2))*(make_float3(1.0f, 1.0f, 1.0f) - col1);
+	return one - (tm3 + t*(one - col2))*(one - col1);
 }
 
 __device float3 svm_mix_overlay(float t, float3 col1, float3 col2)
@@ -139,7 +147,7 @@ __device float3 svm_mix_overlay(float t, float3 col1, float3 col2)
 
 __device float3 svm_mix_sub(float t, float3 col1, float3 col2)
 {
-	return lerp(col1, col1 - col2, t);
+	return svm_lerp(col1, col1 - col2, t);
 }
 
 __device float3 svm_mix_div(float t, float3 col1, float3 col2)
@@ -157,7 +165,7 @@ __device float3 svm_mix_div(float t, float3 col1, float3 col2)
 
 __device float3 svm_mix_diff(float t, float3 col1, float3 col2)
 {
-	return lerp(col1, fabs(col1 - col2), t);
+	return svm_lerp(col1, fabs(col1 - col2), t);
 }
 
 __device float3 svm_mix_dark(float t, float3 col1, float3 col2)
@@ -255,7 +263,7 @@ __device float3 svm_mix_hue(float t, float3 col1, float3 col2)
 		hsv.x = hsv2.x;
 		float3 tmp = hsv_to_rgb(hsv); 
 
-		outcol = lerp(outcol, tmp, t);
+		outcol = svm_lerp(outcol, tmp, t);
 	}
 
 	return outcol;
@@ -302,7 +310,7 @@ __device float3 svm_mix_color(float t, float3 col1, float3 col2)
 		hsv.y = hsv2.y;
 		float3 tmp = hsv_to_rgb(hsv); 
 
-		outcol = lerp(outcol, tmp, t);
+		outcol = svm_lerp(outcol, tmp, t);
 	}
 
 	return outcol;

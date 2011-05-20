@@ -34,8 +34,9 @@ __device void svm_node_set_bump(ShaderData *sd, float *stack, uint c_offset, uin
 	float3 surfgrad = (h_x - h_c)*Rx + (h_y - h_c)*Ry;
 
 	surfgrad *= 0.1f; /* todo: remove this factor */
-	
-	sd->N = normalize(fabsf(det)*sd->N - signf(det)*surfgrad);
+
+	float absdet = fabsf(det);
+	sd->N = normalize(absdet*sd->N - signf(det)*surfgrad);
 #endif
 }
 

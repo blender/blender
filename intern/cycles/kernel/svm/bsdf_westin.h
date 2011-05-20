@@ -122,8 +122,8 @@ __device int bsdf_westin_backscatter_sample(const ShaderData *sd, float randu, f
 				// derivatives a bit bigger. In theory this varies with the
 				// exponent but the exact relationship is complex and
 				// requires more ops than are practical.
-				*domega_in_dx *= 10;
-				*domega_in_dy *= 10;
+				*domega_in_dx *= 10.0f;
+				*domega_in_dy *= 10.0f;
 #endif
 			}
 		}
@@ -198,8 +198,8 @@ __device int bsdf_westin_sheen_sample(const ShaderData *sd, float randu, float r
 		// TODO: find a better approximation for the diffuse bounce
 		*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
 		*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
-		*domega_in_dx *= 125;
-		*domega_in_dy *= 125;
+		*domega_in_dx *= 125.0f;
+		*domega_in_dy *= 125.0f;
 #endif
 	} else
 		pdf = 0;

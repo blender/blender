@@ -49,7 +49,7 @@ __device float sky_angle_between(float thetav, float phiv, float theta, float ph
 	return safe_acosf(cospsi);
 }
 
-__device float sky_perez_function(float lam[5], float theta, float gamma)
+__device float sky_perez_function(__constant float *lam, float theta, float gamma)
 {
 	float ctheta = cosf(theta);
 	float cgamma = cosf(gamma);
