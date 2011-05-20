@@ -52,6 +52,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -995,10 +996,11 @@ int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, 
 	else {
 		/* fac for zoom, also used for camdx */
 		if(rv3d->persp==RV3D_CAMOB) {
-			fac= (1.41421f + ( (float)rv3d->camzoom )/50.0f);
-			fac*= fac;
+			fac= BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom) * 4.0f;
 		}
-		else fac= 2.0;
+		else {
+			fac= 2.0;
+		}
 		
 		/* viewplane size depends... */
 		if(cam && cam->type==CAM_ORTHO) {

@@ -56,6 +56,7 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_depsgraph.h" /* for ED_view3d_camera_lock_sync */
 
 
@@ -919,14 +920,11 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 static void viewmove_apply(ViewOpsData *vod, int x, int y)
 {
 	if((vod->rv3d->persp==RV3D_CAMOB) && !(vod->v3d->flag2 & V3D_LOCK_CAMERA)) {
-		float zoomfac= ((float)M_SQRT2 + (float)vod->rv3d->camzoom / 50.0f);
-		zoomfac= (zoomfac * zoomfac) * 0.5f;
-
+		const float zoomfac= BKE_screen_view3d_zoom_to_fac((float)vod->rv3d->camzoom) * 2.0f;
 		vod->rv3d->camdx += (vod->oldx - x)/(vod->ar->winx * zoomfac);
 		vod->rv3d->camdy += (vod->oldy - y)/(vod->ar->winy * zoomfac);
 		CLAMP(vod->rv3d->camdx, -1.0f, 1.0f);
 		CLAMP(vod->rv3d->camdy, -1.0f, 1.0f);
-// XXX		preview3d_event= 0;
 	}
 	else {
 		float dvec[3];
@@ -1888,8 +1886,8 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 	xfac= (float)ar->winx / (float)(size[0] + 4);
 	yfac= (float)ar->winy / (float)(size[1] + 4);
 
-	rv3d->camzoom= (sqrtf(4.0f * MIN2(xfac, yfac)) - (float)M_SQRT2) * 50.0f;
-	rv3d->camzoom= CLAMPIS(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
+	rv3d->camzoom= BKE_screen_view3d_zoom_from_fac(MIN2(xfac, yfac));
+	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 
@@ -2145,9 +2143,9 @@ static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
 	int im_width= (scene->r.size*scene->r.xsch)/100;
 	
 	view3d_viewborder_size_get(scene, ar, size);
-	
-	rv3d->camzoom= (sqrtf(4.0f * (float)im_width/size[0]) - (float)M_SQRT2) * 50.0f;
-	rv3d->camzoom= CLAMPIS(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
+
+	rv3d->camzoom= BKE_screen_view3d_zoom_from_fac((float)im_width/size[0]);
+	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 }
 
 static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))

@@ -61,6 +61,7 @@
 #include "BKE_global.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_unit.h"
 
 #include "RE_pipeline.h"	// make_stars
@@ -870,25 +871,15 @@ void view3d_viewborder_size_get(Scene *scene, ARegion *ar, float size_r[2])
 
 void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r, short do_shift)
 {
-	float zoomfac, size[2];
+	const float zoomfac= BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom);
+	float size[2];
 	float dx= 0.0f, dy= 0.0f;
 	
 	view3d_viewborder_size_get(scene, ar, size);
 	
 	if (rv3d == NULL)
 		rv3d = ar->regiondata;
-	
-	/* magic zoom calculation, no idea what
-		* it signifies, if you find out, tell me! -zr
-		*/
-	/* simple, its magic dude!
-		* well, to be honest, this gives a natural feeling zooming
-		* with multiple keypad presses (ton)
-		*/
-	
-	zoomfac= ((float)M_SQRT2 + rv3d->camzoom/50.0f);
-	zoomfac= (zoomfac*zoomfac) * 0.25f;
-	
+
 	size[0]= size[0]*zoomfac;
 	size[1]= size[1]*zoomfac;
 	

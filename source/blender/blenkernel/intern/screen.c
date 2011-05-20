@@ -416,3 +416,20 @@ void BKE_screen_view3d_main_sync(ListBase *screen_lb, Scene *scene)
 	}
 }
 
+/* magic zoom calculation, no idea what
+ * it signifies, if you find out, tell me! -zr
+ */
+
+/* simple, its magic dude!
+ * well, to be honest, this gives a natural feeling zooming
+ * with multiple keypad presses (ton)
+ */
+float BKE_screen_view3d_zoom_to_fac(float camzoom)
+{
+	return powf(((float)M_SQRT2 + camzoom/50.0f), 2.0f) / 4.0f;
+}
+
+float BKE_screen_view3d_zoom_from_fac(float zoomfac)
+{
+	return ((sqrtf(4.0f * zoomfac) - (float)M_SQRT2) * 50.0f);
+}
