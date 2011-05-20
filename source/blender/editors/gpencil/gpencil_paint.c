@@ -253,6 +253,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 		else {
 			const int mx=mval[0], my=mval[1];
 			float rvec[3], dvec[3];
+			float mval_f[2];
 			
 			/* Current method just converts each point in screen-coordinates to
 			 * 3D-coordinates using the 3D-cursor as reference. In general, this
@@ -267,7 +268,10 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 			
 			/* method taken from editview.c - mouse_cursor() */
 			project_int_noclip(p->ar, rvec, mval);
-			ED_view3d_win_to_delta(p->ar, mval[0]-mx, mval[1]-my, dvec);
+
+			mval_f[0]= mval[0] - mx;
+			mval_f[0]= mval[1] - my;
+			ED_view3d_win_to_delta(p->ar, mval_f, dvec);
 			sub_v3_v3v3(out, rvec, dvec);
 		}
 	}

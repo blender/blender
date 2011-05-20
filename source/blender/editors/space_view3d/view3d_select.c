@@ -106,7 +106,9 @@ int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int m
 	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
 
 	if(mval_cpy[0]!=IS_CLIPPED) {
-		ED_view3d_win_to_delta(vc->ar, mval_cpy[0]-mval[0], mval_cpy[1]-mval[1], dvec);
+		float mval_f[2];
+		VECSUB2D(mval_f, mval_cpy, mval);
+		ED_view3d_win_to_delta(vc->ar, mval_f, dvec);
 		sub_v3_v3(fp, dvec);
 
 		return TRUE;

@@ -85,33 +85,30 @@ int initgrabz(struct RegionView3D *rv3d, float x, float y, float z);
  * Calculate a 3d location from 2d window coordinates.
  * @param ar The region (used for the window width and height).
  * @param depth_pt The reference location used to calculate the Z depth.
- * @param mx The area relative X location (such as event->mval[0]).
- * @param my The area relative Y location (such as event->mval[1]).
+ * @param mval The area relative location (such as event->mval converted to floats).
  * @param out The resulting world-space location.
  */
-void ED_view3d_win_to_3d(struct ARegion *ar, const float depth_pt[3], const float mx, const float my, float out[3]);
+void ED_view3d_win_to_3d(struct ARegion *ar, const float depth_pt[3], const float mval[2], float out[3]);
 
 /**
  * Calculate a 3d difference vector from 2d window offset.
  * note that initgrabz() must be called first to determine
  * the depth used to calculate the delta.
  * @param ar The region (used for the window width and height).
- * @param mx The area relative X difference (such as event->mval[0] - other_x).
- * @param my The area relative Y difference (such as event->mval[1] - other_y).
+ * @param mval The area relative 2d difference (such as event->mval[0] - other_x).
  * @param out The resulting world-space delta.
  */
-void ED_view3d_win_to_delta(struct ARegion *ar, const float mx, const float my, float out[3]);
+void ED_view3d_win_to_delta(struct ARegion *ar, const float mval[2], float out[3]);
 
 /**
  * Calculate a 3d direction vector from 2d window coordinates.
  * This direction vector starts and the view in the direction of the 2d window coordinates.
  * In orthographic view all window coordinates yield the same vector.
  * @param ar The region (used for the window width and height).
- * @param mx The area relative X difference (such as event->mval[0]).
- * @param my The area relative Y difference (such as event->mval[1]).
+ * @param mval The area relative 2d location (such as event->mval converted to floats).
  * @param out The resulting normalized world-space direction vector.
  */
-void ED_view3d_win_to_vector(struct ARegion *ar, const float mx, const float my, float out[3]);
+void ED_view3d_win_to_vector(struct ARegion *ar, const float mval[2], float out[3]);
 
 /**
  * Calculate a 3d segment from 2d window coordinates.

@@ -2489,7 +2489,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	ARegion *ar;
 	View3D *v3d;
 	RegionView3D *rv3d;
-	float *fp = NULL, tvec[3], oldcurs[3];
+	float *fp = NULL, tvec[3], oldcurs[3], mval_f[2];
 	int retv;
 
 	scene= CTX_data_scene(C);
@@ -2501,7 +2501,8 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	
 	copy_v3_v3(oldcurs, fp);
 
-	ED_view3d_win_to_3d(ar, fp, event->mval[0], event->mval[1], tvec);
+	VECCOPY2D(mval_f, event->mval);
+	ED_view3d_win_to_3d(ar, fp, mval_f, tvec);
 	copy_v3_v3(fp, tvec);
 
 	/* extrude to the where new cursor is and store the operation result */

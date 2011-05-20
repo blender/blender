@@ -418,8 +418,12 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	/* for dolly */
-	ED_view3d_win_to_vector(vod->ar, event->mval[0], event->mval[1], vod->mousevec);
+	{
+		/* for dolly */
+		float mval_f[2];
+		VECCOPY2D(mval_f, event->mval);
+		ED_view3d_win_to_vector(vod->ar, mval_f, vod->mousevec);
+	}
 
 	/* lookup, we dont pass on v3d to prevent confusement */
 	vod->grid= vod->v3d->grid;
@@ -928,8 +932,12 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 	}
 	else {
 		float dvec[3];
+		float mval_f[2];
 
-		ED_view3d_win_to_delta(vod->ar, x-vod->oldx, y-vod->oldy, dvec);
+		mval_f[0]= x - vod->oldx;
+		mval_f[1]= y - vod->oldy;
+		ED_view3d_win_to_delta(vod->ar, mval_f, dvec);
+
 		add_v3_v3(vod->rv3d->ofs, dvec);
 
 		if(vod->rv3d->viewlock & RV3D_BOXVIEW)
@@ -1071,6 +1079,7 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 		float dvec[3];
 		float tvec[3];
 		float tpos[3];
+		float mval_f[2];
 		float new_dist;
 		int vb[2], mouseloc[2];
 
@@ -1085,7 +1094,10 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 
 		/* Project cursor position into 3D space */
 		initgrabz(rv3d, tpos[0], tpos[1], tpos[2]);
-		ED_view3d_win_to_delta(ar, mouseloc[0]-vb[0]/2.0f, mouseloc[1]-vb[1]/2.0f, dvec);
+
+		mval_f[0]= (mouseloc[0] - vb[0]) / 2.0f;
+		mval_f[1]= (mouseloc[1] - vb[1]) / 2.0f;
+		ED_view3d_win_to_delta(ar, mval_f, dvec);
 
 		/* Calculate view target position for dolly */
 		add_v3_v3v3(tvec, tpos, dvec);
@@ -2070,13 +2082,17 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 			new_ofs[0] = -p[0];
 			new_ofs[1] = -p[1];
 			new_ofs[2] = -p[2];
-		} else {
+		}
+		else {
+			float mval_f[2];
 			/* We cant use the depth, fallback to the old way that dosnt set the center depth */
 			copy_v3_v3(new_ofs, rv3d->ofs);
 
 			initgrabz(rv3d, -new_ofs[0], -new_ofs[1], -new_ofs[2]);
 
-			ED_view3d_win_to_delta(ar, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2, dvec);
+			mval_f[0]= (rect.xmin + rect.xmax - vb[0]) / 2.0f;
+			mval_f[1]= (rect.ymin + rect.ymax - vb[1]) / 2.0f;
+			ED_view3d_win_to_delta(ar, mval_f, dvec);
 			/* center the view to the center of the rectangle */
 			sub_v3_v3(new_ofs, dvec);
 		}
@@ -2479,15 +2495,16 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	float vec[3];
+	float mval_f[2]= {0.0f, 0.0f};
 	int pandir;
 
 	pandir = RNA_enum_get(op->ptr, "type");
 
 	initgrabz(rv3d, 0.0, 0.0, 0.0);
-	if(pandir == V3D_VIEW_PANRIGHT) ED_view3d_win_to_delta(ar, -32, 0, vec);
-	else if(pandir == V3D_VIEW_PANLEFT) ED_view3d_win_to_delta(ar, 32, 0, vec);
-	else if(pandir == V3D_VIEW_PANUP) ED_view3d_win_to_delta(ar, 0, -25, vec);
-	else if(pandir == V3D_VIEW_PANDOWN) ED_view3d_win_to_delta(ar, 0, 25, vec);
+	if(pandir == V3D_VIEW_PANRIGHT)		{ mval_f[0]= -32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	else if(pandir == V3D_VIEW_PANLEFT)	{ mval_f[0]=  32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	else if(pandir == V3D_VIEW_PANUP)	{ mval_f[1]= -25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	else if(pandir == V3D_VIEW_PANDOWN)	{ mval_f[1]=  25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
 	add_v3_v3(rv3d->ofs, vec);
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
@@ -2811,7 +2828,9 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 		}
 
 		if(depth_used==0) {
-			ED_view3d_win_to_delta(ar, mval[0]-event->mval[0], mval[1]-event->mval[1], dvec);
+			float mval_f[2];
+			VECSUB(mval_f, mval, event->mval);
+			ED_view3d_win_to_delta(ar, mval_f, dvec);
 			sub_v3_v3(fp, dvec);
 		}
 	}

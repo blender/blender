@@ -508,7 +508,7 @@ void ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2]
 	
 	if(rv3d->is_persp) {
 		float vec[3];
-		ED_view3d_win_to_vector(ar, mval[0], mval[1], vec);
+		ED_view3d_win_to_vector(ar, mval, vec);
 
 		copy_v3_v3(ray_start, rv3d->viewinv[3]);
 		VECADDFAC(ray_start, rv3d->viewinv[3], vec, v3d->near);
@@ -592,7 +592,7 @@ int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	return flip;
 }
 
-void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mx, const float my, float out[3])
+void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mval[2], float out[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
@@ -602,7 +602,7 @@ void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mx, c
 	if(rv3d->is_persp) {
 		float mousevec[3];
 		copy_v3_v3(line_sta, rv3d->viewinv[3]);
-		ED_view3d_win_to_vector(ar, mx, my, mousevec);
+		ED_view3d_win_to_vector(ar, mval, mousevec);
 		add_v3_v3v3(line_end, line_sta, mousevec);
 
 		if(isect_line_plane_v3(out, line_sta, line_end, depth_pt, rv3d->viewinv[2], TRUE) == 0) {
@@ -611,8 +611,8 @@ void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mx, c
 		}
 	}
 	else {
-        const float dx= (2.0f * (float)mx / (float)ar->winx) - 1.0f;
-        const float dy= (2.0f * (float)my / (float)ar->winy) - 1.0f;
+        const float dx= (2.0f * mval[0] / (float)ar->winx) - 1.0f;
+        const float dy= (2.0f * mval[1] / (float)ar->winy) - 1.0f;
 		line_sta[0]= (rv3d->persinv[0][0] * dx) + (rv3d->persinv[1][0] * dy) + rv3d->viewinv[3][0];
 		line_sta[1]= (rv3d->persinv[0][1] * dx) + (rv3d->persinv[1][1] * dy) + rv3d->viewinv[3][1];
 		line_sta[2]= (rv3d->persinv[0][2] * dx) + (rv3d->persinv[1][2] * dy) + rv3d->viewinv[3][2];
@@ -624,13 +624,13 @@ void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mx, c
 
 /* always call initgrabz */
 /* only to detect delta motion */
-void ED_view3d_win_to_delta(ARegion *ar, const float mx, const float my, float out[3])
+void ED_view3d_win_to_delta(ARegion *ar, const float mval[2], float out[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float dx, dy;
 	
-	dx= 2.0f*mx*rv3d->zfac/ar->winx;
-	dy= 2.0f*my*rv3d->zfac/ar->winy;
+	dx= 2.0f*mval[0]*rv3d->zfac/ar->winx;
+	dy= 2.0f*mval[1]*rv3d->zfac/ar->winy;
 	
 	out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
 	out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
@@ -640,13 +640,13 @@ void ED_view3d_win_to_delta(ARegion *ar, const float mx, const float my, float o
 /* doesn't rely on initgrabz */
 /* for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector */
-void ED_view3d_win_to_vector(ARegion *ar, const float mx, const float my, float out[3])
+void ED_view3d_win_to_vector(ARegion *ar, const float mval[2], float out[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 
 	if(rv3d->is_persp) {
-		out[0]= 2.0f * (mx / ar->winx) - 1.0f;
-		out[1]= 2.0f * (my / ar->winy) - 1.0f;
+		out[0]= 2.0f * (mval[0] / ar->winx) - 1.0f;
+		out[1]= 2.0f * (mval[1] / ar->winy) - 1.0f;
 		out[2]= -0.5f;
 		mul_project_m4_v3(rv3d->persinv, out);
 		sub_v3_v3(out, rv3d->viewinv[3]);

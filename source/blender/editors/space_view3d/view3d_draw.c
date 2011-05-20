@@ -1407,10 +1407,11 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			}
 			else {
 				float sco[2];
+				const float mval_f[2]= {1.0f, 0.0f};
 
 				/* calc window coord */
 				initgrabz(rv3d, 0.0, 0.0, 0.0);
-				ED_view3d_win_to_delta(ar, 1, 0, vec);
+				ED_view3d_win_to_delta(ar, mval_f, vec);
 				fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
 				fac= 1.0f/fac;
 

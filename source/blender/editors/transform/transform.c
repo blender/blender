@@ -123,9 +123,11 @@ void setTransformViewMatrices(TransInfo *t)
 void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		if (t->ar->regiontype == RGN_TYPE_WINDOW)
-		{
-			ED_view3d_win_to_delta(t->ar, dx, dy, vec);
+		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+			float mval_f[2];
+			mval_f[0]= dx;
+			mval_f[1]= dy;
+			ED_view3d_win_to_delta(t->ar, mval_f, vec);
 		}
 	}
 	else if(t->spacetype==SPACE_IMAGE) {

@@ -1022,6 +1022,7 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 	short cval[2];
 	float fp[3] = {0, 0, 0};
 	float dvec[3];
+	float mval_f[2];
 
 	if (last != NULL)
 	{
@@ -1032,7 +1033,8 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 
 	/* method taken from editview.c - mouse_cursor() */
 	project_short_noclip(ar, fp, cval);
-	ED_view3d_win_to_delta(ar, cval[0] - dd->mval[0], cval[1] - dd->mval[1], dvec);
+	VECSUB2D(mval_f, cval, dd->mval);
+	ED_view3d_win_to_delta(ar, mval_f, dvec);
 	sub_v3_v3v3(vec, fp, dvec);
 }
 

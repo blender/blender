@@ -2994,7 +2994,7 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 			  cache->orig_grab_location[1],
 			  cache->orig_grab_location[2]);
 
-		ED_view3d_win_to_delta(cache->vc->ar, cache->mouse[0], cache->mouse[1], grab_location);
+		ED_view3d_win_to_delta(cache->vc->ar, cache->mouse, grab_location);
 
 		/* compute delta to move verts by */
 		if(!cache->first_time) {
