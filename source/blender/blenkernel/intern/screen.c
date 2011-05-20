@@ -31,6 +31,7 @@
  *  \ingroup bke
  */
 
+#include "BLI_winstuff.h"
 
 #include <string.h>
 #include <stdio.h>
