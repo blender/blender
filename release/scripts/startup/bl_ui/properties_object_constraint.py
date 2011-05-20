@@ -651,8 +651,24 @@ class ConstraintButtonsPanel():
         sub.prop(con, "from_min_z", text="Min")
         sub.prop(con, "from_max_z", text="Max")
 
-        split = layout.split()
+        col = layout.column()
+        row = col.row()
+        row.label(text="Source to Destination Mapping:")
 
+        row = col.row()
+        row.prop(con, "map_to_x_from", expand=False, text="")
+        row.label(text=" -> X")
+
+        row = col.row()
+        row.prop(con, "map_to_y_from", expand=False, text="")
+        row.label(text=" -> Y")
+
+        row = col.row()
+        row.prop(con, "map_to_z_from", expand=False, text="")
+        row.label(text=" -> Z")
+        
+        split = layout.split()
+        
         col = split.column()
         col.label(text="Destination:")
         col.row().prop(con, "map_to", expand=True)
@@ -661,7 +677,6 @@ class ConstraintButtonsPanel():
 
         col = split.column()
         col.label(text="X:")
-        col.row().prop(con, "map_to_x_from", expand=True)
 
         sub = col.column(align=True)
         sub.prop(con, "to_min_x", text="Min")
@@ -669,7 +684,6 @@ class ConstraintButtonsPanel():
 
         col = split.column()
         col.label(text="Y:")
-        col.row().prop(con, "map_to_y_from", expand=True)
 
         sub = col.column(align=True)
         sub.prop(con, "to_min_y", text="Min")
@@ -677,7 +691,6 @@ class ConstraintButtonsPanel():
 
         col = split.column()
         col.label(text="Z:")
-        col.row().prop(con, "map_to_z_from", expand=True)
 
         sub = col.column(align=True)
         sub.prop(con, "to_min_z", text="Min")
