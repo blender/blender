@@ -1522,22 +1522,17 @@ static void selectconnected_posebonechildren (Object *ob, Bone *bone, int extend
 /* within active object context */
 /* previously known as "selectconnected_posearmature" */
 static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{  
-	ARegion *ar= CTX_wm_region(C);
+{
 	Object *ob= CTX_data_edit_object(C);
 	Bone *bone, *curBone, *next= NULL;
 	int extend= RNA_boolean_get(op->ptr, "extend");
-	int x, y;
-	
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
 
 	view3d_operator_needs_opengl(C);
 	
 	if (extend)
-		bone= get_nearest_bone(C, 0, x, y);
+		bone= get_nearest_bone(C, 0, event->mval[0], event->mval[1]);
 	else
-		bone= get_nearest_bone(C, 1, x, y);
+		bone= get_nearest_bone(C, 1, event->mval[0], event->mval[1]);
 	
 	if (!bone)
 		return OPERATOR_CANCELLED;
@@ -1606,21 +1601,17 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 	bArmature *arm;
 	EditBone *bone, *curBone, *next;
 	int extend= RNA_boolean_get(op->ptr, "extend");
-	int x, y;
 	ARegion *ar;
 	Object *obedit= CTX_data_edit_object(C);
 	arm= obedit->data;
 	ar= CTX_wm_region(C);
 
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
-
 	view3d_operator_needs_opengl(C);
 
 	if (extend)
-		bone= get_nearest_bone(C, 0, x, y);
+		bone= get_nearest_bone(C, 0, event->mval[0], event->mval[1]);
 	else
-		bone= get_nearest_bone(C, 1, x, y);
+		bone= get_nearest_bone(C, 1, event->mval[0], event->mval[1]);
 
 	if (!bone)
 		return OPERATOR_CANCELLED;
@@ -2499,7 +2490,6 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	View3D *v3d;
 	RegionView3D *rv3d;
 	float *fp = NULL, tvec[3], oldcurs[3];
-	int mx, my;
 	int retv;
 
 	scene= CTX_data_scene(C);
@@ -2510,11 +2500,8 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	fp= give_cursor(scene, v3d);
 	
 	copy_v3_v3(oldcurs, fp);
-	
-	mx= event->x - ar->winrct.xmin;
-	my= event->y - ar->winrct.ymin;
 
-	window_to_3d(ar, tvec, fp, mx, my);
+	window_to_3d(ar, tvec, fp, event->mval[0], event->mval[1]);
 	copy_v3_v3(fp, tvec);
 
 	/* extrude to the where new cursor is and store the operation result */

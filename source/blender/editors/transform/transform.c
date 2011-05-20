@@ -567,8 +567,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		if (t->modifiers & MOD_CONSTRAINT_SELECT)
 			t->con.mode |= CON_SELECT;
 
-		t->mval[0] = event->x - t->ar->winrct.xmin;
-		t->mval[1] = event->y - t->ar->winrct.ymin;
+		VECCOPY2D(t->mval, event->mval);
 
 		// t->redraw |= TREDRAW_SOFT; /* Use this for soft redraw. Might cause flicker in object mode */
 		t->redraw |= TREDRAW_HARD;

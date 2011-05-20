@@ -117,17 +117,11 @@ static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op,
 
 static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, wmEvent *event, int flag)
 {
-	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	
-	int mval[2];
 	float mval_v2d[2];
 	
-
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
-	
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &mval_v2d[0], &mval_v2d[1]);
+	UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mval_v2d[0], &mval_v2d[1]);
 	
 	RNA_int_set(op->ptr, "channel", (int)mval_v2d[1]+0.5f);
 	RNA_int_set(op->ptr, "frame_start", (int)mval_v2d[0]);

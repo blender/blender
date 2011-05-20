@@ -648,7 +648,7 @@ typedef enum {
 void initMouseInput(TransInfo *t, MouseInput *mi, int center[2], int mval[2]);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
 int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, struct wmEvent *event);
-void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, int mval[2], float output[3]);
+void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, int start[2], int end[2]);
 void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *, float [3]));

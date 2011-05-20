@@ -1166,7 +1166,6 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	Image *ima;
 	ImBuf *ibuf;
 	float fx, fy, bufx, bufy;
-	int mx, my;
 	
 	ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
@@ -1181,13 +1180,11 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		IMB_rect_from_float(ibuf);
 	}
 
-	mx= event->x - ar->winrct.xmin;
-	my= event->y - ar->winrct.ymin;
 	/* map the mouse coords to the backdrop image space */
 	bufx = ibuf->x * snode->zoom;
 	bufy = ibuf->y * snode->zoom;
-	fx = (bufx > 0.0f ? ((float)mx - 0.5f*ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
-	fy = (bufy > 0.0f ? ((float)my - 0.5f*ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
+	fx = (bufx > 0.0f ? ((float)event->mval[0] - 0.5f*ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
+	fy = (bufy > 0.0f ? ((float)event->mval[1] - 0.5f*ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
 
 	if(fx>=0.0f && fy>=0.0f && fx<1.0f && fy<1.0f) {
 		float *fp;
@@ -1317,7 +1314,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 	switch (event->type) {
 		case MOUSEMOVE:
 			
-			UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+			UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 									 &mx, &my);
 			
 			if (node) {
@@ -1358,7 +1355,7 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		rctf totr;
 		
 		/* convert mouse coordinates to v2d space */
-		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 								 &snode->mx, &snode->my);
 		
 		/* rect we're interested in is just the bottom right corner */
@@ -2094,7 +2091,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 	sock= nldrag->sock;
 	link= nldrag->link;
 	
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 							 &snode->mx, &snode->my);
 
 	switch (event->type) {
@@ -2244,7 +2241,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	bNodeLinkDrag *nldrag= MEM_callocN(sizeof(bNodeLinkDrag), "drag link op customdata");
 	
 	
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 							 &snode->mx, &snode->my);
 
 	ED_preview_kill_jobs(C);
@@ -2928,7 +2925,7 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
 	/* convert mouse coordinates to v2d space */
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 							 &snode->mx, &snode->my);
 	
 	if (RNA_property_is_set(op->ptr, "filepath") || RNA_property_is_set(op->ptr, "name"))

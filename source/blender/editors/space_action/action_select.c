@@ -847,16 +847,10 @@ static int actkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 		Scene *scene= ac.scene;
 		ARegion *ar= ac.ar;
 		View2D *v2d= &ar->v2d;
-		
-		int mval[2];
 		float x;
-		
-		/* get mouse coordinates (in region coordinates) */
-		mval[0]= (event->x - ar->winrct.xmin);
-		mval[1]= (event->y - ar->winrct.ymin);
-		
+
 		/* determine which side of the current frame mouse is on */
-		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 		if (x < CFRA)
 			RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
 		else 	
@@ -974,7 +968,7 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
  
 /* ------------------- */
 
-static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode, short column)
+static void mouse_action_keys (bAnimContext *ac, const int mval[2], short select_mode, short column)
 {
 	ListBase anim_data = {NULL, NULL};
 	DLRBT_Tree anim_keys;
@@ -1159,7 +1153,6 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	bAnimContext ac;
 	ARegion *ar;
 	short selectmode, column;
-	int mval[2];
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1167,11 +1160,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		
 	/* get useful pointers from animation context data */
 	ar= ac.ar;
-	
-	/* get mouse coordinates (in region coordinates) */
-	mval[0]= (event->x - ar->winrct.xmin);
-	mval[1]= (event->y - ar->winrct.ymin);
-	
+
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend"))
 		selectmode= SELECT_INVERT;
@@ -1182,7 +1171,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	column= RNA_boolean_get(op->ptr, "column");
 	
 	/* select keyframe(s) based upon mouse position*/
-	mouse_action_keys(&ac, mval, selectmode, column);
+	mouse_action_keys(&ac, event->mval, selectmode, column);
 	
 	/* set notifier that keyframe selection (and channels too) have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|ND_ANIMCHAN|NA_SELECTED, NULL);

@@ -2781,16 +2781,13 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
-	int mx, my, mval[2];
+	int mval[2];
 //	short ctrl= 0; // XXX
 	int flip;
 	fp= give_cursor(scene, v3d);
 
 //	if(obedit && ctrl) lr_click= 1;
 	copy_v3_v3(oldcurs, fp);
-
-	mx= event->x - ar->winrct.xmin;
-	my= event->y - ar->winrct.ymin;
 
 	project_int_noclip(ar, fp, mval);
 	flip= initgrabz(rv3d, fp[0], fp[1], fp[2]);
@@ -2808,23 +2805,20 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 		short depth_used = 0;
 
 		if (U.uiflag & USER_ORBIT_ZBUF) { /* maybe this should be accessed some other way */
-			int mval_depth[2];
-			mval_depth[0]= mx;
-			mval_depth[1]= my;
 			view3d_operator_needs_opengl(C);
-			if (view_autodist(scene, ar, v3d, mval_depth, fp))
+			if (view_autodist(scene, ar, v3d, event->mval, fp))
 				depth_used= 1;
 		}
 
 		if(depth_used==0) {
-			window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
+			window_to_3d_delta(ar, dvec, mval[0]-event->mval[0], mval[1]-event->mval[1]);
 			sub_v3_v3(fp, dvec);
 		}
 	}
 	else {
 
-		dx= ((float)(mx-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
-		dy= ((float)(my-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
+		dx= ((float)(event->mval[0]-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
+		dy= ((float)(event->mval[1]-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
 
 		fz= rv3d->persmat[0][3]*fp[0]+ rv3d->persmat[1][3]*fp[1]+ rv3d->persmat[2][3]*fp[2]+ rv3d->persmat[3][3];
 		fz= fz/rv3d->zfac;

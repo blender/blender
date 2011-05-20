@@ -102,18 +102,13 @@ static void graphview_cursor_setprops(bContext *C, wmOperator *op, wmEvent *even
 {
 	ARegion *ar= CTX_wm_region(C);
 	float viewx, viewy;
-	int x, y;
-	
+
 	/* abort if not active region (should not really be possible) */
 	if (ar == NULL)
 		return;
-	
-	/* convert screen coordinates to region coordinates */
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
-	
+
 	/* convert from region coordinates to View2D 'tot' space */
-	UI_view2d_region_to_view(&ar->v2d, x, y, &viewx, &viewy);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 	
 	/* store the values in the operator properties */
 		/* frame is rounded to the nearest int, since frames are ints */

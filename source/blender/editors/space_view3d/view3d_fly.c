@@ -287,9 +287,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 
 	fly->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
-	fly->mval[0] = event->x - fly->ar->winrct.xmin;
-	fly->mval[1] = event->y - fly->ar->winrct.ymin;
-
+	VECCOPY2D(fly->mval, event->mval)
 
 	fly->time_lastdraw= fly->time_lastwheel= PIL_check_seconds_timer();
 
@@ -418,8 +416,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 		fly->redraw = 1;
 	}
 	else if (event->type == MOUSEMOVE) {
-		fly->mval[0] = event->x - fly->ar->winrct.xmin;
-		fly->mval[1] = event->y - fly->ar->winrct.ymin;
+		VECCOPY2D(fly->mval, event->mval);
 	} /* handle modal keymap first */
 	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {

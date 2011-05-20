@@ -459,16 +459,10 @@ static int nlaedit_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 		Scene *scene= ac.scene;
 		ARegion *ar= ac.ar;
 		View2D *v2d= &ar->v2d;
-		
-		int mval[2];
 		float x;
 		
-		/* get mouse coordinates (in region coordinates) */
-		mval[0]= (event->x - ar->winrct.xmin);
-		mval[1]= (event->y - ar->winrct.ymin);
-		
 		/* determine which side of the current frame mouse is on */
-		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 		if (x < CFRA)
 			RNA_int_set(op->ptr, "mode", NLAEDIT_LRSEL_LEFT);
 		else 	
@@ -503,7 +497,7 @@ void NLA_OT_select_leftright (wmOperatorType *ot)
 /* ******************** Mouse-Click Select Operator *********************** */
 
 /* select strip directly under mouse */
-static void mouse_nla_strips (bContext *C, bAnimContext *ac, int mval[2], short select_mode)
+static void mouse_nla_strips (bContext *C, bAnimContext *ac, const int mval[2], short select_mode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale = NULL;
@@ -614,8 +608,7 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	ARegion *ar;
 	// View2D *v2d; /*UNUSED*/
 	short selectmode;
-	int mval[2];
-	
+
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
@@ -624,11 +617,7 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	scene= ac.scene;
 	ar= ac.ar;
 	// v2d= &ar->v2d;
-	
-	/* get mouse coordinates (in region coordinates) */
-	mval[0]= (event->x - ar->winrct.xmin);
-	mval[1]= (event->y - ar->winrct.ymin);
-	
+
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend"))
 		selectmode= SELECT_INVERT;
@@ -636,7 +625,7 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		selectmode= SELECT_REPLACE;
 		
 	/* select strips based upon mouse position */
-	mouse_nla_strips(C, &ac, mval, selectmode);
+	mouse_nla_strips(C, &ac, event->mval, selectmode);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_SELECTED, NULL);

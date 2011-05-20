@@ -2580,7 +2580,7 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 	float fmval[2];
 	int extend= RNA_boolean_get(op->ptr, "extend");
 
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, fmval, fmval+1);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval+1);
 
 	if(!ELEM3(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF, SO_KEYMAP) && !(soops->flag & SO_HIDE_RESTRICTCOLS) && fmval[0] > ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX)
 		return OPERATOR_CANCELLED;
@@ -2664,7 +2664,7 @@ static int outliner_item_openclose(bContext *C, wmOperator *op, wmEvent *event)
 	float fmval[2];
 	int all= RNA_boolean_get(op->ptr, "all");
 	
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, fmval, fmval+1);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval+1);
 	
 	for(te= soops->tree.first; te; te= te->next) {
 		if(do_outliner_item_openclose(C, soops, te, all, fmval)) 
@@ -2736,7 +2736,7 @@ static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 	TreeElement *te;
 	float fmval[2];
 	
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, fmval, fmval+1);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval+1);
 	
 	for(te= soops->tree.first; te; te= te->next) {
 		if(do_outliner_item_rename(C, ar, soops, te, fmval)) break;
@@ -3791,7 +3791,7 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 	TreeElement *te;
 	float fmval[2];
 	
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, fmval, fmval+1);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval+1);
 	
 	for(te= soops->tree.first; te; te= te->next) {
 		if(do_outliner_operation_event(C, scene, ar, soops, te, event, fmval)) break;

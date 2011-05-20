@@ -1715,12 +1715,8 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	float co[2];
-	int x, y;
 
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
-
-	UI_view2d_region_to_view(&ar->v2d, x, y, &co[0], &co[1]);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 	RNA_float_set_array(op->ptr, "location", co);
 
 	return select_exec(C, op);
@@ -1764,12 +1760,8 @@ static int select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	float co[2];
-	int x, y;
 
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
-
-	UI_view2d_region_to_view(&ar->v2d, x, y, &co[0], &co[1]);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 	RNA_float_set_array(op->ptr, "location", co);
 
 	return select_loop_exec(C, op);
@@ -1825,12 +1817,8 @@ static int select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, i
 		if(event) {
 			/* invoke */
 			ARegion *ar= CTX_wm_region(C);
-			int x, y;
 
-			x= event->x - ar->winrct.xmin;
-			y= event->y - ar->winrct.ymin;
-
-			UI_view2d_region_to_view(&ar->v2d, x, y, &co[0], &co[1]);
+			UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 			RNA_float_set_array(op->ptr, "location", co);
 		}
 		else {
@@ -3036,12 +3024,9 @@ static int set_2d_cursor_exec(bContext *C, wmOperator *op)
 static int set_2d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
-	int x, y;
 	float location[2];
 
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
-	UI_view2d_region_to_view(&ar->v2d, x, y, &location[0], &location[1]);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
 	RNA_float_set_array(op->ptr, "location", location);
 
 	return set_2d_cursor_exec(C, op);
@@ -3092,14 +3077,12 @@ static int set_tile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Image *ima= CTX_data_edit_image(C);
 	ARegion *ar= CTX_wm_region(C);
 	float fx, fy;
-	int x, y, tile[2];
+	int tile[2];
 
 	if(!ima || !(ima->tpageflag & IMA_TILES))
 		return OPERATOR_CANCELLED;
 
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
-	UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fx, &fy);
 
 	if(fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
 		fx= fx*ima->xrep;

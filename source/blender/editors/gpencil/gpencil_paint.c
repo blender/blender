@@ -210,7 +210,7 @@ static void gp_get_3d_reference (tGPsdata *p, float *vec)
 /* Stroke Editing ---------------------------- */
 
 /* check if the current mouse position is suitable for adding a new point */
-static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
+static short gp_stroke_filtermval (tGPsdata *p, const int mval[2], int pmval[2])
 {
 	int dx= abs(mval[0] - pmval[0]);
 	int dy= abs(mval[1] - pmval[1]);
@@ -315,7 +315,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 }
 
 /* add current stroke-point to buffer (returns whether point was successfully added) */
-static short gp_stroke_addpoint (tGPsdata *p, int mval[2], float pressure)
+static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 {
 	bGPdata *gpd= p->gpd;
 	tGPspoint *pt;
@@ -1416,16 +1416,15 @@ static void gpencil_draw_apply (wmOperator *op, tGPsdata *p)
 static void gpencil_draw_apply_event (wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p= op->customdata;
-	ARegion *ar= p->ar;
 	PointerRNA itemptr;
 	float mousef[2];
 	int tablet=0;
 
 	/* convert from window-space to area-space mouse coordintes */
 	// NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding...
-	p->mval[0]= event->x - ar->winrct.xmin + 1;
-	p->mval[1]= event->y - ar->winrct.ymin + 1;
-	
+	p->mval[0]= event->mval[0] + 1;
+	p->mval[1]= event->mval[1] + 1;
+
 	/* handle pressure sensitivity (which is supplied by tablets) */
 	if (event->custom == EVT_DATA_TABLET) {
 		wmTabletData *wmtab= event->customdata;

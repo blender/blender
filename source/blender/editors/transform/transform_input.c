@@ -372,7 +372,7 @@ void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *, float [3])
 	mi->post = post;
 }
 
-void applyMouseInput(TransInfo *t, MouseInput *mi, int mval[2], float output[3])
+void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float output[3])
 {
 	if (mi->apply != NULL)
 	{
@@ -398,8 +398,7 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 			t->modifiers |= MOD_PRECISION;
 			/* shift is modifier for higher precision transform
 			 * store the mouse position where the normal movement ended */
-			mi->precision_mval[0] = event->x - t->ar->winrct.xmin;
-			mi->precision_mval[1] = event->y - t->ar->winrct.ymin;
+			VECCOPY2D(mi->precision_mval, event->mval);
 			mi->precision = 1;
 		}
 		else
