@@ -1777,7 +1777,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 	sub_v3_v3v3(afm, max, min);
 	size= MAX3(afm[0], afm[1], afm[2]);
 
-	if(rv3d->persp==RV3D_ORTHO) {
+	if(!rv3d->is_persp) {
 		if(size < 0.0001f) { /* if its a sinble point. dont even re-scale */
 			ok_dist= 0;
 		}
@@ -2034,7 +2034,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
 	cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
 
-	if (rv3d->persp==RV3D_PERSP) {
+	if (rv3d->is_persp) {
 		double p_corner[3];
 
 		/* no depths to use, we cant do anything! */

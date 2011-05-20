@@ -548,8 +548,7 @@ void viewray(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], 
 
 void viewvector(RegionView3D *rv3d, const float coord[3], float vec[3])
 {
-	if (rv3d->persp != RV3D_ORTHO)
-	{
+	if (rv3d->is_persp) {
 		float p1[4], p2[4];
 
 		copy_v3_v3(p1, coord);
