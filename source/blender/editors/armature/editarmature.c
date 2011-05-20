@@ -5530,6 +5530,26 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.bones", oldname, newname, 0, 0, 1);
 			}
 		}
+
+		{
+			/* correct view locking */
+			bScreen *screen;
+			for(screen= G.main->screen.first; screen; screen= screen->id.next) {
+				ScrArea *sa;
+				/* add regions */
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					SpaceLink *sl= sa->spacedata.first;
+					if(sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d= (View3D *)sl;
+						if(v3d->ob_centre && v3d->ob_centre->data == arm) {
+							if (!strcmp(v3d->ob_centre_bone, oldname)) {
+								BLI_strncpy(v3d->ob_centre_bone, newname, MAXBONENAME);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
