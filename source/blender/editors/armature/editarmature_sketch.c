@@ -1005,7 +1005,7 @@ static void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end,
 		float pval[2];
 
 		project_float(ar, stk->points[i].p, pval);
-		viewray(ar, v3d, pval, ray_start, ray_normal);
+		ED_view3d_win_to_ray(ar, v3d, pval, ray_start, ray_normal);
 
 		mul_v3_fl(ray_normal, distance * progress / length);
 		add_v3_v3(stk->points[i].p, ray_normal);
@@ -1032,7 +1032,7 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 
 	/* method taken from editview.c - mouse_cursor() */
 	project_short_noclip(ar, fp, cval);
-	window_to_3d_delta(ar, dvec, cval[0] - dd->mval[0], cval[1] - dd->mval[1]);
+	ED_view3d_win_to_delta(ar, cval[0] - dd->mval[0], cval[1] - dd->mval[1], dvec);
 	sub_v3_v3v3(vec, fp, dvec);
 }
 
@@ -1721,7 +1721,7 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 
 					mval[0] = vi[0];
 					mval[1] = vi[1];
-					viewline(ar, v3d, mval, ray_start, ray_end);
+					ED_view3d_win_to_segment_clip(ar, v3d, mval, ray_start, ray_end);
 
 					isect_line_line_v3(	stk->points[s_i].p,
 										stk->points[s_i + 1].p,

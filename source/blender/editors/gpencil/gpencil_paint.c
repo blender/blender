@@ -245,7 +245,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		if (gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out, 0, depth))) {
+		if (gpencil_project_check(p) && (ED_view3d_autodist_simple(p->ar, mval, out, 0, depth))) {
 			/* projecting onto 3D-Geometry
 			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
 			 */
@@ -267,7 +267,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 			
 			/* method taken from editview.c - mouse_cursor() */
 			project_int_noclip(p->ar, rvec, mval);
-			window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
+			ED_view3d_win_to_delta(p->ar, mval[0]-mx, mval[1]-my, dvec);
 			sub_v3_v3v3(out, rvec, dvec);
 		}
 	}
@@ -583,8 +583,8 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 			for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
 				mval[0]= ptc->x; mval[1]= ptc->y;
 
-				if ((view_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0) &&
-					(i && (view_autodist_depth_segment(p->ar, mval, mval_prev, depth_margin + 1, depth_arr+i) == 0))
+				if ((ED_view3d_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0) &&
+					(i && (ED_view3d_autodist_depth_seg(p->ar, mval, mval_prev, depth_margin + 1, depth_arr+i) == 0))
 				) {
 					interp_depth= TRUE;
 				}
@@ -1228,7 +1228,7 @@ static void gp_paint_strokeend (tGPsdata *p)
 		
 		/* need to restore the original projection settings before packing up */
 		view3d_region_operator_needs_opengl(p->win, p->ar);
-		view_autodist_init(p->scene, p->ar, v3d, (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 1:0);
+		ED_view3d_autodist_init(p->scene, p->ar, v3d, (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 1:0);
 	}
 	
 	/* check if doing eraser or not */

@@ -1581,7 +1581,7 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, f
 	int retval = 0;
 	float ray_start[3], ray_normal[3];
 	
-	viewray(ar, v3d, mval, ray_start, ray_normal);
+	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
 
 	if (mode == SNAP_ALL && obedit)
 	{
@@ -1812,7 +1812,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 	int retval = 0;
 	float ray_start[3], ray_normal[3];
 	
-	viewray(ar, v3d, mval, ray_start, ray_normal);
+	ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal);
 
 	for ( base = scene->base.first; base != NULL; base = base->next ) {
 		if ( BASE_SELECTABLE(v3d, base) ) {

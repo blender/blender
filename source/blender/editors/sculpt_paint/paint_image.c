@@ -5270,7 +5270,7 @@ static int set_clone_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	view3d_operator_needs_opengl(C);
 
-	if(!view_autodist(scene, ar, v3d, event->mval, location))
+	if(!ED_view3d_autodist(scene, ar, v3d, event->mval, location))
 		return OPERATOR_CANCELLED;
 
 	RNA_float_set_array(op->ptr, "location", location);

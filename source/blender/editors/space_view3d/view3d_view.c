@@ -502,13 +502,13 @@ void view3d_calculate_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, 
 }
 
 /* create intersection coordinates in view Z direction at mouse coordinates */
-void viewline(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
+void ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
 	if(rv3d->is_persp) {
 		float vec[3];
-		window_to_3d_vector(ar, vec, mval[0], mval[1]);
+		ED_view3d_win_to_vector(ar, mval[0], mval[1], vec);
 
 		copy_v3_v3(ray_start, rv3d->viewinv[3]);
 		VECADDFAC(ray_start, rv3d->viewinv[3], vec, v3d->near);
@@ -537,16 +537,16 @@ void viewline(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3],
 }
 
 /* create intersection ray in view Z direction at mouse coordinates */
-void viewray(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3])
+void ED_view3d_win_to_ray(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3])
 {
 	float ray_end[3];
 	
-	viewline(ar, v3d, mval, ray_start, ray_end);
+	ED_view3d_win_to_segment_clip(ar, v3d, mval, ray_start, ray_end);
 	sub_v3_v3v3(ray_normal, ray_end, ray_start);
 	normalize_v3(ray_normal);
 }
 
-void viewvector(RegionView3D *rv3d, const float coord[3], float vec[3])
+void ED_view3d_global_to_vector(RegionView3D *rv3d, const float coord[3], float vec[3])
 {
 	if (rv3d->is_persp) {
 		float p1[4], p2[4];
@@ -592,7 +592,7 @@ int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	return flip;
 }
 
-void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const float mx, const float my)
+void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mx, const float my, float out[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
@@ -602,7 +602,7 @@ void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const floa
 	if(rv3d->is_persp) {
 		float mousevec[3];
 		copy_v3_v3(line_sta, rv3d->viewinv[3]);
-		window_to_3d_vector(ar, mousevec, mx, my);
+		ED_view3d_win_to_vector(ar, mx, my, mousevec);
 		add_v3_v3v3(line_end, line_sta, mousevec);
 
 		if(isect_line_plane_v3(out, line_sta, line_end, depth_pt, rv3d->viewinv[2], TRUE) == 0) {
@@ -624,7 +624,7 @@ void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const floa
 
 /* always call initgrabz */
 /* only to detect delta motion */
-void window_to_3d_delta(ARegion *ar, float out[3], const float mx, const float my)
+void ED_view3d_win_to_delta(ARegion *ar, const float mx, const float my, float out[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float dx, dy;
@@ -640,7 +640,7 @@ void window_to_3d_delta(ARegion *ar, float out[3], const float mx, const float m
 /* doesn't rely on initgrabz */
 /* for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector */
-void window_to_3d_vector(ARegion *ar, float out[3], const float mx, const float my)
+void ED_view3d_win_to_vector(ARegion *ar, const float mx, const float my, float out[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 

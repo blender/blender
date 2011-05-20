@@ -125,7 +125,7 @@ void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
-			window_to_3d_delta(t->ar, vec, dx, dy);
+			ED_view3d_win_to_delta(t->ar, dx, dy, vec);
 		}
 	}
 	else if(t->spacetype==SPACE_IMAGE) {

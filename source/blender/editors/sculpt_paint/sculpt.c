@@ -912,7 +912,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **n
 	{
 		switch (brush->sculpt_plane) {
 			case SCULPT_DISP_DIR_VIEW:
-				viewvector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
+				ED_view3d_global_to_vector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
 				break;
 
 			case SCULPT_DISP_DIR_X:
@@ -1823,7 +1823,7 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 	{
 		switch (brush->sculpt_plane) {
 			case SCULPT_DISP_DIR_VIEW:
-				viewvector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
+				ED_view3d_global_to_vector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
 				break;
 
 			case SCULPT_DISP_DIR_X:
@@ -2926,7 +2926,7 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	cache->mats = MEM_callocN(sizeof(bglMats), "sculpt bglMats");
 	view3d_get_transformation(vc->ar, vc->rv3d, vc->obact, cache->mats);
 
-	viewvector(cache->vc->rv3d, cache->vc->rv3d->twmat[3], cache->true_view_normal);
+	ED_view3d_global_to_vector(cache->vc->rv3d, cache->vc->rv3d->twmat[3], cache->true_view_normal);
 	/* Initialize layer brush displacements and persistent coords */
 	if(brush->sculpt_tool == SCULPT_TOOL_LAYER) {
 		/* not supported yet for multires */
@@ -2994,8 +2994,7 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 			  cache->orig_grab_location[1],
 			  cache->orig_grab_location[2]);
 
-		window_to_3d_delta(cache->vc->ar, grab_location,
-				   cache->mouse[0], cache->mouse[1]);
+		ED_view3d_win_to_delta(cache->vc->ar, cache->mouse[0], cache->mouse[1], grab_location);
 
 		/* compute delta to move verts by */
 		if(!cache->first_time) {
@@ -3247,7 +3246,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 
 	sculpt_stroke_modifiers_check(C, ob);
 
-	viewline(vc->ar, vc->v3d, mval, ray_start, ray_end);
+	ED_view3d_win_to_segment_clip(vc->ar, vc->v3d, mval, ray_start, ray_end);
 
 	invert_m4_m4(obimat, ob->obmat);
 	mul_m4_v3(obimat, ray_start);

@@ -3244,7 +3244,7 @@ static int brush_add(PEData *data, short number)
 
 		mco[0]= data->mval[0] + dmx;
 		mco[1]= data->mval[1] + dmy;
-		viewline(data->vc.ar, data->vc.v3d, mco, co1, co2);
+		ED_view3d_win_to_segment_clip(data->vc.ar, data->vc.v3d, mco, co1, co2);
 
 		mul_m4_v3(imat,co1);
 		mul_m4_v3(imat,co2);
@@ -3512,7 +3512,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 				invert_m4_m4(ob->imat, ob->obmat);
 
-				window_to_3d_delta(ar, vec, dx, dy);
+				ED_view3d_win_to_delta(ar, dx, dy, vec);
 				data.dvec= vec;
 
 				foreach_mouse_hit_key(&data, brush_comb, selected);

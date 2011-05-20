@@ -557,7 +557,7 @@ static void test_manipulator_axis(const bContext *C)
 	float angle;
 	float vec[3];
 
-	viewvector(rv3d, rv3d->twmat[3], vec);
+	ED_view3d_global_to_vector(rv3d, rv3d->twmat[3], vec);
 
 	angle = fabs(angle_v3v3(rv3d->twmat[0], vec));
 	if (angle > (float)M_PI / 2.0f) {

@@ -401,7 +401,7 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 		/* convert screen coordinate to 3d coordinates 
 		 *	- method taken from editview.c - mouse_cursor() 
 		 */
-		window_to_3d(ar, p3d, fp, mx, my);
+		ED_view3d_win_to_3d(ar, fp, mx, my, p3d);
 	}
 }
 

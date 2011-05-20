@@ -80,9 +80,76 @@ typedef struct ViewDepths {
 float *give_cursor(struct Scene *scene, struct View3D *v3d);
 
 int initgrabz(struct RegionView3D *rv3d, float x, float y, float z);
-void window_to_3d(struct ARegion *ar, float out[3], const float depth_pt[3], const float mx, const float my);
-void window_to_3d_delta(struct ARegion *ar, float out[3], const float mx, const float my);
-void window_to_3d_vector(struct ARegion *ar, float out[3], const float mx, const float my);
+
+/**
+ * Calculate a 3d location from 2d window coordinates.
+ * @param ar The region (used for the window width and height).
+ * @param depth_pt The reference location used to calculate the Z depth.
+ * @param mx The area relative X location (such as event->mval[0]).
+ * @param my The area relative Y location (such as event->mval[1]).
+ * @param out The resulting world-space location.
+ */
+void ED_view3d_win_to_3d(struct ARegion *ar, const float depth_pt[3], const float mx, const float my, float out[3]);
+
+/**
+ * Calculate a 3d difference vector from 2d window offset.
+ * note that initgrabz() must be called first to determine
+ * the depth used to calculate the delta.
+ * @param ar The region (used for the window width and height).
+ * @param mx The area relative X difference (such as event->mval[0] - other_x).
+ * @param my The area relative Y difference (such as event->mval[1] - other_y).
+ * @param out The resulting world-space delta.
+ */
+void ED_view3d_win_to_delta(struct ARegion *ar, const float mx, const float my, float out[3]);
+
+/**
+ * Calculate a 3d direction vector from 2d window coordinates.
+ * This direction vector starts and the view in the direction of the 2d window coordinates.
+ * In orthographic view all window coordinates yield the same vector.
+ * @param ar The region (used for the window width and height).
+ * @param mx The area relative X difference (such as event->mval[0]).
+ * @param my The area relative Y difference (such as event->mval[1]).
+ * @param out The resulting normalized world-space direction vector.
+ */
+void ED_view3d_win_to_vector(struct ARegion *ar, const float mx, const float my, float out[3]);
+
+/**
+ * Calculate a 3d segment from 2d window coordinates.
+ * This ray_start is located at the viewpoint, ray_end is a far point.
+ * ray_start and ray_end are clipped by the view near and far limits
+ * so points along this line are always in view.
+ * In orthographic view all resulting segments will be parallel.
+ * @param ar The region (used for the window width and height).
+ * @param v3d The 3d viewport (used for near and far clipping range).
+ * @param mval The area relative 2d location (such as event->mval, converted into float[2]).
+ * @param ray_start The world-space starting point of the segment.
+ * @param ray_end The world-space end point of the segment.
+ */
+void ED_view3d_win_to_segment_clip(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
+
+/**
+ * Calculate a 3d viewpoint and direction vector from 2d window coordinates.
+ * This ray_start is located at the viewpoint, ray_normal is the direction towards mval.
+ * ray_start is clipped by the view near limit so points in front of it are always in view.
+ * In orthographic view the resulting ray_normal will match the view vector.
+ * @param ar The region (used for the window width and height).
+ * @param v3d The 3d viewport (used for near clipping value).
+ * @param out The resulting normalized world-space direction vector.
+ * @param mval The area relative 2d location (such as event->mval, converted into float[2]).
+ * @param ray_start The world-space starting point of the segment.
+ * @param ray_normal The normalized world-space direction of towards mval.
+ */
+void ED_view3d_win_to_ray(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3]);
+
+/**
+ * Calculate a normalized 3d direction vector from the viewpoint towards a global location.
+ * In orthographic view the resulting vector will match the view vector.
+ * @param ar The region (used for the window width and height).
+ * @param coord The world-space location.
+ * @param vec The resulting normalized vector.
+ */
+void ED_view3d_global_to_vector(struct RegionView3D *rv3d, const float coord[3], float vec[3]);
+
 void view3d_unproject(struct bglMats *mats, float out[3], const short x, const short y, const float z);
 
 /* Depth buffer */
@@ -103,11 +170,6 @@ void project_int_noclip(struct ARegion *ar, const float vec[3], int adr[2]);
 
 void project_float(struct ARegion *ar, const float vec[3], float adr[2]);
 void project_float_noclip(struct ARegion *ar, const float vec[3], float adr[2]);
-
-void viewvector(struct RegionView3D *rv3d, const float coord[3], float vec[3]);
-
-void viewline(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
-void viewray(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3]);
 
 void get_object_clip_range(struct Object *ob, float *lens, float *clipsta, float *clipend);
 int get_view3d_cliprange(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
@@ -138,13 +200,13 @@ unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, const int mval[2
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
 /* draws and does a 4x4 sample */
-int view_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, const int mval[2], float mouse_worldloc[3]);
+int ED_view3d_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, const int mval[2], float mouse_worldloc[3]);
 
-/* only draw so view_autodist_simple can be called many times after */
-int view_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, int mode);
-int view_autodist_simple(struct ARegion *ar, const int mval[2], float mouse_worldloc[3], int margin, float *force_depth);
-int view_autodist_depth(struct ARegion *ar, const int mval[2], int margin, float *depth);
-int view_autodist_depth_segment(struct ARegion *ar, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
+/* only draw so ED_view3d_autodist_simple can be called many times after */
+int ED_view3d_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, int mode);
+int ED_view3d_autodist_simple(struct ARegion *ar, const int mval[2], float mouse_worldloc[3], int margin, float *force_depth);
+int ED_view3d_autodist_depth(struct ARegion *ar, const int mval[2], int margin, float *depth);
+int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
 
 /* select */
 #define MAXPICKBUF      10000

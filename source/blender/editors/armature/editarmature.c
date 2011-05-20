@@ -2501,7 +2501,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	
 	copy_v3_v3(oldcurs, fp);
 
-	window_to_3d(ar, tvec, fp, event->mval[0], event->mval[1]);
+	ED_view3d_win_to_3d(ar, fp, event->mval[0], event->mval[1], tvec);
 	copy_v3_v3(fp, tvec);
 
 	/* extrude to the where new cursor is and store the operation result */
