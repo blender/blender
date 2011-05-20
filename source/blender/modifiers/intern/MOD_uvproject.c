@@ -271,7 +271,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	/* if only one projector, project coords to UVs */
 	if(num_projectors == 1 && projectors[0].uci==NULL)
 		for(i = 0, co = coords; i < numVerts; ++i, ++co)
-			mul_project_m4_v4(projectors[0].projmat, *co);
+			mul_project_m4_v3(projectors[0].projmat, *co);
 
 	mface = dm->getFaceArray(dm);
 	numFaces = dm->getNumFaces(dm);
@@ -345,11 +345,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 						project_from_camera(tface->uv[3], coords[mf->v4], best_projector->uci);
 				}
 				else {
-					mul_project_m4_v4(best_projector->projmat, co1);
-					mul_project_m4_v4(best_projector->projmat, co2);
-					mul_project_m4_v4(best_projector->projmat, co3);
+					mul_project_m4_v3(best_projector->projmat, co1);
+					mul_project_m4_v3(best_projector->projmat, co2);
+					mul_project_m4_v3(best_projector->projmat, co3);
 					if(mf->v4)
-						mul_project_m4_v4(best_projector->projmat, co4);
+						mul_project_m4_v3(best_projector->projmat, co4);
 
 					/* apply transformed coords as UVs */
 					tface->uv[0][0] = co1[0];
