@@ -12716,10 +12716,11 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 }
 
 /* when *lib set, it also does objects that were in the appended group */
-static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is_group_append)
+static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link)
 {
 	Object *ob;
 	Base *base;
+	const short is_group_append= (is_link==FALSE && idcode==ID_GR);
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
 	for(ob= mainvar->object.first; ob; ob= ob->id.next) {
@@ -12996,21 +12997,18 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(scene) {
+		const short is_link= (flag & FILE_LINK) != 0;
 		if(idcode==ID_SCE) {
 			/* dont instance anything when linking in scenes, assume the scene its self instances the data */
 		}
 		else if(idcode==ID_GR) {
-			if (flag & FILE_LINK) {
-				give_base_to_objects(mainvar, scene, NULL, 0);
-			} else {
-				give_base_to_objects(mainvar, scene, curlib, 1);
-			}
+			give_base_to_objects(mainvar, scene, is_link ? NULL : curlib, idcode, is_link);
 
 			if (flag & FILE_GROUP_INSTANCE) {
 				give_base_to_groups(mainvar, scene);
 			}
 		} else {
-			give_base_to_objects(mainvar, scene, NULL, 0);
+			give_base_to_objects(mainvar, scene, NULL, idcode, is_link);
 		}
 	}
 	else {
