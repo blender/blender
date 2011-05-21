@@ -12739,9 +12739,20 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 				if(ob->id.us==0) {
 					do_it= 1;
 				}
-				else if(ob->id.us==1 && lib) {
-					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0) {
-						do_it= 1;
+				else if(idcode==ID_GR) {
+					if(ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
+						if((ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0) {
+							do_it= 1;
+						}
+					}
+				}
+				else {
+					/* when appending, make sure any indirectly loaded objects
+					 * get a base else they cant be accessed at all [#27437] */
+					if(ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
+						if(object_in_any_scene(mainvar, ob)==0) {
+							do_it= 1;
+						}
 					}
 				}
 
@@ -13001,14 +13012,12 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 		if(idcode==ID_SCE) {
 			/* dont instance anything when linking in scenes, assume the scene its self instances the data */
 		}
-		else if(idcode==ID_GR) {
-			give_base_to_objects(mainvar, scene, is_link ? NULL : curlib, idcode, is_link);
+		else {
+			give_base_to_objects(mainvar, scene, curlib, idcode, is_link);
 
 			if (flag & FILE_GROUP_INSTANCE) {
 				give_base_to_groups(mainvar, scene);
 			}
-		} else {
-			give_base_to_objects(mainvar, scene, NULL, idcode, is_link);
 		}
 	}
 	else {
