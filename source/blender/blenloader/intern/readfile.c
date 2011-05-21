@@ -12738,13 +12738,6 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 				if(ob->id.us==0) {
 					do_it= 1;
 				}
-				else if (lib==NULL) { /* appending */
-					if(object_in_any_scene(mainvar, ob)==0) {
-						/* when appending, make sure any indirectly loaded objects
-						 * get a base else they cant be accessed at all [#27437] */
-						do_it= 1;
-					}
-				}
 				else if(ob->id.us==1 && lib) {
 					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0) {
 						do_it= 1;
