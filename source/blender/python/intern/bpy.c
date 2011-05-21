@@ -77,9 +77,9 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 	PyObject *ret= PyTuple_New(2);
 	char *path;
 
-	path= BLI_get_folder(BLENDER_USER_SCRIPTS, NULL);
-	PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(path?path:""));
 	path= BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, NULL);
+	PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(path?path:""));
+	path= BLI_get_folder(BLENDER_USER_SCRIPTS, NULL);
 	PyTuple_SET_ITEM(ret, 1, PyUnicode_FromString(path?path:""));
 
 	return ret;
