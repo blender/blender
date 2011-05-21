@@ -162,11 +162,11 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			invert_m4_m4(imat, rv3d->viewmat);
 
 			for (p = t->tsnap.points.first; p; p = p->next) {
-				drawcircball(GL_LINE_LOOP, p->co, view3d_pixel_size(rv3d, p->co) * size, imat);
+				drawcircball(GL_LINE_LOOP, p->co, ED_view3d_pixel_size(rv3d, p->co) * size, imat);
 			}
 
 			if (t->tsnap.status & POINT_INIT) {
-				drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, view3d_pixel_size(rv3d, t->tsnap.snapPoint) * size, imat);
+				drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, ED_view3d_pixel_size(rv3d, t->tsnap.snapPoint) * size, imat);
 			}
 			
 			/* draw normal if needed */

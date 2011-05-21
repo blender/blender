@@ -206,7 +206,7 @@ static int test_clipping(const float vec[3], float clip[][4])
 
 /* for 'local' ED_view3d_local_clipping must run first
  * then all comparisons can be done in localspace */
-int view3d_test_clipping(RegionView3D *rv3d, const float vec[3], const int local)
+int ED_view3d_test_clipping(RegionView3D *rv3d, const float vec[3], const int local)
 {
 	return test_clipping(vec, local ? rv3d->clip_local : rv3d->clip);
 }
@@ -869,7 +869,7 @@ void view3d_viewborder_size_get(Scene *scene, ARegion *ar, float size_r[2])
 	}
 }
 
-void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r, short do_shift)
+void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewborder_r, short do_shift)
 {
 	const float zoomfac= BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom);
 	float size[2];
@@ -998,7 +998,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	if(v3d->camera->type==OB_CAMERA)
 		ca = v3d->camera->data;
 	
-	view3d_calc_camera_border(scene, ar, rv3d, v3d, &viewborder, FALSE);
+	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, FALSE);
 	/* the offsets */
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
@@ -1398,7 +1398,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			if(rv3d->persp==RV3D_CAMOB) {
 				rctf vb;
 
-				view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb, FALSE);
+				ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
 
 				x1= vb.xmin;
 				y1= vb.ymin;
@@ -1418,7 +1418,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 				asp= ( (float)ibuf->y)/(float)ibuf->x;
 
 				vec[0] = vec[1] = vec[2] = 0.0;
-				view3d_project_float(ar, vec, sco, rv3d->persmat);
+				ED_view3d_project_float(ar, vec, sco, rv3d->persmat);
 				cx = sco[0];
 				cy = sco[1];
 
@@ -1678,7 +1678,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 		}
 		if(use_displist) {
 			glMultMatrixf(dob->mat);
-			if(boundbox_clip(rv3d, dob->mat, &bb))
+			if(ED_view3d_boundbox_clip(rv3d, dob->mat, &bb))
 				glCallList(displist);
 			glLoadMatrixf(rv3d->viewmat);
 		}
@@ -1768,7 +1768,7 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 }
 
 /* note, with nouveau drivers the glReadPixels() is very slow. [#24339] */
-void view3d_update_depths(ARegion *ar)
+void ED_view3d_depth_update(ARegion *ar)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	

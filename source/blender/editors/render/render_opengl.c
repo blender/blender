@@ -149,7 +149,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			rctf viewplane;
 			float clipsta, clipend;
 
-			int is_ortho= get_view3d_viewplane(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
+			int is_ortho= ED_view3d_viewplane_get(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
 			if(is_ortho) orthographic_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, -clipend, clipend);
 			else  perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
 		}

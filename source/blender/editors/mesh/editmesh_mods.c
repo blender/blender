@@ -504,7 +504,7 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 			vec[1]= eed->v1->co[1] + labda*(eed->v2->co[1] - eed->v1->co[1]);
 			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
 
-			if(view3d_test_clipping(data->vc.rv3d, vec, 1)==0) {
+			if(ED_view3d_test_clipping(data->vc.rv3d, vec, 1)==0) {
 				data->dist = distance;
 				data->closest = eed;
 			}

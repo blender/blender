@@ -385,7 +385,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 			/* we may need to force an update here by setting the rv3d as dirty
 			 * for now it seems ok, but take care!:
 			 * rv3d->depths->dirty = 1; */
-			view3d_update_depths(data->vc.ar);
+			ED_view3d_depth_update(data->vc.ar);
 		}
 	}
 }

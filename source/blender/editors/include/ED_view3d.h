@@ -147,17 +147,19 @@ void ED_view3d_win_to_ray(struct ARegion *ar, struct View3D *v3d, const float mv
  */
 void ED_view3d_global_to_vector(struct RegionView3D *rv3d, const float coord[3], float vec[3]);
 
+#if 0 /* UNUSED */
 void view3d_unproject(struct bglMats *mats, float out[3], const short x, const short y, const float z);
+#endif
 
 /* Depth buffer */
-void view3d_update_depths(struct ARegion *ar);
-float read_cached_depth(struct ViewContext *vc, int x, int y);
-void request_depth_update(struct RegionView3D *rv3d);
+void ED_view3d_depth_update(struct ARegion *ar);
+float ED_view3d_depth_read_cached(struct ViewContext *vc, int x, int y);
+void ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 
 /* Projection */
 #define IS_CLIPPED        12000
 
-void view3d_calculate_clipping(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, struct rcti *rect);
+void ED_view3d_calc_clipping(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, struct rcti *rect);
 
 void project_short(struct ARegion *ar, const float vec[3], short adr[2]);
 void project_short_noclip(struct ARegion *ar, const float vec[3], short adr[2]);
@@ -168,12 +170,12 @@ void project_int_noclip(struct ARegion *ar, const float vec[3], int adr[2]);
 void project_float(struct ARegion *ar, const float vec[3], float adr[2]);
 void project_float_noclip(struct ARegion *ar, const float vec[3], float adr[2]);
 
-void get_object_clip_range(struct Object *ob, float *lens, float *clipsta, float *clipend);
-int get_view3d_cliprange(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
-int get_view3d_viewplane(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
-void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
-void view3d_project_float(struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
-void view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct RegionView3D *rv3d, struct View3D *v3d, struct rctf *viewborder_r, short do_shift);
+void ED_view3d_ob_clip_range_get(struct Object *ob, float *lens, float *clipsta, float *clipend);
+int ED_view3d_clip_range_get(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
+int ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
+void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
+void ED_view3d_project_float(struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
+void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short do_shift);
 
 /* drawobject.c iterators */
 void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
@@ -183,9 +185,9 @@ void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 
 void ED_view3d_local_clipping(struct RegionView3D *rv3d, float mat[][4]);
-int view3d_test_clipping(struct RegionView3D *rv3d, const float vec[3], const int local);
-void view3d_align_axis_to_vector(struct View3D *v3d, struct RegionView3D *rv3d, int axisidx, float vec[3]);
-float view3d_pixel_size(struct RegionView3D *rv3d, const float co[3]);
+int ED_view3d_test_clipping(struct RegionView3D *rv3d, const float vec[3], const int local);
+void ED_view3d_align_axis_to_vector(struct View3D *v3d, struct RegionView3D *rv3d, int axisidx, float vec[3]);
+float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3]);
 
 void drawcircball(int mode, const float cent[3], float rad, float tmat[][4]);
 

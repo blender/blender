@@ -1457,7 +1457,7 @@ void BIF_draw_manipulator(const bContext *C)
 			break;
 		}
 
-		mul_mat3_m4_fl(rv3d->twmat, view3d_pixel_size(rv3d, rv3d->twmat[3]) * U.tw_size * 5.0f);
+		mul_mat3_m4_fl(rv3d->twmat, ED_view3d_pixel_size(rv3d, rv3d->twmat[3]) * U.tw_size * 5.0f);
 	}
 
 	test_manipulator_axis(C);

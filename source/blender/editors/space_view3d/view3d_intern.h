@@ -154,9 +154,7 @@ void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 
 
-int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
-
-void centerview(struct ARegion *ar, View3D *v3d);
+int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 
 void smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *, float *ofs, float *quat, float *dist, float *lens);
 

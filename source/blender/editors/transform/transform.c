@@ -4319,7 +4319,7 @@ static int createSlideVerts(TransInfo *t)
 		/*ok, let's try to survive this*/
 		unit_m4(projectMat);
 	} else {
-		view3d_get_object_project_mat(v3d, t->obedit, projectMat);
+		ED_view3d_ob_project_mat_get(v3d, t->obedit, projectMat);
 	}
 	
 	numsel =0;
@@ -4612,8 +4612,8 @@ static int createSlideVerts(TransInfo *t)
 				}
 				
 				if (v3d) {
-					view3d_project_float(t->ar, tempsv->up->v1->co, co, projectMat);
-					view3d_project_float(t->ar, tempsv->up->v2->co, co2, projectMat);
+					ED_view3d_project_float(t->ar, tempsv->up->v1->co, co, projectMat);
+					ED_view3d_project_float(t->ar, tempsv->up->v2->co, co2, projectMat);
 				}
 
 				if (ev == tempsv->up->v1) {
@@ -4625,8 +4625,8 @@ static int createSlideVerts(TransInfo *t)
 				add_v3_v3(start, tvec);
 
 				if (v3d) {
-					view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
-					view3d_project_float(t->ar, tempsv->down->v2->co, co2, projectMat);
+					ED_view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
+					ED_view3d_project_float(t->ar, tempsv->down->v2->co, co2, projectMat);
 				}
 
 				if (ev == tempsv->down->v1) {
