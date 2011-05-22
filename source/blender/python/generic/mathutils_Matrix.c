@@ -132,12 +132,12 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 			const unsigned short row_size= PySequence_Size(arg); /* -1 is an error, size checks will accunt for this */
 
-			if(IN_RANGE_INCL(row_size, 2, 4)) {
+			if(row_size >= 2 && row_size <= 4) {
 				PyObject *item= PySequence_GetItem(arg, 0);
 				const unsigned short col_size= PySequence_Size(item);
 				Py_XDECREF(item);
 
-				if(IN_RANGE_INCL(col_size, 2, 4)) {
+				if(col_size >= 2 && col_size <= 4) {
 					/* sane row & col size, new matrix and assign as slice  */
 					PyObject *matrix= newMatrixObject(NULL, row_size, col_size, Py_NEW, type);
 					if(Matrix_ass_slice((MatrixObject *)matrix, 0, INT_MAX, arg) == 0) {

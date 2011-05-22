@@ -86,7 +86,7 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 #ifdef WIN32
 #define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
 #define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
-#elif __APPLE__
+#elif defined(__APPLE__)
 #define BLENDER_USER_FORMAT			"%s/Blender/%s"
 #define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
 #else
