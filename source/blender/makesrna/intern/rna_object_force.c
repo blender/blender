@@ -1056,8 +1056,8 @@ static void rna_def_field(BlenderRNA *brna)
 	static EnumPropertyItem field_type_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", "Gives a radial field toward the center of object"},
-		{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", "Gives a constant force along the force object’s local Z axis"},
-		{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", "Gives a spiraling force that twists the force object’s local Z axis"},
+		{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", "Gives a constant force along the force objects local Z axis"},
+		{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", "Gives a spiraling force that twists the force objects local Z axis"},
 		{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", "Forcefield depends on the speed of the particles"},
 		{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic", "The source of this force field is the zero point of a harmonic oscillator"},
 		{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge", "Spherical forcefield based on the charge of particles, only influences other charge force fields"},
