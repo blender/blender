@@ -1039,6 +1039,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 
 /* ************************ viewzoom ******************************** */
 
+/* viewdolly_modal_keymap has an exact copy of this, apply fixes to both */
 /* called in transform_ops.c, on each regeneration of keymaps  */
 void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -1295,6 +1296,39 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	viewops_data_free(C, op);
 
 	return OPERATOR_FINISHED;
+}
+
+/* this is an exact copy of viewzoom_modal_keymap */
+/* called in transform_ops.c, on each regeneration of keymaps  */
+void viewdolly_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+
+	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
+	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
+
+	{0, NULL, 0, NULL, NULL}};
+
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Dolly Modal");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+
+	keymap= WM_modalkeymap_add(keyconf, "View3D Dolly Modal", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+
+	/* disabled mode switching for now, can re-implement better, later on
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+	 */
+	
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_dolly");
 }
 
 /* viewdolly_invoke() copied this function, changes here may apply there */

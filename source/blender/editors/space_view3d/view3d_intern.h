@@ -165,6 +165,7 @@ void fly_modal_keymap(struct wmKeyConfig *keyconf);
 void viewrotate_modal_keymap(struct wmKeyConfig *keyconf);
 void viewmove_modal_keymap(struct wmKeyConfig *keyconf);
 void viewzoom_modal_keymap(struct wmKeyConfig *keyconf);
+void viewdolly_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_properties(struct wmOperatorType *ot);
