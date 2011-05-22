@@ -1543,11 +1543,12 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 
 						if(do_textures) {
 							for(b=0; b<MAX_MTEX; b++) {
-								if(ma->mtex[b] && ma->mtex[b]->tex) {
-									tex= ma->mtex[b]->tex;
+								if(ma->mtex[b] && (tex= ma->mtex[b]->tex)) {
 									if(tex->id.us>1) {
-										ma->mtex[b]->tex= copy_texture(tex);
 										tex->id.us--;
+										tex= copy_texture(tex);
+										BKE_copy_animdata_id_action(&tex->id);
+										ma->mtex[b]->tex= tex;
 									}
 								}
 							}
@@ -1818,11 +1819,12 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 		single_obdata_users(bmain, scene, flag);
 
 	if(RNA_boolean_get(op->ptr, "material"))
-		single_mat_users(scene, flag, FALSE);
+		single_mat_users(scene, flag, RNA_boolean_get(op->ptr, "texture"));
 
+#if 0 /* can't do this separate from materials */
 	if(RNA_boolean_get(op->ptr, "texture"))
 		single_mat_users(scene, flag, TRUE);
-
+#endif
 	if(RNA_boolean_get(op->ptr, "animation"))
 		single_object_action_users(scene, flag);
 
