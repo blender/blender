@@ -1648,12 +1648,6 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 
 /* there is also a timing calculation in drawobject() */
 
-static int no_speed_curve= 0;
-
-void disable_speed_curve(int val)
-{
-	no_speed_curve= val;
-}
 
 // XXX THIS CRUFT NEEDS SERIOUS RECODING ASAP!
 /* ob can be NULL */

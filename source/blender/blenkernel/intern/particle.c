@@ -3057,7 +3057,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	ParticleKey result;
 	
 	float birthtime = 0.0f, dietime = 0.0f;
-	float t, time = 0.0f, keytime = 0.0f, frs_sec;
+	float t, time = 0.0f, keytime = 0.0f /*, frs_sec */;
 	float hairmat[4][4], rotmat[3][3], prev_tangent[3] = {0.0f, 0.0f, 0.0f};
 	int k, i;
 	int steps = (int)pow(2.0, (double)pset->draw_step);
@@ -3078,7 +3078,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 		recalc_set = 1;
 	}
 
-	frs_sec = (psys || edit->pid.flag & PTCACHE_VEL_PER_SEC) ? 25.0f : 1.0f;
+	/* frs_sec = (psys || edit->pid.flag & PTCACHE_VEL_PER_SEC) ? 25.0f : 1.0f; */ /* UNUSED */
 
 	if(pset->brushtype == PE_BRUSH_WEIGHT) {
 		;/* use weight painting colors now... */

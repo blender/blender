@@ -1189,7 +1189,7 @@ DagNodeQueue * graph_dfs(void)
 	int skip = 0;
 	int minheight;
 	int maxpos=0;
-	int	is_cycle = 0;
+	/* int	is_cycle = 0; */ /* UNUSED */
 	/*
 	 *fprintf(stderr,"starting DFS \n ------------\n");
 	 */	
@@ -1245,7 +1245,7 @@ DagNodeQueue * graph_dfs(void)
 				} else { 
 					if (itA->node->color == DAG_GRAY) { // back edge
 						fprintf(stderr,"dfs back edge :%15s %15s \n",((ID *) node->ob)->name, ((ID *) itA->node->ob)->name);
-						is_cycle = 1;
+						/* is_cycle = 1; */ /* UNUSED */
 					} else if (itA->node->color == DAG_BLACK) {
 						;
 						/* already processed node but we may want later to change distance either to shorter to longer.
