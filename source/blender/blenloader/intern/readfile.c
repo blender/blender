@@ -2115,7 +2115,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	}
 	
 	{
-		int has_old_groups=0;
+		/*int has_old_groups=0;*/ /*UNUSED*/
 		/* XXX this should actually be part of do_versions, but since we need
 		 * finished library linking, it is not possible there. Instead in do_versions
 		 * we have set the NTREE_DO_VERSIONS flag, so at this point we can do the
@@ -2125,7 +2125,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 			if (ntree->flag & NTREE_DO_VERSIONS) {
 				/* this adds copies and links from all unlinked internal sockets to group inputs/outputs. */
 				nodeGroupExposeAllSockets(ntree);
-				has_old_groups = 1;
+				/*has_old_groups = 1;*/ /*UNUSED*/
 			}
 		}
 		/* now verify all types in material trees, groups are set OK now */

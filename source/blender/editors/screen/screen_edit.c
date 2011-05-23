@@ -1595,12 +1595,12 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 
 	if(sa && sa->full) {
 		ScrArea *old;
-		short fulltype;
+		/*short fulltype;*/ /*UNUSED*/
 
 		sc= sa->full;		/* the old screen to restore */
 		oldscreen= win->screen;	/* the one disappearing */
 
-		fulltype = sc->full;
+		/*fulltype = sc->full;*/
 		sc->full= 0;
 
 		/* removed: SCREENAUTOPLAY exception here */

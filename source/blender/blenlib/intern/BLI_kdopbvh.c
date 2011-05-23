@@ -1687,13 +1687,13 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 {
 	if(node->totnode == 0)
 	{
-
+#if 0	/*UNUSED*/
 		//Calculate the node min-coords (if the node was a point then this is the point coordinates)
 		float co[3];
 		co[0] = node->bv[0];
 		co[1] = node->bv[2];
 		co[2] = node->bv[4];
-
+#endif
 	}
 	else
 	{

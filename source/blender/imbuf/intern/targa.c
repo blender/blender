@@ -532,7 +532,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
 	TARGA tga;
 	struct ImBuf * ibuf;
 	int col, count, size;
-	unsigned int *rect, *cmap= NULL, mincol= 0, maxcol= 0;
+	unsigned int *rect, *cmap= NULL /*, mincol= 0*/, maxcol= 0;
 	uchar * cp = (uchar *) &col;
 	
 	if (checktarga(&tga,mem) == 0) return(NULL);
@@ -550,7 +550,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
 	
 	if (tga.mapsize){
 		/* load color map */
-		mincol = tga.maporig;
+		/*mincol = tga.maporig;*/ /*UNUSED*/
 		maxcol = tga.mapsize;
 		cmap = MEM_callocN(sizeof(unsigned int)*maxcol, "targa cmap");
 
