@@ -4937,8 +4937,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* when running transform non-interactively (operator exec),
 			 * we need to update the pose otherwise no updates get called during
 			 * transform and the auto-ik is not applied. see [#26164] */
-			struct Object *ob=t->poseobj;
-			where_is_pose(t->scene, ob);
+			struct Object *pose_ob=t->poseobj;
+			where_is_pose(t->scene, pose_ob);
 		}
 
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */

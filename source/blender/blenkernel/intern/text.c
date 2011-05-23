@@ -1894,13 +1894,13 @@ void txt_do_undo(Text *text)
 
 			
 			if (op==UNDO_INDENT) {
-				unindent(text);
+				txt_unindent(text);
 			} else if (op== UNDO_UNINDENT) {
-				indent(text);
+				txt_indent(text);
 			} else if (op == UNDO_COMMENT) {
-				uncomment(text);
+				txt_uncomment(text);
 			} else if (op == UNDO_UNCOMMENT) {
-				comment(text);
+				txt_comment(text);
 			}
 
 			text->undo_pos--;
@@ -2110,13 +2110,13 @@ void txt_do_redo(Text *text)
 			}
 
 			if (op==UNDO_INDENT) {
-				indent(text);
+				txt_indent(text);
 			} else if (op== UNDO_UNINDENT) {
-				unindent(text);
+				txt_unindent(text);
 			} else if (op == UNDO_COMMENT) {
-				comment(text);
+				txt_comment(text);
 			} else if (op == UNDO_UNCOMMENT) {
-				uncomment(text);
+				txt_uncomment(text);
 			}
 			break;
 		default:
@@ -2501,7 +2501,7 @@ int txt_replace_char (Text *text, char add)
 	return 1;
 }
 
-void indent(Text *text)
+void txt_indent(Text *text)
 {
 	int len, num;
 	char *tmp;
@@ -2564,7 +2564,7 @@ void indent(Text *text)
 	}
 }
 
-void unindent(Text *text)
+void txt_unindent(Text *text)
 {
 	int num = 0;
 	const char *remove = "\t";
@@ -2622,7 +2622,7 @@ void unindent(Text *text)
 	}
 }
 
-void comment(Text *text)
+void txt_comment(Text *text)
 {
 	int len, num;
 	char *tmp;
@@ -2674,7 +2674,7 @@ void comment(Text *text)
 	}
 }
 
-void uncomment(Text *text)
+void txt_uncomment(Text *text)
 {
 	int num = 0;
 	char remove = '#';
@@ -2751,19 +2751,19 @@ int setcurr_tab_spaces (Text *text, int space)
 		 * 	2) within an identifier
 		 *	3) after the cursor (text->curc), i.e. when creating space before a function def [#25414] 
 		 */
-		int a, indent = 0;
+		int a, is_indent = 0;
 		for(a=0; (a < text->curc) && (text->curl->line[a] != '\0'); a++)
 		{
 			char ch= text->curl->line[a];
 			if (ch=='#') {
 				break;
 			} else if (ch==':') {
-				indent = 1;
+				is_indent = 1;
 			} else if (ch==']' || ch=='}' || ch=='"' || ch=='\'') {
-				indent = 0;
+				is_indent = 0;
 			}
 		}
-		if (indent) {
+		if (is_indent) {
 			i += space;
 		}
 	}

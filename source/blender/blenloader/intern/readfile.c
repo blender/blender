@@ -4138,7 +4138,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
-	int a;
 	
 	/* weak weak... this was only meant as draw flag, now is used in give_base_to_objects too */
 	ob->flag &= ~OB_FROMGROUP;
@@ -4238,6 +4237,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		sb->keys= newdataadr(fd, sb->keys);
 		test_pointer_array(fd, (void **)&sb->keys);
 		if(sb->keys) {
+			int a;
 			for(a=0; a<sb->totkey; a++) {
 				sb->keys[a]= newdataadr(fd, sb->keys[a]);
 			}
@@ -8378,7 +8378,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ArmatureModifierData *amd = (ArmatureModifierData*) md;
 					if(amd->object && amd->deformflag==0) {
 						Object *oba= newlibadr(fd, lib, amd->object);
-						bArmature *arm= newlibadr(fd, lib, oba->data);
+						arm= newlibadr(fd, lib, oba->data);
 						amd->deformflag= arm->deformflag;
 					}
 				}
@@ -8525,7 +8525,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			int a;
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a] && ma->mtex[a]->tex) {
-					Tex *tex= newlibadr(fd, lib, ma->mtex[a]->tex);
+					tex= newlibadr(fd, lib, ma->mtex[a]->tex);
 					if(tex && tex->type==TEX_STUCCI)
 						ma->mtex[a]->mapto &= ~(MAP_COL|MAP_SPEC|MAP_REF);
 				}
@@ -8717,7 +8717,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 		/* now, subversion control! */
 		if(main->subversionfile < 3) {
-			bScreen *sc;
 			Image *ima;
 			Tex *tex;
 			
@@ -10133,7 +10132,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		ToolSettings *ts;
 		//PTCacheID *pid;
 		//ListBase pidlist;
-		int a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			//BKE_ptcache_ids_from_object(&pidlist, ob);
@@ -10172,6 +10170,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for(ma = main->mat.first; ma; ma = ma->id.next) {
+			int a;
 			if(ma->mode & MA_WIRE) {
 				ma->material_type= MA_TYPE_WIRE;
 				ma->mode &= ~MA_WIRE;
