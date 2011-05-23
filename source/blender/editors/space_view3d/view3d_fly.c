@@ -307,7 +307,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	fly->dist_backup= fly->rv3d->dist;
 	if (fly->rv3d->persp==RV3D_CAMOB) {
 		Object *ob_back;
-		if((fly->root_parent=fly->v3d->camera->parent)) {
+		if((U.uiflag & USER_CAM_LOCK_NO_PARENT)==0 && (fly->root_parent=fly->v3d->camera->parent)) {
 			while(fly->root_parent->parent)
 				fly->root_parent= fly->root_parent->parent;
 			ob_back= fly->root_parent;

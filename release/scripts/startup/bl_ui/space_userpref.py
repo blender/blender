@@ -199,6 +199,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "use_zoom_to_mouse")
         col.prop(view, "use_rotate_around_active")
         col.prop(view, "use_global_pivot")
+        col.prop(view, "use_camera_lock_parent")
 
         col.separator()
 

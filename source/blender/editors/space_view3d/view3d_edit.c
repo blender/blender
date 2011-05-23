@@ -92,9 +92,39 @@ void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
 void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 {
 	if(v3d->camera && (v3d->flag2 & V3D_LOCK_CAMERA) && (rv3d->persp==RV3D_CAMOB)) {
-		ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-		DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
-		WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, v3d->camera);
+		Object *root_parent;
+
+		if((U.uiflag & USER_CAM_LOCK_NO_PARENT)==0 && (root_parent= v3d->camera->parent)) {
+			Object *ob_update;
+			float view_mat[4][4];
+			float diff_mat[4][4];
+			float parent_mat[4][4];
+
+			while(root_parent->parent) {
+				root_parent= root_parent->parent;
+			}
+
+			ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+
+			invert_m4_m4(v3d->camera->imat, v3d->camera->obmat);
+			mul_m4_m4m4(diff_mat, v3d->camera->imat, view_mat);
+
+			mul_m4_m4m4(parent_mat, root_parent->obmat, diff_mat);
+			object_apply_mat4(root_parent, parent_mat, TRUE, FALSE);
+
+			ob_update= v3d->camera;
+			while(ob_update) {
+				DAG_id_tag_update(&ob_update->id, OB_RECALC_OB);
+				WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, ob_update);
+				ob_update= ob_update->parent;
+			}
+		}
+		else {
+			ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+			root_parent= v3d->camera;
+			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
+			WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, v3d->camera);
+		}
 	}
 }
 
