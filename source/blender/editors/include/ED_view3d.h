@@ -147,6 +147,43 @@ void ED_view3d_win_to_ray(struct ARegion *ar, struct View3D *v3d, const float mv
  */
 void ED_view3d_global_to_vector(struct RegionView3D *rv3d, const float coord[3], float vec[3]);
 
+/**
+ * Calculate the view transformation matrix from RegionView3D input.
+ * The resulting matrix is equivilent to RegionView3D.viewinv
+ * @param mat The view 4x4 transformation matrix to calculate.
+ * @param ofs The view offset, normally from RegionView3D.ofs.
+ * @param quat The view rotation, quaternion normally from RegionView3D.viewquat.
+ * @param dist The view distance from ofs, normally from RegionView3D.dist.
+ */
+void ED_view3d_to_m4(float mat[][4], const float ofs[3], const float quat[4], const float dist);
+
+/**
+ * Set the view transformation from a 4x4 matrix.
+ * @param mat The view 4x4 transformation matrix to assign.
+ * @param ofs The view offset, normally from RegionView3D.ofs.
+ * @param quat The view rotation, quaternion normally from RegionView3D.viewquat.
+ * @param dist The view distance from ofs, normally from RegionView3D.dist.
+ */
+void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist);
+
+/**
+ * Set the RegionView3D members from an objects transformation and optionally lens.
+ * @param ob The object to set the view to.
+ * @param ofs The view offset to be set, normally from RegionView3D.ofs.
+ * @param quat The view rotation to be set, quaternion normally from RegionView3D.viewquat.
+ * @param dist The view distance from ofs to be set, normally from RegionView3D.dist.
+ */
+void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
+
+/**
+ * Set the object transformation from RegionView3D members.
+ * @param ob The object which has the transformation assigned.
+ * @param ofs The view offset, normally from RegionView3D.ofs.
+ * @param quat The view rotation, quaternion normally from RegionView3D.viewquat.
+ * @param dist The view distance from ofs, normally from RegionView3D.dist.
+ */
+void ED_view3d_to_object(struct Object *ob, const float ofs[3], const float quat[4], const float dist);
+
 #if 0 /* UNUSED */
 void view3d_unproject(struct bglMats *mats, float out[3], const short x, const short y, const float z);
 #endif
@@ -245,13 +282,6 @@ int ED_view3d_lock(struct RegionView3D *rv3d);
 
 unsigned int ED_view3d_datamask(struct Scene *scene, struct View3D *v3d);
 unsigned int ED_viewedit_datamask(struct bScreen *screen);
-
-
-/* assigning view matrix */
-void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist);
-
-void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
-void ED_view3d_to_object(struct Object *ob, const float ofs[3], const float quat[4], const float dist);
 
 /* camera lock functions */
 /* copy the camera to the view before starting a view transformation */

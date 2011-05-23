@@ -568,7 +568,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	apply_rotation= 1; /* if the user presses shift they can look about without movinf the direction there looking*/
 
 	if(fly->root_parent)
-		view3d_persp_mat4(rv3d, prev_view_mat);
+		ED_view3d_to_m4(prev_view_mat, fly->rv3d->ofs, fly->rv3d->viewquat, fly->rv3d->dist);
 
 	/* the dist defines a vector that is infront of the offset
 	to rotate the view about.
@@ -797,7 +797,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					float parent_mat[4][4];
 
 					invert_m4_m4(prev_view_imat, prev_view_mat);
-					view3d_persp_mat4(rv3d, view_mat);
+					ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 					mul_m4_m4m4(diff_mat, prev_view_imat, view_mat);
 					mul_m4_m4m4(parent_mat, fly->root_parent->obmat, diff_mat);
 					object_apply_mat4(fly->root_parent, parent_mat, TRUE, FALSE);
@@ -817,7 +817,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				}
 				else {
 					float view_mat[4][4];
-					view3d_persp_mat4(rv3d, view_mat);
+					ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 					object_apply_mat4(v3d->camera, view_mat, TRUE, FALSE);
 					id_key= &v3d->camera->id;
 				}
