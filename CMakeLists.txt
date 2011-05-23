@@ -55,33 +55,19 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/")
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
-# ignore system set flag, use our own
-# must be before project(...)
-# if the user wants to add their own its ok after first run.
-if(DEFINED CMAKE_C_STANDARD_LIBRARIES)
-	set(_reset_standard_libraries OFF)
-else()
-	set(_reset_standard_libraries ON)
-endif()
+#-----------------------------------------------------------------------------
+# Load some macros.
+include(build_files/cmake/macros.cmake)
 
+
+#-----------------------------------------------------------------------------
+# Initialize project.
+
+blender_project_hack_pre()
 
 project(Blender)
 
-
-if (_reset_standard_libraries)
-	# Must come after project(...)
-	#
-	# MINGW workaround for -ladvapi32 being included which surprisingly causes
-	# string formatting of floats, eg: printf("%.*f", 3, value). to crash blender
-	# with a meaningless stack trace. by overriding this flag we ensure we only
-	# have libs we define and that cmake & scons builds match.
-	set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
-	set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
-	mark_as_advanced(CMAKE_C_STANDARD_LIBRARIES)
-	mark_as_advanced(CMAKE_CXX_STANDARD_LIBRARIES)
-endif()
-unset(_reset_standard_libraries)
-
+blender_project_hack_post()
 
 enable_testing()
 
@@ -90,10 +76,6 @@ enable_testing()
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE )
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
-
-#-----------------------------------------------------------------------------
-# Load some macros.
-include(build_files/cmake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 # Set default config options
@@ -983,6 +965,12 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Common.
+
+if(APPLE OR WIN32)
+	if(NOT IS_DIRECTORY "${LIBDIR}")
+		message(FATAL_ERROR "Apple and Windows require pre-compiled libs at: '${LIBDIR}'")
+	endif()
+endif()
 
 if(WITH_RAYOPTIMIZATION)
 	if(CMAKE_COMPILER_IS_GNUCC)
