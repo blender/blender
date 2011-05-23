@@ -82,16 +82,24 @@
 
 /* ********************** view3d_edit: view manipulations ********************* */
 
+int ED_view3d_camera_lock_check(View3D *v3d, RegionView3D *rv3d)
+{
+	return ((v3d->camera) &&
+	        (v3d->camera->id.lib == NULL) &&
+	        (v3d->flag2 & V3D_LOCK_CAMERA) &&
+	        (rv3d->persp==RV3D_CAMOB));
+}
+
 void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
 {
-	if(v3d->camera && (v3d->flag2 & V3D_LOCK_CAMERA) && (rv3d->persp==RV3D_CAMOB)) {
+	if(ED_view3d_camera_lock_check(v3d, rv3d)) {
 		ED_view3d_from_object(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 	}
 }
 
 void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 {
-	if(v3d->camera && (v3d->flag2 & V3D_LOCK_CAMERA) && (rv3d->persp==RV3D_CAMOB)) {
+	if(ED_view3d_camera_lock_check(v3d, rv3d)) {
 		Object *root_parent;
 
 		if((U.uiflag & USER_CAM_LOCK_NO_PARENT)==0 && (root_parent= v3d->camera->parent)) {
@@ -841,7 +849,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(rv3d->persp != RV3D_PERSP) {
 
 		if (U.uiflag & USER_AUTOPERSP) {
-			if(!((rv3d->persp==RV3D_CAMOB) && (vod->v3d->flag2 & V3D_LOCK_CAMERA))) {
+			if(!ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
 				rv3d->persp= RV3D_PERSP;
 			}
 		}
@@ -852,7 +860,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				ED_view3d_from_object(vod->v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 			}
 
-			if(!(vod->v3d->flag2 & V3D_LOCK_CAMERA)) {
+			if(!ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
 				rv3d->persp= rv3d->lpersp;
 			}
 		}
@@ -953,7 +961,7 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 
 static void viewmove_apply(ViewOpsData *vod, int x, int y)
 {
-	if((vod->rv3d->persp==RV3D_CAMOB) && !(vod->v3d->flag2 & V3D_LOCK_CAMERA)) {
+	if((vod->rv3d->persp==RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
 		const float zoomfac= BKE_screen_view3d_zoom_to_fac((float)vod->rv3d->camzoom) * 2.0f;
 		vod->rv3d->camdx += (vod->oldx - x)/(vod->ar->winx * zoomfac);
 		vod->rv3d->camdy += (vod->oldy - y)/(vod->ar->winy * zoomfac);
@@ -1284,7 +1292,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	mx= RNA_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
 	my= RNA_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
 
-	use_cam_zoom= (rv3d->persp==RV3D_CAMOB) && !((v3d->flag2 & V3D_LOCK_CAMERA) && rv3d->is_persp);
+	use_cam_zoom= (rv3d->persp==RV3D_CAMOB) && !(rv3d->is_persp && ED_view3d_camera_lock_check(v3d, rv3d));
 
 	if(delta < 0) {
 		/* this min and max is also in viewmove() */
@@ -1625,7 +1633,7 @@ static int viewdolly_poll(bContext *C)
 		}
 		else {
 			View3D *v3d= CTX_wm_view3d(C);
-			if ((rv3d->persp == RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA)) {
+			if (ED_view3d_camera_lock_check(v3d, rv3d)) {
 				return 1;
 			}
 		}
@@ -1664,7 +1672,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
 	float *curs;
-	const short skip_camera= ((rv3d->persp==RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA));
+	const short skip_camera= ED_view3d_camera_lock_check(v3d, rv3d);
 
 	int center= RNA_boolean_get(op->ptr, "center");
 
@@ -1725,7 +1733,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 			new_dist*= size;
 		}
 
-		if ((rv3d->persp==RV3D_CAMOB) && !(v3d->flag2 & V3D_LOCK_CAMERA)) {
+		if ((rv3d->persp==RV3D_CAMOB) && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 			rv3d->persp= RV3D_PERSP;
 			smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 		}
@@ -1769,7 +1777,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 	Object *obedit= CTX_data_edit_object(C);
 	float size, min[3], max[3], afm[3];
 	int ok=0, ok_dist=1;
-	const short skip_camera= ((rv3d->persp==RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA));
+	const short skip_camera= ED_view3d_camera_lock_check(v3d, rv3d);
 
 	/* SMOOTHVIEW */
 	float new_ofs[3];
@@ -1872,7 +1880,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 		new_dist*= size;
 	}
 
-	if (rv3d->persp==RV3D_CAMOB && !(v3d->flag2 & V3D_LOCK_CAMERA)) {
+	if (rv3d->persp==RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 		rv3d->persp= RV3D_PERSP;
 		smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
@@ -2176,7 +2184,7 @@ static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	/* if in camera view do not exec the operator so we do not conflict with set render border*/
-	if ((rv3d->persp != RV3D_CAMOB) || (v3d->flag2 & V3D_LOCK_CAMERA))
+	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d))
 		return WM_border_select_invoke(C, op, event);
 	else
 		return OPERATOR_PASS_THROUGH;
@@ -2490,7 +2498,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 	orbitdir = RNA_enum_get(op->ptr, "type");
 
 	if(rv3d->viewlock==0) {
-		if((rv3d->persp != RV3D_CAMOB) || (v3d->flag2 & V3D_LOCK_CAMERA)) {
+		if((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
 			if(orbitdir == V3D_VIEW_STEPLEFT || orbitdir == V3D_VIEW_STEPRIGHT) {
 				float si;
 				/* z-axis */
