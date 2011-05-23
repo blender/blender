@@ -1112,22 +1112,14 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 		float tpos[3];
 		float mval_f[2];
 		float new_dist;
-		int vb[2], mouseloc[2];
-
-		mouseloc[0]= mx - ar->winrct.xmin;
-		mouseloc[1]= my - ar->winrct.ymin;
-
-		/* find the current window width and height */
-		vb[0] = ar->winx;
-		vb[1] = ar->winy;
 
 		negate_v3_v3(tpos, rv3d->ofs);
 
 		/* Project cursor position into 3D space */
 		initgrabz(rv3d, tpos[0], tpos[1], tpos[2]);
 
-		mval_f[0]= (mouseloc[0] - vb[0]) / 2.0f;
-		mval_f[1]= (mouseloc[1] - vb[1]) / 2.0f;
+		mval_f[0]= (float)(((mx - ar->winrct.xmin) * 2) - ar->winx) / 2.0f;
+		mval_f[1]= (float)(((my - ar->winrct.ymin) * 2) - ar->winy) / 2.0f;
 		ED_view3d_win_to_delta(ar, mval_f, dvec);
 
 		/* Calculate view target position for dolly */
