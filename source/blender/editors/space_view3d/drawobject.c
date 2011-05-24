@@ -3840,6 +3840,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						case PART_DRAW_COL_ACC:
 							intensity = len_v3v3(pa->state.vel, pa->prev_state.vel)/((pa->state.time-pa->prev_state.time)*part->color_vec_max);
 							break;
+						default:
+							intensity= 1.0f; /* should never happen */
 					}
 					CLAMP(intensity, 0.f, 1.f);
 					weight_to_rgb(intensity, &ma_r, &ma_g, &ma_b);

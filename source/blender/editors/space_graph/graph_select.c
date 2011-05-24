@@ -1291,15 +1291,11 @@ static void graphkeys_mselect_column (bAnimContext *ac, const int mval[2], short
 static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	ARegion *ar;
 	short selectmode;
 
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	
-	/* get useful pointers from animation context data */
-	ar= ac.ar;
 
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend"))

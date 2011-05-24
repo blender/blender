@@ -2491,14 +2491,12 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	Scene *scene;
 	ARegion *ar;
 	View3D *v3d;
-	RegionView3D *rv3d;
 	float *fp = NULL, tvec[3], oldcurs[3], mval_f[2];
 	int retv;
 
 	scene= CTX_data_scene(C);
 	ar= CTX_wm_region(C);
 	v3d = CTX_wm_view3d(C);
-	rv3d= CTX_wm_region_view3d(C);
 	
 	fp= give_cursor(scene, v3d);
 	
