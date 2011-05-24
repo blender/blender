@@ -1,0 +1,3 @@
+[patterns]
+**.* = native
+eigen_autoexp_part.dat = CRLF
