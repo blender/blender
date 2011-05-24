@@ -1132,9 +1132,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 #-------------------------------------------------------------------------------
 # Global Defines
 
-# better not define flags here but this is a debugging option thats off by default.
+# better not set includes here but this debugging option is off by default.
 if(WITH_CXX_GUARDEDALLOC)
-	set(CMAKE_CXX_FLAGS " -DWITH_CXX_GUARDEDALLOC -I${CMAKE_SOURCE_DIR}/intern/guardedalloc ${CMAKE_CXX_FLAGS}")
+	include_directories(${CMAKE_SOURCE_DIR}/intern/guardedalloc)
 endif()
 
 if(WITH_ASSERT_ABORT)
