@@ -459,15 +459,18 @@ elseif(WIN32)
 		)
 
 		if(WITH_PYTHON_INSTALL)
-			#~ # note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
+			# note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
 
 			# create the directory in multiple steps, so it actually gets created when it doesn't exist yet
-			install(CODE "
-			message(\"creating ${TARGETDIR_VER}/python/lib\")
-			file(MAKE_DIRECTORY ${TARGETDIR_VER}/python/)
-			file(MAKE_DIRECTORY ${TARGETDIR_VER}/python/lib/)
-			message(\"done creating dir\")
-			")
+			install(
+				CODE
+				"
+				message(\"creating ${TARGETDIR_VER}/python/lib\")
+				file(MAKE_DIRECTORY \"${TARGETDIR_VER}/python/\")
+				file(MAKE_DIRECTORY \"${TARGETDIR_VER}/python/lib/\")
+				message(\"done creating dir\")
+				"
+			)
 
 			install(
 				CODE
