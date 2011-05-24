@@ -102,9 +102,9 @@ public:
 
 #if defined(_WIN64)
 	CTR_TaggedIndex(
-		const unsigned int64_t val
+		const uint64_t val
 	) :
-		m_val ( ((unsigned int64_t)val & index_mask)
+		m_val ( ((uint64_t)val & index_mask)
 				| ( (empty_tag << tag_shift)
 					& (~index_mask) ) ) {
 	}
@@ -142,8 +142,8 @@ public:
 	}
 
 #if defined(_WIN64)
-	operator unsigned int64_t () const {
-			return (unsigned int64_t)(m_val & index_mask);
+	operator uint64_t () const {
+			return (uint64_t)(m_val & index_mask);
 		}
 #endif
 
