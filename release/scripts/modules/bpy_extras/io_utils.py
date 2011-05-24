@@ -140,7 +140,8 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
     if from_forward == to_forward and from_up == to_up:
         return Matrix().to_3x3()
 
-    value = reduce(int.__or__, (_axis_convert_num[a] << (i * 3) for i, a in enumerate((from_forward, from_up, to_forward, to_up))))
+    value = reduce(int.__or__, (_axis_convert_num[a] << (i * 3) for i, a in enumerate((from_up, from_forward, to_up, to_forward))))
+
     for i, axis_lut in enumerate(_axis_convert_lut):
         if value in axis_lut:
             return Matrix(_axis_convert_matrix[i])
