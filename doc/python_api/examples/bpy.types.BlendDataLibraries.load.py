@@ -21,3 +21,19 @@ with bpy.data.libraries.load(filepath, link=True) as (data_from, data_to):
 with bpy.data.libraries.load(filepath) as (data_from, data_to):
     for attr in dir(data_to):
         setattr(data_to, attr, getattr(data_from, attr))
+
+
+# the 'data_to' variables lists are 
+with bpy.data.libraries.load(filepath) as (data_from, data_to):
+    data_to.scenes = ["Scene"]
+
+
+# the loaded objects can be accessed from 'data_to' outside of the context
+# since loading the data replaces the strings for the datablocks or None
+# if the datablock could not be loaded.
+with bpy.data.libraries.load(filepath) as (data_from, data_to):
+    data_to.meshes = data_from.meshes
+# now operate directly on the loaded data
+for mesh in mdata_to.meshes:
+    if mesh is not None:
+        print(mesh.name)

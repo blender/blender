@@ -26,6 +26,9 @@
  *  \ingroup pythonintern
  */
 
+/* nifty feature. swap out strings for RNA data */
+#define USE_RNA_DATABLOCKS
+
 #include <Python.h>
 #include <stddef.h>
 
@@ -46,6 +49,11 @@
 #include "DNA_space_types.h" /* FILE_LINK, FILE_RELPATH */
 
 #include "bpy_util.h"
+
+#ifdef USE_RNA_DATABLOCKS
+#  include "bpy_rna.h"
+#  include "RNA_access.h"
+#endif
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
@@ -271,6 +279,36 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
 	return ret;
 }
 
+static void bpy_lib_exit_warn_idname(BPy_Library *self, const char *name_plural, const char *idname)
+{
+	PyObject *exc, *val, *tb;
+	PyErr_Fetch(&exc, &val, &tb);
+	if (PyErr_WarnFormat(PyExc_UserWarning, 1,
+						 "load: '%s' does not contain %s[\"%s\"]",
+	                     self->abspath, name_plural, idname)) {
+		/* Spurious errors can appear at shutdown */
+		if (PyErr_ExceptionMatches(PyExc_Warning)) {
+			PyErr_WriteUnraisable((PyObject *)self);
+		}
+	}
+	PyErr_Restore(exc, val, tb);
+}
+
+static void bpy_lib_exit_warn_type(BPy_Library *self, PyObject *item)
+{
+	PyObject *exc, *val, *tb;
+	PyErr_Fetch(&exc, &val, &tb);
+	if (PyErr_WarnFormat(PyExc_UserWarning, 1,
+						 "load: '%s' expected a string type, not a %.200s",
+	                     self->abspath, Py_TYPE(item)->tp_name)) {
+		/* Spurious errors can appear at shutdown */
+		if (PyErr_ExceptionMatches(PyExc_Warning)) {
+			PyErr_WriteUnraisable((PyObject *)self);
+		}
+	}
+	PyErr_Restore(exc, val, tb);
+}
+
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 {
 	Main *mainl= NULL;
@@ -302,18 +340,41 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 						// printf("  %s\n", item_str);
 
 						if(item_str) {
-							if(!BLO_library_append_named_part(NULL, mainl, &(self->blo_handle), item_str, code, self->flag)) {
-								PyErr_Format(PyExc_KeyError,
-								             "load: %s does not contain %s[\"%s\"]",
-								             self->abspath, name_plural, item_str);
-								err= -1;
-								break;
+							ID *id= BLO_library_append_named_part(NULL, mainl, &(self->blo_handle), item_str, code, self->flag);
+							if(id) {
+#ifdef USE_RNA_DATABLOCKS
+								PointerRNA id_ptr;
+								RNA_id_pointer_create(id, &id_ptr);
+								Py_DECREF(item);
+								item= pyrna_struct_CreatePyObject(&id_ptr);
+#endif
 							}
+							else {
+								bpy_lib_exit_warn_idname(self, name_plural, item_str);
+								/* just warn for now */
+								/* err = -1; */
+#ifdef USE_RNA_DATABLOCKS
+								item= Py_None;
+								Py_INCREF(item);
+#endif
+							}
+
+							/* ID or None */
 						}
 						else {
 							/* XXX, could complain about this */
+							bpy_lib_exit_warn_type(self, item);
 							PyErr_Clear();
+
+#ifdef USE_RNA_DATABLOCKS
+							item= Py_None;
+							Py_INCREF(item);
+#endif
 						}
+
+#ifdef USE_RNA_DATABLOCKS
+						PyList_SET_ITEM(ls, i, item);
+#endif
 					}
 				}
 			}
