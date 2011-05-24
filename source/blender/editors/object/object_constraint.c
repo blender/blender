@@ -567,7 +567,8 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 	}
 	
 	con = constraints_findByName(list, constraint_name);
-	printf("constraint found = %p, %s\n", (void *)con, (con)?con->name:"<Not found>");
+	//if (G.f & G_DEBUG)
+	//printf("constraint found = %p, %s\n", (void *)con, (con)?con->name:"<Not found>");
 
 	if (con && (type != 0) && (con->type != type))
 		con = NULL;

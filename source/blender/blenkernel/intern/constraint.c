@@ -2642,6 +2642,8 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		/* set distance (flag is only set when user demands it) */
 		if (data->dist == 0)
 			data->dist= dist;
+			
+		// FIXME: dist may be 0!
 		
 		/* check if we're which way to clamp from, and calculate interpolation factor (if needed) */
 		if (data->mode == LIMITDIST_OUTSIDE) {
@@ -4427,6 +4429,34 @@ void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n,
 		unit_m4(mat);
 	}
 }
+
+/* Get the list of targets required for solving a constraint */
+void get_constraint_targets_for_solving (bConstraint *con, bConstraintOb *cob, ListBase *targets, float ctime)
+{
+	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+	
+	if (cti && cti->get_constraint_targets) {
+		bConstraintTarget *ct;
+		
+		/* get targets 
+		 * 	- constraints should use ct->matrix, not directly accessing values
+		 *	- ct->matrix members have not yet been calculated here! 
+		 */
+		cti->get_constraint_targets(con, targets);
+		
+		/* set matrices 
+		 * 	- calculate if possible, otherwise just initialise as identity matrix 
+		 */
+		if (cti->get_target_matrix) {
+			for (ct= targets->first; ct; ct= ct->next) 
+				cti->get_target_matrix(con, cob, ct, ctime);
+		}
+		else {
+			for (ct= targets->first; ct; ct= ct->next)
+				unit_m4(ct->matrix);
+		}
+	}
+}
  
 /* ---------- Evaluation ----------- */
 
@@ -4471,27 +4501,7 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, CONSTRAINT_SPACE_WORLD, con->ownspace);
 		
 		/* prepare targets for constraint solving */
-		if (cti->get_constraint_targets) {
-			bConstraintTarget *ct;
-			
-			/* get targets 
-			 * 	- constraints should use ct->matrix, not directly accessing values
-			 *	- ct->matrix members have not yet been calculated here! 
-			 */
-			cti->get_constraint_targets(con, &targets);
-			
-			/* set matrices 
-			 * 	- calculate if possible, otherwise just initialise as identity matrix 
-			 */
-			if (cti->get_target_matrix) {
-				for (ct= targets.first; ct; ct= ct->next) 
-					cti->get_target_matrix(con, cob, ct, ctime);
-			}
-			else {
-				for (ct= targets.first; ct; ct= ct->next)
-					unit_m4(ct->matrix);
-			}
-		}
+		get_constraint_targets_for_solving(con, cob, &targets, ctime);
 		
 		/* Solve the constraint and put result in cob->matrix */
 		cti->evaluate_constraint(con, cob, &targets);

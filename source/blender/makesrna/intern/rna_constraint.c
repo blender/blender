@@ -1787,6 +1787,11 @@ static void rna_def_constraint_distance_limit(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, constraint_distance_items);
 	RNA_def_property_ui_text(prop, "Limit Mode", "Distances in relation to sphere of influence to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "use_transform_limit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMITDIST_TRANSFORM);
+	RNA_def_property_ui_text(prop, "For Transform", "Transforms are affected by this constraint as well");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
 static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
