@@ -181,6 +181,10 @@ class VIEW3D_MT_transform(bpy.types.Menu):
 
         layout.operator("object.randomize_transform")
         layout.operator("object.align")
+        
+        layout.separator()
+        
+        layout.operator("object.anim_transforms_to_deltas")
 
 
 class VIEW3D_MT_mirror(bpy.types.Menu):
