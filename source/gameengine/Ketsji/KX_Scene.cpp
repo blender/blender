@@ -1506,6 +1506,9 @@ void KX_Scene::LogicBeginFrame(double curtime)
 
 void KX_Scene::LogicUpdateFrame(double curtime, bool frame)
 {
+	// Update any animations
+	for (int i=0; i<GetObjectList()->GetCount(); ++i)
+		((KX_GameObject*)GetObjectList()->GetValue(i))->UpdateActionManager(curtime);
 	m_logicmgr->UpdateFrame(curtime, frame);
 }
 

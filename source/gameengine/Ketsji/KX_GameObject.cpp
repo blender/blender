@@ -74,6 +74,8 @@ typedef unsigned long uint_ptr;
 #include "SCA_IController.h"
 #include "NG_NetworkScene.h" //Needed for sendMessage()
 
+#include "BL_ActionManager.h"
+
 #include "PyObjectPlus.h" /* python stuff */
 
 // This file defines relationships between parents and children
@@ -121,6 +123,8 @@ KX_GameObject::KX_GameObject(
 	KX_NormalParentRelation * parent_relation = 
 		KX_NormalParentRelation::New();
 	m_pSGNode->SetParentRelation(parent_relation);
+
+	m_actionManager = new BL_ActionManager();
 };
 
 
@@ -153,6 +157,10 @@ KX_GameObject::~KX_GameObject()
 	if (m_pGraphicController)
 	{
 		delete m_pGraphicController;
+	}
+	if (m_actionManager)
+	{
+		delete m_actionManager;
 	}
 #ifdef WITH_PYTHON
 	if (m_attr_dict) {
@@ -344,6 +352,11 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 	}
 }
 
+void KX_GameObject::UpdateActionManager(float curtime)
+{
+	m_actionManager->Update(curtime);
+}
+
 void KX_GameObject::ProcessReplica()
 {
 	SCA_IObject::ProcessReplica();
@@ -353,6 +366,7 @@ void KX_GameObject::ProcessReplica()
 	m_pSGNode = NULL;
 	m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	m_pClient_info->m_gameobject = this;
+	m_actionManager = new BL_ActionManager();
 	m_state = 0;
 
 #ifdef WITH_PYTHON
@@ -1497,6 +1511,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE_O(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE_O(KX_GameObject, getVectTo),
 	KX_PYMETHODTABLE(KX_GameObject, sendMessage),
+
+	KX_PYMETHODTABLE_KEYWORDS(KX_GameObject, playAction),
 	
 	// dict style access for props
 	{"get",(PyCFunction) KX_GameObject::sPyget, METH_VARARGS},
@@ -2975,6 +2991,43 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 	Py_RETURN_NONE;
 }
 
+KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
+	"playAction(name, start_frame, end_frame, layer=0, blendin=0, play_mode=ACT_MODE_PLAY, blend_mode=ACT_BLEND_NONE)\n"
+	"plays an action\n")
+{
+	const char* name;
+	float start, end, blendin=0.f;
+	short layer=0;
+	short play_mode=0, blend_mode=0;
+
+	static const char *kwlist[] = {"name", "start_frame", "end_frame", "layer", "blendin", "play_mode", "blend_mode", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hfhh", const_cast<char**>(kwlist),
+									&name, &start, &end, &layer, &blendin, &play_mode, &blend_mode))
+		return NULL;
+
+	if (layer < 0 || layer > MAX_ACTION_LAYERS)
+	{
+		printf("KX_GameObject.playAction(): given layer (%d) is out of range (0 - %d), setting to 0", layer, MAX_ACTION_LAYERS-1);
+		layer = 0;
+	}
+
+	if (play_mode < 0 || play_mode > BL_Action::ACT_MODE_MAX)
+	{
+		printf("KX_GameObject.playAction(): given play_mode (%d) is out of range (0 - %d), setting to ACT_MODE_PLAY", play_mode, BL_Action::ACT_MODE_MAX-1);
+		play_mode = BL_Action::ACT_MODE_MAX;
+	}
+
+	if (blend_mode < 0 || blend_mode > BL_Action::ACT_BLEND_MAX)
+	{
+		printf("KX_GameObject.playAction(): given blend_mode (%d) is out of range (0 - %d), setting to ACT_BLEND_NONE", blend_mode, BL_Action::ACT_BLEND_MAX-1);
+		blend_mode = BL_Action::ACT_BLEND_NONE;
+	}
+
+	m_actionManager->PlayAction(this, name, start, end, layer, blendin, play_mode, blend_mode);
+
+	Py_RETURN_NONE;
+}
 /* dict style access */
 
 

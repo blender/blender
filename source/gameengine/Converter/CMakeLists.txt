@@ -60,7 +60,9 @@ set(INC
 )
 
 set(SRC
+	BL_Action.cpp
 	BL_ActionActuator.cpp
+	BL_ActionManager.cpp
 	BL_ArmatureActuator.cpp
 	BL_ArmatureChannel.cpp
 	BL_ArmatureConstraint.cpp
@@ -82,7 +84,9 @@ set(SRC
 	KX_IpoConvert.cpp
 	KX_SoftBodyDeformer.cpp
 
+	BL_Action.h
 	BL_ActionActuator.h
+	BL_ActionManager.h
 	BL_ArmatureActuator.h
 	BL_ArmatureChannel.h
 	BL_ArmatureConstraint.h

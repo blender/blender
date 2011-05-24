@@ -63,6 +63,7 @@ class RAS_MeshObject;
 class KX_IPhysicsController;
 class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
+class BL_ActionManager;
 struct Object;
 
 #ifdef WITH_PYTHON
@@ -112,6 +113,9 @@ protected:
 	SG_Node*							m_pSGNode;
 
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
+
+	// The action manager is used to play/stop/update actions
+	BL_ActionManager*				m_actionManager;
 	
 public:
 	bool								m_isDeformable;
@@ -197,6 +201,11 @@ public:
 	 * Removes the parent of this object to a game object
 	 */			
 	void RemoveParent(KX_Scene *scene);
+
+	/**
+	 * Kick the object's action manager
+	 */
+	void UpdateActionManager(float curtime);
 
 	/**
 	 * Construct a game object. This class also inherits the 
@@ -853,6 +862,8 @@ public:
 	KX_PYMETHOD_DOC_O(KX_GameObject,getVectTo);
 	KX_PYMETHOD_DOC_VARARGS(KX_GameObject, sendMessage);
 	KX_PYMETHOD_VARARGS(KX_GameObject, ReinstancePhysicsMesh);
+
+	KX_PYMETHOD_DOC(KX_GameObject, playAction);
 	
 	/* Dict access */
 	KX_PYMETHOD_VARARGS(KX_GameObject,get);
