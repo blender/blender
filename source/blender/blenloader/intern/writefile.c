@@ -99,6 +99,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_cloth_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
@@ -1250,6 +1251,20 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			writestruct(wd, DATA, "FluidsimSettings", 1, fluidmd->fss);
+		}
+		else if(md->type==eModifierType_DynamicPaint) {
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
+			
+			if(pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS)
+			{
+				writestruct(wd, DATA, "DynamicPaintCanvasSettings", 1, pmd->canvas);
+			}
+			else if(pmd->type & MOD_DYNAMICPAINT_TYPE_PAINT)
+			{
+				writestruct(wd, DATA, "DynamicPaintPainterSettings", 1, pmd->paint);
+				writestruct(wd, DATA, "Material", 1, pmd->paint->mat);
+				writestruct(wd, DATA, "ColorBand", 1, pmd->paint->paint_ramp);
+			}
 		} 
 		else if (md->type==eModifierType_Collision) {
 			

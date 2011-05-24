@@ -71,6 +71,7 @@ typedef enum ModifierType {
 	eModifierType_Solidify,
 	eModifierType_Screw,
 	eModifierType_Warp,
+	eModifierType_DynamicPaint,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -749,6 +750,9 @@ typedef struct ScrewModifierData {
 typedef struct WarpModifierData {
 	ModifierData modifier;
 
+
+
+
 	/* keep in sync with MappingInfoModifierData */
 	struct Tex *texture;
 	struct Object *map_object;
@@ -783,5 +787,20 @@ typedef enum {
 	eWarp_Falloff_Sphere =		7, /* PROP_SPHERE */
 	/* PROP_RANDOM not used */
 } WarpModifierFalloff;
+/* Dynamic paint modifier flags */
+#define MOD_DYNAMICPAINT_TYPE_CANVAS (1 << 0)
+#define MOD_DYNAMICPAINT_TYPE_PAINT (1 << 1)
 
+typedef struct DynamicPaintModifierData {
+	ModifierData modifier;
+
+	struct DynamicPaintCanvasSettings *canvas;
+	struct DynamicPaintPainterSettings *paint;
+	float time;
+	int type;  /* canvas / painter */
+	short baking;	/* Set nonzero if baking,
+					*  -> updates derived mesh on modifier call*/
+	short pad;
+	int pad2;
+} DynamicPaintModifierData;
 #endif

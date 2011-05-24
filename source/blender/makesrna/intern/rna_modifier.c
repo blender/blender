@@ -47,6 +47,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_bmesh.h" /* For BevelModifierData */
+#include "BKE_dynamicpaint.h" /* For dynamicPaint_Modifier_free & *_createType */
 #include "BKE_multires.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
@@ -91,6 +92,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Smoke, "SMOKE", ICON_MOD_SMOKE, "Smoke", ""},
 	{eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
+	{eModifierType_DynamicPaint, "DYNAMIC_PAINT", ICON_MOD_FLUIDSIM, "Dynamic Paint", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -183,6 +185,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_ScrewModifier;
 		case eModifierType_Warp:
 			return &RNA_WarpModifier;
+		case eModifierType_DynamicPaint:
+			return &RNA_DynamicPaintModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -276,6 +280,21 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 	
 	// update dependancy since a domain - other type switch could have happened
+	rna_Modifier_dependency_update(bmain, scene, ptr);
+}
+
+static void rna_DynamicPaint_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	DynamicPaintModifierData *pmd= (DynamicPaintModifierData *)ptr->data;
+
+	// nothing changed
+	if((pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS) && pmd->canvas)
+		return;
+		
+	dynamicPaint_Modifier_free(pmd);
+	dynamicPaint_Modifier_createType(pmd); // create regarding of selected type
+	
+	// update dependancy
 	rna_Modifier_dependency_update(bmain, scene, ptr);
 }
 
@@ -1902,6 +1921,38 @@ static void rna_def_modifier_smoke(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Smoke_set_type");
 }
 
+static void rna_def_modifier_dynamic_paint(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem prop_dynamicpaint_type_items[] = {
+			{0, "NONE", 0, "None", ""},
+			{MOD_DYNAMICPAINT_TYPE_CANVAS, "CANVAS", 0, "Canvas", ""},
+			{MOD_DYNAMICPAINT_TYPE_PAINT, "PAINT", 0, "Paint", ""},
+			{0, NULL, 0, NULL, NULL}};
+	
+	srna= RNA_def_struct(brna, "DynamicPaintModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Dynamic Paint Modifier", "Dynamic Paint modifier");
+	RNA_def_struct_sdna(srna, "DynamicPaintModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_FLUIDSIM);
+	
+	prop= RNA_def_property(srna, "canvas_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "canvas");
+	RNA_def_property_ui_text(prop, "Canvas Settings", "");
+	
+	prop= RNA_def_property(srna, "paint_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "paint");
+	RNA_def_property_ui_text(prop, "Paint Settings", "");
+	
+	prop= RNA_def_property(srna, "dynamicpaint_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_dynamicpaint_type_items);
+	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_update(prop, 0, "rna_DynamicPaint_set_type");
+}
+
 static void rna_def_modifier_collision(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2462,6 +2513,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_smoke(brna);
 	rna_def_modifier_solidify(brna);
 	rna_def_modifier_screw(brna);
+	rna_def_modifier_dynamic_paint(brna);
 }
 
 #endif

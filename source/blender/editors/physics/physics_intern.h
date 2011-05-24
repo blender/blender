@@ -95,6 +95,9 @@ void BOID_OT_state_move_down(struct wmOperatorType *ot);
 /* physics_fluid.c */
 void FLUID_OT_bake(struct wmOperatorType *ot);
 
+/* dynamicpaint.c */
+void DPAINT_OT_bake(struct wmOperatorType *ot);
+
 /* physics_pointcache.c */
 void PTCACHE_OT_bake_all(struct wmOperatorType *ot);
 void PTCACHE_OT_free_bake_all(struct wmOperatorType *ot);

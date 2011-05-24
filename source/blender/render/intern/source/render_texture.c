@@ -1672,6 +1672,21 @@ static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex, float* co, floa
 	}
 }
 
+void texco_mapping_ext(float *facenor, Tex* tex, MTex* mtex, float* co, float* dx, float* dy, float* texvec)
+{
+	ShadeInput dum_shi;
+	float null_v3[3] = {0.0f, 0.0f, 0.0f};
+	memset (&dum_shi,0,sizeof(ShadeInput));
+
+	// Make sure values used by texco_mapping() are correct
+	dum_shi.osatex = NULL;
+	dum_shi.vlr = NULL;
+	VECCOPY(dum_shi.facenor, facenor);
+
+	texco_mapping(&dum_shi, tex, mtex, co, dx, dy, texvec, null_v3, null_v3);
+}
+
+
 /* Bump code from 2.5 development cycle, has a number of bugs, but here for compatibility */
 
 typedef struct CompatibleBump {

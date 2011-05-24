@@ -49,6 +49,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_dynamicpaint_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -3453,6 +3454,14 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 		if((smd->type == MOD_SMOKE_TYPE_FLOW) && smd->flow && smd->flow->psys)
 			if(smd->flow->psys == psys)
 				smd->flow->psys = NULL;
+	}
+
+	if((md = modifiers_findByType(ob, eModifierType_DynamicPaint)))
+	{
+		DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+		if((pmd->type == MOD_DYNAMICPAINT_TYPE_PAINT) && pmd->paint && pmd->paint->psys)
+			if(pmd->paint->psys == psys)
+				pmd->paint->psys = NULL;
 	}
 
 	/* clear modifier */

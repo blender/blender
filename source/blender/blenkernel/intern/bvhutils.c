@@ -50,7 +50,7 @@
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
-static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float *v0, const float *v1, const float *v2)
+float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float *v0, const float *v1, const float *v2)
 {
 	float dist;
 
@@ -83,7 +83,7 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
  * Function adapted from David Eberly's distance tools (LGPL)
  * http://www.geometrictools.com/LibFoundation/Distance/Distance.html
  */
-static float nearest_point_in_tri_surface(const float *v0,const float *v1,const float *v2,const float *p, int *v, int *e, float *nearest )
+float nearest_point_in_tri_surface(const float *v0,const float *v1,const float *v2,const float *p, int *v, int *e, float *nearest )
 {
 	float diff[3];
 	float e0[3];

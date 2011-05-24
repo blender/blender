@@ -58,6 +58,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_genfile.h"
@@ -4028,6 +4029,33 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				else
 					smd->type = 0;
 
+			}
+		}
+		else if (md->type==eModifierType_DynamicPaint) {
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
+
+			pmd->baking = 0;	/* just in case (should be 0 already) */
+
+			if(pmd->type==MOD_DYNAMICPAINT_TYPE_CANVAS)
+			{
+				pmd->paint = NULL;
+
+				pmd->canvas = newdataadr(fd, pmd->canvas);
+				pmd->canvas->pmd = pmd;
+				pmd->canvas->surface = NULL;
+				pmd->canvas->dm = NULL;
+				pmd->canvas->ui_info[0] = '\0';
+			}
+			else if(pmd->type==MOD_DYNAMICPAINT_TYPE_PAINT)
+			{
+				pmd->canvas = NULL;
+
+				pmd->paint = newdataadr(fd, pmd->paint);
+				pmd->paint->pmd = pmd;
+				pmd->paint->mat = newdataadr(fd, pmd->paint->mat);
+				pmd->paint->psys = newdataadr(fd, pmd->paint->psys);
+				pmd->paint->paint_ramp = newdataadr(fd, pmd->paint->paint_ramp);
+				pmd->paint->dm = NULL;
 			}
 		}
 		else if (md->type==eModifierType_Collision) {
