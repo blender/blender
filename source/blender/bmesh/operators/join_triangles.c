@@ -154,9 +154,9 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 		int i;
 
 		for (i=0; i<3; i++) {
-			if (cols[0][i] + T2QCOL_LIMIT < cols[3][i] - T2QCOL_LIMIT)
+			if (cols[0][i] + T2QCOL_LIMIT < cols[2][i] - T2QCOL_LIMIT)
 				break;
-			if (cols[1][i] + T2QCOL_LIMIT < cols[4][i] - T2QCOL_LIMIT)
+			if (cols[1][i] + T2QCOL_LIMIT < cols[3][i] - T2QCOL_LIMIT)
 				break;
 		}
 
