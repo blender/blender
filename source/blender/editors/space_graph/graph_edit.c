@@ -2248,7 +2248,7 @@ void GRAPH_OT_fmodifier_paste (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graph_fmodifier_paste_exec;
-	ot->poll= graphop_editable_keyframes_poll;
+	ot->poll= graphop_active_fcurve_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
