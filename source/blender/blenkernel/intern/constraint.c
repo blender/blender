@@ -2642,15 +2642,13 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		/* set distance (flag is only set when user demands it) */
 		if (data->dist == 0)
 			data->dist= dist;
-			
-		// FIXME: dist may be 0!
 		
 		/* check if we're which way to clamp from, and calculate interpolation factor (if needed) */
 		if (data->mode == LIMITDIST_OUTSIDE) {
 			/* if inside, then move to surface */
 			if (dist <= data->dist) {
 				clamp_surf= 1;
-				sfac= data->dist / dist;
+				if (dist != 0.0f) sfac= data->dist / dist;
 			}
 			/* if soft-distance is enabled, start fading once owner is dist+softdist from the target */
 			else if (data->flag & LIMITDIST_USESOFT) {
@@ -2663,14 +2661,14 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			/* if outside, then move to surface */
 			if (dist >= data->dist) {
 				clamp_surf= 1;
-				sfac= data->dist / dist;
+				if (dist != 0.0f) sfac= data->dist / dist;
 			}
 			/* if soft-distance is enabled, start fading once owner is dist-soft from the target */
 			else if (data->flag & LIMITDIST_USESOFT) {
 				// FIXME: there's a problem with "jumping" when this kicks in
 				if (dist >= (data->dist - data->soft)) {
 					sfac = (float)( data->soft*(1.0f - expf(-(dist - data->dist)/data->soft)) + data->dist );
-					sfac /= dist;
+					if (dist != 0.0f) sfac /= dist;
 					
 					clamp_surf= 1;
 				}
@@ -2679,7 +2677,7 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		else {
 			if (IS_EQF(dist, data->dist)==0) {
 				clamp_surf= 1;
-				sfac= data->dist / dist;
+				if (dist != 0.0f) sfac= data->dist / dist;
 			}
 		}
 		
