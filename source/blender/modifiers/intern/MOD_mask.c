@@ -376,13 +376,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		if (source.v4)
 		   source.v4 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v4)));
 		
-		DM_copy_face_data(dm, result, oldIndex, newIndex, 1);
+		DM_copy_tessface_data(dm, result, oldIndex, newIndex, 1);
 		*dest = source;
 		
 		test_index_face(dest, &result->faceData, newIndex, (orig_v4 ? 4 : 3));
 	}
 	BLI_ghashIterator_free(hashIter);
 	
+	/* build polys from tess faces, for now */
+	CDDM_tessfaces_to_faces(result);
+
 	/* recalculate normals */
 	CDDM_calc_normals(result);
 	
@@ -392,11 +395,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	BLI_ghash_free(faceHash, NULL, NULL);
 	
 	/* return the new mesh */
-	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
-	result->needsFree = 1;
-	result->release(result);
 
-	return dm;
+	return result;
 }
 
 
