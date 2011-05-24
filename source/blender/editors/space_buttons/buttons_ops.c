@@ -51,6 +51,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "RNA_access.h"
 
@@ -131,7 +132,19 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	RNA_property_update(C, &fbo->ptr, fbo->prop);
 	MEM_freeN(str);
 
+
+	/* special, annoying exception, filesel on redo panel [#26618] */
+	{
+		wmOperator *redo_op= WM_operator_last_redo(C);
+		if(redo_op) {
+			if(fbo->ptr.data == redo_op->ptr->data) {
+				ED_undo_operator_repeat(C, redo_op);
+			}
+		}
+	}
+
 	MEM_freeN(op->customdata);
+
 	return OPERATOR_FINISHED;
 }
 

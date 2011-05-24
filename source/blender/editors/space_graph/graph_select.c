@@ -822,9 +822,9 @@ static int graphkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEve
 		/* determine which side of the current frame mouse is on */
 		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 		if (x < CFRA)
-			RNA_int_set(op->ptr, "mode", GRAPHKEYS_LRSEL_LEFT);
+			RNA_enum_set(op->ptr, "mode", GRAPHKEYS_LRSEL_LEFT);
 		else 	
-			RNA_int_set(op->ptr, "mode", GRAPHKEYS_LRSEL_RIGHT);
+			RNA_enum_set(op->ptr, "mode", GRAPHKEYS_LRSEL_RIGHT);
 	}
 	
 	/* perform selection */

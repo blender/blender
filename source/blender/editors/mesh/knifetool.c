@@ -193,8 +193,10 @@ static void knife_project_v3(knifetool_opdata *kcd, float co[3], float sco[3])
 		
 		sco[0] = (float)(kcd->ar->winx/2.0f)+(kcd->ar->winx/2.0f)*sco[0];
 		sco[1] = (float)(kcd->ar->winy/2.0f)+(kcd->ar->winy/2.0f)*sco[1];
-	} else
-		view3d_project_float(kcd->ar, co, sco, kcd->projmat);
+	}
+	else {
+		ED_view3d_project_float(kcd->ar, co, sco, kcd->projmat);
+	}
 }
 
 static KnifeEdge *new_knife_edge(knifetool_opdata *kcd)
@@ -1064,7 +1066,7 @@ static int knife_sample_screen_density(knifetool_opdata *kcd, float radius)
 						copy_v3_v3(vec, kfv->co);
 						mul_m4_v3(kcd->vc.obedit->obmat, vec);
 			
-						if(view3d_test_clipping(kcd->vc.rv3d, vec, 1)==0) {
+						if(ED_view3d_test_clipping(kcd->vc.rv3d, vec, 1)==0) {
 							c++;
 						}
 					} else {
@@ -1135,7 +1137,7 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], BMF
 					vec[2]= kfe->v1->co[2] + labda*(kfe->v2->co[2] - kfe->v1->co[2]);
 					mul_m4_v3(kcd->vc.obedit->obmat, vec);
 		
-					if(view3d_test_clipping(kcd->vc.rv3d, vec, 1)==0) {
+					if(ED_view3d_test_clipping(kcd->vc.rv3d, vec, 1)==0) {
 						cure = kfe;
 						curdis = dis;
 					}
@@ -1222,7 +1224,7 @@ static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], BMF
 						copy_v3_v3(vec, kfv->co);
 						mul_m4_v3(kcd->vc.obedit->obmat, vec);
 			
-						if(view3d_test_clipping(kcd->vc.rv3d, vec, 1)==0) {
+						if(ED_view3d_test_clipping(kcd->vc.rv3d, vec, 1)==0) {
 							curv = kfv;
 							curdis = dis;
 						}
@@ -1627,7 +1629,7 @@ static void knifetool_finish(bContext *C, wmOperator *op)
 /*copied from paint_image.c*/
 static int project_knife_view_clip(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
 {
-	int orth= get_view3d_cliprange(v3d, rv3d, clipsta, clipend);
+	int orth= ED_view3d_clip_range_get(v3d, rv3d, clipsta, clipend);
 
 	if (orth) { /* only needed for ortho */
 		float fac = 2.0f / ((*clipend) - (*clipsta));
@@ -1646,7 +1648,7 @@ static void knife_recalc_projmat(knifetool_opdata *kcd)
 		return;
 	
 	invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
-	view3d_get_object_project_mat(ar->regiondata, kcd->ob, kcd->projmat);
+	ED_view3d_ob_project_mat_get(ar->regiondata, kcd->ob, kcd->projmat);
 	//mul_m4_m4m4(kcd->projmat, kcd->vc.rv3d->viewmat, kcd->vc.rv3d->winmat);
 	
 	kcd->is_ortho = project_knife_view_clip(kcd->vc.v3d, kcd->vc.rv3d, 

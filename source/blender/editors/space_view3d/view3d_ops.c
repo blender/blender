@@ -305,5 +305,6 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	viewrotate_modal_keymap(keyconf);
 	viewmove_modal_keymap(keyconf);
 	viewzoom_modal_keymap(keyconf);
+	viewdolly_modal_keymap(keyconf);
 }
 

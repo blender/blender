@@ -150,7 +150,7 @@ static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, int l
 	
 	/* clipplanes in eye space */
 	if(rv3d->rflag & RV3D_CLIPPING) {
-		if(view3d_test_clipping(rv3d, vec, local))
+		if(ED_view3d_test_clipping(rv3d, vec, local))
 			return;
 	}
 	
@@ -633,7 +633,7 @@ void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
 /* circle for object centers, special_color is for library or ob users */
 static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3], int selstate, int special_color)
 {
-	const float size= view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
+	const float size= ED_view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
 
 	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
 	if(v3d->zbuf)  glDepthFunc(GL_ALWAYS);
@@ -1018,7 +1018,7 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
-	const float pixsize= view3d_pixel_size(rv3d, ob->obmat[3]);
+	const float pixsize= ED_view3d_pixel_size(rv3d, ob->obmat[3]);
 	Lamp *la= ob->data;
 	float vec[3], lvec[3], vvec[3], circrad, x,y,z;
 	float lampsize;
@@ -2960,7 +2960,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	}
 	else {
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
-		if(me->totface<=4 || boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {
+		if(me->totface<=4 || ED_view3d_boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
 			check_alpha = check_material_alpha(base, me, glsl);
 
@@ -3746,7 +3746,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		case PART_DRAW_CROSS:
 		case PART_DRAW_AXIS:
 			/* lets calculate the scale: */
-			pixsize= view3d_pixel_size(rv3d, ob->obmat[3]);
+			pixsize= ED_view3d_pixel_size(rv3d, ob->obmat[3]);
 			
 			if(part->draw_size==0.0)
 				pixsize *= 2.0f;
@@ -5596,7 +5596,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			hasfaces= displist_has_faces(&ob->disp);
 		}
 
-		if (hasfaces && boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
+		if (hasfaces && ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 			draw_index_wire= 0;
 			if (dm) {
 				draw_mesh_object_outline(v3d, ob, dm);
@@ -5649,7 +5649,7 @@ static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob)
 	
 	if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		Curve *cu = ob->data;
-		if (boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
+		if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 			if (ob->type==OB_CURVE)
 				draw_index_wire= 0;
 
@@ -6084,7 +6084,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
 					draw_bounding_volume(scene, ob);
 			}
-			else if(boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb))
+			else if(ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb))
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
 
 			break;
@@ -6100,7 +6100,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
 					draw_bounding_volume(scene, ob);
 			}
-			else if(boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
+			else if(ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
 
 //XXX old animsys				if(cu->path)

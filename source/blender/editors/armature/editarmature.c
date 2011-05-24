@@ -2356,6 +2356,7 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	Object *obedit= scene->obedit; // XXX get from context
+	bArmature *arm= obedit->data;
 	float		obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
 	EditBone	*bone;
 
@@ -2374,7 +2375,9 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	ED_armature_deselect_all(obedit, 0);
 	
 	/*	Create a bone	*/
-	bone= ED_armature_edit_bone_add(obedit->data, "Bone");
+	bone= ED_armature_edit_bone_add(arm, "Bone");
+
+	arm->act_edbone= bone;
 
 	copy_v3_v3(bone->head, curs);
 	

@@ -293,7 +293,7 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 		return rect->xmin < rect->xmax && rect->ymin < rect->ymax;;
 	}
 */
-	view3d_get_object_project_mat(rv3d, ob, pmat);
+	ED_view3d_ob_project_mat_get(rv3d, ob, pmat);
 
 	if(!pbvh)
 		return 0;
@@ -313,7 +313,7 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 				vec[0] = i ? bb_min[0] : bb_max[0];
 				vec[1] = j ? bb_min[1] : bb_max[1];
 				vec[2] = k ? bb_min[2] : bb_max[2];
-				view3d_project_float(ar, vec, proj, pmat);
+				ED_view3d_project_float(ar, vec, proj, pmat);
 				rect->xmin = MIN2(rect->xmin, proj[0]);
 				rect->xmax = MAX2(rect->xmax, proj[0]);
 				rect->ymin = MIN2(rect->ymin, proj[1]);
@@ -370,7 +370,7 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 	rect.ymax -= 2;
 #endif
 
-	view3d_calculate_clipping(&bb, planes, &mats, &rect);
+	ED_view3d_calc_clipping(&bb, planes, &mats, &rect);
 	mul_m4_fl(planes, -1.0f);
 
 	/* clear redraw flag from nodes */

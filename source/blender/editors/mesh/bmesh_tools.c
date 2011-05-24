@@ -2661,8 +2661,8 @@ static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *c
 {
 	float vec1[3], vec2[3], mvalf[2];
 
-	view3d_project_float(ar, co1, vec1, mat);
-	view3d_project_float(ar, co2, vec2, mat);
+	ED_view3d_project_float(ar, co1, vec1, mat);
+	ED_view3d_project_float(ar, co2, vec2, mat);
 	mvalf[0]= (float)mval[0];
 	mvalf[1]= (float)mval[1];
 
@@ -2688,7 +2688,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1], 0.0f};
 	float dist = FLT_MAX, d;
 
-	view3d_get_object_project_mat(rv3d, obedit, projectMat);
+	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_SELECT))
@@ -2802,7 +2802,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			add_v3_v3v3(mid, mid, vec);
 
 			/*yay we have our comparison point, now project it*/
-			view3d_project_float(ar, mid, mid, projectMat);
+			ED_view3d_project_float(ar, mid, mid, projectMat);
 
 			vec[0] = fmval[0] - mid[0];
 			vec[1] = fmval[1] - mid[1];

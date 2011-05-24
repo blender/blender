@@ -168,10 +168,8 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
                 if psys != None and psys.is_edited:
                     if psys.is_global_hair:
                         layout.operator("particle.connect_hair")
-                        layout.label(text="Hair is disconnected.")
                     else:
                         layout.operator("particle.disconnect_hair")
-                        layout.label(text="")
             elif psys != None and part.type == 'REACTOR':
                 split.enabled = particle_panel_enabled(context, psys)
                 split.prop(psys, "reactor_target_object")

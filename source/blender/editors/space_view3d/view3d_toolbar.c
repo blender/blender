@@ -69,19 +69,6 @@
 
 /* ******************* view3d space & buttons ************** */
 
-static wmOperator *view3d_last_operator(const bContext *C)
-{
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *op;
-
-	/* only for operators that are registered and did an undo push */
-	for(op= wm->operators.last; op; op= op->prev)
-		if((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO))
-			break;
-
-	return op;
-}
-
 static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperator *op)
 {
 	uiLayoutOperatorButs(C, pa->layout, op, NULL, 'V', 0);
@@ -89,7 +76,7 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 
 static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
 {
-	wmOperator *op= view3d_last_operator(C);
+	wmOperator *op= WM_operator_last_redo(C);
 
 	if(op) BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
 	else BLI_strncpy(pa->drawname, "Operator", sizeof(pa->drawname));
@@ -110,7 +97,7 @@ static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wm
 
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
-	wmOperator *op= view3d_last_operator(C);
+	wmOperator *op= WM_operator_last_redo(C);
 	uiBlock *block;
 	
 	if(op==NULL)

@@ -780,7 +780,7 @@ static void calc_shapeKeys(Object *obedit)
 
 	/* are there keys? */
 	if(cu->key) {
-		int a, i, j;
+		int a, i;
 		EditNurb *editnurb= cu->editnurb;
 		KeyBlock *currkey;
 		KeyBlock *actkey= BLI_findlink(&cu->key->block, editnurb->shapenr-1);
@@ -804,7 +804,6 @@ static void calc_shapeKeys(Object *obedit)
 			}
 
 			if(act_is_basis) { /* active key is a base */
-				int j;
 				int totvec= 0;
 
 				/* Calculate needed memory to store offset */
@@ -831,6 +830,7 @@ static void calc_shapeKeys(Object *obedit)
 							oldbezt= getKeyIndexOrig_bezt(editnurb, bezt);
 
 							if (oldbezt) {
+								int j;
 								for (j= 0; j < 3; ++j) {
 									VECSUB(ofs[i], bezt->vec[j], oldbezt->vec[j]);
 									i++;
@@ -878,6 +878,7 @@ static void calc_shapeKeys(Object *obedit)
 						bezt= nu->bezt;
 						a= nu->pntsu;
 						while(a--) {
+							int j;
 							oldbezt= getKeyIndexOrig_bezt(editnurb, bezt);
 
 							for (j= 0; j < 3; ++j, ++i) {
@@ -932,6 +933,7 @@ static void calc_shapeKeys(Object *obedit)
 							while(a--) {
 								index= getKeyIndexOrig_keyIndex(editnurb, bezt);
 								if (index >= 0) {
+									int j;
 									curofp= ofp + index;
 
 									for (j= 0; j < 3; ++j, ++i) {
@@ -953,6 +955,7 @@ static void calc_shapeKeys(Object *obedit)
 
 									fp+= 3;	/* alphas */
 								} else {
+									int j;
 									for (j= 0; j < 3; ++j, ++i) {
 										VECCOPY(fp, bezt->vec[j]);
 										fp+= 3;

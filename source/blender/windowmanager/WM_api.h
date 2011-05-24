@@ -247,6 +247,8 @@ void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int exten
 void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
+wmOperator *WM_operator_last_redo(const struct bContext *C);
+
 /* MOVE THIS SOMEWHERE ELSE */
 #define	SEL_TOGGLE		0
 #define	SEL_SELECT		1

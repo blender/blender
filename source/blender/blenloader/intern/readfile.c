@@ -2117,7 +2117,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	}
 	
 	{
-		int has_old_groups=0;
+		/*int has_old_groups=0;*/ /*UNUSED*/
 		/* XXX this should actually be part of do_versions, but since we need
 		 * finished library linking, it is not possible there. Instead in do_versions
 		 * we have set the NTREE_DO_VERSIONS flag, so at this point we can do the
@@ -2127,7 +2127,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 			if (ntree->flag & NTREE_DO_VERSIONS) {
 				/* this adds copies and links from all unlinked internal sockets to group inputs/outputs. */
 				nodeGroupExposeAllSockets(ntree);
-				has_old_groups = 1;
+				/*has_old_groups = 1;*/ /*UNUSED*/
 			}
 		}
 		/* now verify all types in material trees, groups are set OK now */
@@ -4204,7 +4204,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
-	int a;
 	
 	/* weak weak... this was only meant as draw flag, now is used in give_base_to_objects too */
 	ob->flag &= ~OB_FROMGROUP;
@@ -4304,6 +4303,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		sb->keys= newdataadr(fd, sb->keys);
 		test_pointer_array(fd, (void **)&sb->keys);
 		if(sb->keys) {
+			int a;
 			for(a=0; a<sb->totkey; a++) {
 				sb->keys[a]= newdataadr(fd, sb->keys[a]);
 			}
@@ -8444,7 +8444,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ArmatureModifierData *amd = (ArmatureModifierData*) md;
 					if(amd->object && amd->deformflag==0) {
 						Object *oba= newlibadr(fd, lib, amd->object);
-						bArmature *arm= newlibadr(fd, lib, oba->data);
+						arm= newlibadr(fd, lib, oba->data);
 						amd->deformflag= arm->deformflag;
 					}
 				}
@@ -8591,7 +8591,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			int a;
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a] && ma->mtex[a]->tex) {
-					Tex *tex= newlibadr(fd, lib, ma->mtex[a]->tex);
+					tex= newlibadr(fd, lib, ma->mtex[a]->tex);
 					if(tex && tex->type==TEX_STUCCI)
 						ma->mtex[a]->mapto &= ~(MAP_COL|MAP_SPEC|MAP_REF);
 				}
@@ -8783,7 +8783,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 		/* now, subversion control! */
 		if(main->subversionfile < 3) {
-			bScreen *sc;
 			Image *ima;
 			Tex *tex;
 			
@@ -10199,7 +10198,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		ToolSettings *ts;
 		//PTCacheID *pid;
 		//ListBase pidlist;
-		int a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			//BKE_ptcache_ids_from_object(&pidlist, ob);
@@ -10238,6 +10236,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for(ma = main->mat.first; ma; ma = ma->id.next) {
+			int a;
 			if(ma->mode & MA_WIRE) {
 				ma->material_type= MA_TYPE_WIRE;
 				ma->mode &= ~MA_WIRE;
@@ -12782,10 +12781,11 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 }
 
 /* when *lib set, it also does objects that were in the appended group */
-static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is_group_append)
+static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link)
 {
 	Object *ob;
 	Base *base;
+	const short is_group_append= (is_link==FALSE && idcode==ID_GR);
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
 	for(ob= mainvar->object.first; ob; ob= ob->id.next) {
@@ -12804,16 +12804,20 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 				if(ob->id.us==0) {
 					do_it= 1;
 				}
-				else if (lib==NULL) { /* appending */
-					if(object_in_any_scene(mainvar, ob)==0) {
-						/* when appending, make sure any indirectly loaded objects
-						 * get a base else they cant be accessed at all [#27437] */
-						do_it= 1;
+				else if(idcode==ID_GR) {
+					if(ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
+						if((ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0) {
+							do_it= 1;
+						}
 					}
 				}
-				else if(ob->id.us==1 && lib) {
-					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0) {
-						do_it= 1;
+				else {
+					/* when appending, make sure any indirectly loaded objects
+					 * get a base else they cant be accessed at all [#27437] */
+					if(ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
+						if(object_in_any_scene(mainvar, ob)==0) {
+							do_it= 1;
+						}
 					}
 				}
 
@@ -13069,21 +13073,16 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(scene) {
+		const short is_link= (flag & FILE_LINK) != 0;
 		if(idcode==ID_SCE) {
 			/* dont instance anything when linking in scenes, assume the scene its self instances the data */
 		}
-		else if(idcode==ID_GR) {
-			if (flag & FILE_LINK) {
-				give_base_to_objects(mainvar, scene, NULL, 0);
-			} else {
-				give_base_to_objects(mainvar, scene, curlib, 1);
-			}
+		else {
+			give_base_to_objects(mainvar, scene, curlib, idcode, is_link);
 
 			if (flag & FILE_GROUP_INSTANCE) {
 				give_base_to_groups(mainvar, scene);
 			}
-		} else {
-			give_base_to_objects(mainvar, scene, NULL, 0);
 		}
 	}
 	else {

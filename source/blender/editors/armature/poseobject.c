@@ -1169,7 +1169,7 @@ void POSE_OT_paste (wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
-	RNA_def_boolean(ot->srna, "selected_mask", 0, "On Selected Only", "Only paste the stored post on to selected bones in the current pose");
+	RNA_def_boolean(ot->srna, "selected_mask", 0, "On Selected Only", "Only paste the stored pose on to selected bones in the current pose");
 }
 
 /* ********************************************** */

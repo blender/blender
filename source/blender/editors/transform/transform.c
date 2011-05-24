@@ -4390,7 +4390,7 @@ static int createSlideVerts(TransInfo *t)
 		/*ok, let's try to survive this*/
 		unit_m4(projectMat);
 	} else {
-		view3d_get_object_project_mat(rv3d, t->obedit, projectMat);
+		ED_view3d_ob_project_mat_get(rv3d, t->obedit, projectMat);
 	}
 	
 	BLI_smallhash_init(&sld->vhash);
@@ -4580,17 +4580,17 @@ static int createSlideVerts(TransInfo *t)
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 
 					if (tempsv[j].down) {
-						view3d_project_float_v3(ar, tempsv[j].down->co, vec1, projectMat);
+						ED_view3d_project_float_v3(ar, tempsv[j].down->co, vec1, projectMat);
 					} else {
 						add_v3_v3v3(vec1, v->co, tempsv[j].downvec);
-						view3d_project_float_v3(ar, vec1, vec1, projectMat);
+						ED_view3d_project_float_v3(ar, vec1, vec1, projectMat);
 					}
 					
 					if (tempsv[j].up) {
-						view3d_project_float_v3(ar, tempsv[j].up->co, vec2, projectMat);
+						ED_view3d_project_float_v3(ar, tempsv[j].up->co, vec2, projectMat);
 					} else {
 						add_v3_v3v3(vec1, v->co, tempsv[j].upvec);
-						view3d_project_float_v3(ar, vec2, vec2, projectMat);
+						ED_view3d_project_float_v3(ar, vec2, vec2, projectMat);
 					}
 
 					d = dist_to_line_segment_v2(mval, vec1, vec2);

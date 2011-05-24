@@ -385,7 +385,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 			/* we may need to force an update here by setting the rv3d as dirty
 			 * for now it seems ok, but take care!:
 			 * rv3d->depths->dirty = 1; */
-			view3d_update_depths(data->vc.ar);
+			ED_view3d_depth_update(data->vc.ar);
 		}
 	}
 }
@@ -3461,7 +3461,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	ParticleBrushData *brush= &pset->brush[pset->brushtype];
 	ARegion *ar= CTX_wm_region(C);
 	float vec[3], mousef[2];
-	int mval[2], mvalo[2];
+	int mval[2];
 	int flip, mouse[2], dx, dy, removed= 0, added=0, selected= 0;
 	int lock_root = pset->flag & PE_LOCK_FIRST;
 
@@ -3484,8 +3484,6 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	mval[0]= mouse[0];
 	mval[1]= mouse[1];
 
-	mvalo[0]= bedit->lastmouse[0];
-	mvalo[1]= bedit->lastmouse[1];
 
 	/* disable locking temporatily for disconnected hair */
 	if(edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR)
