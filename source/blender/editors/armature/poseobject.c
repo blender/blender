@@ -1002,6 +1002,14 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
+	/* if selOnly option is enabled, if user hasn't selected any bones, 
+	 * just go back to default behaviour to be more in line with other pose tools
+	 */
+	if (selOnly) {
+		if (CTX_DATA_COUNT(C, selected_pose_bones) == 0)
+			selOnly = 0;
+	}
+	
 	/* Safely merge all of the channels in the buffer pose into any existing pose */
 	for (chan= g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
@@ -1169,7 +1177,7 @@ void POSE_OT_paste (wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
-	RNA_def_boolean(ot->srna, "selected_mask", 0, "On Selected Only", "Only paste the stored pose on to selected bones in the current pose");
+	RNA_def_boolean(ot->srna, "selected_mask", 1, "On Selected Only", "Only paste the stored pose on to selected bones in the current pose");
 }
 
 /* ********************************************** */
