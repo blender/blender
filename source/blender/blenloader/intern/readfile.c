@@ -12804,13 +12804,13 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 
 /* returns true if the item was found
  * but it may already have already been appended/linked */
-static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *idname, int idcode, short flag)
+static ID *append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *idname, int idcode, short flag)
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene= CTX_data_scene(C); /* can be NULL */
 	Object *ob;
 	Base *base;
 	BHead *bhead;
-	ID *id;
+	ID *id= NULL;
 	int endloop=0;
 	int found=0;
 
@@ -12825,7 +12825,7 @@ static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const
 				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
 				if(id==NULL) {
-					read_libblock(fd, mainl, bhead, LIB_TESTEXT, NULL);
+					read_libblock(fd, mainl, bhead, LIB_TESTEXT, &id);
 				}
 				else {
 					printf("append: already linked\n");
@@ -12836,13 +12836,13 @@ static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const
 					}
 				}
 
-				if(idcode==ID_OB && scene) {	/* loose object: give a base */
+				/* TODO, move out of append and into own func the caller can use */
+				if(scene && id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
 					base= MEM_callocN( sizeof(Base), "app_nam_part");
 					BLI_addtail(&scene->base, base);
 
-					if(id==NULL) ob= mainl->object.last;
-					else ob= (Object *)id;
-					
+					ob= (Object *)id;
+
 					/* link at active layer (view3d->lay if in context, else scene->lay */
 					if((flag & FILE_ACTIVELAY)) {
 						View3D *v3d = CTX_wm_view3d(C);
@@ -12870,10 +12870,13 @@ static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const
 		bhead = blo_nextbhead(fd, bhead);
 	}
 
-	return found;
+	/* if we found the id but the id is NULL, this is really bad */
+	BLI_assert((found != 0) == (id != NULL));
+
+	return found ? id : NULL;
 }
 
-int BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag)
+ID *BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag)
 {
 	FileData *fd= (FileData*)(*bh);
 	return append_named_part(C, mainl, fd, idname, idcode, flag);

@@ -224,7 +224,7 @@ struct Main* BLO_library_append_begin(const struct bContext *C, BlendHandle** bh
  * @param flag Options for linking, used for instancing.
  * @return Boolean, 0 when the datablock could not be found.
  */
-int BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag);
+struct ID *BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag);
 void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag);
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
