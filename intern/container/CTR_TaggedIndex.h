@@ -52,6 +52,8 @@
 
 #include <functional>
 
+#include "MEM_sys_types.h"
+
 enum {
 
 	empty_tag = 0x0,
@@ -100,9 +102,9 @@ public:
 
 #if defined(_WIN64)
 	CTR_TaggedIndex(
-		const unsigned __int64 val
+		const unsigned int64_t val
 	) :
-		m_val ( ((unsigned __int64)val & index_mask)
+		m_val ( ((unsigned int64_t)val & index_mask)
 				| ( (empty_tag << tag_shift)
 					& (~index_mask) ) ) {
 	}
@@ -140,8 +142,8 @@ public:
 	}
 
 #if defined(_WIN64)
-	operator unsigned __int64 () const {
-			return (unsigned __int64)(m_val & index_mask);
+	operator unsigned int64_t () const {
+			return (unsigned int64_t)(m_val & index_mask);
 		}
 #endif
 
