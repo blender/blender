@@ -159,19 +159,22 @@ static void *new_mem_element(int size)
 	}
 	else if(size== -1) {
 		/*BMESH_TODO: keep the first block, gives memory leak on exit with 'newmem' */
-		first = lb.first;
-		BLI_remlink(&lb, first);
 
-		cur= lb.first;
-		while(cur) {
-			MEM_freeN(cur->data);
-			cur= cur->next;
+		if((first= lb.first)) { /* can be false if first fill fails */
+			BLI_remlink(&lb, first);
+
+			cur= lb.first;
+			while(cur) {
+				MEM_freeN(cur->data);
+				cur= cur->next;
+			}
+			BLI_freelistN(&lb);
+
+			/*reset the block we're keeping*/
+			BLI_addtail(&lb, first);
+			memset(first->data, 0, blocksize);
 		}
-		BLI_freelistN(&lb);
-		
-		/*reset the block we're keeping*/
-		BLI_addtail(&lb, first);
-		memset(first->data, 0, blocksize);
+
 		cur= first;
 		offs= 0;
 
