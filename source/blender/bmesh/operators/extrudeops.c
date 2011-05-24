@@ -58,13 +58,20 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 		BMO_SetFlag(bm, f, EXT_DEL);
 
-		f2 = BM_Make_Ngon(bm, edges[0]->v1, edges[0]->v2, edges, f->len, 0);
+		f2 = BM_Make_Ngon(bm, lastv, firstv, edges, f->len, 0);
+		if (!f2) {
+			BMO_RaiseError(bm, op, BMERR_MESH_ERROR, "Extrude failed; could not create face");
+			BLI_array_free(edges);
+			return;
+		}
+		
 		BMO_SetFlag(bm, f2, EXT_KEEP);
 		BM_Copy_Attributes(bm, bm, f, f2);
 
 		l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			BM_Copy_Attributes(bm, bm, l, l2);
+
 			l3 = l->next;
 			l4 = l2->next;
 
@@ -79,8 +86,9 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_CallOpf(bm, "del geom=%ff context=%d", EXT_DEL, DEL_ONLYFACES);
+	BLI_array_free(edges);
 
+	BMO_CallOpf(bm, "del geom=%ff context=%d", EXT_DEL, DEL_ONLYFACES);
 	BMO_Flag_To_Slot(bm, op, "faceout", EXT_KEEP, BM_FACE);
 }
 

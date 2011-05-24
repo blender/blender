@@ -519,11 +519,12 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float
 			continue;
 		
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-			if (uvedit_uv_selected(em, scene, l)) 
+			if (uvedit_uv_selected(em, scene, l)) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 				DO_MINMAX2(luv->uv, min, max); 
 				sel = 1;
 			}
+		}
 	}
 
 	return sel;
