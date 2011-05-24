@@ -34,6 +34,6 @@ with bpy.data.libraries.load(filepath) as (data_from, data_to):
 with bpy.data.libraries.load(filepath) as (data_from, data_to):
     data_to.meshes = data_from.meshes
 # now operate directly on the loaded data
-for mesh in mdata_to.meshes:
+for mesh in data_to.meshes:
     if mesh is not None:
         print(mesh.name)

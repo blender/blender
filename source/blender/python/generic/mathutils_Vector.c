@@ -87,11 +87,11 @@ static PyObject *vec__apply_to_copy(PyNoArgsFunction vec_func, VectorObject *sel
 }
 
 /*-----------------------------METHODS---------------------------- */
-static char Vector_zero_doc[] =
+PyDoc_STRVAR(Vector_zero_doc,
 ".. method:: zero()\n"
 "\n"
 "   Set all values to zero.\n"
-;
+);
 static PyObject *Vector_zero(VectorObject *self)
 {
 	fill_vn(self->vec, self->size, 0.0f);
@@ -102,7 +102,7 @@ static PyObject *Vector_zero(VectorObject *self)
 	Py_RETURN_NONE;
 }
 
-static char Vector_normalize_doc[] =
+PyDoc_STRVAR(Vector_normalize_doc,
 ".. method:: normalize()\n"
 "\n"
 "   Normalize the vector, making the length of the vector always 1.0.\n"
@@ -110,7 +110,7 @@ static char Vector_normalize_doc[] =
 "   .. warning:: Normalizing a vector where all values are zero results in all axis having a nan value (not a number).\n"
 "\n"
 "   .. note:: Normalize works for vectors of all sizes, however 4D Vectors w axis is left untouched.\n"
-;
+);
 static PyObject *Vector_normalize(VectorObject *self)
 {
 	int i;
@@ -130,27 +130,27 @@ static PyObject *Vector_normalize(VectorObject *self)
 	(void)BaseMath_WriteCallback(self);
 	Py_RETURN_NONE;
 }
-static char Vector_normalized_doc[] =
+PyDoc_STRVAR(Vector_normalized_doc,
 ".. method:: normalized()\n"
 "\n"
 "   Return a new, normalized vector.\n"
 "\n"
 "   :return: a normalized copy of the vector\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_normalized(VectorObject *self)
 {
 	return vec__apply_to_copy((PyNoArgsFunction)Vector_normalize, self);
 }
 
-static char Vector_resize_2d_doc[] =
+PyDoc_STRVAR(Vector_resize_2d_doc,
 ".. method:: resize_2d()\n"
 "\n"
 "   Resize the vector to 2D  (x, y).\n"
 "\n"
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_resize_2d(VectorObject *self)
 {
 	if(self->wrapped==Py_WRAP) {
@@ -172,14 +172,14 @@ static PyObject *Vector_resize_2d(VectorObject *self)
 	Py_RETURN_NONE;
 }
 
-static char Vector_resize_3d_doc[] =
+PyDoc_STRVAR(Vector_resize_3d_doc,
 ".. method:: resize_3d()\n"
 "\n"
 "   Resize the vector to 3D  (x, y, z).\n"
 "\n"
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_resize_3d(VectorObject *self)
 {
 	if (self->wrapped==Py_WRAP) {
@@ -204,14 +204,14 @@ static PyObject *Vector_resize_3d(VectorObject *self)
 	Py_RETURN_NONE;
 }
 
-static char Vector_resize_4d_doc[] =
+PyDoc_STRVAR(Vector_resize_4d_doc,
 ".. method:: resize_4d()\n"
 "\n"
 "   Resize the vector to 4D (x, y, z, w).\n"
 "\n"
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_resize_4d(VectorObject *self)
 {
 	if(self->wrapped==Py_WRAP) {
@@ -239,14 +239,14 @@ static PyObject *Vector_resize_4d(VectorObject *self)
 	self->size = 4;
 	Py_RETURN_NONE;
 }
-static char Vector_to_2d_doc[] =
+PyDoc_STRVAR(Vector_to_2d_doc,
 ".. method:: to_2d()\n"
 "\n"
 "   Return a 2d copy of the vector.\n"
 "\n"
 "   :return: a new vector\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_to_2d(VectorObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -254,14 +254,14 @@ static PyObject *Vector_to_2d(VectorObject *self)
 
 	return newVectorObject(self->vec, 2, Py_NEW, Py_TYPE(self));
 }
-static char Vector_to_3d_doc[] =
+PyDoc_STRVAR(Vector_to_3d_doc,
 ".. method:: to_3d()\n"
 "\n"
 "   Return a 3d copy of the vector.\n"
 "\n"
 "   :return: a new vector\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_to_3d(VectorObject *self)
 {
 	float tvec[3]= {0.0f};
@@ -272,14 +272,14 @@ static PyObject *Vector_to_3d(VectorObject *self)
 	memcpy(tvec, self->vec, sizeof(float) * MIN2(self->size, 3));
 	return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(self));
 }
-static char Vector_to_4d_doc[] =
+PyDoc_STRVAR(Vector_to_4d_doc,
 ".. method:: to_4d()\n"
 "\n"
 "   Return a 4d copy of the vector.\n"
 "\n"
 "   :return: a new vector\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_to_4d(VectorObject *self)
 {
 	float tvec[4]= {0.0f, 0.0f, 0.0f, 1.0f};
@@ -291,7 +291,7 @@ static PyObject *Vector_to_4d(VectorObject *self)
 	return newVectorObject(tvec, 4, Py_NEW, Py_TYPE(self));
 }
 
-static char Vector_to_tuple_doc[] =
+PyDoc_STRVAR(Vector_to_tuple_doc,
 ".. method:: to_tuple(precision=-1)\n"
 "\n"
 "   Return this vector as a tuple with.\n"
@@ -300,7 +300,7 @@ static char Vector_to_tuple_doc[] =
 "   :type precision: int\n"
 "   :return: the values of the vector rounded by *precision*\n"
 "   :rtype: tuple\n"
-;
+);
 /* note: BaseMath_ReadCallback must be called beforehand */
 static PyObject *Vector_to_tuple_ext(VectorObject *self, int ndigits)
 {
@@ -344,7 +344,7 @@ static PyObject *Vector_to_tuple(VectorObject *self, PyObject *args)
 	return Vector_to_tuple_ext(self, ndigits);
 }
 
-static char Vector_to_track_quat_doc[] =
+PyDoc_STRVAR(Vector_to_track_quat_doc,
 ".. method:: to_track_quat(track, up)\n"
 "\n"
 "   Return a quaternion rotation from the vector and the track and up axis.\n"
@@ -355,7 +355,7 @@ static char Vector_to_track_quat_doc[] =
 "   :type up: string\n"
 "   :return: rotation from the vector and the track and up axis.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 {
 	float vec[3], quat[4];
@@ -462,7 +462,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
  * Vector.reflect(mirror): return a reflected vector on the mirror normal
  *  vec - ((2 * DotVecs(vec, mirror)) * mirror)
  */
-static char Vector_reflect_doc[] =
+PyDoc_STRVAR(Vector_reflect_doc,
 ".. method:: reflect(mirror)\n"
 "\n"
 "   Return the reflection vector from the *mirror* argument.\n"
@@ -471,7 +471,7 @@ static char Vector_reflect_doc[] =
 "   :type mirror: :class:`Vector`\n"
 "   :return: The reflected vector matching the size of this vector.\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_reflect(VectorObject *self, PyObject *value)
 {
 	int value_size;
@@ -501,7 +501,7 @@ static PyObject *Vector_reflect(VectorObject *self, PyObject *value)
 	return newVectorObject(reflect, self->size, Py_NEW, Py_TYPE(self));
 }
 
-static char Vector_cross_doc[] =
+PyDoc_STRVAR(Vector_cross_doc,
 ".. method:: cross(other)\n"
 "\n"
 "   Return the cross product of this vector and another.\n"
@@ -512,7 +512,7 @@ static char Vector_cross_doc[] =
 "   :rtype: :class:`Vector`\n"
 "\n"
 "   .. note:: both vectors must be 3D\n"
-;
+);
 static PyObject *Vector_cross(VectorObject *self, PyObject *value)
 {
 	VectorObject *ret;
@@ -529,7 +529,7 @@ static PyObject *Vector_cross(VectorObject *self, PyObject *value)
 	return (PyObject *)ret;
 }
 
-static char Vector_dot_doc[] =
+PyDoc_STRVAR(Vector_dot_doc,
 ".. method:: dot(other)\n"
 "\n"
 "   Return the dot product of this vector and another.\n"
@@ -538,7 +538,7 @@ static char Vector_dot_doc[] =
 "   :type other: :class:`Vector`\n"
 "   :return: The dot product.\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 {
 	float tvec[MAX_DIMENSIONS];
@@ -558,7 +558,7 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 	return PyFloat_FromDouble(dot);
 }
 
-static char Vector_angle_doc[] =
+PyDoc_STRVAR(Vector_angle_doc,
 ".. function:: angle(other, fallback)\n"
 "\n"
 "   Return the angle between two vectors.\n"
@@ -571,7 +571,7 @@ static char Vector_angle_doc[] =
 "   :rtype: float\n"
 "\n"
 "   .. note:: Zero length vectors raise an :exc:`AttributeError`.\n"
-;
+);
 static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 {
 	const int size= self->size;
@@ -615,7 +615,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 	return PyFloat_FromDouble(saacos(dot));
 }
 
-static char Vector_rotation_difference_doc[] =
+PyDoc_STRVAR(Vector_rotation_difference_doc,
 ".. function:: difference(other)\n"
 "\n"
 "   Returns a quaternion representing the rotational difference between this vector and another.\n"
@@ -626,7 +626,7 @@ static char Vector_rotation_difference_doc[] =
 "   :rtype: :class:`Quaternion`\n"
 "\n"
 "   .. note:: 2D vectors raise an :exc:`AttributeError`.\n"
-;
+);
 static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 {
 	float quat[4], vec_a[3], vec_b[3];
@@ -650,7 +650,7 @@ static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 
-static char Vector_project_doc[] =
+PyDoc_STRVAR(Vector_project_doc,
 ".. function:: project(other)\n"
 "\n"
 "   Return the projection of this vector onto the *other*.\n"
@@ -659,7 +659,7 @@ static char Vector_project_doc[] =
 "   :type other: :class:`Vector`\n"
 "   :return: the parallel projection vector\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_project(VectorObject *self, PyObject *value)
 {
 	const int size= self->size;
@@ -690,7 +690,7 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 	return newVectorObject(vec, size, Py_NEW, Py_TYPE(self));
 }
 
-static char Vector_lerp_doc[] =
+PyDoc_STRVAR(Vector_lerp_doc,
 ".. function:: lerp(other, factor)\n"
 "\n"
 "   Returns the interpolation of two vectors.\n"
@@ -701,7 +701,7 @@ static char Vector_lerp_doc[] =
 "   :type factor: float\n"
 "   :return: The interpolated rotation.\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 {
 	const int size= self->size;
@@ -727,14 +727,14 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 	return newVectorObject(vec, size, Py_NEW, Py_TYPE(self));
 }
 
-static char Vector_rotate_doc[] =
+PyDoc_STRVAR(Vector_rotate_doc,
 ".. function:: rotate(other)\n"
 "\n"
 "   Return vector by a rotation value.\n"
 "\n"
 "   :arg other: rotation component of mathutils value\n"
 "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
-;
+);
 static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
 {
 	float other_rmat[3][3];
@@ -756,7 +756,7 @@ static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
 	Py_RETURN_NONE;
 }
 
-static char Vector_copy_doc[] =
+PyDoc_STRVAR(Vector_copy_doc,
 ".. function:: copy()\n"
 "\n"
 "   Returns a copy of this vector.\n"
@@ -765,7 +765,7 @@ static char Vector_copy_doc[] =
 "   :rtype: :class:`Vector`\n"
 "\n"
 "   .. note:: use this to get a copy of a wrapped vector with no reference to the original data.\n"
-;
+);
 static PyObject *Vector_copy(VectorObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -2094,14 +2094,14 @@ static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObj
 #endif
 
 /*----------------------------Vector.negate() -------------------- */
-static char Vector_negate_doc[] =
+PyDoc_STRVAR(Vector_negate_doc,
 ".. method:: negate()\n"
 "\n"
 "   Set all values to their negative.\n"
 "\n"
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Vector_negate(VectorObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -2153,9 +2153,9 @@ static struct PyMethodDef Vector_methods[] = {
  vec*mat and mat*vec both get sent to Vector_mul and it neesd to sort out the order
 */
 
-static char vector_doc[] =
+PyDoc_STRVAR(vector_doc,
 "This object gives access to Vectors in Blender."
-;
+);
 PyTypeObject vector_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
