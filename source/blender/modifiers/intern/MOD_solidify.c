@@ -636,7 +636,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			
 			if(crease_outer) {
 				/* crease += crease_outer; without wrapping */
-				unsigned char *cr= (unsigned char *)&(medge[numEdges + eidx].crease);
+				unsigned char *cr= (unsigned char *)&(medge[eidx].crease);
 				int tcr= *cr + crease_outer;
 				*cr= tcr > 255 ? 255 : tcr;
 			}
