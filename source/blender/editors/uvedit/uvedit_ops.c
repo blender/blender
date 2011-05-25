@@ -1066,7 +1066,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 	if(vmap == NULL)
 		return;
 
-	stack= MEM_mallocN(sizeof(*stack)*em->bm->totface, "UvLinkStack");
+	stack= MEM_mallocN(sizeof(*stack)*(em->bm->totface+1), "UvLinkStack");
 	flag= MEM_callocN(sizeof(*flag)*em->bm->totface, "UvLinkFlag");
 
 	if(!hit) {
@@ -1149,7 +1149,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 		}
 	}
 
-	if(!extend || hit) {		
+	if(!extend) {		
 		a = 0;
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -1160,25 +1160,37 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 				else
 					luv->flag &= ~MLOOPUV_VERTSEL;
 			}
+			a++;
 		}
 	}
 	else {
 		a = 0;
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			if (!flag[a]) {
+				a++;
+				continue;
+			}
+			
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 						
 				if (luv->flag & MLOOPUV_VERTSEL)
 					break;
 			}
-
+			
+			if (l)
+				break;
+			
 			a++;
 		}
 
 		if(efa) {
 			a = 0;
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-				if (!flag[a]) continue;
+				if (!flag[a]) {
+					a++;
+					continue;
+				}
 
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -1192,7 +1204,10 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 		else {
 			a = 0;
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-				if (!flag[a]) continue;
+				if (!flag[a]) {
+					a++;
+					continue;
+				}
 
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
