@@ -397,10 +397,14 @@ protected:
 	{
 		if (!ob_arm->adt)
 			return;
-
+        
+		//write bone animations for 3 transform types
+		//i=0 --> rotations
+		//i=1 --> scale
+		//i=2 --> location
 		for (int i = 0; i < 3; i++)
 			sample_and_write_bone_animation(ob_arm, bone, i);
-
+        
 		for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next)
 			write_bone_animation(ob_arm, child);
 	}
