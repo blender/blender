@@ -453,7 +453,7 @@ static int gp_camera_view_subrect(bContext *C, rctf *subrect)
 
 		/* for camera view set the subrect */
 		if (rv3d->persp == RV3D_CAMOB) {
-			ED_view3d_calc_camera_border(scene, ar, v3d, NULL, subrect, -1); /* negative shift */
+			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, subrect, -1); /* negative shift */
 			return 1;
 		}
 	}
