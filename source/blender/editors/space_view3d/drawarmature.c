@@ -1217,6 +1217,87 @@ static void draw_b_bone(int dt, int armflag, int boneflag, int constflag, unsign
 	}
 }
 
+static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float length, int segments)
+{
+	if ((segments > 1) && (pchan)) {
+		float dlen= length/(float)segments;
+		Mat4 *bbone = bbones;
+		int a;
+		
+		for (a=0; a<segments; a++, bbone++) {
+			glPushMatrix();
+			glMultMatrixf(bbone->mat);
+			
+			glBegin(GL_LINES);
+			glVertex3f(0.0f, 0.0f, 0.0f);
+			glVertex3f(0.0f, dlen, 0.0f);
+			glEnd(); // GL_LINES
+			
+			glPopMatrix();
+		}
+	}
+	else {
+		glPushMatrix();
+		
+		glBegin(GL_LINES);
+		glVertex3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(0.0f, length, 0.0f);
+		glEnd();
+		
+		glPopMatrix();
+	}
+}
+
+static void draw_wire_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+{
+	Mat4 *bbones = NULL;
+	int segments = 0;
+	float length;
+	
+	if (pchan) {
+		segments= pchan->bone->segments;
+		length= pchan->bone->length;
+		
+		if (segments > 1)
+			bbones = b_bone_spline_setup(pchan, 0);
+	}
+	else 
+		length= ebone->length;
+	
+	/* draw points only if... */
+	if (armflag & ARM_EDITMODE) {
+		/* move to unitspace */
+		glPushMatrix();
+		glScalef(length, length, length);
+		draw_bone_points(dt, armflag, boneflag, id);
+		glPopMatrix();
+		length *= 0.95f;	// make vertices visible
+	}
+	
+	/* this chunk not in object mode */
+	if (armflag & (ARM_EDITMODE|ARM_POSEMODE)) {
+		if (id != -1)
+			glLoadName((GLuint) id|BONESEL_BONE);
+		
+		draw_wire_bone_segments(pchan, bbones, length, segments);
+		
+		/* further we send no names */
+		if (id != -1)
+			glLoadName(id & 0xFFFF);	/* object tag, for bordersel optim */
+	}
+	
+	/* colors for modes */
+	if (armflag & ARM_POSEMODE) {
+		set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
+	}
+	else if (armflag & ARM_EDITMODE) {
+		set_ebone_glColor(boneflag);
+	}
+	
+	/* draw normal */
+	draw_wire_bone_segments(pchan, bbones, length, segments);
+}
+
 static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id, float length)
 {
 	
@@ -1656,7 +1737,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					int use_custom = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
 					glPushMatrix();
 					
-					if(use_custom && pchan->custom_tx) {
+					if (use_custom && pchan->custom_tx) {
 						glMultMatrixf(pchan->custom_tx->pose_mat);
 					} 
 					else {
@@ -1684,6 +1765,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					}
 					else if (arm->drawtype==ARM_LINE)
 						;	/* nothing in solid */
+					else if (arm->drawtype==ARM_WIRE)
+						; 	/* nothing in solid */
 					else if (arm->drawtype==ARM_ENVELOPE)
 						draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
 					else if (arm->drawtype==ARM_B_BONE)
@@ -1702,7 +1785,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet,
 		 * stick bones and/or wire custom-shapes are drawn in next loop 
 		 */
-		if ((arm->drawtype != ARM_LINE) && (draw_wire == 0)) {
+		if (ELEM(arm->drawtype,ARM_LINE,ARM_WIRE)==0 && (draw_wire == 0)) {
 			/* object tag, for bordersel optim */
 			glLoadName(index & 0xFFFF);	
 			index= -1;
@@ -1773,8 +1856,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			if (index != -1) 
 				index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
-		/* stick bones have not been drawn yet so dont clear object selection in this case */
-		if ((arm->drawtype != ARM_LINE) && draw_wire) {
+		/* stick or wire bones have not been drawn yet so dont clear object selection in this case */
+		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)==0 && draw_wire) {
 			/* object tag, for bordersel optim */
 			glLoadName(index & 0xFFFF);	
 			index= -1;
@@ -1784,7 +1867,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 	/* wire draw over solid only in posemode */
 	if ((dt <= OB_WIRE) || (arm->flag & ARM_POSEMODE) || (arm->drawtype==ARM_LINE)) {
 		/* draw line check first. we do selection indices */
-		if (arm->drawtype==ARM_LINE) {
+		if ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) {
 			if (arm->flag & ARM_POSEMODE) 
 				index= base->selcol;
 		}
@@ -1879,6 +1962,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					}
 					else if (arm->drawtype==ARM_LINE)
 						draw_line_bone(arm->flag, flag, constflag, index, pchan, NULL);
+					else if (arm->drawtype==ARM_WIRE)
+						draw_wire_bone(dt, arm->flag, flag, constflag, index, pchan, NULL);
 					else if (arm->drawtype==ARM_B_BONE)
 						draw_b_bone(OB_WIRE, arm->flag, flag, constflag, index, pchan, NULL);
 					else
@@ -2013,7 +2098,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	}
 	
 	/* if solid we draw it first */
-	if ((dt > OB_WIRE) && (arm->drawtype!=ARM_LINE)) {
+	if ((dt > OB_WIRE) && (arm->drawtype != ARM_LINE)) {
 		for (eBone=arm->edbo->first, index=0; eBone; eBone=eBone->next, index++) {
 			if (eBone->layer & arm->layer) {
 				if ((eBone->flag & BONE_HIDDEN_A)==0) {
@@ -2034,6 +2119,8 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 						draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, NULL, eBone);
 					else if(arm->drawtype==ARM_B_BONE)
 						draw_b_bone(OB_SOLID, arm->flag, flag, 0, index, NULL, eBone);
+					else if (arm->drawtype==ARM_WIRE)
+						draw_wire_bone(OB_SOLID, arm->flag, flag, 0, index, NULL, eBone);
 					else {
 						draw_bone(OB_SOLID, arm->flag, flag, 0, index, eBone->length);
 					}
@@ -2047,7 +2134,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	/* if wire over solid, set offset */
 	index= -1;
 	glLoadName(-1);
-	if (arm->drawtype==ARM_LINE) {
+	if ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) {
 		if(G.f & G_PICKSEL)
 			index= 0;
 	}
@@ -2081,6 +2168,8 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 					
 					if (arm->drawtype == ARM_LINE) 
 						draw_line_bone(arm->flag, flag, 0, index, NULL, eBone);
+					else if (arm->drawtype==ARM_WIRE)
+						draw_wire_bone(OB_WIRE, arm->flag, flag, 0, index, NULL, eBone);
 					else if (arm->drawtype == ARM_B_BONE)
 						draw_b_bone(OB_WIRE, arm->flag, flag, 0, index, NULL, eBone);
 					else
@@ -2109,7 +2198,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	
 	/* restore */
 	if(index!=-1) glLoadName(-1);
-	if (arm->drawtype==ARM_LINE);
+	if ELEM(arm->drawtype,ARM_LINE,ARM_WIRE);
 	else if (dt>OB_WIRE) bglPolygonOffset(rv3d->dist, 0.0f);
 	
 	/* finally names and axes */
