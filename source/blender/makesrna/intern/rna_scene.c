@@ -2149,7 +2149,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
 		{CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
 		{CODEC_ID_H264, "H264", 0, "H.264", ""},
-		{CODEC_ID_XVID, "XVID", 0, "Xvid", ""},
 		{CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
 		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},

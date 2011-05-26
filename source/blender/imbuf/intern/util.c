@@ -62,13 +62,6 @@
 #include <libavformat/avformat.h>
 #include <libavdevice/avdevice.h>
 #include <libavutil/log.h>
-
-#if LIBAVFORMAT_VERSION_INT < (49 << 16)
-#define FFMPEG_OLD_FRAME_RATE 1
-#else
-#define FFMPEG_CODEC_IS_POINTER 1
-#endif
-
 #endif
 
 #define UTIL_DEBUG 0
@@ -241,19 +234,6 @@ void do_init_ffmpeg(void)
 	}
 }
 
-#ifdef FFMPEG_CODEC_IS_POINTER
-static AVCodecContext* get_codec_from_stream(AVStream* stream)
-{
-	return stream->codec;
-}
-#else
-static AVCodecContext* get_codec_from_stream(AVStream* stream)
-{
-	return &stream->codec;
-}
-#endif
-
-
 static int isffmpeg (const char *filename) {
 	AVFormatContext *pFormatCtx;
 	unsigned int i;
@@ -284,15 +264,15 @@ static int isffmpeg (const char *filename) {
 		return 0;
 	}
 
-	if(UTIL_DEBUG) dump_format(pFormatCtx, 0, filename, 0);
+	if(UTIL_DEBUG) av_dump_format(pFormatCtx, 0, filename, 0);
 
 
 		/* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
 		if(pFormatCtx->streams[i] &&
-		   get_codec_from_stream(pFormatCtx->streams[i]) && 
-		  (get_codec_from_stream(pFormatCtx->streams[i])->codec_type==CODEC_TYPE_VIDEO))
+		   pFormatCtx->streams[i]->codec && 
+		  (pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO))
 		{
 			videoStream=i;
 			break;
@@ -303,7 +283,7 @@ static int isffmpeg (const char *filename) {
 		return 0;
 	}
 
-	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
+	pCodecCtx = pFormatCtx->streams[videoStream]->codec;
 
 		/* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);

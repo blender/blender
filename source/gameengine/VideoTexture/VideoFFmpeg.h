@@ -34,6 +34,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
+#include <libavutil/parseutils.h>
 #include <libswscale/swscale.h>
 #include "DNA_listBase.h"
 #include "BLI_threads.h"
