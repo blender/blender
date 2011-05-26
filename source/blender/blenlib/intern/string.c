@@ -212,11 +212,6 @@ char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 	}
 } 
 
-int BLI_streq(const char *a, const char *b) 
-{
-	return (strcmp(a, b)==0);
-}
-
 int BLI_strcaseeq(const char *a, const char *b) 
 {
 	return (BLI_strcasecmp(a, b)==0);

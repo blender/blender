@@ -1082,7 +1082,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 
 		/* now we know that we are in a blend file and it is safe to 
 		   assume that gp actually points to a group */
-		if (BLI_streq("Screen", gp)==0)
+		if (strcmp("Screen", gp)!=0)
 			BLI_strncpy(group, gp, GROUP_MAX);
 	}
 	return 1;
@@ -12902,7 +12902,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code == GS(id->name)) {
 
-			if (BLI_streq(id->name, bhead_id_name(fd, bhead))) {
+			if (strcmp(id->name, bhead_id_name(fd, bhead))==0) {
 				id->flag &= ~LIB_READ;
 				id->flag |= LIB_TEST;
 //				printf("read lib block %s\n", id->name);

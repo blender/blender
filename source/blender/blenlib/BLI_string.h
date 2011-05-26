@@ -123,13 +123,6 @@ __attribute__ ((format (printf, 1, 2)))
 ;
 
 	/**
-	 * Compare two strings
-	 * 
-	 * @retval True if the strings are equal, false otherwise.
-	 */
-int BLI_streq(const char *a, const char *b);
-
-	/**
 	 * Compare two strings without regard to case.
 	 * 
 	 * @retval True if the strings are equal, false otherwise.

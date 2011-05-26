@@ -374,16 +374,16 @@ static void sk_autoname(bContext *C, ReebArc *arc)
 			int valid = 0;
 			int caps = 0;
 
-			if (BLI_streq(side, ""))
+			if (side[0] == '\0')
 			{
 				valid = 1;
 			}
-			else if (BLI_streq(side, "R") || BLI_streq(side, "L"))
+			else if (strcmp(side, "R")==0 || strcmp(side, "L")==0)
 			{
 				valid = 1;
 				caps = 1;
 			}
-			else if (BLI_streq(side, "r") || BLI_streq(side, "l"))
+			else if (strcmp(side, "r")==0 || strcmp(side, "l")==0)
 			{
 				valid = 1;
 				caps = 0;

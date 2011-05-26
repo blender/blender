@@ -1848,29 +1848,24 @@ void uiFreeInactiveBlocks(const bContext *C, ListBase *lb)
 
 void uiBlockSetRegion(uiBlock *block, ARegion *region)
 {
-	ListBase *lb;
+	ListBase *lb= &region->uiblocks;
 	uiBlock *oldblock= NULL;
 
-	lb= &region->uiblocks;
-	
 	/* each listbase only has one block with this name, free block
 	 * if is already there so it can be rebuilt from scratch */
 	if(lb) {
-		for (oldblock= lb->first; oldblock; oldblock= oldblock->next)
-			if (BLI_streq(oldblock->name, block->name))
-				break;
+		oldblock= BLI_findstring(lb, block->name, offsetof(uiBlock, name));
 
 		if (oldblock) {
 			oldblock->active= 0;
 			oldblock->panel= NULL;
 		}
+
+		/* at the beginning of the list! for dynamical menus/blocks */
+		BLI_addhead(lb, block);
 	}
 
 	block->oldblock= oldblock;
-
-	/* at the beginning of the list! for dynamical menus/blocks */
-	if(lb)
-		BLI_addhead(lb, block);
 }
 
 uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, short dt)
