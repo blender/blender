@@ -278,17 +278,11 @@ if(UNIX AND NOT APPLE)
 	else()
 		# main blender binary
 		if(WITH_PYTHON_MODULE)
-			get_target_property(_module_name blender OUTPUT_NAME)
-			if(NOT _module_suffix)
-				set(_module_suffix "${SUFFIX}")
-			endif()
-
 			install(
-				PROGRAMS "${TARGETDIR}/${_module_name}.so"  # XXX, *nix only
+				TARGETS blender
+				LIBRARY
 				DESTINATION ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages
 			)
-
-			unset(_module_name)
 		else()
 			install(
 				PROGRAMS ${TARGETDIR}/blender
