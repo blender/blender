@@ -46,7 +46,7 @@ __all__ = (
 
 import sys
 import os
-from os.path import join, dirname, normpath, abspath, splitext, relpath, exists
+from os.path import join, dirname, normpath, abspath, splitext, exists
 
 SOURCE_DIR = join(dirname(__file__), "..", "..")
 SOURCE_DIR = normpath(SOURCE_DIR)

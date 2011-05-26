@@ -26,7 +26,7 @@ import bpy
 
 def extend(obj, operator, EXTEND_MODE):
     from bpy_extras import mesh_utils
-    
+
     me = obj.data
     me_verts = me.vertices
     # script will fail without UVs

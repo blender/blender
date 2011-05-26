@@ -162,6 +162,7 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
 
     return edge_loops
 
+
 def edge_loops_from_edges(mesh, edges=None):
     """
     Edge loops defined by edges
@@ -227,8 +228,7 @@ def edge_loops_from_edges(mesh, edges=None):
     return line_polys
 
 
-
-def ngon_tessellate(from_data, indices, fix_loops=True):
+def ngon_tesselate(from_data, indices, fix_loops=True):
     '''
     Takes a polyline of indices (fgon)
     and returns a list of face indicie lists.
@@ -238,7 +238,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
     indices: a list of indices to use this list is the ordered closed polyline to fill, and can be a subset of the data given.
     fix_loops: If this is enabled polylines that use loops to make multiple polylines are delt with correctly.
     '''
-    
+
     from mathutils import Vector
     vector_to_tuple = Vector.to_tuple
 
