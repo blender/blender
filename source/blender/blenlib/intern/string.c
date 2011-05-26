@@ -469,3 +469,21 @@ int BLI_utf8_invalid_strip(char *str, int length)
 	return tot;
 }
 
+void BLI_ascii_strtolower(char *str, int len)
+{
+	int i;
+
+	for(i=0; i<len; i++)
+		if(str[i] >= 'A' && str[i] <= 'Z')
+			str[i] += 'a' - 'A';
+}
+
+void BLI_ascii_strtoupper(char *str, int len)
+{
+	int i;
+
+	for(i=0; i<len; i++)
+		if(str[i] >= 'a' && str[i] <= 'z')
+			str[i] -= 'a' - 'A';
+}
+

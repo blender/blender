@@ -56,6 +56,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLO_readfile.h"
@@ -441,10 +442,12 @@ void WM_operator_py_idname(char *to, const char *from)
 {
 	char *sep= strstr(from, "_OT_");
 	if(sep) {
-		int i, ofs= (sep-from);
-
-		for(i=0; i<ofs; i++)
-			to[i]= tolower(from[i]);
+		int ofs= (sep-from);
+		
+		/* note, we use ascii tolower instead of system tolower, because the
+		   latter depends on the locale, and can lead to idname mistmatch */
+		memcpy(to, from, sizeof(char)*ofs);
+		BLI_ascii_strtolower(to, ofs);
 
 		to[ofs] = '.';
 		BLI_strncpy(to+(ofs+1), sep+4, OP_MAX_TYPENAME);
@@ -462,10 +465,10 @@ void WM_operator_bl_idname(char *to, const char *from)
 		char *sep= strchr(from, '.');
 
 		if(sep) {
-			int i, ofs= (sep-from);
+			int ofs= (sep-from);
 
-			for(i=0; i<ofs; i++)
-				to[i]= toupper(from[i]);
+			memcpy(to, from, sizeof(char)*ofs);
+			BLI_ascii_strtoupper(to, ofs);
 
 			BLI_strncpy(to+ofs, "_OT_", OP_MAX_TYPENAME);
 			BLI_strncpy(to+(ofs+4), sep+1, OP_MAX_TYPENAME);
