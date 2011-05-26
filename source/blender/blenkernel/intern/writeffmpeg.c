@@ -76,6 +76,12 @@
 #define avio_close url_fclose
 #endif
 
+/* make OpenSuSe special "in-between" ffmpeg 0.6.2 version(tm) happy... 
+   Arrrrgh */
+#ifndef AVIO_FLAG_WRITE
+#define AVIO_FLAG_WRITE URL_WRONLY
+#endif
+
 extern void do_init_ffmpeg(void);
 
 static int ffmpeg_type = 0;
