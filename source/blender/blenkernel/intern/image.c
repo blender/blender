@@ -381,9 +381,7 @@ Image *BKE_add_image_file(const char *name)
 	ima= image_alloc(libname, IMA_SRC_FILE, IMA_TYPE_IMAGE);
 	BLI_strncpy(ima->name, name, sizeof(ima->name));
 	
-	/* do a wild guess! */
-	if(BLI_testextensie(name, ".avi") || BLI_testextensie(name, ".mov")
-			|| BLI_testextensie(name, ".mpg")  || BLI_testextensie(name, ".mp4"))
+	if(BLI_testextensie_array(name, imb_ext_movie))
 		ima->source= IMA_SRC_MOVIE;
 	
 	return ima;
