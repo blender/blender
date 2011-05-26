@@ -839,11 +839,18 @@ PyDoc_STRVAR(BPy_EnumProperty_doc,
 "\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
-"   :arg default: The default value for this enum, A string when *ENUM_FLAG* is disabled otherwise a set which may only contain string identifiers used in *items*.\n"
+"   :arg default: The default value for this enum, A string when *ENUM_FLAG*\n"
+"      is disabled otherwise a set which may only contain string identifiers\n"
+"      used in *items*.\n"
 "   :type default: string or set\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE', 'ENUM_FLAG'].\n"
 "   :type options: set\n"
-"   :arg items: sequence of enum items formatted: [(identifier, name, description), ...] where the identifier is used for python access and other values are used for the interface. For dynamic values a callback can be passed which returns a list in the format described, taking 2 arguments - self and context argument\n"
+"   :arg items: sequence of enum items formatted:\n"
+"      [(identifier, name, description), ...] where the identifier is used\n"
+"      for python access and other values are used for the interface.\n"
+"      For dynamic values a callback can be passed which returns a list in\n"
+"      the same format as the static list.\n"
+"      This function must take 2 arguments (self, context)\n"
 "   :type items: sequence of string triplets or a function\n"
 );
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)

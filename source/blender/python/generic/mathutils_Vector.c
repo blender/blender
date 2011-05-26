@@ -107,9 +107,11 @@ PyDoc_STRVAR(Vector_normalize_doc,
 "\n"
 "   Normalize the vector, making the length of the vector always 1.0.\n"
 "\n"
-"   .. warning:: Normalizing a vector where all values are zero results in all axis having a nan value (not a number).\n"
+"   .. warning:: Normalizing a vector where all values are zero results\n"
+"      in all axis having a nan value (not a number).\n"
 "\n"
-"   .. note:: Normalize works for vectors of all sizes, however 4D Vectors w axis is left untouched.\n"
+"   .. note:: Normalize works for vectors of all sizes,\n"
+"      however 4D Vectors w axis is left untouched.\n"
 );
 static PyObject *Vector_normalize(VectorObject *self)
 {
@@ -565,7 +567,8 @@ PyDoc_STRVAR(Vector_angle_doc,
 "\n"
 "   :arg other: another vector to compare the angle with\n"
 "   :type other: :class:`Vector`\n"
-"   :arg fallback: return this value when the angle cant be calculated (zero length vector)\n"
+"   :arg fallback: return this value when the angle cant be calculated\n"
+"      (zero length vector)\n"
 "   :type fallback: any\n"
 "   :return: angle in radians or fallback when given\n"
 "   :rtype: float\n"
@@ -618,7 +621,8 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(Vector_rotation_difference_doc,
 ".. function:: difference(other)\n"
 "\n"
-"   Returns a quaternion representing the rotational difference between this vector and another.\n"
+"   Returns a quaternion representing the rotational difference between this\n"
+"   vector and another.\n"
 "\n"
 "   :arg other: second vector.\n"
 "   :type other: :class:`Vector`\n"
@@ -764,7 +768,8 @@ PyDoc_STRVAR(Vector_copy_doc,
 "   :return: A copy of the vector.\n"
 "   :rtype: :class:`Vector`\n"
 "\n"
-"   .. note:: use this to get a copy of a wrapped vector with no reference to the original data.\n"
+"   .. note:: use this to get a copy of a wrapped vector with\n"
+"      no reference to the original data.\n"
 );
 static PyObject *Vector_copy(VectorObject *self)
 {

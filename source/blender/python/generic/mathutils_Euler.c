@@ -185,7 +185,8 @@ static PyObject *Euler_zero(EulerObject * self)
 PyDoc_STRVAR(Euler_rotate_axis_doc,
 ".. method:: rotate_axis(axis, angle)\n"
 "\n"
-"   Rotates the euler a certain amount and returning a unique euler rotation (no 720 degree pitches).\n"
+"   Rotates the euler a certain amount and returning a unique euler rotation\n"
+"   (no 720 degree pitches).\n"
 "\n"
 "   :arg axis: single character in ['X, 'Y', 'Z'].\n"
 "   :type axis: string\n"
@@ -247,7 +248,8 @@ static PyObject *Euler_rotate(EulerObject * self, PyObject *value)
 PyDoc_STRVAR(Euler_make_compatible_doc,
 ".. method:: make_compatible(other)\n"
 "\n"
-"   Make this euler compatible with another, so interpolating between them works as intended.\n"
+"   Make this euler compatible with another,\n"
+"   so interpolating between them works as intended.\n"
 "\n"
 "   .. note:: the rotation order is not taken into account for this function.\n"
 );
@@ -279,7 +281,8 @@ PyDoc_STRVAR(Euler_copy_doc,
 "   :return: A copy of the euler.\n"
 "   :rtype: :class:`Euler`\n"
 "\n"
-"   .. note:: use this to get a copy of a wrapped euler with no reference to the original data.\n"
+"   .. note:: use this to get a copy of a wrapped euler with\n"
+"      no reference to the original data.\n"
 );
 static PyObject *Euler_copy(EulerObject *self)
 {
