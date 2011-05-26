@@ -107,6 +107,23 @@ static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *it
 }
 
 /* internal use */
+static int rna_SequenceEditor_elements_length(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+
+	/* Hack? copied from sequencer.c::reload_sequence_new_file() */
+	size_t olen = MEM_allocN_len(seq->strip->stripdata)/sizeof(struct StripElem);
+	
+	/* the problem with seq->strip->len and seq->len is that it's discounted from the offset (hard cut trim) */
+	return (int) olen;
+}
+
+static void rna_SequenceEditor_elements_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	rna_iterator_array_begin(iter, (void*)seq->strip->stripdata, sizeof(StripElem), rna_SequenceEditor_elements_length(ptr), 0, NULL);
+}
+
 static void rna_Sequence_frame_change_update(Scene *scene, Sequence *seq)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1222,9 +1239,10 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", "strip->len");
+	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", NULL);
 	RNA_def_property_struct_type(prop, "SequenceElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", 0, 0);
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
@@ -1291,9 +1309,10 @@ static void rna_def_movie(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", "strip->len");
+	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", NULL);
 	RNA_def_property_struct_type(prop, "SequenceElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", 0, 0);
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "File", "");
