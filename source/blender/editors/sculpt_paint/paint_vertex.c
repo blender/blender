@@ -984,12 +984,12 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 						else {
 							EnumPropertyItem *item= NULL, item_tmp= {0};
 							int totitem= 0;
-							int i= 0, a= 0;
+							int i= 0;
 							bDeformGroup *dg;
-							for(dg= vc.obact->defbase.first; dg && a<totgroup; a++, dg= dg->next) {
-								if(groups[a]) {
+							for(dg= vc.obact->defbase.first; dg && i<totgroup; i++, dg= dg->next) {
+								if(groups[i]) {
 									item_tmp.identifier= item_tmp.name= dg->name;
-									item_tmp.value= i++;
+									item_tmp.value= i;
 									RNA_enum_item_add(&item, &totitem, &item_tmp);
 								}
 							}
