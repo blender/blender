@@ -288,6 +288,43 @@ static void make_vertexcol(Object *ob)	/* single ob */
 	
 }
 
+/* mirror_vgroup is set to -1 when invalid */
+static void wpaint_mirror_vgroup_ensure(Object *ob, int *vgroup_mirror)
+{
+	bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef - 1);
+
+	if(defgroup) {
+		bDeformGroup *curdef;
+		int mirrdef;
+		char name[MAXBONENAME];
+
+		flip_side_name(name, defgroup->name, FALSE);
+
+		if(strcmp(name, defgroup->name) != 0) {
+			for (curdef= ob->defbase.first, mirrdef; curdef; curdef=curdef->next, mirrdef++) {
+				if (!strcmp(curdef->name, name)) {
+					break;
+				}
+			}
+
+			if(curdef==NULL) {
+				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
+				curdef= ED_vgroup_add_name(ob, name);
+				ob->actdef= olddef;
+			}
+
+			/* curdef should never be NULL unless this is
+			 * a  lamp and ED_vgroup_add_name fails */
+			if(curdef) {
+				*vgroup_mirror= mirrdef;
+				return;
+			}
+		}
+	}
+
+	*vgroup_mirror= -1;
+}
+
 static void copy_vpaint_prev(VPaint *vp, unsigned int *mcol, int tot)
 {
 	if(vp->vpaint_prev) {
@@ -383,32 +420,11 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	}
 	
 	vgroup= ob->actdef-1;
-	
-	/* directly copied from weight_paint, should probaby split into a separate function */
+
 	/* if mirror painting, find the other group */		
 	if(me->editflag & ME_EDIT_MIRROR_X) {
-		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
-		if(defgroup) {
-			bDeformGroup *curdef;
-			int actdef= 0;
-			char name[32];
-
-			flip_side_name(name, defgroup->name, FALSE);
-
-			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
-				if (!strcmp(curdef->name, name))
-					break;
-			if(curdef==NULL) {
-				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
-				curdef= ED_vgroup_add_name (ob, name);
-				ob->actdef= olddef;
-			}
-			
-			if(curdef && curdef!=defgroup)
-				vgroup_mirror= actdef;
-		}
+		wpaint_mirror_vgroup_ensure(ob, &vgroup_mirror);
 	}
-	/* end copy from weight_paint*/
 	
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
 	
@@ -1351,26 +1367,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	
 	/* if mirror painting, find the other group */
 	if(me->editflag & ME_EDIT_MIRROR_X) {
-		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
-		if(defgroup) {
-			bDeformGroup *curdef;
-			int actdef= 0;
-			char name[32];
-
-			flip_side_name(name, defgroup->name, FALSE);
-
-			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
-				if (!strcmp(curdef->name, name))
-					break;
-			if(curdef==NULL) {
-				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
-				curdef= ED_vgroup_add_name (ob, name);
-				ob->actdef= olddef;
-			}
-			
-			if(curdef && curdef!=defgroup)
-				wpd->vgroup_mirror= actdef;
-		}
+		wpaint_mirror_vgroup_ensure(ob, &wpd->vgroup_mirror);
 	}
 	
 	return 1;
