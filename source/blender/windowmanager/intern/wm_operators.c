@@ -1642,12 +1642,12 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* here appending/linking starts */
 	mainl = BLO_library_append_begin(C, &bh, libname);
 	if(totfiles == 0) {
-		BLO_library_append_named_part(C, mainl, &bh, name, idcode, flag);
+		BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 	}
 	else {
 		RNA_BEGIN(op->ptr, itemptr, "files") {
 			RNA_string_get(&itemptr, "name", name);
-			BLO_library_append_named_part(C, mainl, &bh, name, idcode, flag);
+			BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 		}
 		RNA_END;
 	}
