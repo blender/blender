@@ -235,7 +235,7 @@ static float rna_Brush_get_alpha(PointerRNA *ptr)
 	return brush_alpha(me);
 }
 
-static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	static EnumPropertyItem prop_default_items[]= {
 		{0, NULL, 0, NULL, NULL}};

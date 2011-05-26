@@ -1096,9 +1096,9 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 		int tot= 0;
 
 		if (prop->flag & PROP_ENUM_NO_CONTEXT)
-			*item= eprop->itemf(NULL, ptr, free);
+			*item= eprop->itemf(NULL, ptr, prop, free);
 		else
-			*item= eprop->itemf(C, ptr, free);
+			*item= eprop->itemf(C, ptr, prop, free);
 
 		if(totitem) {
 			if(*item) {

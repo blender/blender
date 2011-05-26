@@ -942,7 +942,7 @@ void PAINT_OT_weight_sample(wmOperatorType *ot)
 }
 
 /* samples cursor location, and gives menu with vertex groups to activate */
-static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	if (C) {
 		wmWindow *win= CTX_wm_window(C);
