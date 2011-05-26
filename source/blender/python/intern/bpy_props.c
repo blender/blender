@@ -47,6 +47,8 @@
 
 #include "../generic/py_capi_utils.h"
 
+extern BPy_StructRNA *bpy_context_module;
+
 static EnumPropertyItem property_flag_items[]= {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
@@ -741,6 +743,95 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 	return items;
 }
 
+static EnumPropertyItem *bpy_props_enum_itemf(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int *free)
+{
+	PyGILState_STATE gilstate;
+
+	PyObject *py_func= RNA_property_enum_py_data_get(prop);
+	PyObject *self= NULL;
+	PyObject *args;
+	PyObject *items; /* returned from the function call */
+
+	EnumPropertyItem *eitems= NULL;
+	int err= 0;
+
+	bpy_context_set(C, &gilstate);
+
+	args= PyTuple_New(2);
+
+	/* first get self */
+	/* operators can store their own instance for later use */
+	if(ptr->data) {
+		void **instance = RNA_struct_instance(ptr);
+
+		if(instance) {
+			if(*instance) {
+				self= *instance;
+				Py_INCREF(self);
+			}
+		}
+	}
+	if(self == NULL) {
+		self= pyrna_struct_CreatePyObject(ptr);
+	}
+
+	PyTuple_SET_ITEM(args, 0, self);
+
+	/* now get the context */
+	PyTuple_SET_ITEM(args, 1, (PyObject *)bpy_context_module);
+	Py_INCREF(bpy_context_module);
+
+	items= PyObject_CallObject(py_func, args);
+
+	Py_DECREF(args);
+
+	if(items==NULL) {
+		err= -1;
+	}
+	else {
+		PyObject *items_fast;
+		int defvalue_dummy=0;
+
+		if(!(items_fast= PySequence_Fast(items, "EnumProperty(...): return value from the callback was not a sequence"))) {
+			err= -1;
+		}
+		else {
+			eitems= enum_items_from_py(items_fast, NULL, &defvalue_dummy, (RNA_property_flag(prop) & PROP_ENUM_FLAG)!=0);
+
+			Py_DECREF(items_fast);
+
+			if(!eitems) {
+				err= -1;
+			}
+		}
+
+		Py_DECREF(items);
+	}
+
+	if(err != -1) { /* worked */
+		*free= 1;
+	}
+	else {
+		/* since we return to C code we can't leave the error */
+		PyCodeObject *f_code= (PyCodeObject *)PyFunction_GET_CODE(py_func);
+		PyErr_Print();
+		PyErr_Clear();
+
+		/* use py style error */
+		fprintf(stderr, "File \"%s\", line %d, in %s\n",
+		        _PyUnicode_AsString(f_code->co_filename),
+		        f_code->co_firstlineno,
+				_PyUnicode_AsString(((PyFunctionObject *)py_func)->func_name)
+		        );
+
+		eitems= DummyRNA_NULL_items;
+	}
+
+
+	bpy_context_clear(C, &gilstate);
+	return eitems;
+}
+
 PyDoc_STRVAR(BPy_EnumProperty_doc,
 ".. function:: EnumProperty(items, name=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
 "\n"
@@ -752,8 +843,8 @@ BPY_PROPDEF_DESC_DOC
 "   :type default: string or set\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE', 'ENUM_FLAG'].\n"
 "   :type options: set\n"
-"   :arg items: sequence of enum items formatted: [(identifier, name, description), ...] where the identifier is used for python access and other values are used for the interface.\n"
-"   :type items: sequence of string triplets\n"
+"   :arg items: sequence of enum items formatted: [(identifier, name, description), ...] where the identifier is used for python access and other values are used for the interface. For dynamic values a callback can be passed which returns a list in the format described, taking 2 arguments - self and context argument\n"
+"   :type items: sequence of string triplets or a function\n"
 );
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -772,6 +863,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PropertyRNA *prop;
 		PyObject *pyopts= NULL;
 		int opts=0;
+		short is_itemf= FALSE;
 
 		if (!PyArg_ParseTupleAndKeywords(args, kw,
 		                                 "s#O|ssOO!:EnumProperty",
@@ -784,26 +876,58 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		BPY_PROPDEF_CHECK(EnumProperty, property_flag_enum_items)
 
-		if(!(items_fast= PySequence_Fast(items, "EnumProperty(...): expected a sequence of tuples for the enum items"))) {
-			return NULL;
+		/* items can be a list or a callable */
+		if(PyFunction_Check(items)) { /* dont use PyCallable_Check because we need the function code for errors */
+			PyCodeObject *f_code= (PyCodeObject *)PyFunction_GET_CODE(items);
+			if(f_code->co_argcount != 2) {
+				PyErr_Format(PyExc_ValueError,
+				             "EnumProperty(...): expected 'items' function to take 2 arguments, not %d",
+				             f_code->co_argcount);
+				return NULL;
+			}
+
+			if(def) {
+				/* note, using type error here is odd but python does this for invalid arguments */
+				PyErr_SetString(PyExc_TypeError,
+				                "EnumProperty(...): 'default' can't be set when 'items' is a function");
+				return NULL;
+			}
+
+			is_itemf= TRUE;
+			eitems= DummyRNA_NULL_items;
 		}
+		else {
+			if(!(items_fast= PySequence_Fast(items, "EnumProperty(...): expected a sequence of tuples for the enum items or a function"))) {
+				return NULL;
+			}
 
-		eitems= enum_items_from_py(items_fast, def, &defvalue, (opts & PROP_ENUM_FLAG)!=0);
+			eitems= enum_items_from_py(items_fast, def, &defvalue, (opts & PROP_ENUM_FLAG)!=0);
 
-		Py_DECREF(items_fast);
+			Py_DECREF(items_fast);
 
-		if(!eitems)
-			return NULL;
+			if(!eitems) {
+				return NULL;
+			}
+		}
 
 		if(opts & PROP_ENUM_FLAG)	prop= RNA_def_enum_flag(srna, id, eitems, defvalue, name, description);
 		else						prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
+
+		if(is_itemf) {
+			RNA_def_enum_funcs(prop, bpy_props_enum_itemf);
+			RNA_def_enum_py_data(prop, (void *)items);
+			/* Py_INCREF(items); */ /* watch out!, if user is tricky they can probably crash blender if they manage to free the callback, take care! */
+		}
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(srna, prop);
-		MEM_freeN(eitems);
+
+		if(is_itemf == FALSE) {
+			MEM_freeN(eitems);
+		}
 	}
 	Py_RETURN_NONE;
 }

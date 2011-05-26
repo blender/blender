@@ -251,6 +251,7 @@ typedef struct EnumPropertyRNA {
 	PropEnumGetFunc get;
 	PropEnumSetFunc set;
 	PropEnumItemFunc itemf;
+	void *py_data; /* store py callback here */
 
 	EnumPropertyItem *item;
 	int totitem;

@@ -2120,6 +2120,14 @@ int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop)
 	return eprop->defaultvalue;
 }
 
+void *RNA_property_enum_py_data_get(PropertyRNA *prop)
+{
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+
+	BLI_assert(RNA_property_type(prop) == PROP_ENUM);
+
+	return eprop->py_data;
+}
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 {
