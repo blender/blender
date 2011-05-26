@@ -1691,7 +1691,6 @@ void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
 
 #ifdef _WIN32
 	if(GetModuleFileName(0, fullname, maxlen)) {
-		GetShortPathName(fullname, fullname, maxlen);
 		if(!BLI_exists(fullname)) {
 			printf("path can't be found: \"%.*s\"\n", maxlen, fullname);
 			MessageBox(NULL, "path constains invalid characters or is too long (see console)", "Error", MB_OK);
@@ -1744,18 +1743,6 @@ void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
 		if (strcmp(name, fullname)) {
 			printf("guessing '%s' == '%s'\n", name, fullname);
 		}
-#endif
-
-#ifdef _WIN32
-		// in windows change long filename to short filename because
-		// win2k doesn't know how to parse a commandline with lots of
-		// spaces and double-quotes. There's another solution to this
-		// with spawnv(P_WAIT, bprogname, argv) instead of system() but
-		// that's even uglier
-		GetShortPathName(fullname, fullname, maxlen);
-#if defined(DEBUG)
-		printf("Shortname = '%s'\n", fullname);
-#endif
 #endif
 	}
 }
