@@ -58,6 +58,7 @@ endif()
 
 set(SRC
 	AnimationImporter.cpp
+	AnimationExporter.cpp
 	ArmatureExporter.cpp
 	ArmatureImporter.cpp
 	CameraExporter.cpp
@@ -80,6 +81,7 @@ set(SRC
 	collada_utils.cpp
 
 	AnimationImporter.h
+	AnimationExporter.h	
 	ArmatureExporter.h
 	ArmatureImporter.h
 	CameraExporter.h
