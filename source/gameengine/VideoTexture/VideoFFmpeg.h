@@ -34,7 +34,9 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
+#if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 101))
 #include <libavutil/parseutils.h>
+#endif
 #include <libswscale/swscale.h>
 #include "DNA_listBase.h"
 #include "BLI_threads.h"
