@@ -127,7 +127,8 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         group = ob.vertex_groups.active
-
+        
+        
         rows = 2
         if group:
             rows = 5
@@ -136,6 +137,8 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
         row.template_list(ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
+        # Jason was here #
+        col.prop(group, "flag")
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
         col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
         col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")

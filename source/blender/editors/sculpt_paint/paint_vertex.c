@@ -73,6 +73,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -346,7 +347,6 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	DAG_id_tag_update(&me->id, 0);
 }
 
-
 /* fills in the selected faces with the current weight and vertex group */
 void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 {
@@ -362,7 +362,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	
 	me= ob->data;
 	if(me==NULL || me->totface==0 || me->dvert==NULL || !me->mface) return;
-	
+
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 
 	indexar= get_indexarray(me);
@@ -1029,6 +1029,74 @@ static void do_weight_paint_auto_normalize(MDeformVert *dvert,
 	}
 }
 
+/*Jason was here
+not sure where these prototypes belong at them moment
+static char* gen_lck_flags(Object* ob);
+static void fix_weight_ratios(Mesh *me, MDeformWeight *pnt_dw, float oldw);
+
+gen_lck_flags gets the status of "flag" for each bDeformGroup in ob->defbase and returns an array containing them 
+*/
+static char* gen_lck_flags(Object* ob)
+{
+	char is_locked = 0;
+	int i, k;
+	int defcnt = BLI_countlist(&ob->defbase);
+	char *flags = MEM_mallocN(defcnt*sizeof(char), "defflags");
+	bDeformGroup *defgroup = ob->defbase.first;
+	for(i = 0; i < defcnt && defgroup; i++) {
+		flags[i] = defgroup->flag;
+		defgroup = defgroup->next;
+		if(flags[i]) {
+			is_locked = 1;
+		}
+	}
+	if(is_locked){
+		return flags;
+	}
+	return NULL;
+}
+/*Jason was here
+this alters the weights in order to maintain the ratios to match with the change in weights of pnt_dw
+*/
+static void fix_weight_ratios(Mesh *me, MDeformWeight *pnt_dw, float oldw)
+{
+	int i, k, totvert, cnt;
+	float scaledown = 1.0f;
+	float neww = pnt_dw->weight;
+	int defgroup = pnt_dw->def_nr;
+	totvert = me->totvert;
+	pnt_dw->weight = oldw;
+
+	if(oldw == 0 || neww == 0){
+		return;
+	}
+
+	for(i = 0; i < totvert; i++) {
+		cnt = (me->dvert+i)->totweight;
+		for(k = 0; k < cnt; k++) {
+			MDeformWeight *dw = ((me->dvert+i)->dw+k);
+			if(dw->def_nr == defgroup){
+				dw->weight = neww * (dw->weight / oldw);
+				if(dw->weight > scaledown){
+					scaledown = dw->weight;
+				}
+				break;
+			}
+		}
+	}
+	if(scaledown > 1.0f) {
+		for(i = 0; i < totvert; i++) {
+			cnt = (me->dvert+i)->totweight;
+			for(k = 0; k < cnt; k++) {
+				MDeformWeight *dw = ((me->dvert+i)->dw+k);
+				if(dw->def_nr == defgroup){
+					dw->weight /= scaledown;
+					break;
+				}
+			}
+		}
+	}
+}
 static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, 
 				   float alpha, float paintweight, int flip, 
 				   int vgroup_mirror, char *validmap)
@@ -1037,6 +1105,10 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	MDeformWeight *dw, *uw;
 	int vgroup= ob->actdef-1;
 	
+	/* Jason was here */
+	char *flags;
+	float oldw;
+
 	if(wp->flag & VP_ONLYVGROUP) {
 		dw= defvert_find_index(me->dvert+index, vgroup);
 		uw= defvert_find_index(wp->wpaint_prev+index, vgroup);
@@ -1047,8 +1119,20 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	}
 	if(dw==NULL || uw==NULL)
 		return;
-	
+	/* Jason was here */
+	flags = gen_lck_flags(ob);
+	oldw = dw->weight;
+
 	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
+
+	/* Jason was here */
+	/* you are not allowed to go to or from zero if the group is locked */
+	if(flags && flags[dw->def_nr]) {
+		if(oldw == 0 || dw->weight == 0){
+			dw->weight = oldw;
+		}
+	}
+
 	do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 
 	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
@@ -1064,6 +1148,13 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 
 			do_weight_paint_auto_normalize(me->dvert+j, vgroup, validmap);
 		}
+	}
+	/* Jason was here */
+	if(flags){
+		if(flags[dw->def_nr]) {
+			fix_weight_ratios(me, dw, oldw);
+		}
+		MEM_freeN(flags);
 	}
 }
 
@@ -1229,7 +1320,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	struct WPaintData *wpd;
 	Mesh *me;
 	float mat[4][4], imat[4][4];
-	
+
 	if(scene->obedit) return OPERATOR_CANCELLED;
 	
 	me= get_mesh(ob);
@@ -1240,7 +1331,8 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 		ED_vgroup_data_create(&me->id);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 	}
-	
+
+
 	/* make mode data storage */
 	wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
 	paint_stroke_set_mode_data(stroke, wpd);
@@ -1320,7 +1412,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 				wpd->vgroup_mirror= actdef;
 		}
 	}
-	
+
 	return 1;
 }
 
