@@ -29,25 +29,26 @@ set(INC
 	../../../intern/string
 	../../../intern/guardedalloc
 	../../../intern/container
-	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
+	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
 	../../../source/gameengine/Converter
 	../../../source/gameengine/BlenderRoutines
 	../../../source/blender/imbuf
 	../../../intern/moto/include
-	../../../source/gameengine/Ketsji 
+	../../../source/gameengine/Ketsji
 	../../../source/blender/blenlib
 	../../../source/blender/blenfont
 	../../../source/blender/blenkernel
 	../../../source/blender/python
 	../../../source/blender/python/generic
-	../../../source/blender 
-	../../../source/blender/makesdna 
-	../../../source/gameengine/Rasterizer 
+	../../../source/blender
+	../../../source/blender/makesdna
+	../../../source/blender/makesrna
+	../../../source/gameengine/Rasterizer
 	../../../source/gameengine/GameLogic
-	../../../source/gameengine/Expressions 
+	../../../source/gameengine/Expressions
 	../../../source/gameengine/Ketsji/KXNetwork
 	../../../source/gameengine/Network
-	../../../source/gameengine/SceneGraph 
+	../../../source/gameengine/SceneGraph
 	../../../source/gameengine/Physics/common
 	../../../source/gameengine/Network/LoopBackNetwork
 	../../../intern/audaspace/intern
@@ -57,6 +58,8 @@ set(INC
 )
 
 set(SRC
+	BL_Action.cpp
+	BL_ActionManager.cpp
 	BL_BlenderShader.cpp
 	BL_Material.cpp
 	BL_Shader.cpp
@@ -126,6 +129,8 @@ set(SRC
 	KX_WorldInfo.cpp
 	KX_WorldIpoController.cpp
 
+	BL_Action.h
+	BL_ActionManager.h
 	KX_ArmatureSensor.h
 	KX_BlenderMaterial.h
 	KX_BulletPhysicsController.h
@@ -207,7 +212,7 @@ set(SRC
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_SDL)
-	set(INC ${INC} ${SDL_INCLUDE_DIR})  
+	set(INC ${INC} ${SDL_INCLUDE_DIR})
 else()
 	add_definitions(-DDISABLE_SDL)
 endif()
