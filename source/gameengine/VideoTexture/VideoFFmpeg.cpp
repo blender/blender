@@ -641,7 +641,7 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 	if (m_captRate <= 0.f)
 		m_captRate = defFrameRate;
 	sprintf(rateStr, "%f", m_captRate);
-	av_parse_video_rate(&frameRate, rateStr);
+	av_parse_video_frame_rate(&frameRate, rateStr);
 	// populate format parameters
 	// need to specify the time base = inverse of rate
 	formatParams.time_base.num = frameRate.den;
