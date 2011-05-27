@@ -38,6 +38,7 @@ set(INC
 	../makesdna
 	../../../intern/memutil
 	../../../intern/guardedalloc
+	../../../intern/ffmpeg
 	${JPEG_INCLUDE_DIR}
 	${PNG_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}

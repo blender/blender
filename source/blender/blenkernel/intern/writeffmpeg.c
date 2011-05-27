@@ -61,34 +61,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 105))
-#define FFMPEG_HAVE_AVIO 1
-#endif
-
-#if (LIBAVFORMAT_VERSION_MAJOR > 53) || ((LIBAVFORMAT_VERSION_MAJOR >= 53) && (LIBAVFORMAT_VERSION_MINOR >= 1))
-#define FFMPEG_HAVE_DEFAULT_VAL_UNION 1
-#endif
-
-#if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 101))
-#define FFMPEG_HAVE_AV_DUMP_FORMAT 1
-#endif
-
-#ifndef FFMPEG_HAVE_AVIO
-#define AVIO_FLAG_WRITE URL_WRONLY
-#define avio_open url_fopen
-#define avio_tell url_ftell
-#define avio_close url_fclose
-#endif
-
-/* make OpenSuSe special "in-between" ffmpeg 0.6.2 version(tm) happy... 
-   Arrrrgh */
-#ifndef AVIO_FLAG_WRITE
-#define AVIO_FLAG_WRITE URL_WRONLY
-#endif
-
-#ifndef FFMPEG_HAVE_AV_DUMP_FORMAT
-#define av_dump_format dump_format
-#endif
+#include "ffmpeg_compat.h"
 
 extern void do_init_ffmpeg(void);
 
@@ -1080,20 +1053,12 @@ IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int 
 	switch (o->type) {
 	case FF_OPT_TYPE_INT:
 	case FF_OPT_TYPE_INT64:
-#ifdef FFMPEG_HAVE_DEFAULT_VAL_UNION
-		val.i = o->default_val.i64;
-#else
-		val.i = o->default_val;
-#endif
+		val.i = FFMPEG_DEF_OPT_VAL_INT(o);
 		idp_type = IDP_INT;
 		break;
 	case FF_OPT_TYPE_DOUBLE:
 	case FF_OPT_TYPE_FLOAT:
-#ifdef FFMPEG_HAVE_DEFAULT_VAL_UNION
-		val.f = o->default_val.dbl;
-#else
-		val.f = o->default_val;
-#endif
+		val.f = FFMPEG_DEF_OPT_VAL_DOUBLE(o);
 		idp_type = IDP_FLOAT;
 		break;
 	case FF_OPT_TYPE_STRING:

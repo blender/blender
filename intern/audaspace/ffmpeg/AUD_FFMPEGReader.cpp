@@ -39,6 +39,7 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include "ffmpeg_compat.h"
 }
 
 int AUD_FFMPEGReader::decode(AVPacket* packet, AUD_Buffer& buffer)

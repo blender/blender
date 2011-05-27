@@ -97,24 +97,7 @@
 #include <libavutil/rational.h>
 #include <libswscale/swscale.h>
 
-#if LIBAVFORMAT_VERSION_INT < (49 << 16)
-#define FFMPEG_OLD_FRAME_RATE 1
-#else
-#define FFMPEG_CODEC_IS_POINTER 1
-#endif
-
-#if (LIBAVCODEC_VERSION_MAJOR >= 52) && (LIBAVCODEC_VERSION_MINOR >= 29) && \
-	 (LIBSWSCALE_VERSION_MAJOR >= 0) && (LIBSWSCALE_VERSION_MINOR >= 10)
-#define FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
-#endif
-
-#if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 101))
-#define FFMPEG_HAVE_AV_DUMP_FORMAT 1
-#endif
-
-#ifndef FFMPEG_HAVE_AV_DUMP_FORMAT
-#define av_dump_format dump_format
-#endif
+#include "ffmpeg_compat.h"
 
 #endif //WITH_FFMPEG
 
@@ -528,18 +511,6 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 
 extern void do_init_ffmpeg(void);
 
-#ifdef FFMPEG_CODEC_IS_POINTER
-static AVCodecContext* get_codec_from_stream(AVStream* stream)
-{
-	return stream->codec;
-}
-#else
-static AVCodecContext* get_codec_from_stream(AVStream* stream)
-{
-	return &stream->codec;
-}
-#endif
-
 static int startffmpeg(struct anim * anim) {
 	int            i, videoStream;
 
@@ -573,7 +544,7 @@ static int startffmpeg(struct anim * anim) {
 		/* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
-		if(get_codec_from_stream(pFormatCtx->streams[i])->codec_type
+		if(pFormatCtx->streams[i]->codec->codec_type
 		   == AVMEDIA_TYPE_VIDEO) {
 			videoStream=i;
 			break;
@@ -584,7 +555,7 @@ static int startffmpeg(struct anim * anim) {
 		return -1;
 	}
 
-	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
+	pCodecCtx = pFormatCtx->streams[videoStream]->codec;
 
 		/* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
@@ -600,19 +571,10 @@ static int startffmpeg(struct anim * anim) {
 		return -1;
 	}
 
-#ifdef FFMPEG_OLD_FRAME_RATE
-	if(pCodecCtx->frame_rate>1000 && pCodecCtx->frame_rate_base==1)
-		pCodecCtx->frame_rate_base=1000;
-
-
-	anim->duration = pFormatCtx->duration * pCodecCtx->frame_rate 
-		/ pCodecCtx->frame_rate_base / AV_TIME_BASE;
-#else
 	anim->duration = ceil(pFormatCtx->duration
 		* av_q2d(pFormatCtx->streams[videoStream]->r_frame_rate) 
 		/ AV_TIME_BASE);
 
-#endif
 	anim->params = 0;
 
 	anim->x = pCodecCtx->width;
@@ -866,15 +828,9 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 #endif
 
 	if (position != anim->curposition + 1) { 
-#ifdef FFMPEG_OLD_FRAME_RATE
-		double frame_rate = 
-			(double) anim->pCodecCtx->frame_rate
-			/ (double) anim->pCodecCtx->frame_rate_base;
-#else
 		double frame_rate = 
 			av_q2d(anim->pFormatCtx->streams[anim->videoStream]
 				   ->r_frame_rate);
-#endif
 		double pts_time_base = av_q2d(anim->pFormatCtx->streams[anim->videoStream]->time_base);
 		long long pos;
 		long long st_time = anim->pFormatCtx->start_time;

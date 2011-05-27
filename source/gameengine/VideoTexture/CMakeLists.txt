@@ -45,6 +45,7 @@ set(INC
 	../../../intern/string
 	../../../intern/moto/include
 	../../../intern/guardedalloc
+	../../../intern/ffmpeg
 	${GLEW_INCLUDE_PATH}
 )
 

@@ -63,13 +63,7 @@
 #include <libavdevice/avdevice.h>
 #include <libavutil/log.h>
 
-#if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 101))
-#define FFMPEG_HAVE_AV_DUMP_FORMAT 1
-#endif
-
-#ifndef FFMPEG_HAVE_AV_DUMP_FORMAT
-#define av_dump_format dump_format
-#endif
+#include "ffmpeg_compat.h"
 
 #endif
 

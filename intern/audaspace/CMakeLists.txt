@@ -26,6 +26,7 @@ set(INC
 	FX SRC
 	${PTHREADS_INC}
 	${LIBSAMPLERATE_INC}
+	../ffmpeg
 )
 
 set(SRC
