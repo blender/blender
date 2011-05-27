@@ -239,7 +239,7 @@ void BPy_init_modules( void )
 	PyObject *mod;
 
 	/* Needs to be first since this dir is needed for future modules */
-	char *modpath= BLI_get_folder(BLENDER_SCRIPTS, "modules");
+	char *modpath= BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "modules");
 	if(modpath) {
 		// printf("bpy: found module path '%s'.\n", modpath);
 		PyObject *sys_path= PySys_GetObject("path"); /* borrow */

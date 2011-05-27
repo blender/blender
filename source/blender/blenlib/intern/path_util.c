@@ -902,10 +902,23 @@ static int get_path_local(char *targetpath, const char *folder_name, const char 
 	return 0;
 }
 
+static int is_portable_install(void)
+{
+	/* detect portable install by the existance of config folder */
+	const int ver= BLENDER_VERSION;
+	char path[FILE_MAX];
+
+	return get_path_local(path, "config", NULL, ver);
+}
+
 static int get_path_user(char *targetpath, const char *folder_name, const char *subfolder_name, const char *envvar, const int ver)
 {
 	char user_path[FILE_MAX];
 	const char *user_base_path;
+
+	/* for portable install, user path is always local */
+	if (is_portable_install())
+		return get_path_local(targetpath, folder_name, subfolder_name, ver);
 	
 	user_path[0] = '\0';
 
@@ -1011,6 +1024,26 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	}
 }
 
+#if defined(WIN32) && BLENDER_VERSION < 258
+
+static int path_have_257_script_install(void)
+{
+	const int ver= BLENDER_VERSION;
+	char path[FILE_MAX] = "";
+	char system_pyfile[FILE_MAX];
+
+	if (get_path_user(path, "scripts", NULL, "BLENDER_USER_SCRIPTS", ver)) {
+		BLI_join_dirfile(system_pyfile, sizeof(system_pyfile), path, "modules/bpy_types.py");
+
+		if (BLI_exists(system_pyfile))
+			return 1;
+	}
+
+	return 0;
+}
+
+#endif
+
 /* get a folder out of the 'folder_id' presets for paths */
 /* returns the path if found, NULL string if not */
 char *BLI_get_folder(int folder_id, const char *subfolder)
@@ -1020,13 +1053,12 @@ char *BLI_get_folder(int folder_id, const char *subfolder)
 	
 	switch (folder_id) {
 		case BLENDER_DATAFILES:		/* general case */
-			if (get_path_local(path, "datafiles", subfolder, ver)) break;
 			if (get_path_user(path, "datafiles", subfolder, "BLENDER_USER_DATAFILES", ver))	break;
+			if (get_path_local(path, "datafiles", subfolder, ver)) break;
 			if (get_path_system(path, "datafiles", subfolder, "BLENDER_SYSTEM_DATAFILES", ver)) break;
 			return NULL;
 			
 		case BLENDER_USER_DATAFILES:
-			if (get_path_local(path, "datafiles", subfolder, ver)) break;
 			if (get_path_user(path, "datafiles", subfolder, "BLENDER_USER_DATAFILES", ver))	break;
 			return NULL;
 			
@@ -1036,45 +1068,33 @@ char *BLI_get_folder(int folder_id, const char *subfolder)
 			return NULL;
 			
 		case BLENDER_USER_AUTOSAVE:
-			if (get_path_local(path, "autosave", subfolder, ver)) break;
 			if (get_path_user(path, "autosave", subfolder, "BLENDER_USER_DATAFILES", ver))	break;
 			return NULL;
 
-		case BLENDER_CONFIG:		/* general case */
-			if (get_path_local(path, "config", subfolder, ver)) break;
-			if (get_path_user(path, "config", subfolder, "BLENDER_USER_CONFIG", ver)) break;
-			if (get_path_system(path, "config", subfolder, "BLENDER_SYSTEM_CONFIG", ver)) break;
-			return NULL;
-			
 		case BLENDER_USER_CONFIG:
-			if (get_path_local(path, "config", subfolder, ver)) break;
 			if (get_path_user(path, "config", subfolder, "BLENDER_USER_CONFIG", ver)) break;
-			return NULL;
-			
-		case BLENDER_SYSTEM_CONFIG:
-			if (get_path_local(path, "config", subfolder, ver)) break;
-			if (get_path_system(path, "config", subfolder, "BLENDER_SYSTEM_CONFIG", ver)) break;
-			return NULL;
-			
-		case BLENDER_SCRIPTS:		/* general case */
-			if (get_path_local(path, "scripts", subfolder, ver)) break;
-			if (get_path_user(path, "scripts", subfolder, "BLENDER_USER_SCRIPTS", ver)) break;
-			if (get_path_system(path, "scripts", subfolder, "BLENDER_SYSTEM_SCRIPTS", ver)) break;
 			return NULL;
 			
 		case BLENDER_USER_SCRIPTS:
-			if (get_path_local(path, "scripts", subfolder, ver)) break;
-			if (get_path_user(path, "scripts", subfolder, "BLENDER_USER_SCRIPTS", ver)) break;
+#if defined(WIN32) && BLENDER_VERSION < 258
+			/* if we have a 2.57 installation, then we may have system script
+			 * files in the user configuration folder. avoid using that folder
+			 * if they are there, until the version gets bumped to 2.58, so
+			 * we can be sure that folder only has addons etc. */
+			if (path_have_257_script_install()) {
+				if (get_path_local(path, "scripts", subfolder, ver)) break;
+			}
+			else
+#endif
+			{
+				if (get_path_user(path, "scripts", subfolder, "BLENDER_USER_SCRIPTS", ver)) break;
+			}
+
 			return NULL;
 			
 		case BLENDER_SYSTEM_SCRIPTS:
 			if (get_path_local(path, "scripts", subfolder, ver)) break;
 			if (get_path_system(path, "scripts", subfolder, "BLENDER_SYSTEM_SCRIPTS", ver)) break;
-			return NULL;
-			
-		case BLENDER_PYTHON:		/* general case */
-			if (get_path_local(path, "python", subfolder, ver)) break;
-			if (get_path_system(path, "python", subfolder, "BLENDER_SYSTEM_PYTHON", ver)) break;
 			return NULL;
 			
 		case BLENDER_SYSTEM_PYTHON:
