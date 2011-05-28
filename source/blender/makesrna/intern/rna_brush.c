@@ -170,8 +170,9 @@ static void rna_Brush_set_size(PointerRNA *ptr, int value)
 
 	// set unprojected radius, so they remain consistent
 	double size= (double)brush_size(me);
+	float unprojected_radius = 0.0f;
 	assert(size != 0); // paranoia: sanity checks during load and rna make sure we don't divide by zero here
-	float unprojected_radius= (float)(brush_unprojected_radius(me) * (double)value / size);
+	unprojected_radius= (float)(brush_unprojected_radius(me) * (double)value / size);
 	brush_set_unprojected_radius(me, unprojected_radius);
 
 	brush_set_size(me, value);
@@ -225,8 +226,9 @@ static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)
 
 	// set size, so they remain consistent
 	double unprojected_radius= (double)brush_unprojected_radius(me);
+	int size = 0;
 	assert(unprojected_radius != 0); // paranoia: sanity checks during load and rna make sure we don't divide by zero here
-	int size= (int)((double)brush_size(me) * (double)value / unprojected_radius);
+	size= (int)((double)brush_size(me) * (double)value / unprojected_radius);
 	brush_set_size(me, size);
 
 	brush_set_unprojected_radius(me, value);
