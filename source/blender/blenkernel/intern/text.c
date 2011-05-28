@@ -238,7 +238,7 @@ static void cleanup_textline(TextLine * tl)
 int reopen_text(Text *text)
 {
 	FILE *fp;
-	int i, llen, len, res;
+	int i, llen, len;
 	unsigned char *buffer;
 	TextLine *tmp;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
@@ -281,7 +281,7 @@ int reopen_text(Text *text)
 
 	fclose(fp);
 
-	res= stat(str, &st);
+	stat(str, &st);
 	text->mtime= st.st_mtime;
 	
 	text->nlines=0;
@@ -334,7 +334,7 @@ Text *add_text(const char *file, const char *relpath)
 {
 	Main *bmain= G.main;
 	FILE *fp;
-	int i, llen, len, res;
+	int i, llen, len;
 	unsigned char *buffer;
 	TextLine *tmp;
 	Text *ta;
@@ -374,7 +374,7 @@ Text *add_text(const char *file, const char *relpath)
 
 	fclose(fp);
 
-	res= stat(str, &st);
+	stat(str, &st);
 	ta->mtime= st.st_mtime;
 	
 	ta->nlines=0;
@@ -1236,14 +1236,11 @@ int txt_find_string(Text *text, char *findstr, int wrap, int match_case)
 {
 	TextLine *tl, *startl;
 	char *s= NULL;
-	int oldcl, oldsl;
 
 	if (!text || !text->curl || !text->sell) return 0;
 	
 	txt_order_cursors(text);
 
-	oldcl= txt_get_span(text->lines.first, text->curl);
-	oldsl= txt_get_span(text->lines.first, text->sell);
 	tl= startl= text->sell;
 	
 	if(match_case) s= strstr(&tl->line[text->selc], findstr);
