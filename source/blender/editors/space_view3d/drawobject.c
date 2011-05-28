@@ -2651,7 +2651,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_SOLID) {
 		if(ob==OBACT && ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 			/* weight paint in solid mode, special case. focus on making the weights clear
-			 * rather then the shading, this is also forced in wire view */
+			 * rather than the shading, this is also forced in wire view */
 			GPU_enable_material(0, NULL);
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1, GPU_enable_material);
 		

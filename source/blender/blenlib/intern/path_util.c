@@ -736,7 +736,7 @@ int BLI_path_cwd(char *path)
 			* cwd should contain c:\ etc on win32 so the relbase can be NULL
 			* relbase being NULL also prevents // being misunderstood as relative to the current
 			* blend file which isnt a feature we want to use in this case since were dealing
-			* with a path from the command line, rather then from inside Blender */
+			* with a path from the command line, rather than from inside Blender */
 			
 			char origpath[FILE_MAXDIR + FILE_MAXFILE];
 			BLI_strncpy(origpath, path, FILE_MAXDIR + FILE_MAXFILE);

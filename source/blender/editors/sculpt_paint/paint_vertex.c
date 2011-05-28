@@ -1038,7 +1038,7 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/* TODO, we could make this a menu into OBJECT_OT_vertex_group_set_active rather then its own operator */
+/* TODO, we could make this a menu into OBJECT_OT_vertex_group_set_active rather than its own operator */
 void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 {
 	PropertyRNA *prop= NULL;

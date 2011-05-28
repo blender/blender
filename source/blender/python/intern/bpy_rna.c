@@ -3101,7 +3101,7 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
 	 * >>> bpy.types.Scene.foo= BoolProperty()
 	 * >>> bpy.types.Scene.foo
 	 * <bpy_struct, BooleanProperty("foo")>
-	 * ...rather then returning the deferred class register tuple as checked by pyrna_is_deferred_prop()
+	 * ...rather than returning the deferred class register tuple as checked by pyrna_is_deferred_prop()
 	 *
 	 * Disable for now, this is faking internal behavior in a way thats too tricky to maintain well. */
 #if 0
@@ -5517,7 +5517,7 @@ PyObject *BPY_rna_module(void)
 	BPy_StructRNA *pyrna;
 	PointerRNA ptr;
 
-	/* for now, return the base RNA type rather then a real module */
+	/* for now, return the base RNA type rather than a real module */
 	RNA_main_pointer_create(G.main, &ptr);
 	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 
@@ -5537,7 +5537,7 @@ PyObject *BPY_rna_doc(void)
 {
 	PointerRNA ptr;
 
-	/* for now, return the base RNA type rather then a real module */
+	/* for now, return the base RNA type rather than a real module */
 	RNA_blender_rna_pointer_create(&ptr);
 
 	return pyrna_struct_CreatePyObject(&ptr);

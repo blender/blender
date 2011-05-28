@@ -341,7 +341,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 
 	/* this was used pre 2.5beta0, now ID property access uses python's
 	 * getitem style access
-	 * - ob["foo"] rather then ob.foo */
+	 * - ob["foo"] rather than ob.foo */
 #if 0
 	if(ptr->data) {
 		IDProperty *group, *idp;

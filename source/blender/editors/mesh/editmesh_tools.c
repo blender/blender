@@ -5316,7 +5316,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending.");
 	RNA_def_enum_funcs(prop, shape_itemf);
 	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor.", -2.0f, 2.0f);
-	RNA_def_boolean(ot->srna, "add", 0, "Add", "Add rather then blend between shapes.");
+	RNA_def_boolean(ot->srna, "add", 0, "Add", "Add rather than blend between shapes.");
 }
 
 /************************ Merge Operator *************************/

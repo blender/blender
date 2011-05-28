@@ -452,7 +452,7 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 
 	if(seq->type == SEQ_SOUND && seq->sound) {
 		/* for sound strips we need to update the sound as well.
-		 * arguably, this could load in a new sound rather then modify an existing one.
+		 * arguably, this could load in a new sound rather than modify an existing one.
 		 * but while using the sequencer its most likely your not using the sound in the game engine too.
 		 */
 		PointerRNA id_ptr;

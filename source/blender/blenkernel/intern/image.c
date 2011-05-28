@@ -1029,7 +1029,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	BLF_buffer_col(mono, scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
 	pad= BLF_width_max(mono);
 
-	/* use 'h_fixed' rather then 'h', aligns better */
+	/* use 'h_fixed' rather than 'h', aligns better */
 	h_fixed= BLF_height_max(mono);
 	y_ofs = -BLF_descender(mono);
 

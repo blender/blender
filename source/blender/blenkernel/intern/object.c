@@ -1764,7 +1764,7 @@ void object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const
 		mul_m4_m4m4(rmat, mat, imat); /* get the parent relative matrix */
 		object_apply_mat4(ob, rmat, use_compat, FALSE);
 		
-		/* same as below, use rmat rather then mat */
+		/* same as below, use rmat rather than mat */
 		mat4_to_loc_rot_size(ob->loc, rot, ob->size, rmat);
 		object_mat3_to_rot(ob, rot, use_compat);
 	}

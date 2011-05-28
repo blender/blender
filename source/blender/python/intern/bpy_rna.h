@@ -44,7 +44,7 @@
 /* support for inter references, currently only needed for corner case */
 #define USE_PYRNA_STRUCT_REFERENCE
 
-/* use real collection iterators rather then faking with a list */
+/* use real collection iterators rather than faking with a list */
 #define USE_PYRNA_ITER
 
 #else /* WITH_PYTHON_SAFETY */

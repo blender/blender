@@ -179,7 +179,7 @@ PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObjec
 		return NULL;
 	}
 
-	/* use base_type rather then Py_TYPE(base) because we could already be subtyped */
+	/* use base_type rather than Py_TYPE(base) because we could already be subtyped */
 	if(!PyType_IsSubtype(type, base_type)) {
 		PyErr_Format(PyExc_TypeError, "can't subclass blender game type <%s> from <%s> because it is not a subclass", base_type->tp_name, type->tp_name);
 		return NULL;

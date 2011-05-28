@@ -9692,7 +9692,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					nu->radius_interp = 3;
 					
 					/* resolu and resolv are now used differently for surfaces
-					 * rather then using the resolution to define the entire number of divisions,
+					 * rather than using the resolution to define the entire number of divisions,
 					 * use it for the number of divisions per segment
 					 */
 					if (nu->pntsv > 1) {
@@ -11497,7 +11497,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				do_version_bone_roll_256(bone);
 
 		/* fix for objects which have zero dquat's
-		 * since this is multiplied with the quat rather then added */
+		 * since this is multiplied with the quat rather than added */
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(is_zero_v4(ob->dquat)) {
 				unit_qt(ob->dquat);

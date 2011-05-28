@@ -686,7 +686,7 @@ static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, cons
 		RNA_property_enum_items((bContext *)C, &ptr, prop, &item_array, NULL, &do_free);
 
 		for(item= item_array; item->identifier; item++) {
-			/* note: need to give the intex rather then the dientifier because the enum can be freed */
+			/* note: need to give the intex rather than the dientifier because the enum can be freed */
 			if(BLI_strcasestr(item->name, str))
 				if(0==uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
 					break;
@@ -1460,7 +1460,7 @@ static void open_set_load_ui(wmOperator *op)
 static void open_set_use_scripts(wmOperator *op)
 {
 	if(!RNA_property_is_set(op->ptr, "use_scripts")) {
-		/* use G_SCRIPT_AUTOEXEC rather then the userpref because this means if
+		/* use G_SCRIPT_AUTOEXEC rather than the userpref because this means if
 		 * the flag has been disabled from the command line, then opening
 		 * from the menu wont enable this setting. */
 		RNA_boolean_set(op->ptr, "use_scripts", (G.f & G_SCRIPT_AUTOEXEC));

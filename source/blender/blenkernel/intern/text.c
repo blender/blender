@@ -2414,7 +2414,7 @@ static int txt_add_char_intern (Text *text, char add, int replace_tabs)
 		return 1;
 	}
 	
-	/* insert spaces rather then tabs */
+	/* insert spaces rather than tabs */
 	if (add == '\t' && replace_tabs) {
 		txt_convert_tab_to_spaces(text);
 		return 1;
@@ -2512,7 +2512,7 @@ void txt_indent(Text *text)
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
 
-	/* insert spaces rather then tabs */
+	/* insert spaces rather than tabs */
 	if (text->flags & TXT_TABSTOSPACES){
 		add = tab_to_spaces;
 		indentlen = spaceslen;
@@ -2573,7 +2573,7 @@ void txt_unindent(Text *text)
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
 
-	/* insert spaces rather then tabs */
+	/* insert spaces rather than tabs */
 	if (text->flags & TXT_TABSTOSPACES){
 		remove = tab_to_spaces;
 		indent = spaceslen;
