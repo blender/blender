@@ -18,10 +18,20 @@
 
 # <pep8 compliant>
 
+__all__ = (
+    "image_load",
+)
+
 
 def image_load(filepath, dirpath, place_holder=False, recursive=False, convert_callback=None):
     import bpy
+    import os
+
     try:
         return bpy.data.images.load(filepath)
     except RuntimeError:
-        return bpy.data.images.new("Untitled", 128, 128)
+        if place_holder:
+            image = bpy.data.images.new(os.path.basename(filepath), 128, 128)
+            # allow the path to be resolved later
+            image.filepath = filepath
+            return image

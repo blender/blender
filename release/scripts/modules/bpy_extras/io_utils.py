@@ -18,6 +18,20 @@
 
 # <pep8 compliant>
 
+__all__ = (
+    "ExportHelper",
+    "ImportHelper",
+    "axis_conversion",
+    "load_image",
+    "create_derived_objects",
+    "free_derived_objects",
+    "unpack_list",
+    "unpack_face_list",
+    "path_reference",
+    "path_reference_copy",
+    "path_reference_mode",
+)
+
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 

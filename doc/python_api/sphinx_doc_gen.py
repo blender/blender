@@ -34,7 +34,8 @@ For HTML generation
 
 - Generate html docs by running...
 
-    sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
+    cd doc/python_api
+    sphinx-build sphinx-in sphinx-out
 
   assuming that you have sphinx 1.0.7 installed
 
@@ -204,10 +205,24 @@ def write_indented_lines(ident, fn, text, strip=True):
     '''
     if text is None:
         return
-    for l in text.split("\n"):
-        if strip:
-            fn(ident + l.strip() + "\n")
-        else:
+
+    lines = text.split("\n")
+
+    # strip empty lines from the start/end
+    while lines and not lines[0].strip():
+        del lines[0]
+    while lines and not lines[-1].strip():
+        del lines[-1]
+
+    if strip:
+        ident_strip = 1000
+        for l in lines:
+            if l.strip():
+                ident_strip = min(ident_strip, len(l) - len(l.lstrip()))
+        for l in lines:
+            fn(ident + l[ident_strip:] + "\n")
+    else:
+        for l in lines:
             fn(ident + l + "\n")
 
 
@@ -252,7 +267,7 @@ def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
 
     fw(ident + ".. %s:: %s%s\n\n" % (func_type, identifier, arg_str))
     if py_func.__doc__:
-        write_indented_lines(ident + "   ", fw, py_func.__doc__.strip())
+        write_indented_lines(ident + "   ", fw, py_func.__doc__)
         fw("\n")
 
 
@@ -267,8 +282,10 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
     if type(descr) == GetSetDescriptorType:
         fw(ident + ".. attribute:: %s\n\n" % identifier)
         write_indented_lines(ident + "   ", fw, doc, False)
+        fw("\n")
     elif type(descr) in (MethodDescriptorType, ClassMethodDescriptorType):
         write_indented_lines(ident, fw, doc, False)
+        fw("\n")
     else:
         raise TypeError("type was not GetSetDescriptorType, MethodDescriptorType or ClassMethodDescriptorType")
 
@@ -316,11 +333,17 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     attribute_set = set()
     filepath = os.path.join(BASEPATH, module_name + ".rst")
 
+    module_all = getattr(module, "__all__", None)
+    module_dir = sorted(dir(module))
+
+    if module_all:
+        module_dir = module_all
+
     file = open(filepath, "w")
 
     fw = file.write
 
-    write_title(fw, title, "=")
+    write_title(fw, "%s (%s)" % (title, module_name), "=")
 
     fw(".. module:: %s\n\n" % module_name)
 
@@ -330,6 +353,37 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         fw("\n\n")
 
     write_example_ref("", fw, module_name)
+
+    # write submodules
+    # we could also scan files but this ensures __all__ is used correctly
+    if module_all is not None:
+        submod_name = None
+        submod = None
+        submod_ls = []
+        for submod_name in module_all:
+            ns = {}
+            exec_str = "from %s import %s as submod" % (module.__name__, submod_name)
+            print(exec_str)
+            exec(exec_str, ns, ns)
+            submod = ns["submod"]
+            print(submod)
+            if type(submod) == types.ModuleType:
+                submod_ls.append((submod_name, submod))
+
+        del submod_name
+        del submod
+
+        if submod_ls:
+            fw(".. toctree::\n")
+            fw("   :maxdepth: 1\n\n")
+
+            for submod_name, submod in submod_ls:
+                submod_name_full = "%s.%s" % (module_name, submod_name)
+                fw("   %s.rst\n\n" % submod_name_full)
+
+                pymodule2sphinx(BASEPATH, submod_name_full, submod, "%s submodule" % module_name)
+        del submod_ls
+    # done writing submodules!
 
     # write members of the module
     # only tested with PyStructs which are not exactly modules
@@ -348,15 +402,15 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             if descr.__doc__:
                 fw(".. data:: %s\n\n" % key)
                 write_indented_lines("   ", fw, descr.__doc__, False)
-                attribute_set.add(key)
                 fw("\n")
+                attribute_set.add(key)
+
     del key, descr
 
     classes = []
 
-    for attribute in sorted(dir(module)):
+    for attribute in module_dir:
         if not attribute.startswith("_"):
-
             if attribute in attribute_set:
                 continue
 
@@ -972,6 +1026,8 @@ def rna2sphinx(BASEPATH):
         fw("   blf.rst\n\n")
     if "aud" not in EXCLUDE_MODULES:
         fw("   aud.rst\n\n")
+    if "bpy_extras" not in EXCLUDE_MODULES:
+        fw("   bpy_extras.rst\n\n")
 
     # game engine
     if "bge" not in EXCLUDE_MODULES:
@@ -1068,41 +1124,45 @@ def rna2sphinx(BASEPATH):
     # python modules
     if "bpy.utils" not in EXCLUDE_MODULES:
         from bpy import utils as module
-        pymodule2sphinx(BASEPATH, "bpy.utils", module, "Utilities (bpy.utils)")
+        pymodule2sphinx(BASEPATH, "bpy.utils", module, "Utilities")
 
     if "bpy.path" not in EXCLUDE_MODULES:
         from bpy import path as module
-        pymodule2sphinx(BASEPATH, "bpy.path", module, "Path Utilities (bpy.path)")
+        pymodule2sphinx(BASEPATH, "bpy.path", module, "Path Utilities")
+
+    if "bpy_extras" not in EXCLUDE_MODULES:
+        import bpy_extras as module
+        pymodule2sphinx(BASEPATH, "bpy_extras", module, "Extra Utilities")
 
     # C modules
     if "bpy.app" not in EXCLUDE_MODULES:
         from bpy import app as module
-        pymodule2sphinx(BASEPATH, "bpy.app", module, "Application Data (bpy.app)")
+        pymodule2sphinx(BASEPATH, "bpy.app", module, "Application Data")
 
     if "bpy.props" not in EXCLUDE_MODULES:
         from bpy import props as module
-        pymodule2sphinx(BASEPATH, "bpy.props", module, "Property Definitions (bpy.props)")
+        pymodule2sphinx(BASEPATH, "bpy.props", module, "Property Definitions")
 
     if "mathutils" not in EXCLUDE_MODULES:
         import mathutils as module
-        pymodule2sphinx(BASEPATH, "mathutils", module, "Math Types & Utilities (mathutils)")
+        pymodule2sphinx(BASEPATH, "mathutils", module, "Math Types & Utilities")
 
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         import mathutils.geometry as module
-        pymodule2sphinx(BASEPATH, "mathutils.geometry", module, "Geometry Utilities (mathutils.geometry)")
+        pymodule2sphinx(BASEPATH, "mathutils.geometry", module, "Geometry Utilities")
 
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         import blf as module
-        pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing (blf)")
+        pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing")
 
     # XXX TODO
     #import bgl as module
-    #pymodule2sphinx(BASEPATH, "bgl", module, "Blender OpenGl wrapper (bgl)")
+    #pymodule2sphinx(BASEPATH, "bgl", module, "Blender OpenGl wrapper")
     #del module
 
     if "aud" not in EXCLUDE_MODULES:
         import aud as module
-        pymodule2sphinx(BASEPATH, "aud", module, "Audio System (aud)")
+        pymodule2sphinx(BASEPATH, "aud", module, "Audio System")
     del module
 
     ## game engine

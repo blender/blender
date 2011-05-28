@@ -18,6 +18,14 @@
 
 # <pep8 compliant>
 
+__all__ = (
+    "mesh_linked_faces",
+    "edge_face_count_dict",
+    "edge_face_count",
+    "edge_loops_from_faces",
+    "edge_loops_from_edges",
+    "ngon_tesselate",
+)
 
 def mesh_linked_faces(mesh):
     '''

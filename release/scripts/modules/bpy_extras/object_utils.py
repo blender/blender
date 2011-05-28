@@ -18,6 +18,12 @@
 
 # <pep8 compliant>
 
+__all__ = (
+    "add_object_align_init",
+    "object_data_add",
+)
+
+
 import bpy
 import mathutils
 
