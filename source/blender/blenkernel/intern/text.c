@@ -2759,7 +2759,7 @@ int setcurr_tab_spaces (Text *text, int space)
 				break;
 			} else if (ch==':') {
 				is_indent = 1;
-			} else if (ch==']' || ch=='}' || ch=='"' || ch=='\'') {
+			} else if (ch!=' ' && ch!='\t') {
 				is_indent = 0;
 			}
 		}
