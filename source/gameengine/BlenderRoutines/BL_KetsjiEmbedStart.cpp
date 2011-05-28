@@ -258,7 +258,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				draw_letterbox = 1;
 			}
 			else {
-				camzoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
+				camzoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom)*4.0f;
 			}
 		}
 		else {
