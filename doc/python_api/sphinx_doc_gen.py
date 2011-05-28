@@ -65,8 +65,9 @@ else:
         "bpy.props",
         "bpy.utils",
         "bpy.context",
-        # "bpy.types",  # supports filtering
+        "bpy.types",  # supports filtering
         "bpy.ops",  # supports filtering
+        #"bpy_extras",
         "bge",
         "aud",
         "bgl",
@@ -363,10 +364,8 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         for submod_name in module_all:
             ns = {}
             exec_str = "from %s import %s as submod" % (module.__name__, submod_name)
-            print(exec_str)
             exec(exec_str, ns, ns)
             submod = ns["submod"]
-            print(submod)
             if type(submod) == types.ModuleType:
                 submod_ls.append((submod_name, submod))
 

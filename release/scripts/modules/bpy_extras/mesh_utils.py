@@ -28,11 +28,15 @@ __all__ = (
 )
 
 def mesh_linked_faces(mesh):
-    '''
-    Splits the mesh into connected parts,
-    these parts are returned as lists of faces.
-    used for seperating cubes from other mesh elements in the 1 mesh
-    '''
+    """
+    Splits the mesh into connected faces, use this for seperating cubes from
+    other mesh elements within 1 mesh datablock.
+
+    :arg mesh: the mesh used to group with.
+    :type mesh: :class:`Mesh`
+    :return: lists of lists containing faces.
+    :rtype: list
+    """
 
     # Build vert face connectivity
     vert_faces = [[] for i in range(len(mesh.vertices))]
@@ -78,6 +82,11 @@ def mesh_linked_faces(mesh):
 
 
 def edge_face_count_dict(mesh):
+    """
+    :return: dict of edge keys with their value set to the number of
+       faces using each edge.
+    :rtype: dict
+    """
     face_edge_keys = [face.edge_keys for face in mesh.faces]
     face_edge_count = {}
     for face_keys in face_edge_keys:
@@ -91,8 +100,13 @@ def edge_face_count_dict(mesh):
 
 
 def edge_face_count(mesh):
+    """
+    :return: list face users for each item in mesh.edges.
+    :rtype: list
+    """
     edge_face_count_dict = edge_face_count_dict(mesh)
-    return [edge_face_count_dict.get(ed.key, 0) for ed in mesh.edges]
+    get = dict.get
+    return [get(edge_face_count_dict, ed.key, 0) for ed in mesh.edges]
 
 
 def edge_loops_from_faces(mesh, faces=None, seams=()):
@@ -101,12 +115,18 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
 
     Takes me.faces or a list of faces and returns the edge loops
     These edge loops are the edges that sit between quads, so they dont touch
-    1 quad, note: not connected will make 2 edge loops, both only containing 2 edges.
+    1 quad, note: not connected will make 2 edge loops,
+    both only containing 2 edges.
 
     return a list of edge key lists
-    [ [(0,1), (4, 8), (3,8)], ...]
+    [[(0, 1), (4, 8), (3, 8)], ...]
 
-    return a list of edge vertex index lists
+    :arg mesh: the mesh used to get edge loops from.
+    :type mesh: :class:`Mesh`
+    :arg faces: optional face list to only use some of the meshes faces.
+    :type faces: :class:`MeshFaces`, sequence or or NoneType
+    :return: return a list of edge vertex index lists.
+    :rtype: list
     """
 
     OTHER_INDEX = 2, 3, 0, 1  # opposite face index
@@ -117,7 +137,7 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
     edges = {}
 
     for f in faces:
-#            if len(f) == 4:
+#        if len(f) == 4:
         if f.vertices_raw[3] != 0:
             edge_keys = f.edge_keys
             for i, edkey in enumerate(f.edge_keys):
