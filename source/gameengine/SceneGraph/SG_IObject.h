@@ -180,6 +180,16 @@ public:
 		SG_Controller* cont
 	);
 
+	/**
+	 * Remove a pointer to a controller from this node.
+	 * This does not delete the controller itself! Be careful to
+	 * avoid memory leaks.
+	 */
+		void
+	RemoveSGController(
+		SG_Controller* cont
+	);
+
 	/** 
 	 * Clear the array of pointers to controllers associated with 
 	 * this node. This does not delete the controllers themselves!

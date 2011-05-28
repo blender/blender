@@ -49,14 +49,15 @@ void BL_ActionManager::PlayAction(class KX_GameObject* gameobj,
 								short layer,
 								float blendin,
 								short play_mode,
-								short blend_mode)
+								short blend_mode,
+								float playback_speed)
 {
 	// Remove a currently running action on this layer if there is one
 	if (m_layers[layer])
 		StopAction(layer);
 
 	// Create a new action
-	m_layers[layer] = new BL_Action(gameobj, name, start, end, blendin, play_mode, blend_mode);
+	m_layers[layer] = new BL_Action(gameobj, name, start, end, blendin, play_mode, blend_mode, playback_speed);
 }
 
 void BL_ActionManager::StopAction(short layer)

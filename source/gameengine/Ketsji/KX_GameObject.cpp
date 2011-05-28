@@ -2992,18 +2992,18 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
-	"playAction(name, start_frame, end_frame, layer=0, blendin=0, play_mode=ACT_MODE_PLAY, blend_mode=ACT_BLEND_NONE)\n"
+	"playAction(name, start_frame, end_frame, layer=0, blendin=0, play_mode=ACT_MODE_PLAY, blend_mode=ACT_BLEND_NONE, speed=1.0)\n"
 	"plays an action\n")
 {
 	const char* name;
-	float start, end, blendin=0.f;
+	float start, end, blendin=0.f, speed=1.f;
 	short layer=0;
 	short play_mode=0, blend_mode=0;
 
-	static const char *kwlist[] = {"name", "start_frame", "end_frame", "layer", "blendin", "play_mode", "blend_mode", NULL};
+	static const char *kwlist[] = {"name", "start_frame", "end_frame", "layer", "blendin", "play_mode", "blend_mode", "speed", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hfhh", const_cast<char**>(kwlist),
-									&name, &start, &end, &layer, &blendin, &play_mode, &blend_mode))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hfhhf", const_cast<char**>(kwlist),
+									&name, &start, &end, &layer, &blendin, &play_mode, &blend_mode, &speed))
 		return NULL;
 
 	if (layer < 0 || layer > MAX_ACTION_LAYERS)
@@ -3024,7 +3024,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 		blend_mode = BL_Action::ACT_BLEND_NONE;
 	}
 
-	m_actionManager->PlayAction(this, name, start, end, layer, blendin, play_mode, blend_mode);
+	m_actionManager->PlayAction(this, name, start, end, layer, blendin, play_mode, blend_mode, speed);
 
 	Py_RETURN_NONE;
 }

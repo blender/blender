@@ -29,6 +29,7 @@
 
 #include "BL_Action.h"
 #include "BL_ArmatureObject.h"
+#include "KX_IpoConvert.h"
 #include "KX_GameObject.h"
 
 // These three are for getting the action from the logic manager
@@ -49,7 +50,8 @@ BL_Action::BL_Action(class KX_GameObject* gameobj,
 					float end,
 					float blendin,
 					short play_mode,
-					short blend_mode)
+					short blend_mode,
+					float playback_speed)
 :
 	m_obj(gameobj),
 	m_startframe(start),
@@ -60,14 +62,26 @@ BL_Action::BL_Action(class KX_GameObject* gameobj,
 	m_localtime(start),
 	m_blendframe(0.f),
 	m_blendstart(0.f),
+	m_speed(playback_speed),
 	m_pose(NULL),
 	m_blendpose(NULL),
+	m_sg_contr(NULL),
 	m_done(false)
 {
 	m_starttime = KX_GetActiveEngine()->GetFrameTime();
 	m_action = (bAction*)KX_GetActiveScene()->GetLogicManager()->GetActionByName(name);
 
 	if (!m_action) printf("Failed to load action: %s\n", name);
+
+	if (m_obj->GetGameObjectType() != SCA_IObject::OBJ_ARMATURE)
+	{
+		// Create an SG_Controller
+		m_sg_contr = BL_CreateIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+		m_obj->GetSGNode()->AddSGController(m_sg_contr);
+		m_sg_contr->SetObject(m_obj->GetSGNode());
+		InitIPO();
+	}
+
 }
 
 BL_Action::~BL_Action()
@@ -76,11 +90,25 @@ BL_Action::~BL_Action()
 		game_free_pose(m_pose);
 	if (m_blendpose)
 		game_free_pose(m_blendpose);
+	if (m_sg_contr)
+	{
+		m_obj->GetSGNode()->RemoveSGController(m_sg_contr);
+		delete m_sg_contr;
+	}
+}
+
+void BL_Action::InitIPO()
+{
+		// Initialize the IPO
+		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_RESET, true);
+		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, false);
+		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_IPO_ADD, false);
+		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, false);
 }
 
 void BL_Action::SetLocalTime(float curtime)
 {
-	float dt = (curtime-m_starttime)*KX_KetsjiEngine::GetAnimFrameRate();
+	float dt = (curtime-m_starttime)*KX_KetsjiEngine::GetAnimFrameRate()*m_speed;
 
 	if (m_endframe < m_startframe)
 		dt = -dt;
@@ -90,12 +118,18 @@ void BL_Action::SetLocalTime(float curtime)
 
 void BL_Action::Update(float curtime)
 {
+	// Don't bother if we're done with the animation
+	if (m_done)
+		return;
+
 	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
 
 	SetLocalTime(curtime);
 
 	// Handle wrap around
-	if (m_localtime < m_startframe || m_localtime > m_endframe)
+	bool bforward = m_startframe < m_endframe;
+	if (bforward && (m_localtime < m_startframe || m_localtime > m_endframe) ||
+		!bforward && (m_localtime > m_startframe || m_localtime < m_endframe))
 	{
 		switch(m_playmode)
 		{
@@ -119,6 +153,9 @@ void BL_Action::Update(float curtime)
 
 			break;
 		}
+
+		if (!m_done)
+			InitIPO();
 	}
 
 	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
@@ -193,6 +230,9 @@ void BL_Action::Update(float curtime)
 	}
 	else
 	{
-		printf("Only armature actions are currently supported\n");
+		InitIPO();
+		m_sg_contr->SetSimulatedTime(m_localtime);
+		m_obj->GetSGNode()->UpdateWorldData(m_localtime);
+		m_obj->UpdateTransform();
 	}
 }

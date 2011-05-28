@@ -54,6 +54,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_world_types.h"
@@ -76,132 +77,133 @@ static BL_InterpolatorList *GetAdtList(struct AnimData *for_adt, KX_BlenderScene
 	BL_InterpolatorList *adtList= converter->FindInterpolatorList(for_adt);
 
 	if (!adtList) {		
-		adtList = new BL_InterpolatorList(for_adt);
+		adtList = new BL_InterpolatorList(for_adt->action);
 		converter->RegisterInterpolatorList(adtList, for_adt);
 	}
 			
 	return adtList;	
 }
 
+SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_BlenderSceneConverter *converter)
+{
+	KX_IpoSGController* ipocontr = new KX_IpoSGController();
+	ipocontr->SetGameObject(gameobj);
+
+	Object* blenderobject = gameobj->GetBlenderObject();
+
+	ipocontr->GetIPOTransform().SetPosition(
+		MT_Point3(
+		blenderobject->loc[0]/*+blenderobject->dloc[0]*/,
+		blenderobject->loc[1]/*+blenderobject->dloc[1]*/,
+		blenderobject->loc[2]/*+blenderobject->dloc[2]*/
+		)
+	);
+	ipocontr->GetIPOTransform().SetEulerAngles(
+		MT_Vector3(
+		blenderobject->rot[0],
+		blenderobject->rot[1],
+		blenderobject->rot[2]
+		)
+	);
+	ipocontr->GetIPOTransform().SetScaling(
+		MT_Vector3(
+		blenderobject->size[0],
+		blenderobject->size[1],
+		blenderobject->size[2]
+		)
+	);
+
+	const char *rotmode, *drotmode;
+
+	switch(blenderobject->rotmode)
+	{
+	case ROT_MODE_AXISANGLE:
+		rotmode = "rotation_axis_angle";
+		drotmode = "delta_rotation_axis_angle";
+	case ROT_MODE_QUAT:
+		rotmode = "rotation_quaternion";
+		drotmode = "delta_rotation_quaternion";
+	default:
+		rotmode = "rotation_euler";
+		drotmode = "delta_rotation_euler";
+	}
+
+	BL_InterpolatorList *adtList= GetAdtList(blenderobject->adt, converter);
+		
+	// For each active channel in the adtList add an
+	// interpolator to the game object.
+		
+	KX_IInterpolator *interpolator;
+	KX_IScalarInterpolator *interp;
+		
+	for(int i=0; i<3; i++) {
+		if ((interp = adtList->GetScalarInterpolator("location", i))) {
+			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetPosition()[i]), interp);
+			ipocontr->AddInterpolator(interpolator);
+			ipocontr->SetIPOChannelActive(OB_LOC_X+i, true);
+		}
+	}
+	for(int i=0; i<3; i++) {
+		if ((interp = adtList->GetScalarInterpolator("delta_location", i))) {
+			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaPosition()[i]), interp);
+			ipocontr->AddInterpolator(interpolator);
+			ipocontr->SetIPOChannelActive(OB_DLOC_X+i, true);
+		}
+	}
+	for(int i=0; i<3; i++) {
+		if ((interp = adtList->GetScalarInterpolator(rotmode, i))) {
+			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetEulerAngles()[i]), interp);
+			ipocontr->AddInterpolator(interpolator);
+			ipocontr->SetIPOChannelActive(OB_ROT_X+i, true);
+		}
+	}
+	for(int i=0; i<3; i++) {
+		if ((interp = adtList->GetScalarInterpolator(drotmode, i))) {
+			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaEulerAngles()[i]), interp);
+			ipocontr->AddInterpolator(interpolator);
+			ipocontr->SetIPOChannelActive(OB_DROT_X+i, true);
+		}
+	}
+	for(int i=0; i<3; i++) {
+		if ((interp = adtList->GetScalarInterpolator("scale", i))) {
+			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetScaling()[i]), interp);
+			ipocontr->AddInterpolator(interpolator);
+			ipocontr->SetIPOChannelActive(OB_SIZE_X+i, true);
+		}
+	}
+	for(int i=0; i<3; i++) {
+		if ((interp = adtList->GetScalarInterpolator("delta_scale", i))) {
+			interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaScaling()[i]), interp);
+			ipocontr->AddInterpolator(interpolator);
+			ipocontr->SetIPOChannelActive(OB_DSIZE_X+i, true);
+		}
+	}
+		
+	{
+		KX_ObColorIpoSGController* ipocontr_obcol=NULL;
+			
+		for(int i=0; i<4; i++) {
+			if ((interp = adtList->GetScalarInterpolator("color", i))) {
+				if (!ipocontr_obcol) {
+					ipocontr_obcol = new KX_ObColorIpoSGController();
+					gameobj->GetSGNode()->AddSGController(ipocontr_obcol);
+					ipocontr_obcol->SetObject(gameobj->GetSGNode());
+				}
+				interpolator= new KX_ScalarInterpolator(&ipocontr_obcol->m_rgba[i], interp);
+				ipocontr_obcol->AddInterpolator(interpolator);
+			}
+		}
+	}
+
+	return ipocontr;
+}
+
 void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_BlenderSceneConverter *converter)
 {
 	if (blenderobject->adt) {
-
-		KX_IpoSGController* ipocontr = new KX_IpoSGController();
+		SG_Controller *ipocontr = BL_CreateIPO(blenderobject->adt->action, gameobj, converter);
 		gameobj->GetSGNode()->AddSGController(ipocontr);
 		ipocontr->SetObject(gameobj->GetSGNode());
-		
-		// For ipo_as_force, we need to know which SM object and Scene the
-		// object associated with this ipo is in. Is this already known here?
-		// I think not.... then it must be done later :(
-//		ipocontr->SetSumoReference(gameobj->GetSumoScene(), 
-//								   gameobj->GetSumoObject());
-
-		ipocontr->SetGameObject(gameobj);
-
-		ipocontr->GetIPOTransform().SetPosition(
-			MT_Point3(
-			blenderobject->loc[0]/*+blenderobject->dloc[0]*/,
-			blenderobject->loc[1]/*+blenderobject->dloc[1]*/,
-			blenderobject->loc[2]/*+blenderobject->dloc[2]*/
-			)
-		);
-		ipocontr->GetIPOTransform().SetEulerAngles(
-			MT_Vector3(
-			blenderobject->rot[0],
-			blenderobject->rot[1],
-			blenderobject->rot[2]
-			)
-		);
-		ipocontr->GetIPOTransform().SetScaling(
-			MT_Vector3(
-			blenderobject->size[0],
-			blenderobject->size[1],
-			blenderobject->size[2]
-			)
-		);
-
-		const char *rotmode, *drotmode;
-
-		switch(blenderobject->rotmode)
-		{
-		case ROT_MODE_AXISANGLE:
-			rotmode = "rotation_axis_angle";
-			drotmode = "delta_rotation_axis_angle";
-		case ROT_MODE_QUAT:
-			rotmode = "rotation_quaternion";
-			drotmode = "delta_rotation_quaternion";
-		default:
-			rotmode = "rotation_euler";
-			drotmode = "delta_rotation_euler";
-		}
-
-		BL_InterpolatorList *adtList= GetAdtList(blenderobject->adt, converter);
-		
-		// For each active channel in the adtList add an
-		// interpolator to the game object.
-		
-		KX_IInterpolator *interpolator;
-		KX_IScalarInterpolator *interp;
-		
-		for(int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator("location", i))) {
-				interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetPosition()[i]), interp);
-				ipocontr->AddInterpolator(interpolator);
-				ipocontr->SetIPOChannelActive(OB_LOC_X+i, true);
-			}
-		}
-		for(int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator("delta_location", i))) {
-				interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaPosition()[i]), interp);
-				ipocontr->AddInterpolator(interpolator);
-				ipocontr->SetIPOChannelActive(OB_DLOC_X+i, true);
-			}
-		}
-		for(int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator(rotmode, i))) {
-				interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetEulerAngles()[i]), interp);
-				ipocontr->AddInterpolator(interpolator);
-				ipocontr->SetIPOChannelActive(OB_ROT_X+i, true);
-			}
-		}
-		for(int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator(drotmode, i))) {
-				interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaEulerAngles()[i]), interp);
-				ipocontr->AddInterpolator(interpolator);
-				ipocontr->SetIPOChannelActive(OB_DROT_X+i, true);
-			}
-		}
-		for(int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator("scale", i))) {
-				interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetScaling()[i]), interp);
-				ipocontr->AddInterpolator(interpolator);
-				ipocontr->SetIPOChannelActive(OB_SIZE_X+i, true);
-			}
-		}
-		for(int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator("delta_scale", i))) {
-				interpolator= new KX_ScalarInterpolator(&(ipocontr->GetIPOTransform().GetDeltaScaling()[i]), interp);
-				ipocontr->AddInterpolator(interpolator);
-				ipocontr->SetIPOChannelActive(OB_DSIZE_X+i, true);
-			}
-		}
-		
-		{
-			KX_ObColorIpoSGController* ipocontr_obcol=NULL;
-			
-			for(int i=0; i<4; i++) {
-				if ((interp = adtList->GetScalarInterpolator("color", i))) {
-					if (!ipocontr_obcol) {
-						ipocontr_obcol = new KX_ObColorIpoSGController();
-						gameobj->GetSGNode()->AddSGController(ipocontr_obcol);
-						ipocontr_obcol->SetObject(gameobj->GetSGNode());
-					}
-					interpolator= new KX_ScalarInterpolator(&ipocontr_obcol->m_rgba[i], interp);
-					ipocontr_obcol->AddInterpolator(interpolator);
-				}
-			}
-		}
 	}
 }
 

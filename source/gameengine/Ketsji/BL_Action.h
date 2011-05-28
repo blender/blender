@@ -41,6 +41,7 @@ private:
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct PointerRNA *m_ptrrna;
+	class SG_Controller *m_sg_contr;
 	class KX_GameObject* m_obj;
 
 	float m_startframe;
@@ -53,11 +54,14 @@ private:
 	float m_blendframe;
 	float m_blendstart;
 
+	float m_speed;
+
 	short m_playmode;
 	short m_blendmode;
 
 	bool m_done;
 
+	void InitIPO();
 	void SetLocalTime(float curtime);
 public:
 	BL_Action(class KX_GameObject* gameobj,
@@ -66,7 +70,8 @@ public:
 			float end,
 			float blendin,
 			short play_mode,
-			short blend_mode);
+			short blend_mode,
+			float playback_speed);
 	~BL_Action();
 
 	bool IsDone() {return m_done;}
