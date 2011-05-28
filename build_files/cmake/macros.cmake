@@ -13,19 +13,13 @@ macro(blender_include_dirs
 	include_directories(${all_incs})
 endmacro()
 
-# only MSVC uses SOURCE_GROUP
-macro(blender_add_lib_nolist
-	name
-	sources
-	includes)
 
-	# message(STATUS "Configuring library ${name}")
-
-	blender_include_dirs("${includes}")
-	add_library(${name} ${sources})
+macro(blender_source_group
+	sources)
 
 	# Group by location on disk
 	source_group("Source Files" FILES CMakeLists.txt)
+
 	foreach(SRC ${sources})
 		get_filename_component(SRC_EXT ${SRC} EXT)
 		if(${SRC_EXT} MATCHES ".h" OR ${SRC_EXT} MATCHES ".hpp")
@@ -36,16 +30,26 @@ macro(blender_add_lib_nolist
 	endforeach()
 endmacro()
 
-#	# works fine but having the includes listed is helpful for IDE's (QtCreator/MSVC)
-#	macro(blender_add_lib_nolist
-#		name
-#		sources
-#		includes)
-#
-#		message(STATUS "Configuring library ${name}")
-#		include_directories(${includes})
-#		add_library(${name} ${sources})
-#	endmacro()
+
+# only MSVC uses SOURCE_GROUP
+macro(blender_add_lib_nolist
+	name
+	sources
+	includes)
+
+	# message(STATUS "Configuring library ${name}")
+
+	# include_directories(${includes})
+	blender_include_dirs("${includes}")
+
+	add_library(${name} ${sources})
+
+	# works fine without having the includes
+	# listed is helpful for IDE's (QtCreator/MSVC)
+	blender_source_group("${sources}")
+
+endmacro()
+
 
 macro(blender_add_lib
 	name
@@ -55,8 +59,8 @@ macro(blender_add_lib
 	blender_add_lib_nolist(${name} "${sources}" "${includes}")
 
 	set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
-
 endmacro()
+
 
 macro(SETUP_LIBDIRS)
 	# see "cmake --help-policy CMP0003"

@@ -101,6 +101,9 @@ set(SRC
 	intern/md5.h
 	intern/openexr/openexr_api.h
 	intern/openexr/openexr_multi.h
+	
+	# orphan include
+	../../../intern/ffmpeg/ffmpeg_compat.h
 )
 
 if(WITH_IMAGE_OPENEXR)
