@@ -54,7 +54,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	// called for each exported object
 	void AnimationExporter::operator() (Object *ob) 
 	{
-		if (!ob->adt || !ob->adt->action) return;
+		if (!ob->adt || !ob->adt->action) return;  //this is already checked in hasAnimations()
 		
 		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
 		
@@ -82,6 +82,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		const char *axis_names[] = {"X", "Y", "Z"};
 		const char *axis_name = NULL;
 		char anim_id[200];
+		bool has_tangents = false;
 		
 		if (fcu->array_index < 3)
 			axis_name = axis_names[fcu->array_index];
@@ -100,7 +101,20 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		std::string output_id = create_source_from_fcurve(COLLADASW::InputSemantic::OUTPUT, fcu, anim_id, axis_name);
 
 		// create interpolations source
-		std::string interpolation_id = create_interpolation_source(fcu->totvert, anim_id, axis_name);
+		std::string interpolation_id = create_interpolation_source(fcu, anim_id, axis_name, &has_tangents);
+
+		// handle tangents (if required)
+		std::string intangent_id;
+		std::string outtangent_id;
+		
+		if (has_tangents) {
+			// create in_tangent source
+			intangent_id = create_source_from_fcurve(COLLADASW::InputSemantic::IN_TANGENT, fcu, anim_id, axis_name);
+
+			// create out_tangent source
+			outtangent_id = create_source_from_fcurve(COLLADASW::InputSemantic::OUT_TANGENT, fcu, anim_id, axis_name);
+		}
+
 
 		std::string sampler_id = std::string(anim_id) + SAMPLER_ID_SUFFIX;
 		COLLADASW::LibraryAnimations::Sampler sampler(sw, sampler_id);
@@ -110,6 +124,11 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		// this input is required
 		sampler.addInput(COLLADASW::InputSemantic::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
+
+		if (has_tangents) {
+			sampler.addInput(COLLADASW::InputSemantic::IN_TANGENT, COLLADABU::URI(empty, intangent_id));
+			sampler.addInput(COLLADASW::InputSemantic::OUT_TANGENT, COLLADABU::URI(empty, outtangent_id));
+		}
 
 		addSampler(sampler);
 
@@ -148,7 +167,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
 		if (!pchan)
 			return;
-
+        //Fill frame array with key frame values framed at @param:transform_type
 		switch (transform_type) {
 		case 0:
 			find_rotation_frames(ob_arm, fra, prefix, pchan->rotmode);
@@ -168,28 +187,29 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			arm->flag &= ~ARM_RESTPOS;
 			where_is_pose(scene, ob_arm);
 		}
-
+        //v array will hold all values which will be exported. 
 		if (fra.size()) {
-			float *v = (float*)MEM_callocN(sizeof(float) * 3 * fra.size(), "temp. anim frames");
-			sample_animation(v, fra, transform_type, bone, ob_arm);
+			float *values = (float*)MEM_callocN(sizeof(float) * 3 * fra.size(), "temp. anim frames");
+			sample_animation(values, fra, transform_type, bone, ob_arm, pchan);
 
 			if (transform_type == 0) {
 				// write x, y, z curves separately if it is rotation
-				float *c = (float*)MEM_callocN(sizeof(float) * fra.size(), "temp. anim frames");
+				float *axisValues = (float*)MEM_callocN(sizeof(float) * fra.size(), "temp. anim frames");   
+			
 				for (int i = 0; i < 3; i++) {
 					for (unsigned int j = 0; j < fra.size(); j++)
-						c[j] = v[j * 3 + i];
+						axisValues[j] = values[j * 3 + i];
 
-					dae_bone_animation(fra, c, transform_type, i, id_name(ob_arm), bone->name);
+					dae_bone_animation(fra, axisValues, transform_type, i, id_name(ob_arm), bone->name);
 				}
-				MEM_freeN(c);
+				MEM_freeN(axisValues);
 			}
 			else {
 				// write xyz at once if it is location or scale
-				dae_bone_animation(fra, v, transform_type, -1, id_name(ob_arm), bone->name);
+				dae_bone_animation(fra, values, transform_type, -1, id_name(ob_arm), bone->name);
 			}
 
-			MEM_freeN(v);
+			MEM_freeN(values);
 		}
 
 		// restore restpos
@@ -198,12 +218,12 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		where_is_pose(scene, ob_arm);
 	}
 
-	void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm)
+	void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pchan)
 	{
-		bPoseChannel *pchan, *parchan = NULL;
-		bPose *pose = ob_arm->pose;
+		bPoseChannel *parchan = NULL;
+		/*bPose *pose = ob_arm->pose;
 
-		pchan = get_pose_channel(pose, bone->name);
+		pchan = get_pose_channel(pose, bone->name);*/
 
 		if (!pchan)
 			return;
@@ -249,7 +269,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 	// dae_bone_animation -> add_bone_animation
 	// (blend this into dae_bone_animation)
-	void AnimationExporter::dae_bone_animation(std::vector<float> &fra, float *v, int tm_type, int axis, std::string ob_name, std::string bone_name)
+	void AnimationExporter::dae_bone_animation(std::vector<float> &fra, float *values, int tm_type, int axis, std::string ob_name, std::string bone_name)
 	{
 		const char *axis_names[] = {"X", "Y", "Z"};
 		const char *axis_name = NULL;
@@ -279,12 +299,12 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		// create output source
 		std::string output_id;
 		if (axis == -1)
-			output_id = create_xyz_source(v, fra.size(), anim_id);
+			output_id = create_xyz_source(values, fra.size(), anim_id);
 		else
-			output_id = create_source_from_array(COLLADASW::InputSemantic::OUTPUT, v, fra.size(), is_rot, anim_id, axis_name);
+			output_id = create_source_from_array(COLLADASW::InputSemantic::OUTPUT, values, fra.size(), is_rot, anim_id, axis_name);
 
 		// create interpolations source
-		std::string interpolation_id = create_interpolation_source(fra.size(), anim_id, axis_name);
+		std::string interpolation_id = fake_interpolation_source(fra.size(), anim_id, axis_name);
 
 		std::string sampler_id = std::string(anim_id) + SAMPLER_ID_SUFFIX;
 		COLLADASW::LibraryAnimations::Sampler sampler(sw, sampler_id);
@@ -349,7 +369,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if (axis) {
 					param.push_back(axis);
 				}
-				else {
+				else {                           //assumes if axis isn't specified all axi are added
 					param.push_back("X");
 					param.push_back("Y");
 					param.push_back("Z");
@@ -382,10 +402,34 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				values[0] = bezt->vec[1][1];
 			}
 			break;
+		
 		case COLLADASW::InputSemantic::IN_TANGENT:
+		*length = 2;
+			values[0] = convert_time(bezt->vec[0][0]);
+			if (bezt->ipo != BEZT_IPO_BEZ) {
+				// We're in a mixed interpolation scenario, set zero as it's irrelevant but value might contain unused data
+				values[0] = 0;	
+				values[1] = 0;	
+			} else if (rotation) {
+				values[1] = convert_angle(bezt->vec[0][1]);
+			} else {
+				values[1] = bezt->vec[0][1];
+			}
+			break;
+		
 		case COLLADASW::InputSemantic::OUT_TANGENT:
-			// XXX
 			*length = 2;
+			values[0] = convert_time(bezt->vec[2][0]);
+			if (bezt->ipo != BEZT_IPO_BEZ) {
+				// We're in a mixed interpolation scenario, set zero as it's irrelevant but value might contain unused data
+				values[0] = 0;	
+				values[1] = 0;	
+			} else if (rotation) {
+				values[1] = convert_angle(bezt->vec[2][1]);
+			} else {
+				values[1] = bezt->vec[2][1];
+			}
+			break;
 			break;
 		default:
 			*length = 0;
@@ -406,7 +450,18 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		source.setId(source_id);
 		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
 		source.setAccessorCount(fcu->totvert);
-		source.setAccessorStride(1);
+		
+		switch (semantic) {
+		case COLLADASW::InputSemantic::INPUT:
+		case COLLADASW::InputSemantic::OUTPUT:
+		source.setAccessorStride(1);			
+			break;
+		case COLLADASW::InputSemantic::IN_TANGENT:
+		case COLLADASW::InputSemantic::OUT_TANGENT:
+		source.setAccessorStride(2);			
+			break;
+		}
+		
 		
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 		add_source_parameters(param, semantic, is_rotation, axis_name);
@@ -426,7 +481,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		return source_id;
 	}
-
+    //Currently called only to get OUTPUT source values ( if rotation and hence the axis is also specified )
 	std::string AnimationExporter::create_source_from_array(COLLADASW::InputSemantic::Semantics semantic, float *v, int tot, bool is_rot, const std::string& anim_id, const char *axis_name)
 	{
 		std::string source_id = anim_id + get_semantic_suffix(semantic);
@@ -444,9 +499,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		for (int i = 0; i < tot; i++) {
 			float val = v[i];
-			if (semantic == COLLADASW::InputSemantic::INPUT)
-				val = convert_time(val);
-			else if (is_rot)
+			////if (semantic == COLLADASW::InputSemantic::INPUT)
+			//	val = convert_time(val);
+			//else
+				if (is_rot)                       
 				val = convert_angle(val);
 			source.appendValues(val);
 		}
@@ -455,7 +511,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		return source_id;
 	}
-
+// only used for sources with INPUT semantic
 	std::string AnimationExporter::create_source_from_vector(COLLADASW::InputSemantic::Semantics semantic, std::vector<float> &fra, bool is_rot, const std::string& anim_id, const char *axis_name)
 	{
 		std::string source_id = anim_id + get_semantic_suffix(semantic);
@@ -474,10 +530,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		std::vector<float>::iterator it;
 		for (it = fra.begin(); it != fra.end(); it++) {
 			float val = *it;
-			if (semantic == COLLADASW::InputSemantic::INPUT)
+			//if (semantic == COLLADASW::InputSemantic::INPUT)
 				val = convert_time(val);
-			else if (is_rot)
-				val = convert_angle(val);
+			/*else if (is_rot)
+				val = convert_angle(val);*/
 			source.appendValues(val);
 		}
 
@@ -486,7 +542,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		return source_id;
 	}
 
-	// only used for sources with OUTPUT semantic
+	// only used for sources with OUTPUT semantic ( locations and scale)
 	std::string AnimationExporter::create_xyz_source(float *v, int tot, const std::string& anim_id)
 	{
 		COLLADASW::InputSemantic::Semantics semantic = COLLADASW::InputSemantic::OUTPUT;
@@ -513,7 +569,41 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		return source_id;
 	}
 
-	std::string AnimationExporter::create_interpolation_source(int tot, const std::string& anim_id, const char *axis_name)
+	std::string AnimationExporter::create_interpolation_source(FCurve *fcu, const std::string& anim_id, const char *axis_name, bool *has_tangents)
+	{
+		std::string source_id = anim_id + get_semantic_suffix(COLLADASW::InputSemantic::INTERPOLATION);
+
+		COLLADASW::NameSource source(mSW);
+		source.setId(source_id);
+		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(fcu->totvert);
+		source.setAccessorStride(1);
+		
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("INTERPOLATION");
+
+		source.prepareToAppendValues();
+
+		*has_tangents = false;
+
+		for (unsigned int i = 0; i < fcu->totvert; i++) {
+			if (fcu->bezt[i].ipo==BEZT_IPO_BEZ) {
+				source.appendValues(BEZIER_NAME);
+				*has_tangents = true;
+			} else if (fcu->bezt[i].ipo==BEZT_IPO_CONST) {
+				source.appendValues(STEP_NAME);
+			} else { // BEZT_IPO_LIN
+				source.appendValues(LINEAR_NAME);
+			}
+		}
+		// unsupported? -- HERMITE, CARDINAL, BSPLINE, NURBS
+
+		source.finish();
+
+		return source_id;
+	}
+
+	std::string AnimationExporter::fake_interpolation_source(int tot, const std::string& anim_id, const char *axis_name)
 	{
 		std::string source_id = anim_id + get_semantic_suffix(COLLADASW::InputSemantic::INTERPOLATION);
 
@@ -597,8 +687,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			char *name = extract_transform_name(fcu->rna_path);
 			if (!strcmp(name, tm_name)) {
 				for (unsigned int i = 0; i < fcu->totvert; i++) {
-					float f = fcu->bezt[i].vec[1][0];
-					if (std::find(fra.begin(), fra.end(), f) == fra.end())
+					float f = fcu->bezt[i].vec[1][0];     //
+					if (std::find(fra.begin(), fra.end(), f) == fra.end())   
 						fra.push_back(f);
 				}
 			}
@@ -648,9 +738,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			Object *ob = base->object;
 			
 			FCurve *fcu = 0;
-			if(ob->adt && ob->adt->action)
+			if(ob->adt && ob->adt->action)      
 				fcu = (FCurve*)ob->adt->action->curves.first;
 				
+			//The Scene has animations if object type is armature or object has f-curve
 			if ((ob->type == OB_ARMATURE && ob->data) || fcu) {
 				return true;
 			}

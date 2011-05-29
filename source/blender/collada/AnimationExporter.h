@@ -95,7 +95,7 @@ protected:
 
 	void sample_and_write_bone_animation(Object *ob_arm, Bone *bone, int transform_type);
 
-	void sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm);
+	void sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pChan);
 
 	// dae_bone_animation -> add_bone_animation
 	// (blend this into dae_bone_animation)
@@ -120,8 +120,9 @@ protected:
 
 	std::string create_xyz_source(float *v, int tot, const std::string& anim_id);
 
-	std::string create_interpolation_source(int tot, const std::string& anim_id, const char *axis_name);
+	std::string create_interpolation_source(FCurve *fcu, const std::string& anim_id, const char *axis_name, bool *has_tangents);
 
+	std::string fake_interpolation_source(int tot, const std::string& anim_id, const char *axis_name);
 	// for rotation, axis name is always appended and the value of append_axis is ignored
 	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	
