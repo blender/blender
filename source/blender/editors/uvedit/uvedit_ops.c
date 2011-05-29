@@ -1444,7 +1444,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	 * remove doubles and could annoying if it joined points when zoomed out.
 	 * 'penalty' is in screen pixel space otherwise zooming in on a uv-vert and
 	 * shift-selecting can consider an adjacent point close enough to add to
-	 * the selection rather then de-selecting the closest. */
+	 * the selection rather than de-selecting the closest. */
 
 	uvedit_pixel_to_float(sima, limit, 0.05f);
 	uvedit_pixel_to_float(sima, penalty, 5.0f / sima->zoom);

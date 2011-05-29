@@ -27,6 +27,7 @@
 set(INC
 	.
 	../container
+	../guardedalloc
 	../memutil
 	../moto/include
 )

@@ -597,7 +597,7 @@ static void rna_RenderSettings_qtcodecsettings_codecType_set(PointerRNA *ptr, in
 	rd->qtcodecsettings.codecType = quicktime_videocodecType_from_rnatmpvalue(value);
 }
 
-static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *item= NULL;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -638,7 +638,7 @@ static void rna_RenderSettings_qtcodecsettings_audiocodecType_set(PointerRNA *pt
 	rd->qtcodecsettings.audiocodecType = quicktime_audiocodecType_from_rnatmpvalue(value);
 }
 
-static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *item= NULL;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -709,7 +709,7 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 		BLI_strncpy(rd->engine, type->idname, sizeof(rd->engine));
 }
 
-static EnumPropertyItem *rna_RenderSettings_engine_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_RenderSettings_engine_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	RenderEngineType *type;
 	EnumPropertyItem *item= NULL;
@@ -2149,7 +2149,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
 		{CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
 		{CODEC_ID_H264, "H264", 0, "H.264", ""},
-		{CODEC_ID_XVID, "XVID", 0, "Xvid", ""},
 		{CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
 		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},

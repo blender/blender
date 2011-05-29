@@ -373,7 +373,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 	PE_set_data(C, data);
 
 	view3d_set_viewcontext(C, &data->vc);
-	/* note, the object argument means the modelview matrix does not account for the objects matrix, use viewmat rather then (obmat * viewmat) */
+	/* note, the object argument means the modelview matrix does not account for the objects matrix, use viewmat rather than (obmat * viewmat) */
 	view3d_get_transformation(data->vc.ar, data->vc.rv3d, NULL, &data->mats);
 
 	if((data->vc.v3d->drawtype>OB_WIRE) && (data->vc.v3d->flag & V3D_ZBUF_SELECT)) {
@@ -3460,7 +3460,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	ParticleBrushData *brush= &pset->brush[pset->brushtype];
 	ARegion *ar= CTX_wm_region(C);
 	float vec[3], mousef[2];
-	int mval[2], mvalo[2];
+	int mval[2];
 	int flip, mouse[2], dx, dy, removed= 0, added=0, selected= 0;
 	int lock_root = pset->flag & PE_LOCK_FIRST;
 
@@ -3483,8 +3483,6 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	mval[0]= mouse[0];
 	mval[1]= mouse[1];
 
-	mvalo[0]= bedit->lastmouse[0];
-	mvalo[1]= bedit->lastmouse[1];
 
 	/* disable locking temporatily for disconnected hair */
 	if(edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR)

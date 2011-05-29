@@ -344,7 +344,7 @@ void ED_OT_redo(wmOperatorType *ot)
 }
 
 
-/* ui callbacks should call this rather then calling WM_operator_repeat() themselves */
+/* ui callbacks should call this rather than calling WM_operator_repeat() themselves */
 int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 {
 	int ret= 0;

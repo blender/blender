@@ -678,7 +678,7 @@ static void rna_softbody_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 }
 
 
-static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *ob= NULL;
 

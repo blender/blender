@@ -47,6 +47,8 @@
 
 #include "../generic/py_capi_utils.h"
 
+extern BPy_StructRNA *bpy_context_module;
+
 static EnumPropertyItem property_flag_items[]= {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
@@ -194,7 +196,7 @@ static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 
 /* Function that sets RNA, NOTE - self is NULL when called from python, but being abused from C so we can pass the srna allong
  * This isnt incorrect since its a python object - but be careful */
-static char BPy_BoolProperty_doc[] =
+PyDoc_STRVAR(BPy_BoolProperty_doc,
 ".. function:: BoolProperty(name=\"\", description=\"\", default=False, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new boolean property definition.\n"
@@ -205,7 +207,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string\n"
-;
+);
 static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -248,7 +250,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-static char BPy_BoolVectorProperty_doc[] =
+PyDoc_STRVAR(BPy_BoolVectorProperty_doc,
 ".. function:: BoolVectorProperty(name=\"\", description=\"\", default=(False, False, False), options={'ANIMATABLE'}, subtype='NONE', size=3)\n"
 "\n"
 "   Returns a new vector boolean property definition.\n"
@@ -263,7 +265,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type subtype: string\n"
 "   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
 "   :type size: int\n"
-;
+);
 static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -318,7 +320,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 	Py_RETURN_NONE;
 }
 
-static char BPy_IntProperty_doc[] =
+PyDoc_STRVAR(BPy_IntProperty_doc,
 ".. function:: IntProperty(name=\"\", description=\"\", default=0, min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, step=1, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new int property definition.\n"
@@ -329,7 +331,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string\n"
-;
+);
 static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -374,7 +376,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-static char BPy_IntVectorProperty_doc[] =
+PyDoc_STRVAR(BPy_IntVectorProperty_doc,
 ".. function:: IntVectorProperty(name=\"\", description=\"\", default=(0, 0, 0), min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, options={'ANIMATABLE'}, subtype='NONE', size=3)\n"
 "\n"
 "   Returns a new vector int property definition.\n"
@@ -389,7 +391,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type subtype: string\n"
 "   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
 "   :type size: int\n"
-;
+);
 static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -447,7 +449,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 }
 
 
-static char BPy_FloatProperty_doc[] =
+PyDoc_STRVAR(BPy_FloatProperty_doc,
 ".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATABLE'}, subtype='NONE', unit='NONE')\n"
 "\n"
 "   Returns a new float property definition.\n"
@@ -460,7 +462,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type subtype: string\n"
 "   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', 'VELOCITY', 'ACCELERATION'].\n"
 "   :type unit: string\n"
-;
+);
 static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -514,7 +516,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-static char BPy_FloatVectorProperty_doc[] =
+PyDoc_STRVAR(BPy_FloatVectorProperty_doc,
 ".. function:: FloatVectorProperty(name=\"\", description=\"\", default=(0.0, 0.0, 0.0), min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATABLE'}, subtype='NONE', size=3)\n"
 "\n"
 "   Returns a new vector float property definition.\n"
@@ -529,7 +531,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type subtype: string\n"
 "   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
 "   :type size: int\n"
-;
+);
 static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -586,7 +588,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 	Py_RETURN_NONE;
 }
 
-static char BPy_StringProperty_doc[] =
+PyDoc_STRVAR(BPy_StringProperty_doc,
 ".. function:: StringProperty(name=\"\", description=\"\", default=\"\", maxlen=0, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new string property definition.\n"
@@ -597,7 +599,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILENAME', 'NONE'].\n"
 "   :type subtype: string\n"
-;
+);
 static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -741,20 +743,116 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 	return items;
 }
 
-static char BPy_EnumProperty_doc[] =
+static EnumPropertyItem *bpy_props_enum_itemf(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int *free)
+{
+	PyGILState_STATE gilstate;
+
+	PyObject *py_func= RNA_property_enum_py_data_get(prop);
+	PyObject *self= NULL;
+	PyObject *args;
+	PyObject *items; /* returned from the function call */
+
+	EnumPropertyItem *eitems= NULL;
+	int err= 0;
+
+	bpy_context_set(C, &gilstate);
+
+	args= PyTuple_New(2);
+
+	/* first get self */
+	/* operators can store their own instance for later use */
+	if(ptr->data) {
+		void **instance = RNA_struct_instance(ptr);
+
+		if(instance) {
+			if(*instance) {
+				self= *instance;
+				Py_INCREF(self);
+			}
+		}
+	}
+	if(self == NULL) {
+		self= pyrna_struct_CreatePyObject(ptr);
+	}
+
+	PyTuple_SET_ITEM(args, 0, self);
+
+	/* now get the context */
+	PyTuple_SET_ITEM(args, 1, (PyObject *)bpy_context_module);
+	Py_INCREF(bpy_context_module);
+
+	items= PyObject_CallObject(py_func, args);
+
+	Py_DECREF(args);
+
+	if(items==NULL) {
+		err= -1;
+	}
+	else {
+		PyObject *items_fast;
+		int defvalue_dummy=0;
+
+		if(!(items_fast= PySequence_Fast(items, "EnumProperty(...): return value from the callback was not a sequence"))) {
+			err= -1;
+		}
+		else {
+			eitems= enum_items_from_py(items_fast, NULL, &defvalue_dummy, (RNA_property_flag(prop) & PROP_ENUM_FLAG)!=0);
+
+			Py_DECREF(items_fast);
+
+			if(!eitems) {
+				err= -1;
+			}
+		}
+
+		Py_DECREF(items);
+	}
+
+	if(err != -1) { /* worked */
+		*free= 1;
+	}
+	else {
+		/* since we return to C code we can't leave the error */
+		PyCodeObject *f_code= (PyCodeObject *)PyFunction_GET_CODE(py_func);
+		PyErr_Print();
+		PyErr_Clear();
+
+		/* use py style error */
+		fprintf(stderr, "File \"%s\", line %d, in %s\n",
+		        _PyUnicode_AsString(f_code->co_filename),
+		        f_code->co_firstlineno,
+				_PyUnicode_AsString(((PyFunctionObject *)py_func)->func_name)
+		        );
+
+		eitems= DummyRNA_NULL_items;
+	}
+
+
+	bpy_context_clear(C, &gilstate);
+	return eitems;
+}
+
+PyDoc_STRVAR(BPy_EnumProperty_doc,
 ".. function:: EnumProperty(items, name=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new enumerator property definition.\n"
 "\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
-"   :arg default: The default value for this enum, A string when *ENUM_FLAG* is disabled otherwise a set which may only contain string identifiers used in *items*.\n"
+"   :arg default: The default value for this enum, A string when *ENUM_FLAG*\n"
+"      is disabled otherwise a set which may only contain string identifiers\n"
+"      used in *items*.\n"
 "   :type default: string or set\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE', 'ENUM_FLAG'].\n"
 "   :type options: set\n"
-"   :arg items: sequence of enum items formatted: [(identifier, name, description), ...] where the identifier is used for python access and other values are used for the interface.\n"
-"   :type items: sequence of string triplets\n"
-;
+"   :arg items: sequence of enum items formatted:\n"
+"      [(identifier, name, description), ...] where the identifier is used\n"
+"      for python access and other values are used for the interface.\n"
+"      For dynamic values a callback can be passed which returns a list in\n"
+"      the same format as the static list.\n"
+"      This function must take 2 arguments (self, context)\n"
+"   :type items: sequence of string triplets or a function\n"
+);
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -772,6 +870,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PropertyRNA *prop;
 		PyObject *pyopts= NULL;
 		int opts=0;
+		short is_itemf= FALSE;
 
 		if (!PyArg_ParseTupleAndKeywords(args, kw,
 		                                 "s#O|ssOO!:EnumProperty",
@@ -784,26 +883,58 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		BPY_PROPDEF_CHECK(EnumProperty, property_flag_enum_items)
 
-		if(!(items_fast= PySequence_Fast(items, "EnumProperty(...): expected a sequence of tuples for the enum items"))) {
-			return NULL;
+		/* items can be a list or a callable */
+		if(PyFunction_Check(items)) { /* dont use PyCallable_Check because we need the function code for errors */
+			PyCodeObject *f_code= (PyCodeObject *)PyFunction_GET_CODE(items);
+			if(f_code->co_argcount != 2) {
+				PyErr_Format(PyExc_ValueError,
+				             "EnumProperty(...): expected 'items' function to take 2 arguments, not %d",
+				             f_code->co_argcount);
+				return NULL;
+			}
+
+			if(def) {
+				/* note, using type error here is odd but python does this for invalid arguments */
+				PyErr_SetString(PyExc_TypeError,
+				                "EnumProperty(...): 'default' can't be set when 'items' is a function");
+				return NULL;
+			}
+
+			is_itemf= TRUE;
+			eitems= DummyRNA_NULL_items;
 		}
+		else {
+			if(!(items_fast= PySequence_Fast(items, "EnumProperty(...): expected a sequence of tuples for the enum items or a function"))) {
+				return NULL;
+			}
 
-		eitems= enum_items_from_py(items_fast, def, &defvalue, (opts & PROP_ENUM_FLAG)!=0);
+			eitems= enum_items_from_py(items_fast, def, &defvalue, (opts & PROP_ENUM_FLAG)!=0);
 
-		Py_DECREF(items_fast);
+			Py_DECREF(items_fast);
 
-		if(!eitems)
-			return NULL;
+			if(!eitems) {
+				return NULL;
+			}
+		}
 
 		if(opts & PROP_ENUM_FLAG)	prop= RNA_def_enum_flag(srna, id, eitems, defvalue, name, description);
 		else						prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
+
+		if(is_itemf) {
+			RNA_def_enum_funcs(prop, bpy_props_enum_itemf);
+			RNA_def_enum_py_data(prop, (void *)items);
+			/* Py_INCREF(items); */ /* watch out!, if user is tricky they can probably crash blender if they manage to free the callback, take care! */
+		}
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(srna, prop);
-		MEM_freeN(eitems);
+
+		if(is_itemf == FALSE) {
+			MEM_freeN(eitems);
+		}
 	}
 	Py_RETURN_NONE;
 }
@@ -840,7 +971,7 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 	return srna;
 }
 
-static char BPy_PointerProperty_doc[] =
+PyDoc_STRVAR(BPy_PointerProperty_doc,
 ".. function:: PointerProperty(type=\"\", description=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new pointer property definition.\n"
@@ -851,7 +982,7 @@ BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
-;
+);
 static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -893,7 +1024,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 	Py_RETURN_NONE;
 }
 
-static char BPy_CollectionProperty_doc[] =
+PyDoc_STRVAR(BPy_CollectionProperty_doc,
 ".. function:: CollectionProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new collection property definition.\n"
@@ -904,7 +1035,7 @@ BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
-;
+);
 static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -946,14 +1077,14 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 	Py_RETURN_NONE;
 }
 
-static char BPy_RemoveProperty_doc[] =
+PyDoc_STRVAR(BPy_RemoveProperty_doc,
 ".. function:: RemoveProperty(attr)\n"
 "\n"
 "   Removes a dynamically defined property.\n"
 "\n"
 "   :arg attr: Property name.\n"
 "   :type attr: string\n"
-;
+);
 static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;

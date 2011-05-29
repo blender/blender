@@ -3207,26 +3207,30 @@ Sequence *seq_metastrip(ListBase * seqbase, Sequence * meta, Sequence *seq)
 	return NULL;
 }
 
-int seq_swap(Sequence *seq_a, Sequence *seq_b)
+int seq_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 {
 	char name[sizeof(seq_a->name)];
 
 	if(seq_a->len != seq_b->len)
+		*error_str= "Strips must be the same length";
 		return 0;
 
 	/* type checking, could be more advanced but disalow sound vs non-sound copy */
 	if(seq_a->type != seq_b->type) {
 		if(seq_a->type == SEQ_SOUND || seq_b->type == SEQ_SOUND) {
+			*error_str= "Strips were not compatible";
 			return 0;
 		}
 
 		/* disallow effects to swap with non-effects strips */
 		if((seq_a->type & SEQ_EFFECT) != (seq_b->type & SEQ_EFFECT)) {
+			*error_str= "Strips were not compatible";
 			return 0;
 		}
 
 		if((seq_a->type & SEQ_EFFECT) && (seq_b->type & SEQ_EFFECT)) {
 			if(get_sequence_effect_num_inputs(seq_a->type) != get_sequence_effect_num_inputs(seq_b->type)) {
+				*error_str= "Strips must have the same number of inputs";
 				return 0;
 			}
 		}

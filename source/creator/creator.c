@@ -314,7 +314,6 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 	printf ("\nEnvironment Variables:\n");
 	printf ("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
-	printf ("  $BLENDER_SYSTEM_CONFIG    Directory for system wide configuration files.\n");
 	printf ("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
 	printf ("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
 	printf ("  $BLENDER_USER_DATAFILES   Directory for user data files (icons, translations, ..).\n");
@@ -1048,7 +1047,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	static char debug_doc[] = "\n\tTurn debugging on\n"
 		"\n\t* Prints every operator call and their arguments"
 		"\n\t* Disables mouse grab (to interact with a debugger in some cases)"
-		"\n\t* Keeps python sys.stdin rather then setting it to None";
+		"\n\t* Keeps python sys.stdin rather than setting it to None";
 
 	//BLI_argsAdd(ba, pass, short_arg, long_arg, doc, cb, C);
 
@@ -1087,7 +1086,6 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, NULL, "--factory-startup", "\n\tSkip reading the "STRINGIFY(BLENDER_STARTUP_FILE)" in the users home directory", set_factory_startup, NULL);
 
 	/* TODO, add user env vars? */
-	BLI_argsAdd(ba, 1, NULL, "--env-system-config",		"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_CONFIG)" environment variable", set_env, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--env-system-datafiles",	"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_DATAFILES)" environment variable", set_env, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--env-system-scripts",	"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_SCRIPTS)" environment variable", set_env, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--env-system-plugins",	"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_PLUGINS)" environment variable", set_env, NULL);

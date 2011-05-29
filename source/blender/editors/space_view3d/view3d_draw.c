@@ -876,9 +876,6 @@ void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, Region
 	float dx= 0.0f, dy= 0.0f;
 	
 	view3d_viewborder_size_get(scene, ar, size);
-	
-	if (rv3d == NULL)
-		rv3d = ar->regiondata;
 
 	size[0]= size[0]*zoomfac;
 	size[1]= size[1]*zoomfac;
@@ -1155,6 +1152,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
 	rcti winrct;
+
+	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
 	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
 			 paint_facesel_test(base->object)));

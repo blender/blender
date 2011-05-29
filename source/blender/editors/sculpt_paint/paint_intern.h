@@ -84,6 +84,8 @@ void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint(struct wmOperatorType *ot);
 void PAINT_OT_weight_set(struct wmOperatorType *ot);
 void PAINT_OT_weight_from_bones(struct wmOperatorType *ot);
+void PAINT_OT_weight_sample(struct wmOperatorType *ot);
+void PAINT_OT_weight_sample_group(struct wmOperatorType *ot);
 
 void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint(struct wmOperatorType *ot);

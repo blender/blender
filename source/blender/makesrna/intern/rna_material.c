@@ -272,7 +272,7 @@ static void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_shader_default(ma);
 }
 
-static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Material *ma= (Material*)ptr->id.data;
 	EnumPropertyItem *item= NULL;

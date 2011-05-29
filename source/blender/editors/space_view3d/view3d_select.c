@@ -1234,7 +1234,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 	startbase=  FIRSTBASE;
 	if(BASACT && BASACT->next) startbase= BASACT->next;
 	
-	/* This block uses the control key to make the object selected by its center point rather then its contents */
+	/* This block uses the control key to make the object selected by its center point rather than its contents */
 	/* XXX later on, in editmode do not activate */
 	if(vc.obedit==NULL && obcenter) {
 		

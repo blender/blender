@@ -55,33 +55,19 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/")
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
-# ignore system set flag, use our own
-# must be before project(...)
-# if the user wants to add their own its ok after first run.
-if(DEFINED CMAKE_C_STANDARD_LIBRARIES)
-	set(_reset_standard_libraries OFF)
-else()
-	set(_reset_standard_libraries ON)
-endif()
+#-----------------------------------------------------------------------------
+# Load some macros.
+include(build_files/cmake/macros.cmake)
 
+
+#-----------------------------------------------------------------------------
+# Initialize project.
+
+blender_project_hack_pre()
 
 project(Blender)
 
-
-if (_reset_standard_libraries)
-	# Must come after project(...)
-	#
-	# MINGW workaround for -ladvapi32 being included which surprisingly causes
-	# string formatting of floats, eg: printf("%.*f", 3, value). to crash blender
-	# with a meaningless stack trace. by overriding this flag we ensure we only
-	# have libs we define and that cmake & scons builds match.
-	set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
-	set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
-	mark_as_advanced(CMAKE_C_STANDARD_LIBRARIES)
-	mark_as_advanced(CMAKE_CXX_STANDARD_LIBRARIES)
-endif()
-unset(_reset_standard_libraries)
-
+blender_project_hack_post()
 
 enable_testing()
 
@@ -90,10 +76,6 @@ enable_testing()
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE )
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
-
-#-----------------------------------------------------------------------------
-# Load some macros.
-include(build_files/cmake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 # Set default config options
@@ -106,7 +88,7 @@ option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default (recommend to leave off)" OFF)
 mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they really know what they are doing.
-mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather then have them patch it, make a build option.
+mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather than have them patch it, make a build option.
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
 option(WITH_PYTHON_MODULE "Enable building as a python module (experemental, only enable for development)" OFF)
@@ -984,6 +966,12 @@ endif()
 #-----------------------------------------------------------------------------
 # Common.
 
+if(APPLE OR WIN32)
+	if(NOT IS_DIRECTORY "${LIBDIR}")
+		message(FATAL_ERROR "Apple and Windows require pre-compiled libs at: '${LIBDIR}'")
+	endif()
+endif()
+
 if(WITH_RAYOPTIMIZATION)
 	if(CMAKE_COMPILER_IS_GNUCC)
 		if(SUPPORT_SSE_BUILD)
@@ -1144,9 +1132,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 #-------------------------------------------------------------------------------
 # Global Defines
 
-# better not define flags here but this is a debugging option thats off by default.
+# better not set includes here but this debugging option is off by default.
 if(WITH_CXX_GUARDEDALLOC)
-	set(CMAKE_CXX_FLAGS " -DWITH_CXX_GUARDEDALLOC -I${CMAKE_SOURCE_DIR}/intern/guardedalloc ${CMAKE_CXX_FLAGS}")
+	include_directories(${CMAKE_SOURCE_DIR}/intern/guardedalloc)
 endif()
 
 if(WITH_ASSERT_ABORT)

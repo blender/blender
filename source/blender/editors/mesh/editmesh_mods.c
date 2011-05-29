@@ -1250,7 +1250,7 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 		return similar_face_select_exec(C, op);
 }
 
-static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;
