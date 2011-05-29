@@ -62,7 +62,8 @@ extern "C"
 #include "BKE_global.h"	
 #include "BKE_icons.h"	
 #include "BKE_node.h"	
-#include "BKE_report.h"	
+#include "BKE_report.h"
+#include "BKE_library.h"
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -403,6 +404,9 @@ int main(int argc, char** argv)
 	init_nodesystem();
 	
 	initglobals();
+
+	// We load our own G.main, so free the one that initglobals() gives us
+	free_main(G.main);
 
 	IMB_init();
 
