@@ -1198,14 +1198,13 @@ void PyDebugLine()
 			f_lineno= PyObject_GetAttrString(frame, "f_lineno");
 			f_code= PyObject_GetAttrString(frame, "f_code");
 			if (f_lineno && f_code) {
-				co_filename= PyObject_GetAttrString(f_code, "co_filename");
+				co_filename= ((PyCodeObject *)f_code)->co_filename; /* borrow */
 				if (co_filename) {
 
 					printf("\t%s:%d\n", _PyUnicode_AsString(co_filename), (int)PyLong_AsSsize_t(f_lineno));
 
 					Py_DECREF(f_lineno);
 					Py_DECREF(f_code);
-					Py_DECREF(co_filename);
 					Py_DECREF(frame);
 					return;
 				}
