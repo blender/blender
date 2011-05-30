@@ -90,6 +90,8 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 		}
 	}
 
+	glDisable(GL_BLEND);
+
 	/* current frame */
 	x= (sc->user.framenr-sfra)/(efra-sfra+1)*ar->winx;
 
@@ -101,8 +103,6 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 		glVertex2f(x, 5);
 	glEnd();
 	glLineWidth(1.0);
-
-	glDisable(GL_BLEND);
 }
 
 static void draw_movieclip_buffer(ARegion *ar, ImBuf *ibuf, float zoom)
