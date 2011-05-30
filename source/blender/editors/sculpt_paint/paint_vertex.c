@@ -1028,15 +1028,74 @@ static void do_weight_paint_auto_normalize(MDeformVert *dvert,
 		}
 	}
 }
+/* Jason was here 
+this function will handle normalize with locked groups 
+it assumes that the current ratios (of locked groups)
+are the intended ratios.
+
+also, it does not attempt to force them to add up to 1, that would destroy intergroup weight ratios,
+it simply makes the highest weight sum add up to one
+
+the Mesh is needed to change the ratios across the group
+*/
+static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, char* map)
+{
+	float highestSum = 0.0f;
+	float currentSum;
+	int cnt;
+	int i, k;
+	int totvert = me->totvert;
+	MDeformVert dv;
+
+	if(!map) {
+		return;
+	}
+
+	for(i = 0; i < totvert; i++) {
+		dv = dvert[i];
+		cnt = dv.totweight;
+		currentSum = 0.0f;
+		for(k = 0; k < cnt; k++) {
+			currentSum += (dv.dw+k)->weight;
+		}
+		if(highestSum < currentSum) {
+			highestSum = currentSum;
+		}
+	}
+	if(highestSum == 1.0f) {
+		return;
+	}
+	for(i = 0; i < totvert; i++) {
+		dv = dvert[i];
+		cnt = dv.totweight;
+
+		for(k = 0; k < cnt; k++) {
+			(dv.dw+k)->weight /= highestSum;
+		}
+	}
+}
+/* Jason was here */
+static char get_locked_flag(Object *ob, int vgroup)
+{
+	int i = 0;
+	bDeformGroup *defgroup = ob->defbase.first;
+	for(i = 0; i < vgroup && defgroup; i++) {
+		defgroup = defgroup->next;
+	}
+	return defgroup->flag;
+}
 
 /*Jason was here
 not sure where these prototypes belong at them moment
 static char* gen_lck_flags(Object* ob);
 static void fix_weight_ratios(Mesh *me, MDeformWeight *pnt_dw, float oldw);
 
-gen_lck_flags gets the status of "flag" for each bDeformGroup in ob->defbase and returns an array containing them 
+gen_lck_flags gets the status of "flag" for each bDeformGroup
+in ob->defbase and returns an array containing them
+
+But I didn't need all of them in one place yet, so I'm using get_locked_flag()
 */
-static char* gen_lck_flags(Object* ob)
+/*static char* gen_lck_flags(Object* ob)
 {
 	char is_locked = 0;
 	int i, k;
@@ -1054,7 +1113,7 @@ static char* gen_lck_flags(Object* ob)
 		return flags;
 	}
 	return NULL;
-}
+}*/
 /*Jason was here
 this alters the weights in order to maintain the ratios to match with the change in weights of pnt_dw
 */
@@ -1064,17 +1123,21 @@ static void fix_weight_ratios(Mesh *me, MDeformWeight *pnt_dw, float oldw)
 	float scaledown = 1.0f;
 	float neww = pnt_dw->weight;
 	int defgroup = pnt_dw->def_nr;
+	MDeformVert *dvert;
+	MDeformVert dv;
+	MDeformWeight *dw;
 	totvert = me->totvert;
 	pnt_dw->weight = oldw;
 
 	if(oldw == 0 || neww == 0){
 		return;
 	}
-
+	dvert = me->dvert;
 	for(i = 0; i < totvert; i++) {
-		cnt = (me->dvert+i)->totweight;
+		dv = dvert[i];
+		cnt = dv.totweight;
 		for(k = 0; k < cnt; k++) {
-			MDeformWeight *dw = ((me->dvert+i)->dw+k);
+			dw = dv.dw+k;
 			if(dw->def_nr == defgroup){
 				dw->weight = neww * (dw->weight / oldw);
 				if(dw->weight > scaledown){
@@ -1086,9 +1149,10 @@ static void fix_weight_ratios(Mesh *me, MDeformWeight *pnt_dw, float oldw)
 	}
 	if(scaledown > 1.0f) {
 		for(i = 0; i < totvert; i++) {
-			cnt = (me->dvert+i)->totweight;
+			dv = dvert[i];
+			cnt = dv.totweight;
 			for(k = 0; k < cnt; k++) {
-				MDeformWeight *dw = ((me->dvert+i)->dw+k);
+				dw = dv.dw+k;
 				if(dw->def_nr == defgroup){
 					dw->weight /= scaledown;
 					break;
@@ -1106,7 +1170,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	int vgroup= ob->actdef-1;
 	
 	/* Jason was here */
-	char *flags;
+	char locked;
 	float oldw;
 
 	if(wp->flag & VP_ONLYVGROUP) {
@@ -1120,21 +1184,18 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	if(dw==NULL || uw==NULL)
 		return;
 	/* Jason was here */
-	flags = gen_lck_flags(ob);
+	locked = get_locked_flag(ob, vgroup);
 	oldw = dw->weight;
 
 	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
 
 	/* Jason was here */
-	/* you are not allowed to go to or from zero if the group is locked */
-	if(flags && flags[dw->def_nr]) {
-		if(oldw == 0 || dw->weight == 0){
-			dw->weight = oldw;
-		}
+	if(locked) {
+		fix_weight_ratios(me, dw, oldw);
+		do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+	}else {
+		do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 	}
-
-	do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
-
 	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 		int j= mesh_get_x_mirror_vert(ob, index);
 		if(j>=0) {
@@ -1143,18 +1204,18 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 				uw= defvert_verify_index(me->dvert+j, vgroup_mirror);
 			else
 				uw= defvert_verify_index(me->dvert+j, vgroup);
-				
-			uw->weight= dw->weight;
+			/* Jason */
+			oldw = uw->weight;
 
-			do_weight_paint_auto_normalize(me->dvert+j, vgroup, validmap);
+			uw->weight= dw->weight;
+			/* Jason */
+			if(locked) {
+				fix_weight_ratios(me, uw, oldw);
+				do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+			} else {
+				do_weight_paint_auto_normalize(me->dvert+j, vgroup, validmap);
+			}
 		}
-	}
-	/* Jason was here */
-	if(flags){
-		if(flags[dw->def_nr]) {
-			fix_weight_ratios(me, dw, oldw);
-		}
-		MEM_freeN(flags);
 	}
 }
 
