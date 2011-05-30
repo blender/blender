@@ -37,6 +37,7 @@
 #include <math.h>
 
 #include <ft2build.h>
+#include <libintl.h>
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
@@ -118,6 +119,11 @@ void BLF_cache_clear(void)
 		if (font)
 			blf_glyph_cache_clear(font);
 	}
+}
+
+char* BLF_gettext(const char *msgid)
+{
+	return gettext( msgid );
 }
 
 static int blf_search(const char *name)

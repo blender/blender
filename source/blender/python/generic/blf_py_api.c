@@ -367,6 +367,30 @@ static PyObject *py_blf_load(PyObject *UNUSED(self), PyObject *args)
 	return PyLong_FromLong(BLF_load(filename));
 }
 
+PyDoc_STRVAR(py_blf_gettext_doc,
+".. function:: gettext(msgid)\n"
+"\n"
+"   Get a msg in local language.\n"
+"\n"
+"   :arg msgid: the source string.\n"
+"   :type msgid: string\n"
+"   :return: the localized string.\n"
+"   :rtype: string\n"
+);
+static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *args)
+{
+	char* msgid;
+	char* msgstr;
+	char* error_handle;
+
+	if (!PyArg_ParseTuple(args, "s:blf.gettext", &msgid))
+		return NULL;
+
+	msgstr = BLF_gettext( msgid );
+
+	return PyUnicode_DecodeUTF8( msgstr, strlen(msgstr), error_handle );
+}
+
 /*----------------------------MODULE INIT-------------------------*/
 static PyMethodDef BLF_methods[] = {
 	{"aspect", (PyCFunction) py_blf_aspect, METH_VARARGS, py_blf_aspect_doc},
@@ -382,6 +406,7 @@ static PyMethodDef BLF_methods[] = {
 	{"shadow_offset", (PyCFunction) py_blf_shadow_offset, METH_VARARGS, py_blf_shadow_offset_doc},
 	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
 	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
+	{"gettext", (PyCFunction) py_blf_gettext, METH_VARARGS, py_blf_gettext_doc},
 	{NULL, NULL, 0, NULL}
 };
 
