@@ -59,6 +59,7 @@ def load_image(imagepath,
     :rtype: :class:`Image`
     """
     import os
+    import bpy
 
     # TODO: recursive
 
