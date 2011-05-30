@@ -1251,6 +1251,19 @@ static short unified_settings(Brush *brush)
 	return 0;
 }
 
+// XXX: be careful about setting size and unprojected radius
+// because they depend on one another
+// these functions do not set the other corresponding value
+// this can lead to odd behavior if size and unprojected
+// radius become inconsistent.
+// the biggest problem is that it isn't possible to change
+// unprojected radius because a view context is not
+// available.  my ussual solution to this is to use the
+// ratio of change of the size to change the unprojected
+// radius.  Not completely convinced that is correct.
+// In anycase, a better solution is needed to prevent
+// inconsistency.
+
 static void set_unified_size(Brush *brush, int value)
 {
 	Scene *sce;

@@ -379,7 +379,7 @@ static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
 	ED_object_parent(ob, ob->parent, value, ob->parsubstr);
 }
 
-static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *ob= (Object*)ptr->data;
 	EnumPropertyItem *item= NULL;
@@ -410,7 +410,7 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *p
 	return item;
 }
 
-static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *ob= (Object*)ptr->data;
 	EnumPropertyItem *item= NULL;

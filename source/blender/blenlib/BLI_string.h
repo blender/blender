@@ -123,13 +123,6 @@ __attribute__ ((format (printf, 1, 2)))
 ;
 
 	/**
-	 * Compare two strings
-	 * 
-	 * @retval True if the strings are equal, false otherwise.
-	 */
-int BLI_streq(const char *a, const char *b);
-
-	/**
 	 * Compare two strings without regard to case.
 	 * 
 	 * @retval True if the strings are equal, false otherwise.
@@ -146,6 +139,9 @@ void BLI_timestr(double _time, char *str); /* time var is global */
 
 int BLI_utf8_invalid_byte(const char *str, int length);
 int BLI_utf8_invalid_strip(char *str, int length);
+
+void BLI_ascii_strtolower(char *str, int len);
+void BLI_ascii_strtoupper(char *str, int len);
 
 #ifdef __cplusplus
 }

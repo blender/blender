@@ -36,6 +36,7 @@ class MeshSelectInteriorFaces(bpy.types.Operator):
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
+        from bpy_extras import mesh_utils
         ob = context.active_object
         context.tool_settings.mesh_select_mode = False, False, True
         is_editmode = (ob.mode == 'EDIT')
@@ -47,7 +48,7 @@ class MeshSelectInteriorFaces(bpy.types.Operator):
         face_list = mesh.faces[:]
         face_edge_keys = [face.edge_keys for face in face_list]
 
-        edge_face_count = mesh.edge_face_count_dict
+        edge_face_count = mesh_utils.edge_face_count_dict(mesh)
 
         def test_interior(index):
             for key in face_edge_keys[index]:

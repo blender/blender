@@ -218,7 +218,7 @@ static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
 		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, BLI_findlink(&scene->transform_spaces, v3d->twmode - V3D_MANIP_CUSTOM));
 }
 
-EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, int *free)
+EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Scene *scene = NULL;
 	ListBase *transform_spaces;
@@ -468,7 +468,7 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 	ED_space_image_set(NULL, sima, sc->scene, sc->scene->obedit, (Image*)value.data);
 }
 
-static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
 	EnumPropertyItem *item= NULL;
@@ -840,7 +840,7 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 	bgpic->blend = 1.0f - value;
 }
 
-static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);

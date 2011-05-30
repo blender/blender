@@ -279,7 +279,7 @@ int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);
 void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage, int keep_file_handles);
 struct Sequence	*seq_dupli_recursive(struct Scene *scene, struct Scene *scene_to, struct Sequence * seq, int dupe_flag);
-int seq_swap(struct Sequence *seq_a, struct Sequence *seq_b);
+int seq_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
 
 void seq_update_sound(struct Scene* scene, struct Sequence *seq);
 void seq_update_muting(struct Scene* scene, struct Editing *ed);

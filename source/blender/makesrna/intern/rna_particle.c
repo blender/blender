@@ -702,7 +702,7 @@ static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
 		strcpy(str, "No object");
 }
 
-static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	//if(part->type==PART_REACTOR)
 	//	return part_reactor_from_items;
@@ -710,7 +710,7 @@ static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, i
 		return part_from_items;
 }
 
-static EnumPropertyItem *rna_Particle_dist_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Particle_dist_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	ParticleSettings *part = ptr->id.data;
 
@@ -720,7 +720,7 @@ static EnumPropertyItem *rna_Particle_dist_itemf(bContext *C, PointerRNA *ptr, i
 		return part_dist_items;
 }
 
-static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	ParticleSettings *part = ptr->id.data;
 
@@ -730,7 +730,7 @@ static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *C, PointerRNA *ptr
 		return part_draw_as_items;
 }
 
-static EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	ParticleSettings *part = ptr->id.data;
 

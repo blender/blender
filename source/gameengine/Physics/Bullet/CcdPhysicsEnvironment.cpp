@@ -939,7 +939,7 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 	} else
 	{
 		// TODO: Implement single body case...
-		//No, we can use a fixed rigidbody in above code, rather then unnecessary duplation of code
+		//No, we can use a fixed rigidbody in above code, rather than unnecessary duplation of code
 
 	}
 	
@@ -2271,7 +2271,7 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 	cinfo.m_collisionShape = new btSphereShape(radius); // memory leak! The shape is not deleted by Bullet and we cannot add it to the KX_Scene.m_shapes list
 	cinfo.m_MotionState = 0;
 	cinfo.m_physicsEnv = this;
-	// declare this object as Dyamic rather then static!!
+	// declare this object as Dyamic rather than static!!
 	// The reason as it is designed to detect all type of object, including static object
 	// It would cause static-static message to be printed on the console otherwise
 	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE | btCollisionObject::CF_STATIC_OBJECT;

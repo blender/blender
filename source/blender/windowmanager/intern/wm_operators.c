@@ -56,6 +56,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLO_readfile.h"
@@ -441,10 +442,12 @@ void WM_operator_py_idname(char *to, const char *from)
 {
 	char *sep= strstr(from, "_OT_");
 	if(sep) {
-		int i, ofs= (sep-from);
-
-		for(i=0; i<ofs; i++)
-			to[i]= tolower(from[i]);
+		int ofs= (sep-from);
+		
+		/* note, we use ascii tolower instead of system tolower, because the
+		   latter depends on the locale, and can lead to idname mistmatch */
+		memcpy(to, from, sizeof(char)*ofs);
+		BLI_ascii_strtolower(to, ofs);
 
 		to[ofs] = '.';
 		BLI_strncpy(to+(ofs+1), sep+4, OP_MAX_TYPENAME);
@@ -462,10 +465,10 @@ void WM_operator_bl_idname(char *to, const char *from)
 		char *sep= strchr(from, '.');
 
 		if(sep) {
-			int i, ofs= (sep-from);
+			int ofs= (sep-from);
 
-			for(i=0; i<ofs; i++)
-				to[i]= toupper(from[i]);
+			memcpy(to, from, sizeof(char)*ofs);
+			BLI_ascii_strtoupper(to, ofs);
 
 			BLI_strncpy(to+ofs, "_OT_", OP_MAX_TYPENAME);
 			BLI_strncpy(to+(ofs+4), sep+1, OP_MAX_TYPENAME);
@@ -683,7 +686,7 @@ static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, cons
 		RNA_property_enum_items((bContext *)C, &ptr, prop, &item_array, NULL, &do_free);
 
 		for(item= item_array; item->identifier; item++) {
-			/* note: need to give the intex rather then the dientifier because the enum can be freed */
+			/* note: need to give the intex rather than the dientifier because the enum can be freed */
 			if(BLI_strcasestr(item->name, str))
 				if(0==uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
 					break;
@@ -1457,7 +1460,7 @@ static void open_set_load_ui(wmOperator *op)
 static void open_set_use_scripts(wmOperator *op)
 {
 	if(!RNA_property_is_set(op->ptr, "use_scripts")) {
-		/* use G_SCRIPT_AUTOEXEC rather then the userpref because this means if
+		/* use G_SCRIPT_AUTOEXEC rather than the userpref because this means if
 		 * the flag has been disabled from the command line, then opening
 		 * from the menu wont enable this setting. */
 		RNA_boolean_set(op->ptr, "use_scripts", (G.f & G_SCRIPT_AUTOEXEC));
@@ -1639,12 +1642,12 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* here appending/linking starts */
 	mainl = BLO_library_append_begin(C, &bh, libname);
 	if(totfiles == 0) {
-		BLO_library_append_named_part(C, mainl, &bh, name, idcode, flag);
+		BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 	}
 	else {
 		RNA_BEGIN(op->ptr, itemptr, "files") {
 			RNA_string_get(&itemptr, "name", name);
-			BLO_library_append_named_part(C, mainl, &bh, name, idcode, flag);
+			BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 		}
 		RNA_END;
 	}
@@ -2835,6 +2838,8 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 		alpha = 0.75;
 		break;
 	default:
+		tex_radius= WM_RADIAL_CONTROL_DISPLAY_SIZE; /* note, this is a dummy value */
+		alpha = 0.75;
 		break;
 	}
 
@@ -3094,6 +3099,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(snap) new_value = DEG2RADF(((int)RAD2DEGF(new_value) + 5) / 10*10);
 			break;
 		default:
+			new_value = dist; /* dummy value, should this ever happen? - campbell */
 			break;
 		}
 
@@ -3645,38 +3651,38 @@ static EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(pt
 }
 
 /* can add more as needed */
-EnumPropertyItem *RNA_action_itemf(bContext *C, PointerRNA *ptr, int *do_free)
+EnumPropertyItem *RNA_action_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *do_free)
 {
 	return rna_id_itemf(C, ptr, do_free, C ? (ID *)CTX_data_main(C)->action.first : NULL, FALSE);
 }
-EnumPropertyItem *RNA_action_local_itemf(bContext *C, PointerRNA *ptr, int *do_free)
+EnumPropertyItem *RNA_action_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *do_free)
 {
 	return rna_id_itemf(C, ptr, do_free, C ? (ID *)CTX_data_main(C)->action.first : NULL, TRUE);
 }
 
-EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *do_free)
+EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *do_free)
 {
 	return rna_id_itemf(C, ptr, do_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, FALSE);
 }
-EnumPropertyItem *RNA_group_local_itemf(bContext *C, PointerRNA *ptr, int *do_free)
+EnumPropertyItem *RNA_group_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *do_free)
 {
 	return rna_id_itemf(C, ptr, do_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, TRUE);
 }
 
-EnumPropertyItem *RNA_image_itemf(bContext *C, PointerRNA *ptr, int *do_free)
+EnumPropertyItem *RNA_image_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *do_free)
 {
 	return rna_id_itemf(C, ptr, do_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, FALSE);
 }
-EnumPropertyItem *RNA_image_local_itemf(bContext *C, PointerRNA *ptr, int *do_free)
+EnumPropertyItem *RNA_image_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *do_free)
 {
 	return rna_id_itemf(C, ptr, do_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, TRUE);
 }
 
-EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, int *do_free)
+EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *do_free)
 {
 	return rna_id_itemf(C, ptr, do_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, FALSE);
 }
-EnumPropertyItem *RNA_scene_local_itemf(bContext *C, PointerRNA *ptr, int *do_free)
+EnumPropertyItem *RNA_scene_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *do_free)
 {
 	return rna_id_itemf(C, ptr, do_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, TRUE);
 }

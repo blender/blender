@@ -90,6 +90,7 @@ PropertyRNA *RNA_def_string_file_name(StructOrFunctionRNA *cont, const char *ide
 PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont, const char *identifier, const EnumPropertyItem *items, int default_value, const char *ui_name, const char *ui_description);
 PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont, const char *identifier, const EnumPropertyItem *items, int default_value, const char *ui_name, const char *ui_description);
 void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc);
+void RNA_def_enum_py_data(PropertyRNA *prop, void *py_data);
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);

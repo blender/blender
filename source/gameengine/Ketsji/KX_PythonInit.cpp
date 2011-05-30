@@ -1781,7 +1781,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	PyImport_ExtendInittab(bge_internal_modules);
 
 	/* find local python installation */
-	PyC_SetHomePath(BLI_get_folder(BLENDER_PYTHON, NULL));
+	PyC_SetHomePath(BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL));
 
 	Py_Initialize();
 	

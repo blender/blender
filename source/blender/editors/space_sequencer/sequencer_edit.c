@@ -2719,14 +2719,15 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Sequence *seq_act;
 	Sequence *seq_other;
+	const char *error_msg;
 
 	if(seq_active_pair_get(scene, &seq_act, &seq_other) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Must select 2 strips");
 		return OPERATOR_CANCELLED;
 	}
 
-	if(seq_swap(seq_act, seq_other) == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Strips were not compatible");
+	if(seq_swap(seq_act, seq_other, &error_msg) == 0) {
+		BKE_report(op->reports, RPT_ERROR, error_msg);
 		return OPERATOR_CANCELLED;
 	}
 

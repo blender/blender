@@ -367,7 +367,7 @@ static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 	return item;
 }
 
-static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	bNode *node= (bNode*)ptr->data;
 	Image *ima = (Image *)node->id;
@@ -384,7 +384,7 @@ static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *C, PointerRNA *ptr
 	return item;
 }
 
-static EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	bNode *node= (bNode*)ptr->data;
 	Scene *sce = (Scene *)node->id;
@@ -401,7 +401,7 @@ static EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *C, PointerRNA *ptr
 	return item;
 }
 
-static EnumPropertyItem *rna_Node_channel_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Node_channel_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	bNode *node= (bNode*)ptr->data;
 	EnumPropertyItem *item= NULL;
