@@ -31,16 +31,14 @@ http://www.gnu.org/copyleft/lesser.txt.
 extern "C" {
 #undef __cplusplus
 #include <pthread.h>
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libavutil/rational.h>
-#include <libswscale/swscale.h>
+
+#include "ffmpeg_compat.h"
+
 #include "DNA_listBase.h"
 #include "BLI_threads.h"
 #include "BLI_blenlib.h"
 #define __cplusplus
 }
-
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1

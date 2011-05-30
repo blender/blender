@@ -61,6 +61,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
@@ -72,6 +73,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -286,6 +288,43 @@ static void make_vertexcol(Object *ob)	/* single ob */
 	
 }
 
+/* mirror_vgroup is set to -1 when invalid */
+static void wpaint_mirror_vgroup_ensure(Object *ob, int *vgroup_mirror)
+{
+	bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef - 1);
+
+	if(defgroup) {
+		bDeformGroup *curdef;
+		int mirrdef;
+		char name[MAXBONENAME];
+
+		flip_side_name(name, defgroup->name, FALSE);
+
+		if(strcmp(name, defgroup->name) != 0) {
+			for (curdef= ob->defbase.first, mirrdef; curdef; curdef=curdef->next, mirrdef++) {
+				if (!strcmp(curdef->name, name)) {
+					break;
+				}
+			}
+
+			if(curdef==NULL) {
+				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
+				curdef= ED_vgroup_add_name(ob, name);
+				ob->actdef= olddef;
+			}
+
+			/* curdef should never be NULL unless this is
+			 * a  lamp and ED_vgroup_add_name fails */
+			if(curdef) {
+				*vgroup_mirror= mirrdef;
+				return;
+			}
+		}
+	}
+
+	*vgroup_mirror= -1;
+}
+
 static void copy_vpaint_prev(VPaint *vp, unsigned int *mcol, int tot)
 {
 	if(vp->vpaint_prev) {
@@ -381,32 +420,11 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	}
 	
 	vgroup= ob->actdef-1;
-	
-	/* directly copied from weight_paint, should probaby split into a separate function */
+
 	/* if mirror painting, find the other group */		
 	if(me->editflag & ME_EDIT_MIRROR_X) {
-		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
-		if(defgroup) {
-			bDeformGroup *curdef;
-			int actdef= 0;
-			char name[32];
-
-			flip_side_name(name, defgroup->name, FALSE);
-
-			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
-				if (!strcmp(curdef->name, name))
-					break;
-			if(curdef==NULL) {
-				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
-				curdef= ED_vgroup_add_name (ob, name);
-				ob->actdef= olddef;
-			}
-			
-			if(curdef && curdef!=defgroup)
-				vgroup_mirror= actdef;
-		}
+		wpaint_mirror_vgroup_ensure(ob, &vgroup_mirror);
 	}
-	/* end copy from weight_paint*/
 	
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
 	
@@ -855,144 +873,194 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 
 /* ----------------------------------------------------- */
 
-/* used for 3d view, on active object, assumes me->dvert exists */
-/* if mode==1: */
-/*     samples cursor location, and gives menu with vertex groups to activate */
-/* else */
-/*     sets wp->weight to the closest weight value to vertex */
-/*     note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
-static void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mode)
+
+/* sets wp->weight to the closest weight value to vertex */
+/* note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
+static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewContext vc;
-	ToolSettings *ts= scene->toolsettings;
-	Object *ob= OBACT;
-	Mesh *me= get_mesh(ob);
-	int index;
-	int mval[2] = {0, 0}, sco[2];
-	int vgroup= ob->actdef-1;
+	Mesh *me;
+	short change= FALSE;
 
-	if (!me) return;
-	
-//	getmouseco_areawin(mval);
-	index= view3d_sample_backbuf(&vc, mval[0], mval[1]);
-	
-	if(index && index<=me->totface) {
-		MFace *mface;
-		
-		mface= ((MFace *)me->mface) + index-1;
-		
-		if(mode==1) {	/* sampe which groups are in here */
-			MDeformVert *dv;
-			int a, totgroup;
-			
-			totgroup= BLI_countlist(&ob->defbase);
-			if(totgroup) {
-				int totmenu=0;
-				int *groups=MEM_callocN(totgroup*sizeof(int), "groups");
-				
-				dv= me->dvert+mface->v1;
-				for(a=0; a<dv->totweight; a++) {
-					if (dv->dw[a].def_nr<totgroup)
-						groups[dv->dw[a].def_nr]= 1;
-				}
-				dv= me->dvert+mface->v2;
-				for(a=0; a<dv->totweight; a++) {
-					if (dv->dw[a].def_nr<totgroup)
-						groups[dv->dw[a].def_nr]= 1;
-				}
-				dv= me->dvert+mface->v3;
-				for(a=0; a<dv->totweight; a++) {
-					if (dv->dw[a].def_nr<totgroup)
-						groups[dv->dw[a].def_nr]= 1;
-				}
-				if(mface->v4) {
-					dv= me->dvert+mface->v4;
-					for(a=0; a<dv->totweight; a++) {
-						if (dv->dw[a].def_nr<totgroup)
-							groups[dv->dw[a].def_nr]= 1;
-					}
-				}
-				for(a=0; a<totgroup; a++)
-					if(groups[a]) totmenu++;
-				
-				if(totmenu==0) {
-					//notice("No Vertex Group Selected");
-				}
-				else {
-					bDeformGroup *dg;
-					short val;
-					char item[40], *str= MEM_mallocN(40*totmenu+40, "menu");
-					
-					strcpy(str, "Vertex Groups %t");
-					for(a=0, dg=ob->defbase.first; dg && a<totgroup; a++, dg= dg->next) {
-						if(groups[a]) {
-							sprintf(item, "|%s %%x%d", dg->name, a);
-							strcat(str, item);
-						}
-					}
-					
-					val= 0; // XXX pupmenu(str);
-					if(val>=0) {
-						ob->actdef= val+1;
-						DAG_id_tag_update(&me->id, 0);
-					}
-					MEM_freeN(str);
-				}
-				MEM_freeN(groups);
-			}
-//			else notice("No Vertex Groups in Object");
-		}
-		else {
-			DerivedMesh *dm;
-			float w1, w2, w3, w4, co[3], fac;
-			
-			dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+	view3d_set_viewcontext(C, &vc);
+	me= get_mesh(vc.obact);
+
+	if (me && me->dvert && vc.v3d && vc.rv3d) {
+		int index;
+
+		view3d_operator_needs_opengl(C);
+
+		index= view3d_sample_backbuf(&vc, event->mval[0], event->mval[1]);
+
+		if(index && index<=me->totface) {
+			DerivedMesh *dm= mesh_get_derived_final(vc.scene, vc.obact, CD_MASK_BAREMESH);
+
 			if(dm->getVertCo==NULL) {
-				//notice("Not supported yet");
+				BKE_report(op->reports, RPT_WARNING, "The modifier used does not support deformed locations");
 			}
 			else {
-				/* calc 3 or 4 corner weights */
-				dm->getVertCo(dm, mface->v1, co);
-				project_int_noclip(ar, co, sco);
-				w1= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-				
-				dm->getVertCo(dm, mface->v2, co);
-				project_int_noclip(ar, co, sco);
-				w2= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-				
-				dm->getVertCo(dm, mface->v3, co);
-				project_int_noclip(ar, co, sco);
-				w3= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-				
-				if(mface->v4) {
-					dm->getVertCo(dm, mface->v4, co);
-					project_int_noclip(ar, co, sco);
-					w4= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-				}
-				else w4= 1.0e10;
-				
-				fac= MIN4(w1, w2, w3, w4);
-				if(w1==fac) {
-					ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v1, vgroup);
-				}
-				else if(w2==fac) {
-					ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v2, vgroup);
-				}
-				else if(w3==fac) {
-					ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v3, vgroup);
-				}
-				else if(w4==fac) {
-					if(mface->v4) {
-						ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v4, vgroup);
+				MFace *mf= ((MFace *)me->mface) + index-1;
+				const int vgroup= vc.obact->actdef - 1;
+				ToolSettings *ts= vc.scene->toolsettings;
+				float mval_f[2];
+				int v_idx_best= -1;
+				int fidx;
+				float len_best= FLT_MAX;
+
+				mval_f[0]= (float)event->mval[0];
+				mval_f[1]= (float)event->mval[1];
+
+				fidx= mf->v4 ? 3:2;
+				do {
+					float co[3], sco[3], len;
+					const int v_idx= (*(&mf->v1 + fidx));
+					dm->getVertCo(dm, v_idx, co);
+					project_float_noclip(vc.ar, co, sco);
+					len= len_squared_v2v2(mval_f, sco);
+					if(len < len_best) {
+						len_best= len;
+						v_idx_best= v_idx;
 					}
+				} while (fidx--);
+
+				if(v_idx_best != -1) { /* should always be valid */
+					ts->vgroup_weight= defvert_find_weight(&me->dvert[v_idx_best], vgroup);
+					change= TRUE;
 				}
 			}
 			dm->release(dm);
-		}		
-		
+		}
 	}
-	
+
+	if(change) {
+		/* not really correct since the brush didnt change, but redraws the toolbar */
+		WM_main_add_notifier(NC_BRUSH|NA_EDITED, NULL); /* ts->wpaint->paint.brush */
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
+
+void PAINT_OT_weight_sample(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Weight Paint Sample Weight";
+	ot->idname= "PAINT_OT_weight_sample";
+
+	/* api callbacks */
+	ot->invoke= weight_sample_invoke;
+	ot->poll= weight_paint_mode_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
+}
+
+/* samples cursor location, and gives menu with vertex groups to activate */
+static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+{
+	if (C) {
+		wmWindow *win= CTX_wm_window(C);
+		if(win && win->eventstate) {
+			ViewContext vc;
+			Mesh *me;
+
+			view3d_set_viewcontext(C, &vc);
+			me= get_mesh(vc.obact);
+
+			if (me && me->dvert && vc.v3d && vc.rv3d) {
+				int index;
+
+				view3d_operator_needs_opengl(C);
+
+				index= view3d_sample_backbuf(&vc, win->eventstate->x - vc.ar->winrct.xmin, win->eventstate->y - vc.ar->winrct.ymin);
+
+				if(index && index<=me->totface) {
+					const int totgroup= BLI_countlist(&vc.obact->defbase);
+					if(totgroup) {
+						MFace *mf= ((MFace *)me->mface) + index-1;
+						int fidx= mf->v4 ? 3:2;
+						int *groups= MEM_callocN(totgroup*sizeof(int), "groups");
+						int found= FALSE;
+
+						do {
+							MDeformVert *dvert= me->dvert + (*(&mf->v1 + fidx));
+							int i= dvert->totweight;
+							MDeformWeight *dw;
+							for(dw= dvert->dw; i > 0; dw++, i--) {
+								groups[dw->def_nr]= TRUE;
+								found= TRUE;
+							}
+						} while (fidx--);
+
+						if(found==FALSE) {
+							MEM_freeN(groups);
+						}
+						else {
+							EnumPropertyItem *item= NULL, item_tmp= {0};
+							int totitem= 0;
+							int i= 0;
+							bDeformGroup *dg;
+							for(dg= vc.obact->defbase.first; dg && i<totgroup; i++, dg= dg->next) {
+								if(groups[i]) {
+									item_tmp.identifier= item_tmp.name= dg->name;
+									item_tmp.value= i;
+									RNA_enum_item_add(&item, &totitem, &item_tmp);
+								}
+							}
+
+							RNA_enum_item_end(&item, &totitem);
+							*free= 1;
+
+							MEM_freeN(groups);
+							return item;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return DummyRNA_NULL_items;
+}
+
+static int weight_sample_group_exec(bContext *C, wmOperator *op)
+{
+	int type= RNA_enum_get(op->ptr, "group");
+	ViewContext vc;
+	view3d_set_viewcontext(C, &vc);
+
+	vc.obact->actdef= type + 1;
+
+	DAG_id_tag_update(&vc.obact->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, vc.obact);
+	return OPERATOR_FINISHED;
+}
+
+/* TODO, we could make this a menu into OBJECT_OT_vertex_group_set_active rather than its own operator */
+void PAINT_OT_weight_sample_group(wmOperatorType *ot)
+{
+	PropertyRNA *prop= NULL;
+
+	/* identifiers */
+	ot->name= "Weight Paint Sample Group";
+	ot->idname= "PAINT_OT_weight_sample_group";
+
+	/* api callbacks */
+	ot->exec= weight_sample_group_exec;
+	ot->invoke= WM_menu_invoke;
+	ot->poll= weight_paint_mode_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
+
+	/* keyingset to use (dynamic enum) */
+	prop= RNA_def_enum(ot->srna, "group", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
+	RNA_def_enum_funcs(prop, weight_paint_sample_enum_itemf);
+	ot->prop= prop;
+}
+
 
 static void do_weight_paint_auto_normalize(MDeformVert *dvert, 
 					   int paint_nr, char *map)
@@ -1299,26 +1367,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	
 	/* if mirror painting, find the other group */
 	if(me->editflag & ME_EDIT_MIRROR_X) {
-		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
-		if(defgroup) {
-			bDeformGroup *curdef;
-			int actdef= 0;
-			char name[32];
-
-			flip_side_name(name, defgroup->name, FALSE);
-
-			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
-				if (!strcmp(curdef->name, name))
-					break;
-			if(curdef==NULL) {
-				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
-				curdef= ED_vgroup_add_name (ob, name);
-				ob->actdef= olddef;
-			}
-			
-			if(curdef && curdef!=defgroup)
-				wpd->vgroup_mirror= actdef;
-		}
+		wpaint_mirror_vgroup_ensure(ob, &wpd->vgroup_mirror);
 	}
 	
 	return 1;

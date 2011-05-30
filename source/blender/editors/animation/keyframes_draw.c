@@ -372,7 +372,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, DLRBT_Tree *beztTree,
 		blocks->root= (DLRBT_Node *)new_ab;
 	}
 	else {
-		ActKeyBlock *ab, *abp=NULL, *abn=NULL;
+		ActKeyBlock *ab, *abn=NULL;
 		
 		/* try to find a keyblock that starts on the previous beztriple, and add a new one if none start there
 		 * Note: we can't search from end to try to optimise this as it causes errors there's
@@ -382,7 +382,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, DLRBT_Tree *beztTree,
 		//		A|--------------|A ______________ B|--------------|B
 		//		A|------------------------------------------------|A
 		//		A|----|A|---|A|-----------------------------------|A
-		for (ab= blocks->root; ab; abp= ab, ab= abn) {
+		for (ab= blocks->root; ab; ab= abn) {
 			/* check if this is a match, or whether we go left or right */
 			if (ab->start == prev->vec[1][0]) {
 				/* set selection status and 'touched' status */

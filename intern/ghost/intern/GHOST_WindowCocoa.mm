@@ -461,9 +461,13 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 
 GHOST_WindowCocoa::~GHOST_WindowCocoa()
 {
-	if (m_customCursor) delete m_customCursor;
-
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	if (m_customCursor) {
+		[m_customCursor release];
+		m_customCursor = nil;
+	}
+
 	[m_openGLView release];
 	
 	if (m_window) {

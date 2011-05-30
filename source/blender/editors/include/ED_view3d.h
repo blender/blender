@@ -284,6 +284,7 @@ unsigned int ED_view3d_datamask(struct Scene *scene, struct View3D *v3d);
 unsigned int ED_viewedit_datamask(struct bScreen *screen);
 
 /* camera lock functions */
+int ED_view3d_camera_lock_check(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the camera to the view before starting a view transformation */
 void ED_view3d_camera_lock_init(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the view to the camera */
