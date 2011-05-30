@@ -43,14 +43,14 @@ struct anim;
 
 /* match-moving data */
 
-typedef struct MovieTrackingCameraData {
+typedef struct MovieTrackingCamera {
 	float focal;	/* focal length */
 	float pad;
-} MovieTrackingCameraData;
+} MovieTrackingCamera;
 
-typedef struct MovieTrackingData {
-	struct MovieTrackingCameraData camera;
-} MovieTrackingData;
+typedef struct MovieTracking {
+	struct MovieTrackingCamera camera;
+} MovieTracking;
 
 /* clip data */
 
@@ -70,7 +70,7 @@ typedef struct MovieClip {
 	struct anim *anim;	/* movie source data */
 	void *ibuf_cache;	/* cache of ibufs, not in file */
 
-	MovieTrackingData tracking;		/* data for SfM tracking */
+	MovieTracking tracking;		/* data for SfM tracking */
 } MovieClip;
 
 /* MovieClip->source */

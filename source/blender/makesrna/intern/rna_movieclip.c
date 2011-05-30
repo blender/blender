@@ -58,33 +58,33 @@ static void rna_MovieClip_reload_update(Main *bmain, Scene *scene, PointerRNA *p
 
 #else
 
-static void rna_def_movie_trackingCameraData(BlenderRNA *brna)
+static void rna_def_movie_trackingCamera(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "MovieTrackingCameraData", NULL);
+	srna= RNA_def_struct(brna, "MovieTrackingCamera", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking camera data", "Match-moving camera data for tracking");
 
 	prop= RNA_def_property(srna, "focal_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "focal");
 	RNA_def_property_range(prop, 1.0f, 5000.0f);
 	RNA_def_property_ui_text(prop, "Focal Length", "Camera's focal length in millimeters");
-	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_MovieClip_reload_update");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 }
 
-static void rna_def_movie_trackingData(BlenderRNA *brna)
+static void rna_def_movie_tracking(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	rna_def_movie_trackingCameraData(brna);
+	rna_def_movie_trackingCamera(brna);
 
-	srna= RNA_def_struct(brna, "MovieTrackingData", NULL);
+	srna= RNA_def_struct(brna, "MovieTracking", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking data", "Match-moving data for tracking");
 
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "MovieTrackingCameraData");
+	RNA_def_property_struct_type(prop, "MovieTrackingCamera");
 }
 
 static void rna_def_movieclip(BlenderRNA *brna)
@@ -92,7 +92,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	rna_def_movie_trackingData(brna);
+	rna_def_movie_tracking(brna);
 
 	srna= RNA_def_struct(brna, "MovieClip", "ID");
 	RNA_def_struct_ui_text(srna, "MovieClip", "MovieClip datablock referencing an external movie file");
@@ -104,7 +104,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_MovieClip_reload_update");
 
 	prop= RNA_def_property(srna, "tracking", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "MovieTrackingData");
+	RNA_def_property_struct_type(prop, "MovieTracking");
 }
 
 static void rna_def_movieclip_tools(BlenderRNA *brna)
