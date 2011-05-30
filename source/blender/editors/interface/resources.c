@@ -160,6 +160,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 			case SPACE_LOGIC:
 				ts= &btheme->tlogic;
 				break;
+			case SPACE_CLIP:
+				ts= &btheme->tclip;
+				break;
 			default:
 				ts= &btheme->tv3d;
 				break;
@@ -534,6 +537,7 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->tlogic);
 	ui_theme_init_new_do(&btheme->tuserpref);
 	ui_theme_init_new_do(&btheme->tconsole);
+	ui_theme_init_new_do(&btheme->tclip);
 	
 }
 
@@ -791,6 +795,8 @@ void ui_theme_init_default(void)
 	btheme->tlogic= btheme->tv3d;
 	SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
 	
+	/* space clip */
+	btheme->tclip= btheme->tv3d;
 }
 
 

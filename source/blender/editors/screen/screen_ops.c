@@ -2748,6 +2748,10 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 				if(redraws & TIME_ALL_IMAGE_WIN)
 					return 1;
 				break;
+			case SPACE_CLIP:
+				if(redraws & TIME_CLIPS)
+					return 1;
+				break;
 				
 		}
 	}

@@ -89,6 +89,7 @@ void ED_spacetypes_init(void)
 	ED_spacetype_logic();
 	ED_spacetype_console();
 	ED_spacetype_userpref();
+	ED_spacetype_clip();
 //	...
 	
 	/* register operator types for screen and all spaces */

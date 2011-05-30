@@ -71,6 +71,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -108,6 +109,7 @@
 #include "BKE_particle.h"
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
+#include "BKE_movieclip.h"
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -427,6 +429,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->wm);
 		case ID_GD:
 			return &(mainlib->gpencil);
+		case ID_MC:
+			return &(mainlib->movieclip);
 	}
 	return NULL;
 }
@@ -507,6 +511,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->scene);
 	lb[a++]= &(main->library);
 	lb[a++]= &(main->wm);
+	lb[a++]= &(main->movieclip);
 	
 	lb[a]= NULL;
 
@@ -611,6 +616,9 @@ static ID *alloc_libblock_notest(short type)
 			  break;
 		case ID_GD:
 			id = MEM_callocN(sizeof(bGPdata), "Grease Pencil");
+			break;
+		case ID_MC:
+			id = MEM_callocN(sizeof(MovieClip), "Movie Clip");
 			break;
 	}
 	return id;
@@ -815,6 +823,9 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_GD:
 			free_gpencil_data((bGPdata *)id);
+			break;
+		case ID_MC:
+			free_movieclip((MovieClip *)id);
 			break;
 	}
 

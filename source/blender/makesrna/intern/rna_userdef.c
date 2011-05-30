@@ -1717,6 +1717,19 @@ static void rna_def_userdef_theme_colorset(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
+static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	/* space_clip */
+
+	srna= RNA_def_struct(brna, "ThemeClipEditor", NULL);
+	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_ui_text(srna, "Theme Clip Editor", "Theme settings for the Movie Clip Editor");
+
+	rna_def_userdef_theme_spaces_main(srna, SPACE_CLIP);
+}
+
 static void rna_def_userdef_themes(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1741,6 +1754,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{15, "INFO", ICON_INFO, "Info", ""},
 		{16, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
 		{17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
+	    {20, "CLIP_EDITOR", ICON_CLIP, "Movie Clip Editor", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Theme", NULL);
@@ -1863,6 +1877,12 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "tarm", "");
 	RNA_def_property_struct_type(prop, "ThemeBoneColorSet");
 	RNA_def_property_ui_text(prop, "Bone Color Sets", "");
+
+	prop= RNA_def_property(srna, "clip_editor", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "tclip");
+	RNA_def_property_struct_type(prop, "ThemeConsole");
+	RNA_def_property_ui_text(prop, "Clip Editor", "");
 }
 
 static void rna_def_userdef_addon(BlenderRNA *brna)
@@ -1903,6 +1923,7 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
 	rna_def_userdef_theme_space_console(brna);
 	rna_def_userdef_theme_space_sound(brna);
 	rna_def_userdef_theme_space_logic(brna);
+	rna_def_userdef_theme_space_clip(brna);
 	rna_def_userdef_theme_colorset(brna);
 	rna_def_userdef_themes(brna);
 }

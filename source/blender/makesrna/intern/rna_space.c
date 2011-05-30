@@ -69,6 +69,7 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_LOGIC, "LOGIC_EDITOR", 0, "Logic Editor", ""},
 	{SPACE_CONSOLE, "CONSOLE", 0, "Python Console", ""},
 	{SPACE_USERPREF, "USER_PREFERENCES", 0, "User Preferences", ""},
+	{SPACE_CLIP, "CLIP_EDITOR", 0, "Clip Editor", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem draw_channels_items[] = {
@@ -122,6 +123,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_sequencer.h"
+#include "ED_movieclip.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -168,6 +170,8 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceConsole;
 		case SPACE_USERPREF:
 			return &RNA_SpaceUserPreferences;
+		case SPACE_CLIP:
+			return &RNA_SpaceClipEditor;
 		default:
 			return &RNA_Space;
 	}
@@ -891,6 +895,13 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 	*free = 1;
 
 	return item;
+}
+
+static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceClip *sc= (SpaceClip*)(ptr->data);
+
+	ED_space_clip_set(NULL, sc, (MovieClip*)value.data);
 }
 
 #else
@@ -2561,6 +2572,31 @@ static void rna_def_space_logic(BlenderRNA *brna)
 
 }
 
+static void rna_def_space_clip(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "SpaceClipEditor", "Space");
+	RNA_def_struct_sdna(srna, "SpaceClip");
+	RNA_def_struct_ui_text(srna, "Space Clip Editor", "Clip editor space data");
+
+	/* movieclip */
+	prop= RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Movie Clip", "Movie clip displayed and edited in this space");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_clip_set", NULL, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* ** debug flags ** */
+
+	/* show cache */
+	prop= RNA_def_property(srna, "show_cache", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Cache", "Show cached frames for current clip");
+	RNA_def_property_boolean_sdna(prop, NULL, "debug_flags", SC_DBG_SHOW_CACHE);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+}
+
 void RNA_def_space(BlenderRNA *brna)
 {
 	rna_def_space(brna);
@@ -2583,6 +2619,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_userpref(brna);
 	rna_def_space_node(brna);
 	rna_def_space_logic(brna);
+	rna_def_space_clip(brna);
 }
 
 #endif

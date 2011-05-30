@@ -129,6 +129,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_blenlib.h"
@@ -2170,6 +2171,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if(sl->spacetype==SPACE_USERPREF) {
 					writestruct(wd, DATA, "SpaceUserPref", 1, sl);
 				}
+				else if(sl->spacetype==SPACE_CLIP) {
+					writestruct(wd, DATA, "SpaceClip", 1, sl);
+				}
 
 				sl= sl->next;
 			}
@@ -2401,6 +2405,23 @@ static void write_scripts(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_movieclips(WriteData *wd, ListBase *idbase)
+{
+	MovieClip *clip;
+
+	clip= idbase->first;
+	while(clip) {
+		if(clip->id.us>0 || wd->current) {
+			writestruct(wd, ID_MC, "MovieClip", 1, clip);
+		}
+
+		clip= clip->id.next;
+	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
+}
+
 /* context is usually defined by WM, two cases where no WM is available:
  * - for forward compatibility, curscreen has to be saved
  * - for undofile, curscene needs to be saved */
@@ -2501,6 +2522,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
 	write_gpencils (wd, &mainvar->gpencil);
+	write_movieclips (wd, &mainvar->movieclip);
 	write_libraries(wd,  mainvar->next);
 
 	if (write_user_block) {

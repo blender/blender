@@ -113,6 +113,8 @@ set(SRC
 	intern/mesh.c
 	intern/mesh_validate.c
 	intern/modifier.c
+	intern/movieclip.c
+	intern/moviecache.c
 	intern/multires.c
 	intern/nla.c
 	intern/node.c
@@ -195,6 +197,8 @@ set(SRC
 	BKE_mball.h
 	BKE_mesh.h
 	BKE_modifier.h
+	BKE_movieclip.h
+	BKE_moviecache.h
 	BKE_multires.h
 	BKE_nla.h
 	BKE_node.h

@@ -1170,6 +1170,7 @@ static const char *editortype_pup(void)
 		   "|UV/Image Editor %x6"
 		   
 		   "|Video Sequence Editor %x8"
+		   "|Movie Clip Editor %x20"
 		   "|Text Editor %x9" 
 		   "|Node Editor %x16"
 		   "|Logic Editor %x17"

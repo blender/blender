@@ -39,6 +39,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_outliner_types.h"		/* for TreeStoreElem */
 #include "DNA_image_types.h"	/* ImageUser */
+#include "DNA_movieclip_types.h"	/* MovieClipUser */
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 
@@ -64,6 +65,7 @@ struct bScreen;
 struct Scene;
 struct wmOperator;
 struct wmTimer;
+struct MovieClip;
 
 	/**
 	 * The base structure all the other spaces
@@ -562,6 +564,21 @@ typedef struct SpaceSound {
 	int pad2;
 } SpaceSound;
 
+typedef struct SpaceClip {
+	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+
+	float xof, yof;				/* user defined offset, image is centered */
+	float zoom;					/* user defined zoom level */
+
+	struct MovieClipUser user;	/* user of clip */
+	struct MovieClip *clip;		/* clip data */
+
+	int debug_flags;			/* flags for debugging */
+	int pad;
+} SpaceClip;
+
 /* view3d  Now in DNA_view3d_types.h */
 
 
@@ -895,6 +912,7 @@ enum {
 #define TIME_ALL_IMAGE_WIN		64
 #define TIME_CONTINUE_PHYSICS	128
 #define TIME_NODES				256
+#define TIME_CLIPS				512
 
 /* time->cache */
 #define TIME_CACHE_DISPLAY		1
@@ -931,6 +949,9 @@ enum {
 #define SEQ_PROXY_RENDER_SIZE_75        75
 #define SEQ_PROXY_RENDER_SIZE_FULL      100
 
+/* SpaceClip->debug)flag */
+#define SC_DBG_SHOW_CACHE	(1<<0)
+
 
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */
@@ -955,7 +976,8 @@ enum {
 	SPACE_LOGIC,
 	SPACE_CONSOLE,
 	SPACE_USERPREF,
-	SPACEICONMAX = SPACE_USERPREF
+	SPACE_CLIP,
+	SPACEICONMAX = SPACE_CLIP
 };
 
 #endif

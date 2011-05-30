@@ -610,6 +610,11 @@ typedef struct VPaint {
 	void *paintcursor;					/* wm handle */
 } VPaint;
 
+typedef struct MovieClipEditSettings {
+	short tool;
+	char pad[6];
+} MovieClipEditSettings;
+
 /* VPaint flag */
 #define VP_COLINDEX	1
 #define VP_AREA		2
@@ -743,6 +748,9 @@ typedef struct ToolSettings {
 	int sculpt_paint_unified_size; /* unified radius of brush in pixels */
 	float sculpt_paint_unified_unprojected_radius;/* unified radius of brush in Blender units */
 	float sculpt_paint_unified_alpha; /* unified strength of brush */
+
+	/* Movie Clip Editing */
+	struct MovieClipEditSettings movieclip;
 } ToolSettings;
 
 typedef struct bStats {
@@ -1307,6 +1315,10 @@ typedef enum SculptFlags {
 #define	USER_UNIT_OPT_SPLIT		1
 #define USER_UNIT_ROT_RADIANS	2
 
+/* toolsetting->movieclip tool */
+#define MCLIP_TOOL_NONE		0
+#define MCLIP_TOOL_FOOTAGE	1
+#define MCLIP_TOOL_CAMERA	2
 
 #ifdef __cplusplus
 }

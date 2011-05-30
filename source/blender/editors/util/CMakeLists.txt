@@ -58,6 +58,7 @@ set(SRC
 	../include/ED_markers.h
 	../include/ED_mball.h
 	../include/ED_mesh.h
+	../include/ED_movieclip.h
 	../include/ED_node.h
 	../include/ED_numinput.h
 	../include/ED_object.h

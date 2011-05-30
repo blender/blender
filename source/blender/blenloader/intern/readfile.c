@@ -88,6 +88,7 @@
 #include "DNA_space_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1032,6 +1033,8 @@ void blo_freefiledata(FileData *fd)
 			oldnewmap_free(fd->globmap);
 		if (fd->imamap)
 			oldnewmap_free(fd->imamap);
+		if (fd->movieclipmap)
+			oldnewmap_free(fd->movieclipmap);
 		if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP))
 			oldnewmap_free(fd->libmap);
 		if (fd->bheadmap)
@@ -1104,6 +1107,13 @@ static void *newimaadr(FileData *fd, void *adr)		/* used to restore image data a
 {
 	if(fd->imamap && adr)
 		return oldnewmap_lookup_and_inc(fd->imamap, adr);
+	return NULL;
+}
+
+static void *newmclipadr(FileData *fd, void *adr)              /* used to restore movie clip data after undo */
+{
+	if(fd->movieclipmap && adr)
+		return oldnewmap_lookup_and_inc(fd->movieclipmap, adr);
 	return NULL;
 }
 
@@ -1234,6 +1244,38 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 		}
 	}
 }
+
+void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain)
+{
+	MovieClip *clip= oldmain->movieclip.first;
+
+	fd->movieclipmap= oldnewmap_new();
+
+	for(;clip; clip= clip->id.next) {
+		if(clip->ibuf_cache)
+			oldnewmap_insert(fd->movieclipmap, clip->ibuf_cache, clip->ibuf_cache, 0);
+	}
+}
+
+/* set old main movie clips caches to zero if it has been restored */
+/* this works because freeing old main only happens after this call */
+void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
+{
+	OldNew *entry= fd->movieclipmap->entries;
+	MovieClip *clip= oldmain->movieclip.first;
+	int i;
+
+	/* used entries were restored, so we put them to zero */
+	for (i=0; i<fd->movieclipmap->nentries; i++, entry++) {
+		if (entry->nr>0)
+				entry->newp= NULL;
+	}
+
+	for(;clip; clip= clip->id.next) {
+		clip->ibuf_cache= newmclipadr(fd, clip->ibuf_cache);
+	}
+}
+
 
 /* undo file support: add all library pointers in lookup */
 void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd)
@@ -4938,6 +4980,11 @@ static void lib_link_screen(FileData *fd, Main *main)
 						
 						snode->linkdrag.first = snode->linkdrag.last = NULL;
 					}
+					else if(sl->spacetype==SPACE_CLIP) {
+						SpaceClip *sclip= (SpaceClip *)sl;
+
+						sclip->clip= newlibadr_us(fd, sc->id.lib, sclip->clip);
+					}
 				}
 				sa= sa->next;
 			}
@@ -5163,6 +5210,11 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						else if(GS(snode->id->name)==ID_TE)
 							snode->nodetree= ((Tex *)snode->id)->nodetree;
 					}
+				}
+				else if(sl->spacetype==SPACE_CLIP) {
+					SpaceClip *sc= (SpaceClip *)sl;
+
+					sc->clip= restore_pointer_by_name(newmain, (ID *)sc->clip, 1);
 				}
 			}
 			sa= sa->next;
@@ -5607,6 +5659,31 @@ static void lib_link_group(FileData *fd, Main *main)
 	}
 }
 
+/* ***************** READ MOVIECLIP *************** */
+
+static void direct_link_movieclip(FileData *fd, MovieClip *clip)
+{
+	if(fd->movieclipmap)
+		clip->ibuf_cache= newmclipadr(fd, clip->ibuf_cache);
+	else
+		clip->ibuf_cache= NULL;
+
+	clip->anim= NULL;
+}
+
+static void lib_link_movieclip(FileData *UNUSED(fd), Main *main)
+{
+	MovieClip *clip;
+
+	clip= main->movieclip.first;
+	while(clip) {
+		if(clip->id.flag & LIB_NEEDLINK) {
+			clip->id.flag -= LIB_NEEDLINK;
+		}
+		clip= clip->id.next;
+	}
+}
+
 /* ************** GENERAL & MAIN ******************** */
 
 
@@ -5640,6 +5717,7 @@ static const char *dataname(short id_code)
 		case ID_BR: return "Data from BR";
 		case ID_PA: return "Data from PA";
 		case ID_GD: return "Data from GD";
+		case ID_MC: return "Data from MC";
 	}
 	return "Data from Lib Block";
 	
@@ -5806,6 +5884,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_GD:
 			direct_link_gpencil(fd, (bGPdata *)id);
+			break;
+		case ID_MC:
+			direct_link_movieclip(fd, (MovieClip *)id);
 			break;
 	}
 	
@@ -11703,6 +11784,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_nodetree(fd, main);	/* has to be done after scene/materials, this will verify group nodes */
 	lib_link_brush(fd, main);
 	lib_link_particlesettings(fd, main);
+	lib_link_movieclip(fd, main);
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 

@@ -750,6 +750,7 @@ endif()
 		bf_editor_space_time
 		bf_editor_space_userpref
 		bf_editor_space_view3d
+		bf_editor_space_clip
 
 		bf_editor_text
 		bf_editor_transform
