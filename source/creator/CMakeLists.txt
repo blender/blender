@@ -462,10 +462,11 @@ elseif(WIN32)
 			PATTERN "__pycache__" EXCLUDE
 		)
 
-		# TODO, multiple targets?
-		install(FILES ${LIBDIR}/python/lib/python32.dll DESTINATION ${TARGETDIR} CONFIGURATIONS Release)
-		install(FILES ${LIBDIR}/python/lib/python32.dll DESTINATION ${TARGETDIR} CONFIGURATIONS RelWithDebInfo)
-		install(FILES ${LIBDIR}/python/lib/python32.dll DESTINATION ${TARGETDIR} CONFIGURATIONS MinSizeRel)
+		install(
+			FILES ${LIBDIR}/python/lib/python32.dll
+			DESTINATION ${TARGETDIR}
+			CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+		)
 
 		install(
 			FILES ${LIBDIR}/python/lib/python32_d.dll
@@ -490,34 +491,14 @@ elseif(WIN32)
 			install(
 				CODE
 				"
-				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-					\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+				if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" STREQUAL \"Debug\")
+					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32_d.tar.gz\")
+				else()
+					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+				endif()
 				"
-				CONFIGURATIONS Release
-			)
-			install(
-				CODE
-				"
-				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-					\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
-				"
-				CONFIGURATIONS RelWithDebInfo
-			)
-			install(
-				CODE
-				"
-				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-					\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
-				"
-				CONFIGURATIONS MinSizeRel
-			)
-			install(
-				CODE
-				"
-				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-					\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32_d.tar.gz\")
-				"
-				CONFIGURATIONS Debug
 			)
 
 			# doesnt work, todo
