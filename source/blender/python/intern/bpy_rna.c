@@ -2530,12 +2530,14 @@ static PyMappingMethods pyrna_struct_as_mapping= {
 PyDoc_STRVAR(pyrna_struct_keys_doc,
 ".. method:: keys()\n"
 "\n"
-"   Returns the keys of this objects custom properties (matches pythons dictionary function of the same name).\n"
+"   Returns the keys of this objects custom properties (matches pythons\n"
+"   dictionary function of the same name).\n"
 "\n"
 "   :return: custom property keys.\n"
 "   :rtype: list of strings\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n"
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes\n"
+"      support custom properties.\n"
 );
 static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 {
@@ -2557,12 +2559,14 @@ static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 PyDoc_STRVAR(pyrna_struct_items_doc,
 ".. method:: items()\n"
 "\n"
-"   Returns the items of this objects custom properties (matches pythons dictionary function of the same name).\n"
+"   Returns the items of this objects custom properties (matches pythons\n"
+"   dictionary function of the same name).\n"
 "\n"
 "   :return: custom property key, value pairs.\n"
 "   :rtype: list of key, value tuples\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n"
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone`\n"
+"      classes support custom properties.\n"
 );
 static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 {
@@ -2584,12 +2588,14 @@ static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 PyDoc_STRVAR(pyrna_struct_values_doc,
 ".. method:: values()\n"
 "\n"
-"   Returns the values of this objects custom properties (matches pythons dictionary function of the same name).\n"
+"   Returns the values of this objects custom properties (matches pythons\n"
+"   dictionary function of the same name).\n"
 "\n"
 "   :return: custom property values.\n"
 "   :rtype: list\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n"
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone`\n"
+"      classes support custom properties.\n"
 );
 static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 {
@@ -2688,7 +2694,8 @@ PyDoc_STRVAR(pyrna_struct_path_resolve_doc,
 "\n"
 "   :arg path: path which this property resolves.\n"
 "   :type path: string\n"
-"   :arg coerce: optional argument, when True, the property will be converted into its python representation.\n"
+"   :arg coerce: optional argument, when True, the property will be converted\n"
+"      into its python representation.\n"
 "   :type coerce: boolean\n"
 );
 static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
@@ -2743,9 +2750,11 @@ PyDoc_STRVAR(pyrna_struct_path_from_id_doc,
 "\n"
 "   Returns the data path from the ID to this object (string).\n"
 "\n"
-"   :arg property: Optional property name which can be used if the path is to a property of this object.\n"
+"   :arg property: Optional property name which can be used if the path is\n"
+"      to a property of this object.\n"
 "   :type property: string\n"
-"   :return: The path from :class:`bpy_struct.id_data` to this struct and property (when given).\n"
+"   :return: The path from :class:`bpy_struct.id_data`\n"
+"      to this struct and property (when given).\n"
 "   :rtype: str\n"
 );
 static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
@@ -2827,7 +2836,8 @@ static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
 PyDoc_STRVAR(pyrna_struct_type_recast_doc,
 ".. method:: type_recast()\n"
 "\n"
-"   Return a new instance, this is needed because types such as textures can be changed at runtime.\n"
+"   Return a new instance, this is needed because types\n"
+"   such as textures can be changed at runtime.\n"
 "\n"
 "   :return: a new instance of this object with the type initialized again.\n"
 "   :rtype: subclass of :class:`bpy_struct`\n"
@@ -3091,7 +3101,7 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
 	 * >>> bpy.types.Scene.foo= BoolProperty()
 	 * >>> bpy.types.Scene.foo
 	 * <bpy_struct, BooleanProperty("foo")>
-	 * ...rather then returning the deferred class register tuple as checked by pyrna_is_deferred_prop()
+	 * ...rather than returning the deferred class register tuple as checked by pyrna_is_deferred_prop()
 	 *
 	 * Disable for now, this is faking internal behavior in a way thats too tricky to maintain well. */
 #if 0
@@ -3437,7 +3447,8 @@ static PyGetSetDef pyrna_struct_getseters[]= {
 PyDoc_STRVAR(pyrna_prop_collection_keys_doc,
 ".. method:: keys()\n"
 "\n"
-"   Return the identifiers of collection members (matching pythons dict.keys() functionality).\n"
+"   Return the identifiers of collection members\n"
+"   (matching pythons dict.keys() functionality).\n"
 "\n"
 "   :return: the identifiers for each member of this collection.\n"
 "   :rtype: list of stings\n"
@@ -3470,7 +3481,8 @@ static PyObject *pyrna_prop_collection_keys(BPy_PropertyRNA *self)
 PyDoc_STRVAR(pyrna_prop_collection_items_doc,
 ".. method:: items()\n"
 "\n"
-"   Return the identifiers of collection members (matching pythons dict.items() functionality).\n"
+"   Return the identifiers of collection members\n"
+"   (matching pythons dict.items() functionality).\n"
 "\n"
 "   :return: (key, value) pairs for each member of this collection.\n"
 "   :rtype: list of tuples\n"
@@ -3511,7 +3523,8 @@ static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 PyDoc_STRVAR(pyrna_prop_collection_values_doc,
 ".. method:: values()\n"
 "\n"
-"   Return the values of collection (matching pythons dict.values() functionality).\n"
+"   Return the values of collection\n"
+"   (matching pythons dict.values() functionality).\n"
 "\n"
 "   :return: the members of this collection.\n"
 "   :rtype: list\n"
@@ -3525,14 +3538,17 @@ static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self)
 PyDoc_STRVAR(pyrna_struct_get_doc,
 ".. method:: get(key, default=None)\n"
 "\n"
-"   Returns the value of the custom property assigned to key or default when not found (matches pythons dictionary function of the same name).\n"
+"   Returns the value of the custom property assigned to key or default\n"
+"   when not found (matches pythons dictionary function of the same name).\n"
 "\n"
 "   :arg key: The key assosiated with the custom property.\n"
 "   :type key: string\n"
-"   :arg default: Optional argument for the value to return if *key* is not found.\n"
+"   :arg default: Optional argument for the value to return if\n"
+"      *key* is not found.\n"
 "   :type default: Undefined\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n"
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone`\n"
+"      classes support custom properties.\n"
 );
 static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 {
@@ -3571,7 +3587,8 @@ PyDoc_STRVAR(pyrna_struct_as_pointer_doc,
 "   :return: int (memory address).\n"
 "   :rtype: int\n"
 "\n"
-"   .. note:: This is intended only for advanced script writers who need to pass blender data to their own C/Python modules.\n"
+"   .. note:: This is intended only for advanced script writers who need to\n"
+"      pass blender data to their own C/Python modules.\n"
 );
 static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
 {
@@ -3581,11 +3598,13 @@ static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
 PyDoc_STRVAR(pyrna_prop_collection_get_doc,
 ".. method:: get(key, default=None)\n"
 "\n"
-"   Returns the value of the item assigned to key or default when not found (matches pythons dictionary function of the same name).\n"
+"   Returns the value of the item assigned to key or default when not found\n"
+"   (matches pythons dictionary function of the same name).\n"
 "\n"
 "   :arg key: The identifier for the collection member.\n"
 "   :type key: string\n"
-"   :arg default: Optional argument for the value to return if *key* is not found.\n"
+"   :arg default: Optional argument for the value to return if\n"
+"      *key* is not found.\n"
 "   :type default: Undefined\n"
 );
 static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args)
@@ -5498,7 +5517,7 @@ PyObject *BPY_rna_module(void)
 	BPy_StructRNA *pyrna;
 	PointerRNA ptr;
 
-	/* for now, return the base RNA type rather then a real module */
+	/* for now, return the base RNA type rather than a real module */
 	RNA_main_pointer_create(G.main, &ptr);
 	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 
@@ -5518,7 +5537,7 @@ PyObject *BPY_rna_doc(void)
 {
 	PointerRNA ptr;
 
-	/* for now, return the base RNA type rather then a real module */
+	/* for now, return the base RNA type rather than a real module */
 	RNA_blender_rna_pointer_create(&ptr);
 
 	return pyrna_struct_CreatePyObject(&ptr);
@@ -5863,7 +5882,6 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	PyObject *py_class= (PyObject*)py_data;
 	PyObject *base_class= RNA_struct_py_type_get(srna);
 	PyObject *item;
-	PyObject *py_arg_count;
 	int i, flag, arg_count, func_arg_count;
 	const char *py_class_name= ((PyTypeObject *)py_class)->tp_name; // __name__
 
@@ -5926,9 +5944,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 			func_arg_count= rna_function_arg_count(func);
 
 			if (func_arg_count >= 0) { /* -1 if we dont care*/
-				py_arg_count= PyObject_GetAttrString(PyFunction_GET_CODE(item), "co_argcount");
-				arg_count= PyLong_AsLong(py_arg_count);
-				Py_DECREF(py_arg_count);
+				arg_count= ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
 
 				/* note, the number of args we check for and the number of args we give to
 				 * @classmethods are different (quirk of python), this is why rna_function_arg_count() doesn't return the value -1*/
@@ -6362,11 +6378,15 @@ void pyrna_free_types(void)
 PyDoc_STRVAR(pyrna_register_class_doc,
 ".. method:: register_class(cls)\n"
 "\n"
-"   Register a subclass of a blender type in (:class:`Panel`, :class:`Menu`, :class:`Header`, :class:`Operator`, :class:`KeyingSetInfo`, :class:`RenderEngine`).\n"
+"   Register a subclass of a blender type in (:class:`Panel`,\n"
+"   :class:`Menu`, :class:`Header`, :class:`Operator`,\n"
+"   :class:`KeyingSetInfo`, :class:`RenderEngine`).\n"
 "\n"
-"   If the class has a *register* class method it will be called before registration.\n"
+"   If the class has a *register* class method it will be called\n"
+"   before registration.\n"
 "\n"
-"   .. note:: :exc:`ValueError` exception is raised if the class is not a subclass of a registerable blender class.\n"
+"   .. note:: :exc:`ValueError` exception is raised if the class is not a\n"
+"      subclass of a registerable blender class.\n"
 "\n"
 );
 PyMethodDef meth_bpy_register_class= {"register_class", pyrna_register_class, METH_O, pyrna_register_class_doc};
@@ -6492,7 +6512,8 @@ PyDoc_STRVAR(pyrna_unregister_class_doc,
 "\n"
 "   Unload the python class from blender.\n"
 "\n"
-"   If the class has an *unregister* class method it will be called before unregistering.\n"
+"   If the class has an *unregister* class method it will be called\n"
+"   before unregistering.\n"
 );
 PyMethodDef meth_bpy_unregister_class= {"unregister_class", pyrna_unregister_class, METH_O, pyrna_unregister_class_doc};
 static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_class)

@@ -1043,6 +1043,9 @@ static short animsys_remap_path (AnimMapper *UNUSED(remap), char *path, char **d
 }
 
 
+/* less then 1.0 evaluates to false, use epsilon to avoid float error */
+#define ANIMSYS_FLOAT_AS_BOOL(value) ((value) > ((1.0f-FLT_EPSILON)))
+
 /* Write the given value to a setting using RNA, and return success */
 static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_index, float value)
 {
@@ -1074,9 +1077,9 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			{
 				case PROP_BOOLEAN:
 					if (array_len)
-						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
+						RNA_property_boolean_set_index(&new_ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
 					else
-						RNA_property_boolean_set(&new_ptr, prop, (int)value);
+						RNA_property_boolean_set(&new_ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
 					break;
 				case PROP_INT:
 					if (array_len)
@@ -1867,9 +1870,9 @@ void nladata_flush_channels (ListBase *channels)
 		{
 			case PROP_BOOLEAN:
 				if (RNA_property_array_length(ptr, prop))
-					RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
+					RNA_property_boolean_set_index(ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
 				else
-					RNA_property_boolean_set(ptr, prop, (int)value);
+					RNA_property_boolean_set(ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
 				break;
 			case PROP_INT:
 				if (RNA_property_array_length(ptr, prop))

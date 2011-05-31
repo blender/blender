@@ -72,9 +72,12 @@ PyDoc_STRVAR(Quaternion_to_euler_doc,
 "\n"
 "   Return Euler representation of the quaternion.\n"
 "\n"
-"   :arg order: Optional rotation order argument in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'].\n"
+"   :arg order: Optional rotation order argument in\n"
+"      ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'].\n"
 "   :type order: string\n"
-"   :arg euler_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.\n"
+"   :arg euler_compat: Optional euler argument the new euler will be made\n"
+"      compatible with (no axis flipping between them).\n"
+"      Useful for converting a series of matrices to animation curves.\n"
 "   :type euler_compat: :class:`Euler`\n"
 "   :return: Euler representation of the quaternion.\n"
 "   :rtype: :class:`Euler`\n"
@@ -417,7 +420,8 @@ PyDoc_STRVAR(Quaternion_copy_doc,
 "   :return: A copy of the quaternion.\n"
 "   :rtype: :class:`Quaternion`\n"
 "\n"
-"   .. note:: use this to get a copy of a wrapped quaternion with no reference to the original data.\n"
+"   .. note:: use this to get a copy of a wrapped quaternion with\n"
+"      no reference to the original data.\n"
 );
 static PyObject *Quaternion_copy(QuaternionObject *self)
 {

@@ -2297,7 +2297,7 @@ static EnumPropertyItem merge_type_items[]= {
 	{5, "COLLAPSE", 0, "Collapse", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *obedit;
 	EnumPropertyItem *item= NULL;
@@ -2988,7 +2988,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= (obedit) ? obedit->data : NULL;

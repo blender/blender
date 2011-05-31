@@ -2276,6 +2276,12 @@ void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc)
 	eprop->itemf= itemfunc;
 }
 
+void RNA_def_enum_py_data(PropertyRNA *prop, void *py_data)
+{
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+	eprop->py_data= py_data;
+}
+
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_, const char *identifier, float default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {

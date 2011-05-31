@@ -33,11 +33,11 @@ RequestExecutionLevel admin
 !insertmacro MUI_PAGE_COMPONENTS
     
 !insertmacro MUI_PAGE_DIRECTORY
-Page custom DataLocation DataLocationOnLeave
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
   
 !insertmacro MUI_UNPAGE_WELCOME
+UninstPage custom un.OptionalRemoveConfig un.OptionalRemoveConfigOnLeave
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
@@ -62,7 +62,6 @@ UninstallIcon "[RELDIR]\00.installer.ico"
   LangString DESC_StartMenu ${LANG_ENGLISH} "Add shortcut items to the Start Menu. (Recommended)"
   LangString DESC_DesktopShortcut ${LANG_ENGLISH} "Add a shortcut to Blender on your desktop."
   LangString DESC_BlendRegister ${LANG_ENGLISH} "Blender can register itself with .blend files to allow double-clicking from Windows Explorer, etc."
-  LangString TEXT_IO_TITLE ${LANG_ENGLISH} "Specify User Data Location"
 ;--------------------------------
 ;Data
 
@@ -76,15 +75,15 @@ DirText "Use the field below to specify the folder where you want Blender to be 
 
 SilentUnInstall normal
 
-Var BLENDERHOME
 Var SHORTVERSION ; This is blender_version_decimal() from path_util.c
+Var BLENDERCONFIG
+Var REMOVECONFIG
 
 ; Custom controls
 Var HWND
 
-Var HWND_APPDATA
-Var HWND_INSTDIR
-Var HWND_HOMEDIR
+Var HWND_KEEPCONFIG
+Var HWND_REMOVECONFIG
 
 Function .onInit
   ClearErrors
@@ -103,9 +102,12 @@ Function .onInit
 FunctionEnd
 
 Function un.onInit
+  SetShellVarContext current
+  StrCpy $BLENDERCONFIG "$APPDATA\Blender Foundation\Blender"
+  SetShellVarContext all
 FunctionEnd
 
-Function DataLocation
+Function un.OptionalRemoveConfig
   nsDialogs::Create /NOUNLOAD 1018
   Pop $HWND
   
@@ -113,44 +115,26 @@ Function DataLocation
     Abort
   ${EndIf}
   
-  ${NSD_CreateLabel} 0 0 100% 24u "Please specify where you wish to install Blender's user data files. Be aware that if you choose to use your Application Data directory, your preferences and scripts will only be accessible by the current user account."
-  ${NSD_CreateRadioButton} 0 50 100% 12u "Use Application Data directory (recommended)"
-  Pop $HWND_APPDATA
-  ${NSD_CreateRadioButton} 0 80 100% 12u "Use installation directory"
-  Pop $HWND_INSTDIR
-  ${NSD_CreateRadioButton} 0 110 100% 12u "I have defined a %HOME% variable, please install files there"
-  Pop $HWND_HOMEDIR
-  
-  ${If} ${AtMostWinME}
-    GetDlgItem $0 $HWND $HWND_APPDATA
-    EnableWindow $0 0
-    SendMessage $HWND_INSTDIR ${BM_SETCHECK} 1 0
-  ${Else}
-    SendMessage $HWND_APPDATA ${BM_SETCHECK} 1 0
-  ${EndIf}
+  ${NSD_CreateRadioButton} 0 50 100% 12u "Keep configuration files, autosaved .blend files and installed addons (recommended)"
+  Pop $HWND_KEEPCONFIG
+  ${NSD_CreateRadioButton} 0 80 100% 12u "Remove all files, including configuration files, autosaved .blend files and installed addons"
+  Pop $HWND_REMOVECONFIG
+
+  SendMessage $HWND_KEEPCONFIG ${BM_SETCHECK} 1 0
   
   nsDialogs::Show
   
 FunctionEnd
 
-Function DataLocationOnLeave
-  ${NSD_GetState} $HWND_APPDATA $R0
+Function un.OptionalRemoveConfigOnLeave
+  ${NSD_GetState} $HWND_REMOVECONFIG $R0
   ${If} $R0 == "1"
-    SetShellVarContext current
-    StrCpy $BLENDERHOME "$APPDATA\Blender Foundation\Blender"
-    SetShellVarContext all
+    StrCpy $REMOVECONFIG "1"
   ${Else}
-    ${NSD_GetState} $HWND_INSTDIR $R0
-    ${If} $R0 == "1"
-      StrCpy $BLENDERHOME $INSTDIR
-    ${Else}
-      ${NSD_GetState} $HWND_HOMEDIR $R0
-      ${If} $R0 == "1"
-        ReadEnvStr $BLENDERHOME "HOME"
-      ${EndIf}
-    ${EndIf}
+    StrCpy $REMOVECONFIG "0"
   ${EndIf}
 FunctionEnd
+
 
 Section "Blender [VERSION] (required)" InstallFiles
   SectionIn RO
@@ -160,7 +144,7 @@ Section "Blender [VERSION] (required)" InstallFiles
   ; The contents of Blender installation root dir
   [ROOTDIRCONTS]
   
-  ; All datafiles (python, scripts, config)
+  ; All datafiles (python, scripts, datafiles)
   [DODATAFILES]
   
   SetOutPath $INSTDIR
@@ -169,7 +153,6 @@ Section "Blender [VERSION] (required)" InstallFiles
   ${EndIf}
   ; Write the installation path into the registry
   WriteRegStr HKLM "SOFTWARE\BlenderFoundation" "Install_Dir" "$INSTDIR"
-  WriteRegStr HKLM "SOFTWARE\BlenderFoundation" "ConfigData_Dir" "$BLENDERHOME"
   WriteRegStr HKLM "SOFTWARE\BlenderFoundation" "ShortVersion" "[SHORTVERSION]"
   ; Write the uninstall keys for Windows
   WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender" "DisplayName" "Blender"
@@ -204,7 +187,7 @@ Section "Open .blend files with Blender" BlendRegister
   ExecWait '"$INSTDIR\blender.exe" -r'
 SectionEnd
 
-UninstallText "This will uninstall Blender [VERSION], and all installed files. Before continuing make sure you have created backup of all the files you may want to keep: startup.blend, bookmarks.txt, recent-files.txt. Hit 'Uninstall' to continue."
+UninstallText "This will uninstall Blender [VERSION], and all installed files. Hit 'Uninstall' to continue."
 
 Section "Uninstall"
   ; Remove registry keys
@@ -212,7 +195,6 @@ Section "Uninstall"
     SetRegView 64
   ${EndIf}
   
-  ReadRegStr $BLENDERHOME HKLM "SOFTWARE\BlenderFoundation" "ConfigData_Dir"
   ReadRegStr $SHORTVERSION HKLM "SOFTWARE\BlenderFoundation" "ShortVersion"
   DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Blender"
   DeleteRegKey HKLM "SOFTWARE\BlenderFoundation"
@@ -226,21 +208,10 @@ Section "Uninstall"
 
   Delete "$INSTDIR\uninstall.exe"
 
-  MessageBox MB_YESNO "Recursively erase contents of $BLENDERHOME\$SHORTVERSION\scripts? NOTE: This includes all installed scripts and *any* file and directory you have manually created, installed later or copied. This also including .blend files." IDNO NextNoScriptRemove
-  RMDir /r "$BLENDERHOME\$SHORTVERSION\scripts"
-NextNoScriptRemove:
-  MessageBox MB_YESNO "Recursively erase contents from $BLENDERHOME\$SHORTVERSION\config? NOTE: This includes your startup.blend, bookmarks and any other file and directory you may have created in that directory" IDNO NextNoConfigRemove
-  RMDir /r "$BLENDERHOME\$SHORTVERSION\config"
-NextNoConfigRemove:
-  MessageBox MB_YESNO "Recursively erase contents from $BLENDERHOME\$SHORTVERSION\plugins? NOTE: This includes files and subdirectories in this directory" IDNO NextNoPluginRemove
-  RMDir /r "$BLENDERHOME\$SHORTVERSION\plugins"
-NextNoPluginRemove:
-  ; Try to remove dirs, but leave them if they contain anything
-  RMDir "$BLENDERHOME\$SHORTVERSION\plugins"
-  RMDir "$BLENDERHOME\$SHORTVERSION\config"
-  RMDir "$BLENDERHOME\$SHORTVERSION\scripts"
-  RMDir "$BLENDERHOME\$SHORTVERSION"
-  RMDir "$BLENDERHOME"
+  ${If} $REMOVECONFIG == "1"
+    RMDir /r "$BLENDERCONFIG\$SHORTVERSION"
+  ${Endif}
+
   ; Remove shortcuts
   Delete "$SMPROGRAMS\Blender Foundation\Blender\*.*"
   Delete "$DESKTOP\Blender.lnk"

@@ -666,9 +666,9 @@ class ConstraintButtonsPanel():
         row = col.row()
         row.prop(con, "map_to_z_from", expand=False, text="")
         row.label(text=" -> Z")
-        
+
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Destination:")
         col.row().prop(con, "map_to", expand=True)

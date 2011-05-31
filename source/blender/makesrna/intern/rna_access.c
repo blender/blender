@@ -1096,9 +1096,9 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 		int tot= 0;
 
 		if (prop->flag & PROP_ENUM_NO_CONTEXT)
-			*item= eprop->itemf(NULL, ptr, free);
+			*item= eprop->itemf(NULL, ptr, prop, free);
 		else
-			*item= eprop->itemf(C, ptr, free);
+			*item= eprop->itemf(C, ptr, prop, free);
 
 		if(totitem) {
 			if(*item) {
@@ -2120,6 +2120,14 @@ int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop)
 	return eprop->defaultvalue;
 }
 
+void *RNA_property_enum_py_data_get(PropertyRNA *prop)
+{
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+
+	BLI_assert(RNA_property_type(prop) == PROP_ENUM);
+
+	return eprop->py_data;
+}
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 {

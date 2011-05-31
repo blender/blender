@@ -467,7 +467,7 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	int map_type= rna_wmKeyMapItem_map_type_get(ptr);
 
@@ -477,7 +477,7 @@ static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *C, PointerRNA *ptr,
 	else return event_type_items;
 }
 
-static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	int map_type= rna_wmKeyMapItem_map_type_get(ptr);
 
@@ -486,7 +486,7 @@ static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *C, PointerRNA *ptr
 	else return event_value_items;
 }
 
-static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmKeyConfig *kc;
@@ -1842,4 +1842,3 @@ void RNA_def_wm(BlenderRNA *brna)
 }
 
 #endif /* RNA_RUNTIME */
-

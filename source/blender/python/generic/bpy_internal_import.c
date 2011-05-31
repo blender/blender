@@ -34,9 +34,6 @@
 #include <Python.h>
 #include <stddef.h>
 
-#include "compile.h"	/* for the PyCodeObject */
-#include "eval.h"		/* for PyEval_EvalCode */
-
 #include "bpy_internal_import.h"
 
 #include "MEM_guardedalloc.h"
@@ -51,7 +48,6 @@
  /* UNUSED */	
 #include "BKE_text.h" /* txt_to_buf */	
 #include "BKE_main.h"
-#include "BKE_global.h" /* grr, only for G.main->name */
 
 static Main *bpy_import_main= NULL;
 
@@ -97,7 +93,7 @@ void bpy_import_main_set(struct Main *maggie)
 /* returns a dummy filename for a textblock so we can tell what file a text block comes from */
 void bpy_text_filename_get(char *fn, size_t fn_len, Text *text)
 {
-	BLI_snprintf(fn, fn_len, "%s%c%s", text->id.lib ? text->id.lib->filepath : G.main->name, SEP, text->id.name+2);
+	BLI_snprintf(fn, fn_len, "%s%c%s", text->id.lib ? text->id.lib->filepath : bpy_import_main->name, SEP, text->id.name+2);
 }
 
 PyObject *bpy_text_import(Text *text)

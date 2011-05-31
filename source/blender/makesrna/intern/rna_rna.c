@@ -341,7 +341,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 
 	/* this was used pre 2.5beta0, now ID property access uses python's
 	 * getitem style access
-	 * - ob["foo"] rather then ob.foo */
+	 * - ob["foo"] rather than ob.foo */
 #if 0
 	if(ptr->data) {
 		IDProperty *group, *idp;
@@ -697,7 +697,7 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 	return ((StringPropertyRNA*)prop)->maxlength;
 }
 
-static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	EnumPropertyRNA *eprop;
@@ -713,7 +713,7 @@ static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA 
 		return eprop->item;
 	}
 
-	return eprop->itemf(C, ptr, free);
+	return eprop->itemf(C, ptr, prop, free);
 }
 
 /* XXX - not sure this is needed? */

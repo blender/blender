@@ -45,6 +45,7 @@ set(INC
 	../editors/include
 	../render/extern/include
 	../../../intern/audaspace/intern
+	../../../intern/ffmpeg
 	../../../intern/bsp/extern ../blenfont
 	../../../intern/decimation/extern
 	../../../intern/elbeem/extern

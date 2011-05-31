@@ -18,6 +18,19 @@
 
 # <pep8 compliant>
 
+__all__ = (
+    "ExportHelper",
+    "ImportHelper",
+    "axis_conversion",
+    "create_derived_objects",
+    "free_derived_objects",
+    "unpack_list",
+    "unpack_face_list",
+    "path_reference",
+    "path_reference_copy",
+    "path_reference_mode",
+)
+
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 
@@ -146,24 +159,6 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
         if value in axis_lut:
             return Matrix(_axis_convert_matrix[i])
     assert("internal error")
-
-
-# limited replacement for BPyImage.comprehensiveImageLoad
-def load_image(imagepath, dirname):
-    import os
-
-    if os.path.exists(imagepath):
-        return bpy.data.images.load(imagepath)
-
-    variants = [imagepath, os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
-
-    for filepath in variants:
-        for nfilepath in (filepath, bpy.path.resolve_ncase(filepath)):
-            if os.path.exists(nfilepath):
-                return bpy.data.images.load(nfilepath)
-
-    # TODO comprehensiveImageLoad also searched in bpy.config.textureDir
-    return None
 
 
 # return a tuple (free, object list), free is True if memory should be freed later with free_derived_objects()

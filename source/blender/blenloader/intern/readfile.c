@@ -1084,7 +1084,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 
 		/* now we know that we are in a blend file and it is safe to 
 		   assume that gp actually points to a group */
-		if (BLI_streq("Screen", gp)==0)
+		if (strcmp("Screen", gp)!=0)
 			BLI_strncpy(group, gp, GROUP_MAX);
 	}
 	return 1;
@@ -9758,7 +9758,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					nu->radius_interp = 3;
 					
 					/* resolu and resolv are now used differently for surfaces
-					 * rather then using the resolution to define the entire number of divisions,
+					 * rather than using the resolution to define the entire number of divisions,
 					 * use it for the number of divisions per segment
 					 */
 					if (nu->pntsv > 1) {
@@ -11563,7 +11563,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				do_version_bone_roll_256(bone);
 
 		/* fix for objects which have zero dquat's
-		 * since this is multiplied with the quat rather then added */
+		 * since this is multiplied with the quat rather than added */
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(is_zero_v4(ob->dquat)) {
 				unit_qt(ob->dquat);
@@ -12266,6 +12266,9 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 	
 	if(ma->nodetree)
 		expand_nodetree(fd, mainvar, ma->nodetree);
+	
+	if(ma->group)
+		expand_doit(fd, mainvar, ma->group);
 }
 
 static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
@@ -12869,24 +12872,17 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 }
 
 /* returns true if the item was found
- * but it may already have already been appended/linked */
-static ID *append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *idname, int idcode, short flag)
+* but it may already have already been appended/linked */
+static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, const short idcode)
 {
-	Scene *scene= CTX_data_scene(C); /* can be NULL */
-	Object *ob;
-	Base *base;
 	BHead *bhead;
 	ID *id= NULL;
-	int endloop=0;
 	int found=0;
 
-	bhead = blo_firstbhead(fd);
-	while(bhead && endloop==0) {
-
-		if(bhead->code==ENDB) endloop= 1;
-		else if(bhead->code==idcode) {
+	for(bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
+		if(bhead->code==idcode) {
 			const char *idname_test= bhead_id_name(fd, bhead);
-				
+
 			if(strcmp(idname_test + 2, idname)==0) {
 				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
@@ -12902,38 +12898,12 @@ static ID *append_named_part(const bContext *C, Main *mainl, FileData *fd, const
 					}
 				}
 
-				/* TODO, move out of append and into own func the caller can use */
-				if(scene && id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
-					base= MEM_callocN( sizeof(Base), "app_nam_part");
-					BLI_addtail(&scene->base, base);
-
-					ob= (Object *)id;
-
-					/* link at active layer (view3d->lay if in context, else scene->lay */
-					if((flag & FILE_ACTIVELAY)) {
-						View3D *v3d = CTX_wm_view3d(C);
-						if (v3d) {
-							ob->lay = v3d->layact;
-						} else {
-							ob->lay = scene->lay;
-						}
-					}
-					ob->mode= 0;
-					base->lay= ob->lay;
-					base->object= ob;
-					ob->id.us++;
-					
-					if(flag & FILE_AUTOSELECT) { 
-						base->flag |= SELECT;
-						base->object->flag = base->flag;
-						/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
-					}
-				}
-				endloop= 1;
+				break;
 			}
 		}
-
-		bhead = blo_nextbhead(fd, bhead);
+		else if(bhead->code==ENDB) {
+			break;
+		}
 	}
 
 	/* if we found the id but the id is NULL, this is really bad */
@@ -12942,10 +12912,53 @@ static ID *append_named_part(const bContext *C, Main *mainl, FileData *fd, const
 	return found ? id : NULL;
 }
 
-ID *BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag)
+static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, const char *idname, const int idcode, const int flag)
+{
+	ID *id= append_named_part(mainl, fd, idname, idcode);
+
+	if(id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
+		Scene *scene= CTX_data_scene(C); /* can be NULL */
+		if(scene) {
+			Base *base;
+			Object *ob;
+
+			base= MEM_callocN( sizeof(Base), "app_nam_part");
+			BLI_addtail(&scene->base, base);
+
+			ob= (Object *)id;
+
+			/* link at active layer (view3d->lay if in context, else scene->lay */
+			if((flag & FILE_ACTIVELAY)) {
+				View3D *v3d = CTX_wm_view3d(C);
+				ob->lay = v3d ? v3d->layact : scene->lay;
+			}
+
+			ob->mode= 0;
+			base->lay= ob->lay;
+			base->object= ob;
+			ob->id.us++;
+
+			if(flag & FILE_AUTOSELECT) {
+				base->flag |= SELECT;
+				base->object->flag = base->flag;
+				/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
+			}
+		}
+	}
+
+	return id;
+}
+
+ID *BLO_library_append_named_part(Main *mainl, BlendHandle** bh, const char *idname, const int idcode)
 {
 	FileData *fd= (FileData*)(*bh);
-	return append_named_part(C, mainl, fd, idname, idcode, flag);
+	return append_named_part(mainl, fd, idname, idcode);
+}
+
+ID *BLO_library_append_named_part_ex(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, const int idcode, const short flag)
+{
+	FileData *fd= (FileData*)(*bh);
+	return append_named_part_ex(C, mainl, fd, idname, idcode, flag);
 }
 
 static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
@@ -12954,8 +12967,8 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code == GS(id->name)) {
-			
-			if (BLI_streq(id->name, bhead_id_name(fd, bhead))) {
+
+			if (strcmp(id->name, bhead_id_name(fd, bhead))==0) {
 				id->flag &= ~LIB_READ;
 				id->flag |= LIB_TEST;
 //				printf("read lib block %s\n", id->name);

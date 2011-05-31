@@ -213,8 +213,21 @@ int BLO_is_a_library(const char *path, char *dir, char *group);
 
 struct Main* BLO_library_append_begin(const struct bContext *C, BlendHandle** bh, const char *filepath);
 
+
 /**
  * Link/Append a named datablock from an external blend file.
+ *
+ * @param mainl The main database to link from (not the active one).
+ * @param bh The blender file handle.
+ * @param idname The name of the datablock (without the 2 char ID prefix)
+ * @param idcode The kind of datablock to link.
+ * @return the appended ID when found.
+ */
+struct ID *BLO_library_append_named_part(struct Main *mainl, BlendHandle** bh, const char *idname, const int idcode);
+
+/**
+ * Link/Append a named datablock from an external blend file.
+ * optionally instance the object in the scene when the flags are set.
  *
  * @param C The context, when NULL instancing object in the scene isnt done.
  * @param mainl The main database to link from (not the active one).
@@ -222,9 +235,10 @@ struct Main* BLO_library_append_begin(const struct bContext *C, BlendHandle** bh
  * @param idname The name of the datablock (without the 2 char ID prefix)
  * @param idcode The kind of datablock to link.
  * @param flag Options for linking, used for instancing.
- * @return Boolean, 0 when the datablock could not be found.
+ * @return the appended ID when found.
  */
-struct ID *BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag);
+struct ID *BLO_library_append_named_part_ex(const struct bContext *C, struct Main *mainl, BlendHandle** bh, const char *idname, const int idcode, const short flag);
+
 void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag);
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);

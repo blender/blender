@@ -23,7 +23,7 @@ with bpy.data.libraries.load(filepath) as (data_from, data_to):
         setattr(data_to, attr, getattr(data_from, attr))
 
 
-# the 'data_to' variables lists are 
+# the 'data_to' variables lists are
 with bpy.data.libraries.load(filepath) as (data_from, data_to):
     data_to.scenes = ["Scene"]
 
