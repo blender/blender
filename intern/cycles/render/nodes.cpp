@@ -53,8 +53,8 @@ ImageTextureNode::ImageTextureNode()
 
 ImageTextureNode::~ImageTextureNode()
 {
-	if(image_manager && slot != -1)
-		image_manager->remove_image(slot);
+	if(image_manager)
+		image_manager->remove_image(filename);
 }
 
 ShaderNode *ImageTextureNode::clone() const
@@ -117,8 +117,8 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 
 EnvironmentTextureNode::~EnvironmentTextureNode()
 {
-	if(image_manager && slot != -1)
-		image_manager->remove_image(slot);
+	if(image_manager)
+		image_manager->remove_image(filename);
 }
 
 ShaderNode *EnvironmentTextureNode::clone() const

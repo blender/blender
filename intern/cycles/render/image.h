@@ -38,10 +38,12 @@ public:
 	~ImageManager();
 
 	int add_image(const string& filename);
-	void remove_image(int slot);
+	void remove_image(const string& filename);
 
 	void device_update(Device *device, DeviceScene *dscene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
+
+	void set_osl_texture_system(void *texture_system);
 
 	bool need_update;
 
@@ -54,6 +56,7 @@ private:
 	};
 
 	vector<Image*> images;
+	void *osl_texture_system;
 
 	bool file_load_image(Image *img, device_vector<uchar4>& tex_img);
 

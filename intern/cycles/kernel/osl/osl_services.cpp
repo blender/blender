@@ -176,6 +176,7 @@ static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd,
 			(derivatives)? &fval[1]: NULL, (derivatives)? &fval[2]: NULL);
 	}
 	else {
+		/* todo: this won't work when float3 has w component */
 		float3 *fval = (float3*)val;
 		fval[0] = triangle_attribute_float3(kg, sd, attr.elem, attr.offset,
 			(derivatives)? &fval[1]: NULL, (derivatives)? &fval[2]: NULL);

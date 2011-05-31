@@ -42,12 +42,38 @@ __device float kernel_tex_interp_(__global float *data, int width, float x)
 	return (1.0f - t)*data[index] + t*data[nindex];
 }
 
+#ifdef make_float2
+#undef make_float2
+#endif
+#ifdef make_float3
+#undef make_float3
+#endif
+#ifdef make_float4
+#undef make_float4
+#endif
+#ifdef make_int2
+#undef make_int2
+#endif
+#ifdef make_int3
+#undef make_int3
+#endif
+#ifdef make_int4
+#undef make_int4
+#endif
+
 #define make_float2(x, y) ((float2)(x, y))
 #define make_float3(x, y, z) ((float3)(x, y, z, 0.0f))
 #define make_float4(x, y, z, w) ((float4)(x, y, z, w))
 #define make_int2(x, y) ((int2)(x, y))
 #define make_int3(x, y, z) ((int3)(x, y, z, 0))
 #define make_int4(x, y, z, w) ((int4)(x, y, z, w))
+
+#ifdef float3
+#undef float3
+#endif
+#ifdef int3
+#undef int3
+#endif
 
 typedef float4 float3;
 typedef int4 int3;

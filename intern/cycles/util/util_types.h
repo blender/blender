@@ -172,6 +172,10 @@ struct float2 {
 struct float3 {
 	float x, y, z;
 
+#ifdef WITH_OPENCL
+	float w;
+#endif
+
 	float operator[](int i) const { return *(&x + i); }
 	float& operator[](int i) { return *(&x + i); }
 };
@@ -253,7 +257,11 @@ __device float2 make_float2(float x, float y)
 
 __device float3 make_float3(float x, float y, float z)
 {
+#ifdef WITH_OPENCL
+	float3 a = {x, y, z, 0.0f};
+#else
 	float3 a = {x, y, z};
+#endif
 	return a;
 }
 

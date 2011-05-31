@@ -18,6 +18,14 @@
 
 /* Constant Globals */
 
+#ifdef __KERNEL_CPU__
+
+#ifdef WITH_OSL
+#include "osl_globals.h"
+#endif
+
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* On the CPU, we pass along the struct KernelGlobals to nearly everywhere in
@@ -26,10 +34,6 @@ CCL_NAMESPACE_BEGIN
    multiple renders may be running inside the same process. */
 
 #ifdef __KERNEL_CPU__
-
-#ifdef WITH_OSL
-//#include "osl_globals.h"
-#endif
 
 typedef struct KernelGlobals {
 
@@ -42,7 +46,7 @@ typedef struct KernelGlobals {
 #ifdef WITH_OSL
 	/* On the CPU, we also have the OSL globals here. Most data structures are shared
 	   with SVM, the difference is in the shaders and object/mesh attributes. */
-	//OSLGlobals osl;
+	OSLGlobals osl;
 #endif
 
 } KernelGLobals;

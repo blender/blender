@@ -28,7 +28,7 @@ SET(CYCLES_BOOST "/usr" CACHE PATH "Path to Boost installation")
 SET(CYCLES_CUDA "/usr/local/cuda" CACHE PATH "Path to CUDA installation")
 SET(CYCLES_OPENCL "" CACHE PATH "Path to OpenCL installation")
 SET(CYCLES_PARTIO "" CACHE PATH "Path to Partio installation")
-SET(CYCLES_GLEW "" CACHE PATH "Path to GLUT installation")
+SET(CYCLES_GLEW "" CACHE PATH "Path to GLEW installation")
 
 # Install, todo: deduplicate install path code
 

@@ -25,11 +25,16 @@
 #include "util_path.h"
 #include "util_progress.h"
 
+#ifdef WITH_OSL
+#include <OSL/oslexec.h>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 ImageManager::ImageManager()
 {
 	need_update = true;
+	osl_texture_system = NULL;
 }
 
 ImageManager::~ImageManager()
@@ -37,6 +42,11 @@ ImageManager::~ImageManager()
 	for(size_t slot = 0; slot < images.size(); slot++) {
 		assert(!images[slot]);
 	}
+}
+
+void ImageManager::set_osl_texture_system(void *texture_system)
+{
+	osl_texture_system = texture_system;
 }
 
 int ImageManager::add_image(const string& filename)
@@ -77,8 +87,17 @@ int ImageManager::add_image(const string& filename)
 	return slot;
 }
 
-void ImageManager::remove_image(int slot)
+void ImageManager::remove_image(const string& filename)
 {
+	size_t slot;
+
+	for(slot = 0; slot < images.size(); slot++)
+		if(images[slot] && images[slot]->filename == filename)
+			break;
+	
+	if(slot == images.size())
+		return;
+
 	assert(images[slot]);
 
 	/* decrement user count */
@@ -90,8 +109,6 @@ void ImageManager::remove_image(int slot)
 	   that use them, but we do not want to reload the image all the time. */
 	if(images[slot]->users == 0)
 		need_update = true;
-	
-	/* todo: remove OSL image from cache */
 }
 
 bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
@@ -156,10 +173,12 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 
 void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int slot)
 {
+	if(osl_texture_system)
+		return;
+
 	Image *img = images[slot];
 	device_vector<uchar4>& tex_img = dscene->tex_image[slot];
 
-	img->need_load = false;
 	if(tex_img.device_pointer)
 		device->tex_free(tex_img);
 
@@ -184,8 +203,16 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int slot)
 {
 	if(images[slot]) {
-		device->tex_free(dscene->tex_image[slot]);
-		dscene->tex_image[slot].clear();
+		if(osl_texture_system) {
+#ifdef WITH_OSL
+			ustring filename(images[slot]->filename);
+			((OSL::TextureSystem*)osl_texture_system)->invalidate(filename);
+#endif
+		}
+		else {
+			device->tex_free(dscene->tex_image[slot]);
+			dscene->tex_image[slot].clear();
+		}
 
 		delete images[slot];
 		images[slot] = NULL;
@@ -206,6 +233,7 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 				string name = path_filename(images[slot]->filename);
 				progress.set_status("Updating Images", "Loading " + name);
 				device_load_image(device, dscene, slot);
+				images[slot]->need_load = false;
 			}
 
 			if(progress.get_cancel()) return;

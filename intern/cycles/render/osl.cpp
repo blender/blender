@@ -44,9 +44,6 @@ CCL_NAMESPACE_BEGIN
 
 OSLShaderManager::OSLShaderManager()
 {
-	/* todo: verify if we are leaking shaders
-	 * todo: verify if we are leaking image cache memory */
-
 	services = new OSLRenderServices();
 
 	/* if we let OSL create it, it leaks */
@@ -112,6 +109,9 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 	foreach(Shader *shader, scene->shaders)
 		shader->need_update = false;
+	
+	/* set texture system */
+	scene->image_manager->set_osl_texture_system((void*)ts);
 }
 
 void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
