@@ -65,13 +65,13 @@ bool BlenderSync::object_is_light(BL::Object b_ob)
 
 /* Light */
 
-void BlenderSync::sync_light(BL::Object b_ob, Transform& tfm)
+void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm)
 {
 	/* test if we need to sync */
 	Light *light;
+	ObjectKey key(b_parent, b_index, b_ob);
 
-	/* todo: account for instancing */
-	if(!light_map.sync(&light, b_ob))
+	if(!light_map.sync(&light, b_ob, b_parent, key))
 		return;
 
 	/* location */
@@ -98,7 +98,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 {
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
-		sync_light(b_ob, tfm);
+		sync_light(b_parent, b_index, b_ob, tfm);
 		return;
 	}
 
@@ -112,7 +112,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	bool object_updated = false;
 
 	/* object sync */
-	if(object_map.sync(&object, b_ob, key)) {
+	if(object_map.sync(&object, b_ob, b_parent, key)) {
 		object->name = b_ob.name();
 		object->tfm = tfm;
 		object->tag_update(scene);

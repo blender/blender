@@ -76,7 +76,7 @@ private:
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
 	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm);
-	void sync_light(BL::Object b_ob, Transform& tfm);
+	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 
 	/* util */
 	void find_shader(BL::ID id, vector<uint>& used_shaders);
@@ -91,7 +91,7 @@ private:
 	id_map<void*, Shader> shader_map;
 	id_map<ObjectKey, Object> object_map;
 	id_map<void*, Mesh> mesh_map;
-	id_map<void*, Light> light_map;
+	id_map<ObjectKey, Light> light_map;
 	void *world_map;
 	bool world_recalc;
 

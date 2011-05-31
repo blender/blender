@@ -225,10 +225,10 @@ public:
 
 	bool sync(T **r_data, BL::ID id)
 	{
-		return sync(r_data, id, id.ptr.id.data);
+		return sync(r_data, id, id, id.ptr.id.data);
 	}
 
-	bool sync(T **r_data, BL::ID id, const K& key)
+	bool sync(T **r_data, BL::ID id, BL::ID parent, const K& key)
 	{
 		T *data = find(key);
 		bool recalc;
@@ -240,8 +240,11 @@ public:
 			b_map[key] = data;
 			recalc = true;
 		}
-		else
+		else {
 			recalc = (b_recalc.find(id.ptr.data) != b_recalc.end());
+			if(parent.ptr.data)
+				recalc = recalc || (b_recalc.find(parent.ptr.data) != b_recalc.end());
+		}
 
 		used(data);
 
