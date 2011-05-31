@@ -126,14 +126,14 @@ static PyObject *Euler_ToTupleExt(EulerObject *self, int ndigits)
 //-----------------------------METHODS----------------------------
 //return a quaternion representation of the euler
 
-static char Euler_to_quaternion_doc[] =
+PyDoc_STRVAR(Euler_to_quaternion_doc,
 ".. method:: to_quaternion()\n"
 "\n"
 "   Return a quaternion representation of the euler.\n"
 "\n"
 "   :return: Quaternion representation of the euler.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Euler_to_quaternion(EulerObject * self)
 {
 	float quat[4];
@@ -147,14 +147,14 @@ static PyObject *Euler_to_quaternion(EulerObject * self)
 }
 
 //return a matrix representation of the euler
-static char Euler_to_matrix_doc[] =
+PyDoc_STRVAR(Euler_to_matrix_doc,
 ".. method:: to_matrix()\n"
 "\n"
 "   Return a matrix representation of the euler.\n"
 "\n"
 "   :return: A 3x3 roation matrix representation of the euler.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *Euler_to_matrix(EulerObject * self)
 {
 	float mat[9];
@@ -167,12 +167,11 @@ static PyObject *Euler_to_matrix(EulerObject * self)
 	return newMatrixObject(mat, 3, 3 , Py_NEW, NULL);
 }
 
-//sets the euler to 0,0,0
-static char Euler_zero_doc[] =
+PyDoc_STRVAR(Euler_zero_doc,
 ".. method:: zero()\n"
 "\n"
 "   Set all values to zero.\n"
-;
+);
 static PyObject *Euler_zero(EulerObject * self)
 {
 	zero_v3(self->eul);
@@ -183,7 +182,7 @@ static PyObject *Euler_zero(EulerObject * self)
 	Py_RETURN_NONE;
 }
 
-static char Euler_rotate_axis_doc[] =
+PyDoc_STRVAR(Euler_rotate_axis_doc,
 ".. method:: rotate_axis(axis, angle)\n"
 "\n"
 "   Rotates the euler a certain amount and returning a unique euler rotation (no 720 degree pitches).\n"
@@ -192,7 +191,7 @@ static char Euler_rotate_axis_doc[] =
 "   :type axis: string\n"
 "   :arg angle: angle in radians.\n"
 "   :type angle: float\n"
-;
+);
 static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 {
 	float angle = 0.0f;
@@ -218,14 +217,14 @@ static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
-static char Euler_rotate_doc[] =
+PyDoc_STRVAR(Euler_rotate_doc,
 ".. method:: rotate(other)\n"
 "\n"
 "   Rotates the euler a by another mathutils value.\n"
 "\n"
 "   :arg other: rotation component of mathutils value\n"
 "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
-;
+);
 static PyObject *Euler_rotate(EulerObject * self, PyObject *value)
 {
 	float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
@@ -245,13 +244,13 @@ static PyObject *Euler_rotate(EulerObject * self, PyObject *value)
 	Py_RETURN_NONE;
 }
 
-static char Euler_make_compatible_doc[] =
+PyDoc_STRVAR(Euler_make_compatible_doc,
 ".. method:: make_compatible(other)\n"
 "\n"
 "   Make this euler compatible with another, so interpolating between them works as intended.\n"
 "\n"
 "   .. note:: the rotation order is not taken into account for this function.\n"
-;
+);
 static PyObject *Euler_make_compatible(EulerObject * self, PyObject *value)
 {
 	float teul[EULER_SIZE];
@@ -272,7 +271,7 @@ static PyObject *Euler_make_compatible(EulerObject * self, PyObject *value)
 //----------------------------Euler.rotate()-----------------------
 // return a copy of the euler
 
-static char Euler_copy_doc[] =
+PyDoc_STRVAR(Euler_copy_doc,
 ".. function:: copy()\n"
 "\n"
 "   Returns a copy of this euler.\n"
@@ -281,7 +280,7 @@ static char Euler_copy_doc[] =
 "   :rtype: :class:`Euler`\n"
 "\n"
 "   .. note:: use this to get a copy of a wrapped euler with no reference to the original data.\n"
-;
+);
 static PyObject *Euler_copy(EulerObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -593,9 +592,9 @@ static struct PyMethodDef Euler_methods[] = {
 };
 
 //------------------PY_OBECT DEFINITION--------------------------
-static char euler_doc[] =
+PyDoc_STRVAR(euler_doc,
 "This object gives access to Eulers in Blender."
-;
+);
 PyTypeObject euler_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"mathutils.Euler",				//tp_name

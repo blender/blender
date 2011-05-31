@@ -186,7 +186,7 @@ static void matrix_3x3_as_4x4(float mat[16])
 /*-----------------------CLASS-METHODS----------------------------*/
 
 //mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
-static char C_Matrix_Rotation_doc[] =
+PyDoc_STRVAR(C_Matrix_Rotation_doc,
 ".. classmethod:: Rotation(angle, size, axis)\n"
 "\n"
 "   Create a matrix representing a rotation.\n"
@@ -199,7 +199,7 @@ static char C_Matrix_Rotation_doc[] =
 "   :type axis: string or :class:`Vector`\n"
 "   :return: A new rotation matrix.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 {
 	PyObject *vec= NULL;
@@ -295,7 +295,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 }
 
 
-static char C_Matrix_Translation_doc[] =
+PyDoc_STRVAR(C_Matrix_Translation_doc,
 ".. classmethod:: Translation(vector)\n"
 "\n"
 "   Create a matrix representing a translation.\n"
@@ -304,7 +304,7 @@ static char C_Matrix_Translation_doc[] =
 "   :type vector: :class:`Vector`\n"
 "   :return: An identity matrix with a translation.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 {
 	float mat[16], tvec[3];
@@ -319,7 +319,7 @@ static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 }
 //----------------------------------mathutils.Matrix.Scale() -------------
 //mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
-static char C_Matrix_Scale_doc[] =
+PyDoc_STRVAR(C_Matrix_Scale_doc,
 ".. classmethod:: Scale(factor, size, axis)\n"
 "\n"
 "   Create a matrix representing a scaling.\n"
@@ -332,7 +332,7 @@ static char C_Matrix_Scale_doc[] =
 "   :type axis: :class:`Vector`\n"
 "   :return: A new scale matrix.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 {
 	PyObject *vec= NULL;
@@ -402,7 +402,7 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 }
 //----------------------------------mathutils.Matrix.OrthoProjection() ---
 //mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
-static char C_Matrix_OrthoProjection_doc[] =
+PyDoc_STRVAR(C_Matrix_OrthoProjection_doc,
 ".. classmethod:: OrthoProjection(axis, size)\n"
 "\n"
 "   Create a matrix to represent an orthographic projection.\n"
@@ -413,7 +413,7 @@ static char C_Matrix_OrthoProjection_doc[] =
 "   :type size: int\n"
 "   :return: A new projection matrix.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 {
 	PyObject *axis;
@@ -508,7 +508,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 
-static char C_Matrix_Shear_doc[] =
+PyDoc_STRVAR(C_Matrix_Shear_doc,
 ".. classmethod:: Shear(plane, size, factor)\n"
 "\n"
 "   Create a matrix to represent an shear transformation.\n"
@@ -521,7 +521,7 @@ static char C_Matrix_Shear_doc[] =
 "   :type factor: float or float pair\n"
 "   :return: A new shear matrix.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 {
 	int matSize;
@@ -626,14 +626,14 @@ static float matrix_determinant_internal(MatrixObject *self)
 
 
 /*-----------------------------METHODS----------------------------*/
-static char Matrix_to_quaternion_doc[] =
+PyDoc_STRVAR(Matrix_to_quaternion_doc,
 ".. method:: to_quaternion()\n"
 "\n"
 "   Return a quaternion representation of the rotation matrix.\n"
 "\n"
 "   :return: Quaternion representation of the rotation matrix.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Matrix_to_quaternion(MatrixObject *self)
 {
 	float quat[4];
@@ -657,7 +657,7 @@ static PyObject *Matrix_to_quaternion(MatrixObject *self)
 }
 
 /*---------------------------Matrix.toEuler() --------------------*/
-static char Matrix_to_euler_doc[] =
+PyDoc_STRVAR(Matrix_to_euler_doc,
 ".. method:: to_euler(order, euler_compat)\n"
 "\n"
 "   Return an Euler representation of the rotation matrix (3x3 or 4x4 matrix only).\n"
@@ -668,7 +668,7 @@ static char Matrix_to_euler_doc[] =
 "   :type euler_compat: :class:`Euler`\n"
 "   :return: Euler representation of the matrix.\n"
 "   :rtype: :class:`Euler`\n"
-;
+);
 static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 {
 	const char *order_str= NULL;
@@ -724,11 +724,11 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 	return newEulerObject(eul, order, Py_NEW, NULL);
 }
 
-static char Matrix_resize_4x4_doc[] =
+PyDoc_STRVAR(Matrix_resize_4x4_doc,
 ".. method:: resize_4x4()\n"
 "\n"
 "   Resize the matrix to 4x4.\n"
-;
+);
 static PyObject *Matrix_resize_4x4(MatrixObject *self)
 {
 	int x, first_row_elem, curr_pos, new_pos, blank_columns, blank_rows, index;
@@ -781,14 +781,14 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
 	Py_RETURN_NONE;
 }
 
-static char Matrix_to_4x4_doc[] =
+PyDoc_STRVAR(Matrix_to_4x4_doc,
 ".. method:: to_4x4()\n"
 "\n"
 "   Return a 4x4 copy of this matrix.\n"
 "\n"
 "   :return: a new matrix.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *Matrix_to_4x4(MatrixObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -808,14 +808,14 @@ static PyObject *Matrix_to_4x4(MatrixObject *self)
 	return NULL;
 }
 
-static char Matrix_to_3x3_doc[] =
+PyDoc_STRVAR(Matrix_to_3x3_doc,
 ".. method:: to_3x3()\n"
 "\n"
 "   Return a 3x3 copy of this matrix.\n"
 "\n"
 "   :return: a new matrix.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *Matrix_to_3x3(MatrixObject *self)
 {
 	float mat[3][3];
@@ -833,14 +833,14 @@ static PyObject *Matrix_to_3x3(MatrixObject *self)
 	return newMatrixObject((float *)mat, 3, 3, Py_NEW, Py_TYPE(self));
 }
 
-static char Matrix_to_translation_doc[] =
+PyDoc_STRVAR(Matrix_to_translation_doc,
 ".. method:: to_translation()\n"
 "\n"
 "   Return a the translation part of a 4 row matrix.\n"
 "\n"
 "   :return: Return a the translation of a matrix.\n"
 "   :rtype: :class:`Vector`\n"
-;
+);
 static PyObject *Matrix_to_translation(MatrixObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -854,7 +854,7 @@ static PyObject *Matrix_to_translation(MatrixObject *self)
 	return newVectorObject(self->matrix[3], 3, Py_NEW, NULL);
 }
 
-static char Matrix_to_scale_doc[] =
+PyDoc_STRVAR(Matrix_to_scale_doc,
 ".. method:: to_scale()\n"
 "\n"
 "   Return a the scale part of a 3x3 or 4x4 matrix.\n"
@@ -863,7 +863,7 @@ static char Matrix_to_scale_doc[] =
 "   :rtype: :class:`Vector`\n"
 "\n"
 "   .. note:: This method does not return negative a scale on any axis because it is not possible to obtain this data from the matrix alone.\n"
-;
+);
 static PyObject *Matrix_to_scale(MatrixObject *self)
 {
 	float rot[3][3];
@@ -888,7 +888,7 @@ static PyObject *Matrix_to_scale(MatrixObject *self)
 }
 
 /*---------------------------Matrix.invert() ---------------------*/
-static char Matrix_invert_doc[] =
+PyDoc_STRVAR(Matrix_invert_doc,
 ".. method:: invert()\n"
 "\n"
 "   Set the matrix to its inverse.\n"
@@ -896,7 +896,7 @@ static char Matrix_invert_doc[] =
 "   .. note:: :exc:`ValueError` exception is raised.\n"
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n"
-;
+);
 static PyObject *Matrix_invert(MatrixObject *self)
 {
 
@@ -950,7 +950,7 @@ static PyObject *Matrix_invert(MatrixObject *self)
 	Py_RETURN_NONE;
 }
 
-static char Matrix_inverted_doc[] =
+PyDoc_STRVAR(Matrix_inverted_doc,
 ".. method:: inverted()\n"
 "\n"
 "   Return an inverted copy of the matrix.\n"
@@ -959,13 +959,13 @@ static char Matrix_inverted_doc[] =
 "   :rtype: :class:`Matrix`\n"
 "\n"
 "   .. note:: :exc:`ValueError` exception is raised.\n"
-;
+);
 static PyObject *Matrix_inverted(MatrixObject *self)
 {
 	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_invert, self);
 }
 
-static char Matrix_rotate_doc[] =
+PyDoc_STRVAR(Matrix_rotate_doc,
 ".. method:: rotate(other)\n"
 "\n"
 "   Rotates the matrix a by another mathutils value.\n"
@@ -974,7 +974,7 @@ static char Matrix_rotate_doc[] =
 "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
 "\n"
 "   .. note:: If any of the columns are not unit length this may not have desired results.\n"
-;
+);
 static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
 {
 	float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
@@ -1000,14 +1000,14 @@ static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
 }
 
 /*---------------------------Matrix.decompose() ---------------------*/
-static char Matrix_decompose_doc[] =
+PyDoc_STRVAR(Matrix_decompose_doc,
 ".. method:: decompose()\n"
 "\n"
 "   Return the location, rotaion and scale components of this matrix.\n"
 "\n"
 "   :return: loc, rot, scale triple.\n"
 "   :rtype: (:class:`Vector`, :class:`Quaternion`, :class:`Vector`)"
-;
+);
 static PyObject *Matrix_decompose(MatrixObject *self)
 {
 	PyObject *ret;
@@ -1037,7 +1037,7 @@ static PyObject *Matrix_decompose(MatrixObject *self)
 
 
 
-static char Matrix_lerp_doc[] =
+PyDoc_STRVAR(Matrix_lerp_doc,
 ".. function:: lerp(other, factor)\n"
 "\n"
 "   Returns the interpolation of two matricies.\n"
@@ -1048,7 +1048,7 @@ static char Matrix_lerp_doc[] =
 "   :type factor: float\n"
 "   :return: The interpolated rotation.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
 {
 	MatrixObject *mat2 = NULL;
@@ -1081,7 +1081,7 @@ static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
 }
 
 /*---------------------------Matrix.determinant() ----------------*/
-static char Matrix_determinant_doc[] =
+PyDoc_STRVAR(Matrix_determinant_doc,
 ".. method:: determinant()\n"
 "\n"
 "   Return the determinant of a matrix.\n"
@@ -1090,7 +1090,7 @@ static char Matrix_determinant_doc[] =
 "   :rtype: float\n"
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Determinant>\n"
-;
+);
 static PyObject *Matrix_determinant(MatrixObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -1104,13 +1104,13 @@ static PyObject *Matrix_determinant(MatrixObject *self)
 	return PyFloat_FromDouble((double)matrix_determinant_internal(self));
 }
 /*---------------------------Matrix.transpose() ------------------*/
-static char Matrix_transpose_doc[] =
+PyDoc_STRVAR(Matrix_transpose_doc,
 ".. method:: transpose()\n"
 "\n"
 "   Set the matrix to its transpose.\n"
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Transpose>\n"
-;
+);
 static PyObject *Matrix_transpose(MatrixObject *self)
 {
 	float t = 0.0f;
@@ -1137,28 +1137,28 @@ static PyObject *Matrix_transpose(MatrixObject *self)
 	Py_RETURN_NONE;
 }
 
-static char Matrix_transposed_doc[] =
+PyDoc_STRVAR(Matrix_transposed_doc,
 ".. method:: transposed()\n"
 "\n"
 "   Return a new, transposed matrix.\n"
 "\n"
 "   :return: a transposed matrix\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *Matrix_transposed(MatrixObject *self)
 {
 	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_transpose, self);
 }
 
 /*---------------------------Matrix.zero() -----------------------*/
-static char Matrix_zero_doc[] =
+PyDoc_STRVAR(Matrix_zero_doc,
 ".. method:: zero()\n"
 "\n"
 "   Set all the matrix values to zero.\n"
 "\n"
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *Matrix_zero(MatrixObject *self)
 {
 	fill_vn(self->contigPtr, self->row_size * self->col_size, 0.0f);
@@ -1169,7 +1169,7 @@ static PyObject *Matrix_zero(MatrixObject *self)
 	Py_RETURN_NONE;
 }
 /*---------------------------Matrix.identity(() ------------------*/
-static char Matrix_identity_doc[] =
+PyDoc_STRVAR(Matrix_identity_doc,
 ".. method:: identity()\n"
 "\n"
 "   Set the matrix to the identity matrix.\n"
@@ -1177,7 +1177,7 @@ static char Matrix_identity_doc[] =
 "   .. note:: An object with zero location and rotation, a scale of one, will have an identity matrix.\n"
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Identity_matrix>\n"
-;
+);
 static PyObject *Matrix_identity(MatrixObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -1206,14 +1206,14 @@ static PyObject *Matrix_identity(MatrixObject *self)
 }
 
 /*---------------------------Matrix.copy() ------------------*/
-static char Matrix_copy_doc[] =
+PyDoc_STRVAR(Matrix_copy_doc,
 ".. method:: copy()\n"
 "\n"
 "   Returns a copy of this matrix.\n"
 "\n"
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *Matrix_copy(MatrixObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -1780,9 +1780,9 @@ static struct PyMethodDef Matrix_methods[] = {
 };
 
 /*------------------PY_OBECT DEFINITION--------------------------*/
-static char matrix_doc[] =
+PyDoc_STRVAR(matrix_doc,
 "This object gives access to Matrices in Blender."
-;
+);
 PyTypeObject matrix_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"mathutils.Matrix",					/*tp_name*/

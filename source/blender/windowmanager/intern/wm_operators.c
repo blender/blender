@@ -2835,6 +2835,8 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 		alpha = 0.75;
 		break;
 	default:
+		tex_radius= WM_RADIAL_CONTROL_DISPLAY_SIZE; /* note, this is a dummy value */
+		alpha = 0.75;
 		break;
 	}
 
@@ -3094,6 +3096,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(snap) new_value = DEG2RADF(((int)RAD2DEGF(new_value) + 5) / 10*10);
 			break;
 		default:
+			new_value = dist; /* dummy value, should this ever happen? - campbell */
 			break;
 		}
 

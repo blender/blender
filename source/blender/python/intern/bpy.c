@@ -64,14 +64,14 @@
 
 PyObject *bpy_package_py= NULL;
 
-static char bpy_script_paths_doc[] =
+PyDoc_STRVAR(bpy_script_paths_doc,
 ".. function:: script_paths()\n"
 "\n"
 "   Return 2 paths to blender scripts directories.\n"
 "\n"
 "   :return: (system, user) strings will be empty when not found.\n"
 "   :rtype: tuple of strings\n"
-;
+);
 static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
 	PyObject *ret= PyTuple_New(2);
@@ -85,7 +85,7 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 	return ret;
 }
 
-static char bpy_blend_paths_doc[] =
+PyDoc_STRVAR(bpy_blend_paths_doc,
 ".. function:: blend_paths(absolute=False)\n"
 "\n"
 "   Returns a list of paths to external files referenced by the loaded .blend file.\n"
@@ -94,7 +94,7 @@ static char bpy_blend_paths_doc[] =
 "   :type absolute: boolean\n"
 "   :return: path list.\n"
 "   :rtype: list of strings\n"
-;
+);
 static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct BPathIterator *bpi;
@@ -137,7 +137,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 }
 
 
-// static char bpy_user_resource_doc[]= // now in bpy/utils.py
+// PyDoc_STRVAR(bpy_user_resource_doc[]= // now in bpy/utils.py
 static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;
@@ -169,7 +169,7 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	return PyUnicode_DecodeFSDefault(path ? path : "");
 }
 
-static char bpy_resource_path_doc[] =
+PyDoc_STRVAR(bpy_resource_path_doc,
 ".. function:: resource_path(type, major=2, minor=57)\n"
 "\n"
 "   Return the base path for storing system files.\n"
@@ -182,7 +182,7 @@ static char bpy_resource_path_doc[] =
 "   :type minor: string\n"
 "   :return: the resource path (not necessarily existing).\n"
 "   :rtype: string\n"
-;
+);
 static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;

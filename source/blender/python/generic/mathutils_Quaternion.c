@@ -67,7 +67,7 @@ static PyObject *Quaternion_to_tuple_ext(QuaternionObject *self, int ndigits)
 	return ret;
 }
 
-static char Quaternion_to_euler_doc[] =
+PyDoc_STRVAR(Quaternion_to_euler_doc,
 ".. method:: to_euler(order, euler_compat)\n"
 "\n"
 "   Return Euler representation of the quaternion.\n"
@@ -78,7 +78,7 @@ static char Quaternion_to_euler_doc[] =
 "   :type euler_compat: :class:`Euler`\n"
 "   :return: Euler representation of the quaternion.\n"
 "   :rtype: :class:`Euler`\n"
-;
+);
 static PyObject *Quaternion_to_euler(QuaternionObject *self, PyObject *args)
 {
 	float tquat[4];
@@ -121,14 +121,14 @@ static PyObject *Quaternion_to_euler(QuaternionObject *self, PyObject *args)
 	return newEulerObject(eul, order, Py_NEW, NULL);
 }
 //----------------------------Quaternion.toMatrix()------------------
-static char Quaternion_to_matrix_doc[] =
+PyDoc_STRVAR(Quaternion_to_matrix_doc,
 ".. method:: to_matrix()\n"
 "\n"
 "   Return a matrix representation of the quaternion.\n"
 "\n"
 "   :return: A 3x3 rotation matrix representation of the quaternion.\n"
 "   :rtype: :class:`Matrix`\n"
-;
+);
 static PyObject *Quaternion_to_matrix(QuaternionObject *self)
 {
 	float mat[9]; /* all values are set */
@@ -141,7 +141,7 @@ static PyObject *Quaternion_to_matrix(QuaternionObject *self)
 }
 
 //----------------------------Quaternion.cross(other)------------------
-static char Quaternion_cross_doc[] =
+PyDoc_STRVAR(Quaternion_cross_doc,
 ".. method:: cross(other)\n"
 "\n"
 "   Return the cross product of this quaternion and another.\n"
@@ -150,7 +150,7 @@ static char Quaternion_cross_doc[] =
 "   :type other: :class:`Quaternion`\n"
 "   :return: The cross product.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Quaternion_cross(QuaternionObject *self, PyObject *value)
 {
 	float quat[QUAT_SIZE], tquat[QUAT_SIZE];
@@ -166,7 +166,7 @@ static PyObject *Quaternion_cross(QuaternionObject *self, PyObject *value)
 }
 
 //----------------------------Quaternion.dot(other)------------------
-static char Quaternion_dot_doc[] =
+PyDoc_STRVAR(Quaternion_dot_doc,
 ".. method:: dot(other)\n"
 "\n"
 "   Return the dot product of this quaternion and another.\n"
@@ -175,7 +175,7 @@ static char Quaternion_dot_doc[] =
 "   :type other: :class:`Quaternion`\n"
 "   :return: The dot product.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
 {
 	float tquat[QUAT_SIZE];
@@ -189,7 +189,7 @@ static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
 	return PyFloat_FromDouble(dot_qtqt(self->quat, tquat));
 }
 
-static char Quaternion_rotation_difference_doc[] =
+PyDoc_STRVAR(Quaternion_rotation_difference_doc,
 ".. function:: difference(other)\n"
 "\n"
 "   Returns a quaternion representing the rotational difference.\n"
@@ -198,7 +198,7 @@ static char Quaternion_rotation_difference_doc[] =
 "   :type other: :class:`Quaternion`\n"
 "   :return: the rotational difference between the two quat rotations.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Quaternion_rotation_difference(QuaternionObject *self, PyObject *value)
 {
 	float tquat[QUAT_SIZE], quat[QUAT_SIZE];
@@ -214,7 +214,7 @@ static PyObject *Quaternion_rotation_difference(QuaternionObject *self, PyObject
 	return newQuaternionObject(quat, Py_NEW, Py_TYPE(self));
 }
 
-static char Quaternion_slerp_doc[] =
+PyDoc_STRVAR(Quaternion_slerp_doc,
 ".. function:: slerp(other, factor)\n"
 "\n"
 "   Returns the interpolation of two quaternions.\n"
@@ -225,7 +225,7 @@ static char Quaternion_slerp_doc[] =
 "   :type factor: float\n"
 "   :return: The interpolated rotation.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Quaternion_slerp(QuaternionObject *self, PyObject *args)
 {
 	PyObject *value;
@@ -252,14 +252,14 @@ static PyObject *Quaternion_slerp(QuaternionObject *self, PyObject *args)
 	return newQuaternionObject(quat, Py_NEW, Py_TYPE(self));
 }
 
-static char Quaternion_rotate_doc[] =
+PyDoc_STRVAR(Quaternion_rotate_doc,
 ".. method:: rotate(other)\n"
 "\n"
 "   Rotates the quaternion a by another mathutils value.\n"
 "\n"
 "   :arg other: rotation component of mathutils value\n"
 "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
-;
+);
 static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
 {
 	float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
@@ -284,11 +284,11 @@ static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
 
 //----------------------------Quaternion.normalize()----------------
 //normalize the axis of rotation of [theta, vector]
-static char Quaternion_normalize_doc[] =
+PyDoc_STRVAR(Quaternion_normalize_doc,
 ".. function:: normalize()\n"
 "\n"
 "   Normalize the quaternion.\n"
-;
+);
 static PyObject *Quaternion_normalize(QuaternionObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -299,25 +299,25 @@ static PyObject *Quaternion_normalize(QuaternionObject *self)
 	(void)BaseMath_WriteCallback(self);
 	Py_RETURN_NONE;
 }
-static char Quaternion_normalized_doc[] =
+PyDoc_STRVAR(Quaternion_normalized_doc,
 ".. function:: normalized()\n"
 "\n"
 "   Return a new normalized quaternion.\n"
 "\n"
 "   :return: a normalized copy.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Quaternion_normalized(QuaternionObject *self)
 {
 	return quat__apply_to_copy((PyNoArgsFunction)Quaternion_normalize, self);
 }
 
 //----------------------------Quaternion.invert()------------------
-static char Quaternion_invert_doc[] =
+PyDoc_STRVAR(Quaternion_invert_doc,
 ".. function:: invert()\n"
 "\n"
 "   Set the quaternion to its inverse.\n"
-;
+);
 static PyObject *Quaternion_invert(QuaternionObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -328,28 +328,28 @@ static PyObject *Quaternion_invert(QuaternionObject *self)
 	(void)BaseMath_WriteCallback(self);
 	Py_RETURN_NONE;
 }
-static char Quaternion_inverted_doc[] =
+PyDoc_STRVAR(Quaternion_inverted_doc,
 ".. function:: inverted()\n"
 "\n"
 "   Return a new, inverted quaternion.\n"
 "\n"
 "   :return: the inverted value.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Quaternion_inverted(QuaternionObject *self)
 {
 	return quat__apply_to_copy((PyNoArgsFunction)Quaternion_invert, self);
 }
 
 //----------------------------Quaternion.identity()-----------------
-static char Quaternion_identity_doc[] =
+PyDoc_STRVAR(Quaternion_identity_doc,
 ".. function:: identity()\n"
 "\n"
 "   Set the quaternion to an identity quaternion.\n"
 "\n"
 "   :return: an instance of itself.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Quaternion_identity(QuaternionObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -361,14 +361,14 @@ static PyObject *Quaternion_identity(QuaternionObject *self)
 	Py_RETURN_NONE;
 }
 //----------------------------Quaternion.negate()-------------------
-static char Quaternion_negate_doc[] =
+PyDoc_STRVAR(Quaternion_negate_doc,
 ".. function:: negate()\n"
 "\n"
 "   Set the quaternion to its negative.\n"
 "\n"
 "   :return: an instance of itself.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Quaternion_negate(QuaternionObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -380,11 +380,11 @@ static PyObject *Quaternion_negate(QuaternionObject *self)
 	Py_RETURN_NONE;
 }
 //----------------------------Quaternion.conjugate()----------------
-static char Quaternion_conjugate_doc[] =
+PyDoc_STRVAR(Quaternion_conjugate_doc,
 ".. function:: conjugate()\n"
 "\n"
 "   Set the quaternion to its conjugate (negate x, y, z).\n"
-;
+);
 static PyObject *Quaternion_conjugate(QuaternionObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -395,21 +395,21 @@ static PyObject *Quaternion_conjugate(QuaternionObject *self)
 	(void)BaseMath_WriteCallback(self);
 	Py_RETURN_NONE;
 }
-static char Quaternion_conjugated_doc[] =
+PyDoc_STRVAR(Quaternion_conjugated_doc,
 ".. function:: conjugated()\n"
 "\n"
 "   Return a new conjugated quaternion.\n"
 "\n"
 "   :return: a new quaternion.\n"
 "   :rtype: :class:`Quaternion`\n"
-;
+);
 static PyObject *Quaternion_conjugated(QuaternionObject *self)
 {
 	return quat__apply_to_copy((PyNoArgsFunction)Quaternion_conjugate, self);
 }
 
 //----------------------------Quaternion.copy()----------------
-static char Quaternion_copy_doc[] =
+PyDoc_STRVAR(Quaternion_copy_doc,
 ".. function:: copy()\n"
 "\n"
 "   Returns a copy of this quaternion.\n"
@@ -418,7 +418,7 @@ static char Quaternion_copy_doc[] =
 "   :rtype: :class:`Quaternion`\n"
 "\n"
 "   .. note:: use this to get a copy of a wrapped quaternion with no reference to the original data.\n"
-;
+);
 static PyObject *Quaternion_copy(QuaternionObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -1026,9 +1026,9 @@ static PyGetSetDef Quaternion_getseters[] = {
 };
 
 //------------------PY_OBECT DEFINITION--------------------------
-static char quaternion_doc[] =
+PyDoc_STRVAR(quaternion_doc,
 "This object gives access to Quaternions in Blender."
-;
+);
 PyTypeObject quaternion_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"mathutils.Quaternion",						//tp_name

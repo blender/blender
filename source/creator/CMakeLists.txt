@@ -233,7 +233,11 @@ if(UNIX AND NOT APPLE)
 	if(WITH_INSTALL_PORTABLE)
 		set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
 	else()
-		set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION})
+		if(WITH_PYTHON_MODULE)
+			set(TARGETDIR_VER ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/${BLENDER_VERSION})
+		else()
+			set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION})
+		endif()
 	endif()
 
 	# important to make a clean  install each time
@@ -273,10 +277,25 @@ if(UNIX AND NOT APPLE)
 
 	else()
 		# main blender binary
-		install(
-			PROGRAMS ${TARGETDIR}/blender
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-		)
+		if(WITH_PYTHON_MODULE)
+			get_target_property(_module_name blender OUTPUT_NAME)
+			if(NOT _module_suffix)
+				set(_module_suffix "${SUFFIX}")
+			endif()
+
+			install(
+				PROGRAMS "${TARGETDIR}/${_module_name}.so"  # XXX, *nix only
+				DESTINATION ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages
+			)
+
+			unset(_module_name)
+		else()
+			install(
+				PROGRAMS ${TARGETDIR}/blender
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+			)
+		endif()
+
 
 		if(WITH_GAMEENGINE AND WITH_PLAYER)
 			install(
@@ -459,15 +478,18 @@ elseif(WIN32)
 		)
 
 		if(WITH_PYTHON_INSTALL)
-			#~ # note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
+			# note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
 
 			# create the directory in multiple steps, so it actually gets created when it doesn't exist yet
-			install(CODE "
-			message(\"creating ${TARGETDIR_VER}/python/lib\")
-			file(MAKE_DIRECTORY ${TARGETDIR_VER}/python/)
-			file(MAKE_DIRECTORY ${TARGETDIR_VER}/python/lib/)
-			message(\"done creating dir\")
-			")
+			install(
+				CODE
+				"
+				message(\"creating ${TARGETDIR_VER}/python/lib\")
+				file(MAKE_DIRECTORY \"${TARGETDIR_VER}/python/\")
+				file(MAKE_DIRECTORY \"${TARGETDIR_VER}/python/lib/\")
+				message(\"done creating dir\")
+				"
+			)
 
 			install(
 				CODE

@@ -2527,7 +2527,7 @@ static PyMappingMethods pyrna_struct_as_mapping= {
 	(objobjargproc) pyrna_struct_ass_subscript,	/* mp_ass_subscript */
 };
 
-static char pyrna_struct_keys_doc[] =
+PyDoc_STRVAR(pyrna_struct_keys_doc,
 ".. method:: keys()\n"
 "\n"
 "   Returns the keys of this objects custom properties (matches pythons dictionary function of the same name).\n"
@@ -2535,8 +2535,8 @@ static char pyrna_struct_keys_doc[] =
 "   :return: custom property keys.\n"
 "   :rtype: list of strings\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n";
-
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n"
+);
 static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
@@ -2554,7 +2554,7 @@ static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 	return BPy_Wrap_GetKeys(group);
 }
 
-static char pyrna_struct_items_doc[] =
+PyDoc_STRVAR(pyrna_struct_items_doc,
 ".. method:: items()\n"
 "\n"
 "   Returns the items of this objects custom properties (matches pythons dictionary function of the same name).\n"
@@ -2562,8 +2562,8 @@ static char pyrna_struct_items_doc[] =
 "   :return: custom property key, value pairs.\n"
 "   :rtype: list of key, value tuples\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n";
-
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n"
+);
 static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
@@ -2581,7 +2581,7 @@ static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 	return BPy_Wrap_GetItems(self->ptr.id.data, group);
 }
 
-static char pyrna_struct_values_doc[] =
+PyDoc_STRVAR(pyrna_struct_values_doc,
 ".. method:: values()\n"
 "\n"
 "   Returns the values of this objects custom properties (matches pythons dictionary function of the same name).\n"
@@ -2589,8 +2589,8 @@ static char pyrna_struct_values_doc[] =
 "   :return: custom property values.\n"
 "   :rtype: list\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n";
-
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n"
+);
 static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
@@ -2609,14 +2609,14 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 }
 
 
-static char pyrna_struct_is_property_set_doc[] =
+PyDoc_STRVAR(pyrna_struct_is_property_set_doc,
 ".. method:: is_property_set(property)\n"
 "\n"
 "   Check if a property is set, use for testing operator properties.\n"
 "\n"
 "   :return: True when the property has been set.\n"
 "   :rtype: boolean\n"
-;
+);
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args)
 {
 	PropertyRNA *prop;
@@ -2653,14 +2653,14 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 	return PyBool_FromLong(ret);
 }
 
-static char pyrna_struct_is_property_hidden_doc[] =
+PyDoc_STRVAR(pyrna_struct_is_property_hidden_doc,
 ".. method:: is_property_hidden(property)\n"
 "\n"
 "   Check if a property is hidden.\n"
 "\n"
 "   :return: True when the property is hidden.\n"
 "   :rtype: boolean\n"
-;
+);
 static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *args)
 {
 	PropertyRNA *prop;
@@ -2681,7 +2681,7 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *
 	return PyBool_FromLong(RNA_property_flag(prop) & PROP_HIDDEN);
 }
 
-static char pyrna_struct_path_resolve_doc[] =
+PyDoc_STRVAR(pyrna_struct_path_resolve_doc,
 ".. method:: path_resolve(path, coerce=True)\n"
 "\n"
 "   Returns the property from the path, raise an exception when not found.\n"
@@ -2690,7 +2690,7 @@ static char pyrna_struct_path_resolve_doc[] =
 "   :type path: string\n"
 "   :arg coerce: optional argument, when True, the property will be converted into its python representation.\n"
 "   :type coerce: boolean\n"
-;
+);
 static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 {
 	const char *path;
@@ -2738,7 +2738,7 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 	}
 }
 
-static char pyrna_struct_path_from_id_doc[] =
+PyDoc_STRVAR(pyrna_struct_path_from_id_doc,
 ".. method:: path_from_id(property=\"\")\n"
 "\n"
 "   Returns the data path from the ID to this object (string).\n"
@@ -2747,7 +2747,7 @@ static char pyrna_struct_path_from_id_doc[] =
 "   :type property: string\n"
 "   :return: The path from :class:`bpy_struct.id_data` to this struct and property (when given).\n"
 "   :rtype: str\n"
-;
+);
 static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
 {
 	const char *name= NULL;
@@ -2795,14 +2795,14 @@ static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
 	return ret;
 }
 
-static char pyrna_prop_path_from_id_doc[] =
+PyDoc_STRVAR(pyrna_prop_path_from_id_doc,
 ".. method:: path_from_id()\n"
 "\n"
 "   Returns the data path from the ID to this property (string).\n"
 "\n"
 "   :return: The path from :class:`bpy_struct.id_data` to this property.\n"
 "   :rtype: str\n"
-;
+);
 static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
 {
 	const char *path;
@@ -2824,14 +2824,14 @@ static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
 	return ret;
 }
 
-static char pyrna_struct_type_recast_doc[] =
+PyDoc_STRVAR(pyrna_struct_type_recast_doc,
 ".. method:: type_recast()\n"
 "\n"
 "   Return a new instance, this is needed because types such as textures can be changed at runtime.\n"
 "\n"
 "   :return: a new instance of this object with the type initialized again.\n"
 "   :rtype: subclass of :class:`bpy_struct`\n"
-;
+);
 static PyObject *pyrna_struct_type_recast(BPy_StructRNA *self)
 {
 	PointerRNA r_ptr;
@@ -3434,14 +3434,14 @@ static PyGetSetDef pyrna_struct_getseters[]= {
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-static char pyrna_prop_collection_keys_doc[] =
+PyDoc_STRVAR(pyrna_prop_collection_keys_doc,
 ".. method:: keys()\n"
 "\n"
 "   Return the identifiers of collection members (matching pythons dict.keys() functionality).\n"
 "\n"
 "   :return: the identifiers for each member of this collection.\n"
 "   :rtype: list of stings\n"
-;
+);
 static PyObject *pyrna_prop_collection_keys(BPy_PropertyRNA *self)
 {
 	PyObject *ret= PyList_New(0);
@@ -3467,14 +3467,14 @@ static PyObject *pyrna_prop_collection_keys(BPy_PropertyRNA *self)
 	return ret;
 }
 
-static char pyrna_prop_collection_items_doc[] =
+PyDoc_STRVAR(pyrna_prop_collection_items_doc,
 ".. method:: items()\n"
 "\n"
 "   Return the identifiers of collection members (matching pythons dict.items() functionality).\n"
 "\n"
 "   :return: (key, value) pairs for each member of this collection.\n"
 "   :rtype: list of tuples\n"
-;
+);
 static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 {
 	PyObject *ret= PyList_New(0);
@@ -3508,21 +3508,21 @@ static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 	return ret;
 }
 
-static char pyrna_prop_collection_values_doc[] =
+PyDoc_STRVAR(pyrna_prop_collection_values_doc,
 ".. method:: values()\n"
 "\n"
 "   Return the values of collection (matching pythons dict.values() functionality).\n"
 "\n"
 "   :return: the members of this collection.\n"
 "   :rtype: list\n"
-;
+);
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self)
 {
 	/* re-use slice*/
 	return pyrna_prop_collection_subscript_slice(self, 0, PY_SSIZE_T_MAX);
 }
 
-static char pyrna_struct_get_doc[] =
+PyDoc_STRVAR(pyrna_struct_get_doc,
 ".. method:: get(key, default=None)\n"
 "\n"
 "   Returns the value of the custom property assigned to key or default when not found (matches pythons dictionary function of the same name).\n"
@@ -3533,7 +3533,7 @@ static char pyrna_struct_get_doc[] =
 "   :type default: Undefined\n"
 "\n"
 "   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n"
-;
+);
 static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 {
 	IDProperty *group, *idprop;
@@ -3563,7 +3563,7 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 	return Py_INCREF(def), def;
 }
 
-static char pyrna_struct_as_pointer_doc[] =
+PyDoc_STRVAR(pyrna_struct_as_pointer_doc,
 ".. method:: as_pointer()\n"
 "\n"
 "   Returns the memory address which holds a pointer to blenders internal data\n"
@@ -3572,13 +3572,13 @@ static char pyrna_struct_as_pointer_doc[] =
 "   :rtype: int\n"
 "\n"
 "   .. note:: This is intended only for advanced script writers who need to pass blender data to their own C/Python modules.\n"
-;
+);
 static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
 {
 	return PyLong_FromVoidPtr(self->ptr.data);
 }
 
-static char pyrna_prop_collection_get_doc[] =
+PyDoc_STRVAR(pyrna_prop_collection_get_doc,
 ".. method:: get(key, default=None)\n"
 "\n"
 "   Returns the value of the item assigned to key or default when not found (matches pythons dictionary function of the same name).\n"
@@ -3587,7 +3587,7 @@ static char pyrna_prop_collection_get_doc[] =
 "   :type key: string\n"
 "   :arg default: Optional argument for the value to return if *key* is not found.\n"
 "   :type default: Undefined\n"
-;
+);
 static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args)
 {
 	PointerRNA newptr;
@@ -3851,7 +3851,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 	Py_RETURN_NONE;
 }
 
-static char pyrna_prop_collection_foreach_get_doc[] =
+PyDoc_STRVAR(pyrna_prop_collection_foreach_get_doc,
 ".. method:: foreach_get(attr, seq)\n"
 "\n"
 "   This is a function to give fast access to attributes within a collection.\n"
@@ -3863,7 +3863,7 @@ static char pyrna_prop_collection_foreach_get_doc[] =
 "      # Python equivalent\n"
 "      for i in range(len(seq)): someseq[i]= getattr(collection, attr)\n"
 "\n"
-;
+);
 static PyObject *pyrna_prop_collection_foreach_get(BPy_PropertyRNA *self, PyObject *args)
 {
 	PYRNA_PROP_CHECK_OBJ(self)
@@ -3871,7 +3871,7 @@ static PyObject *pyrna_prop_collection_foreach_get(BPy_PropertyRNA *self, PyObje
 	return foreach_getset(self, args, 0);
 }
 
-static char pyrna_prop_collection_foreach_set_doc[] =
+PyDoc_STRVAR(pyrna_prop_collection_foreach_set_doc,
 ".. method:: foreach_set(attr, seq)\n"
 "\n"
 "   This is a function to give fast access to attributes within a collection.\n"
@@ -3883,7 +3883,7 @@ static char pyrna_prop_collection_foreach_set_doc[] =
 "      # Python equivalent\n"
 "      for i in range(len(seq)): setattr(collection[i], attr, seq[i])\n"
 "\n"
-;
+);
 static PyObject *pyrna_prop_collection_foreach_set(BPy_PropertyRNA *self, PyObject *args)
 {
 	PYRNA_PROP_CHECK_OBJ(self)
@@ -6359,7 +6359,7 @@ void pyrna_free_types(void)
  * the decref. This is not so bad because the leak only happens when re-registering (hold F8)
  * - Should still be fixed - Campbell
  * */
-static char pyrna_register_class_doc[] =
+PyDoc_STRVAR(pyrna_register_class_doc,
 ".. method:: register_class(cls)\n"
 "\n"
 "   Register a subclass of a blender type in (:class:`Panel`, :class:`Menu`, :class:`Header`, :class:`Operator`, :class:`KeyingSetInfo`, :class:`RenderEngine`).\n"
@@ -6368,7 +6368,7 @@ static char pyrna_register_class_doc[] =
 "\n"
 "   .. note:: :exc:`ValueError` exception is raised if the class is not a subclass of a registerable blender class.\n"
 "\n"
-;
+);
 PyMethodDef meth_bpy_register_class= {"register_class", pyrna_register_class, METH_O, pyrna_register_class_doc};
 static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class)
 {
@@ -6487,13 +6487,13 @@ static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props, StructRN
 	return 0;
 }
 
-static char pyrna_unregister_class_doc[] =
+PyDoc_STRVAR(pyrna_unregister_class_doc,
 ".. method:: unregister_class(cls)\n"
 "\n"
 "   Unload the python class from blender.\n"
 "\n"
 "   If the class has an *unregister* class method it will be called before unregistering.\n"
-;
+);
 PyMethodDef meth_bpy_unregister_class= {"unregister_class", pyrna_unregister_class, METH_O, pyrna_unregister_class_doc};
 static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_class)
 {
