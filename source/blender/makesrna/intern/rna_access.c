@@ -288,7 +288,7 @@ static int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 	}
 }
 
-static int rna_ensure_property_array_check(PointerRNA *ptr, PropertyRNA *prop)
+static int rna_ensure_property_array_check(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	if(prop->magic == RNA_MAGIC) {
 		return (prop->getlength || prop->totarraylength) ? 1:0;
@@ -1304,7 +1304,7 @@ int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 	return (prop->flag & PROP_EDITABLE);
 }
 
-int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
+int RNA_property_animated(PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop))
 {
 	/* would need to ask animation system */
 
@@ -1524,7 +1524,7 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 	}
 }
 
-int RNA_property_boolean_get_default(PointerRNA *ptr, PropertyRNA *prop)
+int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
 
@@ -1533,7 +1533,7 @@ int RNA_property_boolean_get_default(PointerRNA *ptr, PropertyRNA *prop)
 	return bprop->defaultvalue;
 }
 
-void RNA_property_boolean_get_default_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
+void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int *values)
 {
 	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
 	
@@ -1710,13 +1710,13 @@ void RNA_property_int_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, i
 	}
 }
 
-int RNA_property_int_get_default(PointerRNA *ptr, PropertyRNA *prop)
+int RNA_property_int_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
 	return iprop->defaultvalue;
 }
 
-void RNA_property_int_get_default_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
+void RNA_property_int_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int *values)
 {
 	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
 	
@@ -1918,7 +1918,7 @@ void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 	}
 }
 
-float RNA_property_float_get_default(PointerRNA *ptr, PropertyRNA *prop)
+float RNA_property_float_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
 
@@ -1927,7 +1927,7 @@ float RNA_property_float_get_default(PointerRNA *ptr, PropertyRNA *prop)
 	return fprop->defaultvalue;
 }
 
-void RNA_property_float_get_default_array(PointerRNA *ptr, PropertyRNA *prop, float *values)
+void RNA_property_float_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, float *values)
 {
 	FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
 	
@@ -2034,7 +2034,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 	}
 }
 
-void RNA_property_string_get_default(PointerRNA *ptr, PropertyRNA *prop, char *value)
+void RNA_property_string_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop, char *value)
 {
 	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
 
@@ -2063,7 +2063,7 @@ char *RNA_property_string_get_default_alloc(PointerRNA *ptr, PropertyRNA *prop, 
 }
 
 /* this is the length without \0 terminator */
-int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop)
+int RNA_property_string_default_length(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
 
@@ -2111,7 +2111,7 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	}
 }
 
-int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop)
+int RNA_property_enum_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 
@@ -3383,7 +3383,7 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 }
 
 
-char *RNA_path_append(const char *path, PointerRNA *ptr, PropertyRNA *prop, int intkey, const char *strkey)
+char *RNA_path_append(const char *path, PointerRNA *UNUSED(ptr), PropertyRNA *prop, int intkey, const char *strkey)
 {
 	DynStr *dynstr;
 	const char *s;
@@ -4261,12 +4261,12 @@ int RNA_function_defined(FunctionRNA *func)
 	return func->call != NULL;
 }
 
-PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int index)
+PropertyRNA *RNA_function_get_parameter(PointerRNA *UNUSED(ptr), FunctionRNA *func, int index)
 {
 	return BLI_findlink(&func->cont.properties, index);
 }
 
-PropertyRNA *RNA_function_find_parameter(PointerRNA *ptr, FunctionRNA *func, const char *identifier)
+PropertyRNA *RNA_function_find_parameter(PointerRNA *UNUSED(ptr), FunctionRNA *func, const char *identifier)
 {
 	return BLI_findstring(&func->cont.properties, identifier, offsetof(PropertyRNA, identifier));
 }
@@ -4278,7 +4278,7 @@ const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func)
 
 /* Utility */
 
-ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, FunctionRNA *func)
+ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *UNUSED(ptr), FunctionRNA *func)
 {
 	PropertyRNA *parm;
 	void *data;
@@ -4416,7 +4416,7 @@ void RNA_parameter_list_next(ParameterIterator *iter)
 	}
 }
 
-void RNA_parameter_list_end(ParameterIterator *iter)
+void RNA_parameter_list_end(ParameterIterator *UNUSED(iter))
 {
 	/* nothing to do */
 }
@@ -4516,12 +4516,12 @@ void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int lengt
 	RNA_parameter_list_end(&iter);
 }
 
-int RNA_parameter_length_get_data(ParameterList *parms, PropertyRNA *parm, void *data)
+int RNA_parameter_length_get_data(ParameterList *UNUSED(parms), PropertyRNA *UNUSED(parm), void *data)
 {
 	return *((int *)((char *)data));
 }
 
-void RNA_parameter_length_set_data(ParameterList *parms, PropertyRNA *parm, void *data, int length)
+void RNA_parameter_length_set_data(ParameterList *UNUSED(parms), PropertyRNA *UNUSED(parm), void *data, int length)
 {
 	*((int *)data)= length;
 }

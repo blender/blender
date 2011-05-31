@@ -89,7 +89,7 @@ EnumPropertyItem ramp_blend_items[] = {
 
 #include "ED_node.h"
 
-static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Material_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
@@ -100,7 +100,7 @@ static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		WM_main_add_notifier(NC_MATERIAL|ND_SHADING, ma);
 }
 
-static void rna_Material_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
@@ -272,7 +272,7 @@ static void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_shader_default(ma);
 }
 
-static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Material *ma= (Material*)ptr->id.data;
 	EnumPropertyItem *item= NULL;

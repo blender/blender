@@ -117,7 +117,7 @@ static void rna_Brush_reset_icon(Brush *br, const char *UNUSED(type))
 	id->icon_id = 0;
 }
 
-static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
 	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
@@ -145,7 +145,7 @@ static void rna_Brush_imagepaint_tool_update(Main *bmain, Scene *scene, PointerR
 	rna_Brush_update(bmain, scene, ptr);
 }
 
-static void rna_Brush_icon_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Brush_icon_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
 
@@ -258,7 +258,7 @@ static float rna_Brush_get_alpha(PointerRNA *ptr)
 	return brush_alpha(me);
 }
 
-static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Brush_direction_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	static EnumPropertyItem prop_default_items[]= {
 		{0, NULL, 0, NULL, NULL}};

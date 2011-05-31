@@ -551,7 +551,7 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(elem->name, name, sizeof(elem->name));
 }*/
 
-static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
@@ -561,7 +561,7 @@ static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		seq_update_sound(scene, ptr->data);
 }
 
-static void rna_Sequence_update_reopen_files(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
