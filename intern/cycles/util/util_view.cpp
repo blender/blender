@@ -20,15 +20,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "util_opengl.h"
+#include "util_time.h"
+#include "util_view.h"
+
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
-
-#include "util_opengl.h"
-#include "util_time.h"
-#include "util_view.h"
 
 CCL_NAMESPACE_BEGIN
 
