@@ -29,6 +29,9 @@ set(INC
 	../../windowmanager
 	../../../../intern/elbeem/extern
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -48,7 +51,7 @@ if(NOT WITH_MOD_FLUID)
 endif()
 
 if(WITH_OPENMP)
-		add_definitions(-DPARALLEL=1)
+	add_definitions(-DPARALLEL=1)
 endif()
 
-blender_add_lib(bf_editor_physics "${SRC}" "${INC}")
+blender_add_lib(bf_editor_physics "${SRC}" "${INC}" "${INC_SYS}")

@@ -52,6 +52,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -105,7 +106,7 @@ float *give_cursor(Scene *scene, View3D *v3d)
 
 
 /* Gets the lens and clipping values from a camera of lamp type object */
-void get_object_clip_range(Object *ob, float *lens, float *clipsta, float *clipend)
+void ED_view3d_ob_clip_range_get(Object *ob, float *lens, float *clipsta, float *clipend)
 {
 	if(ob->type==OB_LAMP ) {
 		Lamp *la = ob->data;
@@ -462,7 +463,7 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 
 /* ********************************** */
 
-void view3d_calculate_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rcti *rect)
+void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rcti *rect)
 {
 	double xs, ys, p[3];
 	short val;
@@ -501,29 +502,20 @@ void view3d_calculate_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, 
 }
 
 /* create intersection coordinates in view Z direction at mouse coordinates */
-void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float ray_end[3])
+void ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
-	float vec[4];
-	int a;
 	
 	if(rv3d->is_persp) {
-		vec[0]= 2.0f * mval[0] / ar->winx - 1;
-		vec[1]= 2.0f * mval[1] / ar->winy - 1;
-		vec[2]= -1.0f;
-		vec[3]= 1.0f;
-		
-		mul_m4_v4(rv3d->persinv, vec);
-		mul_v3_fl(vec, 1.0f / vec[3]);
-		
+		float vec[3];
+		ED_view3d_win_to_vector(ar, mval, vec);
+
 		copy_v3_v3(ray_start, rv3d->viewinv[3]);
-		sub_v3_v3(vec, ray_start);
-		normalize_v3(vec);
-		
 		VECADDFAC(ray_start, rv3d->viewinv[3], vec, v3d->near);
 		VECADDFAC(ray_end, rv3d->viewinv[3], vec, v3d->far);
 	}
 	else {
+		float vec[4];
 		vec[0] = 2.0f * mval[0] / ar->winx - 1;
 		vec[1] = 2.0f * mval[1] / ar->winy - 1;
 		vec[2] = 0.0f;
@@ -536,25 +528,27 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 	}
 
 	/* clipping */
-	if(rv3d->rflag & RV3D_CLIPPING)
-		for(a=0; a<4; a++)
+	if(rv3d->rflag & RV3D_CLIPPING) {
+		int a;
+		for(a=0; a<4; a++) {
 			clip_line_plane(ray_start, ray_end, rv3d->clip[a]);
+		}
+	}
 }
 
 /* create intersection ray in view Z direction at mouse coordinates */
-void viewray(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float ray_normal[3])
+void ED_view3d_win_to_ray(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_normal[3])
 {
 	float ray_end[3];
 	
-	viewline(ar, v3d, mval, ray_start, ray_end);
+	ED_view3d_win_to_segment_clip(ar, v3d, mval, ray_start, ray_end);
 	sub_v3_v3v3(ray_normal, ray_end, ray_start);
 	normalize_v3(ray_normal);
 }
 
-void viewvector(RegionView3D *rv3d, float coord[3], float vec[3])
+void ED_view3d_global_to_vector(RegionView3D *rv3d, const float coord[3], float vec[3])
 {
-	if (rv3d->persp != RV3D_ORTHO)
-	{
+	if (rv3d->is_persp) {
 		float p1[4], p2[4];
 
 		copy_v3_v3(p1, coord);
@@ -598,7 +592,7 @@ int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	return flip;
 }
 
-void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const float mx, const float my)
+void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mval[2], float out[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
@@ -608,7 +602,7 @@ void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const floa
 	if(rv3d->is_persp) {
 		float mousevec[3];
 		copy_v3_v3(line_sta, rv3d->viewinv[3]);
-		window_to_3d_vector(ar, mousevec, mx, my);
+		ED_view3d_win_to_vector(ar, mval, mousevec);
 		add_v3_v3v3(line_end, line_sta, mousevec);
 
 		if(isect_line_plane_v3(out, line_sta, line_end, depth_pt, rv3d->viewinv[2], TRUE) == 0) {
@@ -617,8 +611,8 @@ void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const floa
 		}
 	}
 	else {
-        const float dx= (2.0f * (float)mx / (float)ar->winx) - 1.0f;
-        const float dy= (2.0f * (float)my / (float)ar->winy) - 1.0f;
+        const float dx= (2.0f * mval[0] / (float)ar->winx) - 1.0f;
+        const float dy= (2.0f * mval[1] / (float)ar->winy) - 1.0f;
 		line_sta[0]= (rv3d->persinv[0][0] * dx) + (rv3d->persinv[1][0] * dy) + rv3d->viewinv[3][0];
 		line_sta[1]= (rv3d->persinv[0][1] * dx) + (rv3d->persinv[1][1] * dy) + rv3d->viewinv[3][1];
 		line_sta[2]= (rv3d->persinv[0][2] * dx) + (rv3d->persinv[1][2] * dy) + rv3d->viewinv[3][2];
@@ -630,13 +624,13 @@ void window_to_3d(ARegion *ar, float out[3], const float depth_pt[3], const floa
 
 /* always call initgrabz */
 /* only to detect delta motion */
-void window_to_3d_delta(ARegion *ar, float out[3], const float mx, const float my)
+void ED_view3d_win_to_delta(ARegion *ar, const float mval[2], float out[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float dx, dy;
 	
-	dx= 2.0f*mx*rv3d->zfac/ar->winx;
-	dy= 2.0f*my*rv3d->zfac/ar->winy;
+	dx= 2.0f*mval[0]*rv3d->zfac/ar->winx;
+	dy= 2.0f*mval[1]*rv3d->zfac/ar->winy;
 	
 	out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy);
 	out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy);
@@ -646,23 +640,16 @@ void window_to_3d_delta(ARegion *ar, float out[3], const float mx, const float m
 /* doesn't rely on initgrabz */
 /* for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector */
-void window_to_3d_vector(ARegion *ar, float out[3], const float mx, const float my)
+void ED_view3d_win_to_vector(ARegion *ar, const float mval[2], float out[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 
 	if(rv3d->is_persp) {
-		float dx, dy;
-		float viewvec[3];
-
-		dx= (2.0f * mx / ar->winx) - 1.0f;
-		dy= (2.0f * my / ar->winy) - 1.0f;
-
-		/* normalize here so vecs are proportional to eachother */
-		normalize_v3_v3(viewvec, rv3d->viewinv[2]);
-
-		out[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy) - viewvec[0];
-		out[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy) - viewvec[1];
-		out[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy) - viewvec[2];
+		out[0]= 2.0f * (mval[0] / ar->winx) - 1.0f;
+		out[1]= 2.0f * (mval[1] / ar->winy) - 1.0f;
+		out[2]= -0.5f;
+		mul_project_m4_v3(rv3d->persinv, out);
+		sub_v3_v3(out, rv3d->viewinv[3]);
 	}
 	else {
 		copy_v3_v3(out, rv3d->viewinv[2]);
@@ -670,7 +657,7 @@ void window_to_3d_vector(ARegion *ar, float out[3], const float mx, const float 
 	normalize_v3(out);
 }
 
-float read_cached_depth(ViewContext *vc, int x, int y)
+float ED_view3d_depth_read_cached(ViewContext *vc, int x, int y)
 {
 	ViewDepths *vd = vc->rv3d->depths;
 		
@@ -683,13 +670,13 @@ float read_cached_depth(ViewContext *vc, int x, int y)
 		return 1;
 }
 
-void request_depth_update(RegionView3D *rv3d)
+void ED_view3d_depth_tag_update(RegionView3D *rv3d)
 {
 	if(rv3d->depths)
 		rv3d->depths->damaged= 1;
 }
 
-void view3d_get_object_project_mat(RegionView3D *rv3d, Object *ob, float pmat[4][4])
+void ED_view3d_ob_project_mat_get(RegionView3D *rv3d, Object *ob, float pmat[4][4])
 {
 	float vmat[4][4];
 	
@@ -697,6 +684,7 @@ void view3d_get_object_project_mat(RegionView3D *rv3d, Object *ob, float pmat[4]
 	mul_m4_m4m4(pmat, vmat, rv3d->winmat);
 }
 
+#if 0
 /* Uses window coordinates (x,y) and depth component z to find a point in
    modelspace */
 void view3d_unproject(bglMats *mats, float out[3], const short x, const short y, const float z)
@@ -709,9 +697,10 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 	out[1] = uy;
 	out[2] = uz;
 }
+#endif
 
 /* use above call to get projecting mat */
-void view3d_project_float(ARegion *ar, const float vec[3], float adr[2], float mat[4][4])
+void ED_view3d_project_float(ARegion *ar, const float vec[3], float adr[2], float mat[4][4])
 {
 	float vec4[4];
 	
@@ -729,7 +718,7 @@ void view3d_project_float(ARegion *ar, const float vec[3], float adr[2], float m
 	}
 }
 
-int boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
+int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
 {
 	/* return 1: draw */
 	
@@ -772,7 +761,7 @@ void project_short(ARegion *ar, const float vec[3], short adr[2])	/* clips */
 	adr[0]= IS_CLIPPED;
 	
 	if(rv3d->rflag & RV3D_CLIPPING) {
-		if(view3d_test_clipping(rv3d, vec, 0))
+		if(ED_view3d_test_clipping(rv3d, vec, 0))
 			return;
 	}
 	
@@ -909,7 +898,7 @@ void project_float_noclip(ARegion *ar, const float vec[3], float adr[2])
 }
 
 /* copies logic of get_view3d_viewplane(), keep in sync */
-int get_view3d_cliprange(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
+int ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
 {
 	int orth= 0;
 
@@ -944,7 +933,7 @@ int get_view3d_cliprange(View3D *v3d, RegionView3D *rv3d, float *clipsta, float 
 }
 
 /* also exposed in previewrender.c */
-int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
+int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
 {
 	Camera *cam=NULL;
 	float lens, fac, x1, y1, x2, y2;
@@ -995,10 +984,11 @@ int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, 
 	else {
 		/* fac for zoom, also used for camdx */
 		if(rv3d->persp==RV3D_CAMOB) {
-			fac= (1.41421f + ( (float)rv3d->camzoom )/50.0f);
-			fac*= fac;
+			fac= BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom) * 4.0f;
 		}
-		else fac= 2.0;
+		else {
+			fac= 2.0;
+		}
 		
 		/* viewplane size depends... */
 		if(cam && cam->type==CAM_ORTHO) {
@@ -1076,7 +1066,7 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)		/* rect: for pick
 	float clipsta, clipend, x1, y1, x2, y2;
 	int orth;
 	
-	orth= get_view3d_viewplane(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
+	orth= ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
 	rv3d->is_persp= !orth;
 
 	//	printf("%d %d %f %f %f %f %f %f\n", winx, winy, viewplane.xmin, viewplane.ymin, viewplane.xmax, viewplane.ymax, clipsta, clipend);
@@ -1787,7 +1777,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 
 	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS && startscene->gm.stereoflag != STEREO_DOME) { /* Letterbox */
 		rctf cam_framef;
-		view3d_calc_camera_border(startscene, ar, rv3d, CTX_wm_view3d(C), &cam_framef, FALSE);
+		ED_view3d_calc_camera_border(startscene, ar, CTX_wm_view3d(C), rv3d, &cam_framef, FALSE);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;
 		cam_frame.xmax = cam_framef.xmax + ar->winrct.xmin;
 		cam_frame.ymin = cam_framef.ymin + ar->winrct.ymin;
@@ -1885,12 +1875,7 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 	}
 }
 
-int view3d_is_ortho(View3D *v3d, RegionView3D *rv3d)
-{
-	return (rv3d->persp == RV3D_ORTHO || (v3d->camera && ((Camera *)v3d->camera->data)->type == CAM_ORTHO));
-}
-
-float view3d_pixel_size(struct RegionView3D *rv3d, const float co[3])
+float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3])
 {
 	return  (rv3d->persmat[3][3] + (
 				rv3d->persmat[0][3]*co[0] +

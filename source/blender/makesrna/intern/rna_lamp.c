@@ -108,7 +108,7 @@ static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_Lamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Lamp_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
 
@@ -119,7 +119,7 @@ static void rna_Lamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		WM_main_add_notifier(NC_LAMP|ND_LIGHTING, la);
 }
 
-static void rna_Lamp_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Lamp_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
 
@@ -127,7 +127,7 @@ static void rna_Lamp_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_LAMP|ND_LIGHTING_DRAW, la);
 }
 
-static void rna_Lamp_sky_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Lamp_sky_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
 

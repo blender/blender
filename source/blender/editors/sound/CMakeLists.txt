@@ -31,10 +31,14 @@ set(INC
 	../../../../intern/audaspace/intern
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	sound_ops.c
 
 	sound_intern.h
 )
 
-blender_add_lib(bf_editor_sound "${SRC}" "${INC}")
+blender_add_lib(bf_editor_sound "${SRC}" "${INC}" "${INC_SYS}")

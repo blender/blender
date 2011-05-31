@@ -37,15 +37,17 @@ set(INC
 	../../../source/blender/blenkernel
 )
 
+set(INC_SYS
+	
+)
+
 set(SRC
 	stubs.c
 )
 
 if(WITH_BUILDINFO)
+	list(APPEND SRC ../../creator/buildinfo.c)
 	add_definitions(-DBUILD_DATE)
-	list(APPEND SRC
-		../../creator/buildinfo.c
-	)
 endif()
 
 if(WITH_GAMEENGINE)
@@ -56,4 +58,4 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_FREETYPE2)
 endif()
 
-blender_add_lib_nolist(blenkernel_blc "${SRC}" "${INC}")
+blender_add_lib_nolist(blenkernel_blc "${SRC}" "${INC}" "${INC_SYS}")

@@ -91,12 +91,12 @@ void	txt_backspace_word	(struct Text *text);
 int		txt_add_char		(struct Text *text, char add);
 int		txt_add_raw_char	(struct Text *text, char add);
 int		txt_replace_char	(struct Text *text, char add);
-void	txt_export_to_object	(struct Text *text);
+void	txt_export_to_object(struct Text *text);
 void	txt_export_to_objects(struct Text *text);
-void	unindent		(struct Text *text);
-void 	comment			(struct Text *text);
-void 	indent			(struct Text *text);
-void	uncomment		(struct Text *text);
+void	txt_unindent		(struct Text *text);
+void 	txt_comment			(struct Text *text);
+void 	txt_indent			(struct Text *text);
+void	txt_uncomment		(struct Text *text);
 int	setcurr_tab_spaces	(struct Text *text, int space);
 
 void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, const unsigned char color[4], int group, int flags);

@@ -71,14 +71,14 @@
 
 #include "RNA_access.h"
 
-static void rna_Pose_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Pose_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 }
 
-static void rna_Pose_IK_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Pose_IK_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 	Object *ob= ptr->id.data;
@@ -254,7 +254,7 @@ static StructRNA *rna_Pose_ikparam_typef(PointerRNA *ptr)
 	}
 }
 
-static void rna_Itasc_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Itasc_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
 	bItasc *itasc = ptr->data;

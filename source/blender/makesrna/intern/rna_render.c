@@ -160,7 +160,7 @@ static void engine_view_draw(RenderEngine *engine, const struct bContext *contex
 
 /* RenderEngine registration */
 
-static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
+static void rna_RenderEngine_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
 	RenderEngineType *et= RNA_struct_blender_type_get(type);
 

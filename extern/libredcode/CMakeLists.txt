@@ -26,6 +26,9 @@
 
 set(INC
 	.
+)
+
+set(INC_SYS
 	../libopenjpeg
 )
 
@@ -39,4 +42,4 @@ set(SRC
 	format.h
 )
 
-blender_add_lib(extern_redcode "${SRC}" "${INC}")
+blender_add_lib(extern_redcode "${SRC}" "${INC}" "${INC_SYS}")

@@ -544,7 +544,7 @@ void WM_read_history(void)
 	struct RecentFile *recent;
 	char *line;
 	int num;
-	char *cfgdir = BLI_get_folder(BLENDER_CONFIG, NULL);
+	char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
 
 	if (!cfgdir) return;
 

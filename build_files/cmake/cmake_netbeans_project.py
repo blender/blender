@@ -33,7 +33,7 @@ Windows not supported so far
 from project_info import *
 
 import os
-from os.path import join, dirname, normpath, abspath, splitext, relpath, exists
+from os.path import join, dirname, normpath, relpath, exists
 
 
 def create_nb_project_main():
@@ -50,7 +50,6 @@ def create_nb_project_main():
         includes.sort()
 
         PROJECT_NAME = "Blender"
-        FILE_NAME = PROJECT_NAME.lower()
 
         # --------------- NB spesific
         defines = [("%s=%s" % cdef) if cdef[1] else cdef[0] for cdef in defines]
@@ -76,7 +75,7 @@ def create_nb_project_main():
         if not exists(PROJECT_DIR_NB):
             os.mkdir(PROJECT_DIR_NB)
 
-        SOURCE_DIR_REL = relpath(SOURCE_DIR, PROJECT_DIR)
+        # SOURCE_DIR_REL = relpath(SOURCE_DIR, PROJECT_DIR)
 
         f = open(join(PROJECT_DIR_NB, "project.xml"), 'w')
 

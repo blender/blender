@@ -446,7 +446,7 @@ BlenderRNA *RNA_create(void)
 	return brna;
 }
 
-void RNA_define_free(BlenderRNA *brna)
+void RNA_define_free(BlenderRNA *UNUSED(brna))
 {
 	StructDefRNA *ds;
 	FunctionDefRNA *dfunc;
@@ -2276,6 +2276,12 @@ void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc)
 	eprop->itemf= itemfunc;
 }
 
+void RNA_def_enum_py_data(PropertyRNA *prop, void *py_data)
+{
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+	eprop->py_data= py_data;
+}
+
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_, const char *identifier, float default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
@@ -2556,7 +2562,7 @@ void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 	RNA_def_function_output(func, ret);
 }
 
-void RNA_def_function_output(FunctionRNA *func, PropertyRNA *ret)
+void RNA_def_function_output(FunctionRNA *UNUSED(func), PropertyRNA *ret)
 {
 	ret->flag|= PROP_OUTPUT;
 }

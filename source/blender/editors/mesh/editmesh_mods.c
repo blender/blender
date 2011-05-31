@@ -504,7 +504,7 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 			vec[1]= eed->v1->co[1] + labda*(eed->v2->co[1] - eed->v1->co[1]);
 			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
 
-			if(view3d_test_clipping(data->vc.rv3d, vec, 1)==0) {
+			if(ED_view3d_test_clipping(data->vc.rv3d, vec, 1)==0) {
 				data->dist = distance;
 				data->closest = eed;
 			}
@@ -1250,7 +1250,7 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 		return similar_face_select_exec(C, op);
 }
 
-static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;

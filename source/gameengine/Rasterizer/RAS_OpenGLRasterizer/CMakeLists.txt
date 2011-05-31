@@ -37,6 +37,9 @@ set(INC
 	../../../../source/blender/blenkernel
 	../../../../source/blender/blenlib
 	../../../../source/blender/blenloader
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -54,4 +57,4 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
-blender_add_lib(ge_oglrasterizer "${SRC}" "${INC}")
+blender_add_lib(ge_oglrasterizer "${SRC}" "${INC}" "${INC_SYS}")

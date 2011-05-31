@@ -281,7 +281,7 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	float bb_min[3], bb_max[3], pmat[4][4];
 	int i, j, k;
 
-	view3d_get_object_project_mat(rv3d, ob, pmat);
+	ED_view3d_ob_project_mat_get(rv3d, ob, pmat);
 
 	if(!pbvh)
 		return 0;
@@ -301,7 +301,7 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 				vec[0] = i ? bb_min[0] : bb_max[0];
 				vec[1] = j ? bb_min[1] : bb_max[1];
 				vec[2] = k ? bb_min[2] : bb_max[2];
-				view3d_project_float(ar, vec, proj, pmat);
+				ED_view3d_project_float(ar, vec, proj, pmat);
 				rect->xmin = MIN2(rect->xmin, proj[0]);
 				rect->xmax = MAX2(rect->xmax, proj[0]);
 				rect->ymin = MIN2(rect->ymin, proj[1]);
@@ -357,7 +357,7 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 	rect.ymax -= 2;
 #endif
 
-	view3d_calculate_clipping(&bb, planes, &mats, &rect);
+	ED_view3d_calc_clipping(&bb, planes, &mats, &rect);
 	mul_m4_fl(planes, -1.0f);
 
 	/* clear redraw flag from nodes */
@@ -912,7 +912,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **n
 	{
 		switch (brush->sculpt_plane) {
 			case SCULPT_DISP_DIR_VIEW:
-				viewvector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
+				ED_view3d_global_to_vector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
 				break;
 
 			case SCULPT_DISP_DIR_X:
@@ -1823,7 +1823,7 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 	{
 		switch (brush->sculpt_plane) {
 			case SCULPT_DISP_DIR_VIEW:
-				viewvector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
+				ED_view3d_global_to_vector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
 				break;
 
 			case SCULPT_DISP_DIR_X:
@@ -2926,7 +2926,7 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	cache->mats = MEM_callocN(sizeof(bglMats), "sculpt bglMats");
 	view3d_get_transformation(vc->ar, vc->rv3d, vc->obact, cache->mats);
 
-	viewvector(cache->vc->rv3d, cache->vc->rv3d->twmat[3], cache->true_view_normal);
+	ED_view3d_global_to_vector(cache->vc->rv3d, cache->vc->rv3d->twmat[3], cache->true_view_normal);
 	/* Initialize layer brush displacements and persistent coords */
 	if(brush->sculpt_tool == SCULPT_TOOL_LAYER) {
 		/* not supported yet for multires */
@@ -2994,8 +2994,7 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 			  cache->orig_grab_location[1],
 			  cache->orig_grab_location[2]);
 
-		window_to_3d_delta(cache->vc->ar, grab_location,
-				   cache->mouse[0], cache->mouse[1]);
+		ED_view3d_win_to_delta(cache->vc->ar, cache->mouse, grab_location);
 
 		/* compute delta to move verts by */
 		if(!cache->first_time) {
@@ -3247,7 +3246,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 
 	sculpt_stroke_modifiers_check(C, ob);
 
-	viewline(vc->ar, vc->v3d, mval, ray_start, ray_end);
+	ED_view3d_win_to_segment_clip(vc->ar, vc->v3d, mval, ray_start, ray_end);
 
 	invert_m4_m4(obimat, ob->obmat);
 	mul_m4_v3(obimat, ray_start);

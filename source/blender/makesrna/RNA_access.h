@@ -743,6 +743,7 @@ LIBEXPORT int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *p
 LIBEXPORT int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 LIBEXPORT void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 LIBEXPORT int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
+void *RNA_property_enum_py_data_get(PropertyRNA *prop);
 
 LIBEXPORT PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
 LIBEXPORT void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value);

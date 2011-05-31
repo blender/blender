@@ -123,9 +123,11 @@ void setTransformViewMatrices(TransInfo *t)
 void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		if (t->ar->regiontype == RGN_TYPE_WINDOW)
-		{
-			window_to_3d_delta(t->ar, vec, dx, dy);
+		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+			float mval_f[2];
+			mval_f[0]= dx;
+			mval_f[1]= dy;
+			ED_view3d_win_to_delta(t->ar, mval_f, vec);
 		}
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
@@ -567,8 +569,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		if (t->modifiers & MOD_CONSTRAINT_SELECT)
 			t->con.mode |= CON_SELECT;
 
-		t->mval[0] = event->x - t->ar->winrct.xmin;
-		t->mval[1] = event->y - t->ar->winrct.ymin;
+		VECCOPY2D(t->mval, event->mval);
 
 		// t->redraw |= TREDRAW_SOFT; /* Use this for soft redraw. Might cause flicker in object mode */
 		t->redraw |= TREDRAW_HARD;
@@ -4318,7 +4319,7 @@ static int createSlideVerts(TransInfo *t)
 		/*ok, let's try to survive this*/
 		unit_m4(projectMat);
 	} else {
-		view3d_get_object_project_mat(v3d, t->obedit, projectMat);
+		ED_view3d_ob_project_mat_get(v3d, t->obedit, projectMat);
 	}
 	
 	numsel =0;
@@ -4611,8 +4612,8 @@ static int createSlideVerts(TransInfo *t)
 				}
 				
 				if (v3d) {
-					view3d_project_float(t->ar, tempsv->up->v1->co, co, projectMat);
-					view3d_project_float(t->ar, tempsv->up->v2->co, co2, projectMat);
+					ED_view3d_project_float(t->ar, tempsv->up->v1->co, co, projectMat);
+					ED_view3d_project_float(t->ar, tempsv->up->v2->co, co2, projectMat);
 				}
 
 				if (ev == tempsv->up->v1) {
@@ -4624,8 +4625,8 @@ static int createSlideVerts(TransInfo *t)
 				add_v3_v3(start, tvec);
 
 				if (v3d) {
-					view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
-					view3d_project_float(t->ar, tempsv->down->v2->co, co2, projectMat);
+					ED_view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
+					ED_view3d_project_float(t->ar, tempsv->down->v2->co, co2, projectMat);
 				}
 
 				if (ev == tempsv->down->v1) {

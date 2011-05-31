@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
 
 #include <stdio.h>
 
-#if defined HAVE_LIMITS_H || _LIBC
+#if defined HAVE_LIMITS_H || defined _LIBC
 # include <limits.h>
 #endif
 

@@ -14,6 +14,7 @@ incs += ' ../gpu #/extern/glew/include'
 incs += ' #/intern/smoke/extern'
 incs += ' #/intern/mikktspace'
 incs += ' #/intern/audaspace/intern'
+incs += ' #/intern/ffmpeg'
 
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']

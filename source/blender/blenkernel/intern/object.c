@@ -1661,12 +1661,6 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 
 /* there is also a timing calculation in drawobject() */
 
-static int no_speed_curve= 0;
-
-void disable_speed_curve(int val)
-{
-	no_speed_curve= val;
-}
 
 // XXX THIS CRUFT NEEDS SERIOUS RECODING ASAP!
 /* ob can be NULL */
@@ -1783,7 +1777,7 @@ void object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const
 		mul_m4_m4m4(rmat, mat, imat); /* get the parent relative matrix */
 		object_apply_mat4(ob, rmat, use_compat, FALSE);
 		
-		/* same as below, use rmat rather then mat */
+		/* same as below, use rmat rather than mat */
 		mat4_to_loc_rot_size(ob->loc, rot, ob->size, rmat);
 		object_mat3_to_rot(ob, rot, use_compat);
 	}
@@ -3056,9 +3050,14 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 
 	if(newkey || from_mix==FALSE) {
 		kb= add_keyblock(key, name);
-
-		/* create from lattice */
-		latt_to_key(lt, kb);
+		if (!newkey) {
+			KeyBlock *basekb= (KeyBlock *)key->block.first;
+			kb->data= MEM_dupallocN(basekb->data);
+			kb->totelem= basekb->totelem;
+		}
+		else {
+			latt_to_key(lt, kb);
+		}
 	}
 	else {
 		/* copy from current values */
@@ -3094,7 +3093,10 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 			KeyBlock *basekb= (KeyBlock *)key->block.first;
 			kb->data= MEM_dupallocN(basekb->data);
 			kb->totelem= basekb->totelem;
-		} else curve_to_key(cu, kb, lb);
+		}
+		else {
+			curve_to_key(cu, kb, lb);
+		}
 	}
 	else {
 		/* copy from current values */

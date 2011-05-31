@@ -85,7 +85,7 @@ static PyObject *Color_ToTupleExt(ColorObject *self, int ndigits)
 	return ret;
 }
 
-static char Color_copy_doc[] =
+PyDoc_STRVAR(Color_copy_doc,
 ".. function:: copy()\n"
 "\n"
 "   Returns a copy of this color.\n"
@@ -93,8 +93,9 @@ static char Color_copy_doc[] =
 "   :return: A copy of the color.\n"
 "   :rtype: :class:`Color`\n"
 "\n"
-"   .. note:: use this to get a copy of a wrapped color with no reference to the original data.\n"
-;
+"   .. note:: use this to get a copy of a wrapped color with\n"
+"      no reference to the original data.\n"
+);
 static PyObject *Color_copy(ColorObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
@@ -458,9 +459,9 @@ static struct PyMethodDef Color_methods[] = {
 };
 
 //------------------PY_OBECT DEFINITION--------------------------
-static char color_doc[] =
+PyDoc_STRVAR(color_doc,
 "This object gives access to Colors in Blender."
-;
+);
 PyTypeObject color_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"mathutils.Color",				//tp_name

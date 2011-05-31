@@ -30,6 +30,10 @@ set(INC
 	../moto/include
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/IK_QJacobian.cpp
 	intern/IK_QJacobianSolver.cpp
@@ -70,4 +74,4 @@ set(SRC
 	intern/TNT/version.h
 )
 
-blender_add_lib(bf_intern_ik "${SRC}" "${INC}")
+blender_add_lib(bf_intern_ik "${SRC}" "${INC}" "${INC_SYS}")

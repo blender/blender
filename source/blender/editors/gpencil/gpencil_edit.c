@@ -377,31 +377,30 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 	}
 	else {
 		float *fp= give_cursor(scene, v3d);
-		float mx, my;
+		float mvalf[2];
 		
 		/* get screen coordinate */
 		if (gps->flag & GP_STROKE_2DSPACE) {
-			int mxi, myi;
+			int mvali[2];
 			View2D *v2d= &ar->v2d;
-			UI_view2d_view_to_region(v2d, pt->x, pt->y, &mxi, &myi);
-			mx= mxi;
-			my= myi;
+			UI_view2d_view_to_region(v2d, pt->x, pt->y, mvali, mvali+1);
+			VECCOPY2D(mvalf, mvali);
 		}
 		else {
 			if(subrect) {
-				mx= (((float)pt->x/100.0f) * (subrect->xmax - subrect->xmin)) + subrect->xmin;
-				my= (((float)pt->y/100.0f) * (subrect->ymax - subrect->ymin)) + subrect->ymin;
+				mvalf[0]= (((float)pt->x/100.0f) * (subrect->xmax - subrect->xmin)) + subrect->xmin;
+				mvalf[1]= (((float)pt->y/100.0f) * (subrect->ymax - subrect->ymin)) + subrect->ymin;
 			}
 			else {
-				mx= (float)pt->x / 100.0f * ar->winx;
-				my= (float)pt->y / 100.0f * ar->winy;
+				mvalf[0]= (float)pt->x / 100.0f * ar->winx;
+				mvalf[1]= (float)pt->y / 100.0f * ar->winy;
 			}
 		}
 
 		/* convert screen coordinate to 3d coordinates 
 		 *	- method taken from editview.c - mouse_cursor() 
 		 */
-		window_to_3d(ar, p3d, fp, mx, my);
+		ED_view3d_win_to_3d(ar, fp, mvalf, p3d);
 	}
 }
 
@@ -445,7 +444,6 @@ static void gp_stroke_to_path (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cur
 
 static int gp_camera_view_subrect(bContext *C, rctf *subrect)
 {
-	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	ARegion *ar= CTX_wm_region(C);
 
@@ -454,7 +452,8 @@ static int gp_camera_view_subrect(bContext *C, rctf *subrect)
 
 		/* for camera view set the subrect */
 		if (rv3d->persp == RV3D_CAMOB) {
-			view3d_calc_camera_border(scene, ar, NULL, v3d, subrect, -1); /* negative shift */
+			Scene *scene= CTX_data_scene(C);
+			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, subrect, -1); /* negative shift */
 			return 1;
 		}
 	}

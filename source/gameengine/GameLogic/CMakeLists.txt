@@ -34,6 +34,10 @@ set(INC
 	../../../source/gameengine/Rasterizer
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	Joystick/SCA_Joystick.cpp
 	Joystick/SCA_JoystickEvents.cpp
@@ -124,9 +128,9 @@ set(SRC
 )
 
 if(WITH_SDL)
-	set(INC ${INC} ${SDL_INCLUDE_DIR})
+	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})
 else()
 	add_definitions(-DDISABLE_SDL)
 endif()
 
-blender_add_lib(ge_logic "${SRC}" "${INC}")
+blender_add_lib(ge_logic "${SRC}" "${INC}" "${INC_SYS}")

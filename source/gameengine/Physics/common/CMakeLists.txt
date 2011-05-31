@@ -29,6 +29,10 @@ set(INC
 	../Dummy
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	PHY_IMotionState.cpp
 	PHY_IController.cpp
@@ -47,4 +51,4 @@ set(SRC
 	PHY_Pro.h
 )
 
-blender_add_lib(ge_phys_common "${SRC}" "${INC}")
+blender_add_lib(ge_phys_common "${SRC}" "${INC}" "${INC_SYS}")

@@ -367,15 +367,11 @@ static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar
 
 static void time_refresh(const bContext *UNUSED(C), ScrArea *sa)
 {
-	SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
-	ARegion *ar;
-	
 	/* find the main timeline region and refresh cache display*/
-	for (ar= sa->regionbase.first; ar; ar= ar->next) {
-		if (ar->regiontype==RGN_TYPE_WINDOW) {
-			time_cache_refresh(stime);
-			break;
-		}
+	ARegion *ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	if(ar) {
+		SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
+		time_cache_refresh(stime);
 	}
 }
 

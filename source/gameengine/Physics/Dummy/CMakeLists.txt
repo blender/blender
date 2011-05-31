@@ -29,10 +29,14 @@ set(INC
 	../common
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	DummyPhysicsEnvironment.cpp
 
 	DummyPhysicsEnvironment.h
 )
 
-blender_add_lib(ge_phys_dummy "${SRC}" "${INC}")
+blender_add_lib(ge_phys_dummy "${SRC}" "${INC}" "${INC_SYS}")

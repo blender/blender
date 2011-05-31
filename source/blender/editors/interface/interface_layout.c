@@ -729,6 +729,9 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 	prop= RNA_struct_find_property(&ptr, propname);
 
+	/* don't let bad properties slip through */
+	BLI_assert((prop == NULL) || (RNA_property_type(prop) == PROP_ENUM));
+
 	if(prop && RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;
 		int totitem, i, free;

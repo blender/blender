@@ -64,7 +64,7 @@
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
-static void rna_userdef_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
@@ -97,7 +97,7 @@ static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, Point
 }
 
 
-static void rna_userdef_script_autoexec_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	UserDef *userdef = (UserDef*)ptr->data;
 	if (userdef->flag & USER_SCRIPT_AUTOEXEC_DISABLE)	G.f &= ~G_SCRIPT_AUTOEXEC;
@@ -212,12 +212,12 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesSystem, ptr->data);
 }
 
-static void rna_UserDef_audio_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_UserDef_audio_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	sound_init(bmain);
 }
 
-static void rna_Userdef_memcache_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Userdef_memcache_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 }
@@ -263,13 +263,13 @@ static void rna_userdef_addon_remove(bAddon *bext)
 	BLI_freelinkN(&U.addons, bext);
 }
 
-static void rna_userdef_temp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_temp_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	extern char btempdir[];
 	BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
-static void rna_userdef_text_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_text_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	BLF_cache_clear();
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -2039,6 +2039,10 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_mouse_auto_depth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ORBIT_ZBUF);
 	RNA_def_property_ui_text(prop, "Auto Depth", "Use the depth under the mouse to improve view pan/rotate/zoom functionality");
+
+	prop= RNA_def_property(srna, "use_camera_lock_parent", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_CAM_LOCK_NO_PARENT);
+	RNA_def_property_ui_text(prop, "Camera Parent Lock", "When the camera is locked to the view and in fly mode, transform the parent rather than the camera");
 
 	/* view zoom */
 	prop= RNA_def_property(srna, "use_zoom_to_mouse", PROP_BOOLEAN, PROP_NONE);

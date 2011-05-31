@@ -114,6 +114,7 @@ EnumPropertyItem viewport_shade_items[] = {
 
 #include "BLI_math.h"
 
+#include "BKE_screen.h"
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -221,7 +222,7 @@ static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
 		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, BLI_findlink(&scene->transform_spaces, v3d->twmode - V3D_MANIP_CUSTOM));
 }
 
-EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, int *free)
+EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Scene *scene = NULL;
 	ListBase *transform_spaces;
@@ -315,7 +316,7 @@ static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
 	v3d->lay= ED_view3d_scene_layer_set(v3d->lay, values, &v3d->layact);
 }
 
-static void rna_SpaceView3D_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceView3D_layer_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	DAG_on_visible_update(bmain, FALSE);
 }
@@ -397,7 +398,7 @@ static PointerRNA rna_SpaceView3D_region_quadview_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, regiondata);
 }
 
-static void rna_RegionView3D_quadview_update(Main *main, Scene *scene, PointerRNA *ptr)
+static void rna_RegionView3D_quadview_update(Main *UNUSED(main), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ScrArea *sa;
 	ARegion *ar;
@@ -408,7 +409,7 @@ static void rna_RegionView3D_quadview_update(Main *main, Scene *scene, PointerRN
 }
 
 /* same as above but call clip==TRUE */
-static void rna_RegionView3D_quadview_clip_update(Main *main, Scene *scene, PointerRNA *ptr)
+static void rna_RegionView3D_quadview_clip_update(Main *UNUSED(main), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ScrArea *sa;
 	ARegion *ar;
@@ -456,7 +457,7 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_SpaceUVEditor, ptr->data);
 }
 
-static void rna_SpaceImageEditor_paint_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceImageEditor_paint_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
 
@@ -490,7 +491,7 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 	ED_space_image_set(NULL, sima, sc->scene, sc->scene->obedit, (Image*)value.data);
 }
 
-static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
 	EnumPropertyItem *item= NULL;
@@ -532,17 +533,12 @@ static void rna_SpaceImageEditor_zoom_get(PointerRNA *ptr, float *values)
 
 	values[0] = values[1] = 1;
 
-	sa = rna_area_from_space(ptr);
-	if(!sa) return;
-	
 	/* find aregion */
-	for(ar=sa->regionbase.first; ar; ar=ar->next) {
-		if(ar->regiontype == RGN_TYPE_WINDOW)
-			break;
+	sa= rna_area_from_space(ptr); /* can be NULL */
+	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	if(ar) {
+		ED_space_image_zoom(sima, ar, &values[0], &values[1]);
 	}
-	if(!ar) return;
-
-	ED_space_image_zoom(sima, ar, &values[0], &values[1]);
 }
 
 static void rna_SpaceImageEditor_cursor_location_get(PointerRNA *ptr, float *values)
@@ -575,7 +571,7 @@ static void rna_SpaceImageEditor_cursor_location_set(PointerRNA *ptr, const floa
 	}
 }
 
-static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceImageEditor_curves_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
 	ImBuf *ibuf;
@@ -589,7 +585,7 @@ static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, Pointe
 	WM_main_add_notifier(NC_IMAGE, sima->image);
 }
 
-static void rna_SpaceImageEditor_scopes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceImageEditor_scopes_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
 	ImBuf *ibuf;
@@ -621,7 +617,7 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 	st->top= 0;
 }
 
-static void rna_SpaceTextEditor_updateEdited(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	SpaceText *st= (SpaceText*)ptr->data;
 
@@ -649,7 +645,7 @@ static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 	return &RNA_ID;
 }
 
-static void rna_SpaceProperties_pin_id_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceProperties_pin_id_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
 	ID *id = sbuts->pinid;
@@ -763,7 +759,7 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA valu
 	}
 }
 
-static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	SpaceAction *saction= (SpaceAction*)(ptr->data);
 	Object *obact= (scene->basact)? scene->basact->object: NULL;
@@ -797,7 +793,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, Scene *scene, Po
 	}
 }
 
-static void rna_SpaceDopeSheetEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	SpaceAction *saction= (SpaceAction*)(ptr->data);
 	Object *obact= (scene->basact)? scene->basact->object: NULL;
@@ -831,7 +827,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *bmain, Scene *scene, Poin
 
 /* Space Graph Editor */
 
-static void rna_SpaceGraphEditor_display_mode_update(bContext *C, PointerRNA *ptr)
+static void rna_SpaceGraphEditor_display_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	//SpaceIpo *sipo= (SpaceIpo*)(ptr->data);
 	ScrArea *sa= CTX_wm_area(C);
@@ -867,7 +863,7 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 	bgpic->blend = 1.0f - value;
 }
 
-static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);

@@ -45,7 +45,7 @@
 #include "BLI_utildefines.h"
 
 
-static char Method_Buffer_doc[] =
+PyDoc_STRVAR(Method_Buffer_doc,
 	"(type, dimensions, [template]) - Create a new Buffer object\n\n\
 (type) - The format to store data in\n\
 (dimensions) - An int or sequence specifying the dimensions of the buffer\n\
@@ -59,7 +59,8 @@ will have len(sequence) dimensions, where the size for each dimension\n\
 is determined by the value in the sequence at that index.\n\n\
 For example, passing [100, 100] will create a 2 dimensional\n\
 square buffer. Passing [16, 16, 32] will create a 3 dimensional\n\
-buffer which is twice as deep as it is wide or high.";
+buffer which is twice as deep as it is wide or high."
+);
 
 static PyObject *Method_Buffer( PyObject * self, PyObject *args );
 

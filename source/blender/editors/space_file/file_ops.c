@@ -318,8 +318,8 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(ar->regiontype != RGN_TYPE_WINDOW)
 		return OPERATOR_CANCELLED;
 
-	rect.xmin = rect.xmax = event->x - ar->winrct.xmin;
-	rect.ymin = rect.ymax = event->y - ar->winrct.ymin;
+	rect.xmin = rect.xmax = event->mval[0];
+	rect.ymin = rect.ymax = event->mval[1];
 
 	if(!BLI_in_rcti(&ar->v2d.mask, rect.xmin, rect.ymin))
 		return OPERATOR_CANCELLED;

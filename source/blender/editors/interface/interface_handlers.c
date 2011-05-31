@@ -4022,12 +4022,9 @@ static int ui_do_but_CHARTAB(bContext *UNUSED(C), uiBlock *UNUSED(block), uiBut 
 
 
 static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
-{
-	ARegion *ar= CTX_wm_region(C);
-	
-	but->linkto[0]= event->x-ar->winrct.xmin;
-	but->linkto[1]= event->y-ar->winrct.ymin;
-	
+{	
+	VECCOPY2D(but->linkto, event->mval);
+
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(event->type == LEFTMOUSE && event->val==KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_RELEASE);
