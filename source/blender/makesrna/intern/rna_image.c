@@ -55,7 +55,7 @@ static EnumPropertyItem image_source_items[]= {
 
 #include "IMB_imbuf_types.h"
 
-static void rna_Image_animated_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Image_animated_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima= (Image*)ptr->data;
 	int  nr;
@@ -80,14 +80,14 @@ static int rna_Image_dirty_get(PointerRNA *ptr)
 	return 0;
 }
 
-static void rna_Image_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Image_source_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
 	DAG_id_tag_update(&ima->id, 0);
 }
 
-static void rna_Image_fields_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Image_fields_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	ImBuf *ibuf;
@@ -108,20 +108,20 @@ static void rna_Image_fields_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	BKE_image_release_ibuf(ima, lock);
 }
 
-static void rna_Image_reload_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Image_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
 	DAG_id_tag_update(&ima->id, 0);
 }
 
-static void rna_Image_generated_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Image_generated_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
 }
 
-static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	ImageUser *iuser= ptr->data;
 
@@ -143,7 +143,7 @@ char *rna_ImageUser_path(PointerRNA *ptr)
 	return BLI_strdup("");
 }
 
-static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Image_source_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Image *ima= (Image*)ptr->data;
 	EnumPropertyItem *item= NULL;

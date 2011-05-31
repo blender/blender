@@ -87,7 +87,7 @@ static void rna_World_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	set_current_world_texture(wo, value.data);
 }
 
-static void rna_World_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_World_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
@@ -95,7 +95,7 @@ static void rna_World_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_WORLD, wo);
 }
 
-static void rna_World_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_World_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
@@ -104,7 +104,7 @@ static void rna_World_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 }
 
 /* so camera mist limits redraw */
-static void rna_World_draw_mist_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_World_draw_mist_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
@@ -113,7 +113,7 @@ static void rna_World_draw_mist_update(Main *bmain, Scene *scene, PointerRNA *pt
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 }
 
-static void rna_World_stars_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_World_stars_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 

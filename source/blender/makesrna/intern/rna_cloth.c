@@ -49,7 +49,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 
-static void rna_cloth_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_cloth_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
@@ -57,7 +57,7 @@ static void rna_cloth_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
-static void rna_cloth_pinning_changed(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_cloth_pinning_changed(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 //	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
@@ -69,7 +69,7 @@ static void rna_cloth_pinning_changed(Main *bmain, Scene *scene, PointerRNA *ptr
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
-static void rna_cloth_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_cloth_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
