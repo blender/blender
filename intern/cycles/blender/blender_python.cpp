@@ -210,7 +210,7 @@ static PyMethodDef methods[] = {
 	{"sync", sync_func, METH_VARARGS, ""},
 	{"available_devices", available_devices_func, METH_NOARGS, ""},
 	{"with_osl", with_osl_func, METH_NOARGS, ""},
-	{NULL, NULL},
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef module = {
@@ -218,7 +218,8 @@ static struct PyModuleDef module = {
 	"libcycles_blender",
 	"Blender RNA to render exporter",
 	-1,
-	methods
+	methods,
+	NULL, NULL, NULL, NULL
 };
 
 CCL_NAMESPACE_END
