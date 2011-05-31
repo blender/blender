@@ -31,6 +31,9 @@ set(INC
 	../../windowmanager
 	../../render/extern/include
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -48,4 +51,4 @@ set(SRC
 	sculpt_intern.h
 )
 
-blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}")
+blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}" "${INC_SYS}")

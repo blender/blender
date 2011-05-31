@@ -32,6 +32,10 @@ set(INC
 	../moto/include
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/LOD_EdgeCollapser.cpp
 	intern/LOD_ExternNormalEditor.cpp
@@ -57,4 +61,4 @@ set(SRC
 	intern/LOD_QuadricEditor.h
 )
 
-blender_add_lib(bf_intern_decimate "${SRC}" "${INC}")
+blender_add_lib(bf_intern_decimate "${SRC}" "${INC}" "${INC_SYS}")

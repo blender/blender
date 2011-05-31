@@ -28,6 +28,10 @@ set(INC
 	.
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	Alloc.c
 	LzFind.c
@@ -44,4 +48,4 @@ set(SRC
 	Types.h
 )
 
-blender_add_lib(extern_lzma "${SRC}" "${INC}")
+blender_add_lib(extern_lzma "${SRC}" "${INC}" "${INC_SYS}")

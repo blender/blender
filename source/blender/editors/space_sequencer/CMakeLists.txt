@@ -30,6 +30,9 @@ set(INC
 	../../windowmanager
 	../../../../intern/guardedalloc
 	../../../../intern/audaspace/intern
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -46,4 +49,4 @@ set(SRC
 	sequencer_intern.h
 )
 
-blender_add_lib(bf_editor_space_sequencer "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_sequencer "${SRC}" "${INC}" "${INC_SYS}")

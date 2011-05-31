@@ -30,6 +30,10 @@ set(INC
 	../../../../intern/guardedalloc
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	ed_util.c
 	editmode_undo.c
@@ -83,4 +87,4 @@ set(SRC
 	../include/UI_view2d.h
 )
 
-blender_add_lib(bf_editor_util "${SRC}" "${INC}")
+blender_add_lib(bf_editor_util "${SRC}" "${INC}" "${INC_SYS}")

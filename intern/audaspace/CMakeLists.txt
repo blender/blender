@@ -23,10 +23,13 @@
 set(INC
 	.
 	intern
-	FX SRC
-	${PTHREADS_INC}
-	${LIBSAMPLERATE_INC}
+	FX
+	SRC
 	../ffmpeg
+)
+
+set(INC_SYS
+	${PTHREADS_INC}
 )
 
 set(SRC
@@ -156,8 +159,9 @@ set(SRC
 
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
-	list(APPEND INC ffmpeg ${FFMPEG_INC})
-	set(FFMPEGSRC
+	list(APPEND INC ffmpeg)
+	list(APPEND INC_SYS ${FFMPEG_INC})
+	list(APPEND SRC
 		ffmpeg/AUD_FFMPEGFactory.cpp
 		ffmpeg/AUD_FFMPEGReader.cpp
 
@@ -168,8 +172,9 @@ endif()
 
 if(WITH_SDL)
 	add_definitions(-DWITH_SDL)
-	list(APPEND INC SDL ${SDL_INCLUDE_DIR})
-	set(SDLSRC
+	list(APPEND INC SDL)
+	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})
+	list(APPEND SRC
 		SDL/AUD_SDLDevice.cpp
 
 		SDL/AUD_SDLDevice.h
@@ -178,18 +183,20 @@ endif()
 
 if(WITH_OPENAL)
 	add_definitions(-DWITH_OPENAL)
-	list(APPEND INC OpenAL ${OPENAL_INCLUDE_DIR})
-	set(OPENALSRC
+	list(APPEND INC OpenAL)
+	list(APPEND INC_SYS ${OPENAL_INCLUDE_DIR})
+	list(APPEND SRC
 		OpenAL/AUD_OpenALDevice.cpp
 
 		OpenAL/AUD_OpenALDevice.h
-	)	
+	)
 endif()
 
 if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
-	list(APPEND INC jack ${JACK_INC})
-	set(JACKSRC
+	list(APPEND INC jack)
+	list(APPEND INC_SYS ${JACK_INC})
+	list(APPEND SRC
 		jack/AUD_JackDevice.cpp
 
 		jack/AUD_JackDevice.h
@@ -198,7 +205,8 @@ endif()
 
 if(WITH_CODEC_SNDFILE)
 	add_definitions(-DWITH_SNDFILE)
-	list(APPEND INC sndfile ${SNDFILE_INC})
+	list(APPEND INC sndfile)
+	list(APPEND INC_SYS ${SNDFILE_INC})
 	set(SNDFILESRC
 		sndfile/AUD_SndFileFactory.cpp
 		sndfile/AUD_SndFileReader.cpp
@@ -210,7 +218,8 @@ endif()
 
 if(WITH_SAMPLERATE)
 	add_definitions(-DWITH_SAMPLERATE)
-	set(SRCFILESRC
+	list(APPEND INC_SYS ${LIBSAMPLERATE_INC})
+	list(APPEND SRC
 		SRC/AUD_SRCResampleFactory.cpp
 		SRC/AUD_SRCResampleReader.cpp
 
@@ -221,8 +230,9 @@ endif()
 
 if(WITH_FFTW3 AND FALSE)
 	add_definitions(-DWITH_FFTW3)
-	list(APPEND INC fftw ${FFTW3_INC})
-	set(FFTW3SRC
+	list(APPEND INC fftw)
+	list(APPEND INC_SYS ${FFTW3_INC})
+	list(APPEND SRC
 		fftw/AUD_BandPassFactory.cpp
 		fftw/AUD_BandPassReader.cpp
 
@@ -232,8 +242,9 @@ if(WITH_FFTW3 AND FALSE)
 endif()
 
 if(WITH_PYTHON)
-	list(APPEND INC Python ${PYTHON_INCLUDE_DIRS})
-	set(PYTHONSRC
+	list(APPEND INC Python)
+	list(APPEND INC_SYS ${PYTHON_INCLUDE_DIRS})
+	list(APPEND SRC
 		Python/AUD_PyAPI.cpp
 
 		Python/AUD_PyAPI.h
@@ -241,16 +252,4 @@ if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()
 
-set(SRC
-	${SRC}
-	${FFMPEGSRC}
-	${SNDFILESRC}
-	${SRCFILESRC}
-	${FFTW3SRC}
-	${SDLSRC}
-	${OPENALSRC}
-	${JACKSRC}
-	${PYTHONSRC}
-)
-
-blender_add_lib(bf_intern_audaspace "${SRC}" "${INC}")
+blender_add_lib(bf_intern_audaspace "${SRC}" "${INC}" "${INC_SYS}")

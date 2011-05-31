@@ -29,6 +29,10 @@ set(INC
 	../guardedalloc
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/CTR_List.cpp
 
@@ -40,4 +44,4 @@ set(SRC
 	CTR_UHeap.h
 )
 
-blender_add_lib(bf_intern_ctr "${SRC}" "${INC}")
+blender_add_lib(bf_intern_ctr "${SRC}" "${INC}" "${INC_SYS}")
