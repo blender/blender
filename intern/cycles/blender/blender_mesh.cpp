@@ -260,7 +260,6 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 
 	/* create derived mesh */
 	BL::Mesh b_mesh = object_to_mesh(b_ob, b_scene, true, !preview);
-	/* todo: this will crash on non-mesh types! */
 	PointerRNA cmesh = RNA_pointer_get(&b_ob_data.ptr, "cycles");
 
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
@@ -269,13 +268,15 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 	mesh->used_shaders = used_shaders;
 	mesh->name = ustring(b_ob_data.name());
 
-	if(cmesh.data && RNA_boolean_get(&cmesh, "use_subdivision"))
-		create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
-	else
-		create_mesh(scene, mesh, b_mesh, used_shaders);
+	if(b_mesh) {
+		if(cmesh.data && RNA_boolean_get(&cmesh, "use_subdivision"))
+			create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
+		else
+			create_mesh(scene, mesh, b_mesh, used_shaders);
 
-	/* free derived mesh */
-	object_remove_mesh(b_data, b_mesh);
+		/* free derived mesh */
+		object_remove_mesh(b_data, b_mesh);
+	}
 
 	/* displacement method */
 	if(cmesh.data) {
