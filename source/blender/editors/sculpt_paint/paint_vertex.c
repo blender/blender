@@ -1077,12 +1077,27 @@ static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, cha
 /* Jason was here */
 static char get_locked_flag(Object *ob, int vgroup)
 {
-	int i = 0;
+	int i;
 	bDeformGroup *defgroup = ob->defbase.first;
 	for(i = 0; i < vgroup && defgroup; i++) {
 		defgroup = defgroup->next;
 	}
-	return defgroup->flag;
+	if(defgroup) {
+		return defgroup->flag;
+	}
+	return 0;
+}
+/* Jason was here */
+static int locked_group_exists(Object *ob)
+{
+	bDeformGroup *defgroup = ob->defbase.first;
+	while(defgroup) {
+		if(defgroup->flag){
+			return TRUE;
+		}
+		defgroup = defgroup->next;
+	}
+	return FALSE;
 }
 
 /*Jason was here
@@ -1171,6 +1186,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	
 	/* Jason was here */
 	char locked;
+	int lge = 0;
 	float oldw;
 
 	if(wp->flag & VP_ONLYVGROUP) {
@@ -1193,7 +1209,9 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	if(locked) {
 		fix_weight_ratios(me, dw, oldw);
 		do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
-	}else {
+	} else if((lge = locked_group_exists(ob))) {
+		do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+	} else {
 		do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 	}
 	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
@@ -1211,6 +1229,8 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 			/* Jason */
 			if(locked) {
 				fix_weight_ratios(me, uw, oldw);
+				do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+			} else if(lge) {
 				do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
 			} else {
 				do_weight_paint_auto_normalize(me->dvert+j, vgroup, validmap);
