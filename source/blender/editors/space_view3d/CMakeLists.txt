@@ -34,6 +34,9 @@ set(INC
 	../../render/extern/include
 	../../../../intern/guardedalloc
 	../../../../intern/smoke/extern
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -65,4 +68,4 @@ endif()
 
 add_definitions(-DGLEW_STATIC)
 
-blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}")

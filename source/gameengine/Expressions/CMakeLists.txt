@@ -33,6 +33,10 @@ set(INC
 	../../../source/blender/blenloader
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	BoolValue.cpp
 	ConstExpr.cpp
@@ -77,4 +81,4 @@ set(SRC
 	VoidValue.h
 )
 
-blender_add_lib(ge_logic_expressions "${SRC}" "${INC}")
+blender_add_lib(ge_logic_expressions "${SRC}" "${INC}" "${INC_SYS}")

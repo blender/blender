@@ -31,6 +31,9 @@ set(INC
 	../../windowmanager
 	../../render/extern/include
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -72,4 +75,4 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
-blender_add_lib(bf_editor_space_file "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_file "${SRC}" "${INC}" "${INC_SYS}")

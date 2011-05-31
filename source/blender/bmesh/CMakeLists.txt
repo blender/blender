@@ -54,6 +54,9 @@ set(INC
 	../../../intern/smoke/extern
 	../../../intern/mikktspace
     ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
+)
+
+set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
 )
 
@@ -112,12 +115,12 @@ set(SRC
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_LZO)
-	list(APPEND INC ../../../extern/lzo/minilzo)
+	list(APPEND INC_SYS ../../../extern/lzo/minilzo)
 	add_definitions(-DWITH_LZO)
 endif()
 
 if(WITH_LZMA)
-	list(APPEND INC ../../../extern/lzma)
+	list(APPEND INC_SYS ../../../extern/lzma)
 	add_definitions(-DWITH_LZMA)
 endif()
 
@@ -125,4 +128,4 @@ if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif()
 
-blender_add_lib(bf_bmesh "${SRC}" "${INC}")
+blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}")

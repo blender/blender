@@ -39,6 +39,9 @@ set(INC
 	../../../intern/memutil
 	../../../intern/guardedalloc
 	../../../intern/ffmpeg
+)
+
+set(INC_SYS
 	${JPEG_INCLUDE_DIR}
 	${PNG_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}
@@ -111,30 +114,28 @@ if(WITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_IMAGE_TIFF)
-	list(APPEND INC ${TIFF_INCLUDE_DIR})
+	list(APPEND INC_SYS ${TIFF_INCLUDE_DIR})
 	add_definitions(-DWITH_TIFF)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
-	list(APPEND INC ${OPENJPEG_INC})
+	list(APPEND INC_SYS ${OPENJPEG_INC})
 	add_definitions(-DWITH_OPENJPEG)
 endif()
 
 if(WITH_IMAGE_REDCODE)
-	list(APPEND INC ${REDCODE_INC})
+	list(APPEND INC_SYS ${REDCODE_INC})
 	add_definitions(-DWITH_REDCODE)
 endif()
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC
-		../quicktime
-		${QUICKTIME_INC}
-	)
+	list(APPEND INC ../quicktime)
+	list(APPEND INC_SYS ${QUICKTIME_INC})
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-	list(APPEND INC ${FFMPEG_INC})
+	list(APPEND INC_SYS ${FFMPEG_INC})
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
@@ -150,4 +151,4 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
-blender_add_lib(bf_imbuf "${SRC}" "${INC}")
+blender_add_lib(bf_imbuf "${SRC}" "${INC}" "${INC_SYS}")

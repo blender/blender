@@ -32,6 +32,9 @@ set(INC
 	../../python
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -64,4 +67,4 @@ if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()
 
-blender_add_lib(bf_editor_interface "${SRC}" "${INC}")
+blender_add_lib(bf_editor_interface "${SRC}" "${INC}" "${INC_SYS}")

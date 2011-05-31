@@ -29,6 +29,9 @@ set(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -43,8 +46,9 @@ set(SRC
 )
 
 if(WITH_PYTHON)
-	list(APPEND INC ${PYTHON_INCLUDE_DIRS} ../../python)
+	list(APPEND INC ../../python)
+	list(APPEND INC_SYS ${PYTHON_INCLUDE_DIRS})
 	add_definitions(-DWITH_PYTHON)
 endif()
 
-blender_add_lib(bf_editor_text "${SRC}" "${INC}")
+blender_add_lib(bf_editor_text "${SRC}" "${INC}" "${INC_SYS}")

@@ -51,6 +51,9 @@ set(INC
 	../../../../source/gameengine/GamePlayer/ghost
 	../../../../source/blender/blenloader
 	../../../../source/blender/gpu
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 	${PNG_INCLUDE_DIR}
@@ -82,4 +85,4 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
-blender_add_lib_nolist(ge_player_common "${SRC}" "${INC}")
+blender_add_lib_nolist(ge_player_common "${SRC}" "${INC}" "${INC_SYS}")

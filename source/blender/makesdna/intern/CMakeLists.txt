@@ -58,6 +58,11 @@ add_custom_command(
 
 # Build bf_dna library
 set(INC
+
+)
+
+set(INC_SYS
+
 )
 
 set(SRC
@@ -66,4 +71,4 @@ set(SRC
 	${SRC_DNA_INC}
 )
 
-blender_add_lib(bf_dna "${SRC}" "${INC}")
+blender_add_lib(bf_dna "${SRC}" "${INC}" "${INC_SYS}")

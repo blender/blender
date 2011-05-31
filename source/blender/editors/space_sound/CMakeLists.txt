@@ -28,6 +28,9 @@ set(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -38,4 +41,4 @@ set(SRC
 	sound_intern.h
 )
 
-blender_add_lib(bf_editor_space_sound "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_sound "${SRC}" "${INC}" "${INC_SYS}")

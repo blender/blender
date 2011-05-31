@@ -35,6 +35,9 @@ set(INC
 	../render/extern/include
 	../../../intern/guardedalloc
 	../../../intern/elbeem/extern
+)
+
+set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
 )
 
@@ -87,9 +90,7 @@ set(SRC
 
 if(WITH_MOD_BOOLEAN)
 	add_definitions(-DWITH_MOD_BOOLEAN)
-	list(APPEND SRC
-		intern/MOD_boolean_util.c
-	)
+	list(APPEND SRC intern/MOD_boolean_util.c)
 	list(APPEND INC ../../../intern/bsp/extern)
 endif()
 
@@ -102,4 +103,4 @@ if(NOT WITH_MOD_FLUID)
 	add_definitions(-DDISABLE_ELBEEM)
 endif()
 
-blender_add_lib(bf_modifiers "${SRC}" "${INC}")
+blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}")

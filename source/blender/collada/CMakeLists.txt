@@ -38,8 +38,12 @@ set(INC
 	../../../intern/guardedalloc
 )
 
+set(INC_SYS
+
+)
+
 if(APPLE)
-	list(APPEND INC
+	list(APPEND INC_SYS
 		${OPENCOLLADA_INC}/COLLADAStreamWriter
 		${OPENCOLLADA_INC}/COLLADABaseUtils
 		${OPENCOLLADA_INC}/COLLADAFramework
@@ -47,7 +51,7 @@ if(APPLE)
 		${OPENCOLLADA_INC}/GeneratedSaxParser 
 	)
 else()
-	list(APPEND INC
+	list(APPEND INC_SYS
 		${OPENCOLLADA_INC}/COLLADAStreamWriter/include
 		${OPENCOLLADA_INC}/COLLADABaseUtils/include
 		${OPENCOLLADA_INC}/COLLADAFramework/include
@@ -111,4 +115,4 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
-blender_add_lib(bf_collada "${SRC}" "${INC}")
+blender_add_lib(bf_collada "${SRC}" "${INC}" "${INC_SYS}")
