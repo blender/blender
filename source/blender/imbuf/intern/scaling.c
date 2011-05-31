@@ -300,16 +300,17 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 	uchar *p1, *p2 = NULL, *dest;
 	float *p1f, *destf, *p2f = NULL;
 	int x,y;
-	int do_rect, do_float;
+	const short do_rect= (ibuf1->rect != NULL);
+	const short do_float= (ibuf1->rect_float != NULL) && (ibuf2->rect_float != NULL);
 
-	do_rect= (ibuf1->rect != NULL);
-	
+	if(do_rect && (ibuf2->rect == NULL)) {
+		imb_addrectImBuf(ibuf2);
+	}
+
 	p1f = ibuf1->rect_float;
 	destf=ibuf2->rect_float;
 	p1 = (uchar *) ibuf1->rect;
 	dest=(uchar *) ibuf2->rect;
-
-	do_float= (ibuf1->rect_float != NULL && ibuf2->rect_float != NULL);
 
 	for(y=ibuf2->y;y>0;y--){
 		if (do_rect) p2 = p1 + (ibuf1->x << 2);
