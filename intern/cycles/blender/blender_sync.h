@@ -92,6 +92,7 @@ private:
 	id_map<ObjectKey, Object> object_map;
 	id_map<void*, Mesh> mesh_map;
 	id_map<ObjectKey, Light> light_map;
+	set<Mesh*> mesh_synced;
 	void *world_map;
 	bool world_recalc;
 

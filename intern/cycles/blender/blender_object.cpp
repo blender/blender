@@ -139,6 +139,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 	light_map.pre_sync();
 	mesh_map.pre_sync();
 	object_map.pre_sync();
+	mesh_synced.clear();
 
 	/* object loop */
 	BL::Scene::objects_iterator b_ob;
@@ -177,6 +178,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 		scene->mesh_manager->tag_update(scene);
 	if(object_map.post_sync())
 		scene->object_manager->tag_update(scene);
+	mesh_synced.clear();
 }
 
 CCL_NAMESPACE_END

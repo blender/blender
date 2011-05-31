@@ -252,6 +252,12 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 		}
 	}
 
+	/* ensure we only sync instanced meshes once */
+	if(mesh_synced.find(mesh) != mesh_synced.end())
+		return mesh;
+	
+	mesh_synced.insert(mesh);
+
 	/* create derived mesh */
 	BL::Mesh b_mesh = object_to_mesh(b_ob, b_scene, true, !preview);
 	/* todo: this will crash on non-mesh types! */
