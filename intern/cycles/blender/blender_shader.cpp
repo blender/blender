@@ -535,14 +535,23 @@ void BlenderSync::sync_materials()
 		if(shader_map.sync(&shader, *b_mat)) {
 			ShaderGraph *graph = new ShaderGraph();
 
-			/* create nodes */
-			if(b_mat && b_mat->node_tree()) {
-				shader->name = b_mat->name();
+			shader->name = b_mat->name();
 
+			/* create nodes */
+			if(b_mat->use_nodes() && b_mat->node_tree()) {
 				PtrSockMap sock_to_node;
 				BL::ShaderNodeTree b_ntree(b_mat->node_tree());
 
 				add_nodes(b_data, graph, b_ntree, NULL, sock_to_node);
+			}
+			else {
+				ShaderNode *closure, *out;
+
+				closure = graph->add(new DiffuseBsdfNode());
+				closure->input("Color")->value = get_float3(b_mat->diffuse_color());
+				out = graph->output();
+
+				graph->connect(closure->output("BSDF"), out->input("Surface"));
 			}
 
 			shader->set_graph(graph);
@@ -565,11 +574,20 @@ void BlenderSync::sync_world()
 		ShaderGraph *graph = new ShaderGraph();
 
 		/* create nodes */
-		if(b_world && b_world.node_tree()) {
+		if(b_world && b_world.use_nodes() && b_world.node_tree()) {
 			PtrSockMap sock_to_node;
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
 			add_nodes(b_data, graph, b_ntree, NULL, sock_to_node);
+		}
+		else if(b_world) {
+			ShaderNode *closure, *out;
+
+			closure = graph->add(new BackgroundNode());
+			closure->input("Color")->value = get_float3(b_world.horizon_color());
+			out = graph->output();
+
+			graph->connect(closure->output("Background"), out->input("Surface"));
 		}
 
 		shader->set_graph(graph);
@@ -600,13 +618,23 @@ void BlenderSync::sync_lamps()
 			ShaderGraph *graph = new ShaderGraph();
 
 			/* create nodes */
-			if(b_lamp && b_lamp->node_tree()) {
+			if(b_lamp->use_nodes() && b_lamp->node_tree()) {
 				shader->name = b_lamp->name();
 
 				PtrSockMap sock_to_node;
 				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
 
 				add_nodes(b_data, graph, b_ntree, NULL, sock_to_node);
+			}
+			else {
+				ShaderNode *closure, *out;
+
+				closure = graph->add(new EmissionNode());
+				closure->input("Color")->value = get_float3(b_lamp->color());
+				closure->input("Strength")->value.x = b_lamp->energy()*10.0f;
+				out = graph->output();
+
+				graph->connect(closure->output("Emission"), out->input("Surface"));
 			}
 
 			shader->set_graph(graph);
