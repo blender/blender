@@ -345,56 +345,56 @@ __device_inline float average(const float3 a)
 
 __device_inline float3 operator-(const float3 a)
 {
-	float3 r = {-a.x, -a.y, -a.z};
+	float3 r = make_float3(-a.x, -a.y, -a.z);
 	return r;
 }
 
 __device_inline float3 operator*(const float3 a, const float3 b)
 {
-	float3 r = {a.x*b.x, a.y*b.y, a.z*b.z};
+	float3 r = make_float3(a.x*b.x, a.y*b.y, a.z*b.z);
 	return r;
 }
 
 __device_inline float3 operator*(const float3 a, float f)
 {
-	float3 r = {a.x*f, a.y*f, a.z*f};
+	float3 r = make_float3(a.x*f, a.y*f, a.z*f);
 	return r;
 }
 
 __device_inline float3 operator*(float f, const float3 a)
 {
-	float3 r = {a.x*f, a.y*f, a.z*f};
+	float3 r = make_float3(a.x*f, a.y*f, a.z*f);
 	return r;
 }
 
 __device_inline float3 operator/(float f, const float3 a)
 {
-	float3 r = {f/a.x, f/a.y, f/a.z};
+	float3 r = make_float3(f/a.x, f/a.y, f/a.z);
 	return r;
 }
 
 __device_inline float3 operator/(const float3 a, float f)
 {
 	float invf = 1.0f/f;
-	float3 r = {a.x*invf, a.y*invf, a.z*invf};
+	float3 r = make_float3(a.x*invf, a.y*invf, a.z*invf);
 	return r;
 }
 
 __device_inline float3 operator/(const float3 a, const float3 b)
 {
-	float3 r = {a.x/b.x, a.y/b.y, a.z/b.z};
+	float3 r = make_float3(a.x/b.x, a.y/b.y, a.z/b.z);
 	return r;
 }
 
 __device_inline float3 operator+(const float3 a, const float3 b)
 {
-	float3 r = {a.x+b.x, a.y+b.y, a.z+b.z};
+	float3 r = make_float3(a.x+b.x, a.y+b.y, a.z+b.z);
 	return r;
 }
 
 __device_inline float3 operator-(const float3 a, const float3 b)
 {
-	float3 r = {a.x-b.x, a.y-b.y, a.z-b.z};
+	float3 r = make_float3(a.x-b.x, a.y-b.y, a.z-b.z);
 	return r;
 }
 
@@ -446,7 +446,7 @@ __device_inline float dot(const float3 a, const float3 b)
 
 __device_inline float3 cross(const float3 a, const float3 b)
 {
-	float3 r = {a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x};
+	float3 r = make_float3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
 	return r;
 }
 
@@ -486,13 +486,13 @@ __device_inline bool operator!=(const float3 a, const float3 b)
 
 __device_inline float3 min(float3 a, float3 b)
 {
-	float3 r = {min(a.x, b.x), min(a.y, b.y), min(a.z, b.z)};
+	float3 r = make_float3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
 	return r;
 }
 
 __device_inline float3 max(float3 a, float3 b)
 {
-	float3 r = {max(a.x, b.x), max(a.y, b.y), max(a.z, b.z)};
+	float3 r = make_float3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
 	return r;
 }
 

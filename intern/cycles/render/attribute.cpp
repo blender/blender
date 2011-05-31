@@ -46,7 +46,10 @@ void Attribute::reserve(int numverts, int numtris)
 
 size_t Attribute::data_sizeof()
 {
-	return type.size();
+	if(type == TypeDesc::TypeFloat)
+		return sizeof(float);
+	else
+		return sizeof(float3);
 }
 
 size_t Attribute::element_size(int numverts, int numtris)

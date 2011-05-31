@@ -45,6 +45,7 @@ Shader::Shader()
 	has_displacement = false;
 
 	need_update = true;
+	need_update_attributes = true;
 }
 
 Shader::~Shader()
