@@ -332,6 +332,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	PointerRNA idptr;
 	// ListBase *lb; // UNUSED
 	ID *id, *idfrom;
+	int editable= RNA_property_editable(&template->ptr, template->prop);
 
 	idptr= RNA_property_pointer_get(&template->ptr, template->prop);
 	id= idptr.data;
@@ -352,14 +353,12 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			if (id) but->icon = ui_id_icon_get(C, id, 1);
 			uiButSetFlag(but, UI_HAS_ICON|UI_ICON_PREVIEW);
 		}
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		
-		
 		uiLayoutRow(layout, 1);
-	} else 
-		
-	if(flag & UI_ID_BROWSE) {
+	}
+	else if(flag & UI_ID_BROWSE) {
 		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, template_id_browse_tip(type));
 		if(type) {
 			but->icon= RNA_struct_ui_icon(type);
@@ -368,7 +367,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetFlag(but, UI_HAS_ICON|UI_ICON_LEFT);
 		}
 
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 
@@ -410,7 +409,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X+10,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
-			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib))
+			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib) || !editable)
 				uiButSetFlag(but, UI_BUT_DISABLED);
 		}
 	
@@ -433,7 +432,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 
@@ -449,7 +448,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_OPEN));
 		}
 
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 	
@@ -468,7 +467,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 				uiButSetFlag(but, UI_BUT_DISABLED);
 		}
 
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 	
