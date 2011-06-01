@@ -663,7 +663,7 @@ void ui_theme_init_default(void)
 
 	SETCOL(btheme->tipo.handle_vertex, 		0, 0, 0, 255);
 	SETCOL(btheme->tipo.handle_vertex_select, 255, 133, 0, 255);
-	btheme->tipo.handle_vertex_size= 3;
+	btheme->tipo.handle_vertex_size= 4;
 	
 	SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
 	SETCOL(btheme->tipo.ds_subchannel,	124, 137, 150, 255);

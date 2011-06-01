@@ -34,6 +34,7 @@
 #define ED_MARKERS_H
 
 struct wmKeyConfig;
+struct wmKeyMap;
 struct bContext;
 struct bAnimContext;
 struct Scene;
