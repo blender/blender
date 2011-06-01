@@ -867,7 +867,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	MVert *mv = cddm->mvert;
 	MFace *mf = cddm->mface;
 	MCol *mc;
-	float *nors= dm->getTessFaceDataArray(dm, CD_NORMAL);
+	float *nors= DM_get_tessface_data_layer(dm, CD_NORMAL);
 	int i, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 
 	mc = DM_get_tessface_data_layer(dm, CD_ID_MCOL);
@@ -944,6 +944,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 				}
 
 				glEnd();
+			} else {
+				printf("eek!\n");
 			}
 			
 			if (nors) nors += 3;
@@ -2189,7 +2191,9 @@ DerivedMesh *CDDM_copy(DerivedMesh *source, int faces_from_tessfaces)
 
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
-
+	
+	cdDM_recalcTesselation(cddm);
+	
 	return dm;
 }
 

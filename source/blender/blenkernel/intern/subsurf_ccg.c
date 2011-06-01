@@ -2624,7 +2624,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	int index, totvert, totedge, totface;
 	int i;
 	int vertNum, edgeNum, faceNum;
-	int *vertOrigIndex, *faceOrigIndex, *polyOrigIndex; /* *edgeOrigIndex - as yet, unused  */
+	int *vertOrigIndex, *faceOrigIndex, *polyOrigIndex, *base_polyOrigIndex; /* *edgeOrigIndex - as yet, unused  */
 	short *edgeFlags;
 	char *faceFlags;
 	int *loopidx = NULL, *vertidx = NULL;
@@ -2777,6 +2777,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	mface = dm->getTessFaceArray(dm);
 
 	mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
+	base_polyOrigIndex = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
+	
 	/*CDDM hack*/
 	edgeFlags = ccgdm->edgeFlags = MEM_callocN(sizeof(short)*totedge, "faceFlags");
 	faceFlags = ccgdm->faceFlags = MEM_callocN(sizeof(char)*2*totface, "faceFlags");
@@ -2803,7 +2805,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		int g2_wid = gridCuts+2;
 		float *w2;
 		int s, x, y;
-
+		
+		origIndex = base_polyOrigIndex ? base_polyOrigIndex[origIndex] : origIndex;
+		
 		w = get_ss_weights(&wtable, gridCuts, numVerts);
 
 		ccgdm->faceMap[index].startVert = vertNum;

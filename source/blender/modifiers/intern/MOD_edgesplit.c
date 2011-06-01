@@ -37,6 +37,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
+#include "BLI_smallhash.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
@@ -70,7 +71,13 @@ typedef struct EdgeData {
 	int tag;
 	int v1, v2;
 	int used;
+	int idx;
+	int ml1, ml2, mp1, mp2;
 } EdgeData;
+
+typedef struct LoopPair {
+	int ml1, ml2, mp1, mp2;
+} LoopPair;
 
 typedef struct MemBase {
 	BLI_mempool *vertuserpool;
@@ -147,8 +154,9 @@ BM_INLINE EdgeData *edge_get_first(VertUser *vu)
 
 DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 {
-	DerivedMesh *cddm = CDDM_copy(dm, 0);
-	MEdge *medge;
+	DerivedMesh *cddm = CDDM_copy(dm, 0), *cddm2;
+	MEdge *medge = NULL;
+	BLI_array_declare(stack);
 	BLI_array_declare(medge);
 	MLoop *mloop, *ml, *prevl;
 	MPoly *mpoly, *mp;
@@ -159,24 +167,33 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 	VertUser *vu, *vu2;
 	MemBase *membase;
 	CustomData edata, vdata;
-	int i, j, curv, cure;
+	int *origv = NULL, *orige = NULL;
+	BLI_array_declare(origv);
+	BLI_array_declare(orige);
+	EdgeHash *eh, *pairh;
 	float threshold = cos((emd->split_angle + 0.00001) * M_PI / 180.0);
 	float no[3], edge_angle_cos;
+	LoopPair *pairs = NULL, *lp;
+	BLI_array_declare(pairs);
+	int i, j, curv, cure;
 
 	if (!cddm->numVertData || !cddm->numEdgeData)
 		return cddm;
-
+	
+	eh = BLI_edgehash_new();
+	pairh = BLI_edgehash_new();
 	membase = new_membase();
 
 	etags = MEM_callocN(sizeof(EdgeData)*cddm->numEdgeData, "edgedata tag thingies");
 	BLI_array_set_length(etags, cddm->numEdgeData);
 
-	mvert = cddm->getVertArray(cddm);
+	mvert = cddm->dupVertArray(cddm);
 	BLI_array_set_length(mvert, cddm->numVertData);
-	medge = cddm->getEdgeArray(cddm);
+	medge = cddm->dupEdgeArray(cddm);
 	BLI_array_set_length(medge, cddm->numEdgeData);
-	mloop = CustomData_get_layer(&cddm->loopData, CD_MLOOP);
-	mpoly = CustomData_get_layer(&cddm->polyData, CD_MPOLY);
+	
+	mloop = CDDM_get_loops(cddm);
+	mpoly = CDDM_get_polys(cddm);
 
 	for (i=0; i<cddm->numEdgeData; i++) {
 		etags[i].v1 = medge[i].v1;
@@ -186,6 +203,14 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 
 		etags[i].v1node.edge = etags+i;
 		etags[i].v2node.edge = etags+i;
+		etags[i].idx = i;
+		
+		BLI_edgehash_insert(eh, medge[i].v1, medge[i].v2, SET_INT_IN_POINTER(i));
+		BLI_array_append(orige, i);
+	}
+	
+	for (i=0; i<cddm->numVertData; i++) {
+		BLI_array_append(origv, i);
 	}
 
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {
@@ -207,12 +232,22 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 			}
 		}
 	}
-
+	
 	mp = mpoly;
 	for (i=0; i<cddm->numPolyData; i++, mp++) {
 		ml = mloop + mp->loopstart;
 		for (j=0; j<mp->totloop; j++, ml++) {
-			if (etags[ml->e].tag)
+			/*create loop pairs*/
+			e = etags + ml->e;
+			if (!e->mp1) {
+				e->mp1 = i+1;
+				e->ml1 = mp->loopstart+j+1;
+			} else if (!e->mp2) {
+				e->mp2 = i+1;
+				e->ml2 = mp->loopstart+j+1;
+			}
+			
+			if (e->tag)
 				continue;
 
 			prevl = mloop + mp->loopstart + ((j-1)+mp->totloop) % mp->totloop;
@@ -228,34 +263,79 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 				vu->ov = vu->v = ml->v;
 				edge_set_vuser(membase, etags+ml->e, ml->v, vu);
 			}
-
-			/*continue if previous edge is tagged*/
-			if (etags[prevl->e].tag)
-				continue;
-
-			/*merge together adjacent split vert users*/
-			if (edge_get_vuser(membase, etags+prevl->e, ml->v)
-				!= edge_get_vuser(membase, etags+ml->e, ml->v))
-			{
-				vu = edge_get_vuser(membase, etags+prevl->e, ml->v);
-				vu2 = edge_get_vuser(membase, etags+ml->e, ml->v);
-
-				/*remove from vu2's users list and add to vu's*/
-				for (e=edge_get_first(vu2); e; e=enext) {
-					enext = edge_get_next(e, ml->v);
-					edge_set_vuser(membase, e, ml->v, vu);
-				}
-			}
 		}
 	}
+	
+	/*build list of loop pairs*/
+	for (i=0; i<cddm->numEdgeData; i++) {
+		e = etags + i;
+		if (e->tag && e->mp2) {
+			BLI_array_growone(pairs);
+			lp = pairs + BLI_array_count(pairs)-1;
+			lp->mp1 = e->mp1-1; lp->ml1 = e->ml1-1;
+			lp->mp2 = e->mp2-1; lp->ml2 = e->ml2-1;
+		}
+	}
+	
+	/*find contiguous face regions*/
+	while (1) {
+		int ok = 1;
+		
+		lp = pairs;
+		for (i=0; i<BLI_array_count(pairs); i++, lp++) {
+			MLoop *ml2;
+			MPoly *mp2;
+			EdgeData *e2;
+			int k, lastj;
 
+			j = lp->ml1;
+			k = lp->mp1;
+			ml = mloop + lp->ml1;
+			mp = mp2 = mpoly + lp->mp1;
+
+			/*walk edges around ml->v*/
+			do {
+				lastj = j;
+				if (mloop[j].v == ml->v)
+					j = mp2->loopstart + (j-mp2->loopstart-1 + mp2->totloop)%mp2->totloop;
+				else
+					j = mp2->loopstart + (j-mp2->loopstart+1)%mp2->totloop;
+				
+				prevl = mloop + j;
+				e2 = etags + prevl->e;
+				
+				if (!e2->tag && e2->mp1 && e2->mp2) {
+					j = e2->ml1-1 == j ? e2->ml2-1 : e2->ml1-1;
+					k = e2->mp1-1 == k ? e2->mp2-1 : e2->mp1-1;
+				} else
+					break;
+				
+				mp2 = mpoly + k;
+			} while (!etags[j].tag && (mloop+j) != ml && j != lastj);
+			
+			ml2 = mloop + j;
+			e = etags + ml->e;
+			e2 = etags + ml2->e;
+			if (e2->tag && e != e2 && (e->mp1-1==lp->mp1) != (e2->mp1-1 == k)) {
+				SWAP(int, e->ml1, e->ml2);
+				SWAP(int, e->mp1, e->mp2);
+				SWAP(int, lp->ml1, lp->ml2);
+				SWAP(int, lp->mp1, lp->mp2);
+				ok = 0;
+			}
+		}
+		
+		if (ok)
+			break;
+	}
+	
 	mp = mpoly;
 	for (i=0; i<cddm->numPolyData; i++, mp++) {
 		ml = mloop + mp->loopstart;
 		for (j=0; j<mp->totloop; j++, ml++) {
 			if (!etags[ml->e].tag)
 				continue;
-
+			
 			prevl = mloop + mp->loopstart + ((j-1)+mp->totloop) % mp->totloop;
 
 			if (!etags[prevl->e].tag) {
@@ -274,17 +354,76 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 			}
 		}
 	}
-
-	curv = cddm->numVertData;
-	cure = cddm->numEdgeData;
+	
 	mp = mpoly;
 	for (i=0; i<cddm->numPolyData; i++, mp++) {
 		ml = mloop + mp->loopstart;
 		for (j=0; j<mp->totloop; j++, ml++) {
+			prevl = mloop + mp->loopstart + ((j-1)+mp->totloop) % mp->totloop;
+			
+			/*merge together adjacent split vert users*/
+			if (edge_get_vuser(membase, etags+prevl->e, ml->v)
+				!= edge_get_vuser(membase, etags+ml->e, ml->v))
+			{
+				vu = edge_get_vuser(membase, etags+prevl->e, ml->v);
+				vu2 = edge_get_vuser(membase, etags+ml->e, ml->v);
+				
+				if (!vu) {
+					edge_set_vuser(membase, etags+prevl->e, ml->v, vu2);
+				} else if (!vu2) {
+					edge_set_vuser(membase, etags+ml->e, ml->v, vu);
+				} else {
+					/*remove from vu2's users list and add to vu's*/
+					for (e=edge_get_first(vu2); e; e=enext) {
+						enext = edge_get_next(e, ml->v);
+						
+						if (e == etags+prevl->e)
+							continue;
+						
+						edge_set_vuser(membase, e, ml->v, vu);
+					}
+					
+					edge_set_vuser(membase, etags+ml->e, ml->v, vu);
+				}
+			}
+		}
+	}
+	
+	mp = mpoly;
+	for (i=0; i<cddm->numPolyData; i++, mp++) {
+		ml = mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			int tot_tag = 0;
+			
+			vu = edge_get_vuser(membase, etags+ml->e, ml->v);
+			if (!vu)
+				continue;
+			
+			for (e=edge_get_first(vu); e; e=edge_get_next(e, ml->v)) {
+				tot_tag += e->tag;	
+			}
+			
+			if (tot_tag < 2) {
+				vu->done = 1;
+			}
+		}
+	}
+	
+	curv = cddm->numVertData;
+	cure = cddm->numEdgeData;
+
+	mp = mpoly;
+	for (i=0; i<cddm->numPolyData; i++, mp++) {
+		ml = mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			int v1, v2;
+			
 			e = etags + ml->e;
+			
 			if (e->v1user && !e->v1user->done) {
 				e->v1user->done = 1;
 				BLI_array_growone(mvert);
+				BLI_array_append(origv, e->v1user->ov);
 
 				mvert[curv] = mvert[e->v1user->ov];
 				e->v1user->v = curv;
@@ -295,68 +434,139 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 			if (e->v2user && !e->v2user->done) {
 				e->v2user->done = 1;
 				BLI_array_growone(mvert);
+				BLI_array_append(origv, e->v2user->ov);
+				BLI_array_growone(etags);
+				etags[BLI_array_count(etags)-1].idx = BLI_array_count(etags)-1;
 
 				mvert[curv] = mvert[e->v2user->ov];
 				e->v2user->v = curv;
 
 				curv++;
 			}
-
-			vu = edge_get_vuser(membase, e, ml->v);
-			if (!vu)
-				continue;
-			ml->v = vu->v;
 		}
 	}
-
-
-	/*resize customdata arrays and add new medge/mvert arrays*/
-	vdata = cddm->vertData;
-	edata = cddm->edgeData;
-
-	/*make sure we don't copy over mvert/medge layers*/
-	CustomData_set_layer(&vdata, CD_MVERT, NULL);
-	CustomData_set_layer(&edata, CD_MEDGE, NULL);
-	CustomData_free_layer_active(&vdata, CD_MVERT, cddm->numVertData);
-	CustomData_free_layer_active(&edata, CD_MEDGE, cddm->numEdgeData);
-
-	memset(&cddm->vertData, 0, sizeof(CustomData));
-	memset(&cddm->edgeData, 0, sizeof(CustomData));
-
-	CustomData_copy(&vdata, &cddm->vertData, CD_MASK_DERIVEDMESH, CD_CALLOC, curv);
-	CustomData_copy_data(&vdata, &cddm->vertData, 0, 0, cddm->numVertData);
-	CustomData_free(&vdata, cddm->numVertData);
-	cddm->numVertData = curv;
-
-	CustomData_copy(&edata, &cddm->edgeData, CD_MASK_DERIVEDMESH, CD_CALLOC, cure);
-	CustomData_copy_data(&edata, &cddm->edgeData, 0, 0, cddm->numEdgeData);
-	CustomData_free(&edata, cddm->numEdgeData);
-	cddm->numEdgeData = cure;
-
-	CDDM_set_mvert(cddm, mvert);
-	CDDM_set_medge(cddm, medge);
 	
-	CustomData_set_layer(&cddm->vertData, CD_MVERT, mvert);
-	CustomData_set_layer(&cddm->edgeData, CD_MEDGE, medge);
+	mp = mpoly;
+	for (i=0; i<cddm->numPolyData; i++, mp++) {
+		ml = mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			MLoop *nextl = mloop + mp->loopstart + (j+1)%mp->totloop;
+			
+			e = etags + ml->e;
+			vu = edge_get_vuser(membase, e, ml->v);
+			vu2 = edge_get_vuser(membase, e, nextl->v);
+			
+			if (!vu || etags[ml->e].tag)
+				continue;
+			
+			/*don't duplicate cross edges*/
+			if ((vu->v!=vu->ov) + (vu2->v!=vu2->ov) == 1) {
+				if (vu->v != vu->ov) {
+					if (vu->ov == medge[ml->e].v1) {
+						medge[ml->e].v1 = vu->v;
+					} else if (vu->ov == medge[ml->e].v2) {
+						medge[ml->e].v2 = vu->v;
+					}
+				} else if (vu2->v != vu2->ov) {
+					if (vu2->ov == medge[ml->e].v1) {
+						medge[ml->e].v1 = vu2->v;
+					} else if (vu2->ov == medge[ml->e].v2) {
+						medge[ml->e].v2 = vu2->v;
+					}
+				}
+				
+				BLI_edgehash_insert(eh, medge[ml->e].v1, medge[ml->e].v2, SET_INT_IN_POINTER(ml->e));
+			}
+		}
+	}
 	
-	free_membase(membase);
-	BLI_array_free(etags);
+	mp = mpoly;
+	for (i=0; i<cddm->numPolyData; i++, mp++) {
+		for (j=0; j<mp->totloop; j++) {
+			int v1, v2, k;
+			
+			ml = mloop + mp->loopstart + j;
+			e = etags + ml->e;
+			
+			if (!e->tag || j+mp->loopstart != e->ml1-1)
+				continue;
+			
+			for (k=0; k<2; k++) {
+				if (k) {
+					ml = mloop + mp->loopstart + (j+1)%mp->totloop;
+				}
+				
+				e = etags + ml->e;
+				
+				v1 = e->v1user ? e->v1user->v : e->v1;
+				v2 = e->v2user ? e->v2user->v : e->v2;
+				
+				if (!BLI_edgehash_haskey(eh, v1, v2)) {
+					BLI_array_growone(medge);
+					BLI_array_append(orige, ml->e);
+					
+					medge[cure] = medge[ml->e];
+					medge[cure].v1 = v1;
+					medge[cure].v2 = v2;
+					
+					BLI_edgehash_insert(eh, v1, v2, SET_INT_IN_POINTER(cure));
+					cure++;
+				}
+	
+				ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, v1, v2));
+							
+				vu = edge_get_vuser(membase, e, ml->v);
+				ml->v = vu->v;
+			}
+		}
+	}
+	
+	cddm2 = CDDM_from_template(cddm, curv, cure, 0, cddm->numLoopData, cddm->numPolyData);
+
+	/*copy vert/edge data*/	
+	for (i=0; i<curv; i++) {
+		DM_copy_vert_data(cddm, cddm2, origv[i], i, 1);
+	}
+	
+	for (i=0; i<cure; i++) {
+		DM_copy_edge_data(cddm, cddm2, orige[i], i, 1);
+	}
+	
+	/*copy loop/face data*/
+	CustomData_copy_data(&cddm->loopData, &cddm2->loopData, 0, 0, cddm->numLoopData);
+	CustomData_copy_data(&cddm->polyData, &cddm2->polyData, 0, 0, cddm->numPolyData);
+	
+	CustomData_free_layer_active(&cddm2->vertData, CD_MVERT, cddm2->numVertData);
+	CustomData_free_layer_active(&cddm2->edgeData, CD_MEDGE, cddm2->numEdgeData);
+	
+	/*set new mvert/medge layers*/
+	CustomData_set_layer(&cddm2->vertData, CD_MVERT, mvert);
+	CustomData_set_layer(&cddm2->edgeData, CD_MEDGE, medge);
+	CDDM_set_mvert(cddm2, mvert);
+	CDDM_set_medge(cddm2, medge);
+	
+	/*warning fixes*/
 	BLI_array_fake_user(mvert);
 	BLI_array_fake_user(medge);
 
-	/*edge calculation isn't working correctly, so just brute force it*/
-	cddm->numEdgeData = 0;
-	CDDM_calc_edges_poly(cddm);
-
-	cddm->numFaceData = mesh_recalcTesselation(&cddm->faceData,
-		&cddm->loopData, &cddm->polyData,
-		mvert, cddm->numFaceData,
-		cddm->numLoopData, cddm->numPolyData, 1, 0);
-
-	CDDM_set_mface(cddm, DM_get_tessface_data_layer(cddm, CD_MFACE));
-	CDDM_calc_normals(cddm);
-
-	return cddm;
+	free_membase(membase);
+	BLI_array_free(etags);
+	BLI_array_free(origv);
+	BLI_array_free(orige);
+	BLI_array_free(pairs);
+	BLI_edgehash_free(eh, NULL);
+	BLI_edgehash_free(pairh, NULL);
+	
+	CDDM_calc_normals(cddm2);
+	
+	if (cddm != dm) {
+		cddm->needsFree = 1;
+		cddm->release(cddm);
+	}
+	
+	CDDM_calc_edges_poly(cddm2);
+	
+	return cddm2;
 }
 
 static void initData(ModifierData *md)

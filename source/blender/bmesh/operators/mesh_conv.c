@@ -305,8 +305,6 @@ void object_load_bmesh_exec(BMesh *bm, BMOperator *op) {
 	Mesh *me = ob->data;
 
 	BMO_CallOpf(bm, "bmesh_to_mesh mesh=%p object=%p", me, ob);
-
-	/*BMESH_TODO eventually we'll have to handle shapekeys here*/
 }
 
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {

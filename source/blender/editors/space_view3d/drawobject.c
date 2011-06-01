@@ -1840,8 +1840,8 @@ static void draw_dm_face_centers__mapFunc(void *userData, int index, float *cent
 {
 	BMFace *efa = EDBM_get_face_for_index(((void **)userData)[0], index);
 	int sel = *(((int **)userData)[1]);
-
-	if (!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)==sel) {
+	
+	if (efa && !BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)==sel) {
 		bglVertex3fv(cent);
 	}
 }
@@ -6551,7 +6551,9 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 
 static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
 {
-	if (!BM_TestHFlag(EDBM_get_face_for_index(((void**)userData)[0], index), BM_HIDDEN)) {
+	BMFace *efa = EDBM_get_face_for_index(((void**)userData)[0], index);
+	
+	if (efa && !BM_TestHFlag(efa, BM_HIDDEN)) {
 		if (((void**)userData)[1]) {
 			WM_set_framebuffer_index_color(index+1);
 		}

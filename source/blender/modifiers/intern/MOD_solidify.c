@@ -225,7 +225,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	int *edge_users= NULL;
 	char *edge_order= NULL;
-
+	int *edge_origIndex;
+	
 	float (*vert_nors)[3]= NULL;
 
 	float const ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
@@ -550,6 +551,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		/* faces */
+		edge_origIndex = CustomData_get_layer(&result->edgeData, CD_ORIGINDEX);
+		
 		mp= mpoly + (numFaces * 2);
 		ml = mloop + (numLoops * 2);
 		j = 0;
@@ -572,6 +575,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* copy most of the face settings */
 			DM_copy_face_data(dm, result, fidx, (numFaces * 2) + i, 1);
 			mp->loopstart = j+numLoops*2;
+			mp->flag = mpoly[fidx].flag;
 			mp->totloop = 4;
 			
 			ml2 = mloop + mpoly[fidx].loopstart;
@@ -632,6 +636,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				
 				ml[j].v = ed->v1;
 				ml[j++].e = numEdges*2 + old_vert_arr[ed->v1];
+			}
+			
+			if (edge_origIndex) {
+				edge_origIndex[ml[j-3].e] = ORIGINDEX_NONE;
+				edge_origIndex[ml[j-1].e] = ORIGINDEX_NONE;
 			}
 			
 			if(crease_outer) {

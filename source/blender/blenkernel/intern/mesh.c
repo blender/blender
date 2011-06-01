@@ -2296,9 +2296,9 @@ int mesh_recalcTesselation(CustomData *fdata,
 			for (j=0; j<mp->totloop; j++, ml++) {
 				v = BLI_addfillvert(mvert[ml->v].co);
 				if (polyorigIndex && use_poly_origindex)
-					v->tmp.l = polyorigIndex[i];
+					v->hash = polyorigIndex[i];
 				else
-					v->tmp.l = i;
+					v->hash = i;
 	
 				v->keyindex = mp->loopstart + j;
 	
@@ -2323,11 +2323,11 @@ int mesh_recalcTesselation(CustomData *fdata,
 				mf[k].v3 = f->v3->keyindex;
 				
 				/*put poly index in mf->v4*/
-				mf[k].v4 = f->v1->tmp.l;
+				mf[k].v4 = f->v1->hash;
 				
 				mf[k].mat_nr = mp->mat_nr;
 				mf[k].flag = mp->flag;
-				origIndex[k] = use_face_origindex ? k : f->v1->tmp.l;
+				origIndex[k] = use_face_origindex ? k : f->v1->hash;
 	
 				k++;
 			}
