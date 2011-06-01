@@ -66,6 +66,14 @@ void BL_ActionManager::StopAction(short layer)
 	m_layers[layer] = 0;
 }
 
+bool BL_ActionManager::IsActionDone(short layer)
+{
+	if (m_layers[layer])
+		return m_layers[layer]->IsDone();
+
+	return true;
+}
+
 void BL_ActionManager::Update(float curtime)
 {
 	for (int i=0; i<MAX_ACTION_LAYERS; ++i)

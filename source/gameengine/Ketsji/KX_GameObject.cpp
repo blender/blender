@@ -352,6 +352,28 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 	}
 }
 
+void KX_GameObject::PlayAction(const char* name,
+								float start,
+								float end,
+								short layer,
+								float blendin,
+								short play_mode,
+								short blend_mode,
+								float playback_speed)
+{
+	m_actionManager->PlayAction(this, name, start, end, layer, blendin, play_mode, blend_mode, playback_speed);
+}
+
+void KX_GameObject::StopAction(short layer)
+{
+	m_actionManager->StopAction(layer);
+}
+
+bool KX_GameObject::IsActionDone(short layer)
+{
+	return m_actionManager->IsActionDone(layer);
+}
+
 void KX_GameObject::UpdateActionManager(float curtime)
 {
 	m_actionManager->Update(curtime);
@@ -3024,7 +3046,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 		blend_mode = BL_Action::ACT_BLEND_NONE;
 	}
 
-	m_actionManager->PlayAction(this, name, start, end, layer, blendin, play_mode, blend_mode, speed);
+	PlayAction(name, start, end, layer, blendin, play_mode, blend_mode, speed);
 
 	Py_RETURN_NONE;
 }

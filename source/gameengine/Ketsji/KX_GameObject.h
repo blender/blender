@@ -203,6 +203,28 @@ public:
 	void RemoveParent(KX_Scene *scene);
 
 	/**
+	 * Adds an action to the object's action manager
+	 */
+	void PlayAction(const char* name,
+					float start,
+					float end,
+					short layer=0,
+					float blendin=0.f,
+					short play_mode=0,
+					short blend_mode=0,
+					float playback_speed=1.f);
+
+	/**
+	 * Remove an action from the object's action manager
+	 */
+	void StopAction(short layer);
+
+	/**
+	 * Check if an action has finished playing
+	 */
+	bool IsActionDone(short layer);
+
+	/**
 	 * Kick the object's action manager
 	 */
 	void UpdateActionManager(float curtime);

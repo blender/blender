@@ -53,6 +53,7 @@ public:
 					float playback_speed=1.f);
 
 	void StopAction(short layer);
+	bool IsActionDone(short layer);
 	void Update(float);
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
