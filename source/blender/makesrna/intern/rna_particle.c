@@ -1560,7 +1560,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
 
 	rna_def_mtex_common(brna, srna, "rna_ParticleSettings_mtex_begin", "rna_ParticleSettings_active_texture_get",
-		"rna_ParticleSettings_active_texture_set", "ParticleSettingsTextureSlot", "ParticleSettingsTextureSlots", "rna_Particle_reset");
+		"rna_ParticleSettings_active_texture_set", NULL, "ParticleSettingsTextureSlot", "ParticleSettingsTextureSlots", "rna_Particle_reset");
 
 	/* fluid particle type can't be checked from the type value in rna as it's not shown in the menu */
 	prop= RNA_def_property(srna, "is_fluid", PROP_BOOLEAN, PROP_NONE);

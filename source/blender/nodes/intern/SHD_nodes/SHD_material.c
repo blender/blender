@@ -85,6 +85,17 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		ShadeInput *shi;
 		ShaderCallData *shcd= data;
 		float col[4];
+		bNodeSocket *sock;
+		char hasinput[NUM_MAT_IN];
+		int i;
+		
+		/* note: cannot use the in[]->hasinput flags directly, as these are not necessarily
+		 * the constant input stack values (e.g. in case material node is inside a group).
+		 * we just want to know if a node input uses external data or the material setting.
+		 * this is an ugly hack, but so is this node as a whole.
+		 */
+		for (sock=node->inputs.first, i=0; sock; sock=sock->next, ++i)
+			hasinput[i] = (sock->link != NULL);
 		
 		shi= shcd->shi;
 		shi->mat= (Material *)node->id;
@@ -94,17 +105,17 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		shi->har= shi->mat->har;
 		
 		/* write values */
-		if(in[MAT_IN_COLOR]->hasinput)
+		if(hasinput[MAT_IN_COLOR])
 			nodestack_get_vec(&shi->r, SOCK_VECTOR, in[MAT_IN_COLOR]);
 		
-		if(in[MAT_IN_SPEC]->hasinput)
+		if(hasinput[MAT_IN_SPEC])
 			nodestack_get_vec(&shi->specr, SOCK_VECTOR, in[MAT_IN_SPEC]);
 		
-		if(in[MAT_IN_REFL]->hasinput)
+		if(hasinput[MAT_IN_REFL])
 			nodestack_get_vec(&shi->refl, SOCK_VALUE, in[MAT_IN_REFL]);
 		
 		/* retrieve normal */
-		if(in[MAT_IN_NORMAL]->hasinput) {
+		if(hasinput[MAT_IN_NORMAL]) {
 			nodestack_get_vec(shi->vn, SOCK_VECTOR, in[MAT_IN_NORMAL]);
 			normalize_v3(shi->vn);
 		}
@@ -119,19 +130,19 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		}
 		
 		if (node->type == SH_NODE_MATERIAL_EXT) {
-			if(in[MAT_IN_MIR]->hasinput)
+			if(hasinput[MAT_IN_MIR])
 				nodestack_get_vec(&shi->mirr, SOCK_VECTOR, in[MAT_IN_MIR]);
-			if(in[MAT_IN_AMB]->hasinput)
+			if(hasinput[MAT_IN_AMB])
 				nodestack_get_vec(&shi->amb, SOCK_VALUE, in[MAT_IN_AMB]);
-			if(in[MAT_IN_EMIT]->hasinput)
+			if(hasinput[MAT_IN_EMIT])
 				nodestack_get_vec(&shi->emit, SOCK_VALUE, in[MAT_IN_EMIT]);
-			if(in[MAT_IN_SPECTRA]->hasinput)
+			if(hasinput[MAT_IN_SPECTRA])
 				nodestack_get_vec(&shi->spectra, SOCK_VALUE, in[MAT_IN_SPECTRA]);
-			if(in[MAT_IN_RAY_MIRROR]->hasinput)
+			if(hasinput[MAT_IN_RAY_MIRROR])
 				nodestack_get_vec(&shi->ray_mirror, SOCK_VALUE, in[MAT_IN_RAY_MIRROR]);
-			if(in[MAT_IN_ALPHA]->hasinput)
+			if(hasinput[MAT_IN_ALPHA])
 				nodestack_get_vec(&shi->alpha, SOCK_VALUE, in[MAT_IN_ALPHA]);
-			if(in[MAT_IN_TRANSLUCENCY]->hasinput)
+			if(hasinput[MAT_IN_TRANSLUCENCY])
 				nodestack_get_vec(&shi->translucency, SOCK_VALUE, in[MAT_IN_TRANSLUCENCY]);			
 		}
 		
@@ -203,21 +214,31 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, 
 	if(node->id) {
 		GPUShadeInput shi;
 		GPUShadeResult shr;
+		bNodeSocket *sock;
+		char hasinput[NUM_MAT_IN];
+		int i;
+		
+		/* note: cannot use the in[]->hasinput flags directly, as these are not necessarily
+		 * the constant input stack values (e.g. in case material node is inside a group).
+		 * we just want to know if a node input uses external data or the material setting.
+		 */
+		for (sock=node->inputs.first, i=0; sock; sock=sock->next, ++i)
+			hasinput[i] = (sock->link != NULL);
 
 		GPU_shadeinput_set(mat, (Material*)node->id, &shi);
 
 		/* write values */
-		if(in[MAT_IN_COLOR].hasinput)
+		if(hasinput[MAT_IN_COLOR])
 			shi.rgb = in[MAT_IN_COLOR].link;
 		
-		if(in[MAT_IN_SPEC].hasinput)
+		if(hasinput[MAT_IN_SPEC])
 			shi.specrgb = in[MAT_IN_SPEC].link;
 		
-		if(in[MAT_IN_REFL].hasinput)
+		if(hasinput[MAT_IN_REFL])
 			shi.refl = in[MAT_IN_REFL].link;
 		
 		/* retrieve normal */
-		if(in[MAT_IN_NORMAL].hasinput) {
+		if(hasinput[MAT_IN_NORMAL]) {
 			GPUNodeLink *tmp;
 			shi.vn = in[MAT_IN_NORMAL].link;
 			GPU_link(mat, "vec_math_normalize", shi.vn, &shi.vn, &tmp);
@@ -228,11 +249,11 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, 
 			GPU_link(mat, "vec_math_negate", shi.vn, &shi.vn);
 
 		if (node->type == SH_NODE_MATERIAL_EXT) {
-			if(in[MAT_IN_AMB].hasinput)
+			if(hasinput[MAT_IN_AMB])
 				shi.amb= in[MAT_IN_AMB].link;
-			if(in[MAT_IN_EMIT].hasinput)
+			if(hasinput[MAT_IN_EMIT])
 				shi.emit= in[MAT_IN_EMIT].link;
-			if(in[MAT_IN_ALPHA].hasinput)
+			if(hasinput[MAT_IN_ALPHA])
 				shi.alpha= in[MAT_IN_ALPHA].link;
 		}
 

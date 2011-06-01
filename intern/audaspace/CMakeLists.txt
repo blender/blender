@@ -207,7 +207,7 @@ if(WITH_CODEC_SNDFILE)
 	add_definitions(-DWITH_SNDFILE)
 	list(APPEND INC sndfile)
 	list(APPEND INC_SYS ${SNDFILE_INC})
-	set(SNDFILESRC
+	list(APPEND SRC
 		sndfile/AUD_SndFileFactory.cpp
 		sndfile/AUD_SndFileReader.cpp
 

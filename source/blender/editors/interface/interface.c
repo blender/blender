@@ -1670,15 +1670,12 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 
 void ui_set_but_default(bContext *C, uiBut *but, short all)
 {
-	/* if there is a valid property that is editable... */
-	if (but->rnapoin.data && but->rnaprop && RNA_property_editable(&but->rnapoin, but->rnaprop)) {
-		int index = (all)? -1 : but->rnaindex;
-		
-		if(RNA_property_reset(&but->rnapoin, but->rnaprop, index)) {
-			/* perform updates required for this property */
-			RNA_property_update(C, &but->rnapoin, but->rnaprop);
-		}
-	}
+	PointerRNA ptr;
+
+	WM_operator_properties_create(&ptr, "UI_OT_reset_default_button");
+	RNA_boolean_set(&ptr, "all", all);
+	WM_operator_name_call(C, "UI_OT_reset_default_button", WM_OP_EXEC_DEFAULT, &ptr);
+	WM_operator_properties_free(&ptr);
 }
 
 static double soft_range_round_up(double value, double max)
