@@ -154,7 +154,7 @@ void BL_Action::Update(float curtime)
 			break;
 		}
 
-		if (!m_done)
+		if (!m_done && m_sg_contr)
 			InitIPO();
 	}
 
