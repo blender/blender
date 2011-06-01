@@ -45,6 +45,7 @@
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
+#include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -262,6 +263,9 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* transform system */
 	transform_keymap_for_space(keyconf, keymap, SPACE_NLA);
+	
+	/* special markers hotkeys for anim editors: see note in definition of this function */
+	ED_marker_keymap_animedit_conflictfree(keymap);
 }
 
 /* --------------- */

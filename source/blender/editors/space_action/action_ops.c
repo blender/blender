@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 
 #include "ED_anim_api.h"
+#include "ED_markers.h"
 #include "ED_transform.h"
 
 #include "action_intern.h"
@@ -193,6 +194,9 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* transform system */
 	transform_keymap_for_space(keyconf, keymap, SPACE_ACTION);
+	
+	/* special markers hotkeys for anim editors: see note in definition of this function */
+	ED_marker_keymap_animedit_conflictfree(keymap);
 }
 
 /* --------------- */

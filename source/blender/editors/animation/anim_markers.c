@@ -1495,3 +1495,14 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MARKER_OT_camera_bind", BKEY, KM_PRESS, KM_CTRL, 0);
 #endif
 }
+
+/* to be called from animation editor keymaps, see note below */
+void ED_marker_keymap_animedit_conflictfree(wmKeyMap *keymap)
+{
+	/* duplicate of some marker-hotkeys but without the bounds checking
+	 * since these are handy to be able to do unrestricted and won't conflict
+	 * with primary function hotkeys (Usability tweak [#27469])
+	 */
+	WM_keymap_add_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MARKER_OT_rename", MKEY, KM_PRESS, KM_CTRL, 0);
+}
