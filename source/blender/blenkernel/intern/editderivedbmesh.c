@@ -200,18 +200,18 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 	tm->looptris = (BMLoop *(*)[3])looptris;
 }
 
-void BMEdit_RecalcTesselation(BMEditMesh *tm)
+void BMEdit_RecalcTesselation(BMEditMesh *em)
 {
-	BMEdit_RecalcTesselation_intern(tm);
+	BMEdit_RecalcTesselation_intern(em);
 
-	if (tm->derivedFinal && tm->derivedFinal == tm->derivedCage) {
-		if (tm->derivedFinal->recalcTesselation) 
-			tm->derivedFinal->recalcTesselation(tm->derivedFinal);
-	} else if (tm->derivedFinal) {
-		if (tm->derivedCage->recalcTesselation) 
-			tm->derivedCage->recalcTesselation(tm->derivedCage);
-		if (tm->derivedFinal->recalcTesselation) 
-			tm->derivedFinal->recalcTesselation(tm->derivedFinal);
+	if (em->derivedFinal && em->derivedFinal == em->derivedCage) {
+		if (em->derivedFinal->recalcTesselation) 
+			em->derivedFinal->recalcTesselation(em->derivedFinal);
+	} else if (em->derivedFinal) {
+		if (em->derivedCage->recalcTesselation) 
+			em->derivedCage->recalcTesselation(em->derivedCage);
+		if (em->derivedFinal->recalcTesselation) 
+			em->derivedFinal->recalcTesselation(em->derivedFinal);
 	}
 }
 
