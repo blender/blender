@@ -782,19 +782,19 @@ void ANIM_keying_sets_menu_setup (bContext *C, const char title[], const char op
 	 *	- these are listed in the order in which they were defined for the active scene
 	 */
 	if (scene->keyingsets.first) {
-		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
+		for (ks= scene->keyingsets.first; ks; ks=ks->next, i++) {
 			if (ANIM_keyingset_context_ok_poll(C, ks))
-				uiItemIntO(layout, ks->name, ICON_NONE, op_name, "type", i++);
+				uiItemIntO(layout, ks->name, ICON_NONE, op_name, "type", i);
 		}
 		uiItemS(layout);
 	}
 	
 	/* builtin Keying Sets */
 	i= -1;
-	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
+	for (ks= builtin_keyingsets.first; ks; ks=ks->next, i--) {
 		/* only show KeyingSet if context is suitable */
 		if (ANIM_keyingset_context_ok_poll(C, ks))
-			uiItemEnumO_value(layout, ks->name, ICON_NONE, op_name, "type", i--);
+			uiItemEnumO_value(layout, ks->name, ICON_NONE, op_name, "type", i);
 	}
 	
 	uiPupMenuEnd(C, pup);
