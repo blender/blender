@@ -1037,6 +1037,9 @@ also, it does not attempt to force them to add up to 1, that would destroy inter
 it simply makes the highest weight sum add up to one
 
 the Mesh is needed to change the ratios across the group
+
+I need to resolve a precision error issue, however:
+dividing can cause the weights to drop to 0
 */
 static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, char* map)
 {
@@ -1056,7 +1059,10 @@ static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, cha
 		cnt = dv.totweight;
 		currentSum = 0.0f;
 		for(k = 0; k < cnt; k++) {
-			currentSum += (dv.dw+k)->weight;
+			if(map[dv.dw->def_nr]) {
+				//printf("group %d considered\n", dv.dw->def_nr);
+				currentSum += (dv.dw+k)->weight;
+			}
 		}
 		if(highestSum < currentSum) {
 			highestSum = currentSum;
@@ -1070,7 +1076,9 @@ static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, cha
 		cnt = dv.totweight;
 
 		for(k = 0; k < cnt; k++) {
-			(dv.dw+k)->weight /= highestSum;
+			if(map[dv.dw->def_nr]) {
+				(dv.dw+k)->weight /= highestSum;
+			}
 		}
 	}
 }
@@ -1107,7 +1115,7 @@ static char has_locked_group(MDeformVert *dvert, char *flags)
 {
 	int i;
 	for(i = 0; i < dvert->totweight; i++) {
-		if(flags[(dvert->dw+i)->def_nr]) {
+		if(flags[(dvert->dw+i)->def_nr] && (dvert->dw+i)->weight > 0.0f) {
 			return TRUE;
 		}
 	}
@@ -1196,7 +1204,7 @@ and to redistribute that weight to the unlocked groups
 (if it has to, then it will put some/all of the change
 back onto the original group)
 */
-static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw, float oldw, char* flags, int defcnt)
+static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw, float oldw, char* flags, int defcnt, char *map)
 {
 	int i;
 	float change_left = oldw - pnt_dw->weight;
@@ -1207,7 +1215,7 @@ static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw
 	MDeformWeight *dw;
 	//printf("start\n");
 	for(i = 0; i < defcnt; i++) {
-		if(pnt_dw->def_nr == i) {
+		if(pnt_dw->def_nr == i || !map[i]) {
 			change_status[i] = FALSE;
 		} else {
 			change_status[i] = !flags[i];
@@ -1256,6 +1264,24 @@ static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw
 	MEM_freeN(change_status);
 	//printf("done\n");
 }
+/* Jason */
+static void check_locks_and_normalize(Mesh *me, int index, int vgroup, MDeformWeight *dw, float oldw, char *validmap, char *flags, int defcnt, char *bone_groups)
+{
+	if(flags && has_locked_group(me->dvert+index, flags)) {
+		if(flags[dw->def_nr]) {
+			// cannot change locked groups!
+			dw->weight = oldw;
+		} else if(bone_groups[dw->def_nr]) {
+			redistribute_weight_change(me->dvert+index, dw, oldw, flags, defcnt, bone_groups);
+			do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+		}
+	} else {
+		do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
+	}
+}
+// Jason
+static char *wpaint_make_validmap(Object *ob);
+
 static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, 
 				   float alpha, float paintweight, int flip, 
 				   int vgroup_mirror, char *validmap)
@@ -1266,8 +1292,14 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	
 	/* Jason was here */
 	char* flags;
+	char* bone_groups;
 	float oldw;
 	int defcnt;
+	if(validmap) {
+		bone_groups = validmap;
+	}else {
+		bone_groups = wpaint_make_validmap(ob);
+	}
 
 	if(wp->flag & VP_ONLYVGROUP) {
 		dw= defvert_find_index(me->dvert+index, vgroup);
@@ -1286,17 +1318,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
 
 	/* Jason was here */
-	if(flags && has_locked_group(me->dvert+index, flags)) {
-		if(flags[dw->def_nr]) {
-			// cannot change locked groups!
-			dw->weight = oldw;
-		} else {
-			redistribute_weight_change(me->dvert+index, dw, oldw, flags, defcnt);
-			do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
-		}
-	} else {
-		do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
-	}
+	check_locks_and_normalize(me, index, vgroup, dw, oldw, validmap, flags, defcnt, bone_groups);
 	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 		int j= mesh_get_x_mirror_vert(ob, index);
 		if(j>=0) {
@@ -1310,22 +1332,15 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 
 			uw->weight= dw->weight;
 			/* Jason */
-			if(flags && has_locked_group(me->dvert+j, flags)) {
-				if(flags[uw->def_nr]) {
-					// cannot change locked groups!
-					uw->weight = oldw;
-				} else {
-					redistribute_weight_change(me->dvert+j, uw, oldw, flags, defcnt);
-					do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
-				}
-			} else {
-				do_weight_paint_auto_normalize(me->dvert+j, vgroup, validmap);
-			}
+			check_locks_and_normalize(me, j, vgroup, dw, oldw, validmap, flags, defcnt, bone_groups);
 		}
 	}
 	/* Jason */
 	if(flags) {
 		MEM_freeN(flags);
+	}
+	if(!validmap) {
+		MEM_freeN(bone_groups);
 	}
 }
 
