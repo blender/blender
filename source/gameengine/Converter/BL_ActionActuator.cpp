@@ -36,6 +36,7 @@
 #include "BL_ActionActuator.h"
 #include "BL_ArmatureObject.h"
 #include "BL_SkinDeformer.h"
+#include "BL_Action.h"
 #include "KX_GameObject.h"
 #include "STR_HashedString.h"
 #include "MEM_guardedalloc.h"
@@ -143,7 +144,53 @@ void BL_ActionActuator::SetLocalTime(float curtime)
 		m_localtime = m_endframe - delta_time;
 }
 
+bool BL_ActionActuator::Update(double curtime, bool frame)
+{
+	bool bNegativeEvent = false;
+	bool bPositiveEvent = false;
+	KX_GameObject *obj = (KX_GameObject*)GetParent();
+	short play_mode = BL_Action::ACT_MODE_PLAY;
 
+	// Don't do anything if we're not "active"
+	if (!frame)
+		return true;
+	
+	// Convert playmode
+	if (m_playtype == ACT_ACTION_LOOP_END)
+		play_mode = BL_Action::ACT_MODE_LOOP;
+	else if (m_playtype == ACT_ACTION_LOOP_STOP)
+		play_mode = BL_Action::ACT_MODE_LOOP;
+	else if (m_playtype == ACT_ACTION_PINGPONG)
+		play_mode = BL_Action::ACT_MODE_PING_PONG;
+
+
+	// Handle events
+	bNegativeEvent = m_negevent;
+	bPositiveEvent = m_posevent;
+	RemoveAllEvents();
+
+	if (!m_is_going && bPositiveEvent)
+	{		
+		m_is_going = true;
+		obj->PlayAction(m_action->id.name+2, m_startframe, m_endframe, 0, m_blendin, play_mode);
+	}
+	else if (m_is_going && bNegativeEvent)
+	{
+		m_is_going = false;
+		obj->StopAction(0);
+		return false;
+	}
+
+	// Handle a finished animation
+	if (m_is_going && obj->IsActionDone(0))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+#if 0 // Kept around as reference for now
 bool BL_ActionActuator::Update(double curtime, bool frame)
 {
 	bool bNegativeEvent = false;
@@ -449,6 +496,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	}
 	return keepgoing;
 };
+#endif
 
 #ifdef WITH_PYTHON
 

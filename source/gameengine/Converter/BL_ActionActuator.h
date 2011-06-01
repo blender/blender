@@ -70,6 +70,7 @@ public:
 		m_playtype(playtype),
 		m_priority(priority),
 		m_end_reset(end_reset),
+		m_is_going(false),
 		m_pose(NULL),
 		m_blendpose(NULL),
 		m_userpose(NULL),
@@ -163,6 +164,7 @@ protected:
 	short	m_playtype;
 	short	m_priority;
 	bool	m_end_reset;
+	bool	m_is_going;
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct bPose* m_userpose;
