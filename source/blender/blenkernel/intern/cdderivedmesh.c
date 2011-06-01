@@ -2192,7 +2192,7 @@ DerivedMesh *CDDM_copy(DerivedMesh *source, int faces_from_tessfaces)
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 	
-	cdDM_recalcTesselation(cddm);
+	cdDM_recalcTesselation((DerivedMesh *)cddm);
 	
 	return dm;
 }
