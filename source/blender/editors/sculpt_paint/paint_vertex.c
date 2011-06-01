@@ -1211,6 +1211,8 @@ static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw
 	float change;
 	char was_a_change;
 	int groups_left_that_can_change = 0;
+	// make sure there is no case for division by 0, and make the redistribution the same per loop.
+	int groups_currently_left;
 	char* change_status = MEM_mallocN(defcnt*sizeof(char), "defflags");
 	MDeformWeight *dw;
 	//printf("start\n");
@@ -1227,6 +1229,7 @@ static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw
 	}
 	//printf("\n");
 	if(groups_left_that_can_change > 0) {
+		groups_currently_left = groups_left_that_can_change;
 		do {
 			was_a_change = FALSE;
 			for(i = 0; i < dvert->totweight; i++) {
@@ -1245,18 +1248,19 @@ static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw
 
 					change_left += dw->weight-1.0f;
 					dw->weight = 1.0f;
-					groups_left_that_can_change--;
+					groups_currently_left--;
 					change_status[dw->def_nr] = FALSE;
 
 				}else if(dw->weight <= 0.0f) {
 
 					change_left += dw->weight;
 					dw->weight = 0.0f;
-					groups_left_that_can_change--;
+					groups_currently_left--;
 					change_status[dw->def_nr] = FALSE;
 				}
 				was_a_change = TRUE;
 			}
+			groups_left_that_can_change = groups_currently_left;
 		} while(groups_left_that_can_change > 0 && change_left != 0.0f && was_a_change);
 	}
 	// add any remaining change back to the original weight
