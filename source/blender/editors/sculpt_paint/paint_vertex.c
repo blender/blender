@@ -1075,7 +1075,7 @@ static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, cha
 	}
 }
 /* Jason was here */
-static char get_locked_flag(Object *ob, int vgroup)
+/*static char get_locked_flag(Object *ob, int vgroup)
 {
 	int i;
 	bDeformGroup *defgroup = ob->defbase.first;
@@ -1086,7 +1086,7 @@ static char get_locked_flag(Object *ob, int vgroup)
 		return defgroup->flag;
 	}
 	return 0;
-}
+}*/
 /* Jason was here */
 static int locked_group_exists(Object *ob)
 {
@@ -1099,40 +1099,53 @@ static int locked_group_exists(Object *ob)
 	}
 	return FALSE;
 }
-
+/* Jason was here */
+/*
+See if the current deform group has a locked group
+*/
+static char has_locked_group(MDeformVert *dvert, char *flags)
+{
+	int i;
+	for(i = 0; i < dvert->totweight; i++) {
+		if(flags[(dvert->dw+i)->def_nr]) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
 /*Jason was here
-not sure where these prototypes belong at them moment
+not sure where the prototypes belong at the moment
 static char* gen_lck_flags(Object* ob);
-static void fix_weight_ratios(Mesh *me, MDeformWeight *pnt_dw, float oldw);
 
 gen_lck_flags gets the status of "flag" for each bDeformGroup
 in ob->defbase and returns an array containing them
-
-But I didn't need all of them in one place yet, so I'm using get_locked_flag()
 */
-/*static char* gen_lck_flags(Object* ob)
+static char* gen_lck_flags(Object* ob, int defcnt)
 {
-	char is_locked = 0;
-	int i, k;
-	int defcnt = BLI_countlist(&ob->defbase);
+	char is_locked = FALSE;
+	int i;
+	//int defcnt = BLI_countlist(&ob->defbase);
 	char *flags = MEM_mallocN(defcnt*sizeof(char), "defflags");
 	bDeformGroup *defgroup = ob->defbase.first;
 	for(i = 0; i < defcnt && defgroup; i++) {
 		flags[i] = defgroup->flag;
 		defgroup = defgroup->next;
 		if(flags[i]) {
-			is_locked = 1;
+			is_locked = TRUE;
 		}
 	}
 	if(is_locked){
 		return flags;
 	}
+	// don't forget to free it
+	MEM_freeN(flags);
 	return NULL;
-}*/
+}
 /*Jason was here
 this alters the weights in order to maintain the ratios to match with the change in weights of pnt_dw
+This was not the intended solution evidently
 */
-static void fix_weight_ratios(Mesh *me, MDeformWeight *pnt_dw, float oldw)
+/*static void fix_weight_ratios(Mesh *me, MDeformWeight *pnt_dw, float oldw)
 {
 	int i, k, totvert, cnt;
 	float scaledown = 1.0f;
@@ -1175,6 +1188,73 @@ static void fix_weight_ratios(Mesh *me, MDeformWeight *pnt_dw, float oldw)
 			}
 		}
 	}
+}*/
+/* Jason was here */
+/*
+The idea behind this function is to get the difference in weight for pnt_dw,
+and to redistribute that weight to the unlocked groups
+(if it has to, then it will put some/all of the change
+back onto the original group)
+*/
+static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw, float oldw, char* flags, int defcnt)
+{
+	int i;
+	float change_left = oldw - pnt_dw->weight;
+	float change;
+	char was_a_change;
+	int groups_left_that_can_change = 0;
+	char* change_status = MEM_mallocN(defcnt*sizeof(char), "defflags");
+	MDeformWeight *dw;
+	//printf("start\n");
+	for(i = 0; i < defcnt; i++) {
+		if(pnt_dw->def_nr == i) {
+			change_status[i] = FALSE;
+		} else {
+			change_status[i] = !flags[i];
+		}
+		if(change_status[i]) {
+			groups_left_that_can_change++;
+		}
+		//printf("group %d, change status: %d flag: %d active?: %d\n", i, change_status[i], flags[i], pnt_dw->def_nr == i);
+	}
+	//printf("\n");
+	if(groups_left_that_can_change > 0) {
+		do {
+			was_a_change = FALSE;
+			for(i = 0; i < dvert->totweight; i++) {
+				dw = (dvert->dw+i);
+				if(!change_status[dw->def_nr]) {
+					continue;
+				}
+
+				change = change_left/groups_left_that_can_change;
+
+				dw->weight += change;
+				change_left -= change;
+				//printf("group %d, change: %f weight: %f groups left: %d\n", dw->def_nr, change, dw->weight, groups_left_that_can_change);
+
+				if(dw->weight >= 1.0f) {
+
+					change_left += dw->weight-1.0f;
+					dw->weight = 1.0f;
+					groups_left_that_can_change--;
+					change_status[dw->def_nr] = FALSE;
+
+				}else if(dw->weight <= 0.0f) {
+
+					change_left += dw->weight;
+					dw->weight = 0.0f;
+					groups_left_that_can_change--;
+					change_status[dw->def_nr] = FALSE;
+				}
+				was_a_change = TRUE;
+			}
+		} while(groups_left_that_can_change > 0 && change_left != 0.0f && was_a_change);
+	}
+	// add any remaining change back to the original weight
+	pnt_dw->weight += change_left;
+	MEM_freeN(change_status);
+	//printf("done\n");
 }
 static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, 
 				   float alpha, float paintweight, int flip, 
@@ -1185,9 +1265,9 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	int vgroup= ob->actdef-1;
 	
 	/* Jason was here */
-	char locked;
-	int lge = 0;
+	char* flags;
 	float oldw;
+	int defcnt;
 
 	if(wp->flag & VP_ONLYVGROUP) {
 		dw= defvert_find_index(me->dvert+index, vgroup);
@@ -1200,17 +1280,20 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	if(dw==NULL || uw==NULL)
 		return;
 	/* Jason was here */
-	locked = get_locked_flag(ob, vgroup);
+	flags = gen_lck_flags(ob, defcnt = BLI_countlist(&ob->defbase));
 	oldw = dw->weight;
 
 	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
 
 	/* Jason was here */
-	if(locked) {
-		fix_weight_ratios(me, dw, oldw);
-		do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
-	} else if((lge = locked_group_exists(ob))) {
-		do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+	if(flags && has_locked_group(me->dvert+index, flags)) {
+		if(flags[dw->def_nr]) {
+			// cannot change locked groups!
+			dw->weight = oldw;
+		} else {
+			redistribute_weight_change(me->dvert+index, dw, oldw, flags, defcnt);
+			do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+		}
 	} else {
 		do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 	}
@@ -1227,15 +1310,22 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 
 			uw->weight= dw->weight;
 			/* Jason */
-			if(locked) {
-				fix_weight_ratios(me, uw, oldw);
-				do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
-			} else if(lge) {
-				do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+			if(flags && has_locked_group(me->dvert+j, flags)) {
+				if(flags[uw->def_nr]) {
+					// cannot change locked groups!
+					uw->weight = oldw;
+				} else {
+					redistribute_weight_change(me->dvert+j, uw, oldw, flags, defcnt);
+					do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+				}
 			} else {
 				do_weight_paint_auto_normalize(me->dvert+j, vgroup, validmap);
 			}
 		}
+	}
+	/* Jason */
+	if(flags) {
+		MEM_freeN(flags);
 	}
 }
 
