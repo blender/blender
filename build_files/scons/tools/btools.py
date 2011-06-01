@@ -605,9 +605,12 @@ def NSIS_Installer(target=None, source=None, env=None):
     doneroot = False
     rootdirconts = []
     datafiles = ''
+    deldatafiles = ''
+    deldatadirs = ''
     l = len(bf_installdir)
     
     for dp,dn,df in os.walk(bf_installdir):
+        # install
         if not doneroot:
             for f in df:
                 rootdirconts.append(os.path.join(dp,f))
@@ -620,6 +623,16 @@ def NSIS_Installer(target=None, source=None, env=None):
                 for f in df:
                     outfile = os.path.join(dp,f)
                     datafiles += '  File '+outfile + "\n"
+
+        # uninstall
+        deldir = dp[l+1:]
+
+        if len(deldir)>0:
+            deldatadirs = "RMDir $INSTDIR\\" + deldir + "\n" + deldatadirs
+            deldatadirs = "RMDir /r $INSTDIR\\" + deldir + "\\__pycache__\n" + deldatadirs
+
+            for f in df:
+                deldatafiles += 'Delete \"$INSTDIR\\' + os.path.join(deldir, f) + "\"\n"
 
     #### change to suit install dir ####
     inst_dir = install_base_dir + env['BF_INSTALLDIR']
@@ -657,6 +670,8 @@ def NSIS_Installer(target=None, source=None, env=None):
     ns_cnt = string.replace(ns_cnt, "[DELROOTDIRCONTS]", delrootstring)
 
     ns_cnt = string.replace(ns_cnt, "[DODATAFILES]", datafiles)
+    ns_cnt = string.replace(ns_cnt, "[DELDATAFILES]", deldatafiles)
+    ns_cnt = string.replace(ns_cnt, "[DELDATADIRS]", deldatadirs)
 
     tmpnsi = os.path.normpath(install_base_dir+os.sep+env['BF_BUILDDIR']+os.sep+"00.blender_tmp.nsi")
     new_nsis = open(tmpnsi, 'w')

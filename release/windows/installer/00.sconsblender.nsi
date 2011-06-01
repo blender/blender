@@ -205,6 +205,8 @@ Section "Uninstall"
  
   ; Remove files
   [DELROOTDIRCONTS]
+  [DELDATAFILES]
+  [DELDATADIRS]
 
   Delete "$INSTDIR\uninstall.exe"
 
@@ -212,13 +214,14 @@ Section "Uninstall"
     RMDir /r "$BLENDERCONFIG\$SHORTVERSION"
   ${Endif}
 
+  ; Remove install directory if it's empty
+  RMDir $INSTDIR
   ; Remove shortcuts
   Delete "$SMPROGRAMS\Blender Foundation\Blender\*.*"
   Delete "$DESKTOP\Blender.lnk"
   ; Remove all link related directories and files
-  RMDir /r "$SMPROGRAMS\Blender Foundation"
-  ; Clear out installation dir
-  RMDir /r "$INSTDIR"
+  RMDir "$SMPROGRAMS\Blender Foundation\Blender"
+  RMDir "$SMPROGRAMS\Blender Foundation"
   
   System::Call 'shell32.dll::SHChangeNotify(i, i, i, i) v (0x08000000, 0, 0, 0)' ; Refresh icons
 SectionEnd
