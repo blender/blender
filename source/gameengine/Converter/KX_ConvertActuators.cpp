@@ -191,30 +191,26 @@ void BL_ConvertActuators(char* maggiename,
 			}
 		case ACT_ACTION:
 			{
-				if (blenderobject->type==OB_ARMATURE){
-					bActionActuator* actact = (bActionActuator*) bact->data;
-					STR_String propname = (actact->name ? actact->name : "");
-					STR_String propframe = (actact->frameProp ? actact->frameProp : "");
+				bActionActuator* actact = (bActionActuator*) bact->data;
+				STR_String propname = (actact->name ? actact->name : "");
+				STR_String propframe = (actact->frameProp ? actact->frameProp : "");
 					
-					BL_ActionActuator* tmpbaseact = new BL_ActionActuator(
-						gameobj,
-						propname,
-						propframe,
-						actact->sta,
-						actact->end,
-						actact->act,
-						actact->type, // + 1, because Blender starts to count at zero,
-						actact->blendin,
-						actact->priority,
-						actact->end_reset,
-						actact->stridelength
-						// Ketsji at 1, because zero is reserved for "NoDef"
-						);
-					baseact= tmpbaseact;
-					break;
-				}
-				else
-					printf ("Discarded action actuator from non-armature object [%s]\n", blenderobject->id.name+2);
+				BL_ActionActuator* tmpbaseact = new BL_ActionActuator(
+					gameobj,
+					propname,
+					propframe,
+					actact->sta,
+					actact->end,
+					actact->act,
+					actact->type, // + 1, because Blender starts to count at zero,
+					actact->blendin,
+					actact->priority,
+					actact->end_reset,
+					actact->stridelength
+					// Ketsji at 1, because zero is reserved for "NoDef"
+					);
+				baseact= tmpbaseact;
+				break;
 			}
 		case ACT_SHAPEACTION:
 			{

@@ -3679,10 +3679,6 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 	PointerRNA settings_ptr;
 	uiLayout *row;
 
-	if(ob->type != OB_ARMATURE){
-		uiItemL(layout, "Actuator only available for armatures", ICON_NONE);
-		return;
-	}
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 
 	row= uiLayoutRow(layout, 0);

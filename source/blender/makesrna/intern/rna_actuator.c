@@ -426,11 +426,11 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, Property
 	
 	if (ob != NULL) {
 		if (ob->type==OB_ARMATURE) {
-			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_ACTION);
 			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_ARMATURE);
 		}
 	}
-
+	
+	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_ACTION);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_CAMERA);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_CONSTRAINT);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_EDIT_OBJECT);
