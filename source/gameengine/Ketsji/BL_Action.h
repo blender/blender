@@ -77,6 +77,12 @@ public:
 	bool IsDone() {return m_done;}
 	void Update(float curtime);
 
+	// Accessors
+	float GetFrame();
+
+	// Mutators
+	void SetFrame(float frame);
+
 	enum 
 	{
 		ACT_MODE_PLAY = 0,

@@ -379,6 +379,16 @@ void KX_GameObject::UpdateActionManager(float curtime)
 	m_actionManager->Update(curtime);
 }
 
+float KX_GameObject::GetActionFrame(short layer)
+{
+	return m_actionManager->GetActionFrame(layer);
+}
+
+void KX_GameObject::SetActionFrame(short layer, float frame)
+{
+	m_actionManager->SetActionFrame(layer, frame);
+}
+
 void KX_GameObject::ProcessReplica()
 {
 	SCA_IObject::ProcessReplica();

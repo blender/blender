@@ -202,6 +202,10 @@ public:
 	 */			
 	void RemoveParent(KX_Scene *scene);
 
+	/*********************************
+	 * Animation API
+	 *********************************/
+
 	/**
 	 * Adds an action to the object's action manager
 	 */
@@ -213,6 +217,16 @@ public:
 					short play_mode=0,
 					short blend_mode=0,
 					float playback_speed=1.f);
+
+	/**
+	 * Gets the current frame of an action
+	 */
+	float GetActionFrame(short layer);
+
+	/**
+	 * Sets the current frame of an action
+	 */
+	void SetActionFrame(short layer, float frame);
 
 	/**
 	 * Remove an action from the object's action manager
@@ -228,6 +242,10 @@ public:
 	 * Kick the object's action manager
 	 */
 	void UpdateActionManager(float curtime);
+
+	/*********************************
+	 * End Animation API
+	 *********************************/
 
 	/**
 	 * Construct a game object. This class also inherits the 

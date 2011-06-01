@@ -51,10 +51,14 @@ public:
 					short play_mode=0,
 					short blend_mode=0,
 					float playback_speed=1.f);
+	
+	float GetActionFrame(short layer);
+	void SetActionFrame(short layer, float frame);
 
 	void StopAction(short layer);
 	bool IsActionDone(short layer);
 	void Update(float);
+
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
 	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ActionManager"); }

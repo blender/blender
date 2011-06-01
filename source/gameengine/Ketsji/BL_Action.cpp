@@ -27,6 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <cstdlib>
+
 #include "BL_Action.h"
 #include "BL_ArmatureObject.h"
 #include "KX_IpoConvert.h"
@@ -106,6 +108,33 @@ void BL_Action::InitIPO()
 		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, false);
 }
 
+float BL_Action::GetFrame()
+{
+	return m_localtime;
+}
+
+void BL_Action::SetFrame(float frame)
+{
+	float dt;
+
+	// Clamp the frame to the start and end frame
+	if (frame < min(m_startframe, m_endframe))
+		frame = min(m_startframe, m_endframe);
+	else if (frame > max(m_startframe, m_endframe))
+		frame = max(m_startframe, m_endframe);
+
+	// We don't set m_localtime directly since it's recalculated
+	// in the next update. So, we modify the value (m_starttime) 
+	// used to calculate m_localtime the next time SetLocalTime() is called.
+
+	dt = frame-m_startframe;
+
+	if (m_endframe < m_startframe)
+		dt = -dt;
+
+	m_starttime -= dt / (KX_KetsjiEngine::GetAnimFrameRate()*m_speed);
+}
+
 void BL_Action::SetLocalTime(float curtime)
 {
 	float dt = (curtime-m_starttime)*KX_KetsjiEngine::GetAnimFrameRate()*m_speed;
@@ -127,9 +156,7 @@ void BL_Action::Update(float curtime)
 	SetLocalTime(curtime);
 
 	// Handle wrap around
-	bool bforward = m_startframe < m_endframe;
-	if (bforward && (m_localtime < m_startframe || m_localtime > m_endframe) ||
-		!bforward && (m_localtime > m_startframe || m_localtime < m_endframe))
+	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
 	{
 		switch(m_playmode)
 		{

@@ -42,6 +42,20 @@ BL_ActionManager::~BL_ActionManager()
 			StopAction(i);
 }
 
+float BL_ActionManager::GetActionFrame(short layer)
+{
+	if (m_layers[layer])
+		return m_layers[layer]->GetFrame();
+
+	return 0.f;
+}
+
+void BL_ActionManager::SetActionFrame(short layer, float frame)
+{
+	if (m_layers[layer])
+		m_layers[layer]->SetFrame(frame);
+}
+
 void BL_ActionManager::PlayAction(class KX_GameObject* gameobj,
 								const char* name,
 								float start,

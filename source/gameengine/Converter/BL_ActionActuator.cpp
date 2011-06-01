@@ -173,12 +173,21 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	{		
 		m_is_going = true;
 		obj->PlayAction(m_action->id.name+2, m_startframe, m_endframe, 0, m_blendin, play_mode);
+		if (m_end_reset)
+			obj->SetActionFrame(0, m_localtime);
 	}
 	else if (m_is_going && bNegativeEvent)
 	{
 		m_is_going = false;
-		obj->StopAction(0);
-		return false;
+		
+		if (!m_end_reset)
+		{
+			obj->StopAction(0);
+			return false;
+		}
+
+		m_localtime = obj->GetActionFrame(0);
+		obj->StopAction(0); // Stop the action after getting the frame
 	}
 
 	// Handle a finished animation
