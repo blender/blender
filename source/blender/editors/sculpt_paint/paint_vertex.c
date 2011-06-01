@@ -301,7 +301,7 @@ static void wpaint_mirror_vgroup_ensure(Object *ob, int *vgroup_mirror)
 		flip_side_name(name, defgroup->name, FALSE);
 
 		if(strcmp(name, defgroup->name) != 0) {
-			for (curdef= ob->defbase.first, mirrdef; curdef; curdef=curdef->next, mirrdef++) {
+			for (curdef= ob->defbase.first, mirrdef= 0; curdef; curdef=curdef->next, mirrdef++) {
 				if (!strcmp(curdef->name, name)) {
 					break;
 				}

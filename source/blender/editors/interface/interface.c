@@ -1668,7 +1668,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	return 0;
 }
 
-void ui_set_but_default(bContext *C, uiBut *but, short all)
+void ui_set_but_default(bContext *C, uiBut *UNUSED(but), short all)
 {
 	PointerRNA ptr;
 
