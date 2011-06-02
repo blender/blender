@@ -102,6 +102,24 @@ int BLI_gzip(const char *from, const char *to) {
 	return rval;
 }
 
+/* gzip the file in from_file and write it to memery to_mem, at most size bytes.
+   return the unziped size
+  */
+int BLI_ungzip_to_mem(const char *from_file, char *to_mem, const int size)
+{
+	gzFile gzfile;
+	int readsize;
+
+	gzfile = gzopen( from_file, "rb" );
+	readsize = gzread( gzfile, to_mem, size);
+
+	if (readsize < 0)
+        readsize = EOF;
+
+	return readsize;
+}
+
+
 /* return 1 when file can be written */
 int BLI_is_writable(const char *filename)
 {

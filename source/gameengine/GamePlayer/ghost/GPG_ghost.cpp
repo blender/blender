@@ -413,6 +413,10 @@ int main(int argc, char** argv)
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
 	BLF_init(11, U.dpi);
 	BLF_lang_init();
+	// use default settings
+	BLF_lang_encoding("");
+	BLF_lang_set("");
+
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
  
 	// Parse command line options

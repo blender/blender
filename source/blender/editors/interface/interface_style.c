@@ -76,7 +76,7 @@
 
 /* ********************************************** */
 
-static uiStyle *ui_style_new(ListBase *styles, const char *name)
+static uiStyle *ui_style_new(ListBase *styles, const char *name, short fontid)
 {
 	uiStyle *style= MEM_callocN(sizeof(uiStyle), "new style");
 	
@@ -85,7 +85,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->panelzoom= 1.0;
 
-	style->paneltitle.uifont_id= UIFONT_DEFAULT;
+	style->paneltitle.uifont_id= fontid;
 	style->paneltitle.points= 12;
 	style->paneltitle.kerning= 1;
 	style->paneltitle.shadow= 1;
@@ -94,7 +94,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->paneltitle.shadowalpha= 0.15f;
 	style->paneltitle.shadowcolor= 1.0f;
 	
-	style->grouplabel.uifont_id= UIFONT_DEFAULT;
+	style->grouplabel.uifont_id= fontid;
 	style->grouplabel.points= 12;
 	style->grouplabel.kerning= 1;
 	style->grouplabel.shadow= 3;
@@ -102,7 +102,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->grouplabel.shady= -1;
 	style->grouplabel.shadowalpha= 0.25f;
 	
-	style->widgetlabel.uifont_id= UIFONT_DEFAULT;
+	style->widgetlabel.uifont_id= fontid;
 	style->widgetlabel.points= 11;
 	style->widgetlabel.kerning= 1;
 	style->widgetlabel.shadow= 3;
@@ -111,7 +111,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->widgetlabel.shadowalpha= 0.15f;
 	style->widgetlabel.shadowcolor= 1.0f;
 	
-	style->widget.uifont_id= UIFONT_DEFAULT;
+	style->widget.uifont_id= fontid;
 	style->widget.points= 11;
 	style->widget.kerning= 1;
 	style->widget.shadowalpha= 0.25f;
@@ -295,6 +295,7 @@ void uiStyleInit(void)
 {
 	uiFont *font= U.uifonts.first;
 	uiStyle *style= U.uistyles.first;
+	char *lang_set= BLF_lang_get();
 	
 	/* recover from uninitialized dpi */
 	if(U.dpi == 0)
@@ -335,11 +336,7 @@ void uiStyleInit(void)
 			BLF_size(font->blf_id, 14, U.dpi);
 		}
 	}
-	
-	if(style==NULL) {
-		ui_style_new(&U.uistyles, "Default Style");
-	}
-	
+
 	// XXX, this should be moved into a style, but for now best only load the monospaced font once.
 	if (blf_mono_font == -1)
 		blf_mono_font= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
@@ -351,6 +348,46 @@ void uiStyleInit(void)
 		blf_mono_font_render= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 
 	BLF_size(blf_mono_font_render, 12, 72);
+
+	/* XXX Maybe it's bad to do this */
+	if(style==NULL) {
+		if( strcmp(lang_set,"hr.UTF-8")==0
+			|| strcmp(lang_set,"ar.UTF-8")==0
+			|| strcmp(lang_set,"bg.UTF-8")==0
+			|| strcmp(lang_set,"ca.UTF-8")==0
+			|| strcmp(lang_set,"cs.UTF-8")==0
+			|| strcmp(lang_set,"de.UTF-8")==0
+			|| strcmp(lang_set,"el.UTF-8")==0
+			|| strcmp(lang_set,"es.UTF-8")==0
+			|| strcmp(lang_set,"fi.UTF-8")==0
+			|| strcmp(lang_set,"fr.UTF-8")==0
+			|| strcmp(lang_set,"it.UTF-8")==0
+			|| strcmp(lang_set,"ja.UTF-8")==0
+			|| strcmp(lang_set,"ko.UTF-8")==0
+			|| strcmp(lang_set,"pl.UTF-8")==0
+			|| strcmp(lang_set,"ro.UTF-8")==0
+			|| strcmp(lang_set,"ru.UTF-8")==0
+			|| strcmp(lang_set,"sr.UTF-8")==0
+			|| strcmp(lang_set,"sv.UTF-8")==0
+			|| strcmp(lang_set,"uk.UTF-8")==0
+			|| strcmp(lang_set,"zh_CN.UTF-8")==0
+			)
+		{
+			// load unifont only when need. It takes 15MB memories
+			// get_datatoc_bunifont_ttf() may return null, BLF_load_mem_unique() will handle it
+			if( blf_unifont == -1 )
+				blf_unifont= BLF_load_mem_unique("unifont", (unsigned char *)get_datatoc_bunifont_ttf(), datatoc_bunifont_ttf_size);
+			if( blf_unifont != -1 )
+			{
+				BLF_size(blf_unifont, 12, 72);
+				ui_style_new(&U.uistyles, "Unifont Style", blf_unifont );
+			}
+			else
+				ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT );
+		}
+		else
+			ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT );
+	}
 }
 
 void uiStyleFontSet(uiFontStyle *fs)

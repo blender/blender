@@ -1205,6 +1205,10 @@ void BLI_setenv(const char *env, const char*val)
 #endif
 }
 
+char *BLI_getenv(const char *env)
+{
+	return getenv(env);
+}
 
 /**
  Only set an env var if already not there.

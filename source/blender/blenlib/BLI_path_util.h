@@ -98,6 +98,7 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 #endif
 
 void BLI_setenv(const char *env, const char *val);
+char *BLI_getenv(const char *env);
 void BLI_setenv_if_new(const char *env, const char* val);
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);

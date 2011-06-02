@@ -89,6 +89,7 @@ void BLF_lang_set(const char *str)
 	
 #if defined (_WIN32) || defined(__APPLE__)
 		BLI_setenv("LANG", str);
+		BLI_strncpy(global_language, BLI_getenv("LANG"), sizeof(global_language));
 #else
 		char *locreturn= setlocale(LC_ALL, str);
 		if (locreturn == NULL) {
@@ -101,14 +102,12 @@ void BLF_lang_set(const char *str)
 
 			MEM_freeN(lang);
 		}
-
+		BLI_strncpy(global_language, locreturn, sizeof(global_language));
 		setlocale(LC_NUMERIC, "C");
 #endif
 		textdomain(DOMAIN_NAME);
 		bindtextdomain(DOMAIN_NAME, global_messagepath);
 		/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
-		BLI_strncpy(global_language, str, sizeof(global_language));
-		
 	}
 }
 
@@ -116,6 +115,11 @@ void BLF_lang_encoding(const char *str)
 {
 	BLI_strncpy(global_encoding_name, str, sizeof(global_encoding_name));
 	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */
+}
+
+char* BLF_lang_get(void)
+{
+	return global_language;
 }
 
 #else /* ! INTERNATIONAL */
@@ -135,6 +139,11 @@ void BLF_lang_set(const char *str)
 {
 	(void)str;
 	return;
+}
+
+char* BLF_lang_get(void)
+{
+	return "";
 }
 
 #endif /* INTERNATIONAL */

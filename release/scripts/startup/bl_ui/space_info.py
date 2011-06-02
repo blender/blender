@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from blf import gettext as _
 
 
 class INFO_HT_header(bpy.types.Header):
@@ -44,7 +45,7 @@ class INFO_HT_header(bpy.types.Header):
             sub.menu("INFO_MT_help")
 
         if window.screen.show_fullscreen:
-            layout.operator("screen.back_to_previous", icon='SCREEN_BACK', text="Back to Previous")
+            layout.operator("screen.back_to_previous", icon='SCREEN_BACK', text=_("Back to Previous"))
             layout.separator()
         else:
             layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
@@ -70,11 +71,11 @@ class INFO_HT_header(bpy.types.Header):
         """
         sinfo = context.space_data
         row = layout.row(align=True)
-        row.prop(sinfo, "show_report_debug", text="Debug")
-        row.prop(sinfo, "show_report_info", text="Info")
-        row.prop(sinfo, "show_report_operator", text="Operators")
-        row.prop(sinfo, "show_report_warning", text="Warnings")
-        row.prop(sinfo, "show_report_error", text="Errors")
+        row.prop(sinfo, "show_report_debug", text=_("Debug"))
+        row.prop(sinfo, "show_report_info", text=_("Info"))
+        row.prop(sinfo, "show_report_operator", text=_("Operators"))
+        row.prop(sinfo, "show_report_warning", text=_("Warnings"))
+        row.prop(sinfo, "show_report_error", text=_("Errors"))
 
         row = layout.row()
         row.enabled = sinfo.show_report_operator
@@ -85,7 +86,7 @@ class INFO_HT_header(bpy.types.Header):
 
 
 class INFO_MT_report(bpy.types.Menu):
-    bl_label = "Report"
+    bl_label = _("Report")
 
     def draw(self, context):
         layout = self.layout
@@ -97,31 +98,31 @@ class INFO_MT_report(bpy.types.Menu):
 
 
 class INFO_MT_file(bpy.types.Menu):
-    bl_label = "File"
+    bl_label = _("File");
 
     def draw(self, context):
         layout = self.layout
 
         layout.operator_context = 'EXEC_AREA'
-        layout.operator("wm.read_homefile", text="New", icon='NEW')
+        layout.operator("wm.read_homefile", text=_("New"), icon='NEW')
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
+        layout.operator("wm.open_mainfile", text=_("Open..."), icon='FILE_FOLDER')
         layout.menu("INFO_MT_file_open_recent")
         layout.operator("wm.recover_last_session", icon='RECOVER_LAST')
-        layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
+        layout.operator("wm.recover_auto_save", text=_("Recover Auto Save..."))
 
         layout.separator()
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK').check_existing = False
+        layout.operator("wm.save_mainfile", text=_("Save"), icon='FILE_TICK').check_existing = False
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_as_mainfile", text="Save As...")
+        layout.operator("wm.save_as_mainfile", text=_("Save As..."))
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_as_mainfile", text="Save Copy...").copy = True
+        layout.operator("wm.save_as_mainfile", text=_("Save Copy...")).copy = True
 
         layout.separator()
 
-        layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
+        layout.operator("screen.userpref_show", text=_("User Preferences..."), icon='PREFERENCES')
 
         layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.save_homefile")
@@ -130,8 +131,8 @@ class INFO_MT_file(bpy.types.Menu):
         layout.separator()
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.link_append", text="Link")
-        props = layout.operator("wm.link_append", text="Append")
+        layout.operator("wm.link_append", text=_("Link"))
+        props = layout.operator("wm.link_append", text=_("Append"))
         props.link = False
         props.instance_groups = False
 
@@ -147,12 +148,12 @@ class INFO_MT_file(bpy.types.Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
-        layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
+        layout.operator("wm.quit_blender", text=_("Quit"), icon='QUIT')
 
 
 class INFO_MT_file_import(bpy.types.Menu):
     bl_idname = "INFO_MT_file_import"
-    bl_label = "Import"
+    bl_label = _("Import")
 
     def draw(self, context):
         if hasattr(bpy.types, "WM_OT_collada_import"):
@@ -161,7 +162,7 @@ class INFO_MT_file_import(bpy.types.Menu):
 
 class INFO_MT_file_export(bpy.types.Menu):
     bl_idname = "INFO_MT_file_export"
-    bl_label = "Export"
+    bl_label = _("Export")
 
     def draw(self, context):
         if hasattr(bpy.types, "WM_OT_collada_export"):
@@ -169,13 +170,13 @@ class INFO_MT_file_export(bpy.types.Menu):
 
 
 class INFO_MT_file_external_data(bpy.types.Menu):
-    bl_label = "External Data"
+    bl_label = _("External Data")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("file.pack_all", text="Pack into .blend file")
-        layout.operator("file.unpack_all", text="Unpack into Files")
+        layout.operator("file.pack_all", text=_("Pack into .blend file"))
+        layout.operator("file.unpack_all", text=_("Unpack into Files"))
 
         layout.separator()
 
@@ -187,41 +188,41 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 
 class INFO_MT_mesh_add(bpy.types.Menu):
     bl_idname = "INFO_MT_mesh_add"
-    bl_label = "Mesh"
+    bl_label = _("Mesh")
 
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.primitive_plane_add", icon='MESH_PLANE', text="Plane")
-        layout.operator("mesh.primitive_cube_add", icon='MESH_CUBE', text="Cube")
-        layout.operator("mesh.primitive_circle_add", icon='MESH_CIRCLE', text="Circle")
-        layout.operator("mesh.primitive_uv_sphere_add", icon='MESH_UVSPHERE', text="UV Sphere")
-        layout.operator("mesh.primitive_ico_sphere_add", icon='MESH_ICOSPHERE', text="Icosphere")
-        layout.operator("mesh.primitive_cylinder_add", icon='MESH_CYLINDER', text="Cylinder")
-        layout.operator("mesh.primitive_cone_add", icon='MESH_CONE', text="Cone")
+        layout.operator("mesh.primitive_plane_add", icon='MESH_PLANE', text=_("Plane"))
+        layout.operator("mesh.primitive_cube_add", icon='MESH_CUBE', text=_("Cube"))
+        layout.operator("mesh.primitive_circle_add", icon='MESH_CIRCLE', text=_("Circle"))
+        layout.operator("mesh.primitive_uv_sphere_add", icon='MESH_UVSPHERE', text=_("UV Sphere"))
+        layout.operator("mesh.primitive_ico_sphere_add", icon='MESH_ICOSPHERE', text=_("Icosphere"))
+        layout.operator("mesh.primitive_cylinder_add", icon='MESH_CYLINDER', text=_("Cylinder"))
+        layout.operator("mesh.primitive_cone_add", icon='MESH_CONE', text=_("Cone"))
         layout.separator()
-        layout.operator("mesh.primitive_grid_add", icon='MESH_GRID', text="Grid")
-        layout.operator("mesh.primitive_monkey_add", icon='MESH_MONKEY', text="Monkey")
-        layout.operator("mesh.primitive_torus_add", text="Torus", icon='MESH_TORUS')
+        layout.operator("mesh.primitive_grid_add", icon='MESH_GRID', text=_("Grid"))
+        layout.operator("mesh.primitive_monkey_add", icon='MESH_MONKEY', text=_("Monkey"))
+        layout.operator("mesh.primitive_torus_add", text=_("Torus"), icon='MESH_TORUS')
 
 
 class INFO_MT_curve_add(bpy.types.Menu):
     bl_idname = "INFO_MT_curve_add"
-    bl_label = "Curve"
+    bl_label = _("Curve")
 
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("curve.primitive_bezier_curve_add", icon='CURVE_BEZCURVE', text="Bezier")
-        layout.operator("curve.primitive_bezier_circle_add", icon='CURVE_BEZCIRCLE', text="Circle")
-        layout.operator("curve.primitive_nurbs_curve_add", icon='CURVE_NCURVE', text="Nurbs Curve")
-        layout.operator("curve.primitive_nurbs_circle_add", icon='CURVE_NCIRCLE', text="Nurbs Circle")
-        layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text="Path")
+        layout.operator("curve.primitive_bezier_curve_add", icon='CURVE_BEZCURVE', text=_("Bezier"))
+        layout.operator("curve.primitive_bezier_circle_add", icon='CURVE_BEZCIRCLE', text=_("Circle"))
+        layout.operator("curve.primitive_nurbs_curve_add", icon='CURVE_NCURVE', text=_("Nurbs Curve"))
+        layout.operator("curve.primitive_nurbs_circle_add", icon='CURVE_NCIRCLE', text=_("Nurbs Circle"))
+        layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text=_("Path"))
 
 
 class INFO_MT_edit_curve_add(bpy.types.Menu):
     bl_idname = "INFO_MT_edit_curve_add"
-    bl_label = "Add"
+    bl_label = _("Add")
 
     def draw(self, context):
         is_surf = context.active_object.type == 'SURFACE'
@@ -237,71 +238,71 @@ class INFO_MT_edit_curve_add(bpy.types.Menu):
 
 class INFO_MT_surface_add(bpy.types.Menu):
     bl_idname = "INFO_MT_surface_add"
-    bl_label = "Surface"
+    bl_label = _("Surface")
 
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("surface.primitive_nurbs_surface_curve_add", icon='SURFACE_NCURVE', text="NURBS Curve")
-        layout.operator("surface.primitive_nurbs_surface_circle_add", icon='SURFACE_NCIRCLE', text="NURBS Circle")
-        layout.operator("surface.primitive_nurbs_surface_surface_add", icon='SURFACE_NSURFACE', text="NURBS Surface")
-        layout.operator("surface.primitive_nurbs_surface_cylinder_add", icon='SURFACE_NCYLINDER', text="NURBS Cylinder")
-        layout.operator("surface.primitive_nurbs_surface_sphere_add", icon='SURFACE_NSPHERE', text="NURBS Sphere")
-        layout.operator("surface.primitive_nurbs_surface_torus_add", icon='SURFACE_NTORUS', text="NURBS Torus")
+        layout.operator("surface.primitive_nurbs_surface_curve_add", icon='SURFACE_NCURVE', text=_("NURBS Curve"))
+        layout.operator("surface.primitive_nurbs_surface_circle_add", icon='SURFACE_NCIRCLE', text=_("NURBS Circle"))
+        layout.operator("surface.primitive_nurbs_surface_surface_add", icon='SURFACE_NSURFACE', text=_("NURBS Surface"))
+        layout.operator("surface.primitive_nurbs_surface_cylinder_add", icon='SURFACE_NCYLINDER', text=_("NURBS Cylinder"))
+        layout.operator("surface.primitive_nurbs_surface_sphere_add", icon='SURFACE_NSPHERE', text=_("NURBS Sphere"))
+        layout.operator("surface.primitive_nurbs_surface_torus_add", icon='SURFACE_NTORUS', text=_("NURBS Torus"))
 
 
 class INFO_MT_armature_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_add"
-    bl_label = "Armature"
+    bl_label = _("Armature")
 
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("object.armature_add", text="Single Bone", icon='BONE_DATA')
+        layout.operator("object.armature_add", text=_("Single Bone"), icon='BONE_DATA')
 
 
 class INFO_MT_add(bpy.types.Menu):
-    bl_label = "Add"
+    bl_label = _("Add")
 
     def draw(self, context):
         layout = self.layout
 
         layout.operator_context = 'EXEC_SCREEN'
 
-        #layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='OUTLINER_OB_MESH')
+        #layout.operator_menu_enum("object.mesh_add", "type", text=_("Mesh"), icon='OUTLINER_OB_MESH')
         layout.menu("INFO_MT_mesh_add", icon='OUTLINER_OB_MESH')
 
-        #layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='OUTLINER_OB_CURVE')
+        #layout.operator_menu_enum("object.curve_add", "type", text=_("Curve"), icon='OUTLINER_OB_CURVE')
         layout.menu("INFO_MT_curve_add", icon='OUTLINER_OB_CURVE')
-        #layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
+        #layout.operator_menu_enum("object.surface_add", "type", text=_("Surface"), icon='OUTLINER_OB_SURFACE')
         layout.menu("INFO_MT_surface_add", icon='OUTLINER_OB_SURFACE')
-        layout.operator_menu_enum("object.metaball_add", "type", text="Metaball", icon='OUTLINER_OB_META')
+        layout.operator_menu_enum("object.metaball_add", "type", text=_("Metaball"), icon='OUTLINER_OB_META')
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
+        layout.operator("object.text_add", text=_("Text"), icon='OUTLINER_OB_FONT')
         layout.separator()
 
         layout.menu("INFO_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
-        layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
-        layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
+        layout.operator("object.add", text=_("Lattice"), icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
+        layout.operator("object.add", text=_("Empty"), icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
         layout.separator()
 
-        layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
+        layout.operator("object.camera_add", text=_("Camera"), icon='OUTLINER_OB_CAMERA')
         layout.operator_context = 'EXEC_SCREEN'
-        layout.operator_menu_enum("object.lamp_add", "type", text="Lamp", icon='OUTLINER_OB_LAMP')
+        layout.operator_menu_enum("object.lamp_add", "type", text=_("Lamp"), icon='OUTLINER_OB_LAMP')
         layout.separator()
 
-        layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_EMPTY')
+        layout.operator_menu_enum("object.effector_add", "type", text=_("Force Field"), icon='OUTLINER_OB_EMPTY')
         layout.separator()
 
         if(len(bpy.data.groups) > 10):
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("object.group_instance_add", text="Group Instance...", icon='OUTLINER_OB_EMPTY')
+            layout.operator("object.group_instance_add", text=_("Group Instance..."), icon='OUTLINER_OB_EMPTY')
         else:
-            layout.operator_menu_enum("object.group_instance_add", "group", text="Group Instance", icon='OUTLINER_OB_EMPTY')
+            layout.operator_menu_enum("object.group_instance_add", "group", text=_("Group Instance"), icon='OUTLINER_OB_EMPTY')
 
 
 class INFO_MT_game(bpy.types.Menu):
-    bl_label = "Game"
+    bl_label = _("Game")
 
     def draw(self, context):
         layout = self.layout
@@ -322,18 +323,18 @@ class INFO_MT_game(bpy.types.Menu):
 
 
 class INFO_MT_render(bpy.types.Menu):
-    bl_label = "Render"
+    bl_label = _("Render")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("render.render", text="Render Image", icon='RENDER_STILL')
-        layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True
+        layout.operator("render.render", text=_("Render Image"), icon='RENDER_STILL')
+        layout.operator("render.render", text=_("Render Animation"), icon='RENDER_ANIMATION').animation = True
 
         layout.separator()
 
-        layout.operator("render.opengl", text="OpenGL Render Image")
-        layout.operator("render.opengl", text="OpenGL Render Animation").animation = True
+        layout.operator("render.opengl", text=_("OpenGL Render Image"))
+        layout.operator("render.opengl", text=_("OpenGL Render Animation")).animation = True
 
         layout.separator()
 
@@ -342,34 +343,34 @@ class INFO_MT_render(bpy.types.Menu):
 
 
 class INFO_MT_help(bpy.types.Menu):
-    bl_label = "Help"
+    bl_label = _("Help")
 
     def draw(self, context):
         import sys
 
         layout = self.layout
 
-        layout.operator("wm.url_open", text="Manual", icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:Manual'
-        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-257/'
+        layout.operator("wm.url_open", text=_("Manual"), icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:Manual'
+        layout.operator("wm.url_open", text=_("Release Log"), icon='URL').url = 'http://www.blender.org/development/release-logs/blender-257/'
 
         layout.separator()
 
-        layout.operator("wm.url_open", text="Blender Website", icon='URL').url = 'http://www.blender.org/'
-        layout.operator("wm.url_open", text="Blender e-Shop", icon='URL').url = 'http://www.blender.org/e-shop'
-        layout.operator("wm.url_open", text="Developer Community", icon='URL').url = 'http://www.blender.org/community/get-involved/'
-        layout.operator("wm.url_open", text="User Community", icon='URL').url = 'http://www.blender.org/community/user-community/'
+        layout.operator("wm.url_open", text=_("Blender Website"), icon='URL').url = 'http://www.blender.org/'
+        layout.operator("wm.url_open", text=_("Blender e-Shop"), icon='URL').url = 'http://www.blender.org/e-shop'
+        layout.operator("wm.url_open", text=_("Developer Community"), icon='URL').url = 'http://www.blender.org/community/get-involved/'
+        layout.operator("wm.url_open", text=_("User Community"), icon='URL').url = 'http://www.blender.org/community/user-community/'
         layout.separator()
-        layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
+        layout.operator("wm.url_open", text=_("Report a Bug"), icon='URL').url = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
         layout.separator()
 
-        layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = bpy.types.WM_OT_doc_view._prefix
+        layout.operator("wm.url_open", text=_("Python API Reference"), icon='URL').url = bpy.types.WM_OT_doc_view._prefix
         layout.operator("help.operator_cheat_sheet", icon='TEXT')
         layout.operator("wm.sysinfo", icon='TEXT')
         layout.separator()
         if sys.platform[:3] == "win":
             layout.operator("wm.console_toggle", icon='CONSOLE')
             layout.separator()
-        layout.operator("anim.update_data_paths", text="FCurve/Driver Version fix", icon='HELP')
+        layout.operator("anim.update_data_paths", text=_("FCurve/Driver Version fix"), icon='HELP')
         layout.separator()
         layout.operator("wm.splash", icon='BLENDER')
 
@@ -379,7 +380,7 @@ class INFO_MT_help(bpy.types.Menu):
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
     bl_idname = "help.operator_cheat_sheet"
-    bl_label = "Operator Cheat Sheet"
+    bl_label = _("Operator Cheat Sheet")
 
     def execute(self, context):
         op_strings = []

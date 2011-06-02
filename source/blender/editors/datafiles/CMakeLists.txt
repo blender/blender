@@ -19,8 +19,10 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC "")
-
+set(INC
+	../../blenlib
+	../../../../intern/guardedalloc
+)
 set(SRC
 	Bfont.c
 	add.png.c
@@ -29,6 +31,7 @@ set(SRC
 	blob.png.c
 	blur.png.c
 	bmonofont.ttf.c
+	bunifont.ttf.c
 	clay.png.c
 	clone.png.c
 	crease.png.c

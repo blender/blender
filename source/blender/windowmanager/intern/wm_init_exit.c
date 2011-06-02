@@ -139,6 +139,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
+	// use default settings
+	BLF_lang_encoding("");
+	BLF_lang_set("");
+
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL, G.factory_startup);
 
@@ -337,6 +341,7 @@ extern void free_anim_copybuf(void);
 extern void free_anim_drivers_copybuf(void); 
 extern void free_fmodifiers_copybuf(void); 
 extern void free_posebuf(void); 
+extern void free_datatoc_bunifont_ttf(void);
 
 /* called in creator.c even... tsk, split this! */
 void WM_exit(bContext *C)
@@ -375,7 +380,7 @@ void WM_exit(bContext *C)
 	BIF_freeTemplates(C);
 	
 	free_ttfont(); /* bke_font.h */
-	
+	free_datatoc_bunifont_ttf(); /* bunifont.ttf.c */
 	free_openrecent();
 	
 	BKE_freecubetable();
