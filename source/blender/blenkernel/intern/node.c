@@ -350,7 +350,7 @@ static bNodeType ntype_group;
 /* groups display their internal tree name as label */
 static const char *group_label(bNode *node)
 {
-	return node->id->name+2;
+	return (node->id)? node->id->name+2: "Missing Datablock";
 }
 
 void register_node_type_group(ListBase *lb)
@@ -2072,11 +2072,12 @@ static int set_stack_indexes_group(bNode *node, int index)
 	bNodeTree *ngroup= (bNodeTree*)node->id;
 	bNodeSocket *sock;
 	
-	if((ngroup->init & NTREE_TYPE_INIT)==0)
+	if(ngroup && (ngroup->init & NTREE_TYPE_INIT)==0)
 		ntreeInitTypes(ngroup);
 	
 	node->stack_index = index;
-	index += ntree_begin_exec_tree(ngroup);
+	if(ngroup)
+		index += ntree_begin_exec_tree(ngroup);
 	
 	for (sock=node->inputs.first; sock; sock=sock->next) {
 		if (sock->link && sock->link->fromsock) {
@@ -2199,7 +2200,7 @@ static void composit_begin_exec(bNodeTree *ntree, bNodeStack *stack)
 			if(node->type==CMP_NODE_CURVE_RGB)
 				curvemapping_premultiply(node->storage, 0);
 		}
-		if(node->type==NODE_GROUP)
+		if(node->type==NODE_GROUP && node->id)
 			composit_begin_exec((bNodeTree *)node->id, stack + node->stack_index);
 
 	}
@@ -2225,7 +2226,7 @@ static void composit_end_exec(bNodeTree *ntree, bNodeStack *stack)
 		if(node->type==CMP_NODE_CURVE_RGB)
 			curvemapping_premultiply(node->storage, 1);
 		
-		if(node->type==NODE_GROUP)
+		if(node->type==NODE_GROUP && node->id)
 			composit_end_exec((bNodeTree *)node->id, stack + node->stack_index);
 
 		node->need_exec= 0;

@@ -2093,7 +2093,7 @@ static void lib_nodetree_do_versions_group(bNodeTree *ntree)
 	for (node=ntree->nodes.first; node; node=node->next) {
 		if (node->type==NODE_GROUP) {
 			bNodeTree *ngroup= (bNodeTree*)node->id;
-			if (ngroup->flag & NTREE_DO_VERSIONS)
+			if (ngroup && (ngroup->flag & NTREE_DO_VERSIONS))
 				lib_node_do_versions_group(node);
 		}
 	}
