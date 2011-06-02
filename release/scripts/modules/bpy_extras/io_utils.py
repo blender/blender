@@ -29,6 +29,7 @@ __all__ = (
     "path_reference",
     "path_reference_copy",
     "path_reference_mode",
+    "unique_name"
 )
 
 import bpy
@@ -298,3 +299,43 @@ def path_reference_copy(copy_set, report=print):
                 os.makedirs(dir_to)
 
             shutil.copy(file_src, file_dst)
+
+
+def unique_name(key, name, name_dict, name_max=-1, clean_func=None):
+    """
+    Helper function for storing unique names which may have special characters
+    stripped and restricted to a maximum length.
+
+    :arg key: unique item this name belongs to, name_dict[key] will be reused
+       when available.
+       This can be the object, mesh, material, etc instance its self.
+    :type key: any hashable object assosiated with the *name*.
+    :arg name: The name used to create a unique value in *name_dict*.
+    :type name: string
+    :arg name_dict: This is used to cache namespace to ensure no collisions
+       occur, this should be an empty dict initially and only modified by this
+       function.
+    :type name_dict: dict
+    :arg clean_func: Function to call on *name* before creating a unique value.
+    :type clean_func: function
+    """
+    name_new = name_dict.get(key)
+    if name_new is None:
+        count = 1
+        name_dict_values = name_dict.values()
+        name_new = name_new_orig = name if clean_func is None else clean_func(name)
+
+        if name_max == -1:
+            while name_new in name_dict_values:
+                name_new = "%s.%03d" % (name_new_orig, count)
+                count += 1
+        else:
+            name_new = name_new[:name_max]
+            while name_new in name_dict_values:
+                count_str = "%03d" % count
+                name_new = "%.*s.%s" % (name_max - (len(count_str) + 1), name_new_orig, count_str)
+                count += 1
+
+        name_dict[key] = name_new
+
+    return name_new
