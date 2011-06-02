@@ -588,11 +588,16 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *scene, PointerRNA *
 }
 
 /* do_versions? */
-static float rna_Sequence_opacity_get(PointerRNA *ptr) {
-	return ((Sequence*)(ptr->data))->blend_opacity / 100.0f;
+static float rna_Sequence_opacity_get(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	return seq->blend_opacity / 100.0f;
 }
-static void rna_Sequence_opacity_set(PointerRNA *ptr, float value) {
-	((Sequence*)(ptr->data))->blend_opacity = value * 100.0f;
+static void rna_Sequence_opacity_set(PointerRNA *ptr, float value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	CLAMP(value, 0.0f, 1.0f);
+	seq->blend_opacity = value * 100.0f;
 }
 
 
