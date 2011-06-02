@@ -1485,7 +1485,7 @@ static PyObject *matrix_mul_float(MatrixObject *mat, const float scalar)
 	return newMatrixObject(tmat, mat->row_size, mat->col_size, Py_NEW, Py_TYPE(mat));
 }
 
-static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
+static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 {
 	float scalar;
 

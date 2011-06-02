@@ -60,7 +60,7 @@ int bpy_pydriver_create_dict(void)
 	else
 		bpy_pydriver_Dict= d;
 
-	/* import some modules: builtins, bpy, math, (Blender.noise )*/
+	/* import some modules: builtins, bpy, math, (Blender.noise)*/
 	PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins());
 
 	mod= PyImport_ImportModule("math");

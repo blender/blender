@@ -1156,7 +1156,7 @@ static struct PyModuleDef props_module= {
 	NULL, NULL, NULL, NULL
 };
 
-PyObject *BPY_rna_props( void )
+PyObject *BPY_rna_props(void)
 {
 	PyObject *submodule;
 	PyObject *submodule_dict;

@@ -419,7 +419,7 @@ static PyObject *Euler_slice(EulerObject * self, int begin, int end)
 }
 //----------------------------object[z:y]------------------------
 //sequence slice (set)
-static int Euler_ass_slice(EulerObject * self, int begin, int end, PyObject * seq)
+static int Euler_ass_slice(EulerObject *self, int begin, int end, PyObject *seq)
 {
 	int i, size;
 	float eul[EULER_SIZE];

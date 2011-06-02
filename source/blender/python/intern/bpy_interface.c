@@ -171,6 +171,8 @@ void BPY_context_set(bContext *C)
 
 /* defined in AUD_C-API.cpp */
 extern PyObject *AUD_initPython(void);
+/* defined in gpu_python.c */
+extern PyObject *GPU_initPython(void);
 
 static struct _inittab bpy_internal_modules[]= {
 	{(char *)"noise", BPyInit_noise},
@@ -179,6 +181,7 @@ static struct _inittab bpy_internal_modules[]= {
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
 	{(char *)"aud", AUD_initPython},
+	{(char *)"gpu", GPU_initPython},
 	{NULL, NULL}
 };
 
