@@ -71,6 +71,7 @@ extern "C"
 #include "BLO_runtime.h"
 #include "IMB_imbuf.h"
 #include "BKE_text.h"
+#include "BKE_sound.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
@@ -448,6 +449,8 @@ int main(int argc, char** argv)
 	U.audiorate = 44100;
 	U.audioformat = 0x24;
 	U.audiochannels = 2;
+
+	sound_init_once();
 
 	/* if running blenderplayer the last argument can't be parsed since it has to be the filename. */
 	isBlenderPlayer = !BLO_is_a_runtime(argv[0]);
