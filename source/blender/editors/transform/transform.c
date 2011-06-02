@@ -5801,8 +5801,8 @@ int TimeSlide(TransInfo *t, const int mval[2])
 	char str[200];
 
 	/* calculate mouse co-ordinates */
-	UI_view2d_region_to_view(v2d, mval[0], mval[0], &cval[0], &cval[1]);
-	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[0], &sval[0], &sval[1]);
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &cval[0], &cval[1]);
+	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &sval[0], &sval[1]);
 
 	/* t->values[0] stores cval[0], which is the current mouse-pointer location (in frames) */
 	// XXX Need to be able to repeat this
