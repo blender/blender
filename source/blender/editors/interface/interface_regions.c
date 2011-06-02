@@ -370,6 +370,27 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			data->color[data->totline]= 0xFFFFFF;
 			data->totline++;
 		}
+
+		if(but->type == ROW) {
+			EnumPropertyItem *item;
+			int i, totitem, free;
+
+			RNA_property_enum_items(C, &but->rnapoin, but->rnaprop, &item, &totitem, &free);
+
+			for(i=0; i<totitem; i++) {
+				if(item[i].identifier[0] && item[i].value == (int)but->hardmax) {
+					if(item[i].description[0]) {
+						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s", item[i].name, item[i].description);
+						data->color[data->totline]= 0xFFFFFF;
+						data->totline++;
+					}
+					break;
+				}
+			}
+
+			if(free)
+				MEM_freeN(item);
+		}
 	}
 	
 	if(but->tip && strlen(but->tip)) {

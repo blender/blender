@@ -1668,7 +1668,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	return 0;
 }
 
-void ui_set_but_default(bContext *C, uiBut *UNUSED(but), short all)
+void ui_set_but_default(bContext *C, short all)
 {
 	PointerRNA ptr;
 
@@ -2481,28 +2481,8 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 				icon= RNA_property_ui_icon(prop);
 			}
 		}
-
-		if(!tip) {
-			if(type == ROW && proptype == PROP_ENUM) {
-				EnumPropertyItem *item;
-				int i, totitem, free;
-
-				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
-
-				for(i=0; i<totitem; i++) {
-					if(item[i].identifier[0] && item[i].value == (int)max) {
-						if(item[i].description[0])
-							tip= item[i].description;
-						break;
-					}
-				}
-
-				if(free)
-					MEM_freeN(item);
-			}
-		}
 		
-		if(!tip)
+		if(!tip && proptype != PROP_ENUM)
 			tip= RNA_property_ui_description(prop);
 
 		if(min == max || a1 == -1 || a2 == -1) {
