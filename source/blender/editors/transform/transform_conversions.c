@@ -3129,18 +3129,15 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
 	if (t->mode == TFM_TIME_SLIDE) {
 		float min=999999999.0f, max=-999999999.0f;
+		int i;
 		
-		if (count > 1) {
-			/* search for min/max selected values to transform */
-			int i;
-			
-			td= t->data;
-			for (i=0; i < count; i++, td++) {
-				if (min > *(td->val)) min= *(td->val);
-				if (max < *(td->val)) max= *(td->val);
-			}
+		td= t->data;
+		for (i=0; i < count; i++, td++) {
+			if (min > *(td->val)) min= *(td->val);
+			if (max < *(td->val)) max= *(td->val);
 		}
-		else {
+		
+		if (min == max) {
 			/* just use the current frame ranges */
 			min = (float)PSFRA;
 			max = (float)PEFRA;
