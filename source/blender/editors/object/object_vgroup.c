@@ -829,7 +829,33 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 
 	if (dvert_array) MEM_freeN(dvert_array);
 }
-
+/* Jason was here */
+static void vgroup_invert_locks(Object *ob)
+{
+	bDeformGroup *dg = ob->defbase.first;
+	while(dg) {
+		dg->flag = !dg->flag;
+		dg = dg->next;
+	}
+}
+/* Jason was here */
+static void vgroup_lock_all(Object *ob)
+{
+	bDeformGroup *dg = ob->defbase.first;
+	while(dg) {
+		dg->flag = TRUE;
+		dg = dg->next;
+	}
+}
+/* Jason was here */
+static void vgroup_unlock_all(Object *ob)
+{
+	bDeformGroup *dg = ob->defbase.first;
+	while(dg) {
+		dg->flag = FALSE;
+		dg = dg->next;
+	}
+}
 
 static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 {
@@ -1746,7 +1772,87 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active", "Keep the values of the active group while normalizing others.");
 }
+/* Jason was here */
+static int vertex_group_invert_locks_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
+	vgroup_invert_locks(ob);
+	// not sure what these 3 do yet!
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+/* Jason was here */
+void OBJECT_OT_vertex_group_invert_locks(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Invert All Vertex Group Locks";
+	ot->idname= "OBJECT_OT_vertex_group_invert_locks";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_invert_locks_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+/* Jason was here */
+static int vertex_group_lock_all_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	vgroup_lock_all(ob);
+	// not sure what these 3 do yet!
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+/* Jason was here */
+void OBJECT_OT_vertex_group_lock_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Turn on all Vertex Group Locks";
+	ot->idname= "OBJECT_OT_vertex_group_lock_all";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_lock_all_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+/* Jason was here */
+static int vertex_group_unlock_all_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	vgroup_unlock_all(ob);
+	// not sure what these 3 do yet!
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+/* Jason was here */
+void OBJECT_OT_vertex_group_unlock_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Turn off all Vertex Group Locks";
+	ot->idname= "OBJECT_OT_vertex_group_unlock_all";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_unlock_all_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 static int vertex_group_invert_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;

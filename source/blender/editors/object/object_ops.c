@@ -173,6 +173,11 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize_all);
+	/* Jason was here */
+	WM_operatortype_append(OBJECT_OT_vertex_group_invert_locks);
+	WM_operatortype_append(OBJECT_OT_vertex_group_lock_all);
+	WM_operatortype_append(OBJECT_OT_vertex_group_unlock_all);
+
 	WM_operatortype_append(OBJECT_OT_vertex_group_invert);
 	WM_operatortype_append(OBJECT_OT_vertex_group_levels);
 	WM_operatortype_append(OBJECT_OT_vertex_group_blend);

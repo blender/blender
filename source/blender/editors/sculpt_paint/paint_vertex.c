@@ -1230,6 +1230,7 @@ static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw
 	//printf("\n");
 	if(groups_left_that_can_change > 0) {
 		groups_currently_left = groups_left_that_can_change;
+		change = change_left/groups_left_that_can_change;
 		do {
 			was_a_change = FALSE;
 			for(i = 0; i < dvert->totweight; i++) {
@@ -1238,12 +1239,9 @@ static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw
 					continue;
 				}
 
-				change = change_left/groups_left_that_can_change;
-
 				dw->weight += change;
 				change_left -= change;
 				//printf("group %d, change: %f weight: %f groups left: %d\n", dw->def_nr, change, dw->weight, groups_left_that_can_change);
-
 				if(dw->weight >= 1.0f) {
 
 					change_left += dw->weight-1.0f;
@@ -1277,10 +1275,11 @@ static void check_locks_and_normalize(Mesh *me, int index, int vgroup, MDeformWe
 			dw->weight = oldw;
 		} else if(bone_groups[dw->def_nr]) {
 			redistribute_weight_change(me->dvert+index, dw, oldw, flags, defcnt, bone_groups);
-			//do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);//do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+			do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);//do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
 		}
-	} //else if(bone_groups[dw->def_nr]) // should it be disabled for the active group if it is not a bone group
+	} else if(bone_groups[dw->def_nr]) {// disable auto normalize if the active group is not a bone group
 		do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
+	}
 	
 }
 // Jason
