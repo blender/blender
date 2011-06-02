@@ -2520,6 +2520,41 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	return endwrite(wd);
 }
 
+/* do reverse file history: .blend1 -> .blend2, .blend -> .blend1 */
+/* return: success(0), failure(1) */
+static int do_history(const char *name, ReportList *reports)
+{
+	char tempname1[FILE_MAXDIR+FILE_MAXFILE], tempname2[FILE_MAXDIR+FILE_MAXFILE];
+	int hisnr= U.versions;
+	
+	if(U.versions==0) return 0;
+	if(strlen(name)<2) {
+		BKE_report(reports, RPT_ERROR, "Unable to make version backup: filename too short");
+		return 1;
+	}
+		
+	while(hisnr > 1) {
+		BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr-1);
+		BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
+	
+		if(BLI_rename(tempname1, tempname2)) {
+			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
+			return 1;
+		}	
+		hisnr--;
+	}
+
+	/* is needed when hisnr==1 */
+	BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr);
+
+	if(BLI_rename(name, tempname1)) {
+		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
+		return 1;
+	}
+
+	return 0;
+}
+
 /* return: success (1) */
 int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportList *reports, int *thumb)
 {
@@ -2571,45 +2606,52 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags, thumb);
 	close(file);
 
-	/* rename/compress */
-	if(!err) {
-		if(write_flags & G_FILE_COMPRESS) {
-			/* compressed files have the same ending as regular files... only from 2.4!!! */
-			char gzname[FILE_MAXDIR+FILE_MAXFILE+4];
-			int ret;
-
-			/* first write compressed to separate @.gz */
-			BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", filepath);
-			ret = BLI_gzip(tempname, gzname);
-			
-			if(0==ret) {
-				/* now rename to real file name, and delete temp @ file too */
-				if(BLI_rename(gzname, filepath) != 0) {
-					BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @.");
-					return 0;
-				}
-
-				BLI_delete(tempname, 0, 0);
-			}
-			else if(-1==ret) {
-				BKE_report(reports, RPT_ERROR, "Failed opening .gz file.");
-				return 0;
-			}
-			else if(-2==ret) {
-				BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression.");
-				return 0;
-			}
-		}
-		else if(BLI_rename(tempname, filepath) != 0) {
-			BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @");
-			return 0;
-		}
-		
-	}
-	else {
+	if (err) {
 		BKE_report(reports, RPT_ERROR, strerror(errno));
 		remove(tempname);
 
+		return 0;
+	}
+
+	/* file save to temporary file was successful */
+	/* now do reverse file history (move .blend1 -> .blend2, .blend -> .blend1) */
+	if (write_flags & G_FILE_HISTORY) { 
+		int err_hist = do_history(filepath, reports);
+		if (err_hist) {
+			BKE_report(reports, RPT_ERROR, "Version backup failed. File saved with @");
+			return 0;
+		}
+	}
+
+	if(write_flags & G_FILE_COMPRESS) {
+		/* compressed files have the same ending as regular files... only from 2.4!!! */
+		char gzname[FILE_MAXDIR+FILE_MAXFILE+4];
+		int ret;
+
+		/* first write compressed to separate @.gz */
+		BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", filepath);
+		ret = BLI_gzip(tempname, gzname);
+		
+		if(0==ret) {
+			/* now rename to real file name, and delete temp @ file too */
+			if(BLI_rename(gzname, filepath) != 0) {
+				BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @.");
+				return 0;
+			}
+
+			BLI_delete(tempname, 0, 0);
+		}
+		else if(-1==ret) {
+			BKE_report(reports, RPT_ERROR, "Failed opening .gz file.");
+			return 0;
+		}
+		else if(-2==ret) {
+			BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression.");
+			return 0;
+		}
+	}
+	else if(BLI_rename(tempname, filepath) != 0) {
+		BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @");
 		return 0;
 	}
 
