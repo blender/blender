@@ -515,12 +515,34 @@ void ANIM_fcurve_delete_from_animdata (bAnimContext *ac, AnimData *adt, FCurve *
 	 *	- Drivers
 	 *	- TODO... some others?
 	 */
-	if (fcu->grp)
-		action_groups_remove_channel(adt->action, fcu);
-	else if ((ac) && (ac->datatype == ANIMCONT_DRIVERS))
+	if ((ac) && (ac->datatype == ANIMCONT_DRIVERS)) {
+		/* driver F-Curve */
 		BLI_remlink(&adt->drivers, fcu);
-	else if (adt->action)
-		BLI_remlink(&adt->action->curves, fcu);
+	}
+	else if (adt->action) {
+		/* remove from group or action, whichever one "owns" the F-Curve */
+		if (fcu->grp)
+			action_groups_remove_channel(adt->action, fcu);
+		else
+			BLI_remlink(&adt->action->curves, fcu);
+			
+		/* if action has no more F-Curves as a result of this, unlink it from
+		 * AnimData if it did not come from a NLA Strip being tweaked.
+		 *
+		 * This is done so that we don't have dangling Object+Action entries in
+		 * channel list that are empty, and linger around long after the data they
+		 * are for has disappeared (and probably won't come back).
+		 */
+			// XXX: does everybody always want this?
+			/* XXX: there's a problem where many actions could build up in the file if multiple
+			 * full add/delete cycles are performed on the same objects, but assume that this is rare
+			 */
+		if ((adt->action->curves.first == NULL) && (adt->flag & ADT_NLA_EDIT_ON)==0)
+		{
+			id_us_min(&adt->action->id);
+			adt->action = NULL;
+		}
+	}
 		
 	/* free the F-Curve itself */
 	free_fcurve(fcu);
