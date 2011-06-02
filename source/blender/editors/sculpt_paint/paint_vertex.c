@@ -1041,7 +1041,7 @@ the Mesh is needed to change the ratios across the group
 I need to resolve a precision error issue, however:
 dividing can cause the weights to drop to 0
 */
-static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, char* map)
+/*static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, char* map)
 {
 	float highestSum = 0.0f;
 	float currentSum;
@@ -1081,7 +1081,7 @@ static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, cha
 			}
 		}
 	}
-}
+}*/
 /* Jason was here */
 /*static char get_locked_flag(Object *ob, int vgroup)
 {
@@ -1096,7 +1096,7 @@ static void do_wp_auto_normalize_locked_groups(Mesh *me, MDeformVert *dvert, cha
 	return 0;
 }*/
 /* Jason was here */
-static int locked_group_exists(Object *ob)
+/*static int locked_group_exists(Object *ob)
 {
 	bDeformGroup *defgroup = ob->defbase.first;
 	while(defgroup) {
@@ -1106,7 +1106,7 @@ static int locked_group_exists(Object *ob)
 		defgroup = defgroup->next;
 	}
 	return FALSE;
-}
+}*/
 /* Jason was here */
 /*
 See if the current deform group has a locked group
@@ -1277,11 +1277,11 @@ static void check_locks_and_normalize(Mesh *me, int index, int vgroup, MDeformWe
 			dw->weight = oldw;
 		} else if(bone_groups[dw->def_nr]) {
 			redistribute_weight_change(me->dvert+index, dw, oldw, flags, defcnt, bone_groups);
-			do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+			//do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);//do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
 		}
-	} else {
+	} //else if(bone_groups[dw->def_nr]) // should it be disabled for the active group if it is not a bone group
 		do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
-	}
+	
 }
 // Jason
 static char *wpaint_make_validmap(Object *ob);
