@@ -13,6 +13,15 @@ macro(blender_include_dirs
 	include_directories(${all_incs})
 endmacro()
 
+macro(blender_include_dirs_sys
+	includes)
+
+	foreach(inc ${ARGV})
+		get_filename_component(abs_inc ${inc} ABSOLUTE)
+		list(APPEND all_incs ${abs_inc})
+	endforeach()
+	include_directories(SYSTEM ${all_incs})
+endmacro()
 
 macro(blender_source_group
 	sources)
@@ -35,12 +44,15 @@ endmacro()
 macro(blender_add_lib_nolist
 	name
 	sources
-	includes)
+	includes
+	includes_sys)
 
 	# message(STATUS "Configuring library ${name}")
 
 	# include_directories(${includes})
+	# include_directories(SYSTEM ${includes_sys})
 	blender_include_dirs("${includes}")
+	blender_include_dirs_sys("${includes_sys}")
 
 	add_library(${name} ${sources})
 
@@ -54,9 +66,10 @@ endmacro()
 macro(blender_add_lib
 	name
 	sources
-	includes)
+	includes
+	includes_sys)
 
-	blender_add_lib_nolist(${name} "${sources}" "${includes}")
+	blender_add_lib_nolist(${name} "${sources}" "${includes}" "${includes_sys}")
 
 	set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
 endmacro()

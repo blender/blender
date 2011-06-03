@@ -41,6 +41,10 @@ set(INC
 	../../../intern/guardedalloc
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/raytrace/rayobject.cpp
 	intern/raytrace/rayobject_empty.cpp
@@ -119,7 +123,8 @@ if(WITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../quicktime ${QUICKTIME_INC})
+	list(APPEND INC ../quicktime)
+	list(APPEND INC_SYS ${QUICKTIME_INC})
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
@@ -130,4 +135,4 @@ if(APPLE)
 	endif()
 endif()
 
-blender_add_lib_nolist(bf_render "${SRC}" "${INC}")
+blender_add_lib_nolist(bf_render "${SRC}" "${INC}" "${INC_SYS}")

@@ -551,7 +551,7 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(elem->name, name, sizeof(elem->name));
 }*/
 
-static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
@@ -561,7 +561,7 @@ static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		seq_update_sound(scene, ptr->data);
 }
 
-static void rna_Sequence_update_reopen_files(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
@@ -588,11 +588,16 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *scene, PointerRNA *
 }
 
 /* do_versions? */
-static float rna_Sequence_opacity_get(PointerRNA *ptr) {
-	return ((Sequence*)(ptr->data))->blend_opacity / 100.0f;
+static float rna_Sequence_opacity_get(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	return seq->blend_opacity / 100.0f;
 }
-static void rna_Sequence_opacity_set(PointerRNA *ptr, float value) {
-	((Sequence*)(ptr->data))->blend_opacity = value * 100.0f;
+static void rna_Sequence_opacity_set(PointerRNA *ptr, float value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	CLAMP(value, 0.0f, 1.0f);
+	seq->blend_opacity = value * 100.0f;
 }
 
 

@@ -1009,6 +1009,8 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 		if(wt==timer)
 			break;
 	if(wt) {
+		if(wm->reports.reporttimer == wt)
+			wm->reports.reporttimer= NULL;
 		
 		BLI_remlink(&wm->timers, wt);
 		if(wt->customdata)

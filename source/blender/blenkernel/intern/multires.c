@@ -1756,7 +1756,7 @@ void multires_topology_changed(Scene *scene, Object *ob)
 		int nvert= me->mface[i].v4 ? 4 : 3;
 
 		/* allocate memory for mdisp, the whole disp layer would be erased otherwise */
-		if(!mdisp->totdisp) {
+		if(!mdisp->totdisp || !mdisp->disps) {
 			if(grid) {
 				mdisp->totdisp= nvert*grid;
 				mdisp->disps= MEM_callocN(mdisp->totdisp*sizeof(float)*3, "mdisp topology");

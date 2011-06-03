@@ -1668,17 +1668,14 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	return 0;
 }
 
-void ui_set_but_default(bContext *C, uiBut *but, short all)
+void ui_set_but_default(bContext *C, short all)
 {
-	/* if there is a valid property that is editable... */
-	if (but->rnapoin.data && but->rnaprop && RNA_property_editable(&but->rnapoin, but->rnaprop)) {
-		int index = (all)? -1 : but->rnaindex;
-		
-		if(RNA_property_reset(&but->rnapoin, but->rnaprop, index)) {
-			/* perform updates required for this property */
-			RNA_property_update(C, &but->rnapoin, but->rnaprop);
-		}
-	}
+	PointerRNA ptr;
+
+	WM_operator_properties_create(&ptr, "UI_OT_reset_default_button");
+	RNA_boolean_set(&ptr, "all", all);
+	WM_operator_name_call(C, "UI_OT_reset_default_button", WM_OP_EXEC_DEFAULT, &ptr);
+	WM_operator_properties_free(&ptr);
 }
 
 static double soft_range_round_up(double value, double max)
@@ -2484,28 +2481,8 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 				icon= RNA_property_ui_icon(prop);
 			}
 		}
-
-		if(!tip) {
-			if(type == ROW && proptype == PROP_ENUM) {
-				EnumPropertyItem *item;
-				int i, totitem, free;
-
-				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
-
-				for(i=0; i<totitem; i++) {
-					if(item[i].identifier[0] && item[i].value == (int)max) {
-						if(item[i].description[0])
-							tip= item[i].description;
-						break;
-					}
-				}
-
-				if(free)
-					MEM_freeN(item);
-			}
-		}
 		
-		if(!tip)
+		if(!tip && proptype != PROP_ENUM)
 			tip= RNA_property_ui_description(prop);
 
 		if(min == max || a1 == -1 || a2 == -1) {

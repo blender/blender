@@ -642,15 +642,28 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 	Py_RETURN_NONE;
 }
 
+#if 0
+/* copies orig to buf, then sets orig to buf, returns copy length */
+static size_t strswapbufcpy(char *buf, const char **orig)
+{
+	const char *src= *orig;
+	char *dst= buf;
+	size_t i= 0;
+	*orig= buf;
+	while((*dst= *src)) { dst++; src++; i++; }
+	return i + 1; /* include '\0' */
+}
+#endif
+
 static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, int *defvalue, const short is_enum_flag)
 {
-	EnumPropertyItem *items= NULL;
+	EnumPropertyItem *items;
 	PyObject *item;
-	int seq_len, i, totitem= 0;
+	const Py_ssize_t seq_len= PySequence_Fast_GET_SIZE(seq_fast);
+	Py_ssize_t totbuf= 0;
+	int i;
 	short def_used= 0;
 	const char *def_cmp= NULL;
-
-	seq_len= PySequence_Fast_GET_SIZE(seq_fast);
 
 	if(is_enum_flag) {
 		if(seq_len > RNA_ENUM_BITFLAG_SIZE) {
@@ -681,42 +694,51 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 	/* blank value */
 	*defvalue= 0;
 
+	items= MEM_callocN(sizeof(EnumPropertyItem) * (seq_len + 1), "enum_items_from_py1");
+
 	for(i=0; i<seq_len; i++) {
 		EnumPropertyItem tmp= {0, "", 0, "", ""};
+		Py_ssize_t id_str_size;
+		Py_ssize_t name_str_size;
+		Py_ssize_t desc_str_size;
 
 		item= PySequence_Fast_GET_ITEM(seq_fast, i);
-		if(PyTuple_Check(item)==0) {
-			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected a sequence of tuples for the enum items");
-			if(items) MEM_freeN(items);
-			return NULL;
-		}
 
-		if(!PyArg_ParseTuple(item, "sss", &tmp.identifier, &tmp.name, &tmp.description)) {
-			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected an identifier, name and description in the tuple");
-			return NULL;
-		}
+		if(		(PyTuple_CheckExact(item)) &&
+		        (PyTuple_GET_SIZE(item) == 3) &&
+		        (tmp.identifier=  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
+		        (tmp.name=        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
+		        (tmp.description= _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size))
+		) {
+			if(is_enum_flag) {
+				tmp.value= 1<<i;
 
-		if(is_enum_flag) {
-			tmp.value= 1<<i;
-
-			if(def && PySet_Contains(def, PyTuple_GET_ITEM(item, 0))) {
-				*defvalue |= tmp.value;
-				def_used++;
+				if(def && PySet_Contains(def, PyTuple_GET_ITEM(item, 0))) {
+					*defvalue |= tmp.value;
+					def_used++;
+				}
 			}
+			else {
+				tmp.value= i;
+
+				if(def && def_used == 0 && strcmp(def_cmp, tmp.identifier)==0) {
+					*defvalue= tmp.value;
+					def_used++; /* only ever 1 */
+				}
+			}
+
+			items[i]= tmp;
+
+			/* calculate combine string length */
+			totbuf += id_str_size + name_str_size + desc_str_size + 3; /* 3 is for '\0's */
 		}
 		else {
-			tmp.value= i;
-
-			if(def && def_used == 0 && strcmp(def_cmp, tmp.identifier)==0) {
-				*defvalue= tmp.value;
-				def_used++; /* only ever 1 */
-			}
+			MEM_freeN(items);
+			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected an tuple containing (identifier, name description)");
+			return NULL;
 		}
 
-		RNA_enum_item_add(&items, &totitem, &tmp);
 	}
-
-	RNA_enum_item_end(&items, &totitem);
 
 	if(is_enum_flag) {
 		/* strict check that all set members were used */
@@ -739,6 +761,29 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 			return NULL;
 		}
 	}
+
+	/* disabled duplicating strings because the array can still be freed and
+	 * the strings from it referenced, for now we can't support dynamically
+	 * created strings from python. */
+#if 0
+	/* this would all work perfectly _but_ the python strings may be freed
+	 * immediately after use, so we need to duplicate them, ugh.
+	 * annoying because it works most of the time without this. */
+	{
+		EnumPropertyItem *items_dup= MEM_mallocN((sizeof(EnumPropertyItem) * (seq_len + 1)) + (sizeof(char) * totbuf), "enum_items_from_py2");
+		EnumPropertyItem *items_ptr= items_dup;
+		char *buf= ((char *)items_dup) + (sizeof(EnumPropertyItem) * (seq_len + 1));
+		memcpy(items_dup, items, sizeof(EnumPropertyItem) * (seq_len + 1));
+		for(i=0; i<seq_len; i++, items_ptr++) {
+			buf += strswapbufcpy(buf, &items_ptr->identifier);
+			buf += strswapbufcpy(buf, &items_ptr->name);
+			buf += strswapbufcpy(buf, &items_ptr->description);
+		}
+		MEM_freeN(items);
+		items=items_dup;
+	}
+	/* end string duplication */
+#endif
 
 	return items;
 }
@@ -1156,7 +1201,7 @@ static struct PyModuleDef props_module= {
 	NULL, NULL, NULL, NULL
 };
 
-PyObject *BPY_rna_props( void )
+PyObject *BPY_rna_props(void)
 {
 	PyObject *submodule;
 	PyObject *submodule_dict;

@@ -32,6 +32,9 @@ set(INC
 	../makesrna
 	../render/extern/include
 	../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
 )
 
@@ -55,4 +58,4 @@ if(WITH_BUILDINFO)
 	add_definitions(-DNAN_BUILDINFO)
 endif()
 
-blender_add_lib(bf_blenloader "${SRC}" "${INC}")
+blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}")

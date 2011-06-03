@@ -1765,6 +1765,7 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 static void direct_link_fmodifiers(FileData *fd, ListBase *list)
 {
 	FModifier *fcm;
+	int a;
 	
 	for (fcm= list->first; fcm; fcm= fcm->next) {
 		/* relink general data */
@@ -1778,6 +1779,11 @@ static void direct_link_fmodifiers(FileData *fd, ListBase *list)
 				FMod_Generator *data= (FMod_Generator *)fcm->data;
 				
 				data->coefficients= newdataadr(fd, data->coefficients);
+
+				if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+					for(a = 0; a < data->arraysize; a++)
+						SWITCH_INT(data->coefficients[a]);
+				}
 			}
 				break;
 			case FMODIFIER_TYPE_ENVELOPE:
@@ -2129,7 +2135,7 @@ static void lib_nodetree_do_versions_group(bNodeTree *ntree)
 	for (node=ntree->nodes.first; node; node=node->next) {
 		if (node->type==NODE_GROUP) {
 			bNodeTree *ngroup= (bNodeTree*)node->id;
-			if (ngroup->flag & NTREE_DO_VERSIONS)
+			if (ngroup && (ngroup->flag & NTREE_DO_VERSIONS))
 				lib_node_do_versions_group(node);
 		}
 	}

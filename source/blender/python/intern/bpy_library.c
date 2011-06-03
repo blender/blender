@@ -213,7 +213,7 @@ static PyObject *_bpy_names(BPy_Library *self, int blocktype)
 		int counter= 0;
 		list= PyList_New(totnames);
 		for(l= names; l; l= l->next) {
-			PyList_SET_ITEM(list, counter, PyUnicode_FromString((char * )l->link));
+			PyList_SET_ITEM(list, counter, PyUnicode_FromString((char *)l->link));
 			counter++;
 		}
 		BLI_linklist_free(names, free);	/* free linklist *and* each node's data */

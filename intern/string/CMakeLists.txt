@@ -28,6 +28,10 @@ set(INC
 	.
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/STR_String.cpp
 
@@ -35,4 +39,4 @@ set(SRC
 	STR_String.h
 )
 
-blender_add_lib(bf_intern_string "${SRC}" "${INC}")
+blender_add_lib(bf_intern_string "${SRC}" "${INC}" "${INC_SYS}")

@@ -33,6 +33,9 @@ set(INC
 	${GLEW_INCLUDE_PATH}
 )
 
+set(INC_SYS
+)
+
 set(SRC
 	space_clip.c
 	clip_draw.c
@@ -43,4 +46,4 @@ set(SRC
 	clip_intern.h
 )
 
-blender_add_lib(bf_editor_space_clip "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_clip "${SRC}" "${INC}" "${INC_SYS}")

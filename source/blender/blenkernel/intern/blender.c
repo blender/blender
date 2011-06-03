@@ -523,7 +523,8 @@ void BKE_write_undo(bContext *C, const char *name)
 		static int counter= 0;
 		char filepath[FILE_MAXDIR+FILE_MAXFILE];
 		char numstr[32];
-		
+		int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on undo */
+
 		/* calculate current filepath */
 		counter++;
 		counter= counter % U.undosteps;	
@@ -531,7 +532,7 @@ void BKE_write_undo(bContext *C, const char *name)
 		BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
 		BLI_make_file_string("/", filepath, btempdir, numstr);
 	
-		success= BLO_write_file(CTX_data_main(C), filepath, G.fileflags, NULL, NULL);
+		success= BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);
 		
 		BLI_strncpy(curundo->str, filepath, sizeof(curundo->str));
 	}

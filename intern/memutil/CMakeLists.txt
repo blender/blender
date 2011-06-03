@@ -29,6 +29,10 @@ set(INC
 	..
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/MEM_CacheLimiterC-Api.cpp
 	intern/MEM_RefCountedC-Api.cpp
@@ -43,4 +47,4 @@ set(SRC
 	MEM_SmartPtr.h
 )
 
-blender_add_lib(bf_intern_memutil "${SRC}" "${INC}")
+blender_add_lib(bf_intern_memutil "${SRC}" "${INC}" "${INC_SYS}")

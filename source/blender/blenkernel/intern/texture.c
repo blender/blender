@@ -1191,6 +1191,28 @@ void set_current_material_texture(Material *ma, Tex *newtex)
 	}
 }
 
+int has_current_material_texture(Material *ma)
+{
+	bNode *node;
+
+	if(ma && ma->use_nodes && ma->nodetree) {
+		node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+		if(node) {
+			return 1;
+		}
+		else {
+			node= nodeGetActiveID(ma->nodetree, ID_MA);
+			if(node)
+				ma= (Material*)node->id;
+			else
+				ma= NULL;
+		}
+	}
+
+	return (ma != NULL);
+}
+
 Tex *give_current_world_texture(World *world)
 {
 	MTex *mtex= NULL;

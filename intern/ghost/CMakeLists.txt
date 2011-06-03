@@ -29,6 +29,9 @@ set(INC
 	../string
 	../../source/blender/imbuf
 	../../source/blender/makesdna
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -123,7 +126,7 @@ elseif(UNIX)
 		add_definitions(-DWITH_X11_XINPUT)
 	endif()
 
-	list(APPEND INC ${X11_X11_INCLUDE_PATH})
+	list(APPEND INC_SYS ${X11_X11_INCLUDE_PATH})
 
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerX11.cpp
@@ -143,7 +146,7 @@ elseif(UNIX)
 
 	if(X11_XF86keysym_INCLUDE_PATH)
 		add_definitions(-DWITH_XF86KEYSYM)
-		list(APPEND INC ${X11_XF86keysym_INCLUDE_PATH})
+		list(APPEND INC_SYS ${X11_XF86keysym_INCLUDE_PATH})
 	endif()
 
 elseif(WIN32)
@@ -151,7 +154,7 @@ elseif(WIN32)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
 	endif()
 
-	list(APPEND INC ${WINTAB_INC})
+	list(APPEND INC_SYS ${WINTAB_INC})
 
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerWin32.cpp
@@ -169,5 +172,5 @@ elseif(WIN32)
 	)
 endif()
 
-blender_add_lib(bf_intern_ghost "${SRC}" "${INC}")
+blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
 

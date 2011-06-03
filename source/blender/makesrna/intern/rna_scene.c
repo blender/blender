@@ -328,7 +328,7 @@ static void rna_Scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	DAG_on_visible_update(bmain, FALSE);
 }
 
-static void rna_Scene_framelen_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Scene_framelen_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {	
 	scene->r.framelen= (float)scene->r.framapto/(float)scene->r.images;
 }
@@ -408,7 +408,7 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
 	data->r.pefra= value;
 }
 
-static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
+static void rna_Scene_frame_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	//Scene *scene= ptr->id.data;
 	//ED_update_for_newframe(C);
@@ -480,7 +480,7 @@ static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
 }
 
 
-static char *rna_RenderSettings_path(PointerRNA *ptr)
+static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("render");
 }
@@ -709,7 +709,7 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 		BLI_strncpy(rd->engine, type->idname, sizeof(rd->engine));
 }
 
-static EnumPropertyItem *rna_RenderSettings_engine_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_RenderSettings_engine_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	RenderEngineType *type;
 	EnumPropertyItem *item= NULL;
@@ -742,14 +742,14 @@ static int rna_RenderSettings_engine_get(PointerRNA *ptr)
 	return 0;
 }
 
-static void rna_Scene_glsl_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
+static void rna_Scene_glsl_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
 	DAG_id_tag_update(&scene->id, 0);
 }
 
-static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
+static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	/* reset image nodes */
 	Scene *scene= (Scene*)ptr->id.data;
@@ -794,7 +794,7 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 	}
 }
 
-static int rna_RenderSettings_multiple_engines_get(PointerRNA *ptr)
+static int rna_RenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))
 {
 	return (BLI_countlist(&R_engines) > 1);
 }
@@ -817,7 +817,7 @@ static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 	rl->lay= ED_view3d_scene_layer_set(rl->lay, values, NULL);
 }
 
-static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
+static void rna_SceneRenderLayer_pass_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
@@ -834,7 +834,7 @@ static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_composit_default(scene);
 }
 
-static void rna_Physics_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
+static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 	Base *base;
@@ -862,7 +862,7 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 	}
 }
 
-static void rna_Scene_editmesh_select_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Scene_editmesh_select_mode_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	Mesh *me= NULL;
 
@@ -896,7 +896,7 @@ static void object_simplify_update(Object *ob)
 	}
 }
 
-static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	Scene *sce_iter;
 	Base *base;
@@ -958,7 +958,7 @@ static void rna_Scene_sync_mode_set(PointerRNA *ptr, int value)
 	}
 }
 
-static int rna_GameSettings_auto_start_get(PointerRNA *ptr)
+static int rna_GameSettings_auto_start_get(PointerRNA *UNUSED(ptr))
 {
 	if (G.fileflags & G_FILE_AUTOPLAY)
 		return 1;
@@ -966,7 +966,7 @@ static int rna_GameSettings_auto_start_get(PointerRNA *ptr)
 	return 0;
 }
 
-static void rna_GameSettings_auto_start_set(PointerRNA *ptr, int value)
+static void rna_GameSettings_auto_start_set(PointerRNA *UNUSED(ptr), int value)
 {
 	if(value)
 		G.fileflags |= G_FILE_AUTOPLAY;

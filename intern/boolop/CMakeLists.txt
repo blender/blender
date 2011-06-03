@@ -36,6 +36,10 @@ set(INC
 	../../source/blender/makesdna
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/BOP_BBox.cpp
 	intern/BOP_BSPNode.cpp
@@ -75,4 +79,4 @@ set(SRC
 	intern/BOP_Vertex.h
 )
 
-blender_add_lib(bf_intern_bop "${SRC}" "${INC}")
+blender_add_lib(bf_intern_bop "${SRC}" "${INC}" "${INC_SYS}")

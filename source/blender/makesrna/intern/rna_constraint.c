@@ -205,7 +205,7 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 	return BLI_sprintfN("constraints[\"%s\"]", con->name);
 }
 
-static void rna_Constraint_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Constraint_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ED_object_constraint_update(ptr->id.data);
 }
@@ -243,7 +243,7 @@ static void rna_Constraint_ik_type_set(struct PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	Object *ob= (Object*)ptr->id.data;
 	bConstraint *con= (bConstraint*)ptr->data;
@@ -254,7 +254,7 @@ static EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *C, PointerRN
 		return space_object_items;
 }
 
-static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	bConstraint *con= (bConstraint*)ptr->data;
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
