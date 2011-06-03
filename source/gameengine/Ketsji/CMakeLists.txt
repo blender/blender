@@ -54,6 +54,9 @@ set(INC
 	../../../intern/audaspace/intern
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -212,7 +215,7 @@ set(SRC
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_SDL)
-	set(INC ${INC} ${SDL_INCLUDE_DIR})
+	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})  
 else()
 	add_definitions(-DDISABLE_SDL)
 endif()
@@ -222,9 +225,11 @@ if(WITH_CODEC_FFMPEG)
 endif()
 
 if(WITH_BULLET)
+	list(APPEND INC
+		../../../extern/bullet2/src
+		../../../source/gameengine/Physics/Bullet
+	)
 	add_definitions(-DUSE_BULLET)
-	list(APPEND INC ../../../extern/bullet2/src)
-	list(APPEND INC ../../../source/gameengine/Physics/Bullet )
 endif()
 
-blender_add_lib(ge_logic_ketsji "${SRC}" "${INC}")
+blender_add_lib(ge_logic_ketsji "${SRC}" "${INC}" "${INC_SYS}")

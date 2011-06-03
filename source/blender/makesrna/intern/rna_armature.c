@@ -52,7 +52,7 @@
 #include "ED_armature.h"
 #include "BKE_armature.h"
 
-static void rna_Armature_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Armature_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
@@ -126,7 +126,7 @@ void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone
 	ED_armature_edit_bone_remove(arm, ebone);
 }
 
-static void rna_Armature_update_layers(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	bArmature *arm= ptr->id.data;
 	Object *ob;
@@ -140,7 +140,7 @@ static void rna_Armature_update_layers(Main *bmain, Scene *scene, PointerRNA *pt
 	WM_main_add_notifier(NC_GEOM|ND_DATA, arm);
 }
 
-static void rna_Armature_redraw_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Armature_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 

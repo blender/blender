@@ -101,7 +101,7 @@ EnumPropertyItem empty_vortex_shape_items[] = {
 
 #include "ED_object.h"
 
-static void rna_Cache_change(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object*)ptr->id.data;
 	PointCache *cache = (PointCache*)ptr->data;
@@ -132,7 +132,7 @@ static void rna_Cache_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 	BLI_freelistN(&pidlist);
 }
 
-static void rna_Cache_toggle_disk_cache(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object*)ptr->id.data;
 	PointCache *cache = (PointCache*)ptr->data;
@@ -158,7 +158,7 @@ static void rna_Cache_toggle_disk_cache(Main *bmain, Scene *scene, PointerRNA *p
 	BLI_freelistN(&pidlist);
 }
 
-static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object*)ptr->id.data;
 	PointCache *cache = (PointCache*)ptr->data;
@@ -320,7 +320,7 @@ static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max)
 	BLI_freelistN(&pidlist);
 }
 
-static char *rna_CollisionSettings_path(PointerRNA *ptr)
+static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
 {
 	/* both methods work ok, but return the shorter path */
 #if 0
@@ -481,7 +481,7 @@ static int particle_id_check(PointerRNA *ptr)
 	return (GS(id->name) == ID_PA);
 }
 
-static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if(particle_id_check(ptr)) {
 		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
@@ -587,7 +587,7 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 	return NULL;
 }
 
-static void rna_EffectorWeight_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	DAG_id_tag_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
@@ -661,7 +661,7 @@ static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, P
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 }
 
-static void rna_CollisionSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_CollisionSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
@@ -669,7 +669,7 @@ static void rna_CollisionSettings_update(Main *bmain, Scene *scene, PointerRNA *
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 }
 
-static void rna_softbody_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_softbody_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
@@ -678,7 +678,7 @@ static void rna_softbody_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 }
 
 
-static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	Object *ob= NULL;
 

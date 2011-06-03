@@ -620,31 +620,6 @@ static void write_history(void)
 	}
 }
 
-static void do_history(char *name, ReportList *reports)
-{
-	char tempname1[FILE_MAXDIR+FILE_MAXFILE], tempname2[FILE_MAXDIR+FILE_MAXFILE];
-	int hisnr= U.versions;
-	
-	if(U.versions==0) return;
-	if(strlen(name)<2) return;
-		
-	while(hisnr > 1) {
-		BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr-1);
-		BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
-	
-		if(BLI_rename(tempname1, tempname2))
-			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
-			
-		hisnr--;
-	}
-
-	/* is needed when hisnr==1 */
-	BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr);
-
-	if(BLI_rename(name, tempname1))
-		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
-}
-
 static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
@@ -693,9 +668,11 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 int write_crash_blend(void)
 {
 	char path[FILE_MAX];
+	int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on crash file */
+
 	BLI_strncpy(path, G.main->name, sizeof(path));
 	BLI_replace_extension(path, sizeof(path), "_crash.blend");
-	if(BLO_write_file(G.main, path, G.fileflags, NULL, NULL)) {
+	if(BLO_write_file(G.main, path, fileflags, NULL, NULL)) {
 		printf("written: %s\n", path);
 		return 1;
 	}
@@ -753,8 +730,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	/* blend file thumbnail */
 	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
 
-	/* rename to .blend1, do this as last before write */
-	do_history(filepath, reports);
+	fileflags |= G_FILE_HISTORY; /* write file history */
 
 	if (BLO_write_file(CTX_data_main(C), filepath, fileflags, reports, thumb)) {
 		if(!copy) {
@@ -809,7 +785,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	printf("trying to save homefile at %s ", filepath);
 	
 	/*  force save as regular blend file */
-	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN);
+	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN | G_FILE_HISTORY);
 
 	if(BLO_write_file(CTX_data_main(C), filepath, fileflags, op->reports, NULL) == 0) {
 		printf("fail\n");
@@ -883,7 +859,7 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 	wm_autosave_location(filepath);
 
 	/*  force save as regular blend file */
-	fileflags = G.fileflags & ~(G_FILE_COMPRESS|G_FILE_AUTOPLAY |G_FILE_LOCK|G_FILE_SIGN);
+	fileflags = G.fileflags & ~(G_FILE_COMPRESS|G_FILE_AUTOPLAY |G_FILE_LOCK|G_FILE_SIGN|G_FILE_HISTORY);
 
 	/* no error reporting to console */
 	BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);

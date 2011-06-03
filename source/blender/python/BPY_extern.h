@@ -67,14 +67,14 @@ int BPY_is_pyconstraint(struct Text *text);
 //	void BPY_free_pyconstraint_links(struct Text *text);
 //
 void BPY_python_start(int argc, const char **argv);
-void BPY_python_end( void );
-//	void init_syspath( int first_time );
-//	void syspath_append( char *dir );
-//	void BPY_rebuild_syspath( void );
-//	int BPY_path_update( void );
+void BPY_python_end(void);
+//	void init_syspath(int first_time);
+//	void syspath_append(char *dir);
+//	void BPY_rebuild_syspath(void);
+//	int BPY_path_update(void);
 //
-//	int BPY_Err_getLinenumber( void );
-//	const char *BPY_Err_getFilename( void );
+//	int BPY_Err_getLinenumber(void);
+//	const char *BPY_Err_getFilename(void);
 
 /* 2.5 UI Scripts */
 int		BPY_filepath_exec(struct bContext *C, const char *filepath, struct ReportList *reports);

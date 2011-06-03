@@ -101,7 +101,7 @@ static void engine_render(RenderEngine *engine, struct Scene *scene)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
+static void rna_RenderEngine_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
 	RenderEngineType *et= RNA_struct_blender_type_get(type);
 

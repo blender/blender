@@ -32,6 +32,10 @@ set(INC
 	../memutil
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/BSP_CSGMesh.cpp
 	intern/BSP_MeshPrimitives.cpp
@@ -44,4 +48,4 @@ set(SRC
 	intern/BSP_MeshPrimitives.h
 )
 
-blender_add_lib(bf_intern_bsp "${SRC}" "${INC}")
+blender_add_lib(bf_intern_bsp "${SRC}" "${INC}" "${INC_SYS}")

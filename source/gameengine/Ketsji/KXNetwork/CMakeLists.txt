@@ -36,6 +36,10 @@ set(INC
 	../../../../source/gameengine/Network
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	KX_NetworkEventManager.cpp
 	KX_NetworkMessageActuator.cpp
@@ -50,4 +54,4 @@ set(SRC
 	KX_NetworkObjectSensor.h
 )
 
-blender_add_lib(ge_logic_network "${SRC}" "${INC}")
+blender_add_lib(ge_logic_network "${SRC}" "${INC}" "${INC_SYS}")

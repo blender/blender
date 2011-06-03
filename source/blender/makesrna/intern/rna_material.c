@@ -89,7 +89,7 @@ EnumPropertyItem ramp_blend_items[] = {
 
 #include "ED_node.h"
 
-static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Material_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
@@ -100,7 +100,7 @@ static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		WM_main_add_notifier(NC_MATERIAL|ND_SHADING, ma);
 }
 
-static void rna_Material_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
@@ -168,6 +168,13 @@ static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	Material *ma= (Material*)ptr->data;
 
 	set_current_material_texture(ma, value.data);
+}
+
+static int rna_Material_active_texture_editable(PointerRNA *ptr)
+{
+	Material *ma= (Material*)ptr->id.data;
+
+	return has_current_material_texture(ma);
 }
 
 static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)
@@ -272,7 +279,7 @@ static void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_shader_default(ma);
 }
 
-static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Material *ma= (Material*)ptr->id.data;
 	EnumPropertyItem *item= NULL;
@@ -1841,7 +1848,8 @@ void RNA_def_material(BlenderRNA *brna)
 	/* common */
 	rna_def_animdata_common(srna);
 	rna_def_mtex_common(brna, srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get",
-		"rna_Material_active_texture_set", "MaterialTextureSlot", "MaterialTextureSlots", "rna_Material_update");
+		"rna_Material_active_texture_set", "rna_Material_active_texture_editable",
+		"MaterialTextureSlot", "MaterialTextureSlots", "rna_Material_update");
 
 	/* only material has this one */
 	prop= RNA_def_property(srna, "use_textures", PROP_BOOLEAN, PROP_NONE);
@@ -1899,7 +1907,9 @@ static void rna_def_texture_slots(BlenderRNA *brna, PropertyRNA *cprop, const ch
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
-void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *structname_slots, const char *update)
+void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin,
+	const char *activeget, const char *activeset, const char *activeeditable,
+	const char *structname, const char *structname_slots, const char *update)
 {
 	PropertyRNA *prop;
 
@@ -1913,6 +1923,8 @@ void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin, c
 	prop= RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Texture");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	if(activeeditable)
+		RNA_def_property_editable_func(prop, activeeditable);
 	RNA_def_property_pointer_funcs(prop, activeget, activeset, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture", "Active texture slot being displayed");
 	RNA_def_property_update(prop, 0, update);

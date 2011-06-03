@@ -362,10 +362,18 @@ static void accum_density(void *userdata, int index, float squared_dist)
 		density = pdr->squared_radius;
 	else if (pdr->falloff_type == TEX_PD_FALLOFF_ROOT)
 		density = sqrt(dist);
-	else if (pdr->falloff_type == TEX_PD_FALLOFF_PARTICLE_AGE)
-		density = dist*MIN2(pdr->point_data[pdr->offset + index], 1.0f);
-	else if (pdr->falloff_type == TEX_PD_FALLOFF_PARTICLE_VEL)
-		density = dist*len_v3(pdr->point_data + index*3)*pdr->velscale;
+	else if (pdr->falloff_type == TEX_PD_FALLOFF_PARTICLE_AGE) {
+		if (pdr->point_data_used & POINT_DATA_LIFE)
+			density = dist*MIN2(pdr->point_data[pdr->offset + index], 1.0f);
+		else
+			density = dist;
+	}
+	else if (pdr->falloff_type == TEX_PD_FALLOFF_PARTICLE_VEL) {
+		if (pdr->point_data_used & POINT_DATA_VEL)
+			density = dist*len_v3(pdr->point_data + index*3)*pdr->velscale;
+		else
+			density = dist;
+	}
 	
 	if (pdr->density_curve && dist != 0.0f) {
 		density = curvemapping_evaluateF(pdr->density_curve, 0, density/dist)*dist;

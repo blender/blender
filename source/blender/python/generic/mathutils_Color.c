@@ -186,7 +186,7 @@ static PyObject *Color_item(ColorObject * self, int i)
 }
 //----------------------------object[]-------------------------
 //sequence accessor (set)
-static int Color_ass_item(ColorObject * self, int i, PyObject * value)
+static int Color_ass_item(ColorObject * self, int i, PyObject *value)
 {
 	float f = PyFloat_AsDouble(value);
 
@@ -233,7 +233,7 @@ static PyObject *Color_slice(ColorObject * self, int begin, int end)
 }
 //----------------------------object[z:y]------------------------
 //sequence slice (set)
-static int Color_ass_slice(ColorObject * self, int begin, int end, PyObject * seq)
+static int Color_ass_slice(ColorObject *self, int begin, int end, PyObject *seq)
 {
 	int i, size;
 	float col[COLOR_SIZE];
@@ -344,13 +344,279 @@ static PyMappingMethods Color_AsMapping = {
 	(objobjargproc)Color_ass_subscript
 };
 
+/* numeric */
+
+
+/* addition: obj + obj */
+static PyObject *Color_add(PyObject *v1, PyObject *v2)
+{
+	ColorObject *color1 = NULL, *color2 = NULL;
+	float col[COLOR_SIZE];
+
+	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
+		PyErr_SetString(PyExc_AttributeError, "Color addition: arguments not valid for this operation");
+		return NULL;
+	}
+	color1 = (ColorObject*)v1;
+	color2 = (ColorObject*)v2;
+
+	if(BaseMath_ReadCallback(color1) == -1 || BaseMath_ReadCallback(color2) == -1)
+		return NULL;
+
+	add_vn_vnvn(col, color1->col, color2->col, COLOR_SIZE);
+
+	return newColorObject(col, Py_NEW, Py_TYPE(v1));
+}
+
+/* addition in-place: obj += obj */
+static PyObject *Color_iadd(PyObject *v1, PyObject *v2)
+{
+	ColorObject *color1 = NULL, *color2 = NULL;
+
+	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
+		PyErr_SetString(PyExc_AttributeError, "Color addition: arguments not valid for this operation");
+		return NULL;
+	}
+	color1 = (ColorObject*)v1;
+	color2 = (ColorObject*)v2;
+
+	if(BaseMath_ReadCallback(color1) == -1 || BaseMath_ReadCallback(color2) == -1)
+		return NULL;
+
+	add_vn_vn(color1->col, color2->col, COLOR_SIZE);
+
+	(void)BaseMath_WriteCallback(color1);
+	Py_INCREF(v1);
+	return v1;
+}
+
+/* subtraction: obj - obj */
+static PyObject *Color_sub(PyObject *v1, PyObject *v2)
+{
+	ColorObject *color1 = NULL, *color2 = NULL;
+	float col[COLOR_SIZE];
+
+	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
+		PyErr_SetString(PyExc_AttributeError, "Color subtraction: arguments not valid for this operation");
+		return NULL;
+	}
+	color1 = (ColorObject*)v1;
+	color2 = (ColorObject*)v2;
+
+	if(BaseMath_ReadCallback(color1) == -1 || BaseMath_ReadCallback(color2) == -1)
+		return NULL;
+
+	sub_vn_vnvn(col, color1->col, color2->col, COLOR_SIZE);
+
+	return newColorObject(col, Py_NEW, Py_TYPE(v1));
+}
+
+/* subtraction in-place: obj -= obj */
+static PyObject *Color_isub(PyObject *v1, PyObject *v2)
+{
+	ColorObject *color1= NULL, *color2= NULL;
+
+	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
+		PyErr_SetString(PyExc_AttributeError, "Color subtraction: arguments not valid for this operation");
+		return NULL;
+	}
+	color1 = (ColorObject*)v1;
+	color2 = (ColorObject*)v2;
+
+	if(BaseMath_ReadCallback(color1) == -1 || BaseMath_ReadCallback(color2) == -1)
+		return NULL;
+
+	sub_vn_vn(color1->col, color2->col, COLOR_SIZE);
+
+	(void)BaseMath_WriteCallback(color1);
+	Py_INCREF(v1);
+	return v1;
+}
+
+static PyObject *color_mul_float(ColorObject *color, const float scalar)
+{
+	float tcol[COLOR_SIZE];
+	mul_vn_vn_fl(tcol, color->col, COLOR_SIZE, scalar);
+	return newColorObject(tcol, Py_NEW, Py_TYPE(color));
+}
+
+
+static PyObject *Color_mul(PyObject *v1, PyObject *v2)
+{
+	ColorObject *color1 = NULL, *color2 = NULL;
+	float scalar;
+
+	if ColorObject_Check(v1) {
+		color1= (ColorObject *)v1;
+		if(BaseMath_ReadCallback(color1) == -1)
+			return NULL;
+	}
+	if ColorObject_Check(v2) {
+		color2= (ColorObject *)v2;
+		if(BaseMath_ReadCallback(color2) == -1)
+			return NULL;
+	}
+
+
+	/* make sure v1 is always the vector */
+	if (color1 && color2) {
+		/* col * col, dont support yet! */
+	}
+	else if (color1) {
+		if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* COLOR * FLOAT */
+			return color_mul_float(color1, scalar);
+		}
+	}
+	else if (color2) {
+		if (((scalar= PyFloat_AsDouble(v1)) == -1.0f && PyErr_Occurred())==0) { /* FLOAT * COLOR */
+			return color_mul_float(color2, scalar);
+		}
+	}
+	else {
+		BLI_assert(!"internal error");
+	}
+
+	PyErr_Format(PyExc_TypeError, "Color multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
+	return NULL;
+}
+
+static PyObject *Color_div(PyObject *v1, PyObject *v2)
+{
+	ColorObject *color1 = NULL;
+	float scalar;
+
+	if ColorObject_Check(v1) {
+		color1= (ColorObject *)v1;
+		if(BaseMath_ReadCallback(color1) == -1)
+			return NULL;
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "Color division not supported in this order");
+		return NULL;
+	}
+
+	/* make sure v1 is always the vector */
+	if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* COLOR * FLOAT */
+		if(scalar==0.0f) {
+			PyErr_SetString(PyExc_ZeroDivisionError, "Color division: divide by zero error");
+			return NULL;
+		}
+		return color_mul_float(color1, 1.0f / scalar);
+	}
+
+	PyErr_Format(PyExc_TypeError, "Color multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
+	return NULL;
+}
+
+/* mulplication in-place: obj *= obj */
+static PyObject *Color_imul(PyObject *v1, PyObject *v2)
+{
+	ColorObject *color = (ColorObject *)v1;
+	float scalar;
+
+	if(BaseMath_ReadCallback(color) == -1)
+		return NULL;
+
+	/* only support color *= float */
+	if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* COLOR *= FLOAT */
+		mul_vn_fl(color->col, COLOR_SIZE, scalar);
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "Color multiplication: arguments not acceptable for this operation");
+		return NULL;
+	}
+
+	(void)BaseMath_WriteCallback(color);
+	Py_INCREF(v1);
+	return v1;
+}
+
+/* mulplication in-place: obj *= obj */
+static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
+{
+	ColorObject *color = (ColorObject *)v1;
+	float scalar;
+
+	if(BaseMath_ReadCallback(color) == -1)
+		return NULL;
+
+	/* only support color /= float */
+	if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* COLOR /= FLOAT */
+		if(scalar==0.0f) {
+			PyErr_SetString(PyExc_ZeroDivisionError, "Color division: divide by zero error");
+			return NULL;
+		}
+
+		mul_vn_fl(color->col, COLOR_SIZE, 1.0f / scalar);
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "Color multiplication: arguments not acceptable for this operation");
+		return NULL;
+	}
+
+	(void)BaseMath_WriteCallback(color);
+	Py_INCREF(v1);
+	return v1;
+}
+
+/* -obj
+  returns the negative of this object*/
+static PyObject *Color_neg(ColorObject *self)
+{
+	float tcol[COLOR_SIZE];
+
+	if(BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	negate_vn_vn(tcol, self->col, COLOR_SIZE);
+	return newColorObject(tcol, Py_NEW, Py_TYPE(self));
+}
+
+
+static PyNumberMethods Color_NumMethods = {
+	(binaryfunc) Color_add,	/*nb_add*/
+	(binaryfunc) Color_sub,	/*nb_subtract*/
+	(binaryfunc) Color_mul,	/*nb_multiply*/
+	NULL,				/*nb_remainder*/
+	NULL,				/*nb_divmod*/
+	NULL,				/*nb_power*/
+	(unaryfunc) Color_neg, /*nb_negative*/
+	(unaryfunc) NULL,	/*tp_positive*/
+	(unaryfunc) NULL,	/*tp_absolute*/
+	(inquiry)	NULL,	/*tp_bool*/
+	(unaryfunc)	NULL,	/*nb_invert*/
+	NULL,				/*nb_lshift*/
+	(binaryfunc)NULL,	/*nb_rshift*/
+	NULL,				/*nb_and*/
+	NULL,				/*nb_xor*/
+	NULL,				/*nb_or*/
+	NULL,				/*nb_int*/
+	NULL,				/*nb_reserved*/
+	NULL,				/*nb_float*/
+	Color_iadd,			/* nb_inplace_add */
+	Color_isub,			/* nb_inplace_subtract */
+	Color_imul,			/* nb_inplace_multiply */
+	NULL,				/* nb_inplace_remainder */
+	NULL,				/* nb_inplace_power */
+	NULL,				/* nb_inplace_lshift */
+	NULL,				/* nb_inplace_rshift */
+	NULL,				/* nb_inplace_and */
+	NULL,				/* nb_inplace_xor */
+	NULL,				/* nb_inplace_or */
+	NULL,				/* nb_floor_divide */
+	Color_div,			/* nb_true_divide */
+	NULL,				/* nb_inplace_floor_divide */
+	Color_idiv,			/* nb_inplace_true_divide */
+	NULL,				/* nb_index */
+};
+
 /* color channel, vector.r/g/b */
 static PyObject *Color_getChannel(ColorObject * self, void *type)
 {
 	return Color_item(self, GET_INT_FROM_POINTER(type));
 }
 
-static int Color_setChannel(ColorObject * self, PyObject * value, void * type)
+static int Color_setChannel(ColorObject * self, PyObject *value, void * type)
 {
 	return Color_ass_item(self, GET_INT_FROM_POINTER(type), value);
 }
@@ -369,7 +635,7 @@ static PyObject *Color_getChannelHSV(ColorObject * self, void *type)
 	return PyFloat_FromDouble(hsv[i]);
 }
 
-static int Color_setChannelHSV(ColorObject * self, PyObject * value, void * type)
+static int Color_setChannelHSV(ColorObject * self, PyObject *value, void * type)
 {
 	float hsv[3];
 	int i= GET_INT_FROM_POINTER(type);
@@ -412,7 +678,7 @@ static PyObject *Color_getHSV(ColorObject * self, void *UNUSED(closure))
 	return ret;
 }
 
-static int Color_setHSV(ColorObject * self, PyObject * value, void *UNUSED(closure))
+static int Color_setHSV(ColorObject * self, PyObject *value, void *UNUSED(closure))
 {
 	float hsv[3];
 
@@ -473,7 +739,7 @@ PyTypeObject color_Type = {
 	NULL,							//tp_setattr
 	NULL,							//tp_compare
 	(reprfunc) Color_repr,			//tp_repr
-	NULL,			//tp_as_number
+	&Color_NumMethods,				//tp_as_number
 	&Color_SeqMethods,				//tp_as_sequence
 	&Color_AsMapping,				//tp_as_mapping
 	NULL,							//tp_hash

@@ -446,7 +446,7 @@ static void rna_FCurve_modifiers_remove(FCurve *fcu, ReportList *reports, FModif
 	remove_fmodifier(&fcu->modifiers, fcm);
 }
 
-static void rna_FModifier_active_set(PointerRNA *ptr, int value)
+static void rna_FModifier_active_set(PointerRNA *ptr, int UNUSED(value))
 {
 	FModifier *fm= (FModifier*)ptr->data;
 
@@ -470,7 +470,7 @@ static void rna_FModifier_end_frame_range(PointerRNA *ptr, float *min, float *ma
 	*max= MAXFRAMEF;
 }
 
-static void rna_FModifier_active_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_FModifier_active_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	FModifier *fm, *fmo= (FModifier*)ptr->data;
 

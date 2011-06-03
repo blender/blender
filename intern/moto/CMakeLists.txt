@@ -28,6 +28,10 @@ set(INC
 	include
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/MT_Assert.cpp
 	intern/MT_CmMatrix4x4.cpp
@@ -67,4 +71,4 @@ set(SRC
 	include/NM_Scalar.h
 )
 
-blender_add_lib(bf_intern_moto "${SRC}" "${INC}")
+blender_add_lib(bf_intern_moto "${SRC}" "${INC}" "${INC_SYS}")

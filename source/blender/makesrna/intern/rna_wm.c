@@ -467,7 +467,7 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	int map_type= rna_wmKeyMapItem_map_type_get(ptr);
 
@@ -477,7 +477,7 @@ static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *C, PointerRNA *ptr,
 	else return event_type_items;
 }
 
-static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	int map_type= rna_wmKeyMapItem_map_type_get(ptr);
 
@@ -486,7 +486,7 @@ static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *C, PointerRNA *ptr
 	else return event_value_items;
 }
 
-static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmKeyConfig *kc;
@@ -568,7 +568,7 @@ static PointerRNA rna_WindowManager_active_keyconfig_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_KeyConfig, kc);
 }
 
-static void rna_WindowManager_active_keyconfig_set(PointerRNA *ptr, PointerRNA value)
+static void rna_WindowManager_active_keyconfig_set(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	wmKeyConfig *kc= value.data;
 
@@ -631,7 +631,7 @@ static int rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
 	return kmi->id < 0;
 }
 
-static void rna_wmClipboard_get(PointerRNA *ptr, char *value)
+static void rna_wmClipboard_get(PointerRNA *UNUSED(ptr), char *value)
 {
 	char *pbuf;
 
@@ -645,7 +645,7 @@ static void rna_wmClipboard_get(PointerRNA *ptr, char *value)
 	}
 }
 
-static int rna_wmClipboard_length(PointerRNA *ptr)
+static int rna_wmClipboard_length(PointerRNA *UNUSED(ptr))
 {
 	char *pbuf;
 	int length;
@@ -663,7 +663,7 @@ static int rna_wmClipboard_length(PointerRNA *ptr)
 	return length;
 }
 
-static void rna_wmClipboard_set(PointerRNA *ptr, const char *value)
+static void rna_wmClipboard_set(PointerRNA *UNUSED(ptr), const char *value)
 {
 	WM_clipboard_text_set((void *) value, FALSE);
 }
@@ -1118,7 +1118,7 @@ static wmKeyMap *rna_keymap_find(wmKeyConfig *keyconf, const char *idname, int s
 	return WM_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
 }
 
-static wmKeyMap *rna_keymap_find_modal(wmKeyConfig *keyconf, const char *idname)
+static wmKeyMap *rna_keymap_find_modal(wmKeyConfig *UNUSED(keyconf), const char *idname)
 {
 	wmOperatorType *ot = WM_operatortype_find(idname, 0);
 
