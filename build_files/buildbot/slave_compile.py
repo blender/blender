@@ -38,11 +38,11 @@ if builder.find('cmake') != -1:
     # set build options
     cmake_options = ['-DCMAKE_BUILD_TYPE:STRING=Release']
 
-    if builder == 'mac_x86_64_cmake':
+    if builder.endswith('mac_x86_64_cmake'):
         cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
-    elif builder == 'mac_i386_cmake':
+    elif builder.endswith('mac_i386_cmake'):
         cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=i386')
-    elif builder == 'mac_ppc_cmake':
+    elif builder.endswith('mac_ppc_cmake'):
         cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=ppc')
 
     # configure and make
@@ -75,10 +75,10 @@ else:
         config_dir = os.path.join(buildbot_dir, 'config')
 
         configs = []
-        if builder == 'linux_x86_64_scons':
+        if builder.endswith('linux_x86_64_scons'):
             configs = ['user-config-player-x86_64.py',
                        'user-config-x86_64.py']
-        elif builder == 'linux_i386_scons':
+        elif builder.endswith('linux_i386_scons'):
             configs = ['user-config-player-i686.py',
                        'user-config-i686.py']
 

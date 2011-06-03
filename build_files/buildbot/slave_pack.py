@@ -33,11 +33,15 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 builder = sys.argv[1]
+branch = ''
+
+if len(sys.argv) >= 3:
+	branch = sys.argv[2]
 
 # scons does own packaging
 if builder.find('scons') != -1:
     os.chdir('../blender')
-    scons_options = ['BF_QUICK=slnt', 'buildslave']
+    scons_options = ['BF_QUICK=slnt', 'BUILDBOT_BRANCH=' + branch, 'buildslave']
 
     if builder.startswith('linux'):
         buildbot_dir = os.path.dirname(os.path.realpath(__file__))
@@ -52,9 +56,9 @@ if builder.find('scons') != -1:
 
         config = None
 
-        if builder == 'linux_x86_64_scons':
+        if builder.endswith('linux_x86_64_scons'):
             config = 'user-config-x86_64.py'
-        elif builder == 'linux_i386_scons':
+        elif builder.endswith('linux_i386_scons'):
             config = 'user-config-x86_64.py'
 
         if config is not None:
