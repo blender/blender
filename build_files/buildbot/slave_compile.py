@@ -57,7 +57,7 @@ else:
     scons_cmd = ['python', 'scons/scons.py']
     scons_options = []
 
-    if builder.startswith('linux'):
+    if builder.find('linux') != -1:
         import shutil
 
         # We're using the same rules as release builder, so tweak

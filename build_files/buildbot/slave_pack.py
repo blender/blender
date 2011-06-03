@@ -43,7 +43,7 @@ if builder.find('scons') != -1:
     os.chdir('../blender')
     scons_options = ['BF_QUICK=slnt', 'BUILDBOT_BRANCH=' + branch, 'buildslave']
 
-    if builder.startswith('linux'):
+    if builder.find('linux') != -1:
         buildbot_dir = os.path.dirname(os.path.realpath(__file__))
         config_dir = os.path.join(buildbot_dir, 'config')
         build_dir = os.path.join('..', 'build', builder)
