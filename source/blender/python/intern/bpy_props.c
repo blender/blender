@@ -644,7 +644,9 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 
 static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, int *defvalue, const short is_enum_flag)
 {
-	EnumPropertyItem *items= NULL;
+#	define PREALLOC_ENUM
+
+	EnumPropertyItem *items;
 	PyObject *item;
 	int seq_len, i, totitem= 0;
 	short def_used= 0;
@@ -681,18 +683,23 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 	/* blank value */
 	*defvalue= 0;
 
+#ifdef PREALLOC_ENUM
+	items= MEM_callocN(sizeof(EnumPropertyItem) * (seq_len + 1), "RNA_enum_items_reserve");
+#endif
+
 	for(i=0; i<seq_len; i++) {
 		EnumPropertyItem tmp= {0, "", 0, "", ""};
 
 		item= PySequence_Fast_GET_ITEM(seq_fast, i);
-		if(PyTuple_Check(item)==0) {
-			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected a sequence of tuples for the enum items");
-			if(items) MEM_freeN(items);
-			return NULL;
-		}
 
+		/* this also checks for a tuple */
 		if(!PyArg_ParseTuple(item, "sss", &tmp.identifier, &tmp.name, &tmp.description)) {
-			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected an identifier, name and description in the tuple");
+#ifdef PREALLOC_ENUM
+			MEM_freeN(items);
+#else
+			if(items) MEM_freeN(items);
+#endif
+			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected an tuple containing (identifier, name description)");
 			return NULL;
 		}
 
@@ -712,11 +719,18 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 				def_used++; /* only ever 1 */
 			}
 		}
-
+#ifdef PREALLOC_ENUM
+		items[i]= tmp;
+#else
 		RNA_enum_item_add(&items, &totitem, &tmp);
+#endif
 	}
 
+#ifdef PREALLOC_ENUM
+	/* do nohing */
+#else
 	RNA_enum_item_end(&items, &totitem);
+#endif
 
 	if(is_enum_flag) {
 		/* strict check that all set members were used */
@@ -741,6 +755,8 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 	}
 
 	return items;
+
+#	undef PREALLOC_ENUM
 }
 
 static EnumPropertyItem *bpy_props_enum_itemf(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int *free)
