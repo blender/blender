@@ -642,6 +642,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 	Py_RETURN_NONE;
 }
 
+#if 0
 /* copies orig to buf, then sets orig to buf, returns copy length */
 static size_t strswapbufcpy(char *buf, const char **orig)
 {
@@ -652,6 +653,7 @@ static size_t strswapbufcpy(char *buf, const char **orig)
 	while((*dst= *src)) { dst++; src++; i++; }
 	return i + 1; /* include '\0' */
 }
+#endif
 
 static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, int *defvalue, const short is_enum_flag)
 {
@@ -760,6 +762,10 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		}
 	}
 
+	/* disabled duplicating strings because the array can still be freed and
+	 * the strings from it referenced, for now we can't support dynamically
+	 * created strings from python. */
+#if 0
 	/* this would all work perfectly _but_ the python strings may be freed
 	 * immediately after use, so we need to duplicate them, ugh.
 	 * annoying because it works most of the time without this. */
@@ -777,6 +783,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		items=items_dup;
 	}
 	/* end string duplication */
+#endif
 
 	return items;
 }
