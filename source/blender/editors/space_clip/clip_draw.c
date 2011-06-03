@@ -33,6 +33,7 @@
 
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"	/* SELECT */
 
 #include "MEM_guardedalloc.h"
 
@@ -42,8 +43,10 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "BLI_utildefines.h"
+
 #include "ED_screen.h"
-#include "ED_movieclip.h"
+#include "ED_clip.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -105,12 +108,12 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	glLineWidth(1.0);
 }
 
-static void draw_movieclip_buffer(ARegion *ar, ImBuf *ibuf, float zoom)
+static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf)
 {
 	int x, y;
 
 	/* set zoom */
-	glPixelZoom(zoom, zoom);
+	glPixelZoom(sc->zoom, sc->zoom);
 
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
@@ -125,6 +128,143 @@ static void draw_movieclip_buffer(ARegion *ar, ImBuf *ibuf, float zoom)
 	glPixelZoom(1.0f, 1.0f);
 }
 
+static void draw_marker_areas(SpaceClip *sc, MovieTrackingMarker *marker, int act, int sel)
+{
+	int color= act?TH_ACT_MARKER:TH_SEL_MARKER;
+
+	/* marker position */
+	if((marker->flag&SELECT)==sel) {
+		if(marker->flag&SELECT) UI_ThemeColor(color);
+		else UI_ThemeColor(TH_MARKER);
+
+		glPointSize(2.0f);
+		glBegin(GL_POINTS);
+			glVertex2f(marker->pos[0], marker->pos[1]);
+		glEnd();
+		glPointSize(1.0f);
+	}
+
+	/* pattern */
+	glPushMatrix();
+	glTranslatef(marker->pos[0], marker->pos[1], 0);
+
+	if((marker->pat_flag&SELECT)==sel) {
+		if(marker->pat_flag&SELECT) UI_ThemeColor(color);
+		else UI_ThemeColor(TH_MARKER);
+
+		if(sc->flag&SC_SHOW_MARKER_PATTERN) {
+			glBegin(GL_LINE_LOOP);
+				glVertex2f(marker->pat_min[0], marker->pat_min[1]);
+				glVertex2f(marker->pat_max[0], marker->pat_min[1]);
+				glVertex2f(marker->pat_max[0], marker->pat_max[1]);
+				glVertex2f(marker->pat_min[0], marker->pat_max[1]);
+			glEnd();
+		}
+	}
+
+	/* search */
+	if((marker->search_flag&SELECT)==sel) {
+		if(marker->search_flag&SELECT) UI_ThemeColor(color);
+		else UI_ThemeColor(TH_MARKER);
+
+		if(sc->flag&SC_SHOW_MARKER_SEARCH) {
+			glBegin(GL_LINE_LOOP);
+				glVertex2f(marker->search_min[0], marker->search_min[1]);
+				glVertex2f(marker->search_max[0], marker->search_min[1]);
+				glVertex2f(marker->search_max[0], marker->search_max[1]);
+				glVertex2f(marker->search_min[0], marker->search_max[1]);
+			glEnd();
+		}
+	}
+
+	glPopMatrix();
+
+}
+
+static void draw_tracking_markers(SpaceClip *sc, ARegion *ar, MovieClip *clip)
+{
+	int x, y;
+	MovieTrackingMarker *marker;
+	int width, height, sel_type;
+	void *sel;
+
+	ED_space_clip_size(sc, &width, &height);
+
+	if(!width || !height) /* no image displayed for frame */
+		return;
+
+	/* find window pixel coordinates of origin */
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+	glPushMatrix();
+	glTranslatef(x, y, 0);
+	glScalef(sc->zoom, sc->zoom, 0);
+	glScalef(width, height, 0);
+
+	BKE_movieclip_last_selection(clip, &sel_type, &sel);
+
+	/* markers outline and non-selected areas */
+	marker= clip->tracking.markers.first;
+	while(marker) {
+		/* marker position outline */
+		UI_ThemeColor(TH_MARKER_OUTLINE);
+		glPointSize(4.0f);
+		glBegin(GL_POINTS);
+			glVertex2f(marker->pos[0], marker->pos[1]);
+		glEnd();
+		glPointSize(1.0f);
+
+		/* pattern and search outline */
+		glPushMatrix();
+		glTranslatef(marker->pos[0], marker->pos[1], 0);
+		glLineWidth(3.0f);
+		if(sc->flag&SC_SHOW_MARKER_PATTERN) {
+			glBegin(GL_LINE_LOOP);
+				glVertex2f(marker->pat_min[0], marker->pat_min[1]);
+				glVertex2f(marker->pat_max[0], marker->pat_min[1]);
+				glVertex2f(marker->pat_max[0], marker->pat_max[1]);
+				glVertex2f(marker->pat_min[0], marker->pat_max[1]);
+			glEnd();
+		}
+
+		if(sc->flag&SC_SHOW_MARKER_SEARCH) {
+			glBegin(GL_LINE_LOOP);
+				glVertex2f(marker->search_min[0], marker->search_min[1]);
+				glVertex2f(marker->search_max[0], marker->search_min[1]);
+				glVertex2f(marker->search_max[0], marker->search_max[1]);
+				glVertex2f(marker->search_min[0], marker->search_max[1]);
+			glEnd();
+		}
+		glPopMatrix();
+		glLineWidth(1.0f);
+
+		draw_marker_areas(sc, marker, 0, 0);
+
+		marker= marker->next;
+	}
+
+	/* selected areas only, so selection wouldn't be overlapped by
+	   non-selected areas */
+	marker= clip->tracking.markers.first;
+	while(marker) {
+		int act= sel_type==MCLIP_SEL_MARKER && sel==marker;
+		if(!act)
+			draw_marker_areas(sc, marker, 0, 1);
+		marker= marker->next;
+	}
+
+	/* active marker would be displayed on top of everything else */
+	if(sel_type==MCLIP_SEL_MARKER)
+		draw_marker_areas(sc, sel, 1, 1);
+
+	glPopMatrix();
+}
+
+static void draw_tracking(SpaceClip *sc, ARegion *ar, MovieClip *clip)
+{
+	draw_tracking_markers(sc, ar, clip);
+}
+
 void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
 	MovieClip *clip= ED_space_clip(sc);
@@ -137,10 +277,13 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	ibuf= ED_space_clip_acquire_buffer(sc);
 
 	if(ibuf) {
-		draw_movieclip_buffer(ar, ibuf, sc->zoom);
+		draw_movieclip_buffer(sc, ar, ibuf);
 		IMB_freeImBuf(ibuf);
+
+		if(sc->mode==SC_MODE_TRACKING)
+			draw_tracking(sc, ar, clip);
 	}
 
-	if(sc->debug_flags&SC_DBG_SHOW_CACHE)
+	if(sc->debug_flag&SC_DBG_SHOW_CACHE)
 		draw_movieclip_cache(sc, ar, clip, scene);
 }

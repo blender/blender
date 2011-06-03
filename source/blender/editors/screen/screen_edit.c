@@ -60,7 +60,7 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_fileselect.h"
-#include "ED_movieclip.h"
+#include "ED_clip.h"
 
 #include "UI_interface.h"
 

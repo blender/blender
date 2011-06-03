@@ -2412,7 +2412,14 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 	clip= idbase->first;
 	while(clip) {
 		if(clip->id.us>0 || wd->current) {
+			MovieTrackingMarker *marker;
 			writestruct(wd, ID_MC, "MovieClip", 1, clip);
+
+			marker= clip->tracking.markers.first;
+			while(marker) {
+				writestruct(wd, DATA, "MovieTrackingMarker", 1, marker);
+				marker= marker->next;
+			}
 		}
 
 		clip= clip->id.next;

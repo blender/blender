@@ -83,6 +83,7 @@ set(DEFSRC
 	rna_text.c
 	rna_texture.c
 	rna_timeline.c
+	rna_tracking.c
 	rna_ui.c
 	rna_userdef.c
 	rna_vfont.c

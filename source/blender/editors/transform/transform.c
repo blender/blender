@@ -50,6 +50,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"		/* PET modes			*/
 
 #include "RNA_access.h"
@@ -73,6 +74,7 @@
 #include "ED_markers.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"
+#include "ED_clip.h"
 
 #include "UI_view2d.h"
 #include "WM_types.h"
@@ -176,6 +178,17 @@ void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
 		vec[2]= 0.0f;
 	}
+	else if(t->spacetype==SPACE_CLIP) {
+		View2D *v2d = t->view;
+		float divx, divy;
+
+		divx= v2d->mask.xmax-v2d->mask.xmin;
+		divy= v2d->mask.ymax-v2d->mask.ymin;
+
+		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
+		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
+		vec[2]= 0.0f;
+	}
 }
 
 void projectIntView(TransInfo *t, float *vec, int *adr)
@@ -226,6 +239,9 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		adr[0]= out[0];
 		adr[1]= out[1];
 	}
+	else if(t->spacetype==SPACE_CLIP) {
+		UI_view2d_to_region_no_clip(t->view, vec[0], vec[1], adr, adr+1);
+	}
 }
 
 void projectFloatView(TransInfo *t, float *vec, float *adr)
@@ -234,7 +250,7 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 		if(t->ar->regiontype == RGN_TYPE_WINDOW)
 			project_float_noclip(t->ar, vec, adr);
 	}
-	else if(t->spacetype==SPACE_IMAGE) {
+	else if(ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
 		int a[2];
 
 		projectIntView(t, vec, a);
@@ -331,6 +347,12 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		SpaceImage *sima= (SpaceImage*)t->sa->spacedata.first;
 		if(sima->lock) WM_event_add_notifier(C, NC_GEOM|ND_DATA, t->obedit->data);
 		else ED_area_tag_redraw(t->sa);
+	}
+	else if (t->spacetype==SPACE_CLIP) {
+		SpaceClip *sc= (SpaceClip*)t->sa->spacedata.first;
+		MovieClip *clip= ED_space_clip(sc);
+
+		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 	}
 }
 
@@ -1558,6 +1580,10 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
+	}
+	else if(t->spacetype == SPACE_CLIP) {
+		unit_m3(t->spacemtx);
+		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 	}
 	else
 		unit_m3(t->spacemtx);
@@ -3342,7 +3368,7 @@ void initTranslation(TransInfo *t)
 			t->snap[2] = t->snap[1] * 0.1f;
 		}
 	}
-	else if(t->spacetype == SPACE_IMAGE) {
+	else if(ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
 		t->snap[0] = 0.0f;
 		t->snap[1] = 0.125f;
 		t->snap[2] = 0.0625f;

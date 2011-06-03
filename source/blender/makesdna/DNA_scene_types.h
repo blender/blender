@@ -1319,6 +1319,7 @@ typedef enum SculptFlags {
 #define MCLIP_TOOL_NONE		0
 #define MCLIP_TOOL_FOOTAGE	1
 #define MCLIP_TOOL_CAMERA	2
+#define MCLIP_TOOL_MARKER	3
 
 #ifdef __cplusplus
 }

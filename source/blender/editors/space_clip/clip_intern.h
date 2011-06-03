@@ -44,6 +44,7 @@ struct wmOperatorType;
 
 /* clip_ops.c */
 void CLIP_OT_open(struct wmOperatorType *ot);
+void CLIP_OT_reload(struct wmOperatorType *ot);
 void CLIP_OT_tools(struct wmOperatorType *ot);
 // void CLIP_OT_properties(struct wmOperatorType *ot);
 // void CLIP_OT_unlink(struct wmOperatorType *ot);
@@ -54,8 +55,20 @@ void CLIP_OT_view_zoom_out(struct wmOperatorType *ot);
 void CLIP_OT_view_zoom_ratio(struct wmOperatorType *ot);
 void CLIP_OT_view_all(struct wmOperatorType *ot);
 
+/* tracking_ops.c */
+void CLIP_OT_select(struct wmOperatorType *ot);
+void CLIP_OT_select_all(struct wmOperatorType *ot);
+void CLIP_OT_select_border(struct wmOperatorType *ot);
+void CLIP_OT_select_circle(struct wmOperatorType *ot);
+
+void CLIP_OT_add_marker(struct wmOperatorType *ot);
+void CLIP_OT_delete(struct wmOperatorType *ot);
+
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+
+/* clip_buttons.c */
+void ED_clip_buttons_register(struct ARegionType *art);
 
 #endif /* ED_CLIP_INTERN_H */
 

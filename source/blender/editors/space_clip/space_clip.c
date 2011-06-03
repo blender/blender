@@ -50,7 +50,8 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_screen.h"
-#include "ED_movieclip.h"
+#include "ED_clip.h"
+#include "ED_transform.h"
 
 #include "BIF_gl.h"
 
@@ -75,7 +76,9 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 
 	sc= MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype= SPACE_CLIP;
-	sc->debug_flags= SC_DBG_SHOW_CACHE;
+	sc->mode= SC_MODE_VIEW;
+	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_MARKER_SEARCH;
+	sc->debug_flag= SC_DBG_SHOW_CACHE;
 	sc->zoom= 1.0f;
 
 	/* header */
@@ -154,12 +157,14 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_MOVIECLIP:
 			switch(wmn->data) {
 				case ND_DISPLAY:
+				case ND_SELECT:
 					ED_area_tag_redraw(sa);
 					break;
 			}
 			switch(wmn->action) {
 				case NA_REMOVED:
 				case NA_SELECTED:
+				case NA_EDITED:
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -174,6 +179,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 static void clip_operatortypes(void)
 {
 	WM_operatortype_append(CLIP_OT_open);
+	WM_operatortype_append(CLIP_OT_reload);
 	WM_operatortype_append(CLIP_OT_tools);
 	// WM_operatortype_append(CLIP_OT_properties);
 	// WM_operatortype_append(CLIP_OT_unlink);
@@ -183,6 +189,14 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_view_zoom_out);
 	WM_operatortype_append(CLIP_OT_view_zoom_ratio);
 	WM_operatortype_append(CLIP_OT_view_all);
+
+	WM_operatortype_append(CLIP_OT_select);
+	WM_operatortype_append(CLIP_OT_select_all);
+	WM_operatortype_append(CLIP_OT_select_border);
+	WM_operatortype_append(CLIP_OT_select_circle);
+
+	WM_operatortype_append(CLIP_OT_add_marker);
+	WM_operatortype_append(CLIP_OT_delete);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)
@@ -218,6 +232,18 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	WM_keymap_add_item(keymap, "CLIP_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CLIP_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
+	WM_keymap_add_item(keymap, "CLIP_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_select_circle", CKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_delete", DELKEY, KM_PRESS, 0, 0);
+
+	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }
 
 const char *clip_context_dir[]= {"edit_movieclip", NULL};
@@ -390,7 +416,7 @@ void ED_spacetype_clip(void)
 	art->regionid= RGN_TYPE_WINDOW;
 	art->init= clip_main_area_init;
 	art->draw= clip_main_area_draw;
-	art->keymapflag= ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
 
 	BLI_addhead(&st->regiontypes, art);
 
@@ -412,6 +438,9 @@ void ED_spacetype_clip(void)
 	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
 	art->init= clip_tools_area_init;
 	art->draw= clip_tools_area_draw;
+
+	ED_clip_buttons_register(art);
+
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: header */

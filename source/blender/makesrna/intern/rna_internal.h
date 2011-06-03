@@ -179,6 +179,7 @@ void RNA_def_vfont(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
 void RNA_def_world(struct BlenderRNA *brna);
 void RNA_def_movieclip(struct BlenderRNA *brna);
+void RNA_def_tracking(struct BlenderRNA *brna);
 
 /* Common Define functions */
 

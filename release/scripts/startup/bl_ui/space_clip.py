@@ -27,6 +27,7 @@ class CLIP_HT_header(bpy.types.Header):
         layout = self.layout
 
         sc = context.space_data
+        clip = sc.clip
 
         row = layout.row(align=True)
         row.template_header()
@@ -36,13 +37,27 @@ class CLIP_HT_header(bpy.types.Header):
             sub.menu("CLIP_MT_view")
             sub.menu("CLIP_MT_clip")
 
+            if clip and sc.mode == 'TRACKING':
+                sub.menu("CLIP_MT_select")
+                sub.menu("CLIP_MT_edit")
+
         layout.template_ID(sc, "clip")
+
+        if clip:
+            layout.prop(sc, "mode", text="")
 
 
 class CLIP_PT_tools(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Tools"
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        return (sc.mode == 'TRACKING' and clip)
 
     def draw(self, context):
         layout = self.layout
@@ -52,21 +67,23 @@ class CLIP_PT_tools(bpy.types.Panel):
             ts = context.tool_settings
             col = layout.column()
             col.prop(ts.movieclip, 'tool', expand=True)
-        else:
-            layout.operator('clip.open', icon='FILESEL')
 
-class CLIP_PT_footage_camera(bpy.types.Panel):
+class CLIP_PT_footage(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Footage Settings"
 
     @classmethod
     def poll(cls, context):
-        clip = context.space_data.clip
+        sc = context.space_data
+        clip = sc.clip
         ts = context.tool_settings
         tool = ts.movieclip.tool
 
-        return (clip and tool == 'FOOTAGE')
+        if sc.mode == 'TRACKING':
+            return clip and tool == 'FOOTAGE'
+
+        return True
 
     def draw(self, context):
         layout = self.layout
@@ -74,8 +91,11 @@ class CLIP_PT_footage_camera(bpy.types.Panel):
         sc = context.space_data
         clip = sc.clip
 
-        layout.label(text="File Path:")
-        layout.prop(clip, "filepath", text="")
+        if clip:
+            layout.label(text="File Path:")
+            layout.prop(clip, "filepath", text="")
+        else:
+            layout.operator('clip.open', icon='FILESEL')
 
 
 class CLIP_PT_tracking_camera(bpy.types.Panel):
@@ -85,11 +105,12 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        clip = context.space_data.clip
+        sc = context.space_data
+        clip = sc.clip
         ts = context.tool_settings
         tool = ts.movieclip.tool
 
-        return (clip and tool == 'CAMERA')
+        return (sc.mode == 'TRACKING' and clip and tool == 'CAMERA')
 
     def draw(self, context):
         layout = self.layout
@@ -98,6 +119,49 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
         clip = sc.clip
 
         layout.prop(clip.tracking.camera, "focal_length")
+
+
+class CLIP_PT_tracking_marker(bpy.types.Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = 'Marker Tools'
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+        ts = context.tool_settings
+        tool = ts.movieclip.tool
+
+        return (sc.mode == 'TRACKING' and clip and tool == 'MARKER')
+
+    def draw(self, context):
+        layout = self.layout
+        clip = context.space_data.clip
+
+        layout.operator('clip.add_marker', icon='ZOOMIN')
+        layout.operator('clip.delete', icon='X')
+
+
+class CLIP_PT_display(bpy.types.Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "Display"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        return sc.mode == 'TRACKING' and clip
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+
+        layout.prop(sc, "show_marker_pattern")
+        layout.prop(sc, "show_marker_search")
 
 
 class CLIP_PT_debug(bpy.types.Panel):
@@ -130,12 +194,54 @@ class CLIP_MT_view(bpy.types.Menu):
 class CLIP_MT_clip(bpy.types.Menu):
     bl_label = "Clip"
 
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+        clip = sc.clip
+
+        if clip:
+            layout.operator('clip.reload')
+
+        layout.operator('clip.open')
+
+
+class CLIP_MT_edit(bpy.types.Menu):
+    bl_label = "Edit"
+
     def draw(self, context):
         layout = self.layout
 
         sc = context.space_data
 
-        layout.operator('clip.open')
+        layout.operator('clip.delete')
+        layout.menu("CLIP_MT_marker")
+
+
+class CLIP_MT_marker(bpy.types.Menu):
+    bl_label = "Marker"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+
+        layout.operator('clip.add_marker')
+
+
+class CLIP_MT_select(bpy.types.Menu):
+    bl_label = "Select"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+
+        layout.operator('clip.select_border')
+        layout.operator('clip.select_circle')
+        layout.operator('clip.select_all', text="Select/Deselect all")
+        layout.operator('clip.select_all', text="Inverse").action = 'INVERT'
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

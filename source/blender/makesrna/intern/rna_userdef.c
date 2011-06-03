@@ -1720,6 +1720,7 @@ static void rna_def_userdef_theme_colorset(BlenderRNA *brna)
 static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	/* space_clip */
 
@@ -1728,6 +1729,30 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Theme Clip Editor", "Theme settings for the Movie Clip Editor");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_CLIP);
+
+	prop= RNA_def_property(srna, "marker_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "marker_outline");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Marker Outline Color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "marker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "marker");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Marker Color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "active_marker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "act_marker");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Active Marker Color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "selected_marker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "sel_marker");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Selected Marker Color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_themes(BlenderRNA *brna)
@@ -1881,7 +1906,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "clip_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tclip");
-	RNA_def_property_struct_type(prop, "ThemeConsole");
+	RNA_def_property_struct_type(prop, "ThemeClipEditor");
 	RNA_def_property_ui_text(prop, "Clip Editor", "");
 }
 

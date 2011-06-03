@@ -53,6 +53,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -76,6 +77,8 @@
 #include "BKE_bmesh.h"
 #include "BKE_scene.h"
 #include "BKE_report.h"
+#include "BKE_tracking.h"
+#include "BKE_movieclip.h"
 
 
 #include "ED_anim_api.h"
@@ -89,6 +92,7 @@
 #include "ED_mesh.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
+#include "ED_clip.h"
 #include "ED_curve.h" /* for ED_curve_editnurbs */
 #include "ED_util.h"  /* for crazyspace correction */
 
@@ -4720,6 +4724,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->spacetype == SPACE_NODE) {
 		/* pass */
 	}
+	else if (t->spacetype == SPACE_CLIP) {
+		/* pass */
+	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		bAnimContext ac;
@@ -5166,6 +5173,115 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 	CTX_DATA_END
 }
 
+/* *** CLIP EDITOR *** */
+
+static void markerToTransDataInit(TransData *td, TransData2D *td2d, float *loc, float *rel)
+{
+	td2d->loc[0] = loc[0]; /* hold original location */
+	td2d->loc[1] = loc[1];
+	td2d->loc[2] = 0.0f;
+
+	if(rel) {	/* XXX: could it be nicer? */
+		td2d->loc[0]+= rel[0];
+		td2d->loc[1]+= rel[1];
+
+		td->extra= rel;
+	}
+
+	td2d->loc2d = loc; /* current location */
+
+	td->flag = 0;
+	td->loc = td2d->loc;
+	VECCOPY(td->center, td->loc);
+	VECCOPY(td->iloc, td->loc);
+
+	memset(td->axismtx, 0, sizeof(td->axismtx));
+	td->axismtx[2][2] = 1.0f;
+
+	td->ext= NULL; td->val= NULL;
+
+	td->flag |= TD_SELECTED;
+	td->dist= 0.0;
+
+	unit_m3(td->mtx);
+	unit_m3(td->smtx);
+}
+
+static void markerToTransData(TransData *td, TransData2D *td2d, MovieTrackingMarker *marker)
+{
+	if(marker->flag&SELECT)
+		markerToTransDataInit(td++, td2d++, marker->pos, NULL);
+
+	if(marker->pat_flag&SELECT) {
+		markerToTransDataInit(td++, td2d++, marker->pat_min, marker->pos);
+		markerToTransDataInit(td++, td2d++, marker->pat_max, marker->pos);
+	}
+
+	if(marker->search_flag&SELECT) {
+		markerToTransDataInit(td++, td2d++, marker->search_min, marker->pos);
+		markerToTransDataInit(td++, td2d++, marker->search_max, marker->pos);
+	}
+}
+
+static void createTransTrackingData(bContext *C, TransInfo *t)
+{
+	TransData *td;
+	TransData2D *td2d;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTrackingMarker *marker;
+
+	if(clip && !BKE_movieclip_has_frame(clip, &sc->user)) {
+		t->total = 0;
+		return;
+	}
+
+	/* count */
+	t->total = 0;
+	marker = clip->tracking.markers.first;
+	while(marker) {
+		if(marker->flag&SELECT) t->total++;
+		if(marker->pat_flag&SELECT) t->total+= 2;
+		if(marker->search_flag&SELECT) t->total+= 2;
+
+		marker = marker->next;
+	}
+
+	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransTracking TransData");
+	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransTracking TransData2D");
+
+	/* create actual data */
+	marker = clip->tracking.markers.first;
+	while(marker) {
+		if(MARKER_SELECTED(marker)) {
+			markerToTransData(td, td2d, marker);
+
+			if(marker->flag&SELECT) {td++; td2d++;}
+			if(marker->pat_flag&SELECT) {td+= 2; td2d+= 2;}
+			if(marker->search_flag&SELECT) {td+= 2; td2d+= 2;};
+		}
+
+		marker = marker->next;
+	}
+}
+
+void flushTransTracking(TransInfo *t)
+{
+	SpaceClip *sc = t->sa->spacedata.first;
+	TransData *td;
+	TransData2D *td2d;
+	int a;
+
+	/* flush to 2d vector from internally used 3d vector */
+	for(a=0, td= t->data, td2d= t->data2d; a<t->total; a++, td2d++, td++) {
+		td2d->loc2d[0] = td2d->loc[0];
+		td2d->loc2d[1] = td2d->loc[1];
+
+		if(td->extra)
+			sub_v2_v2(td2d->loc2d, td->extra);
+	}
+}
+
 void createTransData(bContext *C, TransInfo *t)
 {
 	Scene *scene = t->scene;
@@ -5230,6 +5346,10 @@ void createTransData(bContext *C, TransInfo *t)
 			set_prop_dist(t, 1);
 			sort_trans_data_dist(t);
 		}
+	}
+	else if (t->spacetype == SPACE_CLIP) {
+		t->flag |= T_POINTS|T_2D_EDIT;
+		createTransTrackingData(C, t);
 	}
 	else if (t->obedit) {
 		t->ext = NULL;

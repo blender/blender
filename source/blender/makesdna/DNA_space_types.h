@@ -575,8 +575,19 @@ typedef struct SpaceClip {
 	struct MovieClipUser user;	/* user of clip */
 	struct MovieClip *clip;		/* clip data */
 
-	int debug_flags;			/* flags for debugging */
+	int mode;					/* space mode (view, tracking) */
 	int pad;
+
+	int flag;					/* flags */
+	int debug_flag;				/* flags for debugging */
+
+	/* ** some runtime vars which aren't really in file ** */
+	/* marker data displayed in panel */
+	float marker_pos[2];		/* position of marker in pixel coords */
+	float marker_pat_pos[2];	/* position of marker pattern in pixel coords */
+	float marker_pat[2];		/* dimensions of marker pattern in pixel coords */
+	float marker_search_pos[2];	/* position of marker search in pixel coords */
+	float marker_search[2];		/* dimensions of marker search in pixel coords */
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */
@@ -949,7 +960,15 @@ enum {
 #define SEQ_PROXY_RENDER_SIZE_75        75
 #define SEQ_PROXY_RENDER_SIZE_FULL      100
 
-/* SpaceClip->debug)flag */
+/* SpaceClip->mode */
+#define SC_MODE_VIEW		(1<<0)
+#define SC_MODE_TRACKING	(2<<0)
+
+/* SpaceClip->flag */
+#define SC_SHOW_MARKER_PATTERN	(1<<0)
+#define SC_SHOW_MARKER_SEARCH	(2<<0)
+
+/* SpaceClip->debug_flag */
 #define SC_DBG_SHOW_CACHE	(1<<0)
 
 

@@ -28,49 +28,36 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_MOVIECLIP_TYPES_H
-#define DNA_MOVIECLIP_TYPES_H
+#ifndef DNA_TRACKING_TYPES_H
+#define DNA_TRACKING_TYPES_H
 
-/** \file DNA_movieclip_types.h
+/** \file DNA_tracking_types.h
  *  \ingroup DNA
  *  \since may-2011
  *  \author Sergey Sharybin
  */
 
-#include "DNA_ID.h"
-#include "DNA_tracking_types.h"
+#include "DNA_listBase.h"
 
-struct anim;
+/* match-moving data */
 
-typedef struct MovieClipUser {
-	int framenr;	/* current frame number */
+typedef struct MovieTrackingCamera {
+	float focal;	/* focal length */
+	float pad;
+} MovieTrackingCamera;
+
+typedef struct MovieTrackingMarker {
+	struct MovieTrackingMarker *next, *prev;
+	float pos[2];						/* 2d position of marker on frame (in unified 0..1 space) */
+	float pat_min[2], pat_max[2];		/* positions of left-bottom and right-top corners of pattern (in unified 0..1 space) */
+	float search_min[2], search_max[2];	/* positions of left-bottom and right-top corners of search area (in unified 0..1 space) */
+	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
 	int pad;
-} MovieClipUser;
+} MovieTrackingMarker;
 
-typedef struct MovieClip {
-	ID id;
-
-	char name[240];		/* file path */
-
-	int source;			/* sequence or movie */
-	int lastframe;		/* last accessed frame */
-
-	struct anim *anim;	/* movie source data */
-	void *ibuf_cache;	/* cache of ibufs, not in file */
-
-	struct MovieTracking tracking;		/* data for SfM tracking */
-
-	int sel_type;		/* last selected thing */
-	int pad;
-	void *last_sel;
-} MovieClip;
-
-/* MovieClip->source */
-#define MCLIP_SRC_SEQUENCE	1
-#define MCLIP_SRC_MOVIE		2
-
-/* MovieClip->selection types */
-#define MCLIP_SEL_NONE		0
-#define MCLIP_SEL_MARKER	1
+typedef struct MovieTracking {
+	MovieTrackingCamera camera;
+	ListBase markers;
+} MovieTracking;
 
 #endif

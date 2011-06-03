@@ -53,6 +53,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_object_types.h"	/* SELECT */
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -66,6 +67,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_moviecache.h"
 #include "BKE_image.h"	/* openanim */
+#include "BKE_tracking.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -214,19 +216,6 @@ static MovieClip *movieclip_alloc(const char *name)
 	return clip;
 }
 
-static void movieclip_free_buffers(MovieClip *clip)
-{
-	if(clip->ibuf_cache) {
-		BKE_moviecache_free(clip->ibuf_cache);
-		clip->ibuf_cache= NULL;
-	}
-
-	if(clip->anim) {
-		IMB_free_anim(clip->anim);
-		clip->anim= FALSE;
-	}
-}
-
 /* checks if image was already loaded, then returns same image
    otherwise creates new.
    does not load ibuf itself
@@ -297,6 +286,18 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 	return ibuf;
 }
 
+int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
+{
+	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+
+	if(ibuf) {
+		IMB_freeImBuf(ibuf);
+		return 1;
+	}
+
+	return 0;
+}
+
 /* get segments of cached frames. useful for debugging cache policies */
 void BKE_movieclip_get_cache_segments(MovieClip *clip, int *totseg_r, int **points_r)
 {
@@ -314,19 +315,85 @@ void BKE_movieclip_user_set_frame(MovieClipUser *iuser, int framenr)
 	iuser->framenr= framenr;
 }
 
+static void free_buffers(MovieClip *clip)
+{
+	if(clip->ibuf_cache) {
+		BKE_moviecache_free(clip->ibuf_cache);
+		clip->ibuf_cache= NULL;
+	}
+
+	if(clip->anim) {
+		IMB_free_anim(clip->anim);
+		clip->anim= FALSE;
+	}
+}
+
 void BKE_movieclip_reload(MovieClip *clip)
 {
-	/* clear caches */
-	movieclip_free_buffers(clip);
+	/* clear cache */
+	free_buffers(clip);
 
 	/* update clip source */
 	if(BLI_testextensie_array(clip->name, imb_ext_movie)) clip->source= MCLIP_SRC_MOVIE;
 	else clip->source= MCLIP_SRC_SEQUENCE;
 }
 
+/* area - which part of marker should be selected:
+    0 - the whole marker and pattern/search
+	1 - only marker
+	2 - only pattern
+	3 - only search */
+void BKE_movieclip_select_marker(MovieClip *clip, MovieTrackingMarker *marker, int area, int extend)
+{
+	if(extend) {
+		BKE_tracking_marker_flag(marker, area, SELECT, 0);
+	} else {
+		MovieTrackingMarker *cur= clip->tracking.markers.first;
+
+		while(cur) {
+			if(cur==marker) {
+				BKE_tracking_marker_flag(cur, MARKER_AREA_ALL, SELECT, 1);
+				BKE_tracking_marker_flag(cur, area, SELECT, 0);
+			}
+			else BKE_tracking_marker_flag(cur, MARKER_AREA_ALL, SELECT, 1);
+
+			cur= cur->next;
+		}
+	}
+
+	if(!MARKER_SELECTED(marker))
+		BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+}
+
+void BKE_movieclip_deselect_marker(MovieClip *clip, MovieTrackingMarker *marker, int area)
+{
+	BKE_tracking_marker_flag(marker, area, SELECT, 1);
+
+	if(!MARKER_SELECTED(marker))
+		BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+}
+
+void BKE_movieclip_set_selection(MovieClip *clip, int type, void *sel)
+{
+	clip->sel_type= type;
+
+	if(type == MCLIP_SEL_NONE) clip->last_sel= NULL;
+	else clip->last_sel= sel;
+}
+
+void BKE_movieclip_last_selection(MovieClip *clip, int *type, void **sel)
+{
+	*type= clip->sel_type;
+
+	if(clip->sel_type == MCLIP_SEL_NONE) *sel= NULL;
+	else *sel= clip->last_sel;
+}
+
 void free_movieclip(MovieClip *clip)
 {
-	movieclip_free_buffers(clip);
+	free_buffers(clip);
+
+	BLI_freelistN(&clip->tracking.markers);
 }
 
 void unlink_movieclip(Main *bmain, MovieClip *clip)

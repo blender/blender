@@ -41,7 +41,9 @@ set(SRC
 	clip_draw.c
 	clip_header.c
 	clip_ops.c
+	tracking_ops.c
 	clip_editor.c
+	clip_buttons.c
 
 	clip_intern.h
 )

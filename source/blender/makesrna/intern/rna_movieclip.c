@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_movieclip.h"
+#include "BKE_tracking.h"
 
 #include "RNA_define.h"
 
@@ -58,41 +59,10 @@ static void rna_MovieClip_reload_update(Main *bmain, Scene *scene, PointerRNA *p
 
 #else
 
-static void rna_def_movie_trackingCamera(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna= RNA_def_struct(brna, "MovieTrackingCamera", NULL);
-	RNA_def_struct_ui_text(srna, "Movie tracking camera data", "Match-moving camera data for tracking");
-
-	prop= RNA_def_property(srna, "focal_length", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "focal");
-	RNA_def_property_range(prop, 1.0f, 5000.0f);
-	RNA_def_property_ui_text(prop, "Focal Length", "Camera's focal length in millimeters");
-	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
-}
-
-static void rna_def_movie_tracking(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	rna_def_movie_trackingCamera(brna);
-
-	srna= RNA_def_struct(brna, "MovieTracking", NULL);
-	RNA_def_struct_ui_text(srna, "Movie tracking data", "Match-moving data for tracking");
-
-	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "MovieTrackingCamera");
-}
-
 static void rna_def_movieclip(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	rna_def_movie_tracking(brna);
 
 	srna= RNA_def_struct(brna, "MovieClip", "ID");
 	RNA_def_struct_ui_text(srna, "MovieClip", "MovieClip datablock referencing an external movie file");
@@ -116,6 +86,7 @@ static void rna_def_movieclip_tools(BlenderRNA *brna)
 		{MCLIP_TOOL_NONE, "NONE", 0, "None", "Don't use any tool"},
 		{MCLIP_TOOL_FOOTAGE, "FOOTAGE", ICON_SEQUENCE, "Footage", "Footage sequence/movie tools"},
 		{MCLIP_TOOL_CAMERA, "CAMERA", ICON_CAMERA_DATA, "Camera", "Camera tools"},
+		{MCLIP_TOOL_MARKER, "MARKER", ICON_MARKERS, "Marker", "Marker tools"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MovieClipEditSettings", NULL);

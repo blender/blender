@@ -233,6 +233,8 @@ typedef struct ThemeSpace {
 	char handle_vertex_select[4];
 	
 	char handle_vertex_size;
+	
+	char marker_outline[4], marker[4], act_marker[4], sel_marker[4];
 	char hpad[7];
 	
 	char preview_back[4];

@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
+ * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Blender Foundation,
@@ -26,27 +26,31 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file ED_movieclip.h
- *  \ingroup editors
+#ifndef BKE_TRACKING_H
+#define BKE_TRACKING_H
+
+/** \file BKE_trackingp.h
+ *  \ingroup bke
+ *  \author Sergey Sharybin
  */
 
-#ifndef ED_MOVIECLIP_H
-#define ED_MOVIECLIP_H
+struct MovieTrackingMarker;
 
-struct bContext;
-struct ImBuf;
-struct Main;
-struct MovieClip;
-struct SpaceClip;
+void BKE_tracking_clamp_marker(struct MovieTrackingMarker *marker, int event);
+void BKE_tracking_marker_flag(struct MovieTrackingMarker *marker, int area, int flag, int clear);
 
-/* clip_editor.c */
-void ED_space_clip_set(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip);
-struct MovieClip *ED_space_clip(struct SpaceClip *sc);
-void ED_space_clip_size(struct SpaceClip *sc, int *width, int *height);
+#define MARKER_SELECTED(marker) ((marker)->flag&SELECT || (marker)->pat_flag&SELECT || (marker)->search_flag&SELECT)
+#define MARKER_AREA_SELECTED(marker, area) ((area)==MARKER_AREA_POINT?(marker)->flag&SELECT : ((area)==MARKER_AREA_PAT?(marker)->pat_flag&SELECT:(marker)->search_flag&SELECT))
 
-struct ImBuf *ED_space_clip_acquire_buffer(struct SpaceClip *sc);
+#define CLAMP_PAT_DIM		1
+#define CLAMP_PAT_POS		2
+#define CLAMP_SEARCH_DIM	3
+#define CLAMP_SEARCH_POS	4
 
-void ED_clip_update_frame(const struct Main *mainp, int cfra);
+#define MARKER_AREA_NONE	-1
+#define MARKER_AREA_ALL		0
+#define MARKER_AREA_POINT	1
+#define MARKER_AREA_PAT		2
+#define MARKER_AREA_SEARCH	3
 
-#endif /* ED_TEXT_H */
-
+#endif

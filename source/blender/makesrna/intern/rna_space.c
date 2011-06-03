@@ -123,7 +123,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_sequencer.h"
-#include "ED_movieclip.h"
+#include "ED_clip.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -2577,6 +2577,11 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem modes[] = {
+		{SC_MODE_VIEW, "VIEW", ICON_RESTRICT_VIEW_OFF, "View", "View selected clip only"},
+		{SC_MODE_TRACKING, "TRACKING", ICON_ANIM, "Tracking", "Use match-moving tools on selected clip"},
+	    {0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "SpaceClipEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceClip");
 	RNA_def_struct_ui_text(srna, "Space Clip Editor", "Clip editor space data");
@@ -2588,12 +2593,32 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_clip_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
+	/* mode */
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Mode", "Clip interacting mode");
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, modes);
+
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show pattern */
+	prop= RNA_def_property(srna, "show_marker_pattern", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Marker Pattern", "Show pattern boundbox for markers");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_MARKER_PATTERN);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show search */
+	prop= RNA_def_property(srna, "show_marker_search", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Marker Search", "Show search boundbox for markers");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_MARKER_SEARCH);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
 	/* ** debug flags ** */
 
 	/* show cache */
 	prop= RNA_def_property(srna, "show_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Show Cache", "Show cached frames for current clip");
-	RNA_def_property_boolean_sdna(prop, NULL, "debug_flags", SC_DBG_SHOW_CACHE);
+	RNA_def_property_boolean_sdna(prop, NULL, "debug_flag", SC_DBG_SHOW_CACHE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 

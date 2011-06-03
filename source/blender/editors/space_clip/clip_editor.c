@@ -41,7 +41,7 @@
 #include "IMB_imbuf.h"
 
 #include "ED_screen.h"
-#include "ED_movieclip.h"
+#include "ED_clip.h"
 
 #include "BIF_gl.h"
 
@@ -95,6 +95,16 @@ void ED_space_clip_size(SpaceClip *sc, int *width, int *height)
 
 	if(ibuf)
 		IMB_freeImBuf(ibuf);
+}
+
+void ED_space_clip_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy)
+{
+	int width, height;
+
+	ED_space_clip_size(sc, &width, &height);
+
+	*zoomx= (float)(ar->winrct.xmax - ar->winrct.xmin + 1)/(float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin)*width);
+	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin + 1)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
 }
 
 void ED_clip_update_frame(const Main *mainp, int cfra)

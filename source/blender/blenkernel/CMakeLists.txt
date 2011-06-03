@@ -145,6 +145,7 @@ set(SRC
 	intern/suggestions.c
 	intern/text.c
 	intern/texture.c
+	intern/tracking.c
 	intern/unit.c
 	intern/world.c
 	intern/writeavi.c
@@ -227,6 +228,7 @@ set(SRC
 	BKE_suggestions.h
 	BKE_text.h
 	BKE_texture.h
+	BKE_tracking.h
 	BKE_unit.h
 	BKE_utildefines.h
 	BKE_world.h

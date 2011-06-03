@@ -411,6 +411,15 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 			case TH_PREVIEW_BACK:
 				cp= ts->preview_back;
 				break;	
+
+			case TH_MARKER_OUTLINE:
+				cp= ts->marker_outline; break;
+			case TH_MARKER:
+				cp= ts->marker; break;
+			case TH_ACT_MARKER:
+				cp= ts->act_marker; break;
+			case TH_SEL_MARKER:
+				cp= ts->sel_marker; break;
 			}
 		}
 	}
@@ -797,6 +806,11 @@ void ui_theme_init_default(void)
 	
 	/* space clip */
 	btheme->tclip= btheme->tv3d;
+
+	SETCOL(btheme->tclip.marker_outline, 0x00, 0x00, 0x00, 255);
+	SETCOL(btheme->tclip.marker, 0x7f, 0x7f, 0x00, 255);
+	SETCOL(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
+	SETCOL(btheme->tclip.sel_marker, 0xff, 0xff, 0x00, 255);
 }
 
 
@@ -1558,6 +1572,19 @@ void init_userdef_do_versions(void)
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
 	
+	if (bmain->versionfile <= 257) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next)
+			if((btheme->tclip.back[3]) == 0) {
+				btheme->tclip= btheme->tv3d;
+
+				SETCOL(btheme->tclip.marker_outline, 0x00, 0x00, 0x00, 255);
+				SETCOL(btheme->tclip.marker, 0x7f, 0x7f, 0x00, 255);
+				SETCOL(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
+				SETCOL(btheme->tclip.sel_marker, 0xff, 0xff, 0x00, 255);
+			}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;

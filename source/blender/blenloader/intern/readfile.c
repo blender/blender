@@ -5669,10 +5669,11 @@ static void lib_link_group(FileData *fd, Main *main)
 
 static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 {
-	if(fd->movieclipmap)
-		clip->ibuf_cache= newmclipadr(fd, clip->ibuf_cache);
-	else
-		clip->ibuf_cache= NULL;
+	if(fd->movieclipmap) clip->ibuf_cache= newmclipadr(fd, clip->ibuf_cache);
+	else clip->ibuf_cache= NULL;
+
+	link_list(fd, &clip->tracking.markers);
+	clip->last_sel= newdataadr(fd, clip->last_sel);
 
 	clip->anim= NULL;
 }

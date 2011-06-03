@@ -31,7 +31,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_movieclip_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_utildefines.h"
@@ -47,7 +46,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_movieclip.h"
+#include "ED_clip.h"
 
 #include "UI_interface.h"
 
@@ -218,6 +217,32 @@ void CLIP_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
+}
+
+/******************* reload clip operator *********************/
+
+static int reload_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+
+	BKE_movieclip_reload(clip);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_reload(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reload Clip";
+	ot->description= "Reload clip";
+	ot->idname= "CLIP_OT_reload";
+
+	/* api callbacks */
+	ot->exec= reload_exec;
+	ot->poll= space_clip_poll;
 }
 
 /******************* delete operator *********************/
