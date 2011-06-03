@@ -454,6 +454,22 @@ static void rna_FModifier_active_set(PointerRNA *ptr, int value)
 	fm->flag |= FMODIFIER_FLAG_ACTIVE;
 }
 
+static void rna_FModifier_start_frame_range(PointerRNA *ptr, float *min, float *max)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	
+	*min= MINAFRAMEF;
+	*max= (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT)? fcm->efra : MAXFRAMEF;
+}
+
+static void rna_FModifier_end_frame_range(PointerRNA *ptr, float *min, float *max)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+
+	*min= (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT)? fcm->sfra : MINAFRAMEF;
+	*max= MAXFRAMEF;
+}
+
 static void rna_FModifier_active_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	FModifier *fm, *fmo= (FModifier*)ptr->data;
@@ -1015,6 +1031,25 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_FModifier_active_set");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, "rna_FModifier_active_update");
 	RNA_def_property_ui_icon(prop, ICON_RADIOBUT_OFF, 1);
+	
+	/* restricted range */
+	prop= RNA_def_property(srna, "use_restricted_range", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_RANGERESTRICT);
+	RNA_def_property_ui_text(prop, "Restrict Frame Range", "F-Curve Modifier is only applied for the specified frame range to help mask off effects in order to chain them");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1); // XXX: depends on UI implementation
+	
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sfra");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifier_start_frame_range");
+	RNA_def_property_ui_text(prop, "Start Frame", "Frame that modifier's influence starts (if Restrict Frame Range is in use)");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	
+	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "efra");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifier_end_frame_range");
+	RNA_def_property_ui_text(prop, "End Frame", "Frame that modifier's influence ends (if Restrict Frame Range is in use)");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 }	
 
 /* *********************** */

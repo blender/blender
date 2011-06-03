@@ -1230,11 +1230,21 @@ float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, 
 	for (fcm= modifiers->last; fcm; fcm= fcm->prev) {
 		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 		
-		/* only evaluate if there's a callback for this */
-		// TODO: implement the 'influence' control feature...
-		if (fmi && fmi->evaluate_modifier_time) {
-			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
-				evaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
+		if (fmi == NULL) 
+			continue;
+		
+		/* if modifier cannot be applied on this frame (whatever scale it is on, it won't affect the results)
+		 * hence we shouldn't bother seeing what it would do given the chance
+		 */
+		if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT)==0 || 
+			((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)) )
+		{
+			/* only evaluate if there's a callback for this */
+			// TODO: implement the 'influence' control feature...
+			if (fmi->evaluate_modifier_time) {
+				if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
+					evaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
+			}
 		}
 	}
 	
@@ -1257,11 +1267,18 @@ void evaluate_value_fmodifiers (ListBase *modifiers, FCurve *fcu, float *cvalue,
 	for (fcm= modifiers->first; fcm; fcm= fcm->next) {
 		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 		
-		/* only evaluate if there's a callback for this */
+		if (fmi == NULL) 
+			continue;
+		
+		/* only evaluate if there's a callback for this, and if F-Modifier can be evaluated on this frame */
 		// TODO: implement the 'influence' control feature...
-		if (fmi && fmi->evaluate_modifier) {
-			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
-				fmi->evaluate_modifier(fcu, fcm, cvalue, evaltime);
+		if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT)==0 || 
+			((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)) )
+		{
+			if (fmi->evaluate_modifier) {
+				if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
+					fmi->evaluate_modifier(fcu, fcm, cvalue, evaltime);
+			}
 		}
 	}
 } 

@@ -62,6 +62,9 @@ typedef struct FModifier {
 	short flag;			/* settings for the modifier */
 	
 	float influence;	/* the amount that the modifier should influence the value */
+	
+	float sfra;			/* start frame of restricted frame-range */
+	float efra;			/* end frame of restricted frame-range */
 } FModifier;
 
 /* Types of F-Curve modifier 
@@ -86,13 +89,15 @@ typedef enum eFModifier_Types {
 /* F-Curve Modifier Settings */
 typedef enum eFModifier_Flags {
 		/* modifier is not able to be evaluated for some reason, and should be skipped (internal) */
-	FMODIFIER_FLAG_DISABLED		= (1<<0),
+	FMODIFIER_FLAG_DISABLED		 = (1<<0),
 		/* modifier's data is expanded (in UI) */
-	FMODIFIER_FLAG_EXPANDED		= (1<<1),
+	FMODIFIER_FLAG_EXPANDED		 = (1<<1),
 		/* modifier is active one (in UI) for editing purposes */
-	FMODIFIER_FLAG_ACTIVE		= (1<<2),
+	FMODIFIER_FLAG_ACTIVE		 = (1<<2),
 		/* user wants modifier to be skipped */
-	FMODIFIER_FLAG_MUTED		= (1<<3)
+	FMODIFIER_FLAG_MUTED		 = (1<<3),
+		/* restrict range that F-Modifier can be considered over */
+	FMODIFIER_FLAG_RANGERESTRICT = (1<<4)
 } eFModifier_Flags; 
 
 /* --- */

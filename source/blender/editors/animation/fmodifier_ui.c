@@ -694,6 +694,24 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 			default: /* unknown type */
 				break;
 		}
+		
+		/* one last panel below this: FModifier range */
+		// TODO: experiment with placement of this
+		{
+			box = uiLayoutBox(layout);
+			
+			/* top row: use restricted range */
+			row= uiLayoutRow(box, 0);
+			uiItemR(row, &ptr, "use_restricted_range", 0, NULL, ICON_NONE);
+			
+			if (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) {
+				/* second row: settings */
+				row = uiLayoutRow(box, 1);
+				
+				uiItemR(row, &ptr, "frame_start", 0, "Start", ICON_NONE);
+				uiItemR(row, &ptr, "frame_end", 0, "End", ICON_NONE);
+			}
+		}
 	}
 }
 
