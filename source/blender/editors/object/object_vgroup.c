@@ -1778,10 +1778,6 @@ static int vertex_group_invert_locks_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
 	vgroup_invert_locks(ob);
-	// not sure what these 3 do yet!
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1805,10 +1801,6 @@ static int vertex_group_lock_all_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
 	vgroup_lock_all(ob);
-	// not sure what these 3 do yet!
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1832,10 +1824,6 @@ static int vertex_group_unlock_all_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
 	vgroup_unlock_all(ob);
-	// not sure what these 3 do yet!
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
 	return OPERATOR_FINISHED;
 }

@@ -137,8 +137,8 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
         row.template_list(ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
-        # Jason was here #
-        col.prop(group, "flag")
+        # Jason was here, this was replaced by hardcoded list view checkboxes. #
+        #col.prop(group, "flag")
         
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
         col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
@@ -151,11 +151,12 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
             row = layout.row()
             row.prop(group, "name")
         #Jason was here
-        row = layout.row()
-        sub = row.row(align=True)
-        sub.operator("object.vertex_group_lock_all", text="Lock All")
-        sub.operator("object.vertex_group_invert_locks", text="Invert Locks")
-        sub.operator("object.vertex_group_unlock_all", text="Unlock All")
+        if ob.mode == 'WEIGHT_PAINT' and len(ob.vertex_groups) > 0:
+            row = layout.row()
+            sub = row.row(align=True)
+            sub.operator("object.vertex_group_lock_all", text="Lock All")
+            sub.operator("object.vertex_group_invert_locks", text="Invert Locks")
+            sub.operator("object.vertex_group_unlock_all", text="Unlock All")
 
         if ob.mode == 'EDIT' and len(ob.vertex_groups) > 0:
             row = layout.row()

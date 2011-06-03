@@ -1280,7 +1280,6 @@ static void check_locks_and_normalize(Mesh *me, int index, int vgroup, MDeformWe
 	} else if(bone_groups[dw->def_nr]) {// disable auto normalize if the active group is not a bone group
 		do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 	}
-	
 }
 // Jason
 static char *wpaint_make_validmap(Object *ob);
