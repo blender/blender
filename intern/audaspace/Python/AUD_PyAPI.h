@@ -36,17 +36,20 @@
 
 #ifdef __cplusplus
 extern "C" {
-#include "AUD_IDevice.h"
+struct AUD_Handle;
 #else
 typedef void AUD_IFactory;
 typedef void AUD_IDevice;
 typedef void AUD_Handle;
 #endif
 
+typedef void AUD_Reference_AUD_IFactory;
+typedef void AUD_Reference_AUD_IDevice;
+
 typedef struct {
 	PyObject_HEAD
 	PyObject* child_list;
-	AUD_IFactory* factory;
+	AUD_Reference_AUD_IFactory* factory;
 } Factory;
 
 typedef struct {
@@ -57,7 +60,7 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD
-	AUD_IDevice* device;
+	AUD_Reference_AUD_IDevice* device;
 } Device;
 
 PyMODINIT_FUNC

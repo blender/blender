@@ -43,7 +43,7 @@ static long src_callback(void *cb_data, float **data)
 static const char* state_error = "AUD_SRCResampleReader: SRC State couldn't be "
 								 "created.";
 
-AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_IReader* reader,
+AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_Reference<AUD_IReader> reader,
 											 AUD_Specs specs) :
 		AUD_EffectReader(reader),
 		m_sspecs(reader->getSpecs()),

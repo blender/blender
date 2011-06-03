@@ -55,7 +55,7 @@ public:
 	 * \param reader The reader to read from.
 	 * \param pitch The size of the buffer.
 	 */
-	AUD_PitchReader(AUD_IReader* reader, float pitch);
+	AUD_PitchReader(AUD_Reference<AUD_IReader> reader, float pitch);
 
 	virtual AUD_Specs getSpecs() const;
 };

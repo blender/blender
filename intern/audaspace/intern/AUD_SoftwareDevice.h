@@ -33,8 +33,8 @@
 #define AUD_SOFTWAREDEVICE
 
 #include "AUD_IDevice.h"
+#include "AUD_Mixer.h"
 struct AUD_SoftwareHandle;
-class AUD_Mixer;
 class AUD_Buffer;
 
 #include <list>
@@ -59,7 +59,7 @@ protected:
 	/**
 	 * The mixer.
 	 */
-	AUD_Mixer* m_mixer;
+	AUD_Reference<AUD_Mixer> m_mixer;
 
 	/**
 	 * Initializes member variables.
@@ -119,8 +119,8 @@ private:
 
 public:
 	virtual AUD_DeviceSpecs getSpecs() const;
-	virtual AUD_Handle* play(AUD_IReader* reader, bool keep = false);
-	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
+	virtual AUD_Handle* play(AUD_Reference<AUD_IReader> reader, bool keep = false);
+	virtual AUD_Handle* play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);
 	virtual bool stop(AUD_Handle* handle);

@@ -55,9 +55,9 @@ public:
 	 * \param factory The input factory.
 	 * \param additive Whether the accumulator is additive.
 	 */
-	AUD_AccumulatorFactory(AUD_IFactory* factory, bool additive = false);
+	AUD_AccumulatorFactory(AUD_Reference<AUD_IFactory> factory, bool additive = false);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_ACCUMULATORFACTORY

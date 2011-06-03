@@ -55,7 +55,7 @@ typedef struct
 	typedef void AUD_Sound;
 	typedef void AUD_Channel;
 	typedef void AUD_Device;
-	typedef void AUD_SequencerEntry;
+	typedef void AUD_SEntry;
 	typedef float (*AUD_volumeFunction)(void*, void*, float);
 	typedef void (*AUD_syncFunction)(void*, int, float);
 #endif
@@ -465,15 +465,15 @@ extern void AUD_destroySequencer(AUD_Sound* sequencer);
 
 extern void AUD_setSequencerMuted(AUD_Sound* sequencer, int muted);
 
-extern AUD_SequencerEntry* AUD_addSequencer(AUD_Sound** sequencer, AUD_Sound* sound,
+extern AUD_SEntry* AUD_addSequencer(AUD_Sound* sequencer, AUD_Sound** sound,
 										float begin, float end, float skip, void* data);
 
-extern void AUD_removeSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry);
+extern void AUD_removeSequencer(AUD_Sound* sequencer, AUD_SEntry* entry);
 
-extern void AUD_moveSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry,
+extern void AUD_moveSequencer(AUD_Sound* sequencer, AUD_SEntry* entry,
 						  float begin, float end, float skip);
 
-extern void AUD_muteSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry,
+extern void AUD_muteSequencer(AUD_Sound* sequencer, AUD_SEntry* entry,
 						  char mute);
 
 extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length);

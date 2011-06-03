@@ -75,10 +75,7 @@ public:
 		(*m_refcount)--;
 		if(*m_refcount == 0)
 		{
-			if(m_reference)
-			{
-				delete m_reference;
-			}
+			delete m_reference;
 			delete m_refcount;
 		}
 	}
@@ -95,10 +92,7 @@ public:
 		(*m_refcount)--;
 		if(*m_refcount == 0)
 		{
-			if(m_reference)
-			{
-				delete m_reference;
-			}
+			delete m_reference;
 			delete m_refcount;
 		}
 
@@ -110,12 +104,70 @@ public:
 	}
 
 	/**
+	 * Returns whether the reference is NULL.
+	 */
+	bool isNull() const
+	{
+		return m_reference == 0;
+	}
+
+	/**
 	 * Returns the reference.
 	 */
 	T* get() const
 	{
 		return m_reference;
 	}
+
+	/**
+	 * Returns the reference.
+	 */
+	T& operator*() const
+	{
+		return *m_reference;
+	}
+
+	/**
+	 * Returns the reference.
+	 */
+	T* operator->() const
+	{
+		return m_reference;
+	}
+
+	template <class U>
+	explicit AUD_Reference(U* reference, int* refcount)
+	{
+		m_reference = dynamic_cast<T*>(reference);
+		if(m_reference)
+		{
+			m_refcount = refcount;
+			(*m_refcount)++;
+		}
+		else
+		{
+			m_refcount = new int;
+			*m_refcount = 1;
+		}
+	}
+
+	template <class U>
+	AUD_Reference<U> convert()
+	{
+		return AUD_Reference<U>(m_reference, m_refcount);
+	}
 };
+
+template<class T, class U>
+bool operator==(const AUD_Reference<T>& a, const AUD_Reference<U>& b)
+{
+	return a.get() == b.get();
+}
+
+template<class T, class U>
+bool operator!=(const AUD_Reference<T>& a, const AUD_Reference<U>& b)
+{
+	return a.get() == b.get();
+}
 
 #endif // AUD_REFERENCE

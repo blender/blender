@@ -72,7 +72,7 @@ public:
 	 * \param reader The reader to map.
 	 * \param mapping The mapping specification as two dimensional float array.
 	 */
-	AUD_ChannelMapperReader(AUD_IReader* reader, float **mapping);
+	AUD_ChannelMapperReader(AUD_Reference<AUD_IReader> reader, float **mapping);
 
 	/**
 	 * Destroys the reader.

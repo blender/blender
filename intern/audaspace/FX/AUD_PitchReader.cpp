@@ -31,7 +31,7 @@
 
 #include "AUD_PitchReader.h"
 
-AUD_PitchReader::AUD_PitchReader(AUD_IReader* reader, float pitch) :
+AUD_PitchReader::AUD_PitchReader(AUD_Reference<AUD_IReader> reader, float pitch) :
 		AUD_EffectReader(reader), m_pitch(pitch)
 {
 }

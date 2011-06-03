@@ -73,10 +73,10 @@ public:
 	 * \param threshold The threshold value.
 	 * \param arthreshold The attack/release threshold value.
 	 */
-	AUD_EnvelopeFactory(AUD_IFactory* factory, float attack, float release,
+	AUD_EnvelopeFactory(AUD_Reference<AUD_IFactory> factory, float attack, float release,
 						float threshold, float arthreshold);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_ENVELOPEFACTORY

@@ -31,14 +31,13 @@
 
 #include "AUD_EffectReader.h"
 
-AUD_EffectReader::AUD_EffectReader(AUD_IReader* reader)
+AUD_EffectReader::AUD_EffectReader(AUD_Reference<AUD_IReader> reader)
 {
 	m_reader = reader;
 }
 
 AUD_EffectReader::~AUD_EffectReader()
 {
-	delete m_reader;
 }
 
 bool AUD_EffectReader::isSeekable() const

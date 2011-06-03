@@ -39,9 +39,9 @@ class AUD_Mixer;
 
 struct AUD_SequencerStrip
 {
-	AUD_IFactory* old_sound;
-	AUD_IReader* reader;
-	AUD_SequencerEntry* entry;
+	AUD_Reference<AUD_IReader> reader;
+	AUD_Reference<AUD_SequencerEntry> entry;
+	AUD_Reference<AUD_IFactory>* old_sound;
 };
 
 /**
@@ -63,14 +63,14 @@ private:
 	/**
 	 * The target specification.
 	 */
-	AUD_Mixer* m_mixer;
+	AUD_Reference<AUD_Mixer> m_mixer;
 
 	/**
 	 * Saves the SequencerFactory the reader belongs to.
 	 */
-	AUD_SequencerFactory* m_factory;
+	AUD_Reference<AUD_SequencerFactory> m_factory;
 
-	std::list<AUD_SequencerStrip*> m_strips;
+	std::list<AUD_Reference<AUD_SequencerStrip> > m_strips;
 
 	void* m_data;
 	AUD_volumeFunction m_volume;
@@ -85,17 +85,15 @@ public:
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 */
-	AUD_SequencerReader(AUD_SequencerFactory* factory, std::list<AUD_SequencerEntry*> &entries, const AUD_Specs specs, void* data, AUD_volumeFunction volume);
+	AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory, std::list<AUD_Reference<AUD_SequencerEntry> > &entries, const AUD_Specs specs, void* data, AUD_volumeFunction volume);
 
 	/**
 	 * Destroys the reader.
 	 */
 	~AUD_SequencerReader();
 
-	void destroy();
-
-	void add(AUD_SequencerEntry* entry);
-	void remove(AUD_SequencerEntry* entry);
+	void add(AUD_Reference<AUD_SequencerEntry> entry);
+	void remove(AUD_Reference<AUD_SequencerEntry> entry);
 
 	virtual bool isSeekable() const;
 	virtual void seek(int position);

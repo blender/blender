@@ -55,9 +55,9 @@ public:
 	 * \param factory The input factory.
 	 * \param frequency The cutoff frequency.
 	 */
-	AUD_ButterworthFactory(AUD_IFactory* factory, float frequency);
+	AUD_ButterworthFactory(AUD_Reference<AUD_IFactory> factory, float frequency);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_BUTTERWORTHFACTORY

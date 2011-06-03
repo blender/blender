@@ -34,6 +34,7 @@
 
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
+#include "AUD_Reference.h"
 
 /**
  * This reader plays two readers with the same specs sequently.
@@ -44,12 +45,12 @@ private:
 	/**
 	 * The first reader.
 	 */
-	AUD_IReader* m_reader1;
+	AUD_Reference<AUD_IReader> m_reader1;
 
 	/**
 	 * The second reader.
 	 */
-	AUD_IReader* m_reader2;
+	AUD_Reference<AUD_IReader> m_reader2;
 
 	/**
 	 * The playback buffer for the intersecting part.
@@ -67,7 +68,7 @@ public:
 	 * \param reader2 The second reader to read from.
 	 * \exception AUD_Exception Thrown if the specs from the readers differ.
 	 */
-	AUD_SuperposeReader(AUD_IReader* reader1, AUD_IReader* reader2);
+	AUD_SuperposeReader(AUD_Reference<AUD_IReader> reader1, AUD_Reference<AUD_IReader> reader2);
 
 	/**
 	 * Destroys the reader.

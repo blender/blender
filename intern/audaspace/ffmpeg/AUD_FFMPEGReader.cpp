@@ -255,12 +255,12 @@ int AUD_FFMPEGReader::read_packet(void* opaque, uint8_t* buf, int buf_size)
 {
 	AUD_FFMPEGReader* reader = reinterpret_cast<AUD_FFMPEGReader*>(opaque);
 
-	int size = AUD_MIN(buf_size, reader->m_membuffer.get()->getSize() - reader->m_membufferpos);
+	int size = AUD_MIN(buf_size, reader->m_membuffer->getSize() - reader->m_membufferpos);
 
 	if(size < 0)
 		return -1;
 
-	memcpy(buf, ((data_t*)reader->m_membuffer.get()->getBuffer()) + reader->m_membufferpos, size);
+	memcpy(buf, ((data_t*)reader->m_membuffer->getBuffer()) + reader->m_membufferpos, size);
 	reader->m_membufferpos += size;
 
 	return size;
@@ -276,10 +276,10 @@ int64_t AUD_FFMPEGReader::seek_packet(void* opaque, int64_t offset, int whence)
 		reader->m_membufferpos = 0;
 		break;
 	case SEEK_END:
-		reader->m_membufferpos = reader->m_membuffer.get()->getSize();
+		reader->m_membufferpos = reader->m_membuffer->getSize();
 		break;
 	case AVSEEK_SIZE:
-		return reader->m_membuffer.get()->getSize();
+		return reader->m_membuffer->getSize();
 	}
 
 	return (reader->m_membufferpos += offset);

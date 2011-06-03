@@ -34,7 +34,7 @@
 
 #include <cstring>
 
-AUD_ChannelMapperFactory::AUD_ChannelMapperFactory(AUD_IFactory* factory,
+AUD_ChannelMapperFactory::AUD_ChannelMapperFactory(AUD_Reference<AUD_IFactory> factory,
 												   AUD_DeviceSpecs specs) :
 		AUD_MixerFactory(factory, specs)
 {
@@ -102,9 +102,9 @@ void AUD_ChannelMapperFactory::deleteMapping(int ic)
 	}
 }
 
-AUD_IReader* AUD_ChannelMapperFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_ChannelMapperFactory::createReader() const
 {
-	AUD_IReader* reader = getReader();
+	AUD_Reference<AUD_IReader> reader = getReader();
 	int ic = reader->getSpecs().channels;
 
 	return new AUD_ChannelMapperReader(reader,

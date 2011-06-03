@@ -36,8 +36,8 @@
 static const char* specs_error = "AUD_DoubleReader: Both readers have to have "
 								 "the same specs.";
 
-AUD_DoubleReader::AUD_DoubleReader(AUD_IReader* reader1,
-								   AUD_IReader* reader2) :
+AUD_DoubleReader::AUD_DoubleReader(AUD_Reference<AUD_IReader> reader1,
+								   AUD_Reference<AUD_IReader> reader2) :
 		m_reader1(reader1), m_reader2(reader2), m_finished1(false)
 {
 	AUD_Specs s1, s2;
@@ -45,16 +45,12 @@ AUD_DoubleReader::AUD_DoubleReader(AUD_IReader* reader1,
 	s2 = reader2->getSpecs();
 	if(memcmp(&s1, &s2, sizeof(AUD_Specs)) != 0)
 	{
-		delete reader1;
-		delete reader2;
 		AUD_THROW(AUD_ERROR_SPECS, specs_error);
 	}
 }
 
 AUD_DoubleReader::~AUD_DoubleReader()
 {
-	delete m_reader1;
-	delete m_reader2;
 }
 
 bool AUD_DoubleReader::isSeekable() const

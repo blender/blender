@@ -52,7 +52,7 @@ struct AUD_OpenALHandle : AUD_Handle
 	bool isBuffered;
 
 	/// The reader source.
-	AUD_IReader* reader;
+	AUD_Reference<AUD_IReader> reader;
 
 	/// Whether to keep the source if end of it is reached.
 	bool keep;
@@ -382,7 +382,6 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 		alDeleteSources(1, &sound->source);
 		if(!sound->isBuffered)
 		{
-			delete sound->reader;
 			alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 		}
 		delete sound;
@@ -396,7 +395,6 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 		alDeleteSources(1, &sound->source);
 		if(!sound->isBuffered)
 		{
-			delete sound->reader;
 			alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 		}
 		delete sound;
@@ -539,7 +537,7 @@ static const char* queue_error = "AUD_OpenALDevice: Buffer couldn't be "
 static const char* bufferdata_error = "AUD_OpenALDevice: Buffer couldn't be "
 									  "filled with data.";
 
-AUD_Handle* AUD_OpenALDevice::play(AUD_IReader* reader, bool keep)
+AUD_Handle* AUD_OpenALDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 {
 	AUD_OpenALHandle* sound = NULL;
 
@@ -568,7 +566,6 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IReader* reader, bool keep)
 	if(!valid)
 	{
 		delete sound;
-		delete reader;
 		return NULL;
 	}
 
@@ -624,7 +621,6 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IReader* reader, bool keep)
 	catch(AUD_Exception&)
 	{
 		delete sound;
-		delete reader;
 		alcProcessContext(m_context);
 		unlock();
 		throw;
@@ -642,8 +638,9 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IReader* reader, bool keep)
 	return sound;
 }
 
-AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
+AUD_Handle* AUD_OpenALDevice::play(AUD_Reference<AUD_IFactory> factory, bool keep)
 {
+	/* AUD_XXX disabled
 	AUD_OpenALHandle* sound = NULL;
 
 	lock();
@@ -713,7 +710,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 	unlock();
 
 	if(sound)
-		return sound;
+		return sound;*/
 
 	return play(factory->createReader(), keep);
 }
@@ -785,7 +782,6 @@ bool AUD_OpenALDevice::stop(AUD_Handle* handle)
 			alDeleteSources(1, &sound->source);
 			if(!sound->isBuffered)
 			{
-				delete sound->reader;
 				alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 			}
 			delete *i;
@@ -805,7 +801,6 @@ bool AUD_OpenALDevice::stop(AUD_Handle* handle)
 				alDeleteSources(1, &sound->source);
 				if(!sound->isBuffered)
 				{
-					delete sound->reader;
 					alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 				}
 				delete *i;
@@ -1109,7 +1104,6 @@ bool AUD_OpenALDevice::bufferFactory(void *value)
 
 		if(!getFormat(format, specs.specs))
 		{
-			delete reader;
 			return false;
 		}
 
@@ -1147,7 +1141,6 @@ bool AUD_OpenALDevice::bufferFactory(void *value)
 		catch(AUD_Exception&)
 		{
 			delete bf;
-			delete reader;
 			alcProcessContext(m_context);
 			unlock();
 			return false;

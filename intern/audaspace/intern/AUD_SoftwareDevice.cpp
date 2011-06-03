@@ -41,7 +41,7 @@
 struct AUD_SoftwareHandle : AUD_Handle
 {
 	/// The reader source.
-	AUD_IReader* reader;
+	AUD_Reference<AUD_IReader> reader;
 
 	/// Whether to keep the source if end of it is reached.
 	bool keep;
@@ -81,8 +81,6 @@ void AUD_SoftwareDevice::destroy()
 	if(m_playback)
 		playing(m_playback = false);
 
-	delete m_mixer;
-
 	AUD_SoftwareHandle* handle;
 
 	// delete all playing sounds
@@ -90,7 +88,6 @@ void AUD_SoftwareDevice::destroy()
 	{
 		handle = m_playingSounds.front();
 		m_playingSounds.pop_front();
-		delete handle->reader;
 		delete handle;
 	}
 
@@ -99,7 +96,6 @@ void AUD_SoftwareDevice::destroy()
 	{
 		handle = m_pausedSounds.front();
 		m_pausedSounds.pop_front();
-		delete handle->reader;
 		delete handle;
 	}
 
@@ -213,11 +209,11 @@ AUD_DeviceSpecs AUD_SoftwareDevice::getSpecs() const
 	return m_specs;
 }
 
-AUD_Handle* AUD_SoftwareDevice::play(AUD_IReader* reader, bool keep)
+AUD_Handle* AUD_SoftwareDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 {
 	// prepare the reader
 	reader = m_mixer->prepare(reader);
-	if(reader == NULL)
+	if(reader.isNull())
 		return NULL;
 
 	// play sound
@@ -239,7 +235,7 @@ AUD_Handle* AUD_SoftwareDevice::play(AUD_IReader* reader, bool keep)
 	return sound;
 }
 
-AUD_Handle* AUD_SoftwareDevice::play(AUD_IFactory* factory, bool keep)
+AUD_Handle* AUD_SoftwareDevice::play(AUD_Reference<AUD_IFactory> factory, bool keep)
 {
 	return play(factory->createReader(), keep);
 }
@@ -307,7 +303,6 @@ bool AUD_SoftwareDevice::stop(AUD_Handle* handle)
 	{
 		if(*i == handle)
 		{
-			delete (*i)->reader;
 			delete *i;
 			m_playingSounds.erase(i);
 			if(m_playingSounds.empty())
@@ -323,7 +318,6 @@ bool AUD_SoftwareDevice::stop(AUD_Handle* handle)
 		{
 			if(*i == handle)
 			{
-				delete (*i)->reader;
 				delete *i;
 				m_pausedSounds.erase(i);
 				result = true;
@@ -376,7 +370,7 @@ bool AUD_SoftwareDevice::seek(AUD_Handle* handle, float position)
 
 	if(isValid(handle))
 	{
-		AUD_IReader* reader = ((AUD_SoftwareHandle*)handle)->reader;
+		AUD_Reference<AUD_IReader> reader = ((AUD_SoftwareHandle*)handle)->reader;
 		reader->seek((int)(position * reader->getSpecs().rate));
 		result = true;
 	}

@@ -34,6 +34,7 @@
 
 #include "AUD_ConverterFunctions.h"
 #include "AUD_Buffer.h"
+#include "AUD_Reference.h"
 class AUD_IReader;
 #include <list>
 
@@ -94,7 +95,7 @@ public:
 	 * \param reader The reader to prepare.
 	 * \return The reader that should be used for playback.
 	 */
-	virtual AUD_IReader* prepare(AUD_IReader* reader)=0;
+	virtual AUD_Reference<AUD_IReader> prepare(AUD_Reference<AUD_IReader> reader)=0;
 
 	/**
 	 * Adds a buffer for superposition.

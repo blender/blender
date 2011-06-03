@@ -68,7 +68,7 @@ public:
 	 * \param loop The desired loop count, negative values result in endless
 	 *        looping.
 	 */
-	AUD_LoopReader(AUD_IReader* reader, int loop);
+	AUD_LoopReader(AUD_Reference<AUD_IReader> reader, int loop);
 
 	virtual void seek(int position);
 	virtual int getLength() const;

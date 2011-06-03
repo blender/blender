@@ -57,14 +57,14 @@ public:
 	 * \param factory The input factory.
 	 * \param volume The desired volume.
 	 */
-	AUD_VolumeFactory(AUD_IFactory* factory, float volume);
+	AUD_VolumeFactory(AUD_Reference<AUD_IFactory> factory, float volume);
 
 	/**
 	 * Returns the volume.
 	 */
 	float getVolume() const;
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_VOLUMEFACTORY

@@ -31,7 +31,7 @@
 
 #include "AUD_ChannelMapperReader.h"
 
-AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_IReader* reader,
+AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_Reference<AUD_IReader> reader,
 												 float **mapping) :
 		AUD_EffectReader(reader)
 {

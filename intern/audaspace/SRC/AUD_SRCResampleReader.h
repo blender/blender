@@ -85,7 +85,7 @@ public:
 	 * \exception AUD_Exception Thrown if the source specification cannot be
 	 *            resampled to the target specification.
 	 */
-	AUD_SRCResampleReader(AUD_IReader* reader, AUD_Specs specs);
+	AUD_SRCResampleReader(AUD_Reference<AUD_IReader> reader, AUD_Specs specs);
 
 	/**
 	 * Destroys the reader.

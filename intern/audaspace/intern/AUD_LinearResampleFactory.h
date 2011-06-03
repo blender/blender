@@ -45,9 +45,9 @@ private:
 	AUD_LinearResampleFactory& operator=(const AUD_LinearResampleFactory&);
 
 public:
-	AUD_LinearResampleFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+	AUD_LinearResampleFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_LINEARRESAMPLEFACTORY

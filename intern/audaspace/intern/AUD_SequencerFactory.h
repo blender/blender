@@ -40,7 +40,7 @@ typedef float (*AUD_volumeFunction)(void*, void*, float);
 
 struct AUD_SequencerEntry
 {
-	AUD_IFactory** sound;
+	AUD_Reference<AUD_IFactory>** sound;
 	float begin;
 	float end;
 	float skip;
@@ -61,13 +61,14 @@ private:
 	 */
 	AUD_Specs m_specs;
 
-	std::list<AUD_SequencerEntry*> m_entries;
-	std::list<AUD_SequencerReader*> m_readers;
+	std::list<AUD_Reference<AUD_SequencerEntry> > m_entries;
+	std::list<AUD_Reference<AUD_SequencerReader> > m_readers;
 	bool m_muted;
 	void* m_data;
 	AUD_volumeFunction m_volume;
+	AUD_Reference<AUD_SequencerFactory>* m_this;
 
-	AUD_IReader* newReader();
+	AUD_Reference<AUD_IReader> newReader();
 
 	// hide copy constructor and operator=
 	AUD_SequencerFactory(const AUD_SequencerFactory&);
@@ -77,16 +78,18 @@ public:
 	AUD_SequencerFactory(AUD_Specs specs, bool muted, void* data, AUD_volumeFunction volume);
 	~AUD_SequencerFactory();
 
+	void setThis(AUD_Reference<AUD_SequencerFactory>* self);
+
 	void mute(bool muted);
 	bool getMute() const;
-	AUD_SequencerEntry* add(AUD_IFactory** sound, float begin, float end, float skip, void* data);
-	void remove(AUD_SequencerEntry* entry);
-	void move(AUD_SequencerEntry* entry, float begin, float end, float skip);
-	void mute(AUD_SequencerEntry* entry, bool mute);
+	AUD_Reference<AUD_SequencerEntry> add(AUD_Reference<AUD_IFactory>** sound, float begin, float end, float skip, void* data);
+	void remove(AUD_Reference<AUD_SequencerEntry> entry);
+	void move(AUD_Reference<AUD_SequencerEntry> entry, float begin, float end, float skip);
+	void mute(AUD_Reference<AUD_SequencerEntry> entry, bool mute);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 
-	void removeReader(AUD_SequencerReader* reader);
+	void removeReader(AUD_Reference<AUD_SequencerReader> reader);
 };
 
 #endif //AUD_SEQUENCERFACTORY

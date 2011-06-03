@@ -34,7 +34,7 @@
 
 #include <iostream>
 
-AUD_LimiterReader::AUD_LimiterReader(AUD_IReader* reader,
+AUD_LimiterReader::AUD_LimiterReader(AUD_Reference<AUD_IReader> reader,
 									 float start, float end) :
 		AUD_EffectReader(reader),
 		m_start(int(start * reader->getSpecs().rate)),

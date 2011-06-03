@@ -53,7 +53,7 @@ public:
 	 * \param reader The reader to prepare.
 	 * \return The reader that should be used for playback.
 	 */
-	virtual AUD_IReader* prepare(AUD_IReader* reader);
+	virtual AUD_Reference<AUD_IReader> prepare(AUD_Reference<AUD_IReader> reader);
 };
 
 #endif //AUD_DEFAULTMIXER

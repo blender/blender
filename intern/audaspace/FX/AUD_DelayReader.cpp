@@ -33,7 +33,7 @@
 
 #include <cstring>
 
-AUD_DelayReader::AUD_DelayReader(AUD_IReader* reader, float delay) :
+AUD_DelayReader::AUD_DelayReader(AUD_Reference<AUD_IReader> reader, float delay) :
 		AUD_EffectReader(reader),
 		m_delay(int(delay * reader->getSpecs().rate)),
 		m_remdelay(int(delay * reader->getSpecs().rate)),

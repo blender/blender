@@ -49,9 +49,9 @@ public:
 	 * Creates a new rectify factory.
 	 * \param factory The input factory.
 	 */
-	AUD_RectifyFactory(AUD_IFactory* factory);
+	AUD_RectifyFactory(AUD_Reference<AUD_IFactory> factory);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_RECTIFYFACTORY

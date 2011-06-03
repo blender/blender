@@ -35,10 +35,10 @@
 
 #include <cstring>
 
-AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_IFactory* factory) :
+AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_Reference<AUD_IFactory> factory) :
 	m_buffer(new AUD_Buffer())
 {
-	AUD_IReader* reader = factory->createReader();
+	AUD_Reference<AUD_IReader> reader = factory->createReader();
 
 	m_specs = reader->getSpecs();
 
@@ -56,26 +56,25 @@ AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_IFactory* factory) :
 		size += m_specs.rate;
 
 	// as long as we fill our buffer to the end
-	while(index == m_buffer.get()->getSize() / sample_size)
+	while(index == m_buffer->getSize() / sample_size)
 	{
 		// increase
-		m_buffer.get()->resize(size*sample_size, true);
+		m_buffer->resize(size*sample_size, true);
 
 		// read more
 		length = size-index;
 		reader->read(length, buffer);
-		memcpy(m_buffer.get()->getBuffer() + index * m_specs.channels,
+		memcpy(m_buffer->getBuffer() + index * m_specs.channels,
 			   buffer,
 			   length * sample_size);
 		size += AUD_BUFFER_RESIZE_BYTES / sample_size;
 		index += length;
 	}
 
-	m_buffer.get()->resize(index * sample_size, true);
-	delete reader;
+	m_buffer->resize(index * sample_size, true);
 }
 
-AUD_IReader* AUD_StreamBufferFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_StreamBufferFactory::createReader() const
 {
 	return new AUD_BufferReader(m_buffer, m_specs);
 }

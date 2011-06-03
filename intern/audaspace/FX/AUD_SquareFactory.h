@@ -55,14 +55,14 @@ public:
 	 * \param factory The input factory.
 	 * \param threshold The threshold.
 	 */
-	AUD_SquareFactory(AUD_IFactory* factory, float threshold = 0.0f);
+	AUD_SquareFactory(AUD_Reference<AUD_IFactory> factory, float threshold = 0.0f);
 
 	/**
 	 * Returns the threshold.
 	 */
 	float getThreshold() const;
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_SQUAREFACTORY

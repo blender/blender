@@ -56,7 +56,7 @@ void endEnvelopeFilter(EnvelopeParameters* param)
 	delete param;
 }
 
-AUD_EnvelopeFactory::AUD_EnvelopeFactory(AUD_IFactory* factory, float attack,
+AUD_EnvelopeFactory::AUD_EnvelopeFactory(AUD_Reference<AUD_IFactory> factory, float attack,
 										 float release, float threshold,
 										 float arthreshold) :
 		AUD_EffectFactory(factory),
@@ -67,9 +67,9 @@ AUD_EnvelopeFactory::AUD_EnvelopeFactory(AUD_IFactory* factory, float attack,
 {
 }
 
-AUD_IReader* AUD_EnvelopeFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_EnvelopeFactory::createReader() const
 {
-	AUD_IReader* reader = getReader();
+	AUD_Reference<AUD_IReader> reader = getReader();
 
 	EnvelopeParameters* param = new EnvelopeParameters();
 	param->arthreshold = m_arthreshold;

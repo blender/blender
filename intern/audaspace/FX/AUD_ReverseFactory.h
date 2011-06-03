@@ -50,9 +50,9 @@ public:
 	 * Creates a new reverse factory.
 	 * \param factory The input factory.
 	 */
-	AUD_ReverseFactory(AUD_IFactory* factory);
+	AUD_ReverseFactory(AUD_Reference<AUD_IFactory> factory);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_REVERSEFACTORY

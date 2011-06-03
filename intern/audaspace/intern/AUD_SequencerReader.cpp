@@ -34,23 +34,21 @@
 
 #include <math.h>
 
-typedef std::list<AUD_SequencerStrip*>::iterator AUD_StripIterator;
-typedef std::list<AUD_SequencerEntry*>::iterator AUD_EntryIterator;
+typedef std::list<AUD_Reference<AUD_SequencerStrip> >::iterator AUD_StripIterator;
+typedef std::list<AUD_Reference<AUD_SequencerEntry> >::iterator AUD_EntryIterator;
 
-AUD_SequencerReader::AUD_SequencerReader(AUD_SequencerFactory* factory,
-			std::list<AUD_SequencerEntry*> &entries, AUD_Specs specs,
-			void* data, AUD_volumeFunction volume)
+AUD_SequencerReader::AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory,
+			std::list<AUD_Reference<AUD_SequencerEntry> > &entries, AUD_Specs specs,
+			void* data, AUD_volumeFunction volume) :
+	m_position(0), m_factory(factory), m_data(data), m_volume(volume)
 {
 	AUD_DeviceSpecs dspecs;
 	dspecs.specs = specs;
 	dspecs.format = AUD_FORMAT_FLOAT32;
 
 	m_mixer = new AUD_DefaultMixer(dspecs);
-	m_factory = factory;
-	m_data = data;
-	m_volume = volume;
 
-	AUD_SequencerStrip* strip;
+	AUD_Reference<AUD_SequencerStrip> strip;
 
 	for(AUD_EntryIterator i = entries.begin(); i != entries.end(); i++)
 	{
@@ -58,84 +56,33 @@ AUD_SequencerReader::AUD_SequencerReader(AUD_SequencerFactory* factory,
 		strip->entry = *i;
 		strip->old_sound = NULL;
 
-		if(strip->old_sound)
-			strip->reader = m_mixer->prepare(strip->old_sound->createReader());
-		else
-			strip->reader = NULL;
-
 		m_strips.push_front(strip);
 	}
-
-	m_position = 0;
 }
 
 AUD_SequencerReader::~AUD_SequencerReader()
 {
-	if(m_factory != NULL)
-		m_factory->removeReader(this);
-
-	AUD_SequencerStrip* strip;
-
-	while(!m_strips.empty())
-	{
-		strip = m_strips.front();
-		m_strips.pop_front();
-		if(strip->reader)
-		{
-			delete strip->reader;
-		}
-		delete strip;
-	}
-
-	delete m_mixer;
+	m_factory->removeReader(this);
 }
 
-void AUD_SequencerReader::destroy()
+void AUD_SequencerReader::add(AUD_Reference<AUD_SequencerEntry> entry)
 {
-	m_factory = NULL;
-	AUD_SequencerStrip* strip;
-
-	while(!m_strips.empty())
-	{
-		strip = m_strips.front();
-		m_strips.pop_front();
-		delete strip;
-	}
-}
-
-void AUD_SequencerReader::add(AUD_SequencerEntry* entry)
-{
-	AUD_SequencerStrip* strip = new AUD_SequencerStrip;
+	AUD_Reference<AUD_SequencerStrip> strip = new AUD_SequencerStrip;
 	strip->entry = entry;
 
-	if(*strip->entry->sound)
-	{
-		strip->old_sound = *strip->entry->sound;
-		strip->reader = m_mixer->prepare(strip->old_sound->createReader());
-	}
-	else
-	{
-		strip->reader = NULL;
-		strip->old_sound = NULL;
-	}
 	m_strips.push_front(strip);
 }
 
-void AUD_SequencerReader::remove(AUD_SequencerEntry* entry)
+void AUD_SequencerReader::remove(AUD_Reference<AUD_SequencerEntry> entry)
 {
-	AUD_SequencerStrip* strip;
+	AUD_Reference<AUD_SequencerStrip> strip;
 	for(AUD_StripIterator i = m_strips.begin(); i != m_strips.end(); i++)
 	{
 		strip = *i;
 		if(strip->entry == entry)
 		{
 			i++;
-			if(strip->reader)
-			{
-				delete strip->reader;
-			}
 			m_strips.remove(strip);
-			delete strip;
 			return;
 		}
 	}
@@ -175,7 +122,7 @@ void AUD_SequencerReader::read(int & length, sample_t* & buffer)
 	int size = length * samplesize;
 
 	int start, end, current, skip, len;
-	AUD_SequencerStrip* strip;
+	AUD_Reference<AUD_SequencerStrip> strip;
 	sample_t* buf;
 
 	if(m_buffer.getSize() < size)
@@ -192,14 +139,12 @@ void AUD_SequencerReader::read(int & length, sample_t* & buffer)
 				if(strip->old_sound != *strip->entry->sound)
 				{
 					strip->old_sound = *strip->entry->sound;
-					if(strip->reader)
-						delete strip->reader;
 
 					if(strip->old_sound)
 					{
 						try
 						{
-							strip->reader = m_mixer->prepare(strip->old_sound->createReader());
+							strip->reader = m_mixer->prepare((*strip->old_sound)->createReader());
 						}
 						catch(AUD_Exception)
 						{
@@ -210,7 +155,7 @@ void AUD_SequencerReader::read(int & length, sample_t* & buffer)
 						strip->reader = NULL;
 				}
 
-				if(strip->reader)
+				if(!strip->reader.isNull())
 				{
 					end = floor(strip->entry->end * rate);
 					if(m_position < end)

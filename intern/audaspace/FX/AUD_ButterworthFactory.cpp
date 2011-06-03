@@ -41,16 +41,16 @@
 #define BWPB41 0.76536686473
 #define BWPB42 1.84775906502
 
-AUD_ButterworthFactory::AUD_ButterworthFactory(AUD_IFactory* factory,
+AUD_ButterworthFactory::AUD_ButterworthFactory(AUD_Reference<AUD_IFactory> factory,
 											   float frequency) :
 		AUD_EffectFactory(factory),
 		m_frequency(frequency)
 {
 }
 
-AUD_IReader* AUD_ButterworthFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_ButterworthFactory::createReader() const
 {
-	AUD_IReader* reader = getReader();
+	AUD_Reference<AUD_IReader> reader = getReader();
 
 	// calculate coefficients
 	float omega = 2 * tan(m_frequency * M_PI / reader->getSpecs().rate);

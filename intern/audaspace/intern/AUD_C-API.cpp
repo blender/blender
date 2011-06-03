@@ -37,9 +37,6 @@
 #ifdef WITH_PYTHON
 #include "AUD_PyInit.h"
 #include "AUD_PyAPI.h"
-
-Device* g_device;
-bool g_pyinitialized = false;
 #endif
 
 #include <cstdlib>
@@ -90,9 +87,10 @@ extern "C" {
 
 #include <cassert>
 
-typedef AUD_IFactory AUD_Sound;
-typedef AUD_ReadDevice AUD_Device;
+typedef AUD_Reference<AUD_IFactory> AUD_Sound;
+typedef AUD_Reference<AUD_ReadDevice> AUD_Device;
 typedef AUD_Handle AUD_Channel;
+typedef AUD_Reference<AUD_SequencerEntry> AUD_SEntry;
 
 #define AUD_CAPI_IMPLEMENTATION
 #include "AUD_C-API.h"
@@ -101,8 +99,8 @@ typedef AUD_Handle AUD_Channel;
 #define NULL 0
 #endif
 
-static AUD_IDevice* AUD_device = NULL;
-static AUD_I3DDevice* AUD_3ddevice = NULL;
+static AUD_Reference<AUD_IDevice> AUD_device;
+static AUD_I3DDevice* AUD_3ddevice;
 
 void AUD_initOnce()
 {
@@ -113,9 +111,9 @@ void AUD_initOnce()
 
 int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 {
-	AUD_IDevice* dev = NULL;
+	AUD_Reference<AUD_IDevice> dev = NULL;
 
-	if(AUD_device)
+	if(!AUD_device.isNull())
 		AUD_exit();
 
 	try
@@ -145,18 +143,7 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 		}
 
 		AUD_device = dev;
-		AUD_3ddevice = dynamic_cast<AUD_I3DDevice*>(AUD_device);
-
-#ifdef WITH_PYTHON
-		if(g_pyinitialized)
-		{
-			g_device = (Device*)Device_empty();
-			if(g_device != NULL)
-			{
-				g_device->device = dev;
-			}
-		}
-#endif
+		AUD_3ddevice = dynamic_cast<AUD_I3DDevice*>(AUD_device.get());
 
 		return true;
 	}
@@ -168,16 +155,6 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 
 void AUD_exit()
 {
-#ifdef WITH_PYTHON
-	if(g_device)
-	{
-		Py_XDECREF(g_device);
-		g_device = NULL;
-	}
-	else
-#endif
-	if(AUD_device)
-		delete AUD_device;
 	AUD_device = NULL;
 	AUD_3ddevice = NULL;
 }
@@ -185,11 +162,16 @@ void AUD_exit()
 #ifdef WITH_PYTHON
 static PyObject* AUD_getCDevice(PyObject* self)
 {
-	if(g_device)
+	if(!AUD_device.isNull())
 	{
-		Py_INCREF(g_device);
-		return (PyObject*)g_device;
+		Device* device = (Device*)Device_empty();
+		if(device != NULL)
+		{
+			device->device = new AUD_Reference<AUD_IDevice>(AUD_device);
+			return (PyObject*)device;
+		}
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -204,15 +186,6 @@ PyObject* AUD_initPython()
 	PyObject* module = PyInit_aud();
 	PyModule_AddObject(module, "device", (PyObject *)PyCFunction_New(meth_getcdevice, NULL));
 	PyDict_SetItemString(PyImport_GetModuleDict(), "aud", module);
-	if(AUD_device)
-	{
-		g_device = (Device*)Device_empty();
-		if(g_device != NULL)
-		{
-			g_device->device = AUD_device;
-		}
-	}
-	g_pyinitialized = true;
 
 	return module;
 }
@@ -220,13 +193,11 @@ PyObject* AUD_initPython()
 
 void AUD_lock()
 {
-	assert(AUD_device);
 	AUD_device->lock();
 }
 
 void AUD_unlock()
 {
-	assert(AUD_device);
 	AUD_device->unlock();
 }
 
@@ -241,13 +212,12 @@ AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 
 	try
 	{
-		AUD_IReader* reader = sound->createReader();
+		AUD_Reference<AUD_IReader> reader = (*sound)->createReader();
 
-		if(reader)
+		if(!reader.isNull())
 		{
 			info.specs = reader->getSpecs();
 			info.length = reader->getLength() / (float) info.specs.rate;
-			delete reader;
 		}
 	}
 	catch(AUD_Exception&)
@@ -260,13 +230,13 @@ AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 AUD_Sound* AUD_load(const char* filename)
 {
 	assert(filename);
-	return new AUD_FileFactory(filename);
+	return new AUD_Sound(new AUD_FileFactory(filename));
 }
 
 AUD_Sound* AUD_loadBuffer(unsigned char* buffer, int size)
 {
 	assert(buffer);
-	return new AUD_FileFactory(buffer, size);
+	return new AUD_Sound(new AUD_FileFactory(buffer, size));
 }
 
 AUD_Sound* AUD_bufferSound(AUD_Sound* sound)
@@ -275,7 +245,7 @@ AUD_Sound* AUD_bufferSound(AUD_Sound* sound)
 
 	try
 	{
-		return new AUD_StreamBufferFactory(sound);
+		return new AUD_Sound(new AUD_StreamBufferFactory(*sound));
 	}
 	catch(AUD_Exception&)
 	{
@@ -289,7 +259,7 @@ AUD_Sound* AUD_delaySound(AUD_Sound* sound, float delay)
 
 	try
 	{
-		return new AUD_DelayFactory(sound, delay);
+		return new AUD_Sound(new AUD_DelayFactory(*sound, delay));
 	}
 	catch(AUD_Exception&)
 	{
@@ -303,7 +273,7 @@ AUD_Sound* AUD_limitSound(AUD_Sound* sound, float start, float end)
 
 	try
 	{
-		return new AUD_LimiterFactory(sound, start, end);
+		return new AUD_Sound(new AUD_LimiterFactory(*sound, start, end));
 	}
 	catch(AUD_Exception&)
 	{
@@ -317,7 +287,7 @@ AUD_Sound* AUD_pingpongSound(AUD_Sound* sound)
 
 	try
 	{
-		return new AUD_PingPongFactory(sound);
+		return new AUD_Sound(new AUD_PingPongFactory(*sound));
 	}
 	catch(AUD_Exception&)
 	{
@@ -331,7 +301,7 @@ AUD_Sound* AUD_loopSound(AUD_Sound* sound)
 
 	try
 	{
-		return new AUD_LoopFactory(sound);
+		return new AUD_Sound(new AUD_LoopFactory(*sound));
 	}
 	catch(AUD_Exception&)
 	{
@@ -360,7 +330,7 @@ AUD_Sound* AUD_rectifySound(AUD_Sound* sound)
 
 	try
 	{
-		return new AUD_RectifyFactory(sound);
+		return new AUD_Sound(new AUD_RectifyFactory(*sound));
 	}
 	catch(AUD_Exception&)
 	{
@@ -376,11 +346,10 @@ void AUD_unload(AUD_Sound* sound)
 
 AUD_Channel* AUD_play(AUD_Sound* sound, int keep)
 {
-	assert(AUD_device);
 	assert(sound);
 	try
 	{
-		return AUD_device->play(sound, keep);
+		return AUD_device->play(*sound, keep);
 	}
 	catch(AUD_Exception&)
 	{
@@ -390,51 +359,43 @@ AUD_Channel* AUD_play(AUD_Sound* sound, int keep)
 
 int AUD_pause(AUD_Channel* handle)
 {
-	assert(AUD_device);
 	return AUD_device->pause(handle);
 }
 
 int AUD_resume(AUD_Channel* handle)
 {
-	assert(AUD_device);
 	return AUD_device->resume(handle);
 }
 
 int AUD_stop(AUD_Channel* handle)
 {
-	if(AUD_device)
+	if(!AUD_device.isNull())
 		return AUD_device->stop(handle);
 	return false;
 }
 
 int AUD_setKeep(AUD_Channel* handle, int keep)
 {
-	assert(AUD_device);
 	return AUD_device->setKeep(handle, keep);
 }
 
 int AUD_seek(AUD_Channel* handle, float seekTo)
 {
-	assert(AUD_device);
 	return AUD_device->seek(handle, seekTo);
 }
 
 float AUD_getPosition(AUD_Channel* handle)
 {
-	assert(AUD_device);
 	return AUD_device->getPosition(handle);
 }
 
 AUD_Status AUD_getStatus(AUD_Channel* handle)
 {
-	assert(AUD_device);
 	return AUD_device->getStatus(handle);
 }
 
 int AUD_setListenerLocation(const float* location)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		AUD_Vector3 v(location[0], location[1], location[2]);
@@ -447,8 +408,6 @@ int AUD_setListenerLocation(const float* location)
 
 int AUD_setListenerVelocity(const float* velocity)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		AUD_Vector3 v(velocity[0], velocity[1], velocity[2]);
@@ -461,8 +420,6 @@ int AUD_setListenerVelocity(const float* velocity)
 
 int AUD_setListenerOrientation(const float* orientation)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		AUD_Quaternion q(orientation[3], orientation[0], orientation[1], orientation[2]);
@@ -475,8 +432,6 @@ int AUD_setListenerOrientation(const float* orientation)
 
 int AUD_setSpeedOfSound(float speed)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		AUD_3ddevice->setSpeedOfSound(speed);
@@ -488,8 +443,6 @@ int AUD_setSpeedOfSound(float speed)
 
 int AUD_setDopplerFactor(float factor)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		AUD_3ddevice->setDopplerFactor(factor);
@@ -501,8 +454,6 @@ int AUD_setDopplerFactor(float factor)
 
 int AUD_setDistanceModel(AUD_DistanceModel model)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		AUD_3ddevice->setDistanceModel(model);
@@ -514,8 +465,6 @@ int AUD_setDistanceModel(AUD_DistanceModel model)
 
 int AUD_setSourceLocation(AUD_Channel* handle, const float* location)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		AUD_Vector3 v(location[0], location[1], location[2]);
@@ -527,8 +476,6 @@ int AUD_setSourceLocation(AUD_Channel* handle, const float* location)
 
 int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		AUD_Vector3 v(velocity[0], velocity[1], velocity[2]);
@@ -540,8 +487,6 @@ int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity)
 
 int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		AUD_Quaternion q(orientation[3], orientation[0], orientation[1], orientation[2]);
@@ -553,8 +498,6 @@ int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
 
 int AUD_setRelative(AUD_Channel* handle, int relative)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		return AUD_3ddevice->setRelative(handle, relative);
@@ -565,8 +508,6 @@ int AUD_setRelative(AUD_Channel* handle, int relative)
 
 int AUD_setVolumeMaximum(AUD_Channel* handle, float volume)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		return AUD_3ddevice->setVolumeMaximum(handle, volume);
@@ -577,8 +518,6 @@ int AUD_setVolumeMaximum(AUD_Channel* handle, float volume)
 
 int AUD_setVolumeMinimum(AUD_Channel* handle, float volume)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		return AUD_3ddevice->setVolumeMinimum(handle, volume);
@@ -589,8 +528,6 @@ int AUD_setVolumeMinimum(AUD_Channel* handle, float volume)
 
 int AUD_setDistanceMaximum(AUD_Channel* handle, float distance)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		return AUD_3ddevice->setDistanceMaximum(handle, distance);
@@ -601,8 +538,6 @@ int AUD_setDistanceMaximum(AUD_Channel* handle, float distance)
 
 int AUD_setDistanceReference(AUD_Channel* handle, float distance)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		return AUD_3ddevice->setDistanceReference(handle, distance);
@@ -613,8 +548,6 @@ int AUD_setDistanceReference(AUD_Channel* handle, float distance)
 
 int AUD_setAttenuation(AUD_Channel* handle, float factor)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		return AUD_3ddevice->setAttenuation(handle, factor);
@@ -625,8 +558,6 @@ int AUD_setAttenuation(AUD_Channel* handle, float factor)
 
 int AUD_setConeAngleOuter(AUD_Channel* handle, float angle)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		return AUD_3ddevice->setConeAngleOuter(handle, angle);
@@ -637,8 +568,6 @@ int AUD_setConeAngleOuter(AUD_Channel* handle, float angle)
 
 int AUD_setConeAngleInner(AUD_Channel* handle, float angle)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		return AUD_3ddevice->setConeAngleInner(handle, angle);
@@ -649,8 +578,6 @@ int AUD_setConeAngleInner(AUD_Channel* handle, float angle)
 
 int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume)
 {
-	assert(AUD_device);
-
 	if(AUD_3ddevice)
 	{
 		return AUD_3ddevice->setConeVolumeOuter(handle, volume);
@@ -663,8 +590,6 @@ int AUD_setSoundVolume(AUD_Channel* handle, float volume)
 {
 	if(handle)
 	{
-		assert(AUD_device);
-
 		try
 		{
 			return AUD_device->setVolume(handle, volume);
@@ -678,8 +603,6 @@ int AUD_setSoundPitch(AUD_Channel* handle, float pitch)
 {
 	if(handle)
 	{
-		assert(AUD_device);
-
 		try
 		{
 			return AUD_device->setPitch(handle, pitch);
@@ -693,7 +616,7 @@ AUD_Device* AUD_openReadDevice(AUD_DeviceSpecs specs)
 {
 	try
 	{
-		return new AUD_ReadDevice(specs);
+		return new AUD_Device(new AUD_ReadDevice(specs));
 	}
 	catch(AUD_Exception&)
 	{
@@ -708,8 +631,8 @@ AUD_Channel* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek)
 
 	try
 	{
-		AUD_Channel* handle = device->play(sound);
-		device->seek(handle, seek);
+		AUD_Channel* handle = (*device)->play(*sound);
+		(*device)->seek(handle, seek);
 		return handle;
 	}
 	catch(AUD_Exception&)
@@ -724,7 +647,7 @@ int AUD_setDeviceVolume(AUD_Device* device, float volume)
 
 	try
 	{
-		device->setVolume(volume);
+		(*device)->setVolume(volume);
 		return true;
 	}
 	catch(AUD_Exception&) {}
@@ -741,7 +664,7 @@ int AUD_setDeviceSoundVolume(AUD_Device* device, AUD_Channel* handle,
 
 		try
 		{
-			return device->setVolume(handle, volume);
+			return (*device)->setVolume(handle, volume);
 		}
 		catch(AUD_Exception&) {}
 	}
@@ -755,7 +678,7 @@ int AUD_readDevice(AUD_Device* device, data_t* buffer, int length)
 
 	try
 	{
-		return device->read(buffer, length);
+		return (*device)->read(buffer, length);
 	}
 	catch(AUD_Exception&)
 	{
@@ -785,38 +708,34 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 	AUD_DeviceSpecs specs;
 	specs.channels = AUD_CHANNELS_MONO;
 	specs.rate = (AUD_SampleRate)samplerate;
-	AUD_Sound* sound;
+	AUD_Reference<AUD_IFactory> sound;
 
-	AUD_FileFactory file(filename);
+	AUD_Reference<AUD_IFactory> file = new AUD_FileFactory(filename);
 
-	AUD_IReader* reader = file.createReader();
+	AUD_Reference<AUD_IReader> reader = file->createReader();
 	AUD_SampleRate rate = reader->getSpecs().rate;
-	delete reader;
 
-	AUD_ChannelMapperFactory mapper(&file, specs);
-	sound = &mapper;
-	AUD_LowpassFactory lowpass(sound, high);
+	sound = new AUD_ChannelMapperFactory(file, specs);
+
 	if(high < rate)
-		sound = &lowpass;
-	AUD_HighpassFactory highpass(sound, low);
+		sound = new AUD_LowpassFactory(sound, high);
 	if(low > 0)
-		sound = &highpass;
-	AUD_EnvelopeFactory envelope(sound, attack, release, threshold, 0.1f);
-	AUD_LinearResampleFactory resampler(&envelope, specs);
-	sound = &resampler;
-	AUD_SquareFactory squaref(sound, sthreshold);
+		sound = new AUD_HighpassFactory(sound, low);;
+
+	sound = new AUD_EnvelopeFactory(sound, attack, release, threshold, 0.1f);
+	sound = new AUD_LinearResampleFactory(sound, specs);
+
 	if(square)
-		sound = &squaref;
-	AUD_AccumulatorFactory accumulator(sound, additive);
-	AUD_SumFactory sum(sound);
+		sound = new AUD_SquareFactory(sound, sthreshold);
+
 	if(accumulate)
-		sound = &accumulator;
+		sound = new AUD_AccumulatorFactory(sound, additive);
 	else if(additive)
-		sound = &sum;
+		sound = new AUD_SumFactory(sound);
 
 	reader = sound->createReader();
 
-	if(reader == NULL)
+	if(reader.isNull())
 		return NULL;
 
 	int len;
@@ -830,7 +749,6 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 		memcpy(buffer.getBuffer() + position, readbuffer, len * sizeof(float));
 		position += len;
 	} while(len != 0);
-	delete reader;
 
 	float* result = (float*)malloc(position * sizeof(float));
 	memcpy(result, buffer.getBuffer(), position * sizeof(float));
@@ -840,21 +758,17 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 
 static void pauseSound(AUD_Channel* handle)
 {
-	assert(AUD_device);
-
 	AUD_device->pause(handle);
 }
 
 AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds)
 {
-	assert(AUD_device);
-
-	AUD_SilenceFactory silence;
-	AUD_LimiterFactory limiter(&silence, 0, seconds);
+	AUD_Reference<AUD_IFactory> silence = new AUD_SilenceFactory;
+	AUD_Reference<AUD_IFactory> limiter = new AUD_LimiterFactory(silence, 0, seconds);
 
 	try
 	{
-		AUD_Channel* channel = AUD_device->play(&limiter);
+		AUD_Channel* channel = AUD_device->play(limiter);
 		AUD_device->setStopCallback(channel, (stopCallback)pauseSound, handle);
 		return channel;
 	}
@@ -874,39 +788,42 @@ AUD_Sound* AUD_createSequencer(int muted, void* data, AUD_volumeFunction volume)
 	AUD_Specs specs;
 	specs.channels = AUD_CHANNELS_STEREO;
 	specs.rate = AUD_RATE_44100;
-	return new AUD_SequencerFactory(specs, muted, data, volume);
+	AUD_Reference<AUD_SequencerFactory>* sequencer = new AUD_Reference<AUD_SequencerFactory>(new AUD_SequencerFactory(specs, muted, data, volume));
+	(*sequencer)->setThis(sequencer);
+	return reinterpret_cast<AUD_Sound*>(sequencer);
 }
 
 void AUD_destroySequencer(AUD_Sound* sequencer)
 {
-	delete ((AUD_SequencerFactory*)sequencer);
+	delete sequencer;
 }
 
 void AUD_setSequencerMuted(AUD_Sound* sequencer, int muted)
 {
-	((AUD_SequencerFactory*)sequencer)->mute(muted);
+	((AUD_SequencerFactory*)sequencer->get())->mute(muted);
 }
 
-AUD_SequencerEntry* AUD_addSequencer(AUD_Sound** sequencer, AUD_Sound* sound,
+AUD_Reference<AUD_SequencerEntry>* AUD_addSequencer(AUD_Sound* sequencer, AUD_Sound** sound,
 								 float begin, float end, float skip, void* data)
 {
-	return ((AUD_SequencerFactory*)sequencer)->add((AUD_IFactory**) sound, begin, end, skip, data);
+	return new AUD_Reference<AUD_SequencerEntry>(((AUD_SequencerFactory*)sequencer->get())->add(sound, begin, end, skip, data));
 }
 
-void AUD_removeSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry)
+void AUD_removeSequencer(AUD_Sound* sequencer, AUD_Reference<AUD_SequencerEntry>* entry)
 {
-	((AUD_SequencerFactory*)sequencer)->remove(entry);
+	((AUD_SequencerFactory*)sequencer->get())->remove(*entry);
+	delete entry;
 }
 
-void AUD_moveSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry,
+void AUD_moveSequencer(AUD_Sound* sequencer, AUD_Reference<AUD_SequencerEntry>* entry,
 				   float begin, float end, float skip)
 {
-	((AUD_SequencerFactory*)sequencer)->move(entry, begin, end, skip);
+	((AUD_SequencerFactory*)sequencer->get())->move(*entry, begin, end, skip);
 }
 
-void AUD_muteSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry, char mute)
+void AUD_muteSequencer(AUD_Sound* sequencer, AUD_Reference<AUD_SequencerEntry>* entry, char mute)
 {
-	((AUD_SequencerFactory*)sequencer)->mute(entry, mute);
+	((AUD_SequencerFactory*)sequencer->get())->mute(*entry, mute);
 }
 
 int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
@@ -918,9 +835,7 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 	specs.channels = AUD_CHANNELS_MONO;
 	specs.format = AUD_FORMAT_INVALID;
 
-	AUD_ChannelMapperFactory mapper(sound, specs);
-
-	AUD_IReader* reader = mapper.createReader();
+	AUD_Reference<AUD_IReader> reader = AUD_ChannelMapperFactory(*sound, specs).createReader();
 
 	int len = reader->getLength();
 	float samplejump = (float)len / (float)length;
@@ -949,15 +864,13 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 		}
 	}
 
-	delete reader;
-
 	return length;
 }
 
 void AUD_startPlayback()
 {
 #ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device);
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
 	if(device)
 		device->startPlayback();
 #endif
@@ -966,7 +879,7 @@ void AUD_startPlayback()
 void AUD_stopPlayback()
 {
 #ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device);
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
 	if(device)
 		device->stopPlayback();
 #endif
@@ -975,7 +888,7 @@ void AUD_stopPlayback()
 void AUD_seekSequencer(AUD_Channel* handle, float time)
 {
 #ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device);
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
 	if(device)
 		device->seekPlayback(time);
 	else
@@ -988,7 +901,7 @@ void AUD_seekSequencer(AUD_Channel* handle, float time)
 float AUD_getSequencerPosition(AUD_Channel* handle)
 {
 #ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device);
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
 	if(device)
 		return device->getPlaybackPosition();
 	else
@@ -1001,7 +914,7 @@ float AUD_getSequencerPosition(AUD_Channel* handle)
 #ifdef WITH_JACK
 void AUD_setSyncCallback(AUD_syncFunction function, void* data)
 {
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device);
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
 	if(device)
 		device->setSyncCallback(function, data);
 }
@@ -1010,7 +923,7 @@ void AUD_setSyncCallback(AUD_syncFunction function, void* data)
 int AUD_doesPlayback()
 {
 #ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device);
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
 	if(device)
 		return device->doesPlayback();
 #endif

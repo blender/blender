@@ -45,7 +45,7 @@ AUD_DefaultMixer::AUD_DefaultMixer(AUD_DeviceSpecs specs) :
 {
 }
 
-AUD_IReader* AUD_DefaultMixer::prepare(AUD_IReader* reader)
+AUD_Reference<AUD_IReader> AUD_DefaultMixer::prepare(AUD_Reference<AUD_IReader> reader)
 {
 	// hacky for now, until a better channel mapper reader is available
 	AUD_ChannelMapperFactory cmf(NULL, m_specs);

@@ -51,7 +51,7 @@ private:
 	AUD_ChannelMapperFactory& operator=(const AUD_ChannelMapperFactory&);
 
 public:
-	AUD_ChannelMapperFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+	AUD_ChannelMapperFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
 	virtual ~AUD_ChannelMapperFactory();
 
@@ -67,7 +67,7 @@ public:
 	 */
 	void deleteMapping(int ic);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_CHANNELMAPPERFACTORY

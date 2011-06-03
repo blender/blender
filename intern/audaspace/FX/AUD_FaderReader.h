@@ -79,7 +79,7 @@ public:
 	 * \param start The time where fading should start in seconds.
 	 * \param length How long fading should last in seconds.
 	 */
-	AUD_FaderReader(AUD_IReader* reader, AUD_FadeType type,
+	AUD_FaderReader(AUD_Reference<AUD_IReader> reader, AUD_FadeType type,
 					float start,float length);
 
 	virtual void read(int & length, sample_t* & buffer);

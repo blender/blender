@@ -36,7 +36,7 @@
 
 #define CC channels + channel
 
-AUD_LinearResampleReader::AUD_LinearResampleReader(AUD_IReader* reader,
+AUD_LinearResampleReader::AUD_LinearResampleReader(AUD_Reference<AUD_IReader> reader,
 												   AUD_Specs specs) :
 	AUD_EffectReader(reader),
 	m_sspecs(reader->getSpecs()),

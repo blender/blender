@@ -38,7 +38,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-AUD_HighpassFactory::AUD_HighpassFactory(AUD_IFactory* factory, float frequency,
+AUD_HighpassFactory::AUD_HighpassFactory(AUD_Reference<AUD_IFactory> factory, float frequency,
 										 float Q) :
 		AUD_EffectFactory(factory),
 		m_frequency(frequency),
@@ -46,9 +46,9 @@ AUD_HighpassFactory::AUD_HighpassFactory(AUD_IFactory* factory, float frequency,
 {
 }
 
-AUD_IReader* AUD_HighpassFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_HighpassFactory::createReader() const
 {
-	AUD_IReader* reader = getReader();
+	AUD_Reference<AUD_IReader> reader = getReader();
 
 	// calculate coefficients
 	float w0 = 2 * M_PI * m_frequency / reader->getSpecs().rate;

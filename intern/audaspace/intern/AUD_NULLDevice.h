@@ -32,6 +32,7 @@
 #ifndef AUD_NULLDEVICE
 #define AUD_NULLDEVICE
 
+#include "AUD_IReader.h"
 #include "AUD_IDevice.h"
 
 /**
@@ -46,8 +47,8 @@ public:
 	AUD_NULLDevice();
 
 	virtual AUD_DeviceSpecs getSpecs() const;
-	virtual AUD_Handle* play(AUD_IReader* reader, bool keep = false);
-	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
+	virtual AUD_Handle* play(AUD_Reference<AUD_IReader> reader, bool keep = false);
+	virtual AUD_Handle* play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);
 	virtual bool stop(AUD_Handle* handle);

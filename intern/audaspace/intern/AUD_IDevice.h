@@ -33,6 +33,7 @@
 #define AUD_IDEVICE
 
 #include "AUD_Space.h"
+#include "AUD_Reference.h"
 class AUD_IFactory;
 class AUD_IReader;
 
@@ -74,7 +75,7 @@ public:
 	 * \exception AUD_Exception Thrown if there's an unexpected (from the
 	 *            device side) error during creation of the reader.
 	 */
-	virtual AUD_Handle* play(AUD_IReader* reader, bool keep = false)=0;
+	virtual AUD_Handle* play(AUD_Reference<AUD_IReader> reader, bool keep = false)=0;
 
 	/**
 	 * Plays a sound source.
@@ -86,7 +87,7 @@ public:
 	 * \exception AUD_Exception Thrown if there's an unexpected (from the
 	 *            device side) error during creation of the reader.
 	 */
-	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false)=0;
+	virtual AUD_Handle* play(AUD_Reference<AUD_IFactory> factory, bool keep = false)=0;
 
 	/**
 	 * Pauses a played back sound.

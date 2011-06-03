@@ -32,15 +32,15 @@
 #include "AUD_LinearResampleFactory.h"
 #include "AUD_LinearResampleReader.h"
 
-AUD_LinearResampleFactory::AUD_LinearResampleFactory(AUD_IFactory* factory,
+AUD_LinearResampleFactory::AUD_LinearResampleFactory(AUD_Reference<AUD_IFactory> factory,
 													 AUD_DeviceSpecs specs) :
 		AUD_ResampleFactory(factory, specs)
 {
 }
 
-AUD_IReader* AUD_LinearResampleFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_LinearResampleFactory::createReader() const
 {
-	AUD_IReader* reader = getReader();
+	AUD_Reference<AUD_IReader> reader = getReader();
 
 	if(reader->getSpecs().rate != m_specs.rate)
 		reader = new AUD_LinearResampleReader(reader, m_specs.specs);

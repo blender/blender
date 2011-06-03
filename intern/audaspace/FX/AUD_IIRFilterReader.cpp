@@ -31,7 +31,7 @@
 
 #include "AUD_IIRFilterReader.h"
 
-AUD_IIRFilterReader::AUD_IIRFilterReader(AUD_IReader* reader,
+AUD_IIRFilterReader::AUD_IIRFilterReader(AUD_Reference<AUD_IReader> reader,
 										 std::vector<float> b,
 										 std::vector<float> a) :
 	AUD_BaseIIRFilterReader(reader, b.size(), a.size()), m_a(a), m_b(b)

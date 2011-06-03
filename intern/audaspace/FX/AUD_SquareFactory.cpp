@@ -48,7 +48,7 @@ void endSquareFilter(float* threshold)
 	delete threshold;
 }
 
-AUD_SquareFactory::AUD_SquareFactory(AUD_IFactory* factory, float threshold) :
+AUD_SquareFactory::AUD_SquareFactory(AUD_Reference<AUD_IFactory> factory, float threshold) :
 		AUD_EffectFactory(factory),
 		m_threshold(threshold)
 {
@@ -59,7 +59,7 @@ float AUD_SquareFactory::getThreshold() const
 	return m_threshold;
 }
 
-AUD_IReader* AUD_SquareFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SquareFactory::createReader() const
 {
 	return new AUD_CallbackIIRFilterReader(getReader(), 1, 1,
 										   (doFilterIIR) squareFilter,

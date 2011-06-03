@@ -61,9 +61,9 @@ public:
 	 * \param frequency The cutoff frequency.
 	 * \param Q The Q factor.
 	 */
-	AUD_LowpassFactory(AUD_IFactory* factory, float frequency, float Q = 1.0f);
+	AUD_LowpassFactory(AUD_Reference<AUD_IFactory> factory, float frequency, float Q = 1.0f);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader() const;
 };
 
 #endif //AUD_LOWPASSFACTORY
