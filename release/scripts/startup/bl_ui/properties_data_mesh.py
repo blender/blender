@@ -110,7 +110,10 @@ class DATA_PT_settings(MeshButtonsPanel, bpy.types.Panel):
 
         layout.prop(mesh, "texture_mesh")
         layout.prop(mesh, "use_auto_texspace")
-
+        
+        row = layout.row()
+        row.column().prop(mesh, "texspace_location")
+        row.column().prop(mesh, "texspace_size")
 
 class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Vertex Groups"

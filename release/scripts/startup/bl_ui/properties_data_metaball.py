@@ -70,6 +70,10 @@ class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
 
         layout.label(text="Update:")
         layout.prop(mball, "update_method", expand=True)
+        
+        row = layout.row()
+        row.column().prop(mball, "texspace_location")
+        row.column().prop(mball, "texspace_size")
 
 
 class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
