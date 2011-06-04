@@ -587,8 +587,17 @@ void calc_sequence(Scene *scene, Sequence *seq)
 		if (seq->seq1) {
 			seq->start= seq->startdisp= MAX3(seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
 			seq->enddisp= MIN3(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
+			/* we cant help if strips don't overlap, it wont give useful results.
+			 * but at least ensure 'len' is never negative which causes bad bugs elsewhere. */
+			if(seq->enddisp < seq->startdisp) {
+				/* simple start/end swap */
+				seq->start= seq->enddisp;
+				seq->enddisp = seq->startdisp;
+				seq->startdisp= seq->start;
+			}
 			seq->len= seq->enddisp - seq->startdisp;
-		} else {
+		}
+		else {
 			calc_sequence_disp(scene, seq);
 		}
 

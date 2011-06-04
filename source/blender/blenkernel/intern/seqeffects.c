@@ -3021,10 +3021,15 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 	/* if not already done, load / initialize data */
 	get_sequence_effect(seq);
 
-	if (!(force || seq->len != v->length || !v->frameMap)) {
+	if (	(force == FALSE) &&
+			(seq->len == v->length) &&
+			(v->frameMap != NULL)
+	) {
 		return;
 	}
-	if (!seq->seq1) { /* make coverity happy and check for (CID 598)
+	if (	(seq->seq1 == NULL) ||
+	        (seq->len < 1)
+	) { /* make coverity happy and check for (CID 598)
 						 input strip ... */
 		return;
 	}
