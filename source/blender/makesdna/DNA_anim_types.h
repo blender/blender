@@ -65,6 +65,8 @@ typedef struct FModifier {
 	
 	float sfra;			/* start frame of restricted frame-range */
 	float efra;			/* end frame of restricted frame-range */
+	float blendin;		/* number of frames from sfra before modifier takes full influence */
+	float blendout;		/* number of frames from efra before modifier fades out */
 } FModifier;
 
 /* Types of F-Curve modifier 
@@ -97,7 +99,9 @@ typedef enum eFModifier_Flags {
 		/* user wants modifier to be skipped */
 	FMODIFIER_FLAG_MUTED		 = (1<<3),
 		/* restrict range that F-Modifier can be considered over */
-	FMODIFIER_FLAG_RANGERESTRICT = (1<<4)
+	FMODIFIER_FLAG_RANGERESTRICT = (1<<4),
+		/* use influence control */
+	FMODIFIER_FLAG_USEINFLUENCE  = (1<<5)
 } eFModifier_Flags; 
 
 /* --- */

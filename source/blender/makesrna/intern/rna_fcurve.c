@@ -470,6 +470,14 @@ static void rna_FModifier_end_frame_range(PointerRNA *ptr, float *min, float *ma
 	*max= MAXFRAMEF;
 }
 
+static void rna_FModifier_blending_range(PointerRNA *ptr, float *min, float *max)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+
+	*min= 0.0f;
+	*max= fcm->efra - fcm->sfra;
+}
+
 static void rna_FModifier_active_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	FModifier *fm, *fmo= (FModifier*)ptr->data;
@@ -1049,6 +1057,32 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "efra");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifier_end_frame_range");
 	RNA_def_property_ui_text(prop, "End Frame", "Frame that modifier's influence ends (if Restrict Frame Range is in use)");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	
+	prop= RNA_def_property(srna, "blend_in", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "blendin");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifier_blending_range");
+	RNA_def_property_ui_text(prop, "Blend In", "Number of frames from start frame for influence to take effect");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	
+	prop= RNA_def_property(srna, "blend_out", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "blendout");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifier_blending_range");
+	RNA_def_property_ui_text(prop, "Blend Out", "Number of frames from start frame for influence to fade out");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	
+	/* influence */
+	prop= RNA_def_property(srna, "use_influence", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_USEINFLUENCE);
+	RNA_def_property_ui_text(prop, "Use Influence", "F-Curve Modifier's effects will be tempered by a default factor");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1); // XXX: depends on UI implementation
+	
+	prop= RNA_def_property(srna, "influence", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "influence");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Influence", "Amount of influence F-Curve Modifier will have when not fading in/out");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 }	
 

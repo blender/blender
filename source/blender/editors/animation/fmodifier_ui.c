@@ -604,7 +604,7 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
-	uiLayout *box, *row, *subrow;
+	uiLayout *box, *row, *subrow, *col;
 	uiBlock *block;
 	uiBut *but;
 	short width= 314;
@@ -700,16 +700,36 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		{
 			box = uiLayoutBox(layout);
 			
+			/* restricted range ----------------------------------------------------- */
+			col = uiLayoutColumn(box, 1);
+			
 			/* top row: use restricted range */
-			row= uiLayoutRow(box, 0);
+			row= uiLayoutRow(col, 1);
 			uiItemR(row, &ptr, "use_restricted_range", 0, NULL, ICON_NONE);
 			
 			if (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) {
 				/* second row: settings */
-				row = uiLayoutRow(box, 1);
+				row = uiLayoutRow(col, 1);
 				
 				uiItemR(row, &ptr, "frame_start", 0, "Start", ICON_NONE);
 				uiItemR(row, &ptr, "frame_end", 0, "End", ICON_NONE);
+				
+				/* third row: blending influence */
+				row = uiLayoutRow(col, 1);
+				
+				uiItemR(row, &ptr, "blend_in", 0, "In", ICON_NONE);
+				uiItemR(row, &ptr, "blend_out", 0, "Out", ICON_NONE);
+			}
+			
+			/* influence -------------------------------------------------------------- */
+			col = uiLayoutColumn(box, 1);
+			
+			/* top row: use influence */
+			uiItemR(col, &ptr, "use_influence", 0, NULL, ICON_NONE);
+			
+			if (fcm->flag & FMODIFIER_FLAG_USEINFLUENCE) {
+				/* second row: influence value */
+				uiItemR(col, &ptr, "influence", 0, NULL, ICON_NONE);
 			}
 		}
 	}

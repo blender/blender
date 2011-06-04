@@ -1013,6 +1013,7 @@ FModifier *add_fmodifier (ListBase *modifiers, int type)
 	fcm= MEM_callocN(sizeof(FModifier), "F-Curve Modifier");
 	fcm->type = type;
 	fcm->flag = FMODIFIER_FLAG_EXPANDED;
+	fcm->influence = 1.0f;
 	BLI_addtail(modifiers, fcm);
 	
 	/* tag modifier as "active" if no other modifiers exist in the stack yet */
@@ -1200,6 +1201,47 @@ short list_has_suitable_fmodifier (ListBase *modifiers, int mtype, short acttype
 
 /* Evaluation API --------------------------- */
 
+/* helper function - calculate influence of FModifier */
+static float eval_fmodifier_influence (FModifier *fcm, float evaltime)
+{
+	float influence;
+	
+	/* sanity check */
+	if (fcm == NULL) 
+		return 0.0f;
+	
+	/* should we use influence stored in modifier or not 
+	 * NOTE: this is really just a hack so that we don't need to version patch old files ;)
+	 */
+	if (fcm->flag & FMODIFIER_FLAG_USEINFLUENCE)
+		influence = fcm->influence;
+	else
+		influence = 1.0f;
+		
+	/* restricted range or full range? */
+	if (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) {
+		if ((evaltime <= fcm->sfra) || (evaltime >= fcm->efra)) {
+			/* out of range */
+			return 0.0f;
+		}
+		else if ((evaltime > fcm->sfra) && (evaltime < fcm->sfra + fcm->blendin)) {
+			/* blend in range */
+			float a = fcm->sfra;
+			float b = fcm->sfra + fcm->blendin;
+			return influence * (evaltime - a) / (b - a);
+		}
+		else if ((evaltime < fcm->efra) && (evaltime > fcm->efra - fcm->blendout)) {
+			/* blend out range */
+			float a = fcm->efra;
+			float b = fcm->efra - fcm->blendout;
+			return influence * (evaltime - a) / (b - a);
+		}
+	}
+	
+	/* just return the influence of the modifier */
+	return influence;
+}
+
 /* evaluate time modifications imposed by some F-Curve Modifiers
  *	- this step acts as an optimisation to prevent the F-Curve stack being evaluated 
  *	  several times by modifiers requesting the time be modified, as the final result
@@ -1240,10 +1282,13 @@ float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, 
 			((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)) )
 		{
 			/* only evaluate if there's a callback for this */
-			// TODO: implement the 'influence' control feature...
 			if (fmi->evaluate_modifier_time) {
-				if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
-					evaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
+				if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0) {
+					float influence = eval_fmodifier_influence(fcm, evaltime);
+					float nval = fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
+					
+					evaltime = interpf(nval, evaltime, influence);
+				}
 			}
 		}
 	}
@@ -1271,13 +1316,17 @@ void evaluate_value_fmodifiers (ListBase *modifiers, FCurve *fcu, float *cvalue,
 			continue;
 		
 		/* only evaluate if there's a callback for this, and if F-Modifier can be evaluated on this frame */
-		// TODO: implement the 'influence' control feature...
 		if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT)==0 || 
 			((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)) )
 		{
 			if (fmi->evaluate_modifier) {
-				if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
-					fmi->evaluate_modifier(fcu, fcm, cvalue, evaltime);
+				if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0) {
+					float influence = eval_fmodifier_influence(fcm, evaltime);
+					float nval = *cvalue;
+					
+					fmi->evaluate_modifier(fcu, fcm, &nval, evaltime);
+					*cvalue = interpf(nval, *cvalue, influence);
+				}
 			}
 		}
 	}
