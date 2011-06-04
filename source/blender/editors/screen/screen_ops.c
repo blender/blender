@@ -868,13 +868,14 @@ typedef struct sAreaMoveData {
 static void area_move_set_limits(bScreen *sc, int dir, int *bigger, int *smaller)
 {
 	ScrArea *sa;
+	int areaminy= ED_area_headersize()+1;
 	
 	/* we check all areas and test for free space with MINSIZE */
 	*bigger= *smaller= 100000;
 	
 	for(sa= sc->areabase.first; sa; sa= sa->next) {
 		if(dir=='h') {
-			int y1= sa->v2->vec.y - sa->v1->vec.y-AREAMINY;
+			int y1= sa->v2->vec.y - sa->v1->vec.y-areaminy;
 			
 			/* if top or down edge selected, test height */
 			if(sa->v1->flag && sa->v4->flag)
@@ -933,6 +934,7 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 	bScreen *sc= CTX_wm_screen(C);
 	ScrVert *v1;
 	ScrArea *sa;
+	int areaminy= ED_area_headersize()+1;
 	
 	delta= CLAMPIS(delta, -smaller, bigger);
 	
@@ -950,8 +952,8 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 				v1->vec.y-= (v1->vec.y % AREAGRID);
 				
 				/* prevent too small top header */
-				if(v1->vec.y > win->sizey-AREAMINY)
-					v1->vec.y= win->sizey-AREAMINY;
+				if(v1->vec.y > win->sizey-areaminy)
+					v1->vec.y= win->sizey-areaminy;
 			}
 		}
 	}
@@ -1165,6 +1167,7 @@ static int area_split_init(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	sAreaSplitData *sd;
+	int areaminy= ED_area_headersize()+1;
 	int dir;
 	
 	/* required context */
@@ -1175,7 +1178,7 @@ static int area_split_init(bContext *C, wmOperator *op)
 	
 	/* minimal size */
 	if(dir=='v' && sa->winx < 2*AREAMINX) return 0;
-	if(dir=='h' && sa->winy < 2*AREAMINY) return 0;
+	if(dir=='h' && sa->winy < 2*areaminy) return 0;
 	
 	/* custom data */
 	sd= (sAreaSplitData*)MEM_callocN(sizeof (sAreaSplitData), "op_area_split");
@@ -3314,6 +3317,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_OT_undo);
 	WM_operatortype_append(ED_OT_undo_push);
 	WM_operatortype_append(ED_OT_redo);	
+	WM_operatortype_append(ED_OT_undo_history);
 	
 }
 
@@ -3422,9 +3426,11 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 #ifdef __APPLE__
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "ED_OT_redo", ZKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "ED_OT_undo_history", ZKEY, KM_PRESS, KM_ALT|KM_OSKEY, 0);
 #endif
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ED_OT_redo", ZKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ED_OT_undo_history", ZKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	
 	
 	/* render */

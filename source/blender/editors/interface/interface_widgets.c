@@ -771,7 +771,7 @@ static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
 
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
-#define ICON_HEIGHT		16.0f
+#define ICON_HEIGHT		UI_DPI_FAC*16.0f
 
 static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect)
 {
@@ -3081,6 +3081,18 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	else
 		wt->draw(&wt->wcol, rect, 0, 0);
 	
+	if(block) {
+		if(block->flag & UI_BLOCK_CLIPTOP) {
+			/* XXX no scaling for UI here yet */
+			glColor3ubv((unsigned char*)wt->wcol.text);
+			UI_DrawTriIcon((rect->xmax+rect->xmin)/2, rect->ymax-8, 't');
+		}
+		if(block->flag & UI_BLOCK_CLIPBOTTOM) {
+			/* XXX no scaling for UI here yet */
+			glColor3ubv((unsigned char*)wt->wcol.text);
+			UI_DrawTriIcon((rect->xmax+rect->xmin)/2, rect->ymin+10, 'v');
+		}
+	}	
 }
 
 void ui_draw_search_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)

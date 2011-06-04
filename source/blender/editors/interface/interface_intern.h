@@ -45,6 +45,7 @@ struct uiHandleButtonData;
 struct wmEvent;
 struct wmOperatorType;
 struct wmWindow;
+struct wmTimer;
 struct uiStyle;
 struct uiWidgetColors;
 struct uiLayout;
@@ -107,8 +108,8 @@ typedef enum {
 #define UI_PANEL_MINY	70
 
 /* uiBut->flag */
-#define UI_SELECT		1 /* use when the button is pressed */
-/*#define UI_MOUSE_OVER	2*/  /*UNUSED, free flag*/
+#define UI_SELECT		1	/* use when the button is pressed */
+#define UI_SCROLLED		2	/* temp hidden, scrolled away */
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 #define UI_TEXTINPUT	16
@@ -395,6 +396,8 @@ struct uiPopupBlockHandle {
 	void (*popup_func)(struct bContext *C, void *arg, int event);
 	void (*cancel_func)(void *arg);
 	void *popup_arg;
+	
+	struct wmTimer *scrolltimer;
 
 	/* for operator popups */
 	struct wmOperatorType *optype;
@@ -416,9 +419,11 @@ void ui_block_func_ICONTEXTROW(struct bContext *C, uiLayout *layout, void *arg_b
 struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
-uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but);
+uiBut *ui_popup_menu_memory(struct uiBlock *block, struct uiBut *but);
 
-float *ui_block_hsv_get(uiBlock *block);
+float *ui_block_hsv_get(struct uiBlock *block);
+void ui_popup_block_scrolltest(struct uiBlock *block);
+
 
 /* searchbox for string button */
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);

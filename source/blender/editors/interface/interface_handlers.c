@@ -81,6 +81,7 @@ static void ui_add_link(bContext *C, uiBut *from, uiBut *to);
 
 #define BUTTON_TOOLTIP_DELAY		0.500
 #define BUTTON_FLASH_DELAY			0.020
+#define MENU_SCROLL_INTERVAL		0.1
 #define BUTTON_AUTO_OPEN_THRESH		0.3
 #define BUTTON_MOUSE_TOWARDS_THRESH	1.0
 
@@ -4743,6 +4744,8 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 				continue;
 			if(but->flag & UI_HIDDEN)
 				continue;
+			if(but->flag & UI_SCROLLED)
+				continue;
 			if(ui_but_contains_pt(but, mx, my))
 				butover= but;
 		}
@@ -5572,6 +5575,76 @@ static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *men
 	return menu->dotowards;
 }
 
+static char ui_menu_scroll_test(uiBlock *block, int my)
+{
+	if(block->flag & (UI_BLOCK_CLIPTOP|UI_BLOCK_CLIPBOTTOM)) {
+		if(block->flag & UI_BLOCK_CLIPTOP) 
+			if(my > block->maxy-14)
+				return 't';
+		if(block->flag & UI_BLOCK_CLIPBOTTOM)
+			if(my < block->miny+14)
+				return 'b';
+	}
+	return 0;
+}
+
+static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my)
+{
+	char test= ui_menu_scroll_test(block, my);
+	
+	if(test) {
+		uiBut *b1= block->buttons.first;
+		uiBut *b2= block->buttons.last;
+		uiBut *bnext;
+		uiBut *bprev;
+		int dy= 0;
+		
+		/* get first and last visible buttons */
+		while(b1 && ui_but_next(b1) && (b1->flag & UI_SCROLLED))
+			b1= ui_but_next(b1);
+		while(b2 && ui_but_prev(b2) && (b2->flag & UI_SCROLLED))
+			b2= ui_but_prev(b2);
+		/* skips separators */
+		bnext= ui_but_next(b1);
+		bprev= ui_but_prev(b2);
+		
+		if(bnext==NULL || bprev==NULL)
+			return 0;
+		
+		if(test=='t') {
+			/* bottom button is first button */
+			if(b1->y1 < b2->y1)
+				dy= bnext->y1 - b1->y1;
+			/* bottom button is last button */
+			else 
+				dy= bprev->y1 - b2->y1;
+		}
+		else if(test=='b') {
+			/* bottom button is first button */
+			if(b1->y1 < b2->y1)
+				dy= b1->y1 - bnext->y1;
+			/* bottom button is last button */
+			else 
+				dy= b2->y1 - bprev->y1;
+		}
+		if(dy) {
+			
+			for(b1= block->buttons.first; b1; b1= b1->next) {
+				b1->y1 -= dy;
+				b1->y2 -= dy;
+			}
+			/* set flags again */
+			ui_popup_block_scrolltest(block);
+			
+			ED_region_tag_redraw(ar);
+			
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
 static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, int UNUSED(topmenu))
 {
 	ARegion *ar;
@@ -5603,11 +5676,22 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 		 * and don't handle events */
 		ui_mouse_motion_towards_init(menu, mx, my, 1);
 	}
-	else if(event->type != TIMER) {
+	else if(event->type == TIMER) {
+		if(event->customdata == menu->scrolltimer)
+			ui_menu_scroll(ar, block, my);
+	}
+	else {
 		/* for ui_mouse_motion_towards_block */
-		if(event->type == MOUSEMOVE)
+		if(event->type == MOUSEMOVE) {
 			ui_mouse_motion_towards_init(menu, mx, my, 0);
-
+			
+			/* add menu scroll timer, if needed */
+			if(ui_menu_scroll_test(block, my))
+				if(menu->scrolltimer==NULL)
+					menu->scrolltimer= 
+					WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, MENU_SCROLL_INTERVAL);
+		}
+		
 		/* first block own event func */
 		if(block->block_event_func && block->block_event_func(C, block, event));
 		/* events not for active search menu button */

@@ -106,14 +106,14 @@ void script_header_buttons(const bContext *C, ARegion *ar)
 		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
-						 "View", xco, yco-2, xmax-3, 24, "");
-		xco+=XIC+xmax;
+						 "View", xco, yco-2, xmax-3, UI_UNIT_Y, "");
+		xco+=UI_UNIT_X+xmax;
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco+UI_UNIT_X+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

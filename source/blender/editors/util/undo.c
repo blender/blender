@@ -68,6 +68,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "util_intern.h"
 
 #define MAXUNDONAME 64 /* XXX, make common define */
@@ -111,10 +114,12 @@ void ED_undo_push(bContext *C, const char *str)
 	
 	if(wm->file_saved) {
 		wm->file_saved= 0;
+		/* notifier that data changed, for save-over warning or header */
 		WM_event_add_notifier(C, NC_WM|ND_DATACHANGED, NULL);
 	}
 }
 
+/* note: also check undo_history_exec() in bottom if you change notifiers */
 static int ed_undo_step(bContext *C, int step, const char *undoname)
 {	
 	Object *obedit= CTX_data_edit_object(C);
@@ -277,32 +282,6 @@ static int ed_redo_exec(bContext *C, wmOperator *UNUSED(op))
 	return ed_undo_step(C, -1, NULL);
 }
 
-#if 0 /* UNUSED */
-void ED_undo_menu(bContext *C)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	Object *obact= CTX_data_active_object(C);
-	
-	if(obedit) {
-		//if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
-		//	undo_editmode_menu();
-	}
-	else {
-		if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
-			PE_undo_menu(CTX_data_scene(C), CTX_data_active_object(C));
-		else if(U.uiflag & USER_GLOBALUNDO) {
-			char *menu= BKE_undo_menu_string();
-			if(menu) {
-				short event= 0; // XXX pupmenu_col(menu, 20);
-				MEM_freeN(menu);
-				if(event>0) {
-					BKE_undo_number(C, event);
-				}
-			}
-		}
-	}
-}
-#endif
 
 /* ********************** */
 
@@ -399,3 +378,144 @@ void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_ev
 {
 	ED_undo_operator_repeat(C, (wmOperator *)arg_op);
 }
+
+
+/* ************************** */
+
+#define UNDOSYSTEM_GLOBAL	1
+#define UNDOSYSTEM_EDITMODE	2
+#define UNDOSYSTEM_PARTICLE	3
+
+static int get_undo_system(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	
+	/* find out which undo system */
+	if(obedit) {
+		if (ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
+			return UNDOSYSTEM_EDITMODE;
+	}
+	else {
+		Object *obact= CTX_data_active_object(C);
+		
+		if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
+			return UNDOSYSTEM_PARTICLE;
+		else if(U.uiflag & USER_GLOBALUNDO)
+			return UNDOSYSTEM_GLOBAL;
+	}
+	
+	return 0;
+}
+
+/* create enum based on undo items */
+static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
+{
+	EnumPropertyItem item_tmp= {0}, *item= NULL;
+	int active, i= 0;
+	
+	while(TRUE) {
+		char *name= NULL;
+		
+		if(undosys==UNDOSYSTEM_PARTICLE) {
+			name= PE_undo_get_name(CTX_data_scene(C), i, &active);
+		}
+		else if(undosys==UNDOSYSTEM_EDITMODE) {
+			name= undo_editmode_get_name(C, i, &active);
+		}
+		else {
+			name= BKE_undo_get_name(i, &active);
+		}
+		
+		if(name) {
+			item_tmp.identifier= item_tmp.name= name;
+			if(active)
+				item_tmp.icon= ICON_RESTRICT_VIEW_OFF;
+			else 
+				item_tmp.icon= ICON_NONE;
+			item_tmp.value= i++;
+			RNA_enum_item_add(&item, totitem, &item_tmp);
+		}
+		else
+			break;
+	}
+	
+	RNA_enum_item_end(&item, totitem);
+	
+	return item;
+}
+
+
+static int undo_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	int undosys, totitem= 0;
+	
+	undosys= get_undo_system(C);
+	
+	if(undosys) {
+		EnumPropertyItem *item= rna_undo_itemf(C, undosys, &totitem);
+		
+		if(totitem > 0) {
+			uiPopupMenu *pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
+			uiLayout *layout= uiPupMenuLayout(pup);
+			uiLayout *split= uiLayoutSplit(layout, 0, 0), *column;
+			int i, c;
+			
+			for(c=0, i=totitem-1; i >= 0; i--, c++) {
+				if( (c % 20)==0 )
+					column= uiLayoutColumn(split, 0);
+				if(item[i].identifier)
+					uiItemIntO(column, item[i].name, item[i].icon, op->type->idname, "item", item[i].value);
+				
+			}
+			
+			MEM_freeN(item);
+			
+			uiPupMenuEnd(C, pup);
+		}		
+		
+	}
+	return OPERATOR_CANCELLED;
+}
+
+/* note: also check ed_undo_step() in top if you change notifiers */
+static int undo_history_exec(bContext *C, wmOperator *op)
+{
+	if(RNA_property_is_set(op->ptr, "item")) {
+		int undosys= get_undo_system(C);
+		int item= RNA_int_get(op->ptr, "item");
+		
+		if(undosys==UNDOSYSTEM_PARTICLE) {
+			PE_undo_number(CTX_data_scene(C), item);
+		}
+		else if(undosys==UNDOSYSTEM_EDITMODE) {
+			undo_editmode_number(C, item+1);
+			WM_event_add_notifier(C, NC_GEOM|ND_DATA, NULL);
+		}
+		else {
+			BKE_undo_number(C, item);
+			WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, CTX_data_scene(C));
+		}
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_CANCELLED;
+}
+
+void ED_OT_undo_history(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Undo History";
+	ot->description= "Redo specific action in history";
+	ot->idname= "ED_OT_undo_history";
+	
+	/* api callbacks */
+	ot->invoke= undo_history_invoke;
+	ot->exec= undo_history_exec;
+	ot->poll= ED_operator_screenactive;
+	
+	RNA_def_int(ot->srna, "item", 0, 0, INT_MAX, "Item", "", 0, INT_MAX);
+
+}
+
+

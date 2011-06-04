@@ -485,15 +485,16 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
 	 * can remove this eventually, only in a 2.53 and older, now its not written */
 	G.fileflags &= ~G_FILE_RELATIVE_REMAP;
-
+	
+	/* check userdef before open window, keymaps etc */
+	wm_init_userdef(C);
+	
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
 	WM_check(C); /* opens window(s), checks keymaps */
 
 	G.main->name[0]= '\0';
 
-	wm_init_userdef(C);
-	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
 	if (!G.background) GPU_default_lights();
 	

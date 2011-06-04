@@ -945,6 +945,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
 	IconImage *iimg;
+	float fdraw_size= UI_DPI_FAC*draw_size;
 	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
@@ -965,8 +966,8 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	}
 	
 	/* scale width and height according to aspect */
-	w = (int)(draw_size/aspect + 0.5f);
-	h = (int)(draw_size/aspect + 0.5f);
+	w = (int)(fdraw_size/aspect + 0.5f);
+	h = (int)(fdraw_size/aspect + 0.5f);
 	
 	if(di->type == ICON_TYPE_VECTOR) {
 		/* vector icons use the uiBlock transformation, they are not drawn
