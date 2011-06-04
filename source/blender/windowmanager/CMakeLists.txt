@@ -115,7 +115,9 @@ endif()
 
 if(APPLE)
 	if(NOT WITH_COCOA)
-		list(APPEND SRC intern/wm_apple.c)
+		list(APPEND SRC
+			intern/wm_apple.c
+		)
 	endif()
 endif()
 
