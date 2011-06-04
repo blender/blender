@@ -85,8 +85,6 @@ bAction *add_empty_action(const char name[])
 	bAction *act;
 	
 	act= alloc_libblock(&G.main->action, ID_AC, name);
-	act->id.flag |= LIB_FAKEUSER; // XXX this is nasty for new users... maybe we don't want this anymore
-	act->id.us++;
 	
 	return act;
 }	
@@ -199,9 +197,6 @@ bAction *copy_action (bAction *src)
 			}
 		}
 	}
-	
-	dst->id.flag |= LIB_FAKEUSER; // XXX this is nasty for new users... maybe we don't want this anymore
-	dst->id.us++;
 	
 	return dst;
 }
