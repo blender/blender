@@ -98,6 +98,10 @@ option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effect
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
+
+option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
+mark_as_advanced(WITH_HEADLESS)
+
 # (unix defaults to OpenMP On)
 if(UNIX AND NOT APPLE)
 	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
@@ -203,6 +207,11 @@ endif()
 
 if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
+endif()
+
+# may as well build python module without a UI
+if(WITH_PYTHON_MODULE)
+	set(WITH_HEADLESS ON)
 endif()
 
 # remove old vars
@@ -409,15 +418,19 @@ if(UNIX AND NOT APPLE)
 		unset(JEMALLOC)
 	endif()
 
-	find_package(X11 REQUIRED)
-	find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
-	mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
-
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB}")
+	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++")
 
-	if(WITH_X11_XINPUT)
-		list(APPEND LLIBS ${X11_Xinput_LIB})
+	if(NOT WITH_HEADLESS)
+		find_package(X11 REQUIRED)
+		find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
+		mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
+
+		list(APPEND LLIBS ${X11_X11_LIB})
+
+		if(WITH_X11_XINPUT)
+			list(APPEND LLIBS ${X11_Xinput_LIB})
+		endif()
 	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")

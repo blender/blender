@@ -1215,7 +1215,7 @@ int main(int argc, const char **argv)
 	setuid(getuid()); /* end superuser */
 #endif
 
-#ifdef WITH_PYTHON_MODULE
+#if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background= 1; /* python module mode ALWAYS runs in background mode (for now) */
 #else
 	/* for all platforms, even windos has it! */
