@@ -6280,7 +6280,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	
 	BLI_addtail(lb, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
-	if(sa->headertype==1)
+	if(sa->headertype==HEADERDOWN)
 		ar->alignment= RGN_ALIGN_BOTTOM;
 	else
 		ar->alignment= RGN_ALIGN_TOP;

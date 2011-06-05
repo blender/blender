@@ -1631,7 +1631,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				rmd->ar->sizex= rmd->origval + delta;
 				CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
 				
-				if(rmd->ar->sizex < 24) {
+				if(rmd->ar->sizex < UI_UNIT_X) {
 					rmd->ar->sizex= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
@@ -1646,11 +1646,17 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				
 				rmd->ar->sizey= rmd->origval + delta;
 				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
-				
-				if(rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS)
-					maxsize = rmd->maxsize - ((rmd->sa->headertype==2)?48:24) - 10;
 
-				if(rmd->ar->sizey < 24 || (maxsize > 0 && (rmd->ar->sizey > maxsize)) ) {
+				if(rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS) {
+					/* this calculation seems overly verbose
+					 * can someone explain why this method is necessary? - campbell */
+					maxsize = rmd->maxsize - ((rmd->sa->headertype==HEADERTOP)?UI_UNIT_Y*2:UI_UNIT_Y) - (UI_UNIT_Y/4);
+				}
+
+				/* note, 'UI_UNIT_Y/4' means you need to drag the header almost
+				 * all the way down for it to become hidden, this is done
+				 * otherwise its too easy to do this by accident */
+				if(rmd->ar->sizey < UI_UNIT_Y/4 || (maxsize > 0 && (rmd->ar->sizey > maxsize)) ) {
 					rmd->ar->sizey= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
