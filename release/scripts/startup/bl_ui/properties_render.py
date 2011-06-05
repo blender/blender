@@ -613,29 +613,41 @@ class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
 
         layout.prop(rd, "bake_type")
 
-        if rd.bake_type == 'NORMALS':
-            layout.prop(rd, "bake_normal_space")
-        elif rd.bake_type in {'DISPLACEMENT', 'AO'}:
-            layout.prop(rd, "use_bake_normalize")
+        multires_bake = False
+        if rd.bake_type in ['NORMALS', 'DISPLACEMENT']:
+            layout.prop(rd, 'use_bake_multires')
+            multires_bake = rd.use_bake_multires
 
-        # col.prop(rd, "bake_aa_mode")
-        # col.prop(rd, "use_bake_antialiasing")
+        if not multires_bake:
+            if rd.bake_type == 'NORMALS':
+                layout.prop(rd, "bake_normal_space")
+            elif rd.bake_type in {'DISPLACEMENT', 'AO'}:
+                layout.prop(rd, "use_bake_normalize")
 
-        layout.separator()
+            # col.prop(rd, "bake_aa_mode")
+            # col.prop(rd, "use_bake_antialiasing")
 
-        split = layout.split()
+            layout.separator()
 
-        col = split.column()
-        col.prop(rd, "use_bake_clear")
-        col.prop(rd, "bake_margin")
-        col.prop(rd, "bake_quad_split", text="Split")
+            split = layout.split()
 
-        col = split.column()
-        col.prop(rd, "use_bake_selected_to_active")
-        sub = col.column()
-        sub.active = rd.use_bake_selected_to_active
-        sub.prop(rd, "bake_distance")
-        sub.prop(rd, "bake_bias")
+            col = split.column()
+            col.prop(rd, "use_bake_clear")
+            col.prop(rd, "bake_margin")
+            col.prop(rd, "bake_quad_split", text="Split")
+
+            col = split.column()
+            col.prop(rd, "use_bake_selected_to_active")
+            sub = col.column()
+            sub.active = rd.use_bake_selected_to_active
+            sub.prop(rd, "bake_distance")
+            sub.prop(rd, "bake_bias")
+        else:
+            if rd.bake_type == 'DISPLACEMENT':
+                layout.prop(rd, "use_bake_lores_mesh")
+
+            layout.prop(rd, "use_bake_clear")
+            layout.prop(rd, "bake_margin")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

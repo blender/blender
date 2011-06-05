@@ -2812,6 +2812,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Bias", "Bias towards faces further away from the object (in blender units)");
 	
+	prop= RNA_def_property(srna, "use_bake_multires", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_MULTIRES);
+	RNA_def_property_ui_text(prop, "Bake from Multires", "Bake directly from multires object");
+
+	prop= RNA_def_property(srna, "use_bake_lores_mesh", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_LORES_MESH);
+	RNA_def_property_ui_text(prop, "Low Resolution Mesh", "Calculate heights against unsubdivided low resolution mesh");
+
 	/* stamp */
 	
 	prop= RNA_def_property(srna, "use_stamp_time", PROP_BOOLEAN, PROP_NONE);
