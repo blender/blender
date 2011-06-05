@@ -517,8 +517,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			
 			file_draw_preview(block, file, sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE));
 		} else {
-			file_draw_icon(block, file->path, sx, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
-			sx += ICON_DEFAULT_WIDTH + 4;
+			file_draw_icon(block, file->path, sx, sy-(UI_UNIT_Y / 6), get_file_icon(file), ICON_DEFAULT_WIDTH_SCALE, ICON_DEFAULT_WIDTH_SCALE);
+			sx += ICON_DEFAULT_WIDTH_SCALE + 4;
 		}
 
 		UI_ThemeColor4(TH_TEXT);

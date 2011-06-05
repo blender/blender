@@ -403,10 +403,12 @@ float file_font_pointsize(void)
 	uiStyleFontSet(&style->widget);
 	s = BLF_height(style->widget.uifont_id, tmp);
 	return style->widget.points;
-#else
+#elif 0
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
 	return style->widget.points;
+#else
+	return UI_UNIT_Y * 0.6666f;
 #endif
 }
 
@@ -497,11 +499,11 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
-			maxlen = ICON_DEFAULT_WIDTH + 4 +
+			maxlen = ICON_DEFAULT_WIDTH_SCALE + 4 +
 					 (int)layout->column_widths[COLUMN_NAME] + 12 +
 					 (int)layout->column_widths[COLUMN_SIZE] + 12;
 		} else {
-			maxlen = ICON_DEFAULT_WIDTH + 4 +
+			maxlen = ICON_DEFAULT_WIDTH_SCALE + 4 +
 					 (int)layout->column_widths[COLUMN_NAME] + 12 +
 #ifndef WIN32
 					 (int)layout->column_widths[COLUMN_MODE1] + 12 +
