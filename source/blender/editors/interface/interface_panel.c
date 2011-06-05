@@ -384,7 +384,7 @@ static void ui_draw_x_icon(float x, float y)
 
 }
 
-#define PNL_ICON 	20
+#define PNL_ICON 	UI_UNIT_X  /* could be UI_UNIT_Y too */
 
 static void ui_draw_panel_scalewidget(rcti *rect)
 {

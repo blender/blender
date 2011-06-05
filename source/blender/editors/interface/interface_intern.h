@@ -117,8 +117,8 @@ typedef enum {
 /* warn: rest of uiBut->flag in UI_interface.h */
 
 /* internal panel drawing defines */
-#define PNL_GRID	4
-#define PNL_HEADER  20
+#define PNL_GRID	(UI_UNIT_Y / 5)	/* 4 default */
+#define PNL_HEADER  UI_UNIT_Y		/* 20 default */
 
 /* panel->flag */
 #define PNL_SELECT	1

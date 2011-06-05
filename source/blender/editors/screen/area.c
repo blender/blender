@@ -1281,11 +1281,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 
 	if(vertical) {
 		w= v2d->cur.xmax - v2d->cur.xmin;
-		em= (ar->type->prefsizex)? 10: 20;
+		em= (ar->type->prefsizex)? UI_UNIT_Y/2: UI_UNIT_Y;
 	}
 	else {
 		w= UI_PANEL_WIDTH;
-		em= (ar->type->prefsizex)? 10: 20;
+		em= (ar->type->prefsizex)? UI_UNIT_Y/2: UI_UNIT_Y;
 	}
 
 	x= 0;
@@ -1309,8 +1309,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			panel= uiBeginPanel(sa, ar, block, pt, &open);
 
 			/* bad fixed values */
-			header= (pt->flag & PNL_NO_HEADER)? 0: 20;
-			triangle= 22;
+			header= (pt->flag & PNL_NO_HEADER)? 0: UI_UNIT_Y;
+			triangle= (int)(UI_UNIT_Y * 1.1f);
 
 			if(vertical)
 				y -= header;
