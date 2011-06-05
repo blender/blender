@@ -154,8 +154,6 @@ int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 {
 	int a;
 
-	/* could use '0', but this would mean the first
-	 * duplicate would become FooBar.000 */
 	*nr= 0;
 	a= strlen(name);
 	memcpy(left, name, (a + 1) * sizeof(char));
