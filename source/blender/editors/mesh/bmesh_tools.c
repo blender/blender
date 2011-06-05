@@ -2696,9 +2696,9 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		else BM_SetIndex(e, 0);
 	}
 
-	/*handle case of one vert selected.  we identify
-	  the closest edge around that vert to the mouse cursor,
-	  then rip the two adjacent edges in the vert fan.*/
+	/*handle case of one vert selected.  identify
+	  closest edge around that vert to mouse cursor,
+	  then rip two adjacent edges in the vert fan.*/
 	if (em->bm->totvertsel == 1 && em->bm->totedgesel == 0 && em->bm->totfacesel == 0) {
 		singlesel = 1;
 

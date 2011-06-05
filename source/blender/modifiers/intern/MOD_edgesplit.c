@@ -72,12 +72,13 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *ob
 	
 	em = CDDM_To_BMesh(ob, dm, NULL);
 	bm = em->bm;
-	
+
+	BM_Compute_Normals(bm);	
 	BMO_push(bm, NULL);
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {
 		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, l) {
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 				float edge_angle_cos;
 				
 				if (l->radial_next == l)
@@ -91,9 +92,11 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *ob
 		}
 	}
 	
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_TestHFlag(e, BM_SHARP))
-			BMO_SetFlag(bm, e, EDGE_MARK);
+	if (emd->flags & MOD_EDGESPLIT_FROMFLAG) {
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			if (BM_TestHFlag(e, BM_SHARP))
+				BMO_SetFlag(bm, e, EDGE_MARK);
+		}
 	}
 	
 	BMO_CallOpf(bm, "edgesplit edges=%fe", EDGE_MARK);
