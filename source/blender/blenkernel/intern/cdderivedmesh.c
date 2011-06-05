@@ -944,9 +944,9 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 				}
 
 				glEnd();
-			} else {
-				printf("eek!\n");
-			}
+			} /*else {
+				printf("eek in cddm draw mapped faces!\n");
+			}*/
 			
 			if (nors) nors += 3;
 		}

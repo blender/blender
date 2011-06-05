@@ -585,7 +585,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 			
 			if (k1 == mpoly[fidx].totloop) {
-				printf("eek!!!!\n");
+				printf("eek in solidify!!!!\n");
 			}
 			
 			if (ed->v2 == mloop[mpoly[fidx].loopstart+k1].v) {
@@ -594,7 +594,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			} else if (ed->v1 == mloop[mpoly[fidx].loopstart+k1].v) {
 				k2 = (k1+1)%mp->totloop;
 			} else {
-				printf("eek!!!\n");
+				printf("eek in solidify!!!\n");
 				k2 = k1;
 			}
 			
