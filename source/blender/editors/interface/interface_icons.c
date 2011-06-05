@@ -461,6 +461,7 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float UNUSED(alpha)
 	glDisable(GL_LINE_SMOOTH);
 }
 
+#ifndef WITH_HEADLESS
 static void init_brush_icons(void)
 {
 
@@ -588,7 +589,7 @@ static void init_internal_icons(void)
 
 	IMB_freeImBuf(bbuf);
 }
-
+#endif // WITH_HEADLESS
 
 static void init_iconfile_list(struct ListBase *list)
 {
@@ -704,6 +705,7 @@ ListBase *UI_iconfile_list(void)
 
 void UI_icons_free(void)
 {
+#ifndef WITH_HEADLESS
 	if(icongltex.id) {
 		glDeleteTextures(1, &icongltex.id);
 		icongltex.id= 0;
@@ -711,6 +713,7 @@ void UI_icons_free(void)
 
 	free_iconfile_list(&iconfilelist);
 	BKE_icons_free();
+#endif
 }
 
 void UI_icons_free_drawinfo(void *drawinfo)
@@ -792,10 +795,14 @@ int UI_icon_get_height(int icon_id)
 
 void UI_icons_init(int first_dyn_id)
 {
+#ifdef WITH_HEADLESS
+	(void)first_dyn_id;
+#else
 	init_iconfile_list(&iconfilelist);
 	BKE_icons_init(first_dyn_id);
 	init_internal_icons();
 	init_brush_icons();
+#endif
 }
 
 /* Render size for preview images and icons
