@@ -104,4 +104,6 @@ int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length, flo
 
 int sound_get_channels(struct bSound* sound);
 
+void* sound_get_factory(void* sound);
+
 #endif

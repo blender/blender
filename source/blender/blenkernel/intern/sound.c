@@ -502,3 +502,8 @@ int sound_get_channels(struct bSound* sound)
 
 	return info.specs.channels;
 }
+
+void* sound_get_factory(void* sound)
+{
+	return ((struct bSound*) sound)->playback_handle;
+}

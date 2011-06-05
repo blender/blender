@@ -181,10 +181,48 @@ static PyMethodDef meth_getcdevice[] = {{ "device", (PyCFunction)AUD_getCDevice,
 										  ":return: The application's :class:`Device`.\n"
 										  ":rtype: :class:`Device`"}};
 
+extern "C" {
+extern void* sound_get_factory(void* sound);
+}
+
+static PyObject* AUD_getSoundFromPointer(PyObject* self, PyObject* args)
+{
+	long int lptr;
+
+	if(PyArg_Parse(args, "l:_sound_from_pointer", &lptr))
+	{
+		if(lptr)
+		{
+			AUD_Reference<AUD_IFactory>* factory = (AUD_Reference<AUD_IFactory>*) sound_get_factory((void*) lptr);
+
+			if(factory)
+			{
+				Factory* obj = (Factory*) Factory_empty();
+				if(obj)
+				{
+					obj->factory = new AUD_Reference<AUD_IFactory>(*factory);
+					return (PyObject*) obj;
+				}
+			}
+		}
+	}
+
+	Py_RETURN_NONE;
+}
+
+static PyMethodDef meth_sound_from_pointer[] = {{ "_sound_from_pointer", (PyCFunction)AUD_getSoundFromPointer, METH_O,
+										  "_sound_from_pointer(pointer)\n\n"
+										  "Returns the corresponding :class:`Factory` object.\n\n"
+										  ":arg pointer: The pointer to the bSound object as long.\n"
+										  ":type pointer: long\n"
+										  ":return: The corresponding :class:`Factory` object.\n"
+										  ":rtype: :class:`Factory`"}};
+
 PyObject* AUD_initPython()
 {
 	PyObject* module = PyInit_aud();
-	PyModule_AddObject(module, "device", (PyObject *)PyCFunction_New(meth_getcdevice, NULL));
+	PyModule_AddObject(module, "device", (PyObject*)PyCFunction_New(meth_getcdevice, NULL));
+	PyModule_AddObject(module, "_sound_from_pointer", (PyObject*)PyCFunction_New(meth_sound_from_pointer, NULL));
 	PyDict_SetItemString(PyImport_GetModuleDict(), "aud", module);
 
 	return module;

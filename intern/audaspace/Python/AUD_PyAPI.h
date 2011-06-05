@@ -66,8 +66,8 @@ typedef struct {
 PyMODINIT_FUNC
 PyInit_aud(void);
 
-extern PyObject *
-Device_empty();
+extern PyObject* Device_empty();
+extern PyObject* Factory_empty();
 
 #ifdef __cplusplus
 }

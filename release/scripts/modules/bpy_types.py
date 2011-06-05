@@ -409,6 +409,16 @@ class Text(bpy_types.ID):
 TypeMap = {}
 
 
+class Sound(bpy_types.ID):
+    __slots__ = ()
+    
+    @property
+    def factory(self):
+        """The aud.Factory object of the sound."""
+        import aud
+        return aud._sound_from_pointer(self.as_pointer())
+
+
 class RNAMeta(type):
     def __new__(cls, name, bases, classdict, **args):
         result = type.__new__(cls, name, bases, classdict)

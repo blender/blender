@@ -2875,6 +2875,12 @@ Device_empty()
 	return DeviceType.tp_alloc(&DeviceType, 0);
 }
 
+PyObject *
+Factory_empty()
+{
+	return FactoryType.tp_alloc(&FactoryType, 0);
+}
+
 // ====================================================================
 
 PyDoc_STRVAR(M_aud_doc,
