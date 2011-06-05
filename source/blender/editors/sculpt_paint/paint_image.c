@@ -440,6 +440,8 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 		GPU_free_image(ima); /* force OpenGL reload */
 		if(ibuf->rect_float)
 			ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
+		if(ibuf->mipmap[0])
+			ibuf->userflags |= IB_MIPMAP_INVALID; /* force mipmap recreatiom */
 
 	}
 
@@ -764,7 +766,7 @@ static int project_paint_occlude_ptv_clip(
 	if (side)	interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 	else		interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 	
-	if(!view3d_test_clipping(ps->rv3d, wco, 1)) {
+	if(!ED_view3d_test_clipping(ps->rv3d, wco, 1)) {
 		return 1;
 	}
 	
@@ -2347,7 +2349,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						/* a pitty we need to get the worldspace pixel location here */
 						if(do_clip) {
 							interp_v3_v3v3v3(wco, ps->dm_mvert[ (*(&mf->v1 + i1)) ].co, ps->dm_mvert[ (*(&mf->v1 + i2)) ].co, ps->dm_mvert[ (*(&mf->v1 + i3)) ].co, w);
-							if(view3d_test_clipping(ps->rv3d, wco, 1)) {
+							if(ED_view3d_test_clipping(ps->rv3d, wco, 1)) {
 								continue; /* Watch out that no code below this needs to run */
 							}
 						}
@@ -2570,7 +2572,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 												if (side)	interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 												else		interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 
-												if(view3d_test_clipping(ps->rv3d, wco, 1)) {
+												if(ED_view3d_test_clipping(ps->rv3d, wco, 1)) {
 													continue; /* Watch out that no code below this needs to run */
 												}
 											}
@@ -2812,7 +2814,7 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 
 static int project_paint_view_clip(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
 {
-	int orth= get_view3d_cliprange(v3d, rv3d, clipsta, clipend);
+	int orth= ED_view3d_clip_range_get(v3d, rv3d, clipsta, clipend);
 
 	if (orth) { /* only needed for ortho */
 		float fac = 2.0f / ((*clipend) - (*clipsta));
@@ -2951,7 +2953,7 @@ static void project_paint_begin(ProjPaintState *ps)
 			copy_m4_m4(viewmat, ps->rv3d->viewmat);
 			copy_m4_m4(viewinv, ps->rv3d->viewinv);
 
-			view3d_get_object_project_mat(ps->rv3d, ps->ob, ps->projectMat);
+			ED_view3d_ob_project_mat_get(ps->rv3d, ps->ob, ps->projectMat);
 
 			ps->is_ortho= project_paint_view_clip(ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend);
 		}
@@ -3973,7 +3975,7 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), float *lastpos, f
 }
 
 
-static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, int *UNUSED(prevmval_i), int *mval_i, double time, float pressure)
+static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, const int UNUSED(prevmval_i[2]), const int mval_i[2], double time, float pressure)
 {
 	
 	/* Use mouse coords as floats for projection painting */
@@ -3992,7 +3994,7 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, i
 }
 
 
-static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, int *prevmval_i, int *mval_i, double time, float pressure)
+static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, const int prevmval_i[2], const int mval_i[2], double time, float pressure)
 {
 	int a, redraw;
 	
@@ -4415,7 +4417,7 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	else return 0;
 }
 
-static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPainter *painter, short texpaint, int *prevmval, int *mval, double time, float pressure)
+static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPainter *painter, short texpaint, const int prevmval[2], const int mval[2], double time, float pressure)
 {
 	Image *newimage = NULL;
 	float fwuv[2], bkuv[2], newuv[2];
@@ -4856,7 +4858,6 @@ static int paint_exec(bContext *C, wmOperator *op)
 
 static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
 	PaintOperation *pop= op->customdata;
 	wmTabletData *wmtab;
 	PointerRNA itemptr;
@@ -4866,8 +4867,8 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 
 	// XXX +1 matches brush location better but
 	// still not exact, find out why and fix ..
-	mouse[0]= event->x - ar->winrct.xmin + 1;
-	mouse[1]= event->y - ar->winrct.ymin + 1;
+	mouse[0]= event->mval[0] + 1;
+	mouse[1]= event->mval[1] + 1;
 
 	time= PIL_check_seconds_timer();
 
@@ -5066,56 +5067,6 @@ void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 	}
 }
 
-/* ************ image paint radial control *************/
-static int paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	float zoom;
-	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
-	get_imapaint_zoom(C, &zoom, &zoom);
-	toggle_paint_cursor(C, 0);
-	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), zoom);
-	return WM_radial_control_invoke(C, op, event);
-}
-
-static int paint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int ret = WM_radial_control_modal(C, op, event);
-	if(ret != OPERATOR_RUNNING_MODAL)
-		toggle_paint_cursor(C, 1);
-	return ret;
-}
-
-static int paint_radial_control_exec(bContext *C, wmOperator *op)
-{
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->imapaint.paint);
-	float zoom;
-	int ret;
-	char str[64];
-	get_imapaint_zoom(C, &zoom, &zoom);
-	ret = brush_radial_control_exec(op, brush, 1.0f / zoom);
-	WM_radial_control_string(op, str, sizeof(str));
-	
-	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
-
-	return ret;
-}
-
-void PAINT_OT_image_paint_radial_control(wmOperatorType *ot)
-{
-	WM_OT_radial_control_partial(ot);
-
-	ot->name= "Image Paint Radial Control";
-	ot->idname= "PAINT_OT_image_paint_radial_control";
-
-	ot->invoke= paint_radial_control_invoke;
-	ot->modal= paint_radial_control_modal;
-	ot->exec= paint_radial_control_exec;
-	ot->poll= image_paint_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-}
-
 /************************ grab clone operator ************************/
 
 typedef struct GrabClone {
@@ -5233,16 +5184,8 @@ static int sample_color_exec(bContext *C, wmOperator *op)
 
 static int sample_color_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	int location[2];
-
-	if(ar) {
-		location[0]= event->x - ar->winrct.xmin;
-		location[1]= event->y - ar->winrct.ymin;
-		RNA_int_set_array(op->ptr, "location", location);
-
-		sample_color_exec(C, op);
-	}
+	RNA_int_set_array(op->ptr, "location", event->mval);
+	sample_color_exec(C, op);
 
 	WM_event_add_modal_handler(C, op);
 
@@ -5251,21 +5194,13 @@ static int sample_color_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sample_color_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	int location[2];
-
 	switch(event->type) {
 		case LEFTMOUSE:
 		case RIGHTMOUSE: // XXX hardcoded
 			return OPERATOR_FINISHED;
 		case MOUSEMOVE:
-			if(ar) {
-				location[0]= event->x - ar->winrct.xmin;
-				location[1]= event->y - ar->winrct.ymin;
-				RNA_int_set_array(op->ptr, "location", location);
-
-				sample_color_exec(C, op);
-			}
+			RNA_int_set_array(op->ptr, "location", event->mval);
+			sample_color_exec(C, op);
 			break;
 	}
 
@@ -5332,14 +5267,10 @@ static int set_clone_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	View3D *v3d= CTX_wm_view3d(C);
 	ARegion *ar= CTX_wm_region(C);
 	float location[3];
-	short mval[2];
-
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
 
 	view3d_operator_needs_opengl(C);
 
-	if(!view_autodist(scene, ar, v3d, mval, location))
+	if(!ED_view3d_autodist(scene, ar, v3d, event->mval, location))
 		return OPERATOR_CANCELLED;
 
 	RNA_float_set_array(op->ptr, "location", location);
@@ -5443,28 +5374,6 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/************* texture paint radial control *************/
-
-static int texture_paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
-	toggle_paint_cursor(C, !ts->imapaint.paintcursor);
-	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), 1);
-	return WM_radial_control_invoke(C, op, event);
-}
-
-static int texture_paint_radial_control_exec(bContext *C, wmOperator *op)
-{
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->imapaint.paint);
-	int ret = brush_radial_control_exec(op, brush, 1);
-	char str[64];
-	WM_radial_control_string(op, str, sizeof(str));
-
-	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
-
-	return ret;
-}
-
 static int texture_paint_poll(bContext *C)
 {
 	if(texture_paint_toggle_poll(C))
@@ -5478,23 +5387,6 @@ int image_texture_paint_poll(bContext *C)
 {
 	return (texture_paint_poll(C) || image_paint_poll(C));
 }
-
-void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
-{
-	WM_OT_radial_control_partial(ot);
-
-	ot->name= "Texture Paint Radial Control";
-	ot->idname= "PAINT_OT_texture_paint_radial_control";
-
-	ot->invoke= texture_paint_radial_control_invoke;
-	ot->modal= paint_radial_control_modal;
-	ot->exec= texture_paint_radial_control_exec;
-	ot->poll= texture_paint_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-}
-
 
 int facemask_paint_poll(bContext *C)
 {

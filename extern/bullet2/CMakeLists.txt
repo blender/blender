@@ -29,6 +29,10 @@ set(INC
 	src
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	src/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp
 	src/BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp
@@ -145,7 +149,6 @@ set(SRC
 	src/LinearMath/btGeometryUtil.cpp
 	src/LinearMath/btQuickprof.cpp
 	src/LinearMath/btSerializer.cpp
-	
 
 	src/Bullet-C-Api.h
 	src/BulletCollision/BroadphaseCollision/btAxisSweep3.h
@@ -330,4 +333,4 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
-blender_add_lib(extern_bullet "${SRC}" "${INC}")
+blender_add_lib(extern_bullet "${SRC}" "${INC}" "${INC_SYS}")

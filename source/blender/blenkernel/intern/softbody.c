@@ -640,7 +640,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
 {
 	Mesh *me= ob->data;
 	MFace *mface= me->mface;
-	BodyPoint *bp;
+	/*BodyPoint *bp;*/ /*UNUSED*/
 	BodySpring *bs, *bs_new;
 	int a ;
 
@@ -661,7 +661,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
 			/* fill the tail */
 			a = 0;
 			bs = bs_new+ob->soft->totspring;
-			bp= ob->soft->bpoint;
+			/*bp= ob->soft->bpoint; */ /*UNUSED*/
 			if(mface ) {
 				for(a=me->totface; a>0; a--, mface++) {
 					if(mface->v4) {
@@ -1042,7 +1042,10 @@ static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int 
 	GHash *hash;
 	GHashIterator *ihash;
 	float  aabbmin[3],aabbmax[3];
-	int a, deflected=0;
+	int deflected=0;
+#if 0
+	int a;
+#endif
 
 	if ((sb == NULL) || (sb->scratch ==NULL)) return 0;
 	VECCOPY(aabbmin,sb->scratch->aabbmin);
@@ -1056,17 +1059,20 @@ static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int 
 		ob             = BLI_ghashIterator_getKey	(ihash);
 			/* only with deflecting set */
 			if(ob->pd && ob->pd->deflect) {
+#if 0			/* UNUSED */
 				MFace *mface= NULL;
 				MVert *mvert= NULL;
 				MVert *mprevvert= NULL;
 				ccdf_minmax *mima= NULL;
+#endif
 				if(ccdm){
+#if 0				/* UNUSED */
 					mface= ccdm->mface;
 					mvert= ccdm->mvert;
 					mprevvert= ccdm->mprevvert;
 					mima= ccdm->mima;
 					a = ccdm->totface;
-
+#endif
 					if ((aabbmax[0] < ccdm->bbmin[0]) ||
 						(aabbmax[1] < ccdm->bbmin[1]) ||
 						(aabbmax[2] < ccdm->bbmin[2]) ||
@@ -2095,19 +2101,25 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float UN
 
 	float dir[3],dvel[3];
 	float distance,forcefactor,kd,absvel,projvel,kw;
+#if 0	/* UNUSED */
 	int ia,ic;
+#endif
 	/* prepare depending on which side of the spring we are on */
 	if (bpi == bs->v1){
 		bp1 = &sb->bpoint[bs->v1];
 		bp2 = &sb->bpoint[bs->v2];
+#if 0	/* UNUSED */
 		ia =3*bs->v1;
 		ic =3*bs->v2;
+#endif
 	}
 	else if (bpi == bs->v2){
 		bp1 = &sb->bpoint[bs->v2];
 		bp2 = &sb->bpoint[bs->v1];
+#if 0	/* UNUSED */
 		ia =3*bs->v2;
 		ic =3*bs->v1;
+#endif
 	}
 	else{
 		/* TODO make this debug option */
@@ -2454,23 +2466,23 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
  * this will ruin adaptive stepsize AKA heun! (BM)
  */
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
-	BodyPoint *bproot;
+	/*BodyPoint *bproot;*/ /* UNUSED */
 	ListBase *do_effector = NULL;
-	float gravity;
+	/* float gravity; */ /* UNUSED */
 	/* float iks; */
 	float fieldfactor = -1.0f, windfactor  = 0.25;
-	int   do_deflector,do_selfcollision,do_springcollision,do_aero;
+	int   do_deflector /*,do_selfcollision*/ ,do_springcollision,do_aero;
 
-	gravity = sb->grav * sb_grav_force_scale(ob);
+	/* gravity = sb->grav * sb_grav_force_scale(ob); */ /* UNUSED */
 
 	/* check conditions for various options */
 	do_deflector= query_external_colliders(scene, ob);
-	do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
+	/* do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF)); */ /* UNUSED */
 	do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
 	do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
 
 	/* iks  = 1.0f/(1.0f-sb->inspring)-1.0f; */ /* inner spring constants function */ /* UNUSED */
-	bproot= sb->bpoint; /* need this for proper spring addressing */
+	/* bproot= sb->bpoint; */ /* need this for proper spring addressing */ /* UNUSED */
 
 	if (do_springcollision || do_aero)
 	sb_sfesf_threads_run(scene, ob, timenow,sb->totspring,NULL);
@@ -2516,7 +2528,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		*/
 		SoftBody *sb= ob->soft;	/* is supposed to be there */
 		BodyPoint  *bp;
-		BodyPoint *bproot;
+		/* BodyPoint *bproot; */ /* UNUSED */
 		BodySpring *bs;
 		ListBase *do_effector = NULL;
 		float iks, ks, kd, gravity[3] = {0.0f,0.0f,0.0f};
@@ -2547,7 +2559,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
 
 		iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
-		bproot= sb->bpoint; /* need this for proper spring addressing */
+		/* bproot= sb->bpoint; */ /* need this for proper spring addressing */ /* UNUSED */
 
 		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(scene, ob, timenow);
 		/* after spring scan because it uses Effoctors too */

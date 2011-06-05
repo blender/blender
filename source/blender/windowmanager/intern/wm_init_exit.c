@@ -48,6 +48,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_screen.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
@@ -247,15 +248,7 @@ int WM_init_game(bContext *C)
 		CTX_wm_window_set(C, win);
 
 	sa = biggest_view3d(C);
-
-	if(sa)
-	{
-		for(ar=sa->regionbase.first; ar; ar=ar->next) {
-			if(ar->regiontype == RGN_TYPE_WINDOW) {
-				break;
-			}
-		}
-	}
+	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
 	// if we have a valid 3D view
 	if (sa && ar) {

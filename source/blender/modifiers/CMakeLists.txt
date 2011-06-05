@@ -37,6 +37,9 @@ set(INC
 	../../../intern/guardedalloc
 	../../../intern/elbeem/extern
 	../../../extern/recastnavigation/Recast/Include
+)
+
+set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
         ${GLEW_INCLUDE_PATH}
 )
@@ -93,7 +96,9 @@ if(WITH_MOD_BOOLEAN)
 	list(APPEND SRC
 		intern/MOD_boolean_util.c
 	)
-	list(APPEND INC ../../../intern/bsp/extern)
+	list(APPEND INC
+		../../../intern/bsp/extern
+	)
 endif()
 
 if(WITH_MOD_DECIMATE)
@@ -105,4 +110,4 @@ if(NOT WITH_MOD_FLUID)
 	add_definitions(-DDISABLE_ELBEEM)
 endif()
 
-blender_add_lib(bf_modifiers "${SRC}" "${INC}")
+blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}")

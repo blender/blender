@@ -90,6 +90,7 @@ void	ED_area_headerprint(ScrArea *sa, const char *str);
 void	ED_area_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_area_prevspace(struct bContext *C, ScrArea *sa);
 void	ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
+int		ED_area_headersize(void);
 
 /* screens */
 void	ED_screens_initialize(struct wmWindowManager *wm);

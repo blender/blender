@@ -338,7 +338,7 @@ typedef struct PEData {
 	DerivedMesh *dm;
 	PTCacheEdit *edit;
 
-	const short *mval;
+	const int *mval;
 	rcti *rect;
 	float rad;
 	float dist;
@@ -373,7 +373,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 	PE_set_data(C, data);
 
 	view3d_set_viewcontext(C, &data->vc);
-	/* note, the object argument means the modelview matrix does not account for the objects matrix, use viewmat rather then (obmat * viewmat) */
+	/* note, the object argument means the modelview matrix does not account for the objects matrix, use viewmat rather than (obmat * viewmat) */
 	view3d_get_transformation(data->vc.ar, data->vc.rv3d, NULL, &data->mats);
 
 	if((data->vc.v3d->drawtype>OB_WIRE) && (data->vc.v3d->flag & V3D_ZBUF_SELECT)) {
@@ -385,7 +385,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 			/* we may need to force an update here by setting the rv3d as dirty
 			 * for now it seems ok, but take care!:
 			 * rv3d->depths->dirty = 1; */
-			view3d_update_depths(data->vc.ar);
+			ED_view3d_depth_update(data->vc.ar);
 		}
 	}
 }
@@ -439,9 +439,9 @@ static int key_test_depth(PEData *data, float co[3])
 static int key_inside_circle(PEData *data, float rad, float co[3], float *distance)
 {
 	float dx, dy, dist;
-	short sco[2];
+	int sco[2];
 
-	project_short(data->vc.ar, co, sco);
+	project_int(data->vc.ar, co, sco);
 	
 	if(sco[0] == IS_CLIPPED)
 		return 0;
@@ -465,9 +465,9 @@ static int key_inside_circle(PEData *data, float rad, float co[3], float *distan
 
 static int key_inside_rect(PEData *data, float co[3])
 {
-	short sco[2];
+	int sco[2];
 
-	project_short(data->vc.ar, co,sco);
+	project_int(data->vc.ar, co,sco);
 
 	if(sco[0] == IS_CLIPPED)
 		return 0;
@@ -1369,7 +1369,7 @@ void PARTICLE_OT_select_all(wmOperatorType *ot)
 
 /************************ pick select operator ************************/
 
-int PE_mouse_particles(bContext *C, const short mval[2], int extend)
+int PE_mouse_particles(bContext *C, const int mval[2], int extend)
 {
 	PEData data;
 	Scene *scene= CTX_data_scene(C);
@@ -1484,7 +1484,7 @@ void PARTICLE_OT_select_tips(wmOperatorType *ot)
 static int select_linked_exec(bContext *C, wmOperator *op)
 {
 	PEData data;
-	short mval[2];
+	int mval[2];
 	int location[2];
 
 	RNA_int_get_array(op->ptr, "location", location);
@@ -1505,13 +1505,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 
 static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	int location[2];
-
-	location[0]= event->x - ar->winrct.xmin;
-	location[1]= event->y - ar->winrct.ymin;
-	RNA_int_set_array(op->ptr, "location", location);
-
+	RNA_int_set_array(op->ptr, "location", event->mval);
 	return select_linked_exec(C, op);
 }
 
@@ -1574,7 +1568,7 @@ int PE_border_select(bContext *C, rcti *rect, int select, int extend)
 
 /************************ circle select operator ************************/
 
-int PE_circle_select(bContext *C, int selecting, const short mval[2], float rad)
+int PE_circle_select(bContext *C, int selecting, const int mval[2], float rad)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -1599,7 +1593,7 @@ int PE_circle_select(bContext *C, int selecting, const short mval[2], float rad)
 
 /************************ lasso select operator ************************/
 
-int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, short select)
+int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, short select)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -1610,7 +1604,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	POINT_P; KEY_K;
 	float co[3], mat[4][4]= MAT4_UNITY;
-	short vertco[2];
+	int vertco[2];
 
 	PEData data;
 
@@ -1631,7 +1625,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 			LOOP_KEYS {
 				VECCOPY(co, key->co);
 				mul_m4_v3(mat, co);
-				project_short(ar, co, vertco);
+				project_int(ar, co, vertco);
 				if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1]) && key_test_depth(&data, co)) {
 					if(select && !(key->flag & PEK_SELECT)) {
 						key->flag |= PEK_SELECT;
@@ -1649,7 +1643,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 
 			VECCOPY(co, key->co);
 			mul_m4_v3(mat, co);
-			project_short(ar, co,vertco);
+			project_int(ar, co,vertco);
 			if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1]) && key_test_depth(&data, co)) {
 				if(select && !(key->flag & PEK_SELECT)) {
 					key->flag |= PEK_SELECT;
@@ -2521,80 +2515,6 @@ static void toggle_particle_cursor(bContext *C, int enable)
 		pset->paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), PE_poll_view3d, brush_drawcursor, NULL);
 }
 
-/********************* radial control operator *********************/
-
-static int brush_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ParticleEditSettings *pset= PE_settings(CTX_data_scene(C));
-	ParticleBrushData *brush;
-	int mode = RNA_enum_get(op->ptr, "mode");
-	float original_value=1.0f;
-
-	if(pset->brushtype < 0)
-		return OPERATOR_CANCELLED;
-
-	brush= &pset->brush[pset->brushtype];
-
-	toggle_particle_cursor(C, 0);
-
-	if(mode == WM_RADIALCONTROL_SIZE)
-		original_value = brush->size;
-	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		original_value = brush->strength;
-
-	RNA_float_set(op->ptr, "initial_value", original_value);
-
-	return WM_radial_control_invoke(C, op, event);
-}
-
-static int brush_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int ret = WM_radial_control_modal(C, op, event);
-
-	if(ret != OPERATOR_RUNNING_MODAL)
-		toggle_particle_cursor(C, 1);
-
-	return ret;
-}
-
-static int brush_radial_control_exec(bContext *C, wmOperator *op)
-{
-	ParticleEditSettings *pset= PE_settings(CTX_data_scene(C));
-	ParticleBrushData *brush;
-	int mode = RNA_enum_get(op->ptr, "mode");
-	float new_value = RNA_float_get(op->ptr, "new_value");
-
-	if(pset->brushtype < 0)
-		return OPERATOR_CANCELLED;
-
-	brush= &pset->brush[pset->brushtype];
-
-	if(mode == WM_RADIALCONTROL_SIZE)
-		brush->size= new_value;
-	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		brush->strength= new_value;
-
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-void PARTICLE_OT_brush_radial_control(wmOperatorType *ot)
-{
-	WM_OT_radial_control_partial(ot);
-
-	ot->name= "Brush Radial Control";
-	ot->idname= "PARTICLE_OT_brush_radial_control";
-
-	ot->invoke= brush_radial_control_invoke;
-	ot->modal= brush_radial_control_modal;
-	ot->exec= brush_radial_control_exec;
-	ot->poll= PE_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-}
-
 /*************************** delete operator **************************/
 
 enum { DEL_PARTICLE, DEL_KEY };
@@ -2845,7 +2765,7 @@ static void brush_cut(PEData *data, int pa_index)
 	float rad2, cut_time= 1.0;
 	float x0, x1, v0, v1, o0, o1, xo0, xo1, d, dv;
 	int k, cut, keys= (int)pow(2.0, (double)pset->draw_step);
-	short vertco[2];
+	int vertco[2];
 
 	/* blunt scissors */
 	if(BLI_frand() > data->cutfac) return;
@@ -2858,7 +2778,7 @@ static void brush_cut(PEData *data, int pa_index)
 
 	cut=0;
 
-	project_short_noclip(ar, key->co, vertco);
+	project_int_noclip(ar, key->co, vertco);
 	x0= (float)vertco[0];
 	x1= (float)vertco[1];
 
@@ -2876,7 +2796,7 @@ static void brush_cut(PEData *data, int pa_index)
 	else {
 		/* calculate path time closest to root that was inside the circle */
 		for(k=1, key++; k<=keys; k++, key++) {
-			project_short_noclip(ar, key->co, vertco);
+			project_int_noclip(ar, key->co, vertco);
 
 			if(key_test_depth(data, key->co) == 0) {
 				x0= (float)vertco[0];
@@ -3324,7 +3244,7 @@ static int brush_add(PEData *data, short number)
 
 		mco[0]= data->mval[0] + dmx;
 		mco[1]= data->mval[1] + dmy;
-		viewline(data->vc.ar, data->vc.v3d, mco, co1, co2);
+		ED_view3d_win_to_segment_clip(data->vc.ar, data->vc.v3d, mco, co1, co2);
 
 		mul_m4_v3(imat,co1);
 		mul_m4_v3(imat,co2);
@@ -3540,7 +3460,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	ParticleBrushData *brush= &pset->brush[pset->brushtype];
 	ARegion *ar= CTX_wm_region(C);
 	float vec[3], mousef[2];
-	short mval[2], mvalo[2];
+	int mval[2];
 	int flip, mouse[2], dx, dy, removed= 0, added=0, selected= 0;
 	int lock_root = pset->flag & PE_LOCK_FIRST;
 
@@ -3563,8 +3483,6 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	mval[0]= mouse[0];
 	mval[1]= mouse[1];
 
-	mvalo[0]= bedit->lastmouse[0];
-	mvalo[1]= bedit->lastmouse[1];
 
 	/* disable locking temporatily for disconnected hair */
 	if(edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR)
@@ -3581,6 +3499,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		switch(pset->brushtype) {
 			case PE_BRUSH_COMB:
 			{
+				float mval_f[2];
 				data.mval= mval;
 				data.rad= (float)brush->size;
 
@@ -3592,7 +3511,9 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 				invert_m4_m4(ob->imat, ob->obmat);
 
-				window_to_3d_delta(ar, vec, dx, dy);
+				mval_f[0]= dx;
+				mval_f[1]= dy;
+				ED_view3d_win_to_delta(ar, mval_f, vec);
 				data.dvec= vec;
 
 				foreach_mouse_hit_key(&data, brush_comb, selected);
@@ -3756,12 +3677,10 @@ static int brush_edit_exec(bContext *C, wmOperator *op)
 
 static void brush_edit_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
 	PointerRNA itemptr;
 	float mouse[2];
 
-	mouse[0]= event->x - ar->winrct.xmin;
-	mouse[1]= event->y - ar->winrct.ymin;
+	VECCOPY2D(mouse, event->mval);
 
 	/* fill in stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
@@ -4051,18 +3970,6 @@ int PE_undo_valid(Scene *scene)
 	return 0;
 }
 
-static void PTCacheUndo_number(Scene *scene, PTCacheEdit *edit, int nr)
-{
-	PTCacheUndo *undo;
-	int a=1;
-	
-	for(undo= edit->undo.first; undo; undo= undo->next, a++) {
-		if(a==nr) break;
-	}
-	edit->curundo= undo;
-	PE_undo_step(scene, 0);
-}
-
 static void PTCacheUndo_clear(PTCacheEdit *edit)
 {
 	PTCacheUndo *undo;
@@ -4088,32 +3995,38 @@ void PE_redo(Scene *scene)
 	PE_undo_step(scene, -1);
 }
 
-void PE_undo_menu(Scene *scene, Object *ob)
+void PE_undo_number(Scene *scene, int nr)
 {
-	PTCacheEdit *edit= PE_get_current(scene, ob);
+	PTCacheEdit *edit= PE_get_current(scene, OBACT);
 	PTCacheUndo *undo;
-	DynStr *ds;
-	short event=0;
-	char *menu;
-
-	if(!edit) return;
+	int a=0;
 	
-	ds= BLI_dynstr_new();
-
-	BLI_dynstr_append(ds, "Particlemode Undo History %t");
-	
-	for(undo= edit->undo.first; undo; undo= undo->next) {
-		BLI_dynstr_append(ds, "|");
-		BLI_dynstr_append(ds, undo->name);
+	for(undo= edit->undo.first; undo; undo= undo->next, a++) {
+		if(a==nr) break;
 	}
+	edit->curundo= undo;
+	PE_undo_step(scene, 0);
+}
+
+
+/* get name of undo item, return null if no item with this index */
+/* if active pointer, set it to 1 if true */
+char *PE_undo_get_name(Scene *scene, int nr, int *active)
+{
+	PTCacheEdit *edit= PE_get_current(scene, OBACT);
+	PTCacheUndo *undo;
 	
-	menu= BLI_dynstr_get_cstring(ds);
-	BLI_dynstr_free(ds);
+	if(active) *active= 0;
 	
-// XXX	event= pupmenu_col(menu, 20);
-	MEM_freeN(menu);
-	
-	if(event>0) PTCacheUndo_number(scene, edit, event);
+	if(edit) {
+		undo= BLI_findlink(&edit->undo, nr);
+		if(undo) {
+			if(active && undo==edit->curundo)
+				*active= 1;
+			return undo->name;
+		}
+	}
+	return NULL;
 }
 
 /************************ utilities ******************************/

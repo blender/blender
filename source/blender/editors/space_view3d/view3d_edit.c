@@ -40,6 +40,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_lamp_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -55,6 +56,8 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
+#include "BKE_depsgraph.h" /* for ED_view3d_camera_lock_sync */
 
 
 #include "BIF_gl.h"
@@ -78,6 +81,61 @@
 #include "view3d_intern.h"	// own include
 
 /* ********************** view3d_edit: view manipulations ********************* */
+
+int ED_view3d_camera_lock_check(View3D *v3d, RegionView3D *rv3d)
+{
+	return ((v3d->camera) &&
+	        (v3d->camera->id.lib == NULL) &&
+	        (v3d->flag2 & V3D_LOCK_CAMERA) &&
+	        (rv3d->persp==RV3D_CAMOB));
+}
+
+void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
+{
+	if(ED_view3d_camera_lock_check(v3d, rv3d)) {
+		ED_view3d_from_object(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+	}
+}
+
+void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
+{
+	if(ED_view3d_camera_lock_check(v3d, rv3d)) {
+		Object *root_parent;
+
+		if((U.uiflag & USER_CAM_LOCK_NO_PARENT)==0 && (root_parent= v3d->camera->parent)) {
+			Object *ob_update;
+			float view_mat[4][4];
+			float diff_mat[4][4];
+			float parent_mat[4][4];
+
+			while(root_parent->parent) {
+				root_parent= root_parent->parent;
+			}
+
+			ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+
+			invert_m4_m4(v3d->camera->imat, v3d->camera->obmat);
+			mul_m4_m4m4(diff_mat, v3d->camera->imat, view_mat);
+
+			mul_m4_m4m4(parent_mat, root_parent->obmat, diff_mat);
+			object_apply_mat4(root_parent, parent_mat, TRUE, FALSE);
+
+			ob_update= v3d->camera;
+			while(ob_update) {
+				DAG_id_tag_update(&ob_update->id, OB_RECALC_OB);
+				WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, ob_update);
+				ob_update= ob_update->parent;
+			}
+		}
+		else {
+			ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+			root_parent= v3d->camera;
+			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
+			WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, v3d->camera);
+		}
+	}
+}
+
 
 /* ********************* box view support ***************** */
 
@@ -277,6 +335,7 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar, short do_clip)
 typedef struct ViewOpsData {
 	ScrArea *sa;
 	ARegion *ar;
+	View3D *v3d;
 	RegionView3D *rv3d;
 
 	/* needed for continuous zoom */
@@ -331,7 +390,6 @@ static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
 static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 {
 	static float lastofs[3] = {0,0,0};
-	View3D *v3d;
 	RegionView3D *rv3d;
 	ViewOpsData *vod= MEM_callocN(sizeof(ViewOpsData), "viewops data");
 
@@ -339,8 +397,13 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= vod;
 	vod->sa= CTX_wm_area(C);
 	vod->ar= CTX_wm_region(C);
-	v3d= vod->sa->spacedata.first;
+	vod->v3d= vod->sa->spacedata.first;
 	vod->rv3d= rv3d= vod->ar->regiondata;
+
+	/* set the view from the camera, if view locking is enabled.
+	 * we may want to make this optional but for now its needed always */
+	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
+
 	vod->dist0= rv3d->dist;
 	copy_qt_qt(vod->oldquat, rv3d->viewquat);
 	vod->origx= vod->oldx= event->x;
@@ -358,8 +421,8 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
 
-		if((vod->use_dyn_ofs=view_autodist(CTX_data_scene(C), vod->ar, v3d, event->mval, vod->dyn_ofs))) {
-			if (rv3d->persp==RV3D_PERSP) {
+		if((vod->use_dyn_ofs=ED_view3d_autodist(CTX_data_scene(C), vod->ar, vod->v3d, event->mval, vod->dyn_ofs))) {
+			if (rv3d->is_persp) {
 				float my_origin[3]; /* original G.vd->ofs */
 				float my_pivot[3]; /* view */
 				float dvec[3];
@@ -382,7 +445,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 				sub_v3_v3v3(my_pivot, rv3d->ofs, upvec);
 				negate_v3(my_pivot);				/* ofs is flipped */
 
-				/* find a new ofs value that is allong the view axis (rather then the mouse location) */
+				/* find a new ofs value that is allong the view axis (rather than the mouse location) */
 				closest_to_line_v3(dvec, vod->dyn_ofs, my_pivot, my_origin);
 				vod->dist0 = rv3d->dist = len_v3v3(my_pivot, dvec);
 
@@ -390,17 +453,19 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			negate_v3(vod->dyn_ofs);
 			copy_v3_v3(vod->ofs, rv3d->ofs);
-		} else {
-			vod->ofs[0] = vod->ofs[1] = vod->ofs[2] = 0.0f;
 		}
 	}
 
-	/* for dolly */
-	window_to_3d_vector(vod->ar, vod->mousevec, (vod->oldx - vod->ar->winrct.xmin)-(vod->ar->winx)/2, (vod->oldy - vod->ar->winrct.ymin)-(vod->ar->winy)/2);
+	{
+		/* for dolly */
+		float mval_f[2];
+		VECCOPY2D(mval_f, event->mval);
+		ED_view3d_win_to_vector(vod->ar, mval_f, vod->mousevec);
+	}
 
 	/* lookup, we dont pass on v3d to prevent confusement */
-	vod->grid= v3d->grid;
-	vod->far= v3d->far;
+	vod->grid= vod->v3d->grid;
+	vod->far= vod->v3d->far;
 
 	calctrackballvec(&vod->ar->winrct, event->x, event->y, vod->trackvec);
 
@@ -546,7 +611,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 {
 	RegionView3D *rv3d= vod->rv3d;
 
-	rv3d->view= 0; /* need to reset everytime because of view snapping */
+	rv3d->view= RV3D_VIEW_USER; /* need to reset everytime because of view snapping */
 
 	if (U.flag & USER_TRACKBALL) {
 		float phi, si, q1[4], dvec[3], newvec[3];
@@ -711,6 +776,8 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 	/* avoid precision loss over time */
 	normalize_qt(rv3d->viewquat);
 
+	ED_view3d_camera_lock_sync(vod->v3d, rv3d);
+
 	ED_region_tag_redraw(vod->ar);
 }
 
@@ -754,7 +821,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 		viewrotate_apply(vod, event->x, event->y);
 	}
 	else if (event_code==VIEW_CONFIRM) {
-		request_depth_update(vod->rv3d);
+		ED_view3d_depth_tag_update(vod->rv3d);
 		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
@@ -782,18 +849,18 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(rv3d->persp != RV3D_PERSP) {
 
 		if (U.uiflag & USER_AUTOPERSP) {
-			rv3d->persp= RV3D_PERSP;
+			if(!ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
+				rv3d->persp= RV3D_PERSP;
+			}
 		}
 		else if(rv3d->persp==RV3D_CAMOB) {
 
 			/* changed since 2.4x, use the camera view */
-			View3D *v3d = vod->sa->spacedata.first;
-
-			if(v3d->camera) {
-				view3d_apply_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+			if(vod->v3d->camera) {
+				ED_view3d_from_object(vod->v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 			}
 
-			if(rv3d->persp==RV3D_CAMOB) {
+			if(!ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
 				rv3d->persp= rv3d->lpersp;
 			}
 		}
@@ -802,7 +869,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if (event->type == MOUSEPAN) {
 		viewrotate_apply(vod, event->prevx, event->prevy);
-		request_depth_update(rv3d);
+		ED_view3d_depth_tag_update(rv3d);
 		
 		viewops_data_free(C, op);
 		
@@ -811,7 +878,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if (event->type == MOUSEROTATE) {
 		/* MOUSEROTATE performs orbital rotation, so y axis delta is set to 0 */
 		viewrotate_apply(vod, event->prevx, event->y);
-		request_depth_update(rv3d);
+		ED_view3d_depth_tag_update(rv3d);
 		
 		viewops_data_free(C, op);
 		
@@ -894,20 +961,21 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 
 static void viewmove_apply(ViewOpsData *vod, int x, int y)
 {
-	if(vod->rv3d->persp==RV3D_CAMOB) {
-		float zoomfac= ((float)M_SQRT2 + (float)vod->rv3d->camzoom / 50.0f);
-		zoomfac= (zoomfac * zoomfac) * 0.5f;
-
+	if((vod->rv3d->persp==RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
+		const float zoomfac= BKE_screen_view3d_zoom_to_fac((float)vod->rv3d->camzoom) * 2.0f;
 		vod->rv3d->camdx += (vod->oldx - x)/(vod->ar->winx * zoomfac);
 		vod->rv3d->camdy += (vod->oldy - y)/(vod->ar->winy * zoomfac);
 		CLAMP(vod->rv3d->camdx, -1.0f, 1.0f);
 		CLAMP(vod->rv3d->camdy, -1.0f, 1.0f);
-// XXX		preview3d_event= 0;
 	}
 	else {
 		float dvec[3];
+		float mval_f[2];
 
-		window_to_3d_delta(vod->ar, dvec, x-vod->oldx, y-vod->oldy);
+		mval_f[0]= x - vod->oldx;
+		mval_f[1]= y - vod->oldy;
+		ED_view3d_win_to_delta(vod->ar, mval_f, dvec);
+
 		add_v3_v3(vod->rv3d->ofs, dvec);
 
 		if(vod->rv3d->viewlock & RV3D_BOXVIEW)
@@ -916,6 +984,8 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 
 	vod->oldx= x;
 	vod->oldy= y;
+
+	ED_view3d_camera_lock_sync(vod->v3d, vod->rv3d);
 
 	ED_region_tag_redraw(vod->ar);
 }
@@ -954,7 +1024,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 		viewmove_apply(vod, event->x, event->y);
 	}
 	else if (event_code==VIEW_CONFIRM) {
-		request_depth_update(vod->rv3d);
+		ED_view3d_depth_tag_update(vod->rv3d);
 
 		viewops_data_free(C, op);
 
@@ -966,13 +1036,15 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ViewOpsData *vod;
+
 	/* makes op->customdata */
 	viewops_data_create(C, op, event);
+	vod= op->customdata;
 
 	if (event->type == MOUSEPAN) {
-		ViewOpsData *vod= op->customdata;
 		viewmove_apply(vod, event->prevx, event->prevy);
-		request_depth_update(vod->rv3d);
+		ED_view3d_depth_tag_update(vod->rv3d);
 		
 		viewops_data_free(C, op);		
 		
@@ -1005,6 +1077,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 
 /* ************************ viewzoom ******************************** */
 
+/* viewdolly_modal_keymap has an exact copy of this, apply fixes to both */
 /* called in transform_ops.c, on each regeneration of keymaps  */
 void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -1045,21 +1118,17 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 		float dvec[3];
 		float tvec[3];
 		float tpos[3];
+		float mval_f[2];
 		float new_dist;
-		short vb[2], mouseloc[2];
-
-		mouseloc[0]= mx - ar->winrct.xmin;
-		mouseloc[1]= my - ar->winrct.ymin;
-
-		/* find the current window width and height */
-		vb[0] = ar->winx;
-		vb[1] = ar->winy;
 
 		negate_v3_v3(tpos, rv3d->ofs);
 
 		/* Project cursor position into 3D space */
 		initgrabz(rv3d, tpos[0], tpos[1], tpos[2]);
-		window_to_3d_delta(ar, dvec, mouseloc[0]-vb[0]/2, mouseloc[1]-vb[1]/2);
+
+		mval_f[0]= (float)(((mx - ar->winrct.xmin) * 2) - ar->winx) / 2.0f;
+		mval_f[1]= (float)(((my - ar->winrct.ymin) * 2) - ar->winy) / 2.0f;
+		ED_view3d_win_to_delta(ar, mval_f, dvec);
 
 		/* Calculate view target position for dolly */
 		add_v3_v3v3(tvec, tpos, dvec);
@@ -1137,27 +1206,14 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 			zfac * vod->rv3d->dist < 10.0f * vod->far)
 		view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
 
-
-	if ((U.uiflag & USER_ORBIT_ZBUF) && (viewzoom==USER_ZOOM_CONT) && (vod->rv3d->persp==RV3D_PERSP)) {
-		float upvec[3], mat[3][3];
-
-		/* Secret apricot feature, translate the view when in continues mode */
-		upvec[0] = upvec[1] = 0.0f;
-		upvec[2] = (vod->dist0 - vod->rv3d->dist) * vod->grid;
-		vod->rv3d->dist = vod->dist0;
-		copy_m3_m4(mat, vod->rv3d->viewinv);
-		mul_m3_v3(mat, upvec);
-		add_v3_v3(vod->rv3d->ofs, upvec);
-	} else {
-		/* these limits were in old code too */
-		if(vod->rv3d->dist<0.001f * vod->grid) vod->rv3d->dist= 0.001f * vod->grid;
-		if(vod->rv3d->dist>10.0f * vod->far) vod->rv3d->dist=10.0f * vod->far;
-	}
-
-// XXX	if(vod->rv3d->persp==RV3D_ORTHO || vod->rv3d->persp==RV3D_CAMOB) preview3d_event= 0;
+	/* these limits were in old code too */
+	if(vod->rv3d->dist<0.001f * vod->grid) vod->rv3d->dist= 0.001f * vod->grid;
+	if(vod->rv3d->dist>10.0f * vod->far) vod->rv3d->dist=10.0f * vod->far;
 
 	if(vod->rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(vod->sa, vod->ar);
+
+	ED_view3d_camera_lock_sync(vod->v3d, vod->rv3d);
 
 	ED_region_tag_redraw(vod->ar);
 }
@@ -1199,7 +1255,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 		viewzoom_apply(vod, event->x, event->y, U.viewzoom, (U.uiflag & USER_ZOOM_INVERT) != 0);
 	}
 	else if (event_code==VIEW_CONFIRM) {
-		request_depth_update(vod->rv3d);
+		ED_view3d_depth_tag_update(vod->rv3d);
 		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
@@ -1214,6 +1270,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d;
 	ScrArea *sa;
 	ARegion *ar;
+	short use_cam_zoom;
 
 	int delta= RNA_int_get(op->ptr, "delta");
 	int mx, my;
@@ -1235,9 +1292,11 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	mx= RNA_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
 	my= RNA_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
 
+	use_cam_zoom= (rv3d->persp==RV3D_CAMOB) && !(rv3d->is_persp && ED_view3d_camera_lock_check(v3d, rv3d));
+
 	if(delta < 0) {
 		/* this min and max is also in viewmove() */
-		if(rv3d->persp==RV3D_CAMOB) {
+		if(use_cam_zoom) {
 			rv3d->camzoom-= 10;
 			if(rv3d->camzoom < RV3D_CAMZOOM_MIN) rv3d->camzoom= RV3D_CAMZOOM_MIN;
 		}
@@ -1246,7 +1305,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		if(rv3d->persp==RV3D_CAMOB) {
+		if(use_cam_zoom) {
 			rv3d->camzoom+= 10;
 			if(rv3d->camzoom > RV3D_CAMZOOM_MAX) rv3d->camzoom= RV3D_CAMZOOM_MAX;
 		}
@@ -1258,7 +1317,10 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(sa, ar);
 
-	request_depth_update(rv3d);
+	ED_view3d_depth_tag_update(rv3d);
+
+	ED_view3d_camera_lock_sync(v3d, rv3d);
+
 	ED_region_tag_redraw(ar);
 
 	viewops_data_free(C, op);
@@ -1266,9 +1328,48 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/* this is an exact copy of viewzoom_modal_keymap */
+/* called in transform_ops.c, on each regeneration of keymaps  */
+void viewdolly_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+
+	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
+	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
+
+	{0, NULL, 0, NULL, NULL}};
+
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Dolly Modal");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+
+	keymap= WM_modalkeymap_add(keyconf, "View3D Dolly Modal", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
+
+	/* disabled mode switching for now, can re-implement better, later on
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+	 */
+	
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_dolly");
+}
+
 /* viewdolly_invoke() copied this function, changes here may apply there */
 static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ViewOpsData *vod;
+
+	/* makes op->customdata */
+	viewops_data_create(C, op, event);
+	vod= op->customdata;
+
 	/* if one or the other zoom position aren't set, set from event */
 	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
 	{
@@ -1277,18 +1378,9 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(RNA_property_is_set(op->ptr, "delta")) {
-		/* makes op->customdata */
-		viewops_data_create(C, op, event);
 		viewzoom_exec(C, op);
 	}
 	else {
-		ViewOpsData *vod;
-
-		/* makes op->customdata */
-		viewops_data_create(C, op, event);
-
-		vod= op->customdata;
-
 		if (event->type == MOUSEZOOM) {
 			/* Bypass Zoom invert flag for track pads (pass FALSE always) */
 
@@ -1301,7 +1393,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
 				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, FALSE);
 			}
-			request_depth_update(vod->rv3d);
+			ED_view3d_depth_tag_update(vod->rv3d);
 			
 			viewops_data_free(C, op);
 			return OPERATOR_FINISHED;
@@ -1349,7 +1441,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 static void view_dolly_mouseloc(ARegion *ar, float orig_ofs[3], float dvec[3], float dfac)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, 1.0 - dfac);
+	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0 - dfac));
 }
 
 static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_invert)
@@ -1378,6 +1470,8 @@ static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_inv
 
 	if(vod->rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(vod->sa, vod->ar);
+
+	ED_view3d_camera_lock_sync(vod->v3d, vod->rv3d);
 
 	ED_region_tag_redraw(vod->ar);
 }
@@ -1415,7 +1509,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, wmEvent *event)
 		viewdolly_apply(vod, event->x, event->y, (U.uiflag & USER_ZOOM_INVERT) != 0);
 	}
 	else if (event_code==VIEW_CONFIRM) {
-		request_depth_update(vod->rv3d);
+		ED_view3d_depth_tag_update(vod->rv3d);
 		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
@@ -1444,7 +1538,8 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 	else {
 		sa= CTX_wm_area(C);
 		ar= CTX_wm_region(C);
-		normalize_v3_v3(mousevec, ((RegionView3D *)ar->regiondata)->viewinv[2]);
+		negate_v3_v3(mousevec, ((RegionView3D *)ar->regiondata)->viewinv[2]);
+		normalize_v3(mousevec);
 	}
 
 	/* v3d= sa->spacedata.first; */ /* UNUSED */
@@ -1465,7 +1560,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(sa, ar);
 
-	request_depth_update(rv3d);
+	ED_view3d_depth_tag_update(rv3d);
 	ED_region_tag_redraw(ar);
 
 	viewops_data_free(C, op);
@@ -1475,7 +1570,13 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 
 /* copied from viewzoom_invoke(), changes here may apply there */
 static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{	
+{
+	ViewOpsData *vod;
+
+	/* makes op->customdata */
+	viewops_data_create(C, op, event);
+	vod= op->customdata;
+
 	/* if one or the other zoom position aren't set, set from event */
 	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
 	{
@@ -1484,21 +1585,13 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(RNA_property_is_set(op->ptr, "delta")) {
-		/* makes op->customdata */
-		viewops_data_create(C, op, event);
 		viewdolly_exec(C, op);
 	}
 	else {
-		ViewOpsData *vod;
-
-		/* makes op->customdata */
-		viewops_data_create(C, op, event);
-
-		vod= op->customdata;
-
 		/* overwrite the mouse vector with the view direction (zoom into the center) */
 		if((U.uiflag & USER_ZOOM_TO_MOUSEPOS) == 0) {
-			normalize_v3_v3(vod->mousevec, vod->rv3d->viewinv[2]);
+			negate_v3_v3(vod->mousevec, vod->rv3d->viewinv[2]);
+			normalize_v3(vod->mousevec);
 		}
 
 		if (event->type == MOUSEZOOM) {
@@ -1514,7 +1607,7 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
 				viewdolly_apply(vod, event->prevx, event->prevy, FALSE);
 			}
-			request_depth_update(vod->rv3d);
+			ED_view3d_depth_tag_update(vod->rv3d);
 
 			viewops_data_free(C, op);
 			return OPERATOR_FINISHED;
@@ -1534,10 +1627,17 @@ static int viewdolly_poll(bContext *C)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
-	if (rv3d && rv3d->persp == RV3D_PERSP) {
-		return 1;
+	if(rv3d) {
+		if (rv3d->persp == RV3D_PERSP) {
+			return 1;
+		}
+		else {
+			View3D *v3d= CTX_wm_view3d(C);
+			if (ED_view3d_camera_lock_check(v3d, rv3d)) {
+				return 1;
+			}
+		}
 	}
-
 	return 0;
 }
 
@@ -1572,6 +1672,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
 	float *curs;
+	const short skip_camera= ED_view3d_camera_lock_check(v3d, rv3d);
 
 	int center= RNA_boolean_get(op->ptr, "center");
 
@@ -1592,6 +1693,11 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	for(base= scene->base.first; base; base= base->next) {
 		if(BASE_VISIBLE(v3d, base)) {
 			onedone= 1;
+
+			if(skip_camera && base->object == v3d->camera) {
+				continue;
+			}
+
 			minmax_object(base->object, min, max);
 		}
 	}
@@ -1627,7 +1733,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 			new_dist*= size;
 		}
 
-		if (rv3d->persp==RV3D_CAMOB) {
+		if ((rv3d->persp==RV3D_CAMOB) && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 			rv3d->persp= RV3D_PERSP;
 			smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 		}
@@ -1671,6 +1777,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 	Object *obedit= CTX_data_edit_object(C);
 	float size, min[3], max[3], afm[3];
 	int ok=0, ok_dist=1;
+	const short skip_camera= ED_view3d_camera_lock_check(v3d, rv3d);
 
 	/* SMOOTHVIEW */
 	float new_ofs[3];
@@ -1724,9 +1831,13 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 		ok= PE_minmax(scene, min, max);
 	}
 	else {
-		Base *base= FIRSTBASE;
-		while(base) {
+		Base *base;
+		for(base= FIRSTBASE; base; base = base->next) {
 			if(TESTBASE(v3d, base))  {
+
+				if(skip_camera && base->object == v3d->camera) {
+					continue;
+				}
 
 				/* account for duplis */
 				if (minmax_object_duplis(scene, base->object, min, max)==0)
@@ -1734,7 +1845,6 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 
 				ok= 1;
 			}
-			base= base->next;
 		}
 	}
 
@@ -1743,7 +1853,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 	sub_v3_v3v3(afm, max, min);
 	size= MAX3(afm[0], afm[1], afm[2]);
 
-	if(rv3d->persp==RV3D_ORTHO) {
+	if(!rv3d->is_persp) {
 		if(size < 0.0001f) { /* if its a sinble point. dont even re-scale */
 			ok_dist= 0;
 		}
@@ -1770,7 +1880,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 		new_dist*= size;
 	}
 
-	if (rv3d->persp==RV3D_CAMOB) {
+	if (rv3d->persp==RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 		rv3d->persp= RV3D_PERSP;
 		smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
@@ -1838,9 +1948,22 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 
 static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
 {
+	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Scene *scene= CTX_data_scene(C);
+	float xfac, yfac;
+	float size[2];
 
 	rv3d->camdx= rv3d->camdy= 0.0f;
+
+	view3d_viewborder_size_get(scene, ar, size);
+
+	/* 4px is just a little room from the edge of the area */
+	xfac= (float)ar->winx / (float)(size[0] + 4);
+	yfac= (float)ar->winy / (float)(size[1] + 4);
+
+	rv3d->camzoom= BKE_screen_view3d_zoom_from_fac(MIN2(xfac, yfac));
+	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 
@@ -1881,7 +2004,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
 	/* calculate range */
-	view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb, FALSE);
+	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
 
 	scene->r.border.xmin= ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
 	scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
@@ -1987,7 +2110,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
 	cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
 
-	if (rv3d->persp==RV3D_PERSP) {
+	if (rv3d->is_persp) {
 		double p_corner[3];
 
 		/* no depths to use, we cant do anything! */
@@ -2023,13 +2146,17 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 			new_ofs[0] = -p[0];
 			new_ofs[1] = -p[1];
 			new_ofs[2] = -p[2];
-		} else {
+		}
+		else {
+			float mval_f[2];
 			/* We cant use the depth, fallback to the old way that dosnt set the center depth */
 			copy_v3_v3(new_ofs, rv3d->ofs);
 
 			initgrabz(rv3d, -new_ofs[0], -new_ofs[1], -new_ofs[2]);
 
-			window_to_3d_delta(ar, dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
+			mval_f[0]= (rect.xmin + rect.xmax - vb[0]) / 2.0f;
+			mval_f[1]= (rect.ymin + rect.ymax - vb[1]) / 2.0f;
+			ED_view3d_win_to_delta(ar, mval_f, dvec);
 			/* center the view to the center of the rectangle */
 			sub_v3_v3(new_ofs, dvec);
 		}
@@ -2053,10 +2180,11 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	View3D *v3d= CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	/* if in camera view do not exec the operator so we do not conflict with set render border*/
-	if (rv3d->persp != RV3D_CAMOB)
+	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d))
 		return WM_border_select_invoke(C, op, event);
 	else
 		return OPERATOR_PASS_THROUGH;
@@ -2095,9 +2223,9 @@ static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
 	int im_width= (scene->r.size*scene->r.xsch)/100;
 	
 	view3d_viewborder_size_get(scene, ar, size);
-	
-	rv3d->camzoom= (sqrtf(4.0f * (float)im_width/size[0]) - (float)M_SQRT2) * 50.0f;
-	rv3d->camzoom= CLAMPIS(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
+
+	rv3d->camzoom= BKE_screen_view3d_zoom_from_fac((float)im_width/size[0]);
+	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 }
 
 static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2169,7 +2297,7 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar, float q1, float
 			invert_qt(obact_quat);
 			mul_qt_qtqt(new_quat, new_quat, obact_quat);
 
-			rv3d->view= view= 0;
+			rv3d->view= view= RV3D_VIEW_USER;
 		}
 	}
 
@@ -2361,6 +2489,7 @@ static EnumPropertyItem prop_view_orbit_items[] = {
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
 {
+	View3D *v3d= CTX_wm_view3d(C);
 	ARegion *ar= ED_view3d_context_region_unlock(C);
 	RegionView3D *rv3d= ar->regiondata; /* no NULL check is needed, poll checks */
 	float phi, q1[4], new_quat[4];
@@ -2369,8 +2498,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 	orbitdir = RNA_enum_get(op->ptr, "type");
 
 	if(rv3d->viewlock==0) {
-
-		if(rv3d->persp != RV3D_CAMOB) {
+		if((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
 			if(orbitdir == V3D_VIEW_STEPLEFT || orbitdir == V3D_VIEW_STEPRIGHT) {
 				float si;
 				/* z-axis */
@@ -2381,7 +2509,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				q1[1]= q1[2]= 0.0;
 				q1[3]= si;
 				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
-				rv3d->view= 0;
+				rv3d->view= RV3D_VIEW_USER;
 			}
 			else if(orbitdir == V3D_VIEW_STEPDOWN || orbitdir == V3D_VIEW_STEPUP) {
 				/* horizontal axis */
@@ -2393,7 +2521,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				q1[0]= (float)cos(phi);
 				mul_v3_fl(q1+1, sin(phi));
 				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
-				rv3d->view= 0;
+				rv3d->view= RV3D_VIEW_USER;
 			}
 
 			smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL, NULL, new_quat, NULL, NULL);
@@ -2431,15 +2559,16 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	float vec[3];
+	float mval_f[2]= {0.0f, 0.0f};
 	int pandir;
 
 	pandir = RNA_enum_get(op->ptr, "type");
 
 	initgrabz(rv3d, 0.0, 0.0, 0.0);
-	if(pandir == V3D_VIEW_PANRIGHT) window_to_3d_delta(ar, vec, -32, 0);
-	else if(pandir == V3D_VIEW_PANLEFT) window_to_3d_delta(ar, vec, 32, 0);
-	else if(pandir == V3D_VIEW_PANUP) window_to_3d_delta(ar, vec, 0, -25);
-	else if(pandir == V3D_VIEW_PANDOWN) window_to_3d_delta(ar, vec, 0, 25);
+	if(pandir == V3D_VIEW_PANRIGHT)		{ mval_f[0]= -32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	else if(pandir == V3D_VIEW_PANLEFT)	{ mval_f[0]=  32.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	else if(pandir == V3D_VIEW_PANUP)	{ mval_f[1]= -25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
+	else if(pandir == V3D_VIEW_PANDOWN)	{ mval_f[1]=  25.0f; ED_view3d_win_to_delta(ar, mval_f, vec); }
 	add_v3_v3(rv3d->ofs, vec);
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
@@ -2675,7 +2804,7 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 
 	view3d_set_viewcontext(C, &vc);
 	view3d_get_transformation(vc.ar, vc.rv3d, NULL, &mats); /* NULL because we don't want it in object space */
-	view3d_calculate_clipping(rv3d->clipbb, rv3d->clip, &mats, &rect);
+	ED_view3d_calc_clipping(rv3d->clipbb, rv3d->clip, &mats, &rect);
 
 	return OPERATOR_FINISHED;
 }
@@ -2733,7 +2862,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
-	short mx, my, mval[2];
+	int mval[2];
 //	short ctrl= 0; // XXX
 	int flip;
 	fp= give_cursor(scene, v3d);
@@ -2741,10 +2870,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 //	if(obedit && ctrl) lr_click= 1;
 	copy_v3_v3(oldcurs, fp);
 
-	mx= event->x - ar->winrct.xmin;
-	my= event->y - ar->winrct.ymin;
-
-	project_short_noclip(ar, fp, mval);
+	project_int_noclip(ar, fp, mval);
 	flip= initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	
 	/* reset the depth based on the view offset */
@@ -2752,7 +2878,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 		negate_v3_v3(fp, rv3d->ofs);
 
 		/* re initialize */
-		project_short_noclip(ar, fp, mval);
+		project_int_noclip(ar, fp, mval);
 		flip= initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	}
 
@@ -2760,23 +2886,22 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 		short depth_used = 0;
 
 		if (U.uiflag & USER_ORBIT_ZBUF) { /* maybe this should be accessed some other way */
-			short mval_depth[2];
-			mval_depth[0]= mx;
-			mval_depth[1]= my;
 			view3d_operator_needs_opengl(C);
-			if (view_autodist(scene, ar, v3d, mval_depth, fp))
+			if (ED_view3d_autodist(scene, ar, v3d, event->mval, fp))
 				depth_used= 1;
 		}
 
 		if(depth_used==0) {
-			window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
+			float mval_f[2];
+			VECSUB2D(mval_f, mval, event->mval);
+			ED_view3d_win_to_delta(ar, mval_f, dvec);
 			sub_v3_v3(fp, dvec);
 		}
 	}
 	else {
 
-		dx= ((float)(mx-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
-		dy= ((float)(my-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
+		dx= ((float)(event->mval[0]-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
+		dy= ((float)(event->mval[1]-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
 
 		fz= rv3d->persmat[0][3]*fp[0]+ rv3d->persmat[1][3]*fp[1]+ rv3d->persmat[2][3]*fp[2]+ rv3d->persmat[3][3];
 		fz= fz/rv3d->zfac;
@@ -2891,7 +3016,7 @@ void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 /* ************************* below the line! *********************** */
 
 
-static float view_autodist_depth_margin(ARegion *ar, const short mval[2], int margin)
+static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int margin)
 {
 	ViewDepths depth_temp= {0};
 	rcti rect;
@@ -2919,7 +3044,7 @@ static float view_autodist_depth_margin(ARegion *ar, const short mval[2], int ma
 }
 
 /* XXX todo Zooms in on a border drawn by the user */
-int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, const short mval[2], float mouse_worldloc[3] ) //, float *autodist )
+int ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2], float mouse_worldloc[3] ) //, float *autodist )
 {
 	bglMats mats; /* ZBuffer depth vars */
 	float depth_close= FLT_MAX;
@@ -2946,7 +3071,7 @@ int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, const short mval[2], f
 	return 1;
 }
 
-int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //, float *autodist )
+int ED_view3d_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //, float *autodist )
 {
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	switch(mode) {
@@ -2962,7 +3087,7 @@ int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //, flo
 }
 
 // no 4x4 sampling, run view_autodist_init first
-int view_autodist_simple(ARegion *ar, const short mval[2], float mouse_worldloc[3], int margin, float *force_depth) //, float *autodist )
+int ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_worldloc[3], int margin, float *force_depth) //, float *autodist )
 {
 	bglMats mats; /* ZBuffer depth vars, could cache? */
 	float depth;
@@ -2990,7 +3115,7 @@ int view_autodist_simple(ARegion *ar, const short mval[2], float mouse_worldloc[
 	return 1;
 }
 
-int view_autodist_depth(struct ARegion *ar, const short mval[2], int margin, float *depth)
+int ED_view3d_autodist_depth(struct ARegion *ar, const int mval[2], int margin, float *depth)
 {
 	*depth= view_autodist_depth_margin(ar, mval, margin);
 
@@ -3000,11 +3125,11 @@ int view_autodist_depth(struct ARegion *ar, const short mval[2], int margin, flo
 static int depth_segment_cb(int x, int y, void *userData)
 {
 	struct { struct ARegion *ar; int margin; float depth; } *data = userData;
-	short mval[2];
+	int mval[2];
 	float depth;
 
-	mval[0]= (short)x;
-	mval[1]= (short)y;
+	mval[0]= x;
+	mval[1]= y;
 
 	depth= view_autodist_depth_margin(data->ar, mval, data->margin);
 
@@ -3017,7 +3142,7 @@ static int depth_segment_cb(int x, int y, void *userData)
 	}
 }
 
-int view_autodist_depth_segment(struct ARegion *ar, const short mval_sta[2], const short mval_end[2], int margin, float *depth)
+int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], const int mval_end[2], int margin, float *depth)
 {
 	struct { struct ARegion *ar; int margin; float depth; } data = {NULL};
 	int p1[2];
@@ -3428,21 +3553,66 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int UNUSED(mode))
 }
 #endif // if 0, unused NDof code
 
-/* give a 4x4 matrix from a perspective view, only needs viewquat, ofs and dist
- * basically the same as...
- *     rv3d->persp= RV3D_PERSP
- *     setviewmatrixview3d(scene, v3d, rv3d);
- *     setcameratoview3d(v3d, rv3d, v3d->camera);
- * ...but less of a hassle
- * */
-void view3d_persp_mat4(RegionView3D *rv3d, float mat[][4])
+
+/* Gets the view trasnformation from a camera
+* currently dosnt take camzoom into account
+*
+* The dist is not modified for this function, if NULL its assimed zero
+* */
+void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 {
-	float qt[4], dvec[3];
-	copy_qt_qt(qt, rv3d->viewquat);
-	qt[0]= -qt[0];
-	quat_to_mat4(mat, qt);
-	mat[3][2] -= rv3d->dist;
-	translate_m4(mat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
-	mul_v3_v3fl(dvec, mat[2], -rv3d->dist);
-	sub_v3_v3v3(mat[3], dvec, rv3d->ofs);
+	/* Offset */
+	if (ofs)
+		negate_v3_v3(ofs, mat[3]);
+
+	/* Quat */
+	if (quat) {
+		float imat[4][4];
+		invert_m4_m4(imat, mat);
+		mat4_to_quat(quat, imat);
+	}
+
+	if (dist) {
+		float nmat[3][3];
+		float vec[3];
+
+		vec[0]= 0.0f;
+		vec[1]= 0.0f;
+		vec[2]= -(*dist);
+
+		copy_m3_m4(nmat, mat);
+		normalize_m3(nmat);
+
+		mul_m3_v3(nmat, vec);;
+		sub_v3_v3(ofs, vec);
+	}
+}
+
+void ED_view3d_to_m4(float mat[][4], const float ofs[3], const float quat[4], const float dist)
+{
+	float iviewquat[4]= {-quat[0], quat[1], quat[2], quat[3]};
+	float dvec[3]= {0.0f, 0.0f, dist};
+
+	quat_to_mat4(mat, iviewquat);
+	mul_mat3_m4_v3(mat, dvec);
+	sub_v3_v3v3(mat[3], dvec, ofs);
+}
+
+
+/* object -> view */
+void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist, float *lens)
+{
+	ED_view3d_from_m4(ob->obmat, ofs, quat, dist);
+
+	if (lens) {
+		ED_view3d_ob_clip_range_get(ob, lens, NULL, NULL);
+	}
+}
+
+/* view -> object */
+void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], const float dist)
+{
+	float mat[4][4];
+	ED_view3d_to_m4(mat, ofs, quat, dist);
+	object_apply_mat4(ob, mat, TRUE, TRUE);
 }

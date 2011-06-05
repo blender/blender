@@ -27,8 +27,13 @@
 set(INC
 	.
 	../container
+	../guardedalloc
 	../memutil
 	../moto/include
+)
+
+set(INC_SYS
+
 )
 
 set(SRC
@@ -56,4 +61,4 @@ set(SRC
 	intern/LOD_QuadricEditor.h
 )
 
-blender_add_lib(bf_intern_decimate "${SRC}" "${INC}")
+blender_add_lib(bf_intern_decimate "${SRC}" "${INC}" "${INC_SYS}")

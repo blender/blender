@@ -633,14 +633,14 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 				dxco[0]= fx;
 				dxco[1]= 0.0f;
 				if(shi->facenor[2]!=0.0f)
-					dxco[2]= (shi->facenor[0]*fx)/shi->facenor[2];
+					dxco[2]= -(shi->facenor[0]*fx)/shi->facenor[2];
 				else 
 					dxco[2]= 0.0f;
 				
 				dyco[0]= 0.0f;
 				dyco[1]= fy;
 				if(shi->facenor[2]!=0.0f)
-					dyco[2]= (shi->facenor[1]*fy)/shi->facenor[2];
+					dyco[2]= -(shi->facenor[1]*fy)/shi->facenor[2];
 				else 
 					dyco[2]= 0.0f;
 				

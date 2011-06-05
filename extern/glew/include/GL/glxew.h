@@ -876,6 +876,33 @@ typedef void ( * PFNGLXFREEMEMORYNVPROC) (void *pointer);
 
 #endif /* GLX_NV_vertex_array_range */
 
+/* -------------------------- GLX_NV_video_capture ------------------------- */
+
+#ifndef GLX_NV_video_capture
+#define GLX_NV_video_capture 1
+
+#define GLX_DEVICE_ID_NV 0x20CD
+#define GLX_UNIQUE_ID_NV 0x20CE
+#define GLX_NUM_VIDEO_CAPTURE_SLOTS_NV 0x20CF
+
+typedef XID GLXVideoCaptureDeviceNV;
+
+typedef int ( * PFNGLXBINDVIDEOCAPTUREDEVICENVPROC) (Display* dpy, unsigned int video_capture_slot, GLXVideoCaptureDeviceNV device);
+typedef GLXVideoCaptureDeviceNV * ( * PFNGLXENUMERATEVIDEOCAPTUREDEVICESNVPROC) (Display* dpy, int screen, int *nelements);
+typedef void ( * PFNGLXLOCKVIDEOCAPTUREDEVICENVPROC) (Display* dpy, GLXVideoCaptureDeviceNV device);
+typedef int ( * PFNGLXQUERYVIDEOCAPTUREDEVICENVPROC) (Display* dpy, GLXVideoCaptureDeviceNV device, int attribute, int *value);
+typedef void ( * PFNGLXRELEASEVIDEOCAPTUREDEVICENVPROC) (Display* dpy, GLXVideoCaptureDeviceNV device);
+
+#define glXBindVideoCaptureDeviceNV GLXEW_GET_FUN(__glewXBindVideoCaptureDeviceNV)
+#define glXEnumerateVideoCaptureDevicesNV GLXEW_GET_FUN(__glewXEnumerateVideoCaptureDevicesNV)
+#define glXLockVideoCaptureDeviceNV GLXEW_GET_FUN(__glewXLockVideoCaptureDeviceNV)
+#define glXQueryVideoCaptureDeviceNV GLXEW_GET_FUN(__glewXQueryVideoCaptureDeviceNV)
+#define glXReleaseVideoCaptureDeviceNV GLXEW_GET_FUN(__glewXReleaseVideoCaptureDeviceNV)
+
+#define GLXEW_NV_video_capture GLXEW_GET_VAR(__GLXEW_NV_video_capture)
+
+#endif /* GLX_NV_video_capture */
+
 /* -------------------------- GLX_NV_video_output -------------------------- */
 
 #ifndef GLX_NV_video_output
@@ -926,8 +953,7 @@ typedef int ( * PFNGLXSENDPBUFFERTOVIDEONVPROC) (Display* dpy, GLXPbuffer pbuf, 
 
 /* -------------------------- GLX_OML_sync_control ------------------------- */
 
-#if !defined(GLX_OML_sync_control) && defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
-#include <inttypes.h>
+#ifndef GLX_OML_sync_control
 #define GLX_OML_sync_control 1
 
 typedef Bool ( * PFNGLXGETMSCRATEOMLPROC) (Display* dpy, GLXDrawable drawable, int32_t* numerator, int32_t* denominator);
@@ -1374,6 +1400,12 @@ extern PFNGLXRESETFRAMECOUNTNVPROC __glewXResetFrameCountNV;
 extern PFNGLXALLOCATEMEMORYNVPROC __glewXAllocateMemoryNV;
 extern PFNGLXFREEMEMORYNVPROC __glewXFreeMemoryNV;
 
+extern PFNGLXBINDVIDEOCAPTUREDEVICENVPROC __glewXBindVideoCaptureDeviceNV;
+extern PFNGLXENUMERATEVIDEOCAPTUREDEVICESNVPROC __glewXEnumerateVideoCaptureDevicesNV;
+extern PFNGLXLOCKVIDEOCAPTUREDEVICENVPROC __glewXLockVideoCaptureDeviceNV;
+extern PFNGLXQUERYVIDEOCAPTUREDEVICENVPROC __glewXQueryVideoCaptureDeviceNV;
+extern PFNGLXRELEASEVIDEOCAPTUREDEVICENVPROC __glewXReleaseVideoCaptureDeviceNV;
+
 extern PFNGLXBINDVIDEOIMAGENVPROC __glewXBindVideoImageNV;
 extern PFNGLXGETVIDEODEVICENVPROC __glewXGetVideoDeviceNV;
 extern PFNGLXGETVIDEOINFONVPROC __glewXGetVideoInfoNV;
@@ -1381,13 +1413,11 @@ extern PFNGLXRELEASEVIDEODEVICENVPROC __glewXReleaseVideoDeviceNV;
 extern PFNGLXRELEASEVIDEOIMAGENVPROC __glewXReleaseVideoImageNV;
 extern PFNGLXSENDPBUFFERTOVIDEONVPROC __glewXSendPbufferToVideoNV;
 
-#ifdef GLX_OML_sync_control
 extern PFNGLXGETMSCRATEOMLPROC __glewXGetMscRateOML;
 extern PFNGLXGETSYNCVALUESOMLPROC __glewXGetSyncValuesOML;
 extern PFNGLXSWAPBUFFERSMSCOMLPROC __glewXSwapBuffersMscOML;
 extern PFNGLXWAITFORMSCOMLPROC __glewXWaitForMscOML;
 extern PFNGLXWAITFORSBCOMLPROC __glewXWaitForSbcOML;
-#endif
 
 extern PFNGLXCHOOSEFBCONFIGSGIXPROC __glewXChooseFBConfigSGIX;
 extern PFNGLXCREATECONTEXTWITHCONFIGSGIXPROC __glewXCreateContextWithConfigSGIX;
@@ -1480,6 +1510,7 @@ GLXEW_EXPORT GLboolean __GLXEW_NV_multisample_coverage;
 GLXEW_EXPORT GLboolean __GLXEW_NV_present_video;
 GLXEW_EXPORT GLboolean __GLXEW_NV_swap_group;
 GLXEW_EXPORT GLboolean __GLXEW_NV_vertex_array_range;
+GLXEW_EXPORT GLboolean __GLXEW_NV_video_capture;
 GLXEW_EXPORT GLboolean __GLXEW_NV_video_output;
 GLXEW_EXPORT GLboolean __GLXEW_OML_swap_method;
 GLXEW_EXPORT GLboolean __GLXEW_OML_sync_control;

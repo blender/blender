@@ -37,7 +37,7 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
-
+static float lambda_cp_line(const float p[3], const float l1[3], const float l2[3]);
 
 /********************************** Polygons *********************************/
 
@@ -239,7 +239,7 @@ float dist_to_line_segment_v3(const float v1[3], const float v2[3], const float 
 /******************************* Intersection ********************************/
 
 /* intersect Line-Line, shorts */
-int isect_line_line_v2_short(const short v1[2], const short v2[2], const short v3[2], const short v4[2])
+int isect_line_line_v2_int(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
 {
 	float div, labda, mu;
 	
@@ -640,6 +640,48 @@ int isect_ray_tri_threshold_v3(const float p1[3], const float d[3], const float 
 	return 1;
 }
 
+int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3], const float plane_co[3], const float plane_no[3], const short no_flip)
+{
+	float l_vec[3]; /* l1 -> l2 normalized vector */
+	float p_no[3]; /* 'plane_no' normalized */
+	float dot;
+
+	sub_v3_v3v3(l_vec, l2, l1);
+
+	normalize_v3(l_vec);
+	normalize_v3_v3(p_no, plane_no);
+
+	dot= dot_v3v3(l_vec, p_no);
+	if(dot == 0.0f) {
+		return 0;
+	}
+	else {
+		float l1_plane[3]; /* line point aligned with the plane */
+		float dist; /* 'plane_no' aligned distance to the 'plane_co' */
+
+		/* for pradictable flipping since the plane is only used to
+		 * define a direction, ignore its flipping and aligned with 'l_vec' */
+		if(dot < 0.0f) {
+			dot= -dot;
+			negate_v3(p_no);
+		}
+
+		add_v3_v3v3(l1_plane, l1, p_no);
+
+		dist = lambda_cp_line(plane_co, l1, l1_plane);
+
+		/* treat line like a ray, when 'no_flip' is set */
+		if(no_flip && dist < 0.0f) {
+			dist= -dist;
+		}
+
+		mul_v3_fl(l_vec, dist / dot);
+
+		add_v3_v3v3(out, l1, l_vec);
+
+		return 1;
+	}
+}
 
 /* Adapted from the paper by Kasper Fauerby */
 /* "Improved Collision detection and Response" */
@@ -1075,16 +1117,14 @@ float closest_to_line_v2(float cp[2],const float p[2], const float l1[2], const 
 	return lambda;
 }
 
-#if 0
 /* little sister we only need to know lambda */
-static float lambda_cp_line(float p[3], float l1[3], float l2[3])
+static float lambda_cp_line(const float p[3], const float l1[3], const float l2[3])
 {
 	float h[3],u[3];
 	sub_v3_v3v3(u, l2, l1);
 	sub_v3_v3v3(h, p, l1);
 	return(dot_v3v3(u,h)/dot_v3v3(u,u));
 }
-#endif
 
 /* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
 void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2[2], const float v3[2], const float pt[2], float *uv)

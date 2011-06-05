@@ -182,7 +182,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 	{
 		if(formatCtx->streams[i] &&
 			get_codec_from_stream(formatCtx->streams[i]) && 
-			(get_codec_from_stream(formatCtx->streams[i])->codec_type==CODEC_TYPE_VIDEO))
+			(get_codec_from_stream(formatCtx->streams[i])->codec_type==AVMEDIA_TYPE_VIDEO))
 		{
 			videoStream=i;
 			break;
@@ -368,9 +368,9 @@ void *VideoFFmpeg::cacheThread(void *data)
 				BLI_remlink(&video->m_packetCacheBase, cachePacket);
 				// use m_frame because when caching, it is not used in main thread
 				// we can't use currentFrame directly because we need to convert to RGB first
-				avcodec_decode_video(video->m_codecCtx, 
+				avcodec_decode_video2(video->m_codecCtx, 
 					video->m_frame, &frameFinished, 
-					cachePacket->packet.data, cachePacket->packet.size);
+					&cachePacket->packet);
 				if(frameFinished) 
 				{
 					AVFrame * input = video->m_frame;
@@ -641,7 +641,7 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 	if (m_captRate <= 0.f)
 		m_captRate = defFrameRate;
 	sprintf(rateStr, "%f", m_captRate);
-	av_parse_video_frame_rate(&frameRate, rateStr);
+	av_parse_video_rate(&frameRate, rateStr);
 	// populate format parameters
 	// need to specify the time base = inverse of rate
 	formatParams.time_base.num = frameRate.den;
@@ -924,10 +924,10 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 			{
 				if (packet.stream_index == m_videoStream) 
 				{
-					avcodec_decode_video(
+					avcodec_decode_video2(
 						m_codecCtx, 
 						m_frame, &frameFinished, 
-						packet.data, packet.size);
+						&packet);
 					if (frameFinished)
 					{
 						m_curPosition = (long)((packet.dts-startTs) * (m_baseFrameRate*timeBase) + 0.5);
@@ -999,9 +999,9 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 	{
 		if(packet.stream_index == m_videoStream) 
 		{
-			avcodec_decode_video(m_codecCtx, 
+			avcodec_decode_video2(m_codecCtx, 
 				m_frame, &frameFinished, 
-				packet.data, packet.size);
+				&packet);
 			// remember dts to compute exact frame number
 			dts = packet.dts;
 			if (frameFinished && !posFound) 

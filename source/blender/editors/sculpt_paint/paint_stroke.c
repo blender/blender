@@ -333,7 +333,7 @@ static int project_brush_radius(RegionView3D* rv3d, float radius, float location
 {
 	float view[3], nonortho[3], ortho[3], offset[3], p1[2], p2[2];
 
-	viewvector(rv3d, location, view);
+	ED_view3d_global_to_vector(rv3d, location, view);
 
 	// create a vector that is not orthogonal to view
 

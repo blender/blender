@@ -107,14 +107,9 @@ static int frame_from_event(bContext *C, wmEvent *event)
 {
 	ARegion *region= CTX_wm_region(C);
 	float viewx;
-	int x, y;
-	
-	/* convert screen coordinates to region coordinates */
-	x= event->x - region->winrct.xmin;
-	y= event->y - region->winrct.ymin;
-	
+
 	/* convert from region coordinates to View2D 'tot' space */
-	UI_view2d_region_to_view(&region->v2d, x, y, &viewx, NULL);
+	UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, NULL);
 	
 	/* round result to nearest int (frames are ints!) */
 	return (int)floor(viewx+0.5f);

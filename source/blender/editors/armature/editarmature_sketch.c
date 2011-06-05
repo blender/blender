@@ -374,16 +374,16 @@ static void sk_autoname(bContext *C, ReebArc *arc)
 			int valid = 0;
 			int caps = 0;
 
-			if (BLI_streq(side, ""))
+			if (side[0] == '\0')
 			{
 				valid = 1;
 			}
-			else if (BLI_streq(side, "R") || BLI_streq(side, "L"))
+			else if (strcmp(side, "R")==0 || strcmp(side, "L")==0)
 			{
 				valid = 1;
 				caps = 1;
 			}
-			else if (BLI_streq(side, "r") || BLI_streq(side, "l"))
+			else if (strcmp(side, "r")==0 || strcmp(side, "l")==0)
 			{
 				valid = 1;
 				caps = 0;
@@ -702,7 +702,7 @@ static void sk_drawStrokeSubdivision(ToolSettings *toolsettings, SK_Stroke *stk)
 	}
 }
 
-static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, short mval[2], int *dist, int *index, int all_pts)
+static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, int mval[2], int *dist, int *index, int all_pts)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SK_Point *pt = NULL;
@@ -736,7 +736,7 @@ static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, short mval[2], 
 }
 
 #if 0 /* UNUSED 2.5 */
-static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones, short mval[2], int *dist)
+static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones, int mval[2], int *dist)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SK_Point *pt = NULL;
@@ -1005,7 +1005,7 @@ static void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end,
 		float pval[2];
 
 		project_float(ar, stk->points[i].p, pval);
-		viewray(ar, v3d, pval, ray_start, ray_normal);
+		ED_view3d_win_to_ray(ar, v3d, pval, ray_start, ray_normal);
 
 		mul_v3_fl(ray_normal, distance * progress / length);
 		add_v3_v3(stk->points[i].p, ray_normal);
@@ -1022,6 +1022,7 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 	short cval[2];
 	float fp[3] = {0, 0, 0};
 	float dvec[3];
+	float mval_f[2];
 
 	if (last != NULL)
 	{
@@ -1032,7 +1033,8 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 
 	/* method taken from editview.c - mouse_cursor() */
 	project_short_noclip(ar, fp, cval);
-	window_to_3d_delta(ar, dvec, cval[0] - dd->mval[0], cval[1] - dd->mval[1]);
+	VECSUB2D(mval_f, cval, dd->mval);
+	ED_view3d_win_to_delta(ar, mval_f, dvec);
 	sub_v3_v3v3(vec, fp, dvec);
 }
 
@@ -1721,7 +1723,7 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 
 					mval[0] = vi[0];
 					mval[1] = vi[1];
-					viewline(ar, v3d, mval, ray_start, ray_end);
+					ED_view3d_win_to_segment_clip(ar, v3d, mval, ray_start, ray_end);
 
 					isect_line_line_v3(	stk->points[s_i].p,
 										stk->points[s_i + 1].p,
@@ -2157,7 +2159,7 @@ static void sk_applyGesture(bContext *C, SK_Sketch *sketch)
 /********************************************/
 
 
-static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const short mval[2], int extend)
+static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], int extend)
 {
 	ViewContext vc;
 	rcti rect;
@@ -2473,7 +2475,7 @@ static int sketch_delete(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(ev
 	return OPERATOR_FINISHED;
 }
 
-void BIF_sk_selectStroke(bContext *C, const short mval[2], short extend)
+void BIF_sk_selectStroke(bContext *C, const int mval[2], short extend)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *sketch = contextSketch(C, 0);

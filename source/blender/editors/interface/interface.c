@@ -556,7 +556,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 //				but->flag= oldbut->flag;
 #else
 				/* exception! redalert flag can't be update from old button. 
-				 * perhaps it should only copy spesific flags rather then all. */
+				 * perhaps it should only copy spesific flags rather than all. */
 //				but->flag= (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
 #endif
 //				but->active= oldbut->active;
@@ -892,13 +892,14 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
-		ui_but_to_pixelrect(&rect, ar, block, but);
+		if(!(but->flag & (UI_HIDDEN|UI_SCROLLED))) {
+			ui_but_to_pixelrect(&rect, ar, block, but);
 		
-		if(!(but->flag & UI_HIDDEN) &&
 			/* XXX: figure out why invalid coordinates happen when closing render window */
 			/* and material preview is redrawn in main window (temp fix for bug #23848) */
-			rect.xmin < rect.xmax && rect.ymin < rect.ymax)
-			ui_draw_but(C, ar, &style, but, &rect);
+			if(rect.xmin < rect.xmax && rect.ymin < rect.ymax)
+				ui_draw_but(C, ar, &style, but, &rect);
+		}
 	}
 	
 	/* restore matrix */
@@ -1668,17 +1669,14 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	return 0;
 }
 
-void ui_set_but_default(bContext *C, uiBut *but, short all)
+void ui_set_but_default(bContext *C, short all)
 {
-	/* if there is a valid property that is editable... */
-	if (but->rnapoin.data && but->rnaprop && RNA_property_editable(&but->rnapoin, but->rnaprop)) {
-		int index = (all)? -1 : but->rnaindex;
-		
-		if(RNA_property_reset(&but->rnapoin, but->rnaprop, index)) {
-			/* perform updates required for this property */
-			RNA_property_update(C, &but->rnapoin, but->rnaprop);
-		}
-	}
+	PointerRNA ptr;
+
+	WM_operator_properties_create(&ptr, "UI_OT_reset_default_button");
+	RNA_boolean_set(&ptr, "all", all);
+	WM_operator_name_call(C, "UI_OT_reset_default_button", WM_OP_EXEC_DEFAULT, &ptr);
+	WM_operator_properties_free(&ptr);
 }
 
 static double soft_range_round_up(double value, double max)
@@ -1848,29 +1846,24 @@ void uiFreeInactiveBlocks(const bContext *C, ListBase *lb)
 
 void uiBlockSetRegion(uiBlock *block, ARegion *region)
 {
-	ListBase *lb;
+	ListBase *lb= &region->uiblocks;
 	uiBlock *oldblock= NULL;
 
-	lb= &region->uiblocks;
-	
 	/* each listbase only has one block with this name, free block
 	 * if is already there so it can be rebuilt from scratch */
 	if(lb) {
-		for (oldblock= lb->first; oldblock; oldblock= oldblock->next)
-			if (BLI_streq(oldblock->name, block->name))
-				break;
+		oldblock= BLI_findstring(lb, block->name, offsetof(uiBlock, name));
 
 		if (oldblock) {
 			oldblock->active= 0;
 			oldblock->panel= NULL;
 		}
+
+		/* at the beginning of the list! for dynamical menus/blocks */
+		BLI_addhead(lb, block);
 	}
 
 	block->oldblock= oldblock;
-
-	/* at the beginning of the list! for dynamical menus/blocks */
-	if(lb)
-		BLI_addhead(lb, block);
 }
 
 uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, short dt)
@@ -2489,28 +2482,8 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 				icon= RNA_property_ui_icon(prop);
 			}
 		}
-
-		if(!tip) {
-			if(type == ROW && proptype == PROP_ENUM) {
-				EnumPropertyItem *item;
-				int i, totitem, free;
-
-				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
-
-				for(i=0; i<totitem; i++) {
-					if(item[i].identifier[0] && item[i].value == (int)max) {
-						if(item[i].description[0])
-							tip= item[i].description;
-						break;
-					}
-				}
-
-				if(free)
-					MEM_freeN(item);
-			}
-		}
 		
-		if(!tip)
+		if(!tip && proptype != PROP_ENUM)
 			tip= RNA_property_ui_description(prop);
 
 		if(min == max || a1 == -1 || a2 == -1) {

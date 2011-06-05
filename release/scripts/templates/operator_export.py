@@ -12,7 +12,7 @@ def write_some_data(context, filepath, use_some_setting):
 
 # ExportHelper is a helper class, defines filename and
 # invoke() function which calls the file selector.
-from io_utils import ExportHelper
+from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 

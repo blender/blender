@@ -92,19 +92,56 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 }
 
 #ifdef WITH_MOD_BOOLEAN
+static DerivedMesh *get_quick_derivedMesh(DerivedMesh *derivedData, DerivedMesh *dm, int operation)
+{
+	DerivedMesh *result = NULL;
+
+	if(derivedData->getNumFaces(derivedData) == 0 || dm->getNumFaces(dm) == 0) {
+		switch(operation) {
+			case eBooleanModifierOp_Intersect:
+				result = CDDM_new(0, 0, 0);
+				break;
+
+			case eBooleanModifierOp_Union:
+				if(derivedData->getNumFaces(derivedData)) result = derivedData;
+				else result = CDDM_copy(dm);
+
+				break;
+
+			case eBooleanModifierOp_Difference:
+				result = derivedData;
+				break;
+		}
+	}
+
+	return result;
+}
+
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						DerivedMesh *derivedData,
 						int UNUSED(useRenderParams),
 						int UNUSED(isFinalCalc))
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
-	DerivedMesh *dm = bmd->object->derivedFinal;
+	DerivedMesh *dm;
 
-	/* we do a quick sanity check */
-	if(dm && (derivedData->getNumFaces(derivedData) > 3)
-			&& bmd->object && dm->getNumFaces(dm) > 3) {
-		DerivedMesh *result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
-				1 + bmd->operation);
+	if(!bmd->object)
+		return derivedData;
+
+	dm = bmd->object->derivedFinal;
+
+	if(dm) {
+		DerivedMesh *result;
+
+		/* when one of objects is empty (has got no faces) we could speed up
+		   calculation a bit returning one of objects' derived meshes (or empty one)
+		   Returning mesh is depended on modifieier's operation (sergey) */
+		result = get_quick_derivedMesh(derivedData, dm, bmd->operation);
+
+		if(result == NULL) {
+			result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
+					1 + bmd->operation);
+		}
 
 		/* if new mesh returned, return it; otherwise there was
 		* an error, so delete the modifier object */

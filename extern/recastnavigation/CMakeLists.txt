@@ -29,6 +29,10 @@ set(INC
 		Detour/Include
 )
 
+set(INC_SYS
+
+)
+
 set(SRC 
 		Detour/Source/DetourCommon.cpp
 		Detour/Source/DetourNode.cpp
@@ -59,5 +63,4 @@ set(SRC
 		Recast/Include/RecastTimer.h	
 )
 
-blender_add_lib(extern_recastnavigation "${SRC}" "${INC}")
-
+blender_add_lib(extern_recastnavigation "${SRC}" "${INC}" "${INC_SYS}")

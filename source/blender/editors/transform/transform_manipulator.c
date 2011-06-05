@@ -557,7 +557,7 @@ static void test_manipulator_axis(const bContext *C)
 	float angle;
 	float vec[3];
 
-	viewvector(rv3d, rv3d->twmat[3], vec);
+	ED_view3d_global_to_vector(rv3d, rv3d->twmat[3], vec);
 
 	angle = fabs(angle_v3v3(rv3d->twmat[0], vec));
 	if (angle > (float)M_PI / 2.0f) {
@@ -1457,7 +1457,7 @@ void BIF_draw_manipulator(const bContext *C)
 			break;
 		}
 
-		mul_mat3_m4_fl(rv3d->twmat, view3d_pixel_size(rv3d, rv3d->twmat[3]) * U.tw_size * 5.0f);
+		mul_mat3_m4_fl(rv3d->twmat, ED_view3d_pixel_size(rv3d, rv3d->twmat[3]) * U.tw_size * 5.0f);
 	}
 
 	test_manipulator_axis(C);
@@ -1487,7 +1487,7 @@ void BIF_draw_manipulator(const bContext *C)
 	}
 }
 
-static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const short mval[2], float hotspot)
+static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], float hotspot)
 {
 	View3D *v3d= sa->spacedata.first;
 	RegionView3D *rv3d= ar->regiondata;

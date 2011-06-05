@@ -920,9 +920,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	if (event)
 	{
-		t->imval[0] = event->x - t->ar->winrct.xmin;
-		t->imval[1] = event->y - t->ar->winrct.ymin;
-		
+		VECCOPY2D(t->imval, event->mval);
 		t->event_type = event->type;
 	}
 	else
@@ -1039,9 +1037,14 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 	else
 	{
-		// XXX for now, get View2D  from the active region
-		t->view = &ar->v2d;
-		// XXX for now, the center point is the midpoint of the data
+		if(ar) {
+			// XXX for now, get View2D  from the active region
+			t->view = &ar->v2d;
+			// XXX for now, the center point is the midpoint of the data
+		}
+		else {
+			t->view= NULL;
+		}
 		t->around = V3D_CENTER;
 	}
 	

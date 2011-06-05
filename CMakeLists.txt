@@ -55,33 +55,19 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/")
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
-# ignore system set flag, use our own
-# must be before project(...)
-# if the user wants to add their own its ok after first run.
-if(DEFINED CMAKE_C_STANDARD_LIBRARIES)
-	set(_reset_standard_libraries OFF)
-else()
-	set(_reset_standard_libraries ON)
-endif()
+#-----------------------------------------------------------------------------
+# Load some macros.
+include(build_files/cmake/macros.cmake)
 
+
+#-----------------------------------------------------------------------------
+# Initialize project.
+
+blender_project_hack_pre()
 
 project(Blender)
 
-
-if (_reset_standard_libraries)
-	# Must come after project(...)
-	#
-	# MINGW workaround for -ladvapi32 being included which surprisingly causes
-	# string formatting of floats, eg: printf("%.*f", 3, value). to crash blender
-	# with a meaningless stack trace. by overriding this flag we ensure we only
-	# have libs we define and that cmake & scons builds match.
-	set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
-	set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
-	mark_as_advanced(CMAKE_C_STANDARD_LIBRARIES)
-	mark_as_advanced(CMAKE_CXX_STANDARD_LIBRARIES)
-endif()
-unset(_reset_standard_libraries)
-
+blender_project_hack_post()
 
 enable_testing()
 
@@ -90,10 +76,6 @@ enable_testing()
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE )
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
-
-#-----------------------------------------------------------------------------
-# Load some macros.
-include(build_files/cmake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 # Set default config options
@@ -106,7 +88,7 @@ option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default (recommend to leave off)" OFF)
 mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they really know what they are doing.
-mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather then have them patch it, make a build option.
+mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather than have them patch it, make a build option.
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
 option(WITH_PYTHON_MODULE "Enable building as a python module (experemental, only enable for development)" OFF)
@@ -116,6 +98,10 @@ option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effect
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
+
+option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
+mark_as_advanced(WITH_HEADLESS)
+
 # (unix defaults to OpenMP On)
 if(UNIX AND NOT APPLE)
 	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
@@ -175,6 +161,10 @@ if(UNIX AND NOT APPLE)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
+# disable for now, but plan to support on all platforms eventually
+option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
+mark_as_advanced(WITH_MEM_JEMALLOC)
+
 # Debug
 option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
 mark_as_advanced(WITH_CXX_GUARDEDALLOC)
@@ -198,9 +188,6 @@ if(APPLE)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 endif()
 
-# only for developers who want to make this functional
-# option(WITH_LCMS          "Enable color correction with lcms" OFF)
-
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
@@ -220,6 +207,11 @@ endif()
 
 if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
+endif()
+
+# may as well build python module without a UI
+if(WITH_PYTHON_MODULE)
+	set(WITH_HEADLESS ON)
 endif()
 
 # remove old vars
@@ -375,13 +367,6 @@ if(UNIX AND NOT APPLE)
 
 	find_package(ZLIB REQUIRED)
 
-	if(WITH_LCMS)
-		set(LCMS /usr CACHE FILEPATH "LCMS directory")
-		set(LCMS_INCLUDE_DIR ${LCMS}/include)
-		set(LCMS_LIBRARY lcms)
-		set(LCMS_LIBPATH ${LCMS}/lib)
-	endif()
-
 	if(WITH_CODEC_FFMPEG)
 		set(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
 		mark_as_advanced(FFMPEG)
@@ -424,15 +409,28 @@ if(UNIX AND NOT APPLE)
 		set(EXPAT_LIB expat)
 	endif()
 
-	find_package(X11 REQUIRED)
-	find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
-	mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
+	if(WITH_MEM_JEMALLOC)
+		set(JEMALLOC /usr)
+		set(JEMALLOC_LIBRARY jemalloc CACHE STRING "JeMalloc library")
+		set(JEMALLOC_LIBPATH ${JEMALLOC}/lib  CACHE FILEPATH "JeMalloc library path")
+		# no use for this yet.
+		# set(JEMALLOC_INCLUDE_DIR ${JEMALLOC}/include  CACHE FILEPATH "JeMalloc include path")
+		unset(JEMALLOC)
+	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB}")
+	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++")
 
-	if(WITH_X11_XINPUT)
-		list(APPEND LLIBS ${X11_Xinput_LIB})
+	if(NOT WITH_HEADLESS)
+		find_package(X11 REQUIRED)
+		find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
+		mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
+
+		list(APPEND LLIBS ${X11_X11_LIB})
+
+		if(WITH_X11_XINPUT)
+			list(APPEND LLIBS ${X11_Xinput_LIB})
+		endif()
 	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -627,14 +625,7 @@ elseif(WIN32)
 			set(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser xml2 buffer ftoa UTF)
 			set(PCRE_LIB pcre)
 		endif()
-		
-		if(WITH_LCMS)
-			set(LCMS ${LIBDIR}/lcms)
-			set(LCMS_INCLUDE_DIR ${LCMS}/include)
-			set(LCMS_LIBPATH ${LCMS}/lib)
-			set(LCMS_LIB lcms)
-		endif()
-
+	
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg)
 			set(FFMPEG_INC ${FFMPEG}/include ${FFMPEG}/include/msvc)
@@ -870,7 +861,7 @@ elseif(APPLE)
 		set(GETTEXT_LIB intl iconv)
 		set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 	endif()
-  
+
 	if(WITH_FFTW3)
 		set(FFTW3 ${LIBDIR}/fftw3)
 		set(FFTW3_INC ${FFTW3}/include)
@@ -895,13 +886,6 @@ elseif(APPLE)
 		set(OPENEXR_INC ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
 		set(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-	endif()
-
-	if(WITH_LCMS)
-		set(LCMS ${LIBDIR}/lcms)
-		set(LCMS_INCLUDE_DIR ${LCMS}/include)
-		set(LCMS_LIBRARY lcms)
-		set(LCMS_LIBPATH ${LCMS}/lib)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
@@ -994,6 +978,12 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Common.
+
+if(APPLE OR WIN32)
+	if(NOT IS_DIRECTORY "${LIBDIR}")
+		message(FATAL_ERROR "Apple and Windows require pre-compiled libs at: '${LIBDIR}'")
+	endif()
+endif()
 
 if(WITH_RAYOPTIMIZATION)
 	if(CMAKE_COMPILER_IS_GNUCC)
@@ -1155,9 +1145,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 #-------------------------------------------------------------------------------
 # Global Defines
 
-# better not define flags here but this is a debugging option thats off by default.
+# better not set includes here but this debugging option is off by default.
 if(WITH_CXX_GUARDEDALLOC)
-	set(CMAKE_CXX_FLAGS " -DWITH_CXX_GUARDEDALLOC -I${CMAKE_SOURCE_DIR}/intern/guardedalloc ${CMAKE_CXX_FLAGS}")
+	include_directories(${CMAKE_SOURCE_DIR}/intern/guardedalloc)
 endif()
 
 if(WITH_ASSERT_ABORT)

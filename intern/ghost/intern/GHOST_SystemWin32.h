@@ -52,6 +52,9 @@
 #ifndef RID_INPUT
 #define RID_INPUT 0x10000003
 #endif
+#ifndef RIM_INPUTSINK
+#define RIM_INPUTSINK 0x1
+#endif
 #ifndef RI_KEY_BREAK
 #define RI_KEY_BREAK 0x1
 #endif
@@ -127,8 +130,6 @@ DECLARE_HANDLE(HRAWINPUT);
 #ifdef FREE_WINDOWS
 #define NEED_RAW_PROC
 typedef BOOL (WINAPI * LPFNDLLRRID)(RAWINPUTDEVICE*,UINT, UINT);
-#define RegisterRawInputDevices(pRawInputDevices, uiNumDevices, cbSize) ((pRegisterRawInputDevices)?pRegisterRawInputDevices(pRawInputDevices, uiNumDevices, cbSize):0)
-
 
 typedef UINT (WINAPI * LPFNDLLGRID)(HRAWINPUT, UINT, LPVOID, PUINT, UINT);
 #define GetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader) ((pGetRawInputData)?pGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader):(UINT)-1)

@@ -862,7 +862,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 
 	uiItemR(col, ptr, "ratio", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "use_unspill", 0, NULL, ICON_NONE);
-	if (RNA_enum_get(ptr, "use_unspill")== 1) {
+	if (RNA_boolean_get(ptr, "use_unspill")== 1) {
 		uiItemR(col, ptr, "unspill_red", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 		uiItemR(col, ptr, "unspill_green", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 		uiItemR(col, ptr, "unspill_blue", UI_ITEM_R_SLIDER, NULL, ICON_NONE);

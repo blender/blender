@@ -29,6 +29,10 @@ set(INC
 	../../../intern/moto/include
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	SG_BBox.cpp
 	SG_Controller.cpp
@@ -48,4 +52,4 @@ set(SRC
 	SG_Tree.h
 )
 
-blender_add_lib(ge_scenegraph "${SRC}" "${INC}")
+blender_add_lib(ge_scenegraph "${SRC}" "${INC}" "${INC_SYS}")

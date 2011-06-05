@@ -179,7 +179,7 @@ PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObjec
 		return NULL;
 	}
 
-	/* use base_type rather then Py_TYPE(base) because we could already be subtyped */
+	/* use base_type rather than Py_TYPE(base) because we could already be subtyped */
 	if(!PyType_IsSubtype(type, base_type)) {
 		PyErr_Format(PyExc_TypeError, "can't subclass blender game type <%s> from <%s> because it is not a subclass", base_type->tp_name, type->tp_name);
 		return NULL;
@@ -1198,14 +1198,13 @@ void PyDebugLine()
 			f_lineno= PyObject_GetAttrString(frame, "f_lineno");
 			f_code= PyObject_GetAttrString(frame, "f_code");
 			if (f_lineno && f_code) {
-				co_filename= PyObject_GetAttrString(f_code, "co_filename");
+				co_filename= ((PyCodeObject *)f_code)->co_filename; /* borrow */
 				if (co_filename) {
 
 					printf("\t%s:%d\n", _PyUnicode_AsString(co_filename), (int)PyLong_AsSsize_t(f_lineno));
 
 					Py_DECREF(f_lineno);
 					Py_DECREF(f_code);
-					Py_DECREF(co_filename);
 					Py_DECREF(frame);
 					return;
 				}

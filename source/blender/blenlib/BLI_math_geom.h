@@ -77,7 +77,7 @@ void closest_to_line_segment_v3(float r[3], const float p[3], const float l1[3],
 #define ISECT_LINE_LINE_CROSS		 2
 
 int isect_line_line_v2(const float a1[2], const float a2[2], const float b1[2], const float b2[2]);
-int isect_line_line_v2_short(const short a1[2], const short a2[2], const short b1[2], const short b2[2]);
+int isect_line_line_v2_int(const int a1[2], const int a2[2], const int b1[2], const int b2[2]);
 int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2]);
 
 /* Returns the number of point of interests
@@ -95,6 +95,18 @@ int isect_line_line_strict_v3(const float v1[3], const float v2[3],
   (i.e. intersection point is along positive d)*/
 int isect_ray_plane_v3(float p1[3], float d[3], float v0[3], 
 					   float v1[3], float v2[3], float *lambda, int clip);
+
+/**
+ * Intersect line/plane, optionally treat line as directional (like a ray) with the no_flip argument.
+ * @param out The intersection point.
+ * @param l1 The first point of the line.
+ * @param l2 The second point of the line.
+ * @param plane_co A point on the plane to intersect with.
+ * @param plane_no The direction of the plane (does not need to be normalized).
+ * @param no_flip When true, the intersection point will always be from l1 to l2, even if this is not on the plane.
+ */
+int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
+                        const float plane_co[3], const float plane_no[3], const short no_flip);
 
 /* line/ray triangle */
 int isect_line_tri_v3(const float p1[3], const float p2[3],

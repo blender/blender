@@ -471,6 +471,9 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 
 void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *UNUSED(but), uiWidgetColors *UNUSED(wcol), rcti *rect)
 {
+#ifdef WITH_HEADLESS
+	(void)rect;
+#else
 	extern char datatoc_splash_png[];
 	extern int datatoc_splash_png_size;
 	ImBuf *ibuf;
@@ -507,6 +510,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *UNUSED(but), uiWidgetColors *
 	*/
 	
 	IMB_freeImBuf(ibuf);
+#endif
 }
 
 #if 0

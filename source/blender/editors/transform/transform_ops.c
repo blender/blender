@@ -514,7 +514,7 @@ void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_vector_xyz(ot->srna, "value", 3, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 
@@ -534,7 +534,7 @@ void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 
@@ -555,7 +555,7 @@ void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_vector(ot->srna, "value", 2, VecOne, -FLT_MAX, FLT_MAX, "angle", "", -FLT_MAX, FLT_MAX);
 
@@ -575,7 +575,7 @@ void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI*2, M_PI*2);
 
@@ -618,7 +618,7 @@ void TRANSFORM_OT_warp(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", 0, 1);
 
@@ -639,7 +639,7 @@ void TRANSFORM_OT_shear(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
 
@@ -660,7 +660,7 @@ void TRANSFORM_OT_push_pull(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Distance", "", -FLT_MAX, FLT_MAX);
 
@@ -701,7 +701,7 @@ void TRANSFORM_OT_tosphere(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_factor(ot->srna, "value", 0, 0, 1, "Factor", "", 0, 1);
 
@@ -721,7 +721,7 @@ void TRANSFORM_OT_mirror(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	Transform_Properties(ot, P_CONSTRAINT|P_PROPORTIONAL);
 }
@@ -801,7 +801,7 @@ void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_screenactive;
 
 	prop= RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);

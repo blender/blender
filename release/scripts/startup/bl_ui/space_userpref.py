@@ -199,6 +199,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "use_zoom_to_mouse")
         col.prop(view, "use_rotate_around_active")
         col.prop(view, "use_global_pivot")
+        col.prop(view, "use_camera_lock_parent")
 
         col.separator()
 
@@ -752,7 +753,7 @@ class USERPREF_PT_file(bpy.types.Panel):
 from bl_ui.space_userpref_keymap import InputKeyMapPanel
 
 
-class USERPREF_PT_input(InputKeyMapPanel):
+class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
 
@@ -888,6 +889,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         split = layout.split(percentage=0.2)
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
+        col.label(text="Categories")
         col.prop(context.window_manager, "addon_filter", expand=True)
 
         col.label(text="Supported Level")

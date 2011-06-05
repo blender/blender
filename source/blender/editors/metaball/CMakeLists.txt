@@ -31,6 +31,10 @@ set(INC
 	../../../../intern/guardedalloc
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	mball_edit.c
 	mball_ops.c
@@ -38,4 +42,4 @@ set(SRC
 	mball_intern.h
 )
 
-blender_add_lib(bf_editor_metaball "${SRC}" "${INC}")
+blender_add_lib(bf_editor_metaball "${SRC}" "${INC}" "${INC_SYS}")

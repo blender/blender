@@ -29,20 +29,24 @@ set(INC
 	../blenlib
 	../blenkernel
 	../makesdna
-	../readblenfile
 	../makesrna
 	../render/extern/include
 	../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
 	intern/readblenentry.c
 	intern/readfile.c
+	intern/runtime.c
 	intern/undofile.c
 	intern/writefile.c
 
 	BLO_readfile.h
+	BLO_runtime.h
 	BLO_soundfile.h
 	BLO_sys_types.h
 	BLO_undofile.h
@@ -54,4 +58,4 @@ if(WITH_BUILDINFO)
 	add_definitions(-DNAN_BUILDINFO)
 endif()
 
-blender_add_lib(bf_blenloader "${SRC}" "${INC}")
+blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}")

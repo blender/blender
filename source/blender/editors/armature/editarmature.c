@@ -1522,22 +1522,17 @@ static void selectconnected_posebonechildren (Object *ob, Bone *bone, int extend
 /* within active object context */
 /* previously known as "selectconnected_posearmature" */
 static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{  
-	ARegion *ar= CTX_wm_region(C);
+{
 	Object *ob= CTX_data_edit_object(C);
 	Bone *bone, *curBone, *next= NULL;
 	int extend= RNA_boolean_get(op->ptr, "extend");
-	int x, y;
-	
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
 
 	view3d_operator_needs_opengl(C);
 	
 	if (extend)
-		bone= get_nearest_bone(C, 0, x, y);
+		bone= get_nearest_bone(C, 0, event->mval[0], event->mval[1]);
 	else
-		bone= get_nearest_bone(C, 1, x, y);
+		bone= get_nearest_bone(C, 1, event->mval[0], event->mval[1]);
 	
 	if (!bone)
 		return OPERATOR_CANCELLED;
@@ -1606,21 +1601,17 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 	bArmature *arm;
 	EditBone *bone, *curBone, *next;
 	int extend= RNA_boolean_get(op->ptr, "extend");
-	int x, y;
 	ARegion *ar;
 	Object *obedit= CTX_data_edit_object(C);
 	arm= obedit->data;
 	ar= CTX_wm_region(C);
 
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
-
 	view3d_operator_needs_opengl(C);
 
 	if (extend)
-		bone= get_nearest_bone(C, 0, x, y);
+		bone= get_nearest_bone(C, 0, event->mval[0], event->mval[1]);
 	else
-		bone= get_nearest_bone(C, 1, x, y);
+		bone= get_nearest_bone(C, 1, event->mval[0], event->mval[1]);
 
 	if (!bone)
 		return OPERATOR_CANCELLED;
@@ -1698,7 +1689,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
-static EditBone *get_nearest_editbonepoint (ViewContext *vc, const short mval[2], ListBase *edbo, int findunsel, int *selmask)
+static EditBone *get_nearest_editbonepoint (ViewContext *vc, const int mval[2], ListBase *edbo, int findunsel, int *selmask)
 {
 	EditBone *ebone;
 	rcti rect;
@@ -1958,7 +1949,7 @@ static int ebone_select_flag(EditBone *ebone)
 }
 
 /* context: editmode armature in view3d */
-int mouse_armature(bContext *C, const short mval[2], int extend)
+int mouse_armature(bContext *C, const int mval[2], int extend)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
@@ -2365,6 +2356,7 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	Object *obedit= scene->obedit; // XXX get from context
+	bArmature *arm= obedit->data;
 	float		obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
 	EditBone	*bone;
 
@@ -2383,7 +2375,9 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	ED_armature_deselect_all(obedit, 0);
 	
 	/*	Create a bone	*/
-	bone= ED_armature_edit_bone_add(obedit->data, "Bone");
+	bone= ED_armature_edit_bone_add(arm, "Bone");
+
+	arm->act_edbone= bone;
 
 	copy_v3_v3(bone->head, curs);
 	
@@ -2497,43 +2491,20 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	Scene *scene;
 	ARegion *ar;
 	View3D *v3d;
-	RegionView3D *rv3d;
-	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
-	short mx, my, mval[2];
+	float *fp = NULL, tvec[3], oldcurs[3], mval_f[2];
 	int retv;
 
 	scene= CTX_data_scene(C);
 	ar= CTX_wm_region(C);
 	v3d = CTX_wm_view3d(C);
-	rv3d= CTX_wm_region_view3d(C);
 	
 	fp= give_cursor(scene, v3d);
 	
 	copy_v3_v3(oldcurs, fp);
-	
-	mx= event->x - ar->winrct.xmin;
-	my= event->y - ar->winrct.ymin;
-	project_short_noclip(ar, fp, mval);
-	
-	initgrabz(rv3d, fp[0], fp[1], fp[2]);
-	
-	if(mval[0]!=IS_CLIPPED) {
-		
-		window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
-		sub_v3_v3v3(fp, fp, dvec);
-	}
-	else {
-		
-		dx= ((float)(mx-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
-		dy= ((float)(my-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
-		
-		fz= rv3d->persmat[0][3]*fp[0]+ rv3d->persmat[1][3]*fp[1]+ rv3d->persmat[2][3]*fp[2]+ rv3d->persmat[3][3];
-		fz= fz/rv3d->zfac;
-		
-		fp[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy+ rv3d->persinv[2][0]*fz)-rv3d->ofs[0];
-		fp[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy+ rv3d->persinv[2][1]*fz)-rv3d->ofs[1];
-		fp[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy+ rv3d->persinv[2][2]*fz)-rv3d->ofs[2];
-	}
+
+	VECCOPY2D(mval_f, event->mval);
+	ED_view3d_win_to_3d(ar, fp, mval_f, tvec);
+	copy_v3_v3(fp, tvec);
 
 	/* extrude to the where new cursor is and store the operation result */
 	retv= armature_click_extrude_exec(C, op);
@@ -5546,6 +5517,26 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			if (ob->adt) {
 				/* posechannels only... */
 				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.bones", oldname, newname, 0, 0, 1);
+			}
+		}
+
+		{
+			/* correct view locking */
+			bScreen *screen;
+			for(screen= G.main->screen.first; screen; screen= screen->id.next) {
+				ScrArea *sa;
+				/* add regions */
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					SpaceLink *sl= sa->spacedata.first;
+					if(sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d= (View3D *)sl;
+						if(v3d->ob_centre && v3d->ob_centre->data == arm) {
+							if (!strcmp(v3d->ob_centre_bone, oldname)) {
+								BLI_strncpy(v3d->ob_centre_bone, newname, MAXBONENAME);
+							}
+						}
+					}
+				}
 			}
 		}
 	}

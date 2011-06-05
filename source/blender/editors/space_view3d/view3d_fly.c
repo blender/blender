@@ -158,7 +158,7 @@ typedef struct FlyInfo {
 	short state;
 	short use_precision;
 	short redraw;
-	short mval[2];
+	int mval[2];
 
 	/* fly state state */
 	float speed; /* the speed the view is moving per redraw */
@@ -287,9 +287,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 
 	fly->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
-	fly->mval[0] = event->x - fly->ar->winrct.xmin;
-	fly->mval[1] = event->y - fly->ar->winrct.ymin;
-
+	VECCOPY2D(fly->mval, event->mval)
 
 	fly->time_lastdraw= fly->time_lastwheel= PIL_check_seconds_timer();
 
@@ -309,7 +307,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	fly->dist_backup= fly->rv3d->dist;
 	if (fly->rv3d->persp==RV3D_CAMOB) {
 		Object *ob_back;
-		if((fly->root_parent=fly->v3d->camera->parent)) {
+		if((U.uiflag & USER_CAM_LOCK_NO_PARENT)==0 && (fly->root_parent=fly->v3d->camera->parent)) {
 			while(fly->root_parent->parent)
 				fly->root_parent= fly->root_parent->parent;
 			ob_back= fly->root_parent;
@@ -418,8 +416,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 		fly->redraw = 1;
 	}
 	else if (event->type == MOUSEMOVE) {
-		fly->mval[0] = event->x - fly->ar->winrct.xmin;
-		fly->mval[1] = event->y - fly->ar->winrct.ymin;
+		VECCOPY2D(fly->mval, event->mval);
 	} /* handle modal keymap first */
 	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
@@ -480,7 +477,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 
 				/* impliment WASD keys */
 			case FLY_MODAL_DIR_FORWARD:
-				if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather then stopping, game like motion */
+				if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather than stopping, game like motion */
 				else if (fly->axis==2) fly->speed += fly->grid; /* increse like mousewheel if were already moving in that difection*/
 				fly->axis= 2;
 				break;
@@ -571,7 +568,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	apply_rotation= 1; /* if the user presses shift they can look about without movinf the direction there looking*/
 
 	if(fly->root_parent)
-		view3d_persp_mat4(rv3d, prev_view_mat);
+		ED_view3d_to_m4(prev_view_mat, fly->rv3d->ofs, fly->rv3d->viewquat, fly->rv3d->dist);
 
 	/* the dist defines a vector that is infront of the offset
 	to rotate the view about.
@@ -800,7 +797,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					float parent_mat[4][4];
 
 					invert_m4_m4(prev_view_imat, prev_view_mat);
-					view3d_persp_mat4(rv3d, view_mat);
+					ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 					mul_m4_m4m4(diff_mat, prev_view_imat, view_mat);
 					mul_m4_m4m4(parent_mat, fly->root_parent->obmat, diff_mat);
 					object_apply_mat4(fly->root_parent, parent_mat, TRUE, FALSE);
@@ -820,7 +817,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				}
 				else {
 					float view_mat[4][4];
-					view3d_persp_mat4(rv3d, view_mat);
+					ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 					object_apply_mat4(v3d->camera, view_mat, TRUE, FALSE);
 					id_key= &v3d->camera->id;
 				}

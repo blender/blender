@@ -36,6 +36,10 @@ set(INC
 	../../../../extern/recastnavigation/Recast/Include
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	object_add.c
 	object_bake.c
@@ -60,4 +64,4 @@ if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()
 
-blender_add_lib(bf_editor_object "${SRC}" "${INC}")
+blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}")

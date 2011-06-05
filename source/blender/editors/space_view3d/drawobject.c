@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_world_types.h"
+#include "DNA_armature_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -75,6 +76,9 @@
 #include "BKE_unit.h"
 
 #include "smoke_API.h"
+
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -143,7 +147,7 @@ static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, int l
 	
 	/* clipplanes in eye space */
 	if(rv3d->rflag & RV3D_CLIPPING) {
-		if(view3d_test_clipping(rv3d, vec, local))
+		if(ED_view3d_test_clipping(rv3d, vec, local))
 			return;
 	}
 	
@@ -515,6 +519,96 @@ void drawaxes(float size, char drawtype)
 	}
 }
 
+
+/* Function to draw an Image on a empty Object */
+static void draw_empty_image(Object *ob)
+{
+	Image *ima = (Image*)ob->data;
+	ImBuf *ibuf = ima ? BKE_image_get_ibuf(ima, NULL) : NULL;
+
+	float scale, ofs_x, ofs_y, sca_x, sca_y;
+	int ima_x, ima_y;
+
+	if(ibuf && (ibuf->rect == NULL) && (ibuf->rect_float != NULL)) {
+		IMB_rect_from_float(ibuf);
+	}
+
+	/* Get the buffer dimensions so we can fallback to fake ones */
+	if(ibuf && ibuf->rect) {
+		ima_x= ibuf->x;
+		ima_y= ibuf->y;
+	}
+	else {
+		ima_x= 1;
+		ima_y= 1;
+	}
+
+	/* Get the image aspect even if the buffer is invalid */
+	if(ima) {
+		if(ima->aspx > ima->aspy) {
+			sca_x= 1.0f;
+			sca_y= ima->aspy / ima->aspx;
+		}
+		else if(ima->aspx < ima->aspy) {
+			sca_x= ima->aspx / ima->aspy;
+			sca_y= 1.0f;
+		}
+		else {
+			sca_x= 1.0f;
+			sca_y= 1.0f;
+		}
+	}
+	else {
+		sca_x= 1.0f;
+		sca_y= 1.0f;
+	}
+
+	/* Calculate the scale center based on objects origin */
+	ofs_x= ob->ima_ofs[0] * ima_x;
+	ofs_y= ob->ima_ofs[1] * ima_y;
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+	/* Make sure we are drawing at the origin */
+	glTranslatef(0.0f,  0.0f,  0.0f);
+
+	/* Calculate Image scale */
+	scale= (ob->empty_drawsize / (float)MAX2(ima_x * sca_x, ima_y * sca_y));
+
+	/* Set the object scale */
+	glScalef(scale * sca_x, scale * sca_y, 1.0f);
+
+	if(ibuf && ibuf->rect) {
+		/* Setup GL params */
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+
+		/* Use the object color and alpha */
+		glColor4fv(ob->col);
+
+		/* Draw the Image on the screen */
+		glaDrawPixelsTex(ofs_x, ofs_y, ima_x, ima_y, GL_UNSIGNED_BYTE, ibuf->rect);
+		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
+
+		glDisable(GL_BLEND);
+	}
+
+	UI_ThemeColor((ob->flag & SELECT) ? TH_SELECT : TH_WIRE);
+
+	/* Calculate the outline vertex positions */
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(ofs_x, ofs_y);
+	glVertex2f(ofs_x + ima_x, ofs_y);
+	glVertex2f(ofs_x + ima_x, ofs_y + ima_y);
+	glVertex2f(ofs_x, ofs_y + ima_y);
+	glEnd();
+
+	/* Reset GL settings */
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+}
+
 void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
 {
 	float vec[3], vx[3], vy[3];
@@ -536,7 +630,7 @@ void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
 /* circle for object centers, special_color is for library or ob users */
 static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3], int selstate, int special_color)
 {
-	const float size= view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
+	const float size= ED_view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
 
 	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
 	if(v3d->zbuf)  glDepthFunc(GL_ALWAYS);
@@ -572,7 +666,7 @@ typedef struct ViewCachedString {
 		unsigned char ub[4];
 		int pack;
 	} col;
-	short mval[2];
+	short sco[2];
 	short xoffs;
 	short flag;
 	int str_len, pad;
@@ -614,8 +708,8 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	for(vos= strings->first; vos; vos= vos->next) {
 		if(mat && !(vos->flag & V3D_CACHE_TEXT_WORLDSPACE))
 			mul_m4_v3(mat, vos->vec);
-		view3d_project_short_clip(ar, vos->vec, vos->mval, 0);
-		if(vos->mval[0]!=IS_CLIPPED)
+		view3d_project_short_clip(ar, vos->vec, vos->sco, 0);
+		if(vos->sco[0]!=IS_CLIPPED)
 			tot++;
 	}
 
@@ -655,7 +749,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 					continue;
 			}
 #endif
-			if(vos->mval[0]!=IS_CLIPPED) {
+			if(vos->sco[0]!=IS_CLIPPED) {
 				const char *str= (char *)(vos+1);
 
 				if(col_pack_prev != vos->col.pack) {
@@ -663,10 +757,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 					col_pack_prev= vos->col.pack;
 				}
 				if(vos->flag & V3D_CACHE_TEXT_ASCII) {
-					BLF_draw_default_ascii((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
+					BLF_draw_default_ascii((float)vos->sco[0]+vos->xoffs, (float)vos->sco[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
 				}
 				else {
-					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
+					BLF_draw_default((float)vos->sco[0]+vos->xoffs, (float)vos->sco[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
 				}
 			}
 		}
@@ -921,7 +1015,7 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
-	const float pixsize= view3d_pixel_size(rv3d, ob->obmat[3]);
+	const float pixsize= ED_view3d_pixel_size(rv3d, ob->obmat[3]);
 	Lamp *la= ob->data;
 	float vec[3], lvec[3], vvec[3], circrad, x,y,z;
 	float lampsize;
@@ -2557,7 +2651,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_SOLID) {
 		if(ob==OBACT && ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 			/* weight paint in solid mode, special case. focus on making the weights clear
-			 * rather then the shading, this is also forced in wire view */
+			 * rather than the shading, this is also forced in wire view */
 			GPU_enable_material(0, NULL);
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1, GPU_enable_material);
 		
@@ -2792,7 +2886,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	}
 	else {
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
-		if(me->totface<=4 || boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {
+		if(me->totface<=4 || ED_view3d_boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
 			check_alpha = check_material_alpha(base, me, glsl);
 
@@ -3578,7 +3672,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		case PART_DRAW_CROSS:
 		case PART_DRAW_AXIS:
 			/* lets calculate the scale: */
-			pixsize= view3d_pixel_size(rv3d, ob->obmat[3]);
+			pixsize= ED_view3d_pixel_size(rv3d, ob->obmat[3]);
 			
 			if(part->draw_size==0.0)
 				pixsize *= 2.0f;
@@ -3746,6 +3840,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						case PART_DRAW_COL_ACC:
 							intensity = len_v3v3(pa->state.vel, pa->prev_state.vel)/((pa->state.time-pa->prev_state.time)*part->color_vec_max);
 							break;
+						default:
+							intensity= 1.0f; /* should never happen */
 					}
 					CLAMP(intensity, 0.f, 1.f);
 					weight_to_rgb(intensity, &ma_r, &ma_g, &ma_b);
@@ -5428,7 +5524,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			hasfaces= displist_has_faces(&ob->disp);
 		}
 
-		if (hasfaces && boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
+		if (hasfaces && ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 			draw_index_wire= 0;
 			if (dm) {
 				draw_mesh_object_outline(v3d, ob, dm);
@@ -5481,7 +5577,7 @@ static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob)
 	
 	if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		Curve *cu = ob->data;
-		if (boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
+		if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 			if (ob->type==OB_CURVE)
 				draw_index_wire= 0;
 
@@ -5916,7 +6012,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
 					draw_bounding_volume(scene, ob);
 			}
-			else if(boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb))
+			else if(ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb))
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
 
 			break;
@@ -5932,7 +6028,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
 					draw_bounding_volume(scene, ob);
 			}
-			else if(boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
+			else if(ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
 
 //XXX old animsys				if(cu->path)
@@ -5954,8 +6050,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		}
 		case OB_EMPTY:
-			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
-				drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+				if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
+					draw_empty_image(ob);
+				}
+				else {
+					drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+				}
+			}
 			break;
 		case OB_LAMP:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
@@ -6564,7 +6666,12 @@ void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			draw_object_mesh_instance(scene, v3d, rv3d, ob, dt, outline);
 			break;
 		case OB_EMPTY:
-			drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+			if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
+				draw_empty_image(ob);
+			}
+			else {
+				drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+			}
 			break;
 	}
 }

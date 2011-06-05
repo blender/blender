@@ -276,7 +276,7 @@ dumpCineonOriginationInfo(CineonOriginationInformation* originInfo) {
 	d_printf("Input device gamma %f\n", ntohf(originInfo->input_device_gamma));
 }
 
-int
+static int
 initCineonGenericHeader(CineonFile* cineon, CineonGenericHeader* header, const char* imagename) {
 
 	fillCineonFileInfo(cineon, &header->fileInfo, imagename);
@@ -287,7 +287,7 @@ initCineonGenericHeader(CineonFile* cineon, CineonGenericHeader* header, const c
 	return 0;
 }
 
-void
+static void
 dumpCineonGenericHeader(CineonGenericHeader* header) {
 	dumpCineonFileInfo(&header->fileInfo);
 	dumpCineonImageInfo(&header->imageInfo);

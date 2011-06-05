@@ -685,6 +685,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1049,6 +1050,7 @@ class VIEW3D_MT_paint_weight(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1129,6 +1131,7 @@ class VIEW3D_MT_particle(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1182,6 +1185,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1373,6 +1377,7 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1844,6 +1849,7 @@ class VIEW3D_MT_edit_meta(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -2023,6 +2029,9 @@ class VIEW3D_PT_view3d_properties(bpy.types.Panel):
             col.prop_search(view, "lock_bone", view.lock_object.data, "bones", text="")
         elif not view.lock_object:
             col.prop(view, "lock_cursor", text="Lock to Cursor")
+
+        col = layout.column()
+        col.prop(view, "lock_camera")
 
         col = layout.column(align=True)
         col.label(text="Clip:")
@@ -2315,7 +2324,8 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
             col.prop(toolsettings, "use_etch_autoname")
             col.prop(toolsettings, "etch_number")
             col.prop(toolsettings, "etch_side")
-            col.operator("sketch.convert", text="Convert")
+
+        col.operator("sketch.convert", text="Convert")
 
 
 class VIEW3D_PT_context_properties(bpy.types.Panel):

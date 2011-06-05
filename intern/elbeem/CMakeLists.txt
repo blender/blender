@@ -26,6 +26,9 @@
 
 set(INC
 	extern
+)
+
+set(INC_SYS
 	${PNG_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}
 )
@@ -88,11 +91,11 @@ set(SRC
 
 add_definitions(-DNOGUI -DELBEEM_BLENDER=1)
 if(WINDOWS)
-		add_definitions(-DUSE_MSVC6FIXES)
+	add_definitions(-DUSE_MSVC6FIXES)
 endif()
 
 if(WITH_OPENMP)
-		add_definitions(-DPARALLEL=1)
+	add_definitions(-DPARALLEL=1)
 endif()
 
-blender_add_lib_nolist(bf_intern_elbeem "${SRC}" "${INC}")
+blender_add_lib_nolist(bf_intern_elbeem "${SRC}" "${INC}" "${INC_SYS}")

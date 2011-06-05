@@ -780,7 +780,7 @@ static void calc_shapeKeys(Object *obedit)
 
 	/* are there keys? */
 	if(cu->key) {
-		int a, i, j;
+		int a, i;
 		EditNurb *editnurb= cu->editnurb;
 		KeyBlock *currkey;
 		KeyBlock *actkey= BLI_findlink(&cu->key->block, editnurb->shapenr-1);
@@ -804,7 +804,6 @@ static void calc_shapeKeys(Object *obedit)
 			}
 
 			if(act_is_basis) { /* active key is a base */
-				int j;
 				int totvec= 0;
 
 				/* Calculate needed memory to store offset */
@@ -831,6 +830,7 @@ static void calc_shapeKeys(Object *obedit)
 							oldbezt= getKeyIndexOrig_bezt(editnurb, bezt);
 
 							if (oldbezt) {
+								int j;
 								for (j= 0; j < 3; ++j) {
 									VECSUB(ofs[i], bezt->vec[j], oldbezt->vec[j]);
 									i++;
@@ -878,6 +878,7 @@ static void calc_shapeKeys(Object *obedit)
 						bezt= nu->bezt;
 						a= nu->pntsu;
 						while(a--) {
+							int j;
 							oldbezt= getKeyIndexOrig_bezt(editnurb, bezt);
 
 							for (j= 0; j < 3; ++j, ++i) {
@@ -932,6 +933,7 @@ static void calc_shapeKeys(Object *obedit)
 							while(a--) {
 								index= getKeyIndexOrig_keyIndex(editnurb, bezt);
 								if (index >= 0) {
+									int j;
 									curofp= ofp + index;
 
 									for (j= 0; j < 3; ++j, ++i) {
@@ -953,6 +955,7 @@ static void calc_shapeKeys(Object *obedit)
 
 									fp+= 3;	/* alphas */
 								} else {
+									int j;
 									for (j= 0; j < 3; ++j, ++i) {
 										VECCOPY(fp, bezt->vec[j]);
 										fp+= 3;
@@ -3309,7 +3312,7 @@ static void findnearestNurbvert__doClosest(void *userData, Nurb *nu, BPoint *bp,
 	}
 }
 
-static short findnearestNurbvert(ViewContext *vc, short sel, int mval[2], Nurb **nurb, BezTriple **bezt, BPoint **bp)
+static short findnearestNurbvert(ViewContext *vc, short sel, const int mval[2], Nurb **nurb, BezTriple **bezt, BPoint **bp)
 {
 		/* sel==1: selected gets a disadvantage */
 		/* in nurb and bezt or bp the nearest is written */
@@ -4169,7 +4172,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 
 /***************** pick select from 3d view **********************/
 
-int mouse_nurb(bContext *C, const short mval[2], int extend)
+int mouse_nurb(bContext *C, const int mval[2], int extend)
 {
 	Object *obedit= CTX_data_edit_object(C); 
 	Curve *cu= obedit->data;
@@ -4666,7 +4669,6 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		Curve *cu;
 		ViewContext vc;
 		float location[3];
-		short mval[2];
 
 		Nurb *nu;
 		BezTriple *bezt;
@@ -4688,10 +4690,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			copy_v3_v3(location, give_cursor(vc.scene, vc.v3d));
 		}
 
-		mval[0]= event->x - vc.ar->winrct.xmin;
-		mval[1]= event->y - vc.ar->winrct.ymin;
-		
-		view3d_get_view_aligned_coordinate(&vc, location, mval, TRUE);
+		view3d_get_view_aligned_coordinate(&vc, location, event->mval, TRUE);
 		RNA_float_set_array(op->ptr, "location", location);
 	}
 
@@ -4987,21 +4986,18 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ARegion *ar= CTX_wm_region(C);
 	ViewContext vc;
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	int a, location[2], deselect;
+	int a, deselect;
 
 	deselect= RNA_boolean_get(op->ptr, "deselect");
-	location[0]= event->x - ar->winrct.xmin;
-	location[1]= event->y - ar->winrct.ymin;
 
 	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
 
-	findnearestNurbvert(&vc, 1, location, &nu, &bezt, &bp);
+	findnearestNurbvert(&vc, 1, event->mval, &nu, &bezt, &bp);
 
 	if(bezt) {
 		a= nu->pntsu;
@@ -6118,6 +6114,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 								mul_m4_v3(cmat, bezt->vec[2]);
 								bezt++;
 							}
+							calchandlesNurb(newnu);
 						}
 						if( (bp= newnu->bp) ) {
 							a= newnu->pntsu*nu->pntsv;

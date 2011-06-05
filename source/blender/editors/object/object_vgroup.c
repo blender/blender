@@ -1966,7 +1966,7 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};

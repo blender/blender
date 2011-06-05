@@ -467,7 +467,7 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	int map_type= rna_wmKeyMapItem_map_type_get(ptr);
 
@@ -477,7 +477,7 @@ static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *C, PointerRNA *ptr,
 	else return event_type_items;
 }
 
-static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	int map_type= rna_wmKeyMapItem_map_type_get(ptr);
 
@@ -486,7 +486,7 @@ static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *C, PointerRNA *ptr
 	else return event_value_items;
 }
 
-static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmKeyConfig *kc;
@@ -568,7 +568,7 @@ static PointerRNA rna_WindowManager_active_keyconfig_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_KeyConfig, kc);
 }
 
-static void rna_WindowManager_active_keyconfig_set(PointerRNA *ptr, PointerRNA value)
+static void rna_WindowManager_active_keyconfig_set(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	wmKeyConfig *kc= value.data;
 
@@ -631,7 +631,7 @@ static int rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
 	return kmi->id < 0;
 }
 
-static void rna_wmClipboard_get(PointerRNA *ptr, char *value)
+static void rna_wmClipboard_get(PointerRNA *UNUSED(ptr), char *value)
 {
 	char *pbuf;
 
@@ -645,7 +645,7 @@ static void rna_wmClipboard_get(PointerRNA *ptr, char *value)
 	}
 }
 
-static int rna_wmClipboard_length(PointerRNA *ptr)
+static int rna_wmClipboard_length(PointerRNA *UNUSED(ptr))
 {
 	char *pbuf;
 	int length;
@@ -663,25 +663,26 @@ static int rna_wmClipboard_length(PointerRNA *ptr)
 	return length;
 }
 
-static void rna_wmClipboard_set(PointerRNA *ptr, const char *value)
+static void rna_wmClipboard_set(PointerRNA *UNUSED(ptr), const char *value)
 {
 	WM_clipboard_text_set((void *) value, FALSE);
 }
 
 #ifdef WITH_PYTHON
-static void rna_Operator_unregister(const bContext *C, StructRNA *type)
+static void rna_Operator_unregister(struct Main *bmain, StructRNA *type)
 {
 	const char *idname;
 	wmOperatorType *ot= RNA_struct_blender_type_get(type);
+	wmWindowManager *wm;
 
 	if(!ot)
 		return;
 
 	/* update while blender is running */
-	if(C) {
-		WM_operator_stack_clear((bContext*)C);
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
-	}
+	wm= bmain->wm.first;
+	if(wm)
+		WM_operator_stack_clear(wm);
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 
 	RNA_struct_free_extension(type, &ot->ext);
 
@@ -858,7 +859,7 @@ void macro_wrapper(wmOperatorType *ot, void *userdata);
 static char _operator_idname[OP_MAX_TYPENAME];
 static char _operator_name[OP_MAX_TYPENAME];
 static char _operator_descr[1024];
-static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	wmOperatorType dummyot = {NULL};
 	wmOperator dummyop= {NULL};
@@ -935,7 +936,7 @@ static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *
 	{
 		wmOperatorType *ot= WM_operatortype_find(dummyot.idname, TRUE);
 		if(ot && ot->ext.srna)
-			rna_Operator_unregister(C, ot->ext.srna);
+			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
 
 	/* create a new menu type */
@@ -955,14 +956,18 @@ static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *
 	WM_operatortype_append_ptr(operator_wrapper, (void *)&dummyot);
 
 	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 
 	return dummyot.ext.srna;
 }
 
+void **rna_Operator_instance(PointerRNA *ptr)
+{
+	wmOperator *op = ptr->data;
+	return &op->py_instance;
+}
 
-static StructRNA *rna_MacroOperator_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	wmOperatorType dummyot = {NULL};
 	wmOperator dummyop= {NULL};
@@ -1006,7 +1011,7 @@ static StructRNA *rna_MacroOperator_register(bContext *C, ReportList *reports, v
 	{
 		wmOperatorType *ot= WM_operatortype_find(dummyot.idname, TRUE);
 		if(ot && ot->ext.srna)
-			rna_Operator_unregister(C, ot->ext.srna);
+			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
 
 	/* create a new menu type */
@@ -1021,8 +1026,7 @@ static StructRNA *rna_MacroOperator_register(bContext *C, ReportList *reports, v
 	WM_operatortype_append_macro_ptr(macro_wrapper, (void *)&dummyot);
 
 	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 
 	return dummyot.ext.srna;
 }
@@ -1114,7 +1118,7 @@ static wmKeyMap *rna_keymap_find(wmKeyConfig *keyconf, const char *idname, int s
 	return WM_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
 }
 
-static wmKeyMap *rna_keymap_find_modal(wmKeyConfig *keyconf, const char *idname)
+static wmKeyMap *rna_keymap_find_modal(wmKeyConfig *UNUSED(keyconf), const char *idname)
 {
 	wmOperatorType *ot = WM_operatortype_find(idname, 0);
 
@@ -1161,7 +1165,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "wmOperator");
 	RNA_def_struct_refine_func(srna, "rna_Operator_refine");
 #ifdef WITH_PYTHON
-	RNA_def_struct_register_funcs(srna, "rna_Operator_register", "rna_Operator_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_Operator_register", "rna_Operator_unregister", "rna_Operator_instance");
 #endif
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -1230,7 +1234,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "wmOperator");
 	RNA_def_struct_refine_func(srna, "rna_MacroOperator_refine");
 #ifdef WITH_PYTHON
-	RNA_def_struct_register_funcs(srna, "rna_MacroOperator_register", "rna_Operator_unregister");
+	RNA_def_struct_register_funcs(srna, "rna_MacroOperator_register", "rna_Operator_unregister", "rna_Operator_instance");
 #endif
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -1838,4 +1842,3 @@ void RNA_def_wm(BlenderRNA *brna)
 }
 
 #endif /* RNA_RUNTIME */
-

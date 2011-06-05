@@ -8,7 +8,7 @@ defs = []
 
 if env['WITH_BF_FFMPEG']:
     sources += env.Glob('ffmpeg/*.cpp')
-    incs += ' ffmpeg ' + env['BF_FFMPEG_INC']
+    incs += ' ffmpeg  #/intern/ffmpeg ' + env['BF_FFMPEG_INC']
     defs.append('WITH_FFMPEG')
 
 if env['WITH_BF_SDL']:

@@ -87,7 +87,7 @@ static void rna_World_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	set_current_world_texture(wo, value.data);
 }
 
-static void rna_World_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_World_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
@@ -95,7 +95,7 @@ static void rna_World_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_WORLD, wo);
 }
 
-static void rna_World_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_World_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
@@ -104,7 +104,7 @@ static void rna_World_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 }
 
 /* so camera mist limits redraw */
-static void rna_World_draw_mist_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_World_draw_mist_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
@@ -113,7 +113,7 @@ static void rna_World_draw_mist_update(Main *bmain, Scene *scene, PointerRNA *pt
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 }
 
-static void rna_World_stars_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_World_stars_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
@@ -223,7 +223,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_sample_method_items[] = {
-		{WO_AOSAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", ""},
+		{WO_AOSAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", "Fastest and gives the most noise"},
 		{WO_AOSAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", "Fast in high-contrast areas"},
 		{WO_AOSAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", "Best quality"},
 		{0, NULL, 0, NULL, NULL}};
@@ -314,7 +314,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "falloff_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodistfac");
-	RNA_def_property_ui_text(prop, "Strength", "Distance attenuation factor, the higher, the less influence farther away objects have influence");
+	RNA_def_property_ui_text(prop, "Strength", "Attenuation falloff strength, the higher, the less influence distant objects have");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "bias", PROP_FLOAT, PROP_NONE);
@@ -350,7 +350,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_falloff", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "aomode", WO_AODIST);
-	RNA_def_property_ui_text(prop, "Falloff", "");
+	RNA_def_property_ui_text(prop, "Falloff", "Distance will be used to attenuate shadows");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "use_cache", PROP_BOOLEAN, PROP_NONE);
@@ -494,7 +494,7 @@ void RNA_def_world(BlenderRNA *brna)
 
 	rna_def_animdata_common(srna);
 	rna_def_mtex_common(brna, srna, "rna_World_mtex_begin", "rna_World_active_texture_get",
-		"rna_World_active_texture_set", "WorldTextureSlot", "WorldTextureSlots", "rna_World_update");
+		"rna_World_active_texture_set", NULL, "WorldTextureSlot", "WorldTextureSlots", "rna_World_update");
 
 	/* colors */
 	prop= RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);
@@ -515,7 +515,7 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ambient_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "ambr");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Ambient Color", "");
+	RNA_def_property_ui_text(prop, "Ambient Color", "Ambient color of the world");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	/* exp, range */

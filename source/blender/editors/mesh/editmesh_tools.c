@@ -762,7 +762,7 @@ static EnumPropertyItem extrude_items[] = {
 		{0, NULL, 0, NULL, NULL}};
 
 
-static EnumPropertyItem *mesh_extrude_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *mesh_extrude_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *item= NULL;
 	Object *obedit= CTX_data_edit_object(C);
@@ -4011,7 +4011,7 @@ useless:
 	LinkNode *fuv_link;
 
 	short event, draw=1;
-	short mval[2], mvalo[2];
+	int mval[2], mvalo[2];
 	char str[128];
 	float labda = 0.0f;
 
@@ -4416,7 +4416,7 @@ useless:
 	percp = -1;
 	while(draw) {
 		 /* For the % calculation */
-		short mval[2];
+		int mval[2];
 		float rc[2];
 		float v2[2], v3[2];
 		EditVert *centerVert, *upVert, *downVert;
@@ -4867,12 +4867,12 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 /********************** Rip Operator *************************/
 
 /* helper to find edge for edge_rip */
-static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const short mval[2])
+static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const int mval[2])
 {
 	float vec1[3], vec2[3], mvalf[2];
 
-	view3d_project_float(ar, co1, vec1, mat);
-	view3d_project_float(ar, co2, vec2, mat);
+	ED_view3d_project_float(ar, co1, vec1, mat);
+	ED_view3d_project_float(ar, co2, vec2, mat);
 	mvalf[0]= (float)mval[0];
 	mvalf[1]= (float)mval[1];
 
@@ -4910,12 +4910,13 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	EditEdge *eed, *seed= NULL;
 	EditFace *efa, *sefa= NULL;
 	float projectMat[4][4], vec[3], dist, mindist;
-	short doit= 1, *mval= event->mval;
+	short doit= 1;
+	int *mval= event->mval;
 
 	/* select flush... vertices are important */
 	EM_selectmode_set(em);
 
-	view3d_get_object_project_mat(rv3d, obedit, projectMat);
+	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
 	/* find best face, exclude triangles and break on face select or faces with 2 edges select */
 	mindist= 1000000.0f;
@@ -4932,7 +4933,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			if(totsel>1)
 				break;
-			view3d_project_float(ar, efa->cent, vec, projectMat);
+			ED_view3d_project_float(ar, efa->cent, vec, projectMat);
 			dist= sqrt( (vec[0]-mval[0])*(vec[0]-mval[0]) + (vec[1]-mval[1])*(vec[1]-mval[1]) );
 			if(dist<mindist) {
 				mindist= dist;
@@ -5262,7 +5263,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= (obedit) ? obedit->data : NULL;
@@ -5315,7 +5316,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending.");
 	RNA_def_enum_funcs(prop, shape_itemf);
 	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor.", -2.0f, 2.0f);
-	RNA_def_boolean(ot->srna, "add", 0, "Add", "Add rather then blend between shapes.");
+	RNA_def_boolean(ot->srna, "add", 0, "Add", "Add rather than blend between shapes.");
 }
 
 /************************ Merge Operator *************************/
@@ -5974,7 +5975,7 @@ static EnumPropertyItem merge_type_items[]= {
 	{5, "COLLAPSE", 0, "Collapse", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;

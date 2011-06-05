@@ -89,7 +89,7 @@ EnumPropertyItem ramp_blend_items[] = {
 
 #include "ED_node.h"
 
-static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Material_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
@@ -100,7 +100,7 @@ static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		WM_main_add_notifier(NC_MATERIAL|ND_SHADING, ma);
 }
 
-static void rna_Material_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
@@ -168,6 +168,13 @@ static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	Material *ma= (Material*)ptr->data;
 
 	set_current_material_texture(ma, value.data);
+}
+
+static int rna_Material_active_texture_editable(PointerRNA *ptr)
+{
+	Material *ma= (Material*)ptr->id.data;
+
+	return has_current_material_texture(ma);
 }
 
 static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)
@@ -272,7 +279,7 @@ static void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_shader_default(ma);
 }
 
-static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Material *ma= (Material*)ptr->id.data;
 	EnumPropertyItem *item= NULL;
@@ -743,7 +750,7 @@ static void rna_def_material_colors(StructRNA *srna)
 	prop= RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Diffuse Color", "");
+	RNA_def_property_ui_text(prop, "Diffuse Color", "Diffuse color of the material");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
 	prop= RNA_def_property(srna, "specular_color", PROP_FLOAT, PROP_COLOR);
@@ -797,25 +804,25 @@ static void rna_def_material_colors(StructRNA *srna)
 	prop= RNA_def_property(srna, "diffuse_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_col");
 	RNA_def_property_enum_items(prop, ramp_blend_items);
-	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "Blending method of the ramp and the diffuse color");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "specular_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_spec");
 	RNA_def_property_enum_items(prop, ramp_blend_items);
-	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "Blending method of the ramp and the specular color");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "diffuse_ramp_input", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampin_col");
 	RNA_def_property_enum_items(prop, prop_ramp_input_items);
-	RNA_def_property_ui_text(prop, "Diffuse Ramp Input", "");
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Input", "Determines how the ramp maps on the surface");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "specular_ramp_input", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampin_spec");
 	RNA_def_property_enum_items(prop, prop_ramp_input_items);
-	RNA_def_property_ui_text(prop, "Specular Ramp Input", "");
+	RNA_def_property_ui_text(prop, "Specular Ramp Input", "Determines how the ramp maps on the surface");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "diffuse_ramp_factor", PROP_FLOAT, PROP_FACTOR);
@@ -836,11 +843,11 @@ static void rna_def_material_diffuse(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_diff_shader_items[] = {
-		{MA_DIFF_LAMBERT, "LAMBERT", 0, "Lambert", ""},
-		{MA_DIFF_ORENNAYAR, "OREN_NAYAR", 0, "Oren-Nayar", ""},
-		{MA_DIFF_TOON, "TOON", 0, "Toon", ""},
-		{MA_DIFF_MINNAERT, "MINNAERT", 0, "Minnaert", ""},
-		{MA_DIFF_FRESNEL, "FRESNEL", 0, "Fresnel", ""},
+		{MA_DIFF_LAMBERT, "LAMBERT", 0, "Lambert", "Use a Lambertian shader"},
+		{MA_DIFF_ORENNAYAR, "OREN_NAYAR", 0, "Oren-Nayar", "Use an Oren-Nayar shader"},
+		{MA_DIFF_TOON, "TOON", 0, "Toon", "Use a toon shader"},
+		{MA_DIFF_MINNAERT, "MINNAERT", 0, "Minnaert", "Use a Minnaert shader"},
+		{MA_DIFF_FRESNEL, "FRESNEL", 0, "Fresnel", "Use a Fresnel shader"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	prop= RNA_def_property(srna, "diffuse_shader", PROP_ENUM, PROP_NONE);
@@ -1048,7 +1055,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_lighting_items[] = {
-		{MA_VOL_SHADE_SHADELESS, "SHADELESS", 0, "Shadeless", ""},
+		{MA_VOL_SHADE_SHADELESS, "SHADELESS", 0, "Shadeless", "Do not calculate lighting and shadows"},
 		{MA_VOL_SHADE_SHADOWED, "SHADOWED", 0, "Shadowed", ""},
 		{MA_VOL_SHADE_SHADED, "SHADED", 0, "Shaded", ""},
 		{MA_VOL_SHADE_MULTIPLE, "MULTIPLE_SCATTERING", 0, "Multiple Scattering", ""},
@@ -1168,7 +1175,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "emission_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "emission_col");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Emission Color", "");
+	RNA_def_property_ui_text(prop, "Emission Color", "Color of emitted light");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
 	prop= RNA_def_property(srna, "emission", PROP_FLOAT, PROP_NONE);
@@ -1389,11 +1396,11 @@ static void rna_def_material_specularity(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_specular_shader_items[] = {
-		{MA_SPEC_COOKTORR, "COOKTORR", 0, "CookTorr", ""},
-		{MA_SPEC_PHONG, "PHONG", 0, "Phong", ""},
-		{MA_SPEC_BLINN, "BLINN", 0, "Blinn", ""},
-		{MA_SPEC_TOON, "TOON", 0, "Toon", ""},
-		{MA_SPEC_WARDISO, "WARDISO", 0, "WardIso", ""},
+		{MA_SPEC_COOKTORR, "COOKTORR", 0, "CookTorr", "Use a Cook-Torrance shader"},
+		{MA_SPEC_PHONG, "PHONG", 0, "Phong", "Use a Phong shader"},
+		{MA_SPEC_BLINN, "BLINN", 0, "Blinn", "Use a Blinn shader"},
+		{MA_SPEC_TOON, "TOON", 0, "Toon", "Use a toon shader"},
+		{MA_SPEC_WARDISO, "WARDISO", 0, "WardIso", "Use a Ward anisotropic shader"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	prop= RNA_def_property(srna, "specular_shader", PROP_ENUM, PROP_NONE);
@@ -1405,7 +1412,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 	prop= RNA_def_property(srna, "specular_intensity", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "spec");
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Specular Intensity", "");
+	RNA_def_property_ui_text(prop, "Specular Intensity", "How intense (bright) the specular reflection is");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	/* NOTE: "har", "param", etc are used for multiple purposes depending on
@@ -1416,13 +1423,13 @@ static void rna_def_material_specularity(StructRNA *srna)
 	prop= RNA_def_property(srna, "specular_hardness", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "har");
 	RNA_def_property_range(prop, 1, 511);
-	RNA_def_property_ui_text(prop, "Specular Hardness", "");
+	RNA_def_property_ui_text(prop, "Specular Hardness", "How hard (sharp) the specular reflection is");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop= RNA_def_property(srna, "specular_ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "refrac");
 	RNA_def_property_range(prop, 1, 10);
-	RNA_def_property_ui_text(prop, "Specular IOR", "");
+	RNA_def_property_ui_text(prop, "Specular IOR", "Specular index of refraction");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "specular_toon_size", PROP_FLOAT, PROP_NONE);
@@ -1585,9 +1592,9 @@ void RNA_def_material(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadows_only_items[] = {
-		{MA_SO_OLD, "SHADOW_ONLY_OLD", 0, "Shadow and Distance", ""},
-		{MA_SO_SHADOW, "SHADOW_ONLY", 0, "Shadow Only", ""},
-		{MA_SO_SHADED, "SHADOW_ONLY_SHADED", 0, "Shadow and Shading", ""},
+		{MA_SO_OLD, "SHADOW_ONLY_OLD", 0, "Shadow and Distance", "Old shadow only method"},
+		{MA_SO_SHADOW, "SHADOW_ONLY", 0, "Shadow Only", "Improved shadow only method"},
+		{MA_SO_SHADED, "SHADOW_ONLY_SHADED", 0, "Shadow and Shading", "Improved shadow only method which also renders lightless areas as shadows"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Material", "ID");
@@ -1841,7 +1848,8 @@ void RNA_def_material(BlenderRNA *brna)
 	/* common */
 	rna_def_animdata_common(srna);
 	rna_def_mtex_common(brna, srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get",
-		"rna_Material_active_texture_set", "MaterialTextureSlot", "MaterialTextureSlots", "rna_Material_update");
+		"rna_Material_active_texture_set", "rna_Material_active_texture_editable",
+		"MaterialTextureSlot", "MaterialTextureSlots", "rna_Material_update");
 
 	/* only material has this one */
 	prop= RNA_def_property(srna, "use_textures", PROP_BOOLEAN, PROP_NONE);
@@ -1899,7 +1907,9 @@ static void rna_def_texture_slots(BlenderRNA *brna, PropertyRNA *cprop, const ch
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
-void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *structname_slots, const char *update)
+void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin,
+	const char *activeget, const char *activeset, const char *activeeditable,
+	const char *structname, const char *structname_slots, const char *update)
 {
 	PropertyRNA *prop;
 
@@ -1913,6 +1923,8 @@ void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin, c
 	prop= RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Texture");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	if(activeeditable)
+		RNA_def_property_editable_func(prop, activeeditable);
 	RNA_def_property_pointer_funcs(prop, activeget, activeset, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture", "Active texture slot being displayed");
 	RNA_def_property_update(prop, 0, update);

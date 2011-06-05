@@ -107,6 +107,23 @@ static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *it
 }
 
 /* internal use */
+static int rna_SequenceEditor_elements_length(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+
+	/* Hack? copied from sequencer.c::reload_sequence_new_file() */
+	size_t olen = MEM_allocN_len(seq->strip->stripdata)/sizeof(struct StripElem);
+	
+	/* the problem with seq->strip->len and seq->len is that it's discounted from the offset (hard cut trim) */
+	return (int) olen;
+}
+
+static void rna_SequenceEditor_elements_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	rna_iterator_array_begin(iter, (void*)seq->strip->stripdata, sizeof(StripElem), rna_SequenceEditor_elements_length(ptr), 0, NULL);
+}
+
 static void rna_Sequence_frame_change_update(Scene *scene, Sequence *seq)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -387,6 +404,8 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 			return &RNA_EffectSequence;
 		case SEQ_MULTICAM:
 			return &RNA_MulticamSequence;
+		case SEQ_ADJUSTMENT:
+			return &RNA_AdjustmentSequence;
 		case SEQ_PLUGIN:
 			return &RNA_PluginSequence;
 		case SEQ_WIPE:
@@ -433,7 +452,7 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 
 	if(seq->type == SEQ_SOUND && seq->sound) {
 		/* for sound strips we need to update the sound as well.
-		 * arguably, this could load in a new sound rather then modify an existing one.
+		 * arguably, this could load in a new sound rather than modify an existing one.
 		 * but while using the sequencer its most likely your not using the sound in the game engine too.
 		 */
 		PointerRNA id_ptr;
@@ -532,7 +551,7 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(elem->name, name, sizeof(elem->name));
 }*/
 
-static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
@@ -542,7 +561,7 @@ static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		seq_update_sound(scene, ptr->data);
 }
 
-static void rna_Sequence_update_reopen_files(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
@@ -569,11 +588,16 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *scene, PointerRNA *
 }
 
 /* do_versions? */
-static float rna_Sequence_opacity_get(PointerRNA *ptr) {
-	return ((Sequence*)(ptr->data))->blend_opacity / 100.0f;
+static float rna_Sequence_opacity_get(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	return seq->blend_opacity / 100.0f;
 }
-static void rna_Sequence_opacity_set(PointerRNA *ptr, float value) {
-	((Sequence*)(ptr->data))->blend_opacity = value * 100.0f;
+static void rna_Sequence_opacity_set(PointerRNA *ptr, float value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	CLAMP(value, 0.0f, 1.0f);
+	seq->blend_opacity = value * 100.0f;
 }
 
 
@@ -844,6 +868,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_COLOR, "COLOR", 0, "Color", ""}, 
 		{SEQ_SPEED, "SPEED", 0, "Speed", ""}, 
 		{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+		{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem blend_mode_items[]= {
@@ -1219,9 +1244,10 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", "strip->len");
+	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", NULL);
 	RNA_def_property_struct_type(prop, "SequenceElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", 0, 0);
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
@@ -1288,9 +1314,10 @@ static void rna_def_movie(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", "strip->len");
+	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", NULL);
 	RNA_def_property_struct_type(prop, "SequenceElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", 0, 0);
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "File", "");
@@ -1365,6 +1392,20 @@ static void rna_def_multicam(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, MAXSEQ-1);
 	RNA_def_property_ui_text(prop, "Multicam Source Channel", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	rna_def_filter_video(srna);
+	rna_def_proxy(srna);
+	rna_def_input(srna);
+}
+
+static void rna_def_adjustment(BlenderRNA *brna)
+{
+	StructRNA *srna;
+//	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "AdjustmentSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Adjustment Layer Sequence", "Sequence strip to perform filter adjustments to layers below");
+	RNA_def_struct_sdna(srna, "Sequence");
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
@@ -1620,6 +1661,7 @@ void RNA_def_sequencer(BlenderRNA *brna)
 	rna_def_sound(brna);
 	rna_def_effect(brna);
 	rna_def_multicam(brna);
+	rna_def_adjustment(brna);
 	rna_def_plugin(brna);
 	rna_def_wipe(brna);
 	rna_def_glow(brna);

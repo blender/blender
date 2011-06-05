@@ -230,7 +230,7 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	//rctf rectf, rq;
 	short selecting= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
-	//short mval[2];
+	//int mval[2];
 
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");

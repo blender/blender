@@ -148,8 +148,6 @@ def setup_staticlibs(lenv):
         libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
         if lenv['WITH_BF_STATICOPENEXR']:
             statlibs += Split(lenv['BF_OPENEXR_LIB_STATIC'])
-    if lenv['WITH_BF_LCMS']:
-        libincs += Split(lenv['BF_LCMS_LIBPATH'])
     if lenv['WITH_BF_TIFF']:
         libincs += Split(lenv['BF_TIFF_LIBPATH'])
         if lenv['WITH_BF_STATICTIFF']:
@@ -203,6 +201,11 @@ def setup_staticlibs(lenv):
     if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         libincs.append('/usr/lib')
 
+    if lenv['WITH_BF_JEMALLOC']:
+        libincs += Split(lenv['BF_JEMALLOC_LIBPATH'])
+        if lenv['WITH_BF_STATICJEMALLOC']:
+            statlibs += Split(lenv['BF_JEMALLOC_LIB_STATIC'])
+
     return statlibs, libincs
 
 def setup_syslibs(lenv):
@@ -253,8 +256,6 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_OPENGL_LIB'])
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross', 'win64-vc'):
         syslibs += Split(lenv['BF_PTHREADS_LIB'])
-    if lenv['WITH_BF_LCMS']:
-        syslibs.append(lenv['BF_LCMS_LIB'])
     if lenv['WITH_BF_COLLADA']:
         syslibs.append(lenv['BF_PCRE_LIB'])
         syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])
@@ -263,6 +264,9 @@ def setup_syslibs(lenv):
     if not lenv['WITH_BF_STATICLIBSAMPLERATE']:
         syslibs += Split(lenv['BF_LIBSAMPLERATE_LIB'])
 
+    if lenv['WITH_BF_JEMALLOC']:
+        if not lenv['WITH_BF_STATICJEMALLOC']:
+            syslibs += Split(lenv['BF_JEMALLOC_LIB'])
 
     syslibs += lenv['LLIBS']
 
@@ -445,10 +449,16 @@ def WinPyBundle(target=None, source=None, env=None):
     shutil.rmtree(py_target, False, printexception)
     exclude_re=[re.compile('.*/test/.*'),
                 re.compile('^config/.*'),
+                re.compile('^config-*/.*'),
                 re.compile('^distutils/.*'),
                 re.compile('^idlelib/.*'),
                 re.compile('^lib2to3/.*'),
-                re.compile('^tkinter/.*')]
+                re.compile('^tkinter/.*'),
+                re.compile('^_tkinter_d.pyd'),
+                re.compile('^turtledemo'),
+                re.compile('^turtle.py'),
+                ]
+
     print "Unpacking '" + py_tar + "' to '" + py_target + "'"
     untar_pybundle(py_tar,py_target,exclude_re)
 
@@ -565,17 +575,17 @@ def UnixPyBundle(target=None, source=None, env=None):
     run("cp -R '%s' '%s'" % (py_src, os.path.dirname(py_target)))
     run("rm -rf '%s/distutils'" % py_target)
     run("rm -rf '%s/lib2to3'" % py_target)
-    run("rm -rf '%s/idlelib'" % py_target)
-    run("rm -rf '%s/tkinter'" % py_target)
     run("rm -rf '%s/config'" % py_target)
-
+    run("rm -rf '%s/config-*'" % py_target)
     run("rm -rf '%s/site-packages'" % py_target)
     run("mkdir '%s/site-packages'" % py_target)    # python needs it.'
-
+    run("rm -rf '%s/idlelib'" % py_target)
+    run("rm -rf '%s/tkinter'" % py_target)
+    run("rm -rf '%s/turtledemo'" % py_target)
+    run("rm -r '%s/turtle.py'" % py_target)
     run("rm -f '%s/lib-dynload/_tkinter.so'" % py_target)
+
     run("find '%s' -type d -name 'test' -prune -exec rm -rf {} ';'" % py_target)
-    run("find '%s' -type d -name 'config-*' -prune -exec rm -rf {} ';'" % py_target)
-    run("find '%s' -type d -name 'turtledemo' -prune -exec rm -rf {} ';'" % py_target)
     run("find '%s' -type d -name '__pycache__' -exec rm -rf {} ';'" % py_target)
     run("find '%s' -name '*.py[co]' -exec rm -rf {} ';'" % py_target)
     run("find '%s' -name '*.so' -exec strip -s {} ';'" % py_target)

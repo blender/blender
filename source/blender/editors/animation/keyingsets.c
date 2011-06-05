@@ -578,9 +578,8 @@ void ANIM_keyingset_info_register (KeyingSetInfo *ksi)
 }
 
 /* Remove the given KeyingSetInfo from the list of type infos, and also remove the builtin set if appropriate */
-void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
+void ANIM_keyingset_info_unregister (Main *bmain, KeyingSetInfo *ksi)
 {
-	Main *bmain= CTX_data_main(C);
 	KeyingSet *ks, *ksn;
 	
 	/* find relevant builtin KeyingSets which use this, and remove them */
@@ -697,7 +696,7 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(Scene *scene, const char *tranformK
 /* Menu of All Keying Sets ----------------------------- */
 
 /* Dynamically populate an enum of Keying Sets */
-EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(ptr), int *free)
+EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks;

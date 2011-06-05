@@ -143,9 +143,11 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_material.h" /* give_current_material */
+
+extern Material defmaterial;	/* material.c */
 }
 
-#include "BKE_material.h" /* give_current_material */
 /* end of blender include block */
 
 #include "KX_BlenderInputDevice.h"
@@ -463,7 +465,9 @@ bool ConvertMaterial(
 							}
 						}
 					}
-					material->flag[i] |= (mat->ipo!=0)?HASIPO:0;
+#if 0				/* this flag isnt used anymore */
+					material->flag[i] |= (BKE_animdata_from_id(mat->id) != NULL) ? HASIPO : 0;
+#endif
 					/// --------------------------------
 					// mapping methods
 					material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
@@ -837,6 +841,11 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 			ma = give_current_material(blenderobj, mface->mat_nr+1);
 		else
 			ma = mesh->mat ? mesh->mat[mface->mat_nr]:NULL;
+
+		/* ckeck for texface since texface _only_ is used as a fallback */
+		if(ma == NULL && tface == NULL) {
+			ma= &defmaterial;
+		}
 
 		{
 			bool visible = true;
@@ -2609,6 +2618,9 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		bConstraint *curcon;
 		conlist = get_active_constraints2(blenderobject);
 
+		if((gameobj->GetLayer()&activeLayerBitInfo)==0)
+			continue;
+
 		if (conlist) {
 			for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
 				if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT){
@@ -2622,7 +2634,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 						if (dat->tar)
 						{
 							KX_GameObject *gotar=getGameOb(dat->tar->id.name+2,sumolist);
-							if (gotar && gotar->GetPhysicsController())
+							if (gotar && ((gotar->GetLayer()&activeLayerBitInfo)!=0) && gotar->GetPhysicsController())
 								physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
 						}
 

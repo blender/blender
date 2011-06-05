@@ -51,8 +51,10 @@
 
 static void rna_Sequence_swap_internal(Sequence *seq_self, ReportList *reports, Sequence *seq_other)
 {
-	if(seq_swap(seq_self, seq_other) == 0)
-		BKE_report(reports, RPT_ERROR, "both strips must be the same length");
+	const char *error_msg;
+	
+	if(seq_swap(seq_self, seq_other, &error_msg) == 0)
+		BKE_report(reports, RPT_ERROR, error_msg);
 }
 
 #else

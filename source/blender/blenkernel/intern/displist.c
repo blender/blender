@@ -72,6 +72,8 @@
 
 #include "ED_curve.h" /* for BKE_curve_nurbs */
 
+extern Material defmaterial;	/* material.c */
+
 static void boundbox_displist(Object *ob);
 
 void free_disp_elem(DispList *dl)
@@ -330,19 +332,12 @@ void fastshade_free_render(void)
 	}
 }
 
-static int fastshade_customdata_layer_num(int n, int active)
-{   
-	/* make the active layer the first */
-	if (n == active) return 0;
-	else if (n < active) return n+1;
-	else return n;
-}
 
 static void fastshade_customdata(CustomData *fdata, int a, int j, Material *ma)
 {
 	CustomDataLayer *layer;
 	MTFace *mtface;
-	int index, n, needuv= ma->texco & TEXCO_UV;
+	int index, needuv= ma->texco & TEXCO_UV;
 	char *vertcol;
 
 	shi.totuv= 0;
@@ -352,7 +347,6 @@ static void fastshade_customdata(CustomData *fdata, int a, int j, Material *ma)
 		layer= &fdata->layers[index];
 		
 		if(needuv && layer->type == CD_MTFACE && shi.totuv < MAX_MTFACE) {
-			n= fastshade_customdata_layer_num(shi.totuv, layer->active_rnd);
 			mtface= &((MTFace*)layer->data)[a];
 
 			shi.uv[shi.totuv].uv[0]= 2.0f*mtface->uv[j][0]-1.0f;
@@ -363,7 +357,6 @@ static void fastshade_customdata(CustomData *fdata, int a, int j, Material *ma)
 			shi.totuv++;
 		}
 		else if(layer->type == CD_MCOL && shi.totcol < MAX_MCOL) {
-			n= fastshade_customdata_layer_num(shi.totcol, layer->active_rnd);
 			vertcol= (char*)&((MCol*)layer->data)[a*4 + j];
 
 			shi.col[shi.totcol].col[0]= ((float)vertcol[3])/255.0f;
@@ -552,7 +545,6 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 	}		
 
 	for (i=0; i<totface; i++) {
-		extern Material defmaterial;	/* material.c */
 		MFace *mf= &mface[i];
 		Material *ma= give_current_material(ob, mf->mat_nr+1);
 		int j, vidx[4], nverts= mf->v4?4:3;
@@ -664,8 +656,6 @@ void shadeDispList(Scene *scene, Base *base)
 			dl= ob->disp.first;
 			
 			while(dl) {
-				extern Material defmaterial;	/* material.c */
-				
 				dlob= MEM_callocN(sizeof(DispList), "displistshade");
 				BLI_addtail(&ob->disp, dlob);
 				dlob->type= DL_VERTCOL;
@@ -734,8 +724,6 @@ void shadeDispList(Scene *scene, Base *base)
 				
 				if(dl->type==DL_INDEX4) {
 					if(dl->nors) {
-						extern Material defmaterial;	/* material.c */
-						
 						if(dl->col1) MEM_freeN(dl->col1);
 						col1= dl->col1= MEM_mallocN(sizeof(int)*dl->nr, "col1");
 				
@@ -984,16 +972,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 			dl= dl->next;
 		}
 		
-		if(totvert && BLI_edgefill(0)) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
-
-			/* count faces  */
-			tot= 0;
-			efa= fillfacebase.first;
-			while(efa) {
-				tot++;
-				efa= efa->next;
-			}
-
+		if(totvert && (tot= BLI_edgefill(0))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
 			if(tot) {
 				dlnew= MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type= DL_INDEX3;
@@ -1973,8 +1952,9 @@ static void boundbox_displist(Object *ob)
 		}
 		
 		if(!doit) {
-			min[0] = min[1] = min[2] = -1.0f;
-			max[0] = max[1] = max[2] = 1.0f;
+			/* there's no geometry in displist, use zero-sized boundbox */
+			zero_v3(min);
+			zero_v3(max);
 		}
 		
 	}

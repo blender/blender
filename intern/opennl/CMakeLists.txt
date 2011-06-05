@@ -36,6 +36,10 @@ set(INC
 	superlu
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/opennl.c
 	superlu/colamd.c
@@ -79,4 +83,4 @@ set(SRC
 	superlu/util.h
 )
 
-blender_add_lib(bf_intern_opennl "${SRC}" "${INC}")
+blender_add_lib(bf_intern_opennl "${SRC}" "${INC}" "${INC_SYS}")

@@ -31,7 +31,6 @@
 
 #include <stdarg.h>
 
-#include "DNA_listBase.h"
 #include "RNA_types.h"
 
 #ifdef __cplusplus
@@ -40,6 +39,7 @@ extern "C" {
 
 struct bContext;
 struct ID;
+struct ListBase;
 struct Main;
 struct ReportList;
 struct Scene;
@@ -53,6 +53,7 @@ extern StructRNA RNA_ActionGroup;
 extern StructRNA RNA_Actuator;
 extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_Addon;
+extern StructRNA RNA_AdjustmentSequence;
 extern StructRNA RNA_AlwaysSensor;
 extern StructRNA RNA_AndController;
 extern StructRNA RNA_AnimData;
@@ -610,6 +611,7 @@ int RNA_struct_is_a(StructRNA *type, StructRNA *srna);
 
 StructRegisterFunc RNA_struct_register(StructRNA *type);
 StructUnregisterFunc RNA_struct_unregister(StructRNA *type);
+void **RNA_struct_instance(PointerRNA *ptr);
 
 void *RNA_struct_py_type_get(StructRNA *srna);
 void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
@@ -741,6 +743,7 @@ int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
+void *RNA_property_enum_py_data_get(PropertyRNA *prop);
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value);
@@ -902,7 +905,7 @@ int RNA_property_is_idprop(PropertyRNA *prop);
 
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
-char *RNA_pointer_as_string(PointerRNA *ptr);
+char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr);
 
 /* Function */
 

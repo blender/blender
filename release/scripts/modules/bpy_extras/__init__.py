@@ -18,10 +18,14 @@
 
 # <pep8 compliant>
 
+"""
+Utility modules assosiated with the bpy module.
+"""
 
-def image_load(filepath, dirpath, place_holder=False, recursive=False, convert_callback=None):
-    import bpy
-    try:
-        return bpy.data.images.load(filepath)
-    except RuntimeError:
-        return bpy.data.images.new("Untitled", 128, 128)
+__all__ = (
+    "object_utils",
+    "io_utils",
+    "image_utils",
+    "mesh_utils",
+    "view3d_utils",
+)

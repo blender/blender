@@ -29,6 +29,9 @@ set(INC
 	../../windowmanager
 	../../editors/interface
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -45,4 +48,4 @@ if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
-blender_add_lib(bf_editor_space_logic "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_logic "${SRC}" "${INC}" "${INC_SYS}")

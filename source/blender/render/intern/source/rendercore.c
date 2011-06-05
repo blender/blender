@@ -2143,7 +2143,9 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	
 		shade_input_set_shade_texco(shi);
 		
-		if(!ELEM3(bs->type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_SHADOW))
+		/* only do AO for a full bake (and obviously AO bakes)
+			AO for light bakes is a leftover and might not be needed */
+		if( ELEM3(bs->type, RE_BAKE_ALL, RE_BAKE_AO, RE_BAKE_LIGHT))
 			shade_samples_do_AO(ssamp);
 		
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
@@ -2205,6 +2207,42 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 		else if(bs->type==RE_BAKE_SHADOW) {
 			VECCOPY(shr.combined, shr.shad);
 			shr.alpha = shi->alpha;
+		}
+		else if(bs->type==RE_BAKE_SPEC_COLOR) {
+			shr.combined[0]= shi->specr;
+			shr.combined[1]= shi->specg;
+			shr.combined[2]= shi->specb;
+			shr.alpha = 1.0f;
+		}
+		else if(bs->type==RE_BAKE_SPEC_INTENSITY) {
+			shr.combined[0]=
+			shr.combined[1]=
+			shr.combined[2]= shi->spec;
+			shr.alpha = 1.0f;
+		}
+		else if(bs->type==RE_BAKE_MIRROR_COLOR) {
+			shr.combined[0]= shi->mirr;
+			shr.combined[1]= shi->mirg;
+			shr.combined[2]= shi->mirb;
+			shr.alpha = 1.0f;
+		}
+		else if(bs->type==RE_BAKE_MIRROR_INTENSITY) {
+			shr.combined[0]=
+			shr.combined[1]=
+			shr.combined[2]= shi->ray_mirror;
+			shr.alpha = 1.0f;
+		}
+		else if(bs->type==RE_BAKE_ALPHA) {
+			shr.combined[0]=
+			shr.combined[1]=
+			shr.combined[2]= shi->alpha;
+			shr.alpha = 1.0f;
+		}
+		else if(bs->type==RE_BAKE_EMIT) {
+			shr.combined[0]=
+			shr.combined[1]=
+			shr.combined[2]= shi->emit;
+			shr.alpha = 1.0f;
 		}
 	}
 	

@@ -94,7 +94,7 @@ static char *rna_NlaStrip_path(PointerRNA *ptr)
 	return "";
 }
 
-static void rna_NlaStrip_transform_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_NlaStrip_transform_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	NlaStrip *strip= (NlaStrip*)ptr->data;
 
@@ -273,7 +273,7 @@ static void rna_NlaStrip_animated_time_set(PointerRNA *ptr, int value)
 		data->flag &= ~NLASTRIP_FLAG_USR_TIME;
 }
 
-static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *reports, const char *name, int start, bAction *action)
+static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *reports, const char *UNUSED(name), int start, bAction *action)
 {
 	NlaStrip *strip = add_nlastrip(action);
 	

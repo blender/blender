@@ -831,7 +831,10 @@ void pose_remove_group (Object *ob)
 		
 		/* now, remove it from the pose */
 		BLI_freelinkN(&pose->agroups, grp);
-		pose->active_group= 0;
+		pose->active_group--;
+		if(pose->active_group < 0 || pose->agroups.first == NULL) {
+			pose->active_group= 0;
+		}
 	}
 }
 

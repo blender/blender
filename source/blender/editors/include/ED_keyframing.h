@@ -36,6 +36,7 @@
 extern "C" {
 #endif
 
+struct Main;
 struct ListBase;
 struct ID;
 struct Scene;
@@ -190,7 +191,7 @@ KeyingSetInfo *ANIM_keyingset_info_find_named(const char name[]);
 
 /* for RNA type registrations... */
 void ANIM_keyingset_info_register(KeyingSetInfo *ksi);
-void ANIM_keyingset_info_unregister(const struct bContext *C, KeyingSetInfo *ksi);
+void ANIM_keyingset_info_unregister(struct Main *bmain, KeyingSetInfo *ksi);
 
 /* cleanup on exit */
 void ANIM_keyingset_infos_exit(void);
@@ -210,7 +211,7 @@ struct KeyingSet *ANIM_get_keyingset_for_autokeying(struct Scene *scene, const c
 void ANIM_keying_sets_menu_setup(struct bContext *C, const char title[], const char op_name[]);
 
 /* Dynamically populate an enum of Keying Sets */
-struct EnumPropertyItem *ANIM_keying_sets_enum_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+struct EnumPropertyItem *ANIM_keying_sets_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int *free);
 
 /* Check if KeyingSet can be used in the current context */
 short ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);

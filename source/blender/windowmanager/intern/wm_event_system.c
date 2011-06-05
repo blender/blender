@@ -661,6 +661,11 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 		event->mval[0]= event->x - ar->winrct.xmin;
 		event->mval[1]= event->y - ar->winrct.ymin;
 	}
+	else {
+		/* these values are invalid (avoid odd behavior by relying on old mval values) */
+		event->mval[0]= -1;
+		event->mval[1]= -1;
+	}
 }
 
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
@@ -1776,6 +1781,8 @@ void wm_event_do_handlers(bContext *C)
 			/* MVC demands to not draw in event handlers... but we need to leave it for ogl selecting etc */
 			wm_window_make_drawable(C, win);
 			
+			wm_region_mouse_co(C, event);
+
 			/* first we do priority handlers, modal + some limited keymaps */
 			action |= wm_handlers_do(C, event, &win->modalhandlers);
 			
@@ -1811,10 +1818,12 @@ void wm_event_do_handlers(bContext *C)
 								if(wm_event_inside_i(event, &ar->winrct)) {
 									CTX_wm_region_set(C, ar);
 									
+									/* call even on non mouse events, since the */
+									wm_region_mouse_co(C, event);
+
 									/* does polls for drop regions and checks uibuts */
 									/* need to be here to make sure region context is true */
 									if(ELEM(event->type, MOUSEMOVE, EVT_DROP)) {
-										wm_region_mouse_co(C, event);
 										wm_drags_check_ops(C, event);
 									}
 									
@@ -1834,9 +1843,10 @@ void wm_event_do_handlers(bContext *C)
 
 						CTX_wm_region_set(C, NULL);
 
-						if((action & WM_HANDLER_BREAK) == 0)
+						if((action & WM_HANDLER_BREAK) == 0) {
+							wm_region_mouse_co(C, event); /* only invalidates event->mval in this case */
 							action |= wm_handlers_do(C, event, &sa->handlers);
-
+						}
 						CTX_wm_area_set(C, NULL);
 
 						/* NOTE: do not escape on WM_HANDLER_BREAK, mousemove needs handled for previous area */
@@ -1847,6 +1857,8 @@ void wm_event_do_handlers(bContext *C)
 					/* also some non-modal handlers need active area/region */
 					CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
 					CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
+
+					wm_region_mouse_co(C, event);
 
 					action |= wm_handlers_do(C, event, &win->handlers);
 
@@ -2293,7 +2305,7 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 /* imperfect but probably usable... draw/enable drags to other windows */
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *evt)
 {
-	short mx= evt->x, my= evt->y;
+	int mx= evt->x, my= evt->y;
 	
 	if(wm->windows.first== wm->windows.last)
 		return NULL;
@@ -2310,8 +2322,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 				return NULL;
 		
 		/* to desktop space */
-		mx+= win->posx;
-		my+= win->posy;
+		mx += (int)win->posx;
+		my += (int)win->posy;
 		
 		/* check other windows to see if it has mouse inside */
 		for(owin= wm->windows.first; owin; owin= owin->next) {
@@ -2319,8 +2331,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 			if(owin!=win) {
 				if(mx-owin->posx >= 0 && my-owin->posy >= 0 &&
 				   mx-owin->posx <= owin->sizex && my-owin->posy <= owin->sizey) {
-					evt->x= mx-owin->posx;
-					evt->y= my-owin->posy;
+					evt->x= mx - (int)owin->posx;
+					evt->y= my - (int)owin->posy;
 					
 					return owin;
 				}

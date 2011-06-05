@@ -45,7 +45,7 @@
 #include "BLI_utildefines.h"
 
 
-static char Method_Buffer_doc[] =
+PyDoc_STRVAR(Method_Buffer_doc,
 	"(type, dimensions, [template]) - Create a new Buffer object\n\n\
 (type) - The format to store data in\n\
 (dimensions) - An int or sequence specifying the dimensions of the buffer\n\
@@ -59,18 +59,19 @@ will have len(sequence) dimensions, where the size for each dimension\n\
 is determined by the value in the sequence at that index.\n\n\
 For example, passing [100, 100] will create a 2 dimensional\n\
 square buffer. Passing [16, 16, 32] will create a 3 dimensional\n\
-buffer which is twice as deep as it is wide or high.";
+buffer which is twice as deep as it is wide or high."
+);
 
-static PyObject *Method_Buffer( PyObject * self, PyObject *args );
+static PyObject *Method_Buffer(PyObject *self, PyObject *args);
 
 /* Buffer sequence methods */
 
-static int Buffer_len( PyObject * self );
-static PyObject *Buffer_item( PyObject * self, int i );
-static PyObject *Buffer_slice( PyObject * self, int begin, int end );
-static int Buffer_ass_item( PyObject * self, int i, PyObject * v );
-static int Buffer_ass_slice( PyObject * self, int begin, int end,
-				 PyObject * seq );
+static int Buffer_len(PyObject *self);
+static PyObject *Buffer_item(PyObject *self, int i);
+static PyObject *Buffer_slice(PyObject *self, int begin, int end);
+static int Buffer_ass_item(PyObject *self, int i, PyObject *v);
+static int Buffer_ass_slice(PyObject *self, int begin, int end,
+				 PyObject *seq);
 
 static PySequenceMethods Buffer_SeqMethods = {
 	( lenfunc ) Buffer_len,						/*sq_length */
@@ -85,11 +86,11 @@ static PySequenceMethods Buffer_SeqMethods = {
 	(ssizeargfunc) NULL,						/* sq_inplace_repeat */
 };
 
-static void Buffer_dealloc( PyObject * self );
-static PyObject *Buffer_tolist( PyObject * self );
-static PyObject *Buffer_dimensions( PyObject * self );
-static PyObject *Buffer_getattr( PyObject * self, char *name );
-static PyObject *Buffer_repr( PyObject * self );
+static void Buffer_dealloc(PyObject *self);
+static PyObject *Buffer_tolist(PyObject *self);
+static PyObject *Buffer_dimensions(PyObject *self);
+static PyObject *Buffer_getattr(PyObject *self, char *name);
+static PyObject *Buffer_repr(PyObject *self);
 
 PyTypeObject BGL_bufferType = {
 	PyVarObject_HEAD_INIT(NULL, 0)

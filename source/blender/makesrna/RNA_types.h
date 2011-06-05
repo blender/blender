@@ -39,10 +39,12 @@ extern "C" {
 struct ParameterList;
 struct FunctionRNA;
 struct PropertyRNA;
+struct EnumPropertyRNA;
 struct StructRNA;
 struct BlenderRNA;
 struct IDProperty;
 struct bContext;
+struct Main;
 struct ReportList;
 
 /** Pointer
@@ -254,7 +256,8 @@ typedef struct EnumPropertyItem {
 	const char *description;
 } EnumPropertyItem;
 
-typedef EnumPropertyItem *(*EnumPropertyItemFunc)(struct bContext *C, PointerRNA *ptr, int *free);
+/* this is a copy of 'PropEnumItemFunc' defined in rna_internal_types.h */
+typedef EnumPropertyItem *(*EnumPropertyItemFunc)(struct bContext *C, PointerRNA *ptr, struct PropertyRNA *prop, int *free);
 
 typedef struct PropertyRNA PropertyRNA;
 
@@ -329,9 +332,10 @@ typedef enum StructFlag {
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
 typedef int (*StructCallbackFunc)(struct bContext *C, struct PointerRNA *ptr, struct FunctionRNA *func, ParameterList *list);
 typedef void (*StructFreeFunc)(void *data);
-typedef struct StructRNA *(*StructRegisterFunc)(struct bContext *C, struct ReportList *reports, void *data,
+typedef struct StructRNA *(*StructRegisterFunc)(struct Main *bmain, struct ReportList *reports, void *data,
 	const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
-typedef void (*StructUnregisterFunc)(const struct bContext *C, struct StructRNA *type);
+typedef void (*StructUnregisterFunc)(struct Main *bmain, struct StructRNA *type);
+typedef void **(*StructInstanceFunc)(PointerRNA *ptr);
 
 typedef struct StructRNA StructRNA;
 

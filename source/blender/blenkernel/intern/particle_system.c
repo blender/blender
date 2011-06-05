@@ -890,7 +890,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 		if(ctx->tree){
 			KDTreeNearest ptn[10];
 			int w,maxw;//, do_seams;
-			float maxd,mind,/*dd,*/totw= 0.0f;
+			float maxd /*, mind,dd */, totw= 0.0f;
 			int parent[10];
 			float pweight[10];
 
@@ -899,7 +899,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			maxw = BLI_kdtree_find_n_nearest(ctx->tree,4,orco1,NULL,ptn);
 
 			maxd=ptn[maxw-1].dist;
-			mind=ptn[0].dist;
+			/* mind=ptn[0].dist; */ /* UNUSED */
 			
 			/* the weights here could be done better */
 			for(w=0; w<maxw; w++){
@@ -1250,7 +1250,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		double step, pos;
 		
 		step= (totpart < 2) ? 0.5 : 1.0/(double)totpart;
-		pos= 1e-16; /* tiny offset to avoid zero weight face */
+		pos= 1e-6; /* tiny offset to avoid zero weight face */
 		i= 0;
 
 		for(p=0; p<totpart; p++, pos+=step) {

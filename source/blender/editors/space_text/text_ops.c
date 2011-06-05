@@ -894,7 +894,7 @@ static int indent_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if(txt_has_sel(text)) {
 		txt_order_cursors(text);
-		indent(text);
+		txt_indent(text);
 	}
 	else
 		txt_add_char(text, '\t');
@@ -929,7 +929,7 @@ static int unindent_exec(bContext *C, wmOperator *UNUSED(op))
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
 		txt_order_cursors(text);
-		unindent(text);
+		txt_unindent(text);
 
 		text_update_edited(text);
 
@@ -1011,7 +1011,7 @@ static int comment_exec(bContext *C, wmOperator *UNUSED(op))
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
 		txt_order_cursors(text);
-		comment(text);
+		txt_comment(text);
 		text_update_edited(text);
 
 		text_update_cursor_moved(C);
@@ -1044,7 +1044,7 @@ static int uncomment_exec(bContext *C, wmOperator *UNUSED(op))
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
 		txt_order_cursors(text);
-		uncomment(text);
+		txt_uncomment(text);
 		text_update_edited(text);
 
 		text_update_cursor_moved(C);
@@ -2109,7 +2109,7 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceText *st= CTX_wm_space_text(C);
 	ARegion *ar= CTX_wm_region(C);
 	TextScroll *tsc= op->customdata;
-	short mval[2]= {event->x, event->y};
+	int mval[2]= {event->x, event->y};
 	short txtdelta[2] = {0, 0};
 
 	text_update_character_width(st);
@@ -2283,7 +2283,7 @@ static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceText *st= CTX_wm_space_text(C);
 	ARegion *ar= CTX_wm_region(C);
 	TextScroll *tsc;
-	const short *mval= event->mval;
+	const int *mval= event->mval;
 	int zone= -1;
 
 	if(RNA_property_is_set(op->ptr, "lines"))
@@ -2694,7 +2694,7 @@ static int line_number_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
 	ARegion *ar= CTX_wm_region(C);
-	const short *mval= event->mval;
+	const int *mval= event->mval;
 	double time;
 	static int jump_to= 0;
 	static double last_jump= 0;

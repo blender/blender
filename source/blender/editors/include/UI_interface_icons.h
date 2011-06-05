@@ -49,6 +49,10 @@ typedef struct IconFile {
 
 #define ICON_DEFAULT_HEIGHT 16
 #define ICON_DEFAULT_WIDTH	16
+
+#define ICON_DEFAULT_HEIGHT_SCALE	(UI_UNIT_Y * 0.8f)
+#define ICON_DEFAULT_WIDTH_SCALE	(UI_UNIT_X * 0.8f)
+
 #define PREVIEW_DEFAULT_HEIGHT 96
 
 /*

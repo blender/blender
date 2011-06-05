@@ -446,7 +446,7 @@ static void rna_FCurve_modifiers_remove(FCurve *fcu, ReportList *reports, FModif
 	remove_fmodifier(&fcu->modifiers, fcm);
 }
 
-static void rna_FModifier_active_set(PointerRNA *ptr, int value)
+static void rna_FModifier_active_set(PointerRNA *ptr, int UNUSED(value))
 {
 	FModifier *fm= (FModifier*)ptr->data;
 
@@ -454,7 +454,7 @@ static void rna_FModifier_active_set(PointerRNA *ptr, int value)
 	fm->flag |= FMODIFIER_FLAG_ACTIVE;
 }
 
-static void rna_FModifier_active_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_FModifier_active_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	FModifier *fm, *fmo= (FModifier*)ptr->data;
 
