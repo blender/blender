@@ -655,17 +655,19 @@ class ConstraintButtonsPanel():
         row = col.row()
         row.label(text="Source to Destination Mapping:")
 
+		# note: chr(187) is the ASCII arrow ( >> ). Blender Text Editor can't
+		# open it. Thus we are using the hardcoded value instead.
         row = col.row()
         row.prop(con, "map_to_x_from", expand=False, text="")
-        row.label(text=" -> X")
+        row.label(text=" %s    X" % chr(187))
 
         row = col.row()
         row.prop(con, "map_to_y_from", expand=False, text="")
-        row.label(text=" -> Y")
+        row.label(text=" %s    Y" % chr(187))
 
         row = col.row()
         row.prop(con, "map_to_z_from", expand=False, text="")
-        row.label(text=" -> Z")
+        row.label(text=" %s    Z" % chr(187))
 
         split = layout.split()
 
