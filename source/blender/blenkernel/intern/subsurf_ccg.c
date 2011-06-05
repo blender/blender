@@ -2814,8 +2814,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		ccgdm->faceMap[index].startEdge = edgeNum;
 		ccgdm->faceMap[index].startFace = faceNum;
 		
-		faceFlags[0] = mpoly[origIndex].flag;
-		faceFlags[1] = mpoly[origIndex].mat_nr;
+		faceFlags[0] = mpoly ?  mpoly[origIndex].flag : 0;
+		faceFlags[1] = mpoly ? mpoly[origIndex].mat_nr : 0;
 		faceFlags += 2;
 
 		/* set the face base vert */
