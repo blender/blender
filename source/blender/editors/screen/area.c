@@ -967,8 +967,9 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 			uiFreeBlocks(NULL, &ar->uiblocks);	
 		}
 		
-		/* rechecks all 2d matrices */
-		ar->v2d.flag &= ~V2D_IS_INITIALISED;
+		/* rechecks 2d matrix for header on dpi changing, do not do for other regions, it resets view && blocks view2d operator polls (ton) */
+		if(ar->regiontype==RGN_TYPE_HEADER)
+			ar->v2d.flag &= ~V2D_IS_INITIALISED;
 	}
 }
 
