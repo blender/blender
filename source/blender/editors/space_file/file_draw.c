@@ -74,12 +74,6 @@
 
 #include "file_intern.h"	// own include
 
-/* ui geometry */
-#define IMASEL_BUTTONS_HEIGHT 40
-#define IMASEL_BUTTONS_MARGIN 6
-#define TILE_BORDER_X 8
-#define TILE_BORDER_Y 8
-
 /* button events */
 enum {
 	B_FS_DIRNAME,
