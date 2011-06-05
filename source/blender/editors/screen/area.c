@@ -815,8 +815,18 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 			ar->winrct.xmax= ar->winrct.xmin;
 	}
 	/* in end, add azones, where appropriate */
-	region_azone_add(sa, ar, alignment);
-
+	if(ar->regiontype == RGN_TYPE_HEADER && ar->winy + 6 > sa->winy) {
+		/* The logic for this is: when the header takes up the full area,
+		 * disallow hiding it to view the main window.
+		 *
+		 * Without this, uou can drag down the file selectors header and hide it
+		 * by accident very easily (highly annoying!), the value 6 is arbitrary
+		 * but accounts for small common rounding problems when scaling the UI,
+		 * must be minimum '4' */
+	}
+	else {
+		region_azone_add(sa, ar, alignment);
+	}
 
 	region_rect_recursive(sa, ar->next, remainder, quad);
 }
