@@ -1281,31 +1281,32 @@ static void colorband_flip_cb(bContext *C, void *cb_v, void *coba_v)
 /* offset aligns from bottom, standard width 300, height 115 */
 static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand *coba, int xoffs, int yoffs, RNAUpdateCb *cb)
 {
-	
 	uiBut *bt;
 	uiLayout *row;
+	const int line1_y= yoffs + 65 + UI_UNIT_Y + 2; /* 2 for some space between the buttons */
+	const int line2_y= yoffs + 65;
 
 	if(coba==NULL) return;
 
-	bt= uiDefBut(block, BUT, 0,	"Add",			0+xoffs,100+yoffs,40,20, NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
+	bt= uiDefBut(block, BUT, 0,	"Add",			0+xoffs,line1_y,40,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
 
-	bt= uiDefBut(block, BUT, 0,	"Delete",		45+xoffs,100+yoffs,45,20, NULL, 0, 0, 0, 0, "Delete the active position");
+	bt= uiDefBut(block, BUT, 0,	"Delete",		45+xoffs,line1_y,45,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
 
 	/* XXX, todo for later - convert to operator - campbell */
-	bt= uiDefBut(block, BUT, 0,	"F",		95+xoffs,100+yoffs,20,20, NULL, 0, 0, 0, 0, "Flip colorband");
+	bt= uiDefBut(block, BUT, 0,	"F",		95+xoffs,line1_y,20,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Flip colorband");
 	uiButSetNFunc(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
 
-	uiDefButS(block, NUM, 0,		"",				120+xoffs,100+yoffs,80, 20, &coba->cur, 0.0, (float)(MAX2(0, coba->tot-1)), 0, 0, "Choose active color stop");
+	uiDefButS(block, NUM, 0,		"",				120+xoffs,line1_y,80, UI_UNIT_Y, &coba->cur, 0.0, (float)(MAX2(0, coba->tot-1)), 0, 0, "Choose active color stop");
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
-			210+xoffs, 100+yoffs, 90, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
+			210+xoffs, line1_y, 90, UI_UNIT_Y,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	uiBlockEndAlign(block);
 
-	bt= uiDefBut(block, BUT_COLORBAND, 0, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
+	bt= uiDefBut(block, BUT_COLORBAND, 0, "", 	xoffs,line2_y,300,UI_UNIT_Y, coba, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 
@@ -1330,11 +1331,11 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	float xs= butr->xmin;
 
 	uiBlockBeginAlign(block);
-	bt= uiDefBut(block, BUT, 0,	"Add",			xs,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
+	bt= uiDefBut(block, BUT, 0,	"Add",			xs,butr->ymin+UI_UNIT_Y,2.0f*unit,UI_UNIT_Y,	NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
-	bt= uiDefBut(block, BUT, 0,	"Delete",		xs+2.0f*unit,butr->ymin+20.0f,1.5f*unit,20,	NULL, 0, 0, 0, 0, "Delete the active position");
+	bt= uiDefBut(block, BUT, 0,	"Delete",		xs+2.0f*unit,butr->ymin+UI_UNIT_Y,1.5f*unit,UI_UNIT_Y,	NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
-	bt= uiDefBut(block, BUT, 0,	"F",		xs+3.5f*unit,butr->ymin+20.0f,0.5f*unit,20,	NULL, 0, 0, 0, 0, "Flip the color ramp");
+	bt= uiDefBut(block, BUT, 0,	"F",		xs+3.5f*unit,butr->ymin+UI_UNIT_Y,0.5f*unit,UI_UNIT_Y,	NULL, 0, 0, 0, 0, "Flip the color ramp");
 	uiButSetNFunc(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
 	uiBlockEndAlign(block);
 
@@ -1346,10 +1347,10 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	}
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
-			xs+10.0f*unit, butr->ymin+20.0f, unit*4, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
+			xs+10.0f*unit, butr->ymin+UI_UNIT_Y, unit*4, UI_UNIT_Y,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-	bt= uiDefBut(block, BUT_COLORBAND, 0, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
+	bt= uiDefBut(block, BUT_COLORBAND, 0, "",		xs,butr->ymin,butr->xmax-butr->xmin,UI_UNIT_Y, coba, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	uiBlockEndAlign(block);
@@ -1422,7 +1423,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 	hist = (Histogram *)cptr.data;
 
-	hist->height= (hist->height<=20)?20:hist->height;
+	hist->height= (hist->height<=UI_UNIT_Y)?UI_UNIT_Y:hist->height;
 
 	bt= uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, hist->height, hist, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
@@ -1459,7 +1460,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	
 	block= uiLayoutAbsoluteBlock(layout);
 	
-	scopes->wavefrm_height= (scopes->wavefrm_height<=20)?20:scopes->wavefrm_height;
+	scopes->wavefrm_height= (scopes->wavefrm_height<=UI_UNIT_Y)?UI_UNIT_Y:scopes->wavefrm_height;
 
 	bt= uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
 	(void)bt; // UNUSED
@@ -1496,7 +1497,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 	
 	block= uiLayoutAbsoluteBlock(layout);
 
-	scopes->vecscope_height= (scopes->vecscope_height<=20)?20:scopes->vecscope_height;
+	scopes->vecscope_height= (scopes->vecscope_height<=UI_UNIT_Y)?UI_UNIT_Y:scopes->vecscope_height;
 	
 	bt= uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
