@@ -156,7 +156,7 @@ int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 
 	/* could use '0', but this would mean the first
 	 * duplicate would become FooBar.000 */
-	*nr= 1;
+	*nr= 0;
 	a= strlen(name);
 	memcpy(left, name, (a + 1) * sizeof(char));
 
@@ -218,13 +218,13 @@ int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, cons
 		int		number;
 		int		len= BLI_split_name_num(left, &number, name, delim);
 		do {
-			int newlen= BLI_snprintf(tempname, name_len, "%s%c%03d", left, delim, number);
+			int newlen= BLI_snprintf(tempname, name_len, "%s%c%03d", left, delim, ++number);
 			if(newlen >= name_len) {
 				len -= ((newlen + 1) - name_len);
 				if(len < 0) len= number= 0;
 				left[len]= '\0';
 			}
-		} while(number++, unique_check(arg, tempname));
+		} while(unique_check(arg, tempname));
 
 		BLI_strncpy(name, tempname, name_len);
 		
