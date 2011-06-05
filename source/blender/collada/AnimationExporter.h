@@ -89,7 +89,7 @@ public:
 	
 protected:
 
-	void dae_animation(FCurve *fcu, std::string ob_name);
+	void dae_animation(Object* ob, FCurve *fcu, char* transformName);
 
 	void write_bone_animation(Object *ob_arm, Bone *bone);
 
@@ -137,4 +137,6 @@ protected:
 	bool hasAnimations(Scene *sce);
 	
 	char* extract_transform_name(char *rna_path);
+
+	std::string getObjectBoneName ( Object *ob,const FCurve * fcu);
 };

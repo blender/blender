@@ -55,41 +55,86 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	void AnimationExporter::operator() (Object *ob) 
 	{
 		if (!ob->adt || !ob->adt->action) return;  //this is already checked in hasAnimations()
-		
 		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
-		
-		if (ob->type == OB_ARMATURE) {
-			if (!ob->data) return;
-
-			bArmature *arm = (bArmature*)ob->data;
-			for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
-				write_bone_animation(ob, bone);
-		}
-		else {
+		char * transformName = extract_transform_name( fcu->rna_path );
+        
+		//if (ob->type == OB_ARMATURE) {
+		//	if (!ob->data) return;
+		//	bArmature *arm = (bArmature*)ob->data;
+		//	while(fcu)
+		//	{ 		
+		//		transformName = extract_transform_name( fcu->rna_path );
+		//	//	std::string ob_name =  getObjectBoneName( ob , fcu);
+		//	//	for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
+		//	//		write_bone_animation(ob, bone);
+		//		dae_animation(ob, fcu, ob_name, transformName);
+		//		fcu = fcu->next;
+		//	}
+		//}
+		//else {
 			while (fcu) {
-				// TODO "rotation_quaternion" is also possible for objects (although euler is default)
-				if ((!strcmp(fcu->rna_path, "location") || !strcmp(fcu->rna_path, "scale")) ||
-					(!strcmp(fcu->rna_path, "rotation_euler") && ob->rotmode == ROT_MODE_EUL))
-					dae_animation(fcu, id_name(ob));
+			transformName = extract_transform_name( fcu->rna_path );
+				printf("fcu -> rna _path : %s \n transformName : %s\n", fcu->rna_path, transformName);
+				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
+					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
+					(!strcmp(transformName, "rotation_quaternion"))) 
+					dae_animation(ob ,fcu,/* id_name(ob),*/ transformName);
 
 				fcu = fcu->next;
 			}
-		}
+		//}
 	}
 
-	void AnimationExporter::dae_animation(FCurve *fcu, std::string ob_name)
+	std::string AnimationExporter::getObjectBoneName( Object* ob,const FCurve* fcu ) 
 	{
-		const char *axis_names[] = {"X", "Y", "Z"};
+		//hard-way to derive the bone name from rna_path. Must find more compact method
+		std::string rna_path = std::string(fcu->rna_path);
+
+		char* boneName = strtok((char *)rna_path.c_str(), "\"");
+		boneName = strtok(NULL,"\"");
+		
+		if( boneName != NULL )
+			return id_name(ob) + "_" + std::string(boneName);
+		else		
+			return id_name(ob);
+	}
+
+	void AnimationExporter::dae_animation(Object* ob, FCurve *fcu/*, std::string ob_name*/ , char* transformName)
+	{
+		printf("in dae animation\n");
 		const char *axis_name = NULL;
 		char anim_id[200];
 		bool has_tangents = false;
 		
-		if (fcu->array_index < 3)
+		if ( !strcmp(transformName, "rotation_quaternion") )
+		{
+			const char *axis_names[] = {"W", "X", "Y", "Z"};
+			if (fcu->array_index < 4)
 			axis_name = axis_names[fcu->array_index];
+		}
 
-		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
-					 fcu->rna_path, axis_names[fcu->array_index]);
+		else
+		{
+			const char *axis_names[] = {"X", "Y", "Z"};
+			if (fcu->array_index < 3)
+			axis_name = axis_names[fcu->array_index];
+			
 
+		}
+		std::string ob_name = std::string("null");
+		if (ob->type == OB_ARMATURE) 
+		{   
+		    ob_name =  getObjectBoneName( ob , fcu);
+			BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s.%s", (char*)translate_id(ob_name).c_str(),
+				transformName, axis_name);
+		}
+		else 
+		{
+			ob_name = id_name(ob);
+			BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
+				 fcu->rna_path, axis_name);
+		}
+		
 		// check rna_path is one of: rotation, scale, location
 
 		openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
@@ -221,9 +266,9 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pchan)
 	{
 		bPoseChannel *parchan = NULL;
-		/*bPose *pose = ob_arm->pose;
+		bPose *pose = ob_arm->pose;
 
-		pchan = get_pose_channel(pose, bone->name);*/
+		pchan = get_pose_channel(pose, bone->name);
 
 		if (!pchan)
 			return;
@@ -636,23 +681,27 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		if (rna_path) {
 			char *name = extract_transform_name(rna_path);
 
-			if (strstr(name, "rotation"))
+			if (!strcmp(name, "rotation_euler"))
 				tm_type = 0;
-			else if (!strcmp(name, "scale"))
+			else if (!strcmp(name, "rotation_quaternion"))
 				tm_type = 1;
-			else if (!strcmp(name, "location"))
+			else if (!strcmp(name, "scale"))
 				tm_type = 2;
+			else if (!strcmp(name, "location"))
+				tm_type = 3;
 			else
 				tm_type = -1;
 		}
 
 		switch (tm_type) {
 		case 0:
-			return std::string("rotation") + std::string(axis_name) + ".ANGLE";
+			return std::string("rotation_euler.") + std::string(axis_name) + ".ANGLE";
 		case 1:
+			return std::string("rotation_quaternion.") + std::string(axis_name) + ".ANGLE";
+	    case 2:
 			tm_name = "scale";
 			break;
-		case 2:
+		case 3:
 			tm_name = "location";
 			break;
 		default:
