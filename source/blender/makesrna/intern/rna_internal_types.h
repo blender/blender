@@ -62,6 +62,7 @@ struct Scene;
 /* Function Callbacks */
 
 typedef void (*UpdateFunc)(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
+typedef void (*ContextPropUpdateFunc)(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*ContextUpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
 typedef int (*ItemEditableFunc)(struct PointerRNA *ptr, int index);
@@ -177,6 +178,9 @@ struct PropertyRNA {
 	 * any property can have this but should only be used for collections and arrays
 	 * since python will convert int/bool/pointer's */
 	struct StructRNA *srna;	/* attributes attached directly to this collection */
+
+	/* python handle to hold all callbacks in a tuple */
+	void *py_data;
 };
 
 /* Property Types */
