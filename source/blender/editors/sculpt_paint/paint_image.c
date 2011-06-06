@@ -4255,8 +4255,8 @@ static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 
 static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
 {
-	ipos[0]= (int)(pos[0] - ibufb->x/2);
-	ipos[1]= (int)(pos[1] - ibufb->y/2);
+	ipos[0]= (int)floorf((pos[0] - ibufb->x/2) + 1.0f);
+	ipos[1]= (int)floorf((pos[1] - ibufb->y/2) + 1.0f);
 }
 
 /* dosnt run for projection painting
@@ -4863,12 +4863,7 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	PointerRNA itemptr;
 	float pressure, mousef[2];
 	double time;
-	int tablet, mouse[2];
-
-	// XXX +1 matches brush location better but
-	// still not exact, find out why and fix ..
-	mouse[0]= event->mval[0] + 1;
-	mouse[1]= event->mval[1] + 1;
+	int tablet;
 
 	time= PIL_check_seconds_timer();
 
@@ -4888,8 +4883,8 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		pressure= pop->prev_pressure ? pop->prev_pressure : 1.0f;
 
 	if(pop->first) {
-		pop->prevmouse[0]= mouse[0];
-		pop->prevmouse[1]= mouse[1];
+		pop->prevmouse[0]= event->mval[0];
+		pop->prevmouse[1]= event->mval[1];
 		pop->starttime= time;
 
 		/* special exception here for too high pressure values on first touch in
@@ -4908,8 +4903,8 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	/* fill in stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
-	mousef[0] = (float)(mouse[0]);
-	mousef[1] = (float)(mouse[1]);
+	mousef[0] = (float)(event->mval[0]);
+	mousef[1] = (float)(event->mval[1]);
 	RNA_float_set_array(&itemptr, "mouse", mousef);
 	RNA_float_set(&itemptr, "time", (float)(time - pop->starttime));
 	RNA_float_set(&itemptr, "pressure", pressure);
