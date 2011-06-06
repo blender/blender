@@ -99,8 +99,9 @@ class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
         split.prop(mesh, "show_double_sided")
 
 
-class DATA_PT_settings(MeshButtonsPanel, bpy.types.Panel):
-    bl_label = "Settings"
+class DATA_PT_texture_space(MeshButtonsPanel, bpy.types.Panel):
+    bl_label = "Texture Space"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -109,11 +110,13 @@ class DATA_PT_settings(MeshButtonsPanel, bpy.types.Panel):
         mesh = context.mesh
 
         layout.prop(mesh, "texture_mesh")
+
+        layout.separator()
+
         layout.prop(mesh, "use_auto_texspace")
-        
         row = layout.row()
-        row.column().prop(mesh, "texspace_location")
-        row.column().prop(mesh, "texspace_size")
+        row.column().prop(mesh, "texspace_location", text="Location")
+        row.column().prop(mesh, "texspace_size", text="Size")
 
 class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Vertex Groups"
