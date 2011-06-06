@@ -2244,6 +2244,13 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+int WM_border_select_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 /* **************** circle gesture *************** */
 /* works now only for selection or modal paint stuff, calls exec while hold mouse, exit on release */
 
@@ -2338,6 +2345,13 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 //	}
 
 	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_gesture_circle_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
 }
 
 #if 0
@@ -2556,6 +2570,20 @@ int WM_gesture_lines_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return WM_gesture_lasso_modal(C, op, event);
 }
 
+int WM_gesture_lasso_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
+int WM_gesture_lines_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 #if 0
 /* template to copy from */
 
@@ -2675,6 +2703,13 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_gesture_straightline_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
 }
 
 #if 0
@@ -3060,6 +3095,28 @@ static void radial_control_set_value(RadialControl *rc, float val)
 	}
 }
 
+static int radial_control_cancel(bContext *C, wmOperator *op)
+{
+	RadialControl *rc = op->customdata;
+	wmWindowManager *wm = CTX_wm_manager(C);
+
+	WM_paint_cursor_end(wm, rc->cursor);
+
+	/* restore original paint cursors */
+	wm->paintcursors = rc->orig_paintcursors;
+
+	/* not sure if this is a good notifier to use;
+	   intended purpose is to update the UI so that the
+	   new value is displayed in sliders/numfields */
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	glDeleteTextures(1, &rc->gltex);
+
+	MEM_freeN(rc);
+
+	return OPERATOR_CANCELLED;
+}
+
 static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RadialControl *rc = op->customdata;
@@ -3125,23 +3182,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
-	if(ret != OPERATOR_RUNNING_MODAL) {
-		wm = CTX_wm_manager(C);
-
-		WM_paint_cursor_end(wm, rc->cursor);
-
-		/* restore original paint cursors */
-		wm->paintcursors = rc->orig_paintcursors;
-
-		/* not sure if this is a good notifier to use;
-		   intended purpose is to update the UI so that the
-		   new value is displayed in sliders/numfields */
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
-
-		glDeleteTextures(1, &rc->gltex);
-
-		MEM_freeN(rc);
-	}
+	if(ret != OPERATOR_RUNNING_MODAL)
+		radial_control_cancel(C, op);
 
 	return ret;
 }
@@ -3153,6 +3195,7 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 
 	ot->invoke= radial_control_invoke;
 	ot->modal= radial_control_modal;
+	ot->cancel= radial_control_cancel;
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 

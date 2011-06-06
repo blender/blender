@@ -717,7 +717,7 @@ static void ed_marker_move_apply(wmOperator *op)
 }
 
 /* only for modal */
-static void ed_marker_move_cancel(bContext *C, wmOperator *op)
+static int ed_marker_move_cancel(bContext *C, wmOperator *op)
 {
 	RNA_int_set(op->ptr, "frames", 0);
 	ed_marker_move_apply(op);
@@ -725,6 +725,8 @@ static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
+
+	return OPERATOR_CANCELLED;
 }
 
 
@@ -886,6 +888,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
 	ot->invoke= ed_marker_move_invoke_wrapper;
 	ot->modal= ed_marker_move_modal;
 	ot->poll= ed_markers_poll_selected_markers;
+	ot->cancel= ed_marker_move_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -980,6 +983,7 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 	ot->invoke= ed_marker_duplicate_invoke_wrapper;
 	ot->modal= ed_marker_move_modal;
 	ot->poll= ed_markers_poll_selected_markers;
+	ot->cancel= ed_marker_move_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1185,6 +1189,7 @@ static void MARKER_OT_select_border(wmOperatorType *ot)
 	ot->exec= ed_marker_border_select_exec;
 	ot->invoke= ed_marker_select_border_invoke_wrapper;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= ed_markers_poll_markers_exist;
 	

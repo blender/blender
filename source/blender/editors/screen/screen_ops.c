@@ -627,6 +627,13 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int actionzone_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	actionzone_exit(op);
+
+	return OPERATOR_CANCELLED;
+}
+
 static void SCREEN_OT_actionzone(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -637,6 +644,7 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
 	ot->invoke= actionzone_invoke;
 	ot->modal= actionzone_modal;
 	ot->poll= actionzone_area_poll;
+	ot->cancel= actionzone_cancel;
 	
 	ot->flag= OPTYPE_BLOCKING;
 	
@@ -759,6 +767,7 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
 	ot->invoke= area_swap_invoke;
 	ot->modal= area_swap_modal;
 	ot->poll= ED_operator_areaactive;
+	ot->cancel= area_swap_cancel;
 	
 	ot->flag= OPTYPE_BLOCKING;
 }
@@ -1494,6 +1503,7 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->exec= area_split_exec;
 	ot->invoke= area_split_invoke;
 	ot->modal= area_split_modal;
+	ot->cancel= area_split_cancel;
 	
 	ot->poll= screen_active_editable;
 	ot->flag= OPTYPE_BLOCKING;
@@ -1693,6 +1703,13 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+int region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata = NULL;
+
+	return OPERATOR_CANCELLED;
+}
 
 static void SCREEN_OT_region_scale(wmOperatorType *ot)
 {
@@ -1703,6 +1720,7 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 	
 	ot->invoke= region_scale_invoke;
 	ot->modal= region_scale_modal;
+	ot->cancel= region_scale_cancel;
 	
 	ot->poll= ED_operator_areaactive;
 	
@@ -2257,6 +2275,7 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->invoke= area_join_invoke;
 	ot->modal= area_join_modal;
 	ot->poll= screen_active_editable;
+	ot->cancel= area_join_cancel;
 	
 	ot->flag= OPTYPE_BLOCKING;
 	
@@ -3053,6 +3072,7 @@ static void SCREEN_OT_border_select(wmOperatorType *ot)
 	ot->exec= border_select_do;
 	ot->invoke= WM_border_select_invoke;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= ED_operator_areaactive;
 	
