@@ -187,13 +187,8 @@ void BL_Action::Update(float curtime)
 
 	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
 	{
-		bPose* prev_pose = NULL;
 		BL_ArmatureObject *obj = (BL_ArmatureObject*)m_obj;
 		obj->GetPose(&m_pose);
-
-		// Save the old pose if we need to do some layer blending
-		if (m_blendmode != ACT_BLEND_NONE)
-			obj->GetMRDPose(&prev_pose);
 
 		// Extract the pose from the action
 		{
@@ -206,17 +201,6 @@ void BL_Action::Update(float curtime)
 			animsys_evaluate_action(&id_ptr, m_action, NULL, m_localtime);
 
 			arm->pose = temp;
-		}
-
-		// Handle blending between layers
-		switch(m_blendmode)
-		{
-		case ACT_BLEND_MIX:
-			game_blend_poses(m_pose, prev_pose, 0.5f);
-			break;
-		case ACT_BLEND_NONE:
-		default:
-			break;
 		}
 
 		// Handle blending between actions
@@ -239,21 +223,10 @@ void BL_Action::Update(float curtime)
 			if (m_blendframe>m_blendin)
 				m_blendframe = m_blendin;
 		}
-		else
-		{
-			if (m_blendpose)
-			{
-				game_free_pose(m_blendpose);
-				m_blendpose = NULL;
-			}
-		}
 
 		obj->SetPose(m_pose);
 
 		obj->SetActiveAction(NULL, 0, curtime);
-
-		if (prev_pose)
-			game_free_pose(prev_pose);
 	}
 	else
 	{
