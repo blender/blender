@@ -1015,55 +1015,75 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	if (dvert_array) MEM_freeN(dvert_array);
 }
 
-void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
+
+static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
+                            const char sel, const char sel_mirr,
+                            const int *flip_map,
+                            const short mirror_weights, const short flip_vgroups)
 {
+	BLI_assert(sel || sel_mirr);
+
+	if(sel_mirr && sel) {
+		/* swap */
+		if(mirror_weights)
+			SWAP(MDeformVert, *dvert, *dvert_mirr);
+		if(flip_vgroups) {
+			defvert_flip(dvert, flip_map);
+			defvert_flip(dvert_mirr, flip_map);
+		}
+	}
+	else {
+		/* dvert should always be the target */
+		if(sel_mirr) {
+			SWAP(MDeformVert *, dvert, dvert_mirr);
+		}
+
+		if(mirror_weights)
+			defvert_copy(dvert, dvert_mirr);
+		if(flip_vgroups) {
+			defvert_flip(dvert, flip_map);
+		}
+	}
+}
+
+void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_vgroups)
+{
+#define VGROUP_MIRR_OP dvert_mirror_op(dvert, dvert_mirr, sel, sel_mirr, flip_map, mirror_weights, flip_vgroups)
+
 	EditVert *eve, *eve_mirr;
 	MDeformVert *dvert, *dvert_mirr;
+	short sel, sel_mirr;
 	int	*flip_map;
 
 	if(mirror_weights==0 && flip_vgroups==0)
 		return;
+
+	flip_map= defgroup_flip_map(ob, 0);
 
 	/* only the active group */
 	if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 		EditMesh *em = BKE_mesh_get_editmesh(me);
 
-		EM_cache_x_mirror_vert(ob, em);
 
-		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
+		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT)) {
+			MEM_freeN(flip_map);
 			return;
+		}
 
-		flip_map= defgroup_flip_map(ob, 0);
+		EM_cache_x_mirror_vert(ob, em);
 
 		/* Go through the list of editverts and assign them */
 		for(eve=em->verts.first; eve; eve=eve->next){
 			if((eve_mirr=eve->tmp.v)) {
-				if((eve_mirr->f & SELECT || eve->f & SELECT) && (eve != eve_mirr)) {
+				sel= eve->f & SELECT;
+				sel_mirr= eve_mirr->f & SELECT;
+
+				if((sel || sel_mirr) && (eve != eve_mirr)) {
 					dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 					dvert_mirr= CustomData_em_get(&em->vdata, eve_mirr->data, CD_MDEFORMVERT);
 					if(dvert && dvert_mirr) {
-						if(eve_mirr->f & SELECT && eve->f & SELECT) {
-							/* swap */
-							if(mirror_weights)
-								SWAP(MDeformVert, *dvert, *dvert_mirr);
-							if(flip_vgroups) {
-								defvert_flip(dvert, flip_map);
-								defvert_flip(dvert_mirr, flip_map);
-							}
-						}
-						else {
-							/* dvert should always be the target */
-							if(eve_mirr->f & SELECT) {
-								SWAP(MDeformVert *, dvert, dvert_mirr);
-							}
-
-							if(mirror_weights)
-								defvert_copy(dvert, dvert_mirr);
-							if(flip_vgroups) {
-								defvert_flip(dvert, flip_map);
-							}
-						}
+						VGROUP_MIRR_OP;
 					}
 				}
 
@@ -1071,10 +1091,58 @@ void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 			}
 		}
 
-		MEM_freeN(flip_map);
-
 		BKE_mesh_end_editmesh(me, em);
 	}
+	else if (ob->type == OB_LATTICE) {
+		Lattice *lt= ob->data;
+		int i1, i2;
+		int u, v, w;
+		int pntsu_half;
+		/* half but found up odd value */
+
+		if(lt->editlatt) lt= lt->editlatt->latt;
+
+		if(lt->pntsu == 1 || lt->dvert == NULL) {
+			MEM_freeN(flip_map);
+			return;
+		}
+
+		/* unlike editmesh we know that by only looping over the first hald of
+		 * the 'u' indicies it will cover all points except the middle which is
+		 * ok in this case */
+		pntsu_half= lt->pntsu / 2;
+
+		for(w=0; w<lt->pntsw; w++) {
+			for(v=0; v<lt->pntsv; v++) {
+				for(u=0; u<pntsu_half; u++) {
+					int u_inv= (lt->pntsu - 1) - u;
+					if(u != u_inv) {
+						BPoint *bp, *bp_mirr;
+
+						i1= LT_INDEX(lt, u, v, w);
+						i2= LT_INDEX(lt, u_inv, v, w);
+
+						bp= &lt->def[i1];
+						bp_mirr= &lt->def[i2];
+
+						sel= bp->f1 & SELECT;
+						sel_mirr= bp_mirr->f1 & SELECT;
+
+						if(sel || sel_mirr) {
+							dvert= &lt->dvert[i1];
+							dvert_mirr= &lt->dvert[i2];
+
+							VGROUP_MIRR_OP;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	MEM_freeN(flip_map);
+
+#undef VGROUP_MIRR_OP
 }
 
 static void vgroup_remap_update_users(Object *ob, int *map)
