@@ -1145,37 +1145,21 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 
 /************************ standard UI regions ************************/
 
-void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *context, int contextnr)
+static void region_panels_layout(const bContext *C, ARegion *ar, int vertical, const char *context, int w, int em, int *r_x, int *r_y)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	uiStyle *style= U.uistyles.first;
-	uiBlock *block;
 	PanelType *pt;
 	Panel *panel;
-	View2D *v2d= &ar->v2d;
-	View2DScrollers *scrollers;
-	int xco, yco, x, y, miny=0, w, em, header, triangle, open, newcontext= 0;
-
-	if(contextnr >= 0)
-		newcontext= UI_view2d_tab_set(v2d, contextnr);
-
-	if(vertical) {
-		w= v2d->cur.xmax - v2d->cur.xmin;
-		em= (ar->type->prefsizex)? 10: 20;
-	}
-	else {
-		w= UI_PANEL_WIDTH;
-		em= (ar->type->prefsizex)? 10: 20;
-	}
+	uiBlock *block;
+	uiStyle *style= U.uistyles.first;
+	int x, y, miny=0, xco, yco;
+	int open, header, triangle;
 
 	x= 0;
 	y= -style->panelouter;
 
 	/* create panels */
 	uiBeginPanels(C, ar);
-
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(v2d);
 
 	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
 		/* verify context */
@@ -1261,6 +1245,40 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		y= UI_PANEL_WIDTH;
 	}
 
+	uiEndPanels(C, ar);
+
+	*r_x = x;
+	*r_y = y;
+}
+
+void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *context, int contextnr)
+{
+	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
+	int x, y, w, em, newcontext= 0, need_scrollers;
+
+	if(contextnr >= 0)
+		newcontext= UI_view2d_tab_set(v2d, contextnr);
+
+	if(vertical) {
+		w= v2d->cur.xmax - v2d->cur.xmin;
+		em= (ar->type->prefsizex)? 10: 20;
+	}
+	else {
+		w= UI_PANEL_WIDTH;
+		em= (ar->type->prefsizex)? 10: 20;
+	}
+
+	/* try to draw without scrollbars */
+	UI_view2d_view_ortho(v2d);
+
+	region_panels_layout(C, ar, vertical, context, ar->winx, em, &x, &y);
+
+	/* if it doesn't fit, draw again in smaller space with scrollers */
+	need_scrollers = (abs(y) > ar->winy);
+	if(need_scrollers)
+		region_panels_layout(C, ar, vertical, context, ar->winx-V2D_SCROLL_WIDTH, em, &x, &y);
+
 	/* clear */
 	UI_ThemeClearColor((ar->type->regionid == RGN_TYPE_PREVIEW)?TH_PREVIEW_BACK:TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1270,8 +1288,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		/* only allow scrolling in vertical direction */
 		v2d->keepofs |= V2D_LOCKOFS_X|V2D_KEEPOFS_Y;
 		v2d->keepofs &= ~(V2D_LOCKOFS_Y|V2D_KEEPOFS_X);
-		//v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-		//v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
+		v2d->scroll &= ~(V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_VERTICAL_HIDE);
+		if(!need_scrollers)
+			v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)
@@ -1286,8 +1305,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);
 		//v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
 		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
-		//v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
-		//v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_HIDE;
+		v2d->scroll &= ~(V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_VERTICAL_HIDE);
+		if(!need_scrollers)
+			v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)
@@ -1297,20 +1317,23 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 
 	// +V2D_SCROLL_HEIGHT is workaround to set the actual height
 	UI_view2d_totRect_set(v2d, x+V2D_SCROLL_WIDTH, y+V2D_SCROLL_HEIGHT);
+	UI_view2d_totRect_set(v2d, x+V2D_SCROLL_WIDTH, y+V2D_SCROLL_HEIGHT);
 
 	/* set the view */
 	UI_view2d_view_ortho(v2d);
 
 	/* this does the actual drawing! */
-	uiEndPanels(C, ar);
+	uiDrawPanels(C, ar);
 	
 	/* restore view matrix */
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	//scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
-	//UI_view2d_scrollers_draw(C, v2d, scrollers);
-	//UI_view2d_scrollers_free(scrollers);
+	if(need_scrollers) {
+		scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+		UI_view2d_scrollers_draw(C, v2d, scrollers);
+		UI_view2d_scrollers_free(scrollers);
+	}
 }
 
 void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
@@ -1319,10 +1342,9 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 	
 	// XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
 		// scrollbars for button regions
-	/*ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
+	ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
 	ar->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-	ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL_HIDE;*/
-	ar->v2d.scroll= 0;
+	ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 	ar->v2d.keepzoom |= V2D_KEEPZOOM;
 
 		// correctly initialised User-Prefs?

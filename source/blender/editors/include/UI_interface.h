@@ -583,6 +583,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
 
 void uiBeginPanels(const struct bContext *C, struct ARegion *ar);
 void uiEndPanels(const struct bContext *C, struct ARegion *ar);
+void uiDrawPanels(const struct bContext *C, struct ARegion *ar);
 
 struct Panel *uiBeginPanel(struct ScrArea *sa, struct ARegion *ar, uiBlock *block, struct PanelType *pt, int *open);
 void uiEndPanel(uiBlock *block, int width, int height);

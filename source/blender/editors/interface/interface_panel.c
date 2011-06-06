@@ -846,6 +846,11 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 	
 	if(firstpa)
 		firstpa->runtime_flag |= PNL_FIRST;
+}
+
+void uiDrawPanels(const bContext *C, ARegion *ar)
+{
+	uiBlock *block;
 
 	UI_ThemeClearColor(TH_BACK);
 	
