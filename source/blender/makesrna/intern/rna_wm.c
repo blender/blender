@@ -272,10 +272,11 @@ EnumPropertyItem keymap_modifiers_items[] = {
 EnumPropertyItem operator_flag_items[] = {
 		{OPTYPE_REGISTER, "REGISTER", 0, "Register", ""},
 		{OPTYPE_UNDO, "UNDO", 0, "Undo", ""},
-		{OPTYPE_BLOCKING, "BLOCKING", 0, "Finished", ""},
+		{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", ""},
 		{OPTYPE_MACRO, "MACRO", 0, "Macro", ""},
 		{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", ""},
 		{OPTYPE_PRESET, "PRESET", 0, "Preset", ""},
+		{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem operator_return_items[] = {

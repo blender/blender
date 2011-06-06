@@ -1277,7 +1277,10 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 	wmOperatorType *ot = WM_operatortype_first();
 	
 	for(; ot; ot= ot->next) {
-		
+
+		if((ot->flag & OPTYPE_INTERNAL) && (G.f & G_DEBUG) == 0)
+			continue;
+
 		if(BLI_strcasestr(ot->name, str)) {
 			if(WM_operator_poll((bContext*)C, ot)) {
 				char name[256];
@@ -1388,6 +1391,8 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 
 	ot->exec= wm_call_menu_exec;
 	ot->poll= WM_operator_winactive;
+
+	ot->flag= OPTYPE_INTERNAL;
 
 	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the menu");
 }

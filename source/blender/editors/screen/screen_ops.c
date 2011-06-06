@@ -2277,7 +2277,7 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->poll= screen_active_editable;
 	ot->cancel= area_join_cancel;
 	
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_INTERNAL;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "min_x", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);
