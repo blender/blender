@@ -5012,31 +5012,45 @@ static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 
 static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata))
 {
+#define PX_SIZE_FADE_MAX 12.0f
+#define PX_SIZE_FADE_MIN 4.0f
+
 	Brush *brush= image_paint_brush(C);
 	Paint *paint= paint_get_active(CTX_data_scene(C));
 
-	if(paint && brush) {
+	if(paint && brush && paint->flags & PAINT_SHOW_BRUSH) {
 		float zoomx, zoomy;
+		const float size= (float)brush_size(brush);
+		const short use_zoom= get_imapaint_zoom(C, &zoomx, &zoomy);
+		const float pixel_size= MAX2(size * zoomx, size * zoomy);
+		float alpha= 0.5f;
 
-		if(!(paint->flags & PAINT_SHOW_BRUSH))
+		/* fade out the brush (cheap trick to work around brush interfearing with sampling [#])*/
+		if(pixel_size < PX_SIZE_FADE_MIN) {
 			return;
+		}
+		else if (pixel_size < PX_SIZE_FADE_MAX) {
+			alpha *= (pixel_size - PX_SIZE_FADE_MIN) / (PX_SIZE_FADE_MAX - PX_SIZE_FADE_MIN);
+		}
 
 		glPushMatrix();
 
 		glTranslatef((float)x, (float)y, 0.0f);
 
-		if(get_imapaint_zoom(C, &zoomx, &zoomy))
+		if(use_zoom)
 			glScalef(zoomx, zoomy, 1.0f);
 
-		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], 0.5f);
+		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], alpha);
 		glEnable( GL_LINE_SMOOTH );
 		glEnable(GL_BLEND);
-		glutil_draw_lined_arc(0, (float)(M_PI*2.0), (float)brush_size(brush), 40);
+		glutil_draw_lined_arc(0, (float)(M_PI*2.0), size, 40);
 		glDisable(GL_BLEND);
 		glDisable( GL_LINE_SMOOTH );
 
 		glPopMatrix();
 	}
+#undef PX_SIZE_FADE_MAX
+#undef PX_SIZE_FADE_MIN
 }
 
 static void toggle_paint_cursor(bContext *C, int enable)
