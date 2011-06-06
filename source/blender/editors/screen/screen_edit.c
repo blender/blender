@@ -1513,7 +1513,7 @@ void ED_screen_delete_scene(bContext *C, Scene *scene)
 	unlink_scene(bmain, scene, newscene);
 }
 
-int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
+ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 {
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *screen= CTX_wm_screen(C);
@@ -1538,7 +1538,7 @@ int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 	
 	ED_area_newspace(C, newsa, type);
 	
-	return 1;
+	return newsa;
 }
 
 void ED_screen_full_prevspace(bContext *C, ScrArea *sa)

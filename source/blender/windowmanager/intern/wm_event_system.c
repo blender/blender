@@ -1289,16 +1289,23 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				if (handler->op_area == NULL) {
 					bScreen *screen = CTX_wm_screen(C);
 					sa = (ScrArea *)screen->areabase.first;
-				} else
+				}
+				else {
 					sa = handler->op_area;
+				}
 					
-				if(event->val==EVT_FILESELECT_OPEN)
-					ED_area_newspace(C, sa, SPACE_FILE);
-				else
-					ED_screen_full_newspace(C, sa, SPACE_FILE);	/* sets context */
-				
+				if(event->val==EVT_FILESELECT_OPEN) {
+					ED_area_newspace(C, sa, SPACE_FILE); /* 'sa' is modified in-place */
+				}
+				else {
+					sa= ED_screen_full_newspace(C, sa, SPACE_FILE);	/* sets context */
+				}
+
+				/* note, getting the 'sa' back from the context causes a nasty bug where the newly created
+				 * 'sa' != CTX_wm_area(C). removed the line below and set 'sa' in the 'if' above */
+				/* sa = CTX_wm_area(C); */
+
 				/* settings for filebrowser, sfile is not operator owner but sends events */
-				sa = CTX_wm_area(C);
 				sfile= (SpaceFile*)sa->spacedata.first;
 				sfile->op= handler->op;
 
