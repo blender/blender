@@ -651,6 +651,8 @@ static void apply_heights_data(void *bake_data)
 			}
 		}
 	}
+
+	ibuf->userflags= IB_RECT_INVALID;
 }
 
 static void free_heights_data(void *bake_data)
@@ -684,10 +686,6 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	float vec[3], p0[3], p1[3], n[3], len;
 
 	lores_dm->getFace(lores_dm, face_index, &mface);
-
-	if(x==0 && y==0) {
-		zero_v3(p0);
-	}
 
 	st0= mtface[face_index].uv[0];
 	st1= mtface[face_index].uv[1];
@@ -731,6 +729,8 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	if(ibuf->rect_float) {
 		float *rrgbf= ibuf->rect_float + pixel*4;
 		rrgbf[3]= 1.0f;
+
+		ibuf->userflags= IB_RECT_INVALID;
 	} else {
 		char *rrgb= (char*)ibuf->rect + pixel*4;
 		rrgb[3]= 255;
@@ -782,6 +782,8 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 		rrgbf[1]= vec[1];
 		rrgbf[2]= vec[2];
 		rrgbf[3]= 1.0f;
+
+		ibuf->userflags= IB_RECT_INVALID;
 	} else {
 		char *rrgb= (char*)ibuf->rect + pixel*4;
 		rrgb[0]= FTOCHAR(vec[0]);
