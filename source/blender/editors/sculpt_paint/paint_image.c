@@ -3692,14 +3692,26 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float
 	}
 }
 
-static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask) {
+static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, int use_color_correction) {
 	if (ps->is_texbrush) {
-		rgba[0] *= ps->brush->rgb[0];
-		rgba[1] *= ps->brush->rgb[1];
-		rgba[2] *= ps->brush->rgb[2];
+		/* rgba already holds a texture result here from higher level function */
+		float rgba_br[3];
+		if(use_color_correction){
+			srgb_to_linearrgb_v3_v3(rgba_br, ps->brush->rgb);
+			mul_v3_v3(rgba, rgba_br);
+		}
+		else{
+			mul_v3_v3(rgba, ps->brush->rgb);
+		}
 	}
 	else {
-		VECCOPY(rgba, ps->brush->rgb);
+		if(use_color_correction){
+			srgb_to_linearrgb_v3_v3(rgba, rgba);
+		}
+ 		else {
+			VECCOPY(rgba, ps->brush->rgb);
+		}
+		rgba[3] = 1.0;
 	}
 	
 	if (ps->is_airbrush==0 && mask < 1.0f) {
@@ -3736,6 +3748,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	float falloff;
 	int bucket_index;
 	int is_floatbuf = 0;
+	int use_color_correction = 0;
 	const short tool =  ps->tool;
 	rctf bucket_bounds;
 	
@@ -3841,6 +3854,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 								last_projIma->touch = 1;
 								is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
+								use_color_correction = (last_projIma->ibuf->profile == IB_PROFILE_LINEAR_RGB) ? 1 : 0;
 							}
 
 							last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
@@ -3871,7 +3885,7 @@ static void *do_projectpaint_thread(void *ph_v)
 								else				do_projectpaint_smear(ps, projPixel, alpha, mask, smearArena, &smearPixels, co);
 								break;
 							default:
-								if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask);
+								if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask, use_color_correction);
 								else				do_projectpaint_draw(ps, projPixel, rgba, alpha, mask);
 								break;
 							}
@@ -3987,7 +4001,7 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, c
 	// we may want to use this later 
 	// brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
 	
-	if (brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps)) {
+	if (brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps, 0)) {
 		return 1;
 	}
 	else return 0;
@@ -4058,7 +4072,6 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
 {
 	if(ibuf->rect_float)
-		/* TODO - should just update a portion from imapaintpartial! */
 		ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
 	
 	if(ibuf->mipmap[0])
@@ -4409,7 +4422,7 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 
 	brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
 
-	if (brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s)) {
+	if (brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, ibuf->profile == IB_PROFILE_LINEAR_RGB)) {
 		if (update)
 			imapaint_image_update(s->sima, image, ibuf, texpaint);
 		return 1;

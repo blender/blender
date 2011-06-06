@@ -327,7 +327,12 @@ int imb_get_anim_type(const char *name);
  */
 void IMB_de_interlace(struct ImBuf *ibuf);
 void IMB_interlace(struct ImBuf *ibuf);
+
+/* create char buffer, color corrected if necessary, for ImBufs that lack one */ 
 void IMB_rect_from_float(struct ImBuf *ibuf);
+/* create char buffer for part of the image, color corrected if necessary,
+   Changed part will be stored in buffer. This is expected to be used for texture painting updates */ 
+void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */
