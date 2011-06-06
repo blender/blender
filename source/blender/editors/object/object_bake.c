@@ -507,12 +507,11 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm,  const int lvl,
 	MFace mface;
 	DMGridData **grid_data;
 	float crn_x, crn_y;
-	int grid_size, num_grids, S, face_side;
+	int grid_size, S, face_side;
 	int *grid_offset, g_index;
 
 	lodm->getFace(lodm, face_index, &mface);
 
-	num_grids= hidm->getNumGrids(hidm);
 	grid_size= hidm->getGridSize(hidm);
 	grid_data= hidm->getGridData(hidm);
 	grid_offset= hidm->getGridOffset(hidm);
