@@ -486,6 +486,11 @@ void ui_widget_color_init(struct ThemeUI *tui);
 void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 
+extern unsigned char checker_stipple_sml[];
+/* used for transp checkers */
+#define UI_TRANSP_DARK 100
+#define UI_TRANSP_LIGHT 160
+
 /* interface_style.c */
 void uiStyleInit(void);
 
