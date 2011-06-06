@@ -172,8 +172,130 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         row.prop(rl, "exclude_refraction", text="")
 
 
+class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Dimensions"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        row = layout.row(align=True)
+        row.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
+        row.operator("render.preset_add", text="", icon="ZOOMIN")
+        row.operator("render.preset_add", text="", icon="ZOOMOUT").remove_active = True
+
+        split = layout.split()
+
+        col = split.column()
+        sub = col.column(align=True)
+        sub.label(text="Resolution:")
+        sub.prop(rd, "resolution_x", text="X")
+        sub.prop(rd, "resolution_y", text="Y")
+        sub.prop(rd, "resolution_percentage", text="")
+
+        sub.label(text="Aspect Ratio:")
+        sub.prop(rd, "pixel_aspect_x", text="X")
+        sub.prop(rd, "pixel_aspect_y", text="Y")
+
+        row = col.row()
+        row.prop(rd, "use_border", text="Border")
+        sub = row.row()
+        sub.active = rd.use_border
+        sub.prop(rd, "use_crop_to_border", text="Crop")
+
+        col = split.column()
+        sub = col.column(align=True)
+        sub.label(text="Frame Range:")
+        sub.prop(scene, "frame_start", text="Start")
+        sub.prop(scene, "frame_end", text="End")
+        sub.prop(scene, "frame_step", text="Step")
+
+        sub.label(text="Frame Rate:")
+        if rd.fps_base == 1:
+            fps_rate = round(rd.fps / rd.fps_base)
+        else:
+            fps_rate = round(rd.fps / rd.fps_base, 2)
+
+        # TODO: Change the following to iterate over existing presets
+        custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
+
+        if custom_framerate == True:
+            fps_label_text = "Custom (" + str(fps_rate) + " fps)"
+        else:
+            fps_label_text = str(fps_rate) + " fps"
+
+        sub.menu("RENDER_MT_framerate_presets", text=fps_label_text)
+
+        if custom_framerate or (bpy.types.RENDER_MT_framerate_presets.bl_label == "Custom"):
+            sub.prop(rd, "fps")
+            sub.prop(rd, "fps_base", text="/")
+        subrow = sub.row(align=True)
+        subrow.label(text="Time Remapping:")
+        subrow = sub.row(align=True)
+        subrow.prop(rd, "frame_map_old", text="Old")
+        subrow.prop(rd, "frame_map_new", text="New")
+
+
+class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Anti-Aliasing"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        rd = context.scene.render
+
+        self.layout.prop(rd, "use_antialiasing", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+        layout.active = rd.use_antialiasing
+
+        split = layout.split()
+
+        col = split.column()
+        col.row().prop(rd, "antialiasing_samples", expand=True)
+        sub = col.row()
+        sub.enabled = not rd.use_border
+        sub.prop(rd, "use_full_sample")
+
+        col = split.column()
+        col.prop(rd, "pixel_filter_type", text="")
+        col.prop(rd, "filter_size", text="Size")
+
+
+class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Sampled Motion Blur"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return not rd.use_full_sample and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        rd = context.scene.render
+
+        self.layout.prop(rd, "use_motion_blur", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+        layout.active = rd.use_motion_blur
+
+        row = layout.row()
+        row.prop(rd, "motion_blur_samples")
+        row.prop(rd, "motion_blur_shutter")
+
+
 class RENDER_PT_shading(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Shading"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -274,6 +396,51 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
         sub.active = rd.use_edge_enhance
         sub.prop(rd, "edge_threshold", text="Threshold", slider=True)
         sub.prop(rd, "edge_color", text="")
+
+
+class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Stamp"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        rd = context.scene.render
+
+        self.layout.prop(rd, "use_stamp", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+
+        layout.active = rd.use_stamp
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "use_stamp_time", text="Time")
+        col.prop(rd, "use_stamp_date", text="Date")
+        col.prop(rd, "use_stamp_render_time", text="RenderTime")
+        col.prop(rd, "use_stamp_frame", text="Frame")
+        col.prop(rd, "use_stamp_scene", text="Scene")
+        col.prop(rd, "use_stamp_camera", text="Camera")
+        col.prop(rd, "use_stamp_lens", text="Lens")
+        col.prop(rd, "use_stamp_filename", text="Filename")
+        col.prop(rd, "use_stamp_marker", text="Marker")
+        col.prop(rd, "use_stamp_sequencer_strip", text="Seq. Strip")
+
+        col = split.column()
+        col.active = rd.use_stamp
+        col.prop(rd, "stamp_foreground", slider=True)
+        col.prop(rd, "stamp_background", slider=True)
+        col.separator()
+        col.prop(rd, "stamp_font_size", text="Font Size")
+
+        row = layout.split(percentage=0.2)
+        row.prop(rd, "use_stamp_note", text="Note")
+        sub = row.row()
+        sub.active = rd.use_stamp_note
+        sub.prop(rd, "stamp_note_text", text="")
 
 
 class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
@@ -433,172 +600,6 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         split.prop(rd, "ffmpeg_audio_volume", slider=True)
 
 
-class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Anti-Aliasing"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw_header(self, context):
-        rd = context.scene.render
-
-        self.layout.prop(rd, "use_antialiasing", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-        layout.active = rd.use_antialiasing
-
-        split = layout.split()
-
-        col = split.column()
-        col.row().prop(rd, "antialiasing_samples", expand=True)
-        sub = col.row()
-        sub.enabled = not rd.use_border
-        sub.prop(rd, "use_full_sample")
-
-        col = split.column()
-        col.prop(rd, "pixel_filter_type", text="")
-        col.prop(rd, "filter_size", text="Size")
-
-
-class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Sampled Motion Blur"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @classmethod
-    def poll(cls, context):
-        rd = context.scene.render
-        return not rd.use_full_sample and (rd.engine in cls.COMPAT_ENGINES)
-
-    def draw_header(self, context):
-        rd = context.scene.render
-
-        self.layout.prop(rd, "use_motion_blur", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-        layout.active = rd.use_motion_blur
-
-        row = layout.row()
-        row.prop(rd, "motion_blur_samples")
-        row.prop(rd, "motion_blur_shutter")
-
-
-class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Dimensions"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-
-        row = layout.row(align=True)
-        row.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
-        row.operator("render.preset_add", text="", icon="ZOOMIN")
-        row.operator("render.preset_add", text="", icon="ZOOMOUT").remove_active = True
-
-        split = layout.split()
-
-        col = split.column()
-        sub = col.column(align=True)
-        sub.label(text="Resolution:")
-        sub.prop(rd, "resolution_x", text="X")
-        sub.prop(rd, "resolution_y", text="Y")
-        sub.prop(rd, "resolution_percentage", text="")
-
-        sub.label(text="Aspect Ratio:")
-        sub.prop(rd, "pixel_aspect_x", text="X")
-        sub.prop(rd, "pixel_aspect_y", text="Y")
-
-        row = col.row()
-        row.prop(rd, "use_border", text="Border")
-        sub = row.row()
-        sub.active = rd.use_border
-        sub.prop(rd, "use_crop_to_border", text="Crop")
-
-        col = split.column()
-        sub = col.column(align=True)
-        sub.label(text="Frame Range:")
-        sub.prop(scene, "frame_start", text="Start")
-        sub.prop(scene, "frame_end", text="End")
-        sub.prop(scene, "frame_step", text="Step")
-
-        sub.label(text="Frame Rate:")
-        if rd.fps_base == 1:
-            fps_rate = round(rd.fps / rd.fps_base)
-        else:
-            fps_rate = round(rd.fps / rd.fps_base, 2)
-
-        # TODO: Change the following to iterate over existing presets
-        custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
-
-        if custom_framerate == True:
-            fps_label_text = "Custom (" + str(fps_rate) + " fps)"
-        else:
-            fps_label_text = str(fps_rate) + " fps"
-
-        sub.menu("RENDER_MT_framerate_presets", text=fps_label_text)
-
-        if custom_framerate or (bpy.types.RENDER_MT_framerate_presets.bl_label == "Custom"):
-            sub.prop(rd, "fps")
-            sub.prop(rd, "fps_base", text="/")
-        subrow = sub.row(align=True)
-        subrow.label(text="Time Remapping:")
-        subrow = sub.row(align=True)
-        subrow.prop(rd, "frame_map_old", text="Old")
-        subrow.prop(rd, "frame_map_new", text="New")
-
-
-class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Stamp"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw_header(self, context):
-        rd = context.scene.render
-
-        self.layout.prop(rd, "use_stamp", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-
-        layout.active = rd.use_stamp
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "use_stamp_time", text="Time")
-        col.prop(rd, "use_stamp_date", text="Date")
-        col.prop(rd, "use_stamp_render_time", text="RenderTime")
-        col.prop(rd, "use_stamp_frame", text="Frame")
-        col.prop(rd, "use_stamp_scene", text="Scene")
-        col.prop(rd, "use_stamp_camera", text="Camera")
-        col.prop(rd, "use_stamp_lens", text="Lens")
-        col.prop(rd, "use_stamp_filename", text="Filename")
-        col.prop(rd, "use_stamp_marker", text="Marker")
-        col.prop(rd, "use_stamp_sequencer_strip", text="Seq. Strip")
-
-        col = split.column()
-        col.active = rd.use_stamp
-        col.prop(rd, "stamp_foreground", slider=True)
-        col.prop(rd, "stamp_background", slider=True)
-        col.separator()
-        col.prop(rd, "stamp_font_size", text="Font Size")
-
-        row = layout.split(percentage=0.2)
-        row.prop(rd, "use_stamp_note", text="Note")
-        sub = row.row()
-        sub.active = rd.use_stamp_note
-        sub.prop(rd, "stamp_note_text", text="")
-
-
 class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Bake"
     bl_options = {'DEFAULT_CLOSED'}
@@ -648,6 +649,7 @@ class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
 
             layout.prop(rd, "use_bake_clear")
             layout.prop(rd, "bake_margin")
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
