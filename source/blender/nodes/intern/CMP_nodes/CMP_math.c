@@ -140,7 +140,12 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		break;
 	case 14: /* Round */
 		{
-				out[0]= floorf(in[0] + 0.5f);
+			/* round by the second value */
+			if( in2[0] != 0.0f )
+				out[0]= floorf(in[0] / in2[0] + 0.5f) * in2[0];
+			else
+				floorf(in[0] + 0.5f);
+
 		}
 		break;
 	case 15: /* Less Than */
