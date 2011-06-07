@@ -493,6 +493,13 @@ static int rna_Property_is_hidden_get(PointerRNA *ptr)
 	return prop->flag & PROP_HIDDEN ? 1:0;
 }
 
+static int rna_Property_is_skip_save_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_SKIP_SAVE ? 1:0;
+}
+
+
 static int rna_Property_is_enum_flag_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -1036,6 +1043,11 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_hidden_get", NULL);
 	RNA_def_property_ui_text(prop, "Hidden", "True when the property is hidden");
+
+	prop= RNA_def_property(srna, "is_skip_save", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_skip_save_get", NULL);
+	RNA_def_property_ui_text(prop, "Skip Save", "True when the property is not saved in presets");
 
 	prop= RNA_def_property(srna, "is_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
