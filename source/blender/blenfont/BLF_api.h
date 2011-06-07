@@ -223,5 +223,6 @@ extern int blf_mono_font_render; // dont mess drawing with render threads.
 // XXX, me, too
 extern int blf_unifont;
 extern int blf_unifont_render; // dont mess drawing with render threads.
+#define _(msgid) (msgid)
 
 #endif /* BLF_API_H */

@@ -11,11 +11,11 @@
 #include "BLI_memarena.h"
 #include "MEM_guardedalloc.h"
 
-const int datatoc_bunifont_ttf_size = 16336376;
+const int datatoc_bunifont_ttf_size = 16179552;
 static char* datatoc_bunifont_ttf = 0;
 
 static char unifont_path[1024];
-static char unifont_filename[]="unifont-5.1.20080907.ttf.zip";
+const char unifont_filename[]="unifont.ttf.gz";
 
 char *get_datatoc_bunifont_ttf(void)
 {
