@@ -185,8 +185,13 @@ void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struct Prope
 	PyObject *args;
 	PyObject *self;
 	PyObject *ret;
+	const int is_write_ok= pyrna_write_check();
 
 	BLI_assert(py_data != NULL);
+
+	if(!is_write_ok) {
+		pyrna_write_set(TRUE);
+	}
 
 	bpy_context_set(C, &gilstate);
 
@@ -216,6 +221,10 @@ void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struct Prope
 	}
 
 	bpy_context_clear(C, &gilstate);
+
+	if(!is_write_ok) {
+		pyrna_write_set(FALSE);
+	}
 }
 
 static int bpy_prop_callback_check(PyObject *py_func, int argcount)
