@@ -1028,6 +1028,35 @@ static void do_weight_paint_auto_normalize(MDeformVert *dvert,
 		}
 	}
 }
+// Jason was here: the active group should be involved in auto normalize
+static void do_weight_paint_auto_normalize_change_act_group(MDeformVert *dvert, char *map)
+{
+//	MDeformWeight *dw = dvert->dw;
+	float sum=0.0f, fac=0.0f;
+	int i, tot=0;
+
+	if (!map)
+		return;
+
+	for (i=0; i<dvert->totweight; i++) {
+		if (map[dvert->dw[i].def_nr]) {
+			tot += 1;
+			sum += dvert->dw[i].weight;
+		}
+	}
+	
+	if (!tot || sum == 1.0f)
+		return;
+
+	fac = sum;
+	fac = fac==0.0f ? 1.0f : 1.0f / fac;
+
+	for (i=0; i<dvert->totweight; i++) {
+		if (map[dvert->dw[i].def_nr]) {
+			dvert->dw[i].weight *= fac;
+		}
+	}
+}
 /* Jason was here 
 this function will handle normalize with locked groups 
 it assumes that the current ratios (of locked groups)
@@ -1109,7 +1138,7 @@ dividing can cause the weights to drop to 0
 }*/
 /* Jason was here */
 /*
-See if the current deform group has a locked group
+See if the current deform vertex has a locked group
 */
 static char has_locked_group(MDeformVert *dvert, char *flags)
 {
@@ -1122,30 +1151,57 @@ static char has_locked_group(MDeformVert *dvert, char *flags)
 	return FALSE;
 }
 /*Jason was here
-not sure where the prototypes belong at the moment
-static char* gen_lck_flags(Object* ob);
-
 gen_lck_flags gets the status of "flag" for each bDeformGroup
 in ob->defbase and returns an array containing them
+
+if there are multiple bones selected, however, they are the only ones that are treated as "unlocked"
 */
-static char* gen_lck_flags(Object* ob, int defcnt)
+static char* gen_lck_flags(Object* ob, int defcnt, char *map)
 {
 	char is_locked = FALSE;
 	int i;
 	//int defcnt = BLI_countlist(&ob->defbase);
 	char *flags = MEM_mallocN(defcnt*sizeof(char), "defflags");
-	bDeformGroup *defgroup = ob->defbase.first;
-	for(i = 0; i < defcnt && defgroup; i++) {
-		flags[i] = defgroup->flag;
-		defgroup = defgroup->next;
-		if(flags[i]) {
-			is_locked = TRUE;
+	bDeformGroup *defgroup;
+	char was_selected = FALSE;
+	int selected = 0;
+	bPose *pose;
+	bPoseChannel *chan;
+	Bone *bone;
+
+	Object *armob = ED_object_pose_armature(ob);
+
+	if(armob) {
+		pose = armob->pose;
+		for (chan=pose->chanbase.first; chan; chan=chan->next) {
+			bone = chan->bone;
+			was_selected = FALSE;
+			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
+				if(!strcmp(defgroup->name, bone->name)) {
+					flags[i] = !(bone->flag & BONE_SELECTED);
+					if(flags[i]) {
+						is_locked = TRUE;
+					} else if(!was_selected){
+						selected++;
+						was_selected = TRUE;
+					}
+				}
+			}
+		}
+	}
+	if(selected <= 1) {
+		is_locked = FALSE;
+		for(i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
+			flags[i] = defgroup->flag;
+			if(flags[i]) {
+				is_locked = TRUE;
+			}
 		}
 	}
 	if(is_locked){
 		return flags;
 	}
-	// don't forget to free it
+	// don't forget to free it if it is unneeded
 	MEM_freeN(flags);
 	return NULL;
 }
@@ -1204,18 +1260,17 @@ and to redistribute that weight to the unlocked groups
 (if it has to, then it will put some/all of the change
 back onto the original group)
 */
-static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw, float oldw, char* flags, int defcnt, char *map)
+static void redistribute_weight_change(Object *ob, MDeformVert *dvert, int index, MDeformWeight *pnt_dw, float oldw, char* flags, int defcnt, char *map)
 {
 	int i;
+	float old_change_left;
 	float change_left = oldw - pnt_dw->weight;
+	// make sure the redistribution the same per loop.
 	float change;
 	char was_a_change;
 	int groups_left_that_can_change = 0;
-	// make sure there is no case for division by 0, and make the redistribution the same per loop.
-	int groups_currently_left;
 	char* change_status = MEM_mallocN(defcnt*sizeof(char), "defflags");
 	MDeformWeight *dw;
-	//printf("start\n");
 	for(i = 0; i < defcnt; i++) {
 		if(pnt_dw->def_nr == i || !map[i]) {
 			change_status[i] = FALSE;
@@ -1224,13 +1279,15 @@ static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw
 		}
 		if(change_status[i]) {
 			groups_left_that_can_change++;
+			defvert_verify_index(dvert, i);
 		}
-		//printf("group %d, change status: %d flag: %d active?: %d\n", i, change_status[i], flags[i], pnt_dw->def_nr == i);
 	}
-	//printf("\n");
 	if(groups_left_that_can_change > 0) {
-		groups_currently_left = groups_left_that_can_change;
 		change = change_left/groups_left_that_can_change;
+		/* the division could cause it to be zero, so if it is, forget it*/
+		if(change == 0) {
+			change = change_left;
+		}
 		do {
 			was_a_change = FALSE;
 			for(i = 0; i < dvert->totweight; i++) {
@@ -1240,45 +1297,53 @@ static void redistribute_weight_change(MDeformVert *dvert, MDeformWeight *pnt_dw
 				}
 
 				dw->weight += change;
+				old_change_left = change_left;
 				change_left -= change;
-				//printf("group %d, change: %f weight: %f groups left: %d\n", dw->def_nr, change, dw->weight, groups_left_that_can_change);
+				// sign change?
+				if(change_left!=0 && change_left/fabs(change_left) != old_change_left/fabs(old_change_left)) {
+					dw->weight -= change;
+					change_left = old_change_left;
+					break;
+				}
 				if(dw->weight >= 1.0f) {
 
 					change_left += dw->weight-1.0f;
 					dw->weight = 1.0f;
-					groups_currently_left--;
+					groups_left_that_can_change--;
 					change_status[dw->def_nr] = FALSE;
 
 				}else if(dw->weight <= 0.0f) {
 
 					change_left += dw->weight;
 					dw->weight = 0.0f;
-					groups_currently_left--;
+					groups_left_that_can_change--;
 					change_status[dw->def_nr] = FALSE;
 				}
 				was_a_change = TRUE;
+				/* if it was too small, don't get stuck in an infinite loop! */
+				if(old_change_left == change_left) {
+					change *= 2;
+				}
 			}
-			groups_left_that_can_change = groups_currently_left;
 		} while(groups_left_that_can_change > 0 && change_left != 0.0f && was_a_change);
 	}
 	// add any remaining change back to the original weight
 	pnt_dw->weight += change_left;
 	MEM_freeN(change_status);
-	//printf("done\n");
 }
 /* Jason */
-static void check_locks_and_normalize(Mesh *me, int index, int vgroup, MDeformWeight *dw, float oldw, char *validmap, char *flags, int defcnt, char *bone_groups)
+static void check_locks_and_normalize(Object *ob, Mesh *me, int index, int vgroup, MDeformWeight *dw, float oldw, char *validmap, char *flags, int defcnt, char *bone_groups)
 {
 	if(flags && has_locked_group(me->dvert+index, flags)) {
 		if(flags[dw->def_nr]) {
 			// cannot change locked groups!
 			dw->weight = oldw;
 		} else if(bone_groups[dw->def_nr]) {
-			redistribute_weight_change(me->dvert+index, dw, oldw, flags, defcnt, bone_groups);
-			do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);//do_wp_auto_normalize_locked_groups(me, me->dvert, validmap);
+			redistribute_weight_change(ob, me->dvert+index, index, dw, oldw, flags, defcnt, bone_groups);
+			do_weight_paint_auto_normalize_change_act_group(me->dvert+index, validmap);//do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 		}
 	} else if(bone_groups[dw->def_nr]) {// disable auto normalize if the active group is not a bone group
-		do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
+		do_weight_paint_auto_normalize_change_act_group(me->dvert+index, validmap);//do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 	}
 }
 // Jason
@@ -1291,7 +1356,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	Mesh *me= ob->data;
 	MDeformWeight *dw, *uw;
 	int vgroup= ob->actdef-1;
-	
+
 	/* Jason was here */
 	char* flags;
 	char* bone_groups;
@@ -1314,13 +1379,12 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	if(dw==NULL || uw==NULL)
 		return;
 	/* Jason was here */
-	flags = gen_lck_flags(ob, defcnt = BLI_countlist(&ob->defbase));
+	flags = gen_lck_flags(ob, defcnt = BLI_countlist(&ob->defbase), bone_groups);
 	oldw = dw->weight;
-
 	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
-
 	/* Jason was here */
-	check_locks_and_normalize(me, index, vgroup, dw, oldw, validmap, flags, defcnt, bone_groups);
+	check_locks_and_normalize(ob, me, index, vgroup, dw, oldw, validmap, flags, defcnt, bone_groups);
+
 	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 		int j= mesh_get_x_mirror_vert(ob, index);
 		if(j>=0) {
@@ -1334,7 +1398,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 
 			uw->weight= dw->weight;
 			/* Jason */
-			check_locks_and_normalize(me, j, vgroup, dw, oldw, validmap, flags, defcnt, bone_groups);
+			check_locks_and_normalize(ob, me, j, vgroup, uw, oldw, validmap, flags, defcnt, bone_groups);
 		}
 	}
 	/* Jason */
