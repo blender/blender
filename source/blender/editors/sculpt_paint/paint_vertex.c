@@ -1600,6 +1600,13 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int wpaint_cancel(bContext *C, wmOperator *op)
+{
+	paint_stroke_cancel(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 void PAINT_OT_weight_paint(wmOperatorType *ot)
 {
 	
@@ -1612,6 +1619,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
 	ot->poll= weight_paint_poll;
+	ot->cancel= wpaint_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -1892,6 +1900,13 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int vpaint_cancel(bContext *C, wmOperator *op)
+{
+	paint_stroke_cancel(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 void PAINT_OT_vertex_paint(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1903,6 +1918,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
 	ot->poll= vertex_paint_poll;
+	ot->cancel= vpaint_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;

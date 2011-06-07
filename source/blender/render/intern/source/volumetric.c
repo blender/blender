@@ -605,7 +605,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	for (; t0 < t1; pt0 = t0, t0 += stepsize) {
 		const float density = vol_get_density(shi, p);
 		
-		if (density > 0.01f) {
+		if (density > 0.00001f) {
 			float scatter_col[3] = {0.f, 0.f, 0.f}, emit_col[3];
 			const float stepd = (t0 - pt0) * density;
 			

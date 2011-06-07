@@ -340,7 +340,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	int is_wheel= ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
 	int retval;
 	
-	/* UI is quite agressive with swallowing events, like scrollwheel */
+	/* UI is quite aggressive with swallowing events, like scrollwheel */
 	/* I realize this is not extremely nice code... when UI gets keymaps it can be maybe smarter */
 	if(do_wheel_ui==0) {
 		if(is_wheel)
@@ -1289,16 +1289,23 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				if (handler->op_area == NULL) {
 					bScreen *screen = CTX_wm_screen(C);
 					sa = (ScrArea *)screen->areabase.first;
-				} else
+				}
+				else {
 					sa = handler->op_area;
+				}
 					
-				if(event->val==EVT_FILESELECT_OPEN)
-					ED_area_newspace(C, sa, SPACE_FILE);
-				else
-					ED_screen_full_newspace(C, sa, SPACE_FILE);	/* sets context */
-				
+				if(event->val==EVT_FILESELECT_OPEN) {
+					ED_area_newspace(C, sa, SPACE_FILE); /* 'sa' is modified in-place */
+				}
+				else {
+					sa= ED_screen_full_newspace(C, sa, SPACE_FILE);	/* sets context */
+				}
+
+				/* note, getting the 'sa' back from the context causes a nasty bug where the newly created
+				 * 'sa' != CTX_wm_area(C). removed the line below and set 'sa' in the 'if' above */
+				/* sa = CTX_wm_area(C); */
+
 				/* settings for filebrowser, sfile is not operator owner but sends events */
-				sa = CTX_wm_area(C);
 				sfile= (SpaceFile*)sa->spacedata.first;
 				sfile->op= handler->op;
 
@@ -1570,7 +1577,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			 *   so check for mouse moves too.
 			 * note2: the first click event will be handled but still used to create a
 			 *   double click event if clicking again quickly.
-			 *   If no double click events are found itwill fallback to a single click.
+			 *   If no double click events are found it will fallback to a single click.
 			 *   So a double click event can result in 2 successive single click calls
 			 *   if its not handled by the keymap - campbell */
 			if (	(ABS(event->x - win->eventstate->prevclickx)) <= 2 &&

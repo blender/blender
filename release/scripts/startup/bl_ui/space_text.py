@@ -42,7 +42,7 @@ class TEXT_HT_header(bpy.types.Header):
 
         if text and text.is_modified:
             row = layout.row()
-            # row.color(redalert)
+            row.alert = True
             row.operator("text.resolve_conflict", text="", icon='HELP')
 
         layout.template_ID(st, "text", new="text.new", unlink="text.unlink")

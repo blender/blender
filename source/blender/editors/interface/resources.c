@@ -585,7 +585,7 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.lamp,       0, 0, 0, 40);
 	SETCOL(btheme->tv3d.select, 241, 88, 0, 255);
-	SETCOL(btheme->tv3d.active, 255, 140, 25, 255);
+	SETCOL(btheme->tv3d.active, 255, 170, 64, 255);
 	SETCOL(btheme->tv3d.group,      8, 48, 8, 255);
 	SETCOL(btheme->tv3d.group_active, 85, 187, 85, 255);
 	SETCOL(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
@@ -604,7 +604,7 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tv3d.face_dot, 255, 133, 0, 255);
 	SETCOL(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
 	SETCOLF(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
-	SETCOL(btheme->tv3d.edge_sharp, 255, 32, 32, 255);
+	SETCOL(btheme->tv3d.edge_sharp, 0, 255, 255, 255);
 	SETCOL(btheme->tv3d.header_text, 0, 0, 0, 255);
 	SETCOL(btheme->tv3d.header_text_hi, 255, 255, 255, 255);
 	SETCOL(btheme->tv3d.button_text, 0, 0, 0, 255);

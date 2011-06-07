@@ -1997,7 +1997,63 @@ void mdisp_rot_crn_to_face(const int S, const int corners, const int face_side, 
 	}
 }
 
+/* Find per-corner coordinate with given per-face UV coord */
 int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y)
+{
+	const float offset = face_side*0.5f - 0.5f;
+	int S = 0;
+
+	if (corners == 4) {
+		if(u <= offset && v <= offset) S = 0;
+		else if(u > offset  && v <= offset) S = 1;
+		else if(u > offset  && v > offset) S = 2;
+		else if(u <= offset && v >= offset)  S = 3;
+
+		if(S == 0) {
+			*y = offset - u;
+			*x = offset - v;
+		} else if(S == 1) {
+			*x = u - offset;
+			*y = offset - v;
+		} else if(S == 2) {
+			*y = u - offset;
+			*x = v - offset;
+		} else if(S == 3) {
+			*x= offset - u;
+			*y = v - offset;
+		}
+	} else {
+		int grid_size = offset;
+		float w = (face_side - 1) - u - v;
+		float W1, W2;
+
+		if (u >= v && u >= w) {S = 0; W1= w; W2= v;}
+		else if (v >= u && v >= w) {S = 1; W1 = u; W2 = w;}
+		else {S = 2; W1 = v; W2 = u;}
+
+		W1 /= (face_side-1);
+		W2 /= (face_side-1);
+
+		*x = (1-(2*W1)/(1-W2)) * grid_size;
+		*y = (1-(2*W2)/(1-W1)) * grid_size;
+	}
+
+	return S;
+}
+
+/* Find per-corner coordinate with given per-face UV coord
+   Practically as the previous funciton but it assumes a bit different coordinate system for triangles
+   which is optimized for MDISP layer interpolation:
+
+   v
+   ^
+   |      /|
+   |    /  |
+   |  /    |
+   |/______|___> u
+
+ */
+int mdisp_rot_face_to_quad_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y)
 {
 	const float offset = face_side*0.5f - 0.5f;
 	int S = 0;
@@ -2148,7 +2204,7 @@ void mdisp_join_tris(MDisps *dst, MDisps *tri1, MDisps *tri2)
 					face_v = st - 1 - face_v;
 				} else src = tri1;
 
-				crn = mdisp_rot_face_to_crn(3, st, face_u, face_v, &crn_u, &crn_v);
+				crn = mdisp_rot_face_to_quad_crn(3, st, face_u, face_v, &crn_u, &crn_v);
 
 				old_mdisps_bilinear((*out), &src->disps[crn*side*side], side, crn_u, crn_v);
 				(*out)[0] = 0;

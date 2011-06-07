@@ -3559,6 +3559,24 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int sculpt_brush_stroke_cacel(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	SculptSession *ss = ob->sculpt;
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+	paint_stroke_cancel(C, op);
+
+	if(ss->cache) {
+		sculpt_cache_free(ss->cache);
+		ss->cache = NULL;
+	}
+
+	sculpt_brush_exit_tex(sd);
+
+	return OPERATOR_CANCELLED;
+}
+
 static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
 	static EnumPropertyItem stroke_mode_items[] = {
@@ -3577,6 +3595,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	ot->modal= paint_stroke_modal;
 	ot->exec= sculpt_brush_stroke_exec;
 	ot->poll= sculpt_poll;
+	ot->cancel= sculpt_brush_stroke_cacel;
 
 	/* flags (sculpt does own undo? (ton) */
 	ot->flag= OPTYPE_BLOCKING;

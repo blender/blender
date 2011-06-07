@@ -687,9 +687,25 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 		glGetIntegerv(GL_UNPACK_SKIP_PIXELS, &skip_pixels);
 		glGetIntegerv(GL_UNPACK_SKIP_ROWS, &skip_rows);
 
-		if ((ibuf->rect==NULL) && ibuf->rect_float)
-			IMB_rect_from_float(ibuf);
-
+		if (ibuf->rect_float){
+			/*This case needs a whole new buffer*/
+			if(ibuf->rect==NULL) {
+				IMB_rect_from_float(ibuf);
+			}
+			else {
+				/* Do partial drawing. 'buffer' holds only the changed part. Needed for color corrected result */
+ 				float *buffer = (float *)MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
+				IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h);
+				glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+				glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
+					GL_FLOAT, buffer);
+				MEM_freeN(buffer);
+				if(ima->tpageflag & IMA_MIPMAP_COMPLETE)
+					ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+				return;
+			}
+		}
+		
 		glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, ibuf->x);

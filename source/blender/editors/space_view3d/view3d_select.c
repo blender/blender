@@ -875,6 +875,7 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 	ot->modal= WM_gesture_lasso_modal;
 	ot->exec= view3d_lasso_select_exec;
 	ot->poll= view3d_selectable_data;
+	ot->cancel= WM_gesture_lasso_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
@@ -1829,6 +1830,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	ot->exec= view3d_borderselect_exec;
 	ot->modal= WM_border_select_modal;
 	ot->poll= view3d_selectable_data;
+	ot->cancel= WM_border_select_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
@@ -2308,6 +2310,7 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	ot->modal= WM_gesture_circle_modal;
 	ot->exec= view3d_circle_select_exec;
 	ot->poll= view3d_selectable_data;
+	ot->cancel= WM_gesture_circle_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;

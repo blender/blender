@@ -307,6 +307,8 @@ void ED_OT_undo_push(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= ed_undo_push_exec;
 
+	ot->flag= OPTYPE_INTERNAL;
+
 	RNA_def_string(ot->srna, "message", "Add an undo step *function may be moved*", MAXUNDONAME, "Undo Message", "");
 }
 
