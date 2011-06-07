@@ -449,6 +449,14 @@ void uiCenteredBoundsBlock(uiBlock *block, int addval)
 
 /* link line drawing is not part of buttons or theme.. so we stick with it here */
 
+static int ui_but_float_precision(uiBut *but, double UNUSED(value))
+{
+	int prec= (int)but->a2;
+	if(prec==0) prec= (but->hardmax < 10.001f) ? 3 : 2;
+	else CLAMP(prec, 1, 7);
+	return prec;
+}
+
 static void ui_draw_linkline(uiLinkLine *line)
 {
 	rcti rect;
@@ -1530,10 +1538,7 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 				ui_get_but_string_unit(but, str, maxlen, value, 0);
 			}
 			else {
-				int prec= (int)but->a2;
-				if(prec==0) prec= 3;
-				else CLAMP(prec, 1, 7);
-
+				const int prec= ui_but_float_precision(but, value);
 				BLI_snprintf(str, maxlen, "%.*f", prec, value);
 			}
 		}
@@ -2009,10 +2014,7 @@ void ui_check_but(uiBut *but)
 				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
 			}
 			else {
-				int prec= (int)but->a2;
-				if(prec==0) prec= (but->hardmax < 10.001f) ? 3 : 2;
-				else CLAMP(prec, 1, 7);
-
+				const int prec= ui_but_float_precision(but, value);
 				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
 			}
 		}
@@ -2030,11 +2032,9 @@ void ui_check_but(uiBut *but)
 
 	case LABEL:
 		if(ui_is_but_float(but)) {
-			int prec= (int)but->a2;
+			int prec;
 			value= ui_get_but_val(but);
-			if(prec==0) prec= 3;
-			else CLAMP(prec, 1, 7);
-
+			prec= ui_but_float_precision(but, value);
 			BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
 		}
 		else {
