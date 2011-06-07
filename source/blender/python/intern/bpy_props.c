@@ -281,11 +281,15 @@ static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_c
  * calls because of static strins passed to pyrna_set_to_enum_bitfield */
 #define BPY_PROPDEF_CHECK(_func, _property_flag_items) \
 	if(id_len >= MAX_IDPROP_NAME) { \
-		PyErr_Format(PyExc_TypeError, #_func"(): '%.200s' too long, max length is %d", id, MAX_IDPROP_NAME-1); \
+		PyErr_Format(PyExc_TypeError, \
+		             #_func"(): '%.200s' too long, max length is %d", \
+		             id, MAX_IDPROP_NAME-1); \
 		return NULL; \
 	} \
 	if(RNA_def_property_free_identifier(srna, id) == -1) { \
-		PyErr_Format(PyExc_TypeError, #_func"(): '%s' is defined as a non-dynamic type", id); \
+		PyErr_Format(PyExc_TypeError, \
+		             #_func"(): '%s' is defined as a non-dynamic type", \
+		             id); \
 		return NULL; \
 	} \
 	if(pyopts && pyrna_set_to_enum_bitfield(_property_flag_items, pyopts, &opts, #_func"(options={...}):")) \
@@ -294,7 +298,9 @@ static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_c
 #define BPY_PROPDEF_SUBTYPE_CHECK(_func, _property_flag_items, _subtype) \
 	BPY_PROPDEF_CHECK(_func, _property_flag_items) \
 	if(pysubtype && RNA_enum_value_from_id(_subtype, pysubtype, &subtype)==0) { \
-		PyErr_Format(PyExc_TypeError, #_func"(subtype='%s'): invalid subtype", pysubtype); \
+		PyErr_Format(PyExc_TypeError, \
+		             #_func"(subtype='%s'): invalid subtype", \
+		             pysubtype); \
 		return NULL; \
 	} \
 
