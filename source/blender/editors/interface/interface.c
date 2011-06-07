@@ -449,11 +449,36 @@ void uiCenteredBoundsBlock(uiBlock *block, int addval)
 
 /* link line drawing is not part of buttons or theme.. so we stick with it here */
 
-static int ui_but_float_precision(uiBut *but, double UNUSED(value))
+static int ui_but_float_precision(uiBut *but, double value)
 {
-	int prec= (int)but->a2;
-	if(prec==0) prec= (but->hardmax < 10.001f) ? 3 : 2;
-	else CLAMP(prec, 1, 7);
+	int prec;
+
+	/* first check if prec is 0 and fallback to a simple default */
+	if((prec= (int)but->a2) == 0) {
+		prec= (but->hardmax < 10.001f) ? 3 : 2;
+	}
+
+	/* check on the number of decimal places neede to display
+	 * the number, this is so 0.00001 is not displayed as 0.00,
+	 * _but_, this is only for small values si 10.0001 will not get
+	 * the same treatment */
+	if(value != 0.0 && (value= ABS(value)) < 0.1) {
+		double prec_d= -(log10(value));
+		double prec_d_floor = floor(prec_d + FLT_EPSILON);
+		int test_prec= (int)prec_d_floor;
+
+		/* this check is so 0.00016 from isnt rounded to 0.0001 _but_ it is not working ideally because 0.0002 becomes 0.00020 */
+		if(prec_d - prec_d_floor > FLT_EPSILON) {
+			test_prec += 2;
+		}
+
+		if(test_prec > prec && test_prec <= 7) {
+			prec= test_prec;
+		}
+	}
+
+	CLAMP(prec, 1, 7);
+
 	return prec;
 }
 
