@@ -287,7 +287,7 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 
 		if(new_vgroup == TRUE) {
 			/* free the newly added vgroup since it wasn't compatible */
-			vgroup_delete_all(ob->data);
+			vgroup_delete_all(ob);
 		}
 		return 0;
 	}

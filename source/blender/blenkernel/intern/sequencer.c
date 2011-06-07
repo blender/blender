@@ -594,7 +594,12 @@ void calc_sequence(Scene *scene, Sequence *seq)
 				seq->start= seq->enddisp;
 				seq->enddisp = seq->startdisp;
 				seq->startdisp= seq->start;
+				seq->flag |= SEQ_INVALID_EFFECT;
 			}
+			else {
+				seq->flag &= ~SEQ_INVALID_EFFECT;
+			}
+
 			seq->len= seq->enddisp - seq->startdisp;
 		}
 		else {
