@@ -77,6 +77,7 @@
 static void vgroup_remap_update_users(Object *ob, int *map);
 static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *defgroup);
 static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg);
+static void vgroup_delete_all(Object *ob);
 
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
@@ -138,22 +139,30 @@ void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup)
 		vgroup_delete_object_mode(ob, dg);
 }
 
-void ED_vgroup_data_create(ID *id)
+int ED_vgroup_data_create(ID *id)
 {
 	/* create deform verts */
 
 	if(GS(id->name)==ID_ME) {
 		Mesh *me= (Mesh *)id;
 		me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, me->totvert);
+		return TRUE;
 	}
 	else if(GS(id->name)==ID_LT) {
 		Lattice *lt= (Lattice *)id;
 		lt->dvert= MEM_callocN(sizeof(MDeformVert)*lt->pntsu*lt->pntsv*lt->pntsw, "lattice deformVert");
+		return TRUE;
+	}
+	else {
+		return FALSE;
 	}
 }
 
 static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 {
+	*dvert_tot = 0;
+	*dvert_arr = NULL;
+
 	if(id) {
 		switch(GS(id->name)) {
 			case ID_ME:
@@ -166,8 +175,6 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 					int i;
 
 					if (!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT)) {
-						*dvert_tot = 0;
-						*dvert_arr = NULL;
 						return 0;
 					}
 
@@ -195,8 +202,9 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 
 					return 1;
 				}
-				else
+				else {
 					return 0;
+				}
 			}
 			case ID_LT:
 			{
@@ -222,8 +230,6 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 		}
 	}
 
-	*dvert_arr= NULL;
-	*dvert_tot= 0;
 	return 0;
 }
 
@@ -265,13 +271,24 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	int i;
 	int totdef_from= BLI_countlist(&ob_from->defbase);
 	int totdef= BLI_countlist(&ob->defbase);
+	short new_vgroup= FALSE;
 
 	ED_vgroup_give_parray(ob_from->data, &dvert_array_from, &dvert_tot_from);
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
+	if((dvert_array == NULL) && (dvert_array_from != NULL) && ED_vgroup_data_create(ob->data)) {
+		ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
+		new_vgroup= TRUE;
+	}
+
 	if(ob==ob_from || dvert_tot==0 || (dvert_tot != dvert_tot_from) || dvert_array_from==NULL || dvert_array==NULL) {
 		if (dvert_array) MEM_freeN(dvert_array);
 		if (dvert_array_from) MEM_freeN(dvert_array_from);
+
+		if(new_vgroup == TRUE) {
+			/* free the newly added vgroup since it wasn't compatible */
+			vgroup_delete_all(ob->data);
+		}
 		return 0;
 	}
 
@@ -1988,16 +2005,24 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 {
 	Object *obact= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	int change= 0;
+	int fail= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)
 	{
-		if(obact != ob)
-			ED_vgroup_copy_array(ob, obact);
+		if(obact != ob) {
+			if(ED_vgroup_copy_array(ob, obact)) change++;
+			else                                fail++;
+		}
 	}
 	CTX_DATA_END;
+
+	if((change == 0 && fail == 0) || fail) {
+		BKE_reportf(op->reports, RPT_ERROR, "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indicies", change, fail);
+	}
 
 	return OPERATOR_FINISHED;
 }

@@ -4027,7 +4027,6 @@ static void freeSeqData(TransInfo *t)
 						if ((seq != seq_prev)) {
 							/* check effects strips, we cant change their time */
 							if((seq->type & SEQ_EFFECT) && seq->seq1) {
-								// shuffle_seq(seqbasep, seq, t->scene);
 								has_effect= TRUE;
 							}
 							else {
