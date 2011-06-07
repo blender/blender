@@ -403,12 +403,10 @@ float file_font_pointsize(void)
 	uiStyleFontSet(&style->widget);
 	s = BLF_height(style->widget.uifont_id, tmp);
 	return style->widget.points;
-#elif 0
+#else
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return style->widget.points;
-#else
-	return UI_UNIT_Y * 0.6666f;
+	return style->widget.points * UI_DPI_FAC;
 #endif
 }
 
