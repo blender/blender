@@ -467,9 +467,15 @@ static int ui_but_float_precision(uiBut *but, double value)
 		double prec_d_floor = floor(prec_d + FLT_EPSILON);
 		int test_prec= (int)prec_d_floor;
 
-		/* this check is so 0.00016 from isnt rounded to 0.0001 _but_ it is not working ideally because 0.0002 becomes 0.00020 */
-		if(prec_d - prec_d_floor > FLT_EPSILON) {
-			test_prec += 2;
+		/* this check is so 0.00016 from isnt rounded to 0.0001 */
+		if(prec_d - prec_d_floor > FLT_EPSILON) { /* not ending with a .0~001 */
+			/* check if a second decimal place is needed 0.00015 for eg. */
+			if(double_round(value, test_prec + 1) - double_round(value, test_prec + 2) != 0.0) {
+				test_prec += 2;
+			}
+			else {
+				test_prec += 1;
+			}
 		}
 
 		if(test_prec > prec && test_prec <= 7) {
