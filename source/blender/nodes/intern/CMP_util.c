@@ -1320,7 +1320,11 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 	
 	if ((xy < 1) || (xy > 3)) xy = 3;
 	
-	if (src->x < 2 && src->y < 2) return;
+	// XXX The YVV macro defined below explicitely expects sources of at least 3x3 pixels,
+	//     so just skiping blur along faulty direction if src's def is below that limit!
+	if (src->x < 3) xy &= ~(int) 1;
+	if (src->y < 3) xy &= ~(int) 2;
+	if (xy < 1) return;
 	
 	// see "Recursive Gabor Filtering" by Young/VanVliet
 	// all factors here in double.prec. Required, because for single.prec it seems to blow up if sigma > ~200
