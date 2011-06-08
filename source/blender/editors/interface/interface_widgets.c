@@ -1210,7 +1210,7 @@ static struct uiWidgetStateColors wcol_state_colors= {
 
 static struct uiWidgetColors wcol_num= {
 	{25, 25, 25, 255},
-	{180, 180, 180, 255},
+	{160, 160, 160, 255},
 	{153, 153, 153, 255},
 	{90, 90, 90, 255},
 	
@@ -1218,12 +1218,12 @@ static struct uiWidgetColors wcol_num= {
 	{255, 255, 255, 255},
 	
 	1,
-	-20, 0
+	-5, 0
 };
 
 static struct uiWidgetColors wcol_numslider= {
 	{25, 25, 25, 255},
-	{180, 180, 180, 255},
+	{160, 160, 160, 255},
 	{153, 153, 153, 255},
 	{128, 128, 128, 255},
 	
@@ -1231,7 +1231,7 @@ static struct uiWidgetColors wcol_numslider= {
 	{255, 255, 255, 255},
 	
 	1,
-	-20, 0
+	-5, 0
 };
 
 static struct uiWidgetColors wcol_text= {
@@ -1244,20 +1244,20 @@ static struct uiWidgetColors wcol_text= {
 	{255, 255, 255, 255},
 	
 	1,
-	0, 25
+	0, 5
 };
 
 static struct uiWidgetColors wcol_option= {
 	{0, 0, 0, 255},
-	{70, 70, 70, 255},
-	{70, 70, 70, 255},
+	{60, 60, 60, 255},
+	{60, 60, 60, 255},
 	{255, 255, 255, 255},
 	
 	{0, 0, 0, 255},
 	{255, 255, 255, 255},
 	
 	1,
-	15, -15
+	5, -5
 };
 
 /* button that shows popup */
@@ -1265,13 +1265,13 @@ static struct uiWidgetColors wcol_menu= {
 	{0, 0, 0, 255},
 	{70, 70, 70, 255},
 	{70, 70, 70, 255},
-	{255, 255, 255, 255},
+	{45, 45, 45, 255},
 	
 	{255, 255, 255, 255},
 	{204, 204, 204, 255},
 	
 	1,
-	15, -15
+	5, -5
 };
 
 /* button that starts pulldown */
@@ -1298,7 +1298,7 @@ static struct uiWidgetColors wcol_menu_item= {
 	{255, 255, 255, 255},
 	{0, 0, 0, 255},
 	
-	1,
+	0,
 	38, 0
 };
 
@@ -1323,11 +1323,11 @@ static struct uiWidgetColors wcol_radio= {
 	{86, 128, 194, 255},
 	{255, 255, 255, 255},
 	
-	{255, 255, 255, 255},
+	{230, 230, 230, 255},
 	{0, 0, 0, 255},
 	
 	1,
-	15, -15
+	5, -5
 };
 
 static struct uiWidgetColors wcol_regular= {
@@ -1353,7 +1353,7 @@ static struct uiWidgetColors wcol_tool= {
 	{255, 255, 255, 255},
 	
 	1,
-	15, -15
+	5, -5
 };
 
 static struct uiWidgetColors wcol_box= {
