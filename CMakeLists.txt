@@ -188,6 +188,9 @@ if(APPLE)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 endif()
 
+#-----------------------------------------------------------------------------
+# Check for conflicting/unsupported configurations
+
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
@@ -207,6 +210,12 @@ endif()
 
 if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
+endif()
+
+if(WITH_CODEC_QUICKTIME AND MINGW)
+	message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
+						"because it is currently unsupported, remove this "
+						"line if youre a developer who wants to add support.")
 endif()
 
 # may as well build python module without a UI

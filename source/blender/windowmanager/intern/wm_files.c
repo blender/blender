@@ -747,7 +747,10 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 		if(fileflags & G_FILE_AUTOPLAY) G.fileflags |= G_FILE_AUTOPLAY;
 		else G.fileflags &= ~G_FILE_AUTOPLAY;
 
-		write_history();
+		/* prevent background mode scripts from clobbering history */
+		if(!G.background) {
+			write_history();
+		}
 
 		/* run this function after because the file cant be written before the blend is */
 		if (ibuf_thumb) {
