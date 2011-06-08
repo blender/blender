@@ -1320,6 +1320,8 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 	
 	if ((xy < 1) || (xy > 3)) xy = 3;
 	
+	if (src->x < 2 && src->y < 2) return;
+	
 	// see "Recursive Gabor Filtering" by Young/VanVliet
 	// all factors here in double.prec. Required, because for single.prec it seems to blow up if sigma > ~200
 	if (sigma >= 3.556)
