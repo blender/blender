@@ -242,4 +242,5 @@ ModifierTypeInfo modifierType_ParticleSystem = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

@@ -97,22 +97,22 @@ class CyclesRender_PT_debug(CyclesButtonsPanel, bpy.types.Panel):
 		col.prop(cycles, "debug_text_timeout")
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, bpy.types.Panel):
-    bl_label = "Post Processing"
-    bl_options = {'DEFAULT_CLOSED'}
+	bl_label = "Post Processing"
+	bl_options = {'DEFAULT_CLOSED'}
 
-    def draw(self, context):
-        layout = self.layout
+	def draw(self, context):
+		layout = self.layout
 
-        rd = context.scene.render
+		rd = context.scene.render
 
-        split = layout.split()
+		split = layout.split()
 
-        col = split.column()
-        col.prop(rd, "use_compositing")
-        col.prop(rd, "use_sequencer")
+		col = split.column()
+		col.prop(rd, "use_compositing")
+		col.prop(rd, "use_sequencer")
 
-        col = split.column()
-        col.prop(rd, "dither_intensity", text="Dither", slider=True)
+		col = split.column()
+		col.prop(rd, "dither_intensity", text="Dither", slider=True)
 
 class Cycles_PT_camera(CyclesButtonsPanel, bpy.types.Panel):
 	bl_label = "Cycles"
@@ -231,9 +231,9 @@ def panel_node_draw(layout, id, output_type, input_name):
 	node = find_node(id, output_type)
 	if not node:
 		layout.label(text="No output node.")
-
-	input = find_node_input(node, input_name)
-	layout.template_node_view(id, ntree, node, input);
+	else:
+		input = find_node_input(node, input_name)
+		layout.template_node_view(id, ntree, node, input);
 
 class CyclesLamp_PT_lamp(CyclesButtonsPanel, bpy.types.Panel):
 	bl_label = "Surface"
@@ -339,6 +339,41 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, bpy.types.Panel):
 		row = layout.row()
 		row.label(text="Light Group:")
 		row.prop(mat, "light_group", text="")
+
+class CyclesTexture_PT_context(CyclesButtonsPanel, bpy.types.Panel):
+	bl_label = ""
+	bl_context = "texture"
+	bl_options = {'HIDE_HEADER'}
+	COMPAT_ENGINES = {'CYCLES'}
+
+	def draw(self, context):
+		layout = self.layout
+
+		tex = context.texture
+		space = context.space_data
+		pin_id = space.pin_id
+		use_pin_id = space.use_pin_id;
+		user = context.texture_user
+
+		if not use_pin_id or not isinstance(pin_id, bpy.types.Texture):
+			pin_id = None
+
+		if not pin_id:
+			layout.template_texture_user()
+			layout.separator()
+
+		split = layout.split(percentage=0.65)
+		col = split.column()
+
+		if pin_id:
+			col.template_ID(space, "pin_id")
+		elif user:
+			col.template_ID(user, "texture", new="texture.new")
+
+		if tex:
+			split = layout.split(percentage=0.2)
+			split.label(text="Type:")
+			split.prop(tex, "type", text="")
 	
 def draw_device(self, context):
 	scene = context.scene
@@ -372,7 +407,22 @@ def get_panels():
 		bpy.types.DATA_PT_custom_props_camera,
 		bpy.types.DATA_PT_context_lamp,
 		bpy.types.DATA_PT_custom_props_lamp,
-		bpy.types.TEXTURE_PT_context_texture]
+		bpy.types.TEXTURE_PT_clouds,
+		bpy.types.TEXTURE_PT_wood,
+		bpy.types.TEXTURE_PT_marble,
+		bpy.types.TEXTURE_PT_magic,
+		bpy.types.TEXTURE_PT_blend,
+		bpy.types.TEXTURE_PT_stucci,
+		bpy.types.TEXTURE_PT_image,
+		bpy.types.TEXTURE_PT_image_sampling,
+		bpy.types.TEXTURE_PT_image_mapping,
+		bpy.types.TEXTURE_PT_musgrave,
+		bpy.types.TEXTURE_PT_voronoi,
+		bpy.types.TEXTURE_PT_distortednoise,
+		bpy.types.TEXTURE_PT_voxeldata,
+		bpy.types.TEXTURE_PT_pointdensity,
+		bpy.types.TEXTURE_PT_pointdensity_turbulence,
+		bpy.types.TEXTURE_PT_custom_props]
 
 def register():
 	bpy.types.RENDER_PT_render.append(draw_device)

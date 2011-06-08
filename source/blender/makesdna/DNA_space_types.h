@@ -64,6 +64,7 @@ struct bScreen;
 struct Scene;
 struct wmOperator;
 struct wmTimer;
+struct Tex;
 
 	/**
 	 * The base structure all the other spaces
@@ -144,6 +145,8 @@ typedef struct SpaceButs {
 	void *path;						/* runtime */
 	int pathflag, dataicon;			/* runtime */
 	ID *pinid;
+
+	void *texuser;
 } SpaceButs;
 
 typedef struct SpaceSeq {

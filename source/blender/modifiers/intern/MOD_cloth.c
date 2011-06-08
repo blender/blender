@@ -216,4 +216,5 @@ ModifierTypeInfo modifierType_Cloth = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

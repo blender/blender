@@ -50,6 +50,7 @@ void register_node_type_sh_vect_math(ListBase *lb);
 void register_node_type_sh_mix_rgb(ListBase *lb);
 void register_node_type_sh_rgbtobw(ListBase *lb);
 void register_node_type_sh_mapping(ListBase *lb);
+void register_node_type_sh_texture(ListBase *lb);
 
 void register_node_type_sh_attribute(ListBase *lb);
 void register_node_type_sh_geometry(ListBase *lb);

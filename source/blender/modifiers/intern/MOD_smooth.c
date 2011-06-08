@@ -273,4 +273,5 @@ ModifierTypeInfo modifierType_Smooth = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

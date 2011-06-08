@@ -442,6 +442,9 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_pointer(func, "socket", "NodeSocket", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
+	func= RNA_def_function(srna, "template_texture_user", "uiTemplateTextureUser");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
 	func= RNA_def_function(srna, "introspect", "uiLayoutIntrospect");
 	parm= RNA_def_string(func, "string", "", 1024*1024, "Descr", "DESCR");
 	RNA_def_function_return(func, parm);

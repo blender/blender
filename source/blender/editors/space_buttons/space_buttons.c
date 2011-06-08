@@ -106,6 +106,12 @@ static void buttons_free(SpaceLink *sl)
 
 	if(sbuts->path)
 		MEM_freeN(sbuts->path);
+	
+	if(sbuts->texuser) {
+		ButsContextTexture *ct= sbuts->texuser;
+		BLI_freelistN(&ct->users);
+		MEM_freeN(ct);
+	}
 }
 
 /* spacetype; init callback */

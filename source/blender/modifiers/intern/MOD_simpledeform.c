@@ -395,4 +395,5 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

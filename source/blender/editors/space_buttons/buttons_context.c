@@ -55,7 +55,6 @@
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 
-
 #include "RNA_access.h"
 
 #include "ED_armature.h"
@@ -66,13 +65,6 @@
 #include "UI_resources.h"
 
 #include "buttons_intern.h"	// own include
-
-typedef struct ButsContextPath {
-	PointerRNA ptr[8];
-	int len;
-	int flag;
-	int tex_ctx;
-} ButsContextPath;
 
 static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, StructRNA *type)
 {
@@ -237,11 +229,13 @@ static int buttons_context_path_material(ButsContextPath *path)
 			RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
 			path->len++;
 			
+#if 0
 			ma= give_node_material(ma);
 			if(ma) {
 				RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
 				path->len++;
 			}			
+#endif
 			return 1;
 		}
 	}
@@ -370,8 +364,42 @@ static int buttons_context_path_brush(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_texture(ButsContextPath *path)
+static int buttons_context_path_texture(ButsContextPath *path, ButsContextTexture *ct)
 {
+	PointerRNA *ptr= &path->ptr[path->len-1];
+	ID *id;
+
+	/* if we already have a (pinned) texture, we're done */
+	if(RNA_struct_is_a(ptr->type, &RNA_Texture))
+		return 1;
+
+	if(!(ct && ct->user))
+		return 0;
+	
+	id= ct->user->id;
+
+	if(id) {
+		if(GS(id->name) == ID_BR)
+			buttons_context_path_brush(path);
+		else if(GS(id->name) == ID_MA)
+			buttons_context_path_material(path);
+		else if(GS(id->name) == ID_WO)
+			buttons_context_path_world(path);
+		else if(GS(id->name) == ID_LA)
+			buttons_context_path_data(path, OB_LAMP);
+		else if(GS(id->name) == ID_PA)
+			buttons_context_path_particle(path);
+		else if(GS(id->name) == ID_OB)
+			buttons_context_path_object(path);
+	}
+	
+	RNA_id_pointer_create(&ct->texture->id, &path->ptr[path->len]);
+	path->len++;
+
+	return 1;
+
+
+#if 0
 	Material *ma;
 	Lamp *la;
 	Brush *br;
@@ -468,6 +496,7 @@ static int buttons_context_path_texture(ButsContextPath *path)
 			return 1;
 		}
 	}
+#endif
 
 	/* no path to a texture possible */
 	return 0;
@@ -527,7 +556,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_material(path);
 			break;
 		case BCONTEXT_TEXTURE:
-			found= buttons_context_path_texture(path);
+			found= buttons_context_path_texture(path, sbuts->texuser);
 			break;
 		case BCONTEXT_BONE:
 			found= buttons_context_path_bone(path);
@@ -576,6 +605,8 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 	ButsContextPath *path;
 	PointerRNA *ptr;
 	int a, pflag= 0, flag= 0;
+
+	buttons_texture_context_compute(C, sbuts);
 
 	if(!sbuts->path)
 		sbuts->path= MEM_callocN(sizeof(ButsContextPath), "ButsContextPath");
@@ -646,7 +677,8 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 const char *buttons_context_dir[] = {
 	"world", "object", "mesh", "armature", "lattice", "curve",
 	"meta_ball", "lamp", "camera", "material", "material_slot",
-	"texture", "texture_slot", "bone", "edit_bone", "pose_bone", "particle_system", "particle_system_editable",
+	"texture", "texture_slot", "texture_user", "bone", "edit_bone",
+	"pose_bone", "particle_system", "particle_system_editable",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
 
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
@@ -703,7 +735,11 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 1;
 	}
 	else if(CTX_data_equals(member, "texture")) {
-		set_pointer_type(path, result, &RNA_Texture);
+		ButsContextTexture *ct= sbuts->texuser;
+		
+		if(ct)
+			CTX_data_pointer_set(result, &ct->texture->id, &RNA_Texture, ct->texture);
+
 		return 1;
 	}
 	else if(CTX_data_equals(member, "material_slot")) {
@@ -718,6 +754,17 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 		return 1;
 	}
+	else if(CTX_data_equals(member, "texture_user")) {
+		ButsContextTexture *ct= sbuts->texuser;
+
+		if(ct && ct->user) {
+			ButsTextureUser *user= ct->user; 
+			CTX_data_pointer_set(result, user->ptr.id.data, user->ptr.type, user->ptr.data);
+		}
+
+		return 1;
+	}
+#if 0
 	else if(CTX_data_equals(member, "texture_node")) {
 		PointerRNA *ptr;
 
@@ -781,6 +828,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 		return 1;
 	}
+#endif
 	else if(CTX_data_equals(member, "bone")) {
 		set_pointer_type(path, result, &RNA_Bone);
 		return 1;
