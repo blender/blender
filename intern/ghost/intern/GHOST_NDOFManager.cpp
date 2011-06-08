@@ -15,120 +15,108 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): none yet.
+ * Contributor(s):
+ *    Mike Erwin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file ghost/intern/GHOST_NDOFManager.cpp
- *  \ingroup GHOST
- */
-
-
-#include <stdio.h> /* just for printf */
-
 #include "GHOST_NDOFManager.h"
+#include "GHOST_EventNDOF.h"
+#include "GHOST_WindowManager.h"
+#include <string.h> // for memory functions
+#include <stdio.h> // for debug tracing
 
+GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
+	: m_system(sys)
+	, m_buttons(0)
+	, m_motionTime(1000) // one full second (operators should filter out such large time deltas)
+	, m_prevMotionTime(0)
+	, m_atRest(true)
+	{
+	// to avoid the rare situation where one triple is updated and
+	// the other is not, initialize them both here:
+	memset(m_translation, 0, sizeof(m_translation));
+	memset(m_rotation, 0, sizeof(m_rotation));
+	}
 
-// the variable is outside the class because it must be accessed from plugin
-static volatile GHOST_TEventNDOFData currentNdofValues = {0,0,0,0,0,0,0,0,0,0,0};
+void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)
+	{
+	memcpy(m_translation, t, sizeof(m_translation));
+	m_motionTime = time;
+	m_atRest = false;
+	}
 
-#if !defined(_WIN32) && !defined(__APPLE__)
-#include "GHOST_SystemX11.h"
-#endif
+void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
+	{
+	memcpy(m_rotation, r, sizeof(m_rotation));
+	m_motionTime = time;
+	m_atRest = false;
+	}
 
-namespace
-{
-    GHOST_NDOFLibraryInit_fp ndofLibraryInit = 0;
-    GHOST_NDOFLibraryShutdown_fp ndofLibraryShutdown = 0;
-    GHOST_NDOFDeviceOpen_fp ndofDeviceOpen = 0;
-}
+void GHOST_NDOFManager::updateButtons(unsigned short buttons, GHOST_TUns64 time)
+	{
+	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
 
-GHOST_NDOFManager::GHOST_NDOFManager()
-{
-    m_DeviceHandle = 0;
+	unsigned short diff = m_buttons ^ buttons;
 
-    // discover the API from the plugin
-    ndofLibraryInit = 0;
-    ndofLibraryShutdown = 0;
-    ndofDeviceOpen = 0;
-}
+	for (int i = 0; i < 16; ++i)
+		{
+		unsigned short mask = 1 << i;
 
-GHOST_NDOFManager::~GHOST_NDOFManager()
-{
-    if (ndofLibraryShutdown)
-        ndofLibraryShutdown(m_DeviceHandle);
-
-    m_DeviceHandle = 0;
-}
-
-
-int
-GHOST_NDOFManager::deviceOpen(GHOST_IWindow* window,
-        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
-        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
-{
-	int Pid;
-	
-    ndofLibraryInit = setNdofLibraryInit;
-    ndofLibraryShutdown = setNdofLibraryShutdown;
-    ndofDeviceOpen = setNdofDeviceOpen;
-
-    if (ndofLibraryInit  && ndofDeviceOpen)
-    {
-    	Pid= ndofLibraryInit();
-#if 0
-       	printf("%i client \n", Pid);
-#endif
-		#if defined(WITH_HEADLESS)
-			/* do nothing */
-		#elif defined(_WIN32) || defined(__APPLE__)
-			m_DeviceHandle = ndofDeviceOpen((void *)&currentNdofValues);    
-		#else
-			GHOST_SystemX11 *sys;
-			sys = static_cast<GHOST_SystemX11*>(GHOST_ISystem::getSystem());
-			void *ndofInfo = sys->prepareNdofInfo(&currentNdofValues);
-			m_DeviceHandle = ndofDeviceOpen(ndofInfo);
-		#endif
-		 return (Pid > 0) ? 0 : 1;
+		if (diff & mask)
+			{
+			GHOST_EventNDOFButton* event = new GHOST_EventNDOFButton(time, window);
+			GHOST_TEventNDOFButtonData* data = (GHOST_TEventNDOFButtonData*) event->getData();
 			
-	} else
-		return 1;
-}
+			data->action = (buttons & mask) ? GHOST_kPress : GHOST_kRelease;
+			data->button = i + 1;
 
+			// printf("sending button %d %s\n", data->button, (data->action == GHOST_kPress) ? "pressed" : "released");
 
-bool 
-GHOST_NDOFManager::available() const
-{ 
-    return m_DeviceHandle != 0; 
-}
+			m_system.pushEvent(event);
+			}
+		}
 
-bool 
-GHOST_NDOFManager::event_present() const
-{ 
-    if( currentNdofValues.changed >0) {
-		printf("time %llu but%u x%i y%i z%i rx%i ry%i rz%i \n"	, 			
-				currentNdofValues.time,		currentNdofValues.buttons,
-				currentNdofValues.tx,currentNdofValues.ty,currentNdofValues.tz,
-				currentNdofValues.rx,currentNdofValues.ry,currentNdofValues.rz);
-    	return true;
-	}else
-	return false;
+	m_buttons = buttons;
+	}
 
-}
+bool GHOST_NDOFManager::sendMotionEvent()
+	{
+	if (m_atRest)
+		return false;
 
-void        GHOST_NDOFManager::GHOST_NDOFGetDatas(GHOST_TEventNDOFData &datas) const
-{
-	datas.tx = currentNdofValues.tx;
-	datas.ty = currentNdofValues.ty;
-	datas.tz = currentNdofValues.tz;
-	datas.rx = currentNdofValues.rx;
-	datas.ry = currentNdofValues.ry;
-	datas.rz = currentNdofValues.rz;
-	datas.buttons = currentNdofValues.buttons;
-	datas.client = currentNdofValues.client;
-	datas.address = currentNdofValues.address;
-	datas.time = currentNdofValues.time;
-	datas.delta = currentNdofValues.delta;
-}
+	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
+
+	GHOST_EventNDOFMotion* event = new GHOST_EventNDOFMotion(m_motionTime, window);
+	GHOST_TEventNDOFMotionData* data = (GHOST_TEventNDOFMotionData*) event->getData();
+
+	const float scale = 1.f / 350.f; // SpaceNavigator sends +/- 350 usually
+	// 350 according to their developer's guide; others recommend 500 as comfortable
+
+	// possible future enhancement
+	// scale *= m_sensitivity;
+
+	data->tx = -scale * m_translation[0];
+	data->ty = scale * m_translation[1];
+	data->tz = scale * m_translation[2];
+
+	data->rx = scale * m_rotation[0];
+	data->ry = scale * m_rotation[1];
+	data->rz = scale * m_rotation[2];
+
+	data->dt = 0.001f * (m_motionTime - m_prevMotionTime); // in seconds
+
+	m_prevMotionTime = m_motionTime;
+
+	// printf("sending T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
+	//	data->tx, data->ty, data->tz, data->rx, data->ry, data->rz, data->dt);
+
+	m_system.pushEvent(event);
+
+	// 'at rest' test goes at the end so that the first 'rest' event gets sent
+	m_atRest = m_rotation[0] == 0 && m_rotation[1] == 0 && m_rotation[2] == 0 &&
+		m_translation[0] == 0 && m_translation[1] == 0 && m_translation[2] == 0;
+
+	return true;
+	}

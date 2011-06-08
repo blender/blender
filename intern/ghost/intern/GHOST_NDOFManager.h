@@ -19,38 +19,47 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
-/** \file ghost/intern/GHOST_NDOFManager.h
- *  \ingroup GHOST
- */
-
  
 #ifndef _GHOST_NDOFMANAGER_H_
 #define _GHOST_NDOFMANAGER_H_
 
 #include "GHOST_System.h"
-#include "GHOST_IWindow.h"
-
 
 
 class GHOST_NDOFManager
 {
 public:
-	GHOST_NDOFManager();
-	virtual ~GHOST_NDOFManager();
+	GHOST_NDOFManager(GHOST_System&);
 
-    int deviceOpen(GHOST_IWindow* window,
-        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
-        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen);
-        
-    void GHOST_NDOFGetDatas(GHOST_TEventNDOFData &datas) const;
-        
-    bool available() const;
-    bool event_present() const;
+	virtual ~GHOST_NDOFManager() {};
+
+	// whether multi-axis functionality is available (via the OS or driver)
+	// does not imply that a device is plugged in or being used
+	virtual bool available() = 0;
+
+	// the latest raw data from the device
+	void updateTranslation(short t[3], GHOST_TUns64 time);
+	void updateRotation(short r[3], GHOST_TUns64 time);
+	// this one sends events immediately for changed buttons
+	void updateButtons(unsigned short b, GHOST_TUns64 time);
+
+	// processes most recent raw data into an NDOFMotion event and sends it
+	// returns whether an event was sent
+	virtual bool sendMotionEvent();
 
 protected:
-    void* m_DeviceHandle;
+	GHOST_System& m_system;
+
+	short m_translation[3];
+	short m_rotation[3];
+	unsigned short m_buttons;
+
+	GHOST_TUns64 m_motionTime;
+	GHOST_TUns64 m_prevMotionTime; // time of most recent Motion event sent
+	bool m_atRest;
+
+	void updateMotionTime(GHOST_TUns64 t);
+	void resetMotion();
 };
 
 

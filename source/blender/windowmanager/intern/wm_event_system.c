@@ -2309,6 +2309,26 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 	} 
 }
 
+/* adds customdata to event */
+static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* ghost)
+{
+	wmNDOFMotionData* data = MEM_mallocN(sizeof(wmNDOFMotionData), "customdata NDOF");
+
+	data->tx = ghost->tx;
+	data->ty = ghost->ty;
+	data->tz = ghost->tz;
+
+	data->rx = ghost->rx;
+	data->ry = ghost->ry;
+	data->rz = ghost->rz;
+
+	data->dt = ghost->dt;
+
+	event->custom = EVT_DATA_NDOF_MOTION;
+	event->customdata = data;
+	event->customdatafree = 1;
+}
+
 /* imperfect but probably usable... draw/enable drags to other windows */
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *evt)
 {
@@ -2553,6 +2573,36 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.type= TIMER;
 			event.custom= EVT_DATA_TIMER;
 			event.customdata= customdata;
+			wm_event_add(win, &event);
+
+			break;
+		}
+
+		case GHOST_kEventNDOFMotion: {
+			event.type = NDOF_MOTION;
+			attach_ndof_data(&event, customdata);
+			wm_event_add(win, &event);
+
+			break;
+		}
+
+		case GHOST_kEventNDOFButton: {
+			GHOST_TEventNDOFButtonData* e = customdata;
+
+			event.type = NDOF_BUTTON_NONE + e->button;
+
+			switch (e->action) {
+				case GHOST_kPress:
+					event.val = KM_PRESS;
+					break;
+				case GHOST_kRelease:
+					event.val = KM_RELEASE;
+					break;
+				}
+
+			event.custom = 0;
+			event.customdata = NULL;
+
 			wm_event_add(win, &event);
 
 			break;

@@ -929,6 +929,257 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
+// returns angular velocity (0..1), fills axis of rotation
+// (shouldn't live in this file!)
+float ndof_to_angle_axis(const float ndof[3], float axis[3])
+	{
+	const float x = ndof[0];
+	const float y = ndof[1];
+	const float z = ndof[2];
+
+	float angular_velocity = sqrtf(x*x + y*y + z*z);
+
+	float scale = 1.f / angular_velocity;
+
+	// normalize 
+	axis[0] = scale * x;
+	axis[1] = scale * y;
+	axis[2] = scale * z;
+
+	return angular_velocity;
+	}
+
+// Mike's version
+static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+
+	float dt = ndof->dt;
+
+	RegionView3D* rv3d = CTX_wm_region_view3d(C);
+
+	if (dt > 0.25f)
+		/* this is probably the first event for this motion, so set dt to something reasonable */
+		dt = 0.0125f;
+
+	/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
+	float phi, q1[4];
+	float m[3][3];
+	float m_inv[3][3];
+	float xvec[3] = {1,0,0};
+
+	const float sensitivity = 0.035;
+
+	/* Get the 3x3 matrix and its inverse from the quaternion */
+	quat_to_mat3(m,rv3d->viewquat);
+	invert_m3_m3(m_inv,m);
+
+	/* Determine the direction of the x vector (for rotating up and down) */
+	/* This can likely be computed directly from the quaternion. */
+	mul_m3_v3(m_inv,xvec);
+
+	/* Perform the up/down rotation */
+	phi = sensitivity * -ndof->rx;
+	q1[0] = cos(phi);
+	mul_v3_v3fl(q1+1, xvec, sin(phi));
+	mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+
+	/* Perform the orbital rotation */
+	phi = sensitivity * ndof->rz;
+	q1[0] = cos(phi);
+	q1[1] = q1[2] = 0.0;
+	q1[3] = sin(phi);
+	mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+	}
+
+// Tom's version
+#if 0 
+static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+	
+	float phi, q1[4];
+	float m[3][3];
+	float m_inv[3][3];
+	float xvec[3] = {1,0,0};
+	float yvec[3] = {0,1,0};
+	float vec[3];
+	float mat[3][3];
+	const float rotaSensitivity = 0.007;
+	const float tranSensitivity = 0.120;
+	
+	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	
+	float dt = ndof->dt;
+	
+	if (dt > 0.25f) {
+		/* this is probably the first event for this motion, so set dt to something reasonable */
+		dt = 0.0125f;
+	}
+
+	/* Get the 3x3 matrix and its inverse from the quaternion */
+	quat_to_mat3(m,rv3d->viewquat);
+	invert_m3_m3(m_inv,m);
+	
+	/* Determine the direction of the x vector (for rotating up and down) */
+	/* This can likely be computed directly from the quaternion. */
+	mul_m3_v3(m_inv,xvec);
+	
+	//if(rv3d->persp=!= RV3D_PERSP)  //Camera control not supported yet
+	/* Lock fixed views out of using rotation controls */
+	if(rv3d->view!=RV3D_VIEW_FRONT && rv3d->view!=RV3D_VIEW_BACK)
+		if(rv3d->view!=RV3D_VIEW_TOP && rv3d->view!=RV3D_VIEW_BOTTOM)
+			if(rv3d->view!=RV3D_VIEW_RIGHT && rv3d->view!=RV3D_VIEW_LEFT) {
+				// Perform the up/down rotation 				
+				phi = (rotaSensitivity+dt) * -ndof->rx;
+				q1[0] = cos(phi);
+				mul_v3_v3fl(q1+1, xvec, sin(phi));
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+
+				// Perform the left/right rotation 
+				mul_m3_v3(m_inv,yvec);
+				phi = (rotaSensitivity+dt) * ndof->ry;
+				q1[0] = cos(phi);
+				mul_v3_v3fl(q1+1, yvec, sin(phi));
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+
+				// Perform the orbital rotation
+				phi = (rotaSensitivity+dt) * ndof->rz;
+				q1[0] = cos(phi);
+				q1[1] = q1[2] = 0.0;
+				q1[3] = sin(phi);
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+			}
+
+	// Perform Pan translation 	
+	vec[0]= (tranSensitivity+dt) * ndof->tx;
+	vec[1]= (tranSensitivity+dt) * ndof->tz;
+	//vec[2]= 0.0f;//tranSensitivity * ndof->ty;
+	//window_to_3d_delta(ar, vec, -ndof->tx, -ndof->tz); // experimented a little instead of above 
+	copy_m3_m4(mat, rv3d->viewinv);
+	mat[2][2] = 0.0f;
+	mul_m3_v3(mat, vec);
+	// translate the view
+	add_v3_v3(rv3d->ofs, vec);
+
+	// Perform Zoom translation 	
+	if (ndof->ty!=0.0f){ // TODO - need to add limits to prevent flipping past gridlines 
+		rv3d->dist += (tranSensitivity+dt)* ndof->ty;
+		// printf("dist %5.3f view %d grid %f\n",rv3d->dist,rv3d->view,v3d->grid);
+	}
+
+	//printf("Trans tx:%5.2f ty:%5.2f tz:%5.2f \n",ndof->tx, ndof->ty, ndof->tz);
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+#endif
+
+#if 0
+static int viewndof_invoke_1st_try(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+
+	float dt = ndof->dt;
+
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+
+	if (dt > 0.25f)
+		/* this is probably the first event for this motion, so set dt to something reasonable */
+		dt = 0.0125f;
+
+	/* very simple for now, move viewpoint along world axes */
+	rv3d->ofs[0] += dt * ndof->tx;
+	rv3d->ofs[1] += dt * ndof->ty;
+	rv3d->ofs[2] += dt * ndof->tz;
+
+//	request_depth_update(CTX_wm_region_view3d(C)); /* need this? */
+	ED_region_tag_redraw(CTX_wm_region(C));
+
+	return OPERATOR_FINISHED;
+}
+
+static int viewndof_invoke_2nd_try(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+
+	float dt = ndof->dt;
+
+	RegionView3D* rv3d = CTX_wm_region_view3d(C);
+
+	if (dt > 0.25f)
+		/* this is probably the first event for this motion, so set dt to something reasonable */
+		dt = 0.0125f;
+
+	float axis[3];
+	float angle = ndof_to_angle_axis(&(ndof->rx), axis);
+
+	float eyeball_q[4];// = {0.f};
+
+//	float* eyeball_v = eyeball_q + 1;
+
+	axis_angle_to_quat(eyeball_q, axis, angle);
+
+	float eye_conj[4];
+	copy_qt_qt(eye_conj, eyeball_q);
+	conjugate_qt(eye_conj);
+
+//	float mat[3][3];
+//	quat_to_mat3(mat, rv3d->viewquat);
+/*
+	eyeball_v[0] = dt * ndof->tx;
+	eyeball_v[1] = dt * ndof->ty;
+	eyeball_v[2] = dt * ndof->tz;
+*/
+//	mul_m3_v3(mat, eyeball_vector);
+//	mul_qt_v3(rv3d->viewquat, eyeball_vector);
+
+	// doesn't this transform v?
+	// v' = (q)(v)(~q)
+
+	float view_q[4];
+	copy_qt_qt(view_q, rv3d->viewquat);
+
+//	float q_conj[4];
+//	copy_qt_qt(q_conj, q);
+//	conjugate_qt(q_conj);
+
+	mul_qt_qtqt(view_q, eyeball_q, view_q);
+	mul_qt_qtqt(view_q, view_q, eye_conj);
+
+//	mul_qt_qtqt(eyeball_q, q, eyeball_q);
+//	mul_qt_qtqt(eyeball_q, eyeball_q, q_conj);
+
+//	add_v3_v3(rv3d->ofs, eyeball_v);
+
+	copy_qt_qt(rv3d->viewquat, view_q);
+
+	ED_region_tag_redraw(CTX_wm_region(C));
+
+	return OPERATOR_FINISHED;
+}
+#endif
+
+void VIEW3D_OT_ndof(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Navigate view";
+	ot->description = "Navigate the view using a 3D mouse.";
+	ot->idname = "VIEW3D_OT_ndof";
+
+	/* api callbacks */
+	ot->invoke = viewndof_invoke;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}
+
 /* ************************ viewmove ******************************** */
 
 

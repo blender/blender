@@ -45,6 +45,7 @@
 #define EVT_DATA_GESTURE	2
 #define EVT_DATA_TIMER		3
 #define EVT_DATA_LISTBASE	4
+#define EVT_DATA_NDOF_MOTION 5
 
 /* tablet active, matches GHOST_TTabletMode */
 #define EVT_TABLET_NONE		0
@@ -76,6 +77,28 @@
 #define WHEELINMOUSE	12
 #define WHEELOUTMOUSE	13
 #define INBETWEEN_MOUSEMOVE	17
+
+/* NDOF (from SpaceNavigator & friends) */
+#define NDOF_MOTION 0x12
+enum {
+	NDOF_BUTTON_NONE = NDOF_MOTION, /* never sent, used internally */
+	NDOF_BUTTON1,
+	NDOF_BUTTON2/*, the following buttons will be supported soon...
+	NDOF_BUTTON3,   and possibly get meaningful names
+	NDOF_BUTTON4,
+	NDOF_BUTTON5,
+	NDOF_BUTTON6,
+	NDOF_BUTTON7,
+	NDOF_BUTTON8,
+	NDOF_BUTTON9,
+	NDOF_BUTTON10,
+	NDOF_BUTTON11,
+	NDOF_BUTTON12,
+	NDOF_BUTTON13,
+	NDOF_BUTTON14,
+	NDOF_BUTTON15,
+	NDOF_BUTTON16*/
+	};
 
 
 /* SYSTEM : 0x01xx */

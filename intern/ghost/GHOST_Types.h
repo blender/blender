@@ -439,37 +439,23 @@ typedef struct {
 	GHOST_TUns8 **strings;
 } GHOST_TStringArray;
 
+typedef struct {
+	/** N-degree of freedom device data v3 [GSoC 2010]*/
+	/* Each component normally ranges from -1 to +1, but can exceed that. */
+	float tx, ty, tz; /* translation: -x left, +y forward, -z up */
+	float rx, ry, rz; /* rotation:
+		axis = (rx,ry,rz).normalized
+		amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg] */
+	float dt; // time since previous NDOF Motion event (or zero if this is the first)
+} GHOST_TEventNDOFMotionData;
 
-/* original patch used floats, but the driver return ints and uns. We will calibrate in view, no sense on doing conversions twice */
-/* as all USB device controls are likely to use ints, this is also more future proof */
-//typedef struct {
-//   /** N-degree of freedom device data */
-//   float tx, ty, tz;   /** -x left, +y up, +z forward */
-//   float rx, ry, rz;
-//   float dt;
-//} GHOST_TEventNDOFData;
+typedef enum { GHOST_kPress, GHOST_kRelease } GHOST_TButtonAction;
+	// good for mouse or other buttons too, hmmm?
 
 typedef struct {
-   /** N-degree of freedom device data v2*/
-   int changed;
-   GHOST_TUns64 client;
-   GHOST_TUns64 address;
-   GHOST_TInt16 tx, ty, tz;   /** -x left, +y up, +z forward */
-   GHOST_TInt16 rx, ry, rz;
-   GHOST_TInt16 buttons;
-   GHOST_TUns64 time;
-   GHOST_TUns64 delta;
-} GHOST_TEventNDOFData;
-
-typedef int     (*GHOST_NDOFLibraryInit_fp)(void);
-typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
-typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
-
-// original patch windows callback. In mac os X version the callback is internal to the plug-in and post an event to main thead.
-// not necessary faster, but better integration with other events. 
-
-//typedef int     (*GHOST_NDOFEventHandler_fp)(float* result7, void* deviceHandle, unsigned int message, unsigned int* wParam, unsigned long* lParam);
-//typedef void     (*GHOST_NDOFCallBack_fp)(GHOST_TEventNDOFDataV2 *VolDatas);
+	GHOST_TButtonAction action;
+	short button;
+} GHOST_TEventNDOFButtonData;
 
 typedef struct {
 	/** The key code. */
