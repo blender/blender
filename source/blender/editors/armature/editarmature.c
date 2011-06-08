@@ -4400,7 +4400,6 @@ Bone* get_other_selected_bone(Object *ob) {
 
 	return NULL;
 }
-
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
 int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short extend)
@@ -4412,13 +4411,13 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 	if (!ob || !ob->pose) return 0;
 
 	nearBone= get_bone_from_selectbuffer(scene, base, buffer, hits, 1);
-	
+
 	/* if the bone cannot be affected, don't do anything */
 	if ((nearBone) && !(nearBone->flag & BONE_UNSELECTABLE)) {
 		bArmature *arm= ob->data;
 		
 		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
-		/* Jason was here, I'm doing a unified select for locking now */
+		/* Jason was here, I'm doing a select for multibone painting */
 		if ((base != scene->basact)) {//if (!(extend) || (base != scene->basact)) {
 			/* Jason was here */
 			/* only deselect all if they aren't using 'shift' */
@@ -4427,28 +4426,27 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 				nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 				arm->act_bone= nearBone;
 				ED_vgroup_select_by_name(OBACT, nearBone->name);
-				DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 			}
-			// Jason deselect this bone specifically if it is selected already
 			else {
+				// Jason deselect this bone specifically if it is selected already
 				if (nearBone->flag & BONE_SELECTED) {
 					nearBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 					if(nearBone == arm->act_bone) {
 						// make a different bone the active one if it exists
-						
 						new_act_bone = get_other_selected_bone(ob);
 						if(new_act_bone) {
 							new_act_bone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 							arm->act_bone = new_act_bone;
 							ED_vgroup_select_by_name(OBACT, new_act_bone->name);
-							DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 						}
 					}
+				// or select the bone if they are using shift
 				} else {
 					nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 					arm->act_bone= nearBone;
 				}
 			} 
+			DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 				// XXX old cruft! use notifiers instead
 			//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 		}

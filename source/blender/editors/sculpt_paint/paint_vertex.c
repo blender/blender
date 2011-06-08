@@ -1153,8 +1153,6 @@ static char has_locked_group(MDeformVert *dvert, char *flags)
 /*Jason was here
 gen_lck_flags gets the status of "flag" for each bDeformGroup
 in ob->defbase and returns an array containing them
-
-if there are multiple bones selected, however, they are the only ones that are treated as "unlocked"
 */
 static char* gen_lck_flags(Object* ob, int defcnt, char *map)
 {
@@ -1163,39 +1161,12 @@ static char* gen_lck_flags(Object* ob, int defcnt, char *map)
 	//int defcnt = BLI_countlist(&ob->defbase);
 	char *flags = MEM_mallocN(defcnt*sizeof(char), "defflags");
 	bDeformGroup *defgroup;
-	char was_selected = FALSE;
 	int selected = 0;
-	bPose *pose;
-	bPoseChannel *chan;
-	Bone *bone;
 
-	Object *armob = ED_object_pose_armature(ob);
-
-	if(armob) {
-		pose = armob->pose;
-		for (chan=pose->chanbase.first; chan; chan=chan->next) {
-			bone = chan->bone;
-			was_selected = FALSE;
-			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
-				if(!strcmp(defgroup->name, bone->name)) {
-					flags[i] = !(bone->flag & BONE_SELECTED);
-					if(flags[i]) {
-						is_locked = TRUE;
-					} else if(!was_selected){
-						selected++;
-						was_selected = TRUE;
-					}
-				}
-			}
-		}
-	}
-	if(selected <= 1) {
-		is_locked = FALSE;
-		for(i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
-			flags[i] = defgroup->flag;
-			if(flags[i]) {
-				is_locked = TRUE;
-			}
+	for(i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
+		flags[i] = defgroup->flag;
+		if(flags[i]) {
+			is_locked = TRUE;
 		}
 	}
 	if(is_locked){
@@ -1332,10 +1303,60 @@ static void redistribute_weight_change(Object *ob, MDeformVert *dvert, int index
 	MEM_freeN(change_status);
 }
 /* Jason */
-static void check_locks_and_normalize(Object *ob, Mesh *me, int index, int vgroup, MDeformWeight *dw, float oldw, char *validmap, char *flags, int defcnt, char *bone_groups)
+/* return TRUE on success, FALSE on failure
+failure occurs when zero elements exist in the selection,
+nonzero elements reach zero,
+and if they go above 1 if auto normalize is off */
+static int multipaint_vgroups(MDeformVert *dvert, MDeformWeight *dw, float oldw, char* validmap, char* bone_groups, char* selection, int defcnt) {
+	int i;
+	float change;
+	MDeformWeight *w;
+	float val;
+	if(oldw == 0 || !selection) {
+		return FALSE;
+	}
+	change = dw->weight/oldw;
+	if(change == 1 || !change) {
+		return FALSE;
+	}
+	dw->weight = oldw;
+	// make sure all selected dverts exist
+	for(i = 0; i < defcnt; i++) {
+		if(selection[i]){
+			defvert_verify_index(dvert, i);
+		}
+	}
+	// see if all changes are valid before doing any
+	for(i = 0; i < dvert->totweight; i++) {
+		w = (dvert->dw+i);
+		if(!selection[w->def_nr] || !bone_groups[w->def_nr]) {
+			continue;
+		}
+		if(w->weight == 0) {
+			if(selection[w->def_nr]) {
+				return FALSE;
+			}
+			continue;
+		}
+		val = w->weight*change;
+		if(val <= 0 || (val > 1 && !validmap)) {
+			return FALSE;
+		}
+	}
+	for(i = 0; i < dvert->totweight; i++) {
+		w = (dvert->dw+i);
+		if(!selection[w->def_nr] || !bone_groups[w->def_nr] || w->weight == 0) {
+			continue;
+		}
+		w->weight *= change;
+	}
+	return TRUE;
+}
+/* Jason */
+static void check_locks_and_normalize(Object *ob, Mesh *me, int index, int vgroup, MDeformWeight *dw, float oldw, char *validmap, char *flags, int defcnt, char *bone_groups, char *selection, int multipaint)
 {
 	if(flags && has_locked_group(me->dvert+index, flags)) {
-		if(flags[dw->def_nr]) {
+		if(flags[dw->def_nr] || multipaint) {
 			// cannot change locked groups!
 			dw->weight = oldw;
 		} else if(bone_groups[dw->def_nr]) {
@@ -1343,23 +1364,60 @@ static void check_locks_and_normalize(Object *ob, Mesh *me, int index, int vgrou
 			do_weight_paint_auto_normalize_change_act_group(me->dvert+index, validmap);//do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 		}
 	} else if(bone_groups[dw->def_nr]) {// disable auto normalize if the active group is not a bone group
-		do_weight_paint_auto_normalize_change_act_group(me->dvert+index, validmap);//do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
+		if(multipaint) {
+			// try to alter the other bone groups in the dvert with the changed dw if possible, if it isn't, change it back
+			if(selection[dw->def_nr] && multipaint_vgroups(me->dvert+index, dw, oldw, validmap, bone_groups, selection, defcnt)) {
+				do_weight_paint_auto_normalize_change_act_group(me->dvert+index, validmap);//do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
+			}else {
+				// multipaint failed
+				dw->weight = oldw;
+			}
+		}else {
+			do_weight_paint_auto_normalize_change_act_group(me->dvert+index, validmap);//do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
+		}
 	}
+}
+/* Jason was here duplicate function I used in DerivedMesh.c*/
+static char* get_selected_defgroups(Object *ob, int defcnt) {
+	bPoseChannel *chan;
+	bPose *pose;
+	bDeformGroup *defgroup;
+	//Bone *bone;
+	char was_selected = FALSE;
+	char *dg_flags = MEM_mallocN(defcnt*sizeof(char), "dg_selected_flags");
+	int i;
+	Object *armob = ED_object_pose_armature(ob);
+
+	if(armob) {
+		pose = armob->pose;
+		for (chan=pose->chanbase.first; chan; chan=chan->next) {
+			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
+				if(!strcmp(defgroup->name, chan->bone->name)) {
+					// TODO get BONE_SELECTED flag
+					dg_flags[i] = (chan->bone->flag & 1);
+					was_selected = TRUE;
+				}
+			}
+		}
+	}
+	
+	return dg_flags;
 }
 // Jason
 static char *wpaint_make_validmap(Object *ob);
 
 static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, 
 				   float alpha, float paintweight, int flip, 
-				   int vgroup_mirror, char *validmap)
+				   int vgroup_mirror, char *validmap, int multipaint)
 {
 	Mesh *me= ob->data;
 	MDeformWeight *dw, *uw;
 	int vgroup= ob->actdef-1;
 
 	/* Jason was here */
-	char* flags;
-	char* bone_groups;
+	char *flags;
+	char *bone_groups;
+	char *selection;
 	float oldw;
 	int defcnt;
 	if(validmap) {
@@ -1380,10 +1438,11 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 		return;
 	/* Jason was here */
 	flags = gen_lck_flags(ob, defcnt = BLI_countlist(&ob->defbase), bone_groups);
+	selection = get_selected_defgroups(ob, defcnt);
 	oldw = dw->weight;
 	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
 	/* Jason was here */
-	check_locks_and_normalize(ob, me, index, vgroup, dw, oldw, validmap, flags, defcnt, bone_groups);
+	check_locks_and_normalize(ob, me, index, vgroup, dw, oldw, validmap, flags, defcnt, bone_groups, selection, multipaint);
 
 	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 		int j= mesh_get_x_mirror_vert(ob, index);
@@ -1398,12 +1457,15 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 
 			uw->weight= dw->weight;
 			/* Jason */
-			check_locks_and_normalize(ob, me, j, vgroup, uw, oldw, validmap, flags, defcnt, bone_groups);
+			check_locks_and_normalize(ob, me, j, vgroup, uw, oldw, validmap, flags, defcnt, bone_groups, selection, multipaint);
 		}
 	}
 	/* Jason */
 	if(flags) {
 		MEM_freeN(flags);
+	}
+	if(selection) {
+		MEM_freeN(selection);
 	}
 	if(!validmap) {
 		MEM_freeN(bone_groups);
@@ -1590,7 +1652,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	paint_stroke_set_mode_data(stroke, wpd);
 	view3d_set_viewcontext(C, &wpd->vc);
 	wpd->vgroup_mirror= -1;
-	
+
 	/*set up auto-normalize, and generate map for detecting which
 	  vgroups affect deform bones*/
 	wpd->auto_normalize = ts->auto_normalize;
@@ -1796,7 +1858,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				if(alpha) {
 					do_weight_paint_vertex(wp, ob, mface->v1, 
 						alpha, paintweight, flip, wpd->vgroup_mirror, 
-						wpd->vgroup_validmap);
+						wpd->vgroup_validmap, ts->multipaint);
 				}
 				(me->dvert+mface->v1)->flag= 0;
 			}
@@ -1806,7 +1868,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				if(alpha) {
 					do_weight_paint_vertex(wp, ob, mface->v2, 
 						alpha, paintweight, flip, wpd->vgroup_mirror, 
-						wpd->vgroup_validmap);
+						wpd->vgroup_validmap, ts->multipaint);
 				}
 				(me->dvert+mface->v2)->flag= 0;
 			}
@@ -1816,7 +1878,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				if(alpha) {
 					do_weight_paint_vertex(wp, ob, mface->v3, 
 						alpha, paintweight, flip, wpd->vgroup_mirror, 
-						wpd->vgroup_validmap);
+						wpd->vgroup_validmap, ts->multipaint);
 				}
 				(me->dvert+mface->v3)->flag= 0;
 			}
@@ -1827,7 +1889,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 					if(alpha) {
 						do_weight_paint_vertex(wp, ob, mface->v4, 
 							alpha, paintweight, flip, wpd->vgroup_mirror,
-							wpd->vgroup_validmap);
+							wpd->vgroup_validmap, ts->multipaint);
 					}
 					(me->dvert+mface->v4)->flag= 0;
 				}

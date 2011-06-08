@@ -40,6 +40,9 @@
 #include "DNA_cloth_types.h"
 #include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
+// Jason
+#include "DNA_armature_types.h"
+
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h" // N_T
 
@@ -72,6 +75,8 @@
 #include "GPU_material.h"
 
 #include "ED_sculpt.h" /* for ED_sculpt_modifiers_changed */
+// Jason was here, this is for multi-paint
+#include "ED_armature.h"
 
 ///////////////////////////////////
 ///////////////////////////////////
@@ -1602,7 +1607,7 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 	}
 }
 
-static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col)
+static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected)
 {
 	Mesh *me = ob->data;
 	float colf[4], input = 0.0f;
@@ -1610,8 +1615,14 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 
 	if (me->dvert) {
 		for (i=0; i<me->dvert[vert].totweight; i++)
-			if (me->dvert[vert].dw[i].def_nr==ob->actdef-1)
-				input+=me->dvert[vert].dw[i].weight;		
+			// Jason was here
+			if ((selected<=1 && me->dvert[vert].dw[i].def_nr==ob->actdef-1) || dg_flags[me->dvert[vert].dw[i].def_nr]) {//
+				input+=me->dvert[vert].dw[i].weight;
+			}
+	}
+	// Jason was here
+	if(selected) {
+		input/=selected;
 	}
 
 	CLAMP(input, 0.0f, 1.0f);
@@ -1633,7 +1644,44 @@ void vDM_ColorBand_store(ColorBand *coba)
 {
 	stored_cb= coba;
 }
+/* Jason was here */
+static char* get_selected_defgroups(Object *ob, int defcnt) {
+	bPoseChannel *chan;
+	bPose *pose;
+	bDeformGroup *defgroup;
+	//Bone *bone;
+	char was_selected = FALSE;
+	char *dg_flags = MEM_mallocN(defcnt*sizeof(char), "dg_selected_flags");
+	int i;
+	Object *armob = ED_object_pose_armature(ob);
 
+	if(armob) {
+		pose = armob->pose;
+		for (chan=pose->chanbase.first; chan; chan=chan->next) {
+			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
+				if(!strcmp(defgroup->name, chan->bone->name)) {
+					// TODO get BONE_SELECTED flag
+					dg_flags[i] = (chan->bone->flag & 1);
+					was_selected = TRUE;
+				}
+			}
+		}
+	}
+	
+	return dg_flags;
+}
+/* Jason was here */
+static int count_true(char *list, int len)
+{
+	int i;
+	int cnt = 0;
+	for(i = 0; i < len; i++) {
+		if (list[i]) {
+			cnt++;
+		}
+	}
+	return cnt;
+}
 static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 {
 	Mesh *me = ob->data;
@@ -1641,18 +1689,24 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	ColorBand *coba= stored_cb;	/* warning, not a local var */
 	unsigned char *wtcol;
 	int i;
-	
+	// Jason was here
+	int defcnt = BLI_countlist(&ob->defbase);
+	char *dg_flags = get_selected_defgroups(ob, defcnt);
+	int selected = count_true(dg_flags, defcnt);
+
 	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
 	
 	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
 	for (i=0; i<me->totface; i++, mf++) {
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4]); 
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4]); 
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], dg_flags, selected); 
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], dg_flags, selected); 
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], dg_flags, selected); 
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4]); 
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], dg_flags, selected); 
 	}
-	
+	// Jason
+	MEM_freeN(dg_flags);
+
 	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, dm->numFaceData);
 }
 

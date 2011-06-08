@@ -1087,6 +1087,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		"Ensure all bone-deforming vertex groups add up to 1.0 while "
 		 "weight painting");
 
+	prop = RNA_def_property(srna, "use_multipaint", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "multipaint", 1);
+	RNA_def_property_ui_text(prop, "WPaint Multi-Paint", 
+		"Paint across all selected bones while "
+		 "weight painting");
+
 	prop= RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");
 	RNA_def_property_ui_text(prop, "Vertex Paint", "");
