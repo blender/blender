@@ -74,6 +74,9 @@
 #define MENU_ITEM_HEIGHT	20
 #define MENU_SEP_HEIGHT		6
 
+#define PRECISION_FLOAT_MAX 7
+#define PRECISION_FLOAT_MAX_POW 10000000 /* pow(10, PRECISION_FLOAT_MAX)  */
+
 /* 
  * a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt
  * 
@@ -463,27 +466,39 @@ static int ui_but_float_precision(uiBut *but, double value)
 	 * _but_, this is only for small values si 10.0001 will not get
 	 * the same treatment */
 	if(value != 0.0 && (value= ABS(value)) < 0.1) {
-		double prec_d= -(log10(value));
-		double prec_d_floor = floor(prec_d + FLT_EPSILON);
-		int test_prec= (int)prec_d_floor;
-
-		/* this check is so 0.00016 from isnt rounded to 0.0001 */
-		if(prec_d - prec_d_floor > FLT_EPSILON) { /* not ending with a .0~001 */
-			/* check if a second decimal place is needed 0.00015 for eg. */
-			if(double_round(value, test_prec + 1) - double_round(value, test_prec + 2) != 0.0) {
-				test_prec += 2;
+		int value_i= (int)((value * PRECISION_FLOAT_MAX_POW) + 0.5);
+		if(value_i != 0) {
+			const int prec_span= 3; /* show: 0.01001, 5 would allow 0.0100001 for eg. */
+			int test_prec;
+			int prec_min= -1;
+			int dec_flag= 0;
+			int i= PRECISION_FLOAT_MAX;
+			while(i && value_i) {
+				if(value_i % 10) {
+					dec_flag |= 1<<i;
+					prec_min= i;
+				}
+				value_i /= 10;
+				i--;
 			}
-			else {
-				test_prec += 1;
-			}
-		}
 
-		if(test_prec > prec && test_prec <= 7) {
-			prec= test_prec;
+			/* even though its a small value, if the second last digit is not 0, use it */
+			test_prec = prec_min;
+
+			dec_flag= (dec_flag >> (prec_min + 1)) & ((1 << prec_span) - 1);
+
+			while(dec_flag) {
+				test_prec++;
+				dec_flag = dec_flag >> 1;
+			}
+
+			if(test_prec > prec) {
+				prec= test_prec;
+			}
 		}
 	}
 
-	CLAMP(prec, 1, 7);
+	CLAMP(prec, 1, PRECISION_FLOAT_MAX);
 
 	return prec;
 }
@@ -1484,8 +1499,8 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 	if(scene->unit.scale_length<0.0001f) scene->unit.scale_length= 1.0f; // XXX do_versions
 
 	/* Sanity checks */
-	if(precision>7)		precision= 7;
-	else if(precision==0)	precision= 2;
+	if(precision > PRECISION_FLOAT_MAX)	precision= PRECISION_FLOAT_MAX;
+	else if(precision==0)				precision= 2;
 
 	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision, scene->unit.system, unit_type>>16, do_split, pad);
 }
