@@ -3847,16 +3847,6 @@ static void lib_link_object(FileData *fd, Main *main)
 				}
 			}
 
-			{
-				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-				
-				if(clmd) 
-				{
-					clmd->sim_parms->effector_weights->group = newlibadr(fd, ob->id.lib, clmd->sim_parms->effector_weights->group);
-					clmd->coll_parms->group= newlibadr(fd, ob->id.lib, clmd->coll_parms->group);
-				}
-			}
-			
 			/* texture field */
 			if(ob->pd)
 				lib_link_partdeflect(fd, &ob->id, ob->pd);
