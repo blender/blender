@@ -76,6 +76,10 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 	ID *ownerId = (ID *)ptr->id.data;
 	AnimData *adt = (AnimData *)ptr->data;
 	
+	/* manage usercount for current action */
+	if (adt->action)
+		id_us_min((ID*)adt->action);
+	
 	/* assume that AnimData's action can in fact be edited... */
 	if ((value.data) && (ownerId)) {
 		bAction *act = (bAction *)value.data;
@@ -85,6 +89,7 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 			if (ELEM(act->idroot, 0, GS(ownerId->name))) {
 				/* can set */
 				adt->action = act;
+				id_us_plus((ID*)adt->action);
 			}
 			else {
 				/* cannot set */
@@ -98,6 +103,7 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 					act->id.name+2);
 				
 			adt->action = act;
+			id_us_plus((ID*)adt->action);
 		}
 	}
 	else {
