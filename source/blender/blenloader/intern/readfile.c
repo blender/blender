@@ -5642,11 +5642,10 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 	while(bhead && bhead->code==DATA) {
 		void *data;
 #if 0
-		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
+		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
 		short *sp= fd->filesdna->structs[bhead->SDNAnr];
-		char *allocname = fd->filesdna->types[ sp[0] ];
 		char *tmp= malloc(100);
-		
+		allocname = fd->filesdna->types[ sp[0] ];
 		strcpy(tmp, allocname);
 		data= read_struct(fd, bhead, tmp);
 #else
@@ -12707,7 +12706,6 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 	return 0;
 }
 
-/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link)
 {
 	Object *ob;
@@ -12770,7 +12768,6 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 	}
 }
 
-/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_groups(Main *mainvar, Scene *scene)
 {
 	Group *group;

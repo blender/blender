@@ -179,7 +179,8 @@ struct PropertyRNA {
 	 * since python will convert int/bool/pointer's */
 	struct StructRNA *srna;	/* attributes attached directly to this collection */
 
-	/* python handle to hold all callbacks in a tuple */
+	/* python handle to hold all callbacks
+	 * (in a pointer array at the moment, may later be a tuple) */
 	void *py_data;
 };
 

@@ -144,7 +144,7 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 			if( in2[0] != 0.0f )
 				out[0]= floorf(in[0] / in2[0] + 0.5f) * in2[0];
 			else
-				floorf(in[0] + 0.5f);
+				out[0]= floorf(in[0] + 0.5f);
 
 		}
 		break;
