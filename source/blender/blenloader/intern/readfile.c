@@ -12742,8 +12742,14 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 					/* when appending, make sure any indirectly loaded objects
 					 * get a base else they cant be accessed at all [#27437] */
 					if(ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
-						if(object_in_any_scene(mainvar, ob)==0) {
-							do_it= 1;
+
+						/* we may be appending from a scene where we already
+						 *  have a linked object which is not in any scene [#27616] */
+						if((ob->id.flag & LIB_PRE_EXISTING)==0) {
+
+							if(object_in_any_scene(mainvar, ob)==0) {
+								do_it= 1;
+							}
 						}
 					}
 				}
