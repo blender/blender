@@ -397,7 +397,7 @@ void BL_ConvertActuators(char* maggiename,
 						new KX_SoundActuator(gameobj,
 						snd_sound,
 						soundact->volume,
-						(float)(exp((soundact->pitch / 12.0) * log(2.0))),
+						(float)(exp((soundact->pitch / 12.0) * M_LN2)),
 						is3d,
 						settings,
 						soundActuatorType);

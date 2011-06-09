@@ -436,7 +436,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index);
 
-#define LOG2I(x) (int)(log(x)/log(2.0))
+#define LOG2I(x) (int)(log(x)/M_LN2)
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
 {

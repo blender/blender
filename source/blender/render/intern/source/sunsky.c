@@ -460,7 +460,7 @@ void AtmospherePixleShader( struct SunSky* sunSky, float view[3], float s, float
 	vec3opv(sunSky->atm_BetaRM, sunSky->atm_BetaRay, +, sunSky->atm_BetaMie);
 	
 	//e^(-(beta_1 + beta_2) * s) = E1
-	vec3opf(E1, sunSky->atm_BetaRM, *, -s/log(2));
+	vec3opf(E1, sunSky->atm_BetaRM, *, -s/M_LN2);
 	E1[0] = exp(E1[0]);
 	E1[1] = exp(E1[1]);
 	E1[2] = exp(E1[2]);
