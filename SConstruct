@@ -306,10 +306,6 @@ if env['BF_NO_ELBEEM'] == 1:
     env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
     env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
-if env['WITH_BF_SDL'] == False and env['OURPLATFORM'] in ('win32-vc', 'win32-ming', 'win64-vc'):
-    env['PLATFORM_LINKFLAGS'].remove('/ENTRY:mainCRTStartup')
-    env['PLATFORM_LINKFLAGS'].append('/ENTRY:main')
-
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
 B.doc_build_dir = os.path.join(env['BF_INSTALLDIR'], 'doc')
@@ -409,17 +405,18 @@ if B.arguments.get('BF_PRIORITYLIST', '0')=='1':
     B.propose_priorities()
 
 dobj = B.buildinfo(env, "dynamic") + B.resources
+creob = B.creator(env)
 thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
-    env.BlenderProg(B.root_build_dir, "blender", mainlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+    env.BlenderProg(B.root_build_dir, "blender", creob + mainlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
     playerlist = B.create_blender_liblist(env, 'player')
     playerlist += B.create_blender_liblist(env, 'player2')
     playerlist += B.create_blender_liblist(env, 'intern')
     playerlist += B.create_blender_liblist(env, 'extern')
-    env.BlenderProg(B.root_build_dir, "blenderplayer",  playerlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
+    env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist + thestatlibs, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
 
 ##### Now define some targets
 

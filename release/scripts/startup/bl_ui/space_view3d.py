@@ -686,6 +686,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1050,6 +1051,7 @@ class VIEW3D_MT_paint_weight(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1130,6 +1132,7 @@ class VIEW3D_MT_particle(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1183,6 +1186,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1374,6 +1378,7 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1845,6 +1850,7 @@ class VIEW3D_MT_edit_meta(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 

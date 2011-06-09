@@ -81,6 +81,10 @@ if(WITH_PYTHON)
 	endif()
 endif()
 
+if(WITH_HEADLESS)
+	add_definitions(-DWITH_HEADLESS)
+endif()
+
 if(WITH_GAMEENGINE)
 	blender_include_dirs(../gameengine/BlenderRoutines)
 

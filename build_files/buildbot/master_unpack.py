@@ -43,6 +43,7 @@ def get_platform(filename):
     # platform out, but there may be some variations, so we fiddle a
     # bit to handle current and hopefully future names
     filename = strip_extension(filename)
+    filename = strip_extension(filename)
 
     tokens = filename.split("-")
     platforms = ('osx', 'mac', 'bsd',
@@ -62,6 +63,21 @@ def get_platform(filename):
             platform_tokens += [token]
 
     return '-'.join(platform_tokens)
+
+def get_branch(filename):
+    tokens = filename.split("-")
+    branch = ""
+    
+    for token in tokens:
+        if branch == "":
+            branch = token
+        else:
+            branch = branch + "-" + token
+
+        if token == "blender":
+            return branch
+
+    return ""
 
 # get filename
 if len(sys.argv) < 2:
@@ -88,8 +104,9 @@ if len(z.namelist()) != 1:
 package = z.namelist()[0]
 packagename = os.path.basename(package)
 
-# detect platform
+# detect platform and branch
 platform = get_platform(packagename)
+branch = get_branch(packagename)
 
 if platform == '':
     sys.stderr.write('Failed to detect platform ' +
@@ -113,10 +130,10 @@ except Exception, ex:
     sys.stderr.write('Failed to unzip package: %s\n' % str(ex))
     sys.exit(1)
 
-# remove other files from the same platform
+# remove other files from the same platform and branch
 try:
     for f in os.listdir(directory):
-        if platform.lower() in f.lower():
+        if get_platform(f) == platform and get_branch(f) == branch:
             if f != packagename:
                 os.remove(os.path.join(directory, f))
 except Exception, ex:

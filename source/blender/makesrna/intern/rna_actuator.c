@@ -584,7 +584,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_continue_last_frame", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "end_reset", 1);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "end_reset", 1);
 	RNA_def_property_ui_text(prop, "Continue", "Restore last frame when switching on/off, otherwise play from the start each time");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
@@ -1383,7 +1383,7 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_replace_display_mesh", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_EDOB_REPLACE_MESH_NOGFX);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ACT_EDOB_REPLACE_MESH_NOGFX);
 	RNA_def_property_ui_text(prop, "Gfx", "Replace the display mesh");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -1769,12 +1769,12 @@ static void rna_def_parent_actuator(BlenderRNA *brna)
 
 	/* booleans */
 	prop= RNA_def_property(srna, "use_compound", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_PARENT_COMPOUND);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ACT_PARENT_COMPOUND);
 	RNA_def_property_ui_text(prop, "Compound", "Add this object shape to the parent shape (only if the parent shape is already compound)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_ghost", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_PARENT_GHOST);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ACT_PARENT_GHOST);
 	RNA_def_property_ui_text(prop, "Ghost", "Make this object ghost while parented");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
@@ -1816,7 +1816,7 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_continue_last_frame", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "end_reset", 1);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "end_reset", 1);
 	RNA_def_property_ui_text(prop, "Continue", "Restore last frame when switching on/off, otherwise play from the start each time");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	

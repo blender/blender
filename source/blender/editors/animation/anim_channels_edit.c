@@ -1881,6 +1881,7 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= animchannels_borderselect_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= animedit_poll_channels_nla_tweakmode_off;
 	

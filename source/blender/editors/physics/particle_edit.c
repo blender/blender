@@ -3970,18 +3970,6 @@ int PE_undo_valid(Scene *scene)
 	return 0;
 }
 
-static void PTCacheUndo_number(Scene *scene, PTCacheEdit *edit, int nr)
-{
-	PTCacheUndo *undo;
-	int a=1;
-	
-	for(undo= edit->undo.first; undo; undo= undo->next, a++) {
-		if(a==nr) break;
-	}
-	edit->curundo= undo;
-	PE_undo_step(scene, 0);
-}
-
 static void PTCacheUndo_clear(PTCacheEdit *edit)
 {
 	PTCacheUndo *undo;
@@ -4007,32 +3995,38 @@ void PE_redo(Scene *scene)
 	PE_undo_step(scene, -1);
 }
 
-void PE_undo_menu(Scene *scene, Object *ob)
+void PE_undo_number(Scene *scene, int nr)
 {
-	PTCacheEdit *edit= PE_get_current(scene, ob);
+	PTCacheEdit *edit= PE_get_current(scene, OBACT);
 	PTCacheUndo *undo;
-	DynStr *ds;
-	short event=0;
-	char *menu;
-
-	if(!edit) return;
+	int a=0;
 	
-	ds= BLI_dynstr_new();
-
-	BLI_dynstr_append(ds, "Particlemode Undo History %t");
-	
-	for(undo= edit->undo.first; undo; undo= undo->next) {
-		BLI_dynstr_append(ds, "|");
-		BLI_dynstr_append(ds, undo->name);
+	for(undo= edit->undo.first; undo; undo= undo->next, a++) {
+		if(a==nr) break;
 	}
+	edit->curundo= undo;
+	PE_undo_step(scene, 0);
+}
+
+
+/* get name of undo item, return null if no item with this index */
+/* if active pointer, set it to 1 if true */
+char *PE_undo_get_name(Scene *scene, int nr, int *active)
+{
+	PTCacheEdit *edit= PE_get_current(scene, OBACT);
+	PTCacheUndo *undo;
 	
-	menu= BLI_dynstr_get_cstring(ds);
-	BLI_dynstr_free(ds);
+	if(active) *active= 0;
 	
-// XXX	event= pupmenu_col(menu, 20);
-	MEM_freeN(menu);
-	
-	if(event>0) PTCacheUndo_number(scene, edit, event);
+	if(edit) {
+		undo= BLI_findlink(&edit->undo, nr);
+		if(undo) {
+			if(active && undo==edit->curundo)
+				*active= 1;
+			return undo->name;
+		}
+	}
+	return NULL;
 }
 
 /************************ utilities ******************************/

@@ -627,6 +627,13 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int actionzone_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	actionzone_exit(op);
+
+	return OPERATOR_CANCELLED;
+}
+
 static void SCREEN_OT_actionzone(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -637,6 +644,7 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
 	ot->invoke= actionzone_invoke;
 	ot->modal= actionzone_modal;
 	ot->poll= actionzone_area_poll;
+	ot->cancel= actionzone_cancel;
 	
 	ot->flag= OPTYPE_BLOCKING;
 	
@@ -759,6 +767,7 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
 	ot->invoke= area_swap_invoke;
 	ot->modal= area_swap_modal;
 	ot->poll= ED_operator_areaactive;
+	ot->cancel= area_swap_cancel;
 	
 	ot->flag= OPTYPE_BLOCKING;
 }
@@ -868,13 +877,14 @@ typedef struct sAreaMoveData {
 static void area_move_set_limits(bScreen *sc, int dir, int *bigger, int *smaller)
 {
 	ScrArea *sa;
+	int areaminy= ED_area_headersize()+1;
 	
 	/* we check all areas and test for free space with MINSIZE */
 	*bigger= *smaller= 100000;
 	
 	for(sa= sc->areabase.first; sa; sa= sa->next) {
 		if(dir=='h') {
-			int y1= sa->v2->vec.y - sa->v1->vec.y-AREAMINY;
+			int y1= sa->v2->vec.y - sa->v1->vec.y-areaminy;
 			
 			/* if top or down edge selected, test height */
 			if(sa->v1->flag && sa->v4->flag)
@@ -933,6 +943,7 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 	bScreen *sc= CTX_wm_screen(C);
 	ScrVert *v1;
 	ScrArea *sa;
+	int areaminy= ED_area_headersize()+1;
 	
 	delta= CLAMPIS(delta, -smaller, bigger);
 	
@@ -950,8 +961,8 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 				v1->vec.y-= (v1->vec.y % AREAGRID);
 				
 				/* prevent too small top header */
-				if(v1->vec.y > win->sizey-AREAMINY)
-					v1->vec.y= win->sizey-AREAMINY;
+				if(v1->vec.y > win->sizey-areaminy)
+					v1->vec.y= win->sizey-areaminy;
 			}
 		}
 	}
@@ -1165,6 +1176,7 @@ static int area_split_init(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	sAreaSplitData *sd;
+	int areaminy= ED_area_headersize()+1;
 	int dir;
 	
 	/* required context */
@@ -1175,7 +1187,7 @@ static int area_split_init(bContext *C, wmOperator *op)
 	
 	/* minimal size */
 	if(dir=='v' && sa->winx < 2*AREAMINX) return 0;
-	if(dir=='h' && sa->winy < 2*AREAMINY) return 0;
+	if(dir=='h' && sa->winy < 2*areaminy) return 0;
 	
 	/* custom data */
 	sd= (sAreaSplitData*)MEM_callocN(sizeof (sAreaSplitData), "op_area_split");
@@ -1491,6 +1503,7 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->exec= area_split_exec;
 	ot->invoke= area_split_invoke;
 	ot->modal= area_split_modal;
+	ot->cancel= area_split_cancel;
 	
 	ot->poll= screen_active_editable;
 	ot->flag= OPTYPE_BLOCKING;
@@ -1628,7 +1641,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				rmd->ar->sizex= rmd->origval + delta;
 				CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
 				
-				if(rmd->ar->sizex < 24) {
+				if(rmd->ar->sizex < UI_UNIT_X) {
 					rmd->ar->sizex= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
@@ -1643,11 +1656,17 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				
 				rmd->ar->sizey= rmd->origval + delta;
 				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
-				
-				if(rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS)
-					maxsize = rmd->maxsize - ((rmd->sa->headertype==2)?48:24) - 10;
 
-				if(rmd->ar->sizey < 24 || (maxsize > 0 && (rmd->ar->sizey > maxsize)) ) {
+				if(rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS) {
+					/* this calculation seems overly verbose
+					 * can someone explain why this method is necessary? - campbell */
+					maxsize = rmd->maxsize - ((rmd->sa->headertype==HEADERTOP)?UI_UNIT_Y*2:UI_UNIT_Y) - (UI_UNIT_Y/4);
+				}
+
+				/* note, 'UI_UNIT_Y/4' means you need to drag the header almost
+				 * all the way down for it to become hidden, this is done
+				 * otherwise its too easy to do this by accident */
+				if(rmd->ar->sizey < UI_UNIT_Y/4 || (maxsize > 0 && (rmd->ar->sizey > maxsize)) ) {
 					rmd->ar->sizey= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
@@ -1684,6 +1703,13 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+int region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata = NULL;
+
+	return OPERATOR_CANCELLED;
+}
 
 static void SCREEN_OT_region_scale(wmOperatorType *ot)
 {
@@ -1694,6 +1720,7 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 	
 	ot->invoke= region_scale_invoke;
 	ot->modal= region_scale_modal;
+	ot->cancel= region_scale_cancel;
 	
 	ot->poll= ED_operator_areaactive;
 	
@@ -2248,8 +2275,9 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->invoke= area_join_invoke;
 	ot->modal= area_join_modal;
 	ot->poll= screen_active_editable;
+	ot->cancel= area_join_cancel;
 	
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_INTERNAL;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "min_x", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);
@@ -3044,6 +3072,7 @@ static void SCREEN_OT_border_select(wmOperatorType *ot)
 	ot->exec= border_select_do;
 	ot->invoke= WM_border_select_invoke;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= ED_operator_areaactive;
 	
@@ -3314,6 +3343,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_OT_undo);
 	WM_operatortype_append(ED_OT_undo_push);
 	WM_operatortype_append(ED_OT_redo);	
+	WM_operatortype_append(ED_OT_undo_history);
 	
 }
 
@@ -3422,9 +3452,11 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 #ifdef __APPLE__
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "ED_OT_redo", ZKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "ED_OT_undo_history", ZKEY, KM_PRESS, KM_ALT|KM_OSKEY, 0);
 #endif
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ED_OT_redo", ZKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ED_OT_undo_history", ZKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	
 	
 	/* render */

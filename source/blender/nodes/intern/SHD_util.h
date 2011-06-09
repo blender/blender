@@ -108,6 +108,7 @@ typedef struct ShaderCallData {
 #define MAT_IN_RAY_MIRROR	8
 #define MAT_IN_ALPHA	9
 #define MAT_IN_TRANSLUCENCY	10
+#define NUM_MAT_IN		11	/* for array size */
 
 /* output socket defines */
 #define MAT_OUT_COLOR		0

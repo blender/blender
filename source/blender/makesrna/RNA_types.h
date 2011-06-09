@@ -171,6 +171,8 @@ typedef enum PropertyFlag {
 
 	/* hidden in  the user interface */
 	PROP_HIDDEN = 1<<19,
+	/* do not write in presets */
+	PROP_SKIP_SAVE = 1<<28,
 
 	/* function paramater flags */
 	PROP_REQUIRED = 1<<2,
@@ -202,6 +204,7 @@ typedef enum PropertyFlag {
 
 	/* need context for update function */
 	PROP_CONTEXT_UPDATE = 1<<22,
+	PROP_CONTEXT_PROPERTY_UPDATE = (1<<22)|(1<<27),
 
 	/* Use for arrays or for any data that should not have a referene kept
 	 * most common case is functions that return arrays where the array */

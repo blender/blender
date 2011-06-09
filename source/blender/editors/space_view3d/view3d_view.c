@@ -391,12 +391,15 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int view3d_setcameratoview_poll(bContext *C)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	View3D *v3d= CTX_wm_view3d(C);
+	if(v3d && v3d->camera && v3d->camera->id.lib==NULL) {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
+		if(rv3d && !rv3d->viewlock) {
+			return 1;
+		}
+	}
 
-	if (v3d==NULL || v3d->camera==NULL)	return 0;
-	if (rv3d && rv3d->viewlock != 0)		return 0;
-	return 1;
+	return 0;
 }
 
 void VIEW3D_OT_setcameratoview(wmOperatorType *ot)

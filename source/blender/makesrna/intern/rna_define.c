@@ -1839,6 +1839,11 @@ void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 	prop->update= (UpdateFunc)func;
 }
 
+void RNA_def_property_update_runtime(PropertyRNA *prop, void *func)
+{
+	prop->update= func;
+}
+
 void RNA_def_property_dynamic_array_funcs(PropertyRNA *prop, const char *getlength)
 {
 	if(!DefRNA.preprocess) {
@@ -2055,6 +2060,11 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 void RNA_def_property_srna(PropertyRNA *prop, const char *type)
 {
 	prop->srna= (StructRNA*)type;
+}
+
+void RNA_def_py_data(PropertyRNA *prop, void *py_data)
+{
+	prop->py_data= py_data;
 }
 
 /* Compact definitions */
@@ -2822,6 +2832,7 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 		if(prop->identifier) MEM_freeN((void*)prop->identifier);
 		if(prop->name) MEM_freeN((void*)prop->name);
 		if(prop->description) MEM_freeN((void*)prop->description);
+		if(prop->py_data) MEM_freeN(prop->py_data);
 
 		switch(prop->type) {
 			case PROP_BOOLEAN: {

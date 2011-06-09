@@ -4018,7 +4018,11 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 		init_particle_interpolation(sim->ob, psys, pa, &pind);
 		do_particle_interpolation(psys, p, pa, t, &pind, state);
 
-		if(!keyed && !cached) {
+		if(pind.dm) {
+			mul_m4_v3(sim->ob->obmat, state->co);
+			mul_mat3_m4_v3(sim->ob->obmat, state->vel);
+		}
+		else if(!keyed && !cached && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 			if((pa->flag & PARS_REKEY)==0) {
 				psys_mat_hair_to_global(sim->ob, sim->psmd->dm, part->from, pa, hairmat);
 				mul_m4_v3(hairmat, state->co);

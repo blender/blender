@@ -89,7 +89,7 @@ def load_image(imagepath,
 
     for filepath_test in variants:
         if ncase_cmp:
-            ncase_variants = filepath_test, bpy.path.resolve_ncase(filepath)
+            ncase_variants = filepath_test, bpy.path.resolve_ncase(filepath_test)
         else:
             ncase_variants = (filepath_test, )
 
