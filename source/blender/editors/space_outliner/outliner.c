@@ -57,6 +57,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #if defined WIN32 && !defined _LIBC
 # include "BLI_fnmatch.h" /* use fnmatch included in blenlib */

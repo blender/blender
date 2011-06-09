@@ -77,6 +77,7 @@
 /* This little block needed for linking to Blender... */
 #include "BKE_text.h"
 #include "BLI_blenlib.h"
+#include "BLI_math_base.h"
 
 #define FILE_MAX 240 // repeated here to avoid dependency from BKE_utildefines.h
 
