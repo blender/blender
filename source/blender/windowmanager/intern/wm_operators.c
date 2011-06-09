@@ -921,7 +921,16 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	if(ED_undo_valid(C, op->type->name)==0)
 		uiLayoutSetEnabled(layout, 0);
 
-	uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
+	if(op->type->flag & OPTYPE_MACRO) {
+		for(op= op->macro.first; op; op= op->next) {
+			uiItemL(layout, op->type->name, ICON_NONE);
+			uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
+		}
+	}
+	else {
+		uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
+	}
+	
 
 	uiPopupBoundsBlock(block, 4, 0, 0);
 	uiEndBlock(C, block);
@@ -3125,7 +3134,6 @@ static int radial_control_cancel(bContext *C, wmOperator *op)
 static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RadialControl *rc = op->customdata;
-	wmWindowManager *wm;
 	float new_value, dist, zoom[2];
 	float delta[2], snap, ret = OPERATOR_RUNNING_MODAL;
 
