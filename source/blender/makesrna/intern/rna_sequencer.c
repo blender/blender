@@ -680,6 +680,23 @@ static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
 		ed->over_ofs= value;
 }
 
+
+static void rna_WipeSequence_angle_set(PointerRNA *ptr, float value)
+{
+	Sequence *seq= (Sequence *)(ptr->data);
+	value= RAD2DEGF(value);
+	CLAMP(value, -90.0f, 90.0f);
+	((WipeVars *)seq->effectdata)->angle= value;
+}
+
+static float rna_WipeSequence_angle_get(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence *)(ptr->data);
+
+	return DEG2RADF(((WipeVars *)seq->effectdata)->angle);
+}
+
+
 #else
 
 static void rna_def_strip_element(BlenderRNA *brna)
@@ -1460,10 +1477,16 @@ static void rna_def_wipe(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Blur Width", "Width of the blur edge, in percentage relative to the image size");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
-	
+
+#if 1 /* expose as radians */
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_funcs(prop, "rna_WipeSequence_angle_get", "rna_WipeSequence_angle_set", NULL);
+	RNA_def_property_range(prop, DEG2RAD(-90.0f), DEG2RAD(90.0f));
+#else
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_range(prop, -90.0f, 90.0f);
+#endif
 	RNA_def_property_ui_text(prop, "Angle", "Edge angle");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	

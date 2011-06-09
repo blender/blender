@@ -40,6 +40,9 @@
 
 #include "WM_types.h"
 
+#include "BLI_math_base.h"
+#include "BLI_math_rotation.h"
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_scene_types.h"
@@ -910,6 +913,20 @@ static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
 	}
 
 	tf->tpage= (struct Image*)id;
+}
+
+static void rna_Mesh_auto_smooth_angle_set(PointerRNA *ptr, float value)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	value= RAD2DEGF(value);
+	CLAMP(value, 1.0f, 80.0f);
+	me->smoothresh= (int)value;
+}
+
+static float rna_Mesh_auto_smooth_angle_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	return DEG2RADF((float)me->smoothresh);
 }
 
 static int rna_MeshFace_verts_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
@@ -1913,9 +1930,15 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_AUTOSMOOTH);
 	RNA_def_property_ui_text(prop, "Auto Smooth", "Treats all set-smoothed faces with angles less than the specified angle as 'smooth' during render");
 
+#if 1 /* expose as radians */
+	prop= RNA_def_property(srna, "auto_smooth_angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_funcs(prop, "rna_Mesh_auto_smooth_angle_get", "rna_Mesh_auto_smooth_angle_set", NULL);
+	RNA_def_property_ui_range(prop, DEG2RAD(1.0), DEG2RAD(80), 1.0, 1);
+#else
 	prop= RNA_def_property(srna, "auto_smooth_angle", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "smoothresh");
 	RNA_def_property_range(prop, 1, 80);
+#endif
 	RNA_def_property_ui_text(prop, "Auto Smooth Angle", "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
 
 	prop= RNA_def_property(srna, "show_double_sided", PROP_BOOLEAN, PROP_NONE);
