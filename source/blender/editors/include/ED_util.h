@@ -59,6 +59,7 @@ void	ED_undo_redo			(struct bContext *C);
 void	ED_OT_undo				(struct wmOperatorType *ot);
 void	ED_OT_undo_push			(struct wmOperatorType *ot);
 void	ED_OT_redo				(struct wmOperatorType *ot);
+void	ED_OT_undo_history		(struct wmOperatorType *ot);
 
 int		ED_undo_operator_repeat(struct bContext *C, struct wmOperator *op);
 	/* convenience since UI callbacks use this mostly*/
@@ -76,11 +77,7 @@ void undo_editmode_push(struct bContext *C, const char *name,
 						int (*validate_undo)(void *, void *));
 
 						
-void	*undo_editmode_get_prev		(struct Object *ob);
-struct uiBlock *editmode_undohistorymenu(struct bContext *C, struct ARegion *ar, void *arg_unused);
-void	undo_editmode_menu			(struct bContext *C);
 void	undo_editmode_clear			(void);
-void	undo_editmode_step			(struct bContext *C, int step);
 
 /* crazyspace.c */
 float *crazyspace_get_mapped_editverts(struct Scene *scene, struct Object *obedit);

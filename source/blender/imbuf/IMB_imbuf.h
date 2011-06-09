@@ -243,8 +243,15 @@ void IMB_free_anim(struct anim *anim);
  *
  * @attention Defined in filter.c
  */
+
+#define FILTER_MASK_NULL		0
+#define FILTER_MASK_MARGIN		1
+#define FILTER_MASK_USED		2
+
 void IMB_filter(struct ImBuf *ibuf);
 void IMB_filterN(struct ImBuf *out, struct ImBuf *in);
+void IMB_mask_filter_extend(char *mask, int width, int height);
+void IMB_mask_clear(struct ImBuf *ibuf, char *mask, int val);
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask);
 void IMB_makemipmap(struct ImBuf *ibuf, int use_filter);
 void IMB_remakemipmap(struct ImBuf *ibuf, int use_filter);
@@ -320,7 +327,12 @@ int imb_get_anim_type(const char *name);
  */
 void IMB_de_interlace(struct ImBuf *ibuf);
 void IMB_interlace(struct ImBuf *ibuf);
+
+/* create char buffer, color corrected if necessary, for ImBufs that lack one */ 
 void IMB_rect_from_float(struct ImBuf *ibuf);
+/* create char buffer for part of the image, color corrected if necessary,
+   Changed part will be stored in buffer. This is expected to be used for texture painting updates */ 
+void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */

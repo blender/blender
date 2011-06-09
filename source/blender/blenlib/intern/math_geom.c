@@ -1809,6 +1809,80 @@ void interp_cubic_v3(float x[3], float v[3], const float x1[3], const float v1[3
 	v[2]= 3*a[2]*t2 + 2*b[2]*t + v1[2];
 }
 
+/* unfortunately internal calculations have to be done at double precision to achieve correct/stable results. */
+
+#define IS_ZERO(x) ((x>(-DBL_EPSILON) && x<DBL_EPSILON) ? 1 : 0)
+
+/* Barycentric reverse  */
+void resolve_tri_uv(float uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2])
+{
+	/* find UV such that
+	   t= u*t0 + v*t1 + (1-u-v)*t2
+	   u*(t0-t2) + v*(t1-t2)= t-t2 */
+	const double a= st0[0]-st2[0], b= st1[0]-st2[0];
+	const double c= st0[1]-st2[1], d= st1[1]-st2[1];
+	const double det= a*d - c*b;
+
+	if(IS_ZERO(det)==0)	{  /* det should never be zero since the determinant is the signed ST area of the triangle. */
+		const double x[]= {st[0]-st2[0], st[1]-st2[1]};
+
+		uv[0]= (float)((d*x[0] - b*x[1])/det);
+		uv[1]= (float)(((-c)*x[0] + a*x[1])/det);
+	} else zero_v2(uv);
+}
+
+/* bilinear reverse */
+void resolve_quad_uv(float uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2])
+{
+	const double signed_area= (st0[0]*st1[1] - st0[1]*st1[0]) + (st1[0]*st2[1] - st1[1]*st2[0]) +
+                              (st2[0]*st3[1] - st2[1]*st3[0]) + (st3[0]*st0[1] - st3[1]*st0[0]);
+
+	/* X is 2D cross product (determinant)
+	   A= (p0-p) X (p0-p3)*/
+	const double a= (st0[0]-st[0])*(st0[1]-st3[1]) - (st0[1]-st[1])*(st0[0]-st3[0]);
+
+	/* B= ( (p0-p) X (p1-p2) + (p1-p) X (p0-p3) ) / 2 */
+	const double b= 0.5 * ( ((st0[0]-st[0])*(st1[1]-st2[1]) - (st0[1]-st[1])*(st1[0]-st2[0])) +
+							 ((st1[0]-st[0])*(st0[1]-st3[1]) - (st1[1]-st[1])*(st0[0]-st3[0])) );
+
+	/* C = (p1-p) X (p1-p2) */
+	const double fC= (st1[0]-st[0])*(st1[1]-st2[1]) - (st1[1]-st[1])*(st1[0]-st2[0]);
+	const double denom= a - 2*b + fC;
+
+	// clear outputs
+	zero_v2(uv);
+
+	if(IS_ZERO(denom)!=0) {
+		const double fDen= a-fC;
+		if(IS_ZERO(fDen)==0)
+			uv[0]= (float)(a / fDen);
+	} else {
+		const double desc_sq= b*b - a*fC;
+		const double desc= sqrt(desc_sq<0.0?0.0:desc_sq);
+		const double s= signed_area>0 ? (-1.0) : 1.0;
+
+		uv[0]= (float)(( (a-b) + s * desc ) / denom);
+	}
+
+	/* find UV such that
+	  fST = (1-u)(1-v)*ST0 + u*(1-v)*ST1 + u*v*ST2 + (1-u)*v*ST3 */
+	{
+		const double denom_s= (1-uv[0])*(st0[0]-st3[0]) + uv[0]*(st1[0]-st2[0]);
+		const double denom_t= (1-uv[0])*(st0[1]-st3[1]) + uv[0]*(st1[1]-st2[1]);
+		int i= 0; double denom= denom_s;
+
+		if(fabs(denom_s)<fabs(denom_t)) {
+			i= 1;
+			denom=denom_t;
+		}
+
+		if(IS_ZERO(denom)==0)
+			uv[1]= (float) (( (1-uv[0])*(st0[i]-st[i]) + uv[0]*(st1[i]-st[i]) ) / denom);
+	}
+}
+
+#undef IS_ZERO
+
 /***************************** View & Projection *****************************/
 
 void orthographic_m4(float matrix[][4], const float left, const float right, const float bottom, const float top, const float nearClip, const float farClip)

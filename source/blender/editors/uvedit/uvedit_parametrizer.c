@@ -4142,7 +4142,7 @@ void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl)
 
 	param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
 
-	phandle->ncharts = p_connect_pairs(phandle, impl);
+	phandle->ncharts = p_connect_pairs(phandle, (PBool)impl);
 	phandle->charts = p_split_charts(phandle, chart, phandle->ncharts);
 
 	p_chart_delete(phandle->construction_chart);
@@ -4191,7 +4191,7 @@ void param_lscm_begin(ParamHandle *handle, ParamBool live, ParamBool abf)
 	for (i = 0; i < phandle->ncharts; i++) {
 		for (f=phandle->charts[i]->faces; f; f=f->nextlink)
 			p_face_backup_uvs(f);
-		p_chart_lscm_begin(phandle->charts[i], live, abf);
+		p_chart_lscm_begin(phandle->charts[i], (PBool)live, (PBool)abf);
 	}
 }
 

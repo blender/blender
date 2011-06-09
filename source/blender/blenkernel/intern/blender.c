@@ -523,7 +523,8 @@ void BKE_write_undo(bContext *C, const char *name)
 		static int counter= 0;
 		char filepath[FILE_MAXDIR+FILE_MAXFILE];
 		char numstr[32];
-		
+		int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on undo */
+
 		/* calculate current filepath */
 		counter++;
 		counter= counter % U.undosteps;	
@@ -531,7 +532,7 @@ void BKE_write_undo(bContext *C, const char *name)
 		BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
 		BLI_make_file_string("/", filepath, btempdir, numstr);
 	
-		success= BLO_write_file(CTX_data_main(C), filepath, G.fileflags, NULL, NULL);
+		success= BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);
 		
 		BLI_strncpy(curundo->str, filepath, sizeof(curundo->str));
 	}
@@ -619,7 +620,7 @@ void BKE_reset_undo(void)
 /* based on index nr it does a restore */
 void BKE_undo_number(bContext *C, int nr)
 {
-	curundo= BLI_findlink(&undobase, nr - 1);
+	curundo= BLI_findlink(&undobase, nr);
 	BKE_undo_step(C, 0);
 }
 
@@ -645,6 +646,21 @@ int BKE_undo_valid(const char *name)
 	return undobase.last != undobase.first;
 }
 
+/* get name of undo item, return null if no item with this index */
+/* if active pointer, set it to 1 if true */
+char *BKE_undo_get_name(int nr, int *active)
+{
+	UndoElem *uel= BLI_findlink(&undobase, nr);
+	
+	if(active) *active= 0;
+	
+	if(uel) {
+		if(active && uel==curundo)
+			*active= 1;
+		return uel->name;
+	}
+	return NULL;
+}
 
 char *BKE_undo_menu_string(void)
 {

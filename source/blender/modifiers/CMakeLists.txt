@@ -90,8 +90,12 @@ set(SRC
 
 if(WITH_MOD_BOOLEAN)
 	add_definitions(-DWITH_MOD_BOOLEAN)
-	list(APPEND SRC intern/MOD_boolean_util.c)
-	list(APPEND INC ../../../intern/bsp/extern)
+	list(APPEND SRC
+		intern/MOD_boolean_util.c
+	)
+	list(APPEND INC
+		../../../intern/bsp/extern
+	)
 endif()
 
 if(WITH_MOD_DECIMATE)

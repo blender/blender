@@ -26,5 +26,5 @@
  */
 
  
-void BPy_init_modules( void );
+void BPy_init_modules(void);
 extern PyObject *bpy_package_py;

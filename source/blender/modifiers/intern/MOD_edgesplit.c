@@ -58,12 +58,12 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *ob
 {
 	BMesh *bm;
 	BMEditMesh *em;
-	DerivedMesh *cddm, *bmdm;
+	DerivedMesh *cddm;
 	BMIter iter, liter;
 	BMFace *f;
 	BMLoop *l;
 	BMEdge *e;
-	int allocsize[] = {512, 512, 2048, 512};
+	/* int allocsize[] = {512, 512, 2048, 512}; */ /* UNUSED */
 	float threshold = cos((emd->split_angle + 0.00001) * M_PI / 180.0);
 	
 	if (!CDDM_Check(dm)) {

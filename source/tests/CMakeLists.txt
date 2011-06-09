@@ -68,21 +68,21 @@ add_test(script_run_operators ${TEST_BLENDER_EXE}
 add_test(import_obj_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/cube.obj'\)
-	--md5=4d090508b812b5e08168aa2614746bda --md5_method=SCENE
+	--md5=39cce4bacac2d1b18fc470380279bc15 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_obj_cube.blend
 )
 
 add_test(import_obj_nurbs_cyclic ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/nurbs_cyclic.obj'\)
-	--md5=9e0da7b65b4c4f818a203d56af2d3a4b --md5_method=SCENE
+	--md5=ad3c307e5883224a0492378cd32691ab --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_obj_nurbs_cyclic.blend
 )
 
 add_test(import_obj_makehuman ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/makehuman.obj'\)
-	--md5=e0829dc078b0789e1d81f1071235bc4f --md5_method=SCENE
+	--md5=c9f78b185e58358daa4ecaecfa75464e --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_obj_makehuman.blend
 )
 
@@ -93,7 +93,7 @@ add_test(export_obj_cube ${TEST_BLENDER_EXE}
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_cube.obj',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_obj_cube.obj
 	--md5_source=${TEST_OUT_DIR}/export_obj_cube.mtl
-	--md5=f0580f0e5d7b379e0460f11d8fde244d --md5_method=FILE
+	--md5=70bdc394c2726203ad26c085176e3484 --md5_method=FILE
 )
 
 add_test(export_obj_nurbs ${TEST_BLENDER_EXE}
@@ -102,7 +102,7 @@ add_test(export_obj_nurbs ${TEST_BLENDER_EXE}
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_nurbs.obj',use_selection=False,use_nurbs=True\)
 	--md5_source=${TEST_OUT_DIR}/export_obj_nurbs.obj
 	--md5_source=${TEST_OUT_DIR}/export_obj_nurbs.mtl
-	--md5=aa00875343e0feea449739146d26d7d0 --md5_method=FILE
+	--md5=a733ae4fa4a591ea9b0912da3af042de --md5_method=FILE
 )
 
 add_test(export_obj_all_objects ${TEST_BLENDER_EXE}
@@ -111,7 +111,7 @@ add_test(export_obj_all_objects ${TEST_BLENDER_EXE}
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_all_objects.obj',use_selection=False,use_nurbs=True\)
 	--md5_source=${TEST_OUT_DIR}/export_obj_all_objects.obj
 	--md5_source=${TEST_OUT_DIR}/export_obj_all_objects.mtl
-	--md5=4c93980ecfb7d02ca68d3da8e2fced69 --md5_method=FILE
+	--md5=d06bd49e6c084e4e3348fa397a88790c --md5_method=FILE
 )
 
 
@@ -172,21 +172,21 @@ add_test(import_stl_knot_max_simplified ${TEST_BLENDER_EXE}
 add_test(import_x3d_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/color_cube.x3d'\)
-	--md5=330c0cf6e8c44d5fe5b662d30b75be89 --md5_method=SCENE
+	--md5=2ed64325dd3d62be6ce43c64219376ec --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_x3d_cube.blend
 )
 
 add_test(import_x3d_teapot ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/teapot.x3d'\)
-	--md5=b2f02157bc918b54b835d1e6ece70423 --md5_method=SCENE
+	--md5=8b8b386900b8e3d2c036a38c625f4079 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_x3d_teapot.blend
 )
 
 add_test(import_x3d_suzanne_material ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/suzanne_material.x3d'\)
-	--md5=11837901cbbfabef52b6ab4f26fe97b3 --md5_method=SCENE
+	--md5=999129ba835f0ccb98c4bb299f6c2fef --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_x3d_suzanne_material.blend
 )
 
@@ -196,7 +196,7 @@ add_test(export_x3d_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_cube.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_cube.x3d
-	--md5=9198ca86f19b68a4f1eb75bb48cb3dea --md5_method=FILE
+	--md5=30d2b056c004144cd4a0d172484a66f3 --md5_method=FILE
 )
 
 add_test(export_x3d_nurbs ${TEST_BLENDER_EXE}
@@ -204,7 +204,7 @@ add_test(export_x3d_nurbs ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_nurbs.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_nurbs.x3d
-	--md5=078c0ca5a08f123cd2cdac48afb54853 --md5_method=FILE
+	--md5=7c15afe7b0cf007b842a925508b7d966 --md5_method=FILE
 )
 
 add_test(export_x3d_all_objects ${TEST_BLENDER_EXE}
@@ -212,7 +212,7 @@ add_test(export_x3d_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_all_objects.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_all_objects.x3d
-	--md5=090f4f36c450826a043f9cd074d9cbb4 --md5_method=FILE
+	--md5=cef017805f684f27c311fdf4ba87462a --md5_method=FILE
 )
 
 
@@ -228,14 +228,14 @@ add_test(import_3ds_cube ${TEST_BLENDER_EXE}
 add_test(import_3ds_hierarchy_lara ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.autodesk_3ds\(filepath='${TEST_SRC_DIR}/io_tests/3ds/hierarchy_lara.3ds'\)
-	--md5=2e9812099b26ad607fdcf4c7be918c71 --md5_method=SCENE
+	--md5=766c873d9fdb5f190e43796cfbae63b6 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_3ds_hierarchy_lara.blend
 )
 
 add_test(import_3ds_hierarchy_greek_trireme ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.autodesk_3ds\(filepath='${TEST_SRC_DIR}/io_tests/3ds/hierarchy_greek_trireme.3ds'\)
-	--md5=d05b922d7be20356d8409d1f768a3a9a --md5_method=SCENE
+	--md5=b62ee30101e8999cb91ef4f8a8760056 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_3ds_hierarchy_greek_trireme.blend
 )
 
@@ -261,7 +261,7 @@ add_test(export_3ds_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/export_3ds_all_objects.3ds',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_3ds_all_objects.3ds
-	--md5=87349a4699f1006e8194fb0ac05ac9c8 --md5_method=FILE
+	--md5=cdf8fa8475fda0b9ef565ac09339254b --md5_method=FILE
 )
 
 
@@ -273,7 +273,7 @@ add_test(export_fbx_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_cube.fbx',use_selection=False,use_metadata=False\)
 	--md5_source=${TEST_OUT_DIR}/export_fbx_cube.fbx
-	--md5=b2428e11b9ae650819f8d8b38cd869f7 --md5_method=FILE
+	--md5=642a5a1fa199d5b9bbf1643519ae974d --md5_method=FILE
 )
 
 add_test(export_fbx_nurbs ${TEST_BLENDER_EXE}
@@ -281,7 +281,7 @@ add_test(export_fbx_nurbs ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_nurbs.fbx',use_selection=False,use_metadata=False\)
 	--md5_source=${TEST_OUT_DIR}/export_fbx_nurbs.fbx
-	--md5=741b536e98d6b105952766d0f290f270 --md5_method=FILE
+	--md5=ec1e8965bdbc3bf70707d77f82c2cb9c --md5_method=FILE
 )
 
 add_test(export_fbx_all_objects ${TEST_BLENDER_EXE}
@@ -289,5 +289,5 @@ add_test(export_fbx_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_all_objects.fbx',use_selection=False,use_metadata=False\)
 	--md5_source=${TEST_OUT_DIR}/export_fbx_all_objects.fbx
-	--md5=d6b8b027cd2a0e99d88e5c3d77932748 --md5_method=FILE
+	--md5=af3b65665687ac92e4aba07b017d87fe --md5_method=FILE
 )

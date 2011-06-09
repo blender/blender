@@ -102,6 +102,21 @@ MINLINE void swap_v4_v4(float a[4], float b[4])
 
 /********************************* Arithmetic ********************************/
 
+MINLINE void add_v3_fl(float r[3], float f)
+{
+	r[0] += f;
+	r[1] += f;
+	r[2] += f;
+}
+
+MINLINE void add_v4_fl(float r[4], float f)
+{
+	r[0] += f;
+	r[1] += f;
+	r[2] += f;
+	r[3] += f;
+}
+
 MINLINE void add_v2_v2(float *r, const float *a)
 {
 	r[0] += a[0];

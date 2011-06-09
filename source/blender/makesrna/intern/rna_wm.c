@@ -272,10 +272,11 @@ EnumPropertyItem keymap_modifiers_items[] = {
 EnumPropertyItem operator_flag_items[] = {
 		{OPTYPE_REGISTER, "REGISTER", 0, "Register", ""},
 		{OPTYPE_UNDO, "UNDO", 0, "Undo", ""},
-		{OPTYPE_BLOCKING, "BLOCKING", 0, "Finished", ""},
+		{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", ""},
 		{OPTYPE_MACRO, "MACRO", 0, "Macro", ""},
 		{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", ""},
 		{OPTYPE_PRESET, "PRESET", 0, "Preset", ""},
+		{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem operator_return_items[] = {
@@ -1047,6 +1048,7 @@ static StructRNA* rna_MacroOperator_refine(PointerRNA *opr)
 static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, const char *idname, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
 {
 //	wmWindowManager *wm = CTX_wm_manager(C);
+	char idname_bl[OP_MAX_TYPENAME];
 	int modifier= 0;
 
 	/* only on non-modal maps */
@@ -1055,6 +1057,8 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, cons
 		return NULL;
 	}
 
+	WM_operator_bl_idname(idname_bl, idname);
+
 	if(shift) modifier |= KM_SHIFT;
 	if(ctrl) modifier |= KM_CTRL;
 	if(alt) modifier |= KM_ALT;
@@ -1062,7 +1066,7 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, cons
 
 	if(any) modifier = KM_ANY;
 
-	return WM_keymap_add_item(km, idname, type, value, modifier, keymodifier);
+	return WM_keymap_add_item(km, idname_bl, type, value, modifier, keymodifier);
 }
 
 static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km, bContext *C, ReportList *reports, const char *propvalue_str, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)

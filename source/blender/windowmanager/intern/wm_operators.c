@@ -727,14 +727,14 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
-	//uiDefBut(block, LABEL, 0, op->type->name, 10, 10, 180, 19, NULL, 0.0, 0.0, 0, 0, ""); // ok, this isnt so easy...
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, 0, 0, "");
+	//uiDefBut(block, LABEL, 0, op->type->name, 10, 10, 180, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, ""); // ok, this isnt so easy...
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
 
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9*UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 
-	uiPopupBoundsBlock(block, 6, 0, -20); /* move it downwards, mouse over button */
+	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
 
 	event= *(win->eventstate);	/* XXX huh huh? make api call */
@@ -916,7 +916,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	assert(op->type->flag & OPTYPE_REGISTER);
 
 	uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, arg_op);
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, style);
 
 	if(ED_undo_valid(C, op->type->name)==0)
 		uiLayoutSetEnabled(layout, 0);
@@ -981,7 +981,7 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 		col= uiLayoutColumn(layout, FALSE);
 		col_block= uiLayoutGetBlock(col);
 		/* Create OK button, the callback of which will execute op */
-		btn= uiDefBut(col_block, BUT, 0, "OK", 0, -30, 0, 20, NULL, 0, 0, 0, 0, "");
+		btn= uiDefBut(col_block, BUT, 0, "OK", 0, -30, 0, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 		uiButSetFunc(btn, dialog_exec_cb, op, col_block);
 	}
 
@@ -1087,7 +1087,7 @@ static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 static int wm_debug_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	RNA_int_set(op->ptr, "debug_value", G.rt);
-	return WM_operator_props_dialog_popup(C, op, 180, 20);
+	return WM_operator_props_dialog_popup(C, op, 9*UI_UNIT_X, UI_UNIT_Y);
 }
 
 static void WM_OT_debug_menu(wmOperatorType *ot)
@@ -1185,8 +1185,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
 #ifdef NAN_BUILDINFO	
-	uiDefBut(block, LABEL, 0, version_str, 494-ver_width, 282-24, ver_width, 20, NULL, 0, 0, 0, 0, NULL);
-	uiDefBut(block, LABEL, 0, revision_str, 494-rev_width, 282-36, rev_width, 20, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, version_str, 494-ver_width, 282-24, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, revision_str, 494-rev_width, 282-36, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 #endif //NAN_BUILDINFO
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, 480, 110, style);
@@ -1277,7 +1277,10 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 	wmOperatorType *ot = WM_operatortype_first();
 	
 	for(; ot; ot= ot->next) {
-		
+
+		if((ot->flag & OPTYPE_INTERNAL) && (G.f & G_DEBUG) == 0)
+			continue;
+
 		if(BLI_strcasestr(ot->name, str)) {
 			if(WM_operator_poll((bContext*)C, ot)) {
 				char name[256];
@@ -1310,13 +1313,13 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, 0, 0, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 	
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9*UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
-	uiPopupBoundsBlock(block, 6, 0, -20); /* move it downwards, mouse over button */
+	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
 	
 	event= *(win->eventstate);	/* XXX huh huh? make api call */
@@ -1388,6 +1391,8 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 
 	ot->exec= wm_call_menu_exec;
 	ot->poll= WM_operator_winactive;
+
+	ot->flag= OPTYPE_INTERNAL;
 
 	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the menu");
 }
@@ -2244,6 +2249,13 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+int WM_border_select_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 /* **************** circle gesture *************** */
 /* works now only for selection or modal paint stuff, calls exec while hold mouse, exit on release */
 
@@ -2338,6 +2350,13 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 //	}
 
 	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_gesture_circle_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
 }
 
 #if 0
@@ -2556,6 +2575,20 @@ int WM_gesture_lines_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return WM_gesture_lasso_modal(C, op, event);
 }
 
+int WM_gesture_lasso_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
+int WM_gesture_lines_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 #if 0
 /* template to copy from */
 
@@ -2675,6 +2708,13 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_gesture_straightline_cancel(bContext *C, wmOperator *op)
+{
+	wm_gesture_end(C, op);
+
+	return OPERATOR_CANCELLED;
 }
 
 #if 0
@@ -3060,6 +3100,28 @@ static void radial_control_set_value(RadialControl *rc, float val)
 	}
 }
 
+static int radial_control_cancel(bContext *C, wmOperator *op)
+{
+	RadialControl *rc = op->customdata;
+	wmWindowManager *wm = CTX_wm_manager(C);
+
+	WM_paint_cursor_end(wm, rc->cursor);
+
+	/* restore original paint cursors */
+	wm->paintcursors = rc->orig_paintcursors;
+
+	/* not sure if this is a good notifier to use;
+	   intended purpose is to update the UI so that the
+	   new value is displayed in sliders/numfields */
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	glDeleteTextures(1, &rc->gltex);
+
+	MEM_freeN(rc);
+
+	return OPERATOR_CANCELLED;
+}
+
 static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RadialControl *rc = op->customdata;
@@ -3125,23 +3187,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
-	if(ret != OPERATOR_RUNNING_MODAL) {
-		wm = CTX_wm_manager(C);
-
-		WM_paint_cursor_end(wm, rc->cursor);
-
-		/* restore original paint cursors */
-		wm->paintcursors = rc->orig_paintcursors;
-
-		/* not sure if this is a good notifier to use;
-		   intended purpose is to update the UI so that the
-		   new value is displayed in sliders/numfields */
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
-
-		glDeleteTextures(1, &rc->gltex);
-
-		MEM_freeN(rc);
-	}
+	if(ret != OPERATOR_RUNNING_MODAL)
+		radial_control_cancel(C, op);
 
 	return ret;
 }
@@ -3153,6 +3200,7 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 
 	ot->invoke= radial_control_invoke;
 	ot->modal= radial_control_modal;
+	ot->cancel= radial_control_cancel;
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 

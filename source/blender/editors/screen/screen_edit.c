@@ -671,9 +671,9 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	/* test for collapsed areas. This could happen in some blender version... */
 	/* ton: removed option now, it needs Context... */
 	
-	/* make each window at least HEADERY high */
+	/* make each window at least ED_area_headersize() high */
 	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		int headery= HEADERY+1;
+		int headery= ED_area_headersize()+1;
 		
 		if(sa->v1->vec.y+headery > sa->v2->vec.y) {
 			/* lower edge */
@@ -1055,6 +1055,18 @@ void ED_screen_draw(wmWindow *win)
 	win->screen->do_draw= 0;
 }
 
+/* helper call for below, dpi changes headers */
+static void screen_refresh_headersizes(void)
+{
+	const ListBase *lb= BKE_spacetypes_list();
+	SpaceType *st;
+	
+	for(st= lb->first; st; st= st->next) {
+		ARegionType *art= BKE_regiontype_from_id(st, RGN_TYPE_HEADER);
+		if(art) art->prefsizey= ED_area_headersize();
+	}		
+}
+
 /* make this screen usable */
 /* for file read and first use, for scaling window, area moves */
 void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
@@ -1075,6 +1087,9 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 			win->screen->mainwin= wm_subwindow_open(win, &winrct);
 		else
 			wm_subwindow_position(win, win->screen->mainwin, &winrct);
+		
+		/* header size depends on DPI, let's verify */
+		screen_refresh_headersizes();
 		
 		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 			/* set spacetype and region callbacks, calls init() */
@@ -1498,7 +1513,7 @@ void ED_screen_delete_scene(bContext *C, Scene *scene)
 	unlink_scene(bmain, scene, newscene);
 }
 
-int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
+ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 {
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *screen= CTX_wm_screen(C);
@@ -1523,7 +1538,7 @@ int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 	
 	ED_area_newspace(C, newsa, type);
 	
-	return 1;
+	return newsa;
 }
 
 void ED_screen_full_prevspace(bContext *C, ScrArea *sa)

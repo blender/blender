@@ -102,7 +102,6 @@ endif()
 
 if(WITH_PYTHON)
 	list(APPEND INC ../python)
-	list(APPEND INC_SYS ${PYTHON_INCLUDE_DIRS})
 	add_definitions(-DWITH_PYTHON)
 
 	if(WITH_PYTHON_SECURITY)
@@ -116,7 +115,9 @@ endif()
 
 if(APPLE)
 	if(NOT WITH_COCOA)
-		list(APPEND SRC intern/wm_apple.c)
+		list(APPEND SRC
+			intern/wm_apple.c
+		)
 	endif()
 endif()
 

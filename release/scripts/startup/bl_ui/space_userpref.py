@@ -890,7 +890,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
         col.label(text="Categories")
-        col.prop(context.window_manager, "addon_filter", text="")  # , expand=True, too slow with dynamic enum.
+        col.prop(context.window_manager, "addon_filter", expand=True)
 
         col.label(text="Supported Level")
         col.prop(context.window_manager, "addon_support", expand=True)

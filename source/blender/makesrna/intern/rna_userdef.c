@@ -69,6 +69,13 @@ static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
+static void rna_userdef_dpi_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	U.widget_unit = (U.dpi * 20 + 36)/72;
+	WM_main_add_notifier(NC_WINDOW, NULL);		/* full redraw */
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);	/* refresh region sizes */
+}
+
 static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	UserDef *userdef = (UserDef *)ptr->data;
@@ -2444,7 +2451,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "dpi");
 	RNA_def_property_range(prop, 48, 128);
 	RNA_def_property_ui_text(prop, "DPI", "Font size and resolution for display");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 	
 	prop= RNA_def_property(srna, "scrollback", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "scrollback");

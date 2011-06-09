@@ -586,7 +586,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
 		ibuf->depth = size;
 
 		if (tga.mapbits != 32) {	/* set alpha bits  */
-			cmap[0] &= BIG_LONG(0x00ffffff);
+			cmap[0] &= BIG_LONG(0x00ffffffl);
 		}
 	}
 	

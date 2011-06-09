@@ -2453,6 +2453,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	ot->exec= border_select_exec;
 	ot->modal= WM_border_select_modal;
 	ot->poll= ED_operator_image_active;	/* requires space image */;
+	ot->cancel= WM_border_select_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2544,6 +2545,7 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 	ot->modal= WM_gesture_circle_modal;
 	ot->exec= circle_select_exec;
 	ot->poll= ED_operator_image_active;	/* requires space image */;
+	ot->cancel= WM_gesture_circle_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

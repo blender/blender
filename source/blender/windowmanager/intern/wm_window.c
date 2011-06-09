@@ -271,9 +271,11 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 void wm_window_title(wmWindowManager *wm, wmWindow *win)
 {
-	/* handle the 'temp' window */
+	/* handle the 'temp' window, only set title when not set before */
 	if(win->screen && win->screen->temp) {
-		GHOST_SetTitle(win->ghostwin, "Blender");
+		char *title= GHOST_GetTitle(win->ghostwin);
+		if(title==NULL || title[0]==0)
+			GHOST_SetTitle(win->ghostwin, "Blender");
 	}
 	else {
 		

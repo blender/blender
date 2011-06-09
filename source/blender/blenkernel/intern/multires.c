@@ -339,7 +339,6 @@ static void multires_reallocate_mdisps(int totloop, MDisps *mdisps, int lvl)
 	}
 }
 
-
 static void column_vectors_to_mat3(float mat[][3], float v1[3], float v2[3], float v3[3])
 {
 	copy_v3_v3(mat[0], v1);
@@ -444,7 +443,7 @@ void multiresModifier_del_levels(MultiresModifierData *mmd, Object *ob, int dire
 	int lvl = multires_get_level(ob, mmd, 0);
 	int levels = mmd->totlvl - lvl;
 	MDisps *mdisps;
-	
+
 	multires_set_tot_mdisps(me, mmd->totlvl);
 	CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
 	mdisps= CustomData_get_layer(&me->ldata, CD_MDISPS);
@@ -458,7 +457,7 @@ void multiresModifier_del_levels(MultiresModifierData *mmd, Object *ob, int dire
 	multires_set_tot_level(ob, mmd, lvl);
 }
 
-DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int totlvl, int simple)
+static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int totlvl, int simple)
 {
 	MultiresModifierData mmd= {{NULL}};
 
@@ -833,7 +832,6 @@ static void multiresModifier_update(DerivedMesh *dm)
 	ob = ccgdm->multires.ob;
 	me = ccgdm->multires.ob->data;
 	mmd = ccgdm->multires.mmd;
-
 	multires_set_tot_mdisps(me, mmd->totlvl);
 	CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
 	mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
@@ -1770,7 +1768,7 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	DMGridData **gridData, **subGridData;
 	Mesh *me= (Mesh*)ob->data;
 	MPoly *mpoly= me->mpoly;
-	MLoop *mloop = me->mloop;
+	/* MLoop *mloop = me->mloop; */ /* UNUSED */
 	MDisps *mdisps;
 	int *gridOffset;
 	int i, /*numGrids,*/ gridSize, dGridSize, dSkip, totvert;
@@ -1894,6 +1892,60 @@ void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 
 	multires_apply_smat(scene, ob, mat);
 }
+
+/* update multires data after topology changing */
+#if 0 // BMESH_TODO
+void multires_topology_changed(Scene *scene, Object *ob)
+{
+	Mesh *me= (Mesh*)ob->data;
+	MDisps *mdisp= NULL, *cur= NULL;
+	int i, grid= 0, corners;
+	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 1);
+
+	if(mmd)
+		multires_set_tot_mdisps(me, mmd->totlvl);
+
+	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
+	mdisp= CustomData_get_layer(&me->fdata, CD_MDISPS);
+
+	if(!mdisp) return;
+
+	cur= mdisp;
+	for(i = 0; i < me->totface; i++, cur++) {
+		if(mdisp->totdisp) {
+			corners= multires_mdisp_corners(mdisp);
+			grid= mdisp->totdisp / corners;
+
+			break;
+		}
+	}
+
+	for(i = 0; i < me->totface; i++, mdisp++) {
+		int nvert= me->mface[i].v4 ? 4 : 3;
+
+		/* allocate memory for mdisp, the whole disp layer would be erased otherwise */
+		if(!mdisp->totdisp || !mdisp->disps) {
+			if(grid) {
+				mdisp->totdisp= nvert*grid;
+				mdisp->disps= MEM_callocN(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
+			}
+
+			continue;
+		}
+
+		corners= multires_mdisp_corners(mdisp);
+
+		if(corners!=nvert) {
+			mdisp->totdisp= (mdisp->totdisp/corners)*nvert;
+
+			if(mdisp->disps)
+				MEM_freeN(mdisp->disps);
+
+			mdisp->disps= MEM_callocN(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
+		}
+	}
+}
+#endif // BMESH_TODO
 
 /* makes displacement along grid boundary symmetrical */
 void multires_mdisp_smooth_bounds(MDisps *disps)
@@ -2114,7 +2166,63 @@ void mdisp_rot_crn_to_face(const int S, const int corners, const int face_side, 
 	}
 }
 
+/* Find per-corner coordinate with given per-face UV coord */
 int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y)
+{
+	const float offset = face_side*0.5f - 0.5f;
+	int S = 0;
+
+	if (corners == 4) {
+		if(u <= offset && v <= offset) S = 0;
+		else if(u > offset  && v <= offset) S = 1;
+		else if(u > offset  && v > offset) S = 2;
+		else if(u <= offset && v >= offset)  S = 3;
+
+		if(S == 0) {
+			*y = offset - u;
+			*x = offset - v;
+		} else if(S == 1) {
+			*x = u - offset;
+			*y = offset - v;
+		} else if(S == 2) {
+			*y = u - offset;
+			*x = v - offset;
+		} else if(S == 3) {
+			*x= offset - u;
+			*y = v - offset;
+		}
+	} else {
+		int grid_size = offset;
+		float w = (face_side - 1) - u - v;
+		float W1, W2;
+
+		if (u >= v && u >= w) {S = 0; W1= w; W2= v;}
+		else if (v >= u && v >= w) {S = 1; W1 = u; W2 = w;}
+		else {S = 2; W1 = v; W2 = u;}
+
+		W1 /= (face_side-1);
+		W2 /= (face_side-1);
+
+		*x = (1-(2*W1)/(1-W2)) * grid_size;
+		*y = (1-(2*W2)/(1-W1)) * grid_size;
+	}
+
+	return S;
+}
+
+/* Find per-corner coordinate with given per-face UV coord
+   Practically as the previous funciton but it assumes a bit different coordinate system for triangles
+   which is optimized for MDISP layer interpolation:
+
+   v
+   ^
+   |      /|
+   |    /  |
+   |  /    |
+   |/______|___> u
+
+ */
+int mdisp_rot_face_to_quad_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y)
 {
 	const float offset = face_side*0.5f - 0.5f;
 	int S = 0;
@@ -2265,7 +2373,7 @@ void mdisp_join_tris(MDisps *dst, MDisps *tri1, MDisps *tri2)
 					face_v = st - 1 - face_v;
 				} else src = tri1;
 
-				crn = mdisp_rot_face_to_crn(3, st, face_u, face_v, &crn_u, &crn_v);
+				crn = mdisp_rot_face_to_quad_crn(3, st, face_u, face_v, &crn_u, &crn_v);
 
 				old_mdisps_bilinear((*out), &src->disps[crn*side*side], side, crn_u, crn_v);
 				(*out)[0] = 0;

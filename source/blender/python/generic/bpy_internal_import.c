@@ -217,7 +217,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 }
 
 
-static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject * kw)
+static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	PyObject *exception, *err, *tb;
 	char *name;
@@ -270,7 +270,7 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
  * our reload() module, to handle reloading in-memory scripts
  */
 
-static PyObject *blender_reload(PyObject *UNUSED(self), PyObject * module)
+static PyObject *blender_reload(PyObject *UNUSED(self), PyObject *module)
 {
 	PyObject *exception, *err, *tb;
 	PyObject *newmodule= NULL;

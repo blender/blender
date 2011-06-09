@@ -45,6 +45,7 @@ struct uiHandleButtonData;
 struct wmEvent;
 struct wmOperatorType;
 struct wmWindow;
+struct wmTimer;
 struct uiStyle;
 struct uiWidgetColors;
 struct uiLayout;
@@ -107,8 +108,8 @@ typedef enum {
 #define UI_PANEL_MINY	70
 
 /* uiBut->flag */
-#define UI_SELECT		1 /* use when the button is pressed */
-/*#define UI_MOUSE_OVER	2*/  /*UNUSED, free flag*/
+#define UI_SELECT		1	/* use when the button is pressed */
+#define UI_SCROLLED		2	/* temp hidden, scrolled away */
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 #define UI_TEXTINPUT	16
@@ -116,8 +117,8 @@ typedef enum {
 /* warn: rest of uiBut->flag in UI_interface.h */
 
 /* internal panel drawing defines */
-#define PNL_GRID	4
-#define PNL_HEADER  20
+#define PNL_GRID	(UI_UNIT_Y / 5)	/* 4 default */
+#define PNL_HEADER  UI_UNIT_Y		/* 20 default */
 
 /* panel->flag */
 #define PNL_SELECT	1
@@ -369,7 +370,7 @@ extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, int maxlen);
 extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern int ui_get_but_string_max_length(uiBut *but);
 
-extern void ui_set_but_default(struct bContext *C, uiBut *but, short all);
+extern void ui_set_but_default(struct bContext *C, short all);
 
 extern void ui_set_but_soft_range(uiBut *but, double value);
 
@@ -395,6 +396,8 @@ struct uiPopupBlockHandle {
 	void (*popup_func)(struct bContext *C, void *arg, int event);
 	void (*cancel_func)(void *arg);
 	void *popup_arg;
+	
+	struct wmTimer *scrolltimer;
 
 	/* for operator popups */
 	struct wmOperatorType *optype;
@@ -416,9 +419,11 @@ void ui_block_func_ICONTEXTROW(struct bContext *C, uiLayout *layout, void *arg_b
 struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
-uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but);
+uiBut *ui_popup_menu_memory(struct uiBlock *block, struct uiBut *but);
 
-float *ui_block_hsv_get(uiBlock *block);
+float *ui_block_hsv_get(struct uiBlock *block);
+void ui_popup_block_scrolltest(struct uiBlock *block);
+
 
 /* searchbox for string button */
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
@@ -480,6 +485,11 @@ void ui_widget_color_init(struct ThemeUI *tui);
 
 void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
+
+extern unsigned char checker_stipple_sml[];
+/* used for transp checkers */
+#define UI_TRANSP_DARK 100
+#define UI_TRANSP_LIGHT 160
 
 /* interface_style.c */
 void uiStyleInit(void);

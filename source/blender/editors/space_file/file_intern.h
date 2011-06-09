@@ -43,8 +43,12 @@ struct SpaceFile;
 struct ARegion *file_buttons_region(struct ScrArea *sa);
 
 /* file_draw.c */
-#define TILE_BORDER_X 8
-#define TILE_BORDER_Y 8
+#define TILE_BORDER_X (UI_UNIT_X/4)
+#define TILE_BORDER_Y (UI_UNIT_Y/4)
+
+/* ui geometry */
+#define IMASEL_BUTTONS_HEIGHT (UI_UNIT_Y*2)
+#define IMASEL_BUTTONS_MARGIN (UI_UNIT_Y/6)
 
 void file_draw_buttons(const bContext *C, ARegion *ar);
 void file_calc_previews(const bContext *C, ARegion *ar);

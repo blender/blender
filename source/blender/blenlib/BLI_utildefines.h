@@ -103,6 +103,12 @@
 
 #define FTOCHAR(val) ((val)<=0.0f)? 0 : (((val)>(1.0f-0.5f/255.0f))? 255 : (char)((255.0f*(val))+0.5f))
 #define FTOUSHORT(val) ((val >= 1.0f-0.5f/65535)? 65535: (val <= 0.0f)? 0: (unsigned short)(val*65535.0f + 0.5f))
+#define F3TOCHAR3(v2,v1) (v1)[0]=FTOCHAR((v2[0])); (v1)[1]=FTOCHAR((v2[1])); (v1)[2]=FTOCHAR((v2[2]))
+#define F3TOCHAR4(v2,v1) { (v1)[0]=FTOCHAR((v2[0])); (v1)[1]=FTOCHAR((v2[1])); (v1)[2]=FTOCHAR((v2[2])); \
+						(v1)[3]=FTOCHAR((v2[3])); (v1)[3] = 255; }
+#define F4TOCHAR4(v2,v1) { (v1)[0]=FTOCHAR((v2[0])); (v1)[1]=FTOCHAR((v2[1])); (v1)[2]=FTOCHAR((v2[2])); \
+						(v1)[3]=FTOCHAR((v2[3])); (v1)[3]=FTOCHAR((v2[3])); }
+
 
 #define VECCOPY(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
 #define VECCOPY2D(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1);}

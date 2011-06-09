@@ -63,6 +63,10 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DINTERNATIONAL)
 endif()
 
+if(WITH_HEADLESS)
+	add_definitions(-DWITH_HEADLESS)
+endif()
+
 if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()

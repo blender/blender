@@ -231,7 +231,7 @@ static PyObject *bpy_import_test(const char *modname)
 /*****************************************************************************
 * Description: Creates the bpy module and adds it to sys.modules for importing
 *****************************************************************************/
-void BPy_init_modules( void )
+void BPy_init_modules(void)
 {
 	extern BPy_StructRNA *bpy_context_module;
 	extern int bpy_lib_init(PyObject *);
@@ -262,17 +262,17 @@ void BPy_init_modules( void )
 	/* run first, initializes rna types */
 	BPY_rna_init();
 
-	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
+	PyModule_AddObject(mod, "types", BPY_rna_types()); /* needs to be first so bpy_types can run */
 	PyModule_AddObject(mod, "StructMetaPropGroup", (PyObject *)&pyrna_struct_meta_idprop_Type); /* metaclass for idprop types, bpy_types.py needs access */
 
 	bpy_lib_init(mod); /* adds '_bpy._library_load', must be called before 'bpy_types' which uses it */
 
 	bpy_import_test("bpy_types");
-	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
+	PyModule_AddObject(mod, "data", BPY_rna_module()); /* imports bpy_types by running this */
 	bpy_import_test("bpy_types");
-	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "ops", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
-	PyModule_AddObject( mod, "app", BPY_app_struct() );
+	PyModule_AddObject(mod, "props", BPY_rna_props());
+	PyModule_AddObject(mod, "ops", BPY_operator_module()); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
+	PyModule_AddObject(mod, "app", BPY_app_struct());
 
 	/* bpy context */
 	RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);
