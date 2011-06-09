@@ -1607,7 +1607,7 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 	}
 }
 
-static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected)
+static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int multipaint)
 {
 	Mesh *me = ob->data;
 	float colf[4], input = 0.0f;
@@ -1616,12 +1616,12 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 	if (me->dvert) {
 		for (i=0; i<me->dvert[vert].totweight; i++)
 			// Jason was here
-			if ((selected<=1 && me->dvert[vert].dw[i].def_nr==ob->actdef-1) || dg_flags[me->dvert[vert].dw[i].def_nr]) {//
+			if ((!multipaint && me->dvert[vert].dw[i].def_nr==ob->actdef-1) || (multipaint && dg_flags[me->dvert[vert].dw[i].def_nr])) {//
 				input+=me->dvert[vert].dw[i].weight;
 			}
 	}
 	// Jason was here
-	if(selected) {
+	if(multipaint && selected) {
 		input/=selected;
 	}
 
@@ -1644,7 +1644,7 @@ void vDM_ColorBand_store(ColorBand *coba)
 {
 	stored_cb= coba;
 }
-/* Jason was here */
+/* Jason was here duplicate function in paint_vertex.c*/
 static char* get_selected_defgroups(Object *ob, int defcnt) {
 	bPoseChannel *chan;
 	bPose *pose;
@@ -1660,8 +1660,7 @@ static char* get_selected_defgroups(Object *ob, int defcnt) {
 		for (chan=pose->chanbase.first; chan; chan=chan->next) {
 			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
 				if(!strcmp(defgroup->name, chan->bone->name)) {
-					// TODO get BONE_SELECTED flag
-					dg_flags[i] = (chan->bone->flag & 1);
+					dg_flags[i] = (chan->bone->flag & BONE_SELECTED);
 					was_selected = TRUE;
 				}
 			}
@@ -1682,7 +1681,7 @@ static int count_true(char *list, int len)
 	}
 	return cnt;
 }
-static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
+static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int multipaint)
 {
 	Mesh *me = ob->data;
 	MFace *mf = me->mface;
@@ -1698,11 +1697,11 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	
 	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
 	for (i=0; i<me->totface; i++, mf++) {
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], dg_flags, selected); 
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], dg_flags, selected); 
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], dg_flags, selected); 
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], dg_flags, selected, multipaint); 
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], dg_flags, selected, multipaint); 
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], dg_flags, selected, multipaint); 
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], dg_flags, selected); 
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], dg_flags, selected, multipaint); 
 	}
 	// Jason
 	MEM_freeN(dg_flags);
@@ -1913,7 +1912,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 
 				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-					add_weight_mcol_dm(ob, dm);
+					add_weight_mcol_dm(ob, dm, scene->toolsettings->multipaint);// Jason
 
 				/* Constructive modifiers need to have an origindex
 				 * otherwise they wont have anywhere to copy the data from.
@@ -2023,7 +2022,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		CDDM_calc_normals(finaldm);
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm);
+			add_weight_mcol_dm(ob, finaldm, scene->toolsettings->multipaint);// Jason
 	} else if(dm) {
 		finaldm = dm;
 	} else {
@@ -2035,7 +2034,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		}
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm);
+			add_weight_mcol_dm(ob, finaldm, scene->toolsettings->multipaint);// Jason
 	}
 
 	/* add an orco layer if needed */

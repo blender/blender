@@ -1092,6 +1092,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "WPaint Multi-Paint", 
 		"Paint across all selected bones while "
 		 "weight painting");
+	RNA_def_property_update(prop, 0, "rna_update_active_object");
 
 	prop= RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");

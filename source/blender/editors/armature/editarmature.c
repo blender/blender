@@ -4408,6 +4408,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 	Bone *nearBone;
 	// Jason
 	Bone *new_act_bone;
+
 	if (!ob || !ob->pose) return 0;
 
 	nearBone= get_bone_from_selectbuffer(scene, base, buffer, hits, 1);
@@ -5210,6 +5211,10 @@ void POSE_OT_select_inverse(wmOperatorType *ot)
 static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int action = RNA_enum_get(op->ptr, "action");
+	//Jason
+	Object *ob = NULL;
+	Scene *scene= CTX_data_scene(C);
+	int multipaint = scene->toolsettings->multipaint;
 
 	if (action == SEL_TOGGLE) {
 		action= CTX_DATA_COUNT(C, selected_pose_bones) ? SEL_DESELECT : SEL_SELECT;
@@ -5239,7 +5244,12 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
-	
+	// Jason
+	if(multipaint) {
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
+
 	return OPERATOR_FINISHED;
 }
 

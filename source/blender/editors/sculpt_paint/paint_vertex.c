@@ -1393,8 +1393,7 @@ static char* get_selected_defgroups(Object *ob, int defcnt) {
 		for (chan=pose->chanbase.first; chan; chan=chan->next) {
 			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
 				if(!strcmp(defgroup->name, chan->bone->name)) {
-					// TODO get BONE_SELECTED flag
-					dg_flags[i] = (chan->bone->flag & 1);
+					dg_flags[i] = (chan->bone->flag & BONE_SELECTED);
 					was_selected = TRUE;
 				}
 			}
@@ -1471,7 +1470,6 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 		MEM_freeN(bone_groups);
 	}
 }
-
 
 /* *************** set wpaint operator ****************** */
 
