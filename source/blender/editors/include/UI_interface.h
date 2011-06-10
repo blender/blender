@@ -730,6 +730,7 @@ void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr
 void uiTemplateNodeLink(uiLayout *layout, struct ID *id, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
 void uiTemplateNodeView(uiLayout *layout, struct bContext *C, struct ID *id, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
 void uiTemplateTextureUser(uiLayout *layout, struct bContext *C);
+void uiTemplateTextureShow(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop);
 
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);

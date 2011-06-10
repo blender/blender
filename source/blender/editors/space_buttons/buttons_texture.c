@@ -45,6 +45,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -56,11 +57,14 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
 
 #include "RNA_access.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "ED_screen.h"
 
 #include "../interface/interface_intern.h"
 
@@ -99,7 +103,8 @@ static void buttons_texture_users_find_nodetree(ListBase *users, ID *id,
 				RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 				prop = RNA_struct_find_property(&ptr, "texture");
 
-				buttons_texture_user_add(users, id, ptr, prop, category, ICON_NODE, node->name);
+				buttons_texture_user_add(users, id, ptr, prop,
+					category, RNA_struct_ui_icon(ptr.type), node->name);
 			}
 			else if(node->type == NODE_GROUP && node->id) {
 				buttons_texture_users_find_nodetree(users, id, (bNodeTree*)node->id, category);
@@ -117,7 +122,8 @@ static void buttons_texture_modifier_foreach(void *userData, Object *ob, Modifie
 	RNA_pointer_create(&ob->id, &RNA_Modifier, md, &ptr);
 	prop = RNA_struct_find_property(&ptr, propname);
 
-	buttons_texture_user_add(users, &ob->id, ptr, prop, "Modifiers", ICON_MODIFIER, md->name);
+	buttons_texture_user_add(users, &ob->id, ptr, prop,
+		"Modifiers", RNA_struct_ui_icon(ptr.type), md->name);
 }
 
 static void buttons_texture_users_from_context(ListBase *users, const bContext *C, SpaceButs *sbuts)
@@ -171,7 +177,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		buttons_texture_users_find_nodetree(users, &wrld->id, wrld->nodetree, "World");
 
 	if(ob) {
-		ParticleSystem *psys;
+		ParticleSystem *psys= psys_get_current(ob);
 		MTex *mtex;
 		int a;
 
@@ -179,8 +185,8 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		modifiers_foreachTexLink(ob, buttons_texture_modifier_foreach, users);
 
 		/* particle systems */
-		/* todo: these slots are not in the UI */
-		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+		if(psys) {
+			/* todo: these slots are not in the UI */
 			for(a=0; a<MAX_MTEX; a++) {
 				mtex = psys->part->mtex[a];
 
@@ -191,9 +197,22 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 					RNA_pointer_create(&psys->part->id, &RNA_ParticleSettingsTextureSlot, mtex, &ptr);
 					prop = RNA_struct_find_property(&ptr, "texture");
 
-					buttons_texture_user_add(users, &psys->part->id, ptr, prop, "Particles", ICON_PARTICLES, psys->name);
+					buttons_texture_user_add(users, &psys->part->id, ptr, prop,
+						"Particles", RNA_struct_ui_icon(&RNA_ParticleSettings), psys->name);
 				}
 			}
+		}
+
+		/* field */
+		if(ob->pd && ob->pd->forcefield == PFIELD_TEXTURE) {
+			PointerRNA ptr;
+			PropertyRNA *prop;
+
+			RNA_pointer_create(&ob->id, &RNA_FieldSettings, ob->pd, &ptr);
+			prop = RNA_struct_find_property(&ptr, "texture");
+
+			buttons_texture_user_add(users, &ob->id, ptr, prop,
+				"Fields", ICON_FORCE_TEXTURE, "Texture Field");
 		}
 	}
 
@@ -203,9 +222,10 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		PropertyRNA *prop;
 
 		RNA_pointer_create(&brush->id, &RNA_BrushTextureSlot, &brush->mtex, &ptr);
-		prop = RNA_struct_find_property(&ptr, "texture");
+		prop= RNA_struct_find_property(&ptr, "texture");
 
-		buttons_texture_user_add(users, &brush->id, ptr, prop, "Brush", ICON_BRUSH_DATA, brush->id.name+2);
+		buttons_texture_user_add(users, &brush->id, ptr, prop,
+			"Brush", ICON_BRUSH_DATA, brush->id.name+2);
 	}
 }
 
@@ -333,5 +353,61 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 	but->type= MENU;
 	but->flag |= UI_TEXT_LEFT;
 	but->flag &= ~UI_ICON_SUBMENU;
+}
+
+/************************* Texture Show **************************/
+
+static void template_texture_show(bContext *C, void *data_p, void *prop_p)
+{
+	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	ButsContextTexture *ct= (sbuts)? sbuts->texuser: NULL;
+	ButsTextureUser *user;
+
+	if(!ct)
+		return;
+
+	for(user=ct->users.first; user; user=user->next)
+		if(user->ptr.data == data_p && user->prop == prop_p)
+			break;
+	
+	if(user) {
+		/* select texture */
+		template_texture_select(C, user, NULL);
+
+		/* change context */
+		sbuts->mainb= BCONTEXT_TEXTURE;
+		sbuts->mainbuser= sbuts->mainb;
+		sbuts->preview= 1;
+
+		/* redraw editor */
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+}
+
+void uiTemplateTextureShow(uiLayout *layout, bContext *C, PointerRNA *ptr, PropertyRNA *prop)
+{
+	/* button to quickly show texture in texture tab */
+	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	ButsContextTexture *ct= (sbuts)? sbuts->texuser: NULL;
+	ButsTextureUser *user;
+
+	/* only show button in other tabs in properties editor */
+	if(!ct || sbuts->mainb == BCONTEXT_TEXTURE)
+		return;
+
+	/* find corresponding texture user */
+	for(user=ct->users.first; user; user=user->next)
+		if(user->ptr.data == ptr->data && user->prop == prop)
+			break;
+	
+	/* draw button */
+	if(user) {
+		uiBlock *block = uiLayoutGetBlock(layout);
+		uiBut *but;
+		
+		but= uiDefIconBut(block, BUT, 0, ICON_BUTS, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			NULL, 0.0, 0.0, 0.0, 0.0, "Show texture in texture tab");
+		uiButSetFunc(but, template_texture_show, user->ptr.data, user->prop);
+	}
 }
 
