@@ -224,6 +224,7 @@ static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
 	
 	ksp->groupmode= KSP_GROUP_KSNAME; // XXX?
 	ksp->idtype= ID_OB;
+	ksp->flag= KSP_FLAG_WHOLE_ARRAY;
 	
 	return OPERATOR_FINISHED;
 }
