@@ -126,22 +126,23 @@ void WM_init(bContext *C, int argc, const char **argv)
 		wm_init_cursor_data();
 	}
 	GHOST_CreateSystemPaths();
-	wm_operatortype_init();
-	
-	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
-	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
-	DAG_editors_update_cb(ED_render_id_flush_update); /* depsgraph.c */
-	
-	ED_spacetypes_init();	/* editors/space_api/spacetype.c */
-	
-	ED_file_init();			/* for fsmenu */
-	ED_init_node_butfuncs();	
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
 	// use default settings
 	BLF_lang_encoding("");
 	BLF_lang_set("");
+
+	wm_operatortype_init();
+
+	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
+	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
+	DAG_editors_update_cb(ED_render_id_flush_update); /* depsgraph.c */
+
+	ED_spacetypes_init();	/* editors/space_api/spacetype.c */
+
+	ED_file_init();			/* for fsmenu */
+	ED_init_node_butfuncs();
 
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL, G.factory_startup);

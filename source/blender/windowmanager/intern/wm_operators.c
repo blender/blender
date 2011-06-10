@@ -77,6 +77,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
+#include "BLF_api.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -346,7 +347,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	ot->poll= NULL;
 
 	if(!ot->description)
-		ot->description= "(undocumented operator)";
+		ot->description= _("(undocumented operator)");
 	
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description); // XXX All ops should have a description but for now allow them not to.
 	RNA_def_struct_identifier(ot->srna, ot->idname);
@@ -371,7 +372,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), vo
 	ot->poll= NULL;
 
 	if(!ot->description)
-		ot->description= "(undocumented operator)";
+		ot->description= _("(undocumented operator)");
 
 	opfunc(ot, userdata);
 
@@ -766,7 +767,7 @@ int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message
 	else
 		properties= NULL;
 
-	pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
+	pup= uiPupMenuBegin(C, _("OK?"), ICON_QUESTION);
 	layout= uiPupMenuLayout(pup);
 	uiItemFullO(layout, op->type->idname, message, ICON_NONE, properties, WM_OP_EXEC_REGION_WIN, 0);
 	uiPupMenuEnd(C, pup);
@@ -981,7 +982,7 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 		col= uiLayoutColumn(layout, FALSE);
 		col_block= uiLayoutGetBlock(col);
 		/* Create OK button, the callback of which will execute op */
-		btn= uiDefBut(col_block, BUT, 0, "OK", 0, -30, 0, 20, NULL, 0, 0, 0, 0, "");
+		btn= uiDefBut(col_block, BUT, 0, _("OK"), 0, -30, 0, 20, NULL, 0, 0, 0, 0, "");
 		uiButSetFunc(btn, dialog_exec_cb, op, col_block);
 	}
 
@@ -1094,7 +1095,7 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 {
 	ot->name= "Debug Menu";
 	ot->idname= "WM_OT_debug_menu";
-	ot->description= "Open a popup to set the debug level";
+	ot->description= _("Open a popup to set the debug level");
 	
 	ot->invoke= wm_debug_menu_invoke;
 	ot->exec= wm_debug_menu_exec;
@@ -1208,19 +1209,19 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	
 	split = uiLayoutSplit(layout, 0, 0);
 	col = uiLayoutColumn(split, 0);
-	uiItemL(col, "Links", ICON_NONE);
-	uiItemStringO(col, "Donations", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment/");
-	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-257/");
-	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.5/Manual");
-	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
-	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/"); // 
+	uiItemL(col, _("Links"), ICON_NONE);
+	uiItemStringO(col, _("Donations"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment/");
+	uiItemStringO(col, _("Release Log"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-257/");
+	uiItemStringO(col, _("Manual"), ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.5/Manual");
+	uiItemStringO(col, _("Blender Website"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
+	uiItemStringO(col, _("User Community"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/"); // 
 	if(strcmp(STRINGIFY(BLENDER_VERSION_CYCLE), "release")==0) {
 		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d" STRINGIFY(BLENDER_VERSION_CHAR) "_release", BLENDER_VERSION/100, BLENDER_VERSION%100);
 	}
 	else {
 		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d_%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	}
-	uiItemStringO(col, "Python API Reference", ICON_URL, "WM_OT_url_open", "url", url);
+	uiItemStringO(col, _("Python API Reference"), ICON_URL, "WM_OT_url_open", "url", url);
 	uiItemL(col, "", ICON_NONE);
 
 	col = uiLayoutColumn(split, 0);
@@ -1230,7 +1231,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 		uiItemS(col);
 	}
 
-	uiItemL(col, "Recent", ICON_NONE);
+	uiItemL(col, _("Recent"), ICON_NONE);
 	for(recent = G.recent_files.first, i=0; (i<5) && (recent); recent = recent->next, i++) {
 		uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
 	}
@@ -1408,9 +1409,9 @@ static int wm_operator_winactive_normal(bContext *C)
 
 static void WM_OT_window_duplicate(wmOperatorType *ot)
 {
-	ot->name= "Duplicate Window";
+	ot->name= _("Duplicate Window");
 	ot->idname= "WM_OT_window_duplicate";
-	ot->description="Duplicate the current Blender window";
+	ot->description=_("Duplicate the current Blender window");
 		
 	ot->exec= wm_window_duplicate_exec;
 	ot->poll= wm_operator_winactive_normal;
@@ -1418,9 +1419,9 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 
 static void WM_OT_save_homefile(wmOperatorType *ot)
 {
-	ot->name= "Save User Settings";
+	ot->name= _("Save User Settings");
 	ot->idname= "WM_OT_save_homefile";
-	ot->description="Make the current file the default .blend file";
+	ot->description=_("Make the current file the default .blend file");
 		
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_write_homefile;
@@ -1429,9 +1430,9 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 
 static void WM_OT_read_homefile(wmOperatorType *ot)
 {
-	ot->name= "Reload Start-Up File";
+	ot->name= _("Reload Start-Up File");
 	ot->idname= "WM_OT_read_homefile";
-	ot->description="Open the default file (doesn't save the current file)";
+	ot->description=_("Open the default file (doesn't save the current file)");
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile_exec;
@@ -1440,9 +1441,9 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 
 static void WM_OT_read_factory_settings(wmOperatorType *ot)
 {
-	ot->name= "Load Factory Settings";
+	ot->name= _("Load Factory Settings");
 	ot->idname= "WM_OT_read_factory_settings";
-	ot->description="Load default file and user preferences";
+	ot->description=_("Load default file and user preferences");
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile_exec;
@@ -1517,7 +1518,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
-	ot->description="Open a Blender file";
+	ot->description=_("Open a Blender file");
 	
 	ot->invoke= wm_open_mainfile_invoke;
 	ot->exec= wm_open_mainfile_exec;
@@ -1685,7 +1686,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 {
 	ot->name= "Link/Append from Library";
 	ot->idname= "WM_OT_link_append";
-	ot->description= "Link or Append from a Library .blend file";
+	ot->description= _("Link or Append from a Library .blend file");
 	
 	ot->invoke= wm_link_append_invoke;
 	ot->exec= wm_link_append_exec;
@@ -1725,9 +1726,9 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_recover_last_session(wmOperatorType *ot)
 {
-	ot->name= "Recover Last Session";
+	ot->name= _("Recover Last Session");
 	ot->idname= "WM_OT_recover_last_session";
-	ot->description="Open the last closed file (\"quit.blend\")";
+	ot->description=_("Open the last closed file (\"quit.blend\")");
 	
 	ot->exec= wm_recover_last_session_exec;
 	ot->poll= WM_operator_winactive;
@@ -1770,7 +1771,7 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 {
 	ot->name= "Recover Auto Save";
 	ot->idname= "WM_OT_recover_auto_save";
-	ot->description="Open an automatically saved file to recover it";
+	ot->description=_("Open an automatically saved file to recover it");
 	
 	ot->exec= wm_recover_auto_save_exec;
 	ot->invoke= wm_recover_auto_save_invoke;
@@ -1876,7 +1877,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save As Blender File";
 	ot->idname= "WM_OT_save_as_mainfile";
-	ot->description="Save the current file in the desired location";
+	ot->description=_("Save the current file in the desired location");
 	
 	ot->invoke= wm_save_as_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
@@ -1935,7 +1936,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save Blender File";
 	ot->idname= "WM_OT_save_mainfile";
-	ot->description="Save the current Blender file";
+	ot->description=_("Save the current Blender file");
 	
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
@@ -2053,7 +2054,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 {
 	ot->name= "Quit Blender";
 	ot->idname= "WM_OT_quit_blender";
-	ot->description= "Quit Blender";
+	ot->description= _("Quit Blender");
 
 	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_exit_blender_op;
@@ -2074,7 +2075,7 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
 {
 	ot->name= "Toggle System Console";
 	ot->idname= "WM_OT_console_toggle";
-	ot->description= "Toggle System Console";
+	ot->description= _("Toggle System Console");
 	
 	ot->exec= wm_console_toggle_op;
 	ot->poll= WM_operator_winactive;
@@ -3312,7 +3313,7 @@ static void WM_OT_memory_statistics(wmOperatorType *ot)
 {
 	ot->name= "Memory Statistics";
 	ot->idname= "WM_OT_memory_statistics";
-	ot->description= "Print memory statistics to the console";
+	ot->description= _("Print memory statistics to the console");
 	
 	ot->exec= memory_statistics_exec;
 }

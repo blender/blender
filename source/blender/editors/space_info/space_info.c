@@ -41,6 +41,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
@@ -278,7 +280,7 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 			uiItemStringO(layout, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
 		}
 	} else {
-		uiItemL(layout, "No Recent Files", ICON_NONE);
+		uiItemL(layout, _("No Recent Files"), ICON_NONE);
 	}
 }
 
@@ -288,7 +290,7 @@ static void recent_files_menu_register(void)
 
 	mt= MEM_callocN(sizeof(MenuType), "spacetype info menu recent files");
 	strcpy(mt->idname, "INFO_MT_file_open_recent");
-	strcpy(mt->label, "Open Recent...");
+	strcpy(mt->label, _("Open Recent..."));
 	mt->draw= recent_files_menu_draw;
 	WM_menutype_add(mt);
 }

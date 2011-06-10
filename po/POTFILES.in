@@ -1,1 +1,4 @@
 release/scripts/startup/bl_ui/space_info.py
+
+source/blender/editors/space_info/space_info.c
+source/blender/windowmanager/intern/wm_operators.c

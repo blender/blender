@@ -36,7 +36,4 @@ for lang in LANGS:
     cmd = "msgmerge --update --lang=%s %s.po %s.pot" % (lang, lang, DOMAIN)
     print(cmd)
     os.system( cmd )
-
-    # show stats
-    cmd = "msgfmt --statistics %s.po" % lang
-    os.system( cmd )
+    
