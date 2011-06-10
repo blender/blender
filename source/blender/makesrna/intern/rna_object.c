@@ -454,6 +454,14 @@ static void rna_Object_dup_group_set(PointerRNA *ptr, PointerRNA value)
 		BKE_report(NULL, RPT_ERROR, "Cannot set dupli-group as object belongs in group being instanced thus causing a cycle");
 }
 
+void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
+{
+	Object *ob= (Object *)ptr->id.data;
+	bDeformGroup *dg= (bDeformGroup *)ptr->data;
+	BLI_strncpy(dg->name, value, sizeof(dg->name));
+	defgroup_unique_name(dg, ob);
+}
+
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -1236,6 +1244,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Vertex group name");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_VertexGroup_name_set");
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA|NA_RENAME, "rna_Object_internal_update_data"); /* update data because modifiers may use [#24761] */
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);

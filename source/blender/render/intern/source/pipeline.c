@@ -2070,8 +2070,7 @@ static void load_backbuffer(Render *re)
 	if(re->r.alphamode == R_ADDSKY) {
 		ImBuf *ibuf;
 		char name[256];
-		
-		BLI_strncpy(name, re->r.backbuf, sizeof(name));
+
 		BLI_path_abs(name, re->main->name);
 		BLI_path_frame(name, re->r.cfra, 0);
 		

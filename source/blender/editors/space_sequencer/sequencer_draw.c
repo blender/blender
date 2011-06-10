@@ -550,15 +550,17 @@ static void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, floa
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_QUADS);
 	
-	if(seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -50);
+	if(seq->flag & SEQ_INVALID_EFFECT) { col[0]= 255; col[1]= 0; col[2]= 255; }
+	else if(seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -50);
 	else UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 0);
 	
 	glColor3ubv(col);
 	
 	glVertex2f(x1,y1);
 	glVertex2f(x2,y1);
-	
-	if(seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 5);
+
+	if(seq->flag & SEQ_INVALID_EFFECT) { col[0]= 255; col[1]= 0; col[2]= 255; }
+	else if(seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 5);
 	else UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -5);
 
 	glColor3ubv((GLubyte *)col);

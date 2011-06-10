@@ -163,6 +163,8 @@ void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *update
 void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable);
 void RNA_def_property_editable_array_func(PropertyRNA *prop, const char *editable);
 
+void RNA_def_property_update_runtime(PropertyRNA *prop, void *func);
+
 void RNA_def_property_dynamic_array_funcs(PropertyRNA *prop, const char *getlength);
 void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const char *set);
 void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *set, const char *range);
@@ -172,6 +174,7 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set, const char *typef, const char *poll);
 void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring);
 void RNA_def_property_srna(PropertyRNA *prop, const char *type);
+void RNA_def_py_data(PropertyRNA *prop, void *py_data);
 
 /* Function */
 

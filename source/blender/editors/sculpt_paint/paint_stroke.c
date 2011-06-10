@@ -916,6 +916,19 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+int paint_stroke_cancel(bContext *C, wmOperator *op)
+{
+	PaintStroke *stroke = op->customdata;
+
+	if(stroke->done)
+		stroke->done(C, stroke);
+
+	MEM_freeN(stroke);
+	op->customdata = NULL;
+
+	return OPERATOR_CANCELLED;
+}
+
 ViewContext *paint_stroke_view_context(PaintStroke *stroke)
 {
 	return &stroke->vc;

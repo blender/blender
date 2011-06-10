@@ -716,6 +716,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	ot->invoke= WM_gesture_lines_invoke;
 	ot->modal= WM_gesture_lines_modal;
 	ot->exec= knife_cut_exec;
+	ot->cancel= WM_gesture_lines_cancel;
 	
 	ot->poll= EM_view3d_poll;
 	

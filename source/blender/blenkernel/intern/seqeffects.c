@@ -1582,7 +1582,7 @@ typedef struct WipeZone {
 static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo)
 {
 	wipezone->flip = (wipe->angle < 0);
-	wipezone->angle = pow(fabsf(wipe->angle)/45.0f, log(xo)/log(2.0f));
+	wipezone->angle = pow(fabsf(wipe->angle)/45.0f, log(xo)/M_LN2);
 	wipezone->xo = xo;
 	wipezone->yo = yo;
 	wipezone->width = (int)(wipe->edgeWidth*((xo+yo)/2.0f));
@@ -3021,10 +3021,15 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 	/* if not already done, load / initialize data */
 	get_sequence_effect(seq);
 
-	if (!(force || seq->len != v->length || !v->frameMap)) {
+	if (	(force == FALSE) &&
+			(seq->len == v->length) &&
+			(v->frameMap != NULL)
+	) {
 		return;
 	}
-	if (!seq->seq1) { /* make coverity happy and check for (CID 598)
+	if (	(seq->seq1 == NULL) ||
+	        (seq->len < 1)
+	) { /* make coverity happy and check for (CID 598)
 						 input strip ... */
 		return;
 	}

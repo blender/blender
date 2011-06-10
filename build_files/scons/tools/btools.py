@@ -134,7 +134,8 @@ def validate_arguments(args, bc):
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
             'BF_NO_ELBEEM',
             'WITH_BF_CXX_GUARDEDALLOC',
-            'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC'
+            'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC',
+            'BUILDBOT_BRANCH'
             ]
     
     # Have options here that scons expects to be lists
@@ -501,7 +502,9 @@ def read_opts(env, cfg, args):
         
         (BoolVariable('WITH_BF_RAYOPTIMIZATION', 'Enable raytracer SSE/SIMD optimization.', False)),
         ('BF_RAYOPTIMIZATION_SSE_FLAGS', 'SSE flags', ''),
-        (BoolVariable('WITH_BF_CXX_GUARDEDALLOC', 'Enable GuardedAlloc for C++ memory allocation tracking.', False))
+        (BoolVariable('WITH_BF_CXX_GUARDEDALLOC', 'Enable GuardedAlloc for C++ memory allocation tracking.', False)),
+
+        ('BUILDBOT_BRANCH', 'Buildbot branch name', ''),
     ) # end of opts.AddOptions()
 
     return localopts
@@ -546,7 +549,7 @@ def buildslave(target=None, source=None, env=None):
     Builder for buildbot integration. Used by buildslaves of http://builder.blender.org only.
     """
 
-    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
+    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw', 'darwin'):
         extension = '.zip'
     else:
         extension = '.tar.bz2'
@@ -560,9 +563,15 @@ def buildslave(target=None, source=None, env=None):
             platform = 'linux-glibc27-x86_64'
         elif bitness == '32bit':
             platform = 'linux-glibc27-i686'
+    if platform == 'darwin':
+        platform = 'OSX-' + env['MACOSX_ARCHITECTURE']
+
+    branch = env['BUILDBOT_BRANCH']
 
     outdir = os.path.abspath(env['BF_INSTALLDIR'])
     package_name = 'blender-' + VERSION+'-'+REVISION + '-' + platform
+    if branch != '':
+        package_name = branch + '-' + package_name
     package_dir = os.path.normpath(outdir + os.sep + '..' + os.sep + package_name)
     package_archive = os.path.normpath(outdir + os.sep + '..' + os.sep + package_name + extension)
 

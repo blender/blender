@@ -71,7 +71,7 @@ float brush_curve_strength(struct Brush *br, float p, const float len); /* used 
 /* sampling */
 void brush_sample_tex(struct Brush *brush, float *xy, float *rgba, const int thread);
 void brush_imbuf_new(struct Brush *brush, short flt, short texfalloff, int size,
-	struct ImBuf **imbuf);
+	struct ImBuf **imbuf, int use_color_correction);
 
 /* painting */
 struct BrushPainter;
@@ -82,7 +82,7 @@ BrushPainter *brush_painter_new(struct Brush *brush);
 void brush_painter_require_imbuf(BrushPainter *painter, short flt,
 	short texonly, int size);
 int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos,
-	double time, float pressure, void *user);
+	double time, float pressure, void *user, int use_color_correction);
 void brush_painter_break_stroke(BrushPainter *painter);
 void brush_painter_free(BrushPainter *painter);
 

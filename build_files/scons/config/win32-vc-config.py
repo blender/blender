@@ -35,7 +35,7 @@ BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
 
 WITH_BF_JACK = False
 BF_JACK = LIBDIR + '/jack'
-BF_JACK_INC = '${BF_JACK}/include'
+BF_JACK_INC = '${BF_JACK}/include ${BF_FFMPEG}/include/msvc'
 BF_JACK_LIB = 'libjack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
 

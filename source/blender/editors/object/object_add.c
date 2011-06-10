@@ -174,14 +174,14 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	PropertyRNA *prop;
 	
 	/* note: this property gets hidden for add-camera operator */
-	RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view.");
+	RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
 
 	if(do_editmode) {
-		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object.");
+		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object");
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 	}
 	
-	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object.", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object", -FLT_MAX, FLT_MAX);
 	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -FLT_MAX, FLT_MAX);
 	
 	prop = RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
@@ -637,7 +637,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 	
 	if(obedit==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature.");
+		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1382,7 +1382,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_convert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Convert";
+	ot->name= "Convert to";
 	ot->description = "Convert selected objects to another type";
 	ot->idname= "OBJECT_OT_convert";
 	
@@ -1395,8 +1395,8 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to.");
-	RNA_def_boolean(ot->srna, "keep_original", 0, "Keep Original", "Keep original objects instead of replacing them.");
+	ot->prop= RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
+	RNA_def_boolean(ot->srna, "keep_original", 0, "Keep Original", "Keep original objects instead of replacing them");
 }
 
 /**************************** Duplicate ************************/
@@ -1716,7 +1716,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
+	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
 	prop= RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
@@ -1786,8 +1786,8 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
-	RNA_def_string(ot->srna, "name", "Cube", 24, "Name", "Object name to add.");
+	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
+	RNA_def_string(ot->srna, "name", "Cube", 24, "Name", "Object name to add");
 }
 
 
@@ -1812,11 +1812,11 @@ static int join_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 
 	if(scene->obedit) {
-		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode.");
+		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode");
 		return OPERATOR_CANCELLED;
 	}
 	else if(object_data_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
+		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1865,11 +1865,11 @@ static int join_shapes_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	
 	if(scene->obedit) {
-		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode.");
+		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode");
 		return OPERATOR_CANCELLED;
 	}
 	else if(object_data_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
+		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
 	

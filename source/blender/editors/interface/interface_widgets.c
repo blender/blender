@@ -159,6 +159,18 @@ static float check_tria_vert[6][2]= {
 static int check_tria_face[4][3]= {
 {3, 2, 4}, {3, 4, 5}, {1, 0, 3}, {0, 2, 3}};
 
+GLubyte checker_stipple_sml[32*32/8] =
+{
+	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+	255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+	0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+};
+
 /* ************************************************* */
 
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3)
@@ -614,22 +626,10 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	if(wtb->inner) {
 		if(wcol->shaded==0) {
 			if (wcol->alpha_check) {
-				GLubyte checker_stipple_sml[32*32/8] =
-				{
-					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
-					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
-				};
-
 				float x_mid= 0.0f; /* used for dumb clamping of values */
 
 				/* dark checkers */
-				glColor4ub(100, 100, 100, 255);
+				glColor4ub(UI_TRANSP_DARK, UI_TRANSP_DARK, UI_TRANSP_DARK, 255);
 				glBegin(GL_POLYGON);
 				for(a=0; a<wtb->totvert; a++) {
 					glVertex2fv(wtb->inner_v[a]);
@@ -638,7 +638,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 				/* light checkers */
 				glEnable(GL_POLYGON_STIPPLE);
-				glColor4ub(160, 160, 160, 255);
+				glColor4ub(UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, 255);
 				glPolygonStipple(checker_stipple_sml);
 				glBegin(GL_POLYGON);
 				for(a=0; a<wtb->totvert; a++) {
@@ -771,7 +771,7 @@ static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
 
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
-#define ICON_HEIGHT		16.0f
+#define ICON_HEIGHT		UI_DPI_FAC*16.0f
 
 static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect)
 {
@@ -3081,6 +3081,18 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	else
 		wt->draw(&wt->wcol, rect, 0, 0);
 	
+	if(block) {
+		if(block->flag & UI_BLOCK_CLIPTOP) {
+			/* XXX no scaling for UI here yet */
+			glColor3ubv((unsigned char*)wt->wcol.text);
+			UI_DrawTriIcon((rect->xmax+rect->xmin)/2, rect->ymax-8, 't');
+		}
+		if(block->flag & UI_BLOCK_CLIPBOTTOM) {
+			/* XXX no scaling for UI here yet */
+			glColor3ubv((unsigned char*)wt->wcol.text);
+			UI_DrawTriIcon((rect->xmax+rect->xmin)/2, rect->ymin+10, 'v');
+		}
+	}	
 }
 
 void ui_draw_search_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)

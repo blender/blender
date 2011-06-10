@@ -209,6 +209,17 @@ static void node_shader_init_material(bNode* node)
 	node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
 }
 
+/* XXX this is also done as a local static function in gpu_codegen.c,
+ * but we need this to hack around the crappy material node.
+ */
+static GPUNodeLink *gpu_get_input_link(GPUNodeStack *in)
+{
+	if (in->link)
+		return in->link;
+	else
+		return GPU_uniform(in->vec);
+}
+
 static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(node->id) {
@@ -229,18 +240,18 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, 
 
 		/* write values */
 		if(hasinput[MAT_IN_COLOR])
-			shi.rgb = in[MAT_IN_COLOR].link;
+			shi.rgb = gpu_get_input_link(&in[MAT_IN_COLOR]);
 		
 		if(hasinput[MAT_IN_SPEC])
-			shi.specrgb = in[MAT_IN_SPEC].link;
+			shi.specrgb = gpu_get_input_link(&in[MAT_IN_SPEC]);
 		
 		if(hasinput[MAT_IN_REFL])
-			shi.refl = in[MAT_IN_REFL].link;
+			shi.refl = gpu_get_input_link(&in[MAT_IN_REFL]);
 		
 		/* retrieve normal */
 		if(hasinput[MAT_IN_NORMAL]) {
 			GPUNodeLink *tmp;
-			shi.vn = in[MAT_IN_NORMAL].link;
+			shi.vn = gpu_get_input_link(&in[MAT_IN_NORMAL]);
 			GPU_link(mat, "vec_math_normalize", shi.vn, &shi.vn, &tmp);
 		}
 		
@@ -250,11 +261,11 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, 
 
 		if (node->type == SH_NODE_MATERIAL_EXT) {
 			if(hasinput[MAT_IN_AMB])
-				shi.amb= in[MAT_IN_AMB].link;
+				shi.amb= gpu_get_input_link(&in[MAT_IN_AMB]);
 			if(hasinput[MAT_IN_EMIT])
-				shi.emit= in[MAT_IN_EMIT].link;
+				shi.emit= gpu_get_input_link(&in[MAT_IN_EMIT]);
 			if(hasinput[MAT_IN_ALPHA])
-				shi.alpha= in[MAT_IN_ALPHA].link;
+				shi.alpha= gpu_get_input_link(&in[MAT_IN_ALPHA]);
 		}
 
 		GPU_shaderesult_set(&shi, &shr); /* clears shr */

@@ -521,7 +521,7 @@ void brush_sample_tex(Brush *brush, float *xy, float *rgba, const int thread)
 }
 
 
-void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf **outbuf)
+void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf **outbuf, int use_color_correction)
 {
 	ImBuf *ibuf;
 	float xy[2], dist, rgba[4], *dstf;
@@ -529,7 +529,8 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 	const int radius= brush_size(brush);
 	char *dst, crgb[3];
 	const float alpha= brush_alpha(brush);
-
+	float brush_rgb[3];
+    
 	imbflag= (flt)? IB_rectfloat: IB_rect;
 	xoff = -bufsize/2.0f + 0.5f;
 	yoff = -bufsize/2.0f + 0.5f;
@@ -541,6 +542,11 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 		ibuf= IMB_allocImBuf(bufsize, bufsize, 32, imbflag);
 
 	if (flt) {
+		copy_v3_v3(brush_rgb, brush->rgb);
+		if(use_color_correction){
+			srgb_to_linearrgb_v3_v3(brush_rgb, brush_rgb);
+		}
+
 		for (y=0; y < ibuf->y; y++) {
 			dstf = ibuf->rect_float + y*rowbytes;
 
@@ -551,7 +557,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 				if (texfall == 0) {
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
-					VECCOPY(dstf, brush->rgb);
+					VECCOPY(dstf, brush_rgb);
 					dstf[3]= alpha*brush_curve_strength_clamp(brush, dist, radius);
 				}
 				else if (texfall == 1) {
@@ -561,10 +567,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
 					brush_sample_tex(brush, xy, rgba, 0);
-
-					dstf[0] = rgba[0]*brush->rgb[0];
-					dstf[1] = rgba[1]*brush->rgb[1];
-					dstf[2] = rgba[2]*brush->rgb[2];
+					mul_v3_v3v3(dstf, rgba, brush_rgb);
 					dstf[3] = rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius);
 				}
 			}
@@ -862,7 +865,7 @@ static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float 
 		brush_painter_do_partial(painter, NULL, x1, y2, x2, ibuf->y, 0, 0, pos);
 }
 
-static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
+static void brush_painter_refresh_cache(BrushPainter *painter, float *pos, int use_color_correction)
 {
 	Brush *brush= painter->brush;
 	BrushPainterCache *cache= &painter->cache;
@@ -889,11 +892,11 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 		size= (cache->size)? cache->size: diameter;
 
 		if (brush->flag & BRUSH_FIXED_TEX) {
-			brush_imbuf_new(brush, flt, 3, size, &cache->maskibuf);
+			brush_imbuf_new(brush, flt, 3, size, &cache->maskibuf, use_color_correction);
 			brush_painter_fixed_tex_partial_update(painter, pos);
 		}
 		else
-			brush_imbuf_new(brush, flt, 2, size, &cache->ibuf);
+			brush_imbuf_new(brush, flt, 2, size, &cache->ibuf, use_color_correction);
 
 		cache->lastsize= diameter;
 		cache->lastalpha= alpha;
@@ -952,7 +955,7 @@ void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
 	}
 }
 
-int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user)
+int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user, int use_color_correction)
 {
 	Brush *brush= painter->brush;
 	int totpaintops= 0;
@@ -970,7 +973,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 
 		brush_apply_pressure(painter, brush, pressure);
 		if (painter->cache.enabled)
-			brush_painter_refresh_cache(painter, pos);
+			brush_painter_refresh_cache(painter, pos, use_color_correction);
 		totpaintops += func(user, painter->cache.ibuf, pos, pos);
 		
 		painter->lasttime= time;
@@ -1043,7 +1046,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 				brush_jitter_pos(brush, paintpos, finalpos);
 
 				if (painter->cache.enabled)
-					brush_painter_refresh_cache(painter, finalpos);
+					brush_painter_refresh_cache(painter, finalpos, use_color_correction);
 
 				totpaintops +=
 					func(user, painter->cache.ibuf, painter->lastpaintpos, finalpos);
@@ -1057,7 +1060,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 			brush_jitter_pos(brush, pos, finalpos);
 
 			if (painter->cache.enabled)
-				brush_painter_refresh_cache(painter, finalpos);
+				brush_painter_refresh_cache(painter, finalpos, use_color_correction);
 
 			totpaintops += func(user, painter->cache.ibuf, pos, finalpos);
 
@@ -1085,7 +1088,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 				brush_jitter_pos(brush, pos, finalpos);
 
 				if (painter->cache.enabled)
-					brush_painter_refresh_cache(painter, finalpos);
+					brush_painter_refresh_cache(painter, finalpos, use_color_correction);
 
 				totpaintops +=
 					func(user, painter->cache.ibuf, painter->lastmousepos, finalpos);

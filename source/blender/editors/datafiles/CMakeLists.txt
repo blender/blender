@@ -29,41 +29,48 @@ set(INC_SYS
 
 set(SRC
 	Bfont.c
-	add.png.c
 	bfont.ttf.c
-	blenderbuttons.c
-	blob.png.c
-	blur.png.c
 	bmonofont.ttf.c
-	clay.png.c
-	clone.png.c
-	crease.png.c
-	darken.png.c
-	draw.png.c
-	fill.png.c
-	flatten.png.c
-	grab.png.c
-	inflate.png.c
-	layer.png.c
-	lighten.png.c
-	mix.png.c
-	multiply.png.c
-	nudge.png.c
-	pinch.png.c
-	preview.blend.c
-	prvicons.c
-	scrape.png.c
-	smear.png.c
-	smooth.png.c
-	snake_hook.png.c
-	soften.png.c
-	splash.png.c
 	startup.blend.c
-	subtract.png.c
-	texdraw.png.c
-	thumb.png.c
-	twist.png.c
-	vertexdraw.png.c
+	preview.blend.c
 )
+
+if(NOT WITH_HEADLESS)
+	list(APPEND SRC
+		splash.png.c
+		blenderbuttons.c
+
+		# brushes
+		add.png.c
+		blob.png.c
+		blur.png.c
+		clay.png.c
+		clone.png.c
+		crease.png.c
+		darken.png.c
+		draw.png.c
+		fill.png.c
+		flatten.png.c
+		grab.png.c
+		inflate.png.c
+		layer.png.c
+		lighten.png.c
+		mix.png.c
+		multiply.png.c
+		nudge.png.c
+		pinch.png.c
+		prvicons.c
+		scrape.png.c
+		smear.png.c
+		smooth.png.c
+		snake_hook.png.c
+		soften.png.c
+		subtract.png.c
+		texdraw.png.c
+		thumb.png.c
+		twist.png.c
+		vertexdraw.png.c
+	)
+endif()
 
 blender_add_lib(bf_editor_datafiles "${SRC}" "${INC}" "${INC_SYS}")

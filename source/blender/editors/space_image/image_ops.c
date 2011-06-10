@@ -1925,6 +1925,7 @@ void IMAGE_OT_sample_line(wmOperatorType *ot)
 	ot->modal= WM_gesture_straightline_modal;
 	ot->exec= sample_line_exec;
 	ot->poll= space_image_main_area_poll;
+	ot->cancel= WM_gesture_straightline_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

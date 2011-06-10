@@ -344,6 +344,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= graphkeys_borderselect_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= graphop_visible_keyframes_poll;
 	

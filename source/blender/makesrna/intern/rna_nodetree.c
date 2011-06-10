@@ -2221,6 +2221,7 @@ static void def_cmp_colorbalance(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "gamma");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_range(prop, 0.f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Power", "Correction for Midtones");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
@@ -2229,6 +2230,7 @@ static void def_cmp_colorbalance(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "gain");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_range(prop, 0.f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Slope", "Correction for Highlights");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");

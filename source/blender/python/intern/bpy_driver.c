@@ -185,12 +185,11 @@ float BPY_driver_exec(ChannelDriver *driver)
 		expr_vars= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
 		Py_XDECREF(expr_vars);
 
-		/* intern the arg names so creating the namespace for every run is faster */
 		expr_vars= PyTuple_New(BLI_countlist(&driver->variables));
 		PyTuple_SET_ITEM(((PyObject *)driver->expr_comp), 1, expr_vars);
 
 		for (dvar= driver->variables.first, i=0; dvar; dvar= dvar->next) {
-			PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_InternFromString(dvar->name));
+			PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_FromString(dvar->name));
 		}
 		
 		driver->flag &= ~DRIVER_FLAG_RENAMEVAR;
@@ -211,7 +210,7 @@ float BPY_driver_exec(ChannelDriver *driver)
 		
 		/* try to add to dictionary */
 		/* if (PyDict_SetItemString(driver_vars, dvar->name, driver_arg)) { */
-		if (PyDict_SetItem(driver_vars, PyTuple_GET_ITEM(expr_vars, i++), driver_arg) < 0) { /* use string interning for faster namespace creation */
+		if (PyDict_SetItem(driver_vars, PyTuple_GET_ITEM(expr_vars, i++), driver_arg) < 0) {
 			/* this target failed - bad name */
 			if (targets_ok) {
 				/* first one - print some extra info for easier identification */

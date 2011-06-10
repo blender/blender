@@ -183,6 +183,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 
 int pyrna_write_check(void);
+void pyrna_write_set(int val);
 
 int pyrna_struct_validity_check(BPy_StructRNA *pysrna);
 int pyrna_prop_validity_check(BPy_PropertyRNA *self);

@@ -104,7 +104,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	uiBlock *block;
-	int xco, yco= 1;
+	int xco, yco= 2;
 
 	buttons_context_compute(C, sbuts);
 	
@@ -115,7 +115,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	xco -= XIC;
+	xco -= UI_UNIT_X;
 	
 	// Default panels
 	uiBlockBeginAlign(block);
@@ -150,7 +150,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockEndAlign(block);
 	
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+(XIC/2), ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco+(UI_UNIT_X/2), ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
