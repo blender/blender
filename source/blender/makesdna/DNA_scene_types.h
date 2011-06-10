@@ -350,7 +350,7 @@ typedef struct RenderData {
 	float bake_maxdist, bake_biasdist, bake_pad;
 
 	/* paths to backbufffer, output */
-	char backbuf[160], pic[160];
+	char pic[240];
 
 	/* stamps flags. */
 	int stamp;

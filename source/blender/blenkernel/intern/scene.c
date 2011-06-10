@@ -476,8 +476,7 @@ Scene *add_scene(const char *name)
 	sce->audio.doppler_factor = 1.0;
 	sce->audio.speed_of_sound = 343.3;
 
-	strcpy(sce->r.backbuf, "//backbuf");
-	strcpy(sce->r.pic, U.renderdir);
+	BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
 
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
