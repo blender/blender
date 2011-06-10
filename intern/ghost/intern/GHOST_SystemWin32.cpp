@@ -39,21 +39,16 @@
  * @date	May 7, 2001
  */
 
+#ifdef BF_GHOST_DEBUG
 #include <iostream>
-
-#ifdef FREE_WINDOWS
-#  define WINVER 0x0501 /* GetConsoleWindow() for MinGW */
 #endif
+
+#include <stdio.h> // [mce] temporary debug, remove soon!
 
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
 
-#define WIN32_LEAN_AND_MEAN
-#ifdef _WIN32_IE
-#undef _WIN32_IE
-#endif
-#define _WIN32_IE 0x0501
-#include <windows.h>
+#define _WIN32_IE 0x0501 /* shipped before XP, so doesn't impose additional requirements */
 #include <shlobj.h>
 
 // win64 doesn't define GWL_USERDATA
@@ -64,6 +59,7 @@
 #endif
 #endif
 
+#if 0 // shouldn't be needed...
 /*
  * According to the docs the mouse wheel message is supported from windows 98 
  * upwards. Leaving WINVER at default value, the WM_MOUSEWHEEL message and the 
@@ -94,18 +90,20 @@
 #define WM_XBUTTONDOWN 523
 #endif // WM_XBUTTONDOWN
 
+#endif // ^^^ removed code
+
 #include "GHOST_Debug.h"
 #include "GHOST_DisplayManagerWin32.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
-#include "GHOST_EventNDOF.h"
+//#include "GHOST_EventNDOF.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
-#include "GHOST_NDOFManager.h"
+#include "GHOST_NDOFManagerWin32.h"
 
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
@@ -158,6 +156,7 @@
 #define VK_MEDIA_PLAY_PAUSE	0xB3
 #endif // VK_MEDIA_PLAY_PAUSE
 
+#if 0
 /*
 	Initiates WM_INPUT messages from keyboard
 	That way GHOST can retrieve true keys
@@ -170,6 +169,27 @@ GHOST_TInt32 GHOST_SystemWin32::initKeyboardRawInput(void)
 
 	return RegisterRawInputDevices(&device, 1, sizeof(device));
 };
+#endif
+
+static void initRawInput()
+{
+	RAWINPUTDEVICE devices[2];
+	memset(devices, 0, 2 * sizeof(RAWINPUTDEVICE));
+
+	// multi-axis mouse (SpaceNavigator)
+	devices[0].usUsagePage = 0x01;
+	devices[0].usUsage = 0x08;
+
+	// Initiates WM_INPUT messages from keyboard
+	// That way GHOST can retrieve true keys
+	devices[1].usUsagePage = 0x01;
+	devices[1].usUsage = 0x06; /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
+
+	if (RegisterRawInputDevices(devices, 2, sizeof(RAWINPUTDEVICE)))
+		puts("registered for RawInput (spacenav & keyboard)");
+	else
+		printf("could not register for RawInput: %d\n", (int)GetLastError());
+}
 
 GHOST_SystemWin32::GHOST_SystemWin32()
 : m_hasPerformanceCounter(false), m_freq(0), m_start(0)
@@ -186,6 +206,8 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	this->handleKeyboardChange();
 	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
 	OleInitialize(0);
+
+	m_ndofManager = new GHOST_NDOFManagerWin32(*this);
 }
 
 GHOST_SystemWin32::~GHOST_SystemWin32()
@@ -193,6 +215,7 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
 	// Shutdown COM
 	OleUninitialize();
 	toggleConsole(1);
+	delete m_ndofManager;
 }
 
 
@@ -384,22 +407,23 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 	GHOST_TSuccess success = GHOST_System::init();
 	
 	/* Disable scaling on high DPI displays on Vista */
+	HMODULE
 	user32 = ::LoadLibraryA("user32.dll");
 	typedef BOOL (WINAPI * LPFNSETPROCESSDPIAWARE)();
 	LPFNSETPROCESSDPIAWARE SetProcessDPIAware =
 		(LPFNSETPROCESSDPIAWARE)GetProcAddress(user32, "SetProcessDPIAware");
 	if (SetProcessDPIAware)
 		SetProcessDPIAware();
-	#ifdef NEED_RAW_PROC
-		pRegisterRawInputDevices = (LPFNDLLRRID)GetProcAddress(user32, "RegisterRawInputDevices");
-		pGetRawInputData = (LPFNDLLGRID)GetProcAddress(user32, "GetRawInputData");
-	#else
+//	#ifdef NEED_RAW_PROC
+//		pRegisterRawInputDevices = (LPFNDLLRRID)GetProcAddress(user32, "RegisterRawInputDevices");
+//		pGetRawInputData = (LPFNDLLGRID)GetProcAddress(user32, "GetRawInputData");
+//	#else
 		FreeLibrary(user32);
-	#endif
+//	#endif
 
 	/* 	Initiates WM_INPUT messages from keyboard */
-	initKeyboardRawInput();
-
+//	initKeyboardRawInput();
+	initRawInput();
 
 	// Determine whether this system has a high frequency performance counter. */
 	m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER*)&m_freq) == TRUE;
@@ -440,104 +464,90 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 
 GHOST_TSuccess GHOST_SystemWin32::exit()
 {
-	#ifdef NEED_RAW_PROC
-	FreeLibrary(user32);
-	#endif
+//	#ifdef NEED_RAW_PROC
+//	FreeLibrary(user32);
+//	#endif
 
 	return GHOST_System::exit();
 }
 
-GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam, int * keyDown, char * vk)
+GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, RAWINPUT const& raw, int * keyDown, char * vk)
 {
-	unsigned int size = 0;
-	char * data;
+//	unsigned int size = 0;
+//	char * data;
 	GHOST_TKey key = GHOST_kKeyUnknown;
 
 
 	if(!keyDown)
 		return GHOST_kKeyUnknown;
 
-	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, 0, &size, sizeof(RAWINPUTHEADER));
 
+	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
-	if((data = (char*)malloc(size)) &&
-		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, data, &size, sizeof(RAWINPUTHEADER)))
-	{
-		RAWINPUT ri;
-		memcpy(&ri,data,(size < sizeof(ri)) ? size : sizeof(ri));
-
-		if (ri.header.dwType == RIM_TYPEKEYBOARD)
-		{
-			GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
-			
-			GHOST_ModifierKeys modifiers;
-			system->retrieveModifierKeys(modifiers);
-			
-			*keyDown = !(ri.data.keyboard.Flags & RI_KEY_BREAK);
-			key = this->convertKey(window, ri.data.keyboard.VKey, ri.data.keyboard.MakeCode, (ri.data.keyboard.Flags&(RI_KEY_E1|RI_KEY_E0)));
-			
-			// extra handling of modifier keys: don't send repeats out from GHOST
-			if(key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt)
-			{
-				bool changed = false;
-				GHOST_TModifierKeyMask modifier;
-				switch(key) {
-					case GHOST_kKeyLeftShift:
-						{
-							changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != (bool)*keyDown);
-							modifier = GHOST_kModifierKeyLeftShift;
-						}
-						break;
-					case GHOST_kKeyRightShift:
-						{
-							changed = (modifiers.get(GHOST_kModifierKeyRightShift) != (bool)*keyDown);
-							modifier = GHOST_kModifierKeyRightShift;
-						}
-						break;
-					case GHOST_kKeyLeftControl:
-						{
-							changed = (modifiers.get(GHOST_kModifierKeyLeftControl) != (bool)*keyDown);
-							modifier = GHOST_kModifierKeyLeftControl;
-						}
-						break;
-					case GHOST_kKeyRightControl:
-						{
-							changed = (modifiers.get(GHOST_kModifierKeyRightControl) != (bool)*keyDown);
-							modifier = GHOST_kModifierKeyRightControl;
-						}
-						break;
-					case GHOST_kKeyLeftAlt:
-						{
-							changed = (modifiers.get(GHOST_kModifierKeyLeftAlt) != (bool)*keyDown);
-							modifier = GHOST_kModifierKeyLeftAlt;
-						}
-						break;
-					case GHOST_kKeyRightAlt:
-						{
-							changed = (modifiers.get(GHOST_kModifierKeyRightAlt) != (bool)*keyDown);
-							modifier = GHOST_kModifierKeyRightAlt;
-						}
-						break;
-					default: break;
-				}
-				
-				if(changed)
-				{
-					modifiers.set(modifier, (bool)*keyDown);
-					system->storeModifierKeys(modifiers);
-				}
-				else
-				{
-					key = GHOST_kKeyUnknown;
-				}
-			}
-			
+	GHOST_ModifierKeys modifiers;
+	system->retrieveModifierKeys(modifiers);
 	
-			if(vk) *vk = ri.data.keyboard.VKey;
-		};
+	*keyDown = !(raw.data.keyboard.Flags & RI_KEY_BREAK);
+	key = this->convertKey(window, raw.data.keyboard.VKey, raw.data.keyboard.MakeCode, (raw.data.keyboard.Flags&(RI_KEY_E1|RI_KEY_E0)));
+	
+	// extra handling of modifier keys: don't send repeats out from GHOST
+	if(key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt)
+	{
+		bool changed = false;
+		GHOST_TModifierKeyMask modifier;
+		switch(key) {
+			case GHOST_kKeyLeftShift:
+				{
+					changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != (bool)*keyDown);
+					modifier = GHOST_kModifierKeyLeftShift;
+				}
+				break;
+			case GHOST_kKeyRightShift:
+				{
+					changed = (modifiers.get(GHOST_kModifierKeyRightShift) != (bool)*keyDown);
+					modifier = GHOST_kModifierKeyRightShift;
+				}
+				break;
+			case GHOST_kKeyLeftControl:
+				{
+					changed = (modifiers.get(GHOST_kModifierKeyLeftControl) != (bool)*keyDown);
+					modifier = GHOST_kModifierKeyLeftControl;
+				}
+				break;
+			case GHOST_kKeyRightControl:
+				{
+					changed = (modifiers.get(GHOST_kModifierKeyRightControl) != (bool)*keyDown);
+					modifier = GHOST_kModifierKeyRightControl;
+				}
+				break;
+			case GHOST_kKeyLeftAlt:
+				{
+					changed = (modifiers.get(GHOST_kModifierKeyLeftAlt) != (bool)*keyDown);
+					modifier = GHOST_kModifierKeyLeftAlt;
+				}
+				break;
+			case GHOST_kKeyRightAlt:
+				{
+					changed = (modifiers.get(GHOST_kModifierKeyRightAlt) != (bool)*keyDown);
+					modifier = GHOST_kModifierKeyRightAlt;
+				}
+				break;
+			default: break;
+		}
+		
+		if(changed)
+		{
+			modifiers.set(modifier, (bool)*keyDown);
+			system->storeModifierKeys(modifiers);
+		}
+		else
+		{
+			key = GHOST_kKeyUnknown;
+		}
+	}
+	
 
-	};
-	free(data);
+	if(vk) *vk = raw.data.keyboard.VKey;
 
 	return key;
 }
@@ -741,12 +751,13 @@ GHOST_EventWheel* GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WP
 }
 
 
-GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam)
+GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINPUT const& raw)
 {
 	int keyDown=0;
 	char vk;
 	GHOST_SystemWin32 * system = (GHOST_SystemWin32 *)getSystem();
-	GHOST_TKey key = system->hardKey(window, wParam, lParam, &keyDown, &vk);
+	GHOST_TKey key = system->hardKey(window, raw, &keyDown, &vk);
+//	GHOST_TKey key = system->hardKey(window, wParam, lParam, &keyDown, &vk);
 	GHOST_EventKey* event;
 	if (key != GHOST_kKeyUnknown) {
 		char ascii = '\0';
@@ -799,9 +810,74 @@ void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO * minmax)
 	minmax->ptMinTrackSize.y=240;
 }
 
+bool GHOST_SystemWin32::processNDOF(/*GHOST_WindowWin32* window,*/ RAWINPUT const& raw)
+{
+	bool eventSent = false;
+
+	// The NDOF manager sends button changes immediately, and *pretends* to
+	// send motion. Mark as 'sent' so motion will always get dispatched.
+	eventSent = true;
+
+	BYTE const* data = &raw.data.hid.bRawData;
+	// MinGW's definition (below) doesn't agree with MSDN reference for bRawData:
+	// typedef struct tagRAWHID {
+	// 	DWORD dwSizeHid;
+	// 	DWORD dwCount;
+	// 	BYTE bRawData; // <== isn't this s'posed to be a BYTE*?
+	// } RAWHID,*PRAWHID,*LPRAWHID;
+
+	BYTE packetType = data[0];
+	switch (packetType)
+		{
+		case 1: // translation
+			{
+			short t[3];
+			memcpy(t, data + 1, sizeof(t));
+			// too much noise -- disable for now
+			printf("T: %+5d %+5d %+5d\n", t[0], t[1], t[2]);
+			m_ndofManager->updateTranslation(t, getMilliSeconds());
+			// wariness of alignment issues prevents me from saying it this way:
+			// m_ndofManager->updateTranslation((short*)(data + 1), getMilliSeconds());
+			// though it probably (94.7%) works fine
+			break;
+			}
+		case 2: // rotation
+			{
+			short r[3];
+			memcpy(r, data + 1, sizeof(r));
+			printf("R: %+5d %+5d %+5d\n", r[0], r[1], r[2]);
+			m_ndofManager->updateRotation(r, getMilliSeconds());
+			break;
+			}
+		case 3: // buttons
+			{
+			unsigned short buttons;
+			memcpy(&buttons, data + 1, sizeof(buttons));
+
+			printf("buttons:");
+			if (buttons)
+				{
+				// work our way through the bit mask
+				for (int i = 0; i < 16; ++i)
+					if (buttons & (1 << i))
+						printf(" %d", i + 1);
+				printf("\n");
+				}
+			else
+				printf(" none\n");
+
+			m_ndofManager->updateButtons(buttons, getMilliSeconds());
+			break;
+			}
+		}
+	return eventSent;
+}
+
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	GHOST_Event* event = 0;
+	bool eventHandled = false;
+
 	LRESULT lResult = 0;
 	GHOST_SystemWin32* system = ((GHOST_SystemWin32*)getSystem());
 	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized")
@@ -818,18 +894,36 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				// Keyboard events, processed
 				////////////////////////////////////////////////////////////////////////
 				case WM_INPUT:
+				{
 					// check WM_INPUT from input sink when ghost window is not in the foreground
 					if (wParam == RIM_INPUTSINK) {
 						if (GetFocus() != hwnd) // WM_INPUT message not for this window
 							return 0;
-					} //else wPAram == RIM_INPUT
-					event = processKeyEvent(window, wParam, lParam);
-					if (!event) {
-						GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
-						GHOST_PRINT(msg)
-						GHOST_PRINT(" key ignored\n")
+					} //else wParam == RIM_INPUT
+
+					RAWINPUT raw;
+					RAWINPUT* raw_ptr = &raw;
+					UINT rawSize = sizeof(RAWINPUT);
+
+					GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw_ptr, &rawSize, sizeof(RAWINPUTHEADER));
+
+					switch (raw.header.dwType)
+					{
+					case RIM_TYPEKEYBOARD:
+						event = processKeyEvent(window, raw);
+						if (!event) {
+							GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
+							GHOST_PRINT(msg)
+							GHOST_PRINT(" key ignored\n")
+						}
+						break;
+					case RIM_TYPEHID:
+						if (system->processNDOF(/*window,*/ raw))
+							eventHandled = true;
+						break;
 					}
-					break;
+				break;
+				}
 				////////////////////////////////////////////////////////////////////////
 				// Keyboard events, ignored
 				////////////////////////////////////////////////////////////////////////
@@ -839,9 +933,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				case WM_SYSKEYUP:
 					/* These functions were replaced by WM_INPUT*/
 				case WM_CHAR:
-					/* The WM_CHAR message is posted to the window with the keyboard focus when 
-					 * a WM_KEYDOWN message is translated by the TranslateMessage function. WM_CHAR 
-					 * contains the character code of the key that was pressed. 
+					/* The WM_CHAR message is posted to the window with the keyboard focus when
+					 * a WM_KEYDOWN message is translated by the TranslateMessage function. WM_CHAR
+					 * contains the character code of the key that was pressed.
 					 */
 				case WM_DEADCHAR:
 					/* The WM_DEADCHAR message is posted to the window with the keyboard focus when a
@@ -1122,6 +1216,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
 					break;
+#if 0 // old NDOF code
 				case WM_BLND_NDOF_AXIS:
 					{
 						GHOST_TEventNDOFData ndofdata;
@@ -1144,6 +1239,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 								window, ndofdata));
 					}
 					break;
+#endif // old NDOF code
 			}
 		}
 		else {
@@ -1163,12 +1259,21 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 		GHOST_PRINT("GHOST_SystemWin32::wndProc: event without window\n")
 	}
 
+//	if (event) {
+//		system->pushEvent(event);
+//	}
+//	else {
+//		lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
+//	}
+
 	if (event) {
 		system->pushEvent(event);
+		eventHandled = true;
 	}
-	else {
+
+	if (!eventHandled)
 		lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
-	}
+
 	return lResult;
 }
 

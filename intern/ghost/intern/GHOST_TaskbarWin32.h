@@ -3,20 +3,16 @@
  */
 #ifndef GHOST_TASKBARWIN32_H_
 #define GHOST_TASKBARWIN32_H_
+
 #ifndef WIN32
 #error WIN32 only!
 #endif // WIN32
 
+#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shlobj.h>
 
-/* MinGW needs it */
-#ifdef FREE_WINDOWS
-#ifdef WINVER
-#undef WINVER
-#endif
-#define WINVER 0x0501
-#endif /* FREE_WINDOWS */
 
 // ITaskbarList, ITaskbarList2 and ITaskbarList3 might be missing, present here in that case.
 // Note, ITaskbarList3 is supported only since Windows 7, though. Check for that is done in
