@@ -1607,25 +1607,49 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 	}
 }
 
-static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int multipaint)
+static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int unselected, int multipaint, int auto_normalize)
 {
 	Mesh *me = ob->data;
-	float colf[4], input = 0.0f;
+	float colf[4], input = 0.0f, unsel_sum = 0.0f;// Jason
 	int i;
+	//Jason, a dw might be absent from dvert
+	int cnt = 0;
 
 	if (me->dvert) {
-		for (i=0; i<me->dvert[vert].totweight; i++)
+		for (i=0; i<me->dvert[vert].totweight; i++) {
 			// Jason was here
-			if ((!multipaint && me->dvert[vert].dw[i].def_nr==ob->actdef-1) || (multipaint && dg_flags[me->dvert[vert].dw[i].def_nr])) {//
+			if(multipaint && selected > 1) {
+				if(dg_flags[me->dvert[vert].dw[i].def_nr]) {
+					if(!me->dvert[vert].dw[i].weight) {
+						input = -1;
+						unsel_sum = 0;
+						break;
+					}
+					input+=me->dvert[vert].dw[i].weight;
+					cnt++;
+				}
+				// TODO unselected non-bone groups should not be involved in this sum
+				else if(auto_normalize) {
+					unsel_sum+=me->dvert[vert].dw[i].weight;
+				}
+			} else if (me->dvert[vert].dw[i].def_nr==ob->actdef-1) {
 				input+=me->dvert[vert].dw[i].weight;
 			}
+		}
+		// Jason was here
+		if(multipaint && selected > 1) {
+			if(cnt!=selected || input == 1.0f && auto_normalize && !unsel_sum) {
+				input = -1;
+			} else {
+				input/=selected;
+			}
+		}
 	}
-	// Jason was here
-	if(multipaint && selected) {
-		input/=selected;
+	
+	if(!multipaint || selected <= 1) {
+		CLAMP(input, 0.0f, 1.0f);
 	}
-
-	CLAMP(input, 0.0f, 1.0f);
+	
 	
 	if(coba)
 		do_colorband(coba, input, colf);
@@ -1644,14 +1668,14 @@ void vDM_ColorBand_store(ColorBand *coba)
 {
 	stored_cb= coba;
 }
+/* TODO move duplicates to header */
 /* Jason was here duplicate function in paint_vertex.c*/
 static char* get_selected_defgroups(Object *ob, int defcnt) {
 	bPoseChannel *chan;
 	bPose *pose;
 	bDeformGroup *defgroup;
 	//Bone *bone;
-	char was_selected = FALSE;
-	char *dg_flags = MEM_mallocN(defcnt*sizeof(char), "dg_selected_flags");
+	char *dg_flags = MEM_callocN(defcnt*sizeof(char), "dg_selected_flags");
 	int i;
 	Object *armob = ED_object_pose_armature(ob);
 
@@ -1661,7 +1685,6 @@ static char* get_selected_defgroups(Object *ob, int defcnt) {
 			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
 				if(!strcmp(defgroup->name, chan->bone->name)) {
 					dg_flags[i] = (chan->bone->flag & BONE_SELECTED);
-					was_selected = TRUE;
 				}
 			}
 		}
@@ -1669,7 +1692,8 @@ static char* get_selected_defgroups(Object *ob, int defcnt) {
 	
 	return dg_flags;
 }
-/* Jason was here */
+/* TODO move duplicates to header */
+/* Jason was here duplicate function */
 static int count_true(char *list, int len)
 {
 	int i;
@@ -1681,7 +1705,7 @@ static int count_true(char *list, int len)
 	}
 	return cnt;
 }
-static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int multipaint)
+static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int multipaint, int auto_normalize)
 {
 	Mesh *me = ob->data;
 	MFace *mf = me->mface;
@@ -1692,16 +1716,17 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int multipaint)
 	int defcnt = BLI_countlist(&ob->defbase);
 	char *dg_flags = get_selected_defgroups(ob, defcnt);
 	int selected = count_true(dg_flags, defcnt);
+	int unselected = defcnt - selected;
 
 	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
 	
 	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
 	for (i=0; i<me->totface; i++, mf++) {
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], dg_flags, selected, multipaint); 
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], dg_flags, selected, multipaint); 
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], dg_flags, selected, multipaint); 
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], dg_flags, selected, unselected, multipaint, auto_normalize); 
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], dg_flags, selected, unselected, multipaint, auto_normalize); 
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], dg_flags, selected, unselected, multipaint, auto_normalize); 
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], dg_flags, selected, multipaint); 
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], dg_flags, selected, unselected, multipaint, auto_normalize); 
 	}
 	// Jason
 	MEM_freeN(dg_flags);
@@ -1912,7 +1937,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 
 				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-					add_weight_mcol_dm(ob, dm, scene->toolsettings->multipaint);// Jason
+					add_weight_mcol_dm(ob, dm, scene->toolsettings->multipaint, scene->toolsettings->auto_normalize);// Jason
 
 				/* Constructive modifiers need to have an origindex
 				 * otherwise they wont have anywhere to copy the data from.
@@ -2022,7 +2047,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		CDDM_calc_normals(finaldm);
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm, scene->toolsettings->multipaint);// Jason
+			add_weight_mcol_dm(ob, finaldm, scene->toolsettings->multipaint, scene->toolsettings->auto_normalize);// Jason
 	} else if(dm) {
 		finaldm = dm;
 	} else {
@@ -2034,7 +2059,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		}
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm, scene->toolsettings->multipaint);// Jason
+			add_weight_mcol_dm(ob, finaldm, scene->toolsettings->multipaint, scene->toolsettings->auto_normalize);// Jason
 	}
 
 	/* add an orco layer if needed */
