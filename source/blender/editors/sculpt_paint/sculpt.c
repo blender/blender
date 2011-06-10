@@ -3559,7 +3559,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sculpt_brush_stroke_cacel(bContext *C, wmOperator *op)
+static int sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
@@ -3595,7 +3595,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	ot->modal= paint_stroke_modal;
 	ot->exec= sculpt_brush_stroke_exec;
 	ot->poll= sculpt_poll;
-	ot->cancel= sculpt_brush_stroke_cacel;
+	ot->cancel= sculpt_brush_stroke_cancel;
 
 	/* flags (sculpt does own undo? (ton) */
 	ot->flag= OPTYPE_BLOCKING;
