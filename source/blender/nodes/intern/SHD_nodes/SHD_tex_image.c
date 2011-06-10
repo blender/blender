@@ -58,6 +58,9 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, GPUNodeStack
 	Image *ima= (Image*)node->id;
 	ImageUser *iuser= NULL;
 
+	if(!ima)
+		return 0;
+
 	return GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser));
 }
 
