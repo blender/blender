@@ -33,12 +33,24 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_movieclip_types.h"
+#include "DNA_object_types.h"	/* SELECT */
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_ghash.h"
 
 #include "BKE_tracking.h"
+#include "BKE_movieclip.h"
+
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+
+#ifdef WITH_LIBMV
+#include "libmv-capi.h"
+#endif
+
+/*********************** common functions *************************/
 
 void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 {
@@ -129,18 +141,63 @@ void BKE_tracking_track_flag(MovieTrackingTrack *track, int area, int flag, int 
 
 void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
-	track->markersnr++;
+	MovieTrackingMarker *old_marker= BKE_tracking_get_marker(track, marker->framenr);
 
-	if(track->markers) track->markers= MEM_reallocN(track->markers, sizeof(MovieTrackingMarker)*track->markersnr);
-	else track->markers= MEM_callocN(sizeof(MovieTrackingMarker), "MovieTracking markers");
+	if(old_marker) {
+		*old_marker= *marker;
+	} else {
+		int a= track->markersnr;
 
-	track->markers[track->markersnr-1]= *marker;
+		while(a--) {
+			if(track->markers[a].framenr<marker->framenr)
+				break;
+		}
+
+		track->markersnr++;
+
+		if(track->markers) track->markers= MEM_reallocN(track->markers, sizeof(MovieTrackingMarker)*track->markersnr);
+		else track->markers= MEM_callocN(sizeof(MovieTrackingMarker), "MovieTracking markers");
+
+		memmove(track->markers+a+2, track->markers+a+1, (track->markersnr-a-2)*sizeof(MovieTrackingMarker));
+		track->markers[a+1]= *marker;
+	}
 }
 
 MovieTrackingMarker *BKE_tracking_get_marker(MovieTrackingTrack *track, int framenr)
 {
-	/* XXX: silly, but ok before markers would be tracked */
-	return &track->markers[0];
+	int a= track->markersnr;
+
+	if((track->flag&TRACK_PROCESSED)==0) {
+		/* non-precessed tracks contains the only marker
+		   which should be used independelntly from current frame number. */
+
+		if(track->markersnr)
+			return &track->markers[0];
+
+		return NULL;
+	}
+
+	if(track->last_marker<track->markersnr)
+		a= track->last_marker;
+
+	if(track->markers[a].framenr<=framenr) {
+		while(a<track->markersnr) {
+			if(track->markers[a].framenr==framenr) {
+				track->last_marker= a;
+				return &track->markers[a];
+			}
+			a++;
+		}
+	} else {
+		while(a--) {
+			if(track->markers[a].framenr==framenr) {
+				track->last_marker= a;
+				return &track->markers[a];
+			}
+		}
+	}
+
+	return NULL;
 }
 
 int BKE_tracking_has_marker(MovieTrackingTrack *track, int framenr)
@@ -153,6 +210,18 @@ void BKE_tracking_free_track(MovieTrackingTrack *track)
 	if(track->markers) MEM_freeN(track->markers);
 }
 
+MovieTrackingTrack *BKE_tracking_copy_track(MovieTrackingTrack *track)
+{
+	MovieTrackingTrack *new_track= MEM_dupallocN(track);
+
+	new_track->next= new_track->prev= NULL;
+
+	if(new_track->markers)
+		new_track->markers= MEM_dupallocN(new_track->markers);
+
+	return new_track;
+}
+
 void BKE_tracking_free(MovieTracking *tracking)
 {
 	MovieTrackingTrack *track;
@@ -163,4 +232,235 @@ void BKE_tracking_free(MovieTracking *tracking)
 
 	BLI_freelistN(&tracking->tracks);
 	BLI_freelistN(&tracking->bundles);
+}
+
+/*********************** tracking *************************/
+
+typedef struct MovieTrackingContext {
+	MovieClipUser user;
+	MovieClipUser *orig_user;
+	MovieClip *clip;
+
+#ifdef WITH_LIBMV
+	libmv_regionTrackerHandle region_tracker;
+#endif
+	ListBase tracks;
+
+	GHash *hash;
+} MovieTrackingContext;
+
+MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user)
+{
+	MovieTrackingContext *context= MEM_callocN(sizeof(MovieTrackingContext), "trackingContext");
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track;
+
+#ifdef WITH_LIBMV
+	context->region_tracker= libmv_regionTrackerNew();
+#endif
+
+	context->hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "tracking trackHash");
+
+	track= tracking->tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track)) {
+			MovieTrackingTrack *new_track= BKE_tracking_copy_track(track);
+
+			BLI_addtail(&context->tracks, new_track);
+			BLI_ghash_insert(context->hash, new_track, track);
+		}
+
+		track= track->next;
+	}
+
+	context->clip= clip;
+	context->user= *user;
+	context->orig_user= user;
+
+	return context;
+}
+
+void BKE_tracking_context_free(MovieTrackingContext *context)
+{
+	MovieTrackingTrack *track;
+
+#if WITH_LIBMV
+	libmv_regionTrackerDestroy(context->region_tracker);
+#endif
+
+	track= context->tracks.first;
+	while(track) {
+		BKE_tracking_free_track(track);
+		track= track->next;
+	}
+	BLI_freelistN(&context->tracks);
+
+	BLI_ghash_free(context->hash, NULL, NULL);
+
+	MEM_freeN(context);
+}
+
+#ifdef WITH_LIBMV
+static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+			int *width_r, int *height_r)
+{
+	ImBuf *tmpibuf;
+	float *pixels, *fp;
+	int x, y, width, height;
+
+	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
+	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
+
+	tmpibuf= IMB_allocImBuf(width, height, 32, IB_rect);
+	IMB_rectcpy(tmpibuf, ibuf, 0, 0,
+			(track->search_min[0]+marker->pos[0])*ibuf->x,
+			(track->search_min[1]+marker->pos[1])*ibuf->y, width, height);
+
+	*width_r= width;
+	*height_r= height;
+
+	fp= pixels= MEM_callocN(width*height*sizeof(float), "tracking floatBuf");
+	for(y= 0; y<(int)height; y++) {
+		for (x= 0; x<(int)width; x++) {
+			int pixel= tmpibuf->x*y + x;
+			char *rrgb= (char*)tmpibuf->rect + pixel*4;
+
+			*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255;
+			fp++;
+		}
+	}
+
+	IMB_freeImBuf(tmpibuf);
+
+	return pixels;
+}
+#endif
+
+void BKE_tracking_sync(MovieTrackingContext *context)
+{
+	MovieTrackingTrack *track;
+	ListBase tracks= {NULL, NULL};
+	ListBase *old_tracks= &context->clip->tracking.tracks;
+	int sel_type;
+	void *sel;
+
+	BKE_movieclip_last_selection(context->clip, &sel_type, &sel);
+
+	/* duplicate currently tracking tracks to list of displaying tracks */
+	track= context->tracks.first;
+	while(track) {
+		int replace= 0, replace_sel= 0;
+		MovieTrackingTrack *new_track, *old;
+
+		/* find original of tracking track in list of previously displayed tracks */
+		old= BLI_ghash_lookup(context->hash, track);
+		if(old) {
+			MovieTrackingTrack *cur= old_tracks->first;
+
+			while(cur) {
+				if(cur==old)
+					break;
+
+				cur= cur->next;
+			}
+
+			/* original track was found, re-use flags and remove this track */
+			if(cur) {
+				if(sel_type==MCLIP_SEL_TRACK && sel==cur)
+					replace_sel= 1;
+
+				track->flag= cur->flag|TRACK_PROCESSED;
+				track->pat_flag= cur->flag;
+				track->search_flag= cur->search_flag;
+
+				BKE_tracking_free_track(cur);
+				BLI_freelinkN(old_tracks, cur);
+				replace= 1;
+			}
+		}
+
+		new_track= BKE_tracking_copy_track(track);
+
+		if(replace) {
+			BLI_ghash_remove(context->hash, track, NULL, NULL); /* XXX: are we actually need this */
+			BLI_ghash_insert(context->hash, track, new_track);
+		}
+
+		if(replace_sel)		/* update current selection in clip */
+			BKE_movieclip_set_selection(context->clip, MCLIP_SEL_TRACK, new_track);
+
+		BLI_addtail(&tracks, new_track);
+
+		track= track->next;
+	}
+
+	/* move tracks, which could be added by user during tracking */
+	track= old_tracks->first;
+	while(track) {
+		MovieTrackingTrack *next= track->next;
+
+		track->next= track->prev= NULL;
+		BLI_addtail(&tracks, track);
+
+		track= next;
+	}
+
+	context->clip->tracking.tracks= tracks;
+	context->orig_user->framenr= context->user.framenr-1;
+}
+
+int BKE_tracking_next(MovieTrackingContext *context)
+{
+	ImBuf *ibuf, *ibuf_new;
+	MovieTrackingTrack *track;
+	int curfra= context->user.framenr;
+
+	ibuf= BKE_movieclip_acquire_ibuf(context->clip, &context->user);
+	if(!ibuf) return 0;
+
+	context->user.framenr++;
+	ibuf_new= BKE_movieclip_acquire_ibuf(context->clip, &context->user);
+	if(!ibuf_new) {
+		IMB_freeImBuf(ibuf);
+		return 0;
+	}
+
+	//track= context->movie_tracks.first;
+	track= context->tracks.first;
+	while(track) {
+		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, curfra);
+
+		if(marker) {
+#ifdef WITH_LIBMV
+			int width, height;
+			float *patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height);
+			float *patch_new= acquire_search_floatbuf(ibuf_new, track, marker, &width, &height);
+			double x1= -track->search_min[0]*ibuf->x, y1= -track->search_min[1]*ibuf->y;
+			double x2= x1, y2= y1;
+
+			if(libmv_regionTrackerTrack(context->region_tracker, patch, patch_new,
+						width, height, x1, y1, &x2, &y2)) {
+				MovieTrackingMarker marker_new;
+
+				track->flag|= TRACK_PROCESSED;
+
+				marker_new.pos[0]= marker->pos[0]+track->search_min[0]+x2/ibuf_new->x;
+				marker_new.pos[1]= marker->pos[1]+track->search_min[1]+y2/ibuf_new->y;
+				marker_new.framenr= curfra+1;
+
+				BKE_tracking_insert_marker(track, &marker_new);
+			}
+
+			MEM_freeN(patch);
+			MEM_freeN(patch_new);
+#endif
+		}
+
+		track= track->next;
+	}
+
+	IMB_freeImBuf(ibuf);
+	IMB_freeImBuf(ibuf_new);
+
+	return 1;
 }

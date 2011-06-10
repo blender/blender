@@ -787,6 +787,7 @@ endif()
 		bf_intern_smoke
 		extern_minilzo
 		extern_lzma
+		extern_libmv
 		ge_logic_ketsji
 		ge_phys_common
 		ge_logic

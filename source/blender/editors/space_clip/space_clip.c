@@ -165,6 +165,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 				case NA_REMOVED:
 				case NA_SELECTED:
 				case NA_EDITED:
+				case NA_EVALUATED:
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -204,6 +205,8 @@ static void clip_operatortypes(void)
 
 	WM_operatortype_append(CLIP_OT_add_marker);
 	WM_operatortype_append(CLIP_OT_delete);
+
+	WM_operatortype_append(CLIP_OT_track_markers);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)

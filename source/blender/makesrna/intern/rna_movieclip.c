@@ -98,10 +98,11 @@ static void rna_def_movieclip_tools(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem tools_items[] = {
-		{MCLIP_TOOL_NONE, "NONE", 0, "None", "Don't use any tool"},
-		{MCLIP_TOOL_FOOTAGE, "FOOTAGE", ICON_SEQUENCE, "Footage", "Footage sequence/movie tools"},
-		{MCLIP_TOOL_CAMERA, "CAMERA", ICON_CAMERA_DATA, "Camera", "Camera tools"},
-		{MCLIP_TOOL_MARKER, "MARKER", ICON_MARKERS, "Marker", "Marker tools"},
+		{MCLIP_TOOL_NONE,    "NONE",    0,                "None",    "Don't use any tool"},
+		{MCLIP_TOOL_FOOTAGE, "FOOTAGE", ICON_SEQUENCE,    "Footage", "Footage sequence/movie tools"},
+		{MCLIP_TOOL_CAMERA,  "CAMERA",  ICON_CAMERA_DATA, "Camera",  "Camera tools"},
+		{MCLIP_TOOL_MARKER,  "MARKER",  ICON_MARKERS,     "Marker",  "Marker tools"},
+	    {MCLIP_TOOL_TRACK,   "TRACK",   ICON_ANIM,        "Track",   "Track tools"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MovieClipEditSettings", NULL);

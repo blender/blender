@@ -33,6 +33,7 @@
 
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"	/* SELECT */
+#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
@@ -42,6 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
+#include "BKE_global.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -110,6 +112,7 @@ static void add_marker(SpaceClip *sc, float x, float y)
 
 	marker.pos[0]= x;
 	marker.pos[1]= y;
+	marker.framenr= sc->user.framenr;
 
 	copy_v2_v2(track->pat_max, pat);
 	negate_v2_v2(track->pat_min, pat);
@@ -670,4 +673,159 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
+}
+
+/********************** track operator *********************/
+
+typedef struct TrackMarkersJob {
+	struct MovieTrackingContext *context;
+	int sfra, efra;
+	MovieClip *clip;
+	MovieClipUser *user;
+} TrackMarkersJob;
+
+static int track_markers_testbreak(void)
+{
+	return G.afbreek;
+}
+
+static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	Scene *scene= CTX_data_scene(C);
+
+	tmj->sfra= sc->user.framenr;
+	tmj->efra= scene->r.efra;
+	tmj->clip= clip;
+	tmj->user= &sc->user;
+
+	tmj->context= BKE_tracking_context_new(clip, &sc->user);
+}
+
+static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_update, float *progress)
+{
+	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
+	int framenr= tmj->sfra;
+
+	while(framenr < tmj->efra) {
+		if(!BKE_tracking_next(tmj->context))
+			break;
+
+		*do_update= 1;
+		*progress=(float)(framenr-tmj->sfra) / (tmj->efra-tmj->sfra);
+
+		if(track_markers_testbreak())
+			break;
+
+		framenr++;
+	}
+}
+
+static void track_markers_updatejob(void *tmv)
+{
+	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
+
+	BKE_tracking_sync(tmj->context);
+}
+
+static void track_markers_freejob(void *tmv)
+{
+	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
+
+	BKE_tracking_sync(tmj->context);
+	BKE_tracking_context_free(tmj->context);
+
+	/* movie clip's user was used during tracking,
+	   need to restore current frame number */
+	tmj->user->framenr= tmj->sfra;
+
+	MEM_freeN(tmj);
+}
+
+static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	TrackMarkersJob *tmj;
+	wmJob *steve;
+	Scene *scene= CTX_data_scene(C);
+
+	tmj= MEM_callocN(sizeof(TrackMarkersJob), "TrackMarkersJob data");
+	track_markers_initjob(C, tmj);
+
+	/* setup job */
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Track Markers", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
+	WM_jobs_customdata(steve, tmj, track_markers_freejob);
+	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|NA_EVALUATED, 0);
+	WM_jobs_callbacks(steve, track_markers_startjob, NULL, track_markers_updatejob, NULL);
+
+	G.afbreek= 0;
+
+	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_cursor_wait(0);
+
+	/* add modal handler for ESC */
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int track_markers_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	Scene *scene= CTX_data_scene(C);
+	struct MovieTrackingContext *context;
+	int framenr= sc->user.framenr;
+	int sfra= framenr, efra= scene->r.efra;
+
+	context= BKE_tracking_context_new(clip, &sc->user);
+
+	while(framenr < efra) {
+		if(!BKE_tracking_next(context))
+			break;
+
+		framenr++;
+	}
+
+	BKE_tracking_sync(context);
+	BKE_tracking_context_free(context);
+
+	/* movie clip's user was used during tracking,
+	   need to restore current frame number */
+	sc->user.framenr= sfra;
+
+	return OPERATOR_FINISHED;
+}
+
+static int track_marekrs_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+{
+	/* no running blender, remove handler and pass through */
+	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
+		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+
+	/* running tracking */
+	switch (event->type) {
+		case ESCKEY:
+			return OPERATOR_RUNNING_MODAL;
+			break;
+	}
+
+	return OPERATOR_PASS_THROUGH;
+}
+
+void CLIP_OT_track_markers(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Track Markers";
+	ot->description= "Track sleected markers";
+	ot->idname= "CLIP_OT_track_markers";
+
+	/* api callbacks */
+	ot->exec= track_markers_exec;
+	ot->invoke= track_markers_invoke;
+	ot->poll= space_clip_frame_poll;
+	ot->modal= track_marekrs_modal;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

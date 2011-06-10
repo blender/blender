@@ -58,3 +58,7 @@ endif()
 if(WITH_LZMA)
 	add_subdirectory(lzma)
 endif()
+
+if(WITH_LIBMV)
+	add_subdirectory(libmv)
+endif()

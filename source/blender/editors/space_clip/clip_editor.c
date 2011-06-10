@@ -80,21 +80,11 @@ ImBuf *ED_space_clip_acquire_buffer(SpaceClip *sc)
 
 void ED_space_clip_size(SpaceClip *sc, int *width, int *height)
 {
-	ImBuf *ibuf;
-
-	ibuf= ED_space_clip_acquire_buffer(sc);
-
-	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
-		*width= ibuf->x;
-		*height= ibuf->y;
-	}
-	else {
+	if(!sc->clip) {
 		*width= 0;
 		*height= 0;
-	}
-
-	if(ibuf)
-		IMB_freeImBuf(ibuf);
+	} else
+		BKE_movieclip_acquire_size(sc->clip, &sc->user, width, height);
 }
 
 void ED_space_clip_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy)

@@ -64,6 +64,8 @@ void CLIP_OT_select_circle(struct wmOperatorType *ot);
 void CLIP_OT_add_marker(struct wmOperatorType *ot);
 void CLIP_OT_delete(struct wmOperatorType *ot);
 
+void CLIP_OT_track_markers(struct wmOperatorType *ot);
+
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 

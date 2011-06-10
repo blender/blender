@@ -37,14 +37,23 @@
 struct MovieTrackingTrack;
 struct MovieTrackingMarker;
 struct MovieTracking;
+struct MovieTrackingContext;
+struct MovieClipUser;
 
 void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
 void BKE_tracking_insert_marker(struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
 struct MovieTrackingMarker *BKE_tracking_get_marker(struct MovieTrackingTrack *track, int framenr);
 int BKE_tracking_has_marker(struct MovieTrackingTrack *track, int framenr);
+
 void BKE_tracking_free_track(struct MovieTrackingTrack *track);
+struct MovieTrackingTrack *BKE_tracking_copy_track(struct MovieTrackingTrack *track);
 void BKE_tracking_free(struct MovieTracking *tracking);
+
+struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user);
+void BKE_tracking_context_free(struct MovieTrackingContext *context);
+void BKE_tracking_sync(struct MovieTrackingContext *context);
+int BKE_tracking_next(struct MovieTrackingContext *context);
 
 #define TRACK_SELECTED(track) ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 #define TRACK_AREA_SELECTED(track, area) ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))

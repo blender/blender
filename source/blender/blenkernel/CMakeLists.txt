@@ -320,6 +320,11 @@ if(WITH_LZMA)
 	add_definitions(-DWITH_LZMA)
 endif()
 
+if(WITH_LIBMV)
+	list(APPEND INC ../../../extern/libmv)
+	add_definitions(-DWITH_LIBMV)
+endif()
+
 if(MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif()

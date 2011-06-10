@@ -77,14 +77,16 @@ typedef struct MovieTrackingTrack {
 
 	/* ** track ** */
 	int markersnr;					/* count of markers in track */
+	int last_marker;				/* most recently used marker */
+	int pad2;
 	MovieTrackingMarker *markers;	/* markers in track */
 
-	struct MovieTrackingBundle *bundle;	/* bundle, associated with this marker */
+	struct MovieTrackingBundle *bundle;	/* bundle, associated with this tracker */
 
 	/* ** UI editing ** */
 	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
 
-	char pad2[4];
+	char pad3[4];
 } MovieTrackingTrack;
 
 typedef struct MovieTracking {
@@ -92,5 +94,8 @@ typedef struct MovieTracking {
 	ListBase tracks;
 	ListBase bundles;
 } MovieTracking;
+
+/* MovieTrackingTrack->flag */
+#define TRACK_PROCESSED	2
 
 #endif

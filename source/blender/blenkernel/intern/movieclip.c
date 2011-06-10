@@ -299,6 +299,22 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 	return 0;
 }
 
+void BKE_movieclip_acquire_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
+{
+	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+
+	if(ibuf && ibuf->x && ibuf->y) {
+		*width= ibuf->x;
+		*height= ibuf->y;
+	} else {
+		*width= 0;
+		*height= 0;
+	}
+
+	if(ibuf)
+		IMB_freeImBuf(ibuf);
+}
+
 /* get segments of cached frames. useful for debugging cache policies */
 void BKE_movieclip_get_cache_segments(MovieClip *clip, int *totseg_r, int **points_r)
 {

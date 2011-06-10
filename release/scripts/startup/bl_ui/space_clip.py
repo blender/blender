@@ -142,6 +142,27 @@ class CLIP_PT_tracking_marker(bpy.types.Panel):
         layout.operator('clip.delete', icon='X')
 
 
+class CLIP_PT_track(bpy.types.Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = 'Track Tools'
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+        ts = context.tool_settings
+        tool = ts.movieclip.tool
+
+        return (sc.mode == 'TRACKING' and clip and tool == 'TRACK')
+
+    def draw(self, context):
+        layout = self.layout
+        clip = context.space_data.clip
+
+        layout.operator('clip.track_markers', icon='PLAY')
+
+
 class CLIP_PT_display(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
