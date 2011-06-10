@@ -27,8 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-//#include <errno.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_movieclip_types.h"
@@ -39,6 +37,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
+#include "BLI_blenlib.h"
 
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
@@ -182,7 +181,7 @@ static int add_marker_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 	switch(event->type) {
 		case MOUSEMOVE:
 			mouse_pos(C, event, &x, &y);
-			snprintf(buf, sizeof(buf), "Position for new marker X:%.0f Y:%.0f", x, y);
+			BLI_snprintf(buf, sizeof(buf), "Position for new marker X:%.0f Y:%.0f", x, y);
 			ED_area_headerprint(sa, buf);
 			break;
 		case LEFTMOUSE:
