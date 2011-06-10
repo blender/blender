@@ -52,6 +52,9 @@
 #include "ED_clip.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -74,29 +77,32 @@ static void trackingMarker_buttons(const bContext *C, uiBlock *block)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	int width, height, step, digits, type;
+	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	float pat_dim[2], pat_pos[2], search_dim[2], search_pos[2];
 
 	ED_space_clip_size(sc, &width, &height);
-	BKE_movieclip_last_selection(clip, &type, (void**)&marker);
+	BKE_movieclip_last_selection(clip, &type, (void**)&track);
 
 	step= 100;
 	digits= 2;
 
-	sub_v2_v2v2(pat_dim, marker->pat_max, marker->pat_min);
-	sub_v2_v2v2(search_dim, marker->search_max, marker->search_min);
+	marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-	add_v2_v2v2(search_pos, marker->search_max, marker->search_min);
+	sub_v2_v2v2(pat_dim, track->pat_max, track->pat_min);
+	sub_v2_v2v2(search_dim, track->search_max, track->search_min);
+
+	add_v2_v2v2(search_pos, track->search_max, track->search_min);
 	mul_v2_fl(search_pos, 0.5);
 
-	add_v2_v2v2(pat_pos, marker->pat_max, marker->pat_min);
+	add_v2_v2v2(pat_pos, track->pat_max, track->pat_min);
 	mul_v2_fl(pat_pos, 0.5);
 
 	to_pixel_space(sc->marker_pos, marker->pos, width, height);
-	to_pixel_space(sc->marker_pat, pat_dim, width, height);
-	to_pixel_space(sc->marker_pat_pos, pat_pos, width, height);
-	to_pixel_space(sc->marker_search, search_dim, width, height);
-	to_pixel_space(sc->marker_search_pos, search_pos, width, height);
+	to_pixel_space(sc->track_pat, pat_dim, width, height);
+	to_pixel_space(sc->track_pat_pos, pat_pos, width, height);
+	to_pixel_space(sc->track_search, search_dim, width, height);
+	to_pixel_space(sc->track_search_pos, search_pos, width, height);
 
 	uiBlockBeginAlign(block);
 
@@ -107,23 +113,23 @@ static void trackingMarker_buttons(const bContext *C, uiBlock *block)
 		-10*height, 10.0*height, step, digits, "Y-position of marker at frame in screen coordinates.");
 
 	uiDefBut(block, LABEL, 0, "Pattern Area:", 0, 133, 145, 19, NULL, 0, 0, 0, 0, "");
-	uiDefButF(block, NUM, B_MARKER_PAT_POS, "X:", 10, 114, 145, 19, &sc->marker_pat_pos[0],
+	uiDefButF(block, NUM, B_MARKER_PAT_POS, "X:", 10, 114, 145, 19, &sc->track_pat_pos[0],
 		-width, width, step, digits, "X-position of pattern at frame in screen coordinates relative to marker's position.");
-	uiDefButF(block, NUM, B_MARKER_PAT_POS, "Y:", 165, 114, 145, 19, &sc->marker_pat_pos[1],
+	uiDefButF(block, NUM, B_MARKER_PAT_POS, "Y:", 165, 114, 145, 19, &sc->track_pat_pos[1],
 		-height, height, step, digits, "Y-position of pattern at frame in screen coordinates relative to marker's position.");
-	uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Width:", 10, 95, 300, 19, &sc->marker_pat[0], 3.0f,
+	uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Width:", 10, 95, 300, 19, &sc->track_pat[0], 3.0f,
 		10.0*width, step, digits, "Width of marker's pattern in screen soordinates.");
-	uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Height:", 10, 76, 300, 19, &sc->marker_pat[1], 3.0f,
+	uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Height:", 10, 76, 300, 19, &sc->track_pat[1], 3.0f,
 		10.0*height, step, digits, "Height of marker's pattern in screen soordinates.");
 
 	uiDefBut(block, LABEL, 0, "Search Area:", 0, 57, 145, 19, NULL, 0, 0, 0, 0, "");
-	uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "X:", 10, 38, 145, 19, &sc->marker_search_pos[0],
+	uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "X:", 10, 38, 145, 19, &sc->track_search_pos[0],
 		-width, width, step, digits, "X-position of search at frame relative to marker's position");
-	uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "Y:", 165, 38, 145, 19, &sc->marker_search_pos[1],
+	uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "Y:", 165, 38, 145, 19, &sc->track_search_pos[1],
 		-height, height, step, digits, "X-position of search at frame relative to marker's position");
-	uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Width:", 10, 19, 300, 19, &sc->marker_search[0], 3.0f,
+	uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Width:", 10, 19, 300, 19, &sc->track_search[0], 3.0f,
 		10.0*width, step, digits, "Width of marker's search in screen soordinates.");
-	uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Height:", 10, 0, 300, 19, &sc->marker_search[1], 3.0f,
+	uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Height:", 10, 0, 300, 19, &sc->track_search[1], 3.0f,
 		10.0*height, step, digits, "Height of marker's search in screen soordinates.");
 	uiBlockEndAlign(block);
 }
@@ -132,11 +138,14 @@ static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	int width, height, type, ok= 0;
 
 	ED_space_clip_size(sc, &width, &height);
-	BKE_movieclip_last_selection(clip, &type, (void**)&marker);
+
+	BKE_movieclip_last_selection(clip, &type, (void**)&track);
+	marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
 	if(event==B_MARKER_POS) {
 		marker->pos[0]= sc->marker_pos[0]/width;
@@ -147,58 +156,58 @@ static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
 	else if(event==B_MARKER_PAT_POS) {
 		float delta[2], side[2];
 
-		sub_v2_v2v2(side, marker->pat_max, marker->pat_min);
+		sub_v2_v2v2(side, track->pat_max, track->pat_min);
 		mul_v2_fl(side, 0.5f);
 
-		delta[0]= sc->marker_pat_pos[0]/width;
-		delta[1]= sc->marker_pat_pos[1]/height;
+		delta[0]= sc->track_pat_pos[0]/width;
+		delta[1]= sc->track_pat_pos[1]/height;
 
-		sub_v2_v2v2(marker->pat_min, delta, side);
-		add_v2_v2v2(marker->pat_max, delta, side);
+		sub_v2_v2v2(track->pat_min, delta, side);
+		add_v2_v2v2(track->pat_max, delta, side);
 
-		BKE_tracking_clamp_marker(marker, CLAMP_PAT_POS);
+		BKE_tracking_clamp_track(track, CLAMP_PAT_POS);
 
 		ok= 1;
 	}
 	else if(event==B_MARKER_PAT_DIM) {
 		float dim[2];
 
-		dim[0]= sc->marker_pat[0]/width;
-		dim[1]= sc->marker_pat[1]/height;
+		dim[0]= sc->track_pat[0]/width;
+		dim[1]= sc->track_pat[1]/height;
 
-		mul_v2_v2fl(marker->pat_min, dim, -0.5);
-		mul_v2_v2fl(marker->pat_max, dim, 0.5);
+		mul_v2_v2fl(track->pat_min, dim, -0.5);
+		mul_v2_v2fl(track->pat_max, dim, 0.5);
 
-		BKE_tracking_clamp_marker(marker, CLAMP_PAT_DIM);
+		BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
 
 		ok= 1;
 	}
 	else if(event==B_MARKER_SEARCH_POS) {
 		float delta[2], side[2];
 
-		sub_v2_v2v2(side, marker->search_max, marker->search_min);
+		sub_v2_v2v2(side, track->search_max, track->search_min);
 		mul_v2_fl(side, 0.5f);
 
-		delta[0]= sc->marker_search_pos[0]/width;
-		delta[1]= sc->marker_search_pos[1]/height;
+		delta[0]= sc->track_search_pos[0]/width;
+		delta[1]= sc->track_search_pos[1]/height;
 
-		sub_v2_v2v2(marker->search_min, delta, side);
-		add_v2_v2v2(marker->search_max, delta, side);
+		sub_v2_v2v2(track->search_min, delta, side);
+		add_v2_v2v2(track->search_max, delta, side);
 
-		BKE_tracking_clamp_marker(marker, CLAMP_SEARCH_POS);
+		BKE_tracking_clamp_track(track, CLAMP_SEARCH_POS);
 
 		ok= 1;
 	}
 	else if(event==B_MARKER_SEARCH_DIM) {
 		float dim[2];
 
-		dim[0]= sc->marker_search[0]/width;
-		dim[1]= sc->marker_search[1]/height;
+		dim[0]= sc->track_search[0]/width;
+		dim[1]= sc->track_search[1]/height;
 
-		mul_v2_v2fl(marker->search_min, dim, -0.5);
-		mul_v2_v2fl(marker->search_max, dim, 0.5);
+		mul_v2_v2fl(track->search_min, dim, -0.5);
+		mul_v2_v2fl(track->search_max, dim, 0.5);
 
-		BKE_tracking_clamp_marker(marker, CLAMP_SEARCH_DIM);
+		BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 
 		ok= 1;
 	}
@@ -230,7 +239,7 @@ static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
 
 	BKE_movieclip_last_selection(clip, &type, (void**)&marker);
 
-	return type==MCLIP_SEL_MARKER;
+	return type==MCLIP_SEL_TRACK;
 }
 
 static void clip_panel_marker(const bContext *C, Panel *pa)
@@ -256,3 +265,48 @@ void ED_clip_buttons_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
+void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *UNUSED(userptr), int compact)
+{
+	PropertyRNA *prop;
+	PointerRNA clipptr;
+	MovieClip *clip;
+	/* MovieClipUser *user; */ /* currently unused */
+	uiLayout *row, *split;
+	uiBlock *block;
+
+	if(!ptr->data)
+		return;
+
+	prop= RNA_struct_find_property(ptr, propname);
+	if(!prop) {
+		printf("uiTemplateMovieClip: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	if(RNA_property_type(prop) != PROP_POINTER) {
+		printf("uiTemplateMovieClip: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	clipptr= RNA_property_pointer_get(ptr, prop);
+	clip= clipptr.data;
+	/* user= userptr->data; */
+
+	uiLayoutSetContextPointer(layout, "edit_movieclip", &clipptr);
+
+	if(!compact)
+		uiTemplateID(layout, C, ptr, propname, NULL, "CLIP_OT_open", NULL);
+
+	if(clip) {
+		row= uiLayoutRow(layout, 0);
+		block= uiLayoutGetBlock(row);
+		uiDefBut(block, LABEL, 0, "File Path:", 0, 19, 145, 19, NULL, 0, 0, 0, 0, "");
+
+		row= uiLayoutRow(layout, 0);
+		split = uiLayoutSplit(row, 0.0, 0);
+		row= uiLayoutRow(split, 1);
+
+		uiItemR(row, &clipptr, "filepath", 0, "", ICON_NONE);
+		uiItemO(row, "", ICON_FILE_REFRESH, "clip.reload");
+	}
+}

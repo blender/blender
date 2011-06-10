@@ -38,7 +38,7 @@ struct ImBuf;
 struct Main;
 struct MovieClip;
 struct MovieClipUser;
-struct MovieTrackingMarker;
+struct MovieTrackingTrack;
 
 void free_movieclip(struct MovieClip *clip);
 void unlink_movieclip(struct Main *bmain, struct MovieClip *clip);
@@ -50,8 +50,8 @@ struct ImBuf *BKE_movieclip_acquire_ibuf(struct MovieClip *clip, struct MovieCli
 int BKE_movieclip_has_frame(struct MovieClip *clip, struct MovieClipUser *user);
 void BKE_movieclip_user_set_frame(struct MovieClipUser *user, int framenr);
 
-void BKE_movieclip_select_marker(struct MovieClip *clip, struct MovieTrackingMarker *marker, int area, int extend);
-void BKE_movieclip_deselect_marker(struct MovieClip *clip, struct MovieTrackingMarker *marker, int area);
+void BKE_movieclip_select_track(struct MovieClip *clip, struct MovieTrackingTrack *track, int area, int extend);
+void BKE_movieclip_deselect_track(struct MovieClip *clip, struct MovieTrackingTrack *track, int area);
 void BKE_movieclip_set_selection(struct MovieClip *clip, int type, void *sel);
 void BKE_movieclip_last_selection(struct MovieClip *clip, int *type, void **sel);
 

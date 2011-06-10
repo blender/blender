@@ -89,6 +89,7 @@ MINLINE void madd_v3_v3v3v3(float r[3], const float a[3], const float b[3], cons
 MINLINE void madd_v4_v4fl(float r[4], const float a[4], float f);
 
 MINLINE void negate_v2(float r[2]);
+MINLINE void negate_v2_v2(float r[2], const float a[2]);
 MINLINE void negate_v3(float r[3]);
 MINLINE void negate_v3_v3(float r[3], const float a[3]);
 MINLINE void negate_v4(float r[4]);

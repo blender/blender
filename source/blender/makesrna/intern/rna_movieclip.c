@@ -59,6 +59,21 @@ static void rna_MovieClip_reload_update(Main *bmain, Scene *scene, PointerRNA *p
 
 #else
 
+static void rna_def_moviecliUuser(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MovieClipUser", NULL);
+	RNA_def_struct_ui_text(srna, "Movie Clip User", "Parameters defining how an MovieClip datablock is used by another datablock");
+
+	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_TIME);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_sdna(prop, NULL, "framenr");
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
+	RNA_def_property_ui_text(prop, "Current Frame", "Get frame number user is points to in clip");
+}
+
 static void rna_def_movieclip(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -101,6 +116,7 @@ static void rna_def_movieclip_tools(BlenderRNA *brna)
 void RNA_def_movieclip(BlenderRNA *brna)
 {
 	rna_def_movieclip(brna);
+	rna_def_moviecliUuser(brna);
 	rna_def_movieclip_tools(brna);
 }
 

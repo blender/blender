@@ -40,6 +40,8 @@ struct Tex;
 struct SpaceLink;
 struct Base;
 struct BoundBox;
+struct MovieClip;
+struct MovieClipUser;
 struct RenderInfo;
 struct bGPdata;
 struct SmoothViewStore;
@@ -56,6 +58,7 @@ struct wmTimer;
 
 #include "DNA_listBase.h"
 #include "DNA_image_types.h"
+#include "DNA_movieclip_types.h"
 
 /* ******************************** */
 
@@ -68,10 +71,12 @@ typedef struct BGpic {
 
 	struct Image *ima;
 	struct ImageUser iuser;
+	struct MovieClip *clip;
+	struct MovieClipUser cuser;
 	float xof, yof, size, blend;
 	short view;
 	short flag;
-	float pad2;
+	short source, pad;
 } BGpic;
 
 /* ********************************* */
@@ -290,6 +295,11 @@ typedef struct View3D {
 /* BGPic->flag */
 /* may want to use 1 for select ?*/
 #define V3D_BGPIC_EXPANDED		2
+
+/* BGPic->source */
+/* may want to use 1 for select ?*/
+#define V3D_BGPIC_IMAGE		0
+#define V3D_BGPIC_MOVIE		1
 
 #define RV3D_CAMZOOM_MIN -30
 #define RV3D_CAMZOOM_MAX 600

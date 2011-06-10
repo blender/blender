@@ -4844,6 +4844,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 
 						for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
 							bgpic->ima= newlibadr_us(fd, sc->id.lib, bgpic->ima);
+							bgpic->clip= newlibadr_us(fd, sc->id.lib, bgpic->clip);
 						}
 						if(v3d->localvd) {
 							v3d->localvd->camera= newlibadr(fd, sc->id.lib, v3d->localvd->camera);
@@ -5061,6 +5062,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 					for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
 						bgpic->ima= restore_pointer_by_name(newmain, (ID *)bgpic->ima, 1);
+						bgpic->clip= restore_pointer_by_name(newmain, (ID *)bgpic->clip, 1);
 					}
 					if(v3d->localvd) {
 						/*Base *base;*/
@@ -5202,9 +5204,9 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					}
 				}
 				else if(sl->spacetype==SPACE_CLIP) {
-					SpaceClip *sc= (SpaceClip *)sl;
+					SpaceClip *sclip= (SpaceClip *)sl;
 
-					sc->clip= restore_pointer_by_name(newmain, (ID *)sc->clip, 1);
+					sclip->clip= restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
 				}
 			}
 			sa= sa->next;
@@ -5653,22 +5655,49 @@ static void lib_link_group(FileData *fd, Main *main)
 
 static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 {
+	MovieTrackingTrack *track;
+	MovieTrackingBundle *bundle;
+
 	if(fd->movieclipmap) clip->ibuf_cache= newmclipadr(fd, clip->ibuf_cache);
 	else clip->ibuf_cache= NULL;
 
-	link_list(fd, &clip->tracking.markers);
+	clip->adt= newdataadr(fd, clip->adt);
+	direct_link_animdata(fd, clip->adt);
+
+	link_list(fd, &clip->tracking.tracks);
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		track->bundle= newdataadr(fd, track->bundle);
+		track->markers= newdataadr(fd, track->markers);
+
+		track= track->next;
+	}
+
+	link_list(fd, &clip->tracking.bundles);
+	bundle= clip->tracking.bundles.first;
+	while(bundle) {
+		bundle->track= newdataadr(fd, bundle->track);
+
+		bundle= bundle->next;
+	}
+
 	clip->last_sel= newdataadr(fd, clip->last_sel);
+	if(clip->last_sel==NULL)
+		clip->sel_type= MCLIP_SEL_NONE;
 
 	clip->anim= NULL;
 }
 
-static void lib_link_movieclip(FileData *UNUSED(fd), Main *main)
+static void lib_link_movieclip(FileData *fd, Main *main)
 {
 	MovieClip *clip;
 
 	clip= main->movieclip.first;
 	while(clip) {
 		if(clip->id.flag & LIB_NEEDLINK) {
+			if(clip->adt) lib_link_animdata(fd, &clip->id, clip->adt);
+
 			clip->id.flag -= LIB_NEEDLINK;
 		}
 		clip= clip->id.next;

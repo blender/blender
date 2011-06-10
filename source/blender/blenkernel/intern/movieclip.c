@@ -68,6 +68,7 @@
 #include "BKE_moviecache.h"
 #include "BKE_image.h"	/* openanim */
 #include "BKE_tracking.h"
+#include "BKE_animsys.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -343,33 +344,38 @@ void BKE_movieclip_reload(MovieClip *clip)
 	1 - only marker
 	2 - only pattern
 	3 - only search */
-void BKE_movieclip_select_marker(MovieClip *clip, MovieTrackingMarker *marker, int area, int extend)
+void BKE_movieclip_select_track(MovieClip *clip, MovieTrackingTrack *track, int area, int extend)
 {
 	if(extend) {
-		BKE_tracking_marker_flag(marker, area, SELECT, 0);
+		if(track->bundle) track->bundle->flag|= SELECT;
+		BKE_tracking_track_flag(track, area, SELECT, 0);
 	} else {
-		MovieTrackingMarker *cur= clip->tracking.markers.first;
+		MovieTrackingTrack *cur= clip->tracking.tracks.first;
 
 		while(cur) {
-			if(cur==marker) {
-				BKE_tracking_marker_flag(cur, MARKER_AREA_ALL, SELECT, 1);
-				BKE_tracking_marker_flag(cur, area, SELECT, 0);
+			if(cur==track) {
+				if(cur->bundle) cur->bundle->flag|= SELECT;
+				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
+				BKE_tracking_track_flag(cur, area, SELECT, 0);
 			}
-			else BKE_tracking_marker_flag(cur, MARKER_AREA_ALL, SELECT, 1);
+			else {
+				if(cur->bundle) cur->bundle->flag&= ~SELECT;
+				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
+			}
 
 			cur= cur->next;
 		}
 	}
 
-	if(!MARKER_SELECTED(marker))
+	if(!TRACK_SELECTED(track))
 		BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 }
 
-void BKE_movieclip_deselect_marker(MovieClip *clip, MovieTrackingMarker *marker, int area)
+void BKE_movieclip_deselect_track(MovieClip *clip, MovieTrackingTrack *track, int area)
 {
-	BKE_tracking_marker_flag(marker, area, SELECT, 1);
+	BKE_tracking_track_flag(track, area, SELECT, 1);
 
-	if(!MARKER_SELECTED(marker))
+	if(!TRACK_SELECTED(track))
 		BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 }
 
@@ -393,7 +399,9 @@ void free_movieclip(MovieClip *clip)
 {
 	free_buffers(clip);
 
-	BLI_freelistN(&clip->tracking.markers);
+	if(clip->adt) BKE_free_animdata((ID *)clip);
+
+	BKE_tracking_free(&clip->tracking);
 }
 
 void unlink_movieclip(Main *bmain, MovieClip *clip)

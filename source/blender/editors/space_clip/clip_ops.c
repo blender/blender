@@ -223,8 +223,10 @@ void CLIP_OT_open(wmOperatorType *ot)
 
 static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
+	MovieClip *clip= CTX_data_edit_movieclip(C);
+
+	if(!clip)
+		return OPERATOR_CANCELLED;
 
 	BKE_movieclip_reload(clip);
 
@@ -242,7 +244,6 @@ void CLIP_OT_reload(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= reload_exec;
-	ot->poll= space_clip_poll;
 }
 
 /******************* delete operator *********************/

@@ -169,6 +169,13 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_SELECT:
+					ED_area_tag_redraw(sa);
+					break;
+			}
+			break;
 		case NC_SPACE:
 			if(wmn->data==ND_SPACE_CLIP)
 				ED_area_tag_redraw(sa);

@@ -41,23 +41,56 @@
 
 /* match-moving data */
 
+struct MovieTrackingCamera;
+struct MovieTrackingBundle;
+struct MovieTrackingMarker;
+struct MovieTrackingTrack;
+struct MovieTracking;
+
 typedef struct MovieTrackingCamera {
 	float focal;	/* focal length */
 	float pad;
 } MovieTrackingCamera;
 
 typedef struct MovieTrackingMarker {
-	struct MovieTrackingMarker *next, *prev;
-	float pos[2];						/* 2d position of marker on frame (in unified 0..1 space) */
+	float pos[2];	/* 2d position of marker on frame (in unified 0..1 space) */
+	int framenr;	/* number of frame marker is associated with */
+} MovieTrackingMarker;
+
+typedef struct MovieTrackingBundle {
+	struct MovieTrackingBundle *next, *prev;
+	float pos[3];	/* 3d position of bundle */
+
+	int flag;		/* flags (selection, ...) */
+
+	struct MovieTrackingTrack *track;	/* track associated with this bundle */
+} MovieTrackingBundle;
+
+typedef struct MovieTrackingTrack {
+	struct MovieTrackingTrack *next, *prev;
+
+	/* ** setings ** */
 	float pat_min[2], pat_max[2];		/* positions of left-bottom and right-top corners of pattern (in unified 0..1 space) */
 	float search_min[2], search_max[2];	/* positions of left-bottom and right-top corners of search area (in unified 0..1 space) */
-	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
+
 	int pad;
-} MovieTrackingMarker;
+
+	/* ** track ** */
+	int markersnr;					/* count of markers in track */
+	MovieTrackingMarker *markers;	/* markers in track */
+
+	struct MovieTrackingBundle *bundle;	/* bundle, associated with this marker */
+
+	/* ** UI editing ** */
+	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
+
+	char pad2[4];
+} MovieTrackingTrack;
 
 typedef struct MovieTracking {
 	MovieTrackingCamera camera;
-	ListBase markers;
+	ListBase tracks;
+	ListBase bundles;
 } MovieTracking;
 
 #endif

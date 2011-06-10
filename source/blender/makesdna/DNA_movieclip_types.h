@@ -49,6 +49,7 @@ typedef struct MovieClipUser {
 
 typedef struct MovieClip {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
 
 	char name[240];		/* file path */
 
@@ -71,6 +72,6 @@ typedef struct MovieClip {
 
 /* MovieClip->selection types */
 #define MCLIP_SEL_NONE		0
-#define MCLIP_SEL_MARKER	1
+#define MCLIP_SEL_TRACK		1
 
 #endif

@@ -92,8 +92,7 @@ class CLIP_PT_footage(bpy.types.Panel):
         clip = sc.clip
 
         if clip:
-            layout.label(text="File Path:")
-            layout.prop(clip, "filepath", text="")
+            layout.template_movieclip(sc, "clip", sc.clip_user, compact=True)
         else:
             layout.operator('clip.open', icon='FILESEL')
 

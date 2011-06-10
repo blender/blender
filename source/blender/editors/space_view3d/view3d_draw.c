@@ -63,6 +63,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
+#include "BKE_movieclip.h"
 
 #include "RE_pipeline.h"	// make_stars
 
@@ -1371,7 +1372,8 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d= ar->regiondata;
 	BGpic *bgpic;
 	Image *ima;
-	ImBuf *ibuf= NULL;
+	MovieClip *clip;
+	ImBuf *ibuf= NULL, *freeibuf;
 	float vec[4], fac, asp, zoomx, zoomy;
 	float x1, y1, x2, y2, cx, cy;
 
@@ -1382,15 +1384,36 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			(bgpic->view & (1<<rv3d->view)) || /* check agaist flags */
 			(rv3d->persp==RV3D_CAMOB && bgpic->view == (1<<RV3D_VIEW_CAMERA))
 		) {
-			ima= bgpic->ima;
-			if(ima==NULL)
+			freeibuf= NULL;
+			if(bgpic->source==V3D_BGPIC_IMAGE) {
+				ima= bgpic->ima;
+				if(ima==NULL)
+					continue;
+				BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
+				ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
+			} else {
+				clip= bgpic->clip;
+				if(clip==NULL)
+					continue;
+				BKE_movieclip_user_set_frame(&bgpic->cuser, CFRA);
+				ibuf= BKE_movieclip_acquire_ibuf(clip, &bgpic->cuser);
+
+				/* working with ibuf from image and clip has got different workflow now.
+				   ibuf acquired from clip is referenced by cache system and should
+				   be dereferenced after usage. */
+				freeibuf= ibuf;
+			}
+
+			if(ibuf==NULL)
 				continue;
-			BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
-			ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
-			if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) )
+
+			if((ibuf->rect==NULL && ibuf->rect_float==NULL) || ibuf->channels!=4) { /* invalid image format */
+				if(freeibuf)
+					IMB_freeImBuf(freeibuf);
+
 				continue;
-			if(ibuf->channels!=4)
-				continue;
+			}
+
 			if(ibuf->rect==NULL)
 				IMB_rect_from_float(ibuf);
 
@@ -1429,10 +1452,12 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 
 			/* complete clip? */
 
-			if(x2 < 0 ) continue;
-			if(y2 < 0 ) continue;
-			if(x1 > ar->winx ) continue;
-			if(y1 > ar->winy ) continue;
+			if(x2 < 0 || y2 < 0 || x1 > ar->winx || y1 > ar->winy) {
+				if(freeibuf)
+					IMB_freeImBuf(freeibuf);
+
+				continue;
+			}
 
 			zoomx= (x2-x1)/ibuf->x;
 			zoomy= (y2-y1)/ibuf->y;
@@ -1487,8 +1512,141 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 
 			glDepthMask(1);
 			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+
+			if(freeibuf)
+				IMB_freeImBuf(freeibuf);
 		}
 	}
+}
+
+/* ****************** draw clip data *************** */
+
+static void draw_bundle_sphere(void)
+{
+	static GLuint displist= 0;
+
+	if (displist == 0) {
+		GLUquadricObj *qobj;
+
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE);
+
+		qobj= gluNewQuadric();
+		gluQuadricDrawStyle(qobj, GLU_FILL);
+		glShadeModel(GL_SMOOTH);
+		gluSphere(qobj, 0.05, 8, 8);
+		glShadeModel(GL_FLAT);
+		gluDeleteQuadric(qobj);
+
+		glEndList();
+	}
+
+	glCallList(displist);
+}
+
+static void draw_bundle_outline(void)
+{
+	static GLuint displist=0;
+
+	if (displist == 0) {
+		GLUquadricObj	*qobj;
+
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE);
+
+		glPushMatrix();
+
+		qobj= gluNewQuadric();
+		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE);
+		gluDisk(qobj, 0.0,  0.05, 16, 1);
+
+		glRotatef(90, 0, 1, 0);
+		gluDisk(qobj, 0.0,  0.05, 16, 1);
+
+		glRotatef(90, 1, 0, 0);
+		gluDisk(qobj, 0.0,  0.05, 16, 1);
+
+		gluDeleteQuadric(qobj);
+
+		glPopMatrix();
+		glEndList();
+	}
+
+	glCallList(displist);
+}
+
+static void draw_clip(MovieClip *clip, int dt)
+{
+	MovieTrackingBundle *bundle;
+
+	for ( bundle= clip->tracking.bundles.first; bundle; bundle= bundle->next) {
+		glPushMatrix();
+			glTranslatef(bundle->pos[0], bundle->pos[1], bundle->pos[2]);
+
+			if(bundle->flag&SELECT) {
+				glDisable(GL_LIGHTING);
+				glDepthMask(0);
+
+				UI_ThemeColor(TH_SELECT);
+				draw_bundle_outline();
+
+				glDepthMask(1);
+				glEnable(GL_LIGHTING);
+			}
+
+			if(dt==OB_WIRE) {
+				if((bundle->flag&SELECT)==0) {
+					glDisable(GL_LIGHTING);
+					glDepthMask(0);
+
+					UI_ThemeColor(TH_WIRE);
+					draw_bundle_outline();
+
+					glDepthMask(1);
+					glEnable(GL_LIGHTING);
+				}
+			}
+			else if(dt>OB_WIRE) {
+				UI_ThemeColor(TH_BUNDLE_SOLID);
+				draw_bundle_sphere();
+			}
+		glPopMatrix();
+	}
+}
+
+/* draw movie-clips related items in the 3d view (bundles and so) */
+static void draw_viewport_clips(View3D *v3d)
+{
+	BGpic *bgpic;
+	MovieClip *clip;
+	int dt= v3d->drawtype;
+
+	glEnable(GL_LIGHTING);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
+	glShadeModel(GL_SMOOTH);
+
+	/* clear usage flag */
+	for ( bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next )
+		if(bgpic->source==V3D_BGPIC_MOVIE)
+			bgpic->clip->id.flag&= ~LIB_DOIT;
+
+	/* actual draw cycle */
+	for ( bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next )
+		if(bgpic->source==V3D_BGPIC_MOVIE) {
+			clip= bgpic->clip;
+
+			if((clip->id.flag&LIB_DOIT)==0) {
+				draw_clip(clip, dt);
+
+				bgpic->clip->id.flag|= LIB_DOIT;
+			}
+		}
+
+	/* restore */
+	glShadeModel(GL_FLAT);
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHTING);
 }
 
 /* ****************** View3d afterdraw *************** */
@@ -2575,6 +2733,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 				draw_object(scene, ar, v3d, base, 0);
 		}
 	}
+
+	/* draw data came from movie clips set as background */
+	draw_viewport_clips(v3d);
 
 //	REEB_draw();
 

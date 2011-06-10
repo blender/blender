@@ -2412,13 +2412,26 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 	clip= idbase->first;
 	while(clip) {
 		if(clip->id.us>0 || wd->current) {
-			MovieTrackingMarker *marker;
+			MovieTrackingTrack *track;
+			MovieTrackingBundle *bundle;
 			writestruct(wd, ID_MC, "MovieClip", 1, clip);
 
-			marker= clip->tracking.markers.first;
-			while(marker) {
-				writestruct(wd, DATA, "MovieTrackingMarker", 1, marker);
-				marker= marker->next;
+			if (clip->adt) write_animdata(wd, clip->adt);
+
+			track= clip->tracking.tracks.first;
+			while(track) {
+				writestruct(wd, DATA, "MovieTrackingTrack", 1, track);
+				if(track->markers)
+					writedata(wd, DATA, track->markersnr*sizeof(MovieTrackingMarker), track->markers);
+
+				track= track->next;
+			}
+
+			bundle= clip->tracking.bundles.first;
+			while(bundle) {
+				writestruct(wd, DATA, "MovieTrackingBundle", 1, bundle);
+
+				bundle= bundle->next;
 			}
 		}
 

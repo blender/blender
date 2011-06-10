@@ -723,6 +723,8 @@ void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, int rows, int maxrows, int type);
 
+void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
+
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);
 void uiItemEnumO(uiLayout *layout, const char *opname, const char *name, int icon, const char *propname, int value);

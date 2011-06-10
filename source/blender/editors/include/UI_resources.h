@@ -247,7 +247,8 @@ enum {
 	TH_MARKER_OUTLINE,
 	TH_MARKER,
 	TH_ACT_MARKER,
-	TH_SEL_MARKER
+	TH_SEL_MARKER,
+	TH_BUNDLE_SOLID
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

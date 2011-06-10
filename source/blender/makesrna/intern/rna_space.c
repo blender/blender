@@ -1107,9 +1107,21 @@ static void rna_def_background_image(BlenderRNA *brna)
 		{(1<<RV3D_VIEW_CAMERA), "CAMERA", 0, "Camera", "Show background image in camera view"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem bgpic_source_items[] = {
+		{V3D_BGPIC_IMAGE, "IMAGE", 0, "Image", ""},
+		{V3D_BGPIC_MOVIE, "MOVIE", 0, "Movie", ""},
+	    {0, NULL, 0, NULL, NULL}
+	};
+
 	srna= RNA_def_struct(brna, "BackgroundImage", NULL);
 	RNA_def_struct_sdna(srna, "BGpic");
 	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3d View background");
+
+	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "source");
+	RNA_def_property_enum_items(prop, bgpic_source_items);
+	RNA_def_property_ui_text(prop, "Background Source", "Data source used for background");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ima");
@@ -1117,10 +1129,22 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
+	prop= RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "clip");
+	RNA_def_property_ui_text(prop, "MovieClip", "Movie clip displayed and edited in this space");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
 	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "clip_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "cuser");
+	RNA_def_property_ui_text(prop, "Clip User", "Parameters defining which frame of the movie clip is displayed");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
@@ -2591,6 +2615,13 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Movie Clip", "Movie clip displayed and edited in this space");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_clip_set", NULL, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* clip user */
+	prop= RNA_def_property(srna, "clip_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "user");
+	RNA_def_property_ui_text(prop, "Movie Clip User", "Parameters defining which frame of the movie clip is displayed");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
 	/* mode */

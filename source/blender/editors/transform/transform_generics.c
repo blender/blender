@@ -849,27 +849,27 @@ void recalcData(TransInfo *t)
 	else if (t->spacetype == SPACE_CLIP) {
 		SpaceClip *sc= t->sa->spacedata.first;
 		MovieClip *clip= ED_space_clip(sc);
-		MovieTrackingMarker *marker;
+		MovieTrackingTrack *track;
 		flushTransTracking(t);
 
-		marker= clip->tracking.markers.first;
-		while(marker) {
-			if(MARKER_SELECTED(marker)) {
+		track= clip->tracking.tracks.first;
+		while(track) {
+			if(TRACK_SELECTED(track)) {
 				if (t->mode == TFM_TRANSLATION) {
-					if(MARKER_AREA_SELECTED(marker, MARKER_AREA_PAT))
-						BKE_tracking_clamp_marker(marker, CLAMP_PAT_POS);
-					if(MARKER_AREA_SELECTED(marker, MARKER_AREA_SEARCH))
-						BKE_tracking_clamp_marker(marker, CLAMP_SEARCH_POS);
+					if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
+						BKE_tracking_clamp_track(track, CLAMP_PAT_POS);
+					if(TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
+						BKE_tracking_clamp_track(track, CLAMP_SEARCH_POS);
 				}
 				else if (t->mode == TFM_RESIZE) {
-					if(MARKER_AREA_SELECTED(marker, MARKER_AREA_PAT))
-						BKE_tracking_clamp_marker(marker, CLAMP_PAT_DIM);
-					if(MARKER_AREA_SELECTED(marker, MARKER_AREA_SEARCH))
-						BKE_tracking_clamp_marker(marker, CLAMP_SEARCH_DIM);
+					if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
+						BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
+					if(TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
+						BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 				}
 			}
 
-			marker= marker->next;
+			track= track->next;
 		}
 	}
 }

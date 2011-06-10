@@ -420,6 +420,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->act_marker; break;
 			case TH_SEL_MARKER:
 				cp= ts->sel_marker; break;
+			case TH_BUNDLE_SOLID:
+				cp= ts->bundle_solid; break;
 			}
 		}
 	}
@@ -652,6 +654,8 @@ void ui_theme_init_default(void)
 
 	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
 	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);               // alpha 80 is not meant editable, used for wire+action draw
+
+	SETCOL(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
 	
 	
 	/* space buttons */
@@ -1574,7 +1578,11 @@ void init_userdef_do_versions(void)
 	
 	if (bmain->versionfile <= 257) {
 		bTheme *btheme;
-		for(btheme= U.themes.first; btheme; btheme= btheme->next)
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			if(btheme->tv3d.bundle_solid[3] == 0) {
+				SETCOL(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
+			}
+
 			if((btheme->tclip.back[3]) == 0) {
 				btheme->tclip= btheme->tv3d;
 
@@ -1583,6 +1591,7 @@ void init_userdef_do_versions(void)
 				SETCOL(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
 				SETCOL(btheme->tclip.sel_marker, 0xff, 0xff, 0x00, 255);
 			}
+		}
 	}
 
 	/* GL Texture Garbage Collection (variable abused above!) */
