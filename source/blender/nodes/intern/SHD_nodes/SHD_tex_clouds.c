@@ -57,6 +57,11 @@ static void node_shader_exec_tex_clouds(void *data, bNode *node, bNodeStack **in
 {
 }
 
+static int node_shader_gpu_tex_clouds(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_tex_clouds", in, out);
+}
+
 /* node type definition */
 void register_node_type_sh_tex_clouds(ListBase *lb)
 {
@@ -68,7 +73,7 @@ void register_node_type_sh_tex_clouds(ListBase *lb)
 	node_type_init(&ntype, node_shader_init_tex_clouds);
 	node_type_storage(&ntype, "NodeTexClouds", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_shader_exec_tex_clouds);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_tex_clouds);
 
 	nodeRegisterType(lb, &ntype);
 };

@@ -1189,6 +1189,7 @@ void GPU_end_object_materials(void)
 
 int GPU_default_lights(void)
 {
+	float zero[3] = {0.0f, 0.0f, 0.0f};
 	int a, count = 0;
 	
 	/* initialize */
@@ -1214,27 +1215,25 @@ int GPU_default_lights(void)
 
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
 
-	glLightfv(GL_LIGHT0, GL_POSITION, U.light[0].vec); 
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, U.light[0].col); 
-	glLightfv(GL_LIGHT0, GL_SPECULAR, U.light[0].spec); 
-
-	glLightfv(GL_LIGHT1, GL_POSITION, U.light[1].vec); 
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, U.light[1].col); 
-	glLightfv(GL_LIGHT1, GL_SPECULAR, U.light[1].spec); 
-
-	glLightfv(GL_LIGHT2, GL_POSITION, U.light[2].vec); 
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, U.light[2].col); 
-	glLightfv(GL_LIGHT2, GL_SPECULAR, U.light[2].spec); 
-
 	for(a=0; a<8; a++) {
 		if(a<3) {
 			if(U.light[a].flag) {
 				glEnable(GL_LIGHT0+a);
+				
+				glLightfv(GL_LIGHT0+a, GL_POSITION, U.light[a].vec); 
+				glLightfv(GL_LIGHT0+a, GL_DIFFUSE, U.light[a].col); 
+				glLightfv(GL_LIGHT0+a, GL_SPECULAR, U.light[a].spec); 
+
 				count++;
 			}
-			else
+			else {
 				glDisable(GL_LIGHT0+a);
-			
+
+				glLightfv(GL_LIGHT0+a, GL_POSITION, zero); 
+				glLightfv(GL_LIGHT0+a, GL_DIFFUSE, zero); 
+				glLightfv(GL_LIGHT0+a, GL_SPECULAR, zero);
+			}
+
 			// clear stuff from other opengl lamp usage
 			glLightf(GL_LIGHT0+a, GL_SPOT_CUTOFF, 180.0);
 			glLightf(GL_LIGHT0+a, GL_CONSTANT_ATTENUATION, 1.0);

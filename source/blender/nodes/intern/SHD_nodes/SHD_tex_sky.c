@@ -56,6 +56,11 @@ static void node_shader_exec_tex_sky(void *data, bNode *node, bNodeStack **in, b
 {
 }
 
+static int node_shader_gpu_tex_sky(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_tex_sky", in, out);
+}
+
 /* node type definition */
 void register_node_type_sh_tex_sky(ListBase *lb)
 {
@@ -67,7 +72,7 @@ void register_node_type_sh_tex_sky(ListBase *lb)
 	node_type_init(&ntype, node_shader_init_tex_sky);
 	node_type_storage(&ntype, "NodeTexSky", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_shader_exec_tex_sky);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_tex_sky);
 
 	nodeRegisterType(lb, &ntype);
 };

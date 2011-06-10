@@ -46,6 +46,11 @@ static void node_shader_exec_tex_noise(void *data, bNode *node, bNodeStack **in,
 {
 }
 
+static int node_shader_gpu_tex_noise(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_tex_noise", in, out);
+}
+
 /* node type definition */
 void register_node_type_sh_tex_noise(ListBase *lb)
 {
@@ -57,7 +62,7 @@ void register_node_type_sh_tex_noise(ListBase *lb)
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, node_shader_exec_tex_noise);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_tex_noise);
 
 	nodeRegisterType(lb, &ntype);
 };

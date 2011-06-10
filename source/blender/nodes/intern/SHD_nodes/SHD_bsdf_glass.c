@@ -47,24 +47,11 @@ static void node_shader_exec_bsdf_glass(void *data, bNode *node, bNodeStack **in
 {
 }
 
-bNodeType sh_node_bsdf_glass= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_BSDF_GLASS,
-	/* name        */	"Glass BSDF",
-	/* width+range */	150, 60, 200,
-	/* class+opts  */	NODE_CLASS_CLOSURE, 0,
-	/* input sock  */	sh_node_bsdf_glass_in,
-	/* output sock */	sh_node_bsdf_glass_out,
-	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_bsdf_glass,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	NULL
-	
-};
+static int node_shader_gpu_bsdf_glass(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_bsdf_glass", in, out, GPU_builtin(GPU_VIEW_NORMAL), GPU_builtin(GPU_VIEW_POSITION));
+}
+
 /* node type definition */
 void register_node_type_sh_bsdf_glass(ListBase *lb)
 {
@@ -76,7 +63,7 @@ void register_node_type_sh_bsdf_glass(ListBase *lb)
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, node_shader_exec_bsdf_glass);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_bsdf_glass);
 
 	nodeRegisterType(lb, &ntype);
 };

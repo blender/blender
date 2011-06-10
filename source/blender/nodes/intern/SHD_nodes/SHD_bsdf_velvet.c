@@ -47,6 +47,11 @@ static void node_shader_exec_bsdf_velvet(void *data, bNode *node, bNodeStack **i
 {
 }
 
+static int node_shader_gpu_bsdf_velvet(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_bsdf_velvet", in, out, GPU_builtin(GPU_VIEW_NORMAL));
+}
+
 /* node type definition */
 void register_node_type_sh_bsdf_velvet(ListBase *lb)
 {
@@ -58,7 +63,7 @@ void register_node_type_sh_bsdf_velvet(ListBase *lb)
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, node_shader_exec_bsdf_velvet);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_bsdf_velvet);
 
 	nodeRegisterType(lb, &ntype);
 };

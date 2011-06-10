@@ -29,6 +29,8 @@
 
 #include "../SHD_util.h"
 
+#include "DNA_customdata_types.h"
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketType sh_node_tex_coord_out[]= {
@@ -45,6 +47,16 @@ static void node_shader_exec_tex_coord(void *data, bNode *node, bNodeStack **in,
 {
 }
 
+static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
+	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");
+
+	return GPU_stack_link(mat, "node_tex_coord", in, out,
+		GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
+		GPU_builtin(GPU_INVERSE_VIEW_MATRIX), orco, mtface);
+}
+
 /* node type definition */
 void register_node_type_sh_tex_coord(ListBase *lb)
 {
@@ -56,7 +68,7 @@ void register_node_type_sh_tex_coord(ListBase *lb)
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, node_shader_exec_tex_coord);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_tex_coord);
 
 	nodeRegisterType(lb, &ntype);
 };

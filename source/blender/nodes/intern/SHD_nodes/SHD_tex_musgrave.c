@@ -60,6 +60,11 @@ static void node_shader_exec_tex_musgrave(void *data, bNode *node, bNodeStack **
 {
 }
 
+static int node_shader_gpu_tex_musgrave(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_tex_musgrave", in, out);
+}
+
 /* node type definition */
 void register_node_type_sh_tex_musgrave(ListBase *lb)
 {
@@ -71,7 +76,7 @@ void register_node_type_sh_tex_musgrave(ListBase *lb)
 	node_type_init(&ntype, node_shader_init_tex_musgrave);
 	node_type_storage(&ntype, "NodeTexMusgrave", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_shader_exec_tex_musgrave);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_tex_musgrave);
 
 	nodeRegisterType(lb, &ntype);
 };

@@ -3114,6 +3114,8 @@ static void gpu_from_node_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack
 			gs[i].type= GPU_VEC3;
 		else if (sock->type == SOCK_RGBA)
 			gs[i].type= GPU_VEC4;
+		else if (sock->type == SOCK_CLOSURE)
+			gs[i].type= GPU_VEC4;
 		else
 			gs[i].type= GPU_NONE;
 

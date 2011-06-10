@@ -45,6 +45,11 @@ static void node_shader_exec_bsdf_transparent(void *data, bNode *node, bNodeStac
 {
 }
 
+static int node_shader_gpu_bsdf_transparent(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_bsdf_transparent", in, out);
+}
+
 /* node type definition */
 void register_node_type_sh_bsdf_transparent(ListBase *lb)
 {
@@ -56,7 +61,7 @@ void register_node_type_sh_bsdf_transparent(ListBase *lb)
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, node_shader_exec_bsdf_transparent);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_bsdf_transparent);
 
 	nodeRegisterType(lb, &ntype);
 };

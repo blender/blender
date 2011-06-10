@@ -59,6 +59,11 @@ static void node_shader_exec_tex_marble(void *data, bNode *node, bNodeStack **in
 {
 }
 
+static int node_shader_gpu_tex_marble(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_tex_marble", in, out);
+}
+
 /* node type definition */
 void register_node_type_sh_tex_marble(ListBase *lb)
 {
@@ -70,7 +75,7 @@ void register_node_type_sh_tex_marble(ListBase *lb)
 	node_type_init(&ntype, node_shader_init_tex_marble);
 	node_type_storage(&ntype, "NodeTexMarble", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_shader_exec_tex_marble);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_tex_marble);
 
 	nodeRegisterType(lb, &ntype);
 };

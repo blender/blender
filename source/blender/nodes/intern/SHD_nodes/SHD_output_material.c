@@ -42,6 +42,17 @@ static void node_shader_exec_output_material(void *data, bNode *node, bNodeStack
 {
 }
 
+static int node_shader_gpu_output_material(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+{
+	GPUNodeLink *outlink;
+
+	GPU_stack_link(mat, "node_output_material", in, out, &outlink);
+	GPU_material_output_link(mat, outlink);
+
+	return 1;
+}
+
+
 /* node type definition */
 void register_node_type_sh_output_material(ListBase *lb)
 {
@@ -53,7 +64,7 @@ void register_node_type_sh_output_material(ListBase *lb)
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, node_shader_exec_output_material);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_output_material);
 
 	nodeRegisterType(lb, &ntype);
 };

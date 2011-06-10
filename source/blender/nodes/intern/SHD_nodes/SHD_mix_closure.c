@@ -47,6 +47,11 @@ static void node_shader_exec_mix_closure(void *data, bNode *node, bNodeStack **i
 {
 }
 
+static int node_shader_gpu_mix_closure(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_mix_closure", in, out);
+}
+
 /* node type definition */
 void register_node_type_sh_mix_closure(ListBase *lb)
 {
@@ -58,7 +63,7 @@ void register_node_type_sh_mix_closure(ListBase *lb)
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, node_shader_exec_mix_closure);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_mix_closure);
 
 	nodeRegisterType(lb, &ntype);
 };

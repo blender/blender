@@ -53,6 +53,14 @@ static void node_shader_exec_tex_image(void *data, bNode *node, bNodeStack **in,
 {
 }
 
+static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	Image *ima= (Image*)node->id;
+	ImageUser *iuser= NULL;
+
+	return GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser));
+}
+
 /* node type definition */
 void register_node_type_sh_tex_image(ListBase *lb)
 {
@@ -64,7 +72,7 @@ void register_node_type_sh_tex_image(ListBase *lb)
 	node_type_init(&ntype, node_shader_init_tex_image);
 	node_type_storage(&ntype, "NodeTexImage", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_shader_exec_tex_image);
-	node_type_gpu(&ntype, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_tex_image);
 
 	nodeRegisterType(lb, &ntype);
 };
