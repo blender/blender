@@ -37,6 +37,11 @@ def is_dict(obj):
     return hasattr(obj, 'keys') and hasattr(getattr(obj, 'keys'), '__call__')
 
 
+def is_struct_seq(obj):
+    """Returns whether obj is a structured sequence subclass: sys.float_info"""
+    return isinstance(obj, tuple) and hasattr(obj, 'n_fields')
+
+
 def complete_names(word, namespace):
     """Complete variable names or attributes
 
@@ -174,7 +179,7 @@ def complete(word, namespace, private=True):
         if type(obj) in (bool, float, int, str):
             return []
         # an extra char '[', '(' or '.' will be added
-        if hasattr(obj, '__getitem__'):
+        if hasattr(obj, '__getitem__') and not is_struct_seq(obj):
             # list or dictionary
             matches = complete_indices(word, namespace, obj)
         elif hasattr(obj, '__call__'):
