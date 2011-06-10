@@ -622,7 +622,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		block= uiLayoutGetBlock(row); // err...
 		
 		/* left-align -------------------------------------------- */
-		subrow= uiLayoutRow(row, 0);
+		subrow= uiLayoutRow(row, 1);
 		uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -640,7 +640,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 			uiItemL(subrow, "<Unknown Modifier>", ICON_NONE);
 		
 		/* right-align ------------------------------------------- */
-		subrow= uiLayoutRow(row, 0);
+		subrow= uiLayoutRow(row, 1);
 		uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
 		
 		
