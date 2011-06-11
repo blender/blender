@@ -203,10 +203,14 @@ public:
 		return m_display;
 	}	
 
+#if 0 // obsolete SpaceNav code
+
 		void *
 	prepareNdofInfo(
 		volatile GHOST_TEventNDOFData *current_values
 	);
+
+#endif
 
 	/* Helped function for get data from the clipboard. */
 	void getClipboard_xcout(XEvent evt, Atom sel, Atom target,

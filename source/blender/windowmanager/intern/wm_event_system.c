@@ -2375,7 +2375,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 {
 	wmWindow *owin;
 	wmEvent event, *evt= win->eventstate;
-	
+
+	printf("ghost (%d) --> wm\n", type);
+
 	/* initialize and copy state (only mouse x y and modifiers) */
 	event= *evt;
 	
@@ -2579,6 +2581,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		}
 
 		case GHOST_kEventNDOFMotion: {
+			puts("ndof motion in wm");
 			event.type = NDOF_MOTION;
 			attach_ndof_data(&event, customdata);
 			wm_event_add(win, &event);
@@ -2588,6 +2591,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 		case GHOST_kEventNDOFButton: {
 			GHOST_TEventNDOFButtonData* e = customdata;
+			puts("ndof button in wm");
 
 			event.type = NDOF_BUTTON_NONE + e->button;
 

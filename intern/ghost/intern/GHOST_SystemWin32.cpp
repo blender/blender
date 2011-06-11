@@ -215,7 +215,6 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
 	// Shutdown COM
 	OleUninitialize();
 	toggleConsole(1);
-	delete m_ndofManager;
 }
 
 

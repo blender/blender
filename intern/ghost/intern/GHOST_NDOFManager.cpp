@@ -16,7 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s):
- *    Mike Erwin
+ *   Mike Erwin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -54,11 +54,32 @@ void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
 	m_atRest = false;
 	}
 
-void GHOST_NDOFManager::updateButtons(unsigned short buttons, GHOST_TUns64 time)
+void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64 time)
 	{
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
 
-	unsigned short diff = m_buttons ^ buttons;
+	GHOST_EventNDOFButton* event = new GHOST_EventNDOFButton(time, window);
+	GHOST_TEventNDOFButtonData* data = (GHOST_TEventNDOFButtonData*) event->getData();
+
+	data->action = press ? GHOST_kPress : GHOST_kRelease;
+	data->button = button_number + 1;
+
+	printf("sending button %d %s\n", data->button, (data->action == GHOST_kPress) ? "pressed" : "released");
+
+	m_system.pushEvent(event);
+
+	unsigned short mask = 1 << button_number;
+	if (press)
+		m_buttons |= mask; // set this button's bit
+	else
+		m_buttons &= ~mask; // clear this button's bit
+	}
+
+void GHOST_NDOFManager::updateButtons(unsigned short button_bits, GHOST_TUns64 time)
+	{
+	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
+
+	unsigned short diff = m_buttons ^ button_bits;
 
 	for (int i = 0; i < 16; ++i)
 		{
@@ -69,16 +90,16 @@ void GHOST_NDOFManager::updateButtons(unsigned short buttons, GHOST_TUns64 time)
 			GHOST_EventNDOFButton* event = new GHOST_EventNDOFButton(time, window);
 			GHOST_TEventNDOFButtonData* data = (GHOST_TEventNDOFButtonData*) event->getData();
 			
-			data->action = (buttons & mask) ? GHOST_kPress : GHOST_kRelease;
+			data->action = (button_bits & mask) ? GHOST_kPress : GHOST_kRelease;
 			data->button = i + 1;
 
-			// printf("sending button %d %s\n", data->button, (data->action == GHOST_kPress) ? "pressed" : "released");
+			printf("sending button %d %s\n", data->button, (data->action == GHOST_kPress) ? "pressed" : "released");
 
 			m_system.pushEvent(event);
 			}
 		}
 
-	m_buttons = buttons;
+	m_buttons = button_bits;
 	}
 
 bool GHOST_NDOFManager::sendMotionEvent()
@@ -109,14 +130,16 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
 	m_prevMotionTime = m_motionTime;
 
-	// printf("sending T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
-	//	data->tx, data->ty, data->tz, data->rx, data->ry, data->rz, data->dt);
+	printf("sending T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
+		data->tx, data->ty, data->tz, data->rx, data->ry, data->rz, data->dt);
 
 	m_system.pushEvent(event);
 
 	// 'at rest' test goes at the end so that the first 'rest' event gets sent
 	m_atRest = m_rotation[0] == 0 && m_rotation[1] == 0 && m_rotation[2] == 0 &&
 		m_translation[0] == 0 && m_translation[1] == 0 && m_translation[2] == 0;
+	// this needs to be aware of calibration -- 0.01 0.01 0.03 might be 'rest'
 
 	return true;
 	}
+

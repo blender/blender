@@ -958,10 +958,6 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	RegionView3D* rv3d = CTX_wm_region_view3d(C);
 
-	if (dt > 0.25f)
-		/* this is probably the first event for this motion, so set dt to something reasonable */
-		dt = 0.0125f;
-
 	/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
 	float phi, q1[4];
 	float m[3][3];
@@ -969,6 +965,10 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float xvec[3] = {1,0,0};
 
 	const float sensitivity = 0.035;
+
+	if (dt > 0.25f)
+		/* this is probably the first event for this motion, so set dt to something reasonable */
+		dt = 0.0125f;
 
 	/* Get the 3x3 matrix and its inverse from the quaternion */
 	quat_to_mat3(m,rv3d->viewquat);

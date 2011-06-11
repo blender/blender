@@ -42,8 +42,7 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
-#include "GHOST_EventNDOF.h"
-#include "GHOST_NDOFManager.h"
+#include "GHOST_NDOFManagerX11.h"
 #include "GHOST_DisplayManagerX11.h"
 
 #include "GHOST_Debug.h"
@@ -76,6 +75,8 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
+#if 0 // obsolete SpaceNav code
+
 typedef struct NDOFPlatformInfo {
 	Display *display;
 	Window window;
@@ -88,6 +89,7 @@ typedef struct NDOFPlatformInfo {
 
 static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL, 0, 0, 0, 0};
 
+#endif
 
 //these are for copy and select copy
 static char *txt_cut_buffer= NULL;
@@ -177,6 +179,7 @@ init(
 	GHOST_TSuccess success = GHOST_System::init();
 
 	if (success) {
+		m_ndofManager = new GHOST_NDOFManagerX11(*this);
 		m_displayManager = new GHOST_DisplayManagerX11(this);
 
 		if (m_displayManager) {
@@ -270,7 +273,7 @@ createWindow(
 		if (window->getValid()) {
 			// Store the pointer to the window 
 			m_windowManager->addWindow(window);
-			
+			m_windowManager->setActiveWindow(window);
 			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
 		}
 		else {
@@ -381,8 +384,6 @@ lastEventTime(Time default_time) {
     return data.timestamp;
 }
 
-
-
 	bool 
 GHOST_SystemX11::
 processEvents(
@@ -423,6 +424,11 @@ processEvents(
 		if (generateWindowExposeEvents()) {
 			anyProcessed = true;
 		}
+
+		if (dynamic_cast<GHOST_NDOFManagerX11*>(m_ndofManager)->processEvents()) {
+			anyProcessed = true;
+		}
+		
 	} while (waitForEvent && !anyProcessed);
 	
 	return anyProcessed;
@@ -636,6 +642,9 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				);
 			} else 
 #endif
+
+#if 0 // obsolete SpaceNav code
+
 			if (sNdofInfo.currValues) {
 				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
 				if (xcme.message_type == sNdofInfo.motionAtom)
@@ -661,7 +670,10 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					                              GHOST_kEventNDOFButton,
 					                              window, data);
 				}
-			} else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+
+#endif
+
+			if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
 				XWindowAttributes attr;
 				Window fwin;
 				int revert_to;
@@ -829,6 +841,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	}
 }
 
+#if 0 // obsolete SpaceNav code
+
 	void *
 GHOST_SystemX11::
 prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
@@ -840,6 +854,8 @@ prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
 	sNdofInfo.currValues = currentNdofValues;
 	return (void*)&sNdofInfo;
 }
+
+#endif
 
 	GHOST_TSuccess 
 GHOST_SystemX11::

@@ -15,7 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): none yet.
+ * Contributor(s):
+ *   Mike Erwin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -40,27 +41,28 @@ public:
 	// the latest raw data from the device
 	void updateTranslation(short t[3], GHOST_TUns64 time);
 	void updateRotation(short r[3], GHOST_TUns64 time);
-	// this one sends events immediately for changed buttons
-	void updateButtons(unsigned short b, GHOST_TUns64 time);
+	// send events immediately for changed buttons
+	void updateButton(int button_number, bool press, GHOST_TUns64 time);
+	void updateButtons(unsigned short button_bits, GHOST_TUns64 time);
 
 	// processes most recent raw data into an NDOFMotion event and sends it
 	// returns whether an event was sent
-	virtual bool sendMotionEvent();
+	bool sendMotionEvent();
 
 protected:
 	GHOST_System& m_system;
 
 	short m_translation[3];
 	short m_rotation[3];
-	unsigned short m_buttons;
+	unsigned short m_buttons; // bit field
 
-	GHOST_TUns64 m_motionTime;
+	GHOST_TUns64 m_motionTime; // in milliseconds
 	GHOST_TUns64 m_prevMotionTime; // time of most recent Motion event sent
 	bool m_atRest;
 
-	void updateMotionTime(GHOST_TUns64 t);
-	void resetMotion();
+//	void updateMotionTime(GHOST_TUns64 t);
+//	void resetMotion();
 };
 
-
 #endif
+

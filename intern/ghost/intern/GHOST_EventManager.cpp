@@ -42,7 +42,7 @@
 #include "GHOST_EventManager.h"
 #include <algorithm>
 #include "GHOST_Debug.h"
-
+#include <stdio.h> // [mce] temp debug
 
 GHOST_EventManager::GHOST_EventManager()
 {
@@ -111,6 +111,7 @@ GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent* event)
 bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event)
 {
 	bool handled;
+	printf("dispatching %d\n", event->getType());
 	if (event) {
 		handled = true;
 		TConsumerVector::iterator iter;
