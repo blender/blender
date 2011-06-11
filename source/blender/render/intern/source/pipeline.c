@@ -2065,35 +2065,6 @@ static void do_render_fields_3d(Render *re)
 	re->display_draw(re->ddh, re->result, NULL);
 }
 
-static void load_backbuffer(Render *re)
-{
-	if(re->r.alphamode == R_ADDSKY) {
-		ImBuf *ibuf;
-		char name[256];
-
-		BLI_path_abs(name, re->main->name);
-		BLI_path_frame(name, re->r.cfra, 0);
-		
-		if(re->backbuf) {
-			re->backbuf->id.us--;
-			if(re->backbuf->id.us<1)
-				BKE_image_signal(re->backbuf, NULL, IMA_SIGNAL_RELOAD);
-		}
-		
-		re->backbuf= BKE_add_image_file(name);
-		ibuf= BKE_image_get_ibuf(re->backbuf, NULL);
-		if(ibuf==NULL) {
-			// error() doesnt work with render window open
-			//error("No backbuf there!");
-			printf("Error: No backbuf %s\n", name);
-		}
-		else {
-			if (re->r.mode & R_FIELDS)
-				image_de_interlace(re->backbuf, re->r.mode & R_ODDFIELD);
-		}
-	}
-}
-
 /* main render routine, no compositing */
 static void do_render_fields_blur_3d(Render *re)
 {
@@ -2104,10 +2075,6 @@ static void do_render_fields_blur_3d(Render *re)
 		G.afbreek= 1;
 		return;
 	}
-	
-	/* backbuffer initialize */
-	if(re->r.bufflag & 1)
-		load_backbuffer(re);
 
 	/* now use renderdata and camera to set viewplane */
 	RE_SetCamera(re, camera);
