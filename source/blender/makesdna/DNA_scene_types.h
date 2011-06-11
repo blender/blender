@@ -338,7 +338,7 @@ typedef struct RenderData {
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
 
-	/* path to render output, can contain // suffix and #'s for current frame */
+	/* path to render output */
 	char pic[240];
 
 	/* stamps flags. */
