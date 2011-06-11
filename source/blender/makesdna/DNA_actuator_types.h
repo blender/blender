@@ -56,8 +56,10 @@ typedef struct bActionActuator {
 	char	frameProp[32];	/* Set this property to the actions current frame */
 	short	blendin;		/* Number of frames of blending */
 	short	priority;		/* Execution priority */
+	short	layer;			/* Animation layer */
 	short	end_reset;	/* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
 	short	strideaxis;		/* Displacement axis */
+	short	pad[3];
 	float	stridelength;	/* Displacement incurred by cycle */ // not in use
 } bActionActuator;												
 

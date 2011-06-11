@@ -3700,6 +3700,9 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "priority", 0, NULL, ICON_NONE);
 
 	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "layer", 0, NULL, ICON_NONE);
+
+	row= uiLayoutRow(layout, 0);
 	uiItemPointerR(layout, ptr, "frame_property", &settings_ptr, "properties", NULL, ICON_NONE);
 
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR

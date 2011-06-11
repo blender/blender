@@ -616,6 +616,11 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Priority", "Execution priority - lower numbers will override actions with higher numbers. With 2 or more actions at once, the overriding channels must be lower in the stack");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	prop= RNA_def_property(srna, "layer", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 4); /* This should match BL_ActionManager::MAX_ACTION_LAYERS */
+	RNA_def_property_ui_text(prop, "Layer", "The animation layer to play the action on");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop= RNA_def_property(srna, "frame_property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "frameProp");
 	RNA_def_property_ui_text(prop, "Frame Property", "Assign the action's current frame number to this property");

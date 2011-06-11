@@ -180,9 +180,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	if (!m_is_going && bPositiveEvent)
 	{		
 		m_is_going = true;
-		obj->PlayAction(m_action->id.name+2, start, end, 0, m_blendin, play_mode);
+		obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_blendin, play_mode);
 		if (m_end_reset)
-			obj->SetActionFrame(0, m_localtime);
+			obj->SetActionFrame(m_layer, m_localtime);
 	}
 	else if (m_is_going && bNegativeEvent)
 	{
@@ -190,19 +190,19 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		
 		if (!m_end_reset)
 		{
-			obj->StopAction(0);
+			obj->StopAction(m_layer);
 			return false;
 		}
 
-		m_localtime = obj->GetActionFrame(0);
-		obj->StopAction(0); // Stop the action after getting the frame
+		m_localtime = obj->GetActionFrame(m_layer);
+		obj->StopAction(m_layer); // Stop the action after getting the frame
 	}
 
 	// Handle a frame property if it's defined
 	if (m_framepropname[0] != 0)
 	{
 		CValue* oldprop = obj->GetProperty(m_framepropname);
-		CValue* newval = new CFloatValue(obj->GetActionFrame(0));
+		CValue* newval = new CFloatValue(obj->GetActionFrame(m_layer));
 		if (oldprop)
 			oldprop->SetValue(newval);
 		else
@@ -215,7 +215,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		return true;
 	}
 	// Handle a finished animation
-	else if (m_is_going && obj->IsActionDone(0))
+	else if (m_is_going && obj->IsActionDone(m_layer))
 	{
 		return false;
 	}
