@@ -1086,6 +1086,13 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+
+	return OPERATOR_CANCELLED;
+}
 
 void NODE_OT_backimage_move(wmOperatorType *ot)
 {
@@ -1098,6 +1105,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 	ot->invoke= snode_bg_viewmove_invoke;
 	ot->modal= snode_bg_viewmove_modal;
 	ot->poll= composite_node_active;
+	ot->cancel= snode_bg_viewmove_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -1384,6 +1392,14 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 }
 
+static int node_resize_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+
+	return OPERATOR_CANCELLED;
+}
+
 void NODE_OT_resize(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1394,6 +1410,7 @@ void NODE_OT_resize(wmOperatorType *ot)
 	ot->invoke= node_resize_invoke;
 	ot->modal= node_resize_modal;
 	ot->poll= ED_operator_node_active;
+	ot->cancel= node_resize_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -2279,6 +2296,18 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
+static int node_link_cancel(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeLinkDrag *nldrag= op->customdata;
+
+	nodeRemLink(snode->edittree, nldrag->link);
+	BLI_remlink(&snode->linkdrag, nldrag);
+	MEM_freeN(nldrag);
+
+	return OPERATOR_CANCELLED;
+}
+
 void NODE_OT_link(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2290,6 +2319,7 @@ void NODE_OT_link(wmOperatorType *ot)
 	ot->modal= node_link_modal;
 //	ot->exec= node_link_exec;
 	ot->poll= ED_operator_node_active;
+	ot->cancel= node_link_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -2402,6 +2432,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	ot->invoke= WM_gesture_lines_invoke;
 	ot->modal= WM_gesture_lines_modal;
 	ot->exec= cut_links_exec;
+	ot->cancel= WM_gesture_lines_cancel;
 	
 	ot->poll= ED_operator_node_active;
 	

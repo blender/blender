@@ -180,7 +180,6 @@ static void clean_paths(Main *main)
 	BLI_bpathIterator_free(bpi);
 
 	for(scene= main->scene.first; scene; scene= scene->id.next) {
-		BLI_clean(scene->r.backbuf);
 		BLI_clean(scene->r.pic);
 	}
 }

@@ -3692,14 +3692,26 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float
 	}
 }
 
-static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask) {
+static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, int use_color_correction) {
 	if (ps->is_texbrush) {
-		rgba[0] *= ps->brush->rgb[0];
-		rgba[1] *= ps->brush->rgb[1];
-		rgba[2] *= ps->brush->rgb[2];
+		/* rgba already holds a texture result here from higher level function */
+		float rgba_br[3];
+		if(use_color_correction){
+			srgb_to_linearrgb_v3_v3(rgba_br, ps->brush->rgb);
+			mul_v3_v3(rgba, rgba_br);
+		}
+		else{
+			mul_v3_v3(rgba, ps->brush->rgb);
+		}
 	}
 	else {
-		VECCOPY(rgba, ps->brush->rgb);
+		if(use_color_correction){
+			srgb_to_linearrgb_v3_v3(rgba, ps->brush->rgb);
+		}
+ 		else {
+			VECCOPY(rgba, ps->brush->rgb);
+		}
+		rgba[3] = 1.0;
 	}
 	
 	if (ps->is_airbrush==0 && mask < 1.0f) {
@@ -3736,6 +3748,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	float falloff;
 	int bucket_index;
 	int is_floatbuf = 0;
+	int use_color_correction = 0;
 	const short tool =  ps->tool;
 	rctf bucket_bounds;
 	
@@ -3841,6 +3854,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 								last_projIma->touch = 1;
 								is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
+								use_color_correction = (last_projIma->ibuf->profile == IB_PROFILE_LINEAR_RGB) ? 1 : 0;
 							}
 
 							last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
@@ -3871,7 +3885,7 @@ static void *do_projectpaint_thread(void *ph_v)
 								else				do_projectpaint_smear(ps, projPixel, alpha, mask, smearArena, &smearPixels, co);
 								break;
 							default:
-								if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask);
+								if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask, use_color_correction);
 								else				do_projectpaint_draw(ps, projPixel, rgba, alpha, mask);
 								break;
 							}
@@ -3987,7 +4001,7 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, c
 	// we may want to use this later 
 	// brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
 	
-	if (brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps)) {
+	if (brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps, 0)) {
 		return 1;
 	}
 	else return 0;
@@ -4058,7 +4072,6 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
 {
 	if(ibuf->rect_float)
-		/* TODO - should just update a portion from imapaintpartial! */
 		ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
 	
 	if(ibuf->mipmap[0])
@@ -4255,8 +4268,8 @@ static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 
 static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
 {
-	ipos[0]= (int)(pos[0] - ibufb->x/2);
-	ipos[1]= (int)(pos[1] - ibufb->y/2);
+	ipos[0]= (int)floorf((pos[0] - ibufb->x/2) + 1.0f);
+	ipos[1]= (int)floorf((pos[1] - ibufb->y/2) + 1.0f);
 }
 
 /* dosnt run for projection painting
@@ -4409,7 +4422,7 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 
 	brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
 
-	if (brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s)) {
+	if (brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, ibuf->profile == IB_PROFILE_LINEAR_RGB)) {
 		if (update)
 			imapaint_image_update(s->sima, image, ibuf, texpaint);
 		return 1;
@@ -4863,12 +4876,7 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	PointerRNA itemptr;
 	float pressure, mousef[2];
 	double time;
-	int tablet, mouse[2];
-
-	// XXX +1 matches brush location better but
-	// still not exact, find out why and fix ..
-	mouse[0]= event->mval[0] + 1;
-	mouse[1]= event->mval[1] + 1;
+	int tablet;
 
 	time= PIL_check_seconds_timer();
 
@@ -4888,8 +4896,8 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		pressure= pop->prev_pressure ? pop->prev_pressure : 1.0f;
 
 	if(pop->first) {
-		pop->prevmouse[0]= mouse[0];
-		pop->prevmouse[1]= mouse[1];
+		pop->prevmouse[0]= event->mval[0];
+		pop->prevmouse[1]= event->mval[1];
 		pop->starttime= time;
 
 		/* special exception here for too high pressure values on first touch in
@@ -4908,8 +4916,8 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	/* fill in stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
-	mousef[0] = (float)(mouse[0]);
-	mousef[1] = (float)(mouse[1]);
+	mousef[0] = (float)(event->mval[0]);
+	mousef[1] = (float)(event->mval[1]);
 	RNA_float_set_array(&itemptr, "mouse", mousef);
 	RNA_float_set(&itemptr, "time", (float)(time - pop->starttime));
 	RNA_float_set(&itemptr, "pressure", pressure);
@@ -5012,31 +5020,45 @@ static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 
 static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata))
 {
+#define PX_SIZE_FADE_MAX 12.0f
+#define PX_SIZE_FADE_MIN 4.0f
+
 	Brush *brush= image_paint_brush(C);
 	Paint *paint= paint_get_active(CTX_data_scene(C));
 
-	if(paint && brush) {
+	if(paint && brush && paint->flags & PAINT_SHOW_BRUSH) {
 		float zoomx, zoomy;
+		const float size= (float)brush_size(brush);
+		const short use_zoom= get_imapaint_zoom(C, &zoomx, &zoomy);
+		const float pixel_size= MAX2(size * zoomx, size * zoomy);
+		float alpha= 0.5f;
 
-		if(!(paint->flags & PAINT_SHOW_BRUSH))
+		/* fade out the brush (cheap trick to work around brush interfearing with sampling [#])*/
+		if(pixel_size < PX_SIZE_FADE_MIN) {
 			return;
+		}
+		else if (pixel_size < PX_SIZE_FADE_MAX) {
+			alpha *= (pixel_size - PX_SIZE_FADE_MIN) / (PX_SIZE_FADE_MAX - PX_SIZE_FADE_MIN);
+		}
 
 		glPushMatrix();
 
 		glTranslatef((float)x, (float)y, 0.0f);
 
-		if(get_imapaint_zoom(C, &zoomx, &zoomy))
+		if(use_zoom)
 			glScalef(zoomx, zoomy, 1.0f);
 
-		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], 0.5f);
+		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], alpha);
 		glEnable( GL_LINE_SMOOTH );
 		glEnable(GL_BLEND);
-		glutil_draw_lined_arc(0, (float)(M_PI*2.0), (float)brush_size(brush), 40);
+		glutil_draw_lined_arc(0, (float)(M_PI*2.0), size, 40);
 		glDisable(GL_BLEND);
 		glDisable( GL_LINE_SMOOTH );
 
 		glPopMatrix();
 	}
+#undef PX_SIZE_FADE_MAX
+#undef PX_SIZE_FADE_MIN
 }
 
 static void toggle_paint_cursor(bContext *C, int enable)
