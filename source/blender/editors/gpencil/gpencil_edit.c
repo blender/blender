@@ -365,7 +365,7 @@ static EnumPropertyItem prop_gpencil_convertmodes[] = {
 /* convert the coordinates from the given stroke point into 3d-coordinates 
  *	- assumes that the active space is the 3D-View
  */
-static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoint *pt, float p3d[3])
+static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoint *pt, float p3d[3], rctf *subrect)
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
@@ -377,38 +377,43 @@ static void gp_strokepoint_convertcoords (bContext *C, bGPDstroke *gps, bGPDspoi
 	}
 	else {
 		float *fp= give_cursor(scene, v3d);
-		int mval[2];
-		int mx, my;
+		float mvalf[2];
 		
 		/* get screen coordinate */
 		if (gps->flag & GP_STROKE_2DSPACE) {
+			int mvali[2];
 			View2D *v2d= &ar->v2d;
-			UI_view2d_view_to_region(v2d, pt->x, pt->y, &mx, &my);
+			UI_view2d_view_to_region(v2d, pt->x, pt->y, mvali, mvali+1);
+			VECCOPY2D(mvalf, mvali);
 		}
 		else {
-			mx= (int)(pt->x / 100 * ar->winx);
-			my= (int)(pt->y / 100 * ar->winy);
+			if(subrect) {
+				mvalf[0]= (((float)pt->x/100.0f) * (subrect->xmax - subrect->xmin)) + subrect->xmin;
+				mvalf[1]= (((float)pt->y/100.0f) * (subrect->ymax - subrect->ymin)) + subrect->ymin;
+			}
+			else {
+				mvalf[0]= (float)pt->x / 100.0f * ar->winx;
+				mvalf[1]= (float)pt->y / 100.0f * ar->winy;
+			}
 		}
-		mval[0]= mx;
-		mval[1]= my;
-		
+
 		/* convert screen coordinate to 3d coordinates 
 		 *	- method taken from editview.c - mouse_cursor() 
 		 */
-		window_to_3d(ar, p3d, fp, mval[0], mval[1]);
+		ED_view3d_win_to_3d(ar, fp, mvalf, p3d);
 	}
 }
 
 /* --- */
 
 /* convert stroke to 3d path */
-static void gp_stroke_to_path (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
+static void gp_stroke_to_path (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curve *cu, rctf *subrect)
 {
 	bGPDspoint *pt;
 	Nurb *nu;
 	BPoint *bp;
 	int i;
-	
+
 	/* create new 'nurb' within the curve */
 	nu = (Nurb *)MEM_callocN(sizeof(Nurb), "gpstroke_to_path(nurb)");
 	
@@ -425,7 +430,7 @@ static void gp_stroke_to_path (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cur
 		float p3d[3];
 		
 		/* get coordinates to add at */
-		gp_strokepoint_convertcoords(C, gps, pt, p3d);
+		gp_strokepoint_convertcoords(C, gps, pt, p3d, subrect);
 		copy_v3_v3(bp->vec, p3d);
 		
 		/* set settings */
@@ -437,8 +442,27 @@ static void gp_stroke_to_path (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cur
 	BLI_addtail(&cu->nurb, nu);
 }
 
+static int gp_camera_view_subrect(bContext *C, rctf *subrect)
+{
+	View3D *v3d= CTX_wm_view3d(C);
+	ARegion *ar= CTX_wm_region(C);
+
+	if (v3d) {
+		RegionView3D *rv3d= ar->regiondata;
+
+		/* for camera view set the subrect */
+		if (rv3d->persp == RV3D_CAMOB) {
+			Scene *scene= CTX_data_scene(C);
+			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, subrect, -1); /* negative shift */
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 /* convert stroke to 3d bezier */
-static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
+static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Curve *cu, rctf *subrect)
 {
 	bGPDspoint *pt;
 	Nurb *nu;
@@ -460,9 +484,9 @@ static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, C
 	/* get initial coordinates */
 	pt=gps->points;
 	if (tot) {
-		gp_strokepoint_convertcoords(C, gps, pt, p3d_cur);
+		gp_strokepoint_convertcoords(C, gps, pt, p3d_cur, subrect);
 		if (tot > 1) {
-			gp_strokepoint_convertcoords(C, gps, pt+1, p3d_next);
+			gp_strokepoint_convertcoords(C, gps, pt+1, p3d_next, subrect);
 		}
 	}
 
@@ -490,7 +514,7 @@ static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, C
 		copy_v3_v3(p3d_cur, p3d_next);
 
 		if (i + 1 < tot) {
-			gp_strokepoint_convertcoords(C, gps, pt+1, p3d_next);
+			gp_strokepoint_convertcoords(C, gps, pt+1, p3d_next, subrect);
 		}
 	}
 
@@ -509,7 +533,10 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 	bGPDstroke *gps;
 	Object *ob;
 	Curve *cu;
-	
+
+	/* camera framing */
+	rctf subrect, *subrect_ptr= NULL;
+
 	/* error checking */
 	if (ELEM3(NULL, gpd, gpl, gpf))
 		return;
@@ -517,6 +544,11 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 	/* only convert if there are any strokes on this layer's frame to convert */
 	if (gpf->strokes.first == NULL)
 		return;
+
+	/* initialize camera framing */
+	if(gp_camera_view_subrect(C, &subrect)) {
+		subrect_ptr= &subrect;
+	}
 
 	/* init the curve object (remove rotation and get curve data from it)
 	 *	- must clear transforms set on object, as those skew our results
@@ -535,10 +567,10 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 	for (gps= gpf->strokes.first; gps; gps= gps->next) {
 		switch (mode) {
 			case GP_STROKECONVERT_PATH: 
-				gp_stroke_to_path(C, gpl, gps, cu);
+				gp_stroke_to_path(C, gpl, gps, cu, subrect_ptr);
 				break;
 			case GP_STROKECONVERT_CURVE:
-				gp_stroke_to_bezier(C, gpl, gps, cu);
+				gp_stroke_to_bezier(C, gpl, gps, cu, subrect_ptr);
 				break;
 		}
 	}

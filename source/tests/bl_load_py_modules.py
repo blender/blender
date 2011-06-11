@@ -65,6 +65,10 @@ def load_modules():
     # paths blender stores scripts in.
     paths = bpy.utils.script_paths()
 
+    print("Paths:")
+    for script_path in paths:
+        print("\t'%s'" % script_path)
+
     #
     # find all sys.path we added
     for script_path in paths:
@@ -74,10 +78,17 @@ def load_modules():
 
     #
     # collect modules from our paths.
+    module_names = set()
     for mod_dir in module_paths:
         # print("mod_dir", mod_dir)
         for mod, mod_full in bpy.path.module_names(mod_dir):
+            if mod in module_names:
+                raise Exception("Module found twice %r" % mod)
+
             modules.append(__import__(mod))
+
+            module_names.add(mod)
+    del module_names
 
     #
     # now submodules

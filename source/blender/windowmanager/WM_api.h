@@ -247,6 +247,8 @@ void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int exten
 void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
+wmOperator *WM_operator_last_redo(const struct bContext *C);
+
 /* MOVE THIS SOMEWHERE ELSE */
 #define	SEL_TOGGLE		0
 #define	SEL_SELECT		1
@@ -276,14 +278,19 @@ void				WM_menutype_free(void);
 			/* default operator callbacks for border/circle/lasso */
 int			WM_border_select_invoke	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_border_select_modal	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_border_select_cancel(struct bContext *C, struct wmOperator *op);
 int			WM_gesture_circle_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_circle_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_circle_cancel(struct bContext *C, struct wmOperator *op);
 int			WM_gesture_lines_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lines_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_lines_cancel(struct bContext *C, struct wmOperator *op);
 int			WM_gesture_lasso_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lasso_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_lasso_cancel(struct bContext *C, struct wmOperator *op);
 int			WM_gesture_straightline_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_straightline_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_straightline_cancel(struct bContext *C, struct wmOperator *op);
 
 			/* default operator for arearegions, generates event */
 void		WM_OT_tweak_gesture(struct wmOperatorType *ot);

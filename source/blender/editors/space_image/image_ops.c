@@ -1653,16 +1653,13 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	ImageSampleInfo *info= op->customdata;
 	float fx, fy;
-	int mx, my;
 	
 	if(ibuf == NULL) {
 		ED_space_image_release_buffer(sima, lock);
 		return;
 	}
 
-	mx= event->x - ar->winrct.xmin;
-	my= event->y - ar->winrct.ymin;
-	UI_view2d_region_to_view(&ar->v2d, mx, my, &fx, &fy);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fx, &fy);
 
 	if(fx>=0.0f && fy>=0.0f && fx<1.0f && fy<1.0f) {
 		float *fp;
@@ -1928,6 +1925,7 @@ void IMAGE_OT_sample_line(wmOperatorType *ot)
 	ot->modal= WM_gesture_straightline_modal;
 	ot->exec= sample_line_exec;
 	ot->poll= space_image_main_area_poll;
+	ot->cancel= WM_gesture_straightline_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

@@ -607,7 +607,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 
 		if(cd->no_rot_axis) {	/* set by caller */
 
-			/* this is not exactly the same as 2.4x, since the axis is having rotation removed rather then
+			/* this is not exactly the same as 2.4x, since the axis is having rotation removed rather than
 			 * changing the axis before calculating the tilt but serves much the same purpose */
 			float dir_flat[3]={0,0,0}, q[4];
 			copy_v3_v3(dir_flat, dir);

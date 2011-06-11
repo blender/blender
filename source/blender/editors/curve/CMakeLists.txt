@@ -30,6 +30,10 @@ set(INC
 	../../../../intern/guardedalloc
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	curve_ops.c
 	editcurve.c
@@ -39,4 +43,4 @@ set(SRC
 	curve_intern.h
 )
 
-blender_add_lib(bf_editor_curve "${SRC}" "${INC}")
+blender_add_lib(bf_editor_curve "${SRC}" "${INC}" "${INC_SYS}")

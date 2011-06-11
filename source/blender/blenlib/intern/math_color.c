@@ -194,6 +194,10 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 		CLAMP(*g, 0.0f, 1.0f);
 		CLAMP(*b, 0.0f, 1.0f);
 	}
+	else {
+		/* avoid using un-initialized vars */
+		*r= *g= *b= 0.0f;
+	}
 }
 
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)

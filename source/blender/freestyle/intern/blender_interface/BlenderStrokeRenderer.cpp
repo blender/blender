@@ -65,7 +65,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	freestyle_scene->r.border.ymin= old_scene->r.border.ymin;
 	freestyle_scene->r.border.xmax= old_scene->r.border.xmax;
 	freestyle_scene->r.border.ymax= old_scene->r.border.ymax;
-	strcpy(freestyle_scene->r.backbuf, old_scene->r.backbuf);
 	strcpy(freestyle_scene->r.pic, old_scene->r.pic);
 	freestyle_scene->r.safety.xmin= old_scene->r.safety.xmin;
 	freestyle_scene->r.safety.ymin= old_scene->r.safety.ymin;

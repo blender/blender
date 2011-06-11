@@ -96,7 +96,7 @@ void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 	eh->buckets[hash]= e;
 	
 	if (++eh->nentries>eh->nbuckets*3) {
-		Entry *e, **old= eh->buckets;
+		Entry **old= eh->buckets;
 		int i, nold= eh->nbuckets;
 		
 		eh->nbuckets= hashsizes[++eh->cursize];

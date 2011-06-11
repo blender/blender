@@ -920,9 +920,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	if (event)
 	{
-		t->imval[0] = event->x - t->ar->winrct.xmin;
-		t->imval[1] = event->y - t->ar->winrct.ymin;
-		
+		VECCOPY2D(t->imval, event->mval);
 		t->event_type = event->type;
 	}
 	else

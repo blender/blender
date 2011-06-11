@@ -61,6 +61,10 @@ struct ImBuf;
 #define OPTYPE_MACRO		8
 #define OPTYPE_GRAB_POINTER	16	/* */
 #define OPTYPE_PRESET		32	/* show preset menu */
+#define OPTYPE_INTERNAL		64	/* some operators are mainly for internal use
+								 * and don't make sense to be accessed from the
+								 * search menu, even if poll() returns TRUE.
+								 * currently only used for the search toolbox */
 
 /* context to call operator in for WM_operator_name_call */
 /* rna_ui.c contains EnumPropertyItem's of these, keep in sync */

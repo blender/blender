@@ -1883,6 +1883,7 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= animchannels_borderselect_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= animedit_poll_channels_nla_tweakmode_off;
 	
@@ -2151,7 +2152,7 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 	bAnimContext ac;
 	ARegion *ar;
 	View2D *v2d;
-	int mval[2], channel_index;
+	int channel_index;
 	int notifierFlags = 0;
 	short selectmode;
 	float x, y;
@@ -2164,10 +2165,6 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 	/* get useful pointers from animation context data */
 	ar= ac.ar;
 	v2d= &ar->v2d;
-	
-	/* get mouse coordinates (in region coordinates) */
-	mval[0]= (event->x - ar->winrct.xmin);
-	mval[1]= (event->y - ar->winrct.ymin);
 	
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend"))
@@ -2182,7 +2179,7 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 	 *		so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
 	 *		ACHANNEL_HEIGHT_HALF.
 	 */
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+	UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
 	UI_view2d_listview_view_to_cell(v2d, ACHANNEL_NAMEWIDTH, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
 	
 	/* handle mouse-click in the relevant channel then */

@@ -210,7 +210,7 @@ static void gp_get_3d_reference (tGPsdata *p, float *vec)
 /* Stroke Editing ---------------------------- */
 
 /* check if the current mouse position is suitable for adding a new point */
-static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
+static short gp_stroke_filtermval (tGPsdata *p, const int mval[2], int pmval[2])
 {
 	int dx= abs(mval[0] - pmval[0]);
 	int dy= abs(mval[1] - pmval[1]);
@@ -239,21 +239,22 @@ static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
 
 /* convert screen-coordinates to buffer-coordinates */
 // XXX this method needs a total overhaul!
-static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], float *depth)
+static void gp_stroke_convertcoords (tGPsdata *p, const int mval[2], float out[3], float *depth)
 {
 	bGPdata *gpd= p->gpd;
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		if (gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out, 0, depth))) {
+		if (gpencil_project_check(p) && (ED_view3d_autodist_simple(p->ar, mval, out, 0, depth))) {
 			/* projecting onto 3D-Geometry
 			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
 			 */
 		}
 		else {
-			const int mx=mval[0], my=mval[1];
+			int mval_prj[2];
 			float rvec[3], dvec[3];
-			
+			float mval_f[2];
+
 			/* Current method just converts each point in screen-coordinates to
 			 * 3D-coordinates using the 3D-cursor as reference. In general, this
 			 * works OK, but it could of course be improved.
@@ -266,20 +267,17 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 			gp_get_3d_reference(p, rvec);
 			
 			/* method taken from editview.c - mouse_cursor() */
-			project_int_noclip(p->ar, rvec, mval);
-			window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
+			project_int_noclip(p->ar, rvec, mval_prj);
+
+			VECSUB2D(mval_f, mval_prj, mval);
+			ED_view3d_win_to_delta(p->ar, mval_f, dvec);
 			sub_v3_v3v3(out, rvec, dvec);
 		}
 	}
 	
 	/* 2d - on 'canvas' (assume that p->v2d is set) */
 	else if ((gpd->sbuffer_sflag & GP_STROKE_2DSPACE) && (p->v2d)) {
-		float x, y;
-		
-		UI_view2d_region_to_view(p->v2d, mval[0], mval[1], &x, &y);
-		
-		out[0]= x;
-		out[1]= y;
+		UI_view2d_region_to_view(p->v2d, mval[0], mval[1], &out[0], &out[1]);
 	}
 	
 #if 0
@@ -315,7 +313,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, int mval[2], float out[3], flo
 }
 
 /* add current stroke-point to buffer (returns whether point was successfully added) */
-static short gp_stroke_addpoint (tGPsdata *p, int mval[2], float pressure)
+static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 {
 	bGPdata *gpd= p->gpd;
 	tGPspoint *pt;
@@ -583,8 +581,8 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 			for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
 				mval[0]= ptc->x; mval[1]= ptc->y;
 
-				if ((view_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0) &&
-					(i && (view_autodist_depth_segment(p->ar, mval, mval_prev, depth_margin + 1, depth_arr+i) == 0))
+				if ((ED_view3d_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0) &&
+					(i && (ED_view3d_autodist_depth_seg(p->ar, mval, mval_prev, depth_margin + 1, depth_arr+i) == 0))
 				) {
 					interp_depth= TRUE;
 				}
@@ -1133,7 +1131,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 
 			/* for camera view set the subrect */
 			if (rv3d->persp == RV3D_CAMOB) {
-				view3d_calc_camera_border(p->scene, p->ar, NULL, v3d, &p->subrect_data, -1); /* negative shift */
+				ED_view3d_calc_camera_border(p->scene, p->ar, v3d, rv3d, &p->subrect_data, -1); /* negative shift */
 				p->subrect= &p->subrect_data;
 			}
 		}
@@ -1228,7 +1226,7 @@ static void gp_paint_strokeend (tGPsdata *p)
 		
 		/* need to restore the original projection settings before packing up */
 		view3d_region_operator_needs_opengl(p->win, p->ar);
-		view_autodist_init(p->scene, p->ar, v3d, (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 1:0);
+		ED_view3d_autodist_init(p->scene, p->ar, v3d, (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 1:0);
 	}
 	
 	/* check if doing eraser or not */
@@ -1416,16 +1414,15 @@ static void gpencil_draw_apply (wmOperator *op, tGPsdata *p)
 static void gpencil_draw_apply_event (wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p= op->customdata;
-	ARegion *ar= p->ar;
 	PointerRNA itemptr;
 	float mousef[2];
 	int tablet=0;
 
 	/* convert from window-space to area-space mouse coordintes */
 	// NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding...
-	p->mval[0]= event->x - ar->winrct.xmin + 1;
-	p->mval[1]= event->y - ar->winrct.ymin + 1;
-	
+	p->mval[0]= event->mval[0] + 1;
+	p->mval[1]= event->mval[1] + 1;
+
 	/* handle pressure sensitivity (which is supplied by tablets) */
 	if (event->custom == EVT_DATA_TABLET) {
 		wmTabletData *wmtab= event->customdata;

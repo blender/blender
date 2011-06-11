@@ -316,7 +316,6 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 	printf ("\nEnvironment Variables:\n");
 	printf ("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
-	printf ("  $BLENDER_SYSTEM_CONFIG    Directory for system wide configuration files.\n");
 	printf ("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
 	printf ("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
 	printf ("  $BLENDER_USER_DATAFILES   Directory for user data files (icons, translations, ..).\n");
@@ -541,7 +540,7 @@ static int set_output(int argc, const char **argv, void *data)
 	if (argc >= 1){
 		if (CTX_data_scene(C)) {
 			Scene *scene= CTX_data_scene(C);
-			BLI_strncpy(scene->r.pic, argv[1], FILE_MAXDIR);
+			BLI_strncpy(scene->r.pic, argv[1], sizeof(scene->r.pic));
 		} else {
 			printf("\nError: no blend loaded. cannot use '-o / --render-output'.\n");
 		}
@@ -631,7 +630,7 @@ static int set_image_type(int argc, const char **argv, void *data)
 			else if (!strcmp(imtype,"CINEON")) scene->r.imtype = R_CINEON;
 			else if (!strcmp(imtype,"DPX")) scene->r.imtype = R_DPX;
 #endif
-#if WITH_OPENJPEG
+#ifdef WITH_OPENJPEG
 			else if (!strcmp(imtype,"JP2")) scene->r.imtype = R_JP2;
 #endif
 			else printf("\nError: Format from '-F / --render-format' not known or not compiled in this release.\n");
@@ -1050,7 +1049,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	static char debug_doc[] = "\n\tTurn debugging on\n"
 		"\n\t* Prints every operator call and their arguments"
 		"\n\t* Disables mouse grab (to interact with a debugger in some cases)"
-		"\n\t* Keeps python sys.stdin rather then setting it to None";
+		"\n\t* Keeps python sys.stdin rather than setting it to None";
 
 	//BLI_argsAdd(ba, pass, short_arg, long_arg, doc, cb, C);
 
@@ -1089,7 +1088,6 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, NULL, "--factory-startup", "\n\tSkip reading the "STRINGIFY(BLENDER_STARTUP_FILE)" in the users home directory", set_factory_startup, NULL);
 
 	/* TODO, add user env vars? */
-	BLI_argsAdd(ba, 1, NULL, "--env-system-config",		"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_CONFIG)" environment variable", set_env, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--env-system-datafiles",	"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_DATAFILES)" environment variable", set_env, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--env-system-scripts",	"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_SCRIPTS)" environment variable", set_env, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--env-system-plugins",	"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_PLUGINS)" environment variable", set_env, NULL);
@@ -1219,7 +1217,7 @@ int main(int argc, const char **argv)
 	setuid(getuid()); /* end superuser */
 #endif
 
-#ifdef WITH_PYTHON_MODULE
+#if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background= 1; /* python module mode ALWAYS runs in background mode (for now) */
 #else
 	/* for all platforms, even windos has it! */

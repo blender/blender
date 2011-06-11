@@ -285,7 +285,7 @@ static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
 }
 
 
-static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	MTex *mtex= ptr->data;
 	Tex *tex= mtex->tex;

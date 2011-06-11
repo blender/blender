@@ -1573,14 +1573,13 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 static int sequencer_cut_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
-	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 
 	int cut_side= SEQ_SIDE_BOTH;
 	int cut_frame= CFRA;
 
 	if (ED_operator_sequencer_active(C) && v2d)
-		cut_side= mouse_frame_side(v2d, event->x - ar->winrct.xmin, cut_frame);
+		cut_side= mouse_frame_side(v2d, event->mval[0], cut_frame);
 	
 	RNA_int_set(op->ptr, "frame", cut_frame);
 	RNA_enum_set(op->ptr, "side", cut_side);
@@ -2720,14 +2719,15 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Sequence *seq_act;
 	Sequence *seq_other;
+	const char *error_msg;
 
 	if(seq_active_pair_get(scene, &seq_act, &seq_other) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Must select 2 strips");
 		return OPERATOR_CANCELLED;
 	}
 
-	if(seq_swap(seq_act, seq_other) == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Strips were not compatible");
+	if(seq_swap(seq_act, seq_other, &error_msg) == 0) {
+		BKE_report(op->reports, RPT_ERROR, error_msg);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2817,6 +2817,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 	ot->exec= view_ghost_border_exec;
 	ot->modal= WM_border_select_modal;
 	ot->poll= sequencer_view_poll;
+	ot->cancel= WM_border_select_cancel;
 
 	/* flags */
 	ot->flag= 0;

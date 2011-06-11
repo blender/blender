@@ -391,7 +391,7 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 
 		if (png_get_valid (png_ptr, info_ptr, PNG_INFO_pHYs)) {
 			int unit_type;
-			unsigned int xres, yres;
+			png_uint_32 xres, yres;
 
 			if(png_get_pHYs(png_ptr, info_ptr, &xres, &yres, &unit_type))
 			if(unit_type == PNG_RESOLUTION_METER) {

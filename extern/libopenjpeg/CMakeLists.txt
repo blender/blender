@@ -28,6 +28,10 @@ set(INC
 	.
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	bio.c
 	cio.c
@@ -73,4 +77,4 @@ set(SRC
 	tgt.h
 )
 
-blender_add_lib(extern_openjpeg "${SRC}" "${INC}")
+blender_add_lib(extern_openjpeg "${SRC}" "${INC}" "${INC_SYS}")

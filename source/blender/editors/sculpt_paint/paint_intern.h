@@ -65,6 +65,7 @@ int paint_space_stroke_enabled(struct Brush *br);
 
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int paint_stroke_exec(struct bContext *C, struct wmOperator *op);
+int paint_stroke_cancel(struct bContext *C, struct wmOperator *op);
 struct ViewContext *paint_stroke_view_context(struct PaintStroke *stroke);
 void *paint_stroke_mode_data(struct PaintStroke *stroke);
 void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
@@ -84,6 +85,8 @@ void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint(struct wmOperatorType *ot);
 void PAINT_OT_weight_set(struct wmOperatorType *ot);
 void PAINT_OT_weight_from_bones(struct wmOperatorType *ot);
+void PAINT_OT_weight_sample(struct wmOperatorType *ot);
+void PAINT_OT_weight_sample_group(struct wmOperatorType *ot);
 
 void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
@@ -106,8 +109,8 @@ void PAINT_OT_image_from_view(struct wmOperatorType *ot);
 void projectf(struct bglMats *mats, const float v[3], float p[2]);
 float paint_calc_object_space_radius(struct ViewContext *vc, float center[3], float pixel_radius);
 float paint_get_tex_pixel(struct Brush* br, float u, float v);
-int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, int *mval, unsigned int *index);
-void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, int *xy, float *uv);
+int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, const int mval[2], unsigned int *index);
+void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, const int xy[2], float uv[2]);
 
 void paint_sample_color(struct Scene *scene, struct ARegion *ar, int x, int y);
 void BRUSH_OT_curve_preset(struct wmOperatorType *ot);

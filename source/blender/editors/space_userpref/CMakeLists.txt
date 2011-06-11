@@ -30,6 +30,10 @@ set(INC
 	../../../../intern/guardedalloc
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	space_userpref.c
 	userpref_ops.c
@@ -37,4 +41,4 @@ set(SRC
 	userpref_intern.h
 )
 
-blender_add_lib(bf_editor_space_userpref "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_userpref "${SRC}" "${INC}" "${INC_SYS}")

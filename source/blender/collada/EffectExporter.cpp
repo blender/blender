@@ -273,7 +273,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
 
 		// color
-		if (t->mapto & MAP_COL) {
+		if (t->mapto & MAP_COL | MAP_COLSPEC) {
 			ep.setDiffuse(createTexture(ima, uvname, sampler));
 		}
 		// ambient

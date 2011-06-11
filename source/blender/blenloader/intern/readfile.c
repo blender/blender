@@ -1083,7 +1083,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 
 		/* now we know that we are in a blend file and it is safe to 
 		   assume that gp actually points to a group */
-		if (BLI_streq("Screen", gp)==0)
+		if (strcmp("Screen", gp)!=0)
 			BLI_strncpy(group, gp, GROUP_MAX);
 	}
 	return 1;
@@ -1737,6 +1737,12 @@ static void direct_link_fmodifiers(FileData *fd, ListBase *list)
 				FMod_Generator *data= (FMod_Generator *)fcm->data;
 				
 				data->coefficients= newdataadr(fd, data->coefficients);
+
+				if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+					unsigned int a;
+					for(a = 0; a < data->arraysize; a++)
+						SWITCH_INT(data->coefficients[a]);
+				}
 			}
 				break;
 			case FMODIFIER_TYPE_ENVELOPE:
@@ -2088,7 +2094,7 @@ static void lib_nodetree_do_versions_group(bNodeTree *ntree)
 	for (node=ntree->nodes.first; node; node=node->next) {
 		if (node->type==NODE_GROUP) {
 			bNodeTree *ngroup= (bNodeTree*)node->id;
-			if (ngroup->flag & NTREE_DO_VERSIONS)
+			if (ngroup && (ngroup->flag & NTREE_DO_VERSIONS))
 				lib_node_do_versions_group(node);
 		}
 	}
@@ -2116,7 +2122,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	}
 	
 	{
-		int has_old_groups=0;
+		/*int has_old_groups=0;*/ /*UNUSED*/
 		/* XXX this should actually be part of do_versions, but since we need
 		 * finished library linking, it is not possible there. Instead in do_versions
 		 * we have set the NTREE_DO_VERSIONS flag, so at this point we can do the
@@ -2126,7 +2132,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 			if (ntree->flag & NTREE_DO_VERSIONS) {
 				/* this adds copies and links from all unlinked internal sockets to group inputs/outputs. */
 				nodeGroupExposeAllSockets(ntree);
-				has_old_groups = 1;
+				/*has_old_groups = 1;*/ /*UNUSED*/
 			}
 		}
 		/* now verify all types in material trees, groups are set OK now */
@@ -3838,26 +3844,10 @@ static void lib_link_object(FileData *fd, Main *main)
 				
 				if(smd && smd->type == MOD_SMOKE_TYPE_DOMAIN && smd->domain) 
 				{
-					smd->domain->coll_group = newlibadr_us(fd, ob->id.lib, smd->domain->coll_group);
-					smd->domain->eff_group = newlibadr_us(fd, ob->id.lib, smd->domain->eff_group);
-					smd->domain->fluid_group = newlibadr_us(fd, ob->id.lib, smd->domain->fluid_group);
-
-					smd->domain->effector_weights->group = newlibadr(fd, ob->id.lib, smd->domain->effector_weights->group);
-
 					smd->domain->flags |= MOD_SMOKE_FILE_LOAD; /* flag for refreshing the simulation after loading */
 				}
 			}
 
-			{
-				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-				
-				if(clmd) 
-				{
-					clmd->sim_parms->effector_weights->group = newlibadr(fd, ob->id.lib, clmd->sim_parms->effector_weights->group);
-					clmd->coll_parms->group= newlibadr(fd, ob->id.lib, clmd->coll_parms->group);
-				}
-			}
-			
 			/* texture field */
 			if(ob->pd)
 				lib_link_partdeflect(fd, &ob->id, ob->pd);
@@ -4139,9 +4129,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
-	int a;
 	
-	/* weak weak... this was only meant as draw flag, now is used in give_base too */
+	/* weak weak... this was only meant as draw flag, now is used in give_base_to_objects too */
 	ob->flag &= ~OB_FROMGROUP;
 
 	/* loading saved files with editmode enabled works, but for undo we like
@@ -4239,6 +4228,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		sb->keys= newdataadr(fd, sb->keys);
 		test_pointer_array(fd, (void **)&sb->keys);
 		if(sb->keys) {
+			int a;
 			for(a=0; a<sb->totkey; a++) {
 				sb->keys[a]= newdataadr(fd, sb->keys[a]);
 			}
@@ -5799,11 +5789,10 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 	while(bhead && bhead->code==DATA) {
 		void *data;
 #if 0
-		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
+		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
 		short *sp= fd->filesdna->structs[bhead->SDNAnr];
-		char *allocname = fd->filesdna->types[ sp[0] ];
 		char *tmp= malloc(100);
-		
+		allocname = fd->filesdna->types[ sp[0] ];
 		strcpy(tmp, allocname);
 		data= read_struct(fd, bhead, tmp);
 #else
@@ -6424,7 +6413,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	
 	BLI_addtail(lb, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
-	if(sa->headertype==1)
+	if(sa->headertype==HEADERDOWN)
 		ar->alignment= RGN_ALIGN_BOTTOM;
 	else
 		ar->alignment= RGN_ALIGN_TOP;
@@ -8528,7 +8517,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ArmatureModifierData *amd = (ArmatureModifierData*) md;
 					if(amd->object && amd->deformflag==0) {
 						Object *oba= newlibadr(fd, lib, amd->object);
-						bArmature *arm= newlibadr(fd, lib, oba->data);
+						arm= newlibadr(fd, lib, oba->data);
 						amd->deformflag= arm->deformflag;
 					}
 				}
@@ -8675,7 +8664,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			int a;
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a] && ma->mtex[a]->tex) {
-					Tex *tex= newlibadr(fd, lib, ma->mtex[a]->tex);
+					tex= newlibadr(fd, lib, ma->mtex[a]->tex);
 					if(tex && tex->type==TEX_STUCCI)
 						ma->mtex[a]->mapto &= ~(MAP_COL|MAP_SPEC|MAP_REF);
 				}
@@ -8867,7 +8856,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 		/* now, subversion control! */
 		if(main->subversionfile < 3) {
-			bScreen *sc;
 			Image *ima;
 			Tex *tex;
 			
@@ -9843,7 +9831,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					nu->radius_interp = 3;
 					
 					/* resolu and resolv are now used differently for surfaces
-					 * rather then using the resolution to define the entire number of divisions,
+					 * rather than using the resolution to define the entire number of divisions,
 					 * use it for the number of divisions per segment
 					 */
 					if (nu->pntsv > 1) {
@@ -10283,7 +10271,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		ToolSettings *ts;
 		//PTCacheID *pid;
 		//ListBase pidlist;
-		int a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			//BKE_ptcache_ids_from_object(&pidlist, ob);
@@ -10322,6 +10309,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for(ma = main->mat.first; ma; ma = ma->id.next) {
+			int a;
 			if(ma->mode & MA_WIRE) {
 				ma->material_type= MA_TYPE_WIRE;
 				ma->mode &= ~MA_WIRE;
@@ -11648,7 +11636,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				do_version_bone_roll_256(bone);
 
 		/* fix for objects which have zero dquat's
-		 * since this is multiplied with the quat rather then added */
+		 * since this is multiplied with the quat rather than added */
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(is_zero_v4(ob->dquat)) {
 				unit_qt(ob->dquat);
@@ -12352,6 +12340,9 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 	
 	if(ma->nodetree)
 		expand_nodetree(fd, mainvar, ma->nodetree);
+	
+	if(ma->group)
+		expand_doit(fd, mainvar, ma->group);
 }
 
 static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
@@ -12889,11 +12880,11 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 	return 0;
 }
 
-/* when *lib set, it also does objects that were in the appended group */
-static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is_group_append)
+static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link)
 {
 	Object *ob;
 	Base *base;
+	const short is_group_append= (is_link==FALSE && idcode==ID_GR);
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
 	for(ob= mainvar->object.first; ob; ob= ob->id.next) {
@@ -12909,12 +12900,32 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 				
 				int do_it= 0;
 				
-				if(ob->id.us==0)
+				if(ob->id.us==0) {
 					do_it= 1;
-				else if(ob->id.us==1 && lib)
-					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0)
-						do_it= 1;
-						
+				}
+				else if(idcode==ID_GR) {
+					if(ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
+						if((ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0) {
+							do_it= 1;
+						}
+					}
+				}
+				else {
+					/* when appending, make sure any indirectly loaded objects
+					 * get a base else they cant be accessed at all [#27437] */
+					if(ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
+
+						/* we may be appending from a scene where we already
+						 *  have a linked object which is not in any scene [#27616] */
+						if((ob->id.flag & LIB_PRE_EXISTING)==0) {
+
+							if(object_in_any_scene(mainvar, ob)==0) {
+								do_it= 1;
+							}
+						}
+					}
+				}
+
 				if(do_it) {
 					base= MEM_callocN( sizeof(Base), "add_ext_base");
 					BLI_addtail(&(sce->base), base);
@@ -12931,7 +12942,6 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 	}
 }
 
-/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_groups(Main *mainvar, Scene *scene)
 {
 	Group *group;
@@ -12963,29 +12973,22 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 }
 
 /* returns true if the item was found
- * but it may already have already been appended/linked */
-static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *idname, int idcode, short flag)
+* but it may already have already been appended/linked */
+static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, const short idcode)
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *ob;
-	Base *base;
 	BHead *bhead;
-	ID *id;
-	int endloop=0;
+	ID *id= NULL;
 	int found=0;
 
-	bhead = blo_firstbhead(fd);
-	while(bhead && endloop==0) {
-
-		if(bhead->code==ENDB) endloop= 1;
-		else if(bhead->code==idcode) {
+	for(bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
+		if(bhead->code==idcode) {
 			const char *idname_test= bhead_id_name(fd, bhead);
-				
+
 			if(strcmp(idname_test + 2, idname)==0) {
 				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
 				if(id==NULL) {
-					read_libblock(fd, mainl, bhead, LIB_TESTEXT, NULL);
+					read_libblock(fd, mainl, bhead, LIB_TESTEXT, &id);
 				}
 				else {
 					printf("append: already linked\n");
@@ -12996,47 +12999,67 @@ static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const
 					}
 				}
 
-				if(idcode==ID_OB && scene) {	/* loose object: give a base */
-					base= MEM_callocN( sizeof(Base), "app_nam_part");
-					BLI_addtail(&scene->base, base);
-
-					if(id==NULL) ob= mainl->object.last;
-					else ob= (Object *)id;
-					
-					/* link at active layer (view3d->lay if in context, else scene->lay */
-					if((flag & FILE_ACTIVELAY)) {
-						View3D *v3d = CTX_wm_view3d(C);
-						if (v3d) {
-							ob->lay = v3d->layact;
-						} else {
-							ob->lay = scene->lay;
-						}
-					}
-					ob->mode= 0;
-					base->lay= ob->lay;
-					base->object= ob;
-					ob->id.us++;
-					
-					if(flag & FILE_AUTOSELECT) { 
-						base->flag |= SELECT;
-						base->object->flag = base->flag;
-						/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
-					}
-				}
-				endloop= 1;
+				break;
 			}
 		}
-
-		bhead = blo_nextbhead(fd, bhead);
+		else if(bhead->code==ENDB) {
+			break;
+		}
 	}
 
-	return found;
+	/* if we found the id but the id is NULL, this is really bad */
+	BLI_assert((found != 0) == (id != NULL));
+
+	return found ? id : NULL;
 }
 
-int BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag)
+static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, const char *idname, const int idcode, const int flag)
+{
+	ID *id= append_named_part(mainl, fd, idname, idcode);
+
+	if(id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
+		Scene *scene= CTX_data_scene(C); /* can be NULL */
+		if(scene) {
+			Base *base;
+			Object *ob;
+
+			base= MEM_callocN( sizeof(Base), "app_nam_part");
+			BLI_addtail(&scene->base, base);
+
+			ob= (Object *)id;
+
+			/* link at active layer (view3d->lay if in context, else scene->lay */
+			if((flag & FILE_ACTIVELAY)) {
+				View3D *v3d = CTX_wm_view3d(C);
+				ob->lay = v3d ? v3d->layact : scene->lay;
+			}
+
+			ob->mode= 0;
+			base->lay= ob->lay;
+			base->object= ob;
+			ob->id.us++;
+
+			if(flag & FILE_AUTOSELECT) {
+				base->flag |= SELECT;
+				base->object->flag = base->flag;
+				/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
+			}
+		}
+	}
+
+	return id;
+}
+
+ID *BLO_library_append_named_part(Main *mainl, BlendHandle** bh, const char *idname, const int idcode)
 {
 	FileData *fd= (FileData*)(*bh);
-	return append_named_part(C, mainl, fd, idname, idcode, flag);
+	return append_named_part(mainl, fd, idname, idcode);
+}
+
+ID *BLO_library_append_named_part_ex(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, const int idcode, const short flag)
+{
+	FileData *fd= (FileData*)(*bh);
+	return append_named_part_ex(C, mainl, fd, idname, idcode, flag);
 }
 
 static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
@@ -13045,8 +13068,8 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code == GS(id->name)) {
-			
-			if (BLI_streq(id->name, bhead_id_name(fd, bhead))) {
+
+			if (strcmp(id->name, bhead_id_name(fd, bhead))==0) {
 				id->flag &= ~LIB_READ;
 				id->flag |= LIB_TEST;
 //				printf("read lib block %s\n", id->name);
@@ -13167,22 +13190,20 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(scene) {
+		const short is_link= (flag & FILE_LINK) != 0;
 		if(idcode==ID_SCE) {
 			/* dont instance anything when linking in scenes, assume the scene its self instances the data */
 		}
-		else if(idcode==ID_GR) {
-			if (flag & FILE_LINK) {
-				give_base_to_objects(mainvar, scene, NULL, 0);
-			} else {
-				give_base_to_objects(mainvar, scene, curlib, 1);
-			}
+		else {
+			give_base_to_objects(mainvar, scene, curlib, idcode, is_link);
 
 			if (flag & FILE_GROUP_INSTANCE) {
 				give_base_to_groups(mainvar, scene);
 			}
-		} else {
-			give_base_to_objects(mainvar, scene, NULL, 0);
 		}
+	}
+	else {
+		printf("library_append_end, scene is NULL (objects wont get bases)\n");
 	}
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */

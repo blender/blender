@@ -301,6 +301,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->exec= file_border_select_exec;
 	ot->modal= file_border_select_modal;
 	ot->poll= ED_operator_file_active;
+	ot->cancel= WM_border_select_cancel;
 
 	/* rna */
 	WM_operator_properties_gesture_border(ot, 0);
@@ -318,8 +319,8 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(ar->regiontype != RGN_TYPE_WINDOW)
 		return OPERATOR_CANCELLED;
 
-	rect.xmin = rect.xmax = event->x - ar->winrct.xmin;
-	rect.ymin = rect.ymax = event->y - ar->winrct.ymin;
+	rect.xmin = rect.xmax = event->mval[0];
+	rect.ymin = rect.ymax = event->mval[1];
 
 	if(!BLI_in_rcti(&ar->v2d.mask, rect.xmin, rect.ymin))
 		return OPERATOR_CANCELLED;

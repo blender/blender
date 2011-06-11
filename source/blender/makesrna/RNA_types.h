@@ -39,6 +39,7 @@ extern "C" {
 struct ParameterList;
 struct FunctionRNA;
 struct PropertyRNA;
+struct EnumPropertyRNA;
 struct StructRNA;
 struct BlenderRNA;
 struct IDProperty;
@@ -158,6 +159,8 @@ typedef enum PropertyFlag {
 
 	/* hidden in  the user interface */
 	PROP_HIDDEN = 1<<19,
+	/* do not write in presets */
+	PROP_SKIP_SAVE = 1<<28,
 
 	/* function paramater flags */
 	PROP_REQUIRED = 1<<2,
@@ -189,6 +192,7 @@ typedef enum PropertyFlag {
 
 	/* need context for update function */
 	PROP_CONTEXT_UPDATE = 1<<22,
+	PROP_CONTEXT_PROPERTY_UPDATE = (1<<22)|(1<<27),
 
 	/* Use for arrays or for any data that should not have a referene kept
 	 * most common case is functions that return arrays where the array */
@@ -255,7 +259,8 @@ typedef struct EnumPropertyItem {
 	const char *description;
 } EnumPropertyItem;
 
-typedef EnumPropertyItem *(*EnumPropertyItemFunc)(struct bContext *C, PointerRNA *ptr, int *free);
+/* this is a copy of 'PropEnumItemFunc' defined in rna_internal_types.h */
+typedef EnumPropertyItem *(*EnumPropertyItemFunc)(struct bContext *C, PointerRNA *ptr, struct PropertyRNA *prop, int *free);
 
 typedef struct PropertyRNA PropertyRNA;
 

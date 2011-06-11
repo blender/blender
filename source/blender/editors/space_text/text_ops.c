@@ -894,7 +894,7 @@ static int indent_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if(txt_has_sel(text)) {
 		txt_order_cursors(text);
-		indent(text);
+		txt_indent(text);
 	}
 	else
 		txt_add_char(text, '\t');
@@ -929,7 +929,7 @@ static int unindent_exec(bContext *C, wmOperator *UNUSED(op))
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
 		txt_order_cursors(text);
-		unindent(text);
+		txt_unindent(text);
 
 		text_update_edited(text);
 
@@ -1011,7 +1011,7 @@ static int comment_exec(bContext *C, wmOperator *UNUSED(op))
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
 		txt_order_cursors(text);
-		comment(text);
+		txt_comment(text);
 		text_update_edited(text);
 
 		text_update_cursor_moved(C);
@@ -1044,7 +1044,7 @@ static int uncomment_exec(bContext *C, wmOperator *UNUSED(op))
 		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
 		txt_order_cursors(text);
-		uncomment(text);
+		txt_uncomment(text);
 		text_update_edited(text);
 
 		text_update_cursor_moved(C);

@@ -29,6 +29,9 @@ set(INC
 	../editors/include
 	../blenkernel
 	../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 	${FREETYPE_INCLUDE_DIRS}
 )
@@ -47,7 +50,7 @@ set(SRC
 )
 
 if(WITH_INTERNATIONAL)
-	list(APPEND INC ${GETTEXT_INC})
+	list(APPEND INC_SYS ${GETTEXT_INC})
 	add_definitions(-DINTERNATIONAL)
 endif()
 
@@ -55,5 +58,5 @@ if(WIN32 AND NOT UNIX)
 	add_definitions(-DUSE_GETTEXT_DLL)
 endif()
 
-blender_add_lib(bf_blenfont "${SRC}" "${INC}")
+blender_add_lib(bf_blenfont "${SRC}" "${INC}" "${INC_SYS}")
 

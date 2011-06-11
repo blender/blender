@@ -155,7 +155,7 @@ EnumPropertyItem object_type_curve_items[] = {
 #include "ED_curve.h"
 #include "ED_lattice.h"
 
-static void rna_Object_internal_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Object_internal_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_OB);
 }
@@ -213,7 +213,7 @@ static void rna_Object_matrix_basis_set(PointerRNA *ptr, const float values[16])
 	object_apply_mat4(ob, (float(*)[4])values, FALSE, FALSE);
 }
 
-void rna_Object_internal_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ptr->id.data);
@@ -253,14 +253,14 @@ static void rna_Object_dependency_update(Main *bmain, Scene *scene, PointerRNA *
 }
 
 /* when changing the selection flag the scene needs updating */
-static void rna_Object_select_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
 	ED_base_object_select(object_in_scene(ob, scene), mode);
 }
 
-static void rna_Base_select_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Base_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Base *base= (Base*)ptr->data;
 	short mode = base->flag & BA_SELECT ? BA_SELECT : BA_DESELECT;
@@ -379,7 +379,7 @@ static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
 	ED_object_parent(ob, ob->parent, value, ob->parsubstr);
 }
 
-static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *ob= (Object*)ptr->data;
 	EnumPropertyItem *item= NULL;
@@ -410,7 +410,7 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *p
 	return item;
 }
 
-static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *ob= (Object*)ptr->data;
 	EnumPropertyItem *item= NULL;
@@ -452,6 +452,14 @@ static void rna_Object_dup_group_set(PointerRNA *ptr, PointerRNA value)
 		ob->dup_group = grp;
 	else
 		BKE_report(NULL, RPT_ERROR, "Cannot set dupli-group as object belongs in group being instanced thus causing a cycle");
+}
+
+void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
+{
+	Object *ob= (Object *)ptr->id.data;
+	bDeformGroup *dg= (bDeformGroup *)ptr->data;
+	BLI_strncpy(dg->name, value, sizeof(dg->name));
+	defgroup_unique_name(dg, ob);
 }
 
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
@@ -636,7 +644,7 @@ static void rna_Object_active_particle_system_index_set(PointerRNA *ptr, int val
 	psys_set_current_num(ob, value);
 }
 
-static void rna_Object_particle_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Object_particle_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
@@ -1186,27 +1194,27 @@ static float rna_VertexGroup_weight(ID *id, bDeformGroup *dg, ReportList *report
 }
 
 /* generic poll functions */
-int rna_Lattice_object_poll(PointerRNA *ptr, PointerRNA value)
+int rna_Lattice_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_LATTICE;
 }
 
-int rna_Curve_object_poll(PointerRNA *ptr, PointerRNA value)
+int rna_Curve_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_CURVE;
 }
 
-int rna_Armature_object_poll(PointerRNA *ptr, PointerRNA value)
+int rna_Armature_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_ARMATURE;
 }
 
-int rna_Mesh_object_poll(PointerRNA *ptr, PointerRNA value)
+int rna_Mesh_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_MESH;
 }
 
-int rna_Camera_object_poll(PointerRNA *ptr, PointerRNA value)
+int rna_Camera_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
 	return ((Object *)value.id.data)->type == OB_CAMERA;
 }
@@ -1236,6 +1244,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Vertex group name");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_VertexGroup_name_set");
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA|NA_RENAME, "rna_Object_internal_update_data"); /* update data because modifiers may use [#24761] */
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);

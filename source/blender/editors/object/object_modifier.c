@@ -584,7 +584,7 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *ob= ED_object_active_context(C);
 	EnumPropertyItem *item= NULL, *md_item;
@@ -1259,16 +1259,22 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(mmd->bindcagecos) {
-		if(mmd->bindweights) MEM_freeN(mmd->bindweights);
 		if(mmd->bindcagecos) MEM_freeN(mmd->bindcagecos);
 		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
 		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
+		if(mmd->bindinfluences) MEM_freeN(mmd->bindinfluences);
+		if(mmd->bindoffsets) MEM_freeN(mmd->bindoffsets);
 		if(mmd->dynverts) MEM_freeN(mmd->dynverts);
-		mmd->bindweights= NULL;
+		if(mmd->bindweights) MEM_freeN(mmd->bindweights); /* deprecated */
+		if(mmd->bindcos) MEM_freeN(mmd->bindcos); /* deprecated */
+
 		mmd->bindcagecos= NULL;
 		mmd->dyngrid= NULL;
 		mmd->dyninfluences= NULL;
+		mmd->bindoffsets= NULL;
 		mmd->dynverts= NULL;
+		mmd->bindweights= NULL; /* deprecated */
+		mmd->bindcos= NULL; /* deprecated */
 		mmd->totvert= 0;
 		mmd->totcagevert= 0;
 		mmd->totinfluence= 0;

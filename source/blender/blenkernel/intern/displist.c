@@ -332,19 +332,12 @@ void fastshade_free_render(void)
 	}
 }
 
-static int fastshade_customdata_layer_num(int n, int active)
-{   
-	/* make the active layer the first */
-	if (n == active) return 0;
-	else if (n < active) return n+1;
-	else return n;
-}
 
 static void fastshade_customdata(CustomData *fdata, int a, int j, Material *ma)
 {
 	CustomDataLayer *layer;
 	MTFace *mtface;
-	int index, n, needuv= ma->texco & TEXCO_UV;
+	int index, needuv= ma->texco & TEXCO_UV;
 	char *vertcol;
 
 	shi.totuv= 0;
@@ -354,7 +347,6 @@ static void fastshade_customdata(CustomData *fdata, int a, int j, Material *ma)
 		layer= &fdata->layers[index];
 		
 		if(needuv && layer->type == CD_MTFACE && shi.totuv < MAX_MTFACE) {
-			n= fastshade_customdata_layer_num(shi.totuv, layer->active_rnd);
 			mtface= &((MTFace*)layer->data)[a];
 
 			shi.uv[shi.totuv].uv[0]= 2.0f*mtface->uv[j][0]-1.0f;
@@ -365,7 +357,6 @@ static void fastshade_customdata(CustomData *fdata, int a, int j, Material *ma)
 			shi.totuv++;
 		}
 		else if(layer->type == CD_MCOL && shi.totcol < MAX_MCOL) {
-			n= fastshade_customdata_layer_num(shi.totcol, layer->active_rnd);
 			vertcol= (char*)&((MCol*)layer->data)[a*4 + j];
 
 			shi.col[shi.totcol].col[0]= ((float)vertcol[3])/255.0f;

@@ -45,6 +45,10 @@ set(INC
 	../../../intern/string
 	../../../intern/moto/include
 	../../../intern/guardedalloc
+	../../../intern/ffmpeg
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -86,9 +90,12 @@ set(SRC
 )
 
 if(WITH_CODEC_FFMPEG)
-	set(INC ${INC} ${FFMPEG_INC} ${PTHREADS_INC})
+	list(APPEND INC_SYS
+		${FFMPEG_INC}
+		${PTHREADS_INC}
+	)
 	add_definitions(-DWITH_FFMPEG)
 	add_definitions(-D__STDC_CONSTANT_MACROS)
 endif()
 
-blender_add_lib(ge_videotex "${SRC}" "${INC}")
+blender_add_lib(ge_videotex "${SRC}" "${INC}" "${INC_SYS}")

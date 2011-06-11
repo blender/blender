@@ -58,11 +58,15 @@ float paint_calc_object_space_radius(ViewContext *vc, float center[3],
 {
 	Object *ob = vc->obact;
 	float delta[3], scale, loc[3];
+	float mval_f[2];
 
 	mul_v3_m4v3(loc, ob->obmat, center);
 
 	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
-	window_to_3d_delta(vc->ar, delta, pixel_radius, 0);
+
+	mval_f[0]= pixel_radius;
+	mval_f[1]= 0.0f;
+	ED_view3d_win_to_delta(vc->ar, mval_f, delta);
 
 	scale= fabsf(mat4_to_scale(ob->obmat));
 	scale= (scale == 0.0f)? 1.0f: scale;
@@ -144,7 +148,7 @@ static void imapaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, fl
 }
 
 /* compute uv coordinates of mouse in face */
-void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, int *xy, float *uv)
+void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const int xy[2], float uv[2])
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	const int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
@@ -210,7 +214,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, int *xy,
 }
 
 ///* returns 0 if not found, otherwise 1 */
-int imapaint_pick_face(ViewContext *vc, Mesh *me, int *mval, unsigned int *index)
+int imapaint_pick_face(ViewContext *vc, Mesh *me, const int mval[2], unsigned int *index)
 {
 	if(!me || me->totface==0)
 		return 0;

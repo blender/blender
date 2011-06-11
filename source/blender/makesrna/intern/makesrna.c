@@ -2223,7 +2223,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 			}
 			case PROP_ENUM: {
 				EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, %s, ", rna_function_string(eprop->get), rna_function_string(eprop->set), rna_function_string(eprop->itemf));
+				fprintf(f, "\t%s, %s, %s, NULL, ", rna_function_string(eprop->get), rna_function_string(eprop->set), rna_function_string(eprop->itemf));
 				if(eprop->item)
 					fprintf(f, "rna_%s%s_%s_items, ", srna->identifier, strnest, prop->identifier);
 				else

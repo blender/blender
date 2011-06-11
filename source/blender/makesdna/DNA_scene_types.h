@@ -355,7 +355,7 @@ typedef struct RenderData {
 	float bake_maxdist, bake_biasdist, bake_pad;
 
 	/* paths to backbufffer, output */
-	char backbuf[160], pic[160];
+	char pic[240];
 
 	/* stamps flags. */
 	int stamp;
@@ -1015,13 +1015,14 @@ typedef struct Scene {
 #define R_JPEG2K_CINE_PRESET	256
 #define R_JPEG2K_CINE_48FPS		512
 
-
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */
 #define R_BAKE_CLEAR		1
 #define R_BAKE_OSA			2
 #define R_BAKE_TO_ACTIVE	4
 #define R_BAKE_NORMALIZE	8
+#define R_BAKE_MULTIRES		16
+#define R_BAKE_LORES_MESH	32
 
 /* bake_normal_space */
 #define R_BAKE_SPACE_CAMERA	 0

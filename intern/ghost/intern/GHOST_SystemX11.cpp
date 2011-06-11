@@ -795,6 +795,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		}
 		
 		default: {
+#ifdef WITH_X11_XINPUT
 			if(xe->type == window->GetXTablet().MotionEvent) 
 			{
 				XDeviceMotionEvent* data = (XDeviceMotionEvent*)xe;
@@ -818,7 +819,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			}
 			else if(xe->type == window->GetXTablet().ProxOutEvent)
 				window->GetXTablet().CommonData.Active= GHOST_kTabletModeNone;
-
+#endif // WITH_X11_XINPUT
 			break;
 		}
 	}

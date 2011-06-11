@@ -3699,7 +3699,7 @@ void flushTransGraphData(TransInfo *t)
 		
 		/* if int-values only, truncate to integers */
 		if (td->flag & TD_INTVALUES)
-			td2d->loc2d[1]= (float)((int)td2d->loc[1]);
+			td2d->loc2d[1]= floorf(td2d->loc[1] + 0.5f);
 		else
 			td2d->loc2d[1]= td2d->loc[1];
 		
@@ -4016,6 +4016,7 @@ static void freeSeqData(TransInfo *t)
 				}
 
 				if(overlap) {
+					int has_effect= 0;
 					for(seq= seqbasep->first; seq; seq= seq->next)
 						seq->tmp= NULL;
 
@@ -4024,12 +4025,47 @@ static void freeSeqData(TransInfo *t)
 					for(a=0; a<t->total; a++, td++) {
 						seq= ((TransDataSeq *)td->extra)->seq;
 						if ((seq != seq_prev)) {
-							/* Tag seq with a non zero value, used by shuffle_seq_time to identify the ones to shuffle */
-							seq->tmp= (void*)1;
+							/* check effects strips, we cant change their time */
+							if((seq->type & SEQ_EFFECT) && seq->seq1) {
+								has_effect= TRUE;
+							}
+							else {
+								/* Tag seq with a non zero value, used by shuffle_seq_time to identify the ones to shuffle */
+								seq->tmp= (void*)1;
+							}
 						}
 					}
 
 					shuffle_seq_time(seqbasep, t->scene);
+
+					if(has_effect) {
+						/* update effects strips based on strips just moved in time */
+						td= t->data;
+						seq_prev= NULL;
+						for(a=0; a<t->total; a++, td++) {
+							seq= ((TransDataSeq *)td->extra)->seq;
+							if ((seq != seq_prev)) {
+								if((seq->type & SEQ_EFFECT) && seq->seq1) {
+									calc_sequence(t->scene, seq);
+								}
+							}
+						}
+
+						/* now if any effects _still_ overlap, we need to move them up */
+						td= t->data;
+						seq_prev= NULL;
+						for(a=0; a<t->total; a++, td++) {
+							seq= ((TransDataSeq *)td->extra)->seq;
+							if ((seq != seq_prev)) {
+								if((seq->type & SEQ_EFFECT) && seq->seq1) {
+									if(seq_test_overlap(seqbasep, seq)) {
+										shuffle_seq(seqbasep, seq, t->scene);
+									}
+								}
+							}
+						}
+						/* done with effects */
+					}
 				}
 			}
 #endif
@@ -4937,8 +4973,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* when running transform non-interactively (operator exec),
 			 * we need to update the pose otherwise no updates get called during
 			 * transform and the auto-ik is not applied. see [#26164] */
-			struct Object *ob=t->poseobj;
-			where_is_pose(t->scene, ob);
+			struct Object *pose_ob=t->poseobj;
+			where_is_pose(t->scene, pose_ob);
 		}
 
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */

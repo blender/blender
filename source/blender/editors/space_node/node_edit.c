@@ -1086,6 +1086,13 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+
+	return OPERATOR_CANCELLED;
+}
 
 void NODE_OT_backimage_move(wmOperatorType *ot)
 {
@@ -1098,6 +1105,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 	ot->invoke= snode_bg_viewmove_invoke;
 	ot->modal= snode_bg_viewmove_modal;
 	ot->poll= composite_node_active;
+	ot->cancel= snode_bg_viewmove_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -1166,7 +1174,6 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	Image *ima;
 	ImBuf *ibuf;
 	float fx, fy, bufx, bufy;
-	int mx, my;
 	
 	ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
@@ -1181,13 +1188,11 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		IMB_rect_from_float(ibuf);
 	}
 
-	mx= event->x - ar->winrct.xmin;
-	my= event->y - ar->winrct.ymin;
 	/* map the mouse coords to the backdrop image space */
 	bufx = ibuf->x * snode->zoom;
 	bufy = ibuf->y * snode->zoom;
-	fx = (bufx > 0.0f ? ((float)mx - 0.5f*ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
-	fy = (bufy > 0.0f ? ((float)my - 0.5f*ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
+	fx = (bufx > 0.0f ? ((float)event->mval[0] - 0.5f*ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
+	fy = (bufy > 0.0f ? ((float)event->mval[1] - 0.5f*ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
 
 	if(fx>=0.0f && fy>=0.0f && fx<1.0f && fy<1.0f) {
 		float *fp;
@@ -1317,7 +1322,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 	switch (event->type) {
 		case MOUSEMOVE:
 			
-			UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+			UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 									 &mx, &my);
 			
 			if (node) {
@@ -1358,7 +1363,7 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		rctf totr;
 		
 		/* convert mouse coordinates to v2d space */
-		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 								 &snode->mx, &snode->my);
 		
 		/* rect we're interested in is just the bottom right corner */
@@ -1387,6 +1392,14 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 }
 
+static int node_resize_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+
+	return OPERATOR_CANCELLED;
+}
+
 void NODE_OT_resize(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1397,6 +1410,7 @@ void NODE_OT_resize(wmOperatorType *ot)
 	ot->invoke= node_resize_invoke;
 	ot->modal= node_resize_modal;
 	ot->poll= ED_operator_node_active;
+	ot->cancel= node_resize_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -2094,7 +2108,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 	sock= nldrag->sock;
 	link= nldrag->link;
 	
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 							 &snode->mx, &snode->my);
 
 	switch (event->type) {
@@ -2244,7 +2258,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	bNodeLinkDrag *nldrag= MEM_callocN(sizeof(bNodeLinkDrag), "drag link op customdata");
 	
 	
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 							 &snode->mx, &snode->my);
 
 	ED_preview_kill_jobs(C);
@@ -2282,6 +2296,18 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
+static int node_link_cancel(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeLinkDrag *nldrag= op->customdata;
+
+	nodeRemLink(snode->edittree, nldrag->link);
+	BLI_remlink(&snode->linkdrag, nldrag);
+	MEM_freeN(nldrag);
+
+	return OPERATOR_CANCELLED;
+}
+
 void NODE_OT_link(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2293,6 +2319,7 @@ void NODE_OT_link(wmOperatorType *ot)
 	ot->modal= node_link_modal;
 //	ot->exec= node_link_exec;
 	ot->poll= ED_operator_node_active;
+	ot->cancel= node_link_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -2405,6 +2432,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	ot->invoke= WM_gesture_lines_invoke;
 	ot->modal= WM_gesture_lines_modal;
 	ot->exec= cut_links_exec;
+	ot->cancel= WM_gesture_lines_cancel;
 	
 	ot->poll= ED_operator_node_active;
 	
@@ -2928,7 +2956,7 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
 	/* convert mouse coordinates to v2d space */
-	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 							 &snode->mx, &snode->my);
 	
 	if (RNA_property_is_set(op->ptr, "filepath") || RNA_property_is_set(op->ptr, "name"))

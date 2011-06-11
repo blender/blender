@@ -28,8 +28,12 @@ set(INC
 	./include
 )
 
+set(INC_SYS
+
+)
+
 if(UNIX)
-	list(APPEND INC ${X11_X11_INCLUDE_PATH})
+	list(APPEND INC_SYS ${X11_X11_INCLUDE_PATH})
 endif()
 
 set(SRC
@@ -42,4 +46,4 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
-blender_add_lib(extern_glew "${SRC}" "${INC}")
+blender_add_lib(extern_glew "${SRC}" "${INC}" "${INC_SYS}")

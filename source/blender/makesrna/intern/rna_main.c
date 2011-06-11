@@ -42,7 +42,7 @@
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
-static int rna_Main_is_saved_get(PointerRNA *ptr)
+static int rna_Main_is_saved_get(PointerRNA *UNUSED(ptr))
 {
 	return G.relbase_valid;
 }
@@ -50,8 +50,9 @@ static int rna_Main_is_saved_get(PointerRNA *ptr)
 static int rna_Main_is_dirty_get(PointerRNA *ptr)
 {
 	/* XXX, not totally nice to do it this way, should store in main ? */
+	Main *bmain= (Main*)ptr->data;
 	wmWindowManager *wm;
-	for(wm= G.main->wm.first; wm; wm= wm->id.next) {
+	for(wm= bmain->wm.first; wm; wm= wm->id.next) {
 		return !wm->file_saved;
 	}
 

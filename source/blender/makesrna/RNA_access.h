@@ -667,6 +667,7 @@ PropertyType RNA_property_type(PropertyRNA *prop);
 PropertySubType RNA_property_subtype(PropertyRNA *prop);
 PropertyUnit RNA_property_unit(PropertyRNA *prop);
 int RNA_property_flag(PropertyRNA *prop);
+void *RNA_property_py_data_get(PropertyRNA *prop);
 
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_array_check(PointerRNA *ptr, PropertyRNA *prop);
@@ -760,6 +761,7 @@ int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
+void *RNA_property_enum_py_data_get(PropertyRNA *prop);
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value);

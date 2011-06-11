@@ -13,19 +13,22 @@ macro(blender_include_dirs
 	include_directories(${all_incs})
 endmacro()
 
-# only MSVC uses SOURCE_GROUP
-macro(blender_add_lib_nolist
-	name
-	sources
+macro(blender_include_dirs_sys
 	includes)
 
-	# message(STATUS "Configuring library ${name}")
+	foreach(inc ${ARGV})
+		get_filename_component(abs_inc ${inc} ABSOLUTE)
+		list(APPEND all_incs ${abs_inc})
+	endforeach()
+	include_directories(SYSTEM ${all_incs})
+endmacro()
 
-	blender_include_dirs("${includes}")
-	add_library(${name} ${sources})
+macro(blender_source_group
+	sources)
 
 	# Group by location on disk
 	source_group("Source Files" FILES CMakeLists.txt)
+
 	foreach(SRC ${sources})
 		get_filename_component(SRC_EXT ${SRC} EXT)
 		if(${SRC_EXT} MATCHES ".h" OR ${SRC_EXT} MATCHES ".hpp")
@@ -36,27 +39,41 @@ macro(blender_add_lib_nolist
 	endforeach()
 endmacro()
 
-#	# works fine but having the includes listed is helpful for IDE's (QtCreator/MSVC)
-#	macro(blender_add_lib_nolist
-#		name
-#		sources
-#		includes)
-#
-#		message(STATUS "Configuring library ${name}")
-#		include_directories(${includes})
-#		add_library(${name} ${sources})
-#	endmacro()
+
+# only MSVC uses SOURCE_GROUP
+macro(blender_add_lib_nolist
+	name
+	sources
+	includes
+	includes_sys)
+
+	# message(STATUS "Configuring library ${name}")
+
+	# include_directories(${includes})
+	# include_directories(SYSTEM ${includes_sys})
+	blender_include_dirs("${includes}")
+	blender_include_dirs_sys("${includes_sys}")
+
+	add_library(${name} ${sources})
+
+	# works fine without having the includes
+	# listed is helpful for IDE's (QtCreator/MSVC)
+	blender_source_group("${sources}")
+
+endmacro()
+
 
 macro(blender_add_lib
 	name
 	sources
-	includes)
+	includes
+	includes_sys)
 
-	blender_add_lib_nolist(${name} "${sources}" "${includes}")
+	blender_add_lib_nolist(${name} "${sources}" "${includes}" "${includes_sys}")
 
 	set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
-
 endmacro()
+
 
 macro(SETUP_LIBDIRS)
 	# see "cmake --help-policy CMP0003"
@@ -387,4 +404,72 @@ macro(get_blender_version)
 	unset(_out_version_cycle)
 
 	# message(STATUS "Version (Internal): ${BLENDER_VERSION}.${BLENDER_SUBVERSION}, Version (external): ${BLENDER_VERSION}${BLENDER_VERSION_CHAR}-${BLENDER_VERSION_CYCLE}")
+endmacro()
+
+
+# hacks to override initial project settings
+# these macros must be called directly before/after project(Blender) 
+macro(blender_project_hack_pre)
+	# ----------------
+	# MINGW HACK START
+	# ignore system set flag, use our own
+	# must be before project(...)
+	# if the user wants to add their own its ok after first run.
+	if(DEFINED CMAKE_C_STANDARD_LIBRARIES)
+		set(_reset_standard_libraries OFF)
+	else()
+		set(_reset_standard_libraries ON)
+	endif()
+
+	# ------------------
+	# GCC -O3 HACK START
+	# needed because O3 can cause problems but
+	# allow the builder to set O3 manually after.
+	if(DEFINED CMAKE_C_FLAGS_RELEASE)
+		set(_reset_standard_cflags_rel OFF)
+	else()
+		set(_reset_standard_cflags_rel ON)
+	endif()
+	if(DEFINED CMAKE_CXX_FLAGS_RELEASE)
+		set(_reset_standard_cxxflags_rel OFF)
+	else()
+		set(_reset_standard_cxxflags_rel ON)
+	endif()
+endmacro()
+
+
+macro(blender_project_hack_post)
+	# --------------
+	# MINGW HACK END
+	if (_reset_standard_libraries)
+		# Must come after project(...)
+		#
+		# MINGW workaround for -ladvapi32 being included which surprisingly causes
+		# string formatting of floats, eg: printf("%.*f", 3, value). to crash blender
+		# with a meaningless stack trace. by overriding this flag we ensure we only
+		# have libs we define and that cmake & scons builds match.
+		set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
+		set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
+		mark_as_advanced(CMAKE_C_STANDARD_LIBRARIES)
+		mark_as_advanced(CMAKE_CXX_STANDARD_LIBRARIES)
+	endif()
+	unset(_reset_standard_libraries)
+
+
+	# ----------------
+	# GCC -O3 HACK END
+	if(_reset_standard_cflags_rel)
+		string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+		set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+		mark_as_advanced(CMAKE_C_FLAGS_RELEASE)
+	endif()
+
+	if(_reset_standard_cxxflags_rel)
+		string(REGEX REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+		mark_as_advanced(CMAKE_CXX_FLAGS_RELEASE)
+	endif()
+
+	unset(_reset_standard_cflags_rel)
+	unset(_reset_standard_cxxflags_rel)
 endmacro()

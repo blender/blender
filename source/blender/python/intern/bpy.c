@@ -66,28 +66,28 @@
 
 PyObject *bpy_package_py= NULL;
 
-static char bpy_script_paths_doc[] =
+PyDoc_STRVAR(bpy_script_paths_doc,
 ".. function:: script_paths()\n"
 "\n"
 "   Return 2 paths to blender scripts directories.\n"
 "\n"
 "   :return: (system, user) strings will be empty when not found.\n"
 "   :rtype: tuple of strings\n"
-;
+);
 static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
 	PyObject *ret= PyTuple_New(2);
 	char *path;
 
-	path= BLI_get_folder(BLENDER_USER_SCRIPTS, NULL);
-	PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(path?path:""));
 	path= BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, NULL);
+	PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(path?path:""));
+	path= BLI_get_folder(BLENDER_USER_SCRIPTS, NULL);
 	PyTuple_SET_ITEM(ret, 1, PyUnicode_FromString(path?path:""));
 
 	return ret;
 }
 
-static char bpy_blend_paths_doc[] =
+PyDoc_STRVAR(bpy_blend_paths_doc,
 ".. function:: blend_paths(absolute=False)\n"
 "\n"
 "   Returns a list of paths to external files referenced by the loaded .blend file.\n"
@@ -96,7 +96,7 @@ static char bpy_blend_paths_doc[] =
 "   :type absolute: boolean\n"
 "   :return: path list.\n"
 "   :rtype: list of strings\n"
-;
+);
 static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct BPathIterator *bpi;
@@ -139,7 +139,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 }
 
 
-// static char bpy_user_resource_doc[]= // now in bpy/utils.py
+// PyDoc_STRVAR(bpy_user_resource_doc[]= // now in bpy/utils.py
 static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;
@@ -171,7 +171,7 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	return PyUnicode_DecodeFSDefault(path ? path : "");
 }
 
-static char bpy_resource_path_doc[] =
+PyDoc_STRVAR(bpy_resource_path_doc,
 ".. function:: resource_path(type, major=2, minor=57)\n"
 "\n"
 "   Return the base path for storing system files.\n"
@@ -184,7 +184,7 @@ static char bpy_resource_path_doc[] =
 "   :type minor: string\n"
 "   :return: the resource path (not necessarily existing).\n"
 "   :rtype: string\n"
-;
+);
 static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;
@@ -233,7 +233,7 @@ static PyObject *bpy_import_test(const char *modname)
 /*****************************************************************************
 * Description: Creates the bpy module and adds it to sys.modules for importing
 *****************************************************************************/
-void BPy_init_modules( void )
+void BPy_init_modules(void)
 {
 	extern BPy_StructRNA *bpy_context_module;
 	extern int bpy_lib_init(PyObject *);
@@ -241,7 +241,7 @@ void BPy_init_modules( void )
 	PyObject *mod;
 
 	/* Needs to be first since this dir is needed for future modules */
-	char *modpath= BLI_get_folder(BLENDER_SCRIPTS, "modules");
+	char *modpath= BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "modules");
 	if(modpath) {
 		// printf("bpy: found module path '%s'.\n", modpath);
 		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
@@ -265,17 +265,17 @@ void BPy_init_modules( void )
 	/* run first, initializes rna types */
 	BPY_rna_init();
 
-	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
+	PyModule_AddObject(mod, "types", BPY_rna_types()); /* needs to be first so bpy_types can run */
 	PyModule_AddObject(mod, "StructMetaPropGroup", (PyObject *)&pyrna_struct_meta_idprop_Type); /* metaclass for idprop types, bpy_types.py needs access */
 
 	bpy_lib_init(mod); /* adds '_bpy._library_load', must be called before 'bpy_types' which uses it */
 
 	bpy_import_test("bpy_types");
-	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
+	PyModule_AddObject(mod, "data", BPY_rna_module()); /* imports bpy_types by running this */
 	bpy_import_test("bpy_types");
-	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "ops", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
-	PyModule_AddObject( mod, "app", BPY_app_struct() );
+	PyModule_AddObject(mod, "props", BPY_rna_props());
+	PyModule_AddObject(mod, "ops", BPY_operator_module()); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
+	PyModule_AddObject(mod, "app", BPY_app_struct());
 
 	/* bpy context */
 	RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);

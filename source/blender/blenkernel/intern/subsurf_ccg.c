@@ -2617,7 +2617,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 						struct DerivedMesh *dm,
 						struct SubsurfModifierData *smd,
 						int useRenderParams, float (*vertCos)[3],
-						int isFinalCalc, int editMode)
+						int isFinalCalc, int forEditMode, int inEditMode)
 {
 	int useSimple = smd->subdivType == ME_SIMPLE_SUBSURF;
 	int useAging = smd->flags & eSubsurfModifierFlag_DebugIncr;
@@ -2625,7 +2625,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	int drawInteriorEdges = !(smd->flags & eSubsurfModifierFlag_ControlEdges);
 	CCGDerivedMesh *result;
 
-	if(editMode) {
+	if(forEditMode) {
 		int levels= (smd->modifier.scene)? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels): smd->levels;
 
 		smd->emCache = _getSubSurf(smd->emCache, levels, useAging, 0,
@@ -2656,7 +2656,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		int useAging = smd->flags & eSubsurfModifierFlag_DebugIncr;
 		int levels= (smd->modifier.scene)? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels): smd->levels;
 		CCGSubSurf *ss;
-		
+
 		/* It is quite possible there is a much better place to do this. It
 		 * depends a bit on how rigourously we expect this function to never
 		 * be called in editmode. In semi-theory we could share a single
@@ -2664,8 +2664,11 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		 * the same so we would need some way of converting them. Its probably
 		 * not worth the effort. But then why am I even writing this long
 		 * comment that no one will read? Hmmm. - zr
+		 *
+		 * Addendum: we can't really ensure that this is never called in edit
+		 * mode, so now we have a parameter to verify it. - brecht
 		 */
-		if(smd->emCache) {
+		if(!inEditMode && smd->emCache) {
 			ccgSubSurf_free(smd->emCache);
 			smd->emCache = NULL;
 		}

@@ -124,14 +124,8 @@ static int node_select_exec(bContext *C, wmOperator *op)
 
 static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	int mval[2];
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
-	
-	RNA_int_set(op->ptr, "mouse_x", mval[0]);
-	RNA_int_set(op->ptr, "mouse_y", mval[1]);
+	RNA_int_set(op->ptr, "mouse_x", event->mval[0]);
+	RNA_int_set(op->ptr, "mouse_y", event->mval[1]);
 
 	return node_select_exec(C,op);
 }
@@ -199,17 +193,9 @@ static int node_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event
 		/* this allows border select on empty space, but drag-translate on nodes */
 		SpaceNode *snode= CTX_wm_space_node(C);
 		ARegion *ar= CTX_wm_region(C);
-		int mval[2];
 		float mx, my;
-		
-		mval[0]= event->x - ar->winrct.xmin;
-		mval[1]= event->y - ar->winrct.ymin;
-		
-		/* get mouse coordinates in view2d space */
-		mx= (float)mval[0];
-		my= (float)mval[1];
-		
-		UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &mx, &my);
+
+		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mx, &my);
 		
 		if (node_under_mouse(snode->edittree, mx, my))
 			return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
@@ -229,6 +215,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	ot->invoke= node_border_select_invoke;
 	ot->exec= node_borderselect_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= ED_operator_node_active;
 	

@@ -702,7 +702,7 @@ static int view_zoomin_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* store initial mouse position (in view space) */
 		UI_view2d_region_to_view(&ar->v2d, 
-				event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+				event->mval[0], event->mval[1],
 				&vzd->mx_2d, &vzd->my_2d);
 	}
 	
@@ -759,7 +759,7 @@ static int view_zoomout_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* store initial mouse position (in view space) */
 		UI_view2d_region_to_view(&ar->v2d, 
-				event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+				event->mval[0], event->mval[1],
 				&vzd->mx_2d, &vzd->my_2d);
 	}
 	
@@ -876,6 +876,13 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 	}
 } 
 
+static int view_zoomdrag_cancel(bContext *C, wmOperator *op)
+{
+	view_zoomdrag_exit(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 /* for 'redo' only, with no user input */
 static int view_zoomdrag_exec(bContext *C, wmOperator *op)
 {
@@ -936,7 +943,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* store initial mouse position (in view space) */
 		UI_view2d_region_to_view(&ar->v2d, 
-				event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+				event->mval[0], event->mval[1],
 				&vzd->mx_2d, &vzd->my_2d);
 	}
 
@@ -1065,6 +1072,7 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
 	ot->exec= view_zoomdrag_exec;
 	ot->invoke= view_zoomdrag_invoke;
 	ot->modal= view_zoomdrag_modal;
+	ot->cancel= view_zoomdrag_cancel;
 	
 	ot->poll= view_zoom_poll;
 	
@@ -1165,6 +1173,7 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= view_borderzoom_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= view_zoom_poll;
 	
@@ -1286,7 +1295,6 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
 	float mask_size;
-	int x, y;
 	
 	/* set custom-data for operator */
 	vsm= MEM_callocN(sizeof(v2dScrollerMove), "v2dScrollerMove");
@@ -1300,8 +1308,6 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	/* store mouse-coordinates, and convert mouse/screen coordinates to region coordinates */
 	vsm->lastx = event->x;
 	vsm->lasty = event->y;
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
 	
 	/* 'zone' depends on where mouse is relative to bubble 
 	 *	- zooming must be allowed on this axis, otherwise, default to pan
@@ -1313,7 +1319,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 		vsm->fac= (v2d->tot.xmax - v2d->tot.xmin) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
-		vsm->zone= mouse_in_scroller_handle(x, v2d->hor.xmin, v2d->hor.xmax, scrollers->hor_min, scrollers->hor_max); 
+		vsm->zone= mouse_in_scroller_handle(event->mval[0], v2d->hor.xmin, v2d->hor.xmax, scrollers->hor_min, scrollers->hor_max);
 		
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
@@ -1328,7 +1334,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 		vsm->fac= (v2d->tot.ymax - v2d->tot.ymin) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
-		vsm->zone= mouse_in_scroller_handle(y, v2d->vert.ymin, v2d->vert.ymax, scrollers->vert_min, scrollers->vert_max); 
+		vsm->zone= mouse_in_scroller_handle(event->mval[1], v2d->vert.ymin, v2d->vert.ymax, scrollers->vert_min, scrollers->vert_max);
 			
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
@@ -1355,7 +1361,14 @@ static void scroller_activate_exit(bContext *C, wmOperator *op)
 		
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
-} 
+}
+
+static int scroller_activate_cancel(bContext *C, wmOperator *op)
+{
+	scroller_activate_exit(C, op);
+
+	return OPERATOR_CANCELLED;
+}
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void scroller_activate_apply(bContext *C, wmOperator *op)
@@ -1564,6 +1577,8 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= scroller_activate_invoke;
 	ot->modal= scroller_activate_modal;
+	ot->cancel= scroller_activate_cancel;
+
 	ot->poll= view2d_poll;
 }
 

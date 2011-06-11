@@ -31,12 +31,15 @@ set(INC
   ../python ../python/intern
   ../render/extern/include ../render/intern/include ../include ../src
   ../../../extern/glew/include ../../../intern/guardedalloc ../freestyle
+)
+
+set(INC_SYS
   ${PYTHON_INCLUDE_DIRS}
   ${PNG_INC}
 )
 
 if(WIN32)
-	set(INC ${INC} ${PTHREADS_INC})
+  set(INC_SYS ${INC_SYS} ${PTHREADS_INC})
 endif(WIN32)
 
-blender_add_lib(bf_freestyle "${SRC}" "${INC}")
+blender_add_lib(bf_freestyle "${SRC}" "${INC}" "${INC_SYS}")

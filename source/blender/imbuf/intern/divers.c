@@ -197,6 +197,135 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 	ibuf->userflags &= ~IB_RECT_INVALID;
 }
 
+ 
+
+/* converts from linear float to sRGB byte for part of the texture, buffer will hold the changed part */
+void IMB_partial_rect_from_float(struct ImBuf *ibuf,float *buffer, int x, int y, int w, int h)
+{
+	/* indices to source and destination image pixels */
+	float *srcFloatPxl;
+	unsigned char *dstBytePxl;
+	/* buffer index will fill buffer */
+	float *bufferIndex;
+
+	/* convenience pointers to start of image buffers */
+	float *init_srcFloatPxl = (float *)ibuf->rect_float;
+	unsigned char *init_dstBytePxl = (unsigned char *) ibuf->rect;
+
+	/* Dithering factor */
+	float dither= ibuf->dither / 255.0f;
+	/* respective attributes of image */
+	short profile= ibuf->profile;
+	int channels= ibuf->channels;
+	
+	int i, j;
+	
+	/*
+		if called -only- from GPU_paint_update_image this test will never fail
+		but leaving it here for better or worse
+	*/
+	if(init_srcFloatPxl==NULL || (buffer == NULL)){
+		return;
+	}
+	if(init_dstBytePxl==NULL) {
+		imb_addrectImBuf(ibuf);
+		init_dstBytePxl = (unsigned char *) ibuf->rect;
+	}
+	if(channels==1) {
+			for (j = 0; j < h; j++){
+				bufferIndex = buffer + w*j*4;
+				dstBytePxl = init_dstBytePxl + (ibuf->x*(y + j) + x)*4;
+				srcFloatPxl = init_srcFloatPxl + (ibuf->x*(y + j) + x);
+				for(i = 0;  i < w; i++, dstBytePxl+=4, srcFloatPxl++, bufferIndex+=4) {
+					dstBytePxl[1]= dstBytePxl[2]= dstBytePxl[3]= dstBytePxl[0] = FTOCHAR(srcFloatPxl[0]);
+					bufferIndex[0] = bufferIndex[1] = bufferIndex[2] = bufferIndex[3] = srcFloatPxl[0];
+				}
+			}
+	}
+	else if (profile == IB_PROFILE_LINEAR_RGB) {
+		if(channels == 3) {
+			for (j = 0; j < h; j++){
+				bufferIndex = buffer + w*j*4;
+				dstBytePxl = init_dstBytePxl + (ibuf->x*(y + j) + x)*4;
+				srcFloatPxl = init_srcFloatPxl + (ibuf->x*(y + j) + x)*3;
+				for(i = 0;  i < w; i++, dstBytePxl+=4, srcFloatPxl+=3, bufferIndex += 4) {
+					linearrgb_to_srgb_v3_v3(bufferIndex, srcFloatPxl);
+					F3TOCHAR4(bufferIndex, dstBytePxl);
+					bufferIndex[3]= 1.0;
+				}
+			}
+		}
+		else if (channels == 4) {
+			if (dither != 0.f) {
+				for (j = 0; j < h; j++){
+					bufferIndex = buffer + w*j*4;
+					dstBytePxl = init_dstBytePxl + (ibuf->x*(y + j) + x)*4;
+					srcFloatPxl = init_srcFloatPxl + (ibuf->x*(y + j) + x)*4;
+					for(i = 0;  i < w; i++, dstBytePxl+=4, srcFloatPxl+=4, bufferIndex+=4) {
+						const float d = (BLI_frand()-0.5f)*dither;
+						linearrgb_to_srgb_v3_v3(bufferIndex, srcFloatPxl);
+						bufferIndex[3] = srcFloatPxl[3];
+						add_v4_fl(bufferIndex, d);
+						F4TOCHAR4(bufferIndex, dstBytePxl);
+					}
+				}
+			} else {
+				for (j = 0; j < h; j++){
+					bufferIndex = buffer + w*j*4;
+					dstBytePxl = init_dstBytePxl + (ibuf->x*(y + j) + x)*4;
+					srcFloatPxl = init_srcFloatPxl + (ibuf->x*(y + j) + x)*4;
+					for(i = 0;  i < w; i++, dstBytePxl+=4, srcFloatPxl+=4, bufferIndex+=4) {
+						linearrgb_to_srgb_v3_v3(bufferIndex, srcFloatPxl);
+						bufferIndex[3]= srcFloatPxl[3];
+						F4TOCHAR4(bufferIndex, dstBytePxl);
+					}
+				}
+			}
+		}
+	}
+	else if(ELEM(profile, IB_PROFILE_NONE, IB_PROFILE_SRGB)) {
+		if(channels==3) {
+			for (j = 0; j < h; j++){
+				bufferIndex = buffer + w*j*4;
+				dstBytePxl = init_dstBytePxl + (ibuf->x*(y + j) + x)*4;
+				srcFloatPxl = init_srcFloatPxl + (ibuf->x*(y + j) + x)*3;
+				for(i = 0;  i < w; i++, dstBytePxl+=4, srcFloatPxl+=3, bufferIndex+=4) {
+					copy_v3_v3(bufferIndex, srcFloatPxl);
+					F3TOCHAR4(bufferIndex, dstBytePxl);
+					bufferIndex[3] = 1.0;
+				}
+			}
+		}
+		else {
+			if (dither != 0.f) {
+				for (j = 0; j < h; j++){
+					bufferIndex = buffer + w*j*4;
+					dstBytePxl = init_dstBytePxl + (ibuf->x*(y + j) + x)*4;
+					srcFloatPxl = init_srcFloatPxl + (ibuf->x*(y + j) + x)*4;
+					for(i = 0;  i < w; i++, dstBytePxl+=4, srcFloatPxl+=4, bufferIndex+=4) {
+						const float d = (BLI_frand()-0.5f)*dither;
+						copy_v4_v4(bufferIndex, srcFloatPxl);
+						add_v4_fl(bufferIndex,d);
+						F4TOCHAR4(bufferIndex, dstBytePxl);
+					}
+				}
+			} else {
+				for (j = 0; j < h; j++){
+					bufferIndex = buffer + w*j*4;
+					dstBytePxl = init_dstBytePxl + (ibuf->x*(y + j) + x)*4;
+					srcFloatPxl = init_srcFloatPxl + (ibuf->x*(y + j) + x)*4;
+					for(i = 0;  i < w; i++, dstBytePxl+=4, srcFloatPxl+=4, bufferIndex+=4) {
+						copy_v4_v4(bufferIndex, srcFloatPxl);
+						F4TOCHAR4(bufferIndex, dstBytePxl);
+					}
+				}
+			}
+		}
+	}
+	/* ensure user flag is reset */
+	ibuf->userflags &= ~IB_RECT_INVALID;
+}
+
 static void imb_float_from_rect_nonlinear(struct ImBuf *ibuf, float *fbuf)
 {
 	float *tof = fbuf;

@@ -70,6 +70,9 @@ void ED_spacetypes_init(void)
 	const ListBase *spacetypes;
 	SpaceType *type;
 
+	/* UI_UNIT_X is now a variable, is used in some spacetype inits? */
+	U.widget_unit= 20;
+	
 	/* create space types */
 	ED_spacetype_outliner();
 	ED_spacetype_time();

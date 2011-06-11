@@ -445,9 +445,9 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 
 		row= uiLayoutRow(layout, 1);
 		block= uiLayoutGetBlock(row);
-		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0,0,UI_UNIT_X,UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 	}
@@ -485,7 +485,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 	uiBlockBeginAlign(block);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 
-			  0,0,126 * dpi_fac,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode");
+			  0,0,126 * dpi_fac, UI_UNIT_Y, &(v3d->modeselect), 0, 0, 0, 0, "Mode");
 	uiBlockEndAlign(block);
 	
 	/* Draw type */
@@ -508,10 +508,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		/* NDOF */
 		/* Not implemented yet
 		if (G.ndofdevice ==0 ) {
-			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), 0,0,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
+			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), 0,0,UI_UNIT_X+10,UI_UNIT_Y, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
 
 			uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
-					0,0,XIC,YIC,
+					0,0,UI_UNIT_X,UI_UNIT_Y,
 					&v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");
 		}
 		 */
@@ -522,9 +522,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		block= uiLayoutGetBlock(row);
 		
 		if(v3d->twflag & V3D_USE_MANIPULATOR) {
-			uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode");
-			uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode");
-			uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode");
+			uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode");
+			uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode");
+			uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode");
 		}
 			
 		if (v3d->twmode > (BIF_countTransformOrientation(C) - 1) + V3D_MANIP_CUSTOM) {
@@ -532,7 +532,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 			
 		str_menu = BIF_menustringTransformOrientation(C, "Orientation");
-		uiDefButC(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation");
+		uiDefButC(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, UI_UNIT_Y, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation");
 		MEM_freeN((void *)str_menu);
 	}
 
