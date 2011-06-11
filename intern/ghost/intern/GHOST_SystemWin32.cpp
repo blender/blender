@@ -266,6 +266,7 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 			// Store the pointer to the window
 //			if (state != GHOST_kWindowStateFullScreen) {
 				m_windowManager->addWindow(window);
+				m_windowManager->setActiveWindow(window);
 //			}
 		}
 		else {
@@ -786,7 +787,15 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 
 GHOST_Event* GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_IWindow* window)
 {
-	return new GHOST_Event(getSystem()->getMilliSeconds(), type, window);
+	GHOST_System* system = (GHOST_System*)getSystem();
+
+	if (type == GHOST_kEventWindowActivate)
+		{
+		puts("activating window");
+		system->getWindowManager()->setActiveWindow(window);
+		}
+
+	return new GHOST_Event(system->getMilliSeconds(), type, window);
 }
 
 GHOST_TSuccess GHOST_SystemWin32::pushDragDropEvent(GHOST_TEventType eventType, 
