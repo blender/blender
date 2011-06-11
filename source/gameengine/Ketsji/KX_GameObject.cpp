@@ -124,7 +124,7 @@ KX_GameObject::KX_GameObject(
 		KX_NormalParentRelation::New();
 	m_pSGNode->SetParentRelation(parent_relation);
 
-	m_actionManager = new BL_ActionManager();
+	m_actionManager = new BL_ActionManager(this);
 };
 
 
@@ -361,7 +361,7 @@ void KX_GameObject::PlayAction(const char* name,
 								short blend_mode,
 								float playback_speed)
 {
-	m_actionManager->PlayAction(this, name, start, end, layer, blendin, play_mode, blend_mode, playback_speed);
+	m_actionManager->PlayAction(name, start, end, layer, blendin, play_mode, blend_mode, playback_speed);
 }
 
 void KX_GameObject::StopAction(short layer)
@@ -398,7 +398,7 @@ void KX_GameObject::ProcessReplica()
 	m_pSGNode = NULL;
 	m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	m_pClient_info->m_gameobject = this;
-	m_actionManager = new BL_ActionManager();
+	m_actionManager = new BL_ActionManager(this);
 	m_state = 0;
 
 #ifdef WITH_PYTHON

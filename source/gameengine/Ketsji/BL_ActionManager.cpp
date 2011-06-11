@@ -29,17 +29,17 @@
 
 #include "BL_ActionManager.h"
 
-BL_ActionManager::BL_ActionManager()
+BL_ActionManager::BL_ActionManager(class KX_GameObject *obj)
 {
 	for (int i=0; i<MAX_ACTION_LAYERS; ++i)
-		m_layers[i] = 0;
+		m_layers[i] = new BL_Action(obj);
 }
 
 BL_ActionManager::~BL_ActionManager()
 {
 	for (int i=0; i<MAX_ACTION_LAYERS; ++i)
 		if (m_layers[i])
-			StopAction(i);
+			delete m_layers[i];
 }
 
 float BL_ActionManager::GetActionFrame(short layer)
@@ -56,8 +56,7 @@ void BL_ActionManager::SetActionFrame(short layer, float frame)
 		m_layers[layer]->SetFrame(frame);
 }
 
-void BL_ActionManager::PlayAction(class KX_GameObject* gameobj,
-								const char* name,
+void BL_ActionManager::PlayAction(const char* name,
 								float start,
 								float end,
 								short layer,
@@ -71,13 +70,12 @@ void BL_ActionManager::PlayAction(class KX_GameObject* gameobj,
 		StopAction(layer);
 
 	// Create a new action
-	m_layers[layer] = new BL_Action(gameobj, name, start, end, blendin, play_mode, blend_mode, playback_speed);
+	m_layers[layer]->Play(name, start, end, blendin, play_mode, blend_mode, playback_speed);
 }
 
 void BL_ActionManager::StopAction(short layer)
 {
-	delete m_layers[layer];
-	m_layers[layer] = 0;
+	m_layers[layer]->Stop();
 }
 
 bool BL_ActionManager::IsActionDone(short layer)
@@ -92,12 +90,9 @@ void BL_ActionManager::Update(float curtime)
 {
 	for (int i=0; i<MAX_ACTION_LAYERS; ++i)
 	{
-		if (m_layers[i])
+		if (!m_layers[i]->IsDone())
 		{
-			if (m_layers[i]->IsDone())
-				StopAction(i);
-			else
-				m_layers[i]->Update(curtime);
+			m_layers[i]->Update(curtime);
 		}
 	}
 }

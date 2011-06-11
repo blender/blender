@@ -64,16 +64,17 @@ private:
 	void InitIPO();
 	void SetLocalTime(float curtime);
 public:
-	BL_Action(class KX_GameObject* gameobj,
-			const char* name,
+	BL_Action(class KX_GameObject* gameobj);
+	~BL_Action();
+
+	void Play(const char* name,
 			float start,
 			float end,
 			float blendin,
 			short play_mode,
 			short blend_mode,
 			float playback_speed);
-	~BL_Action();
-
+	void Stop();
 	bool IsDone() {return m_done;}
 	void Update(float curtime);
 

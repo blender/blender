@@ -39,11 +39,10 @@ private:
 	BL_Action* m_layers[MAX_ACTION_LAYERS];
 
 public:
-	BL_ActionManager();
+	BL_ActionManager(class KX_GameObject* obj);
 	~BL_ActionManager();
 
-	void PlayAction(class KX_GameObject* gameobj,
-					const char* name,
+	void PlayAction(const char* name,
 					float start,
 					float end,
 					short layer=0,

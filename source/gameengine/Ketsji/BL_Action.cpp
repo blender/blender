@@ -46,43 +46,23 @@ extern "C" {
 #include "RNA_define.h"
 }
 
-BL_Action::BL_Action(class KX_GameObject* gameobj,
-					const char* name,
-					float start,
-					float end,
-					float blendin,
-					short play_mode,
-					short blend_mode,
-					float playback_speed)
+BL_Action::BL_Action(class KX_GameObject* gameobj)
 :
 	m_obj(gameobj),
-	m_startframe(start),
-	m_endframe(end),
-	m_blendin(blendin),
-	m_playmode(play_mode),
+	m_startframe(0.f),
+	m_endframe(0.f),
+	m_blendin(0.f),
+	m_playmode(0),
 	m_endtime(0.f),
-	m_localtime(start),
+	m_localtime(0.f),
 	m_blendframe(0.f),
 	m_blendstart(0.f),
-	m_speed(playback_speed),
+	m_speed(0.f),
 	m_pose(NULL),
 	m_blendpose(NULL),
 	m_sg_contr(NULL),
-	m_done(false)
+	m_done(true)
 {
-	m_starttime = KX_GetActiveEngine()->GetFrameTime();
-	m_action = (bAction*)KX_GetActiveScene()->GetLogicManager()->GetActionByName(name);
-
-	if (!m_action) printf("Failed to load action: %s\n", name);
-
-	if (m_obj->GetGameObjectType() != SCA_IObject::OBJ_ARMATURE)
-	{
-		// Create an SG_Controller
-		m_sg_contr = BL_CreateIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
-		m_obj->GetSGNode()->AddSGController(m_sg_contr);
-		m_sg_contr->SetObject(m_obj->GetSGNode());
-		InitIPO();
-	}
 
 }
 
@@ -97,6 +77,54 @@ BL_Action::~BL_Action()
 		m_obj->GetSGNode()->RemoveSGController(m_sg_contr);
 		delete m_sg_contr;
 	}
+}
+
+void BL_Action::Play(const char* name,
+					float start,
+					float end,
+					float blendin,
+					short play_mode,
+					short blend_mode,
+					float playback_speed)
+{
+	bAction* prev_action = m_action;
+
+	// First try to load the action
+	m_action = (bAction*)KX_GetActiveScene()->GetLogicManager()->GetActionByName(name);
+	if (!m_action)
+	{
+		printf("Failed to load action: %s\n", name);
+		m_done = true;
+		return;
+	}
+
+	//if (m_obj->GetGameObjectType() != SCA_IObject::OBJ_ARMATURE)
+	if (prev_action != m_action)
+	{
+		// Create an SG_Controller
+		m_sg_contr = BL_CreateIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+		m_obj->GetSGNode()->AddSGController(m_sg_contr);
+		m_sg_contr->SetObject(m_obj->GetSGNode());
+		InitIPO();
+	}
+
+	// Now that we have an action, we have something we can play
+	m_starttime = KX_GetActiveEngine()->GetFrameTime();
+	m_startframe = m_localtime = start;
+	m_endframe = end;
+	m_blendin = blendin;
+	m_playmode = play_mode;
+	m_endtime = 0.f;
+	m_blendframe = 0.f;
+	m_blendstart = 0.f;
+	m_speed = playback_speed;
+	
+	m_done = false;
+}
+
+void BL_Action::Stop()
+{
+	m_done = true;
 }
 
 void BL_Action::InitIPO()

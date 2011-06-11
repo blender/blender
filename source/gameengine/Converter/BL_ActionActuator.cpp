@@ -150,6 +150,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	bool bPositiveEvent = false;
 	KX_GameObject *obj = (KX_GameObject*)GetParent();
 	short play_mode = BL_Action::ACT_MODE_PLAY;
+	float start = m_startframe, end = m_endframe;
 
 	// Don't do anything if we're not "active"
 	if (!frame)
@@ -162,7 +163,14 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		play_mode = BL_Action::ACT_MODE_LOOP;
 	else if (m_playtype == ACT_ACTION_PINGPONG)
 		play_mode = BL_Action::ACT_MODE_PING_PONG;
+	else if (m_playtype == ACT_ACTION_FROM_PROP)
+	{
+		CValue* prop = GetParent()->GetProperty(m_propname);
 
+		play_mode = BL_Action::ACT_MODE_PLAY;
+		start = end = prop->GetNumber();
+		m_is_going = false;
+	}
 
 	// Handle events
 	bNegativeEvent = m_negevent;
@@ -172,7 +180,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	if (!m_is_going && bPositiveEvent)
 	{		
 		m_is_going = true;
-		obj->PlayAction(m_action->id.name+2, m_startframe, m_endframe, 0, m_blendin, play_mode);
+		obj->PlayAction(m_action->id.name+2, start, end, 0, m_blendin, play_mode);
 		if (m_end_reset)
 			obj->SetActionFrame(0, m_localtime);
 	}
@@ -202,9 +210,12 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 
 		newval->Release();
 	}
-
+	if (m_playtype == ACT_ACTION_FROM_PROP)
+	{
+		return true;
+	}
 	// Handle a finished animation
-	if (m_is_going && obj->IsActionDone(0))
+	else if (m_is_going && obj->IsActionDone(0))
 	{
 		return false;
 	}
