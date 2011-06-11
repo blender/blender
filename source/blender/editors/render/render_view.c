@@ -184,7 +184,8 @@ void render_view_open(bContext *C, int mx, int my)
 			area_was_image = 1;
 
 		/* this function returns with changed context */
-		sa= ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
+		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
+		sa= CTX_wm_area(C);
 	}
 
 	if(!sa) {

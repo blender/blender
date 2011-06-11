@@ -4665,6 +4665,7 @@ void RE_Database_Free(Render *re)
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
 
+	re->backbuf= NULL;
 	re->bakebuf= NULL;
 
 	if(re->scene)

@@ -214,7 +214,7 @@ struct Render
 	ListBase instancetable;
 	int totinstance;
 
-	struct Image *bakebuf;
+	struct Image *backbuf, *bakebuf;
 	
 	struct GHash *orco_hash;
 

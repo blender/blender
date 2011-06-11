@@ -876,12 +876,6 @@ endif()
 		message(STATUS "Blender Skipping: (${REM_MSG})")
 	endif()
 	target_link_libraries(blender ${BLENDER_SORTED_LIBS})
-	
-	unset(SEARCHLIB)
-	unset(SORTLIB)
-	unset(REMLIB)
-	unset(REM_MSG)
-	
 #else()
 #	target_link_libraries(blender ${BLENDER_LINK_LIBS})
 #endif()

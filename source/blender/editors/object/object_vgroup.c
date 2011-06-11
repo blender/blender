@@ -77,7 +77,6 @@
 static void vgroup_remap_update_users(Object *ob, int *map);
 static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *defgroup);
 static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg);
-static void vgroup_delete_all(Object *ob);
 
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
@@ -139,30 +138,22 @@ void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup)
 		vgroup_delete_object_mode(ob, dg);
 }
 
-int ED_vgroup_data_create(ID *id)
+void ED_vgroup_data_create(ID *id)
 {
 	/* create deform verts */
 
 	if(GS(id->name)==ID_ME) {
 		Mesh *me= (Mesh *)id;
 		me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, me->totvert);
-		return TRUE;
 	}
 	else if(GS(id->name)==ID_LT) {
 		Lattice *lt= (Lattice *)id;
 		lt->dvert= MEM_callocN(sizeof(MDeformVert)*lt->pntsu*lt->pntsv*lt->pntsw, "lattice deformVert");
-		return TRUE;
-	}
-	else {
-		return FALSE;
 	}
 }
 
 static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 {
-	*dvert_tot = 0;
-	*dvert_arr = NULL;
-
 	if(id) {
 		switch(GS(id->name)) {
 			case ID_ME:
@@ -175,6 +166,8 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 					int i;
 
 					if (!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT)) {
+						*dvert_tot = 0;
+						*dvert_arr = NULL;
 						return 0;
 					}
 
@@ -202,9 +195,8 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 
 					return 1;
 				}
-				else {
+				else
 					return 0;
-				}
 			}
 			case ID_LT:
 			{
@@ -230,6 +222,8 @@ static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_to
 		}
 	}
 
+	*dvert_arr= NULL;
+	*dvert_tot= 0;
 	return 0;
 }
 
@@ -271,24 +265,13 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	int i;
 	int totdef_from= BLI_countlist(&ob_from->defbase);
 	int totdef= BLI_countlist(&ob->defbase);
-	short new_vgroup= FALSE;
 
 	ED_vgroup_give_parray(ob_from->data, &dvert_array_from, &dvert_tot_from);
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
-	if((dvert_array == NULL) && (dvert_array_from != NULL) && ED_vgroup_data_create(ob->data)) {
-		ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
-		new_vgroup= TRUE;
-	}
-
 	if(ob==ob_from || dvert_tot==0 || (dvert_tot != dvert_tot_from) || dvert_array_from==NULL || dvert_array==NULL) {
 		if (dvert_array) MEM_freeN(dvert_array);
 		if (dvert_array_from) MEM_freeN(dvert_array_from);
-
-		if(new_vgroup == TRUE) {
-			/* free the newly added vgroup since it wasn't compatible */
-			vgroup_delete_all(ob);
-		}
 		return 0;
 	}
 
@@ -1032,75 +1015,55 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	if (dvert_array) MEM_freeN(dvert_array);
 }
 
-
-static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
-                            const char sel, const char sel_mirr,
-                            const int *flip_map,
-                            const short mirror_weights, const short flip_vgroups)
+void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 {
-	BLI_assert(sel || sel_mirr);
-
-	if(sel_mirr && sel) {
-		/* swap */
-		if(mirror_weights)
-			SWAP(MDeformVert, *dvert, *dvert_mirr);
-		if(flip_vgroups) {
-			defvert_flip(dvert, flip_map);
-			defvert_flip(dvert_mirr, flip_map);
-		}
-	}
-	else {
-		/* dvert should always be the target */
-		if(sel_mirr) {
-			SWAP(MDeformVert *, dvert, dvert_mirr);
-		}
-
-		if(mirror_weights)
-			defvert_copy(dvert, dvert_mirr);
-		if(flip_vgroups) {
-			defvert_flip(dvert, flip_map);
-		}
-	}
-}
-
-void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_vgroups)
-{
-#define VGROUP_MIRR_OP dvert_mirror_op(dvert, dvert_mirr, sel, sel_mirr, flip_map, mirror_weights, flip_vgroups)
-
 	EditVert *eve, *eve_mirr;
 	MDeformVert *dvert, *dvert_mirr;
-	short sel, sel_mirr;
 	int	*flip_map;
 
 	if(mirror_weights==0 && flip_vgroups==0)
 		return;
-
-	flip_map= defgroup_flip_map(ob, 0);
 
 	/* only the active group */
 	if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 		EditMesh *em = BKE_mesh_get_editmesh(me);
 
-
-		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT)) {
-			MEM_freeN(flip_map);
-			return;
-		}
-
 		EM_cache_x_mirror_vert(ob, em);
+
+		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
+			return;
+
+		flip_map= defgroup_flip_map(ob, 0);
 
 		/* Go through the list of editverts and assign them */
 		for(eve=em->verts.first; eve; eve=eve->next){
 			if((eve_mirr=eve->tmp.v)) {
-				sel= eve->f & SELECT;
-				sel_mirr= eve_mirr->f & SELECT;
-
-				if((sel || sel_mirr) && (eve != eve_mirr)) {
+				if((eve_mirr->f & SELECT || eve->f & SELECT) && (eve != eve_mirr)) {
 					dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 					dvert_mirr= CustomData_em_get(&em->vdata, eve_mirr->data, CD_MDEFORMVERT);
 					if(dvert && dvert_mirr) {
-						VGROUP_MIRR_OP;
+						if(eve_mirr->f & SELECT && eve->f & SELECT) {
+							/* swap */
+							if(mirror_weights)
+								SWAP(MDeformVert, *dvert, *dvert_mirr);
+							if(flip_vgroups) {
+								defvert_flip(dvert, flip_map);
+								defvert_flip(dvert_mirr, flip_map);
+							}
+						}
+						else {
+							/* dvert should always be the target */
+							if(eve_mirr->f & SELECT) {
+								SWAP(MDeformVert *, dvert, dvert_mirr);
+							}
+
+							if(mirror_weights)
+								defvert_copy(dvert, dvert_mirr);
+							if(flip_vgroups) {
+								defvert_flip(dvert, flip_map);
+							}
+						}
 					}
 				}
 
@@ -1108,58 +1071,10 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 			}
 		}
 
+		MEM_freeN(flip_map);
+
 		BKE_mesh_end_editmesh(me, em);
 	}
-	else if (ob->type == OB_LATTICE) {
-		Lattice *lt= ob->data;
-		int i1, i2;
-		int u, v, w;
-		int pntsu_half;
-		/* half but found up odd value */
-
-		if(lt->editlatt) lt= lt->editlatt->latt;
-
-		if(lt->pntsu == 1 || lt->dvert == NULL) {
-			MEM_freeN(flip_map);
-			return;
-		}
-
-		/* unlike editmesh we know that by only looping over the first hald of
-		 * the 'u' indicies it will cover all points except the middle which is
-		 * ok in this case */
-		pntsu_half= lt->pntsu / 2;
-
-		for(w=0; w<lt->pntsw; w++) {
-			for(v=0; v<lt->pntsv; v++) {
-				for(u=0; u<pntsu_half; u++) {
-					int u_inv= (lt->pntsu - 1) - u;
-					if(u != u_inv) {
-						BPoint *bp, *bp_mirr;
-
-						i1= LT_INDEX(lt, u, v, w);
-						i2= LT_INDEX(lt, u_inv, v, w);
-
-						bp= &lt->def[i1];
-						bp_mirr= &lt->def[i2];
-
-						sel= bp->f1 & SELECT;
-						sel_mirr= bp_mirr->f1 & SELECT;
-
-						if(sel || sel_mirr) {
-							dvert= &lt->dvert[i1];
-							dvert_mirr= &lt->dvert[i2];
-
-							VGROUP_MIRR_OP;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	MEM_freeN(flip_map);
-
-#undef VGROUP_MIRR_OP
 }
 
 static void vgroup_remap_update_users(Object *ob, int *map)
@@ -2005,24 +1920,16 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
+static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obact= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	int change= 0;
-	int fail= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)
 	{
-		if(obact != ob) {
-			if(ED_vgroup_copy_array(ob, obact)) change++;
-			else                                fail++;
-		}
+		if(obact != ob)
+			ED_vgroup_copy_array(ob, obact);
 	}
 	CTX_DATA_END;
-
-	if((change == 0 && fail == 0) || fail) {
-		BKE_reportf(op->reports, RPT_ERROR, "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indicies", change, fail);
-	}
 
 	return OPERATOR_FINISHED;
 }
