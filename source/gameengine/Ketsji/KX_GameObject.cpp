@@ -109,7 +109,8 @@ KX_GameObject::KX_GameObject(
 	m_pGraphicController(NULL),
 	m_xray(false),
 	m_pHitObject(NULL),
-	m_isDeformable(false)
+	m_isDeformable(false),
+	m_actionManager(NULL)
 #ifdef WITH_PYTHON
 	, m_attr_dict(NULL)
 #endif
@@ -123,8 +124,6 @@ KX_GameObject::KX_GameObject(
 	KX_NormalParentRelation * parent_relation = 
 		KX_NormalParentRelation::New();
 	m_pSGNode->SetParentRelation(parent_relation);
-
-	m_actionManager = new BL_ActionManager(this);
 };
 
 
@@ -352,6 +351,15 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 	}
 }
 
+BL_ActionManager* KX_GameObject::GetActionManager()
+{
+	// We only want to create an action manager if we need it
+	if (!m_actionManager)
+		m_actionManager = new BL_ActionManager(this);
+
+	return m_actionManager;
+}
+
 void KX_GameObject::PlayAction(const char* name,
 								float start,
 								float end,
@@ -361,32 +369,32 @@ void KX_GameObject::PlayAction(const char* name,
 								short blend_mode,
 								float playback_speed)
 {
-	m_actionManager->PlayAction(name, start, end, layer, blendin, play_mode, blend_mode, playback_speed);
+	GetActionManager()->PlayAction(name, start, end, layer, blendin, play_mode, blend_mode, playback_speed);
 }
 
 void KX_GameObject::StopAction(short layer)
 {
-	m_actionManager->StopAction(layer);
+	GetActionManager()->StopAction(layer);
 }
 
 bool KX_GameObject::IsActionDone(short layer)
 {
-	return m_actionManager->IsActionDone(layer);
+	return GetActionManager()->IsActionDone(layer);
 }
 
 void KX_GameObject::UpdateActionManager(float curtime)
 {
-	m_actionManager->Update(curtime);
+	GetActionManager()->Update(curtime);
 }
 
 float KX_GameObject::GetActionFrame(short layer)
 {
-	return m_actionManager->GetActionFrame(layer);
+	return GetActionManager()->GetActionFrame(layer);
 }
 
 void KX_GameObject::SetActionFrame(short layer, float frame)
 {
-	m_actionManager->SetActionFrame(layer, frame);
+	GetActionManager()->SetActionFrame(layer, frame);
 }
 
 void KX_GameObject::ProcessReplica()
@@ -398,7 +406,8 @@ void KX_GameObject::ProcessReplica()
 	m_pSGNode = NULL;
 	m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	m_pClient_info->m_gameobject = this;
-	m_actionManager = new BL_ActionManager(this);
+	if (m_actionManager)
+		m_actionManager = new BL_ActionManager(this);
 	m_state = 0;
 
 #ifdef WITH_PYTHON

@@ -116,6 +116,8 @@ protected:
 
 	// The action manager is used to play/stop/update actions
 	BL_ActionManager*				m_actionManager;
+
+	BL_ActionManager* GetActionManager();
 	
 public:
 	bool								m_isDeformable;
