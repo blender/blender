@@ -5,22 +5,28 @@
 # use it instead of include_directories()
 macro(blender_include_dirs
 	includes)
-
-	foreach(inc ${ARGV})
-		get_filename_component(abs_inc ${inc} ABSOLUTE)
-		list(APPEND all_incs ${abs_inc})
+	set(_ALL_INCS "")
+	foreach(_INC ${ARGV})
+		get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
+		list(APPEND _ALL_INCS ${_ABS_INC})
 	endforeach()
-	include_directories(${all_incs})
+	include_directories(${_ALL_INCS})
+	unset(_INC)
+	unset(_ABS_INC)
+	unset(_ALL_INCS)
 endmacro()
 
 macro(blender_include_dirs_sys
 	includes)
-
-	foreach(inc ${ARGV})
-		get_filename_component(abs_inc ${inc} ABSOLUTE)
-		list(APPEND all_incs ${abs_inc})
+	set(_ALL_INCS "")
+	foreach(_INC ${ARGV})
+		get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
+		list(APPEND _ALL_INCS ${_ABS_INC})
 	endforeach()
-	include_directories(SYSTEM ${all_incs})
+	include_directories(SYSTEM ${_ALL_INCS})
+	unset(_INC)
+	unset(_ABS_INC)
+	unset(_ALL_INCS)
 endmacro()
 
 macro(blender_source_group
@@ -29,14 +35,17 @@ macro(blender_source_group
 	# Group by location on disk
 	source_group("Source Files" FILES CMakeLists.txt)
 
-	foreach(SRC ${sources})
-		get_filename_component(SRC_EXT ${SRC} EXT)
-		if(${SRC_EXT} MATCHES ".h" OR ${SRC_EXT} MATCHES ".hpp")
-			source_group("Header Files" FILES ${SRC})
+	foreach(_SRC ${sources})
+		get_filename_component(_SRC_EXT ${_SRC} EXT)
+		if(${_SRC_EXT} MATCHES ".h" OR ${_SRC_EXT} MATCHES ".hpp")
+			source_group("Header Files" FILES ${_SRC})
 		else()
-			source_group("Source Files" FILES ${SRC})
+			source_group("Source Files" FILES ${_SRC})
 		endif()
 	endforeach()
+
+	unset(_SRC)
+	unset(_SRC_EXT)
 endmacro()
 
 
@@ -196,10 +205,11 @@ macro(setup_liblinks
 	endif()
 	if(WITH_IMAGE_OPENEXR)
 		if(WIN32 AND NOT UNIX)
-			foreach(loop_var ${OPENEXR_LIB})
-				target_link_libraries(${target} debug ${loop_var}_d)
-				target_link_libraries(${target} optimized ${loop_var})
+			foreach(_LOOP_VAR ${OPENEXR_LIB})
+				target_link_libraries(${target} debug ${_LOOP_VAR}_d)
+				target_link_libraries(${target} optimized ${_LOOP_VAR})
 			endforeach()
+			unset(_LOOP_VAR)
 		else()
 			target_link_libraries(${target} ${OPENEXR_LIB})
 		endif()
@@ -212,10 +222,11 @@ macro(setup_liblinks
 	endif()
 	if(WITH_OPENCOLLADA)
 		if(WIN32 AND NOT UNIX)
-			foreach(loop_var ${OPENCOLLADA_LIB})
-				target_link_libraries(${target} debug ${loop_var}_d)
-				target_link_libraries(${target} optimized ${loop_var})
+			foreach(_LOOP_VAR ${OPENCOLLADA_LIB})
+				target_link_libraries(${target} debug ${_LOOP_VAR}_d)
+				target_link_libraries(${target} optimized ${_LOOP_VAR})
 			endforeach()
+			unset(_LOOP_VAR)
 			target_link_libraries(${target} debug ${PCRE_LIB}_d)
 			target_link_libraries(${target} optimized ${PCRE_LIB})
 			if(EXPAT_LIB)
@@ -472,4 +483,13 @@ macro(blender_project_hack_post)
 
 	unset(_reset_standard_cflags_rel)
 	unset(_reset_standard_cxxflags_rel)
+
+	# --------------------------------------------------
+	# workaround for omission in cmake 2.8.4's GNU.cmake
+	if(CMAKE_COMPILER_IS_GNUCC)
+		if(NOT DARWIN)
+			set(CMAKE_INCLUDE_SYSTEM_FLAG_C "-isystem ")
+		endif()
+	endif()
+
 endmacro()

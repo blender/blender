@@ -53,7 +53,16 @@ if(NOT DEFINED PYTHON_INCLUDE_DIRS)
 	if(NOT _Found_PYTHON_H)
 		message(FATAL_ERROR "Python.h not found")
 	endif()
+	
+	unset(_Found_PYTHON_H)
+	unset(_Python_HEADER)
+	unset(_CURRENT_ABI_FLAGS)
+	unset(_CURRENT_PATH)
+	
 endif()
+
+unset(_Python_ABI_FLAGS)
+unset(_Python_PATHS)
 
 #=============================================================================
 # now the python versions are found
