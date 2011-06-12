@@ -779,11 +779,11 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 	ParticleSettings *part=psmd->psys->part;
 	ParticleSimulationData sim= {NULL};
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
-	ParticleKey state;
+	ParticleKey state, birth;
 	EdgeHash *vertpahash;
 	EdgeHashIterator *ehi;
 	float *vertco= NULL, imat[4][4];
-	float loc0[3], nor[3];
+	float rot[4];
 	float cfra;
 	/* float timestep; */
 	int *facepa=emd->facepa;
@@ -814,7 +814,7 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 	for (i=0; i<totface; i++) {
 		/* do mindex + totvert to ensure the vertex index to be the first
 		 * with BLI_edgehashIterator_getKey */
-		if(facepa[i]==totpart || cfra <= (pars+facepa[i])->time)
+		if(facepa[i]==totpart || cfra < (pars+facepa[i])->time)
 			mindex = totvert+totpart;
 		else 
 			mindex = totvert+facepa[i];
@@ -868,26 +868,26 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 			/* get particle */
 			pa= pars+i;
 
-			/* get particle state */
-			psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc0,nor,NULL,NULL,NULL,NULL);
-			mul_m4_v3(ob->obmat,loc0);
+			psys_get_birth_coordinates(&sim, pa, &birth, 0, 0);
 
 			state.time=cfra;
 			psys_get_particle_state(&sim, i, &state, 1);
 
 			vertco=CDDM_get_vert(explode,v)->co;
-			
 			mul_m4_v3(ob->obmat,vertco);
 
-			VECSUB(vertco,vertco,loc0);
+			sub_v3_v3(vertco, birth.co);
 
 			/* apply rotation, size & location */
-			mul_qt_v3(state.rot,vertco);
+			sub_qt_qtqt(rot, state.rot, birth.rot);
+			mul_qt_v3(rot, vertco);
+
 			if(emd->flag & eExplodeFlag_PaSize)
 				mul_v3_fl(vertco,pa->size);
-			VECADD(vertco,vertco,state.co);
 
-			mul_m4_v3(imat,vertco);
+			add_v3_v3(vertco, state.co);
+
+			mul_m4_v3(imat, vertco);
 		}
 	}
 	BLI_edgehashIterator_free(ehi);
@@ -911,7 +911,7 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 		
 		orig_v4 = source.v4;
 
-		if(facepa[i]!=totpart && cfra <= pa->time)
+		if(facepa[i]!=totpart && cfra < pa->time)
 			mindex = totvert+totpart;
 		else 
 			mindex = totvert+facepa[i];

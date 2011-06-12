@@ -1562,8 +1562,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 		}
 	}
 }
-/* sets particle to the emitter surface with initial velocity & rotation */
-void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, float cfra)
+void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, ParticleKey *state, float dtime, float cfra)
 {
 	Object *ob = sim->ob;
 	ParticleSystem *psys = sim->psys;
@@ -1575,17 +1574,6 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	float q_phase[4];
 	int p = pa - psys->particles;
 	part=psys->part;
-	
-	/* get precise emitter matrix if particle is born */
-	if(part->type!=PART_HAIR && dtime > 0.f && pa->time < cfra && pa->time >= sim->psys->cfra) {
-		/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
-		while(ob) {
-			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, pa->time, ADT_RECALC_ANIM);
-			ob = ob->parent;
-		}
-		ob = sim->ob;
-		where_is_object_time(sim->scene, ob, pa->time);
-	}
 
 	/* get birth location from object		*/
 	if(part->tanfac != 0.f)
@@ -1594,7 +1582,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		psys_particle_on_emitter(sim->psmd, part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,0,0,0,0);
 		
 	/* get possible textural influence */
-	psys_get_texture(sim, pa, &ptex, PAMAP_IVEL|PAMAP_LIFE, cfra);
+	psys_get_texture(sim, pa, &ptex, PAMAP_IVEL, cfra);
 
 	/* particles live in global space so	*/
 	/* let's convert:						*/
@@ -1654,37 +1642,27 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		mat4_to_quat(rot,ob->obmat);
 		mul_qt_qtqt(r_rot,r_rot,rot);
 	}
-#if 0
-	}
-#endif
 
 	if(part->phystype==PART_PHYS_BOIDS && pa->boid) {
-		BoidParticle *bpa = pa->boid;
 		float dvec[3], q[4], mat[3][3];
 
-		copy_v3_v3(pa->state.co,loc);
+		copy_v3_v3(state->co,loc);
 
 		/* boids don't get any initial velocity  */
-		zero_v3(pa->state.vel);
+		zero_v3(state->vel);
 
 		/* boids store direction in ave */
 		if(fabsf(nor[2])==1.0f) {
-			sub_v3_v3v3(pa->state.ave, loc, ob->obmat[3]);
-			normalize_v3(pa->state.ave);
+			sub_v3_v3v3(state->ave, loc, ob->obmat[3]);
+			normalize_v3(state->ave);
 		}
 		else {
-			VECCOPY(pa->state.ave, nor);
+			VECCOPY(state->ave, nor);
 		}
-		/* and gravity in r_ve */
-		bpa->gravity[0] = bpa->gravity[1] = 0.0f;
-		bpa->gravity[2] = -1.0f;
-		if((sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY)
-			&& sim->scene->physics_settings.gravity[2]!=0.0f)
-			bpa->gravity[2] = sim->scene->physics_settings.gravity[2];
 
 		/* calculate rotation matrix */
-		project_v3_v3v3(dvec, r_vel, pa->state.ave);
-		sub_v3_v3v3(mat[0], pa->state.ave, dvec);
+		project_v3_v3v3(dvec, r_vel, state->ave);
+		sub_v3_v3v3(mat[0], state->ave, dvec);
 		normalize_v3(mat[0]);
 		negate_v3_v3(mat[2], r_vel);
 		normalize_v3(mat[2]);
@@ -1692,12 +1670,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		
 		/* apply rotation */
 		mat3_to_quat_is_ok( q,mat);
-		copy_qt_qt(pa->state.rot, q);
-
-		bpa->data.health = part->boids->health;
-		bpa->data.mode = eBoidMode_InAir;
-		bpa->data.state_id = ((BoidState*)part->boids->states.first)->id;
-		bpa->data.acc[0]=bpa->data.acc[1]=bpa->data.acc[2]=0.0f;
+		copy_qt_qt(state->rot, q);
 	}
 	else {
 		/* conversion done so now we apply new:	*/
@@ -1710,7 +1683,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 
 		/*		*emitter velocity				*/
 		if(dtime != 0.f && part->obfac != 0.f){
-			sub_v3_v3v3(vel, loc, pa->state.co);
+			sub_v3_v3v3(vel, loc, state->co);
 			mul_v3_fl(vel, part->obfac/dtime);
 		}
 		
@@ -1747,13 +1720,13 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		if(part->partfac != 0.f)
 			madd_v3_v3fl(vel, p_vel, part->partfac);
 		
-		mul_v3_v3fl(pa->state.vel, vel, ptex.ivel);
+		mul_v3_v3fl(state->vel, vel, ptex.ivel);
 
 		/* -location from emitter				*/
-		copy_v3_v3(pa->state.co,loc);
+		copy_v3_v3(state->co,loc);
 
 		/* -rotation							*/
-		unit_qt(pa->state.rot);
+		unit_qt(state->rot);
 
 		if(part->rotmode){
 			/* create vector into which rotation is aligned */
@@ -1793,25 +1766,64 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 			axis_angle_to_quat( q_phase,x_vec, phasefac*(float)M_PI);
 
 			/* combine base rotation & phase */
-			mul_qt_qtqt(pa->state.rot, rot, q_phase);
+			mul_qt_qtqt(state->rot, rot, q_phase);
 		}
 
 		/* -angular velocity					*/
 
-		zero_v3(pa->state.ave);
+		zero_v3(state->ave);
 
 		if(part->avemode){
 			switch(part->avemode){
 				case PART_AVE_SPIN:
-					copy_v3_v3(pa->state.ave, vel);
+					copy_v3_v3(state->ave, vel);
 					break;
 				case PART_AVE_RAND:
-					copy_v3_v3(pa->state.ave, r_ave);
+					copy_v3_v3(state->ave, r_ave);
 					break;
 			}
-			normalize_v3(pa->state.ave);
-			mul_v3_fl(pa->state.ave,part->avefac);
+			normalize_v3(state->ave);
+			mul_v3_fl(state->ave, part->avefac);
 		}
+	}
+}
+/* sets particle to the emitter surface with initial velocity & rotation */
+void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, float cfra)
+{
+	Object *ob = sim->ob;
+	ParticleSystem *psys = sim->psys;
+	ParticleSettings *part;
+	ParticleTexture ptex;
+	int p = pa - psys->particles;
+	part=psys->part;
+	
+	/* get precise emitter matrix if particle is born */
+	if(part->type!=PART_HAIR && dtime > 0.f && pa->time < cfra && pa->time >= sim->psys->cfra) {
+		/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
+		while(ob) {
+			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, pa->time, ADT_RECALC_ANIM);
+			ob = ob->parent;
+		}
+		ob = sim->ob;
+		where_is_object_time(sim->scene, ob, pa->time);
+	}
+
+	psys_get_birth_coordinates(sim, pa, &pa->state, dtime, cfra);
+
+	if(part->phystype==PART_PHYS_BOIDS && pa->boid) {
+		BoidParticle *bpa = pa->boid;
+
+		/* and gravity in r_ve */
+		bpa->gravity[0] = bpa->gravity[1] = 0.0f;
+		bpa->gravity[2] = -1.0f;
+		if((sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY)
+			&& sim->scene->physics_settings.gravity[2]!=0.0f)
+			bpa->gravity[2] = sim->scene->physics_settings.gravity[2];
+
+		bpa->data.health = part->boids->health;
+		bpa->data.mode = eBoidMode_InAir;
+		bpa->data.state_id = ((BoidState*)part->boids->states.first)->id;
+		bpa->data.acc[0]=bpa->data.acc[1]=bpa->data.acc[2]=0.0f;
 	}
 
 
@@ -1819,6 +1831,9 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		pa->lifetime = 100.0f;
 	}
 	else{
+		/* get possible textural influence */
+		psys_get_texture(sim, pa, &ptex, PAMAP_LIFE, cfra);
+
 		pa->lifetime = part->lifetime * ptex.life;
 
 		if(part->randlife != 0.0f)
@@ -1904,6 +1919,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 	PARTICLE_P;
 	ParticleKey *key;
 	int totpart = psys->totpart, k, totkeys = psys->totkeyed;
+	int keyed_flag = 0;
 
 	ksim.scene= sim->scene;
 	
@@ -1933,6 +1949,8 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 	for(k=0; k<totkeys; k++) {
 		ksim.ob = pt->ob ? pt->ob : sim->ob;
 		ksim.psys = BLI_findlink(&ksim.ob->particlesystem, pt->psys - 1);
+		keyed_flag = (ksim.psys->flag & PSYS_KEYED);
+		ksim.psys->flag &= ~PSYS_KEYED;
 
 		LOOP_PARTICLES {
 			key = pa->keys + k;
@@ -1955,6 +1973,8 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 
 		if(psys->flag & PSYS_KEYED_TIMING && pt->duration!=0.0f)
 			k++;
+
+		ksim.psys->flag |= keyed_flag;
 
 		pt = (pt->next && pt->next->flag & PTARGET_VALID)? pt->next : psys->targets.first;
 	}
