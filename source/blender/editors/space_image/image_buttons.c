@@ -662,7 +662,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 	block= uiLayoutGetBlock(layout);
 
-
 	imaptr= RNA_property_pointer_get(ptr, prop);
 	ima= imaptr.data;
 	iuser= userptr->data;
@@ -719,21 +718,17 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			}
 		}
 		else {
-			row= uiLayoutRow(layout, 0);
-			uiItemR(row, &imaptr, "source", 0, NULL, ICON_NONE);
+			uiItemR(layout, &imaptr, "source", 0, NULL, ICON_NONE);
 
 			if(ima->source != IMA_SRC_GENERATED) {
 				row= uiLayoutRow(layout, 1);
-				split = uiLayoutSplit(row, 0.0, 0);
 				if (ima->packedfile)
-					uiItemO(split, "", ICON_PACKAGE, "image.unpack");
+					uiItemO(row, "", ICON_PACKAGE, "image.unpack");
 				else
-					uiItemO(split, "", ICON_UGLYPACKAGE, "image.pack");
+					uiItemO(row, "", ICON_UGLYPACKAGE, "image.pack");
 				
-				split = uiLayoutSplit(row, 0.0, 0);
-				row= uiLayoutRow(split, 1);
+				row= uiLayoutRow(row, 0);
 				uiLayoutSetEnabled(row, ima->packedfile==NULL);
-				
 				uiItemR(row, &imaptr, "filepath", 0, "", ICON_NONE);
 				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 			}
@@ -771,11 +766,10 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					col= uiLayoutColumn(split, 0);
 					uiItemR(col, &imaptr, "use_fields", 0, NULL, ICON_NONE);
 					row= uiLayoutRow(col, 0);
-					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
-
-					col= uiLayoutColumn(split, 0);
-					uiItemR(col, &imaptr, "use_premultiply", 0, NULL, ICON_NONE);
+					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+					
+					uiItemR(split, &imaptr, "use_premultiply", 0, NULL, ICON_NONE);
 				}
 			}
 
@@ -809,8 +803,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				uiItemR(col, &imaptr, "generated_width", 0, "X", ICON_NONE);
 				uiItemR(col, &imaptr, "generated_height", 0, "Y", ICON_NONE);
 
-				col= uiLayoutColumn(split, 0);
-				uiItemR(col, &imaptr, "generated_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+				uiItemR(split, &imaptr, "generated_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 			}
 
 					}
