@@ -1366,10 +1366,17 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 								 &snode->mx, &snode->my);
 		
-		/* rect we're interested in is just the bottom right corner */
 		totr= node->totr;
-		totr.xmin= totr.xmax-10.0f;
-		totr.ymax= totr.ymin+10.0f;
+		
+		if(node->flag & NODE_HIDDEN) {
+			/* right part of node */
+			totr.xmin= node->totr.xmax-20.0f;
+		}
+		else {
+			/* bottom right corner */
+			totr.xmin= totr.xmax-10.0f;
+			totr.ymax= totr.ymin+10.0f;
+		}
 		
 		if(BLI_in_rctf(&totr, snode->mx, snode->my)) {
 			NodeSizeWidget *nsw= MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
