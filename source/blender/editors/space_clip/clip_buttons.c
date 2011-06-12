@@ -224,7 +224,7 @@ static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip;
 	int type;
-	MovieTrackingMarker *marker;
+	MovieTrackingTrack *track;
 
 	if(scene->toolsettings->movieclip.tool != MCLIP_TOOL_MARKER || !sc)
 		return 0;
@@ -237,9 +237,12 @@ static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
 	if(!clip || !BKE_movieclip_has_frame(clip, &sc->user))
 		return 0;
 
-	BKE_movieclip_last_selection(clip, &type, (void**)&marker);
+	BKE_movieclip_last_selection(clip, &type, (void**)&track);
 
-	return type==MCLIP_SEL_TRACK;
+	if(type!=MCLIP_SEL_TRACK)
+		return 0;
+
+	return BKE_tracking_has_marker(track, sc->user.framenr);
 }
 
 static void clip_panel_marker(const bContext *C, Panel *pa)
