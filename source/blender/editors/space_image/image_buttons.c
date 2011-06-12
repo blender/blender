@@ -787,10 +787,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				col= uiLayoutColumn(split, 0);
 				 
 				sprintf(str, "(%d) Frames", iuser->framenr);
-				row= uiLayoutRow(col, 1);
 				uiItemR(col, userptr, "frame_duration", 0, str, ICON_NONE);
 				if(ima->anim) {
-					block= uiLayoutGetBlock(row);
+					block= uiLayoutGetBlock(col);
 					but= uiDefBut(block, BUT, 0, "Match Movie Length", 0, 0, UI_UNIT_X*2, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Set the number of frames to match the movie or sequence.");
 					uiButSetFunc(but, set_frames_cb, ima, iuser);
 				}
