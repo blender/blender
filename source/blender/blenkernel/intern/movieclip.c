@@ -77,7 +77,7 @@
 
 static int sequence_guess_offset(const char *full_name, int head_len, int numlen)
 {
-	char num[FILE_MAX];
+	char num[FILE_MAX]= {0};
 
 	strncpy(num, full_name+head_len, numlen);
 
