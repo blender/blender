@@ -146,7 +146,7 @@ typedef struct RenderResult {
 typedef struct RenderStats {
 	int cfra;
 	int totface, totvert, totstrand, tothalo, totlamp, totpart;
-	short curfield, curblur, curpart, partsdone, convertdone;
+	short curfield, curblur, curpart, partsdone, convertdone, curfsa;
 	double starttime, lastframetime;
 	const char *infostr, *statstr;
 	char scenename[32];

@@ -2169,6 +2169,24 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	do_render_fields_blur_3d(resc);
 }
 
+/* helper call to detect if this scene needs a render, or if there's a any render layer to render */
+static int composite_needs_render(Scene *sce, int this_scene)
+{
+	bNodeTree *ntree= sce->nodetree;
+	bNode *node;
+	
+	if(ntree==NULL) return 1;
+	if(sce->use_nodes==0) return 1;
+	if((sce->r.scemode & R_DOCOMP)==0) return 1;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_R_LAYERS)
+			if(this_scene==0 || node->id==NULL || node->id==&sce->id)
+				return 1;
+	}
+	return 0;
+}
+
 static void tag_scenes_for_render(Render *re)
 {
 	bNode *node;
@@ -2177,7 +2195,8 @@ static void tag_scenes_for_render(Render *re)
 	for(sce= re->main->scene.first; sce; sce= sce->id.next)
 		sce->id.flag &= ~LIB_DOIT;
 	
-	re->scene->id.flag |= LIB_DOIT;
+	if(RE_GetCamera(re) && composite_needs_render(re->scene, 1))
+		re->scene->id.flag |= LIB_DOIT;
 	
 	if(re->scene->nodetree==NULL) return;
 	
@@ -2224,24 +2243,6 @@ static void ntree_render_scenes(Render *re)
 		set_scene_bg(re->main, re->scene);
 }
 
-/* helper call to detect if theres a composite with render-result node */
-static int composite_needs_render(Scene *sce)
-{
-	bNodeTree *ntree= sce->nodetree;
-	bNode *node;
-	
-	if(ntree==NULL) return 1;
-	if(sce->use_nodes==0) return 1;
-	if((sce->r.scemode & R_DOCOMP)==0) return 1;
-		
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type==CMP_NODE_R_LAYERS)
-			if(node->id==NULL || node->id==&sce->id)
-				return 1;
-	}
-	return 0;
-}
-
 /* bad call... need to think over proper method still */
 static void render_composit_stats(void *UNUSED(arg), char *str)
 {
@@ -2257,6 +2258,16 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	float *rectf, filt[3][3];
 	int sample;
 	
+	/* interaction callbacks */
+	if(ntree) {
+		ntree->stats_draw= render_composit_stats;
+		ntree->test_break= re->test_break;
+		ntree->progress= re->progress;
+		ntree->sdh= re->sdh;
+		ntree->tbh= re->tbh;
+		ntree->prh= re->prh;
+	}
+	
 	/* filtmask needs it */
 	R= *re;
 	
@@ -2264,25 +2275,27 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	rectf= MEM_mapallocN(re->rectx*re->recty*sizeof(float)*4, "fullsample rgba");
 	
 	for(sample=0; sample<re->r.osa; sample++) {
+		Render *re1;
 		RenderResult rres;
 		int x, y, mask;
 		
-		/* set all involved renders on the samplebuffers (first was done by render itself) */
+		/* enable full sample print */
+		R.i.curfsa= sample+1;
+		
+		/* set all involved renders on the samplebuffers (first was done by render itself, but needs tagged) */
 		/* also function below assumes this */
-		if(sample) {
-			Render *re1;
 			
-			tag_scenes_for_render(re);
-			for(re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
-				if(re1->scene->id.flag & LIB_DOIT) {
-					if(re1->r.scemode & R_FULL_SAMPLE) {
+		tag_scenes_for_render(re);
+		for(re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
+			if(re1->scene->id.flag & LIB_DOIT) {
+				if(re1->r.scemode & R_FULL_SAMPLE) {
+					if(sample)
 						read_render_result(re1, sample);
-						ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
-					}
+					ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
 				}
 			}
 		}
-
+		
 		/* composite */
 		if(ntree) {
 			ntreeCompositTagRender(re->scene);
@@ -2325,6 +2338,17 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			break;
 	}
 	
+	/* clear interaction callbacks */
+	if(ntree) {
+		ntree->stats_draw= NULL;
+		ntree->test_break= NULL;
+		ntree->progress= NULL;
+		ntree->tbh= ntree->sdh= ntree->prh= NULL;
+	}
+	
+	/* disable full sample print */
+	R.i.curfsa= 0;
+	
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if(re->result->rectf) 
 		MEM_freeN(re->result->rectf);
@@ -2364,8 +2388,10 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 	}
 	
 	/* own render result should be read/allocated */
-	if(re->scene->id.flag & LIB_DOIT)
+	if(re->scene->id.flag & LIB_DOIT) {
 		RE_ReadRenderResult(re->scene, re->scene);
+		re->scene->id.flag &= ~LIB_DOIT;
+	}
 	
 	/* and now we can draw (result is there) */
 	re->display_init(re->dih, re->result);
@@ -2383,12 +2409,21 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	/* INIT seeding, compositor can use random texture */
 	BLI_srandom(re->r.cfra);
 	
-	if(composite_needs_render(re->scene)) {
+	if(composite_needs_render(re->scene, 1)) {
 		/* save memory... free all cached images */
 		ntreeFreeCache(ntree);
 		
 		do_render_fields_blur_3d(re);
-	} else {
+	} 
+	else {
+		/* ensure new result gets added, like for regular renders */
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+		
+		RE_FreeRenderResult(re->result);
+		re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+
+		BLI_rw_mutex_unlock(&re->resultmutex);
+		
 		/* scene render process already updates animsys */
 		update_newframe = 1;
 	}
@@ -2724,7 +2759,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, void *erh, vo
 			}
 			
 			if(scene->r.scemode & R_FULL_SAMPLE) {
-				if(composite_needs_render(scene)==0) {
+				if(composite_needs_render(scene, 0)==0) {
 					error(erh, "Full Sample AA not supported without 3d rendering");
 					return 0;
 				}
