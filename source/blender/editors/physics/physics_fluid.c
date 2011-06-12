@@ -56,6 +56,7 @@
 #include "DNA_object_fluidsim.h"	
 
 #include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_threads.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -125,7 +126,7 @@ static void get_fluid_gravity(float *gravity, Scene *scene, FluidsimSettings *fs
 	if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 		copy_v3_v3(gravity, scene->physics_settings.gravity);
 	} else {
-		copy_v3_v3(gravity, &fss->gravx);
+		copy_v3_v3(gravity, fss->grav);
 	}
 }
 
@@ -442,8 +443,8 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 		for (fobj=fobjects->first; fobj; fobj=fobj->next) {
 			Object *ob = fobj->object;
 			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
-			float active= (float)(fluidmd->fss->flag & OB_FLUIDSIM_ACTIVE);
-			float rot_d[3], old_rot[3] = {0.f, 0.f, 0.f};
+			float active= (float)(fluidmd->fss->flag && OB_FLUIDSIM_ACTIVE);
+			float rot_d[3] = {0.f, 0.f, 0.f}, old_rot[3] = {0.f, 0.f, 0.f};
 			
 			if (ELEM(fluidmd->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE))
 				continue;
@@ -809,6 +810,44 @@ static void fluidbake_free_data(FluidAnimChannels *channels, ListBase *fobjects,
 	}
 }
 
+/* copied from rna_fluidsim.c: fluidsim_find_lastframe() */
+static void fluidsim_delete_until_lastframe(FluidsimSettings *fss)
+{
+	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
+	char targetDirVel[FILE_MAXFILE+FILE_MAXDIR], targetFileVel[FILE_MAXFILE+FILE_MAXDIR];
+	char previewDir[FILE_MAXFILE+FILE_MAXDIR], previewFile[FILE_MAXFILE+FILE_MAXDIR];
+	int curFrame = 1, exists = 0;
+
+	BLI_snprintf(targetDir, sizeof(targetDir), "%sfluidsurface_final_####.bobj.gz", fss->surfdataPath);
+	BLI_snprintf(targetDirVel, sizeof(targetDir), "%sfluidsurface_final_####.bvel.gz", fss->surfdataPath);
+	BLI_snprintf(previewDir, sizeof(targetDir), "%sfluidsurface_preview_####.bobj.gz", fss->surfdataPath);
+
+	BLI_path_abs(targetDir, G.main->name);
+	BLI_path_abs(targetDirVel, G.main->name);
+	BLI_path_abs(previewDir, G.main->name);
+
+	do {
+		BLI_strncpy(targetFile, targetDir, sizeof(targetFile));
+		BLI_strncpy(targetFileVel, targetDirVel, sizeof(targetFileVel));
+		BLI_strncpy(previewFile, previewDir, sizeof(previewFile));
+
+		BLI_path_frame(targetFile, curFrame, 0);
+		BLI_path_frame(targetFileVel, curFrame, 0);
+		BLI_path_frame(previewFile, curFrame, 0);
+
+		curFrame++;
+
+		if(exists = BLI_exist(targetFile))
+		{
+			BLI_delete(targetFile, 0, 0);
+			BLI_delete(targetFileVel, 0, 0);
+			BLI_delete(previewFile, 0, 0);
+		}
+	} while(exists);
+
+	return;
+}
+
 static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -878,6 +917,9 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	
 	// reset last valid frame
 	domainSettings->lastgoodframe = -1;
+
+	/* delete old baked files */
+	fluidsim_delete_until_lastframe(domainSettings);
 	
 	/* rough check of settings... */
 	if(domainSettings->previewresxyz > domainSettings->resolutionxyz) {
@@ -1018,6 +1060,13 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	else if (domainSettings->typeFlags&OB_FSBND_PARTSLIP)	fsset->domainobsType = FLUIDSIM_OBSTACLE_PARTSLIP;
 	else if (domainSettings->typeFlags&OB_FSBND_FREESLIP)	fsset->domainobsType = FLUIDSIM_OBSTACLE_FREESLIP;
 	fsset->domainobsPartslip = domainSettings->partSlipValue;
+
+	/* use domainobsType also for surface generation flag (bit: >=64) */
+	if(domainSettings->typeFlags & OB_FSSG_NOOBS)
+		fsset->mFsSurfGenSetting = FLUIDSIM_FSSG_NOOBS;
+	else
+		fsset->mFsSurfGenSetting = 0; // "normal" mode
+
 	fsset->generateVertexVectors = (domainSettings->domainNovecgen==0);
 
 	// init blender domain transform matrix

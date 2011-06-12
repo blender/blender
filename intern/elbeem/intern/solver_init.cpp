@@ -539,6 +539,15 @@ void LbmFsgrSolver::parseAttrList()
 
 
 /******************************************************************************
+ * (part of enabling chapter 6 of "Free Surface Flows with Moving and Deforming Objects for LBM")
+ *****************************************************************************/
+void LbmFsgrSolver::setSurfGenSettings(short value)
+{
+	mFsSurfGenSetting = value;
+}
+
+
+/******************************************************************************
  * Initialize omegas and forces on all levels (for init/timestep change)
  *****************************************************************************/
 void LbmFsgrSolver::initLevelOmegas()
