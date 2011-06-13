@@ -3102,7 +3102,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 		/* 2 kinds of lookups now, quoted or unquoted */
 		quote= *p;
 
-		if(quote != '"')
+		if(quote != '"') /* " - this comment is hack for Aligorith's text editor's sanity */
 			quote= 0;
 
 		if(quote==0) {

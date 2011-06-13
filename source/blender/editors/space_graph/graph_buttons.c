@@ -493,7 +493,7 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 	DriverTarget *dtar= &dvar->targets[0];
 	Object *ob = (Object *)dtar->id;
 	PointerRNA dtar_ptr;
-	uiLayout *col, *row;
+	uiLayout *col, *subcol;
 	
 	/* initialise RNA pointer to the target */
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
@@ -509,9 +509,9 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 			uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		row= uiLayoutRow(layout, 1);
-			uiItemR(row, &dtar_ptr, "transform_type", 0, "", ICON_NONE);
-			uiItemR(row, &dtar_ptr, "use_local_space_transform", 0, NULL, ICON_NONE);
+		subcol= uiLayoutColumn(layout, 1);
+			uiItemR(subcol, &dtar_ptr, "transform_type", 0, NULL, ICON_NONE);
+			uiItemR(subcol, &dtar_ptr, "transform_space", 0, "Space", ICON_NONE);
 }
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */

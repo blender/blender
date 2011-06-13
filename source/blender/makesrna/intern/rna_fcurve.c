@@ -1104,6 +1104,12 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 		{DTAR_TRANSCHAN_SCALEY, "SCALE_Y", 0, "Y Scale", ""},
 		{DTAR_TRANSCHAN_SCALEZ, "SCALE_Z", 0, "Z Scale", ""},
 		{0, NULL, 0, NULL, NULL}};
+		
+	static EnumPropertyItem prop_local_space_items[] = {
+		{0, "WORLD_SPACE", 0, "World Space", "Transforms include effects of parenting/restpose and constraints"},
+		{DTAR_FLAG_LOCALSPACE, "TRANSFORM_SPACE", 0, "Transform Space", "Transforms don't include parenting/restpose or constraints"},
+		{DTAR_FLAG_LOCALSPACE|DTAR_FLAG_LOCAL_CONSTS, "LOCAL_SPACE", 0, "Local Space", "Transforms include effects of constraints but not parenting/restpose"},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "DriverTarget", NULL);
 	RNA_def_struct_ui_text(srna, "Driver Target", "Source of input values for driver variables");
@@ -1144,9 +1150,10 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "Driver variable type");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
-	prop= RNA_def_property(srna, "use_local_space_transform", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", DTAR_FLAG_LOCALSPACE);
-	RNA_def_property_ui_text(prop, "Local Space", "Use transforms in Local Space (as opposed to the worldspace default)");
+	prop= RNA_def_property(srna, "transform_space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_local_space_items);
+	RNA_def_property_ui_text(prop, "Transform Space", "Space in which transforms are used");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 }
 

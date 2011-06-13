@@ -42,6 +42,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
@@ -52,6 +53,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_constraint.h"
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -1197,7 +1199,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	Object *ob= (Object *)dtar_id_ensure_proxy_from(dtar->id);
 	bPoseChannel *pchan;
 	float mat[4][4];
-	float eul[3] = {0.0f,0.0f,0.0f};
+	float oldEul[3] = {0.0f,0.0f,0.0f};
 	short useEulers=0, rotOrder=ROT_MODE_EUL;
 	
 	/* check if this target has valid data */
@@ -1210,36 +1212,62 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	/* try to get posechannel */
 	pchan= get_pose_channel(ob->pose, dtar->pchan_name);
 	
-	/* check if object or bone, and get transform matrix accordingly */
+	/* check if object or bone, and get transform matrix accordingly 
+	 *	- "useEulers" code is used to prevent the problems associated with non-uniqueness
+	 *	  of euler decomposition from matrices [#20870]
+	 *	- localspace is for [#21384], where parent results are not wanted
+	 *	  but local-consts is for all the common "corrective-shapes-for-limbs" situations
+	 */
 	if (pchan) {
 		/* bone */
 		if (pchan->rotmode > 0) {
-			VECCOPY(eul, pchan->eul);
+			VECCOPY(oldEul, pchan->eul);
 			rotOrder= pchan->rotmode;
 			useEulers = 1;
 		}
 		
 		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
-			/* specially calculate local matrix, since chan_mat is not valid 
-			 * since it stores delta transform of pose_mat so that deforms work
-			 */
-			pchan_to_mat4(pchan, mat);
+			if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
+				/* just like how the constraints do it! */
+				copy_m4_m4(mat, pchan->pose_mat);
+				constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+			}
+			else {
+				/* specially calculate local matrix, since chan_mat is not valid 
+				 * since it stores delta transform of pose_mat so that deforms work
+				 * so it cannot be used here for "transform" space
+				 */
+				pchan_to_mat4(pchan, mat);
+			}
 		}
-		else
+		else {
+			/* worldspace matrix */
 			mul_m4_m4m4(mat, pchan->pose_mat, ob->obmat);
+		}
 	}
 	else {
 		/* object */
 		if (ob->rotmode > 0) {
-			VECCOPY(eul, ob->rot);
+			VECCOPY(oldEul, ob->rot);
 			rotOrder= ob->rotmode;
 			useEulers = 1;
 		}
 		
-		if (dtar->flag & DTAR_FLAG_LOCALSPACE)
-			object_to_mat4(ob, mat);
-		else
+		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
+			if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
+				/* just like how the constraints do it! */
+				copy_m4_m4(mat, ob->obmat);
+				constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL);
+			}
+			else {
+				/* transforms to matrix */
+				object_to_mat4(ob, mat);
+			}
+		}
+		else {
+			/* worldspace matrix - just the good-old one */
 			copy_m4_m4(mat, ob->obmat);
+		}
 	}
 	
 	/* check which transform */
@@ -1255,9 +1283,21 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 		return scale[dtar->transChan - DTAR_TRANSCHAN_SCALEX];
 	}
 	else if (dtar->transChan >= DTAR_TRANSCHAN_ROTX) {
-		/* extract euler rotation (if needed), and choose the right axis */
-		if ((dtar->flag & DTAR_FLAG_LOCALSPACE)==0 || (useEulers == 0))
-			mat4_to_eulO(eul, rotOrder, mat);
+		/* extract rotation as eulers (if needed) 
+		 *	- definitely if rotation order isn't eulers already
+		 *	- if eulers, then we have 2 options:
+		 *		a) decompose transform matrix as required, then try to make eulers from
+		 *		   there compatible with original values
+		 *		b) [NOT USED] directly use the original values (no decomposition) 
+		 *			- only an option for "transform space", if quality is really bad with a)
+		 */
+		float eul[3];
+		
+		mat4_to_eulO(eul, rotOrder, mat);
+		
+		if (useEulers) {
+			compatible_eul(eul, oldEul);
+		}
 		
 		return eul[dtar->transChan - DTAR_TRANSCHAN_ROTX];
 	}

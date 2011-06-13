@@ -289,8 +289,12 @@ typedef enum eDriverTarget_Flag {
 	DTAR_FLAG_STRUCT_REF	= (1<<0),
 		/* idtype can only be 'Object' */
 	DTAR_FLAG_ID_OB_ONLY	= (1<<1),
-		/* toggles localspace (where transforms are manually obtained) */
+	
+	/* "localspace" flags */
+		/* base flag - basically "pre parent+constraints" */
 	DTAR_FLAG_LOCALSPACE	= (1<<2),
+		/* include constraints transformed to space including parents */
+	DTAR_FLAG_LOCAL_CONSTS	= (1<<3),
 } eDriverTarget_Flag;
 
 /* Transform Channels for Driver Targets */
