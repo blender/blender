@@ -399,6 +399,13 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 
 static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
+	ModifierTypeInfo *mti= modifierType_getInfo(md->type);
+
+	if (mti->isDisabled && mti->isDisabled(md, 0)) {
+		BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
+		return 0;
+	}
+
 	if (ob->type==OB_MESH) {
 		DerivedMesh *dm;
 		Mesh *me= ob->data;
@@ -442,7 +449,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 {
 	ModifierTypeInfo *mti= modifierType_getInfo(md->type);
 
-	if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
+	if (mti->isDisabled && mti->isDisabled(md, 0)) {
 		BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
 		return 0;
 	}
@@ -484,7 +491,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 				CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
 			}
 		}
-	} 
+	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu;
 		int numVerts;
@@ -530,6 +537,8 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 
 int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md, int mode)
 {
+	int prev_mode;
+
 	if (scene->obedit) {
 		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in editmode");
 		return 0;
@@ -541,12 +550,20 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	if (md!=ob->modifiers.first)
 		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected.");
 
+	/* allow apply of a not-realtime modifier, by first re-enabling realtime. */
+	prev_mode= md->mode;
+	md->mode |= eModifierMode_Realtime;
+
 	if (mode == MODIFIER_APPLY_SHAPE) {
-		if (!modifier_apply_shape(reports, scene, ob, md))
+		if (!modifier_apply_shape(reports, scene, ob, md)) {
+			md->mode= prev_mode;
 			return 0;
+		}
 	} else {
-		if (!modifier_apply_obdata(reports, scene, ob, md))
+		if (!modifier_apply_obdata(reports, scene, ob, md)) {
+			md->mode= prev_mode;
 			return 0;
+		}
 	}
 
 	BLI_remlink(&ob->modifiers, md);
