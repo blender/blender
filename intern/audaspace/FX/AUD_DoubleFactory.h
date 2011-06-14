@@ -63,7 +63,7 @@ public:
 	 */
 	AUD_DoubleFactory(AUD_Reference<AUD_IFactory> factory1, AUD_Reference<AUD_IFactory> factory2);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_DOUBLEFACTORY

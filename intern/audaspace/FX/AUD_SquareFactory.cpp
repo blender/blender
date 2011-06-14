@@ -59,7 +59,7 @@ float AUD_SquareFactory::getThreshold() const
 	return m_threshold;
 }
 
-AUD_Reference<AUD_IReader> AUD_SquareFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SquareFactory::createReader()
 {
 	return new AUD_CallbackIIRFilterReader(getReader(), 1, 1,
 										   (doFilterIIR) squareFilter,

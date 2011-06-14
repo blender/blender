@@ -70,7 +70,7 @@ AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_Reference<AUD_IFactory> fac
 	m_buffer->resize(index * sample_size, true);
 }
 
-AUD_Reference<AUD_IReader> AUD_StreamBufferFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_StreamBufferFactory::createReader()
 {
 	return new AUD_BufferReader(m_buffer, m_specs);
 }

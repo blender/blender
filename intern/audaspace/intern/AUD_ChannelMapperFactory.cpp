@@ -102,7 +102,7 @@ void AUD_ChannelMapperFactory::deleteMapping(int ic)
 	}
 }
 
-AUD_Reference<AUD_IReader> AUD_ChannelMapperFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_ChannelMapperFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
 	int ic = reader->getSpecs().channels;

@@ -63,16 +63,6 @@ bool AUD_SequencerFactory::getMute() const
 	return m_muted;
 }
 
-AUD_Reference<AUD_IReader> AUD_SequencerFactory::newReader()
-{
-	AUD_Reference<AUD_SequencerReader> reader = new AUD_SequencerReader(*m_this, m_entries,
-														  m_specs, m_data,
-														  m_volume);
-	m_readers.push_front(reader);
-
-	return reader.convert<AUD_IReader>();
-}
-
 AUD_Reference<AUD_SequencerEntry> AUD_SequencerFactory::add(AUD_Reference<AUD_IFactory>** sound, float begin, float end, float skip, void* data)
 {
 	AUD_Reference<AUD_SequencerEntry> entry = new AUD_SequencerEntry;
@@ -111,9 +101,14 @@ void AUD_SequencerFactory::mute(AUD_Reference<AUD_SequencerEntry> entry, bool mu
 	entry->muted = mute;
 }
 
-AUD_Reference<AUD_IReader> AUD_SequencerFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SequencerFactory::createReader()
 {
-	return const_cast<AUD_SequencerFactory*>(this)->newReader();
+	AUD_Reference<AUD_SequencerReader> reader = new AUD_SequencerReader(*m_this, m_entries,
+														  m_specs, m_data,
+														  m_volume);
+	m_readers.push_front(reader);
+
+	return reader.convert<AUD_IReader>();
 }
 
 void AUD_SequencerFactory::removeReader(AUD_Reference<AUD_SequencerReader> reader)

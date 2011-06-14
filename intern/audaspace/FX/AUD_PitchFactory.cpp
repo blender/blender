@@ -39,7 +39,7 @@ AUD_PitchFactory::AUD_PitchFactory(AUD_Reference<AUD_IFactory> factory, float pi
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_PitchFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_PitchFactory::createReader()
 {
 	return new AUD_PitchReader(getReader(), m_pitch);
 }

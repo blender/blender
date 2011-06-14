@@ -74,7 +74,7 @@ public:
 	 */
 	AUD_FFMPEGFactory(const data_t* buffer, int size);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_FFMPEGFACTORY

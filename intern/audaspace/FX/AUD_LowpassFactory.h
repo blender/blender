@@ -63,7 +63,7 @@ public:
 	 */
 	AUD_LowpassFactory(AUD_Reference<AUD_IFactory> factory, float frequency, float Q = 1.0f);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_LOWPASSFACTORY

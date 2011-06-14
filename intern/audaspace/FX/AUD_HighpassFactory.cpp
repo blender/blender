@@ -46,7 +46,7 @@ AUD_HighpassFactory::AUD_HighpassFactory(AUD_Reference<AUD_IFactory> factory, fl
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_HighpassFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_HighpassFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
 

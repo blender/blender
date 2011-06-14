@@ -76,7 +76,7 @@ public:
 	AUD_EnvelopeFactory(AUD_Reference<AUD_IFactory> factory, float attack, float release,
 						float threshold, float arthreshold);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_ENVELOPEFACTORY

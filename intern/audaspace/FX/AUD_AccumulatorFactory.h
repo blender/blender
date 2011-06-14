@@ -57,7 +57,7 @@ public:
 	 */
 	AUD_AccumulatorFactory(AUD_Reference<AUD_IFactory> factory, bool additive = false);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_ACCUMULATORFACTORY

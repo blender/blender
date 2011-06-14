@@ -48,7 +48,7 @@ AUD_ButterworthFactory::AUD_ButterworthFactory(AUD_Reference<AUD_IFactory> facto
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_ButterworthFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_ButterworthFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
 

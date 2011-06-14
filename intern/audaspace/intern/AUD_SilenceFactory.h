@@ -50,7 +50,7 @@ public:
 	 */
 	AUD_SilenceFactory();
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_SILENCEFACTORY

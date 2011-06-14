@@ -49,7 +49,7 @@ AUD_FFMPEGFactory::AUD_FFMPEGFactory(const data_t* buffer, int size) :
 	memcpy(m_buffer->getBuffer(), buffer, size);
 }
 
-AUD_Reference<AUD_IReader> AUD_FFMPEGFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_FFMPEGFactory::createReader()
 {
 	if(m_buffer.isNull())
 		return new AUD_FFMPEGReader(m_filename);

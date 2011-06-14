@@ -57,7 +57,7 @@ public:
 	 */
 	AUD_ButterworthFactory(AUD_Reference<AUD_IFactory> factory, float frequency);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_BUTTERWORTHFACTORY

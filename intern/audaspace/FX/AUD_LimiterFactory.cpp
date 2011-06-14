@@ -51,7 +51,7 @@ float AUD_LimiterFactory::getEnd() const
 	return m_end;
 }
 
-AUD_Reference<AUD_IReader> AUD_LimiterFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_LimiterFactory::createReader()
 {
 	return new AUD_LimiterReader(getReader(), m_start, m_end);
 }

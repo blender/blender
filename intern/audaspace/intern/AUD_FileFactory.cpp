@@ -59,7 +59,7 @@ AUD_FileFactory::AUD_FileFactory(const data_t* buffer, int size) :
 
 static const char* read_error = "AUD_FileFactory: File couldn't be read.";
 
-AUD_Reference<AUD_IReader> AUD_FileFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_FileFactory::createReader()
 {
 #ifdef WITH_SNDFILE
 	try

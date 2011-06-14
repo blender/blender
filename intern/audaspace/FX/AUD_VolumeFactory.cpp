@@ -43,7 +43,7 @@ float AUD_VolumeFactory::getVolume() const
 	return m_volume;
 }
 
-AUD_Reference<AUD_IReader> AUD_VolumeFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_VolumeFactory::createReader()
 {
 	std::vector<float> a, b;
 	a.push_back(1);

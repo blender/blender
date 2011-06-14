@@ -51,7 +51,7 @@ public:
 	 */
 	AUD_SumFactory(AUD_Reference<AUD_IFactory> factory);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_SUMFACTORY

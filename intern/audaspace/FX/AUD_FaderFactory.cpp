@@ -56,7 +56,7 @@ float AUD_FaderFactory::getLength() const
 	return m_length;
 }
 
-AUD_Reference<AUD_IReader> AUD_FaderFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_FaderFactory::createReader()
 {
 	return new AUD_FaderReader(getReader(), m_type, m_start, m_length);
 }

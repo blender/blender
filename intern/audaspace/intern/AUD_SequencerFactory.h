@@ -68,8 +68,6 @@ private:
 	AUD_volumeFunction m_volume;
 	AUD_Reference<AUD_SequencerFactory>* m_this;
 
-	AUD_Reference<AUD_IReader> newReader();
-
 	// hide copy constructor and operator=
 	AUD_SequencerFactory(const AUD_SequencerFactory&);
 	AUD_SequencerFactory& operator=(const AUD_SequencerFactory&);
@@ -87,7 +85,7 @@ public:
 	void move(AUD_Reference<AUD_SequencerEntry> entry, float begin, float end, float skip);
 	void mute(AUD_Reference<AUD_SequencerEntry> entry, bool mute);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 
 	void removeReader(AUD_Reference<AUD_SequencerReader> reader);
 };

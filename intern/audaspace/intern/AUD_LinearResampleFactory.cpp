@@ -38,7 +38,7 @@ AUD_LinearResampleFactory::AUD_LinearResampleFactory(AUD_Reference<AUD_IFactory>
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_LinearResampleFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_LinearResampleFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
 

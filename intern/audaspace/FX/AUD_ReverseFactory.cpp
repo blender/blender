@@ -38,7 +38,7 @@ AUD_ReverseFactory::AUD_ReverseFactory(AUD_Reference<AUD_IFactory> factory) :
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_ReverseFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_ReverseFactory::createReader()
 {
 	return new AUD_ReverseReader(getReader());
 }

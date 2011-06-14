@@ -46,7 +46,7 @@ AUD_SndFileFactory::AUD_SndFileFactory(const data_t* buffer, int size) :
 	memcpy(m_buffer->getBuffer(), buffer, size);
 }
 
-AUD_Reference<AUD_IReader> AUD_SndFileFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SndFileFactory::createReader()
 {
 	if(m_buffer.isNull())
 		return new AUD_SndFileReader(m_filename);

@@ -39,7 +39,7 @@ AUD_IIRFilterFactory::AUD_IIRFilterFactory(AUD_Reference<AUD_IFactory> factory,
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_IIRFilterFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_IIRFilterFactory::createReader()
 {
 	return new AUD_IIRFilterReader(getReader(), m_b, m_a);
 }

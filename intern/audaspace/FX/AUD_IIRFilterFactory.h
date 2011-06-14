@@ -66,7 +66,7 @@ public:
 	AUD_IIRFilterFactory(AUD_Reference<AUD_IFactory> factory, std::vector<float> b,
 						 std::vector<float> a);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_IIRFILTERFACTORY

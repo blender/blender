@@ -38,7 +38,7 @@ AUD_ConverterFactory::AUD_ConverterFactory(AUD_Reference<AUD_IFactory> factory,
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_ConverterFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_ConverterFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
 

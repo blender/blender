@@ -48,7 +48,7 @@ private:
 public:
 	AUD_ConverterFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_CONVERTERFACTORY

@@ -38,7 +38,7 @@ AUD_PingPongFactory::AUD_PingPongFactory(AUD_Reference<AUD_IFactory> factory) :
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_PingPongFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_PingPongFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
 	AUD_ReverseFactory factory(m_factory);

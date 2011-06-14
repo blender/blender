@@ -37,7 +37,7 @@ AUD_SuperposeFactory::AUD_SuperposeFactory(AUD_Reference<AUD_IFactory> factory1,
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_SuperposeFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SuperposeFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader1 = m_factory1->createReader();
 	AUD_Reference<AUD_IReader> reader2 = m_factory2->createReader();

@@ -67,7 +67,7 @@ AUD_EnvelopeFactory::AUD_EnvelopeFactory(AUD_Reference<AUD_IFactory> factory, fl
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_EnvelopeFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_EnvelopeFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
 

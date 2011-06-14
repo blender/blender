@@ -46,7 +46,7 @@ AUD_LowpassFactory::AUD_LowpassFactory(AUD_Reference<AUD_IFactory> factory, floa
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_LowpassFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_LowpassFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
 

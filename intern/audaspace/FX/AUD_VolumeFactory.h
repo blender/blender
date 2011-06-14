@@ -64,7 +64,7 @@ public:
 	 */
 	float getVolume() const;
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_VOLUMEFACTORY

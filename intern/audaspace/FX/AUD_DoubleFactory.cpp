@@ -37,7 +37,7 @@ AUD_DoubleFactory::AUD_DoubleFactory(AUD_Reference<AUD_IFactory> factory1, AUD_R
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_DoubleFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_DoubleFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader1 = m_factory1->createReader();
 	AUD_Reference<AUD_IReader> reader2 = m_factory2->createReader();

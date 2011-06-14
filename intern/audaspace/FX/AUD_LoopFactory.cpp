@@ -43,7 +43,7 @@ int AUD_LoopFactory::getLoop() const
 	return m_loop;
 }
 
-AUD_Reference<AUD_IReader> AUD_LoopFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_LoopFactory::createReader()
 {
 	return new AUD_LoopReader(getReader(), m_loop);
 }

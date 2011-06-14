@@ -57,7 +57,7 @@ public:
 	 */
 	AUD_PitchFactory(AUD_Reference<AUD_IFactory> factory, float pitch);
 
-	virtual AUD_Reference<AUD_IReader> createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_PITCHFACTORY

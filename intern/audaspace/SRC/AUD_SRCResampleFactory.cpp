@@ -38,7 +38,7 @@ AUD_SRCResampleFactory::AUD_SRCResampleFactory(AUD_Reference<AUD_IFactory> facto
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_SRCResampleFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SRCResampleFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
 
