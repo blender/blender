@@ -202,7 +202,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				if (BLI_ghash_haskey(boneHash, SET_INT_IN_POINTER(dvert[i].dw[j].def_nr))) 
 				{
 					def_weight = &dvert[i].dw[j];
-					break;
+					if(def_weight->weight != 0.0f) {
+						break;
+					}
 				}
 			}
 			
@@ -243,26 +245,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* add vertices which exist in vertexgroup into ghash for filtering */
 		for (i = 0; i < maxVerts; i++) 
 		{
-			MDeformWeight *def_weight = NULL;
-			int j;
-			
-			for (j= 0; j < dvert[i].totweight; j++) 
-			{
-				if (dvert[i].dw[j].def_nr == defgrp_index) 
-				{
-					def_weight = &dvert[i].dw[j];
-					break;
-				}
-			}
+			const int weight_set= defvert_find_weight(dvert + i, defgrp_index) != 0.0f;
 			
 			/* check if include vert in vertHash */
 			if (mmd->flag & MOD_MASK_INV) {
 				/* if this vert is in the vgroup, don't include it in vertHash */
-				if (def_weight) continue;
+				if (weight_set) continue;
 			}
 			else {
 				/* if this vert isn't in the vgroup, don't include it in vertHash */
-				if (!def_weight) continue;
+				if (!weight_set) continue;
 			}
 			
 			/* add to ghash for verts (numVerts acts as counter for mapping) */
