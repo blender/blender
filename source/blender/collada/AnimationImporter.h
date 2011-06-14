@@ -94,16 +94,35 @@ public:
 #if 0
 	virtual void change_eul_to_quat(Object *ob, bAction *act);
 #endif
+  
+    void translate_Animations_NEW ( COLLADAFW::Node * Node , 
+												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
+												   std::map<COLLADAFW::UniqueId, Object*>& object_map );
 
+	bool is_object_animated ( const Object *ob , const COLLADAFW::Node * node ) ;
+
+
+	void Assign_transform_animations(std::vector<float>* frames, 
+		                             COLLADAFW::Transformation* transform , 
+									 const COLLADAFW::AnimationList::AnimationBinding * binding,
+									 std::vector<FCurve*>* curves, bool is_joint, char * joint_path);
+
+	/*void Assign_transform_animations(std::vector<float>* frames, 
+														COLLADAFW::Transformation *transform , 
+														COLLADAFW::AnimationList::AnimationBinding * binding,
+														COLLADAFW::Node * node);*/
+	void modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index );
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist
 	// curve_map - map anim id -> curve(s)
-	Object *translate_animation(COLLADAFW::Node *node,
+	Object * translate_animation(COLLADAFW::Node *node,
 								std::map<COLLADAFW::UniqueId, Object*>& object_map,
 								std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 								COLLADAFW::Transformation::TransformationType tm_type,
 								Object *par_job = NULL);
-
+    
+	void find_frames( std::vector<float>* frames , std::vector<FCurve*>* curves );
+	void find_frames_old( std::vector<float>* frames, COLLADAFW::Node * node, COLLADAFW::Transformation::TransformationType tm_type );
 	// internal, better make it private
 	// warning: evaluates only rotation
 	// prerequisites: animlist_map, curve_map

@@ -250,8 +250,9 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 	unsigned int i;
 	Object *ob;
 
-	for (i = 0; i < 4; i++)
-		ob = anim_importer.translate_animation(node, object_map, root_map, types[i]);
+	//for (i = 0; i < 4; i++)
+		//ob = 
+	anim_importer.translate_Animations_NEW(node, root_map, object_map);
 
 	COLLADAFW::NodePointerArray &children = node->getChildNodes();
 	for (i = 0; i < children.getCount(); i++) {

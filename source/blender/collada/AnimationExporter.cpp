@@ -57,7 +57,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		if (!ob->adt || !ob->adt->action) return;  //this is already checked in hasAnimations()
 		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
 		char * transformName = extract_transform_name( fcu->rna_path );
-        
+		
+				        
 		//if (ob->type == OB_ARMATURE) {
 		//	if (!ob->data) return;
 		//	bArmature *arm = (bArmature*)ob->data;
@@ -74,17 +75,46 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		//else {
 			while (fcu) {
 			transformName = extract_transform_name( fcu->rna_path );
-				printf("fcu -> rna _path : %s \n transformName : %s\n", fcu->rna_path, transformName);
+				
 				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
 					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
 					(!strcmp(transformName, "rotation_quaternion"))) 
-					dae_animation(ob ,fcu,/* id_name(ob),*/ transformName);
+					dae_animation(ob ,fcu, transformName );
 
 				fcu = fcu->next;
 			}
 		//}
 	}
 
+	/*float * AnimationExporter::get_eul_source_for_quat(Object *ob )
+	{
+		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
+		const int keys = fcu->totvert;    
+		float quat[keys][4];
+		float eul[keys][3];
+			while(fcu)
+			{
+				transformName = extract_transform_name( fcu->rna_path );
+				
+				if( !strcmp(transformName, "rotation_quaternion") ) 
+				{ 
+					for ( int i = 0 ; i < fcu->totvert ; i+=) 
+					{
+						quat[i][fcu->array_index] = fcu->bezt[i].vec[1][1];
+					}
+				}
+
+					fcu = fcu->next;
+			}
+
+			for ( int i = 0 ; i < fcu->totvert ; i+=) 
+			{
+				quat_to_eul(eul[i],quat[i]);				
+			}
+
+		return eul;
+
+	}*/
 	std::string AnimationExporter::getObjectBoneName( Object* ob,const FCurve* fcu ) 
 	{
 		//hard-way to derive the bone name from rna_path. Must find more compact method
@@ -99,16 +129,18 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			return id_name(ob);
 	}
 
-	void AnimationExporter::dae_animation(Object* ob, FCurve *fcu/*, std::string ob_name*/ , char* transformName)
+	void AnimationExporter::dae_animation(Object* ob, FCurve *fcu/*, std::string ob_name*/ , char* transformName )
 	{
-		printf("in dae animation\n");
+		
 		const char *axis_name = NULL;
 		char anim_id[200];
 		bool has_tangents = false;
+		bool quatRotation = false;
 		
 		if ( !strcmp(transformName, "rotation_quaternion") )
 		{
-			const char *axis_names[] = {"W", "X", "Y", "Z"};
+			//quatRotation = true;
+			const char *axis_names[] = {"", "X", "Y", "Z"};
 			if (fcu->array_index < 4)
 			axis_name = axis_names[fcu->array_index];
 		}
@@ -118,8 +150,6 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			const char *axis_names[] = {"X", "Y", "Z"};
 			if (fcu->array_index < 3)
 			axis_name = axis_names[fcu->array_index];
-			
-
 		}
 		std::string ob_name = std::string("null");
 		if (ob->type == OB_ARMATURE) 
@@ -377,7 +407,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 	float AnimationExporter::convert_angle(float angle)
 	{
-		return COLLADABU::Math::Utils::radToDegF(angle);
+		return COLLADABU::Math::Utils::degToRadF(angle);
 	}
 
 	std::string AnimationExporter::get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic)
@@ -414,7 +444,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if (axis) {
 					param.push_back(axis);
 				}
-				else {                           //assumes if axis isn't specified all axi are added
+				else {                           //assumes if axis isn't specified all axises are added
 					param.push_back("X");
 					param.push_back("Y");
 					param.push_back("Z");
@@ -440,12 +470,12 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			break;
 		case COLLADASW::InputSemantic::OUTPUT:
 			*length = 1;
-			if (rotation) {
+			/*if (rotation) {
 				values[0] = convert_angle(bezt->vec[1][1]);
 			}
-			else {
+			else {*/
 				values[0] = bezt->vec[1][1];
-			}
+			//}
 			break;
 		
 		case COLLADASW::InputSemantic::IN_TANGENT:
@@ -454,12 +484,13 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			if (bezt->ipo != BEZT_IPO_BEZ) {
 				// We're in a mixed interpolation scenario, set zero as it's irrelevant but value might contain unused data
 				values[0] = 0;	
-				values[1] = 0;	
-			} else if (rotation) {
+				values[1] = 0; 	
+		    }
+		/* else if (rotation) {
 				values[1] = convert_angle(bezt->vec[0][1]);
-			} else {
+			} else {*/
 				values[1] = bezt->vec[0][1];
-			}
+			//}
 			break;
 		
 		case COLLADASW::InputSemantic::OUT_TANGENT:
@@ -469,11 +500,12 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				// We're in a mixed interpolation scenario, set zero as it's irrelevant but value might contain unused data
 				values[0] = 0;	
 				values[1] = 0;	
-			} else if (rotation) {
-				values[1] = convert_angle(bezt->vec[2][1]);
-			} else {
-				values[1] = bezt->vec[2][1];
 			}
+			/* else if (rotation) {
+				values[1] = convert_angle(bezt->vec[2][1]);
+			} else {*/
+				values[1] = bezt->vec[2][1];
+			//}
 			break;
 			break;
 		default:
@@ -516,9 +548,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		for (unsigned int i = 0; i < fcu->totvert; i++) {
 			float values[3]; // be careful!
 			int length = 0;
-
 			get_source_values(&fcu->bezt[i], semantic, is_rotation, values, &length);
-			for (int j = 0; j < length; j++)
+				for (int j = 0; j < length; j++)
 				source.appendValues(values[j]);
 		}
 
@@ -526,6 +557,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		return source_id;
 	}
+
     //Currently called only to get OUTPUT source values ( if rotation and hence the axis is also specified )
 	std::string AnimationExporter::create_source_from_array(COLLADASW::InputSemantic::Semantics semantic, float *v, int tot, bool is_rot, const std::string& anim_id, const char *axis_name)
 	{
@@ -676,7 +708,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	std::string AnimationExporter::get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)
 	{
 		std::string tm_name;
-
+        bool is_rotation =false;
 		// when given rna_path, determine tm_type from it
 		if (rna_path) {
 			char *name = extract_transform_name(rna_path);
@@ -695,9 +727,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		switch (tm_type) {
 		case 0:
-			return std::string("rotation_euler.") + std::string(axis_name) + ".ANGLE";
 		case 1:
-			return std::string("rotation_quaternion.") + std::string(axis_name) + ".ANGLE";
+			tm_name = "rotation";
+			is_rotation = true;
+			break;
 	    case 2:
 			tm_name = "scale";
 			break;
@@ -710,8 +743,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		}
 
 		if (tm_name.size()) {
-			if (append_axis)
-				return tm_name + std::string(".") + std::string(axis_name);
+			if (is_rotation)
+				return tm_name + std::string(axis_name);
 			else
 				return tm_name;
 		}
