@@ -1153,25 +1153,50 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 		/* check if object or bone */
 		if (pchan) {
 			/* bone */
-			if ((dtar->flag & DTAR_FLAG_LOCALSPACE) == 0) {
+			if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
+				if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
+					float mat[4][4];
+					
+					/* extract transform just like how the constraints do it! */
+					copy_m4_m4(mat, pchan->pose_mat);
+					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+					
+					/* ... and from that, we get our transform */
+					VECCOPY(tmp_loc, mat[3]);
+				}
+				else {
+					/* transform space (use transform values directly) */
+					VECCOPY(tmp_loc, pchan->loc);
+				}
+			}
+			else {
 				/* convert to worldspace */
 				VECCOPY(tmp_loc, pchan->pose_head);
 				mul_m4_v3(ob->obmat, tmp_loc);
 			}
-			else {
-				/* local (use transform values directly) */
-				VECCOPY(tmp_loc, pchan->loc);
-			}
 		}
 		else {
 			/* object */
-			if ((dtar->flag & DTAR_FLAG_LOCALSPACE) == 0) {
-				/* worldspace */
-				VECCOPY(tmp_loc, ob->obmat[3]); 
+			if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
+				if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
+					// XXX: this should practically be the same as transform space...
+					float mat[4][4];
+					
+					/* extract transform just like how the constraints do it! */
+					copy_m4_m4(mat, ob->obmat);
+					constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL);
+					
+					/* ... and from that, we get our transform */
+					VECCOPY(tmp_loc, mat[3]);
+				}
+				else {
+					/* transform space (use transform values directly) */
+					VECCOPY(tmp_loc, ob->loc);
+				}
 			}
 			else {
-				/* local (use transform values directly) */
-				VECCOPY(tmp_loc, ob->loc);
+				/* worldspace */
+				VECCOPY(tmp_loc, ob->obmat[3]); 
 			}
 		}
 		
