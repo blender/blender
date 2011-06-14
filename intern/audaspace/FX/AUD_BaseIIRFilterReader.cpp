@@ -55,24 +55,15 @@ AUD_BaseIIRFilterReader::~AUD_BaseIIRFilterReader()
 	delete[] m_y;
 }
 
-void AUD_BaseIIRFilterReader::read(int & length, sample_t* & buffer)
+void AUD_BaseIIRFilterReader::read(int & length, sample_t* buffer)
 {
-	sample_t* buf;
-
-	int samplesize = AUD_SAMPLE_SIZE(m_reader->getSpecs());
-
-	m_reader->read(length, buf);
-
-	if(m_buffer.getSize() < length * samplesize)
-		m_buffer.resize(length * samplesize);
-
-	buffer = m_buffer.getBuffer();
+	m_reader->read(length, buffer);
 
 	for(m_channel = 0; m_channel < m_channels; m_channel++)
 	{
 		for(int i = 0; i < length; i++)
 		{
-			m_x[m_xpos * CC] = buf[i * CC];
+			m_x[m_xpos * CC] = buffer[i * CC];
 			m_y[m_ypos * CC] = buffer[i * CC] = filter();
 
 			m_xpos = (m_xpos + 1) % m_xlen;

@@ -75,11 +75,10 @@ AUD_SRCResampleReader::~AUD_SRCResampleReader()
 long AUD_SRCResampleReader::doCallback(float** data)
 {
 	int length = m_buffer.getSize() / AUD_SAMPLE_SIZE(m_tspecs);
-	sample_t* buffer;
 
-	m_reader->read(length, buffer);
+	*data = m_buffer.getBuffer();
+	m_reader->read(length, *data);
 
-	*data = buffer;
 	return length;
 }
 
@@ -105,14 +104,12 @@ AUD_Specs AUD_SRCResampleReader::getSpecs() const
 	return m_tspecs;
 }
 
-void AUD_SRCResampleReader::read(int & length, sample_t* & buffer)
+void AUD_SRCResampleReader::read(int & length, sample_t* buffer)
 {
 	int size = length * AUD_SAMPLE_SIZE(m_tspecs);
 
 	if(m_buffer.getSize() < size)
 		m_buffer.resize(size);
-
-	buffer = m_buffer.getBuffer();
 
 	length = src_callback_read(m_src, m_factor, length, buffer);
 

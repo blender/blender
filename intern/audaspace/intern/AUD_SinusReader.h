@@ -57,11 +57,6 @@ private:
 	int m_position;
 
 	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
-	/**
 	 * The sample rate for the output.
 	 */
 	const AUD_SampleRate m_sampleRate;
@@ -83,7 +78,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_SINUSREADER

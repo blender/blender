@@ -130,7 +130,6 @@ void AUD_OpenALDevice::updateStreams()
 	AUD_OpenALHandle* sound;
 
 	int length;
-	sample_t* buffer;
 
 	ALint info;
 	AUD_DeviceSpecs specs = m_specs;
@@ -161,6 +160,8 @@ void AUD_OpenALDevice::updateStreams()
 					if(info)
 					{
 						specs.specs = sound->reader->getSpecs();
+						if(m_buffer.getSize() < m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs))
+							m_buffer.resize(m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
 
 						// for all empty buffers
 						while(info--)
@@ -170,7 +171,7 @@ void AUD_OpenALDevice::updateStreams()
 							{
 								// read data
 								length = m_buffersize;
-								sound->reader->read(length, buffer);
+								sound->reader->read(length, m_buffer.getBuffer());
 
 								// looping necessary?
 								if(length == 0 && sound->loopcount)
@@ -181,7 +182,7 @@ void AUD_OpenALDevice::updateStreams()
 									sound->reader->seek(0);
 
 									length = m_buffersize;
-									sound->reader->read(length, buffer);
+									sound->reader->read(length, m_buffer.getBuffer());
 								}
 
 								// read nothing?
@@ -204,7 +205,7 @@ void AUD_OpenALDevice::updateStreams()
 								// fill with new data
 								alBufferData(sound->buffers[sound->current],
 											 sound->format,
-											 buffer, length *
+											 m_buffer.getBuffer(), length *
 											 AUD_DEVICE_SAMPLE_SIZE(specs),
 											 specs.rate);
 
@@ -581,14 +582,15 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 
 		try
 		{
-			sample_t* buf;
+			if(m_buffer.getSize() < m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs))
+				m_buffer.resize(m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
 			int length;
 
 			for(int i = 0; i < AUD_OPENAL_CYCLE_BUFFERS; i++)
 			{
 				length = m_buffersize;
-				reader->read(length, buf);
-				alBufferData(sound->buffers[i], sound->format, buf,
+				reader->read(length, m_buffer.getBuffer());
+				alBufferData(sound->buffers[i], sound->format, m_buffer.getBuffer(),
 							 length * AUD_DEVICE_SAMPLE_SIZE(specs),
 							 specs.rate);
 				if(alGetError() != AL_NO_ERROR)
@@ -879,17 +881,18 @@ bool AUD_OpenALDevice::seek(AUD_Handle* handle, float position)
 				ALenum err;
 				if((err = alGetError()) == AL_NO_ERROR)
 				{
-					sample_t* buf;
 					int length;
 					AUD_DeviceSpecs specs = m_specs;
 					specs.specs = alhandle->reader->getSpecs();
+					if(m_buffer.getSize() < m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs))
+						m_buffer.resize(m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
 
 					for(int i = 0; i < AUD_OPENAL_CYCLE_BUFFERS; i++)
 					{
 						length = m_buffersize;
-						alhandle->reader->read(length, buf);
+						alhandle->reader->read(length, m_buffer.getBuffer());
 						alBufferData(alhandle->buffers[i], alhandle->format,
-									 buf,
+									 m_buffer.getBuffer(),
 									 length * AUD_DEVICE_SAMPLE_SIZE(specs),
 									 specs.rate);
 

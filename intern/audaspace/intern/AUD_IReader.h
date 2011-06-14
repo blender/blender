@@ -100,7 +100,7 @@ public:
 	 *                A smaller value also indicates the end of the reader.
 	 * \param[out] buffer The pointer to the buffer with the samples.
 	 */
-	virtual void read(int & length, sample_t* & buffer)=0;
+	virtual void read(int & length, sample_t* buffer)=0;
 };
 
 #endif //AUD_IREADER

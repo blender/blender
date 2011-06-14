@@ -45,7 +45,6 @@ AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_Reference<AUD_IFactory> fac
 	int sample_size = AUD_SAMPLE_SIZE(m_specs);
 	int length;
 	int index = 0;
-	sample_t* buffer;
 
 	// get an approximated size if possible
 	int size = reader->getLength();
@@ -63,10 +62,7 @@ AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_Reference<AUD_IFactory> fac
 
 		// read more
 		length = size-index;
-		reader->read(length, buffer);
-		memcpy(m_buffer->getBuffer() + index * m_specs.channels,
-			   buffer,
-			   length * sample_size);
+		reader->read(length, m_buffer->getBuffer() + index * m_specs.channels);
 		size += AUD_BUFFER_RESIZE_BYTES / sample_size;
 		index += length;
 	}

@@ -57,11 +57,6 @@ private:
 	const int m_ylen;
 
 	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
-	/**
 	 * The last in samples array.
 	 */
 	sample_t* m_x;
@@ -112,7 +107,7 @@ public:
 
 	virtual ~AUD_BaseIIRFilterReader();
 
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 
 	virtual sample_t filter()=0;
 };

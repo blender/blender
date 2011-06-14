@@ -34,8 +34,8 @@
 
 #include "AUD_IDevice.h"
 #include "AUD_Mixer.h"
+#include "AUD_Buffer.h"
 struct AUD_SoftwareHandle;
-class AUD_Buffer;
 
 #include <list>
 #include <pthread.h>
@@ -85,6 +85,11 @@ protected:
 	virtual void playing(bool playing)=0;
 
 private:
+	/**
+	 * The reading buffer.
+	 */
+	AUD_Buffer m_buffer;
+
 	/**
 	 * The list of sounds that are currently playing.
 	 */

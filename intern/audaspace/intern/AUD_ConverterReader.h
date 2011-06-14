@@ -70,7 +70,7 @@ public:
 	AUD_ConverterReader(AUD_Reference<AUD_IReader> reader, AUD_DeviceSpecs specs);
 
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_CONVERTERREADER

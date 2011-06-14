@@ -75,17 +75,15 @@ AUD_Specs AUD_ConverterReader::getSpecs() const
 	return m_specs.specs;
 }
 
-void AUD_ConverterReader::read(int & length, sample_t* & buffer)
+void AUD_ConverterReader::read(int & length, sample_t* buffer)
 {
-	m_reader->read(length, buffer);
-
-	int samplesize = AUD_SAMPLE_SIZE(m_specs);
+	int samplesize = AUD_SAMPLE_SIZE(m_reader->getSpecs());
 
 	if(m_buffer.getSize() < length * samplesize)
 		m_buffer.resize(length * samplesize);
 
-	m_convert((data_t*)m_buffer.getBuffer(), (data_t*)buffer,
-			  length * m_specs.channels);
+	m_reader->read(length, m_buffer.getBuffer());
 
-	buffer = m_buffer.getBuffer();
+	m_convert((data_t*)buffer, (data_t*)m_buffer.getBuffer(),
+			  length * m_specs.channels);
 }

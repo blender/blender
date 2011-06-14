@@ -80,7 +80,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_SUPERPOSEREADER

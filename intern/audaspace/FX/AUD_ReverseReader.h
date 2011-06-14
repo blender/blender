@@ -52,11 +52,6 @@ private:
 	 */
 	int m_position;
 
-	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
 	// hide copy constructor and operator=
 	AUD_ReverseReader(const AUD_ReverseReader&);
 	AUD_ReverseReader& operator=(const AUD_ReverseReader&);
@@ -73,7 +68,7 @@ public:
 	virtual void seek(int position);
 	virtual int getLength() const;
 	virtual int getPosition() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_REVERSEREADER

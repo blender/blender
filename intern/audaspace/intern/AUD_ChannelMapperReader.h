@@ -43,7 +43,7 @@ class AUD_ChannelMapperReader : public AUD_EffectReader
 {
 private:
 	/**
-	 * The sound output buffer.
+	 * The sound reading buffer.
 	 */
 	AUD_Buffer m_buffer;
 
@@ -80,7 +80,7 @@ public:
 	~AUD_ChannelMapperReader();
 
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_CHANNELMAPPERREADER

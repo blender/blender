@@ -778,13 +778,11 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 
 	int len;
 	int position = 0;
-	sample_t* readbuffer;
 	do
 	{
 		len = samplerate;
 		buffer.resize((position + len) * sizeof(float), true);
-		reader->read(len, readbuffer);
-		memcpy(buffer.getBuffer() + position, readbuffer, len * sizeof(float));
+		reader->read(len, buffer.getBuffer() + position);
 		position += len;
 	} while(len != 0);
 
@@ -868,6 +866,7 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 {
 	AUD_DeviceSpecs specs;
 	sample_t* buf;
+	AUD_Buffer aBuffer;
 
 	specs.rate = AUD_RATE_INVALID;
 	specs.channels = AUD_CHANNELS_MONO;
@@ -882,6 +881,13 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 	for(int i = 0; i < length; i++)
 	{
 		len = floor(samplejump * (i+1)) - floor(samplejump * i);
+
+		if(aBuffer.getSize() < len * AUD_SAMPLE_SIZE(reader->getSpecs()))
+		{
+			aBuffer.resize(len * AUD_SAMPLE_SIZE(reader->getSpecs()));
+			buf = aBuffer.getBuffer();
+		}
+
 		reader->read(len, buf);
 
 		if(len < 1)

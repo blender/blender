@@ -113,21 +113,17 @@ AUD_Specs AUD_SequencerReader::getSpecs() const
 	return m_mixer->getSpecs().specs;
 }
 
-void AUD_SequencerReader::read(int & length, sample_t* & buffer)
+void AUD_SequencerReader::read(int & length, sample_t* buffer)
 {
 	AUD_DeviceSpecs specs = m_mixer->getSpecs();
-	int samplesize = AUD_SAMPLE_SIZE(specs);
 	int rate = specs.rate;
-
-	int size = length * samplesize;
 
 	int start, end, current, skip, len;
 	AUD_Reference<AUD_SequencerStrip> strip;
-	sample_t* buf;
+	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(specs))
+		m_buffer.resize(length * AUD_SAMPLE_SIZE(specs));
 
-	if(m_buffer.getSize() < size)
-		m_buffer.resize(size);
-	buffer = m_buffer.getBuffer();
+	m_mixer->clear(length);
 
 	if(!m_factory->getMute())
 	{
@@ -176,8 +172,8 @@ void AUD_SequencerReader::read(int & length, sample_t* & buffer)
 							len -= skip;
 							if(strip->reader->getPosition() != current)
 								strip->reader->seek(current);
-							strip->reader->read(len, buf);
-							m_mixer->add(buf, skip, len, m_volume(m_data, strip->entry->data, (float)m_position / (float)rate));
+							strip->reader->read(len, m_buffer.getBuffer());
+							m_mixer->mix(m_buffer.getBuffer(), skip, len, m_volume(m_data, strip->entry->data, (float)m_position / (float)rate));
 						}
 					}
 				}
@@ -185,7 +181,7 @@ void AUD_SequencerReader::read(int & length, sample_t* & buffer)
 		}
 	}
 
-	m_mixer->superpose((data_t*)buffer, length, 1.0f);
+	m_mixer->read((data_t*)buffer, 1.0f);
 
 	m_position += length;
 }

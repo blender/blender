@@ -161,16 +161,8 @@ AUD_Specs AUD_SndFileReader::getSpecs() const
 	return m_specs;
 }
 
-void AUD_SndFileReader::read(int & length, sample_t* & buffer)
+void AUD_SndFileReader::read(int & length, sample_t* buffer)
 {
-	int sample_size = AUD_SAMPLE_SIZE(m_specs);
-
-	// resize output buffer if necessary
-	if(m_buffer.getSize() < length*sample_size)
-		m_buffer.resize(length*sample_size);
-
-	buffer = m_buffer.getBuffer();
-
 	length = sf_readf_float(m_sndfile, buffer, length);
 
 	m_position += length;

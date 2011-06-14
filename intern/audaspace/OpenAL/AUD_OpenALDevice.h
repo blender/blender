@@ -34,6 +34,7 @@
 
 #include "AUD_IDevice.h"
 #include "AUD_I3DDevice.h"
+#include "AUD_Buffer.h"
 struct AUD_OpenALHandle;
 struct AUD_OpenALBufferedFactory;
 
@@ -102,6 +103,11 @@ private:
 	 * Buffer size.
 	 */
 	int m_buffersize;
+
+	/**
+	 * Device buffer.
+	 */
+	AUD_Buffer m_buffer;
 
 	/**
 	 * Starts the streaming thread.

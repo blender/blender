@@ -56,7 +56,7 @@ private:
 	int m_position;
 
 	/**
-	 * The sound output buffer.
+	 * The reading buffer.
 	 */
 	AUD_Buffer m_buffer;
 
@@ -100,7 +100,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_SEQUENCERREADER

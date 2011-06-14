@@ -36,8 +36,7 @@
 AUD_DelayReader::AUD_DelayReader(AUD_Reference<AUD_IReader> reader, float delay) :
 		AUD_EffectReader(reader),
 		m_delay(int(delay * reader->getSpecs().rate)),
-		m_remdelay(int(delay * reader->getSpecs().rate)),
-		m_empty(true)
+		m_remdelay(int(delay * reader->getSpecs().rate))
 {
 }
 
@@ -70,46 +69,28 @@ int AUD_DelayReader::getPosition() const
 	return m_reader->getPosition() + m_delay;
 }
 
-void AUD_DelayReader::read(int & length, sample_t* & buffer)
+void AUD_DelayReader::read(int & length, sample_t* buffer)
 {
 	if(m_remdelay > 0)
 	{
 		AUD_Specs specs = m_reader->getSpecs();
 		int samplesize = AUD_SAMPLE_SIZE(specs);
 
-		if(m_buffer.getSize() < length * samplesize)
-		{
-			m_buffer.resize(length * samplesize);
-			m_empty = false;
-		}
-
-		buffer = m_buffer.getBuffer();
-
 		if(length > m_remdelay)
 		{
-			if(!m_empty)
-				memset(buffer, 0, m_remdelay * samplesize);
+			memset(buffer, 0, m_remdelay * samplesize);
 
 			int len = length - m_remdelay;
-			sample_t* buf;
-			m_reader->read(len, buf);
-
-			memcpy(buffer + m_remdelay * specs.channels,
-				   buf, len * samplesize);
+			m_reader->read(len, buffer + m_remdelay * specs.channels);
 
 			if(len < length-m_remdelay)
 				length = m_remdelay + len;
 
 			m_remdelay = 0;
-			m_empty = false;
 		}
 		else
 		{
-			if(!m_empty)
-			{
-				memset(buffer, 0, length * samplesize);
-				m_empty = true;
-			}
+			memset(buffer, 0, length * samplesize);
 			m_remdelay -= length;
 		}
 	}

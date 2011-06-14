@@ -42,11 +42,6 @@ class AUD_DelayReader : public AUD_EffectReader
 {
 private:
 	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
-	/**
 	 * The delay level.
 	 */
 	const int m_delay;
@@ -55,11 +50,6 @@ private:
 	 * The remaining delay for playback.
 	 */
 	int m_remdelay;
-
-	/**
-	 * Whether the buffer is currently filled with zeros.
-	 */
-	bool m_empty;
 
 	// hide copy constructor and operator=
 	AUD_DelayReader(const AUD_DelayReader&);
@@ -76,7 +66,7 @@ public:
 	virtual void seek(int position);
 	virtual int getLength() const;
 	virtual int getPosition() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_DELAYREADER

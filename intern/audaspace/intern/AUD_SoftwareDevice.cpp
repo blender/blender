@@ -104,17 +104,19 @@ void AUD_SoftwareDevice::destroy()
 
 void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 {
+	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(m_specs))
+		m_buffer.resize(length * AUD_SAMPLE_SIZE(m_specs));
+
 	lock();
 
 	{
 		AUD_SoftwareHandle* sound;
 		int len;
 		int pos;
-		sample_t* buf;
 		std::list<AUD_SoftwareHandle*> stopSounds;
-		std::list<AUD_Buffer*> tempBufs;
-		AUD_Buffer* tempbuf;
-		int samplesize = AUD_SAMPLE_SIZE(m_specs);
+		sample_t* buf = m_buffer.getBuffer();
+
+		m_mixer->clear(length);
 
 		// for all sounds
 		AUD_HandleIterator it = m_playingSounds.begin();
@@ -128,15 +130,13 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			// get the buffer from the source
 			pos = 0;
 			len = length;
+
 			sound->reader->read(len, buf);
 
 			// in case of looping
 			while(pos + len < length && sound->loopcount)
 			{
-				tempbuf = new AUD_Buffer(len * samplesize);
-				memcpy(tempbuf->getBuffer(), buf, len * samplesize);
-				tempBufs.push_back(tempbuf);
-				m_mixer->add(tempbuf->getBuffer(), pos, len, sound->volume);
+				m_mixer->mix(buf, pos, len, sound->volume);
 
 				pos += len;
 
@@ -153,7 +153,7 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 					break;
 			}
 
-			m_mixer->add(buf, pos, len, sound->volume);
+			m_mixer->mix(buf, pos, len, sound->volume);
 			pos += len;
 
 			// in case the end of the sound is reached
@@ -170,7 +170,7 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 		}
 
 		// superpose
-		m_mixer->superpose(buffer, length, m_volume);
+		m_mixer->read(buffer, m_volume);
 
 		// cleanup
 		while(!stopSounds.empty())
@@ -178,13 +178,6 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			sound = stopSounds.front();
 			stopSounds.pop_front();
 			stop(sound);
-		}
-
-		while(!tempBufs.empty())
-		{
-			tempbuf = tempBufs.front();
-			tempBufs.pop_front();
-			delete tempbuf;
 		}
 	}
 

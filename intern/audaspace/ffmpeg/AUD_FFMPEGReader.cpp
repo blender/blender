@@ -341,14 +341,14 @@ void AUD_FFMPEGReader::seek(int position)
 						{
 							// read until we're at the right position
 							int length = AUD_DEFAULT_BUFFER_SIZE;
-							sample_t* buffer;
+							AUD_Buffer buffer(length * AUD_SAMPLE_SIZE(m_specs));
 							for(int len = position - m_position;
 								length == AUD_DEFAULT_BUFFER_SIZE;
 								len -= AUD_DEFAULT_BUFFER_SIZE)
 							{
 								if(len < AUD_DEFAULT_BUFFER_SIZE)
 									length = len;
-								read(length, buffer);
+								read(length, buffer.getBuffer());
 							}
 						}
 					}
@@ -381,7 +381,7 @@ AUD_Specs AUD_FFMPEGReader::getSpecs() const
 	return m_specs.specs;
 }
 
-void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
+void AUD_FFMPEGReader::read(int & length, sample_t* buffer)
 {
 	// read packages and decode them
 	AVPacket packet;
@@ -390,11 +390,7 @@ void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
 	int left = length;
 	int sample_size = AUD_DEVICE_SAMPLE_SIZE(m_specs);
 
-	// resize output buffer if necessary
-	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(m_specs))
-		m_buffer.resize(length * AUD_SAMPLE_SIZE(m_specs));
-
-	buffer = m_buffer.getBuffer();
+	sample_t* buf = buffer;
 	pkgbuf_pos = m_pkgbuf_left;
 	m_pkgbuf_left = 0;
 
@@ -402,9 +398,9 @@ void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
 	if(pkgbuf_pos > 0)
 	{
 		data_size = AUD_MIN(pkgbuf_pos, left * sample_size);
-		m_convert((data_t*) buffer, (data_t*) m_pkgbuf.getBuffer(),
+		m_convert((data_t*) buf, (data_t*) m_pkgbuf.getBuffer(),
 				  data_size / AUD_FORMAT_SIZE(m_specs.format));
-		buffer += data_size / AUD_FORMAT_SIZE(m_specs.format);
+		buf += data_size / AUD_FORMAT_SIZE(m_specs.format);
 		left -= data_size/sample_size;
 	}
 
@@ -419,9 +415,9 @@ void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
 
 			// copy to output buffer
 			data_size = AUD_MIN(pkgbuf_pos, left * sample_size);
-			m_convert((data_t*) buffer, (data_t*) m_pkgbuf.getBuffer(),
+			m_convert((data_t*) buf, (data_t*) m_pkgbuf.getBuffer(),
 					  data_size / AUD_FORMAT_SIZE(m_specs.format));
-			buffer += data_size / AUD_FORMAT_SIZE(m_specs.format);
+			buf += data_size / AUD_FORMAT_SIZE(m_specs.format);
 			left -= data_size/sample_size;
 		}
 		av_free_packet(&packet);
@@ -434,8 +430,6 @@ void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
 				((data_t*)m_pkgbuf.getBuffer())+data_size,
 				pkgbuf_pos-data_size);
 	}
-
-	buffer = m_buffer.getBuffer();
 
 	if(left > 0)
 		length -= left;

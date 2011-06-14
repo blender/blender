@@ -89,7 +89,7 @@ AUD_Specs AUD_DoubleReader::getSpecs() const
 	return m_reader1->getSpecs();
 }
 
-void AUD_DoubleReader::read(int & length, sample_t* & buffer)
+void AUD_DoubleReader::read(int & length, sample_t* buffer)
 {
 	if(!m_finished1)
 	{
@@ -98,23 +98,12 @@ void AUD_DoubleReader::read(int & length, sample_t* & buffer)
 
 		if(len < length)
 		{
-			AUD_Specs specs = m_reader1->getSpecs();
-			int samplesize = AUD_SAMPLE_SIZE(specs);
-
-			if(m_buffer.getSize() < length * samplesize)
-				m_buffer.resize(length * samplesize);
-
-			sample_t* buf = buffer;
-			buffer = m_buffer.getBuffer();
-
-			memcpy(buffer, buf, len * samplesize);
+			const AUD_Specs specs = m_reader1->getSpecs();
 
 			len = length - len;
 			length -= len;
-			m_reader2->read(len, buf);
 
-			memcpy(buffer + length * specs.channels, buf,
-				   len * samplesize);
+			m_reader2->read(len, buffer + length * specs.channels);
 
 			length += len;
 

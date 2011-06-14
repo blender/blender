@@ -43,11 +43,6 @@ class AUD_LoopReader : public AUD_EffectReader
 {
 private:
 	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
-	/**
 	 * The loop count.
 	 */
 	const int m_count;
@@ -73,7 +68,7 @@ public:
 	virtual void seek(int position);
 	virtual int getLength() const;
 	virtual int getPosition() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_LOOPREADER

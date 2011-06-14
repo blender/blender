@@ -61,11 +61,6 @@ private:
 	int m_position;
 
 	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
-	/**
 	 * The specification of the audio data.
 	 */
 	AUD_DeviceSpecs m_specs;
@@ -167,7 +162,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_FFMPEGREADER

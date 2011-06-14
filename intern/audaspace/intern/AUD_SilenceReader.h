@@ -51,11 +51,6 @@ private:
 	 */
 	int m_position;
 
-	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
 	// hide copy constructor and operator=
 	AUD_SilenceReader(const AUD_SilenceReader&);
 	AUD_SilenceReader& operator=(const AUD_SilenceReader&);
@@ -71,7 +66,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int & length, sample_t* buffer);
 };
 
 #endif //AUD_SILENCEREADER
