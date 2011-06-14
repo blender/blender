@@ -77,6 +77,10 @@ typedef struct elbeemSimulationSettings {
 	/* boundary types and settings for domain walls */
 	short domainobsType;
 	float domainobsPartslip;
+
+	/* what surfaces to generate */
+	int mFsSurfGenSetting;
+
 	/* generate speed vectors for vertices (e.g. for image based motion blur)*/
 	short generateVertexVectors;
 	/* strength of surface smoothing */
@@ -108,10 +112,12 @@ typedef struct elbeemSimulationSettings {
 #define OB_FLUIDSIM_PARTICLE    64
 #define OB_FLUIDSIM_CONTROL 	128
 
-// defines for elbeemMesh->obstacleType below
+// defines for elbeemMesh->obstacleType below (low bits) high bits (>=64) are reserved for mFsSurfGenSetting flags which are defined in solver_class.h
 #define FLUIDSIM_OBSTACLE_NOSLIP     1
 #define FLUIDSIM_OBSTACLE_PARTSLIP   2
 #define FLUIDSIM_OBSTACLE_FREESLIP   3
+#define FLUIDSIM_FSSG_NOOBS			 64
+
 
 #define OB_VOLUMEINIT_VOLUME 1
 #define OB_VOLUMEINIT_SHELL  2

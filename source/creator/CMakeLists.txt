@@ -81,6 +81,10 @@ if(WITH_PYTHON)
 	endif()
 endif()
 
+if(WITH_HEADLESS)
+	add_definitions(-DWITH_HEADLESS)
+endif()
+
 if(WITH_GAMEENGINE)
 	blender_include_dirs(../gameengine/BlenderRoutines)
 
@@ -847,6 +851,12 @@ endif()
 		message(STATUS "Blender Skipping: (${REM_MSG})")
 	endif()
 	target_link_libraries(blender ${BLENDER_SORTED_LIBS})
+	
+	unset(SEARCHLIB)
+	unset(SORTLIB)
+	unset(REMLIB)
+	unset(REM_MSG)
+	
 #else()
 #	target_link_libraries(blender ${BLENDER_LINK_LIBS})
 #endif()

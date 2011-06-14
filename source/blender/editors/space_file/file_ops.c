@@ -301,6 +301,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->exec= file_border_select_exec;
 	ot->modal= file_border_select_modal;
 	ot->poll= ED_operator_file_active;
+	ot->cancel= WM_border_select_cancel;
 
 	/* rna */
 	WM_operator_properties_gesture_border(ot, 0);

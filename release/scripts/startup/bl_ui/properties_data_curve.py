@@ -116,6 +116,10 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
         col.label(text="Textures:")
         col.prop(curve, "use_uv_as_generated")
         col.prop(curve, "use_auto_texspace")
+        
+        row = layout.row()
+        row.column().prop(curve, "texspace_location")
+        row.column().prop(curve, "texspace_size")
 
 
 class DATA_PT_geometry_curve(CurveButtonsPanel, bpy.types.Panel):

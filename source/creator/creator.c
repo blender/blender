@@ -538,7 +538,7 @@ static int set_output(int argc, const char **argv, void *data)
 	if (argc >= 1){
 		if (CTX_data_scene(C)) {
 			Scene *scene= CTX_data_scene(C);
-			BLI_strncpy(scene->r.pic, argv[1], FILE_MAXDIR);
+			BLI_strncpy(scene->r.pic, argv[1], sizeof(scene->r.pic));
 		} else {
 			printf("\nError: no blend loaded. cannot use '-o / --render-output'.\n");
 		}
@@ -1215,7 +1215,7 @@ int main(int argc, const char **argv)
 	setuid(getuid()); /* end superuser */
 #endif
 
-#ifdef WITH_PYTHON_MODULE
+#if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background= 1; /* python module mode ALWAYS runs in background mode (for now) */
 #else
 	/* for all platforms, even windos has it! */

@@ -323,10 +323,19 @@ int pyrna_write_check(void)
 {
 	return !rna_disallow_writes;
 }
+
+void pyrna_write_set(int val)
+{
+	rna_disallow_writes= !val;
+}
 #else // USE_PEDANTIC_WRITE
 int pyrna_write_check(void)
 {
 	return TRUE;
+}
+void pyrna_write_set(int UNUSED(val))
+{
+	/* nothing */
 }
 #endif // USE_PEDANTIC_WRITE
 

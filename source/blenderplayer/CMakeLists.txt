@@ -183,6 +183,12 @@ endif()
 		message(STATUS "Player Skipping: (${REM_MSG})")
 	endif()
 	target_link_libraries(blenderplayer ${BLENDER_SORTED_LIBS})
+
+	unset(SEARCHLIB)
+	unset(SORTLIB)
+	unset(REMLIB)
+	unset(REM_MSG)
+
 # else()
 # 	target_link_libraries(blenderplayer ${BLENDER_LINK_LIBS})
 # endif()

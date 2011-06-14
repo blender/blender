@@ -89,7 +89,42 @@ set(SRC
 	intern/GHOST_WindowManager.h
 )
 
-if(APPLE)
+if(WITH_HEADLESS)
+	list(APPEND SRC
+		intern/GHOST_DisplayManagerNULL.h
+		intern/GHOST_SystemNULL.h
+		intern/GHOST_WindowNULL.h
+	)
+	add_definitions(-DWITH_HEADLESS)
+
+	# ack, this is still system dependant
+	if(APPLE)
+		if(WITH_COCOA)
+			list(APPEND SRC
+				intern/GHOST_SystemPathsCocoa.mm
+				intern/GHOST_SystemPathsCocoa.h
+			)
+		else()
+			list(APPEND SRC
+				intern/GHOST_SystemPathsCarbon.cpp
+				intern/GHOST_SystemPathsCarbon.h
+			)
+		endif()
+	elseif(UNIX)
+		list(APPEND SRC
+			intern/GHOST_SystemPathsX11.cpp
+			intern/GHOST_SystemPathsX11.h
+		)
+	elseif(WIN32)
+
+		list(APPEND SRC
+			intern/GHOST_SystemPathsWin32.cpp
+
+			intern/GHOST_SystemPathsWin32.h
+		)
+	endif()
+
+elseif(APPLE)
 	if(WITH_COCOA)
 		list(APPEND SRC
 			intern/GHOST_DisplayManagerCocoa.mm

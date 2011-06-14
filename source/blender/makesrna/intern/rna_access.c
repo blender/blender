@@ -755,6 +755,11 @@ int RNA_property_flag(PropertyRNA *prop)
 	return rna_ensure_property(prop)->flag;
 }
 
+void *RNA_property_py_data_get(PropertyRNA *prop)
+{
+	return prop->py_data;
+}
+
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 {
 	return rna_ensure_property_array_length(ptr, prop);
@@ -1344,7 +1349,14 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 			/* ideally no context would be needed for update, but there's some
 			   parts of the code that need it still, so we have this exception */
 			if(prop->flag & PROP_CONTEXT_UPDATE) {
-				if(C) ((ContextUpdateFunc)prop->update)(C, ptr);
+				if(C) {
+					if(prop->flag & PROP_CONTEXT_PROPERTY_UPDATE) {
+						((ContextPropUpdateFunc)prop->update)(C, ptr, prop);
+					}
+					else {
+						((ContextUpdateFunc)prop->update)(C, ptr);
+					}
+				}
 			}
 			else
 				prop->update(bmain, scene, ptr);

@@ -170,7 +170,7 @@ CCFLAGS = ['/nologo', '/Ob1', '/J', '/W0', '/Gd', '/we4013', '/wd4018', '/wd4244
 CXXFLAGS = ['/EHsc']
 BGE_CXXFLAGS = ['/O2', '/EHsc', '/GR', '/fp:fast']
 
-BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
+BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr', '/Od']
 
 CPPFLAGS = ['-DWIN32', '-D_CONSOLE', '-D_LIB', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
 REL_CFLAGS = ['-O2', '-DNDEBUG']

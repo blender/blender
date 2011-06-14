@@ -543,11 +543,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			shi->orn[2]= -shi->vn[2];
 		}
 
-		if(texco & TEXCO_REFL) {
-			/* mirror reflection color textures (and envmap) */
-			calc_R_ref(shi);    /* wrong location for normal maps! XXXXXXXXXXXXXX */
-		}
-
 		if(texco & TEXCO_STRESS) {
 			/* not supported */
 		}
@@ -1203,11 +1198,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			shi->orn[0]= -shi->vn[0];
 			shi->orn[1]= -shi->vn[1];
 			shi->orn[2]= -shi->vn[2];
-		}
-		
-		if(texco & TEXCO_REFL) {
-			/* mirror reflection color textures (and envmap) */
-			calc_R_ref(shi);	/* wrong location for normal maps! XXXXXXXXXXXXXX */
 		}
 		
 		if(texco & TEXCO_STRESS) {

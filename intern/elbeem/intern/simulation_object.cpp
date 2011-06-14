@@ -181,6 +181,9 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		mpLbm->setGenerateParticles(mpElbeemSettings->generateParticles);
 		// set initial particles
 		mpParts->setNumInitialParticles(mpElbeemSettings->numTracerParticles);
+		
+		// surface generation flag
+		mpLbm->setSurfGenSettings(mpElbeemSettings->mFsSurfGenSetting);
 
 		string dinitType = string("no");
 		if     (mpElbeemSettings->domainobsType==FLUIDSIM_OBSTACLE_PARTSLIP) dinitType = string("part"); 

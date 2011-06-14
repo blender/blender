@@ -67,7 +67,6 @@
 
 #include "interface_intern.h"
 
-#define MENU_BUTTON_HEIGHT	20
 #define MENU_SEPR_HEIGHT	6
 #define B_NOP              	-1
 #define MENU_SHADOW_SIDE	8
@@ -675,7 +674,7 @@ int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int icon
 
 int uiSearchBoxhHeight(void)
 {
-	return SEARCH_ITEMS*MENU_BUTTON_HEIGHT + 2*MENU_TOP;
+	return SEARCH_ITEMS*UI_UNIT_Y + 2*MENU_TOP;
 }
 
 /* ar is the search box itself */
@@ -972,8 +971,6 @@ static void ui_searchbox_region_free_cb(ARegion *ar)
 	ar->regiondata= NULL;
 }
 
-static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, uiBlock *block);
-
 ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 {
 	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
@@ -1229,17 +1226,25 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	if(but) {
 		int left=0, right=0, top=0, down=0;
 		int winx, winy;
-		int offscreen;
+		// int offscreen;
 
 		wm_window_get_size(window, &winx, &winy);
 
 		if(block->direction & UI_CENTER) center= ysize/2;
 		else center= 0;
-
+		
+		/* check if there's space at all */
 		if( butrct.xmin-xsize > 0.0f) left= 1;
 		if( butrct.xmax+xsize < winx) right= 1;
 		if( butrct.ymin-ysize+center > 0.0f) down= 1;
 		if( butrct.ymax+ysize-center < winy) top= 1;
+		
+		if(top==0 && down==0) {
+			if (butrct.ymin-ysize < winy-butrct.ymax-ysize)
+				top= 1;
+			else
+				down= 1;
+		}
 		
 		dir1= block->direction & UI_DIRECTION;
 
@@ -1305,7 +1310,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		if(top==0 && down==0) {
 			if(dir1==UI_LEFT || dir1==UI_RIGHT) {
 				// align with bottom of screen 
-				yof= ysize;
+				// yof= ysize; (not with menu scrolls)
 			}
 		}
 		
@@ -1320,15 +1325,16 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		// apply requested offset in the block
 		xof += block->xofs/block->aspect;
 		yof += block->yofs/block->aspect;
-
+#if 0
 		/* clamp to window bounds, could be made into an option if its ever annoying */
 		if(     (offscreen= (block->miny+yof)) < 0)      yof -= offscreen; /* bottom */
 		else if((offscreen= (block->maxy+yof)-winy) > 0) yof -= offscreen; /* top */
 		if(     (offscreen= (block->minx+xof)) < 0)      xof -= offscreen; /* left */
 		else if((offscreen= (block->maxx+xof)-winx) > 0) xof -= offscreen; /* right */
+#endif
 	}
 	
-	/* apply */
+	/* apply offset, buttons in window coords */
 	
 	for(bt= block->buttons.first; bt; bt= bt->next) {
 		ui_block_to_window_fl(butregion, but->block, &bt->x1, &bt->y1);
@@ -1402,6 +1408,62 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 		uiDrawBlock(C, block);
 }
 
+static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
+{
+	int winx, winy;
+	
+	wm_window_get_size(window, &winx, &winy);
+	
+	if(block->minx < MENU_SHADOW_SIDE)
+		block->minx= MENU_SHADOW_SIDE;
+	if(block->maxx > winx-MENU_SHADOW_SIDE)
+		block->maxx= winx-MENU_SHADOW_SIDE;
+	
+	if(block->miny < MENU_SHADOW_BOTTOM)
+		block->miny= MENU_SHADOW_BOTTOM;
+	if(block->maxy > winy-MENU_TOP)
+		block->maxy= winy-MENU_TOP;
+}
+
+void ui_popup_block_scrolltest(uiBlock *block)
+{
+	uiBut *bt;
+	
+	block->flag &= ~(UI_BLOCK_CLIPBOTTOM|UI_BLOCK_CLIPTOP);
+	
+	for(bt= block->buttons.first; bt; bt= bt->next)
+		bt->flag &= ~UI_SCROLLED;
+	
+	if(block->buttons.first==block->buttons.last)
+		return;
+	
+	/* mark buttons that are outside boundary and the ones next to it for arrow(s) */
+	for(bt= block->buttons.first; bt; bt= bt->next) {
+		if(bt->y1 < block->miny) {
+			bt->flag |= UI_SCROLLED;
+			block->flag |= UI_BLOCK_CLIPBOTTOM;
+			/* make space for arrow */
+			if(bt->y2 < block->miny +10) {
+				if(bt->next && bt->next->y1 > bt->y1)
+					bt->next->flag |= UI_SCROLLED;
+				if(bt->prev && bt->prev->y1 > bt->y1)
+					bt->prev->flag |= UI_SCROLLED;
+			}
+		}
+		if(bt->y2 > block->maxy) {
+			bt->flag |= UI_SCROLLED;
+			block->flag |= UI_BLOCK_CLIPTOP;
+			/* make space for arrow */
+			if(bt->y1 > block->maxy -10) {
+				if(bt->next && bt->next->y2 < bt->y2)
+					bt->next->flag |= UI_SCROLLED;
+				if(bt->prev && bt->prev->y2 < bt->y2)
+					bt->prev->flag |= UI_SCROLLED;
+			}
+		}
+	}
+}
+
 uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut *but, uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func, void *arg)
 {
 	wmWindow *window= CTX_wm_window(C);
@@ -1472,6 +1534,9 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		block->flag |= UI_BLOCK_POPUP|UI_BLOCK_NUMSELECT;
 	}
 
+	/* clip block with window boundary */
+	ui_popup_block_clip(window, block);
+	
 	/* the block and buttons were positioned in window space as in 2.4x, now
 	 * these menu blocks are regions so we bring it back to region space.
 	 * additionally we add some padding for the menu shadow or rounded menus */
@@ -1479,7 +1544,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	ar->winrct.xmax= block->maxx + MENU_SHADOW_SIDE;
 	ar->winrct.ymin= block->miny - MENU_SHADOW_BOTTOM;
 	ar->winrct.ymax= block->maxy + MENU_TOP;
-
+	
 	block->minx -= ar->winrct.xmin;
 	block->maxx -= ar->winrct.xmin;
 	block->miny -= ar->winrct.ymin;
@@ -1491,12 +1556,15 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		bt->y1 -= ar->winrct.ymin;
 		bt->y2 -= ar->winrct.ymin;
 	}
-
+	
 	block->flag |= UI_BLOCK_LOOP;
 
 	/* adds subwindow */
 	ED_region_init(C, ar);
 
+	/* checks which buttons are visible, sets flags to prevent draw (do after region init) */
+	ui_popup_block_scrolltest(block);
+	
 	/* get winmat now that we actually have the subwindow */
 	wmSubWindowSet(window, ar->swinid);
 	
@@ -1511,6 +1579,10 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
 	ui_remove_temporary_region(C, CTX_wm_screen(C), handle->region);
+	
+	if(handle->scrolltimer)
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), handle->scrolltimer);
+	
 	MEM_freeN(handle);
 }
 
@@ -2171,7 +2243,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			   the offset is negative because we are inverse moving the
 			   block to be under the mouse */
 			offset[0]= -(bt->x1 + 0.8f*(bt->x2 - bt->x1));
-			offset[1]= -(bt->y1 + 0.5f*MENU_BUTTON_HEIGHT);
+			offset[1]= -(bt->y1 + 0.5f*UI_UNIT_Y);
 		}
 		else {
 			/* position mouse at 0.8*width of the button and below the tile
@@ -2180,7 +2252,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			for(bt=block->buttons.first; bt; bt=bt->next)
 				offset[0]= MIN2(offset[0], -(bt->x1 + 0.8f*(bt->x2 - bt->x1)));
 
-			offset[1]= 1.5*MENU_BUTTON_HEIGHT;
+			offset[1]= 1.5*UI_UNIT_Y;
 		}
 
 		block->minbounds= minwidth;
@@ -2284,10 +2356,10 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 		
 		if(icon) {
 			sprintf(titlestr, " %s", title);
-			uiDefIconTextBut(pup->block, LABEL, 0, icon, titlestr, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
+			uiDefIconTextBut(pup->block, LABEL, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		}
 		else {
-			but= uiDefBut(pup->block, LABEL, 0, title, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
+			but= uiDefBut(pup->block, LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 			but->flag= UI_TEXT_LEFT;
 		}
 	}

@@ -74,6 +74,9 @@
 #define MENU_ITEM_HEIGHT	20
 #define MENU_SEP_HEIGHT		6
 
+#define PRECISION_FLOAT_MAX 7
+#define PRECISION_FLOAT_MAX_POW 10000000 /* pow(10, PRECISION_FLOAT_MAX)  */
+
 /* 
  * a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt
  * 
@@ -448,6 +451,57 @@ void uiCenteredBoundsBlock(uiBlock *block, int addval)
 /* ************** LINK LINE DRAWING  ************* */
 
 /* link line drawing is not part of buttons or theme.. so we stick with it here */
+
+static int ui_but_float_precision(uiBut *but, double value)
+{
+	int prec;
+
+	/* first check if prec is 0 and fallback to a simple default */
+	if((prec= (int)but->a2) == 0) {
+		prec= (but->hardmax < 10.001f) ? 3 : 2;
+	}
+
+	/* check on the number of decimal places neede to display
+	 * the number, this is so 0.00001 is not displayed as 0.00,
+	 * _but_, this is only for small values si 10.0001 will not get
+	 * the same treatment */
+	if(value != 0.0 && (value= ABS(value)) < 0.1) {
+		int value_i= (int)((value * PRECISION_FLOAT_MAX_POW) + 0.5);
+		if(value_i != 0) {
+			const int prec_span= 3; /* show: 0.01001, 5 would allow 0.0100001 for eg. */
+			int test_prec;
+			int prec_min= -1;
+			int dec_flag= 0;
+			int i= PRECISION_FLOAT_MAX;
+			while(i && value_i) {
+				if(value_i % 10) {
+					dec_flag |= 1<<i;
+					prec_min= i;
+				}
+				value_i /= 10;
+				i--;
+			}
+
+			/* even though its a small value, if the second last digit is not 0, use it */
+			test_prec = prec_min;
+
+			dec_flag= (dec_flag >> (prec_min + 1)) & ((1 << prec_span) - 1);
+
+			while(dec_flag) {
+				test_prec++;
+				dec_flag = dec_flag >> 1;
+			}
+
+			if(test_prec > prec) {
+				prec= test_prec;
+			}
+		}
+	}
+
+	CLAMP(prec, 1, PRECISION_FLOAT_MAX);
+
+	return prec;
+}
 
 static void ui_draw_linkline(uiLinkLine *line)
 {
@@ -892,13 +946,14 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
-		ui_but_to_pixelrect(&rect, ar, block, but);
+		if(!(but->flag & (UI_HIDDEN|UI_SCROLLED))) {
+			ui_but_to_pixelrect(&rect, ar, block, but);
 		
-		if(!(but->flag & UI_HIDDEN) &&
 			/* XXX: figure out why invalid coordinates happen when closing render window */
 			/* and material preview is redrawn in main window (temp fix for bug #23848) */
-			rect.xmin < rect.xmax && rect.ymin < rect.ymax)
-			ui_draw_but(C, ar, &style, but, &rect);
+			if(rect.xmin < rect.xmax && rect.ymin < rect.ymax)
+				ui_draw_but(C, ar, &style, but, &rect);
+		}
 	}
 	
 	/* restore matrix */
@@ -1444,8 +1499,8 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 	if(scene->unit.scale_length<0.0001f) scene->unit.scale_length= 1.0f; // XXX do_versions
 
 	/* Sanity checks */
-	if(precision>7)		precision= 7;
-	else if(precision==0)	precision= 2;
+	if(precision > PRECISION_FLOAT_MAX)	precision= PRECISION_FLOAT_MAX;
+	else if(precision==0)				precision= 2;
 
 	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision, scene->unit.system, unit_type>>16, do_split, pad);
 }
@@ -1529,10 +1584,7 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 				ui_get_but_string_unit(but, str, maxlen, value, 0);
 			}
 			else {
-				int prec= (int)but->a2;
-				if(prec==0) prec= 3;
-				else CLAMP(prec, 1, 7);
-
+				const int prec= ui_but_float_precision(but, value);
 				BLI_snprintf(str, maxlen, "%.*f", prec, value);
 			}
 		}
@@ -1681,7 +1733,7 @@ void ui_set_but_default(bContext *C, short all)
 static double soft_range_round_up(double value, double max)
 {
 	/* round up to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, .. */
-	double newmax= pow(10.0, ceil(log(value)/log(10.0)));
+	double newmax= pow(10.0, ceil(log(value)/M_LN10));
 
 	if(newmax*0.2 >= max && newmax*0.2 >= value)
 		return newmax*0.2;
@@ -1694,7 +1746,7 @@ static double soft_range_round_up(double value, double max)
 static double soft_range_round_down(double value, double max)
 {
 	/* round down to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, .. */
-	double newmax= pow(10.0, floor(log(value)/log(10.0)));
+	double newmax= pow(10.0, floor(log(value)/M_LN10));
 
 	if(newmax*5.0 <= max && newmax*5.0 <= value)
 		return newmax*5.0;
@@ -2008,10 +2060,7 @@ void ui_check_but(uiBut *but)
 				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
 			}
 			else {
-				int prec= (int)but->a2;
-				if(prec==0) prec= (but->hardmax < 10.001f) ? 3 : 2;
-				else CLAMP(prec, 1, 7);
-
+				const int prec= ui_but_float_precision(but, value);
 				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
 			}
 		}
@@ -2029,11 +2078,9 @@ void ui_check_but(uiBut *but)
 
 	case LABEL:
 		if(ui_is_but_float(but)) {
-			int prec= (int)but->a2;
+			int prec;
 			value= ui_get_but_val(but);
-			if(prec==0) prec= 3;
-			else CLAMP(prec, 1, 7);
-
+			prec= ui_but_float_precision(but, value);
 			BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
 		}
 		else {

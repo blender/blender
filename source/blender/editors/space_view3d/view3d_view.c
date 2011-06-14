@@ -1560,7 +1560,7 @@ static void restore_localviewdata(ScrArea *sa, int free)
 	}
 }
 
-static void endlocalview(Scene *scene, ScrArea *sa)
+static void endlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 {
 	View3D *v3d= sa->spacedata.first;
 	struct Base *base;
@@ -1586,6 +1586,8 @@ static void endlocalview(Scene *scene, ScrArea *sa)
 				base->object->lay= base->lay;
 			}
 		}
+		
+		DAG_on_visible_update(bmain, FALSE);
 	} 
 }
 
@@ -1594,7 +1596,7 @@ static int localview_exec(bContext *C, wmOperator *UNUSED(unused))
 	View3D *v3d= CTX_wm_view3d(C);
 	
 	if(v3d->localvd)
-		endlocalview(CTX_data_scene(C), CTX_wm_area(C));
+		endlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
 	else
 		initlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
 	

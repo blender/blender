@@ -199,8 +199,8 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	 *	- must clamp within allowable limits
 	 *	- end must not be before start (though this won't occur most of the time)
 	 */
-	if (sfra < 1) sfra = 1.0f;
-	if (efra < 1) efra = 1.0f;
+	FRAMENUMBER_MIN_CLAMP(sfra);
+	FRAMENUMBER_MIN_CLAMP(efra);
 	if (efra < sfra) efra= sfra;
 	
 	scene->r.flag |= SCER_PRV_RANGE;
@@ -224,6 +224,7 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= previewrange_define_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= ED_operator_animview_active;
 	

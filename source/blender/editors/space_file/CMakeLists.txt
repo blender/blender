@@ -51,6 +51,10 @@ set(SRC
 	fsmenu.h
 )
 
+if(WITH_HEADLESS)
+	add_definitions(-DWITH_HEADLESS)
+endif()
+
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()

@@ -46,7 +46,9 @@ set(SRC
 )
 
 if(WITH_BUILDINFO)
-	list(APPEND SRC ../../creator/buildinfo.c)
+	list(APPEND SRC
+		../../creator/buildinfo.c
+	)
 	add_definitions(-DBUILD_DATE)
 endif()
 
