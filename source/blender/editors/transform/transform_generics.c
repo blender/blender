@@ -675,8 +675,9 @@ void recalcData(TransInfo *t)
 				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
 				/* mirror modifier clipping? */
 				if(t->state != TRANS_CANCEL) {
-					clipMirrorModifier(t, t->obedit);
+					/* apply clipping after so we never project past the clip plane [#25423] */
 					applyProject(t);
+					clipMirrorModifier(t, t->obedit);
 				}
 				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
 					editmesh_apply_to_mirror(t);
