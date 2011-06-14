@@ -75,30 +75,24 @@ void paintface_flush_flags(Object *ob)
 {
 	Mesh *me= get_mesh(ob);
 	DerivedMesh *dm= ob->derivedFinal;
-	MPoly *mf_orig;
-	DMFaceIter *fiter;
+	MPoly *mf_orig, *mp;
 	int *index = NULL;
 	int totface;
-	int i;
+	int i, j;
 	
 	if(me==NULL || dm==NULL)
 		return;
 
-	fiter = dm->newFaceIter(dm);
 	totface = dm->getNumFaces(dm);
+	index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+	mp = dm->getPolyArray(dm);
+	for (i=0; i<dm->numPolyData; i++, index++, mp++) {
+		if (!index)
+			break;
 
-	for (i=0; !fiter->done; fiter->step(fiter), i++) {
-		index = fiter->getCDData(fiter, CD_ORIGINDEX, -1);
-		if (!index) {
-			fiter->free(fiter);
-			return;
-		}
-		
 		mf_orig = me->mpoly + *index;
-		fiter->flags = mf_orig->flag; 
+		mp->flag = mf_orig->flag;
 	}
-
-	fiter->free(fiter);
 }
 
 /* returns 0 if not found, otherwise 1 */

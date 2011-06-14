@@ -104,43 +104,6 @@ Note: all mface interfaces now officially operate on tesselated data.
       Also, the mface origindex layer indexes mpolys, not mfaces.
 */
 
-/*DM Iterators.  For now, first implement face iterators.
-  These are read-only, at least for now.*/
-
-typedef struct DMLoopIter {
-	void (*step)(void *self);
-	int done;
-
-	int index, vindex, eindex;
-	MVert v; /*copy of the associated vert's data*/	
-
-	/*note: if layer is -1, then the active layer is retrieved.
-	  loop refers to per-face-vertex data.*/
-	void *(*getLoopCDData)(void *self, int type, int layer);
-	void *(*getVertCDData)(void *self, int type, int layer);
-} DMLoopIter;
-
-typedef struct DMFaceIter {
-	void (*step)(void *self);
-	void (*free)(void *self);
-	int done;
-
-	int index;
-	int len;
-
-	/*you can set mat_nr and flags, and the backends 
-	  must detect and update the internal faces*/
-	int mat_nr;
-	int flags;
-
-	/*note: you may only use one
-	  loop iterator at a time.*/
-	DMLoopIter *(*getLoopsIter)(void *self);
-
-	/*if layer is -1, returns active layer*/
-	void *(*getCDData)(void *self, int type, int layer);
-} DMFaceIter;
-
 typedef struct DMGridData {
 	float co[3];
 	float no[3];
@@ -170,9 +133,6 @@ struct DerivedMesh {
 
 	/* Misc. Queries */
 	
-	/*face iterator.  initializes iter.*/
-	DMFaceIter *(*newFaceIter)(DerivedMesh *dm);
-
 	/*recalculates mesh tesselation*/
 	void (*recalcTesselation)(DerivedMesh *dm);
 
@@ -199,6 +159,8 @@ struct DerivedMesh {
 	struct MVert *(*getVertArray)(DerivedMesh *dm);
 	struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
 	struct MFace *(*getTessFaceArray)(DerivedMesh *dm);
+	struct MLoop *(*getLoopArray)(DerivedMesh *dm);
+	struct MPoly *(*getPolyArray)(DerivedMesh *dm);
 
 	/* copy all verts/edges/faces from the derived mesh into
 	 * *{vert/edge/face}_r (must point to a buffer large enough)
@@ -206,6 +168,8 @@ struct DerivedMesh {
 	void (*copyVertArray)(DerivedMesh *dm, struct MVert *vert_r);
 	void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *edge_r);
 	void (*copyTessFaceArray)(DerivedMesh *dm, struct MFace *face_r);
+		void (*copyLoopArray)(DerivedMesh *dm, struct MLoop *loop_r);
+		void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *poly_r);
 
 	/* return a copy of all verts/edges/faces from the derived mesh
 	 * it is the caller's responsibility to free the returned pointer
@@ -213,6 +177,8 @@ struct DerivedMesh {
 	struct MVert *(*dupVertArray)(DerivedMesh *dm);
 	struct MEdge *(*dupEdgeArray)(DerivedMesh *dm);
 	struct MFace *(*dupTessFaceArray)(DerivedMesh *dm);
+		struct MLoop *(*dupLoopArray)(DerivedMesh *dm);
+		struct MPoly *(*dupPolyArray)(DerivedMesh *dm);
 
 	/* return a pointer to a single element of vert/edge/face custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not

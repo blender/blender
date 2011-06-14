@@ -1298,6 +1298,58 @@ static void bmDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 	}
 }
 
+
+static void bmDM_copyLoopArray(DerivedMesh *dm, MLoop *loop_r)
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
+	BMIter iter, liter;
+	BMVert *v;
+	BMFace *f;
+	BMLoop *l;
+	BMEdge *e;
+	int i;
+
+	i = 0;
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_SetIndex(v, i++);
+	}
+
+	i = 0;
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_SetIndex(e, i++);
+	}
+
+	i = 0;
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			loop_r[i].v = BM_GetIndex(l->v);
+			loop_r[i].e = BM_GetIndex(l->e);
+			i++;
+		}
+	}
+}
+
+static void bmDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
+	BMIter iter, liter;
+	BMFace *f;
+	int i, j;
+
+	i = j = 0;
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		poly_r[i].flag = BMFlags_To_MEFlags(f);
+		poly_r[i].loopstart = j;
+		poly_r[i].totloop = f->len;
+		poly_r[i].mat_nr = f->mat_nr;
+
+		i++;
+		j += f->len;
+	}
+}
+
 static void *bmDM_getFaceDataArray(DerivedMesh *dm, int type)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
@@ -1336,157 +1388,6 @@ static void *bmDM_getFaceDataArray(DerivedMesh *dm, int type)
 	}
 
 	return datalayer;
-}
-
-typedef struct bmDM_loopIter {
-	DMLoopIter head;
-
-	BMFace *f;
-	BMLoop *l, *nextl;
-	BMIter iter;
-	BMesh *bm;
-} bmDM_loopIter;
-
-typedef struct bmDM_faceIter {
-	DMFaceIter head;
-
-	BMFace *f, *nextf;
-	BMIter iter;
-	BMesh *bm;
-
-	bmDM_loopIter loopiter;
-} bmDM_faceIter;
-
-static void bmDM_faceIterStep(void *self)
-{
-	bmDM_faceIter *iter = self;
-	
-	if (iter->f) {
-		iter->f->mat_nr = iter->head.mat_nr;
-		iter->f->head.flag = MEFlags_To_BMFlags(iter->head.flags, BM_FACE);
-	}
-
-	iter->f = iter->nextf;
-
-	iter->head.mat_nr = iter->f->mat_nr;
-	iter->head.flags = BMFlags_To_MEFlags(iter->f);
-	iter->head.index++;
-
-	iter->head.len = iter->f->len;
-
-	iter->nextf = BMIter_Step(&iter->iter);
-
-	if (!iter->nextf) iter->head.done = 1;
-}
-
-static void *bmDM_getFaceCDData(void *self, int type, int layer)
-{
-	bmDM_faceIter *iter = self;
-
-	if (layer == -1) 
-		return CustomData_bmesh_get(&iter->bm->pdata, iter->f->head.data, type);
-	else return CustomData_bmesh_get_n(&iter->bm->pdata, iter->f->head.data, type, layer);
-}
-
-static void bmDM_loopIterStep(void *self)
-{
-	bmDM_loopIter *iter = self;
-
-	iter->l = BMIter_Step(&iter->iter);
-	if (!iter->l) {
-		iter->head.done = 1;
-		return;
-	}
-
-	bmvert_to_mvert(iter->bm, iter->l->v, &iter->head.v);
-	iter->head.index++;
-	iter->head.vindex = BM_GetIndex(iter->l->v);
-	iter->head.eindex = BM_GetIndex(iter->l->e);
-}
-
-static void *bmDM_getLoopCDData(void *self, int type, int layer)
-{
-	bmDM_loopIter *iter = self;
-
-	if (layer == -1) 
-		return CustomData_bmesh_get(&iter->bm->ldata, iter->l->head.data, type);
-	else return CustomData_bmesh_get_n(&iter->bm->ldata, iter->l->head.data, type, layer);
-}
-
-static void *bmDM_getVertCDData(void *self, int type, int layer)
-{
-	bmDM_loopIter *iter = self;
-
-	if (layer == -1) 
-		return CustomData_bmesh_get(&iter->bm->vdata, iter->l->v->head.data, type);
-	else return CustomData_bmesh_get_n(&iter->bm->vdata, iter->l->v->head.data, type, layer);
-}
-
-static void bmDM_iterFree(void *self)
-{
-	MEM_freeN(self);
-}
-
-static void bmDM_nulliterFree(void *UNUSED(self))
-{
-}
-
-static DMLoopIter *bmDM_newLoopsIter(void *faceiter)
-{
-	bmDM_faceIter *fiter = faceiter;
-	bmDM_loopIter *iter = &fiter->loopiter;
-
-	memset(&fiter->loopiter, 0, sizeof(bmDM_loopIter));
-
-	iter->bm = fiter->bm;
-	iter->f = fiter->f;
-	iter->l = BMIter_New(&iter->iter, iter->bm, BM_LOOPS_OF_FACE, iter->f);
-
-	iter->head.step = bmDM_loopIterStep;
-	iter->head.getLoopCDData = bmDM_getLoopCDData;
-	iter->head.getVertCDData = bmDM_getVertCDData;
-
-	bmvert_to_mvert(iter->bm, iter->l->v, &iter->head.v);
-	iter->head.vindex = BM_GetIndex(iter->l->v);
-	iter->head.eindex = BM_GetIndex(iter->l->e);
-
-	return (DMLoopIter*) iter;
-}
-
-static DMFaceIter *bmDM_getFaceIter(DerivedMesh *dm)
-{
-	EditDerivedBMesh *bmdm= (EditDerivedBMesh*)dm;
-	bmDM_faceIter *iter = MEM_callocN(sizeof(bmDM_faceIter), "bmDM_faceIter");
-	BMIter biter;
-	BMVert *v;
-	BMEdge *e;
-	int i;
-
-	iter->bm = bmdm->tc->bm;
-	iter->f = iter->nextf = BMIter_New(&iter->iter, iter->bm, BM_FACES_OF_MESH, NULL);
-	
-	iter->head.step = bmDM_faceIterStep;
-	iter->head.free = bmDM_iterFree;
-	iter->head.getCDData = bmDM_getFaceCDData;
-	iter->head.getLoopsIter = bmDM_newLoopsIter;
-	
-	iter->head.mat_nr = iter->f->mat_nr;
-	iter->head.flags = BMFlags_To_MEFlags(iter->f);
-
-	/*set up vert/edge indices*/
-	i = 0;
-	BM_ITER(v, &biter, iter->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, i);
-		i++;
-	}
-
-	i = 0;
-	BM_ITER(e, &biter, iter->bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, i);
-		i++;
-	}
-
-	return (DMFaceIter*) iter;
 }
 
 static void bmDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
@@ -1606,9 +1507,11 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 	bmdm->dm.copyVertArray = bmDM_copyVertArray;
 	bmdm->dm.copyEdgeArray = bmDM_copyEdgeArray;
 	bmdm->dm.copyTessFaceArray = bmDM_copyFaceArray;
+	bmdm->dm.copyLoopArray = bmDM_copyLoopArray;
+	bmdm->dm.copyPolyArray = bmDM_copyPolyArray;
+
 	bmdm->dm.getTessFaceDataArray = bmDM_getFaceDataArray;
 
-	bmdm->dm.newFaceIter = bmDM_getFaceIter;
 	bmdm->dm.recalcTesselation = bmDM_recalcTesselation;
 
 	bmdm->dm.foreachMappedVert = bmDM_foreachMappedVert;

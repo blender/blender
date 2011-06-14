@@ -146,7 +146,7 @@ BM_INLINE void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 	e->next= eh->buckets[hash];
 	eh->buckets[hash]= e;
 	
-	if (++eh->nentries>eh->nbuckets*3) {
+        if (++eh->nentries>eh->nbuckets*3) {
 		EdgeEntry *e, **old= eh->buckets;
 		int i, nold= eh->nbuckets;
 		

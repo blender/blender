@@ -112,8 +112,8 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
 	BMEditMesh *em = existing;
 	MVert *mv, *mvert;
 	MEdge *me, *medge;
-	DMFaceIter *dfiter;
-	DMLoopIter *dliter;
+	MPoly *mpoly, *mp;
+	MLoop *mloop, *ml;
 	BMVert *v, **vtable, **verts=NULL;
 	BMEdge *e, **etable, **edges=NULL;
 	BMFace *f;
@@ -171,45 +171,41 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
 	MEM_freeN(medge);
 	
 	/*do faces*/
-	k = 0;
-	dfiter = dm->newFaceIter(dm);
-	for (; !dfiter->done; dfiter->step(dfiter)) {
+	mpoly = mp = dm->getPolyArray(dm);
+	mloop = dm->getLoopArray(dm);
+	for (i=0; i<dm->numFaceData; i++, mp++) {
 		BMLoop *l;
 
 		BLI_array_empty(verts);
 		BLI_array_empty(edges);
 
-		dliter = dfiter->getLoopsIter(dfiter);
-		for (j=0; !dliter->done; dliter->step(dliter), j++) {
+		ml = mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
 			BLI_array_growone(verts);
 			BLI_array_growone(edges);
 
-			verts[j] = vtable[dliter->vindex];
-			edges[j] = etable[dliter->eindex];
+			verts[j] = vtable[ml->v];
+			edges[j] = etable[ml->e];
 		}
 
-		if (j < 2)
-			break;
-		
-		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, dfiter->len, 0);
+		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, mp->totloop, 0);
 
-		if (!f) 
+		if (!f)
 			continue;
 
-		f->head.flag = MEFlags_To_BMFlags(dfiter->flags, BM_FACE);
-		f->mat_nr = dfiter->mat_nr;
+		f->head.flag = MEFlags_To_BMFlags(mp->flag, BM_FACE);
+		f->mat_nr = mp->mat_nr;
 
-		dliter = dfiter->getLoopsIter(dfiter);
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-		for (j=0; l; l=BMIter_Step(&liter)) {
+		k = mp->loopstart;
+
+		for (j=0; l; l=BMIter_Step(&liter), k++) {
 			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, k, &l->head.data);
-			k += 1;
 		}
 
-		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, 
-			dfiter->index, &f->head.data);
+		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata,
+			i, &f->head.data);
 	}
-	dfiter->free(dfiter);
 
 	MEM_freeN(vtable);
 	MEM_freeN(etable);

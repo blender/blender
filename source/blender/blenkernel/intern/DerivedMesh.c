@@ -125,6 +125,34 @@ static MFace *dm_getFaceArray(DerivedMesh *dm)
 	return mface;
 }
 
+static MLoop *dm_getLoopArray(DerivedMesh *dm)
+{
+	MLoop *mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
+
+	if (!mloop) {
+		mloop = CustomData_add_layer(&dm->loopData, CD_MLOOP, CD_CALLOC, NULL,
+			dm->numLoopData);
+		CustomData_set_layer_flag(&dm->loopData, CD_MLOOP, CD_FLAG_TEMPORARY);
+		dm->copyLoopArray(dm, mloop);
+	}
+
+	return mloop;
+}
+
+static MPoly *dm_getPolyArray(DerivedMesh *dm)
+{
+	MPoly *mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
+
+	if (!mpoly) {
+		mpoly = CustomData_add_layer(&dm->polyData, CD_MPOLY, CD_CALLOC, NULL,
+			dm->getNumFaces(dm));
+		CustomData_set_layer_flag(&dm->polyData, CD_MPOLY, CD_FLAG_TEMPORARY);
+		dm->copyPolyArray(dm, mpoly);
+	}
+
+	return mpoly;
+}
+
 static MVert *dm_dupVertArray(DerivedMesh *dm)
 {
 	MVert *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumVerts(dm),
@@ -151,6 +179,26 @@ static MFace *dm_dupFaceArray(DerivedMesh *dm)
 							 "dm_dupFaceArray tmp");
 
 	if(tmp) dm->copyTessFaceArray(dm, tmp);
+
+	return tmp;
+}
+
+static MLoop *dm_dupLoopArray(DerivedMesh *dm)
+{
+	MLoop *tmp = MEM_callocN(sizeof(*tmp) * dm->numLoopData,
+							 "dm_dupLoopArray tmp");
+
+	if(tmp) dm->copyLoopArray(dm, tmp);
+
+	return tmp;
+}
+
+static MPoly *dm_dupPolyArray(DerivedMesh *dm)
+{
+	MPoly *tmp = MEM_callocN(sizeof(*tmp) * dm->numFaceData,
+							 "dm_dupPolyArray tmp");
+
+	if(tmp) dm->copyPolyArray(dm, tmp);
 
 	return tmp;
 }
@@ -186,9 +234,13 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->getVertArray = dm_getVertArray;
 	dm->getEdgeArray = dm_getEdgeArray;
 	dm->getTessFaceArray = dm_getFaceArray;
+	dm->getLoopArray = dm_getLoopArray;
+	dm->getPolyArray = dm_getPolyArray;
 	dm->dupVertArray = dm_dupVertArray;
 	dm->dupEdgeArray = dm_dupEdgeArray;
 	dm->dupTessFaceArray = dm_dupFaceArray;
+	dm->dupLoopArray = dm_dupLoopArray;
+	dm->dupPolyArray = dm_dupPolyArray;
 
 	dm->getVertDataLayout = dm_getVertCData;
 	dm->getEdgeDataLayout = dm_getEdgeCData;
@@ -272,105 +324,29 @@ int DM_release(DerivedMesh *dm)
 	}
 }
 
-static void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *dm, int totloop)
-{
-	DMFaceIter *iter = dm->newFaceIter(dm);
-	DMLoopIter *liter;
-	CustomData *oldata, *opdata;
-	MPoly *mpoly;
-	MLoop *mloop;
-	int p, l, i, j, lasttype;
-
-	oldata = dm->getLoopDataLayout(dm);
-	opdata = dm->getFaceDataLayout(dm);
-
-	CustomData_copy(oldata, ldata, CD_MASK_DERIVEDMESH, CD_CALLOC, totloop);
-	CustomData_copy(opdata, pdata, CD_MASK_DERIVEDMESH, CD_CALLOC, dm->getNumFaces(dm));
-
-	mloop = MEM_callocN(sizeof(MLoop)*totloop, "MLoop from dm_add_polys_from_iter");
-	CustomData_add_layer(ldata, CD_MLOOP, CD_ASSIGN, mloop, totloop);
-	mpoly = MEM_callocN(sizeof(MPoly)*dm->getNumFaces(dm), "MPoly from dm_add_polys_from_iter");
-	CustomData_add_layer(pdata, CD_MPOLY, CD_ASSIGN, mpoly, dm->getNumFaces(dm));
-
-	l = 0;
-	for (p=0; !iter->done; iter->step(iter), mpoly++, p++) {
-		mpoly->flag = iter->flags;
-		mpoly->loopstart = l;
-		mpoly->totloop = iter->len;
-		mpoly->mat_nr = iter->mat_nr;
-		
-		j = 0;
-		lasttype = -1;
-		for (i=0; i<opdata->totlayer; i++) {
-			void *e1, *e2;
-
-			if (opdata->layers[i].type == lasttype)
-				j++;
-			else
-				j = 0;
-
-			if (opdata->layers[i].type == CD_MPOLY)
-				continue;
-			
-			e1 = iter->getCDData(iter, opdata->layers[i].type, j);
-			e2 = (char*)CustomData_get_n(pdata, opdata->layers[i].type, p, j);
-			
-			if (!e2)
-				continue;
-
-			CustomData_copy_elements(opdata->layers[i].type, e1, e2, 1);
-			
-			lasttype = opdata->layers[i].type;				
-		}
-
-		liter = iter->getLoopsIter(iter);
-		for (; !liter->done; liter->step(liter), mloop++, l++) {
-			mloop->v = liter->vindex;
-			mloop->e = liter->eindex;
-
-			j = 0;
-			lasttype = -1;
-			for (i=0; i<oldata->totlayer; i++) {
-				void *e1, *e2;
-
-				if (oldata->layers[i].type == CD_MLOOP)
-					continue;
-				
-				if (oldata->layers[i].type == lasttype)
-					j++;
-				else
-					j = 0;
-
-				e1 = liter->getLoopCDData(liter, oldata->layers[i].type, j);
-				e2 = CustomData_get_n(ldata, oldata->layers[i].type, l, j);
-				
-				if (!e2)
-					continue;
-
-				CustomData_copy_elements(oldata->layers[i].type, e1, e2, 1);
-				lasttype = oldata->layers[i].type;				
-			}
-		}
-	}
-	iter->free(iter);
-}
-
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
 {
-	DMFaceIter *iter = source->newFaceIter(source);
-	int totloop = source->numLoopData;
+	CustomData_copy(&source->loopData, &target->loopData, CD_MASK_DERIVEDMESH, CD_CALLOC, source->numLoopData);
+	CustomData_copy(&source->polyData, &target->polyData, CD_MASK_DERIVEDMESH, CD_CALLOC, source->numPolyData);
 
-	dm_add_polys_from_iter(&target->loopData, &target->polyData, source, totloop);
+	target->numLoopData = source->numLoopData;
+	target->numPolyData = source->numPolyData;
 
-	target->numLoopData = totloop;
-	target->numPolyData = source->getNumFaces(source);
+	if (!CustomData_has_layer(&target->polyData, CD_MPOLY)) {
+		MPoly *mpoly;
+		MLoop *mloop;
+
+		mloop = source->dupLoopArray(source);
+		mpoly = source->dupPolyArray(source);
+		CustomData_add_layer(&target->loopData, CD_MLOOP, CD_ASSIGN, mloop, source->numLoopData);
+		CustomData_add_layer(&target->polyData, CD_MPOLY, CD_ASSIGN, mpoly, source->numPolyData);
+	}
 }
 
 void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 {
 	/* dm might depend on me, so we need to do everything with a local copy */
 	Mesh tmp = *me;
-	DMFaceIter *iter;
 	int totvert, totedge, totface, totloop, totpoly;
 	int did_shapekeys=0;
 	
@@ -384,14 +360,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	totedge = tmp.totedge = dm->getNumEdges(dm);
 	totface = tmp.totface = dm->getNumTessFaces(dm);
 	totpoly = tmp.totpoly = dm->getNumFaces(dm);
-	
-	totloop = 0;
-	for (iter=dm->newFaceIter(dm); !iter->done; iter->step(iter)) {
-		totloop += iter->len;
-	}
-	iter->free(iter);
-	
-	tmp.totloop = totloop;
+	totloop = tmp.totloop = dm->numLoopData;
 
 	CustomData_copy(&dm->vertData, &tmp.vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
 	CustomData_copy(&dm->edgeData, &tmp.edata, CD_MASK_MESH, CD_DUPLICATE, totedge);
@@ -432,8 +401,13 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 		CustomData_add_layer(&tmp.edata, CD_MEDGE, CD_ASSIGN, dm->dupEdgeArray(dm), totedge);
 	if(!CustomData_has_layer(&tmp.fdata, CD_MFACE))
 		CustomData_add_layer(&tmp.fdata, CD_MFACE, CD_ASSIGN, dm->dupTessFaceArray(dm), totface);
-	if(!CustomData_has_layer(&tmp.pdata, CD_MPOLY))
-		dm_add_polys_from_iter(&tmp.ldata, &tmp.pdata, dm, totloop);
+	if(!CustomData_has_layer(&tmp.pdata, CD_MPOLY)) {
+		tmp.mloop = dm->dupLoopArray(dm);
+		tmp.mpoly = dm->dupPolyArray(dm);
+
+		CustomData_add_layer(&tmp.ldata, CD_MLOOP, CD_ASSIGN, tmp.mloop, tmp.totloop);
+		CustomData_add_layer(&tmp.pdata, CD_MPOLY, CD_ASSIGN, tmp.mpoly, tmp.totpoly);
+	}
 
 	/* object had got displacement layer, should copy this layer to save sculpted data */
 	/* NOTE: maybe some other layers should be copied? nazgul */
@@ -455,7 +429,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	/*  ok, this should now use new CD shapekey data,
 	    which shouuld be fed through the modifier 
 		stack*/
-	if(tmp.totvert != me->totvert && !did_shapekeys) {
+	if(tmp.totvert != me->totvert && !did_shapekeys && me->key) {
 		printf("YEEK! this should be recoded! Shape key loss!!!\n");
 		if(tmp.key) tmp.key->id.us--;
 		tmp.key = NULL;
@@ -922,13 +896,13 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 {
 	// Mesh *me = ob->data; // UNUSED
 	MFace *mf = dm->getTessFaceArray(dm);
-	DMFaceIter *dfiter;
-	DMLoopIter *dliter;
+	MLoop *mloop = dm->getLoopArray(dm), *ml;
+	MPoly *mp = dm->getPolyArray(dm);
 	ColorBand *coba= stored_cb;	/* warning, not a local var */
 	unsigned char *wtcol;
 	unsigned char(*wlcol)[4] = NULL;
 	BLI_array_declare(wlcol);
-	int i, totface=dm->getNumTessFaces(dm), totloop;
+	int i, j, totface=dm->getNumTessFaces(dm), totloop;
 	int *origIndex = dm->getVertDataArray(dm, CD_ORIGINDEX);
 	
 	wtcol = MEM_callocN (sizeof (unsigned char) * totface*4*4, "weightmap");
@@ -948,22 +922,18 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 
 	/*now add to loops, so the data can be passed through the modifier stack*/
 	totloop = 0;
-	dfiter = dm->newFaceIter(dm);
-	for (; !dfiter->done; dfiter->step(dfiter)) {
-		dliter = dfiter->getLoopsIter(dfiter);
-		for (; !dliter->done; dliter->step(dliter), totloop++) {
-			int *oi = (int*)dliter->getVertCDData(dliter, CD_ORIGINDEX, -1);
-			
+	for (i=0; i<dm->numPolyData; i++, mp++) {
+		ml = mloop + mp->loopstart;
+
+		for (j=0; j<mp->totloop; j++, ml++, totloop++) {
 			BLI_array_growone(wlcol);
-			
-			calc_weightpaint_vert_color(ob, coba, oi ? *oi : dliter->vindex, 
-			                            (unsigned char *)&wlcol[totloop]);			 
+
+			calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[ml->v] : ml->v,
+										(unsigned char *)&wlcol[totloop]);
 		}
 	}
 
 	CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_ASSIGN, wlcol, totloop);
-
-	dfiter->free(dfiter);
 }
 
 
@@ -1886,7 +1856,7 @@ float *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 	if(ob->type!=OB_MESH || me->totvert==0)
 		return NULL;
 	
-	dm= mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+	dm= mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH|CD_MASK_ORIGINDEX);
 	vertexcosnos= MEM_callocN(6*sizeof(float)*me->totvert, "vertexcosnos map");
 	
 	if(dm->foreachMappedVert) {

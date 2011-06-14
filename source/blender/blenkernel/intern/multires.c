@@ -481,7 +481,7 @@ static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl
 	if(optimal)
 		smd.flags |= eSubsurfModifierFlag_ControlEdges;
 
-	return subsurf_make_derived_from_derived(dm, &smd, 0, NULL, 0, 0, (ob->mode & OB_MODE_EDIT));
+		return subsurf_make_derived_from_derived(dm, &smd, 0, NULL, 0, 0, (ob->mode & OB_MODE_EDIT));
 }
 
 

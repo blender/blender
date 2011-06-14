@@ -101,8 +101,6 @@ typedef struct {
 	struct IndexNode *fmap_mem;
 } CDDerivedMesh;
 
-DMFaceIter *cdDM_newFaceIter(DerivedMesh *source);
-
 /**************** DerivedMesh interface functions ****************/
 static int cdDM_getNumVerts(DerivedMesh *dm)
 {
@@ -158,6 +156,18 @@ static void cdDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	memcpy(face_r, cddm->mface, sizeof(*face_r) * dm->numFaceData);
+}
+
+static void cdDM_copyLoopArray(DerivedMesh *dm, MLoop *loop_r)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
+	memcpy(loop_r, cddm->mloop, sizeof(*loop_r) * dm->numLoopData);
+}
+
+static void cdDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
+	memcpy(poly_r, cddm->mpoly, sizeof(*poly_r) * dm->numPolyData);
 }
 
 static void cdDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
@@ -1553,14 +1563,14 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getNumTessFaces = cdDM_getNumTessFaces;
 	dm->getNumFaces = cdDM_getNumFaces;
 
-	dm->newFaceIter = cdDM_newFaceIter;
-
 	dm->getVert = cdDM_getVert;
 	dm->getEdge = cdDM_getEdge;
 	dm->getTessFace = cdDM_getFace;
 	dm->copyVertArray = cdDM_copyVertArray;
 	dm->copyEdgeArray = cdDM_copyEdgeArray;
 	dm->copyTessFaceArray = cdDM_copyFaceArray;
+	dm->copyLoopArray = cdDM_copyLoopArray;
+	dm->copyPolyArray = cdDM_copyPolyArray;
 	dm->getVertData = DM_get_vert_data;
 	dm->getEdgeData = DM_get_edge_data;
 	dm->getTessFaceData = DM_get_face_data;
@@ -2016,139 +2026,6 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	}
 
 	return dm;
-}
-
-typedef struct CDDM_LoopIter {
-	DMLoopIter head;
-	CDDerivedMesh *cddm;
-	int len, i;
-} CDDM_LoopIter;
-
-typedef struct CDDM_FaceIter {
-	DMFaceIter head;
-	CDDerivedMesh *cddm;
-	CDDM_LoopIter liter;
-} CDDM_FaceIter;
-
-static void cddm_freeiter(void *self)
-{
-	MEM_freeN(self);
-}
-
-static void cddm_stepiter(void *self)
-{
-	CDDM_FaceIter *iter = self;
-	MPoly *mp;
-	
-	mp = iter->cddm->mpoly + iter->head.index;
-	mp->flag = iter->head.flags;
-	mp->mat_nr = iter->head.mat_nr;
-
-	iter->head.index++;
-	if (iter->head.index >= iter->cddm->dm.numPolyData) {
-		iter->head.done = 1;
-		return;
-	}
-
-	mp = iter->cddm->mpoly + iter->head.index;
-
-	iter->head.flags = mp->flag;
-	iter->head.mat_nr = mp->mat_nr;
-	iter->head.len = mp->totloop;
-}
-
-static void *cddm_faceiter_getcddata(void *self, int type, int layer)
-{
-	CDDM_FaceIter *iter = self;
-
-	if (layer == -1) return CustomData_get(&iter->cddm->dm.polyData, 
-		                               iter->head.index, type);
-	else return CustomData_get_n(&iter->cddm->dm.polyData, type, 
-		                    iter->head.index, layer);
-}
-
-static void *cddm_loopiter_getcddata(void *self, int type, int layer)
-{
-	CDDM_LoopIter *iter = self;
-
-	if (layer == -1) return CustomData_get(&iter->cddm->dm.loopData, 
-		                               iter->head.index, type);
-	else return CustomData_get_n(&iter->cddm->dm.loopData, type, 
-	                             iter->head.index, layer);
-}
-
-static void *cddm_loopiter_getvertcddata(void *self, int type, int layer)
-{
-	CDDM_LoopIter *iter = self;
-
-	if (layer == -1) return CustomData_get(&iter->cddm->dm.vertData, 
-		                               iter->cddm->mloop[iter->head.index].v,
-					       type);
-	else return CustomData_get_n(&iter->cddm->dm.vertData, type, 
-	                             iter->cddm->mloop[iter->head.index].v, layer);
-}
-
-static DMLoopIter *cddmiter_get_loopiter(void *self)
-{
-	CDDM_FaceIter *iter = self;
-	CDDM_LoopIter *liter = &iter->liter;
-	MPoly *mp = iter->cddm->mpoly + iter->head.index;
-
-	liter->i = -1;
-	liter->len = iter->head.len;
-	liter->head.index = mp->loopstart-1;
-	liter->head.done = 0;
-
-	liter->head.step(liter);
-
-	return (DMLoopIter*) liter;
-}
-
-static void cddm_loopiter_step(void *self)
-{
-	CDDM_LoopIter *liter = self;
-	MLoop *ml;
-
-	liter->i++;
-	liter->head.index++;
-
-	if (liter->i == liter->len) {
-		liter->head.done = 1;
-		return;
-	}
-
-	ml = liter->cddm->mloop + liter->head.index;
-
-	liter->head.eindex = ml->e;
-	liter->head.v = liter->cddm->mvert[ml->v];
-	liter->head.vindex = ml->v;
-}
-
-DMFaceIter *cdDM_newFaceIter(DerivedMesh *source)
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh*) source;
-	CDDM_FaceIter *iter = MEM_callocN(sizeof(CDDM_FaceIter), "DMFaceIter from cddm");
-
-	iter->head.free = cddm_freeiter;
-	iter->head.step = cddm_stepiter;
-	iter->head.getCDData = cddm_faceiter_getcddata;
-	iter->head.getLoopsIter = cddmiter_get_loopiter;
-
-	iter->liter.head.step = cddm_loopiter_step;
-	iter->liter.head.getLoopCDData = cddm_loopiter_getcddata;
-	iter->liter.head.getVertCDData = cddm_loopiter_getvertcddata;
-	iter->liter.cddm = cddm;
-
-	iter->cddm = cddm;
-
-	if (source->numFaceData) {
-		iter->head.index = -1;
-		iter->head.step(iter);
-	} else {
-		iter->head.done = 1;
-	}
-
-	return (DMFaceIter*) iter;
 }
 
 DerivedMesh *CDDM_copy(DerivedMesh *source, int faces_from_tessfaces)

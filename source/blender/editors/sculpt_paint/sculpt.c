@@ -3389,12 +3389,16 @@ static void sculpt_flush_update(bContext *C)
 	ARegion *ar = CTX_wm_region(C);
 	MultiresModifierData *mmd = ss->multires;
 
-	if(mmd)
-		multires_mark_as_modified(ob);
+	if (!ss->cache) {
+		if(mmd)
+			multires_mark_as_modified(ob);
+	}
+
 	if(ob->derivedFinal) /* VBO no longer valid */
 		GPU_drawobject_free(ob->derivedFinal);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	if (!ss->cache)
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	
 	if(ss->modifiers_active) {
 		ED_region_tag_redraw(ar);
@@ -3518,6 +3522,7 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *UNUSED(stroke))
 
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;
+		sculpt_flush_update(C);
 
 		sculpt_undo_push_end();
 
