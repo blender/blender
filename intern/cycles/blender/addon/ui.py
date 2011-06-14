@@ -369,11 +369,59 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, bpy.types.Panel):
 			col.template_ID(space, "pin_id")
 		elif user:
 			col.template_ID(user, "texture", new="texture.new")
-
+		
 		if tex:
-			split = layout.split(percentage=0.2)
-			split.label(text="Type:")
-			split.prop(tex, "type", text="")
+			row = split.row()
+			row.prop(tex, "use_nodes", icon="NODETREE", text="")
+			row.label()
+
+			if not tex.use_nodes:
+				split = layout.split(percentage=0.2)
+				split.label(text="Type:")
+				split.prop(tex, "type", text="")
+
+class CyclesTexture_PT_nodes(CyclesButtonsPanel, bpy.types.Panel):
+	bl_label = "Nodes"
+	bl_context = "texture"
+
+	@classmethod
+	def poll(cls, context):
+		tex = context.texture
+		return (tex and tex.use_nodes) and CyclesButtonsPanel.poll(context)
+
+	def draw(self, context):
+		layout = self.layout
+
+		tex = context.texture
+		panel_node_draw(layout, tex, 'OUTPUT_TEXTURE', 'Color')
+
+class CyclesTexture_PT_mapping(CyclesButtonsPanel, bpy.types.Panel):
+	bl_label = "Mapping"
+	bl_context = "texture"
+
+	@classmethod
+	def poll(cls, context):
+		tex = context.texture
+		return (tex and tex.use_nodes) and CyclesButtonsPanel.poll(context)
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label("Texture coordinate mapping goes here.");
+		layout.label("Translate, rotate, scale, projection, XYZ.")
+
+class CyclesTexture_PT_color(CyclesButtonsPanel, bpy.types.Panel):
+	bl_label = "Color"
+	bl_context = "texture"
+
+	@classmethod
+	def poll(cls, context):
+		tex = context.texture
+		return (tex and tex.use_nodes) and CyclesButtonsPanel.poll(context)
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label("Color modification options go here.");
+		layout.label("Ramp, brightness, contrast, saturation.")
 	
 def draw_device(self, context):
 	scene = context.scene
@@ -421,8 +469,7 @@ def get_panels():
 		bpy.types.TEXTURE_PT_distortednoise,
 		bpy.types.TEXTURE_PT_voxeldata,
 		bpy.types.TEXTURE_PT_pointdensity,
-		bpy.types.TEXTURE_PT_pointdensity_turbulence,
-		bpy.types.TEXTURE_PT_custom_props]
+		bpy.types.TEXTURE_PT_pointdensity_turbulence]
 
 def register():
 	bpy.types.RENDER_PT_render.append(draw_device)

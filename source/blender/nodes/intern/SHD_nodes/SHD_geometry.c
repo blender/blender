@@ -42,11 +42,11 @@ static bNodeSocketType sh_node_geometry_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_geometry(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_geometry(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 
-static int node_shader_gpu_geometry(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_geometry(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_geometry", in, out,
 		GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),

@@ -42,7 +42,7 @@ static bNodeSocketType sh_node_background_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_background(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_background(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 

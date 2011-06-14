@@ -133,6 +133,7 @@ set(SRC
 	intern/SHD_nodes/SHD_add_closure.c
 	intern/SHD_nodes/SHD_output_lamp.c
 	intern/SHD_nodes/SHD_output_material.c
+	intern/SHD_nodes/SHD_output_texture.c
 	intern/SHD_nodes/SHD_output_world.c
 	intern/SHD_nodes/SHD_tex_blend.c
 	intern/SHD_nodes/SHD_tex_clouds.c

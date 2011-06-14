@@ -85,6 +85,7 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	ShaderCallData scd;
 	
 	/* convert caller data to struct */
+	memset(&scd, 0, sizeof(scd));
 	scd.shi= shi;
 	scd.shr= shr;
 	

@@ -72,6 +72,7 @@ void register_node_type_sh_add_closure(ListBase *lb);
 
 void register_node_type_sh_output_lamp(ListBase *lb);
 void register_node_type_sh_output_material(ListBase *lb);
+void register_node_type_sh_output_texture(ListBase *lb);
 void register_node_type_sh_output_world(ListBase *lb);
 
 void register_node_type_sh_tex_image(ListBase *lb);

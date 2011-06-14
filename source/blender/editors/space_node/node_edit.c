@@ -292,6 +292,11 @@ void ED_node_shader_default(ID *id)
 			output_type = SH_NODE_OUTPUT_LAMP;
 			closure_type = SH_NODE_EMISSION;
 			break;
+		case ID_TE:
+			((Tex*)id)->nodetree = ntree;
+			output_type = SH_NODE_OUTPUT_TEXTURE;
+			closure_type = SH_NODE_TEX_CLOUDS;
+			break;
 		default:
 			printf("ED_node_shader_default called on wrong ID type.\n");
 			return;
@@ -353,6 +358,9 @@ void ED_node_composit_default(Scene *sce)
 /* called from shading buttons or header */
 void ED_node_texture_default(Tex *tx)
 {
+	ED_node_shader_default(&tx->id);
+
+#if 0
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
 	
@@ -377,6 +385,7 @@ void ED_node_texture_default(Tex *tx)
 	nodeAddLink(tx->nodetree, in, fromsock, out, tosock);
 	
 	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
+#endif
 }
 
 /* id is supposed to contain a node tree */
@@ -403,7 +412,7 @@ void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *tre
 	}
 	else if(idtype == ID_TE) {
 		*ntree= ((Tex*)id)->nodetree;
-		if(treetype) *treetype= NTREE_TEXTURE;
+		if(treetype) *treetype= (*ntree)? (*ntree)->type: NTREE_SHADER;
 	}
 	else {
 		if(treetype) *treetype= 0;

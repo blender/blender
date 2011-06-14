@@ -418,10 +418,14 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy texture */
-	if(tex)
+	if(tex) {
 		tex= copy_texture(tex);
-	else
+	}
+	else {
 		tex= add_texture("Texture");
+		ED_node_shader_default(&tex->id);
+		tex->use_nodes= 1;
+	}
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);

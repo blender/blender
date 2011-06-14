@@ -44,7 +44,7 @@ static void node_shader_exec_fresnel(void *UNUSED(data), bNode *node, bNodeStack
 {
 }
 
-static int node_shader_gpu_fresnel(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_fresnel(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	/* todo: is incoming vector normalized? */
 	return GPU_stack_link(mat, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_NORMAL), GPU_builtin(GPU_VIEW_POSITION));

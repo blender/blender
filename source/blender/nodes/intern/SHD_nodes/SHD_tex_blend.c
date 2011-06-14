@@ -29,7 +29,51 @@
 
 #include "../SHD_util.h"
 
-/* **************** OUTPUT ******************** */
+static float blend(float p[3], int type, int axis)
+{
+	float x, y;
+
+	if(axis == SHD_BLEND_VERTICAL) {
+		x= p[1];
+		y= p[0];
+	}
+	else {
+		x= p[0];
+		y= p[1];
+	}
+
+	if(type == SHD_BLEND_LINEAR) {
+		return (1.0f + x)/2.0f;
+	}
+	else if(type == SHD_BLEND_QUADRATIC) {
+		float r = fmaxf((1.0f + x)/2.0f, 0.0f);
+		return r*r;
+	}
+	else if(type == SHD_BLEND_EASING) {
+		float r = fminf(fmaxf((1.0f + x)/2.0f, 0.0f), 1.0f);
+		float t = r*r;
+		
+		return (3.0f*t - 2.0f*t*r);
+	}
+	else if(type == SHD_BLEND_DIAGONAL) {
+		return (2.0f + x + y)/4.0f;
+	}
+	else if(type == SHD_BLEND_RADIAL) {
+		return atan2(y, x)/(2.0f*(float)M_PI) + 0.5f;
+	}
+	else {
+		float r = fmaxf(1.0f - sqrtf(x*x + y*y + p[2]*p[2]), 0.0f);
+
+		if(type == SHD_BLEND_QUADRATIC_SPHERE)
+			return r*r;
+		else if(type == SHD_BLEND_SPHERICAL)
+			return r;
+	}
+
+	return 0.0f;
+}
+
+/* **************** BLEND ******************** */
 
 static bNodeSocketType sh_node_tex_blend_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, SOCK_NO_VALUE},
@@ -50,11 +94,22 @@ static void node_shader_init_tex_blend(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_blend(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_blend(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexBlend *tex= (NodeTexBlend*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3];
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+	
+	out[0]->vec[0]= blend(vec, tex->progression, tex->axis);
 }
 
-static int node_shader_gpu_tex_blend(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_blend(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_tex_blend", in, out);
 }

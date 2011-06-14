@@ -41,11 +41,11 @@ static bNodeSocketType sh_node_light_path_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_light_path(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_light_path(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 
-static int node_shader_gpu_light_path(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_light_path(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_light_path", in, out);
 }

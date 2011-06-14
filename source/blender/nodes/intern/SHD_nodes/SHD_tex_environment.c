@@ -49,8 +49,35 @@ static void node_shader_init_tex_environment(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_environment(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_environment(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	Image *ima= (Image*)node->id;
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexEnvironment *tex= (NodeTexEnvironment*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3];
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	if(ima) {
+		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+
+		if(ibuf) {
+			float u= (atan2f(vec[1], vec[0]) + (float)M_PI)/(2*M_PI);
+			float v= atan2f(vec[2], hypotf(vec[0], vec[1]))/M_PI + 0.5f;
+			float rgb[3];
+
+			ibuf_sample(ibuf, u, v, 0.0f, 0.0f, rgb);
+
+			if(tex->color_space == SHD_COLORSPACE_SRGB)
+				srgb_to_linearrgb_v3_v3(out[0]->vec, rgb);
+			else
+				copy_v3_v3(out[0]->vec, rgb);
+		}
+	}
 }
 
 static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
@@ -58,10 +85,10 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 	Image *ima= (Image*)node->id;
 	ImageUser *iuser= NULL;
 
-	if(!ima)
-		return 0;
+	if(ima)
+		return GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser));
 
-	return GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser));
+	return 0;
 }
 
 /* node type definition */

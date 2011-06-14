@@ -28,8 +28,192 @@
  */
 
 #include "../SHD_util.h"
+#include "SHD_noise.h"
 
-/* **************** OUTPUT ******************** */
+/* Musgrave fBm
+ *
+ * H: fractal increment parameter
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ *
+ * from "Texturing and Modelling: A procedural approach"
+ */
+
+static float noise_musgrave_fBm(float p[3], int basis, float H, float lacunarity, float octaves)
+{
+	float rmd;
+	float value = 0.0f;
+	float pwr = 1.0f;
+	float pwHL = pow(lacunarity, -H);
+	int i;
+
+	for(i = 0; i < (int)octaves; i++) {
+		value += noise_basis(p, basis) * pwr;
+		pwr *= pwHL;
+		mul_v3_fl(p, lacunarity);
+	}
+
+	rmd = octaves - floor(octaves);
+	if(rmd != 0.0f)
+		value += rmd * noise_basis(p, basis) * pwr;
+
+	return value;
+}
+
+/* Musgrave Multifractal
+ *
+ * H: highest fractal dimension
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ */
+
+static float noise_musgrave_multi_fractal(float p[3], int basis, float H, float lacunarity, float octaves)
+{
+	float rmd;
+	float value = 1.0f;
+	float pwr = 1.0f;
+	float pwHL = pow(lacunarity, -H);
+	int i;
+
+	for(i = 0; i < (int)octaves; i++) {
+		value *= (pwr * noise_basis(p, basis) + 1.0f);
+		pwr *= pwHL;
+		mul_v3_fl(p, lacunarity);
+	}
+
+	rmd = octaves - floor(octaves);
+	if(rmd != 0.0f)
+		value *= (rmd * pwr * noise_basis(p, basis) + 1.0f); /* correct? */
+
+	return value;
+}
+
+/* Musgrave Heterogeneous Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+static float noise_musgrave_hetero_terrain(float p[3], int basis, float H, float lacunarity, float octaves, float offset)
+{
+	float value, increment, rmd;
+	float pwHL = pow(lacunarity, -H);
+	float pwr = pwHL;
+	int i;
+
+	/* first unscaled octave of function; later octaves are scaled */
+	value = offset + noise_basis(p, basis);
+	mul_v3_fl(p, lacunarity);
+
+	for(i = 1; i < (int)octaves; i++) {
+		increment = (noise_basis(p, basis) + offset) * pwr * value;
+		value += increment;
+		pwr *= pwHL;
+		mul_v3_fl(p, lacunarity);
+	}
+
+	rmd = octaves - floor(octaves);
+	if(rmd != 0.0f) {
+		increment = (noise_basis(p, basis) + offset) * pwr * value;
+		value += rmd * increment;
+	}
+
+	return value;
+}
+
+/* Hybrid Additive/Multiplicative Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+static float noise_musgrave_hybrid_multi_fractal(float p[3], int basis, float H, float lacunarity, float octaves, float offset, float gain)
+{
+	float result, signal, weight, rmd;
+	float pwHL = pow(lacunarity, -H);
+	float pwr = pwHL;
+	int i;
+
+	result = noise_basis(p, basis) + offset;
+	weight = gain * result;
+	mul_v3_fl(p, lacunarity);
+
+	for(i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
+		if(weight > 1.0f)
+			weight = 1.0f;
+
+		signal = (noise_basis(p, basis) + offset) * pwr;
+		pwr *= pwHL;
+		result += weight * signal;
+		weight *= gain * signal;
+		mul_v3_fl(p, lacunarity);
+	}
+
+	rmd = octaves - floor(octaves);
+	if(rmd != 0.0f)
+		result += rmd * ((noise_basis(p, basis) + offset) * pwr);
+
+	return result;
+}
+
+/* Ridged Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+static float noise_musgrave_ridged_multi_fractal(float p[3], int basis, float H, float lacunarity, float octaves, float offset, float gain)
+{
+	float result, signal, weight;
+	float pwHL = pow(lacunarity, -H);
+	float pwr = pwHL;
+	int i;
+
+	signal = offset - fabsf(noise_basis(p, basis));
+	signal *= signal;
+	result = signal;
+	weight = 1.0f;
+
+	for(i = 1; i < (int)octaves; i++) {
+		mul_v3_fl(p, lacunarity);
+		weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
+		signal = offset - fabsf(noise_basis(p, basis));
+		signal *= signal;
+		signal *= weight;
+		result += signal * pwr;
+		pwr *= pwHL;
+	}
+
+	return result;
+}
+
+static float musgrave(int type, int basis, float dimension, float lacunarity, float octaves, float offset, float intensity, float gain, float size, float vec[3])
+{
+	float p[3];
+
+	mul_v3_v3fl(p, vec, 1.0f/size);
+
+	if(type == SHD_MUSGRAVE_MULTIFRACTAL)
+		return intensity*noise_musgrave_multi_fractal(p, basis, dimension, lacunarity, octaves);
+	else if(type == SHD_MUSGRAVE_FBM)
+		return intensity*noise_musgrave_fBm(p, basis, dimension, lacunarity, octaves);
+	else if(type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL)
+		return intensity*noise_musgrave_hybrid_multi_fractal(p, basis, dimension, lacunarity, octaves, offset, gain);
+	else if(type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL)
+		return intensity*noise_musgrave_ridged_multi_fractal(p, basis, dimension, lacunarity, octaves, offset, gain);
+	else if(type == SHD_MUSGRAVE_HETERO_TERRAIN)
+		return intensity*noise_musgrave_hetero_terrain(p, basis, dimension, lacunarity, octaves, offset);
+	
+	return 0.0f;
+}
+
+/* **************** MUSGRAVE ******************** */
 
 static bNodeSocketType sh_node_tex_musgrave_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, SOCK_NO_VALUE},
@@ -56,11 +240,29 @@ static void node_shader_init_tex_musgrave(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_musgrave(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_musgrave(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexMusgrave *tex= (NodeTexMusgrave*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3], size, dimension, lacunarity, octaves, offset, gain;
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	nodestack_get_vec(&size, SOCK_VALUE, in[1]);
+	nodestack_get_vec(&dimension, SOCK_VALUE, in[2]);
+	nodestack_get_vec(&lacunarity, SOCK_VALUE, in[3]);
+	nodestack_get_vec(&octaves, SOCK_VALUE, in[4]);
+	nodestack_get_vec(&offset, SOCK_VALUE, in[5]);
+	nodestack_get_vec(&gain, SOCK_VALUE, in[6]);
+
+	out[0]->vec[0]= musgrave(tex->type, tex->basis, dimension, lacunarity, octaves, offset, 1.0f, gain, size, vec);
 }
 
-static int node_shader_gpu_tex_musgrave(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_musgrave(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_tex_musgrave", in, out);
 }

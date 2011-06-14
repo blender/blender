@@ -52,11 +52,11 @@ static void node_shader_init_tex_sky(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_sky(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_sky(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 
-static int node_shader_gpu_tex_sky(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_sky(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_tex_sky", in, out);
 }

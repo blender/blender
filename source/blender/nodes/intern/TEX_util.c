@@ -49,6 +49,7 @@
 
 #include <assert.h>
 #include "TEX_util.h"
+#include "SHD_util.h"
 
 #define PREV_RES 128 /* default preview resolution */
 
@@ -185,30 +186,44 @@ int ntreeTexExecTree(
 	ShadeInput *shi,
 	MTex *mtex
 ){
-	TexCallData data;
-	float *nor= texres->nor;
-	int retval = TEX_INT;
+	if(nodes->type == NTREE_SHADER) {
+		ShaderCallData scd;
 
-	data.co = co;
-	data.dxt = dxt;
-	data.dyt = dyt;
-	data.osatex = osatex;
-	data.target = texres;
-	data.do_preview = preview;
-	data.thread = thread;
-	data.which_output = which_output;
-	data.cfra= cfra;
-	data.mtex= mtex;
-	data.shi= shi;
-	
-	ntreeExecTree(nodes, &data, thread);
+		memset(&scd, 0, sizeof(scd));
+		scd.texres = texres;
+		scd.co = co;
+		scd.dxt = dxt;
+		scd.dyt = dyt;
 
-	if(texres->nor) retval |= TEX_NOR;
-	retval |= TEX_RGB;
-	/* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was set
-	   however, the texture code checks this for other reasons (namely, a normal is required for material) */
-	texres->nor= nor;
+		ntreeExecTree(nodes, &scd, thread);
+		return TEX_INT|TEX_RGB;
+	}
+	else {
+		TexCallData data;
+		float *nor= texres->nor;
+		int retval = TEX_INT;
 
-	return retval;
+		data.co = co;
+		data.dxt = dxt;
+		data.dyt = dyt;
+		data.osatex = osatex;
+		data.target = texres;
+		data.do_preview = preview;
+		data.thread = thread;
+		data.which_output = which_output;
+		data.cfra= cfra;
+		data.mtex= mtex;
+		data.shi= shi;
+		
+		ntreeExecTree(nodes, &data, thread);
+
+		if(texres->nor) retval |= TEX_NOR;
+		retval |= TEX_RGB;
+		/* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was set
+		   however, the texture code checks this for other reasons (namely, a normal is required for material) */
+		texres->nor= nor;
+
+		return retval;
+	}
 }
 

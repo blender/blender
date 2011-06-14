@@ -28,8 +28,35 @@
  */
 
 #include "../SHD_util.h"
+#include "SHD_noise.h"
 
-/* **************** OUTPUT ******************** */
+static float wood(float p[3], float size, int type, int wave, int basis, unsigned int hard, float turb)
+{
+	float x = p[0];
+	float y = p[1];
+	float z = p[2];
+
+	if(type == SHD_WOOD_BANDS) {
+		return noise_wave(wave, (x + y + z)*10.0f);
+	}
+	else if(type == SHD_WOOD_RINGS) {
+		return noise_wave(wave, sqrt(x*x + y*y + z*z)*20.0f);
+	}
+	else if (type == SHD_WOOD_BAND_NOISE) {
+		float psize[3] = {p[0]/size, p[1]/size, p[2]/size};
+		float wi = turb*noise_basis_hard(psize, basis, hard);
+		return noise_wave(wave, (x + y + z)*10.0f + wi);
+	}
+	else if (type == SHD_WOOD_RING_NOISE) {
+		float psize[3] = {p[0]/size, p[1]/size, p[2]/size};
+		float wi = turb*noise_basis_hard(psize, basis, hard);
+		return noise_wave(wave, sqrt(x*x + y*y + z*z)*20.0f + wi);
+	}
+
+	return 0.0f;
+}
+
+/* **************** WOOD ******************** */
 
 static bNodeSocketType sh_node_tex_wood_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, SOCK_NO_VALUE},
@@ -54,11 +81,25 @@ static void node_shader_init_tex_wood(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_wood(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_wood(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexWood *tex= (NodeTexWood*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3], size, turbulence;
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	nodestack_get_vec(&size, SOCK_VALUE, in[1]);
+	nodestack_get_vec(&turbulence, SOCK_VALUE, in[2]);
+
+	out[0]->vec[0]= wood(vec, size, tex->type, tex->wave, tex->basis, tex->hard, turbulence);
 }
 
-static int node_shader_gpu_tex_wood(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_wood(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_tex_wood", in, out);
 }

@@ -31,40 +31,41 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketType sh_node_output_material_in[]= {
-	{	SOCK_CLOSURE, 1, "Surface",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_CLOSURE, 1, "Volume",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Displacement",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, SOCK_NO_VALUE},
+static bNodeSocketType sh_node_output_texture_in[]= {
+	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_output_material(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
+static void node_shader_exec_output_texture(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
+	if(data && (node->flag & NODE_DO_OUTPUT)) {
+		ShaderCallData *scd= (ShaderCallData*)data;
+		TexResult *texres = scd->texres;
+		float col[4];
+		
+		nodestack_get_vec(col, SOCK_RGBA, in[0]);
+
+		texres->tr= col[0];
+		texres->tg= col[1];
+		texres->tb= col[2];
+		texres->ta= 1.0f;
+
+		texres->tin= rgb_to_grayscale(col);
+	}
 }
-
-static int node_shader_gpu_output_material(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
-{
-	GPUNodeLink *outlink;
-
-	GPU_stack_link(mat, "node_output_material", in, out, &outlink);
-	GPU_material_output_link(mat, outlink);
-
-	return 1;
-}
-
 
 /* node type definition */
-void register_node_type_sh_output_material(ListBase *lb)
+void register_node_type_sh_output_texture(ListBase *lb)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_OUTPUT_MATERIAL, "Material Output", NODE_CLASS_OUTPUT, 0,
-		sh_node_output_material_in, NULL);
+	node_type_base(&ntype, SH_NODE_OUTPUT_TEXTURE, "Texture Output", NODE_CLASS_OUTPUT, 0,
+		sh_node_output_texture_in, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_output_material);
-	node_type_gpu(&ntype, node_shader_gpu_output_material);
+	node_type_exec(&ntype, node_shader_exec_output_texture);
+	node_type_gpu(&ntype, NULL);
 
 	nodeRegisterType(lb, &ntype);
 };

@@ -49,8 +49,33 @@ static void node_shader_init_tex_image(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_image(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_image(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	Image *ima= (Image*)node->id;
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexImage *tex= (NodeTexImage*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3];
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	if(ima) {
+		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+
+		if(ibuf) {
+			float rgb[3];
+
+			ibuf_sample(ibuf, vec[0], vec[1], 0.0f, 0.0f, rgb);
+
+			if(tex->color_space == SHD_COLORSPACE_SRGB)
+				srgb_to_linearrgb_v3_v3(out[0]->vec, rgb);
+			else
+				copy_v3_v3(out[0]->vec, rgb);
+		}
+	}
 }
 
 static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

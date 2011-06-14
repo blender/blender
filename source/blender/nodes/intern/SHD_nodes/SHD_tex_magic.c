@@ -29,6 +29,79 @@
 
 #include "../SHD_util.h"
 
+static void magic(float rgb[3], float p[3], int n, float turbulence)
+{
+	float turb = turbulence/5.0f;
+
+	float x = sinf((p[0] + p[1] + p[2])*5.0f);
+	float y = cosf((-p[0] + p[1] - p[2])*5.0f);
+	float z = -cosf((-p[0] - p[1] + p[2])*5.0f);
+
+	if(n > 0) {
+		x *= turb;
+		y *= turb;
+		z *= turb;
+		y = -cosf(x-y+z);
+		y *= turb;
+
+		if(n > 1) {
+			x= cosf(x-y-z);
+			x *= turb;
+
+			if(n > 2) {
+				z= sinf(-x-y-z);
+				z *= turb;
+
+				if(n > 3) {
+					x= -cosf(-x+y-z);
+					x *= turb;
+
+					if(n > 4) {
+						y= -sinf(-x+y+z);
+						y *= turb;
+
+						if(n > 5) {
+							y= -cosf(-x+y+z);
+							y *= turb;
+
+							if(n > 6) {
+								x= cosf(x+y+z);
+								x *= turb;
+
+								if(n > 7) {
+									z= sinf(x+y-z);
+									z *= turb;
+
+									if(n > 8) {
+										x= -cosf(-x-y+z);
+										x *= turb;
+
+										if(n > 9) {
+											y= -sinf(x-y+z);
+											y *= turb;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if(turb != 0.0f) {
+		turb *= 2.0f;
+		x /= turb;
+		y /= turb;
+		z /= turb;
+	}
+
+	rgb[0]= 0.5f - x;
+	rgb[1]= 0.5f - y;
+	rgb[2]= 0.5f - z;
+}
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketType sh_node_tex_magic_in[]= {
@@ -50,8 +123,21 @@ static void node_shader_init_tex_magic(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_magic(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_magic(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexMagic *tex= (NodeTexMagic*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3], turbulence;
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	nodestack_get_vec(&turbulence, SOCK_VALUE, in[1]);
+
+	magic(out[0]->vec, vec, tex->depth, turbulence);
 }
 
 static int node_shader_gpu_tex_magic(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

@@ -3195,8 +3195,23 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
 			node_get_stack(node, stack, nsin, nsout, NULL);
 			gpu_from_node_stack(&node->inputs, nsin, gpuin);
 			gpu_from_node_stack(&node->outputs, nsout, gpuout);
-			if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout))
+			if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout)) {
 				data_from_gpu_stack(&node->outputs, nsout, gpuout);
+
+#if 0
+				if(node->flag & NODE_ACTIVE) {
+					bNodeSocket *sock;
+					int i;
+
+					for(sock=node->outputs.first, i=0; sock; sock=sock->next, i++) {
+						if(nsout[i]->data) {
+							GPU_material_output_link(mat, nsout[i]->data);
+							break;
+						}
+					}
+				}
+#endif
+			}
 		}
 		else if(node->type==NODE_GROUP && node->id) {
 			node_get_stack(node, stack, nsin, nsout, NULL);
@@ -3618,6 +3633,7 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_mix_rgb(ntypelist);
 	register_node_type_sh_rgbtobw(ntypelist);
 	register_node_type_sh_mapping(ntypelist);
+	//register_node_type_sh_texture(ntypelist);
 
 	register_node_type_sh_attribute(ntypelist);
 	register_node_type_sh_geometry(ntypelist);
@@ -3638,6 +3654,7 @@ static void registerShaderNodes(ListBase *ntypelist)
 
 	register_node_type_sh_output_lamp(ntypelist);
 	register_node_type_sh_output_material(ntypelist);
+	register_node_type_sh_output_texture(ntypelist);
 	register_node_type_sh_output_world(ntypelist);
 
 	register_node_type_sh_tex_blend(ntypelist);

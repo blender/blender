@@ -393,7 +393,6 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
 
         idblock = context_tex_datablock(context)
         tex = context.texture
-        slot = context.texture_slot
 
         split = layout.split()
 
@@ -409,6 +408,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
 
         #Only for Material based textures, not for Lamp/World...
         if isinstance(idblock, bpy.types.Material):
+            slot = context.texture_slot
             col.prop(tex, "use_normal_map")
             row = col.row()
             row.active = tex.use_normal_map

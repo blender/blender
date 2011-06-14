@@ -28,8 +28,66 @@
  */
 
 #include "../SHD_util.h"
+#include "SHD_noise.h"
 
-/* **************** OUTPUT ******************** */
+static float voronoi_tex(int distance_metric, int coloring,
+	float weight1, float weight2, float weight3, float weight4,
+	float exponent, float intensity, float size, float vec[3], float color[3])
+{
+	float aw1 = fabsf(weight1);
+	float aw2 = fabsf(weight2);
+	float aw3 = fabsf(weight3);
+	float aw4 = fabsf(weight4);
+	float sc = (aw1 + aw2 + aw3 + aw4);
+	float da[4];
+	float pa[4][3];
+	float fac;
+	float p[3];
+
+	if(sc != 0.0f)
+		sc = intensity/sc;
+	
+	/* compute distance and point coordinate of 4 nearest neighbours */
+	mul_v3_v3fl(p, vec, 1.0f/size);
+	voronoi_generic(p, distance_metric, exponent, da, pa);
+
+	/* Scalar output */
+	fac = sc * fabsf(weight1*da[0] + weight2*da[1] + weight3*da[2] + weight4*da[3]);
+
+	/* colored output */
+	if(coloring == SHD_VORONOI_INTENSITY) {
+		color[0]= color[1]= color[2]= fac;
+	}
+	else {
+		float rgb1[3], rgb2[3], rgb3[3], rgb4[3];
+
+		cellnoise_color(rgb1, pa[0]);
+		cellnoise_color(rgb2, pa[1]);
+		cellnoise_color(rgb3, pa[2]);
+		cellnoise_color(rgb4, pa[3]);
+
+		mul_v3_v3fl(color, rgb1, aw1);
+		madd_v3_v3fl(color, rgb2, aw2);
+		madd_v3_v3fl(color, rgb3, aw3);
+		madd_v3_v3fl(color, rgb4, aw4);
+
+		if(coloring != SHD_VORONOI_POSITION) {
+			float t1 = MIN2((da[1] - da[0])*10.0f, 1.0f);
+
+			if(coloring == SHD_VORONOI_POSITION_OUTLINE_INTENSITY)
+				mul_v3_fl(color, t1*fac);
+			else if(coloring == SHD_VORONOI_POSITION_OUTLINE)
+				mul_v3_fl(color, t1*sc);
+		}
+		else {
+			mul_v3_fl(color, sc);
+		}
+	}
+
+	return fac;
+}
+
+/* **************** VORONOI ******************** */
 
 static bNodeSocketType sh_node_tex_voronoi_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, SOCK_NO_VALUE},
@@ -57,11 +115,30 @@ static void node_shader_init_tex_voronoi(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_voronoi(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_voronoi(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexVoronoi *tex= (NodeTexVoronoi*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3], size, w1, w2, w3, w4, exponent;
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	nodestack_get_vec(&size, SOCK_VALUE, in[1]);
+	nodestack_get_vec(&w1, SOCK_VALUE, in[2]);
+	nodestack_get_vec(&w2, SOCK_VALUE, in[3]);
+	nodestack_get_vec(&w3, SOCK_VALUE, in[4]);
+	nodestack_get_vec(&w4, SOCK_VALUE, in[5]);
+	nodestack_get_vec(&exponent, SOCK_VALUE, in[6]);
+
+	out[1]->vec[0]= voronoi_tex(tex->distance_metric, tex->coloring, w1, w2, w3, w4,
+		exponent, 1.0f, size, vec, out[0]->vec);
 }
 
-static int node_shader_gpu_tex_voronoi(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_voronoi(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_tex_voronoi", in, out);
 }

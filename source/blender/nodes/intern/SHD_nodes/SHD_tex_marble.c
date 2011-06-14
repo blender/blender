@@ -28,8 +28,32 @@
  */
 
 #include "../SHD_util.h"
+#include "SHD_noise.h"
 
-/* **************** OUTPUT ******************** */
+static float marble(float vec[3], float size, int type, int wave, int basis, int hard, float turb, int depth)
+{
+	float p[3];
+	float x = vec[0];
+	float y = vec[1];
+	float z = vec[2];
+	float n = 5.0f * (x + y + z);
+	float mi;
+
+	mul_v3_v3fl(p, vec, 1.0f/size);
+
+	mi = n + turb * noise_turbulence(p, basis, depth, hard);
+
+	mi = noise_wave(wave, mi);
+
+	if(type == SHD_MARBLE_SHARP)
+		mi = sqrt(mi);
+	else if(type == SHD_MARBLE_SHARPER)
+		mi = sqrt(sqrt(mi));
+
+	return mi;
+}
+
+/* **************** MARBLE ******************** */
 
 static bNodeSocketType sh_node_tex_marble_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, SOCK_NO_VALUE},
@@ -55,11 +79,25 @@ static void node_shader_init_tex_marble(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_marble(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_marble(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexMarble *tex= (NodeTexMarble*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3], size, turbulence;
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	nodestack_get_vec(&size, SOCK_VALUE, in[1]);
+	nodestack_get_vec(&turbulence, SOCK_VALUE, in[2]);
+
+	out[0]->vec[0]= marble(vec, size, tex->type, tex->wave, tex->basis, tex->hard, turbulence, tex->depth);
 }
 
-static int node_shader_gpu_tex_marble(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_marble(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_tex_marble", in, out);
 }

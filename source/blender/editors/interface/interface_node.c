@@ -100,8 +100,16 @@ static void ui_node_clear_recursive(bNode *node)
 
 static void ntree_notify(bContext *C, ID *id, bNodeTree *ntree)
 {
-	if(ntree->type==NTREE_SHADER)
-		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, id);
+	if(ntree->type==NTREE_SHADER) {
+		if(GS(id->name) == ID_MA)
+			WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, id);
+		else if(GS(id->name) == ID_LA)
+			WM_event_add_notifier(C, NC_LAMP|ND_NODES, id);
+		else if(GS(id->name) == ID_WO)
+			WM_event_add_notifier(C, NC_WORLD|ND_NODES, id);
+		else if(GS(id->name) == ID_TE)
+			WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, id);
+	}
 	else if(ntree->type==NTREE_COMPOSIT)
 		WM_event_add_notifier(C, NC_SCENE|ND_NODES, id);
 	else if(ntree->type==NTREE_TEXTURE)

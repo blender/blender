@@ -43,11 +43,11 @@ static bNodeSocketType sh_node_tex_coord_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_tex_coord(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_coord(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 
-static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
 	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");

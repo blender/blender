@@ -37,7 +37,7 @@ static bNodeSocketType sh_node_output_world_in[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_output_world(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_output_world(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 

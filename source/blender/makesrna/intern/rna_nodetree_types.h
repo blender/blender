@@ -52,6 +52,7 @@ DefNode( ShaderNode,     SH_NODE_COMBRGB,         0,                      "COMBR
 DefNode( ShaderNode,     SH_NODE_HUE_SAT,         0,                      "HUE_SAT",        HueSaturation,    "Hue/Saturation",    ""              )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_MATERIAL, 0,                      "OUTPUT_MATERIAL",OutputMaterial,   "Material Output",   ""              )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_LAMP,     0,                      "OUTPUT_LAMP",    OutputLamp,       "Lamp Output",       ""              )
+DefNode( ShaderNode,     SH_NODE_OUTPUT_TEXTURE,  0,                      "OUTPUT_TEXTURE", OutputTexture,    "Texture Output",    ""              )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_WORLD,    0,                      "OUTPUT_WORLD",   OutputWorld,      "World Output",      ""              )
 DefNode( ShaderNode,     SH_NODE_FRESNEL,         0,                      "FRESNEL",        Fresnel,          "Fresnel",           ""              )
 DefNode( ShaderNode,     SH_NODE_MIX_CLOSURE,     0,                      "MIX_CLOSURE",    MixClosure,       "Mix Closure",       ""              )

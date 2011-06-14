@@ -28,8 +28,30 @@
  */
 
 #include "../SHD_util.h"
+#include "SHD_noise.h"
 
-/* **************** OUTPUT ******************** */
+static float clouds(int basis, int hard, int depth, float size, float vec[3], float color[3])
+{
+	float p[3], pg[3], pb[3];
+
+	mul_v3_v3fl(p, vec, 1.0f/size);
+
+	pg[0]= p[1];
+	pg[1]= p[0];
+	pg[2]= p[2];
+
+	pb[0]= p[1];
+	pb[1]= p[2];
+	pb[2]= p[0];
+
+	color[0]= noise_turbulence(p, basis, depth, hard);
+	color[1]= noise_turbulence(pg, basis, depth, hard);
+	color[2]= noise_turbulence(pb, basis, depth, hard);
+
+	return color[0];
+}
+
+/* **************** CLOUDS ******************** */
 
 static bNodeSocketType sh_node_tex_clouds_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, SOCK_NO_VALUE},
@@ -53,11 +75,24 @@ static void node_shader_init_tex_clouds(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_clouds(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_clouds(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexClouds *tex= (NodeTexClouds*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3], size;
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	nodestack_get_vec(&size, SOCK_VALUE, in[1]);
+
+	out[1]->vec[0]= clouds(tex->basis, tex->hard, tex->depth, size, vec, out[0]->vec);
 }
 
-static int node_shader_gpu_tex_clouds(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_clouds(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_tex_clouds", in, out);
 }

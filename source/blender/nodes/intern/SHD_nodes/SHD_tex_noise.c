@@ -28,8 +28,25 @@
  */
 
 #include "../SHD_util.h"
+#include "SHD_noise.h"
 
-/* **************** OUTPUT ******************** */
+static float noise_texture_value(float vec[3])
+{
+	float p[3];
+
+	mul_v3_v3fl(p, vec, 1e8f);
+	return cellnoise(p);
+}
+
+static void noise_texture_color(float rgb[3], float vec[3])
+{
+	float p[3];
+
+	mul_v3_v3fl(p, vec, 1e8f);
+ 	cellnoise_color(rgb, p);
+}
+
+/* **************** NOISE ******************** */
 
 static bNodeSocketType sh_node_tex_noise_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, SOCK_NO_VALUE},
@@ -42,11 +59,22 @@ static bNodeSocketType sh_node_tex_noise_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_tex_noise(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_noise(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	ShaderCallData *scd= (ShaderCallData*)data;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3];
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	noise_texture_color(out[0]->vec, vec);
+	out[1]->vec[0]= noise_texture_value(vec);
 }
 
-static int node_shader_gpu_tex_noise(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_noise(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_tex_noise", in, out);
 }

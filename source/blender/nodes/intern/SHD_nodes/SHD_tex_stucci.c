@@ -28,8 +28,29 @@
  */
 
 #include "../SHD_util.h"
+#include "SHD_noise.h"
 
-/* **************** OUTPUT ******************** */
+static float stucci(int type, int basis, int hard, float turbulence, float size, float vec[3])
+{
+	float p[3], b2, ofs, r;
+
+	mul_v3_v3fl(p, vec, 1.0f/size);
+	b2 = noise_basis_hard(p, basis, hard);
+	ofs = turbulence/200.0f;
+
+	if(type != SHD_STUCCI_PLASTIC)
+		ofs *= b2*b2;
+
+	p[2] += ofs;
+	r = noise_basis_hard(p, basis, hard);
+
+	if(type == SHD_STUCCI_WALL_OUT)
+		r = 1.0f - r;
+
+	return MAX2(r, 0.0f);
+}
+
+/* **************** STUCCI ******************** */
 
 static bNodeSocketType sh_node_tex_stucci_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, SOCK_NO_VALUE},
@@ -53,11 +74,25 @@ static void node_shader_init_tex_stucci(bNode *node)
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_stucci(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_shader_exec_tex_stucci(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	ShaderCallData *scd= (ShaderCallData*)data;
+	NodeTexStucci *tex= (NodeTexStucci*)node->storage;
+	bNodeSocket *vecsock = node->inputs.first;
+	float vec[3], size, turbulence;
+	
+	if(vecsock->link)
+		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	else
+		copy_v3_v3(vec, scd->co);
+
+	nodestack_get_vec(&size, SOCK_VALUE, in[1]);
+	nodestack_get_vec(&turbulence, SOCK_VALUE, in[2]);
+
+	out[0]->vec[0]= stucci(tex->type, tex->basis, tex->hard, turbulence, size, vec);
 }
 
-static int node_shader_gpu_tex_stucci(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_stucci(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_tex_stucci", in, out);
 }
