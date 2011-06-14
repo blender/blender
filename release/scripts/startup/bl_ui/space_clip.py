@@ -68,6 +68,7 @@ class CLIP_PT_tools(bpy.types.Panel):
             col = layout.column()
             col.prop(ts.movieclip, 'tool', expand=True)
 
+
 class CLIP_PT_footage(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
@@ -120,7 +121,7 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
         layout.prop(clip.tracking.camera, "focal_length")
 
 
-class CLIP_PT_tracking_marker(bpy.types.Panel):
+class CLIP_PT_tracking_marker_tools(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = 'Marker Tools'
@@ -138,8 +139,31 @@ class CLIP_PT_tracking_marker(bpy.types.Panel):
         layout = self.layout
         clip = context.space_data.clip
 
-        layout.operator('clip.add_marker', icon='ZOOMIN')
+        layout.operator('clip.add_marker_move', icon='ZOOMIN')
         layout.operator('clip.delete', icon='X')
+
+
+class CLIP_PT_tracking_marker(bpy.types.Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = 'Marker'
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+        ts = context.tool_settings
+        tool = ts.movieclip.tool
+
+        return (sc.mode == 'TRACKING' and clip and \
+            tool == 'MARKER' and clip.tracking.act_track)
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+        clip = context.space_data.clip
+
+        layout.template_marker(clip.tracking, 'act_track', sc.clip_user, clip)
 
 
 class CLIP_PT_track(bpy.types.Panel):
@@ -161,6 +185,34 @@ class CLIP_PT_track(bpy.types.Panel):
         clip = context.space_data.clip
 
         layout.operator('clip.track_markers', icon='PLAY')
+
+
+class CLIP_PT_track_settings(bpy.types.Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = 'Tracking Settings'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+        ts = context.tool_settings
+        tool = ts.movieclip.tool
+
+        return (sc.mode == 'TRACKING' and clip and tool == 'TRACK')
+
+    def draw(self, context):
+        layout = self.layout
+        clip = context.space_data.clip
+        settings = clip.tracking.settings
+
+        layout.prop(settings, 'max_iterations')
+        layout.prop(settings, 'pyramid_level')
+        layout.prop(settings, 'tolerance')
+
+        layout.operator('clip.reset_tracking_settings', \
+            text="Reset To Defaults")
 
 
 class CLIP_PT_display(bpy.types.Panel):
@@ -213,7 +265,6 @@ class CLIP_MT_view(bpy.types.Menu):
 
 class CLIP_MT_clip(bpy.types.Menu):
     bl_label = "Clip"
-
 
     def draw(self, context):
         layout = self.layout

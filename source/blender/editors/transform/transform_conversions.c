@@ -5309,7 +5309,6 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 
 void flushTransTracking(TransInfo *t)
 {
-	SpaceClip *sc = t->sa->spacedata.first;
 	TransData *td;
 	TransData2D *td2d;
 	int a;

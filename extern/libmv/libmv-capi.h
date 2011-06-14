@@ -36,9 +36,9 @@ extern "C" {
 typedef void *libmv_regionTrackerHandle;
 
 /* Regiontracker */
-libmv_regionTrackerHandle libmv_regionTrackerNew(void);
+libmv_regionTrackerHandle libmv_regionTrackerNew(int max_iterations, int pyramid_level, double tolerance);
 int libmv_regionTrackerTrack(libmv_regionTrackerHandle tracker, const float *ima1, const float *ima2,
-			int width, int height,
+			int width, int height, int half_window_size,
 			double  x1, double  y1, double *x2, double *y2);
 void libmv_regionTrackerDestroy(libmv_regionTrackerHandle tracker);
 

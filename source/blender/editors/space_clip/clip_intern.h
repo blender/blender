@@ -35,6 +35,7 @@
 #ifndef ED_CLIP_INTERN_H
 #define ED_CLIP_INTERN_H
 
+struct bContext;
 struct ARegion;
 struct Scene;
 struct SpaceClip;
@@ -66,8 +67,11 @@ void CLIP_OT_delete(struct wmOperatorType *ot);
 
 void CLIP_OT_track_markers(struct wmOperatorType *ot);
 
+void CLIP_OT_reset_tracking_settings(struct wmOperatorType *ot);
+
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+void draw_clip_track_widget(const struct bContext *C, void *trackp, void *userp, void *clipp, rcti *rect);
 
 /* clip_buttons.c */
 void ED_clip_buttons_register(struct ARegionType *art);

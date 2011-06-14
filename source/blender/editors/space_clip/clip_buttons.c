@@ -59,6 +59,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "clip_intern.h"	// own include
+
 #define B_MARKER_POS			3
 #define B_MARKER_PAT_POS		4
 #define B_MARKER_PAT_DIM		5
@@ -268,6 +270,8 @@ void ED_clip_buttons_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
+/********************* MovieClip Template ************************/
+
 void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *UNUSED(userptr), int compact)
 {
 	PropertyRNA *prop;
@@ -312,4 +316,45 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 		uiItemR(row, &clipptr, "filepath", 0, "", ICON_NONE);
 		uiItemO(row, "", ICON_FILE_REFRESH, "clip.reload");
 	}
+}
+
+/********************* Marker Template ************************/
+
+void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *clipptr)
+{
+	PropertyRNA *prop;
+	PointerRNA trackptr;
+	uiBlock *block;
+	uiBut *bt;
+	rctf rect;
+	MovieTrackingTrack *track;
+
+	(void)userptr;
+
+	if(!ptr->data)
+		return;
+
+	prop= RNA_struct_find_property(ptr, propname);
+	if(!prop) {
+		printf("uiTemplateMarker: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	if(RNA_property_type(prop) != PROP_POINTER) {
+		printf("uiTemplateMarker: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	trackptr= RNA_property_pointer_get(ptr, prop);
+	track= trackptr.data;
+
+	rect.xmin= 0; rect.xmax= 200;
+	rect.ymin= 0; rect.ymax= 120;
+
+	uiLayoutSetContextPointer(layout, "edit_movieclip", clipptr);
+
+	block= uiLayoutAbsoluteBlock(layout);
+
+	bt= uiDefBut(block, BUT_EXTRA, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, rect.ymax-rect.ymin, track, 0, 0, 0, 0, "");
+	uiBlockSetDrawExtraFunc(block, draw_clip_track_widget, userptr->data, clipptr->data);
 }

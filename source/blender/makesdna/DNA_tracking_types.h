@@ -89,7 +89,15 @@ typedef struct MovieTrackingTrack {
 	char pad3[4];
 } MovieTrackingTrack;
 
+typedef struct MovieTrackingSettings {
+	int max_iterations;
+	int pyramid_level;
+	float tolerance;
+	int pad;
+} MovieTrackingSettings;
+
 typedef struct MovieTracking {
+	MovieTrackingSettings settings;
 	MovieTrackingCamera camera;
 	ListBase tracks;
 	ListBase bundles;

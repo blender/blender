@@ -207,6 +207,8 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_delete);
 
 	WM_operatortype_append(CLIP_OT_track_markers);
+
+	WM_operatortype_append(CLIP_OT_reset_tracking_settings);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)
@@ -249,6 +251,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "CLIP_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
 	WM_keymap_add_item(keymap, "CLIP_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_select_circle", CKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_add_marker", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_delete", DELKEY, KM_PRESS, 0, 0);

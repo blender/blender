@@ -35,20 +35,33 @@
 
 #include <stdlib.h>
 
-libmv_regionTrackerHandle libmv_regionTrackerNew(void)
+#define DEFAULT_WINDOW_HALFSIZE	5
+
+typedef struct ConfiguredRegionTracker {
+	libmv::TrkltRegionTracker *trklt_region_tracker;
+	libmv::PyramidRegionTracker *pyramid_region_tracker;
+	libmv::RegionTracker *region_tracker;
+} ConfiguredRegionTracker;
+
+libmv_regionTrackerHandle libmv_regionTrackerNew(int max_iterations, int pyramid_level, double tolerance)
 {
 	libmv::RegionTracker *region_tracker;
 	libmv::TrkltRegionTracker *trklt_region_tracker = new libmv::TrkltRegionTracker;
 
-	trklt_region_tracker->half_window_size = 5;
-	trklt_region_tracker->max_iterations = 200;
+	trklt_region_tracker->half_window_size = DEFAULT_WINDOW_HALFSIZE;
+	trklt_region_tracker->max_iterations = max_iterations;
 
 	libmv::PyramidRegionTracker *pyramid_region_tracker =
-		new libmv::PyramidRegionTracker(trklt_region_tracker, 3);
+		new libmv::PyramidRegionTracker(trklt_region_tracker, pyramid_level);
 
-	region_tracker = new libmv::RetrackRegionTracker(pyramid_region_tracker, 0.2);
+	region_tracker = new libmv::RetrackRegionTracker(pyramid_region_tracker, tolerance);
 
-	return (libmv_regionTrackerHandle)region_tracker;
+	ConfiguredRegionTracker *configured_region_tracker = new ConfiguredRegionTracker;
+	configured_region_tracker->trklt_region_tracker = trklt_region_tracker;
+	configured_region_tracker->pyramid_region_tracker = pyramid_region_tracker;
+	configured_region_tracker->region_tracker = region_tracker;
+
+	return (libmv_regionTrackerHandle)configured_region_tracker;
 }
 
 static void floatBufToImage(const float *buf, int width, int height, libmv::FloatImage *image)
@@ -65,13 +78,19 @@ static void floatBufToImage(const float *buf, int width, int height, libmv::Floa
 }
 
 int libmv_regionTrackerTrack(libmv_regionTrackerHandle tracker, const float *ima1, const float *ima2,
-			 int width, int height,
+			 int width, int height, int half_window_size,
 			 double  x1, double  y1, double *x2, double *y2)
 {
+	ConfiguredRegionTracker *configured_region_tracker;
 	libmv::RegionTracker *region_tracker;
+	libmv::TrkltRegionTracker *trklt_region_tracker;
 	libmv::FloatImage old_patch, new_patch;
 
-	region_tracker = (libmv::RegionTracker *)tracker;
+	configured_region_tracker = (ConfiguredRegionTracker *)tracker;
+	trklt_region_tracker = configured_region_tracker->trklt_region_tracker;
+	region_tracker = configured_region_tracker->region_tracker;
+
+	trklt_region_tracker->half_window_size = half_window_size;
 
 	floatBufToImage(ima1, width, height, &old_patch);
 	floatBufToImage(ima2, width, height, &new_patch);
@@ -81,9 +100,10 @@ int libmv_regionTrackerTrack(libmv_regionTrackerHandle tracker, const float *ima
 
 void libmv_regionTrackerDestroy(libmv_regionTrackerHandle tracker)
 {
-	libmv::RegionTracker *region_tracker;
+	ConfiguredRegionTracker *configured_region_tracker;
 
-	region_tracker = (libmv::RegionTracker *)tracker;
+	configured_region_tracker = (ConfiguredRegionTracker *)tracker;
 
-	delete region_tracker;
+	delete configured_region_tracker->region_tracker;
+	delete configured_region_tracker;
 }

@@ -671,3 +671,15 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 	ot->exec= view_all_exec;
 	ot->poll= space_clip_poll;
 }
+
+void ED_operatormacros_clip(void)
+{
+	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
+
+	ot= WM_operatortype_append_macro("CLIP_OT_add_marker_move", "Add Marker and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Add new marker and move it on movie";
+	WM_operatortype_macro_define(ot, "CLIP_OT_add_marker");
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	RNA_struct_idprops_unset(otmacro->ptr, "release_confirm");
+}

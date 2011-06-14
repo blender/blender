@@ -245,20 +245,23 @@ typedef struct MovieTrackingContext {
 	libmv_regionTrackerHandle region_tracker;
 #endif
 	ListBase tracks;
-
 	GHash *hash;
+	MovieTrackingSettings settings;
 } MovieTrackingContext;
 
 MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user)
 {
 	MovieTrackingContext *context= MEM_callocN(sizeof(MovieTrackingContext), "trackingContext");
 	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingSettings *settings= &tracking->settings;
 	MovieTrackingTrack *track;
 
 #ifdef WITH_LIBMV
-	context->region_tracker= libmv_regionTrackerNew();
+	context->region_tracker= libmv_regionTrackerNew(settings->max_iterations,
+				settings->pyramid_level, settings->tolerance);
 #endif
 
+	context->settings= *settings;
 	context->hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "tracking trackHash");
 
 	track= tracking->tracks.first;
@@ -300,28 +303,58 @@ void BKE_tracking_context_free(MovieTrackingContext *context)
 	MEM_freeN(context);
 }
 
+static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker, float min[2], float max[2], int pos[2])
+{
+	ImBuf *tmpibuf;
+	const float eps= 0.001;
+	int x, y;
+	int x1, y1, x2, y2, w, h;
+
+	x= floor(marker->pos[0]*ibuf->x+eps);
+	y= floor(marker->pos[1]*ibuf->y+eps);
+	x1= x-floor(-min[0]*ibuf->x-eps);
+	y1= y-floor(-min[1]*ibuf->y-eps);
+	x2= x+ceil(max[0]*ibuf->x+eps);
+	y2= y+ceil(max[1]*ibuf->y+eps);
+
+	w= (x2-x1)|1;
+	h= (y2-y1)|1;
+
+	tmpibuf= IMB_allocImBuf(w, h, 32, IB_rect);
+	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1, y1, w, h);
+
+	pos[0]= x-x1;
+	pos[1]= y-y1;
+
+	return tmpibuf;
+}
+
+ImBuf *BKE_tracking_acquire_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker, int pos[2])
+{
+	return acquire_area_imbuf(ibuf, track, marker, track->pat_min, track->pat_max, pos);
+}
+
+ImBuf *BKE_tracking_acquire_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker, int pos[2])
+{
+	return acquire_area_imbuf(ibuf, track, marker, track->search_min, track->search_max, pos);
+}
+
 #ifdef WITH_LIBMV
 static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-			int *width_r, int *height_r)
+			int *width_r, int *height_r, int pos[2])
 {
 	ImBuf *tmpibuf;
 	float *pixels, *fp;
-	int x, y, width, height;
+	int x, y;
 
-	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
-	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
+	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, pos);
 
-	tmpibuf= IMB_allocImBuf(width, height, 32, IB_rect);
-	IMB_rectcpy(tmpibuf, ibuf, 0, 0,
-			(track->search_min[0]+marker->pos[0])*ibuf->x,
-			(track->search_min[1]+marker->pos[1])*ibuf->y, width, height);
+	*width_r= tmpibuf->x;
+	*height_r= tmpibuf->y;
 
-	*width_r= width;
-	*height_r= height;
-
-	fp= pixels= MEM_callocN(width*height*sizeof(float), "tracking floatBuf");
-	for(y= 0; y<(int)height; y++) {
-		for (x= 0; x<(int)width; x++) {
+	fp= pixels= MEM_callocN(tmpibuf->x*tmpibuf->y*sizeof(float), "tracking floatBuf");
+	for(y= 0; y<tmpibuf->y; y++) {
+		for (x= 0; x<tmpibuf->x; x++) {
 			int pixel= tmpibuf->x*y + x;
 			char *rrgb= (char*)tmpibuf->rect + pixel*4;
 
@@ -370,7 +403,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 					replace_sel= 1;
 
 				track->flag= cur->flag|TRACK_PROCESSED;
-				track->pat_flag= cur->flag;
+				track->pat_flag= cur->pat_flag;
 				track->search_flag= cur->search_flag;
 
 				BKE_tracking_free_track(cur);
@@ -425,21 +458,26 @@ int BKE_tracking_next(MovieTrackingContext *context)
 		return 0;
 	}
 
-	//track= context->movie_tracks.first;
 	track= context->tracks.first;
 	while(track) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, curfra);
 
 		if(marker) {
 #ifdef WITH_LIBMV
-			int width, height;
-			float *patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height);
-			float *patch_new= acquire_search_floatbuf(ibuf_new, track, marker, &width, &height);
+			int width, height, pos[2];
+			float *patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height, pos);
+			float *patch_new= acquire_search_floatbuf(ibuf_new, track, marker, &width, &height, pos);
+			//double x1= pos[0], y1= pos[1];
 			double x1= -track->search_min[0]*ibuf->x, y1= -track->search_min[1]*ibuf->y;
 			double x2= x1, y2= y1;
+			int wndx, wndy;
+
+			wndx= (int)((track->pat_max[0]-track->pat_min[0])*ibuf->x)/2;
+			wndy= (int)((track->pat_max[1]-track->pat_min[1])*ibuf->y)/2;
 
 			if(libmv_regionTrackerTrack(context->region_tracker, patch, patch_new,
-						width, height, x1, y1, &x2, &y2)) {
+						width, height, MAX2(wndx, wndy),
+						x1, y1, &x2, &y2)) {
 				MovieTrackingMarker marker_new;
 
 				track->flag|= TRACK_PROCESSED;
@@ -463,4 +501,11 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	IMB_freeImBuf(ibuf_new);
 
 	return 1;
+}
+
+void BKE_tracking_reset_settings(MovieTracking *tracking)
+{
+	tracking->settings.max_iterations= 200;
+	tracking->settings.pyramid_level= 3;
+	tracking->settings.tolerance= 0.2;
 }

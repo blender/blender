@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "*** EIGEN2-HG Update utility"
+echo "*** EIGEN#-HG Update utility"
 echo "*** This gets a new eigen3-hg tree and adapts it to blenders build structure"
 echo "*** Warning! This script will wipe all the header file"
 

@@ -49,4 +49,7 @@ struct ImBuf *ED_space_clip_acquire_buffer(struct SpaceClip *sc);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
 
+/* clip_ops.c */
+void ED_operatormacros_clip(void);
+
 #endif /* ED_TEXT_H */

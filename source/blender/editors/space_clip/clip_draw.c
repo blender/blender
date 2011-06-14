@@ -69,7 +69,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 {
 	float x;
 	int *points, totseg;
-	float sfra= scene->r.sfra, efra= scene->r.efra;
+	float sfra= SFRA, efra= EFRA;
 
 	glEnable(GL_BLEND);
 
@@ -100,13 +100,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	x= (sc->user.framenr-sfra)/(efra-sfra+1)*ar->winx;
 
 	UI_ThemeColor(TH_CFRAME);
-	glLineWidth(2.0);
-
-	glBegin(GL_LINE_STRIP);
-		glVertex2f(x, 0);
-		glVertex2f(x, 5);
-	glEnd();
-	glLineWidth(1.0);
+	glRecti(x, 0, x+ar->winx/(efra-sfra), 5);
 }
 
 static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf)
@@ -117,7 +111,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf)
 	glPixelZoom(sc->zoom, sc->zoom);
 
 	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.f, 0.f, &x, &y);
 
 	if(ibuf->rect_float)
 		IMB_rect_from_float(ibuf);
@@ -126,7 +120,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf)
 		glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 
 	/* reset zoom */
-	glPixelZoom(1.0f, 1.0f);
+	glPixelZoom(1.f, 1.f);
 }
 
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker)
@@ -166,8 +160,6 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker, int act, int sel)
 {
 	int color= act?TH_ACT_MARKER:TH_SEL_MARKER;
-
-	(void)sc;
 
 	/* marker position */
 	if((track->flag&SELECT)==sel) {
@@ -306,4 +298,84 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 	if(sc->debug_flag&SC_DBG_SHOW_CACHE)
 		draw_movieclip_cache(sc, ar, clip, scene);
+}
+
+void draw_clip_track_widget(const bContext *UNUSED(C), void *trackp, void *userp, void *clipp, rcti *rect)
+{
+	MovieClipUser *user= (MovieClipUser *)userp;
+	MovieClip *clip= (MovieClip *)clipp;
+	MovieTrackingTrack *track= (MovieTrackingTrack *)trackp;
+	int ok= 0;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+	if(track) {
+		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
+
+		if(marker) {
+			ImBuf* ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+
+			if(ibuf && ibuf->rect) {
+				int pos[2];
+				ImBuf* tmpibuf;
+
+				tmpibuf= BKE_tracking_acquire_pattern_imbuf(ibuf, track, marker, pos);
+
+				if(tmpibuf->rect_float)
+					IMB_rect_from_float(tmpibuf);
+
+				if(tmpibuf->rect) {
+					int a;
+					float zoomx, zoomy;
+
+					zoomx= ((float)rect->xmax-rect->xmin) / tmpibuf->x;
+					zoomy= ((float)rect->ymax-rect->ymin) / tmpibuf->y;
+
+					glPushMatrix();
+
+					glTranslatef(rect->xmin, rect->ymin, 0.f);
+					glPixelZoom(zoomx, zoomy);
+
+					glaDrawPixelsSafe(0, 0, tmpibuf->x, tmpibuf->y, tmpibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, tmpibuf->rect);
+
+					glPixelZoom(1.f, 1.f);
+
+					glTranslatef((pos[0]+0.5f)*zoomx, (pos[1]+0.5f)*zoomy, 0.f);
+
+					for(a= 0; a< 2; a++) {
+						if(a==1) {
+							glLineStipple(3, 0xaaaa);
+							glEnable(GL_LINE_STIPPLE);
+							UI_ThemeColor(TH_SEL_MARKER);
+						}
+						else {
+							UI_ThemeColor(TH_MARKER_OUTLINE);
+						}
+
+						glBegin(GL_LINES);
+							glVertex2f(-10, 0);
+							glVertex2f(10, 0);
+							glVertex2f(0, -10);
+							glVertex2f(0, 10);
+						glEnd();
+					}
+					glDisable(GL_LINE_STIPPLE);
+
+					glPopMatrix();
+				}
+
+				IMB_freeImBuf(tmpibuf);
+				IMB_freeImBuf(ibuf);
+
+				ok= 1;
+			}
+		}
+	}
+
+	if(!ok) {
+		glColor4f(0.f, 0.f, 0.f, 0.3f);
+		uiSetRoundBox(15);
+		uiDrawBox(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 3.0f);
+	}
 }

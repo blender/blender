@@ -50,7 +50,7 @@ set(SRC
 if(WITH_IK_ITASC)
 	add_definitions(-DWITH_IK_ITASC)
 	list(APPEND INC
-		../../../extern/Eigen2
+		../../../extern/Eigen3
 		../../../intern/itasc
 	)
 	list(APPEND SRC

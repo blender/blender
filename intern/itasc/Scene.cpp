@@ -356,7 +356,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 					m_Uf.col(i).setConstant(0.0);
 				else
 					m_Uf.col(i)*=(1/m_Sf(i));
-			project(m_Jf_inv,cs->featurerange,cs->featurerange)=(m_Vf*m_Uf.transpose()).lazy();
+			project(m_Jf_inv,cs->featurerange,cs->featurerange).noalias()=m_Vf*m_Uf.transpose();
 
 			//Get the robotjacobian associated with this constraintset
 			//Each jacobian is expressed in robot base frame => convert to world reference
@@ -410,11 +410,11 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 		}
 
 	    //Calculate A
-		m_Atemp=(m_Cf*m_Jf_inv).lazy();
-		m_A = m_Cq-(m_Atemp*m_Jq).lazy();
+		m_Atemp.noalias()=m_Cf*m_Jf_inv;
+		m_A.noalias() = m_Cq-(m_Atemp*m_Jq);
 		if (m_nuTotal > 0) {
-			m_B=(m_Atemp*m_Ju).lazy();
-			m_ydot += (m_B*m_xdot).lazy();
+			m_B.noalias()=m_Atemp*m_Ju;
+			m_ydot.noalias() += m_B*m_xdot;
 		}
 
 		//Call the solver with A, Wq, Wy, ydot to solver qdot:
@@ -435,13 +435,13 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 			//Calculate the twist of the world reference frame due to the robots (Jq*qdot+Ju*chiudot):
 			e_vector6 external_vel = e_zero_vector(6);
 			if (ob1->jointrange.count > 0)
-				external_vel += (project(m_Jq,cs->featurerange,ob1->jointrange)*project(m_qdot,ob1->jointrange)).lazy();
+				external_vel.noalias() += (project(m_Jq,cs->featurerange,ob1->jointrange)*project(m_qdot,ob1->jointrange));
 			if (ob2->jointrange.count > 0)
-				external_vel += (project(m_Jq,cs->featurerange,ob2->jointrange)*project(m_qdot,ob2->jointrange)).lazy();
+				external_vel.noalias() += (project(m_Jq,cs->featurerange,ob2->jointrange)*project(m_qdot,ob2->jointrange));
 			if (ob1->coordinaterange.count > 0)
-				external_vel += (project(m_Ju,cs->featurerange,ob1->coordinaterange)*project(m_xdot,ob1->coordinaterange)).lazy();
+				external_vel.noalias() += (project(m_Ju,cs->featurerange,ob1->coordinaterange)*project(m_xdot,ob1->coordinaterange));
 			if (ob2->coordinaterange.count > 0)
-				external_vel += (project(m_Ju,cs->featurerange,ob2->coordinaterange)*project(m_xdot,ob2->coordinaterange)).lazy();
+				external_vel.noalias() += (project(m_Ju,cs->featurerange,ob2->coordinaterange)*project(m_xdot,ob2->coordinaterange));
 			//the twist caused by the constraint must be opposite because of the closed loop
 			//estimate the velocity of the joints using the inverse jacobian
 			e_vector6 estimated_chidot = project(m_Jf_inv,cs->featurerange,cs->featurerange)*(-external_vel);

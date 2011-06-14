@@ -54,7 +54,7 @@ const e_matrix& ControlledObject::getJq(unsigned int ee) const
 
 double ControlledObject::getMaxTimestep(double& timestep)
 {
-	e_scalar maxQdot = m_qdot.cwise().abs().maxCoeff();
+	e_scalar maxQdot = m_qdot.array().abs().maxCoeff();
 	if (timestep*maxQdot > m_maxDeltaQ) {
 		timestep = m_maxDeltaQ/maxQdot;
 	}

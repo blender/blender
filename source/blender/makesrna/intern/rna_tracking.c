@@ -49,14 +49,6 @@
 
 #include "BKE_depsgraph.h"
 
-#if 0
-static void rna_tracking_markers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	MovieClip *clip= (MovieClip*)ptr->id.data;
-	rna_iterator_listbase_begin(iter, &clip->tracking.markers, NULL);
-}
-#endif
-
 static void rna_tracking_tracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
@@ -95,7 +87,54 @@ static void rna_tracking_bundles_begin(CollectionPropertyIterator *iter, Pointer
 	rna_iterator_listbase_begin(iter, &clip->tracking.bundles, NULL);
 }
 
+static PointerRNA rna_tracking_active_track_get(PointerRNA *ptr)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+	int type;
+	void *sel;
+
+	BKE_movieclip_last_selection(clip, &type, &sel);
+
+	if(type==MCLIP_SEL_TRACK)
+		return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingTrack, sel);
+
+	return rna_pointer_inherit_refine(ptr, &RNA_SceneRenderLayer, NULL);
+}
+
 #else
+
+static void rna_def_trackingSettings(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MovieTrackingSettings", NULL);
+	RNA_def_struct_ui_text(srna, "Movie tracking settings", "Match-moving tracking settings");
+
+	/* max iterations */
+	prop= RNA_def_property(srna, "max_iterations", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "max_iterations");
+	RNA_def_property_range(prop, 1.0f, INT_MAX);
+	RNA_def_property_ui_range(prop, 1, 500, 1, 1);
+	RNA_def_property_ui_text(prop, "Max Iterations", "Maximal iteration used by KLT region tracker");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+
+	/* pyramid level */
+	prop= RNA_def_property(srna, "pyramid_level", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "pyramid_level");
+	RNA_def_property_range(prop, 1.0f, INT_MAX);
+	RNA_def_property_ui_range(prop, 1, 20, 1, 1);
+	RNA_def_property_ui_text(prop, "Pyramid Level", "Levels used by pyramid tracker");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+
+	/* tolerance */
+	prop= RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "tolerance");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 2, 1, 3);
+	RNA_def_property_ui_text(prop, "Tolerance", "Tolerance of retrackt tracker");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+}
 
 static void rna_def_trackingCamera(BlenderRNA *brna)
 {
@@ -196,7 +235,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingMarker");
 	RNA_def_property_collection_sdna(prop, NULL, "markers", "markersnr");
-	RNA_def_property_ui_text(prop, "markers", "Collection of markers in track");
+	RNA_def_property_ui_text(prop, "Markers", "Collection of markers in track");
 }
 
 static void rna_def_tracking(BlenderRNA *brna)
@@ -204,12 +243,17 @@ static void rna_def_tracking(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	rna_def_trackingSettings(brna);
 	rna_def_trackingCamera(brna);
 	rna_def_trackingTrack(brna);
 	rna_def_trackingBundle(brna);
 
 	srna= RNA_def_struct(brna, "MovieTracking", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking data", "Match-moving data for tracking");
+
+	/* settings */
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MovieTrackingSettings");
 
 	/* camera properties */
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
@@ -219,7 +263,13 @@ static void rna_def_tracking(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "tracks", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_funcs(prop, "rna_tracking_tracks_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
-	RNA_def_property_ui_text(prop, "tracks", "Collection of tracks in this tracking data object");
+	RNA_def_property_ui_text(prop, "Tracks", "Collection of tracks in this tracking data object");
+
+	/* active tracks */
+	prop= RNA_def_property(srna, "act_track", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
+	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_track_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
 
 	/* bundles */
 	prop= RNA_def_property(srna, "bundles", PROP_COLLECTION, PROP_NONE);

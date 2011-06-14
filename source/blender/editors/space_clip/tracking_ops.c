@@ -147,63 +147,34 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int add_marker_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	int width, height;
-
-	ED_space_clip_size(sc, &width, &height);
-	if(!width || !height)
-		return OPERATOR_CANCELLED;
-
-	WM_event_add_modal_handler(C, op);
-
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static void mouse_pos(bContext *C, wmEvent *event, float *x, float *y)
+static void mouse_pos(bContext *C, wmEvent *event, float co[2])
 {
 	ARegion *ar= CTX_wm_region(C);
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	int sx, sy;
 
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
-	*x= ((float)event->mval[0]-sx)/sc->zoom;
-	*y= ((float)event->mval[1]-sy)/sc->zoom;
+	co[0]= ((float)event->mval[0]-sx)/sc->zoom;
+	co[1]= ((float)event->mval[1]-sy)/sc->zoom;
 }
 
-static int add_marker_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int add_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	float x, y;
-	char buf[256];
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	int width, height;
+	float co[2];
 
-	switch(event->type) {
-		case MOUSEMOVE:
-			mouse_pos(C, event, &x, &y);
-			BLI_snprintf(buf, sizeof(buf), "Position for new marker X:%.0f Y:%.0f", x, y);
-			ED_area_headerprint(sa, buf);
-			break;
-		case LEFTMOUSE:
-			if(event->val==KM_PRESS) {
-				SpaceClip *sc= CTX_wm_space_clip(C);
-				MovieClip *clip= ED_space_clip(sc);
-				int width, height;
+	ED_space_clip_size(sc, &width, &height);
+	if(!width || !height)
+		return OPERATOR_CANCELLED;
 
-				ED_space_clip_size(sc, &width, &height);
-				mouse_pos(C, event, &x, &y);
-				add_marker(sc, x/width, y/height);
+	mouse_pos(C, event, co);
+	co[0]/= width;
+	co[1]/= height;
 
-				WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
-			}
-			break;
-		case RIGHTMOUSE:
-		case ESCKEY:
-			ED_area_headerprint(sa, NULL);
-			return OPERATOR_FINISHED;
-	}
+	RNA_float_set_array(op->ptr, "location", co);
 
-	return OPERATOR_RUNNING_MODAL;
+	return add_marker_exec(C, op);
 }
 
 void CLIP_OT_add_marker(wmOperatorType *ot)
@@ -215,7 +186,6 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke= add_marker_invoke;
-	ot->modal= add_marker_modal;
 	ot->exec= add_marker_exec;
 	ot->poll= space_clip_tracking_poll;
 
@@ -223,8 +193,8 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -INT_MAX, INT_MAX,
-		"Location", "Location of marker on frame.", -INT_MAX, INT_MAX);
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+		"Location", "Location of marker on frame.", -1.f, 1.f);
 }
 
 /********************** delete operator *********************/
@@ -299,8 +269,8 @@ static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *trac
 	epsy= MIN4(track->pat_min[1]-track->search_min[1], track->search_max[1]-track->pat_max[1],
 	           fabsf(track->pat_min[1]), fabsf(track->pat_max[1])) / 2;
 
-	epsx= MAX2(epsy, 4.0 / width);
-	epsy= MAX2(epsy, 4.0 / height);
+	epsx= MAX2(epsy, 2.0 / width);
+	epsy= MAX2(epsy, 2.0 / height);
 
 	if(fabsf(co[0]-marker->pos[0])< epsx && fabsf(co[1]-marker->pos[1])<=epsy)
 		return TRACK_AREA_POINT;
@@ -695,7 +665,7 @@ static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj)
 	Scene *scene= CTX_data_scene(C);
 
 	tmj->sfra= sc->user.framenr;
-	tmj->efra= scene->r.efra;
+	tmj->efra= EFRA;
 	tmj->clip= clip;
 	tmj->user= &sc->user;
 
@@ -775,11 +745,11 @@ static int track_markers_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene= CTX_data_scene(C);
 	struct MovieTrackingContext *context;
 	int framenr= sc->user.framenr;
-	int sfra= framenr, efra= scene->r.efra;
+	int sfra= framenr;
 
 	context= BKE_tracking_context_new(clip, &sc->user);
 
-	while(framenr < efra) {
+	while(framenr < EFRA) {
 		if(!BKE_tracking_next(context))
 			break;
 
@@ -824,6 +794,33 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	ot->invoke= track_markers_invoke;
 	ot->poll= space_clip_frame_poll;
 	ot->modal= track_marekrs_modal;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** reset tracking settings operator *********************/
+
+static int reset_tracking_settings_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+
+	BKE_tracking_reset_settings(&clip->tracking);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_reset_tracking_settings(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reset Tracking Settings";
+	ot->description= "Reset tracking settings to default values";
+	ot->idname= "CLIP_OT_reset_tracking_settings";
+
+	/* api callbacks */
+	ot->exec= reset_tracking_settings_exec;
+	ot->poll= space_clip_frame_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
