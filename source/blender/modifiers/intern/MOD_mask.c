@@ -191,7 +191,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* add vertices which exist in vertexgroups into vertHash for filtering */
 		for (i= 0, dv= dvert; i < maxVerts; i++, dv++)
 		{
-			MDeformWeight *dw= dvert->dw;
+			MDeformWeight *dw= dv->dw;
 			int j;
 
 			for (j= dv->totweight; j > 0; j--, dw++)
