@@ -345,8 +345,8 @@ Utility functions
 
 .. function:: getAverageFrameRate()
 
-   Gets the estimated average framerate
-   
+   Gets the estimated/average framerate for all the active scenes, not only the current scene.
+
    :return: The estimed average framerate in frames per second
    :rtype: float
 
