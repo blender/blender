@@ -2876,7 +2876,11 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	ThemeUI *tui= &btheme->tui;
 	uiFontStyle *fstyle= &style->widget;
 	uiWidgetType *wt= NULL;
-	
+
+	/* backup the clear color [#27648], box widget clears it */
+	float clear_col[4];
+	glGetFloatv(GL_COLOR_CLEAR_VALUE, clear_col);
+
 	/* handle menus separately */
 	if(but->dt==UI_EMBOSSP) {
 		switch (but->type) {
@@ -3073,6 +3077,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			if(but->dt!=UI_EMBOSSP)
 				widget_disabled(&disablerect);
 	}
+
+	/* restore clear color incase it changed */
+	glClearColor(clear_col[0], clear_col[1], clear_col[2], clear_col[3]);
 }
 
 void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
