@@ -1332,7 +1332,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 				else {
 					node->width= nsw->oldwidth + mx - nsw->mxstart;
-					CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
+					CLAMP(node->width, UI_DPI_FAC*node->typeinfo->minwidth, UI_DPI_FAC*node->typeinfo->maxwidth);
 				}
 			}
 				

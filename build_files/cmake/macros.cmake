@@ -484,8 +484,8 @@ macro(blender_project_hack_post)
 	unset(_reset_standard_cflags_rel)
 	unset(_reset_standard_cxxflags_rel)
 
-	# --------------------------------------------------
-	# workaround for omission in cmake 2.8.4's GNU.cmake
+	# ------------------------------------------------------------------
+	# workaround for omission in cmake 2.8.4's GNU.cmake, fixed in 2.8.5
 	if(CMAKE_COMPILER_IS_GNUCC)
 		if(NOT DARWIN)
 			set(CMAKE_INCLUDE_SYSTEM_FLAG_C "-isystem ")

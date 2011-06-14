@@ -18,10 +18,18 @@ set(_Python_ABI_FLAGS
 	"m;mu;u; ")
 
 string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
-set(_Python_PATHS
-  "$ENV{HOME}/py${_PYTHON_VERSION_NO_DOTS}" "/opt/py${_PYTHON_VERSION_NO_DOTS}" "/usr" "/usr/local")
 
-if(NOT DEFINED PYTHON_INCLUDE_DIRS)
+set(_Python_PATHS
+	"$ENV{HOME}/py${_PYTHON_VERSION_NO_DOTS}"
+	"/opt/py${_PYTHON_VERSION_NO_DOTS}"
+	"/usr"
+	"/usr/local"
+)
+
+if(NOT DEFINED PYTHON_INCLUDE_DIRS OR
+   NOT DEFINED PYTHON_LIBRARY OR
+   NOT DEFINED PYTHON_LIBPATH)
+   
 	message(STATUS "Looking for include Python.h")
 	set(_Found_PYTHON_H OFF)
 
@@ -58,7 +66,15 @@ if(NOT DEFINED PYTHON_INCLUDE_DIRS)
 	unset(_Python_HEADER)
 	unset(_CURRENT_ABI_FLAGS)
 	unset(_CURRENT_PATH)
-	
+
+
+	set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}${PYTHON_ABI_FLAGS}" CACHE STRING "")
+	mark_as_advanced(PYTHON_INCLUDE_DIRS)
+	set(PYTHON_LIBRARY "python${PYTHON_VERSION}${PYTHON_ABI_FLAGS}" CACHE STRING "")
+	mark_as_advanced(PYTHON_LIBRARY)
+	set(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
+	mark_as_advanced(PYTHON_LIBPATH)
+	# set(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
 endif()
 
 unset(_Python_ABI_FLAGS)
@@ -67,14 +83,6 @@ unset(_Python_PATHS)
 #=============================================================================
 # now the python versions are found
 
-
-set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}${PYTHON_ABI_FLAGS}" CACHE STRING "")
-mark_as_advanced(PYTHON_INCLUDE_DIRS)
-set(PYTHON_LIBRARY "python${PYTHON_VERSION}${PYTHON_ABI_FLAGS}" CACHE STRING "")
-mark_as_advanced(PYTHON_LIBRARY)
-set(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
-mark_as_advanced(PYTHON_LIBPATH)
-# set(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
 
 if(NOT EXISTS "${PYTHON_INCLUDE_DIRS}/Python.h")
 	message(FATAL_ERROR " Missing python header: ${PYTHON_INCLUDE_DIRS}/Python.h")

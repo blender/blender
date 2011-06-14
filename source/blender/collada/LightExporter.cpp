@@ -68,20 +68,18 @@ void LightsExporter::operator()(Object *ob)
 	std::string la_name(id_name(la));
 	COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
 	float e, d, constatt, linatt, quadatt;
-	float r;
 	
 	d = la->dist;
-	r = d/2.0f;
 	
 	constatt = 1.0f;
 	
 	if(la->falloff_type==LA_FALLOFF_INVLINEAR) {
-		linatt = 1.0f / r;
+		linatt = 1.0f / d;
 		quadatt = 0.0f;
 	}
 	else {
 		linatt = 0.0f;
-		quadatt = 1.0f / r;
+		quadatt = 1.0f / (d * d);
 	}
 	
 	// sun

@@ -73,6 +73,9 @@ private :
 	
 	/** xy toggle (pick one): true == x, false == y */
 	bool m_x;
+	
+	/** damping (float), */
+	float m_damping;
 
 	/* get the KX_IGameObject with this name */
 	CValue *findObject(char *obName);
@@ -95,7 +98,8 @@ private :
 		float hght,
 		float minhght,
 		float maxhght,
-		bool xytog
+		bool xytog,
+		float damping
 	);
 
 

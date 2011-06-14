@@ -55,10 +55,10 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
 	 m_rasterizer(rasterizer),
 	 m_scene(scene)
 {
-	m_gameObj = NULL;
+	m_gameobj = NULL;
 	if(gameobj){
 		m_propNames = gameobj->GetPropertyNames();
-		m_gameObj = gameobj;
+		m_gameobj = gameobj;
 	}
 }
 
@@ -91,7 +91,7 @@ bool SCA_2DFilterActuator::Update()
 	}
 	else if(m_type < RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS)
 	{
-		m_scene->Update2DFilter(m_propNames, m_gameObj, m_type, m_int_arg, m_shaderText);
+		m_scene->Update2DFilter(m_propNames, m_gameobj, m_type, m_int_arg, m_shaderText);
 	}
 	// once the filter is in place, no need to update it again => disable the actuator
     return false;

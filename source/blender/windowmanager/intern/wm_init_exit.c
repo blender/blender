@@ -328,7 +328,6 @@ static void free_openrecent(void)
 
 /* bad stuff*/
 
-extern ListBase editelems;
 extern wchar_t *copybuf;
 extern wchar_t *copybufinfo;
 
@@ -394,10 +393,6 @@ void WM_exit(bContext *C)
 	free_anim_drivers_copybuf();
 	free_fmodifiers_copybuf();
 	free_posebuf();
-//	free_vertexpaint();
-//	free_imagepaint();
-	
-//	fsmenu_free();
 
 	BLF_exit();
 	
@@ -420,10 +415,6 @@ void WM_exit(bContext *C)
 	BPY_python_end();
 #endif
 
-	if (!G.background) {
-// XXX		UI_filelist_free_icons();
-	}
-	
 	GPU_buffer_pool_free(NULL);
 	GPU_free_unused_buffers();
 	GPU_extensions_exit();
