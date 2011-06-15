@@ -29,6 +29,9 @@
 
 // --- the following type definitions will find a home somewhere else once finished ---
 
+// #define DEBUG_NDOF_MOTION
+#define DEBUG_NDOF_BUTTONS
+
 typedef enum { SpaceNavigator, SpaceExplorer, SpacePilot } NDOF_DeviceT;
 
 // NDOF device button event types

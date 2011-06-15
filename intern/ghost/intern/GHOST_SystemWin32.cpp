@@ -841,40 +841,24 @@ bool GHOST_SystemWin32::processNDOF(/*GHOST_WindowWin32* window,*/ RAWINPUT cons
 			{
 			short t[3];
 			memcpy(t, data + 1, sizeof(t));
-			// too much noise -- disable for now
-			printf("T: %+5d %+5d %+5d\n", t[0], t[1], t[2]);
 			m_ndofManager->updateTranslation(t, getMilliSeconds());
 			// wariness of alignment issues prevents me from saying it this way:
 			// m_ndofManager->updateTranslation((short*)(data + 1), getMilliSeconds());
-			// though it probably (94.7%) works fine
+			// though it probably (94.7%) would work fine
 			break;
 			}
 		case 2: // rotation
 			{
 			short r[3];
 			memcpy(r, data + 1, sizeof(r));
-			printf("R: %+5d %+5d %+5d\n", r[0], r[1], r[2]);
 			m_ndofManager->updateRotation(r, getMilliSeconds());
 			break;
 			}
 		case 3: // buttons
 			{
-			unsigned buttons;
-			memcpy(&buttons, data + 1, sizeof(buttons));
-
-//			printf("buttons:");
-//			if (buttons)
-//				{
-//				// work our way through the bit mask
-//				for (int i = 0; i < 16; ++i)
-//					if (buttons & (1 << i))
-//						printf(" %d", i + 1);
-//				printf("\n");
-//				}
-//			else
-//				printf(" none\n");
-
-			m_ndofManager->updateButtons(buttons, getMilliSeconds());
+			int button_bits;
+			memcpy(&button_bits, data + 1, sizeof(button_bits));
+			m_ndofManager->updateButtons(button_bits, getMilliSeconds());
 			break;
 			}
 		}

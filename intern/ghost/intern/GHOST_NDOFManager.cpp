@@ -28,8 +28,7 @@
 #include <string.h> // for memory functions
 #include <stdio.h> // for debug tracing
 
-
-
+#ifdef DEBUG_NDOF_BUTTONS
 static const char* ndof_button_names[] = {
 	// used internally, never sent
 	"NDOF_BUTTON_NONE",
@@ -71,14 +70,15 @@ static const char* ndof_button_names[] = {
 	"NDOF_BUTTON_9",
 	"NDOF_BUTTON_10",
 	};
+#endif
 
-static const NDOF_ButtonT SpaceNavigator_HID_map[2] =
+static const NDOF_ButtonT SpaceNavigator_HID_map[] =
 	{
 	NDOF_BUTTON_MENU,
 	NDOF_BUTTON_FIT
 	};
 
-static const NDOF_ButtonT SpaceExplorer_HID_map[16] =
+static const NDOF_ButtonT SpaceExplorer_HID_map[] =
 	{
 	NDOF_BUTTON_1,
 	NDOF_BUTTON_2,
@@ -97,9 +97,44 @@ static const NDOF_ButtonT SpaceExplorer_HID_map[16] =
 	NDOF_BUTTON_ROTATE
 	};
 
+static const NDOF_ButtonT SpacePilot_HID_map[] =
+	{
+	NDOF_BUTTON_MENU,
+	NDOF_BUTTON_FIT,
+	NDOF_BUTTON_TOP,
+	NDOF_BUTTON_LEFT,
+	NDOF_BUTTON_RIGHT,
+	NDOF_BUTTON_FRONT,
+	NDOF_BUTTON_BOTTOM,
+	NDOF_BUTTON_BACK,
+	NDOF_BUTTON_ROLL_CW,
+	NDOF_BUTTON_ROLL_CCW,
+	NDOF_BUTTON_ISO1,
+	NDOF_BUTTON_ISO2,
+	NDOF_BUTTON_1,
+	NDOF_BUTTON_2,
+	NDOF_BUTTON_3,
+	NDOF_BUTTON_4,
+	NDOF_BUTTON_5,
+	NDOF_BUTTON_6,
+	NDOF_BUTTON_7,
+	NDOF_BUTTON_8,
+	NDOF_BUTTON_9,
+	NDOF_BUTTON_10,
+	NDOF_BUTTON_NONE, // esc key
+	NDOF_BUTTON_NONE, // alt key
+	NDOF_BUTTON_NONE, // shift key
+	NDOF_BUTTON_NONE, // ctrl key
+	NDOF_BUTTON_ROTATE,
+	NDOF_BUTTON_PANZOOM,
+	NDOF_BUTTON_DOMINANT,
+	NDOF_BUTTON_PLUS,
+	NDOF_BUTTON_MINUS
+	};
+
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	: m_system(sys)
-	, m_deviceType(SpaceExplorer) // set it manually, until device detection code is in place
+	, m_deviceType(SpacePilot) // set it manually, until device detection code is in place
 	, m_buttons(0)
 	, m_motionTime(1000) // one full second (operators should filter out such large time deltas)
 	, m_prevMotionTime(0)
@@ -133,7 +168,9 @@ void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button, bool press, GHOST_T
 	data->action = press ? GHOST_kPress : GHOST_kRelease;
 	data->button = button;
 
-	printf("sending %s %s\n", ndof_button_names[button], press ? "pressed" : "released");
+	#ifdef DEBUG_NDOF_BUTTONS
+	printf("%s %s\n", ndof_button_names[button], press ? "pressed" : "released");
+	#endif
 
 	m_system.pushEvent(event);
 	}
@@ -143,12 +180,20 @@ void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key, bool press, GHOST_TUns64 ti
 	GHOST_TEventType type = press ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 	GHOST_EventKey* event = new GHOST_EventKey(time, type, window, key);
 
+	#ifdef DEBUG_NDOF_BUTTONS
+	printf("keyboard %s\n", press ? "down" : "up");
+	#endif
+
 	m_system.pushEvent(event);
 	}
 
 void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64 time)
 	{
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
+
+	#ifdef DEBUG_NDOF_BUTTONS
+	printf("button %d -> ", button_number);
+	#endif
 
 	switch (m_deviceType)
 		{
@@ -158,25 +203,22 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 		case SpaceExplorer:
 			switch (button_number)
 				{
-				case 6:
-					sendKeyEvent(GHOST_kKeyEsc, press, time, window);
-					break;
-				case 7:
-					sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window);
-					break;
-				case 8:
-					sendKeyEvent(GHOST_kKeyLeftShift, press, time, window);
-					break;
-				case 9:
-					sendKeyEvent(GHOST_kKeyLeftControl, press, time, window);
-					break;
-				default:
-					sendButtonEvent(SpaceExplorer_HID_map[button_number], press, time, window);
+				case 6: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
+				case 7: sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window); break;
+				case 8: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
+				case 9: sendKeyEvent(GHOST_kKeyLeftControl, press, time, window); break;
+				default: sendButtonEvent(SpaceExplorer_HID_map[button_number], press, time, window);
 				}
 			break;
 		case SpacePilot:
-			printf("button %d %s\n", button_number, press ? "pressed" : "released");
-			// sendButtonEvent(SpacePilot_HID_map[button_number], press, time, window);
+			switch (button_number)
+				{
+				case 22: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
+				case 23: sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window); break;
+				case 24: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
+				case 25: sendKeyEvent(GHOST_kKeyLeftControl, press, time, window); break;
+				default: sendButtonEvent(SpacePilot_HID_map[button_number], press, time, window);
+				}
 			break;
 		}
 
@@ -231,8 +273,10 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
 	m_prevMotionTime = m_motionTime;
 
+	#ifdef DEBUG_NDOF_MOTION
 	printf("sending T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
 		data->tx, data->ty, data->tz, data->rx, data->ry, data->rz, data->dt);
+	#endif
 
 	m_system.pushEvent(event);
 
