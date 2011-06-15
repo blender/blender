@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-
 class View3DPanel():
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'

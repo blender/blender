@@ -29,6 +29,6 @@
 #ifndef BPY_APP_H
 #define BPY_APP_H
 
-PyObject *BPY_app_struct( void );
+PyObject *BPY_app_struct(void);
 
 #endif // BPY_APP_H

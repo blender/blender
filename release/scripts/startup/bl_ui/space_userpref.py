@@ -22,7 +22,7 @@ import os
 import addon_utils
 
 from bpy.props import StringProperty, BoolProperty, EnumProperty
-
+from blf import gettext as _
 
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)
@@ -126,7 +126,7 @@ class USERPREF_MT_appconfigs(bpy.types.Menu):
     preset_operator = "wm.appconfig_activate"
 
     def draw(self, context):
-        props = self.layout.operator("wm.appconfig_default", text="Blender (default)")
+        props = self.layout.operator("wm.appconfig_default", text=_("Blender (default)"))
 
         # now draw the presets
         bpy.types.Menu.draw_preset(self, context)
@@ -141,12 +141,12 @@ class USERPREF_MT_splash(bpy.types.Menu):
         row = split.row()
         row.label("")
         row = split.row()
-        row.label("Interaction:")
+        row.label(_("Interaction:"))
         # XXX, no redraws
         # text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
         # if not text:
         #     text = "Blender (default)"
-        row.menu("USERPREF_MT_appconfigs", text="Preset")
+        row.menu("USERPREF_MT_appconfigs", text=_("Preset"))
 
 
 class USERPREF_PT_interface(bpy.types.Panel):

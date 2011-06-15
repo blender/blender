@@ -5812,7 +5812,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* multiply view with object matrix.
 	 * local viewmat and persmat, to calculate projections */
-	ED_view3d_init_mats_rv3d(ob, rv3d);
+	ED_view3d_init_mats_rv3d_gl(ob, rv3d);
 
 	/* which wire color */
 	if((flag & DRAW_CONSTCOLOR) == 0) {

@@ -81,6 +81,10 @@ if(WITH_PYTHON)
 	endif()
 endif()
 
+if(WITH_HEADLESS)
+	add_definitions(-DWITH_HEADLESS)
+endif()
+
 if(WITH_GAMEENGINE)
 	blender_include_dirs(../gameengine/BlenderRoutines)
 
@@ -191,10 +195,10 @@ if(WITH_PYTHON_MODULE)
 	set_target_properties(
 		blender
 		PROPERTIES
-				PREFIX ""
-				OUTPUT_NAME bpy
-				LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-				RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  # only needed on windows
+			PREFIX ""
+			OUTPUT_NAME bpy
+			LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  # only needed on windows
 	)
 	
 	if(WIN32)
@@ -257,9 +261,9 @@ if(UNIX AND NOT APPLE)
 	if(WITH_INSTALL_PORTABLE)
 		install(
 			FILES
-			${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
-			${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
-			${CMAKE_SOURCE_DIR}/doc/manpage/blender.1
+				${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
+				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
+				${CMAKE_SOURCE_DIR}/doc/manpage/blender.1
 			DESTINATION ${TARGETDIR}
 		)
 
@@ -305,12 +309,12 @@ if(UNIX AND NOT APPLE)
 		)
 		install(
 			DIRECTORY
-					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/16x16
-					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/22x22
-					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/24x24
-					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/32x32
-					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/48x48
-					${CMAKE_SOURCE_DIR}/release/freedesktop/icons/256x256
+				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/16x16
+				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/22x22
+				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/24x24
+				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/32x32
+				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/48x48
+				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/256x256
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor
 			PATTERN ".svn" EXCLUDE
 			PATTERN "*.svg" EXCLUDE
@@ -348,7 +352,7 @@ if(UNIX AND NOT APPLE)
 		install(
 			DIRECTORY
 					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-					${CMAKE_SOURCE_DIR}/release/datafiles/fonts
+					${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
@@ -425,7 +429,7 @@ elseif(WIN32)
 		install(
 			DIRECTORY
 					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-					${CMAKE_SOURCE_DIR}/release/datafiles/fonts
+					${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
@@ -466,10 +470,11 @@ elseif(WIN32)
 			PATTERN "__pycache__" EXCLUDE
 		)
 
-		# TODO, multiple targets?
-		install(FILES ${LIBDIR}/python/lib/python32.dll DESTINATION ${TARGETDIR} CONFIGURATIONS Release)
-		install(FILES ${LIBDIR}/python/lib/python32.dll DESTINATION ${TARGETDIR} CONFIGURATIONS RelWithDebInfo)
-		install(FILES ${LIBDIR}/python/lib/python32.dll DESTINATION ${TARGETDIR} CONFIGURATIONS MinSizeRel)
+		install(
+			FILES ${LIBDIR}/python/lib/python32.dll
+			DESTINATION ${TARGETDIR}
+			CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+		)
 
 		install(
 			FILES ${LIBDIR}/python/lib/python32_d.dll
@@ -494,34 +499,14 @@ elseif(WIN32)
 			install(
 				CODE
 				"
-				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-					\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+				if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" STREQUAL \"Debug\")
+					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32_d.tar.gz\")
+				else()
+					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+				endif()
 				"
-				CONFIGURATIONS Release
-			)
-			install(
-				CODE
-				"
-				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-					\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
-				"
-				CONFIGURATIONS RelWithDebInfo
-			)
-			install(
-				CODE
-				"
-				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-					\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
-				"
-				CONFIGURATIONS MinSizeRel
-			)
-			install(
-				CODE
-				"
-				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-					\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32_d.tar.gz\")
-				"
-				CONFIGURATIONS Debug
 			)
 
 			# doesnt work, todo
@@ -538,8 +523,8 @@ elseif(WIN32)
 	else()
 		install(
 			FILES
-			${LIBDIR}/png/lib/libpng.dll
-			${LIBDIR}/zlib/lib/zlib.dll
+				${LIBDIR}/png/lib/libpng.dll
+				${LIBDIR}/zlib/lib/zlib.dll
 			DESTINATION ${TARGETDIR}
 		)
 	endif()
@@ -559,11 +544,11 @@ elseif(WIN32)
 	if(WITH_CODEC_FFMPEG)
 		install(
 			FILES
-			${LIBDIR}/ffmpeg/lib/avcodec-52.dll
-			${LIBDIR}/ffmpeg/lib/avformat-52.dll
-			${LIBDIR}/ffmpeg/lib/avdevice-52.dll
-			${LIBDIR}/ffmpeg/lib/avutil-50.dll
-			${LIBDIR}/ffmpeg/lib/swscale-0.dll
+				${LIBDIR}/ffmpeg/lib/avcodec-52.dll
+				${LIBDIR}/ffmpeg/lib/avformat-52.dll
+				${LIBDIR}/ffmpeg/lib/avdevice-52.dll
+				${LIBDIR}/ffmpeg/lib/avutil-50.dll
+				${LIBDIR}/ffmpeg/lib/swscale-0.dll
 			DESTINATION ${TARGETDIR}
 		)
 
@@ -571,8 +556,7 @@ elseif(WIN32)
 
 	if(WITH_CODEC_SNDFILE)
 		install(
-			FILES
-			${LIBDIR}/sndfile/lib/libsndfile-1.dll
+			FILES ${LIBDIR}/sndfile/lib/libsndfile-1.dll
 			DESTINATION ${TARGETDIR}
 		)
 	endif()
@@ -580,8 +564,8 @@ elseif(WIN32)
 	if(WITH_OPENAL)
 		install(
 			FILES
-			${LIBDIR}/openal/lib/OpenAL32.dll
-			${LIBDIR}/openal/lib/wrap_oal.dll
+				${LIBDIR}/openal/lib/OpenAL32.dll
+				${LIBDIR}/openal/lib/wrap_oal.dll
 			DESTINATION ${TARGETDIR}
 		)
 	endif()
@@ -589,8 +573,7 @@ elseif(WIN32)
 	if(WITH_SDL)
 		if(NOT CMAKE_CL_64)
 			install(
-				FILES
-				${LIBDIR}/sdl/lib/SDL.dll
+				FILES ${LIBDIR}/sdl/lib/SDL.dll
 				DESTINATION ${TARGETDIR}
 			)
 		endif()
@@ -598,14 +581,12 @@ elseif(WIN32)
 
 	if(NOT CMAKE_CL_64)
 		install(
-			FILES
-			${LIBDIR}/thumbhandler/lib/BlendThumb.dll
+			FILES ${LIBDIR}/thumbhandler/lib/BlendThumb.dll
 			DESTINATION ${TARGETDIR}
 		)
 	else()
 		install(
-			FILES
-			${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
+			FILES ${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
 			DESTINATION ${TARGETDIR}
 		)
 	endif()
@@ -683,7 +664,7 @@ elseif(APPLE)
 		install_dir(
 			DIRECTORY
 					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-					${CMAKE_SOURCE_DIR}/release/datafiles/fonts
+					${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			\${TARGETDIR_VER}/datafiles/locale
 		)
 	endif()
@@ -876,6 +857,12 @@ endif()
 		message(STATUS "Blender Skipping: (${REM_MSG})")
 	endif()
 	target_link_libraries(blender ${BLENDER_SORTED_LIBS})
+	
+	unset(SEARCHLIB)
+	unset(SORTLIB)
+	unset(REMLIB)
+	unset(REM_MSG)
+	
 #else()
 #	target_link_libraries(blender ${BLENDER_LINK_LIBS})
 #endif()

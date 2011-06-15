@@ -869,8 +869,7 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 	return tuple;
 }
 /* sequence slice (set): vector[a:b] = value */
-static int Vector_ass_slice(VectorObject *self, int begin, int end,
-				 PyObject * seq)
+static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *seq)
 {
 	int y, size = 0;
 	float vec[MAX_DIMENSIONS];
@@ -899,7 +898,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end,
 
 /* Numeric Protocols */
 /* addition: obj + obj */
-static PyObject *Vector_add(PyObject * v1, PyObject * v2)
+static PyObject *Vector_add(PyObject *v1, PyObject *v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	float vec[MAX_DIMENSIONS];
@@ -926,7 +925,7 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 }
 
 /* addition in-place: obj += obj */
-static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
+static PyObject *Vector_iadd(PyObject *v1, PyObject *v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 
@@ -953,7 +952,7 @@ static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 }
 
 /* subtraction: obj - obj */
-static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
+static PyObject *Vector_sub(PyObject *v1, PyObject *v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	float vec[MAX_DIMENSIONS];
@@ -979,7 +978,7 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 }
 
 /* subtraction in-place: obj -= obj */
-static PyObject *Vector_isub(PyObject * v1, PyObject * v2)
+static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
 {
 	VectorObject *vec1= NULL, *vec2= NULL;
 
@@ -1055,7 +1054,7 @@ static PyObject *vector_mul_float(VectorObject *vec, const float scalar)
 	return newVectorObject(tvec, vec->size, Py_NEW, Py_TYPE(vec));
 }
 
-static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
+static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	float scalar;
@@ -1116,12 +1115,12 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 			mul_qt_v3(quat2->quat, tvec);
 			return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec1));
 		}
-		else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC*FLOAT */
+		else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC * FLOAT */
 			return vector_mul_float(vec1, scalar);
 		}
 	}
 	else if (vec2) {
-		if (((scalar= PyFloat_AsDouble(v1)) == -1.0f && PyErr_Occurred())==0) { /* VEC*FLOAT */
+		if (((scalar= PyFloat_AsDouble(v1)) == -1.0f && PyErr_Occurred())==0) { /* FLOAT * VEC */
 			return vector_mul_float(vec2, scalar);
 		}
 	}
@@ -1134,7 +1133,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 }
 
 /* mulplication in-place: obj *= obj */
-static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
+static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 {
 	VectorObject *vec = (VectorObject *)v1;
 	float scalar;
@@ -1168,7 +1167,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		}
 		mul_qt_v3(quat2->quat, vec->vec);
 	}
-	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC*=FLOAT */
+	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC *= FLOAT */
 		mul_vn_fl(vec->vec, vec->size, scalar);
 	}
 	else {
@@ -1182,7 +1181,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 }
 
 /* divid: obj / obj */
-static PyObject *Vector_div(PyObject * v1, PyObject * v2)
+static PyObject *Vector_div(PyObject *v1, PyObject *v2)
 {
 	int i;
 	float vec[4], scalar;
@@ -1214,7 +1213,7 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 }
 
 /* divide in-place: obj /= obj */
-static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
+static PyObject *Vector_idiv(PyObject *v1, PyObject *v2)
 {
 	int i;
 	float scalar;
@@ -1489,7 +1488,7 @@ static PyObject *Vector_getAxis(VectorObject *self, void *type)
 	return vector_item_internal(self, GET_INT_FROM_POINTER(type), TRUE);
 }
 
-static int Vector_setAxis(VectorObject *self, PyObject * value, void *type)
+static int Vector_setAxis(VectorObject *self, PyObject *value, void *type)
 {
 	return vector_ass_item_internal(self, GET_INT_FROM_POINTER(type), value, TRUE);
 }
@@ -1596,7 +1595,7 @@ static PyObject *Vector_getSwizzle(VectorObject *self, void *closure)
 
    Returns 0 on success and -1 on failure. On failure, the vector will be
    unchanged. */
-static int Vector_setSwizzle(VectorObject *self, PyObject * value, void *closure)
+static int Vector_setSwizzle(VectorObject *self, PyObject *value, void *closure)
 {
 	size_t size_from;
 	float scalarVal;

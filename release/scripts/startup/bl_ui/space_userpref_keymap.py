@@ -411,8 +411,8 @@ def export_properties(prefix, properties, lines=None):
     if lines is None:
         lines = []
 
-    for pname in properties.keys():
-        if not properties.is_property_hidden(pname):
+    for pname in properties.bl_rna.properties.keys():
+        if pname != "rna_type" and not properties.is_property_hidden(pname):
             value = getattr(properties, pname)
             if isinstance(value, bpy.types.OperatorProperties):
                 export_properties(prefix + "." + pname, value, lines)

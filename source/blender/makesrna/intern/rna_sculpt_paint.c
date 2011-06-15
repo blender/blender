@@ -95,7 +95,7 @@ static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, NULL);
 }
 
-static void rna_ParticleEdit_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_ParticleEdit_redo(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
 	PTCacheEdit *edit = PE_get_current(scene, ob);
@@ -106,7 +106,7 @@ static void rna_ParticleEdit_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 	psys_free_path_cache(edit->psys, edit);
 }
 
-static void rna_ParticleEdit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_ParticleEdit_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
 
@@ -127,7 +127,7 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 
 	pset->brushtype = value;
 }
-static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
@@ -184,7 +184,7 @@ static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 	return brush->ob_mode & mode;
 }
 
-static void rna_Sculpt_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sculpt_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
 

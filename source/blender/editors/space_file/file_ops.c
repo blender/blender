@@ -44,6 +44,8 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include "BLF_api.h"
+
 #include "ED_screen.h"
 #include "ED_fileselect.h"
 
@@ -301,6 +303,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->exec= file_border_select_exec;
 	ot->modal= file_border_select_modal;
 	ot->poll= ED_operator_file_active;
+	ot->cancel= WM_border_select_cancel;
 
 	/* rna */
 	WM_operator_properties_gesture_border(ot, 0);
@@ -458,7 +461,7 @@ void FILE_OT_bookmark_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Bookmark";
-	ot->description= "Add a bookmark for the selected/active directory";
+	ot->description= _("Add a bookmark for the selected/active directory");
 	ot->idname= "FILE_OT_bookmark_add";
 	
 	/* api callbacks */
@@ -1049,8 +1052,8 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 void FILE_OT_directory_new(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Create New Directory";
-	ot->description= "Create a new directory";
+	ot->name= _("Create New Directory");
+	ot->description= _("Create a new directory");
 	ot->idname= "FILE_OT_directory_new";
 	
 	/* api callbacks */
@@ -1147,8 +1150,8 @@ int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_directory(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Enter Directory Name";
-	ot->description= "Enter a directory name";
+	ot->name= _("Enter Directory Name");
+	ot->description= _("Enter a directory name");
 	ot->idname= "FILE_OT_directory";
 	
 	/* api callbacks */
@@ -1160,8 +1163,8 @@ void FILE_OT_directory(struct wmOperatorType *ot)
 void FILE_OT_refresh(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Refresh Filelist";
-	ot->description= "Refresh the file list";
+	ot->name= _("Refresh Filelist");
+	ot->description= _("Refresh the file list");
 	ot->idname= "FILE_OT_refresh";
 	
 	/* api callbacks */

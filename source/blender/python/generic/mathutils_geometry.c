@@ -169,7 +169,7 @@ PyDoc_STRVAR(M_Geometry_intersect_line_line_doc,
 );
 static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject *args)
 {
-	PyObject * tuple;
+	PyObject *tuple;
 	VectorObject *vec1, *vec2, *vec3, *vec4;
 	float v1[3], v2[3], v3[3], v4[3], i1[3], i2[3];
 
@@ -720,7 +720,7 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 	return 0;
 }
 
-static void boxPack_ToPyObject(PyObject * value, boxPack **boxarray)
+static void boxPack_ToPyObject(PyObject *value, boxPack **boxarray)
 {
 	int len, i;
 	PyObject *list_item;

@@ -323,10 +323,19 @@ int pyrna_write_check(void)
 {
 	return !rna_disallow_writes;
 }
+
+void pyrna_write_set(int val)
+{
+	rna_disallow_writes= !val;
+}
 #else // USE_PEDANTIC_WRITE
 int pyrna_write_check(void)
 {
 	return TRUE;
+}
+void pyrna_write_set(int UNUSED(val))
+{
+	/* nothing */
 }
 #endif // USE_PEDANTIC_WRITE
 
@@ -1200,7 +1209,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 	return ret;
 }
 
-PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
+PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
 	int type= RNA_property_type(prop);
@@ -1334,7 +1343,7 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const cha
 	return error_val;
 }
 
-static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw);
+static PyObject *pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw);
 
 static PyObject *pyrna_func_to_py(BPy_DummyPointerRNA *pyrna, FunctionRNA *func)
 {

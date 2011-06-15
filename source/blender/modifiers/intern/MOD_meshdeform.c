@@ -72,6 +72,8 @@ static void freeData(ModifierData *md)
 	if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
 	if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
 	if(mmd->dynverts) MEM_freeN(mmd->dynverts);
+	if(mmd->bindweights) MEM_freeN(mmd->bindweights); /* deprecated */
+	if(mmd->bindcos) MEM_freeN(mmd->bindcos); /* deprecated */
 }
 
 static void copyData(ModifierData *md, ModifierData *target)

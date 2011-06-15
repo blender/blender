@@ -31,6 +31,9 @@ set(INC
 	../../windowmanager
 	../../render/extern/include
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -59,4 +62,4 @@ if(WITH_IMAGE_CINEON)
 	add_definitions(-DWITH_CINEON)
 endif()
 
-blender_add_lib(bf_editor_space_image "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_image "${SRC}" "${INC}" "${INC_SYS}")

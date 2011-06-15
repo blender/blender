@@ -28,11 +28,15 @@ set(INC
 	.
 )
 
+set(INC_SYS
+	
+)
+
 set(SRC
 	mikktspace.c
 
 	mikktspace.h
 )
 
-blender_add_lib(bf_intern_mikktspace "${SRC}" "${INC}")
+blender_add_lib(bf_intern_mikktspace "${SRC}" "${INC}" "${INC_SYS}")
 

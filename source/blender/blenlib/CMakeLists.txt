@@ -32,6 +32,9 @@ set(INC
 	../gpu
 	../../../intern/ghost
 	../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
 	${FREETYPE_INCLUDE_DIRS}
 )
@@ -134,12 +137,12 @@ set(SRC
 )
 
 if(WITH_BINRELOC)
+	list(APPEND INC_SYS "${BINRELOC_INC}")
 	add_definitions(-DWITH_BINRELOC)
-	list(APPEND INC "${BINRELOC_INC}")
 endif()
 
 if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 endif()
 
-blender_add_lib(bf_blenlib "${SRC}" "${INC}")
+blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}")

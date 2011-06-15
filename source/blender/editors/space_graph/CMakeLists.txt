@@ -21,6 +21,7 @@
 
 set(INC
 	../include
+	../../blenfont
 	../../blenkernel
 	../../blenloader
 	../../blenlib
@@ -29,6 +30,9 @@ set(INC
 	../../windowmanager
 	../../../../intern/guardedalloc
 	../../../../intern/audaspace/intern
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -44,4 +48,4 @@ set(SRC
 	graph_intern.h
 )
 
-blender_add_lib(bf_editor_space_graph "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_graph "${SRC}" "${INC}" "${INC_SYS}")

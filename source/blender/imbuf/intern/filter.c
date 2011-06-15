@@ -262,6 +262,70 @@ void IMB_filter(struct ImBuf *ibuf)
 	imb_filterx(ibuf);
 }
 
+void IMB_mask_filter_extend(char *mask, int width, int height)
+{
+	char *row1, *row2, *row3;
+	int rowlen, x, y;
+	char *temprect;
+
+	rowlen= width;
+
+	/* make a copy, to prevent flooding */
+	temprect= MEM_dupallocN(mask);
+
+	for(y=1; y<=height; y++) {
+		/* setup rows */
+		row1= (char *)(temprect + (y-2)*rowlen);
+		row2= row1 + rowlen;
+		row3= row2 + rowlen;
+		if(y==1)
+			row1= row2;
+		else if(y==height)
+			row3= row2;
+
+		for(x=0; x<rowlen; x++) {
+			if (mask[((y-1)*rowlen)+x]==0) {
+				if (*row1 || *row2 || *row3 || *(row1+1) || *(row3+1) ) {
+					mask[((y-1)*rowlen)+x] = FILTER_MASK_MARGIN;
+				} else if((x!=rowlen-1) && (*(row1+2) || *(row2+2) || *(row3+2)) ) {
+					mask[((y-1)*rowlen)+x] = FILTER_MASK_MARGIN;
+				}
+			}
+
+			if(x!=0) {
+				row1++; row2++; row3++;
+			}
+		}
+	}
+
+	MEM_freeN(temprect);
+}
+
+void IMB_mask_clear(ImBuf *ibuf, char *mask, int val)
+{
+	int x,y;
+	if (ibuf->rect_float) {
+		for(x=0; x<ibuf->x; x++) {
+			for(y=0; y<ibuf->y; y++) {
+				if (mask[ibuf->x*y + x] == val) {
+					float *col= ibuf->rect_float + 4*(ibuf->x*y + x);
+					col[0] = col[1] = col[2] = col[3] = 0.0f;
+				}
+			}
+		}
+	} else {
+		/* char buffer */
+		for(x=0; x<ibuf->x; x++) {
+			for(y=0; y<ibuf->y; y++) {
+				if (mask[ibuf->x*y + x] == val) {
+					char *col= (char *)(ibuf->rect + ibuf->x*y + x);
+					col[0] = col[1] = col[2] = col[3] = 0;
+				}
+			}
+		}
+	}
+}
+
 #define EXTEND_PIXEL(color, w) if((color)[3]) {r+= w*(color)[0]; g+= w*(color)[1]; b+= w*(color)[2]; a+= w*(color)[3]; tot+=w;}
 
 /* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0

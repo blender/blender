@@ -21,6 +21,7 @@
 
 set(INC
 	../include
+	../../blenfont
 	../../blenkernel
 	../../blenloader
 	../../blenlib
@@ -33,6 +34,10 @@ set(INC
 	../../windowmanager
 	../../render/extern/include
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
+
 )
 
 set(SRC
@@ -58,4 +63,4 @@ if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()
 
-blender_add_lib(bf_editor_object "${SRC}" "${INC}")
+blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}")

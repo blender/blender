@@ -45,6 +45,8 @@
 #include "BLI_bpath.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -211,7 +213,7 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
 void FILE_OT_make_paths_relative(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make All Paths Relative";
+	ot->name= _("Make All Paths Relative");
 	ot->idname= "FILE_OT_make_paths_relative";
 	
 	/* api callbacks */
@@ -243,7 +245,7 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make All Paths Absolute";
+	ot->name= _("Make All Paths Absolute");
 	ot->idname= "FILE_OT_make_paths_absolute";
 	
 	/* api callbacks */
@@ -266,7 +268,7 @@ static int report_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 void FILE_OT_report_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Report Missing Files";
+	ot->name= _("Report Missing Files");
 	ot->idname= "FILE_OT_report_missing_files";
 	
 	/* api callbacks */
@@ -299,7 +301,7 @@ static int find_missing_files_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 void FILE_OT_find_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Find Missing Files";
+	ot->name= _("Find Missing Files");
 	ot->idname= "FILE_OT_find_missing_files";
 	
 	/* api callbacks */

@@ -37,6 +37,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -144,7 +146,7 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 
 	if(sfile) {
 		row= uiLayoutRow(pa->layout, 0);
-		uiItemO(row, "Add", ICON_ZOOMIN, "file.bookmark_add");
+		uiItemO(row, _("Add"), ICON_ZOOMIN, "file.bookmark_add");
 		uiItemL(row, NULL, ICON_NONE);
 
 		file_panel_category(C, pa, FS_CATEGORY_BOOKMARKS, &sfile->bookmarknr, ICON_BOOKMARKS, 1, 0);
@@ -205,25 +207,25 @@ void file_panels_register(ARegionType *art)
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype file system directories");
 	strcpy(pt->idname, "FILE_PT_system");
-	strcpy(pt->label, "System");
+	strcpy(pt->label, _("System"));
 	pt->draw= file_panel_system;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype file bookmarks");
 	strcpy(pt->idname, "FILE_PT_bookmarks");
-	strcpy(pt->label, "Bookmarks");
+	strcpy(pt->label, _("Bookmarks"));
 	pt->draw= file_panel_bookmarks;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype file recent directories");
 	strcpy(pt->idname, "FILE_PT_recent");
-	strcpy(pt->label, "Recent");
+	strcpy(pt->label, _("Recent"));
 	pt->draw= file_panel_recent;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype file operator properties");
 	strcpy(pt->idname, "FILE_PT_operator");
-	strcpy(pt->label, "Operator");
+	strcpy(pt->label, _("Operator"));
 	pt->poll= file_panel_operator_poll;
 	pt->draw_header= file_panel_operator_header;
 	pt->draw= file_panel_operator;

@@ -64,9 +64,16 @@
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
-static void rna_userdef_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);
+}
+
+static void rna_userdef_dpi_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	U.widget_unit = (U.dpi * 20 + 36)/72;
+	WM_main_add_notifier(NC_WINDOW, NULL);		/* full redraw */
+	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);	/* refresh region sizes */
 }
 
 static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -97,7 +104,7 @@ static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, Point
 }
 
 
-static void rna_userdef_script_autoexec_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	UserDef *userdef = (UserDef*)ptr->data;
 	if (userdef->flag & USER_SCRIPT_AUTOEXEC_DISABLE)	G.f &= ~G_SCRIPT_AUTOEXEC;
@@ -212,12 +219,12 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesSystem, ptr->data);
 }
 
-static void rna_UserDef_audio_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_UserDef_audio_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	sound_init(bmain);
 }
 
-static void rna_Userdef_memcache_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Userdef_memcache_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 }
@@ -238,6 +245,13 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 
 static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
+	/* if all lights are off gpu_draw resets them all, [#27627]
+	 * so disallow them all to be disabled */
+	if(U.light[0].flag==0 && U.light[1].flag==0 && U.light[2].flag==0) {
+		SolidLight *light= ptr->data;
+		light->flag |= 1;
+	}
+
 	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D|NS_VIEW3D_GPU, NULL);
 	rna_userdef_update(bmain, scene, ptr);
 }
@@ -263,13 +277,13 @@ static void rna_userdef_addon_remove(bAddon *bext)
 	BLI_freelinkN(&U.addons, bext);
 }
 
-static void rna_userdef_temp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_temp_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	extern char btempdir[];
 	BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
-static void rna_userdef_text_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_text_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	BLF_cache_clear();
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -2444,7 +2458,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "dpi");
 	RNA_def_property_range(prop, 48, 128);
 	RNA_def_property_ui_text(prop, "DPI", "Font size and resolution for display");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 	
 	prop= RNA_def_property(srna, "scrollback", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "scrollback");

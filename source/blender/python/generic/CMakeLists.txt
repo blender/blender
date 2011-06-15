@@ -25,6 +25,9 @@ set(INC
 	../../blenkernel
 	../../blenloader
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 )
@@ -60,4 +63,4 @@ set(SRC
 )
 
 
-blender_add_lib(bf_python_ext "${SRC}" "${INC}")
+blender_add_lib(bf_python_ext "${SRC}" "${INC}" "${INC_SYS}")

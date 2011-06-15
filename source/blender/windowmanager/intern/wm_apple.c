@@ -30,8 +30,7 @@
  *  \ingroup wm
  */
 
-
-#ifdef __APPLE__
+/* note, this file builds on apple-carbon only! */
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -137,8 +136,3 @@ void wm_set_apple_prefsize(int scr_x, int scr_y)
 		G.windowstate= 0;
 	}
 }
-
-
-#endif /* __APPLE__ */
-
-

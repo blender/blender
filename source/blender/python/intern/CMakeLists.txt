@@ -34,6 +34,9 @@ set(INC
 	../../editors/include
 	../../../../intern/guardedalloc
 	../../../../intern/audaspace/intern
+)
+
+set(INC_SYS
 	${PYTHON_INCLUDE_DIRS}
 )
 
@@ -81,4 +84,4 @@ if(WITH_PYTHON_SAFETY)
 	add_definitions(-DWITH_PYTHON_SAFETY)
 endif()
 
-blender_add_lib(bf_python "${SRC}" "${INC}")
+blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}")

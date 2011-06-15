@@ -391,12 +391,15 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int view3d_setcameratoview_poll(bContext *C)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	View3D *v3d= CTX_wm_view3d(C);
+	if(v3d && v3d->camera && v3d->camera->id.lib==NULL) {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
+		if(rv3d && !rv3d->viewlock) {
+			return 1;
+		}
+	}
 
-	if (v3d==NULL || v3d->camera==NULL)	return 0;
-	if (rv3d && rv3d->viewlock != 0)		return 0;
-	return 1;
+	return 0;
 }
 
 void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
@@ -1557,7 +1560,7 @@ static void restore_localviewdata(ScrArea *sa, int free)
 	}
 }
 
-static void endlocalview(Scene *scene, ScrArea *sa)
+static void endlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 {
 	View3D *v3d= sa->spacedata.first;
 	struct Base *base;
@@ -1583,6 +1586,8 @@ static void endlocalview(Scene *scene, ScrArea *sa)
 				base->object->lay= base->lay;
 			}
 		}
+		
+		DAG_on_visible_update(bmain, FALSE);
 	} 
 }
 
@@ -1591,7 +1596,7 @@ static int localview_exec(bContext *C, wmOperator *UNUSED(unused))
 	View3D *v3d= CTX_wm_view3d(C);
 	
 	if(v3d->localvd)
-		endlocalview(CTX_data_scene(C), CTX_wm_area(C));
+		endlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
 	else
 		initlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
 	

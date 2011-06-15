@@ -483,11 +483,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.label(text="Mode:")
         col.prop(md, "wrap_method", text="")
 
-        split = layout.split(percentage=0.25)
-
-        col = split.column()
-
         if md.wrap_method == 'PROJECT':
+            split = layout.split(percentage=0.25)
+            
+            col = split.column()
             col.label(text="Axis:")
             col.prop(md, "use_project_x")
             col.prop(md, "use_project_y")
@@ -499,7 +498,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col.prop(md, "use_positive_direction")
 
             col = split.column()
-
             col.label(text="Cull Faces:")
             col.prop(md, "cull_face", expand=True)
 

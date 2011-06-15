@@ -876,6 +876,13 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 	}
 } 
 
+static int view_zoomdrag_cancel(bContext *C, wmOperator *op)
+{
+	view_zoomdrag_exit(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 /* for 'redo' only, with no user input */
 static int view_zoomdrag_exec(bContext *C, wmOperator *op)
 {
@@ -1065,6 +1072,7 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
 	ot->exec= view_zoomdrag_exec;
 	ot->invoke= view_zoomdrag_invoke;
 	ot->modal= view_zoomdrag_modal;
+	ot->cancel= view_zoomdrag_cancel;
 	
 	ot->poll= view_zoom_poll;
 	
@@ -1165,6 +1173,7 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= view_borderzoom_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= view_zoom_poll;
 	
@@ -1352,7 +1361,14 @@ static void scroller_activate_exit(bContext *C, wmOperator *op)
 		
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
-} 
+}
+
+static int scroller_activate_cancel(bContext *C, wmOperator *op)
+{
+	scroller_activate_exit(C, op);
+
+	return OPERATOR_CANCELLED;
+}
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void scroller_activate_apply(bContext *C, wmOperator *op)
@@ -1561,6 +1577,8 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= scroller_activate_invoke;
 	ot->modal= scroller_activate_modal;
+	ot->cancel= scroller_activate_cancel;
+
 	ot->poll= view2d_poll;
 }
 

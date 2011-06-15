@@ -126,7 +126,14 @@ def expand(line, cursor, namespace, private=True):
         if len(matches) == 1:
             scrollback = ''
         else:
-            scrollback = '  '.join([m.split('.')[-1] for m in matches])
+            # causes blender bug [#27495] since string keys may contain '.'
+            # scrollback = '  '.join([m.split('.')[-1] for m in matches])
+            scrollback = '  '.join(
+                    [m[len(word):]
+                     if (word and m.startswith(word))
+                     else m.split('.')[-1]
+                     for m in matches])
+
         no_calltip = True
     prefix = os.path.commonprefix(matches)[len(word):]
     if prefix:

@@ -74,12 +74,6 @@
 
 #include "file_intern.h"	// own include
 
-/* ui geometry */
-#define IMASEL_BUTTONS_HEIGHT 40
-#define IMASEL_BUTTONS_MARGIN 6
-#define TILE_BORDER_X 8
-#define TILE_BORDER_Y 8
-
 /* button events */
 enum {
 	B_FS_DIRNAME,
@@ -230,9 +224,9 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, params->title,
 			max_x - loadbutton, line1_y, loadbutton, btn_h, 
 			params->title);
-		uiDefButO(block, BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, "Cancel",
+		uiDefButO(block, BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, _("Cancel"),
 			max_x - loadbutton, line2_y, loadbutton, btn_h, 
-			"Cancel");
+			_("Cancel"));
 	}
 	
 	uiEndBlock(C, block);
@@ -523,8 +517,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			
 			file_draw_preview(block, file, sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE));
 		} else {
-			file_draw_icon(block, file->path, sx, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
-			sx += ICON_DEFAULT_WIDTH + 4;
+			file_draw_icon(block, file->path, sx, sy-(UI_UNIT_Y / 6), get_file_icon(file), ICON_DEFAULT_WIDTH_SCALE, ICON_DEFAULT_WIDTH_SCALE);
+			sx += ICON_DEFAULT_WIDTH_SCALE + 4;
 		}
 
 		UI_ThemeColor4(TH_TEXT);

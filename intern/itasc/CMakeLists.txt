@@ -28,6 +28,10 @@ set(INC
 	../../extern/Eigen2
 )
 
+set(INC_SYS
+	
+)
+
 set(SRC
 	Armature.cpp
 	Cache.cpp
@@ -222,4 +226,4 @@ set(SRC
 	../../extern/Eigen2/Eigen/src/Sparse/UmfPackSupport.h
 )
 
-blender_add_lib(bf_intern_itasc "${SRC}" "${INC}")
+blender_add_lib(bf_intern_itasc "${SRC}" "${INC}" "${INC_SYS}")

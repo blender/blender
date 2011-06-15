@@ -21,6 +21,7 @@
 
 set(INC
 	../include
+	../../blenfont
 	../../blenkernel
 	../../blenloader
 	../../blenlib
@@ -28,6 +29,9 @@ set(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -51,4 +55,4 @@ set(SRC
 	anim_intern.h
 )
 
-blender_add_lib(bf_editor_animation "${SRC}" "${INC}")
+blender_add_lib(bf_editor_animation "${SRC}" "${INC}" "${INC_SYS}")

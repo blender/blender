@@ -2817,6 +2817,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 	ot->exec= view_ghost_border_exec;
 	ot->modal= WM_border_select_modal;
 	ot->poll= sequencer_view_poll;
+	ot->cancel= WM_border_select_cancel;
 
 	/* flags */
 	ot->flag= 0;

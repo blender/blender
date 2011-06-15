@@ -1,4 +1,4 @@
-.TH "BLENDER" "1" "April 05, 2011" "Blender Blender 2\&.56 (sub 6)"
+.TH "BLENDER" "1" "June 03, 2011" "Blender Blender 2\&.57 (sub 1)"
 
 .SH NAME
 blender \- a 3D modelling and rendering package
@@ -15,7 +15,7 @@ Use Blender to create TV commercials, to make technical visualizations, business
 http://www.blender.org
 .SH OPTIONS
 
-Blender 2.56 (sub 6)
+Blender 2.57 (sub 1)
 Usage: blender [args ...] [file] [args ...]
 .br
 .SS "Render Options:"
@@ -160,6 +160,12 @@ Force opening without borders
 Open with lower left corner at <sx>, <sy> and width and height as <w>, <h>
 .br
 
+.TP
+.B \-con or \-\-start\-console
+.br
+Start with the console window open (ignored if \-b is set)
+.br
+
 .IP
 
 .SS "Game Engine Specific Options:"
@@ -191,7 +197,7 @@ Turn debugging on
 .br
 * Disables mouse grab (to interact with a debugger in some cases)
 .br
-* Keeps python sys.stdin rather then setting it to None
+* Keeps python sys.stdin rather than setting it to None
 .br
 
 .TP
@@ -209,12 +215,6 @@ Skip reading the "startup.blend" in the users home directory
 .br
 
 .IP
-
-.TP
-.B \-\-env\-system\-config
-.br
-Set the BLENDER_SYSTEM_CONFIG environment variable
-.br
 
 .TP
 .B \-\-env\-system\-datafiles
@@ -281,7 +281,7 @@ Print this help text and exit
 .TP
 .B \-y or \-\-enable\-autoexec
 .br
-Enable automatic python script execution (default)
+Enable automatic python script execution, (default)
 .br
 
 .TP
@@ -376,7 +376,6 @@ Arguments are executed in the order they are given. eg
 .br
 .SH "ENVIRONMENT VARIABLES"
   \fIBLENDER_USER_CONFIG\fR Directory for user configuration files.
-  \fIBLENDER_SYSTEM_CONFIG\fR Directory for system wide configuration files.
   \fIBLENDER_USER_SCRIPTS\fR Directory for user scripts.
   \fIBLENDER_SYSTEM_SCRIPTS\fR Directory for system wide scripts.
   \fIBLENDER_USER_DATAFILES\fR Directory for user data files (icons, translations, ..).

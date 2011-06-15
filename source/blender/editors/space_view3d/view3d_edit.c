@@ -904,6 +904,13 @@ static int view3d_camera_active_poll(bContext *C)
 	return 0;
 }
 
+static int viewrotate_cancel(bContext *C, wmOperator *op)
+{
+	viewops_data_free(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
 
@@ -916,6 +923,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	ot->invoke= viewrotate_invoke;
 	ot->modal= viewrotate_modal;
 	ot->poll= ED_operator_region_view3d_active;
+	ot->cancel= viewrotate_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1058,6 +1066,13 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
+static int viewmove_cancel(bContext *C, wmOperator *op)
+{
+	viewops_data_free(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 void VIEW3D_OT_move(wmOperatorType *ot)
 {
 
@@ -1070,6 +1085,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 	ot->invoke= viewmove_invoke;
 	ot->modal= viewmove_modal;
 	ot->poll= ED_operator_view3d_active;
+	ot->cancel= viewmove_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1414,6 +1430,12 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
+static int viewzoom_cancel(bContext *C, wmOperator *op)
+{
+	viewops_data_free(C, op);
+
+	return OPERATOR_CANCELLED;
+}
 
 void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
@@ -1427,6 +1449,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	ot->exec= viewzoom_exec;
 	ot->modal= viewzoom_modal;
 	ot->poll= ED_operator_region_view3d_active;
+	ot->cancel= viewzoom_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1641,6 +1664,13 @@ static int viewdolly_poll(bContext *C)
 	return 0;
 }
 
+static int viewdolly_cancel(bContext *C, wmOperator *op)
+{
+	viewops_data_free(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 void VIEW3D_OT_dolly(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1653,6 +1683,7 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
 	ot->exec= viewdolly_exec;
 	ot->modal= viewdolly_modal;
 	ot->poll= viewdolly_poll;
+	ot->cancel= viewdolly_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -2046,6 +2077,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= render_border_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 
 	ot->poll= view3d_camera_active_poll;
 
@@ -2201,6 +2233,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->invoke= view3d_zoom_border_invoke;
 	ot->exec= view3d_zoom_border_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 
 	ot->poll= ED_operator_region_view3d_active;
 
@@ -2256,7 +2289,7 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 }
 
 /* ********************* Changing view operator ****************** */
-
+/* XXX add _() to strings */
 static EnumPropertyItem prop_view_items[] = {
 	{RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
 	{RV3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
@@ -2480,6 +2513,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active objects axis");
 }
 
+/* XXX add _() for strings */
 static EnumPropertyItem prop_view_orbit_items[] = {
 	{V3D_VIEW_STEPLEFT, "ORBITLEFT", 0, "Orbit Left", "Orbit the view around to the Left"},
 	{V3D_VIEW_STEPRIGHT, "ORBITRIGHT", 0, "Orbit Right", "Orbit the view around to the Right"},
@@ -2547,6 +2581,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_view_orbit_items, 0, "Orbit", "Direction of View Orbit");
 }
 
+/* XXX add _() for strings */
 static EnumPropertyItem prop_view_pan_items[] = {
 	{V3D_VIEW_PANLEFT, "PANLEFT", 0, "Pan Left", "Pan the view to the Left"},
 	{V3D_VIEW_PANRIGHT, "PANRIGHT", 0, "Pan Right", "Pan the view to the Right"},
@@ -2839,6 +2874,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	ot->invoke= view3d_clipping_invoke;
 	ot->exec= view3d_clipping_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 
 	ot->poll= ED_operator_region_view3d_active;
 

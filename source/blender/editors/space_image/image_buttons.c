@@ -556,20 +556,20 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 	/* menu buts */
 	if(render_slot) {
 		strp= slot_menu();
-		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu1, 20, render_slot, 0,0,0,0, "Select Slot");
+		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu1, UI_UNIT_Y, render_slot, 0,0,0,0, "Select Slot");
 		uiButSetFunc(but, image_multi_cb, rr, iuser);
 		MEM_freeN(strp);
 	}
 
 	if(rr) {
 		strp= layer_menu(rr, &iuser->layer);
-		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu2, 20, &iuser->layer, 0,0,0,0, "Select Layer");
+		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu2, UI_UNIT_Y, &iuser->layer, 0,0,0,0, "Select Layer");
 		uiButSetFunc(but, image_multi_cb, rr, iuser);
 		MEM_freeN(strp);
 		
 		rl= BLI_findlink(&rr->layers, iuser->layer - (rr->rectf?1:0)); /* fake compo layer, return NULL is meant to be */
 		strp= pass_menu(rl, &iuser->pass);
-		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu3, 20, &iuser->pass, 0,0,0,0, "Select Pass");
+		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu3, UI_UNIT_Y, &iuser->pass, 0,0,0,0, "Select Pass");
 		uiButSetFunc(but, image_multi_cb, rr, iuser);
 		MEM_freeN(strp);	
 	}
