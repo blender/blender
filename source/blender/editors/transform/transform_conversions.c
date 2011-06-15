@@ -5084,10 +5084,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 #if 0 // TRANSFORM_FIX_ME
 	if(resetslowpar)
 		reset_slowparents();
-
-	/* note; should actually only be done for all objects when a lamp is moved... (ton) */
-	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
-		reshadeall_displist();
 #endif
 }
 

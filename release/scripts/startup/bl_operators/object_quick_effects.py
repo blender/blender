@@ -22,6 +22,24 @@ from mathutils import Vector
 import bpy
 from bpy.props import BoolProperty, EnumProperty, IntProperty, FloatProperty, FloatVectorProperty
 
+
+def object_ensure_material(obj, mat_name):
+    """ Use an existing material or add a new one.
+    """
+    mat = mat_slot = None
+    for mat_slot in obj.material_slots:
+        mat = mat_slot.material
+        if mat:
+            break
+    if mat is None:
+        mat = bpy.data.materials.new(mat_name)
+        if mat_slot:
+            mat_slot.material = mat
+        else:
+            obj.data.materials.append(mat)
+    return mat
+
+
 class QuickFur(bpy.types.Operator):
     bl_idname = "object.quick_fur"
     bl_label = "Quick Fur"
@@ -78,6 +96,7 @@ class QuickFur(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 class QuickExplode(bpy.types.Operator):
     bl_idname = "object.quick_explode"
     bl_label = "Quick Explode"
@@ -93,40 +112,44 @@ class QuickExplode(bpy.types.Operator):
     amount = IntProperty(name="Amount of pieces",
             default=100, min=2, max=10000, soft_min=2, soft_max=10000)
 
-    duration = IntProperty(name="Duration",
-            default=50, min=1, max=10000, soft_min=1, soft_max=10000)
+    frame_duration = IntProperty(name="Duration",
+            default=50, min=1, max=300000, soft_min=1, soft_max=10000)
 
-    start_frame = IntProperty(name="Start Frame",
-            default=1, min=1, max=10000, soft_min=1, soft_max=10000)
+    frame_start = IntProperty(name="Start Frame",
+            default=1, min=1, max=300000, soft_min=1, soft_max=10000)
 
-    end_frame = IntProperty(name="End Frame",
-            default=10, min=1, max=10000, soft_min=1, soft_max=10000)
+    frame_end = IntProperty(name="End Frame",
+            default=10, min=1, max=300000, soft_min=1, soft_max=10000)
 
     velocity = FloatProperty(name="Outwards Velocity",
-            default=1, min=0, max=1000, soft_min=0, soft_max=10)
+            default=1, min=0, max=300000, soft_min=0, soft_max=10)
 
     fade = BoolProperty(name="Fade",
                 description="Fade the pieces over time.",
                 default=True)
 
-    invert_order = BoolProperty(name="Invert Order",
-                description="Blend objects in the opposite direction (only for Blend style explosion).",
-                default=False)
-
     def execute(self, context):
         fake_context = bpy.context.copy()
-        mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
+        obj_act = context.active_object
+
+        if obj_act.type != 'MESH':
+            self.report({'ERROR'}, "Active object is not a mesh")
+            return {'CANCELLED'}
+
+        mesh_objects = [obj for obj in context.selected_objects
+                        if obj.type == 'MESH' and obj != obj_act]
+        mesh_objects.insert(0, obj_act)
 
         if self.style == 'BLEND' and len(mesh_objects) != 2:
-            self.report({'ERROR'}, "Select two mesh objects.")
+            self.report({'ERROR'}, "Select two mesh objects")
             return {'CANCELLED'}
         elif not mesh_objects:
-            self.report({'ERROR'}, "Select at least one mesh object.")
+            self.report({'ERROR'}, "Select at least one mesh object")
             return {'CANCELLED'}
 
         for obj in mesh_objects:
-            if len(obj.particle_systems) > 0:
-                self.report({'ERROR'}, "Selected object's can't have particle systems.")
+            if obj.particle_systems:
+                self.report({'ERROR'}, "Object %r already has a particle system" % obj.name)
                 return {'CANCELLED'}
 
         if self.fade:
@@ -137,16 +160,12 @@ class QuickExplode(bpy.types.Operator):
                 tex.color_ramp.elements[0].position = 0.333
                 tex.color_ramp.elements[1].position = 0.666
 
-            tex.color_ramp.elements[0].color[3] = 1
-            tex.color_ramp.elements[1].color[3] = 0
+            tex.color_ramp.elements[0].color[3] = 1.0
+            tex.color_ramp.elements[1].color[3] = 0.0
 
         if self.style == 'BLEND':
-            if self.invert_order:
-                from_obj = mesh_objects[1]
-                to_obj = mesh_objects[0]
-            else:
-                from_obj = mesh_objects[0]
-                to_obj = mesh_objects[1]
+            from_obj = mesh_objects[1]
+            to_obj = mesh_objects[0]
 
         for obj in mesh_objects:
             fake_context["object"] = obj
@@ -154,31 +173,28 @@ class QuickExplode(bpy.types.Operator):
 
             settings = obj.particle_systems[-1].settings
             settings.count = self.amount
-            settings.frame_start = self.start_frame
-            settings.frame_end = self.end_frame - self.duration
-            settings.lifetime = self.duration
+            settings.frame_start = self.frame_start
+            settings.frame_end = self.frame_end - self.frame_duration
+            settings.lifetime = self.frame_duration
             settings.normal_factor = self.velocity
             settings.render_type = 'NONE'
 
-            bpy.ops.object.modifier_add(fake_context, type='EXPLODE')
-            explode = obj.modifiers[-1]
+            explode = obj.modifiers.new(name='Explode', type='EXPLODE')
             explode.use_edge_cut = True
 
             if self.fade:
                 explode.show_dead = False
-                bpy.ops.mesh.uv_texture_add(fake_context);
+                bpy.ops.mesh.uv_texture_add(fake_context)
                 uv = obj.data.uv_textures[-1]
                 uv.name = "Explode fade"
                 explode.particle_uv = uv.name
 
-                if len(obj.material_slots) == 0:
-                    obj.data.materials.append(bpy.data.materials.new("Explode fade"))
+                mat = object_ensure_material(obj, "Explode Fade")
 
-                mat = obj.data.materials[0]
                 mat.use_transparency = True
                 mat.use_transparent_shadows = True
-                mat.alpha = 0
-                mat.specular_alpha = 0
+                mat.alpha = 0.0
+                mat.specular_alpha = 0.0
 
                 tex_slot = mat.texture_slots.add()
 
@@ -190,16 +206,12 @@ class QuickExplode(bpy.types.Operator):
 
                 if self.style == 'BLEND':
                     if obj == to_obj:
-                        tex_slot.alpha_factor = -1
+                        tex_slot.alpha_factor = -1.0
                         elem = tex.color_ramp.elements[1]
-                        elem.color[0] = mat.diffuse_color[0]
-                        elem.color[1] = mat.diffuse_color[1]
-                        elem.color[2] = mat.diffuse_color[2]
+                        elem.color = mat.diffuse_color
                     else:
                         elem = tex.color_ramp.elements[0]
-                        elem.color[0] = mat.diffuse_color[0]
-                        elem.color[1] = mat.diffuse_color[1]
-                        elem.color[2] = mat.diffuse_color[2]
+                        elem.color = mat.diffuse_color
                 else:
                     tex_slot.use_map_color_diffuse = False
 
@@ -223,14 +235,18 @@ class QuickExplode(bpy.types.Operator):
                     explode.show_dead = True
             else:
                 settings.factor_random = self.velocity
-                settings.angular_velocity_factor = self.velocity/10
+                settings.angular_velocity_factor = self.velocity / 10.0
 
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        self.frame_start = context.scene.frame_current
+        self.frame_end = self.frame_start + self.frame_duration
+        return self.execute(context)
 
 def obj_bb_minmax(obj, min_co, max_co):
     for i in range(0, 8):
-        bb_vec = Vector((obj.bound_box[i][0], obj.bound_box[i][1], obj.bound_box[i][2])) * obj.matrix_world
+        bb_vec = Vector(obj.bound_box[i]) * obj.matrix_world
 
         min_co[0] = min(bb_vec[0], min_co[0])
         min_co[1] = min(bb_vec[1], min_co[1])
@@ -260,8 +276,8 @@ class QuickSmoke(bpy.types.Operator):
     def execute(self, context):
         fake_context = bpy.context.copy()
         mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
-        min_co = Vector((100000, 100000, 100000))
-        max_co = Vector((-100000, -100000, -100000))
+        min_co = Vector((100000.0, 100000.0, 100000.0))
+        max_co = -min_co
 
         if not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object.")

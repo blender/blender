@@ -44,7 +44,7 @@ set(SRC
 )
 
 if(WITH_IMAGE_OPENEXR)
-	list(APPEND INC_SYS ${OPENEXR_INC})
+	list(APPEND INC_SYS ${OPENEXR_INCLUDE_DIRS})
 	add_definitions(-DWITH_OPENEXR)
 endif()
 

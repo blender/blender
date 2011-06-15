@@ -114,6 +114,8 @@ def location_3d_to_region_2d(region, rv3d, coord):
     :return: 2d location
     :rtype: :class:`Vector`
     """
+    from mathutils import Vector
+
     prj = Vector((coord[0], coord[1], coord[2], 1.0)) * rv3d.perspective_matrix
     if prj.w > 0.0:
         width_half = region.width / 2.0
