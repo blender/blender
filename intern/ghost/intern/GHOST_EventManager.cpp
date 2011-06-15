@@ -111,7 +111,6 @@ GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent* event)
 bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event)
 {
 	bool handled;
-	printf("dispatching %d\n", event->getType());
 	if (event) {
 		handled = true;
 		TConsumerVector::iterator iter;
