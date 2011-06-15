@@ -859,20 +859,20 @@ bool GHOST_SystemWin32::processNDOF(/*GHOST_WindowWin32* window,*/ RAWINPUT cons
 			}
 		case 3: // buttons
 			{
-			unsigned short buttons;
+			unsigned buttons;
 			memcpy(&buttons, data + 1, sizeof(buttons));
 
-			printf("buttons:");
-			if (buttons)
-				{
-				// work our way through the bit mask
-				for (int i = 0; i < 16; ++i)
-					if (buttons & (1 << i))
-						printf(" %d", i + 1);
-				printf("\n");
-				}
-			else
-				printf(" none\n");
+//			printf("buttons:");
+//			if (buttons)
+//				{
+//				// work our way through the bit mask
+//				for (int i = 0; i < 16; ++i)
+//					if (buttons & (1 << i))
+//						printf(" %d", i + 1);
+//				printf("\n");
+//				}
+//			else
+//				printf(" none\n");
 
 			m_ndofManager->updateButtons(buttons, getMilliSeconds());
 			break;

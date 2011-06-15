@@ -83,4 +83,3 @@ bool GHOST_NDOFManagerX11::processEvents()
 		}
 	return anyProcessed;
 	}
-

@@ -75,13 +75,13 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 		m_buttons &= ~mask; // clear this button's bit
 	}
 
-void GHOST_NDOFManager::updateButtons(unsigned short button_bits, GHOST_TUns64 time)
+void GHOST_NDOFManager::updateButtons(unsigned button_bits, GHOST_TUns64 time)
 	{
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
 
-	unsigned short diff = m_buttons ^ button_bits;
+	unsigned diff = m_buttons ^ button_bits;
 
-	for (int i = 0; i < 16; ++i)
+	for (int i = 0; i <= 31; ++i)
 		{
 		unsigned short mask = 1 << i;
 
@@ -142,4 +142,3 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
 	return true;
 	}
-

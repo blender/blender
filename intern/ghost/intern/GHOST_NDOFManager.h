@@ -43,7 +43,7 @@ public:
 	void updateRotation(short r[3], GHOST_TUns64 time);
 	// send events immediately for changed buttons
 	void updateButton(int button_number, bool press, GHOST_TUns64 time);
-	void updateButtons(unsigned short button_bits, GHOST_TUns64 time);
+	void updateButtons(unsigned button_bits, GHOST_TUns64 time);
 
 	// processes most recent raw data into an NDOFMotion event and sends it
 	// returns whether an event was sent
@@ -54,7 +54,7 @@ protected:
 
 	short m_translation[3];
 	short m_rotation[3];
-	unsigned short m_buttons; // bit field
+	unsigned m_buttons; // bit field
 
 	GHOST_TUns64 m_motionTime; // in milliseconds
 	GHOST_TUns64 m_prevMotionTime; // time of most recent Motion event sent
@@ -65,4 +65,3 @@ protected:
 };
 
 #endif
-
