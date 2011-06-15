@@ -30,7 +30,7 @@
 
 
 
-const char* ndof_button_names[] = {
+static const char* ndof_button_names[] = {
 	// used internally, never sent
 	"NDOF_BUTTON_NONE",
 	// these two are available from any 3Dconnexion device
@@ -72,13 +72,13 @@ const char* ndof_button_names[] = {
 	"NDOF_BUTTON_10",
 	};
 
-const NDOF_ButtonT SpaceNavigator_HID_to_function[2] =
+static const NDOF_ButtonT SpaceNavigator_HID_map[2] =
 	{
 	NDOF_BUTTON_MENU,
 	NDOF_BUTTON_FIT
 	};
 
-const NDOF_ButtonT SpaceExplorer_HID_to_function[16] =
+static const NDOF_ButtonT SpaceExplorer_HID_map[16] =
 	{
 	NDOF_BUTTON_1,
 	NDOF_BUTTON_2,
@@ -153,7 +153,7 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 	switch (m_deviceType)
 		{
 		case SpaceNavigator:
-			sendButtonEvent(SpaceNavigator_HID_to_function[button_number], press, time, window);
+			sendButtonEvent(SpaceNavigator_HID_map[button_number], press, time, window);
 			break;
 		case SpaceExplorer:
 			switch (button_number)
@@ -171,12 +171,12 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 					sendKeyEvent(GHOST_kKeyLeftControl, press, time, window);
 					break;
 				default:
-					sendButtonEvent(SpaceExplorer_HID_to_function[button_number], press, time, window);
+					sendButtonEvent(SpaceExplorer_HID_map[button_number], press, time, window);
 				}
 			break;
 		case SpacePilot:
-			printf("button %d %s\n", button, press ? "pressed" : "released");
-			// sendButtonEvent(SpacePilot_HID_to_function(button_number), press, time, window);
+			printf("button %d %s\n", button_number, press ? "pressed" : "released");
+			// sendButtonEvent(SpacePilot_HID_map[button_number], press, time, window);
 			break;
 		}
 
