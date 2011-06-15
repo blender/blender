@@ -2625,7 +2625,7 @@ void RE_bake_ibuf_filter(ImBuf *ibuf, unsigned char *mask, const int filter)
 		ibuf->depth= 32;
 	}
 	else {
-		if(filter) {
+		if(filter && ibuf->depth != 32) {
 			/* clear alpha added by filtering */
 			IMB_rectfill_alpha(ibuf, 1.0f);
 		}
@@ -2714,7 +2714,6 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-			short is_new_alpha;
 
 			if(!ibuf)
 				continue;
