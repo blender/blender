@@ -449,16 +449,9 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, const char *substr
 		freeDM= 1;
 	}
 	else {
-		/* when not in EditMode, use the 'final' derived mesh 
-		 *	- check if the custom data masks for derivedFinal mean that we can just use that
-		 *	  (this is more effficient + sufficient for most cases)
-		 */
-		if (!(ob->lastDataMask & CD_MASK_MDEFORMVERT)) {
-			dm = mesh_get_derived_final(scene, ob, CD_MASK_MDEFORMVERT);
-			freeDM= 1;
-		}
-		else 
-			dm = (DerivedMesh *)ob->derivedFinal;
+		/* when not in EditMode, use the 'final' derived mesh, depsgraph
+		 * ensures we build with CD_MDEFORMVERT layer */
+		dm = (DerivedMesh *)ob->derivedFinal;
 	}
 	
 	/* only continue if there's a valid DerivedMesh */
