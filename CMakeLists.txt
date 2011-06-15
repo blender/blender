@@ -342,23 +342,8 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_IMAGE_OPENEXR)
-		set(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
-		mark_as_advanced(OPENEXR)
-		find_path(OPENEXR_INC
-			ImfXdr.h
-			PATHS
-			${OPENEXR}/include/OpenEXR
-			/usr/local/include/OpenEXR
-			/sw/include/OpenEXR
-			/opt/local/include/OpenEXR
-			/opt/csw/include/OpenEXR
-			/opt/include/OpenEXR
-		)
-		mark_as_advanced(OPENEXR_INC)
-
-		set(OPENEXR_LIB Half IlmImf Iex Imath)
-		
-		if(NOT OPENEXR_INC)
+		find_package(OpenEXR)  # our own module
+		if(NOT OPENEXR_FOUND)
 			set(WITH_IMAGE_OPENEXR OFF)
 		endif()
 	endif()
@@ -657,10 +642,10 @@ elseif(WIN32)
 				set(MSVC_INC)
 			endif()
 			set(OPENEXR ${LIBDIR}/openexr)			
-			set(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
+			set(OPENEXR_LIBRARIES Iex Half IlmImf Imath IlmThread)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib${MSVC_LIB})
 			set(OPENEXR_INCUDE ${OPENEXR}/include${MSVC_INC})
-			set(OPENEXR_INC ${OPENEXR_INCUDE}/ ${OPENEXR_INCUDE}/IlmImf ${OPENEXR_INCUDE}/Iex ${OPENEXR_INCUDE}/Imath)
+			set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCUDE}/ ${OPENEXR_INCUDE}/IlmImf ${OPENEXR_INCUDE}/Iex ${OPENEXR_INCUDE}/Imath)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
@@ -759,8 +744,8 @@ elseif(WIN32)
 
 		if(WITH_IMAGE_OPENEXR)
 			set(OPENEXR ${LIBDIR}/gcc/openexr)
-			set(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
-			set(OPENEXR_LIB Half IlmImf Imath IlmThread)
+			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
+			set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 
 			# TODO, gives linking errors, force off
@@ -892,8 +877,8 @@ elseif(APPLE)
 
 	if(WITH_IMAGE_OPENEXR)
 		set(OPENEXR ${LIBDIR}/openexr)
-		set(OPENEXR_INC ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
-		set(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
+		set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
+		set(OPENEXR_LIBRARIES Iex Half IlmImf Imath IlmThread)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 	endif()
 
