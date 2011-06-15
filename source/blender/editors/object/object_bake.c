@@ -854,9 +854,13 @@ static void finish_images(MultiresBakeRender *bkr)
 		Image *ima= (Image*)link->data;
 		int i;
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+		short is_new_alpha;
 
 		if(ibuf->x<=0 || ibuf->y<=0)
 			continue;
+
+		/* must check before filtering */
+		is_new_alpha= (ibuf->depth != 32) && BKE_alphatest_ibuf(ibuf);
 
 		/* Margin */
 		if(bkr->bake_filter) {
@@ -881,6 +885,18 @@ static void finish_images(MultiresBakeRender *bkr)
 			for(i= 0; i<bkr->bake_filter; i++)
 				IMB_filter_extend(ibuf, (char *)ibuf->userdata);
 		}
+
+		/* if the bake results in new alpha then change the image setting */
+		if(is_new_alpha) {
+			ibuf->depth= 32;
+		}
+		else {
+			if(bkr->bake_filter) {
+				/* clear alpha added by filtering */
+				IMB_rectfill_alpha(ibuf, 1.0f);
+			}
+		}
+
 
 		ibuf->userflags|= IB_BITMAPDIRTY;
 		if(ibuf->mipmap[0]) {
@@ -1028,7 +1044,8 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 static void clear_images(MTFace *mtface, int totface)
 {
 	int a;
-	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	const float vec_alpha[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	const float vec_solid[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 
 	for(a= 0; a<totface; a++)
 		mtface[a].tpage->id.flag&= ~LIB_DOIT;
@@ -1039,7 +1056,7 @@ static void clear_images(MTFace *mtface, int totface)
 		if((ima->id.flag&LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
-			IMB_rectfill(ibuf, vec);
+			IMB_rectfill(ibuf, (ibuf->depth == 32) ? vec_alpha : vec_solid);
 			ima->id.flag|= LIB_DOIT;
 		}
 	}

@@ -2464,7 +2464,8 @@ static int get_next_bake_face(BakeShade *bs)
 				if(tface && tface->tpage) {
 					Image *ima= tface->tpage;
 					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-					float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+					const float vec_alpha[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+					const float vec_solid[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 					
 					if(ibuf==NULL)
 						continue;
@@ -2484,7 +2485,7 @@ static int get_next_bake_face(BakeShade *bs)
 							imb_freerectImBuf(ibuf);
 						/* clear image */
 						if(R.r.bake_flag & R_BAKE_CLEAR)
-							IMB_rectfill(ibuf, vec);
+							IMB_rectfill(ibuf, (ibuf->depth == 32) ? vec_alpha : vec_solid);
 					
 						/* might be read by UI to set active image for display */
 						R.bakebuf= ima;
@@ -2671,9 +2672,13 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+			short is_new_alpha;
 
 			if(!ibuf)
 				continue;
+
+			/* must check before filtering */
+			is_new_alpha= (ibuf->depth != 32) && BKE_alphatest_ibuf(ibuf);
 
 			if(re->r.bake_filter) {
 				if (usemask) {
@@ -2703,6 +2708,17 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 				if (ibuf->userdata) {
 					MEM_freeN(ibuf->userdata);
 					ibuf->userdata= NULL;
+				}
+			}
+
+			/* if the bake results in new alpha then change the image setting */
+			if(is_new_alpha) {
+				ibuf->depth= 32;
+			}
+			else {
+				if(re->r.bake_filter) {
+					/* clear alpha added by filtering */
+					IMB_rectfill_alpha(ibuf, 1.0f);
 				}
 			}
 
