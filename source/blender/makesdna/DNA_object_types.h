@@ -290,10 +290,6 @@ typedef struct DupliObject {
 	float orco[3], uv[2];
 } DupliObject;
 
-/* this work object is defined in object.c */
-extern Object workob;
-
-
 /* **************** OBJECT ********************* */
 
 /* used many places... should be specialized  */
