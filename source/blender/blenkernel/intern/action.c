@@ -1128,7 +1128,7 @@ void copy_pose_result(bPose *to, bPose *from)
 /* For the calculation of the effects of an Action at the given frame on an object 
  * This is currently only used for the Action Constraint 
  */
-void what_does_obaction (Scene *UNUSED(scene), Object *ob, Object *workob, bPose *pose, bAction *act, char groupname[], float cframe)
+void what_does_obaction (Object *ob, Object *workob, bPose *pose, bAction *act, char groupname[], float cframe)
 {
 	bActionGroup *agrp= action_groups_find_named(act, groupname);
 	
