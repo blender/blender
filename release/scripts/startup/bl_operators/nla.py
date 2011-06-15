@@ -16,17 +16,16 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import bpy
 
 
-def pose_info():
+def pose_frame_info(obj):
     from mathutils import Matrix
 
     info = {}
 
-    obj = bpy.context.object
     pose = obj.pose
 
     pose_items = pose.bones.items()
@@ -51,7 +50,6 @@ def pose_info():
         except:
             binfo["matrix_pose_inv"] = Matrix()
 
-        print(binfo["matrix_pose"])
         info[name] = binfo
 
     for name, pbone in pose_items:
@@ -67,45 +65,84 @@ def pose_info():
             matrix = binfo_parent["matrix_pose_inv"] * matrix
             rest_matrix = binfo_parent["matrix_local_inv"] * rest_matrix
 
-        matrix = rest_matrix.inverted() * matrix
-
-        binfo["matrix_key"] = matrix.copy()
+        binfo["matrix_key"] = rest_matrix.inverted() * matrix
 
     return info
 
 
-def bake(frame_start, frame_end, step=1, only_selected=False):
+def obj_frame_info(obj):
+    info = {}
+    # parent = obj.parent
+    info["matrix_key"] = obj.matrix_local.copy()
+    return info
+
+
+def bake(frame_start,
+         frame_end, step=1,
+         only_selected=False,
+         do_pose=True,
+         do_object=True,
+         do_constraint_clear=False,
+         ):
+
     scene = bpy.context.scene
     obj = bpy.context.object
     pose = obj.pose
+    frame_back = scene.frame_current
 
-    info_ls = []
+    if pose is None:
+        do_pose = False
+
+    if do_pose is None and do_object is None:
+        return None
+
+    pose_info = []
+    obj_info = []
 
     frame_range = range(frame_start, frame_end + 1, step)
 
-    # could spped this up by applying steps here too...
+    # -------------------------------------------------------------------------
+    # Collect transformations
+    
+    # could speed this up by applying steps here too...
     for f in frame_range:
         scene.frame_set(f)
 
-        info = pose_info()
-        info_ls.append(info)
+        if do_pose:
+            pose_info.append(pose_frame_info(obj))
+        if do_object:
+            obj_info.append(obj_frame_info(obj))
+
         f += 1
 
+    # -------------------------------------------------------------------------
+    # Create action
+
     action = bpy.data.actions.new("Action")
+    obj.animation_data.action = action
 
-    bpy.context.object.animation_data.action = action
+    if do_pose:
+        pose_items = pose.bones.items()
+    else:
+        pose_items = []  # skip
 
-    pose_items = pose.bones.items()
+    # -------------------------------------------------------------------------
+    # Apply transformations to action
 
-    for name, pbone in pose_items:
+    # pose
+    for name, pbone in (pose_items if do_pose else ()):
         if only_selected and not pbone.bone.select:
             continue
 
-        for f in frame_range:
-            matrix = info_ls[int((f - frame_start) / step)][name]["matrix_key"]
+        if do_constraint_clear:
+            while pbone.constraints:
+                pbone.constraints.remove(pbone.constraints[0])
 
-            #pbone.location = matrix.to_translation()
-            #pbone.rotation_quaternion = matrix.to_quaternion()
+        for f in frame_range:
+            matrix = pose_info[(f - frame_start) // step][name]["matrix_key"]
+
+            # pbone.location = matrix.to_translation()
+            # pbone.rotation_quaternion = matrix.to_quaternion()
             pbone.matrix_basis = matrix
 
             pbone.keyframe_insert("location", -1, f, name)
@@ -121,10 +158,35 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
 
             pbone.keyframe_insert("scale", -1, f, name)
 
+    # object. TODO. multiple objects
+    if do_object:
+        if do_constraint_clear:
+            while obj.constraints:
+                obj.constraints.remove(obj.constraints[0])
+
+        for f in frame_range:
+            matrix = obj_info[(f - frame_start) // step]["matrix_key"]
+            obj.matrix_local = matrix
+
+            obj.keyframe_insert("location", -1, f)
+
+            rotation_mode = obj.rotation_mode
+
+            if rotation_mode == 'QUATERNION':
+                obj.keyframe_insert("rotation_quaternion", -1, f)
+            elif rotation_mode == 'AXIS_ANGLE':
+                obj.keyframe_insert("rotation_axis_angle", -1, f)
+            else:  # euler, XYZ, ZXY etc
+                obj.keyframe_insert("rotation_euler", -1, f)
+
+            obj.keyframe_insert("scale", -1, f)
+
+    scene.frame_set(frame_back)
+
     return action
 
 
-from bpy.props import IntProperty, BoolProperty
+from bpy.props import IntProperty, BoolProperty, EnumProperty
 
 
 class BakeAction(bpy.types.Operator):
@@ -144,10 +206,31 @@ class BakeAction(bpy.types.Operator):
             default=1, min=1, max=120)
     only_selected = BoolProperty(name="Only Selected",
             default=True)
+    clear_consraints = BoolProperty(name="Clear Constraints",
+            default=False)
+    bake_types = EnumProperty(
+            name="Bake Data",
+            options={'ENUM_FLAG'},
+            items=(('POSE', "Pose", ""),
+                   ('OBJECT', "Object", ""),
+                   ),
+            default={'POSE'},
+            )
 
     def execute(self, context):
 
-        action = bake(self.frame_start, self.frame_end, self.step, self.only_selected)
+        action = bake(self.frame_start,
+                      self.frame_end,
+                      self.step,
+                      self.only_selected,
+                      'POSE' in self.bake_types,
+                      'OBJECT' in self.bake_types,
+                      self.clear_consraints,
+                      )
+
+        if action is None:
+            self.report({'INFO'}, "Nothing to bake")
+            return {'CANCELLED'}
 
         # basic cleanup, could move elsewhere
         for fcu in action.fcurves:
