@@ -214,6 +214,7 @@ macro(setup_liblinks
 	if(WITH_IMAGE_TIFF)
 		target_link_libraries(${target} ${TIFF_LIBRARY})
 	endif()
+	if(WITH_IMAGE_OPENEXR)
 		if(WIN32 AND NOT UNIX)
 			foreach(_LOOP_VAR ${OPENEXR_LIBRARIES})
 				string(REGEX REPLACE ".lib$" "_d.lib" _LOOP_VAR_DEBUG ${_LOOP_VAR})
