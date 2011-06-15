@@ -854,49 +854,11 @@ static void finish_images(MultiresBakeRender *bkr)
 		Image *ima= (Image*)link->data;
 		int i;
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-		short is_new_alpha;
 
 		if(ibuf->x<=0 || ibuf->y<=0)
 			continue;
 
-		/* must check before filtering */
-		is_new_alpha= (ibuf->depth != 32) && BKE_alphatest_ibuf(ibuf);
-
-		/* Margin */
-		if(bkr->bake_filter) {
-			char *temprect;
-
-			/* extend the mask +2 pixels from the image,
-			 * this is so colors dont blend in from outside */
-
-			for(i=0; i<bkr->bake_filter; i++)
-				IMB_mask_filter_extend((char *)ibuf->userdata, ibuf->x, ibuf->y);
-
-			temprect = MEM_dupallocN(ibuf->userdata);
-
-			/* expand twice to clear this many pixels, so they blend back in */
-			IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-			IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-
-			/* clear all pixels in the margin */
-			IMB_mask_clear(ibuf, temprect, FILTER_MASK_MARGIN);
-			MEM_freeN(temprect);
-
-			for(i= 0; i<bkr->bake_filter; i++)
-				IMB_filter_extend(ibuf, (char *)ibuf->userdata);
-		}
-
-		/* if the bake results in new alpha then change the image setting */
-		if(is_new_alpha) {
-			ibuf->depth= 32;
-		}
-		else {
-			if(bkr->bake_filter) {
-				/* clear alpha added by filtering */
-				IMB_rectfill_alpha(ibuf, 1.0f);
-			}
-		}
-
+		RE_bake_ibuf_filter(ibuf, (unsigned char *)ibuf->userdata, bkr->bake_filter);
 
 		ibuf->userflags|= IB_BITMAPDIRTY;
 		if(ibuf->mipmap[0]) {
@@ -1349,7 +1311,6 @@ static void finish_bake_internal(BakeRender *bkr)
 
 					/* freed when baking is done, but if its canceled we need to free here */
 					if (ibuf->userdata) {
-						printf("freed\n");
 						MEM_freeN(ibuf->userdata);
 						ibuf->userdata= NULL;
 					}
