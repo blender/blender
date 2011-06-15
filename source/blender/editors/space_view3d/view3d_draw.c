@@ -2074,10 +2074,6 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 {
 	CustomDataMask mask= 0;
-	if(v3d->drawtype == OB_SHADED) {
-		/* this includes normals for mesh_create_shadedColors */
-		mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
-	}
 	if((v3d->drawtype == OB_TEXTURE) || ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX))) {
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 

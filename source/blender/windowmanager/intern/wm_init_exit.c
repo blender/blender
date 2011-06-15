@@ -379,7 +379,6 @@ void WM_exit(bContext *C)
 	
 	BKE_freecubetable();
 	
-	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
 
 	if(C && CTX_wm_manager(C))
