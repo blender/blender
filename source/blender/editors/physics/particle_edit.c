@@ -53,6 +53,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 
@@ -1512,7 +1514,7 @@ static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void PARTICLE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked";
+	ot->name= _("Select Linked");
 	ot->idname= "PARTICLE_OT_select_linked";
 	
 	/* api callbacks */
@@ -1524,7 +1526,7 @@ void PARTICLE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked keys rather than selecting them.");
+	RNA_def_boolean(ot->srna, "deselect", 0, _("Deselect"), _("Deselect linked keys rather than selecting them."));
 	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "", 0, 16384);
 }
 
@@ -1700,7 +1702,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected";
+	ot->name= _("Hide Selected");
 	ot->idname= "PARTICLE_OT_hide";
 	
 	/* api callbacks */
@@ -1711,7 +1713,7 @@ void PARTICLE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
 }
 
 /*************************** reveal operator **************************/
@@ -2006,7 +2008,7 @@ void PARTICLE_OT_rekey(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "keys", 2, 2, INT_MAX, "Number of Keys", "", 2, 100);
+	RNA_def_int(ot->srna, "keys", 2, 2, INT_MAX, _("Number of Keys"), "", 2, 100);
 }
 
 static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float path_time)

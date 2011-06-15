@@ -59,6 +59,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 
+#include "BLF_api.h"
+
 #if defined WIN32 && !defined _LIBC
 # include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
 #else
@@ -1536,16 +1538,16 @@ static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Page";
+	ot->name= _("Scroll Page");
 	ot->idname= "OUTLINER_OT_scroll_page";
-	ot->description= "Scroll page up or down";
+	ot->description= _("Scroll page up or down");
 	
 	/* callbacks */
 	ot->exec= outliner_scroll_page_exec;
 	ot->poll= ED_operator_outliner_active;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page.");
+	RNA_def_boolean(ot->srna, "up", 0, _("Up"), _("Scroll up one page."));
 }
 
 
@@ -1847,9 +1849,9 @@ static int outliner_one_level_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show/Hide One Level";
+	ot->name= _("Show/Hide One Level");
 	ot->idname= "OUTLINER_OT_show_one_level";
-	ot->description= "Expand/collapse all entries by one level";
+	ot->description= _("Expand/collapse all entries by one level");
 	
 	/* callbacks */
 	ot->exec= outliner_one_level_exec;
@@ -1858,7 +1860,7 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep.");
+	RNA_def_boolean(ot->srna, "open", 1, _("Open"), _("Expand all entries one level deep."));
 }
 
 /* This is not used anywhere at the moment */
@@ -2612,15 +2614,15 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
 {
-	ot->name= "Activate Item";
+	ot->name= _("Activate Item");
 	ot->idname= "OUTLINER_OT_item_activate";
-	ot->description= "Handle mouse clicks to activate/select items";
+	ot->description= _("Handle mouse clicks to activate/select items");
 	
 	ot->invoke= outliner_item_activate;
 	
 	ot->poll= ED_operator_outliner_active;
 	
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection for activation.");
+	RNA_def_boolean(ot->srna, "extend", 1, _("Extend"), _("Extend selection for activation."));
 }
 
 /* *********** */
@@ -2675,15 +2677,15 @@ static int outliner_item_openclose(bContext *C, wmOperator *op, wmEvent *event)
 
 void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 {
-	ot->name= "Open/Close Item";
+	ot->name= _("Open/Close Item");
 	ot->idname= "OUTLINER_OT_item_openclose";
-	ot->description= "Toggle whether item under cursor is enabled or closed";
+	ot->description= _("Toggle whether item under cursor is enabled or closed");
 	
 	ot->invoke= outliner_item_openclose;
 	
 	ot->poll= ED_operator_outliner_active;
 	
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Close or open all items.");
+	RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Close or open all items."));
 
 }
 

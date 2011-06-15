@@ -40,6 +40,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -179,7 +181,7 @@ void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, _("Invert"), "");
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -354,8 +356,8 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
 	
-	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
-	RNA_def_boolean(ot->srna, "include_handles", 0, "Include Handles", "Are handles tested individually against the selection criteria");
+	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, _("Axis Range"), "");
+	RNA_def_boolean(ot->srna, "include_handles", 0, _("Include Handles"), _("Are handles tested individually against the selection criteria"));
 }
 
 /* ******************** Column Select Operator **************************** */
@@ -849,7 +851,7 @@ void GRAPH_OT_select_leftright (wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "mode", prop_graphkeys_leftright_select_types, GRAPHKEYS_LRSEL_TEST, "Mode", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
 }
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -1337,9 +1339,9 @@ void GRAPH_OT_clickselect (wmOperatorType *ot)
 	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column", 0, "Column Select", "Select all keyframes that occur on the same frame as the one under the mouse"); // ALTKEY
-	RNA_def_boolean(ot->srna, "curves", 0, "Only Curves", "Select all the keyframes in the curve"); // CTRLKEY + ALTKEY
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "column", 0, _("Column Select"), _("Select all keyframes that occur on the same frame as the one under the mouse")); // ALTKEY
+	RNA_def_boolean(ot->srna, "curves", 0, _("Only Curves"), _("Select all the keyframes in the curve")); // CTRLKEY + ALTKEY
 }
 
 /* ************************************************************************** */

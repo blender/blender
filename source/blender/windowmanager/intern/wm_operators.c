@@ -1538,7 +1538,7 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_open_mainfile(wmOperatorType *ot)
 {
-	ot->name= "Open Blender File";
+	ot->name= _("Open Blender File");
 	ot->idname= "WM_OT_open_mainfile";
 	ot->description=_("Open a Blender file");
 	
@@ -1548,8 +1548,8 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH);
 
-	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file");
-	RNA_def_boolean(ot->srna, "use_scripts", 1, "Trusted Source", "Allow blend file execute scripts automatically, default available from system preferences");
+	RNA_def_boolean(ot->srna, "load_ui", 1, _("Load UI"), _("Load user interface setup in the .blend file"));
+	RNA_def_boolean(ot->srna, "use_scripts", 1, _("Trusted Source"), _("Allow blend file execute scripts automatically, default available from system preferences"));
 }
 
 /* **************** link/append *************** */
@@ -1791,7 +1791,7 @@ static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 
 static void WM_OT_recover_auto_save(wmOperatorType *ot)
 {
-	ot->name= "Recover Auto Save";
+	ot->name= _("Recover Auto Save");
 	ot->idname= "WM_OT_recover_auto_save";
 	ot->description=_("Open an automatically saved file to recover it");
 	
@@ -1956,7 +1956,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 
 static void WM_OT_save_mainfile(wmOperatorType *ot)
 {
-	ot->name= "Save Blender File";
+	ot->name= _("Save Blender File");
 	ot->idname= "WM_OT_save_mainfile";
 	ot->description=_("Save the current Blender file");
 	
@@ -1966,8 +1966,8 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	/* ommit window poll so this can work in background mode */
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
-	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
-	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
+	RNA_def_boolean(ot->srna, "compress", 0, _("Compress"), _("Write compressed .blend file"));
+	RNA_def_boolean(ot->srna, "relative_remap", 0, _("Remap Relative"), _("Remap relative paths when saving in a different directory"));
 }
 
 /* XXX: move these collada operators to a more appropriate place */
@@ -2055,9 +2055,9 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 {
-	ot->name= "Toggle Fullscreen";
+	ot->name= _("Toggle Fullscreen");
 	ot->idname= "WM_OT_window_fullscreen_toggle";
-	ot->description="Toggle the current window fullscreen";
+	ot->description=_("Toggle the current window fullscreen");
 
 	ot->exec= wm_window_fullscreen_toggle_exec;
 	ot->poll= WM_operator_winactive;
@@ -3222,12 +3222,12 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* all paths relative to the context */
-	RNA_def_string(ot->srna, "data_path", "", 0, "Data Path", "Path of property to be set by the radial control.");
-	RNA_def_string(ot->srna, "rotation_path", "", 0, "Rotation Path", "Path of property used to rotate the texture display.");
-	RNA_def_string(ot->srna, "color_path", "", 0, "Color Path", "Path of property used to set the color of the control.");
-	RNA_def_string(ot->srna, "fill_color_path", "", 0, "Fill Color Path", "Path of property used to set the fill color of the control.");
-	RNA_def_string(ot->srna, "zoom_path", "", 0, "Zoom Path", "Path of property used to set the zoom level for the control.");
-	RNA_def_string(ot->srna, "image_id", "", 0, "Image ID", "Path of ID that is used to generate an image for the control.");
+	RNA_def_string(ot->srna, "data_path", "", 0, _("Data Path"), _("Path of property to be set by the radial control."));
+	RNA_def_string(ot->srna, "rotation_path", "", 0, _("Rotation Path"), _("Path of property used to rotate the texture display."));
+	RNA_def_string(ot->srna, "color_path", "", 0, _("Color Path"), _("Path of property used to set the color of the control."));
+	RNA_def_string(ot->srna, "fill_color_path", "", 0, _("Fill Color Path"), _("Path of property used to set the fill color of the control."));
+	RNA_def_string(ot->srna, "zoom_path", "", 0, _("Zoom Path"), _("Path of property used to set the zoom level for the control."));
+	RNA_def_string(ot->srna, "image_id", "", 0, _("Image ID"), _("Path of ID that is used to generate an image for the control."));
 }
 
 /* ************************** timer for testing ***************** */

@@ -43,6 +43,8 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
@@ -609,8 +611,8 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 
 void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 {
-	ot->name= "Disconnect Hair";
-	ot->description= "Disconnect hair from the emitter mesh";
+	ot->name= _("Disconnect Hair");
+	ot->description= _("Disconnect hair from the emitter mesh");
 	ot->idname= "PARTICLE_OT_disconnect_hair";
 	
 	ot->exec= disconnect_hair_exec;
@@ -618,7 +620,7 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Disconnect all hair systems from the emitter mesh");
+	RNA_def_boolean(ot->srna, "all", 0, _("All hair"), _("Disconnect all hair systems from the emitter mesh"));
 }
 
 static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
@@ -747,8 +749,8 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 
 void PARTICLE_OT_connect_hair(wmOperatorType *ot)
 {
-	ot->name= "Connect Hair";
-	ot->description= "Connect hair to the emitter mesh";
+	ot->name= _("Connect Hair");
+	ot->description= _("Connect hair to the emitter mesh");
 	ot->idname= "PARTICLE_OT_connect_hair";
 	
 	ot->exec= connect_hair_exec;
@@ -756,6 +758,6 @@ void PARTICLE_OT_connect_hair(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Connect all hair systems to the emitter mesh");
+	RNA_def_boolean(ot->srna, "all", 0, _("All hair"), _("Connect all hair systems to the emitter mesh"));
 }
 

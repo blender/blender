@@ -43,6 +43,8 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
+#include "BLF_api.h"
+
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -199,7 +201,7 @@ void NLA_OT_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	RNA_def_boolean(ot->srna, "invert", 0, _("Invert"), "");
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -343,7 +345,7 @@ void NLA_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, 0);
 	
-	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+	RNA_def_boolean(ot->srna, "axis_range", 0, _("Axis Range"), "");
 }
 
 /* ******************** Select Left/Right Operator ************************* */
@@ -491,7 +493,7 @@ void NLA_OT_select_leftright (wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
 }
 
 
@@ -650,7 +652,7 @@ void NLA_OT_click_select (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), ""); // SHIFTKEY
 }
 
 /* *********************************************** */

@@ -46,6 +46,8 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -613,8 +615,8 @@ static int object_transform_apply_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Object Transform";
-	ot->description = "Apply the object's transformation to its data";
+	ot->name= _("Apply Object Transform");
+	ot->description = _("Apply the object's transformation to its data");
 	ot->idname= "OBJECT_OT_transform_apply";
 
 	/* api callbacks */
@@ -624,9 +626,9 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "location", 0, "Location", "");
-	RNA_def_boolean(ot->srna, "rotation", 0, "Rotation", "");
-	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "");
+	RNA_def_boolean(ot->srna, "location", 0, _("Location"), "");
+	RNA_def_boolean(ot->srna, "rotation", 0, _("Rotation"), "");
+	RNA_def_boolean(ot->srna, "scale", 0, _("Scale"), "");
 }
 
 /********************* Set Object Center ************************/

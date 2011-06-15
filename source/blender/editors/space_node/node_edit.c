@@ -50,6 +50,8 @@
 #include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -755,8 +757,8 @@ void NODE_OT_group_socket_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
-	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, _("Index"), "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, _("Socket Type"), _("Input or Output"));
 }
 
 /* ***************** Move Group Socket Up operator ************* */
@@ -821,8 +823,8 @@ void NODE_OT_group_socket_move_up(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
-	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, _("Index"), "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, _("Socket Type"), _("Input or Output"));
 }
 
 /* ***************** Move Group Socket Up operator ************* */
@@ -887,8 +889,8 @@ void NODE_OT_group_socket_move_down(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
-	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, _("Index"), "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, _("Socket Type"), _("Input or Output"));
 }
 
 /* ******************** Ungroup operator ********************** */
@@ -2358,7 +2360,7 @@ void NODE_OT_link_make(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "replace", 0, "Replace", "Replace socket connections with the new links");
+	RNA_def_boolean(ot->srna, "replace", 0, _("Replace"), _("Replace socket connections with the new links"));
 }
 
 /* ********************** Cut Link operator ***************** */
@@ -2442,7 +2444,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
 	/* internal */
-	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, _("Cursor"), "", 0, INT_MAX);
 }
 
 /* ******************************** */

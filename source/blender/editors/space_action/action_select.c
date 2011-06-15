@@ -41,6 +41,8 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
@@ -175,7 +177,7 @@ void ACTION_OT_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, _("Invert"), "");
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -342,7 +344,7 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
 	
-	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, _("Axis Range"), "");
 }
 
 /* ******************** Column Select Operator **************************** */
@@ -879,7 +881,7 @@ void ACTION_OT_select_leftright (wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "mode", prop_actkeys_leftright_select_types, ACTKEYS_LRSEL_TEST, "Mode", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
 }
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -1196,8 +1198,8 @@ void ACTION_OT_clickselect (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "column", 0, _("Column Select"), ""); // ALTKEY
 }
 
 /* ************************************************************************** */

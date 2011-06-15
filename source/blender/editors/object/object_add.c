@@ -50,6 +50,8 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
@@ -174,10 +176,10 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	PropertyRNA *prop;
 	
 	/* note: this property gets hidden for add-camera operator */
-	RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
+	RNA_def_boolean(ot->srna, "view_align", 0, _("Align to View"), _("Align the new object to the view"));
 
 	if(do_editmode) {
-		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object");
+		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, _("Enter Editmode"), _("Enter editmode when adding this object"));
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 	}
 	
@@ -837,8 +839,8 @@ static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
-	ot->description = "Delete selected objects";
+	ot->name= _("Delete");
+	ot->description = _("Delete selected objects");
 	ot->idname= "OBJECT_OT_delete";
 	
 	/* api callbacks */
@@ -1382,8 +1384,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_convert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Convert";
-	ot->description = "Convert selected objects to another type";
+	ot->name= _("Convert to");
+	ot->description = _("Convert selected objects to another type");
 	ot->idname= "OBJECT_OT_convert";
 	
 	/* api callbacks */
@@ -1395,8 +1397,8 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
-	RNA_def_boolean(ot->srna, "keep_original", 0, "Keep Original", "Keep original objects instead of replacing them");
+	ot->prop= RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, _("Target"), _("Type of object to convert to"));
+	RNA_def_boolean(ot->srna, "keep_original", 0, _("Keep Original"), _("Keep original objects instead of replacing them"));
 }
 
 /**************************** Duplicate ************************/
@@ -1716,7 +1718,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
+	RNA_def_boolean(ot->srna, "linked", 0, _("Linked"), _("Duplicate object but not object data, linking to the original data"));
 	prop= RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
@@ -1786,8 +1788,8 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
-	RNA_def_string(ot->srna, "name", "Cube", 24, "Name", "Object name to add");
+	RNA_def_boolean(ot->srna, "linked", 0, _("Linked"), _("Duplicate object but not object data, linking to the original data"));
+	RNA_def_string(ot->srna, "name", "Cube", 24, _("Name"), _("Object name to add"));
 }
 
 
@@ -1833,8 +1835,8 @@ static int join_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_join(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Join";
-	ot->description = "Join selected objects into active object";
+	ot->name= _("Join");
+	ot->description = _("Join selected objects into active object");
 	ot->idname= "OBJECT_OT_join";
 	
 	/* api callbacks */

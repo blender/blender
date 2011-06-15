@@ -35,6 +35,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -216,6 +218,6 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
 	/* internal */
-	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, _("Cursor"), "", 0, INT_MAX);
 }
 

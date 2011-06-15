@@ -45,6 +45,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -297,9 +299,9 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Shape Key";
+	ot->name= _("Add Shape Key");
 	ot->idname= "OBJECT_OT_shape_key_add";
-	ot->description= "Add shape key to the object";
+	ot->description= _("Add shape key to the object");
 	
 	/* api callbacks */
 	ot->poll= shape_key_mode_poll;
@@ -309,7 +311,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "from_mix", 1, "From Mix", "Create the new shape key from the existing mix of keys.");
+	RNA_def_boolean(ot->srna, "from_mix", 1, _("From Mix"), _("Create the new shape key from the existing mix of keys."));
 }
 
 static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))

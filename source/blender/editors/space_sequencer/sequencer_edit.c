@@ -48,6 +48,8 @@
 #include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -1193,7 +1195,7 @@ void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, "Frame", "Frame where selected strips will be snapped", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, _("Frame"), _("Frame where selected strips will be snapped"), INT_MIN, INT_MAX);
 }
 
 /* mute operator */
@@ -1228,9 +1230,9 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mute Strips";
+	ot->name= _("Mute Strips");
 	ot->idname= "SEQUENCER_OT_mute";
-	ot->description="Mute selected strips";
+	ot->description=_("Mute selected strips");
 	
 	/* api callbacks */
 	ot->exec= sequencer_mute_exec;
@@ -1239,7 +1241,7 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Mute unselected rather than selected strips.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Mute unselected rather than selected strips."));
 }
 
 
@@ -1275,9 +1277,9 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Un-Mute Strips";
+	ot->name= _("Un-Mute Strips");
 	ot->idname= "SEQUENCER_OT_unmute";
-	ot->description="Un-Mute unselected rather than selected strips";
+	ot->description=_("Un-Mute unselected rather than selected strips");
 	
 	/* api callbacks */
 	ot->exec= sequencer_unmute_exec;
@@ -1286,7 +1288,7 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "UnMute unselected rather than selected strips.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("UnMute unselected rather than selected strips."));
 }
 
 
@@ -1604,9 +1606,9 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, "Frame", "Frame where selected strips will be cut", INT_MIN, INT_MAX);
-	RNA_def_enum(ot->srna, "type", prop_cut_types, SEQ_CUT_SOFT, "Type", "The type of cut operation to perform on strips");
-	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side that remains selected after cutting");
+	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, _("Frame"), _("Frame where selected strips will be cut"), INT_MIN, INT_MAX);
+	RNA_def_enum(ot->srna, "type", prop_cut_types, SEQ_CUT_SOFT, _("Type"), _("The type of cut operation to perform on strips"));
+	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, _("Side"), _("The side that remains selected after cutting"));
 }
 
 /* duplicate operator */
@@ -1840,7 +1842,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "length", 1, 1, 1000, "Length", "Length of each frame", 1, INT_MAX);
+	RNA_def_int(ot->srna, "length", 1, 1, 1000, _("Length"), _("Length of each frame"), 1, INT_MAX);
 }
 
 

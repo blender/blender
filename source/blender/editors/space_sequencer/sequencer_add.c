@@ -47,6 +47,8 @@
 #include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -88,17 +90,17 @@
 static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 {
 	if(flag & SEQPROP_STARTFRAME)
-		RNA_def_int(ot->srna, "frame_start", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame of the sequence strip", INT_MIN, INT_MAX);
+		RNA_def_int(ot->srna, "frame_start", 0, INT_MIN, INT_MAX, _("Start Frame"), _("Start frame of the sequence strip"), INT_MIN, INT_MAX);
 	
 	if(flag & SEQPROP_ENDFRAME)
-		RNA_def_int(ot->srna, "frame_end", 0, INT_MIN, INT_MAX, "End Frame", "End frame for the color strip", INT_MIN, INT_MAX); /* not useual since most strips have a fixed length */
+		RNA_def_int(ot->srna, "frame_end", 0, INT_MIN, INT_MAX, _("End Frame"), _("End frame for the color strip"), INT_MIN, INT_MAX); /* not useual since most strips have a fixed length */
 	
-	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
+	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, _("Channel"), _("Channel to place this strip into"), 1, MAXSEQ);
 	
-	RNA_def_boolean(ot->srna, "replace_sel", 1, "Replace Selection", "replace the current selection");
+	RNA_def_boolean(ot->srna, "replace_sel", 1, _("Replace Selection"), _("replace the current selection"));
 
 	if(flag & SEQPROP_FILES)
-		RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+		RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, _("Files"), "");
 }
 
 static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op, const char *identifier)
@@ -375,9 +377,9 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Add Movie Strip";
+	ot->name= _("Add Movie Strip");
 	ot->idname= "SEQUENCER_OT_movie_strip_add";
-	ot->description= "Add a movie strip to the sequencer";
+	ot->description= _("Add a movie strip to the sequencer");
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_movie_strip_invoke;
@@ -390,7 +392,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILES);
-	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load sound with the movie");
+	RNA_def_boolean(ot->srna, "sound", TRUE, _("Sound"), _("Load sound with the movie"));
 }
 
 /* add sound operator */
@@ -430,9 +432,9 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Add Sound Strip";
+	ot->name= _("Add Sound Strip");
 	ot->idname= "SEQUENCER_OT_sound_strip_add";
-	ot->description= "Add a sound strip to the sequencer";
+	ot->description= _("Add a sound strip to the sequencer");
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_sound_strip_invoke;
@@ -445,7 +447,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILES);
-	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
+	RNA_def_boolean(ot->srna, "cache", FALSE, _("Cache"), _("Cache the sound in memory."));
 }
 
 /* add image operator */

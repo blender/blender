@@ -55,6 +55,8 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
@@ -2052,7 +2054,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "ring", 0, "Ring", "");
+	RNA_def_boolean(ot->srna, "ring", 0, _("Ring"), "");
 }
 
 		
@@ -2142,8 +2144,8 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
-	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
+	RNA_def_boolean(ot->srna, "ring", 0, _("Select Ring"), "");
 }
 
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
@@ -2273,7 +2275,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
 }
 
 
@@ -2580,8 +2582,8 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
-	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "Limit selection by seam boundaries (faces only)");
+	RNA_def_boolean(ot->srna, "deselect", 0, _("Deselect"), "");
+	RNA_def_boolean(ot->srna, "limit", 0, _("Limit by Seams"), _("Limit selection by seam boundaries (faces only)"));
 }
 
 
@@ -2670,7 +2672,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "Limit selection by seam boundaries (faces only)");
+	RNA_def_boolean(ot->srna, "limit", 0, _("Limit by Seams"), _("Limit selection by seam boundaries (faces only)"));
 }
 
 
@@ -2795,8 +2797,8 @@ static int hide_mesh_exec(bContext *C, wmOperator *op)
 void MESH_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selection";
-	ot->description= "Hide (un)selected vertices, edges or faces";
+	ot->name= _("Hide Selection");
+	ot->description= _("Hide (un)selected vertices, edges or faces");
 	ot->idname= "MESH_OT_hide";
 	
 	/* api callbacks */
@@ -2807,7 +2809,7 @@ void MESH_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
 }
 
 void EM_reveal_mesh(EditMesh *em)
@@ -2965,7 +2967,7 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Extend the existing selection"));
 }
 
 static int select_sharp_edges_exec(bContext *C, wmOperator *op)
@@ -3714,8 +3716,8 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, _("Percent"), _("Percentage of elements to select randomly."), 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend Selection"), _("Extend selection instead of deselecting everything first."));
 }
 
 void EM_select_by_material(EditMesh *em, int index) 
@@ -3808,7 +3810,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	RNA_def_boolean(ot->srna, "clear", 0, _("Clear"), "");
 }
 
 static int editmesh_mark_sharp(bContext *C, wmOperator *op)
@@ -3860,7 +3862,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	RNA_def_boolean(ot->srna, "clear", 0, _("Clear"), "");
 }
 
 /* **************** NORMALS ************** */
@@ -4104,7 +4106,7 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
+	RNA_def_boolean(ot->srna, "inside", 0, _("Inside"), "");
 }
 
 /* **************** VERTEX DEFORMS *************** */
@@ -4282,10 +4284,10 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "repeat", 1, 1, 100, "Smooth Iterations", "", 1, INT_MAX);
-	RNA_def_boolean(ot->srna, "xaxis", 1, "X-Axis", "Smooth along the X axis.");
-	RNA_def_boolean(ot->srna, "yaxis", 1, "Y-Axis", "Smooth along the Y axis.");
-	RNA_def_boolean(ot->srna, "zaxis", 1, "Z-Axis", "Smooth along the Z axis.");
+	RNA_def_int(ot->srna, "repeat", 1, 1, 100, _("Smooth Iterations"), "", 1, INT_MAX);
+	RNA_def_boolean(ot->srna, "xaxis", 1, _("X-Axis"), _("Smooth along the X axis."));
+	RNA_def_boolean(ot->srna, "yaxis", 1, _("Y-Axis"), _("Smooth along the Y axis."));
+	RNA_def_boolean(ot->srna, "zaxis", 1, _("Z-Axis"), _("Smooth along the Z axis."));
 }
 
 static int mesh_noise_exec(bContext *C, wmOperator *op)
@@ -4495,6 +4497,6 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "nth", 2, 2, 100, _("Nth Selection"), "", 1, INT_MAX);
 }
 

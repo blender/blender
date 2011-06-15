@@ -47,6 +47,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
@@ -662,8 +664,8 @@ void FONT_OT_style_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, "Style", "Style to set selection to.");
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear style rather than setting it.");
+	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, _("Style"), _("Style to set selection to."));
+	RNA_def_boolean(ot->srna, "clear", 0, _("Clear"), _("Clear style rather than setting it."));
 }
 
 /******************* toggle style operator ********************/
@@ -1037,7 +1039,7 @@ void FONT_OT_change_spacing(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "delta", 1, -20, 20, "Delta", "Amount to decrease or increasing character spacing with.", -20, 20);
+	RNA_def_int(ot->srna, "delta", 1, -20, 20, _("Delta"), _("Amount to decrease or increasing character spacing with."), -20, 20);
 }
 
 /************************* change character **********************/
@@ -1082,7 +1084,7 @@ void FONT_OT_change_character(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "delta", 1, -255, 255, "Delta", "Number to increase or decrease character code with.", -255, 255);
+	RNA_def_int(ot->srna, "delta", 1, -255, 255, _("Delta"), _("Number to increase or decrease character code with."), -255, 255);
 }
 
 /******************* line break operator ********************/
@@ -1365,8 +1367,8 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
-	RNA_def_boolean(ot->srna, "accent", 0, "Accent mode", "Next typed character will strike through previous, for special character input.");
+	RNA_def_string(ot->srna, "text", "", 0, _("Text"), _("Text to insert at the cursor position."));
+	RNA_def_boolean(ot->srna, "accent", 0, _("Accent mode"), _("Next typed character will strike through previous, for special character input."));
 }
 
 
@@ -1445,7 +1447,7 @@ void FONT_OT_textbox_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The current text box.", 0, INT_MAX);
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, _("Index"), _("The current text box."), 0, INT_MAX);
 	
 	
 }

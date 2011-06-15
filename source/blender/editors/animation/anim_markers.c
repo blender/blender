@@ -45,6 +45,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
@@ -892,7 +894,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 	
 	/* rna storage */
-	RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, _("Frames"), "", INT_MIN, INT_MAX);
 }
 
 /* ************************** duplicate markers *************************** */
@@ -987,7 +989,7 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna storage */
-	RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, _("Frames"), "", INT_MIN, INT_MAX);
 }
 
 /* ************************** selection ************************************/
@@ -1106,9 +1108,9 @@ static void MARKER_OT_select(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "extend the selection");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("extend the selection"));
 #ifdef DURIAN_CAMERA_SWITCH
-	RNA_def_boolean(ot->srna, "camera", 0, "Camera", "Select the camera");
+	RNA_def_boolean(ot->srna, "camera", 0, _("Camera"), _("Select the camera"));
 #endif
 }
 

@@ -39,6 +39,8 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_node.h"
 
@@ -221,8 +223,8 @@ void NODE_OT_visibility_toggle(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, _("Mouse X"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, _("Mouse Y"), "", INT_MIN, INT_MAX);
 }
 
 /* **************** View All Operator ************** */

@@ -45,6 +45,8 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
@@ -476,8 +478,8 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "frame", 1, 0, INT_MAX, "Frame", "Frame to store pose on", 0, INT_MAX);
-	RNA_def_string(ot->srna, "name", "Pose", 64, "Pose Name", "Name of newly added Pose");
+	RNA_def_int(ot->srna, "frame", 1, 0, INT_MAX, _("Frame"), _("Frame to store pose on"), 0, INT_MAX);
+	RNA_def_string(ot->srna, "name", "Pose", 64, _("Pose Name"), _("Name of newly added Pose"));
 }
 
 /* ----- */
@@ -1592,7 +1594,7 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	
 	/* properties */	
 		// TODO: make the pose_index into a proper enum instead of a cryptic int...
-	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
+	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, _("Pose"), _("Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)"), 0, INT_MAX);
 	
 	// XXX: percentage vs factor?
 	/* not used yet */
@@ -1615,5 +1617,5 @@ void POSELIB_OT_apply_pose (wmOperatorType *ot)
 	
 	/* properties */	
 		// TODO: make the pose_index into a proper enum instead of a cryptic int...
-	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
+	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, _("Pose"), _("Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)"), 0, INT_MAX);
 }

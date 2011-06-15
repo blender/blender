@@ -43,6 +43,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -2781,7 +2783,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		empty= uiDefAutoButsRNA(layout, &ptr, check_prop, label_align) == 0;
 
 		if(empty && (flag & UI_LAYOUT_OP_SHOW_EMPTY)) {
-			uiItemL(layout, "No Properties.", ICON_NONE);
+			uiItemL(layout, _("No Properties."), ICON_NONE);
 		}
 	}
 	

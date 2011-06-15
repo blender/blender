@@ -354,8 +354,8 @@ void FILE_OT_select(wmOperatorType *ot)
 	ot->poll= ED_operator_file_active;
 
 	/* rna */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "Select everything beginning with the last selection.");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Extend selection instead of deselecting everything first."));
+	RNA_def_boolean(ot->srna, "fill", 0, _("Fill"), _("Select everything beginning with the last selection."));
 }
 
 static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -501,7 +501,7 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	ot->exec= bookmark_delete_exec;
 	ot->poll= ED_operator_file_active;
 
-	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+	RNA_def_int(ot->srna, "index", -1, -1, 20000, _("Index"), "", -1, 20000);
 }
 
 int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
@@ -757,7 +757,7 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	ot->exec= file_exec;
 	ot->poll= file_operator_poll; 
 	
-	RNA_def_boolean(ot->srna, "need_active", 0, "Need Active", "Only execute if there's an active selected file in the file list.");
+	RNA_def_boolean(ot->srna, "need_active", 0, _("Need Active"), _("Only execute if there's an active selected file in the file list."));
 }
 
 
@@ -1278,7 +1278,7 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 
 	/* props */
-	RNA_def_int(ot->srna, "increment", 1, 0, 100, "Increment", "", 0,100);
+	RNA_def_int(ot->srna, "increment", 1, 0, 100, _("Increment"), "", 0,100);
 }
 
 static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))

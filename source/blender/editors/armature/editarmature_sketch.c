@@ -44,6 +44,8 @@
 #include "BLI_graph.h"
 #include "BLI_ghash.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_sketch.h"
 
@@ -2916,7 +2918,7 @@ void SKETCH_OT_finish_stroke(wmOperatorType *ot)
 void SKETCH_OT_draw_preview(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "draw preview";
+	ot->name= _("draw preview");
 	ot->idname= "SKETCH_OT_draw_preview";
 
 	/* api callbacks */
@@ -2924,7 +2926,7 @@ void SKETCH_OT_draw_preview(wmOperatorType *ot)
 
 	ot->poll= ED_operator_sketch_mode_active_stroke;
 
-	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
+	RNA_def_boolean(ot->srna, "snap", 0, _("Snap"), "");
 
 	/* flags */
 //	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2943,7 +2945,7 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 
 	ot->poll= (int (*)(bContext *))ED_operator_sketch_mode;
 
-	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
+	RNA_def_boolean(ot->srna, "snap", 0, _("Snap"), "");
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING; // OPTYPE_REGISTER|OPTYPE_UNDO
@@ -2962,7 +2964,7 @@ void SKETCH_OT_gesture(wmOperatorType *ot)
 
 	ot->poll= ED_operator_sketch_mode_gesture;
 
-	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
+	RNA_def_boolean(ot->srna, "snap", 0, _("Snap"), "");
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING; // OPTYPE_UNDO

@@ -39,6 +39,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 
 #include "RNA_access.h"
@@ -306,8 +308,8 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, _("Delta X"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, _("Delta Y"), "", INT_MIN, INT_MAX);
 }
 
 /* ------------------ Scrollwheel Versions (2) ---------------------- */
@@ -350,8 +352,8 @@ static void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 	ot->exec= view_scrollright_exec;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, _("Delta X"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, _("Delta Y"), "", INT_MIN, INT_MAX);
 }
 
 
@@ -394,8 +396,8 @@ static void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 	ot->exec= view_scrollleft_exec;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, _("Delta X"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, _("Delta Y"), "", INT_MIN, INT_MAX);
 }
 
 
@@ -434,17 +436,17 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Down";
-	ot->description= "Scroll the view down";
+	ot->name= _("Scroll Down");
+	ot->description= _("Scroll the view down");
 	ot->idname= "VIEW2D_OT_scroll_down";
 	
 	/* api callbacks */
 	ot->exec= view_scrolldown_exec;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
-	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll down one page.");
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, _("Delta X"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, _("Delta Y"), "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "page", 0, _("Page"), _("Scroll down one page."));
 }
 
 
@@ -484,17 +486,17 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Up";
-	ot->description= "Scroll the view up";
+	ot->name= _("Scroll Up");
+	ot->description= _("Scroll the view up");
 	ot->idname= "VIEW2D_OT_scroll_up";
 	
 	/* api callbacks */
 	ot->exec= view_scrollup_exec;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
-	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll up one page.");
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, _("Delta X"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, _("Delta Y"), "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "page", 0, _("Page"), _("Scroll up one page."));
 }
 
 /* ********************************************************* */
@@ -1178,11 +1180,11 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->poll= view_zoom_poll;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, _("Gesture Mode"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, _("X Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, _("X Max"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, _("Y Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, _("Y Max"), "", INT_MIN, INT_MAX);
 }
 
 /* ********************************************************* */

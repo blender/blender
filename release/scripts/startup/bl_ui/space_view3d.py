@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from blf import gettext as _
 
 class VIEW3D_HT_header(bpy.types.Header):
     bl_space_type = 'VIEW_3D'
@@ -304,22 +305,22 @@ class VIEW3D_MT_view(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("view3d.clip_border", text="Clipping Border...")
-        layout.operator("view3d.zoom_border", text="Zoom Border...")
+        layout.operator("view3d.clip_border", text=_("Clipping Border..."))
+        layout.operator("view3d.zoom_border", text=_("Zoom Border..."))
 
         layout.separator()
 
-        layout.operator("view3d.layers", text="Show All Layers").nr = 0
+        layout.operator("view3d.layers", text=_("Show All Layers")).nr = 0
 
         layout.separator()
 
-        layout.operator("view3d.localview", text="View Global/Local")
+        layout.operator("view3d.localview", text=_("View Global/Local"))
         layout.operator("view3d.view_selected")
         layout.operator("view3d.view_all")
 
         layout.separator()
 
-        layout.operator("screen.animation_play", text="Playback Animation")
+        layout.operator("screen.animation_play", text=_("Playback Animation"))
 
         layout.separator()
 
@@ -329,7 +330,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
 
 
 class VIEW3D_MT_view_navigation(bpy.types.Menu):
-    bl_label = "Navigation"
+    bl_label = _("Navigation")
 
     def draw(self, context):
         layout = self.layout
@@ -342,9 +343,9 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("view3d.zoom", text="Zoom In").delta = 1
-        layout.operator("view3d.zoom", text="Zoom Out").delta = -1
-        layout.operator("view3d.zoom_camera_1_to_1", text="Zoom Camera 1:1")
+        layout.operator("view3d.zoom", text=_("Zoom In")).delta = 1
+        layout.operator("view3d.zoom", text=_("Zoom Out")).delta = -1
+        layout.operator("view3d.zoom_camera_1_to_1", text=_("Zoom Camera 1:1"))
 
         layout.separator()
 
@@ -352,7 +353,7 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
 
 
 class VIEW3D_MT_view_align(bpy.types.Menu):
-    bl_label = "Align View"
+    bl_label = _("Align View")
 
     def draw(self, context):
         layout = self.layout
@@ -361,46 +362,46 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
-        layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
+        layout.operator("view3d.view_all", text=_("Center Cursor and View All")).center = True
+        layout.operator("view3d.camera_to_view", text=_("Align Active Camera to View"))
         layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
 
 class VIEW3D_MT_view_align_selected(bpy.types.Menu):
-    bl_label = "Align View to Selected"
+    bl_label = _("Align View to Selected")
 
     def draw(self, context):
         layout = self.layout
 
-        props = layout.operator("view3d.viewnumpad", text="Top")
+        props = layout.operator("view3d.viewnumpad", text=_("Top"))
         props.align_active = True
         props.type = 'TOP'
-        props = layout.operator("view3d.viewnumpad", text="Bottom")
+        props = layout.operator("view3d.viewnumpad", text=_("Bottom"))
         props.align_active = True
         props.type = 'BOTTOM'
-        props = layout.operator("view3d.viewnumpad", text="Front")
+        props = layout.operator("view3d.viewnumpad", text=_("Front"))
         props.align_active = True
         props.type = 'FRONT'
-        props = layout.operator("view3d.viewnumpad", text="Back")
+        props = layout.operator("view3d.viewnumpad", text=_("Back"))
         props.align_active = True
         props.type = 'BACK'
-        props = layout.operator("view3d.viewnumpad", text="Right")
+        props = layout.operator("view3d.viewnumpad", text=_("Right"))
         props.align_active = True
         props.type = 'RIGHT'
-        props = layout.operator("view3d.viewnumpad", text="Left")
+        props = layout.operator("view3d.viewnumpad", text=_("Left"))
         props.align_active = True
         props.type = 'LEFT'
 
 
 class VIEW3D_MT_view_cameras(bpy.types.Menu):
-    bl_label = "Cameras"
+    bl_label = _("Cameras")
 
     def draw(self, context):
         layout = self.layout
 
         layout.operator("view3d.object_as_camera")
-        layout.operator("view3d.viewnumpad", text="Active Camera").type = 'CAMERA'
+        layout.operator("view3d.viewnumpad", text=_("Active Camera")).type = 'CAMERA'
 
 # ********** Select menus, suffix from context.mode **********
 
@@ -2330,7 +2331,7 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
 class VIEW3D_PT_context_properties(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Properties"
+    bl_label = _("Properties")
     bl_options = {'DEFAULT_CLOSED'}
 
     def _active_context_member(context):

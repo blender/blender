@@ -42,6 +42,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -412,7 +414,7 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
 }
 
 /***************************** Unhide operator *****************************/

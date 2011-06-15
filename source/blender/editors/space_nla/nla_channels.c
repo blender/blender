@@ -45,6 +45,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
@@ -354,7 +356,7 @@ void NLA_OT_channels_click (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), ""); // SHIFTKEY
 }
 
 /* *********************************************** */
@@ -428,7 +430,7 @@ void NLA_OT_tracks_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "above_selected", 0, "Above Selected", "Add a new NLA Track above every existing selected one.");
+	RNA_def_boolean(ot->srna, "above_selected", 0, _("Above Selected"), _("Add a new NLA Track above every existing selected one."));
 }
 
 /* ******************** Delete Tracks Operator ***************************** */

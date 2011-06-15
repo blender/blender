@@ -650,7 +650,7 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
 	
 	ot->flag= OPTYPE_BLOCKING;
 	
-	RNA_def_int(ot->srna, "modifier", 0, 0, 2, "modifier", "modifier state", 0, 2);
+	RNA_def_int(ot->srna, "modifier", 0, 0, 2, _("modifier"), _("modifier state"), 0, 2);
 }
 
 /* ************** swap area operator *********************************** */
@@ -830,8 +830,8 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 {
-	ot->name= "Duplicate Area into New Window";
-	ot->description= "Duplicate selected area into new window";
+	ot->name= _("Duplicate Area into New Window");
+	ot->description= _("Duplicate selected area into new window");
 	ot->idname= "SCREEN_OT_area_dupli";
 	
 	ot->invoke= area_dupli_invoke;
@@ -1093,7 +1093,7 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
 	/* rna */
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, _("Delta"), "", INT_MIN, INT_MAX);
 }
 
 /* ************** split area operator *********************************** */
@@ -1511,10 +1511,10 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna */
-	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
-	RNA_def_float(ot->srna, "factor", 0.5f, 0.0, 1.0, "Factor", "", 0.0, 1.0);
-	RNA_def_int(ot->srna, "mouse_x", -100, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "mouse_y", -100, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
+	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', _("Direction"), "");
+	RNA_def_float(ot->srna, "factor", 0.5f, 0.0, 1.0, _("Factor"), "", 0.0, 1.0);
+	RNA_def_int(ot->srna, "mouse_x", -100, INT_MIN, INT_MAX, _("Mouse X"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", -100, INT_MIN, INT_MAX, _("Mouse Y"), "", INT_MIN, INT_MAX);
 }
 
 
@@ -1760,7 +1760,7 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 	ot->flag= 0;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, _("Delta"), "", INT_MIN, INT_MAX);
 }
 
 
@@ -1800,8 +1800,8 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 {
-	ot->name = "Jump to Endpoint";
-	ot->description= "Jump to first/last frame in frame range";
+	ot->name = _("Jump to Endpoint");
+	ot->description= _("Jump to first/last frame in frame range");
 	ot->idname = "SCREEN_OT_frame_jump";
 	
 	ot->exec= frame_jump_exec;
@@ -1810,7 +1810,7 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* rna */
-	RNA_def_boolean(ot->srna, "end", 0, "Last Frame", "Jump to the last frame of the frame range.");
+	RNA_def_boolean(ot->srna, "end", 0, _("Last Frame"), _("Jump to the last frame of the frame range."));
 }
 
 
@@ -1882,8 +1882,8 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 {
-	ot->name = "Jump to Keyframe";
-	ot->description= "Jump to previous/next keyframe";
+	ot->name = _("Jump to Keyframe");
+	ot->description= _("Jump to previous/next keyframe");
 	ot->idname = "SCREEN_OT_keyframe_jump";
 	
 	ot->exec= keyframe_jump_exec;
@@ -1892,7 +1892,7 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* rna */
-	RNA_def_boolean(ot->srna, "next", 1, "Next Keyframe", "");
+	RNA_def_boolean(ot->srna, "next", 1, _("Next Keyframe"), "");
 }
 
 /* ************** switch screen operator ***************************** */
@@ -1954,7 +1954,7 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, _("Delta"), "", INT_MIN, INT_MAX);
 }
 
 /* ************** screen full-area operator ***************************** */
@@ -1980,8 +1980,8 @@ static int screen_full_area_exec(bContext *C, wmOperator *UNUSED(op))
 
 static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 {
-	ot->name = "Toggle Full Screen";
-	ot->description= "Toggle display selected area as fullscreen";
+	ot->name = _("Toggle Full Screen");
+	ot->description= _("Toggle display selected area as fullscreen");
 	ot->idname = "SCREEN_OT_screen_full_area";
 	
 	ot->exec= screen_full_area_exec;
@@ -2393,8 +2393,8 @@ static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_repeat_last(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Repeat Last";
-	ot->description= "Repeat last action";
+	ot->name= _("Repeat Last");
+	ot->description= _("Repeat last action");
 	ot->idname= "SCREEN_OT_repeat_last";
 	
 	/* api callbacks */
@@ -2456,7 +2456,7 @@ static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_screenactive;
 	
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, _("Index"), "", 0, 1000);
 }
 
 /* ********************** redo operator ***************************** */
@@ -2577,8 +2577,8 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_region_quadview(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Quad View";
-	ot->description= "Split selected area into camera, front, right & top views";
+	ot->name= _("Toggle Quad View");
+	ot->description= _("Split selected area into camera, front, right & top views");
 	ot->idname= "SCREEN_OT_region_quadview";
 	
 	/* api callbacks */
@@ -2971,8 +2971,8 @@ static int screen_animation_play_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_animation_play(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Play Animation";
-	ot->description= "Play animation";
+	ot->name= _("Play Animation");
+	ot->description= _("Play animation");
 	ot->idname= "SCREEN_OT_animation_play";
 	
 	/* api callbacks */
@@ -2980,8 +2980,8 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_screenactive_norender;
 	
-	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
-	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
+	RNA_def_boolean(ot->srna, "reverse", 0, _("Play in Reverse"), _("Animation is played backwards"));
+	RNA_def_boolean(ot->srna, "sync", 0, _("Sync"), _("Drop frames to maintain framerate"));
 }
 
 static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
@@ -3011,8 +3011,8 @@ static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Cancel Animation";
-	ot->description= "Cancel animation, returning to the original frame";
+	ot->name= _("Cancel Animation");
+	ot->description= _("Cancel animation, returning to the original frame");
 	ot->idname= "SCREEN_OT_animation_cancel";
 	
 	/* api callbacks */
@@ -3020,7 +3020,7 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_screenactive;
 
-	RNA_def_boolean(ot->srna, "restore_frame", TRUE, "Restore Frame", "Restore the frame when animation was initialized.");
+	RNA_def_boolean(ot->srna, "restore_frame", TRUE, _("Restore Frame"), _("Restore the frame when animation was initialized."));
 }
 
 /* ************** border select operator (template) ***************************** */

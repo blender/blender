@@ -45,6 +45,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "PIL_time.h"
 
 #include "BKE_context.h"
@@ -290,9 +292,9 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void TEXT_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open Text Block";
+	ot->name= _("Open Text Block");
 	ot->idname= "TEXT_OT_open";
-	ot->description= "Open a new text data block";
+	ot->description= _("Open a new text data block");
 
 	/* api callbacks */
 	ot->exec= open_exec;
@@ -305,7 +307,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
-	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
+	RNA_def_boolean(ot->srna, "internal", 0, _("Make internal"), _("Make text file internal after loading"));
 }
 
 /******************* reload operator *********************/
@@ -804,16 +806,16 @@ static int paste_exec(bContext *C, wmOperator *op)
 void TEXT_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste";
+	ot->name= _("Paste");
 	ot->idname= "TEXT_OT_paste";
-	ot->description= "Paste text from clipboard";
+	ot->description= _("Paste text from clipboard");
 	
 	/* api callbacks */
 	ot->exec= paste_exec;
 	ot->poll= text_edit_poll;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "selection", 0, "Selection", "Paste text selected elsewhere rather than copied, X11 only.");
+	RNA_def_boolean(ot->srna, "selection", 0, _("Selection"), _("Paste text selected elsewhere rather than copied, X11 only."));
 }
 
 /******************* copy operator *********************/
@@ -1968,7 +1970,7 @@ void TEXT_OT_jump(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	RNA_def_int(ot->srna, "line", 1, 1, INT_MAX, "Line", "Line number to jump to.", 1, 10000);
+	RNA_def_int(ot->srna, "line", 1, 1, INT_MAX, _("Line"), _("Line number to jump to."), 1, 10000);
 }
 
 /******************* delete operator **********************/
@@ -2257,7 +2259,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
 	/* properties */
-	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
+	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, _("Lines"), _("Number of lines to scroll."), -100, 100);
 }
 
 /******************** scroll bar operator *******************/
@@ -2339,7 +2341,7 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 
 	/* properties */
-	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
+	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, _("Lines"), _("Number of lines to scroll."), -100, 100);
 }
 
 /******************* set selection operator **********************/
@@ -2619,9 +2621,9 @@ static int set_selection_cancel(bContext *C, wmOperator *op)
 void TEXT_OT_selection_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Selection";
+	ot->name= _("Set Selection");
 	ot->idname= "TEXT_OT_selection_set";
-	ot->description= "Set cursor selection";
+	ot->description= _("Set cursor selection");
 
 	/* api callbacks */
 	ot->invoke= set_selection_invoke;
@@ -2630,7 +2632,7 @@ void TEXT_OT_selection_set(wmOperatorType *ot)
 	ot->poll= text_region_edit_poll;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "select", 0, "Select", "Set selection end rather than cursor.");
+	RNA_def_boolean(ot->srna, "select", 0, _("Select"), _("Set selection end rather than cursor."));
 }
 
 /******************* set cursor operator **********************/
@@ -3181,9 +3183,9 @@ static int to_3d_object_exec(bContext *C, wmOperator *op)
 void TEXT_OT_to_3d_object(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "To 3D Object";
+	ot->name= _("To 3D Object");
 	ot->idname= "TEXT_OT_to_3d_object";
-	ot->description= "Create 3d text object from active text data block";
+	ot->description= _("Create 3d text object from active text data block");
 	
 	/* api callbacks */
 	ot->exec= to_3d_object_exec;
@@ -3193,7 +3195,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "split_lines", 0, "Split Lines", "Create one object per line in the text.");
+	RNA_def_boolean(ot->srna, "split_lines", 0, _("Split Lines"), _("Create one object per line in the text."));
 }
 
 

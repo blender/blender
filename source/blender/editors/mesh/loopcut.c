@@ -53,6 +53,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -521,7 +523,7 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Extend the selection"));
 }
 
 void MESH_OT_loopcut (wmOperatorType *ot)
@@ -541,5 +543,5 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, _("Number of Cuts"), "", 1, 10);
 }

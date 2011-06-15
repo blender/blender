@@ -41,6 +41,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 
 #include "RNA_access.h"
@@ -218,7 +220,7 @@ void ED_operatormacros_object(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate Objects", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", _("Duplicate Objects"), OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");

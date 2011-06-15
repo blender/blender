@@ -65,6 +65,8 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BLI_heap.h"
 #include "BLI_scanfill.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -959,9 +961,9 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 100.0f, "Offset", "", 0.0f, 100.0f);
-	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, 180);
-	RNA_def_float_vector(ot->srna, "direction", 3, NULL, -FLT_MAX, FLT_MAX, "Direction", "Direction of extrude", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 100.0f, _("Offset"), "", 0.0f, 100.0f);
+	RNA_def_int(ot->srna, "steps", 10, 0, 180, _("Steps"), "", 0, 180);
+	RNA_def_float_vector(ot->srna, "direction", 3, NULL, -FLT_MAX, FLT_MAX, _("Direction"), _("Direction of extrude"), -FLT_MAX, FLT_MAX);
 }
 
 /* ************************** spin operator ******************** */
@@ -1095,12 +1097,12 @@ void MESH_OT_spin(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, 128);
-	RNA_def_boolean(ot->srna, "dupli", 0, "Dupli", "Make Duplicates");
-	RNA_def_float(ot->srna, "degrees", 90.0f, -FLT_MAX, FLT_MAX, "Degrees", "Degrees", -360.0f, 360.0f);
+	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, _("Steps"), _("Steps"), 0, 128);
+	RNA_def_boolean(ot->srna, "dupli", 0, _("Dupli"), _("Make Duplicates"));
+	RNA_def_float(ot->srna, "degrees", 90.0f, -FLT_MAX, FLT_MAX, _("Degrees"), _("Degrees"), -360.0f, 360.0f);
 
-	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
-	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, _("Center"), _("Center in global view space"), -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, _("Axis"), _("Axis in global view space"), -FLT_MAX, FLT_MAX);
 
 }
 
@@ -1201,11 +1203,11 @@ void MESH_OT_screw(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/*props */
-	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, 256);
-	RNA_def_int(ot->srna, "turns", 1, 0, INT_MAX, "Turns", "Turns", 0, 256);
+	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, _("Steps"), _("Steps"), 0, 256);
+	RNA_def_int(ot->srna, "turns", 1, 0, INT_MAX, _("Turns"), _("Turns"), 0, 256);
 
-	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
-	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, _("Center"), _("Center in global view space"), -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, _("Axis"), _("Axis in global view space"), -FLT_MAX, FLT_MAX);
 }
 
 static void erase_edges(EditMesh *em, ListBase *l)
@@ -5300,8 +5302,8 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	static EnumPropertyItem shape_items[]= {{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Blend From Shape";
-	ot->description= "Blend in shape from a shape key";
+	ot->name= _("Blend From Shape");
+	ot->description= _("Blend in shape from a shape key");
 	ot->idname= "MESH_OT_blend_from_shape";
 
 	/* api callbacks */
@@ -5313,10 +5315,10 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending.");
+	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, _("Shape"), _("Shape key to use for blending."));
 	RNA_def_enum_funcs(prop, shape_itemf);
-	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor.", -2.0f, 2.0f);
-	RNA_def_boolean(ot->srna, "add", 0, "Add", "Add rather than blend between shapes.");
+	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, _("Blend"), _("Blending factor."), -2.0f, 2.0f);
+	RNA_def_boolean(ot->srna, "add", 0, _("Add"), _("Add rather than blend between shapes."));
 }
 
 /************************ Merge Operator *************************/
@@ -6032,7 +6034,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use.");
 	RNA_def_enum_funcs(prop, merge_type_itemf);
 	ot->prop= prop;
-	RNA_def_boolean(ot->srna, "uvs", 0, "UVs", "Move UVs according to merge.");
+	RNA_def_boolean(ot->srna, "uvs", 0, _("UVs"), _("Move UVs according to merge."));
 }
 
 /************************ Vertex Path Operator *************************/
@@ -6867,10 +6869,10 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
-	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor.", 0.0f, 1.0f);
-	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
-	RNA_def_enum(ot->srna, "corner_cut_pattern", corner_type_items, SUBDIV_CORNER_INNERVERT, "Corner Cut Pattern", "Topology pattern to use to fill a face after cutting across its corner");
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, _("Number of Cuts"), "", 1, 10);
+	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, _("Smoothness"), _("Smoothness factor."), 0.0f, 1.0f);
+	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, _("Fractal"), _("Fractal randomness factor."), 0.0f, 1000.0f);
+	RNA_def_enum(ot->srna, "corner_cut_pattern", corner_type_items, SUBDIV_CORNER_INNERVERT, _("Corner Cut Pattern"), _("Topology pattern to use to fill a face after cutting across its corner"));
 }
 
 /********************** Fill Operators *************************/

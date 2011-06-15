@@ -54,6 +54,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
@@ -1842,8 +1844,8 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Make Single User";
-	ot->description = "Make linked data local to each object";
+	ot->name= _("Make Single User");
+	ot->description = _("Make linked data local to each object");
 	ot->idname= "OBJECT_OT_make_single_user";
 
 	/* api callbacks */
@@ -1857,11 +1859,11 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	/* properties */
 	ot->prop= RNA_def_enum(ot->srna, "type", type_items, SELECT, "Type", "");
 
-	RNA_def_boolean(ot->srna, "object", 0, "Object", "Make single user objects");
-	RNA_def_boolean(ot->srna, "obdata", 0, "Object Data", "Make single user object data");
-	RNA_def_boolean(ot->srna, "material", 0, "Materials", "Make materials local to each datablock");
-	RNA_def_boolean(ot->srna, "texture", 0, "Textures", "Make textures local to each material");
-	RNA_def_boolean(ot->srna, "animation", 0, "Object Animation", "Make animation data local to each object");
+	RNA_def_boolean(ot->srna, "object", 0, _("Object"), _("Make single user objects"));
+	RNA_def_boolean(ot->srna, "obdata", 0, _("Object Data"), _("Make single user object data"));
+	RNA_def_boolean(ot->srna, "material", 0, _("Materials"), _("Make materials local to each datablock"));
+	RNA_def_boolean(ot->srna, "texture", 0, _("Textures"), _("Make textures local to each material"));
+	RNA_def_boolean(ot->srna, "animation", 0, _("Object Animation"), _("Make animation data local to each object"));
 }
 
 static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *event)

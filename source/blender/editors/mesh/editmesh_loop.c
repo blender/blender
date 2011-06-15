@@ -55,6 +55,8 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
@@ -726,7 +728,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", knife_items, KNIFE_EXACT, "Type", "");
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
-	RNA_def_int(ot->srna, "num_cuts", 1, 1, MAX_CUTS, "Number of Cuts", "Only for Multi-Cut", 1, MAX_CUTS);
+	RNA_def_int(ot->srna, "num_cuts", 1, 1, MAX_CUTS, _("Number of Cuts"), _("Only for Multi-Cut"), 1, MAX_CUTS);
 	// doesn't work atm.. RNA_def_enum(ot->srna, "corner_cut_pattern", corner_type_items, SUBDIV_CORNER_INNERVERT, "Corner Cut Pattern", "Topology pattern to use to fill a face after cutting across its corner");
 	
 	/* internal */

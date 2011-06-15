@@ -40,6 +40,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_sound.h"
 
@@ -177,8 +179,8 @@ static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
 
 	/* rna */
-	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
-	RNA_def_float(ot->srna, "value", 0, FLT_MIN, FLT_MAX, "Value", "", -100.0f, 100.0f);
+	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, _("Frame"), "", MINAFRAME, MAXFRAME);
+	RNA_def_float(ot->srna, "value", 0, FLT_MIN, FLT_MAX, _("Value"), "", -100.0f, 100.0f);
 }
 
 /* Toggle Handles ----------------------------------------------------------------- */

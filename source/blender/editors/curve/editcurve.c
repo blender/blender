@@ -56,6 +56,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -2717,7 +2719,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
 }
 
 /********************** reveal operator *********************/
@@ -3274,7 +3276,7 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of cuts", "", 1, 10);
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, _("Number of cuts"), "", 1, 10);
 }
 
 /******************** find nearest ************************/
@@ -5037,7 +5039,7 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked control points rather than selecting them.");
+	RNA_def_boolean(ot->srna, "deselect", 0, _("Deselect"), _("Deselect linked control points rather than selecting them."));
 }
 
 /***************** select row operator **********************/
@@ -5480,8 +5482,8 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, _("Percent"), _("Percentage of elements to select randomly."), 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend Selection"), _("Extend selection instead of deselecting everything first."));
 }
 
 /********************* every nth number of point *******************/
@@ -5605,7 +5607,7 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "nth", 2, 2, 100, _("Nth Selection"), "", 1, INT_MAX);
 }
 
 /********************** add duplicate operator *********************/

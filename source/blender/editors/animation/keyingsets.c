@@ -45,6 +45,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -383,7 +385,7 @@ void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Add all elements of the array to a Keying Set.");
+	RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Add all elements of the array to a Keying Set."));
 }
 
 /* Remove from KeyingSet Button Operator ------------------------ */
@@ -508,7 +510,7 @@ void ANIM_OT_keying_set_active_set (wmOperatorType *ot)
 	/* keyingset to use
 	 *	- here the type is int not enum, since many of the indices here are determined dynamically
 	 */
-	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, _("Keying Set Number"), _("Index (determined internally) of the Keying Set to use"), 0, 1);
 }
 
 /* ******************************************* */

@@ -41,6 +41,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -147,8 +149,8 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void SOUND_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open Sound";
-	ot->description= "Load a sound file";
+	ot->name= _("Open Sound");
+	ot->description= _("Load a sound file");
 	ot->idname= "SOUND_OT_open";
 
 	/* api callbacks */
@@ -160,7 +162,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH);
-	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
+	RNA_def_boolean(ot->srna, "cache", FALSE, _("Cache"), _("Cache the sound in memory."));
 }
 
 /* ******************************************************* */

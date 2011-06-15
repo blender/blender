@@ -44,6 +44,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
@@ -507,9 +509,9 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void SEQUENCER_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Activate/Select";
+	ot->name= _("Activate/Select");
 	ot->idname= "SEQUENCER_OT_select";
-	ot->description="Select a strip (last selected becomes the \"active strip\")";
+	ot->description=_("Select a strip (last selected becomes the \"active strip\")");
 	
 	/* api callbacks */
 	ot->invoke= sequencer_select_invoke;
@@ -519,11 +521,11 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection.");
-	RNA_def_boolean(ot->srna, "linked_handle", 0, "Linked Handle", "Select handles next to the active strip.");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Extend the selection."));
+	RNA_def_boolean(ot->srna, "linked_handle", 0, _("Linked Handle"), _("Select handles next to the active strip."));
 	/* for animation this is an enum but atm having an enum isnt useful for us */
-	RNA_def_boolean(ot->srna, "left_right", 0, "Left/Right", "select based on the frame side the cursor is on.");
-	RNA_def_boolean(ot->srna, "linked_time", 0, "Linked Time", "Select other strips at the same time.");
+	RNA_def_boolean(ot->srna, "left_right", 0, _("Left/Right"), _("select based on the frame side the cursor is on."));
+	RNA_def_boolean(ot->srna, "linked_time", 0, _("Linked Time"), _("Select other strips at the same time."));
 }
 
 
@@ -677,9 +679,9 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select pick linked";
+	ot->name= _("Select pick linked");
 	ot->idname= "SEQUENCER_OT_select_linked_pick";
-	ot->description="Select a chain of linked strips nearest to the mouse pointer";
+	ot->description=_("Select a chain of linked strips nearest to the mouse pointer");
 	
 	/* api callbacks */
 	ot->invoke= sequencer_select_linked_pick_invoke;
@@ -689,7 +691,7 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "extend the selection");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("extend the selection"));
 }
 
 

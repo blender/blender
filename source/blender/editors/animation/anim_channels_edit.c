@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -1605,7 +1606,7 @@ static void ANIM_OT_channels_expand (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
+	ot->prop= RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Expand all channels (not just selected ones)"));
 }
 
 /* ********************** Collapse Channels Operator *********************** */
@@ -1647,7 +1648,7 @@ static void ANIM_OT_channels_collapse (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
+	ot->prop= RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Collapse all channels (not just selected ones)"));
 }
 
 /* ******************* Reenable Disabled Operator ******************* */
@@ -1760,7 +1761,7 @@ static void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, _("Invert"), "");
 }
 
 /* ******************** Borderselect Operator *********************** */
@@ -2203,8 +2204,8 @@ static void ANIM_OT_channels_click (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "children_only", 0, "Select Children Only", ""); // CTRLKEY|SHIFTKEY
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "children_only", 0, _("Select Children Only"), ""); // CTRLKEY|SHIFTKEY
 }
 
 /* ************************************************************************** */

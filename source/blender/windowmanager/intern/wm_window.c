@@ -48,6 +48,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_library.h"
@@ -504,9 +506,9 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	ED_screen_set(C, win->screen);
 	
 	if(sa->spacetype==SPACE_IMAGE)
-		GHOST_SetTitle(win->ghostwin, "Blender Render");
+		GHOST_SetTitle(win->ghostwin, _("Blender Render"));
 	else if(ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF))
-		GHOST_SetTitle(win->ghostwin, "Blender User Preferences");
+		GHOST_SetTitle(win->ghostwin, _("Blender User Preferences"));
 	else if(sa->spacetype==SPACE_FILE)
 		GHOST_SetTitle(win->ghostwin, "Blender File View");
 	else

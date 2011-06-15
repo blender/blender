@@ -49,6 +49,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -1454,9 +1456,9 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
-	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
-	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, _("Delta"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, _("Zoom Position X"), "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, _("Zoom Position Y"), "", 0, INT_MAX);
 }
 
 
@@ -1688,9 +1690,9 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
-	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
-	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, _("Delta"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, _("Zoom Position X"), "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, _("Zoom Position Y"), "", 0, INT_MAX);
 }
 
 
@@ -1783,8 +1785,8 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
-	ot->description = "View all objects in scene";
+	ot->name= _("View All");
+	ot->description = _("View all objects in scene");
 	ot->idname= "VIEW3D_OT_view_all";
 
 	/* api callbacks */
@@ -1794,7 +1796,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 	/* flags */
 	ot->flag= 0;
 
-	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
+	RNA_def_boolean(ot->srna, "center", 0, _("Center"), "");
 }
 
 
@@ -1930,8 +1932,8 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "View Selected";
-	ot->description = "Move the view to the selection center";
+	ot->name= _("View Selected");
+	ot->description = _("Move the view to the selection center");
 	ot->idname= "VIEW3D_OT_view_selected";
 
 	/* api callbacks */
@@ -1965,8 +1967,8 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Center View to Cursor";
-	ot->description= "Centers the view so that the cursor is in the middle of the view";
+	ot->name= _("Center View to Cursor");
+	ot->description= _("Centers the view so that the cursor is in the middle of the view");
 	ot->idname= "VIEW3D_OT_view_center_cursor";
 	
 	/* api callbacks */
@@ -2085,10 +2087,10 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* rna */
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, _("X Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, _("X Max"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, _("Y Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, _("Y Max"), "", INT_MIN, INT_MAX);
 
 }
 /* ********************* Border Zoom operator ****************** */
@@ -2241,10 +2243,10 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->flag= 0;
 
 	/* rna */
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, _("X Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, _("X Max"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, _("Y Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, _("Y Max"), "", INT_MIN, INT_MAX);
 
 }
 
@@ -2498,8 +2500,8 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View numpad";
-	ot->description = "Set the view";
+	ot->name= _("View numpad");
+	ot->description = _("Set the view");
 	ot->idname= "VIEW3D_OT_viewnumpad";
 
 	/* api callbacks */
@@ -2510,7 +2512,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	ot->flag= 0;
 
 	RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
-	RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active objects axis");
+	RNA_def_boolean(ot->srna, "align_active", 0, _("Align Active"), _("Align to the active objects axis"));
 }
 
 /* XXX add _() for strings */
@@ -2649,8 +2651,8 @@ static int viewpersportho_exec(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Persp/Ortho";
-	ot->description = "Switch the current view from perspective/orthographic";
+	ot->name= _("View Persp/Ortho");
+	ot->description = _("Switch the current view from perspective/orthographic");
 	ot->idname= "VIEW3D_OT_view_persportho";
 
 	/* api callbacks */
@@ -2778,7 +2780,7 @@ void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag   = 0;
 
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Background image index to remove ", 0, INT_MAX);
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, _("Index"), _("Background image index to remove "), 0, INT_MAX);
 }
 
 /* ********************* set clipping operator ****************** */
@@ -2882,10 +2884,10 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	ot->flag= 0;
 
 	/* rna */
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, _("X Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, _("X Max"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, _("Y Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, _("Y Max"), "", INT_MIN, INT_MAX);
 }
 
 /* ***************** 3d cursor cursor op ******************* */
@@ -3035,8 +3037,8 @@ static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Enable 3D Manipulator";
-	ot->description = "Enable the transform manipulator for use";
+	ot->name= _("Enable 3D Manipulator");
+	ot->description = _("Enable the transform manipulator for use");
 	ot->idname= "VIEW3D_OT_enable_manipulator";
 	
 	/* api callbacks */
@@ -3044,9 +3046,9 @@ void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* rna later */
-	RNA_def_boolean(ot->srna, "translate", 0, "Translate", "Enable the translate manipulator");
-	RNA_def_boolean(ot->srna, "rotate", 0, "Rotate", "Enable the rotate manipulator");
-	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "Enable the scale manipulator");
+	RNA_def_boolean(ot->srna, "translate", 0, _("Translate"), _("Enable the translate manipulator"));
+	RNA_def_boolean(ot->srna, "rotate", 0, _("Rotate"), _("Enable the rotate manipulator"));
+	RNA_def_boolean(ot->srna, "scale", 0, _("Scale"), _("Enable the scale manipulator"));
 }
 
 /* ************************* below the line! *********************** */

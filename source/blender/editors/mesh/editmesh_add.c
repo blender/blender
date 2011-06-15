@@ -52,6 +52,8 @@
 #include "BLI_editVert.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
@@ -272,8 +274,8 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate or Extrude at 3D Cursor";
-	ot->description= "Duplicate and extrude selected vertices, edges or faces towards 3D Cursor";
+	ot->name= _("Duplicate or Extrude at 3D Cursor");
+	ot->description= _("Duplicate and extrude selected vertices, edges or faces towards 3D Cursor");
 	ot->idname= "MESH_OT_dupli_extrude_cursor";
 	
 	/* api callbacks */
@@ -283,7 +285,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "rotate_source", 1, "Rotate Source", "Rotate initial selection giving better shape");
+	RNA_def_boolean(ot->srna, "rotate_source", 1, _("Rotate Source"), _("Rotate initial selection giving better shape"));
 }
 
 
@@ -1486,9 +1488,9 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 3, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "");
+	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, _("Vertices"), "", 3, 500);
+	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, _("Radius"), "", 0.001, 100.00);
+	RNA_def_boolean(ot->srna, "fill", 0, _("Fill"), "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -1527,10 +1529,10 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "cap_ends", 1, "Cap Ends", "");
+	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, _("Vertices"), "", 2, 500);
+	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, _("Radius"), "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, _("Depth"), "", 0.001, 100.00);
+	RNA_def_boolean(ot->srna, "cap_ends", 1, _("Cap Ends"), "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -1568,10 +1570,10 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "cap_end", 1, "Cap End", "");
+	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, _("Vertices"), "", 2, 500);
+	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, _("Radius"), "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, _("Depth"), "", 0.001, 100.00);
+	RNA_def_boolean(ot->srna, "cap_end", 1, _("Cap End"), "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }

@@ -49,6 +49,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_group.h"
 #include "BKE_main.h"
@@ -150,8 +152,8 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select By Type";
-	ot->description = "Select all visible objects that are of a type";
+	ot->name= _("Select By Type");
+	ot->description = _("Select all visible objects that are of a type");
 	ot->idname= "OBJECT_OT_select_by_type";
 	
 	/* api callbacks */
@@ -163,7 +165,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
 	ot->prop= RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
 }
 
@@ -332,8 +334,8 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked";
-	ot->description = "Select all visible objects that are linked";
+	ot->name= _("Select Linked");
+	ot->description = _("Select all visible objects that are linked");
 	ot->idname= "OBJECT_OT_select_linked";
 	
 	/* api callbacks */
@@ -345,7 +347,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
 }
 
@@ -620,8 +622,8 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_grouped(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Grouped";
-	ot->description = "Select all visible objects grouped by various properties";
+	ot->name= _("Select Grouped");
+	ot->description = _("Select all visible objects grouped by various properties");
 	ot->idname= "OBJECT_OT_select_grouped";
 	
 	/* api callbacks */
@@ -633,7 +635,7 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
@@ -669,8 +671,8 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select by Layer";
-	ot->description = "Select all visible objects on a layer";
+	ot->name= _("Select by Layer");
+	ot->description = _("Select all visible objects on a layer");
 	ot->idname= "OBJECT_OT_select_by_layer";
 	
 	/* api callbacks */
@@ -682,8 +684,8 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_int(ot->srna, "layers", 1, 1, 20, "Layer", "", 1, 20);
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
+	RNA_def_int(ot->srna, "layers", 1, 1, 20, _("Layer"), "", 1, 20);
 }
 
 /************************** Select Inverse *************************/
@@ -871,8 +873,8 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select Mirror";
-	ot->description = "Select the Mirror objects of the selected object eg. L.sword -> R.sword";
+	ot->name= _("Select Mirror");
+	ot->description = _("Select the Mirror objects of the selected object eg. L.sword -> R.sword");
 	ot->idname= "OBJECT_OT_select_mirror";
 	
 	/* api callbacks */
@@ -882,7 +884,7 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Extend selection instead of deselecting everything first."));
 }
 
 
@@ -928,8 +930,8 @@ void OBJECT_OT_select_name(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Select Name";
-	ot->description = "Select an object with this name";
+	ot->name= _("Select Name");
+	ot->description = _("Select an object with this name");
 	ot->idname= "OBJECT_OT_select_name";
 
 	/* api callbacks */
@@ -939,8 +941,8 @@ void OBJECT_OT_select_name(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "name", "", 0, "Name", "Object name to select.");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_string(ot->srna, "name", "", 0, _("Name"), _("Object name to select."));
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Extend selection instead of deselecting everything first."));
 }
 
 /**************************** Select Random ****************************/
@@ -975,8 +977,8 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Random";
-	ot->description = "Set select on random visible objects";
+	ot->name= _("Select Random");
+	ot->description = _("Set select on random visible objects");
 	ot->idname= "OBJECT_OT_select_random";
 	
 	/* api callbacks */
@@ -988,8 +990,8 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of objects to select randomly", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, _("Percent"), _("Percentage of objects to select randomly"), 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend Selection"), _("Extend selection instead of deselecting everything first."));
 }
 
 

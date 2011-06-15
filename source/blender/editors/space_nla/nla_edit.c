@@ -45,6 +45,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
@@ -1410,7 +1412,7 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_boolean(ot->srna, "active", 1, "Active Strip Only", "Only sync the active length for the active strip.");
+	ot->prop= RNA_def_boolean(ot->srna, "active", 1, _("Active Strip Only"), _("Only sync the active length for the active strip."));
 }
 
 /* ******************** Apply Scale Operator ***************************** */
@@ -1831,7 +1833,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add F-Modifier of the specified type to the active strip.");
+	RNA_def_boolean(ot->srna, "only_active", 0, _("Only Active"), _("Only add F-Modifier of the specified type to the active strip."));
 }
 
 /* ******************** Copy F-Modifiers Operator *********************** */

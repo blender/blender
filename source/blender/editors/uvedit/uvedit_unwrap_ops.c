@@ -49,6 +49,8 @@
 #include "BLI_uvproject.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -432,9 +434,9 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry.");
-	RNA_def_float_factor(ot->srna, "blend", 0.0f, 0.0f, 1.0f, "Blend", "Blend factor between stretch minimized and original.", 0.0f, 1.0f);
-	RNA_def_int(ot->srna, "iterations", 0, 0, INT_MAX, "Iterations", "Number of iterations to run, 0 is unlimited when run interactively.", 0, 100);
+	RNA_def_boolean(ot->srna, "fill_holes", 1, _("Fill Holes"), _("Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry."));
+	RNA_def_float_factor(ot->srna, "blend", 0.0f, 0.0f, 1.0f, _("Blend"), _("Blend factor between stretch minimized and original."), 0.0f, 1.0f);
+	RNA_def_int(ot->srna, "iterations", 0, 0, INT_MAX, _("Iterations"), _("Number of iterations to run, 0 is unlimited when run interactively."), 0, 100);
 }
 
 /* ******************** Pack Islands operator **************** */
@@ -754,9 +756,9 @@ static void correct_uv_aspect(EditMesh *em)
 
 static void uv_map_clip_correct_properties(wmOperatorType *ot)
 {
-	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect", "Map UV's taking image aspect ratio into account.");
-	RNA_def_boolean(ot->srna, "clip_to_bounds", 0, "Clip to Bounds", "Clip UV coordinates to bounds after unwrapping.");
-	RNA_def_boolean(ot->srna, "scale_to_bounds", 0, "Scale to Bounds", "Scale UV coordinates to bounds after unwrapping.");
+	RNA_def_boolean(ot->srna, "correct_aspect", 1, _("Correct Aspect"), _("Map UV's taking image aspect ratio into account."));
+	RNA_def_boolean(ot->srna, "clip_to_bounds", 0, _("Clip to Bounds"), _("Clip UV coordinates to bounds after unwrapping."));
+	RNA_def_boolean(ot->srna, "scale_to_bounds", 0, _("Scale to Bounds"), _("Scale UV coordinates to bounds after unwrapping."));
 }
 
 static void uv_map_clip_correct(EditMesh *em, wmOperator *op)
@@ -892,8 +894,8 @@ void UV_OT_unwrap(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Unwrap";
-	ot->description= "Unwrap the mesh of the object being edited";
+	ot->name= _("Unwrap");
+	ot->description= _("Unwrap the mesh of the object being edited");
 	ot->idname= "UV_OT_unwrap";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -903,8 +905,8 @@ void UV_OT_unwrap(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", method_items, 0, "Method", "Unwrapping method. Angle Based usually gives better results than Conformal, while being somewhat slower.");
-	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry.");
-	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect", "Map UV's taking image aspect ratio into account.");
+	RNA_def_boolean(ot->srna, "fill_holes", 1, _("Fill Holes"), _("Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry."));
+	RNA_def_boolean(ot->srna, "correct_aspect", 1, _("Correct Aspect"), _("Map UV's taking image aspect ratio into account."));
 }
 
 /**************** Project From View operator **************/
@@ -1004,7 +1006,7 @@ static int uv_from_view_poll(bContext *C)
 void UV_OT_from_view(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Project From View";
+	ot->name= _("Project From View");
 	ot->idname= "UV_OT_project_from_view";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1013,7 +1015,7 @@ void UV_OT_from_view(wmOperatorType *ot)
 	ot->poll= uv_from_view_poll;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "orthographic", 0, "Orthographic", "Use orthographic projection.");
+	RNA_def_boolean(ot->srna, "orthographic", 0, _("Orthographic"), _("Use orthographic projection."));
 	uv_map_clip_correct_properties(ot);
 }
 

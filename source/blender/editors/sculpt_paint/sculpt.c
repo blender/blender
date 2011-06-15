@@ -47,6 +47,8 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
+#include "BLF_api.h"
+
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -3587,7 +3589,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Sculpt Mode";
+	ot->name= _("Sculpt Mode");
 	ot->idname= "SCULPT_OT_brush_stroke";
 	
 	/* api callbacks */
@@ -3610,8 +3612,8 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 			"Action taken when a sculpt stroke is made");
 
 	RNA_def_boolean(ot->srna, "ignore_background_click", 0,
-			"Ignore Background Click",
-			"Clicks on the background do not start the stroke");
+			_("Ignore Background Click"),
+			_("Clicks on the background do not start the stroke"));
 }
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/

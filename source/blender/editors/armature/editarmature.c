@@ -53,6 +53,8 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
+#include "BLF_api.h"
+
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -1575,9 +1577,9 @@ static int pose_select_linked_poll(bContext *C)
 void POSE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Connected";
+	ot->name= _("Select Connected");
 	ot->idname= "POSE_OT_select_linked";
-	ot->description= "Select bones related to selected ones by parent/child relationships";
+	ot->description= _("Select bones related to selected ones by parent/child relationships");
 	
 	/* api callbacks */
 	ot->exec= NULL;
@@ -1588,7 +1590,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */	
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
 }
 
 /* **************** END Posemode stuff ********************** */
@@ -1684,7 +1686,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties s*/
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
 }
 
 /* does bones and points */
@@ -2225,8 +2227,8 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis.");
-	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align.");
+	RNA_def_boolean(ot->srna, "axis_flip", 0, _("Flip Axis"), _("Negate the alignment axis."));
+	RNA_def_boolean(ot->srna, "axis_only", 0, _("Shortest Rotation"), _("Ignore the axis direction, use the shortest rotation to align."));
 }
 
 /* **************** undo for armatures ************** */
@@ -3303,7 +3305,7 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
 }
 
 static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3552,7 +3554,7 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
+	RNA_def_boolean(ot->srna, "forked", 0, _("Forked"), "");
 }
 /* ********************** Bone Add ********************/
 
@@ -4216,7 +4218,7 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items,
 			 BONE_SELECT_PARENT, "Direction", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Add to Selection"), "");
 }
 
 /* ***************** EditBone Alignment ********************* */
@@ -5313,9 +5315,9 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 void POSE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected";
+	ot->name= _("Hide Selected");
 	ot->idname= "POSE_OT_hide";
-	ot->description= "Tag selected bones to not be visible in Pose Mode";
+	ot->description= _("Tag selected bones to not be visible in Pose Mode");
 	
 	/* api callbacks */
 	ot->exec= pose_hide_exec;
@@ -5325,7 +5327,7 @@ void POSE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), "");
 }
 
 static int show_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr)) 

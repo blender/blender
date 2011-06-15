@@ -41,6 +41,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
@@ -1096,7 +1098,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
 
-	RNA_def_boolean(ot->srna, "copy", 0, "Copy", "Create a new image file without modifying the current image in blender");
+	RNA_def_boolean(ot->srna, "copy", 0, _("Copy"), _("Create a new image file without modifying the current image in blender"));
 }
 
 /******************** save image operator ********************/
@@ -1357,14 +1359,14 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "untitled", MAX_ID_NAME-2, "Name", "Image datablock name.");
-	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width.", 1, 16384);
-	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height.", 1, 16384);
-	prop= RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color.", 0.0f, 1.0f);
+	RNA_def_string(ot->srna, "name", "untitled", MAX_ID_NAME-2, _("Name"), _("Image datablock name."));
+	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, _("Width"), _("Image width."), 1, 16384);
+	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, _("Height"), _("Image height."), 1, 16384);
+	prop= RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, _("Color"), _("Default fill color."), 0.0f, 1.0f);
 	RNA_def_property_float_array_default(prop, default_color);
-	RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel.");
-	RNA_def_boolean(ot->srna, "uv_test_grid", 0, "UV Test Grid", "Fill the image with a grid for UV map testing.");
-	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth.");
+	RNA_def_boolean(ot->srna, "alpha", 1, _("Alpha"), _("Create an image with an alpha channel."));
+	RNA_def_boolean(ot->srna, "uv_test_grid", 0, _("UV Test Grid"), _("Fill the image with a grid for UV map testing."));
+	RNA_def_boolean(ot->srna, "float", 0, _("32 bit Float"), _("Create image with 32 bit floating point bit depth."));
 }
 
 /********************* invert operators *********************/
@@ -1443,10 +1445,10 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 	ot->poll= image_invert_poll;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
-	RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert Green Channel");
-	RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert Blue Channel");
-	RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
+	RNA_def_boolean(ot->srna, "invert_r", 0, _("Red"), _("Invert Red Channel"));
+	RNA_def_boolean(ot->srna, "invert_g", 0, _("Green"), _("Invert Green Channel"));
+	RNA_def_boolean(ot->srna, "invert_b", 0, _("Blue"), _("Invert Blue Channel"));
+	RNA_def_boolean(ot->srna, "invert_a", 0, _("Alpha"), _("Invert Alpha Channel"));
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1534,7 +1536,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "as_png", 0, "Pack As PNG", "Pack image as lossless PNG.");
+	RNA_def_boolean(ot->srna, "as_png", 0, _("Pack As PNG"), _("Pack image as lossless PNG."));
 }
 
 /********************* unpack operator *********************/
@@ -2162,7 +2164,7 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
+	RNA_def_boolean(ot->srna, "reverse", 0, _("Cycle in Reverse"), "");
 }
 
 /******************** TODO ********************/

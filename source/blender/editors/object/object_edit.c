@@ -46,6 +46,8 @@
 #include "BLI_ghash.h"
 #include "BLI_rand.h"
 
+#include "BLF_api.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
@@ -211,8 +213,8 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Restrict View";
-	ot->description = "Hide the object by setting the hide flag";
+	ot->name= _("Set Restrict View");
+	ot->description = _("Hide the object by setting the hide flag");
 	ot->idname= "OBJECT_OT_hide_view_set";
 	
 	/* api callbacks */
@@ -222,7 +224,7 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected objects."));
 	
 }
 
@@ -286,8 +288,8 @@ static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Restrict Render";
-	ot->description = "Hide the render object by setting the hide render flag";
+	ot->name= _("Set Restrict Render");
+	ot->description = _("Hide the render object by setting the hide render flag");
 	ot->idname= "OBJECT_OT_hide_render_set";
 
 	/* api callbacks */
@@ -297,7 +299,7 @@ void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected objects."));
 }
 
 /* ******************* toggle editmode operator  ***************** */
@@ -2009,7 +2011,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, "Mode", "");
 	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
 
-	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+	RNA_def_boolean(ot->srna, "toggle", 0, _("Toggle"), "");
 }
 
 
@@ -2103,7 +2105,7 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to remove ", 0, INT_MAX);
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, _("Index"), _("Property index to remove "), 0, INT_MAX);
 }
 
 #define COPY_PROPERTIES_REPLACE	1

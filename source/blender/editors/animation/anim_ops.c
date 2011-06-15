@@ -37,6 +37,7 @@
 #include "BLO_sys_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLF_api.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -175,7 +176,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
 
 	/* rna */
-	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
+	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, _("Frame"), "", MINAFRAME, MAXFRAME);
 }
 
 /* ****************** set preview range operator ****************************/
@@ -233,11 +234,11 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 	
 	/* rna */
 		/* used to define frame range */
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, _("X Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, _("X Max"), "", INT_MIN, INT_MAX);
 		/* these are not used, but are needed by borderselect gesture operator stuff */
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, _("Y Min"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, _("Y Max"), "", INT_MIN, INT_MAX);
 }
 
 /* ****************** clear preview range operator ****************************/

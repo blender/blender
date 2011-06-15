@@ -418,16 +418,16 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 	else if(retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
 	else if(retval == BKE_READ_EXOTIC_FAIL_OPEN) {
-		BKE_reportf(reports, RPT_ERROR, "Can't read file: \"%s\", %s.", filepath, errno ? strerror(errno) : "Unable to open the file");
+		BKE_reportf(reports, RPT_ERROR, _("Can't read file: \"%s\", %s."), filepath, errno ? strerror(errno) : _("Unable to open the file"));
 	}
 	else if(retval == BKE_READ_EXOTIC_FAIL_FORMAT) {
-		BKE_reportf(reports, RPT_ERROR, "File format is not supported in file: \"%s\".", filepath);
+		BKE_reportf(reports, RPT_ERROR, _("File format is not supported in file: \"%s\"."), filepath);
 	}
 	else if(retval == BKE_READ_EXOTIC_FAIL_PATH) {
-		BKE_reportf(reports, RPT_ERROR, "File path invalid: \"%s\".", filepath);
+		BKE_reportf(reports, RPT_ERROR, _("File path invalid: \"%s\"."), filepath);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Unknown error loading: \"%s\".", filepath);
+		BKE_reportf(reports, RPT_ERROR, _("Unknown error loading: \"%s\"."), filepath);
 		BLI_assert(!"invalid 'retval'");
 	}
 

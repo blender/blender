@@ -47,6 +47,8 @@
 #include "BLI_editVert.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -1292,8 +1294,8 @@ static int stitch_exec(bContext *C, wmOperator *op)
 static void UV_OT_stitch(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Stitch";
-	ot->description= "Stitch selected UV vertices by proximity";
+	ot->name= _("Stitch");
+	ot->description= _("Stitch selected UV vertices by proximity");
 	ot->idname= "UV_OT_stitch";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1302,8 +1304,8 @@ static void UV_OT_stitch(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "use_limit", 1, "Use Limit", "Stitch UVs within a specified limit distance.");
-	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, FLT_MAX, "Limit", "Limit distance in normalized coordinates.", -FLT_MAX, FLT_MAX);
+	RNA_def_boolean(ot->srna, "use_limit", 1, _("Use Limit"), _("Stitch UVs within a specified limit distance."));
+	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, FLT_MAX, _("Limit"), _("Limit distance in normalized coordinates."), -FLT_MAX, FLT_MAX);
 }
 
 /* ******************** (de)select all operator **************** */
@@ -1725,8 +1727,8 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void UV_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select";
-	ot->description= "Select UV vertices";
+	ot->name= _("Select");
+	ot->description= _("Select UV vertices");
 	ot->idname= "UV_OT_select";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1737,9 +1739,9 @@ static void UV_OT_select(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection.");
+			_("Extend"), _("Extend selection rather than clearing the existing selection."));
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+			_("Location"), _("Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds."), -100.0f, 100.0f);
 }
 
 /* ******************** loop select operator **************** */
@@ -1770,8 +1772,8 @@ static int select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void UV_OT_select_loop(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Loop Select";
-	ot->description= "Select a loop of connected UV vertices";
+	ot->name= _("Loop Select");
+	ot->description= _("Select a loop of connected UV vertices");
 	ot->idname= "UV_OT_select_loop";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1782,9 +1784,9 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection.");
+			_("Extend"), _("Extend selection rather than clearing the existing selection."));
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+			_("Location"), _("Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds."), -100.0f, 100.0f);
 }
 
 /* ******************** linked select operator **************** */
@@ -1847,8 +1849,8 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 static void UV_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked";
-	ot->description= "Select all UV vertices linked to the active UV map";
+	ot->name= _("Select Linked");
+	ot->description= _("Select all UV vertices linked to the active UV map");
 	ot->idname= "UV_OT_select_linked";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1858,7 +1860,7 @@ static void UV_OT_select_linked(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection.");
+			_("Extend"), _("Extend selection rather than clearing the existing selection."));
 }
 
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1874,8 +1876,8 @@ static int select_linked_pick_exec(bContext *C, wmOperator *op)
 static void UV_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked Pick";
-	ot->description= "Select all UV vertices linked under the mouse";
+	ot->name= _("Select Linked Pick");
+	ot->description= _("Select all UV vertices linked under the mouse");
 	ot->idname= "UV_OT_select_linked_pick";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
@@ -1886,10 +1888,10 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection.");
+			_("Extend"), _("Extend selection rather than clearing the existing selection."));
 
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+			_("Location"), _("Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds."), -100.0f, 100.0f);
 }
 
 /* ******************** unlink selection operator **************** */
@@ -2212,8 +2214,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 static void UV_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->description= "Select UV vertices using border selection";
+	ot->name= _("Border Select");
+	ot->description= _("Select UV vertices using border selection");
 	ot->idname= "UV_OT_select_border";
 	
 	/* api callbacks */
@@ -2227,7 +2229,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only.");
+	RNA_def_boolean(ot->srna, "pinned", 0, _("Pinned"), _("Border select pinned UVs only."));
 
 	WM_operator_properties_gesture_border(ot, FALSE);
 }
@@ -2319,8 +2321,8 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 	/* properties */
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, _("Radius"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, _("Gesture Mode"), "", INT_MIN, INT_MAX);
 }
 
 /* ******************** snap cursor operator **************** */
@@ -2675,8 +2677,8 @@ static int pin_exec(bContext *C, wmOperator *op)
 static void UV_OT_pin(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pin";
-	ot->description= "Set/clear selected UV vertices as anchored between multiple unwrap operations";
+	ot->name= _("Pin");
+	ot->description= _("Set/clear selected UV vertices as anchored between multiple unwrap operations");
 	ot->idname= "UV_OT_pin";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2685,7 +2687,7 @@ static void UV_OT_pin(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear pinning for the selection instead of setting it.");
+	RNA_def_boolean(ot->srna, "clear", 0, _("Clear"), _("Clear pinning for the selection instead of setting it."));
 }
 
 /******************* select pinned operator ***************/
@@ -2860,8 +2862,8 @@ static int hide_exec(bContext *C, wmOperator *op)
 static void UV_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected";
-	ot->description= "Hide (un)selected UV vertices";
+	ot->name= _("Hide Selected");
+	ot->description= _("Hide (un)selected UV vertices");
 	ot->idname= "UV_OT_hide";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -2870,7 +2872,7 @@ static void UV_OT_hide(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
 }
 
 /****************** reveal operator ******************/

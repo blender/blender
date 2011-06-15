@@ -41,6 +41,8 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "ED_screen.h"
 #include "ED_types.h"
 
@@ -146,9 +148,9 @@ void NODE_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
+	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, _("Mouse X"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, _("Mouse Y"), "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), "");
 }
 
 /* ****** Border Select ****** */
@@ -224,7 +226,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
-	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
+	RNA_def_boolean(ot->srna, "tweak", 0, _("Tweak"), _("Only activate when mouse is not over a node - useful for tweak gesture"));
 }
 
 /* ****** Select/Deselect All ****** */

@@ -38,6 +38,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_armature.h"
@@ -292,8 +294,8 @@ static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Create Orientation";
-	ot->description= "Create transformation orientation from selection";
+	ot->name   = _("Create Orientation");
+	ot->description= _("Create transformation orientation from selection");
 	ot->idname = "TRANSFORM_OT_create_orientation";
 	ot->flag   = OPTYPE_REGISTER|OPTYPE_UNDO;
 
@@ -303,9 +305,9 @@ static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_areaactive;
 	ot->flag   = OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "name", "", 35, "Name", "Text to insert at the cursor position.");
-	RNA_def_boolean(ot->srna, "use", 0, "Use after creation", "Select orientation after its creation");
-	RNA_def_boolean(ot->srna, "overwrite", 0, "Overwrite previous", "Overwrite previously created orientation with same name");
+	RNA_def_string(ot->srna, "name", "", 35, _("Name"), _("Text to insert at the cursor position."));
+	RNA_def_boolean(ot->srna, "use", 0, _("Use after creation"), _("Select orientation after its creation"));
+	RNA_def_boolean(ot->srna, "overwrite", 0, _("Overwrite previous"), _("Overwrite previously created orientation with same name"));
 }
 
 static void transformops_exit(bContext *C, wmOperator *op)
@@ -460,7 +462,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 
 	if (flags & P_MIRROR)
 	{
-		RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+		RNA_def_boolean(ot->srna, "mirror", 0, _("Mirror Editing"), "");
 	}
 
 
@@ -504,8 +506,8 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Translate";
-	ot->description= "Translate selected items";
+	ot->name   = _("Translate");
+	ot->description= _("Translate selected items");
 	ot->idname = OP_TRANSLATION;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -565,8 +567,8 @@ void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Rotate";
-	ot->description= "Rotate selected items";
+	ot->name   = _("Rotate");
+	ot->description= _("Rotate selected items");
 	ot->idname = OP_ROTATION;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 

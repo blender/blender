@@ -43,6 +43,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -487,9 +489,9 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 	};
 	
 	/* identifiers */
-	ot->name= "Select Hierarchy";
+	ot->name= _("Select Hierarchy");
 	ot->idname= "POSE_OT_select_hierarchy";
-	ot->description= "Select immediate parent/children of selected bones";
+	ot->description= _("Select immediate parent/children of selected bones");
 	
 	/* api callbacks */
 	ot->exec= pose_select_hierarchy_exec;
@@ -500,7 +502,7 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 	
 	/* props */
 	ot->prop= RNA_def_enum(ot->srna, "direction", direction_items, BONE_SELECT_PARENT, "Direction", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
+	RNA_def_boolean(ot->srna, "extend", 0, _("Add to Selection"), "");
 	
 }
 
@@ -646,8 +648,8 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name= "Select Grouped";
-	ot->description = "Select all visible bones grouped by similar properties";
+	ot->name= _("Select Grouped");
+	ot->description = _("Select all visible bones grouped by similar properties");
 	ot->idname= "POSE_OT_select_grouped";
 	
 	/* api callbacks */
@@ -659,7 +661,7 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
@@ -1156,9 +1158,9 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 void POSE_OT_paste (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste Pose";
+	ot->name= _("Paste Pose");
 	ot->idname= "POSE_OT_paste";
-	ot->description= "Pastes the stored pose on to the current pose";
+	ot->description= _("Pastes the stored pose on to the current pose");
 	
 	/* api callbacks */
 	ot->exec= pose_paste_exec;
@@ -1168,8 +1170,8 @@ void POSE_OT_paste (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
-	RNA_def_boolean(ot->srna, "selected_mask", 0, "On Selected Only", "Only paste the stored pose on to selected bones in the current pose");
+	RNA_def_boolean(ot->srna, "flipped", 0, _("Flipped on X-Axis"), _("Paste the stored pose flipped on to current pose"));
+	RNA_def_boolean(ot->srna, "selected_mask", 0, _("On Selected Only"), _("Only paste the stored pose on to selected bones in the current pose"));
 }
 
 /* ********************************************** */
@@ -1370,7 +1372,7 @@ void POSE_OT_group_assign (wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "type", 0, 0, 10, "Bone Group Index", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "type", 0, 0, 10, _("Bone Group Index"), "", 0, INT_MAX);
 }
 
 
@@ -1678,7 +1680,7 @@ void ARMATURE_OT_layers_show_all (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All Layers", "Enable all layers or just the first 16 (top row)");
+	ot->prop = RNA_def_boolean(ot->srna, "all", 1, _("All Layers"), _("Enable all layers or just the first 16 (top row)"));
 }
 
 /* ------------------- */

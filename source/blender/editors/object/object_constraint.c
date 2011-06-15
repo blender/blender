@@ -42,6 +42,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
@@ -1583,8 +1585,8 @@ static int pose_ik_add_exec(bContext *C, wmOperator *op)
 void POSE_OT_ik_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add IK to Bone";
-	ot->description= "Add IK Constraint to the active Bone";
+	ot->name= _("Add IK to Bone");
+	ot->description= _("Add IK Constraint to the active Bone");
 	ot->idname= "POSE_OT_ik_add";
 	
 	/* api callbacks */
@@ -1596,7 +1598,7 @@ void POSE_OT_ik_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "with_targets", 1, "With Targets", "Assign IK Constraint with targets derived from the select bones/objects");
+	RNA_def_boolean(ot->srna, "with_targets", 1, _("With Targets"), _("Assign IK Constraint with targets derived from the select bones/objects"));
 }
 
 /* ------------------ */

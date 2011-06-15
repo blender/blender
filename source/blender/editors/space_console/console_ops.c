@@ -40,6 +40,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_text.h" /* only for character utility funcs */
 
@@ -538,8 +540,8 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "scrollback", 1, "Scrollback", "Clear the scrollback history");
-	RNA_def_boolean(ot->srna, "history", 0, "History", "Clear the command history");
+	RNA_def_boolean(ot->srna, "scrollback", 1, _("Scrollback"), _("Clear the scrollback history"));
+	RNA_def_boolean(ot->srna, "history", 0, _("History"), _("Clear the command history"));
 }
 
 
@@ -604,7 +606,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "reverse", 0, "Reverse", "reverse cycle history");
+	RNA_def_boolean(ot->srna, "reverse", 0, _("Reverse"), _("reverse cycle history"));
 }
 
 
@@ -653,8 +655,8 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
-	RNA_def_int(ot->srna, "current_character", 0, 0, INT_MAX, "Cursor", "The index of the cursor.", 0, 10000);
-	RNA_def_boolean(ot->srna, "remove_duplicates", 0, "Remove Duplicates", "Remove duplicate items in the history");
+	RNA_def_int(ot->srna, "current_character", 0, 0, INT_MAX, _("Cursor"), _("The index of the cursor."), 0, 10000);
+	RNA_def_boolean(ot->srna, "remove_duplicates", 0, _("Remove Duplicates"), _("Remove duplicate items in the history"));
 }
 
 

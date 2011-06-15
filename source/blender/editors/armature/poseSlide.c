@@ -45,6 +45,8 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
@@ -682,9 +684,9 @@ static int pose_slide_exec_common (bContext *C, wmOperator *op, tPoseSlideOp *ps
 /* common code for defining RNA properties */
 static void pose_slide_opdef_properties (wmOperatorType *ot)
 {
-	RNA_def_int(ot->srna, "prev_frame", 0, MINAFRAME, MAXFRAME, "Previous Keyframe", "Frame number of keyframe immediately before the current frame.", 0, 50);
-	RNA_def_int(ot->srna, "next_frame", 0, MINAFRAME, MAXFRAME, "Next Keyframe", "Frame number of keyframe immediately after the current frame.", 0, 50);
-	RNA_def_float_percentage(ot->srna, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Weighting factor for the sliding operation", 0.3, 0.7);
+	RNA_def_int(ot->srna, "prev_frame", 0, MINAFRAME, MAXFRAME, _("Previous Keyframe"), _("Frame number of keyframe immediately before the current frame."), 0, 50);
+	RNA_def_int(ot->srna, "next_frame", 0, MINAFRAME, MAXFRAME, _("Next Keyframe"), _("Frame number of keyframe immediately after the current frame."), 0, 50);
+	RNA_def_float_percentage(ot->srna, "percentage", 0.5f, 0.0f, 1.0f, _("Percentage"), _("Weighting factor for the sliding operation"), 0.3, 0.7);
 }
 
 /* ------------------------------------ */

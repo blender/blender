@@ -44,6 +44,8 @@
 #include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_text.h" /* for UI_OT_reports_to_text */
@@ -305,9 +307,9 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 static void UI_OT_reset_default_button(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset to Default Value";
+	ot->name= _("Reset to Default Value");
 	ot->idname= "UI_OT_reset_default_button";
-	ot->description= "Reset this property's value to its default value";
+	ot->description= _("Reset this property's value to its default value");
 
 	/* callbacks */
 	ot->poll= reset_default_button_poll;
@@ -317,7 +319,7 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Reset to default values all elements of the array."));
 }
 
 /* Copy To Selected Operator ------------------------ */
@@ -397,9 +399,9 @@ static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
 static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy To Selected";
+	ot->name= _("Copy To Selected");
 	ot->idname= "UI_OT_copy_to_selected_button";
-	ot->description= "Copy property from this object to selected objects or bones";
+	ot->description= _("Copy property from this object to selected objects or bones");
 
 	/* callbacks */
 	ot->poll= copy_to_selected_button_poll;
@@ -409,7 +411,7 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Reset to default values all elements of the array."));
 }
 
 /* Reports to Textblock Operator ------------------------ */

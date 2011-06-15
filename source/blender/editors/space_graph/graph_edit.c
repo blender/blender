@@ -45,6 +45,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -1177,15 +1179,15 @@ void GRAPH_OT_sound_bake (wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);
-	RNA_def_float(ot->srna, "low", 0.0f, 0.0, 100000.0, "Lowest frequency", "", 0.1, 1000.00);
-	RNA_def_float(ot->srna, "high", 100000.0, 0.0, 100000.0, "Highest frequency", "", 0.1, 1000.00);
-	RNA_def_float(ot->srna, "attack", 0.005, 0.0, 2.0, "Attack time", "", 0.01, 0.1);
-	RNA_def_float(ot->srna, "release", 0.2, 0.0, 5.0, "Release time", "", 0.01, 0.2);
-	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold", "", 0.01, 0.1);
-	RNA_def_boolean(ot->srna, "accumulate", 0, "Accumulate", "");
-	RNA_def_boolean(ot->srna, "use_additive", 0, "Additive", "");
-	RNA_def_boolean(ot->srna, "square", 0, "Square", "");
-	RNA_def_float(ot->srna, "sthreshold", 0.1, 0.0, 1.0, "Square Threshold", "", 0.01, 0.1);
+	RNA_def_float(ot->srna, "low", 0.0f, 0.0, 100000.0, _("Lowest frequency"), "", 0.1, 1000.00);
+	RNA_def_float(ot->srna, "high", 100000.0, 0.0, 100000.0, _("Highest frequency"), "", 0.1, 1000.00);
+	RNA_def_float(ot->srna, "attack", 0.005, 0.0, 2.0, _("Attack time"), "", 0.01, 0.1);
+	RNA_def_float(ot->srna, "release", 0.2, 0.0, 5.0, _("Release time"), "", 0.01, 0.2);
+	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, _("Threshold"), "", 0.01, 0.1);
+	RNA_def_boolean(ot->srna, "accumulate", 0, _("Accumulate"), "");
+	RNA_def_boolean(ot->srna, "use_additive", 0, _("Additive"), "");
+	RNA_def_boolean(ot->srna, "square", 0, _("Square"), "");
+	RNA_def_float(ot->srna, "sthreshold", 0.1, 0.0, 1.0, _("Square Threshold"), "", 0.01, 0.1);
 }
 
 /* ******************** Sample Keyframes Operator *********************** */
@@ -2136,7 +2138,7 @@ void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve.");
+	RNA_def_boolean(ot->srna, "only_active", 1, _("Only Active"), _("Only add F-Modifier to active F-Curve."));
 }
 
 /* ******************** Copy F-Modifiers Operator *********************** */
