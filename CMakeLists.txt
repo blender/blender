@@ -628,10 +628,7 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			if(MSVC80)
-				set(MSVC_LIB _vs2005)
-				set(MSVC_INC)
-			elseif(MSVC90)
+			if(MSVC90)
 				set(MSVC_LIB _vs2008)
 				set(MSVC_INC)
 			elseif(MSVC10)
@@ -641,11 +638,24 @@ elseif(WIN32)
 				set(MSVC_LIB msvc)
 				set(MSVC_INC)
 			endif()
-			set(OPENEXR ${LIBDIR}/openexr)			
-			set(OPENEXR_LIBRARIES Iex Half IlmImf Imath IlmThread)
+			set(OPENEXR ${LIBDIR}/openexr)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib${MSVC_LIB})
+			set(OPENEXR_LIBRARIES
+				${OPENEXR_LIBPATH}/Iex.lib
+				${OPENEXR_LIBPATH}/Half.lib
+				${OPENEXR_LIBPATH}/IlmImf.lib
+				${OPENEXR_LIBPATH}/Imath.lib
+				${OPENEXR_LIBPATH}/IlmThread.lib
+			)
 			set(OPENEXR_INCUDE ${OPENEXR}/include${MSVC_INC})
-			set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCUDE}/ ${OPENEXR_INCUDE}/IlmImf ${OPENEXR_INCUDE}/Iex ${OPENEXR_INCUDE}/Imath)
+			set(OPENEXR_INCLUDE_DIRS
+				${OPENEXR_INCUDE}
+			        ${OPENEXR_INCUDE}/IlmImf
+				${OPENEXR_INCUDE}/Iex
+				${OPENEXR_INCUDE}/Imath
+			)
+			unset(OPENEXR_INCUDE)
+			unset(OPENEXR_LIBPATH)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
@@ -744,7 +754,7 @@ elseif(WIN32)
 
 		if(WITH_IMAGE_OPENEXR)
 			set(OPENEXR ${LIBDIR}/gcc/openexr)
-			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
+			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 			set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 
@@ -877,7 +887,7 @@ elseif(APPLE)
 
 	if(WITH_IMAGE_OPENEXR)
 		set(OPENEXR ${LIBDIR}/openexr)
-		set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
+		set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 		set(OPENEXR_LIBRARIES Iex Half IlmImf Imath IlmThread)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 	endif()
