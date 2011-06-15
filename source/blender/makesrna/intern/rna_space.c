@@ -2644,6 +2644,18 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_MARKER_SEARCH);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
+	/* lock to selection */
+	prop= RNA_def_property(srna, "lock_selection", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Lock to Selection", "Lock viewport to selected markers during playback");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_LOCK_SELECTION);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show tiny markers */
+	prop= RNA_def_property(srna, "show_tiny_markers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Tiny Markers", "Show markers tiny");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_TINY_MARKER);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
 	/* ** debug flags ** */
 
 	/* show cache */

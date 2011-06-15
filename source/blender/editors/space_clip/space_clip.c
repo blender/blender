@@ -197,6 +197,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_view_zoom_out);
 	WM_operatortype_append(CLIP_OT_view_zoom_ratio);
 	WM_operatortype_append(CLIP_OT_view_all);
+	WM_operatortype_append(CLIP_OT_view_selected);
 
 	WM_operatortype_append(CLIP_OT_select);
 	WM_operatortype_append(CLIP_OT_select_all);
@@ -244,6 +245,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
@@ -349,6 +352,9 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	Scene *scene= CTX_data_scene(C);
+
+	if(sc->flag&SC_LOCK_SELECTION)
+		ED_clip_view_selection(sc, ar, 0);
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);

@@ -672,6 +672,32 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 	ot->poll= space_clip_poll;
 }
 
+/********************** view selected operator *********************/
+
+static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	ARegion *ar= CTX_wm_region(C);
+
+	ED_clip_view_selection(sc, ar, 1);
+	ED_region_tag_redraw(CTX_wm_region(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_view_selected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Selected";
+	ot->idname= "CLIP_OT_view_selected";
+
+	/* api callbacks */
+	ot->exec= view_selected_exec;
+	ot->poll= space_clip_poll;
+}
+
+/********************** macroses *********************/
+
 void ED_operatormacros_clip(void)
 {
 	wmOperatorType *ot;

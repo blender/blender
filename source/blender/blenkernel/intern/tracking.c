@@ -86,16 +86,6 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 				track->pat_max[a]= track->search_max[a];
 				track->pat_min[a]= track->pat_max[a]-dim[a];
 			}
-
-			/* marker's center should be inside pattern */
-			if(track->pat_min[a] > 0.0f) {
-				track->pat_min[a]= 0.0f;
-				track->pat_max[a]= dim[a];
-			}
-			if(track->pat_max[a] < 0.0f) {
-				track->pat_max[a]= 0.0f;
-				track->pat_min[a]= -dim[a];
-			}
 		}
 	}
 	else if(event==CLAMP_SEARCH_DIM) {
@@ -118,6 +108,23 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 			if(track->search_max[a] < track->pat_max[a]) {
 				track->search_max[a]= track->pat_max[a];
 				track->search_min[a]= track->search_max[a]-dim[a];
+			}
+		}
+	}
+
+	/* marker's center should be inside pattern */
+	if(event==CLAMP_PAT_DIM || event==CLAMP_PAT_POS) {
+		float dim[2];
+		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
+
+		for(a= 0; a<2; a++) {
+			if(track->pat_min[a] > 0.0f) {
+				track->pat_min[a]= 0.0f;
+				track->pat_max[a]= dim[a];
+			}
+			if(track->pat_max[a] < 0.0f) {
+				track->pat_max[a]= 0.0f;
+				track->pat_min[a]= -dim[a];
 			}
 		}
 	}
@@ -306,19 +313,23 @@ void BKE_tracking_context_free(MovieTrackingContext *context)
 static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker, float min[2], float max[2], int pos[2])
 {
 	ImBuf *tmpibuf;
-	const float eps= 0.001;
 	int x, y;
 	int x1, y1, x2, y2, w, h;
 
-	x= floor(marker->pos[0]*ibuf->x+eps);
-	y= floor(marker->pos[1]*ibuf->y+eps);
-	x1= x-floor(-min[0]*ibuf->x-eps);
-	y1= y-floor(-min[1]*ibuf->y-eps);
-	x2= x+ceil(max[0]*ibuf->x+eps);
-	y2= y+ceil(max[1]*ibuf->y+eps);
+	x= marker->pos[0]*ibuf->x;
+	y= marker->pos[1]*ibuf->y;
+	x1= x-(int)(-min[0]*ibuf->x);
+	y1= y-(int)(-min[1]*ibuf->y);
+	x2= x+(int)(max[0]*ibuf->x);
+	y2= y+(int)(max[1]*ibuf->y);
 
+	/* dimensions should be odd */
 	w= (x2-x1)|1;
 	h= (y2-y1)|1;
+
+	/* happens due to rounding issues */
+	if(x1+w<=x) x1++;
+	if(y1+h<=y) y1++;
 
 	tmpibuf= IMB_allocImBuf(w, h, 32, IB_rect);
 	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1, y1, w, h);
@@ -345,16 +356,22 @@ static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 {
 	ImBuf *tmpibuf;
 	float *pixels, *fp;
-	int x, y;
+	int x, y, width, height;
 
-	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, pos);
+	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
+	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
 
-	*width_r= tmpibuf->x;
-	*height_r= tmpibuf->y;
+	tmpibuf= IMB_allocImBuf(width, height, 32, IB_rect);
+	IMB_rectcpy(tmpibuf, ibuf, 0, 0,
+			(track->search_min[0]+marker->pos[0])*ibuf->x,
+			(track->search_min[1]+marker->pos[1])*ibuf->y, width, height);
 
-	fp= pixels= MEM_callocN(tmpibuf->x*tmpibuf->y*sizeof(float), "tracking floatBuf");
-	for(y= 0; y<tmpibuf->y; y++) {
-		for (x= 0; x<tmpibuf->x; x++) {
+	*width_r= width;
+	*height_r= height;
+
+	fp= pixels= MEM_callocN(width*height*sizeof(float), "tracking floatBuf");
+	for(y= 0; y<(int)height; y++) {
+		for (x= 0; x<(int)width; x++) {
 			int pixel= tmpibuf->x*y + x;
 			char *rrgb= (char*)tmpibuf->rect + pixel*4;
 
@@ -382,7 +399,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 	/* duplicate currently tracking tracks to list of displaying tracks */
 	track= context->tracks.first;
 	while(track) {
-		int replace= 0, replace_sel= 0;
+		int replace_sel= 0;
 		MovieTrackingTrack *new_track, *old;
 
 		/* find original of tracking track in list of previously displayed tracks */
@@ -408,16 +425,13 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 
 				BKE_tracking_free_track(cur);
 				BLI_freelinkN(old_tracks, cur);
-				replace= 1;
 			}
 		}
 
 		new_track= BKE_tracking_copy_track(track);
 
-		if(replace) {
-			BLI_ghash_remove(context->hash, track, NULL, NULL); /* XXX: are we actually need this */
-			BLI_ghash_insert(context->hash, track, new_track);
-		}
+		BLI_ghash_remove(context->hash, track, NULL, NULL); /* XXX: are we actually need this */
+		BLI_ghash_insert(context->hash, track, new_track);
 
 		if(replace_sel)		/* update current selection in clip */
 			BKE_movieclip_set_selection(context->clip, MCLIP_SEL_TRACK, new_track);

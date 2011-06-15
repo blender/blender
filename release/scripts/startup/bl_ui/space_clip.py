@@ -156,7 +156,7 @@ class CLIP_PT_tracking_marker(bpy.types.Panel):
         tool = ts.movieclip.tool
 
         return (sc.mode == 'TRACKING' and clip and \
-            tool == 'MARKER' and clip.tracking.act_track)
+            tool != 'NONE' and clip.tracking.act_track)
 
     def draw(self, context):
         layout = self.layout
@@ -234,6 +234,7 @@ class CLIP_PT_display(bpy.types.Panel):
 
         layout.prop(sc, "show_marker_pattern")
         layout.prop(sc, "show_marker_search")
+        layout.prop(sc, "lock_selection")
 
 
 class CLIP_PT_debug(bpy.types.Panel):
@@ -247,6 +248,7 @@ class CLIP_PT_debug(bpy.types.Panel):
         sc = context.space_data
 
         layout.prop(sc, "show_cache")
+        layout.prop(sc, "show_tiny_markers")
 
 
 class CLIP_MT_view(bpy.types.Menu):
@@ -259,6 +261,22 @@ class CLIP_MT_view(bpy.types.Menu):
         layout.operator("clip.tools", icon='MENU_PANEL')
         layout.separator()
 
+        layout.operator("clip.view_selected")
+        layout.operator("clip.view_all")
+
+        layout.separator()
+        layout.operator("clip.view_zoom_in")
+        layout.operator("clip.view_zoom_out")
+
+        layout.separator()
+
+        ratios = [[1, 8], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1]]
+
+        for a, b in ratios:
+            text = "Zoom %d:%d" % (a, b)
+            layout.operator("clip.view_zoom_ratio", text=text).ratio = a / b
+
+        layout.separator()
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 
@@ -298,7 +316,7 @@ class CLIP_MT_marker(bpy.types.Menu):
 
         sc = context.space_data
 
-        layout.operator('clip.add_marker')
+        layout.operator('clip.add_marker_move')
 
 
 class CLIP_MT_select(bpy.types.Menu):

@@ -125,8 +125,11 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf)
 
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
+	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
+
 	UI_ThemeColor(TH_MARKER_OUTLINE);
-	glPointSize(4.0f);
+	if(tiny) glPointSize(3.0f);
+	else glPointSize(4.0f);
 	glBegin(GL_POINTS);
 		glVertex2f(marker->pos[0], marker->pos[1]);
 	glEnd();
@@ -135,7 +138,9 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 	/* pattern and search outline */
 	glPushMatrix();
 	glTranslatef(marker->pos[0], marker->pos[1], 0);
-	glLineWidth(3.0f);
+
+	if(!tiny) glLineWidth(3.0f);
+
 	if(sc->flag&SC_SHOW_MARKER_PATTERN) {
 		glBegin(GL_LINE_LOOP);
 			glVertex2f(track->pat_min[0], track->pat_min[1]);
@@ -154,23 +159,30 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 		glEnd();
 	}
 	glPopMatrix();
-	glLineWidth(1.0f);
+
+	if(!tiny) glLineWidth(1.0f);
 }
 
 static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker, int act, int sel)
 {
 	int color= act?TH_ACT_MARKER:TH_SEL_MARKER;
+	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
 
 	/* marker position */
 	if((track->flag&SELECT)==sel) {
 		if(track->flag&SELECT) UI_ThemeColor(color);
 		else UI_ThemeColor(TH_MARKER);
 
-		glPointSize(2.0f);
+		if(!tiny) glPointSize(2.0f);
 		glBegin(GL_POINTS);
 			glVertex2f(marker->pos[0], marker->pos[1]);
 		glEnd();
-		glPointSize(1.0f);
+		if(!tiny) glPointSize(1.0f);
+	}
+
+	if(tiny) {
+		glLineStipple(3, 0xaaaa);
+		glEnable(GL_LINE_STIPPLE);
 	}
 
 	/* pattern */
@@ -208,6 +220,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	glPopMatrix();
 
+	if(tiny)
+		glDisable(GL_LINE_STIPPLE);
 }
 
 static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip)
@@ -300,8 +314,9 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		draw_movieclip_cache(sc, ar, clip, scene);
 }
 
-void draw_clip_track_widget(const bContext *UNUSED(C), void *trackp, void *userp, void *clipp, rcti *rect)
+void draw_clip_track_widget(const bContext *C, void *trackp, void *userp, void *clipp, rcti *rect)
 {
+	ARegion *ar= CTX_wm_region(C);
 	MovieClipUser *user= (MovieClipUser *)userp;
 	MovieClip *clip= (MovieClip *)clipp;
 	MovieTrackingTrack *track= (MovieTrackingTrack *)trackp;
@@ -326,22 +341,26 @@ void draw_clip_track_widget(const bContext *UNUSED(C), void *trackp, void *userp
 					IMB_rect_from_float(tmpibuf);
 
 				if(tmpibuf->rect) {
-					int a;
+					int a, w, h;
 					float zoomx, zoomy;
+					GLint scissor[4];
 
-					zoomx= ((float)rect->xmax-rect->xmin) / tmpibuf->x;
-					zoomy= ((float)rect->ymax-rect->ymin) / tmpibuf->y;
+					w= rect->xmax-rect->xmin;
+					h= rect->ymax-rect->ymin;
+
+					zoomx= ((float)w) / tmpibuf->x;
+					zoomy= ((float)h) / tmpibuf->y;
 
 					glPushMatrix();
 
-					glTranslatef(rect->xmin, rect->ymin, 0.f);
 					glPixelZoom(zoomx, zoomy);
-
-					glaDrawPixelsSafe(0, 0, tmpibuf->x, tmpibuf->y, tmpibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, tmpibuf->rect);
-
+					glaDrawPixelsSafe(rect->xmin, rect->ymin, tmpibuf->x, tmpibuf->y, tmpibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, tmpibuf->rect);
 					glPixelZoom(1.f, 1.f);
 
-					glTranslatef((pos[0]+0.5f)*zoomx, (pos[1]+0.5f)*zoomy, 0.f);
+					glGetIntegerv(GL_VIEWPORT, scissor);
+					glScissor(ar->winrct.xmin + (rect->xmin-1), ar->winrct.ymin+(rect->ymin-1), (rect->xmax+1)-(rect->xmin-1), (rect->ymax+1)-(rect->ymin-1));
+
+					glTranslatef(rect->xmin+(pos[0]+0.5f)*zoomx, rect->ymin+(pos[1]+0.5f)*zoomy, 0.f);
 
 					for(a= 0; a< 2; a++) {
 						if(a==1) {
@@ -360,9 +379,12 @@ void draw_clip_track_widget(const bContext *UNUSED(C), void *trackp, void *userp
 							glVertex2f(0, 10);
 						glEnd();
 					}
+
 					glDisable(GL_LINE_STIPPLE);
 
 					glPopMatrix();
+
+					glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 				}
 
 				IMB_freeImBuf(tmpibuf);

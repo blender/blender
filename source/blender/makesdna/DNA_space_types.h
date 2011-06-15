@@ -960,11 +960,13 @@ enum {
 
 /* SpaceClip->mode */
 #define SC_MODE_VIEW		(1<<0)
-#define SC_MODE_TRACKING	(2<<0)
+#define SC_MODE_TRACKING	(1<<1)
 
 /* SpaceClip->flag */
 #define SC_SHOW_MARKER_PATTERN	(1<<0)
-#define SC_SHOW_MARKER_SEARCH	(2<<0)
+#define SC_SHOW_MARKER_SEARCH	(1<<1)
+#define SC_LOCK_SELECTION		(1<<2)
+#define SC_SHOW_TINY_MARKER		(1<<3)
 
 /* SpaceClip->debug_flag */
 #define SC_DBG_SHOW_CACHE	(1<<0)

@@ -33,6 +33,7 @@
 #ifndef ED_MOVIECLIP_H
 #define ED_MOVIECLIP_H
 
+struct ARegion;
 struct bContext;
 struct ImBuf;
 struct Main;
@@ -48,6 +49,7 @@ void ED_space_clip_zoom(struct SpaceClip *sc, ARegion *ar, float *zoomx, float *
 struct ImBuf *ED_space_clip_acquire_buffer(struct SpaceClip *sc);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
+void ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);
 
 /* clip_ops.c */
 void ED_operatormacros_clip(void);

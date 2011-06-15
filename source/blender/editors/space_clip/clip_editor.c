@@ -36,6 +36,11 @@
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_context.h"
+#include "BKE_tracking.h"
+#include "DNA_object_types.h"	/* SELECT */
+
+#include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -113,5 +118,73 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 				}
 			}
 		}
+	}
+}
+
+static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
+{
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	int width, height, ok= 0;
+
+	INIT_MINMAX2(min, max);
+
+	ED_space_clip_size(sc, &width, &height);
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track)) {
+			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
+
+			if(marker) {
+				float pos[2];
+
+				pos[0]= marker->pos[0]*width;
+				pos[1]= marker->pos[1]*height;
+
+				DO_MINMAX2(pos, min, max);
+
+				ok= 1;
+			}
+		}
+
+		track= track->next;
+	}
+
+	return ok;
+}
+
+void ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
+{
+	int w, h, width, height, frame_width, frame_height;
+	float min[2], max[2];
+
+	ED_space_clip_size(sc, &frame_width, &frame_height);
+
+	if(frame_width==0 || frame_height==0) return;
+
+	width= ar->winrct.xmax - ar->winrct.xmin + 1;
+	height= ar->winrct.ymax - ar->winrct.ymin + 1;
+
+	if(!selected_boundbox(sc, min, max)) return;
+
+	w= max[0]-min[0];
+	h= max[1]-min[1];
+
+	/* center view */
+	sc->xof= ((float)(max[0]+min[0]-frame_width))/2;
+	sc->yof= ((float)(max[1]+min[1]-frame_height))/2;
+
+	/* set zoom to see all selection */
+	if(w>0 && h>0) {
+		float zoomx, zoomy, newzoom;
+
+		zoomx= (float)width/w;
+		zoomy= (float)height/h;
+
+		newzoom= 1.0f/power_of_2(1/MIN2(zoomx, zoomy));
+
+		if(fit || sc->zoom>newzoom)
+			sc->zoom= newzoom;
 	}
 }
