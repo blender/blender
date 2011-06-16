@@ -11662,8 +11662,42 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+		
+		{
+			/* convert fcurve actuator to action actuator */
+			Object *ob;
+			bActuator *act;
+			bIpoActuator *ia;
+			bActionActuator *aa;
+
+			for (ob= main->object.first; ob; ob= ob->id.next) {
+				for (act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_IPO) {
+						// Create the new actuator
+						ia= act->data;
+						aa= MEM_callocN(sizeof(bActionActuator), "fcurve -> action actuator do_version");
+
+						// Copy values
+						aa->type = ia->type;
+						aa->flag = ia->flag;
+						aa->sta = ia->sta;
+						aa->end = ia->end;
+						strcpy(aa->name, ia->name);
+						strcpy(aa->frameProp, ia->frameProp);
+						aa->act = ob->adt->action;
+
+						// Get rid of the old actuator
+						MEM_freeN(ia);
+
+						// Assign the new actuator
+						act->data = aa;
+						act->type= act->otype= ACT_ACTION;
+						
+					}
+				}
+			}
+		}
 	}
-	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

@@ -122,6 +122,7 @@ typedef struct bObjectActuator {
 	struct Object *reference;
 } bObjectActuator;
 
+/* deprecated, handled by bActionActuator now */
 typedef struct bIpoActuator {
 	short flag, type;
 	float sta, end;
