@@ -49,7 +49,6 @@ EnumPropertyItem actuator_type_items[] ={
 	{ACT_CAMERA, "CAMERA", 0, "Camera", ""},
 	{ACT_CONSTRAINT, "CONSTRAINT", 0, "Constraint", ""},
 	{ACT_EDIT_OBJECT, "EDIT_OBJECT", 0, "Edit Object", ""},
-	{ACT_IPO, "FCURVE", 0, "F-Curve", ""},
 	{ACT_2DFILTER, "FILTER_2D", 0, "Filter 2D", ""},
 	{ACT_GAME, "GAME", 0, "Game", ""},
 	{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
@@ -77,8 +76,6 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 			return &RNA_ActionActuator;
 		case ACT_OBJECT:
 			return &RNA_ObjectActuator;
-		case ACT_IPO:
-			return &RNA_FCurveActuator;
 		case ACT_CAMERA:
 			return &RNA_CameraActuator;
 		case ACT_SOUND:
@@ -457,7 +454,6 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, Property
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_CAMERA);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_CONSTRAINT);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_EDIT_OBJECT);
-	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_IPO);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_2DFILTER);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_GAME);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_MESSAGE);
@@ -866,6 +862,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
+/* The fcurve actuator has been replace with the action actuator, so this is no longer used */
 static void rna_def_fcurve_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2008,7 +2005,6 @@ void RNA_def_actuator(BlenderRNA *brna)
 
 	rna_def_action_actuator(brna);
 	rna_def_object_actuator(brna);
-	rna_def_fcurve_actuator(brna);
 	rna_def_camera_actuator(brna);
 	rna_def_sound_actuator(brna);
 	rna_def_property_actuator(brna);

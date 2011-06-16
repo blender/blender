@@ -3988,6 +3988,7 @@ static void draw_actuator_game(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(layout, ptr, "filename", 0, NULL, ICON_NONE);
 }
 
+/* The IPO/Fcurve actuator has been deprecated, so this is no longer used */
 static void draw_actuator_ipo(uiLayout *layout, PointerRNA *ptr)
 {
 	Object *ob;
@@ -4407,9 +4408,6 @@ static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 			break;
 		case ACT_GAME:
 			draw_actuator_game(box, ptr);
-			break;
-		case ACT_IPO:
-			draw_actuator_ipo(box, ptr);
 			break;
 		case ACT_MESSAGE:
 			draw_actuator_message(box, ptr, C);
