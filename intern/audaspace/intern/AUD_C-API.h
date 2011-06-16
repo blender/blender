@@ -31,6 +31,10 @@
 #ifndef AUD_CAPI
 #define AUD_CAPI
 
+#ifdef WITH_PYTHON
+#include "Python.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -491,6 +495,14 @@ extern void AUD_setSyncCallback(AUD_syncFunction function, void* data);
 #endif
 
 extern int AUD_doesPlayback(void);
+
+extern AUD_Sound* AUD_copy(AUD_Sound* sound);
+
+#ifdef WITH_PYTHON
+extern PyObject* AUD_getPythonFactory(AUD_Sound* sound);
+
+extern AUD_Sound* AUD_getPythonSound(PyObject* sound);
+#endif
 
 #ifdef __cplusplus
 }

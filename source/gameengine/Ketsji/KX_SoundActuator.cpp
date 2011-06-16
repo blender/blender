@@ -53,7 +53,7 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 								   KX_SOUNDACT_TYPE type)//,
 								   : SCA_IActuator(gameobj, KX_ACT_SOUND)
 {
-	m_sound = sound;
+	m_sound = AUD_copy(sound);
 	m_volume = volume;
 	m_pitch = pitch;
 	m_is3d = is3d;
@@ -69,6 +69,7 @@ KX_SoundActuator::~KX_SoundActuator()
 {
 	if(m_handle)
 		AUD_stop(m_handle);
+	AUD_unload(m_sound);
 }
 
 void KX_SoundActuator::play()
@@ -286,6 +287,7 @@ PyAttributeDef KX_SoundActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("cone_angle_inner", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
 	KX_PYATTRIBUTE_RW_FUNCTION("cone_angle_outer", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
 	KX_PYATTRIBUTE_RW_FUNCTION("cone_volume_outer", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
+	KX_PYATTRIBUTE_RW_FUNCTION("sound", KX_SoundActuator, pyattr_get_sound, pyattr_set_sound),
 
 	KX_PYATTRIBUTE_RW_FUNCTION("time", KX_SoundActuator, pyattr_get_audposition, pyattr_set_audposition),
 	KX_PYATTRIBUTE_RW_FUNCTION("volume", KX_SoundActuator, pyattr_get_gain, pyattr_set_gain),
@@ -400,6 +402,12 @@ PyObject* KX_SoundActuator::pyattr_get_pitch(void *self, const struct KX_PYATTRI
 	return result;
 }
 
+PyObject* KX_SoundActuator::pyattr_get_sound(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
+	return AUD_getPythonFactory(actuator->m_sound);
+}
+
 int KX_SoundActuator::pyattr_set_3d_property(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
@@ -499,6 +507,24 @@ int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_D
 		AUD_setSoundPitch(actuator->m_handle, pitch);
 
 	return PY_SET_ATTR_SUCCESS;
+}
+
+int KX_SoundActuator::pyattr_set_sound(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	PyObject* sound = NULL;
+	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
+	if (!PyArg_Parse(value, "O", &sound))
+		return PY_SET_ATTR_FAIL;
+
+	AUD_Sound* snd = AUD_getPythonSound(sound);
+	if(snd)
+	{
+		AUD_unload(actuator->m_sound);
+		actuator->m_sound = snd;
+		return PY_SET_ATTR_SUCCESS;
+	}
+
+	return PY_SET_ATTR_FAIL;
 }
 
 #endif // WITH_PYTHON

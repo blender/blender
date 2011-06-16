@@ -227,6 +227,32 @@ PyObject* AUD_initPython()
 
 	return module;
 }
+
+PyObject* AUD_getPythonFactory(AUD_Sound* sound)
+{
+	if(sound)
+	{
+		Factory* obj = (Factory*) Factory_empty();
+		if(obj)
+		{
+			obj->factory = new AUD_Reference<AUD_IFactory>(*sound);
+			return (PyObject*) obj;
+		}
+	}
+
+	return NULL;
+}
+
+AUD_Sound* AUD_getPythonSound(PyObject* sound)
+{
+	Factory* factory = checkFactory(sound);
+
+	if(!factory)
+		return NULL;
+
+	return new AUD_Reference<AUD_IFactory>(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(factory->factory));
+}
+
 #endif
 
 void AUD_lock()
@@ -972,4 +998,9 @@ int AUD_doesPlayback()
 		return device->doesPlayback();
 #endif
 	return -1;
+}
+
+AUD_Sound* AUD_copy(AUD_Sound* sound)
+{
+	return new AUD_Reference<AUD_IFactory>(*sound);
 }

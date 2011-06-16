@@ -2881,6 +2881,19 @@ Factory_empty()
 	return FactoryType.tp_alloc(&FactoryType, 0);
 }
 
+Factory*
+checkFactory(PyObject* factory)
+{
+	if(!PyObject_TypeCheck(factory, &FactoryType))
+	{
+		PyErr_SetString(PyExc_TypeError, "Object is not of type Factory!");
+		return NULL;
+	}
+
+	return (Factory*)factory;
+}
+
+
 // ====================================================================
 
 PyDoc_STRVAR(M_aud_doc,

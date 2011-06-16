@@ -68,6 +68,7 @@ PyInit_aud(void);
 
 extern PyObject* Device_empty();
 extern PyObject* Factory_empty();
+extern Factory* checkFactory(PyObject* factory);
 
 #ifdef __cplusplus
 }
