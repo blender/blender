@@ -1000,7 +1000,7 @@ static void ui_is_but_sel(uiBut *but, double *value)
 		case BUT_TOGDUAL:
 		case ICONTOG:
 		case OPTION:
-
+			UI_GET_BUT_VALUE_INIT(but, *value)
 			if(*value != (double)but->hardmin) push= 1;
 			break;
 		case ICONTOGN:
