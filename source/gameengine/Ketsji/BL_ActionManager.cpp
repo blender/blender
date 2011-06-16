@@ -63,6 +63,7 @@ void BL_ActionManager::PlayAction(const char* name,
 								float blendin,
 								short play_mode,
 								short blend_mode,
+								short ipo_flags,
 								float playback_speed)
 {
 	// Remove a currently running action on this layer if there is one
@@ -70,7 +71,7 @@ void BL_ActionManager::PlayAction(const char* name,
 		StopAction(layer);
 
 	// Create a new action
-	m_layers[layer]->Play(name, start, end, blendin, play_mode, blend_mode, playback_speed);
+	m_layers[layer]->Play(name, start, end, blendin, play_mode, blend_mode, ipo_flags, playback_speed);
 }
 
 void BL_ActionManager::StopAction(short layer)

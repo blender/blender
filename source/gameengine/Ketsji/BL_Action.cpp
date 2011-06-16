@@ -58,6 +58,7 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_blendframe(0.f),
 	m_blendstart(0.f),
 	m_speed(0.f),
+	m_ipo_flags(0),
 	m_pose(NULL),
 	m_blendpose(NULL),
 	m_sg_contr(NULL),
@@ -85,6 +86,7 @@ void BL_Action::Play(const char* name,
 					float blendin,
 					short play_mode,
 					short blend_mode,
+					short ipo_flags,
 					float playback_speed)
 {
 	bAction* prev_action = m_action;
@@ -105,8 +107,10 @@ void BL_Action::Play(const char* name,
 		m_sg_contr = BL_CreateIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
 		m_obj->GetSGNode()->AddSGController(m_sg_contr);
 		m_sg_contr->SetObject(m_obj->GetSGNode());
-		InitIPO();
 	}
+	
+	m_ipo_flags = ipo_flags;
+	InitIPO();
 
 	// Now that we have an action, we have something we can play
 	m_starttime = KX_GetActiveEngine()->GetFrameTime();
@@ -131,9 +135,9 @@ void BL_Action::InitIPO()
 {
 		// Initialize the IPO
 		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_RESET, true);
-		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, false);
-		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_IPO_ADD, false);
-		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, false);
+		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, m_ipo_flags & ACT_IPOFLAG_FORCE);
+		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_IPO_ADD, m_ipo_flags & ACT_IPOFLAG_ADD);
+		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, m_ipo_flags & ACT_IPOFLAG_LOCAL);
 }
 
 float BL_Action::GetFrame()
@@ -259,8 +263,6 @@ void BL_Action::Update(float curtime)
 	else
 	{
 		InitIPO();
-		m_sg_contr->SetSimulatedTime(m_localtime);
-		m_obj->GetSGNode()->UpdateWorldData(m_localtime);
-		m_obj->UpdateTransform();
+		m_obj->UpdateIPO(m_localtime, m_ipo_flags & ACT_IPOFLAG_CHILD);
 	}
 }

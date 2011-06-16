@@ -3677,12 +3677,22 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA settings_ptr;
-	uiLayout *row;
+	uiLayout *row, *subrow, *col;;
 
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 
 	row= uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "play_mode", 0, "", ICON_NONE);
+
+	subrow= uiLayoutRow(row, 1);
+	uiItemR(subrow, ptr, "use_force", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+	uiItemR(subrow, ptr, "use_additive", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+
+	col = uiLayoutColumn(subrow, 0);
+	uiLayoutSetActive(col, (RNA_boolean_get(ptr, "use_additive") || RNA_boolean_get(ptr, "use_force")));
+	uiItemR(col, ptr, "use_local", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+
+	row= uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "action", 0, "", ICON_NONE);
 	uiItemR(row, ptr, "use_continue_last_frame", 0, NULL, ICON_NONE);
 
@@ -3694,6 +3704,8 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(row, ptr, "frame_start", 0, NULL, ICON_NONE);
 		uiItemR(row, ptr, "frame_end", 0, NULL, ICON_NONE);
 	}
+
+	uiItemR(row, ptr, "apply_to_children", 0, NULL, ICON_NONE);
 
 	row= uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "frame_blend_in", 0, NULL, ICON_NONE);

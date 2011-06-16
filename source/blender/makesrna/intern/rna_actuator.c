@@ -353,6 +353,29 @@ static void rna_FcurveActuator_force_set(struct PointerRNA *ptr, int value)
 		ia->flag &= ~ACT_IPOFORCE;
 }
 
+static void rna_ActionActuator_add_set(struct PointerRNA *ptr, int value)
+{
+	bActuator *act = (bActuator *)ptr->data;
+	bActionActuator *aa = act->data;
+
+	if(value == 1){
+		aa->flag &= ~ACT_IPOFORCE;
+		aa->flag |= ACT_IPOADD;
+	}else
+		aa->flag &= ~ACT_IPOADD;
+}
+
+static void rna_ActionActuator_force_set(struct PointerRNA *ptr, int value)
+{
+	bActuator *act = (bActuator *)ptr->data;
+	bActionActuator *aa = act->data;
+
+	if(value == 1){
+		aa->flag &= ~ACT_IPOADD;
+		aa->flag |= ACT_IPOFORCE;
+	}else
+		aa->flag &= ~ACT_IPOFORCE;
+}
 
 static void rna_ObjectActuator_type_set(struct PointerRNA *ptr, int value)
 {
@@ -624,6 +647,29 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "frameProp");
 	RNA_def_property_ui_text(prop, "Frame Property", "Assign the action's current frame number to this property");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	/* booleans */
+	prop= RNA_def_property(srna, "use_additive", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOADD);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_ActionActuator_add_set");
+	RNA_def_property_ui_text(prop, "Add", "Action is added to the current loc/rot/scale in global or local coordinate according to Local flag");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "use_force", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOFORCE);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_ActionActuator_force_set");
+	RNA_def_property_ui_text(prop, "Force", "Apply Action as a global or local force depending on the local option (dynamic objects only)");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
+	prop= RNA_def_property(srna, "use_local", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOLOCAL);
+	RNA_def_property_ui_text(prop, "L", "Let the Action act in local coordinates, used in Force and Add mode");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "apply_to_children", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOCHILD);
+	RNA_def_property_ui_text(prop, "Child", "Update Action on all children Objects as well");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR

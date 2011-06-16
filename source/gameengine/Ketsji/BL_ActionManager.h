@@ -49,6 +49,7 @@ public:
 					float blendin=0.f,
 					short play_mode=0,
 					short blend_mode=0,
+					short ipo_flags=0,
 					float playback_speed=1.f);
 	
 	float GetActionFrame(short layer);

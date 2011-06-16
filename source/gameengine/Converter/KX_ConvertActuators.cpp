@@ -95,6 +95,7 @@
 #include "BL_ActionActuator.h"
 #include "BL_ShapeActionActuator.h"
 #include "BL_ArmatureActuator.h"
+#include "BL_Action.h"
 /* end of blender include block */
 
 #include "BL_BlenderDataConversion.h"
@@ -195,6 +196,14 @@ void BL_ConvertActuators(char* maggiename,
 				bActionActuator* actact = (bActionActuator*) bact->data;
 				STR_String propname = (actact->name ? actact->name : "");
 				STR_String propframe = (actact->frameProp ? actact->frameProp : "");
+
+				short ipo_flags = 0;
+
+				// Convert flags
+				if (actact->flag & ACT_IPOFORCE) ipo_flags |= BL_Action::ACT_IPOFLAG_FORCE;
+				if (actact->flag & ACT_IPOLOCAL) ipo_flags |= BL_Action::ACT_IPOFLAG_LOCAL;
+				if (actact->flag & ACT_IPOADD) ipo_flags |= BL_Action::ACT_IPOFLAG_ADD;
+				if (actact->flag & ACT_IPOCHILD) ipo_flags |= BL_Action::ACT_IPOFLAG_CHILD;
 					
 				BL_ActionActuator* tmpbaseact = new BL_ActionActuator(
 					gameobj,
@@ -207,6 +216,7 @@ void BL_ConvertActuators(char* maggiename,
 					actact->blendin,
 					actact->priority,
 					actact->layer,
+					ipo_flags,
 					actact->end_reset,
 					actact->stridelength
 					// Ketsji at 1, because zero is reserved for "NoDef"

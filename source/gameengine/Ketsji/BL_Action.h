@@ -59,6 +59,8 @@ private:
 	short m_playmode;
 	short m_blendmode;
 
+	short m_ipo_flags;
+
 	bool m_done;
 
 	void InitIPO();
@@ -73,6 +75,7 @@ public:
 			float blendin,
 			short play_mode,
 			short blend_mode,
+			short ipo_flags,
 			float playback_speed);
 	void Stop();
 	bool IsDone() {return m_done;}
@@ -97,6 +100,14 @@ public:
 		ACT_BLEND_NONE = 0,
 		ACT_BLEND_MIX,
 		ACT_BLEND_MAX,
+	};
+
+	enum
+	{
+		ACT_IPOFLAG_FORCE = 1,
+		ACT_IPOFLAG_LOCAL = 2,
+		ACT_IPOFLAG_ADD = 4,
+		ACT_IPOFLAG_CHILD = 8,
 	};
 
 #ifdef WITH_CXX_GUARDEDALLOC

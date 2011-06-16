@@ -53,6 +53,7 @@ public:
 						short	blendin,
 						short	priority,
 						short	layer,
+						short	ipo_flags,
 						short	end_reset,
 						float	stride) 
 		: SCA_IActuator(gameobj, KX_ACT_ACTION),
@@ -71,6 +72,7 @@ public:
 		m_playtype(playtype),
 		m_priority(priority),
 		m_layer(layer),
+		m_ipo_flags(ipo_flags),
 		m_end_reset(end_reset),
 		m_is_going(false),
 		m_pose(NULL),
@@ -166,6 +168,7 @@ protected:
 	short	m_playtype;
 	short	m_priority;
 	short	m_layer;
+	short	m_ipo_flags;
 	bool	m_end_reset;
 	bool	m_is_going;
 	struct bPose* m_pose;
