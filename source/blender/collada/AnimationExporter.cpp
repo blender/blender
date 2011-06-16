@@ -428,7 +428,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 	float AnimationExporter::convert_angle(float angle)
 	{
-		return COLLADABU::Math::Utils::degToRadF(angle);
+		return COLLADABU::Math::Utils::radToDegF(angle);
 	}
 
 	std::string AnimationExporter::get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic)
@@ -491,12 +491,12 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			break;
 		case COLLADASW::InputSemantic::OUTPUT:
 			*length = 1;
-			/*if (rotation) {
-				values[0] = convert_angle(bezt->vec[1][1]);
+			if (rotation) {
+				values[0] = (bezt->vec[1][1]) * 180.0f/M_PI;
 			}
-			else {*/
+			else {
 				values[0] = bezt->vec[1][1];
-			//}
+			}
 			break;
 		
 		case COLLADASW::InputSemantic::IN_TANGENT:
@@ -507,11 +507,11 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				values[0] = 0;	
 				values[1] = 0; 	
 		    }
-		/* else if (rotation) {
-				values[1] = convert_angle(bezt->vec[0][1]);
-			} else {*/
+		    else if (rotation) {
+				values[1] = (bezt->vec[0][1]) * 180.0f/M_PI;
+			} else {
 				values[1] = bezt->vec[0][1];
-			//}
+			}
 			break;
 		
 		case COLLADASW::InputSemantic::OUT_TANGENT:
@@ -522,11 +522,11 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				values[0] = 0;	
 				values[1] = 0;	
 			}
-			/* else if (rotation) {
-				values[1] = convert_angle(bezt->vec[2][1]);
-			} else {*/
+			else if (rotation) {
+				values[1] = (bezt->vec[0][1]) * 180.0f/M_PI;
+			} else {
 				values[1] = bezt->vec[2][1];
-			//}
+			}
 			break;
 			break;
 		default:
@@ -601,7 +601,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			//	val = convert_time(val);
 			//else
 				if (is_rot)                       
-				val = convert_angle(val);
+				val *= 180.0f / M_PI;
 			source.appendValues(val);
 		}
 

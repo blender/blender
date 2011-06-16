@@ -535,16 +535,6 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 }
 #endif
 
-//Object *AnimationImporter::translate_animation(COLLADAFW::Node *node,
-//							std::map<COLLADAFW::UniqueId, Object*>& object_map,
-//							std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
-//							COLLADAFW::Transformation::TransformationType tm_type,
-//							Object *par_job)
-//{
-//	bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
-//	//bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
-//}	
-
 
 //sets the rna_path and array index to curve
 void AnimationImporter::modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index )
@@ -567,11 +557,7 @@ void AnimationImporter::find_frames( std::vector<float>* frames , std::vector<FC
 	std::vector<FCurve*>::iterator iter;
 		for (iter = curves->begin(); iter != curves->end(); iter++) {
 			FCurve *fcu = *iter;
-        //                        
-								////if transform is rotation the fcurves values must be turned in to radian.
-								//if (is_rotation)
-								//	fcurve_deg_to_rad(fcu);
-
+        
 		for (unsigned int k = 0; k < fcu->totvert; k++) {
 			//get frame value from bezTriple
 			float fra = fcu->bezt[k].vec[1][0];
@@ -589,32 +575,10 @@ void AnimationImporter:: Assign_transform_animations(std::vector<float>* frames,
 													 const COLLADAFW::AnimationList::AnimationBinding * binding,
 													 std::vector<FCurve*>* curves, bool is_joint, char * joint_path)
 {
-	//bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	COLLADAFW::Transformation::TransformationType tm_type = transform->getTransformationType();
 	bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
 	bool is_rotation = tm_type  == COLLADAFW::Transformation::ROTATE;
-	//Object *ob = is_joint ? armature_importer->get_armature_for_joint(node) : object_map[node->getUniqueId()];
 	
-	//char joint_path[100];
-	
-	/*if ( is_joint ) 
-	armature_importer->get_rna_path_for_joint(animated.node, joint_path, sizeof(joint_path));*/
-
-	//bAction * act;
-
-	//if (!ob->adt || !ob->adt->action) act = verify_adt_action((ID*)&ob->id, 1);
-	//else act = ob->adt->action;
-	//
-	////Get the list of animation curves of the object
- //   ListBase *AnimCurves = act->curves;
- //   
-
-//	char* tm_str;
-//	int array_index;
-
-	//curves belonging to the animation
-	//std::vector<FCurve*> curves = curve_map[bindings[j].animation];
-
 	//to check if the no of curves are valid
 	bool xyz = ((tm_type == COLLADAFW::Transformation::TRANSLATE ||tm_type  == COLLADAFW::Transformation::SCALE) && binding->animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
                         
@@ -644,19 +608,15 @@ void AnimationImporter:: Assign_transform_animations(std::vector<float>* frames,
 				switch (binding->animationClass) {
 					case COLLADAFW::AnimationList::POSITION_X:
 						modify_fcurve(curves, rna_path, 0 );
-						//add_fcurves_to_object(ob, curves, rna_path, 0, &animated);
 						break;
 					case COLLADAFW::AnimationList::POSITION_Y:
 						modify_fcurve(curves, rna_path, 1 );
-						//add_fcurves_to_object(ob, curves, rna_path, 1, &animated);
 						break;
 					case COLLADAFW::AnimationList::POSITION_Z:
 						modify_fcurve(curves, rna_path, 2 );
-						//add_fcurves_to_object(ob, curves, rna_path, 2, &animated);
 						break;
 					case COLLADAFW::AnimationList::POSITION_XYZ:
 						modify_fcurve(curves, rna_path, -1 );
-						//add_fcurves_to_object(ob, curves, rna_path, -1, &animated);
 						break;
 					default:
 						fprintf(stderr, "AnimationClass %d is not supported for %s.\n",
@@ -687,15 +647,12 @@ void AnimationImporter:: Assign_transform_animations(std::vector<float>* frames,
 					case COLLADAFW::AnimationList::ANGLE:
 						if (COLLADABU::Math::Vector3::UNIT_X == axis) {
 							modify_fcurve(curves, rna_path, 0 );
-							//add_fcurves_to_object(ob, fcurves, rna_path, 0, &animated);
 						}
 						else if (COLLADABU::Math::Vector3::UNIT_Y == axis) {
 							modify_fcurve(curves, rna_path, 1 );
-							//add_fcurves_to_object(ob, fcurves, rna_path, 1, &animated);
 						}
 						else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
 							modify_fcurve(curves, rna_path, 2 );
-							//add_fcurves_to_object(ob, fcurves, rna_path, 2, &animated);
 						}
 						break;
 					case COLLADAFW::AnimationList::AXISANGLE:
@@ -713,8 +670,7 @@ void AnimationImporter:: Assign_transform_animations(std::vector<float>* frames,
 			fprintf(stderr, "Animation of MATRIX, SKEW and LOOKAT transformations is not supported yet.\n");
 			break;
 		}
-		//BLI_addtail(&AnimCurves, curves);
-
+	
 }
 
 void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node , 
@@ -727,7 +683,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 	Object *ob = is_joint ? armature_importer->get_armature_for_joint(node) : object_map[node->getUniqueId()];
 	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
     
-	if ( ! is_object_animated(ob,node) ) return ;  
+	if ( ! is_object_animated(node) ) return ;  
 
     char joint_path[200];
 
@@ -749,7 +705,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 	}
 
 	
-	float irest_dae[4][4];
+	/*float irest_dae[4][4];
 	float rest[4][4], irest[4][4];
 
 	if (is_joint) {
@@ -765,7 +721,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 		unit_m4(rest);
 		copy_m4_m4(rest, bone->arm_mat);
 		invert_m4_m4(irest, rest);
-	}
+	}*/
     
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
 	
@@ -776,14 +732,12 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 
 		bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
 		bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
-	
-		
+			
 		const COLLADAFW::UniqueId& listid = transform->getAnimationList();
 		
-		//might not be needed, let's see
+		//might not be needed
 		std::vector<float> frames;
-		//all the curves belonging to the transform
-        
+		        
 		//check if transformation has animations    
 		if (animlist_map.find(listid) == animlist_map.end()) continue ; 
 		else 
@@ -795,11 +749,10 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 				std::vector<FCurve*> animcurves;    
 				for (unsigned int j = 0; j < bindings.getCount(); j++) {
 					 animcurves = curve_map[bindings[j].animation];
-					
 					//calculate rnapaths and array index of fcurves according to transformation and animation class
-									    
-						Assign_transform_animations(&frames,transform, &bindings[j], &animcurves, is_joint, joint_path ); 
-						std::vector<FCurve*>::iterator iter;
+					 Assign_transform_animations(&frames,transform, &bindings[j], &animcurves, is_joint, joint_path ); 
+					
+					 std::vector<FCurve*>::iterator iter;
 			            //Add the curves of the current animation to the object
 						for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 							FCurve * fcu = *iter;
@@ -826,7 +779,8 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 	
 }
 
-bool AnimationImporter::is_object_animated ( const Object *ob , const COLLADAFW::Node * node ) 
+//Check if object is animated by checking if animlist_map holds the animlist_id of node transforms
+bool AnimationImporter::is_object_animated ( const COLLADAFW::Node * node ) 
 {
 	bool exists = false;
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
@@ -847,7 +801,8 @@ bool AnimationImporter::is_object_animated ( const Object *ob , const COLLADAFW:
 
 	return exists;
 }
-	
+
+//XXX Is not used anymore.
 void AnimationImporter::find_frames_old(std::vector<float> * frames, COLLADAFW::Node * node , COLLADAFW::Transformation::TransformationType tm_type)
 {
 	bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;

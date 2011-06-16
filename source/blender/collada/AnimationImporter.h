@@ -99,7 +99,7 @@ public:
 												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 												   std::map<COLLADAFW::UniqueId, Object*>& object_map );
 
-	bool is_object_animated ( const Object *ob , const COLLADAFW::Node * node ) ;
+	bool is_object_animated ( const COLLADAFW::Node * node ) ;
 
 
 	void Assign_transform_animations(std::vector<float>* frames, 
