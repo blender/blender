@@ -41,6 +41,7 @@ struct FunctionRNA;
 struct ReportList;
 struct CollectionPropertyIterator;
 struct bContext;
+struct EnumProperty;
 struct IDProperty;
 struct GHash;
 struct Main;
@@ -61,6 +62,7 @@ struct Scene;
 /* Function Callbacks */
 
 typedef void (*UpdateFunc)(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
+typedef void (*ContextPropUpdateFunc)(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*ContextUpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
 typedef int (*ItemEditableFunc)(struct PointerRNA *ptr, int index);
@@ -88,7 +90,7 @@ typedef int (*PropStringLengthFunc)(struct PointerRNA *ptr);
 typedef void (*PropStringSetFunc)(struct PointerRNA *ptr, const char *value);
 typedef int (*PropEnumGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropEnumSetFunc)(struct PointerRNA *ptr, int value);
-typedef EnumPropertyItem *(*PropEnumItemFunc)(struct bContext *C, struct PointerRNA *ptr, int *free);
+typedef EnumPropertyItem *(*PropEnumItemFunc)(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int *free);
 typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
 typedef StructRNA* (*PropPointerTypeFunc)(struct PointerRNA *ptr);
 typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, const PointerRNA value);
@@ -176,6 +178,10 @@ struct PropertyRNA {
 	 * any property can have this but should only be used for collections and arrays
 	 * since python will convert int/bool/pointer's */
 	struct StructRNA *srna;	/* attributes attached directly to this collection */
+
+	/* python handle to hold all callbacks
+	 * (in a pointer array at the moment, may later be a tuple) */
+	void *py_data;
 };
 
 /* Property Types */
@@ -250,6 +256,7 @@ typedef struct EnumPropertyRNA {
 	PropEnumGetFunc get;
 	PropEnumSetFunc set;
 	PropEnumItemFunc itemf;
+	void *py_data; /* store py callback here */
 
 	EnumPropertyItem *item;
 	int totitem;

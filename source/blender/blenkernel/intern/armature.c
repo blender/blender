@@ -1343,8 +1343,12 @@ void vec_roll_to_mat3(float *vec, float roll, float mat[][3])
 	cross_v3_v3v3(axis,target,nor);
 
 	/* was 0.0000000000001, caused bug [#23954], smaller values give unstable
-	 * roll when toggling editmode */
-	if (dot_v3v3(axis,axis) > 0.00001f) {
+	 * roll when toggling editmode.
+	 *
+	 * was 0.00001, causes bug [#27675], with 0.00000495,
+	 * so a value inbetween these is needed.
+	 */
+	if (dot_v3v3(axis,axis) > 0.000001f) {
 		/* if nor is *not* a multiple of target ... */
 		normalize_v3(axis);
 		

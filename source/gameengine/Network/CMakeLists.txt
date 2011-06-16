@@ -31,6 +31,10 @@ set(INC
 	../../../intern/moto/include
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	NG_NetworkMessage.cpp
 	NG_NetworkObject.cpp
@@ -42,4 +46,4 @@ set(SRC
 	NG_NetworkScene.h
 )
 
-blender_add_lib(ge_logic_ngnetwork "${SRC}" "${INC}")
+blender_add_lib(ge_logic_ngnetwork "${SRC}" "${INC}" "${INC_SYS}")

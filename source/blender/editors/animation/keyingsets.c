@@ -696,7 +696,7 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(Scene *scene, const char *tranformK
 /* Menu of All Keying Sets ----------------------------- */
 
 /* Dynamically populate an enum of Keying Sets */
-EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(ptr), int *free)
+EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks;

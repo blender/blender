@@ -38,7 +38,9 @@
 #include <X11/Xlib.h>
 #include <GL/glx.h>
 // For tablets
-#include <X11/extensions/XInput.h>
+#ifdef WITH_X11_XINPUT
+#  include <X11/extensions/XInput.h>
+#endif
 
 #include <map>
 
@@ -190,7 +192,7 @@ public:
 		Window 
 	getXWindow(
 	);	
-
+#ifdef WITH_X11_XINPUT
 	class XTablet
 	{
 	public:
@@ -214,6 +216,10 @@ public:
 
 	const GHOST_TabletData* GetTabletData()
 	{ return &m_xtablet.CommonData; }
+#else // WITH_X11_XINPUT
+	const GHOST_TabletData* GetTabletData()
+	{ return NULL; }
+#endif // WITH_X11_XINPUT
 
 	/*
 	 * Need this in case that we want start the window
@@ -321,7 +327,9 @@ private :
 	getEmptyCursor(
 	);
 
+#ifdef WITH_X11_XINPUT
 	void initXInputDevices();
+#endif
 	
 	GLXContext 	m_context;
 	Window 	m_window;
@@ -350,8 +358,10 @@ private :
 	/** Cache of XC_* ID's to XCursor structures */
 	std::map<unsigned int, Cursor> m_standard_cursors;
 
+#ifdef WITH_X11_XINPUT
 	/* Tablet devices */
 	XTablet m_xtablet;
+#endif
 
 	void icccmSetState(int state);
 	int icccmGetState() const;

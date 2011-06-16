@@ -1250,7 +1250,7 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 		return similar_face_select_exec(C, op);
 }
 
-static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;
@@ -2339,7 +2339,7 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 		if (efa && efa->mat_nr != vc.obedit->actcol-1) {
 			vc.obedit->actcol= efa->mat_nr+1;
 			vc.em->mat_nr= efa->mat_nr;
-//			BIF_preview_changed(ID_MA);
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, NULL);
 		}
 
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);

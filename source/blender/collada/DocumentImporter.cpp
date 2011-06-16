@@ -959,12 +959,12 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 
 		if(IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
 			att2 = quadatt;
-			d = (1.0f/quadatt) * 2;
+			d = sqrt(1.0f/quadatt);
 		}
 		// linear light
 		else if(IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
 			att1 = linatt;
-			d = (1.0f/linatt) * 2;
+			d = (1.0f/linatt);
 		} else if (IS_EQ(constatt, 1.0f)) {
 			att1 = 1.0f;
 		} else {
@@ -987,9 +987,12 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 			case COLLADAFW::Light::SPOT_LIGHT:
 				{
 					lamp->type = LA_SPOT;
-					lamp->falloff_type = LA_FALLOFF_INVSQUARE;
 					lamp->att1 = att1;
 					lamp->att2 = att2;
+					if(IS_EQ(att1, 0.0f) && att2 > 0)
+						lamp->falloff_type = LA_FALLOFF_INVSQUARE;
+					if(IS_EQ(att2, 0.0f) && att1 > 0)
+						lamp->falloff_type = LA_FALLOFF_INVLINEAR;
 					lamp->spotsize = light->getFallOffAngle().getValue();
 					lamp->spotblend = light->getFallOffExponent().getValue();
 				}
@@ -1004,9 +1007,12 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 			case COLLADAFW::Light::POINT_LIGHT:
 				{
 					lamp->type = LA_LOCAL;
-					lamp->falloff_type = LA_FALLOFF_INVSQUARE;
 					lamp->att1 = att1;
 					lamp->att2 = att2;
+					if(IS_EQ(att1, 0.0f) && att2 > 0)
+						lamp->falloff_type = LA_FALLOFF_INVSQUARE;
+					if(IS_EQ(att2, 0.0f) && att1 > 0)
+						lamp->falloff_type = LA_FALLOFF_INVLINEAR;
 				}
 				break;
 			case COLLADAFW::Light::UNDEFINED:

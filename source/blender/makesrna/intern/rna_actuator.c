@@ -411,7 +411,7 @@ static void rna_StateActuator_state_set(PointerRNA *ptr, const int *values)
 }
 
 /* Always keep in alphabetical order */
-EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem *item= NULL;
 	Object *ob= NULL;
@@ -584,7 +584,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_continue_last_frame", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "end_reset", 1);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "end_reset", 1);
 	RNA_def_property_ui_text(prop, "Continue", "Restore last frame when switching on/off, otherwise play from the start each time");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
@@ -920,6 +920,13 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_range(prop, 0.0, 20.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Max", "");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "damping", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "damping");
+	RNA_def_property_range(prop, 0, 10.0);
+	RNA_def_property_ui_range(prop, 0, 5.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Damping", "Specify the strength of the constraint that drive the camera behind the target");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* x/y */
@@ -1383,7 +1390,7 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_replace_display_mesh", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_EDOB_REPLACE_MESH_NOGFX);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ACT_EDOB_REPLACE_MESH_NOGFX);
 	RNA_def_property_ui_text(prop, "Gfx", "Replace the display mesh");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -1769,12 +1776,12 @@ static void rna_def_parent_actuator(BlenderRNA *brna)
 
 	/* booleans */
 	prop= RNA_def_property(srna, "use_compound", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_PARENT_COMPOUND);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ACT_PARENT_COMPOUND);
 	RNA_def_property_ui_text(prop, "Compound", "Add this object shape to the parent shape (only if the parent shape is already compound)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_ghost", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_PARENT_GHOST);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ACT_PARENT_GHOST);
 	RNA_def_property_ui_text(prop, "Ghost", "Make this object ghost while parented");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
@@ -1816,7 +1823,7 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_continue_last_frame", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "end_reset", 1);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "end_reset", 1);
 	RNA_def_property_ui_text(prop, "Continue", "Restore last frame when switching on/off, otherwise play from the start each time");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	

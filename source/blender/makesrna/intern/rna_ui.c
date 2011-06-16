@@ -148,7 +148,7 @@ static void panel_draw_header(const bContext *C, Panel *pnl)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_Panel_unregister(Main *bmain, StructRNA *type)
+static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
 	ARegionType *art;
 	PanelType *pt= RNA_struct_blender_type_get(type);
@@ -261,7 +261,7 @@ static void header_draw(const bContext *C, Header *hdr)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_Header_unregister(Main *bmain, StructRNA *type)
+static void rna_Header_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
 	ARegionType *art;
 	HeaderType *ht= RNA_struct_blender_type_get(type);
@@ -380,7 +380,7 @@ static void menu_draw(const bContext *C, Menu *hdr)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_Menu_unregister(Main *bmain, StructRNA *type)
+static void rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
 	MenuType *mt= RNA_struct_blender_type_get(type);
 

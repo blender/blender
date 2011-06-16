@@ -18,6 +18,12 @@
 
 # <pep8 compliant>
 
+__all__ = (
+    "region_2d_to_vector_3d",
+    "region_2d_to_location_3d",
+    "location_3d_to_region_2d",
+    "location_3d_to_region_2d",
+)
 
 def region_2d_to_vector_3d(region, rv3d, coord):
     """
@@ -28,7 +34,7 @@ def region_2d_to_vector_3d(region, rv3d, coord):
     :type region: :class:`Region`
     :arg rv3d: 3D region data, typically bpy.context.space_data.region_3d.
     :type rv3d: :class:`RegionView3D`
-    :arg coord: 2d coordinates relative to the region;
+    :arg coord: 2d coordinates relative to the region:
        (event.mouse_region_x, event.mouse_region_y) for example.
     :type coord: 2d vector
     :return: normalized 3d vector.
@@ -44,8 +50,10 @@ def region_2d_to_vector_3d(region, rv3d, coord):
                       -0.5
                     ))        
 
-        w = (out[0] * persinv[0][3]) + (out[1] * persinv[1][3]) + (out[2] * persinv[2][3]) + persinv[3][3]
-        
+        w = (out[0] * persinv[0][3]) + \
+            (out[1] * persinv[1][3]) + \
+            (out[2] * persinv[2][3]) + persinv[3][3]
+
         return ((out * persinv) / w) - rv3d.view_matrix.inverted()[3].xyz
     else:
         return rv3d.view_matrix.inverted()[2].xyz.normalized()
@@ -106,6 +114,8 @@ def location_3d_to_region_2d(region, rv3d, coord):
     :return: 2d location
     :rtype: :class:`Vector`
     """
+    from mathutils import Vector
+
     prj = Vector((coord[0], coord[1], coord[2], 1.0)) * rv3d.perspective_matrix
     if prj.w > 0.0:
         width_half = region.width / 2.0

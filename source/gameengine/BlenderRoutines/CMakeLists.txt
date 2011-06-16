@@ -32,6 +32,10 @@ set(INC
 	${GLEW_INCLUDE_PATH}
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	BL_KetsjiEmbedStart.cpp
 	BL_System.cpp
@@ -59,4 +63,4 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-blender_add_lib(ge_blen_routines "${SRC}" "${INC}")
+blender_add_lib(ge_blen_routines "${SRC}" "${INC}" "${INC_SYS}")

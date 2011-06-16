@@ -258,7 +258,10 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_PTHREADS_LIB'])
     if lenv['WITH_BF_COLLADA']:
         syslibs.append(lenv['BF_PCRE_LIB'])
-        syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])
+        if lenv['BF_DEBUG']:
+            syslibs += [colladalib+'_d' for colladalib in Split(lenv['BF_OPENCOLLADA_LIB'])]
+        else:
+            syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])
         syslibs.append(lenv['BF_EXPAT_LIB'])
 
     if not lenv['WITH_BF_STATICLIBSAMPLERATE']:
@@ -286,6 +289,50 @@ def propose_priorities():
             #for p,v in sorted(libs[t].iteritems()):
             print "\t\t",new_priority, v
             new_priority += 5
+
+# emits the necessary file objects for creator.c, to be used in creating
+# the final blender executable
+def creator(env):
+    sources = ['creator.c']# + Blender.buildinfo(env, "dynamic") + Blender.resources
+
+    incs = ['#/intern/guardedalloc', '#/source/blender/blenlib', '#/source/blender/blenkernel', '#/source/blender/editors/include', '#/source/blender/blenloader', '#/source/blender/imbuf', '#/source/blender/renderconverter', '#/source/blender/render/extern/include', '#/source/blender/windowmanager', '#/source/blender/makesdna', '#/source/blender/makesrna', '#/source/gameengine/BlenderRoutines', '#/extern/glew/include', '#/source/blender/gpu', env['BF_OPENGL_INC']]
+
+    defs = []
+    if env['WITH_BF_QUICKTIME']:
+        incs.append(env['BF_QUICKTIME_INC'])
+        defs.append('WITH_QUICKTIME')
+
+    if env['WITH_BF_BINRELOC']:
+        incs.append('#/extern/binreloc/include')
+        defs.append('WITH_BINRELOC')
+
+    if env['WITH_BF_OPENEXR']:
+        defs.append('WITH_OPENEXR')
+
+    if env['WITH_BF_TIFF']:
+        defs.append('WITH_TIFF')
+
+    if not env['WITH_BF_SDL']:
+        defs.append('DISABLE_SDL')
+
+    if env['WITH_BF_PYTHON']:
+        incs.append('#/source/blender/python')
+        defs.append('WITH_PYTHON')
+        if env['BF_DEBUG']:
+            defs.append('_DEBUG')
+        
+    if env['BF_BUILDINFO']:
+        defs.append('BUILD_DATE')
+        defs.append('NAN_BUILDINFO')
+        
+    if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+        incs.append(env['BF_PTHREADS_INC'])
+
+    env.Append(CPPDEFINES=defs)
+    env.Append(CPPPATH=incs)
+    obj = [env.Object(root_build_dir+'source/creator/creator/creator', ['#source/creator/creator.c'])]
+
+    return obj
 
 ## TODO: see if this can be made in an emitter
 def buildinfo(lenv, build_type):
@@ -324,7 +371,7 @@ def buildinfo(lenv, build_type):
 
         lenv.Append (CPPPATH = [root_build_dir+'source/blender/blenkernel'])
 
-        obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type, [root_build_dir+'source/creator/buildinfo.c'])]
+        obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type, ['#source/creator/buildinfo.c'])]
 
     return obj
 
@@ -449,10 +496,16 @@ def WinPyBundle(target=None, source=None, env=None):
     shutil.rmtree(py_target, False, printexception)
     exclude_re=[re.compile('.*/test/.*'),
                 re.compile('^config/.*'),
+                re.compile('^config-*/.*'),
                 re.compile('^distutils/.*'),
                 re.compile('^idlelib/.*'),
                 re.compile('^lib2to3/.*'),
-                re.compile('^tkinter/.*')]
+                re.compile('^tkinter/.*'),
+                re.compile('^_tkinter_d.pyd'),
+                re.compile('^turtledemo'),
+                re.compile('^turtle.py'),
+                ]
+
     print "Unpacking '" + py_tar + "' to '" + py_target + "'"
     untar_pybundle(py_tar,py_target,exclude_re)
 
@@ -569,17 +622,17 @@ def UnixPyBundle(target=None, source=None, env=None):
     run("cp -R '%s' '%s'" % (py_src, os.path.dirname(py_target)))
     run("rm -rf '%s/distutils'" % py_target)
     run("rm -rf '%s/lib2to3'" % py_target)
-    run("rm -rf '%s/idlelib'" % py_target)
-    run("rm -rf '%s/tkinter'" % py_target)
     run("rm -rf '%s/config'" % py_target)
-
+    run("rm -rf '%s/config-*'" % py_target)
     run("rm -rf '%s/site-packages'" % py_target)
     run("mkdir '%s/site-packages'" % py_target)    # python needs it.'
-
+    run("rm -rf '%s/idlelib'" % py_target)
+    run("rm -rf '%s/tkinter'" % py_target)
+    run("rm -rf '%s/turtledemo'" % py_target)
+    run("rm -r '%s/turtle.py'" % py_target)
     run("rm -f '%s/lib-dynload/_tkinter.so'" % py_target)
+
     run("find '%s' -type d -name 'test' -prune -exec rm -rf {} ';'" % py_target)
-    run("find '%s' -type d -name 'config-*' -prune -exec rm -rf {} ';'" % py_target)
-    run("find '%s' -type d -name 'turtledemo' -prune -exec rm -rf {} ';'" % py_target)
     run("find '%s' -type d -name '__pycache__' -exec rm -rf {} ';'" % py_target)
     run("find '%s' -name '*.py[co]' -exec rm -rf {} ';'" % py_target)
     run("find '%s' -name '*.so' -exec strip -s {} ';'" % py_target)
@@ -708,23 +761,19 @@ class BlenderEnvironment(SConsEnvironment):
         global vcp
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
         lenv = self.Clone()
+        lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
         if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
-            lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
-            lenv.Append(LINKFLAGS = ['/FORCE:MULTIPLE'])
             if lenv['BF_DEBUG']:
-                lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb'])
+                lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb','/NODEFAULTLIB:libcmt'])
         if  lenv['OURPLATFORM']=='linux2':
-            lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
         if  lenv['OURPLATFORM']=='sunos5':
-            lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
             if lenv['CXX'].endswith('CC'):
                  lenv.Replace(LINK = '$CXX')
         if  lenv['OURPLATFORM']=='darwin':
-            lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_OPENGL_LINKFLAGS'])

@@ -121,7 +121,7 @@ void defvert_sync (MDeformVert *dvert_r, const MDeformVert *dvert, int use_verif
 }
 
 /* be sure all flip_map values are valid */
-void defvert_sync_mapped (MDeformVert *dvert_r, const MDeformVert *dvert, int *flip_map, int use_verify)
+void defvert_sync_mapped (MDeformVert *dvert_r, const MDeformVert *dvert, const int *flip_map, int use_verify)
 {
 	if(dvert->totweight && dvert_r->totweight) {
 		int i;
@@ -170,7 +170,7 @@ void defvert_normalize (MDeformVert *dvert)
 	}
 }
 
-void defvert_flip (MDeformVert *dvert, int *flip_map)
+void defvert_flip (MDeformVert *dvert, const int *flip_map)
 {
 	MDeformWeight *dw;
 	int i;

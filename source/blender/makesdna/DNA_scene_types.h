@@ -253,19 +253,12 @@ typedef struct RenderData {
 	 */
 	short yparts;
         
-	short winpos, planes, imtype, subimtype;
-	
-	/** Mode bits:                                                           */
-	/* 0: Enable backbuffering for images                                    */
-	short bufflag;
-	 short quality;
+	short planes, imtype, subimtype, quality;
 	
 	/**
 	 * Render to image editor, fullscreen or to new window.
 	 */
 	short displaymode;
-	
-	short rpad1, rpad2;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -322,11 +315,7 @@ typedef struct RenderData {
 	/**
 	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
 	 */
-	float xasp;
-	/**
-	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
-	 */
-	float yasp;
+	float xasp, yasp;
 
 	float frs_sec_base;
 	
@@ -349,8 +338,8 @@ typedef struct RenderData {
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
 
-	/* paths to backbufffer, output */
-	char backbuf[160], pic[160];
+	/* path to render output */
+	char pic[240];
 
 	/* stamps flags. */
 	int stamp;
@@ -1009,13 +998,14 @@ typedef struct Scene {
 #define R_JPEG2K_CINE_PRESET	256
 #define R_JPEG2K_CINE_48FPS		512
 
-
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */
 #define R_BAKE_CLEAR		1
 #define R_BAKE_OSA			2
 #define R_BAKE_TO_ACTIVE	4
 #define R_BAKE_NORMALIZE	8
+#define R_BAKE_MULTIRES		16
+#define R_BAKE_LORES_MESH	32
 
 /* bake_normal_space */
 #define R_BAKE_SPACE_CAMERA	 0

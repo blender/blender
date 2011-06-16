@@ -107,7 +107,7 @@ static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_Lamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Lamp_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
 
@@ -118,7 +118,7 @@ static void rna_Lamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		WM_main_add_notifier(NC_LAMP|ND_LIGHTING, la);
 }
 
-static void rna_Lamp_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Lamp_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
 
@@ -126,7 +126,7 @@ static void rna_Lamp_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_LAMP|ND_LIGHTING_DRAW, la);
 }
 
-static void rna_Lamp_sky_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Lamp_sky_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
 
@@ -374,7 +374,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	
 	/* textures */
 	rna_def_mtex_common(brna, srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get",
-		"rna_Lamp_active_texture_set", "LampTextureSlot", "LampTextureSlots", "rna_Lamp_update");
+		"rna_Lamp_active_texture_set", NULL, "LampTextureSlot", "LampTextureSlots", "rna_Lamp_update");
 }
 
 static void rna_def_lamp_falloff(StructRNA *srna)

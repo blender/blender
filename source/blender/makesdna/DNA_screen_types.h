@@ -187,7 +187,6 @@ typedef struct ARegion {
 #define AREA_FLAG_DRAWSPLIT_H	16
 #define AREA_FLAG_DRAWSPLIT_V	32
 
-/* If you change EDGEWIDTH, also do the global arrat edcol[]  */
 #define EDGEWIDTH	1
 #define AREAGRID	4
 #define AREAMINX	32

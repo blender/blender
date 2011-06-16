@@ -55,33 +55,19 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/")
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
-# ignore system set flag, use our own
-# must be before project(...)
-# if the user wants to add their own its ok after first run.
-if(DEFINED CMAKE_C_STANDARD_LIBRARIES)
-	set(_reset_standard_libraries OFF)
-else()
-	set(_reset_standard_libraries ON)
-endif()
+#-----------------------------------------------------------------------------
+# Load some macros.
+include(build_files/cmake/macros.cmake)
 
+
+#-----------------------------------------------------------------------------
+# Initialize project.
+
+blender_project_hack_pre()
 
 project(Blender)
 
-
-if (_reset_standard_libraries)
-	# Must come after project(...)
-	#
-	# MINGW workaround for -ladvapi32 being included which surprisingly causes
-	# string formatting of floats, eg: printf("%.*f", 3, value). to crash blender
-	# with a meaningless stack trace. by overriding this flag we ensure we only
-	# have libs we define and that cmake & scons builds match.
-	set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
-	set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
-	mark_as_advanced(CMAKE_C_STANDARD_LIBRARIES)
-	mark_as_advanced(CMAKE_CXX_STANDARD_LIBRARIES)
-endif()
-unset(_reset_standard_libraries)
-
+blender_project_hack_post()
 
 enable_testing()
 
@@ -90,10 +76,6 @@ enable_testing()
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE )
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
-
-#-----------------------------------------------------------------------------
-# Load some macros.
-include(build_files/cmake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 # Set default config options
@@ -106,7 +88,7 @@ option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default (recommend to leave off)" OFF)
 mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they really know what they are doing.
-mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather then have them patch it, make a build option.
+mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather than have them patch it, make a build option.
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
 option(WITH_PYTHON_MODULE "Enable building as a python module (experemental, only enable for development)" OFF)
@@ -116,6 +98,10 @@ option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effect
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
+
+option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
+mark_as_advanced(WITH_HEADLESS)
+
 # (unix defaults to OpenMP On)
 if(UNIX AND NOT APPLE)
 	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
@@ -202,6 +188,9 @@ if(APPLE)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 endif()
 
+#-----------------------------------------------------------------------------
+# Check for conflicting/unsupported configurations
+
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
@@ -223,8 +212,16 @@ if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
 
-# remove old vars
-unset(WITH_INSTALL CACHE)
+if(WITH_CODEC_QUICKTIME AND MINGW)
+	message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
+						"because it is currently unsupported, remove this "
+						"line if youre a developer who wants to add support.")
+endif()
+
+# may as well build python module without a UI
+if(WITH_PYTHON_MODULE)
+	set(WITH_HEADLESS ON)
+endif()
 
 TEST_SSE_SUPPORT()
 
@@ -233,6 +230,9 @@ TEST_SSE_SUPPORT()
 
 # linux only, not cached
 set(WITH_BINRELOC OFF)
+
+# MAXOSX only, set to avoid uninitialized 
+set(EXETYPE "")
 
 # these are added to later on.
 set(C_WARNINGS "")
@@ -342,23 +342,8 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_IMAGE_OPENEXR)
-		set(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
-		mark_as_advanced(OPENEXR)
-		find_path(OPENEXR_INC
-			ImfXdr.h
-			PATHS
-			${OPENEXR}/include/OpenEXR
-			/usr/local/include/OpenEXR
-			/sw/include/OpenEXR
-			/opt/local/include/OpenEXR
-			/opt/csw/include/OpenEXR
-			/opt/include/OpenEXR
-		)
-		mark_as_advanced(OPENEXR_INC)
-
-		set(OPENEXR_LIB Half IlmImf Iex Imath)
-		
-		if(NOT OPENEXR_INC)
+		find_package(OpenEXR)  # our own module
+		if(NOT OPENEXR_FOUND)
 			set(WITH_IMAGE_OPENEXR OFF)
 		endif()
 	endif()
@@ -427,15 +412,19 @@ if(UNIX AND NOT APPLE)
 		unset(JEMALLOC)
 	endif()
 
-	find_package(X11 REQUIRED)
-	find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
-	mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
-
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB}")
+	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++")
 
-	if(WITH_X11_XINPUT)
-		list(APPEND LLIBS ${X11_Xinput_LIB})
+	if(NOT WITH_HEADLESS)
+		find_package(X11 REQUIRED)
+		find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
+		mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
+
+		list(APPEND LLIBS ${X11_X11_LIB})
+
+		if(WITH_X11_XINPUT)
+			list(APPEND LLIBS ${X11_Xinput_LIB})
+		endif()
 	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -639,10 +628,7 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			if(MSVC80)
-				set(MSVC_LIB _vs2005)
-				set(MSVC_INC)
-			elseif(MSVC90)
+			if(MSVC90)
 				set(MSVC_LIB _vs2008)
 				set(MSVC_INC)
 			elseif(MSVC10)
@@ -652,11 +638,24 @@ elseif(WIN32)
 				set(MSVC_LIB msvc)
 				set(MSVC_INC)
 			endif()
-			set(OPENEXR ${LIBDIR}/openexr)			
-			set(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
+			set(OPENEXR ${LIBDIR}/openexr)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib${MSVC_LIB})
+			set(OPENEXR_LIBRARIES
+				${OPENEXR_LIBPATH}/Iex.lib
+				${OPENEXR_LIBPATH}/Half.lib
+				${OPENEXR_LIBPATH}/IlmImf.lib
+				${OPENEXR_LIBPATH}/Imath.lib
+				${OPENEXR_LIBPATH}/IlmThread.lib
+			)
 			set(OPENEXR_INCUDE ${OPENEXR}/include${MSVC_INC})
-			set(OPENEXR_INC ${OPENEXR_INCUDE}/ ${OPENEXR_INCUDE}/IlmImf ${OPENEXR_INCUDE}/Iex ${OPENEXR_INCUDE}/Imath)
+			set(OPENEXR_INCLUDE_DIRS
+				${OPENEXR_INCUDE}
+			        ${OPENEXR_INCUDE}/IlmImf
+				${OPENEXR_INCUDE}/Iex
+				${OPENEXR_INCUDE}/Imath
+			)
+			unset(OPENEXR_INCUDE)
+			unset(OPENEXR_LIBPATH)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
@@ -755,8 +754,8 @@ elseif(WIN32)
 
 		if(WITH_IMAGE_OPENEXR)
 			set(OPENEXR ${LIBDIR}/gcc/openexr)
-			set(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
-			set(OPENEXR_LIB Half IlmImf Imath IlmThread)
+			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
+			set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 
 			# TODO, gives linking errors, force off
@@ -888,8 +887,8 @@ elseif(APPLE)
 
 	if(WITH_IMAGE_OPENEXR)
 		set(OPENEXR ${LIBDIR}/openexr)
-		set(OPENEXR_INC ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
-		set(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
+		set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
+		set(OPENEXR_LIBRARIES Iex Half IlmImf Imath IlmThread)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 	endif()
 
@@ -984,6 +983,12 @@ endif()
 #-----------------------------------------------------------------------------
 # Common.
 
+if(APPLE OR WIN32)
+	if(NOT IS_DIRECTORY "${LIBDIR}")
+		message(FATAL_ERROR "Apple and Windows require pre-compiled libs at: '${LIBDIR}'")
+	endif()
+endif()
+
 if(WITH_RAYOPTIMIZATION)
 	if(CMAKE_COMPILER_IS_GNUCC)
 		if(SUPPORT_SSE_BUILD)
@@ -1031,7 +1036,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Configure OpenGL.
 find_package(OpenGL)
-blender_include_dirs("${OPENGL_INCLUDE_DIR}")
+blender_include_dirs_sys("${OPENGL_INCLUDE_DIR}")
 # unset(OPENGL_LIBRARIES CACHE) # not compat with older cmake 
 # unset(OPENGL_xmesa_INCLUDE_DIR CACHE) # not compat with older cmake 
 
@@ -1144,9 +1149,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 #-------------------------------------------------------------------------------
 # Global Defines
 
-# better not define flags here but this is a debugging option thats off by default.
+# better not set includes here but this debugging option is off by default.
 if(WITH_CXX_GUARDEDALLOC)
-	set(CMAKE_CXX_FLAGS " -DWITH_CXX_GUARDEDALLOC -I${CMAKE_SOURCE_DIR}/intern/guardedalloc ${CMAKE_CXX_FLAGS}")
+	include_directories(${CMAKE_SOURCE_DIR}/intern/guardedalloc)
 endif()
 
 if(WITH_ASSERT_ABORT)

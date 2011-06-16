@@ -1764,7 +1764,7 @@ void object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const
 		mul_m4_m4m4(rmat, mat, imat); /* get the parent relative matrix */
 		object_apply_mat4(ob, rmat, use_compat, FALSE);
 		
-		/* same as below, use rmat rather then mat */
+		/* same as below, use rmat rather than mat */
 		mat4_to_loc_rot_size(ob->loc, rot, ob->size, rmat);
 		object_mat3_to_rot(ob, rot, use_compat);
 	}
@@ -2387,24 +2387,42 @@ void object_set_dimensions(Object *ob, const float *value)
 void minmax_object(Object *ob, float *min, float *max)
 {
 	BoundBox bb;
-	Mesh *me;
-	Curve *cu;
 	float vec[3];
 	int a;
+	short change= FALSE;
 	
 	switch(ob->type) {
-		
 	case OB_CURVE:
 	case OB_FONT:
 	case OB_SURF:
-		cu= ob->data;
-		
-		if(cu->bb==NULL) tex_space_curve(cu);
-		bb= *(cu->bb);
-		
-		for(a=0; a<8; a++) {
-			mul_m4_v3(ob->obmat, bb.vec[a]);
-			DO_MINMAX(bb.vec[a], min, max);
+		{
+			Curve *cu= ob->data;
+
+			if(cu->bb==NULL) tex_space_curve(cu);
+			bb= *(cu->bb);
+
+			for(a=0; a<8; a++) {
+				mul_m4_v3(ob->obmat, bb.vec[a]);
+				DO_MINMAX(bb.vec[a], min, max);
+			}
+			change= TRUE;
+		}
+		break;
+	case OB_LATTICE:
+		{
+			Lattice *lt= ob->data;
+			BPoint *bp= lt->def;
+			int u, v, w;
+
+			for(w=0; w<lt->pntsw; w++) {
+				for(v=0; v<lt->pntsv; v++) {
+					for(u=0; u<lt->pntsu; u++, bp++) {
+						mul_v3_m4v3(vec, ob->obmat, bp->vec);
+						DO_MINMAX(vec, min, max);
+					}
+				}
+			}
+			change= TRUE;
 		}
 		break;
 	case OB_ARMATURE:
@@ -2416,25 +2434,27 @@ void minmax_object(Object *ob, float *min, float *max)
 				mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
 				DO_MINMAX(vec, min, max);
 			}
-			break;
+			change= TRUE;
 		}
-		/* no break, get_mesh will give NULL and it passes on to default */
+		break;
 	case OB_MESH:
-		me= get_mesh(ob);
-		
-		if(me) {
-			bb = *mesh_get_bb(ob);
-			
-			for(a=0; a<8; a++) {
-				mul_m4_v3(ob->obmat, bb.vec[a]);
-				DO_MINMAX(bb.vec[a], min, max);
+		{
+			Mesh *me= get_mesh(ob);
+
+			if(me) {
+				bb = *mesh_get_bb(ob);
+
+				for(a=0; a<8; a++) {
+					mul_m4_v3(ob->obmat, bb.vec[a]);
+					DO_MINMAX(bb.vec[a], min, max);
+				}
+				change= TRUE;
 			}
 		}
-		if(min[0] < max[0] ) break;
-		
-		/* else here no break!!!, mesh can be zero sized */
-		
-	default:
+		break;
+	}
+
+	if(change == FALSE) {
 		DO_MINMAX(ob->obmat[3], min, max);
 
 		copy_v3_v3(vec, ob->obmat[3]);
@@ -2444,7 +2464,6 @@ void minmax_object(Object *ob, float *min, float *max)
 		copy_v3_v3(vec, ob->obmat[3]);
 		sub_v3_v3(vec, ob->size);
 		DO_MINMAX(vec, min, max);
-		break;
 	}
 }
 
@@ -2622,11 +2641,12 @@ void object_handle_update(Scene *scene, Object *ob)
 
 #else				/* ensure CD_MASK_BAREMESH for now */
 					EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
+					unsigned int data_mask= scene->customdata_mask | ob->customdata_mask | CD_MASK_BAREMESH;
 					if(em) {
-						makeDerivedMesh(scene, ob, em,  scene->customdata_mask | CD_MASK_BAREMESH); /* was CD_MASK_BAREMESH */
+						makeDerivedMesh(scene, ob, em,  data_mask); /* was CD_MASK_BAREMESH */
 						BKE_mesh_end_editmesh(ob->data, em);
 					} else
-						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask | CD_MASK_BAREMESH);
+						makeDerivedMesh(scene, ob, NULL, data_mask);
 #endif
 
 				}
@@ -3037,9 +3057,14 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 
 	if(newkey || from_mix==FALSE) {
 		kb= add_keyblock(key, name);
-
-		/* create from lattice */
-		latt_to_key(lt, kb);
+		if (!newkey) {
+			KeyBlock *basekb= (KeyBlock *)key->block.first;
+			kb->data= MEM_dupallocN(basekb->data);
+			kb->totelem= basekb->totelem;
+		}
+		else {
+			latt_to_key(lt, kb);
+		}
 	}
 	else {
 		/* copy from current values */
@@ -3075,7 +3100,10 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 			KeyBlock *basekb= (KeyBlock *)key->block.first;
 			kb->data= MEM_dupallocN(basekb->data);
 			kb->totelem= basekb->totelem;
-		} else curve_to_key(cu, kb, lb);
+		}
+		else {
+			curve_to_key(cu, kb, lb);
+		}
 	}
 	else {
 		/* copy from current values */

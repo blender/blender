@@ -52,6 +52,9 @@ set(INC
 	../../../../source/gameengine/GamePlayer/common
 	../../../../source/blender/blenloader
 	../../../../source/blender/gpu
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 )
@@ -75,4 +78,4 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-blender_add_lib_nolist(ge_player_ghost "${SRC}" "${INC}")
+blender_add_lib_nolist(ge_player_ghost "${SRC}" "${INC}" "${INC_SYS}")

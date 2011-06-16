@@ -197,7 +197,7 @@ void BPY_python_start(int argc, const char **argv)
 	PyImport_ExtendInittab(bpy_internal_modules);
 
 	/* allow to use our own included python */
-	PyC_SetHomePath(BLI_get_folder(BLENDER_PYTHON, NULL));
+	PyC_SetHomePath(BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL));
 
 	/* Python 3.2 now looks for '2.57/python/include/python3.2d/pyconfig.h' to parse
 	 * from the 'sysconfig' module which is used by 'site', so for now disable site.

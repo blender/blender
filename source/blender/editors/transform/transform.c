@@ -4858,8 +4858,8 @@ void initEdgeSlide(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = (float)((5.0/180)*M_PI);
-	t->snap[2] = t->snap[1] * 0.2f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
 
 	t->num.increment = t->snap[1];
 
@@ -4985,6 +4985,9 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 	snapGrid(t, &final);
 
+	/* only do this so out of range values are not displayed */
+	CLAMP(final, -1.0f, 1.0f);
+
 	if (hasNumInput(&t->num)) {
 		char c[20];
 
@@ -4992,10 +4995,10 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, "Edge Slide Percent: %s", &c[0]);
+		sprintf(str, "Edge Slide: %s", &c[0]);
 	}
 	else {
-		sprintf(str, "Edge Slide Percent: %.2f", final);
+		sprintf(str, "Edge Slide: %.2f", final);
 	}
 
 	CLAMP(final, -1.0f, 1.0f);

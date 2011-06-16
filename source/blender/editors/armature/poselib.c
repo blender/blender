@@ -483,7 +483,7 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 /* ----- */
 
 /* can be called with C == NULL */
-static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *ob = get_poselib_object(C);
 	bAction *act = (ob) ? ob->poselib : NULL;

@@ -222,6 +222,8 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_NODE:
 			if (wmn->action == NA_EDITED)
 				ED_area_tag_refresh(sa);
+			else if (wmn->action == NA_SELECTED)
+				ED_area_tag_redraw(sa);
 			break;
 
 		case NC_IMAGE:

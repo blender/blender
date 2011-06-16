@@ -24,7 +24,13 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC .)
+set(INC
+	.
+)
+
+set(INC_SYS
+
+)
 
 set(SRC
 	./intern/mallocn.c
@@ -41,12 +47,12 @@ if(WIN32 AND NOT UNIX)
 	)
 endif()
 
-blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}")
+blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}" "${INC_SYS}")
 
 # Override C++ alloc, optional.
 if(WITH_CXX_GUARDEDALLOC)
 	set(SRC
 		cpp/mallocn.cpp
 	)
-	blender_add_lib(bf_intern_guardedalloc_cpp "${SRC}" "${INC}")
+	blender_add_lib(bf_intern_guardedalloc_cpp "${SRC}" "${INC}" "${INC_SYS}")
 endif()

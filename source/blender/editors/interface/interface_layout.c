@@ -651,6 +651,9 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 	if (flag & UI_ITEM_R_NO_BG)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 
+	if(layout->redalert)
+		uiButSetFlag(but, UI_BUT_REDALERT);
+
 	/* assign properties */
 	if(properties || (flag & UI_ITEM_O_RETURN_PROPS)) {
 		PointerRNA *opptr= uiButGetOperatorPtrRNA(but);
@@ -728,6 +731,9 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 
 	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 	prop= RNA_struct_find_property(&ptr, propname);
+
+	/* don't let bad properties slip through */
+	BLI_assert((prop == NULL) || (RNA_property_type(prop) == PROP_ENUM));
 
 	if(prop && RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;

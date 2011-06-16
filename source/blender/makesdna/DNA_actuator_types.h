@@ -133,7 +133,7 @@ typedef struct bIpoActuator {
 typedef struct bCameraActuator {
 	struct Object *ob;
 	float height, min, max;
-	float pad;
+	float damping;
 	short pad1, axis;
 	float pad2;
 } bCameraActuator ;

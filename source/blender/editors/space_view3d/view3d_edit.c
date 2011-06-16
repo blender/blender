@@ -82,16 +82,24 @@
 
 /* ********************** view3d_edit: view manipulations ********************* */
 
+int ED_view3d_camera_lock_check(View3D *v3d, RegionView3D *rv3d)
+{
+	return ((v3d->camera) &&
+	        (v3d->camera->id.lib == NULL) &&
+	        (v3d->flag2 & V3D_LOCK_CAMERA) &&
+	        (rv3d->persp==RV3D_CAMOB));
+}
+
 void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
 {
-	if(v3d->camera && (v3d->flag2 & V3D_LOCK_CAMERA) && (rv3d->persp==RV3D_CAMOB)) {
+	if(ED_view3d_camera_lock_check(v3d, rv3d)) {
 		ED_view3d_from_object(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 	}
 }
 
 void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 {
-	if(v3d->camera && (v3d->flag2 & V3D_LOCK_CAMERA) && (rv3d->persp==RV3D_CAMOB)) {
+	if(ED_view3d_camera_lock_check(v3d, rv3d)) {
 		Object *root_parent;
 
 		if((U.uiflag & USER_CAM_LOCK_NO_PARENT)==0 && (root_parent= v3d->camera->parent)) {
@@ -437,7 +445,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 				sub_v3_v3v3(my_pivot, rv3d->ofs, upvec);
 				negate_v3(my_pivot);				/* ofs is flipped */
 
-				/* find a new ofs value that is allong the view axis (rather then the mouse location) */
+				/* find a new ofs value that is allong the view axis (rather than the mouse location) */
 				closest_to_line_v3(dvec, vod->dyn_ofs, my_pivot, my_origin);
 				vod->dist0 = rv3d->dist = len_v3v3(my_pivot, dvec);
 
@@ -841,7 +849,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(rv3d->persp != RV3D_PERSP) {
 
 		if (U.uiflag & USER_AUTOPERSP) {
-			if(!((rv3d->persp==RV3D_CAMOB) && (vod->v3d->flag2 & V3D_LOCK_CAMERA))) {
+			if(!ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
 				rv3d->persp= RV3D_PERSP;
 			}
 		}
@@ -852,7 +860,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				ED_view3d_from_object(vod->v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 			}
 
-			if(!(vod->v3d->flag2 & V3D_LOCK_CAMERA)) {
+			if(!ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
 				rv3d->persp= rv3d->lpersp;
 			}
 		}
@@ -896,6 +904,13 @@ static int view3d_camera_active_poll(bContext *C)
 	return 0;
 }
 
+static int viewrotate_cancel(bContext *C, wmOperator *op)
+{
+	viewops_data_free(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
 
@@ -908,6 +923,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	ot->invoke= viewrotate_invoke;
 	ot->modal= viewrotate_modal;
 	ot->poll= ED_operator_region_view3d_active;
+	ot->cancel= viewrotate_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -953,7 +969,7 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 
 static void viewmove_apply(ViewOpsData *vod, int x, int y)
 {
-	if((vod->rv3d->persp==RV3D_CAMOB) && !(vod->v3d->flag2 & V3D_LOCK_CAMERA)) {
+	if((vod->rv3d->persp==RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
 		const float zoomfac= BKE_screen_view3d_zoom_to_fac((float)vod->rv3d->camzoom) * 2.0f;
 		vod->rv3d->camdx += (vod->oldx - x)/(vod->ar->winx * zoomfac);
 		vod->rv3d->camdy += (vod->oldy - y)/(vod->ar->winy * zoomfac);
@@ -1050,6 +1066,13 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
+static int viewmove_cancel(bContext *C, wmOperator *op)
+{
+	viewops_data_free(C, op);
+
+	return OPERATOR_CANCELLED;
+}
+
 void VIEW3D_OT_move(wmOperatorType *ot)
 {
 
@@ -1062,6 +1085,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 	ot->invoke= viewmove_invoke;
 	ot->modal= viewmove_modal;
 	ot->poll= ED_operator_view3d_active;
+	ot->cancel= viewmove_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1284,7 +1308,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	mx= RNA_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
 	my= RNA_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
 
-	use_cam_zoom= (rv3d->persp==RV3D_CAMOB) && !((v3d->flag2 & V3D_LOCK_CAMERA) && rv3d->is_persp);
+	use_cam_zoom= (rv3d->persp==RV3D_CAMOB) && !(rv3d->is_persp && ED_view3d_camera_lock_check(v3d, rv3d));
 
 	if(delta < 0) {
 		/* this min and max is also in viewmove() */
@@ -1406,6 +1430,12 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
+static int viewzoom_cancel(bContext *C, wmOperator *op)
+{
+	viewops_data_free(C, op);
+
+	return OPERATOR_CANCELLED;
+}
 
 void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
@@ -1419,6 +1449,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	ot->exec= viewzoom_exec;
 	ot->modal= viewzoom_modal;
 	ot->poll= ED_operator_region_view3d_active;
+	ot->cancel= viewzoom_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1625,12 +1656,19 @@ static int viewdolly_poll(bContext *C)
 		}
 		else {
 			View3D *v3d= CTX_wm_view3d(C);
-			if ((rv3d->persp == RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA)) {
+			if (ED_view3d_camera_lock_check(v3d, rv3d)) {
 				return 1;
 			}
 		}
 	}
 	return 0;
+}
+
+static int viewdolly_cancel(bContext *C, wmOperator *op)
+{
+	viewops_data_free(C, op);
+
+	return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_dolly(wmOperatorType *ot)
@@ -1645,6 +1683,7 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
 	ot->exec= viewdolly_exec;
 	ot->modal= viewdolly_modal;
 	ot->poll= viewdolly_poll;
+	ot->cancel= viewdolly_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1664,7 +1703,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
 	float *curs;
-	const short skip_camera= ((rv3d->persp==RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA));
+	const short skip_camera= ED_view3d_camera_lock_check(v3d, rv3d);
 
 	int center= RNA_boolean_get(op->ptr, "center");
 
@@ -1725,7 +1764,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 			new_dist*= size;
 		}
 
-		if ((rv3d->persp==RV3D_CAMOB) && !(v3d->flag2 & V3D_LOCK_CAMERA)) {
+		if ((rv3d->persp==RV3D_CAMOB) && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 			rv3d->persp= RV3D_PERSP;
 			smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 		}
@@ -1769,7 +1808,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 	Object *obedit= CTX_data_edit_object(C);
 	float size, min[3], max[3], afm[3];
 	int ok=0, ok_dist=1;
-	const short skip_camera= ((rv3d->persp==RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA));
+	const short skip_camera= ED_view3d_camera_lock_check(v3d, rv3d);
 
 	/* SMOOTHVIEW */
 	float new_ofs[3];
@@ -1872,7 +1911,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 		new_dist*= size;
 	}
 
-	if (rv3d->persp==RV3D_CAMOB && !(v3d->flag2 & V3D_LOCK_CAMERA)) {
+	if (rv3d->persp==RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 		rv3d->persp= RV3D_PERSP;
 		smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
@@ -2038,6 +2077,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= render_border_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 
 	ot->poll= view3d_camera_active_poll;
 
@@ -2176,7 +2216,7 @@ static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	/* if in camera view do not exec the operator so we do not conflict with set render border*/
-	if ((rv3d->persp != RV3D_CAMOB) || (v3d->flag2 & V3D_LOCK_CAMERA))
+	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d))
 		return WM_border_select_invoke(C, op, event);
 	else
 		return OPERATOR_PASS_THROUGH;
@@ -2193,6 +2233,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->invoke= view3d_zoom_border_invoke;
 	ot->exec= view3d_zoom_border_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 
 	ot->poll= ED_operator_region_view3d_active;
 
@@ -2490,7 +2531,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 	orbitdir = RNA_enum_get(op->ptr, "type");
 
 	if(rv3d->viewlock==0) {
-		if((rv3d->persp != RV3D_CAMOB) || (v3d->flag2 & V3D_LOCK_CAMERA)) {
+		if((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
 			if(orbitdir == V3D_VIEW_STEPLEFT || orbitdir == V3D_VIEW_STEPRIGHT) {
 				float si;
 				/* z-axis */
@@ -2831,6 +2872,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	ot->invoke= view3d_clipping_invoke;
 	ot->exec= view3d_clipping_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 
 	ot->poll= ED_operator_region_view3d_active;
 

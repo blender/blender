@@ -34,6 +34,9 @@ set(INC
 	../../../intern/moto/include
 	../../../intern/guardedalloc
 	../Expressions
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 	${PYTHON_INCLUDE_DIRS}
 )
@@ -81,4 +84,4 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
-blender_add_lib(ge_rasterizer "${SRC}" "${INC}")
+blender_add_lib(ge_rasterizer "${SRC}" "${INC}" "${INC_SYS}")

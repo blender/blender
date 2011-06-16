@@ -59,6 +59,10 @@ set(INC
 	../../../extern/bullet2/src
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	BL_ActionActuator.cpp
 	BL_ArmatureActuator.cpp
@@ -109,4 +113,4 @@ if(WITH_BULLET)
 	add_definitions(-DUSE_BULLET)
 endif()
 
-blender_add_lib(ge_converter "${SRC}" "${INC}")
+blender_add_lib(ge_converter "${SRC}" "${INC}" "${INC_SYS}")

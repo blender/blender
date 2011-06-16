@@ -334,6 +334,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	PointerRNA idptr;
 	// ListBase *lb; // UNUSED
 	ID *id, *idfrom;
+	int editable= RNA_property_editable(&template->ptr, template->prop);
 
 	idptr= RNA_property_pointer_get(&template->ptr, template->prop);
 	id= idptr.data;
@@ -354,14 +355,12 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			if (id) but->icon = ui_id_icon_get(C, id, 1);
 			uiButSetFlag(but, UI_HAS_ICON|UI_ICON_PREVIEW);
 		}
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		
-		
 		uiLayoutRow(layout, 1);
-	} else 
-		
-	if(flag & UI_ID_BROWSE) {
+	}
+	else if(flag & UI_ID_BROWSE) {
 		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, template_id_browse_tip(type));
 		if(type) {
 			but->icon= RNA_struct_ui_icon(type);
@@ -370,7 +369,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetFlag(but, UI_HAS_ICON|UI_ICON_LEFT);
 		}
 
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 
@@ -412,7 +411,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X+10,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
-			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib))
+			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib) || !editable)
 				uiButSetFlag(but, UI_BUT_DISABLED);
 		}
 	
@@ -435,7 +434,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 
@@ -451,7 +450,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_OPEN));
 		}
 
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 	
@@ -470,7 +469,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 				uiButSetFlag(but, UI_BUT_DISABLED);
 		}
 
-		if((idfrom && idfrom->lib))
+		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 	
@@ -754,7 +753,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		if ((ob->type==OB_MESH) && modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) 
 		{
 			/* -- convert to rna ? */
-			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
 			if (index < cageIndex)
 				uiButSetFlag(but, UI_BUT_DISABLED);
 			uiButSetFunc(but, modifiers_setOnCage, ob, md);
@@ -766,7 +765,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 				/* add disabled pre-tesselated button, so users could have
 				   message for this modifiers */
-				but = uiDefIconButBitI(block, TOG, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "This modifier could be applied on splines' points only");
+				but = uiDefIconButBitI(block, TOG, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "This modifier could be applied on splines' points only");
 				uiButSetFlag(but, UI_BUT_DISABLED);
 			} else if (mti->type != eModifierTypeType_Constructive) {
 				/* constructive modifiers tesselates curve before applying */
@@ -1284,31 +1283,32 @@ static void colorband_flip_cb(bContext *C, void *cb_v, void *coba_v)
 /* offset aligns from bottom, standard width 300, height 115 */
 static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand *coba, int xoffs, int yoffs, RNAUpdateCb *cb)
 {
-	
 	uiBut *bt;
 	uiLayout *row;
+	const int line1_y= yoffs + 65 + UI_UNIT_Y + 2; /* 2 for some space between the buttons */
+	const int line2_y= yoffs + 65;
 
 	if(coba==NULL) return;
 
-	bt= uiDefBut(block, BUT, 0,	"Add",			0+xoffs,100+yoffs,40,20, NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
+	bt= uiDefBut(block, BUT, 0,	"Add",			0+xoffs,line1_y,40,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
 
-	bt= uiDefBut(block, BUT, 0,	"Delete",		45+xoffs,100+yoffs,45,20, NULL, 0, 0, 0, 0, "Delete the active position");
+	bt= uiDefBut(block, BUT, 0,	"Delete",		45+xoffs,line1_y,45,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
 
 	/* XXX, todo for later - convert to operator - campbell */
-	bt= uiDefBut(block, BUT, 0,	"F",		95+xoffs,100+yoffs,20,20, NULL, 0, 0, 0, 0, "Flip colorband");
+	bt= uiDefBut(block, BUT, 0,	"F",		95+xoffs,line1_y,20,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Flip colorband");
 	uiButSetNFunc(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
 
-	uiDefButS(block, NUM, 0,		"",				120+xoffs,100+yoffs,80, 20, &coba->cur, 0.0, (float)(MAX2(0, coba->tot-1)), 0, 0, "Choose active color stop");
+	uiDefButS(block, NUM, 0,		"",				120+xoffs,line1_y,80, UI_UNIT_Y, &coba->cur, 0.0, (float)(MAX2(0, coba->tot-1)), 0, 0, "Choose active color stop");
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
-			210+xoffs, 100+yoffs, 90, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
+			210+xoffs, line1_y, 90, UI_UNIT_Y,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	uiBlockEndAlign(block);
 
-	bt= uiDefBut(block, BUT_COLORBAND, 0, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
+	bt= uiDefBut(block, BUT_COLORBAND, 0, "", 	xoffs,line2_y,300,UI_UNIT_Y, coba, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 
@@ -1333,11 +1333,11 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	float xs= butr->xmin;
 
 	uiBlockBeginAlign(block);
-	bt= uiDefBut(block, BUT, 0,	"Add",			xs,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
+	bt= uiDefBut(block, BUT, 0,	"Add",			xs,butr->ymin+UI_UNIT_Y,2.0f*unit,UI_UNIT_Y,	NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
-	bt= uiDefBut(block, BUT, 0,	"Delete",		xs+2.0f*unit,butr->ymin+20.0f,1.5f*unit,20,	NULL, 0, 0, 0, 0, "Delete the active position");
+	bt= uiDefBut(block, BUT, 0,	"Delete",		xs+2.0f*unit,butr->ymin+UI_UNIT_Y,1.5f*unit,UI_UNIT_Y,	NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
-	bt= uiDefBut(block, BUT, 0,	"F",		xs+3.5f*unit,butr->ymin+20.0f,0.5f*unit,20,	NULL, 0, 0, 0, 0, "Flip the color ramp");
+	bt= uiDefBut(block, BUT, 0,	"F",		xs+3.5f*unit,butr->ymin+UI_UNIT_Y,0.5f*unit,UI_UNIT_Y,	NULL, 0, 0, 0, 0, "Flip the color ramp");
 	uiButSetNFunc(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
 	uiBlockEndAlign(block);
 
@@ -1349,10 +1349,10 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	}
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
-			xs+10.0f*unit, butr->ymin+20.0f, unit*4, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
+			xs+10.0f*unit, butr->ymin+UI_UNIT_Y, unit*4, UI_UNIT_Y,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-	bt= uiDefBut(block, BUT_COLORBAND, 0, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
+	bt= uiDefBut(block, BUT_COLORBAND, 0, "",		xs,butr->ymin,butr->xmax-butr->xmin,UI_UNIT_Y, coba, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	uiBlockEndAlign(block);
@@ -1425,7 +1425,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 	hist = (Histogram *)cptr.data;
 
-	hist->height= (hist->height<=20)?20:hist->height;
+	hist->height= (hist->height<=UI_UNIT_Y)?UI_UNIT_Y:hist->height;
 
 	bt= uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, hist->height, hist, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
@@ -1462,7 +1462,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	
 	block= uiLayoutAbsoluteBlock(layout);
 	
-	scopes->wavefrm_height= (scopes->wavefrm_height<=20)?20:scopes->wavefrm_height;
+	scopes->wavefrm_height= (scopes->wavefrm_height<=UI_UNIT_Y)?UI_UNIT_Y:scopes->wavefrm_height;
 
 	bt= uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
 	(void)bt; // UNUSED
@@ -1499,7 +1499,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 	
 	block= uiLayoutAbsoluteBlock(layout);
 
-	scopes->vecscope_height= (scopes->vecscope_height<=20)?20:scopes->vecscope_height;
+	scopes->vecscope_height= (scopes->vecscope_height<=UI_UNIT_Y)?UI_UNIT_Y:scopes->vecscope_height;
 	
 	bt= uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
@@ -1588,21 +1588,22 @@ static uiBlock *curvemap_clipping_func(bContext *C, struct ARegion *ar, void *cu
 	CurveMapping *cumap = cumap_v;
 	uiBlock *block;
 	uiBut *bt;
+	float width= 8*UI_UNIT_X;
 
 	block= uiBeginBlock(C, ar, "curvemap_clipping_func", UI_EMBOSS);
 
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-4, 16, 128, 106, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",			-4, 16, width+8, 6*UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 
 	bt= uiDefButBitI(block, TOG, CUMA_DO_CLIP, 1, "Use Clipping",	 
-			0,100,120,18, &cumap->flag, 0.0, 0.0, 10, 0, "");
+			0,5*UI_UNIT_Y,width,UI_UNIT_Y, &cumap->flag, 0.0, 0.0, 10, 0, "");
 	uiButSetFunc(bt, curvemap_buttons_setclip, cumap, NULL);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, 0, "Min X ",	 0,74,120,18, &cumap->clipr.xmin, -100.0, cumap->clipr.xmax, 10, 0, "");
-	uiDefButF(block, NUM, 0, "Min Y ",	 0,56,120,18, &cumap->clipr.ymin, -100.0, cumap->clipr.ymax, 10, 0, "");
-	uiDefButF(block, NUM, 0, "Max X ",	 0,38,120,18, &cumap->clipr.xmax, cumap->clipr.xmin, 100.0, 10, 0, "");
-	uiDefButF(block, NUM, 0, "Max Y ",	 0,20,120,18, &cumap->clipr.ymax, cumap->clipr.ymin, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Min X ",	 0,4*UI_UNIT_Y,width,UI_UNIT_Y, &cumap->clipr.xmin, -100.0, cumap->clipr.xmax, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Min Y ",	 0,3*UI_UNIT_Y,width,UI_UNIT_Y, &cumap->clipr.ymin, -100.0, cumap->clipr.ymax, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Max X ",	 0,2*UI_UNIT_Y,width,UI_UNIT_Y, &cumap->clipr.xmax, cumap->clipr.xmin, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Max Y ",	 0,UI_UNIT_Y,width,UI_UNIT_Y, &cumap->clipr.ymax, cumap->clipr.ymin, 100.0, 10, 0, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 
@@ -1646,17 +1647,17 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 static uiBlock *curvemap_tools_func(bContext *C, struct ARegion *ar, void *cumap_v)
 {
 	uiBlock *block;
-	short yco= 0, menuwidth=120;
+	short yco= 0, menuwidth=10*UI_UNIT_X;
 
 	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSS);
 	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Horizontal",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Extrapolated",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Horizontal",		0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Extrapolated",	0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
@@ -1668,15 +1669,15 @@ static uiBlock *curvemap_tools_func(bContext *C, struct ARegion *ar, void *cumap
 static uiBlock *curvemap_brush_tools_func(bContext *C, struct ARegion *ar, void *cumap_v)
 {
 	uiBlock *block;
-	short yco= 0, menuwidth=120;
+	short yco= 0, menuwidth=10*UI_UNIT_X;
 
 	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSS);
 	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
@@ -1730,15 +1731,15 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
 		if(cumap->cm[0].curve) {
-			bt= uiDefButI(block, ROW, 0, "X", 0, 0, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "X", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 		if(cumap->cm[1].curve) {
-			bt= uiDefButI(block, ROW, 0, "Y", 0, 0, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "Y", 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 		if(cumap->cm[2].curve) {
-			bt= uiDefButI(block, ROW, 0, "Z", 0, 0, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "Z", 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 	}
@@ -1748,19 +1749,19 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
 		if(cumap->cm[3].curve) {
-			bt= uiDefButI(block, ROW, 0, "C", 0, 0, dx, 16, &cumap->cur, 0.0, 3.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "C", 0, 0, dx, dx, &cumap->cur, 0.0, 3.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 		if(cumap->cm[0].curve) {
-			bt= uiDefButI(block, ROW, 0, "R", 0, 0, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "R", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 		if(cumap->cm[1].curve) {
-			bt= uiDefButI(block, ROW, 0, "G", 0, 0, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "G", 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 		if(cumap->cm[2].curve) {
-			bt= uiDefButI(block, ROW, 0, "B", 0, 0, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "B", 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 	}
@@ -1770,15 +1771,15 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 		
 		if(cumap->cm[0].curve) {
-			bt= uiDefButI(block, ROW, 0, "H", 0, 0, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "H", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 		if(cumap->cm[1].curve) {
-			bt= uiDefButI(block, ROW, 0, "S", 0, 0, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "S", 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 		if(cumap->cm[2].curve) {
-			bt= uiDefButI(block, ROW, 0, "V", 0, 0, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+			bt= uiDefButI(block, ROW, 0, "V", 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 	}
@@ -1793,24 +1794,24 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
-	bt= uiDefIconBut(block, BUT, 0, ICON_ZOOMIN, 0, 0, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom in");
+	bt= uiDefIconBut(block, BUT, 0, ICON_ZOOMIN, 0, 0, dx, dx, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom in");
 	uiButSetFunc(bt, curvemap_buttons_zoom_in, cumap, NULL);
 
-	bt= uiDefIconBut(block, BUT, 0, ICON_ZOOMOUT, 0, 0, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom out");
+	bt= uiDefIconBut(block, BUT, 0, ICON_ZOOMOUT, 0, 0, dx, dx, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom out");
 	uiButSetFunc(bt, curvemap_buttons_zoom_out, cumap, NULL);
 
 	if(brush)
-		bt= uiDefIconBlockBut(block, curvemap_brush_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, 18, "Tools");
+		bt= uiDefIconBlockBut(block, curvemap_brush_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, dx, "Tools");
 	else
-		bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, 18, "Tools");
+		bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, dx, "Tools");
 
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	if(cumap->flag & CUMA_DO_CLIP) icon= ICON_CLIPUV_HLT; else icon= ICON_CLIPUV_DEHLT;
-	bt= uiDefIconBlockBut(block, curvemap_clipping_func, cumap, 0, icon, 0, 0, dx, 18, "Clipping Options");
+	bt= uiDefIconBlockBut(block, curvemap_clipping_func, cumap, 0, icon, 0, 0, dx, dx, "Clipping Options");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-	bt= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, dx, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Delete points");
+	bt= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, dx, dx, NULL, 0.0, 0.0, 0.0, 0.0, "Delete points");
 	uiButSetNFunc(bt, curvemap_buttons_delete, MEM_dupallocN(cb), cumap);
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
@@ -1996,7 +1997,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, const char *propname,
 				else if(used_prop && RNA_property_boolean_get_index(used_ptr, used_prop, layer))
 					icon = ICON_LAYER_USED;
 				
-				but= uiDefAutoButR(block, ptr, prop, layer, "", icon, 0, 0, 10, 10);
+				but= uiDefAutoButR(block, ptr, prop, layer, "", icon, 0, 0, UI_UNIT_X/2, UI_UNIT_Y/2);
 				uiButSetFunc(but, handle_layer_buttons, but, SET_INT_IN_POINTER(layer));
 				but->type= TOG;
 			}

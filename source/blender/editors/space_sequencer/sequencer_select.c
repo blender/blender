@@ -305,8 +305,6 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short linked_handle= RNA_boolean_get(op->ptr, "linked_handle");
 	short left_right= RNA_boolean_get(op->ptr, "left_right");
 	short linked_time= RNA_boolean_get(op->ptr, "linked_time");
-
-	int mval[2];
 	
 	Sequence *seq,*neighbor, *act_orig;
 	int hand,sel_side;
@@ -343,7 +341,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* use different logic for this */
 		float x;
 		deselect_all_seq(scene);
-		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 
 		SEQP_BEGIN(ed, seq) {
 			if (x < CFRA) {
@@ -873,6 +871,7 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= sequencer_borderselect_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= ED_operator_sequencer_active;
 	

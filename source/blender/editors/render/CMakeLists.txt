@@ -32,6 +32,9 @@ set(INC
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -48,7 +51,8 @@ set(SRC
 )
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../../quicktime ${QUICKTIME_INC})
+	list(APPEND INC ../../quicktime)
+	list(APPEND INC_SYS ${QUICKTIME_INC})
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
@@ -56,4 +60,4 @@ if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 endif()
 
-blender_add_lib(bf_editor_render "${SRC}" "${INC}")
+blender_add_lib(bf_editor_render "${SRC}" "${INC}" "${INC_SYS}")

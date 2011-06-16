@@ -237,7 +237,7 @@ MEM_freeN(texture_path); \
 	return path;
 }
 
-static void rna_ColorRamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if (ptr->id.data) {
 		ID *id= ptr->id.data;
@@ -300,7 +300,7 @@ static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *repo
 
 }
 
-static void rna_Scopes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Scopes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scopes *s= (Scopes*)ptr->data;
 	s->ok = 0;

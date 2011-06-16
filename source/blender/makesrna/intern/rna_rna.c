@@ -341,7 +341,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 
 	/* this was used pre 2.5beta0, now ID property access uses python's
 	 * getitem style access
-	 * - ob["foo"] rather then ob.foo */
+	 * - ob["foo"] rather than ob.foo */
 #if 0
 	if(ptr->data) {
 		IDProperty *group, *idp;
@@ -492,6 +492,13 @@ static int rna_Property_is_hidden_get(PointerRNA *ptr)
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	return prop->flag & PROP_HIDDEN ? 1:0;
 }
+
+static int rna_Property_is_skip_save_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_SKIP_SAVE ? 1:0;
+}
+
 
 static int rna_Property_is_enum_flag_get(PointerRNA *ptr)
 {
@@ -697,7 +704,7 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 	return ((StringPropertyRNA*)prop)->maxlength;
 }
 
-static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	EnumPropertyRNA *eprop;
@@ -713,7 +720,7 @@ static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA 
 		return eprop->item;
 	}
 
-	return eprop->itemf(C, ptr, free);
+	return eprop->itemf(C, ptr, prop, free);
 }
 
 /* XXX - not sure this is needed? */
@@ -1036,6 +1043,11 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_hidden_get", NULL);
 	RNA_def_property_ui_text(prop, "Hidden", "True when the property is hidden");
+
+	prop= RNA_def_property(srna, "is_skip_save", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_skip_save_get", NULL);
+	RNA_def_property_ui_text(prop, "Skip Save", "True when the property is not saved in presets");
 
 	prop= RNA_def_property(srna, "is_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

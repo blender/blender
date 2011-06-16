@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('intern/*.cpp')
 
-incs = 'intern ../container ../moto/include ../memutil'
+incs = 'intern ../container ../moto/include ../memutil ../guardedalloc'
 
 env.BlenderLib ('bf_intern_bsp', sources, Split(incs), [], libtype=['core','player'], priority=[200,100] )
 
