@@ -1765,50 +1765,70 @@ static double soft_range_round_down(double value, double max)
 
 void ui_set_but_soft_range(uiBut *but, double value)
 {
-	PropertyType type;
-	double softmin, softmax /*, step, precision*/;
-	
+	/* ideally we would not limit this but practially, its more then
+	 * enough worst case is very long vectors wont use a smart soft-range
+	 * which isnt so bad. */
+
 	if(but->rnaprop) {
-		type= RNA_property_type(but->rnaprop);
+		const PropertyType type= RNA_property_type(but->rnaprop);
+		double softmin, softmax /*, step, precision*/;
+		double value_min= value;
+		double value_max= value;
 
 		/* clamp button range to something reasonable in case
 		 * we get -inf/inf from RNA properties */
 		if(type == PROP_INT) {
 			int imin, imax, istep;
+			const int array_len= RNA_property_array_length(&but->rnapoin, but->rnaprop);
 
 			RNA_property_int_ui_range(&but->rnapoin, but->rnaprop, &imin, &imax, &istep);
 			softmin= (imin == INT_MIN)? -1e4: imin;
 			softmax= (imin == INT_MAX)? 1e4: imax;
 			/*step= istep;*/ /*UNUSED*/
 			/*precision= 1;*/ /*UNUSED*/
+
+			if(array_len >= 2) {
+				int value_range[2];
+				RNA_property_int_get_array_range(&but->rnapoin, but->rnaprop, value_range);
+				value_min= (double)value_range[0];
+				value_max= (double)value_range[1];
+			}
 		}
 		else if(type == PROP_FLOAT) {
 			float fmin, fmax, fstep, fprecision;
+			const int array_len= RNA_property_array_length(&but->rnapoin, but->rnaprop);
 
 			RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
 			softmin= (fmin == -FLT_MAX)? (float)-1e4: fmin;
 			softmax= (fmax == FLT_MAX)? (float)1e4: fmax;
 			/*step= fstep;*/ /*UNUSED*/
 			/*precision= fprecision;*/ /*UNUSED*/
+
+			if(array_len >= 2) {
+				float value_range[2];
+				RNA_property_float_get_array_range(&but->rnapoin, but->rnaprop, value_range);
+				value_min= (double)value_range[0];
+				value_max= (double)value_range[1];
+			}
 		}
 		else
 			return;
 
 		/* if the value goes out of the soft/max range, adapt the range */
-		if(value+1e-10 < softmin) {
-			if(value < 0.0)
-				softmin= -soft_range_round_up(-value, -softmin);
+		if(value_min+1e-10 < softmin) {
+			if(value_min < 0.0)
+				softmin= -soft_range_round_up(-value_min, -softmin);
 			else
-				softmin= soft_range_round_down(value, softmin);
+				softmin= soft_range_round_down(value_min, softmin);
 
 			if(softmin < (double)but->hardmin)
 				softmin= (double)but->hardmin;
 		}
-		else if(value-1e-10 > softmax) {
-			if(value < 0.0)
-				softmax= -soft_range_round_down(-value, -softmax);
+		else if(value_max-1e-10 > softmax) {
+			if(value_max < 0.0)
+				softmax= -soft_range_round_down(-value_max, -softmax);
 			else
-				softmax= soft_range_round_up(value, softmax);
+				softmax= soft_range_round_up(value_max, softmax);
 
 			if(softmax > (double)but->hardmax)
 				softmax= but->hardmax;
