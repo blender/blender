@@ -77,6 +77,10 @@
 #define PRECISION_FLOAT_MAX 7
 #define PRECISION_FLOAT_MAX_POW 10000000 /* pow(10, PRECISION_FLOAT_MAX)  */
 
+/* avoid unneeded calls to ui_get_but_val */
+#define UI_BUT_VALUE_UNSET DBL_MAX
+#define UI_GET_BUT_VALUE_INIT(_but, _value) if(_value == DBL_MAX) {  (_value)= ui_get_but_val(_but); }
+
 /* 
  * a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt
  * 
@@ -967,17 +971,16 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 
 /* ************* EVENTS ************* */
 
-static void ui_is_but_sel(uiBut *but)
+static void ui_is_but_sel(uiBut *but, double *value)
 {
-	double value; /* only initialized when needed, to avoid calling when not used */
 	short push=0, true=1;
 
 	if(ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) true= 0;
 
 	if( but->bit ) {
 		int lvalue;
-		value= ui_get_but_val(but);
-		lvalue= (int)value;
+		UI_GET_BUT_VALUE_INIT(but, *value)
+		lvalue= (int)*value;
 		if( BTST(lvalue, (but->bitnr)) ) push= true;
 		else push= !true;
 	}
@@ -997,24 +1000,24 @@ static void ui_is_but_sel(uiBut *but)
 		case BUT_TOGDUAL:
 		case ICONTOG:
 		case OPTION:
-			value= ui_get_but_val(but);
-			if(value != (double)but->hardmin) push= 1;
+
+			if(*value != (double)but->hardmin) push= 1;
 			break;
 		case ICONTOGN:
 		case TOGN:
 		case OPTIONN:
-			value= ui_get_but_val(but);
-			if(value==0.0) push= 1;
+			UI_GET_BUT_VALUE_INIT(but, *value)
+			if(*value==0.0) push= 1;
 			break;
 		case ROW:
 		case LISTROW:
-			value= ui_get_but_val(but);
+			UI_GET_BUT_VALUE_INIT(but, *value)
 			/* support for rna enum buts */
 			if(but->rnaprop && (RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG)) {
-				if((int)value & (int)but->hardmax) push= 1;
+				if((int)*value & (int)but->hardmax) push= 1;
 			}
 			else {
-				if(value == (double)but->hardmax) push= 1;
+				if(*value == (double)but->hardmax) push= 1;
 			}
 			break;
 		case COL:
@@ -1385,6 +1388,10 @@ void ui_set_but_val(uiBut *but, double value)
 					break;
 			}
 		}
+
+		/* we can't be sure what RNA set functions actually do,
+		 * so leave this unset */
+		value= UI_BUT_VALUE_UNSET;
 	}
 	else if(but->pointype==0);
 	else if(but->type==HSVSLI ) {
@@ -1425,19 +1432,19 @@ void ui_set_but_val(uiBut *but, double value)
 		
 		/* then set value with possible edit override */
 		if(but->editval)
-			*but->editval= value;
+			value= *but->editval= value;
 		else if(but->pointype==CHA)
-			*((char *)but->poin)= (char)value;
+			value= *((char *)but->poin)= (char)value;
 		else if(but->pointype==SHO)
-			*((short *)but->poin)= (short)value;
+			value= *((short *)but->poin)= (short)value;
 		else if(but->pointype==INT)
-			*((int *)but->poin)= (int)value;
+			value= *((int *)but->poin)= (int)value;
 		else if(but->pointype==FLO)
-			*((float *)but->poin)= (float)value;
+			value= *((float *)but->poin)= (float)value;
 	}
 
 	/* update select flag */
-	ui_is_but_sel(but);
+	ui_is_but_sel(but, &value);
 }
 
 int ui_get_but_string_max_length(uiBut *but)
@@ -1974,17 +1981,19 @@ void uiBlockSetEmboss(uiBlock *block, char dt)
 void ui_check_but(uiBut *but)
 {
 	/* if something changed in the button */
-	double value;
+	double value= UI_BUT_VALUE_UNSET;
 //	float okwidth; // UNUSED
 //	int transopts= ui_translate_buttons();
 	
-	ui_is_but_sel(but);
+	ui_is_but_sel(but, &value);
 	
 //	if(but->type==TEX || but->type==IDPOIN) transopts= 0;
 
 	/* only update soft range while not editing */
-	if(but->rnaprop && !(but->editval || but->editstr || but->editvec))
-		ui_set_but_soft_range(but, ui_get_but_val(but));
+	if(but->rnaprop && !(but->editval || but->editstr || but->editvec)) {
+		UI_GET_BUT_VALUE_INIT(but, value)
+		ui_set_but_soft_range(but, value);
+	}
 
 	/* test for min and max, icon sliders, etc */
 	switch( but->type ) {
@@ -1993,17 +2002,20 @@ void ui_check_but(uiBut *but)
 		case SCROLL:
 		case NUMSLI:
 		case HSVSLI:
-			value= ui_get_but_val(but);
+			UI_GET_BUT_VALUE_INIT(but, value)
 			if(value < (double)but->hardmin) ui_set_but_val(but, but->hardmin);
 			else if(value > (double)but->hardmax) ui_set_but_val(but, but->hardmax);
 			break;
 			
 		case NUMABS:
-			value= fabs( ui_get_but_val(but) );
-			if(value < (double)but->hardmin) ui_set_but_val(but, but->hardmin);
-			else if(value > (double)but->hardmax) ui_set_but_val(but, but->hardmax);
+		{
+			double value_abs;
+			UI_GET_BUT_VALUE_INIT(but, value)
+			value_abs= fabs(value);
+			if(value_abs < (double)but->hardmin) ui_set_but_val(but, but->hardmin);
+			else if(value_abs > (double)but->hardmax) ui_set_but_val(but, but->hardmax);
 			break;
-			
+		}
 		case ICONTOG: 
 		case ICONTOGN:
 			if(!but->rnaprop || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
@@ -2014,14 +2026,14 @@ void ui_check_but(uiBut *but)
 			
 		case ICONROW:
 			if(!but->rnaprop || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
-				value= ui_get_but_val(but);
+				UI_GET_BUT_VALUE_INIT(but, value)
 				but->iconadd= (int)value- (int)(but->hardmin);
 			}
 			break;
 			
 		case ICONTEXTROW:
 			if(!but->rnaprop || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
-				value= ui_get_but_val(but);
+				UI_GET_BUT_VALUE_INIT(but, value)
 				but->iconadd= (int)value- (int)(but->hardmin);
 			}
 			break;
@@ -2038,7 +2050,7 @@ void ui_check_but(uiBut *but)
 	case ICONTEXTROW:
 		
 		if(but->x2 - but->x1 > 24) {
-			value= ui_get_but_val(but);
+			UI_GET_BUT_VALUE_INIT(but, value)
 			ui_set_name_menu(but, (int)value);
 		}
 		break;
@@ -2048,7 +2060,7 @@ void ui_check_but(uiBut *but)
 	case HSVSLI:
 	case NUMABS:
 
-		value= ui_get_but_val(but);
+		UI_GET_BUT_VALUE_INIT(but, value)
 
 		if(ui_is_but_float(but)) {
 			if(value == (double) FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
@@ -2079,7 +2091,7 @@ void ui_check_but(uiBut *but)
 	case LABEL:
 		if(ui_is_but_float(but)) {
 			int prec;
-			value= ui_get_but_val(but);
+			UI_GET_BUT_VALUE_INIT(but, value)
 			prec= ui_but_float_precision(but, value);
 			BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
 		}
@@ -2105,8 +2117,10 @@ void ui_check_but(uiBut *but)
 		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		if (but->flag & UI_SELECT) {
 			strcat(but->drawstr, "Press a key");
-		} else {
-			strcat(but->drawstr, WM_key_event_string((short) ui_get_but_val(but)));
+		}
+		else {
+			UI_GET_BUT_VALUE_INIT(but, value)
+			strcat(but->drawstr, WM_key_event_string((short)value));
 		}
 		break;
 		
