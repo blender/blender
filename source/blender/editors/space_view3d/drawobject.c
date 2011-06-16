@@ -38,6 +38,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h" // for drawing constraint
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -2575,6 +2576,8 @@ static int wpaint__setSolidDrawOptions(void *UNUSED(userData), int UNUSED(index)
 	return 1;
 }
 
+#define DRAW_MODE_DYNAMIC_PAINT_PREVIEW 1
+
 static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
@@ -2586,9 +2589,27 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int /* totvert,*/ totedge, totface;
 	DispList *dl;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
+	ModifierData *md = NULL;
+	int draw_mode = 0;
 
 	if(!dm)
 		return;
+
+	/* check to draw dynamic paint colors */
+	if (md = modifiers_findByType(ob, eModifierType_DynamicPaint))
+	{
+		/* check if target has an active dp modifier	*/
+		if(md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
+		{
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+			/* if canvas is ready to preview vertex colors */
+			if (pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS && pmd->canvas &&
+				pmd->canvas->flags & MOD_DPAINT_PREVIEW_READY &&
+				DM_get_face_data_layer(dm, CD_WEIGHT_MCOL)) {
+				draw_mode |= DRAW_MODE_DYNAMIC_PAINT_PREVIEW;
+			}
+		}
+	}
 	
 	if (ob->dtx&OB_DRAWWIRE) {
 		draw_wire = 2; /* draw wire after solid using zoffset and depth buffer adjusment */
@@ -2673,6 +2694,38 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			
 			/* since we already draw wire as wp guide, dont draw over the top */
 			draw_wire= 0;
+		}
+		else if (draw_mode & DRAW_MODE_DYNAMIC_PAINT_PREVIEW) {
+			/* for object selection draws no shade */
+			if (flag & (DRAW_PICKING|DRAW_CONSTCOLOR)) {
+				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+			}
+			else {
+				/* draw outline */
+				if((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
+					draw_mesh_object_outline(v3d, ob, dm);
+
+				/* materials arent compatible with vertex colors */
+				GPU_end_object_materials();
+
+				GPU_enable_material(0, NULL);
+				
+				/* set default spec */
+				glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
+				glEnable(GL_COLOR_MATERIAL);	/* according manpages needed */
+				glColor3ub(120, 120, 120);
+				glDisable(GL_COLOR_MATERIAL);
+				/* diffuse */
+				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+				glEnable(GL_LIGHTING);
+				glEnable(GL_COLOR_MATERIAL);
+
+				dm->drawMappedFaces(dm, NULL, NULL, 1, GPU_enable_material);
+				glDisable(GL_COLOR_MATERIAL);
+				glDisable(GL_LIGHTING);
+
+				GPU_disable_material();
+			}
 		}
 		else {
 			Paint *p;

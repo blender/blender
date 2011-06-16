@@ -97,6 +97,8 @@ void FLUID_OT_bake(struct wmOperatorType *ot);
 
 /* dynamicpaint.c */
 void DPAINT_OT_bake(struct wmOperatorType *ot);
+void DPAINT_OT_surface_slot_add(struct wmOperatorType *ot);
+void DPAINT_OT_surface_slot_remove(struct wmOperatorType *ot);
 
 /* physics_pointcache.c */
 void PTCACHE_OT_bake_all(struct wmOperatorType *ot);

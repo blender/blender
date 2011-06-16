@@ -171,6 +171,8 @@ static void operatortypes_pointcache(void)
 static void operatortypes_dynamicpaint(void)
 {
 	WM_operatortype_append(DPAINT_OT_bake);
+	WM_operatortype_append(DPAINT_OT_surface_slot_add);
+	WM_operatortype_append(DPAINT_OT_surface_slot_remove);
 }
 
 //static void keymap_pointcache(wmWindowManager *wm)

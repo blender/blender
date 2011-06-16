@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -42,6 +43,7 @@
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_dynamicpaint.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -2023,6 +2025,13 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon, int
 	else if(RNA_struct_is_a(itemptr->type, &RNA_TextureSlot)) {
 		id= RNA_pointer_get(itemptr, "texture").data;
 	}
+	else if(RNA_struct_is_a(itemptr->type, &RNA_DynamicPaintSurface)) {
+		DynamicPaintSurface *surface= (DynamicPaintSurface*)itemptr->data;
+
+		if (surface->format == MOD_DPAINT_SURFACE_F_PTEX) return ICON_TEXTURE_SHADED;
+		else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) return ICON_OUTLINER_DATA_MESH;
+		else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) return ICON_FILE_IMAGE;
+	}
 
 	/* get icon from ID */
 	if(id) {
@@ -2117,6 +2126,24 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			uiLayoutSetActive(row, 0);
 		//uiItemR(row, itemptr, "mute", 0, "", ICON_MUTE_IPO_OFF);
 		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+	else if(itemptr->type == &RNA_DynamicPaintSurface) {
+		char name_final[96];
+		char *enum_name;
+		PropertyRNA *prop = RNA_struct_find_property(itemptr, "surface_type");
+		DynamicPaintSurface *surface= (DynamicPaintSurface*)itemptr->data;
+
+		RNA_property_enum_name(C, itemptr, prop, RNA_property_enum_get(itemptr, prop), &enum_name);
+
+		sprintf(name_final, "%s (%s)",name,enum_name);
+		uiItemL(sub, name_final, icon);
+		if (dynamicPaint_surfaceHasPreview(surface)) {
+			uiBlockSetEmboss(block, UI_EMBOSSN);
+			uiDefIconButR(block, OPTION, 0, (surface->flags & MOD_DPAINT_PREVIEW) ? ICON_RESTRICT_VIEW_OFF : ICON_RESTRICT_VIEW_ON,
+				0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "show_preview", 0, 0, 0, 0, 0, NULL);
+			uiBlockSetEmboss(block, UI_EMBOSS);
+		}
+		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "is_active", i, 0, 0, 0, 0,  NULL);
 	}
 	else
 		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */

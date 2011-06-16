@@ -789,18 +789,14 @@ typedef enum {
 } WarpModifierFalloff;
 /* Dynamic paint modifier flags */
 #define MOD_DYNAMICPAINT_TYPE_CANVAS (1 << 0)
-#define MOD_DYNAMICPAINT_TYPE_PAINT (1 << 1)
+#define MOD_DYNAMICPAINT_TYPE_BRUSH (1 << 1)
 
 typedef struct DynamicPaintModifierData {
 	ModifierData modifier;
 
 	struct DynamicPaintCanvasSettings *canvas;
-	struct DynamicPaintPainterSettings *paint;
-	float time;
+	struct DynamicPaintBrushSettings *brush;
 	int type;  /* canvas / painter */
-	short baking;	/* Set nonzero if baking,
-					*  -> updates derived mesh on modifier call*/
-	short pad;
-	int pad2;
+	int pad;
 } DynamicPaintModifierData;
 #endif

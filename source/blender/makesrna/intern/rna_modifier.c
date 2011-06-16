@@ -92,7 +92,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Smoke, "SMOKE", ICON_MOD_SMOKE, "Smoke", ""},
 	{eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
-	{eModifierType_DynamicPaint, "DYNAMIC_PAINT", ICON_MOD_FLUIDSIM, "Dynamic Paint", ""},
+	{eModifierType_DynamicPaint, "DYNAMIC_PAINT", ICON_MOD_DYNAMICPAINT, "Dynamic Paint", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -1929,21 +1929,21 @@ static void rna_def_modifier_dynamic_paint(BlenderRNA *brna)
 	static EnumPropertyItem prop_dynamicpaint_type_items[] = {
 			{0, "NONE", 0, "None", ""},
 			{MOD_DYNAMICPAINT_TYPE_CANVAS, "CANVAS", 0, "Canvas", ""},
-			{MOD_DYNAMICPAINT_TYPE_PAINT, "PAINT", 0, "Paint", ""},
+			{MOD_DYNAMICPAINT_TYPE_BRUSH, "BRUSH", 0, "Brush", ""},
 			{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "DynamicPaintModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Dynamic Paint Modifier", "Dynamic Paint modifier");
 	RNA_def_struct_sdna(srna, "DynamicPaintModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_FLUIDSIM);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_DYNAMICPAINT);
 	
 	prop= RNA_def_property(srna, "canvas_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "canvas");
 	RNA_def_property_ui_text(prop, "Canvas Settings", "");
 	
-	prop= RNA_def_property(srna, "paint_settings", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "paint");
-	RNA_def_property_ui_text(prop, "Paint Settings", "");
+	prop= RNA_def_property(srna, "brush_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "brush");
+	RNA_def_property_ui_text(prop, "Brush Settings", "");
 	
 	prop= RNA_def_property(srna, "dynamicpaint_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

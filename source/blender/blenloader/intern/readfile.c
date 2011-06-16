@@ -4034,28 +4034,39 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type==eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 
-			pmd->baking = 0;	/* just in case (should be 0 already) */
-
 			if(pmd->type==MOD_DYNAMICPAINT_TYPE_CANVAS)
 			{
-				pmd->paint = NULL;
+				pmd->brush = NULL;
 
 				pmd->canvas = newdataadr(fd, pmd->canvas);
 				pmd->canvas->pmd = pmd;
-				pmd->canvas->surface = NULL;
 				pmd->canvas->dm = NULL;
 				pmd->canvas->ui_info[0] = '\0';
+				pmd->canvas->flags &= ~MOD_DPAINT_BAKING; /* just in case */
+
+				if (pmd->canvas->surfaces.first) {
+					DynamicPaintSurface *surface;
+					link_list(fd, &pmd->canvas->surfaces);
+
+					for (surface=pmd->canvas->surfaces.first; surface; surface=surface->next) {
+						surface->canvas = pmd->canvas;
+						surface->data = NULL;
+						direct_link_pointcache_list(fd, &(surface->ptcaches), &(surface->pointcache), 1);
+					}
+				}
 			}
-			else if(pmd->type==MOD_DYNAMICPAINT_TYPE_PAINT)
+			else if(pmd->type==MOD_DYNAMICPAINT_TYPE_BRUSH)
 			{
 				pmd->canvas = NULL;
 
-				pmd->paint = newdataadr(fd, pmd->paint);
-				pmd->paint->pmd = pmd;
-				pmd->paint->mat = newdataadr(fd, pmd->paint->mat);
-				pmd->paint->psys = newdataadr(fd, pmd->paint->psys);
-				pmd->paint->paint_ramp = newdataadr(fd, pmd->paint->paint_ramp);
-				pmd->paint->dm = NULL;
+				pmd->brush = newdataadr(fd, pmd->brush);
+				if (pmd->brush) {
+					pmd->brush->pmd = pmd;
+					pmd->brush->mat = newdataadr(fd, pmd->brush->mat);
+					pmd->brush->psys = newdataadr(fd, pmd->brush->psys);
+					pmd->brush->paint_ramp = newdataadr(fd, pmd->brush->paint_ramp);
+					pmd->brush->dm = NULL;
+				}
 			}
 		}
 		else if (md->type==eModifierType_Collision) {
@@ -11200,7 +11211,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						/* enable all cache display */
 						stime->cache_display |= TIME_CACHE_DISPLAY;
 						stime->cache_display |= (TIME_CACHE_SOFTBODY|TIME_CACHE_PARTICLES);
-						stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE);
+						stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE|TIME_CACHE_DYNAMICPAINT);
 					}
 				}
 			}

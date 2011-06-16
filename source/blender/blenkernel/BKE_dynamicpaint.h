@@ -14,73 +14,56 @@
 #ifndef BKE_DYNAMIC_PAINT_H_
 #define BKE_DYNAMIC_PAINT_H_
 
-typedef struct FaceAdv {
-	float no[3];
-	float no_q[3];
-} FaceAdv;
-
-typedef struct BB2d {
-	float min[2], max[2];
-} BB2d;
-
-typedef struct Vec3f {
-	float v[3];
-} Vec3f;
-
+#include "DNA_dynamicpaint_types.h"
 
 /* Actual surface point	*/
-typedef struct PaintSurfacePoint {
-	/*
-	*	Paint layer data
-	*/
-	float color[3];
-	float alpha;
-	float depth;	/* displacement */
+typedef struct PaintSurfaceData {
+	/* surface format data */
+	void *format_data;
+	/* surface type data */
+	void *type_data;
 
-	/*
-	*	Effect / moving layer data
-	*	! Only generated if effects enabled !
-	*/
-	int neighbours[8];	/* Indexes of 8 neighbouring pixels if exist */
-	float neighbour_dist[8];	/*	Distances to all 8 neighbouring pixels */			
-	float gravity_dir;	/* UV space direction of gravity */
-	float gravity_rate;		/* Gravity strength. (Depends on surface angle.) */
+	unsigned int total_points;
+	short samples;
 
+} PaintSurfaceData;
+
+/* Paint type surface point	*/
+typedef struct PaintPoint {
 
 	/* Wet paint is handled at effect layer only
 	*  and mixed to surface when drying */
 	float e_color[3];
 	float e_alpha;
 	float wetness;
-	short state;	/* 0 = empty or dry
+	short state;	/* -1 = doesn't exist (On UV mapped image
+					*	    there can be points that doesn't exist on mesh surface)
+					*  0 = empty or dry
 					*  1 = wet paint
 					*  2 = new paint */
+	float color[3];
+	float alpha;
+} PaintPoint;
 
+/* iWave type surface point	*/
+typedef struct PaintIWavePoint {		
 
-	/*
-	*	Pixel / mesh data
-	*/
-	int index;			/* face index on domain derived mesh */
-	int v1, v2, v3;		/* vertex indexes */
+	float source;
+	float obstruction;
+	float height, previousHeight;
 
-	int neighbour_pixel;	/* If this pixel isn't uv mapped to any face,
-							but it's neighbouring pixel is */
-	short quad;
-	struct Vec3f *barycentricWeights;	/* b-weights for all pixel samples */
-	float realCoord[3]; /* current pixel center world-space coordinates */
-	float invNorm[3];  /*current pixel world-space inverted normal. depends on smooth/flat shading */
+	float foam;
 
-} PaintSurfacePoint;
+	float verticalDerivative;
 
-typedef struct PaintSurface {
-	
-	struct PaintSurfacePoint *point;
-	int w, h, active_points;
-	short pixelSamples;
-} PaintSurface;
+} PaintIWavePoint;
 
-void dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm);
-
+struct DerivedMesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm);
+void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
+int dynamicPaint_resetSurface(struct DynamicPaintSurface *surface);
+int dynamicPaint_surfaceHasPreview(DynamicPaintSurface *surface);
+void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
+void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basename);
 void dynamicPaint_Modifier_free (struct DynamicPaintModifierData *pmd);
 void dynamicPaint_Modifier_createType(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tsmd);

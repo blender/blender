@@ -1257,13 +1257,21 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			
 			if(pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS)
 			{
+				DynamicPaintSurface *surface;
 				writestruct(wd, DATA, "DynamicPaintCanvasSettings", 1, pmd->canvas);
+				
+				/* write surfaces */
+				for (surface=pmd->canvas->surfaces.first; surface; surface=surface->next)
+					writestruct(wd, DATA, "DynamicPaintSurface", 1, surface);
+				/* write caches */
+				for (surface=pmd->canvas->surfaces.first; surface; surface=surface->next)
+					write_pointcaches(wd, &(surface->ptcaches));
 			}
-			else if(pmd->type & MOD_DYNAMICPAINT_TYPE_PAINT)
+			else if(pmd->type & MOD_DYNAMICPAINT_TYPE_BRUSH && pmd->brush)
 			{
-				writestruct(wd, DATA, "DynamicPaintPainterSettings", 1, pmd->paint);
-				writestruct(wd, DATA, "Material", 1, pmd->paint->mat);
-				writestruct(wd, DATA, "ColorBand", 1, pmd->paint->paint_ramp);
+				writestruct(wd, DATA, "DynamicPaintBrushSettings", 1, pmd->brush);
+				writestruct(wd, DATA, "Material", 1, pmd->brush->mat);
+				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->paint_ramp);
 			}
 		} 
 		else if (md->type==eModifierType_Collision) {

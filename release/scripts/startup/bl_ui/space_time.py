@@ -134,6 +134,7 @@ class TIME_MT_cache(bpy.types.Menu):
         col.prop(st, "cache_particles")
         col.prop(st, "cache_cloth")
         col.prop(st, "cache_smoke")
+        col.prop(st, "cache_dynamicpaint")
 
 
 class TIME_MT_frame(bpy.types.Menu):
