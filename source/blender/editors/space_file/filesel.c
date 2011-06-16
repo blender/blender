@@ -121,6 +121,9 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 
 	/* set the parameters from the operator, if it exists */
 	if (op) {
+		short is_filename= FALSE;
+		short is_dir= FALSE;
+
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
 
 		if(RNA_struct_find_property(op->ptr, "filemode"))
@@ -128,7 +131,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else
 			params->type = FILE_SPECIAL;
 
-		if (RNA_struct_find_property(op->ptr, "filepath") && RNA_property_is_set(op->ptr, "filepath")) {
+		if ((is_dir= is_filename= RNA_struct_find_property(op->ptr, "filepath")!=NULL) && RNA_property_is_set(op->ptr, "filepath")) {
 			char name[FILE_MAX];
 			RNA_string_get(op->ptr, "filepath", name);
 			if (params->type == FILE_LOADLIB) {
@@ -140,12 +143,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			}
 		}
 		else {
-			if (RNA_struct_find_property(op->ptr, "directory") && RNA_property_is_set(op->ptr, "directory")) {
+			if ((is_dir= RNA_struct_find_property(op->ptr, "directory")!=NULL) && RNA_property_is_set(op->ptr, "directory")) {
 				RNA_string_get(op->ptr, "directory", params->dir);
 				sfile->params->file[0]= '\0';
+				is_dir= TRUE;
 			}
 
-			if (RNA_struct_find_property(op->ptr, "filename") && RNA_property_is_set(op->ptr, "filename")) {
+			if ((is_filename= RNA_struct_find_property(op->ptr, "filename")!=NULL) && RNA_property_is_set(op->ptr, "filename")) {
 				RNA_string_get(op->ptr, "filename", params->file);
 			}
 		}
@@ -153,6 +157,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		if(params->dir[0]) {
 			BLI_cleanup_dir(G.main->name, params->dir);
 			BLI_path_abs(params->dir, G.main->name);
+		}
+
+		if(is_dir==TRUE && is_filename==FALSE) {
+			params->flag |= FILE_DIRSEL_ONLY;
+		}
+		else {
+			params->flag &= ~FILE_DIRSEL_ONLY;
 		}
 
 		params->filter = 0;
@@ -216,10 +227,12 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->display= FILE_SHORTDISPLAY;
 		}
 
-	} else {
+	}
+	else {
 		/* default values, if no operator */
 		params->type = FILE_UNIX;
 		params->flag |= FILE_HIDE_DOT;
+		params->flag &= ~FILE_DIRSEL_ONLY;
 		params->display = FILE_SHORTDISPLAY;
 		params->filter = 0;
 		params->filter_glob[0] = '\0';
