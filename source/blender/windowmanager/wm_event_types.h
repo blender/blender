@@ -79,25 +79,47 @@
 #define INBETWEEN_MOUSEMOVE	17
 
 /* NDOF (from SpaceNavigator & friends) */
-#define NDOF_MOTION 0x12
+#define NDOF_MOTION 0x12 // keep in sync with GHOST_NDOFManager.h
 enum {
-	NDOF_BUTTON_NONE = NDOF_MOTION, /* never sent, used internally */
-	NDOF_BUTTON1,
-	NDOF_BUTTON2/*, the following buttons will be supported soon...
-	NDOF_BUTTON3,   and possibly get meaningful names
-	NDOF_BUTTON4,
-	NDOF_BUTTON5,
-	NDOF_BUTTON6,
-	NDOF_BUTTON7,
-	NDOF_BUTTON8,
-	NDOF_BUTTON9,
-	NDOF_BUTTON10,
-	NDOF_BUTTON11,
-	NDOF_BUTTON12,
-	NDOF_BUTTON13,
-	NDOF_BUTTON14,
-	NDOF_BUTTON15,
-	NDOF_BUTTON16*/
+	// used internally, never sent
+	NDOF_BUTTON_NONE = NDOF_MOTION,
+	// these two are available from any 3Dconnexion device
+	NDOF_BUTTON_MENU,
+	NDOF_BUTTON_FIT,
+	// standard views
+	NDOF_BUTTON_TOP,
+	NDOF_BUTTON_BOTTOM,
+	NDOF_BUTTON_LEFT,
+	NDOF_BUTTON_RIGHT,
+	NDOF_BUTTON_FRONT,
+	NDOF_BUTTON_BACK,
+	// more views
+	NDOF_BUTTON_ISO1,
+	NDOF_BUTTON_ISO2,
+	// 90 degree rotations
+	NDOF_BUTTON_ROLL_CW,
+	NDOF_BUTTON_ROLL_CCW,
+	NDOF_BUTTON_SPIN_CW,
+	NDOF_BUTTON_SPIN_CCW,
+	NDOF_BUTTON_TILT_CW,
+	NDOF_BUTTON_TILT_CCW,
+	// device control
+	NDOF_BUTTON_ROTATE,
+	NDOF_BUTTON_PANZOOM,
+	NDOF_BUTTON_DOMINANT,
+	NDOF_BUTTON_PLUS,
+	NDOF_BUTTON_MINUS,
+	// general-purpose buttons
+	NDOF_BUTTON_1,
+	NDOF_BUTTON_2,
+	NDOF_BUTTON_3,
+	NDOF_BUTTON_4,
+	NDOF_BUTTON_5,
+	NDOF_BUTTON_6,
+	NDOF_BUTTON_7,
+	NDOF_BUTTON_8,
+	NDOF_BUTTON_9,
+	NDOF_BUTTON_10,
 	};
 
 

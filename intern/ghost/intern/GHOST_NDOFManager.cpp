@@ -97,7 +97,7 @@ static const NDOF_ButtonT SpaceExplorer_HID_map[] =
 	NDOF_BUTTON_ROTATE
 	};
 
-static const NDOF_ButtonT SpacePilot_HID_map[] =
+static const NDOF_ButtonT SpacePilotPro_HID_map[] =
 	{
 	NDOF_BUTTON_MENU,
 	NDOF_BUTTON_FIT,
@@ -134,7 +134,7 @@ static const NDOF_ButtonT SpacePilot_HID_map[] =
 
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	: m_system(sys)
-	, m_deviceType(SpacePilot) // set it manually, until device detection code is in place
+	, m_deviceType(NDOF_UnknownDevice) // each platform needs its own device detection code
 	, m_buttons(0)
 	, m_motionTime(1000) // one full second (operators should filter out such large time deltas)
 	, m_prevMotionTime(0)
@@ -197,10 +197,10 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 
 	switch (m_deviceType)
 		{
-		case SpaceNavigator:
+		case NDOF_SpaceNavigator:
 			sendButtonEvent(SpaceNavigator_HID_map[button_number], press, time, window);
 			break;
-		case SpaceExplorer:
+		case NDOF_SpaceExplorer:
 			switch (button_number)
 				{
 				case 6: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
@@ -210,16 +210,18 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 				default: sendButtonEvent(SpaceExplorer_HID_map[button_number], press, time, window);
 				}
 			break;
-		case SpacePilot:
+		case NDOF_SpacePilotPro:
 			switch (button_number)
 				{
 				case 22: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
 				case 23: sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window); break;
 				case 24: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
 				case 25: sendKeyEvent(GHOST_kKeyLeftControl, press, time, window); break;
-				default: sendButtonEvent(SpacePilot_HID_map[button_number], press, time, window);
+				default: sendButtonEvent(SpacePilotPro_HID_map[button_number], press, time, window);
 				}
 			break;
+		case NDOF_UnknownDevice:
+			printf("button %d on unknown device (not sent)\n", button_number);
 		}
 
 	int mask = 1 << button_number;

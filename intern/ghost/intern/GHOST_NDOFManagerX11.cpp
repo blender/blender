@@ -33,6 +33,34 @@ GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
 	if (spnav_open() != -1)
 		{
 		m_available = true;
+
+		// determine exactly which device is plugged in
+
+		#define MAX_LINE_LENGTH 100
+
+		// look for USB devices with Logitech's vendor ID
+		FILE* command_output = popen("lsusb -d 046d:","r");
+		if (command_output)
+			{
+			char line[MAX_LINE_LENGTH] = {0};
+			while (fgets(line, MAX_LINE_LENGTH, command_output))
+				{
+				unsigned short vendor_id = 0, product_id = 0;
+				if (sscanf(line, "Bus %*d Device %*d: ID %hx:%hx", &vendor_id, &product_id) == 2)
+					{
+					// the following code will live in the base class
+					// once all platforms have device detection
+					switch (product_id)
+						{
+						case 0xc626: m_deviceType = NDOF_SpaceNavigator; break;
+						case 0xc627: m_deviceType = NDOF_SpaceExplorer; break;
+						case 0xc629: m_deviceType = NDOF_SpacePilotPro; break;
+						default: printf("unknown product ID: %04x\n", product_id);
+						}
+					}
+				}
+			pclose(command_output);
+			}
 		}
 	else
 		{
