@@ -170,8 +170,8 @@ void AnimationImporter::fcurve_deg_to_rad(FCurve *cu)
 	for (unsigned int i = 0; i < cu->totvert; i++) {
 		// TODO convert handles too
 		cu->bezt[i].vec[1][1] *= M_PI / 180.0f;
-		/*cu->bezt[i].vec[0][1] *= M_PI / 180.0f;
-		cu->bezt[i].vec[2][1] *= M_PI / 180.0f;*/
+		cu->bezt[i].vec[0][1] *= M_PI / 180.0f;
+		cu->bezt[i].vec[2][1] *= M_PI / 180.0f;
 		cu->bezt[i].vec[1][0];
 	}
 }
@@ -677,8 +677,8 @@ void AnimationImporter:: Assign_transform_animations(std::vector<float>* frames,
 					FCurve* fcu = *iter;
 	                                
 					//if transform is rotation the fcurves values must be turned in to radian.
-					/*if (is_rotation)
-						fcurve_deg_to_rad(fcu);	*/	 
+					if (is_rotation)
+						fcurve_deg_to_rad(fcu);		 
 				}					
 				COLLADAFW::Rotate* rot = (COLLADAFW::Rotate*)transform;
 				COLLADABU::Math::Vector3& axis = rot->getRotationAxis();
@@ -735,6 +735,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 	armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
 	
 	bAction * act;
+	bActionGroup *grp = NULL;
     
 	if (!ob->adt || !ob->adt->action) act = verify_adt_action((ID*)&ob->id, 1);
 	            else act = ob->adt->action;
@@ -765,8 +766,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 		copy_m4_m4(rest, bone->arm_mat);
 		invert_m4_m4(irest, rest);
 	}
-
-
+    
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
 	
 	//for each transformation in node 
@@ -803,7 +803,10 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 			            //Add the curves of the current animation to the object
 						for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 							FCurve * fcu = *iter;
-							BLI_addtail(AnimCurves, fcu);	
+							 if (ob->type == OB_ARMATURE) 
+								add_bone_fcurve( ob, node , fcu );
+							 else 
+							 BLI_addtail(AnimCurves, fcu);	
 						}	 			
 				}
 			 std::sort(frames.begin(), frames.end());
@@ -812,7 +815,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 			if (is_joint) 
 			{
 				bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
-				chan->rotmode = ROT_MODE_QUAT;
+				chan->rotmode = ROT_MODE_EUL;
 			}
 			else 
 			{

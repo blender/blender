@@ -256,7 +256,7 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 
 	COLLADAFW::NodePointerArray &children = node->getChildNodes();
 	for (i = 0; i < children.getCount(); i++) {
-		translate_anim_recursive(children[i], node, ob);
+		translate_anim_recursive(children[i], node, NULL);
 	}
 }
 

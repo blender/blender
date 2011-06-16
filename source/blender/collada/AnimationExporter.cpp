@@ -86,35 +86,43 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		//}
 	}
 
-	/*float * AnimationExporter::get_eul_source_for_quat(Object *ob )
+	float * AnimationExporter::get_eul_source_for_quat(Object *ob )
 	{
 		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
-		const int keys = fcu->totvert;    
-		float quat[keys][4];
-		float eul[keys][3];
+		const int keys = fcu->totvert;  
+		float *quat = (float*)MEM_callocN(sizeof(float) * fcu->totvert * 4, "quat output source values");  
+		float *eul = (float*)MEM_callocN(sizeof(float) * fcu->totvert * 3, "quat output source values");
+		float temp_quat[4];
+		float temp_eul[3];
 			while(fcu)
 			{
-				transformName = extract_transform_name( fcu->rna_path );
+				char * transformName = extract_transform_name( fcu->rna_path );
 				
 				if( !strcmp(transformName, "rotation_quaternion") ) 
 				{ 
-					for ( int i = 0 ; i < fcu->totvert ; i+=) 
+					for ( int i = 0 ; i < fcu->totvert ; i++) 
 					{
-						quat[i][fcu->array_index] = fcu->bezt[i].vec[1][1];
+						*(quat + ( i * 4 ) + fcu->array_index) = fcu->bezt[i].vec[1][1];
 					}
 				}
-
 					fcu = fcu->next;
 			}
 
-			for ( int i = 0 ; i < fcu->totvert ; i+=) 
+			for ( int i = 0 ; i < fcu->totvert ; i++) 
 			{
-				quat_to_eul(eul[i],quat[i]);				
+				for ( int j = 0;j<4;j++)
+					temp_quat[j] = quat[(i*4)+j];
+
+				quat_to_eul(temp_eul,temp_quat);
+
+				for (int k = 0;k<3;k++)
+					eul[i*3 + k] = temp_eul[k];
+
 			}
 
 		return eul;
 
-	}*/
+	}
 	std::string AnimationExporter::getObjectBoneName( Object* ob,const FCurve* fcu ) 
 	{
 		//hard-way to derive the bone name from rna_path. Must find more compact method
@@ -134,15 +142,16 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		
 		const char *axis_name = NULL;
 		char anim_id[200];
+		
 		bool has_tangents = false;
 		bool quatRotation = false;
 		
 		if ( !strcmp(transformName, "rotation_quaternion") )
 		{
-			//quatRotation = true;
-			const char *axis_names[] = {"", "X", "Y", "Z"};
+			quatRotation = true;
+			/*const char *axis_names[] = {"", "X", "Y", "Z"};
 			if (fcu->array_index < 4)
-			axis_name = axis_names[fcu->array_index];
+			axis_name = axis_names[fcu->array_index];*/
 		}
 
 		else
@@ -173,7 +182,19 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		std::string input_id = create_source_from_fcurve(COLLADASW::InputSemantic::INPUT, fcu, anim_id, axis_name);
 
 		// create output source
-		std::string output_id = create_source_from_fcurve(COLLADASW::InputSemantic::OUTPUT, fcu, anim_id, axis_name);
+		std::string output_id ;
+	    
+		/*if(quatRotation) 
+		{
+            float * eul  = get_eul_source_for_quat(ob);
+			float * eul_axis = 
+				for ( int i = 0 ; i< fcu->totvert ; i++)
+					eul_axis[i] = eul[i*3 + fcu->array_index];
+			output_id= create_source_from_array(COLLADASW::InputSemantic::OUTPUT, eul_axis , fcu->totvert, quatRotation, anim_id, axis_name);
+		}
+		 else*/ 
+		
+		output_id= create_source_from_fcurve(COLLADASW::InputSemantic::OUTPUT, fcu, anim_id, axis_name);
 
 		// create interpolations source
 		std::string interpolation_id = create_interpolation_source(fcu, anim_id, axis_name, &has_tangents);

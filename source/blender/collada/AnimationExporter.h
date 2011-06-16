@@ -112,9 +112,7 @@ protected:
 	
     void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool rotation, float *values, int *length);
 	
-	/*float * get_eul_source_for_quat(Object *ob );*/
-
-	/*std::string create_source_from_array(COLLADASW::InputSemantic::Semantics semantic, float *v, int tot, const std::string& anim_id, int array_index);*/
+    float * get_eul_source_for_quat(Object *ob );
 
 	std::string create_source_from_fcurve(COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id, const char *axis_name);
 
