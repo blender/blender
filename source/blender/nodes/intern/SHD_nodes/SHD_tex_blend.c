@@ -46,11 +46,11 @@ static float blend(float p[3], int type, int axis)
 		return (1.0f + x)/2.0f;
 	}
 	else if(type == SHD_BLEND_QUADRATIC) {
-		float r = fmaxf((1.0f + x)/2.0f, 0.0f);
+		float r = MAX2((1.0f + x)/2.0f, 0.0f);
 		return r*r;
 	}
 	else if(type == SHD_BLEND_EASING) {
-		float r = fminf(fmaxf((1.0f + x)/2.0f, 0.0f), 1.0f);
+		float r = MIN2(MAX2((1.0f + x)/2.0f, 0.0f), 1.0f);
 		float t = r*r;
 		
 		return (3.0f*t - 2.0f*t*r);
@@ -62,7 +62,7 @@ static float blend(float p[3], int type, int axis)
 		return atan2(y, x)/(2.0f*(float)M_PI) + 0.5f;
 	}
 	else {
-		float r = fmaxf(1.0f - sqrtf(x*x + y*y + p[2]*p[2]), 0.0f);
+		float r = MAX2(1.0f - sqrtf(x*x + y*y + p[2]*p[2]), 0.0f);
 
 		if(type == SHD_BLEND_QUADRATIC_SPHERE)
 			return r*r;
