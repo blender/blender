@@ -1612,8 +1612,6 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 	Mesh *me = ob->data;
 	float colf[4], input = 0.0f, unsel_sum = 0.0f;// Jason
 	int i;
-	//Jason, a dw might be absent from dvert, so count the dw's you find
-	// to see if it should be disabled in multipaint
 	int cnt = 0;
 	char make_black = FALSE;
 
@@ -1622,12 +1620,10 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 			// Jason was here
 			if(multipaint && selected > 1) {
 				if(dg_flags[me->dvert[vert].dw[i].def_nr]) {
-					if(!me->dvert[vert].dw[i].weight) {
-						make_black = TRUE;
-						break;
+					if(me->dvert[vert].dw[i].weight) {
+						input+=me->dvert[vert].dw[i].weight;
+						cnt++;
 					}
-					input+=me->dvert[vert].dw[i].weight;
-					cnt++;
 				}
 				// TODO unselected non-bone groups should not be involved in this sum
 				else if(auto_normalize) {
@@ -1638,11 +1634,11 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 			}
 		}
 		// Jason was here
-		if(multipaint && selected > 1 && !make_black) {
-			if(cnt!=selected || input == 1.0f && auto_normalize && !unsel_sum) {
+		if(multipaint && selected > 1) {
+			if(cnt == 0 || input == 1.0f && auto_normalize && !unsel_sum) {
 				make_black = TRUE;
-			} else {
-				input/=selected;
+			} else if (!auto_normalize){
+				input /= selected;
 			}
 		}
 	}

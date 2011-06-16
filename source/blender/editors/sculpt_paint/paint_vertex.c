@@ -1029,7 +1029,7 @@ static void do_weight_paint_auto_normalize(MDeformVert *dvert,
 	}
 }
 // Jason was here: the active group should be involved in auto normalize
-static void do_weight_paint_auto_normalize_change_act_group(MDeformVert *dvert, char *map)
+static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, char *map)
 {
 //	MDeformWeight *dw = dvert->dw;
 	float sum=0.0f, fac=0.0f;
@@ -1107,22 +1107,7 @@ static int has_locked_group_selected(int defcnt, char *selection, char *flags) {
 	}
 	return FALSE;
 }
-/* Jason was here */
-static float get_change_allowed_from_unlocked_bone_groups(MDeformVert *dvert, int def_nr, int defcnt, char *selection, int pos, char *flags, char *bone_groups) {
-	int i;
-	float allowed_totchange = 0.0f;
-	for(i = 0; i < defcnt; i++) {
-		if(def_nr != i && bone_groups[i] && !selection[i] && !flags[i]) {
-			// positive change
-			if(pos == 1) {
-				allowed_totchange -= 1-defvert_verify_index(dvert, i)->weight;
-			} else {//negative change
-				allowed_totchange -= defvert_verify_index(dvert, i)->weight;
-			}
-		}
-	}
-	return allowed_totchange;
-}
+
 /* Jason was here */
 static int has_unselected_unlocked_bone_group(int defcnt, char *selection, int selected, char *flags, char *bone_groups) {
 	int i;
@@ -1136,216 +1121,222 @@ static int has_unselected_unlocked_bone_group(int defcnt, char *selection, int s
 	}
 	return FALSE;
 }
-/*
-The idea behind this function is to get the difference in weight,
-and to redistribute that weight to the unlocked groups
-(if it has to, then it will put some/all of the change
-back onto the original group)
-*/
-static void redistribute_weight_change(Object *ob, MDeformVert *dvert, int index, int def_nr, int multipaint, char *selection, int selected, float change_left, char* flags, int defcnt, char *map)
-{
+
+/*Jason*/
+static void multipaint_selection(MDeformVert *dvert, float change, char *selection, int defcnt) {
 	int i;
-	float old_change_left;
-	// make sure the redistribution the same per loop.
-	float change;
-	char was_a_change;
-	int groups_left_that_can_change = 0;
-	char* change_status = MEM_mallocN(defcnt*sizeof(char), "defflags");
 	MDeformWeight *dw;
+	// make sure they are all at most 1 after the change
 	for(i = 0; i < defcnt; i++) {
-		if(def_nr == i || (multipaint && selection[i]) || !map[i]) {
-			change_status[i] = FALSE;
-		} else {
-			change_status[i] = !flags[i];
-		}
-		if(change_status[i]) {
-			groups_left_that_can_change++;
-			defvert_verify_index(dvert, i);
-		}
-	}
-	if(groups_left_that_can_change > 0) {
-		change = change_left/groups_left_that_can_change;
-		/* the division could cause it to be zero, so if it is, forget it*/
-		if(change == 0) {
-			change = change_left;
-		}
-		do {
-			was_a_change = FALSE;
-			for(i = 0; i < dvert->totweight; i++) {
-				dw = defvert_verify_index(dvert, i);
-				if(!change_status[dw->def_nr]) {
-					continue;
-				}
-
-				old_change_left = change_left;
-				change_left -= change;
-				// sign change?
-				if(change_left!=0 && change_left/fabs(change_left) != old_change_left/fabs(old_change_left)) {
-					change_left = old_change_left;
-					break;
-				} else {
-					dw->weight += change;
-				}
-				if(dw->weight >= 1.0f) {
-
-					change_left += dw->weight-1.0f;
-					dw->weight = 1.0f;
-					groups_left_that_can_change--;
-					change_status[dw->def_nr] = FALSE;
-
-				}else if(dw->weight <= 0.0f) {
-
-					change_left += dw->weight;
-					dw->weight = 0.0f;
-					groups_left_that_can_change--;
-					change_status[dw->def_nr] = FALSE;
-				}
-				/* if it was too small, don't get stuck in an infinite loop! */
-				if(old_change_left != change_left) {
-					was_a_change = TRUE;
+		if(selection[i]) {
+			dw = defvert_find_index(dvert, i);
+			if(dw && dw->weight) {
+				if(dw->weight * change > 1) {
+					change = 1.0f/dw->weight;
 				}
 			}
-		} while(groups_left_that_can_change > 0 && change_left != 0.0f && was_a_change);
-	}
-	// now it should never have any left, unless there are precision problems
-	// add any remaining change back to the original weight
-	if(change_left > 0) {
-		if(multipaint) {
-			for(i = 0; i < defcnt; i++) {
-				if(selection[i]) {
-					defvert_find_index(dvert, i)->weight += change_left/selected;
-				}
-			}
-		} else {
-			defvert_find_index(dvert, def_nr)->weight += change_left;
 		}
 	}
-	MEM_freeN(change_status);
+	for(i = 0; i < defcnt; i++) {
+		if(selection[i]) {
+			dw = defvert_find_index(dvert, i);
+			if(dw && dw->weight) {
+				dw->weight = dw->weight * change;
+			}
+		}
+	}
 }
-/* Jason */
-/* get the change that is needed to get a valid multipaint (if it can)*/
-static float get_valid_multipaint_change(MDeformVert *dvert, float neww, float oldw, float allowed_totchange, char* validmap, char* bone_groups, char* selection, int defcnt) {
-	int i;
+/*Jason*/
+static float redistribute_change(MDeformVert *ndv, char *change_status, int changeme, int changeto, char *validmap, float totchange, float total_valid) {
+	float was_change;
 	float change;
-	float tchange;
-	MDeformWeight *w;
-	float val;
-	// see if you need to do anything (if it is normalized)
-	float sumw = 0.0f;
-	if(allowed_totchange == 0 || oldw == 0 || !selection) {
-		return FALSE;
-	}
-	change = neww/oldw;
-	if(change == 1 || !change) {
-		return FALSE;
-	}
-	// see if all changes are valid before doing any
-	for(i = 0; i < defcnt; i++) {
-		if(!selection[i] || !bone_groups[i]) {
-			continue;
-		}
-		w = defvert_verify_index(dvert, i);
-		// already reached the cap
-		if(change > 1 && w->weight==1) {
-			return FALSE;
-		}
-		if(w->weight == 0) {
-			if(selection[i]) {
-				return FALSE;
-			}
-			continue;
-		}
-		val = w->weight*change;
-		// no success here-I'm not going to force it to try to be just above 0 by changing 'change'
-		if(val <= 0) {
-			return FALSE;
-		}
-		if (validmap){
-			sumw += w->weight;
-		}else if(val > 1) {
-			// use the transitive property to make magic, all of the others
-			// will still end up within the boundaries if the worst case does
-			change = 1.0f/w->weight;
-		}
-	}
-	if(validmap && sumw == 1.0f) {
-		return FALSE;
-	}
-	if(allowed_totchange>0) {
-		for(i = 0; i < defcnt; i++) {
-			w = defvert_find_index(dvert, i);
-			if(w && selection[i] && bone_groups[i]) {
-				tchange += w->weight*change;
-			}
-		}
-		tchange = tchange/allowed_totchange;
-		if(tchange < change) {
-			change = tchange;
-		}
-	}
-	return change;
-}
-static float multipaint_vgroups(MDeformVert *dvert, float change, char* bone_groups, char* selection) {
+	float oldval;
+	MDeformWeight *ndw;
 	int i;
-	float totchange = 0.0f;
-	float old;
-	MDeformWeight *w;
-	for(i = 0; i < dvert->totweight; i++) {
-		w = (dvert->dw+i);
-		if(!bone_groups[w->def_nr] || !selection[w->def_nr] || w->weight == 0) {
-			continue;
+	do {
+		was_change = FALSE;
+		change = totchange/total_valid;
+		for(i = 0; i < ndv->totweight && total_valid && totchange; i++) {
+			ndw = (ndv->dw+i);
+			if(change_status[ndw->def_nr] == changeme) {
+				oldval = ndw->weight;
+				if(!validmap && ndw->weight + change > 1) {
+					totchange -= 1-ndw->weight;
+					ndw->weight = 1;
+					change_status[ndw->def_nr] = changeto;
+					total_valid--;
+				} else if(ndw->weight + change < 0) {
+					totchange -= ndw->weight;
+					ndw->weight = 0;
+					change_status[ndw->def_nr] = changeto;
+					total_valid--;
+				} else {
+					totchange -= change;
+					ndw->weight += change;
+				}
+				if(oldval != ndw->weight) {
+					was_change = TRUE;
+				}
+			}
 		}
-		old = w->weight;
-		w->weight *= change;
-		totchange += w->weight - old;
-	}
+	}while(was_change && total_valid && totchange);
 	return totchange;
 }
-/* Jason */
-static void check_locks_and_normalize(Object *ob, Mesh *me, int index, int vgroup, MDeformWeight *dw, float oldw, char *validmap, char *flags, int defcnt, char *bone_groups, char *selection, int selected, int multipaint)
-{
-	float change=0.0f;
-	float totchange=0.0f;
-	float allowed_totchange;
-	int def_nr = dw->def_nr;
-	float orig_change = oldw-dw->weight;
-	float neww = dw->weight;
-	dw->weight = oldw;
-	if(flags && (has_locked_group(me->dvert+index, flags) || flags[dw->def_nr])) {
-		if(flags[dw->def_nr] || (multipaint && has_locked_group_selected(defcnt, selection, flags)) || !has_unselected_unlocked_bone_group(defcnt, selection, selected, flags, bone_groups)) {
-			// cannot change locked groups!
-		} else if((allowed_totchange = get_change_allowed_from_unlocked_bone_groups(me->dvert+index, def_nr, defcnt, selection, (int)(fabs(orig_change)/orig_change), flags, bone_groups)) != 0) {
-			dw = defvert_find_index(me->dvert+index, def_nr);
-			if (multipaint && selected > 1) {
-				if(selection[dw->def_nr] && (change = get_valid_multipaint_change(me->dvert+index, neww, oldw, allowed_totchange, validmap, bone_groups, selection, defcnt))) {
-					totchange = multipaint_vgroups(me->dvert+index, change, bone_groups, selection);
-					if(totchange !=0){
-						redistribute_weight_change(ob, me->dvert+index, index, def_nr, multipaint, selection, selected, totchange, flags, defcnt, bone_groups);
-					}
-				}
-			} else if(bone_groups[dw->def_nr]) {
-				totchange = oldw - neww;
-				if(fabs(totchange) > fabs(allowed_totchange)) {
-					totchange = allowed_totchange;
-				}
-				if(totchange !=0){
-					redistribute_weight_change(ob, me->dvert+index, index, def_nr, FALSE, selection, selected, totchange, flags, defcnt, bone_groups);
-					dw->weight -= totchange;
-				}
+/*Jason*/
+static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defcnt, char *flags, char *bone_groups, char *validmap) {
+	float totchange = 0.0f;
+	float totchange_allowed = 0.0f;
+	float left_over;
+	float change;
+	int total_valid = 0;
+	int total_changed = 0;
+	int i;
+	MDeformWeight *ndw;
+	MDeformWeight *odw;
+	MDeformWeight *ndw2;
+	MDeformWeight *odw2;
+	int designatedw = -1;
+	int designatedw_changed = FALSE;
+	float storedw;
+	char *change_status;
+	char new_weight_has_zero = FALSE;
+
+	if(!flags || !has_locked_group(ndv, flags)) {
+		return;
+	}
+
+	change_status = MEM_callocN(sizeof(char)*defcnt, "unlocked_unchanged");
+
+	for(i = 0; i < defcnt; i++) {
+		ndw = defvert_find_index(ndv, i);
+		odw = defvert_find_index(odv, i);
+		if(!ndw || !odw) {
+			if (!flags[i] && bone_groups[i]){
+				defvert_verify_index(odv, i);
+				defvert_verify_index(ndv, i);
+				total_valid++;
+				change_status[i] = 1; // can be altered while redistributing
 			}
+			continue;
 		}
-	} else if(bone_groups[dw->def_nr]) {
-		if(multipaint && selected > 1) {
-			// try to alter the other bone groups in the dvert with the changed dw if possible, if it isn't, change it back
-			if(selection[dw->def_nr] && (change = get_valid_multipaint_change(me->dvert+index, neww, oldw, -1, validmap, bone_groups, selection, defcnt))) {
-				multipaint_vgroups(me->dvert+index, change, bone_groups, selection);
+		if(flags[i]) {
+			ndw->weight = odw->weight;
+		} else if(ndw->weight != odw->weight) {
+			totchange += ndw->weight-odw->weight;
+			change_status[i] = 2; // was altered already
+			total_changed++;
+			if(ndw->weight == 0) {
+				new_weight_has_zero = TRUE;
+			} else if(!designatedw){
+				designatedw = i;
 			}
-		}else {
-			dw->weight = neww;
+		} else if (bone_groups[i]){
+			totchange_allowed += ndw->weight;
+			total_valid++;
+			change_status[i] = 1; // can be altered while redistributing
 		}
 	}
-	do_weight_paint_auto_normalize_change_act_group(me->dvert+index, validmap);
+	if(total_changed) {
+		if(totchange_allowed) {
+			if(totchange < 0) {
+				totchange_allowed = total_valid - totchange_allowed;
+			} else {
+				totchange_allowed *= -1;
+			}
+			left_over = 0;
+			if(fabs(totchange_allowed) < fabs(totchange)) {
+				left_over = fabs(fabs(totchange)-fabs(totchange_allowed));
+				if(totchange > 0) {
+					left_over *= -1;
+				}
+			}else {
+				totchange_allowed = -totchange;
+			}
+			// move the weight evenly between the allowed groups, move excess back onto the used groups based on the change
+			totchange_allowed = redistribute_change(ndv, change_status, 1, -1, validmap, totchange_allowed, total_valid);
+			left_over += totchange_allowed;
+			if(left_over) {
+				// more than one nonzero weights were changed with the same ratio, so keep them changed that way!
+				if(total_changed > 1 && !new_weight_has_zero) {
+					ndw = defvert_find_index(ndv, designatedw);
+					odw = defvert_find_index(odv, designatedw);
+					storedw = ndw->weight;
+					for(i = 0; i < ndv->totweight; i++) {
+						if(change_status[ndw->def_nr] == 2) {
+							odw2 = (odv->dw+i);
+							ndw2 = (ndv->dw+i);
+							if(!designatedw_changed) {
+								ndw->weight = (totchange_allowed + odw->weight + odw2->weight)/(1 + ndw2->weight/ndw->weight);
+								designatedw_changed = TRUE;
+							}
+							ndw2->weight = ndw->weight*ndw2->weight/storedw;
+						}
+					}
+				}
+				// a weight was changed to zero, or only one weight was changed
+				// put weight back as evenly as possible
+				else {
+					redistribute_change(ndv, change_status, 2, -2, validmap, left_over, total_changed);
+				}
+			}
+		} else {
+			// reset the weights
+			for(i = 0; i < ndv->totweight; i++) {
+				(ndv->dw+i)->weight = (odv->dw+i)->weight;
+			}
+		}
+	}
+
+	MEM_freeN(change_status);
 }
+/*Jason*/
+static float get_mp_change(MDeformVert *odv, char *selection, float oldw, float neww) {
+	int i;
+
+	if(oldw) {
+		return neww/oldw;
+	}
+
+	for(i = 0; i < odv->totweight; i++) {
+		if(selection[(odv->dw+i)->def_nr]) {
+			if((odv->dw+i)->weight) {
+				return ((odv->dw+i)->weight+neww) / (odv->dw+i)->weight;
+			}
+		}
+	}
+	return 0;
+}
+/*Jason*/
+/* fresh start to make multi-paint and locking modular */
+static void apply_mp_lcks_normalize(Object *ob, Mesh *me, int index, MDeformWeight *dw, int defcnt, float oldw, char *selection, int selected, char *bone_groups, char *validmap, char *flags, int multipaint) {
+	MDeformVert *dvert = me->dvert+index;
+	MDeformVert *dv = MEM_mallocN(sizeof (*(me->dvert+index)), "oldMDeformVert");
+	float neww = dw->weight;
+	float change = 0.0f;
+	int i;
+	dw->weight = oldw;
+
+	//defvert_copy(dv, dvert);
+	dv->dw= MEM_dupallocN(dvert->dw);
+	dv->flag = dvert->flag;
+	dv->totweight = dvert->totweight;
+
+	if(!flags || flags && !has_locked_group_selected(defcnt, selection, flags) && !flags[dw->def_nr]) {// !flags[dw->def_nr] helps if nothing is selected, but active group is locked
+		if(multipaint && selected > 1 && (change = get_mp_change(dv, selection, oldw, neww)) && change!=1) {
+			multipaint_selection(dvert, change, selection, defcnt);
+		} else {
+			dw->weight = neww;
+			change = 0.0f;
+		}
+	}
+	enforce_locks(dv, dvert, defcnt, flags, bone_groups, validmap);
+
+	do_weight_paint_auto_normalize_all_groups(dvert, validmap);
+	
+	MEM_freeN(dv->dw);
+	MEM_freeN(dv);
+}
+
 /* Jason was here duplicate function I used in DerivedMesh.c*/
 static char* get_selected_defgroups(Object *ob, int defcnt) {
 	bPoseChannel *chan;
@@ -1426,7 +1417,8 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	oldw = dw->weight;
 	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
 	/* Jason was here */
-	check_locks_and_normalize(ob, me, index, vgroup, dw, oldw, validmap, flags, defcnt, bone_groups, selection, selected, multipaint);
+	apply_mp_lcks_normalize(ob, me, index, dw, defcnt, oldw, selection, selected, bone_groups, validmap, flags, multipaint);
+	//check_locks_and_normalize(ob, me, index, vgroup, dw, oldw, validmap, flags, defcnt, bone_groups, selection, selected, multipaint);
 	// dvert may have been altered greatly
 	dw = defvert_find_index(me->dvert+index, vgroup);
 
@@ -1443,7 +1435,8 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 
 			uw->weight= dw->weight;
 			/* Jason */
-			check_locks_and_normalize(ob, me, j, vgroup, uw, oldw, validmap, flags, defcnt, bone_groups, selection, selected, multipaint);
+			apply_mp_lcks_normalize(ob, me, j, uw, defcnt, oldw, selection, selected, bone_groups, validmap, flags, multipaint);
+			//check_locks_and_normalize(ob, me, j, vgroup, uw, oldw, validmap, flags, defcnt, bone_groups, selection, selected, multipaint);
 		}
 	}
 	/* Jason */
