@@ -181,7 +181,7 @@ static void rna_DynamicPaint_uses_cache_set(PointerRNA *ptr, int value)
 }
 
 
-static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	DynamicPaintSurface *surface= (DynamicPaintSurface*)ptr->data;
 
@@ -514,7 +514,7 @@ static void rna_def_dynamic_paint_canvas_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bake Info", "Info on bake status");
 }
 
-static void rna_def_dynamic_paint_painter_settings(BlenderRNA *brna)
+static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -667,7 +667,7 @@ static void rna_def_dynamic_paint_painter_settings(BlenderRNA *brna)
 void RNA_def_dynamic_paint(BlenderRNA *brna)
 {
 	rna_def_dynamic_paint_canvas_settings(brna);
-	rna_def_dynamic_paint_painter_settings(brna);
+	rna_def_dynamic_paint_brush_settings(brna);
 }
 
 #endif

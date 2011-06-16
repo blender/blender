@@ -92,7 +92,6 @@ struct PointCache;
 struct Scene;
 struct SmokeModifierData;
 struct SoftBody;
-struct DynamicPaintModifierData;
 
 /* temp structure for read/write */
 typedef struct PTCacheData {
