@@ -1892,6 +1892,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 						case SEQ_TRANSFORM:
 							writestruct(wd, DATA, "TransformVars", 1, seq->effectdata);
 							break;
+						case SEQ_TITLECARD:
+							writestruct(wd, DATA, "TitleCardVars", 1, seq->effectdata);
+							break;
 						}
 					}
 					

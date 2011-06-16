@@ -98,9 +98,10 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 	{SEQ_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
 	{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
 	{SEQ_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
-	{SEQ_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
+	{SEQ_SPEED, "SPEED", 0, "Speed", ""},
 	{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
 	{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+	{SEQ_TITLECARD, "TITLE_CARD", 0, "Title Card", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -408,6 +409,7 @@ int event_to_efftype(int event)
 	if(event==16) return SEQ_COLOR;
 	if(event==17) return SEQ_SPEED;
 	if(event==18) return SEQ_ADJUSTMENT;
+	if(event==19) return SEQ_TITLECARD;
 	return 0;
 }
 
@@ -520,7 +522,8 @@ static void change_sequence(Scene *scene)
 				"|Transform%x15"
 				"|Color Generator%x16"
 				"|Speed Control%x17"
-				"|Adjustment Layer%x18");
+				"|Adjustment Layer%x18"
+				"|Title Card%x19");
 		if(event > 0) {
 			if(event==1) {
 				SWAP(Sequence *,last_seq->seq1,last_seq->seq2);

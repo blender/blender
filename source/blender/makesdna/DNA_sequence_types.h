@@ -227,6 +227,14 @@ typedef struct SolidColorVars {
 	float pad;
 } SolidColorVars;
 
+typedef struct TitleCardVars {
+	char titlestr[64];
+	char subtitle[128];
+	
+	float fgcol[3];
+	float bgcol[3];
+} TitleCardVars;
+
 typedef struct SpeedControlVars {
 	float * frameMap;
 	float globalSpeed;
@@ -314,7 +322,8 @@ typedef struct SpeedControlVars {
 #define SEQ_SPEED               29
 #define SEQ_MULTICAM            30
 #define SEQ_ADJUSTMENT          31
-#define SEQ_EFFECT_MAX          31
+#define SEQ_TITLECARD			40
+#define SEQ_EFFECT_MAX          40
 
 #define STRIPELEM_FAILED       0
 #define STRIPELEM_OK           1
