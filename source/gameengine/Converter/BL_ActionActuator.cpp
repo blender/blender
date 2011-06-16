@@ -152,6 +152,10 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	short play_mode = BL_Action::ACT_MODE_PLAY;
 	float start = m_startframe, end = m_endframe;
 
+	// If we don't have an action, we can't do anything
+	if (!m_action)
+		return false;
+
 	// Don't do anything if we're not "active"
 	if (!frame)
 		return true;
