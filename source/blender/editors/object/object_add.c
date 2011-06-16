@@ -823,8 +823,6 @@ static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 
-	if(islamp) reshadeall_displist(scene);	/* only frees displist */
-
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
 	

@@ -120,22 +120,25 @@ def expand(line, cursor, namespace, private=True):
         from . import complete_calltip
         matches, word, scrollback = complete_calltip.complete(line,
             cursor, namespace)
+        prefix = os.path.commonprefix(matches)[len(word):]
         no_calltip = False
     else:
         matches, word = complete(line, cursor, namespace, private)
+        prefix = os.path.commonprefix(matches)[len(word):]
         if len(matches) == 1:
             scrollback = ''
         else:
             # causes blender bug [#27495] since string keys may contain '.'
             # scrollback = '  '.join([m.split('.')[-1] for m in matches])
+            word_prefix = word + prefix
             scrollback = '  '.join(
-                    [m[len(word):]
-                     if (word and m.startswith(word))
+                    [m[len(word_prefix):]
+                     if (word_prefix and m.startswith(word_prefix))
                      else m.split('.')[-1]
                      for m in matches])
 
         no_calltip = True
-    prefix = os.path.commonprefix(matches)[len(word):]
+
     if prefix:
         line = line[:cursor] + prefix + line[cursor:]
         cursor += len(prefix)

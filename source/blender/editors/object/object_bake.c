@@ -858,29 +858,7 @@ static void finish_images(MultiresBakeRender *bkr)
 		if(ibuf->x<=0 || ibuf->y<=0)
 			continue;
 
-		/* Margin */
-		if(bkr->bake_filter) {
-			char *temprect;
-
-			/* extend the mask +2 pixels from the image,
-			 * this is so colors dont blend in from outside */
-
-			for(i=0; i<bkr->bake_filter; i++)
-				IMB_mask_filter_extend((char *)ibuf->userdata, ibuf->x, ibuf->y);
-
-			temprect = MEM_dupallocN(ibuf->userdata);
-
-			/* expand twice to clear this many pixels, so they blend back in */
-			IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-			IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-
-			/* clear all pixels in the margin */
-			IMB_mask_clear(ibuf, temprect, FILTER_MASK_MARGIN);
-			MEM_freeN(temprect);
-
-			for(i= 0; i<bkr->bake_filter; i++)
-				IMB_filter_extend(ibuf, (char *)ibuf->userdata);
-		}
+		RE_bake_ibuf_filter(ibuf, (unsigned char *)ibuf->userdata, bkr->bake_filter);
 
 		ibuf->userflags|= IB_BITMAPDIRTY;
 		if(ibuf->mipmap[0]) {
@@ -1028,7 +1006,8 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 static void clear_images(MTFace *mtface, int totface)
 {
 	int a;
-	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	const float vec_alpha[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	const float vec_solid[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 
 	for(a= 0; a<totface; a++)
 		mtface[a].tpage->id.flag&= ~LIB_DOIT;
@@ -1039,7 +1018,7 @@ static void clear_images(MTFace *mtface, int totface)
 		if((ima->id.flag&LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
-			IMB_rectfill(ibuf, vec);
+			IMB_rectfill(ibuf, (ibuf->depth == 32) ? vec_alpha : vec_solid);
 			ima->id.flag|= LIB_DOIT;
 		}
 	}
@@ -1332,7 +1311,6 @@ static void finish_bake_internal(BakeRender *bkr)
 
 					/* freed when baking is done, but if its canceled we need to free here */
 					if (ibuf->userdata) {
-						printf("freed\n");
 						MEM_freeN(ibuf->userdata);
 						ibuf->userdata= NULL;
 					}

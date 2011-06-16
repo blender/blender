@@ -215,7 +215,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 	if(ob==OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
 	
-	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt >= OB_SHADED);
+	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
 }
 
 static int check_material_alpha(Base *base, Mesh *me, int glsl)
@@ -2584,7 +2584,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	const short is_paint_sel= (ob==OBACT && paint_facesel_test(ob));
 	int draw_wire = 0;
 	int /* totvert,*/ totedge, totface;
-	DispList *dl;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 
 	if(!dm)
@@ -2718,10 +2717,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if(dt==OB_SHADED) {
-		int do_draw= 1;	/* to resolve all G.f settings below... */
-		
 		if(ob==OBACT) {
-			do_draw= 0;
 			if(ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 				/* enforce default material settings */
 				GPU_enable_material(0, NULL);
@@ -2750,38 +2746,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0, GPU_enable_material);
 				}
 			}
-			else do_draw= 1;
-		}
-		if(do_draw) {
-			dl = ob->disp.first;
-			if (!dl || !dl->col1) {
-				/* release and reload derivedmesh because it might be freed in
-				   shadeDispList due to a different datamask */
-				dm->release(dm);
-				shadeDispList(scene, base);
-				dl = find_displist(&ob->disp, DL_VERTCOL);
-				dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
-			}
-
-			if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !draw_wire) {
-				draw_mesh_object_outline(v3d, ob, dm);
-			}
-
-				/* False for dupliframe objects */
-			if (dl) {
-				unsigned int *obCol1 = dl->col1;
-				unsigned int *obCol2 = dl->col2;
-
-				dm->drawFacesColored(dm, me->flag&ME_TWOSIDED, (unsigned char*) obCol1, (unsigned char*) obCol2);
-			}
-
-			if(base->flag & SELECT) {
-				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
-			} else {
-				UI_ThemeColor(TH_WIRE);
-			}
-			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
-				dm->drawLooseEdges(dm);
 		}
 	}
 	
@@ -3139,57 +3103,6 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 	glFrontFace(GL_CCW);
 }
 
-static void drawDispListshaded(ListBase *lb, Object *ob)
-{
-	DispList *dl, *dlob;
-	unsigned int *cdata;
-
-	if(lb==NULL) return;
-
-	glShadeModel(GL_SMOOTH);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-	
-	dl= lb->first;
-	dlob= ob->disp.first;
-	while(dl && dlob) {
-		
-		cdata= dlob->col1;
-		if(cdata==NULL) break;
-		
-		switch(dl->type) {
-		case DL_SURF:
-			if(dl->index) {
-				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-				glColorPointer(4, GL_UNSIGNED_BYTE, 0, cdata);
-				glDrawElements(GL_QUADS, 4*dl->totindex, GL_UNSIGNED_INT, dl->index);
-			}			
-			break;
-
-		case DL_INDEX3:
-			
-			glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-			glColorPointer(4, GL_UNSIGNED_BYTE, 0, cdata);
-			glDrawElements(GL_TRIANGLES, 3*dl->parts, GL_UNSIGNED_INT, dl->index);
-			break;
-
-		case DL_INDEX4:
-			
-			glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-			glColorPointer(4, GL_UNSIGNED_BYTE, 0, cdata);
-			glDrawElements(GL_QUADS, 4*dl->parts, GL_UNSIGNED_INT, dl->index);
-			break;
-		}
-		
-		dl= dl->next;
-		dlob= dlob->next;
-	}
-	
-	glShadeModel(GL_FLAT);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-}
-
 static void drawCurveDMWired(Object *ob)
 {
 	DerivedMesh *dm = ob->derivedFinal;
@@ -3270,10 +3183,6 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 					drawDispListsolid(lb, ob, 1);
 					GPU_end_object_materials();
 				}
-				else if(dt == OB_SHADED) {
-					if(ob->disp.first==NULL) shadeDispList(scene, base);
-					drawDispListshaded(lb, ob);
-				}
 				else {
 					GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
@@ -3312,10 +3221,6 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				drawDispListsolid(lb, ob, 1);
 				GPU_end_object_materials();
 			}
-			else if(dt==OB_SHADED) {
-				if(ob->disp.first==NULL) shadeDispList(scene, base);
-				drawDispListshaded(lb, ob);
-			}
 			else {
 				GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
 				glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
@@ -3340,11 +3245,6 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 					GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);
 					drawDispListsolid(lb, ob, 1);
 					GPU_end_object_materials();
-				}
-				else if(dt == OB_SHADED) {
-					dl= lb->first;
-					if(dl && dl->col1==NULL) shadeDispList(scene, base);
-					drawDispListshaded(lb, ob);
 				}
 				else {
 					GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
@@ -6311,7 +6211,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 	}
 
-	if(dt<OB_SHADED && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+	if(dt<=OB_SOLID && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		if((ob->gameflag & OB_DYNAMIC) || 
 			((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE))) {
 			float imat[4][4], vec[3]= {0.0f, 0.0f, 0.0f};

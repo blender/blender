@@ -911,29 +911,29 @@ class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
             multires_bake = rd.use_bake_multires
 
         if not multires_bake:
-        if rd.bake_type == 'NORMALS':
-            layout.prop(rd, "bake_normal_space")
-        elif rd.bake_type in {'DISPLACEMENT', 'AO'}:
-            layout.prop(rd, "use_bake_normalize")
+            if rd.bake_type == 'NORMALS':
+                layout.prop(rd, "bake_normal_space")
+            elif rd.bake_type in {'DISPLACEMENT', 'AO'}:
+                layout.prop(rd, "use_bake_normalize")
 
-        # col.prop(rd, "bake_aa_mode")
-        # col.prop(rd, "use_bake_antialiasing")
+            # col.prop(rd, "bake_aa_mode")
+            # col.prop(rd, "use_bake_antialiasing")
 
-        layout.separator()
+            layout.separator()
 
-        split = layout.split()
+            split = layout.split()
 
-        col = split.column()
-        col.prop(rd, "use_bake_clear")
-        col.prop(rd, "bake_margin")
-        col.prop(rd, "bake_quad_split", text="Split")
+            col = split.column()
+            col.prop(rd, "use_bake_clear")
+            col.prop(rd, "bake_margin")
+            col.prop(rd, "bake_quad_split", text="Split")
 
-        col = split.column()
-        col.prop(rd, "use_bake_selected_to_active")
-        sub = col.column()
-        sub.active = rd.use_bake_selected_to_active
-        sub.prop(rd, "bake_distance")
-        sub.prop(rd, "bake_bias")
+            col = split.column()
+            col.prop(rd, "use_bake_selected_to_active")
+            sub = col.column()
+            sub.active = rd.use_bake_selected_to_active
+            sub.prop(rd, "bake_distance")
+            sub.prop(rd, "bake_bias")
         else:
             if rd.bake_type == 'DISPLACEMENT':
                 layout.prop(rd, "use_bake_lores_mesh")

@@ -95,7 +95,7 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add this object to a group");
 	/* object to add */
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	/* remove object */
 	func= RNA_def_function(srna, "unlink", "rna_Group_objects_unlink");

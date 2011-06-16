@@ -2326,39 +2326,43 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	wtb.outline= 0;
 	widgetbase_draw(&wtb, wcol);
 	
-	/* slider part */
-	VECCOPY(outline, wcol->outline);
-	VECCOPY(wcol->outline, wcol->item);
-	VECCOPY(wcol->inner, wcol->item);
+	/* draw left/right parts only when not in text editing */
+	if(!(state & UI_TEXTINPUT)) {
+		
+			/* slider part */
+		VECCOPY(outline, wcol->outline);
+		VECCOPY(wcol->outline, wcol->item);
+		VECCOPY(wcol->inner, wcol->item);
 
-	if(!(state & UI_SELECT))
-		SWAP(short, wcol->shadetop, wcol->shadedown);
-	
-	rect1= *rect;
-	
-	value= ui_get_but_val(but);
-	fac= ((float)value-but->softmin)*(rect1.xmax - rect1.xmin - offs)/(but->softmax - but->softmin);
-	
-	/* left part of slider, always rounded */
-	rect1.xmax= rect1.xmin + ceil(offs+1.0f);
-	round_box_edges(&wtb1, roundboxalign & ~6, &rect1, offs);
-	wtb1.outline= 0;
-	widgetbase_draw(&wtb1, wcol);
-	
-	/* right part of slider, interpolate roundness */
-	rect1.xmax= rect1.xmin + fac + offs;
-	rect1.xmin+=  floor(offs-1.0f);
-	if(rect1.xmax + offs > rect->xmax)
-		offs*= (rect1.xmax + offs - rect->xmax)/offs;
-	else 
-		offs= 0.0f;
-	round_box_edges(&wtb1, roundboxalign & ~9, &rect1, offs);
-	
-	widgetbase_draw(&wtb1, wcol);
-	VECCOPY(wcol->outline, outline);
-	
-	if(!(state & UI_SELECT))
-		SWAP(short, wcol->shadetop, wcol->shadedown);
+		if(!(state & UI_SELECT))
+			SWAP(short, wcol->shadetop, wcol->shadedown);
+		
+		rect1= *rect;
+		
+		value= ui_get_but_val(but);
+		fac= ((float)value-but->softmin)*(rect1.xmax - rect1.xmin - offs)/(but->softmax - but->softmin);
+		
+		/* left part of slider, always rounded */
+		rect1.xmax= rect1.xmin + ceil(offs+1.0f);
+		round_box_edges(&wtb1, roundboxalign & ~6, &rect1, offs);
+		wtb1.outline= 0;
+		widgetbase_draw(&wtb1, wcol);
+		
+		/* right part of slider, interpolate roundness */
+		rect1.xmax= rect1.xmin + fac + offs;
+		rect1.xmin+=  floor(offs-1.0f);
+		if(rect1.xmax + offs > rect->xmax)
+			offs*= (rect1.xmax + offs - rect->xmax)/offs;
+		else 
+			offs= 0.0f;
+		round_box_edges(&wtb1, roundboxalign & ~9, &rect1, offs);
+		
+		widgetbase_draw(&wtb1, wcol);
+		VECCOPY(wcol->outline, outline);
+		
+		if(!(state & UI_SELECT))
+			SWAP(short, wcol->shadetop, wcol->shadedown);
+	}
 	
 	/* outline */
 	wtb.outline= 1;
@@ -2597,6 +2601,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	
 	/* store the box bg as gl clearcolor, to retrieve later when drawing semi-transparent rects
 	 * over the top to indicate disabled buttons */
+	/* XXX, this doesnt work right since the color applies to buttons outside the box too. */
 	glClearColor(wcol->inner[0]/255.0, wcol->inner[1]/255.0, wcol->inner[2]/255.0, 1.0);
 	
 	VECCOPY(wcol->inner, old_col);
@@ -2872,7 +2877,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	ThemeUI *tui= &btheme->tui;
 	uiFontStyle *fstyle= &style->widget;
 	uiWidgetType *wt= NULL;
-	
+
 	/* handle menus separately */
 	if(but->dt==UI_EMBOSSP) {
 		switch (but->type) {

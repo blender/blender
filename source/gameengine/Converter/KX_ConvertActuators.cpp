@@ -287,7 +287,8 @@ void BL_ConvertActuators(char* maggiename,
 						camact->height,
 						camact->min,
 						camact->max,
-						camact->axis=='x');
+						camact->axis=='x',
+						camact->damping);
 					baseact = tmpcamact;
 				}
 				break;

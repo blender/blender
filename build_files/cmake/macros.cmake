@@ -5,22 +5,28 @@
 # use it instead of include_directories()
 macro(blender_include_dirs
 	includes)
-
-	foreach(inc ${ARGV})
-		get_filename_component(abs_inc ${inc} ABSOLUTE)
-		list(APPEND all_incs ${abs_inc})
+	set(_ALL_INCS "")
+	foreach(_INC ${ARGV})
+		get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
+		list(APPEND _ALL_INCS ${_ABS_INC})
 	endforeach()
-	include_directories(${all_incs})
+	include_directories(${_ALL_INCS})
+	unset(_INC)
+	unset(_ABS_INC)
+	unset(_ALL_INCS)
 endmacro()
 
 macro(blender_include_dirs_sys
 	includes)
-
-	foreach(inc ${ARGV})
-		get_filename_component(abs_inc ${inc} ABSOLUTE)
-		list(APPEND all_incs ${abs_inc})
+	set(_ALL_INCS "")
+	foreach(_INC ${ARGV})
+		get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
+		list(APPEND _ALL_INCS ${_ABS_INC})
 	endforeach()
-	include_directories(SYSTEM ${all_incs})
+	include_directories(SYSTEM ${_ALL_INCS})
+	unset(_INC)
+	unset(_ABS_INC)
+	unset(_ALL_INCS)
 endmacro()
 
 macro(blender_source_group
@@ -29,14 +35,17 @@ macro(blender_source_group
 	# Group by location on disk
 	source_group("Source Files" FILES CMakeLists.txt)
 
-	foreach(SRC ${sources})
-		get_filename_component(SRC_EXT ${SRC} EXT)
-		if(${SRC_EXT} MATCHES ".h" OR ${SRC_EXT} MATCHES ".hpp")
-			source_group("Header Files" FILES ${SRC})
+	foreach(_SRC ${sources})
+		get_filename_component(_SRC_EXT ${_SRC} EXT)
+		if(${_SRC_EXT} MATCHES ".h" OR ${_SRC_EXT} MATCHES ".hpp")
+			source_group("Header Files" FILES ${_SRC})
 		else()
-			source_group("Source Files" FILES ${SRC})
+			source_group("Source Files" FILES ${_SRC})
 		endif()
 	endforeach()
+
+	unset(_SRC)
+	unset(_SRC_EXT)
 endmacro()
 
 
@@ -141,15 +150,22 @@ macro(setup_liblinks
 	target)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS} ")
 
-	target_link_libraries(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
+	target_link_libraries(${target}
+			${OPENGL_gl_LIBRARY}
+			${OPENGL_glu_LIBRARY}
+			${JPEG_LIBRARIES}
+			${PNG_LIBRARIES}
+			${ZLIB_LIBRARIES}
+			${LLIBS})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
 	if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
 		if(WIN32 AND NOT UNIX)
-			target_link_libraries(${target} debug ${PYTHON_LIBRARY}_d)
-			target_link_libraries(${target} optimized ${PYTHON_LIBRARY})
+			target_link_libraries(${target}
+					debug ${PYTHON_LIBRARY}_d
+					optimized ${PYTHON_LIBRARY})
 		else()
 			target_link_libraries(${target} ${PYTHON_LIBRARY})
 		endif()
@@ -159,8 +175,12 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${GLEW_LIBRARY})
 	endif()
 
-	target_link_libraries(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
-	target_link_libraries(${target} ${FREETYPE_LIBRARY})
+	target_link_libraries(${target}
+			${OPENGL_glu_LIBRARY}
+			${JPEG_LIBRARIES}
+			${PNG_LIBRARIES}
+			${ZLIB_LIBRARIES}
+			${FREETYPE_LIBRARY})
 
 	if(WITH_INTERNATIONAL)
 		target_link_libraries(${target} ${GETTEXT_LIB})
@@ -196,12 +216,16 @@ macro(setup_liblinks
 	endif()
 	if(WITH_IMAGE_OPENEXR)
 		if(WIN32 AND NOT UNIX)
-			foreach(loop_var ${OPENEXR_LIB})
-				target_link_libraries(${target} debug ${loop_var}_d)
-				target_link_libraries(${target} optimized ${loop_var})
+			foreach(_LOOP_VAR ${OPENEXR_LIBRARIES})
+				string(REGEX REPLACE ".lib$" "_d.lib" _LOOP_VAR_DEBUG ${_LOOP_VAR})
+				target_link_libraries(${target}
+						debug ${_LOOP_VAR_DEBUG}
+						optimized ${_LOOP_VAR})
 			endforeach()
+			unset(_LOOP_VAR)
+			unset(_LOOP_VAR_DEBUG)
 		else()
-			target_link_libraries(${target} ${OPENEXR_LIB})
+			target_link_libraries(${target} ${OPENEXR_LIBRARIES})
 		endif()
 	endif()
 	if(WITH_IMAGE_OPENJPEG AND UNIX AND NOT APPLE)
@@ -212,20 +236,25 @@ macro(setup_liblinks
 	endif()
 	if(WITH_OPENCOLLADA)
 		if(WIN32 AND NOT UNIX)
-			foreach(loop_var ${OPENCOLLADA_LIB})
-				target_link_libraries(${target} debug ${loop_var}_d)
-				target_link_libraries(${target} optimized ${loop_var})
+			foreach(_LOOP_VAR ${OPENCOLLADA_LIB})
+				target_link_libraries(${target}
+						debug ${_LOOP_VAR}_d
+						optimized ${_LOOP_VAR})
 			endforeach()
-			target_link_libraries(${target} debug ${PCRE_LIB}_d)
-			target_link_libraries(${target} optimized ${PCRE_LIB})
+			unset(_LOOP_VAR)
+			target_link_libraries(${target}
+					debug ${PCRE_LIB}_d
+					optimized ${PCRE_LIB})
 			if(EXPAT_LIB)
-				target_link_libraries(${target} debug ${EXPAT_LIB}_d)
-				target_link_libraries(${target} optimized ${EXPAT_LIB})
+				target_link_libraries(${target}
+						debug ${EXPAT_LIB}_d
+						optimized ${EXPAT_LIB})
 			endif()
 		else()
-			target_link_libraries(${target} ${OPENCOLLADA_LIB})
-			target_link_libraries(${target} ${PCRE_LIB})
-			target_link_libraries(${target} ${EXPAT_LIB})
+			target_link_libraries(${target}
+					${OPENCOLLADA_LIB}
+					${PCRE_LIB}
+					${EXPAT_LIB})
 		endif()
 	endif()
 	if(WITH_MEM_JEMALLOC)
@@ -472,4 +501,13 @@ macro(blender_project_hack_post)
 
 	unset(_reset_standard_cflags_rel)
 	unset(_reset_standard_cxxflags_rel)
+
+	# ------------------------------------------------------------------
+	# workaround for omission in cmake 2.8.4's GNU.cmake, fixed in 2.8.5
+	if(CMAKE_COMPILER_IS_GNUCC)
+		if(NOT DARWIN)
+			set(CMAKE_INCLUDE_SYSTEM_FLAG_C "-isystem ")
+		endif()
+	endif()
+
 endmacro()
