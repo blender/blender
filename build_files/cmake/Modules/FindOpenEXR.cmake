@@ -1,4 +1,4 @@
-# - Find OpenEXR library (copied from FindTIFF.cmake, v 2.8.5)
+# - Find OpenEXR library
 # Find the native OpenEXR includes and library
 # This module defines
 #  OPENEXR_INCLUDE_DIRS, where to find ImfXdr.h, etc. Set when
@@ -47,7 +47,9 @@ SET(_openexr_FIND_COMPONENTS
 SET(_openexr_SEARCH_DIRS
   ${OPENEXR_ROOT_DIR}
   /usr/local
-  /opt/csw
+  /sw # Fink
+  /opt/local # DarwinPorts
+  /opt/csw # Blastwave
 )
 
 FIND_PATH(OPENEXR_INCLUDE_DIR ImfXdr.h
@@ -63,7 +65,7 @@ FOREACH(COMPONENT ${_openexr_FIND_COMPONENTS})
 
   FIND_LIBRARY(OPENEXR_${UPPERCOMPONENT}_LIBRARY NAMES ${COMPONENT}
       HINTS ${_openexr_SEARCH_DIRS}
-      PATH_SUFFIXES lib
+      PATH_SUFFIXES lib64 lib
       )
   LIST(APPEND _openexr_LIBRARIES "${OPENEXR_${UPPERCOMPONENT}_LIBRARY}")
 ENDFOREACH()
