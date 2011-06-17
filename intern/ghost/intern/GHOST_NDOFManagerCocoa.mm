@@ -29,17 +29,33 @@ extern "C" {
 	#include <stdio.h>
 	}
 
-static void SpaceNavAdded(io_connect_t connection)
+static void NDOF_DeviceAdded(io_connect_t connection)
 	{
-	printf("SpaceNav added\n"); // change these: printf --> informational reports
+	printf("ndof device added\n"); // change these: printf --> informational reports
+
+	// determine exactly which device is plugged in
+	ConnexionDevicePrefs p;
+	ConnexionGetCurrentDevicePrefs(kDevID_AnyDevice, &p);
+	printf("device type %d: %s\n", p.deviceID,
+		p.deviceID == kDevID_SpaceNavigator ? "SpaceNavigator" :
+		p.deviceID == kDevID_SpaceNavigatorNB ? "SpaceNavigator for Notebooks" :
+		p.deviceID == kDevID_SpaceExplorer ? "SpaceExplorer" :
+		"unknown");
+
+	// try a more "standard" way
+	int result = 0;
+	ConnexionControl(kConnexionCtlGetDeviceID, 0, &result);
+	unsigned short vendorID = result >> 16;
+	unsigned short productID = result & 0xffff;
+	printf("vendor %04hx:%04hx product\n", vendorID, productID);
 	}
 
-static void SpaceNavRemoved(io_connect_t connection)
+static void NDOF_DeviceRemoved(io_connect_t connection)
 	{
-	printf("SpaceNav removed\n");
+	printf("ndof device removed\n");
 	}
 
-static void SpaceNavEvent(io_connect_t connection, natural_t messageType, void* messageArgument)
+static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, void* messageArgument)
 	{
 	GHOST_SystemCocoa* system = (GHOST_SystemCocoa*) GHOST_ISystem::getSystem();
 	GHOST_NDOFManager* manager = system->getNDOFManager();
@@ -60,12 +76,24 @@ static void SpaceNavEvent(io_connect_t connection, natural_t messageType, void* 
 					break;
 
 				case kConnexionCmdHandleButtons:
+
+					// s->buttons field has only 16 bits, not enough for SpacePilotPro
+					// look at raw USB report for more button bits
+					printf("button bits = [");
+					for (int i = 0; i < 8; ++i)
+						printf("%02x", s->report[i]);
+					printf("]\n");
+
 					manager->updateButtons(s->buttons, now);
 					system->notifyExternalEventProcessed();
 					break;
 
+				case kConnexionCmdAppSpecific:
+					printf("app-specific command: param=%hd value=%d\n", s->param, s->value);
+					break;
+
 				default:
-					printf("device state command %d\n", s->command);
+					printf("<!> mystery command %d\n", s->command);
 				}
 			break;
 			}
@@ -87,7 +115,7 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 	{
 	if (available())
 		{
-		OSErr error = InstallConnexionHandlers(SpaceNavEvent, SpaceNavAdded, SpaceNavRemoved);
+		OSErr error = InstallConnexionHandlers(NDOF_DeviceEvent, NDOF_DeviceAdded, NDOF_DeviceRemoved);
 		if (error)
 			{
 			printf("<!> error = %d\n", error);
