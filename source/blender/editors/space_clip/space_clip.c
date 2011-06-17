@@ -210,6 +210,8 @@ static void clip_operatortypes(void)
 
 	WM_operatortype_append(CLIP_OT_reset_tracking_settings);
 	WM_operatortype_append(CLIP_OT_clear_track_path);
+
+	WM_operatortype_append(CLIP_OT_track_to_fcurves);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)

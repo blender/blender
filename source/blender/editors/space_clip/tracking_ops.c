@@ -32,6 +32,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"	/* SELECT */
 #include "DNA_scene_types.h"
+#include "DNA_anim_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
@@ -39,16 +40,20 @@
 #include "BLI_rect.h"
 #include "BLI_blenlib.h"
 
+#include "BKE_main.h"
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 #include "BKE_global.h"
+#include "BKE_animsys.h"
+#include "BKE_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_screen.h"
 #include "ED_clip.h"
+#include "ED_keyframing.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -889,4 +894,88 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** track to fcurves opertaotr *********************/
+
+static int track_to_fcurves_poll(bContext *C)
+{
+	Object *ob= CTX_data_active_object(C);
+	SpaceClip *sc= CTX_wm_space_clip(C);
+
+	if(ob && sc) {
+		MovieClip *clip= ED_space_clip(sc);
+		int type;
+		void *sel;
+
+		if(clip) {
+			BKE_movieclip_last_selection(clip, &type, &sel);
+			if(type==MCLIP_SEL_TRACK)
+				return 1;
+		}
+	}
+
+	return 0;
+}
+
+static int track_to_fcurves_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	Object *ob= CTX_data_active_object(C);
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	int kflag, fra= SFRA, type;
+	MovieTrackingTrack *track;
+	bAction *act= verify_adt_action(&ob->id, 1);
+	MovieClipUser user= {0};
+	int width, height;
+	float scale= RNA_float_get(op->ptr, "scale");
+
+	BKE_movieclip_last_selection(clip, &type, (void**)&track);
+
+	ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+	kflag= ks->flag;
+	kflag |= ANIM_get_keyframing_flags(scene, 1);
+
+	(void)op;
+
+	BKE_movieclip_acquire_size(clip, &user, &width, &height);
+
+	while(fra<EFRA) {
+		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, fra);
+
+		if(marker) {
+			FCurve *fcu;
+
+			fcu= verify_fcurve(act, ks->name, "location", 0, 1);
+			insert_vert_fcurve(fcu, fra, marker->pos[0]*width*scale, kflag);
+
+			fcu= verify_fcurve(act, ks->name, "location", 1, 1);
+			insert_vert_fcurve(fcu, fra, marker->pos[1]*height*scale, kflag);
+		}
+
+		fra++;
+	}
+
+	WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_track_to_fcurves(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Convert Track To FCurves";
+	ot->description= "Convert active track to f-curves for active object in the scene";
+	ot->idname= "CLIP_OT_track_to_fcurves";
+
+	/* api callbacks */
+	ot->exec= track_to_fcurves_exec;
+	ot->poll= track_to_fcurves_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_float(ot->srna, "scale", 1.f, -FLT_MAX, FLT_MAX, "Scale", "Scale factor for generated coordinates", -100.f, 100.f);
 }

@@ -71,6 +71,8 @@ void CLIP_OT_track_markers(struct wmOperatorType *ot);
 void CLIP_OT_reset_tracking_settings(struct wmOperatorType *ot);
 void CLIP_OT_clear_track_path(struct wmOperatorType *ot);
 
+void CLIP_OT_track_to_fcurves(struct wmOperatorType *ot);
+
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 void draw_clip_track_widget(const struct bContext *C, void *trackp, void *userp, void *clipp, rcti *rect);

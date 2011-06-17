@@ -159,6 +159,19 @@ class CLIP_PT_display(bpy.types.Panel):
         row.prop(sc, "path_length")
 
 
+class CLIP_PT_test(bpy.types.Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "Test"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+
+        layout.operator("clip.track_to_fcurves")
+
+
 class CLIP_PT_debug(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
