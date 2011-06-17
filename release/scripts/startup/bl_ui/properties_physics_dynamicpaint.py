@@ -310,12 +310,15 @@ class PHYSICS_PT_dp_advanced_brush(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(brush, "paint_distance", text="Paint Distance")
             split = layout.row().split()
             sub = split.column()
-            sub.prop(brush, "prox_facealigned", text="Face Aligned")
+            sub.prop(brush, "prox_facealigned")
             sub = split.column()
             sub.prop(brush, "prox_falloff", text="Falloff")
+            if brush.paint_source == "VOLDIST":
+                col = layout.row().column()
+                col.prop(brush, "prox_inverse")
             if brush.prox_falloff == "RAMP":
                 col = layout.row().column()
-                col.label(text="Falloff Ramp:")
+                col.separator()
                 col.prop(brush, "prox_ramp_alpha", text="Only Use Alpha")
                 col.template_color_ramp(brush, "paint_ramp", expand=True)
 

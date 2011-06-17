@@ -59,6 +59,10 @@ struct bMotionPath;
 #define DRAW_CONSTCOLOR	2
 #define DRAW_SCENESET	4
 
+/* draw_mesh_fancy draw_flags */
+#define DRAW_DYNAMIC_PAINT_PREVIEW 1
+#define DRAW_IS_PAINT_SEL 2
+
 /* view3d_header.c */
 void view3d_header_buttons(const struct bContext *C, struct ARegion *ar);
 void VIEW3D_OT_layers(struct wmOperatorType *ot);

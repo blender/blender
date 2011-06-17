@@ -2576,26 +2576,23 @@ static int wpaint__setSolidDrawOptions(void *UNUSED(userData), int UNUSED(index)
 	return 1;
 }
 
-#define DRAW_MODE_DYNAMIC_PAINT_PREVIEW 1
-
 static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
 	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
-	const short is_paint_sel= (ob==OBACT && paint_facesel_test(ob));
 	int draw_wire = 0;
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	ModifierData *md = NULL;
-	int draw_mode = 0;
+	int draw_flags = (ob==OBACT && paint_facesel_test(ob)) ? DRAW_IS_PAINT_SEL : 0;
 
 	if(!dm)
 		return;
 
 	/* check to draw dynamic paint colors */
-	if (md = modifiers_findByType(ob, eModifierType_DynamicPaint))
+	if ((md = modifiers_findByType(ob, eModifierType_DynamicPaint)))
 	{
 		/* check if target has an active dp modifier	*/
 		if(md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
@@ -2605,7 +2602,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			if (pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS && pmd->canvas &&
 				pmd->canvas->flags & MOD_DPAINT_PREVIEW_READY &&
 				DM_get_face_data_layer(dm, CD_WEIGHT_MCOL)) {
-				draw_mode |= DRAW_MODE_DYNAMIC_PAINT_PREVIEW;
+				draw_flags |= DRAW_DYNAMIC_PAINT_PREVIEW;
 			}
 		}
 	}
@@ -2623,7 +2620,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (is_paint_sel) draw_wire = 0;
+	if (draw_flags & DRAW_IS_PAINT_SEL) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
@@ -2637,14 +2634,14 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
 	}
-	else if(	(is_paint_sel || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
+	else if(	(draw_flags & DRAW_IS_PAINT_SEL || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
 				CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
-		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || is_paint_sel) && !draw_wire) {
+		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || (draw_flags & DRAW_IS_PAINT_SEL)) && !draw_wire) {
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 
-		if(draw_glsl_material(scene, ob, v3d, dt)) {
+		if(draw_glsl_material(scene, ob, v3d, dt) && !(draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW)) {
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 			dm->drawFacesGLSL(dm, GPU_enable_material);
@@ -2655,10 +2652,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glFrontFace(GL_CCW);
 		}
 		else {
-			draw_mesh_textured(scene, v3d, rv3d, ob, dm, is_paint_sel);
+			draw_mesh_textured(scene, v3d, rv3d, ob, dm, draw_flags);
 		}
 
-		if(!is_paint_sel) {
+		if(!(draw_flags & DRAW_IS_PAINT_SEL)) {
 			if(base->flag & SELECT)
 				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 			else
@@ -2694,7 +2691,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			/* since we already draw wire as wp guide, dont draw over the top */
 			draw_wire= 0;
 		}
-		else if (draw_mode & DRAW_MODE_DYNAMIC_PAINT_PREVIEW) {
+		else if (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW) {
 			/* for object selection draws no shade */
 			if (flag & (DRAW_PICKING|DRAW_CONSTCOLOR)) {
 				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);

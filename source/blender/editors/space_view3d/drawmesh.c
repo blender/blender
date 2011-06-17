@@ -437,6 +437,11 @@ static int draw_tface__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
 		return 1; /* Set color from mcol */
 	}
 }
+static int draw_mcol__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
+{
+	if (mcol) return 1;
+	else return 2;
+}
 static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 {
 	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
@@ -653,7 +658,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	ddm->release(ddm);
 }
 
-void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
+void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)
 {
 	Mesh *me= ob->data;
 	
@@ -668,7 +673,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 
 	if(ob->mode & OB_MODE_EDIT) {
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
-	} else if(faceselect) {
+	} else if(draw_flags & DRAW_IS_PAINT_SEL) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1, GPU_enable_material);
 		else
@@ -676,7 +681,10 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	}
 	else {
 		if( GPU_buffer_legacy(dm) )
-			dm->drawFacesTex(dm, draw_tface__set_draw_legacy);
+			if (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW)
+				dm->drawFacesTex(dm, draw_mcol__set_draw_legacy);
+			else 
+				dm->drawFacesTex(dm, draw_tface__set_draw_legacy);
 		else {
 			if( !CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL) )
 				add_tface_color_layer(dm);
@@ -691,7 +699,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	draw_textured_end();
 	
 	/* draw edges and selected faces over textured mesh */
-	if(!(ob == scene->obedit) && faceselect)
+	if(!(ob == scene->obedit) && (draw_flags & DRAW_IS_PAINT_SEL))
 		draw_tfaces3D(rv3d, me, dm, ob->mode & OB_MODE_WEIGHT_PAINT);
 
 	/* reset from negative scale correction */

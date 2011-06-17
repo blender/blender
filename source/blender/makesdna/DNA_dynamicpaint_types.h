@@ -118,6 +118,7 @@ typedef struct DynamicPaintCanvasSettings {
 
 #define MOD_DPAINT_RAMP_ALPHA (1<<4) /* only read falloff ramp alpha */
 #define MOD_DPAINT_PROX_FACEALIGNED (1<<5) /* do proximity check only in normal dir */
+#define MOD_DPAINT_INVERSE_PROX (1<<6) /* inverse proximity painting */
 //#define MOD_DPAINT_EDGE_DISP (1<<6) /* add displacement to intersection edges */
 
 /* collision type */

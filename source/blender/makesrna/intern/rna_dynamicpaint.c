@@ -627,6 +627,10 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "prox_facealigned", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_PROX_FACEALIGNED);
 	RNA_def_property_ui_text(prop, "Face Aligned", "Check proximity in face normal direction only.");
+
+	prop= RNA_def_property(srna, "prox_inverse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_INVERSE_PROX);
+	RNA_def_property_ui_text(prop, "Inverse", "Invert proximity to reduce volume effect.");
 	
 
 	/*
