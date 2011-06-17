@@ -42,6 +42,9 @@ static void node_shader_exec_output_texture(void *data, bNode *node, bNodeStack 
 		ShaderCallData *scd= (ShaderCallData*)data;
 		TexResult *texres = scd->texres;
 		float col[4];
+
+		if(!texres)
+			return;
 		
 		nodestack_get_vec(col, SOCK_RGBA, in[0]);
 
