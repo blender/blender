@@ -228,10 +228,7 @@ static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
 	int type;
 	MovieTrackingTrack *track;
 
-	if(scene->toolsettings->movieclip.tool != MCLIP_TOOL_MARKER || !sc)
-		return 0;
-
-	if(sc->mode != SC_MODE_TRACKING)
+	if(!sc)
 		return 0;
 
 	clip= ED_space_clip(sc);

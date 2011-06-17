@@ -69,7 +69,7 @@ static int space_clip_tracking_poll(bContext *C)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 
-	if(sc && sc->clip && sc->mode==SC_MODE_TRACKING)
+	if(sc && sc->clip)
 		return 1;
 
 	return 0;
@@ -79,7 +79,7 @@ static int space_clip_frame_poll(bContext *C)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 
-	if(sc && sc->mode==SC_MODE_TRACKING) {
+	if(sc) {
 		MovieClip *clip= ED_space_clip(sc);
 
 		if(clip)
@@ -844,7 +844,7 @@ static int clear_track_path_poll(bContext *C)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 
-	if(sc && sc->mode==SC_MODE_TRACKING) {
+	if(sc) {
 		MovieClip *clip= ED_space_clip(sc);
 
 		if(clip && BKE_movieclip_has_frame(clip, &sc->user)) {

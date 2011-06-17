@@ -92,33 +92,10 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MovieTracking");
 }
 
-static void rna_def_movieclip_tools(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	static EnumPropertyItem tools_items[] = {
-		{MCLIP_TOOL_NONE,    "NONE",    0,                "None",    "Don't use any tool"},
-		{MCLIP_TOOL_FOOTAGE, "FOOTAGE", ICON_SEQUENCE,    "Footage", "Footage sequence/movie tools"},
-		{MCLIP_TOOL_CAMERA,  "CAMERA",  ICON_CAMERA_DATA, "Camera",  "Camera tools"},
-		{MCLIP_TOOL_MARKER,  "MARKER",  ICON_MARKERS,     "Marker",  "Marker tools"},
-		{MCLIP_TOOL_TRACK,   "TRACK",   ICON_ANIM,        "Track",   "Track tools"},
-		{0, NULL, 0, NULL, NULL}};
-
-	srna= RNA_def_struct(brna, "MovieClipEditSettings", NULL);
-	RNA_def_struct_ui_text(srna, "MovieClipEditSettings", "MovieClip editing tool settings");
-
-	prop= RNA_def_property(srna, "tool", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "tool");
-	RNA_def_property_enum_items(prop, tools_items);
-	RNA_def_property_ui_text(prop, "Tool", "Tool to interact with movie clip");
-}
-
 void RNA_def_movieclip(BlenderRNA *brna)
 {
 	rna_def_movieclip(brna);
 	rna_def_moviecliUuser(brna);
-	rna_def_movieclip_tools(brna);
 }
 
 #endif

@@ -397,8 +397,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		draw_movieclip_buffer(sc, ar, ibuf);
 		IMB_freeImBuf(ibuf);
 
-		if(sc->mode==SC_MODE_TRACKING)
-			draw_tracking(sc, ar, clip);
+		draw_tracking(sc, ar, clip);
 	}
 
 	if(sc->debug_flag&SC_DBG_SHOW_CACHE)

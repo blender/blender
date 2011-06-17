@@ -49,7 +49,6 @@
 
 /************************** properties ******************************/
 
-#if 0
 static ARegion *clip_has_properties_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
@@ -103,7 +102,6 @@ void CLIP_OT_properties(wmOperatorType *ot)
 	ot->exec= properties_exec;
 	ot->poll= properties_poll;
 }
-#endif
 
 /************************** tools ******************************/
 

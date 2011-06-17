@@ -76,7 +76,6 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 
 	sc= MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype= SPACE_CLIP;
-	sc->mode= SC_MODE_VIEW;
 	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_MARKER_SEARCH|SC_SHOW_MARKER_PATH;
 	sc->debug_flag= SC_DBG_SHOW_CACHE;
 	sc->zoom= 1.0f;
@@ -95,16 +94,15 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 	BLI_addtail(&sc->regionbase, ar);
 	ar->regiontype= RGN_TYPE_TOOLS;
 	ar->alignment= RGN_ALIGN_LEFT;
+	ar->flag= RGN_FLAG_HIDDEN;
 
 	/* properties view */
-#if 0
 	ar= MEM_callocN(sizeof(ARegion), "properties for logic");
 
 	BLI_addtail(&sc->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
 	ar->alignment= RGN_ALIGN_RIGHT;
 	ar->flag= RGN_FLAG_HIDDEN;
-#endif
 
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for clip");
@@ -190,7 +188,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_open);
 	WM_operatortype_append(CLIP_OT_reload);
 	WM_operatortype_append(CLIP_OT_tools);
-	// WM_operatortype_append(CLIP_OT_properties);
+	 WM_operatortype_append(CLIP_OT_properties);
 	// WM_operatortype_append(CLIP_OT_unlink);
 	WM_operatortype_append(CLIP_OT_view_pan);
 	WM_operatortype_append(CLIP_OT_view_zoom);
@@ -224,7 +222,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_tools", TKEY, KM_PRESS, 0, 0);
-	// WM_keymap_add_item(keymap, "CLIP_OT_properties", NKEY, KM_PRESS, 0, 0);
+	 WM_keymap_add_item(keymap, "CLIP_OT_properties", NKEY, KM_PRESS, 0, 0);
 
 	/* ********* View/navigation ******** */
 
@@ -404,7 +402,6 @@ static void clip_tools_area_draw(const bContext *C, ARegion *ar)
 
 /****************** properties region ******************/
 
-#if 0
 /* add handlers, stuff you only do once or on area/region changes */
 static void clip_properties_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -415,8 +412,6 @@ static void clip_properties_area_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
-
-#endif
 
 /********************* registration ********************/
 
@@ -449,7 +444,6 @@ void ED_spacetype_clip(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: properties */
-#if 0
 	art= MEM_callocN(sizeof(ARegionType), "spacetype clip region properties");
 	art->regionid= RGN_TYPE_UI;
 	art->prefsizex= UI_COMPACT_PANEL_WIDTH;
@@ -457,7 +451,7 @@ void ED_spacetype_clip(void)
 	art->init= clip_properties_area_init;
 	art->draw= clip_properties_area_draw;
 	BLI_addhead(&st->regiontypes, art);
-#endif
+	ED_clip_buttons_register(art);
 
 	/* regions: tools */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype clip region tools");
@@ -466,8 +460,6 @@ void ED_spacetype_clip(void)
 	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
 	art->init= clip_tools_area_init;
 	art->draw= clip_tools_area_draw;
-
-	ED_clip_buttons_register(art);
 
 	BLI_addhead(&st->regiontypes, art);
 

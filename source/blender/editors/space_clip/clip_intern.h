@@ -47,7 +47,7 @@ struct wmOperatorType;
 void CLIP_OT_open(struct wmOperatorType *ot);
 void CLIP_OT_reload(struct wmOperatorType *ot);
 void CLIP_OT_tools(struct wmOperatorType *ot);
-// void CLIP_OT_properties(struct wmOperatorType *ot);
+ void CLIP_OT_properties(struct wmOperatorType *ot);
 // void CLIP_OT_unlink(struct wmOperatorType *ot);
 void CLIP_OT_view_pan(struct wmOperatorType *ot);
 void CLIP_OT_view_zoom(wmOperatorType *ot);

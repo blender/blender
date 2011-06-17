@@ -575,12 +575,12 @@ typedef struct SpaceClip {
 	struct MovieClipUser user;	/* user of clip */
 	struct MovieClip *clip;		/* clip data */
 
-	int mode;					/* space mode (view, tracking) */
-
 	int flag;					/* flags */
 	int debug_flag;				/* flags for debugging */
 
 	int path_length;			/* length of displaying path, in frames */
+
+	int pad;
 
 	/* ** some runtime vars which aren't really in file ** */
 	/* marker data displayed in panel */
@@ -959,10 +959,6 @@ enum {
 #define SEQ_PROXY_RENDER_SIZE_50        50
 #define SEQ_PROXY_RENDER_SIZE_75        75
 #define SEQ_PROXY_RENDER_SIZE_FULL      100
-
-/* SpaceClip->mode */
-#define SC_MODE_VIEW		(1<<0)
-#define SC_MODE_TRACKING	(1<<1)
 
 /* SpaceClip->flag */
 #define SC_SHOW_MARKER_PATTERN	(1<<0)

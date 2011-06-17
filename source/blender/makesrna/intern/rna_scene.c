@@ -1319,11 +1319,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "sculpt_paint_use_unified_strength", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "sculpt_paint_settings", SCULPT_PAINT_USE_UNIFIED_ALPHA);
 	RNA_def_property_ui_text(prop, "Sculpt/Paint Use Unified Strength", "Instead of per brush strength, the strength is shared across brushes");
-
-	/* movie clip editing */
-	prop= RNA_def_property(srna, "movieclip", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "movieclip");
-	RNA_def_property_ui_text(prop, "Movie Clip Edit", "");
 }
 
 
