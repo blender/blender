@@ -15,27 +15,35 @@ scene = bpy.context.scene
 # dictionary of mapping
 # this is currently manuall input'ed, but will
 # be created from a more comfortable UI in the future
-bonemap = { "LeftFoot": ("DEF_Foot.L","DEF_Toes.L"),
-            "LeftUpLeg": "DEF_Thigh.L",
-            "Hips": "DEF_Hip",
-            "LowerBack": "DEF_Spine",
-            "Spine": "DEF_Torso",
-            "Neck": "DEF_Neck",
-            "Neck1": "DEF_Neck",
-            "Head": "DEF_Head",
-            "LeftShoulder": "DEF_Shoulder.L",
-            "LeftArm": "DEF_Forearm.L",
-            "LeftForeArm": "DEF_Arm.L",
-            "LeftHand": "DEF_Hand.L",
-            "RightShoulder": "DEF_Shoulder.R",
-            "RightArm": "DEF_Forearm.R",
-            "RightForeArm": "DEF_Arm.R",
-            "RightHand": "DEF_Hand.R",
-            "RightFoot": ("DEF_Foot.R","DEF_Toes.R"),
-            "RightUpLeg": "DEF_Thigh.R",
-            "RightLeg": "DEF_Shin.R",
-            "LeftLeg": "DEF_Shin.L"}
+bonemap = { "Head": "Head",
+            "Neck": "Head",
+            "Spine1": "Chest",
+            "Spine2": "Chest",
+            "Spine3": "Chest",
+            "Spine": "Torso",
+            "Hips": "root",
+            "LeftUpLeg": "Thigh.L",
+            "LeftUpLegRoll": "Thigh.L",
+            "LeftLeg": "Shin.L",
+            "LeftLegRoll": "Shin.L",
+            "LeftFoot": "Foot.L",
+            "RightUpLeg": "Thigh.R",
+            "RightUpLegRoll": "Thigh.R",
+            "RightLeg": "Shin.R",
+            "RightLegRoll": "Shin.R",
+            "RightFoot": "Foot.R",
+            "LeftShoulder": "Shoulder.L",
+            "LeftArm": "HiArm.L",
+            "LeftArmRoll": "HiArm.L",
+            "LeftForeArm": "LoArm.L",
+            "LeftForeArmRoll": "LoArm.L",
+            "RightShoulder": "Shoulder.R",
+            "RightArm": "HiArm.R",
+            "RightArmRoll": "HiArm.R",
+            "RightForeArm": "LoArm.R",
+            "RightForeArmRoll": "LoArm.R" }
             
+root = "root"
 # creation of a reverse map
 # multiple keys get mapped to list values
 bonemapr = {}
@@ -76,7 +84,10 @@ def createIntermediate():
             empty.name = perf_bone.name+"Org"
         empty = bpy.data.objects[perf_bone.name+"Org"]
         offset = perf_bone.vector
-        scaling = perf_bone.length / inter_bone.length
+        if inter_bone.length == 0 or perf_bone.length == 0:
+            scaling = 1
+        else:
+            scaling = perf_bone.length / inter_bone.length
         offset/=scaling
         empty.location = inter_bone.head + offset
         empty.keyframe_insert("location")
@@ -147,7 +158,7 @@ def createIntermediate():
         
     for t in range(1,150):
         scene.frame_set(t)
-        inter_bone = inter_bones["DEF_Hip"]
+        inter_bone = inter_bones[root]
         retargetPerfToInter(inter_bone)
         
     return inter_obj,inter_arm
@@ -191,8 +202,73 @@ def retargetEnduser():
         
     for t in range(1,150):
         scene.frame_set(t)
-        end_bone = end_bones["DEF_Hip"]
+        end_bone = end_bones[root]
         bakeTransform(end_bone)
+
+#recieves the performer feet bones as a variable
+# by "feet" I mean those bones that have plants
+# (they don't move, despite root moving) somewhere in the animation.
+def copyTranslation(perfFeet):
+    endFeet = [bonemap[perfBone] for perfBone in perfFeet]
+    perfRoot = bonemapr[root][0]
+    locDictKeys = perfFeet+endFeet+[perfRoot]
+    perf_bones = performer_obj.pose.bones
+    end_bones = enduser_obj.pose.bones
+    
+    def tailLoc(bone):
+        return bone.center+(bone.vector/2)
+    
+    #Step 1 - we create a dict that contains these keys:
+    #(Performer) Hips, Feet
+    #(End user) Feet
+    # where the values are their world position on each (1,120) frame
+    
+    locDict = {}
+    for key in locDictKeys:
+        locDict[key] = []    
+    
+    for t in range(scene.frame_start,scene.frame_end):
+        scene.frame_set(t)
+        for bone in perfFeet:
+            locDict[bone].append(tailLoc(perf_bones[bone]))
+        locDict[perfRoot].append(tailLoc(perf_bones[perfRoot]))
+        for bone in endFeet:
+            locDict[bone].append(tailLoc(end_bones[bone]))
+            
+    # now we take our locDict and analyze it.
+    # we need to derive all chains 
+    
+    locDeriv = {}
+    for key in locDictKeys:
+        locDeriv[key] = []
+    
+    for key in locDict.keys():
+        graph = locDict[key]
+        for t in range(len(graph)-1):
+            x = graph[t]
+            xh = graph[t+1]
+            locDeriv[key].append(xh-x)
+            
+    # now find the plant frames, where perfFeet don't move much
+    
+    linearAvg = []
+    
+    for key in perfFeet:
+        for i in range(len(locDeriv[key])-1):
+            v = locDeriv[key][i]
+            hipV = locDeriv[perfRoot][i]
+            endV = locDeriv[bonemap[key]][i]
+            if (v.length<0.1):
+                #this is a plant frame.
+                #lets see what the original hip delta is, and the corresponding
+                #end bone's delta
+                if endV.length!=0:
+                    linearAvg.append(hipV.length/endV.length)
+    if linearAvg:
+        avg = sum(linearAvg)/len(linearAvg)
+        print("retargeted root motion should be "+ str(1/avg)+ " of original")
+    
 
 inter_obj, inter_arm = createIntermediate()
 retargetEnduser()
+copyTranslation(["RightFoot","LeftFoot"])
