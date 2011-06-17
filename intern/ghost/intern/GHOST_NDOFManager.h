@@ -107,13 +107,12 @@ public:
 	bool sendMotionEvent();
 
 protected:
+	GHOST_System& m_system;
 
 private:
 	void sendButtonEvent(NDOF_ButtonT, bool press, GHOST_TUns64 time, GHOST_IWindow*);
 	void sendKeyEvent(GHOST_TKey, bool press, GHOST_TUns64 time, GHOST_IWindow*);
 
-
-	GHOST_System& m_system;
 
 	NDOF_DeviceT m_deviceType;
 
