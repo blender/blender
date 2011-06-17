@@ -105,6 +105,9 @@ private:
 	void create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
 					 float parent_mat[][4], bArmature *arm);
 
+	void create_unskinned_bone(COLLADAFW::Node *node, EditBone *parent, int totchild,
+				 float parent_mat[][4], bArmature *arm);
+
 	void add_leaf_bone(float mat[][4], EditBone *bone);
 
 	void fix_leaf_bones();
@@ -123,6 +126,7 @@ private:
 #endif
 
 	void create_armature_bones(SkinInfo& skin);
+	void create_armature_bones( );
 
 public:
 
