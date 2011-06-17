@@ -88,22 +88,31 @@ public:
 	// does not imply that a device is plugged in or being used
 	virtual bool available() = 0;
 
-	// the latest raw data from the device
+	// each platform's device detection should call this
+	// use standard USB/HID identifiers
+	void setDevice(unsigned short vendor_id, unsigned short product_id);
+
+	// the latest raw axis data from the device
 	void updateTranslation(short t[3], GHOST_TUns64 time);
 	void updateRotation(short r[3], GHOST_TUns64 time);
-	// send events immediately for changed buttons
+
+	// the latest raw button data from the device
+	// use HID button encoding (not NDOF_ButtonT)
 	void updateButton(int button_number, bool press, GHOST_TUns64 time);
 	void updateButtons(int button_bits, GHOST_TUns64 time);
+	// NDOFButton events are sent immediately
 
-	// processes most recent raw data into an NDOFMotion event and sends it
+	// processes and sends most recent raw data as an NDOFMotion event
 	// returns whether an event was sent
 	bool sendMotionEvent();
+
+protected:
 
 private:
 	void sendButtonEvent(NDOF_ButtonT, bool press, GHOST_TUns64 time, GHOST_IWindow*);
 	void sendKeyEvent(GHOST_TKey, bool press, GHOST_TUns64 time, GHOST_IWindow*);
 
-protected:
+
 	GHOST_System& m_system;
 
 	NDOF_DeviceT m_deviceType;

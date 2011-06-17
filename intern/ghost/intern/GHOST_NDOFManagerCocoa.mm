@@ -29,11 +29,15 @@ extern "C" {
 	#include <stdio.h>
 	}
 
+// static functions need to talk to these objects:
+static GHOST_SystemCocoa* ghost_system = NULL;
+static GHOST_NDOFManager* ndof_manager = NULL;
+
 static void NDOF_DeviceAdded(io_connect_t connection)
 	{
-	printf("ndof device added\n"); // change these: printf --> informational reports
+	printf("ndof: device added\n"); // change these: printf --> informational reports
 
-	// determine exactly which device is plugged in
+#if 0 // device preferences will be useful soon, but not for hardware model detection
 	ConnexionDevicePrefs p;
 	ConnexionGetCurrentDevicePrefs(kDevID_AnyDevice, &p);
 	printf("device type %d: %s\n", p.deviceID,
@@ -41,72 +45,72 @@ static void NDOF_DeviceAdded(io_connect_t connection)
 		p.deviceID == kDevID_SpaceNavigatorNB ? "SpaceNavigator for Notebooks" :
 		p.deviceID == kDevID_SpaceExplorer ? "SpaceExplorer" :
 		"unknown");
+#endif
 
-	// try a more "standard" way
+	// determine exactly which device is plugged in
 	int result = 0;
 	ConnexionControl(kConnexionCtlGetDeviceID, 0, &result);
 	unsigned short vendorID = result >> 16;
 	unsigned short productID = result & 0xffff;
-	printf("vendor %04hx:%04hx product\n", vendorID, productID);
+
+	ndof_manager->setDevice(vendorID, productID);
 	}
 
 static void NDOF_DeviceRemoved(io_connect_t connection)
 	{
-	printf("ndof device removed\n");
+	printf("ndof: device removed\n");
 	}
 
 static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, void* messageArgument)
 	{
-	GHOST_SystemCocoa* system = (GHOST_SystemCocoa*) GHOST_ISystem::getSystem();
-	GHOST_NDOFManager* manager = system->getNDOFManager();
 	switch (messageType)
 		{
 		case kConnexionMsgDeviceState:
 			{
 			ConnexionDeviceState* s = (ConnexionDeviceState*)messageArgument;
 
-			GHOST_TUns64 now = system->getMilliSeconds();
+			GHOST_TUns64 now = ghost_system->getMilliSeconds();
 
 			switch (s->command)
 				{
 				case kConnexionCmdHandleAxis:
-					manager->updateTranslation(s->axis, now);
-					manager->updateRotation(s->axis + 3, now);
-					system->notifyExternalEventProcessed();
+					ndof_manager->updateTranslation(s->axis, now);
+					ndof_manager->updateRotation(s->axis + 3, now);
+					ghost_system->notifyExternalEventProcessed();
 					break;
 
 				case kConnexionCmdHandleButtons:
 
 					// s->buttons field has only 16 bits, not enough for SpacePilotPro
 					// look at raw USB report for more button bits
-					printf("button bits = [");
+					printf("ndof: button bits = [");
 					for (int i = 0; i < 8; ++i)
 						printf("%02x", s->report[i]);
 					printf("]\n");
 
-					manager->updateButtons(s->buttons, now);
-					system->notifyExternalEventProcessed();
+					ndof_manager->updateButtons(s->buttons, now);
+					ghost_system->notifyExternalEventProcessed();
 					break;
 
 				case kConnexionCmdAppSpecific:
-					printf("app-specific command: param=%hd value=%d\n", s->param, s->value);
+					printf("ndof: app-specific command, param = %hd, value = %d\n", s->param, s->value);
 					break;
 
 				default:
-					printf("<!> mystery command %d\n", s->command);
+					printf("ndof: mystery device command %d\n", s->command);
 				}
 			break;
 			}
 		case kConnexionMsgPrefsChanged:
-			printf("prefs changed\n"); // this includes app switches
+			printf("ndof: prefs changed\n"); // this includes app switches
 			break;
 		case kConnexionMsgDoAction:
-			printf("do action\n"); // no idea what this means
+			printf("ndof: do action\n"); // no idea what this means
 			// 'calibrate device' in System Prefs sends this
 			// 3Dx header file says to ignore these
 			break;
 		default:
-			printf("<!> mystery event\n");
+			printf("ndof: mystery event %d\n", messageType);
 		}
 	}
 
@@ -115,10 +119,14 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 	{
 	if (available())
 		{
+		// give static functions something to talk to:
+		ghost_system = dynamic_cast<GHOST_SystemCocoa*>(&sys);
+		ndof_manager = this;
+
 		OSErr error = InstallConnexionHandlers(NDOF_DeviceEvent, NDOF_DeviceAdded, NDOF_DeviceRemoved);
 		if (error)
 			{
-			printf("<!> error = %d\n", error);
+			printf("ndof: error %d while installing handlers\n", error);
 			return;
 			}
 
@@ -126,12 +134,12 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 		m_clientID = RegisterConnexionClient('blnd', (UInt8*) "\pblender",
 			kConnexionClientModeTakeOver, kConnexionMaskAll);
 
-		printf("client id = %d\n", m_clientID);
+		printf("ndof: client id = %d\n", m_clientID);
 		}
 	else
 		{
-		printf("<!> SpaceNav driver not found\n");
-		// This isn't a hard error, just means the user doesn't have a SpaceNavigator.
+		printf("ndof: 3Dx driver not found\n");
+		// This isn't a hard error, just means the user doesn't have a 3D mouse.
 		}
 	}
 
@@ -139,6 +147,8 @@ GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 	{
 	UnregisterConnexionClient(m_clientID);
 	CleanupConnexionHandlers();
+	ghost_system = NULL;
+	ndof_manager = NULL;
 	}
 
 bool GHOST_NDOFManagerCocoa::available()

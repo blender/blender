@@ -26,7 +26,7 @@
 
 #include "GHOST_NDOFManager.h"
 
-// Event capture is handled within the NDOFManager on Macintosh,
+// Event capture is handled within the NDOF manager on Macintosh,
 // so there's no need for SystemCocoa to look for them.
 
 class GHOST_NDOFManagerCocoa : public GHOST_NDOFManager

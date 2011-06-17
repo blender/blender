@@ -146,6 +146,24 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	memset(m_rotation, 0, sizeof(m_rotation));
 	}
 
+void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short product_id)
+	{
+	switch (vendor_id)
+		{
+		case 0x046d: // Logitech (3Dconnexion)
+			switch (product_id)
+				{
+				case 0xc626: m_deviceType = NDOF_SpaceNavigator; break;
+				case 0xc627: m_deviceType = NDOF_SpaceExplorer; break;
+				case 0xc629: m_deviceType = NDOF_SpacePilotPro; break;
+				default: printf("ndof: unknown Logitech product %04hx\n", product_id);
+				}
+			break;
+		default:
+			printf("ndof: unknown vendor %04hx\n", vendor_id);
+		}
+	}
+
 void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)
 	{
 	memcpy(m_translation, t, sizeof(m_translation));
@@ -192,7 +210,7 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
 
 	#ifdef DEBUG_NDOF_BUTTONS
-	printf("button %d -> ", button_number);
+	printf("ndof: button %d -> ", button_number);
 	#endif
 
 	switch (m_deviceType)
@@ -221,7 +239,7 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 				}
 			break;
 		case NDOF_UnknownDevice:
-			printf("button %d on unknown device (not sent)\n", button_number);
+			printf("ndof: button %d on unknown device (ignoring)\n", button_number);
 		}
 
 	int mask = 1 << button_number;
@@ -276,7 +294,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	m_prevMotionTime = m_motionTime;
 
 	#ifdef DEBUG_NDOF_MOTION
-	printf("sending T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
+	printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
 		data->tx, data->ty, data->tz, data->rx, data->ry, data->rz, data->dt);
 	#endif
 

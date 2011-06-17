@@ -26,6 +26,9 @@
 
 #include "GHOST_NDOFManager.h"
 
+// Event capture is handled within the NDOF manager on Linux,
+// so there's no need for SystemX11 to look for them.
+
 class GHOST_NDOFManagerX11 : public GHOST_NDOFManager
 	{
 public:

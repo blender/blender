@@ -47,26 +47,16 @@ GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
 				{
 				unsigned short vendor_id = 0, product_id = 0;
 				if (sscanf(line, "Bus %*d Device %*d: ID %hx:%hx", &vendor_id, &product_id) == 2)
-					{
-					// the following code will live in the base class
-					// once all platforms have device detection
-					switch (product_id)
-						{
-						case 0xc626: m_deviceType = NDOF_SpaceNavigator; break;
-						case 0xc627: m_deviceType = NDOF_SpaceExplorer; break;
-						case 0xc629: m_deviceType = NDOF_SpacePilotPro; break;
-						default: printf("unknown product ID: %04x\n", product_id);
-						}
-					}
+					setDevice(vendor_id, product_id);
 				}
 			pclose(command_output);
 			}
 		}
 	else
 		{
-		printf("<!> SpaceNav driver not found\n");
-		// This isn't a hard error, just means the user doesn't have a SpaceNavigator.
 		m_available = false;
+		printf("ndof: spacenavd not found\n");
+		// This isn't a hard error, just means the user doesn't have a 3D mouse.
 		}
 	}
 
