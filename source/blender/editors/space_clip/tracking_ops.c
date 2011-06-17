@@ -648,7 +648,7 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 
 typedef struct TrackMarkersJob {
 	struct MovieTrackingContext *context;
-	int sfra, efra;
+	int sfra, efra, backwards;
 	MovieClip *clip;
 	MovieClipUser *user;
 } TrackMarkersJob;
@@ -658,18 +658,21 @@ static int track_markers_testbreak(void)
 	return G.afbreek;
 }
 
-static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj)
+static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwards)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	Scene *scene= CTX_data_scene(C);
 
 	tmj->sfra= sc->user.framenr;
-	tmj->efra= EFRA;
 	tmj->clip= clip;
 	tmj->user= &sc->user;
+	tmj->backwards= backwards;
 
-	tmj->context= BKE_tracking_context_new(clip, &sc->user);
+	if(backwards) tmj->efra= SFRA;
+	else tmj->efra= EFRA;
+
+	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards);
 }
 
 static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_update, float *progress)
@@ -677,7 +680,7 @@ static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_upd
 	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
 	int framenr= tmj->sfra;
 
-	while(framenr < tmj->efra) {
+	while(framenr != tmj->efra) {
 		if(!BKE_tracking_next(tmj->context))
 			break;
 
@@ -687,7 +690,8 @@ static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_upd
 		if(track_markers_testbreak())
 			break;
 
-		framenr++;
+		if(tmj->backwards) framenr--;
+		else framenr++;
 	}
 }
 
@@ -717,9 +721,10 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	TrackMarkersJob *tmj;
 	wmJob *steve;
 	Scene *scene= CTX_data_scene(C);
+	int backwards= RNA_boolean_get(op->ptr, "backwards");
 
 	tmj= MEM_callocN(sizeof(TrackMarkersJob), "TrackMarkersJob data");
-	track_markers_initjob(C, tmj);
+	track_markers_initjob(C, tmj, backwards);
 
 	/* setup job */
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Track Markers", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
@@ -738,7 +743,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int track_markers_exec(bContext *C, wmOperator *UNUSED(op))
+static int track_markers_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
@@ -746,14 +751,16 @@ static int track_markers_exec(bContext *C, wmOperator *UNUSED(op))
 	struct MovieTrackingContext *context;
 	int framenr= sc->user.framenr;
 	int sfra= framenr;
+	int backwards= RNA_boolean_get(op->ptr, "backwards");
 
-	context= BKE_tracking_context_new(clip, &sc->user);
+	context= BKE_tracking_context_new(clip, &sc->user, backwards);
 
-	while(framenr < EFRA) {
+	while(framenr != EFRA) {
 		if(!BKE_tracking_next(context))
 			break;
 
-		framenr++;
+		if(backwards) framenr--;
+		else framenr++;
 	}
 
 	BKE_tracking_sync(context);
@@ -762,6 +769,8 @@ static int track_markers_exec(bContext *C, wmOperator *UNUSED(op))
 	/* movie clip's user was used during tracking,
 	   need to restore current frame number */
 	sc->user.framenr= sfra;
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
 
 	return OPERATOR_FINISHED;
 }
@@ -797,6 +806,9 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tarcking");
 }
 
 /********************** reset tracking settings operator *********************/
@@ -821,6 +833,59 @@ void CLIP_OT_reset_tracking_settings(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= reset_tracking_settings_exec;
 	ot->poll= space_clip_frame_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** clear track operator *********************/
+
+static int clear_track_path_poll(bContext *C)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+
+	if(sc && sc->mode==SC_MODE_TRACKING) {
+		MovieClip *clip= ED_space_clip(sc);
+
+		if(clip && BKE_movieclip_has_frame(clip, &sc->user)) {
+			int sel_type;
+			void *sel;
+
+			BKE_movieclip_last_selection(clip, &sel_type, &sel);
+
+			return sel_type == MCLIP_SEL_TRACK;
+		}
+	}
+
+	return 0;
+}
+
+static int clear_track_path_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	int sel_type;
+	MovieTrackingTrack *track;
+
+	BKE_movieclip_last_selection(clip, &sel_type, (void**)&track);
+
+	BKE_tracking_clear_path(track, sc->user.framenr);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_clear_track_path(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Track Path";
+	ot->description= "Clear path of active track";
+	ot->idname= "CLIP_OT_clear_track_path";
+
+	/* api callbacks */
+	ot->exec= clear_track_path_exec;
+	ot->poll= clear_track_path_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

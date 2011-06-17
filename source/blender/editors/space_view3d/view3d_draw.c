@@ -1628,7 +1628,7 @@ static void draw_viewport_clips(View3D *v3d)
 
 	/* clear usage flag */
 	for ( bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next )
-		if(bgpic->source==V3D_BGPIC_MOVIE)
+		if(bgpic->source==V3D_BGPIC_MOVIE && bgpic->clip)
 			bgpic->clip->id.flag&= ~LIB_DOIT;
 
 	/* actual draw cycle */
@@ -1636,7 +1636,7 @@ static void draw_viewport_clips(View3D *v3d)
 		if(bgpic->source==V3D_BGPIC_MOVIE) {
 			clip= bgpic->clip;
 
-			if((clip->id.flag&LIB_DOIT)==0) {
+			if((clip && clip->id.flag&LIB_DOIT)==0) {
 				draw_clip(clip, dt);
 
 				bgpic->clip->id.flag|= LIB_DOIT;

@@ -77,9 +77,10 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 	sc= MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype= SPACE_CLIP;
 	sc->mode= SC_MODE_VIEW;
-	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_MARKER_SEARCH;
+	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_MARKER_SEARCH|SC_SHOW_MARKER_PATH;
 	sc->debug_flag= SC_DBG_SHOW_CACHE;
 	sc->zoom= 1.0f;
+	sc->path_length= 20;
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for clip");
@@ -210,11 +211,13 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_track_markers);
 
 	WM_operatortype_append(CLIP_OT_reset_tracking_settings);
+	WM_operatortype_append(CLIP_OT_clear_track_path);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 
 	keymap= WM_keymap_find(keyconf, "Clip", SPACE_CLIP, 0);
 
@@ -256,6 +259,11 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_add_marker", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "backwards", 1);
+	WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_delete", DELKEY, KM_PRESS, 0, 0);

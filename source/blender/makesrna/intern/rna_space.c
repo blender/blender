@@ -2650,10 +2650,17 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_LOCK_SELECTION);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
-	/* show tiny markers */
-	prop= RNA_def_property(srna, "show_tiny_markers", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Show Tiny Markers", "Show markers tiny");
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_TINY_MARKER);
+	/* show markers pathes */
+	prop= RNA_def_property(srna, "show_marker_path", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_MARKER_PATH);
+	RNA_def_property_ui_text(prop, "Show Marker Path", "Show path of markers");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* path length */
+	prop= RNA_def_property(srna, "path_length", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "path_length");
+	RNA_def_property_range(prop, 0, 50);
+	RNA_def_property_ui_text(prop, "Path Length", "Length of displaying path, in frames");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
 	/* ** debug flags ** */
@@ -2662,6 +2669,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Show Cache", "Show cached frames for current clip");
 	RNA_def_property_boolean_sdna(prop, NULL, "debug_flag", SC_DBG_SHOW_CACHE);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show tiny markers */
+	prop= RNA_def_property(srna, "show_tiny_markers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Tiny Markers", "Show markers tiny");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_TINY_MARKER);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 

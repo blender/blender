@@ -45,6 +45,7 @@
 #include "IMB_imbuf.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "ED_screen.h"
 #include "ED_clip.h"
@@ -121,6 +122,88 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf)
 
 	/* reset zoom */
 	glPixelZoom(1.f, 1.f);
+}
+
+static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *track)
+{
+	int count= sc->path_length;
+	int i, a, b, sel_type;
+	float path[102][2];
+	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
+	MovieTrackingMarker *marker;
+	void *sel;
+
+	if(count==0)
+		return;
+
+	BKE_movieclip_last_selection(clip, &sel_type, &sel);
+
+	/* non-tracked tracks shouldn't display path */
+	if((track->flag&TRACK_PROCESSED)==0)
+		return;
+
+	if(!BKE_tracking_has_marker(track, sc->user.framenr))
+		return;
+
+	a= count;
+	i= sc->user.framenr-1;
+	while(i>=sc->user.framenr-count) {
+		marker= BKE_tracking_get_marker(track, i);
+
+		if(!marker)
+			break;
+
+		copy_v2_v2(path[--a], marker->pos);
+
+		i--;
+	}
+
+	b= count;
+	i= sc->user.framenr;
+	while(i<=sc->user.framenr+count) {
+		marker= BKE_tracking_get_marker(track, i);
+
+		if(!marker)
+			break;
+
+		copy_v2_v2(path[b++], marker->pos);
+
+		i++;
+	}
+
+	if(!tiny) {
+		UI_ThemeColor(TH_MARKER_OUTLINE);
+
+		glPointSize(4.0f);
+		glBegin(GL_POINTS);
+			for(i= a; i<b; i++)
+				glVertex2f(path[i][0], path[i][1]);
+		glEnd();
+
+		glLineWidth(3.0f);
+		glBegin(GL_LINE_STRIP);
+			for(i= a; i<b; i++)
+				glVertex2f(path[i][0], path[i][1]);
+		glEnd();
+		glLineWidth(1.0f);
+	}
+
+	glPointSize(2.0f);
+	if(sel_type==MCLIP_SEL_TRACK && sel==track) UI_ThemeColor(TH_ACT_MARKER);
+	else {
+		if (TRACK_SELECTED(track)) UI_ThemeColor(TH_SEL_MARKER);
+		else UI_ThemeColor(TH_MARKER);
+	}
+	glBegin(GL_POINTS);
+		for(i= a; i<b; i++)
+			glVertex2f(path[i][0], path[i][1]);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+		for(i= a; i<b; i++)
+			glVertex2f(path[i][0], path[i][1]);
+	glEnd();
+	glPointSize(1.0f);
 }
 
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker)
@@ -246,6 +329,14 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip)
 	glScalef(width, height, 0);
 
 	BKE_movieclip_last_selection(clip, &sel_type, &sel);
+
+	if(sc->flag&SC_SHOW_MARKER_PATH) {
+		track= clip->tracking.tracks.first;
+		while(track) {
+			draw_track_path(sc, clip, track);
+			track= track->next;
+		}
+	}
 
 	/* markers outline and non-selected areas */
 	track= clip->tracking.tracks.first;

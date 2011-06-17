@@ -66,7 +66,7 @@ class CLIP_PT_tools(bpy.types.Panel):
         if clip:
             ts = context.tool_settings
             col = layout.column()
-            col.prop(ts.movieclip, 'tool', expand=True)
+            col.prop(ts.movieclip, "tool", expand=True)
 
 
 class CLIP_PT_footage(bpy.types.Panel):
@@ -95,7 +95,7 @@ class CLIP_PT_footage(bpy.types.Panel):
         if clip:
             layout.template_movieclip(sc, "clip", sc.clip_user, compact=True)
         else:
-            layout.operator('clip.open', icon='FILESEL')
+            layout.operator("clip.open", icon='FILESEL')
 
 
 class CLIP_PT_tracking_camera(bpy.types.Panel):
@@ -124,7 +124,7 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
 class CLIP_PT_tracking_marker_tools(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_label = 'Marker Tools'
+    bl_label = "Marker Tools"
 
     @classmethod
     def poll(cls, context):
@@ -139,14 +139,14 @@ class CLIP_PT_tracking_marker_tools(bpy.types.Panel):
         layout = self.layout
         clip = context.space_data.clip
 
-        layout.operator('clip.add_marker_move', icon='ZOOMIN')
-        layout.operator('clip.delete', icon='X')
+        layout.operator("clip.add_marker_move", icon='ZOOMIN')
+        layout.operator("clip.delete", icon='X')
 
 
 class CLIP_PT_tracking_marker(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_label = 'Marker'
+    bl_label = "Marker"
 
     @classmethod
     def poll(cls, context):
@@ -163,13 +163,13 @@ class CLIP_PT_tracking_marker(bpy.types.Panel):
         sc = context.space_data
         clip = context.space_data.clip
 
-        layout.template_marker(clip.tracking, 'act_track', sc.clip_user, clip)
+        layout.template_marker(clip.tracking, "act_track", sc.clip_user, clip)
 
 
 class CLIP_PT_track(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_label = 'Track Tools'
+    bl_label = "Track Tools"
 
     @classmethod
     def poll(cls, context):
@@ -184,13 +184,15 @@ class CLIP_PT_track(bpy.types.Panel):
         layout = self.layout
         clip = context.space_data.clip
 
-        layout.operator('clip.track_markers', icon='PLAY')
+        layout.operator("clip.track_markers", icon='PLAY')
+        layout.operator("clip.track_markers", text="Track Backwards", icon='PLAY_REVERSE').backwards=True
+        layout.operator("clip.clear_track_path", icon='X')
 
 
 class CLIP_PT_track_settings(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_label = 'Tracking Settings'
+    bl_label = "Tracking Settings"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -207,11 +209,11 @@ class CLIP_PT_track_settings(bpy.types.Panel):
         clip = context.space_data.clip
         settings = clip.tracking.settings
 
-        layout.prop(settings, 'max_iterations')
-        layout.prop(settings, 'pyramid_level')
-        layout.prop(settings, 'tolerance')
+        layout.prop(settings, "max_iterations")
+        layout.prop(settings, "pyramid_level")
+        layout.prop(settings, "tolerance")
 
-        layout.operator('clip.reset_tracking_settings', \
+        layout.operator("clip.reset_tracking_settings", \
             text="Reset To Defaults")
 
 
@@ -235,6 +237,11 @@ class CLIP_PT_display(bpy.types.Panel):
         layout.prop(sc, "show_marker_pattern")
         layout.prop(sc, "show_marker_search")
         layout.prop(sc, "lock_selection")
+        layout.prop(sc, "show_marker_path")
+
+        row = layout.row()
+        row.active = sc.show_marker_path
+        row.prop(sc, "path_length")
 
 
 class CLIP_PT_debug(bpy.types.Panel):
@@ -291,9 +298,9 @@ class CLIP_MT_clip(bpy.types.Menu):
         clip = sc.clip
 
         if clip:
-            layout.operator('clip.reload')
+            layout.operator("clip.reload")
 
-        layout.operator('clip.open')
+        layout.operator("clip.open")
 
 
 class CLIP_MT_edit(bpy.types.Menu):
@@ -304,7 +311,7 @@ class CLIP_MT_edit(bpy.types.Menu):
 
         sc = context.space_data
 
-        layout.operator('clip.delete')
+        layout.operator("clip.delete")
         layout.menu("CLIP_MT_marker")
 
 
@@ -316,7 +323,7 @@ class CLIP_MT_marker(bpy.types.Menu):
 
         sc = context.space_data
 
-        layout.operator('clip.add_marker_move')
+        layout.operator("clip.add_marker_move")
 
 
 class CLIP_MT_select(bpy.types.Menu):
@@ -327,10 +334,10 @@ class CLIP_MT_select(bpy.types.Menu):
 
         sc = context.space_data
 
-        layout.operator('clip.select_border')
-        layout.operator('clip.select_circle')
-        layout.operator('clip.select_all', text="Select/Deselect all")
-        layout.operator('clip.select_all', text="Inverse").action = 'INVERT'
+        layout.operator("clip.select_border")
+        layout.operator("clip.select_circle")
+        layout.operator("clip.select_all", text="Select/Deselect all")
+        layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

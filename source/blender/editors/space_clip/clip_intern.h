@@ -69,6 +69,7 @@ void CLIP_OT_delete(struct wmOperatorType *ot);
 void CLIP_OT_track_markers(struct wmOperatorType *ot);
 
 void CLIP_OT_reset_tracking_settings(struct wmOperatorType *ot);
+void CLIP_OT_clear_track_path(struct wmOperatorType *ot);
 
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);

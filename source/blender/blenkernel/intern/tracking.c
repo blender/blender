@@ -174,6 +174,9 @@ MovieTrackingMarker *BKE_tracking_get_marker(MovieTrackingTrack *track, int fram
 {
 	int a= track->markersnr;
 
+	if(!track->markersnr)
+		return NULL;
+
 	if((track->flag&TRACK_PROCESSED)==0) {
 		/* non-precessed tracks contains the only marker
 		   which should be used independelntly from current frame number. */
@@ -229,6 +232,25 @@ MovieTrackingTrack *BKE_tracking_copy_track(MovieTrackingTrack *track)
 	return new_track;
 }
 
+void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame)
+{
+	MovieTrackingMarker *marker, new_marker;
+
+	if(track->markersnr==0)
+		return;
+
+	marker= BKE_tracking_get_marker(track, ref_frame);
+	if(marker) new_marker= *marker;
+	else new_marker= track->markers[0];
+
+	MEM_freeN(track->markers);
+	track->markers= NULL;
+	track->markersnr= 0;
+	track->flag&= ~TRACK_PROCESSED;
+
+	BKE_tracking_insert_marker(track, &new_marker);
+}
+
 void BKE_tracking_free(MovieTracking *tracking)
 {
 	MovieTrackingTrack *track;
@@ -254,9 +276,11 @@ typedef struct MovieTrackingContext {
 	ListBase tracks;
 	GHash *hash;
 	MovieTrackingSettings settings;
+
+	int backwards;
 } MovieTrackingContext;
 
-MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user)
+MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, int backwards)
 {
 	MovieTrackingContext *context= MEM_callocN(sizeof(MovieTrackingContext), "trackingContext");
 	MovieTracking *tracking= &clip->tracking;
@@ -269,6 +293,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 #endif
 
 	context->settings= *settings;
+	context->backwards= backwards;
 	context->hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "tracking trackHash");
 
 	track= tracking->tracks.first;
@@ -391,7 +416,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 	MovieTrackingTrack *track;
 	ListBase tracks= {NULL, NULL};
 	ListBase *old_tracks= &context->clip->tracking.tracks;
-	int sel_type;
+	int sel_type, newframe;
 	void *sel;
 
 	BKE_movieclip_last_selection(context->clip, &sel_type, &sel);
@@ -453,7 +478,12 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 	}
 
 	context->clip->tracking.tracks= tracks;
-	context->orig_user->framenr= context->user.framenr-1;
+
+	;
+	if(context->backwards) newframe= context->user.framenr+1;
+	else newframe= context->user.framenr-1;
+
+	context->orig_user->framenr= newframe;
 }
 
 int BKE_tracking_next(MovieTrackingContext *context)
@@ -462,10 +492,16 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	MovieTrackingTrack *track;
 	int curfra= context->user.framenr;
 
+	/* nothing to track, avoid unneeded frames reading to save time and memory */
+	if(!context->tracks.first)
+		return 0;
+
 	ibuf= BKE_movieclip_acquire_ibuf(context->clip, &context->user);
 	if(!ibuf) return 0;
 
-	context->user.framenr++;
+	if(context->backwards) context->user.framenr--;
+	else context->user.framenr++;
+
 	ibuf_new= BKE_movieclip_acquire_ibuf(context->clip, &context->user);
 	if(!ibuf_new) {
 		IMB_freeImBuf(ibuf);
@@ -498,7 +534,14 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				marker_new.pos[0]= marker->pos[0]+track->search_min[0]+x2/ibuf_new->x;
 				marker_new.pos[1]= marker->pos[1]+track->search_min[1]+y2/ibuf_new->y;
-				marker_new.framenr= curfra+1;
+
+				if(context->backwards) marker_new.framenr= curfra-1;
+				else marker_new.framenr= curfra+1;
+
+				/* happens when current frame was changed after placing marker
+				   but before tracking it */
+				if(marker->framenr!=curfra)
+					marker->framenr= curfra;
 
 				BKE_tracking_insert_marker(track, &marker_new);
 			}
