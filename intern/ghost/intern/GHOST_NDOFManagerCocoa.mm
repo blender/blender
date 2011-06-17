@@ -33,18 +33,17 @@ extern "C" {
 static GHOST_SystemCocoa* ghost_system = NULL;
 static GHOST_NDOFManager* ndof_manager = NULL;
 
+// 3Dconnexion drivers before 10.x are "old"
+// not all buttons will work
+static bool has_old_driver = true;
+
 static void NDOF_DeviceAdded(io_connect_t connection)
 	{
 	printf("ndof: device added\n"); // change these: printf --> informational reports
 
-#if 0 // device preferences will be useful soon, but not for hardware model detection
+#if 0 // device preferences will be useful soon
 	ConnexionDevicePrefs p;
 	ConnexionGetCurrentDevicePrefs(kDevID_AnyDevice, &p);
-	printf("device type %d: %s\n", p.deviceID,
-		p.deviceID == kDevID_SpaceNavigator ? "SpaceNavigator" :
-		p.deviceID == kDevID_SpaceNavigatorNB ? "SpaceNavigator for Notebooks" :
-		p.deviceID == kDevID_SpaceExplorer ? "SpaceExplorer" :
-		"unknown");
 #endif
 
 	// determine exactly which device is plugged in
@@ -80,18 +79,12 @@ static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, voi
 					break;
 
 				case kConnexionCmdHandleButtons:
-
-					// s->buttons field has only 16 bits, not enough for SpacePilotPro
-					// look at raw USB report for more button bits
-					printf("ndof: button bits = [");
-					for (int i = 0; i < 8; ++i)
-						printf("%02x", s->report[i]);
-					printf("]\n");
-
-					ndof_manager->updateButtons(s->buttons, now);
+					{
+					int button_bits = has_old_driver ? s->buttons8 : s->buttons;
+					ndof_manager->updateButtons(button_bits, now);
 					ghost_system->notifyExternalEventProcessed();
 					break;
-
+					}
 				case kConnexionCmdAppSpecific:
 					printf("ndof: app-specific command, param = %hd, value = %d\n", s->param, s->value);
 					break;
@@ -104,9 +97,13 @@ static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, voi
 		case kConnexionMsgPrefsChanged:
 			printf("ndof: prefs changed\n"); // this includes app switches
 			break;
-		case kConnexionMsgDoAction:
-			printf("ndof: do action\n"); // no idea what this means
-			// 'calibrate device' in System Prefs sends this
+		case kConnexionMsgCalibrateDevice:
+			printf("ndof: calibrate\n"); // but what should blender do?
+			break;
+		case kConnexionMsgDoMapping:
+			printf("ndof: driver did something\n");
+			// sent when the driver itself consumes an NDOF event
+			// and performs whatever action is set in user prefs
 			// 3Dx header file says to ignore these
 			break;
 		default:
@@ -135,6 +132,14 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 			kConnexionClientModeTakeOver, kConnexionMaskAll);
 
 		printf("ndof: client id = %d\n", m_clientID);
+
+		if (SetConnexionClientButtonMask != NULL)
+			{
+			has_old_driver = false;
+			SetConnexionClientButtonMask(m_clientID, kConnexionMaskAllButtons);
+			}
+		else
+			printf("ndof: old 3Dx driver installed, some buttons may not work\n");
 		}
 	else
 		{
