@@ -89,6 +89,7 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> joint_by_uid; // contains all joints
 	std::vector<COLLADAFW::Node*> root_joints;
 	std::map<COLLADAFW::UniqueId, Object*> joint_parent_map;
+	std::map<COLLADAFW::UniqueId, Object*> unskinned_armature_map;
 
 	MeshImporterBase *mesh_importer;
 	AnimationImporterBase *anim_importer;

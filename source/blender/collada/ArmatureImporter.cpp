@@ -383,7 +383,22 @@ void ArmatureImporter::create_armature_bones( )
 
 		create_unskinned_bone(*ri, NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature*)ob_arm->data);
 
+		fix_leaf_bones();
+
+	// exit armature edit mode
+	
+
+	if (joint_parent_map.find((*ri)->getUniqueId()) != joint_parent_map.end() && ob_arm->parent!=NULL)
+		ob_arm->parent = joint_parent_map[(*ri)->getUniqueId()];
+	
+	unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
+
+	ED_armature_from_edit(ob_arm);
+	ED_armature_edit_free(ob_arm);
+	DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB|OB_RECALC_DATA);
 	}
+
+	
 }
 
 void ArmatureImporter::create_armature_bones(SkinInfo& skin)
@@ -558,9 +573,7 @@ void ArmatureImporter::make_armatures(bContext *C)
 		skin.free();
 	}
 
-	//if skin_by_data_uid is empty 
-	if( skin_by_data_uid.empty() )
-		create_armature_bones();
+	create_armature_bones();
 
 }
 
@@ -657,6 +670,11 @@ Object *ArmatureImporter::get_armature_for_joint(COLLADAFW::Node *node)
 			return skin.get_armature();
 	}
 
+	std::map<COLLADAFW::UniqueId, Object*>::iterator arm;
+	for (arm = unskinned_armature_map.begin(); arm != unskinned_armature_map.end(); arm++) {
+		if(arm->first == node->getUniqueId() )
+			return arm->second;
+	}
 	return NULL;
 }
 
