@@ -68,15 +68,19 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 		/* check that a sequence contains dimsize[dim] items */
 		const int seq_size= PySequence_Size(seq);
 		if(seq_size == -1) {
-			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not %s", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
-			return 0;
+			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			return -1;
 		}
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item;
 			int ok= 1;
 			item= PySequence_GetItem(seq, i);
 
-			if (!PySequence_Check(item)) {
+			if(item == NULL) {
+				PyErr_Format(PyExc_TypeError, "%s sequence type '%s' failed to retrieve index %d", error_prefix, Py_TYPE(seq)->tp_name, i);
+				ok= 0;
+			}
+			else if (!PySequence_Check(item)) {
 				/* BLI_snprintf(error_str, error_str_size, "expected a sequence of %s", item_type_str); */
 				PyErr_Format(PyExc_TypeError, "%s expected a sequence of %s, not %s", error_prefix, item_type_str, Py_TYPE(item)->tp_name);
 				ok= 0;
@@ -91,39 +95,43 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 				PyErr_Format(PyExc_ValueError, "%s sequences of dimension %d should contain %d items", error_prefix, (int)dim + 1, (int)dimsize[dim + 1]);
 				ok= 0;
 			}
-			else if (!validate_array_type(item, dim + 1, totdim, dimsize, check_item_type, item_type_str, error_prefix)) {
+			else if (validate_array_type(item, dim + 1, totdim, dimsize, check_item_type, item_type_str, error_prefix) == -1) {
 				ok= 0;
 			}
 
-			Py_DECREF(item);
+			Py_XDECREF(item);
 
 			if (!ok)
-				return 0;
+				return -1;
 		}
 	}
 	else {
 		/* check that items are of correct type */
 		const int seq_size= PySequence_Size(seq);
 		if(seq_size == -1) {
-			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not %s", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
-			return 0;
+			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			return -1;
 		}
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
 
-			if (!check_item_type(item)) {
+			if(item == NULL) {
+				PyErr_Format(PyExc_TypeError, "%s sequence type '%s' failed to retrieve index %d", error_prefix, Py_TYPE(seq)->tp_name, i);
+				return -1;
+			}
+			else if (!check_item_type(item)) {
 				Py_DECREF(item);
 
 				/* BLI_snprintf(error_str, error_str_size, "sequence items should be of type %s", item_type_str); */
 				PyErr_Format(PyExc_TypeError, "%s expected sequence items of type %s, not %s", error_prefix, item_type_str, Py_TYPE(item)->tp_name);
-				return 0;
+				return -1;
 			}
 
 			Py_DECREF(item);
 		}
 	}
 
-	return 1;
+	return 0; /* ok */
 }
 
 /* Returns the number of items in a single- or multi-dimensional sequence. */
@@ -136,8 +144,21 @@ static int count_items(PyObject *seq, int dim)
 		int i;
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
-			totitem += count_items(item, dim - 1);
-			Py_DECREF(item);
+			if(item) {
+				const int tot= count_items(item, dim - 1);
+				Py_DECREF(item);
+				if(tot != -1) {
+					totitem += tot;
+				}
+				else {
+					totitem= -1;
+					break;
+				}
+			}
+			else {
+				totitem= -1;
+				break;
+			}
 		}
 	}
 	else {
@@ -156,18 +177,22 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 	totdim= RNA_property_array_dimension(ptr, prop, dimsize);
 	tot= count_items(rvalue, totdim - lvalue_dim);
 
-	if ((RNA_property_flag(prop) & PROP_DYNAMIC) && lvalue_dim == 0) {
+	if(tot == -1) {
+		PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, error validating the sequence length", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
+		return -1;
+	}
+	else if ((RNA_property_flag(prop) & PROP_DYNAMIC) && lvalue_dim == 0) {
 		if (RNA_property_array_length(ptr, prop) != tot) {
 #if 0
 			/* length is flexible */
 			if (!RNA_property_dynamic_array_set_length(ptr, prop, tot)) {
 				/* BLI_snprintf(error_str, error_str_size, "%s.%s: array length cannot be changed to %d", RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot); */
 				PyErr_Format(PyExc_ValueError, "%s %s.%s: array length cannot be changed to %d", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot);
-				return 0;
+				return -1;
 			}
 #else
 			*totitem= tot;
-			return 1;
+			return 0;
 
 #endif
 		}
@@ -205,13 +230,13 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 		if (tot != len) {
 			/* BLI_snprintf(error_str, error_str_size, "sequence must have length of %d", len); */
 			PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, sequence must have %d items total, not %d", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), len, tot);
-			return 0;
+			return -1;
 		}
 	}
 
 	*totitem= len;
 
-	return 1;
+	return 0;
 }
 
 static int validate_array(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop, int lvalue_dim, ItemTypeCheckFunc check_item_type, const char *item_type_str, int *totitem, const char *error_prefix)
@@ -221,8 +246,8 @@ static int validate_array(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop, 
 
 	/* validate type first because length validation may modify property array length */
 
-	if (!validate_array_type(rvalue, lvalue_dim, totdim, dimsize, check_item_type, item_type_str, error_prefix))
-		return 0;
+	if (validate_array_type(rvalue, lvalue_dim, totdim, dimsize, check_item_type, item_type_str, error_prefix) == -1)
+		return -1;
 
 	return validate_array_length(rvalue, ptr, prop, lvalue_dim, totitem, error_prefix);
 }
@@ -250,25 +275,39 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int 
 	int totdim= RNA_property_array_dimension(ptr, prop, NULL);
 	const int seq_size= PySequence_Size(seq);
 
-	assert(seq_size != -1);
+	/* General note for 'data' being NULL or PySequence_GetItem() failing.
+	 *
+	 * This should never be NULL since we validated it, _but_ some triky python
+	 * developer could write their own sequence type which succeeds on
+	 * validating but fails later somehow, so include checks for safety. */
 
-	for (i= 0; i < seq_size; i++) {
+	if(seq_size == -1) {
+		return NULL;
+	}
+
+	for (i= 0; (i < seq_size) && data; i++) {
 		PyObject *item= PySequence_GetItem(seq, i);
+		if(item) {
+			if (dim + 1 < totdim) {
+				data= copy_values(item, ptr, prop, dim + 1, data, item_size, index, convert_item, rna_set_index);
+			}
+			else {
+				data= copy_value_single(item, ptr, prop, data, item_size, index, convert_item, rna_set_index);
+			}
 
-		if (dim + 1 < totdim) {
-			data= copy_values(item, ptr, prop, dim + 1, data, item_size, index, convert_item, rna_set_index);
+			Py_DECREF(item);
+
+			/* data may be NULL, but the for loop checks */
 		}
 		else {
-			data= copy_value_single(item, ptr, prop, data, item_size, index, convert_item, rna_set_index);
+			return NULL;
 		}
-
-		Py_DECREF(item);
 	}
 
 	return data;
 }
 
-static int py_to_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *param_data, ItemTypeCheckFunc check_item_type, const char *item_type_str, int item_size, ItemConvertFunc convert_item, RNA_SetArrayFunc rna_set_array, const char *error_prefix)
+static int py_to_array(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, char *param_data, ItemTypeCheckFunc check_item_type, const char *item_type_str, int item_size, ItemConvertFunc convert_item, RNA_SetArrayFunc rna_set_array, const char *error_prefix)
 {
 	/*int totdim, dim_size[MAX_ARRAY_DIMENSION];*/
 	int totitem;
@@ -276,8 +315,8 @@ static int py_to_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *p
 
 	/*totdim= RNA_property_array_dimension(ptr, prop, dim_size);*/ /*UNUSED*/
 
-	if (!validate_array(py, ptr, prop, 0, check_item_type, item_type_str, &totitem, error_prefix)) {
-		return 0;
+	if (validate_array(seq, ptr, prop, 0, check_item_type, item_type_str, &totitem, error_prefix) == -1) {
+		return -1;
 	}
 
 	if (totitem) {
@@ -297,16 +336,26 @@ static int py_to_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *p
 			data= PyMem_MALLOC(item_size * totitem);
 		}
 
-		copy_values(py, ptr, prop, 0, data, item_size, NULL, convert_item, NULL);
+		/* will only fail in very rare cases since we already validated the
+		 * python data, the check here is mainly for completeness. */
+		if(copy_values(seq, ptr, prop, 0, data, item_size, NULL, convert_item, NULL) != NULL) {
+			if (param_data==NULL) {
+				/* NULL can only pass through in case RNA property arraylength is 0 (impossible?) */
+				rna_set_array(ptr, prop, data);
+				PyMem_FREE(data);
+			}
+		}
+		else {
+			if (param_data==NULL) {
+				PyMem_FREE(data);
+			}
 
-		if (param_data==NULL) {
-			/* NULL can only pass through in case RNA property arraylength is 0 (impossible?) */
-			rna_set_array(ptr, prop, data);
-			PyMem_FREE(data);
+			PyErr_Format(PyExc_TypeError, "%s internal error parsing sequence of type '%s' after successful validation", error_prefix, Py_TYPE(seq)->tp_name);
+			return -1;
 		}
 	}
 
-	return 1;
+	return 0;
 }
 
 static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, int lvalue_dim, int arrayoffset, int index, ItemTypeCheckFunc check_item_type, const char *item_type_str, ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index, const char *error_prefix)
@@ -336,20 +385,20 @@ static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, i
 	if(lvalue_dim == totdim) { /* single item, assign directly */
 		if(!check_item_type(py)) {
 			PyErr_Format(PyExc_TypeError, "%s %.200s.%.200s, expected a %s type, not %s", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), item_type_str, Py_TYPE(py)->tp_name);
-			return 0;
+			return -1;
 		}
 		copy_value_single(py, ptr, prop, NULL, 0, &index, convert_item, rna_set_index);
 	}
 	else {
-		if (!validate_array(py, ptr, prop, lvalue_dim, check_item_type, item_type_str, &totitem, error_prefix)) {
-			return 0;
+		if (validate_array(py, ptr, prop, lvalue_dim, check_item_type, item_type_str, &totitem, error_prefix) == -1) {
+			return -1;
 		}
 
 		if (totitem) {
 			copy_values(py, ptr, prop, lvalue_dim, NULL, 0, &index, convert_item, rna_set_index);
 		}
 	}
-	return 1;
+	return 0;
 }
 
 static void py_to_float(PyObject *py, char *data)
@@ -414,7 +463,7 @@ int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data, PyOb
 		break;
 	default:
 		PyErr_SetString(PyExc_TypeError, "not an array type");
-		ret= 0;
+		ret= -1;
 	}
 
 	return ret;
@@ -435,7 +484,7 @@ int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, in
 		break;
 	default:
 		PyErr_SetString(PyExc_TypeError, "not an array type");
-		ret= 0;
+		ret= -1;
 	}
 
 	return ret;

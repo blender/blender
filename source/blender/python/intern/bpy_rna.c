@@ -1380,12 +1380,8 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 
 
 	if (RNA_property_array_check(ptr, prop)) {
-		int ok= 1;
-
 		/* done getting the length */
-		ok= pyrna_py_to_array(ptr, prop, data, value, error_prefix);
-
-		if (!ok) {
+		if(pyrna_py_to_array(ptr, prop, data, value, error_prefix) == -1) {
 			return -1;
 		}
 	}
@@ -1767,8 +1763,8 @@ static int pyrna_py_to_prop_array_index(BPy_PropertyArrayRNA *self, int index, P
 
 	if (totdim > 1) {
 		/* char error_str[512]; */
-		if (!pyrna_py_to_array_index(&self->ptr, self->prop, self->arraydim, self->arrayoffset, index, value, "")) {
-			/* PyErr_SetString(PyExc_AttributeError, error_str); */
+		if (pyrna_py_to_array_index(&self->ptr, self->prop, self->arraydim, self->arrayoffset, index, value, "") == -1) {
+			/* error is set */
 			ret= -1;
 		}
 	}

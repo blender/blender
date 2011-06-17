@@ -50,7 +50,7 @@ endif()
 cmake_minimum_required(VERSION 2.8)
 
 # this starts out unset
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules")
 
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
