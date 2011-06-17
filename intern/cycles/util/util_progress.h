@@ -25,6 +25,7 @@
  * update notifications from a job running in another thread. All methods
  * except for the constructor/destructor are thread safe. */
 
+#include "util_function.h"
 #include "util_string.h"
 #include "util_thread.h"
 
