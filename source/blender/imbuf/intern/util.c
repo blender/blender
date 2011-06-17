@@ -142,6 +142,7 @@ const char *imb_ext_audio[] = {
 	".flac",
 	".wma",
 	".eac3",
+    ".aif",
 	NULL};
 
 static int IMB_ispic_name(const char *name)
