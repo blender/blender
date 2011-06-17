@@ -272,7 +272,7 @@ class VIEW3D_MT_uv_map(bpy.types.Menu):
 
 
 class VIEW3D_MT_view(bpy.types.Menu):
-    bl_label = "View"
+    bl_label = _("View")
 
     def draw(self, context):
         layout = self.layout
@@ -282,15 +282,15 @@ class VIEW3D_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("view3d.viewnumpad", text="Camera").type = 'CAMERA'
-        layout.operator("view3d.viewnumpad", text="Top").type = 'TOP'
-        layout.operator("view3d.viewnumpad", text="Bottom").type = 'BOTTOM'
-        layout.operator("view3d.viewnumpad", text="Front").type = 'FRONT'
-        layout.operator("view3d.viewnumpad", text="Back").type = 'BACK'
-        layout.operator("view3d.viewnumpad", text="Right").type = 'RIGHT'
-        layout.operator("view3d.viewnumpad", text="Left").type = 'LEFT'
+        layout.operator("view3d.viewnumpad", text=_("Camera")).type = 'CAMERA'
+        layout.operator("view3d.viewnumpad", text=_("Top")).type = 'TOP'
+        layout.operator("view3d.viewnumpad", text=_("Bottom")).type = 'BOTTOM'
+        layout.operator("view3d.viewnumpad", text=_("Front")).type = 'FRONT'
+        layout.operator("view3d.viewnumpad", text=_("Back")).type = 'BACK'
+        layout.operator("view3d.viewnumpad", text=_("Right")).type = 'RIGHT'
+        layout.operator("view3d.viewnumpad", text=_("Left")).type = 'LEFT'
 
-        layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
+        layout.menu("VIEW3D_MT_view_cameras", text=_("Cameras"))
 
         layout.separator()
 
@@ -395,7 +395,7 @@ class VIEW3D_MT_view_align_selected(bpy.types.Menu):
 
 
 class VIEW3D_MT_view_cameras(bpy.types.Menu):
-    bl_label = _("Cameras")
+    bl_label = "Cameras"
 
     def draw(self, context):
         layout = self.layout
@@ -407,7 +407,7 @@ class VIEW3D_MT_view_cameras(bpy.types.Menu):
 
 
 class VIEW3D_MT_select_object(bpy.types.Menu):
-    bl_label = "Select"
+    bl_label = _("Select")
 
     def draw(self, context):
         layout = self.layout
@@ -417,19 +417,19 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("object.select_all", text="Select/Deselect All")
-        layout.operator("object.select_inverse", text="Inverse")
-        layout.operator("object.select_random", text="Random")
-        layout.operator("object.select_mirror", text="Mirror")
-        layout.operator("object.select_by_layer", text="Select All by Layer")
-        layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type...")
-        layout.operator("object.select_camera", text="Select Camera")
+        layout.operator("object.select_all", text=_("Select/Deselect All"))
+        layout.operator("object.select_inverse", text=_("Inverse"))
+        layout.operator("object.select_random", text=_("Random"))
+        layout.operator("object.select_mirror", text=_("Mirror"))
+        layout.operator("object.select_by_layer", text=_("Select All by Layer"))
+        layout.operator_menu_enum("object.select_by_type", "type", text=_("Select All by Type..."))
+        layout.operator("object.select_camera", text=_("Select Camera"))
 
         layout.separator()
 
-        layout.operator_menu_enum("object.select_grouped", "type", text="Grouped")
-        layout.operator_menu_enum("object.select_linked", "type", text="Linked")
-        layout.operator("object.select_pattern", text="Select Pattern...")
+        layout.operator_menu_enum("object.select_grouped", "type", text=_("Grouped"))
+        layout.operator_menu_enum("object.select_linked", "type", text=_("Linked"))
+        layout.operator("object.select_pattern", text=_("Select Pattern..."))
 
 
 class VIEW3D_MT_select_pose(bpy.types.Menu):
@@ -678,7 +678,7 @@ class VIEW3D_MT_select_face(bpy.types.Menu):  # XXX no matching enum
 
 class VIEW3D_MT_object(bpy.types.Menu):
     bl_context = "objectmode"
-    bl_label = "Object"
+    bl_label = _("Object")
 
     def draw(self, context):
         layout = self.layout
@@ -703,11 +703,11 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.operator("object.duplicate_move")
         layout.operator("object.duplicate_move_linked")
-        layout.operator("object.delete", text="Delete...")
-        layout.operator("object.proxy_make", text="Make Proxy...")
-        layout.menu("VIEW3D_MT_make_links", text="Make Links...")
+        layout.operator("object.delete", text=_("Delete..."))
+        layout.operator("object.proxy_make", text=_("Make Proxy..."))
+        layout.menu("VIEW3D_MT_make_links", text=_("Make Links..."))
         layout.operator("object.make_dupli_face")
-        layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
+        layout.operator_menu_enum("object.make_local", "type", text=_("Make Local..."))
         layout.menu("VIEW3D_MT_make_single_user")
 
         layout.separator()
@@ -728,7 +728,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("object.move_to_layer", text="Move to Layer...")
+        layout.operator("object.move_to_layer", text=_("Move to Layer..."))
         layout.menu("VIEW3D_MT_object_showhide")
 
         layout.operator_menu_enum("object.convert", "target")

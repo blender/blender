@@ -94,12 +94,14 @@ source/blender/editors/space_view3d/view3d_edit.c
 source/blender/editors/space_view3d/view3d_header.c
 source/blender/editors/space_view3d/view3d_select.c
 source/blender/editors/space_view3d/view3d_view.c
+source/blender/editors/space_view3d/view3d_toolbar.c
 
 source/blender/editors/transform/transform_ops.c
 
 source/blender/editors/uvedit/uvedit_ops.c
 source/blender/editors/uvedit/uvedit_unwrap_ops.c
 
+source/blender/makesrna/intern/rna_ID.c
 source/blender/makesrna/intern/rna_scene.c
 source/blender/makesrna/intern/rna_ui_api.c
 source/blender/makesrna/intern/rna_wm_api.c
