@@ -575,6 +575,7 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 					return NULL;
 
 				PyDict_SetItemString(dict, loop->name, wrap);
+				Py_DECREF(wrap);
 			}
 			return dict;
 		}
