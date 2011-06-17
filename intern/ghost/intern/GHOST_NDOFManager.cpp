@@ -26,7 +26,7 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_WindowManager.h"
 #include <string.h> // for memory functions
-#include <stdio.h> // for debug tracing
+#include <stdio.h> // for error/info reporting
 
 #ifdef DEBUG_NDOF_BUTTONS
 static const char* ndof_button_names[] = {
@@ -150,12 +150,19 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 	{
 	switch (vendor_id)
 		{
-		case 0x046d: // Logitech (3Dconnexion)
+		case 0x046D: // Logitech (3Dconnexion)
 			switch (product_id)
 				{
-				case 0xc626: m_deviceType = NDOF_SpaceNavigator; break;
-				case 0xc627: m_deviceType = NDOF_SpaceExplorer; break;
-				case 0xc629: m_deviceType = NDOF_SpacePilotPro; break;
+				// -- current devices --
+				case 0xC626: m_deviceType = NDOF_SpaceNavigator; break;
+				case 0xC628: m_deviceType = NDOF_SpaceNavigator; /* for Notebooks */ break;
+				case 0xC627: m_deviceType = NDOF_SpaceExplorer; break;
+				case 0xC629: m_deviceType = NDOF_SpacePilotPro; break;
+
+				// -- older devices --
+				case 0xC623: puts("ndof: SpaceTraveler not supported, please file a bug report"); break;
+				case 0xC625: puts("ndof: SpacePilot not supported, please file a bug report"); break;
+
 				default: printf("ndof: unknown Logitech product %04hx\n", product_id);
 				}
 			break;
