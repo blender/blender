@@ -98,6 +98,8 @@ class VIEW3D_HT_header(bpy.types.Header):
             row.prop(toolsettings, "use_snap_peel_object", text="")
         elif toolsettings.snap_element == 'FACE':
             row.prop(toolsettings, "use_snap_project", text="")
+            if toolsettings.use_snap_project and obj.mode == 'EDIT':
+                row.prop(toolsettings, "use_snap_project_self", text="")
 
         # OpenGL render
         row = layout.row(align=True)

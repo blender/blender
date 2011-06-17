@@ -504,14 +504,7 @@ void node_set_active(SpaceNode *snode, bNode *node)
 					ED_node_changed_update(snode->id, node);
 			}
 
-			// XXX
-#if 0
-			if(node->id)
-				; // XXX BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
-			
-			// allqueue(REDRAWBUTSSHADING, 1);
-			// allqueue(REDRAWIPO, 0);
-#endif
+			WM_main_add_notifier(NC_MATERIAL|ND_NODES, node->id);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene*)snode->id;

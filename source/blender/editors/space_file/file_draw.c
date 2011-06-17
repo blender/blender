@@ -185,16 +185,18 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiButSetFlag(but, UI_BUT_NO_UTF8);
 
-		but = uiDefBut(block, TEX, B_FS_FILENAME, "",
-				 min_x, line2_y, line2_w-chan_offs, btn_h,
-				 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
-				 overwrite_alert ?"File name, overwrite existing." : "File name.");
-		uiButSetCompleteFunc(but, autocomplete_file, NULL);
-		uiButSetFlag(but, UI_BUT_NO_UTF8);
-		
-		/* check if this overrides a file and if the operator option is used */
-		if(overwrite_alert) {
-			uiButSetFlag(but, UI_BUT_REDALERT);
+		if((params->flag & FILE_DIRSEL_ONLY) == 0) {
+			but = uiDefBut(block, TEX, B_FS_FILENAME, "",
+					 min_x, line2_y, line2_w-chan_offs, btn_h,
+					 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0,
+					 overwrite_alert ?"File name, overwrite existing." : "File name.");
+			uiButSetCompleteFunc(but, autocomplete_file, NULL);
+			uiButSetFlag(but, UI_BUT_NO_UTF8);
+
+			/* check if this overrides a file and if the operator option is used */
+			if(overwrite_alert) {
+				uiButSetFlag(but, UI_BUT_REDALERT);
+			}
 		}
 		
 		/* clear func */
@@ -202,7 +204,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	}
 	
 	/* Filename number increment / decrement buttons. */
-	if (fnumbuttons) {
+	if (fnumbuttons && (params->flag & FILE_DIRSEL_ONLY) == 0) {
 		uiBlockBeginAlign(block);
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
 				min_x + line2_w + separator - chan_offs, line2_y, 
