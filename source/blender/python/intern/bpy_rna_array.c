@@ -68,7 +68,8 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 		/* check that a sequence contains dimsize[dim] items */
 		const int seq_size= PySequence_Size(seq);
 		if(seq_size == -1) {
-			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'",
+			             error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
 			return -1;
 		}
 		for (i= 0; i < seq_size; i++) {
@@ -77,12 +78,14 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 			item= PySequence_GetItem(seq, i);
 
 			if(item == NULL) {
-				PyErr_Format(PyExc_TypeError, "%s sequence type '%s' failed to retrieve index %d", error_prefix, Py_TYPE(seq)->tp_name, i);
+				PyErr_Format(PyExc_TypeError, "%s sequence type '%s' failed to retrieve index %d",
+				             error_prefix, Py_TYPE(seq)->tp_name, i);
 				ok= 0;
 			}
 			else if (!PySequence_Check(item)) {
 				/* BLI_snprintf(error_str, error_str_size, "expected a sequence of %s", item_type_str); */
-				PyErr_Format(PyExc_TypeError, "%s expected a sequence of %s, not %s", error_prefix, item_type_str, Py_TYPE(item)->tp_name);
+				PyErr_Format(PyExc_TypeError, "%s expected a sequence of %s, not %s",
+				             error_prefix, item_type_str, Py_TYPE(item)->tp_name);
 				ok= 0;
 			}
 			/* arr[3][4][5]
@@ -92,7 +95,8 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 			   dim=0 */
 			else if (PySequence_Size(item) != dimsize[dim + 1]) {
 				/* BLI_snprintf(error_str, error_str_size, "sequences of dimension %d should contain %d items", (int)dim + 1, (int)dimsize[dim + 1]); */
-				PyErr_Format(PyExc_ValueError, "%s sequences of dimension %d should contain %d items", error_prefix, (int)dim + 1, (int)dimsize[dim + 1]);
+				PyErr_Format(PyExc_ValueError, "%s sequences of dimension %d should contain %d items",
+				             error_prefix, (int)dim + 1, (int)dimsize[dim + 1]);
 				ok= 0;
 			}
 			else if (validate_array_type(item, dim + 1, totdim, dimsize, check_item_type, item_type_str, error_prefix) == -1) {
@@ -109,21 +113,24 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 		/* check that items are of correct type */
 		const int seq_size= PySequence_Size(seq);
 		if(seq_size == -1) {
-			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'",
+			             error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
 			return -1;
 		}
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
 
 			if(item == NULL) {
-				PyErr_Format(PyExc_TypeError, "%s sequence type '%s' failed to retrieve index %d", error_prefix, Py_TYPE(seq)->tp_name, i);
+				PyErr_Format(PyExc_TypeError, "%s sequence type '%s' failed to retrieve index %d",
+				             error_prefix, Py_TYPE(seq)->tp_name, i);
 				return -1;
 			}
 			else if (!check_item_type(item)) {
 				Py_DECREF(item);
 
 				/* BLI_snprintf(error_str, error_str_size, "sequence items should be of type %s", item_type_str); */
-				PyErr_Format(PyExc_TypeError, "%s expected sequence items of type %s, not %s", error_prefix, item_type_str, Py_TYPE(item)->tp_name);
+				PyErr_Format(PyExc_TypeError, "%s expected sequence items of type %s, not %s",
+				             error_prefix, item_type_str, Py_TYPE(item)->tp_name);
 				return -1;
 			}
 
@@ -178,7 +185,8 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 	tot= count_items(rvalue, totdim - lvalue_dim);
 
 	if(tot == -1) {
-		PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, error validating the sequence length", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
+		PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, error validating the sequence length",
+		             error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
 		return -1;
 	}
 	else if ((RNA_property_flag(prop) & PROP_DYNAMIC) && lvalue_dim == 0) {
@@ -187,7 +195,8 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 			/* length is flexible */
 			if (!RNA_property_dynamic_array_set_length(ptr, prop, tot)) {
 				/* BLI_snprintf(error_str, error_str_size, "%s.%s: array length cannot be changed to %d", RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot); */
-				PyErr_Format(PyExc_ValueError, "%s %s.%s: array length cannot be changed to %d", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot);
+				PyErr_Format(PyExc_ValueError, "%s %s.%s: array length cannot be changed to %d",
+				             error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot);
 				return -1;
 			}
 #else
@@ -229,7 +238,8 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 
 		if (tot != len) {
 			/* BLI_snprintf(error_str, error_str_size, "sequence must have length of %d", len); */
-			PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, sequence must have %d items total, not %d", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), len, tot);
+			PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, sequence must have %d items total, not %d",
+			             error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), len, tot);
 			return -1;
 		}
 	}
@@ -350,7 +360,8 @@ static int py_to_array(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, char *
 				PyMem_FREE(data);
 			}
 
-			PyErr_Format(PyExc_TypeError, "%s internal error parsing sequence of type '%s' after successful validation", error_prefix, Py_TYPE(seq)->tp_name);
+			PyErr_Format(PyExc_TypeError, "%s internal error parsing sequence of type '%s' after successful validation",
+			             error_prefix, Py_TYPE(seq)->tp_name);
 			return -1;
 		}
 	}
@@ -384,7 +395,10 @@ static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, i
 
 	if(lvalue_dim == totdim) { /* single item, assign directly */
 		if(!check_item_type(py)) {
-			PyErr_Format(PyExc_TypeError, "%s %.200s.%.200s, expected a %s type, not %s", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), item_type_str, Py_TYPE(py)->tp_name);
+			PyErr_Format(PyExc_TypeError, "%s %.200s.%.200s, expected a %s type, not %s",
+			             error_prefix, RNA_struct_identifier(ptr->type),
+			             RNA_property_identifier(prop), item_type_str,
+			             Py_TYPE(py)->tp_name);
 			return -1;
 		}
 		copy_value_single(py, ptr, prop, NULL, 0, &index, convert_item, rna_set_index);
