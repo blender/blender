@@ -833,7 +833,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 		GetRawInputDeviceInfo(raw.header.hDevice, RIDI_DEVICEINFO, &info, &infoSize);
 		if (info.dwType == RIM_TYPEHID)
 			{
-			printf("hardware ID = %08X:%08X\n", info.hid.dwVendorId, info.hid.dwProductId);
+			// printf("hardware ID = %04X:%04X\n", info.hid.dwVendorId, info.hid.dwProductId);
 			m_ndofManager->setDevice(info.hid.dwVendorId, info.hid.dwProductId);
 			}
 		else puts("<!> not a HID device... mouse/kb perhaps?");
@@ -882,11 +882,13 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 			}
 		case 3: // buttons
 			{
+			#if 0
 			// I'm getting garbage bits -- examine whole report:
 			printf("ndof: HID report for buttons [");
 			for (int i = 0; i < raw.data.hid.dwSizeHid; ++i)
 				printf(" %02X", data[i]);
 			printf(" ]\n");
+			#endif
 
 			int button_bits;
 			memcpy(&button_bits, data + 1, sizeof(button_bits));
