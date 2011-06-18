@@ -200,7 +200,7 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${JACK_LIB})
 	endif()
 	if(WITH_CODEC_SNDFILE)
-		target_link_libraries(${target} ${SNDFILE_LIB})
+		target_link_libraries(${target} ${SNDFILE_LIBRARIES})
 	endif()
 	if(WITH_SAMPLERATE)
 		target_link_libraries(${target} ${LIBSAMPLERATE_LIB})

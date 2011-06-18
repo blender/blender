@@ -283,10 +283,10 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_CODEC_SNDFILE)
-		set(SNDFILE /usr)
-		set(SNDFILE_INC ${SNDFILE}/include)
-		set(SNDFILE_LIB sndfile)
-		set(SNDFILE_LIBPATH ${SNDFILE}/lib)
+		find_package(SndFile)
+		if(NOT SNDFILE_FOUND)
+			set(WITH_CODEC_SNDFILE OFF)
+		endif()
 	endif()
 
 	if(WITH_INTERNATIONAL)
@@ -518,9 +518,9 @@ elseif(WIN32)
 
 	if(WITH_CODEC_SNDFILE)
 		set(SNDFILE ${LIBDIR}/sndfile)
-		set(SNDFILE_INC ${SNDFILE}/include)
-		set(SNDFILE_LIB libsndfile-1)
-		set(SNDFILE_LIBPATH ${SNDFILE}/lib)
+		set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
+		set(SNDFILE_LIBRARIES libsndfile-1)
+		set(SNDFILE_LIBPATH ${SNDFILE}/lib) # TODO, deprecate
 	endif()
 
 	if(WITH_SDL)
@@ -831,9 +831,9 @@ elseif(APPLE)
 
 	if(WITH_CODEC_SNDFILE)
 		set(SNDFILE ${LIBDIR}/sndfile)
-		set(SNDFILE_INC ${SNDFILE}/include)
-		set(SNDFILE_LIB sndfile FLAC ogg vorbis vorbisenc)
-		set(SNDFILE_LIBPATH ${SNDFILE}/lib ${FFMPEG}/lib)
+		set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
+		set(SNDFILE_LIBRARIES sndfile FLAC ogg vorbis vorbisenc)
+		set(SNDFILE_LIBPATH ${SNDFILE}/lib ${FFMPEG}/lib)  # TODO, deprecate
 	endif()
 
 	set(PYTHON_VERSION 3.2)
