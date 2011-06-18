@@ -115,6 +115,8 @@ private:
 
 
 	NDOF_DeviceT m_deviceType;
+	int m_buttonCount;
+	int m_buttonMask;
 
 	short m_translation[3];
 	short m_rotation[3];

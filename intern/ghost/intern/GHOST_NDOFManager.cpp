@@ -134,7 +134,9 @@ static const NDOF_ButtonT SpacePilotPro_HID_map[] =
 
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	: m_system(sys)
-	, m_deviceType(NDOF_UnknownDevice) // each platform needs its own device detection code
+	, m_deviceType(NDOF_UnknownDevice) // each platform has its own device detection code
+	, m_buttonCount(0)
+	, m_buttonMask(0)
 	, m_buttons(0)
 	, m_motionTime(1000) // one full second (operators should filter out such large time deltas)
 	, m_prevMotionTime(0)
@@ -154,10 +156,26 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 			switch (product_id)
 				{
 				// -- current devices --
-				case 0xC626: m_deviceType = NDOF_SpaceNavigator; break;
-				case 0xC628: m_deviceType = NDOF_SpaceNavigator; /* for Notebooks */ break;
-				case 0xC627: m_deviceType = NDOF_SpaceExplorer; break;
-				case 0xC629: m_deviceType = NDOF_SpacePilotPro; break;
+				case 0xC626:
+					m_deviceType = NDOF_SpaceNavigator;
+					m_buttonCount = 2;
+//					m_buttonMask = 0x3; // 2 buttons
+					break;
+				case 0xC628:
+					m_deviceType = NDOF_SpaceNavigator; // for Notebooks
+					m_buttonCount = 2;
+//					m_buttonMask = 0x3; // 2 buttons
+					break;
+				case 0xC627:
+					m_deviceType = NDOF_SpaceExplorer;
+					m_buttonCount = 15;
+//					m_buttonMask = 0x7FFF; // 15 buttons
+					break;
+				case 0xC629:
+					m_deviceType = NDOF_SpacePilotPro;
+					m_buttonCount = 29;
+//					m_buttonMask = 0x1FFFFFFF; // 29 buttons
+					break;
 
 				// -- older devices --
 				case 0xC623: puts("ndof: SpaceTraveler not supported, please file a bug report"); break;
@@ -169,6 +187,9 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 		default:
 			printf("ndof: unknown vendor %04hx\n", vendor_id);
 		}
+
+	m_buttonMask = ~(-1 << m_buttonCount);
+	printf("ndof: %d buttons -> %X\n", m_buttonCount, m_buttonMask);
 	}
 
 void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)
@@ -217,7 +238,8 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
 
 	#ifdef DEBUG_NDOF_BUTTONS
-	printf("ndof: button %d -> ", button_number);
+	if (m_deviceType != NDOF_UnknownDevice)
+		printf("ndof: button %d -> ", button_number);
 	#endif
 
 	switch (m_deviceType)
@@ -258,6 +280,8 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 
 void GHOST_NDOFManager::updateButtons(int button_bits, GHOST_TUns64 time)
 	{
+	button_bits &= m_buttonMask; // discard any "garbage" bits
+
 	int diff = m_buttons ^ button_bits;
 
 	for (int button_number = 0; button_number <= 31; ++button_number)

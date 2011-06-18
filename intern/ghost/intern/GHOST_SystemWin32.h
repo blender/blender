@@ -397,11 +397,10 @@ protected:
 	 * Handles Motion and Button events from a SpaceNavigator or related device.
 	 * Instead of returning an event object, this function communicates directly
 	 * with the GHOST_NDOFManager.
-	 * @param window	The window receiving the event (the active window).
 	 * @param raw		RawInput structure with detailed info about the NDOF event
 	 * @return Whether an event was generated and sent.
 	 */
-	bool processNDOF(/*GHOST_IWindow *window,*/ RAWINPUT const& raw);
+	bool processNDOF(RAWINPUT const& raw);
 
 	/**
 	 * Returns the local state of the modifier keys (from the message queue).

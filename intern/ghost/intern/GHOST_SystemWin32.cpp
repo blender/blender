@@ -818,9 +818,28 @@ void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO * minmax)
 	minmax->ptMinTrackSize.y=240;
 }
 
-bool GHOST_SystemWin32::processNDOF(/*GHOST_WindowWin32* window,*/ RAWINPUT const& raw)
+bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 {
 	bool eventSent = false;
+	GHOST_TUns64 now = getMilliSeconds();
+
+	static bool firstEvent = true;
+	if (firstEvent)
+		{ // determine exactly which device is plugged in
+		RID_DEVICE_INFO info;
+		unsigned infoSize = sizeof(RID_DEVICE_INFO);
+		info.cbSize = infoSize;
+
+		GetRawInputDeviceInfo(raw.header.hDevice, RIDI_DEVICEINFO, &info, &infoSize);
+		if (info.dwType == RIM_TYPEHID)
+			{
+			printf("hardware ID = %08X:%08X\n", info.hid.dwVendorId, info.hid.dwProductId);
+			m_ndofManager->setDevice(info.hid.dwVendorId, info.hid.dwProductId);
+			}
+		else puts("<!> not a HID device... mouse/kb perhaps?");
+
+		firstEvent = false;
+		}
 
 	// The NDOF manager sends button changes immediately, and *pretends* to
 	// send motion. Mark as 'sent' so motion will always get dispatched.
@@ -839,26 +858,39 @@ bool GHOST_SystemWin32::processNDOF(/*GHOST_WindowWin32* window,*/ RAWINPUT cons
 		{
 		case 1: // translation
 			{
-			short t[3];
-			memcpy(t, data + 1, sizeof(t));
-			m_ndofManager->updateTranslation(t, getMilliSeconds());
+			short axis_data[3];
+			memcpy(axis_data, data + 1, sizeof(axis_data));
+			m_ndofManager->updateTranslation(axis_data, now);
 			// wariness of alignment issues prevents me from saying it this way:
 			// m_ndofManager->updateTranslation((short*)(data + 1), getMilliSeconds());
 			// though it probably (94.7%) would work fine
+
+			if (raw.data.hid.dwSizeHid == 13)
+				{ // this report also includes rotation
+				puts("ndof: combined T + R");
+				memcpy(axis_data, data + 7, sizeof(axis_data));
+				m_ndofManager->updateRotation(axis_data, now);
+				}
 			break;
 			}
 		case 2: // rotation
 			{
-			short r[3];
-			memcpy(r, data + 1, sizeof(r));
-			m_ndofManager->updateRotation(r, getMilliSeconds());
+			short axis_data[3];
+			memcpy(axis_data, data + 1, sizeof(axis_data));
+			m_ndofManager->updateRotation(axis_data, now);
 			break;
 			}
 		case 3: // buttons
 			{
+			// I'm getting garbage bits -- examine whole report:
+			printf("ndof: HID report for buttons [");
+			for (int i = 0; i < raw.data.hid.dwSizeHid; ++i)
+				printf(" %02X", data[i]);
+			printf(" ]\n");
+
 			int button_bits;
 			memcpy(&button_bits, data + 1, sizeof(button_bits));
-			m_ndofManager->updateButtons(button_bits, getMilliSeconds());
+			m_ndofManager->updateButtons(button_bits, now);
 			break;
 			}
 		}
@@ -910,7 +942,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						}
 						break;
 					case RIM_TYPEHID:
-						if (system->processNDOF(/*window,*/ raw))
+						if (system->processNDOF(raw))
 							eventHandled = true;
 						break;
 					}
