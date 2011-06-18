@@ -317,16 +317,9 @@ if(UNIX AND NOT APPLE)
 		# No way to set py32. remove for now.
 		# find_package(PythonLibs)
 
-		# defines...
-		
-		#  PYTHON_VERSION
-		#  PYTHON_INCLUDE_DIRS
-		#  PYTHON_LIBRARY
-		#  PYTHON_LIBPATH
-		#  PYTHON_LINKFLAGS
-
-		include(build_files/cmake/FindPythonLibsUnix.cmake)
-
+		# Use our own instead, since wothout py is such a rare case,
+		# require this package
+		find_package(PythonLibsUnix REQUIRED)
 	endif()
 
 	if(WITH_SDL)
