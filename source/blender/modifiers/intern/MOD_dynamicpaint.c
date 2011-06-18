@@ -58,6 +58,7 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 
 	dataMask |= (1 << CD_MTFACE);
 	dataMask |= (1 << CD_MCOL);
+	dataMask |= (1 << CD_MDEFORMVERT);
 
 	return dataMask;
 }
@@ -86,7 +87,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
 						struct Scene *scene,
-						Object *UNUSED(ob),
+						Object *ob,
 						DagNode *obNode)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
@@ -133,6 +134,7 @@ ModifierTypeInfo modifierType_DynamicPaint = {
 	/* structSize */        sizeof(DynamicPaintModifierData),
 	/* type */              eModifierTypeType_Constructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
+							| eModifierTypeFlag_UsesPointCache
 							| eModifierTypeFlag_Single,
 
 	/* copyData */          copyData,
@@ -148,6 +150,7 @@ ModifierTypeInfo modifierType_DynamicPaint = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     foreachIDLink,
 };

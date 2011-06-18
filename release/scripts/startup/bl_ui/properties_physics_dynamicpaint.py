@@ -49,9 +49,9 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
 
             if md.dynamicpaint_type == 'CANVAS':
                 canvas = md.canvas_settings
-                surface = canvas.active_surface
+                surface = canvas.canvas_surfaces.active
                 row = layout.row()
-                row.template_list(canvas, "canvas_surfaces", canvas, "active_index", rows=2)
+                row.template_list(canvas, "canvas_surfaces", canvas.canvas_surfaces, "active_index", rows=2)
 
                 col = row.column(align=True)
                 col.operator("dpaint.surface_slot_add", icon='ZOOMIN', text="")
@@ -113,31 +113,35 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
-        return md and (md.dynamicpaint_type == 'CANVAS') and (context.dynamic_paint.canvas_settings.active_surface)
+        return md and (md.dynamicpaint_type == 'CANVAS') and (context.dynamic_paint.canvas_settings.canvas_surfaces.active)
 
     def draw(self, context):
         layout = self.layout
 
         canvas = context.dynamic_paint.canvas_settings
-        surface = canvas.active_surface
+        surface = canvas.canvas_surfaces.active
         ob = context.object
 
         layout.prop(surface, "surface_type", expand=False)
 
         if (surface.surface_type == "PAINT"):
             layout.prop(surface, "initial_color", expand=False)
-            col = layout.split(percentage=0.33)
-            col.prop(surface, "use_dissolve", text="Dissolve:")
-            sub = col.column()
+            split = layout.split(percentage=0.8)
+            split.prop(surface, "dry_speed", text="Dry Time")
+            split.prop(surface, "use_dry_log", text="Slow")
+            
+        if (surface.surface_type != "IWAVE"):
+            if (surface.surface_type == "DISPLACE"):
+                layout.prop(surface, "use_dissolve", text="Dissolve:")
+            elif (surface.surface_type == "WEIGHT"):
+                layout.prop(surface, "use_dissolve", text="Fade:")
+            else:
+                layout.prop(surface, "use_dissolve", text="Dissolve:")
+            sub = layout.column()
             sub.active = surface.use_dissolve
-            sub.prop(surface, "dissolve_speed", text="Time")
-
-        if (surface.surface_type == "DISPLACE"):
-            col = layout.split(percentage=0.33)
-            col.prop(surface, "use_dissolve", text="Flatten:")
-            sub = col.column()
-            sub.active = surface.use_dissolve
-            sub.prop(surface, "dissolve_speed", text="Time")
+            split = sub.split(percentage=0.8)
+            split.prop(surface, "dissolve_speed", text="Time")
+            split.prop(surface, "use_dissolve_log", text="Slow")
             
         layout.label(text="Brush Group:")
         layout.prop(surface, "brush_group", text="")
@@ -152,14 +156,14 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
         md = context.dynamic_paint
         if ((not md) or (md.dynamicpaint_type != 'CANVAS')):
             return 0
-        surface = context.dynamic_paint.canvas_settings.active_surface
+        surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
         return (surface and (not (surface.surface_format=="VERTEX" and surface.surface_type=="DISPLACE") ))
 
     def draw(self, context):
         layout = self.layout
 
         canvas = context.dynamic_paint.canvas_settings
-        surface = canvas.active_surface
+        surface = canvas.canvas_surfaces.active
         ob = context.object
         
         # vertex format outputs
@@ -174,6 +178,8 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
                 row.prop_search(surface, "output_name2", ob.data, "vertex_colors", text="Wetmap layer: ")
                 #col = row.column(align=True)
                 #col.operator("dpaint.output_add", icon='ZOOMIN', text="")
+            if (surface.surface_type == "WEIGHT"):
+                layout.prop_search(surface, "output_name", ob, "vertex_groups", text="Vertex Group: ")
 
         # image format outputs
         if (surface.surface_format == "IMAGE"):
@@ -189,34 +195,14 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop(surface, "output_name2", text="Wetmap: ")
             if (surface.surface_type == "DISPLACE"):
                 col.prop(surface, "output_name", text="Filename: ")
+                col.prop(surface, "disp_type", text="Displace Type")
+                
+            col.prop(surface, "image_fileformat", text="Image Format:")
             
             layout.separator()
             layout.operator("dpaint.bake", text="Bake Image Sequence", icon='MOD_DYNAMICPAINT')
             if len(canvas.ui_info) != 0:
                 layout.label(text=canvas.ui_info)
-#            
-#            layout.separator()
-#
-#            col = layout.column()
-#            col.prop(surface, "output_wet")
-#            sub = col.column()
-#            sub.active = surface.output_wet
-#            sub.prop(surface, "wet_output_path", text="")
-#            
-#            layout.separator()
-#
-#            col = layout.column()
-#            col.prop(surface, "output_disp")
-#            sub = col.column()
-#            sub.active = surface.output_disp
-#            sub.prop(surface, "displace_output_path", text="")
-#            sub.prop(surface, "displacement", text="Strength")
-#
-#            split = sub.split()
-#            sub = split.column()
-#            sub.prop(surface, "disp_type", text="Type")
-#            sub = split.column()
-#            sub.prop(surface, "disp_format", text="Format")
 		
 
 class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
@@ -228,14 +214,14 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
         md = context.dynamic_paint
         if ((not md) or (md.dynamicpaint_type != 'CANVAS')):
             return False;
-        surface = context.dynamic_paint.canvas_settings.active_surface
+        surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
         return surface and (surface.surface_format != "VERTEX")
 
     def draw(self, context):
         layout = self.layout
 
         canvas = context.dynamic_paint.canvas_settings
-        surface = canvas.active_surface
+        surface = canvas.canvas_surfaces.active
 
         layout.prop(surface, "effect_ui", expand=True)
 
@@ -266,12 +252,12 @@ class PHYSICS_PT_dp_cache(PhysicButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         md = context.dynamic_paint
         return md and (md.dynamicpaint_type == 'CANVAS') and \
-        (md.canvas_settings.active_surface) and (md.canvas_settings.active_surface.uses_cache)
+        (md.canvas_settings.canvas_surfaces.active) and (md.canvas_settings.canvas_surfaces.active.uses_cache)
 
     def draw(self, context):
         layout = self.layout
 
-        surface = context.dynamic_paint.canvas_settings.active_surface
+        surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
         cache = surface.point_cache
         
         point_cache_ui(self, context, cache, (cache.is_baked is False), 'DYNAMIC_PAINT')

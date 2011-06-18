@@ -32,6 +32,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_colortools.h"
+#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_dynamicpaint.h"
@@ -399,7 +400,7 @@ static DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 	surface->pointcache->step = 1;
 
 	/* Set initial values */
-	surface->flags = MOD_DPAINT_ANTIALIAS | MOD_DPAINT_MULALPHA | MOD_DPAINT_DRY_LOG | MOD_DPAINT_ACTIVE | MOD_DPAINT_PREVIEW;
+	surface->flags = MOD_DPAINT_ANTIALIAS | MOD_DPAINT_MULALPHA | MOD_DPAINT_DRY_LOG | MOD_DPAINT_DISSOLVE_LOG | MOD_DPAINT_ACTIVE | MOD_DPAINT_PREVIEW;
 	surface->effect = 0;
 	surface->effect_ui = 1;
 
@@ -471,7 +472,7 @@ void dynamicPaint_Modifier_createType(struct DynamicPaintModifierData *pmd)
 			pmd->brush->wetness = 1.0f;
 
 			pmd->brush->paint_distance = 0.1f;
-			pmd->brush->proximity_falloff = MOD_DPAINT_PRFALL_SHARP;
+			pmd->brush->proximity_falloff = MOD_DPAINT_PRFALL_SMOOTH;
 
 			pmd->brush->displace_distance = 0.5f;
 			pmd->brush->prox_displace_strength = 0.5f;
@@ -737,14 +738,16 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 
 						MFace *mface = result->getFaceArray(result);
 						int numOfFaces = result->getNumFaces(result);
-						int i,j;
+						int i;
 						PaintPoint* pPoint = (PaintPoint*)surface->data->type_data;
 						MCol *col;
 
 						/* paint is stored on dry and wet layers, so mix final color first */
 						float *fcolor = MEM_callocN(sizeof(float)*surface->data->total_points*4, "Temp paint color");
+
+						#pragma omp parallel for schedule(static)
 						for (i=0; i<surface->data->total_points; i++) {
-							j=i*4;
+							int j=i*4;
 							/* If dry layer already has a color, blend it */
 							if (pPoint[i].alpha) {
 								float invAlpha = 1.0f - pPoint[i].e_alpha;
@@ -770,6 +773,7 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 							if (!col) col = CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numOfFaces);
 
 							if (col) {
+								#pragma omp parallel for schedule(static)
 								for (i=0; i<numOfFaces; i++) {
 									int j=0;
 									float invAlpha;
@@ -809,6 +813,7 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 						/* paint layer */
 						col = CustomData_get_layer_named(&dm->faceData, CD_MCOL, surface->output_name);
 						if (col) {
+							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
 								int j=0;
 								for (; j<((mface[i].v4)?4:3); j++) {
@@ -827,6 +832,7 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 						/* wet layer */
 						col = CustomData_get_layer_named(&dm->faceData, CD_MCOL, surface->output_name2);
 						if (col) {
+							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
 								int j=0;
 
@@ -859,8 +865,79 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 
 						CDDM_calc_normals(result);
 					}
+
 					/* vertex group paint */
 					else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
+						int defgrp_index = defgroup_name_index(ob, surface->output_name);
+						MDeformVert *dvert = result->getVertDataArray(result, CD_MDEFORMVERT);
+						float *weight = (float*)surface->data->type_data;
+						/* viewport preview */
+						if (surface->flags & MOD_DPAINT_PREVIEW) {
+							/* Save preview results to weight layer, to be
+							*   able to share same drawing methods */
+							MFace *mface = result->getFaceArray(result);
+							int numOfFaces = result->getNumFaces(result);
+							int i,j;
+							MCol *col = result->getFaceDataArray(result, CD_WEIGHT_MCOL);
+							if (!col) col = CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numOfFaces);
+
+							if (col) {
+								#pragma omp parallel for schedule(static)
+								for (i=0; i<numOfFaces; i++) {
+									float temp_color[3];
+									int j=0;
+									for (; j<((mface[i].v4)?4:3); j++) {
+										int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
+
+										col[i*4+j].a = 255;
+
+										weight_to_rgb(weight[index], temp_color, temp_color+1, temp_color+2);
+										col[i*4+j].r = (char)(temp_color[2]*255);
+										col[i*4+j].g = (char)(temp_color[1]*255);
+										col[i*4+j].b = (char)(temp_color[0]*255);
+									}
+								}
+								pmd->canvas->flags |= MOD_DPAINT_PREVIEW_READY;
+							}
+						}
+
+						/* apply weights into a vertex group, if doesnt exists add a new layer */
+						if (defgrp_index >= 0 && !dvert && strlen(surface->output_name)>0)
+							dvert = CustomData_add_layer_named(&result->vertData, CD_MDEFORMVERT, CD_CALLOC,
+																NULL, surface->data->total_points, surface->output_name);
+						if (defgrp_index >= 0 && dvert) {
+							int i;
+							for(i=0; i<surface->data->total_points; i++) {
+								int j;
+								MDeformVert *dv= &dvert[i];
+								MDeformWeight *def_weight = NULL;
+
+								/* check if this vertex has a weight */
+								for (j=0; j<dv->totweight; j++) {
+									if (dv->dw[j].def_nr == defgrp_index) {
+										def_weight = &dv->dw[j];
+										break;
+									}
+								}
+
+								/* if not found, add a weight for it */
+								if (!def_weight) {
+									MDeformWeight *newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), 
+														 "deformWeight");
+									if(dv->dw){
+										memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
+										MEM_freeN(dv->dw);
+									}
+									dv->dw=newdw;
+									dv->dw[dv->totweight].def_nr=defgrp_index;
+									def_weight = &dv->dw[dv->totweight];
+									dv->totweight++;
+								}
+
+								/* set weight value */
+								def_weight->weight = weight[i];
+							}
+						}
 					}
 				}
 			}
@@ -1419,8 +1496,6 @@ static int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 	*	When base loop is over convert found neighbour indexes to real ones
 	*	Also count the final number of active surface points
 	*/
-
-	#pragma omp parallel for schedule(static)
 	for (yy = 0; yy < h; yy++)
 	{
 		int xx;
@@ -2531,6 +2606,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 							brushFactor /= gaussianTotal;
 						}
 						CLAMP(brushFactor, 0.0f, 1.0f);
+						brushFactor *= brush->alpha;
 
 						//cPoint->state = 2;
 
@@ -2545,7 +2621,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 							paintAlpha /= numOfHits;
 
 							/* Multiply alpha value by the ui multiplier	*/
-							paintAlpha = paintAlpha * brushFactor * brush->alpha;
+							paintAlpha = paintAlpha * brushFactor;
 							if (paintAlpha > 1.0f) paintAlpha = 1.0f;
 
 							/*
@@ -2564,6 +2640,23 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 								depth /= bData->bPoint[index].normal_scale;
 								/* do displace	*/
 								if (value[index] < depth) value[index] = depth;
+							}
+						}
+						else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
+							float *value = (float*)sData->type_data;
+
+							if (brush->flags & MOD_DPAINT_ERASE) {
+								value[index] *= (1.0f - brushFactor);
+								if (value[index] < 0.0f) value[index] = 0.0f;
+							}
+							else {
+								if (brush->flags & MOD_DPAINT_ABS_ALPHA) {
+									if (value[index] < brushFactor) value[index] = brushFactor;
+								}
+								else {
+									value[index] += brushFactor;
+									if (value[index] > 1.0f) value[index] = 1.0f;
+								}
 							}
 						}
 					}
@@ -2738,6 +2831,17 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, PaintBakeDa
 			if (sdepth<0.0f) sdepth = 0.0f;
 			if (value[index] < sdepth) value[index] = sdepth;
 		}
+		else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
+			float *value = (float*)sData->type_data;
+
+			if (brush->flags & MOD_DPAINT_ERASE) {
+				value[index] *= (1.0f - strength);
+				if (value[index] < 0.0f) value[index] = 0.0f;
+			}
+			else {
+				if (value[index] < strength) value[index] = strength;
+			}
+		}
 	}
 	BLI_kdtree_free(tree);
 
@@ -2747,6 +2851,8 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, PaintBakeDa
 
 /***************************** Dynamic Paint Step / Baking ******************************/
 
+
+#define VALUE_DISSOLVE(VALUE, SPEED, SCALE, LOG) (VALUE) = (LOG) ? (VALUE) * 1.0f - 1.0f/((SPEED)/(SCALE)) : (VALUE) - 1.0f/(SPEED)*(SCALE)
 
 /* Prepare for surface step by creating PaintBakePoint data */
 static int dynamicPaint_prepareSurfaceStep(DynamicPaintSurface *surface, PaintBakeData *bData, Object *ob, DerivedMesh *dm, float timescale) {
@@ -2815,8 +2921,7 @@ static int dynamicPaint_prepareSurfaceStep(DynamicPaintSurface *surface, PaintBa
 				if (pPoint->e_alpha > pPoint->alpha) pPoint->alpha = pPoint->e_alpha;
 
 				/* now dry it ;o	*/
-				if (surface->flags & MOD_DPAINT_DRY_LOG) pPoint->wetness *= 1.0f - (1.0 / (surface->dry_speed/timescale));
-				else pPoint->wetness -= 1.0f/surface->dry_speed*timescale;
+				VALUE_DISSOLVE(pPoint->wetness, surface->dry_speed, timescale, (surface->flags & MOD_DPAINT_DRY_LOG));
 			}
 			/* 	If effect layer is completely dry, make sure it's marked empty */
 			if (pPoint->wetness <= 0.0f) {
@@ -2827,18 +2932,22 @@ static int dynamicPaint_prepareSurfaceStep(DynamicPaintSurface *surface, PaintBa
 
 			if (surface->flags & MOD_DPAINT_DISSOLVE) {
 
-				pPoint->alpha -= 1.0f/surface->diss_speed*timescale;
+				VALUE_DISSOLVE(pPoint->alpha, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
 				if (pPoint->alpha < 0.0f) pPoint->alpha = 0.0f;
 
-				pPoint->e_alpha -= 1.0f/surface->diss_speed*timescale;
+				VALUE_DISSOLVE(pPoint->e_alpha, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
 				if (pPoint->e_alpha < 0.0f) pPoint->e_alpha = 0.0f;
 			}
 		}
-		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE &&
-				surface->flags & MOD_DPAINT_DISSOLVE) {
-			float *point = &((float*)sData->type_data)[index];
+		/* dissolve for float types */
+		else if (surface->flags & MOD_DPAINT_DISSOLVE &&
+				(surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
+				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)) {
 
-			*point *= 1.0f - (1.0 / (surface->diss_speed/timescale));
+			float *point = &((float*)sData->type_data)[index];
+			/* log or linear */
+			VALUE_DISSOLVE(*point, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
+			if (*point < 0.0f) *point = 0.0f;
 		}
 
 		/*
@@ -3150,7 +3259,7 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 			char pad[4];
 			char dir_slash[2];
 						/* OpenEXR or PNG	*/
-			int format = (surface->image_fileformat & MOD_DPAINT_IMGFORMAT_OPENEXR) ? DPOUTPUT_OPENEXR : DPOUTPUT_PNG;
+			short format = (surface->image_fileformat & MOD_DPAINT_IMGFORMAT_OPENEXR) ? DPOUTPUT_OPENEXR : DPOUTPUT_PNG;
 
 			/* Add frame number padding	*/
 			if (frame<10) sprintf(pad,"000");

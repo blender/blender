@@ -687,7 +687,8 @@ static int  ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 			in_len = sizeof(PaintPoint)*total_points;
 			out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
 		}
-		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
+		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
+				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
 			in_len = sizeof(float)*total_points;
 			out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
 		}
@@ -721,7 +722,8 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 		/* read surface data */
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT)
 			data_len = sizeof(PaintPoint);
-		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE)
+		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
+				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)
 			data_len = sizeof(float);
 		else return 0;
 

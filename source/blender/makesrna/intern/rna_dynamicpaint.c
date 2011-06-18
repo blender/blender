@@ -53,6 +53,14 @@ static char *rna_DynamicPaintBrushSettings_path(PointerRNA *ptr)
 	return BLI_sprintfN("modifiers[\"%s\"].brush_settings", md->name);
 }
 
+static char *rna_DynamicPaintSurface_path(PointerRNA *ptr)
+{
+	DynamicPaintSurface *surface = (DynamicPaintSurface*)ptr->data;
+	ModifierData *md= (ModifierData *)surface->canvas->pmd;
+
+	return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]", md->name, surface->name);
+}
+
 
 /*
 *	Surfaces
@@ -205,12 +213,12 @@ static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext *C, Pointe
 	}
 
 	/* Weight */
-	/*if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
+	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 		tmp.value = MOD_DPAINT_SURFACE_T_WEIGHT;
 		tmp.identifier = "WEIGHT";
 		tmp.name = "Weight";
 		RNA_enum_item_add(&item, &totitem, &tmp);
-	}*/
+	}
 
 	/* iWave */
 	/*if (surface->format == MOD_DPAINT_SURFACE_F_PTEX ||
@@ -229,7 +237,35 @@ static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext *C, Pointe
 
 #else
 
-static void rna_def_surface(BlenderRNA *brna, PropertyRNA *cprop)
+/* canvas.canvas_surfaces */
+static void rna_def_canvas_surfaces(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	
+	PropertyRNA *prop;
+
+	// FunctionRNA *func;
+	// PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "DynamicPaintSurfaces");
+	srna= RNA_def_struct(brna, "DynamicPaintSurfaces", NULL);
+	RNA_def_struct_sdna(srna, "DynamicPaintCanvasSettings");
+	RNA_def_struct_ui_text(srna, "Canvas Surfaces", "Collection of Dynamic Paint Canvas surfaces");
+
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_funcs(prop, "rna_Surface_active_point_index_get", "rna_Surface_active_point_index_set", "rna_Surface_active_point_range");
+	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "DynamicPaintSurface");
+	RNA_def_property_pointer_funcs(prop, "rna_PaintSurface_active_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Surface", "Active Dynamic Paint surface being displayed");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+}
+
+
+static void rna_def_canvas_surface(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -271,10 +307,10 @@ static void rna_def_surface(BlenderRNA *brna, PropertyRNA *cprop)
 
 
 	/* Surface */
-	RNA_def_property_srna(cprop, "DynamicPaintSurface");
 	srna= RNA_def_struct(brna, "DynamicPaintSurface", NULL);
 	RNA_def_struct_sdna(srna, "DynamicPaintSurface");
 	RNA_def_struct_ui_text(srna, "Paint Surface", "A canvas surface layer.");
+	RNA_def_struct_path_func(srna, "rna_DynamicPaintSurface_path");
 
 	prop= RNA_def_property(srna, "surface_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -318,6 +354,7 @@ static void rna_def_surface(BlenderRNA *brna, PropertyRNA *cprop)
 	*   Paint, wet and disp
 	*/
 	prop= RNA_def_property(srna, "initial_color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "intitial_color");
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Initial Color", "Initial surface color");
@@ -377,6 +414,7 @@ static void rna_def_surface(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Sub-Steps", "Do extra frames between scene frames to ensure smooth motion.");
 	
 	prop= RNA_def_property(srna, "use_anti_aliasing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ANTIALIAS);
 	RNA_def_property_ui_text(prop, "Anti-aliasing", "Uses 5x multisampling to smoothen paint edges.");
 
@@ -391,7 +429,11 @@ static void rna_def_surface(BlenderRNA *brna, PropertyRNA *cprop)
 	
 	prop= RNA_def_property(srna, "use_dry_log", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_DRY_LOG);
-	RNA_def_property_ui_text(prop, "Slow", "Use 1/x instead of linear drying.");
+	RNA_def_property_ui_text(prop, "Slow", "Use logarithmic drying. Makes high values to fade faster than low values.");
+
+	prop= RNA_def_property(srna, "use_dissolve_log", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_DISSOLVE_LOG);
+	RNA_def_property_ui_text(prop, "Slow", "Use logarithmic dissolve. Makes high values to fade faster than low values.");
 	
 	prop= RNA_def_property(srna, "use_spread", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "effect", MOD_DPAINT_EFFECT_DO_SPREAD);
@@ -496,17 +538,7 @@ static void rna_def_dynamic_paint_canvas_settings(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_DynamicPaint_surfaces_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "DynamicPaintSurface");
 	RNA_def_property_ui_text(prop, "Paint Surface List", "Paint surface list");
-	rna_def_surface(brna, prop);
-
-	
-	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop, "rna_Surface_active_point_index_get", "rna_Surface_active_point_index_set", "rna_Surface_active_point_range");
-	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
-
-	prop= RNA_def_property(srna, "active_surface", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "DynamicPaintSurface");
-	RNA_def_property_pointer_funcs(prop, "rna_PaintSurface_active_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Surface", "");
+	rna_def_canvas_surfaces(brna, prop);
 
 	prop= RNA_def_property(srna, "ui_info", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "ui_info");
@@ -672,6 +704,7 @@ void RNA_def_dynamic_paint(BlenderRNA *brna)
 {
 	rna_def_dynamic_paint_canvas_settings(brna);
 	rna_def_dynamic_paint_brush_settings(brna);
+	rna_def_canvas_surface(brna);
 }
 
 #endif

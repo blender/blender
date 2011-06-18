@@ -1679,7 +1679,7 @@ void texco_mapping_ext(float *facenor, Tex* tex, MTex* mtex, float* co, float* d
 	memset (&dum_shi,0,sizeof(ShadeInput));
 
 	// Make sure values used by texco_mapping() are correct
-	dum_shi.osatex = NULL;
+	dum_shi.osatex = 0;
 	dum_shi.vlr = NULL;
 	VECCOPY(dum_shi.facenor, facenor);
 
