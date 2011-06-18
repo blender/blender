@@ -1,7 +1,7 @@
 # $Id$
 # ***** BEGIN LGPL LICENSE BLOCK *****
 #
-# Copyright 2009 Jörg Hermann Müller
+# Copyright 2009 Jrg Hermann Mller
 #
 # This file is part of AudaSpace.
 #
@@ -29,7 +29,7 @@ set(INC
 )
 
 set(INC_SYS
-	${PTHREADS_INC}
+	${PTHREADS_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -160,7 +160,7 @@ set(SRC
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 	list(APPEND INC ffmpeg)
-	list(APPEND INC_SYS ${FFMPEG_INC})
+	list(APPEND INC_SYS ${FFMPEG_INCLUDE_DIRS})
 	list(APPEND SRC
 		ffmpeg/AUD_FFMPEGFactory.cpp
 		ffmpeg/AUD_FFMPEGReader.cpp
@@ -195,7 +195,7 @@ endif()
 if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
 	list(APPEND INC jack)
-	list(APPEND INC_SYS ${JACK_INC})
+	list(APPEND INC_SYS ${JACK_INCLUDE_DIRS})
 	list(APPEND SRC
 		jack/AUD_JackDevice.cpp
 
@@ -218,7 +218,7 @@ endif()
 
 if(WITH_SAMPLERATE)
 	add_definitions(-DWITH_SAMPLERATE)
-	list(APPEND INC_SYS ${LIBSAMPLERATE_INC})
+	list(APPEND INC_SYS ${SAMPLERATE_INCLUDE_DIRS})
 	list(APPEND SRC
 		SRC/AUD_SRCResampleFactory.cpp
 		SRC/AUD_SRCResampleReader.cpp
@@ -231,7 +231,7 @@ endif()
 if(WITH_FFTW3 AND FALSE)
 	add_definitions(-DWITH_FFTW3)
 	list(APPEND INC fftw)
-	list(APPEND INC_SYS ${FFTW3_INC})
+	list(APPEND INC_SYS ${FFTW3_INCLUDE_DIRS})
 	list(APPEND SRC
 		fftw/AUD_BandPassFactory.cpp
 		fftw/AUD_BandPassReader.cpp
