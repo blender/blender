@@ -159,22 +159,18 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 				case 0xC626:
 					m_deviceType = NDOF_SpaceNavigator;
 					m_buttonCount = 2;
-//					m_buttonMask = 0x3; // 2 buttons
 					break;
 				case 0xC628:
 					m_deviceType = NDOF_SpaceNavigator; // for Notebooks
 					m_buttonCount = 2;
-//					m_buttonMask = 0x3; // 2 buttons
 					break;
 				case 0xC627:
 					m_deviceType = NDOF_SpaceExplorer;
 					m_buttonCount = 15;
-//					m_buttonMask = 0x7FFF; // 15 buttons
 					break;
 				case 0xC629:
 					m_deviceType = NDOF_SpacePilotPro;
-					m_buttonCount = 29;
-//					m_buttonMask = 0x1FFFFFFF; // 29 buttons
+					m_buttonCount = 31;
 					break;
 
 				// -- older devices --
