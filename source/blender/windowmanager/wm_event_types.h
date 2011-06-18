@@ -78,8 +78,13 @@
 #define WHEELOUTMOUSE	13
 #define INBETWEEN_MOUSEMOVE	17
 
-/* NDOF (from SpaceNavigator & friends) */
-#define NDOF_MOTION 0x12 // keep in sync with GHOST_NDOFManager.h
+
+/* NDOF (from SpaceNavigator & friends)
+   These should be kept in sync with GHOST_NDOFManager.h
+   Ordering matters, exact values do not. */
+
+#define NDOF_MOTION 400
+
 enum {
 	// used internally, never sent
 	NDOF_BUTTON_NONE = NDOF_MOTION,
