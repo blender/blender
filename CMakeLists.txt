@@ -247,8 +247,7 @@ set(CXX_WARNINGS "")
 #   cmake ../blender \
 #         -D PYTHON_VERSION=3.2 \
 #         -D PYTHON_INCLUDE_DIRS=/opt/py32/include/python3.2d \
-#         -D PYTHON_LIBPATH=/opt/py32/lib \
-#         -D PYTHON_LIBRARY=python3.2d
+#         -D PYTHON_LIBRARIES=/opt/py32/lib/libpython3.2d.so
 #
 # On Macs: 
 #   cmake ../blender \
@@ -668,7 +667,7 @@ elseif(WIN32)
 			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARY python32)
+			set(PYTHON_LIBRARIES python32)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 
@@ -775,7 +774,7 @@ elseif(WIN32)
 			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARY python32mw)
+			set(PYTHON_LIBRARIES python32mw)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 
@@ -835,7 +834,7 @@ elseif(APPLE)
 		set(PYTHON ${LIBDIR}/python)
 		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 		# set(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}") # not used yet
-		set(PYTHON_LIBRARY python${PYTHON_VERSION})
+		set(PYTHON_LIBRARIES python${PYTHON_VERSION})
 		set(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}")
 		# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 	else()
@@ -845,7 +844,7 @@ elseif(APPLE)
 		set(PYTHON_VERSION 3.2)
 		set(PYTHON_INCLUDE_DIRS "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
 		# set(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
-		set(PYTHON_LIBRARY "")
+		set(PYTHON_LIBRARIES "")
 		set(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config)
 		set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python")
 	endif()

@@ -1,6 +1,44 @@
 # -*- mode: cmake; indent-tabs-mode: t; -*-
 # $Id$
 
+
+# foo_bar.spam --> foo_barMySuffix.spam
+macro(file_suffix
+	file_name_new file_name file_suffix
+	)
+
+	get_filename_component(_file_name_PATH ${file_name} PATH)
+	get_filename_component(_file_name_NAME_WE ${file_name} NAME_WE)
+	get_filename_component(_file_name_EXT ${file_name} EXT)
+	set(${file_name_new} "${_file_name_PATH}/${_file_name_NAME_WE}${file_suffix}${_file_name_EXT}")
+
+	unset(_file_name_PATH)
+	unset(_file_name_NAME_WE)
+	unset(_file_name_EXT)
+endmacro()
+
+# usefil for adding debug suffix to library lists:
+# /somepath/foo.lib --> /somepath/foo_d.lib
+macro(file_list_suffix
+	fp_list_new fp_list fn_suffix
+	)
+
+	# incase of empty list
+	set(_fp)
+	set(_fp_suffixed)
+
+	set(fp_list_new)
+
+	foreach(_fp ${fp_list})
+		file_suffix(_fp_suffixed "${_fp}" "${fn_suffix}")
+		list(APPEND "${fp_list_new}" "${_fp_suffixed}")
+	endforeach()
+
+	unset(_fp)
+	unset(_fp_suffixed)
+
+endmacro()
+
 # Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
 # use it instead of include_directories()
 macro(blender_include_dirs
@@ -163,11 +201,13 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
 		if(WIN32 AND NOT UNIX)
+			file_list_suffix(PYTHON_LIBRARIES_DEBUG "${PYTHON_LIBRARIES}" "_d")
 			target_link_libraries(${target}
-					debug ${PYTHON_LIBRARY}_d
-					optimized ${PYTHON_LIBRARY})
+					debug ${PYTHON_LIBRARIES_DEBUG}
+					optimized ${PYTHON_LIBRARIES})
+			unset(PYTHON_LIBRARIES_DEBUG)
 		else()
-			target_link_libraries(${target} ${PYTHON_LIBRARY})
+			target_link_libraries(${target} ${PYTHON_LIBRARIES})
 		endif()
 	endif()
 
@@ -216,14 +256,11 @@ macro(setup_liblinks
 	endif()
 	if(WITH_IMAGE_OPENEXR)
 		if(WIN32 AND NOT UNIX)
-			foreach(_LOOP_VAR ${OPENEXR_LIBRARIES})
-				string(REGEX REPLACE ".lib$" "_d.lib" _LOOP_VAR_DEBUG ${_LOOP_VAR})
-				target_link_libraries(${target}
-						debug ${_LOOP_VAR_DEBUG}
-						optimized ${_LOOP_VAR})
-			endforeach()
-			unset(_LOOP_VAR)
-			unset(_LOOP_VAR_DEBUG)
+			file_list_suffix(OPENEXR_LIBRARIES_DEBUG "${OPENEXR_LIBRARIES}" "_d")
+			target_link_libraries(${target}
+					debug ${OPENEXR_LIBRARIES_DEBUG}
+					optimized ${OPENEXR_LIBRARIES})
+			unset(OPENEXR_LIBRARIES_DEBUG)
 		else()
 			target_link_libraries(${target} ${OPENEXR_LIBRARIES})
 		endif()
@@ -236,19 +273,24 @@ macro(setup_liblinks
 	endif()
 	if(WITH_OPENCOLLADA)
 		if(WIN32 AND NOT UNIX)
-			foreach(_LOOP_VAR ${OPENCOLLADA_LIBRARIES})
-				target_link_libraries(${target}
-						debug ${_LOOP_VAR}_d
-						optimized ${_LOOP_VAR})
-			endforeach()
-			unset(_LOOP_VAR)
+			file_list_suffix(OPENCOLLADA_LIBRARIES_DEBUG "${OPENCOLLADA_LIBRARIES}" "_d")
 			target_link_libraries(${target}
-					debug ${PCRE_LIB}_d
+					debug ${OPENCOLLADA_LIBRARIES_DEBUG}
+					optimized ${OPENCOLLADA_LIBRARIES})
+			unset(OPENCOLLADA_LIBRARIES_DEBUG)
+
+			file_list_suffix(PCRE_LIB_DEBUG "${PCRE_LIB}" "_d")
+			target_link_libraries(${target}
+					debug ${PCRE_LIB_DEBUG}
 					optimized ${PCRE_LIB})
+			unset(PCRE_LIB_DEBUG)
+
 			if(EXPAT_LIB)
+				file_list_suffix(EXPAT_LIB_DEBUG "${EXPAT_LIB}" "_d")
 				target_link_libraries(${target}
-						debug ${EXPAT_LIB}_d
+						debug ${EXPAT_LIB_DEBUG}
 						optimized ${EXPAT_LIB})
+				unset(EXPAT_LIB_DEBUG)
 			endif()
 		else()
 			target_link_libraries(${target}
