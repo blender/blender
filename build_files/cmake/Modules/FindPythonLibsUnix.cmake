@@ -3,6 +3,7 @@
 #  PYTHON_VERSION
 #  PYTHON_INCLUDE_DIRS
 #  PYTHON_LIBRARIES
+#  PYTHON_LIBPATH, Used for installation
 #  PYTHON_LINKFLAGS
 #  PYTHON_ROOT_DIR, The base directory to search for Python.
 #                   This can also be an environment variable.
@@ -46,18 +47,18 @@ foreach(_CURRENT_ABI_FLAGS ${_python_ABI_FLAGS})
 		PATH_SUFFIXES include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
 	)
 
-	find_library(PYTHON_LIBRARIES
+	find_library(PYTHON_LIBRARY
 		NAMES "python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}"
 		HINTS ${_python_SEARCH_DIRS}
 		PATH_SUFFIXES lib64 lib
 	)
 
-	if(PYTHON_LIBRARIES AND PYTHON_INCLUDE_DIR)
+	if(PYTHON_LIBRARY AND PYTHON_INCLUDE_DIR)
 		break()
 	else()
 		# ensure we dont find values from 2 different ABI versions
 		unset(PYTHON_INCLUDE_DIR CACHE)
-		unset(PYTHON_LIBRARIES CACHE)
+		unset(PYTHON_LIBRARY CACHE)
 	endif()
 endforeach()
 
@@ -71,13 +72,17 @@ unset(_python_SEARCH_DIRS)
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(PythonLibsUnix  DEFAULT_MSG
-    PYTHON_LIBRARIES PYTHON_INCLUDE_DIR)
+    PYTHON_LIBRARY PYTHON_INCLUDE_DIR)
 
 
 if(PYTHONLIBSUNIX_FOUND)
 	# Assign cache items
 	set(PYTHON_INCLUDE_DIRS ${PYTHON_INCLUDE_DIR} CACHE STRING "")
-	set(PYTHON_LIBRARIES ${PYTHON_LIBRARIES} CACHE STRING "")
+	set(PYTHON_LIBRARIES ${PYTHON_LIBRARY} CACHE STRING "")
+
+	# we need this for installation
+	get_filename_component(PYTHON_LIBPATH ${PYTHON_LIBRARY} PATH)
+
 	# not used
 	# set(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
 
@@ -85,5 +90,7 @@ if(PYTHONLIBSUNIX_FOUND)
 		PYTHON_INCLUDE_DIRS
 		PYTHON_INCLUDE_DIR
 		PYTHON_LIBRARIES
+		PYTHON_LIBRARY
+		PYTHON_LIBPATH
 	)
 endif()
