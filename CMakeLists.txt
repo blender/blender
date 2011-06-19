@@ -668,12 +668,10 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_PYTHON)
-			set(PYTHON ${LIBDIR}/python)
 			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARIES python32)
-			set(PYTHON_LIBPATH ${PYTHON}/lib)
+			set(PYTHON_LIBRARIES ${LIBDIR}/python/lib/python32.lib)
 		endif()
 
 		# MSVC only, Mingw doesnt need
