@@ -251,12 +251,12 @@ set(CXX_WARNINGS "")
 # On Unix: 
 #   cmake ../blender \
 #         -D PYTHON_VERSION=3.2 \
-#         -D PYTHON_INCLUDE_DIRS=/opt/py32/include/python3.2d \
-#         -D PYTHON_LIBRARIES=/opt/py32/lib/libpython3.2d.so
+#         -D PYTHON_INCLUDE_DIR=/opt/py32/include/python3.2d \
+#         -D PYTHON_LIBRARY=/opt/py32/lib/libpython3.2d.so
 #
 # On Macs: 
 #   cmake ../blender \
-#         -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.2/include/python3.2 \
+#         -D PYTHON_INCLUDE_DIR=/System/Library/Frameworks/Python.framework/Versions/3.2/include/python3.2 \
 #         -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.2/lib/python3.2/config \
 #         -G Xcode
 #
@@ -329,10 +329,10 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_JACK)
-		set(JACK /usr)
-		set(JACK_INCLUDE_DIRS ${JACK}/include/jack)
-		set(JACK_LIBRARIES jack)
-		set(JACK_LIBPATH ${JACK}/lib)
+		find_package(Jack)
+		if(NOT JACK_FOUND)
+			set(WITH_JACK OFF)
+		endif()
 	endif()
 
 	# Codecs
