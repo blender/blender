@@ -685,7 +685,7 @@ elseif(WIN32)
 
 		if(WITH_PYTHON)
 			set(PYTHON_VERSION 3.2)
-			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
+			set(PYTHON_INCLUDE_DIRS "${LIBDIR}/python/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
 			set(PYTHON_LIBRARIES ${LIBDIR}/python/lib/python32.lib)
 		endif()
