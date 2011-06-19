@@ -22,7 +22,9 @@ set(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
 mark_as_advanced(PYTHON_LINKFLAGS)
 
 set(_python_ABI_FLAGS
-	"m;mu;u; ")
+	"m;mu;u; "  # release
+	"md;mud;ud" # debug
+)
 
 string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
@@ -33,9 +35,9 @@ set(_python_SEARCH_DIRS
 )
 
 foreach(_CURRENT_ABI_FLAGS ${_python_ABI_FLAGS})
-	if(CMAKE_BUILD_TYPE STREQUAL Debug)
-		set(_CURRENT_ABI_FLAGS "d${_CURRENT_ABI_FLAGS}")
-	endif()
+	#if(CMAKE_BUILD_TYPE STREQUAL Debug)
+	#	set(_CURRENT_ABI_FLAGS "d${_CURRENT_ABI_FLAGS}")
+	#endif()
 	string(REPLACE " " "" _CURRENT_ABI_FLAGS ${_CURRENT_ABI_FLAGS})
 
 	find_path(PYTHON_INCLUDE_DIR
@@ -50,7 +52,7 @@ foreach(_CURRENT_ABI_FLAGS ${_python_ABI_FLAGS})
 		PATH_SUFFIXES lib64 lib
 	)
 
-	if((EXISTS ${PYTHON_LIBRARIES}) AND (EXISTS ${PYTHON_INCLUDE_DIR}))
+	if(PYTHON_LIBRARIES AND PYTHON_INCLUDE_DIR)
 		break()
 	else()
 		# ensure we dont find values from 2 different ABI versions
