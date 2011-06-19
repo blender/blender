@@ -2620,6 +2620,12 @@ void do_material_tex(ShadeInput *shi)
 			}
 		}
 	}
+	if ((use_compat_bump || use_ntap_bump) && (shi->mat->mode & MA_TANGENT_V)!=0) {
+		const float fnegdot = -dot_v3v3(shi->vn, shi->tang);
+		// apply Gram-Schmidt projection
+		madd_v3_v3fl(shi->tang,  shi->vn, fnegdot);
+		normalize_v3(shi->tang);
+	}
 }
 
 
