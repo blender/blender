@@ -628,7 +628,9 @@ elseif(WIN32)
 				${LIBDIR}/opencollada/lib/ftoa.lib
 				${LIBDIR}/opencollada/lib/UTF.lib
 			)
-			set(PCRE_LIB pcre)
+			set(PCRE_LIB
+				${LIBDIR}/opencollada/lib/pcre.lib
+			)
 		endif()
 
 		if(WITH_CODEC_FFMPEG)
