@@ -86,7 +86,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		ShaderCallData *shcd= data;
 		float col[4];
 		bNodeSocket *sock;
-		char hasinput[NUM_MAT_IN];
+		char hasinput[NUM_MAT_IN]= {'\0'};
 		int i;
 		
 		/* note: cannot use the in[]->hasinput flags directly, as these are not necessarily
