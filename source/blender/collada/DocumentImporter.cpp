@@ -378,6 +378,13 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 
 	if (is_joint) {
+		if ( par ) {
+		Object * empty = par;
+		par = add_object(sce, OB_ARMATURE);
+		bc_set_parent(par,empty->parent, mContext);
+		//remove empty : todo
+		object_map[parent_node->getUniqueId()] = par;
+		}
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
 	}
 	else {

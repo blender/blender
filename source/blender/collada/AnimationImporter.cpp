@@ -680,7 +680,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	
 	COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
-	Object *ob = is_joint ? armature_importer->get_armature_for_joint(node) : object_map[node->getUniqueId()];
+	Object *ob = is_joint ? armature_importer->get_armature_for_joint(root) : object_map[node->getUniqueId()];
 	
 	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
     

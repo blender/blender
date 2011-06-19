@@ -134,9 +134,9 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	}
 
 	// in second case it's not a leaf bone, but we handle it the same way
-	/*if (!children.getCount() || children.getCount() > 1) {
-		add_leaf_bone(mat, bone);*/
-	//}
+	if (!children.getCount() || children.getCount() > 1) {
+		add_leaf_bone(mat, bone);
+	}
 
 }
 
@@ -382,7 +382,7 @@ void ArmatureImporter::create_armature_bones( )
 		   TODO:
 		   check if bones have already been created for a given joint
 		*/
-
+     leaf_bone_length = FLT_MAX;
 		create_unskinned_bone(*ri, NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature*)ob_arm->data);
 
 		fix_leaf_bones();
@@ -522,6 +522,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 // root - if this joint is the top joint in hierarchy, if a joint
 // is a child of a node (not joint), root should be true since
 // this is where we build armature bones from
+
 void ArmatureImporter::add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce)
 {
 	joint_by_uid[node->getUniqueId()] = node;
@@ -529,9 +530,7 @@ void ArmatureImporter::add_joint(COLLADAFW::Node *node, bool root, Object *paren
 		root_joints.push_back(node);
 
 		if (parent) {
-			Object * par = parent->parent;
-			parent = add_object(sce, OB_ARMATURE );
-			parent->parent = par;
+					
 			joint_parent_map[node->getUniqueId()] = parent;
 		}
 	}
@@ -675,8 +674,8 @@ Object *ArmatureImporter::get_armature_for_joint(COLLADAFW::Node *node)
 		if (skin.uses_joint_or_descendant(node))
 			return skin.get_armature();
 	}
-
-	std::map<COLLADAFW::UniqueId, Object*>::iterator arm;
+   
+	 std::map<COLLADAFW::UniqueId, Object*>::iterator arm;
 	for (arm = unskinned_armature_map.begin(); arm != unskinned_armature_map.end(); arm++) {
 		if(arm->first == node->getUniqueId() )
 			return arm->second;
