@@ -134,9 +134,9 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	}
 
 	// in second case it's not a leaf bone, but we handle it the same way
-	if (!children.getCount() || children.getCount() > 1) {
-		add_leaf_bone(mat, bone);
-	}
+	/*if (!children.getCount() || children.getCount() > 1) {
+		add_leaf_bone(mat, bone);*/
+	//}
 
 }
 
@@ -369,8 +369,10 @@ void ArmatureImporter::create_armature_bones( )
 			if ( get_armature_for_joint(*ri) != NULL ) continue;
 	    
         //add armature object for current joint
-		Object *ob_arm = add_object(scene, OB_ARMATURE);
+		//Object *ob_arm = add_object(scene, OB_ARMATURE);
 
+		Object *ob_arm = joint_parent_map[(*ri)->getUniqueId()];
+		//ob_arm->type = OB_ARMATURE;
 		ED_armature_to_edit(ob_arm);
 
 		// min_angle = 360.0f;		// minimum angle between bone head-tail and a row of bone matrix
@@ -388,8 +390,8 @@ void ArmatureImporter::create_armature_bones( )
 	// exit armature edit mode
 	
 
-	if (joint_parent_map.find((*ri)->getUniqueId()) != joint_parent_map.end() && ob_arm->parent!=NULL)
-		ob_arm->parent = joint_parent_map[(*ri)->getUniqueId()];
+	//if (joint_parent_map.find((*ri)->getUniqueId()) != joint_parent_map.end() && ob_arm->parent!=NULL)
+	//	ob_arm->parent = joint_parent_map[(*ri)->getUniqueId()];
 	
 	unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
 
@@ -520,14 +522,18 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 // root - if this joint is the top joint in hierarchy, if a joint
 // is a child of a node (not joint), root should be true since
 // this is where we build armature bones from
-void ArmatureImporter::add_joint(COLLADAFW::Node *node, bool root, Object *parent)
+void ArmatureImporter::add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce)
 {
 	joint_by_uid[node->getUniqueId()] = node;
 	if (root) {
 		root_joints.push_back(node);
 
-		if (parent)
+		if (parent) {
+			Object * par = parent->parent;
+			parent = add_object(sce, OB_ARMATURE );
+			parent->parent = par;
 			joint_parent_map[node->getUniqueId()] = parent;
+		}
 	}
 }
 
