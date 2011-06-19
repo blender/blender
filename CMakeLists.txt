@@ -608,13 +608,24 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_OPENCOLLADA)
-			set(OPENCOLLADA ${LIBDIR}/opencollada)
-			set(OPENCOLLADA_INCLUDE_DIR ${OPENCOLLADA}/include)
-			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-			set(OPENCOLLADA_LIBRARIES OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser xml2 buffer ftoa UTF)
+			set(OPENCOLLADA_INCLUDE_DIR
+				${LIBDIR}/opencollada/include
+			)
+			set(OPENCOLLADA_LIBRARIES
+				${LIBDIR}/opencollada/lib/OpenCOLLADASaxFrameworkLoader.lib
+				${LIBDIR}/opencollada/lib/OpenCOLLADAFramework.lib
+				${LIBDIR}/opencollada/lib/OpenCOLLADABaseUtils.lib
+				${LIBDIR}/opencollada/lib/OpenCOLLADAStreamWriter.lib
+				${LIBDIR}/opencollada/lib/MathMLSolver.lib
+				${LIBDIR}/opencollada/lib/GeneratedSaxParser.lib
+				${LIBDIR}/opencollada/lib/xml2.lib
+				${LIBDIR}/opencollada/lib/buffer.lib
+				${LIBDIR}/opencollada/lib/ftoa.lib
+				${LIBDIR}/opencollada/lib/UTF.lib
+			)
 			set(PCRE_LIB pcre)
 		endif()
-	
+
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg)
 			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include/msvc)
