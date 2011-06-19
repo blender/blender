@@ -406,12 +406,10 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_MEM_JEMALLOC)
-		set(JEMALLOC /usr)
-		set(JEMALLOC_LIBRARIES jemalloc CACHE STRING "JeMalloc library")
-		set(JEMALLOC_LIBPATH ${JEMALLOC}/lib  CACHE FILEPATH "JeMalloc library path")
-		# no use for this yet.
-		# set(JEMALLOC_INCLUDE_DIR ${JEMALLOC}/include  CACHE FILEPATH "JeMalloc include path")
-		unset(JEMALLOC)
+		find_package(JeMalloc)
+		if(NOT JEMALLOC_FOUND)
+			set(WITH_MEM_JEMALLOC OFF)
+		endif()
 	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
