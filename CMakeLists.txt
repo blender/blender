@@ -49,6 +49,11 @@ endif()
 
 cmake_minimum_required(VERSION 2.8)
 
+if(NOT EXECUTABLE_OUTPUT_PATH)
+	set(FIRST_RUN "TRUE")
+endif()
+
+
 # this starts out unset
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules")
 
@@ -1183,3 +1188,83 @@ endif()
 #-----------------------------------------------------------------------------
 # CPack for generating packages
 include(build_files/cmake/packaging.cmake)
+
+
+#-----------------------------------------------------------------------------
+# Print Final Configuration
+
+if(FIRST_RUN)
+	set(_config_msg "\n* Blender Configuration *")
+	macro(info_cfg_option
+		_setting)
+		set(_msg "   * ${_setting}")
+		string(LENGTH "${_msg}" _len)
+		while("28" GREATER "${_len}")
+			set(_msg "${_msg} ")
+			 math(EXPR _len "${_len} + 1")
+		endwhile()
+
+		set(_config_msg "${_config_msg}\n${_msg}${${_setting}}")
+	endmacro()
+
+	macro(info_cfg_text
+		_text)
+		set(_config_msg "${_config_msg}\n\n  ${_text}")
+		
+		
+	endmacro()
+
+	info_cfg_text("Build Options:")
+	info_cfg_option(WITH_GAMEENGINE)
+	info_cfg_option(WITH_PLAYER)
+	info_cfg_option(WITH_BULLET)
+	info_cfg_option(WITH_IK_ITASC)
+	info_cfg_option(WITH_OPENCOLLADA)
+	info_cfg_option(WITH_FFTW3)
+	info_cfg_option(WITH_INTERNATIONAL)
+
+	info_cfg_text("Compiler Options:")
+	info_cfg_option(WITH_BUILDINFO)
+	info_cfg_option(WITH_OPENMP)
+	info_cfg_option(WITH_RAYOPTIMIZATION)
+
+	info_cfg_text("System Options:")
+	info_cfg_option(WITH_INSTALL_PORTABLE)
+	info_cfg_option(WITH_X11_XINPUT)
+	info_cfg_option(WITH_BUILTIN_GLEW)
+
+	info_cfg_text("Image Formats:")
+	info_cfg_option(WITH_IMAGE_CINEON)
+	info_cfg_option(WITH_IMAGE_DDS)
+	info_cfg_option(WITH_IMAGE_HDR)
+	info_cfg_option(WITH_IMAGE_OPENEXR)
+	info_cfg_option(WITH_IMAGE_OPENJPEG)
+	info_cfg_option(WITH_IMAGE_REDCODE)
+	info_cfg_option(WITH_IMAGE_TIFF)
+
+	info_cfg_text("Audio:")
+	info_cfg_option(WITH_OPENAL)
+	info_cfg_option(WITH_SDL)
+	info_cfg_option(WITH_JACK)
+	info_cfg_option(WITH_CODEC_FFMPEG)
+	info_cfg_option(WITH_CODEC_SNDFILE)
+	info_cfg_option(WITH_SAMPLERATE)
+
+	info_cfg_text("Compression:")
+	info_cfg_option(WITH_LZMA)
+	info_cfg_option(WITH_LZO)
+
+	info_cfg_text("Python:")
+	info_cfg_option(WITH_PYTHON_INSTALL)
+	info_cfg_option(WITH_PYTHON_MODULE)
+	info_cfg_option(WITH_PYTHON_SAFETY)
+
+	info_cfg_text("Modifiers:")
+	info_cfg_option(WITH_MOD_BOOLEAN)
+	info_cfg_option(WITH_MOD_DECIMATE)
+	info_cfg_option(WITH_MOD_FLUID)
+
+	info_cfg_text("")
+
+	message("${_config_msg}")
+endif()
