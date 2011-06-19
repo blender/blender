@@ -1,7 +1,7 @@
 # - Find SndFile library
 # Find the native SndFile includes and library
 # This module defines
-#  SNDFILE_INCLUDE_DIRS, where to find ImfXdr.h, etc. Set when
+#  SNDFILE_INCLUDE_DIRS, where to find sndfile.h, Set when
 #                        SNDFILE_INCLUDE_DIR is found.
 #  SNDFILE_LIBRARIES, libraries to link against to use SndFile.
 #  SNDFILE_ROOT_DIR, The base directory to search for SndFile.
@@ -44,7 +44,8 @@ FIND_PATH(SNDFILE_INCLUDE_DIR sndfile.h
     include
 )
 
-FIND_LIBRARY(SNDFILE_LIBRARY NAMES "sndfile"
+FIND_LIBRARY(SNDFILE_LIBRARY
+  NAMES "sndfile"
   HINTS ${_sndfile_SEARCH_DIRS}
   PATH_SUFFIXES lib64 lib
   )
@@ -60,5 +61,7 @@ IF(SNDFILE_FOUND)
   SET(SNDFILE_INCLUDE_DIRS ${SNDFILE_INCLUDE_DIR})
 ENDIF(SNDFILE_FOUND)
 
-MARK_AS_ADVANCED(SNDFILE_INCLUDE_DIR)
-MARK_AS_ADVANCED(SNDFILE_LIBRARY)
+MARK_AS_ADVANCED(
+  SNDFILE_INCLUDE_DIR
+  SNDFILE_LIBRARY
+)

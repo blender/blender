@@ -267,10 +267,59 @@ if(UNIX AND NOT APPLE)
 		set(CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu;${CMAKE_LIBRARY_PATH}")
 	endif()
 
+	find_package(JPEG REQUIRED)
+	find_package(PNG REQUIRED)
+	find_package(ZLIB REQUIRED)
+	find_package(Freetype REQUIRED)
+
+	if(WITH_PYTHON)
+		# No way to set py32. remove for now.
+		# find_package(PythonLibs)
+
+		# Use our own instead, since wothout py is such a rare case,
+		# require this package
+		find_package(PythonLibsUnix REQUIRED)
+	endif()
+
+
+	if(WITH_IMAGE_OPENEXR)
+		find_package(OpenEXR)  # our own module
+		if(NOT OPENEXR_FOUND)
+			set(WITH_IMAGE_OPENEXR OFF)
+		endif()
+	endif()
+
+	if(WITH_IMAGE_OPENJPEG)
+		find_package(OpenJPEG)
+		if(NOT OPENJPEG_FOUND)
+			set(WITH_IMAGE_OPENJPEG OFF)
+		endif()
+	endif()
+
+	if(WITH_IMAGE_TIFF)
+		find_package(TIFF)
+		if(NOT TIFF_FOUND)
+			set(WITH_IMAGE_TIFF OFF)
+		endif()
+	endif()
+
+	# Audio IO
 	if(WITH_OPENAL)
 		find_package(OpenAL)
 		if(NOT OPENAL_FOUND)
 			set(WITH_OPENAL OFF)
+		endif()
+	endif()
+
+	if(WITH_SDL)
+		find_package(SDL)
+		mark_as_advanced(SDLMAIN_LIBRARY)
+		mark_as_advanced(SDL_INCLUDE_DIR)
+		mark_as_advanced(SDL_LIBRARY)
+		mark_as_advanced(SDL_LIBRARY_TEMP)
+		# unset(SDLMAIN_LIBRARY CACHE)
+		if(NOT SDL_FOUND)
+			set(WITH_SDL OFF)
 		endif()
 	endif()
 
@@ -281,11 +330,22 @@ if(UNIX AND NOT APPLE)
 		set(JACK_LIBPATH ${JACK}/lib)
 	endif()
 
+	# Codecs
 	if(WITH_CODEC_SNDFILE)
 		find_package(SndFile)
 		if(NOT SNDFILE_FOUND)
 			set(WITH_CODEC_SNDFILE OFF)
 		endif()
+	endif()
+
+	if(WITH_CODEC_FFMPEG)
+		set(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
+		mark_as_advanced(FFMPEG)
+		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
+		set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
+		mark_as_advanced(FFMPEG_LIBRARIES)
+		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	endif()
 
 	if(WITH_INTERNATIONAL)
@@ -306,61 +366,6 @@ if(UNIX AND NOT APPLE)
 		if(INTL_LIBRARY AND ICONV_LIBRARY)
 			set(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
 		endif()
-	endif()
-
-	find_package(Freetype REQUIRED)
-	# unset(FREETYPE_INCLUDE_DIRS CACHE) # cant use
-
-
-	if(WITH_PYTHON)
-		# No way to set py32. remove for now.
-		# find_package(PythonLibs)
-
-		# Use our own instead, since wothout py is such a rare case,
-		# require this package
-		find_package(PythonLibsUnix REQUIRED)
-	endif()
-
-	if(WITH_SDL)
-		find_package(SDL)
-		mark_as_advanced(SDLMAIN_LIBRARY)
-		mark_as_advanced(SDL_INCLUDE_DIR)
-		mark_as_advanced(SDL_LIBRARY)
-		mark_as_advanced(SDL_LIBRARY_TEMP)
-		# unset(SDLMAIN_LIBRARY CACHE)
-		if(NOT SDL_FOUND)
-			set(WITH_SDL OFF)
-		endif()
-	endif()
-
-	if(WITH_IMAGE_OPENEXR)
-		find_package(OpenEXR)  # our own module
-		if(NOT OPENEXR_FOUND)
-			set(WITH_IMAGE_OPENEXR OFF)
-		endif()
-	endif()
-
-	if(WITH_IMAGE_TIFF)
-		find_package(TIFF)
-		if(NOT TIFF_FOUND)
-			set(WITH_IMAGE_TIFF OFF)
-		endif()
-	endif()
-
-	find_package(JPEG REQUIRED)
-
-	find_package(PNG REQUIRED)
-
-	find_package(ZLIB REQUIRED)
-
-	if(WITH_CODEC_FFMPEG)
-		set(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
-		mark_as_advanced(FFMPEG)
-		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
-		set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
-		mark_as_advanced(FFMPEG_LIBRARIES)
-		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	endif()
 
 	if(WITH_FFTW3)
@@ -997,13 +1002,9 @@ endif()
 
 if(WITH_IMAGE_OPENJPEG)
 	if(UNIX AND NOT APPLE)
-		set(OPENJPEG /usr)
-		set(OPENJPEG_INC ${OPENJPEG}/include)
-		set(OPENJPEG_LIB openjpeg)
-		set(OPENJPEG_LIBPATH ${OPENJPEG}/lib)
+		# dealt with above
 	else()
-		set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
-		set(OPENJPEG_INC ${OPENJPEG})
+		set(OPENJPEG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/libopenjpeg")
 	endif()
 endif()
 

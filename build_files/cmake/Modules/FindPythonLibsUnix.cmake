@@ -3,7 +3,6 @@
 #  PYTHON_VERSION
 #  PYTHON_INCLUDE_DIRS
 #  PYTHON_LIBRARIES
-#  PYTHON_LIBPATH
 #  PYTHON_LINKFLAGS
 #  PYTHON_ROOT_DIR, The base directory to search for Python.
 #                   This can also be an environment variable.

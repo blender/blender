@@ -266,7 +266,7 @@ macro(setup_liblinks
 		endif()
 	endif()
 	if(WITH_IMAGE_OPENJPEG AND UNIX AND NOT APPLE)
-		target_link_libraries(${target} ${OPENJPEG_LIB})
+		target_link_libraries(${target} ${OPENJPEG_LIBRARIES})
 	endif()
 	if(WITH_CODEC_FFMPEG)
 		target_link_libraries(${target} ${FFMPEG_LIBRARIES})
