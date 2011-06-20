@@ -12,7 +12,7 @@
 #  SNDFILE_LIBRARY, where to find the SndFile library.
 
 #=============================================================================
-# Copyright 2002-2009 Kitware, Inc.
+# Copyright 2011 Blender Foundation.
 #
 # Distributed under the OSI-approved BSD License (the "License");
 # see accompanying file Copyright.txt for details.
@@ -21,8 +21,6 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the License for more information.
 #=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
 
 # If SNDFILE_ROOT_DIR was defined in the environment, use it.
 IF(NOT SNDFILE_ROOT_DIR AND NOT $ENV{SNDFILE_ROOT_DIR} STREQUAL "")
@@ -45,9 +43,12 @@ FIND_PATH(SNDFILE_INCLUDE_DIR sndfile.h
 )
 
 FIND_LIBRARY(SNDFILE_LIBRARY
-  NAMES "sndfile"
-  HINTS ${_sndfile_SEARCH_DIRS}
-  PATH_SUFFIXES lib64 lib
+  NAMES
+    sndfile
+  HINTS
+    ${_sndfile_SEARCH_DIRS}
+  PATH_SUFFIXES
+    lib64 lib
   )
 
 # handle the QUIETLY and REQUIRED arguments and set SNDFILE_FOUND to TRUE if 

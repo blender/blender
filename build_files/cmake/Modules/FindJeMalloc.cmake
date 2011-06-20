@@ -12,7 +12,7 @@
 #  JEMALLOC_LIBRARY, where to find the JeMalloc library.
 
 #=============================================================================
-# Copyright 2002-2009 Kitware, Inc.
+# Copyright 2011 Blender Foundation.
 #
 # Distributed under the OSI-approved BSD License (the "License");
 # see accompanying file Copyright.txt for details.
@@ -21,8 +21,6 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the License for more information.
 #=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
 
 # If JEMALLOC_ROOT_DIR was defined in the environment, use it.
 IF(NOT JEMALLOC_ROOT_DIR AND NOT $ENV{JEMALLOC_ROOT_DIR} STREQUAL "")
@@ -37,7 +35,9 @@ SET(_jemalloc_SEARCH_DIRS
   /opt/csw # Blastwave
 )
 
-FIND_PATH(JEMALLOC_INCLUDE_DIR jemalloc.h
+FIND_PATH(JEMALLOC_INCLUDE_DIR
+  NAMES
+    jemalloc.h
   HINTS
     ${_jemalloc_SEARCH_DIRS}
   PATH_SUFFIXES
@@ -45,9 +45,12 @@ FIND_PATH(JEMALLOC_INCLUDE_DIR jemalloc.h
 )
 
 FIND_LIBRARY(JEMALLOC_LIBRARY
-  NAMES "jemalloc"
-  HINTS ${_jemalloc_SEARCH_DIRS}
-  PATH_SUFFIXES lib64 lib
+  NAMES
+    jemalloc
+  HINTS
+    ${_jemalloc_SEARCH_DIRS}
+  PATH_SUFFIXES
+    lib64 lib
   )
 
 # handle the QUIETLY and REQUIRED arguments and set JEMALLOC_FOUND to TRUE if 

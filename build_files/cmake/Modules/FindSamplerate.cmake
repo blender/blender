@@ -12,7 +12,7 @@
 #  SAMPLERATE_LIBRARY, where to find the Samplerate library.
 
 #=============================================================================
-# Copyright 2002-2009 Kitware, Inc.
+# Copyright 2011 Blender Foundation.
 #
 # Distributed under the OSI-approved BSD License (the "License");
 # see accompanying file Copyright.txt for details.
@@ -21,8 +21,6 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the License for more information.
 #=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
 
 # If SAMPLERATE_ROOT_DIR was defined in the environment, use it.
 IF(NOT SAMPLERATE_ROOT_DIR AND NOT $ENV{SAMPLERATE_ROOT_DIR} STREQUAL "")
@@ -37,7 +35,9 @@ SET(_samplerate_SEARCH_DIRS
   /opt/csw # Blastwave
 )
 
-FIND_PATH(SAMPLERATE_INCLUDE_DIR samplerate.h
+FIND_PATH(SAMPLERATE_INCLUDE_DIR
+  NAMES
+    samplerate.h
   HINTS
     ${_samplerate_SEARCH_DIRS}
   PATH_SUFFIXES
@@ -45,9 +45,12 @@ FIND_PATH(SAMPLERATE_INCLUDE_DIR samplerate.h
 )
 
 FIND_LIBRARY(SAMPLERATE_LIBRARY
-  NAMES "samplerate"
-  HINTS ${_samplerate_SEARCH_DIRS}
-  PATH_SUFFIXES lib64 lib
+  NAMES
+    samplerate
+  HINTS
+    ${_samplerate_SEARCH_DIRS}
+  PATH_SUFFIXES
+    lib64 lib
   )
 
 # handle the QUIETLY and REQUIRED arguments and set SAMPLERATE_FOUND to TRUE if 

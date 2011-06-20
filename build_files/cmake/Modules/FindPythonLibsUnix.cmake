@@ -1,5 +1,12 @@
-# - Find python libraries
+# - Find Python libraries
+# Find the native Python includes and library
 #
+# Note:, This is not _yet_ intended to be a general python module for other
+#  projects to use since its hard coded to python 3.2 as blender only supports
+#  a single python version.
+#  This is for blender/unix python only.
+#
+# This module defines
 #  PYTHON_VERSION
 #  PYTHON_INCLUDE_DIRS
 #  PYTHON_LIBRARIES
@@ -7,87 +14,99 @@
 #  PYTHON_LINKFLAGS
 #  PYTHON_ROOT_DIR, The base directory to search for Python.
 #                   This can also be an environment variable.
+#
+# also defined, but not for general use are
+#  PYTHON_LIBRARY, where to find the python library.
 
+#=============================================================================
+# Copyright 2011 Blender Foundation.
+#
+# Distributed under the OSI-approved BSD License (the "License");
+# see accompanying file Copyright.txt for details.
+#
+# This software is distributed WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the License for more information.
 #=============================================================================
 
 # If PYTHON_ROOT_DIR was defined in the environment, use it.
-if(NOT PYTHON_ROOT_DIR AND NOT $ENV{PYTHON_ROOT_DIR} STREQUAL "")
-	set(PYTHON_ROOT_DIR $ENV{PYTHON_ROOT_DIR})
-endif()
+IF(NOT PYTHON_ROOT_DIR AND NOT $ENV{PYTHON_ROOT_DIR} STREQUAL "")
+  SET(PYTHON_ROOT_DIR $ENV{PYTHON_ROOT_DIR})
+ENDIF()
 
 
-set(PYTHON_VERSION 3.2 CACHE STRING "")
-mark_as_advanced(PYTHON_VERSION)
+SET(PYTHON_VERSION 3.2 CACHE STRING "")
+MARK_AS_ADVANCED(PYTHON_VERSION)
 
-set(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
-mark_as_advanced(PYTHON_LINKFLAGS)
+SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
+MARK_AS_ADVANCED(PYTHON_LINKFLAGS)
 
-set(_python_ABI_FLAGS
-	"m;mu;u; "  # release
-	"md;mud;ud" # debug
+SET(_python_ABI_FLAGS
+  "m;mu;u; "  # release
+  "md;mud;ud" # debug
 )
 
-string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
+STRING(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
-set(_python_SEARCH_DIRS
-	${PYTHON_ROOT_DIR}
-	"$ENV{HOME}/py${_PYTHON_VERSION_NO_DOTS}"
-	"/opt/py${_PYTHON_VERSION_NO_DOTS}"
+SET(_python_SEARCH_DIRS
+  ${PYTHON_ROOT_DIR}
+  "$ENV{HOME}/py${_PYTHON_VERSION_NO_DOTS}"
+  "/opt/py${_PYTHON_VERSION_NO_DOTS}"
 )
 
-foreach(_CURRENT_ABI_FLAGS ${_python_ABI_FLAGS})
-	#if(CMAKE_BUILD_TYPE STREQUAL Debug)
-	#	set(_CURRENT_ABI_FLAGS "d${_CURRENT_ABI_FLAGS}")
-	#endif()
-	string(REPLACE " " "" _CURRENT_ABI_FLAGS ${_CURRENT_ABI_FLAGS})
+FOREACH(_CURRENT_ABI_FLAGS ${_python_ABI_FLAGS})
+  #IF(CMAKE_BUILD_TYPE STREQUAL Debug)
+  #  SET(_CURRENT_ABI_FLAGS "d${_CURRENT_ABI_FLAGS}")
+  #ENDIF()
+  STRING(REPLACE " " "" _CURRENT_ABI_FLAGS ${_CURRENT_ABI_FLAGS})
 
-	find_path(PYTHON_INCLUDE_DIR
-		NAMES Python.h
-		HINTS ${_python_SEARCH_DIRS}
-		PATH_SUFFIXES include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
-	)
+  FIND_PATH(PYTHON_INCLUDE_DIR
+    NAMES Python.h
+    HINTS ${_python_SEARCH_DIRS}
+    PATH_SUFFIXES include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+  )
 
-	find_library(PYTHON_LIBRARY
-		NAMES "python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}"
-		HINTS ${_python_SEARCH_DIRS}
-		PATH_SUFFIXES lib64 lib
-	)
+  FIND_LIBRARY(PYTHON_LIBRARY
+    NAMES "python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}"
+    HINTS ${_python_SEARCH_DIRS}
+    PATH_SUFFIXES lib64 lib
+  )
 
-	if(PYTHON_LIBRARY AND PYTHON_INCLUDE_DIR)
-		break()
-	else()
-		# ensure we dont find values from 2 different ABI versions
-		unset(PYTHON_INCLUDE_DIR CACHE)
-		unset(PYTHON_LIBRARY CACHE)
-	endif()
-endforeach()
+  IF(PYTHON_LIBRARY AND PYTHON_INCLUDE_DIR)
+    break()
+  ELSE()
+    # ensure we dont find values from 2 different ABI versions
+    UNSET(PYTHON_INCLUDE_DIR CACHE)
+    UNSET(PYTHON_LIBRARY CACHE)
+  ENDIF()
+ENDFOREACH()
 
-unset(_CURRENT_ABI_FLAGS)
-unset(_CURRENT_PATH)
+UNSET(_CURRENT_ABI_FLAGS)
+UNSET(_CURRENT_PATH)
 
-unset(_python_ABI_FLAGS)
-unset(_python_SEARCH_DIRS)
+UNSET(_python_ABI_FLAGS)
+UNSET(_python_SEARCH_DIRS)
 
-# handle the QUIETLY and REQUIRED arguments and set PYTHONLIBSUNIX_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and SET PYTHONLIBSUNIX_FOUND to TRUE IF 
 # all listed variables are TRUE
-include(FindPackageHandleStandardArgs)
+INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(PythonLibsUnix  DEFAULT_MSG
     PYTHON_LIBRARY PYTHON_INCLUDE_DIR)
 
 
-if(PYTHONLIBSUNIX_FOUND)
-	# Assign cache items
-	set(PYTHON_INCLUDE_DIRS ${PYTHON_INCLUDE_DIR})
-	set(PYTHON_LIBRARIES ${PYTHON_LIBRARY})
+IF(PYTHONLIBSUNIX_FOUND)
+  # Assign cache items
+  SET(PYTHON_INCLUDE_DIRS ${PYTHON_INCLUDE_DIR})
+  SET(PYTHON_LIBRARIES ${PYTHON_LIBRARY})
 
-	# we need this for installation
-	get_filename_component(PYTHON_LIBPATH ${PYTHON_LIBRARY} PATH)
+  # we need this for installation
+  GET_FILENAME_COMPONENT(PYTHON_LIBPATH ${PYTHON_LIBRARY} PATH)
 
-	# not used
-	# set(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
+  # not used
+  # SET(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
 
-	mark_as_advanced(
-		PYTHON_INCLUDE_DIR
-		PYTHON_LIBRARY
-	)
-endif()
+  MARK_AS_ADVANCED(
+    PYTHON_INCLUDE_DIR
+    PYTHON_LIBRARY
+  )
+ENDIF()
