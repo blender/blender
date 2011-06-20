@@ -441,7 +441,8 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		// check if object is not NULL
 		if (!ob) return;
 		
-		rename_id(&ob->id, (char*)node->getOriginalId().c_str());
+		std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
+		rename_id(&ob->id, (char*)nodename.c_str());
 
 		object_map[node->getUniqueId()] = ob;
 		node_map[node->getUniqueId()] = node;
@@ -523,7 +524,7 @@ bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat )
 	if(mImportStage!=General)
 		return true;
 		
-	const std::string& str_mat_id = cmat->getOriginalId();
+	const std::string& str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
 	Material *ma = add_material((char*)str_mat_id.c_str());
 	
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
