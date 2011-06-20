@@ -2118,7 +2118,7 @@ void do_material_tex(ShadeInput *shi)
 	float fact, facm, factt, facmm, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
-	int use_compat_bump, use_ntap_bump;
+	int use_compat_bump = 0, use_ntap_bump = 0;
 	int iFirstTimeNMap=1;
 
 	compatible_bump_init(&compat_bump);
