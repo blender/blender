@@ -2119,6 +2119,7 @@ void do_material_tex(ShadeInput *shi)
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
 	int use_compat_bump = 0, use_ntap_bump = 0;
+	int found_nmapping = 0;
 	int iFirstTimeNMap=1;
 
 	compatible_bump_init(&compat_bump);
@@ -2429,6 +2430,9 @@ void do_material_tex(ShadeInput *shi)
 					/* we need to code blending modes for normals too once.. now 1 exception hardcoded */
 					
 					if ((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP)) {
+						
+						found_nmapping = 1;
+						
 						/* qdn: for normalmaps, to invert the normalmap vector,
 						   it is better to negate x & y instead of subtracting the vector as was done before */
 						if (norfac < 0.0f) {
@@ -2620,7 +2624,7 @@ void do_material_tex(ShadeInput *shi)
 			}
 		}
 	}
-	if ((use_compat_bump || use_ntap_bump) && (shi->mat->mode & MA_TANGENT_V)!=0) {
+	if ((use_compat_bump || use_ntap_bump || found_nmapping) && (shi->mat->mode & MA_TANGENT_V)!=0) {
 		const float fnegdot = -dot_v3v3(shi->vn, shi->tang);
 		// apply Gram-Schmidt projection
 		madd_v3_v3fl(shi->tang,  shi->vn, fnegdot);
