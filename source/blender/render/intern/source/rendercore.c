@@ -2556,7 +2556,7 @@ static void *do_bake_thread(void *bs_v)
 	return NULL;
 }
 
-void RE_bake_ibuf_filter(ImBuf *ibuf, unsigned char *UNUSED(mask), const int filter)
+void RE_bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
 {
 	/* must check before filtering */
 	const short is_new_alpha= (ibuf->depth != 32) && BKE_alphatest_ibuf(ibuf);
@@ -2570,9 +2570,9 @@ void RE_bake_ibuf_filter(ImBuf *ibuf, unsigned char *UNUSED(mask), const int fil
 		 * this is so colors dont blend in from outside */
 
 		for(i=0; i< filter; i++)
-			IMB_mask_filter_extend((char *)ibuf->userdata, ibuf->x, ibuf->y);
+			IMB_mask_filter_extend(mask, ibuf->x, ibuf->y);
 
-		temprect = MEM_dupallocN(ibuf->userdata);
+		temprect = MEM_dupallocN(mask);
 
 		/* expand twice to clear this many pixels, so they blend back in */
 		IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
@@ -2583,7 +2583,7 @@ void RE_bake_ibuf_filter(ImBuf *ibuf, unsigned char *UNUSED(mask), const int fil
 		MEM_freeN(temprect);
 
 		for(i= 0; i < filter; i++)
-			IMB_filter_extend(ibuf, (char *)ibuf->userdata);
+			IMB_filter_extend(ibuf, mask);
 	}
 
 	/* if the bake results in new alpha then change the image setting */
@@ -2684,7 +2684,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 			if(!ibuf)
 				continue;
 
-			RE_bake_ibuf_filter(ibuf, (unsigned char *)ibuf->userdata, re->r.bake_filter);
+			RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, re->r.bake_filter);
 
 			ibuf->userflags |= IB_BITMAPDIRTY;
 			if (ibuf->rect_float) IMB_rect_from_float(ibuf);
