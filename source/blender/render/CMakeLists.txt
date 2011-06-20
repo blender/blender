@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# remove warning until render branch merged.
-remove_strict_flags()
 
 set(INC 
 	intern/include

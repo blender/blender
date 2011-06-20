@@ -1984,7 +1984,7 @@ typedef struct BakeShade {
 	short *do_update;
 } BakeShade;
 
-static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int isect, int x, int y, float u, float v)
+static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int UNUSED(isect), int x, int y, float u, float v)
 {
 	if(quad) 
 		shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
@@ -2015,7 +2015,7 @@ static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInpu
 	shi->view[2]= shi->vn[2];
 }
 
-static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int x, int y, float u, float v, float *tvn, float *ttang)
+static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(quad), int x, int y, float UNUSED(u), float UNUSED(v), float *tvn, float *ttang)
 {
 	BakeShade *bs= handle;
 	ShadeSample *ssamp= &bs->ssamp;
@@ -2183,7 +2183,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	}
 }
 
-static void bake_displacement(void *handle, ShadeInput *shi, float dist, int x, int y)
+static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist, int x, int y)
 {
 	BakeShade *bs= handle;
 	float disp;
@@ -2556,7 +2556,7 @@ static void *do_bake_thread(void *bs_v)
 	return NULL;
 }
 
-void RE_bake_ibuf_filter(ImBuf *ibuf, unsigned char *mask, const int filter)
+void RE_bake_ibuf_filter(ImBuf *ibuf, unsigned char *UNUSED(mask), const int filter)
 {
 	/* must check before filtering */
 	const short is_new_alpha= (ibuf->depth != 32) && BKE_alphatest_ibuf(ibuf);
