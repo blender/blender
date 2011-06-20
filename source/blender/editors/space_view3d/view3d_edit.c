@@ -952,11 +952,13 @@ float ndof_to_angle_axis(const float ndof[3], float axis[3])
 // Mike's version
 static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	RegionView3D* rv3d = CTX_wm_region_view3d(C);
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
 	float sensitivity = 1.f; /* ooh, magic number!
 	const float sensitivity = 0.035; /* ooh, magic number!
 		there will be several of these as interactions get tuned */
+	int /* bool */ has_rotation = rv3d->viewlock != RV3D_LOCKED && (ndof->rx || ndof->ry || ndof->rz);
 
 	float dt = ndof->dt;
 	if (dt > 0.25f)
@@ -964,9 +966,7 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* TODO: replace such guesswork with a flag or field from the NDOF manager */
 		dt = 0.0125f;
 
-	RegionView3D* rv3d = CTX_wm_region_view3d(C);
 
-	int /* bool */ has_rotation = rv3d->viewlock != RV3D_LOCKED && (ndof->rx || ndof->ry || ndof->rz);
 	if (has_rotation)
 		rv3d->view = RV3D_VIEW_USER;
 
