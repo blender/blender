@@ -82,6 +82,7 @@
 #define SEQPROP_ENDFRAME	(1<<1)
 #define SEQPROP_FILES		(1<<2)
 #define SEQPROP_NOPATHS		(1<<3)
+#define SEQPROP_NOCHAN		(1<<4)
 
 #define SELECT 1
 
@@ -122,8 +123,12 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 	float mval_v2d[2];
 	
 	UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mval_v2d[0], &mval_v2d[1]);
-	
-	RNA_int_set(op->ptr, "channel", (int)mval_v2d[1]+0.5f);
+
+	/* effect strips dont need a channel initialized from the mouse */
+	if(!(flag & SEQPROP_NOCHAN)) {
+		RNA_int_set(op->ptr, "channel", (int)mval_v2d[1]+0.5f);
+	}
+
 	RNA_int_set(op->ptr, "frame_start", (int)mval_v2d[0]);
 	
 	if ((flag & SEQPROP_ENDFRAME) && RNA_property_is_set(op->ptr, "frame_end")==0)
@@ -636,14 +641,16 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		seq->blend_mode= SEQ_CROSS;
 	}
 
-	// XXX, this conflicts with giving a channel with invoke, perhaps we should have an active channel
-	// but for now this is much more usable
-	if(seq->seq1 || seq->seq2 || seq->seq3) {
-		int chan= MAX3(	seq->seq1 ? seq->seq1->machine : 0,
-						seq->seq2 ? seq->seq2->machine : 0,
-						seq->seq3 ? seq->seq3->machine : 0);
-		if(chan < MAXSEQ)
-			seq->machine= chan;
+	/* an unset channel is a special case where we automatically go above
+	 * the other strips. */
+	if(!RNA_property_is_set(op->ptr, "channel")) {
+		if(seq->seq1) {
+			int chan= MAX3(	seq->seq1 ? seq->seq1->machine : 0,
+							seq->seq2 ? seq->seq2->machine : 0,
+							seq->seq3 ? seq->seq3->machine : 0);
+			if(chan < MAXSEQ)
+				seq->machine= chan;
+		}
 	}
 
 	if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
@@ -670,14 +677,30 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 /* add color */
 static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	short is_type_set= RNA_property_is_set(op->ptr, "type");
+	int type= -1;
+	int prop_flag= SEQPROP_ENDFRAME;
+
 	if(!ED_operator_sequencer_active(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
 		return OPERATOR_CANCELLED;
 	}
 
-	sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_ENDFRAME);
+	if(is_type_set) {
+		type= RNA_enum_get(op->ptr, "type");
 
-	if (RNA_property_is_set(op->ptr, "type") && RNA_enum_get(op->ptr, "type")==SEQ_PLUGIN) {
+		/* when invoking an effect strip which uses inputs,
+		 * skip initialzing the channel from the mouse.
+		 * Instead leave the property unset so exec() initializes it to be
+		 * above the strips its applied to. */
+		if(get_sequence_effect_num_inputs(type) != 0) {
+			prop_flag |= SEQPROP_NOCHAN;
+		}
+	}
+
+	sequencer_generic_invoke_xy__internal(C, op, event, prop_flag);
+
+	if (is_type_set && type==SEQ_PLUGIN) {
 
 		if(!RNA_property_is_set(op->ptr, "relative_path"))
 			RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
