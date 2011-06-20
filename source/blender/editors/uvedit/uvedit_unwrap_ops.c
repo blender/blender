@@ -134,6 +134,41 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 
 /****************** Parametrizer Conversion ***************/
 
+static int uvedit_have_selection(Scene *scene, EditMesh *em, short implicit)
+{
+	EditFace *efa;
+	MTFace *tf;
+
+	/* verify if we have any selected uv's before unwrapping,
+	   so we can cancel the operator early */
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+			if(efa->h)
+				continue;
+		}
+		else if((efa->h) || ((efa->f & SELECT)==0))
+			continue;
+
+		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		if(!tf)
+			return 1; /* default selected if doesn't exists */
+		
+		if(implicit &&
+			!(	uvedit_uv_selected(scene, efa, tf, 0) ||
+				uvedit_uv_selected(scene, efa, tf, 1) ||
+				uvedit_uv_selected(scene, efa, tf, 2) ||
+				(efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) )
+		) {
+			continue;
+		}
+
+		return 1;
+	}
+
+	return 0;
+}
+
 static ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short implicit, short fill, short sel, short correct_aspect)
 {
 	ParamHandle *handle;
@@ -171,15 +206,11 @@ static ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short imp
 		int nverts;
 		
 		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-			if(efa->h) {
+			if(efa->h)
 				continue;
-			}
 		}
-		else {
-			if((efa->h) || (sel && (efa->f & SELECT)==0)) {
-				continue;
-			}
-		}
+		else if((efa->h) || (sel && (efa->f & SELECT)==0))
+			continue;
 
 		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		
@@ -256,13 +287,19 @@ typedef struct MinStretch {
 	wmTimer *timer;
 } MinStretch;
 
-static void minimize_stretch_init(bContext *C, wmOperator *op)
+static int minimize_stretch_init(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	MinStretch *ms;
 	int fill_holes= RNA_boolean_get(op->ptr, "fill_holes");
+	short implicit= 1;
+
+	if(!uvedit_have_selection(scene, em, implicit)) {
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return 0;
+	}
 
 	ms= MEM_callocN(sizeof(MinStretch), "MinStretch");
 	ms->scene= scene;
@@ -270,7 +307,8 @@ static void minimize_stretch_init(bContext *C, wmOperator *op)
 	ms->em= em;
 	ms->blend= RNA_float_get(op->ptr, "blend");
 	ms->iterations= RNA_int_get(op->ptr, "iterations");
-	ms->handle= construct_param_handle(scene, em, 1, fill_holes, 1, 1);
+	ms->i= 0;
+	ms->handle= construct_param_handle(scene, em, implicit, fill_holes, 1, 1);
 	ms->lasttime= PIL_check_seconds_timer();
 
 	param_stretch_begin(ms->handle);
@@ -278,6 +316,8 @@ static void minimize_stretch_init(bContext *C, wmOperator *op)
 		param_stretch_blend(ms->handle, ms->blend);
 
 	op->customdata= ms;
+
+	return 1;
 }
 
 static void minimize_stretch_iteration(bContext *C, wmOperator *op, int interactive)
@@ -287,6 +327,9 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, int interact
 
 	param_stretch_blend(ms->handle, ms->blend);
 	param_stretch_iter(ms->handle);
+
+	ms->i++;
+	RNA_int_set(op->ptr, "iterations", ms->i);
 
 	if(interactive && (PIL_check_seconds_timer() - ms->lasttime > 0.5)) {
 		char str[100];
@@ -334,7 +377,8 @@ static int minimize_stretch_exec(bContext *C, wmOperator *op)
 {
 	int i, iterations;
 
-	minimize_stretch_init(C, op);
+	if(!minimize_stretch_init(C, op))
+		return OPERATOR_CANCELLED;
 
 	iterations= RNA_int_get(op->ptr, "iterations");
 	for(i=0; i<iterations; i++)
@@ -348,7 +392,9 @@ static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 {
 	MinStretch *ms;
 
-	minimize_stretch_init(C, op);
+	if(!minimize_stretch_init(C, op))
+		return OPERATOR_CANCELLED;
+
 	minimize_stretch_iteration(C, op, 1);
 
 	ms= op->customdata;
@@ -445,6 +491,12 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ParamHandle *handle;
+	short implicit= 1;
+
+	if(!uvedit_have_selection(scene, em, implicit)) {
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
 
 	if(RNA_property_is_set(op->ptr, "margin")) {
 		scene->toolsettings->uvcalc_margin= RNA_float_get(op->ptr, "margin");
@@ -453,7 +505,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
 	}
 
-	handle = construct_param_handle(scene, em, 1, 0, 1, 1);
+	handle = construct_param_handle(scene, em, implicit, 0, 1, 1);
 	param_pack(handle, scene->toolsettings->uvcalc_margin);
 	param_flush(handle);
 	param_delete(handle);
@@ -488,8 +540,14 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ParamHandle *handle;
+	short implicit= 1;
 
-	handle= construct_param_handle(scene, em, 1, 0, 1, 1);
+	if(!uvedit_have_selection(scene, em, implicit)) {
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
+	handle= construct_param_handle(scene, em, implicit, 0, 1, 1);
 	param_average(handle);
 	param_flush(handle);
 	param_delete(handle);
@@ -834,11 +892,13 @@ static void uv_map_clip_correct(EditMesh *em, wmOperator *op)
 void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 {
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
+	ParamHandle *handle;
 
 	const short fill_holes= scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 	const short correct_aspect= !(scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT);
+	short implicit= 0;
 
-	ParamHandle *handle= construct_param_handle(scene, em, 0, fill_holes, sel, correct_aspect);
+	handle= construct_param_handle(scene, em, implicit, fill_holes, sel, correct_aspect);
 
 	param_lscm_begin(handle, PARAM_FALSE, scene->toolsettings->unwrapper == 0);
 	param_lscm_solve(handle);
@@ -857,9 +917,18 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	int method = RNA_enum_get(op->ptr, "method");
 	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
 	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
+	short implicit= 0;
+
+	if(!uvedit_have_selection(scene, em, implicit)) {
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return 0;
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
 	
 	/* add uvs if they don't exist yet */
 	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
