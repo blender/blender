@@ -400,7 +400,15 @@ int main(int argc, char** argv)
     */
 #endif // __APPLE__
 
+	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
+	BLF_init(11, U.dpi);
+	BLF_lang_init();
+	// use default settings
+	BLF_lang_encoding("");
+	BLF_lang_set("");
+
 	RNA_init();
+	RNA_structs_gettexted()
 
 	init_nodesystem();
 	
@@ -410,13 +418,6 @@ int main(int argc, char** argv)
 	free_main(G.main);
 
 	IMB_init();
-
-	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
-	BLF_init(11, U.dpi);
-	BLF_lang_init();
-	// use default settings
-	BLF_lang_encoding("");
-	BLF_lang_set("");
 
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
  

@@ -21,6 +21,7 @@
 import bpy
 from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
+from blf import gettext as _
 
 
 class MESH_OT_delete_edgeloop(bpy.types.Operator):
@@ -546,6 +547,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
 
 class WM_OT_url_open(bpy.types.Operator):
     "Open a website in the Webbrowser"
+    __doc__ = _("Open a website in the Webbrowser")
     bl_idname = "wm.url_open"
     bl_label = ""
 
@@ -914,7 +916,8 @@ class WM_OT_appconfig_activate(bpy.types.Operator):
 class WM_OT_sysinfo(bpy.types.Operator):
     '''Generate System Info'''
     bl_idname = "wm.sysinfo"
-    bl_label = "System Info"
+    bl_label = _("System Info")
+    __doc__ = _("Generate System Info")
 
     def execute(self, context):
         import sys_info

@@ -351,7 +351,7 @@ void OBJECT_OT_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", object_type_items, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(object_type_items), 0, "Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -443,7 +443,7 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(field_type_items), 0, "Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -575,7 +575,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", metaelem_type_items, 0, "Primitive", "");
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(metaelem_type_items), 0, "Primitive", "");
 	ED_object_add_generic_props(ot, TRUE);
 }
 
@@ -708,16 +708,16 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_lamp_add(wmOperatorType *ot)
 {	
 	static EnumPropertyItem lamp_type_items[] = {
-		{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source"},
-		{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source"},
-		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source"},
-		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemi", "180 degree constant light source"},
-		{LA_AREA, "AREA", ICON_LAMP_AREA, "Area", "Directional area light source"},
+		{LA_LOCAL, "POINT", ICON_LAMP_POINT, N_("Point"), N_("Omnidirectional point light source")},
+		{LA_SUN, "SUN", ICON_LAMP_SUN, N_("Sun"), N_("Constant direction parallel ray light source")},
+		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, N_("Spot"), N_("Directional cone light source")},
+		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, N_("Hemi"), N_("180 degree constant light source")},
+		{LA_AREA, "AREA", ICON_LAMP_AREA, N_("Area"), N_("Directional area light source")},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Add Lamp";
-	ot->description = "Add a lamp object to the scene";
+	ot->name= _("Add Lamp");
+	ot->description = _("Add a lamp object to the scene");
 	ot->idname= "OBJECT_OT_lamp_add";
 	
 	/* api callbacks */
@@ -729,7 +729,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(lamp_type_items), 0, "Type", "");
 
 	ED_object_add_generic_props(ot, FALSE);
 }
@@ -1019,8 +1019,8 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Make Duplicates Real";
-	ot->description = "Make dupli objects attached to this object real";
+	ot->name= _("Make Duplicates Real");
+	ot->description = _("Make dupli objects attached to this object real");
 	ot->idname= "OBJECT_OT_duplicates_make_real";
 	
 	/* api callbacks */
@@ -1035,8 +1035,8 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 /**************************** Convert **************************/
 
 static EnumPropertyItem convert_target_items[]= {
-	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
-	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text", ""},
+	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, N_("Curve from Mesh/Text"), ""},
+	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, N_("Mesh from Curve/Meta/Surf/Text"), ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static void curvetomesh(Scene *scene, Object *ob) 
@@ -1397,7 +1397,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, _("Target"), _("Type of object to convert to"));
+	ot->prop= RNA_def_enum(ot->srna, "target", RNA_enum_items_gettexted(convert_target_items), OB_MESH, _("Target"), _("Type of object to convert to"));
 	RNA_def_boolean(ot->srna, "keep_original", 0, _("Keep Original"), _("Keep original objects instead of replacing them"));
 }
 

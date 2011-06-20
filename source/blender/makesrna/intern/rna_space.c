@@ -34,6 +34,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "BLF_api.h"
+
 #include "rna_internal.h"
 
 #include "BKE_key.h"
@@ -49,26 +51,26 @@
 #include "WM_types.h"
 
 EnumPropertyItem space_type_items[] = {
-	{SPACE_EMPTY, "EMPTY", 0, "Empty", ""},
-	{SPACE_VIEW3D, "VIEW_3D", 0, "3D View", ""},
-	{SPACE_IPO, "GRAPH_EDITOR", 0, "Graph Editor", ""},
-	{SPACE_OUTLINER, "OUTLINER", 0, "Outliner", ""},
-	{SPACE_BUTS, "PROPERTIES", 0, "Properties", ""},
-	{SPACE_FILE, "FILE_BROWSER", 0, "File Browser", ""},
-	{SPACE_IMAGE, "IMAGE_EDITOR", 0, "Image Editor", ""},
-	{SPACE_INFO, "INFO", 0, "Info", ""},
-	{SPACE_SEQ, "SEQUENCE_EDITOR", 0, "Sequence Editor", ""},
-	{SPACE_TEXT, "TEXT_EDITOR", 0, "Text Editor", ""},
+	{SPACE_EMPTY, "EMPTY", 0, N_("Empty"), ""},
+	{SPACE_VIEW3D, "VIEW_3D", 0, N_("3D View"), ""},
+	{SPACE_IPO, "GRAPH_EDITOR", 0, N_("Graph Editor"), ""},
+	{SPACE_OUTLINER, "OUTLINER", 0, N_("Outliner"), ""},
+	{SPACE_BUTS, "PROPERTIES", 0, N_("Properties"), ""},
+	{SPACE_FILE, "FILE_BROWSER", 0, N_("File Browser"), ""},
+	{SPACE_IMAGE, "IMAGE_EDITOR", 0, N_("Image Editor"), ""},
+	{SPACE_INFO, "INFO", 0, N_("Info"), ""},
+	{SPACE_SEQ, "SEQUENCE_EDITOR", 0, N_("Sequence Editor"), ""},
+	{SPACE_TEXT, "TEXT_EDITOR", 0, N_("Text Editor"), ""},
 	//{SPACE_IMASEL, "IMAGE_BROWSER", 0, "Image Browser", ""},
-	{SPACE_SOUND, "AUDIO_WINDOW", 0, "Audio Window", ""},
-	{SPACE_ACTION, "DOPESHEET_EDITOR", 0, "DopeSheet Editor", ""},
-	{SPACE_NLA, "NLA_EDITOR", 0, "NLA Editor", ""},
-	{SPACE_SCRIPT, "SCRIPTS_WINDOW", 0, "Scripts Window", ""},
-	{SPACE_TIME, "TIMELINE", 0, "Timeline", ""},
-	{SPACE_NODE, "NODE_EDITOR", 0, "Node Editor", ""},
-	{SPACE_LOGIC, "LOGIC_EDITOR", 0, "Logic Editor", ""},
-	{SPACE_CONSOLE, "CONSOLE", 0, "Python Console", ""},
-	{SPACE_USERPREF, "USER_PREFERENCES", 0, "User Preferences", ""},
+	{SPACE_SOUND, "AUDIO_WINDOW", 0, N_("Audio Window"), ""},
+	{SPACE_ACTION, "DOPESHEET_EDITOR", 0, N_("DopeSheet Editor"), ""},
+	{SPACE_NLA, "NLA_EDITOR", 0, N_("NLA Editor"), ""},
+	{SPACE_SCRIPT, "SCRIPTS_WINDOW", 0, N_("Scripts Window"), ""},
+	{SPACE_TIME, "TIMELINE", 0, N_("Timeline"), ""},
+	{SPACE_NODE, "NODE_EDITOR", 0, N_("Node Editor"), ""},
+	{SPACE_LOGIC, "LOGIC_EDITOR", 0, N_("Logic Editor"), ""},
+	{SPACE_CONSOLE, "CONSOLE", 0, N_("Python Console"), ""},
+	{SPACE_USERPREF, "USER_PREFERENCES", 0, N_("User Preferences"), ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem draw_channels_items[] = {

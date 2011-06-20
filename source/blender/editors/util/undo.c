@@ -46,6 +46,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -288,8 +290,8 @@ static int ed_redo_exec(bContext *C, wmOperator *UNUSED(op))
 void ED_OT_undo(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Undo";
-	ot->description= "Undo previous action";
+	ot->name= _("Undo");
+	ot->description= _("Undo previous action");
 	ot->idname= "ED_OT_undo";
 	
 	/* api callbacks */
@@ -315,8 +317,8 @@ void ED_OT_undo_push(wmOperatorType *ot)
 void ED_OT_redo(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Redo";
-	ot->description= "Redo previous action";
+	ot->name= _("Redo");
+	ot->description= _("Redo previous action");
 	ot->idname= "ED_OT_redo";
 	
 	/* api callbacks */
@@ -507,8 +509,8 @@ static int undo_history_exec(bContext *C, wmOperator *op)
 void ED_OT_undo_history(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Undo History";
-	ot->description= "Redo specific action in history";
+	ot->name= _("Undo History");
+	ot->description= _("Redo specific action in history");
 	ot->idname= "ED_OT_undo_history";
 	
 	/* api callbacks */

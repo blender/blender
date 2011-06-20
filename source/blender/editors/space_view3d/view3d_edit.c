@@ -2515,12 +2515,11 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "align_active", 0, _("Align Active"), _("Align to the active objects axis"));
 }
 
-/* XXX add _() for strings */
 static EnumPropertyItem prop_view_orbit_items[] = {
-	{V3D_VIEW_STEPLEFT, "ORBITLEFT", 0, "Orbit Left", "Orbit the view around to the Left"},
-	{V3D_VIEW_STEPRIGHT, "ORBITRIGHT", 0, "Orbit Right", "Orbit the view around to the Right"},
-	{V3D_VIEW_STEPUP, "ORBITUP", 0, "Orbit Up", "Orbit the view Up"},
-	{V3D_VIEW_STEPDOWN, "ORBITDOWN", 0, "Orbit Down", "Orbit the view Down"},
+	{V3D_VIEW_STEPLEFT, "ORBITLEFT", 0, N_("Orbit Left"), N_("Orbit the view around to the Left")},
+	{V3D_VIEW_STEPRIGHT, "ORBITRIGHT", 0, N_("Orbit Right"), N_("Orbit the view around to the Right")},
+	{V3D_VIEW_STEPUP, "ORBITUP", 0, N_("Orbit Up"), N_("Orbit the view Up")},
+	{V3D_VIEW_STEPDOWN, "ORBITDOWN", 0, N_("Orbit Down"), N_("Orbit the view Down")},
 	{0, NULL, 0, NULL, NULL}};
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
@@ -2580,15 +2579,15 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= 0;
-	RNA_def_enum(ot->srna, "type", prop_view_orbit_items, 0, "Orbit", "Direction of View Orbit");
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_view_orbit_items), 0, "Orbit", "Direction of View Orbit");
 }
 
 /* XXX add _() for strings */
 static EnumPropertyItem prop_view_pan_items[] = {
-	{V3D_VIEW_PANLEFT, "PANLEFT", 0, "Pan Left", "Pan the view to the Left"},
-	{V3D_VIEW_PANRIGHT, "PANRIGHT", 0, "Pan Right", "Pan the view to the Right"},
-	{V3D_VIEW_PANUP, "PANUP", 0, "Pan Up", "Pan the view Up"},
-	{V3D_VIEW_PANDOWN, "PANDOWN", 0, "Pan Down", "Pan the view Down"},
+	{V3D_VIEW_PANLEFT, "PANLEFT", 0, N_("Pan Left"), N_("Pan the view to the Left")},
+	{V3D_VIEW_PANRIGHT, "PANRIGHT", 0, N_("Pan Right"), N_("Pan the view to the Right")},
+	{V3D_VIEW_PANUP, "PANUP", 0, N_("Pan Up"), N_("Pan the view Up")},
+	{V3D_VIEW_PANDOWN, "PANDOWN", 0, N_("Pan Down"), N_("Pan the view Down")},
 	{0, NULL, 0, NULL, NULL}};
 
 static int viewpan_exec(bContext *C, wmOperator *op)
@@ -2629,7 +2628,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= 0;
-	RNA_def_enum(ot->srna, "type", prop_view_pan_items, 0, "Pan", "Direction of View Pan");
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_view_pan_items), 0, "Pan", "Direction of View Pan");
 }
 
 static int viewpersportho_exec(bContext *C, wmOperator *UNUSED(op))

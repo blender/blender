@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-
+from blf import gettext as _
 
 def randomize_selected(seed, delta, loc, rot, scale, scale_even):
 
@@ -90,7 +90,7 @@ from bpy.props import IntProperty, BoolProperty, FloatVectorProperty
 class RandomizeLocRotSize(bpy.types.Operator):
     '''Randomize objects loc/rot/scale'''
     bl_idname = "object.randomize_transform"
-    bl_label = "Randomize Transform"
+    bl_label = _("Randomize Transform")
     bl_options = {'REGISTER', 'UNDO'}
 
     random_seed = IntProperty(name="Random Seed",

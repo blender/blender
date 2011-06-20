@@ -36,6 +36,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
@@ -347,8 +349,8 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent 
 void RENDER_OT_view_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show/Hide Render View";
-	ot->description= "Toggle show render view";
+	ot->name= _("Show/Hide Render View");
+	ot->description= _("Toggle show render view");
 	ot->idname= "RENDER_OT_view_show";
 
 	/* api callbacks */

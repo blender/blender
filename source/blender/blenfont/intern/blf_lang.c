@@ -39,7 +39,7 @@
 #ifdef INTERNATIONAL
 
 #include <locale.h>
-#include "libintl.h"
+#include <libintl.h>
 
 
 #include "DNA_listBase.h"

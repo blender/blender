@@ -391,6 +391,27 @@ static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *args)
 	return PyUnicode_DecodeUTF8( msgstr, strlen(msgstr), error_handle );
 }
 
+PyDoc_STRVAR(py_blf_fake_gettext_doc,
+".. function:: fake_gettext(msgid)\n"
+"\n"
+"   Just tag the msgid.\n"
+"\n"
+"   :arg msgid: the source string.\n"
+"   :type msgid: string\n"
+"   :return: the source string.\n"
+"   :rtype: string\n"
+);
+static PyObject *py_blf_fake_gettext(PyObject *UNUSED(self), PyObject *args)
+{
+	char* msgid;
+	char* error_handle;
+
+	if (!PyArg_ParseTuple(args, "s:blf.gettext", &msgid))
+		return NULL;
+
+	return PyUnicode_DecodeUTF8( msgid, strlen(msgid), error_handle );
+}
+
 /*----------------------------MODULE INIT-------------------------*/
 static PyMethodDef BLF_methods[] = {
 	{"aspect", (PyCFunction) py_blf_aspect, METH_VARARGS, py_blf_aspect_doc},
@@ -407,6 +428,7 @@ static PyMethodDef BLF_methods[] = {
 	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
 	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
 	{"gettext", (PyCFunction) py_blf_gettext, METH_VARARGS, py_blf_gettext_doc},
+	{"fake_gettext", (PyCFunction) py_blf_fake_gettext, METH_VARARGS, py_blf_fake_gettext_doc},
 	{NULL, NULL, 0, NULL}
 };
 

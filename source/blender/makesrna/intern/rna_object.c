@@ -51,6 +51,7 @@
 #include "BKE_group.h" /* needed for object_in_group() */
 
 #include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
+#include "BLF_api.h"
 #include "ED_mesh.h"
 
 #include "WM_api.h"
@@ -90,31 +91,31 @@ static EnumPropertyItem collision_bounds_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem metaelem_type_items[] = {
-	{MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
-	{MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
-	{MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
-	{MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""}, // NOTE: typo at original definition!
-	{MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
+	{MB_BALL, "BALL", ICON_META_BALL, N_("Ball"), ""},
+	{MB_TUBE, "CAPSULE", ICON_META_CAPSULE, N_("Capsule"), ""},
+	{MB_PLANE, "PLANE", ICON_META_PLANE, N_("Plane"), ""},
+	{MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, N_("Ellipsoid"), ""}, // NOTE: typo at original definition!
+	{MB_CUBE, "CUBE", ICON_META_CUBE, N_("Cube"), ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* used for 2 enums */
-#define OBTYPE_CU_CURVE {OB_CURVE, "CURVE", 0, "Curve", ""}
-#define OBTYPE_CU_SURF {OB_SURF, "SURFACE", 0, "Surface", ""}
-#define OBTYPE_CU_FONT {OB_FONT, "FONT", 0, "Font", ""}
+#define OBTYPE_CU_CURVE {OB_CURVE, "CURVE", 0, N_("Curve"), ""}
+#define OBTYPE_CU_SURF {OB_SURF, "SURFACE", 0, N_("Surface"), ""}
+#define OBTYPE_CU_FONT {OB_FONT, "FONT", 0, N_("Font"), ""}
 
 EnumPropertyItem object_type_items[] = {
-	{OB_MESH, "MESH", 0, "Mesh", ""},
+	{OB_MESH, "MESH", 0, N_("Mesh"), ""},
 	OBTYPE_CU_CURVE,
 	OBTYPE_CU_SURF,
-	{OB_MBALL, "META", 0, "Meta", ""},
+	{OB_MBALL, "META", 0, N_("Meta"), ""},
 	OBTYPE_CU_FONT,
 	{0, "", 0, NULL, NULL},
-	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
-	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
-	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
+	{OB_ARMATURE, "ARMATURE", 0, N_("Armature"), ""},
+	{OB_LATTICE, "LATTICE", 0, N_("Lattice"), ""},
+	{OB_EMPTY, "EMPTY", 0, N_("Empty"), ""},
 	{0, "", 0, NULL, NULL},
-	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
-	{OB_LAMP, "LAMP", 0, "Lamp", ""},
+	{OB_CAMERA, "CAMERA", 0, N_("Camera"), ""},
+	{OB_LAMP, "LAMP", 0, N_("Lamp"), ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem object_type_curve_items[] = {

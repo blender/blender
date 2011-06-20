@@ -1288,10 +1288,10 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 
 	if(coba==NULL) return;
 
-	bt= uiDefBut(block, BUT, 0,	"Add",			0+xoffs,line1_y,40,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
+	bt= uiDefBut(block, BUT, 0,	_("Add"),			0+xoffs,line1_y,40,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
 
-	bt= uiDefBut(block, BUT, 0,	"Delete",		45+xoffs,line1_y,45,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Delete the active position");
+	bt= uiDefBut(block, BUT, 0,	_("Delete"),		45+xoffs,line1_y,45,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
 
@@ -1301,8 +1301,8 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 
 	uiDefButS(block, NUM, 0,		"",				120+xoffs,line1_y,80, UI_UNIT_Y, &coba->cur, 0.0, (float)(MAX2(0, coba->tot-1)), 0, 0, "Choose active color stop");
 
-	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
-			210+xoffs, line1_y, 90, UI_UNIT_Y,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
+	bt= uiDefButS(block, MENU, 0,		_("Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4"),
+			210+xoffs, line1_y, 90, UI_UNIT_Y,		&coba->ipotype, 0.0, 0.0, 0, 0, _("Set interpolation between color stops"));
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	uiBlockEndAlign(block);
 

@@ -1812,8 +1812,8 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
-	ot->description= "Select items using border selection";
+	ot->name= _("Border Select");
+	ot->description= _("Select items using border selection");
 	ot->idname= "VIEW3D_OT_select_border";
 	
 	/* api callbacks */
@@ -2293,8 +2293,8 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
-	ot->name= "Circle Select";
-	ot->description= "Select items using circle selection";
+	ot->name= _("Circle Select");
+	ot->description= _("Select items using circle selection");
 	ot->idname= "VIEW3D_OT_select_circle";
 	
 	ot->invoke= WM_gesture_circle_invoke;

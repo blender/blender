@@ -43,6 +43,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 
+#include "BLF_api.h"
+
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -94,6 +96,48 @@ void RNA_exit(void)
 	}
 
 	RNA_free(&BLENDER_RNA);
+}
+
+void RNA_struct_gettexted( StructRNA* ptr )
+{
+	StructRNA* temp_struct;
+	PropertyRNA* temp_property;
+	PropertyRNA* end_property;
+
+	ptr->name = _(ptr->name);
+	ptr->description = _(ptr->description);
+
+	temp_property = (PropertyRNA*)ptr->cont.properties.first;
+	end_property = (PropertyRNA*)ptr->cont.properties.last;
+	while( temp_property!=end_property )
+	{
+		temp_property->name = _(temp_property->name);
+		temp_property->description = _(temp_property->description);
+		if( temp_property->type == PROP_ENUM )
+			RNA_enum_items_gettexted( ((EnumPropertyRNA*)temp_property)->item );
+		temp_property = temp_property->next;
+	}
+	if( end_property!=NULL )
+	{
+		end_property->name = _(end_property->name);
+		end_property->description = _(end_property->description);
+		if( end_property->type == PROP_ENUM )
+			RNA_enum_items_gettexted( ((EnumPropertyRNA*)end_property)->item );
+	}
+
+	temp_struct = (StructRNA*)ptr->cont.next;
+	if( temp_struct!=NULL && temp_struct != &RNA_UnknownType )
+		RNA_struct_gettexted( temp_struct );
+}
+
+void RNA_types_init_gettext()
+{
+	StructRNA* target_struct[] = { &RNA_UserPreferences, &RNA_Theme, NULL };
+	int i=0;
+	for( i=0; target_struct[i]!=NULL; i++ )
+	{
+		RNA_struct_gettexted( target_struct[i] );
+	}
 }
 
 /* Pointer */

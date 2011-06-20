@@ -20,6 +20,7 @@
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
+from blf import gettext as _
 
 
 class SelectPattern(bpy.types.Operator):
@@ -412,7 +413,7 @@ class ShapeTransfer(bpy.types.Operator):
 class JoinUVs(bpy.types.Operator):
     '''Copy UV Layout to objects with matching geometry'''
     bl_idname = "object.join_uvs"
-    bl_label = "Join as UVs"
+    bl_label = _("Join as UVs")
 
     @classmethod
     def poll(cls, context):
@@ -470,7 +471,7 @@ class JoinUVs(bpy.types.Operator):
 class MakeDupliFace(bpy.types.Operator):
     '''Make linked objects into dupli-faces'''
     bl_idname = "object.make_dupli_face"
-    bl_label = "Make Dupli-Face"
+    bl_label = _("Make Dupli-Face")
 
     @classmethod
     def poll(cls, context):

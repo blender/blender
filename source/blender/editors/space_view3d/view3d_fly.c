@@ -39,6 +39,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -932,8 +934,8 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 void VIEW3D_OT_fly(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Fly Navigation";
-	ot->description= "Interactively fly around the scene";
+	ot->name= _("Fly Navigation");
+	ot->description= _("Interactively fly around the scene");
 	ot->idname= "VIEW3D_OT_fly";
 
 	/* api callbacks */

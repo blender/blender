@@ -1173,41 +1173,7 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 
 static const char *editortype_pup(void)
 {
-	return(
-		   "Editor type:%t"
-		   "|3D View %x1"
-
-		   "|%l"
-		   
-		   "|Timeline %x15"
-		   "|Graph Editor %x2"
-		   "|DopeSheet %x12"
-		   "|NLA Editor %x13"
-		   
-		   "|%l"
-		   
-		   "|UV/Image Editor %x6"
-		   
-		   "|Video Sequence Editor %x8"
-		   "|Text Editor %x9" 
-		   "|Node Editor %x16"
-		   "|Logic Editor %x17"
-		   
-		   "|%l"
-		   
-		   "|Properties %x4"
-		   "|Outliner %x3"
-		   "|User Preferences %x19"
-		   "|Info%x7"
-		    		   
-		   "|%l"
-		   
-		   "|File Browser %x5"
-		   
-		   "|%l"
-		   
-		   "|Python Console %x18"
-		   );
+	return _("Editor type:%t|3D View %x1|%l|Timeline %x15|Graph Editor %x2|DopeSheet %x12|NLA Editor %x13|%l|UV/Image Editor %x6|Video Sequence Editor %x8|Text Editor %x9|Node Editor %x16|Logic Editor %x17|%l|Properties %x4|Outliner %x3|User Preferences %x19|Info%x7|%l|File Browser %x5|%l|Python Console %x18");
 }
 
 static void spacefunc(struct bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))

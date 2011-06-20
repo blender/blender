@@ -1322,7 +1322,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Link Objects to Scene";
-	ot->description = "Make linked data local to each object";
+	ot->description = _("Make linked data local to each object");
 	ot->idname= "OBJECT_OT_make_links_scene";
 
 	/* api callbacks */
@@ -1334,7 +1334,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, _("Scene"), "");
 	RNA_def_enum_funcs(prop, RNA_scene_local_itemf);
 	ot->prop= prop;
 }
@@ -1342,11 +1342,11 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 void OBJECT_OT_make_links_data(wmOperatorType *ot)
 {
 	static EnumPropertyItem make_links_items[]= {
-		{MAKE_LINKS_OBDATA,		"OBDATA", 0, "Object Data", ""},
-		{MAKE_LINKS_MATERIALS,	"MATERIAL", 0, "Materials", ""},
-		{MAKE_LINKS_ANIMDATA,	"ANIMATION", 0, "Animation Data", ""},
-		{MAKE_LINKS_DUPLIGROUP,	"DUPLIGROUP", 0, "DupliGroup", ""},
-		{MAKE_LINKS_MODIFIERS,	"MODIFIERS", 0, "Modifiers", ""},
+		{MAKE_LINKS_OBDATA,		"OBDATA", 0, N_("Object Data"), ""},
+		{MAKE_LINKS_MATERIALS,	"MATERIAL", 0, N_("Materials"), ""},
+		{MAKE_LINKS_ANIMDATA,	"ANIMATION", 0, N_("Animation Data"), ""},
+		{MAKE_LINKS_DUPLIGROUP,	"DUPLIGROUP", 0, N_("DupliGroup"), ""},
+		{MAKE_LINKS_MODIFIERS,	"MODIFIERS", 0, N_("Modifiers"), ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -1362,7 +1362,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", make_links_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(make_links_items), 0, "Type", "");
 }
 
 
@@ -1785,9 +1785,9 @@ static int make_local_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_make_local(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{1, "SELECTED_OBJECTS", 0, "Selected Objects", ""},
-		{2, "SELECTED_OBJECTS_DATA", 0, "Selected Objects and Data", ""},
-		{3, "ALL", 0, "All", ""},
+		{1, "SELECTED_OBJECTS", 0, N_("Selected Objects"), ""},
+		{2, "SELECTED_OBJECTS_DATA", 0, N_("Selected Objects and Data"), ""},
+		{3, "ALL", 0, N_("All"), ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -1804,7 +1804,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(type_items), 0, "Type", "");
 }
 
 static int make_single_user_exec(bContext *C, wmOperator *op)

@@ -1264,9 +1264,9 @@ static int wm_splash_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED
 
 static void WM_OT_splash(wmOperatorType *ot)
 {
-	ot->name= "Splash Screen";
+	ot->name= _("Splash Screen");
 	ot->idname= "WM_OT_splash";
-	ot->description= "Opens a blocking popup region with release info";
+	ot->description= _("Opens a blocking popup region with release info");
 	
 	ot->invoke= wm_splash_invoke;
 	ot->poll= WM_operator_winactive;

@@ -52,6 +52,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -1469,8 +1471,8 @@ static int view3d_properties(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->description= "Toggles the properties panel display";
+	ot->name= _("Properties");
+	ot->description= _("Toggles the properties panel display");
 	ot->idname= "VIEW3D_OT_properties";
 	
 	ot->exec= view3d_properties;

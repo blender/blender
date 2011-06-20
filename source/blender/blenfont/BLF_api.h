@@ -224,5 +224,6 @@ extern int blf_mono_font_render; // dont mess drawing with render threads.
 extern int blf_unifont;
 extern int blf_unifont_render; // dont mess drawing with render threads.
 #define _(msgid) BLF_gettext(msgid)
+#define N_(msgid) msgid
 
 #endif /* BLF_API_H */

@@ -217,9 +217,9 @@ static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
 static void UI_OT_reset_default_theme(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset to Default Theme";
+	ot->name= _("Reset to Default Theme");
 	ot->idname= "UI_OT_reset_default_theme";
-	ot->description= "Reset to the default theme colors";
+	ot->description= _("Reset to the default theme colors");
 	
 	/* callbacks */
 	ot->exec= reset_default_theme_exec;

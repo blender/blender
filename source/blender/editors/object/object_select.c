@@ -166,20 +166,20 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
-	ot->prop= RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(object_type_items), 1, "Type", "");
 }
 
 /*********************** Selection by Links *********************/
 
 static EnumPropertyItem prop_select_linked_types[] = {
 	//{1, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
-	{2, "OBDATA", 0, "Object Data", ""},
-	{3, "MATERIAL", 0, "Material", ""},
-	{4, "TEXTURE", 0, "Texture", ""},
-	{5, "DUPGROUP", 0, "Dupligroup", ""},
-	{6, "PARTICLE", 0, "Particle System", ""},
-	{7, "LIBRARY", 0, "Library", ""},
-	{8, "LIBRARY_OBDATA", 0, "Library (Object Data)", ""},
+	{2, "OBDATA", 0, N_("Object Data"), ""},
+	{3, "MATERIAL", 0, N_("Material"), ""},
+	{4, "TEXTURE", 0, N_("Texture"), ""},
+	{5, "DUPGROUP", 0, N_("Dupligroup"), ""},
+	{6, "PARTICLE", 0, N_("Particle System"), ""},
+	{7, "LIBRARY", 0, N_("Library"), ""},
+	{8, "LIBRARY_OBDATA", 0, N_("Library (Object Data)"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -348,23 +348,23 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_select_linked_types), 0, "Type", "");
 }
 
 /*********************** Selected Grouped ********************/
 
 static EnumPropertyItem prop_select_grouped_types[] = {
-	{1, "CHILDREN_RECURSIVE", 0, "Children", ""},
-	{2, "CHILDREN", 0, "Immediate Children", ""},
-	{3, "PARENT", 0, "Parent", ""},
-	{4, "SIBLINGS", 0, "Siblings", "Shared Parent"},
-	{5, "TYPE", 0, "Type", "Shared object type"},
-	{6, "LAYER", 0, "Layer", "Shared layers"},
-	{7, "GROUP", 0, "Group", "Shared group"},
-	{8, "HOOK", 0, "Hook", ""},
-	{9, "PASS", 0, "Pass", "Render pass Index"},
-	{10, "COLOR", 0, "Color", "Object Color"},
-	{11, "PROPERTIES", 0, "Properties", "Game Properties"},
+	{1, "CHILDREN_RECURSIVE", 0, N_("Children"), ""},
+	{2, "CHILDREN", 0, N_("Immediate Children"), ""},
+	{3, "PARENT", 0, N_("Parent"), ""},
+	{4, "SIBLINGS", 0, N_("Siblings"), N_("Shared Parent")},
+	{5, "TYPE", 0, N_("Type"), N_("Shared object type")},
+	{6, "LAYER", 0, N_("Layer"), N_("Shared layers")},
+	{7, "GROUP", 0, N_("Group"), N_("Shared group")},
+	{8, "HOOK", 0, N_("Hook"), ""},
+	{9, "PASS", 0, N_("Pass"), N_("Render pass Index")},
+	{10, "COLOR", 0, N_("Color"), N_("Object Color")},
+	{11, "PROPERTIES", 0, N_("Properties"), N_("Game Properties")},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -636,7 +636,7 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_select_grouped_types), 0, "Type", "");
 }
 
 /************************* Select by Layer **********************/

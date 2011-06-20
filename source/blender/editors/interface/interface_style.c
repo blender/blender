@@ -351,39 +351,14 @@ void uiStyleInit(void)
 
 	/* XXX Maybe it's bad to do this */
 	if(style==NULL) {
-		if( strcmp(lang_set,"hr.UTF-8")==0
-			|| strcmp(lang_set,"ar.UTF-8")==0
-			|| strcmp(lang_set,"bg.UTF-8")==0
-			|| strcmp(lang_set,"ca.UTF-8")==0
-			|| strcmp(lang_set,"cs.UTF-8")==0
-			|| strcmp(lang_set,"de.UTF-8")==0
-			|| strcmp(lang_set,"el.UTF-8")==0
-			|| strcmp(lang_set,"es.UTF-8")==0
-			|| strcmp(lang_set,"fi.UTF-8")==0
-			|| strcmp(lang_set,"fr.UTF-8")==0
-			|| strcmp(lang_set,"it.UTF-8")==0
-			|| strcmp(lang_set,"ja.UTF-8")==0
-			|| strcmp(lang_set,"ko.UTF-8")==0
-			|| strcmp(lang_set,"pl.UTF-8")==0
-			|| strcmp(lang_set,"ro.UTF-8")==0
-			|| strcmp(lang_set,"ru.UTF-8")==0
-			|| strcmp(lang_set,"sr.UTF-8")==0
-			|| strcmp(lang_set,"sv.UTF-8")==0
-			|| strcmp(lang_set,"uk.UTF-8")==0
-			|| strcmp(lang_set,"zh_CN.UTF-8")==0
-			)
+		// load unifont only when need. It takes 15MB memories
+		// get_datatoc_bunifont_ttf() may return null, BLF_load_mem_unique() will handle it
+		if( blf_unifont == -1 )
+			blf_unifont= BLF_load_mem_unique("unifont", (unsigned char *)get_datatoc_bunifont_ttf(), datatoc_bunifont_ttf_size);
+		if( blf_unifont != -1 )
 		{
-			// load unifont only when need. It takes 15MB memories
-			// get_datatoc_bunifont_ttf() may return null, BLF_load_mem_unique() will handle it
-			if( blf_unifont == -1 )
-				blf_unifont= BLF_load_mem_unique("unifont", (unsigned char *)get_datatoc_bunifont_ttf(), datatoc_bunifont_ttf_size);
-			if( blf_unifont != -1 )
-			{
-				BLF_size(blf_unifont, 12, 72);
-				ui_style_new(&U.uistyles, "Unifont Style", blf_unifont );
-			}
-			else
-				ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT );
+			BLF_size(blf_unifont, 12, 72);
+			ui_style_new(&U.uistyles, "Unifont Style", blf_unifont );
 		}
 		else
 			ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT );

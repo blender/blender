@@ -1048,9 +1048,9 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Clear Object Constraints";
+	ot->name = _("Clear Object Constraints");
 	ot->idname= "OBJECT_OT_constraints_clear";
-	ot->description= "Clear all the constraints for the active Object only";
+	ot->description= _("Clear all the constraints for the active Object only");
 	
 	/* callbacks */
 	ot->exec= object_constraints_clear_exec;
@@ -1094,9 +1094,9 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 void POSE_OT_constraints_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Constraints to Selected";
+	ot->name= _("Copy Constraints to Selected");
 	ot->idname= "POSE_OT_constraints_copy";
-	ot->description = "Copy constraints to other selected bones.";
+	ot->description = _("Copy constraints to other selected bones.");
 	
 	/* api callbacks */
 	ot->exec= pose_constraint_copy_exec;
@@ -1130,9 +1130,9 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_constraints_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Constraints to Selected";
+	ot->name= _("Copy Constraints to Selected");
 	ot->idname= "OBJECT_OT_constraints_copy";
-	ot->description = "Copy constraints to other selected objects.";
+	ot->description = _("Copy constraints to other selected objects.");
 	
 	/* api callbacks */
 	ot->exec= object_constraint_copy_exec;
@@ -1442,8 +1442,8 @@ static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_constraint_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Constraint";
-	ot->description = "Add a constraint to the active object";
+	ot->name= _("Add Constraint");
+	ot->description = _("Add a constraint to the active object");
 	ot->idname= "OBJECT_OT_constraint_add";
 	
 	/* api callbacks */
@@ -1461,8 +1461,8 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
 void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Constraint (with Targets)";
-	ot->description = "Add a constraint to the active object, with target (where applicable) set to the selected Objects/Bones";
+	ot->name= _("Add Constraint (with Targets)");
+	ot->description = _("Add a constraint to the active object, with target (where applicable) set to the selected Objects/Bones");
 	ot->idname= "OBJECT_OT_constraint_add_with_targets";
 	
 	/* api callbacks */
@@ -1480,8 +1480,8 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
 void POSE_OT_constraint_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Constraint";
-	ot->description = "Add a constraint to the active bone";
+	ot->name= _("Add Constraint");
+	ot->description = _("Add a constraint to the active bone");
 	ot->idname= "POSE_OT_constraint_add";
 	
 	/* api callbacks */
@@ -1499,8 +1499,8 @@ void POSE_OT_constraint_add(wmOperatorType *ot)
 void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Constraint (with Targets)";
-	ot->description = "Add a constraint to the active bone, with target (where applicable) set to the selected Objects/Bones";
+	ot->name= _("Add Constraint (with Targets)");
+	ot->description = _("Add a constraint to the active bone, with target (where applicable) set to the selected Objects/Bones");
 	ot->idname= "POSE_OT_constraint_add_with_targets";
 	
 	/* api callbacks */

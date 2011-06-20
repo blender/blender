@@ -2216,7 +2216,7 @@ static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_game_property_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Game Property";
+	ot->name= _("Clear Game Property");
 	ot->idname= "OBJECT_OT_game_property_clear";
 
 	/* api callbacks */

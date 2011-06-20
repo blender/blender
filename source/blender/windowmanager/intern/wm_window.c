@@ -510,7 +510,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	else if(ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF))
 		GHOST_SetTitle(win->ghostwin, _("Blender User Preferences"));
 	else if(sa->spacetype==SPACE_FILE)
-		GHOST_SetTitle(win->ghostwin, "Blender File View");
+		GHOST_SetTitle(win->ghostwin, _("Blender File View"));
 	else
 		GHOST_SetTitle(win->ghostwin, "Blender");
 }

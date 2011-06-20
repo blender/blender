@@ -43,6 +43,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
+#include "BLF_api.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -1266,6 +1268,28 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 			DefRNA.error= 1;
 			break;
 	}
+}
+
+/* make every name and description field surrounded by gettext */
+EnumPropertyItem* RNA_enum_items_gettexted(EnumPropertyItem *item)
+{
+	if( item )
+	{
+		int i;
+		/* get the last item's value field, 1 says it has been gettexted, 0 says not  */
+		for(i=0; item[i].identifier; i++) ;
+		/* if not gettexted before */
+		if( item[i].value==0 )
+		{
+			for(i=0; item[i].identifier; i++)
+			{
+				item[i].name = _(item[i].name);
+				item[i].description = _(item[i].description);
+			}
+			item[i].value = 1;
+		}
+	}
+	return item;
 }
 
 void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength)

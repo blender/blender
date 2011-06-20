@@ -574,6 +574,8 @@ extern StructRNA RNA_WorldTextureSlot;
 extern StructRNA RNA_XnorController;
 extern StructRNA RNA_XorController;
 
+/* make all types gettexted */
+void RNA_types_init_gettext();
 
 /* Pointer
  *

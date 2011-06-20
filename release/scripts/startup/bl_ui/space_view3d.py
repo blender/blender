@@ -120,62 +120,62 @@ class VIEW3D_HT_header(bpy.types.Header):
 
 
 class ShowHideMenu():
-    bl_label = "Show/Hide"
+    bl_label = _("Show/Hide")
     _operator_name = ""
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("%s.reveal" % self._operator_name, text="Show Hidden")
-        layout.operator("%s.hide" % self._operator_name, text="Hide Selected")
-        layout.operator("%s.hide" % self._operator_name, text="Hide Unselected").unselected = True
+        layout.operator("%s.reveal" % self._operator_name, text=_("Show Hidden"))
+        layout.operator("%s.hide" % self._operator_name, text=_("Hide Selected"))
+        layout.operator("%s.hide" % self._operator_name, text=_("Hide Unselected")).unselected = True
 
 
 class VIEW3D_MT_transform(bpy.types.Menu):
-    bl_label = "Transform"
+    bl_label = _("Transform")
 
     # TODO: get rid of the custom text strings?
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.translate", text=_("Grab/Move"))
         # TODO: sub-menu for grab per axis
-        layout.operator("transform.rotate", text="Rotate")
+        layout.operator("transform.rotate", text=_("Rotate"))
         # TODO: sub-menu for rot per axis
-        layout.operator("transform.resize", text="Scale")
+        layout.operator("transform.resize", text=_("Scale"))
         # TODO: sub-menu for scale per axis
 
         layout.separator()
 
-        layout.operator("transform.tosphere", text="To Sphere")
-        layout.operator("transform.shear", text="Shear")
-        layout.operator("transform.warp", text="Warp")
-        layout.operator("transform.push_pull", text="Push/Pull")
+        layout.operator("transform.tosphere", text=_("To Sphere"))
+        layout.operator("transform.shear", text=_("Shear"))
+        layout.operator("transform.warp", text=_("Warp"))
+        layout.operator("transform.push_pull", text=_("Push/Pull"))
 
         layout.separator()
 
-        layout.operator("transform.translate", text="Move Texture Space").texture_space = True
-        layout.operator("transform.resize", text="Scale Texture Space").texture_space = True
+        layout.operator("transform.translate", text=_("Move Texture Space")).texture_space = True
+        layout.operator("transform.resize", text=_("Scale Texture Space")).texture_space = True
 
         layout.separator()
 
         obj = context.object
         if obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and obj.data.draw_type in {'BBONE', 'ENVELOPE'}:
-            layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
+            layout.operator("transform.transform", text=_("Scale Envelope/BBone")).mode = 'BONE_SIZE'
 
         if context.edit_object and context.edit_object.type == 'ARMATURE':
             layout.operator("armature.align")
         else:
             layout.operator_context = 'EXEC_REGION_WIN'
-            layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
+            layout.operator("transform.transform", text=_("Align to Transform Orientation")).mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
 
         layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
 
-        layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
-        layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
-        layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
+        layout.operator("object.origin_set", text=_("Geometry to Origin")).type = 'GEOMETRY_ORIGIN'
+        layout.operator("object.origin_set", text=_("Origin to Geometry")).type = 'ORIGIN_GEOMETRY'
+        layout.operator("object.origin_set", text=_("Origin to 3D Cursor")).type = 'ORIGIN_CURSOR'
 
         layout.separator()
 
@@ -184,37 +184,37 @@ class VIEW3D_MT_transform(bpy.types.Menu):
 
 
 class VIEW3D_MT_mirror(bpy.types.Menu):
-    bl_label = "Mirror"
+    bl_label = _("Mirror")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("transform.mirror", text="Interactive Mirror")
+        layout.operator("transform.mirror", text=_("Interactive Mirror"))
 
         layout.separator()
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        props = layout.operator("transform.mirror", text="X Global")
+        props = layout.operator("transform.mirror", text=_("X Global"))
         props.constraint_axis = (True, False, False)
         props.constraint_orientation = 'GLOBAL'
-        props = layout.operator("transform.mirror", text="Y Global")
+        props = layout.operator("transform.mirror", text=_("Y Global"))
         props.constraint_axis = (False, True, False)
         props.constraint_orientation = 'GLOBAL'
-        props = layout.operator("transform.mirror", text="Z Global")
+        props = layout.operator("transform.mirror", text=_("Z Global"))
         props.constraint_axis = (False, False, True)
         props.constraint_orientation = 'GLOBAL'
 
         if context.edit_object:
             layout.separator()
 
-            props = layout.operator("transform.mirror", text="X Local")
+            props = layout.operator("transform.mirror", text=_("X Local"))
             props.constraint_axis = (True, False, False)
             props.constraint_orientation = 'LOCAL'
-            props = layout.operator("transform.mirror", text="Y Local")
+            props = layout.operator("transform.mirror", text=_("Y Local"))
             props.constraint_axis = (False, True, False)
             props.constraint_orientation = 'LOCAL'
-            props = layout.operator("transform.mirror", text="Z Local")
+            props = layout.operator("transform.mirror", text=_("Z Local"))
             props.constraint_axis = (False, False, True)
             props.constraint_orientation = 'LOCAL'
 
@@ -222,20 +222,20 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
 
 
 class VIEW3D_MT_snap(bpy.types.Menu):
-    bl_label = "Snap"
+    bl_label = _("Snap")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("view3d.snap_selected_to_grid", text="Selection to Grid")
-        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor")
+        layout.operator("view3d.snap_selected_to_grid", text=_("Selection to Grid"))
+        layout.operator("view3d.snap_selected_to_cursor", text=_("Selection to Cursor"))
 
         layout.separator()
 
-        layout.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
-        layout.operator("view3d.snap_cursor_to_center", text="Cursor to Center")
-        layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
-        layout.operator("view3d.snap_cursor_to_active", text="Cursor to Active")
+        layout.operator("view3d.snap_cursor_to_selected", text=_("Cursor to Selected"))
+        layout.operator("view3d.snap_cursor_to_center", text=_("Cursor to Center"))
+        layout.operator("view3d.snap_cursor_to_grid", text=_("Cursor to Grid"))
+        layout.operator("view3d.snap_cursor_to_active", text=_("Cursor to Active"))
 
 
 class VIEW3D_MT_uv_map(bpy.types.Menu):
@@ -735,26 +735,26 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
 
 class VIEW3D_MT_object_animation(bpy.types.Menu):
-    bl_label = "Animation"
+    bl_label = _("Animation")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
-        layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframe...")
-        layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
+        layout.operator("anim.keyframe_insert_menu", text=_("Insert Keyframe..."))
+        layout.operator("anim.keyframe_delete_v3d", text=_("Delete Keyframe..."))
+        layout.operator("anim.keying_set_active_set", text=_("Change Keying Set..."))
 
 
 class VIEW3D_MT_object_clear(bpy.types.Menu):
-    bl_label = "Clear"
+    bl_label = _("Clear")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.location_clear", text="Location")
-        layout.operator("object.rotation_clear", text="Rotation")
-        layout.operator("object.scale_clear", text="Scale")
-        layout.operator("object.origin_clear", text="Origin")
+        layout.operator("object.location_clear", text=_("Location"))
+        layout.operator("object.rotation_clear", text=_("Rotation"))
+        layout.operator("object.scale_clear", text=_("Scale"))
+        layout.operator("object.origin_clear", text=_("Origin"))
 
 
 class VIEW3D_MT_object_specials(bpy.types.Menu):
@@ -847,46 +847,46 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
 
 
 class VIEW3D_MT_object_apply(bpy.types.Menu):
-    bl_label = "Apply"
+    bl_label = _("Apply")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.transform_apply", text="Location").location = True
-        layout.operator("object.transform_apply", text="Rotation").rotation = True
-        layout.operator("object.transform_apply", text="Scale").scale = True
-        props = layout.operator("object.transform_apply", text="Rotation & Scale")
+        layout.operator("object.transform_apply", text=_("Location")).location = True
+        layout.operator("object.transform_apply", text=_("Rotation")).rotation = True
+        layout.operator("object.transform_apply", text=_("Scale")).scale = True
+        props = layout.operator("object.transform_apply", text=_("Rotation & Scale"))
         props.scale = True
         props.rotation = True
 
         layout.separator()
 
-        layout.operator("object.visual_transform_apply", text="Visual Transform")
+        layout.operator("object.visual_transform_apply", text=_("Visual Transform"))
         layout.operator("object.duplicates_make_real")
 
 
 class VIEW3D_MT_object_parent(bpy.types.Menu):
-    bl_label = "Parent"
+    bl_label = _("Parent")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.parent_set", text="Set")
-        layout.operator("object.parent_clear", text="Clear")
+        layout.operator("object.parent_set", text=_("Set"))
+        layout.operator("object.parent_clear", text=_("Clear"))
 
 
 class VIEW3D_MT_object_track(bpy.types.Menu):
-    bl_label = "Track"
+    bl_label = _("Track")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.track_set", text="Set")
-        layout.operator("object.track_clear", text="Clear")
+        layout.operator("object.track_set", text=_("Set"))
+        layout.operator("object.track_clear", text=_("Clear"))
 
 
 class VIEW3D_MT_object_group(bpy.types.Menu):
-    bl_label = "Group"
+    bl_label = _("Group")
 
     def draw(self, context):
         layout = self.layout
@@ -901,7 +901,7 @@ class VIEW3D_MT_object_group(bpy.types.Menu):
 
 
 class VIEW3D_MT_object_constraints(bpy.types.Menu):
-    bl_label = "Constraints"
+    bl_label = _("Constraints")
 
     def draw(self, context):
         layout = self.layout
@@ -912,68 +912,68 @@ class VIEW3D_MT_object_constraints(bpy.types.Menu):
 
 
 class VIEW3D_MT_object_showhide(bpy.types.Menu):
-    bl_label = "Show/Hide"
+    bl_label = _("Show/Hide")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.hide_view_clear", text="Show Hidden")
-        layout.operator("object.hide_view_set", text="Hide Selected")
-        layout.operator("object.hide_view_set", text="Hide Unselected").unselected = True
+        layout.operator("object.hide_view_clear", text=_("Show Hidden"))
+        layout.operator("object.hide_view_set", text=_("Hide Selected"))
+        layout.operator("object.hide_view_set", text=_("Hide Unselected")).unselected = True
 
 
 class VIEW3D_MT_make_single_user(bpy.types.Menu):
-    bl_label = "Make Single User"
+    bl_label = _("Make Single User")
 
     def draw(self, context):
         layout = self.layout
 
-        props = layout.operator("object.make_single_user", text="Object")
+        props = layout.operator("object.make_single_user", text=_("Object"))
         props.object = True
 
-        props = layout.operator("object.make_single_user", text="Object & Data")
+        props = layout.operator("object.make_single_user", text=_("Object & Data"))
         props.object = props.obdata = True
 
-        props = layout.operator("object.make_single_user", text="Object & Data & Materials+Tex")
+        props = layout.operator("object.make_single_user", text=_("Object & Data & Materials+Tex"))
         props.object = props.obdata = props.material = props.texture = True
 
-        props = layout.operator("object.make_single_user", text="Materials+Tex")
+        props = layout.operator("object.make_single_user", text=_("Materials+Tex"))
         props.material = props.texture = True
 
-        props = layout.operator("object.make_single_user", text="Object Animation")
+        props = layout.operator("object.make_single_user", text=_("Object Animation"))
         props.animation = True
 
 
 class VIEW3D_MT_make_links(bpy.types.Menu):
-    bl_label = "Make Links"
+    bl_label = _("Make Links")
 
     def draw(self, context):
         layout = self.layout
 
         if(len(bpy.data.scenes) > 10):
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("object.make_links_scene", text="Objects to Scene...", icon='OUTLINER_OB_EMPTY')
-            layout.operator("object.make_links_scene", text="Markers to Scene...", icon='OUTLINER_OB_EMPTY')
+            layout.operator("object.make_links_scene", text=_("Objects to Scene..."), icon='OUTLINER_OB_EMPTY')
+            layout.operator("object.make_links_scene", text=_("Markers to Scene..."), icon='OUTLINER_OB_EMPTY')
         else:
-            layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene...")
-            layout.operator_menu_enum("marker.make_links_scene", "scene", text="Markers to Scene...")
+            layout.operator_menu_enum("object.make_links_scene", "scene", text=_("Objects to Scene..."))
+            layout.operator_menu_enum("marker.make_links_scene", "scene", text=_("Markers to Scene..."))
 
         layout.operator_enum("object.make_links_data", "type")  # inline
 
 
 class VIEW3D_MT_object_game(bpy.types.Menu):
-    bl_label = "Game"
+    bl_label = _("Game")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.logic_bricks_copy", text="Copy Logic Bricks")
+        layout.operator("object.logic_bricks_copy", text=_("Copy Logic Bricks"))
 
         layout.separator()
 
-        layout.operator("object.game_property_copy", text="Replace Properties").operation = 'REPLACE'
-        layout.operator("object.game_property_copy", text="Merge Properties").operation = 'MERGE'
-        layout.operator_menu_enum("object.game_property_copy", "property", text="Copy Properties...")
+        layout.operator("object.game_property_copy", text=_("Replace Properties")).operation = 'REPLACE'
+        layout.operator("object.game_property_copy", text=_("Merge Properties")).operation = 'MERGE'
+        layout.operator_menu_enum("object.game_property_copy", "property", text=_("Copy Properties..."))
 
         layout.separator()
 
@@ -1873,14 +1873,14 @@ class VIEW3D_MT_edit_meta(bpy.types.Menu):
 
 
 class VIEW3D_MT_edit_meta_showhide(bpy.types.Menu):
-    bl_label = "Show/Hide"
+    bl_label = _("Show/Hide")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("mball.reveal_metaelems", text="Show Hidden")
-        layout.operator("mball.hide_metaelems", text="Hide Selected")
-        layout.operator("mball.hide_metaelems", text="Hide Unselected").unselected = True
+        layout.operator("mball.reveal_metaelems", text=_("Show Hidden"))
+        layout.operator("mball.hide_metaelems", text=_("Hide Selected"))
+        layout.operator("mball.hide_metaelems", text=_("Hide Unselected")).unselected = True
 
 
 class VIEW3D_MT_edit_lattice(bpy.types.Menu):

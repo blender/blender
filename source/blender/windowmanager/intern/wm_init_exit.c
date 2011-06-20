@@ -79,6 +79,7 @@
 #include "GHOST_C-api.h"
 
 #include "RNA_define.h"
+#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -131,6 +132,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	// use default settings
 	BLF_lang_encoding("");
 	BLF_lang_set("");
+
+	RNA_types_init_gettext();
 
 	wm_operatortype_init();
 	

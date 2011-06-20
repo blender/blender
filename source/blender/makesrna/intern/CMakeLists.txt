@@ -128,6 +128,7 @@ set(SRC
 	${APISRC}
 	../../../../intern/guardedalloc/intern/mallocn.c
 	../../../../intern/guardedalloc/intern/mmap_win.c
+	../../blenfont/intern/blf_gettext.c
 )
 
 set(INC

@@ -20,7 +20,7 @@
 
 import bpy
 from mathutils import Vector
-
+from blf import gettext as _
 
 def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
@@ -236,7 +236,7 @@ from bpy.props import EnumProperty
 class AlignObjects(bpy.types.Operator):
     '''Align Objects'''
     bl_idname = "object.align"
-    bl_label = "Align Objects"
+    bl_label = _("Align Objects")
     bl_options = {'REGISTER', 'UNDO'}
 
     align_mode = EnumProperty(items=(

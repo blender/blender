@@ -26,7 +26,7 @@
 
 import bpy
 import os
-
+from blf import gettext as _
 
 def guess_player_path(preset):
     import sys
@@ -66,7 +66,7 @@ def guess_player_path(preset):
 class PlayRenderedAnim(bpy.types.Operator):
     '''Plays back rendered frames/movies using an external player.'''
     bl_idname = "render.play_rendered_anim"
-    bl_label = "Play Rendered Animation"
+    bl_label = _("Play Rendered Animation")
     bl_options = {'REGISTER'}
 
     def execute(self, context):
