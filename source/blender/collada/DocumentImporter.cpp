@@ -670,6 +670,18 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 			i++;
 		}
 	}
+	
+	if(ef->getOpacity().isTexture()) {
+		COLLADAFW::Texture ctex = ef->getOpacity().getTexture();
+		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
+		if(mtex != NULL) {
+			mtex->mapto = MAP_ALPHA;
+			mtex->tex->imaflag |= TEX_USEALPHA;
+			i++;
+			ma->spectra = ma->alpha = 0;
+			ma->mode |= MA_ZTRANSP|MA_TRANSP;
+		}
+	}
 	// TRANSPARENT
 	// color
 // 	if (ef->getOpacity().isColor()) {
