@@ -175,7 +175,9 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 
 				// -- older devices --
 				case 0xC623: puts("ndof: SpaceTraveler not supported, please file a bug report"); break;
+					// no buttons?
 				case 0xC625: puts("ndof: SpacePilot not supported, please file a bug report"); break;
+					// 21 buttons
 
 				default: printf("ndof: unknown Logitech product %04hx\n", product_id);
 				}
@@ -185,7 +187,10 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 		}
 
 	m_buttonMask = ~(-1 << m_buttonCount);
-	printf("ndof: %d buttons -> %X\n", m_buttonCount, m_buttonMask);
+
+	#ifdef DEBUG_NDOF_BUTTONS
+	printf("ndof: %d buttons -> hex:%X\n", m_buttonCount, m_buttonMask);
+	#endif
 	}
 
 void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)
@@ -312,7 +317,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	data->ty = scale * m_translation[1];
 	data->tz = scale * m_translation[2];
 
-	data->rx = scale * m_rotation[0];
+	data->rx = -scale * m_rotation[0];
 	data->ry = scale * m_rotation[1];
 	data->rz = scale * m_rotation[2];
 

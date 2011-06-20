@@ -954,46 +954,92 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
+	float sensitivity = 1.f; /* ooh, magic number!
+	const float sensitivity = 0.035; /* ooh, magic number!
+		there will be several of these as interactions get tuned */
+
 	float dt = ndof->dt;
+	if (dt > 0.25f)
+		/* this is probably the first event for this motion, so set dt to something reasonable */
+		/* TODO: replace such guesswork with a flag or field from the NDOF manager */
+		dt = 0.0125f;
 
 	RegionView3D* rv3d = CTX_wm_region_view3d(C);
 
-	/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
-	float phi, q1[4];
-	float m[3][3];
-	float m_inv[3][3];
-	float xvec[3] = {1,0,0};
+	int /* bool */ has_rotation = rv3d->viewlock != RV3D_LOCKED && (ndof->rx || ndof->ry || ndof->rz);
+	if (has_rotation)
+		rv3d->view = RV3D_VIEW_USER;
 
-	const float sensitivity = 0.035;
+	if (has_rotation) {
+		if (U.flag & USER_TRACKBALL) {
+			/* TODO: write trackball code! */
 
-	if (dt > 0.25f)
-		/* this is probably the first event for this motion, so set dt to something reasonable */
-		dt = 0.0125f;
+			float axis[3] = {ndof->rx, ndof->ry, ndof->rz};
+			float angle = sensitivity * dt * ndof_to_angle_axis(axis, axis);
+			float rotation[4], rotationconj[4];
+			float view[4], viewconj[4];
 
-	/* Get the 3x3 matrix and its inverse from the quaternion */
-	quat_to_mat3(m,rv3d->viewquat);
-	invert_m3_m3(m_inv,m);
+			// convert to quaternion
+			axis_angle_to_quat(rotation, axis, angle);
 
-	/* Determine the direction of the x vector (for rotating up and down) */
-	/* This can likely be computed directly from the quaternion. */
-	mul_m3_v3(m_inv,xvec);
+			// extract rotation component of viewquat
+			copy_qt_qt(view, rv3d->viewquat);
+			invert_qt(view);
+			normalize_qt(view);
+			copy_qt_qt(viewconj, view);
+			conjugate_qt(viewconj);
 
-	/* Perform the up/down rotation */
-	phi = sensitivity * -ndof->rx;
-	q1[0] = cos(phi);
-	mul_v3_v3fl(q1+1, xvec, sin(phi));
-	mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+			// transform device rotation into view's frame of reference
+			// rotation(view) = view * rotation(world) * viewconj
+			mul_qt_qtqt(rotation, rotation, viewconj);
+			mul_qt_qtqt(rotation, view, rotation);
 
-	/* Perform the orbital rotation */
-	phi = sensitivity * ndof->rz;
-	q1[0] = cos(phi);
-	q1[1] = q1[2] = 0.0;
-	q1[3] = sin(phi);
-	mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+			// apply rotation to obtain new viewpoint
+//			copy_qt_qt(rotationconj, rotation);
+//			conjugate_qt(rotationconj);
+//			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotationconj);
+//			mul_qt_qtqt(rv3d->viewquat, rotation, rv3d->viewquat);
+			mul_qt_qtqt(rv3d->viewquat, rotation, rv3d->viewquat);
 
-	ED_region_tag_redraw(CTX_wm_region(C));
-	return OPERATOR_FINISHED;
+			// this is *close* to trackball behavior
+			// rotation axis needs to remain fixed relative to viewpoint, not world coordinates
+
+			ED_region_tag_redraw(CTX_wm_region(C));
+
+		} else {
+			/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
+			float phi, q1[4];
+			float m[3][3];
+			float m_inv[3][3];
+			float xvec[3] = {1,0,0};
+
+			/* Get the 3x3 matrix and its inverse from the quaternion */
+			quat_to_mat3(m,rv3d->viewquat);
+			invert_m3_m3(m_inv,m);
+
+			/* Determine the direction of the x vector (for rotating up and down) */
+			/* This can likely be computed directly from the quaternion. */
+			mul_m3_v3(m_inv,xvec);
+
+			/* Perform the up/down rotation */
+			phi = sensitivity * dt * ndof->rx;
+			q1[0] = cos(phi);
+			mul_v3_v3fl(q1+1, xvec, sin(phi));
+			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+
+			/* Perform the orbital rotation */
+			phi = sensitivity * dt * ndof->rz;
+			q1[0] = cos(phi);
+			q1[1] = q1[2] = 0.0;
+			q1[3] = sin(phi);
+			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+
+			ED_region_tag_redraw(CTX_wm_region(C));
+		}
 	}
+
+	return OPERATOR_FINISHED;
+}
 
 // Tom's version
 #if 0 
