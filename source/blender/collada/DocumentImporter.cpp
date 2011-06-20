@@ -309,7 +309,7 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 	return ob;
 }
 
-Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Node *source_node, COLLADAFW::Node *instance_node, Scene *sce, bool is_library_node)
+Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Node *source_node, COLLADAFW::Node *instance_node, Scene *sce, Object *par_ob, bool is_library_node)
 {
 	Object *obn = copy_object(source_ob);
 	obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
@@ -353,10 +353,10 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 			Object *new_child = NULL;
 			if (inodes.getCount()) { // \todo loop through instance nodes
 				const COLLADAFW::UniqueId& id = inodes[0]->getInstanciatedObjectId();
-				new_child = create_instance_node(object_map[id], node_map[id], child_node, sce, is_library_node);
+				new_child = create_instance_node(object_map[id], node_map[id], child_node, sce, NULL, is_library_node);
 			}
 			else {
-				new_child = create_instance_node(object_map[child_id], child_node, NULL, sce, is_library_node);
+				new_child = create_instance_node(object_map[child_id], child_node, NULL, sce, NULL, is_library_node);
 			}
 			bc_set_parent(new_child, obn, mContext, true);
 
@@ -367,7 +367,12 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 
 	// when we have an instance_node, don't return the object, because otherwise
 	// its correct location gets overwritten in write_node(). Fixes bug #26012.
-	if(instance_node) return NULL;
+	if(instance_node) {
+		if (par_ob && obn)
+			bc_set_parent(obn, par_ob, mContext);
+		return NULL;
+	}
+
 	else return obn;
 }
 
@@ -385,11 +390,11 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		COLLADAFW::InstanceLightPointerArray &lamp = node->getInstanceLights();
 		COLLADAFW::InstanceControllerPointerArray &controller = node->getInstanceControllers();
 		COLLADAFW::InstanceNodePointerArray &inst_node = node->getInstanceNodes();
-		int geom_done = 0;
-		int camera_done = 0;
-		int lamp_done = 0;
-		int controller_done = 0;
-		int inst_done = 0;
+		size_t geom_done = 0;
+		size_t camera_done = 0;
+		size_t lamp_done = 0;
+		size_t controller_done = 0;
+		size_t inst_done = 0;
 
 		// XXX linking object with the first <instance_geometry>, though a node may have more of them...
 		// maybe join multiple <instance_...> meshes into 1, and link object with it? not sure...
@@ -423,7 +428,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 				Object *source_ob = object_map[node_id];
 				COLLADAFW::Node *source_node = node_map[node_id];
 
-				ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
+				ob = create_instance_node(source_ob, source_node, node, sce, par, is_library_node);
 			}
 			++inst_done;
 		}
