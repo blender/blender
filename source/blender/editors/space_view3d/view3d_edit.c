@@ -949,6 +949,25 @@ float ndof_to_angle_axis(const float ndof[3], float axis[3])
 	return angular_velocity;
 	}
 
+void ndof_to_quat(wmNDOFMotionData* ndof, float q[4])
+	{
+	const float x = ndof->rx;
+	const float y = ndof->ry;
+	const float z = ndof->rz;
+
+	float angular_velocity = sqrtf(x*x + y*y + z*z);
+	float angle = ndof->dt * angular_velocity;
+
+	// combined scaling factor -- normalize axis while converting to quaternion
+	float scale = sin(0.5f * angle) / angular_velocity;
+
+	// convert axis-angle to quaternion
+	q[0] = cos(0.5f * angle);
+	q[1] = scale * x;
+	q[2] = scale * y;
+	q[3] = scale * z;
+	}
+
 // Mike's version
 static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -964,7 +983,7 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (dt > 0.25f)
 		/* this is probably the first event for this motion, so set dt to something reasonable */
 		/* TODO: replace such guesswork with a flag or field from the NDOF manager */
-		dt = 0.0125f;
+		ndof->dt = dt = 0.0125f;
 
 
 	if (has_rotation)
@@ -972,37 +991,29 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (has_rotation) {
 		if (U.flag & USER_TRACKBALL) {
-			/* TODO: write trackball code! */
 
-			float axis[3] = {ndof->rx, ndof->ry, ndof->rz};
-			float angle = sensitivity * dt * ndof_to_angle_axis(axis, axis);
-			float rotation[4], rotationconj[4];
-			float view[4], viewconj[4];
+			float rot[4];
+			float view_inv[4], view_inv_conj[4];
 
-			// convert to quaternion
-			axis_angle_to_quat(rotation, axis, angle);
+			ndof_to_quat(ndof, rot);
 
-			// extract rotation component of viewquat
-			copy_qt_qt(view, rv3d->viewquat);
-			invert_qt(view);
-			normalize_qt(view);
-			copy_qt_qt(viewconj, view);
-			conjugate_qt(viewconj);
+			// swap y and z -- not sure why, but it works
+			{
+			float temp = -rot[2]; // also invert device y
+			rot[2] = rot[3];
+			rot[3] = temp;
+			}
 
-			// transform device rotation into view's frame of reference
-			// rotation(view) = view * rotation(world) * viewconj
-			mul_qt_qtqt(rotation, rotation, viewconj);
-			mul_qt_qtqt(rotation, view, rotation);
+			invert_qt_qt(view_inv, rv3d->viewquat);
+			copy_qt_qt(view_inv_conj, view_inv);
+			conjugate_qt(view_inv_conj);
 
-			// apply rotation to obtain new viewpoint
-//			copy_qt_qt(rotationconj, rotation);
-//			conjugate_qt(rotationconj);
-//			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotationconj);
-//			mul_qt_qtqt(rv3d->viewquat, rotation, rv3d->viewquat);
-			mul_qt_qtqt(rv3d->viewquat, rotation, rv3d->viewquat);
+			// transform rotation from view to world coordinates
+			mul_qt_qtqt(rot, view_inv, rot);
+			mul_qt_qtqt(rot, rot, view_inv_conj);
 
-			// this is *close* to trackball behavior
-			// rotation axis needs to remain fixed relative to viewpoint, not world coordinates
+			// apply rotation
+			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
 
 			ED_region_tag_redraw(CTX_wm_region(C));
 
