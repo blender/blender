@@ -923,6 +923,8 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 
 	if (!PyVecTo(value, vect))
 	{
+		PyErr_Clear();
+
 		if(ConvertPythonToGameObject(value, &obj, true, ""))
 		{
 			PyErr_Clear();

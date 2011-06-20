@@ -32,6 +32,10 @@ set(INC_SYS
 
 )
 
+if(WIN32)
+	add_definitions(-DOPJ_STATIC)
+endif()
+
 set(SRC
 	bio.c
 	cio.c

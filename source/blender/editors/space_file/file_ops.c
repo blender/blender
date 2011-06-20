@@ -205,9 +205,10 @@ static FileSelect file_select(bContext* C, const rcti* rect, FileSelType select,
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelect retval = FILE_SELECT_NOTHING;
 	FileSelection sel= file_selection_get(C, rect, fill); /* get the selection */
+	const FileCheckType check_type= (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS : CHECK_ALL;
 	
 	/* flag the files as selected in the filelist */
-	filelist_select(sfile->files, &sel, select, SELECTED_FILE, CHECK_ALL);
+	filelist_select(sfile->files, &sel, select, SELECTED_FILE, check_type);
 	
 	/* Don't act on multiple selected files */
 	if (sel.first != sel.last) select = 0;
@@ -216,7 +217,7 @@ static FileSelect file_select(bContext* C, const rcti* rect, FileSelType select,
 	if ( (sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE)) )
 	{
 		/* Check last selection, if selected, act on the file or dir */
-		if (filelist_is_selected(sfile->files, sel.last, CHECK_ALL)) {
+		if (filelist_is_selected(sfile->files, sel.last, check_type)) {
 			retval = file_select_do(C, sel.last);
 		}
 	}
@@ -378,8 +379,10 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	/* select all only if previously no file was selected */
 	if (is_selected) {
 		filelist_select(sfile->files, &sel, FILE_SEL_REMOVE, SELECTED_FILE, CHECK_ALL);
-	} else {
-		filelist_select(sfile->files, &sel, FILE_SEL_ADD, SELECTED_FILE, CHECK_FILES);
+	}
+	else {
+		const FileCheckType check_type= (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS : CHECK_FILES;
+		filelist_select(sfile->files, &sel, FILE_SEL_ADD, SELECTED_FILE, check_type);
 	}
 	ED_area_tag_redraw(sa);
 	return OPERATOR_FINISHED;

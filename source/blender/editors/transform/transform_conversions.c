@@ -3731,27 +3731,8 @@ void flushTransGraphData(TransInfo *t)
  * seq->depth must be set before running this function so we know if the strips
  * are root level or not
  */
-#define XXX_DURIAN_ANIM_TX_HACK
 static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count, int *flag)
 {
- 
-#ifdef XXX_DURIAN_ANIM_TX_HACK
-	/* hack */
-	if((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
-		Sequence *seq_t[3];
-		int i;
-
-		seq_t[0]= seq->seq1;
-		seq_t[1]= seq->seq2;
-		seq_t[2]= seq->seq3;
-
-		for(i=0; i<3; i++) {
-			if (seq_t[i] && ((seq_t[i])->flag & SELECT) && !(seq_t[i]->flag & SEQ_LOCK) && !(seq_t[i]->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
-				seq->flag |= SELECT;
-		}
-	}
-#endif
-
 	/* for extend we need to do some tricks */
 	if (t->mode == TFM_TIME_EXTEND) {
 
@@ -4111,6 +4092,7 @@ static void freeSeqData(TransInfo *t)
 
 static void createTransSeqData(bContext *C, TransInfo *t)
 {
+#define XXX_DURIAN_ANIM_TX_HACK
 
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= t->scene;
@@ -4141,6 +4123,24 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 		t->frame_side = 'B';
 	}
 
+#ifdef XXX_DURIAN_ANIM_TX_HACK
+	{
+		Sequence *seq;
+		for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+			/* hack */
+			if((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
+				Sequence *seq_user;
+				int i;
+				for(i=0; i<3; i++) {
+					seq_user= *((&seq->seq1) + i);
+					if (seq_user && (seq_user->flag & SELECT) && !(seq_user->flag & SEQ_LOCK) && !(seq_user->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL))) {
+						seq->flag |= SELECT;
+					}
+				}
+			}
+		}
+	}
+#endif
 
 	count = SeqTransCount(t, ed->seqbasep, 0);
 
@@ -4160,6 +4160,8 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 	/* loop 2: build transdata array */
 	SeqToTransData_Recursive(t, ed->seqbasep, td, td2d, tdsq);
+
+#undef XXX_DURIAN_ANIM_TX_HACK
 }
 
 
@@ -5083,10 +5085,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 #if 0 // TRANSFORM_FIX_ME
 	if(resetslowpar)
 		reset_slowparents();
-
-	/* note; should actually only be done for all objects when a lamp is moved... (ton) */
-	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
-		reshadeall_displist();
 #endif
 }
 

@@ -375,7 +375,7 @@ typedef struct UserDef {
 	short scrcastwait;		/* milliseconds between screencast snapshots */
 	
 	short widget_unit;		/* defaults to 20 for 72 DPI setting */
-	short pad[3];			
+	short anisotropic_filter;
 
 	char versemaster[160];
 	char verseuser[160];
@@ -385,7 +385,6 @@ typedef struct UserDef {
 	short autokey_flag;		/* flags for autokeying */
 	
 	short text_render, pad9;		/*options for text rendering*/
-	float pad10;
 
 	struct ColorBand coba_weight;	/* from texture.h */
 

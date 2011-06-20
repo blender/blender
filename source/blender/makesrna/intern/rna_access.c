@@ -1643,6 +1643,43 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 		memset(values, 0, sizeof(int)*prop->totarraylength);
 }
 
+void RNA_property_int_get_array_range(PointerRNA *ptr, PropertyRNA *prop, int values[2])
+{
+	const int array_len= RNA_property_array_length(ptr, prop);
+
+	if(array_len <= 0) {
+		values[0]= 0;
+		values[1]= 0;
+	}
+	else if (array_len == 1) {
+		RNA_property_int_get_array(ptr, prop, values);
+		values[1]= values[0];
+	}
+	else {
+		int arr_stack[32];
+		int *arr;
+		int i;
+
+		if(array_len > 32) {
+			arr= MEM_mallocN(sizeof(int) * array_len, "RNA_property_int_get_array_range");
+		}
+		else {
+			arr= arr_stack;
+		}
+
+		RNA_property_int_get_array(ptr, prop, arr);
+		values[0]= values[1]= arr[0];
+		for(i= 1; i < array_len; i++) {
+			values[0]= MIN2(values[0], arr[i]);
+			values[1]= MAX2(values[1], arr[i]);
+		}
+
+		if(arr != arr_stack) {
+			MEM_freeN(arr);
+		}
+	}
+}
+
 int RNA_property_int_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	int tmp[RNA_MAX_ARRAY_LENGTH];
@@ -1837,6 +1874,43 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
 		memcpy(values, fprop->defaultarray, sizeof(float)*prop->totarraylength);
 	else
 		memset(values, 0, sizeof(float)*prop->totarraylength);
+}
+
+void RNA_property_float_get_array_range(PointerRNA *ptr, PropertyRNA *prop, float values[2])
+{
+	const int array_len= RNA_property_array_length(ptr, prop);
+
+	if(array_len <= 0) {
+		values[0]= 0.0f;
+		values[1]= 0.0f;
+	}
+	else if (array_len == 1) {
+		RNA_property_float_get_array(ptr, prop, values);
+		values[1]= values[0];
+	}
+	else {
+		float arr_stack[32];
+		float *arr;
+		int i;
+
+		if(array_len > 32) {
+			arr= MEM_mallocN(sizeof(float) * array_len, "RNA_property_float_get_array_range");
+		}
+		else {
+			arr= arr_stack;
+		}
+
+		RNA_property_float_get_array(ptr, prop, arr);
+		values[0]= values[1]= arr[0];
+		for(i= 1; i < array_len; i++) {
+			values[0]= MIN2(values[0], arr[i]);
+			values[1]= MAX2(values[1], arr[i]);
+		}
+
+		if(arr != arr_stack) {
+			MEM_freeN(arr);
+		}
+	}
 }
 
 float RNA_property_float_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)

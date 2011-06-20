@@ -504,14 +504,7 @@ void node_set_active(SpaceNode *snode, bNode *node)
 					ED_node_changed_update(snode->id, node);
 			}
 
-			// XXX
-#if 0
-			if(node->id)
-				; // XXX BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
-			
-			// allqueue(REDRAWBUTSSHADING, 1);
-			// allqueue(REDRAWIPO, 0);
-#endif
+			WM_main_add_notifier(NC_MATERIAL|ND_NODES, node->id);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene*)snode->id;
@@ -1332,7 +1325,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 				else {
 					node->width= nsw->oldwidth + mx - nsw->mxstart;
-					CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
+					CLAMP(node->width, UI_DPI_FAC*node->typeinfo->minwidth, UI_DPI_FAC*node->typeinfo->maxwidth);
 				}
 			}
 				

@@ -298,10 +298,12 @@ void uiPupMenuInvoke(struct bContext *C, const char *idname); /* popup registere
  * but allow using all button types and creating an own layout. */
 
 typedef uiBlock* (*uiBlockCreateFunc)(struct bContext *C, struct ARegion *ar, void *arg1);
+typedef void (*uiBlockCancelFunc)(void *arg1);
 
 void uiPupBlock(struct bContext *C, uiBlockCreateFunc func, void *arg);
 void uiPupBlockO(struct bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext);
-void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext);
+void uiPupBlockEx(struct bContext *C, uiBlockCreateFunc func, uiBlockCancelFunc cancel_func, void *arg);
+/* void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext); */ /* UNUSED */
 
 void uiPupBlockClose(struct bContext *C, uiBlock *block);
 

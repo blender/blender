@@ -670,6 +670,8 @@ int arraysize(char *astr, int len)
 		}
 		else if( str[a]==']' && cp) {
 			str[a]= 0;
+			/* if 'cp' is a preprocessor definition, it will evaluate to 0,
+			 * the caller needs to check for this case and throw an error */
 			mul*= atoi(cp);
 		}
 	}
@@ -713,7 +715,12 @@ static int calculate_structlens(int firststruct)
 						/* has the name an extra length? (array) */
 						mul= 1;
 						if( cp[namelen-1]==']') mul= arraysize(cp, namelen);
-						
+
+						if (mul == 0) {
+							printf("Zero array size found or could not parse %s: '%.*s'\n", types[structtype], namelen + 1, cp);
+							dna_error = 1;
+						}
+
 						/* 4-8 aligned/ */
 						if(sizeof(void *) == 4) {
 							if (len % 4) {
@@ -743,7 +750,12 @@ static int calculate_structlens(int firststruct)
 						/* has the name an extra length? (array) */
 						mul= 1;
 						if( cp[namelen-1]==']') mul= arraysize(cp, namelen);
-						
+
+						if (mul == 0) {
+							printf("Zero array size found or could not parse %s: '%.*s'\n", types[structtype], namelen + 1, cp);
+							dna_error = 1;
+						}
+
 						/* struct alignment */
 						if(type >= firststruct) {
 							if(sizeof(void *)==8 && (len % 8) ) {
