@@ -95,6 +95,22 @@ void AUD_SequencerReader::remove(AUD_Reference<AUD_SequencerEntry> entry)
 	}
 }
 
+void AUD_SequencerReader::setSpecs(AUD_Specs specs)
+{
+	m_mixer->setSpecs(specs);
+
+	AUD_Reference<AUD_SequencerStrip> strip;
+	for(AUD_StripIterator i = m_strips.begin(); i != m_strips.end(); i++)
+	{
+		strip = *i;
+		if(!strip->mapper.isNull())
+		{
+			strip->mapper->setChannels(specs.channels);
+			strip->resampler->setRate(specs.rate);
+		}
+	}
+}
+
 bool AUD_SequencerReader::isSeekable() const
 {
 	return true;
@@ -149,24 +165,30 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 							strip->reader = (*strip->old_sound)->createReader();
 							// resample
 							#ifdef WITH_SAMPLERATE
-								strip->reader = new AUD_SRCResampleReader(strip->reader, m_mixer->getSpecs().specs);
+								strip->resampler = new AUD_SRCResampleReader(strip->reader, m_mixer->getSpecs().specs);
 							#else
-								strip->reader = new AUD_LinearResampleReader(strip->reader, m_mixer->getSpecs().specs);
+								strip->resampler = new AUD_LinearResampleReader(strip->reader, m_mixer->getSpecs().specs);
 							#endif
 
 							// rechannel
-							strip->reader = new AUD_ChannelMapperReader(strip->reader, m_mixer->getSpecs().channels);
+							strip->mapper = new AUD_ChannelMapperReader(AUD_Reference<AUD_IReader>(strip->resampler), m_mixer->getSpecs().channels);
 						}
 						catch(AUD_Exception)
 						{
 							strip->reader = NULL;
+							strip->resampler = NULL;
+							strip->mapper = NULL;
 						}
 					}
 					else
+					{
 						strip->reader = NULL;
+						strip->resampler = NULL;
+						strip->mapper = NULL;
+					}
 				}
 
-				if(!strip->reader.isNull())
+				if(!strip->mapper.isNull())
 				{
 					end = floor(strip->entry->end * rate);
 					if(m_position < end)
@@ -185,9 +207,9 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 							current += strip->entry->skip * rate;
 							len = length > end - m_position ? end - m_position : length;
 							len -= skip;
-							if(strip->reader->getPosition() != current)
-								strip->reader->seek(current);
-							strip->reader->read(len, eos, m_buffer.getBuffer());
+							if(strip->mapper->getPosition() != current)
+								strip->mapper->seek(current);
+							strip->mapper->read(len, eos, m_buffer.getBuffer());
 							m_mixer->mix(m_buffer.getBuffer(), skip, len, m_volume(m_data, strip->entry->data, (float)m_position / (float)rate));
 						}
 					}

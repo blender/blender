@@ -11474,6 +11474,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					kb->slidermax = kb->slidermin + 1.0f;
 			}
 		}
+
+		{
+			Scene *scene;
+			for (scene=main->scene.first; scene; scene=scene->id.next)
+				scene->r.ffcodecdata.audio_channels = 2;
+		}
 	}
 	
 	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 1)) {

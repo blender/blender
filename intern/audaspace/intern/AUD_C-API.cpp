@@ -882,16 +882,11 @@ AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, float seconds)
 
 AUD_Sound* AUD_createSequencer(int muted, void* data, AUD_volumeFunction volume)
 {
-/* AUD_XXX should be this: but AUD_createSequencer is called before the device
- * is initialized.
-
-	return new AUD_SequencerFactory(AUD_device->getSpecs().specs, data, volume);
-*/
+	// specs are changed at a later point!
 	AUD_Specs specs;
 	specs.channels = AUD_CHANNELS_STEREO;
 	specs.rate = AUD_RATE_44100;
 	AUD_Reference<AUD_SequencerFactory>* sequencer = new AUD_Reference<AUD_SequencerFactory>(new AUD_SequencerFactory(specs, muted, data, volume));
-	(*sequencer)->setThis(sequencer);
 	return reinterpret_cast<AUD_Sound*>(sequencer);
 }
 
@@ -926,6 +921,16 @@ void AUD_moveSequencer(AUD_Sound* sequencer, AUD_Reference<AUD_SequencerEntry>* 
 void AUD_muteSequencer(AUD_Sound* sequencer, AUD_Reference<AUD_SequencerEntry>* entry, char mute)
 {
 	((AUD_SequencerFactory*)sequencer->get())->mute(*entry, mute);
+}
+
+void AUD_setSequencerDeviceSpecs(AUD_Sound* sequencer)
+{
+	((AUD_SequencerFactory*)sequencer->get())->setSpecs(AUD_device->getSpecs().specs);
+}
+
+void AUD_setSequencerSpecs(AUD_Sound* sequencer, AUD_Specs specs)
+{
+	((AUD_SequencerFactory*)sequencer->get())->setSpecs(specs);
 }
 
 int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)

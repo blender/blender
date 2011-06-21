@@ -73,6 +73,11 @@ AUD_DeviceSpecs AUD_Mixer::getSpecs() const
 	return m_specs;
 }
 
+void AUD_Mixer::setSpecs(AUD_Specs specs)
+{
+	m_specs.specs = specs;
+}
+
 void AUD_Mixer::clear(int length)
 {
 	m_buffer.assureSize(length * m_specs.channels * AUD_SAMPLE_SIZE(m_specs));

@@ -126,6 +126,8 @@ typedef struct FFMpegCodecData {
 	int video_bitrate;
 	int audio_bitrate;
 	int audio_mixrate;
+	int audio_channels;
+	int audio_pad;
 	float audio_volume;
 	int gop_size;
 	int flags;

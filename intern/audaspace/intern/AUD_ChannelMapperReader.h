@@ -109,6 +109,8 @@ public:
 	 */
 	~AUD_ChannelMapperReader();
 
+	void setChannels(AUD_Channels channels);
+
 	virtual AUD_Specs getSpecs() const;
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };

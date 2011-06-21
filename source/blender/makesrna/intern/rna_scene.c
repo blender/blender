@@ -98,6 +98,14 @@ EnumPropertyItem snap_element_items[] = {
 	{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume"},
 	{0, NULL, 0, NULL, NULL}};
 
+static EnumPropertyItem audio_channel_items[] = {
+	{1, "MONO", 0, "Mono", "Set audio channels to mono"},
+	{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
+	{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
+	{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
+	{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
+	{0, NULL, 0, NULL, NULL}};
+
 EnumPropertyItem image_type_items[] = {
 	{0, "", 0, "Image", NULL},
 	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
@@ -2468,6 +2476,10 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
+	prop= RNA_def_property(srna, "ffmpeg_audio_channels", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ffcodecdata.audio_channels");
+	RNA_def_property_enum_items(prop, audio_channel_items);
+	RNA_def_property_ui_text(prop, "Audio Channels", "Sets the audio channel count");
 #endif
 
 	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);

@@ -44,6 +44,12 @@ AUD_ChannelMapperReader::~AUD_ChannelMapperReader()
 	delete[] m_mapping;
 }
 
+void AUD_ChannelMapperReader::setChannels(AUD_Channels channels)
+{
+	m_target_channels = channels;
+	calculateMapping();
+}
+
 float AUD_ChannelMapperReader::angleDistance(float alpha, float beta)
 {
 	alpha = fabs(alpha - beta);

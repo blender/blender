@@ -596,7 +596,9 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "ffmpeg_audio_bitrate")
         col.prop(rd, "ffmpeg_audio_mixrate")
 
-        split.prop(rd, "ffmpeg_audio_volume", slider=True)
+        col = split.column()
+        col.prop(rd, "ffmpeg_audio_volume", slider=True)
+        col.prop(rd, "ffmpeg_audio_channels")
 
 
 class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):

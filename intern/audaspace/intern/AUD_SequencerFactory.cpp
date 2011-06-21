@@ -48,9 +48,12 @@ AUD_SequencerFactory::~AUD_SequencerFactory()
 {
 }
 
-void AUD_SequencerFactory::setThis(AUD_Reference<AUD_SequencerFactory>* self)
+void AUD_SequencerFactory::setSpecs(AUD_Specs specs)
 {
-	m_this = self;
+	m_specs = specs;
+
+	for(AUD_ReaderIterator i = m_readers.begin(); i != m_readers.end(); i++)
+		(*i)->setSpecs(m_specs);
 }
 
 void AUD_SequencerFactory::mute(bool muted)
@@ -103,7 +106,7 @@ void AUD_SequencerFactory::mute(AUD_Reference<AUD_SequencerEntry> entry, bool mu
 
 AUD_Reference<AUD_IReader> AUD_SequencerFactory::createReader()
 {
-	AUD_Reference<AUD_SequencerReader> reader = new AUD_SequencerReader(*m_this, m_entries,
+	AUD_Reference<AUD_SequencerReader> reader = new AUD_SequencerReader(this, m_entries,
 														  m_specs, m_data,
 														  m_volume);
 	m_readers.push_front(reader);

@@ -346,6 +346,7 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start,
 
 	AUD_setDeviceVolume(mixdown, volume);
 
+	AUD_setSequencerSpecs(scene->sound_scene, specs.specs);
 	AUD_freeHandle(AUD_playDevice(mixdown, scene->sound_scene, start / FPS));
 
 	return mixdown;
@@ -405,6 +406,9 @@ static void sound_start_play_scene(struct Scene *scene)
 {
 	if(scene->sound_scene_handle)
 		AUD_stop(scene->sound_scene_handle);
+
+	AUD_setSequencerDeviceSpecs(scene->sound_scene);
+
 	if((scene->sound_scene_handle = AUD_play(scene->sound_scene, 1)))
 		AUD_setLoop(scene->sound_scene_handle, -1);
 }

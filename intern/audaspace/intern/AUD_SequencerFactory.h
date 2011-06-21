@@ -66,7 +66,6 @@ private:
 	bool m_muted;
 	void* m_data;
 	AUD_volumeFunction m_volume;
-	AUD_Reference<AUD_SequencerFactory>* m_this;
 
 	// hide copy constructor and operator=
 	AUD_SequencerFactory(const AUD_SequencerFactory&);
@@ -76,7 +75,7 @@ public:
 	AUD_SequencerFactory(AUD_Specs specs, bool muted, void* data, AUD_volumeFunction volume);
 	~AUD_SequencerFactory();
 
-	void setThis(AUD_Reference<AUD_SequencerFactory>* self);
+	void setSpecs(AUD_Specs specs);
 
 	void mute(bool muted);
 	bool getMute() const;

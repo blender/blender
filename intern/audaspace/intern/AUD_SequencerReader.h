@@ -35,11 +35,15 @@
 #include "AUD_IReader.h"
 #include "AUD_SequencerFactory.h"
 #include "AUD_Buffer.h"
-class AUD_Mixer;
+#include "AUD_Mixer.h"
+#include "AUD_ResampleReader.h"
+#include "AUD_ChannelMapperReader.h"
 
 struct AUD_SequencerStrip
 {
 	AUD_Reference<AUD_IReader> reader;
+	AUD_Reference<AUD_ResampleReader> resampler;
+	AUD_Reference<AUD_ChannelMapperReader> mapper;
 	AUD_Reference<AUD_SequencerEntry> entry;
 	AUD_Reference<AUD_IFactory>* old_sound;
 };
@@ -94,6 +98,7 @@ public:
 
 	void add(AUD_Reference<AUD_SequencerEntry> entry);
 	void remove(AUD_Reference<AUD_SequencerEntry> entry);
+	void setSpecs(AUD_Specs specs);
 
 	virtual bool isSeekable() const;
 	virtual void seek(int position);

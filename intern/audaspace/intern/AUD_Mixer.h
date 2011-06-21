@@ -47,7 +47,7 @@ protected:
 	/**
 	 * The output specification.
 	 */
-	const AUD_DeviceSpecs m_specs;
+	AUD_DeviceSpecs m_specs;
 
 	/**
 	 * The length of the mixing buffer.
@@ -80,6 +80,12 @@ public:
 	 * \return The target specification.
 	 */
 	AUD_DeviceSpecs getSpecs() const;
+
+	/**
+	 * Sets the target specification for superposing.
+	 * \param specs The target specification.
+	 */
+	void setSpecs(AUD_Specs specs);
 
 	/**
 	 * Mixes a buffer.
