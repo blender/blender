@@ -65,7 +65,7 @@ AUD_Specs AUD_EffectReader::getSpecs() const
 	return m_reader->getSpecs();
 }
 
-void AUD_EffectReader::read(int & length, sample_t* buffer)
+void AUD_EffectReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	m_reader->read(length, buffer);
+	m_reader->read(length, eos, buffer);
 }

@@ -107,7 +107,7 @@ public:
 
 	virtual ~AUD_BaseIIRFilterReader();
 
-	virtual void read(int & length, sample_t* buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 
 	virtual sample_t filter()=0;
 };

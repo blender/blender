@@ -71,18 +71,18 @@ AUD_Specs AUD_LinearResampleReader::getSpecs() const
 	return m_tspecs;
 }
 
-void AUD_LinearResampleReader::read(int & length, sample_t* buffer)
+void AUD_LinearResampleReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	int samplesize = AUD_SAMPLE_SIZE(m_tspecs);
-	int size = length * AUD_SAMPLE_SIZE(m_sspecs);
+	int size = length;
 
-	m_buffer.assureSize(size);
+	m_buffer.assureSize(size * AUD_SAMPLE_SIZE(m_sspecs));
 
 	int need = ceil((m_position + length) / m_factor) + 1 - m_sposition;
 	int len = need;
 	sample_t* buf = m_buffer.getBuffer();
 
-	m_reader->read(len, buf);
+	m_reader->read(len, eos, buf);
 
 	if(len < need)
 		length = floor((m_sposition + len - 1) * m_factor) - m_position;
@@ -123,4 +123,5 @@ void AUD_LinearResampleReader::read(int & length, sample_t* buffer)
 
 	m_sposition += len;
 	m_position += length;
+	eos &= length < size;
 }

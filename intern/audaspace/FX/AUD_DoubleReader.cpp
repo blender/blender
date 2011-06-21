@@ -89,29 +89,27 @@ AUD_Specs AUD_DoubleReader::getSpecs() const
 	return m_reader1->getSpecs();
 }
 
-void AUD_DoubleReader::read(int & length, sample_t* buffer)
+void AUD_DoubleReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	if(!m_finished1)
 	{
 		int len = length;
-		m_reader1->read(len, buffer);
+		m_reader1->read(len, m_finished1, buffer);
 
-		if(len < length)
+		if(m_finished1)
 		{
 			const AUD_Specs specs = m_reader1->getSpecs();
 
 			len = length - len;
 			length -= len;
 
-			m_reader2->read(len, buffer + length * specs.channels);
+			m_reader2->read(len, eos, buffer + length * specs.channels);
 
 			length += len;
-
-			m_finished1 = true;
 		}
 	}
 	else
 	{
-		m_reader2->read(length, buffer);
+		m_reader2->read(length, eos, buffer);
 	}
 }

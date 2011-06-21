@@ -342,13 +342,14 @@ void AUD_FFMPEGReader::seek(int position)
 							// read until we're at the right position
 							int length = AUD_DEFAULT_BUFFER_SIZE;
 							AUD_Buffer buffer(length * AUD_SAMPLE_SIZE(m_specs));
+							bool eos;
 							for(int len = position - m_position;
 								length == AUD_DEFAULT_BUFFER_SIZE;
 								len -= AUD_DEFAULT_BUFFER_SIZE)
 							{
 								if(len < AUD_DEFAULT_BUFFER_SIZE)
 									length = len;
-								read(length, buffer.getBuffer());
+								read(length, eos, buffer.getBuffer());
 							}
 						}
 					}
@@ -381,7 +382,7 @@ AUD_Specs AUD_FFMPEGReader::getSpecs() const
 	return m_specs.specs;
 }
 
-void AUD_FFMPEGReader::read(int & length, sample_t* buffer)
+void AUD_FFMPEGReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	// read packages and decode them
 	AVPacket packet;
@@ -431,7 +432,8 @@ void AUD_FFMPEGReader::read(int & length, sample_t* buffer)
 				pkgbuf_pos-data_size);
 	}
 
-	if(left > 0)
+	if(eos = (left > 0))
 		length -= left;
+
 	m_position += length;
 }

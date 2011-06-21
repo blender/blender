@@ -92,15 +92,15 @@ public:
 
 	/**
 	 * Request to read the next length samples out of the source.
-	 * The buffer for reading has to stay valid until the next call of this
-	 * method or until the reader is deleted.
+	 * The buffer supplied has the needed size.
 	 * \param[in,out] length The count of samples that should be read. Shall
 	 *                contain the real count of samples after reading, in case
 	 *                there were only fewer samples available.
 	 *                A smaller value also indicates the end of the reader.
-	 * \param[out] buffer The pointer to the buffer with the samples.
+	 * \param[out] eos End of stream, whether the end is reached or not.
+	 * \param[int] buffer The pointer to the buffer to read into.
 	 */
-	virtual void read(int & length, sample_t* buffer)=0;
+	virtual void read(int& length, bool& eos, sample_t* buffer)=0;
 };
 
 #endif //AUD_IREADER

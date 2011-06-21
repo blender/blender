@@ -66,7 +66,7 @@ public:
 	virtual void seek(int position);
 	virtual int getLength() const;
 	virtual int getPosition() const;
-	virtual void read(int & length, sample_t* buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_DELAYREADER

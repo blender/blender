@@ -70,7 +70,7 @@ struct AUD_OpenALHandle : AUD_Handle
 	int current;
 
 	/// Whether the stream doesn't return any more data.
-	bool data_end;
+	bool eos;
 
 	/// The loop count of the source.
 	int loopcount;
@@ -166,11 +166,11 @@ void AUD_OpenALDevice::updateStreams()
 						while(info--)
 						{
 							// if there's still data to play back
-							if(!sound->data_end)
+							if(!sound->eos)
 							{
 								// read data
 								length = m_buffersize;
-								sound->reader->read(length, m_buffer.getBuffer());
+								sound->reader->read(length, sound->eos, m_buffer.getBuffer());
 
 								// looping necessary?
 								if(length == 0 && sound->loopcount)
@@ -181,13 +181,15 @@ void AUD_OpenALDevice::updateStreams()
 									sound->reader->seek(0);
 
 									length = m_buffersize;
-									sound->reader->read(length, m_buffer.getBuffer());
+									sound->reader->read(length, sound->eos, m_buffer.getBuffer());
 								}
+
+								if(sound->loopcount != 0)
+									sound->eos = false;
 
 								// read nothing?
 								if(length == 0)
 								{
-									sound->data_end = true;
 									break;
 								}
 
@@ -197,7 +199,7 @@ void AUD_OpenALDevice::updateStreams()
 								ALenum err;
 								if((err = alGetError()) != AL_NO_ERROR)
 								{
-									sound->data_end = true;
+									sound->eos = true;
 									break;
 								}
 
@@ -210,7 +212,7 @@ void AUD_OpenALDevice::updateStreams()
 
 								if((err = alGetError()) != AL_NO_ERROR)
 								{
-									sound->data_end = true;
+									sound->eos = true;
 									break;
 								}
 
@@ -219,7 +221,7 @@ void AUD_OpenALDevice::updateStreams()
 												&sound->buffers[sound->current]);
 								if(alGetError() != AL_NO_ERROR)
 								{
-									sound->data_end = true;
+									sound->eos = true;
 									break;
 								}
 
@@ -238,7 +240,7 @@ void AUD_OpenALDevice::updateStreams()
 				if(info != AL_PLAYING)
 				{
 					// if it really stopped
-					if(sound->data_end)
+					if(sound->eos)
 					{
 						if(sound->stop)
 							sound->stop(sound->stop_data);
@@ -556,7 +558,6 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 	sound->reader = reader;
 	sound->current = 0;
 	sound->isBuffered = false;
-	sound->data_end = false;
 	sound->loopcount = 0;
 	sound->stop = NULL;
 	sound->stop_data = NULL;
@@ -587,7 +588,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 			for(int i = 0; i < AUD_OPENAL_CYCLE_BUFFERS; i++)
 			{
 				length = m_buffersize;
-				reader->read(length, m_buffer.getBuffer());
+				reader->read(length,sound->eos, m_buffer.getBuffer());
 				alBufferData(sound->buffers[i], sound->format, m_buffer.getBuffer(),
 							 length * AUD_DEVICE_SAMPLE_SIZE(specs),
 							 specs.rate);
@@ -658,7 +659,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_Reference<AUD_IFactory> factory, bool kee
 				sound->keep = keep;
 				sound->current = -1;
 				sound->isBuffered = true;
-				sound->data_end = true;
+				sound->eos = true;
 				sound->loopcount = 0;
 				sound->stop = NULL;
 				sound->stop_data = NULL;
@@ -862,7 +863,7 @@ bool AUD_OpenALDevice::seek(AUD_Handle* handle, float position)
 		{
 			alhandle->reader->seek((int)(position *
 										 alhandle->reader->getSpecs().rate));
-			alhandle->data_end = false;
+			alhandle->eos = false;
 
 			ALint info;
 
@@ -887,7 +888,7 @@ bool AUD_OpenALDevice::seek(AUD_Handle* handle, float position)
 					for(int i = 0; i < AUD_OPENAL_CYCLE_BUFFERS; i++)
 					{
 						length = m_buffersize;
-						alhandle->reader->read(length, m_buffer.getBuffer());
+						alhandle->reader->read(length, alhandle->eos, m_buffer.getBuffer());
 						alBufferData(alhandle->buffers[i], alhandle->format,
 									 m_buffer.getBuffer(),
 									 length * AUD_DEVICE_SAMPLE_SIZE(specs),
@@ -896,6 +897,9 @@ bool AUD_OpenALDevice::seek(AUD_Handle* handle, float position)
 						if(alGetError() != AL_NO_ERROR)
 							break;
 					}
+
+					if(alhandle->loopcount != 0)
+						alhandle->eos = false;
 
 					alSourceQueueBuffers(alhandle->source,
 										 AUD_OPENAL_CYCLE_BUFFERS,
@@ -1045,7 +1049,10 @@ bool AUD_OpenALDevice::setLoopCount(AUD_Handle* handle, int count)
 	lock();
 	bool result = isValid(handle);
 	if(result)
+	{
 		((AUD_OpenALHandle*)handle)->loopcount = count;
+		((AUD_OpenALHandle*)handle)->eos = false;
+	}
 	unlock();
 	return result;
 }

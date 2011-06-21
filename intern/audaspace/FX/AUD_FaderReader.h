@@ -72,7 +72,7 @@ public:
 	AUD_FaderReader(AUD_Reference<AUD_IReader> reader, AUD_FadeType type,
 					float start,float length);
 
-	virtual void read(int & length, sample_t* buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_FADERREADER

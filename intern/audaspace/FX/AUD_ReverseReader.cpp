@@ -60,7 +60,7 @@ int AUD_ReverseReader::getPosition() const
 	return m_position;
 }
 
-void AUD_ReverseReader::read(int & length, sample_t* buffer)
+void AUD_ReverseReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	// first correct the length
 	if(m_position + length > m_length)
@@ -69,6 +69,7 @@ void AUD_ReverseReader::read(int & length, sample_t* buffer)
 	if(length <= 0)
 	{
 		length = 0;
+		eos = true;
 		return;
 	}
 
@@ -81,7 +82,7 @@ void AUD_ReverseReader::read(int & length, sample_t* buffer)
 
 	// read from reader
 	m_reader->seek(m_length - m_position - len);
-	m_reader->read(len, buffer);
+	m_reader->read(len, eos, buffer);
 
 	// set null if reader didn't give enough data
 	if(len < length)
@@ -102,4 +103,5 @@ void AUD_ReverseReader::read(int & length, sample_t* buffer)
 	}
 
 	m_position += length;
+	eos = false;
 }

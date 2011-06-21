@@ -112,6 +112,7 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 		AUD_SoftwareHandle* sound;
 		int len;
 		int pos;
+		bool eos;
 		std::list<AUD_SoftwareHandle*> stopSounds;
 		sample_t* buf = m_buffer.getBuffer();
 
@@ -130,10 +131,10 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			pos = 0;
 			len = length;
 
-			sound->reader->read(len, buf);
+			sound->reader->read(len, eos, buf);
 
 			// in case of looping
-			while(pos + len < length && sound->loopcount)
+			while(pos + len < length && sound->loopcount && eos)
 			{
 				m_mixer->mix(buf, pos, len, sound->volume);
 
@@ -145,7 +146,7 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 				sound->reader->seek(0);
 
 				len = length - pos;
-				sound->reader->read(len, buf);
+				sound->reader->read(len, eos, buf);
 
 				// prevent endless loop
 				if(!len)
@@ -156,7 +157,7 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			pos += len;
 
 			// in case the end of the sound is reached
-			if(pos < length)
+			if(eos && !sound->loopcount)
 			{
 				if(sound->stop)
 					sound->stop(sound->stop_data);

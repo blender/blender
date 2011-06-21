@@ -804,13 +804,14 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 
 	int len;
 	int position = 0;
+	bool eos;
 	do
 	{
 		len = samplerate;
 		buffer.resize((position + len) * sizeof(float), true);
-		reader->read(len, buffer.getBuffer() + position);
+		reader->read(len, eos, buffer.getBuffer() + position);
 		position += len;
-	} while(len != 0);
+	} while(!eos);
 
 	float* result = (float*)malloc(position * sizeof(float));
 	memcpy(result, buffer.getBuffer(), position * sizeof(float));
@@ -903,6 +904,7 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 	int len = reader->getLength();
 	float samplejump = (float)len / (float)length;
 	float min, max;
+	bool eos;
 
 	for(int i = 0; i < length; i++)
 	{
@@ -914,9 +916,9 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 			buf = aBuffer.getBuffer();
 		}
 
-		reader->read(len, buf);
+		reader->read(len, eos, buf);
 
-		if(len < 1)
+		if(eos)
 		{
 			length = i;
 			break;

@@ -161,9 +161,13 @@ AUD_Specs AUD_SndFileReader::getSpecs() const
 	return m_specs;
 }
 
-void AUD_SndFileReader::read(int & length, sample_t* buffer)
+void AUD_SndFileReader::read(int& length, bool& eos, sample_t* buffer)
 {
+	int olen = length;
+
 	length = sf_readf_float(m_sndfile, buffer, length);
 
 	m_position += length;
+
+	eos = length < olen;
 }

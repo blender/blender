@@ -82,7 +82,7 @@ AUD_Specs AUD_SuperposeReader::getSpecs() const
 	return m_reader1->getSpecs();
 }
 
-void AUD_SuperposeReader::read(int & length, sample_t* buffer)
+void AUD_SuperposeReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	AUD_Specs specs = m_reader1->getSpecs();
 	int samplesize = AUD_SAMPLE_SIZE(specs);
@@ -90,17 +90,19 @@ void AUD_SuperposeReader::read(int & length, sample_t* buffer)
 	m_buffer.assureSize(length * samplesize);
 
 	int len1 = length;
-	m_reader1->read(len1, buffer);
+	m_reader1->read(len1, eos, buffer);
 
 	if(len1 < length)
 		memset(buffer + len1 * specs.channels, 0, (length - len1) * samplesize);
 
 	int len2 = length;
+	bool eos2;
 	sample_t* buf = m_buffer.getBuffer();
-	m_reader2->read(len2, buf);
+	m_reader2->read(len2, eos2, buf);
 
 	for(int i = 0; i < len2 * specs.channels; i++)
 		buffer[i] += buf[i];
 
 	length = AUD_MAX(len1, len2);
+	eos &= eos2;
 }

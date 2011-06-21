@@ -42,13 +42,13 @@ AUD_FaderReader::AUD_FaderReader(AUD_Reference<AUD_IReader> reader, AUD_FadeType
 {
 }
 
-void AUD_FaderReader::read(int & length, sample_t* buffer)
+void AUD_FaderReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	int position = m_reader->getPosition();
 	AUD_Specs specs = m_reader->getSpecs();
 	int samplesize = AUD_SAMPLE_SIZE(specs);
 
-	m_reader->read(length, buffer);
+	m_reader->read(length, eos, buffer);
 
 	if((position + length) / (float)specs.rate <= m_start)
 	{

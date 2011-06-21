@@ -66,8 +66,9 @@ AUD_Specs AUD_SilenceReader::getSpecs() const
 	return specs;
 }
 
-void AUD_SilenceReader::read(int & length, sample_t* buffer)
+void AUD_SilenceReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	memset(buffer, 0, length * sizeof(sample_t));
 	m_position += length;
+	eos = false;
 }

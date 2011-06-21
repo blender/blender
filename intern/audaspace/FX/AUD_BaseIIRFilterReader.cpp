@@ -55,9 +55,9 @@ AUD_BaseIIRFilterReader::~AUD_BaseIIRFilterReader()
 	delete[] m_y;
 }
 
-void AUD_BaseIIRFilterReader::read(int & length, sample_t* buffer)
+void AUD_BaseIIRFilterReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	m_reader->read(length, buffer);
+	m_reader->read(length, eos, buffer);
 
 	for(m_channel = 0; m_channel < m_channels; m_channel++)
 	{

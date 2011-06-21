@@ -49,13 +49,15 @@ AUD_LimiterReader::AUD_LimiterReader(AUD_Reference<AUD_IReader> reader,
 			// skip first m_start samples by reading them
 			int length = AUD_DEFAULT_BUFFER_SIZE;
 			AUD_Buffer buffer(AUD_DEFAULT_BUFFER_SIZE * AUD_SAMPLE_SIZE(m_reader->getSpecs()));
+			bool eos = false;
 			for(int len = m_start;
-				length == AUD_DEFAULT_BUFFER_SIZE;
+				length == AUD_DEFAULT_BUFFER_SIZE && !eos;
 				len -= AUD_DEFAULT_BUFFER_SIZE)
 			{
 				if(len < AUD_DEFAULT_BUFFER_SIZE)
 					length = len;
-				m_reader->read(length, buffer.getBuffer());
+
+				m_reader->read(length, eos, buffer.getBuffer());
 			}
 		}
 	}
@@ -80,18 +82,50 @@ int AUD_LimiterReader::getPosition() const
 	return AUD_MIN(pos, m_end) - m_start;
 }
 
-void AUD_LimiterReader::read(int & length, sample_t* buffer)
+void AUD_LimiterReader::read(int& length, bool& eos, sample_t* buffer)
 {
+	eos = false;
 	if(m_end >= 0)
 	{
 		int position = m_reader->getPosition();
 		if(position + length > m_end)
+		{
 			length = m_end - position;
+			eos = true;
+		}
+
+		if(position < m_start)
+		{
+			int len2 = length;
+			for(int len = m_start - position;
+				len2 == length && !eos;
+				len -= length)
+			{
+				if(len < length)
+					len2 = len;
+
+				m_reader->read(len2, eos, buffer);
+				position += len2;
+			}
+
+			if(position < m_start)
+			{
+				length = 0;
+				return;
+			}
+		}
+
 		if(length < 0)
 		{
 			length = 0;
 			return;
 		}
 	}
-	m_reader->read(length, buffer);
+	if(eos)
+	{
+		m_reader->read(length, eos, buffer);
+		eos = true;
+	}
+	else
+		m_reader->read(length, eos, buffer);
 }

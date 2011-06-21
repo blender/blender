@@ -69,7 +69,7 @@ int AUD_DelayReader::getPosition() const
 	return m_reader->getPosition() + m_delay;
 }
 
-void AUD_DelayReader::read(int & length, sample_t* buffer)
+void AUD_DelayReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	if(m_remdelay > 0)
 	{
@@ -81,10 +81,9 @@ void AUD_DelayReader::read(int & length, sample_t* buffer)
 			memset(buffer, 0, m_remdelay * samplesize);
 
 			int len = length - m_remdelay;
-			m_reader->read(len, buffer + m_remdelay * specs.channels);
+			m_reader->read(len, eos, buffer + m_remdelay * specs.channels);
 
-			if(len < length-m_remdelay)
-				length = m_remdelay + len;
+			length = m_remdelay + len;
 
 			m_remdelay = 0;
 		}
@@ -95,5 +94,5 @@ void AUD_DelayReader::read(int & length, sample_t* buffer)
 		}
 	}
 	else
-		m_reader->read(length, buffer);
+		m_reader->read(length, eos, buffer);
 }

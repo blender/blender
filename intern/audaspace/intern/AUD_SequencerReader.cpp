@@ -113,7 +113,7 @@ AUD_Specs AUD_SequencerReader::getSpecs() const
 	return m_mixer->getSpecs().specs;
 }
 
-void AUD_SequencerReader::read(int & length, sample_t* buffer)
+void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	AUD_DeviceSpecs specs = m_mixer->getSpecs();
 	int rate = specs.rate;
@@ -171,7 +171,7 @@ void AUD_SequencerReader::read(int & length, sample_t* buffer)
 							len -= skip;
 							if(strip->reader->getPosition() != current)
 								strip->reader->seek(current);
-							strip->reader->read(len, m_buffer.getBuffer());
+							strip->reader->read(len, eos, m_buffer.getBuffer());
 							m_mixer->mix(m_buffer.getBuffer(), skip, len, m_volume(m_data, strip->entry->data, (float)m_position / (float)rate));
 						}
 					}
@@ -183,4 +183,6 @@ void AUD_SequencerReader::read(int & length, sample_t* buffer)
 	m_mixer->read((data_t*)buffer, 1.0f);
 
 	m_position += length;
+
+	eos = false;
 }

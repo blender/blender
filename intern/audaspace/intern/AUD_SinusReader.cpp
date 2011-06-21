@@ -72,7 +72,7 @@ AUD_Specs AUD_SinusReader::getSpecs() const
 	return specs;
 }
 
-void AUD_SinusReader::read(int & length, sample_t* buffer)
+void AUD_SinusReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	// fill with sine data
 	for(int i = 0; i < length; i++)
@@ -82,4 +82,5 @@ void AUD_SinusReader::read(int & length, sample_t* buffer)
 	}
 
 	m_position += length;
+	eos = false;
 }

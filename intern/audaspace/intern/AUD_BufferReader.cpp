@@ -66,7 +66,7 @@ AUD_Specs AUD_BufferReader::getSpecs() const
 	return m_specs;
 }
 
-void AUD_BufferReader::read(int & length, sample_t* buffer)
+void AUD_BufferReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	int sample_size = AUD_SAMPLE_SIZE(m_specs);
 
@@ -74,7 +74,10 @@ void AUD_BufferReader::read(int & length, sample_t* buffer)
 
 	// in case the end of the buffer is reached
 	if(m_buffer->getSize() < (m_position + length) * sample_size)
+	{
 		length = m_buffer->getSize() / sample_size - m_position;
+		eos = true;
+	}
 
 	if(length < 0)
 	{

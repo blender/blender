@@ -75,13 +75,13 @@ AUD_Specs AUD_ConverterReader::getSpecs() const
 	return m_specs.specs;
 }
 
-void AUD_ConverterReader::read(int & length, sample_t* buffer)
+void AUD_ConverterReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	int samplesize = AUD_SAMPLE_SIZE(m_reader->getSpecs());
 
 	m_buffer.assureSize(length * samplesize);
 
-	m_reader->read(length, m_buffer.getBuffer());
+	m_reader->read(length, eos, m_buffer.getBuffer());
 
 	m_convert((data_t*)buffer, (data_t*)m_buffer.getBuffer(),
 			  length * m_specs.channels);

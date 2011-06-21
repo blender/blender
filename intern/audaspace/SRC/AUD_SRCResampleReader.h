@@ -73,6 +73,11 @@ private:
 	 */
 	int m_position;
 
+	/**
+	 * Whether reader reached end of stream.
+	 */
+	bool m_eos;
+
 	// hide copy constructor and operator=
 	AUD_SRCResampleReader(const AUD_SRCResampleReader&);
 	AUD_SRCResampleReader& operator=(const AUD_SRCResampleReader&);
@@ -104,7 +109,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_SRCRESAMPLEREADER

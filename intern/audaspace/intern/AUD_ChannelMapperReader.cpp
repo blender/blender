@@ -76,13 +76,13 @@ AUD_Specs AUD_ChannelMapperReader::getSpecs() const
 	return m_specs;
 }
 
-void AUD_ChannelMapperReader::read(int & length, sample_t* buffer)
+void AUD_ChannelMapperReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	m_buffer.assureSize(length * m_rch * sizeof(sample_t));
 
 	sample_t* in = m_buffer.getBuffer();
 
-	m_reader->read(length, in);
+	m_reader->read(length, eos, in);
 
 	sample_t sum;
 
