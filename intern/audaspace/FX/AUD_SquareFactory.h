@@ -33,6 +33,7 @@
 #define AUD_SQUAREFACTORY
 
 #include "AUD_EffectFactory.h"
+class AUD_CallbackIIRFilterReader;
 
 /**
  * This factory Transforms any signal to a square signal.
@@ -63,6 +64,9 @@ public:
 	float getThreshold() const;
 
 	virtual AUD_Reference<AUD_IReader> createReader();
+
+	static sample_t squareFilter(AUD_CallbackIIRFilterReader* reader, float* threshold);
+	static void endSquareFilter(float* threshold);
 };
 
 #endif //AUD_SQUAREFACTORY

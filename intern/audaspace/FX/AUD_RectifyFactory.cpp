@@ -34,7 +34,7 @@
 
 #include <cmath>
 
-sample_t rectifyFilter(AUD_CallbackIIRFilterReader* reader, void* useless)
+sample_t AUD_RectifyFactory::rectifyFilter(AUD_CallbackIIRFilterReader* reader, void* useless)
 {
 	return fabs(reader->x(0));
 }

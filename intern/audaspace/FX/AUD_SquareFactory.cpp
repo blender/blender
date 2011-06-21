@@ -32,7 +32,7 @@
 #include "AUD_SquareFactory.h"
 #include "AUD_CallbackIIRFilterReader.h"
 
-sample_t squareFilter(AUD_CallbackIIRFilterReader* reader, float* threshold)
+sample_t AUD_SquareFactory::squareFilter(AUD_CallbackIIRFilterReader* reader, float* threshold)
 {
 	float in = reader->x(0);
 	if(in >= *threshold)
@@ -43,7 +43,7 @@ sample_t squareFilter(AUD_CallbackIIRFilterReader* reader, float* threshold)
 		return 0;
 }
 
-void endSquareFilter(float* threshold)
+void AUD_SquareFactory::endSquareFilter(float* threshold)
 {
 	delete threshold;
 }

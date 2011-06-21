@@ -33,6 +33,7 @@
 #define AUD_ACCUMULATORFACTORY
 
 #include "AUD_EffectFactory.h"
+class AUD_CallbackIIRFilterReader;
 
 /**
  * This factory creates an accumulator reader.
@@ -58,6 +59,9 @@ public:
 	AUD_AccumulatorFactory(AUD_Reference<AUD_IFactory> factory, bool additive = false);
 
 	virtual AUD_Reference<AUD_IReader> createReader();
+
+	static sample_t accumulatorFilterAdditive(AUD_CallbackIIRFilterReader* reader, void* useless);
+	static sample_t accumulatorFilter(AUD_CallbackIIRFilterReader* reader, void* useless);
 };
 
 #endif //AUD_ACCUMULATORFACTORY

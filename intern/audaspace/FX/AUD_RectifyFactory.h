@@ -33,6 +33,7 @@
 #define AUD_RECTIFYFACTORY
 
 #include "AUD_EffectFactory.h"
+class AUD_CallbackIIRFilterReader;
 
 /**
  * This factory rectifies another factory.
@@ -52,6 +53,8 @@ public:
 	AUD_RectifyFactory(AUD_Reference<AUD_IFactory> factory);
 
 	virtual AUD_Reference<AUD_IReader> createReader();
+
+	static sample_t rectifyFilter(AUD_CallbackIIRFilterReader* reader, void* useless);
 };
 
 #endif //AUD_RECTIFYFACTORY

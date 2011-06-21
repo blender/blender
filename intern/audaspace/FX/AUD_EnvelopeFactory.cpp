@@ -42,7 +42,7 @@ struct EnvelopeParameters
 	float arthreshold;
 };
 
-sample_t envelopeFilter(AUD_CallbackIIRFilterReader* reader, EnvelopeParameters* param)
+sample_t AUD_EnvelopeFactory::envelopeFilter(AUD_CallbackIIRFilterReader* reader, EnvelopeParameters* param)
 {
 	float in = fabs(reader->x(0));
 	float out = reader->y(-1);
@@ -51,7 +51,7 @@ sample_t envelopeFilter(AUD_CallbackIIRFilterReader* reader, EnvelopeParameters*
 	return (in > out ? param->attack : param->release) * (out - in) + in;
 }
 
-void endEnvelopeFilter(EnvelopeParameters* param)
+void AUD_EnvelopeFactory::endEnvelopeFilter(EnvelopeParameters* param)
 {
 	delete param;
 }

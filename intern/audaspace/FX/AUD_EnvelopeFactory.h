@@ -33,6 +33,8 @@
 #define AUD_ENVELOPEFACTORY
 
 #include "AUD_EffectFactory.h"
+class AUD_CallbackIIRFilterReader;
+struct EnvelopeParameters;
 
 /**
  * This factory creates an envelope follower reader.
@@ -77,6 +79,9 @@ public:
 						float threshold, float arthreshold);
 
 	virtual AUD_Reference<AUD_IReader> createReader();
+
+	static sample_t envelopeFilter(AUD_CallbackIIRFilterReader* reader, EnvelopeParameters* param);
+	static void endEnvelopeFilter(EnvelopeParameters* param);
 };
 
 #endif //AUD_ENVELOPEFACTORY
