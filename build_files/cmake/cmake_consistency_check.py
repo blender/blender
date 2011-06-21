@@ -32,7 +32,7 @@ IGNORE = (
     "/decimation/intern/future/",
     "/TerraplayNetwork/",
     "/ik_glut_test/",
-    
+
     # specific source files
     "extern/Eigen2/Eigen/src/Cholesky/CholeskyInstantiations.cpp",
     "extern/Eigen2/Eigen/src/Core/CoreInstantiations.cpp",
@@ -65,10 +65,7 @@ IGNORE = (
     "extern/eltopo/common/meshes/meshloader.h",
     "extern/eltopo/eltopo3d/broadphase_blenderbvh.h"
     )
-    
-    
 
-    
 
 import os
 from os.path import join, dirname, normpath, abspath, splitext
