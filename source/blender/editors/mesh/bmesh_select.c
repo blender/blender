@@ -2080,7 +2080,7 @@ static int select_non_manifold_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (!BM_TestHFlag(em->bm, BM_HIDDEN) && BM_Nonmanifold_Edge(em->bm, e))
+		if (!BM_TestHFlag(em->bm, BM_HIDDEN) && BM_Edge_FaceCount(e) != 2)
 			BM_Select(em->bm, e, 1);
 	}
 
