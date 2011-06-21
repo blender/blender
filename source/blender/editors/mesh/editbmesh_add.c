@@ -145,6 +145,8 @@ static void make_prim_finish(bContext *C, int *state, int enter_editmode)
 {
 	Object *obedit = CTX_data_edit_object(C);
 
+	EDBM_selectmode_flush(((Mesh*)obedit->data)->edit_btmesh);
+
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
