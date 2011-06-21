@@ -964,7 +964,8 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	
 	View2D *v2d= &ar->v2d;
 	float y= 0.0f, height;
-	int items, i=0;
+	size_t items;
+	int i=0;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);

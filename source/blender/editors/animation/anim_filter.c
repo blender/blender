@@ -349,7 +349,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
  *	- ListBase anim_data;
  *	- bDopeSheet *ads;
  *	- bAnimListElem *ale;
- * 	- int items;
+ * 	- size_t items;
  *
  * 	- id: ID block which should have an AnimData pointer following it immediately, to use
  *	- adtOk: line or block of code to execute for AnimData-blocks case (usually ANIMDATA_ADD_ANIMDATA)
@@ -756,7 +756,7 @@ static bAnimListElem *make_new_animlistelem (void *data, short datatype, ID *own
 /* 'Only Selected' selected data filtering
  * NOTE: when this function returns true, the F-Curve is to be skipped 
  */
-static int skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
+static size_t skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
 {
 	if (GS(owner_id->name) == ID_OB) {
 		Object *ob= (Object *)owner_id;
@@ -906,10 +906,10 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 	return NULL;
 }
 
-static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
+static size_t animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
 {
 	FCurve *fcu;
-	int items = 0;
+	size_t items = 0;
 	
 	/* loop over every F-Curve able to be included 
 	 *	- this for-loop works like this: 
@@ -934,12 +934,12 @@ static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve
 	return items;
 }
 
-static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAction *act, int filter_mode, ID *owner_id)
+static size_t animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAction *act, int filter_mode, ID *owner_id)
 {
 	bAnimListElem *ale=NULL;
 	bActionGroup *agrp;
 	FCurve *lastchan=NULL;
-	int items = 0;
+	size_t items = 0;
 	
 	/* don't include anything from this action if it is linked in from another file,
 	 * and we're getting stuff for editing...
@@ -1061,12 +1061,12 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
  *	- for normal filtering (i.e. for editing), we only need the NLA-tracks but they can be in 'normal' evaluation
  *	  order, i.e. first to last. Otherwise, some tools may get screwed up.
  */
-static int animdata_filter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDopeSheet *UNUSED(ads), AnimData *adt, int filter_mode, ID *owner_id)
+static size_t animdata_filter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDopeSheet *UNUSED(ads), AnimData *adt, int filter_mode, ID *owner_id)
 {
 	bAnimListElem *ale;
 	NlaTrack *nlt;
 	NlaTrack *first=NULL, *next=NULL;
-	int items = 0;
+	size_t items = 0;
 	
 	/* if showing channels, include active action */
 	if (filter_mode & ANIMFILTER_CHANNELS) {
@@ -1131,10 +1131,10 @@ static int animdata_filter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, b
 }
 
 /* Include ShapeKey Data for ShapeKey Editor */
-static int animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, Key *key, int filter_mode)
+static size_t animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, Key *key, int filter_mode)
 {
 	bAnimListElem *ale;
-	int items = 0;
+	size_t items = 0;
 	
 	/* check if channels or only F-Curves */
 	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
@@ -1180,12 +1180,12 @@ static int animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, Key 
 
 /* Grab all Grase Pencil datablocks in file */
 // TODO: should this be amalgamated with the dopesheet filtering code?
-static int animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int filter_mode)
+static size_t animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int filter_mode)
 {
 	bAnimListElem *ale;
 	bGPdata *gpd;
 	bGPDlayer *gpl;
-	int items = 0;
+	size_t items = 0;
 	
 	/* check if filtering types are appropriate */
 	if (!(filter_mode & (ANIMFILTER_ACTGROUPED|ANIMFILTER_CURVESONLY)))
@@ -1232,12 +1232,12 @@ static int animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int
 }
 
 /* NOTE: owner_id is either material, lamp, or world block, which is the direct owner of the texture stack in question */
-static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, int filter_mode)
+static size_t animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, int filter_mode)
 {
-	MTex **mtex = NULL;
-	
 	bAnimListElem *ale=NULL;
-	int items=0, a=0;
+	MTex **mtex = NULL;
+	size_t items=0;
+	int a=0;
 	
 	/* get datatype specific data first */
 	if (owner_id == NULL)
@@ -1317,11 +1317,11 @@ static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data
 	return items;
 }
 
-static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
+static size_t animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
-	Object *ob= base->object;
-	int items=0, a=0;
+	size_t items=0;
+	int a=0;
 	
 	/* firstly check that we actuallly have some materials, by gathering all materials in a temp list */
 	for (a=1; a <= ob->totcol; a++) {
@@ -1392,12 +1392,11 @@ static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data
 	return items;
 }
 
-static int animdata_filter_dopesheet_particles (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
+static size_t animdata_filter_dopesheet_particles (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
-	Object *ob= base->object;
 	ParticleSystem *psys = ob->particlesystem.first;
-	int items= 0;
+	size_t items= 0;
 
 	for(; psys; psys=psys->next) {
 		short ok = 0;
@@ -1437,14 +1436,13 @@ static int animdata_filter_dopesheet_particles (bAnimContext *ac, ListBase *anim
 	return items;
 }
 
-static int animdata_filter_dopesheet_obdata (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
+static size_t animdata_filter_dopesheet_obdata (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
-	Object *ob= base->object;
 	IdAdtTemplate *iat= ob->data;
 	AnimData *adt= iat->adt;
 	short type=0, expanded=0;
-	int items= 0;
+	size_t items= 0;
 	
 	/* get settings based on data type */
 	switch (ob->type) {
@@ -1509,7 +1507,7 @@ static int animdata_filter_dopesheet_obdata (bAnimContext *ac, ListBase *anim_da
 	}
 	
 	/* include data-expand widget? */
-	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {	
+	if ((filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) == 0) {	
 		/* check if filtering by active status */
 		if ANIMCHANNEL_ACTIVEOK(iat) {
 			ale= make_new_animlistelem(iat, type, (ID *)iat);
@@ -1542,14 +1540,14 @@ static int animdata_filter_dopesheet_obdata (bAnimContext *ac, ListBase *anim_da
 	return items;
 }
 
-static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
+static size_t animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
 	AnimData *adt = NULL;
 	Object *ob= base->object;
 	Key *key= ob_get_key(ob);
 	short obdata_ok = 0;
-	int items = 0;
+	size_t items = 0;
 	
 	/* add this object as a channel first */
 	if ((filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) == 0) {
@@ -1674,7 +1672,7 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 
 	/* Materials? */
 	if ((ob->totcol) && !(ads->filterflag & ADS_FILTER_NOMAT))
-		items += animdata_filter_dopesheet_mats(ac, anim_data, ads, base, filter_mode);
+		items += animdata_filter_dopesheet_mats(ac, anim_data, ads, ob, filter_mode);
 	
 	/* Object Data */
 	switch (ob->type) {
@@ -1773,23 +1771,23 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 			break;
 	}
 	if (obdata_ok) 
-		items += animdata_filter_dopesheet_obdata(ac, anim_data, ads, base, filter_mode);
+		items += animdata_filter_dopesheet_obdata(ac, anim_data, ads, ob, filter_mode);
 
 	/* particles */
 	if (ob->particlesystem.first && !(ads->filterflag & ADS_FILTER_NOPART))
-		items += animdata_filter_dopesheet_particles(ac, anim_data, ads, base, filter_mode);
+		items += animdata_filter_dopesheet_particles(ac, anim_data, ads, ob, filter_mode);
 	
 	/* return the number of items added to the list */
 	return items;
 }	
 
-static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
+static size_t animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
 {
 	World *wo= sce->world;
 	bNodeTree *ntree= sce->nodetree;
 	AnimData *adt= NULL;
 	bAnimListElem *ale;
-	int items = 0;
+	size_t items = 0;
 	
 	/* add scene as a channel first (even if we aren't showing scenes we still need to show the scene's sub-data */
 	if ((filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) == 0) {
@@ -1951,12 +1949,12 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 }
 
 // TODO: implement pinning... (if and when pinning is done, what we need to do is to provide freeing mechanisms - to protect against data that was deleted)
-static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, int filter_mode)
+static size_t animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, int filter_mode)
 {
 	Scene *sce= (Scene *)ads->source;
 	Base *base;
 	bAnimListElem *ale;
-	int items = 0;
+	size_t items = 0;
 	
 	/* check that we do indeed have a scene */
 	if ((ads->source == NULL) || (GS(ads->source->name)!=ID_SCE)) {
@@ -2348,7 +2346,7 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 /* Summary track for DopeSheet/Action Editor 
  * 	- return code is whether the summary lets the other channels get drawn
  */
-static short animdata_filter_dopesheet_summary (bAnimContext *ac, ListBase *anim_data, int filter_mode, int *items)
+static short animdata_filter_dopesheet_summary (bAnimContext *ac, ListBase *anim_data, int filter_mode, size_t *items)
 {
 	bDopeSheet *ads = NULL;
 	
@@ -2392,10 +2390,10 @@ static short animdata_filter_dopesheet_summary (bAnimContext *ac, ListBase *anim
 /* ----------- Cleanup API --------------- */
 
 /* Remove entries with invalid types in animation channel list */
-static int animdata_filter_remove_invalid (ListBase *anim_data)
+static size_t animdata_filter_remove_invalid (ListBase *anim_data)
 {
 	bAnimListElem *ale, *next;
-	int items = 0;
+	size_t items = 0;
 	
 	/* only keep entries with valid types */
 	for (ale= anim_data->first; ale; ale= next) {
@@ -2411,11 +2409,11 @@ static int animdata_filter_remove_invalid (ListBase *anim_data)
 }
 
 /* Remove duplicate entries in animation channel list */
-static int animdata_filter_remove_duplis (ListBase *anim_data)
+static size_t animdata_filter_remove_duplis (ListBase *anim_data)
 {
 	bAnimListElem *ale, *next;
 	GHash *gh;
-	int items = 0;
+	size_t items = 0;
 	
 	/* build new hashtable to efficiently store and retrieve which entries have been 
 	 * encountered already while searching
@@ -2457,9 +2455,9 @@ static int animdata_filter_remove_duplis (ListBase *anim_data)
  *		will be placed for use.
  *	filter_mode: how should the data be filtered - bitmapping accessed flags
  */
-int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype)
+size_t ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype)
 {
-	int items = 0;
+	size_t items = 0;
 	
 	/* only filter data if there's somewhere to put it */
 	if (data && anim_data) {

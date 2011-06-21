@@ -70,7 +70,7 @@ bAnimListElem *get_active_fcurve_channel (bAnimContext *ac)
 {
 	ListBase anim_data = {NULL, NULL};
 	int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE | ANIMFILTER_CURVESONLY);
-	int items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* We take the first F-Curve only, since some other ones may have had 'active' flag set
 	 * if they were from linked data.
@@ -99,7 +99,8 @@ int graphop_visible_keyframes_poll (bContext *C)
 	bAnimListElem *ale;
 	ListBase anim_data = {NULL, NULL};
 	ScrArea *sa= CTX_wm_area(C);
-	int filter, items;
+	size_t items;
+	int filter;
 	short found = 0;
 	
 	/* firstly, check if in Graph Editor */
@@ -147,7 +148,8 @@ int graphop_editable_keyframes_poll (bContext *C)
 	bAnimListElem *ale;
 	ListBase anim_data = {NULL, NULL};
 	ScrArea *sa= CTX_wm_area(C);
-	int filter, items;
+	size_t items;
+	int filter;
 	short found = 0;
 	
 	/* firstly, check if in Graph Editor */
@@ -230,7 +232,8 @@ int graphop_selected_fcurve_poll (bContext *C)
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
 	ScrArea *sa= CTX_wm_area(C);
-	int filter, items;
+	size_t items;
+	int filter;
 	
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?

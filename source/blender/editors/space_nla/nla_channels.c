@@ -81,13 +81,14 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	
 	View2D *v2d= &ac->ar->v2d;
 	int notifierFlags = 0;
 	
 	/* get the channel that was clicked on */
 		/* filter channels */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
-	filter= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 		/* get channel from index */
 	ale= BLI_findlink(&anim_data, channel_index);

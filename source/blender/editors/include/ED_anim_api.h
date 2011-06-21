@@ -299,7 +299,7 @@ typedef enum eAnimFilter_Flags {
 /* Obtain list of filtered Animation channels to operate on.
  * Returns the number of channels in the list
  */
-int ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype);
+size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype);
 
 /* Obtain current anim-data context from Blender Context info.
  * Returns whether the operation was successful. 

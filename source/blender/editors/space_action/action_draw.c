@@ -77,7 +77,8 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	
 	View2D *v2d= &ar->v2d;
 	float y= 0.0f;
-	int items, height;
+	size_t items;
+	int height;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
@@ -166,7 +167,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	AnimData *adt= NULL;
 	
 	float act_start, act_end, y;
-	int height, items;
+	size_t items;
+	int height;
 	
 	unsigned char col1[3], col2[3];
 	unsigned char col1a[3], col2a[3];

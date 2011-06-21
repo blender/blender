@@ -470,7 +470,8 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	
 	View2D *v2d= &ar->v2d;
 	float y= 0.0f;
-	int items, height;
+	size_t items;
+	int height;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
@@ -828,7 +829,8 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 	
 	View2D *v2d= &ar->v2d;
 	float y= 0.0f;
-	int items, height;
+	size_t items;
+	int height;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);

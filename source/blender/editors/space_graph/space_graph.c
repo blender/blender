@@ -513,8 +513,9 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	if (ANIM_animdata_get_context(C, &ac)) {
 		ListBase anim_data = {NULL, NULL};
 		bAnimListElem *ale;
+		size_t items;
 		int filter;
-		int items, i;
+		int i;
 		
 		/* build list of F-Curves which will be visible as channels in channel-region
 		 * 	- we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a 

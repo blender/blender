@@ -250,7 +250,8 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter, items;
+	size_t items;
+	int filter;
 
 	bAction *act;
 
