@@ -42,19 +42,14 @@ class AUD_LinearResampleReader : public AUD_EffectReader
 {
 private:
 	/**
-	 * The sample specification of the source.
-	 */
-	const AUD_Specs m_sspecs;
-
-	/**
-	 * The resampling factor.
-	 */
-	const float m_factor;
-
-	/**
 	 * The target specification.
 	 */
-	AUD_Specs m_tspecs;
+	AUD_SampleRate m_rate;
+
+	/**
+	 * The reader channels.
+	 */
+	AUD_Channels m_channels;
 
 	/**
 	 * The current position.
@@ -62,9 +57,9 @@ private:
 	int m_position;
 
 	/**
-	 * The current reading source position.
+	 * The position in the cache.
 	 */
-	int m_sposition;
+	float m_cache_pos;
 
 	/**
 	 * The sound output buffer.
@@ -75,6 +70,11 @@ private:
 	 * The input caching buffer.
 	 */
 	AUD_Buffer m_cache;
+
+	/**
+	 * Whether the cache contains valid data.
+	 */
+	bool m_cache_ok;
 
 	// hide copy constructor and operator=
 	AUD_LinearResampleReader(const AUD_LinearResampleReader&);

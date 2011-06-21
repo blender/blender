@@ -40,10 +40,5 @@ AUD_LinearResampleFactory::AUD_LinearResampleFactory(AUD_Reference<AUD_IFactory>
 
 AUD_Reference<AUD_IReader> AUD_LinearResampleFactory::createReader()
 {
-	AUD_Reference<AUD_IReader> reader = getReader();
-
-	if(reader->getSpecs().rate != m_specs.rate)
-		reader = new AUD_LinearResampleReader(reader, m_specs.specs);
-
-	return reader;
+	return new AUD_LinearResampleReader(getReader(), m_specs.specs);
 }

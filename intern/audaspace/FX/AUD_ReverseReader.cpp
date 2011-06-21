@@ -76,7 +76,7 @@ void AUD_ReverseReader::read(int& length, bool& eos, sample_t* buffer)
 	const AUD_Specs specs = getSpecs();
 	const int samplesize = AUD_SAMPLE_SIZE(specs);
 
-	sample_t temp[10];
+	sample_t temp[AUD_CHANNEL_MAX];
 
 	int len = length;
 

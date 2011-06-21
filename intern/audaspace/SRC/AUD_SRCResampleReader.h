@@ -44,24 +44,19 @@ class AUD_SRCResampleReader : public AUD_EffectReader
 {
 private:
 	/**
-	 * The sample specification of the source.
-	 */
-	const AUD_Specs m_sspecs;
-
-	/**
-	 * The resampling factor.
-	 */
-	const double m_factor;
-
-	/**
 	 * The sound output buffer.
 	 */
 	AUD_Buffer m_buffer;
 
 	/**
-	 * The target specification.
+	 * The target sampling rate.
 	 */
-	AUD_Specs m_tspecs;
+	AUD_SampleRate m_rate;
+
+	/**
+	 * The reader channels.
+	 */
+	AUD_Channels m_channels;
 
 	/**
 	 * The src state structure.

@@ -40,10 +40,5 @@ AUD_SRCResampleFactory::AUD_SRCResampleFactory(AUD_Reference<AUD_IFactory> facto
 
 AUD_Reference<AUD_IReader> AUD_SRCResampleFactory::createReader()
 {
-	AUD_Reference<AUD_IReader> reader = getReader();
-
-	if(reader->getSpecs().rate != m_specs.rate)
-		reader = new AUD_SRCResampleReader(reader, m_specs.specs);
-
-	return reader;
+	return new AUD_SRCResampleReader(getReader(), m_specs.specs);
 }

@@ -46,17 +46,14 @@ static const char* state_error = "AUD_SRCResampleReader: SRC State couldn't be "
 AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_Reference<AUD_IReader> reader,
 											 AUD_Specs specs) :
 		AUD_EffectReader(reader),
-		m_sspecs(reader->getSpecs()),
-		m_factor(double(specs.rate) / double(m_sspecs.rate)),
-		m_tspecs(specs),
+		m_rate(specs.rate),
+		m_channels(reader->getSpecs().channels),
 		m_position(0)
 {
-	m_tspecs.channels = m_sspecs.channels;
-
 	int error;
 	m_src = src_callback_new(src_callback,
 							 SRC_SINC_MEDIUM_QUALITY,
-							 m_sspecs.channels,
+							 m_channels,
 							 &error,
 							 this);
 
@@ -74,7 +71,11 @@ AUD_SRCResampleReader::~AUD_SRCResampleReader()
 
 long AUD_SRCResampleReader::doCallback(float** data)
 {
-	int length = m_buffer.getSize() / AUD_SAMPLE_SIZE(m_tspecs);
+	AUD_Specs specs;
+	specs.channels = m_channels;
+	specs.rate = m_rate;
+
+	int length = m_buffer.getSize() / AUD_SAMPLE_SIZE(specs);
 
 	*data = m_buffer.getBuffer();
 	m_reader->read(length, m_eos, *data);
@@ -84,14 +85,18 @@ long AUD_SRCResampleReader::doCallback(float** data)
 
 void AUD_SRCResampleReader::seek(int position)
 {
-	m_reader->seek(position / m_factor);
+	AUD_Specs specs = m_reader->getSpecs();
+	double factor = double(m_rate) / double(specs.rate);
+	m_reader->seek(position / factor);
 	src_reset(m_src);
 	m_position = position;
 }
 
 int AUD_SRCResampleReader::getLength() const
 {
-	return m_reader->getLength() * m_factor;
+	AUD_Specs specs = m_reader->getSpecs();
+	double factor = double(m_rate) / double(specs.rate);
+	return m_reader->getLength() * factor;
 }
 
 int AUD_SRCResampleReader::getPosition() const
@@ -101,18 +106,46 @@ int AUD_SRCResampleReader::getPosition() const
 
 AUD_Specs AUD_SRCResampleReader::getSpecs() const
 {
-	return m_tspecs;
+	AUD_Specs specs = m_reader->getSpecs();
+	specs.rate = m_rate;
+	return specs;
 }
 
 void AUD_SRCResampleReader::read(int& length, bool& eos, sample_t* buffer)
 {
+	AUD_Specs specs = m_reader->getSpecs();
+
+	double factor = double(m_rate) / double(specs.rate);
+
+	specs.rate = m_rate;
+
 	int size = length;
 
-	m_buffer.assureSize(length * AUD_SAMPLE_SIZE(m_tspecs));
+	m_buffer.assureSize(length * AUD_SAMPLE_SIZE(specs));
+
+	if(specs.channels != m_channels)
+	{
+		src_delete(m_src);
+
+		m_channels = specs.channels;
+
+		int error;
+		m_src = src_callback_new(src_callback,
+								 SRC_SINC_MEDIUM_QUALITY,
+								 m_channels,
+								 &error,
+								 this);
+
+		if(!m_src)
+		{
+			// XXX printf("%s\n", src_strerror(error));
+			AUD_THROW(AUD_ERROR_SRC, state_error);
+		}
+	}
 
 	m_eos = false;
 
-	length = src_callback_read(m_src, m_factor, length, buffer);
+	length = src_callback_read(m_src, factor, length, buffer);
 
 	m_position += length;
 
