@@ -47,31 +47,15 @@ AUD_DefaultMixer::AUD_DefaultMixer(AUD_DeviceSpecs specs) :
 
 AUD_Reference<AUD_IReader> AUD_DefaultMixer::prepare(AUD_Reference<AUD_IReader> reader)
 {
-	// hacky for now, until a better channel mapper reader is available
-	AUD_ChannelMapperFactory cmf(NULL, m_specs);
-
-	AUD_Specs specs = reader->getSpecs();
-
-	// if channel count is lower in output, rechannel before resampling
-	if(specs.channels < m_specs.channels)
-	{
-		reader = new AUD_ChannelMapperReader(reader,
-											 cmf.getMapping(specs.channels));
-		specs.channels = m_specs.channels;
-	}
-
 	// resample
-	if(specs.rate != m_specs.rate)
 #ifdef WITH_SAMPLERATE
-		reader = new AUD_SRCResampleReader(reader, m_specs.specs);
+	reader = new AUD_SRCResampleReader(reader, m_specs.specs);
 #else
-		reader = new AUD_LinearResampleReader(reader, m_specs.specs);
+	reader = new AUD_LinearResampleReader(reader, m_specs.specs);
 #endif
 	
 	// rechannel
-	if(specs.channels != m_specs.channels)
-		reader = new AUD_ChannelMapperReader(reader,
-											 cmf.getMapping(specs.channels));
+	reader = new AUD_ChannelMapperReader(reader, m_specs.channels);
 
 	return reader;
 }

@@ -90,7 +90,7 @@ extern "C" {
 
 typedef AUD_Reference<AUD_IFactory> AUD_Sound;
 typedef AUD_Reference<AUD_ReadDevice> AUD_Device;
-typedef AUD_Reference<AUD_IHandle> AUD_Channel;
+typedef AUD_Reference<AUD_IHandle> AUD_Handle;
 typedef AUD_Reference<AUD_SequencerEntry> AUD_SEntry;
 
 #define AUD_CAPI_IMPLEMENTATION
@@ -374,7 +374,7 @@ AUD_Sound* AUD_loopSound(AUD_Sound* sound)
 	}
 }
 
-int AUD_setLoop(AUD_Channel* handle, int loops)
+int AUD_setLoop(AUD_Handle* handle, int loops)
 {
 	assert(handle);
 
@@ -409,14 +409,14 @@ void AUD_unload(AUD_Sound* sound)
 	delete sound;
 }
 
-AUD_Channel* AUD_play(AUD_Sound* sound, int keep)
+AUD_Handle* AUD_play(AUD_Sound* sound, int keep)
 {
 	assert(sound);
 	try
 	{
-		AUD_Channel channel = AUD_device->play(*sound, keep);
-		if(!channel.isNull())
-			return new AUD_Channel(channel);
+		AUD_Handle handle = AUD_device->play(*sound, keep);
+		if(!handle.isNull())
+			return new AUD_Handle(handle);
 	}
 	catch(AUD_Exception&)
 	{
@@ -424,19 +424,19 @@ AUD_Channel* AUD_play(AUD_Sound* sound, int keep)
 	return NULL;
 }
 
-int AUD_pause(AUD_Channel* handle)
+int AUD_pause(AUD_Handle* handle)
 {
 	assert(handle);
 	return (*handle)->pause();
 }
 
-int AUD_resume(AUD_Channel* handle)
+int AUD_resume(AUD_Handle* handle)
 {
 	assert(handle);
 	return (*handle)->resume();
 }
 
-int AUD_stop(AUD_Channel* handle)
+int AUD_stop(AUD_Handle* handle)
 {
 	assert(handle);
 	int result = (*handle)->stop();
@@ -444,25 +444,25 @@ int AUD_stop(AUD_Channel* handle)
 	return result;
 }
 
-int AUD_setKeep(AUD_Channel* handle, int keep)
+int AUD_setKeep(AUD_Handle* handle, int keep)
 {
 	assert(handle);
 	return (*handle)->setKeep(keep);
 }
 
-int AUD_seek(AUD_Channel* handle, float seekTo)
+int AUD_seek(AUD_Handle* handle, float seekTo)
 {
 	assert(handle);
 	return (*handle)->seek(seekTo);
 }
 
-float AUD_getPosition(AUD_Channel* handle)
+float AUD_getPosition(AUD_Handle* handle)
 {
 	assert(handle);
 	return (*handle)->getPosition();
 }
 
-AUD_Status AUD_getStatus(AUD_Channel* handle)
+AUD_Status AUD_getStatus(AUD_Handle* handle)
 {
 	assert(handle);
 	return (*handle)->getStatus();
@@ -537,7 +537,7 @@ int AUD_setDistanceModel(AUD_DistanceModel model)
 	return false;
 }
 
-int AUD_setSourceLocation(AUD_Channel* handle, const float* location)
+int AUD_setSourceLocation(AUD_Handle* handle, const float* location)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -551,7 +551,7 @@ int AUD_setSourceLocation(AUD_Channel* handle, const float* location)
 	return false;
 }
 
-int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity)
+int AUD_setSourceVelocity(AUD_Handle* handle, const float* velocity)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -565,7 +565,7 @@ int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity)
 	return false;
 }
 
-int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
+int AUD_setSourceOrientation(AUD_Handle* handle, const float* orientation)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -579,7 +579,7 @@ int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
 	return false;
 }
 
-int AUD_setRelative(AUD_Channel* handle, int relative)
+int AUD_setRelative(AUD_Handle* handle, int relative)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -592,7 +592,7 @@ int AUD_setRelative(AUD_Channel* handle, int relative)
 	return false;
 }
 
-int AUD_setVolumeMaximum(AUD_Channel* handle, float volume)
+int AUD_setVolumeMaximum(AUD_Handle* handle, float volume)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -605,7 +605,7 @@ int AUD_setVolumeMaximum(AUD_Channel* handle, float volume)
 	return false;
 }
 
-int AUD_setVolumeMinimum(AUD_Channel* handle, float volume)
+int AUD_setVolumeMinimum(AUD_Handle* handle, float volume)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -618,7 +618,7 @@ int AUD_setVolumeMinimum(AUD_Channel* handle, float volume)
 	return false;
 }
 
-int AUD_setDistanceMaximum(AUD_Channel* handle, float distance)
+int AUD_setDistanceMaximum(AUD_Handle* handle, float distance)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -631,7 +631,7 @@ int AUD_setDistanceMaximum(AUD_Channel* handle, float distance)
 	return false;
 }
 
-int AUD_setDistanceReference(AUD_Channel* handle, float distance)
+int AUD_setDistanceReference(AUD_Handle* handle, float distance)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -644,7 +644,7 @@ int AUD_setDistanceReference(AUD_Channel* handle, float distance)
 	return false;
 }
 
-int AUD_setAttenuation(AUD_Channel* handle, float factor)
+int AUD_setAttenuation(AUD_Handle* handle, float factor)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -657,7 +657,7 @@ int AUD_setAttenuation(AUD_Channel* handle, float factor)
 	return false;
 }
 
-int AUD_setConeAngleOuter(AUD_Channel* handle, float angle)
+int AUD_setConeAngleOuter(AUD_Handle* handle, float angle)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -670,7 +670,7 @@ int AUD_setConeAngleOuter(AUD_Channel* handle, float angle)
 	return false;
 }
 
-int AUD_setConeAngleInner(AUD_Channel* handle, float angle)
+int AUD_setConeAngleInner(AUD_Handle* handle, float angle)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -683,7 +683,7 @@ int AUD_setConeAngleInner(AUD_Channel* handle, float angle)
 	return false;
 }
 
-int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume)
+int AUD_setConeVolumeOuter(AUD_Handle* handle, float volume)
 {
 	assert(handle);
 	AUD_Reference<AUD_I3DHandle> h(*handle);
@@ -696,7 +696,7 @@ int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume)
 	return false;
 }
 
-int AUD_setSoundVolume(AUD_Channel* handle, float volume)
+int AUD_setSoundVolume(AUD_Handle* handle, float volume)
 {
 	assert(handle);
 	try
@@ -707,7 +707,7 @@ int AUD_setSoundVolume(AUD_Channel* handle, float volume)
 	return false;
 }
 
-int AUD_setSoundPitch(AUD_Channel* handle, float pitch)
+int AUD_setSoundPitch(AUD_Handle* handle, float pitch)
 {
 	assert(handle);
 	try
@@ -730,18 +730,18 @@ AUD_Device* AUD_openReadDevice(AUD_DeviceSpecs specs)
 	}
 }
 
-AUD_Channel* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek)
+AUD_Handle* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek)
 {
 	assert(device);
 	assert(sound);
 
 	try
 	{
-		AUD_Channel channel = (*device)->play(*sound);
-		if(!channel.isNull())
+		AUD_Handle handle = (*device)->play(*sound);
+		if(!handle.isNull())
 		{
-			channel->seek(seek);
-			return new AUD_Channel(channel);
+			handle->seek(seek);
+			return new AUD_Handle(handle);
 		}
 	}
 	catch(AUD_Exception&)
@@ -848,13 +848,13 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 	return result;
 }
 
-static void pauseSound(AUD_Channel* handle)
+static void pauseSound(AUD_Handle* handle)
 {
 	assert(handle);
 	(*handle)->pause();
 }
 
-AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds)
+AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, float seconds)
 {
 	AUD_Reference<AUD_IFactory> silence = new AUD_SilenceFactory;
 	AUD_Reference<AUD_IFactory> limiter = new AUD_LimiterFactory(silence, 0, seconds);
@@ -863,12 +863,12 @@ AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds)
 
 	try
 	{
-		AUD_Channel channel = AUD_device->play(limiter);
-		if(!channel.isNull())
+		AUD_Handle handle2 = AUD_device->play(limiter);
+		if(!handle2.isNull())
 		{
-			channel->setStopCallback((stopCallback)pauseSound, handle);
+			handle2->setStopCallback((stopCallback)pauseSound, handle);
 			AUD_device->unlock();
-			return new AUD_Channel(channel);
+			return new AUD_Handle(handle2);
 		}
 	}
 	catch(AUD_Exception&)
@@ -996,7 +996,7 @@ void AUD_stopPlayback()
 #endif
 }
 
-void AUD_seekSequencer(AUD_Channel* handle, float time)
+void AUD_seekSequencer(AUD_Handle* handle, float time)
 {
 #ifdef WITH_JACK
 	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
@@ -1010,7 +1010,7 @@ void AUD_seekSequencer(AUD_Channel* handle, float time)
 	}
 }
 
-float AUD_getSequencerPosition(AUD_Channel* handle)
+float AUD_getSequencerPosition(AUD_Handle* handle)
 {
 #ifdef WITH_JACK
 	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
@@ -1048,7 +1048,7 @@ AUD_Sound* AUD_copy(AUD_Sound* sound)
 	return new AUD_Reference<AUD_IFactory>(*sound);
 }
 
-void AUD_freeChannel(AUD_Channel* channel)
+void AUD_freeHandle(AUD_Handle* handle)
 {
-	delete channel;
+	delete handle;
 }

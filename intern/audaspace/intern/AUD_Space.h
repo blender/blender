@@ -41,6 +41,9 @@
 /// Throws a AUD_Exception with the provided error code.
 #define AUD_THROW(exception, errorstr) { AUD_Exception e; e.error = exception; e.str = errorstr; throw e; }
 
+/// Returns the bit for a channel mask.
+#define AUD_CHANNEL_BIT(channel) (0x01 << channel)
+
 /// Returns the smaller of the two values.
 #define AUD_MIN(a, b) (((a) < (b)) ? (a) : (b))
 /// Returns the bigger of the two values.
@@ -79,9 +82,23 @@ typedef enum
 	AUD_CHANNELS_SURROUND5  = 5,	/// 5 channel surround sound.
 	AUD_CHANNELS_SURROUND51 = 6,	/// 5.1 surround sound.
 	AUD_CHANNELS_SURROUND61 = 7,	/// 6.1 surround sound.
-	AUD_CHANNELS_SURROUND71 = 8,	/// 7.1 surround sound.
-	AUD_CHANNELS_SURROUND72 = 9		/// 7.2 surround sound.
+	AUD_CHANNELS_SURROUND71 = 8	/// 7.1 surround sound.
 } AUD_Channels;
+
+/// The channel names.
+typedef enum
+{
+	AUD_CHANNEL_FRONT_LEFT = 0,
+	AUD_CHANNEL_FRONT_RIGHT,
+	AUD_CHANNEL_FRONT_CENTER,
+	AUD_CHANNEL_LFE,
+	AUD_CHANNEL_REAR_LEFT,
+	AUD_CHANNEL_REAR_RIGHT,
+	AUD_CHANNEL_REAR_CENTER,
+	AUD_CHANNEL_SIDE_LEFT,
+	AUD_CHANNEL_SIDE_RIGHT,
+	AUD_CHANNEL_MAX
+} AUD_Channel;
 
 /**
  * The sample rate tells how many samples are played back within one second.

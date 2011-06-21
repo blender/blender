@@ -346,7 +346,7 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start,
 
 	AUD_setDeviceVolume(mixdown, volume);
 
-	AUD_freeChannel(AUD_playDevice(mixdown, scene->sound_scene, start / FPS));
+	AUD_freeHandle(AUD_playDevice(mixdown, scene->sound_scene, start / FPS));
 
 	return mixdown;
 }

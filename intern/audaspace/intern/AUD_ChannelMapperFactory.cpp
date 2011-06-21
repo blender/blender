@@ -38,75 +38,10 @@ AUD_ChannelMapperFactory::AUD_ChannelMapperFactory(AUD_Reference<AUD_IFactory> f
 												   AUD_DeviceSpecs specs) :
 		AUD_MixerFactory(factory, specs)
 {
-	memset(m_mapping, 0, sizeof(m_mapping));
-}
-
-AUD_ChannelMapperFactory::~AUD_ChannelMapperFactory()
-{
-	for(int i = 1; i < 10; i++)
-		deleteMapping(i);
-}
-
-float** AUD_ChannelMapperFactory::getMapping(int ic)
-{
-	ic--;
-	if(ic > 8 || ic < 0)
-		return 0;
-
-	if(m_mapping[ic])
-	{
-		int channels = -1;
-		while(m_mapping[ic][++channels] != 0);
-		if(channels != m_specs.channels)
-			deleteMapping(ic+1);
-	}
-
-	if(!m_mapping[ic])
-	{
-		int channels = m_specs.channels;
-
-		m_mapping[ic] = new float*[channels+1];
-		m_mapping[ic][channels] = 0;
-
-		for(int i = 0; i < channels; i++)
-		{
-			m_mapping[ic][i] = new float[ic+1];
-			for(int j = 0; j <= ic; j++)
-				m_mapping[ic][i][j] = ((i == j) || (channels == 1) ||
-									   (ic == 0)) ? 1.0f : 0.0f;
-		}
-	}
-
-	return m_mapping[ic];
-}
-
-void AUD_ChannelMapperFactory::deleteMapping(int ic)
-{
-	ic--;
-	if(ic > 8 || ic < 0)
-		return;
-
-	if(m_mapping[ic])
-	{
-		for(int i = 0; 1; i++)
-		{
-			if(m_mapping[ic][i] != 0)
-			{
-				delete[] m_mapping[ic][i];
-			}
-			else
-				break;
-		}
-		delete[] m_mapping[ic];
-		m_mapping[ic] = 0;
-	}
 }
 
 AUD_Reference<AUD_IReader> AUD_ChannelMapperFactory::createReader()
 {
 	AUD_Reference<AUD_IReader> reader = getReader();
-	int ic = reader->getSpecs().channels;
-
-	return new AUD_ChannelMapperReader(reader,
-				   const_cast<AUD_ChannelMapperFactory*>(this)->getMapping(ic));
+	return new AUD_ChannelMapperReader(reader, m_specs.channels);
 }

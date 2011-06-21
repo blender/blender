@@ -57,7 +57,7 @@ typedef struct
 
 #ifndef AUD_CAPI_IMPLEMENTATION
 	typedef void AUD_Sound;
-	typedef void AUD_Channel;
+	typedef void AUD_Handle;
 	typedef void AUD_Device;
 	typedef void AUD_SEntry;
 	typedef float (*AUD_volumeFunction)(void*, void*, float);
@@ -159,7 +159,7 @@ extern AUD_Sound* AUD_loopSound(AUD_Sound* sound);
  * \param loops The count of remaining loops, -1 for infinity.
  * \return Whether the handle is valid.
  */
-extern int AUD_setLoop(AUD_Channel* handle, int loops);
+extern int AUD_setLoop(AUD_Handle* handle, int loops);
 
 /**
  * Rectifies a sound.
@@ -181,28 +181,28 @@ extern void AUD_unload(AUD_Sound* sound);
  *             paused when its end has been reached.
  * \return A handle to the played back sound.
  */
-extern AUD_Channel* AUD_play(AUD_Sound* sound, int keep);
+extern AUD_Handle* AUD_play(AUD_Sound* sound, int keep);
 
 /**
  * Pauses a played back sound.
  * \param handle The handle to the sound.
  * \return Whether the handle has been playing or not.
  */
-extern int AUD_pause(AUD_Channel* handle);
+extern int AUD_pause(AUD_Handle* handle);
 
 /**
  * Resumes a paused sound.
  * \param handle The handle to the sound.
  * \return Whether the handle has been paused or not.
  */
-extern int AUD_resume(AUD_Channel* handle);
+extern int AUD_resume(AUD_Handle* handle);
 
 /**
  * Stops a playing or paused sound.
  * \param handle The handle to the sound.
  * \return Whether the handle has been valid or not.
  */
-extern int AUD_stop(AUD_Channel* handle);
+extern int AUD_stop(AUD_Handle* handle);
 
 /**
  * Sets the end behaviour of a playing or paused sound.
@@ -211,7 +211,7 @@ extern int AUD_stop(AUD_Channel* handle);
  *             paused when its end has been reached.
  * \return Whether the handle has been valid or not.
  */
-extern int AUD_setKeep(AUD_Channel* handle, int keep);
+extern int AUD_setKeep(AUD_Handle* handle, int keep);
 
 /**
  * Seeks a playing or paused sound.
@@ -219,7 +219,7 @@ extern int AUD_setKeep(AUD_Channel* handle, int keep);
  * \param seekTo From where the sound file should be played back in seconds.
  * \return Whether the handle has been valid or not.
  */
-extern int AUD_seek(AUD_Channel* handle, float seekTo);
+extern int AUD_seek(AUD_Handle* handle, float seekTo);
 
 /**
  * Retrieves the playback position of a handle.
@@ -227,14 +227,14 @@ extern int AUD_seek(AUD_Channel* handle, float seekTo);
  * \return The current playback position in seconds or 0.0 if the handle is
  *         invalid.
  */
-extern float AUD_getPosition(AUD_Channel* handle);
+extern float AUD_getPosition(AUD_Handle* handle);
 
 /**
  * Returns the status of a playing, paused or stopped sound.
  * \param handle The handle to the sound.
  * \return The status of the sound behind the handle.
  */
-extern AUD_Status AUD_getStatus(AUD_Channel* handle);
+extern AUD_Status AUD_getStatus(AUD_Handle* handle);
 
 /**
  * Sets the listener location.
@@ -281,7 +281,7 @@ extern int AUD_setDistanceModel(AUD_DistanceModel model);
  * \param location The new location.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSourceLocation(AUD_Channel* handle, const float* location);
+extern int AUD_setSourceLocation(AUD_Handle* handle, const float* location);
 
 /**
  * Sets the velocity of a source.
@@ -289,7 +289,7 @@ extern int AUD_setSourceLocation(AUD_Channel* handle, const float* location);
  * \param velocity The new velocity.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity);
+extern int AUD_setSourceVelocity(AUD_Handle* handle, const float* velocity);
 
 /**
  * Sets the orientation of a source.
@@ -297,7 +297,7 @@ extern int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity);
  * \param orientation The new orientation as quaternion.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation);
+extern int AUD_setSourceOrientation(AUD_Handle* handle, const float* orientation);
 
 /**
  * Sets whether the source location, velocity and orientation are relative
@@ -306,7 +306,7 @@ extern int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientatio
  * \param relative Whether the source is relative.
  * \return Whether the action succeeded.
  */
-extern int AUD_setRelative(AUD_Channel* handle, int relative);
+extern int AUD_setRelative(AUD_Handle* handle, int relative);
 
 /**
  * Sets the maximum volume of a source.
@@ -314,7 +314,7 @@ extern int AUD_setRelative(AUD_Channel* handle, int relative);
  * \param volume The new maximum volume.
  * \return Whether the action succeeded.
  */
-extern int AUD_setVolumeMaximum(AUD_Channel* handle, float volume);
+extern int AUD_setVolumeMaximum(AUD_Handle* handle, float volume);
 
 /**
  * Sets the minimum volume of a source.
@@ -322,7 +322,7 @@ extern int AUD_setVolumeMaximum(AUD_Channel* handle, float volume);
  * \param volume The new minimum volume.
  * \return Whether the action succeeded.
  */
-extern int AUD_setVolumeMinimum(AUD_Channel* handle, float volume);
+extern int AUD_setVolumeMinimum(AUD_Handle* handle, float volume);
 
 /**
  * Sets the maximum distance of a source.
@@ -332,7 +332,7 @@ extern int AUD_setVolumeMinimum(AUD_Channel* handle, float volume);
  * \param distance The new maximum distance.
  * \return Whether the action succeeded.
  */
-extern int AUD_setDistanceMaximum(AUD_Channel* handle, float distance);
+extern int AUD_setDistanceMaximum(AUD_Handle* handle, float distance);
 
 /**
  * Sets the reference distance of a source.
@@ -340,7 +340,7 @@ extern int AUD_setDistanceMaximum(AUD_Channel* handle, float distance);
  * \param distance The new reference distance.
  * \return Whether the action succeeded.
  */
-extern int AUD_setDistanceReference(AUD_Channel* handle, float distance);
+extern int AUD_setDistanceReference(AUD_Handle* handle, float distance);
 
 /**
  * Sets the attenuation of a source.
@@ -349,7 +349,7 @@ extern int AUD_setDistanceReference(AUD_Channel* handle, float distance);
  * \param factor The new attenuation.
  * \return Whether the action succeeded.
  */
-extern int AUD_setAttenuation(AUD_Channel* handle, float factor);
+extern int AUD_setAttenuation(AUD_Handle* handle, float factor);
 
 /**
  * Sets the outer angle of the cone of a source.
@@ -357,7 +357,7 @@ extern int AUD_setAttenuation(AUD_Channel* handle, float factor);
  * \param angle The new outer angle of the cone.
  * \return Whether the action succeeded.
  */
-extern int AUD_setConeAngleOuter(AUD_Channel* handle, float angle);
+extern int AUD_setConeAngleOuter(AUD_Handle* handle, float angle);
 
 /**
  * Sets the inner angle of the cone of a source.
@@ -365,7 +365,7 @@ extern int AUD_setConeAngleOuter(AUD_Channel* handle, float angle);
  * \param angle The new inner angle of the cone.
  * \return Whether the action succeeded.
  */
-extern int AUD_setConeAngleInner(AUD_Channel* handle, float angle);
+extern int AUD_setConeAngleInner(AUD_Handle* handle, float angle);
 
 /**
  * Sets the outer volume of the cone of a source.
@@ -375,7 +375,7 @@ extern int AUD_setConeAngleInner(AUD_Channel* handle, float angle);
  * \param volume The new outer volume of the cone.
  * \return Whether the action succeeded.
  */
-extern int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume);
+extern int AUD_setConeVolumeOuter(AUD_Handle* handle, float volume);
 
 /**
  * Sets the volume of a played back sound.
@@ -383,7 +383,7 @@ extern int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume);
  * \param volume The new volume, must be between 0.0 and 1.0.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSoundVolume(AUD_Channel* handle, float volume);
+extern int AUD_setSoundVolume(AUD_Handle* handle, float volume);
 
 /**
  * Sets the pitch of a played back sound.
@@ -391,7 +391,7 @@ extern int AUD_setSoundVolume(AUD_Channel* handle, float volume);
  * \param pitch The new pitch.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSoundPitch(AUD_Channel* handle, float pitch);
+extern int AUD_setSoundPitch(AUD_Handle* handle, float pitch);
 
 /**
  * Opens a read device, with which audio data can be read.
@@ -415,7 +415,7 @@ extern int AUD_setDeviceVolume(AUD_Device* device, float volume);
  * \param seek The position where the sound should be seeked to.
  * \return A handle to the played back sound.
  */
-extern AUD_Channel* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek);
+extern AUD_Handle* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek);
 
 /**
  * Reads the next samples into the supplied buffer.
@@ -450,7 +450,7 @@ extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
  * \param time The time in seconds.
  * \return The silence handle.
  */
-extern AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds);
+extern AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, float seconds);
 
 extern AUD_Sound* AUD_createSequencer(int muted, void* data, AUD_volumeFunction volume);
 
@@ -475,9 +475,9 @@ extern void AUD_startPlayback(void);
 
 extern void AUD_stopPlayback(void);
 
-extern void AUD_seekSequencer(AUD_Channel* handle, float time);
+extern void AUD_seekSequencer(AUD_Handle* handle, float time);
 
-extern float AUD_getSequencerPosition(AUD_Channel* handle);
+extern float AUD_getSequencerPosition(AUD_Handle* handle);
 
 #ifdef WITH_JACK
 extern void AUD_setSyncCallback(AUD_syncFunction function, void* data);
@@ -487,7 +487,7 @@ extern int AUD_doesPlayback(void);
 
 extern AUD_Sound* AUD_copy(AUD_Sound* sound);
 
-extern void AUD_freeChannel(AUD_Channel* channel);
+extern void AUD_freeHandle(AUD_Handle* channel);
 
 #ifdef WITH_PYTHON
 extern PyObject* AUD_getPythonFactory(AUD_Sound* sound);
