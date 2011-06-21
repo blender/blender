@@ -315,6 +315,11 @@ void sound_free(struct bSound* sound)
 		sound->handle = NULL;
 		sound->playback_handle = NULL;
 	}
+
+	if(sound->cache)
+	{
+		AUD_unload(sound->cache);
+	}
 }
 
 static float sound_get_volume(Scene* scene, Sequence* sequence, float time)
