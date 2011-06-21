@@ -78,8 +78,7 @@ AUD_Specs AUD_ChannelMapperReader::getSpecs() const
 
 void AUD_ChannelMapperReader::read(int & length, sample_t* buffer)
 {
-	if(m_buffer.getSize() < length * m_rch * sizeof(sample_t))
-		m_buffer.resize(length * m_rch * sizeof(sample_t));
+	m_buffer.assureSize(length * m_rch * sizeof(sample_t));
 
 	sample_t* in = m_buffer.getBuffer();
 

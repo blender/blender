@@ -104,8 +104,7 @@ void AUD_SoftwareDevice::destroy()
 
 void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 {
-	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(m_specs))
-		m_buffer.resize(length * AUD_SAMPLE_SIZE(m_specs));
+	m_buffer.assureSize(length * AUD_SAMPLE_SIZE(m_specs));
 
 	lock();
 

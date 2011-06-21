@@ -108,8 +108,7 @@ void AUD_SRCResampleReader::read(int & length, sample_t* buffer)
 {
 	int size = length * AUD_SAMPLE_SIZE(m_tspecs);
 
-	if(m_buffer.getSize() < size)
-		m_buffer.resize(size);
+	m_buffer.assureSize(size);
 
 	length = src_callback_read(m_src, m_factor, length, buffer);
 

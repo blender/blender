@@ -79,8 +79,7 @@ void AUD_ConverterReader::read(int & length, sample_t* buffer)
 {
 	int samplesize = AUD_SAMPLE_SIZE(m_reader->getSpecs());
 
-	if(m_buffer.getSize() < length * samplesize)
-		m_buffer.resize(length * samplesize);
+	m_buffer.assureSize(length * samplesize);
 
 	m_reader->read(length, m_buffer.getBuffer());
 

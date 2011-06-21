@@ -160,8 +160,7 @@ void AUD_OpenALDevice::updateStreams()
 					if(info)
 					{
 						specs.specs = sound->reader->getSpecs();
-						if(m_buffer.getSize() < m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs))
-							m_buffer.resize(m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
+						m_buffer.assureSize(m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
 
 						// for all empty buffers
 						while(info--)
@@ -582,8 +581,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 
 		try
 		{
-			if(m_buffer.getSize() < m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs))
-				m_buffer.resize(m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
+			m_buffer.assureSize(m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
 			int length;
 
 			for(int i = 0; i < AUD_OPENAL_CYCLE_BUFFERS; i++)
@@ -884,8 +882,7 @@ bool AUD_OpenALDevice::seek(AUD_Handle* handle, float position)
 					int length;
 					AUD_DeviceSpecs specs = m_specs;
 					specs.specs = alhandle->reader->getSpecs();
-					if(m_buffer.getSize() < m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs))
-						m_buffer.resize(m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
+					m_buffer.assureSize(m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
 
 					for(int i = 0; i < AUD_OPENAL_CYCLE_BUFFERS; i++)
 					{

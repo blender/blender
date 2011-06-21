@@ -120,8 +120,7 @@ void AUD_SequencerReader::read(int & length, sample_t* buffer)
 
 	int start, end, current, skip, len;
 	AUD_Reference<AUD_SequencerStrip> strip;
-	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(specs))
-		m_buffer.resize(length * AUD_SAMPLE_SIZE(specs));
+	m_buffer.assureSize(length * AUD_SAMPLE_SIZE(specs));
 
 	m_mixer->clear(length);
 

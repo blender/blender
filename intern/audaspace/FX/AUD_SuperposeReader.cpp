@@ -87,8 +87,7 @@ void AUD_SuperposeReader::read(int & length, sample_t* buffer)
 	AUD_Specs specs = m_reader1->getSpecs();
 	int samplesize = AUD_SAMPLE_SIZE(specs);
 
-	if(m_buffer.getSize() < length * samplesize)
-		m_buffer.resize(length * samplesize);
+	m_buffer.assureSize(length * samplesize);
 
 	int len1 = length;
 	m_reader1->read(len1, buffer);

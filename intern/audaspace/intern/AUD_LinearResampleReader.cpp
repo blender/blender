@@ -76,8 +76,7 @@ void AUD_LinearResampleReader::read(int & length, sample_t* buffer)
 	int samplesize = AUD_SAMPLE_SIZE(m_tspecs);
 	int size = length * AUD_SAMPLE_SIZE(m_sspecs);
 
-	if(m_buffer.getSize() < size)
-		m_buffer.resize(size);
+	m_buffer.assureSize(size);
 
 	int need = ceil((m_position + length) / m_factor) + 1 - m_sposition;
 	int len = need;
