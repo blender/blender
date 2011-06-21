@@ -258,29 +258,29 @@ static short nlaedit_get_context (bAnimContext *ac, SpaceNla *snla)
  */
 short ANIM_animdata_context_getdata (bAnimContext *ac)
 {
-	ScrArea *sa= ac->sa;
+	SpaceLink *sl = ac->sl;
 	short ok= 0;
 	
 	/* context depends on editor we are currently in */
-	if (sa) {
-		switch (sa->spacetype) {
+	if (sl) {
+		switch (ac->spacetype) {
 			case SPACE_ACTION:
 			{
-				SpaceAction *saction= (SpaceAction *)sa->spacedata.first;
+				SpaceAction *saction= (SpaceAction *)sl;
 				ok= actedit_get_context(ac, saction);
 			}
 				break;
 				
 			case SPACE_IPO:
 			{
-				SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
+				SpaceIpo *sipo= (SpaceIpo *)sl;
 				ok= graphedit_get_context(ac, sipo);
 			}
 				break;
 				
 			case SPACE_NLA:
 			{
-				SpaceNla *snla= (SpaceNla *)sa->spacedata.first;
+				SpaceNla *snla= (SpaceNla *)sl;
 				ok= nlaedit_get_context(ac, snla);
 			}
 				break;
@@ -303,6 +303,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
+	SpaceLink *sl= CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	/* clear old context info */
@@ -317,6 +318,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	}
 	ac->sa= sa;
 	ac->ar= ar;
+	ac->sl= sl;
 	ac->spacetype= (sa) ? sa->spacetype : 0;
 	ac->regiontype= (ar) ? ar->regiontype : 0;
 	
@@ -397,7 +399,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 /* quick macro to add a pointer to an AnimData block as a channel */
 #define ANIMDATA_ADD_ANIMDATA(id) \
 	{\
-		ale= make_new_animlistelem((id)->adt, ANIMTYPE_ANIMDATA, NULL, ANIMTYPE_NONE, (ID *)id);\
+		ale= make_new_animlistelem((id)->adt, ANIMTYPE_ANIMDATA, (ID *)id);\
 		if (ale) {\
 			BLI_addtail(anim_data, ale);\
 			items++;\
@@ -432,7 +434,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 /* this function allocates memory for a new bAnimListElem struct for the 
  * provided animation channel-data. 
  */
-static bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, short ownertype, ID *owner_id)
+static bAnimListElem *make_new_animlistelem (void *data, short datatype, ID *owner_id)
 {
 	bAnimListElem *ale= NULL;
 	
@@ -443,10 +445,6 @@ static bAnimListElem *make_new_animlistelem (void *data, short datatype, void *o
 		
 		ale->data= data;
 		ale->type= datatype;
-			// XXX what is the point of the owner data?
-			// xxx try and use this to simplify the problem of finding whether parent channels are working...
-		ale->owner= owner;
-		ale->ownertype= ownertype;
 		
 		ale->id= owner_id;
 		ale->adt= BKE_animdata_from_id(owner_id);
@@ -505,55 +503,6 @@ static bAnimListElem *make_new_animlistelem (void *data, short datatype, void *o
 				ale->flag= adt->flag;
 				
 					// XXX... drivers don't show summary for now
-				ale->key_data= NULL;
-				ale->datatype= ALE_NONE;
-			}
-				break;
-			case ANIMTYPE_FILLMATD:
-			{
-				Object *ob= (Object *)data;
-				
-				ale->flag= FILTER_MAT_OBJC(ob);
-				
-				ale->key_data= NULL;
-				ale->datatype= ALE_NONE;
-			}
-				break;
-			case ANIMTYPE_FILLPARTD:
-			{
-				Object *ob= (Object *)data;
-				
-				ale->flag= FILTER_PART_OBJC(ob);
-				
-				ale->key_data= NULL;
-				ale->datatype= ALE_NONE;
-			}
-				break;
-			case ANIMTYPE_FILLTEXD:
-			{
-				ID *id= (ID *)data;
-				
-				switch (GS(id->name)) {
-					case ID_MA:
-					{
-						Material *ma= (Material *)id;
-						ale->flag= FILTER_TEX_MATC(ma);
-					}
-						break;
-					case ID_LA:
-					{
-						Lamp *la= (Lamp *)id;
-						ale->flag= FILTER_TEX_LAMC(la);
-					}
-						break;
-					case ID_WO:
-					{
-						World *wo= (World *)id;
-						ale->flag= FILTER_TEX_WORC(wo);
-					}
-						break;
-				}
-				
 				ale->key_data= NULL;
 				ale->datatype= ALE_NONE;
 			}
@@ -957,7 +906,7 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 	return NULL;
 }
 
-static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *first, bActionGroup *grp, void *owner, short ownertype, int filter_mode, ID *owner_id)
+static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
 {
 	FCurve *fcu;
 	int items = 0;
@@ -973,7 +922,7 @@ static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve
 	 */
 	for (fcu=first; ( (fcu = animdata_filter_fcurve_next(ads, fcu, grp, filter_mode, owner_id)) ); fcu=fcu->next)
 	{
-		bAnimListElem *ale = make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
+		bAnimListElem *ale = make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner_id);
 		
 		if (ale) {
 			BLI_addtail(anim_data, ale);
@@ -985,7 +934,7 @@ static int animdata_filter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve
 	return items;
 }
 
-static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAction *act, int filter_mode, void *owner, short ownertype, ID *owner_id)
+static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAction *act, int filter_mode, ID *owner_id)
 {
 	bAnimListElem *ale=NULL;
 	bActionGroup *agrp;
@@ -1057,7 +1006,7 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 			if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
 				/* filter selection of channel specially here again, since may be open and not subject to previous test */
 				if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
-					ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
+					ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, owner_id);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -1086,7 +1035,7 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 					{
 						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 							/* NOTE: filter_gmode is used here, not standard filter_mode, since there may be some flags that shouldn't apply */
-							items += animdata_filter_fcurves(anim_data, ads, first_fcu, agrp, owner, ownertype, filter_gmode, owner_id);
+							items += animdata_filter_fcurves(anim_data, ads, first_fcu, agrp, filter_gmode, owner_id);
 						}
 					}
 				}
@@ -1097,7 +1046,7 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 	/* loop over un-grouped F-Curves (only if we're not only considering those channels in the animive group) */
 	if (!(filter_mode & ANIMFILTER_ACTGROUPED))  {
 		// XXX the 'owner' info here needs review...
-		items += animdata_filter_fcurves(anim_data, ads, (lastchan)?(lastchan->next):(act->curves.first), NULL, owner, ownertype, filter_mode, owner_id);
+		items += animdata_filter_fcurves(anim_data, ads, (lastchan)?(lastchan->next):(act->curves.first), NULL, filter_mode, owner_id);
 	}
 	
 	/* return the number of items added to the list */
@@ -1112,7 +1061,7 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
  *	- for normal filtering (i.e. for editing), we only need the NLA-tracks but they can be in 'normal' evaluation
  *	  order, i.e. first to last. Otherwise, some tools may get screwed up.
  */
-static int animdata_filter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDopeSheet *UNUSED(ads), AnimData *adt, int filter_mode, void *owner, short ownertype, ID *owner_id)
+static int animdata_filter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDopeSheet *UNUSED(ads), AnimData *adt, int filter_mode, ID *owner_id)
 {
 	bAnimListElem *ale;
 	NlaTrack *nlt;
@@ -1128,7 +1077,7 @@ static int animdata_filter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, b
 			 *	- as AnimData may not have an action, we pass a dummy pointer just to get the list elem created, then
 			 *	  overwrite this with the real value - REVIEW THIS...
 			 */
-			ale= make_new_animlistelem((void *)(&adt->action), ANIMTYPE_NLAACTION, owner, ownertype, owner_id);
+			ale= make_new_animlistelem((void *)(&adt->action), ANIMTYPE_NLAACTION, owner_id);
 			ale->data= (adt->action) ? adt->action : NULL;
 				
 			if (ale) {
@@ -1166,7 +1115,7 @@ static int animdata_filter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, b
 			if ( ANIMCHANNEL_SELOK(SEL_NLT(nlt)) ) {
 				/* only include if this track is active */
 				if (!(filter_mode & ANIMFILTER_ACTIVE) || (nlt->flag & NLATRACK_ACTIVE)) {
-					ale= make_new_animlistelem(nlt, ANIMTYPE_NLATRACK, owner, ownertype, owner_id);
+					ale= make_new_animlistelem(nlt, ANIMTYPE_NLATRACK, owner_id);
 						
 					if (ale) {
 						BLI_addtail(anim_data, ale);
@@ -1204,7 +1153,7 @@ static int animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, Key 
 					// TODO: consider 'active' too?
 					
 					/* owner-id here must be key so that the F-Curve can be resolved... */
-					ale= make_new_animlistelem(kb, ANIMTYPE_SHAPEKEY, NULL, ANIMTYPE_NONE, (ID *)key);
+					ale= make_new_animlistelem(kb, ANIMTYPE_SHAPEKEY, (ID *)key);
 					
 					if (ale) {
 						BLI_addtail(anim_data, ale);
@@ -1221,7 +1170,7 @@ static int animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, Key 
 			if (filter_mode & ANIMFILTER_ANIMDATA)
 				ANIMDATA_ADD_ANIMDATA(key)
 			else if (key->adt->action)
-				items= animdata_filter_action(ac, anim_data, NULL, key->adt->action, filter_mode, NULL, ANIMTYPE_NONE, (ID *)key);
+				items= animdata_filter_action(ac, anim_data, NULL, key->adt->action, filter_mode, (ID *)key);
 		}
 	}
 	
@@ -1250,7 +1199,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int
 			/* add gpd as channel too (if for drawing, and it has layers) */
 			if ((filter_mode & ANIMFILTER_CHANNELS) && (gpd->layers.first)) {
 				/* add to list */
-				ale= make_new_animlistelem(gpd, ANIMTYPE_GPDATABLOCK, NULL, ANIMTYPE_NONE, NULL);
+				ale= make_new_animlistelem(gpd, ANIMTYPE_GPDATABLOCK, NULL);
 				if (ale) {
 					BLI_addtail(anim_data, ale);
 					items++;
@@ -1266,7 +1215,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int
 						/* only if editable */
 						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
 							/* add to list */
-							ale= make_new_animlistelem(gpl, ANIMTYPE_GPLAYER, gpd, ANIMTYPE_GPDATABLOCK, (ID*)gpd);
+							ale= make_new_animlistelem(gpl, ANIMTYPE_GPLAYER, (ID*)gpd);
 							if (ale) {
 								BLI_addtail(anim_data, ale);
 								items++;
@@ -1285,11 +1234,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int
 /* NOTE: owner_id is either material, lamp, or world block, which is the direct owner of the texture stack in question */
 static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, int filter_mode)
 {
-	ListBase texs = {NULL, NULL};
-	LinkData *ld;
 	MTex **mtex = NULL;
-	short expanded=0;
-	int ownertype = ANIMTYPE_NONE;
 	
 	bAnimListElem *ale=NULL;
 	int items=0, a=0;
@@ -1304,8 +1249,6 @@ static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data
 			Material *ma= (Material *)owner_id;
 			
 			mtex= (MTex**)(&ma->mtex);
-			expanded= FILTER_TEX_MATC(ma);
-			ownertype= ANIMTYPE_DSMAT;
 		}
 			break;
 		case ID_LA:
@@ -1313,8 +1256,6 @@ static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data
 			Lamp *la= (Lamp *)owner_id;
 			
 			mtex= (MTex**)(&la->mtex);
-			expanded= FILTER_TEX_LAMC(la);
-			ownertype= ANIMTYPE_DSLAM;
 		}
 			break;
 		case ID_WO:
@@ -1322,8 +1263,6 @@ static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data
 			World *wo= (World *)owner_id;
 			
 			mtex= (MTex**)(&wo->mtex);
-			expanded= FILTER_TEX_WORC(wo);
-			ownertype= ANIMTYPE_DSWOR;
 		}
 			break;
 		default: 
@@ -1352,59 +1291,27 @@ static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data
 			ok=1;)
 		if (ok == 0) continue;
 		
-		/* make a temp list elem for this */
-		ld= MEM_callocN(sizeof(LinkData), "DopeSheet-TextureCache");
-		ld->data= tex;
-		BLI_addtail(&texs, ld);
-	}
-	
-	/* if there were no channels found, no need to carry on */
-	if (texs.first == NULL)
-		return 0;
-	
-	/* include textures-expand widget? */
-	if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-		ale= make_new_animlistelem(owner_id, ANIMTYPE_FILLTEXD, owner_id, ownertype, owner_id);
-		if (ale) {
-			BLI_addtail(anim_data, ale);
-			items++;
-		}
-	}
-	
-	/* add textures */
-	if ((expanded) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-		/* for each texture in cache, add channels  */
-		for (ld= texs.first; ld; ld= ld->next) {
-			Tex *tex= (Tex *)ld->data;
-			
-			/* include texture-expand widget? */
-			if (filter_mode & ANIMFILTER_CHANNELS) {
-				/* check if filtering by active status */
-				if ANIMCHANNEL_ACTIVEOK(tex) {
-					ale= make_new_animlistelem(tex, ANIMTYPE_DSTEX, owner_id, ownertype, owner_id);
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
+		/* include texture-expand widget? */
+		if (filter_mode & ANIMFILTER_CHANNELS) {
+			/* check if filtering by active status */
+			if ANIMCHANNEL_ACTIVEOK(tex) {
+				ale= make_new_animlistelem(tex, ANIMTYPE_DSTEX, owner_id);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
 				}
 			}
-			
-			/* add texture's animation data
-			 * NOTE: for these, we make the owner/ownertype the material/lamp/etc. not the texture, otherwise the
-			 * drawing code cannot resolve the indention easily
-			 */
-			if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_TEX_DATA(tex) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-				ANIMDATA_FILTER_CASES(tex, 
-					{ /* AnimData blocks - do nothing... */ },
-					items += animdata_filter_nla(ac, anim_data, ads, tex->adt, filter_mode, owner_id, ownertype, (ID *)tex);, 
-					items += animdata_filter_fcurves(anim_data, ads, tex->adt->drivers.first, NULL, owner_id, ownertype, filter_mode, (ID *)tex);, 
-					items += animdata_filter_action(ac, anim_data, ads, tex->adt->action, filter_mode, owner_id, ownertype, (ID *)tex);)
-			}
+		}
+		
+		/* add texture's animation data */
+		if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_TEX_DATA(tex) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+			ANIMDATA_FILTER_CASES(tex, 
+				{ /* AnimData blocks - do nothing... */ },
+				items += animdata_filter_nla(ac, anim_data, ads, tex->adt, filter_mode, (ID *)tex);, 
+				items += animdata_filter_fcurves(anim_data, ads, tex->adt->drivers.first, NULL, filter_mode, (ID *)tex);, 
+				items += animdata_filter_action(ac, anim_data, ads, tex->adt->action, filter_mode, (ID *)tex);)
 		}
 	}
-	
-	/* free cache */
-	BLI_freelistN(&texs);
 	
 	/* return the number of items added to the list */
 	return items;
@@ -1412,9 +1319,6 @@ static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data
 
 static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
-	ListBase mats = {NULL, NULL};
-	LinkData *ld;
-	
 	bAnimListElem *ale=NULL;
 	Object *ob= base->object;
 	int items=0, a=0;
@@ -1426,92 +1330,63 @@ static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data
 		
 		/* for now, if no material returned, skip (this shouldn't confuse the user I hope) */
 		if (ma == NULL) continue;
-
+		
 		/* check if ok */
 		ANIMDATA_FILTER_CASES(ma, 
 			{ /* AnimData blocks - do nothing... */ },
 			ok=1;, 
 			ok=1;, 
 			ok=1;)
-
+			
 		/* need to check textures */
 		if (ok == 0 && !(ads->filterflag & ADS_FILTER_NOTEX)) {
 			int mtInd;
-
+			
 			for (mtInd=0; mtInd < MAX_MTEX; mtInd++) {
 				MTex *mtex = ma->mtex[mtInd];
-
-				if(mtex && mtex->tex) {
+				
+				if (mtex && mtex->tex) {
 					ANIMDATA_FILTER_CASES(mtex->tex,
 					{ /* AnimData blocks - do nothing... */ },
 					ok=1;, 
 					ok=1;, 
 					ok=1;)
 				}
-
-				if(ok)
+				
+				if (ok)
 					break;
 			}
 		}
 		
 		if (ok == 0) continue;
 		
-		/* make a temp list elem for this */
-		ld= MEM_callocN(sizeof(LinkData), "DopeSheet-MaterialCache");
-		ld->data= ma;
-		BLI_addtail(&mats, ld);
-	}
-	
-	/* if there were no channels found, no need to carry on */
-	if (mats.first == NULL)
-		return 0;
-	
-	/* include materials-expand widget? */
-	if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-		ale= make_new_animlistelem(ob, ANIMTYPE_FILLMATD, base, ANIMTYPE_OBJECT, (ID *)ob);
-		if (ale) {
-			BLI_addtail(anim_data, ale);
-			items++;
-		}
-	}
-	
-	/* add materials? */
-	if (FILTER_MAT_OBJC(ob) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-		/* for each material in cache, add channels  */
-		for (ld= mats.first; ld; ld= ld->next) {
-			Material *ma= (Material *)ld->data;
-			
-			/* include material-expand widget? */
-			// hmm... do we need to store the index of this material in the array anywhere?
-			if (filter_mode & ANIMFILTER_CHANNELS) {
-				/* check if filtering by active status */
-				if ANIMCHANNEL_ACTIVEOK(ma) {
-					ale= make_new_animlistelem(ma, ANIMTYPE_DSMAT, base, ANIMTYPE_OBJECT, (ID *)ma);
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
+		/* include material-expand widget? */
+		// hmm... do we need to store the index of this material in the array anywhere?
+		if (filter_mode & ANIMFILTER_CHANNELS) {
+			/* check if filtering by active status */
+			if ANIMCHANNEL_ACTIVEOK(ma) {
+				ale= make_new_animlistelem(ma, ANIMTYPE_DSMAT, (ID *)ma);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
 				}
 			}
-			
-			/* add material's animation data */
-			if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-				/* material's animation data */
-				ANIMDATA_FILTER_CASES(ma, 
-					{ /* AnimData blocks - do nothing... */ },
-					items += animdata_filter_nla(ac, anim_data, ads, ma->adt, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);, 
-					items += animdata_filter_fcurves(anim_data, ads, ma->adt->drivers.first, NULL, ma, ANIMTYPE_DSMAT, filter_mode, (ID *)ma);, 
-					items += animdata_filter_action(ac, anim_data, ads, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);)
-					
-				/* textures */
-				if (!(ads->filterflag & ADS_FILTER_NOTEX))
-					items += animdata_filter_dopesheet_texs(ac, anim_data, ads, (ID *)ma, filter_mode);
-			}
+		}
+		
+		/* add material's animation data */
+		if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+			/* material's animation data */
+			ANIMDATA_FILTER_CASES(ma, 
+				{ /* AnimData blocks - do nothing... */ },
+				items += animdata_filter_nla(ac, anim_data, ads, ma->adt, filter_mode, (ID *)ma);, 
+				items += animdata_filter_fcurves(anim_data, ads, ma->adt->drivers.first, NULL, filter_mode, (ID *)ma);, 
+				items += animdata_filter_action(ac, anim_data, ads, ma->adt->action, filter_mode, (ID *)ma);)
+				
+			/* textures */
+			if (!(ads->filterflag & ADS_FILTER_NOTEX))
+				items += animdata_filter_dopesheet_texs(ac, anim_data, ads, (ID *)ma, filter_mode);
 		}
 	}
-	
-	/* free cache */
-	BLI_freelistN(&mats);
 	
 	/* return the number of items added to the list */
 	return items;
@@ -1522,51 +1397,39 @@ static int animdata_filter_dopesheet_particles (bAnimContext *ac, ListBase *anim
 	bAnimListElem *ale=NULL;
 	Object *ob= base->object;
 	ParticleSystem *psys = ob->particlesystem.first;
-	int items= 0, first = 1;
+	int items= 0;
 
 	for(; psys; psys=psys->next) {
 		short ok = 0;
-
+		
 		if(ELEM(NULL, psys->part, psys->part->adt))
 			continue;
-
+		
 		ANIMDATA_FILTER_CASES(psys->part,
 			{ /* AnimData blocks - do nothing... */ },
 			ok=1;, 
 			ok=1;, 
 			ok=1;)
 		if (ok == 0) continue;
-
-		/* include particles-expand widget? */
-		if (first && (filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-			ale= make_new_animlistelem(ob, ANIMTYPE_FILLPARTD, base, ANIMTYPE_OBJECT, (ID *)ob);
-			if (ale) {
-				BLI_addtail(anim_data, ale);
-				items++;
-			}
-			first = 0;
-		}
 		
 		/* add particle settings? */
-		if (FILTER_PART_OBJC(ob) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-			if ((filter_mode & ANIMFILTER_CHANNELS)) {
-				/* check if filtering by active status */
-				if ANIMCHANNEL_ACTIVEOK(psys->part) {
-					ale = make_new_animlistelem(psys->part, ANIMTYPE_DSPART, base, ANIMTYPE_OBJECT, (ID *)psys->part);
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
+		if ((filter_mode & ANIMFILTER_CHANNELS)) {
+			/* check if filtering by active status */
+			if ANIMCHANNEL_ACTIVEOK(psys->part) {
+				ale = make_new_animlistelem(psys->part, ANIMTYPE_DSPART, (ID *)psys->part);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
 				}
 			}
-			
-			if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_PART_OBJD(psys->part) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-				ANIMDATA_FILTER_CASES(psys->part,
-					{ /* AnimData blocks - do nothing... */ },
-					items += animdata_filter_nla(ac, anim_data, ads, psys->part->adt, filter_mode, psys->part, ANIMTYPE_DSPART, (ID *)psys->part);, 
-					items += animdata_filter_fcurves(anim_data, ads, psys->part->adt->drivers.first, NULL, psys->part, ANIMTYPE_DSPART, filter_mode, (ID *)psys->part);, 
-					items += animdata_filter_action(ac, anim_data, ads, psys->part->adt->action, filter_mode, psys->part, ANIMTYPE_DSPART, (ID *)psys->part);)
-			}
+		}
+		
+		if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_PART_OBJD(psys->part) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+			ANIMDATA_FILTER_CASES(psys->part,
+				{ /* AnimData blocks - do nothing... */ },
+				items += animdata_filter_nla(ac, anim_data, ads, psys->part->adt, filter_mode, (ID *)psys->part);, 
+				items += animdata_filter_fcurves(anim_data, ads, psys->part->adt->drivers.first, NULL, filter_mode, (ID *)psys->part);, 
+				items += animdata_filter_action(ac, anim_data, ads, psys->part->adt->action, filter_mode, (ID *)psys->part);)
 		}
 	}
 	
@@ -1649,7 +1512,7 @@ static int animdata_filter_dopesheet_obdata (bAnimContext *ac, ListBase *anim_da
 	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {	
 		/* check if filtering by active status */
 		if ANIMCHANNEL_ACTIVEOK(iat) {
-			ale= make_new_animlistelem(iat, type, base, ANIMTYPE_OBJECT, (ID *)iat);
+			ale= make_new_animlistelem(iat, type, (ID *)iat);
 			if (ale) BLI_addtail(anim_data, ale);
 		}
 	}
@@ -1659,9 +1522,9 @@ static int animdata_filter_dopesheet_obdata (bAnimContext *ac, ListBase *anim_da
 		/* filtering for channels - nla, drivers, keyframes */
 		ANIMDATA_FILTER_CASES(iat, 
 			{ /* AnimData blocks - do nothing... */ },
-			items+= animdata_filter_nla(ac, anim_data, ads, iat->adt, filter_mode, iat, type, (ID *)iat);,
-			items+= animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, iat, type, filter_mode, (ID *)iat);, 
-			items+= animdata_filter_action(ac, anim_data, ads, iat->adt->action, filter_mode, iat, type, (ID *)iat);)
+			items+= animdata_filter_nla(ac, anim_data, ads, iat->adt, filter_mode, (ID *)iat);,
+			items+= animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, (ID *)iat);, 
+			items+= animdata_filter_action(ac, anim_data, ads, iat->adt->action, filter_mode, (ID *)iat);)
 			
 		/* sub-data filtering... */
 		switch (ob->type) {
@@ -1694,7 +1557,7 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 		if ANIMCHANNEL_SELOK((base->flag & SELECT)) {
 			/* check if filtering by active status */
 			if ANIMCHANNEL_ACTIVEOK(ob) {
-				ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE, (ID *)ob);
+				ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, (ID *)ob);
 				if (ale) {
 					BLI_addtail(anim_data, ale);
 					items++;
@@ -1715,12 +1578,12 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
 				/* add NLA tracks */
-				items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
+				items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, (ID *)ob);
 			},
 			{ /* drivers */
 				/* include drivers-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLDRIVERS, base, ANIMTYPE_OBJECT, (ID *)ob);
+					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLDRIVERS, (ID *)ob);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -1729,14 +1592,13 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 				
 				/* add F-Curve channels (drivers are F-Curves) */
 				if (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_DRVD(adt) || !(filter_mode & ANIMFILTER_CHANNELS)) {
-					// need to make the ownertype normal object here... (maybe type should be a separate one for clarity?)
-					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, ob, ANIMTYPE_OBJECT, filter_mode, (ID *)ob);
+					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, (ID *)ob);
 				}
 			},
 			{ /* action (keyframes) */
 				/* include action-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLACTD, base, ANIMTYPE_OBJECT, (ID *)ob);
+					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLACTD, (ID *)ob);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -1745,8 +1607,7 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 				
 				/* add F-Curve channels? */
 				if (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_ACTC(adt->action) || !(filter_mode & ANIMFILTER_CHANNELS)) {
-					// need to make the ownertype normal object here... (maybe type should be a separate one for clarity?)
-					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob); 
+					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, (ID *)ob); 
 				}
 			}
 		);
@@ -1763,7 +1624,7 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
 					/* check if filtering by active status */
 					if ANIMCHANNEL_ACTIVEOK(key) {
-						ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT, (ID *)ob);
+						ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, (ID *)ob);
 						if (ale) {
 							BLI_addtail(anim_data, ale);
 							items++;
@@ -1773,12 +1634,12 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 				
 				/* add NLA tracks - only if expanded or so */
 				if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY))
-					items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)key);
+					items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, (ID *)key);
 			},
 			{ /* drivers */
 				/* include shapekey-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT, (ID *)ob);
+					ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, (ID *)ob);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -1787,7 +1648,7 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 				
 				/* add channels */
 				if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, key, ANIMTYPE_DSSKEY, filter_mode, (ID *)key);
+					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, (ID *)key);
 				}
 			},
 			{ /* action (keyframes) */
@@ -1795,7 +1656,7 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
 					/* check if filtering by active status */
 					if ANIMCHANNEL_ACTIVEOK(key) {
-						ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT, (ID *)ob);
+						ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, (ID *)ob);
 						if (ale) {
 							BLI_addtail(anim_data, ale);
 							items++;
@@ -1805,7 +1666,7 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 				
 				/* add channels */
 				if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, key, ANIMTYPE_DSSKEY, (ID *)key); 
+					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, (ID *)key); 
 				}
 			}
 		);
@@ -1934,7 +1795,7 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 	if ((filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) == 0) {
 		/* check if filtering by selection */
 		if (ANIMCHANNEL_SELOK( (sce->flag & SCE_DS_SELECTED) )) {
-			ale= make_new_animlistelem(sce, ANIMTYPE_SCENE, NULL, ANIMTYPE_NONE, NULL);
+			ale= make_new_animlistelem(sce, ANIMTYPE_SCENE, NULL);
 			if (ale) {
 				BLI_addtail(anim_data, ale);
 				items++;
@@ -1953,12 +1814,12 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
 				/* add NLA tracks */
-				items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, sce, ANIMTYPE_SCENE, (ID *)sce);
+				items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, (ID *)sce);
 			},
 			{ /* drivers */
 				/* include drivers-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLDRIVERS, sce, ANIMTYPE_SCENE, (ID *)sce);
+					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLDRIVERS, (ID *)sce);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -1967,13 +1828,13 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 				
 				/* add F-Curve channels (drivers are F-Curves) */
 				if (EXPANDED_DRVD(adt) || !(filter_mode & ANIMFILTER_CHANNELS)) {
-					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, sce, ANIMTYPE_SCENE, filter_mode, (ID *)sce);
+					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, (ID *)sce);
 				}
 			},
 			{ /* action */
 				/* include action-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLACTD, sce, ANIMTYPE_SCENE, (ID *)sce);
+					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLACTD, (ID *)sce);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -1982,7 +1843,7 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 				
 				/* add F-Curve channels? */
 				if (EXPANDED_ACTC(adt->action) || !(filter_mode & ANIMFILTER_CHANNELS)) {
-					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, sce, ANIMTYPE_SCENE, (ID *)sce); 
+					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, (ID *)sce); 
 				}
 			}
 		)
@@ -1996,12 +1857,12 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
 				/* add NLA tracks */
-				items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, wo, ANIMTYPE_DSWOR, (ID *)wo);
+				items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, (ID *)wo);
 			},
 			{ /* drivers */
 				/* include world-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(wo, ANIMTYPE_DSWOR, sce, ANIMTYPE_SCENE, (ID *)wo);
+					ale= make_new_animlistelem(wo, ANIMTYPE_DSWOR, (ID *)wo);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -2011,13 +1872,13 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 				/* add F-Curve channels (drivers are F-Curves) */
 				if (FILTER_WOR_SCED(wo)/*EXPANDED_DRVD(adt)*/ || !(filter_mode & ANIMFILTER_CHANNELS)) {
 					// XXX owner info is messed up now...
-					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, wo, ANIMTYPE_DSWOR, filter_mode, (ID *)wo);
+					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, (ID *)wo);
 				}
 			},
 			{ /* action */
 				/* include world-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(wo, ANIMTYPE_DSWOR, sce, ANIMTYPE_SCENE, (ID *)sce);
+					ale= make_new_animlistelem(wo, ANIMTYPE_DSWOR, (ID *)sce);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -2026,7 +1887,7 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 				
 				/* add channels */
 				if (FILTER_WOR_SCED(wo) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, wo, ANIMTYPE_DSWOR, (ID *)wo); 
+					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, (ID *)wo); 
 				}
 			}
 		)
@@ -2046,12 +1907,12 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
 				/* add NLA tracks */
-				items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, ntree, ANIMTYPE_DSNTREE, (ID *)ntree);
+				items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, (ID *)ntree);
 			},
 			{ /* drivers */
 				/* include nodetree-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(ntree, ANIMTYPE_DSNTREE, sce, ANIMTYPE_SCENE, (ID *)ntree);
+					ale= make_new_animlistelem(ntree, ANIMTYPE_DSNTREE, (ID *)ntree);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -2061,13 +1922,13 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 				/* add F-Curve channels (drivers are F-Curves) */
 				if (FILTER_NTREE_SCED(ntree)/*EXPANDED_DRVD(adt)*/ || !(filter_mode & ANIMFILTER_CHANNELS)) {
 					// XXX owner info is messed up now...
-					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, ntree, ANIMTYPE_DSNTREE, filter_mode, (ID *)ntree);
+					items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, (ID *)ntree);
 				}
 			},
 			{ /* action */
 				/* include nodetree-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(ntree, ANIMTYPE_DSNTREE, sce, ANIMTYPE_SCENE, (ID *)sce);
+					ale= make_new_animlistelem(ntree, ANIMTYPE_DSNTREE, (ID *)sce);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
@@ -2076,7 +1937,7 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 				
 				/* add channels */
 				if (FILTER_NTREE_SCED(ntree) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, ntree, ANIMTYPE_DSNTREE, (ID *)ntree); 
+					items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, (ID *)ntree); 
 				}
 			}
 		)
@@ -2496,8 +2357,8 @@ static short animdata_filter_dopesheet_summary (bAnimContext *ac, ListBase *anim
 	 *	  since all the other Animation Editors won't have this concept
 	 *	  being applicable.
 	 */
-	if ((ac && ac->sa) && (ac->sa->spacetype == SPACE_ACTION)) {
-		SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+	if ((ac && ac->sl) && (ac->spacetype == SPACE_ACTION)) {
+		SpaceAction *saction= (SpaceAction *)ac->sl;
 		ads= &saction->ads;
 	}
 	else {
@@ -2511,7 +2372,7 @@ static short animdata_filter_dopesheet_summary (bAnimContext *ac, ListBase *anim
 	 */
 	// TODO: we should really check if some other prohibited filters are also active, but that can be for later
 	if ((filter_mode & ANIMFILTER_CHANNELS) && (ads->filterflag & ADS_FILTER_SUMMARY)) {
-		bAnimListElem *ale= make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL, ANIMTYPE_NONE, NULL);
+		bAnimListElem *ale= make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL);
 		if (ale) {
 			BLI_addtail(anim_data, ale);
 			(*items)++;
@@ -2608,12 +2469,12 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 		switch (datatype) {
 			case ANIMCONT_ACTION:	/* 'Action Editor' */
 			{
-				SpaceAction *saction = (SpaceAction *)ac->sa->spacedata.first;
+				SpaceAction *saction = (SpaceAction *)ac->sl;
 				bDopeSheet *ads = (saction)? &saction->ads : NULL;
 				
 				/* the check for the DopeSheet summary is included here since the summary works here too */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
-					items += animdata_filter_action(ac, anim_data, ads, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+					items += animdata_filter_action(ac, anim_data, ads, data, filter_mode, (ID *)obact);
 			}
 				break;
 				

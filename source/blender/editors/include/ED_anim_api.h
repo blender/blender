@@ -41,6 +41,7 @@ struct bContext;
 struct wmKeyConfig;
 struct ReportList;
 struct ScrArea;
+struct SpaceLink;
 struct ARegion;
 struct View2D;
 
@@ -72,7 +73,8 @@ typedef struct bAnimContext {
 	short mode;				/* editor->mode */
 	short spacetype;		/* sa->spacetype */
 	short regiontype;		/* active region -> type (channels or main) */
-	struct ScrArea *sa;		/* editor */ 
+	struct ScrArea *sa;		/* editor host */
+	struct SpaceLink *sl;	/* editor data */
 	struct ARegion *ar;		/* region within editor */
 	
 	struct Scene *scene;	/* active scene */
@@ -108,8 +110,6 @@ typedef struct bAnimListElem {
 	int		flag;			/* copy of elem's flags for quick access */
 	int 	index;			/* for un-named data, the index of the data in it's collection */
 	
-	short	elemFlag;		/* flags for the list elem instance (not the data it represents) */
-	
 	short	datatype;		/* type of motion data to expect */
 	void	*key_data;		/* motion data - mostly F-Curves, but can be other types too */
 	
@@ -126,7 +126,6 @@ typedef struct bAnimListElem {
  * NOTE: need to keep the order of these synchronised with the channels define code
  * 		which is used for drawing and handling channel lists for 
  */
-// XXX was ACTTYPE_*
 typedef enum eAnim_ChannelType {
 	ANIMTYPE_NONE= 0,
 	ANIMTYPE_ANIMDATA,
@@ -141,9 +140,6 @@ typedef enum eAnim_ChannelType {
 	
 	ANIMTYPE_FILLACTD,
 	ANIMTYPE_FILLDRIVERS,
-	ANIMTYPE_FILLMATD,
-	ANIMTYPE_FILLPARTD,
-	ANIMTYPE_FILLTEXD,
 	
 	ANIMTYPE_DSMAT,
 	ANIMTYPE_DSLAM,
@@ -188,7 +184,6 @@ typedef enum eAnim_KeyType {
 /* ----------------- Filtering -------------------- */
 
 /* filtering flags  - under what circumstances should a channel be added */
-// XXX was ACTFILTER_*
 typedef enum eAnimFilter_Flags {
 	ANIMFILTER_VISIBLE		= (1<<0),	/* should channels be visible (in terms of hierarchy only) */
 	ANIMFILTER_SEL			= (1<<1),	/* should channels be selected */
@@ -222,9 +217,6 @@ typedef enum eAnimFilter_Flags {
 	/* 'Object' channels */
 #define SEL_OBJC(base) ((base->flag & SELECT))
 #define EXPANDED_OBJC(ob) ((ob->nlaflag & OB_ADS_COLLAPSED)==0)
-	/* 'Sub-object' channels (flags stored in Object block) */
-#define FILTER_MAT_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWMATS))
-#define FILTER_PART_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWPARTS))
 	/* 'Sub-object' channels (flags stored in Data block) */
 #define FILTER_SKE_OBJD(key) ((key->flag & KEY_DS_EXPAND))
 #define FILTER_MAT_OBJD(ma) ((ma->flag & MA_DS_EXPAND))
@@ -243,9 +235,6 @@ typedef enum eAnimFilter_Flags {
 	/* 'Sub-AnimData' channels */
 #define EXPANDED_DRVD(adt) ((adt->flag & ADT_DRIVERS_COLLAPSED)==0)
 	/* Texture expanders */
-#define FILTER_TEX_MATC(ma) ((ma->flag & MA_DS_SHOW_TEXS))
-#define FILTER_TEX_LAMC(la) ((la->flag & LA_DS_SHOW_TEXS))
-#define FILTER_TEX_WORC(wa) ((wo->flag & WO_DS_SHOW_TEXS))
 #define FILTER_TEX_DATA(tex) ((tex->flag & TEX_DS_EXPAND))
 
 /* Actions (also used for Dopesheet) */

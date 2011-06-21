@@ -349,6 +349,7 @@ void recalcData(TransInfo *t)
 		ac.obact= OBACT;
 		ac.sa= t->sa;
 		ac.ar= t->ar;
+		ac.sl= (t->sa)? t->sa->spacedata.first : NULL;
 		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
 		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
 		
@@ -383,7 +384,7 @@ void recalcData(TransInfo *t)
 		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
 		
 		ListBase anim_data = {NULL, NULL};
-		bAnimContext ac;
+		bAnimContext ac= {NULL};
 		int filter;
 		
 		bAnimListElem *ale;
@@ -392,12 +393,11 @@ void recalcData(TransInfo *t)
 		
 		/* initialise relevant anim-context 'context' data from TransInfo data */
 			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
-		memset(&ac, 0, sizeof(bAnimContext));
-		
 		scene= ac.scene= t->scene;
 		ac.obact= OBACT;
 		ac.sa= t->sa;
 		ac.ar= t->ar;
+		ac.sl= (t->sa)? t->sa->spacedata.first : NULL;
 		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
 		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
 		

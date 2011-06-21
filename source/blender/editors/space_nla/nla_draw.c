@@ -605,8 +605,8 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					indent= 0;
 					
 					if (ale->id) {
-						/* special exception for materials and particles */
-						if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) {
+						/* special exception for textures */
+						if (GS(ale->id->name) == ID_TE) {
 							offset= 21;
 							indent= 1;
 						}
@@ -653,8 +653,8 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					group = 5;
 					
 					if (ale->id) {
-						/* special exception for materials and particles */
-						if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) {
+						/* special exception for textures */
+						if (GS(ale->id->name) == ID_TE) {
 							offset= 21;
 							indent= 1;
 						}

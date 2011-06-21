@@ -90,7 +90,7 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 	bAnimListElem *ale;
 	int filter;
 	
-	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc test_cb, sel_cb;
 	
@@ -201,7 +201,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	bAnimListElem *ale;
 	int filter;
 	
-	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 	KeyframeEditData ked;
 	KeyframeEditFunc ok_cb, select_cb;
 	View2D *v2d= &ac->ar->v2d;
@@ -958,7 +958,7 @@ static void get_nearest_fcurve_verts_list (bAnimContext *ac, const int mval[2], 
 	bAnimListElem *ale;
 	int filter;
 	
-	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 	View2D *v2d= &ac->ar->v2d;
 	
 	/* get curves to search through 
@@ -1091,7 +1091,7 @@ static tNearestVertInfo *find_nearest_fcurve_vert (bAnimContext *ac, const int m
 /* option 1) select keyframe directly under mouse */
 static void mouse_graph_keys (bAnimContext *ac, const int mval[2], short select_mode, short curves_only)
 {
-	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 	tNearestVertInfo *nvi;
 	BezTriple *bezt= NULL;
 	
@@ -1218,7 +1218,7 @@ static void graphkeys_mselect_column (bAnimContext *ac, const int mval[2], short
 	bAnimListElem *ale;
 	int filter;
 	
-	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 	KeyframeEditFunc select_cb, ok_cb;
 	KeyframeEditData ked;
 	tNearestVertInfo *nvi;

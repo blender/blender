@@ -159,8 +159,8 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 	short indent= (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
 	
 	/* get context info needed... */
-	if ((ac->sa) && (ac->sa->spacetype == SPACE_ACTION))
-		saction= (SpaceAction *)ac->sa->spacedata.first;
+	if ((ac->sl) && (ac->spacetype == SPACE_ACTION))
+		saction= (SpaceAction *)ac->sl;
 		
 	if (ale->type == ANIMTYPE_FCURVE) {
 		FCurve *fcu= (FCurve *)ale->data;
@@ -235,13 +235,6 @@ static short acf_generic_indention_flexible(bAnimContext *UNUSED(ac), bAnimListE
 {
 	short indent= 0;
 	
-	if (ale->id) {
-		/* special exception for materials, textures, and particles */
-		// xxx should tex use indention 2?
-		if (ELEM3(GS(ale->id->name),ID_MA,ID_PA,ID_TE))
-			indent++;
-	}
-	
 	/* grouped F-Curves need extra level of indention */
 	if (ale->type == ANIMTYPE_FCURVE) {
 		FCurve *fcu= (FCurve *)ale->data;
@@ -274,24 +267,11 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 	if (ale->id) {
 		/* special exception for textures */
 		if (GS(ale->id->name) == ID_TE) {
-			/* minimum offset */
 			offset += 21;
-			
-			/* special offset from owner type */
-			switch (ale->ownertype) {
-				case ANIMTYPE_DSMAT:
-					offset += 21;
-					break;
-					
-				case ANIMTYPE_DSLAM:
-				case ANIMTYPE_DSWOR:
-					offset += 14;
-					break;
-			}
 		}
 		/* special exception for materials and particles */
 		else if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) 
-			offset += 21;
+			offset += 14;
 			
 		/* if not in Action Editor mode, groupings must carry some offset too... */
 		else if (ac->datatype != ANIMCONT_ACTION)
@@ -323,46 +303,6 @@ static short acf_generic_none_setting_valid(bAnimContext *ac, bAnimListElem *ale
 	return 0;
 }
 #endif
-
-/* check if some setting exists for this object-based data-expander (category only) */
-static short acf_generic_dsexpand_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
-{
-	switch (setting) {
-		/* only expand supported everywhere */
-		case ACHANNEL_SETTING_EXPAND:
-			return 1;
-			
-		/* visible 
-		 * 	- only available in Graph Editor 
-		 *	- NOT available for 'filler' channels
-		 */
-		case ACHANNEL_SETTING_VISIBLE: 
-			if (ELEM3(ale->type, ANIMTYPE_FILLMATD, ANIMTYPE_FILLPARTD, ANIMTYPE_FILLTEXD))
-				return 0;
-			else
-				return ((ac) && (ac->spacetype == SPACE_IPO));
-			
-		default:
-			return 0;
-	}
-}
-
-/* get pointer to the setting (category only) */
-static void *acf_generic_dsexpand_setting_ptr(bAnimListElem *ale, int setting, short *type)
-{
-	Object *ob= (Object *)ale->data;
-	
-	/* clear extra return data first */
-	*type= 0;
-	
-	switch (setting) {
-		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			GET_ACF_FLAG_PTR(ob->nlaflag); // XXX
-		
-		default: /* unsupported */
-			return NULL;
-	}
-}
 
 /* check if some setting exists for this object-based data-expander (datablock only) */
 static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), int setting)
@@ -459,8 +399,8 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale, int setting, short *typ
 	/* if data is valid, return pointer to active dopesheet's relevant flag 
 	 *	- this is restricted to DopeSheet/Action Editor only
 	 */
-	if ((ac->sa) && (ac->spacetype == SPACE_ACTION) && (setting == ACHANNEL_SETTING_EXPAND)) {
-		SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+	if ((ac->sl) && (ac->spacetype == SPACE_ACTION) && (setting == ACHANNEL_SETTING_EXPAND)) {
+		SpaceAction *saction= (SpaceAction *)ac->sl;
 		bDopeSheet *ads= &saction->ads;
 		
 		/* return pointer to DopeSheet's flag */
@@ -782,7 +722,7 @@ static short acf_group_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale
 	/* for now, all settings are supported, though some are only conditionally */
 	switch (setting) {
 		case ACHANNEL_SETTING_VISIBLE: /* Only available in Graph Editor */
-			return ((ac->sa) && (ac->sa->spacetype==SPACE_IPO));
+			return (ac->spacetype==SPACE_IPO);
 			
 		default: /* always supported */
 			return 1;
@@ -879,7 +819,7 @@ static short acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 				return 0; // NOTE: in this special case, we need to draw ICON_ZOOMOUT
 				
 		case ACHANNEL_SETTING_VISIBLE: /* Only available in Graph Editor */
-			return ((ac->sa) && (ac->sa->spacetype==SPACE_IPO));
+			return (ac->spacetype==SPACE_IPO);
 			
 		/* always available */
 		default:
@@ -1101,203 +1041,6 @@ static bAnimChannelType ACF_FILLDRIVERS =
 	acf_filldrivers_setting_ptr		/* pointer for setting */
 };
 
-/* Materials Expander  ------------------------------------------- */
-
-// TODO: just get this from RNA?
-static int acf_fillmatd_icon(bAnimListElem *UNUSED(ale))
-{
-	return ICON_MATERIAL_DATA;
-}
-
-static void acf_fillmatd_name(bAnimListElem *UNUSED(ale), char *name)
-{
-	BLI_strncpy(name, "Materials", ANIM_CHAN_NAME_SIZE);
-}
-
-/* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillmatd_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
-{
-	/* clear extra return data first */
-	*neg= 0;
-	
-	switch (setting) {
-		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			return OB_ADS_SHOWMATS;
-		
-		default: /* unsupported */
-			return 0;
-	}
-}
-
-/* materials expander type define */
-static bAnimChannelType ACF_FILLMATD= 
-{
-	"Materials Filler",				/* type name */
-	
-	acf_generic_dataexpand_color,	/* backdrop color */
-	acf_generic_dataexpand_backdrop,/* backdrop */
-	acf_generic_indention_1,		/* indent level */
-	acf_generic_basic_offset,		/* offset */
-	
-	acf_fillmatd_name,				/* name */
-	acf_fillmatd_icon,				/* icon */
-	
-	acf_generic_dsexpand_setting_valid,	/* has setting */
-	acf_fillmatd_setting_flag,				/* flag for setting */
-	acf_generic_dsexpand_setting_ptr		/* pointer for setting */
-};
-
-/* Particles Expander  ------------------------------------------- */
-
-// TODO: just get this from RNA?
-static int acf_fillpartd_icon(bAnimListElem *UNUSED(ale))
-{
-	return ICON_PARTICLE_DATA;
-}
-
-static void acf_fillpartd_name(bAnimListElem *UNUSED(ale), char *name)
-{
-	BLI_strncpy(name, "Particles", ANIM_CHAN_NAME_SIZE);
-}
-
-/* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillpartd_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
-{
-	/* clear extra return data first */
-	*neg= 0;
-	
-	switch (setting) {
-		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			return OB_ADS_SHOWPARTS;
-		
-		default: /* unsupported */
-			return 0;
-	}
-}
-
-/* particles expander type define */
-static bAnimChannelType ACF_FILLPARTD= 
-{
-	"Particles Filler",				/* type name */
-	
-	acf_generic_dataexpand_color,	/* backdrop color */
-	acf_generic_dataexpand_backdrop,/* backdrop */
-	acf_generic_indention_1,		/* indent level */
-	acf_generic_basic_offset,		/* offset */
-	
-	acf_fillpartd_name,				/* name */
-	acf_fillpartd_icon,				/* icon */
-	
-	acf_generic_dsexpand_setting_valid,	/* has setting */
-	acf_fillpartd_setting_flag,				/* flag for setting */
-	acf_generic_dsexpand_setting_ptr		/* pointer for setting */
-};
-
-/* Textures Expander  ------------------------------------------- */
-
-/* offset for groups + grouped entities */
-static short acf_filltexd_offset(bAnimContext *ac, bAnimListElem *ale)
-{
-	short offset= acf_generic_basic_offset(ac, ale);
-	
-	if (ale->id) {
-		/* materials */
-		switch (GS(ale->id->name)) {
-			case ID_MA:
-				offset += 21;
-				break;
-				
-			case ID_LA:
-			case ID_WO:
-				offset += 14;
-				break;
-		}
-	}
-	
-	return offset;
-}
-
-// TODO: just get this from RNA?
-static int acf_filltexd_icon(bAnimListElem *UNUSED(ale))
-{
-	return ICON_TEXTURE_DATA;
-}
-
-static void acf_filltexd_name(bAnimListElem *UNUSED(ale), char *name)
-{
-	BLI_strncpy(name, "Textures", ANIM_CHAN_NAME_SIZE);
-}
-
-/* get pointer to the setting (category only) */
-static void *acf_filltexd_setting_ptr(bAnimListElem *ale, int setting, short *type)
-{
-	ID *id= (ID *)ale->data;
-	
-	/* clear extra return data first */
-	*type= 0;
-	
-	switch (setting) {
-		case ACHANNEL_SETTING_EXPAND: /* expanded */
-		{
-			switch (GS(id->name)) {
-				case ID_MA:
-				{
-					Material *ma= (Material *)id;
-					GET_ACF_FLAG_PTR(ma->flag);
-				}
-				
-				case ID_LA:
-				{
-					Lamp *la= (Lamp *)id;
-					GET_ACF_FLAG_PTR(la->flag);
-				}
-					
-				case ID_WO:
-				{
-					World *wo= (World *)id;
-					GET_ACF_FLAG_PTR(wo->flag);
-				}
-			}
-		}
-		
-		default: /* unsupported */
-			return NULL;
-	}
-}
-
-/* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_filltexd_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
-{
-	/* clear extra return data first */
-	*neg= 0;
-	
-	switch (setting) {
-		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			/* NOTE: the exact same flag must be used for other texture stack types too! */
-			return MA_DS_SHOW_TEXS;	
-		
-		default: /* unsupported */
-			return 0;
-	}
-}
-
-/* particles expander type define */
-static bAnimChannelType ACF_FILLTEXD= 
-{
-	"Textures Filler",				/* type name */
-	
-	acf_generic_dataexpand_color,	/* backdrop color */
-	acf_generic_dataexpand_backdrop,/* backdrop */
-	acf_generic_indention_flexible,	/* indent level */
-	acf_filltexd_offset,			/* offset */
-	
-	acf_filltexd_name,				/* name */
-	acf_filltexd_icon,				/* icon */
-	
-	acf_generic_dsexpand_setting_valid,	/* has setting */	
-	acf_filltexd_setting_flag,			/* flag for setting */
-	acf_filltexd_setting_ptr			/* pointer for setting */
-};
 
 /* Material Expander  ------------------------------------------- */
 
@@ -1305,12 +1048,6 @@ static bAnimChannelType ACF_FILLTEXD=
 static int acf_dsmat_icon(bAnimListElem *UNUSED(ale))
 {
 	return ICON_MATERIAL_DATA;
-}
-
-/* offset for material expanders */
-static short acf_dsmat_offset(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
-{
-	return 21;
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
@@ -1368,10 +1105,10 @@ static bAnimChannelType ACF_DSMAT=
 {
 	"Material Data Expander",		/* type name */
 	
-	acf_generic_channel_color,		/* backdrop color */
-	acf_generic_channel_backdrop,	/* backdrop */
-	acf_generic_indention_0,		/* indent level */
-	acf_dsmat_offset,				/* offset */
+	acf_generic_dataexpand_color,	/* backdrop color */
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_1,		/* indent level */
+	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
 	acf_dsmat_icon,					/* icon */
@@ -1466,22 +1203,10 @@ static int acf_dstex_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* offset for texture expanders */
+// FIXME: soon to be obsolete?
 static short acf_dstex_offset(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
-	short offset = 21;
-	
-	/* special offset from owner type */
-	// FIXME: too much now!
-	switch (ale->ownertype) {
-		case ANIMTYPE_DSMAT:
-			offset += 14;
-			
-		case ANIMTYPE_DSLAM:
-		case ANIMTYPE_DSWOR:
-			offset += 7;
-	}
-	
-	return offset;
+	return 14; // XXX: simply include this in indention instead?
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
@@ -1534,14 +1259,14 @@ static void *acf_dstex_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	}
 }
 
-/* material expander type define */
+/* texture expander type define */
 static bAnimChannelType ACF_DSTEX= 
 {
 	"Texture Data Expander",		/* type name */
 	
-	acf_generic_channel_color,		/* backdrop color */
-	acf_generic_channel_backdrop,	/* backdrop */
-	acf_generic_indention_0,		/* indent level */
+	acf_generic_dataexpand_color,	/* backdrop color */
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_1,		/* indent level */
 	acf_dstex_offset,				/* offset */
 	
 	acf_generic_idblock_name,		/* name */
@@ -2590,9 +2315,6 @@ static void ANIM_init_channel_typeinfo_data (void)
 		
 		animchannelTypeInfo[type++]= &ACF_FILLACTD; 	/* Object Action Expander */
 		animchannelTypeInfo[type++]= &ACF_FILLDRIVERS; 	/* Drivers Expander */
-		animchannelTypeInfo[type++]= &ACF_FILLMATD; 	/* Materials Expander */
-		animchannelTypeInfo[type++]= &ACF_FILLPARTD; 	/* Particles Expander */
-		animchannelTypeInfo[type++]= &ACF_FILLTEXD;		/* Textures Expander */
 		
 		animchannelTypeInfo[type++]= &ACF_DSMAT;		/* Material Channel */
 		animchannelTypeInfo[type++]= &ACF_DSLAM;		/* Lamp Channel */
@@ -2860,7 +2582,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 	 *	- in Graph Editor, checkboxes for visibility in curves area
 	 *	- in NLA Editor, glowing dots for solo/not solo...
 	 */
-	if (ac->sa) {
+	if (ac->sl) {
 		if ((ac->spacetype == SPACE_IPO) && acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
 			/* for F-Curves, draw color-preview of curve behind checkbox */
 			if (ale->type == ANIMTYPE_FCURVE) {
@@ -2930,17 +2652,17 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		glColor3fv(color);
 		
 		/* check if we need to show the sliders */
-		if ((ac->sa) && ELEM(ac->spacetype, SPACE_ACTION, SPACE_IPO)) {
+		if ((ac->sl) && ELEM(ac->spacetype, SPACE_ACTION, SPACE_IPO)) {
 			switch (ac->spacetype) {
 				case SPACE_ACTION:
 				{
-					SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+					SpaceAction *saction= (SpaceAction *)ac->sl;
 					draw_sliders= (saction->flag & SACTION_SLIDERS);
 				}
 					break;
 				case SPACE_IPO:
 				{
-					SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+					SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 					draw_sliders= (sipo->flag & SIPO_SLIDERS);
 				}
 					break;
@@ -3264,7 +2986,7 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 	 *	- in Graph Editor, checkboxes for visibility in curves area
 	 *	- in NLA Editor, glowing dots for solo/not solo...
 	 */
-	if (ac->sa) {
+	if (ac->sl) {
 		if ((ac->spacetype == SPACE_IPO) && acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
 			/* visibility toggle  */
 			draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_VISIBLE);
@@ -3291,17 +3013,17 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 		short draw_sliders = 0;
 		
 		/* check if we need to show the sliders */
-		if ((ac->sa) && ELEM(ac->spacetype, SPACE_ACTION, SPACE_IPO)) {
+		if ((ac->sl) && ELEM(ac->spacetype, SPACE_ACTION, SPACE_IPO)) {
 			switch (ac->spacetype) {
 				case SPACE_ACTION:
 				{
-					SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+					SpaceAction *saction= (SpaceAction *)ac->sl;
 					draw_sliders= (saction->flag & SACTION_SLIDERS);
 				}
 					break;
 				case SPACE_IPO:
 				{
-					SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+					SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 					draw_sliders= (sipo->flag & SIPO_SLIDERS);
 				}
 					break;

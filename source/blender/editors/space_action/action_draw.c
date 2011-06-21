@@ -248,8 +248,6 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							break;
 						
 						case ANIMTYPE_FILLACTD:
-						case ANIMTYPE_FILLMATD:
-						case ANIMTYPE_FILLPARTD:
 						case ANIMTYPE_DSSKEY:
 						case ANIMTYPE_DSWOR:
 						{

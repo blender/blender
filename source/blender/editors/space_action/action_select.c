@@ -780,7 +780,7 @@ static void actkeys_select_leftright (bAnimContext *ac, short leftright, short s
 	
 	/* Sync marker support */
 	if (select_mode==SELECT_ADD) {
-		SpaceAction *saction= ac->sa->spacedata.first;
+		SpaceAction *saction= (SpaceAction *)ac->sl;
 		
 		if ((saction) && (saction->flag & SACTION_MARKERS_MOVE)) {
 			ListBase *markers = ED_animcontext_get_markers(ac);

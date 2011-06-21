@@ -279,7 +279,7 @@ void GRAPH_OT_view_selected (wmOperatorType *ot)
 /* Bake each F-Curve into a set of samples, and store as a ghost curve */
 static void create_ghost_curves (bAnimContext *ac, int start, int end)
 {	
-	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
@@ -399,7 +399,7 @@ static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op))
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	sipo= (SpaceIpo *)ac.sa->spacedata.first;
+	sipo= (SpaceIpo *)ac.sl;
 		
 	/* if no ghost curves, don't do anything */
 	if (sipo->ghostCurves.first == NULL)
@@ -1725,7 +1725,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* set the new current frame and cursor values, based on the average time and value */
 	if (ked.i1) {
-		SpaceIpo *sipo= ac.sa->spacedata.first;
+		SpaceIpo *sipo= (SpaceIpo *)ac.sl;
 		Scene *scene= ac.scene;
 		
 		/* take the average values, rounding to the nearest int for the current frame */
@@ -1792,7 +1792,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 		ked.list.last= (ac->markers) ? ac->markers->last : NULL;
 	}
 	else if (mode == GRAPHKEYS_SNAP_VALUE) {
-		SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+		SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 		ked.f1= (sipo) ? sipo->cursorVal : 0.0f;
 	}
 	
@@ -1906,7 +1906,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 			return;
 	}
 	else if (mode == GRAPHKEYS_MIRROR_VALUE) {
-		SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+		SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 		ked.f1= (sipo) ? sipo->cursorVal : 0.0f;
 	}
 	
