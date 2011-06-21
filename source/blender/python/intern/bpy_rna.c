@@ -39,6 +39,7 @@
 #include "bpy_props.h"
 #include "bpy_util.h"
 #include "bpy_rna_callback.h"
+#include "bpy_intern_string.h"
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
 #include "MEM_guardedalloc.h"
@@ -1472,7 +1473,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				param= _PyUnicode_AsString(value);
 			}
 #else // USE_STRING_COERCE
-			param= _PyUnicode_AsStringSize(value);
+			param= _PyUnicode_AsString(value);
 #endif // USE_STRING_COERCE
 
 			if (param==NULL) {
@@ -5217,7 +5218,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	item= pyrna_struct_CreatePyObject(&ptr);
 
 	/* note, must set the class not the __dict__ else the internal slots are not updated correctly */
-	PyObject_SetAttrString(newclass, "bl_rna", item);
+	PyObject_SetAttr(newclass, bpy_intern_str_bl_rna, item);
 	Py_DECREF(item);
 
 	/* done with rna instance */
@@ -5279,7 +5280,7 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 		//PyObject *slots= PyObject_GetAttrString(newclass, "__slots__"); // cant do this because it gets superclasses values!
 		//PyObject *bases= PyObject_GetAttrString(newclass, "__bases__"); // can do this but faster not to.
 		PyObject *bases= ((PyTypeObject *)newclass)->tp_bases;
-		PyObject *slots= PyDict_GetItemString(((PyTypeObject *)newclass)->tp_dict, "__slots__");
+		PyObject *slots= PyDict_GetItem(((PyTypeObject *)newclass)->tp_dict, bpy_intern_str___slots__);
 
 		if(slots==NULL) {
 			fprintf(stderr, "pyrna_srna_ExternalType: expected class '%s' to have __slots__ defined\n\nSee bpy_types.py\n", idname);
@@ -5649,7 +5650,7 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, int parent, const char *error_pr
 
 	/* ack, PyObject_GetAttrString wont look up this types tp_dict first :/ */
 	if(PyType_Check(self)) {
-		py_srna= (BPy_StructRNA *)PyDict_GetItemString(((PyTypeObject *)self)->tp_dict, "bl_rna");
+		py_srna= (BPy_StructRNA *)PyDict_GetItem(((PyTypeObject *)self)->tp_dict, bpy_intern_str_bl_rna);
 		Py_XINCREF(py_srna);
 	}
 
@@ -5657,7 +5658,7 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, int parent, const char *error_pr
 		/* be very careful with this since it will return a parent classes srna.
 		 * modifying this will do confusing stuff! */
 		if(py_srna==NULL)
-			py_srna= (BPy_StructRNA*)PyObject_GetAttrString(self, "bl_rna");
+			py_srna= (BPy_StructRNA*)PyObject_GetAttr(self, bpy_intern_str_bl_rna);
 	}
 
 	if(py_srna==NULL) {
@@ -5747,7 +5748,7 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 			py_srna_cobject= PyCapsule_New(srna, NULL, NULL);
 
 			/* not 100% nice :/, modifies the dict passed, should be ok */
-			PyDict_SetItemString(py_kw, "attr", key);
+			PyDict_SetItem(py_kw, bpy_intern_str_attr, key);
 
 			args_fake= PyTuple_New(1);
 			PyTuple_SET_ITEM(args_fake, 0, py_srna_cobject);
@@ -5794,7 +5795,7 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 	/* in both cases PyDict_CheckExact(class_dict) will be true even
 	 * though Operators have a metaclass dict namespace */
 
-	if((order= PyDict_GetItemString(class_dict, "order")) && PyList_CheckExact(order)) {
+	if((order= PyDict_GetItem(class_dict, bpy_intern_str_order)) && PyList_CheckExact(order)) {
 		for(pos= 0; pos<PyList_GET_SIZE(order); pos++) {
 			key= PyList_GET_ITEM(order, pos);
 			item= PyDict_GetItem(class_dict, key);
@@ -6040,9 +6041,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	PyGILState_STATE gilstate;
 
 #ifdef USE_PEDANTIC_WRITE
+	const int is_operator= RNA_struct_is_a(ptr->type, &RNA_Operator);
 	const char *func_id= RNA_function_identifier(func);
 	/* testing, for correctness, not operator and not draw function */
-	const short is_readonly= strstr("draw", func_id) || /*strstr("render", func_id) ||*/ !RNA_struct_is_a(ptr->type, &RNA_Operator);
+	const short is_readonly= strstr("draw", func_id) || /*strstr("render", func_id) ||*/ !is_operator;
 #endif
 
 	py_class= RNA_struct_py_type_get(ptr->type);
@@ -6098,6 +6100,11 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			 * Although this is annoying to have to impliment a part of pythons typeobject.c:type_call().
 			 */
 			if(py_class->tp_init) {
+#ifdef USE_PEDANTIC_WRITE
+				const int prev_write= rna_disallow_writes;
+				rna_disallow_writes= is_operator ? FALSE : TRUE; /* only operators can write on __init__ */
+#endif
+
 				/* true in most cases even when the class its self doesn't define an __init__ function. */
 				args= PyTuple_New(0);
 				if (py_class->tp_init(py_srna, args, NULL) < 0) {
@@ -6106,11 +6113,16 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 					/* err set below */
 				}
 				Py_DECREF(args);
+#ifdef USE_PEDANTIC_WRITE
+				rna_disallow_writes= prev_write;
+#endif
 			}
-
 			py_class_instance= py_srna;
 
 #else
+			const int prev_write= rna_disallow_writes;
+			rna_disallow_writes= TRUE;
+
 			/* 'almost' all the time calling the class isn't needed.
 			 * We could just do...
 			py_class_instance= py_srna;
@@ -6124,7 +6136,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			py_class_instance= PyObject_Call(py_class, args, NULL);
 			Py_DECREF(args);
 
+			rna_disallow_writes= prev_write;
+
 #endif
+
 			if(py_class_instance == NULL) {
 				err= -1; /* so the error is not overridden below */
 			}
@@ -6299,7 +6314,7 @@ static void bpy_class_free(void *pyob_ptr)
 	// PyDict_Clear(((PyTypeObject*)self)->tp_dict);
 	//
 	// remove the rna attribute instead.
-	PyDict_DelItemString(((PyTypeObject *)self)->tp_dict, "bl_rna");
+	PyDict_DelItem(((PyTypeObject *)self)->tp_dict, bpy_intern_str_bl_rna);
 	if(PyErr_Occurred())
 		PyErr_Clear();
 
@@ -6405,7 +6420,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 	const char *identifier;
 	PyObject *py_cls_meth;
 
-	if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")) {
+	if(PyDict_GetItem(((PyTypeObject*)py_class)->tp_dict, bpy_intern_str_bl_rna)) {
 		PyErr_SetString(PyExc_AttributeError, "register_class(...): already registered as a subclass");
 		return NULL;
 	}
@@ -6470,7 +6485,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 		return NULL;
 
 	/* call classed register method () */
-	py_cls_meth= PyObject_GetAttrString(py_class, "register");
+	py_cls_meth= PyObject_GetAttr(py_class, bpy_intern_str_register);
 	if(py_cls_meth == NULL) {
 		PyErr_Clear();
 	}
@@ -6528,7 +6543,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	StructRNA *srna;
 	PyObject *py_cls_meth;
 
-	/*if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")==NULL) {
+	/*if(PyDict_GetItem(((PyTypeObject*)py_class)->tp_dict, bpy_intern_str_bl_rna)==NULL) {
 		PWM_cursor_wait(0);
 		PyErr_SetString(PyExc_ValueError, "unregister_class(): not a registered as a subclass");
 		return NULL;
@@ -6547,7 +6562,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	}
 
 	/* call classed unregister method */
-	py_cls_meth= PyObject_GetAttrString(py_class, "unregister");
+	py_cls_meth= PyObject_GetAttr(py_class, bpy_intern_str_unregister);
 	if(py_cls_meth == NULL) {
 		PyErr_Clear();
 	}
@@ -6597,7 +6612,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	/* call unregister */
 	unreg(CTX_data_main(C), srna); /* calls bpy_class_free, this decref's py_class */
 
-	PyDict_DelItemString(((PyTypeObject *)py_class)->tp_dict, "bl_rna");
+	PyDict_DelItem(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna);
 	if(PyErr_Occurred())
 		PyErr_Clear(); //return NULL;
 

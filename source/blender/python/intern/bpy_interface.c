@@ -43,6 +43,7 @@
 #include "bpy_rna.h"
 #include "bpy_util.h"
 #include "bpy_traceback.h"
+#include "bpy_intern_string.h"
 
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
@@ -199,13 +200,15 @@ void BPY_python_start(int argc, const char **argv)
 	/* allow to use our own included python */
 	PyC_SetHomePath(BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL));
 
-	/* Python 3.2 now looks for '2.57/python/include/python3.2d/pyconfig.h' to parse
+	/* Python 3.2 now looks for '2.58/python/include/python3.2d/pyconfig.h' to parse
 	 * from the 'sysconfig' module which is used by 'site', so for now disable site.
 	 * alternatively we could copy the file. */
 	Py_NoSiteFlag= 1;
 
 	Py_Initialize();
-	
+
+	bpy_intern_string_init();
+
 	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
 	/* sigh, why do python guys not have a char** version anymore? :( */
 	{
@@ -251,7 +254,9 @@ void BPY_python_end(void)
 	pyrna_free_types();
 
 	/* clear all python data from structs */
-	
+
+	bpy_intern_string_exit();
+
 	Py_Finalize();
 	
 #ifdef TIME_PY_RUN

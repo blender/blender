@@ -118,6 +118,7 @@ class DATA_PT_texture_space(MeshButtonsPanel, bpy.types.Panel):
         row.column().prop(mesh, "texspace_location", text="Location")
         row.column().prop(mesh, "texspace_size", text="Size")
 
+
 class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Vertex Groups"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}

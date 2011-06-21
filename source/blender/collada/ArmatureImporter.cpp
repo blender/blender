@@ -42,12 +42,12 @@
 
 #include "ArmatureImporter.h"
 
-// use this for retrieving bone names, since these must be unique
+// use node name, or fall back to original id if not present (name is optional)
 template<class T>
 static const char *bc_get_joint_name(T *node)
 {
-	const std::string& id = node->getOriginalId();
-	return id.size() ? id.c_str() : node->getName().c_str();
+	const std::string& id = node->getName();
+	return id.size() ? id.c_str() : node->getOriginalId().c_str();
 }
 
 ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, AnimationImporterBase *anim, Scene *sce) :

@@ -1634,7 +1634,7 @@ static int Vector_setSwizzle(VectorObject *self, PyObject *value, void *closure)
 
 		size_from= axis_from;
 	}
-	else if((size_from=mathutils_array_parse(vec_assign, 2, 4, value, "mathutils.Vector.**** = swizzle assignment")) == -1) {
+	else if(PyErr_Clear(), (size_from=mathutils_array_parse(vec_assign, 2, 4, value, "mathutils.Vector.**** = swizzle assignment")) == -1) {
 		return -1;
 	}
 
