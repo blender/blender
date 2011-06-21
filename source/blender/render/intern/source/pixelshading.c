@@ -502,21 +502,6 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 
 /* ------------------------------------------------------------------------- */
 
-static void fillBackgroundImage(float *collector, float fx, float fy)
-{
-	collector[0] = 0.0; 
-	collector[1] = 0.0; 
-	collector[2] = 0.0; 
-	collector[3] = 0.0; 
-	
-	if(R.backbuf) {
-		float dx= 1.0f/(float)R.winx;
-		float dy= 1.0f/(float)R.winy;
-		
-		image_sample(R.backbuf, fx*dx, fy*dy, dx, dy, collector);
-	}
-}
-
 /* Only view vector is important here. Result goes to colf[3] */
 void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short thread)
 {
@@ -626,18 +611,14 @@ void shadeSkyPixel(float *collector, float fx, float fy, short thread)
 
 	float fac;
 
-	/* 1. Do a backbuffer image: */ 
-	if(R.r.bufflag & 1) {
-		fillBackgroundImage(collector, fx, fy);
-	} 
-	else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
-		/* 2. solid color */
+	if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
+		/* 1. solid color */
 		VECCOPY(collector, &R.wrld.horr);
 
 		collector[3] = 0.0f;
 	} 
 	else {
-		/* 3. */
+		/* 2. */
 
 		/* This one true because of the context of this routine  */
 		if(R.wrld.skytype & WO_SKYPAPER) {

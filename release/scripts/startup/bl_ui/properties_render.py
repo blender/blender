@@ -376,8 +376,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "use_compositing")
         col.prop(rd, "use_sequencer")
 
-        col = split.column()
-        col.prop(rd, "dither_intensity", text="Dither", slider=True)
+        split.prop(rd, "dither_intensity", text="Dither", slider=True)
 
         layout.separator()
 

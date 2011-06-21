@@ -51,22 +51,23 @@ struct GHash;
 /* **** DAG relation types *** */
 
 	/* scene link to object */
-#define DAG_RL_SCENE		1
+#define DAG_RL_SCENE		(1<<0)
 	/* object link to data */
-#define DAG_RL_DATA			2
+#define DAG_RL_DATA			(1<<1)
 
 	/* object changes object (parent, track, constraints) */
-#define DAG_RL_OB_OB		4
+#define DAG_RL_OB_OB		(1<<2)
 	/* object changes obdata (hooks, constraints) */
-#define DAG_RL_OB_DATA		8
+#define DAG_RL_OB_DATA		(1<<3)
 	/* data changes object (vertex parent) */
-#define DAG_RL_DATA_OB		16
+#define DAG_RL_DATA_OB		(1<<4)
 	/* data changes data (deformers) */
-#define DAG_RL_DATA_DATA	32
+#define DAG_RL_DATA_DATA	(1<<5)
 
-#define DAG_NO_RELATION		64
-#define DAG_RL_ALL			63
-#define DAG_RL_ALL_BUT_DATA 61
+#define DAG_NO_RELATION		(1<<6)
+
+#define DAG_RL_ALL_BUT_DATA (DAG_RL_SCENE|DAG_RL_OB_OB|DAG_RL_OB_DATA|DAG_RL_DATA_OB|DAG_RL_DATA_DATA)
+#define DAG_RL_ALL			(DAG_RL_ALL_BUT_DATA|DAG_RL_DATA)
 
 
 typedef void (*graph_action_func)(void * ob, void **data);

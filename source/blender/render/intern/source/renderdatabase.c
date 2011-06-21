@@ -446,7 +446,7 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 	return vlr1;
 }
 
-void RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, float *nor)
+void RE_vlakren_get_normal(Render *UNUSED(re), ObjectInstanceRen *obi, VlakRen *vlr, float *nor)
 {
 	float (*nmat)[3]= obi->nmat;
 
@@ -1238,7 +1238,7 @@ static int panotestclip(Render *re, int do_pano, float *v)
   - shadow buffering (shadbuf.c)
 */
 
-void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs, int do_buckets)
+void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs, int UNUSED(do_buckets))
 {
 	ObjectRen *obr;
 	HaloRen *har = NULL;

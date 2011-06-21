@@ -628,7 +628,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	glEnd();
 
 	if (fabsf(dx) > toll || fabsf(dy) > toll) {
-		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x", 1);
+		BLF_draw_default_ascii(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x", 1);
 	}
 	
 	/* BLF_draw_default disables blending */
@@ -648,7 +648,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	glEnd();
 
 	if (fabsf(dx) > toll || fabsf(dy) > toll) {
-		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y", 1);
+		BLF_draw_default_ascii(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y", 1);
 	}
 
 	glEnable(GL_BLEND);
@@ -667,7 +667,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	glEnd();
 
 	if (fabsf(dx) > toll || fabsf(dy) > toll) {
-		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "z", 1);
+		BLF_draw_default_ascii(start + dx + 2, start + dy + ydisp + 2, 0.0f, "z", 1);
 	}
 
 	/* restore line-width */
@@ -758,7 +758,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (name) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(22,  ar->winy-17, 0.0f, name, sizeof(tmpstr));
+		BLF_draw_default_ascii(22,  ar->winy-17, 0.0f, name, sizeof(tmpstr));
 	}
 }
 
@@ -2075,10 +2075,6 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 {
 	CustomDataMask mask= 0;
-	if(v3d->drawtype == OB_SHADED) {
-		/* this includes normals for mesh_create_shadedColors */
-		mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
-	}
 	if((v3d->drawtype == OB_TEXTURE) || ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX))) {
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
@@ -2427,7 +2423,7 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 		BLI_snprintf(printable, sizeof(printable), "fps: %i", (int)(fps+0.5f));
 	}
 	
-	BLF_draw_default(22,  ar->winy-17, 0.0f, printable, sizeof(printable)-1);
+	BLF_draw_default_ascii(22,  ar->winy-17, 0.0f, printable, sizeof(printable)-1);
 }
 
 static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
@@ -2685,7 +2681,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 			BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", grid_unit, v3d->grid);
 		}
 
-		BLF_draw_default(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
+		BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
 	}
 
 	ob= OBACT;

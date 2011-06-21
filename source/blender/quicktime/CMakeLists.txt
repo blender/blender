@@ -43,7 +43,7 @@ set(INC
 )
 
 set(INC_SYS
-	${QUICKTIME_INC}
+	${QUICKTIME_INCLUDE_DIRS}
 )
 
 if(USE_QTKIT)

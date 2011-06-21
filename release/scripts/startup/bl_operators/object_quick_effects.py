@@ -23,9 +23,26 @@ import bpy
 from bpy.props import BoolProperty, EnumProperty, IntProperty, FloatProperty, FloatVectorProperty
 
 
-class MakeFur(bpy.types.Operator):
-    bl_idname = "object.make_fur"
-    bl_label = "Make Fur"
+def object_ensure_material(obj, mat_name):
+    """ Use an existing material or add a new one.
+    """
+    mat = mat_slot = None
+    for mat_slot in obj.material_slots:
+        mat = mat_slot.material
+        if mat:
+            break
+    if mat is None:
+        mat = bpy.data.materials.new(mat_name)
+        if mat_slot:
+            mat_slot.material = mat
+        else:
+            obj.data.materials.append(mat)
+    return mat
+
+
+class QuickFur(bpy.types.Operator):
+    bl_idname = "object.quick_fur"
+    bl_label = "Quick Fur"
     bl_options = {'REGISTER', 'UNDO'}
 
     density = EnumProperty(items=(
@@ -80,9 +97,156 @@ class MakeFur(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class QuickExplode(bpy.types.Operator):
+    bl_idname = "object.quick_explode"
+    bl_label = "Quick Explode"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    style = EnumProperty(items=(
+                        ('EXPLODE', "Explode", ""),
+                        ('BLEND', "Blend", "")),
+                name="Explode Style",
+                description="",
+                default='EXPLODE')
+
+    amount = IntProperty(name="Amount of pieces",
+            default=100, min=2, max=10000, soft_min=2, soft_max=10000)
+
+    frame_duration = IntProperty(name="Duration",
+            default=50, min=1, max=300000, soft_min=1, soft_max=10000)
+
+    frame_start = IntProperty(name="Start Frame",
+            default=1, min=1, max=300000, soft_min=1, soft_max=10000)
+
+    frame_end = IntProperty(name="End Frame",
+            default=10, min=1, max=300000, soft_min=1, soft_max=10000)
+
+    velocity = FloatProperty(name="Outwards Velocity",
+            default=1, min=0, max=300000, soft_min=0, soft_max=10)
+
+    fade = BoolProperty(name="Fade",
+                description="Fade the pieces over time.",
+                default=True)
+
+    def execute(self, context):
+        fake_context = bpy.context.copy()
+        obj_act = context.active_object
+
+        if obj_act.type != 'MESH':
+            self.report({'ERROR'}, "Active object is not a mesh")
+            return {'CANCELLED'}
+
+        mesh_objects = [obj for obj in context.selected_objects
+                        if obj.type == 'MESH' and obj != obj_act]
+        mesh_objects.insert(0, obj_act)
+
+        if self.style == 'BLEND' and len(mesh_objects) != 2:
+            self.report({'ERROR'}, "Select two mesh objects")
+            return {'CANCELLED'}
+        elif not mesh_objects:
+            self.report({'ERROR'}, "Select at least one mesh object")
+            return {'CANCELLED'}
+
+        for obj in mesh_objects:
+            if obj.particle_systems:
+                self.report({'ERROR'}, "Object %r already has a particle system" % obj.name)
+                return {'CANCELLED'}
+
+        if self.fade:
+            tex = bpy.data.textures.new("Explode fade", 'BLEND')
+            tex.use_color_ramp = True
+
+            if self.style == 'BLEND':
+                tex.color_ramp.elements[0].position = 0.333
+                tex.color_ramp.elements[1].position = 0.666
+
+            tex.color_ramp.elements[0].color[3] = 1.0
+            tex.color_ramp.elements[1].color[3] = 0.0
+
+        if self.style == 'BLEND':
+            from_obj = mesh_objects[1]
+            to_obj = mesh_objects[0]
+
+        for obj in mesh_objects:
+            fake_context["object"] = obj
+            bpy.ops.object.particle_system_add(fake_context)
+
+            settings = obj.particle_systems[-1].settings
+            settings.count = self.amount
+            settings.frame_start = self.frame_start
+            settings.frame_end = self.frame_end - self.frame_duration
+            settings.lifetime = self.frame_duration
+            settings.normal_factor = self.velocity
+            settings.render_type = 'NONE'
+
+            explode = obj.modifiers.new(name='Explode', type='EXPLODE')
+            explode.use_edge_cut = True
+
+            if self.fade:
+                explode.show_dead = False
+                bpy.ops.mesh.uv_texture_add(fake_context)
+                uv = obj.data.uv_textures[-1]
+                uv.name = "Explode fade"
+                explode.particle_uv = uv.name
+
+                mat = object_ensure_material(obj, "Explode Fade")
+
+                mat.use_transparency = True
+                mat.use_transparent_shadows = True
+                mat.alpha = 0.0
+                mat.specular_alpha = 0.0
+
+                tex_slot = mat.texture_slots.add()
+
+                tex_slot.texture = tex
+                tex_slot.texture_coords = 'UV'
+                tex_slot.uv_layer = uv.name
+
+                tex_slot.use_map_alpha = True
+
+                if self.style == 'BLEND':
+                    if obj == to_obj:
+                        tex_slot.alpha_factor = -1.0
+                        elem = tex.color_ramp.elements[1]
+                        elem.color = mat.diffuse_color
+                    else:
+                        elem = tex.color_ramp.elements[0]
+                        elem.color = mat.diffuse_color
+                else:
+                    tex_slot.use_map_color_diffuse = False
+
+            if self.style == 'BLEND':
+                settings.physics_type = 'KEYED'
+                settings.use_emit_random = False
+                settings.rotation_mode = 'NOR'
+
+                psys = obj.particle_systems[-1]
+
+                fake_context["particle_system"] = obj.particle_systems[-1]
+                bpy.ops.particle.new_target(fake_context)
+                bpy.ops.particle.new_target(fake_context)
+
+                if obj == from_obj:
+                    psys.targets[1].object = to_obj
+                else:
+                    psys.targets[0].object = from_obj
+                    settings.normal_factor = -self.velocity
+                    explode.show_unborn = False
+                    explode.show_dead = True
+            else:
+                settings.factor_random = self.velocity
+                settings.angular_velocity_factor = self.velocity / 10.0
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.frame_start = context.scene.frame_current
+        self.frame_end = self.frame_start + self.frame_duration
+        return self.execute(context)
+
 def obj_bb_minmax(obj, min_co, max_co):
     for i in range(0, 8):
-        bb_vec = Vector((obj.bound_box[i][0], obj.bound_box[i][1], obj.bound_box[i][2])) * obj.matrix_world
+        bb_vec = Vector(obj.bound_box[i]) * obj.matrix_world
 
         min_co[0] = min(bb_vec[0], min_co[0])
         min_co[1] = min(bb_vec[1], min_co[1])
@@ -92,9 +256,9 @@ def obj_bb_minmax(obj, min_co, max_co):
         max_co[2] = max(bb_vec[2], max_co[2])
 
 
-class MakeSmoke(bpy.types.Operator):
-    bl_idname = "object.make_smoke"
-    bl_label = "Make Smoke"
+class QuickSmoke(bpy.types.Operator):
+    bl_idname = "object.quick_smoke"
+    bl_label = "Quick Smoke"
     bl_options = {'REGISTER', 'UNDO'}
 
     style = EnumProperty(items=(
@@ -112,8 +276,8 @@ class MakeSmoke(bpy.types.Operator):
     def execute(self, context):
         fake_context = bpy.context.copy()
         mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
-        min_co = Vector((100000, 100000, 100000))
-        max_co = Vector((-100000, -100000, -100000))
+        min_co = Vector((100000.0, 100000.0, 100000.0))
+        max_co = -min_co
 
         if not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object.")
@@ -201,9 +365,9 @@ class MakeSmoke(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class MakeFluid(bpy.types.Operator):
-    bl_idname = "object.make_fluid"
-    bl_label = "Make Fluid"
+class QuickFluid(bpy.types.Operator):
+    bl_idname = "object.quick_fluid"
+    bl_label = "Quick Fluid"
     bl_options = {'REGISTER', 'UNDO'}
 
     style = EnumProperty(items=(

@@ -76,18 +76,18 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include <IlmImf/ImfStringAttribute.h>
 #include <Imath/ImathBox.h>
 #else
-#include <OpenEXR/half.h>
-#include <OpenEXR/ImfVersion.h>
-#include <OpenEXR/ImathBox.h>
-#include <OpenEXR/ImfArray.h>
-#include <OpenEXR/ImfIO.h>
-#include <OpenEXR/ImfChannelList.h>
-#include <OpenEXR/ImfPixelType.h>
-#include <OpenEXR/ImfInputFile.h>
-#include <OpenEXR/ImfOutputFile.h>
-#include <OpenEXR/ImfCompression.h>
-#include <OpenEXR/ImfCompressionAttribute.h>
-#include <OpenEXR/ImfStringAttribute.h>
+#include <half.h>
+#include <ImfVersion.h>
+#include <ImathBox.h>
+#include <ImfArray.h>
+#include <ImfIO.h>
+#include <ImfChannelList.h>
+#include <ImfPixelType.h>
+#include <ImfInputFile.h>
+#include <ImfOutputFile.h>
+#include <ImfCompression.h>
+#include <ImfCompressionAttribute.h>
+#include <ImfStringAttribute.h>
 #endif
 
 using namespace Imf;

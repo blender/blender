@@ -111,7 +111,7 @@ add_test(export_obj_all_objects ${TEST_BLENDER_EXE}
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_all_objects.obj',use_selection=False,use_nurbs=True\)
 	--md5_source=${TEST_OUT_DIR}/export_obj_all_objects.obj
 	--md5_source=${TEST_OUT_DIR}/export_obj_all_objects.mtl
-	--md5=d06bd49e6c084e4e3348fa397a88790c --md5_method=FILE
+	--md5=01c123948efadc6a71ab2c09a5925756 --md5_method=FILE
 )
 
 
@@ -212,7 +212,7 @@ add_test(export_x3d_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_all_objects.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_all_objects.x3d
-	--md5=cef017805f684f27c311fdf4ba87462a --md5_method=FILE
+	--md5=d7d6574e833f3f051b65ef4577485fa9 --md5_method=FILE
 )
 
 

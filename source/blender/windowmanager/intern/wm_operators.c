@@ -921,7 +921,16 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	if(ED_undo_valid(C, op->type->name)==0)
 		uiLayoutSetEnabled(layout, 0);
 
-	uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
+	if(op->type->flag & OPTYPE_MACRO) {
+		for(op= op->macro.first; op; op= op->next) {
+			uiItemL(layout, op->type->name, ICON_NONE);
+			uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
+		}
+	}
+	else {
+		uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
+	}
+	
 
 	uiPopupBoundsBlock(block, 4, 0, 0);
 	uiEndBlock(C, block);
@@ -929,13 +938,28 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	return block;
 }
 
-/* Only invoked by OK button in popups created with wm_block_create_dialog() */
+typedef struct wmOpPopUp
+{
+	wmOperator *op;
+	int width;
+	int height;
+	int free_op;
+} wmOpPopUp;
+
+/* Only invoked by OK button in popups created with wm_block_dialog_create() */
 static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 {
-	wmOperator *op= arg1;
+	wmOpPopUp *data= arg1;
 	uiBlock *block= arg2;
 
-	WM_operator_call(C, op);
+	WM_operator_call(C, data->op);
+
+	/* let execute handle freeing it */
+	//data->free_op= FALSE;
+	//data->op= NULL;
+
+	/* in this case, wm_operator_ui_popup_cancel wont run */
+	MEM_freeN(data);
 
 	uiPupBlockClose(C, block);
 }
@@ -951,9 +975,9 @@ static void dialog_check_cb(bContext *C, void *op_ptr, void *UNUSED(arg))
 }
 
 /* Dialogs are popups that require user verification (click OK) before exec */
-static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
+static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 {
-	struct { wmOperator *op; int width; int height; } * data = userData;
+	wmOpPopUp *data= userData;
 	wmOperator *op= data->op;
 	uiBlock *block;
 	uiLayout *layout;
@@ -982,7 +1006,7 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 		col_block= uiLayoutGetBlock(col);
 		/* Create OK button, the callback of which will execute op */
 		btn= uiDefBut(col_block, BUT, 0, "OK", 0, -30, 0, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-		uiButSetFunc(btn, dialog_exec_cb, op, col_block);
+		uiButSetFunc(btn, dialog_exec_cb, data, col_block);
 	}
 
 	/* center around the mouse */
@@ -992,9 +1016,9 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	return block;
 }
 
-static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
+static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 {
-	struct { wmOperator *op; int width; int height; } * data = userData;
+	wmOpPopUp *data= userData;
 	wmOperator *op= data->op;
 	uiBlock *block;
 	uiLayout *layout;
@@ -1013,6 +1037,28 @@ static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 	uiEndBlock(C, block);
 
 	return block;
+}
+
+static void wm_operator_ui_popup_cancel(void *userData)
+{
+	wmOpPopUp *data= userData;
+	if(data->free_op && data->op) {
+		wmOperator *op= data->op;
+		WM_operator_free(op);
+	}
+
+	MEM_freeN(data);
+}
+
+int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
+{
+	wmOpPopUp *data= MEM_callocN(sizeof(wmOpPopUp), "WM_operator_ui_popup");
+	data->op= op;
+	data->width= width;
+	data->height= height;
+	data->free_op= TRUE; /* if this runs and gets registered we may want not to free it */
+	uiPupBlockEx(C, wm_operator_ui_create, wm_operator_ui_popup_cancel, data);
+	return OPERATOR_RUNNING_MODAL;
 }
 
 /* operator menu needs undo, for redo callback */
@@ -1034,25 +1080,16 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 
 int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int height)
 {
-	struct { wmOperator *op; int width; int height; } data;
+	wmOpPopUp *data= MEM_callocN(sizeof(wmOpPopUp), "WM_operator_props_dialog_popup");
 	
-	data.op= op;
-	data.width= width;
-	data.height= height;
+	data->op= op;
+	data->width= width;
+	data->height= height;
+	data->free_op= TRUE; /* if this runs and gets registered we may want not to free it */
 
 	/* op is not executed until popup OK but is clicked */
-	uiPupBlock(C, wm_block_create_dialog, &data);
+	uiPupBlockEx(C, wm_block_dialog_create, wm_operator_ui_popup_cancel, data);
 
-	return OPERATOR_RUNNING_MODAL;
-}
-
-int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
-{
-	struct { wmOperator *op; int width; int height; } data;
-	data.op = op;
-	data.width = width;
-	data.height = height;
-	uiPupBlock(C, wm_operator_create_ui, &data);
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -1210,7 +1247,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Links", ICON_NONE);
 	uiItemStringO(col, "Donations", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment/");
-	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-257/");
+	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-258/");
 	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.5/Manual");
 	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
 	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/"); // 
@@ -1476,6 +1513,14 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 {
 	const char *openname= G.main->name;
 
+	if(CTX_wm_window(C) == NULL) {
+		/* in rare cases this could happen, when trying to invoke in background
+		 * mode on load for example. Don't use poll for this because exec()
+		 * can still run without a window */
+		BKE_report(op->reports, RPT_ERROR, "Context window not set");
+		return OPERATOR_CANCELLED;
+	}
+
 	/* if possible, get the name of the most recently used .blend file */
 	if (G.recent_files.first) {
 		struct RecentFile *recent = G.recent_files.first;
@@ -1526,7 +1571,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	
 	ot->invoke= wm_open_mainfile_invoke;
 	ot->exec= wm_open_mainfile_exec;
-	ot->poll= WM_operator_winactive;
+	/* ommit window poll so this can work in background mode */
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH);
 
@@ -1945,7 +1990,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->check= blend_save_check;
-	ot->poll= NULL;
+	/* ommit window poll so this can work in background mode */
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
@@ -3125,7 +3170,6 @@ static int radial_control_cancel(bContext *C, wmOperator *op)
 static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RadialControl *rc = op->customdata;
-	wmWindowManager *wm;
 	float new_value, dist, zoom[2];
 	float delta[2], snap, ret = OPERATOR_RUNNING_MODAL;
 

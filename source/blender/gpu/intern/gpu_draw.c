@@ -246,8 +246,9 @@ static struct GPUTextureState {
 	int domipmap, linearmipmap;
 
 	int alphamode;
+	float anisotropic;
 	MTFace *lasttface;
-} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, -1, NULL};
+} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, -1, 1.f, NULL};
 
 /* Mipmap settings */
 
@@ -290,6 +291,26 @@ static GLenum gpu_get_mipmap_filter(int mag)
 		else
 			return GL_NEAREST;
 	}
+}
+
+/* Anisotropic filtering settings */
+void GPU_set_anisotropic(float value)
+{
+	if (GTS.anisotropic != value)
+	{
+		GPU_free_images();
+
+		/* Clamp value to the maximum value the graphics card supports */
+		if (value > GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+			value = GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
+
+		GTS.anisotropic = value;
+	}
+}
+
+float GPU_get_anisotropic()
+{
+	return GTS.anisotropic;
 }
 
 /* Set OpenGL state for an MTFace */
@@ -559,6 +580,8 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		ima->tpageflag |= IMA_MIPMAP_COMPLETE;
 	}
 
+	if (GLEW_EXT_texture_filter_anisotropic)
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
 	/* set to modulate with vertex color */
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		

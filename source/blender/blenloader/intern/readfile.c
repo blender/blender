@@ -4350,6 +4350,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		MEM_freeN(hook);
 	}
 	
+	ob->customdata_mask= 0;
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
@@ -5691,11 +5692,10 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 	while(bhead && bhead->code==DATA) {
 		void *data;
 #if 0
-		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
+		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
 		short *sp= fd->filesdna->structs[bhead->SDNAnr];
-		char *allocname = fd->filesdna->types[ sp[0] ];
 		char *tmp= malloc(100);
-		
+		allocname = fd->filesdna->types[ sp[0] ];
 		strcpy(tmp, allocname);
 		data= read_struct(fd, bhead, tmp);
 #else
@@ -11697,6 +11697,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		{
+			/* add default value for behind strength of camera actuator */
+			Object *ob;
+			bActuator *act;
+			for(ob = main->object.first; ob; ob= ob->id.next) {
+				for(act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_CAMERA) {
+						bCameraActuator *ba= act->data;
+
+						ba->damping = 1.0/32.0;
+					}
+				}
+			}
+		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -12762,7 +12777,6 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 	return 0;
 }
 
-/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link)
 {
 	Object *ob;
@@ -12825,7 +12839,6 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 	}
 }
 
-/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_groups(Main *mainvar, Scene *scene)
 {
 	Group *group;

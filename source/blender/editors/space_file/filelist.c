@@ -915,6 +915,8 @@ void filelist_select_file(struct FileList* filelist, int index, FileSelType sele
 		int check_ok = 0; 
 		switch (check) {
 			case CHECK_DIRS:
+				check_ok = S_ISDIR(file->type);
+				break;
 			case CHECK_ALL:
 				check_ok = 1;
 				break;

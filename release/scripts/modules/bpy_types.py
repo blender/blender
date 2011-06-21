@@ -20,7 +20,6 @@
 
 from _bpy import types as bpy_types
 import _bpy
-from mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
 StructMetaPropGroup = _bpy.StructMetaPropGroup
@@ -144,18 +143,21 @@ class _GenericBone:
     def x_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
+        from mathutils import Vector
         return Vector((1.0, 0.0, 0.0)) * self.matrix.to_3x3()
 
     @property
     def y_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
+        from mathutils import Vector
         return Vector((0.0, 1.0, 0.0)) * self.matrix.to_3x3()
 
     @property
     def z_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
+        from mathutils import Vector
         return Vector((0.0, 0.0, 1.0)) * self.matrix.to_3x3()
 
     @property
