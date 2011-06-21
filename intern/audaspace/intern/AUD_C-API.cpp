@@ -45,6 +45,7 @@
 
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
+#include "AUD_I3DHandle.h"
 #include "AUD_FileFactory.h"
 #include "AUD_StreamBufferFactory.h"
 #include "AUD_DelayFactory.h"
@@ -89,7 +90,7 @@ extern "C" {
 
 typedef AUD_Reference<AUD_IFactory> AUD_Sound;
 typedef AUD_Reference<AUD_ReadDevice> AUD_Device;
-typedef AUD_Handle AUD_Channel;
+typedef AUD_Reference<AUD_IHandle> AUD_Channel;
 typedef AUD_Reference<AUD_SequencerEntry> AUD_SEntry;
 
 #define AUD_CAPI_IMPLEMENTATION
@@ -375,16 +376,16 @@ AUD_Sound* AUD_loopSound(AUD_Sound* sound)
 
 int AUD_setLoop(AUD_Channel* handle, int loops)
 {
-	if(handle)
+	assert(handle);
+
+	try
 	{
-		try
-		{
-			return AUD_device->setLoopCount(handle, loops);
-		}
-		catch(AUD_Exception&)
-		{
-		}
+		return (*handle)->setLoopCount(loops);
 	}
+	catch(AUD_Exception&)
+	{
+	}
+
 	return false;
 }
 
@@ -413,49 +414,58 @@ AUD_Channel* AUD_play(AUD_Sound* sound, int keep)
 	assert(sound);
 	try
 	{
-		return AUD_device->play(*sound, keep);
+		AUD_Channel channel = AUD_device->play(*sound, keep);
+		if(!channel.isNull())
+			return new AUD_Channel(channel);
 	}
 	catch(AUD_Exception&)
 	{
-		return NULL;
 	}
+	return NULL;
 }
 
 int AUD_pause(AUD_Channel* handle)
 {
-	return AUD_device->pause(handle);
+	assert(handle);
+	return (*handle)->pause();
 }
 
 int AUD_resume(AUD_Channel* handle)
 {
-	return AUD_device->resume(handle);
+	assert(handle);
+	return (*handle)->resume();
 }
 
 int AUD_stop(AUD_Channel* handle)
 {
-	if(!AUD_device.isNull())
-		return AUD_device->stop(handle);
-	return false;
+	assert(handle);
+	int result = (*handle)->stop();
+	delete handle;
+	return result;
 }
 
 int AUD_setKeep(AUD_Channel* handle, int keep)
 {
-	return AUD_device->setKeep(handle, keep);
+	assert(handle);
+	return (*handle)->setKeep(keep);
 }
 
 int AUD_seek(AUD_Channel* handle, float seekTo)
 {
-	return AUD_device->seek(handle, seekTo);
+	assert(handle);
+	return (*handle)->seek(seekTo);
 }
 
 float AUD_getPosition(AUD_Channel* handle)
 {
-	return AUD_device->getPosition(handle);
+	assert(handle);
+	return (*handle)->getPosition();
 }
 
 AUD_Status AUD_getStatus(AUD_Channel* handle)
 {
-	return AUD_device->getStatus(handle);
+	assert(handle);
+	return (*handle)->getStatus();
 }
 
 int AUD_setListenerLocation(const float* location)
@@ -529,10 +539,13 @@ int AUD_setDistanceModel(AUD_DistanceModel model)
 
 int AUD_setSourceLocation(AUD_Channel* handle, const float* location)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
 		AUD_Vector3 v(location[0], location[1], location[2]);
-		return AUD_3ddevice->setSourceLocation(handle, v);
+		return h->setSourceLocation(v);
 	}
 
 	return false;
@@ -540,10 +553,13 @@ int AUD_setSourceLocation(AUD_Channel* handle, const float* location)
 
 int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
 		AUD_Vector3 v(velocity[0], velocity[1], velocity[2]);
-		return AUD_3ddevice->setSourceVelocity(handle, v);
+		return h->setSourceVelocity(v);
 	}
 
 	return false;
@@ -551,10 +567,13 @@ int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity)
 
 int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
 		AUD_Quaternion q(orientation[3], orientation[0], orientation[1], orientation[2]);
-		return AUD_3ddevice->setSourceOrientation(handle, q);
+		return h->setSourceOrientation(q);
 	}
 
 	return false;
@@ -562,9 +581,12 @@ int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
 
 int AUD_setRelative(AUD_Channel* handle, int relative)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
-		return AUD_3ddevice->setRelative(handle, relative);
+		return h->setRelative(relative);
 	}
 
 	return false;
@@ -572,9 +594,12 @@ int AUD_setRelative(AUD_Channel* handle, int relative)
 
 int AUD_setVolumeMaximum(AUD_Channel* handle, float volume)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
-		return AUD_3ddevice->setVolumeMaximum(handle, volume);
+		return h->setVolumeMaximum(volume);
 	}
 
 	return false;
@@ -582,9 +607,12 @@ int AUD_setVolumeMaximum(AUD_Channel* handle, float volume)
 
 int AUD_setVolumeMinimum(AUD_Channel* handle, float volume)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
-		return AUD_3ddevice->setVolumeMinimum(handle, volume);
+		return h->setVolumeMinimum(volume);
 	}
 
 	return false;
@@ -592,9 +620,12 @@ int AUD_setVolumeMinimum(AUD_Channel* handle, float volume)
 
 int AUD_setDistanceMaximum(AUD_Channel* handle, float distance)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
-		return AUD_3ddevice->setDistanceMaximum(handle, distance);
+		return h->setDistanceMaximum(distance);
 	}
 
 	return false;
@@ -602,9 +633,12 @@ int AUD_setDistanceMaximum(AUD_Channel* handle, float distance)
 
 int AUD_setDistanceReference(AUD_Channel* handle, float distance)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
-		return AUD_3ddevice->setDistanceReference(handle, distance);
+		return h->setDistanceReference(distance);
 	}
 
 	return false;
@@ -612,9 +646,12 @@ int AUD_setDistanceReference(AUD_Channel* handle, float distance)
 
 int AUD_setAttenuation(AUD_Channel* handle, float factor)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
-		return AUD_3ddevice->setAttenuation(handle, factor);
+		return h->setAttenuation(factor);
 	}
 
 	return false;
@@ -622,9 +659,12 @@ int AUD_setAttenuation(AUD_Channel* handle, float factor)
 
 int AUD_setConeAngleOuter(AUD_Channel* handle, float angle)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
-		return AUD_3ddevice->setConeAngleOuter(handle, angle);
+		return h->setConeAngleOuter(angle);
 	}
 
 	return false;
@@ -632,9 +672,12 @@ int AUD_setConeAngleOuter(AUD_Channel* handle, float angle)
 
 int AUD_setConeAngleInner(AUD_Channel* handle, float angle)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
-		return AUD_3ddevice->setConeAngleInner(handle, angle);
+		return h->setConeAngleInner(angle);
 	}
 
 	return false;
@@ -642,9 +685,12 @@ int AUD_setConeAngleInner(AUD_Channel* handle, float angle)
 
 int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume)
 {
-	if(AUD_3ddevice)
+	assert(handle);
+	AUD_Reference<AUD_I3DHandle> h(*handle);
+
+	if(!h.isNull())
 	{
-		return AUD_3ddevice->setConeVolumeOuter(handle, volume);
+		return h->setConeVolumeOuter(volume);
 	}
 
 	return false;
@@ -652,27 +698,23 @@ int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume)
 
 int AUD_setSoundVolume(AUD_Channel* handle, float volume)
 {
-	if(handle)
+	assert(handle);
+	try
 	{
-		try
-		{
-			return AUD_device->setVolume(handle, volume);
-		}
-		catch(AUD_Exception&) {}
+		return (*handle)->setVolume(volume);
 	}
+	catch(AUD_Exception&) {}
 	return false;
 }
 
 int AUD_setSoundPitch(AUD_Channel* handle, float pitch)
 {
-	if(handle)
+	assert(handle);
+	try
 	{
-		try
-		{
-			return AUD_device->setPitch(handle, pitch);
-		}
-		catch(AUD_Exception&) {}
+		return (*handle)->setPitch(pitch);
 	}
+	catch(AUD_Exception&) {}
 	return false;
 }
 
@@ -695,14 +737,17 @@ AUD_Channel* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek)
 
 	try
 	{
-		AUD_Channel* handle = (*device)->play(*sound);
-		(*device)->seek(handle, seek);
-		return handle;
+		AUD_Channel channel = (*device)->play(*sound);
+		if(!channel.isNull())
+		{
+			channel->seek(seek);
+			return new AUD_Channel(channel);
+		}
 	}
 	catch(AUD_Exception&)
 	{
-		return NULL;
 	}
+	return NULL;
 }
 
 int AUD_setDeviceVolume(AUD_Device* device, float volume)
@@ -716,22 +761,6 @@ int AUD_setDeviceVolume(AUD_Device* device, float volume)
 	}
 	catch(AUD_Exception&) {}
 
-	return false;
-}
-
-int AUD_setDeviceSoundVolume(AUD_Device* device, AUD_Channel* handle,
-							 float volume)
-{
-	if(handle)
-	{
-		assert(device);
-
-		try
-		{
-			return (*device)->setVolume(handle, volume);
-		}
-		catch(AUD_Exception&) {}
-	}
 	return false;
 }
 
@@ -821,7 +850,8 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 
 static void pauseSound(AUD_Channel* handle)
 {
-	AUD_device->pause(handle);
+	assert(handle);
+	(*handle)->pause();
 }
 
 AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds)
@@ -829,16 +859,25 @@ AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds)
 	AUD_Reference<AUD_IFactory> silence = new AUD_SilenceFactory;
 	AUD_Reference<AUD_IFactory> limiter = new AUD_LimiterFactory(silence, 0, seconds);
 
+	AUD_device->lock();
+
 	try
 	{
-		AUD_Channel* channel = AUD_device->play(limiter);
-		AUD_device->setStopCallback(channel, (stopCallback)pauseSound, handle);
-		return channel;
+		AUD_Channel channel = AUD_device->play(limiter);
+		if(!channel.isNull())
+		{
+			channel->setStopCallback((stopCallback)pauseSound, handle);
+			AUD_device->unlock();
+			return new AUD_Channel(channel);
+		}
 	}
 	catch(AUD_Exception&)
 	{
-		return NULL;
 	}
+
+	AUD_device->unlock();
+
+	return NULL;
 }
 
 AUD_Sound* AUD_createSequencer(int muted, void* data, AUD_volumeFunction volume)
@@ -966,7 +1005,8 @@ void AUD_seekSequencer(AUD_Channel* handle, float time)
 	else
 #endif
 	{
-		AUD_device->seek(handle, time);
+		assert(handle);
+		(*handle)->seek(time);
 	}
 }
 
@@ -979,7 +1019,8 @@ float AUD_getSequencerPosition(AUD_Channel* handle)
 	else
 #endif
 	{
-		return AUD_device->getPosition(handle);
+		assert(handle);
+		return (*handle)->getPosition();
 	}
 }
 
@@ -1005,4 +1046,9 @@ int AUD_doesPlayback()
 AUD_Sound* AUD_copy(AUD_Sound* sound)
 {
 	return new AUD_Reference<AUD_IFactory>(*sound);
+}
+
+void AUD_freeChannel(AUD_Channel* channel)
+{
+	delete channel;
 }

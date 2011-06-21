@@ -432,7 +432,7 @@ void AUD_FFMPEGReader::read(int& length, bool& eos, sample_t* buffer)
 				pkgbuf_pos-data_size);
 	}
 
-	if(eos = (left > 0))
+	if((eos = (left > 0)))
 		length -= left;
 
 	m_position += length;

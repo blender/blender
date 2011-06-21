@@ -108,7 +108,7 @@ AUD_Reference<AUD_IReader> AUD_SequencerFactory::createReader()
 														  m_volume);
 	m_readers.push_front(reader);
 
-	return reader.convert<AUD_IReader>();
+	return AUD_Reference<AUD_IReader>(reader);
 }
 
 void AUD_SequencerFactory::removeReader(AUD_Reference<AUD_SequencerReader> reader)

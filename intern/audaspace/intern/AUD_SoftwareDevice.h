@@ -33,9 +33,9 @@
 #define AUD_SOFTWAREDEVICE
 
 #include "AUD_IDevice.h"
+#include "AUD_IHandle.h"
 #include "AUD_Mixer.h"
 #include "AUD_Buffer.h"
-struct AUD_SoftwareHandle;
 
 #include <list>
 #include <pthread.h>
@@ -51,6 +51,56 @@ struct AUD_SoftwareHandle;
 class AUD_SoftwareDevice : public AUD_IDevice
 {
 protected:
+	/// Saves the data for playback.
+	class AUD_SoftwareHandle : public AUD_IHandle
+	{
+	public:
+		/// The reader source.
+		AUD_Reference<AUD_IReader> m_reader;
+
+		/// Whether to keep the source if end of it is reached.
+		bool m_keep;
+
+		/// The volume of the source.
+		float m_volume;
+
+		/// The loop count of the source.
+		int m_loopcount;
+
+		/// The stop callback.
+		stopCallback m_stop;
+
+		/// Stop callback data.
+		void* m_stop_data;
+
+		/// Current status of the handle
+		AUD_Status m_status;
+
+		/// Own device.
+		AUD_SoftwareDevice* m_device;
+
+	public:
+
+		AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, bool keep);
+
+		virtual ~AUD_SoftwareHandle() {}
+		virtual bool pause();
+		virtual bool resume();
+		virtual bool stop();
+		virtual bool getKeep();
+		virtual bool setKeep(bool keep);
+		virtual bool seek(float position);
+		virtual float getPosition();
+		virtual AUD_Status getStatus();
+		virtual float getVolume();
+		virtual bool setVolume(float volume);
+		virtual float getPitch();
+		virtual bool setPitch(float pitch);
+		virtual int getLoopCount();
+		virtual bool setLoopCount(int count);
+		virtual bool setStopCallback(stopCallback callback = 0, void* data = 0);
+	};
+
 	/**
 	 * The specification of the device.
 	 */
@@ -93,12 +143,12 @@ private:
 	/**
 	 * The list of sounds that are currently playing.
 	 */
-	std::list<AUD_SoftwareHandle*> m_playingSounds;
+	std::list<AUD_Reference<AUD_SoftwareHandle> > m_playingSounds;
 
 	/**
 	 * The list of sounds that are currently paused.
 	 */
-	std::list<AUD_SoftwareHandle*> m_pausedSounds;
+	std::list<AUD_Reference<AUD_SoftwareHandle> > m_pausedSounds;
 
 	/**
 	 * Whether there is currently playback.
@@ -115,36 +165,14 @@ private:
 	 */
 	float m_volume;
 
-	/**
-	 * Checks if a handle is valid.
-	 * \param handle The handle to check.
-	 * \return Whether the handle is valid.
-	 */
-	bool isValid(AUD_Handle* handle);
-
 public:
 	virtual AUD_DeviceSpecs getSpecs() const;
-	virtual AUD_Handle* play(AUD_Reference<AUD_IReader> reader, bool keep = false);
-	virtual AUD_Handle* play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
-	virtual bool pause(AUD_Handle* handle);
-	virtual bool resume(AUD_Handle* handle);
-	virtual bool stop(AUD_Handle* handle);
-	virtual bool getKeep(AUD_Handle* handle);
-	virtual bool setKeep(AUD_Handle* handle, bool keep);
-	virtual bool seek(AUD_Handle* handle, float position);
-	virtual float getPosition(AUD_Handle* handle);
-	virtual AUD_Status getStatus(AUD_Handle* handle);
+	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
+	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
 	virtual void lock();
 	virtual void unlock();
 	virtual float getVolume() const;
 	virtual void setVolume(float volume);
-	virtual float getVolume(AUD_Handle* handle);
-	virtual bool setVolume(AUD_Handle* handle, float volume);
-	virtual float getPitch(AUD_Handle* handle);
-	virtual bool setPitch(AUD_Handle* handle, float pitch);
-	virtual int getLoopCount(AUD_Handle* handle);
-	virtual bool setLoopCount(AUD_Handle* handle, int count);
-	virtual bool setStopCallback(AUD_Handle* handle, stopCallback callback = NULL, void* data = NULL);
 };
 
 #endif //AUD_SOFTWAREDEVICE

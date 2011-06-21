@@ -28,9 +28,40 @@
  *  \ingroup audaspaceintern
  */
 
-
 #ifndef AUD_REFERENCE
 #define AUD_REFERENCE
+
+#include <map>
+
+class AUD_ReferenceHandler
+{
+private:
+	static std::map<void*, int> m_references;
+
+public:
+	static inline void incref(void* reference)
+	{
+		std::map<void*, int>::iterator result = m_references.find(reference);
+		if(result != m_references.end())
+		{
+			m_references[reference]++;
+		}
+		else
+		{
+			m_references[reference] = 1;
+		}
+	}
+
+	static inline bool decref(void* reference)
+	{
+		if(!--m_references[reference])
+		{
+			m_references.erase(reference);
+			return true;
+		}
+		return false;
+	}
+};
 
 template <class T>
 /**
@@ -41,8 +72,7 @@ class AUD_Reference
 private:
 	/// The reference.
 	T* m_reference;
-	/// The reference counter.
-	int* m_refcount;
+	void* m_original;
 public:
 	/**
 	 * Creates a new reference counter.
@@ -50,9 +80,8 @@ public:
 	 */
 	AUD_Reference(T* reference = 0)
 	{
-		m_reference = reference;
-		m_refcount = new int;
-		*m_refcount = 1;
+		m_original = m_reference = reference;
+		AUD_ReferenceHandler::incref(reference);
 	}
 
 	/**
@@ -61,9 +90,16 @@ public:
 	 */
 	AUD_Reference(const AUD_Reference& ref)
 	{
-		m_reference = ref.m_reference;
-		m_refcount = ref.m_refcount;
-		(*m_refcount)++;
+		m_original = m_reference = ref.m_reference;
+		AUD_ReferenceHandler::incref(m_reference);
+	}
+
+	template <class U>
+	explicit AUD_Reference(const AUD_Reference<U>& ref)
+	{
+		m_original = ref.get();
+		m_reference = dynamic_cast<T*>(ref.get());
+		AUD_ReferenceHandler::incref(m_original);
 	}
 
 	/**
@@ -72,12 +108,8 @@ public:
 	 */
 	~AUD_Reference()
 	{
-		(*m_refcount)--;
-		if(*m_refcount == 0)
-		{
+		if(AUD_ReferenceHandler::decref(m_original))
 			delete m_reference;
-			delete m_refcount;
-		}
 	}
 
 	/**
@@ -89,16 +121,12 @@ public:
 		if(&ref == this)
 			return *this;
 
-		(*m_refcount)--;
-		if(*m_refcount == 0)
-		{
+		if(AUD_ReferenceHandler::decref(m_original))
 			delete m_reference;
-			delete m_refcount;
-		}
 
+		m_original = ref.m_original;
 		m_reference = ref.m_reference;
-		m_refcount = ref.m_refcount;
-		(*m_refcount)++;
+		AUD_ReferenceHandler::incref(m_original);
 
 		return *this;
 	}
@@ -106,7 +134,7 @@ public:
 	/**
 	 * Returns whether the reference is NULL.
 	 */
-	bool isNull() const
+	inline bool isNull() const
 	{
 		return m_reference == 0;
 	}
@@ -114,15 +142,20 @@ public:
 	/**
 	 * Returns the reference.
 	 */
-	T* get() const
+	inline T* get() const
 	{
 		return m_reference;
+	}
+
+	inline void* getOriginal() const
+	{
+		return m_original;
 	}
 
 	/**
 	 * Returns the reference.
 	 */
-	T& operator*() const
+	inline T& operator*() const
 	{
 		return *m_reference;
 	}
@@ -130,44 +163,22 @@ public:
 	/**
 	 * Returns the reference.
 	 */
-	T* operator->() const
+	inline T* operator->() const
 	{
 		return m_reference;
-	}
-
-	template <class U>
-	explicit AUD_Reference(U* reference, int* refcount)
-	{
-		m_reference = dynamic_cast<T*>(reference);
-		if(m_reference)
-		{
-			m_refcount = refcount;
-			(*m_refcount)++;
-		}
-		else
-		{
-			m_refcount = new int;
-			*m_refcount = 1;
-		}
-	}
-
-	template <class U>
-	AUD_Reference<U> convert()
-	{
-		return AUD_Reference<U>(m_reference, m_refcount);
 	}
 };
 
 template<class T, class U>
-bool operator==(const AUD_Reference<T>& a, const AUD_Reference<U>& b)
+inline bool operator==(const AUD_Reference<T>& a, const AUD_Reference<U>& b)
 {
-	return a.get() == b.get();
+	return a.getOriginal() == b.getOriginal();
 }
 
 template<class T, class U>
-bool operator!=(const AUD_Reference<T>& a, const AUD_Reference<U>& b)
+inline bool operator!=(const AUD_Reference<T>& a, const AUD_Reference<U>& b)
 {
-	return a.get() == b.get();
+	return a.getOriginal() != b.getOriginal();
 }
 
 #endif // AUD_REFERENCE

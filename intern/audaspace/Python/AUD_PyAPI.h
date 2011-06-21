@@ -36,15 +36,15 @@
 
 #ifdef __cplusplus
 extern "C" {
-struct AUD_Handle;
 #else
 typedef void AUD_IFactory;
 typedef void AUD_IDevice;
-typedef void AUD_Handle;
+typedef void AUD_IHandle;
 #endif
 
 typedef void AUD_Reference_AUD_IFactory;
 typedef void AUD_Reference_AUD_IDevice;
+typedef void AUD_Reference_AUD_IHandle;
 
 typedef struct {
 	PyObject_HEAD
@@ -54,8 +54,7 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD
-	AUD_Handle* handle;
-	PyObject* device;
+	AUD_Reference_AUD_IHandle* handle;
 } Handle;
 
 typedef struct {

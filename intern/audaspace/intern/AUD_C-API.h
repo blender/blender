@@ -418,17 +418,6 @@ extern int AUD_setDeviceVolume(AUD_Device* device, float volume);
 extern AUD_Channel* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek);
 
 /**
- * Sets the volume of a played back sound of a read device.
- * \param device The read device.
- * \param handle The handle to the sound.
- * \param volume The new volume, must be between 0.0 and 1.0.
- * \return Whether the action succeeded.
- */
-extern int AUD_setDeviceSoundVolume(AUD_Device* device,
-									AUD_Channel* handle,
-									float volume);
-
-/**
  * Reads the next samples into the supplied buffer.
  * \param device The read device.
  * \param buffer The target buffer.
@@ -497,6 +486,8 @@ extern void AUD_setSyncCallback(AUD_syncFunction function, void* data);
 extern int AUD_doesPlayback(void);
 
 extern AUD_Sound* AUD_copy(AUD_Sound* sound);
+
+extern void AUD_freeChannel(AUD_Channel* channel);
 
 #ifdef WITH_PYTHON
 extern PyObject* AUD_getPythonFactory(AUD_Sound* sound);

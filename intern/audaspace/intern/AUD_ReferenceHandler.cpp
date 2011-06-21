@@ -24,35 +24,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_NULLDevice.h
+/** \file audaspace/intern/AUD_Reference.cpp
  *  \ingroup audaspaceintern
  */
 
+#include "AUD_Reference.h"
 
-#ifndef AUD_NULLDEVICE
-#define AUD_NULLDEVICE
-
-#include "AUD_IReader.h"
-#include "AUD_IDevice.h"
-
-/**
- * This device plays nothing.
- */
-class AUD_NULLDevice : public AUD_IDevice
-{
-public:
-	/**
-	 * Creates a new NULL device.
-	 */
-	AUD_NULLDevice();
-
-	virtual AUD_DeviceSpecs getSpecs() const;
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
-	virtual void lock();
-	virtual void unlock();
-	virtual float getVolume() const;
-	virtual void setVolume(float volume);
-};
-
-#endif //AUD_NULLDEVICE
+std::map<void*, int> AUD_ReferenceHandler::m_references;

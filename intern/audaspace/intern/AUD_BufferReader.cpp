@@ -68,6 +68,8 @@ AUD_Specs AUD_BufferReader::getSpecs() const
 
 void AUD_BufferReader::read(int& length, bool& eos, sample_t* buffer)
 {
+	eos = false;
+
 	int sample_size = AUD_SAMPLE_SIZE(m_specs);
 
 	sample_t* buf = m_buffer->getBuffer() + m_position * m_specs.channels;

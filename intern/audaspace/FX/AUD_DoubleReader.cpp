@@ -91,6 +91,8 @@ AUD_Specs AUD_DoubleReader::getSpecs() const
 
 void AUD_DoubleReader::read(int& length, bool& eos, sample_t* buffer)
 {
+	eos = false;
+
 	if(!m_finished1)
 	{
 		int len = length;

@@ -87,8 +87,10 @@ set(SRC
 	intern/AUD_FileFactory.cpp
 	intern/AUD_FileFactory.h
 	intern/AUD_I3DDevice.h
+	intern/AUD_I3DHandle.h
 	intern/AUD_IDevice.h
 	intern/AUD_IFactory.h
+	intern/AUD_IHandle.h
 	intern/AUD_IReader.h
 	intern/AUD_LinearResampleFactory.cpp
 	intern/AUD_LinearResampleFactory.h
@@ -104,6 +106,7 @@ set(SRC
 	intern/AUD_ReadDevice.cpp
 	intern/AUD_ReadDevice.h
 	intern/AUD_Reference.h
+	intern/AUD_ReferenceHandler.cpp
 	intern/AUD_ResampleFactory.h
 	intern/AUD_SequencerFactory.cpp
 	intern/AUD_SequencerFactory.h

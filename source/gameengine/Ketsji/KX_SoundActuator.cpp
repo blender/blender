@@ -75,7 +75,10 @@ KX_SoundActuator::~KX_SoundActuator()
 void KX_SoundActuator::play()
 {
 	if(m_handle)
+	{
 		AUD_stop(m_handle);
+		m_handle = NULL;
+	}
 
 	if(!m_sound)
 		return;
@@ -103,11 +106,16 @@ void KX_SoundActuator::play()
 		break;
 	}
 
+	m_handle = AUD_play(sound, 0);
+
+	if(sound2)
+		AUD_unload(sound2);
+
+	if(!m_handle)
+		return;
+
 	if(m_is3d)
 	{
-		// sound shall be played 3D
-		m_handle = AUD_play(sound, 0);
-
 		AUD_setRelative(m_handle, false);
 		AUD_setVolumeMaximum(m_handle, m_3d.max_gain);
 		AUD_setVolumeMinimum(m_handle, m_3d.min_gain);
@@ -118,17 +126,12 @@ void KX_SoundActuator::play()
 		AUD_setConeAngleOuter(m_handle, m_3d.cone_outer_angle);
 		AUD_setConeVolumeOuter(m_handle, m_3d.cone_outer_gain);
 	}
-	else
-		m_handle = AUD_play(sound, 0);
 
 	if(loop)
 		AUD_setLoop(m_handle, -1);
 	AUD_setSoundPitch(m_handle, m_pitch);
 	AUD_setSoundVolume(m_handle, m_volume);
 	m_isplaying = true;
-
-	if(sound2)
-		AUD_unload(sound2);
 }
 
 CValue* KX_SoundActuator::GetReplica()
@@ -160,7 +163,7 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 		return false;
 
 	// actual audio device playing state
-	bool isplaying = AUD_getStatus(m_handle) == AUD_STATUS_PLAYING;
+	bool isplaying = m_handle ? (AUD_getStatus(m_handle) == AUD_STATUS_PLAYING) : false;
 
 	if (bNegativeEvent)
 	{
@@ -174,7 +177,9 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 			case KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP:
 				{
 					// stop immediately
-					AUD_stop(m_handle);
+					if(m_handle)
+						AUD_stop(m_handle);
+					m_handle = NULL;
 					break;
 				}
 			case KX_SOUNDACT_PLAYEND:
@@ -186,7 +191,8 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 			case KX_SOUNDACT_LOOPBIDIRECTIONAL:
 				{
 					// stop the looping so that the sound stops when it finished
-					AUD_setLoop(m_handle, 0);
+					if(m_handle)
+						AUD_setLoop(m_handle, 0);
 					break;
 				}
 			default:
@@ -212,7 +218,7 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 			play();
 	}
 	// verify that the sound is still playing
-	isplaying = AUD_getStatus(m_handle) == AUD_STATUS_PLAYING ? true : false;
+	isplaying = m_handle ? (AUD_getStatus(m_handle) == AUD_STATUS_PLAYING) : false;
 
 	if (isplaying)
 	{
@@ -301,15 +307,18 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, startSound,
 "startSound()\n"
 "\tStarts the sound.\n")
 {
-	switch(AUD_getStatus(m_handle))
+	if(m_handle)
 	{
-	case AUD_STATUS_PLAYING:
-		break;
-	case AUD_STATUS_PAUSED:
-		AUD_resume(m_handle);
-		break;
-	default:
-		play();
+		switch(AUD_getStatus(m_handle))
+		{
+		case AUD_STATUS_PLAYING:
+			break;
+		case AUD_STATUS_PAUSED:
+			AUD_resume(m_handle);
+			break;
+		default:
+			play();
+		}
 	}
 	Py_RETURN_NONE;
 }
@@ -318,7 +327,8 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, pauseSound,
 "pauseSound()\n"
 "\tPauses the sound.\n")
 {
-	AUD_pause(m_handle);
+	if(m_handle)
+		AUD_pause(m_handle);
 	Py_RETURN_NONE;
 }
 
@@ -326,7 +336,9 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, stopSound,
 "stopSound()\n"
 "\tStops the sound.\n")
 {
-	AUD_stop(m_handle);
+	if(m_handle)
+		AUD_stop(m_handle);
+	m_handle = NULL;
 	Py_RETURN_NONE;
 }
 
