@@ -50,7 +50,7 @@ private:
 	/**
 	 * The target specification.
 	 */
-	AUD_DeviceSpecs m_specs;
+	AUD_SampleFormat m_format;
 
 	/**
 	 * Converter function.
@@ -69,7 +69,6 @@ public:
 	 */
 	AUD_ConverterReader(AUD_Reference<AUD_IReader> reader, AUD_DeviceSpecs specs);
 
-	virtual AUD_Specs getSpecs() const;
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 

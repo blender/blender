@@ -43,10 +43,6 @@ AUD_DoubleReader::AUD_DoubleReader(AUD_Reference<AUD_IReader> reader1,
 	AUD_Specs s1, s2;
 	s1 = reader1->getSpecs();
 	s2 = reader2->getSpecs();
-	if(memcmp(&s1, &s2, sizeof(AUD_Specs)) != 0)
-	{
-		AUD_THROW(AUD_ERROR_SPECS, specs_error);
-	}
 }
 
 AUD_DoubleReader::~AUD_DoubleReader()
@@ -86,7 +82,7 @@ int AUD_DoubleReader::getPosition() const
 
 AUD_Specs AUD_DoubleReader::getSpecs() const
 {
-	return m_reader1->getSpecs();
+	return m_finished1 ? m_reader1->getSpecs() : m_reader2->getSpecs();
 }
 
 void AUD_DoubleReader::read(int& length, bool& eos, sample_t* buffer)
@@ -95,20 +91,7 @@ void AUD_DoubleReader::read(int& length, bool& eos, sample_t* buffer)
 
 	if(!m_finished1)
 	{
-		int len = length;
-		m_reader1->read(len, m_finished1, buffer);
-
-		if(m_finished1)
-		{
-			const AUD_Specs specs = m_reader1->getSpecs();
-
-			len = length - len;
-			length -= len;
-
-			m_reader2->read(len, eos, buffer + length * specs.channels);
-
-			length += len;
-		}
+		m_reader1->read(length, m_finished1, buffer);
 	}
 	else
 	{

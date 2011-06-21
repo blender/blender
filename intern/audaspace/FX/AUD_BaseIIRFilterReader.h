@@ -42,19 +42,19 @@ class AUD_BaseIIRFilterReader : public AUD_EffectReader
 {
 private:
 	/**
-	 * Channel count.
+	 * Specs.
 	 */
-	const int m_channels;
+	AUD_Specs m_specs;
 
 	/**
 	 * Length of input samples needed.
 	 */
-	const int m_xlen;
+	int m_xlen;
 
 	/**
 	 * Length of output samples needed.
 	 */
-	const int m_ylen;
+	int m_ylen;
 
 	/**
 	 * The last in samples array.
@@ -94,15 +94,17 @@ protected:
 	 */
 	AUD_BaseIIRFilterReader(AUD_Reference<AUD_IReader> reader, int in, int out);
 
+	void setLengths(int in, int out);
+
 public:
 	inline sample_t x(int pos)
 	{
-		return m_x[(m_xpos + pos + m_xlen) % m_xlen * m_channels + m_channel];
+		return m_x[(m_xpos + pos + m_xlen) % m_xlen * m_specs.channels + m_channel];
 	}
 
 	inline sample_t y(int pos)
 	{
-		return m_y[(m_ypos + pos + m_ylen) % m_ylen * m_channels + m_channel];
+		return m_y[(m_ypos + pos + m_ylen) % m_ylen * m_specs.channels + m_channel];
 	}
 
 	virtual ~AUD_BaseIIRFilterReader();
@@ -110,6 +112,7 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 
 	virtual sample_t filter()=0;
+	virtual void sampleRateChanged(AUD_SampleRate rate);
 };
 
 #endif //AUD_BASEIIRFILTERREADER

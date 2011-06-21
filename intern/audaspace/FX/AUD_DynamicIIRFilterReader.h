@@ -24,42 +24,29 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/FX/AUD_ButterworthFactory.h
+/** \file audaspace/FX/AUD_DynamicIIRFilterReader.h
  *  \ingroup audfx
  */
 
+#ifndef AUD_DYNAMICIIRFILTERREADER
+#define AUD_DYNAMICIIRFILTERREADER
 
-#ifndef AUD_BUTTERWORTHFACTORY
-#define AUD_BUTTERWORTHFACTORY
-
+#include "AUD_IIRFilterReader.h"
 #include "AUD_DynamicIIRFilterFactory.h"
 
-/**
- * This factory creates a butterworth filter reader.
- */
-class AUD_ButterworthFactory : public AUD_DynamicIIRFilterFactory
+class AUD_DynamicIIRFilterReader : public AUD_IIRFilterReader
 {
 private:
 	/**
-	 * The attack value in seconds.
+	 * The factory for dynamically recalculating filter coefficients.
 	 */
-	const float m_frequency;
-
-	// hide copy constructor and operator=
-	AUD_ButterworthFactory(const AUD_ButterworthFactory&);
-	AUD_ButterworthFactory& operator=(const AUD_ButterworthFactory&);
+	AUD_Reference<AUD_DynamicIIRFilterFactory> m_factory;
 
 public:
-	/**
-	 * Creates a new butterworth factory.
-	 * \param factory The input factory.
-	 * \param frequency The cutoff frequency.
-	 */
-	AUD_ButterworthFactory(AUD_Reference<AUD_IFactory> factory, float frequency);
+	AUD_DynamicIIRFilterReader(AUD_Reference<AUD_IReader> reader,
+							   AUD_Reference<AUD_DynamicIIRFilterFactory> factory);
 
-	virtual void recalculateCoefficients(AUD_SampleRate rate,
-										 std::vector<float>& b,
-										 std::vector<float>& a);
+	virtual void sampleRateChanged(AUD_SampleRate rate);
 };
 
-#endif //AUD_BUTTERWORTHFACTORY
+#endif // AUD_DYNAMICIIRFILTERREADER

@@ -41,6 +41,8 @@ set(SRC
 	FX/AUD_DelayReader.cpp
 	FX/AUD_DoubleFactory.cpp
 	FX/AUD_DoubleReader.cpp
+	FX/AUD_DynamicIIRFilterFactory.cpp
+	FX/AUD_DynamicIIRFilterReader.cpp
 	FX/AUD_EffectFactory.cpp
 	FX/AUD_EffectReader.cpp
 	FX/AUD_EnvelopeFactory.cpp
@@ -133,6 +135,8 @@ set(SRC
 	FX/AUD_DelayReader.h
 	FX/AUD_DoubleFactory.h
 	FX/AUD_DoubleReader.h
+	FX/AUD_DynamicIIRFilterFactory.h
+	FX/AUD_DynamicIIRFilterReader.h
 	FX/AUD_EffectFactory.h
 	FX/AUD_EffectReader.h
 	FX/AUD_EnvelopeFactory.h

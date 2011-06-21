@@ -43,12 +43,12 @@ private:
 	/**
 	 * The start sample: inclusive.
 	 */
-	const int m_start;
+	const float m_start;
 
 	/**
 	 * The end sample: exlusive.
 	 */
-	const int m_end;
+	const float m_end;
 
 	// hide copy constructor and operator=
 	AUD_LimiterReader(const AUD_LimiterReader&);

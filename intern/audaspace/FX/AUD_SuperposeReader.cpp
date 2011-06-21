@@ -39,11 +39,6 @@ static const char* specs_error = "AUD_SuperposeReader: Both readers have to "
 AUD_SuperposeReader::AUD_SuperposeReader(AUD_Reference<AUD_IReader> reader1, AUD_Reference<AUD_IReader> reader2) :
 	m_reader1(reader1), m_reader2(reader2)
 {
-	AUD_Specs s1, s2;
-	s1 = reader1->getSpecs();
-	s2 = reader2->getSpecs();
-	if(memcmp(&s1, &s2, sizeof(AUD_Specs)))
-		AUD_THROW(AUD_ERROR_SPECS, specs_error);
 }
 
 AUD_SuperposeReader::~AUD_SuperposeReader()
@@ -85,6 +80,10 @@ AUD_Specs AUD_SuperposeReader::getSpecs() const
 void AUD_SuperposeReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	AUD_Specs specs = m_reader1->getSpecs();
+	AUD_Specs s2 = m_reader2->getSpecs();
+	if(memcmp(&specs, &s2, sizeof(AUD_Specs)))
+		AUD_THROW(AUD_ERROR_SPECS, specs_error);
+
 	int samplesize = AUD_SAMPLE_SIZE(specs);
 
 	m_buffer.assureSize(length * samplesize);

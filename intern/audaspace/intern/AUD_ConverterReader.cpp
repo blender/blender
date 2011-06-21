@@ -33,14 +33,13 @@
 
 AUD_ConverterReader::AUD_ConverterReader(AUD_Reference<AUD_IReader> reader,
 										 AUD_DeviceSpecs specs) :
-		AUD_EffectReader(reader)
+	AUD_EffectReader(reader),
+	m_format(specs.format)
 {
-	m_specs.specs = reader->getSpecs();
-
 	int bigendian = 1;
 	bigendian = (((char*)&bigendian)[0]) ? 0: 1; // 1 if Big Endian
 
-	switch(specs.format)
+	switch(m_format)
 	{
 	case AUD_FORMAT_U8:
 		m_convert = AUD_convert_float_u8;
@@ -66,23 +65,17 @@ AUD_ConverterReader::AUD_ConverterReader(AUD_Reference<AUD_IReader> reader,
 	default:
 		break;
 	}
-
-	m_specs.format = specs.format;
-}
-
-AUD_Specs AUD_ConverterReader::getSpecs() const
-{
-	return m_specs.specs;
 }
 
 void AUD_ConverterReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	int samplesize = AUD_SAMPLE_SIZE(m_reader->getSpecs());
+	AUD_Specs specs = m_reader->getSpecs();
+	int samplesize = AUD_SAMPLE_SIZE(specs);
 
 	m_buffer.assureSize(length * samplesize);
 
 	m_reader->read(length, eos, m_buffer.getBuffer());
 
 	m_convert((data_t*)buffer, (data_t*)m_buffer.getBuffer(),
-			  length * m_specs.channels);
+			  length * specs.channels);
 }
