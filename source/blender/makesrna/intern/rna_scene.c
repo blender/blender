@@ -1047,10 +1047,14 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
 		{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode"},
 		{0, NULL, 0, NULL, NULL}};
-
+	
+	/* the construction of this enum is quite special - everything is stored as bitflags, 
+	 * with 1st position only for for on/off (and exposed as boolean), while others are mutually 
+	 * exclusive options but which will only have any effect when autokey is enabled
+	 */
 	static EnumPropertyItem auto_key_items[] = {
-		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add & Replace", ""},
-		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
+		{AUTOKEY_MODE_NORMAL & ~AUTOKEY_ON, "ADD_REPLACE_KEYS", 0, "Add & Replace", ""},
+		{AUTOKEY_MODE_EDITKEYS & ~AUTOKEY_ON, "REPLACE_KEYS", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem retarget_roll_items[] = {
@@ -1193,7 +1197,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_icon(prop, ICON_REC, 0);
 	
 	prop= RNA_def_property(srna, "auto_keying_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "autokey_mode");
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "autokey_mode");
 	RNA_def_property_enum_items(prop, auto_key_items);
 	RNA_def_property_ui_text(prop, "Auto-Keying Mode", "Mode of automatic keyframe insertion for Objects and Bones");
 	
