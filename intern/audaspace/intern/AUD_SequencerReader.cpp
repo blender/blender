@@ -30,7 +30,14 @@
 
 
 #include "AUD_SequencerReader.h"
-#include "AUD_DefaultMixer.h"
+#include "AUD_Mixer.h"
+
+#ifdef WITH_SAMPLERATE
+#include "AUD_SRCResampleReader.h"
+#else
+#include "AUD_LinearResampleReader.h"
+#endif
+#include "AUD_ChannelMapperReader.h"
 
 #include <math.h>
 
@@ -46,7 +53,7 @@ AUD_SequencerReader::AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> fac
 	dspecs.specs = specs;
 	dspecs.format = AUD_FORMAT_FLOAT32;
 
-	m_mixer = new AUD_DefaultMixer(dspecs);
+	m_mixer = new AUD_Mixer(dspecs);
 
 	AUD_Reference<AUD_SequencerStrip> strip;
 
@@ -139,7 +146,16 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 					{
 						try
 						{
-							strip->reader = m_mixer->prepare((*strip->old_sound)->createReader());
+							strip->reader = (*strip->old_sound)->createReader();
+							// resample
+							#ifdef WITH_SAMPLERATE
+								strip->reader = new AUD_SRCResampleReader(strip->reader, m_mixer->getSpecs().specs);
+							#else
+								strip->reader = new AUD_LinearResampleReader(strip->reader, m_mixer->getSpecs().specs);
+							#endif
+
+							// rechannel
+							strip->reader = new AUD_ChannelMapperReader(strip->reader, m_mixer->getSpecs().channels);
 						}
 						catch(AUD_Exception)
 						{

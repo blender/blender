@@ -117,7 +117,7 @@ typedef enum
 	AUD_RATE_88200   = 88200,		/// 88200 Hz.
 	AUD_RATE_96000   = 96000,		/// 96000 Hz.
 	AUD_RATE_192000  = 192000		/// 192000 Hz.
-} AUD_SampleRate;
+} AUD_DefaultSampleRate;
 
 /// Status of a playback handle.
 typedef enum
@@ -165,6 +165,9 @@ typedef float sample_t;
 
 /// Sample data type (format samples)
 typedef unsigned char data_t;
+
+/// Sample rate type.
+typedef double AUD_SampleRate;
 
 /// Specification of a sound source.
 typedef struct

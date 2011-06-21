@@ -39,6 +39,6 @@ AUD_PitchReader::AUD_PitchReader(AUD_Reference<AUD_IReader> reader, float pitch)
 AUD_Specs AUD_PitchReader::getSpecs() const
 {
 	AUD_Specs specs = m_reader->getSpecs();
-	specs.rate = (AUD_SampleRate)((int)(specs.rate * m_pitch));
+	specs.rate *= m_pitch;
 	return specs;
 }

@@ -82,33 +82,26 @@ public:
 	AUD_DeviceSpecs getSpecs() const;
 
 	/**
-	 * This funuction prepares a reader for playback.
-	 * \param reader The reader to prepare.
-	 * \return The reader that should be used for playback.
-	 */
-	virtual AUD_Reference<AUD_IReader> prepare(AUD_Reference<AUD_IReader> reader)=0;
-
-	/**
 	 * Mixes a buffer.
 	 * \param buffer The buffer to superpose.
 	 * \param start The start sample of the buffer.
 	 * \param length The length of the buffer in samples.
 	 * \param volume The mixing volume. Must be a value between 0.0 and 1.0.
 	 */
-	virtual void mix(sample_t* buffer, int start, int length, float volume);
+	void mix(sample_t* buffer, int start, int length, float volume);
 
 	/**
 	 * Writes the mixing buffer into an output buffer.
 	 * \param buffer The target buffer for superposing.
 	 * \param volume The mixing volume. Must be a value between 0.0 and 1.0.
 	 */
-	virtual void read(data_t* buffer, float volume);
+	void read(data_t* buffer, float volume);
 
 	/**
 	 * Clears the mixing buffer.
 	 * \param length The length of the buffer in samples.
 	 */
-	virtual void clear(int length);
+	void clear(int length);
 };
 
 #endif //AUD_MIXER

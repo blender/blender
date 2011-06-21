@@ -31,8 +31,14 @@
 
 #include "AUD_SoftwareDevice.h"
 #include "AUD_IReader.h"
-#include "AUD_DefaultMixer.h"
+#include "AUD_Mixer.h"
 #include "AUD_IFactory.h"
+#ifdef WITH_SAMPLERATE
+#include "AUD_SRCResampleReader.h"
+#else
+#include "AUD_LinearResampleReader.h"
+#endif
+#include "AUD_ChannelMapperReader.h"
 
 #include <cstring>
 #include <limits>
@@ -238,7 +244,7 @@ void AUD_SoftwareDevice::create()
 {
 	m_playback = false;
 	m_volume = 1.0f;
-	m_mixer = new AUD_DefaultMixer(m_specs);
+	m_mixer = new AUD_Mixer(m_specs);
 
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
@@ -352,7 +358,16 @@ AUD_DeviceSpecs AUD_SoftwareDevice::getSpecs() const
 AUD_Reference<AUD_IHandle> AUD_SoftwareDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 {
 	// prepare the reader
-	reader = m_mixer->prepare(reader);
+	// resample
+	#ifdef WITH_SAMPLERATE
+		reader = new AUD_SRCResampleReader(reader, m_specs.specs);
+	#else
+		reader = new AUD_LinearResampleReader(reader, m_specs.specs);
+	#endif
+
+	// rechannel
+	reader = new AUD_ChannelMapperReader(reader, m_specs.channels);
+
 	if(reader.isNull())
 		return NULL;
 

@@ -45,8 +45,7 @@ static const char* state_error = "AUD_SRCResampleReader: SRC State couldn't be "
 
 AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_Reference<AUD_IReader> reader,
 											 AUD_Specs specs) :
-		AUD_EffectReader(reader),
-		m_rate(specs.rate),
+		AUD_ResampleReader(reader, specs.rate),
 		m_channels(reader->getSpecs().channels),
 		m_position(0)
 {

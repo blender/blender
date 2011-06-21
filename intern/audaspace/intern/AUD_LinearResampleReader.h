@@ -32,20 +32,15 @@
 #ifndef AUD_LINEARRESAMPLEREADER
 #define AUD_LINEARRESAMPLEREADER
 
-#include "AUD_EffectReader.h"
+#include "AUD_ResampleReader.h"
 #include "AUD_Buffer.h"
 
 /**
  * This resampling reader uses libsamplerate for resampling.
  */
-class AUD_LinearResampleReader : public AUD_EffectReader
+class AUD_LinearResampleReader : public AUD_ResampleReader
 {
 private:
-	/**
-	 * The target specification.
-	 */
-	AUD_SampleRate m_rate;
-
 	/**
 	 * The reader channels.
 	 */

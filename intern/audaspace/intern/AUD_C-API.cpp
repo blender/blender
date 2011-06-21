@@ -795,7 +795,7 @@ void AUD_closeReadDevice(AUD_Device* device)
 float* AUD_readSoundBuffer(const char* filename, float low, float high,
 						   float attack, float release, float threshold,
 						   int accumulate, int additive, int square,
-						   float sthreshold, int samplerate, int* length)
+						   float sthreshold, double samplerate, int* length)
 {
 	AUD_Buffer buffer;
 	AUD_DeviceSpecs specs;

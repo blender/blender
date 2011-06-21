@@ -77,8 +77,7 @@ void AUD_SinusReader::read(int& length, bool& eos, sample_t* buffer)
 	// fill with sine data
 	for(int i = 0; i < length; i++)
 	{
-		buffer[i] = sin((m_position + i) * 2 * M_PI * m_frequency /
-						(float)m_sampleRate);
+		buffer[i] = sin((m_position + i) * 2 * M_PI * m_frequency / m_sampleRate);
 	}
 
 	m_position += length;

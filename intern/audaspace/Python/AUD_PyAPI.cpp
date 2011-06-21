@@ -2111,13 +2111,13 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 	static const char *kwlist[] = {"type", "rate", "channels", "format", "buffer_size", "name", NULL};
 	int device;
-	int rate = AUD_RATE_44100;
+	double rate = AUD_RATE_44100;
 	int channels = AUD_CHANNELS_STEREO;
 	int format = AUD_FORMAT_FLOAT32;
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
 	const char* name = "Audaspace";
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|iiiis:Device", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|diiis:Device", const_cast<char**>(kwlist),
 									&device, &rate, &channels, &format, &buffersize, &name))
 		return NULL;
 

@@ -32,7 +32,7 @@
 #ifndef AUD_SRCRESAMPLEREADER
 #define AUD_SRCRESAMPLEREADER
 
-#include "AUD_EffectReader.h"
+#include "AUD_ResampleReader.h"
 #include "AUD_Buffer.h"
 
 #include <samplerate.h>
@@ -40,18 +40,13 @@
 /**
  * This resampling reader uses libsamplerate for resampling.
  */
-class AUD_SRCResampleReader : public AUD_EffectReader
+class AUD_SRCResampleReader : public AUD_ResampleReader
 {
 private:
 	/**
 	 * The sound output buffer.
 	 */
 	AUD_Buffer m_buffer;
-
-	/**
-	 * The target sampling rate.
-	 */
-	AUD_SampleRate m_rate;
 
 	/**
 	 * The reader channels.

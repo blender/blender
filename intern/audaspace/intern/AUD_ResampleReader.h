@@ -24,36 +24,28 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_DefaultMixer.h
+/** \file audaspace/intern/AUD_ResampleReader.h
  *  \ingroup audaspaceintern
  */
 
+#ifndef AUD_RESAMPLEREADER
+#define AUD_RESAMPLEREADER
 
-#ifndef AUD_DEFAULTMIXER
-#define AUD_DEFAULTMIXER
+#include "AUD_EffectReader.h"
 
-#include "AUD_Mixer.h"
-
-/**
- * This class is able to mix audiosignals of different channel count and sample
- * rate and convert it to a specific output format.
- * It uses a default ChannelMapperFactory and a SRCResampleFactory for
- * the perparation.
- */
-class AUD_DefaultMixer : public AUD_Mixer
+class AUD_ResampleReader : public AUD_EffectReader
 {
-public:
+protected:
 	/**
-	 * Creates the mixer.
+	 * The target sampling rate.
 	 */
-	AUD_DefaultMixer(AUD_DeviceSpecs specs);
+	AUD_SampleRate m_rate;
 
-	/**
-	 * This funuction prepares a reader for playback.
-	 * \param reader The reader to prepare.
-	 * \return The reader that should be used for playback.
-	 */
-	virtual AUD_Reference<AUD_IReader> prepare(AUD_Reference<AUD_IReader> reader);
+	AUD_ResampleReader(AUD_Reference<AUD_IReader> reader, AUD_SampleRate rate);
+
+public:
+	virtual void setRate(AUD_SampleRate rate);
+	AUD_SampleRate getRate();
 };
 
-#endif //AUD_DEFAULTMIXER
+#endif // AUD_RESAMPLEREADER

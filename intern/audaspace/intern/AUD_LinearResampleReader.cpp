@@ -38,8 +38,7 @@
 
 AUD_LinearResampleReader::AUD_LinearResampleReader(AUD_Reference<AUD_IReader> reader,
 												   AUD_Specs specs) :
-	AUD_EffectReader(reader),
-	m_rate(specs.rate),
+	AUD_ResampleReader(reader, specs.rate),
 	m_channels(reader->getSpecs().channels),
 	m_position(0),
 	m_cache_pos(0),

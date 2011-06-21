@@ -82,8 +82,6 @@ set(SRC
 	intern/AUD_ConverterFunctions.h
 	intern/AUD_ConverterReader.cpp
 	intern/AUD_ConverterReader.h
-	intern/AUD_DefaultMixer.cpp
-	intern/AUD_DefaultMixer.h
 	intern/AUD_FileFactory.cpp
 	intern/AUD_FileFactory.h
 	intern/AUD_I3DDevice.h
@@ -108,6 +106,8 @@ set(SRC
 	intern/AUD_Reference.h
 	intern/AUD_ReferenceHandler.cpp
 	intern/AUD_ResampleFactory.h
+	intern/AUD_ResampleReader.cpp
+	intern/AUD_ResampleReader.h
 	intern/AUD_SequencerFactory.cpp
 	intern/AUD_SequencerFactory.h
 	intern/AUD_SequencerReader.cpp

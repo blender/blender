@@ -441,7 +441,7 @@ extern void AUD_closeReadDevice(AUD_Device* device);
 extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
 								  float attack, float release, float threshold,
 								  int accumulate, int additive, int square,
-								  float sthreshold, int samplerate,
+								  float sthreshold, double samplerate,
 								  int* length);
 
 /**

@@ -24,38 +24,24 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_DefaultMixer.cpp
+/** \file audaspace/intern/AUD_ResampleReader.cpp
  *  \ingroup audaspaceintern
  */
 
 
-#include "AUD_DefaultMixer.h"
-#ifdef WITH_SAMPLERATE
-#include "AUD_SRCResampleReader.h"
-#else
-#include "AUD_LinearResampleReader.h"
-#endif
-#include "AUD_ChannelMapperReader.h"
-#include "AUD_ChannelMapperFactory.h"
+#include "AUD_ResampleReader.h"
 
-#include <cstring>
-
-AUD_DefaultMixer::AUD_DefaultMixer(AUD_DeviceSpecs specs) :
-	AUD_Mixer(specs)
+AUD_ResampleReader::AUD_ResampleReader(AUD_Reference<AUD_IReader> reader, AUD_SampleRate rate) :
+	AUD_EffectReader(reader), m_rate(rate)
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_DefaultMixer::prepare(AUD_Reference<AUD_IReader> reader)
+void AUD_ResampleReader::setRate(AUD_SampleRate rate)
 {
-	// resample
-#ifdef WITH_SAMPLERATE
-	reader = new AUD_SRCResampleReader(reader, m_specs.specs);
-#else
-	reader = new AUD_LinearResampleReader(reader, m_specs.specs);
-#endif
-	
-	// rechannel
-	reader = new AUD_ChannelMapperReader(reader, m_specs.channels);
+	m_rate = rate;
+}
 
-	return reader;
+AUD_SampleRate AUD_ResampleReader::getRate()
+{
+	return m_rate;
 }
