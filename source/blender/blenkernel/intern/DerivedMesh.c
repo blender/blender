@@ -1612,18 +1612,27 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 	Mesh *me = ob->data;
 	float colf[4], input = 0.0f, unsel_sum = 0.0f;// Jason
 	int i;
-	int cnt = 0;
 	char make_black = FALSE;
+	char was_a_nonzero = FALSE;
+	char actdef_nonzero = FALSE;
 
 	if (me->dvert) {
 		for (i=0; i<me->dvert[vert].totweight; i++) {
 			// Jason was here
 			if(multipaint && selected > 1) {
 				if(dg_flags[me->dvert[vert].dw[i].def_nr]) {
+					if(ob->actdef-1 == me->dvert[vert].dw[i].def_nr) {
+						if (me->dvert[vert].dw[i].weight == 0) {
+							//make_black = TRUE;
+							break;
+						}
+						actdef_nonzero = TRUE;
+					}
 					if(me->dvert[vert].dw[i].weight) {
 						input+=me->dvert[vert].dw[i].weight;
-						cnt++;
+						was_a_nonzero = TRUE;
 					}
+
 				}
 				// TODO unselected non-bone groups should not be involved in this sum
 				else if(auto_normalize) {
@@ -1633,13 +1642,18 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 				input+=me->dvert[vert].dw[i].weight;
 			}
 		}
+		
 		// Jason was here
-		if(multipaint && selected > 1) {
-			if(cnt == 0 || input == 1.0f && auto_normalize && !unsel_sum) {
+		if(!make_black && multipaint && selected > 1) {
+			/*if(input == 1.0f && auto_normalize && !unsel_sum) {
+				make_black = TRUE;
+			} else */
+			if(!(was_a_nonzero && actdef_nonzero)) {
 				make_black = TRUE;
 			} else if (!auto_normalize){
 				input /= selected;
 			}
+
 		}
 	}
 	
