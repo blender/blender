@@ -6041,9 +6041,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	PyGILState_STATE gilstate;
 
 #ifdef USE_PEDANTIC_WRITE
+	const int is_operator= RNA_struct_is_a(ptr->type, &RNA_Operator);
 	const char *func_id= RNA_function_identifier(func);
 	/* testing, for correctness, not operator and not draw function */
-	const short is_readonly= strstr("draw", func_id) || /*strstr("render", func_id) ||*/ !RNA_struct_is_a(ptr->type, &RNA_Operator);
+	const short is_readonly= strstr("draw", func_id) || /*strstr("render", func_id) ||*/ !is_operator;
 #endif
 
 	py_class= RNA_struct_py_type_get(ptr->type);
@@ -6099,6 +6100,11 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			 * Although this is annoying to have to impliment a part of pythons typeobject.c:type_call().
 			 */
 			if(py_class->tp_init) {
+#ifdef USE_PEDANTIC_WRITE
+				const int prev_write= rna_disallow_writes;
+				rna_disallow_writes= is_operator ? FALSE : TRUE; /* only operators can write on __init__ */
+#endif
+
 				/* true in most cases even when the class its self doesn't define an __init__ function. */
 				args= PyTuple_New(0);
 				if (py_class->tp_init(py_srna, args, NULL) < 0) {
@@ -6107,11 +6113,16 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 					/* err set below */
 				}
 				Py_DECREF(args);
+#ifdef USE_PEDANTIC_WRITE
+				rna_disallow_writes= prev_write;
+#endif
 			}
-
 			py_class_instance= py_srna;
 
 #else
+			const int prev_write= rna_disallow_writes;
+			rna_disallow_writes= TRUE;
+
 			/* 'almost' all the time calling the class isn't needed.
 			 * We could just do...
 			py_class_instance= py_srna;
@@ -6125,7 +6136,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			py_class_instance= PyObject_Call(py_class, args, NULL);
 			Py_DECREF(args);
 
+			rna_disallow_writes= prev_write;
+
 #endif
+
 			if(py_class_instance == NULL) {
 				err= -1; /* so the error is not overridden below */
 			}
