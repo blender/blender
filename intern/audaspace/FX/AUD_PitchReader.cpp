@@ -42,3 +42,13 @@ AUD_Specs AUD_PitchReader::getSpecs() const
 	specs.rate *= m_pitch;
 	return specs;
 }
+
+float AUD_PitchReader::getPitch() const
+{
+	return m_pitch;
+}
+
+void AUD_PitchReader::setPitch(float pitch)
+{
+	m_pitch = pitch;
+}

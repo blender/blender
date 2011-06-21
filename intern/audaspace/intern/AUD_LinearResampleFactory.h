@@ -32,12 +32,12 @@
 #ifndef AUD_LINEARRESAMPLEFACTORY
 #define AUD_LINEARRESAMPLEFACTORY
 
-#include "AUD_ResampleFactory.h"
+#include "AUD_MixerFactory.h"
 
 /**
  * This factory creates a resampling reader that does simple linear resampling.
  */
-class AUD_LinearResampleFactory : public AUD_ResampleFactory
+class AUD_LinearResampleFactory : public AUD_MixerFactory
 {
 private:
 	// hide copy constructor and operator=

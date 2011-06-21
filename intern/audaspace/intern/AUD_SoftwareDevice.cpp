@@ -45,8 +45,8 @@
 
 typedef std::list<AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> >::iterator AUD_HandleIterator;
 
-AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, bool keep) :
-	m_reader(reader), m_keep(keep), m_volume(1.0f), m_loopcount(0),
+AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, bool keep) :
+	m_reader(reader), m_pitch(pitch), m_keep(keep), m_volume(1.0f), m_loopcount(0),
 	m_stop(NULL), m_stop_data(NULL), m_status(AUD_STATUS_PLAYING), m_device(device)
 {
 }
@@ -192,12 +192,13 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::setVolume(float volume)
 
 float AUD_SoftwareDevice::AUD_SoftwareHandle::getPitch()
 {
-	return std::numeric_limits<float>::quiet_NaN();
+	return m_pitch->getPitch();
 }
 
 bool AUD_SoftwareDevice::AUD_SoftwareHandle::setPitch(float pitch)
 {
-	return false;
+	m_pitch->setPitch(pitch);
+	return true;
 }
 
 int AUD_SoftwareDevice::AUD_SoftwareHandle::getLoopCount()
@@ -358,6 +359,11 @@ AUD_DeviceSpecs AUD_SoftwareDevice::getSpecs() const
 AUD_Reference<AUD_IHandle> AUD_SoftwareDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 {
 	// prepare the reader
+	// pitch
+
+	AUD_Reference<AUD_PitchReader> pitch = new AUD_PitchReader(reader, 1);
+	reader = AUD_Reference<AUD_IReader>(pitch);
+
 	// resample
 	#ifdef WITH_SAMPLERATE
 		reader = new AUD_SRCResampleReader(reader, m_specs.specs);
@@ -372,7 +378,7 @@ AUD_Reference<AUD_IHandle> AUD_SoftwareDevice::play(AUD_Reference<AUD_IReader> r
 		return NULL;
 
 	// play sound
-	AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> sound = new AUD_SoftwareDevice::AUD_SoftwareHandle(this, reader, keep);
+	AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> sound = new AUD_SoftwareDevice::AUD_SoftwareHandle(this, reader, pitch, keep);
 
 	lock();
 	m_playingSounds.push_back(sound);

@@ -34,7 +34,7 @@
 
 AUD_SRCResampleFactory::AUD_SRCResampleFactory(AUD_Reference<AUD_IFactory> factory,
 											   AUD_DeviceSpecs specs) :
-		AUD_ResampleFactory(factory, specs)
+		AUD_MixerFactory(factory, specs)
 {
 }
 

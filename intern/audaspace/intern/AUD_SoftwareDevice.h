@@ -36,6 +36,7 @@
 #include "AUD_IHandle.h"
 #include "AUD_Mixer.h"
 #include "AUD_Buffer.h"
+#include "AUD_PitchReader.h"
 
 #include <list>
 #include <pthread.h>
@@ -57,6 +58,9 @@ protected:
 	public:
 		/// The reader source.
 		AUD_Reference<AUD_IReader> m_reader;
+
+		/// The pitch reader in between.
+		AUD_Reference<AUD_PitchReader> m_pitch;
 
 		/// Whether to keep the source if end of it is reached.
 		bool m_keep;
@@ -81,7 +85,7 @@ protected:
 
 	public:
 
-		AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, bool keep);
+		AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, bool keep);
 
 		virtual ~AUD_SoftwareHandle() {}
 		virtual bool pause();

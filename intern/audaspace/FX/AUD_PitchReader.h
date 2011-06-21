@@ -43,7 +43,7 @@ private:
 	/**
 	 * The pitch level.
 	 */
-	const float m_pitch;
+	float m_pitch;
 
 	// hide copy constructor and operator=
 	AUD_PitchReader(const AUD_PitchReader&);
@@ -58,6 +58,9 @@ public:
 	AUD_PitchReader(AUD_Reference<AUD_IReader> reader, float pitch);
 
 	virtual AUD_Specs getSpecs() const;
+
+	float getPitch() const;
+	void setPitch(float pitch);
 };
 
 #endif //AUD_PITCHREADER
