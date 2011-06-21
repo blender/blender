@@ -4737,7 +4737,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		
 		if(!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))) {
 			// icons a bit higher
-			tselem_draw_icon(block, xmax, (float)startx+offsx, (float)*starty+2*ufac, tselem, te, 1.0f);
+			tselem_draw_icon(block, xmax, (float)startx+offsx - 0.5f*ufac, (float)*starty+2.0f*ufac, tselem, te, 1.0f);
 			
 			offsx+= UI_UNIT_X;
 		}

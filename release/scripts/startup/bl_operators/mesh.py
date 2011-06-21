@@ -152,7 +152,6 @@ class MeshMirrorUV(bpy.types.Operator):
                 if j is not None:
                     fmap[i] = j
 
-        done = [False] * len(faces)
         for i, j in fmap.items():
 
             if not fuvsel[i] or not fuvsel[j]:
@@ -170,10 +169,10 @@ class MeshMirrorUV(bpy.types.Operator):
             v1 = faces[j].vertices[:]
             v2 = [vmap[k] for k in faces[i].vertices[:]]
 
-            for k in range(len(uv1)):
-                k_map = v1.index(v2[k])
-                uv1[k].x = - (uv2[k_map].x - 0.5) + 0.5
-                uv1[k].y = uv2[k_map].y
+            if len(v1) == len(v2):
+                for k in range(len(v1)):
+                    k_map = v1.index(v2[k])
+                    uv1[k].xy = - (uv2[k_map].x - 0.5) + 0.5, uv2[k_map].y
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)

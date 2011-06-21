@@ -385,8 +385,8 @@ static void initSnappingMode(TransInfo *t)
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(obedit != NULL && ELEM4(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE)) ) // Temporary limited to edit mode meshes, armature, curves
 		{
-			/* editmode meshes now supported */
-			if ((obedit->type != OB_MESH) && ((t->flag & T_PROP_EDIT) || t->tsnap.project)) /* also exclude edit for project, for now */
+			/* Exclude editmesh if using proportional edit */
+			if ((obedit->type == OB_MESH) && (t->flag & T_PROP_EDIT))
 			{
 				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
 			}
