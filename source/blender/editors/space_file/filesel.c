@@ -121,8 +121,10 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 
 	/* set the parameters from the operator, if it exists */
 	if (op) {
-		short is_filename= FALSE;
-		short is_dir= FALSE;
+		const short is_files= (RNA_struct_find_property(op->ptr, "files") != NULL);
+		const short is_filepath= (RNA_struct_find_property(op->ptr, "filepath") != NULL);
+		const short is_filename= (RNA_struct_find_property(op->ptr, "filename") != NULL);
+		const short is_directory= (RNA_struct_find_property(op->ptr, "directory") != NULL);
 
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
 
@@ -131,7 +133,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else
 			params->type = FILE_SPECIAL;
 
-		if ((is_dir= is_filename= RNA_struct_find_property(op->ptr, "filepath")!=NULL) && RNA_property_is_set(op->ptr, "filepath")) {
+		if (is_filepath && RNA_property_is_set(op->ptr, "filepath")) {
 			char name[FILE_MAX];
 			RNA_string_get(op->ptr, "filepath", name);
 			if (params->type == FILE_LOADLIB) {
@@ -143,13 +145,12 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			}
 		}
 		else {
-			if ((is_dir= RNA_struct_find_property(op->ptr, "directory")!=NULL) && RNA_property_is_set(op->ptr, "directory")) {
+			if (is_directory && RNA_property_is_set(op->ptr, "directory")) {
 				RNA_string_get(op->ptr, "directory", params->dir);
 				sfile->params->file[0]= '\0';
-				is_dir= TRUE;
 			}
 
-			if ((is_filename= RNA_struct_find_property(op->ptr, "filename")!=NULL) && RNA_property_is_set(op->ptr, "filename")) {
+			if (is_filename && RNA_property_is_set(op->ptr, "filename")) {
 				RNA_string_get(op->ptr, "filename", params->file);
 			}
 		}
@@ -159,7 +160,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			BLI_path_abs(params->dir, G.main->name);
 		}
 
-		if(is_dir==TRUE && is_filename==FALSE) {
+		if(is_directory==TRUE && is_filename==FALSE && is_filepath==FALSE && is_files==FALSE) {
 			params->flag |= FILE_DIRSEL_ONLY;
 		}
 		else {
