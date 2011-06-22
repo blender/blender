@@ -1576,7 +1576,7 @@ void init_userdef_do_versions(void)
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
 	
-	if (bmain->versionfile <= 257) {
+	{
 		bTheme *btheme;
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			if(btheme->tv3d.bundle_solid[3] == 0) {
