@@ -84,7 +84,7 @@ static bool SolveTrackingEquation(const Mat2f &U,
                                   float min_determinant,
                                   Vec2f *d) {
   float det = U.determinant();
-  if (fabsf(det) < min_determinant) {
+  if (det < min_determinant) {
     d->setZero();
     return false;
   }
