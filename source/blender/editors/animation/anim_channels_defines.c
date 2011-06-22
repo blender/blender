@@ -2735,11 +2735,8 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	else
 		return;
 	
-	/* get all channels that can possibly be chosen 
-	 *	- therefore, the filter is simply ANIMFILTER_CHANNELS, since if we took VISIBLE too,
-	 *	  then the channels under closed expanders get ignored...
-	 */
-	filter= ANIMFILTER_CHANNELS;
+	/* get all channels that can possibly be chosen - but ignore hierarchy */
+	filter= ANIMFILTER_DATA_VISIBLE|ANIMFILTER_LIST_CHANNELS;
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* call API method to flush the setting */

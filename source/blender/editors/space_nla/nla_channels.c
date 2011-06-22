@@ -87,7 +87,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 	
 	/* get the channel that was clicked on */
 		/* filter channels */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 		/* get channel from index */
@@ -380,12 +380,12 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 		
 	/* get a list of the AnimData blocks being shown in the NLA */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_SEL);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* add tracks... */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		if(ale->type == ANIMTYPE_NLATRACK) {
+		if (ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			AnimData *adt= ale->adt;
 			
@@ -448,7 +448,7 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 		
 	/* get a list of the AnimData blocks being shown in the NLA */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_SEL);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* delete tracks */

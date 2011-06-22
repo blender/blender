@@ -114,7 +114,8 @@ static void deselect_nla_strips (bAnimContext *ac, short test, short sel)
 	short smode;
 	
 	/* determine type-based settings */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS);
+	// FIXME: double check whether ANIMFILTER_LIST_VISIBLE is needed!
+	filter= (ANIMFILTER_DATA_VISIBLE);
 	
 	/* filter data */
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
@@ -233,7 +234,7 @@ static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, sh
 	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax-2, &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* convert selection modes to selection modes */
@@ -395,7 +396,7 @@ static void nlaedit_select_leftright (bContext *C, bAnimContext *ac, short leftr
 	
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* select strips on the side where most data occurs */
@@ -523,7 +524,7 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, const int mval[2], 
 	UI_view2d_region_to_view(v2d, mval[0]+7, mval[1], &xmax, &dummy);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* try to get channel */

@@ -773,7 +773,7 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 		int filter;
 		
 		/* get F-Curves to take keyframes from */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		filter= ANIMFILTER_DATA_VISIBLE; // curves only
 		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 		/* loop through each F-Curve, grabbing the keyframes */

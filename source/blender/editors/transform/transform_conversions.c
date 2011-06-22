@@ -2494,7 +2494,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 		return;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* which side of the current frame should be allowed */
@@ -2834,7 +2834,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	int filter;
 
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
 	ANIM_animdata_filter(ac, &anim_data, filter, act, ANIMCONT_ACTION);
 
 	/* loop through relevant data, removing keyframes as appropriate
@@ -2842,7 +2842,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-
+		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			posttrans_fcurve_clean(ale->key_data);
@@ -3036,9 +3036,9 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	
 	/* filter data */
 	if (ac.datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* which side of the current frame should be allowed */
@@ -3263,7 +3263,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		return;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* which side of the current frame should be allowed */
@@ -4777,7 +4777,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+			short filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -4889,7 +4889,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		{
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
+			short filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -4939,7 +4939,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		{
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NLATRACKS);
+			short filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);

@@ -103,7 +103,8 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 	/* extract list of active channel(s), of which we should only take the first one 
 	 *	- we need the channels flag to get the active AnimData block when there are no NLA Tracks
 	 */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_ACTIVE|ANIMFILTER_CHANNELS);
+	// XXX: double-check active!
+	filter= (ANIMFILTER_DATA_VISIBLE|ANIMFILTER_LIST_VISIBLE|ANIMFILTER_ACTIVE|ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {

@@ -95,9 +95,9 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	
 	/* determine type-based settings */
 	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NODUPLIS);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
 	
 	/* filter data */
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
@@ -211,7 +211,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax-2, &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get filtering flag for dopesheet data (if applicable) */
@@ -388,7 +388,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	ked.f2= max;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY */ | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* select keys in-between */
@@ -431,14 +431,14 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	switch (mode) {
 		case ACTKEYS_COLUMNSEL_KEYS: /* list of selected keys */
 			if (ac->datatype == ANIMCONT_GPENCIL) {
-				filter= (ANIMFILTER_VISIBLE);
+				filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
 				ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 				
 				for (ale= anim_data.first; ale; ale= ale->next)
 					gplayer_make_cfra_list(ale->data, &ked.list, 1);
 			}
 			else {
-				filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+				filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/);
 				ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 				
 				for (ale= anim_data.first; ale; ale= ale->next)
@@ -471,9 +471,9 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	 * based on the keys found to be selected above
 	 */
 	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -563,7 +563,7 @@ static int actkeys_select_linked_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* loop through all of the keys and select additional keyframes based on these */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -617,7 +617,7 @@ static void select_moreless_action_keys (bAnimContext *ac, short mode)
 	build_cb= ANIM_editkeyframes_buildselmap(mode);
 	
 	/* loop through all of the keys and select additional keyframes based on these */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -758,9 +758,9 @@ static void actkeys_select_leftright (bAnimContext *ac, short leftright, short s
 	
 	/* filter data */
 	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NODUPLIS);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* select keys */
@@ -941,9 +941,9 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	 * based on the keys found to be selected above
 	 */
 	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NODUPLIS);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY */ | ANIMFILTER_NODUPLIS);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -997,7 +997,7 @@ static void mouse_action_keys (bAnimContext *ac, const int mval[2], short select
 	UI_view2d_region_to_view(v2d, mval[0]+7, mval[1], &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* try to get channel */

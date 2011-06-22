@@ -397,7 +397,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, Key
 		return 0;
 	
 	/* get F-Curves to take keyframes from */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+	filter= ANIMFILTER_DATA_VISIBLE;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through each F-Curve, working on the keyframes until the first curve aborts */
@@ -491,7 +491,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	int filter;
 	
 	/* filter animation data */
-	filter= ANIMFILTER_CURVESONLY; 
+	filter= ANIMFILTER_DATA_VISIBLE; 
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop over F-Curves that are likely to have been edited, and check them */

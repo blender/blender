@@ -183,26 +183,60 @@ typedef enum eAnim_KeyType {
 
 /* ----------------- Filtering -------------------- */
 
+#if 0 /// old
 /* filtering flags  - under what circumstances should a channel be added */
 typedef enum eAnimFilter_Flags {
 	ANIMFILTER_VISIBLE		= (1<<0),	/* should channels be visible (in terms of hierarchy only) */
-	ANIMFILTER_SEL			= (1<<1),	/* should channels be selected */
-	ANIMFILTER_UNSEL		= (1<<2),	/* should channels be NOT selected */
-	ANIMFILTER_FOREDIT		= (1<<3),	/* does editable status matter */
-	ANIMFILTER_CURVESONLY	= (1<<4),	/* don't include summary-channels, etc. */
+	//ANIMFILTER_SEL			= (1<<1),	/* should channels be selected */
+	//ANIMFILTER_UNSEL		= (1<<2),	/* should channels be NOT selected */
+	//ANIMFILTER_FOREDIT		= (1<<3),	/* does editable status matter */
+	ANIMFILTER_CURVESONLY	= (1<<4),	/* don't include summary-channels, etc. */ // double-check on how this goes for actedit
 	ANIMFILTER_CHANNELS		= (1<<5),	/* make list for interface drawing */
-	ANIMFILTER_ACTGROUPED	= (1<<6),	/* belongs to the active actiongroup */
+	//ANIMFILTER_ACTGROUPED	= (1<<6),	/* belongs to the active actiongroup */
 	ANIMFILTER_CURVEVISIBLE	= (1<<7),	/* F-Curve is visible for editing/viewing in Graph Editor */
-	ANIMFILTER_ACTIVE		= (1<<8),	/* channel should be 'active' */
-	ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
+	//ANIMFILTER_ACTIVE		= (1<<8),	/* channel should be 'active' */
+	//ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
 	ANIMFILTER_NLATRACKS	= (1<<10),	/* only include NLA-tracks */
-	ANIMFILTER_SELEDIT		= (1<<11),	/* link editability with selected status */
-	ANIMFILTER_NODUPLIS		= (1<<12),	/* duplicate entries for animation data attached to multi-user blocks must not occur */
-	
-	/* all filters - the power inside the bracket must be the last power for left-shifts + 1 */
-	ANIMFILTER_ALLFILTERS	= ((1<<12) - 1)
+	//ANIMFILTER_SELEDIT		= (1<<11),	/* link editability with selected status */
+	//ANIMFILTER_NODUPLIS		= (1<<12),	/* duplicate entries for animation data attached to multi-user blocks must not occur */
 } eAnimFilter_Flags;
+#endif
 
+/* filtering flags  - under what circumstances should a channel be returned */
+// TODO: flag to just test if there's any channel inside worthy of being added - return 1 as soon as this is encountered, but don't add
+typedef enum eAnimFilter_Flags {
+	/* data which channel represents is fits the dopesheet filters (i.e. scene visibility criteria) */
+	// XXX: it's hard to think of any examples where this *ISN'T* the case... perhaps becomes implicit?
+	ANIMFILTER_DATA_VISIBLE   = (1<<0),
+	/* channel is visible within the channel-list hierarchy (i.e. F-Curves within Groups in ActEdit) */
+	ANIMFILTER_LIST_VISIBLE   = (1<<1),
+	/* channel has specifically been tagged as visible in Graph Editor (* Graph Editor Only) */
+	ANIMFILTER_CURVE_VISIBLE  = (1<<2),
+	
+	/* include summary channels and "expanders" (for drawing/mouse-selection in channel list) */
+	ANIMFILTER_LIST_CHANNELS  = (1<<3),
+	
+	/* for its type, channel should be "active" one */
+	ANIMFILTER_ACTIVE         = (1<<4),
+	/* channel is a child of the active group (* Actions speciality) */
+	ANIMFILTER_ACTGROUPED     = (1<<5),
+	
+	/* channel must be selected/not-selected, but both must not be set together */
+	ANIMFILTER_SEL            = (1<<6),
+	ANIMFILTER_UNSEL          = (1<<7),
+	
+	/* editability status - must be editable to be included */
+	ANIMFILTER_FOREDIT        = (1<<8),
+	/* only selected animchannels should be considerable as editable - mainly for Graph Editor's option for keys on select curves only */
+	ANIMFILTER_SELEDIT        = (1<<9), 
+	
+	/* flags used to enforce certain data types */
+	// NOTE: the ones for curves and NLA tracks were redundant and have been removed for now...
+	ANIMFILTER_ANIMDATA       = (1<<10),
+	
+	/* duplicate entries for animation data attached to multi-user blocks must not occur */
+	ANIMFILTER_NODUPLIS       = (1<<11)
+} eAnimFilter_Flags;
 
 /* ---------- Flag Checking Macros ------------ */
 // xxx check on all of these flags again...

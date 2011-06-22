@@ -194,7 +194,8 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 	int filter;
 	
 	/* filter data */
-	filter= ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS;
+	/* NOTE: no list visible, otherwise, we get dangling */
+	filter= ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;
 	ANIM_animdata_filter(ac, &anim_data, filter, data, datatype);
 	
 	/* See if we should be selecting or deselecting */
@@ -1053,7 +1054,8 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 	mode= RNA_enum_get(op->ptr, "direction");
 	
 	/* get animdata blocks */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
+	// XXX: hierarchy visibility is provisional atm... might be wrong decision!
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -1133,7 +1135,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	/* do groups only first (unless in Drivers mode, where there are none) */
 	if (ac.datatype != ANIMCONT_DRIVERS) {
 		/* filter data */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CHANNELS | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 		/* delete selected groups and their associated channels */
@@ -1172,7 +1174,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	/* now do F-Curves */
 	if (ac.datatype != ANIMCONT_GPENCIL) {
 		/* filter data */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 		/* delete selected F-Curves */
@@ -1227,12 +1229,16 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
-	/* get list of all channels that selection may need to be flushed to */
-	filter= ANIMFILTER_CHANNELS;
+	/* get list of all channels that selection may need to be flushed to 
+	 * - hierarchy mustn't affect what we have access to here...
+	 */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
-	
-	/* hide all channels not selected */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_NODUPLIS);
+		
+	/* hide all channels not selected
+	 * - restrict this to only applying on settings we can get to in the list
+	 */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1306,12 +1312,16 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* get list of all channels that selection may need to be flushed to */
-	filter= (ANIMFILTER_CHANNELS | ANIMFILTER_NODUPLIS);
+	/* get list of all channels that selection may need to be flushed to 
+	 * - hierarchy mustn't affect what we have access to here...
+	 */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 		
-	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+	/* filter data
+	 * - restrict this to only applying on settings we can get to in the list
+	 */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* See if we should be making showing all selected or hiding */
@@ -1403,14 +1413,24 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, 
 	
 	/* filter data that we need if flush is on */
 	if (flush) {
-		/* get list of all channels that selection may need to be flushed to */
-		filter= ANIMFILTER_CHANNELS;
+		/* get list of all channels that selection may need to be flushed to 
+		 * - hierarchy visibility needs to be ignored so that settings can get flushed
+		 *   "down" inside closed containers
+		 */
+		filter= ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;
 		ANIM_animdata_filter(ac, &all_data, filter, ac->data, ac->datatype);
 	}
 	
-	/* filter data that we're working on */
+	/* filter data that we're working on 
+	 * - hierarchy matters if we're doing this from the channels region
+	 *   since we only want to apply this to channels we can "see", 
+	 *   and have these affect their relatives
+	 * - but for Graph Editor, this gets used also from main region
+	 *   where hierarchy doesn't apply [#21276]
+	 */
+	// FIXME: graph editor case
 	// XXX: noduplis enabled so that results don't cancel, but will be problematic for some channels where only type differs
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
 	if (onlysel) filter |= ANIMFILTER_SEL;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
@@ -1703,7 +1723,7 @@ static int animchannels_enable_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* loop through filtered data and clean curves */
@@ -1812,7 +1832,7 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 	UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax-2, &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop over data, doing border select */
@@ -1926,7 +1946,7 @@ static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_i
 	
 	/* get the channel that was clicked on */
 		/* filter channels */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 		/* get channel from index */

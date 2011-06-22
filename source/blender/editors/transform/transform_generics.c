@@ -362,7 +362,7 @@ void recalcData(TransInfo *t)
 		}
 		else {
 			/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
-			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
+			filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 			
 			/* just tag these animdata-blocks to recalc, assuming that some data there changed 
@@ -407,7 +407,7 @@ void recalcData(TransInfo *t)
 		flushTransGraphData(t);
 		
 		/* get curves to check if a re-sort is needed */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 		/* now test if there is a need to re-sort */

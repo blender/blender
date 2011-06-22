@@ -474,7 +474,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	int height;
 	
 	/* build list of channels to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
@@ -833,7 +833,7 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 	int height;
 	
 	/* build list of channels to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):

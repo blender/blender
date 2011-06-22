@@ -257,7 +257,7 @@ void ANIM_sync_animchannels_to_data (const bContext *C)
 	
 	/* filter data */
 		/* NOTE: we want all channels, since we want to be able to set selection status on some of them even when collapsed */
-	filter= ANIMFILTER_CHANNELS;
+	filter= ANIMFILTER_DATA_VISIBLE|ANIMFILTER_LIST_CHANNELS;
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* flush settings as appropriate depending on the types of the channels */

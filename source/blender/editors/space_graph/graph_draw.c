@@ -834,7 +834,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 	int filter;
 	
 	/* build list of curves to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_CURVEVISIBLE);
+	filter= (ANIMFILTER_DATA_VISIBLE|ANIMFILTER_CURVE_VISIBLE);
 	filter |= ((sel) ? (ANIMFILTER_SEL) : (ANIMFILTER_UNSEL));
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
@@ -968,7 +968,7 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	int i=0;
 	
 	/* build list of channels to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
