@@ -696,3 +696,199 @@ Renamed
 * **force** -> :class:`bpy.types.MaterialPhysics.fh_force`
 * **use_normal_align** -> :class:`bpy.types.MaterialPhysics.use_fh_normal`
 
+
+2.57 to 2.58
+============
+
+bpy.types.RenderSettings
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderSettings.use_bake_lores_mesh`
+* :class:`bpy.types.RenderSettings.use_bake_multires`
+
+bpy.types.Camera
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Camera.show_guide`
+
+bpy.types.SpaceImageEditor
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceImageEditor.zoom`
+
+bpy.types.SpaceView3D
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceView3D.lock_camera`
+
+bpy.types.RegionView3D
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RegionView3D.is_perspective`
+
+bpy.types.Scene
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Scene.frame_subframe`
+
+bpy.types.Area
+--------------
+
+Removed
+^^^^^^^
+
+* **active_space**
+
+bpy.types.DisplaceModifier
+--------------------------
+
+Renamed
+^^^^^^^
+
+* **texture_coordinate_object** -> :class:`bpy.types.DisplaceModifier.texture_coords_object`
+
+bpy.types.UserPreferencesView
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesView.use_camera_lock_parent`
+
+bpy.types.DomainFluidSettings
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DomainFluidSettings.fluid_mesh_vertices`
+* :class:`bpy.types.DomainFluidSettings.surface_noobs`
+
+bpy.types.Sculpt
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Sculpt.use_deform_only`
+
+bpy.types.ClothCollisionSettings
+--------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ClothCollisionSettings.distance_repel`
+* :class:`bpy.types.ClothCollisionSettings.repel_force`
+
+bpy.types.UILayout
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UILayout.template_edit_mode_selection`
+
+bpy.types.ToolSettings
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ToolSettings.use_snap_project_self`
+
+bpy.types.Mesh
+--------------
+
+Removed
+^^^^^^^
+
+* **edge_face_count**
+* **edge_face_count_dict**
+* **edge_loops_from_edges**
+* **edge_loops_from_faces**
+
+bpy.types.PointDensity
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.PointDensity.falloff_curve`
+* :class:`bpy.types.PointDensity.falloff_speed_scale`
+* :class:`bpy.types.PointDensity.use_falloff_curve`
+
+bpy.types.SpaceTextEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceTextEditor.use_match_case`
+
+bpy.types.CameraActuator
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CameraActuator.damping`
+
+bpy.types.Property
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Property.is_skip_save`
+
+bpy.types.UserPreferencesSystem
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesSystem.anisotropic_filter`
+
+bpy.types.Object
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Object.empty_image_offset`
+
+bpy.types.Image
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Image.resolution`
+
+bpy.types.SceneGameData
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SceneGameData.use_glsl_color_management`
+

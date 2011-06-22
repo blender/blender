@@ -23,61 +23,16 @@
 
 # <pep8 compliant>
 
-IGNORE = (
-    "/test/",
-    "/decimate_glut_test/",
-    "/BSP_GhostTest/",
-    "/release/",
-    "/xembed/",
-    "/decimation/intern/future/",
-    "/TerraplayNetwork/",
-    "/ik_glut_test/",
-
-    # specific source files
-    "extern/Eigen2/Eigen/src/Cholesky/CholeskyInstantiations.cpp",
-    "extern/Eigen2/Eigen/src/Core/CoreInstantiations.cpp",
-    "extern/Eigen2/Eigen/src/QR/QrInstantiations.cpp",
-    "extern/bullet2/src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp",
-    "extern/bullet2/src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp",
-    "extern/bullet2/src/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp",
-    "extern/bullet2/src/BulletCollision/CollisionShapes/btBox2dShape.cpp",
-    "extern/bullet2/src/BulletCollision/CollisionShapes/btConvex2dShape.cpp",
-    "extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp",
-    "extern/bullet2/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.cpp",
-    "extern/bullet2/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.cpp",
-    "extern/eltopo/common/meshes/ObjLoader.cpp",
-    "extern/eltopo/common/meshes/meshloader.cpp",
-    "extern/eltopo/common/openglutils.cpp",
-    "extern/eltopo/eltopo3d/broadphase_blenderbvh.cpp",
-    "source/blender/imbuf/intern/imbuf_cocoa.m",
-
-    "extern/bullet2/src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.h",
-    "extern/bullet2/src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.h",
-    "extern/bullet2/src/BulletCollision/CollisionDispatch/btInternalEdgeUtility.h",
-    "extern/bullet2/src/BulletCollision/CollisionShapes/btBox2dShape.h",
-    "extern/bullet2/src/BulletCollision/CollisionShapes/btConvex2dShape.h",
-    "extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.h",
-    "extern/bullet2/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h",
-    "extern/bullet2/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h",
-    "extern/eltopo/common/meshes/Edge.hpp",
-    "extern/eltopo/common/meshes/ObjLoader.hpp",
-    "extern/eltopo/common/meshes/TriangleIndex.hpp",
-    "extern/eltopo/common/meshes/meshloader.h",
-    "extern/eltopo/eltopo3d/broadphase_blenderbvh.h"
-    )
-
+from cmake_consistency_check_config import IGNORE, UTF8_CHECK, SOURCE_DIR
 
 import os
 from os.path import join, dirname, normpath, abspath, splitext
 
-base = join(os.path.dirname(__file__), "..", "..")
-base = normpath(base)
-base = abspath(base)
-
-print("Scanning:", base)
+print("Scanning:", SOURCE_DIR)
 
 global_h = set()
 global_c = set()
+global_refs = {}
 
 
 def source_list(path, filename_check=None):
@@ -180,10 +135,16 @@ def cmake_get_src(f):
 
                         if is_c_header(new_file):
                             sources_h.append(new_file)
+                            global_refs.setdefault(new_file, []).append((f, i))
                         elif is_c(new_file):
                             sources_c.append(new_file)
+                            global_refs.setdefault(new_file, []).append((f, i))
                         elif l in ("PARENT_SCOPE", ):
                             # cmake var, ignore
+                            pass
+                        elif new_file.endswith(".list"):
+                            pass
+                        elif new_file.endswith(".def"):
                             pass
                         else:
                             raise Exception("unknown file type - not c or h %s -> %s" % (f, new_file))
@@ -209,7 +170,7 @@ def cmake_get_src(f):
     filen.close()
 
 
-for cmake in source_list(base, is_cmake):
+for cmake in source_list(SOURCE_DIR, is_cmake):
     cmake_get_src(cmake)
 
 
@@ -219,39 +180,75 @@ def is_ignore(f):
             return True
     return False
 
+
 # First do stupid check, do these files exist?
+print("\nChecking for missing references:")
+import sys
+is_err = False
+errs = []
 for f in (global_h | global_c):
     if f.endswith("dna.c"):
         continue
 
     if not os.path.exists(f):
-        raise Exception("CMake referenced file missing: " + f)
+        refs = global_refs[f]
+        if refs:
+            for cf, i in refs:
+                errs.append((cf, i))
+        else:
+            raise Exception("CMake referenecs missing, internal error, aborting!")
+        is_err = True
 
+errs.sort()
+errs.reverse()
+for cf, i in errs:
+    print("%s:%d" % (cf, i))
+    # Write a 'sed' script, useful if we get a lot of these
+    # print("sed '%dd' '%s' > '%s.tmp' ; mv '%s.tmp' '%s'" % (i, cf, cf, cf, cf))
+
+
+if is_err:
+    raise Exception("CMake referenecs missing files, aborting!")
+del is_err
+del errs
 
 # now check on files not accounted for.
 print("\nC/C++ Files CMake doesnt know about...")
-for cf in sorted(source_list(base, is_c)):
+for cf in sorted(source_list(SOURCE_DIR, is_c)):
     if not is_ignore(cf):
         if cf not in global_c:
             print("missing_c: ", cf)
+
+        # check if automake builds a corrasponding .o file.
+        '''
+        if cf in global_c:
+            out1 = os.path.splitext(cf)[0] + ".o"
+            out2 = os.path.splitext(cf)[0] + ".Po"
+            out2_dir, out2_file = out2 = os.path.split(out2)
+            out2 = os.path.join(out2_dir, ".deps", out2_file)
+            if not os.path.exists(out1) and not os.path.exists(out2):
+                print("bad_c: ", cf)
+        '''
+
 print("\nC/C++ Headers CMake doesnt know about...")
-for hf in sorted(source_list(base, is_c_header)):
+for hf in sorted(source_list(SOURCE_DIR, is_c_header)):
     if not is_ignore(hf):
         if hf not in global_h:
             print("missing_h: ", hf)
 
-# test encoding
-import traceback
-for files in (global_c, global_h):
-    for f in sorted(files):
-        if os.path.exists(f):
-            # ignore outside of our source tree
-            if "extern" not in f:
-                i = 1
-                try:
-                    for l in open(f, "r", encoding="utf8"):
-                        i += 1
-                except:
-                    print("Non utf8: %s:%d" % (f, i))
-                    if i > 1:
-                        traceback.print_exc()
+if UTF8_CHECK:
+    # test encoding
+    import traceback
+    for files in (global_c, global_h):
+        for f in sorted(files):
+            if os.path.exists(f):
+                # ignore outside of our source tree
+                if "extern" not in f:
+                    i = 1
+                    try:
+                        for l in open(f, "r", encoding="utf8"):
+                            i += 1
+                    except:
+                        print("Non utf8: %s:%d" % (f, i))
+                        if i > 1:
+                            traceback.print_exc()
