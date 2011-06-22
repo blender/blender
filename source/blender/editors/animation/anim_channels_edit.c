@@ -1428,9 +1428,14 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, 
 	 * - but for Graph Editor, this gets used also from main region
 	 *   where hierarchy doesn't apply [#21276]
 	 */
-	// FIXME: graph editor case
-	// XXX: noduplis enabled so that results don't cancel, but will be problematic for some channels where only type differs
-	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
+	if ((ac->spacetype == SPACE_IPO) && (ac->regiontype != RGN_TYPE_CHANNELS)) {
+		/* graph editor (case 2) */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
+	}
+	else {
+		/* standard case */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
+	}
 	if (onlysel) filter |= ANIMFILTER_SEL;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	

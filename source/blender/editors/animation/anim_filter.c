@@ -964,10 +964,13 @@ static size_t animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDo
 		filter_gmode= filter_mode;
 		
 		/* if we care about the selection status of the channels, 
-		 * but the group isn't expanded...
+		 * but the group isn't expanded (1)...
+		 * 	(1) this only matters if we actually care about the hierarchy though,
+		 *      so if we're not filtering for that, then we shouldn't care, otherwise
+		 *      cases like [#21276] won't work properly
 		 */
-		if ( (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) &&	/* care about selection status */
-			 (EXPANDED_AGRP(ac, agrp)==0) )								/* group isn't expanded */
+		if ( ((filter_mode & ANIMFILTER_LIST_VISIBLE) && EXPANDED_AGRP(ac, agrp)==0) && 	/* care about hierarchy but group isn't expanded */
+			  (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) ) 							/* care about selection status */	 
 		{
 			/* if the group itself isn't selected appropriately, we shouldn't consider it's children either */
 			if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) == 0)

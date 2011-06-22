@@ -183,25 +183,6 @@ typedef enum eAnim_KeyType {
 
 /* ----------------- Filtering -------------------- */
 
-#if 0 /// old
-/* filtering flags  - under what circumstances should a channel be added */
-typedef enum eAnimFilter_Flags {
-	ANIMFILTER_VISIBLE		= (1<<0),	/* should channels be visible (in terms of hierarchy only) */
-	//ANIMFILTER_SEL			= (1<<1),	/* should channels be selected */
-	//ANIMFILTER_UNSEL		= (1<<2),	/* should channels be NOT selected */
-	//ANIMFILTER_FOREDIT		= (1<<3),	/* does editable status matter */
-	ANIMFILTER_CURVESONLY	= (1<<4),	/* don't include summary-channels, etc. */ // double-check on how this goes for actedit
-	ANIMFILTER_CHANNELS		= (1<<5),	/* make list for interface drawing */
-	//ANIMFILTER_ACTGROUPED	= (1<<6),	/* belongs to the active actiongroup */
-	ANIMFILTER_CURVEVISIBLE	= (1<<7),	/* F-Curve is visible for editing/viewing in Graph Editor */
-	//ANIMFILTER_ACTIVE		= (1<<8),	/* channel should be 'active' */
-	//ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
-	ANIMFILTER_NLATRACKS	= (1<<10),	/* only include NLA-tracks */
-	//ANIMFILTER_SELEDIT		= (1<<11),	/* link editability with selected status */
-	//ANIMFILTER_NODUPLIS		= (1<<12),	/* duplicate entries for animation data attached to multi-user blocks must not occur */
-} eAnimFilter_Flags;
-#endif
-
 /* filtering flags  - under what circumstances should a channel be returned */
 // TODO: flag to just test if there's any channel inside worthy of being added - return 1 as soon as this is encountered, but don't add
 typedef enum eAnimFilter_Flags {
