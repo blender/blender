@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) Blender Foundation.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Blender Foundation,
@@ -58,9 +58,8 @@ struct ImBuf *BKE_tracking_acquire_search_imbuf(struct ImBuf *ibuf, struct Movie
 struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user, int backwards);
 void BKE_tracking_context_free(struct MovieTrackingContext *context);
 void BKE_tracking_sync(struct MovieTrackingContext *context);
+void BKE_tracking_sync_user(struct MovieClipUser *user, struct MovieTrackingContext *context);
 int BKE_tracking_next(struct MovieTrackingContext *context);
-
-void BKE_tracking_reset_settings(struct MovieTracking *tracking);
 
 #define TRACK_SELECTED(track) ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 #define TRACK_AREA_SELECTED(track, area) ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))
@@ -70,7 +69,7 @@ void BKE_tracking_reset_settings(struct MovieTracking *tracking);
 #define CLAMP_SEARCH_DIM	3
 #define CLAMP_SEARCH_POS	4
 
-#define TRACK_AREA_NONE	-	1
+#define TRACK_AREA_NONE		-1
 #define TRACK_AREA_POINT	1
 #define TRACK_AREA_PAT		2
 #define TRACK_AREA_SEARCH	4

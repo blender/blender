@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
  *
@@ -127,7 +127,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf)
 static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *track)
 {
 	int count= sc->path_length;
-	int i, a, b, sel_type;
+	int i, a, b, sel_type, curindex= -1;
 	float path[102][2];
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
 	MovieTrackingMarker *marker;
@@ -155,6 +155,9 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 
 		copy_v2_v2(path[--a], marker->pos);
 
+		if(marker->framenr==sc->user.framenr)
+			curindex= a;
+
 		i--;
 	}
 
@@ -166,6 +169,9 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 		if(!marker)
 			break;
 
+		if(marker->framenr==sc->user.framenr)
+			curindex= b;
+
 		copy_v2_v2(path[b++], marker->pos);
 
 		i++;
@@ -174,11 +180,15 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 	if(!tiny) {
 		UI_ThemeColor(TH_MARKER_OUTLINE);
 
-		glPointSize(4.0f);
-		glBegin(GL_POINTS);
-			for(i= a; i<b; i++)
-				glVertex2f(path[i][0], path[i][1]);
-		glEnd();
+		if(TRACK_SELECTED(track)) {
+			glPointSize(5.0f);
+			glBegin(GL_POINTS);
+				for(i= a; i<b; i++) {
+					if(i!=curindex)
+						glVertex2f(path[i][0], path[i][1]);
+				}
+			glEnd();
+		}
 
 		glLineWidth(3.0f);
 		glBegin(GL_LINE_STRIP);
@@ -188,16 +198,21 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 		glLineWidth(1.0f);
 	}
 
-	glPointSize(2.0f);
 	if(sel_type==MCLIP_SEL_TRACK && sel==track) UI_ThemeColor(TH_ACT_MARKER);
 	else {
 		if (TRACK_SELECTED(track)) UI_ThemeColor(TH_SEL_MARKER);
 		else UI_ThemeColor(TH_MARKER);
 	}
-	glBegin(GL_POINTS);
-		for(i= a; i<b; i++)
-			glVertex2f(path[i][0], path[i][1]);
-	glEnd();
+
+	if(TRACK_SELECTED(track)) {
+		glPointSize(3.0f);
+		glBegin(GL_POINTS);
+			for(i= a; i<b; i++) {
+				if(i!=curindex)
+					glVertex2f(path[i][0], path[i][1]);
+			}
+		glEnd();
+	}
 
 	glBegin(GL_LINE_STRIP);
 		for(i= a; i<b; i++)
@@ -390,6 +405,11 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	/* if no clip, nothing to do */
 	if(!clip)
 		return;
+
+	/* if trcking is in progress, we should sunchronize framenr from clipuser
+	   so latest tracked frame would be shown */
+	if(clip->tracking_context)
+		BKE_tracking_sync_user(&sc->user, clip->tracking_context);
 
 	ibuf= ED_space_clip_acquire_buffer(sc);
 

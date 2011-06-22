@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Blender Foundation,
@@ -172,7 +172,7 @@ void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *
 
 MovieTrackingMarker *BKE_tracking_get_marker(MovieTrackingTrack *track, int framenr)
 {
-	int a= track->markersnr;
+	int a= track->markersnr-1;
 
 	if(!track->markersnr)
 		return NULL;
@@ -267,7 +267,6 @@ void BKE_tracking_free(MovieTracking *tracking)
 
 typedef struct MovieTrackingContext {
 	MovieClipUser user;
-	MovieClipUser *orig_user;
 	MovieClip *clip;
 
 #ifdef WITH_LIBMV
@@ -278,6 +277,7 @@ typedef struct MovieTrackingContext {
 	MovieTrackingSettings settings;
 
 	int backwards;
+	int sync_frame;
 } MovieTrackingContext;
 
 MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, int backwards)
@@ -288,8 +288,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	MovieTrackingTrack *track;
 
 #ifdef WITH_LIBMV
-	context->region_tracker= libmv_regionTrackerNew(settings->max_iterations,
-				settings->pyramid_level, settings->tolerance);
+	context->region_tracker= libmv_regionTrackerNew(100, 3, 0.2);
 #endif
 
 	context->settings= *settings;
@@ -310,7 +309,6 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 
 	context->clip= clip;
 	context->user= *user;
-	context->orig_user= user;
 
 	return context;
 }
@@ -444,7 +442,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 				if(sel_type==MCLIP_SEL_TRACK && sel==cur)
 					replace_sel= 1;
 
-				track->flag= cur->flag|TRACK_PROCESSED;
+				track->flag= cur->flag | (track->flag&TRACK_PROCESSED);
 				track->pat_flag= cur->pat_flag;
 				track->search_flag= cur->search_flag;
 
@@ -479,11 +477,15 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 
 	context->clip->tracking.tracks= tracks;
 
-	;
 	if(context->backwards) newframe= context->user.framenr+1;
 	else newframe= context->user.framenr-1;
 
-	context->orig_user->framenr= newframe;
+	context->sync_frame= newframe;
+}
+
+void BKE_tracking_sync_user(MovieClipUser *user, MovieTrackingContext *context)
+{
+	user->framenr= context->sync_frame;
 }
 
 int BKE_tracking_next(MovieTrackingContext *context)
@@ -491,6 +493,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	ImBuf *ibuf, *ibuf_new;
 	MovieTrackingTrack *track;
 	int curfra= context->user.framenr;
+	int ok= 0;
 
 	/* nothing to track, avoid unneeded frames reading to save time and memory */
 	if(!context->tracks.first)
@@ -530,8 +533,6 @@ int BKE_tracking_next(MovieTrackingContext *context)
 						x1, y1, &x2, &y2)) {
 				MovieTrackingMarker marker_new;
 
-				track->flag|= TRACK_PROCESSED;
-
 				marker_new.pos[0]= marker->pos[0]+track->search_min[0]+x2/ibuf_new->x;
 				marker_new.pos[1]= marker->pos[1]+track->search_min[1]+y2/ibuf_new->y;
 
@@ -543,13 +544,18 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				if(marker->framenr!=curfra)
 					marker->framenr= curfra;
 
+				track->flag|= TRACK_PROCESSED;
+
 				BKE_tracking_insert_marker(track, &marker_new);
+
+				ok= 1;
 			}
 
 			MEM_freeN(patch);
 			MEM_freeN(patch_new);
 #endif
-		}
+		} else
+			track->flag|= TRACK_PROCESSED;
 
 		track= track->next;
 	}
@@ -557,12 +563,5 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	IMB_freeImBuf(ibuf);
 	IMB_freeImBuf(ibuf_new);
 
-	return 1;
-}
-
-void BKE_tracking_reset_settings(MovieTracking *tracking)
-{
-	tracking->settings.max_iterations= 200;
-	tracking->settings.pyramid_level= 3;
-	tracking->settings.tolerance= 0.2;
+	return ok;
 }

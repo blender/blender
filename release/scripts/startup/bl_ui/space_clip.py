@@ -110,12 +110,12 @@ class CLIP_PT_track_settings(bpy.types.Panel):
         clip = context.space_data.clip
         settings = clip.tracking.settings
 
-        layout.prop(settings, "max_iterations")
-        layout.prop(settings, "pyramid_level")
-        layout.prop(settings, "tolerance")
+        layout.prop(settings, "speed")
+        layout.prop(settings, "use_frames_limit")
 
-        layout.operator("clip.reset_tracking_settings", \
-            text="Reset To Defaults")
+        row = layout.row()
+        row.active = settings.use_frames_limit
+        row.prop(settings, "frames_limit")
 
 
 class CLIP_PT_tracking_camera(bpy.types.Panel):

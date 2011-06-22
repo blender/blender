@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
  *
@@ -61,6 +61,8 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+
+#include "PIL_time.h"
 
 #include "UI_view2d.h"
 
@@ -348,7 +350,10 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	if(track) {
 		int area= track_mouse_area(sc, co, track);
 
-		if(!extend || !TRACK_SELECTED(track))
+		if(area==TRACK_AREA_NONE)
+			return OPERATOR_FINISHED;
+
+		if(!TRACK_SELECTED(track))
 			area= TRACK_AREA_ALL;
 
 		if(extend && TRACK_AREA_SELECTED(track, area)) {
@@ -652,10 +657,15 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 /********************** track operator *********************/
 
 typedef struct TrackMarkersJob {
-	struct MovieTrackingContext *context;
-	int sfra, efra, backwards;
-	MovieClip *clip;
-	MovieClipUser *user;
+	struct MovieTrackingContext *context;	/* tracking context */
+	int sfra, efra, lastfra;	/* Start, end and recently tracked frames */
+	int backwards;				/* Backwards tracking flag */
+	MovieClip *clip;			/* Clip which is tracking */
+	float delay;				/* Delay in milliseconds to allow tracking at fixed FPS */
+
+	struct Main *main;
+	struct Scene *scene;
+	struct bScreen *screen;
 } TrackMarkersJob;
 
 static int track_markers_testbreak(void)
@@ -668,16 +678,40 @@ static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwar
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	Scene *scene= CTX_data_scene(C);
+	MovieTrackingSettings *settings= &clip->tracking.settings;
 
 	tmj->sfra= sc->user.framenr;
 	tmj->clip= clip;
-	tmj->user= &sc->user;
 	tmj->backwards= backwards;
 
 	if(backwards) tmj->efra= SFRA;
 	else tmj->efra= EFRA;
 
+	/* limit frames to be tracked by user setting */
+	if(settings->flag&TRACKING_FRAMES_LIMIT) {
+		if(backwards) tmj->efra= MAX2(tmj->efra, tmj->sfra-settings->frames_limit);
+		else tmj->efra= MIN2(tmj->efra, tmj->sfra+settings->frames_limit);
+	}
+
+	if(settings->speed!=TRACKING_SPEED_FASTEST) {
+		tmj->delay= 1.0f/scene->r.frs_sec*1000.0f;
+
+		if(settings->speed==TRACKING_SPEED_HALF) tmj->delay*= 2;
+		else if(settings->speed==TRACKING_SPEED_QUARTER) tmj->delay*= 4;
+	}
+
 	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards);
+
+	clip->tracking_context= tmj->context;
+
+	/* XXX: silly to store this, but this data is needed to update scene and movieclip
+	        frame numbers when tracking is finished. This introduces better feedback for artists.
+	        Maybe there's another way to solve this problem, but can't think better way atm.
+	        Anyway, this way isn't more unstable as animation rendering animation
+	        which uses the same approach (except storing screen). */
+	tmj->scene= scene;
+	tmj->main= CTX_data_main(C);
+	tmj->screen= CTX_wm_screen(C);
 }
 
 static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_update, float *progress)
@@ -686,17 +720,34 @@ static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_upd
 	int framenr= tmj->sfra;
 
 	while(framenr != tmj->efra) {
-		if(!BKE_tracking_next(tmj->context))
-			break;
+		if(tmj->delay>0) {
+			/* tracking should happen with fixed fps. Calculate time
+			   using current timer value before tracking frame and after.
+
+			   Small (and maybe unneeded optimization): do not calculate exec_time
+			   for "Fastest" tracking */
+
+			double start_time= PIL_check_seconds_timer(), exec_time;
+
+			if(!BKE_tracking_next(tmj->context))
+				break;
+
+			exec_time= PIL_check_seconds_timer()-start_time;
+			if(tmj->delay>exec_time)
+				PIL_sleep_ms(tmj->delay-exec_time);
+		} else if(!BKE_tracking_next(tmj->context))
+				break;
 
 		*do_update= 1;
 		*progress=(float)(framenr-tmj->sfra) / (tmj->efra-tmj->sfra);
 
-		if(track_markers_testbreak())
-			break;
-
 		if(tmj->backwards) framenr--;
 		else framenr++;
+
+		tmj->lastfra= framenr;
+
+		if(track_markers_testbreak())
+			break;
 	}
 }
 
@@ -711,22 +762,29 @@ static void track_markers_freejob(void *tmv)
 {
 	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
 
+	tmj->clip->tracking_context= NULL;
+	tmj->scene->r.cfra= tmj->lastfra;
+	ED_update_for_newframe(tmj->main, tmj->scene, tmj->screen, 0);
+
 	BKE_tracking_sync(tmj->context);
 	BKE_tracking_context_free(tmj->context);
 
-	/* movie clip's user was used during tracking,
-	   need to restore current frame number */
-	tmj->user->framenr= tmj->sfra;
-
 	MEM_freeN(tmj);
+
+	WM_main_add_notifier(NC_SCENE|ND_FRAME, tmj->scene);
 }
 
 static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	TrackMarkersJob *tmj;
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
 	wmJob *steve;
 	Scene *scene= CTX_data_scene(C);
 	int backwards= RNA_boolean_get(op->ptr, "backwards");
+
+	if(clip->tracking_context)
+		return OPERATOR_CANCELLED;
 
 	tmj= MEM_callocN(sizeof(TrackMarkersJob), "TrackMarkersJob data");
 	track_markers_initjob(C, tmj, backwards);
@@ -734,7 +792,14 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	/* setup job */
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Track Markers", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
 	WM_jobs_customdata(steve, tmj, track_markers_freejob);
-	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|NA_EVALUATED, 0);
+
+	/* if there's delay set in tracking job, tracking should happen
+	   with fixed FPS. To deal with editor refresh we have to syncronize
+	   tracks from job and tracks in clip. Do this in timer callback
+	   to prevent threading conflicts. */
+	if(tmj->delay>0) WM_jobs_timer(steve, tmj->delay/1000.0f, NC_MOVIECLIP|NA_EVALUATED, 0);
+	else WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|NA_EVALUATED, 0);
+
 	WM_jobs_callbacks(steve, track_markers_startjob, NULL, track_markers_updatejob, NULL);
 
 	G.afbreek= 0;
@@ -755,12 +820,22 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	struct MovieTrackingContext *context;
 	int framenr= sc->user.framenr;
-	int sfra= framenr;
+	int sfra= framenr, efra;
 	int backwards= RNA_boolean_get(op->ptr, "backwards");
+	MovieTrackingSettings *settings= &clip->tracking.settings;
+
+	if(backwards) efra= SFRA;
+	else efra= EFRA;
+
+	/* limit frames to be tracked by user setting */
+	if(settings->flag&TRACKING_FRAMES_LIMIT) {
+		if(backwards) efra= MAX2(efra, sfra-settings->frames_limit);
+		else efra= MIN2(efra, sfra+settings->frames_limit);
+	}
 
 	context= BKE_tracking_context_new(clip, &sc->user, backwards);
 
-	while(framenr != EFRA) {
+	while(framenr != efra) {
 		if(!BKE_tracking_next(context))
 			break;
 
@@ -771,11 +846,11 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 	BKE_tracking_sync(context);
 	BKE_tracking_context_free(context);
 
-	/* movie clip's user was used during tracking,
-	   need to restore current frame number */
-	sc->user.framenr= sfra;
+	/* update scene current frame to the lastes tracked frame */
+	scene->r.cfra= framenr;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -814,33 +889,6 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tarcking");
-}
-
-/********************** reset tracking settings operator *********************/
-
-static int reset_tracking_settings_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-
-	BKE_tracking_reset_settings(&clip->tracking);
-
-	return OPERATOR_FINISHED;
-}
-
-void CLIP_OT_reset_tracking_settings(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Reset Tracking Settings";
-	ot->description= "Reset tracking settings to default values";
-	ot->idname= "CLIP_OT_reset_tracking_settings";
-
-	/* api callbacks */
-	ot->exec= reset_tracking_settings_exec;
-	ot->poll= space_clip_frame_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** clear track operator *********************/

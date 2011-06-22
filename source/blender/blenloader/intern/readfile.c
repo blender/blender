@@ -5688,6 +5688,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 		clip->sel_type= MCLIP_SEL_NONE;
 
 	clip->anim= NULL;
+	clip->tracking_context= NULL;
 }
 
 static void lib_link_movieclip(FileData *fd, Main *main)

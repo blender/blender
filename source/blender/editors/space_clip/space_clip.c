@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
  *
@@ -208,7 +208,6 @@ static void clip_operatortypes(void)
 
 	WM_operatortype_append(CLIP_OT_track_markers);
 
-	WM_operatortype_append(CLIP_OT_reset_tracking_settings);
 	WM_operatortype_append(CLIP_OT_clear_track_path);
 
 	WM_operatortype_append(CLIP_OT_track_to_fcurves);

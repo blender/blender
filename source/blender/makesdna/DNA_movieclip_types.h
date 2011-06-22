@@ -60,6 +60,9 @@ typedef struct MovieClip {
 	void *ibuf_cache;	/* cache of ibufs, not in file */
 
 	struct MovieTracking tracking;		/* data for SfM tracking */
+	void *tracking_context;				/* context of tracking job
+										   used to synchronize data like framenumber
+										   in SpaceClip clip user */
 
 	int sel_type;		/* last selected thing */
 	int pad;

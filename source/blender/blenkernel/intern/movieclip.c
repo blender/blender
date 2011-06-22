@@ -213,7 +213,7 @@ static MovieClip *movieclip_alloc(const char *name)
 
 	clip= alloc_libblock(&G.main->movieclip, ID_MC, name);
 
-	BKE_tracking_reset_settings(&clip->tracking);
+	clip->tracking.settings.frames_limit= 20;
 	clip->tracking.camera.focal= 24.0f;
 
 	return clip;

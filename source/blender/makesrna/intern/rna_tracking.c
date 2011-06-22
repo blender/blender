@@ -108,32 +108,31 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem speed_items[] = {
+		{0, "FASTEST", 0, "Fastest", "track as fast as it's possible"},
+		{TRACKING_SPEED_REALTIME, "REALTIME", 0, "Realtime", "Track with realtime speed"},
+		{TRACKING_SPEED_HALF, "HALF", 0, "Half", "Track with half of realtime speed"},
+		{TRACKING_SPEED_HALF, "QUARTER", 0, "Quarter", "Track with quarter of realtime speed"},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "MovieTrackingSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking settings", "Match-moving tracking settings");
 
-	/* max iterations */
-	prop= RNA_def_property(srna, "max_iterations", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "max_iterations");
-	RNA_def_property_range(prop, 1.0f, INT_MAX);
-	RNA_def_property_ui_range(prop, 1, 500, 1, 1);
-	RNA_def_property_ui_text(prop, "Max Iterations", "Maximal iteration used by KLT region tracker");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+	/* speed */
+	prop= RNA_def_property(srna, "speed", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, speed_items);
+	RNA_def_property_ui_text(prop, "Speed", "Speed to make tracking with");
 
-	/* pyramid level */
-	prop= RNA_def_property(srna, "pyramid_level", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "pyramid_level");
-	RNA_def_property_range(prop, 1.0f, INT_MAX);
-	RNA_def_property_ui_range(prop, 1, 20, 1, 1);
-	RNA_def_property_ui_text(prop, "Pyramid Level", "Levels used by pyramid tracker");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+	/* use limit frames */
+	prop= RNA_def_property(srna, "use_frames_limit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_FRAMES_LIMIT);
+	RNA_def_property_ui_text(prop, "Limit Frames", "Limit number of frames be tracked during single tracking operation");
 
-	/* tolerance */
-	prop= RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "tolerance");
-	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0, 2, 1, 3);
-	RNA_def_property_ui_text(prop, "Tolerance", "Tolerance of retrackt tracker");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+	/* limit frames */
+	prop= RNA_def_property(srna, "frames_limit", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "frames_limit");
+	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_ui_text(prop, "Frames Limit", "Amount of frames to be tracked during single tracking operation");
 }
 
 static void rna_def_trackingCamera(BlenderRNA *brna)

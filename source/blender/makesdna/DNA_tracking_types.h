@@ -90,10 +90,9 @@ typedef struct MovieTrackingTrack {
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingSettings {
-	int max_iterations;
-	int pyramid_level;
-	float tolerance;
-	int pad;
+	int flag;		/* different flags (frames nr limit..) */
+	short speed;	/* speed of tracking */
+	short frames_limit;	/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
 } MovieTrackingSettings;
 
 typedef struct MovieTracking {
@@ -105,5 +104,14 @@ typedef struct MovieTracking {
 
 /* MovieTrackingTrack->flag */
 #define TRACK_PROCESSED	2
+
+/* MovieTrackingSettings->speed */
+#define TRACKING_SPEED_FASTEST		0
+#define TRACKING_SPEED_REALTIME		1
+#define TRACKING_SPEED_HALF			2
+#define TRACKING_SPEED_QUARTER		4
+
+/* MovieTrackingSettings->flag */
+#define TRACKING_FRAMES_LIMIT		1
 
 #endif
