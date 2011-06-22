@@ -98,7 +98,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	if(numTris<3) {
 		modifier_setError(md,
 			"Modifier requires more than 3 input faces (triangles).");
-		goto exit;
+		dm = CDDM_copy(dm, 0);
+		return dm;
 	}
 
 	lod.vertex_buffer= MEM_mallocN(3*sizeof(float)*totvert, "vertices");
@@ -169,7 +170,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 			}
 
 			CDDM_calc_edges(result);
-			CDDM_calc_normals(result);
 		}
 		else
 			modifier_setError(md, "Out of memory.");
@@ -183,9 +183,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	MEM_freeN(lod.vertex_normal_buffer);
 	MEM_freeN(lod.triangle_index_buffer);
 
-exit:
-
 	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
+	CDDM_calc_normals(result);
 	result->needsFree = 1;
 	result->release(result);
 
