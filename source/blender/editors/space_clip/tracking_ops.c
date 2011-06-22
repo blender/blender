@@ -704,6 +704,8 @@ static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwar
 
 	clip->tracking_context= tmj->context;
 
+	tmj->lastfra= tmj->sfra;
+
 	/* XXX: silly to store this, but this data is needed to update scene and movieclip
 	        frame numbers when tracking is finished. This introduces better feedback for artists.
 	        Maybe there's another way to solve this problem, but can't think better way atm.
