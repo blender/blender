@@ -575,7 +575,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
 		float cfra;
-
+		
 		/* adjust current frame for NLA-scaling */
 		if (adt)
 			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);

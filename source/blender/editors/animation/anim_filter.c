@@ -984,7 +984,7 @@ static size_t animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDo
 			 *	- pasting keyframes
 			 *	- creating ghost curves in Graph Editor
 			 */
-			filter_gmode &= ~(ANIMFILTER_SEL|ANIMFILTER_UNSEL);
+			filter_gmode &= ~(ANIMFILTER_SEL|ANIMFILTER_UNSEL|ANIMFILTER_LIST_VISIBLE);
 		}
 		
 		
@@ -1007,7 +1007,7 @@ static size_t animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDo
 		 */
 		if (first_fcu) {
 			/* add this group as a channel first */
-			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+			if (filter_gmode & ANIMFILTER_LIST_CHANNELS) {
 				/* filter selection of channel specially here again, since may be open and not subject to previous test */
 				if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
 					ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, owner_id);
@@ -1019,7 +1019,7 @@ static size_t animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDo
 			}
 			
 			/* there are some situations, where only the channels of the action group should get considered */
-			if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
+			if (!(filter_gmode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
 				/* filters here are a bit convoulted...
 				 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
 				 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
@@ -1027,16 +1027,19 @@ static size_t animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDo
 				 * cases when we should include F-Curves inside group:
 				 *	- we don't care about hierarchy visibility (i.e. we just need the F-Curves present)
 				 *	- group is expanded
+				 *	- we care about hierarchy visibility, but we also just need the F-Curves present 
+				 *	  within (i.e. transform/selectall). Fix relies on showing all channels option
+				 *	  only ever getting used for drawing, when hierarchy shouldn't show these channels
 				 */
-				if ( (!(filter_mode & ANIMFILTER_LIST_VISIBLE) || EXPANDED_AGRP(ac, agrp)) )
+				if (!(filter_gmode & ANIMFILTER_LIST_VISIBLE) || EXPANDED_AGRP(ac, agrp) || !(filter_gmode & ANIMFILTER_LIST_CHANNELS))
 				{
 					/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
 					 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
 					 * all its sub-curves to be shown
 					 */
-					if ( !(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
+					if ( !(filter_gmode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
 					{
-						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
+						if (!(filter_gmode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 							/* NOTE: filter_gmode is used here, not standard filter_mode, since there may be some flags that shouldn't apply */
 							items += animdata_filter_fcurves(anim_data, ads, first_fcu, agrp, filter_gmode, owner_id);
 						}

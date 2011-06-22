@@ -1236,9 +1236,20 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 		
 	/* hide all channels not selected
-	 * - restrict this to only applying on settings we can get to in the list
+	 * - hierarchy matters if we're doing this from the channels region
+	 *   since we only want to apply this to channels we can "see", 
+	 *   and have these affect their relatives
+	 * - but for Graph Editor, this gets used also from main region
+	 *   where hierarchy doesn't apply, as for [#21276]
 	 */
-	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_NODUPLIS);
+	if ((ac.spacetype == SPACE_IPO) && (ac.regiontype != RGN_TYPE_CHANNELS)) {
+		/* graph editor (case 2) */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
+	}
+	else {
+		/* standard case */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_NODUPLIS);
+	}
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
