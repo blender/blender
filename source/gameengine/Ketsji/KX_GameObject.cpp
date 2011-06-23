@@ -3091,9 +3091,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, setActionFrame,
 	"setActionFrame(layer, frame)\n"
 	"Set the current fram of the action playing in the supplied layer")
 {
-	short layer, frame;
+	short layer;
+	float frame;
 
-	if (!PyArg_ParseTuple(args, "hh:setActionFrame", &layer, &frame))
+	if (!PyArg_ParseTuple(args, "hf:setActionFrame", &layer, &frame))
 		return NULL;
 
 	SetActionFrame(layer, frame);
