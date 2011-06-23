@@ -791,17 +791,18 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				}
 				else {
 					rna_print_data_get(f, dp);
-					rna_clamp_value_range(f, prop);
 
 					if(prop->flag & PROP_DYNAMIC) {
 						char *lenfunc= rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "set_length");
 						fprintf(f, "	int i, arraylen[RNA_MAX_ARRAY_DIMENSION];\n");
 						fprintf(f, "	int len= %s(ptr, arraylen);\n\n", lenfunc);
+						rna_clamp_value_range(f, prop);
 						fprintf(f, "	for(i=0; i<len; i++) {\n");
 						MEM_freeN(lenfunc);
 					}
 					else {
 						fprintf(f, "	int i;\n\n");
+						rna_clamp_value_range(f, prop);
 						fprintf(f, "	for(i=0; i<%d; i++) {\n", prop->totarraylength);
 					}
 
