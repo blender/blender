@@ -644,6 +644,25 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 	return func;
 }
 
+/* defined min/max variables to be used by rna_clamp_value() */
+static void rna_clamp_value_range(FILE *f, PropertyRNA *prop)
+{
+	if(prop->type == PROP_FLOAT) {
+		FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
+		if(fprop->range) {
+			fprintf(f, "	float prop_clamp_min, prop_clamp_max;\n");
+			fprintf(f, "	%s(ptr, &prop_clamp_min, &prop_clamp_max);\n", rna_function_string(fprop->range));
+		}
+	}
+	else if(prop->type == PROP_INT) {
+		IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
+		if(iprop->range) {
+			fprintf(f, "	int prop_clamp_min, prop_clamp_max;\n");
+			fprintf(f, "	%s(ptr, &prop_clamp_min, &prop_clamp_max);\n", rna_function_string(iprop->range));
+		}
+	}
+}
+
 static void rna_clamp_value(FILE *f, PropertyRNA *prop, int array)
 {
 	if(prop->type == PROP_INT) {
@@ -652,8 +671,13 @@ static void rna_clamp_value(FILE *f, PropertyRNA *prop, int array)
 		if(iprop->hardmin != INT_MIN || iprop->hardmax != INT_MAX) {
 			if(array) fprintf(f, "CLAMPIS(values[i], ");
 			else fprintf(f, "CLAMPIS(value, ");
-			rna_int_print(f, iprop->hardmin); fprintf(f, ", ");
-			rna_int_print(f, iprop->hardmax); fprintf(f, ");\n");
+			if(iprop->range) {
+				fprintf(f, "prop_clamp_min, prop_clamp_max);");
+			}
+			else {
+				rna_int_print(f, iprop->hardmin); fprintf(f, ", ");
+				rna_int_print(f, iprop->hardmax); fprintf(f, ");\n");
+			}
 			return;
 		}
 	}
@@ -663,8 +687,13 @@ static void rna_clamp_value(FILE *f, PropertyRNA *prop, int array)
 		if(fprop->hardmin != -FLT_MAX || fprop->hardmax != FLT_MAX) {
 			if(array) fprintf(f, "CLAMPIS(values[i], ");
 			else fprintf(f, "CLAMPIS(value, ");
-			rna_float_print(f, fprop->hardmin); fprintf(f, ", ");
-			rna_float_print(f, fprop->hardmax); fprintf(f, ");\n");
+			if(fprop->range) {
+				fprintf(f, "prop_clamp_min, prop_clamp_max);");
+			}
+			else {
+				rna_float_print(f, fprop->hardmin); fprintf(f, ", ");
+				rna_float_print(f, fprop->hardmax); fprintf(f, ");\n");
+			}
 			return;
 		}
 	}
@@ -762,6 +791,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				}
 				else {
 					rna_print_data_get(f, dp);
+					rna_clamp_value_range(f, prop);
 
 					if(prop->flag & PROP_DYNAMIC) {
 						char *lenfunc= rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "set_length");
@@ -833,6 +863,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 						fprintf(f, "	data->%s |= value;\n", dp->dnaname);
 					}
 					else {
+						rna_clamp_value_range(f, prop);
 						fprintf(f, "	data->%s= %s", dp->dnaname, (dp->booleannegative)? "!": "");
 						rna_clamp_value(f, prop, 0);
 					}
