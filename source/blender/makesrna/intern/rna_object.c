@@ -1024,8 +1024,13 @@ static void rna_Object_active_shape_key_index_range(PointerRNA *ptr, int *min, i
 	Key *key= ob_get_key(ob);
 
 	*min= 0;
-	*max= (key)? BLI_countlist(&key->block)-1: 0;
-	*max= MAX2(0, *max);
+	if(key) {
+		*max= BLI_countlist(&key->block)-1;
+		if(*max < 0) *max= 0;
+	}
+	else {
+		*max= 0;
+	}
 }
 
 static int rna_Object_active_shape_key_index_get(PointerRNA *ptr)

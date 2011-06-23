@@ -305,6 +305,7 @@ static void rna_MeshFace_material_index_range(PointerRNA *ptr, int *min, int *ma
 	Mesh *me= (Mesh*)ptr->id.data;
 	*min= 0;
 	*max= me->totcol-1;
+	*max= MAX2(0, *max);
 }
 
 static CustomData *rna_mesh_fdata(Mesh *me)
