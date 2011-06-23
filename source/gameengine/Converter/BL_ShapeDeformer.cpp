@@ -68,9 +68,40 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
+BL_ShapeDeformer::BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
+                    Object *bmeshobj,
+                    RAS_MeshObject *mesh)
+				:	
+					BL_SkinDeformer(gameobj,bmeshobj, mesh),
+					m_lastShapeUpdate(-1)
+{
+	m_key = m_bmesh->key;
+	m_bmesh->key = copy_key(m_key);
+};
+
+/* this second constructor is needed for making a mesh deformable on the fly. */
+BL_ShapeDeformer::BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
+				Object *bmeshobj_old,
+				Object *bmeshobj_new,
+				RAS_MeshObject *mesh,
+				bool release_object,
+				bool recalc_normal,
+				BL_ArmatureObject* arma)
+				:
+					BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, recalc_normal, arma),
+					m_lastShapeUpdate(-1)
+{
+	m_key = m_bmesh->key;
+	m_bmesh->key = copy_key(m_key);
+};
 
 BL_ShapeDeformer::~BL_ShapeDeformer()
 {
+	if (m_key && m_bmesh->key)
+	{
+		free_key(m_bmesh->key);
+		m_bmesh->key = m_key;
+	}
 };
 
 RAS_Deformer *BL_ShapeDeformer::GetReplica()
@@ -189,4 +220,14 @@ bool BL_ShapeDeformer::Update(void)
 		bSkinUpdate = true;
 	}
 	return bSkinUpdate;
+}
+
+Key *BL_ShapeDeformer::GetKey()
+{
+	return m_bmesh->key;
+}
+
+void BL_ShapeDeformer::SetKey(Key *key)
+{
+	m_bmesh->key = key;
 }
