@@ -59,13 +59,13 @@ set(SRC
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
 	add_definitions(-DWITH_AUDASPACE)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-	list(APPEND INC
-		../../../intern/audaspace/intern
-	)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 

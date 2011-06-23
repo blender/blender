@@ -43,7 +43,6 @@ set(INC
 	../nodes
 	../editors/include
 	../render/extern/include
-	../../../intern/ffmpeg
 	../../../intern/bsp/extern ../blenfont
 	../../../intern/decimation/extern
 	../../../intern/elbeem/extern
@@ -284,6 +283,7 @@ if(WITH_CODEC_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
+	list(APPEND INC ../../../intern/ffmpeg)
 	list(APPEND INC_SYS ${FFMPEG_INCLUDE_DIRS})
 	add_definitions(-DWITH_FFMPEG)
 endif()
