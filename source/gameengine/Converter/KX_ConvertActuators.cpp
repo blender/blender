@@ -43,7 +43,11 @@
 
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertActuators.h"
-#include "AUD_C-API.h"
+
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
+
 // Actuators
 //SCA logiclibrary native logicbricks
 #include "SCA_PropertyActuator.h"

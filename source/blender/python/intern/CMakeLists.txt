@@ -33,7 +33,6 @@ set(INC
 	../../windowmanager
 	../../editors/include
 	../../../../intern/guardedalloc
-	../../../../intern/audaspace/intern
 )
 
 set(INC_SYS
@@ -84,6 +83,13 @@ endif()
 
 if(WITH_PYTHON_SAFETY)
 	add_definitions(-DWITH_PYTHON_SAFETY)
+endif()
+
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
 endif()
 
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}")

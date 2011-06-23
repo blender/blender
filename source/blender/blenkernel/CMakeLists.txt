@@ -43,7 +43,6 @@ set(INC
 	../nodes
 	../editors/include
 	../render/extern/include
-	../../../intern/audaspace/intern
 	../../../intern/ffmpeg
 	../../../intern/bsp/extern ../blenfont
 	../../../intern/decimation/extern
@@ -236,6 +235,13 @@ set(SRC
 )
 
 add_definitions(-DGLEW_STATIC)
+
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
 
 if(WITH_BULLET)
 	list(APPEND INC ../../../extern/bullet2/src)

@@ -60,8 +60,6 @@
 #include "../generic/blf_py_api.h"
 #include "../generic/IDProp.h"
 
-#include "AUD_PyInit.h"
-
 PyObject *bpy_package_py= NULL;
 
 PyDoc_STRVAR(bpy_script_paths_doc,

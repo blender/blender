@@ -49,7 +49,9 @@
 
 #include "BLI_blenlib.h"
 
-#include "AUD_C-API.h" /* must be before BKE_sound.h for define */
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 #include "BKE_global.h"
 #include "BKE_idprop.h"

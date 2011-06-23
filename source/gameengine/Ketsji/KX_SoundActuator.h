@@ -36,7 +36,10 @@
 
 #include "SCA_IActuator.h"
 
-#include "AUD_C-API.h"
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
+
 #include "BKE_sound.h"
 
 typedef struct KX_3DSoundSettings
