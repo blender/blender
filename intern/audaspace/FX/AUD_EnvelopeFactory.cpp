@@ -73,8 +73,8 @@ AUD_Reference<AUD_IReader> AUD_EnvelopeFactory::createReader()
 
 	EnvelopeParameters* param = new EnvelopeParameters();
 	param->arthreshold = m_arthreshold;
-	param->attack = pow(m_arthreshold, 1.0f/(reader->getSpecs().rate * m_attack));
-	param->release = pow(m_arthreshold, 1.0f/(reader->getSpecs().rate * m_release));
+	param->attack = pow(m_arthreshold, 1.0f/(static_cast<float>(reader->getSpecs().rate) * m_attack));
+	param->release = pow(m_arthreshold, 1.0f/(static_cast<float>(reader->getSpecs().rate) * m_release));
 	param->threshold = m_threshold;
 
 	return new AUD_CallbackIIRFilterReader(reader, 1, 2,

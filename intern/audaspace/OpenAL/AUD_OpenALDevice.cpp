@@ -52,7 +52,6 @@
 	ALuint buffer;
 };*/
 
-typedef std::list<AUD_Reference<AUD_OpenALDevice::AUD_OpenALHandle> >::iterator AUD_HandleIterator;
 //typedef std::list<AUD_OpenALBufferedFactory*>::iterator AUD_BFIterator;
 
 

@@ -105,6 +105,8 @@ protected:
 		virtual bool setStopCallback(stopCallback callback = 0, void* data = 0);
 	};
 
+	typedef std::list<AUD_Reference<AUD_SoftwareHandle> >::iterator AUD_HandleIterator;
+
 	/**
 	 * The specification of the device.
 	 */

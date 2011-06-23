@@ -859,6 +859,10 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 		specs.format = AUD_FORMAT_S16;
 		specs.rate = rd->ffcodecdata.audio_mixrate;
 		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->ffcodecdata.audio_volume);
+#ifdef FFMPEG_CODEC_TIME_BASE
+		c->time_base.den = specs.rate;
+		c->time_base.num = 1;
+#endif
 	}
 
 	return success;

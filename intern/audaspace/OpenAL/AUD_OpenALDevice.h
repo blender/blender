@@ -142,6 +142,7 @@ private:
 		virtual bool setConeVolumeOuter(float volume);
 	};
 
+	typedef std::list<AUD_Reference<AUD_OpenALHandle> >::iterator AUD_HandleIterator;
 
 	/**
 	 * The OpenAL device handle.

@@ -43,8 +43,6 @@
 #include <cstring>
 #include <limits>
 
-typedef std::list<AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> >::iterator AUD_HandleIterator;
-
 AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, bool keep) :
 	m_reader(reader), m_pitch(pitch), m_keep(keep), m_volume(1.0f), m_loopcount(0),
 	m_stop(NULL), m_stop_data(NULL), m_status(AUD_STATUS_PLAYING), m_device(device)
