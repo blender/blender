@@ -179,7 +179,9 @@ static struct _inittab bpy_internal_modules[]= {
 //	{(char *)"mathutils.geometry", BPyInit_mathutils_geometry},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
+#ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
+#endif
 	{NULL, NULL}
 };
 

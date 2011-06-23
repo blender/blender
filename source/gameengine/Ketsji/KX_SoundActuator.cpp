@@ -36,7 +36,11 @@
 
 
 #include "KX_SoundActuator.h"
-#include "AUD_C-API.h"
+
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
+
 #include "KX_GameObject.h"
 #include "KX_PyMath.h" // needed for PyObjectFrom()
 #include <iostream>

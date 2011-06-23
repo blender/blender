@@ -70,7 +70,10 @@
 #include "UI_view2d.h"
 
 #include "BKE_sound.h"
-#include "AUD_C-API.h"
+
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 /* own include */
 #include "sequencer_intern.h"
