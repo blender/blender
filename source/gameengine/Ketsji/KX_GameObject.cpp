@@ -364,13 +364,14 @@ void KX_GameObject::PlayAction(const char* name,
 								float start,
 								float end,
 								short layer,
+								short priority,
 								float blendin,
 								short play_mode,
 								short blend_mode,
 								short ipo_flags,
 								float playback_speed)
 {
-	GetActionManager()->PlayAction(name, start, end, layer, blendin, play_mode, blend_mode, ipo_flags, playback_speed);
+	GetActionManager()->PlayAction(name, start, end, layer, priority, blendin, play_mode, blend_mode, ipo_flags, playback_speed);
 }
 
 void KX_GameObject::StopAction(short layer)
@@ -3034,19 +3035,19 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
-	"playAction(name, start_frame, end_frame, layer=0, blendin=0, play_mode=ACT_MODE_PLAY, blend_mode=ACT_BLEND_NONE, ipo_flags=0, speed=1.0)\n"
+	"playAction(name, start_frame, end_frame, layer=0, priority=0 blendin=0, play_mode=ACT_MODE_PLAY, blend_mode=ACT_BLEND_NONE, ipo_flags=0, speed=1.0)\n"
 	"plays an action\n")
 {
 	const char* name;
 	float start, end, blendin=0.f, speed=1.f;
-	short layer=0;
+	short layer=0, priority=0;
 	short ipo_flags=0;
 	short play_mode=0, blend_mode=0;
 
-	static const char *kwlist[] = {"name", "start_frame", "end_frame", "layer", "blendin", "play_mode", "blend_mode", "ipo_flags", "speed", NULL};
+	static const char *kwlist[] = {"name", "start_frame", "end_frame", "layer", "priority", "blendin", "play_mode", "blend_mode", "ipo_flags", "speed", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hfhhhf", const_cast<char**>(kwlist),
-									&name, &start, &end, &layer, &blendin, &play_mode, &blend_mode, &ipo_flags, &speed))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hhfhhhf", const_cast<char**>(kwlist),
+									&name, &start, &end, &layer, &priority, &blendin, &play_mode, &blend_mode, &ipo_flags, &speed))
 		return NULL;
 
 	if (layer < 0 || layer > MAX_ACTION_LAYERS)
@@ -3067,7 +3068,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 		blend_mode = BL_Action::ACT_BLEND_NONE;
 	}
 
-	PlayAction(name, start, end, layer, blendin, play_mode, blend_mode, ipo_flags, speed);
+	PlayAction(name, start, end, layer, priority, blendin, play_mode, blend_mode, ipo_flags, speed);
 
 	Py_RETURN_NONE;
 }

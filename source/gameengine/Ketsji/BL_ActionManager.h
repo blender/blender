@@ -46,6 +46,7 @@ public:
 					float start,
 					float end,
 					short layer=0,
+					short priority=0,
 					float blendin=0.f,
 					short play_mode=0,
 					short blend_mode=0,

@@ -56,6 +56,8 @@ private:
 
 	float m_speed;
 
+	short m_priority;
+
 	short m_playmode;
 	short m_blendmode;
 
@@ -72,6 +74,7 @@ public:
 	void Play(const char* name,
 			float start,
 			float end,
+			short priority,
 			float blendin,
 			short play_mode,
 			short blend_mode,

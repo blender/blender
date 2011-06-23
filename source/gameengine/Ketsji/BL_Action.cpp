@@ -60,6 +60,7 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_blendframe(0.f),
 	m_blendstart(0.f),
 	m_speed(0.f),
+	m_priority(0),
 	m_ipo_flags(0),
 	m_pose(NULL),
 	m_blendpose(NULL),
@@ -105,12 +106,19 @@ BL_Action::~BL_Action()
 void BL_Action::Play(const char* name,
 					float start,
 					float end,
+					short priority,
 					float blendin,
 					short play_mode,
 					short blend_mode,
 					short ipo_flags,
 					float playback_speed)
 {
+
+	// Only start playing a new action if we're done, or if
+	// the new action has a higher priority
+	if (priority != 0 && !IsDone() && priority >= m_priority)
+		return;
+	m_priority = priority;
 	bAction* prev_action = m_action;
 
 	// First try to load the action
