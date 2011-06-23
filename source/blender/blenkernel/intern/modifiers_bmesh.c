@@ -173,7 +173,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
 	/*do faces*/
 	mpoly = mp = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
-	for (i=0; i<dm->numFaceData; i++, mp++) {
+	for (i=0; i<dm->numPolyData; i++, mp++) {
 		BMLoop *l;
 
 		BLI_array_empty(verts);
