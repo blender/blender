@@ -800,7 +800,7 @@ elseif(WIN32)
 			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARIES python32mw)
+			set(PYTHON_LIBRARIES ${PYTHON}/lib/python32mw.lib)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 
