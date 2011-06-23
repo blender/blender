@@ -908,6 +908,8 @@ public:
 	KX_PYMETHOD_VARARGS(KX_GameObject, ReinstancePhysicsMesh);
 
 	KX_PYMETHOD_DOC(KX_GameObject, playAction);
+	KX_PYMETHOD_DOC(KX_GameObject, getActionFrame);
+	KX_PYMETHOD_DOC(KX_GameObject, setActionFrame);
 	
 	/* Dict access */
 	KX_PYMETHOD_VARARGS(KX_GameObject,get);

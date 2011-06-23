@@ -1556,6 +1556,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE(KX_GameObject, sendMessage),
 
 	KX_PYMETHODTABLE_KEYWORDS(KX_GameObject, playAction),
+	KX_PYMETHODTABLE(KX_GameObject, getActionFrame),
+	KX_PYMETHODTABLE(KX_GameObject, setActionFrame),
 	
 	// dict style access for props
 	{"get",(PyCFunction) KX_GameObject::sPyget, METH_VARARGS},
@@ -3046,7 +3048,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 
 	static const char *kwlist[] = {"name", "start_frame", "end_frame", "layer", "priority", "blendin", "play_mode", "blend_mode", "ipo_flags", "speed", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hhfhhhf", const_cast<char**>(kwlist),
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hhfhhhf:playAction", const_cast<char**>(kwlist),
 									&name, &start, &end, &layer, &priority, &blendin, &play_mode, &blend_mode, &ipo_flags, &speed))
 		return NULL;
 
@@ -3072,6 +3074,33 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 
 	Py_RETURN_NONE;
 }
+
+KX_PYMETHODDEF_DOC(KX_GameObject, getActionFrame,
+	"getActionFrame(layer)\n"
+	"Gets the current frame of the action playing in the supplied layer")
+{
+	short layer;
+
+	if (!PyArg_ParseTuple(args, "h:getActionFrame", &layer))
+		return NULL;
+
+	return PyLong_FromLong(GetActionFrame(layer));
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, setActionFrame,
+	"setActionFrame(layer, frame)\n"
+	"Set the current fram of the action playing in the supplied layer")
+{
+	short layer, frame;
+
+	if (!PyArg_ParseTuple(args, "hh:setActionFrame", &layer, &frame))
+		return NULL;
+
+	SetActionFrame(layer, frame);
+
+	Py_RETURN_NONE;
+}
+
 /* dict style access */
 
 
