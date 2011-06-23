@@ -147,7 +147,8 @@ typedef struct ParticleBillboardData
 	struct Object *ob;
 	float vec[3], vel[3];
 	float offset[2];
-	float size, tilt, random, time;
+	float size[2];
+	float tilt, random, time;
 	int uv[3];
 	int lock, num;
 	int totnum;
