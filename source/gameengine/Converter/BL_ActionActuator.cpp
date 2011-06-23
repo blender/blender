@@ -189,17 +189,28 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			obj->SetActionFrame(m_layer, m_localtime);
 	}
 	else if (m_is_going && bNegativeEvent)
-	{
-		m_is_going = false;
-		
-		if (!m_end_reset)
+	{		
+		if (m_playtype == ACT_ACTION_LOOP_STOP)
 		{
-			obj->StopAction(m_layer);
-			return false;
-		}
+			if (!m_end_reset)
+			{
+				obj->StopAction(m_layer);
+				return false;
+			}
 
-		m_localtime = obj->GetActionFrame(m_layer);
-		obj->StopAction(m_layer); // Stop the action after getting the frame
+			m_localtime = obj->GetActionFrame(m_layer);
+			obj->StopAction(m_layer); // Stop the action after getting the frame
+		}
+		else if (m_playtype == ACT_ACTION_LOOP_END)
+		{
+			// Convert into a play and let it finish
+			obj->PlayAction(m_action->id.name+2, start, end, m_layer, 0, BL_Action::ACT_MODE_PLAY, 0, m_ipo_flags);
+			obj->SetActionFrame(m_layer, m_localtime);
+
+			return true;
+		}
+		
+		m_is_going = false;
 	}
 
 	// Handle a frame property if it's defined
@@ -214,13 +225,11 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 
 		newval->Release();
 	}
-	if (m_playtype == ACT_ACTION_FROM_PROP)
-	{
-		return true;
-	}
 	// Handle a finished animation
-	else if (m_is_going && obj->IsActionDone(m_layer))
+	if (m_is_going && obj->IsActionDone(m_layer))
 	{
+		m_is_going = false;
+		obj->StopAction(m_layer);
 		return false;
 	}
 
