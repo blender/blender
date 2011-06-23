@@ -31,6 +31,8 @@
 
 #include "BL_Action.h"
 #include "BL_ArmatureObject.h"
+#include "BL_DeformableGameObject.h"
+#include "BL_ShapeDeformer.h"
 #include "KX_IpoConvert.h"
 #include "KX_GameObject.h"
 
@@ -70,7 +72,18 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 		BL_ArmatureObject *obj = (BL_ArmatureObject*)m_obj;
 
 		m_ptrrna = new PointerRNA();
-		RNA_id_pointer_create((ID*)obj->GetArmatureObject(), m_ptrrna);
+		RNA_id_pointer_create(&obj->GetArmatureObject()->id, m_ptrrna);
+	}
+	else
+	{
+		BL_DeformableGameObject *obj = (BL_DeformableGameObject*)m_obj;
+		BL_ShapeDeformer *shape_deformer = dynamic_cast<BL_ShapeDeformer*>(obj->GetDeformer());
+
+		if (shape_deformer)
+		{
+			m_ptrrna = new PointerRNA();
+			RNA_id_pointer_create(&shape_deformer->GetKey()->id, m_ptrrna);
+		}
 	}
 }
 
@@ -268,6 +281,28 @@ void BL_Action::Update(float curtime)
 	}
 	else
 	{
+		BL_DeformableGameObject *obj = (BL_DeformableGameObject*)m_obj;
+		BL_ShapeDeformer *shape_deformer = dynamic_cast<BL_ShapeDeformer*>(obj->GetDeformer());
+
+		// Handle shape actions if we have any
+		if (shape_deformer)
+		{
+			Key *key = shape_deformer->GetKey();
+
+			// We go through and clear out the keyblocks so there isn't any interference
+			// from other shape actions
+			KeyBlock *kb;
+			for (kb=(KeyBlock*)key->block.first; kb; kb=(KeyBlock*)kb->next)
+				kb->curval = 0.f;
+
+			animsys_evaluate_action(m_ptrrna, m_action, NULL, m_localtime);
+
+			// XXX TODO handle blendin
+
+			obj->SetActiveAction(NULL, 0, m_localtime);
+		}
+
+
 		InitIPO();
 		m_obj->UpdateIPO(m_localtime, m_ipo_flags & ACT_IPOFLAG_CHILD);
 	}
