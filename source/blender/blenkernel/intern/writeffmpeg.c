@@ -91,7 +91,9 @@ static uint8_t* audio_output_buffer = 0;
 static int audio_outbuf_size = 0;
 static double audio_time = 0.0f;
 
+#ifdef WITH_AUDASPACE
 static AUD_Device* audio_mixdown_device = 0;
+#endif
 
 #define FFMPEG_AUTOSPLIT_SIZE 2000000000
 
@@ -105,6 +107,7 @@ static void delete_picture(AVFrame* f)
 	}
 }
 
+#ifdef WITH_AUDASPACE
 static int write_audio_frame(void) 
 {
 	AVCodecContext* c = NULL;
@@ -147,6 +150,7 @@ static int write_audio_frame(void)
 	}
 	return 0;
 }
+#endif // #ifdef WITH_AUDASPACE
 
 /* Allocate a temporary frame */
 static AVFrame* alloc_picture(int pix_fmt, int width, int height) 
@@ -853,7 +857,7 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 	ffmpeg_autosplit_count = 0;
 
 	success = start_ffmpeg_impl(rd, rectx, recty, reports);
-
+#ifdef WITH_AUDASPACE
 	if(audio_stream)
 	{
 		AVCodecContext* c = audio_stream->codec;
@@ -863,12 +867,13 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 		specs.rate = rd->ffcodecdata.audio_mixrate;
 		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->ffcodecdata.audio_volume);
 	}
-
+#endif
 	return success;
 }
 
 void end_ffmpeg(void);
 
+#ifdef WITH_AUDASPACE
 static void write_audio_frames(double to_pts)
 {
 	int finished = 0;
@@ -880,6 +885,7 @@ static void write_audio_frames(double to_pts)
 		}
 	}
 }
+#endif
 
 int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports) 
 {
@@ -907,8 +913,9 @@ int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, 
 		}
 	}
 
+#ifdef WITH_AUDASPACE
 	write_audio_frames((frame - rd->sfra) / (((double)rd->frs_sec) / rd->frs_sec_base));
-
+#endif
 	return success;
 }
 
@@ -922,12 +929,14 @@ void end_ffmpeg(void)
 		write_audio_frames();
 	}*/
 
+#ifdef WITH_AUDASPACE
 	if(audio_mixdown_device)
 	{
 		AUD_closeReadDevice(audio_mixdown_device);
 		audio_mixdown_device = 0;
 	}
-	
+#endif
+
 	if (video_stream && video_stream->codec) {
 		fprintf(stderr, "Flushing delayed frames...\n");
 		flush_ffmpeg ();		
