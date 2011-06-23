@@ -57,7 +57,6 @@ EnumPropertyItem actuator_type_items[] ={
 	{ACT_PROPERTY, "PROPERTY", 0, "Property", ""},
 	{ACT_RANDOM, "RANDOM", 0, "Random", ""},
 	{ACT_SCENE, "SCENE", 0, "Scene", ""},
-	{ACT_SHAPEACTION, "SHAPE_ACTION", 0, "Shape Action", ""},
 	{ACT_SOUND, "SOUND", 0, "Sound", ""},
 	{ACT_STATE, "STATE", 0, "State", ""},
 	{ACT_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
@@ -100,8 +99,6 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 			return &RNA_Filter2DActuator;
 		case ACT_PARENT:
 			return &RNA_ParentActuator;
-		case ACT_SHAPEACTION:
-			return &RNA_ShapeActionActuator;
 		case ACT_STATE:
 			return &RNA_StateActuator;
 		case ACT_ARMATURE:
@@ -462,12 +459,6 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, Property
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_PROPERTY);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_RANDOM);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SCENE);
-
-	if (ob != NULL) {
-		if (ob->type==OB_MESH){
-			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SHAPEACTION);
-		}
-	}
 
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SOUND);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_STATE);

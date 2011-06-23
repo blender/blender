@@ -11671,7 +11671,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		
 		{
-			/* convert fcurve actuator to action actuator */
+			/* convert fcurve and shape action actuators to action actuators */
 			Object *ob;
 			bActuator *act;
 			bIpoActuator *ia;
@@ -11700,6 +11700,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						act->data = aa;
 						act->type= act->otype= ACT_ACTION;
 						
+					}
+					else if (act->type == ACT_SHAPEACTION)  {
+						act->type = act->otype = ACT_ACTION;
 					}
 				}
 			}
