@@ -308,14 +308,14 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	GHOST_SystemCocoa *systemCocoa,
 	const STR_String& title,
 	GHOST_TInt32 left,
-	GHOST_TInt32 top,
+	GHOST_TInt32 bottom,
 	GHOST_TUns32 width,
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual, const GHOST_TUns16 numOfAASamples
 ) :
-	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone, stereoVisual, numOfAASamples),
+	GHOST_Window(width, height, state, GHOST_kDrawingContextTypeNone, stereoVisual, numOfAASamples),
 	m_customCursor(0)
 {
 	NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[40];
@@ -327,13 +327,12 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
-
 	//Creates the window
 	NSRect rect;
 	NSSize	minSize;
 	
 	rect.origin.x = left;
-	rect.origin.y = top;
+	rect.origin.y = bottom;
 	rect.size.width = width;
 	rect.size.height = height;
 	
@@ -703,12 +702,22 @@ void GHOST_WindowCocoa::screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST
 	
 	outX = baseCoord.x;
 	outY = baseCoord.y;
+
+	/* switch y to match ghost convention */
+	GHOST_Rect cBnds;
+	getClientBounds(cBnds);
+	outY = (cBnds.getHeight() - 1) - outY;
 }
 
 
 void GHOST_WindowCocoa::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::clientToScreen(): window invalid")
+
+	/* switch y to match ghost convention */
+	GHOST_Rect cBnds;
+	getClientBounds(cBnds);
+	inY = (cBnds.getHeight() - 1) - inY;
 	
 	NSPoint screenCoord;
 	NSPoint baseCoord;

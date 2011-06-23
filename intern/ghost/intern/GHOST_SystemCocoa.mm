@@ -741,11 +741,13 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	NSRect contentRect = [NSWindow contentRectForFrameRect:frame
 												 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)];
 	
+	GHOST_TInt32 bottom = (contentRect.size.height - 1) - height - top;
+
 	//Ensures window top left is inside this available rect
 	left = left > contentRect.origin.x ? left : contentRect.origin.x;
-	top = top > contentRect.origin.y ? top : contentRect.origin.y;
-	
-	window = new GHOST_WindowCocoa (this, title, left, top, width, height, state, type, stereoVisual, numOfAASamples);
+	bottom = bottom > contentRect.origin.y ? bottom : contentRect.origin.y;
+
+	window = new GHOST_WindowCocoa (this, title, left, bottom, width, height, state, type, stereoVisual, numOfAASamples);
 
     if (window) {
         if (window->getValid()) {
@@ -804,6 +806,31 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
     return GHOST_kSuccess;
 }
 
+void GHOST_SystemCocoa::pushEventCursor(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, GHOST_TInt32 x, GHOST_TInt32 y)
+{
+	GHOST_Rect cBnds;
+	window->getClientBounds(cBnds);
+	y = (cBnds.getHeight() - 1) - y;
+
+	GHOST_TInt32 screen_x, screen_y;
+	window->clientToScreen(x, y, screen_x, screen_y);
+
+	pushEvent(new GHOST_EventCursor(msec, type, window, screen_x, screen_y));
+}
+
+void GHOST_SystemCocoa::pushEventTrackpad(GHOST_TUns64 msec, GHOST_IWindow* window, GHOST_TTrackpadEventSubTypes subtype, GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 deltaX, GHOST_TInt32 deltaY)
+{
+	GHOST_Rect cBnds;
+	window->getClientBounds(cBnds);
+	y = (cBnds.getHeight() - 1) - y;
+	deltaY = -deltaY;
+
+	GHOST_TInt32 screen_x, screen_y;
+	window->clientToScreen(x, y, screen_x, screen_y);
+
+	pushEvent(new GHOST_EventTrackpad(msec, window, subtype, screen_x, screen_y, deltaX, deltaY));
+}
+
 /**
  * @note : expect Cocoa screen coordinates
  */
@@ -821,7 +848,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 	
 	//Force mouse move event (not pushed by Cocoa)
 	window->screenToClient(x, y, wx, wy);
-	pushEvent(new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, wx,wy));
+	pushEventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, wx,wy);
 	m_outsideLoopEventProcessed = true;
 	
 	return GHOST_kSuccess;
@@ -1508,7 +1535,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						y_accum += -[event deltaY]; //Strange Apple implementation (inverted coordinates for the deltaY) ...
 						window->setCursorGrabAccum(x_accum, y_accum);
 						
-						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum));
+						pushEventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum);
 					}
 						break;
 					case GHOST_kGrabWrap: //Wrap cursor at area/window boundaries
@@ -1552,14 +1579,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						
 						//Post event
 						window->getCursorGrabInitPos(x_cur, y_cur);
-						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_cur + x_accum, y_cur + y_accum));
+						pushEventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_cur + x_accum, y_cur + y_accum);
 					}
 						break;
 					default:
 					{
 						//Normal cursor operation: send mouse position in window
 						NSPoint mousePos = [event locationInWindow];
-						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
+						pushEventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, mousePos.x, mousePos.y);
 						m_cursorDelta_x=0;
 						m_cursorDelta_y=0; //Mouse motion occurred between two cursor warps, so we can reset the delta counter
 					}
@@ -1597,7 +1624,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					if (dy<0.0) dy-=0.5; else dy+=0.5;
 					if (dy< -deltaMax) dy= -deltaMax; else if (dy>deltaMax) dy=deltaMax;
 
-					pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventScroll, mousePos.x, mousePos.y, dx, dy));
+					pushEventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventScroll, mousePos.x, mousePos.y, dx, dy);
 				}
 			}
 			break;
@@ -1605,16 +1632,16 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSEventTypeMagnify:
 			{
 				NSPoint mousePos = [event locationInWindow];
-				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, mousePos.x, mousePos.y,
-												  [event magnification]*250.0 + 0.1, 0));
+				pushEventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, mousePos.x, mousePos.y,
+												  [event magnification]*250.0 + 0.1, 0);
 			}
 			break;
 
 		case NSEventTypeRotate:
 			{
 				NSPoint mousePos = [event locationInWindow];
-				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y,
-												  -[event rotation] * 5.0, 0));
+				pushEventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y,
+												  -[event rotation] * 5.0, 0);
 			}
 		case NSEventTypeBeginGesture:
 			m_isGestureInProgress = true;
