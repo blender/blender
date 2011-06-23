@@ -62,9 +62,16 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_pose(NULL),
 	m_blendpose(NULL),
 	m_sg_contr(NULL),
+	m_ptrrna(NULL),
 	m_done(true)
 {
+	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
+	{
+		BL_ArmatureObject *obj = (BL_ArmatureObject*)m_obj;
 
+		m_ptrrna = new PointerRNA();
+		RNA_id_pointer_create((ID*)obj->GetArmatureObject(), m_ptrrna);
+	}
 }
 
 BL_Action::~BL_Action()
@@ -78,6 +85,8 @@ BL_Action::~BL_Action()
 		m_obj->GetSGNode()->RemoveSGController(m_sg_contr);
 		delete m_sg_contr;
 	}
+	if (m_ptrrna)
+		delete m_ptrrna;
 }
 
 void BL_Action::Play(const char* name,
@@ -100,7 +109,6 @@ void BL_Action::Play(const char* name,
 		return;
 	}
 
-	//if (m_obj->GetGameObjectType() != SCA_IObject::OBJ_ARMATURE)
 	if (prev_action != m_action)
 	{
 		// Create an SG_Controller
@@ -224,13 +232,11 @@ void BL_Action::Update(float curtime)
 
 		// Extract the pose from the action
 		{
-			struct PointerRNA id_ptr;
 			Object *arm = obj->GetArmatureObject();
 			bPose *temp = arm->pose;
 
 			arm->pose = m_pose;
-			RNA_id_pointer_create((ID*)arm, &id_ptr);
-			animsys_evaluate_action(&id_ptr, m_action, NULL, m_localtime);
+			animsys_evaluate_action(m_ptrrna, m_action, NULL, m_localtime);
 
 			arm->pose = temp;
 		}
