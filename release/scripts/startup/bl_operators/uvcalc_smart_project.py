@@ -812,21 +812,25 @@ def main(context, island_margin, projection_limit):
     global RotMatStepRotation
     main_consts()
 
-#XXX objects= bpy.data.scenes.active.objects
-    objects = context.selected_editable_objects
-
+    # TODO, all selected meshes
+    '''
+    # objects = context.selected_editable_objects
+    objects = []
 
     # we can will tag them later.
     obList =  [ob for ob in objects if ob.type == 'MESH']
 
     # Face select object may not be selected.
-#XXX	ob = objects.active
-    ob= objects[0]
+    ob = context.active_object
 
     if ob and (not ob.select) and ob.type == 'MESH':
         # Add to the list
         obList =[ob]
     del objects
+    '''
+    
+    # quick workaround
+    obList =  [ob for ob in [context.active_object] if ob and ob.type == 'MESH']
 
     if not obList:
         raise('error, no selected mesh objects')
