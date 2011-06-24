@@ -181,7 +181,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		but = uiDefButTextO(block, TEX, "FILE_OT_directory", 0, "",
 				 min_x, line1_y, line1_w-chan_offs, btn_h, 
 				 params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
-				 "File path.");
+				 _("File path."));
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiButSetFlag(but, UI_BUT_NO_UTF8);
 
@@ -209,13 +209,13 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
 				min_x + line2_w + separator - chan_offs, line2_y, 
 				btn_fn_w, btn_h, 
-				"Decrement the filename number");    
+				_("Decrement the filename number"));    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1); 
 	
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMIN, 
 				min_x + line2_w + separator + btn_fn_w - chan_offs, line2_y, 
 				btn_fn_w, btn_h, 
-				"Increment the filename number");    
+				_("Increment the filename number"));    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", 1); 
 		uiBlockEndAlign(block);
 	}

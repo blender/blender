@@ -450,7 +450,7 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	 * in order to not overflow short tselem->nr */
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_COMBINED));
-	te->name= "Combined";
+	te->name= _("Combined");
 	te->directdata= &srl->passflag;
 	
 	/* save cpu cycles, but we add the first to invoke an open/close triangle */
@@ -463,11 +463,11 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_VECTOR));
-	te->name= "Vector";
+	te->name= _("Vector");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_NORMAL));
-	te->name= "Normal";
+	te->name= _("Normal");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_UV));
@@ -475,27 +475,27 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_MIST));
-	te->name= "Mist";
+	te->name= _("Mist");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDEXOB));
-	te->name= "Index Object";
+	te->name= _("Index Object");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_RGBA));
-	te->name= "Color";
+	te->name= _("Color");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_DIFFUSE));
-	te->name= "Diffuse";
+	te->name= _("Diffuse");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_SPEC));
-	te->name= "Specular";
+	te->name= _("Specular");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_SHADOW));
-	te->name= "Shadow";
+	te->name= _("Shadow");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_AO));
@@ -503,23 +503,23 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_REFLECT));
-	te->name= "Reflection";
+	te->name= _("Reflection");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_REFRACT));
-	te->name= "Refraction";
+	te->name= _("Refraction");
 	te->directdata= &srl->passflag;
 	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDIRECT));
-	te->name= "Indirect";
+	te->name= _("Indirect");
 	te->directdata= &srl->passflag;
 
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_ENVIRONMENT));
-	te->name= "Environment";
+	te->name= _("Environment");
 	te->directdata= &srl->passflag;
 
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_EMIT));
-	te->name= "Emit";
+	te->name= _("Emit");
 	te->directdata= &srl->passflag;
 }
 
@@ -546,7 +546,7 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 	TreeElement *tenla= outliner_add_element(soops, lb, sce, te, TSE_R_LAYER_BASE, 0);
 	int a;
 	
-	tenla->name= "RenderLayers";
+	tenla->name= _("RenderLayers");
 	for(a=0, srl= sce->r.layers.first; srl; srl= srl->next, a++) {
 		TreeElement *tenlay= outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, a);
 		tenlay->name= srl->name;
@@ -2814,9 +2814,9 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_show_active(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show Active";
+	ot->name= _("Show Active");
 	ot->idname= "OUTLINER_OT_show_active";
-	ot->description= "Adjust the view so that the active Object is shown centered";
+	ot->description= _("Adjust the view so that the active Object is shown centered");
 	
 	/* callbacks */
 	ot->exec= outliner_show_active_exec;
@@ -3044,9 +3044,9 @@ static int outliner_show_hierarchy_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show Hierarchy";
+	ot->name= _("Show Hierarchy");
 	ot->idname= "OUTLINER_OT_show_hierarchy";
-	ot->description= "Open all object entries and close all others";
+	ot->description= _("Open all object entries and close all others");
 	
 	/* callbacks */
 	ot->exec= outliner_show_hierarchy_exec;

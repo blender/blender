@@ -33,6 +33,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "BLF_api.h"
+
 #include "DNA_ID.h"
 #include "DNA_vfont_types.h"
 #include "DNA_object_types.h"
@@ -45,32 +47,32 @@
  * NOTE: need to keep this in line with the other defines for these
  */
 EnumPropertyItem id_type_items[] = {
-	{ID_AC, "ACTION", ICON_ACTION, "Action", ""},
-	{ID_AR, "ARMATURE", ICON_ARMATURE_DATA, "Armature", ""},
-	{ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brush", ""},
-	{ID_CA, "CAMERA", ICON_CAMERA_DATA, "Camera", ""},
-	{ID_CU, "CURVE", ICON_CURVE_DATA, "Curve", ""},
-	{ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
-	{ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
-	{ID_GR, "GROUP", ICON_GROUP, "Group", ""},
-	{ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
-	{ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
-	{ID_LA, "LAMP", ICON_LAMP_DATA, "Lamp", ""},
-	{ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, "Library", ""},
-	{ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
-	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
-	{ID_MB, "META", ICON_META_DATA, "MetaBall", ""},
-	{ID_ME, "MESH", ICON_MESH_DATA, "Mesh", ""},
-	{ID_NT, "NODETREE", ICON_NODETREE, "NodeTree", ""},
-	{ID_OB, "OBJECT", ICON_OBJECT_DATA, "Object", ""},
-	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
-	{ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
-	{ID_SCR, "SCREEN", ICON_SPLITSCREEN, "Screen", ""},
-	{ID_SO, "SOUND", ICON_PLAY_AUDIO, "Sound", ""},
-	{ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
-	{ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
-	{ID_WO, "WORLD", ICON_WORLD_DATA, "World", ""},
-	{ID_WM, "WINDOWMANAGER", ICON_FULLSCREEN, "Window Manager", ""},
+	{ID_AC, "ACTION", ICON_ACTION, N_("Action"), ""},
+	{ID_AR, "ARMATURE", ICON_ARMATURE_DATA, N_("Armature"), ""},
+	{ID_BR, "BRUSH", ICON_BRUSH_DATA, N_("Brush"), ""},
+	{ID_CA, "CAMERA", ICON_CAMERA_DATA, N_("Camera"), ""},
+	{ID_CU, "CURVE", ICON_CURVE_DATA, N_("Curve"), ""},
+	{ID_VF, "FONT", ICON_FONT_DATA, N_("Font"), ""},
+	{ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, N_("Grease Pencil"), ""},
+	{ID_GR, "GROUP", ICON_GROUP, N_("Group"), ""},
+	{ID_IM, "IMAGE", ICON_IMAGE_DATA, N_("Image"), ""},
+	{ID_KE, "KEY", ICON_SHAPEKEY_DATA, N_("Key"), ""},
+	{ID_LA, "LAMP", ICON_LAMP_DATA, N_("Lamp"), ""},
+	{ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, N_("Library"), ""},
+	{ID_LT, "LATTICE", ICON_LATTICE_DATA, N_("Lattice"), ""},
+	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, N_("Material"), ""},
+	{ID_MB, "META", ICON_META_DATA, N_("MetaBall"), ""},
+	{ID_ME, "MESH", ICON_MESH_DATA, N_("Mesh"), ""},
+	{ID_NT, "NODETREE", ICON_NODETREE, N_("NodeTree"), ""},
+	{ID_OB, "OBJECT", ICON_OBJECT_DATA, N_("Object"), ""},
+	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, N_("Particle"), ""},
+	{ID_SCE, "SCENE", ICON_SCENE_DATA, N_("Scene"), ""},
+	{ID_SCR, "SCREEN", ICON_SPLITSCREEN, N_("Screen"), ""},
+	{ID_SO, "SOUND", ICON_PLAY_AUDIO, N_("Sound"), ""},
+	{ID_TXT, "TEXT", ICON_TEXT, N_("Text"), ""},
+	{ID_TE, "TEXTURE", ICON_TEXTURE_DATA, N_("Texture"), ""},
+	{ID_WO, "WORLD", ICON_WORLD_DATA, N_("World"), ""},
+	{ID_WM, "WINDOWMANAGER", ICON_FULLSCREEN, N_("Window Manager"), ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -441,7 +443,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_struct_idprops_func(srna, "rna_ID_idprops");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name");
+	RNA_def_property_ui_text(prop, "Name", N_("Unique datablock ID name"));
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME-2);
 	RNA_def_property_editable_func(prop, "rna_ID_name_editable");

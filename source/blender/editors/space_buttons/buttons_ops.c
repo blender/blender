@@ -43,6 +43,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -83,8 +85,8 @@ static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(e
 void BUTTONS_OT_toolbox(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toolbox";
-	ot->description="Display button panel toolbox";
+	ot->name= _("Toolbox");
+	ot->description=_("Display button panel toolbox");
 	ot->idname= "BUTTONS_OT_toolbox";
 	
 	/* api callbacks */
@@ -216,8 +218,8 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void BUTTONS_OT_file_browse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Accept";
-	ot->description="Open a file browser, Hold Shift to open the file, Alt to browse containing directory";
+	ot->name= _("Accept");
+	ot->description=_("Open a file browser, Hold Shift to open the file, Alt to browse containing directory");
 	ot->idname= "BUTTONS_OT_file_browse";
 	
 	/* api callbacks */
@@ -233,8 +235,8 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 void BUTTONS_OT_directory_browse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Accept";
-	ot->description="Open a directory browser, Hold Shift to open the file, Alt to browse containing directory";
+	ot->name= _("Accept");
+	ot->description=_("Open a directory browser, Hold Shift to open the file, Alt to browse containing directory");
 	ot->idname= "BUTTONS_OT_directory_browse";
 
 	/* api callbacks */

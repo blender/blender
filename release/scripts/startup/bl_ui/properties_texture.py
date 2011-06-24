@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from rna_prop_ui import PropertyPanel
-
+from blf import gettext as _
 
 class TEXTURE_MT_specials(bpy.types.Menu):
     bl_label = "Texture Specials"
@@ -370,7 +370,7 @@ class TEXTURE_PT_image(TextureTypePanel, bpy.types.Panel):
 
 
 def texture_filter_common(tex, layout):
-    layout.label(text="Filter:")
+    layout.label(text=_("Filter:"))
     layout.prop(tex, "filter_type", text="")
     if tex.use_mipmap and tex.filter_type in {'AREA', 'EWA', 'FELINE'}:
         if tex.filter_type == 'FELINE':

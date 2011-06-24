@@ -141,12 +141,11 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	opfunc(ot);
 
 	if(ot->name==NULL) {
-		static char dummy_name[] = "Dummy Name";
 		fprintf(stderr, "ERROR: Operator %s has no name property!\n", ot->idname);
-		ot->name= dummy_name;
+		ot->name= _("Dummy Name");
 	}
 
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)"); // XXX All ops should have a description but for now allow them not to.
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:_("(undocumented operator)")); // XXX All ops should have a description but for now allow them not to.
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 	BLI_addtail(&global_ops, ot);
 }
@@ -158,7 +157,7 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *us
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
 	opfunc(ot, userdata);
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)");
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:_("(undocumented operator)"));
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 	BLI_addtail(&global_ops, ot);
 }
@@ -1130,7 +1129,7 @@ static int wm_debug_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 
 static void WM_OT_debug_menu(wmOperatorType *ot)
 {
-	ot->name= "Debug Menu";
+	ot->name= _("Debug Menu");
 	ot->idname= "WM_OT_debug_menu";
 	ot->description= _("Open a popup to set the debug level");
 	
@@ -1404,7 +1403,7 @@ static int wm_search_menu_poll(bContext *C)
 
 static void WM_OT_search_menu(wmOperatorType *ot)
 {
-	ot->name= "Search Menu";
+	ot->name= _("Search Menu");
 	ot->idname= "WM_OT_search_menu";
 	
 	ot->invoke= wm_search_menu_invoke;
@@ -1424,7 +1423,7 @@ static int wm_call_menu_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_call_menu(wmOperatorType *ot)
 {
-	ot->name= "Call Menu";
+	ot->name= _("Call Menu");
 	ot->idname= "WM_OT_call_menu";
 
 	ot->exec= wm_call_menu_exec;
@@ -1432,7 +1431,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 
 	ot->flag= OPTYPE_INTERNAL;
 
-	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the menu");
+	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, _("Name"), _("Name of the menu"));
 }
 
 /* ************ window / screen operator definitions ************** */
@@ -2038,7 +2037,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_collada_export(wmOperatorType *ot)
 {
-	ot->name= "Export COLLADA";
+	ot->name= _("Export COLLADA");
 	ot->idname= "WM_OT_collada_export";
 	
 	ot->invoke= wm_collada_export_invoke;
@@ -2066,7 +2065,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_collada_import(wmOperatorType *ot)
 {
-	ot->name= "Import COLLADA";
+	ot->name= _("Import COLLADA");
 	ot->idname= "WM_OT_collada_import";
 	
 	ot->invoke= WM_operator_filesel;
@@ -2102,7 +2101,7 @@ static int wm_exit_blender_op(bContext *C, wmOperator *op)
 
 static void WM_OT_quit_blender(wmOperatorType *ot)
 {
-	ot->name= "Quit Blender";
+	ot->name= _("Quit Blender");
 	ot->idname= "WM_OT_quit_blender";
 	ot->description= _("Quit Blender");
 
@@ -2123,7 +2122,7 @@ static int wm_console_toggle_op(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 static void WM_OT_console_toggle(wmOperatorType *ot)
 {
-	ot->name= "Toggle System Console";
+	ot->name= _("Toggle System Console");
 	ot->idname= "WM_OT_console_toggle";
 	ot->description= _("Toggle System Console");
 	
@@ -2409,9 +2408,9 @@ int WM_gesture_circle_cancel(bContext *C, wmOperator *op)
 /* template to copy from */
 void WM_OT_circle_gesture(wmOperatorType *ot)
 {
-	ot->name= "Circle Gesture";
+	ot->name= _("Circle Gesture");
 	ot->idname= "WM_OT_circle_gesture";
-	ot->description="Enter rotate mode with a circular gesture";
+	ot->description=_("Enter rotate mode with a circular gesture");
 	
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;
@@ -2655,9 +2654,9 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	ot->name= "Lasso Gesture";
+	ot->name= _("Lasso Gesture");
 	ot->idname= "WM_OT_lasso_gesture";
-	ot->description="Select objects within the lasso as you move the pointer";
+	ot->description=_("Select objects within the lasso as you move the pointer");
 	
 	ot->invoke= WM_gesture_lasso_invoke;
 	ot->modal= WM_gesture_lasso_modal;
@@ -2769,9 +2768,9 @@ void WM_OT_straightline_gesture(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	ot->name= "Straight Line Gesture";
+	ot->name= _("Straight Line Gesture");
 	ot->idname= "WM_OT_straightline_gesture";
-	ot->description="Draw a straight line as you move the pointer";
+	ot->description=_("Draw a straight line as you move the pointer");
 	
 	ot->invoke= WM_gesture_straightline_invoke;
 	ot->modal= WM_gesture_straightline_modal;
@@ -3275,13 +3274,13 @@ static void redraw_timer_window_swap(bContext *C)
 }
 
 static EnumPropertyItem redraw_timer_type_items[] = {
-	{0, "DRAW", 0, "Draw Region", "Draw Region"},
-	{1, "DRAW_SWAP", 0, "Draw Region + Swap", "Draw Region and Swap"},
-	{2, "DRAW_WIN", 0, "Draw Window", "Draw Window"},
-	{3, "DRAW_WIN_SWAP", 0, "Draw Window + Swap", "Draw Window and Swap"},
-	{4, "ANIM_STEP", 0, "Anim Step", "Animation Steps"},
-	{5, "ANIM_PLAY", 0, "Anim Play", "Animation Playback"},
-	{6, "UNDO", 0, "Undo/Redo", "Undo/Redo"},
+	{0, "DRAW", 0, N_("Draw Region"), N_("Draw Region")},
+	{1, "DRAW_SWAP", 0, N_("Draw Region + Swap"), N_("Draw Region and Swap")},
+	{2, "DRAW_WIN", 0, N_("Draw Window"), N_("Draw Window")},
+	{3, "DRAW_WIN_SWAP", 0, N_("Draw Window + Swap"), N_("Draw Window and Swap")},
+	{4, "ANIM_STEP", 0, N_("Anim Step"), N_("Animation Steps")},
+	{5, "ANIM_PLAY", 0, N_("Anim Play"), N_("Animation Playback")},
+	{6, "UNDO", 0, N_("Undo/Redo"), N_("Undo/Redo")},
 	{0, NULL, 0, NULL, NULL}};
 
 static int redraw_timer_exec(bContext *C, wmOperator *op)
@@ -3380,15 +3379,15 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_redraw_timer(wmOperatorType *ot)
 {
-	ot->name= "Redraw Timer";
+	ot->name= _("Redraw Timer");
 	ot->idname= "WM_OT_redraw_timer";
-	ot->description="Simple redraw timer to test the speed of updating the interface";
+	ot->description=_("Simple redraw timer to test the speed of updating the interface");
 
 	ot->invoke= WM_menu_invoke;
 	ot->exec= redraw_timer_exec;
 	ot->poll= WM_operator_winactive;
 
-	ot->prop= RNA_def_enum(ot->srna, "type", redraw_timer_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(redraw_timer_type_items), 0, _("Type"), "");
 	RNA_def_int(ot->srna, "iterations", 10, 1,INT_MAX, _("Iterations"), _("Number of times to redraw"), 1,1000);
 
 }
@@ -3403,7 +3402,7 @@ static int memory_statistics_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 static void WM_OT_memory_statistics(wmOperatorType *ot)
 {
-	ot->name= "Memory Statistics";
+	ot->name= _("Memory Statistics");
 	ot->idname= "WM_OT_memory_statistics";
 	ot->description= _("Print memory statistics to the console");
 	

@@ -183,8 +183,8 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 	}
 	
-	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object", -FLT_MAX, FLT_MAX);
-	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, _("Location"), _("Location for the newly added object"), -FLT_MAX, FLT_MAX);
+	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, _("Rotation"), _("Rotation for the newly added object"), -FLT_MAX, FLT_MAX);
 	
 	prop = RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -338,8 +338,8 @@ static int object_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Object";
-	ot->description = "Add an object to the scene";
+	ot->name= _("Add Object");
+	ot->description = _("Add an object to the scene");
 	ot->idname= "OBJECT_OT_add";
 	
 	/* api callbacks */
@@ -430,8 +430,8 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_effector_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Effector";
-	ot->description = "Add an empty object with a physics effector to the scene";
+	ot->name= _("Add Effector");
+	ot->description = _("Add an empty object with a physics effector to the scene");
 	ot->idname= "OBJECT_OT_effector_add";
 	
 	/* api callbacks */
@@ -485,8 +485,8 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Add Camera";
-	ot->description = "Add a camera object to the scene";
+	ot->name= _("Add Camera");
+	ot->description = _("Add a camera object to the scene");
 	ot->idname= "OBJECT_OT_camera_add";
 	
 	/* api callbacks */
@@ -563,8 +563,8 @@ static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void OBJECT_OT_metaball_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Metaball";
-	ot->description= "Add an metaball object to the scene";
+	ot->name= _("Add Metaball");
+	ot->description= _("Add an metaball object to the scene");
 	ot->idname= "OBJECT_OT_metaball_add";
 
 	/* api callbacks */
@@ -603,8 +603,8 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Text";
-	ot->description = "Add a text object to the scene";
+	ot->name= _("Add Text");
+	ot->description = _("Add a text object to the scene");
 	ot->idname= "OBJECT_OT_text_add";
 	
 	/* api callbacks */
@@ -772,8 +772,8 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Group Instance";
-	ot->description = "Add a dupligroup instance";
+	ot->name= _("Add Group Instance");
+	ot->description = _("Add a dupligroup instance");
 	ot->idname= "OBJECT_OT_group_instance_add";
 
 	/* api callbacks */
@@ -1704,8 +1704,8 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Duplicate Objects";
-	ot->description = "Duplicate selected objects";
+	ot->name= _("Duplicate Objects");
+	ot->description = _("Duplicate selected objects");
 	ot->idname= "OBJECT_OT_duplicate";
 	
 	/* api callbacks */
@@ -1775,8 +1775,8 @@ static int add_named_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_add_named(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Named Object";
-	ot->description = "Add named object";
+	ot->name= _("Add Named Object");
+	ot->description = _("Add named object");
 	ot->idname= "OBJECT_OT_add_named";
 	
 	/* api callbacks */
@@ -1882,8 +1882,8 @@ static int join_shapes_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_join_shapes(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Join as Shapes";
-	ot->description = "Merge selected objects to shapes of active object";
+	ot->name= _("Join as Shapes");
+	ot->description = _("Merge selected objects to shapes of active object");
 	ot->idname= "OBJECT_OT_join_shapes";
 	
 	/* api callbacks */

@@ -403,51 +403,51 @@ static void rna_def_userdef_theme_ui_wcol(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "ThemeWidgetColors", NULL);
 	RNA_def_struct_sdna(srna, "uiWidgetColors");
-	RNA_def_struct_ui_text(srna, "Theme Widget Color Set", "Theme settings for widget color sets");
+	RNA_def_struct_ui_text(srna, N_("Theme Widget Color Set"), N_("Theme settings for widget color sets"));
 		
 	prop= RNA_def_property(srna, "outline", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Outline", "");
+	RNA_def_property_ui_text(prop, N_("Outline"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "inner", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Inner", "");
+	RNA_def_property_ui_text(prop, N_("Inner"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "inner_sel", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Inner Selected", "");
+	RNA_def_property_ui_text(prop, N_("Inner Selected"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "item", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Item", "");
+	RNA_def_property_ui_text(prop, N_("Item"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "text", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Text", "");
+	RNA_def_property_ui_text(prop, N_("Text"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "text_sel", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Text Selected", "");
+	RNA_def_property_ui_text(prop, N_("Text Selected"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "show_shaded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shaded", 1);
-	RNA_def_property_ui_text(prop, "Shaded", "");
+	RNA_def_property_ui_text(prop, N_("Shaded"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "shadetop", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, -100, 100);
-	RNA_def_property_ui_text(prop, "Shade Top", "");
+	RNA_def_property_ui_text(prop, N_("Shade Top"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "shadedown", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, -100, 100);
-	RNA_def_property_ui_text(prop, "Shade Down", "");
+	RNA_def_property_ui_text(prop, N_("Shade Down"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
@@ -458,40 +458,40 @@ static void rna_def_userdef_theme_ui_wcol_state(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "ThemeWidgetStateColors", NULL);
 	RNA_def_struct_sdna(srna, "uiWidgetStateColors");
-	RNA_def_struct_ui_text(srna, "Theme Widget State Color", "Theme settings for widget state colors");
+	RNA_def_struct_ui_text(srna, N_("Theme Widget State Color"), N_("Theme settings for widget state colors"));
 		
 	prop= RNA_def_property(srna, "inner_anim", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Animated", "");
+	RNA_def_property_ui_text(prop, N_("Animated"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "inner_anim_sel", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Animated Selected", "");
+	RNA_def_property_ui_text(prop, N_("Animated Selected"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "inner_key", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Keyframe", "");
+	RNA_def_property_ui_text(prop, N_("Keyframe"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "inner_key_sel", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Keyframe Selected", "");
+	RNA_def_property_ui_text(prop, N_("Keyframe Selected"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "inner_driven", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Driven", "");
+	RNA_def_property_ui_text(prop, N_("Driven"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "inner_driven_sel", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Driven Selected", "");
+	RNA_def_property_ui_text(prop, N_("Driven Selected"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "blend", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_ui_text(prop, "Blend", "");
+	RNA_def_property_ui_text(prop, N_("Blend"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
@@ -628,7 +628,7 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "icon_file", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "iconfile");
-	RNA_def_property_ui_text(prop, "Icon File", "");
+	RNA_def_property_ui_text(prop, N_("Icon File"), "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
@@ -1713,28 +1713,28 @@ static void rna_def_userdef_theme_colorset(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeBoneColorSet", NULL);
 	RNA_def_struct_sdna(srna, "ThemeWireColor");
-	RNA_def_struct_ui_text(srna, "Theme Bone Color Set", "Theme settings for bone color sets");
+	RNA_def_struct_ui_text(srna, N_("Theme Bone Color Set"), N_("Theme settings for bone color sets"));
 
 	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "solid");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Normal", "Color used for the surface of bones");
+	RNA_def_property_ui_text(prop, N_("Normal"), N_("Color used for the surface of bones"));
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "select", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "select");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Select", "Color used for selected bones");
+	RNA_def_property_ui_text(prop, N_("Select"), N_("Color used for selected bones"));
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "active", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Active", "Color used for active bones");
+	RNA_def_property_ui_text(prop, N_("Active"), N_("Color used for active bones"));
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "show_colored_constraints", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TH_WIRECOLOR_CONSTCOLS);
-	RNA_def_property_ui_text(prop, "Colored Constraints", "Allow the use of colors indicating constraints/keyed status");
+	RNA_def_property_ui_text(prop, N_("Colored Constraints"), N_("Allow the use of colors indicating constraints/keyed status"));
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 

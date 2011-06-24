@@ -37,8 +37,8 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
 
         return {'CANCELLED'}
 
-rna_path_prop = StringProperty(name="Context Attributes",
-        description="rna context string", maxlen=1024, default="")
+rna_path_prop = StringProperty(name=_("Context Attributes"),
+        description=_("rna context string"), maxlen=1024, default="")
 
 rna_reverse_prop = BoolProperty(name="Reverse",
         description="Cycle backwards", default=False)
@@ -195,12 +195,12 @@ class WM_OT_context_set_string(bpy.types.Operator):  # same as enum
 class WM_OT_context_set_enum(bpy.types.Operator):
     '''Set a context value.'''
     bl_idname = "wm.context_set_enum"
-    bl_label = "Context Set Enum"
+    bl_label = _("Context Set Enum")
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value = StringProperty(name="Value",
-            description="Assignment value (as a string)",
+    value = StringProperty(name=_("Value"),
+            description=_("Assignment value (as a string)"),
             maxlen=1024, default="")
 
     execute = execute_context_assign

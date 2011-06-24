@@ -2036,8 +2036,8 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_switch_direction(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Switch Direction";
-	ot->description= "Switch direction of selected splines";
+	ot->name= _("Switch Direction");
+	ot->description= _("Switch direction of selected splines");
 	ot->idname= "CURVE_OT_switch_direction";
 	
 	/* api callbacks */
@@ -2084,8 +2084,8 @@ static int set_goal_weight_exec(bContext *C, wmOperator *op)
 void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Goal Weight";
-	ot->description= "Set softbody goal weight for selected points";
+	ot->name= _("Set Goal Weight");
+	ot->description= _("Set softbody goal weight for selected points");
 	ot->idname= "CURVE_OT_spline_weight_set";
 	
 	/* api callbacks */
@@ -2136,8 +2136,8 @@ static int set_radius_exec(bContext *C, wmOperator *op)
 void CURVE_OT_radius_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Curve Radius";
-	ot->description= "Set per-point radius which is used for bevel tapering";
+	ot->name= _("Set Curve Radius");
+	ot->description= _("Set per-point radius which is used for bevel tapering");
 	ot->idname= "CURVE_OT_radius_set";
 	
 	/* api callbacks */
@@ -2212,8 +2212,8 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Smooth";
-	ot->description= "Flatten angles of selected points";
+	ot->name= _("Smooth");
+	ot->description= _("Flatten angles of selected points");
 	ot->idname= "CURVE_OT_smooth";
 	
 	/* api callbacks */
@@ -2378,8 +2378,8 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_smooth_radius(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Smooth Curve Radius";
-	ot->description= "Flatten radiuses of selected points";
+	ot->name= _("Smooth Curve Radius");
+	ot->description= _("Flatten radiuses of selected points");
 	ot->idname= "CURVE_OT_smooth_radius";
 	
 	/* api clastbacks */
@@ -2532,7 +2532,7 @@ static int de_select_first_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_de_select_first(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect First";
+	ot->name= _("Select or Deselect First");
 	ot->idname= "CURVE_OT_de_select_first";
 	
 	/* api cfirstbacks */
@@ -2556,7 +2556,7 @@ static int de_select_last_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_de_select_last(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect Last";
+	ot->name= _("Select or Deselect Last");
 	ot->idname= "CURVE_OT_de_select_last";
 	
 	/* api clastbacks */
@@ -2634,7 +2634,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= _("Select or Deselect All");
 	ot->idname= "CURVE_OT_select_all";
 	
 	/* api callbacks */
@@ -2708,7 +2708,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 void CURVE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selected";
+	ot->name= _("Hide Selected");
 	ot->idname= "CURVE_OT_hide";
 	
 	/* api callbacks */
@@ -2768,7 +2768,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal Hidden";
+	ot->name= _("Reveal Hidden");
 	ot->idname= "CURVE_OT_reveal";
 	
 	/* api callbacks */
@@ -2826,7 +2826,7 @@ static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Inverse";
+	ot->name= _("Select Inverse");
 	ot->idname= "CURVE_OT_select_inverse";
 	
 	/* api callbacks */
@@ -3265,8 +3265,8 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 void CURVE_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Subdivide";
-	ot->description= "Subdivide selected segments";
+	ot->name= _("Subdivide");
+	ot->description= _("Subdivide selected segments");
 	ot->idname= "CURVE_OT_subdivide";
 	
 	/* api callbacks */
@@ -3583,8 +3583,8 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Set Spline Type";
-	ot->description = "Set type of active spline";
+	ot->name= _("Set Spline Type");
+	ot->description = _("Set type of active spline");
 	ot->idname= "CURVE_OT_spline_type_set";
 	
 	/* api callbacks */
@@ -4161,7 +4161,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 void CURVE_OT_make_segment(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Segment";
+	ot->name= _("Make Segment");
 	ot->idname= "CURVE_OT_make_segment";
 	
 	/* api callbacks */
@@ -4702,7 +4702,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CURVE_OT_vertex_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Vertex";
+	ot->name= _("Add Vertex");
 	ot->idname= "CURVE_OT_vertex_add";
 	
 	/* api callbacks */
@@ -4762,8 +4762,8 @@ static int extrude_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Extrude";
-	ot->description = "Extrude selected control point(s) and move";
+	ot->name= _("Extrude");
+	ot->description = _("Extrude selected control point(s) and move");
 	ot->idname= "CURVE_OT_extrude";
 	
 	/* api callbacks */
@@ -4891,8 +4891,8 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Toggle Cyclic";
-	ot->description = "Make active spline closed/opened loop";
+	ot->name= _("Toggle Cyclic");
+	ot->description = _("Make active spline closed/opened loop");
 	ot->idname= "CURVE_OT_cyclic_toggle";
 	
 	/* api callbacks */
@@ -4968,7 +4968,7 @@ static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 void CURVE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked All";
+	ot->name= _("Select Linked All");
 	ot->idname= "CURVE_OT_select_linked";
 
 	/* api callbacks */
@@ -5028,7 +5028,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Linked";
+	ot->name= _("Select Linked");
 	ot->idname= "CURVE_OT_select_linked_pick";
 
 	/* api callbacks */
@@ -5106,7 +5106,7 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_row(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Control Point Row";
+	ot->name= _("Select Control Point Row");
 	ot->idname= "CURVE_OT_select_row";
 	
 	/* api callbacks */
@@ -5133,7 +5133,7 @@ static int select_next_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_next(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Next";
+	ot->name= _("Select Next");
 	ot->idname= "CURVE_OT_select_next";
 	
 	/* api callbacks */
@@ -5160,7 +5160,7 @@ static int select_previous_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_previous(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Previous";
+	ot->name= _("Select Previous");
 	ot->idname= "CURVE_OT_select_previous";
 	
 	/* api callbacks */
@@ -5247,7 +5247,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select More";
+	ot->name= _("Select More");
 	ot->idname= "CURVE_OT_select_more";
 	
 	/* api callbacks */
@@ -5408,7 +5408,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Less";
+	ot->name= _("Select Less");
 	ot->idname= "CURVE_OT_select_less";
 	
 	/* api callbacks */
@@ -5471,7 +5471,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Random";
+	ot->name= _("Select Random");
 	ot->idname= "CURVE_OT_select_random";
 	
 	/* api callbacks */
@@ -5596,7 +5596,7 @@ static int select_nth_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_nth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Nth";
+	ot->name= _("Select Nth");
 	ot->description= "";
 	ot->idname= "CURVE_OT_select_nth";
 
@@ -5635,8 +5635,8 @@ static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Curve";
-	ot->description = "Duplicate selected control points and segments between them";
+	ot->name= _("Duplicate Curve");
+	ot->description = _("Duplicate selected control points and segments between them");
 	ot->idname= "CURVE_OT_duplicate";
 	
 	/* api callbacks */
@@ -6001,8 +6001,8 @@ void CURVE_OT_delete(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Delete";
-	ot->description = "Delete selected control points or segments";
+	ot->name= _("Delete");
+	ot->description = _("Delete selected control points or segments");
 	ot->idname= "CURVE_OT_delete";
 	
 	/* api callbacks */
@@ -6045,7 +6045,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 void CURVE_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Shade Smooth";
+	ot->name= _("Shade Smooth");
 	ot->idname= "CURVE_OT_shade_smooth";
 	
 	/* api callbacks */
@@ -6059,7 +6059,7 @@ void CURVE_OT_shade_smooth(wmOperatorType *ot)
 void CURVE_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Shade Flat";
+	ot->name= _("Shade Flat");
 	ot->idname= "CURVE_OT_shade_flat";
 	
 	/* api callbacks */
@@ -6638,8 +6638,8 @@ static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Bezier";
-	ot->description= "Construct a Bezier Curve";
+	ot->name= _("Add Bezier");
+	ot->description= _("Construct a Bezier Curve");
 	ot->idname= "CURVE_OT_primitive_bezier_curve_add";
 	
 	/* api callbacks */
@@ -6661,8 +6661,8 @@ static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Bezier Circle";
-	ot->description= "Construct a Bezier Circle";
+	ot->name= _("Add Bezier Circle");
+	ot->description= _("Construct a Bezier Circle");
 	ot->idname= "CURVE_OT_primitive_bezier_circle_add";
 	
 	/* api callbacks */
@@ -6684,8 +6684,8 @@ static int add_primitive_nurbs_curve_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Nurbs Curve";
-	ot->description= "Construct a Nurbs Curve";
+	ot->name= _("Add Nurbs Curve");
+	ot->description= _("Construct a Nurbs Curve");
 	ot->idname= "CURVE_OT_primitive_nurbs_curve_add";
 	
 	/* api callbacks */
@@ -6707,8 +6707,8 @@ static int add_primitive_nurbs_circle_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Nurbs Circle";
-	ot->description= "Construct a Nurbs Circle";
+	ot->name= _("Add Nurbs Circle");
+	ot->description= _("Construct a Nurbs Circle");
 	ot->idname= "CURVE_OT_primitive_nurbs_circle_add";
 	
 	/* api callbacks */
@@ -6730,8 +6730,8 @@ static int add_primitive_curve_path_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Path";
-	ot->description= "Construct a Path";
+	ot->name= _("Add Path");
+	ot->description= _("Construct a Path");
 	ot->idname= "CURVE_OT_primitive_nurbs_path_add";
 	
 	/* api callbacks */
@@ -6754,8 +6754,8 @@ static int add_primitive_nurbs_surface_curve_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Curve";
-	ot->description= "Construct a Nurbs surface Curve";
+	ot->name= _("Add Surface Curve");
+	ot->description= _("Construct a Nurbs surface Curve");
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_curve_add";
 	
 	/* api callbacks */
@@ -6777,8 +6777,8 @@ static int add_primitive_nurbs_surface_circle_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Circle";
-	ot->description= "Construct a Nurbs surface Circle";
+	ot->name= _("Add Surface Circle");
+	ot->description= _("Construct a Nurbs surface Circle");
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_circle_add";
 	
 	/* api callbacks */
@@ -6800,8 +6800,8 @@ static int add_primitive_nurbs_surface_surface_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Patch";
-	ot->description= "Construct a Nurbs surface Patch";
+	ot->name= _("Add Surface Patch");
+	ot->description= _("Construct a Nurbs surface Patch");
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_surface_add";
 	
 	/* api callbacks */
@@ -6823,8 +6823,8 @@ static int add_primitive_nurbs_surface_cylinder_exec(bContext *C, wmOperator *op
 void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Cylinder";
-	ot->description= "Construct a Nurbs surface Cylinder";
+	ot->name= _("Add Surface Cylinder");
+	ot->description= _("Construct a Nurbs surface Cylinder");
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_cylinder_add";
 	
 	/* api callbacks */
@@ -6846,8 +6846,8 @@ static int add_primitive_nurbs_surface_sphere_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Sphere";
-	ot->description= "Construct a Nurbs surface Sphere";
+	ot->name= _("Add Surface Sphere");
+	ot->description= _("Construct a Nurbs surface Sphere");
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_sphere_add";
 	
 	/* api callbacks */
@@ -6869,8 +6869,8 @@ static int add_primitive_nurbs_surface_torus_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Torus";
-	ot->description= "Construct a Nurbs surface Torus";
+	ot->name= _("Add Surface Torus");
+	ot->description= _("Construct a Nurbs surface Torus");
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_torus_add";
 	
 	/* api callbacks */
@@ -6924,7 +6924,7 @@ static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_tilt_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Tilt";
+	ot->name= _("Clear Tilt");
 	ot->idname= "CURVE_OT_tilt_clear";
 	
 	/* api callbacks */

@@ -1,19 +1,17 @@
-release/scripts/addons/io_anim_bvh/__init__.py
-release/scripts/addons/io_curve_svg/__init__.py
-release/scripts/addons/io_mesh_ply/__init__.py
-release/scripts/addons/io_scene_fbx/__init__.py
-release/scripts/addons/io_scene_x3d/__init__.py
-release/scripts/addons/rigify/metarigs/human.py
-release/scripts/addons/rigify/rigs/spine.py
-release/scripts/addons/rigify/utils.py
-
+release/scripts/startup/bl_operators/animsys_update.py
 release/scripts/startup/bl_operators/object.py
 release/scripts/startup/bl_operators/object_align.py
 release/scripts/startup/bl_operators/object_randomize_transform.py
+release/scripts/startup/bl_operators/presets.py
 release/scripts/startup/bl_operators/screen_play_rendered_anim.py
 release/scripts/startup/bl_operators/wm.py
 
+release/scripts/startup/bl_ui/properties_render.py
+release/scripts/startup/bl_ui/properties_texture.py
+
 release/scripts/startup/bl_ui/space_info.py
+release/scripts/startup/bl_ui/space_outliner.py
+release/scripts/startup/bl_ui/space_time.py
 release/scripts/startup/bl_ui/space_userpref.py
 release/scripts/startup/bl_ui/space_userpref_keymap.py
 release/scripts/startup/bl_ui/space_view3d.py
@@ -35,8 +33,11 @@ source/blender/editors/armature/poseSlide.c
 source/blender/editors/curve/editcurve.c
 source/blender/editors/curve/editfont.c
 
+source/blender/editors/gpencil/gpencil_paint.c
+
 source/blender/editors/interface/interface_layout.c
 source/blender/editors/interface/interface_ops.c
+source/blender/editors/interface/interface_regions.c
 source/blender/editors/interface/interface_templates.c
 source/blender/editors/interface/interface_utils.c
 source/blender/editors/interface/view2d_ops.c
@@ -75,6 +76,7 @@ source/blender/editors/sculpt_paint/sculpt.c
 source/blender/editors/sound/sound_ops.c
 
 source/blender/editors/space_action/action_select.c
+source/blender/editors/space_buttons/buttons_ops.c
 source/blender/editors/space_console/console_ops.c
 
 source/blender/editors/space_file/file_draw.c
@@ -108,8 +110,10 @@ source/blender/editors/space_sequencer/sequencer_edit.c
 source/blender/editors/space_sequencer/sequencer_select.c
 
 source/blender/editors/space_text/text_ops.c
+source/blender/editors/space_time/time_ops.c
 
 source/blender/editors/space_view3d/view3d_buttons.c
+source/blender/editors/space_view3d/view3d_draw.c
 source/blender/editors/space_view3d/view3d_edit.c
 source/blender/editors/space_view3d/view3d_fly.c
 source/blender/editors/space_view3d/view3d_header.c
@@ -118,6 +122,7 @@ source/blender/editors/space_view3d/view3d_view.c
 source/blender/editors/space_view3d/view3d_toolbar.c
 
 source/blender/editors/transform/transform_ops.c
+source/blender/editors/transform/transform_orientations.c
 
 source/blender/editors/util/undo.c
 
@@ -128,10 +133,12 @@ source/blender/makesrna/intern/rna_curve.c
 source/blender/makesrna/intern/rna_ID.c
 source/blender/makesrna/intern/rna_object.c
 source/blender/makesrna/intern/rna_object_force.c
+source/blender/makesrna/intern/rna_render.c
 source/blender/makesrna/intern/rna_scene.c
 source/blender/makesrna/intern/rna_space.c
 source/blender/makesrna/intern/rna_ui_api.c
 source/blender/makesrna/intern/rna_userdef.c
+source/blender/makesrna/intern/rna_wm.c
 source/blender/makesrna/intern/rna_wm_api.c
 
 source/blender/windowmanager/intern/wm_files.c

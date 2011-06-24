@@ -1587,9 +1587,9 @@ static int object_calculate_paths_exec (bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_paths_calculate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Calculate Object Paths";
+	ot->name= _("Calculate Object Paths");
 	ot->idname= "OBJECT_OT_paths_calculate";
-	ot->description= "Calculate paths for the selected bones";
+	ot->description= _("Calculate paths for the selected bones");
 	
 	/* api callbacks */
 	ot->exec= object_calculate_paths_exec;
@@ -1633,7 +1633,7 @@ void OBJECT_OT_paths_clear (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clear Object Paths";
 	ot->idname= "OBJECT_OT_paths_clear";
-	ot->description= "Clear path caches for selected bones";
+	ot->description= _("Clear path caches for selected bones");
 	
 	/* api callbacks */
 	ot->exec= object_clear_paths_exec;
@@ -1690,8 +1690,8 @@ static int shade_poll(bContext *C)
 void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Shade Flat";
-	ot->description= "Display faces 'smooth' (using vertext normals)";
+	ot->name= _("Shade Flat");
+	ot->description= _("Display faces 'smooth' (using vertext normals)");
 	ot->idname= "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
@@ -1705,8 +1705,8 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Shade Smooth";
-	ot->description= "Display faces 'flat'";
+	ot->name= _("Shade Smooth");
+	ot->description= _("Display faces 'flat'");
 	ot->idname= "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */

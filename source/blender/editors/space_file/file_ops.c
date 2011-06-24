@@ -295,8 +295,8 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 void FILE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Activate/Select File";
-	ot->description= "Activate/select the file(s) contained in the border";
+	ot->name= _("Activate/Select File");
+	ot->description= _("Activate/select the file(s) contained in the border");
 	ot->idname= "FILE_OT_select_border";
 	
 	/* api callbacks */
@@ -346,8 +346,8 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void FILE_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Activate/Select File";
-	ot->description= "Activate/select file";
+	ot->name= _("Activate/Select File");
+	ot->description= _("Activate/select file");
 	ot->idname= "FILE_OT_select";
 	
 	/* api callbacks */
@@ -393,8 +393,8 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 void FILE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select/Deselect All Files";
-	ot->description= "Select/deselect all files";
+	ot->name= _("Select/Deselect All Files");
+	ot->description= _("Select/deselect all files");
 	ot->idname= "FILE_OT_select_all_toggle";
 	
 	/* api callbacks */
@@ -430,8 +430,8 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 void FILE_OT_select_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Directory";
-	ot->description= "Select a bookmarked directory";
+	ot->name= _("Select Directory");
+	ot->description= _("Select a bookmarked directory");
 	ot->idname= "FILE_OT_select_bookmark";
 	
 	/* api callbacks */
@@ -463,7 +463,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 void FILE_OT_bookmark_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Bookmark";
+	ot->name= _("Add Bookmark");
 	ot->description= _("Add a bookmark for the selected/active directory");
 	ot->idname= "FILE_OT_bookmark_add";
 	
@@ -496,8 +496,8 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 void FILE_OT_delete_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Bookmark";
-	ot->description= "Delete selected bookmark";
+	ot->name= _("Delete Bookmark");
+	ot->description= _("Delete selected bookmark");
 	ot->idname= "FILE_OT_delete_bookmark";
 	
 	/* api callbacks */
@@ -558,8 +558,8 @@ static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 void FILE_OT_highlight(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Highlight File";
-	ot->description= "Highlight selected file(s)";
+	ot->name= _("Highlight File");
+	ot->description= _("Highlight selected file(s)");
 	ot->idname= "FILE_OT_highlight";
 	
 	/* api callbacks */
@@ -592,8 +592,8 @@ static int file_operator_poll(bContext *C)
 void FILE_OT_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Cancel File Load";
-	ot->description= "Cancel loading of selected file";
+	ot->name= _("Cancel File Load");
+	ot->description= _("Cancel loading of selected file");
 	ot->idname= "FILE_OT_cancel";
 	
 	/* api callbacks */
@@ -752,8 +752,8 @@ int file_exec(bContext *C, wmOperator *exec_op)
 void FILE_OT_execute(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Execute File Window";
-	ot->description= "Execute selected file";
+	ot->name= _("Execute File Window");
+	ot->description= _("Execute selected file");
 	ot->idname= "FILE_OT_execute";
 	
 	/* api callbacks */
@@ -785,8 +785,8 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_parent(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Parent File";
-	ot->description= "Move to parent directory";
+	ot->name= _("Parent File");
+	ot->description= _("Move to parent directory");
 	ot->idname= "FILE_OT_parent";
 	
 	/* api callbacks */
@@ -810,8 +810,8 @@ static int file_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_previous(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Previous Folder";
-	ot->description= "Move to previous folder";
+	ot->name= _("Previous Folder");
+	ot->description= _("Move to previous folder");
 	ot->idname= "FILE_OT_previous";
 	
 	/* api callbacks */
@@ -841,8 +841,8 @@ int file_previous_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_next(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Next Folder";
-	ot->description= "Move to next folder";
+	ot->name= _("Next Folder");
+	ot->description= _("Move to next folder");
 	ot->idname= "FILE_OT_next";
 	
 	/* api callbacks */
@@ -968,9 +968,9 @@ void FILE_OT_smoothscroll(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Smooth Scroll";
+	ot->name= _("Smooth Scroll");
 	ot->idname= "FILE_OT_smoothscroll";
-	ot->description="Smooth scroll to make editable file visible.";
+	ot->description=_("Smooth scroll to make editable file visible.");
 	
 	/* api callbacks */
 	ot->invoke= file_smoothscroll_invoke;
@@ -1192,8 +1192,8 @@ static int file_hidedot_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_hidedot(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Hide Dot Files";
-	ot->description= "Toggle hide hidden dot files";
+	ot->name= _("Toggle Hide Dot Files");
+	ot->description= _("Toggle hide hidden dot files");
 	ot->idname= "FILE_OT_hidedot";
 	
 	/* api callbacks */
@@ -1242,8 +1242,8 @@ static int file_bookmark_toggle_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Bookmarks";
-	ot->description= "Toggle bookmarks display";
+	ot->name= _("Toggle Bookmarks");
+	ot->description= _("Toggle bookmarks display");
 	ot->idname= "FILE_OT_bookmark_toggle";
 	
 	/* api callbacks */
@@ -1272,8 +1272,8 @@ static int file_filenum_exec(bContext *C, wmOperator *op)
 void FILE_OT_filenum(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Increment Number in Filename";
-	ot->description= "Increment number in filename";
+	ot->name= _("Increment Number in Filename");
+	ot->description= _("Increment number in filename");
 	ot->idname= "FILE_OT_filenum";
 	
 	/* api callbacks */
@@ -1326,8 +1326,8 @@ static int file_rename_poll(bContext *C)
 void FILE_OT_rename(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Rename File or Directory";
-	ot->description= "Rename file or file directory";
+	ot->name= _("Rename File or Directory");
+	ot->description= _("Rename file or file directory");
 	ot->idname= "FILE_OT_rename";
 	
 	/* api callbacks */
@@ -1378,8 +1378,8 @@ int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void FILE_OT_delete(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete File";
-	ot->description= "Delete selected file";
+	ot->name= _("Delete File");
+	ot->description= _("Delete selected file");
 	ot->idname= "FILE_OT_delete";
 	
 	/* api callbacks */

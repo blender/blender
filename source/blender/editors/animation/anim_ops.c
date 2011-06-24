@@ -333,9 +333,9 @@ static int toggle_time_exec(bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_time_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Frames/Seconds";
+	ot->name= _("Toggle Frames/Seconds");
 	ot->idname= "ANIM_OT_time_toggle";
-	ot->description= "Toggle whether timing is displayed in frames or seconds for active timeline view";
+	ot->description= _("Toggle whether timing is displayed in frames or seconds for active timeline view");
 	
 	/* api callbacks */
 	ot->exec= toggle_time_exec;

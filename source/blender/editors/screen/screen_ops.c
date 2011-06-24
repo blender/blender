@@ -2447,7 +2447,7 @@ static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Repeat History";
-	ot->description= "Display menu for previous actions performed";
+	ot->description= _("Display menu for previous actions performed");
 	ot->idname= "SCREEN_OT_repeat_history";
 	
 	/* api callbacks */
@@ -3168,7 +3168,7 @@ static void SCREEN_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "New Screen";
-	ot->description= "Add a new screen";
+	ot->description= _("Add a new screen");
 	ot->idname= "SCREEN_OT_new";
 	
 	/* api callbacks */
@@ -3193,8 +3193,8 @@ static int screen_delete_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Screen"; //was scene
-	ot->description= "Delete active screen";
+	ot->name= _("Delete Screen"); //was scene
+	ot->description= _("Delete active screen");
 	ot->idname= "SCREEN_OT_delete";
 	
 	/* api callbacks */
@@ -3240,16 +3240,16 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 static void SCENE_OT_new(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{SCE_COPY_NEW, "NEW", 0, "New", "Add new scene"},
-		{SCE_COPY_EMPTY, "EMPTY", 0, "Copy Settings", "Make a copy without any objects"},
-		{SCE_COPY_LINK_OB, "LINK_OBJECTS", 0, "Link Objects", "Link to the objects from the current scene"},
-		{SCE_COPY_LINK_DATA, "LINK_OBJECT_DATA", 0, "Link Object Data", "Copy objects linked to data from the current scene"},
-		{SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy", "Make a full copy of the current scene"},
+		{SCE_COPY_NEW, "NEW", 0, N_("New"), N_("Add new scene")},
+		{SCE_COPY_EMPTY, "EMPTY", 0, N_("Copy Settings"), N_("Make a copy without any objects")},
+		{SCE_COPY_LINK_OB, "LINK_OBJECTS", 0, N_("Link Objects"), N_("Link to the objects from the current scene")},
+		{SCE_COPY_LINK_DATA, "LINK_OBJECT_DATA", 0, N_("Link Object Data"), N_("Copy objects linked to data from the current scene")},
+		{SCE_COPY_FULL, "FULL_COPY", 0, N_("Full Copy"), N_("Make a full copy of the current scene")},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* identifiers */
-	ot->name= "New Scene";
-	ot->description= "Add new scene by type";
+	ot->name= _("New Scene");
+	ot->description= _("Add new scene by type");
 	ot->idname= "SCENE_OT_new";
 	
 	/* api callbacks */
@@ -3260,7 +3260,7 @@ static void SCENE_OT_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(type_items), 0, "Type", "");
 }
 
 /********************* delete scene operator *********************/
@@ -3277,8 +3277,8 @@ static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCENE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Scene";
-	ot->description= "Delete active scene";
+	ot->name= _("Delete Scene");
+	ot->description= _("Delete active scene");
 	ot->idname= "SCENE_OT_delete";
 	
 	/* api callbacks */

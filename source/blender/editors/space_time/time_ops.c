@@ -39,6 +39,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 
 #include "ED_screen.h"
@@ -161,9 +163,9 @@ static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
 static void TIME_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
+	ot->name= _("View All");
 	ot->idname= "TIME_OT_view_all";
-	ot->description= "Show the entire playable frame range";
+	ot->description= _("Show the entire playable frame range");
 	
 	/* api callbacks */
 	ot->exec= time_view_all_exec;

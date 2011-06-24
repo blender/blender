@@ -126,7 +126,22 @@ void RNA_struct_gettexted( StructRNA* ptr )
 
 void RNA_types_init_gettext()
 {
-	StructRNA* target_struct[] = { &RNA_UserPreferences, &RNA_Theme, NULL };
+	StructRNA* target_struct[] = {
+			&RNA_UserPreferences, &RNA_UserPreferencesEdit, &RNA_UserPreferencesFilePaths,
+			&RNA_UserPreferencesInput, &RNA_UserPreferencesSystem, &RNA_UserPreferencesView,
+
+			&RNA_RenderLayer, &RNA_RenderSettings,
+			&RNA_SpaceOutliner, &RNA_SpaceView3D, &RNA_SpaceTimeline, &RNA_SpaceUserPreferences,
+			&RNA_Theme, &RNA_ThemeBoneColorSet, &RNA_ThemeWidgetColors,
+
+			&RNA_ToolSettings,
+			&RNA_ID,
+			&RNA_FileSelectParams,
+			&RNA_KeyMapItem,
+
+			/* for test */
+			NULL
+	};
 	int i=0;
 	for( i=0; target_struct[i]!=NULL; i++ )
 	{

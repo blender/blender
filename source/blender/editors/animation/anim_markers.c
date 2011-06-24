@@ -1437,8 +1437,8 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 static void MARKER_OT_camera_bind(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bind Camera to Markers";
-	ot->description= "Bind the active camera to selected markers(s)";
+	ot->name= _("Bind Camera to Markers");
+	ot->description= _("Bind the active camera to selected markers(s)");
 	ot->idname= "MARKER_OT_camera_bind";
 
 	/* api callbacks */

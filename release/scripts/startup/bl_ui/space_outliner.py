@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from blf import gettext as _
 
 
 class OUTLINER_HT_header(bpy.types.Header):
@@ -64,7 +65,7 @@ class OUTLINER_HT_header(bpy.types.Header):
 
 
 class OUTLINER_MT_view(bpy.types.Menu):
-    bl_label = "View"
+    bl_label = _("View")
 
     def draw(self, context):
         layout = self.layout
@@ -87,7 +88,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
 
 
 class OUTLINER_MT_search(bpy.types.Menu):
-    bl_label = "Search"
+    bl_label = _("Search")
 
     def draw(self, context):
         layout = self.layout
@@ -101,7 +102,7 @@ class OUTLINER_MT_search(bpy.types.Menu):
 
 
 class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
-    bl_label = "Edit"
+    bl_label = _("Edit")
 
     def draw(self, context):
         layout = self.layout

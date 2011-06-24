@@ -412,7 +412,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 void INFO_OT_reports_display_update(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Update Reports Display";
+	ot->name= _("Update Reports Display");
 	ot->idname= "INFO_OT_reports_display_update";
 	
 	/* api callbacks */

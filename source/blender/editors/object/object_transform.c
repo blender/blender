@@ -918,9 +918,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_origin_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_set_center_types[] = {
-		{GEOMETRY_TO_ORIGIN, "GEOMETRY_ORIGIN", 0, "Geometry to Origin", "Move object geometry to object origin"},
-		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, "Origin to Geometry", "Move object origin to center of object geometry"},
-		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor", "Move object origin to position of the 3d cursor"},
+		{GEOMETRY_TO_ORIGIN, "GEOMETRY_ORIGIN", 0, N_("Geometry to Origin"), N_("Move object geometry to object origin")},
+		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, N_("Origin to Geometry"), N_("Move object origin to center of object geometry")},
+		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, N_("Origin to 3D Cursor"), N_("Move object origin to position of the 3d cursor")},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -931,8 +931,8 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	};
 	
 	/* identifiers */
-	ot->name= "Set Origin";
-	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor";
+	ot->name= _("Set Origin");
+	ot->description = _("Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor");
 	ot->idname= "OBJECT_OT_origin_set";
 	
 	/* api callbacks */
@@ -944,7 +944,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_set_center_types), 0, "Type", "");
 	RNA_def_enum(ot->srna, "center", prop_set_bounds_types, V3D_CENTROID, "Center", "");
 }
 

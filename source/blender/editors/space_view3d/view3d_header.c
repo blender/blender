@@ -278,9 +278,9 @@ static char *view3d_modeselect_pup(Scene *scene)
 	static char formatstr[] = "|%s %%x%d %%i%d";
 	char *str = string;
 
-	str += sprintf(str, "Mode: %%t");
+	str += sprintf(str, _("Mode: %%t"));
 	
-	str += sprintf(str, formatstr, "Object Mode", OB_MODE_OBJECT, ICON_OBJECT_DATA);
+	str += sprintf(str, formatstr, _("Object Mode"), OB_MODE_OBJECT, ICON_OBJECT_DATA);
 	
 	if(ob==NULL) return string;
 	
@@ -289,31 +289,31 @@ static char *view3d_modeselect_pup(Scene *scene)
 		|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
 		|| (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
 		
-		str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
+		str += sprintf(str, formatstr, _("Edit Mode"), OB_MODE_EDIT, ICON_EDITMODE_HLT);
 	}
 	else if (ob->type == OB_ARMATURE) {
 		if (ob->mode & OB_MODE_POSE)
-			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT|OB_MODE_POSE, ICON_EDITMODE_HLT);
+			str += sprintf(str, formatstr, _("Edit Mode"), OB_MODE_EDIT|OB_MODE_POSE, ICON_EDITMODE_HLT);
 		else
-			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
+			str += sprintf(str, formatstr, _("Edit Mode"), OB_MODE_EDIT, ICON_EDITMODE_HLT);
 	}
 
 	if (ob->type == OB_MESH) {
 
-		str += sprintf(str, formatstr, "Sculpt Mode", OB_MODE_SCULPT, ICON_SCULPTMODE_HLT);
-		str += sprintf(str, formatstr, "Vertex Paint", OB_MODE_VERTEX_PAINT, ICON_VPAINT_HLT);
-		str += sprintf(str, formatstr, "Texture Paint", OB_MODE_TEXTURE_PAINT, ICON_TPAINT_HLT);
-		str += sprintf(str, formatstr, "Weight Paint", OB_MODE_WEIGHT_PAINT, ICON_WPAINT_HLT);
+		str += sprintf(str, formatstr, _("Sculpt Mode"), OB_MODE_SCULPT, ICON_SCULPTMODE_HLT);
+		str += sprintf(str, formatstr, _("Vertex Paint"), OB_MODE_VERTEX_PAINT, ICON_VPAINT_HLT);
+		str += sprintf(str, formatstr, _("Texture Paint"), OB_MODE_TEXTURE_PAINT, ICON_TPAINT_HLT);
+		str += sprintf(str, formatstr, _("Weight Paint"), OB_MODE_WEIGHT_PAINT, ICON_WPAINT_HLT);
 	}
 
 	
 	/* if active object is an armature */
 	if (ob->type==OB_ARMATURE) {
-		str += sprintf(str, formatstr, "Pose Mode", OB_MODE_POSE, ICON_POSE_HLT);
+		str += sprintf(str, formatstr, _("Pose Mode"), OB_MODE_POSE, ICON_POSE_HLT);
 	}
 
 	if (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody)) {
-		str += sprintf(str, formatstr, "Particle Mode", OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
+		str += sprintf(str, formatstr, _("Particle Mode"), OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
 	}
 	(void)str;
 	return (string);
@@ -487,7 +487,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 	uiBlockBeginAlign(block);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 
-			  0,0,126 * dpi_fac, UI_UNIT_Y, &(v3d->modeselect), 0, 0, 0, 0, "Mode");
+			  0,0,126 * dpi_fac, UI_UNIT_Y, &(v3d->modeselect), 0, 0, 0, 0, _("Mode"));
 	uiBlockEndAlign(block);
 	
 	/* Draw type */
@@ -524,17 +524,17 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		block= uiLayoutGetBlock(row);
 		
 		if(v3d->twflag & V3D_USE_MANIPULATOR) {
-			uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode");
-			uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode");
-			uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode");
+			uiDefIconButBitC(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, _("Translate manipulator mode"));
+			uiDefIconButBitC(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, _("Rotate manipulator mode"));
+			uiDefIconButBitC(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, 0,0,UI_UNIT_X,UI_UNIT_Y, &v3d->twtype, 1.0, 0.0, 0, 0, _("Scale manipulator mode"));
 		}
 			
 		if (v3d->twmode > (BIF_countTransformOrientation(C) - 1) + V3D_MANIP_CUSTOM) {
 			v3d->twmode = 0;
 		}
 			
-		str_menu = BIF_menustringTransformOrientation(C, "Orientation");
-		uiDefButC(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, UI_UNIT_Y, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation");
+		str_menu = BIF_menustringTransformOrientation(C, _("Orientation"));
+		uiDefButC(block, MENU, B_MAN_MODE, str_menu,0,0,70 * dpi_fac, UI_UNIT_Y, &v3d->twmode, 0, 0, 0, 0, _("Transform Orientation"));
 		MEM_freeN((void *)str_menu);
 	}
 

@@ -1197,7 +1197,7 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Insert Keyframe Menu";
 	ot->idname= "ANIM_OT_keyframe_insert_menu";
-	ot->description= "Insert Keyframes for specified Keying Set, with menu of available Keying Sets if undefined";
+	ot->description= _("Insert Keyframes for specified Keying Set, with menu of available Keying Sets if undefined");
 	
 	/* callbacks */
 	ot->invoke= insert_key_menu_invoke;
@@ -1362,7 +1362,7 @@ void ANIM_OT_keyframe_delete_v3d (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframe";
-	ot->description= "Remove keyframes on current frame for selected object";
+	ot->description= _("Remove keyframes on current frame for selected object");
 	ot->idname= "ANIM_OT_keyframe_delete_v3d";
 	
 	/* callbacks */

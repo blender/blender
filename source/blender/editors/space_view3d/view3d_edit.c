@@ -917,8 +917,8 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Rotate view";
-	ot->description = "Rotate the view";
+	ot->name= _("Rotate view");
+	ot->description = _("Rotate the view");
 	ot->idname= "VIEW3D_OT_rotate";
 
 	/* api callbacks */
@@ -1079,8 +1079,8 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Move view";
-	ot->description = "Move the view";
+	ot->name= _("Move view");
+	ot->description = _("Move the view");
 	ot->idname= "VIEW3D_OT_move";
 
 	/* api callbacks */
@@ -1442,8 +1442,8 @@ static int viewzoom_cancel(bContext *C, wmOperator *op)
 void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom View";
-	ot->description = "Zoom in/out in the view";
+	ot->name= _("Zoom View");
+	ot->description = _("Zoom in/out in the view");
 	ot->idname= "VIEW3D_OT_zoom";
 
 	/* api callbacks */
@@ -1676,8 +1676,8 @@ static int viewdolly_cancel(bContext *C, wmOperator *op)
 void VIEW3D_OT_dolly(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Dolly view";
-	ot->description = "Dolly in/out in the view";
+	ot->name= _("Dolly view");
+	ot->description = _("Dolly in/out in the view");
 	ot->idname= "VIEW3D_OT_dolly";
 
 	/* api callbacks */
@@ -2006,8 +2006,8 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Camera Center";
-	ot->description = "Center the camera view";
+	ot->name= _("View Camera Center");
+	ot->description = _("Center the camera view");
 	ot->idname= "VIEW3D_OT_view_center_camera";
 
 	/* api callbacks */
@@ -2071,8 +2071,8 @@ static int render_border_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Render Border";
-	ot->description = "Set the boundaries of the border render and enables border render ";
+	ot->name= _("Set Render Border");
+	ot->description = _("Set the boundaries of the border render and enables border render ");
 	ot->idname= "VIEW3D_OT_render_border";
 
 	/* api callbacks */
@@ -2227,8 +2227,8 @@ static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event
 void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Zoom";
-	ot->description = "Zoom in the view to the nearest object contained in the border";
+	ot->name= _("Border Zoom");
+	ot->description = _("Zoom in the view to the nearest object contained in the border");
 	ot->idname= "VIEW3D_OT_zoom_border";
 
 	/* api callbacks */
@@ -2278,8 +2278,8 @@ static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom Camera 1:1";
-	ot->description = "Match the camera to 1:1 to the render output";
+	ot->name= _("Zoom Camera 1:1");
+	ot->description = _("Match the camera to 1:1 to the render output");
 	ot->idname= "VIEW3D_OT_zoom_camera_1_to_1";
 
 	/* api callbacks */
@@ -2293,13 +2293,13 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 /* ********************* Changing view operator ****************** */
 
 static EnumPropertyItem prop_view_items[] = {
-	{RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
-	{RV3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
-	{RV3D_VIEW_LEFT, "LEFT", 0, "Left", "View From the Left"},
-	{RV3D_VIEW_RIGHT, "RIGHT", 0, "Right", "View From the Right"},
-	{RV3D_VIEW_TOP, "TOP", 0, "Top", "View From the Top"},
-	{RV3D_VIEW_BOTTOM, "BOTTOM", 0, "Bottom", "View From the Bottom"},
-	{RV3D_VIEW_CAMERA, "CAMERA", 0, "Camera", "View From the active amera"},
+	{RV3D_VIEW_FRONT, "FRONT", 0, N_("Front"), N_("View From the Front")},
+	{RV3D_VIEW_BACK, "BACK", 0, N_("Back"), N_("View From the Back")},
+	{RV3D_VIEW_LEFT, "LEFT", 0, N_("Left"), N_("View From the Left")},
+	{RV3D_VIEW_RIGHT, "RIGHT", 0, N_("Right"), N_("View From the Right")},
+	{RV3D_VIEW_TOP, "TOP", 0, N_("Top"), N_("View From the Top")},
+	{RV3D_VIEW_BOTTOM, "BOTTOM", 0, N_("Bottom"), N_("View From the Bottom")},
+	{RV3D_VIEW_CAMERA, "CAMERA", 0, N_("Camera"), N_("View From the active amera")},
 	{0, NULL, 0, NULL, NULL}};
 
 
@@ -2569,8 +2569,8 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Orbit";
-	ot->description = "Orbit the view";
+	ot->name= _("View Orbit");
+	ot->description = _("Orbit the view");
 	ot->idname= "VIEW3D_OT_view_orbit";
 
 	/* api callbacks */
@@ -2617,8 +2617,8 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_view_pan(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Pan";
-	ot->description = "Pan the view";
+	ot->name= _("View Pan");
+	ot->description = _("Pan the view");
 	ot->idname= "VIEW3D_OT_view_pan";
 
 	/* api callbacks */
@@ -2726,8 +2726,8 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Add Background Image";
-	ot->description= "Add a new background image";
+	ot->name   = _("Add Background Image");
+	ot->description= _("Add a new background image");
 	ot->idname = "VIEW3D_OT_background_image_add";
 
 	/* api callbacks */
@@ -2739,8 +2739,8 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	ot->flag   = 0;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign.");
-	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
+	RNA_def_string(ot->srna, "name", "Image", 24, _("Name"), _("Image name to assign."));
+	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, _("Filepath"), _("Path to image file"));
 }
 
 
@@ -2767,8 +2767,8 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Remove Background Image";
-	ot->description= "Remove a background image from the 3D view";
+	ot->name   = _("Remove Background Image");
+	ot->description= _("Remove a background image from the 3D view");
 	ot->idname = "VIEW3D_OT_background_image_remove";
 
 	/* api callbacks */
@@ -2866,8 +2866,8 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Clipping Border";
-	ot->description = "Set the view clipping border";
+	ot->name= _("Clipping Border");
+	ot->description = _("Set the view clipping border");
 	ot->idname= "VIEW3D_OT_clip_border";
 
 	/* api callbacks */
@@ -2959,8 +2959,8 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Set 3D Cursor";
-	ot->description = "Set the location of the 3D cursor";
+	ot->name= _("Set 3D Cursor");
+	ot->description = _("Set the location of the 3D cursor");
 	ot->idname= "VIEW3D_OT_cursor3d";
 
 	/* api callbacks */
@@ -3001,8 +3001,8 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "3D Manipulator";
-	ot->description = "Manipulate selected item by axis";
+	ot->name= _("3D Manipulator");
+	ot->description = _("Manipulate selected item by axis");
 	ot->idname= "VIEW3D_OT_manipulator";
 
 	/* api callbacks */

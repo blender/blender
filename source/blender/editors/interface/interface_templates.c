@@ -300,29 +300,29 @@ static const char *template_id_browse_tip(StructRNA *type)
 {
 	if(type) {
 		switch(RNA_type_to_ID_code(type)) {
-			case ID_SCE: return "Browse Scene to be linked";
-			case ID_OB: return "Browse Object to be linked";
-			case ID_ME: return "Browse Mesh Data to be linked";
-			case ID_CU: return "Browse Curve Data to be linked";
-			case ID_MB: return "Browse MetaBall Data to be linked";
-			case ID_MA: return "Browse Material to be linked";
-			case ID_TE: return "Browse Texture to be linked";
-			case ID_IM: return "Browse Image to be linked";
-			case ID_LA: return "Browse Lattice Data to be linked";
-			case ID_CA: return "Browse Camera Data to be linked";
-			case ID_WO: return "Browse World Settings to be linked";
-			case ID_SCR: return "Choose Screen lay-out";
-			case ID_TXT: return "Browse Text to be linked";
-			case ID_SO: return "Browse Sound to be linked";
-			case ID_AR: return "Browse Armature data to be linked";
-			case ID_AC: return "Browse Action to be linked";
-			case ID_NT: return "Browse Node Tree to be linked";
-			case ID_BR: return "Browse Brush to be linked";
-			case ID_PA: return "Browse Particle System to be linked";
-			case ID_GD: return "Browse Grease Pencil Data to be linked";
+			case ID_SCE: return _("Browse Scene to be linked");
+			case ID_OB: return _("Browse Object to be linked");
+			case ID_ME: return _("Browse Mesh Data to be linked");
+			case ID_CU: return _("Browse Curve Data to be linked");
+			case ID_MB: return _("Browse MetaBall Data to be linked");
+			case ID_MA: return _("Browse Material to be linked");
+			case ID_TE: return _("Browse Texture to be linked");
+			case ID_IM: return _("Browse Image to be linked");
+			case ID_LA: return _("Browse Lattice Data to be linked");
+			case ID_CA: return _("Browse Camera Data to be linked");
+			case ID_WO: return _("Browse World Settings to be linked");
+			case ID_SCR: return _("Choose Screen lay-out");
+			case ID_TXT: return _("Browse Text to be linked");
+			case ID_SO: return _("Browse Sound to be linked");
+			case ID_AR: return _("Browse Armature data to be linked");
+			case ID_AC: return _("Browse Action to be linked");
+			case ID_NT: return _("Browse Node Tree to be linked");
+			case ID_BR: return _("Browse Brush to be linked");
+			case ID_PA: return _("Browse Particle System to be linked");
+			case ID_GD: return _("Browse Grease Pencil Data to be linked");
 		}
 	}
-	return "Browse ID data to be linked";
+	return _("Browse ID data to be linked");
 }
 
 static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag, const char *newop, const char *openop, const char *unlinkop)

@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-
+from blf import gettext as _
 
 class AddPresetBase():
     '''Base preset class, only for subclassing
@@ -254,8 +254,9 @@ class AddPresetSunSky(AddPresetBase, bpy.types.Operator):
 class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     '''Add an Application Interaction Preset'''
     bl_idname = "wm.interaction_preset_add"
-    bl_label = "Add Interaction Preset"
+    bl_label = _("Add Interaction Preset")
     preset_menu = "USERPREF_MT_interaction_presets"
+    __doc__ = _('Add an Application Interaction Preset')
 
     preset_defines = [
         "user_preferences = bpy.context.user_preferences"
@@ -283,6 +284,7 @@ class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
     bl_label = "Add Keyconfig Preset"
     preset_menu = "USERPREF_MT_keyconfigs"
     preset_subdir = "keyconfig"
+    __doc__ = _('Add a Keyconfig Preset')
 
     def add(self, context, filepath):
         bpy.ops.wm.keyconfig_export(filepath=filepath)
@@ -303,8 +305,9 @@ class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
 class AddPresetOperator(AddPresetBase, bpy.types.Operator):
     '''Add an Application Interaction Preset'''
     bl_idname = "wm.operator_preset_add"
-    bl_label = "Operator Preset"
+    bl_label = _("Operator Preset")
     preset_menu = "WM_MT_operator_presets"
+    __doc__ = _("Add an Application Interaction Preset")
 
     operator = bpy.props.StringProperty(name="Operator", maxlen=64, options={'HIDDEN'})
 

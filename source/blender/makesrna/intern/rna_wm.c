@@ -33,6 +33,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "BLF_api.h"
+
 #include "rna_internal.h"
 
 #include "DNA_screen_types.h"
@@ -63,12 +65,12 @@ EnumPropertyItem event_tweak_value_items[]= {
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem event_value_items[] = {
-	{KM_ANY, "ANY", 0, "Any", ""},
-	{KM_NOTHING, "NOTHING", 0, "Nothing", ""},
-	{KM_PRESS, "PRESS", 0, "Press", ""},
-	{KM_RELEASE, "RELEASE", 0, "Release", ""},
-	{KM_CLICK, "CLICK", 0, "Click", ""},
-	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
+	{KM_ANY, "ANY", 0, N_("Any"), ""},
+	{KM_NOTHING, "NOTHING", 0, N_("Nothing"), ""},
+	{KM_PRESS, "PRESS", 0, N_("Press"), ""},
+	{KM_RELEASE, "RELEASE", 0, N_("Release"), ""},
+	{KM_CLICK, "CLICK", 0, N_("Click"), ""},
+	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, N_("Double Click"), ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem event_tweak_type_items[]= {
@@ -1650,81 +1652,81 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem map_type_items[] = {
-		{KMI_TYPE_KEYBOARD, "KEYBOARD", 0, "Keyboard", ""},
-		{KMI_TYPE_TWEAK, "TWEAK", 0, "Tweak", ""},
-		{KMI_TYPE_MOUSE, "MOUSE", 0, "Mouse", ""},
-		{KMI_TYPE_TEXTINPUT, "TEXTINPUT", 0, "Text Input", ""},
-		{KMI_TYPE_TIMER, "TIMER", 0, "Timer", ""},
+		{KMI_TYPE_KEYBOARD, "KEYBOARD", 0, N_("Keyboard"), ""},
+		{KMI_TYPE_TWEAK, "TWEAK", 0, N_("Tweak"), ""},
+		{KMI_TYPE_MOUSE, "MOUSE", 0, N_("Mouse"), ""},
+		{KMI_TYPE_TEXTINPUT, "TEXTINPUT", 0, N_("Text Input"), ""},
+		{KMI_TYPE_TIMER, "TIMER", 0, N_("Timer"), ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* KeyConfig */
 	srna= RNA_def_struct(brna, "KeyConfig", NULL);
 	RNA_def_struct_sdna(srna, "wmKeyConfig");
-	RNA_def_struct_ui_text(srna, "Key Configuration", "Input configuration, including keymaps");
+	RNA_def_struct_ui_text(srna, N_("Key Configuration"), N_("Input configuration, including keymaps"));
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "idname");
-	RNA_def_property_ui_text(prop, "Name", "Name of the key configuration");
+	RNA_def_property_ui_text(prop, N_("Name"), N_("Name of the key configuration"));
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "keymaps", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyMap");
-	RNA_def_property_ui_text(prop, "Key Maps", "Key maps configured as part of this configuration");
+	RNA_def_property_ui_text(prop, N_("Key Maps"), N_("Key maps configured as part of this configuration"));
 	rna_def_wm_keymaps(brna, prop);
 
 	prop= RNA_def_property(srna, "is_user_defined", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYCONF_USER);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "User Defined", "Indicates that a keyconfig was defined by the user");
+	RNA_def_property_ui_text(prop, N_("User Defined"), N_("Indicates that a keyconfig was defined by the user"));
 
 	RNA_api_keyconfig(srna);
 
 	/* KeyMap */
 	srna= RNA_def_struct(brna, "KeyMap", NULL);
 	RNA_def_struct_sdna(srna, "wmKeyMap");
-	RNA_def_struct_ui_text(srna, "Key Map", "Input configuration, including keymaps");
+	RNA_def_struct_ui_text(srna, N_("Key Map"), N_("Input configuration, including keymaps"));
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "idname");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Name of the key map");
+	RNA_def_property_ui_text(prop, N_("Name"), N_("Name of the key map"));
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spaceid");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, space_type_items);
-	RNA_def_property_ui_text(prop, "Space Type", "Optional space type keymap is associated with");
+	RNA_def_property_ui_text(prop, N_("Space Type"), N_("Optional space type keymap is associated with"));
 
 	prop= RNA_def_property(srna, "region_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "regionid");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, region_type_items);
-	RNA_def_property_ui_text(prop, "Region Type", "Optional region type keymap is associated with");
+	RNA_def_property_ui_text(prop, N_("Region Type"), N_("Optional region type keymap is associated with"));
 
 	prop= RNA_def_property(srna, "keymap_items", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "items", NULL);
 	RNA_def_property_struct_type(prop, "KeyMapItem");
-	RNA_def_property_ui_text(prop, "Items", "Items in the keymap, linking an operator to an input event");
+	RNA_def_property_ui_text(prop, N_("Items"), N_("Items in the keymap, linking an operator to an input event"));
 	rna_def_keymap_items(brna, prop);
 
 	prop= RNA_def_property(srna, "is_user_defined", PROP_BOOLEAN, PROP_NEVER_NULL);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_USER);
-	RNA_def_property_ui_text(prop, "User Defined", "Keymap is defined by the user");
+	RNA_def_property_ui_text(prop, N_("User Defined"), N_("Keymap is defined by the user"));
 
 	prop= RNA_def_property(srna, "is_modal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_MODAL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Modal Keymap", "Indicates that a keymap is used for translate modal events for an operator");
+	RNA_def_property_ui_text(prop, N_("Modal Keymap"), N_("Indicates that a keymap is used for translate modal events for an operator"));
 
 	prop= RNA_def_property(srna, "show_expanded_items", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_EXPANDED);
-	RNA_def_property_ui_text(prop, "Items Expanded", "Expanded in the user interface");
+	RNA_def_property_ui_text(prop, N_("Items Expanded"), N_("Expanded in the user interface"));
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 	
 	prop= RNA_def_property(srna, "show_expanded_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_CHILDREN_EXPANDED);
-	RNA_def_property_ui_text(prop, "Children Expanded", "Children expanded in the user interface");
+	RNA_def_property_ui_text(prop, N_("Children Expanded"), N_("Children expanded in the user interface"));
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
 
@@ -1733,99 +1735,99 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	/* KeyMapItem */
 	srna= RNA_def_struct(brna, "KeyMapItem", NULL);
 	RNA_def_struct_sdna(srna, "wmKeyMapItem");
-	RNA_def_struct_ui_text(srna, "Key Map Item", "Item in a Key Map");
+	RNA_def_struct_ui_text(srna, N_("Key Map Item"), N_("Item in a Key Map"));
 
 	prop= RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "idname");
-	RNA_def_property_ui_text(prop, "Identifier", "Identifier of operator to call on input event");
+	RNA_def_property_ui_text(prop, N_("Identifier"), N_("Identifier of operator to call on input event"));
 	RNA_def_property_string_funcs(prop, "rna_wmKeyMapItem_idname_get", "rna_wmKeyMapItem_idname_length", "rna_wmKeyMapItem_idname_set");
 	RNA_def_struct_name_property(srna, prop);
 	
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Name of operator to call on input event");
+	RNA_def_property_ui_text(prop, N_("Name"), N_("Name of operator to call on input event"));
 	RNA_def_property_string_funcs(prop, "rna_wmKeyMapItem_name_get", "rna_wmKeyMapItem_name_length", NULL);
 	
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_pointer_funcs(prop, "rna_KeyMapItem_properties_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Properties", "Properties to set when the operator is called");
+	RNA_def_property_ui_text(prop, N_("Properties"), N_("Properties to set when the operator is called"));
 
 	prop= RNA_def_property(srna, "map_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "maptype");
 	RNA_def_property_enum_items(prop, map_type_items);
 	RNA_def_property_enum_funcs(prop, "rna_wmKeyMapItem_map_type_get", "rna_wmKeyMapItem_map_type_set", NULL);
-	RNA_def_property_ui_text(prop, "Map Type", "Type of event mapping");
+	RNA_def_property_ui_text(prop, N_("Map Type"), N_("Type of event mapping"));
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, event_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_type_itemf");
-	RNA_def_property_ui_text(prop, "Type", "Type of event");
+	RNA_def_property_ui_text(prop, N_("Type"), N_("Type of event"));
 
 	prop= RNA_def_property(srna, "value", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "val");
 	RNA_def_property_enum_items(prop, event_value_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_value_itemf");
-	RNA_def_property_ui_text(prop, "Value", "");
+	RNA_def_property_ui_text(prop, N_("Value"), "");
 
 	prop= RNA_def_property(srna, "id", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "id");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "id", "ID of the item");
+	RNA_def_property_ui_text(prop, "id", N_("ID of the item"));
 
 	prop= RNA_def_property(srna, "any", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_any_getf", "rna_KeyMapItem_any_setf");
-	RNA_def_property_ui_text(prop, "Any", "Any modifier keys pressed");
+	RNA_def_property_ui_text(prop, N_("Any"), N_("Any modifier keys pressed"));
 
 	prop= RNA_def_property(srna, "shift", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shift", 0);
 //	RNA_def_property_enum_sdna(prop, NULL, "shift");
 //	RNA_def_property_enum_items(prop, keymap_modifiers_items);
-	RNA_def_property_ui_text(prop, "Shift", "Shift key pressed");
+	RNA_def_property_ui_text(prop, "Shift", N_("Shift key pressed"));
 
 	prop= RNA_def_property(srna, "ctrl", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ctrl", 0);
 //	RNA_def_property_enum_sdna(prop, NULL, "ctrl");
 //	RNA_def_property_enum_items(prop, keymap_modifiers_items);
-	RNA_def_property_ui_text(prop, "Ctrl", "Control key pressed");
+	RNA_def_property_ui_text(prop, "Ctrl", N_("Control key pressed"));
 
 	prop= RNA_def_property(srna, "alt", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "alt", 0);
 //	RNA_def_property_enum_sdna(prop, NULL, "alt");
 //	RNA_def_property_enum_items(prop, keymap_modifiers_items);
-	RNA_def_property_ui_text(prop, "Alt", "Alt key pressed");
+	RNA_def_property_ui_text(prop, "Alt", N_("Alt key pressed"));
 
 	prop= RNA_def_property(srna, "oskey", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "oskey", 0);
 //	RNA_def_property_enum_sdna(prop, NULL, "oskey");
 //	RNA_def_property_enum_items(prop, keymap_modifiers_items);
-	RNA_def_property_ui_text(prop, "OS Key", "Operating system key pressed");
+	RNA_def_property_ui_text(prop, N_("OS Key"), N_("Operating system key pressed"));
 
 	prop= RNA_def_property(srna, "key_modifier", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "keymodifier");
 	RNA_def_property_enum_items(prop, event_type_items);
-	RNA_def_property_ui_text(prop, "Key Modifier", "Regular key pressed as a modifier");
+	RNA_def_property_ui_text(prop, N_("Key Modifier"), N_("Regular key pressed as a modifier"));
 
 	prop= RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KMI_EXPANDED);
-	RNA_def_property_ui_text(prop, "Expanded", "Show key map event and property details in the user interface");
+	RNA_def_property_ui_text(prop, N_("Expanded"), N_("Show key map event and property details in the user interface"));
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
 	prop= RNA_def_property(srna, "propvalue", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "propvalue");
 	RNA_def_property_enum_items(prop, keymap_propvalue_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_propvalue_itemf");
-	RNA_def_property_ui_text(prop, "Property Value", "The value this event translates to in a modal keymap");
+	RNA_def_property_ui_text(prop, N_("Property Value"), N_("The value this event translates to in a modal keymap"));
 
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", KMI_INACTIVE);
-	RNA_def_property_ui_text(prop, "Active", "Activate or deactivate item");
+	RNA_def_property_ui_text(prop, N_("Active"), N_("Activate or deactivate item"));
 	RNA_def_property_ui_icon(prop, ICON_CHECKBOX_DEHLT, 1);
 
 	prop= RNA_def_property(srna, "is_user_defined", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "User Defined", "Is this keymap item user defined (doesn't just override a builtin item)");
+	RNA_def_property_ui_text(prop, N_("User Defined"), N_("Is this keymap item user defined (doesn't just override a builtin item)"));
 	RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_userdefined_get", NULL);
 
 	RNA_api_keymapitem(srna);

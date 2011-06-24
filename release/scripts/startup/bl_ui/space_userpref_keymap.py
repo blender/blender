@@ -126,7 +126,7 @@ def _merge_keymaps(kc1, kc2):
 
 
 class USERPREF_MT_keyconfigs(bpy.types.Menu):
-    bl_label = "KeyPresets"
+    bl_label = _("KeyPresets")
     preset_subdir = "keyconfig"
     preset_operator = "wm.keyconfig_activate"
 
@@ -141,7 +141,7 @@ class USERPREF_MT_keyconfigs(bpy.types.Menu):
 
 class InputKeyMapPanel:
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = "Input"
+    bl_label = _("Input")
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
@@ -214,7 +214,7 @@ class InputKeyMapPanel:
                 col = self.indented_layout(col, level + 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.enabled = km.is_user_defined
-                op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                op = subcol.operator("wm.keyitem_add", text=_("Add New"), icon='ZOOMIN')
 
             col.separator()
 
@@ -363,7 +363,7 @@ class InputKeyMapPanel:
                 col = self.indented_layout(layout, 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.enabled = km.is_user_defined
-                op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                op = subcol.operator("wm.keyitem_add", text=_("Add New"), icon='ZOOMIN')
 
     def draw_hierarchy(self, display_keymaps, layout):
         for entry in KM_HIERARCHY:
@@ -427,7 +427,8 @@ def export_properties(prefix, properties, lines=None):
 class WM_OT_keyconfig_test(bpy.types.Operator):
     "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
-    bl_label = "Test Key Configuration for Conflicts"
+    bl_label = _("Test Key Configuration for Conflicts")
+    __doc__ = _("Test keyconfig for conflicts")
 
     def testEntry(self, kc, entry, src=None, parent=None):
         result = False
@@ -538,10 +539,10 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     bl_label = _("Import Key Configuration...")
     __doc__ = _("Import key configuration from a python script")
 
-    filepath = StringProperty(name="File Path", description="Filepath to write file to", default="keymap.py")
-    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
-    filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
-    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+    filepath = StringProperty(name=_("File Path"), description=_("Filepath to write file to"), default="keymap.py")
+    filter_folder = BoolProperty(name=_("Filter folders"), description="", default=True, options={'HIDDEN'})
+    filter_text = BoolProperty(name=_("Filter text"), description="", default=True, options={'HIDDEN'})
+    filter_python = BoolProperty(name=_("Filter python"), description="", default=True, options={'HIDDEN'})
 
     keep_original = BoolProperty(name=_("Keep original"), description=_("Keep original file after copying to configuration folder"), default=True)
 
@@ -584,10 +585,10 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     bl_label = _("Export Key Configuration...")
     __doc__ = _("Export key configuration to a python script")
 
-    filepath = StringProperty(name="File Path", description="Filepath to write file to", default="keymap.py")
-    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
-    filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
-    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+    filepath = StringProperty(name=_("File Path"), description=_("Filepath to write file to"), default="keymap.py")
+    filter_folder = BoolProperty(name=_("Filter folders"), description="", default=True, options={'HIDDEN'})
+    filter_text = BoolProperty(name=_("Filter text"), description="", default=True, options={'HIDDEN'})
+    filter_python = BoolProperty(name=_("Filter python"), description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         if not self.filepath:
@@ -670,7 +671,8 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 class WM_OT_keymap_edit(bpy.types.Operator):
     "Edit stored key map"
     bl_idname = "wm.keymap_edit"
-    bl_label = "Edit Key Map"
+    bl_label = _("Edit Key Map")
+    __doc__ = _("Edit stored key map")
 
     def execute(self, context):
         km = context.keymap
@@ -681,7 +683,8 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 class WM_OT_keymap_restore(bpy.types.Operator):
     "Restore key map(s)"
     bl_idname = "wm.keymap_restore"
-    bl_label = "Restore Key Map(s)"
+    bl_label = _("Restore Key Map(s)")
+    __doc__ = _("Restore key map(s)")
 
     all = BoolProperty(name="All Keymaps", description="Restore all keymaps to default")
 
@@ -701,7 +704,8 @@ class WM_OT_keymap_restore(bpy.types.Operator):
 class WM_OT_keyitem_restore(bpy.types.Operator):
     "Restore key map item"
     bl_idname = "wm.keyitem_restore"
-    bl_label = "Restore Key Map Item"
+    bl_label = _("Restore Key Map Item")
+    __doc__ = _("Restore key map item")
 
     item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
 
@@ -723,7 +727,8 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
 class WM_OT_keyitem_add(bpy.types.Operator):
     "Add key map item"
     bl_idname = "wm.keyitem_add"
-    bl_label = "Add Key Map Item"
+    bl_label = _("Add Key Map Item")
+    __doc__ = _("Add key map item")
 
     def execute(self, context):
         wm = context.window_manager
@@ -747,9 +752,10 @@ class WM_OT_keyitem_add(bpy.types.Operator):
 class WM_OT_keyitem_remove(bpy.types.Operator):
     "Remove key map item"
     bl_idname = "wm.keyitem_remove"
-    bl_label = "Remove Key Map Item"
+    bl_label = _("Remove Key Map Item")
+    __doc__ = _("Remove key map item")
 
-    item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
+    item_id = IntProperty(name=_("Item Identifier"), description=_("Identifier of the item to remove"))
 
     @classmethod
     def poll(cls, context):
@@ -765,7 +771,8 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
 class WM_OT_keyconfig_remove(bpy.types.Operator):
     "Remove key config"
     bl_idname = "wm.keyconfig_remove"
-    bl_label = "Remove Key Config"
+    bl_label = _("Remove Key Config")
+    __doc__ = _("Remove key config")
 
     @classmethod
     def poll(cls, context):

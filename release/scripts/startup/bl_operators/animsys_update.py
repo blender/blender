@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+from blf import gettext as _
 
 data_path_update = [
     ("ClothCollisionSettings", "min_distance", "distance_min"),
@@ -692,6 +693,7 @@ class UpdateAnimData(bpy.types.Operator):
     """Update data paths from 2.56 and previous versions, modifying data paths of drivers and fcurves"""
     bl_idname = "anim.update_data_paths"
     bl_label = "Update Animation Data"
+    __doc__ = _("Update data paths from 2.56 and previous versions, modifying data paths of drivers and fcurves")
 
     def execute(self, context):
         import animsys_refactor

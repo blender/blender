@@ -358,9 +358,9 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Smooth View";
+	ot->name= _("Smooth View");
 	ot->idname= "VIEW3D_OT_smoothview";
-	ot->description="The time to animate the change of view (in milliseconds)";
+	ot->description=_("The time to animate the change of view (in milliseconds)");
 	
 	/* api callbacks */
 	ot->invoke= view3d_smoothview_invoke;
@@ -408,8 +408,8 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Align Camera To View";
-	ot->description= "Set camera view to active view";
+	ot->name= _("Align Camera To View");
+	ot->description= _("Set camera view to active view");
 	ot->idname= "VIEW3D_OT_camera_to_view";
 	
 	/* api callbacks */
@@ -1611,7 +1611,7 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Local View";
+	ot->name= _("Local View");
 	ot->description= _("Toggle display of selected object(s) separately and centered in view");
 	ot->idname= "VIEW3D_OT_localview";
 	
@@ -1837,8 +1837,8 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Start Game Engine";
-	ot->description= "Start game engine";
+	ot->name= _("Start Game Engine");
+	ot->description= _("Start game engine");
 	ot->idname= "VIEW3D_OT_game_start";
 	
 	/* api callbacks */
