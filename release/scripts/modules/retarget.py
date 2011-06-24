@@ -1,69 +1,41 @@
 import bpy
 from mathutils import *
 from math import radians, acos
-performer_obj = bpy.data.objects["performer"]
-enduser_obj = bpy.data.objects["enduser"]
-end_arm = bpy.data.armatures["enduser_arm"] 
-scene = bpy.context.scene
 
 #TODO: Only selected bones get retargeted.
 #      Selected Bones/chains get original pos empties, if ppl want IK instead of FK
 #      Some "magic" numbers - frame start and end, eulers of all orders instead of just quats keyframed
 
-
-
 # dictionary of mapping
 # this is currently manuall input'ed, but will
 # be created from a more comfortable UI in the future
-bonemap = { "Head": "Head",
-            "Neck": "Head",
-            "Spine1": "Chest",
-            "Spine2": "Chest",
-            "Spine3": "Chest",
-            "Spine": "Torso",
-            "Hips": "root",
-            "LeftUpLeg": "Thigh.L",
-            "LeftUpLegRoll": "Thigh.L",
-            "LeftLeg": "Shin.L",
-            "LeftLegRoll": "Shin.L",
-            "LeftFoot": "Foot.L",
-            "RightUpLeg": "Thigh.R",
-            "RightUpLegRoll": "Thigh.R",
-            "RightLeg": "Shin.R",
-            "RightLegRoll": "Shin.R",
-            "RightFoot": "Foot.R",
-            "LeftShoulder": "Shoulder.L",
-            "LeftArm": "HiArm.L",
-            "LeftArmRoll": "HiArm.L",
-            "LeftForeArm": "LoArm.L",
-            "LeftForeArmRoll": "LoArm.L",
-            "RightShoulder": "Shoulder.R",
-            "RightArm": "HiArm.R",
-            "RightArmRoll": "HiArm.R",
-            "RightForeArm": "LoArm.R",
-            "RightForeArmRoll": "LoArm.R" }
-            
-root = "root"
-# creation of a reverse map
-# multiple keys get mapped to list values
-bonemapr = {}
-for key in bonemap.keys():
-    if not bonemap[key] in bonemapr:
-        if type(bonemap[key])==type((0,0)):
-            for key_x in bonemap[key]:
-                bonemapr[key_x] = [key]
+
+def createDictionary(perf_arm):
+    bonemap = {}
+    #perf: enduser
+    for bone in perf_arm.bones:
+        bonemap[bone.name] = bone.map
+                
+    #root is the root of the enduser
+    root = "root"
+    # creation of a reverse map
+    # multiple keys get mapped to list values
+    bonemapr = {}
+    for key in bonemap.keys():
+        if not bonemap[key] in bonemapr:
+            if type(bonemap[key])==type((0,0)):
+                for key_x in bonemap[key]:
+                    bonemapr[key_x] = [key]
+            else:
+                bonemapr[bonemap[key]] = [key]
         else:
-            bonemapr[bonemap[key]] = [key]
-    else:
-        bonemapr[bonemap[key]].append(key)
-        
+            bonemapr[bonemap[key]].append(key)
+    
+    return bonemap, bonemapr, root       
 # list of empties created to keep track of "original"
 # position data
 # in final product, these locations can be stored as custom props
 # these help with constraining, etc.
-
-constraints = []
-
 
 #creation of intermediate armature
 # the intermediate armature has the hiearchy of the end user,
@@ -71,26 +43,28 @@ constraints = []
 # and bone roll is identical to the performer
 # its purpose is to copy over the rotations
 # easily while concentrating on the hierarchy changes
-def createIntermediate():
+def createIntermediate(performer_obj,endu_name,bonemap, bonemapr,root,s_frame,e_frame,scene):
     
     #creates and keyframes an empty with its location
     #the original position of the tail bone
     #useful for storing the important data in the original motion
-    #i.e. using this empty to IK the chain to that pos.
+    #i.e. using this empty to IK the chain to that pos / DEBUG
     def locOfOriginal(inter_bone,perf_bone):
-        if not perf_bone.name+"Org" in bpy.data.objects:
-            bpy.ops.object.add()
-            empty = bpy.context.active_object
-            empty.name = perf_bone.name+"Org"
-        empty = bpy.data.objects[perf_bone.name+"Org"]
-        offset = perf_bone.vector
-        if inter_bone.length == 0 or perf_bone.length == 0:
-            scaling = 1
-        else:
-            scaling = perf_bone.length / inter_bone.length
-        offset/=scaling
-        empty.location = inter_bone.head + offset
-        empty.keyframe_insert("location")
+        pass
+#        if not perf_bone.name+"Org" in bpy.data.objects:
+#            bpy.ops.object.add()
+#            empty = bpy.context.active_object
+#            empty.name = perf_bone.name+"Org"
+#            empty.empty_draw_size = 0.01
+#        empty = bpy.data.objects[perf_bone.name+"Org"]
+#        offset = perf_bone.vector
+#        if inter_bone.length == 0 or perf_bone.length == 0:
+#            scaling = 1
+#        else:
+#            scaling = perf_bone.length / inter_bone.length
+#        offset/=scaling
+#        empty.location = inter_bone.head + offset
+#        empty.keyframe_insert("location")
     
     #Simple 1to1 retarget of a bone
     def singleBoneRetarget(inter_bone,perf_bone):
@@ -139,7 +113,7 @@ def createIntermediate():
             retargetPerfToInter(child)
             
     #creates the intermediate armature object        
-    bpy.ops.object.select_name(name="enduser",extend=False)
+    bpy.ops.object.select_name(name=endu_name,extend=False)
     bpy.ops.object.duplicate(linked=False)
     bpy.context.active_object.name = "intermediate"
     inter_obj = bpy.context.active_object
@@ -147,7 +121,7 @@ def createIntermediate():
     #resets roll 
     bpy.ops.armature.calculate_roll(type='Z')
     bpy.ops.object.mode_set(mode="OBJECT")
-    inter_arm = bpy.data.armatures["enduser_arm.001"]
+    inter_arm = bpy.data.armatures[endu_name+".001"]
     inter_arm.name = "inter_arm"
     performer_bones = performer_obj.pose.bones
     inter_bones =  inter_obj.pose.bones
@@ -156,7 +130,7 @@ def createIntermediate():
     for inter_bone in inter_bones:
         inter_bone.bone.use_inherit_rotation = False
         
-    for t in range(1,150):
+    for t in range(s_frame,e_frame):
         scene.frame_set(t)
         inter_bone = inter_bones[root]
         retargetPerfToInter(inter_bone)
@@ -171,7 +145,7 @@ def createIntermediate():
 #       that its rotation is determined by another (a control bone)
 #       We should determine the right pos of the control bone.
 #       Scale: ? Should work but needs testing.          
-def retargetEnduser():
+def retargetEnduser(inter_obj, enduser_obj,root,s_frame,e_frame,scene):
     inter_bones =  inter_obj.pose.bones
     end_bones = enduser_obj.pose.bones
     
@@ -200,7 +174,7 @@ def retargetEnduser():
         for bone in end_bone.children:
             bakeTransform(bone)
         
-    for t in range(1,150):
+    for t in range(s_frame,e_frame):
         scene.frame_set(t)
         end_bone = end_bones[root]
         bakeTransform(end_bone)
@@ -208,7 +182,7 @@ def retargetEnduser():
 #recieves the performer feet bones as a variable
 # by "feet" I mean those bones that have plants
 # (they don't move, despite root moving) somewhere in the animation.
-def copyTranslation(perfFeet):
+def copyTranslation(performer_obj,enduser_obj,perfFeet,bonemap,bonemapr,root,s_frame,e_frame,scene):
     endFeet = [bonemap[perfBone] for perfBone in perfFeet]
     perfRoot = bonemapr[root][0]
     locDictKeys = perfFeet+endFeet+[perfRoot]
@@ -267,8 +241,39 @@ def copyTranslation(perfFeet):
     if linearAvg:
         avg = sum(linearAvg)/len(linearAvg)
         print("retargeted root motion should be "+ str(1/avg)+ " of original")
-    
+        
+        bpy.ops.object.add()
+        stride_bone = bpy.context.active_object
+        stride_bone.name = "stride_bone"
+        bpy.ops.object.select_name(name=stride_bone.name,extend=False)
+        bpy.ops.object.select_name(name=enduser_obj.name,extend=True)
+        bpy.ops.object.mode_set(mode='POSE')
+        bpy.ops.pose.select_all(action='DESELECT')
+        root_bone = end_bones[root]
+        root_bone.bone.select = True
+        bpy.ops.pose.constraint_add_with_targets(type='CHILD_OF')
+        for t in range(s_frame,e_frame):
+            scene.frame_set(t)     
+            newTranslation = (tailLoc(perf_bones[perfRoot])/avg)
+            stride_bone.location = newTranslation
+            stride_bone.keyframe_insert("location")
+            
 
-inter_obj, inter_arm = createIntermediate()
-retargetEnduser()
-copyTranslation(["RightFoot","LeftFoot"])
+
+def totalRetarget():
+    perf_name = bpy.context.scene.performer
+    endu_name = bpy.context.scene.enduser
+    performer_obj = bpy.data.objects[perf_name]
+    enduser_obj = bpy.data.objects[endu_name]
+    end_arm = bpy.data.armatures[endu_name] 
+    perf_arm = bpy.data.armatures[perf_name] 
+    scene = bpy.context.scene
+    s_frame = scene.frame_start
+    e_frame = scene.frame_end
+    bonemap, bonemapr, root = createDictionary(perf_arm)    
+    inter_obj, inter_arm = createIntermediate(performer_obj,endu_name,bonemap, bonemapr,root,s_frame,e_frame,scene)
+    retargetEnduser(inter_obj, enduser_obj,root,s_frame,e_frame,scene)
+    copyTranslation(performer_obj,enduser_obj,["RightFoot","LeftFoot"],bonemap,bonemapr,root,s_frame,e_frame,scene)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.select_name(name=inter_obj.name,extend=False)
+    bpy.ops.object.delete()
