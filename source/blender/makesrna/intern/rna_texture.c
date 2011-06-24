@@ -135,6 +135,7 @@ static void rna_Texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	DAG_id_tag_update(&tex->id, 0);
 	WM_main_add_notifier(NC_TEXTURE, tex);
+	WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, NULL);
 }
 
 static void rna_Texture_voxeldata_update(Main *bmain, Scene *scene, PointerRNA *ptr)

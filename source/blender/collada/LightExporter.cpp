@@ -67,26 +67,24 @@ void LightsExporter::operator()(Object *ob)
 	std::string la_id(get_light_id(ob));
 	std::string la_name(id_name(la));
 	COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
-	float e, d, constatt, linatt, quadatt;
-	float r;
+	float d, constatt, linatt, quadatt;
 	
 	d = la->dist;
-	r = d/2.0f;
 	
 	constatt = 1.0f;
 	
 	if(la->falloff_type==LA_FALLOFF_INVLINEAR) {
-		linatt = 1.0f / r;
+		linatt = 1.0f / d;
 		quadatt = 0.0f;
 	}
 	else {
 		linatt = 0.0f;
-		quadatt = 1.0f / r;
+		quadatt = 1.0f / (d * d);
 	}
 	
 	// sun
 	if (la->type == LA_SUN) {
-		COLLADASW::DirectionalLight cla(mSW, la_id, la_name, e);
+		COLLADASW::DirectionalLight cla(mSW, la_id, la_name);
 		cla.setColor(col);
 		cla.setConstantAttenuation(constatt);
 		exportBlenderProfile(cla, la);
@@ -94,7 +92,7 @@ void LightsExporter::operator()(Object *ob)
 	}
 	// hemi
 	else if (la->type == LA_HEMI) {
-		COLLADASW::AmbientLight cla(mSW, la_id, la_name, e);
+		COLLADASW::AmbientLight cla(mSW, la_id, la_name);
 		cla.setColor(col);
 		cla.setConstantAttenuation(constatt);
 		exportBlenderProfile(cla, la);
@@ -102,7 +100,7 @@ void LightsExporter::operator()(Object *ob)
 	}
 	// spot
 	else if (la->type == LA_SPOT) {
-		COLLADASW::SpotLight cla(mSW, la_id, la_name, e);
+		COLLADASW::SpotLight cla(mSW, la_id, la_name);
 		cla.setColor(col);
 		cla.setFallOffAngle(la->spotsize);
 		cla.setFallOffExponent(la->spotblend);
@@ -114,7 +112,7 @@ void LightsExporter::operator()(Object *ob)
 	}
 	// lamp
 	else if (la->type == LA_LOCAL) {
-		COLLADASW::PointLight cla(mSW, la_id, la_name, e);
+		COLLADASW::PointLight cla(mSW, la_id, la_name);
 		cla.setColor(col);
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
@@ -125,7 +123,7 @@ void LightsExporter::operator()(Object *ob)
 	// area lamp is not supported
 	// it will be exported as a local lamp
 	else {
-		COLLADASW::PointLight cla(mSW, la_id, la_name, e);
+		COLLADASW::PointLight cla(mSW, la_id, la_name);
 		cla.setColor(col);
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);

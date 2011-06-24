@@ -21,7 +21,7 @@
  * All rights reserved.
  *
  * Contributor(s): Blender Foundation, 2002-2008 full recode
- *
+ * the
  * ***** END GPL LICENSE BLOCK *****
  */
 

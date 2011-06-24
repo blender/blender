@@ -90,10 +90,10 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fss->viscosityValue = 1.0;
 		fss->viscosityExponent = 6;
 		
-		// dg TODO: change this to []
-		fss->gravx = 0.0;
-		fss->gravy = 0.0;
-		fss->gravz = -9.81;
+		fss->grav[0] = 0.0;
+		fss->grav[1] = 0.0;
+		fss->grav[2] = -9.81;
+
 		fss->animStart = 0.0; 
 		fss->animEnd = 4.0;
 		fss->gstar = 0.005; // used as normgstar
@@ -111,7 +111,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		// no bounding box needed
 		
 		// todo - reuse default init from elbeem!
-		fss->typeFlags = OB_FSBND_PARTSLIP;
+		fss->typeFlags = OB_FSBND_PARTSLIP | OB_FSSG_NOOBS;
 		fss->domainNovecgen = 0;
 		fss->volumeInitType = 1; // volume
 		fss->partSlipValue = 0.2;

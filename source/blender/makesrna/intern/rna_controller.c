@@ -87,6 +87,20 @@ static void rna_Controller_type_set(struct PointerRNA *ptr, int value)
 	}
 }
 
+static void rna_Controller_mode_set(struct PointerRNA *ptr, int value)
+{
+	bController *cont= (bController *)ptr->data;
+	bPythonCont *pycon= (bPythonCont *)cont->data;
+
+	// if mode changed and previous mode were Script
+	if (value != pycon->mode && pycon->mode == CONT_PY_SCRIPT)
+	{
+		// clear script to avoid it to get linked with the controller
+		pycon->text = NULL;
+	}
+	pycon->mode = value;
+}
+
 static int rna_Controller_state_number_get(struct PointerRNA *ptr)
 {
 	bController *cont= (bController *)ptr->data;
@@ -222,6 +236,7 @@ void RNA_def_controller(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, python_controller_modes);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Controller_mode_set", NULL);
 	RNA_def_property_ui_text(prop, "Execution Method", "Python script type (textblock or module - faster)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 

@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# TODO <pep8 compliant>
 
 from mathutils import Matrix, Vector, geometry
 import bpy

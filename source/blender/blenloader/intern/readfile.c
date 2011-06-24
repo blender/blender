@@ -4321,6 +4321,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		MEM_freeN(hook);
 	}
 	
+	ob->customdata_mask= 0;
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
@@ -11643,6 +11644,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						tex->pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 						curvemap_reset(tex->pd->falloff_curve->cm, &tex->pd->falloff_curve->clipr, tex->pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
 						curvemapping_changed(tex->pd->falloff_curve, 0);
+					}
+				}
+			}
+		}
+
+		{
+			/* add default value for behind strength of camera actuator */
+			Object *ob;
+			bActuator *act;
+			for(ob = main->object.first; ob; ob= ob->id.next) {
+				for(act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_CAMERA) {
+						bCameraActuator *ba= act->data;
+
+						ba->damping = 1.0/32.0;
 					}
 				}
 			}

@@ -21,6 +21,7 @@
 import bpy
 from blf import gettext as _
 
+
 def randomize_selected(seed, delta, loc, rot, scale, scale_even):
 
     import random

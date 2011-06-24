@@ -23,15 +23,49 @@
 
 # <pep8 compliant>
 
-IGNORE = \
-    "/test/",\
-    "/decimate_glut_test/",\
-    "/BSP_GhostTest/",\
-    "/release/",\
-    "/xembed/",\
-    "/decimation/intern/future/",\
-    "/TerraplayNetwork/",\
-    "/ik_glut_test/"
+IGNORE = (
+    "/test/",
+    "/decimate_glut_test/",
+    "/BSP_GhostTest/",
+    "/release/",
+    "/xembed/",
+    "/decimation/intern/future/",
+    "/TerraplayNetwork/",
+    "/ik_glut_test/",
+
+    # specific source files
+    "extern/Eigen2/Eigen/src/Cholesky/CholeskyInstantiations.cpp",
+    "extern/Eigen2/Eigen/src/Core/CoreInstantiations.cpp",
+    "extern/Eigen2/Eigen/src/QR/QrInstantiations.cpp",
+    "extern/bullet2/src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp",
+    "extern/bullet2/src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp",
+    "extern/bullet2/src/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp",
+    "extern/bullet2/src/BulletCollision/CollisionShapes/btBox2dShape.cpp",
+    "extern/bullet2/src/BulletCollision/CollisionShapes/btConvex2dShape.cpp",
+    "extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp",
+    "extern/bullet2/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.cpp",
+    "extern/bullet2/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.cpp",
+    "extern/eltopo/common/meshes/ObjLoader.cpp",
+    "extern/eltopo/common/meshes/meshloader.cpp",
+    "extern/eltopo/common/openglutils.cpp",
+    "extern/eltopo/eltopo3d/broadphase_blenderbvh.cpp",
+    "source/blender/imbuf/intern/imbuf_cocoa.m",
+
+    "extern/bullet2/src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.h",
+    "extern/bullet2/src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.h",
+    "extern/bullet2/src/BulletCollision/CollisionDispatch/btInternalEdgeUtility.h",
+    "extern/bullet2/src/BulletCollision/CollisionShapes/btBox2dShape.h",
+    "extern/bullet2/src/BulletCollision/CollisionShapes/btConvex2dShape.h",
+    "extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.h",
+    "extern/bullet2/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h",
+    "extern/bullet2/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h",
+    "extern/eltopo/common/meshes/Edge.hpp",
+    "extern/eltopo/common/meshes/ObjLoader.hpp",
+    "extern/eltopo/common/meshes/TriangleIndex.hpp",
+    "extern/eltopo/common/meshes/meshloader.h",
+    "extern/eltopo/eltopo3d/broadphase_blenderbvh.h"
+    )
+
 
 import os
 from os.path import join, dirname, normpath, abspath, splitext
@@ -104,7 +138,7 @@ def cmake_get_src(f):
                     found = True
                     break
 
-                if "list(APPEND SRC" in l:
+                if "list(APPEND SRC" in l or ('list(APPEND ' in l and l.endswith("SRC")):
                     if l.endswith(")"):
                         raise Exception("strict formatting not kept 'list(APPEND SRC...)' on 1 line %s:%d" % (f, i))
                     found = True
@@ -136,7 +170,9 @@ def cmake_get_src(f):
                     if not l:
                         pass
                     elif l.startswith("$"):
-                        print("Cant use var '%s' %s:%d" % (l, f, i))
+                        # assume if it ends with SRC we know about it
+                        if not l.split("}")[0].endswith("SRC"):
+                            print("Can't use var '%s' %s:%d" % (l, f, i))
                     elif len(l.split()) > 1:
                         raise Exception("Multi-line define '%s' %s:%d" % (l, f, i))
                     else:

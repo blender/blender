@@ -719,7 +719,7 @@ static void ed_marker_move_apply(wmOperator *op)
 }
 
 /* only for modal */
-static void ed_marker_move_cancel(bContext *C, wmOperator *op)
+static int ed_marker_move_cancel(bContext *C, wmOperator *op)
 {
 	RNA_int_set(op->ptr, "frames", 0);
 	ed_marker_move_apply(op);
@@ -727,6 +727,8 @@ static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
+
+	return OPERATOR_CANCELLED;
 }
 
 

@@ -715,7 +715,7 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 	}
 }
 
-static void zbufline_onlyZ(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
+static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), float *vec1, float *vec2)
 {
 	int *rectz, *rectz1= NULL;
 	int start, end, x, y, oldx, oldy, ofs;
@@ -1287,7 +1287,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
  */
 
 /* now: filling two Z values, the closest and 2nd closest */
-static void zbuffillGL_onlyZ(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
+static void zbuffillGL_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), float *v1, float *v2, float *v3, float *v4)
 {
 	double zxd, zyd, zy0, zverg;
 	float x0,y0,z0;
@@ -3236,7 +3236,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
  * Do accumulation z buffering.
  */
 
-static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int samples, float (*jit)[2], float clipcrop, int shadow)
+static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int samples, float (*jit)[2], float UNUSED(clipcrop), int shadow)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
 	ZSpan zspans[16], *zspan;	/* MAX_OSA */
@@ -3692,7 +3692,7 @@ static int vergzvlak(const void *a1, const void *a2)
 	return 0;
 }
 
-static void shade_strand_samples(StrandShadeCache *cache, ShadeSample *ssamp, int x, int y, ZTranspRow *row, int addpassflag)
+static void shade_strand_samples(StrandShadeCache *cache, ShadeSample *ssamp, int UNUSED(x), int UNUSED(y), ZTranspRow *row, int addpassflag)
 {
 	StrandSegment sseg;
 	StrandVert *svert;
@@ -3941,7 +3941,7 @@ static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf
 
 /* main render call to do the z-transparent layer */
 /* returns a mask, only if a) transp rendered and b) solid was rendered */
-unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass, ListBase *psmlist)
+unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass, ListBase *UNUSED(psmlist))
 {
 	RenderResult *rr= pa->result;
 	ShadeSample ssamp;

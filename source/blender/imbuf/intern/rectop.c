@@ -450,7 +450,7 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 
 /* fill */
 
-void IMB_rectfill(struct ImBuf *drect, float col[4])
+void IMB_rectfill(struct ImBuf *drect, const float col[4])
 {
 	int num;
 
@@ -560,4 +560,19 @@ void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, i
 {
 	if (!ibuf) return;
 	buf_rectfill_area((unsigned char *) ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, col, x1, y1, x2, y2);
+}
+
+
+void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
+{
+	int i;
+	if (ibuf->rect_float) {
+		float *fbuf= ibuf->rect_float + 3;
+		for (i = ibuf->x * ibuf->y; i > 0; i--, fbuf+= 4) { *fbuf = value; }
+	}
+	else {
+		const unsigned char cvalue= value * 255;
+		unsigned char *cbuf= ((unsigned char *)ibuf->rect) + 3;
+		for (i = ibuf->x * ibuf->y; i > 0; i--, cbuf+= 4) { *cbuf = cvalue; }
+	}
 }

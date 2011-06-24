@@ -22,6 +22,7 @@ import bpy
 from mathutils import Vector
 from blf import gettext as _
 
+
 def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
     cursor = bpy.context.scene.cursor_location

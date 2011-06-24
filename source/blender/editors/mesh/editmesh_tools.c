@@ -3969,6 +3969,7 @@ short sharesFace(EditMesh *em, EditEdge* e1, EditEdge* e2)
 	return 0;
 }
 
+#if 0
 
 typedef struct SlideUv {
 	float origuv[2];
@@ -3982,7 +3983,6 @@ typedef struct SlideVert {
 	EditVert origvert;
 } SlideVert;
 
-#if 0
 int EdgeSlide(EditMesh *em, wmOperator *op, short immediate, float imperc)
 {
 	return 0;

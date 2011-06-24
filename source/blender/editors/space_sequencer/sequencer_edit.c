@@ -126,7 +126,7 @@ typedef struct TransSeq {
 	int startstill, endstill;
 	int startdisp, enddisp;
 	int startofs, endofs;
-	int final_left, final_right;
+	/* int final_left, final_right; */ /* UNUSED */
 	int len;
 } TransSeq;
 

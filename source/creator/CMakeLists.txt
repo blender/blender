@@ -97,7 +97,7 @@ endif()
 
 if(WITH_BINRELOC)
 	add_definitions(-DWITH_BINRELOC)
-	blender_include_dirs(${BINRELOC_INC})
+	blender_include_dirs(${BINRELOC_INCLUDE_DIRS})
 endif()
 
 # Setup the exe sources and buildinfo

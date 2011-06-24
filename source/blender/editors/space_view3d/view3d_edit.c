@@ -2291,7 +2291,7 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 }
 
 /* ********************* Changing view operator ****************** */
-/* XXX add _() to strings */
+
 static EnumPropertyItem prop_view_items[] = {
 	{RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
 	{RV3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
@@ -2582,7 +2582,6 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_view_orbit_items), 0, "Orbit", "Direction of View Orbit");
 }
 
-/* XXX add _() for strings */
 static EnumPropertyItem prop_view_pan_items[] = {
 	{V3D_VIEW_PANLEFT, "PANLEFT", 0, N_("Pan Left"), N_("Pan the view to the Left")},
 	{V3D_VIEW_PANRIGHT, "PANRIGHT", 0, N_("Pan Right"), N_("Pan the view to the Right")},

@@ -118,6 +118,12 @@ static void rna_userdef_mipmap_update(Main *bmain, Scene *scene, PointerRNA *ptr
 	rna_userdef_update(bmain, scene, ptr);
 }
 
+static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	GPU_set_anisotropic(U.anisotropic_filter);
+	rna_userdef_update(bmain, scene, ptr);
+}
+
 static void rna_userdef_gl_texture_limit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	GPU_free_images();
@@ -2110,19 +2116,22 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "manipulator_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_size");
 	RNA_def_property_range(prop, 2, 40);
+	RNA_def_property_int_default(prop, 15);
 	RNA_def_property_ui_text(prop, N_("Manipulator Size"), N_("Diameter of widget, in 10 pixel units"));
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "manipulator_handle_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_handlesize");
 	RNA_def_property_range(prop, 2, 40);
+	RNA_def_property_int_default(prop, 25);
 	RNA_def_property_ui_text(prop, N_("Manipulator Handle Size"), N_("Size of widget handles as percentage of widget radius"));
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "manipulator_hotspot", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_hotspot");
 	RNA_def_property_range(prop, 4, 40);
-	RNA_def_property_ui_text(prop, N_("Manipulator Hotspot"), N_("Hotspot in pixels for clicking widget handles"));
+	RNA_def_property_int_default(prop, 14);
+	RNA_def_property_ui_text(prop, N_("Manipulator Hotspot"), N_("Pixel distance around the handles to accept mouse clicks"));
 
 	prop= RNA_def_property(srna, "object_origin_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "obcenter_dia");
@@ -2347,6 +2356,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{128, "CLAMP_128", 0, "128", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem anisotropic_items[]  ={
+		{1, "FILTER_0", 0, "Off", ""},
+		{2, "FILTER_2", 0, "2x", ""},
+		{4, "FILTER_4", 0, "4x", ""},
+		{8, "FILTER_8", 0, "8x", ""},
+		{16, "FILTER_16", 0, "16x", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem audio_mixing_samples_items[] = {
 		{256, "SAMPLES_256", 0, "256", N_("Set audio mixing buffer size to 256 samples")},
 		{512, "SAMPLES_512", 0, "512", N_("Set audio mixing buffer size to 512 samples")},
@@ -2569,6 +2586,13 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_AA);
 	RNA_def_property_ui_text(prop, N_("Anti-aliasing"), N_("Use anti-aliasing for the 3D view (may impact redraw performance)"));
+
+	prop= RNA_def_property(srna, "anisotropic_filter", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "anisotropic_filter");
+	RNA_def_property_enum_items(prop, anisotropic_items);
+	RNA_def_property_enum_default(prop, 1);
+	RNA_def_property_ui_text(prop, N_("Anisotropic Filter"), N_("The quality of the anisotropic filtering (values greater than 1.0 enable anisotropic filtering)"));
+	RNA_def_property_update(prop, 0, "rna_userdef_anisotropic_update");
 	
 	prop= RNA_def_property(srna, "gl_texture_limit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "glreslimit");
