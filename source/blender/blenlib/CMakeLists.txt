@@ -52,6 +52,7 @@ set(SRC
 	intern/DLRB_tree.c
 	intern/boxpack2d.c
 	intern/bpath.c
+	intern/callbacks.c
 	intern/cpu.c
 	intern/dynlib.c
 	intern/edgehash.c

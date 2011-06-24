@@ -64,6 +64,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
+#include "BLI_callbacks.h"
 
 #include "IMB_imbuf.h"
 
@@ -110,6 +111,9 @@ void free_blender(void)
 	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
 	
 	IMB_exit();
+
+	BLI_cb_finalize();
+
 	seq_stripelem_cache_destruct();
 	
 	free_nodesystem();	

@@ -1,8 +1,6 @@
 /*
  * $Id:
  *
- * These callbacks are needed in the lib
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/BLI_callbacks.h
+/** \file blender/blenlib/BLI_callbacks.h
  *  \ingroup bli
  */
 
@@ -37,8 +35,38 @@
 #ifndef BLI_CALLBACKS_H
 #define BLI_CALLBACKS_H
 
-// This is blenlib internal only
-void callLocalErrorCallBack(const char* msg);
+struct bContext;
+struct Main;
+struct ID;
+
+typedef enum {
+	BLI_CB_EVT_RENDER_PRE,
+	BLI_CB_EVT_RENDER_POST,
+	BLI_CB_EVT_LOAD_PRE,
+	BLI_CB_EVT_LOAD_POST,
+	BLI_CB_EVT_SAVE_PRE,
+	BLI_CB_EVT_SAVE_POST,
+	BLI_CB_EVT_TOT
+} eCbEvent;
+
+
+typedef struct {
+	struct bCallbackFuncStore *next, *prev;
+	void (* func)(struct Main *, struct ID *, void *arg);
+	void *arg;
+	short alloc;
+} bCallbackFuncStore;
+
+
+void BLI_exec_cb(struct Main *main, struct ID *self, eCbEvent evt);
+void BLI_add_cb(bCallbackFuncStore *funcstore, eCbEvent evt);
 
 #endif
 
+
+void BLI_cb_init(void);
+void BLI_cb_finalize(void);
+
+
+/* This is blenlib internal only, unrelated to above */
+void callLocalErrorCallBack(const char* msg);

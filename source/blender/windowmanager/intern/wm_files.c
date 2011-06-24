@@ -57,6 +57,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
+#include "BLI_callbacks.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_ipo_types.h" // XXX old animation system
@@ -342,6 +343,8 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 
 	WM_cursor_wait(1);
 
+	BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
+
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
@@ -392,6 +395,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_driver_reset();
+		BPY_app_handlers_reset();
 		BPY_modules_load_user(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
@@ -411,7 +415,8 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		// XXX		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo(C, "original");	/* save current state */
-		
+
+		BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 	}
 	else if(retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
@@ -518,6 +523,7 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
 
 		BPY_driver_reset();
+		BPY_app_handlers_reset();
 		BPY_modules_load_user(C);
 	}
 #endif
@@ -716,6 +722,8 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 		}
 	}
 
+	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
+
 	/* operator now handles overwrite checks */
 
 	if (G.fileflags & G_AUTOPACK) {
@@ -751,6 +759,8 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 		if(!G.background) {
 			write_history();
 		}
+
+		BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_POST);
 
 		/* run this function after because the file cant be written before the blend is */
 		if (ibuf_thumb) {

@@ -64,6 +64,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
+#include "BLI_callbacks.h"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
@@ -2915,6 +2916,9 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	
 	if(render_initialize_from_main(re, bmain, scene, srl, camera_override, lay, 0, 0)) {
 		MEM_reset_peak_memory();
+
+		BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
+
 		do_render_all_options(re);
 
 		if(write_still && !G.afbreek) {
@@ -2930,6 +2934,8 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 				do_write_image_or_movie(re, scene, NULL, NULL, name);
 			}
 		}
+
+		BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 	}
 
 	/* UGLY WARNING */
@@ -3059,14 +3065,21 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			int nf = mh->get_next_frame(&re->r, reports);
 			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
 				scene->r.cfra = re->r.cfra = nf;
-				
+
+				BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
+
 				do_render_all_options(re);
 
 				if(re->test_break(re->tbh) == 0) {
 					if(!do_write_image_or_movie(re, scene, mh, reports, NULL))
 						G.afbreek= 1;
 				}
-			} else {
+
+				if(G.afbreek == 0) {
+					BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
+				}
+			}
+			else {
 				if(re->test_break(re->tbh))
 					G.afbreek= 1;
 			}
@@ -3113,6 +3126,10 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			}
 
 			re->r.cfra= scene->r.cfra;	   /* weak.... */
+
+			/* run callbacs before rendering, before the scene is updated */
+			BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
+
 			
 			do_render_all_options(re);
 			
@@ -3133,6 +3150,10 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				}
 				
 				break;
+			}
+
+			if(G.afbreek==0) {
+				BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 			}
 		}
 	}
