@@ -41,6 +41,9 @@ private:
 public:
 	static inline void incref(void* reference)
 	{
+		if(!reference)
+			return;
+
 		std::map<void*, int>::iterator result = m_references.find(reference);
 		if(result != m_references.end())
 		{
@@ -54,6 +57,9 @@ public:
 
 	static inline bool decref(void* reference)
 	{
+		if(!reference)
+			return false;
+
 		if(!--m_references[reference])
 		{
 			m_references.erase(reference);
