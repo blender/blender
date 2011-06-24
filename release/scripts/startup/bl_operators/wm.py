@@ -462,7 +462,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
     '''Adjust arbitrary values with mouse input'''
     bl_idname = "wm.context_modal_mouse"
     bl_label = "Context Modal Mouse"
-    bl_options = {'INTERNAL'}
+    bl_options = {'GRAB_POINTER', 'BLOCKING', 'INTERNAL'}
 
     data_path_iter = StringProperty(description="The data path relative to the context, must point to an iterable.")
     data_path_item = StringProperty(description="The data path from each iterable to the value (int or float)")
