@@ -177,8 +177,6 @@ float BL_Action::GetFrame()
 
 void BL_Action::SetFrame(float frame)
 {
-	float dt;
-
 	// Clamp the frame to the start and end frame
 	if (frame < min(m_startframe, m_endframe))
 		frame = min(m_startframe, m_endframe);
@@ -187,19 +185,6 @@ void BL_Action::SetFrame(float frame)
 
 	m_localtime = frame;
 	m_bcalc_local_time = false;
-
-#if 0
-	// We don't set m_localtime directly since it's recalculated
-	// in the next update. So, we modify the value (m_starttime) 
-	// used to calculate m_localtime the next time SetLocalTime() is called.
-
-	dt = frame-m_startframe;
-
-	if (m_endframe < m_startframe)
-		dt = -dt;
-
-	m_starttime -= dt / (KX_KetsjiEngine::GetAnimFrameRate()*m_speed);
-#endif
 }
 
 void BL_Action::SetLocalTime(float curtime)
@@ -218,7 +203,7 @@ void BL_Action::Update(float curtime)
 	if (m_done)
 		return;
 
-	// We only want to calculate the current time we weren't given a frame (e.g., from SetFrame())
+	// We only want to calculate the current time if we weren't given a frame (e.g., from SetFrame())
 	if (m_bcalc_local_time)
 	{
 		curtime -= KX_KetsjiEngine::GetSuspendedDelta();
