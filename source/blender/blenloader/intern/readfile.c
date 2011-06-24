@@ -11757,7 +11757,8 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	// XXX
 	user->uifonts.first= user->uifonts.last= NULL;
-	user->uistyles.first= user->uistyles.last= NULL;
+	
+	link_list(fd, &user->uistyles);
 
 	/* free fd->datamap again */
 	oldnewmap_free_unused(fd->datamap);

@@ -723,7 +723,8 @@ static void write_userdef(WriteData *wd)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	bAddon *bext;
-
+	uiStyle *style;
+	
 	writestruct(wd, USER, "UserDef", 1, &U);
 
 	for(btheme= U.themes.first; btheme; btheme=btheme->next)
@@ -742,6 +743,10 @@ static void write_userdef(WriteData *wd)
 
 	for(bext= U.addons.first; bext; bext=bext->next)
 		writestruct(wd, DATA, "bAddon", 1, bext);
+	
+	for(style= U.uistyles.first; style; style= style->next) {
+		writestruct(wd, DATA, "uiStyle", 1, style);
+	}
 }
 
 static void write_boid_state(WriteData *wd, BoidState *state)
