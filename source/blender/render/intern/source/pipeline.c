@@ -2995,6 +2995,15 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 				}
 			}
 
+			/* color -> greyscale */
+			/* editing directly would alter the render view */
+			if(scene->r.planes == 8) {
+				ImBuf *ibuf_bw= IMB_dupImBuf(ibuf);
+				IMB_color_to_bw(ibuf_bw);
+				IMB_freeImBuf(ibuf);
+				ibuf= ibuf_bw;
+			}
+
 			ok= BKE_write_ibuf_stamp(scene, camera, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			
 			if(ok==0) {
