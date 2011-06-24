@@ -2275,18 +2275,8 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, 
 				  Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
-#if 1
-	(void)v3d;
-	(void)rv3d;
-	(void)ob;
-	(void)em;
-	(void)unit;
-#else /*BMESH_TODO*/
 	Mesh *me= ob->data;
-	EditEdge *eed;
-	EditFace *efa;
-	float v1[3], v2[3], v3[3], v4[3], vmid[3];
-	float fvec[3];
+	float v1[3], v2[3], v3[3], vmid[3], fvec[3];
 	char val[32]; /* Stores the measurement display text here */
 	const char *conv_float; /* Use a float conversion matching the grid size */
 	unsigned char col[4]= {0, 0, 0, 255}; /* color of the text to draw */
@@ -2295,6 +2285,9 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	const int do_split= unit->flag & USER_UNIT_OPT_SPLIT;
 	const int do_global= v3d->flag & V3D_GLOBAL_STATS;
 	const int do_moving= G.moving;
+
+	BMIter iter;
+	int i;
 
 	/* make the precision of the pronted value proportionate to the gridsize */
 
@@ -2310,11 +2303,16 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0f);
 	
 	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
+		BMEdge *eed;
+
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
 
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			/* draw non fgon edges, or selected edges, or edges next to selected verts while draging */
-			if((eed->h != EM_FGON) && ((eed->f & SELECT) || (do_moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) ))) {
+		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		for(; eed; eed=BMIter_Step(&iter)) {
+			/* draw selected edges, or edges next to selected verts while draging */
+			if(BM_TestHFlag(eed, BM_SELECT) ||
+			        (do_moving && (BM_TestHFlag(eed->v1, BM_SELECT) || BM_TestHFlag(eed->v2, BM_SELECT) ))) {
+
 				copy_v3_v3(v1, eed->v1->co);
 				copy_v3_v3(v2, eed->v2->co);
 
@@ -2335,103 +2333,101 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	}
 
 	if(me->drawflag & ME_DRAWEXTRA_FACEAREA) {
-// XXX		extern int faceselectedOR(EditFace *efa, int flag);		// editmesh.h shouldn't be in this file... ok for now?
+		/* would be nice to use BM_face_area, but that is for 2d faces
+		so instead add up tessalation triangle areas */
+		BMFace *f;
+		int n;
+
+#define DRAW_EM_MEASURE_STATS_FACEAREA(void)\
+		if (BM_TestHFlag(f, BM_SELECT)) {\
+			mul_v3_fl(vmid, 1.0/n);\
+			if(unit->system)\
+				bUnit_AsString(val, sizeof(val), area*unit->scale_length,\
+					3, unit->system, B_UNIT_LENGTH, do_split, FALSE);\
+			else\
+				sprintf(val, conv_float, area);\
+			view3d_cached_text_draw_add(vmid, val, 0, V3D_CACHE_TEXT_ASCII, col);\
+		}
+
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
 		
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if((efa->f & SELECT)) { // XXX || (do_moving && faceselectedOR(efa, SELECT)) ) {
-				copy_v3_v3(v1, efa->v1->co);
-				copy_v3_v3(v2, efa->v2->co);
-				copy_v3_v3(v3, efa->v3->co);
-				if (efa->v4) {
-					copy_v3_v3(v4, efa->v4->co);
-				}
-				if(do_global) {
-					mul_mat3_m4_v3(ob->obmat, v1);
-					mul_mat3_m4_v3(ob->obmat, v2);
-					mul_mat3_m4_v3(ob->obmat, v3);
-					if (efa->v4) mul_mat3_m4_v3(ob->obmat, v4);
-				}
-				
-				if (efa->v4)
-					area=  area_quad_v3(v1, v2, v3, v4);
-				else
-					area = area_tri_v3(v1, v2, v3);
-
-				if(unit->system)
-					bUnit_AsString(val, sizeof(val), area*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE); // XXX should be B_UNIT_AREA
-				else
-					sprintf(val, conv_float, area);
-
-				view3d_cached_text_draw_add(efa->cent, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		f = NULL;
+		area = 0.0;
+		zero_v3(vmid);
+		n = 0;
+		for(i = 0; i < em->tottri; i++) {
+			BMLoop **l = em->looptris[i];
+			if(f && l[0]->f != f) {
+				DRAW_EM_MEASURE_STATS_FACEAREA();
+				zero_v3(vmid);
+				area = 0.0;
+				n = 0;
 			}
-		}
-	}
 
-	if(me->drawflag & ME_DRAWEXTRA_FACEANG) {
-		EditEdge *e1, *e2, *e3, *e4;
-		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			copy_v3_v3(v1, efa->v1->co);
-			copy_v3_v3(v2, efa->v2->co);
-			copy_v3_v3(v3, efa->v3->co);
-			if(efa->v4) {
-				copy_v3_v3(v4, efa->v4->co); 
-			}
-			else {
-				copy_v3_v3(v4, v3);
-			}
+			f = l[0]->f;
+			copy_v3_v3(v1, l[0]->v->co);
+			copy_v3_v3(v2, l[1]->v->co);
+			copy_v3_v3(v3, l[2]->v->co);
 			if(do_global) {
 				mul_mat3_m4_v3(ob->obmat, v1);
 				mul_mat3_m4_v3(ob->obmat, v2);
 				mul_mat3_m4_v3(ob->obmat, v3);
-				mul_mat3_m4_v3(ob->obmat, v4); /* intentionally executed even for tri's */
 			}
-			
-			e1= efa->e1;
-			e2= efa->e2;
-			e3= efa->e3;
-			if(efa->e4) e4= efa->e4; else e4= e3;
-			
-			/* Calculate the angles */
-				
-			if( (e4->f & e1->f & SELECT) || (do_moving && (efa->v1->f & SELECT)) ) {
-				/* Vec 1 */
-				sprintf(val,"%.3g", RAD2DEGF(angle_v3v3v3(v4, v1, v2)));
-				interp_v3_v3v3(fvec, efa->cent, efa->v1->co, 0.8f);
-				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII, col);
-			}
-			if( (e1->f & e2->f & SELECT) || (do_moving && (efa->v2->f & SELECT)) ) {
-				/* Vec 2 */
-				sprintf(val,"%.3g", RAD2DEGF(angle_v3v3v3(v1, v2, v3)));
-				interp_v3_v3v3(fvec, efa->cent, efa->v2->co, 0.8f);
-				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII, col);
-			}
-			if( (e2->f & e3->f & SELECT) || (do_moving && (efa->v3->f & SELECT)) ) {
-				/* Vec 3 */
-				if(efa->v4) 
-					sprintf(val,"%.3g", RAD2DEGF(angle_v3v3v3(v2, v3, v4)));
-				else
-					sprintf(val,"%.3g", RAD2DEGF(angle_v3v3v3(v2, v3, v1)));
-				interp_v3_v3v3(fvec, efa->cent, efa->v3->co, 0.8f);
-				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII, col);
-			}
-				/* Vec 4 */
-			if(efa->v4) {
-				if( (e3->f & e4->f & SELECT) || (do_moving && (efa->v4->f & SELECT)) ) {
-					sprintf(val,"%.3g", RAD2DEGF(angle_v3v3v3(v3, v4, v1)));
-					interp_v3_v3v3(fvec, efa->cent, efa->v4->co, 0.8f);
+			area += area_tri_v3(v1, v2, v3);
+			add_v3_v3(vmid, v1);
+			add_v3_v3(vmid, v2);
+			add_v3_v3(vmid, v3);
+			n += 3;
+		}
+
+		if(f){
+			DRAW_EM_MEASURE_STATS_FACEAREA();
+		}
+#undef DRAW_EM_MEASURE_STATS_FACEAREA
+	}
+
+	if(me->drawflag & ME_DRAWEXTRA_FACEANG) {
+		BMFace *efa;
+
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+
+
+		for(efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+		    efa; efa=BMIter_Step(&iter)) {
+			BMIter liter;
+			BMLoop *loop;
+
+			BM_Compute_Face_Center(em->bm, efa, vmid);
+
+			for(loop = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
+			    loop; loop = BMIter_Step(&liter)) {
+
+				float v1[3], v2[3], v3[3];
+
+				copy_v3_v3(v1, loop->prev->v->co);
+				copy_v3_v3(v2, loop->v->co);
+				copy_v3_v3(v3, loop->next->v->co);
+
+				if(do_global){
+					mul_mat3_m4_v3(ob->obmat, v1);
+					mul_mat3_m4_v3(ob->obmat, v2);
+					mul_mat3_m4_v3(ob->obmat, v3);
+				}
+
+				if(BM_TestHFlag(efa, BM_SELECT) ||
+				        (do_moving && BM_TestHFlag(loop->v, BM_SELECT))){
+					sprintf(val,"%.3g", RAD2DEGF(angle_v3v3v3(v1, v2, v3)));
+					interp_v3_v3v3(fvec, vmid, v2, 0.8f);
 					view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII, col);
 				}
 			}
 		}
 	}
-	
+
 	if(v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
 		bglPolygonOffset(rv3d->dist, 0.0f);
 	}
-#endif
 }
 
 static int draw_em_fancy__setFaceOpts(void *userData, int index, int *UNUSED(drawSmooth_r))
