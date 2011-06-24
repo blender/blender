@@ -774,10 +774,16 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
         if obj.type == 'CAMERA':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
-            props = layout.operator("wm.context_modal_mouse", text="Camera Lens Angle")
-            props.data_path_iter = "selected_editable_objects"
-            props.data_path_item = "data.lens"
-            props.input_scale = 0.1
+            if obj.data.type == 'PERSP':
+                props = layout.operator("wm.context_modal_mouse", text="Camera Lens Angle")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.lens"
+                props.input_scale = 0.1
+            else:
+                props = layout.operator("wm.context_modal_mouse", text="Camera Lens Scale")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.ortho_scale"
+                props.input_scale = 0.01
 
             if not obj.data.dof_object:
                 #layout.label(text="Test Has DOF obj");
