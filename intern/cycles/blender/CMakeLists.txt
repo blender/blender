@@ -66,8 +66,8 @@ ADD_DEPENDENCIES(cycles_blender bf_rna)
 
 IF(WIN32)
 	TARGET_LINK_LIBRARIES(cycles_blender ${PYTHON_LINKFLAGS})
-	TARGET_LINK_LIBRARIES(cycles_blender debug ${PYTHON_LIBRARY}_d)
-	TARGET_LINK_LIBRARIES(cycles_blender optimized ${PYTHON_LIBRARY})
+	TARGET_LINK_LIBRARIES(cycles_blender debug ${PYTHON_LIBRARIES}_d)
+	TARGET_LINK_LIBRARIES(cycles_blender optimized ${PYTHON_LIBRARIES})
 
 	SET_TARGET_PROPERTIES(cycles_blender PROPERTIES PREFIX "lib")
 	SET_TARGET_PROPERTIES(cycles_blender PROPERTIES SUFFIX ".pyd")
