@@ -89,6 +89,7 @@ set(SRC
 	BLI_blenlib.h
 	BLI_boxpack2d.h
 	BLI_bpath.h
+	BLI_callbacks.h
 	BLI_cpu.h
 	BLI_dlrbTree.h
 	BLI_dynlib.h
@@ -132,7 +133,6 @@ set(SRC
 	BLI_voxel.h
 	BLI_winstuff.h
 	PIL_time.h
-	intern/BLI_callbacks.h
 	intern/dynamiclist.h
 )
 

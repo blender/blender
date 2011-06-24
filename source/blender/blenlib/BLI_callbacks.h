@@ -1,9 +1,7 @@
 /*
- * blenlib/BLI_editVert.h    mar 2001 Nzc
+ * $Id:
  *
  * These callbacks are needed in the lib
- *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,7 +24,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): mar 2001 Nzc
  *
  * ***** END GPL LICENSE BLOCK *****
  */
