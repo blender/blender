@@ -132,7 +132,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		boneName = strtok(NULL,"\"");
 		
 		if( boneName != NULL )
-			return id_name(ob) + "_" + std::string(boneName);
+			return /*id_name(ob) + "_" +*/ std::string(boneName);
 		else		
 			return id_name(ob);
 	}
