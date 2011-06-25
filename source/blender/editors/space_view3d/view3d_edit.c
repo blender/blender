@@ -949,6 +949,15 @@ float ndof_to_angle_axis(const float ndof[3], float axis[3])
 	return angular_velocity;
 	}
 
+float ndof_to_angular_velocity(wmNDOFMotionData* ndof, float axis[3])
+	{
+	const float x = ndof->rx;
+	const float y = ndof->ry;
+	const float z = ndof->rz;
+
+	return sqrtf(x*x + y*y + z*z);
+	}
+
 void ndof_to_quat(wmNDOFMotionData* ndof, float q[4])
 	{
 	const float x = ndof->rx;
@@ -974,10 +983,12 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RegionView3D* rv3d = CTX_wm_region_view3d(C);
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
-	float sensitivity = 1.f; /* ooh, magic number!
-	const float sensitivity = 0.035; /* ooh, magic number!
-		there will be several of these as interactions get tuned */
-	int /* bool */ has_rotation = rv3d->viewlock != RV3D_LOCKED && (ndof->rx || ndof->ry || ndof->rz);
+	// tune these until everything feels right
+	float rot_sensitivity = 1.f;
+	float zoom_sensitivity = 1.f;
+
+	// rather have bool, but...
+	int has_rotation = rv3d->viewlock != RV3D_LOCKED && (ndof->rx || ndof->ry || ndof->rz);
 
 	float dt = ndof->dt;
 	if (dt > 0.25f)
@@ -986,16 +997,29 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		ndof->dt = dt = 0.0125f;
 
 
-	if (has_rotation)
-		rv3d->view = RV3D_VIEW_USER;
+	if (ndof->ty) {
+		// Zoom!
+		// velocity should be proportional to the linear velocity attained by rotational motion of same strength
+		// [got that?]
+		// proportional to s = r * theta
+
+		float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->ty;
+		rv3d->dist += zoom_distance;
+
+		ED_region_tag_redraw(CTX_wm_region(C));		
+	}
 
 	if (has_rotation) {
+
+		rv3d->view = RV3D_VIEW_USER;
+
 		if (U.flag & USER_TRACKBALL) {
 
 			float rot[4];
 			float view_inv[4], view_inv_conj[4];
 
 			ndof_to_quat(ndof, rot);
+			// scale by rot_sensitivity?
 
 			// swap y and z -- not sure why, but it works
 			{
@@ -1033,13 +1057,13 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mul_m3_v3(m_inv,xvec);
 
 			/* Perform the up/down rotation */
-			phi = sensitivity * dt * ndof->rx;
+			phi = rot_sensitivity * dt * ndof->rx;
 			q1[0] = cos(phi);
 			mul_v3_v3fl(q1+1, xvec, sin(phi));
 			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 
 			/* Perform the orbital rotation */
-			phi = sensitivity * dt * ndof->rz;
+			phi = rot_sensitivity * dt * ndof->rz;
 			q1[0] = cos(phi);
 			q1[1] = q1[2] = 0.0;
 			q1[3] = sin(phi);
@@ -1156,66 +1180,6 @@ static int viewndof_invoke_1st_try(bContext *C, wmOperator *op, wmEvent *event)
 	rv3d->ofs[2] += dt * ndof->tz;
 
 //	request_depth_update(CTX_wm_region_view3d(C)); /* need this? */
-	ED_region_tag_redraw(CTX_wm_region(C));
-
-	return OPERATOR_FINISHED;
-}
-
-static int viewndof_invoke_2nd_try(bContext *C, wmOperator *op, wmEvent *event)
-{
-	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
-
-	float dt = ndof->dt;
-
-	RegionView3D* rv3d = CTX_wm_region_view3d(C);
-
-	if (dt > 0.25f)
-		/* this is probably the first event for this motion, so set dt to something reasonable */
-		dt = 0.0125f;
-
-	float axis[3];
-	float angle = ndof_to_angle_axis(&(ndof->rx), axis);
-
-	float eyeball_q[4];// = {0.f};
-
-//	float* eyeball_v = eyeball_q + 1;
-
-	axis_angle_to_quat(eyeball_q, axis, angle);
-
-	float eye_conj[4];
-	copy_qt_qt(eye_conj, eyeball_q);
-	conjugate_qt(eye_conj);
-
-//	float mat[3][3];
-//	quat_to_mat3(mat, rv3d->viewquat);
-/*
-	eyeball_v[0] = dt * ndof->tx;
-	eyeball_v[1] = dt * ndof->ty;
-	eyeball_v[2] = dt * ndof->tz;
-*/
-//	mul_m3_v3(mat, eyeball_vector);
-//	mul_qt_v3(rv3d->viewquat, eyeball_vector);
-
-	// doesn't this transform v?
-	// v' = (q)(v)(~q)
-
-	float view_q[4];
-	copy_qt_qt(view_q, rv3d->viewquat);
-
-//	float q_conj[4];
-//	copy_qt_qt(q_conj, q);
-//	conjugate_qt(q_conj);
-
-	mul_qt_qtqt(view_q, eyeball_q, view_q);
-	mul_qt_qtqt(view_q, view_q, eye_conj);
-
-//	mul_qt_qtqt(eyeball_q, q, eyeball_q);
-//	mul_qt_qtqt(eyeball_q, eyeball_q, q_conj);
-
-//	add_v3_v3(rv3d->ofs, eyeball_v);
-
-	copy_qt_qt(rv3d->viewquat, view_q);
-
 	ED_region_tag_redraw(CTX_wm_region(C));
 
 	return OPERATOR_FINISHED;
