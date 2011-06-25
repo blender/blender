@@ -1374,6 +1374,48 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 	ot->poll= wm_search_menu_poll;
 }
 
+// BEGIN ndof menu -- experimental!
+
+static int wm_ndof_menu_poll(bContext *C)
+{
+	if(CTX_wm_window(C)==NULL)
+		return 0;
+
+	// if menu is already pulled up, another button press should dismiss it
+	// not sure if that behavior should go here or elsewhere...
+
+	puts("ndof: menu poll");
+	return 1;
+}
+
+static int wm_ndof_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+	puts("ndof: menu exec");
+	return OPERATOR_FINISHED;	
+}
+
+static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	puts("ndof: menu invoke");
+
+	uiPupMenuNotice(C, "Hello!");
+	
+	return OPERATOR_CANCELLED;
+}
+
+static void WM_OT_ndof_menu(wmOperatorType *ot)
+{
+	puts("ndof: registering menu operator");
+	ot->name= "NDOF Menu";
+	ot->idname= "WM_OT_ndof_menu";
+	
+	ot->invoke= wm_ndof_menu_invoke;
+	ot->exec= wm_ndof_menu_exec;
+	ot->poll= wm_ndof_menu_poll;
+}
+
+// END ndof menu
+
 static int wm_call_menu_exec(bContext *C, wmOperator *op)
 {
 	char idname[BKE_ST_MAXNAME];
@@ -3403,6 +3445,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
+	WM_operatortype_append(WM_OT_ndof_menu);
 	WM_operatortype_append(WM_OT_call_menu);
 	WM_operatortype_append(WM_OT_radial_control);
 #if defined(WIN32)
@@ -3623,7 +3666,9 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
-	
+
+	WM_keymap_add_item(keymap, "WM_OT_ndof_menu", NDOF_BUTTON_MENU, KM_PRESS, 0, 0);
+
 	/* Space switching */
 
 
