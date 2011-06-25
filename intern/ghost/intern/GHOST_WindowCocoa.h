@@ -181,6 +181,26 @@ public:
 	virtual	void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	/**
+	 * Converts a point in screen coordinates to client rectangle coordinates
+	 * but without the y coordinate conversion needed for ghost compatibility.
+	 * @param inX	The x-coordinate in the client rectangle.
+	 * @param inY	The y-coordinate in the client rectangle.
+	 * @param outX	The x-coordinate on the screen.
+	 * @param outY	The y-coordinate on the screen.
+	 */
+	void clientToScreenIntern(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+
+	/**
+	 * Converts a point in screen coordinates to client rectangle coordinates,
+	 * but without the y coordinate conversion needed for ghost compatibility.
+	 * @param inX	The x-coordinate in the client rectangle.
+	 * @param inY	The y-coordinate in the client rectangle.
+	 * @param outX	The x-coordinate on the screen.
+	 * @param outY	The y-coordinate on the screen.
+	 */
+	void screenToClientIntern(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+
+	/**
 	 * Gets the screen the window is displayed in
 	 * @return The NSScreen object
 	 */
