@@ -705,7 +705,7 @@ static float WardIso_Spec( float *n, float *l, float *v, float rms, int tangent)
 }
 
 /* cartoon render diffuse */
-static float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
+static float Toon_Diff( float *n, float *l, float *UNUSED(v), float size, float smooth )
 {
 	float rslt, ang;
 
@@ -806,7 +806,7 @@ static float Minnaert_Diff(float nl, float *n, float *v, float darkness)
 	return i;
 }
 
-static float Fresnel_Diff(float *vn, float *lv, float *view, float fac_i, float fac)
+static float Fresnel_Diff(float *vn, float *lv, float *UNUSED(view), float fac_i, float fac)
 {
 	return fresnel_fac(lv, vn, fac_i, fac);
 }

@@ -244,6 +244,7 @@ class QuickExplode(bpy.types.Operator):
         self.frame_end = self.frame_start + self.frame_duration
         return self.execute(context)
 
+
 def obj_bb_minmax(obj, min_co, max_co):
     for i in range(0, 8):
         bb_vec = Vector(obj.bound_box[i]) * obj.matrix_world

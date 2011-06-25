@@ -303,7 +303,7 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
  */
 
 /* copy data from face to ShadeInput, scanline case */
-void shade_input_set_triangle(ShadeInput *shi, volatile int obi, volatile int facenr, int normal_flip)
+void shade_input_set_triangle(ShadeInput *shi, volatile int obi, volatile int facenr, int UNUSED(normal_flip))
 {
 	if(facenr>0) {
 		shi->obi= &R.objectinstance[obi];

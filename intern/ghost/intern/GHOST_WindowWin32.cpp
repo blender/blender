@@ -136,7 +136,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	GHOST_TSuccess msEnabled,
 	int msPixelFormat)
 :
-	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone,
+	GHOST_Window(width, height, state, GHOST_kDrawingContextTypeNone,
 	stereoVisual,numOfAASamples),
 	m_system(system),
 	m_hDC(0),

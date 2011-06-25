@@ -1757,11 +1757,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Absolute Path Time", "Path timing is in absolute frames");
 	RNA_def_property_update(prop, 0, "rna_Particle_abspathtime_update");
 
-	prop= RNA_def_property(srna, "lock_billboard", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_BB_LOCK);
-	RNA_def_property_ui_text(prop, "Lock Billboard", "Lock the billboards align axis");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
 	prop= RNA_def_property(srna, "use_parent_particles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_PARENT);
 	RNA_def_property_ui_text(prop, "Parents", "Render parent particles");
@@ -1910,6 +1905,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* billboards */
+	prop= RNA_def_property(srna, "lock_billboard", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_BB_LOCK);
+	RNA_def_property_ui_text(prop, "Lock Billboard", "Lock the billboards align axis");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
 	prop= RNA_def_property(srna, "billboard_align", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bb_align");
 	RNA_def_property_enum_items(prop, bb_align_items);
@@ -1956,6 +1956,25 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, -100.0f, 100.0f);
 	RNA_def_property_ui_range(prop, -1.0, 1.0, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Billboard Offset", "");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "billboard_size", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "bb_size");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_range(prop, 0.001f, 10.0f);
+	RNA_def_property_ui_text(prop, "Billboard Scale", "Scale billboards relative to particle size");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "billboard_velocity_head", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "bb_vel_head");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Billboard Velocity Head", "Scale billboards by velocity");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "billboard_velocity_tail", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "bb_vel_tail");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Billboard Velocity Tail", "Scale billboards by velocity");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	/* simplification */

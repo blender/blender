@@ -22,6 +22,7 @@ __all__ = (
     "load_image",
 )
 
+
 # limited replacement for BPyImage.comprehensiveImageLoad
 def load_image(imagepath,
                dirname="",

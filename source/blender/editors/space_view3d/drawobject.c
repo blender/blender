@@ -3613,8 +3613,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			bb.align = part->bb_align;
 			bb.anim = part->bb_anim;
 			bb.lock = part->draw & PART_DRAW_BB_LOCK;
-			bb.offset[0] = part->bb_offset[0];
-			bb.offset[1] = part->bb_offset[1];
 			break;
 		case PART_DRAW_PATH:
 			break;
@@ -3784,7 +3782,20 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 					/* create actiual particle data */
 					if(draw_as == PART_DRAW_BB) {
-						bb.size = pa_size;
+						bb.offset[0] = part->bb_offset[0];
+						bb.offset[1] = part->bb_offset[1];
+						bb.size[0] = part->bb_size[0] * pa_size;
+						if (part->bb_align==PART_BB_VEL) {
+							float pa_vel = len_v3(state.vel);
+							float head = part->bb_vel_head*pa_vel;
+							float tail = part->bb_vel_tail*pa_vel;
+							bb.size[1] = part->bb_size[1]*pa_size + head + tail;
+							/* use offset to adjust the particle center. this is relative to size, so need to divide! */
+							if (bb.size[1] > 0.0f)
+								bb.offset[1] += (head-tail) / bb.size[1];
+						}
+						else
+							bb.size[1] = part->bb_size[1] * pa_size;
 						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
 						bb.time = ct;
 					}
@@ -3804,7 +3815,20 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 					/* create actiual particle data */
 					if(draw_as == PART_DRAW_BB) {
-						bb.size = pa_size;
+						bb.offset[0] = part->bb_offset[0];
+						bb.offset[1] = part->bb_offset[1];
+						bb.size[0] = part->bb_size[0] * pa_size;
+						if (part->bb_align==PART_BB_VEL) {
+							float pa_vel = len_v3(state.vel);
+							float head = part->bb_vel_head*pa_vel;
+							float tail = part->bb_vel_tail*pa_vel;
+							bb.size[1] = part->bb_size[1]*pa_size + head + tail;
+							/* use offset to adjust the particle center. this is relative to size, so need to divide! */
+							if (bb.size[1] > 0.0f)
+								bb.offset[1] += (head-tail) / bb.size[1];
+						}
+						else
+							bb.size[1] = part->bb_size[1] * pa_size;
 						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
 						bb.time = pa_time;
 					}
@@ -5441,7 +5465,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	}
 	else if(ob->type==OB_ARMATURE) {
 		if(!(ob->mode & OB_MODE_POSE))
-			draw_armature(scene, v3d, ar, base, OB_WIRE, 0);
+			draw_armature(scene, v3d, ar, base, OB_WIRE, FALSE, TRUE);
 	}
 
 	glLineWidth(1.0);
@@ -5977,7 +6001,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		case OB_ARMATURE:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 				if(dt>OB_WIRE) GPU_enable_material(0, NULL); // we use default material
-				empty_object= draw_armature(scene, v3d, ar, base, dt, flag);
+				empty_object= draw_armature(scene, v3d, ar, base, dt, flag, FALSE);
 				if(dt>OB_WIRE) GPU_disable_material();
 			}
 			break;

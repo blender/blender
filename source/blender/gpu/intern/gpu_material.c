@@ -942,8 +942,10 @@ static void do_material_tex(GPUShadeInput *shi)
 				texco= texco_object;
 			else if(mtex->texco==TEXCO_GLOB)
 				texco= texco_global;
-			else if(mtex->texco==TEXCO_REFL)
+			else if(mtex->texco==TEXCO_REFL) {
+				GPU_link(mat, "texco_refl", shi->vn, shi->view, &shi->ref);
 				texco= shi->ref;
+			}
 			else if(mtex->texco==TEXCO_UV) {
 				if(1) { //!(texco_uv && strcmp(mtex->uvname, lastuvname) == 0)) {
 					GPU_link(mat, "texco_uv", GPU_attribute(CD_MTFACE, mtex->uvname), &texco_uv);
@@ -1173,7 +1175,6 @@ static void do_material_tex(GPUShadeInput *shi)
 				}
 				
 				GPU_link(mat, "vec_math_negate", shi->vn, &orn);
-				GPU_link(mat, "texco_refl", shi->vn, shi->view, &shi->ref);
 			}
 
 			if((mtex->mapto & MAP_VARS)) {

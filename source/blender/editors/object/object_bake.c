@@ -858,7 +858,7 @@ static void finish_images(MultiresBakeRender *bkr)
 		if(ibuf->x<=0 || ibuf->y<=0)
 			continue;
 
-		RE_bake_ibuf_filter(ibuf, (unsigned char *)ibuf->userdata, bkr->bake_filter);
+		RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, bkr->bake_filter);
 
 		ibuf->userflags|= IB_BITMAPDIRTY;
 		if(ibuf->mipmap[0]) {

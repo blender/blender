@@ -71,6 +71,7 @@ extern const char *buttons_context_dir[]; /* doc access */
 
 /* buttons_ops.c */
 void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
+void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_toolbox(struct wmOperatorType *ot);
 
 #endif /* ED_BUTTONS_INTERN_H */

@@ -485,7 +485,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         if md.wrap_method == 'PROJECT':
             split = layout.split(percentage=0.25)
-            
+
             col = split.column()
             col.label(text="Axis:")
             col.prop(md, "use_project_x")

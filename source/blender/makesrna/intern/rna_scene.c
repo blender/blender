@@ -46,7 +46,9 @@
 
 #ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
-#include "AUD_C-API.h"
+#  ifdef WITH_AUDASPACE
+#    include "AUD_C-API.h"
+#  endif
 #endif
 
 #ifdef WITH_FFMPEG
@@ -1219,7 +1221,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Project Individual Elements", "Project individual elements on the surface of other objects");
 	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
-
+	
+	prop= RNA_def_property(srna, "use_snap_project_self", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT_NO_SELF);
+	RNA_def_property_ui_text(prop, "Project to Self", "Project into its self (editmode)");
+	RNA_def_property_ui_icon(prop, ICON_ORTHO, 0);
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
+	
 	/* Grease Pencil */
 	prop = RNA_def_property(srna, "use_grease_pencil_sessions", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_PAINTSESSIONS_ON);

@@ -1763,7 +1763,7 @@ void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 	ot->exec= outliner_toggle_expanded_exec;
 	ot->poll= ED_operator_outliner_active;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* no undo or registry, UI option */
 }
 
 /* --- */
@@ -1798,7 +1798,7 @@ void OUTLINER_OT_selected_toggle(wmOperatorType *ot)
 	ot->exec= outliner_toggle_selected_exec;
 	ot->poll= ED_operator_outliner_active;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* no undo or registry, UI option */
 }
 
 /* --- */
@@ -1855,7 +1855,7 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 	ot->exec= outliner_one_level_exec;
 	ot->poll= ED_operator_outliner_active;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* no undo or registry, UI option */
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep.");
@@ -3050,7 +3050,7 @@ void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 	ot->exec= outliner_show_hierarchy_exec;
 	ot->poll= ED_operator_outliner_active; //  TODO: shouldn't be allowed in RNA views...
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* no undo or registry, UI option */
 }
 
 void outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selecting)
@@ -4737,7 +4737,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		
 		if(!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))) {
 			// icons a bit higher
-			tselem_draw_icon(block, xmax, (float)startx+offsx, (float)*starty+2*ufac, tselem, te, 1.0f);
+			tselem_draw_icon(block, xmax, (float)startx+offsx - 0.5f*ufac, (float)*starty+2.0f*ufac, tselem, te, 1.0f);
 			
 			offsx+= UI_UNIT_X;
 		}

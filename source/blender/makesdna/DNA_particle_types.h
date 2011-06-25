@@ -168,7 +168,7 @@ typedef struct ParticleSettings {
 
 	/* billboards */
 	short bb_align, bb_uv_split, bb_anim, bb_split_offset;
-	float bb_tilt, bb_rand_tilt, bb_offset[2];
+	float bb_tilt, bb_rand_tilt, bb_offset[2], bb_size[2], bb_vel_head, bb_vel_tail;
 
 	/* draw color */
 	float color_vec_max;

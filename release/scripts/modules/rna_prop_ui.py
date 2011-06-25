@@ -111,12 +111,16 @@ def draw(layout, context, context_member, property_type, use_edit=True):
             continue
 
         row = layout.row()
-        convert_to_pyobject = getattr(val, "convert_to_pyobject", None)
+        to_dict = getattr(val, "to_dict", None)
+        to_list = getattr(val, "to_list", None)
 
         val_orig = val
-        if convert_to_pyobject:
-            val_draw = val = val.convert_to_pyobject()
-            val_draw = str(val_draw)
+        if to_dict:
+            val = to_dict()
+            val_draw = str(val)
+        elif to_list:
+            val = to_list()
+            val_draw = str(val)
         else:
             val_draw = val
 
@@ -131,7 +135,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         row.label(text=key)
 
         # explicit exception for arrays
-        if convert_to_pyobject and not hasattr(val_orig, "len"):
+        if to_dict or to_list:
             row.label(text=val_draw)
         else:
             if key in rna_properties:

@@ -27,6 +27,7 @@ __all__ = (
     "ngon_tesselate",
 )
 
+
 def mesh_linked_faces(mesh):
     """
     Splits the mesh into connected faces, use this for seperating cubes from
@@ -267,6 +268,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
     fix_loops: If this is enabled polylines that use loops to make multiple polylines are delt with correctly.
     '''
 
+    from mathutils.geometry import tesselate_polygon
     from mathutils import Vector
     vector_to_tuple = Vector.to_tuple
 

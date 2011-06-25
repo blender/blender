@@ -24,7 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(audaspace)
 add_subdirectory(string)
 add_subdirectory(ghost)
 add_subdirectory(guardedalloc)
@@ -34,6 +33,10 @@ add_subdirectory(iksolver)
 add_subdirectory(opennl)
 add_subdirectory(smoke)
 add_subdirectory(mikktspace)
+
+if(WITH_AUDASPACE)
+	add_subdirectory(audaspace)
+endif()
 
 if(WITH_MOD_FLUID)
 	add_subdirectory(elbeem)

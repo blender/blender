@@ -38,12 +38,11 @@ set(INC
 	../render/extern/include
 	../include
 	../windowmanager
-	../../../intern/audaspace/intern
 	../../../intern/guardedalloc
 )
 
 set(INC_SYS
-	${QUICKTIME_INC}
+	${QUICKTIME_INCLUDE_DIRS}
 )
 
 if(USE_QTKIT)
@@ -65,5 +64,12 @@ else()
 endif()
 
 add_definitions(-DWITH_QUICKTIME)
+
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
 
 blender_add_lib(bf_quicktime "${SRC}" "${INC}" "${INC_SYS}")
