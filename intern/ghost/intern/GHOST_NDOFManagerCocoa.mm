@@ -101,7 +101,7 @@ static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, voi
 			printf("ndof: calibrate\n"); // but what should blender do?
 			break;
 		case kConnexionMsgDoMapping:
-			printf("ndof: driver did something\n");
+			// printf("ndof: driver did something\n");
 			// sent when the driver itself consumes an NDOF event
 			// and performs whatever action is set in user prefs
 			// 3Dx header file says to ignore these
