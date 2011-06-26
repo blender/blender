@@ -410,12 +410,12 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "ID Materials", "Collection of materials");
 
 	func= RNA_def_function(srna, "append", "material_append_id");
-	RNA_def_function_ui_description(func, "Add a new material to Mesh.");
+	RNA_def_function_ui_description(func, "Add a new material to the data block.");
 	parm= RNA_def_pointer(func, "material", "Material", "", "Material to add.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	
 	func= RNA_def_function(srna, "pop", "material_pop_id");
-	RNA_def_function_ui_description(func, "Remove a material from Mesh.");
+	RNA_def_function_ui_description(func, "Remove a material from the data block.");
 	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of material to remove.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "material", "Material", "", "Material to remove.");

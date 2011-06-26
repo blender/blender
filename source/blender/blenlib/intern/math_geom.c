@@ -420,6 +420,60 @@ int isect_line_sphere_v3(const float l1[3], const float l2[3],
 	}
 }
 
+/* keep in sync with isect_line_sphere_v3 */
+int isect_line_sphere_v2(const float l1[2], const float l2[2],
+                         const float sp[2], const float r,
+                         float r_p1[2], float r_p2[2])
+{
+	const float ldir[2]= {
+	    l2[0] - l1[0],
+	    l2[1] - l1[1]
+	};
+
+	const float a= dot_v3v3(ldir, ldir);
+
+	const float b= 2.0f *
+	        (ldir[0] * (l1[0] - sp[0]) +
+	         ldir[1] * (l1[1] - sp[1]));
+
+	const float c=
+	        dot_v2v2(sp, sp) +
+	        dot_v2v2(l1, l1) -
+	        (2.0f * dot_v2v2(sp, l1)) -
+	        (r * r);
+
+	const float i = b * b - 4.0f * a * c;
+
+	float mu;
+
+	if (i < 0.0f) {
+		/* no intersections */
+		return 0;
+	}
+	else if (i == 0.0f) {
+		/* one intersection */
+		mu = -b / (2.0f * a);
+		madd_v2_v2v2fl(r_p1, l1, ldir, mu);
+		return 1;
+	}
+	else if (i > 0.0) {
+		const float i_sqrt= sqrt(i); /* avoid calc twice */
+
+		/* first intersection */
+		mu = (-b + i_sqrt) / (2.0f * a);
+		madd_v2_v2v2fl(r_p1, l1, ldir, mu);
+
+		/* second intersection */
+		mu = (-b - i_sqrt) / (2.0f * a);
+		madd_v2_v2v2fl(r_p2, l1, ldir, mu);
+		return 2;
+	}
+	else {
+		/* math domain error - nan */
+		return -1;
+	}
+}
+
 /*
 -1: colliniar
  1: intersection

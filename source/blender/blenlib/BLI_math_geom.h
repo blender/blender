@@ -82,6 +82,7 @@ float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2
 int isect_line_line_v2(const float a1[2], const float a2[2], const float b1[2], const float b2[2]);
 int isect_line_line_v2_int(const int a1[2], const int a2[2], const int b1[2], const int b2[2]);
 int isect_line_sphere_v3(const float l1[3], const float l2[3], const float sp[3], const float r, float r_p1[3], float r_p2[3]);
+int isect_line_sphere_v2(const float l1[2], const float l2[2], const float sp[2], const float r, float r_p1[2], float r_p2[2]);
 int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2]);
 
 /* Returns the number of point of interests
