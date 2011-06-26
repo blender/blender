@@ -193,6 +193,7 @@ set(SRC
 	BKE_key.h
 	BKE_lattice.h
 	BKE_library.h
+	BKE_linestyle.h
 	BKE_main.h
 	BKE_material.h
 	BKE_mball.h
