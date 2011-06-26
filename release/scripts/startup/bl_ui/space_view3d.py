@@ -519,11 +519,10 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_by_number_vertices", text="Triangles").type = 'TRIANGLES'
-        layout.operator("mesh.select_by_number_vertices", text="Quads").type = 'QUADS'
+        layout.operator("mesh.select_by_number_vertices", text = "By Number of Verts")
         if context.scene.tool_settings.mesh_select_mode[2] == False:
                 layout.operator("mesh.select_non_manifold", text="Non Manifold")
-        layout.operator("mesh.select_by_number_vertices", text="Loose Verts/Edges").type = 'OTHER'
+        layout.operator("mesh.select_loose_verts", text = "Loose Verts/Edges")
         layout.operator("mesh.select_similar", text="Similar")
 
         layout.separator()

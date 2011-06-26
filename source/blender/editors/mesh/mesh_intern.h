@@ -216,6 +216,7 @@ void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
 void MESH_OT_hide(struct wmOperatorType *ot);
 void MESH_OT_reveal(struct wmOperatorType *ot);
 void MESH_OT_select_by_number_vertices(struct wmOperatorType *ot);
+void MESH_OT_select_loose_verts(struct wmOperatorType *ot);
 void MESH_OT_select_mirror(struct wmOperatorType *ot);
 void MESH_OT_normals_make_consistent(struct wmOperatorType *ot);
 void MESH_OT_faces_select_linked_flat(struct wmOperatorType *ot);

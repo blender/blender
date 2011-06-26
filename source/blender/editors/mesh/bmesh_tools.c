@@ -4073,48 +4073,47 @@ void MESH_OT_screw(wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
 }
 
-static int select_by_number_vertices_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	EditFace *efa;
-	int numverts= RNA_enum_get(op->ptr, "type");
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	BMFace *efa;
+	BMIter iter;
+	int numverts= RNA_int_get(op->ptr, "number");
+	int type = RNA_enum_get(op->ptr, "type");
 
-	/* Selects trias/qiads or isolated verts, and edges that do not have 2 neighboring
-	 * faces
-	 */
+	for(efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+	    efa; efa = BMIter_Step(&iter)){
 
-	/* for loose vertices/edges, we first select all, loop below will deselect */
-	if(numverts==5) {
-		EM_set_flag_all(em, SELECT);
-	}
-	else if(em->selectmode!=SCE_SELECT_FACE) {
-		BKE_report(op->reports, RPT_ERROR, "Only works in face selection mode");
-		return OPERATOR_CANCELLED;
-	}
-	
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->e4) {
-			EM_select_face(efa, (numverts==4) );
+		int select = 0;
+
+		if(type == 0 && efa->len < numverts){
+			select = 1;
+		}else if(type == 1 && efa->len == numverts){
+			select = 1;
+		}else if(type == 2 && efa->len > numverts){
+			select = 1;
 		}
-		else {
-			EM_select_face(efa, (numverts==3) );
+
+		if(select){
+			BM_Select(em->bm, efa, 1);
 		}
 	}
+
+	EDBM_selectmode_flush(em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-#endif
 	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 {
-	static const EnumPropertyItem type_items[]= {
-		{3, "TRIANGLES", 0, "Triangles", NULL},
-		{4, "QUADS", 0, "Triangles", NULL},
-		{5, "OTHER", 0, "Other", NULL},
-		{0, NULL, 0, NULL, NULL}};
+	static const EnumPropertyItem type_items[] = {
+	    {0, "LESS", 0, "Less Than", ""},
+	    {1, "EQUAL", 0, "Equal To", ""},
+	    {2, "GREATER", 0, "Greater Than", ""},
+	    {0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name= "Select by Number of Vertices";
@@ -4127,11 +4126,56 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
+
+	/* properties */
+	RNA_def_int(ot->srna, "number", 4, 3, INT_MAX, "Number of Vertices", "", 3, INT_MAX);
+	RNA_def_enum(ot->srna, "type", type_items, 1, "Type", "Type of comparison to make");
 }
 
+static int select_loose_verts_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
+	BMVert *eve;
+	BMEdge *eed;
+	BMIter iter;
+
+	for(eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+	    eve; eve = BMIter_Step(&iter)){
+
+		if(!eve->e){
+			BM_Select(em->bm, eve, 1);
+		}
+	}
+
+	for(eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+	    eed; eed = BMIter_Step(&iter)){
+
+		if(!eed->l){
+			BM_Select(em->bm, eed, 1);
+		}
+	}
+
+	EDBM_selectmode_flush(em);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_loose_verts(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Loose Vertices/Edges";
+	ot->description = "Select vertices with edges or faces and edges with no faces";
+	ot->idname = "MESH_OT_select_loose_verts";
+
+	/* api callbacks */
+	ot->exec = select_loose_verts_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 #define MIRROR_THRESH	1.0f
 
