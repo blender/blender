@@ -39,6 +39,21 @@ macro(file_list_suffix
 
 endmacro()
 
+
+macro(target_link_libraries_optimized TARGET LIBS)
+	foreach(_LIB ${LIBS})
+		target_link_libraries(${TARGET} optimized "${_LIB}")
+	endforeach()
+	unset(_LIB)
+endmacro()
+
+macro(target_link_libraries_debug TARGET LIBS)
+	foreach(_LIB ${LIBS})
+		target_link_libraries(${TARGET} debug "${_LIB}")
+	endforeach()
+	unset(_LIB)
+endmacro()
+
 # Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
 # use it instead of include_directories()
 macro(blender_include_dirs
@@ -202,8 +217,8 @@ macro(setup_liblinks
 
 		if(WIN32 AND NOT UNIX)
 			file_list_suffix(PYTHON_LIBRARIES_DEBUG "${PYTHON_LIBRARIES}" "_d")
-			target_link_libraries(${target} debug ${PYTHON_LIBRARIES_DEBUG})
-			target_link_libraries(${target} optimized ${PYTHON_LIBRARIES})
+			target_link_libraries_debug(${target} "${PYTHON_LIBRARIES_DEBUG}")
+			target_link_libraries_optimized(${target} "${PYTHON_LIBRARIES}")
 			unset(PYTHON_LIBRARIES_DEBUG)
 		else()
 			target_link_libraries(${target} ${PYTHON_LIBRARIES})
@@ -256,8 +271,8 @@ macro(setup_liblinks
 	if(WITH_IMAGE_OPENEXR)
 		if(WIN32 AND NOT UNIX)
 			file_list_suffix(OPENEXR_LIBRARIES_DEBUG "${OPENEXR_LIBRARIES}" "_d")
-			target_link_libraries(${target} debug ${OPENEXR_LIBRARIES_DEBUG})
-			target_link_libraries(${target} optimized ${OPENEXR_LIBRARIES})
+			target_link_libraries_debug(${target} "${OPENEXR_LIBRARIES_DEBUG}")
+			target_link_libraries_optimized(${target} "${OPENEXR_LIBRARIES}")
 			unset(OPENEXR_LIBRARIES_DEBUG)
 		else()
 			target_link_libraries(${target} ${OPENEXR_LIBRARIES})
@@ -272,19 +287,19 @@ macro(setup_liblinks
 	if(WITH_OPENCOLLADA)
 		if(WIN32 AND NOT UNIX)
 			file_list_suffix(OPENCOLLADA_LIBRARIES_DEBUG "${OPENCOLLADA_LIBRARIES}" "_d")
-			target_link_libraries(${target} debug ${OPENCOLLADA_LIBRARIES_DEBUG})
-			target_link_libraries(${target} optimized ${OPENCOLLADA_LIBRARIES})
+			target_link_libraries_debug(${target} "${OPENCOLLADA_LIBRARIES_DEBUG}")
+			target_link_libraries_optimized(${target} "${OPENCOLLADA_LIBRARIES}")
 			unset(OPENCOLLADA_LIBRARIES_DEBUG)
 
 			file_list_suffix(PCRE_LIB_DEBUG "${PCRE_LIB}" "_d")
-			target_link_libraries(${target} debug ${PCRE_LIB_DEBUG})
-			target_link_libraries(${target} optimized ${PCRE_LIB})
+			target_link_libraries_debug(${target} "${PCRE_LIB_DEBUG}")
+			target_link_libraries_optimized(${target} "${PCRE_LIB}")
 			unset(PCRE_LIB_DEBUG)
 
 			if(EXPAT_LIB)
 				file_list_suffix(EXPAT_LIB_DEBUG "${EXPAT_LIB}" "_d")
-				target_link_libraries(${target} debug ${EXPAT_LIB_DEBUG})
-				target_link_libraries(${target} optimized ${EXPAT_LIB})
+				target_link_libraries_debug(${target} "${EXPAT_LIB_DEBUG}")
+				target_link_libraries_optimized(${target} "${EXPAT_LIB}")
 				unset(EXPAT_LIB_DEBUG)
 			endif()
 		else()
