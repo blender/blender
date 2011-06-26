@@ -522,7 +522,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	VectorObject *line_a, *line_b, *plane_co, *plane_no;
 	int no_flip= 0;
 	float isect[3];
-	if(!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_line_line_2d",
+	if(!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_line_plane",
 	  &vector_Type, &line_a,
 	  &vector_Type, &line_b,
 	  &vector_Type, &plane_co,
@@ -555,7 +555,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 
 
 PyDoc_STRVAR(M_Geometry_intersect_line_sphere_doc,
-".. function:: intersect_line_sphere(line_a, line_b, sphere_co, sphere_radius)\n"
+".. function:: intersect_line_sphere(line_a, line_b, sphere_co, sphere_radius, clip=True)\n"
 "\n"
 "   Takes a lines (as 2 vectors), a sphere as a point and a radius and\n"
 "   returns the intersection\n"
@@ -576,15 +576,17 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 	PyObject *ret;
 	VectorObject *line_a, *line_b, *sphere_co;
 	float sphere_radius;
+	int clip= TRUE;
+	float lambda;
 
 	float isect_a[3];
 	float isect_b[3];
 
-	if(!PyArg_ParseTuple(args, "O!O!O!f:intersect_line_sphere",
+	if(!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere",
 	  &vector_Type, &line_a,
 	  &vector_Type, &line_b,
 	  &vector_Type, &sphere_co,
-	  &sphere_radius)
+	  &sphere_radius, &clip)
 	) {
 		return NULL;
 	}
@@ -603,14 +605,33 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 
 	ret= PyTuple_New(2);
 
-	switch(isect_seg_sphere_v3(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
+	switch(isect_line_sphere_v3(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
 	case 1:
-		PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL));
+		/* ret 1 */
+		if(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f))) {
+			PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL));
+		}
+		else {
+			PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);
+		}
+		/* ret 2 */
 		PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None);
 		break;
 	case 2:
-		PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL));
-		PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 3, Py_NEW, NULL));
+		/* ret 1 */
+		if(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f))) {
+			PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL));
+		}
+		else {
+			PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);
+		}
+		/* ret 2 */
+		if(!clip || (((lambda= line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f))) {
+			PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 3, Py_NEW, NULL));
+		}
+		else {
+			PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None);
+		}
 		break;
 	default:
 		PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);

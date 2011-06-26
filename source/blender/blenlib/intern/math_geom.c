@@ -37,8 +37,6 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
-static float lambda_cp_line(const float p[3], const float l1[3], const float l2[3]);
-
 /********************************** Polygons *********************************/
 
 void cent_tri_v3(float cent[3], const float v1[3], const float v2[3], const float v3[3])
@@ -349,9 +347,9 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 	return -1;
 }
 
-int isect_seg_sphere_v3(const float l1[3], const float l2[3],
-                        const float sp[3], const float r,
-                        float r_p1[3], float r_p2[3])
+int isect_line_sphere_v3(const float l1[3], const float l2[3],
+                         const float sp[3], const float r,
+                         float r_p1[3], float r_p2[3])
 {
 	/* l1:         coordinates (point of line)
 	 * l2:         coordinates (point of line)
@@ -741,7 +739,7 @@ int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3], cons
 
 		add_v3_v3v3(l1_plane, l1, p_no);
 
-		dist = lambda_cp_line(plane_co, l1, l1_plane);
+		dist = line_point_factor_v3(plane_co, l1, l1_plane);
 
 		/* treat line like a ray, when 'no_flip' is set */
 		if(no_flip && dist < 0.0f) {
@@ -1191,12 +1189,20 @@ float closest_to_line_v2(float cp[2],const float p[2], const float l1[2], const 
 }
 
 /* little sister we only need to know lambda */
-static float lambda_cp_line(const float p[3], const float l1[3], const float l2[3])
+float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3])
 {
 	float h[3],u[3];
 	sub_v3_v3v3(u, l2, l1);
 	sub_v3_v3v3(h, p, l1);
 	return(dot_v3v3(u,h)/dot_v3v3(u,u));
+}
+
+float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2])
+{
+	float h[2], u[2];
+	sub_v2_v2v2(u, l2, l1);
+	sub_v2_v2v2(h, p, l1);
+	return(dot_v2v2(u, h)/dot_v2v2(u, u));
 }
 
 /* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
