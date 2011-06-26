@@ -895,51 +895,58 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	BMW_End(&walker);
 }
 
-static int loop_multiselect(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int loop_multiselect(bContext *C, wmOperator *op)
 {
-#if 0 //BMESH_TODO
 	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= EM_GetBMEditMesh(((Mesh *)obedit->data));
+	BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
 	BMEdge *eed;
 	BMEdge **edarray;
-	int edindex, edfirstcount;
+	int edindex;
 	int looptype= RNA_boolean_get(op->ptr, "ring");
 	
-	/* sets em->totedgesel */
-	EM_nedges_selected(em);
+	BMIter iter;
+	int totedgesel = 0;
+
+	for(eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+	    eed; eed = BMIter_Step(&iter)){
+
+		if(BM_TestHFlag(eed, BM_SELECT)){
+			totedgesel++;
+		}
+	}
+
 	
-	edarray = MEM_mallocN(sizeof(BMEdge*)*em->totedgesel,"edge array");
+	edarray = MEM_mallocN(sizeof(BMEdge*)*totedgesel,"edge array");
 	edindex = 0;
-	edfirstcount = em->totedgesel;
 	
-	for(eed=em->edges.first; eed; eed=eed->next){
-		if(eed->f&SELECT){
+	for(eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+	    eed; eed = BMIter_Step(&iter)){
+
+		if(BM_TestHFlag(eed, BM_SELECT)){
 			edarray[edindex] = eed;
-			edindex += 1;
+			edindex++;
 		}
 	}
 	
 	if(looptype){
-		for(edindex = 0; edindex < edfirstcount; edindex +=1){
+		for(edindex = 0; edindex < totedgesel; edindex +=1){
 			eed = edarray[edindex];
-			edgering_select(em, eed,SELECT);
+			walker_select(em, BMW_EDGERING, eed, 1);
 		}
-		EM_selectmode_flush(em);
+		EDBM_selectmode_flush(em);
 	}
 	else{
-		for(edindex = 0; edindex < edfirstcount; edindex +=1){
+		for(edindex = 0; edindex < totedgesel; edindex +=1){
 			eed = edarray[edindex];
-			edgeloop_select(em, eed,SELECT);
+			walker_select(em, BMW_LOOP, eed, 1);
 		}
-		EM_selectmode_flush(em);
+		EDBM_selectmode_flush(em);
 	}
 	MEM_freeN(edarray);
 //	if (EM_texFaceCheck())
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 
-	EM_EndBMEditMesh(obedit->data, em);
-#endif
 	return OPERATOR_FINISHED;	
 }
 
