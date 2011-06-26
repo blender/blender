@@ -184,7 +184,6 @@ typedef enum eAnim_KeyType {
 /* ----------------- Filtering -------------------- */
 
 /* filtering flags  - under what circumstances should a channel be returned */
-// TODO: flag to just test if there's any channel inside worthy of being added - return 1 as soon as this is encountered, but don't add
 typedef enum eAnimFilter_Flags {
 	/* data which channel represents is fits the dopesheet filters (i.e. scene visibility criteria) */
 	// XXX: it's hard to think of any examples where this *ISN'T* the case... perhaps becomes implicit?
@@ -216,7 +215,10 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_ANIMDATA       = (1<<10),
 	
 	/* duplicate entries for animation data attached to multi-user blocks must not occur */
-	ANIMFILTER_NODUPLIS       = (1<<11)
+	ANIMFILTER_NODUPLIS       = (1<<11),
+	
+	/* for checking if we should keep some collapsed channel around (internal use only!) */
+	ANIMFILTER_TMP_PEEK       = (1<<30)
 } eAnimFilter_Flags;
 
 /* ---------- Flag Checking Macros ------------ */
