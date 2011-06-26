@@ -1,4 +1,4 @@
-/* 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -573,11 +573,9 @@ PyDoc_STRVAR(M_Geometry_intersect_line_sphere_doc,
 );
 static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObject* args)
 {
-	PyObject *ret;
 	VectorObject *line_a, *line_b, *sphere_co;
 	float sphere_radius;
 	int clip= TRUE;
-	float lambda;
 
 	float isect_a[3];
 	float isect_b[3];
@@ -602,45 +600,38 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 		PyErr_SetString(PyExc_RuntimeError, "geometry.intersect_line_sphere(...) can't use 2D Vectors");
 		return NULL;
 	}
+	else {
+		short use_a= TRUE;
+		short use_b= TRUE;
+		float lambda;
 
-	ret= PyTuple_New(2);
+		PyObject *ret= PyTuple_New(2);
 
-	switch(isect_line_sphere_v3(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
-	case 1:
-		/* ret 1 */
-		if(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f))) {
-			PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL));
+		switch(isect_line_sphere_v3(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
+		case 1:
+			if(!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			use_b= FALSE;
+			break;
+		case 2:
+			if(!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if(!(!clip || (((lambda= line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
+			break;
+		default:
+			use_a= FALSE;
+			use_b= FALSE;
 		}
-		else {
-			PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);
-		}
-		/* ret 2 */
-		PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None);
-		break;
-	case 2:
-		/* ret 1 */
-		if(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f))) {
-			PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL));
-		}
-		else {
-			PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);
-		}
-		/* ret 2 */
-		if(!clip || (((lambda= line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f))) {
-			PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 3, Py_NEW, NULL));
-		}
-		else {
-			PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None);
-		}
-		break;
-	default:
-		PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);
-		PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None);
+
+		if(use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
+
+		if(use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 3, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
+
+		return ret;
 	}
-
-	return ret;
 }
 
+/* keep in sync with M_Geometry_intersect_line_sphere */
 PyDoc_STRVAR(M_Geometry_intersect_line_sphere_2d_doc,
 ".. function:: intersect_line_sphere_2d(line_a, line_b, sphere_co, sphere_radius, clip=True)\n"
 "\n"
@@ -660,11 +651,9 @@ PyDoc_STRVAR(M_Geometry_intersect_line_sphere_2d_doc,
 );
 static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyObject* args)
 {
-	PyObject *ret;
 	VectorObject *line_a, *line_b, *sphere_co;
 	float sphere_radius;
 	int clip= TRUE;
-	float lambda;
 
 	float isect_a[3];
 	float isect_b[3];
@@ -684,43 +673,35 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 	) {
 		return NULL;
 	}
+	else {
+		short use_a= TRUE;
+		short use_b= TRUE;
+		float lambda;
 
-	ret= PyTuple_New(2);
+		PyObject *ret= PyTuple_New(2);
 
-	switch(isect_line_sphere_v2(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
-	case 1:
-		/* ret 1 */
-		if(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f))) {
-			PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 2, Py_NEW, NULL));
+		switch(isect_line_sphere_v3(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
+		case 1:
+			if(!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			use_b= FALSE;
+			break;
+		case 2:
+			if(!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if(!(!clip || (((lambda= line_point_factor_v2(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
+			break;
+		default:
+			use_a= FALSE;
+			use_b= FALSE;
 		}
-		else {
-			PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);
-		}
-		/* ret 2 */
-		PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None);
-		break;
-	case 2:
-		/* ret 1 */
-		if(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f))) {
-			PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 2, Py_NEW, NULL));
-		}
-		else {
-			PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);
-		}
-		/* ret 2 */
-		if(!clip || (((lambda= line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f))) {
-			PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 2, Py_NEW, NULL));
-		}
-		else {
-			PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None);
-		}
-		break;
-	default:
-		PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);
-		PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None);
+
+		if(use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 2, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
+
+		if(use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 2, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
+
+		return ret;
 	}
-
-	return ret;
 }
 
 PyDoc_STRVAR(M_Geometry_intersect_point_line_doc,
