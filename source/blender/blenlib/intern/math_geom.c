@@ -349,6 +349,79 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 	return -1;
 }
 
+int isect_seg_sphere_v3(const float l1[3], const float l2[3],
+                        const float sp[3], const float r,
+                        float r_p1[3], float r_p2[3])
+{
+	/* l1:         coordinates (point of line)
+	 * l2:         coordinates (point of line)
+	 * sp, r:      coordinates and radius (sphere)
+	 * r_p1, r_p2: return intersection coordinates
+	 */
+
+
+	/* adapted for use in blender by Campbell Barton - 2011
+	 *
+	 * atelier iebele abel - 2001
+	 * atelier@iebele.nl
+	 * http://www.iebele.nl
+	 *
+	 * sphere_line_intersection function adapted from:
+	 * http://astronomy.swin.edu.au/pbourke/geometry/sphereline
+	 * Paul Bourke pbourke@swin.edu.au
+	 */
+
+	const float ldir[3]= {
+	    l2[0] - l1[0],
+	    l2[1] - l1[1],
+	    l2[2] - l1[2]
+	};
+
+	const float a= dot_v3v3(ldir, ldir);
+
+	const float b= 2.0f *
+	        (ldir[0] * (l1[0] - sp[0]) +
+	         ldir[1] * (l1[1] - sp[1]) +
+	         ldir[2] * (l1[2] - sp[2]));
+
+	const float c=
+	        dot_v3v3(sp, sp) +
+	        dot_v3v3(l1, l1) -
+	        (2.0f * dot_v3v3(sp, l1)) -
+	        (r * r);
+
+	const float i = b * b - 4.0f * a * c;
+
+	float mu;
+
+	if (i < 0.0f) {
+		/* no intersections */
+		return 0;
+	}
+	else if (i == 0.0f) {
+		/* one intersection */
+		mu = -b / (2.0f * a);
+		madd_v3_v3v3fl(r_p1, l1, ldir, mu);
+		return 1;
+	}
+	else if (i > 0.0) {
+		const float i_sqrt= sqrt(i); /* avoid calc twice */
+
+		/* first intersection */
+		mu = (-b + i_sqrt) / (2.0f * a);
+		madd_v3_v3v3fl(r_p1, l1, ldir, mu);
+
+		/* second intersection */
+		mu = (-b - i_sqrt) / (2.0f * a);
+		madd_v3_v3v3fl(r_p2, l1, ldir, mu);
+		return 2;
+	}
+	else {
+		/* math domain error - nan */
+		return -1;
+	}
+}
+
 /*
 -1: colliniar
  1: intersection
