@@ -269,13 +269,6 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, bonemap, bonemapr, roo
         bpy.ops.object.add()
         stride_bone = bpy.context.active_object
         stride_bone.name = "stride_bone"
-        bpy.ops.object.select_name(name=stride_bone.name, extend=False)
-        bpy.ops.object.select_name(name=enduser_obj.name, extend=True)
-        bpy.ops.object.mode_set(mode='POSE')
-        bpy.ops.pose.select_all(action='DESELECT')
-        root_bone = end_bones[root]
-        root_bone.bone.select = True
-        bpy.ops.pose.constraint_add_with_targets(type='CHILD_OF')
         for t in range(s_frame, e_frame):
             scene.frame_set(t)
             newTranslation = (tailLoc(perf_bones[perfRoot]) / avg)
@@ -283,7 +276,57 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, bonemap, bonemapr, roo
             stride_bone.keyframe_insert("location")
 
 
+def IKRetarget(bonemap, bonemapr, performer_obj, enduser_obj, s_frame, e_frame, scene):
+    end_bones = enduser_obj.pose.bones
+    for pose_bone in end_bones:
+        if "IK" in [constraint.type for constraint in pose_bone.constraints]:
+            # set constraint target to corresponding empty if targetless,
+            # if not, keyframe current target to corresponding empty
+            perf_bone = bonemapr[pose_bone.name]
+            if isinstance(perf_bone, list):
+                perf_bone = bonemapr[pose_bone.name][-1]
+            end_empty = bpy.data.objects[perf_bone + "Org"]
+            ik_constraint = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"][0]
+            if not ik_constraint.target:
+                ik_constraint.target = end_empty
+            else:
+                #Bone target
+                target_is_bone = False
+                if ik_constraint.subtarget:
+                    target = ik_constraint.target.pose.bones[ik_constraint.subtarget]
+                    target.bone.use_local_location = False
+                    target_is_bone = True
+                else:
+                    target = ik_constraint.target
+                for t in range(s_frame, e_frame):
+                    scene.frame_set(t)
+                    if target_is_bone:
+                        final_loc = end_empty.location - target.bone.matrix_local.to_translation()
+                    else:
+                        final_loc = end_empty.location
+                    target.location = final_loc
+                    target.keyframe_insert("location")
+            ik_constraint.mute = False
+
+
+def turnOffIK(enduser_obj):
+    end_bones = enduser_obj.pose.bones
+    for pose_bone in end_bones:
+        if pose_bone.is_in_ik_chain:
+            pass
+            # TODO:
+            # set stiffness according to place on chain
+            # and values from analysis that is stored in the bone
+            #pose_bone.ik_stiffness_x = 0.5
+            #pose_bone.ik_stiffness_y = 0.5
+            #pose_bone.ik_stiffness_z = 0.5
+        if "IK" in [constraint.type for constraint in pose_bone.constraints]:
+            ik_constraint = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"][0]
+            ik_constraint.mute = True
+
+
 def totalRetarget():
+    print("retargeting...")
     enduser_obj = bpy.context.active_object
     performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj]
     if enduser_obj is None or len(performer_obj) != 1:
@@ -296,9 +339,11 @@ def totalRetarget():
     s_frame = scene.frame_start
     e_frame = scene.frame_end
     bonemap, bonemapr, root = createDictionary(perf_arm)
+    turnOffIK(enduser_obj)
     inter_obj, inter_arm = createIntermediate(performer_obj, enduser_obj, bonemap, bonemapr, root, s_frame, e_frame, scene)
     retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
     copyTranslation(performer_obj, enduser_obj, ["RightFoot", "LeftFoot"], bonemap, bonemapr, root, s_frame, e_frame, scene)
+    IKRetarget(bonemap, bonemapr, performer_obj, enduser_obj, s_frame, e_frame, scene)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_name(name=inter_obj.name, extend=False)
     bpy.ops.object.delete()

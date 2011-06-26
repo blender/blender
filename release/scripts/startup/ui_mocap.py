@@ -60,14 +60,24 @@ class MocapPanel(bpy.types.Panel):
             self.layout.label("Select performer rig and target rig (as active)")
         else:
             performer_obj = performer_obj[0]
-            if performer_obj.data.name in bpy.data.armatures and enduser_obj.data.name in bpy.data.armatures:
-                perf = performer_obj.data
-                enduser_arm = enduser_obj.data
-                for bone in perf.bones:
-                    row = self.layout.row(align=True)
-                    row.label(bone.name)
-                    row.prop_search(bone, "map", enduser_arm, "bones")
-                self.layout.operator("mocap.retarget", text='RETARGET!')
+            if performer_obj.data and enduser_obj.data:
+                if performer_obj.data.name in bpy.data.armatures and enduser_obj.data.name in bpy.data.armatures:
+                    perf = performer_obj.data
+                    enduser_arm = enduser_obj.data
+                    perf_pose_bones = enduser_obj.pose.bones
+                    for bone in perf.bones:
+                        row = self.layout.row(align=True)
+                        row.label(bone.name)
+                        row.prop_search(bone, "map", enduser_arm, "bones")
+                        label_mod = "FK"
+                        if bone.map:
+                            pose_bone = perf_pose_bones[bone.map]
+                            if pose_bone.is_in_ik_chain:
+                                label_mod = "IK"
+                            if "IK" in [constraint.type for constraint in pose_bone.constraints]:
+                                label_mod = "IKEnd"
+                        row.label(label_mod)
+                    self.layout.operator("mocap.retarget", text='RETARGET!')
 
 
 class OBJECT_OT_RetargetButton(bpy.types.Operator):
