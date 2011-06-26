@@ -996,7 +996,7 @@ endif()
 # Common.
 
 if(APPLE OR WIN32)
-	if(NOT IS_DIRECTORY "${LIBDIR}")
+	if((NOT IS_DIRECTORY "${LIBDIR}") AND (NOT IS_SYMLINK "${LIBDIR}"))
 		message(FATAL_ERROR "Apple and Windows require pre-compiled libs at: '${LIBDIR}'")
 	endif()
 endif()
