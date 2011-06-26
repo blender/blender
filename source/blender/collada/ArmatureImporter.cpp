@@ -79,7 +79,7 @@ JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
 }
 #endif
 void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *parent, int totchild,
-				 float parent_mat[][4], bArmature *arm)
+				 float parent_mat[][4], Object * ob_arm)
 {
 	float mat[4][4];
    float obmat[4][4];
@@ -88,19 +88,35 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	get_node_mat(obmat, node, NULL, NULL);
 
 	// get world-space
-	if (parent)
-		mul_m4_m4m4(mat, obmat, parent_mat);
-	else
-		copy_m4_m4(mat, obmat);
+	
 
-	EditBone *bone = ED_armature_edit_bone_add(arm, (char*)bc_get_joint_name(node));
+	EditBone *bone = ED_armature_edit_bone_add((bArmature*)ob_arm->data, (char*)bc_get_joint_name(node));
 	totbone++;
+    
+	bPoseChannel *pchan  =  get_pose_channel(ob_arm->pose, (char*)bc_get_joint_name(node));
 
 	if (parent) bone->parent = parent;
+    
+	// get world-space
+	if (parent){
+       	mul_m4_m4m4(mat, obmat, parent_mat);
+		bPoseChannel *parchan = get_pose_channel(ob_arm->pose, parent->name);
+		if ( parchan && pchan)
+		mul_m4_m4m4(pchan->pose_mat, mat , parchan->pose_mat);
+	}
+	else {
+		copy_m4_m4(mat, obmat);
+		float invObmat[4][4];
+       invert_m4_m4(invObmat, ob_arm->obmat);
+	   if(pchan)
+       mul_m4_m4m4(pchan->pose_mat, mat, invObmat);
+	}
+	
 
 	// set head
 	copy_v3_v3(bone->head, mat[3]);
-
+   
+    
 	// set tail, don't set it to head because 0-length bones are not allowed
 	float vec[3] = {0.0f, 0.5f, 0.0f};
 	add_v3_v3v3(bone->tail, bone->head, vec);
@@ -130,7 +146,7 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 
 	COLLADAFW::NodePointerArray& children = node->getChildNodes();
 	for (unsigned int i = 0; i < children.getCount(); i++) {
-		create_unskinned_bone( children[i], bone, children.getCount(), mat, arm);
+		create_unskinned_bone( children[i], bone, children.getCount(), mat, ob_arm);
 	}
 
 	// in second case it's not a leaf bone, but we handle it the same way
@@ -383,16 +399,14 @@ void ArmatureImporter::create_armature_bones( )
 		   check if bones have already been created for a given joint
 		*/
      leaf_bone_length = FLT_MAX;
-		create_unskinned_bone(*ri, NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature*)ob_arm->data);
+		create_unskinned_bone(*ri, NULL, (*ri)->getChildNodes().getCount(), NULL, ob_arm);
 
 		fix_leaf_bones();
 
 	// exit armature edit mode
 	
+	//	set_pose(ob_arm , *ri, NULL, NULL ); 
 
-	//if (joint_parent_map.find((*ri)->getUniqueId()) != joint_parent_map.end() && ob_arm->parent!=NULL)
-	//	ob_arm->parent = joint_parent_map[(*ri)->getUniqueId()];
-	
 	unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
 
 	ED_armature_from_edit(ob_arm);
@@ -522,6 +536,51 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 // root - if this joint is the top joint in hierarchy, if a joint
 // is a child of a node (not joint), root should be true since
 // this is where we build armature bones from
+
+//void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node , EditBone *parent, float parent_mat[][4])
+//{ 
+//	char * bone_name = (char *) bc_get_joint_name ( root_node);
+//	float mat[4][4];
+//   float obmat[4][4];
+//
+//   bArmature * arm = (bArmature * ) ob_arm-> data ; 
+//	EditBone *edbone = NULL ;
+//	for (edBone=arm->edbo->first; edBone; edBone=edBone->next){
+//		bone = get_named_bone_bonechildren (curBone, name);
+//		if (bone)
+//			return bone;
+//	}
+//
+//	// object-space
+//	get_node_mat(obmat, root_node, NULL, NULL);
+//
+//	//if(*edbone)
+//	bPoseChannel * pchan  = get_pose_channel(ob_arm -> pose ,  bone_name); 
+//	//else fprintf ( "",
+//
+//	// get world-space
+//	if (parent){
+//       	mul_m4_m4m4(mat, obmat, parent_mat);
+//		bPoseChannel *parchan = get_pose_channel(ob_arm->pose, parent->name);
+//
+//		mul_m4_m4m4(pchan->pose_mat, mat , parchan->pose_mat);
+//	}
+//	else {
+//		copy_m4_m4(mat, obmat);
+//		 float invObmat[4][4];
+//       invert_m4_m4(invObmat, ob_arm->obmat);
+//       mul_m4_m4m4(pchan->pose_mat, mat, invObmat);
+//	}
+//		
+//
+//	
+//
+//   COLLADAFW::NodePointerArray& children = root_node->getChildNodes();
+//	for (unsigned int i = 0; i < children.getCount(); i++) {
+//		set_pose(ob_arm, children[i], edbone, mat);
+//	}
+//
+//}
 
 void ArmatureImporter::add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce)
 {
@@ -657,6 +716,7 @@ bool ArmatureImporter::write_controller(const COLLADAFW::Controller* controller)
 	return true;
 }
 
+
 COLLADAFW::UniqueId *ArmatureImporter::get_geometry_uid(const COLLADAFW::UniqueId& controller_uid)
 {
 	if (geom_uid_by_controller_uid.find(controller_uid) == geom_uid_by_controller_uid.end())
@@ -703,3 +763,4 @@ bool ArmatureImporter::get_joint_bind_mat(float m[][4], COLLADAFW::Node *joint)
 
 	return found;
 }
+

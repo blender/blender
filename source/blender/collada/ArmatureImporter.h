@@ -107,11 +107,14 @@ private:
 					 float parent_mat[][4], bArmature *arm);
 
 	void create_unskinned_bone(COLLADAFW::Node *node, EditBone *parent, int totchild,
-				 float parent_mat[][4], bArmature *arm);
+				 float parent_mat[][4], Object * ob_arm);
 
 	void add_leaf_bone(float mat[][4], EditBone *bone);
 
 	void fix_leaf_bones();
+	
+//	void set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node , EditBone *parent, float parent_mat[][4]);
+
 
 #if 0
 	void set_leaf_bone_shapes(Object *ob_arm);
@@ -156,13 +159,15 @@ public:
 	bool write_controller(const COLLADAFW::Controller* controller);
 
 	COLLADAFW::UniqueId *get_geometry_uid(const COLLADAFW::UniqueId& controller_uid);
-
+	
 	Object *get_armature_for_joint(COLLADAFW::Node *node);
 
 	void get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t count);
 	
 	// gives a world-space mat
 	bool get_joint_bind_mat(float m[][4], COLLADAFW::Node *joint);
+
+	
 };
 
 #endif
