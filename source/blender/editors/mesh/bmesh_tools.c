@@ -2645,7 +2645,6 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= select_vertex_path_exec;
-	ot->invoke= WM_menu_invoke;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */

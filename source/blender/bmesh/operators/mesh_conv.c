@@ -247,6 +247,48 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data);
 	}
 
+	{
+		BMIter iter;
+		BMVert *vertex;
+		BMEdge *edge;
+		BMFace *face;
+		BMVert **vertex_array = MEM_callocN(sizeof(BMVert *) * bm->totvert,
+		                                  "Selection Conversion Vertex Pointer Array");
+		BMEdge **edge_array = MEM_callocN(sizeof(BMEdge *) * bm->totedge,
+		                                "Selection Conversion Edge Pointer Array");
+		BMFace **face_array = MEM_callocN(sizeof(BMFace *) * bm->totface,
+		                                "Selection Conversion Face Pointer Array");
+
+		for(i = 0, vertex = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		    vertex; i++, vertex = BMIter_Step(&iter)){
+			vertex_array[i] = vertex;
+		}
+
+		for(i = 0, edge = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
+		    edge; i++, edge = BMIter_Step(&iter)){
+			edge_array[i] = edge;
+		}
+
+		for(i = 0, face = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
+		    face; i++, face = BMIter_Step(&iter)){
+			face_array[i] = face;
+		}
+
+		for(i = 0; i < me->totselect; i++){
+			if(me->mselect[i].type == ME_VSEL){
+				BM_store_selection(bm, vertex_array[me->mselect[i].index]);
+			}else if(me->mselect[i].type == ME_ESEL){
+				BM_store_selection(bm, edge_array[me->mselect[i].index]);
+			}else if(me->mselect[i].type == ME_FSEL){
+				BM_store_selection(bm, face_array[me->mselect[i].index]);
+			}
+		}
+
+		MEM_freeN(vertex_array);
+		MEM_freeN(edge_array);
+		MEM_freeN(face_array);
+	}
+
 	BLI_array_free(fedges);
 	BLI_array_free(verts);
 	
@@ -634,6 +676,28 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	}
 
 	mesh_update_customdata_pointers(me);
+
+	{
+		BMEditSelection *selected;
+		me->totselect = BLI_countlist(&(bm->selected));
+
+		me->mselect = MEM_callocN(sizeof(MSelect) * me->totselect, "Mesh selection history");
+
+
+		for(i = 0, selected = bm->selected.first; selected; i++, selected = selected->next){
+			if(selected->type == BM_VERT){
+				me->mselect[i].type = ME_VSEL;
+
+			}else if(selected->type == BM_EDGE){
+				me->mselect[i].type = ME_ESEL;
+
+			}else if(selected->type == BM_FACE){
+				me->mselect[i].type = ME_FSEL;
+			}
+
+			me->mselect[i].index = BM_GetIndex(selected->data);
+		}
+	}
 
 	if (me->key) {
 		KeyBlock *actkey= BLI_findlink(&me->key->block, bm->shapenr-1);

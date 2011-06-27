@@ -250,8 +250,8 @@ typedef struct PartialVisibility {
 #define ME_DRAW_ACT			4
 
 /* mselect->type */
-#define ME_VSEl	0
-#define ME_ESEl 1
+#define ME_VSEL	0
+#define ME_ESEL 1
 #define ME_FSEL 2
 
 /* mtface->flag */
