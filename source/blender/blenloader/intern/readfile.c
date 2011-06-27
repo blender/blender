@@ -3538,6 +3538,18 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		mesh->mr->edge_creases= newdataadr(fd, mesh->mr->edge_creases);
 
 		mesh->mr->verts = newdataadr(fd, mesh->mr->verts);
+		
+		/* If mesh has the same number of vertices as the
+		   highest multires level, load the current mesh verts
+		   into multires and discard the old data. Needed
+		   because some saved files either do not have a verts
+		   array, or the verts array contains out-of-date
+		   data. */
+		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert) {
+			if(mesh->mr->verts)
+				MEM_freeN(mesh->mr->verts);
+			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
+		}
 			
 		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);
@@ -3547,16 +3559,11 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		}
 	}
 
-	/* Gracefully handle corrupted mesh */
+	/* if multires is present but has no valid vertex data,
+	   there's no way to recover it; silently remove multires */
 	if(mesh->mr && !mesh->mr->verts) {
-		/* If totals match, simply load the current mesh verts into multires */
-		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert)
-			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
-		else {
-			/* Otherwise, we can't recover the data, silently remove multires */
-			multires_free(mesh->mr);
-			mesh->mr = NULL;
-		}
+		multires_free(mesh->mr);
+		mesh->mr = NULL;
 	}
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
