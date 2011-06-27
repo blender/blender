@@ -1,6 +1,6 @@
 """
 Basic Sound Playback
-++++++++++++++++++++++
+++++++++++++++++++++
 This script shows how to use the classes: :class:`Device`, :class:`Factory` and
 :class:`Handle`.
 """
