@@ -57,6 +57,9 @@ endif()
 # this starts out unset
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules")
 
+# avoid having empty buildtype
+set(CMAKE_BUILD_TYPE_INIT "Release")
+
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
