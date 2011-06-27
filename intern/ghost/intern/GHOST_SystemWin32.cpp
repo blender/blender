@@ -858,26 +858,25 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 		{
 		case 1: // translation
 			{
-			short axis_data[3];
-			memcpy(axis_data, data + 1, sizeof(axis_data));
-			m_ndofManager->updateTranslation(axis_data, now);
-			// wariness of alignment issues prevents me from saying it this way:
-			// m_ndofManager->updateTranslation((short*)(data + 1), getMilliSeconds());
-			// though it probably (94.7%) would work fine
+			short* axis = (short*)(data + 1);
+			short t[3] = {axis[0], -axis[2], axis[1]};
+			m_ndofManager->updateTranslation(t, now);
 
 			if (raw.data.hid.dwSizeHid == 13)
 				{ // this report also includes rotation
+				short r[3] = {-axis[3], axis[5], -axis[4]};
+				m_ndofManager->updateRotation(r, now);
+
+				// I've never gotten one of these, has anyone else?
 				puts("ndof: combined T + R");
-				memcpy(axis_data, data + 7, sizeof(axis_data));
-				m_ndofManager->updateRotation(axis_data, now);
 				}
 			break;
 			}
 		case 2: // rotation
 			{
-			short axis_data[3];
-			memcpy(axis_data, data + 1, sizeof(axis_data));
-			m_ndofManager->updateRotation(axis_data, now);
+			short* axis = (short*)(data + 1);
+			short r[3] = {-axis[0], axis[2], -axis[1]};
+			m_ndofManager->updateRotation(r, now);
 			break;
 			}
 		case 3: // buttons
