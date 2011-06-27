@@ -997,11 +997,11 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		ndof->dt = dt = 0.0125f;
 
 
-	if (ndof->ty) {
+	if (ndof->tz) {
 		// Zoom!
 		// velocity should be proportional to the linear velocity attained by rotational motion of same strength
 		// [got that?]
-		// proportional to s = r * theta
+		// proportional to arclength = radius * angle
 
 		float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
 		rv3d->dist += zoom_distance;

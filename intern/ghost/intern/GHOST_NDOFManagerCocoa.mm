@@ -73,11 +73,14 @@ static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, voi
 			switch (s->command)
 				{
 				case kConnexionCmdHandleAxis:
-					ndof_manager->updateTranslation(s->axis, now);
-					ndof_manager->updateRotation(s->axis + 3, now);
+					{
+					short t[3] = {s->axis[0], -(s->axis[2]), s->axis[1]};
+					short r[3] = {-(s->axis[3]), s->axis[5], -(s->axis[4])};
+					ndof_manager->updateTranslation(t, now);
+					ndof_manager->updateRotation(r, now);
 					ghost_system->notifyExternalEventProcessed();
 					break;
-
+					}
 				case kConnexionCmdHandleButtons:
 					{
 					int button_bits = has_old_driver ? s->buttons8 : s->buttons;
