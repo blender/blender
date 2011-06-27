@@ -26,8 +26,54 @@ from bpy import *
 from mathutils import Vector
 from math import isfinite
 
+def toggleIKBone(self, context):
+    if self.IKRetarget:
+        if not self.is_in_ik_chain:
+            print(self.name + " IK toggled ON!")
+            ik = self.constraints.new('IK')
+            #ik the whole chain up to the root
+            chainLen = len(self.bone.parent_recursive)
+            ik.chain_count = chainLen
+            for bone in self.parent_recursive:
+                if bone.is_in_ik_chain:
+                    bone.IKRetarget = True
+    else:
+        print(self.name + " IK toggled OFF!")
+        cnstrn_bone = False
+        if hasIKConstraint(self):
+            cnstrn_bone = self
+        elif self.is_in_ik_chain:
+            cnstrn_bone = [child for child in self.children_recursive if hasIKConstraint(child)][0]
+        if cnstrn_bone:
+            # remove constraint, and update IK retarget for all parents of cnstrn_bone up to chain_len
+            ik = [constraint for constraint in cnstrn_bone.constraints if constraint.type == "IK"][0]
+            cnstrn_bone.constraints.remove(ik)
+            cnstrn_bone.IKRetarget = False
+            for bone in cnstrn_bone.parent_recursive:
+                if not bone.is_in_ik_chain:
+                    bone.IKRetarget = False
+            
 
 bpy.types.Bone.map = bpy.props.StringProperty()
+bpy.types.PoseBone.IKRetarget = bpy.props.BoolProperty(name="IK",
+    description = "Toggles IK Retargeting method for given bone",
+    update = toggleIKBone)
+
+def hasIKConstraint(pose_bone):
+    return ("IK" in [constraint.type for constraint in pose_bone.constraints])
+    
+def updateIKRetarget():
+    for obj in bpy.data.objects:
+        if obj.pose:
+            bones = obj.pose.bones
+            for pose_bone in bones:
+                if pose_bone.is_in_ik_chain or hasIKConstraint(pose_bone):
+                    pose_bone.IKRetarget = True
+                else:
+                    pose_bone.IKRetarget = False
+
+updateIKRetarget()
+
 import retarget
 import mocap_tools
 
@@ -66,17 +112,19 @@ class MocapPanel(bpy.types.Panel):
                     enduser_arm = enduser_obj.data
                     perf_pose_bones = enduser_obj.pose.bones
                     for bone in perf.bones:
-                        row = self.layout.row(align=True)
+                        row = self.layout.row()
                         row.label(bone.name)
                         row.prop_search(bone, "map", enduser_arm, "bones")
                         label_mod = "FK"
                         if bone.map:
                             pose_bone = perf_pose_bones[bone.map]
                             if pose_bone.is_in_ik_chain:
-                                label_mod = "IK"
-                            if "IK" in [constraint.type for constraint in pose_bone.constraints]:
-                                label_mod = "IKEnd"
+                                label_mod = "ik chain"
+                            if hasIKConstraint(pose_bone):
+                                label_mod = "ik end"
+                            row.prop(pose_bone, 'IKRetarget')
                         row.label(label_mod)
+                            
                     self.layout.operator("mocap.retarget", text='RETARGET!')
 
 
