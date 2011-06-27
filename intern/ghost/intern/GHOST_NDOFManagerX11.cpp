@@ -63,10 +63,7 @@ GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
 GHOST_NDOFManagerX11::~GHOST_NDOFManagerX11()
 	{
 	if (m_available)
-		{
-		spnav_remove_events(SPNAV_EVENT_ANY); // ask nuclear if this is needed
 		spnav_close();
-		}
 	}
 
 bool GHOST_NDOFManagerX11::available()
