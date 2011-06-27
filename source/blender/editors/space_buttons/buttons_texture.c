@@ -64,6 +64,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "ED_node.h"
 #include "ED_screen.h"
 
 #include "../interface/interface_intern.h"
@@ -72,7 +73,7 @@
 
 /************************* Texture User **************************/
 
-static void buttons_texture_user_add(ListBase *users, ID *id, 
+static void buttons_texture_user_property_add(ListBase *users, ID *id, 
 	PointerRNA ptr, PropertyRNA *prop,
 	const char *category, int icon, const char *name)
 {
@@ -89,6 +90,23 @@ static void buttons_texture_user_add(ListBase *users, ID *id,
 	BLI_addtail(users, user);
 }
 
+static void buttons_texture_user_node_add(ListBase *users, ID *id, 
+	bNodeTree *ntree, bNode *node,
+	const char *category, int icon, const char *name)
+{
+	ButsTextureUser *user = MEM_callocN(sizeof(ButsTextureUser), "ButsTextureUser");
+
+	user->id= id;
+	user->ntree = ntree;
+	user->node = node;
+	user->category = category;
+	user->icon = icon;
+	user->name = name;
+	user->index = BLI_countlist(users);
+
+	BLI_addtail(users, user);
+}
+
 static void buttons_texture_users_find_nodetree(ListBase *users, ID *id,
 	bNodeTree *ntree, const char *category)
 {
@@ -96,14 +114,14 @@ static void buttons_texture_users_find_nodetree(ListBase *users, ID *id,
 
 	if(ntree) {
 		for(node=ntree->nodes.first; node; node=node->next) {
-			if(node->type == SH_NODE_TEXTURE) {
+			if(node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
 				PointerRNA ptr;
 				PropertyRNA *prop;
 
 				RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 				prop = RNA_struct_find_property(&ptr, "texture");
 
-				buttons_texture_user_add(users, id, ptr, prop,
+				buttons_texture_user_node_add(users, id, ntree, node,
 					category, RNA_struct_ui_icon(ptr.type), node->name);
 			}
 			else if(node->type == NODE_GROUP && node->id) {
@@ -122,7 +140,7 @@ static void buttons_texture_modifier_foreach(void *userData, Object *ob, Modifie
 	RNA_pointer_create(&ob->id, &RNA_Modifier, md, &ptr);
 	prop = RNA_struct_find_property(&ptr, propname);
 
-	buttons_texture_user_add(users, &ob->id, ptr, prop,
+	buttons_texture_user_property_add(users, &ob->id, ptr, prop,
 		"Modifiers", RNA_struct_ui_icon(ptr.type), md->name);
 }
 
@@ -197,7 +215,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 					RNA_pointer_create(&psys->part->id, &RNA_ParticleSettingsTextureSlot, mtex, &ptr);
 					prop = RNA_struct_find_property(&ptr, "texture");
 
-					buttons_texture_user_add(users, &psys->part->id, ptr, prop,
+					buttons_texture_user_property_add(users, &psys->part->id, ptr, prop,
 						"Particles", RNA_struct_ui_icon(&RNA_ParticleSettings), psys->name);
 				}
 			}
@@ -211,7 +229,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 			RNA_pointer_create(&ob->id, &RNA_FieldSettings, ob->pd, &ptr);
 			prop = RNA_struct_find_property(&ptr, "texture");
 
-			buttons_texture_user_add(users, &ob->id, ptr, prop,
+			buttons_texture_user_property_add(users, &ob->id, ptr, prop,
 				"Fields", ICON_FORCE_TEXTURE, "Texture Field");
 		}
 	}
@@ -224,7 +242,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		RNA_pointer_create(&brush->id, &RNA_BrushTextureSlot, &brush->mtex, &ptr);
 		prop= RNA_struct_find_property(&ptr, "texture");
 
-		buttons_texture_user_add(users, &brush->id, ptr, prop,
+		buttons_texture_user_property_add(users, &brush->id, ptr, prop,
 			"Brush", ICON_BRUSH_DATA, brush->id.name+2);
 	}
 }
@@ -250,15 +268,34 @@ void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 		ct->index= 0;
 
 	ct->user = BLI_findlink(&ct->users, ct->index);
+	ct->texture = NULL;
 
 	if(ct->user) {
-		PointerRNA texptr;
-		Tex *tex;
+		if(ct->user->ptr.data) {
+			PointerRNA texptr;
+			Tex *tex;
 
-		texptr = RNA_property_pointer_get(&ct->user->ptr, ct->user->prop);
-		tex = (RNA_struct_is_a(texptr.type, &RNA_Texture))? texptr.data: NULL;
+			/* get texture datablock pointer if it's a property */
+			texptr = RNA_property_pointer_get(&ct->user->ptr, ct->user->prop);
+			tex = (RNA_struct_is_a(texptr.type, &RNA_Texture))? texptr.data: NULL;
 
-		ct->texture = tex;
+			ct->texture = tex;
+		}
+		else if(ct->user->node && !(ct->user->node->flag & NODE_ACTIVE_TEXTURE)) {
+			ButsTextureUser *user;
+
+			/* detect change of active texture node in same node tree, in that
+			   case we also automatically switch to the other node */
+			for(user=ct->users.first; user; user=user->next) {
+				if(user->ntree == ct->user->ntree && user->node != ct->user->node) {
+					if(user->node->flag & NODE_ACTIVE_TEXTURE) {
+						ct->user = user;
+						ct->index = BLI_findindex(&ct->users, user);
+						break;
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -275,10 +312,17 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 		return;
 
 	/* set user as active */
-	texptr = RNA_property_pointer_get(&user->ptr, user->prop);
-	tex = (RNA_struct_is_a(texptr.type, &RNA_Texture))? texptr.data: NULL;
+	if(user->node) {
+		ED_node_set_active(CTX_data_main(C), user->ntree, user->node);
+		ct->texture = NULL;
+	}
+	else {
+		texptr = RNA_property_pointer_get(&user->ptr, user->prop);
+		tex = (RNA_struct_is_a(texptr.type, &RNA_Texture))? texptr.data: NULL;
 
-	ct->texture = tex;
+		ct->texture = tex;
+	}
+
 	ct->user = user;
 	ct->index = user->index;
 }

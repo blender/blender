@@ -140,6 +140,9 @@ static void node_shader_exec_tex_voronoi(void *data, bNode *node, bNodeStack **i
 
 static int node_shader_gpu_tex_voronoi(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
+	if(!in[0].link)
+		in[0].link = GPU_attribute(CD_ORCO, "");
+
 	return GPU_stack_link(mat, "node_tex_voronoi", in, out);
 }
 

@@ -2127,7 +2127,6 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         col = layout.column()
         col.label(text="Shading:")
         col.prop(gs, "material_mode", text="")
-        col.prop(view, "show_textured_solid")
 
         layout.separator()
 

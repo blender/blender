@@ -43,6 +43,8 @@ struct SpaceButs;
 struct Tex;
 struct bContext;
 struct bContextDataResult;
+struct bNode;
+struct bNodeTree;
 struct uiLayout;
 struct wmOperatorType;
 
@@ -72,8 +74,12 @@ typedef struct ButsTextureUser {
 	struct ButsTextureUser *next, *prev;
 
 	struct ID *id;
+
 	PointerRNA ptr;
 	PropertyRNA *prop;
+
+	struct bNodeTree *ntree;
+	struct bNode *node;
 
 	const char *category;
 	int icon;
@@ -86,6 +92,7 @@ typedef struct ButsContextTexture {
 	ListBase users;
 
 	struct Tex *texture;
+
 	struct ButsTextureUser *user;
 	int index;
 } ButsContextTexture;

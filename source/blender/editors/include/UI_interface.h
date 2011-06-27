@@ -160,7 +160,8 @@ typedef struct uiLayout uiLayout;
 
 #define UI_BUT_VEC_SIZE_LOCK (1<<30) /* used to flag if color hsv-circle should keep luminance */
 #define UI_BUT_COLOR_CUBIC	(1<<31) /* cubic saturation for the color wheel */
-#define UI_BUT_NODE_LINK	(1<<31) /* node link drawing hint for pulldowns */
+#define UI_BUT_NODE_LINK	(1<<30) /* node link drawing hint for pulldowns */
+#define UI_BUT_NODE_ACTIVE	(1<<31) /* node link drawing hint for pulldowns */
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
@@ -729,8 +730,8 @@ void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *te
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, int rows, int maxrows, int type);
-void uiTemplateNodeLink(uiLayout *layout, struct ID *id, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
-void uiTemplateNodeView(uiLayout *layout, struct bContext *C, struct ID *id, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
+void uiTemplateNodeLink(uiLayout *layout, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
+void uiTemplateNodeView(uiLayout *layout, struct bContext *C, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
 void uiTemplateTextureUser(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureShow(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop);
 

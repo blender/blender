@@ -935,6 +935,7 @@ static struct GPUMaterialState {
 	Material *gboundmat;
 	Object *gob;
 	Scene *gscene;
+	int gdrawtype;
 	int glay;
 	float (*gviewmat)[4];
 	float (*gviewinv)[4];
@@ -1006,6 +1007,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 	GMS.gob = ob;
 	GMS.gscene = scene;
+	GMS.gdrawtype = v3d->drawtype;
 	GMS.totmat= ob->totcol+1; /* materials start from 1, default material is 0 */
 	GMS.glay= v3d->lay;
 	GMS.gviewmat= rv3d->viewmat;
@@ -1035,7 +1037,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 		if(glsl) {
 			GMS.gmatbuf[0]= &defmaterial;
-			GPU_material_from_blender(GMS.gscene, &defmaterial);
+			GPU_material_from_blender(GMS.gscene, &defmaterial, GMS.gdrawtype);
 		}
 
 		GMS.blendmode[0]= GPU_BLEND_SOLID;
@@ -1049,7 +1051,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 		if(ma==NULL) ma= &defmaterial;
 
 		/* create glsl material if requested */
-		gpumat = (glsl)? GPU_material_from_blender(GMS.gscene, ma): NULL;
+		gpumat = (glsl)? GPU_material_from_blender(GMS.gscene, ma, GMS.gdrawtype): NULL;
 
 		if(gpumat) {
 			/* do glsl only if creating it succeed, else fallback */
@@ -1119,7 +1121,7 @@ int GPU_enable_material(int nr, void *attribs)
 	/* unbind glsl material */
 	if(GMS.gboundmat) {
 		if(GMS.alphapass) glDepthMask(0);
-		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat));
+		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat, GMS.gdrawtype));
 		GMS.gboundmat= NULL;
 	}
 
@@ -1134,7 +1136,7 @@ int GPU_enable_material(int nr, void *attribs)
 			/* bind glsl material and get attributes */
 			Material *mat = GMS.gmatbuf[nr];
 
-			gpumat = GPU_material_from_blender(GMS.gscene, mat);
+			gpumat = GPU_material_from_blender(GMS.gscene, mat, GMS.gdrawtype);
 			GPU_material_vertex_attributes(gpumat, gattribs);
 			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT));
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gviewinv, GMS.gob->col);
@@ -1178,7 +1180,7 @@ void GPU_disable_material(void)
 
 	if(GMS.gboundmat) {
 		if(GMS.alphapass) glDepthMask(0);
-		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat));
+		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat, GMS.gdrawtype));
 		GMS.gboundmat= NULL;
 	}
 
@@ -1212,7 +1214,7 @@ void GPU_end_object_materials(void)
 
 int GPU_default_lights(void)
 {
-	float zero[3] = {0.0f, 0.0f, 0.0f};
+	float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f}, position[4];
 	int a, count = 0;
 	
 	/* initialize */
@@ -1242,8 +1244,11 @@ int GPU_default_lights(void)
 		if(a<3) {
 			if(U.light[a].flag) {
 				glEnable(GL_LIGHT0+a);
+
+				normalize_v3_v3(position, U.light[a].vec);
+				position[3]= 0.0f;
 				
-				glLightfv(GL_LIGHT0+a, GL_POSITION, U.light[a].vec); 
+				glLightfv(GL_LIGHT0+a, GL_POSITION, position); 
 				glLightfv(GL_LIGHT0+a, GL_DIFFUSE, U.light[a].col); 
 				glLightfv(GL_LIGHT0+a, GL_SPECULAR, U.light[a].spec); 
 

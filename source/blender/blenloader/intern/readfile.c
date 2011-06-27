@@ -10594,7 +10594,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			Object *ob=main->object.first;
 			while (ob) {
 				/* shaded mode disabled for now */
-				if (ob->dt == OB_SHADED) ob->dt = OB_TEXTURE;
+				if (ob->dt == OB_MATERIAL) ob->dt = OB_TEXTURE;
 				ob=ob->id.next;
 			}
 		}
@@ -10609,7 +10609,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					for(sl= sa->spacedata.first; sl; sl= sl->next) {
 						if(sl->spacetype==SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
-							if (v3d->drawtype == OB_SHADED) v3d->drawtype = OB_SOLID;
+							if (v3d->drawtype == OB_MATERIAL) v3d->drawtype = OB_SOLID;
 						}
 					}
 				}

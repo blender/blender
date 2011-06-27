@@ -85,10 +85,16 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 	Image *ima= (Image*)node->id;
 	ImageUser *iuser= NULL;
 
-	if(ima)
-		return GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser));
+	if(!ima) {
+		float black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+		GPUNodeLink *vec = GPU_uniform(black);
+		return GPU_stack_link(mat, "set_rgba", out, out, vec);
+	}
 
-	return 0;
+	if(!in[0].link)
+		in[0].link = GPU_builtin(GPU_VIEW_POSITION);
+
+	return GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser));
 }
 
 /* node type definition */

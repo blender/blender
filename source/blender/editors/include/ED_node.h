@@ -54,6 +54,8 @@ void ED_node_shader_default(struct ID *id);
 void ED_node_composit_default(struct Scene *sce);
 void ED_node_texture_default(struct Tex *tex);
 
+void ED_node_set_active(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
+
 /* node_layout.c */
 void ED_node_tree_auto_layout(struct bNodeTree *ntree, struct bNode *root);
 

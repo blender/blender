@@ -37,10 +37,12 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
+#include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 
@@ -92,7 +94,7 @@ static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, const int mval[2]
 		else
 			node->flag ^= SELECT;
 			
-		node_set_active(snode, node);
+		ED_node_set_active(G.main, snode->edittree, node);
 	}
 
 	return node;

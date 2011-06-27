@@ -100,7 +100,6 @@ bNode *next_node(bNodeTree *ntree);
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
-void node_set_active(SpaceNode *snode, bNode *node);
 void node_deselectall(SpaceNode *snode);
 int node_select_same_type(SpaceNode *snode);
 int node_select_same_type_np(SpaceNode *snode, int dir);

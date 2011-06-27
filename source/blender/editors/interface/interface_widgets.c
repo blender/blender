@@ -1511,6 +1511,10 @@ static void widget_state(uiWidgetType *wt, int state)
 		char red[4]= {255, 0, 0};
 		widget_state_blend(wt->wcol.inner, red, 0.4f);
 	}
+	if(state & UI_BUT_NODE_ACTIVE) {
+		char blue[4]= {86, 128, 194};
+		widget_state_blend(wt->wcol.inner, blue, 0.3f);
+	}
 }
 
 /* sliders use special hack which sets 'item' as inner when drawing filling */

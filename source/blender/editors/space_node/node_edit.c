@@ -87,6 +87,8 @@
 
 #include "RNA_enum_types.h"
 
+#include "GPU_material.h"
+
 #include "node_intern.h"
 
 static EnumPropertyItem socket_in_out_items[] = {
@@ -528,72 +530,99 @@ static void snode_tag_changed(SpaceNode *snode, bNode *node)
 		NodeTagIDChanged(snode->nodetree, gnode->id);
 }
 
-void node_set_active(SpaceNode *snode, bNode *node)
+static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 {
-	nodeSetActive(snode->edittree, node);
+	bNode *node;
+	
+	if(ntree == lookup)
+		return 1;
+	
+	for(node=ntree->nodes.first; node; node=node->next)
+		if(node->type == NODE_GROUP && node->id)
+			if(has_nodetree((bNodeTree*)node->id, lookup))
+				return 1;
+	
+	return 0;
+}
+
+void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
+{
+	int was_active_texture = (node->flag & NODE_ACTIVE_TEXTURE);
+
+	nodeSetActive(ntree, node);
 	
 	if(node->type!=NODE_GROUP) {
 		int was_output= (node->flag & NODE_DO_OUTPUT);
 		
 		/* tree specific activate calls */
-		if(snode->treetype==NTREE_SHADER) {
+		if(ntree->type==NTREE_SHADER) {
 			/* when we select a material, active texture is cleared, for buttons */
 			if(node->id && ELEM3(GS(node->id->name), ID_MA, ID_LA, ID_WO))
-				nodeClearActiveID(snode->edittree, ID_TE);
+				nodeClearActiveID(ntree, ID_TE);
 			
 			if(node->type==SH_NODE_OUTPUT) {
 				bNode *tnode;
 				
-				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
+				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
 					if( tnode->type==SH_NODE_OUTPUT)
 						tnode->flag &= ~NODE_DO_OUTPUT;
 				
 				node->flag |= NODE_DO_OUTPUT;
 				if(was_output==0)
-					ED_node_changed_update(snode->id, node);
+					ED_node_generic_update(bmain, ntree, node);
+			}
+
+			/* if active texture changed, free glsl materials */
+			if((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
+				Material *ma;
+
+				for(ma=bmain->mat.first; ma; ma=ma->id.next)
+					if(ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
+						GPU_material_free(ma);
 			}
 
 			WM_main_add_notifier(NC_MATERIAL|ND_NODES, node->id);
 		}
-		else if(snode->treetype==NTREE_COMPOSIT) {
-			Scene *scene= (Scene*)snode->id;
-
+		else if(ntree->type==NTREE_COMPOSIT) {
 			/* make active viewer, currently only 1 supported... */
 			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				bNode *tnode;
 				
 
-				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
+				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
 					if( ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
 						tnode->flag &= ~NODE_DO_OUTPUT;
 				
 				node->flag |= NODE_DO_OUTPUT;
-				if(was_output==0) {
-					snode_tag_changed(snode, node);
-					
-					ED_node_changed_update(snode->id, node);
-				}
+				if(was_output==0)
+					ED_node_generic_update(bmain, ntree, node);
 				
 				/* addnode() doesnt link this yet... */
 				node->id= (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 			}
 			else if(node->type==CMP_NODE_R_LAYERS) {
-				if(node->id==NULL || node->id==(ID *)scene) {
-					scene->r.actlay= node->custom1;
+				Scene *scene;
+
+				for(scene=bmain->scene.first; scene; scene=scene->id.next) {
+					if(scene->nodetree && scene->use_nodes && has_nodetree(scene->nodetree, ntree)) {
+						if(node->id==NULL || node->id==(ID *)scene) {
+							scene->r.actlay= node->custom1;
+						}
+					}
 				}
 			}
 			else if(node->type==CMP_NODE_COMPOSITE) {
 				bNode *tnode;
 				
-				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
+				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
 					if( tnode->type==CMP_NODE_COMPOSITE)
 						tnode->flag &= ~NODE_DO_OUTPUT;
 				
 				node->flag |= NODE_DO_OUTPUT;
-				ED_node_changed_update(snode->id, node);
+				ED_node_generic_update(bmain, ntree, node);
 			}
 		}
-		else if(snode->treetype==NTREE_TEXTURE) {
+		else if(ntree->type==NTREE_TEXTURE) {
 			// XXX
 #if 0
 			if(node->id)
@@ -2025,7 +2054,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 		}
 
 		node_tree_verify_groups(snode->nodetree);
-		node_set_active(snode, node);
+		ED_node_set_active(G.main, snode->edittree, node);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT) {
 			if(ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE))

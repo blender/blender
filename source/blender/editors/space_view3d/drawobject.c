@@ -73,6 +73,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 #include "BKE_unit.h"
 
 #include "smoke_API.h"
@@ -104,8 +105,7 @@
 
 /* this condition has been made more complex since editmode can draw textures */
 #define CHECK_OB_DRAWTEXTURE(vd, dt) \
-((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
-	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
+	((ELEM(vd->drawtype, OB_TEXTURE, OB_MATERIAL) && dt>OB_SOLID))
 
 static void draw_bounding_volume(Scene *scene, Object *ob);
 
@@ -127,9 +127,6 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 
 	/* if its drawing textures with zbuf sel, then dont draw dots */
 	if(dt==OB_TEXTURE && vd->drawtype==OB_TEXTURE)
-		return 0;
-
-	if(vd->drawtype>=OB_SOLID && vd->flag2 & V3D_SOLID_TEX)
 		return 0;
 
 	return 1;
@@ -213,6 +210,8 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 	if(!CHECK_OB_DRAWTEXTURE(v3d, dt))
 		return 0;
 	if(ob==OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
+		return 0;
+	if(scene_use_new_shading_system(scene))
 		return 0;
 	
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
@@ -2598,8 +2597,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	totface = dm->getNumFaces(dm);
 	
 	/* vertexpaint, faceselect wants this, but it doesnt work for shaded? */
-	if(dt!=OB_SHADED)
-		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
 	if (is_paint_sel) draw_wire = 0;
@@ -2716,7 +2714,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				dm->drawLooseEdges(dm);
 		}
 	}
-	else if(dt==OB_SHADED) {
+	else if(dt==OB_PAINT) {
 		if(ob==OBACT) {
 			if(ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 				/* enforce default material settings */
@@ -5778,7 +5776,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					dt= OB_SOLID;
 				}
 				else {
-					dt= OB_SHADED;
+					dt= OB_PAINT;
 				}
 
 				glEnable(GL_DEPTH_TEST);

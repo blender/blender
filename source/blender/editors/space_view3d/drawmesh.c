@@ -29,7 +29,6 @@
  *  \ingroup spview3d
  */
 
-
 #include <string.h>
 #include <math.h>
 
@@ -42,6 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
@@ -53,9 +53,13 @@
 #include "BKE_effect.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_property.h"
+#include "BKE_scene.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -70,24 +74,21 @@
 
 #include "view3d_intern.h"	// own include
 
-/***/
+/**************************** Face Select Mode *******************************/
 
-	/* Flags for marked edges */
+/* Flags for marked edges */
 enum {
 	eEdge_Visible = (1<<0),
 	eEdge_Select = (1<<1),
 };
 
-	/* Creates a hash of edges to flags indicating
-	 * adjacent tface select/active/etc flags.
-	 */
+/* Creates a hash of edges to flags indicating selected/visible */
 static void get_marked_edge_info__orFlags(EdgeHash *eh, int v0, int v1, int flags)
 {
 	int *flags_p;
 
-	if (!BLI_edgehash_haskey(eh, v0, v1)) {
+	if(!BLI_edgehash_haskey(eh, v0, v1))
 		BLI_edgehash_insert(eh, v0, v1, NULL);
-	}
 
 	flags_p = (int*) BLI_edgehash_lookup_p(eh, v0, v1);
 	*flags_p |= flags;
@@ -96,26 +97,25 @@ static void get_marked_edge_info__orFlags(EdgeHash *eh, int v0, int v1, int flag
 static EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 {
 	EdgeHash *eh = BLI_edgehash_new();
-	int i;
 	MFace *mf;
+	int i;
 	
-	for (i=0; i<me->totface; i++) {
+	for(i=0; i<me->totface; i++) {
 		mf = &me->mface[i];
 
-		if (mf->v3) {
-			if (!(mf->flag&ME_HIDE)) {
-				unsigned int flags = eEdge_Visible;
-				if (mf->flag&ME_FACE_SEL) flags |= eEdge_Select;
+		if(!(mf->flag & ME_HIDE)) {
+			unsigned int flags = eEdge_Visible;
+			if(mf->flag & ME_FACE_SEL) flags |= eEdge_Select;
 
-				get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, flags);
-				get_marked_edge_info__orFlags(eh, mf->v2, mf->v3, flags);
-				if (mf->v4) {
-					get_marked_edge_info__orFlags(eh, mf->v3, mf->v4, flags);
-					get_marked_edge_info__orFlags(eh, mf->v4, mf->v1, flags);
-				} else {
-					get_marked_edge_info__orFlags(eh, mf->v3, mf->v1, flags);
-				}
+			get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, flags);
+			get_marked_edge_info__orFlags(eh, mf->v2, mf->v3, flags);
+
+			if(mf->v4) {
+				get_marked_edge_info__orFlags(eh, mf->v3, mf->v4, flags);
+				get_marked_edge_info__orFlags(eh, mf->v4, mf->v1, flags);
 			}
+			else
+				get_marked_edge_info__orFlags(eh, mf->v3, mf->v1, flags);
 		}
 	}
 
@@ -123,45 +123,24 @@ static EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 }
 
 
-static int draw_tfaces3D__setHiddenOpts(void *userData, int index)
+static int draw_mesh_face_select__setHiddenOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
 	Mesh *me= data->me;
 	MEdge *med = &me->medge[index];
 	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
-	if((me->drawflag & ME_DRAWSEAMS) && (med->flag&ME_SEAM)) {
-		return 0;
-	} else if(me->drawflag & ME_DRAWEDGES){ 
-		if (me->drawflag & ME_HIDDENEDGES) {
+	if(me->drawflag & ME_DRAWEDGES){ 
+		if(me->drawflag & ME_HIDDENEDGES)
 			return 1;
-		} else {
+		else
 			return (flags & eEdge_Visible);
-		}
-	} else {
+	}
+	else
 		return (flags & eEdge_Select);
-	}
 }
 
-static int draw_tfaces3D__setSeamOpts(void *userData, int index)
-{
-	struct { Mesh *me; EdgeHash *eh; } *data = userData;
-	Mesh *me= data->me;
-	MEdge *med = &data->me->medge[index];
-	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
-
-	if (med->flag & ME_SEAM) {
-		if (me->drawflag & ME_HIDDENEDGES) {
-			return 1;
-		} else {
-			return (flags & eEdge_Visible);
-		}
-	} else {
-		return 0;
-	}
-}
-
-static int draw_tfaces3D__setSelectOpts(void *userData, int index)
+static int draw_mesh_face_select__setSelectOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
 	MEdge *med = &data->me->medge[index];
@@ -170,45 +149,19 @@ static int draw_tfaces3D__setSelectOpts(void *userData, int index)
 	return flags & eEdge_Select;
 }
 
-#if 0
-static int draw_tfaces3D__setActiveOpts(void *userData, int index)
-{
-	struct { Mesh *me; EdgeHash *eh; } *data = userData;
-	MEdge *med = &data->me->medge[index];
-	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
-
-	if (flags & eEdge_Select) {
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-static int draw_tfaces3D__drawFaceOpts(void *userData, int index)
-{
-	Mesh *me = (Mesh*)userData;
-
-	MFace *mface = &me->mface[index];
-	if (!(mface->flag&ME_HIDE) && (mface->flag&ME_FACE_SEL))
-		return 2; /* Don't set color */
-	else
-		return 0;
-}
-#endif
-
 /* draws unselected */
-static int draw_tfaces3D__drawFaceOptsInv(void *userData, int index)
+static int draw_mesh_face_select__drawFaceOptsInv(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 
 	MFace *mface = &me->mface[index];
-	if (!(mface->flag&ME_HIDE) && !(mface->flag&ME_FACE_SEL))
+	if(!(mface->flag&ME_HIDE) && !(mface->flag&ME_FACE_SEL))
 		return 2; /* Don't set color */
 	else
 		return 0;
 }
 
-static void draw_tfaces3D(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm, short draw_seams)
+static void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 {
 	struct { Mesh *me; EdgeHash *eh; } data;
 
@@ -222,30 +175,16 @@ static void draw_tfaces3D(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm, short d
 	/* Draw (Hidden) Edges */
 	setlinestyle(1);
 	UI_ThemeColor(TH_EDGE_FACESEL);
-	dm->drawMappedEdges(dm, draw_tfaces3D__setHiddenOpts, &data);
+	dm->drawMappedEdges(dm, draw_mesh_face_select__setHiddenOpts, &data);
 	setlinestyle(0);
-
-	/* Draw Seams */
-	if(draw_seams && me->drawflag & ME_DRAWSEAMS) {
-		UI_ThemeColor(TH_EDGE_SEAM);
-		glLineWidth(2);
-		dm->drawMappedEdges(dm, draw_tfaces3D__setSeamOpts, &data);
-		glLineWidth(1);
-	}
 
 	/* Draw Selected Faces */
 	if(me->drawflag & ME_DRAWFACES) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#if 0
-		UI_ThemeColor4(TH_FACE_SELECT);
-
-		dm->drawMappedFacesTex(dm, draw_tfaces3D__drawFaceOpts, (void*)me);
-#else
 		/* dull unselected faces so as not to get in the way of seeing color */
 		glColor4ub(96, 96, 96, 64);
-		dm->drawMappedFacesTex(dm, draw_tfaces3D__drawFaceOptsInv, (void*)me);
-#endif
+		dm->drawMappedFacesTex(dm, draw_mesh_face_select__drawFaceOptsInv, (void*)me);
 		
 		glDisable(GL_BLEND);
 	}
@@ -255,13 +194,15 @@ static void draw_tfaces3D(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm, short d
 		/* Draw Stippled Outline for selected faces */
 	glColor3ub(255, 255, 255);
 	setlinestyle(1);
-	dm->drawMappedEdges(dm, draw_tfaces3D__setSelectOpts, &data);
+	dm->drawMappedEdges(dm, draw_mesh_face_select__setSelectOpts, &data);
 	setlinestyle(0);
 
 	bglPolygonOffset(rv3d->dist, 0.0);	// resets correctly now, even after calling accumulated offsets
 
 	BLI_edgehash_free(data.eh, NULL);
 }
+
+/***************************** Texture Drawing ******************************/
 
 static Material *give_current_material_or_def(Object *ob, int matnr)
 {
@@ -281,7 +222,7 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 	static int c_litmatnr;
 	static int c_badtex;
 
-	if (clearcache) {
+	if(clearcache) {
 		c_textured= c_lit= c_doublesided= -1;
 		c_texface= (MTFace*) -1;
 		c_litob= (Object*) -1;
@@ -289,7 +230,7 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 		c_badtex= 0;
 	}
 
-	if (texface) {
+	if(texface) {
 		lit = lit && (lit==-1 || texface->mode&TF_LIGHT);
 		textured = textured && (texface->mode&TF_TEX);
 		doublesided = texface->mode&TF_TWOSIDE;
@@ -297,15 +238,15 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 		textured = 0;
 	}
 
-	if (doublesided!=c_doublesided) {
-		if (doublesided) glDisable(GL_CULL_FACE);
+	if(doublesided!=c_doublesided) {
+		if(doublesided) glDisable(GL_CULL_FACE);
 		else glEnable(GL_CULL_FACE);
 
 		c_doublesided= doublesided;
 	}
 
-	if (textured!=c_textured || texface!=c_texface) {
-		if (textured ) {
+	if(textured!=c_textured || texface!=c_texface) {
+		if(textured ) {
 			c_badtex= !GPU_set_tpage(texface, !(litob->mode & OB_MODE_TEXTURE_PAINT));
 		} else {
 			GPU_set_tpage(NULL, 0);
@@ -315,9 +256,9 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 		c_texface= texface;
 	}
 
-	if (c_badtex) lit= 0;
-	if (lit!=c_lit || litob!=c_litob || litmatnr!=c_litmatnr) {
-		if (lit) {
+	if(c_badtex) lit= 0;
+	if(lit!=c_lit || litob!=c_litob || litmatnr!=c_litmatnr) {
+		if(lit) {
 			Material *ma= give_current_material_or_def(litob, litmatnr+1);
 			float spec[4];
 
@@ -411,16 +352,16 @@ static void draw_textured_end(void)
 
 static int draw_tface__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
 {
-	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
+	if(tface && (tface->mode&TF_INVISIBLE)) return 0;
 
-	if (tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
+	if(tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
 		glColor3ub(0xFF, 0x00, 0xFF);
 		return 2; /* Don't set color */
-	} else if (tface && tface->mode&TF_OBCOL) {
+	} else if(tface && tface->mode&TF_OBCOL) {
 		glColor3ubv(Gtexdraw.obcol);
 		return 2; /* Don't set color */
-	} else if (!mcol) {
-		if (tface) glColor3f(1.0, 1.0, 1.0);
+	} else if(!mcol) {
+		if(tface) glColor3f(1.0, 1.0, 1.0);
 		else {
 			Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 			if(ma) {
@@ -439,13 +380,13 @@ static int draw_tface__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
 }
 static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 {
-	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
+	if(tface && (tface->mode&TF_INVISIBLE)) return 0;
 
-	if (tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
+	if(tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
 		return 2; /* Don't set color */
-	} else if (tface && tface->mode&TF_OBCOL) {
+	} else if(tface && tface->mode&TF_OBCOL) {
 		return 2; /* Don't set color */
-	} else if (!mcol) {
+	} else if(!mcol) {
 		return 1; /* Don't set color */
 	} else {
 		return 1; /* Set color from mcol */
@@ -463,7 +404,7 @@ static void add_tface_color_layer(DerivedMesh *dm)
 
 	finalCol = MEM_mallocN(sizeof(MCol)*4*dm->getNumFaces(dm),"add_tface_color_layer");
 	for(i=0;i<dm->getNumFaces(dm);i++) {
-		if (tface && (tface->mode&TF_INVISIBLE)) {
+		if(tface && (tface->mode&TF_INVISIBLE)) {
 			if( mcol )
 				memcpy(&finalCol[i*4],&mcol[i*4],sizeof(MCol)*4);
 			else
@@ -473,20 +414,20 @@ static void add_tface_color_layer(DerivedMesh *dm)
 					finalCol[i*4+j].r = 255;
 				}
 		}
-		else if (tface && mface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, mface[i].mat_nr, TF_TWOSIDE)) {
+		else if(tface && mface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, mface[i].mat_nr, TF_TWOSIDE)) {
 			for(j=0;j<4;j++) {
 				finalCol[i*4+j].b = 255;
 				finalCol[i*4+j].g = 0;
 				finalCol[i*4+j].r = 255;
 			}
-		} else if (tface && tface->mode&TF_OBCOL) {
+		} else if(tface && tface->mode&TF_OBCOL) {
 			for(j=0;j<4;j++) {
 				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[0]);
 				finalCol[i*4+j].g = FTOCHAR(Gtexdraw.obcol[1]);
 				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[2]);
 			}
-		} else if (!mcol) {
-			if (tface) {
+		} else if(!mcol) {
+			if(tface) {
 				for(j=0;j<4;j++) {
 					finalCol[i*4+j].b = 255;
 					finalCol[i*4+j].g = 255;
@@ -532,7 +473,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	MFace *mface = &me->mface[index];
 	MCol *mcol = (me->mcol)? &me->mcol[index]: NULL;
 	const int matnr = mface->mat_nr;
-	if (mface->flag & ME_HIDE) return 0;
+	if(mface->flag & ME_HIDE) return 0;
 	return draw_tface__set_draw(tface, mcol, matnr);
 }
 
@@ -544,7 +485,7 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 	MCol *mcol;
 	int matnr;
 
-	if (efa->h)
+	if(efa->h)
 		return 0;
 
 	tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -558,7 +499,7 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 {
 	Mesh *me = (Mesh*)userData;
 
-	if (	(me->mface && me->mface[index].flag & ME_HIDE) ||
+	if(	(me->mface && me->mface[index].flag & ME_HIDE) ||
 			(me->mtface && (me->mtface[index].mode & TF_INVISIBLE))
 	) {
 		return 0;
@@ -597,7 +538,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 		int matnr= mf->mat_nr;
 		int mf_smooth= mf->flag & ME_SMOOTH;
 
-		if (!(mf->flag&ME_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
+		if(!(mf->flag&ME_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
 			float v1[3], v2[3], v3[3], v4[3];
 			char string[MAX_PROPSTRING];
 			int characters, i, glattrib= -1, badtex= 0;
@@ -614,8 +555,8 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			}
 			else {
 				badtex = set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE);
-				if (badtex) {
-					if (mcol) mcol+=4;
+				if(badtex) {
+					if(mcol) mcol+=4;
 					continue;
 				}
 			}
@@ -623,7 +564,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			ddm->getVertCo(ddm, mf->v1, v1);
 			ddm->getVertCo(ddm, mf->v2, v2);
 			ddm->getVertCo(ddm, mf->v3, v3);
-			if (mf->v4) ddm->getVertCo(ddm, mf->v4, v4);
+			if(mf->v4) ddm->getVertCo(ddm, mf->v4, v4);
 
 			// The BM_FONT handling is in the gpu module, shared with the
 			// game engine, was duplicated previously
@@ -634,7 +575,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			if(!BKE_image_get_ibuf(tface->tpage, NULL))
 				characters = 0;
 
-			if (!mf_smooth) {
+			if(!mf_smooth) {
 				float nor[3];
 
 				normal_tri_v3( nor,v1, v2, v3);
@@ -645,7 +586,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			GPU_render_text(tface, tface->mode, string, characters,
 				(unsigned int*)mcol, v1, v2, v3, (mf->v4? v4: NULL), glattrib);
 		}
-		if (mcol) {
+		if(mcol) {
 			mcol+=4;
 		}
 	}
@@ -653,7 +594,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	ddm->release(ddm);
 }
 
-void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
+void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
 {
 	Mesh *me= ob->data;
 	
@@ -668,18 +609,21 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 
 	if(ob->mode & OB_MODE_EDIT) {
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
-	} else if(faceselect) {
+	}
+	else if(faceselect) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1, GPU_enable_material);
 		else
 			dm->drawMappedFacesTex(dm, me->mface ? draw_tface_mapped__set_draw : NULL, me);
 	}
 	else {
-		if( GPU_buffer_legacy(dm) )
+		if(GPU_buffer_legacy(dm)) {
 			dm->drawFacesTex(dm, draw_tface__set_draw_legacy);
+		}
 		else {
-			if( !CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL) )
+			if(!CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL))
 				add_tface_color_layer(dm);
+
 			dm->drawFacesTex(dm, draw_tface__set_draw);
 		}
 	}
@@ -692,12 +636,178 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	
 	/* draw edges and selected faces over textured mesh */
 	if(!(ob == scene->obedit) && faceselect)
-		draw_tfaces3D(rv3d, me, dm, ob->mode & OB_MODE_WEIGHT_PAINT);
+		draw_mesh_face_select(rv3d, me, dm);
 
 	/* reset from negative scale correction */
 	glFrontFace(GL_CCW);
 	
 	/* in editmode, the blend mode needs to be set incase it was ADD */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+/**************************** CYCLES **********************************/
+
+typedef struct TexMatCallback {
+	Scene *scene;
+	Object *ob;
+	Mesh *me;
+	DerivedMesh *dm;
+} TexMatCallback;
+
+static void tex_mat_set_material_cb(void *UNUSED(userData), int mat_nr, void *attribs)
+{
+	/* all we have to do here is simply enable the GLSL material, but note
+	   that the GLSL code will give different result depending on the drawtype,
+	   in texture draw mode it will output the active texture node, in material
+	   draw mode it will show the full material. */
+	GPU_enable_material(mat_nr, attribs);
+}
+
+static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
+{
+	/* texture draw mode without GLSL */
+	TexMatCallback *data= (TexMatCallback*)userData;
+	GPUVertexAttribs *gattribs = attribs;
+	Material *ma= give_current_material_or_def(data->ob, mat_nr);
+	bNode *node= (ma->use_nodes)? nodeGetActiveTexture(ma->nodetree): NULL;
+	int texture_set= 0;
+
+	memset(gattribs, 0, sizeof(*gattribs));
+
+	/* draw textured */
+	if(node && (node->type == SH_NODE_TEX_IMAGE)) {
+		/* get openl texture */
+		Image *ima= (Image*)node->id;
+		ImageUser *iuser= NULL;
+		int mipmap= 1;
+		int bindcode= (ima)? GPU_verify_image(ima, iuser, 0, 0, mipmap): 0;
+		float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		if(bindcode) {
+			/* disable existing material */
+			GPU_disable_material();
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, zero);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zero);
+			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0);
+
+			/* bind texture */
+			glEnable(GL_COLOR_MATERIAL);
+			glEnable(GL_TEXTURE_2D);
+
+			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+			glColor3f(1.0f, 1.0f, 1.0f);
+
+			/* use active UV texture layer */
+			gattribs->layer[0].type= CD_MTFACE;
+			gattribs->layer[0].name[0]= '\0';
+			gattribs->layer[0].gltexco= 1;
+			gattribs->totlayer= 1;
+
+			texture_set= 1;
+		}
+	}
+
+	if(!texture_set) {
+		/* disable texture */
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_COLOR_MATERIAL);
+
+		/* draw single color */
+		GPU_enable_material(mat_nr, attribs);
+	}
+}
+
+static int tex_mat_set_face_mesh_cb(void *userData, int index)
+{
+	/* faceselect mode face hiding */
+	TexMatCallback *data= (TexMatCallback*)userData;
+	Mesh *me = (Mesh*)data->me;
+	MFace *mface = &me->mface[index];
+
+	return !(mface->flag & ME_HIDE);
+}
+
+static int tex_mat_set_face_editmesh_cb(void *UNUSED(userData), int index)
+{
+	/* editmode face hiding */
+	EditFace *efa= EM_get_face_for_index(index);
+
+	return !(efa->h);
+}
+
+void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
+{
+	if(!scene_use_new_shading_system(scene)) {
+		draw_mesh_textured_old(scene, v3d, rv3d, ob, dm, faceselect);
+		return;
+	}
+
+	/* set opengl state for negative scale & color */
+	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
+	else glFrontFace(GL_CCW);
+
+	glEnable(GL_LIGHTING);
+
+	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
+		/* weight paint mode exception */
+		int useColors= 1;
+
+		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions,
+			ob->data, useColors, GPU_enable_material);
+	}
+	else {
+		Mesh *me= ob->data;
+		TexMatCallback data = {scene, ob, me, dm};
+		int (*set_face_cb)(void*, int);
+		int glsl;
+		
+		/* face hiding callback depending on mode */
+		if(ob == scene->obedit)
+			set_face_cb= tex_mat_set_face_editmesh_cb;
+		else if(faceselect)
+			set_face_cb= tex_mat_set_face_mesh_cb;
+		else
+			set_face_cb= NULL;
+
+		/* test if we can use glsl */
+		glsl= GPU_glsl_support();
+
+		if(v3d->drawtype == OB_TEXTURE)
+			glsl= (scene->gm.matmode == GAME_MAT_GLSL);
+
+		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+
+		if(glsl) {
+			/* draw glsl */
+			dm->drawMappedFacesMat(dm,
+				tex_mat_set_material_cb,
+				set_face_cb, &data);
+		}
+		else {
+			float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+			/* draw textured */
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, zero);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zero);
+			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0);
+
+			dm->drawMappedFacesMat(dm,
+				tex_mat_set_texture_cb,
+				set_face_cb, &data);
+		}
+
+		GPU_end_object_materials();
+	}
+
+	/* reset opengl state */
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glFrontFace(GL_CCW);
+
+	/* faceselect mode drawing over textured mesh */
+	if(!(ob == scene->obedit) && faceselect)
+		draw_mesh_face_select(rv3d, ob->data, dm);
 }
 

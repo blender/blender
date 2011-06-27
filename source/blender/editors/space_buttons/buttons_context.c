@@ -393,8 +393,10 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 			buttons_context_path_object(path);
 	}
 	
-	RNA_id_pointer_create(&ct->texture->id, &path->ptr[path->len]);
-	path->len++;
+	if(ct->texture) {
+		RNA_id_pointer_create(&ct->texture->id, &path->ptr[path->len]);
+		path->len++;
+	}
 
 	return 1;
 
@@ -757,10 +759,18 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	else if(CTX_data_equals(member, "texture_user")) {
 		ButsContextTexture *ct= sbuts->texuser;
 
-		if(ct && ct->user) {
+		if(ct && ct->user && ct->user->ptr.data) {
 			ButsTextureUser *user= ct->user; 
 			CTX_data_pointer_set(result, user->ptr.id.data, user->ptr.type, user->ptr.data);
 		}
+
+		return 1;
+	}
+	else if(CTX_data_equals(member, "texture_node")) {
+		ButsContextTexture *ct= sbuts->texuser;
+
+		if(ct && ct->user && ct->user->node)
+			CTX_data_pointer_set(result, &ct->user->ntree->id, &RNA_Node, ct->user->node);
 
 		return 1;
 	}

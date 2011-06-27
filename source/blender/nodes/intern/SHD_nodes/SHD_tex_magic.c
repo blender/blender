@@ -145,6 +145,9 @@ static int node_shader_gpu_tex_magic(GPUMaterial *mat, bNode *node, GPUNodeStack
 	NodeTexMagic *tex = (NodeTexMagic*)node->storage;
 	float depth = tex->depth;
 
+	if(!in[0].link)
+		in[0].link = GPU_attribute(CD_ORCO, "");
+
 	return GPU_stack_link(mat, "node_tex_magic", in, out, GPU_uniform(&depth));
 }
 

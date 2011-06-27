@@ -111,6 +111,9 @@ static void node_shader_exec_tex_blend(void *data, bNode *node, bNodeStack **in,
 
 static int node_shader_gpu_tex_blend(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
+	if(!in[0].link)
+		in[0].link = GPU_attribute(CD_ORCO, "");
+
 	return GPU_stack_link(mat, "node_tex_blend", in, out);
 }
 

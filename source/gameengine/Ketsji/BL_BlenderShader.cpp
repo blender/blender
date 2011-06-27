@@ -40,7 +40,7 @@ BL_BlenderShader::~BL_BlenderShader()
 
 void BL_BlenderShader::ReloadMaterial()
 {
-	mGPUMat = (mMat) ? GPU_material_from_blender(mBlenderScene, mMat) : NULL;
+	mGPUMat = (mMat) ? GPU_material_from_blender(mBlenderScene, mMat, OB_RENDERED) : NULL;
 }
 
 void BL_BlenderShader::SetProg(bool enable, double time)

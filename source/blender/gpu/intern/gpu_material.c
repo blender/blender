@@ -80,6 +80,7 @@ typedef enum DynMatProperty {
 struct GPUMaterial {
 	Scene *scene;
 	Material *ma;
+	int drawtype;
 
 	/* for creating the material */
 	ListBase nodes;
@@ -351,6 +352,11 @@ void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link)
 {
 	if(!material->outlink)
 		material->outlink= link;
+}
+
+int GPU_material_drawtype(GPUMaterial *material)
+{
+	return material->drawtype;
 }
 
 void GPU_material_enable_alpha(GPUMaterial *material)
@@ -1387,34 +1393,43 @@ static GPUNodeLink *GPU_blender_material(GPUMaterial *mat, Material *ma)
 	return shr.combined;
 }
 
-GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
+GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, int drawtype)
 {
 	GPUMaterial *mat;
 	GPUNodeLink *outlink;
 	LinkData *link;
 
-	for(link=ma->gpumaterial.first; link; link=link->next)
-		if(((GPUMaterial*)link->data)->scene == scene)
+	/* find an existing glsl shader that is already compiled */
+	for(link=ma->gpumaterial.first; link; link=link->next) {
+		mat= (GPUMaterial*)link->data;
+		if(mat->scene == scene && mat->drawtype == drawtype)
 			return link->data;
+	}
 
+	/* in texture draw mode, we need an active texture node */
+	if(drawtype == OB_TEXTURE && (!ma->use_nodes || !nodeGetActiveTexture(ma->nodetree)))
+		return NULL;
+
+	/* allocate material */
 	mat = GPU_material_construct_begin(ma);
 	mat->scene = scene;
+	mat->drawtype = drawtype;
 
 	if(!(scene->gm.flag & GAME_GLSL_NO_NODES) && ma->nodetree && ma->use_nodes) {
+		/* create nodes */
 		ntreeGPUMaterialNodes(ma->nodetree, mat);
 	}
 	else {
+		/* create material */
 		outlink = GPU_blender_material(mat, ma);
 		GPU_material_output_link(mat, outlink);
 	}
 
-	/*if(!GPU_material_construct_end(mat)) {
-		GPU_material_free(mat);
-		mat= NULL;
-		return 0;
-	}*/
-
 	GPU_material_construct_end(mat);
+
+	/* note that even if building the shader fails in some way, we still keep
+	   it to avoid trying to compile again and again, and simple do not use
+	   the actual shader on drawing */
 
 	link = MEM_callocN(sizeof(LinkData), "GPUMaterialLink");
 	link->data = mat;

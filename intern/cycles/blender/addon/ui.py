@@ -233,7 +233,7 @@ def panel_node_draw(layout, id, output_type, input_name):
 		layout.label(text="No output node.")
 	else:
 		input = find_node_input(node, input_name)
-		layout.template_node_view(id, ntree, node, input);
+		layout.template_node_view(ntree, node, input);
 
 class CyclesLamp_PT_lamp(CyclesButtonsPanel, bpy.types.Panel):
 	bl_label = "Surface"
@@ -354,31 +354,34 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, bpy.types.Panel):
 		pin_id = space.pin_id
 		use_pin_id = space.use_pin_id;
 		user = context.texture_user
+		node = context.texture_node
 
 		if not use_pin_id or not isinstance(pin_id, bpy.types.Texture):
 			pin_id = None
 
 		if not pin_id:
 			layout.template_texture_user()
+
+		if user:
 			layout.separator()
 
-		split = layout.split(percentage=0.65)
-		col = split.column()
+			split = layout.split(percentage=0.65)
+			col = split.column()
 
-		if pin_id:
-			col.template_ID(space, "pin_id")
-		elif user:
-			col.template_ID(user, "texture", new="texture.new")
-		
-		if tex:
-			row = split.row()
-			row.prop(tex, "use_nodes", icon="NODETREE", text="")
-			row.label()
+			if pin_id:
+				col.template_ID(space, "pin_id")
+			elif user:
+				col.template_ID(user, "texture", new="texture.new")
+			
+			if tex:
+				row = split.row()
+				row.prop(tex, "use_nodes", icon="NODETREE", text="")
+				row.label()
 
-			if not tex.use_nodes:
-				split = layout.split(percentage=0.2)
-				split.label(text="Type:")
-				split.prop(tex, "type", text="")
+				if not tex.use_nodes:
+					split = layout.split(percentage=0.2)
+					split.label(text="Type:")
+					split.prop(tex, "type", text="")
 
 class CyclesTexture_PT_nodes(CyclesButtonsPanel, bpy.types.Panel):
 	bl_label = "Nodes"
@@ -395,6 +398,22 @@ class CyclesTexture_PT_nodes(CyclesButtonsPanel, bpy.types.Panel):
 		tex = context.texture
 		panel_node_draw(layout, tex, 'OUTPUT_TEXTURE', 'Color')
 
+class CyclesTexture_PT_node(CyclesButtonsPanel, bpy.types.Panel):
+	bl_label = "Node"
+	bl_context = "texture"
+
+	@classmethod
+	def poll(cls, context):
+		node = context.texture_node
+		return node and CyclesButtonsPanel.poll(context)
+
+	def draw(self, context):
+		layout = self.layout
+
+		node = context.texture_node
+		ntree = node.id_data
+		layout.template_node_view(ntree, node, None)
+
 class CyclesTexture_PT_mapping(CyclesButtonsPanel, bpy.types.Panel):
 	bl_label = "Mapping"
 	bl_context = "texture"
@@ -402,7 +421,8 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, bpy.types.Panel):
 	@classmethod
 	def poll(cls, context):
 		tex = context.texture
-		return (tex and tex.use_nodes) and CyclesButtonsPanel.poll(context)
+		node = context.texture_node
+		return (node or (tex and tex.use_nodes)) and CyclesButtonsPanel.poll(context)
 
 	def draw(self, context):
 		layout = self.layout
@@ -416,7 +436,8 @@ class CyclesTexture_PT_color(CyclesButtonsPanel, bpy.types.Panel):
 	@classmethod
 	def poll(cls, context):
 		tex = context.texture
-		return (tex and tex.use_nodes) and CyclesButtonsPanel.poll(context)
+		node = context.texture_node
+		return (node or (tex and tex.use_nodes)) and CyclesButtonsPanel.poll(context)
 
 	def draw(self, context):
 		layout = self.layout

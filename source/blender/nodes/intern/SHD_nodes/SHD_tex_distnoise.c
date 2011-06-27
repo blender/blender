@@ -91,6 +91,9 @@ static void node_shader_exec_tex_distnoise(void *data, bNode *node, bNodeStack *
 
 static int node_shader_gpu_tex_distnoise(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
+	if(!in[0].link)
+		in[0].link = GPU_attribute(CD_ORCO, "");
+
 	return GPU_stack_link(mat, "node_tex_distnoise", in, out);
 }
 

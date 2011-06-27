@@ -996,7 +996,7 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 	   only objects and scenes. - brecht */
 }
 
-void scene_clear_tagged(Main *bmain, Scene *scene)
+void scene_clear_tagged(Main *bmain, Scene *UNUSED(scene))
 {
 	DAG_ids_clear_recalc(bmain);
 }
@@ -1107,3 +1107,9 @@ Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 
 	return NULL;
 }
+
+int scene_use_new_shading_system(Scene *scene)
+{
+	return (strcmp(scene->r.engine, "CYCLES") == 0);
+}
+

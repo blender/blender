@@ -171,7 +171,8 @@ typedef struct bNode {
 #define NODE_TEST			256
 		/* composite: don't do node but pass on buffer(s) */
 #define NODE_MUTED			512
-#define NODE_CUSTOM_NAME		1024	/* deprecated! */
+#define NODE_CUSTOM_NAME	1024	/* deprecated! */
+#define NODE_ACTIVE_TEXTURE	2048
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;

@@ -53,6 +53,8 @@
 #include "UI_interface.h"
 #include "interface_intern.h"
 
+#include "ED_node.h"
+
 /************************* Node Link Menu **************************/
 
 #define UI_NODE_LINK_ADD		0
@@ -60,7 +62,6 @@
 #define UI_NODE_LINK_REMOVE		-2
 
 typedef struct NodeLinkArg {
-	ID *id;
 	bNodeTree *ntree;
 	bNode *node;
 	bNodeSocket *sock;
@@ -96,26 +97,6 @@ static void ui_node_clear_recursive(bNode *node)
 	for(input=node->inputs.first; input; input=input->next)
 		if(input->link)
 			ui_node_clear_recursive(input->link->fromnode);
-}
-
-static void ntree_notify(bContext *C, ID *id, bNodeTree *ntree)
-{
-	if(ntree->type==NTREE_SHADER) {
-		if(GS(id->name) == ID_MA)
-			WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, id);
-		else if(GS(id->name) == ID_LA)
-			WM_event_add_notifier(C, NC_LAMP|ND_NODES, id);
-		else if(GS(id->name) == ID_WO)
-			WM_event_add_notifier(C, NC_WORLD|ND_NODES, id);
-		else if(GS(id->name) == ID_TE)
-			WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, id);
-	}
-	else if(ntree->type==NTREE_COMPOSIT)
-		WM_event_add_notifier(C, NC_SCENE|ND_NODES, id);
-	else if(ntree->type==NTREE_TEXTURE)
-		WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, id);
-	
-	DAG_id_tag_update(id, 0);
 }
 
 static void ui_node_remove_linked(bNodeTree *ntree, bNode *rem_node)
@@ -177,7 +158,6 @@ static void ui_node_sock_name(bNodeSocket *sock, char name[UI_MAX_NAME_STR])
 static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 {
 	NodeLinkArg *arg = (NodeLinkArg*)arg_p;
-	ID *id = arg->id;
 	bNode *node_to = arg->node;
 	bNodeSocket *sock_to = arg->sock;
 	bNodeTree *ntree = arg->ntree;
@@ -213,8 +193,13 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 			if(!(node_from->inputs.first == NULL && !(node_from->typeinfo->flag & NODE_OPTIONS)))
 				node_from = NULL;
 
-		/* add new node */
-		if(!node_from) {
+		if(node_prev && node_prev->type == arg->type &&
+			(arg->type != NODE_GROUP || node_prev->id == &arg->ngroup->id)) {
+			/* keep the previous node if it's the same type */
+			node_from = node_prev;
+		}
+		else if(!node_from) {
+			/* add new node */
 			if(arg->ngroup)
 				node_from = nodeAddNodeType(ntree, NODE_GROUP, arg->ngroup, NULL);
 			else
@@ -226,6 +211,8 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 			if(node_from->id)
 				id_us_plus(node_from->id);
 		}
+
+		nodeSetActive(ntree, node_from);
 
 		/* add link */
 		sock_from = BLI_findlink(&node_from->outputs, arg->output);
@@ -260,7 +247,7 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 	NodeTagChanged(ntree, node_to);
 	ntreeSolveOrder(ntree);
 
-	ntree_notify(C, id, ntree);
+	ED_node_generic_update(CTX_data_main(C), ntree, node_to);
 }
 
 static int ui_compatible_sockets(int typeA, int typeB)
@@ -435,7 +422,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 	ui_node_menu_column(bmain, arg, column, "Group", NODE_CLASS_GROUP);
 }
 
-void uiTemplateNodeLink(uiLayout *layout, ID *id, bNodeTree *ntree, bNode *node, bNodeSocket *sock)
+void uiTemplateNodeLink(uiLayout *layout, bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 {
 	uiBlock *block = uiLayoutGetBlock(layout);
 	NodeLinkArg *arg;
@@ -443,7 +430,6 @@ void uiTemplateNodeLink(uiLayout *layout, ID *id, bNodeTree *ntree, bNode *node,
 	bNodeSocketType *stype = ui_node_input_socket_type(node, sock);
 
 	arg = MEM_callocN(sizeof(NodeLinkArg), "NodeLinkArg");
-	arg->id = id;
 	arg->ntree = ntree;
 	arg->node = node;
 	arg->sock = sock;
@@ -464,18 +450,46 @@ void uiTemplateNodeLink(uiLayout *layout, ID *id, bNodeTree *ntree, bNode *node,
 	but->flag |= UI_TEXT_LEFT|UI_BUT_NODE_LINK;
 	but->poin= (char*)but;
 	but->func_argN = arg;
+
+	if(sock->link && sock->link->fromnode)
+		if(sock->link->fromnode->flag & NODE_ACTIVE_TEXTURE)
+			but->flag |= UI_BUT_NODE_ACTIVE;
 }
 
 /************************* Node Tree Layout **************************/
 
-static void ui_node_draw_input(uiLayout *layout, bContext *C, ID *id, bNodeTree *ntree, bNode *node, bNodeSocket *input, int depth)
+static void ui_node_draw_input(uiLayout *layout, bContext *C,
+	bNodeTree *ntree, bNode *node, bNodeSocket *input, int depth);
+
+static void ui_node_draw_node(uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, int depth)
+{
+	bNodeSocket *input;
+	uiLayout *col, *split;
+	PointerRNA nodeptr;
+
+	RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
+
+	if(node->typeinfo->uifunc) {
+		if(node->type != NODE_GROUP) {
+			split = uiLayoutSplit(layout, 0.35f, 0);
+			col = uiLayoutColumn(split, 0);
+			col = uiLayoutColumn(split, 0);
+
+			node->typeinfo->uifunc(col, C, &nodeptr);
+		}
+	}
+
+	for(input=node->inputs.first; input; input=input->next)
+		ui_node_draw_input(layout, C, ntree, node, input, depth+1);
+}
+
+static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input, int depth)
 {
 	PointerRNA inputptr;
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiBut *bt;
 	uiLayout *split, *row, *col;
 	bNode *lnode;
-	bNodeSocket *linput;
 	char label[UI_MAX_NAME_STR];
 	int indent = (depth > 1)? 2*(depth - 1): 0;
 
@@ -516,27 +530,13 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, ID *id, bNodeTree 
 
 	if(lnode) {
 		/* input linked to a node */
-		uiTemplateNodeLink(split, id, ntree, node, input);
+		uiTemplateNodeLink(split, ntree, node, input);
 
 		if(!(input->flag & SOCK_COLLAPSED)) {
 			if(depth == 0)
 				uiItemS(layout);
 
-			if(lnode->typeinfo->uifunc) {
-				if(lnode->type != NODE_GROUP) {
-					PointerRNA lnodeptr;
-
-					split = uiLayoutSplit(layout, 0.35f, 0);
-					col = uiLayoutColumn(split, 0);
-					col = uiLayoutColumn(split, 0);
-
-					RNA_pointer_create(&ntree->id, &RNA_Node, lnode, &lnodeptr);
-					lnode->typeinfo->uifunc(col, C, &lnodeptr);
-				}
-			}
-
-			for(linput=lnode->inputs.first; linput; linput=linput->next)
-				ui_node_draw_input(layout, C, id, ntree, lnode, linput, depth+1);
+			ui_node_draw_node(layout, C, ntree, lnode, depth);
 		}
 	}
 	else {
@@ -558,14 +558,14 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, ID *id, bNodeTree 
 		else
 			row = uiLayoutRow(split, 0);
 
-		uiTemplateNodeLink(row, id, ntree, node, input);
+		uiTemplateNodeLink(row, ntree, node, input);
 	}
 
 	/* clear */
 	node->flag &= ~NODE_TEST;
 }
 
-void uiTemplateNodeView(uiLayout *layout, bContext *C, ID *id, bNodeTree *ntree, bNode *node, bNodeSocket *input)
+void uiTemplateNodeView(uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
 {
 	bNode *tnode;
 
@@ -576,6 +576,9 @@ void uiTemplateNodeView(uiLayout *layout, bContext *C, ID *id, bNodeTree *ntree,
 	for(tnode=ntree->nodes.first; tnode; tnode=tnode->next)
 		tnode->flag &= ~NODE_TEST;
 
-	ui_node_draw_input(layout, C, id, ntree, node, input, 0);
+	if(input)
+		ui_node_draw_input(layout, C, ntree, node, input, 0);
+	else
+		ui_node_draw_node(layout, C, ntree, node, 0);
 }
 
