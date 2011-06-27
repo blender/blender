@@ -259,23 +259,53 @@ static short acf_generic_basic_offset(bAnimContext *ac, bAnimListElem *ale)
 		return 0;
 }
 
+/* offset based on nodetree type */
+static short acf_nodetree_rootType_offset(bNodeTree *ntree)
+{
+	if (ntree) {
+		switch (ntree->type) {
+			case NTREE_SHADER:
+				/* 1 additional level (i.e. is indented one level in from material, 
+				 * so shift all right by one step) 
+				 */
+				return INDENT_STEP_SIZE; 
+				
+			case NTREE_COMPOSIT:
+				/* no additional levels needed */
+				return 0; 
+				
+			case NTREE_TEXTURE:
+				/* 2 additional levels */
+				return INDENT_STEP_SIZE*2; 
+		}
+	}
+	
+	// unknown
+	return 0;
+}
+
 /* offset for groups + grouped entities */
 static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 {
 	short offset= acf_generic_basic_offset(ac, ale);
 	
 	if (ale->id) {
-		/* special exception for textures */
+		/* texture animdata */
 		if (GS(ale->id->name) == ID_TE) {
 			offset += 21;
 		}
-		/* special exception for materials and particles */
+		/* materials and particles animdata */
 		else if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) 
 			offset += 14;
 			
-		/* if not in Action Editor mode, groupings must carry some offset too... */
+		/* if not in Action Editor mode, action-groups (and their children) must carry some offset too... */
 		else if (ac->datatype != ANIMCONT_ACTION)
 			offset += 14;
+			
+		/* nodetree animdata */
+		if (GS(ale->id->name) == ID_NT) {
+			offset += acf_nodetree_rootType_offset((bNodeTree*)ale->id);
+		}
 	}
 	
 	/* offset is just the normal type - i.e. based on indention */
@@ -1827,6 +1857,17 @@ static int acf_dsntree_icon(bAnimListElem *UNUSED(ale))
 	return ICON_NODETREE;
 }
 
+/* offset for nodetree expanders */
+static short acf_dsntree_offset(bAnimContext *ac, bAnimListElem *ale)
+{
+	bNodeTree *ntree = (bNodeTree *)ale->data;
+	short offset= acf_generic_basic_offset(ac, ale);
+	
+	offset += acf_nodetree_rootType_offset(ntree); 
+	
+	return offset;
+}
+
 /* get the appropriate flag(s) for the setting when it is valid  */
 static int acf_dsntree_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
 {
@@ -1884,8 +1925,8 @@ static bAnimChannelType ACF_DSNTREE=
 	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
-	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
-	acf_generic_basic_offset,		/* offset */
+	acf_generic_indention_1,		/* indent level */
+	acf_dsntree_offset,				/* offset */
 	
 	acf_generic_idblock_name,		/* name */
 	acf_dsntree_icon,				/* icon */

@@ -230,7 +230,6 @@ typedef enum eAnimFilter_Flags {
 #define EXPANDED_SCEC(sce) ((sce->flag & SCE_DS_COLLAPSED)==0)
 	/* 'Sub-Scene' channels (flags stored in Data block) */
 #define FILTER_WOR_SCED(wo) ((wo->flag & WO_DS_EXPAND))
-#define FILTER_NTREE_SCED(ntree) ((ntree->flag & NTREE_DS_EXPAND))
 	/* 'Object' channels */
 #define SEL_OBJC(base) ((base->flag & SELECT))
 #define EXPANDED_OBJC(ob) ((ob->nlaflag & OB_ADS_COLLAPSED)==0)
@@ -245,14 +244,16 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
 #define FILTER_MESH_OBJD(me) ((me->flag & ME_DS_EXPAND))
 #define FILTER_LATTICE_OBJD(lt) ((lt->flag & LT_DS_EXPAND))
+	/* Variable use expanders */
+#define FILTER_NTREE_DATA(ntree) ((ntree->flag & NTREE_DS_EXPAND))
+#define FILTER_TEX_DATA(tex) ((tex->flag & TEX_DS_EXPAND))
 
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)
 	/* 'Sub-AnimData' channels */
 #define EXPANDED_DRVD(adt) ((adt->flag & ADT_DRIVERS_COLLAPSED)==0)
-	/* Texture expanders */
-#define FILTER_TEX_DATA(tex) ((tex->flag & TEX_DS_EXPAND))
+
 
 /* Actions (also used for Dopesheet) */
 	/* Action Channel Group */

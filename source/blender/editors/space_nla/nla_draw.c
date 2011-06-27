@@ -38,6 +38,7 @@
 #include <float.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
@@ -608,8 +609,27 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					if (ale->id) {
 						/* special exception for textures */
 						if (GS(ale->id->name) == ID_TE) {
-							offset= 21;
+							offset= 14;
 							indent= 1;
+						}
+						/* special exception for nodetrees */
+						else if (GS(ale->id->name) == ID_NT) {
+							bNodeTree *ntree = (bNodeTree *)ale->id;
+							
+							switch (ntree->type) {
+								case NTREE_SHADER:
+								{
+									/* same as for textures */
+									offset= 14;
+									indent= 1;
+								}
+									break;
+									
+								default:
+									/* normal will do */
+									offset= 14;
+									break;
+							}
 						}
 						else
 							offset= 14;
@@ -656,8 +676,27 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					if (ale->id) {
 						/* special exception for textures */
 						if (GS(ale->id->name) == ID_TE) {
-							offset= 21;
+							offset= 14;
 							indent= 1;
+						}
+						/* special exception for nodetrees */
+						else if (GS(ale->id->name) == ID_NT) {
+							bNodeTree *ntree = (bNodeTree *)ale->id;
+							
+							switch (ntree->type) {
+								case NTREE_SHADER:
+								{
+									/* same as for textures */
+									offset= 14;
+									indent= 1;
+								}
+									break;
+									
+								default:
+									/* normal will do */
+									offset= 14;
+									break;
+							}
 						}
 						else
 							offset= 14;

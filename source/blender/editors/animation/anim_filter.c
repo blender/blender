@@ -672,7 +672,7 @@ static bAnimListElem *make_new_animlistelem (void *data, short datatype, ID *own
 				bNodeTree *ntree= (bNodeTree *)data;
 				AnimData *adt= ntree->adt;
 				
-				ale->flag= FILTER_NTREE_SCED(ntree); 
+				ale->flag= FILTER_NTREE_DATA(ntree); 
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
@@ -1282,25 +1282,11 @@ static size_t animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), 
 static size_t animdata_filter_ds_nodetree (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, bNodeTree *ntree, int filter_mode)
 {
 	ListBase tmp_data = {NULL, NULL};
-	short expanded = 0;
 	size_t tmp_items = 0;
 	size_t items = 0;
 	
-	/* get datatype specific data first */
-	if (owner_id == NULL)
-		return 0;
-	
-	switch (GS(owner_id->name)) {
-		case ID_SCE: /* compositing nodes */
-		{
-			//Scene *scene = (Scene *)owner_id;
-			expanded = FILTER_NTREE_SCED(ntree); // XXX: this macro needs renaming... doesn't only do this for scene ones!
-		}
-			break;
-	}
-	
 	/* add nodetree animation channels */
-	BEGIN_ANIMFILTER_SUBCHANNELS(expanded)
+	BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_NTREE_DATA(ntree))
 	{
 		/* animation data filtering */
 		tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)ntree, filter_mode);
@@ -1427,6 +1413,11 @@ static size_t animdata_filter_ds_materials (bAnimContext *ac, ListBase *anim_dat
 			/* textures */
 			if (!(ads->filterflag & ADS_FILTER_NOTEX))
 				tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)ma, filter_mode);
+				
+			/* nodes */
+			if ((ma->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
+				tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)ma, ma->nodetree, filter_mode);
+			}
 		}
 		END_ANIMFILTER_SUBCHANNELS;
 		
