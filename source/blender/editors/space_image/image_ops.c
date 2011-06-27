@@ -440,7 +440,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 /********************** NDOF operator *********************/
 
 /* Combined pan/zoom from a 3D mouse device.
- * Y zooms, XZ pans
+ * Z zooms, XY pans
  * "view" (not "paper") control -- user moves the viewpoint, not the image being viewed
  * that explains the negative signs in the code below
  */
@@ -461,8 +461,8 @@ static int view_ndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	const float zoom_sensitivity = 0.5f;
 	const float pan_sensitivity = 300.f;
 
-	float pan_x = pan_sensitivity * dt * -ndof->tx / sima->zoom;
-	float pan_y = pan_sensitivity * dt * -ndof->tz / sima->zoom;
+	float pan_x = pan_sensitivity * dt * ndof->tx / sima->zoom;
+	float pan_y = pan_sensitivity * dt * ndof->ty / sima->zoom;
 
 	/* "mouse zoom" factor = 1 + (dx + dy) / 300
 	 * what about "ndof zoom" factor? should behave like this:
@@ -470,7 +470,7 @@ static int view_ndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	 * move forward -> factor > 1
 	 * move backward -> factor < 1
 	 */
-	float zoom_factor = 1.f + zoom_sensitivity * dt * -ndof->ty;
+	float zoom_factor = 1.f + zoom_sensitivity * dt * -ndof->tz;
 
 	sima_zoom_set_factor(sima, ar, zoom_factor);
 	sima->xof += pan_x;

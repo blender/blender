@@ -307,17 +307,16 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	GHOST_EventNDOFMotion* event = new GHOST_EventNDOFMotion(m_motionTime, window);
 	GHOST_TEventNDOFMotionData* data = (GHOST_TEventNDOFMotionData*) event->getData();
 
-	const float scale = 1.f / 350.f; // SpaceNavigator sends +/- 350 usually
-	// 350 according to their developer's guide; others recommend 500 as comfortable
+	const float scale = 1.f / 350.f; // 3Dconnexion devices send +/- 350 usually
 
 	// possible future enhancement
 	// scale *= m_sensitivity;
 
-	data->tx = -scale * m_translation[0];
+	data->tx = scale * m_translation[0];
 	data->ty = scale * m_translation[1];
 	data->tz = scale * m_translation[2];
 
-	data->rx = -scale * m_rotation[0];
+	data->rx = scale * m_rotation[0];
 	data->ry = scale * m_rotation[1];
 	data->rz = scale * m_rotation[2];
 

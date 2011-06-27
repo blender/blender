@@ -29,7 +29,7 @@
 
 // --- the following type definitions will find a home somewhere else once finished ---
 
-// #define DEBUG_NDOF_MOTION
+#define DEBUG_NDOF_MOTION
 #define DEBUG_NDOF_BUTTONS
 
 typedef enum { NDOF_UnknownDevice, NDOF_SpaceNavigator, NDOF_SpaceExplorer, NDOF_SpacePilotPro } NDOF_DeviceT;
@@ -93,6 +93,14 @@ public:
 	void setDevice(unsigned short vendor_id, unsigned short product_id);
 
 	// the latest raw axis data from the device
+	// NOTE: axis data should be in blender view coordinates
+	//       +X is to the right
+	//       +Y is up
+	//       +Z is out of the screen
+	//       for rotations, look from origin to each +axis
+	//       rotations are + when CCW, - when CW
+	// each platform is responsible for getting axis data into this form
+	// these values should not be scaled (just shuffled or flipped)
 	void updateTranslation(short t[3], GHOST_TUns64 time);
 	void updateRotation(short r[3], GHOST_TUns64 time);
 

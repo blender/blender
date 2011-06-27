@@ -86,8 +86,17 @@ bool GHOST_NDOFManagerX11::processEvents()
 			{
 			case SPNAV_EVENT_MOTION:
 				{
-				short t[3] = {e.motion.x, e.motion.y, e.motion.z};
-				short r[3] = {e.motion.rx, e.motion.ry, e.motion.rz};
+// "natural" device coords
+//				short t[3] = {e.motion.x, e.motion.y, e.motion.z};
+//				short r[3] = {e.motion.rx, e.motion.ry, e.motion.rz};
+
+// blender world coords
+//				short t[3] = {e.motion.x, e.motion.z, e.motion.y};
+//				short r[3] = {-e.motion.rx, -e.motion.rz, -e.motion.ry};
+
+// blender view coords
+				short t[3] = {e.motion.x, e.motion.y, -e.motion.z};
+				short r[3] = {-e.motion.rx, -e.motion.ry, e.motion.rz};
 
 				updateTranslation(t, now);
 				updateRotation(r, now);

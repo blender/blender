@@ -1003,10 +1003,10 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		// [got that?]
 		// proportional to s = r * theta
 
-		float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->ty;
+		float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
 		rv3d->dist += zoom_distance;
 
-		ED_region_tag_redraw(CTX_wm_region(C));		
+		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
 	if (has_rotation) {
@@ -1020,13 +1020,7 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			ndof_to_quat(ndof, rot);
 			// scale by rot_sensitivity?
-
-			// swap y and z -- not sure why, but it works
-			{
-			float temp = -rot[2]; // also invert device y
-			rot[2] = rot[3];
-			rot[3] = temp;
-			}
+			// mul_qt_fl(rot, rot_sensitivity);
 
 			invert_qt_qt(view_inv, rv3d->viewquat);
 			copy_qt_qt(view_inv_conj, view_inv);
@@ -1043,31 +1037,26 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		} else {
 			/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
-			float phi, q1[4];
-			float m[3][3];
-			float m_inv[3][3];
+			float angle, rot[4];
 			float xvec[3] = {1,0,0};
 
-			/* Get the 3x3 matrix and its inverse from the quaternion */
-			quat_to_mat3(m,rv3d->viewquat);
-			invert_m3_m3(m_inv,m);
-
 			/* Determine the direction of the x vector (for rotating up and down) */
-			/* This can likely be computed directly from the quaternion. */
-			mul_m3_v3(m_inv,xvec);
+			float view_inv[4]/*, view_inv_conj[4]*/;
+			invert_qt_qt(view_inv, rv3d->viewquat);
+			mul_qt_v3(view_inv, xvec);
 
 			/* Perform the up/down rotation */
-			phi = rot_sensitivity * dt * ndof->rx;
-			q1[0] = cos(phi);
-			mul_v3_v3fl(q1+1, xvec, sin(phi));
-			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+			angle = rot_sensitivity * dt * ndof->rx;
+			rot[0] = cos(angle);
+			mul_v3_v3fl(rot+1, xvec, sin(angle));
+			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
 
 			/* Perform the orbital rotation */
-			phi = rot_sensitivity * dt * ndof->rz;
-			q1[0] = cos(phi);
-			q1[1] = q1[2] = 0.0;
-			q1[3] = sin(phi);
-			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+			angle = rot_sensitivity * dt * ndof->ry;
+			rot[0] = cos(angle);
+			rot[1] = rot[2] = 0.0;
+			rot[3] = sin(angle);
+			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
 
 			ED_region_tag_redraw(CTX_wm_region(C));
 		}
@@ -1157,31 +1146,6 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	//printf("Trans tx:%5.2f ty:%5.2f tz:%5.2f \n",ndof->tx, ndof->ty, ndof->tz);
 	ED_region_tag_redraw(ar);
 	
-	return OPERATOR_FINISHED;
-}
-#endif
-
-#if 0
-static int viewndof_invoke_1st_try(bContext *C, wmOperator *op, wmEvent *event)
-{
-	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
-
-	float dt = ndof->dt;
-
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-
-	if (dt > 0.25f)
-		/* this is probably the first event for this motion, so set dt to something reasonable */
-		dt = 0.0125f;
-
-	/* very simple for now, move viewpoint along world axes */
-	rv3d->ofs[0] += dt * ndof->tx;
-	rv3d->ofs[1] += dt * ndof->ty;
-	rv3d->ofs[2] += dt * ndof->tz;
-
-//	request_depth_update(CTX_wm_region_view3d(C)); /* need this? */
-	ED_region_tag_redraw(CTX_wm_region(C));
-
 	return OPERATOR_FINISHED;
 }
 #endif
