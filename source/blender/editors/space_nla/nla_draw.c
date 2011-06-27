@@ -625,6 +625,14 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 								}
 									break;
 									
+								case NTREE_TEXTURE:
+								{
+									/* even more */
+									offset= 21;
+									indent= 1;
+								}	
+									break;
+									
 								default:
 									/* normal will do */
 									offset= 14;
@@ -690,6 +698,14 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 									offset= 14;
 									indent= 1;
 								}
+									break;
+									
+								case NTREE_TEXTURE:
+								{
+									/* even more */
+									offset= 21;
+									indent= 1;
+								}	
 									break;
 									
 								default:

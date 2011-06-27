@@ -1365,7 +1365,16 @@ static size_t animdata_filter_ds_textures (bAnimContext *ac, ListBase *anim_data
 		/* add texture's animation data to temp collection */
 		BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_TEX_DATA(tex)) 
 		{
+			/* texture animdata */
 			tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)tex, filter_mode);
+			
+			/* nodes */
+			if ((tex->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
+				/* owner_id as id instead of texture, since it'll otherwise be impossible to track the depth */
+				// FIXME: perhaps as a result, textures should NOT be included under materials, but under their own section instead
+				// so that free-floating textures can also be animated
+				tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)tex, tex->nodetree, filter_mode);
+			}
 		}
 		END_ANIMFILTER_SUBCHANNELS;
 		
@@ -1415,9 +1424,8 @@ static size_t animdata_filter_ds_materials (bAnimContext *ac, ListBase *anim_dat
 				tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)ma, filter_mode);
 				
 			/* nodes */
-			if ((ma->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
+			if ((ma->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) 
 				tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)ma, ma->nodetree, filter_mode);
-			}
 		}
 		END_ANIMFILTER_SUBCHANNELS;
 		
