@@ -29,15 +29,15 @@ For HTML generation
 
     ./blender.bin --background --python doc/python_api/sphinx_doc_gen.py
 
-  This will generate python files in doc/python_api/sphinx-in/,
-  assuming that ./blender.bin is or links to the blender executable
+  This will generate python files in doc/python_api/sphinx-in/
+  providing ./blender.bin is or links to the blender executable
 
 - Generate html docs by running...
 
     cd doc/python_api
     sphinx-build sphinx-in sphinx-out
 
-  assuming that you have sphinx 1.0.7 installed
+  This requires sphinx 1.0.7 to be installed.
 
 For PDF generation
 ------------------
@@ -47,6 +47,15 @@ For PDF generation
     cd doc/python_api/sphinx-out
     make
 '''
+
+# Check we're running in blender
+if __import__("sys").modules.get("bpy") is None:
+    print("\nError, this script must run from inside blender2.5")
+    print(script_help_msg)
+
+    import sys
+    sys.exit()
+
 
 # Switch for quick testing
 if 1:
@@ -1196,72 +1205,67 @@ def rna2sphinx(BASEPATH):
 
 
 def main():
-    import bpy
-    if 'bpy' not in dir():
-        print("\nError, this script must run from inside blender2.5")
-        print(script_help_msg)
+    import shutil
+
+    script_dir = os.path.dirname(__file__)
+    path_in = os.path.join(script_dir, "sphinx-in")
+    path_out = os.path.join(script_dir, "sphinx-out")
+    path_examples = os.path.join(script_dir, "examples")
+    # only for partial updates
+    path_in_tmp = path_in + "-tmp"
+
+    if not os.path.exists(path_in):
+        os.mkdir(path_in)
+
+    for f in os.listdir(path_examples):
+        if f.endswith(".py"):
+            EXAMPLE_SET.add(os.path.splitext(f)[0])
+
+    # only for full updates
+    if _BPY_FULL_REBUILD:
+        shutil.rmtree(path_in, True)
+        shutil.rmtree(path_out, True)
     else:
-        import shutil
+        # write here, then move
+        shutil.rmtree(path_in_tmp, True)
 
-        script_dir = os.path.dirname(__file__)
-        path_in = os.path.join(script_dir, "sphinx-in")
-        path_out = os.path.join(script_dir, "sphinx-out")
-        path_examples = os.path.join(script_dir, "examples")
-        # only for partial updates
-        path_in_tmp = path_in + "-tmp"
+    rna2sphinx(path_in_tmp)
 
-        if not os.path.exists(path_in):
-            os.mkdir(path_in)
+    if not _BPY_FULL_REBUILD:
+        import filecmp
 
-        for f in os.listdir(path_examples):
-            if f.endswith(".py"):
-                EXAMPLE_SET.add(os.path.splitext(f)[0])
+        # now move changed files from 'path_in_tmp' --> 'path_in'
+        file_list_path_in = set(os.listdir(path_in))
+        file_list_path_in_tmp = set(os.listdir(path_in_tmp))
 
-        # only for full updates
-        if _BPY_FULL_REBUILD:
-            shutil.rmtree(path_in, True)
-            shutil.rmtree(path_out, True)
-        else:
-            # write here, then move
-            shutil.rmtree(path_in_tmp, True)
+        # remove deprecated files that have been removed.
+        for f in sorted(file_list_path_in):
+            if f not in file_list_path_in_tmp:
+                print("\tdeprecated: %s" % f)
+                os.remove(os.path.join(path_in, f))
 
-        rna2sphinx(path_in_tmp)
+        # freshen with new files.
+        for f in sorted(file_list_path_in_tmp):
+            f_from = os.path.join(path_in_tmp, f)
+            f_to = os.path.join(path_in, f)
 
-        if not _BPY_FULL_REBUILD:
-            import filecmp
+            do_copy = True
+            if f in file_list_path_in:
+                if filecmp.cmp(f_from, f_to):
+                    do_copy = False
 
-            # now move changed files from 'path_in_tmp' --> 'path_in'
-            file_list_path_in = set(os.listdir(path_in))
-            file_list_path_in_tmp = set(os.listdir(path_in_tmp))
+            if do_copy:
+                print("\tupdating: %s" % f)
+                shutil.copy(f_from, f_to)
+            '''else:
+                print("\tkeeping: %s" % f) # eh, not that useful'''
 
-            # remove deprecated files that have been removed.
-            for f in sorted(file_list_path_in):
-                if f not in file_list_path_in_tmp:
-                    print("\tdeprecated: %s" % f)
-                    os.remove(os.path.join(path_in, f))
-
-            # freshen with new files.
-            for f in sorted(file_list_path_in_tmp):
-                f_from = os.path.join(path_in_tmp, f)
-                f_to = os.path.join(path_in, f)
-
-                do_copy = True
-                if f in file_list_path_in:
-                    if filecmp.cmp(f_from, f_to):
-                        do_copy = False
-
-                if do_copy:
-                    print("\tupdating: %s" % f)
-                    shutil.copy(f_from, f_to)
-                '''else:
-                    print("\tkeeping: %s" % f) # eh, not that useful'''
-
-        EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
-        if EXAMPLE_SET_UNUSED:
-            print("\nUnused examples found in '%s'..." % path_examples)
-            for f in EXAMPLE_SET_UNUSED:
-                print("    %s.py" % f)
-            print("  %d total\n" % len(EXAMPLE_SET_UNUSED))
+    EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
+    if EXAMPLE_SET_UNUSED:
+        print("\nUnused examples found in '%s'..." % path_examples)
+        for f in EXAMPLE_SET_UNUSED:
+            print("    %s.py" % f)
+        print("  %d total\n" % len(EXAMPLE_SET_UNUSED))
 
     import sys
     sys.exit()
