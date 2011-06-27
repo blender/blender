@@ -155,6 +155,7 @@ option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON
 option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 
 # Misc
+option(WITH_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
@@ -416,6 +417,15 @@ if(UNIX AND NOT APPLE)
 		# no use for this yet.
 		# set(JEMALLOC_INCLUDE_DIR ${JEMALLOC}/include  CACHE FILEPATH "JeMalloc include path")
 		unset(JEMALLOC)
+	endif()
+
+	if (WITH_NDOF)
+		if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+			set(NDOF /usr)
+			set(NDOF_INC ${NDOF}/include)
+			set(NDOF_LIB spnav)
+			set(NDOF_LIBPATH ${FFTW3}/lib)
+		endif()
 	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
@@ -958,6 +968,11 @@ elseif(APPLE)
 		set(TIFF_INCLUDE_DIR ${TIFF}/include)
 		set(TIFF_LIBRARY tiff)
 		set(TIFF_LIBPATH ${TIFF}/lib)
+	endif()
+
+	if (WITH_NDOF)
+		# GHOST_NDOFManagerCocoa.mm needs "-fpascal-strings"
+		# linker needs "-weak_framework 3DconnexionClient"
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)
