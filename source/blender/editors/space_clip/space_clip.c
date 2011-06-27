@@ -369,7 +369,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* if trcking is in progress, we should sunchronize framenr from clipuser
 	   so latest tracked frame would be shown */
-	if(clip->tracking_context)
+	if(clip && clip->tracking_context)
 		BKE_tracking_sync_user(&sc->user, clip->tracking_context);
 
 	if(sc->flag&SC_LOCK_SELECTION)
