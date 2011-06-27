@@ -341,7 +341,7 @@ u	|     |  F1 |  F2 |
 
 /* ------------------------------------------------------------------------- */
 
-static void split_v_renderfaces(ObjectRen *obr, int startvlak, int startvert, int usize, int vsize, int uIndex, int UNUSED(cyclu), int cyclv)
+static void split_v_renderfaces(ObjectRen *obr, int startvlak, int UNUSED(startvert), int UNUSED(usize), int vsize, int uIndex, int UNUSED(cyclu), int cyclv)
 {
 	int vLen = vsize-1+(!!cyclv);
 	int v;
@@ -393,7 +393,7 @@ static void calc_edge_stress_add(float *accum, VertRen *v1, VertRen *v2)
 	acc[1]+= 1.0f;
 }
 
-static void calc_edge_stress(Render *re, ObjectRen *obr, Mesh *me)
+static void calc_edge_stress(Render *UNUSED(re), ObjectRen *obr, Mesh *me)
 {
 	float loc[3], size[3], *accum, *acc, *accumoffs, *stress;
 	int a;
@@ -590,7 +590,7 @@ static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent
 	}
 }
 
-static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int do_nmap_tangent)
+static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangent, int do_nmap_tangent)
 {
 	MemArena *arena= NULL;
 	VertexTangent **vtangents= NULL;
@@ -759,7 +759,7 @@ static void as_addvert(ASvert *asv, VertRen *v1, VlakRen *vlr)
 	}
 }
 
-static int as_testvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh) 
+static int as_testvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, float thresh)
 {
 	/* return 1: vertex needs a copy */
 	ASface *asf;
@@ -782,7 +782,7 @@ static int as_testvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh)
 	return 0;
 }
 
-static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh) 
+static VertRen *as_findvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, float thresh)
 {
 	/* return when new vertex already was made */
 	ASface *asf;
@@ -810,7 +810,7 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thr
 
 /* note; autosmooth happens in object space still, after applying autosmooth we rotate */
 /* note2; actually, when original mesh and displist are equal sized, face normals are from original mesh */
-static void autosmooth(Render *re, ObjectRen *obr, float mat[][4], int degr)
+static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[][4], int degr)
 {
 	ASvert *asv, *asverts;
 	ASface *asf;
@@ -1680,8 +1680,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		bb.anim = part->bb_anim;
 		bb.lock = part->draw & PART_DRAW_BB_LOCK;
 		bb.ob = (part->bb_ob ? part->bb_ob : RE_GetCamera(re));
-		bb.offset[0] = part->bb_offset[0];
-		bb.offset[1] = part->bb_offset[1];
 		bb.split_offset = part->bb_split_offset;
 		bb.totnum = totpart+totchild;
 		bb.uv_split = part->bb_uv_split;
@@ -2015,7 +2013,20 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 					if(part->ren_as == PART_DRAW_BB) {
 						bb.random = random;
-						bb.size = pa_size;
+						bb.offset[0] = part->bb_offset[0];
+						bb.offset[1] = part->bb_offset[1];
+						bb.size[0] = part->bb_size[0] * pa_size;
+						if (part->bb_align==PART_BB_VEL) {
+							float pa_vel = len_v3(state.vel);
+							float head = part->bb_vel_head*pa_vel;
+							float tail = part->bb_vel_tail*pa_vel;
+							bb.size[1] = part->bb_size[1]*pa_size + head + tail;
+							/* use offset to adjust the particle center. this is relative to size, so need to divide! */
+							if (bb.size[1] > 0.0f)
+								bb.offset[1] += (head-tail) / bb.size[1];
+						}
+						else
+							bb.size[1] = part->bb_size[1] * pa_size;
 						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
 						bb.time = ct;
 						bb.num = a;
@@ -2040,7 +2051,20 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 				if(part->ren_as == PART_DRAW_BB) {
 					bb.random = random;
-					bb.size = pa_size;
+					bb.offset[0] = part->bb_offset[0];
+					bb.offset[1] = part->bb_offset[1];
+					bb.size[0] = part->bb_size[0] * pa_size;
+					if (part->bb_align==PART_BB_VEL) {
+						float pa_vel = len_v3(state.vel);
+						float head = part->bb_vel_head*pa_vel;
+						float tail = part->bb_vel_tail*pa_vel;
+						bb.size[1] = part->bb_size[1]*pa_size + head + tail;
+						/* use offset to adjust the particle center. this is relative to size, so need to divide! */
+						if (bb.size[1] > 0.0f)
+							bb.offset[1] += (head-tail) / bb.size[1];
+					}
+					else
+						bb.size[1] = part->bb_size[1] * pa_size;
 					bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
 					bb.time = pa_time;
 					bb.num = a;
@@ -2100,7 +2124,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* Halo's   																 */
 /* ------------------------------------------------------------------------- */
 
-static void make_render_halos(Render *re, ObjectRen *obr, Mesh *me, int totvert, MVert *mvert, Material *ma, float *orco)
+static void make_render_halos(Render *re, ObjectRen *obr, Mesh *UNUSED(me), int totvert, MVert *mvert, Material *ma, float *orco)
 {
 	Object *ob= obr->ob;
 	HaloRen *har;
@@ -4699,7 +4723,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 	return 1;
 }
 
-static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd)
+static int allow_render_dupli_instance(Render *UNUSED(re), DupliObject *dob, Object *obd)
 {
 	ParticleSystem *psys;
 	Material *ma;

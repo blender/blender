@@ -25,6 +25,7 @@ __all__ = (
     "location_3d_to_region_2d",
 )
 
+
 def region_2d_to_vector_3d(region, rv3d, coord):
     """
     Return a direction vector from the viewport at the spesific 2d region
@@ -48,7 +49,7 @@ def region_2d_to_vector_3d(region, rv3d, coord):
         out = Vector(((2.0 * coord[0] / region.width) - 1.0,
                       (2.0 * coord[1] / region.height) - 1.0,
                       -0.5
-                    ))        
+                    ))
 
         w = (out[0] * persinv[0][3]) + \
             (out[1] * persinv[1][3]) + \

@@ -38,7 +38,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
-#include "AUD_C-API.h"
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 #include "BKE_global.h"
 #include "BKE_main.h"

@@ -171,7 +171,12 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 		avs= &ob->avs;
 		dst= &ob->mpath;
 	}
-	
+
+	/* avoid 0 size allocs */
+	if(avs->path_sf >= avs->path_ef) {
+		return NULL;
+	}
+
 	/* if there is already a motionpath, just return that,
 	 * but provided it's settings are ok 
 	 */

@@ -62,7 +62,7 @@ extern "C" {
 #include "MeshImporter.h"
 #include "collada_utils.h"
 
-// works for COLLADAFW::Node, COLLADAFW::Geometry
+// get node name, or fall back to original id if not present (name is optional)
 template<class T>
 static const char *bc_get_dae_name(T *node)
 {
@@ -755,8 +755,10 @@ MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBindi
 								 MTex *color_texture)
 {
 	const COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
-	const size_t setindex = ctexture.getSetIndex();
+	size_t setindex = ctexture.getSetIndex();
 	std::string uvname = ctexture.getSemantic();
+	
+	if(setindex==-1) return NULL;
 	
 	const CustomData *data = &me->fdata;
 	int layer_index = CustomData_get_layer_index(data, CD_MTFACE);
@@ -833,7 +835,6 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	if (*color_texture &&
 		strlen((*color_texture)->uvname) &&
 		strcmp(layername, (*color_texture)->uvname) != 0) {
-		
 		texture_face = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE,
 														   (*color_texture)->uvname);
 		strcpy(layername, (*color_texture)->uvname);
@@ -903,7 +904,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	uid_object_map[*geom_uid] = ob;
 	
 	// name Object
-	const std::string& id = node->getOriginalId();
+	const std::string& id = node->getName().size() ? node->getName() : node->getOriginalId();
 	if (id.length())
 		rename_id(&ob->id, (char*)id.c_str());
 	
@@ -915,6 +916,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
 	
 	char layername[100];
+	layername[0] = '\0';
 	MTFace *texture_face = NULL;
 	MTex *color_texture = NULL;
 	
@@ -957,7 +959,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 		return true;
 	}
 	
-	const std::string& str_geom_id = mesh->getOriginalId();
+	const std::string& str_geom_id = mesh->getName().size() ? mesh->getName() : mesh->getOriginalId();
 	Mesh *me = add_mesh((char*)str_geom_id.c_str());
 
 	// store the Mesh pointer to link it later with an Object

@@ -235,8 +235,6 @@ void make_local_brush(Brush *brush)
 			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
 				if(scene->id.lib==NULL) {
 					paint_brush_set(&scene->toolsettings->imapaint.paint, brushn);
-					brushn->id.us++;
-					brush->id.us--;
 				}
 			}
 		}

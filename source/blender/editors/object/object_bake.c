@@ -852,13 +852,12 @@ static void finish_images(MultiresBakeRender *bkr)
 
 	for(link= bkr->image.first; link; link= link->next) {
 		Image *ima= (Image*)link->data;
-		int i;
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
 		if(ibuf->x<=0 || ibuf->y<=0)
 			continue;
 
-		RE_bake_ibuf_filter(ibuf, (unsigned char *)ibuf->userdata, bkr->bake_filter);
+		RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, bkr->bake_filter);
 
 		ibuf->userflags|= IB_BITMAPDIRTY;
 		if(ibuf->mipmap[0]) {

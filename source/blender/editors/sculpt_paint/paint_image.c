@@ -1174,25 +1174,6 @@ static void project_face_seams_init(const ProjPaintState *ps, const int face_ind
 #endif // PROJ_DEBUG_NOSEAMBLEED
 
 
-/* TODO - move to math_geom.c */
-
-/* little sister we only need to know lambda */
-#ifndef PROJ_DEBUG_NOSEAMBLEED
-static float lambda_cp_line2(const float p[2], const float l1[2], const float l2[2])
-{
-	float h[2], u[2];
-	
-	u[0] = l2[0] - l1[0];
-	u[1] = l2[1] - l1[1];
-
-	h[0] = p[0] - l1[0];
-	h[1] = p[1] - l1[1];
-	
-	return(dot_v2v2(u, h)/dot_v2v2(u, u));
-}
-#endif // PROJ_DEBUG_NOSEAMBLEED
-
-
 /* Converts a UV location to a 3D screenspace location
  * Takes a 'uv' and 3 UV coords, and sets the values of pixelScreenCo
  * 
@@ -2518,9 +2499,9 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 										*/
 										
 										/* Since this is a seam we need to work out where on the line this pixel is */
-										//fac = lambda_cp_line2(uv, uv_seam_quad[0], uv_seam_quad[1]);
+										//fac = line_point_factor_v2(uv, uv_seam_quad[0], uv_seam_quad[1]);
 										
-										fac = lambda_cp_line2(uv, seam_subsection[0], seam_subsection[1]);
+										fac = line_point_factor_v2(uv, seam_subsection[0], seam_subsection[1]);
 										if (fac < 0.0f)		{ VECCOPY(pixelScreenCo, edge_verts_inset_clip[0]); }
 										else if (fac > 1.0f)	{ VECCOPY(pixelScreenCo, edge_verts_inset_clip[1]); }
 										else				{ interp_v3_v3v3(pixelScreenCo, edge_verts_inset_clip[0], edge_verts_inset_clip[1], fac); }

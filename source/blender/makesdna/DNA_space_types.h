@@ -696,18 +696,19 @@ enum FileSortTypeE {
 #define FILE_OPENFILE		0
 #define FILE_SAVE			1
 
-/* sfile->flag and simasel->flag */
-#define FILE_SHOWSHORT		1
-#define FILE_RELPATH		2 /* was FILE_STRINGCODE */
-#define FILE_LINK			4
-#define FILE_HIDE_DOT		8
-#define FILE_AUTOSELECT		16
-#define FILE_ACTIVELAY		32
-#define FILE_ATCURSOR		64
-#define FILE_SYNCPOSE		128
-#define FILE_FILTER			256
-#define FILE_BOOKMARKS		512
-#define FILE_GROUP_INSTANCE	1024
+/* sfile->params->flag and simasel->flag */
+#define FILE_SHOWSHORT		(1<<0)
+#define FILE_RELPATH		(1<<1) /* was FILE_STRINGCODE */
+#define FILE_LINK			(1<<2)
+#define FILE_HIDE_DOT		(1<<3)
+#define FILE_AUTOSELECT		(1<<4)
+#define FILE_ACTIVELAY		(1<<5)
+#define FILE_ATCURSOR		(1<<6)
+#define FILE_DIRSEL_ONLY	(1<<7)
+#define FILE_FILTER			(1<<8)
+#define FILE_BOOKMARKS		(1<<9)
+#define FILE_GROUP_INSTANCE	(1<<10)
+
 
 /* files in filesel list: file types */
 #define BLENDERFILE			(1<<2)

@@ -64,6 +64,7 @@
 #include "BLI_threads.h"
 #include "BLI_scanfill.h" // for BLI_setErrorCallBack, TODO, move elsewhere
 #include "BLI_utildefines.h"
+#include "BLI_callbacks.h"
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
@@ -990,6 +991,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_driver_reset();
+		BPY_app_handlers_reset();
 		BPY_modules_load_user(C);
 #endif
 
@@ -1198,6 +1200,8 @@ int main(int argc, const char **argv)
 	initglobals();	/* blender.c */
 
 	IMB_init();
+
+	BLI_cb_init();
 
 #ifdef WITH_GAMEENGINE
 	syshandle = SYS_GetSystem();

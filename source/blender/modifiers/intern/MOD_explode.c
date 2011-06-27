@@ -776,7 +776,7 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 {
 	DerivedMesh *explode, *dm=to_explode;
 	MFace *mf= NULL, *mface;
-	ParticleSettings *part=psmd->psys->part;
+	/* ParticleSettings *part=psmd->psys->part; */ /* UNUSED */
 	ParticleSimulationData sim= {NULL};
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
 	ParticleKey state, birth;

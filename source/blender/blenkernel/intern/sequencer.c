@@ -73,7 +73,10 @@
 
 #include "BKE_context.h"
 #include "BKE_sound.h"
-#include "AUD_C-API.h"
+
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 #ifdef WIN32
 #define snprintf _snprintf
@@ -697,6 +700,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 		}
 		seq->strip->len = seq->len;
 	case SEQ_SOUND:
+#ifdef WITH_AUDASPACE
 		if(!seq->sound)
 			return;
 		seq->len = ceil(AUD_getInfo(seq->sound->playback_handle).length * FPS);
@@ -706,6 +710,9 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 			seq->len = 0;
 		}
 		seq->strip->len = seq->len;
+#else
+		return;
+#endif
 		break;
 	case SEQ_SCENE:
 	{
@@ -3493,6 +3500,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	return seq;
 }
 
+#ifdef WITH_AUDASPACE
 Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
 	Scene *scene= CTX_data_scene(C); /* only for sound */
@@ -3550,6 +3558,15 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	return seq;
 }
+#else // WITH_AUDASPACE
+Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	(void)C;
+	(void)seqbasep;
+	(void)seq_load;
+	return NULL;
+}
+#endif // WITH_AUDASPACE
 
 Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {

@@ -38,6 +38,76 @@
 
 #define PYC_INTERPRETER_ACTIVE (((PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
 
+/* array utility function */
+int PyC_AsArray(void *array, PyObject *value, const int length, const PyTypeObject *type, const short is_double, const char *error_prefix)
+{
+	PyObject *value_fast;
+	int value_len;
+	int i;
+
+	if(!(value_fast=PySequence_Fast(value, error_prefix))) {
+		return -1;
+	}
+
+	value_len= PySequence_Fast_GET_SIZE(value_fast);
+
+	if(value_len != length) {
+		Py_DECREF(value);
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s: invalid sequence length. expected %d, got %d",
+		             error_prefix, length, value_len);
+		return -1;
+	}
+
+	/* for each type */
+	if(type == &PyFloat_Type) {
+		if(is_double) {
+			double *array_double= array;
+			for(i=0; i<length; i++) {
+				array_double[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
+			}
+		}
+		else {
+			float *array_float= array;
+			for(i=0; i<length; i++) {
+				array_float[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
+			}
+		}
+	}
+	else if(type == &PyLong_Type) {
+		/* could use is_double for 'long int' but no use now */
+		int *array_int= array;
+		for(i=0; i<length; i++) {
+			array_int[i]= PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
+		}
+	}
+	else if(type == &PyBool_Type) {
+		int *array_bool= array;
+		for(i=0; i<length; i++) {
+			array_bool[i]= (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
+		}
+	}
+	else {
+		Py_DECREF(value_fast);
+		PyErr_Format(PyExc_TypeError,
+		             "%s: internal error %s is invalid",
+		             error_prefix, type->tp_name);
+		return -1;
+	}
+
+	Py_DECREF(value_fast);
+
+	if(PyErr_Occurred()) {
+		PyErr_Format(PyExc_TypeError,
+		             "%s: one or more items could not be used as a %s",
+		             error_prefix, type->tp_name);
+		return -1;
+	}
+
+	return 0;
+}
+
+
 /* for debugging */
 void PyC_ObSpit(const char *name, PyObject *var) {
 	fprintf(stderr, "<%s> : ", name);

@@ -91,8 +91,8 @@ set(SRC
 
 if(WITH_CODEC_FFMPEG)
 	list(APPEND INC_SYS
-		${FFMPEG_INC}
-		${PTHREADS_INC}
+		${FFMPEG_INCLUDE_DIRS}
+		${PTHREADS_INCLUDE_DIRS}
 	)
 	add_definitions(-DWITH_FFMPEG)
 	add_definitions(-D__STDC_CONSTANT_MACROS)
