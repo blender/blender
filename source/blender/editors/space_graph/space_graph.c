@@ -464,6 +464,13 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_NODE:
+			if (wmn->action == NA_SELECTED) {
+				/* selection changed, so force refresh to flush (needs flag set to do syncing) */
+				sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
+				ED_area_tag_refresh(sa);
+			}
+				break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_GRAPH)
 				ED_area_tag_redraw(sa);
