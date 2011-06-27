@@ -1263,9 +1263,12 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				/* write surfaces */
 				for (surface=pmd->canvas->surfaces.first; surface; surface=surface->next)
 					writestruct(wd, DATA, "DynamicPaintSurface", 1, surface);
-				/* write caches */
-				for (surface=pmd->canvas->surfaces.first; surface; surface=surface->next)
+				/* write caches and effector weights */
+				for (surface=pmd->canvas->surfaces.first; surface; surface=surface->next) {
 					write_pointcaches(wd, &(surface->ptcaches));
+
+					writestruct(wd, DATA, "EffectorWeights", 1, surface->effector_weights);
+				}
 			}
 			else if(pmd->type & MOD_DYNAMICPAINT_TYPE_BRUSH && pmd->brush)
 			{

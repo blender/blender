@@ -4042,6 +4042,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 						surface->canvas = pmd->canvas;
 						surface->data = NULL;
 						direct_link_pointcache_list(fd, &(surface->ptcaches), &(surface->pointcache), 1);
+
+						if(!(surface->effector_weights = newdataadr(fd, surface->effector_weights)))
+							surface->effector_weights = BKE_add_effector_weights(NULL);
 					}
 				}
 			}

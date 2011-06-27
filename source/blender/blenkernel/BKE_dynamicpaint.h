@@ -16,12 +16,16 @@
 
 #include "DNA_dynamicpaint_types.h"
 
+struct PaintEffectData;
+
 /* Actual surface point	*/
 typedef struct PaintSurfaceData {
 	/* surface format data */
 	void *format_data;
 	/* surface type data */
 	void *type_data;
+	/* paint effects data */
+	struct PaintEffectData *eff_data;
 
 	unsigned int total_points;
 	short samples;

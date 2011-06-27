@@ -39,6 +39,10 @@ struct PaintSurfaceData;
 
 #define MOD_DPAINT_PREVIEW (1<<6) /* preview this surface on viewport*/
 
+/* image sequence output */
+#define MOD_DPAINT_OUT1 (1<<10) /* output primary surface */
+#define MOD_DPAINT_OUT2 (1<<11) /* output secondary surface */
+
 /* canvas flags */
 #define MOD_DPAINT_PREVIEW_READY (1<<0) /* if viewport preview is ready */
 #define MOD_DPAINT_BAKING (1<<1) /* baking an image sequence */
@@ -63,6 +67,7 @@ typedef struct DynamicPaintSurface {
 	struct PaintSurfaceData *data;
 
 	struct Group *brush_group;
+	struct EffectorWeights *effector_weights;
 
 	/* cache */
 	struct PointCache *pointcache;
@@ -76,7 +81,6 @@ typedef struct DynamicPaintSurface {
 	short effect_ui;	/* just ui selection box */
 	short pad;
 	int flags, effect;
-	float intitial_color[4];
 
 	int image_resolution, substeps;
 	int start_frame, end_frame;
@@ -84,7 +88,7 @@ typedef struct DynamicPaintSurface {
 	int dry_speed, diss_speed;
 	float disp_depth;
 
-	float spread_speed, drip_speed, shrink_speed;
+	float spread_speed, shrink_speed, pad_f;
 	char uvlayer_name[32];
 
 	char image_output_path[240];

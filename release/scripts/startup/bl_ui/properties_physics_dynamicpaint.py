@@ -21,6 +21,7 @@ import bpy
 
 from bl_ui.properties_physics_common import (
     point_cache_ui,
+    effector_weights_ui,
     )
 
 class PhysicButtonsPanel():
@@ -123,9 +124,9 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
         ob = context.object
 
         layout.prop(surface, "surface_type", expand=False)
+        layout.separator()
 
         if (surface.surface_type == "PAINT"):
-            layout.prop(surface, "initial_color", expand=False)
             split = layout.split(percentage=0.8)
             split.prop(surface, "dry_speed", text="Dry Time")
             split.prop(surface, "use_dry_log", text="Slow")
@@ -189,15 +190,21 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
             
             col = layout.column()
             col.prop(surface, "image_output_path", text="Output directory")
+            col.prop(surface, "image_fileformat", text="Image Format:")
             if (surface.surface_type == "PAINT"):
-                col.prop(surface, "output_name", text="Paintmap: ")
-                col.prop(surface, "premultiply", text="Premultiply alpha")
-                col.prop(surface, "output_name2", text="Wetmap: ")
+                col.prop(surface, "do_output1", text="Output Paintmaps:")
+                sub = col.column()
+                sub.active = surface.do_output1
+                sub.prop(surface, "output_name", text="Filename: ")
+                sub.prop(surface, "premultiply", text="Premultiply alpha")
+                
+                col.prop(surface, "do_output2", text="Output Wetmaps:")
+                sub = col.column()
+                sub.active = surface.do_output2
+                sub.prop(surface, "output_name2", text="Filename: ")
             if (surface.surface_type == "DISPLACE"):
                 col.prop(surface, "output_name", text="Filename: ")
                 col.prop(surface, "disp_type", text="Displace Type")
-                
-            col.prop(surface, "image_fileformat", text="Image Format:")
             
             layout.separator()
             layout.operator("dpaint.bake", text="Bake Image Sequence", icon='MOD_DYNAMICPAINT')
@@ -215,7 +222,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
         if ((not md) or (md.dynamicpaint_type != 'CANVAS')):
             return False;
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
-        return surface and (surface.surface_format != "VERTEX")
+        return surface and (surface.surface_format != "PTEX")
 
     def draw(self, context):
         layout = self.layout
@@ -235,7 +242,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
             layout.prop(surface, "use_drip")
             col = layout.column()
             col.active = surface.use_drip
-            col.prop(surface, "drip_speed")
+            effector_weights_ui(self, context, surface.effector_weights)
 
         elif surface.effect_ui == "SHRINK":
             layout.prop(surface, "use_shrink")
