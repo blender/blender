@@ -1376,7 +1376,6 @@ class VIEW3D_MT_pose_apply(bpy.types.Menu):
 class BoneOptions:
     def draw(self, context):
         layout = self.layout
-        bone_props = bpy.types.Bone.bl_rna.properties
 
         options = [
             "show_wire",
@@ -1386,15 +1385,15 @@ class BoneOptions:
             "use_inherit_scale",
         ]
 
-        if context.mode == 'POSE':
-            data_path_iter = "selected_pose_bones"
-            opt_suffix = "bone."
-        else:
+        if context.mode == 'EDIT_ARMATURE':
+            bone_props = bpy.types.EditBone.bl_rna.properties
             data_path_iter = "selected_bones"
             opt_suffix = ""
-
-            if context.mode == 'EDIT_ARMATURE':
-                options.append("lock")
+            options.append("lock")
+        else:  # posemode
+            bone_props = bpy.types.Bone.bl_rna.properties
+            data_path_iter = "selected_pose_bones"
+            opt_suffix = "bone."
 
         for opt in options:
             props = layout.operator("wm.context_collection_boolean_set", text=bone_props[opt].name)
@@ -1404,17 +1403,17 @@ class BoneOptions:
 
 
 class VIEW3D_MT_bone_options_toggle(bpy.types.Menu, BoneOptions):
-    bl_label = "Toggle Options"
+    bl_label = "Toggle Bone Options"
     type = 'TOGGLE'
 
 
 class VIEW3D_MT_bone_options_enable(bpy.types.Menu, BoneOptions):
-    bl_label = "Enable Options"
+    bl_label = "Enable Bone Options"
     type = 'ENABLE'
 
 
 class VIEW3D_MT_bone_options_disable(bpy.types.Menu, BoneOptions):
-    bl_label = "Disable Options"
+    bl_label = "Disable Bone Options"
     type = 'DISABLE'
 
 # ********** Edit Menus, suffix from ob.type **********
