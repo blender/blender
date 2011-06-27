@@ -2449,6 +2449,16 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			else
 				event.type= MIDDLEMOUSE;
 			
+			if(win->active==0) {
+				int cx, cy;
+				
+				/* entering window, update mouse pos. (ghost sends win-activate *after* the mouseclick in window!) */
+				wm_get_cursor_position(win, &cx, &cy);
+
+				event.x= evt->x= cx;
+				event.y= evt->y= cy;
+			}
+			
 			/* add to other window if event is there (not to both!) */
 			owin= wm_event_cursor_other_windows(wm, win, &event);
 			if(owin) {
