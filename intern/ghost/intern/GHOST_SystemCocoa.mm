@@ -773,26 +773,6 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
     return window;
 }
 
-GHOST_TSuccess GHOST_SystemCocoa::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window, const bool stereoVisual)
-{	
-	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
-	*window = currentWindow;
-	
-	if(!currentWindow) return GHOST_kFailure;
-	
-	return currentWindow->setState(GHOST_kWindowStateFullScreen);
-}
-
-GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
-{	
-	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
-	if(!currentWindow) return GHOST_kFailure;
-	
-	return currentWindow->setState(GHOST_kWindowStateNormal);
-}
-
-
-	
 /**
  * @note : returns coordinates in Cocoa screen coordinates
  */
