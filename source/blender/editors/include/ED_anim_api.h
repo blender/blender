@@ -116,9 +116,6 @@ typedef struct bAnimListElem {
 	
 	struct ID *id;			/* ID block that channel is attached to */
 	struct AnimData *adt; 	/* source of the animation data attached to ID block (for convenience) */
-	
-	void 	*owner;			/* group or channel which acts as this channel's owner */
-	short	ownertype;		/* type of owner */
 } bAnimListElem;
 
 

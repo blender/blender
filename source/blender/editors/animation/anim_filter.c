@@ -1359,7 +1359,7 @@ static size_t animdata_filter_ds_textures (bAnimContext *ac, ListBase *anim_data
 		size_t tmp_items = 0;
 		
 		/* for now, if no texture returned, skip (this shouldn't confuse the user I hope) */
-		if (ELEM(NULL, tex, tex->adt)) 
+		if (tex == NULL) 
 			continue;
 		
 		/* add texture's animation data to temp collection */
@@ -1752,6 +1752,7 @@ static size_t animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_dat
 		}
 	}
 	END_ANIMFILTER_SUBCHANNELS;
+	
 	
 	/* if we collected some channels, add these to the new list... */
 	if (tmp_items) {
