@@ -57,6 +57,9 @@ endif()
 # this starts out unset
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules")
 
+# avoid having empty buildtype
+set(CMAKE_BUILD_TYPE_INIT "Release")
+
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
@@ -103,6 +106,9 @@ option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effect
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
+
+option(WITH_AUDASPACE    "Build with blenders audio library" ON)
+mark_as_advanced(WITH_AUDASPACE)
 
 option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
 mark_as_advanced(WITH_HEADLESS)
@@ -203,8 +209,8 @@ if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
 
-if(NOT WITH_SAMPLERATE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
-	message(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK require WITH_SAMPLERATE")
+if(NOT WITH_AUDASPACE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
+	message(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK/WITH_CODEC_FFMPEG require WITH_AUDASPACE")
 endif()
 
 if(NOT WITH_IMAGE_OPENJPEG AND WITH_IMAGE_REDCODE)
@@ -544,13 +550,13 @@ elseif(WIN32)
 
 	if(MSVC)
 		if(CMAKE_CL_64)
-			set(LLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid )
+			set(LLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid)
 		else()
-			set(LLIBS kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 vfw32 winmm)
+			set(LLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid)
 		endif()
 		
-		set(CMAKE_CXX_FLAGS "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /we4013 /wd4018 /wd4800 /wd4244 /wd4305 /wd4065 /wd4267" CACHE STRING "MSVC MT C++ flags " FORCE)
-		set(CMAKE_C_FLAGS   "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /we4013 /wd4018 /wd4800 /wd4244 /wd4305 /wd4065 /wd4267" CACHE STRING "MSVC MT C++ flags " FORCE)
+		set(CMAKE_CXX_FLAGS "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_CONSOLE /D_LIB /nologo /Ob1 /J /W0 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013" CACHE STRING "MSVC MT C++ flags " FORCE)
+		set(CMAKE_C_FLAGS   "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_CONSOLE /D_LIB /nologo /Ob1 /J /W0 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013 /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
 
 		if(CMAKE_CL_64)
 			set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
@@ -695,9 +701,9 @@ elseif(WIN32)
 
 		# MSVC only, Mingw doesnt need
 		if(CMAKE_CL_64)
-			set(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib /STACK:2097152 ")
+			set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /MACHINE:X64 /STACK:2097152 /OPT:NOREF /INCREMENTAL:NO /NODEFAULTLIB:\"msvcrt.lib\" /NODEFAULTLIB:\"msvcmrt.lib\" /NODEFAULTLIB:\"msvcurt.lib\" /NODEFAULTLIB:\"msvcrtd.lib\" ")
 		else()
-			set(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib /STACK:2097152 ")
+			set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /MACHINE:IX86 /STACK:2097152 /INCREMENTAL:NO /LARGEADDRESSAWARE /NODEFAULTLIB:\"msvcrt.lib\" /NODEFAULTLIB:\"msvcmrt.lib\" /NODEFAULTLIB:\"msvcurt.lib\" /NODEFAULTLIB:\"msvcrtd.lib\" ")
 		endif()
 
 		set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib;libc.lib ")
@@ -796,7 +802,7 @@ elseif(WIN32)
 			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARIES python32mw)
+			set(PYTHON_LIBRARIES ${PYTHON}/lib/python32mw.lib)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 
@@ -996,7 +1002,7 @@ endif()
 # Common.
 
 if(APPLE OR WIN32)
-	if(NOT IS_DIRECTORY "${LIBDIR}")
+	if(NOT EXISTS "${LIBDIR}/")
 		message(FATAL_ERROR "Apple and Windows require pre-compiled libs at: '${LIBDIR}'")
 	endif()
 endif()

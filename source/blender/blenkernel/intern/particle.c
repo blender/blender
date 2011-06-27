@@ -3534,6 +3534,8 @@ static void default_particle_settings(ParticleSettings *part)
 	part->path_start = 0.0f;
 	part->path_end = 1.0f;
 
+	part->bb_size[0] = part->bb_size[1] = 1.0f;
+
 	part->keyed_loops = 1;
 
 	part->color_vec_max = 1.f;
@@ -4505,8 +4507,8 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	mul_v3_fl(tvec, -sin(bb->tilt * (float)M_PI));
 	VECADD(yvec, yvec, tvec);
 
-	mul_v3_fl(xvec, bb->size);
-	mul_v3_fl(yvec, bb->size);
+	mul_v3_fl(xvec, bb->size[0]);
+	mul_v3_fl(yvec, bb->size[1]);
 
 	VECADDFAC(center, bb->vec, xvec, bb->offset[0]);
 	VECADDFAC(center, center, yvec, bb->offset[1]);

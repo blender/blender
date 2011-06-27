@@ -905,9 +905,6 @@ void IK_QElbowSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	lmin = MT_clamp(lmin, -MT_PI, MT_PI);
 	lmax = MT_clamp(lmax, -MT_PI, MT_PI);
 
-	lmin = lmin;
-	lmax = lmax;
-
 	if (axis == 1) {
 		m_min_twist = lmin;
 		m_max_twist = lmax;

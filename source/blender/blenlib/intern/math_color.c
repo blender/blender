@@ -488,6 +488,11 @@ float rgb_to_grayscale(float rgb[3])
 	return 0.3f*rgb[0] + 0.58f*rgb[1] + 0.12f*rgb[2];
 }
 
+unsigned char rgb_to_grayscale_byte(unsigned char rgb[3])
+{
+	return (76*(unsigned short)rgb[0] + 148*(unsigned short)rgb[1] + 31*(unsigned short)rgb[2]) / 255;
+}
+
 /* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)

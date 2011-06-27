@@ -997,13 +997,21 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.sculpt_object and context.tool_settings.sculpt) or (context.vertex_paint_object and context.tool_settings.vertex_paint) or (context.weight_paint_object and context.tool_settings.weight_paint) or (context.image_paint_object and context.tool_settings.image_paint)
+        ts = context.tool_settings
+        return ((context.sculpt_object and ts.sculpt) or
+                (context.vertex_paint_object and ts.vertex_paint) or
+                (context.weight_paint_object and ts.weight_paint) or
+                (context.image_paint_object and ts.image_paint))
 
     def draw(self, context):
         layout = self.layout
 
         settings = __class__.paint_settings(context)
         brush = settings.brush
+
+        if brush is None:  # unlikely but can happen
+            layout.label(text="Brush Unset")
+            return
 
         col = layout.column()
 

@@ -883,7 +883,7 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
             sub = col.column()
             sub.enabled = True
             sub.active = False
-            sub.prop(vol, "use_light_cache")
+            sub.label("Light Cache Enabled")
             col.prop(vol, "cache_resolution")
 
             sub = col.column(align=True)

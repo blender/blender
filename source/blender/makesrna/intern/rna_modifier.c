@@ -404,7 +404,8 @@ static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max
 	MultiresModifierData *mmd = (MultiresModifierData*)ptr->data;
 
 	*min = 0;
-	*max = mmd->totlvl;
+	*max = mmd->totlvl; /* intentionally _not_ -1 */
+	*max= MAX2(0, *max);
 }
 
 static int rna_MultiresModifier_external_get(PointerRNA *ptr)

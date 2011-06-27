@@ -83,6 +83,8 @@ void	BPY_text_free_code(struct Text *text);
 void	BPY_modules_update(struct bContext *C); // XXX - annoying, need this for pointers that get out of date
 void	BPY_modules_load_user(struct bContext *C);
 
+void	BPY_app_handlers_reset(void);
+
 void	BPY_driver_reset(void);
 float	BPY_driver_exec(struct ChannelDriver *driver);
 

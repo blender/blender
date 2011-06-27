@@ -50,7 +50,6 @@ set(INC
 	../../../source/gameengine/SceneGraph 
 	../../../source/gameengine/Physics/common
 	../../../source/gameengine/Network/LoopBackNetwork
-	../../../intern/audaspace/intern
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
 )
@@ -217,6 +216,13 @@ endif()
 
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
+endif()
+
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
 endif()
 
 if(WITH_BULLET)

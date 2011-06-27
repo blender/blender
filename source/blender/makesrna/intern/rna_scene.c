@@ -45,7 +45,9 @@
 
 #ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
-#include "AUD_C-API.h"
+#  ifdef WITH_AUDASPACE
+#    include "AUD_C-API.h"
+#  endif
 #endif
 
 #ifdef WITH_FFMPEG
