@@ -1106,17 +1106,18 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
         layout.operator_menu_enum("brush.curve_preset", "shape")
         layout.separator()
 
-        sculpt_tool = brush.sculpt_tool
+        if brush is not None:  # unlikely but can happen
+            sculpt_tool = brush.sculpt_tool
 
-        if sculpt_tool != 'GRAB':
-            layout.prop_menu_enum(brush, "stroke_method")
+            if sculpt_tool != 'GRAB':
+                layout.prop_menu_enum(brush, "stroke_method")
 
-            if sculpt_tool in {'DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'}:
-                layout.prop_menu_enum(brush, "direction")
+                if sculpt_tool in {'DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'}:
+                    layout.prop_menu_enum(brush, "direction")
 
-            if sculpt_tool == 'LAYER':
-                layout.prop(brush, "use_persistent")
-                layout.operator("sculpt.set_persistent_base")
+                if sculpt_tool == 'LAYER':
+                    layout.prop(brush, "use_persistent")
+                    layout.operator("sculpt.set_persistent_base")
 
         layout.separator()
         layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")

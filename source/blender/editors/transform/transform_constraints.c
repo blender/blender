@@ -105,8 +105,8 @@ void constraintNumInput(TransInfo *t, float vec[3])
 		if (getConstraintSpaceDimension(t) == 2) {
 			int axis = mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
 			if (axis == (CON_AXIS0|CON_AXIS1)) {
-				vec[0] = vec[0];
-				vec[1] = vec[1];
+				/* vec[0] = vec[0]; */ /* same */
+				/* vec[1] = vec[1]; */ /* same */
 				vec[2] = nval;
 			}
 			else if (axis == (CON_AXIS1|CON_AXIS2)) {
@@ -115,14 +115,14 @@ void constraintNumInput(TransInfo *t, float vec[3])
 				vec[0] = nval;
 			}
 			else if (axis == (CON_AXIS0|CON_AXIS2)) {
-				vec[0] = vec[0];
+				/* vec[0] = vec[0]; */  /* same */
 				vec[2] = vec[1];
 				vec[1] = nval;
 			}
 		}
 		else if (getConstraintSpaceDimension(t) == 1) {
 			if (mode & CON_AXIS0) {
-				vec[0] = vec[0];
+				/* vec[0] = vec[0]; */ /* same */
 				vec[1] = nval;
 				vec[2] = nval;
 			}

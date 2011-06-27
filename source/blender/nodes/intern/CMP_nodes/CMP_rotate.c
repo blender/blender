@@ -97,6 +97,7 @@ static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStac
 						break;
 					case 2:
 						bicubic_interpolation(ibuf, obuf, u, v, xo, yo);
+						break;
 					}
 
 				}
