@@ -210,6 +210,7 @@ static void displaceModifier_do(
 		if(def_weight) strength *= def_weight->weight;
 
 		delta *= strength;
+		CLAMP(delta, -10000, 10000);
 
 		switch(dmd->direction) {
 			case MOD_DISP_DIR_X:
@@ -227,9 +228,9 @@ static void displaceModifier_do(
 				vertexCos[i][2] += (texres.tb - dmd->midlevel) * strength;
 				break;
 			case MOD_DISP_DIR_NOR:
-				vertexCos[i][0] += delta * mvert[i].no[0] / 32767.0f;
-				vertexCos[i][1] += delta * mvert[i].no[1] / 32767.0f;
-				vertexCos[i][2] += delta * mvert[i].no[2] / 32767.0f;
+				vertexCos[i][0] += delta * (mvert[i].no[0] / 32767.0f);
+				vertexCos[i][1] += delta * (mvert[i].no[1] / 32767.0f);
+				vertexCos[i][2] += delta * (mvert[i].no[2] / 32767.0f);
 				break;
 		}
 	}

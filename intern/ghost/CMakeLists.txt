@@ -29,6 +29,9 @@ set(INC
 	../string
 	../../source/blender/imbuf
 	../../source/blender/makesdna
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -86,7 +89,42 @@ set(SRC
 	intern/GHOST_WindowManager.h
 )
 
-if(APPLE)
+if(WITH_HEADLESS)
+	list(APPEND SRC
+		intern/GHOST_DisplayManagerNULL.h
+		intern/GHOST_SystemNULL.h
+		intern/GHOST_WindowNULL.h
+	)
+	add_definitions(-DWITH_HEADLESS)
+
+	# ack, this is still system dependant
+	if(APPLE)
+		if(WITH_COCOA)
+			list(APPEND SRC
+				intern/GHOST_SystemPathsCocoa.mm
+				intern/GHOST_SystemPathsCocoa.h
+			)
+		else()
+			list(APPEND SRC
+				intern/GHOST_SystemPathsCarbon.cpp
+				intern/GHOST_SystemPathsCarbon.h
+			)
+		endif()
+	elseif(UNIX)
+		list(APPEND SRC
+			intern/GHOST_SystemPathsX11.cpp
+			intern/GHOST_SystemPathsX11.h
+		)
+	elseif(WIN32)
+
+		list(APPEND SRC
+			intern/GHOST_SystemPathsWin32.cpp
+
+			intern/GHOST_SystemPathsWin32.h
+		)
+	endif()
+
+elseif(APPLE)
 	if(WITH_COCOA)
 		list(APPEND SRC
 			intern/GHOST_DisplayManagerCocoa.mm
@@ -123,7 +161,7 @@ elseif(UNIX)
 		add_definitions(-DWITH_X11_XINPUT)
 	endif()
 
-	list(APPEND INC ${X11_X11_INCLUDE_PATH})
+	list(APPEND INC_SYS ${X11_X11_INCLUDE_PATH})
 
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerX11.cpp
@@ -143,7 +181,7 @@ elseif(UNIX)
 
 	if(X11_XF86keysym_INCLUDE_PATH)
 		add_definitions(-DWITH_XF86KEYSYM)
-		list(APPEND INC ${X11_XF86keysym_INCLUDE_PATH})
+		list(APPEND INC_SYS ${X11_XF86keysym_INCLUDE_PATH})
 	endif()
 
 elseif(WIN32)
@@ -151,7 +189,7 @@ elseif(WIN32)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
 	endif()
 
-	list(APPEND INC ${WINTAB_INC})
+	list(APPEND INC_SYS ${WINTAB_INC})
 
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerWin32.cpp
@@ -169,5 +207,5 @@ elseif(WIN32)
 	)
 endif()
 
-blender_add_lib(bf_intern_ghost "${SRC}" "${INC}")
+blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
 

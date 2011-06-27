@@ -485,11 +485,8 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	if (extend == 0 && select)
 		EM_deselect_all(vc->em);
 
-	/* workaround: init mats first, EM_mask_init_backbuf_border can change
-	   view matrix to pixel space, breaking edge select with backbuf. fixes bug [#20936] */
-
-	/* [#21018] breaks zbuf select. run below. only if bbsel fails */
-	/* ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d) */
+	 /* for non zbuf projections, dont change the GL state */
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	glLoadMatrixf(vc->rv3d->viewmat);
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
@@ -497,15 +494,13 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
-		} else {
-			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+		}
+		else {
 			mesh_foreachScreenVert(vc, do_lasso_select_mesh__doSelectVert, &data, 1);
 		}
 	}
 	if(ts->selectmode & SCE_SELECT_EDGE) {
-			/* Does both bbsel and non-bbsel versions (need screen cos for both) */
-		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-
+		/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 		data.pass = 0;
 		mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, 0);
 
@@ -518,8 +513,8 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	if(ts->selectmode & SCE_SELECT_FACE) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectFaces(vc->em, select);
-		} else {
-			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+		}
+		else {
 			mesh_foreachScreenFace(vc, do_lasso_select_mesh__doSelectFace, &data);
 		}
 	}
@@ -875,6 +870,7 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 	ot->modal= WM_gesture_lasso_modal;
 	ot->exec= view3d_lasso_select_exec;
 	ot->poll= view3d_selectable_data;
+	ot->cancel= WM_gesture_lasso_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
@@ -1234,7 +1230,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 	startbase=  FIRSTBASE;
 	if(BASACT && BASACT->next) startbase= BASACT->next;
 	
-	/* This block uses the control key to make the object selected by its center point rather then its contents */
+	/* This block uses the control key to make the object selected by its center point rather than its contents */
 	/* XXX later on, in editmode do not activate */
 	if(vc.obedit==NULL && obcenter) {
 		
@@ -1490,12 +1486,8 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 	if (extend == 0 && select)
 		EM_deselect_all(vc->em);
 
-	/* workaround: init mats first, EM_mask_init_backbuf_border can change
-	   view matrix to pixel space, breaking edge select with backbuf. fixes bug #20936 */
-	/*ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);*/ /* for foreach's screen/vert projection */
-
-	/* [#21018] breaks zbuf select. run below. only if bbsel fails */
-	/* ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d) */
+	/* for non zbuf projections, dont change the GL state */
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	glLoadMatrixf(vc->rv3d->viewmat);
 	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
@@ -1504,7 +1496,6 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
 		} else {
-			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 			mesh_foreachScreenVert(vc, do_mesh_box_select__doSelectVert, &data, 1);
 		}
 	}
@@ -1524,7 +1515,6 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 		if(bbsel) {
 			EM_backbuf_checkAndSelectFaces(vc->em, select);
 		} else {
-			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 			mesh_foreachScreenFace(vc, do_mesh_box_select__doSelectFace, &data);
 		}
 	}
@@ -1829,6 +1819,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	ot->exec= view3d_borderselect_exec;
 	ot->modal= WM_border_select_modal;
 	ot->poll= view3d_selectable_data;
+	ot->cancel= WM_border_select_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
@@ -2308,6 +2299,7 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	ot->modal= WM_gesture_circle_modal;
 	ot->exec= view3d_circle_select_exec;
 	ot->poll= view3d_selectable_data;
+	ot->cancel= WM_gesture_circle_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;

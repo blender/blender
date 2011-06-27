@@ -135,6 +135,7 @@ static void rna_Texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	DAG_id_tag_update(&tex->id, 0);
 	WM_main_add_notifier(NC_TEXTURE, tex);
+	WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, NULL);
 }
 
 static void rna_Texture_voxeldata_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -285,7 +286,7 @@ static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
 }
 
 
-static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	MTex *mtex= ptr->data;
 	Tex *tex= mtex->tex;

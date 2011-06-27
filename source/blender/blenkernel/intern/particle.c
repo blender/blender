@@ -3534,6 +3534,8 @@ static void default_particle_settings(ParticleSettings *part)
 	part->path_start = 0.0f;
 	part->path_end = 1.0f;
 
+	part->bb_size[0] = part->bb_size[1] = 1.0f;
+
 	part->keyed_loops = 1;
 
 	part->color_vec_max = 1.f;
@@ -4018,7 +4020,11 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 		init_particle_interpolation(sim->ob, psys, pa, &pind);
 		do_particle_interpolation(psys, p, pa, t, &pind, state);
 
-		if(!keyed && !cached) {
+		if(pind.dm) {
+			mul_m4_v3(sim->ob->obmat, state->co);
+			mul_mat3_m4_v3(sim->ob->obmat, state->vel);
+		}
+		else if(!keyed && !cached && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 			if((pa->flag & PARS_REKEY)==0) {
 				psys_mat_hair_to_global(sim->ob, sim->psmd->dm, part->from, pa, hairmat);
 				mul_m4_v3(hairmat, state->co);
@@ -4501,8 +4507,8 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	mul_v3_fl(tvec, -sin(bb->tilt * (float)M_PI));
 	VECADD(yvec, yvec, tvec);
 
-	mul_v3_fl(xvec, bb->size);
-	mul_v3_fl(yvec, bb->size);
+	mul_v3_fl(xvec, bb->size[0]);
+	mul_v3_fl(yvec, bb->size[1]);
 
 	VECADDFAC(center, bb->vec, xvec, bb->offset[0]);
 	VECADDFAC(center, center, yvec, bb->offset[1]);

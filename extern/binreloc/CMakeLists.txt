@@ -18,17 +18,21 @@
 # All rights reserved.
 #
 
+set(INC
+	./include
+)
+
+set(INC_SYS
+
+)
+
 set(SRC
 	binreloc.c
 
 	include/binreloc.h
 )
 
-set(INC
-	./include
-)
-
 add_definitions(-DENABLE_BINRELOC)
 
 
-blender_add_lib(extern_binreloc "${SRC}" "${INC}")
+blender_add_lib(extern_binreloc "${SRC}" "${INC}" "${INC_SYS}")

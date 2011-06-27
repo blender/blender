@@ -73,7 +73,10 @@
 
 #include "BKE_context.h"
 #include "BKE_sound.h"
-#include "AUD_C-API.h"
+
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 #ifdef WIN32
 #define snprintf _snprintf
@@ -587,8 +590,22 @@ void calc_sequence(Scene *scene, Sequence *seq)
 		if (seq->seq1) {
 			seq->start= seq->startdisp= MAX3(seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
 			seq->enddisp= MIN3(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
+			/* we cant help if strips don't overlap, it wont give useful results.
+			 * but at least ensure 'len' is never negative which causes bad bugs elsewhere. */
+			if(seq->enddisp < seq->startdisp) {
+				/* simple start/end swap */
+				seq->start= seq->enddisp;
+				seq->enddisp = seq->startdisp;
+				seq->startdisp= seq->start;
+				seq->flag |= SEQ_INVALID_EFFECT;
+			}
+			else {
+				seq->flag &= ~SEQ_INVALID_EFFECT;
+			}
+
 			seq->len= seq->enddisp - seq->startdisp;
-		} else {
+		}
+		else {
 			calc_sequence_disp(scene, seq);
 		}
 
@@ -683,6 +700,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 		}
 		seq->strip->len = seq->len;
 	case SEQ_SOUND:
+#ifdef WITH_AUDASPACE
 		if(!seq->sound)
 			return;
 		seq->len = ceil(AUD_getInfo(seq->sound->playback_handle).length * FPS);
@@ -692,6 +710,9 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 			seq->len = 0;
 		}
 		seq->strip->len = seq->len;
+#else
+		return;
+#endif
 		break;
 	case SEQ_SCENE:
 	{
@@ -3207,26 +3228,30 @@ Sequence *seq_metastrip(ListBase * seqbase, Sequence * meta, Sequence *seq)
 	return NULL;
 }
 
-int seq_swap(Sequence *seq_a, Sequence *seq_b)
+int seq_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 {
 	char name[sizeof(seq_a->name)];
 
 	if(seq_a->len != seq_b->len)
+		*error_str= "Strips must be the same length";
 		return 0;
 
 	/* type checking, could be more advanced but disalow sound vs non-sound copy */
 	if(seq_a->type != seq_b->type) {
 		if(seq_a->type == SEQ_SOUND || seq_b->type == SEQ_SOUND) {
+			*error_str= "Strips were not compatible";
 			return 0;
 		}
 
 		/* disallow effects to swap with non-effects strips */
 		if((seq_a->type & SEQ_EFFECT) != (seq_b->type & SEQ_EFFECT)) {
+			*error_str= "Strips were not compatible";
 			return 0;
 		}
 
 		if((seq_a->type & SEQ_EFFECT) && (seq_b->type & SEQ_EFFECT)) {
 			if(get_sequence_effect_num_inputs(seq_a->type) != get_sequence_effect_num_inputs(seq_b->type)) {
+				*error_str= "Strips must have the same number of inputs";
 				return 0;
 			}
 		}
@@ -3475,6 +3500,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	return seq;
 }
 
+#ifdef WITH_AUDASPACE
 Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
 	Scene *scene= CTX_data_scene(C); /* only for sound */
@@ -3532,6 +3558,15 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	return seq;
 }
+#else // WITH_AUDASPACE
+Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
+{
+	(void)C;
+	(void)seqbasep;
+	(void)seq_load;
+	return NULL;
+}
+#endif // WITH_AUDASPACE
 
 Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {

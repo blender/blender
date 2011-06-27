@@ -169,6 +169,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	if (!G.background) {
 		GPU_extensions_init();
 		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+		GPU_set_anisotropic(U.anisotropic_filter);
 	
 		UI_init();
 	}
@@ -328,7 +329,6 @@ static void free_openrecent(void)
 
 /* bad stuff*/
 
-extern ListBase editelems;
 extern wchar_t *copybuf;
 extern wchar_t *copybufinfo;
 
@@ -380,7 +380,6 @@ void WM_exit(bContext *C)
 	
 	BKE_freecubetable();
 	
-	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
 
 	if(C && CTX_wm_manager(C))
@@ -394,10 +393,6 @@ void WM_exit(bContext *C)
 	free_anim_drivers_copybuf();
 	free_fmodifiers_copybuf();
 	free_posebuf();
-//	free_vertexpaint();
-//	free_imagepaint();
-	
-//	fsmenu_free();
 
 	BLF_exit();
 	
@@ -420,10 +415,6 @@ void WM_exit(bContext *C)
 	BPY_python_end();
 #endif
 
-	if (!G.background) {
-// XXX		UI_filelist_free_icons();
-	}
-	
 	GPU_buffer_pool_free(NULL);
 	GPU_free_unused_buffers();
 	GPU_extensions_exit();

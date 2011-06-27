@@ -4,7 +4,6 @@ set(INC
 	../../../intern/string
 	../../../intern/container
 	../../../intern/guardedalloc
-	../../../intern/audaspace/intern
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
 	../../../source/gameengine/Converter
 	../../../source/blender/imbuf
@@ -32,6 +31,10 @@ set(INC
 	${GLEW_INCLUDE_PATH}
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	BL_KetsjiEmbedStart.cpp
 	BL_System.cpp
@@ -55,8 +58,15 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
+
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-blender_add_lib(ge_blen_routines "${SRC}" "${INC}")
+blender_add_lib(ge_blen_routines "${SRC}" "${INC}" "${INC_SYS}")

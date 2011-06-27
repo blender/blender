@@ -253,19 +253,12 @@ typedef struct RenderData {
 	 */
 	short yparts;
         
-	short winpos, planes, imtype, subimtype;
-	
-	/** Mode bits:                                                           */
-	/* 0: Enable backbuffering for images                                    */
-	short bufflag;
-	 short quality;
+	short planes, imtype, subimtype, quality;
 	
 	/**
 	 * Render to image editor, fullscreen or to new window.
 	 */
 	short displaymode;
-	
-	short rpad1, rpad2;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -322,11 +315,7 @@ typedef struct RenderData {
 	/**
 	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
 	 */
-	float xasp;
-	/**
-	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
-	 */
-	float yasp;
+	float xasp, yasp;
 
 	float frs_sec_base;
 	
@@ -349,8 +338,8 @@ typedef struct RenderData {
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
 
-	/* paths to backbufffer, output */
-	char backbuf[160], pic[160];
+	/* path to render output */
+	char pic[240];
 
 	/* stamps flags. */
 	int stamp;
@@ -734,12 +723,13 @@ typedef struct ToolSettings {
 	short snap_flag, snap_target;
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
-	char pad[7];
+	char pad[3];
 
 	int auto_normalize; /*auto normalizing mode in wpaint*/
 
 	//Jason
 	int multipaint; /* paint multiple bones in wpaint */
+	int wp_vert_sel; /* selectable vertices in wpaint */
 
 	short sculpt_paint_settings; /* user preferences for sculpt and paint */
 	short pad1;
@@ -1012,13 +1002,14 @@ typedef struct Scene {
 #define R_JPEG2K_CINE_PRESET	256
 #define R_JPEG2K_CINE_48FPS		512
 
-
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */
 #define R_BAKE_CLEAR		1
 #define R_BAKE_OSA			2
 #define R_BAKE_TO_ACTIVE	4
 #define R_BAKE_NORMALIZE	8
+#define R_BAKE_MULTIRES		16
+#define R_BAKE_LORES_MESH	32
 
 /* bake_normal_space */
 #define R_BAKE_SPACE_CAMERA	 0
@@ -1084,6 +1075,7 @@ typedef struct Scene {
 #define SCE_SNAP_ROTATE			2
 #define SCE_SNAP_PEEL_OBJECT	4
 #define SCE_SNAP_PROJECT		8
+#define SCE_SNAP_PROJECT_NO_SELF	16
 /* toolsettings->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1

@@ -1082,7 +1082,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 
 		/* now we know that we are in a blend file and it is safe to 
 		   assume that gp actually points to a group */
-		if (BLI_streq("Screen", gp)==0)
+		if (strcmp("Screen", gp)!=0)
 			BLI_strncpy(group, gp, GROUP_MAX);
 	}
 	return 1;
@@ -1736,6 +1736,12 @@ static void direct_link_fmodifiers(FileData *fd, ListBase *list)
 				FMod_Generator *data= (FMod_Generator *)fcm->data;
 				
 				data->coefficients= newdataadr(fd, data->coefficients);
+
+				if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+					unsigned int a;
+					for(a = 0; a < data->arraysize; a++)
+						SWITCH_INT(data->coefficients[a]);
+				}
 			}
 				break;
 			case FMODIFIER_TYPE_ENVELOPE:
@@ -2087,7 +2093,7 @@ static void lib_nodetree_do_versions_group(bNodeTree *ntree)
 	for (node=ntree->nodes.first; node; node=node->next) {
 		if (node->type==NODE_GROUP) {
 			bNodeTree *ngroup= (bNodeTree*)node->id;
-			if (ngroup->flag & NTREE_DO_VERSIONS)
+			if (ngroup && (ngroup->flag & NTREE_DO_VERSIONS))
 				lib_node_do_versions_group(node);
 		}
 	}
@@ -2115,7 +2121,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	}
 	
 	{
-		int has_old_groups=0;
+		/*int has_old_groups=0;*/ /*UNUSED*/
 		/* XXX this should actually be part of do_versions, but since we need
 		 * finished library linking, it is not possible there. Instead in do_versions
 		 * we have set the NTREE_DO_VERSIONS flag, so at this point we can do the
@@ -2125,7 +2131,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 			if (ntree->flag & NTREE_DO_VERSIONS) {
 				/* this adds copies and links from all unlinked internal sockets to group inputs/outputs. */
 				nodeGroupExposeAllSockets(ntree);
-				has_old_groups = 1;
+				/*has_old_groups = 1;*/ /*UNUSED*/
 			}
 		}
 		/* now verify all types in material trees, groups are set OK now */
@@ -3837,26 +3843,10 @@ static void lib_link_object(FileData *fd, Main *main)
 				
 				if(smd && smd->type == MOD_SMOKE_TYPE_DOMAIN && smd->domain) 
 				{
-					smd->domain->coll_group = newlibadr_us(fd, ob->id.lib, smd->domain->coll_group);
-					smd->domain->eff_group = newlibadr_us(fd, ob->id.lib, smd->domain->eff_group);
-					smd->domain->fluid_group = newlibadr_us(fd, ob->id.lib, smd->domain->fluid_group);
-
-					smd->domain->effector_weights->group = newlibadr(fd, ob->id.lib, smd->domain->effector_weights->group);
-
 					smd->domain->flags |= MOD_SMOKE_FILE_LOAD; /* flag for refreshing the simulation after loading */
 				}
 			}
 
-			{
-				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-				
-				if(clmd) 
-				{
-					clmd->sim_parms->effector_weights->group = newlibadr(fd, ob->id.lib, clmd->sim_parms->effector_weights->group);
-					clmd->coll_parms->group= newlibadr(fd, ob->id.lib, clmd->coll_parms->group);
-				}
-			}
-			
 			/* texture field */
 			if(ob->pd)
 				lib_link_partdeflect(fd, &ob->id, ob->pd);
@@ -4331,6 +4321,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		MEM_freeN(hook);
 	}
 	
+	ob->customdata_mask= 0;
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
@@ -5652,11 +5643,10 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 	while(bhead && bhead->code==DATA) {
 		void *data;
 #if 0
-		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
+		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
 		short *sp= fd->filesdna->structs[bhead->SDNAnr];
-		char *allocname = fd->filesdna->types[ sp[0] ];
 		char *tmp= malloc(100);
-		
+		allocname = fd->filesdna->types[ sp[0] ];
 		strcpy(tmp, allocname);
 		data= read_struct(fd, bhead, tmp);
 #else
@@ -6274,7 +6264,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	
 	BLI_addtail(lb, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
-	if(sa->headertype==1)
+	if(sa->headertype==HEADERDOWN)
 		ar->alignment= RGN_ALIGN_BOTTOM;
 	else
 		ar->alignment= RGN_ALIGN_TOP;
@@ -9692,7 +9682,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					nu->radius_interp = 3;
 					
 					/* resolu and resolv are now used differently for surfaces
-					 * rather then using the resolution to define the entire number of divisions,
+					 * rather than using the resolution to define the entire number of divisions,
 					 * use it for the number of divisions per segment
 					 */
 					if (nu->pntsv > 1) {
@@ -11497,7 +11487,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				do_version_bone_roll_256(bone);
 
 		/* fix for objects which have zero dquat's
-		 * since this is multiplied with the quat rather then added */
+		 * since this is multiplied with the quat rather than added */
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(is_zero_v4(ob->dquat)) {
 				unit_qt(ob->dquat);
@@ -11604,9 +11594,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 	}
 
-	/* put compatibility code here until next subversion bump */
-
-	{
+	if (main->versionfile < 258 || (main->versionfile == 258 && main->subversionfile < 1)){
 		/* screen view2d settings were not properly initialized [#27164]
 		 * v2d->scroll caused the bug but best reset other values too which are in old blend files only.
 		 * need to make less ugly - possibly an iterator? */
@@ -11658,6 +11646,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		{
+			/* add default value for behind strength of camera actuator */
+			Object *ob;
+			bActuator *act;
+			for(ob = main->object.first; ob; ob= ob->id.next) {
+				for(act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_CAMERA) {
+						bCameraActuator *ba= act->data;
+
+						ba->damping = 1.0/32.0;
+					}
+				}
+			}
+		}
+
+		{
+			ParticleSettings *part;
+			for(part = main->particle.first; part; part = part->id.next) {
+				/* Initialize particle billboard scale */
+				part->bb_size[0] = part->bb_size[1] = 1.0f;
+			}
+		}
+	}
+	
+	/* put compatibility code here until next subversion bump */
+
+	{
+	
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -11740,7 +11757,8 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	// XXX
 	user->uifonts.first= user->uifonts.last= NULL;
-	user->uistyles.first= user->uistyles.last= NULL;
+	
+	link_list(fd, &user->uistyles);
 
 	/* free fd->datamap again */
 	oldnewmap_free_unused(fd->datamap);
@@ -12200,6 +12218,9 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 	
 	if(ma->nodetree)
 		expand_nodetree(fd, mainvar, ma->nodetree);
+	
+	if(ma->group)
+		expand_doit(fd, mainvar, ma->group);
 }
 
 static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
@@ -12714,7 +12735,6 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 	return 0;
 }
 
-/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link)
 {
 	Object *ob;
@@ -12749,8 +12769,14 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 					/* when appending, make sure any indirectly loaded objects
 					 * get a base else they cant be accessed at all [#27437] */
 					if(ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
-						if(object_in_any_scene(mainvar, ob)==0) {
-							do_it= 1;
+
+						/* we may be appending from a scene where we already
+						 *  have a linked object which is not in any scene [#27616] */
+						if((ob->id.flag & LIB_PRE_EXISTING)==0) {
+
+							if(object_in_any_scene(mainvar, ob)==0) {
+								do_it= 1;
+							}
 						}
 					}
 				}
@@ -12771,7 +12797,6 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 	}
 }
 
-/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_groups(Main *mainvar, Scene *scene)
 {
 	Group *group;
@@ -12803,29 +12828,22 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 }
 
 /* returns true if the item was found
- * but it may already have already been appended/linked */
-static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *idname, int idcode, short flag)
+* but it may already have already been appended/linked */
+static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, const short idcode)
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *ob;
-	Base *base;
 	BHead *bhead;
-	ID *id;
-	int endloop=0;
+	ID *id= NULL;
 	int found=0;
 
-	bhead = blo_firstbhead(fd);
-	while(bhead && endloop==0) {
-
-		if(bhead->code==ENDB) endloop= 1;
-		else if(bhead->code==idcode) {
+	for(bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
+		if(bhead->code==idcode) {
 			const char *idname_test= bhead_id_name(fd, bhead);
-				
+
 			if(strcmp(idname_test + 2, idname)==0) {
 				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
 				if(id==NULL) {
-					read_libblock(fd, mainl, bhead, LIB_TESTEXT, NULL);
+					read_libblock(fd, mainl, bhead, LIB_TESTEXT, &id);
 				}
 				else {
 					printf("append: already linked\n");
@@ -12836,47 +12854,67 @@ static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const
 					}
 				}
 
-				if(idcode==ID_OB && scene) {	/* loose object: give a base */
-					base= MEM_callocN( sizeof(Base), "app_nam_part");
-					BLI_addtail(&scene->base, base);
-
-					if(id==NULL) ob= mainl->object.last;
-					else ob= (Object *)id;
-					
-					/* link at active layer (view3d->lay if in context, else scene->lay */
-					if((flag & FILE_ACTIVELAY)) {
-						View3D *v3d = CTX_wm_view3d(C);
-						if (v3d) {
-							ob->lay = v3d->layact;
-						} else {
-							ob->lay = scene->lay;
-						}
-					}
-					ob->mode= 0;
-					base->lay= ob->lay;
-					base->object= ob;
-					ob->id.us++;
-					
-					if(flag & FILE_AUTOSELECT) { 
-						base->flag |= SELECT;
-						base->object->flag = base->flag;
-						/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
-					}
-				}
-				endloop= 1;
+				break;
 			}
 		}
-
-		bhead = blo_nextbhead(fd, bhead);
+		else if(bhead->code==ENDB) {
+			break;
+		}
 	}
 
-	return found;
+	/* if we found the id but the id is NULL, this is really bad */
+	BLI_assert((found != 0) == (id != NULL));
+
+	return found ? id : NULL;
 }
 
-int BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, int idcode, short flag)
+static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, const char *idname, const int idcode, const int flag)
+{
+	ID *id= append_named_part(mainl, fd, idname, idcode);
+
+	if(id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
+		Scene *scene= CTX_data_scene(C); /* can be NULL */
+		if(scene) {
+			Base *base;
+			Object *ob;
+
+			base= MEM_callocN( sizeof(Base), "app_nam_part");
+			BLI_addtail(&scene->base, base);
+
+			ob= (Object *)id;
+
+			/* link at active layer (view3d->lay if in context, else scene->lay */
+			if((flag & FILE_ACTIVELAY)) {
+				View3D *v3d = CTX_wm_view3d(C);
+				ob->lay = v3d ? v3d->layact : scene->lay;
+			}
+
+			ob->mode= 0;
+			base->lay= ob->lay;
+			base->object= ob;
+			ob->id.us++;
+
+			if(flag & FILE_AUTOSELECT) {
+				base->flag |= SELECT;
+				base->object->flag = base->flag;
+				/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
+			}
+		}
+	}
+
+	return id;
+}
+
+ID *BLO_library_append_named_part(Main *mainl, BlendHandle** bh, const char *idname, const int idcode)
 {
 	FileData *fd= (FileData*)(*bh);
-	return append_named_part(C, mainl, fd, idname, idcode, flag);
+	return append_named_part(mainl, fd, idname, idcode);
+}
+
+ID *BLO_library_append_named_part_ex(const bContext *C, Main *mainl, BlendHandle** bh, const char *idname, const int idcode, const short flag)
+{
+	FileData *fd= (FileData*)(*bh);
+	return append_named_part_ex(C, mainl, fd, idname, idcode, flag);
 }
 
 static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
@@ -12885,8 +12923,8 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code == GS(id->name)) {
-			
-			if (BLI_streq(id->name, bhead_id_name(fd, bhead))) {
+
+			if (strcmp(id->name, bhead_id_name(fd, bhead))==0) {
 				id->flag &= ~LIB_READ;
 				id->flag |= LIB_TEST;
 //				printf("read lib block %s\n", id->name);

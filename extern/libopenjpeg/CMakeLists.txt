@@ -28,6 +28,14 @@ set(INC
 	.
 )
 
+set(INC_SYS
+
+)
+
+if(WIN32)
+	add_definitions(-DOPJ_STATIC)
+endif()
+
 set(SRC
 	bio.c
 	cio.c
@@ -73,4 +81,4 @@ set(SRC
 	tgt.h
 )
 
-blender_add_lib(extern_openjpeg "${SRC}" "${INC}")
+blender_add_lib(extern_openjpeg "${SRC}" "${INC}" "${INC_SYS}")

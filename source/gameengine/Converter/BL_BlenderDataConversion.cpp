@@ -1840,7 +1840,6 @@ static KX_GameObject *gameobject_from_blenderobject(
 	{
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
-		gameobj->SetObjectColor(ob->col);
 		/* set the visibility state based on the objects render option in the outliner */
 		if(ob->restrictflag & OB_RESTRICT_RENDER) gameobj->SetVisible(0, 0);
 	}
@@ -2608,6 +2607,9 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		bConstraint *curcon;
 		conlist = get_active_constraints2(blenderobject);
 
+		if((gameobj->GetLayer()&activeLayerBitInfo)==0)
+			continue;
+
 		if (conlist) {
 			for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
 				if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT){
@@ -2621,7 +2623,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 						if (dat->tar)
 						{
 							KX_GameObject *gotar=getGameOb(dat->tar->id.name+2,sumolist);
-							if (gotar && gotar->GetPhysicsController())
+							if (gotar && ((gotar->GetLayer()&activeLayerBitInfo)!=0) && gotar->GetPhysicsController())
 								physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
 						}
 

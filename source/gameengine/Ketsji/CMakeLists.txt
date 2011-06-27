@@ -50,9 +50,11 @@ set(INC
 	../../../source/gameengine/SceneGraph 
 	../../../source/gameengine/Physics/common
 	../../../source/gameengine/Network/LoopBackNetwork
-	../../../intern/audaspace/intern
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -207,7 +209,7 @@ set(SRC
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_SDL)
-	set(INC ${INC} ${SDL_INCLUDE_DIR})  
+	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})  
 else()
 	add_definitions(-DDISABLE_SDL)
 endif()
@@ -216,10 +218,19 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-if(WITH_BULLET)
-	add_definitions(-DUSE_BULLET)
-	list(APPEND INC ../../../extern/bullet2/src)
-	list(APPEND INC ../../../source/gameengine/Physics/Bullet )
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
 endif()
 
-blender_add_lib(ge_logic_ketsji "${SRC}" "${INC}")
+if(WITH_BULLET)
+	list(APPEND INC
+		../../../extern/bullet2/src
+		../../../source/gameengine/Physics/Bullet
+	)
+	add_definitions(-DUSE_BULLET)
+endif()
+
+blender_add_lib(ge_logic_ketsji "${SRC}" "${INC}" "${INC_SYS}")

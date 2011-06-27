@@ -149,7 +149,6 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->r.layers.first= envre->r.layers.last= NULL;
 	envre->r.filtertype= 0;
 	envre->r.xparts= envre->r.yparts= 2;
-	envre->r.bufflag= 0;
 	envre->r.size= 100;
 	envre->r.yasp= envre->r.xasp= 1;
 	

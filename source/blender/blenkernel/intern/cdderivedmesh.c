@@ -268,6 +268,33 @@ static void cdDM_update_normals_from_pbvh(DerivedMesh *dm)
 
 	BLI_pbvh_update(cddm->pbvh, PBVH_UpdateNormals, face_nors);
 }
+// Jason
+static void cdDM_drawSelectedVerts(DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+	MVert *mv = cddm->mvert;
+	int i;
+	if( GPU_buffer_legacy(dm) ) {
+		glBegin(GL_POINTS);
+		for(i = 0; i < dm->numVertData; i++, mv++) {
+			if(mv->flag & 1) {//TODO define selected
+				glColor3f(1.0f, 1.0f, 0.0f);
+			}else {
+				glColor3f(0.0f, 0.0f, 0.0f);
+			}
+			glVertex3fv(mv->co);
+		}
+		glEnd();
+	}
+	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
+		GPU_vertex_setup(dm);
+		if( !GPU_buffer_legacy(dm) ) {
+			if(dm->drawObject->nelements)	glDrawArrays(GL_POINTS,0, dm->drawObject->nelements);
+			else							glDrawArrays(GL_POINTS,0, dm->drawObject->nlooseverts);
+		}
+		GPU_buffer_unbind();
+	}
+}
 
 static void cdDM_drawVerts(DerivedMesh *dm)
 {
@@ -1509,6 +1536,8 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getFaceMap = cdDM_getFaceMap;
 
 	dm->drawVerts = cdDM_drawVerts;
+	// Jason
+	dm->drawSelectedVerts = cdDM_drawSelectedVerts;
 
 	dm->drawUVEdges = cdDM_drawUVEdges;
 	dm->drawEdges = cdDM_drawEdges;

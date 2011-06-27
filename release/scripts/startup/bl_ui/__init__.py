@@ -85,26 +85,26 @@ def register():
     from bpy.props import StringProperty, EnumProperty
     WindowManager = bpy.types.WindowManager
 
+    def addon_filter_items(self, context):
+        import addon_utils
+
+        items = [('All', "All", ""),
+                 ('Enabled', "Enabled", ""),
+                 ('Disabled', "Disabled", ""),
+                ]
+
+        items_unique = set()
+
+        for mod in addon_utils.modules(space_userpref.USERPREF_PT_addons._addons_fake_modules):
+            info = addon_utils.module_bl_info(mod)
+            items_unique.add(info["category"])
+
+        items.extend([(cat, cat, "") for cat in sorted(items_unique)])
+        return items
+
     WindowManager.addon_search = StringProperty(name="Search", description="Search within the selected filter")
     WindowManager.addon_filter = EnumProperty(
-            items=[('All', "All", ""),
-                   ('Enabled', "Enabled", ""),
-                   ('Disabled', "Disabled", ""),
-                   ('3D View', "3D View", ""),
-                   ('Add Curve', "Add Curve", ""),
-                   ('Add Mesh', "Add Mesh", ""),
-                   ('Animation', "Animation", ""),
-                   ('Development', "Development", ""),
-                   ('Game Engine', "Game Engine", ""),
-                   ('Import-Export', "Import-Export", ""),
-                   ('Mesh', "Mesh", ""),
-                   ('Object', "Object", ""),
-                   ('Render', "Render", ""),
-                   ('Rigging', "Rigging", ""),
-                   ('Text Editor', "Text Editor", ""),
-                   ('System', "System", ""),
-                   ('Other', "Other", ""),
-                   ],
+            items=addon_filter_items,
             name="Category",
             description="Filter add-ons by category",
             )

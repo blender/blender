@@ -147,7 +147,8 @@ typedef struct ParticleBillboardData
 	struct Object *ob;
 	float vec[3], vel[3];
 	float offset[2];
-	float size, tilt, random, time;
+	float size[2];
+	float tilt, random, time;
 	int uv[3];
 	int lock, num;
 	int totnum;
@@ -299,6 +300,8 @@ void psys_make_temp_pointcache(struct Object *ob, struct ParticleSystem *psys);
 void psys_get_pointcache_start_end(struct Scene *scene, ParticleSystem *psys, int *sfra, int *efra);
 
 void psys_check_boid_data(struct ParticleSystem *psys);
+
+void psys_get_birth_coordinates(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ParticleKey *state, float dtime, float cfra);
 
 void particle_system_update(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 

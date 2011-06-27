@@ -62,7 +62,8 @@ extern "C"
 #include "BKE_global.h"	
 #include "BKE_icons.h"	
 #include "BKE_node.h"	
-#include "BKE_report.h"	
+#include "BKE_report.h"
+#include "BKE_library.h"
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -70,6 +71,7 @@ extern "C"
 #include "BLO_runtime.h"
 #include "IMB_imbuf.h"
 #include "BKE_text.h"
+#include "BKE_sound.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
@@ -404,6 +406,10 @@ int main(int argc, char** argv)
 	
 	initglobals();
 
+	// We load our own G.main, so free the one that initglobals() gives us
+	free_main(G.main);
+	G.main = NULL;
+
 	IMB_init();
 
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
@@ -444,6 +450,11 @@ int main(int argc, char** argv)
 	U.audiorate = 44100;
 	U.audioformat = 0x24;
 	U.audiochannels = 2;
+
+	// XXX this one too
+	U.anisotropic_filter = 2;
+
+	sound_init_once();
 
 	/* if running blenderplayer the last argument can't be parsed since it has to be the filename. */
 	isBlenderPlayer = !BLO_is_a_runtime(argv[0]);
@@ -698,6 +709,8 @@ int main(int argc, char** argv)
 		{
 			GPU_set_mipmap(0);
 		}
+
+		GPU_set_anisotropic(U.anisotropic_filter);
 		
 		// Create the system
 		if (GHOST_ISystem::createSystem() == GHOST_kSuccess)

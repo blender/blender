@@ -40,6 +40,9 @@
 
 #include "WM_types.h"
 
+#include "BLI_math_base.h"
+#include "BLI_math_rotation.h"
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_scene_types.h"
@@ -58,7 +61,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Mesh_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
@@ -69,7 +72,7 @@ static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 }
 
-static void rna_Mesh_update_select(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Mesh_update_select(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 	/* cheating way for importers to avoid slow updates */
@@ -78,7 +81,7 @@ static void rna_Mesh_update_select(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 }
 
-void rna_Mesh_update_draw(Main *bmain, Scene *scene, PointerRNA *ptr)
+void rna_Mesh_update_draw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 	/* cheating way for importers to avoid slow updates */
@@ -234,7 +237,7 @@ static void rna_MeshColor_color4_set(PointerRNA *ptr, const float *values)
 	(&mcol[3].r)[0]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
 }
 
-static void rna_Mesh_texspace_set(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Mesh_texspace_set(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->data;
 	
@@ -302,6 +305,7 @@ static void rna_MeshFace_material_index_range(PointerRNA *ptr, int *min, int *ma
 	Mesh *me= (Mesh*)ptr->id.data;
 	*min= 0;
 	*max= me->totcol-1;
+	*max= MAX2(0, *max);
 }
 
 static CustomData *rna_mesh_fdata(Mesh *me)
@@ -333,7 +337,7 @@ static int rna_CustomDataLayer_active_get(PointerRNA *ptr, int type, int render)
 	else return (n == CustomData_get_active_layer_index(fdata, type));
 }
 
-static int rna_CustomDataLayer_clone_get(PointerRNA *ptr, int type, int render)
+static int rna_CustomDataLayer_clone_get(PointerRNA *ptr, int type, int UNUSED(render))
 {
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomData *fdata= rna_mesh_fdata(me);
@@ -355,7 +359,7 @@ static void rna_CustomDataLayer_active_set(PointerRNA *ptr, int value, int type,
 	else CustomData_set_layer_active_index(fdata, type, n);
 }
 
-static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, int value, int type, int render)
+static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, int value, int type, int UNUSED(render))
 {
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomData *fdata= rna_mesh_fdata(me);
@@ -367,7 +371,7 @@ static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, int value, int type, 
 	CustomData_set_layer_clone_index(fdata, type, n);
 }
 
-static int rna_uv_texture_check(CollectionPropertyIterator *iter, void *data)
+static int rna_uv_texture_check(CollectionPropertyIterator *UNUSED(iter), void *data)
 {
 	CustomDataLayer *layer= (CustomDataLayer*)data;
 	return (layer->type != CD_MTFACE);
@@ -690,7 +694,7 @@ static void rna_MeshTextureFaceLayer_name_set(PointerRNA *ptr, const char *value
 	CustomData_set_layer_unique_name(fdata, cdl - fdata->layers);
 }
 
-static int rna_vertex_color_check(CollectionPropertyIterator *iter, void *data)
+static int rna_vertex_color_check(CollectionPropertyIterator *UNUSED(iter), void *data)
 {
 	CustomDataLayer *layer= (CustomDataLayer*)data;
 	return (layer->type != CD_MCOL);
@@ -815,7 +819,7 @@ static int rna_MeshFloatPropertyLayer_data_length(PointerRNA *ptr)
 	return (me->edit_mesh)? 0: me->totface;
 }
 
-static int rna_float_layer_check(CollectionPropertyIterator *iter, void *data)
+static int rna_float_layer_check(CollectionPropertyIterator *UNUSED(iter), void *data)
 {
 	CustomDataLayer *layer= (CustomDataLayer*)data;
 	return (layer->type != CD_PROP_FLT);
@@ -833,7 +837,7 @@ static int rna_Mesh_float_layers_length(PointerRNA *ptr)
 	return rna_CustomDataLayer_length(ptr, CD_PROP_FLT);
 }
 
-static int rna_int_layer_check(CollectionPropertyIterator *iter, void *data)
+static int rna_int_layer_check(CollectionPropertyIterator *UNUSED(iter), void *data)
 {
 	CustomDataLayer *layer= (CustomDataLayer*)data;
 	return (layer->type != CD_PROP_INT);
@@ -864,7 +868,7 @@ static int rna_Mesh_int_layers_length(PointerRNA *ptr)
 	return rna_CustomDataLayer_length(ptr, CD_PROP_INT);
 }
 
-static int rna_string_layer_check(CollectionPropertyIterator *iter, void *data)
+static int rna_string_layer_check(CollectionPropertyIterator *UNUSED(iter), void *data)
 {
 	CustomDataLayer *layer= (CustomDataLayer*)data;
 	return (layer->type != CD_PROP_STR);
@@ -910,6 +914,20 @@ static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
 	}
 
 	tf->tpage= (struct Image*)id;
+}
+
+static void rna_Mesh_auto_smooth_angle_set(PointerRNA *ptr, float value)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	value= RAD2DEGF(value);
+	CLAMP(value, 1.0f, 80.0f);
+	me->smoothresh= (int)value;
+}
+
+static float rna_Mesh_auto_smooth_angle_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	return DEG2RADF((float)me->smoothresh);
 }
 
 static int rna_MeshFace_verts_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
@@ -1913,9 +1931,15 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_AUTOSMOOTH);
 	RNA_def_property_ui_text(prop, "Auto Smooth", "Treats all set-smoothed faces with angles less than the specified angle as 'smooth' during render");
 
+#if 1 /* expose as radians */
+	prop= RNA_def_property(srna, "auto_smooth_angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_funcs(prop, "rna_Mesh_auto_smooth_angle_get", "rna_Mesh_auto_smooth_angle_set", NULL);
+	RNA_def_property_ui_range(prop, DEG2RAD(1.0), DEG2RAD(80), 1.0, 1);
+#else
 	prop= RNA_def_property(srna, "auto_smooth_angle", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "smoothresh");
 	RNA_def_property_range(prop, 1, 80);
+#endif
 	RNA_def_property_ui_text(prop, "Auto Smooth Angle", "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
 
 	prop= RNA_def_property(srna, "show_double_sided", PROP_BOOLEAN, PROP_NONE);

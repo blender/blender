@@ -650,6 +650,7 @@ PropertyType RNA_property_type(PropertyRNA *prop);
 PropertySubType RNA_property_subtype(PropertyRNA *prop);
 PropertyUnit RNA_property_unit(PropertyRNA *prop);
 int RNA_property_flag(PropertyRNA *prop);
+void *RNA_property_py_data_get(PropertyRNA *prop);
 
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_array_check(PointerRNA *ptr, PropertyRNA *prop);
@@ -715,6 +716,7 @@ int RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, i
 int RNA_property_int_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values);
+void RNA_property_int_get_array_range(PointerRNA *ptr, PropertyRNA *prop, int values[2]);
 int RNA_property_int_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values);
 void RNA_property_int_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, int value);
@@ -725,6 +727,7 @@ int RNA_property_int_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int i
 float RNA_property_float_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value);
 void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *values);
+void RNA_property_float_get_array_range(PointerRNA *ptr, PropertyRNA *prop, float values[2]);
 float RNA_property_float_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const float *values);
 void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, float value);
@@ -743,6 +746,7 @@ int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
+void *RNA_property_enum_py_data_get(PropertyRNA *prop);
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value);

@@ -373,7 +373,11 @@ void filelist_init_icons(void)
 	short x, y, k;
 	ImBuf *bbuf;
 	ImBuf *ibuf;
+#ifdef WITH_HEADLESS
+	bbuf = NULL;
+#else
 	bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_prvicons, datatoc_prvicons_size, IB_rect);
+#endif
 	if (bbuf) {
 		for (y=0; y<SPECIAL_IMG_ROWS; y++) {
 			for (x=0; x<SPECIAL_IMG_COLS; x++) {
@@ -911,6 +915,8 @@ void filelist_select_file(struct FileList* filelist, int index, FileSelType sele
 		int check_ok = 0; 
 		switch (check) {
 			case CHECK_DIRS:
+				check_ok = S_ISDIR(file->type);
+				break;
 			case CHECK_ALL:
 				check_ok = 1;
 				break;

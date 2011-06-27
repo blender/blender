@@ -164,7 +164,7 @@ GHOST_WindowX11(
 	const bool stereoVisual,
 	const GHOST_TUns16 numOfAASamples
 ) :
-	GHOST_Window(title,left,top,width,height,state,type,stereoVisual,numOfAASamples),
+	GHOST_Window(width,height,state,type,stereoVisual,numOfAASamples),
 	m_context(NULL),
 	m_display(display),
 	m_normal_state(GHOST_kWindowStateNormal),
@@ -182,9 +182,12 @@ GHOST_WindowX11(
 	Atom atoms[2];
 	int natom;
 	int glxVersionMajor, glxVersionMinor; // As in GLX major.minor
-	
+
+#ifdef WITH_X11_XINPUT
 	/* initialize incase X11 fails to load */
 	memset(&m_xtablet, 0, sizeof(m_xtablet));
+#endif
+
 	m_visual= NULL;
 
 	if (!glXQueryVersion(m_display, &glxVersionMajor, &glxVersionMinor)) {

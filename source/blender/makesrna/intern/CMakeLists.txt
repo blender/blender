@@ -131,7 +131,13 @@ set(SRC
 )
 
 set(INC
+
 )
+
+set(INC_SYS
+
+)
+
 
 if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
@@ -165,13 +171,17 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
+if(WITH_AUDASPACE)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
+
 if(WITH_CODEC_QUICKTIME)
 	list(APPEND INC ../../quicktime)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-	list(APPEND INC ${FFMPEG_INC})
+	list(APPEND INC_SYS ${FFMPEG_INCLUDE_DIRS})
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
@@ -217,6 +227,9 @@ blender_include_dirs(
 	../../../../intern/audaspace/intern
 	../../../../intern/guardedalloc
 	../../../../intern/memutil
+)
+
+blender_include_dirs_sys(
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -242,4 +255,4 @@ set(SRC
 	rna_nodetree_types.h
 )
 
-blender_add_lib(bf_rna "${SRC}" "${INC}")
+blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}")

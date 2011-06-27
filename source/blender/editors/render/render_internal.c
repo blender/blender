@@ -302,6 +302,9 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	BLI_timestr(rs->lastframetime, info_time_str);
 	spos+= sprintf(spos, "Time:%s ", info_time_str);
 
+	if(rs->curfsa)
+		spos+= sprintf(spos, "| Full Sample %d ", rs->curfsa);
+	
 	if(rs->infostr && rs->infostr[0])
 		spos+= sprintf(spos, "| %s ", rs->infostr);
 

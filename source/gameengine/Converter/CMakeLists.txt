@@ -30,7 +30,6 @@ set(INC
 	../../../intern/guardedalloc
 	../../../intern/container
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-	../../../intern/audaspace/intern
 	../../../source/gameengine/Converter
 	../../../source/gameengine/BlenderRoutines
 	../../../source/blender/imbuf
@@ -57,6 +56,10 @@ set(INC
 	../../../source/blender/gpu
 	../../../source/blender/ikplugin
 	../../../extern/bullet2/src
+)
+
+set(INC_SYS
+
 )
 
 set(SRC
@@ -109,4 +112,11 @@ if(WITH_BULLET)
 	add_definitions(-DUSE_BULLET)
 endif()
 
-blender_add_lib(ge_converter "${SRC}" "${INC}")
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
+
+blender_add_lib(ge_converter "${SRC}" "${INC}" "${INC_SYS}")

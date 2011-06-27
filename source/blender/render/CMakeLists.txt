@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# remove warning until render branch merged.
-remove_strict_flags()
 
 set(INC 
 	intern/include
@@ -39,6 +37,10 @@ set(INC
 	../../../intern/smoke/extern
 	../../../intern/mikktspace
 	../../../intern/guardedalloc
+)
+
+set(INC_SYS
+
 )
 
 set(SRC
@@ -119,7 +121,8 @@ if(WITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../quicktime ${QUICKTIME_INC})
+	list(APPEND INC ../quicktime)
+	list(APPEND INC_SYS ${QUICKTIME_INCLUDE_DIRS})
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
@@ -130,4 +133,4 @@ if(APPLE)
 	endif()
 endif()
 
-blender_add_lib_nolist(bf_render "${SRC}" "${INC}")
+blender_add_lib_nolist(bf_render "${SRC}" "${INC}" "${INC_SYS}")

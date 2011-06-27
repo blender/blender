@@ -900,7 +900,7 @@ static void do_material_tex(GPUShadeInput *shi)
 	GPUNodeLink *texco_norm, *texco_orco, *texco_object;
 	GPUNodeLink *texco_global, *texco_uv = NULL;
 	GPUNodeLink *newnor, *orn;
-	char *lastuvname = NULL;
+	/*char *lastuvname = NULL;*/ /*UNUSED*/
 	float one = 1.0f, norfac, ofs[3];
 	int tex_nr, rgbnor, talpha;
 	int init_done = 0, iBumpSpacePrev;
@@ -942,12 +942,14 @@ static void do_material_tex(GPUShadeInput *shi)
 				texco= texco_object;
 			else if(mtex->texco==TEXCO_GLOB)
 				texco= texco_global;
-			else if(mtex->texco==TEXCO_REFL)
+			else if(mtex->texco==TEXCO_REFL) {
+				GPU_link(mat, "texco_refl", shi->vn, shi->view, &shi->ref);
 				texco= shi->ref;
+			}
 			else if(mtex->texco==TEXCO_UV) {
 				if(1) { //!(texco_uv && strcmp(mtex->uvname, lastuvname) == 0)) {
 					GPU_link(mat, "texco_uv", GPU_attribute(CD_MTFACE, mtex->uvname), &texco_uv);
-					lastuvname = mtex->uvname;
+					/*lastuvname = mtex->uvname;*/ /*UNUSED*/
 				}
 				texco= texco_uv;
 			}
@@ -1173,7 +1175,6 @@ static void do_material_tex(GPUShadeInput *shi)
 				}
 				
 				GPU_link(mat, "vec_math_negate", shi->vn, &orn);
-				GPU_link(mat, "texco_refl", shi->vn, shi->view, &shi->ref);
 			}
 
 			if((mtex->mapto & MAP_VARS)) {

@@ -641,6 +641,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             layout.prop(context.tool_settings, "use_auto_normalize", text="Auto Normalize")
             # Jason was here
             layout.prop(context.tool_settings, "use_multipaint", text="Multi-Paint")
+            layout.prop(context.tool_settings, "use_wp_vert_sel", text="Select Vertices")
 
             col = layout.column()
 

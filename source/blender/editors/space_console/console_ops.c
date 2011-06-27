@@ -84,7 +84,7 @@ static void console_scrollback_limit(SpaceConsole *sc)
 {
 	int tot;
 	
-	if (U.scrollback < 32) U.scrollback= 128; // XXX - save in user defaults
+	if (U.scrollback < 32) U.scrollback= 256; // XXX - save in user defaults
 	
 	for(tot= BLI_countlist(&sc->scrollback); tot > U.scrollback; tot--)
 		console_scrollback_free(sc, sc->scrollback.first);

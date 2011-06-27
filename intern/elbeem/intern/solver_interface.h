@@ -271,6 +271,9 @@ class LbmSolverInterface
 		/*! debug object display */
 		virtual vector<ntlGeometryObject*> getDebugObjects() { vector<ntlGeometryObject*> empty(0); return empty; }
 
+		/* surface generation settings */
+		virtual void setSurfGenSettings(short value) = 0;
+
 #if LBM_USE_GUI==1
 		/*! show simulation info */
 		virtual void debugDisplay(int) = 0;

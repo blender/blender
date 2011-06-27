@@ -120,7 +120,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 #define V3D_CACHE_TEXT_ASCII		(1<<2)
 
 /* drawarmature.c */
-int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag);
+int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag, const short is_outline);
 
 /* drawmesh.c */
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, struct DerivedMesh *dm, int faceselect);

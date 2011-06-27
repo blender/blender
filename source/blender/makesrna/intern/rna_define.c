@@ -446,7 +446,7 @@ BlenderRNA *RNA_create(void)
 	return brna;
 }
 
-void RNA_define_free(BlenderRNA *brna)
+void RNA_define_free(BlenderRNA *UNUSED(brna))
 {
 	StructDefRNA *ds;
 	FunctionDefRNA *dfunc;
@@ -1839,6 +1839,11 @@ void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 	prop->update= (UpdateFunc)func;
 }
 
+void RNA_def_property_update_runtime(PropertyRNA *prop, void *func)
+{
+	prop->update= func;
+}
+
 void RNA_def_property_dynamic_array_funcs(PropertyRNA *prop, const char *getlength)
 {
 	if(!DefRNA.preprocess) {
@@ -2055,6 +2060,11 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 void RNA_def_property_srna(PropertyRNA *prop, const char *type)
 {
 	prop->srna= (StructRNA*)type;
+}
+
+void RNA_def_py_data(PropertyRNA *prop, void *py_data)
+{
+	prop->py_data= py_data;
 }
 
 /* Compact definitions */
@@ -2274,6 +2284,12 @@ void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 	eprop->itemf= itemfunc;
+}
+
+void RNA_def_enum_py_data(PropertyRNA *prop, void *py_data)
+{
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+	eprop->py_data= py_data;
 }
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_, const char *identifier, float default_value, 
@@ -2556,7 +2572,7 @@ void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 	RNA_def_function_output(func, ret);
 }
 
-void RNA_def_function_output(FunctionRNA *func, PropertyRNA *ret)
+void RNA_def_function_output(FunctionRNA *UNUSED(func), PropertyRNA *ret)
 {
 	ret->flag|= PROP_OUTPUT;
 }
@@ -2816,6 +2832,7 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 		if(prop->identifier) MEM_freeN((void*)prop->identifier);
 		if(prop->name) MEM_freeN((void*)prop->name);
 		if(prop->description) MEM_freeN((void*)prop->description);
+		if(prop->py_data) MEM_freeN(prop->py_data);
 
 		switch(prop->type) {
 			case PROP_BOOLEAN: {

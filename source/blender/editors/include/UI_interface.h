@@ -35,6 +35,7 @@
 #define UI_INTERFACE_H
 
 #include "RNA_types.h"
+#include "DNA_userdef_types.h"
 
 /* Struct Declarations */
 
@@ -100,8 +101,8 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_RET_1			4		/* XXX 2.5 not implemented */
 #define UI_BLOCK_NUMSELECT		8
 /*#define UI_BLOCK_ENTER_OK		16*/ /*UNUSED*/
-/*#define UI_BLOCK_NOSHADOW		32*/ /*UNUSED*/
-/*#define UI_BLOCK_UNUSED			64*/ /*UNUSED*/
+#define UI_BLOCK_CLIPBOTTOM		32
+#define UI_BLOCK_CLIPTOP		64
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
 #define UI_BLOCK_POPUP			512
@@ -297,10 +298,12 @@ void uiPupMenuInvoke(struct bContext *C, const char *idname); /* popup registere
  * but allow using all button types and creating an own layout. */
 
 typedef uiBlock* (*uiBlockCreateFunc)(struct bContext *C, struct ARegion *ar, void *arg1);
+typedef void (*uiBlockCancelFunc)(void *arg1);
 
 void uiPupBlock(struct bContext *C, uiBlockCreateFunc func, void *arg);
 void uiPupBlockO(struct bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext);
-void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext);
+void uiPupBlockEx(struct bContext *C, uiBlockCreateFunc func, uiBlockCancelFunc cancel_func, void *arg);
+/* void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext); */ /* UNUSED */
 
 void uiPupBlockClose(struct bContext *C, uiBlock *block);
 
@@ -622,8 +625,8 @@ void UI_exit(void);
 #define UI_LAYOUT_MENU			2
 #define UI_LAYOUT_TOOLBAR		3
  
-#define UI_UNIT_X				20
-#define UI_UNIT_Y				20
+#define UI_UNIT_X				U.widget_unit
+#define UI_UNIT_Y				U.widget_unit
 
 #define UI_LAYOUT_ALIGN_EXPAND	0
 #define UI_LAYOUT_ALIGN_LEFT	1

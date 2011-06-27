@@ -69,7 +69,7 @@ typedef struct FluidsimSettings {
 	short viscosityMode;
 	short viscosityExponent;
 	/* gravity strength */
-	float gravx,gravy,gravz;
+	float grav[3];
 	/* anim start end time (in seconds) */
 	float animStart, animEnd;
 	/* bake start end time (in blender frames) */
@@ -160,6 +160,9 @@ typedef struct FluidsimSettings {
 #define OB_FSBND_PARTSLIP       (1<<(OB_TYPEFLAG_START+3))
 #define OB_FSBND_FREESLIP       (1<<(OB_TYPEFLAG_START+4))
 #define OB_FSINFLOW_LOCALCOORD  (1<<(OB_TYPEFLAG_START+5))
+
+/* surface generation flag (part of enabling chapter 6 of "Free Surface Flows with Moving and Deforming Objects for LBM") */
+#define OB_FSSG_NOOBS			(1<<(OB_TYPEFLAG_START+6))
 
 // guiDisplayMode particle flags
 #define OB_FSDOM_GEOM     1

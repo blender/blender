@@ -29,7 +29,9 @@ set(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
-	../../../../intern/audaspace/intern
+)
+
+set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
@@ -46,4 +48,11 @@ set(SRC
 	sequencer_intern.h
 )
 
-blender_add_lib(bf_editor_space_sequencer "${SRC}" "${INC}")
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
+
+blender_add_lib(bf_editor_space_sequencer "${SRC}" "${INC}" "${INC_SYS}")

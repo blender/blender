@@ -534,7 +534,10 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w-UI_UNIT_X, h);
 
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
-		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
+		but= uiDefIconButO(block, BUT, subtype==PROP_DIRPATH ?
+		                       "BUTTONS_OT_directory_browse" :
+		                       "BUTTONS_OT_file_browse",
+		                   WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
 	}
 	else if(flag & UI_ITEM_R_EVENT) {
 		uiDefButR(block, KEYEVT, 0, name, x, y, w, h, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
@@ -651,6 +654,9 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 	if (flag & UI_ITEM_R_NO_BG)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 
+	if(layout->redalert)
+		uiButSetFlag(but, UI_BUT_REDALERT);
+
 	/* assign properties */
 	if(properties || (flag & UI_ITEM_O_RETURN_PROPS)) {
 		PointerRNA *opptr= uiButGetOperatorPtrRNA(but);
@@ -728,6 +734,9 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 
 	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 	prop= RNA_struct_find_property(&ptr, propname);
+
+	/* don't let bad properties slip through */
+	BLI_assert((prop == NULL) || (RNA_property_type(prop) == PROP_ENUM));
 
 	if(prop && RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;

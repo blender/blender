@@ -344,6 +344,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= graphkeys_borderselect_exec;
 	ot->modal= WM_border_select_modal;
+	ot->cancel= WM_border_select_cancel;
 	
 	ot->poll= graphop_visible_keyframes_poll;
 	
@@ -1291,15 +1292,11 @@ static void graphkeys_mselect_column (bAnimContext *ac, const int mval[2], short
 static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	ARegion *ar;
 	short selectmode;
 
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	
-	/* get useful pointers from animation context data */
-	ar= ac.ar;
 
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend"))

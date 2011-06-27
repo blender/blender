@@ -504,14 +504,7 @@ void node_set_active(SpaceNode *snode, bNode *node)
 					ED_node_changed_update(snode->id, node);
 			}
 
-			// XXX
-#if 0
-			if(node->id)
-				; // XXX BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
-			
-			// allqueue(REDRAWBUTSSHADING, 1);
-			// allqueue(REDRAWIPO, 0);
-#endif
+			WM_main_add_notifier(NC_MATERIAL|ND_NODES, node->id);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene*)snode->id;
@@ -1086,6 +1079,13 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+
+	return OPERATOR_CANCELLED;
+}
 
 void NODE_OT_backimage_move(wmOperatorType *ot)
 {
@@ -1098,6 +1098,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 	ot->invoke= snode_bg_viewmove_invoke;
 	ot->modal= snode_bg_viewmove_modal;
 	ot->poll= composite_node_active;
+	ot->cancel= snode_bg_viewmove_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -1324,7 +1325,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 				else {
 					node->width= nsw->oldwidth + mx - nsw->mxstart;
-					CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
+					CLAMP(node->width, UI_DPI_FAC*node->typeinfo->minwidth, UI_DPI_FAC*node->typeinfo->maxwidth);
 				}
 			}
 				
@@ -1358,10 +1359,17 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 								 &snode->mx, &snode->my);
 		
-		/* rect we're interested in is just the bottom right corner */
 		totr= node->totr;
-		totr.xmin= totr.xmax-10.0f;
-		totr.ymax= totr.ymin+10.0f;
+		
+		if(node->flag & NODE_HIDDEN) {
+			/* right part of node */
+			totr.xmin= node->totr.xmax-20.0f;
+		}
+		else {
+			/* bottom right corner */
+			totr.xmin= totr.xmax-10.0f;
+			totr.ymax= totr.ymin+10.0f;
+		}
 		
 		if(BLI_in_rctf(&totr, snode->mx, snode->my)) {
 			NodeSizeWidget *nsw= MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
@@ -1384,6 +1392,14 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 }
 
+static int node_resize_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+
+	return OPERATOR_CANCELLED;
+}
+
 void NODE_OT_resize(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1394,6 +1410,7 @@ void NODE_OT_resize(wmOperatorType *ot)
 	ot->invoke= node_resize_invoke;
 	ot->modal= node_resize_modal;
 	ot->poll= ED_operator_node_active;
+	ot->cancel= node_resize_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -2279,6 +2296,18 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
+static int node_link_cancel(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeLinkDrag *nldrag= op->customdata;
+
+	nodeRemLink(snode->edittree, nldrag->link);
+	BLI_remlink(&snode->linkdrag, nldrag);
+	MEM_freeN(nldrag);
+
+	return OPERATOR_CANCELLED;
+}
+
 void NODE_OT_link(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2290,6 +2319,7 @@ void NODE_OT_link(wmOperatorType *ot)
 	ot->modal= node_link_modal;
 //	ot->exec= node_link_exec;
 	ot->poll= ED_operator_node_active;
+	ot->cancel= node_link_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -2402,6 +2432,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	ot->invoke= WM_gesture_lines_invoke;
 	ot->modal= WM_gesture_lines_modal;
 	ot->exec= cut_links_exec;
+	ot->cancel= WM_gesture_lines_cancel;
 	
 	ot->poll= ED_operator_node_active;
 	

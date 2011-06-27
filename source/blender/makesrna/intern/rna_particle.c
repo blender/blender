@@ -233,7 +233,7 @@ static void rna_ParticleHairKey_location_object_set(PointerRNA *ptr, const float
 }
 
 /* property update functions */
-static void particle_recalc(Main *bmain, Scene *scene, PointerRNA *ptr, short flag)
+static void particle_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr, short flag)
 {
 	if(ptr->type==&RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem*)ptr->data;
@@ -325,7 +325,7 @@ static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr
 	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 
-static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Particle_target_redo(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if(ptr->type==&RNA_ParticleTarget) {
 		Object *ob = (Object*)ptr->id.data;
@@ -702,7 +702,7 @@ static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
 		strcpy(str, "No object");
 }
 
-static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Particle_from_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	//if(part->type==PART_REACTOR)
 	//	return part_reactor_from_items;
@@ -710,7 +710,7 @@ static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, i
 		return part_from_items;
 }
 
-static EnumPropertyItem *rna_Particle_dist_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Particle_dist_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	ParticleSettings *part = ptr->id.data;
 
@@ -720,7 +720,7 @@ static EnumPropertyItem *rna_Particle_dist_itemf(bContext *C, PointerRNA *ptr, i
 		return part_dist_items;
 }
 
-static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	ParticleSettings *part = ptr->id.data;
 
@@ -730,7 +730,7 @@ static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *C, PointerRNA *ptr
 		return part_draw_as_items;
 }
 
-static EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	ParticleSettings *part = ptr->id.data;
 
@@ -1560,7 +1560,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
 
 	rna_def_mtex_common(brna, srna, "rna_ParticleSettings_mtex_begin", "rna_ParticleSettings_active_texture_get",
-		"rna_ParticleSettings_active_texture_set", "ParticleSettingsTextureSlot", "ParticleSettingsTextureSlots", "rna_Particle_reset");
+		"rna_ParticleSettings_active_texture_set", NULL, "ParticleSettingsTextureSlot", "ParticleSettingsTextureSlots", "rna_Particle_reset");
 
 	/* fluid particle type can't be checked from the type value in rna as it's not shown in the menu */
 	prop= RNA_def_property(srna, "is_fluid", PROP_BOOLEAN, PROP_NONE);
@@ -1757,11 +1757,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Absolute Path Time", "Path timing is in absolute frames");
 	RNA_def_property_update(prop, 0, "rna_Particle_abspathtime_update");
 
-	prop= RNA_def_property(srna, "lock_billboard", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_BB_LOCK);
-	RNA_def_property_ui_text(prop, "Lock Billboard", "Lock the billboards align axis");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
 	prop= RNA_def_property(srna, "use_parent_particles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_PARENT);
 	RNA_def_property_ui_text(prop, "Parents", "Render parent particles");
@@ -1910,6 +1905,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* billboards */
+	prop= RNA_def_property(srna, "lock_billboard", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_BB_LOCK);
+	RNA_def_property_ui_text(prop, "Lock Billboard", "Lock the billboards align axis");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
 	prop= RNA_def_property(srna, "billboard_align", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bb_align");
 	RNA_def_property_enum_items(prop, bb_align_items);
@@ -1956,6 +1956,25 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, -100.0f, 100.0f);
 	RNA_def_property_ui_range(prop, -1.0, 1.0, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Billboard Offset", "");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "billboard_size", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "bb_size");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_range(prop, 0.001f, 10.0f);
+	RNA_def_property_ui_text(prop, "Billboard Scale", "Scale billboards relative to particle size");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "billboard_velocity_head", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "bb_vel_head");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Billboard Velocity Head", "Scale billboards by velocity");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "billboard_velocity_tail", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "bb_vel_tail");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Billboard Velocity Tail", "Scale billboards by velocity");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	/* simplification */

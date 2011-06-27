@@ -33,6 +33,10 @@ set(INC
 	../../../intern/iksolver/extern
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	intern/ikplugin_api.c
 	intern/iksolver_plugin.c
@@ -45,11 +49,13 @@ set(SRC
 
 if(WITH_IK_ITASC)
 	add_definitions(-DWITH_IK_ITASC)
-	list(APPEND INC ../../../extern/Eigen2)
-	list(APPEND INC ../../../intern/itasc)
+	list(APPEND INC
+		../../../extern/Eigen2
+		../../../intern/itasc
+	)
 	list(APPEND SRC
-		./intern/itasc_plugin.cpp
+		intern/itasc_plugin.cpp
 	)
 endif()
 
-blender_add_lib(bf_ikplugin "${SRC}" "${INC}")
+blender_add_lib(bf_ikplugin "${SRC}" "${INC}" "${INC_SYS}")

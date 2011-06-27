@@ -94,7 +94,7 @@ class USERPREF_HT_header(bpy.types.Header):
             layout.operator("wm.keyconfig_import")
         elif userpref.active_section == 'ADDONS':
             layout.operator("wm.addon_install")
-            layout.menu("USERPREF_MT_addons_dev_guides", text="  Addons Developer Guides", icon='INFO')
+            layout.menu("USERPREF_MT_addons_dev_guides")
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
 
@@ -438,6 +438,8 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.label(text="OpenGL:")
         col.prop(system, "gl_clip_alpha", slider=True)
         col.prop(system, "use_mipmaps")
+        col.label(text="Anisotropic Filtering")
+        col.prop(system, "anisotropic_filter", text="")
         col.prop(system, "use_vertex_buffer_objects")
         #Anti-aliasing is disabled as it breaks broder/lasso select
         #col.prop(system, "use_antialiasing")
@@ -847,17 +849,14 @@ class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
 
 
 class USERPREF_MT_addons_dev_guides(bpy.types.Menu):
-    bl_label = "Addons develoment guides"
+    bl_label = "Development Guides"
 
     # menu to open webpages with addons development guides
     def draw(self, context):
         layout = self.layout
-        layout.operator('wm.url_open', text='API Concepts'
-            ).url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro'
-        layout.operator('wm.url_open', text='Addons guidelines',
-            ).url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons'
-        layout.operator('wm.url_open', text='How to share your addon',
-            ).url = 'http://wiki.blender.org/index.php/Dev:Py/Sharing'
+        layout.operator('wm.url_open', text='API Concepts', icon='URL').url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro'
+        layout.operator('wm.url_open', text='Addon Guidelines', icon='URL').url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons'
+        layout.operator('wm.url_open', text='How to share your addon', icon='URL').url = 'http://wiki.blender.org/index.php/Dev:Py/Sharing'
 
 
 class USERPREF_PT_addons(bpy.types.Panel):
@@ -889,6 +888,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         split = layout.split(percentage=0.2)
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
+        col.label(text="Categories")
         col.prop(context.window_manager, "addon_filter", expand=True)
 
         col.label(text="Supported Level")

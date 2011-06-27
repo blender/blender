@@ -468,6 +468,7 @@ Scene *add_scene(const char *name)
 
 	sce->r.ffcodecdata.audio_mixrate = 44100;
 	sce->r.ffcodecdata.audio_volume = 1.0f;
+	sce->r.ffcodecdata.audio_bitrate = 192;
 
 	BLI_strncpy(sce->r.engine, "BLENDER_RENDER", sizeof(sce->r.engine));
 
@@ -475,8 +476,7 @@ Scene *add_scene(const char *name)
 	sce->audio.doppler_factor = 1.0;
 	sce->audio.speed_of_sound = 343.3;
 
-	strcpy(sce->r.backbuf, "//backbuf");
-	strcpy(sce->r.pic, U.renderdir);
+	BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
 
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;

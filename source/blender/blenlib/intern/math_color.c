@@ -194,6 +194,10 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 		CLAMP(*g, 0.0f, 1.0f);
 		CLAMP(*b, 0.0f, 1.0f);
 	}
+	else {
+		/* avoid using un-initialized vars */
+		*r= *g= *b= 0.0f;
+	}
 }
 
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
@@ -482,6 +486,11 @@ int constrain_rgb(float *r, float *g, float *b)
 float rgb_to_grayscale(float rgb[3])
 {
 	return 0.3f*rgb[0] + 0.58f*rgb[1] + 0.12f*rgb[2];
+}
+
+unsigned char rgb_to_grayscale_byte(unsigned char rgb[3])
+{
+	return (76*(unsigned short)rgb[0] + 148*(unsigned short)rgb[1] + 31*(unsigned short)rgb[2]) / 255;
 }
 
 /* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */

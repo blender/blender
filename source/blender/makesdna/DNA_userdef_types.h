@@ -305,7 +305,7 @@ typedef struct UserDef {
 	int savetime;
 	char tempdir[160];	// FILE_MAXDIR length
 	char fontdir[160];
-	char renderdir[160];
+	char renderdir[240]; // FILE_MAX length
 	char textudir[160];
 	char plugtexdir[160];
 	char plugseqdir[160];
@@ -374,7 +374,8 @@ typedef struct UserDef {
 	short scrcastfps;		/* frame rate for screencast to be played back */
 	short scrcastwait;		/* milliseconds between screencast snapshots */
 	
-	short pad8, pad[3]; /* Value for Dual/Single Column UI */
+	short widget_unit;		/* defaults to 20 for 72 DPI setting */
+	short anisotropic_filter;
 
 	char versemaster[160];
 	char verseuser[160];
@@ -384,7 +385,6 @@ typedef struct UserDef {
 	short autokey_flag;		/* flags for autokeying */
 	
 	short text_render, pad9;		/*options for text rendering*/
-	float pad10;
 
 	struct ColorBand coba_weight;	/* from texture.h */
 

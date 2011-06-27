@@ -121,6 +121,11 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 
 	/* set the parameters from the operator, if it exists */
 	if (op) {
+		const short is_files= (RNA_struct_find_property(op->ptr, "files") != NULL);
+		const short is_filepath= (RNA_struct_find_property(op->ptr, "filepath") != NULL);
+		const short is_filename= (RNA_struct_find_property(op->ptr, "filename") != NULL);
+		const short is_directory= (RNA_struct_find_property(op->ptr, "directory") != NULL);
+
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
 
 		if(RNA_struct_find_property(op->ptr, "filemode"))
@@ -128,7 +133,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else
 			params->type = FILE_SPECIAL;
 
-		if (RNA_struct_find_property(op->ptr, "filepath") && RNA_property_is_set(op->ptr, "filepath")) {
+		if (is_filepath && RNA_property_is_set(op->ptr, "filepath")) {
 			char name[FILE_MAX];
 			RNA_string_get(op->ptr, "filepath", name);
 			if (params->type == FILE_LOADLIB) {
@@ -140,12 +145,12 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			}
 		}
 		else {
-			if (RNA_struct_find_property(op->ptr, "directory") && RNA_property_is_set(op->ptr, "directory")) {
+			if (is_directory && RNA_property_is_set(op->ptr, "directory")) {
 				RNA_string_get(op->ptr, "directory", params->dir);
 				sfile->params->file[0]= '\0';
 			}
 
-			if (RNA_struct_find_property(op->ptr, "filename") && RNA_property_is_set(op->ptr, "filename")) {
+			if (is_filename && RNA_property_is_set(op->ptr, "filename")) {
 				RNA_string_get(op->ptr, "filename", params->file);
 			}
 		}
@@ -153,6 +158,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		if(params->dir[0]) {
 			BLI_cleanup_dir(G.main->name, params->dir);
 			BLI_path_abs(params->dir, G.main->name);
+		}
+
+		if(is_directory==TRUE && is_filename==FALSE && is_filepath==FALSE && is_files==FALSE) {
+			params->flag |= FILE_DIRSEL_ONLY;
+		}
+		else {
+			params->flag &= ~FILE_DIRSEL_ONLY;
 		}
 
 		params->filter = 0;
@@ -216,10 +228,12 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->display= FILE_SHORTDISPLAY;
 		}
 
-	} else {
+	}
+	else {
 		/* default values, if no operator */
 		params->type = FILE_UNIX;
 		params->flag |= FILE_HIDE_DOT;
+		params->flag &= ~FILE_DIRSEL_ONLY;
 		params->display = FILE_SHORTDISPLAY;
 		params->filter = 0;
 		params->filter_glob[0] = '\0';
@@ -406,7 +420,7 @@ float file_font_pointsize(void)
 #else
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return style->widget.points;
+	return style->widget.points * UI_DPI_FAC;
 #endif
 }
 
@@ -497,11 +511,11 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
-			maxlen = ICON_DEFAULT_WIDTH + 4 +
+			maxlen = ICON_DEFAULT_WIDTH_SCALE + 4 +
 					 (int)layout->column_widths[COLUMN_NAME] + 12 +
 					 (int)layout->column_widths[COLUMN_SIZE] + 12;
 		} else {
-			maxlen = ICON_DEFAULT_WIDTH + 4 +
+			maxlen = ICON_DEFAULT_WIDTH_SCALE + 4 +
 					 (int)layout->column_widths[COLUMN_NAME] + 12 +
 #ifndef WIN32
 					 (int)layout->column_widths[COLUMN_MODE1] + 12 +

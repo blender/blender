@@ -50,11 +50,7 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 /* folder_id */
 
 /* general, will find based on user/local/system priority */
-#define BLENDER_CONFIG				1
 #define BLENDER_DATAFILES			2
-#define BLENDER_SCRIPTS				3
-#define BLENDER_PLUGINS				4
-#define BLENDER_PYTHON				5
 
 /* user-specific */
 #define BLENDER_USER_CONFIG			31
@@ -64,7 +60,6 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 #define BLENDER_USER_AUTOSAVE		35
 
 /* system */
-#define BLENDER_SYSTEM_CONFIG		51	/* optional */
 #define BLENDER_SYSTEM_DATAFILES	52
 #define BLENDER_SYSTEM_SCRIPTS		53
 #define BLENDER_SYSTEM_PLUGINS		54

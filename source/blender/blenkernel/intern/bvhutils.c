@@ -493,7 +493,7 @@ static void mesh_edges_nearest_point(void *userdata, int index, const float *co,
 	
 	// NOTE: casts to "float*" here are due to co being "const float*"
 	closest_to_line_segment_v3(nearest_tmp, (float*)co, t0, t1);
-	dist = len_v3v3(nearest_tmp, (float*)co);
+	dist = len_squared_v3v3(nearest_tmp, (float*)co);
 	
 	if(dist < nearest->dist)
 	{
@@ -719,7 +719,7 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 		if(!data->cached)
 			BLI_bvhtree_free(data->tree);
 
-		memset( data, 0, sizeof(data) );
+		memset( data, 0, sizeof(*data) );
 	}
 }
 

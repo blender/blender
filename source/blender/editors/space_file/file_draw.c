@@ -74,12 +74,6 @@
 
 #include "file_intern.h"	// own include
 
-/* ui geometry */
-#define IMASEL_BUTTONS_HEIGHT 40
-#define IMASEL_BUTTONS_MARGIN 6
-#define TILE_BORDER_X 8
-#define TILE_BORDER_Y 8
-
 /* button events */
 enum {
 	B_FS_DIRNAME,
@@ -191,16 +185,18 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiButSetFlag(but, UI_BUT_NO_UTF8);
 
-		but = uiDefBut(block, TEX, B_FS_FILENAME, "",
-				 min_x, line2_y, line2_w-chan_offs, btn_h,
-				 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
-				 overwrite_alert ?"File name, overwrite existing." : "File name.");
-		uiButSetCompleteFunc(but, autocomplete_file, NULL);
-		uiButSetFlag(but, UI_BUT_NO_UTF8);
-		
-		/* check if this overrides a file and if the operator option is used */
-		if(overwrite_alert) {
-			uiButSetFlag(but, UI_BUT_REDALERT);
+		if((params->flag & FILE_DIRSEL_ONLY) == 0) {
+			but = uiDefBut(block, TEX, B_FS_FILENAME, "",
+					 min_x, line2_y, line2_w-chan_offs, btn_h,
+					 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0,
+					 overwrite_alert ?"File name, overwrite existing." : "File name.");
+			uiButSetCompleteFunc(but, autocomplete_file, NULL);
+			uiButSetFlag(but, UI_BUT_NO_UTF8);
+
+			/* check if this overrides a file and if the operator option is used */
+			if(overwrite_alert) {
+				uiButSetFlag(but, UI_BUT_REDALERT);
+			}
 		}
 		
 		/* clear func */
@@ -208,7 +204,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	}
 	
 	/* Filename number increment / decrement buttons. */
-	if (fnumbuttons) {
+	if (fnumbuttons && (params->flag & FILE_DIRSEL_ONLY) == 0) {
 		uiBlockBeginAlign(block);
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
 				min_x + line2_w + separator - chan_offs, line2_y, 
@@ -523,8 +519,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			
 			file_draw_preview(block, file, sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE));
 		} else {
-			file_draw_icon(block, file->path, sx, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
-			sx += ICON_DEFAULT_WIDTH + 4;
+			file_draw_icon(block, file->path, sx, sy-(UI_UNIT_Y / 6), get_file_icon(file), ICON_DEFAULT_WIDTH_SCALE, ICON_DEFAULT_WIDTH_SCALE);
+			sx += ICON_DEFAULT_WIDTH_SCALE + 4;
 		}
 
 		UI_ThemeColor4(TH_TEXT);

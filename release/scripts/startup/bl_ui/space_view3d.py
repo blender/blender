@@ -98,6 +98,8 @@ class VIEW3D_HT_header(bpy.types.Header):
             row.prop(toolsettings, "use_snap_peel_object", text="")
         elif toolsettings.snap_element == 'FACE':
             row.prop(toolsettings, "use_snap_project", text="")
+            if toolsettings.use_snap_project and obj.mode == 'EDIT':
+                row.prop(toolsettings, "use_snap_project_self", text="")
 
         # OpenGL render
         row = layout.row(align=True)
@@ -685,6 +687,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -771,10 +774,16 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
         if obj.type == 'CAMERA':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
-            props = layout.operator("wm.context_modal_mouse", text="Camera Lens Angle")
-            props.data_path_iter = "selected_editable_objects"
-            props.data_path_item = "data.lens"
-            props.input_scale = 0.1
+            if obj.data.type == 'PERSP':
+                props = layout.operator("wm.context_modal_mouse", text="Camera Lens Angle")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.lens"
+                props.input_scale = 0.1
+            else:
+                props = layout.operator("wm.context_modal_mouse", text="Camera Lens Scale")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.ortho_scale"
+                props.input_scale = 0.01
 
             if not obj.data.dof_object:
                 #layout.label(text="Test Has DOF obj");
@@ -1049,6 +1058,7 @@ class VIEW3D_MT_paint_weight(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1129,6 +1139,7 @@ class VIEW3D_MT_particle(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1182,6 +1193,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1373,6 +1385,7 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -1844,6 +1857,7 @@ class VIEW3D_MT_edit_meta(bpy.types.Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
 
         layout.separator()
 
@@ -2318,7 +2332,8 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
             col.prop(toolsettings, "use_etch_autoname")
             col.prop(toolsettings, "etch_number")
             col.prop(toolsettings, "etch_side")
-            col.operator("sketch.convert", text="Convert")
+
+        col.operator("sketch.convert", text="Convert")
 
 
 class VIEW3D_PT_context_properties(bpy.types.Panel):

@@ -76,6 +76,8 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float maxy, TexResult *texres, int imaprepeat, int imapextend);
+
 /* *********** IMAGEWRAPPING ****************** */
 
 
@@ -201,7 +203,16 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 		ibuf->rect+= (ibuf->x*ibuf->y);
 	}
 
-	ibuf_get_color(&texres->tr, ibuf, x, y);
+	/* interpolate */
+	if (tex->imaflag & TEX_INTERPOL) {
+		float filterx, filtery;
+		filterx = (0.5f * tex->filtersize) / ibuf->x;
+		filtery = (0.5f * tex->filtersize) / ibuf->y;
+
+		boxsample(ibuf, fx-filterx, fy-filtery, fx+filterx, fy+filtery, texres, (tex->extend==TEX_REPEAT), (tex->extend==TEX_EXTEND));
+	}
+	else /* no filtering */
+		ibuf_get_color(&texres->tr, ibuf, x, y);
 	
 	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
 		ibuf->rect-= (ibuf->x*ibuf->y);

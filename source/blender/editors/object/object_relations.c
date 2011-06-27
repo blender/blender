@@ -360,7 +360,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 }
 
 /* Generic itemf's for operators that take library args */
-static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	EnumPropertyItem item_tmp= {0}, *item= NULL;
 	int totitem= 0;
@@ -1127,8 +1127,6 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-
-	if(islamp) reshadeall_displist(scene);	/* only frees */
 	
 	/* warning, active object may be hidden now */
 	
