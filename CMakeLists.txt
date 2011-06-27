@@ -1146,6 +1146,18 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 
 endif()
 
+# MSVC2010 fails to links C++ libs right
+if(MSVC10)
+	if(WITH_IMAGE_OPENEXR)
+		message(WARNING "MSVC 2010 does not support OpenEXR, disabling WITH_IMAGE_OPENEXR. To enable support use Use MSVC 2008")
+		set(WITH_IMAGE_OPENEXR OFF)
+	endif()
+	if(WITH_OPENCOLLADA)
+		message(WARNING "MSVC 2010 does not support OpenCollada, disabling WITH_OPENCOLLADA. To enable support use Use MSVC 2008")
+		set(WITH_OPENCOLLADA OFF)
+	endif()
+endif()
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	if(WITH_IK_ITASC OR WITH_MOD_FLUID)
 		message(WARNING "Using Clang as CXX compiler: disabling WITH_IK_ITASC and WITH_MOD_FLUID, these features will be missing.")
