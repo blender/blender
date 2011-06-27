@@ -66,11 +66,20 @@ class CLIP_PT_tools(bpy.types.Panel):
 
             col = layout.column(align=True)
             col.label(text="2D tracking:")
-            col.operator("clip.track_markers")
-            col.operator("clip.track_markers", text="Track Backwards").backwards=True
-            col.operator("clip.clear_track_path")
+            row = col.row(align=True)
+
+            op = row.operator("clip.track_markers", text="", icon='REW')
+            op.sequence = True
+            op.backwards = True
+            op = row.operator("clip.track_markers", text="", icon='PLAY_REVERSE')
+            op.backwards = True
+            row.operator("clip.track_markers", text="", icon='PLAY')
+            op = row.operator("clip.track_markers", text="", icon='FF')
+            op.sequence = True
+
+            layout.operator("clip.clear_track_path")
         else:
-          layout.operator('clip.open')
+            layout.operator('clip.open')
 
 
 class CLIP_PT_marker_preview(bpy.types.Panel):

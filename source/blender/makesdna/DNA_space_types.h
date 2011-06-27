@@ -580,13 +580,12 @@ typedef struct SpaceClip {
 
 	int path_length;			/* length of displaying path, in frames */
 
-	int pad;
-
 	/* ** some runtime vars which aren't really in file ** */
 	/* marker data displayed in panel */
 	float marker_pos[2];						/* position of marker in pixel coords */
 	float track_pat_pos[2], track_pat[2];		/* position and dimensions of marker pattern in pixel coords */
 	float track_search_pos[2], track_search[2];	/* position and dimensions of marker search in pixel coords */
+	int marker_flag;							/* marker's flags */
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */

@@ -5243,17 +5243,26 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, float *loc, 
 
 static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d, MovieTrackingTrack *track)
 {
-	MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
+	MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
 
-	if(track->flag&SELECT)
-		markerToTransDataInit(td++, td2d++, marker->pos, NULL);
+	if((marker->flag&MARKER_DISABLED)==0) {
+		if(track->flag&SELECT)
+			markerToTransDataInit(td++, td2d++, marker->pos, NULL);
 
-	if(track->pat_flag&SELECT) {
-		markerToTransDataInit(td++, td2d++, track->pat_min, marker->pos);
-		markerToTransDataInit(td++, td2d++, track->pat_max, marker->pos);
+		if(track->pat_flag&SELECT) {
+			markerToTransDataInit(td++, td2d++, track->pat_min, marker->pos);
+			markerToTransDataInit(td++, td2d++, track->pat_max, marker->pos);
+		}
 	}
 
 	if(track->search_flag&SELECT) {
+		if(marker->flag&MARKER_DISABLED) {
+			markerToTransDataInit(td++, td2d++, marker->pos, NULL);
+
+			markerToTransDataInit(td++, td2d++, track->pat_min, marker->pos);
+			markerToTransDataInit(td++, td2d++, track->pat_max, marker->pos);
+		}
+
 		markerToTransDataInit(td++, td2d++, track->search_min, marker->pos);
 		markerToTransDataInit(td++, td2d++, track->search_max, marker->pos);
 	}
@@ -5266,6 +5275,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
+	MovieTrackingMarker *marker;
 	int framenr = sc->user.framenr;
 
 	if(clip && !BKE_movieclip_has_frame(clip, &sc->user)) {
@@ -5278,10 +5288,22 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 
 	track = clip->tracking.tracks.first;
 	while(track) {
-		if(BKE_tracking_has_marker(track, framenr)) {
-			if(track->flag&SELECT) t->total++;
-			if(track->pat_flag&SELECT) t->total+= 2;
-			if(track->search_flag&SELECT) t->total+= 2;
+		if(TRACK_SELECTED(track)) {
+			marker= BKE_tracking_get_marker(track, framenr);
+
+			if(marker) {
+				if((marker->flag&MARKER_DISABLED)==0) {
+					if(track->flag&SELECT) t->total++;
+					if(track->pat_flag&SELECT) t->total+= 2;
+				}
+
+				if(track->search_flag&SELECT) {
+					t->total+= 2;
+
+					if(marker->flag&MARKER_DISABLED)
+						t->total+= 3;
+				}
+			}
 		}
 
 		track = track->next;
@@ -5293,12 +5315,27 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	/* create actual data */
 	track = clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_SELECTED(track) && BKE_tracking_has_marker(track, framenr)) {
-			trackToTransData(sc, td, td2d, track);
+		if(TRACK_SELECTED(track)) {
+			marker= BKE_tracking_get_marker(track, framenr);
 
-			if(track->flag&SELECT) {td++; td2d++;}
-			if(track->pat_flag&SELECT) {td+= 2; td2d+= 2;}
-			if(track->search_flag&SELECT) {td+= 2; td2d+= 2;};
+			if(marker) {
+				trackToTransData(sc, td, td2d, track);
+
+				if((marker->flag&MARKER_DISABLED)==0) {
+					if(track->flag&SELECT) {td++; td2d++;}
+					if(track->pat_flag&SELECT) {td+= 2; td2d+= 2;}
+				}
+
+				if(track->search_flag&SELECT) {
+					td+= 2;
+					td2d+= 2;
+
+					if(marker->flag&MARKER_DISABLED) {
+						td+= 3;
+						td2d+= 3;
+					}
+				};
+			}
 		}
 
 		track = track->next;

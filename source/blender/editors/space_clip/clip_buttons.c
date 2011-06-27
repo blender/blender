@@ -66,6 +66,7 @@
 #define B_MARKER_PAT_DIM		5
 #define B_MARKER_SEARCH_POS		6
 #define B_MARKER_SEARCH_DIM		7
+#define B_MARKER_FLAG			8
 
 static void to_pixel_space(float r[2], float a[2], int width, int height)
 {
@@ -74,7 +75,7 @@ static void to_pixel_space(float r[2], float a[2], int width, int height)
 	r[1]*= height;
 }
 
-static void trackingMarker_buttons(const bContext *C, uiBlock *block)
+static void trackingMarker_buttons(const bContext *C, uiLayout *layout)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
@@ -82,6 +83,8 @@ static void trackingMarker_buttons(const bContext *C, uiBlock *block)
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	float pat_dim[2], pat_pos[2], search_dim[2], search_pos[2];
+	uiBlock *block;
+	uiLayout *col;
 
 	ED_space_clip_size(sc, &width, &height);
 	BKE_movieclip_last_selection(clip, &type, (void**)&track);
@@ -106,6 +109,17 @@ static void trackingMarker_buttons(const bContext *C, uiBlock *block)
 	to_pixel_space(sc->track_search, search_dim, width, height);
 	to_pixel_space(sc->track_search_pos, search_pos, width, height);
 
+	sc->marker_flag= marker->flag;
+
+	block= uiLayoutAbsoluteBlock(layout);
+
+	uiDefButBitI(block, OPTION, MARKER_DISABLED, B_MARKER_FLAG,  "Disabled", 10, 190, 145, 19, &sc->marker_flag,
+		0, 0, 0, 0, "Marker is disabled for current frame.");
+
+	col= uiLayoutColumn(layout, 1);
+	uiLayoutSetActive(col, (sc->marker_flag&MARKER_DISABLED)==0);
+
+	block= uiLayoutAbsoluteBlock(col);
 	uiBlockBeginAlign(block);
 
 	uiDefBut(block, LABEL, 0, "Position:", 0, 171, 145, 19, NULL, 0, 0, 0, 0, "");
@@ -133,6 +147,7 @@ static void trackingMarker_buttons(const bContext *C, uiBlock *block)
 		10.0*width, step, digits, "Width of marker's search in screen soordinates.");
 	uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Height:", 10, 0, 300, 19, &sc->track_search[1], 3.0f,
 		10.0*height, step, digits, "Height of marker's search in screen soordinates.");
+
 	uiBlockEndAlign(block);
 }
 
@@ -147,7 +162,8 @@ static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
 	ED_space_clip_size(sc, &width, &height);
 
 	BKE_movieclip_last_selection(clip, &type, (void**)&track);
-	marker= BKE_tracking_get_marker(track, sc->user.framenr);
+
+	marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
 
 	if(event==B_MARKER_POS) {
 		marker->pos[0]= sc->marker_pos[0]/width;
@@ -212,6 +228,10 @@ static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
 		BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 
 		ok= 1;
+	} else if(event==B_MARKER_FLAG) {
+		marker->flag= sc->marker_flag;
+
+		ok= 1;
 	}
 
 	if(ok)
@@ -222,7 +242,6 @@ static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
 
 static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	Scene *scene= CTX_data_scene(C);
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip;
 	int type;
@@ -251,7 +270,7 @@ static void clip_panel_marker(const bContext *C, Panel *pa)
 	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_tracking_marker, NULL);
 
-	trackingMarker_buttons(C, block);
+	trackingMarker_buttons(C, pa->layout);
 }
 
 void ED_clip_buttons_register(ARegionType *art)

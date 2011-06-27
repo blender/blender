@@ -150,7 +150,7 @@ void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *
 {
 	MovieTrackingMarker *old_marker= BKE_tracking_get_marker(track, marker->framenr);
 
-	if(old_marker) {
+	if(old_marker && old_marker->framenr==marker->framenr) {
 		*old_marker= *marker;
 	} else {
 		int a= track->markersnr;
@@ -167,6 +167,8 @@ void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *
 
 		memmove(track->markers+a+2, track->markers+a+1, (track->markersnr-a-2)*sizeof(MovieTrackingMarker));
 		track->markers[a+1]= *marker;
+
+		track->last_marker= a+1;
 	}
 }
 
@@ -177,37 +179,56 @@ MovieTrackingMarker *BKE_tracking_get_marker(MovieTrackingTrack *track, int fram
 	if(!track->markersnr)
 		return NULL;
 
-	if((track->flag&TRACK_PROCESSED)==0) {
-		/* non-precessed tracks contains the only marker
-		   which should be used independelntly from current frame number. */
-
-		if(track->markersnr)
-			return &track->markers[0];
-
-		return NULL;
-	}
+	/* approximate pre-first framenr marker with first marker */
+	if(framenr<track->markers[0].framenr)
+		return &track->markers[0];
 
 	if(track->last_marker<track->markersnr)
 		a= track->last_marker;
 
 	if(track->markers[a].framenr<=framenr) {
-		while(a<track->markersnr) {
+		while(a<track->markersnr && track->markers[a].framenr<=framenr) {
 			if(track->markers[a].framenr==framenr) {
 				track->last_marker= a;
 				return &track->markers[a];
 			}
 			a++;
 		}
+
+		/* if there's no marker for exact position, use nearest marker from left side */
+		return &track->markers[a-1];
 	} else {
-		while(a--) {
+		while(a>=0 && track->markers[a].framenr>=framenr) {
 			if(track->markers[a].framenr==framenr) {
 				track->last_marker= a;
 				return &track->markers[a];
 			}
+
+			a--;
 		}
+
+		/* if there's no marker for exact position, use nearest marker from left side */
+		return &track->markers[a];
 	}
 
 	return NULL;
+}
+
+MovieTrackingMarker *BKE_tracking_ensure_marker(MovieTrackingTrack *track, int framenr)
+{
+	MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
+
+	if(marker && marker->framenr!=framenr) {
+		MovieTrackingMarker marker_new;
+
+		marker_new= *marker;
+		marker_new.framenr= framenr;
+
+		BKE_tracking_insert_marker(track, &marker_new);
+		marker= BKE_tracking_get_marker(track, framenr);
+	}
+
+	return marker;
 }
 
 int BKE_tracking_has_marker(MovieTrackingTrack *track, int framenr)
@@ -515,7 +536,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	while(track) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, curfra);
 
-		if(marker) {
+		if(marker && marker->framenr==curfra) {
 #ifdef WITH_LIBMV
 			int width, height, pos[2];
 			float *patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height, pos);
@@ -533,16 +554,12 @@ int BKE_tracking_next(MovieTrackingContext *context)
 						x1, y1, &x2, &y2)) {
 				MovieTrackingMarker marker_new;
 
+				memset(&marker_new, 0, sizeof(marker_new));
 				marker_new.pos[0]= marker->pos[0]+track->search_min[0]+x2/ibuf_new->x;
 				marker_new.pos[1]= marker->pos[1]+track->search_min[1]+y2/ibuf_new->y;
 
 				if(context->backwards) marker_new.framenr= curfra-1;
 				else marker_new.framenr= curfra+1;
-
-				/* happens when current frame was changed after placing marker
-				   but before tracking it */
-				if(marker->framenr!=curfra)
-					marker->framenr= curfra;
 
 				track->flag|= TRACK_PROCESSED;
 

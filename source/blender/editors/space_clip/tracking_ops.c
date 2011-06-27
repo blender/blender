@@ -116,6 +116,7 @@ static void add_marker(SpaceClip *sc, float x, float y)
 
 	track= MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
 
+	memset(&marker, 0, sizeof(marker));
 	marker.pos[0]= x;
 	marker.pos[1]= y;
 	marker.framenr= sc->user.framenr;
@@ -279,12 +280,14 @@ static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *trac
 	epsx= MAX2(epsy, 2.0 / width);
 	epsy= MAX2(epsy, 2.0 / height);
 
-	if(fabsf(co[0]-marker->pos[0])< epsx && fabsf(co[1]-marker->pos[1])<=epsy)
-		return TRACK_AREA_POINT;
+	if((marker->flag&MARKER_DISABLED)==0) {
+		if(fabsf(co[0]-marker->pos[0])< epsx && fabsf(co[1]-marker->pos[1])<=epsy)
+			return TRACK_AREA_POINT;
 
-	if(sc->flag&SC_SHOW_MARKER_PATTERN)
-		if(mouse_on_rect(co, marker->pos, track->pat_min, track->pat_max, epsx, epsy))
-			return TRACK_AREA_PAT;
+		if(sc->flag&SC_SHOW_MARKER_PATTERN)
+			if(mouse_on_rect(co, marker->pos, track->pat_min, track->pat_max, epsx, epsy))
+				return TRACK_AREA_PAT;
+	}
 
 	if(sc->flag&SC_SHOW_MARKER_SEARCH)
 		if(mouse_on_rect(co, marker->pos, track->search_min, track->search_max, epsx, epsy))
@@ -673,6 +676,19 @@ static int track_markers_testbreak(void)
 	return G.afbreek;
 }
 
+static void track_init_markers(SpaceClip *sc, MovieClip *clip)
+{
+	MovieTrackingTrack *track;
+	int framenr= sc->user.framenr;
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		BKE_tracking_ensure_marker(track, framenr);
+
+		track= track->next;
+	}
+}
+
 static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwards)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
@@ -699,6 +715,8 @@ static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwar
 		if(settings->speed==TRACKING_SPEED_HALF) tmj->delay*= 2;
 		else if(settings->speed==TRACKING_SPEED_QUARTER) tmj->delay*= 4;
 	}
+
+	track_init_markers(sc, clip);
 
 	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards);
 
@@ -776,6 +794,54 @@ static void track_markers_freejob(void *tmv)
 	WM_main_add_notifier(NC_SCENE|ND_FRAME, tmj->scene);
 }
 
+static int track_markers_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	Scene *scene= CTX_data_scene(C);
+	struct MovieTrackingContext *context;
+	int framenr= sc->user.framenr;
+	int sfra= framenr, efra;
+	int backwards= RNA_boolean_get(op->ptr, "backwards");
+	int sequence= RNA_boolean_get(op->ptr, "sequence");
+	MovieTrackingSettings *settings= &clip->tracking.settings;
+
+	if(backwards) efra= SFRA;
+	else efra= EFRA;
+
+	/* limit frames to be tracked by user setting */
+	if(settings->flag&TRACKING_FRAMES_LIMIT) {
+		if(backwards) efra= MAX2(efra, sfra-settings->frames_limit);
+		else efra= MIN2(efra, sfra+settings->frames_limit);
+	}
+
+	track_init_markers(sc, clip);
+
+	context= BKE_tracking_context_new(clip, &sc->user, backwards);
+
+	while(framenr != efra) {
+		if(!BKE_tracking_next(context))
+			break;
+
+		if(backwards) framenr--;
+		else framenr++;
+
+		if(!sequence)
+			break;
+	}
+
+	BKE_tracking_sync(context);
+	BKE_tracking_context_free(context);
+
+	/* update scene current frame to the lastes tracked frame */
+	scene->r.cfra= framenr;
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+
+	return OPERATOR_FINISHED;
+}
+
 static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	TrackMarkersJob *tmj;
@@ -784,9 +850,13 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	wmJob *steve;
 	Scene *scene= CTX_data_scene(C);
 	int backwards= RNA_boolean_get(op->ptr, "backwards");
+	int sequence= RNA_boolean_get(op->ptr, "sequence");
 
 	if(clip->tracking_context)
 		return OPERATOR_CANCELLED;
+
+	if(!sequence)
+		return track_markers_exec(C, op);
 
 	tmj= MEM_callocN(sizeof(TrackMarkersJob), "TrackMarkersJob data");
 	track_markers_initjob(C, tmj, backwards);
@@ -813,48 +883,6 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
-}
-
-static int track_markers_exec(bContext *C, wmOperator *op)
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	Scene *scene= CTX_data_scene(C);
-	struct MovieTrackingContext *context;
-	int framenr= sc->user.framenr;
-	int sfra= framenr, efra;
-	int backwards= RNA_boolean_get(op->ptr, "backwards");
-	MovieTrackingSettings *settings= &clip->tracking.settings;
-
-	if(backwards) efra= SFRA;
-	else efra= EFRA;
-
-	/* limit frames to be tracked by user setting */
-	if(settings->flag&TRACKING_FRAMES_LIMIT) {
-		if(backwards) efra= MAX2(efra, sfra-settings->frames_limit);
-		else efra= MIN2(efra, sfra+settings->frames_limit);
-	}
-
-	context= BKE_tracking_context_new(clip, &sc->user, backwards);
-
-	while(framenr != efra) {
-		if(!BKE_tracking_next(context))
-			break;
-
-		if(backwards) framenr--;
-		else framenr++;
-	}
-
-	BKE_tracking_sync(context);
-	BKE_tracking_context_free(context);
-
-	/* update scene current frame to the lastes tracked frame */
-	scene->r.cfra= framenr;
-
-	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-
-	return OPERATOR_FINISHED;
 }
 
 static int track_marekrs_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
@@ -891,6 +919,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tarcking");
+	RNA_def_boolean(ot->srna, "sequence", 0, "Track Sequence", "Track marker during image sequence rather than single image");
 }
 
 /********************** clear track operator *********************/
@@ -988,14 +1017,12 @@ static int track_to_fcurves_exec(bContext *C, wmOperator *op)
 	kflag= ks->flag;
 	kflag |= ANIM_get_keyframing_flags(scene, 1);
 
-	(void)op;
-
 	BKE_movieclip_acquire_size(clip, &user, &width, &height);
 
 	while(fra<EFRA) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, fra);
 
-		if(marker) {
+		if(marker && (marker->framenr&MARKER_DISABLED)==0) {
 			FCurve *fcu;
 
 			fcu= verify_fcurve(act, ks->name, "location", 0, 1);

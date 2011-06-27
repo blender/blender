@@ -46,6 +46,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_movieclip.h"
+#include "BKE_tracking.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -259,9 +260,14 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "CLIP_OT_add_marker", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "backwards", 1);
+	WM_keymap_add_item(keymap, "CLIP_OT_track_markers", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "sequence", 1);
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "backwards", 1);
+	RNA_boolean_set(kmi->ptr, "sequence", 1);
 	WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_delete", XKEY, KM_PRESS, 0, 0);
@@ -359,6 +365,12 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	Scene *scene= CTX_data_scene(C);
+	MovieClip *clip= ED_space_clip(sc);
+
+	/* if trcking is in progress, we should sunchronize framenr from clipuser
+	   so latest tracked frame would be shown */
+	if(clip->tracking_context)
+		BKE_tracking_sync_user(&sc->user, clip->tracking_context);
 
 	if(sc->flag&SC_LOCK_SELECTION)
 		ED_clip_view_selection(sc, ar, 0);

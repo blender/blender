@@ -69,14 +69,18 @@
 static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Scene *scene)
 {
 	float x;
-	int *points, totseg;
+	int *points, totseg, sel_type;
 	float sfra= SFRA, efra= EFRA;
+	void *sel;
+	float framelen= ar->winx/(efra-sfra+1);
+
+	BKE_movieclip_last_selection(clip, &sel_type, &sel);
 
 	glEnable(GL_BLEND);
 
 	/* cache background */
 	glColor4ub(128, 128, 255, 64);
-	glRecti(0, 0, ar->winx, 5);
+	glRecti(0, 0, ar->winx, 8);
 
 	/* cached segments -- could be usefu lto debug caching strategies */
 	BKE_movieclip_get_cache_segments(clip, &totseg, &points);
@@ -91,7 +95,40 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 			x1= (points[a*2]-sfra)/(efra-sfra+1)*ar->winx;
 			x2= (points[a*2+1]-sfra+1)/(efra-sfra+1)*ar->winx;
 
-			glRecti(x1, 0, x2, 5);
+			glRecti(x1, 0, x2, 8);
+		}
+	}
+
+	/* track */
+	if(sel_type==MCLIP_SEL_TRACK) {
+		int i, a= 0;
+		MovieTrackingTrack *track= (MovieTrackingTrack *)sel;
+
+		for(i= sfra; i <= efra; i++) {
+			int framenr;
+			MovieTrackingMarker *marker;
+
+			while(a<track->markersnr) {
+				if(track->markers[a].framenr>=i)
+					break;
+
+				if(a<track->markersnr-1 && track->markers[a+1].framenr>i)
+					break;
+
+				a++;
+			}
+
+			if(a<track->markersnr) marker= &track->markers[a];
+			else marker= &track->markers[track->markersnr-1];
+
+			if((marker->flag&MARKER_DISABLED)==0) {
+				framenr= marker->framenr;
+
+				if(framenr!=i) glColor4ub(128, 128, 0, 96);
+				else glColor4ub(255, 255, 0, 96);
+
+				glRecti((i-1)*framelen, 0, i*framelen, 4);
+			}
 		}
 	}
 
@@ -101,15 +138,15 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	x= (sc->user.framenr-sfra)/(efra-sfra+1)*ar->winx;
 
 	UI_ThemeColor(TH_CFRAME);
-	glRecti(x, 0, x+ar->winx/(efra-sfra), 5);
+	glRecti(x, 0, x+framelen, 8);
 }
 
-static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf)
+static void draw_movieclip_buffer(ARegion *ar, ImBuf *ibuf, float zoomx, float zoomy)
 {
 	int x, y;
 
 	/* set zoom */
-	glPixelZoom(sc->zoom, sc->zoom);
+	glPixelZoom(zoomx, zoomy);
 
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.f, 0.f, &x, &y);
@@ -129,7 +166,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 	int count= sc->path_length;
 	int i, a, b, sel_type, curindex= -1;
 	float path[102][2];
-	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
+	int tiny= sc->flag&SC_SHOW_TINY_MARKER, framenr;
 	MovieTrackingMarker *marker;
 	void *sel;
 
@@ -142,37 +179,44 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 	if((track->flag&TRACK_PROCESSED)==0)
 		return;
 
-	if(!BKE_tracking_has_marker(track, sc->user.framenr))
+	marker= BKE_tracking_get_marker(track, sc->user.framenr);
+	if(marker==NULL || marker->flag&MARKER_DISABLED)
 		return;
 
+	framenr= marker->framenr;
+
 	a= count;
-	i= sc->user.framenr-1;
-	while(i>=sc->user.framenr-count) {
+	i= framenr-1;
+	while(i>=framenr-count) {
 		marker= BKE_tracking_get_marker(track, i);
 
-		if(!marker)
+		if(!marker || marker->flag&MARKER_DISABLED)
 			break;
 
-		copy_v2_v2(path[--a], marker->pos);
+		if(marker->framenr==i) {
+			copy_v2_v2(path[--a], marker->pos);
 
-		if(marker->framenr==sc->user.framenr)
-			curindex= a;
+			if(marker->framenr==sc->user.framenr)
+				curindex= a;
+		}
 
 		i--;
 	}
 
 	b= count;
-	i= sc->user.framenr;
-	while(i<=sc->user.framenr+count) {
+	i= framenr;
+	while(i<=framenr+count) {
 		marker= BKE_tracking_get_marker(track, i);
 
-		if(!marker)
+		if(!marker || marker->flag&MARKER_DISABLED)
 			break;
 
-		if(marker->framenr==sc->user.framenr)
-			curindex= b;
+		if(marker->framenr==i) {
+			if(marker->framenr==sc->user.framenr)
+				curindex= b;
 
-		copy_v2_v2(path[b++], marker->pos);
+			copy_v2_v2(path[b++], marker->pos);
+		}
 
 		i++;
 	}
@@ -226,12 +270,15 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
 
 	UI_ThemeColor(TH_MARKER_OUTLINE);
-	if(tiny) glPointSize(3.0f);
-	else glPointSize(4.0f);
-	glBegin(GL_POINTS);
-		glVertex2f(marker->pos[0], marker->pos[1]);
-	glEnd();
-	glPointSize(1.0f);
+
+	if((marker->flag&MARKER_DISABLED)==0) {
+		if(tiny) glPointSize(3.0f);
+		else glPointSize(4.0f);
+		glBegin(GL_POINTS);
+			glVertex2f(marker->pos[0], marker->pos[1]);
+		glEnd();
+		glPointSize(1.0f);
+	}
 
 	/* pattern and search outline */
 	glPushMatrix();
@@ -239,7 +286,7 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 
 	if(!tiny) glLineWidth(3.0f);
 
-	if(sc->flag&SC_SHOW_MARKER_PATTERN) {
+	if(sc->flag&SC_SHOW_MARKER_PATTERN && (marker->flag&MARKER_DISABLED)==0) {
 		glBegin(GL_LINE_LOOP);
 			glVertex2f(track->pat_min[0], track->pat_min[1]);
 			glVertex2f(track->pat_max[0], track->pat_min[1]);
@@ -267,7 +314,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
 
 	/* marker position */
-	if((track->flag&SELECT)==sel) {
+	if((track->flag&SELECT)==sel && (marker->flag&MARKER_DISABLED)==0) {
 		if(track->flag&SELECT) UI_ThemeColor(color);
 		else UI_ThemeColor(TH_MARKER);
 
@@ -287,7 +334,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	glPushMatrix();
 	glTranslatef(marker->pos[0], marker->pos[1], 0);
 
-	if((track->pat_flag&SELECT)==sel) {
+	if((track->pat_flag&SELECT)==sel && (marker->flag&MARKER_DISABLED)==0) {
 		if(track->pat_flag&SELECT) UI_ThemeColor(color);
 		else UI_ThemeColor(TH_MARKER);
 
@@ -322,9 +369,20 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		glDisable(GL_LINE_STIPPLE);
 }
 
-static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip)
+static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx, float *regiony)
 {
-	int x, y;
+	/* express given coordinates as proportional values */
+	x= -v2d->cur.xmin / (v2d->cur.xmax-v2d->cur.xmin);
+	y= -v2d->cur.ymin / (v2d->cur.ymax-v2d->cur.ymin);
+
+	/* convert proportional distances to screen coordinates */
+	*regionx= v2d->mask.xmin + x*(v2d->mask.xmax-v2d->mask.xmin);
+	*regiony= v2d->mask.ymin + y*(v2d->mask.ymax-v2d->mask.ymin);
+}
+
+static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, float zoomx, float zoomy)
+{
+	float x, y;
 	MovieTrackingMarker *marker;
 	MovieTrackingTrack *track;
 	int width, height, sel_type;
@@ -335,12 +393,18 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip)
 	if(!width || !height) /* no image displayed for frame */
 		return;
 
-	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	/* ** find window pixel coordinates of origin ** */
+
+	/* UI_view2d_to_region_no_clip return integer values, this could
+	   lead to 1px flickering when view is locked to selection during playbeck.
+	   to avoid this flickering, calclate base point in the same way as it happens
+	   in UI_view2d_to_region_no_clip, but do it in floats here */
+
+	view2d_to_region_float(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 	glPushMatrix();
 	glTranslatef(x, y, 0);
-	glScalef(sc->zoom, sc->zoom, 0);
+	glScalef(zoomx, zoomy, 0);
 	glScalef(width, height, 0);
 
 	BKE_movieclip_last_selection(clip, &sel_type, &sel);
@@ -392,32 +456,30 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip)
 	glPopMatrix();
 }
 
-static void draw_tracking(SpaceClip *sc, ARegion *ar, MovieClip *clip)
+static void draw_tracking(SpaceClip *sc, ARegion *ar, MovieClip *clip, float zoomx, float zoomy)
 {
-	draw_tracking_tracks(sc, ar, clip);
+	draw_tracking_tracks(sc, ar, clip, zoomx, zoomy);
 }
 
 void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
 	MovieClip *clip= ED_space_clip(sc);
 	ImBuf *ibuf;
+	float zoomx, zoomy;
 
 	/* if no clip, nothing to do */
 	if(!clip)
 		return;
 
-	/* if trcking is in progress, we should sunchronize framenr from clipuser
-	   so latest tracked frame would be shown */
-	if(clip->tracking_context)
-		BKE_tracking_sync_user(&sc->user, clip->tracking_context);
+	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
 	ibuf= ED_space_clip_acquire_buffer(sc);
 
 	if(ibuf) {
-		draw_movieclip_buffer(sc, ar, ibuf);
+		draw_movieclip_buffer(ar, ibuf, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
 
-		draw_tracking(sc, ar, clip);
+		draw_tracking(sc, ar, clip, zoomx, zoomy);
 	}
 
 	if(sc->debug_flag&SC_DBG_SHOW_CACHE)
@@ -438,7 +500,14 @@ void draw_clip_track_widget(const bContext *C, void *trackp, void *userp, void *
 	if(track) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
-		if(marker) {
+		if(marker && marker->flag&MARKER_DISABLED) {
+			glColor4f(0.7f, 0.3f, 0.3f, 0.3f);
+			uiSetRoundBox(15);
+			uiDrawBox(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 3.0f);
+
+			ok= 1;
+		}
+		else if(marker) {
 			ImBuf* ibuf= BKE_movieclip_acquire_ibuf(clip, user);
 
 			if(ibuf && ibuf->rect) {
