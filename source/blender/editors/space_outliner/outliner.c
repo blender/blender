@@ -558,6 +558,10 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 		outliner_add_passes(soops, tenlay, &sce->id, srl);
 	}
 	
+	// TODO: move this to the front?
+	if (sce->adt)
+		outliner_add_element(soops, lb, sce, te, TSE_ANIM_DATA, 0);
+	
 	outliner_add_element(soops,  lb, sce->world, te, 0, 0);
 }
 
@@ -610,7 +614,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Object *ob= (Object *)id;
 				
-				outliner_add_element(soops, &te->subtree, ob->adt, te, TSE_ANIM_DATA, 0);
+				if (ob->adt)
+					outliner_add_element(soops, &te->subtree, ob, te, TSE_ANIM_DATA, 0);
 				outliner_add_element(soops, &te->subtree, ob->poselib, te, 0, 0); // XXX FIXME.. add a special type for this
 				
 				if(ob->proxy && ob->id.lib==NULL)
@@ -775,7 +780,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Mesh *me= (Mesh *)id;
 				
-				outliner_add_element(soops, &te->subtree, me->adt, te, TSE_ANIM_DATA, 0);
+				if (me->adt)
+					outliner_add_element(soops, &te->subtree, me, te, TSE_ANIM_DATA, 0);
 				
 				outliner_add_element(soops, &te->subtree, me->key, te, 0, 0);
 				for(a=0; a<me->totcol; a++) 
@@ -788,7 +794,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Curve *cu= (Curve *)id;
 				
-				outliner_add_element(soops, &te->subtree, cu->adt, te, TSE_ANIM_DATA, 0);
+				if (cu->adt)
+					outliner_add_element(soops, &te->subtree, cu, te, TSE_ANIM_DATA, 0);
 				
 				for(a=0; a<cu->totcol; a++) 
 					outliner_add_element(soops, &te->subtree, cu->mat[a], te, 0, a);
@@ -797,6 +804,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		case ID_MB:
 			{
 				MetaBall *mb= (MetaBall *)id;
+				
+				if (mb->adt)
+					outliner_add_element(soops, &te->subtree, mb, te, TSE_ANIM_DATA, 0);
+				
 				for(a=0; a<mb->totcol; a++) 
 					outliner_add_element(soops, &te->subtree, mb->mat[a], te, 0, a);
 			}
@@ -805,7 +816,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		{
 			Material *ma= (Material *)id;
 			
-			outliner_add_element(soops, &te->subtree, ma->adt, te, TSE_ANIM_DATA, 0);
+			if (ma->adt)
+				outliner_add_element(soops, &te->subtree, ma, te, TSE_ANIM_DATA, 0);
 			
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
@@ -816,21 +828,26 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Tex *tex= (Tex *)id;
 				
-				outliner_add_element(soops, &te->subtree, tex->adt, te, TSE_ANIM_DATA, 0);
+				if (tex->adt)
+					outliner_add_element(soops, &te->subtree, tex, te, TSE_ANIM_DATA, 0);
+				
 				outliner_add_element(soops, &te->subtree, tex->ima, te, 0, 0);
 			}
 			break;
 		case ID_CA:
 			{
 				Camera *ca= (Camera *)id;
-				outliner_add_element(soops, &te->subtree, ca->adt, te, TSE_ANIM_DATA, 0);
+				
+				if (ca->adt)
+					outliner_add_element(soops, &te->subtree, ca, te, TSE_ANIM_DATA, 0);
 			}
 			break;
 		case ID_LA:
 			{
 				Lamp *la= (Lamp *)id;
 				
-				outliner_add_element(soops, &te->subtree, la->adt, te, TSE_ANIM_DATA, 0);
+				if (la->adt)
+					outliner_add_element(soops, &te->subtree, la, te, TSE_ANIM_DATA, 0);
 				
 				for(a=0; a<MAX_MTEX; a++) {
 					if(la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, 0, a);
@@ -841,7 +858,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				World *wrld= (World *)id;
 				
-				outliner_add_element(soops, &te->subtree, wrld->adt, te, TSE_ANIM_DATA, 0);
+				if (wrld->adt)
+					outliner_add_element(soops, &te->subtree, wrld, te, TSE_ANIM_DATA, 0);
 				
 				for(a=0; a<MAX_MTEX; a++) {
 					if(wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, 0, a);
@@ -852,7 +870,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Key *key= (Key *)id;
 				
-				outliner_add_element(soops, &te->subtree, key->adt, te, TSE_ANIM_DATA, 0);
+				if (key->adt)
+					outliner_add_element(soops, &te->subtree, key, te, TSE_ANIM_DATA, 0);
 			}
 			break;
 		case ID_AC:
@@ -865,6 +884,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				bArmature *arm= (bArmature *)id;
 				int a= 0;
+				
+				if (arm->adt)
+					outliner_add_element(soops, &te->subtree, arm, te, TSE_ANIM_DATA, 0);
 				
 				if(arm->edbo) {
 					EditBone *ebone;
@@ -906,7 +928,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		}
 	}
 	else if(type==TSE_ANIM_DATA) {
-		AnimData *adt= (AnimData *)idv;
+		IdAdtTemplate *iat = (IdAdtTemplate *)idv;
+		AnimData *adt= (AnimData *)iat->adt;
 		
 		/* this element's info */
 		te->name= "Animation";
@@ -3143,6 +3166,31 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 	}
 }
 
+static void unlink_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
+{
+	IdAdtTemplate *iat = (IdAdtTemplate *)tsep->id;
+	AnimData *adt = iat->adt;
+	
+	//printf("iat = '%s' | act = '%s'\n", iat->id.name, tselem->id->name);
+	
+	/* active action is only editable when it is not a tweaking strip 
+	 * see rna_AnimData_action_editable() in rna_animation.c
+	 */
+	if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact)) {
+		/* cannot remove, otherwise things turn to custard */
+		ReportList *reports = CTX_wm_reports(C);
+		
+		// FIXME: this only gets shown in info-window, since this is global not operator report
+		BKE_report(reports, RPT_ERROR, "Cannot unlink action, as it is still being edited in NLA");
+		
+		return;
+	}
+	
+	/* remove action... */
+	id_us_min((ID*)adt->action);
+	adt->action = NULL;
+}
+
 static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
 	Material **matar=NULL;
@@ -3586,6 +3634,7 @@ void OUTLINER_OT_group_operation(wmOperatorType *ot)
 
 /* **************************************** */
 
+// TODO: implement support for changing the ID-block used
 static EnumPropertyItem prop_id_op_types[] = {
 	{1, "UNLINK", 0, "Unlink", ""},
 	{2, "LOCAL", 0, "Make Local", ""},
@@ -3609,12 +3658,22 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 	
 	if(event==1) {
 		switch(idlevel) {
+			case ID_AC:
+				outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_action_cb);
+				
+				WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
+				ED_undo_push(C, "Unlink action");
+				break;
 			case ID_MA:
 				outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_material_cb);
+				
+				WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, NULL);
 				ED_undo_push(C, "Unlink material");
 				break;
 			case ID_TE:
 				outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_texture_cb);
+				
+				WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, NULL);
 				ED_undo_push(C, "Unlink texture");
 				break;
 			default:
@@ -3627,7 +3686,10 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* wrong notifier still... */
-	WM_event_add_notifier(C, NC_OBJECT, NULL);
+	WM_event_add_notifier(C, NC_ID|NA_EDITED, NULL);
+	
+	// XXX: this is just so that outliner is always up to date 
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_OUTLINER, NULL);
 	
 	return OPERATOR_FINISHED;
 }
