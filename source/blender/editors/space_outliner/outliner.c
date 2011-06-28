@@ -775,7 +775,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Mesh *me= (Mesh *)id;
 				
-				//outliner_add_element(soops, &te->subtree, me->adt, te, TSE_ANIM_DATA, 0);
+				outliner_add_element(soops, &te->subtree, me->adt, te, TSE_ANIM_DATA, 0);
 				
 				outliner_add_element(soops, &te->subtree, me->key, te, 0, 0);
 				for(a=0; a<me->totcol; a++) 
@@ -1088,7 +1088,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				if(!(tselem->flag & TSE_CLOSED)) {
 					for(a=0; a<tot; a++) {
 						RNA_property_collection_lookup_int(ptr, prop, a, &pptr);
-						outliner_add_element(soops, &te->subtree, (void*)&pptr, te, TSE_RNA_STRUCT, -1);
+						outliner_add_element(soops, &te->subtree, (void*)&pptr, te, TSE_RNA_STRUCT, a);
 					}
 				}
 				else if(tot)
