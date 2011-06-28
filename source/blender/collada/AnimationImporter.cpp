@@ -776,36 +776,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 				ob->rotmode = ROT_MODE_EUL;
 			}
 		}
-  //     	if (is_joint) 
-		//{   
-		//	float mat[4][4];
-		//	float obmat[4][4];
-
-		//	// object-space
-		//	get_node_mat(obmat, node, NULL, NULL);
-  //          bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
-		//	
-		//	bArmature * arm = (bArmature *) ob->data;
-		//	
-		//	Bone *cur = get_named_bone( arm , bone_name );
-
-		//	if (cur->parent){
-		//		COLLADAFW::Node * parent = armature_importer->joint_parent_map.find(node->getUniqueId());
-		//		float[4][4] parent_mat;
-		//		get_node_mat ( parent_mat, parent, NULL, NULL );
-  // 				mul_m4_m4m4(mat, obmat, parent_mat);
-		//		bPoseChannel *parchan = get_pose_channel(ob->pose, cur->parent->name);
-		//		if ( parchan && chan)
-		//		mul_m4_m4m4(pchan->pose_mat, mat , parchan->pose_mat);
-		//	}
-		//	else {
-		//		copy_m4_m4(mat, obmat);
-		//		 float invObmat[4][4];
-		//	   invert_m4_m4(invObmat, ob->obmat);
-		//	   if(pchan)
-		//	   mul_m4_m4m4(pchan->pose_mat, mat, invObmat);
-		//	}
-		//}
+ 
 	}
 	
 }

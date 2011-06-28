@@ -73,7 +73,7 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 	if (cam->type == CAM_PERSP) {
 		COLLADASW::PerspectiveOptic persp(mSW);
 		persp.setXFov(lens_to_angle(cam->lens)*(180.0f/M_PI));
-		persp.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch));
+		persp.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch),false,cam_name);
 		persp.setZFar(cam->clipend);
 		persp.setZNear(cam->clipsta);
 		COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);

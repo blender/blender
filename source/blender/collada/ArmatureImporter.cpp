@@ -96,13 +96,17 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	bPoseChannel *pchan  =  get_pose_channel(ob_arm->pose, (char*)bc_get_joint_name(node));
 
 	if (parent) bone->parent = parent;
-    
+    float ax[3];
+	float angle = NULL;
+
 	// get world-space
 	if (parent){
        	mul_m4_m4m4(mat, obmat, parent_mat);
 		bPoseChannel *parchan = get_pose_channel(ob_arm->pose, parent->name);
 		if ( parchan && pchan)
 		mul_m4_m4m4(pchan->pose_mat, mat , parchan->pose_mat);
+		mat4_to_axis_angle(ax,&angle,mat);
+		bone->roll = angle;
 	}
 	else {
 		copy_m4_m4(mat, obmat);
@@ -110,6 +114,8 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
        invert_m4_m4(invObmat, ob_arm->obmat);
 	   if(pchan)
        mul_m4_m4m4(pchan->pose_mat, mat, invObmat);
+	   mat4_to_axis_angle(ax,&angle,mat);
+	   bone->roll = angle;
 	}
 	
 
@@ -545,7 +551,8 @@ void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node
    float obmat[4][4];
 
    bArmature * arm = (bArmature * ) ob_arm-> data ; 
-	EditBone *edbone = NULL ;
+	float ax[3];
+	float angle = NULL;
 	
 	// object-space
 	get_node_mat(obmat, root_node, NULL, NULL);
@@ -560,15 +567,18 @@ void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node
 		bPoseChannel *parchan = get_pose_channel(ob_arm->pose, parentname);
 
 		mul_m4_m4m4(pchan->pose_mat, mat , parchan->pose_mat);
+
 	}
 	else {
 		copy_m4_m4(mat, obmat);
 		 float invObmat[4][4];
        invert_m4_m4(invObmat, ob_arm->obmat);
        mul_m4_m4m4(pchan->pose_mat, mat, invObmat);
+	  
 	}
 		
-
+     mat4_to_axis_angle(ax,&angle,mat);
+	   pchan->bone->roll = angle;
 	
 
    COLLADAFW::NodePointerArray& children = root_node->getChildNodes();
@@ -632,7 +642,8 @@ void ArmatureImporter::make_armatures(bContext *C)
 		// free memory stolen from SkinControllerData
 		skin.free();
 	}
-
+    
+	//for bones without skins
 	create_armature_bones();
 
 }
