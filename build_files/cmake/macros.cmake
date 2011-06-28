@@ -201,7 +201,9 @@ endmacro()
 
 macro(setup_liblinks
 	target)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS} ")
+
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
+	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
 
 	target_link_libraries(${target}
 			${OPENGL_gl_LIBRARY}
@@ -209,7 +211,7 @@ macro(setup_liblinks
 			${JPEG_LIBRARIES}
 			${PNG_LIBRARIES}
 			${ZLIB_LIBRARIES}
-			${LLIBS})
+			${PLATFORM_LINKLIBS})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
 	if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
