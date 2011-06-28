@@ -50,6 +50,8 @@ BF_SDL_INC = '${BF_SDL}/include'
 BF_SDL_LIB = 'SDL.lib'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
+WITH_BF_JACK = False
+
 BF_PTHREADS = LIBDIR + '/pthreads'
 BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadVC2'
@@ -172,7 +174,7 @@ BGE_CXXFLAGS = ['/O2', '/EHsc', '/GR', '/fp:fast']
 
 BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr', '/Od']
 
-CPPFLAGS = ['-DWIN32', '-D_CONSOLE', '-D_LIB', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
+CPPFLAGS = ['-DWIN32', '-D_CONSOLE', '-D_LIB', '-D_CRT_SECURE_NO_DEPRECATE']
 REL_CFLAGS = ['-O2', '-DNDEBUG']
 REL_CCFLAGS = ['-O2', '-DNDEBUG']
 REL_CXXFLAGS = ['-O2', '-DNDEBUG']
@@ -188,7 +190,7 @@ if BF_DEBUG:
 else:
 	BF_NUMJOBS=6
 
-PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/STACK:2097152','/OPT:NOREF','/INCREMENTAL:NO', '/NODEFAULTLIB:"msvcrt.lib"', '/NODEFAULTLIB:"msvcmrt.lib"', '/NODEFAULTLIB:"msvcurt.lib"', '/NODEFAULTLIB:"msvcrtd.lib"']
+PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/STACK:2097152','/OPT:NOREF','/INCREMENTAL:NO', '/NODEFAULTLIB:msvcrt.lib;msvcmrt.lib;msvcurt.lib;msvcrtd.lib']
 
 BF_BUILDDIR = '..\\build\\blender25-win64-vc'
 BF_INSTALLDIR='..\\install\\blender25-win64-vc'

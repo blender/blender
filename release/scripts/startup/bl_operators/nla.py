@@ -103,7 +103,7 @@ def bake(frame_start,
 
     # -------------------------------------------------------------------------
     # Collect transformations
-    
+
     # could speed this up by applying steps here too...
     for f in frame_range:
         scene.frame_set(f)

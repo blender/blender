@@ -4,7 +4,6 @@ set(INC
 	../../../intern/string
 	../../../intern/container
 	../../../intern/guardedalloc
-	../../../intern/audaspace/intern
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
 	../../../source/gameengine/Converter
 	../../../source/blender/imbuf
@@ -58,6 +57,13 @@ set(SRC
 )
 
 add_definitions(-DGLEW_STATIC)
+
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
 
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)

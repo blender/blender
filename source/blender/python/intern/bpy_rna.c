@@ -1473,7 +1473,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				param= _PyUnicode_AsString(value);
 			}
 #else // USE_STRING_COERCE
-			param= _PyUnicode_AsStringSize(value);
+			param= _PyUnicode_AsString(value);
 #endif // USE_STRING_COERCE
 
 			if (param==NULL) {

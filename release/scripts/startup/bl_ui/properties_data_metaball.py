@@ -70,20 +70,20 @@ class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
 
         layout.label(text="Update:")
         layout.prop(mball, "update_method", expand=True)
-        
-        
+
+
 class DATA_PT_mball_texture_space(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Texture Space"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    
+
     def draw(self, context):
         layout = self.layout
 
         mball = context.meta_ball
 
         layout.prop(mball, "use_auto_texspace")
-        
+
         row = layout.row()
         row.column().prop(mball, "texspace_location", text="Location")
         row.column().prop(mball, "texspace_size", text="Size")

@@ -24,17 +24,17 @@ Dump the python API into a text file so we can generate changelogs.
 output from this tool should be added into "doc/python_api/rst/change_log.rst"
 
 # dump api blender_version.py in CWD
-blender --background --python intern/tools/rna_api_dump.py -- --dump
+blender --background --python doc/python_api/sphinx_changelog_gen.py -- --dump
 
 # create changelog
-blender --background --python intern/tools/rna_api_dump.py -- \
+blender --background --python doc/python_api/sphinx_changelog_gen.py -- \
         --api_from blender_2_56_1.py \
         --api_to blender_2_57_0.py \
         --api_out changes.rst
 
 
 # Api comparison can also run without blender
-python intern/tools/rna_api_dump.py
+python doc/python_api/sphinx_changelog_gen.py \
         --api_from blender_api_2_56_6.py \
         --api_to blender_api_2_57.py \
         --api_out changes.rst

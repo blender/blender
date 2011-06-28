@@ -1352,30 +1352,6 @@ static void *get_nearest_bone (bContext *C, short findunsel, int x, int y)
 	return NULL;
 }
 
-/* helper for setflag_sel_bone() */
-static void bone_setflag (int *bone, int flag, short mode)
-{
-	if (bone && flag) {
-		/* exception for inverse flags */
-		if (flag == BONE_NO_DEFORM) {
-			if (mode == 2)
-				*bone |= flag;
-			else if (mode == 1)
-				*bone &= ~flag;
-			else
-				*bone ^= flag;
-		}
-		else {
-			if (mode == 2)
-				*bone &= ~flag;
-			else if (mode == 1)
-				*bone |= flag;
-			else
-				*bone ^= flag;
-		}
-	}
-}
-
 /* Get the first available child of an editbone */
 static EditBone *editbone_get_child(bArmature *arm, EditBone *pabone, short use_visibility)
 {
@@ -1395,105 +1371,6 @@ static EditBone *editbone_get_child(bArmature *arm, EditBone *pabone, short use_
 	
 	return chbone;
 }
-
-/* callback for posemode setflag */
-static int pose_setflag_exec (bContext *C, wmOperator *op)
-{
-	int flag= RNA_enum_get(op->ptr, "type");
-	int mode= RNA_enum_get(op->ptr, "mode");
-	
-	/* loop over all selected pchans */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
-	{
-		bone_setflag(&pchan->bone->flag, flag, mode);
-	}
-	CTX_DATA_END;
-	
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ED_object_pose_armature(CTX_data_active_object(C)));
-	
-	return OPERATOR_FINISHED;
-}
-
-/* callback for editbones setflag */
-static int armature_bones_setflag_exec (bContext *C, wmOperator *op)
-{
-	int flag= RNA_enum_get(op->ptr, "type");
-	int mode= RNA_enum_get(op->ptr, "mode");
-	
-	/* loop over all selected pchans */
-	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_bones) 
-	{
-		bone_setflag(&ebone->flag, flag, mode);
-	}
-	CTX_DATA_END;
-	
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, CTX_data_edit_object(C));
-	
-	return OPERATOR_FINISHED;
-}
-
-/* settings that can be changed */
-static EnumPropertyItem prop_bone_setting_types[] = {
-	{BONE_DRAWWIRE, "DRAWWIRE", 0, "Draw Wire", ""},
-	{BONE_NO_DEFORM, "DEFORM", 0, "Deform", ""},
-	{BONE_MULT_VG_ENV, "MULT_VG", 0, "Multiply Vertex Groups", ""},
-	{BONE_HINGE, "HINGE", 0, "Hinge", ""},
-	{BONE_NO_SCALE, "NO_SCALE", 0, "No Scale", ""},
-	{BONE_EDITMODE_LOCKED, "LOCKED", 0, "Locked", "(For EditMode only)"},
-	{0, NULL, 0, NULL, NULL}
-};
-
-/* ways that settings can be changed */
-static EnumPropertyItem prop_bone_setting_modes[] = {
-	{0, "CLEAR", 0, "Clear", ""},
-	{1, "ENABLE", 0, "Enable", ""},
-	{2, "TOGGLE", 0, "Toggle", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-
-void ARMATURE_OT_flags_set (wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Set Bone Flags";
-	ot->idname= "ARMATURE_OT_flags_set";
-	ot->description= "Set flags for armature bones";
-	
-	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= armature_bones_setflag_exec;
-	ot->poll= ED_operator_editarmature;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
-	RNA_def_enum(ot->srna, "mode", prop_bone_setting_modes, 0, "Mode", "");
-}
-
-void POSE_OT_flags_set (wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Set Bone Flags";
-	ot->idname= "POSE_OT_flags_set";
-	ot->description= "Set flags for armature bones";
-	
-	/* callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= pose_setflag_exec;
-	ot->poll= ED_operator_posemode;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
-	RNA_def_enum(ot->srna, "mode", prop_bone_setting_modes, 0, "Mode", "");
-}
-
 
 /* **************** END PoseMode & EditMode *************************** */
 /* **************** Posemode stuff ********************** */

@@ -149,6 +149,15 @@ set(SRC
 	src/LinearMath/btGeometryUtil.cpp
 	src/LinearMath/btQuickprof.cpp
 	src/LinearMath/btSerializer.cpp
+	# UNUSED
+	# src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp
+	# src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp
+	# src/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp
+	# src/BulletCollision/CollisionShapes/btBox2dShape.cpp
+	# src/BulletCollision/CollisionShapes/btConvex2dShape.cpp
+	# src/BulletDynamics/Character/btKinematicCharacterController.cpp
+	# src/BulletDynamics/ConstraintSolver/btHinge2Constraint.cpp
+	# src/BulletDynamics/ConstraintSolver/btUniversalConstraint.cpp
 
 	src/Bullet-C-Api.h
 	src/BulletCollision/BroadphaseCollision/btAxisSweep3.h
@@ -217,6 +226,7 @@ set(SRC
 	src/BulletCollision/CollisionShapes/btTriangleCallback.h
 	src/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h
 	src/BulletCollision/CollisionShapes/btTriangleIndexVertexMaterialArray.h
+	src/BulletCollision/CollisionShapes/btTriangleInfoMap.h
 	src/BulletCollision/CollisionShapes/btTriangleMesh.h
 	src/BulletCollision/CollisionShapes/btTriangleMeshShape.h
 	src/BulletCollision/CollisionShapes/btTriangleShape.h
@@ -264,6 +274,7 @@ set(SRC
 	src/BulletCollision/NarrowPhaseCollision/btSimplexSolverInterface.h
 	src/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.h
 	src/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h
+	src/BulletDynamics/Character/btCharacterControllerInterface.h
 	src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h
 	src/BulletDynamics/ConstraintSolver/btConstraintSolver.h
 	src/BulletDynamics/ConstraintSolver/btContactConstraint.h
@@ -291,9 +302,12 @@ set(SRC
 	src/BulletSoftBody/btDefaultSoftBodySolver.h
 	src/BulletSoftBody/btSoftBody.h
 	src/BulletSoftBody/btSoftBodyConcaveCollisionAlgorithm.h
+	src/BulletSoftBody/btSoftBodyData.h
 	src/BulletSoftBody/btSoftBodyHelpers.h
 	src/BulletSoftBody/btSoftBodyInternals.h
 	src/BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h
+	src/BulletSoftBody/btSoftBodySolverVertexBuffer.h
+	src/BulletSoftBody/btSoftBodySolvers.h
 	src/BulletSoftBody/btSoftRigidCollisionAlgorithm.h
 	src/BulletSoftBody/btSoftRigidDynamicsWorld.h
 	src/BulletSoftBody/btSoftSoftCollisionAlgorithm.h
@@ -323,9 +337,16 @@ set(SRC
 	src/LinearMath/btTransform.h
 	src/LinearMath/btTransformUtil.h
 	src/LinearMath/btVector3.h
-	
 	src/btBulletCollisionCommon.h
 	src/btBulletDynamicsCommon.h
+	# src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.h
+	# src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.h
+	# src/BulletCollision/CollisionDispatch/btInternalEdgeUtility.h
+	# src/BulletCollision/CollisionShapes/btBox2dShape.h
+	# src/BulletCollision/CollisionShapes/btConvex2dShape.h
+	# src/BulletDynamics/Character/btKinematicCharacterController.h
+	# src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h
+	# src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)

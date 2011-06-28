@@ -3567,6 +3567,18 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		mesh->mr->edge_creases= newdataadr(fd, mesh->mr->edge_creases);
 
 		mesh->mr->verts = newdataadr(fd, mesh->mr->verts);
+		
+		/* If mesh has the same number of vertices as the
+		   highest multires level, load the current mesh verts
+		   into multires and discard the old data. Needed
+		   because some saved files either do not have a verts
+		   array, or the verts array contains out-of-date
+		   data. */
+		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert) {
+			if(mesh->mr->verts)
+				MEM_freeN(mesh->mr->verts);
+			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
+		}
 			
 		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);
@@ -3576,16 +3588,11 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		}
 	}
 
-	/* Gracefully handle corrupted mesh */
+	/* if multires is present but has no valid vertex data,
+	   there's no way to recover it; silently remove multires */
 	if(mesh->mr && !mesh->mr->verts) {
-		/* If totals match, simply load the current mesh verts into multires */
-		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert)
-			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
-		else {
-			/* Otherwise, we can't recover the data, silently remove multires */
-			multires_free(mesh->mr);
-			mesh->mr = NULL;
-		}
+		multires_free(mesh->mr);
+		mesh->mr = NULL;
 	}
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
@@ -11643,9 +11650,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 	}
 
-	/* put compatibility code here until next subversion bump */
-
-	{
+	if (main->versionfile < 258 || (main->versionfile == 258 && main->subversionfile < 1)){
 		/* screen view2d settings were not properly initialized [#27164]
 		 * v2d->scroll caused the bug but best reset other values too which are in old blend files only.
 		 * need to make less ugly - possibly an iterator? */
@@ -11712,6 +11717,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		{
+			ParticleSettings *part;
+			for(part = main->particle.first; part; part = part->id.next) {
+				/* Initialize particle billboard scale */
+				part->bb_size[0] = part->bb_size[1] = 1.0f;
+			}
+		}
+	}
+	
+	/* put compatibility code here until next subversion bump */
+
+	{
+	
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -11794,7 +11813,8 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	// XXX
 	user->uifonts.first= user->uifonts.last= NULL;
-	user->uistyles.first= user->uistyles.last= NULL;
+	
+	link_list(fd, &user->uistyles);
 
 	/* free fd->datamap again */
 	oldnewmap_free_unused(fd->datamap);

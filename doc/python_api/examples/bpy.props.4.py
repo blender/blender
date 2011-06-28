@@ -10,6 +10,7 @@ All properties define update functions except for CollectionProperty.
 
 import bpy
 
+
 def update_func(self, context):
     print("my test function", self)
 

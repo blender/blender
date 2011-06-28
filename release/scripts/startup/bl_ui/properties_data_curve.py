@@ -112,22 +112,23 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
             sub.prop(curve, "use_fill_front")
             sub.prop(curve, "use_fill_back")
             col.prop(curve, "use_fill_deform", text="Fill Deformed")
-            
+
+
 class DATA_PT_curve_texture_space(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Texture Space"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    
+
     def draw(self, context):
         layout = self.layout
-        
+
         ob = context.object
         curve = context.curve
 
         row = layout.row()
         row.prop(curve, "use_auto_texspace")
         row.prop(curve, "use_uv_as_generated")
-        
+
         row = layout.row()
         row.column().prop(curve, "texspace_location", text="Location")
         row.column().prop(curve, "texspace_size", text="Size")
