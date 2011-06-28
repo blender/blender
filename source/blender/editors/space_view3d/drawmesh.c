@@ -645,7 +645,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-/**************************** CYCLES **********************************/
+/************************** NEW SHADING SYSTEM ********************************/
 
 typedef struct TexMatCallback {
 	Scene *scene;
@@ -668,17 +668,13 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 	/* texture draw mode without GLSL */
 	TexMatCallback *data= (TexMatCallback*)userData;
 	GPUVertexAttribs *gattribs = attribs;
-	Material *ma= give_current_material_or_def(data->ob, mat_nr);
-	bNode *node= (ma->use_nodes)? nodeGetActiveTexture(ma->nodetree): NULL;
+	Image *ima;
+	ImageUser *iuser;
 	int texture_set= 0;
 
-	memset(gattribs, 0, sizeof(*gattribs));
-
-	/* draw textured */
-	if(node && (node->type == SH_NODE_TEX_IMAGE)) {
+	/* draw image texture if we find one */
+	if(ED_object_get_active_image(data->ob, mat_nr, &ima, &iuser)) {
 		/* get openl texture */
-		Image *ima= (Image*)node->id;
-		ImageUser *iuser= NULL;
 		int mipmap= 1;
 		int bindcode= (ima)? GPU_verify_image(ima, iuser, 0, 0, mipmap): 0;
 		float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -698,6 +694,8 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 			/* use active UV texture layer */
+			memset(gattribs, 0, sizeof(*gattribs));
+
 			gattribs->layer[0].type= CD_MTFACE;
 			gattribs->layer[0].name[0]= '\0';
 			gattribs->layer[0].gltexco= 1;
