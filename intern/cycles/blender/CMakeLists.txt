@@ -78,17 +78,48 @@ TARGET_LINK_LIBRARIES(cycles_blender ${LIBRARIES})
 INSTALL(FILES ${addonfiles} DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
 INSTALL(TARGETS cycles_blender LIBRARY DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
 
-IF(UNIX AND NOT APPLE)
-	SET_TARGET_PROPERTIES(cycles_blender PROPERTIES INSTALL_RPATH $ORIGIN/lib)
-ENDIF()
-
-# Install DLL's
+# Install Dynamic Libraries
 
 IF(WIN32)
 	FILE(GLOB OIIO_DLLS "${CYCLES_OIIO}/bin/*.dll")
 	FILE(GLOB BOOST_DLLS "${CYCLES_BOOST}/lib/*.dll")
 	INSTALL(FILES ${OIIO_DLLS} ${BOOST_DLLS}
 		DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
+ENDIF()
+
+IF(UNIX)
+	# copy libraries to cycles lib directory
+	SET(install_libs
+		${OPENIMAGEIO_LIBRARY}
+		${Boost_LIBRARIES}
+		${OSL_LIBRARIES}
+		${PARTIO_LIBRARIES})
+
+	INSTALL(FILES ${install_libs}
+		DESTINATION ${CYCLES_INSTALL_PATH}/cycles/lib)
+	
+	IF(NOT APPLE)
+		# set path to look for dynamic libs
+		SET_TARGET_PROPERTIES(cycles_blender PROPERTIES INSTALL_RPATH $ORIGIN/lib)
+	ELSE()
+		# modify our libs to looks for dynamic libs in cycles lib directory
+		SET(install_name_command "install_name_tool")
+
+		FOREACH(lib ${install_libs})
+			GET_FILENAME_COMPONENT(libname ${lib} NAME)
+			SET(install_name_command " ${install_name_command} -change ${lib} @loader_path/lib/${libname}")
+			SET(install_name_command " ${install_name_command} -change ${libname} @loader_path/lib/${libname}")
+		ENDFOREACH()
+
+		INSTALL(
+			CODE
+			"
+			EXECUTE_PROCESS(COMMAND ${install_name_command} ${CYCLES_INSTALL_PATH}/cycles/libcycles_blender.so)
+			EXECUTE_PROCESS(COMMAND echo ${install_name_command} ${CYCLES_INSTALL_PATH}/cycles/libcycles_blender.so)
+			"
+		)
+	ELSE()
+	ENDIF()
 ENDIF()
 
 
