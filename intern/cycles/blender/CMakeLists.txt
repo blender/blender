@@ -94,6 +94,9 @@ IF(UNIX)
 		${Boost_LIBRARIES}
 		${OSL_LIBRARIES}
 		${PARTIO_LIBRARIES})
+	
+	LIST(REMOVE_ITEM install_libs optimized)
+	LIST(REMOVE_ITEM install_libs debug)
 
 	INSTALL(FILES ${install_libs}
 		DESTINATION ${CYCLES_INSTALL_PATH}/cycles/lib)
@@ -115,7 +118,6 @@ IF(UNIX)
 			CODE
 			"
 			EXECUTE_PROCESS(COMMAND ${install_name_command} ${CYCLES_INSTALL_PATH}/cycles/libcycles_blender.so)
-			EXECUTE_PROCESS(COMMAND echo ${install_name_command} ${CYCLES_INSTALL_PATH}/cycles/libcycles_blender.so)
 			"
 		)
 	ELSE()
