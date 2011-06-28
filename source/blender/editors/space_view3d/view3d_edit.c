@@ -931,7 +931,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 
 // returns angular velocity (0..1), fills axis of rotation
 // (shouldn't live in this file!)
-float ndof_to_angle_axis(const float ndof[3], float axis[3])
+static float ndof_to_angle_axis(const float ndof[3], float axis[3])
 	{
 	const float x = ndof[0];
 	const float y = ndof[1];
@@ -949,7 +949,7 @@ float ndof_to_angle_axis(const float ndof[3], float axis[3])
 	return angular_velocity;
 	}
 
-float ndof_to_angular_velocity(wmNDOFMotionData* ndof, float axis[3])
+static float ndof_to_angular_velocity(wmNDOFMotionData* ndof)
 	{
 	const float x = ndof->rx;
 	const float y = ndof->ry;
@@ -958,7 +958,7 @@ float ndof_to_angular_velocity(wmNDOFMotionData* ndof, float axis[3])
 	return sqrtf(x*x + y*y + z*z);
 	}
 
-void ndof_to_quat(wmNDOFMotionData* ndof, float q[4])
+static void ndof_to_quat(wmNDOFMotionData* ndof, float q[4])
 	{
 	const float x = ndof->rx;
 	const float y = ndof->ry;
@@ -984,8 +984,9 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
 	// tune these until everything feels right
-	float rot_sensitivity = 1.f;
-	float zoom_sensitivity = 1.f;
+	const float rot_sensitivity = 1.f;
+	const float zoom_sensitivity = 1.f;
+	const float pan_sensitivity = 1.f;
 
 	// rather have bool, but...
 	int has_rotation = rv3d->viewlock != RV3D_LOCKED && (ndof->rx || ndof->ry || ndof->rz);
@@ -1005,8 +1006,20 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
 		rv3d->dist += zoom_distance;
+	}
 
-		ED_region_tag_redraw(CTX_wm_region(C));
+	if (rv3d->viewlock == RV3D_LOCKED) {
+		/* rotation not allowed -- explore panning options instead */
+		float view_inv[4];
+		float pan_vec[3] = {ndof->tx, ndof->ty, 0};
+		mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
+
+		/* transform motion from view to world coordinates */
+		invert_qt_qt(view_inv, rv3d->viewquat);
+		mul_qt_v3(view_inv, pan_vec);
+
+		/* move center of view opposite of hand motion (camera mode, not object mode) */
+		sub_v3_v3(rv3d->ofs, pan_vec);
 	}
 
 	if (has_rotation) {
@@ -1033,8 +1046,6 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			// apply rotation
 			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
 
-			ED_region_tag_redraw(CTX_wm_region(C));
-
 		} else {
 			/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
 			float angle, rot[4];
@@ -1057,10 +1068,10 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			rot[1] = rot[2] = 0.0;
 			rot[3] = sin(angle);
 			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
-			ED_region_tag_redraw(CTX_wm_region(C));
 		}
 	}
+
+	ED_region_tag_redraw(CTX_wm_region(C));
 
 	return OPERATOR_FINISHED;
 }

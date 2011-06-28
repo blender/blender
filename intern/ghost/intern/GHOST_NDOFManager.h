@@ -29,8 +29,8 @@
 
 // --- the following type definitions will find a home somewhere else once finished ---
 
-#define DEBUG_NDOF_MOTION
-#define DEBUG_NDOF_BUTTONS
+//#define DEBUG_NDOF_MOTION
+//#define DEBUG_NDOF_BUTTONS
 
 typedef enum { NDOF_UnknownDevice, NDOF_SpaceNavigator, NDOF_SpaceExplorer, NDOF_SpacePilotPro } NDOF_DeviceT;
 
