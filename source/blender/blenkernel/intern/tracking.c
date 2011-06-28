@@ -255,21 +255,16 @@ MovieTrackingTrack *BKE_tracking_copy_track(MovieTrackingTrack *track)
 
 void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame)
 {
-	MovieTrackingMarker *marker, new_marker;
+	int a= 1;
 
-	if(track->markersnr==0)
-		return;
+	while(a<track->markersnr) {
+		if(track->markers[a].framenr>ref_frame) {
+			track->markersnr= a;
+			track->markers= MEM_reallocN(track->markers, sizeof(MovieTrackingMarker)*track->markersnr);
+		}
 
-	marker= BKE_tracking_get_marker(track, ref_frame);
-	if(marker) new_marker= *marker;
-	else new_marker= track->markers[0];
-
-	MEM_freeN(track->markers);
-	track->markers= NULL;
-	track->markersnr= 0;
-	track->flag&= ~TRACK_PROCESSED;
-
-	BKE_tracking_insert_marker(track, &new_marker);
+		a++;
+	}
 }
 
 void BKE_tracking_free(MovieTracking *tracking)
