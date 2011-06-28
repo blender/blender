@@ -972,11 +972,88 @@ static size_t animfilter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *
 	return items;
 }
 
-// TODO: group-filtering stuff still needs cleanup
-static size_t animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAction *act, int filter_mode, ID *owner_id)
+static size_t animfilter_act_group (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAction *act, bActionGroup *agrp, int filter_mode, ID *owner_id)
+{
+	ListBase tmp_data = {NULL, NULL};
+	size_t tmp_items = 0;
+	size_t items = 0;
+	//int ofilter = filter_mode;
+	
+	/* if we care about the selection status of the channels, 
+	 * but the group isn't expanded (1)...
+	 * 	(1) this only matters if we actually care about the hierarchy though.
+	 *		- Hierarchy matters: this hack should be applied
+	 *		- Hierarchy ignored: cases like [#21276] won't work properly, unless we skip this hack
+	 */
+	if ( ((filter_mode & ANIMFILTER_LIST_VISIBLE) && EXPANDED_AGRP(ac, agrp)==0) && 	/* care about hierarchy but group isn't expanded */
+		  (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) ) 							/* care about selection status */	 
+	{
+		/* if the group itself isn't selected appropriately, we shouldn't consider it's children either */
+		if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) == 0)
+			return 0;
+		
+		/* if we're still here, then the selection status of the curves within this group should not matter,
+		 * since this creates too much overhead for animators (i.e. making a slow workflow)
+		 *
+		 * Tools affected by this at time of coding (2010 Feb 09):
+		 *	- inserting keyframes on selected channels only
+		 *	- pasting keyframes
+		 *	- creating ghost curves in Graph Editor
+		 */
+		filter_mode &= ~(ANIMFILTER_SEL|ANIMFILTER_UNSEL|ANIMFILTER_LIST_VISIBLE);
+	}
+	
+	/* add grouped F-Curves */
+	BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_AGRP(ac, agrp))
+	{
+		/* special filter so that we can get just the F-Curves within the active group */
+		if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
+			/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
+			 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
+			 * all its sub-curves to be shown
+			 */
+			if ( !(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
+			{
+				/* group must be editable for its children to be editable (if we care about this) */
+				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
+					/* get first F-Curve which can be used here */
+					FCurve *first_fcu = animfilter_fcurve_next(ads, agrp->channels.first, agrp, filter_mode, owner_id);
+					
+					/* filter list, starting from this F-Curve */
+					tmp_items += animfilter_fcurves(&tmp_data, ads, first_fcu, agrp, filter_mode, owner_id);
+				}
+			}
+		}
+	}
+	END_ANIMFILTER_SUBCHANNELS;
+	
+	/* did we find anything? */
+	if (tmp_items) {
+		/* add this group as a channel first */
+		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+			/* restore original filter mode so that this next step works ok... */
+			//filter_mode = ofilter;
+			
+			/* filter selection of channel specially here again, since may be open and not subject to previous test */
+			if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
+				ANIMCHANNEL_NEW_CHANNEL(agrp, ANIMTYPE_GROUP, owner_id);
+			}
+		}
+		
+		/* now add the list of collected channels */
+		BLI_movelisttolist(anim_data, &tmp_data);
+		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		items += tmp_items;
+	}
+	
+	/* return the number of items added to the list */
+	return items;
+}
+
+static size_t animfilter_action (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAction *act, int filter_mode, ID *owner_id)
 {
 	bActionGroup *agrp;
-	FCurve *lastchan=NULL;
+	FCurve *lastchan = NULL;
 	size_t items = 0;
 	
 	/* don't include anything from this action if it is linked in from another file,
@@ -985,107 +1062,22 @@ static size_t animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDo
 	// TODO: need a way of tagging other channels that may also be affected...
 	if ((filter_mode & ANIMFILTER_FOREDIT) && (act->id.lib))
 		return 0;
-	
-	/* loop over groups */
-	// TODO: in future, should we expect to need nested groups?
-	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
-		FCurve *first_fcu;
-		int filter_gmode;
 		
+	/* do groups */
+	// TODO: do nested groups?
+	for (agrp = act->groups.first; agrp; agrp = agrp->next) {
 		/* store reference to last channel of group */
 		if (agrp->channels.last) 
 			lastchan= agrp->channels.last;
-		
-		
-		/* make a copy of filtering flags for use by the sub-channels of this group */
-		filter_gmode= filter_mode;
-		
-		/* if we care about the selection status of the channels, 
-		 * but the group isn't expanded (1)...
-		 * 	(1) this only matters if we actually care about the hierarchy though,
-		 *      so if we're not filtering for that, then we shouldn't care, otherwise
-		 *      cases like [#21276] won't work properly
-		 */
-		if ( ((filter_mode & ANIMFILTER_LIST_VISIBLE) && EXPANDED_AGRP(ac, agrp)==0) && 	/* care about hierarchy but group isn't expanded */
-			  (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) ) 							/* care about selection status */	 
-		{
-			/* if the group itself isn't selected appropriately, we shouldn't consider it's children either */
-			if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) == 0)
-				continue;
 			
-			/* if we're still here, then the selection status of the curves within this group should not matter,
-			 * since this creates too much overhead for animators (i.e. making a slow workflow)
-			 *
-			 * Tools affected by this at time of coding (2010 Feb 09):
-			 *	- inserting keyframes on selected channels only
-			 *	- pasting keyframes
-			 *	- creating ghost curves in Graph Editor
-			 */
-			filter_gmode &= ~(ANIMFILTER_SEL|ANIMFILTER_UNSEL|ANIMFILTER_LIST_VISIBLE);
-		}
-		
-		
-		/* get the first F-Curve in this group we can start to use, and if there isn't any F-Curve to start from,  
-		 * then don't use this group at all...
-		 *
-		 * NOTE: use filter_gmode here not filter_mode, since there may be some flags we shouldn't consider under certain circumstances
-		 */
-		first_fcu = animfilter_fcurve_next(ads, agrp->channels.first, agrp, filter_gmode, owner_id);
-		
-		/* Bug note: 
-		 * 	Selecting open group to toggle visbility of the group, where the F-Curves of the group are not suitable 
-		 *	for inclusion due to their selection status (vs visibility status of bones/etc., as is usually the case),
-		 *	will not work, since the group gets skipped. However, fixing this can easily reintroduce the bugs whereby
-		 * 	hidden groups (due to visibility status of bones/etc.) that were selected before becoming invisible, can
-		 *	easily get deleted accidentally as they'd be included in the list filtered for that purpose.
-		 *
-		 * 	So, for now, best solution is to just leave this note here, and hope to find a solution at a later date.
-		 *	-- Joshua Leung, 2010 Feb 10
-		 */
-		if (first_fcu) {
-			/* add this group as a channel first */
-			if (filter_gmode & ANIMFILTER_LIST_CHANNELS) {
-				/* filter selection of channel specially here again, since may be open and not subject to previous test */
-				if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
-					ANIMCHANNEL_NEW_CHANNEL(agrp, ANIMTYPE_GROUP, owner_id);
-				}
-			}
-			
-			/* there are some situations, where only the channels of the action group should get considered */
-			if (!(filter_gmode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
-				/* filters here are a bit convoulted...
-				 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
-				 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
-				 *
-				 * cases when we should include F-Curves inside group:
-				 *	- we don't care about hierarchy visibility (i.e. we just need the F-Curves present)
-				 *	- group is expanded
-				 *	- we care about hierarchy visibility, but we also just need the F-Curves present 
-				 *	  within (i.e. transform/selectall). Fix relies on showing all channels option
-				 *	  only ever getting used for drawing, when hierarchy shouldn't show these channels
-				 */
-				if (!(filter_gmode & ANIMFILTER_LIST_VISIBLE) || EXPANDED_AGRP(ac, agrp) || !(filter_gmode & ANIMFILTER_LIST_CHANNELS))
-				{
-					/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
-					 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
-					 * all its sub-curves to be shown
-					 */
-					if ( !(filter_gmode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
-					{
-						if (!(filter_gmode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
-							/* NOTE: filter_gmode is used here, not standard filter_mode, since there may be some flags that shouldn't apply */
-							items += animfilter_fcurves(anim_data, ads, first_fcu, agrp, filter_gmode, owner_id);
-						}
-					}
-				}
-			}
-		}
+		/* action group's channels */
+		items += animfilter_act_group(ac, anim_data, ads, act, agrp, filter_mode, owner_id);
 	}
 	
-	/* loop over un-grouped F-Curves (only if we're not only considering those channels in the animive group) */
+	/* un-grouped F-Curves (only if we're not only considering those channels in the active group) */
 	if (!(filter_mode & ANIMFILTER_ACTGROUPED))  {
-		// XXX the 'owner' info here needs review...
-		items += animfilter_fcurves(anim_data, ads, (lastchan)?(lastchan->next):(act->curves.first), NULL, filter_mode, owner_id);
+		FCurve *firstfcu = (lastchan)? (lastchan->next) : (act->curves.first);
+		items += animfilter_fcurves(anim_data, ads, firstfcu, NULL, filter_mode, owner_id);
 	}
 	
 	/* return the number of items added to the list */
@@ -1182,7 +1174,7 @@ static size_t animfilter_block_data (bAnimContext *ac, ListBase *anim_data, bDop
 			items += animfilter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, id);
 		},
 		{ /* Keyframes */
-			items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, id);
+			items += animfilter_action(ac, anim_data, ads, adt->action, filter_mode, id);
 		});
 	
 	return items;
@@ -1225,7 +1217,7 @@ static size_t animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, K
 				ANIMCHANNEL_NEW_CHANNEL(key->adt, ANIMTYPE_ANIMDATA, key);
 			}
 			else if (key->adt->action) {
-				items= animdata_filter_action(ac, anim_data, NULL, key->adt->action, filter_mode, (ID *)key);
+				items= animfilter_action(ac, anim_data, NULL, key->adt->action, filter_mode, (ID *)key);
 			}
 		}
 	}
@@ -2131,7 +2123,7 @@ size_t ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_m
 				
 				/* the check for the DopeSheet summary is included here since the summary works here too */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
-					items += animdata_filter_action(ac, anim_data, ads, data, filter_mode, (ID *)obact);
+					items += animfilter_action(ac, anim_data, ads, data, filter_mode, (ID *)obact);
 			}
 				break;
 				
