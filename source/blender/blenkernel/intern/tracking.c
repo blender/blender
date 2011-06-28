@@ -558,7 +558,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	while(track) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, curfra);
 
-		if(marker && marker->framenr==curfra) {
+		if(marker && (marker->flag&MARKER_DISABLED)==0 && marker->framenr==curfra) {
 #ifdef WITH_LIBMV
 			int width, height, pos[2];
 			float *patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height, pos);

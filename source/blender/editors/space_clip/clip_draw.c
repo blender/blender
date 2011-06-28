@@ -127,7 +127,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 				if(framenr!=i) glColor4ub(128, 128, 0, 96);
 				else glColor4ub(255, 255, 0, 96);
 
-				glRecti((i-sfra-1)*framelen, 0, (i-sfra)*framelen, 4);
+				glRecti((i-sfra)*framelen, 0, (i-sfra+1)*framelen, 4);
 			}
 		}
 	}
