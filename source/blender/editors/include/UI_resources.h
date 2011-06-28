@@ -248,7 +248,10 @@ enum {
 	TH_MARKER,
 	TH_ACT_MARKER,
 	TH_SEL_MARKER,
-	TH_BUNDLE_SOLID
+	TH_BUNDLE_SOLID,
+	TH_DIS_MARKER,
+	TH_PATH_BEFORE,
+	TH_PATH_AFTER
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

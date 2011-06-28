@@ -1760,25 +1760,43 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "marker_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "marker_outline");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Marker Outline Color", "");
+	RNA_def_property_ui_text(prop, "Marker Outline Color", "Color of marker's outile");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "marker", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "marker");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Marker Color", "");
+	RNA_def_property_ui_text(prop, "Marker Color", "Color of marker");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "active_marker", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "act_marker");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Active Marker Color", "");
+	RNA_def_property_ui_text(prop, "Active Marker", "Color of active marker");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "selected_marker", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "sel_marker");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Selected Marker Color", "");
+	RNA_def_property_ui_text(prop, "Selected Marker", "Color of sleected marker");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "disabled_marker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "dis_marker");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Disabled Marker", "Color of disabled marker");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "path_before", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "path_before");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Path Before", "Color of path before current frame");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "path_after", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "path_after");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Path After", "Color of path after current frame");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 

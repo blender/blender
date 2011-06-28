@@ -127,7 +127,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 				if(framenr!=i) glColor4ub(128, 128, 0, 96);
 				else glColor4ub(255, 255, 0, 96);
 
-				glRecti((i-1)*framelen, 0, i*framelen, 4);
+				glRecti((i-sfra-1)*framelen, 0, (i-sfra)*framelen, 4);
 			}
 		}
 	}
@@ -242,25 +242,30 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 		glLineWidth(1.0f);
 	}
 
-	if(sel_type==MCLIP_SEL_TRACK && sel==track) UI_ThemeColor(TH_ACT_MARKER);
-	else {
-		if (TRACK_SELECTED(track)) UI_ThemeColor(TH_SEL_MARKER);
-		else UI_ThemeColor(TH_MARKER);
-	}
+	UI_ThemeColor(TH_PATH_BEFORE);
 
 	if(TRACK_SELECTED(track)) {
 		glPointSize(3.0f);
 		glBegin(GL_POINTS);
 			for(i= a; i<b; i++) {
+				if(i==count+1)
+					UI_ThemeColor(TH_PATH_AFTER);
+
 				if(i!=curindex)
 					glVertex2f(path[i][0], path[i][1]);
 			}
 		glEnd();
 	}
 
+	UI_ThemeColor(TH_PATH_BEFORE);
+
 	glBegin(GL_LINE_STRIP);
-		for(i= a; i<b; i++)
+		for(i= a; i<b; i++) {
+			if(i==count+1)
+				UI_ThemeColor(TH_PATH_AFTER);
+
 			glVertex2f(path[i][0], path[i][1]);
+		}
 	glEnd();
 	glPointSize(1.0f);
 }
@@ -350,8 +355,13 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	/* search */
 	if((track->search_flag&SELECT)==sel) {
-		if(track->search_flag&SELECT) UI_ThemeColor(color);
-		else UI_ThemeColor(TH_MARKER);
+		if(marker->flag&MARKER_DISABLED) {
+			if(act) UI_ThemeColor(TH_ACT_MARKER);
+			else if(track->search_flag&SELECT) UI_ThemeColorShade(TH_DIS_MARKER, 128);
+			else UI_ThemeColor(TH_DIS_MARKER);
+		} else {if(track->search_flag&SELECT) UI_ThemeColor(color);
+			else UI_ThemeColor(TH_MARKER);
+		}
 
 		if(sc->flag&SC_SHOW_MARKER_SEARCH) {
 			glBegin(GL_LINE_LOOP);

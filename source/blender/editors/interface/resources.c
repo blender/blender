@@ -422,6 +422,12 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->sel_marker; break;
 			case TH_BUNDLE_SOLID:
 				cp= ts->bundle_solid; break;
+			case TH_DIS_MARKER:
+				cp= ts->dis_marker; break;
+			case TH_PATH_BEFORE:
+				cp= ts->path_before; break;
+			case TH_PATH_AFTER:
+				cp= ts->path_after; break;
 			}
 		}
 	}
@@ -815,6 +821,9 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tclip.marker, 0x7f, 0x7f, 0x00, 255);
 	SETCOL(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
 	SETCOL(btheme->tclip.sel_marker, 0xff, 0xff, 0x00, 255);
+	SETCOL(btheme->tclip.dis_marker, 0x7f, 0x00, 0x00, 255);
+	SETCOL(btheme->tclip.path_before, 0xff, 0x00, 0x00, 255);
+	SETCOL(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
 }
 
 
@@ -1590,6 +1599,9 @@ void init_userdef_do_versions(void)
 				SETCOL(btheme->tclip.marker, 0x7f, 0x7f, 0x00, 255);
 				SETCOL(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
 				SETCOL(btheme->tclip.sel_marker, 0xff, 0xff, 0x00, 255);
+				SETCOL(btheme->tclip.dis_marker, 0x7f, 0x00, 0x00, 255);
+				SETCOL(btheme->tclip.path_before, 0xff, 0x00, 0x00, 255);
+				SETCOL(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
 			}
 		}
 	}
