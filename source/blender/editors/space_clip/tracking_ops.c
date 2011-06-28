@@ -216,7 +216,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 	while(track) {
 		next= track->next;
 
-		if(track->flag&SELECT) {
+		if(TRACK_SELECTED(track)) {
 			BKE_tracking_free_track(track);
 			BLI_freelinkN(&clip->tracking.tracks, track);
 		}

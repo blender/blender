@@ -357,11 +357,7 @@ void BKE_movieclip_reload(MovieClip *clip)
 	else clip->source= MCLIP_SRC_SEQUENCE;
 }
 
-/* area - which part of marker should be selected:
-    0 - the whole marker and pattern/search
-	1 - only marker
-	2 - only pattern
-	3 - only search */
+/* area - which part of marker should be selected. see TRACK_AREA_* constants */
 void BKE_movieclip_select_track(MovieClip *clip, MovieTrackingTrack *track, int area, int extend)
 {
 	if(extend) {

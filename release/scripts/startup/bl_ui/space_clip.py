@@ -82,10 +82,10 @@ class CLIP_PT_tools(bpy.types.Panel):
             layout.operator('clip.open')
 
 
-class CLIP_PT_marker_preview(bpy.types.Panel):
+class CLIP_PT_track(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Marker Preview"
+    bl_label = "Track"
 
     @classmethod
     def poll(cls, context):
@@ -99,7 +99,15 @@ class CLIP_PT_marker_preview(bpy.types.Panel):
         sc = context.space_data
         clip = context.space_data.clip
 
-        layout.template_marker(clip.tracking, "act_track", sc.clip_user, clip)
+        layout.template_track(clip.tracking, "act_track", sc.clip_user, clip)
+
+        act_track = clip.tracking.act_track
+
+        if act_track:
+            row = layout.row()
+            row.prop(act_track, "use_red_channel", text="Red")
+            row.prop(act_track, "use_green_channel", text="Green")
+            row.prop(act_track, "use_blue_channel", text="Blue")
 
 
 class CLIP_PT_track_settings(bpy.types.Panel):

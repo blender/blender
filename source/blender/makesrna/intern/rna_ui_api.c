@@ -400,8 +400,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	RNA_def_boolean(func, "compact", 0, "", "Use more compact layout.");
 
-	func= RNA_def_function(srna, "template_marker", "uiTemplateMarker");
-	RNA_def_function_ui_description(func, "Item. A marker widget to analyze imaga marker is pointed to.");
+	func= RNA_def_function(srna, "template_track", "uiTemplateTrack");
+	RNA_def_function_ui_description(func, "Item. A tarck widget to analyze imaga marker is pointed to.");
 	api_ui_item_rna_common(func);
 	parm= RNA_def_pointer(func, "clip", "MovieClip", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);

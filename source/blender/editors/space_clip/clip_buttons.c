@@ -278,8 +278,8 @@ void ED_clip_buttons_register(ARegionType *art)
 	PanelType *pt;
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype clip panel marker");
-	strcpy(pt->idname, "CLIP_PT_active_marker");
-	strcpy(pt->label, "Active Marker");
+	strcpy(pt->idname, "CLIP_PT_marker");
+	strcpy(pt->label, "Marker");
 	pt->draw= clip_panel_marker;
 	pt->poll= clip_panel_marker_poll;
 
@@ -336,7 +336,7 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 
 /********************* Marker Template ************************/
 
-void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *clipptr)
+void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *clipptr)
 {
 	PropertyRNA *prop;
 	PointerRNA trackptr;
@@ -352,12 +352,12 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 
 	prop= RNA_struct_find_property(ptr, propname);
 	if(!prop) {
-		printf("uiTemplateMarker: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("uiTemplateTrack: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
 	if(RNA_property_type(prop) != PROP_POINTER) {
-		printf("uiTemplateMarker: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("uiTemplateTrack: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 

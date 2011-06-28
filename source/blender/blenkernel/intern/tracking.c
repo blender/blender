@@ -354,6 +354,25 @@ void BKE_tracking_context_free(MovieTrackingContext *context)
 	MEM_freeN(context);
 }
 
+static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
+{
+	int x, y;
+
+	if((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
+		return;
+
+	for(y= 0; y<ibuf->x; y++) {
+		for (x= 0; x<ibuf->y; x++) {
+			int pixel= ibuf->x*y + x;
+			char *rrgb= (char*)ibuf->rect + pixel*4;
+
+			if(track->flag&TRACK_DISABLE_RED)	rrgb[0]= 0;
+			if(track->flag&TRACK_DISABLE_GREEN)	rrgb[1]= 0;
+			if(track->flag&TRACK_DISABLE_BLUE)	rrgb[2]= 0;
+		}
+	}
+}
+
 static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker, float min[2], float max[2], int pos[2])
 {
 	ImBuf *tmpibuf;
@@ -380,6 +399,8 @@ static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTr
 
 	pos[0]= x-x1;
 	pos[1]= y-y1;
+
+	disable_imbuf_channels(tmpibuf, track);
 
 	return tmpibuf;
 }
@@ -409,6 +430,7 @@ static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 	IMB_rectcpy(tmpibuf, ibuf, 0, 0,
 			(track->search_min[0]+marker->pos[0])*ibuf->x,
 			(track->search_min[1]+marker->pos[1])*ibuf->y, width, height);
+	disable_imbuf_channels(tmpibuf, track);
 
 	*width_r= width;
 	*height_r= height;

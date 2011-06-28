@@ -235,6 +235,23 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MovieTrackingMarker");
 	RNA_def_property_collection_sdna(prop, NULL, "markers", "markersnr");
 	RNA_def_property_ui_text(prop, "Markers", "Collection of markers in track");
+
+	/* ** channels ** */
+
+	/* use_red_channel */
+	prop= RNA_def_property(srna, "use_red_channel", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", TRACK_DISABLE_RED);
+	RNA_def_property_ui_text(prop, "Use Red Channel", "Use red channel from footage for tracking");
+
+	/* use_green_channel */
+	prop= RNA_def_property(srna, "use_green_channel", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", TRACK_DISABLE_GREEN);
+	RNA_def_property_ui_text(prop, "Use Green Channel", "Use green channel from footage for tracking");
+
+	/* use_blue_channel */
+	prop= RNA_def_property(srna, "use_blue_channel", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", TRACK_DISABLE_BLUE);
+	RNA_def_property_ui_text(prop, "Use Blue Channel", "Use blue channel from footage for tracking");
 }
 
 static void rna_def_tracking(BlenderRNA *brna)
