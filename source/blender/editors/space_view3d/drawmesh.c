@@ -71,6 +71,7 @@
 #include "GPU_draw.h"
 
 #include "ED_mesh.h"
+#include "ED_uvedit.h"
 
 #include "view3d_intern.h"	// own include
 

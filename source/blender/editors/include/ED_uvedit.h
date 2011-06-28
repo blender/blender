@@ -39,6 +39,7 @@ struct ImageUser;
 struct MTFace;
 struct Object;
 struct Scene;
+struct SpaceImage;
 struct bContext;
 struct wmKeyConfig;
 

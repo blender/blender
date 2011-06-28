@@ -51,6 +51,7 @@
 #include "DNA_image_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_DerivedMesh.h"
@@ -840,7 +841,7 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 			Material* blmat = current_polymat->GetBlenderMaterial();
 			Scene* blscene = current_polymat->GetBlenderScene();
 			if (!wireframe && blscene && blmat)
-				GPU_material_vertex_attributes(GPU_material_from_blender(blscene, blmat, OB_RENDERED), &current_gpu_attribs);
+				GPU_material_vertex_attributes(GPU_material_from_blender(blscene, blmat, OB_RENDER), &current_gpu_attribs);
 			else
 				memset(&current_gpu_attribs, 0, sizeof(current_gpu_attribs));
 			// DM draw can mess up blending mode, restore at the end

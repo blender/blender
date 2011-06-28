@@ -4,6 +4,7 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_global.h"
@@ -40,7 +41,7 @@ BL_BlenderShader::~BL_BlenderShader()
 
 void BL_BlenderShader::ReloadMaterial()
 {
-	mGPUMat = (mMat) ? GPU_material_from_blender(mBlenderScene, mMat, OB_RENDERED) : NULL;
+	mGPUMat = (mMat) ? GPU_material_from_blender(mBlenderScene, mMat, OB_RENDER) : NULL;
 }
 
 void BL_BlenderShader::SetProg(bool enable, double time)
