@@ -102,7 +102,7 @@ EnumPropertyItem viewport_shade_items[] = {
 	{OB_WIRE, "WIREFRAME", ICON_WIRE, "Wireframe", "Display the object as wire edges"},
 	{OB_SOLID, "SOLID", ICON_SOLID, "Solid", "Display the object solid, lit with default OpenGL lights"},
 	//{OB_SHADED, "SHADED", ICON_SMOOTH, "Shaded", "Display the object solid, with preview shading interpolated at vertices"},
-	{OB_TEXTURE, "TEXTURE", ICON_POTATO, "Texture", "Display the object solid, with a texture"},
+	{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Texture", "Display the object solid, with a texture"},
 	{OB_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Display objects solid, with GLSL material"},
 	{OB_RENDER, "RENDERED", ICON_SMOOTH, "Rendered", "Display render preview"},
 	{0, NULL, 0, NULL, NULL}};
