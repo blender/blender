@@ -131,7 +131,7 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 			}
 
 		// Pascal string *and* a four-letter constant. How old-skool.
-		m_clientID = RegisterConnexionClient('blnd', (UInt8*) "\pblender",
+		m_clientID = RegisterConnexionClient('blnd', (UInt8*) "\007blender",
 			kConnexionClientModeTakeOver, kConnexionMaskAll);
 
 		printf("ndof: client id = %d\n", m_clientID);

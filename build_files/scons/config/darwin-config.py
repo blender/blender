@@ -298,7 +298,6 @@ if WITH_BF_QUICKTIME == True:
 
 if WITH_BF_SPACENAV:
 	PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS + ['-weak_framework','3DconnexionClient']
-	CXXFLAGS = CXXFLAGS + ['-fpascal-strings'] # they use an old-skool Mac programming style
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 LLIBS = ['stdc++', 'SystemStubs']
