@@ -192,6 +192,10 @@ WITH_BF_OPENMP = True
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-pthread']
 
+#SpaceNavigator and friends
+WITH_BF_NDOF = True
+BF_NDOF_LIB = 'spnav'
+
 ##
 CC = 'gcc'
 CXX = 'g++'
@@ -223,6 +227,8 @@ CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
 LLIBS = ['util', 'c', 'm', 'dl', 'pthread', 'stdc++']
+if WITH_BF_NDOF:
+	LLIBS = LLIBS + [BF_NDOF_LIB];
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
