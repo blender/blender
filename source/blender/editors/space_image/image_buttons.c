@@ -792,7 +792,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				uiItemR(col, userptr, "frame_offset", 0, NULL, ICON_NONE);
 
 				col= uiLayoutColumn(split, 0);
-				uiItemR(col, userptr, "fields_per_frame", 0, "Fields", ICON_NONE);
+				row= uiLayoutRow(col, 0);
+				uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
+				uiItemR(row, userptr, "fields_per_frame", 0, "Fields", ICON_NONE);
 				uiItemR(col, userptr, "use_auto_refresh", 0, NULL, ICON_NONE);
 				uiItemR(col, userptr, "use_cyclic", 0, NULL, ICON_NONE);
 			}

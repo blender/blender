@@ -189,11 +189,6 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 /* set callbacks, exported to sequence render too.
  Only call in foreground (UI) renders. */
 
-static void render_error_reports(void *reports, const char *str)
-{
-	BKE_report(reports, RPT_ERROR, str);
-}
-
 /* executes blocking render */
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
@@ -214,7 +209,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
 	G.afbreek= 0;
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
-	RE_error_cb(re, op->reports, render_error_reports);
 
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
@@ -226,10 +220,14 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	   since sequence rendering can call that recursively... (peter) */
 	seq_stripelem_cache_cleanup();
 
+	RE_SetReports(re, op->reports);
+
 	if(is_animation)
-		RE_BlenderAnim(re, mainp, scene, camera_override, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
+		RE_BlenderAnim(re, mainp, scene, camera_override, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 	else
 		RE_BlenderFrame(re, mainp, scene, NULL, camera_override, lay, scene->r.cfra, is_write_still);
+
+	RE_SetReports(re, NULL);
 
 	// no redraw needed, we leave state as we entered it
 	ED_update_for_newframe(mainp, scene, CTX_wm_screen(C), 1);
@@ -374,10 +372,14 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
 	rj->do_update= do_update;
 	rj->progress= progress;
 
+	RE_SetReports(rj->re, rj->reports);
+
 	if(rj->anim)
-		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->camera_override, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
+		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->camera_override, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
 	else
 		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->srl, rj->camera_override, rj->lay, rj->scene->r.cfra, rj->write_still);
+
+	RE_SetReports(rj->re, NULL);
 }
 
 static void render_endjob(void *rjv)
@@ -470,7 +472,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(WM_jobs_test(CTX_wm_manager(C), scene))
 		return OPERATOR_CANCELLED;
 
-	if(!RE_is_rendering_allowed(scene, camera_override, op->reports, render_error_reports)) {
+	if(!RE_is_rendering_allowed(scene, camera_override, op->reports)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -578,8 +580,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->re= re;
 	G.afbreek= 0;
 
-	RE_error_cb(re, op->reports, render_error_reports);
-
 	WM_jobs_start(CTX_wm_manager(C), steve);
 
 	WM_cursor_wait(0);
@@ -595,7 +595,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	return OPERATOR_RUNNING_MODAL;
 }
-
 
 /* contextual render, using current scene, view3d? */
 void RENDER_OT_render(wmOperatorType *ot)

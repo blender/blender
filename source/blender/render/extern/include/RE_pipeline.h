@@ -218,7 +218,10 @@ void RE_TileProcessor(struct Render *re);
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, struct Object *camera_override, unsigned int lay, int frame, const short write_still);
-void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
+void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override, unsigned int lay, int sfra, int efra, int tfra);
+
+/* error reporting */
+void RE_SetReports(struct Render *re, struct ReportList *reports);
 
 /* main preview render call */
 void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene);
@@ -242,7 +245,6 @@ void RE_stats_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, 
 void RE_progress_cb	(struct Render *re, void *handle, void (*f)(void *handle, float));
 void RE_draw_lock_cb		(struct Render *re, void *handle, void (*f)(void *handle, int));
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
-void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, const char *str));
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);
@@ -308,11 +310,12 @@ void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
 
 int RE_engine_test_break(RenderEngine *engine);
 void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
+void RE_engine_report(RenderEngine *engine, int type, const char *msg);
 
 void RE_engines_init(void);
 void RE_engines_exit(void);
 
-int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, void *erh, void (*error)(void *handle, const char *str));
+int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);
 
 #endif /* RE_PIPELINE_H */
 

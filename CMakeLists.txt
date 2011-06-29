@@ -53,11 +53,6 @@ if(NOT EXECUTABLE_OUTPUT_PATH)
 	set(FIRST_RUN "TRUE")
 endif()
 
-# set default build type to Release
-if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Release")
-endif()
-
 # this starts out unset
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules")
 
@@ -149,7 +144,7 @@ option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
 option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 
 # Audio/Video format support
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu)" OFF)
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 if(APPLE OR (WIN32 AND NOT UNIX))
 	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
@@ -623,8 +618,8 @@ elseif(WIN32)
 		set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC2.lib)
 
 		set(FREETYPE_INCLUDE_DIRS
-			${FREETYPE}/include
-			${FREETYPE}/include/freetype2
+			${LIBDIR}/freetype/include
+			${LIBDIR}/freetype/include/freetype2
 		)
 		set(FREETYPE_LIBRARY ${LIBDIR}/freetype/lib/freetype2ST.lib)
 
