@@ -876,6 +876,19 @@ class USERPREF_PT_addons(bpy.types.Panel):
     def module_get(mod_name):
         return USERPREF_PT_addons._addons_fake_modules[mod_name]
 
+    @staticmethod
+    def is_user_addon(mod, user_addon_paths):
+        if not user_addon_paths:
+            user_script_path = bpy.utils.user_script_path()
+            if user_script_path is not None:
+                user_addon_paths.append(os.path.join(user_script_path(), "addons"))
+            user_addon_paths.append(os.path.join(bpy.utils.resource_path('USER'), "scripts", "addons"))
+        
+        for path in user_addon_paths:
+            if bpy.path.is_subdir(mod.__file__, path):
+                return True
+        return False
+
     def draw(self, context):
         layout = self.layout
 
@@ -899,6 +912,9 @@ class USERPREF_PT_addons(bpy.types.Panel):
         filter = context.window_manager.addon_filter
         search = context.window_manager.addon_search.lower()
         support = context.window_manager.addon_support
+
+        # initialized on demand
+        user_addon_paths = []
 
         for mod, info in addons:
             module_name = mod.__name__
@@ -969,19 +985,24 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Warning:")
                         split.label(text='  ' + info["warning"], icon='ERROR')
-                    if info["wiki_url"] or info["tracker_url"]:
+
+                    user_addon = __class__.is_user_addon(mod, user_addon_paths)
+                    tot_row = bool(info["wiki_url"]) + bool(info["tracker_url"]) + bool(user_addon)
+
+                    if tot_row:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Internet:")
                         if info["wiki_url"]:
                             split.operator("wm.url_open", text="Link to the Wiki", icon='HELP').url = info["wiki_url"]
                         if info["tracker_url"]:
                             split.operator("wm.url_open", text="Report a Bug", icon='URL').url = info["tracker_url"]
+                        if user_addon:
+                            split.operator("wm.addon_remove", text="Remove", icon='CANCEL').module = mod.__name__
 
-                        if info["wiki_url"] and info["tracker_url"]:
+                        for i in range(4 - tot_row):
                             split.separator()
-                        else:
-                            split.separator()
-                            split.separator()
+                        
+                        
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.
@@ -1184,6 +1205,54 @@ class WM_OT_addon_install(bpy.types.Operator):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+
+class WM_OT_addon_remove(bpy.types.Operator):
+    "Disable an addon"
+    bl_idname = "wm.addon_remove"
+    bl_label = "Remove Add-On"
+
+    module = StringProperty(name="Module", description="Module name of the addon to remove")
+
+    @staticmethod
+    def path_from_addon(module):
+        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
+            if mod.__name__ == module:
+                filepath = mod.__file__
+                if os.path.exists(filepath):
+                    if os.path.splitext(os.path.basename(filepath))[0] == "__init__":
+                        return os.path.dirname(filepath), True
+                    else:
+                        return filepath, False
+        return None, False
+
+    def execute(self, context):
+        path, isdir = __class__.path_from_addon(self.module)
+        if path is None:
+            self.report('WARNING', "Addon path %r could not be found" % path)
+            return {'CANCELLED'}
+
+        # incase its enabled
+        addon_utils.disable(self.module)
+
+        import shutil
+        if isdir:
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
+    # lame confirmation check
+    def draw(self, context):
+        self.layout.label(text="Remove Addon: %r?" % self.module)
+        path, isdir = __class__.path_from_addon(self.module)
+        self.layout.label(text="Path: %r" % path)
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=600)
 
 
 class WM_OT_addon_expand(bpy.types.Operator):
