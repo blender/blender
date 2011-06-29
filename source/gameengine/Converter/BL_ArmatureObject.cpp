@@ -137,10 +137,8 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 
 
 /* Only allowed for Poses with identical channels */
-void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
-{
-	short mode= ACTSTRIPMODE_BLEND;
-	
+void game_blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
+{	
 	bPoseChannel *dchan;
 	const bPoseChannel *schan;
 	bConstraint *dcon, *scon;
@@ -152,8 +150,6 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 		dstweight = 1.0F - srcweight;
 		break;
 	case ACTSTRIPMODE_ADD:
-		dstweight = 1.0F;
-		break;
 	default :
 		dstweight = 1.0F;
 	}

@@ -67,6 +67,9 @@ bool BL_ActionManager::PlayAction(const char* name,
 								short ipo_flags,
 								float playback_speed)
 {
+	// Disable layer blending on the first layer
+	if (layer == 0) blend_mode = BL_Action::ACT_BLEND_NONE;
+
 	return m_layers[layer]->Play(name, start, end, priority, blendin, play_mode, blend_mode, ipo_flags, playback_speed);
 }
 
