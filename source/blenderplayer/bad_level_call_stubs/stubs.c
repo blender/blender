@@ -379,6 +379,7 @@ void RE_ReleaseResultImage(struct Render *re){}
 int RE_engine_test_break(struct RenderEngine *engine){return 0;}
 void RE_engines_init() {}
 void RE_engines_exit() {}
+void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) {}
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet){return (struct wmOperatorType *) NULL;}

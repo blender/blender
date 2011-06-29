@@ -53,11 +53,6 @@ if(NOT EXECUTABLE_OUTPUT_PATH)
 	set(FIRST_RUN "TRUE")
 endif()
 
-# set default build type to Release
-if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Release")
-endif()
-
 # this starts out unset
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules")
 
@@ -150,7 +145,7 @@ option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
 option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 
 # Audio/Video format support
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu)" OFF)
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 if(APPLE OR (WIN32 AND NOT UNIX))
 	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
@@ -372,7 +367,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
-		set(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
+		set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
 		mark_as_advanced(FFMPEG)
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 		set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
@@ -416,18 +411,18 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENCOLLADA)
-		set(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
+		set(OPENCOLLADA /usr/local/opencollada CACHE PATH "OpenCollada Directory")
 		mark_as_advanced(OPENCOLLADA)
 		set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
 		set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre ftoa buffer xml2)
 		set(OPENCOLLADA_INCLUDE_DIR ${OPENCOLLADA})
 
-		set(PCRE /usr CACHE FILEPATH "PCRE Directory")
+		set(PCRE /usr CACHE PATH "PCRE Directory")
 		mark_as_advanced(PCRE)
 		set(PCRE_LIBPATH ${PCRE}/lib)
 		set(PCRE_LIB pcre)
 
-		set(EXPAT /usr CACHE FILEPATH "Expat Directory")
+		set(EXPAT /usr CACHE PATH "Expat Directory")
 		mark_as_advanced(EXPAT)
 		set(EXPAT_LIBPATH ${EXPAT}/lib)
 		set(EXPAT_LIB expat)
@@ -624,9 +619,10 @@ elseif(WIN32)
 		set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
 		set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC2.lib)
 
+		set(FREETYPE ${LIBDIR}/freetype)
 		set(FREETYPE_INCLUDE_DIRS
-			${FREETYPE}/include
-			${FREETYPE}/include/freetype2
+			${LIBDIR}/freetype/include
+			${LIBDIR}/freetype/include/freetype2
 		)
 		set(FREETYPE_LIBRARY ${LIBDIR}/freetype/lib/freetype2ST.lib)
 
