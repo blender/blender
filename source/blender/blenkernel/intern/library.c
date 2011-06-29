@@ -368,6 +368,34 @@ int id_unlink(ID *id, int test)
 	return 0;
 }
 
+int id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
+{
+	ID *newid = NULL;
+	PointerRNA idptr;
+	
+	if (id) {
+		/* if property isn't editable, we're going to have an extra block hanging around until we save */
+		if (RNA_property_editable(ptr, prop)) {
+			if (id_copy(id, &newid, 0) && newid) {
+				/* copy animation actions too */
+				BKE_copy_animdata_id_action(id);
+				/* us is 1 by convention, but RNA_property_pointer_set
+				   will also incremement it, so set it to zero */
+				newid->us= 0;
+				
+				/* assign copy */
+				RNA_id_pointer_create(newid, &idptr);
+				RNA_property_pointer_set(ptr, prop, idptr);
+				RNA_property_update(C, ptr, prop);
+				
+				return 1;
+			}
+		}
+	}
+	
+	return 0;
+}
+
 ListBase *which_libbase(Main *mainlib, short type)
 {
 	switch( type ) {

@@ -3340,6 +3340,23 @@ static void id_local_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *
 	}
 }
 
+
+static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	ID *id = tselem->id;
+	
+	if (id) {
+		IdAdtTemplate *iat = (IdAdtTemplate *)tsep->id;
+		PointerRNA ptr = {{0}};
+		PropertyRNA *prop;
+		
+		RNA_pointer_create(&iat->id, &RNA_AnimData, iat->adt, &ptr);
+		prop = RNA_struct_find_property(&ptr, "action");
+		
+		id_single_user(C, id, &ptr, prop);
+	}
+}
+
 static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Group *group= (Group *)tselem->id;
@@ -3634,10 +3651,18 @@ void OUTLINER_OT_group_operation(wmOperatorType *ot)
 
 /* **************************************** */
 
+typedef enum eOutlinerIdOpTypes {
+	OUTLINER_IDOP_INVALID = 0,
+	OUTLINER_IDOP_UNLINK,
+	OUTLINER_IDOP_LOCAL,
+	OUTLINER_IDOP_SINGLE
+} eOutlinerIdOpTypes;
+
 // TODO: implement support for changing the ID-block used
 static EnumPropertyItem prop_id_op_types[] = {
-	{1, "UNLINK", 0, "Unlink", ""},
-	{2, "LOCAL", 0, "Make Local", ""},
+	{OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
+	{OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
+	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3646,7 +3671,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int scenelevel=0, objectlevel=0, idlevel=0, datalevel=0;
-	int event;
+	eOutlinerIdOpTypes event;
 	
 	/* check for invalid states */
 	if (soops == NULL)
@@ -3656,33 +3681,65 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 	
 	event= RNA_enum_get(op->ptr, "type");
 	
-	if(event==1) {
-		switch(idlevel) {
-			case ID_AC:
-				outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_action_cb);
-				
-				WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
-				ED_undo_push(C, "Unlink action");
-				break;
-			case ID_MA:
-				outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_material_cb);
-				
-				WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, NULL);
-				ED_undo_push(C, "Unlink material");
-				break;
-			case ID_TE:
-				outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_texture_cb);
-				
-				WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, NULL);
-				ED_undo_push(C, "Unlink texture");
-				break;
-			default:
-				BKE_report(op->reports, RPT_WARNING, "Not Yet");
+	switch (event) {
+		case OUTLINER_IDOP_UNLINK:
+		{
+			/* unlink datablock from its parent */
+			switch (idlevel) {
+				case ID_AC:
+					outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_action_cb);
+					
+					WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
+					ED_undo_push(C, "Unlink action");
+					break;
+				case ID_MA:
+					outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_material_cb);
+					
+					WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, NULL);
+					ED_undo_push(C, "Unlink material");
+					break;
+				case ID_TE:
+					outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_texture_cb);
+					
+					WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, NULL);
+					ED_undo_push(C, "Unlink texture");
+					break;
+				default:
+					BKE_report(op->reports, RPT_WARNING, "Not Yet");
+					break;
+			}
 		}
-	}
-	else if(event==2) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb);
-		ED_undo_push(C, "Localized Data");
+			break;
+			
+		case OUTLINER_IDOP_LOCAL:
+		{
+			/* make local */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb);
+			ED_undo_push(C, "Localized Data");
+		}
+			break;
+			
+		case OUTLINER_IDOP_SINGLE:
+		{
+			/* make single user */
+			switch (idlevel) {
+				case ID_AC:
+					outliner_do_libdata_operation(C, scene, soops, &soops->tree, singleuser_action_cb);
+					
+					WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
+					ED_undo_push(C, "Single-User Action");
+					break;
+					
+				default:
+					BKE_report(op->reports, RPT_WARNING, "Not Yet");
+					break;
+			}
+		}
+			break;
+			
+		default:
+			// invalid - unhandled
+			break;
 	}
 	
 	/* wrong notifier still... */

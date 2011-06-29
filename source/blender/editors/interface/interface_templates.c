@@ -234,7 +234,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
 	TemplateID *template= (TemplateID*)arg_litem;
 	PointerRNA idptr= RNA_property_pointer_get(&template->ptr, template->prop);
-	ID *id= idptr.data, *newid;
+	ID *id= idptr.data;
 	int event= GET_INT_FROM_POINTER(arg_event);
 	
 	switch(event) {
@@ -273,21 +273,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			}
 			break;
 		case UI_ID_ALONE:
-			if(id) {
-				/* make copy */
-				if(id_copy(id, &newid, 0) && newid) {
-					/* copy animation actions too */
-					BKE_copy_animdata_id_action(id);
-					/* us is 1 by convention, but RNA_property_pointer_set
-					   will also incremement it, so set it to zero */
-					newid->us= 0;
-
-					/* assign copy */
-					RNA_id_pointer_create(newid, &idptr);
-					RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-					RNA_property_update(C, &template->ptr, template->prop);
-				}
-			}
+			if(id) 
+				id_single_user(C, id, &template->ptr, template->prop);
 			break;
 #if 0
 		case UI_ID_AUTO_NAME:
