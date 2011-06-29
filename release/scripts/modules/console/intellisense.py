@@ -130,11 +130,15 @@ def expand(line, cursor, namespace, private=True):
         else:
             # causes blender bug [#27495] since string keys may contain '.'
             # scrollback = '  '.join([m.split('.')[-1] for m in matches])
+
+            # add white space to align with the cursor
+            white_space = "    " + (" " * (cursor + len(prefix)))
             word_prefix = word + prefix
-            scrollback = '  '.join(
-                    [m[len(word_prefix):]
+            scrollback = '\n'.join(
+                    [white_space + m[len(word_prefix):]
                      if (word_prefix and m.startswith(word_prefix))
-                     else m.split('.')[-1]
+                     else
+                     white_space + m.split('.')[-1]
                      for m in matches])
 
         no_calltip = True
