@@ -1614,25 +1614,16 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 	int i;
 	char make_black = FALSE;
 	char was_a_nonzero = FALSE;
-	char actdef_nonzero = FALSE;
 
 	if (me->dvert) {
 		for (i=0; i<me->dvert[vert].totweight; i++) {
 			// Jason was here
 			if(multipaint && selected > 1) {
 				if(dg_flags[me->dvert[vert].dw[i].def_nr]) {
-					if(ob->actdef-1 == me->dvert[vert].dw[i].def_nr) {
-						if (me->dvert[vert].dw[i].weight == 0) {
-							//make_black = TRUE;
-							break;
-						}
-						actdef_nonzero = TRUE;
-					}
 					if(me->dvert[vert].dw[i].weight) {
 						input+=me->dvert[vert].dw[i].weight;
 						was_a_nonzero = TRUE;
 					}
-
 				}
 				// TODO unselected non-bone groups should not be involved in this sum
 				else if(auto_normalize) {
@@ -1648,7 +1639,7 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 			/*if(input == 1.0f && auto_normalize && !unsel_sum) {
 				make_black = TRUE;
 			} else */
-			if(!(was_a_nonzero && actdef_nonzero)) {
+			if(!was_a_nonzero) {
 				make_black = TRUE;
 			} else if (!auto_normalize){
 				input /= selected;

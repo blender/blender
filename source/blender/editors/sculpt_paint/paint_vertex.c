@@ -792,7 +792,7 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], fl
 	return alpha;
 }
 
-static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval, int flip)
+static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval, int flip, int multipaint)
 {
 	Brush *brush = paint_brush(&wp->paint);
 	int tool = brush->vertexpaint_tool;
@@ -859,14 +859,15 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 				testw = uw->weight;
 		}
 		//CLAMP(testw, 0.0f, 1.0f);
-		
-		if( testw<uw->weight ) {
-			if(dw->weight < testw) dw->weight= testw;
-			else if(dw->weight > uw->weight) dw->weight= uw->weight;
-		}
-		else {
-			if(dw->weight > testw) dw->weight= testw;
-			else if(dw->weight < uw->weight) dw->weight= uw->weight;
+		if(!multipaint) {
+			if( testw<uw->weight ) {
+				if(dw->weight < testw) dw->weight= testw;
+				else if(dw->weight > uw->weight) dw->weight= uw->weight;
+			}
+			else {
+				if(dw->weight > testw) dw->weight= testw;
+				else if(dw->weight < uw->weight) dw->weight= uw->weight;
+			}
 		}
 	}
 	
@@ -1205,6 +1206,9 @@ static void multipaint_selection(MDeformVert *dvert, float change, char *selecti
 				if(val > 1) {
 					change = 1.0f/dw->weight;
 				}
+				if(val <= 0) {
+					return;
+				}
 			}
 		}
 	}
@@ -1365,22 +1369,27 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defcnt, char *
 	MEM_freeN(change_status);
 }
 /*Jason*/
-static float get_mp_change(MDeformVert *odv, char *selection, float oldw, float neww) {
-	if(oldw) {
-		return neww/oldw;
+static float get_mp_change(MDeformVert *odv, char *selection, float brush_change) {
+	float selwsum = 0.0f;
+	int i;
+	MDeformWeight *dw;
+	for(i=0; i < odv->totweight; i++) {
+		if(selection[(dw = (odv->dw+i))->def_nr]) {
+			selwsum += dw->weight;
+		}
 	}
-	return 0;
+	if(selwsum && selwsum+brush_change > 0) {
+		return (selwsum+brush_change)/selwsum;
+	}
+	return 0.0f;
 }
 /*Jason*/
-/*static void reset_to_prev(VPaint *wv, MDeformVert *dv, int vgroup) {
+static void reset_to_prev(MDeformVert *wv, MDeformVert *dv) {
 	int i;
 	MDeformWeight *d;
 	MDeformWeight *w;
 	for(i = 0; i < dv->totweight; i++) {
 		d = dv->dw+i;
-		if(d->def_nr == vgroup) {
-			continue;
-		}
 		w = defvert_find_index(wv, d->def_nr);
 		if(w) {
 			d->weight = w->weight;
@@ -1388,7 +1397,7 @@ static float get_mp_change(MDeformVert *odv, char *selection, float oldw, float 
 			d->weight = 0;
 		}
 	}
-}*/
+}
 /* Jason */
 static void clamp_weights(MDeformVert *dvert) {
 	int i;
@@ -1398,23 +1407,23 @@ static void clamp_weights(MDeformVert *dvert) {
 }
 /*Jason*/
 /* fresh start to make multi-paint and locking modular */
-static void apply_mp_lcks_normalize(Object *ob, Mesh *me, int index, MDeformWeight *dw, int defcnt, float oldw, float neww, char *selection, int selected, char *bone_groups, char *validmap, char *flags, int multipaint) {
+static void apply_mp_lcks_normalize(Object *ob, Mesh *me, int index, MDeformWeight *dw, int defcnt, float change, float oldw, float neww, char *selection, int selected, char *bone_groups, char *validmap, char *flags, int multipaint) {
 	MDeformVert *dvert = me->dvert+index;
 	MDeformVert *dv = MEM_mallocN(sizeof (*(me->dvert+index)), "oldMDeformVert");
-	float change = 0.0f;
+	//float change = 0.0f;
 	int i;
-	dw->weight = oldw;
-	
+
 	dv->dw= MEM_dupallocN(dvert->dw);
 	dv->flag = dvert->flag;
 	dv->totweight = dvert->totweight;
 
 	if(!flags || flags && !has_locked_group_selected(defcnt, selection, flags) && !flags[dw->def_nr]) {// !flags[dw->def_nr] helps if nothing is selected, but active group is locked
-		if(multipaint && selected > 1 && (change = get_mp_change(dv, selection, oldw, neww)) && change!=1) {
-			multipaint_selection(dvert, change, selection, defcnt);
+		if(multipaint && selected > 1) {
+			if(change && change!=1) {
+				multipaint_selection(dvert, change, selection, defcnt);
+			}
 		} else {
 			dw->weight = neww;
-			change = 0.0f;
 		}
 	}
 	clamp_weights(me->dvert+index);
@@ -1463,6 +1472,17 @@ static int count_true(char *list, int len)
 	}
 	return cnt;
 }
+static int get_first_selected_nonzero_weight(MDeformVert *dvert, char *selection) {
+	int i;
+	MDeformWeight *dw;
+	for(i=0; i< dvert->totweight; i++) {
+		dw = dvert->dw+i;
+		if(selection[dw->def_nr] && dw->weight > 0) {
+			return i;
+		}
+	}
+	return -1;
+}
 // Jason
 static char *wpaint_make_validmap(Object *ob);
 
@@ -1471,7 +1491,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 				   int vgroup_mirror, char *validmap, int multipaint)
 {
 	Mesh *me= ob->data;
-	MDeformWeight *dw, *uw;
+	MDeformWeight *dw, *uw, *tdw, *tuw;
 	int vgroup= ob->actdef-1;
 
 	/* Jason was here */
@@ -1481,7 +1501,9 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	int selected;
 	float oldw;
 	float neww;
+	float testw;
 	int defcnt;
+	float change = 0;
 	int i;
 	if(validmap) {
 		bone_groups = validmap;
@@ -1508,16 +1530,47 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	}
 	
 	oldw = dw->weight;
-	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
+	wpaint_blend(wp, dw, uw, alpha, paintweight, flip, multipaint && selected >1);
 	neww = dw->weight;
+	dw->weight = oldw;
 	if(selected > 1 && multipaint) {
-		if(!oldw || neww <= 0) {
-			neww = oldw;
-			dw->weight = oldw;
+		tdw = dw;
+		tuw = uw;
+		change = get_mp_change(wp->wpaint_prev+index, selection, neww-oldw);
+		if(change) {
+			if(!tdw->weight) {
+				i = get_first_selected_nonzero_weight(me->dvert+index, selection);
+				if(i>=0) {
+					tdw = ((me->dvert+index)->dw+i);
+					tuw = defvert_verify_index(wp->wpaint_prev+index, tdw->def_nr);
+				} else {
+					change = 0;
+				}
+			}
+			if(change && tdw->weight * change && tuw->weight) {
+				if(tdw->weight != tuw->weight) {
+					testw = tuw->weight*change;
+					if( testw > tuw->weight ) {
+						if(change > tdw->weight/tuw->weight) {
+							reset_to_prev(wp->wpaint_prev+index, me->dvert+index);
+						} else {
+							change = 0;
+						}
+					} else {
+						if(change < tdw->weight/tuw->weight) {
+							reset_to_prev(wp->wpaint_prev+index, me->dvert+index);
+						} else {
+							change = 0;
+						}
+					}
+				}
+			} else {
+				change = 0;
+			}
 		}
 	}
 	/* Jason was here */
-	apply_mp_lcks_normalize(ob, me, index, dw, defcnt, oldw, neww, selection, selected, bone_groups, validmap, flags, multipaint);
+	apply_mp_lcks_normalize(ob, me, index, dw, defcnt, change, oldw, neww, selection, selected, bone_groups, validmap, flags, multipaint);
 
 	// dvert may have been altered greatly
 	dw = defvert_find_index(me->dvert+index, vgroup);
@@ -1531,12 +1584,9 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 			else
 				uw= defvert_verify_index(me->dvert+j, vgroup);
 			/* Jason */
-			oldw = uw->weight;
-
 			//uw->weight= dw->weight;
-			uw->weight = neww;
 			/* Jason */
-			apply_mp_lcks_normalize(ob, me, j, uw, defcnt, oldw, neww, selection, selected, bone_groups, validmap, flags, multipaint);
+			apply_mp_lcks_normalize(ob, me, j, uw, defcnt, change, oldw, neww, selection, selected, bone_groups, validmap, flags, multipaint);
 		}
 	}
 	/* Jason */
