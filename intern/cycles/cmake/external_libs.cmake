@@ -1,4 +1,19 @@
 ###########################################################################
+# Windows lib directory libraries
+
+IF(WIN32)
+	if(CMAKE_CL_64)
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+	else()
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
+	endif()
+
+	SET(CYCLES_OIIO ${LIBDIR}/openimageio)
+	SET(CYCLES_BOOST ${LIBDIR}/boost)
+    	SET(Boost_USE_STATIC_LIBS ON)
+ENDIF()
+
+###########################################################################
 # Boost setup
 
 SET(BOOST_ROOT ${CYCLES_BOOST})
@@ -11,7 +26,7 @@ SET(Boost_ADDITIONAL_VERSIONS "1.45" "1.44"
 
 SET(Boost_USE_MULTITHREADED ON)
 
-FIND_PACKAGE(Boost 1.34 REQUIRED COMPONENTS filesystem regex system serialization thread)
+FIND_PACKAGE(Boost 1.34 REQUIRED COMPONENTS filesystem regex system thread)
 
 MESSAGE(STATUS "Boost found ${Boost_FOUND}")
 MESSAGE(STATUS "Boost version ${Boost_VERSION}")
