@@ -183,7 +183,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user)
 	if(clip->ibuf_cache) {
 		MovieClipImBufCacheKey key;
 
-		key.framenr= user->framenr;
+		key.framenr= user?user->framenr:clip->lastframe;
 		return BKE_moviecache_get(clip->ibuf_cache, &key);
 	}
 

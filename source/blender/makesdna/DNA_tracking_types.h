@@ -55,7 +55,7 @@ typedef struct MovieTrackingCamera {
 typedef struct MovieTrackingMarker {
 	float pos[2];	/* 2d position of marker on frame (in unified 0..1 space) */
 	int framenr;	/* number of frame marker is associated with */
-	int flag, pad;	/* Marker's flag (alive, ...) */
+	int flag;		/* Marker's flag (alive, ...) */
 } MovieTrackingMarker;
 
 typedef struct MovieTrackingBundle {

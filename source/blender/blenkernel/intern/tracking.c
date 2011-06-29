@@ -172,6 +172,28 @@ void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *
 	}
 }
 
+void BKE_tracking_delete_marker(MovieTrackingTrack *track, int framenr)
+{
+	int a= 1;
+
+	while(a<track->markersnr) {
+		if(track->markers[a].framenr==framenr) {
+			if(track->markersnr>1) {
+				memmove(track->markers+a, track->markers+a+1, (track->markersnr-a-1)*sizeof(MovieTrackingMarker));
+				track->markersnr--;
+				track->markers= MEM_reallocN(track->markers, sizeof(MovieTrackingMarker)*track->markersnr);
+			} else {
+				MEM_freeN(track->markers);
+				track->markers= NULL;
+				track->markersnr= 0;
+			}
+
+			break;
+		}
+
+		a++;
+	}}
+
 MovieTrackingMarker *BKE_tracking_get_marker(MovieTrackingTrack *track, int framenr)
 {
 	int a= track->markersnr-1;
@@ -231,6 +253,16 @@ MovieTrackingMarker *BKE_tracking_ensure_marker(MovieTrackingTrack *track, int f
 	return marker;
 }
 
+MovieTrackingMarker *BKE_tracking_exact_marker(MovieTrackingTrack *track, int framenr)
+{
+	MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
+
+	if(marker && marker->framenr!=framenr)
+		return NULL;
+
+	return marker;
+}
+
 int BKE_tracking_has_marker(MovieTrackingTrack *track, int framenr)
 {
 	return BKE_tracking_get_marker(track, framenr) != 0;
@@ -253,17 +285,49 @@ MovieTrackingTrack *BKE_tracking_copy_track(MovieTrackingTrack *track)
 	return new_track;
 }
 
-void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame)
+void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int action)
 {
-	int a= 1;
+	int a;
 
-	while(a<track->markersnr) {
-		if(track->markers[a].framenr>ref_frame) {
-			track->markersnr= a;
-			track->markers= MEM_reallocN(track->markers, sizeof(MovieTrackingMarker)*track->markersnr);
+	if(action==TRACK_CLEAR_REMAINED) {
+		a= 1;
+		while(a<track->markersnr) {
+			if(track->markers[a].framenr>ref_frame) {
+				track->markersnr= a;
+				track->markers= MEM_reallocN(track->markers, sizeof(MovieTrackingMarker)*track->markersnr);
+
+				break;
+			}
+
+			a++;
 		}
+	} else if(action==TRACK_CLEAR_UPTO) {
+		a= track->markersnr-1;
+		while(a>=0) {
+			if(track->markers[a].framenr<=ref_frame) {
+				memmove(track->markers, track->markers+a, (track->markersnr-a)*sizeof(MovieTrackingMarker));
 
-		a++;
+				track->markersnr= track->markersnr-a;
+				track->markers= MEM_reallocN(track->markers, sizeof(MovieTrackingMarker)*track->markersnr);
+
+				break;
+			}
+
+			a--;
+		}
+	} else if(action==TRACK_CLEAR_ALL) {
+		MovieTrackingMarker *marker, marker_new;
+
+		marker= BKE_tracking_get_marker(track, ref_frame);
+		if(marker)
+			marker_new= *marker;
+
+		MEM_freeN(track->markers);
+		track->markers= NULL;
+		track->markersnr= 0;
+
+		if(marker)
+			BKE_tracking_insert_marker(track, &marker_new);
 	}
 }
 

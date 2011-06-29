@@ -48,7 +48,7 @@ cat > CMakeLists.txt << EOF
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2006, Blender Foundation
+# The Original Code is Copyright (C) 2011, Blender Foundation
 # All rights reserved.
 #
 # Contributor(s): Blender Foundation,

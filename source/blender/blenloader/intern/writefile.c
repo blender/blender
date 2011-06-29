@@ -2426,8 +2426,9 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 			track= clip->tracking.tracks.first;
 			while(track) {
 				writestruct(wd, DATA, "MovieTrackingTrack", 1, track);
+
 				if(track->markers)
-					writedata(wd, DATA, track->markersnr*sizeof(MovieTrackingMarker), track->markers);
+					writestruct(wd, DATA, "MovieTrackingMarker", track->markersnr, track->markers);
 
 				track= track->next;
 			}

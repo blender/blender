@@ -44,13 +44,15 @@ struct MovieClipUser;
 void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
 void BKE_tracking_insert_marker(struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
+void BKE_tracking_delete_marker(struct MovieTrackingTrack *track, int framenr);
 struct MovieTrackingMarker *BKE_tracking_get_marker(struct MovieTrackingTrack *track, int framenr);
 struct MovieTrackingMarker *BKE_tracking_ensure_marker(struct MovieTrackingTrack *track, int framenr);
+struct MovieTrackingMarker *BKE_tracking_exact_marker(struct MovieTrackingTrack *track, int framenr);
 int BKE_tracking_has_marker(struct MovieTrackingTrack *track, int framenr);
 
 void BKE_tracking_free_track(struct MovieTrackingTrack *track);
 struct MovieTrackingTrack *BKE_tracking_copy_track(struct MovieTrackingTrack *track);
-void BKE_tracking_clear_path(struct MovieTrackingTrack *track, int ref_frame);
+void BKE_tracking_clear_path(struct MovieTrackingTrack *track, int ref_frame, int action);
 void BKE_tracking_free(struct MovieTracking *tracking);
 
 struct ImBuf *BKE_tracking_acquire_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, int pos[2]);

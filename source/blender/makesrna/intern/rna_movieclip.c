@@ -48,6 +48,8 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_depsgraph.h"
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
 static void rna_MovieClip_reload_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -55,6 +57,42 @@ static void rna_MovieClip_reload_update(Main *bmain, Scene *scene, PointerRNA *p
 
 	BKE_movieclip_reload(clip);
 	DAG_id_tag_update(&clip->id, 0);
+}
+
+static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
+{
+	MovieClip *clip= (MovieClip*)ptr->data;
+	ImBuf *ibuf;
+
+	ibuf= BKE_movieclip_acquire_ibuf(clip, NULL);
+	if (ibuf) {
+		values[0]= ibuf->x;
+		values[1]= ibuf->y;
+
+		IMB_freeImBuf(ibuf);
+	}
+	else {
+		values[0]= 0;
+		values[1]= 0;
+	}
+}
+
+static void rna_MovieClip_resolution_get(PointerRNA *ptr, float *values)
+{
+	MovieClip *clip= (MovieClip*)ptr->data;
+	ImBuf *ibuf;
+
+	ibuf= BKE_movieclip_acquire_ibuf(clip, NULL);
+	if (ibuf) {
+		values[0]= ibuf->ppm[0];
+		values[1]= ibuf->ppm[1];
+
+		IMB_freeImBuf(ibuf);
+	}
+	else {
+		values[0]= 0;
+		values[1]= 0;
+	}
 }
 
 #else
@@ -90,6 +128,14 @@ static void rna_def_movieclip(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "tracking", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTracking");
+
+	prop= RNA_def_int_vector(srna, "size" , 2 , NULL , 0, 0, "Size" , "Width and height in pixels, zero when image data cant be loaded" , 0 , 0);
+	RNA_def_property_int_funcs(prop, "rna_MovieClip_size_get" , NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_float_vector(srna, "resolution" , 2 , NULL , 0, 0, "Resolution" , "X/Y pixels per meter" , 0 , 0);
+	RNA_def_property_float_funcs(prop, "rna_MovieClip_resolution_get", NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 void RNA_def_movieclip(BlenderRNA *brna)

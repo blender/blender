@@ -58,4 +58,8 @@ void BKE_movieclip_last_selection(struct MovieClip *clip, int *type, void **sel)
 
 void BKE_movieclip_get_cache_segments(struct MovieClip *clip, int *totseg_r, int **points_r);
 
+#define TRACK_CLEAR_UPTO		0
+#define TRACK_CLEAR_REMAINED	1
+#define TRACK_CLEAR_ALL			2
+
 #endif

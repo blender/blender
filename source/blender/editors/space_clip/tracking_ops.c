@@ -205,9 +205,9 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 		"Location", "Location of marker on frame.", -1.f, 1.f);
 }
 
-/********************** delete operator *********************/
+/********************** delete track operator *********************/
 
-static int delete_exec(bContext *C, wmOperator *UNUSED(op))
+static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
@@ -230,16 +230,71 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void CLIP_OT_delete(wmOperatorType *ot)
+void CLIP_OT_delete_track(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
-	ot->idname= "CLIP_OT_delete";
+	ot->name= "Delete Track";
+	ot->idname= "CLIP_OT_delete_track";
 	ot->description= "Delete selected tracks";
 
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= delete_exec;
+	ot->exec= delete_track_exec;
+	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** delete marker operator *********************/
+
+static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track= clip->tracking.tracks.first, *next;
+	int framenr= sc->user.framenr, sel_type;
+	void *sel;
+
+	BKE_movieclip_last_selection(clip, &sel_type, &sel);
+
+	while(track) {
+		next= track->next;
+
+		if(TRACK_SELECTED(track)) {
+			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, framenr);
+
+			if(marker) {
+				if(track->markersnr==1) {
+					if(sel_type==MCLIP_SEL_TRACK && sel==track)
+						BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+
+					BKE_tracking_free_track(track);
+					BLI_freelinkN(&clip->tracking.tracks, track);
+				} else {
+					BKE_tracking_delete_marker(track, framenr);
+				}
+			}
+		}
+
+		track= next;
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_delete_marker(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Marker";
+	ot->idname= "CLIP_OT_delete_marker";
+	ot->description= "Delete marker for current frame from selected tracks";
+
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= delete_marker_exec;
 	ot->poll= space_clip_tracking_poll;
 
 	/* flags */
@@ -944,16 +999,18 @@ static int clear_track_path_poll(bContext *C)
 	return 0;
 }
 
-static int clear_track_path_exec(bContext *C, wmOperator *UNUSED(op))
+static int clear_track_path_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	int sel_type;
+	int sel_type, action;
 	MovieTrackingTrack *track;
+
+	action= RNA_enum_get(op->ptr, "action");
 
 	BKE_movieclip_last_selection(clip, &sel_type, (void**)&track);
 
-	BKE_tracking_clear_path(track, sc->user.framenr);
+	BKE_tracking_clear_path(track, sc->user.framenr, action);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
 
@@ -962,6 +1019,13 @@ static int clear_track_path_exec(bContext *C, wmOperator *UNUSED(op))
 
 void CLIP_OT_clear_track_path(wmOperatorType *ot)
 {
+	static EnumPropertyItem clear_path_actions[] = {
+			{TRACK_CLEAR_UPTO, "UPTO", 0, "Clear up-to", "Clear path up to current frame"},
+			{TRACK_CLEAR_REMAINED, "REMAINED", 0, "Clear remained", "Clear path at remained frames (after current)"},
+			{TRACK_CLEAR_ALL, "ALL", 0, "Clear all", "Clear the whole path"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
 	ot->name= "Clear Track Path";
 	ot->description= "Clear path of active track";
@@ -973,6 +1037,9 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "action", clear_path_actions, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
+
 }
 
 /********************** track to fcurves opertaotr *********************/

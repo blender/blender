@@ -64,7 +64,8 @@ void CLIP_OT_select_border(struct wmOperatorType *ot);
 void CLIP_OT_select_circle(struct wmOperatorType *ot);
 
 void CLIP_OT_add_marker(struct wmOperatorType *ot);
-void CLIP_OT_delete(struct wmOperatorType *ot);
+void CLIP_OT_delete_track(struct wmOperatorType *ot);
+void CLIP_OT_delete_marker(struct wmOperatorType *ot);
 
 void CLIP_OT_track_markers(struct wmOperatorType *ot);
 

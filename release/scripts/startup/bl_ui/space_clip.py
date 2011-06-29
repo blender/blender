@@ -62,22 +62,26 @@ class CLIP_PT_tools(bpy.types.Panel):
 
             col.label(text="Marker:")
             col.operator("clip.add_marker_move")
-            col.operator("clip.delete")
+            col.operator("clip.delete_track")
+            col.operator("clip.delete_marker")
 
             col = layout.column(align=True)
             col.label(text="2D tracking:")
             row = col.row(align=True)
 
-            op = row.operator("clip.track_markers", text="", icon='REW')
-            op.sequence = True
+            op = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
             op.backwards = True
             op = row.operator("clip.track_markers", text="", icon='PLAY_REVERSE')
             op.backwards = True
-            row.operator("clip.track_markers", text="", icon='PLAY')
-            op = row.operator("clip.track_markers", text="", icon='FF')
             op.sequence = True
+            op = row.operator("clip.track_markers", text="", icon='PLAY')
+            op.sequence = True
+            row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
 
-            layout.operator("clip.clear_track_path")
+            col = layout.column(align=True)
+            col.operator("clip.clear_track_path", text="Clear Remained Path").action = 'REMAINED'
+            col.operator("clip.clear_track_path", text="Clear Path Up To").action = 'UPTO'
+            col.operator("clip.clear_track_path", text="Clear Track Path").action = 'ALL'
         else:
             layout.operator('clip.open')
 
@@ -280,7 +284,8 @@ class CLIP_MT_edit(bpy.types.Menu):
 
         sc = context.space_data
 
-        layout.operator("clip.delete")
+        layout.operator("clip.delete_track")
+        layout.operator("clip.delete_marker")
         layout.menu("CLIP_MT_marker")
 
 
