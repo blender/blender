@@ -142,6 +142,30 @@ void BL_Action::Play(const char* name,
 	m_ipo_flags = ipo_flags;
 	InitIPO();
 
+	// Setup blendin shapes/poses
+	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
+	{
+		if (!m_blendpose)
+		{
+			BL_ArmatureObject *obj = (BL_ArmatureObject*)m_obj;
+			obj->GetMRDPose(&m_blendpose);
+		}
+	}
+	else
+	{
+		BL_DeformableGameObject *obj = (BL_DeformableGameObject*)m_obj;
+		BL_ShapeDeformer *shape_deformer = dynamic_cast<BL_ShapeDeformer*>(obj->GetDeformer());
+		
+		obj->GetShape(m_blendshape);
+
+		// Now that we have the previous blend shape saved, we can clear out the key to avoid any
+		// further interference.
+		KeyBlock *kb;
+		for (kb=(KeyBlock*)shape_deformer->GetKey()->block.first; kb; kb=(KeyBlock*)kb->next)
+			kb->curval = 0.f;
+
+	}
+
 	// Now that we have an action, we have something we can play
 	m_starttime = KX_GetActiveEngine()->GetFrameTime();
 	m_startframe = m_localtime = start;
@@ -195,6 +219,39 @@ void BL_Action::SetLocalTime(float curtime)
 		dt = -dt;
 
 	m_localtime = m_startframe + dt;
+}
+
+void BL_Action::IncrementBlending(float curtime)
+{
+	// Setup m_blendstart if we need to
+	if (m_blendstart == 0.f)
+		m_blendstart = curtime;
+	
+	// Bump the blend frame
+	m_blendframe = (curtime - m_blendstart)*KX_KetsjiEngine::GetAnimFrameRate();
+
+	// Clamp
+	if (m_blendframe>m_blendin)
+		m_blendframe = m_blendin;
+}
+
+
+void BL_Action::BlendShape(Key* key, float srcweight)
+{
+	vector<float>::const_iterator it;
+	float dstweight;
+	KeyBlock *kb;
+	
+	dstweight = 1.0F - srcweight;
+	//printf("Dst: %f\tSrc: %f\n", srcweight, dstweight);
+	for (it=m_blendshape.begin(), kb = (KeyBlock*)key->block.first; 
+		 kb && it != m_blendshape.end(); 
+		 kb = (KeyBlock*)kb->next, it++) {
+		//printf("OirgKeys: %f\t%f\n", kb->curval, (*it));
+		kb->curval = kb->curval * dstweight + (*it) * srcweight;
+		//printf("NewKey: %f\n", kb->curval);
+	}
+	//printf("\n");
 }
 
 void BL_Action::Update(float curtime)
@@ -260,25 +317,16 @@ void BL_Action::Update(float curtime)
 			arm->pose = temp;
 		}
 
-		// Handle blending between actions
+		// Handle blending between armature actions
 		if (m_blendin && m_blendframe<m_blendin)
 		{
-			if (!m_blendpose)
-			{
-				obj->GetMRDPose(&m_blendpose);
-				m_blendstart = curtime;
-			}
+			IncrementBlending(curtime);
 
 			// Calculate weight
 			float weight = 1.f - (m_blendframe/m_blendin);
+
+			// Blend the poses
 			game_blend_poses(m_pose, m_blendpose, weight);
-
-			// Bump the blend frame
-			m_blendframe = (curtime - m_blendstart)*KX_KetsjiEngine::GetAnimFrameRate();
-
-			// Clamp
-			if (m_blendframe>m_blendin)
-				m_blendframe = m_blendin;
 		}
 
 		obj->SetPose(m_pose);
@@ -295,15 +343,25 @@ void BL_Action::Update(float curtime)
 		{
 			Key *key = shape_deformer->GetKey();
 
-			// We go through and clear out the keyblocks so there isn't any interference
-			// from other shape actions
-			KeyBlock *kb;
-			for (kb=(KeyBlock*)key->block.first; kb; kb=(KeyBlock*)kb->next)
-				kb->curval = 0.f;
 
 			animsys_evaluate_action(m_ptrrna, m_action, NULL, m_localtime);
 
-			// XXX TODO handle blendin
+			// Handle blending between shape actions
+			if (m_blendin && m_blendframe < m_blendin)
+			{
+				IncrementBlending(curtime);
+
+				float weight = 1.f - (m_blendframe/m_blendin);
+
+				// We go through and clear out the keyblocks so there isn't any interference
+				// from other shape actions
+				KeyBlock *kb;
+				for (kb=(KeyBlock*)key->block.first; kb; kb=(KeyBlock*)kb->next)
+					kb->curval = 0.f;
+
+				// Now blend the shape
+				BlendShape(key, weight);
+			}
 
 			obj->SetActiveAction(NULL, 0, m_localtime);
 		}

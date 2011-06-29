@@ -29,6 +29,9 @@
 #ifndef __BL_ACTION
 #define __BL_ACTION
 
+
+#include <vector>
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif
@@ -43,6 +46,7 @@ private:
 	struct PointerRNA *m_ptrrna;
 	class SG_Controller *m_sg_contr;
 	class KX_GameObject* m_obj;
+	std::vector<float>	m_blendshape;
 
 	float m_startframe;
 	float m_endframe;
@@ -68,6 +72,8 @@ private:
 
 	void InitIPO();
 	void SetLocalTime(float curtime);
+	void IncrementBlending(float curtime);
+	void BlendShape(struct Key* key, float srcweight);
 public:
 	BL_Action(class KX_GameObject* gameobj);
 	~BL_Action();
