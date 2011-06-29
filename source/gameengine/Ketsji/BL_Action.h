@@ -88,7 +88,7 @@ public:
 			short ipo_flags,
 			float playback_speed);
 	void Stop();
-	bool IsDone() {return m_done;}
+	bool IsDone();
 	void Update(float curtime);
 
 	// Accessors

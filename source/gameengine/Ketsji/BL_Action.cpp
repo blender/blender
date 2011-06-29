@@ -189,6 +189,11 @@ void BL_Action::Stop()
 	m_done = true;
 }
 
+bool BL_Action::IsDone()
+{
+	return m_done;
+}
+
 void BL_Action::InitIPO()
 {
 		// Initialize the IPO
