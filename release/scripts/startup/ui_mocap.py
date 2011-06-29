@@ -26,12 +26,70 @@ from bpy import *
 from mathutils import Vector
 from math import isfinite
 
+# MocapConstraint class
+# Defines MocapConstraint datatype, used to add and configute mocap constraints
+# Attached to Armature data
+
+
+class MocapConstraint(bpy.types.PropertyGroup):
+    name = bpy.props.StringProperty(name = "Name",
+        default = "Mocap Constraint",
+        description = "Name of Mocap Constraint")
+    boneA = bpy.props.StringProperty(name = "Bone",
+        default = "",
+        description = "Constrained Bone")
+    boneB = bpy.props.StringProperty(name = "Bone (2)",
+        default = "",
+        description = "Other Constrained Bone (optional, depends on type)")
+    s_frame = bpy.props.IntProperty(name = "S",
+        default = 1,
+        description = "Start frame of constraint")
+    e_frame = bpy.props.IntProperty(name = "E",
+        default = 500,
+        description = "End frame of constrain")
+    targetMesh = bpy.props.StringProperty(name = "Mesh",
+        default = "",
+        description = "Target of Constraint - Mesh (optional, depends on type)")
+    active = bpy.props.BoolProperty(name = "Active",
+        default = True,
+        description = "Constraint is active")
+    baked = bpy.props.BoolProperty(name = "Baked / Applied",
+        default = False,
+        description = "Constraint has been baked to NLA layer")
+    targetFrame = bpy.props.IntProperty(name = "Frame",
+        default = 1,
+        description = "Target of Constraint - Frame (optional, depends on type)")
+    targetPoint = bpy.props.FloatVectorProperty(name = "Point", size = 3,
+        subtype = "XYZ", default = (0.0, 0.0, 0.0),
+        description = "Target of Constraint - Point")
+    targetSpace = bpy.props.EnumProperty(
+        items = [("world", "World Space", "Evaluate target in global space"),
+            ("object", "Object space", "Evaluate target in object space"),
+            ("boneb", "Other Bone Space", "Evaluate target in specified other bone space")],
+        name = "Space",
+        description = "In which space should Point type target be evaluated")
+    type = bpy.props.EnumProperty(name="Type of constraint",
+        items = [("point", "Maintain Position", "Bone is at a specific point"),
+            ("freeze", "Maintain Position at frame", "Bone does not move from location specified in target frame"),
+            ("floor", "Stay above", "Bone does not cross specified mesh object eg floor"),
+            ("distance", "Maintain distance", "Target bones maintained specified distance")],
+        description = "Type of constraint")
+    realConstraint = bpy.props.StringProperty()
+
+
+bpy.utils.register_class(MocapConstraint)
+
+bpy.types.Armature.mocap_constraints = bpy.props.CollectionProperty(type=MocapConstraint)
+
+#Update function for IK functionality. Is called when IK prop checkboxes are toggled.
+
+
 def toggleIKBone(self, context):
     if self.IKRetarget:
         if not self.is_in_ik_chain:
             print(self.name + " IK toggled ON!")
             ik = self.constraints.new('IK')
-            #ik the whole chain up to the root
+            #ik the whole chain up to the root, excluding
             chainLen = len(self.bone.parent_recursive)
             ik.chain_count = chainLen
             for bone in self.parent_recursive:
@@ -52,17 +110,23 @@ def toggleIKBone(self, context):
             for bone in cnstrn_bone.parent_recursive:
                 if not bone.is_in_ik_chain:
                     bone.IKRetarget = False
-            
 
 bpy.types.Bone.map = bpy.props.StringProperty()
-bpy.types.PoseBone.IKRetarget = bpy.props.BoolProperty(name="IK",
+bpy.types.PoseBone.IKRetarget = bpy.props.BoolProperty(name = "IK",
     description = "Toggles IK Retargeting method for given bone",
-    update = toggleIKBone)
+    update = toggleIKBone, default = False)
+
 
 def hasIKConstraint(pose_bone):
+    #utility function / predicate, returns True if given bone has IK constraint
     return ("IK" in [constraint.type for constraint in pose_bone.constraints])
-    
+
+
 def updateIKRetarget():
+    # ensures that Blender constraints and IK properties are in sync
+    # currently runs when module is loaded, should run when scene is loaded
+    # or user adds a constraint to armature. Will be corrected in the future,
+    # once python callbacks are implemented
     for obj in bpy.data.objects:
         if obj.pose:
             bones = obj.pose.bones
@@ -79,6 +143,7 @@ import mocap_tools
 
 
 class MocapPanel(bpy.types.Panel):
+    # Motion capture retargeting panel
     bl_label = "Mocap tools"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
@@ -124,8 +189,53 @@ class MocapPanel(bpy.types.Panel):
                                 label_mod = "ik end"
                             row.prop(pose_bone, 'IKRetarget')
                         row.label(label_mod)
-                            
+
                     self.layout.operator("mocap.retarget", text='RETARGET!')
+
+
+class MocapConstraintsPanel(bpy.types.Panel):
+    #Motion capture constraints panel
+    bl_label = "Mocap constraints"
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "object"
+
+    def draw(self, context):
+        layout = self.layout
+        if context.active_object:
+            if context.active_object.data:
+                if context.active_object.data.name in bpy.data.armatures:
+                    enduser_obj = context.active_object
+                    enduser_arm = enduser_obj.data
+                    layout.operator("mocap.addconstraint", text = 'Add constraint')
+                    layout.separator()
+                    for i, m_constraint in enumerate(enduser_arm.mocap_constraints):
+                        box = layout.box()
+                        box.prop(m_constraint, 'name')
+                        box.prop(m_constraint, 'type')
+                        box.prop_search(m_constraint, 'boneA', enduser_obj.pose, "bones")
+                        if m_constraint.type == "distance" or m_constraint.type == "point":
+                            box.prop_search(m_constraint, 'boneB', enduser_obj.pose, "bones")
+                        frameRow = box.row()
+                        frameRow.label("Frame Range:")
+                        frameRow.prop(m_constraint, 's_frame')
+                        frameRow.prop(m_constraint, 'e_frame')
+                        targetRow = box.row()
+                        targetLabelCol = targetRow.column()
+                        targetLabelCol.label("Target settings:")
+                        targetPropCol = targetRow.column()
+                        if m_constraint.type == "floor":
+                            targetPropCol.prop_search(m_constraint, 'targetMesh', bpy.data, "objects")
+                        if m_constraint.type == "freeze":
+                            targetPropCol.prop(m_constraint, 'targetFrame')
+                        if m_constraint.type == "point":
+                            targetPropCol.prop(m_constraint, 'targetPoint')
+                            box.prop(m_constraint, 'targetSpace')
+                        checkRow = box.row()
+                        checkRow.prop(m_constraint, 'active')
+                        checkRow.prop(m_constraint, 'baked')
+                        layout.operator("mocap.removeconstraint", text = "Remove constraint").constraint = i
+                        layout.separator()
 
 
 class OBJECT_OT_RetargetButton(bpy.types.Operator):
@@ -168,6 +278,30 @@ class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
     bl_label = "Analyzes animations Max/Min DOF and adds hard/soft constraints"
 
     def execute(self, context):
+        return {"FINISHED"}
+
+
+class OBJECT_OT_AddMocapConstraint(bpy.types.Operator):
+    bl_idname = "mocap.addconstraint"
+    bl_label = "Add constraint to target armature"
+
+    def execute(self, context):
+        enduser_obj = bpy.context.active_object
+        enduser_arm = enduser_obj.data
+        newCon = enduser_arm.mocap_constraints.add()
+        return {"FINISHED"}
+
+
+class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
+    bl_idname = "mocap.removeconstraint"
+    bl_label = "Removes constraints from target armature"
+    constraint = bpy.props.IntProperty()
+
+    def execute(self, context):
+        enduser_obj = bpy.context.active_object
+        enduser_arm = enduser_obj.data
+        constraints = enduser_arm.mocap_constraints
+        constraints.remove(self.constraint)
         return {"FINISHED"}
 
 
