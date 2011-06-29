@@ -82,7 +82,6 @@ def complete(line, cursor, namespace, private):
         if RE_MODULE.match(line):
             from . import complete_import
             matches = complete_import.complete(line)
-            print(private)
             if not private:
                 matches[:] = [m for m in matches if m[:1] != "_"]
             matches.sort()
