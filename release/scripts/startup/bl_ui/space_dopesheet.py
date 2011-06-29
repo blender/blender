@@ -33,14 +33,33 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
     row.prop(dopesheet, "show_only_selected", text="")
     row.prop(dopesheet, "show_hidden", text="")
 
+    if is_nla:
+            row.prop(dopesheet, "show_missing_nla", text="")
+    
     if not genericFiltersOnly:
+        if bpy.data.groups:
+            row = layout.row(align=True)
+            row.prop(dopesheet, "show_only_group_objects", text="")
+            if dopesheet.show_only_group_objects:
+                row.prop(dopesheet, "filter_group", text="")
+
+    if not is_nla:
         row = layout.row(align=True)
+        row.prop(dopesheet, "show_only_matching_fcurves", text="")
+        if dopesheet.show_only_matching_fcurves:
+            row.prop(dopesheet, "filter_fcurve_name", text="")
+
+    row = layout.row()
+    row.prop(dopesheet, "show_datablock_filters", text="more...", icon='FILTER')
+
+    if (not genericFiltersOnly) and (dopesheet.show_datablock_filters):
+        # TODO: put a box around these?
+        subrow = row.row()
+        
+        row = subrow.row(align=True)
         row.prop(dopesheet, "show_transforms", text="")
 
-        if is_nla:
-            row.prop(dopesheet, "show_missing_nla", text="")
-
-        row = layout.row(align=True)
+        row = subrow.row(align=True)
         row.prop(dopesheet, "show_scenes", text="")
         row.prop(dopesheet, "show_worlds", text="")
         row.prop(dopesheet, "show_nodes", text="")
@@ -67,18 +86,6 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
             row.prop(dopesheet, "show_armatures", text="")
         if bpy.data.particles:
             row.prop(dopesheet, "show_particles", text="")
-
-        if bpy.data.groups:
-            row = layout.row(align=True)
-            row.prop(dopesheet, "show_only_group_objects", text="")
-            if dopesheet.show_only_group_objects:
-                row.prop(dopesheet, "filter_group", text="")
-
-    if not is_nla:
-        row = layout.row(align=True)
-        row.prop(dopesheet, "show_only_matching_fcurves", text="")
-        if dopesheet.show_only_matching_fcurves:
-            row.prop(dopesheet, "filter_fcurve_name", text="")
 
 
 #######################################

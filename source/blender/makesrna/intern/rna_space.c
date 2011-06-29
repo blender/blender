@@ -1872,11 +1872,12 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	// XXX: action-editor is currently for object-level only actions, so show that using object-icon hint
 	static EnumPropertyItem mode_items[] = {
-		{SACTCONT_DOPESHEET, "DOPESHEET", 0, "DopeSheet", "DopeSheet Editor"},
-		{SACTCONT_ACTION, "ACTION", 0, "Action Editor", "Action Editor"},
-		{SACTCONT_SHAPEKEY, "SHAPEKEY", 0, "ShapeKey Editor", "ShapeKey Editor"},
-		{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", "Grease Pencil"},
+		{SACTCONT_DOPESHEET, "DOPESHEET", ICON_OOPS, "DopeSheet", "DopeSheet Editor"},
+		{SACTCONT_ACTION, "ACTION", ICON_OBJECT_DATA, "Action Editor", "Action Editor"},
+		{SACTCONT_SHAPEKEY, "SHAPEKEY", ICON_SHAPEKEY_DATA, "ShapeKey Editor", "ShapeKey Editor"},
+		{SACTCONT_GPENCIL, "GPENCIL", ICON_GREASEPENCIL, "Grease Pencil", "Grease Pencil"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	
@@ -1955,8 +1956,8 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem mode_items[] = {
-		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curve Editor", "Edit f-curves"},
-		{SIPO_MODE_DRIVERS, "DRIVERS", 0, "Drivers", "Edit drivers"},
+		{SIPO_MODE_ANIMATION, "FCURVES", ICON_IPO, "F-Curve Editor", "Edit animation/keyframes displayed as 2D curves"},
+		{SIPO_MODE_DRIVERS, "DRIVERS", ICON_LINK_AREA, "Drivers", "Edit drivers"},
 		{0, NULL, 0, NULL, NULL}};
 		
 		/* this is basically the same as the one for the 3D-View, but with some entries ommitted */
@@ -2013,9 +2014,9 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Only Selected Keyframes Handles", "Only show and edit handles of selected keyframes");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
-	prop= RNA_def_property(srna, "use_fancy_drawing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_beauty_drawing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_BEAUTYDRAW_OFF);
-	RNA_def_property_ui_text(prop, "Use Fancy Drawing", "Draw F-Curves using Anti-Aliasing and other fancy effects. Disable for better performance");
+	RNA_def_property_ui_text(prop, "Use High Quality Drawing", "Draw F-Curves using Anti-Aliasing and other fancy effects. Disable for better performance");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
 	/* editing */

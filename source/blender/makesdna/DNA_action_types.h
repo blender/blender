@@ -566,7 +566,8 @@ typedef enum eDopeSheet_FilterFlag {
 
 /* DopeSheet general flags */
 typedef enum eDopeSheet_Flag {
-	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0)	/* when summary is shown, it is collapsed, so all other channels get hidden */
+	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0),	/* when summary is shown, it is collapsed, so all other channels get hidden */
+	ADS_FLAG_SHOW_DBFILTERS		= (1<<1)	/* show filters for datablocks */
 } eDopeSheet_Flag;
 
 

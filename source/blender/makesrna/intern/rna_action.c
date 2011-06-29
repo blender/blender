@@ -257,9 +257,16 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "DopeSheet", "Settings for filtering the channels shown in Animation Editors");
 	
 	/* Source of DopeSheet data */
+	// XXX: make this obsolete?
 	prop= RNA_def_property(srna, "source", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_ui_text(prop, "Source", "ID-Block representing source data, currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil)");
+	
+	/* Show datablock filters */
+	prop= RNA_def_property(srna, "show_datablock_filters", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ADS_FLAG_SHOW_DBFILTERS);
+	RNA_def_property_ui_text(prop, "Show Datablock Filters", "Show options for whether channels related to certain types of data are included");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN, NULL);
 	
 	/* General Filtering Settings */
 	prop= RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);

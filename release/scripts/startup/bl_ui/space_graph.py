@@ -81,7 +81,7 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.prop(st, "use_auto_merge_keyframes")
 
         layout.separator()
-        layout.prop(st, "use_fancy_drawing")
+        layout.prop(st, "use_beauty_drawing")
 
         layout.separator()
         if st.show_handles:
