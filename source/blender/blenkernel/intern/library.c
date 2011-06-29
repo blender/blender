@@ -109,6 +109,8 @@
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
 
+#include "RNA_access.h"
+
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
