@@ -53,7 +53,7 @@ RE_UNQUOTED_WORD = re.compile(
     re.UNICODE)
 
 
-def complete(line, cursor, namespace, private=True):
+def complete(line, cursor, namespace, private):
     """Returns a list of possible completions:
 
     * name completion
@@ -82,6 +82,10 @@ def complete(line, cursor, namespace, private=True):
         if RE_MODULE.match(line):
             from . import complete_import
             matches = complete_import.complete(line)
+            print(private)
+            if not private:
+                matches[:] = [m for m in matches if m[:1] != "_"]
+            matches.sort()
         else:
             from . import complete_namespace
             matches = complete_namespace.complete(word, namespace, private)

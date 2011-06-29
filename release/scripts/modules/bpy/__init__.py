@@ -22,24 +22,29 @@
 Give access to blender data and utility functions.
 """
 
-# internal blender C module
-import _bpy
-from _bpy import types, props, app
+__all__ = (
+    "app",
+    "context",
+    "data",
+    "ops",
+    "path",
+    "props",
+    "types",
+    "utils",
+)
 
-data = _bpy.data
-context = _bpy.context
+
+# internal blender C module
+from _bpy import types, props, app, data, context
 
 # python modules
-from . import utils, path
-from . import ops as _ops_module
+from . import utils, path, ops
 
 # fake operator module
-ops = _ops_module.ops_fake_module
-
-import sys as _sys
-
+ops = ops.ops_fake_module
 
 def _main():
+    import sys as _sys
 
     # Possibly temp. addons path
     from os.path import join, dirname, normpath
@@ -59,3 +64,5 @@ def _main():
 
 
 _main()
+
+del _main
