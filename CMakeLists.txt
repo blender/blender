@@ -144,7 +144,7 @@ option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
 option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 
 # Audio/Video format support
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu)" OFF)
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 if(APPLE OR (WIN32 AND NOT UNIX))
 	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
