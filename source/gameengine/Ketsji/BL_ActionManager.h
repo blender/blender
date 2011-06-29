@@ -42,7 +42,7 @@ public:
 	BL_ActionManager(class KX_GameObject* obj);
 	~BL_ActionManager();
 
-	void PlayAction(const char* name,
+	bool PlayAction(const char* name,
 					float start,
 					float end,
 					short layer=0,

@@ -211,7 +211,7 @@ public:
 	/**
 	 * Adds an action to the object's action manager
 	 */
-	void PlayAction(const char* name,
+	bool PlayAction(const char* name,
 					float start,
 					float end,
 					short layer=0,

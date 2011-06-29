@@ -104,7 +104,7 @@ BL_Action::~BL_Action()
 		delete m_ptrrna;
 }
 
-void BL_Action::Play(const char* name,
+bool BL_Action::Play(const char* name,
 					float start,
 					float end,
 					short priority,
@@ -118,7 +118,7 @@ void BL_Action::Play(const char* name,
 	// Only start playing a new action if we're done, or if
 	// the new action has a higher priority
 	if (priority != 0 && !IsDone() && priority >= m_priority)
-		return;
+		return false;
 	m_priority = priority;
 	bAction* prev_action = m_action;
 
@@ -128,7 +128,7 @@ void BL_Action::Play(const char* name,
 	{
 		printf("Failed to load action: %s\n", name);
 		m_done = true;
-		return;
+		return false;
 	}
 
 	if (prev_action != m_action)
@@ -178,6 +178,8 @@ void BL_Action::Play(const char* name,
 	m_speed = playback_speed;
 	
 	m_done = false;
+
+	return true;
 }
 
 void BL_Action::Stop()
@@ -329,6 +331,9 @@ void BL_Action::Update(float curtime)
 			game_blend_poses(m_pose, m_blendpose, weight);
 		}
 
+
+		// Handle layer blending
+		
 		obj->SetPose(m_pose);
 
 		obj->SetActiveAction(NULL, 0, curtime);

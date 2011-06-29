@@ -360,7 +360,7 @@ BL_ActionManager* KX_GameObject::GetActionManager()
 	return m_actionManager;
 }
 
-void KX_GameObject::PlayAction(const char* name,
+bool KX_GameObject::PlayAction(const char* name,
 								float start,
 								float end,
 								short layer,
@@ -371,7 +371,7 @@ void KX_GameObject::PlayAction(const char* name,
 								short ipo_flags,
 								float playback_speed)
 {
-	GetActionManager()->PlayAction(name, start, end, layer, priority, blendin, play_mode, blend_mode, ipo_flags, playback_speed);
+	return GetActionManager()->PlayAction(name, start, end, layer, priority, blendin, play_mode, blend_mode, ipo_flags, playback_speed);
 }
 
 void KX_GameObject::StopAction(short layer)

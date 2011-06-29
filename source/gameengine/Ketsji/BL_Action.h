@@ -78,7 +78,7 @@ public:
 	BL_Action(class KX_GameObject* gameobj);
 	~BL_Action();
 
-	void Play(const char* name,
+	bool Play(const char* name,
 			float start,
 			float end,
 			short priority,

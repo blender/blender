@@ -56,7 +56,7 @@ void BL_ActionManager::SetActionFrame(short layer, float frame)
 		m_layers[layer]->SetFrame(frame);
 }
 
-void BL_ActionManager::PlayAction(const char* name,
+bool BL_ActionManager::PlayAction(const char* name,
 								float start,
 								float end,
 								short layer,
@@ -67,7 +67,7 @@ void BL_ActionManager::PlayAction(const char* name,
 								short ipo_flags,
 								float playback_speed)
 {
-	m_layers[layer]->Play(name, start, end, priority, blendin, play_mode, blend_mode, ipo_flags, playback_speed);
+	return m_layers[layer]->Play(name, start, end, priority, blendin, play_mode, blend_mode, ipo_flags, playback_speed);
 }
 
 void BL_ActionManager::StopAction(short layer)

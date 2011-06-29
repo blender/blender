@@ -184,8 +184,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	if (!m_is_going && bPositiveEvent)
 	{		
 		m_is_going = true;
-		obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, play_mode, 0, m_ipo_flags);
-		if (m_end_reset)
+		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, play_mode, 0, m_ipo_flags) && m_end_reset)
 			obj->SetActionFrame(m_layer, m_localtime);
 	}
 	else if (m_is_going && bNegativeEvent)
