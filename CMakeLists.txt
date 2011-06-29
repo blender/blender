@@ -614,6 +614,7 @@ elseif(WIN32)
 		set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
 		set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC2.lib)
 
+		set(FREETYPE ${LIBDIR}/freetype)
 		set(FREETYPE_INCLUDE_DIRS
 			${LIBDIR}/freetype/include
 			${LIBDIR}/freetype/include/freetype2
