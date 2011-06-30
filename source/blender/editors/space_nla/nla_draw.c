@@ -723,7 +723,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					special = ICON_ACTION;
 					
 					if (act)
-						sprintf(name, "ActAction: <%s>", act->id.name+2);
+						sprintf(name, "%s", act->id.name+2);
 					else
 						sprintf(name, "<No Action>");
 						
