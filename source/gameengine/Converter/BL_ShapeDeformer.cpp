@@ -44,13 +44,12 @@
 #include "RAS_MeshObject.h"
 
 //#include "BL_ArmatureController.h"
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_curve_types.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_key.h"
@@ -59,6 +58,7 @@
 
 extern "C"{
 	#include "BKE_lattice.h"
+	#include "BKE_animsys.h"
 }
  
 
@@ -73,7 +73,8 @@ BL_ShapeDeformer::BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
                     RAS_MeshObject *mesh)
 				:	
 					BL_SkinDeformer(gameobj,bmeshobj, mesh),
-					m_lastShapeUpdate(-1)
+					m_lastShapeUpdate(-1),
+					m_useShapeDrivers(false)
 {
 	m_key = m_bmesh->key;
 	m_bmesh->key = copy_key(m_key);
@@ -89,7 +90,8 @@ BL_ShapeDeformer::BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
 				BL_ArmatureObject* arma)
 				:
 					BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, recalc_normal, arma),
-					m_lastShapeUpdate(-1)
+					m_lastShapeUpdate(-1),
+					m_useShapeDrivers(false)
 {
 	m_key = m_bmesh->key;
 	m_bmesh->key = copy_key(m_key);
@@ -121,45 +123,23 @@ void BL_ShapeDeformer::ProcessReplica()
 
 bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
 {
-	IpoCurve *icu;
+	// This used to check if we had drivers from this armature,
+	// now we just assume we want to use shape drivers
+	// and let the animsys handle things.
+	m_useShapeDrivers = true;
 
-	m_shapeDrivers.clear();
-	// check if this mesh has armature driven shape keys
-	if (m_bmesh->key && m_bmesh->key->ipo) {
-		for(icu= (IpoCurve*)m_bmesh->key->ipo->curve.first; icu; icu= (IpoCurve*)icu->next) {
-			if(icu->driver && 
-				(icu->flag & IPO_MUTE) == 0 &&
-				icu->driver->type == IPO_DRIVER_TYPE_NORMAL &&
-				icu->driver->ob == arma &&
-				icu->driver->blocktype == ID_AR) {
-				// this shape key ipo curve has a driver on the parent armature
-				// record this curve in the shape deformer so that the corresponding
-				m_shapeDrivers.push_back(icu);
-			}
-		}
-	}
-	return !m_shapeDrivers.empty();
+	return true;
 }
 
 bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 {
-	if (!m_shapeDrivers.empty() && PoseUpdated()) {
-		vector<IpoCurve*>::iterator it;
-//		void *poin;
-//		int type;
-
+	if (m_useShapeDrivers && PoseUpdated()) {
 		// the shape drivers use the bone matrix as input. Must 
 		// update the matrix now
 		m_armobj->ApplyPose();
 
-		for (it=m_shapeDrivers.begin(); it!=m_shapeDrivers.end(); it++) {
-			// no need to set a specific time: this curve has a driver
-			// XXX IpoCurve *icu = *it;
-			//calc_icu(icu, 1.0f);
-			//poin = get_ipo_poin((ID*)m_bmesh->key, icu, &type);
-			//if (poin) 
-			//	write_ipo_poin(poin, type, icu->curval);
-		}
+		// We don't need an actual time, just use 0
+		BKE_animsys_evaluate_animdata(&GetKey()->id, GetKey()->adt, 0.f, ADT_RECALC_DRIVERS);
 
 		ForceUpdate();
 		m_armobj->RestorePose();

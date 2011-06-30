@@ -42,8 +42,6 @@
 #include "BL_DeformableGameObject.h"
 #include <vector>
 
-struct IpoCurve;
-
 class BL_ShapeDeformer : public BL_SkinDeformer  
 {
 public:
@@ -77,9 +75,9 @@ public:
 	};
 
 protected:
-	vector<IpoCurve*>		 m_shapeDrivers;
-	double					 m_lastShapeUpdate;
-	struct Key*				 m_key;
+	bool			m_useShapeDrivers;	
+	double			m_lastShapeUpdate;
+	struct Key*		m_key;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
