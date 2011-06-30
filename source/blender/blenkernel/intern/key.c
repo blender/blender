@@ -63,6 +63,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_deform.h"
 
 
 #include "RNA_access.h"
@@ -1005,7 +1006,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	MDeformVert *dvert= NULL;
 	EditMesh *em= NULL;
 	EditVert *eve;
-	int totvert= 0, index= 0;
+	int totvert= 0, defgrp_index= 0;
 	
 	/* no vgroup string set? */
 	if(vgroup[0]==0) return NULL;
@@ -1028,7 +1029,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	if(dvert==NULL) return NULL;
 	
 	/* find the group (weak loop-in-loop) */
-	index= defgroup_name_index(ob, vgroup);
+	defgrp_index= defgroup_name_index(ob, vgroup);
 	if(index >= 0) {
 		float *weights;
 		int i, j;
@@ -1040,23 +1041,13 @@ static float *get_weights_array(Object *ob, char *vgroup)
 				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 
 				if(dvert) {
-					for(j=0; j<dvert->totweight; j++) {
-						if(dvert->dw[j].def_nr == index) {
-							weights[i]= dvert->dw[j].weight;
-							break;
-						}
-					}
+					weights[i]= defvert_find_weight(dvert, defgrp_index);
 				}
 			}
 		}
 		else {
 			for(i=0; i < totvert; i++, dvert++) {
-				for(j=0; j<dvert->totweight; j++) {
-					if(dvert->dw[j].def_nr == index) {
-						weights[i]= dvert->dw[j].weight;
-						break;
-					}
-				}
+				weights[i]= defvert_find_weight(dvert, defgrp_index);
 			}
 		}
 

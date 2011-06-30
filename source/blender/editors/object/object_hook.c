@@ -56,6 +56,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_deform.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
