@@ -5737,7 +5737,15 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		unit_m4(mat);
 		RE_SetView(re, mat);
 	}
-	
+	copy_m3_m4(re->imat, re->viewinv);
+
+	/* TODO: deep shadow maps + baking + strands */
+	/* strands use the window matrix and view size, there is to correct
+	 * window matrix but at least avoids malloc and crash loop [#27807] */
+	unit_m4(re->winmat);
+	re->winx= re->winy= 256;
+	/* done setting dummy values */
+
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
 	if(re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
