@@ -1704,7 +1704,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Smooth";
-	ot->description= "Display faces 'smooth' (using vertext normals)";
+	ot->description= "Display faces 'smooth' (using vertex normals)";
 	ot->idname= "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
