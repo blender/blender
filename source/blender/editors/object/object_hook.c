@@ -85,7 +85,7 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
 	*tot= totvert;
 	nr= 0;
-	cent[0]= cent[1]= cent[2]= 0.0;
+	zero_v3(cent);
 	
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->f & SELECT) {
@@ -102,30 +102,29 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 
 static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, float *cent)
 {
-	MDeformVert *dvert;
-	EditVert *eve;
-	int i, totvert=0;
-	
-	cent[0]= cent[1]= cent[2]= 0.0;
-	
+	zero_v3(cent);
+
 	if(obedit->actdef) {
-		
+		const int defgrp_index= obedit->actdef-1;
+		int i, totvert=0;
+
+		MDeformVert *dvert;
+		EditVert *eve;
+
 		/* find the vertices */
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 
 			if(dvert) {
-				for(i=0; i<dvert->totweight; i++){
-					if(dvert->dw[i].def_nr == (obedit->actdef-1)) {
-						totvert++;
-						add_v3_v3(cent, eve->co);
-					}
+				if(defvert_find_weight(dvert, defgrp_index) > 0.0f) {
+					add_v3_v3(cent, eve->co);
+					totvert++;
 				}
 			}
 		}
 		if(totvert) {
-			bDeformGroup *defGroup = BLI_findlink(&obedit->defbase, obedit->actdef-1);
-			strcpy(name, defGroup->name);
+			bDeformGroup *dg = BLI_findlink(&obedit->defbase, defgrp_index);
+			BLI_strncpy(name, dg->name, sizeof(dg->name));
 			mul_v3_fl(cent, 1.0f/(float)totvert);
 			return 1;
 		}
