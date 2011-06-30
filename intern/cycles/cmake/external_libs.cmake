@@ -1,16 +1,23 @@
 ###########################################################################
-# Windows lib directory libraries
+# Windows and Darwin lib directory libraries
 
 IF(WIN32)
-	if(CMAKE_CL_64)
-		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
-	else()
-		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
-	endif()
+	IF(CMAKE_CL_64)
+		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+	ELSE()
+		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
+	ENDIF()
+ENDIF()
 
+IF(APPLE)
+	SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
+	SET(OIIO_STATIC ON)
+ENDIF()
+
+IF(LIBDIR)
 	SET(CYCLES_OIIO ${LIBDIR}/openimageio)
 	SET(CYCLES_BOOST ${LIBDIR}/boost)
-    	SET(Boost_USE_STATIC_LIBS ON)
+   	SET(Boost_USE_STATIC_LIBS ON)
 ENDIF()
 
 ###########################################################################
@@ -64,6 +71,25 @@ ENDIF()
 
 ADD_DEFINITIONS(-DWITH_OIIO)
 INCLUDE_DIRECTORIES(${OPENIMAGEIO_INCLUDES} ${OPENIMAGEIO_INCLUDES}/OpenImageIO)
+
+IF(OIIO_STATIC)
+	ADD_DEFINITIONS(-DOIIO_STATIC_BUILD)
+
+	SET(OPENIMAGEIO_LIBRARY
+		${OPENIMAGEIO_LIBRARY}
+		${PNG_LIBRARIES}
+		${JPEG_LIBRARIES}
+		${TIFF_LIBRARY}
+		${OPENEXR_LIBRARIES}
+		${ZLIB_LIBRARIES})
+
+	LINK_DIRECTORIES(
+		${JPEG_LIBPATH}
+		${PNG_LIBPATH}
+		${TIFF_LIBPATH}
+		${OPENEXR_LIBPATH}
+		${ZLIB_LIBPATH})
+ENDIF()
 
 ###########################################################################
 # GLUT

@@ -87,7 +87,7 @@ IF(WIN32)
 		DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
 ENDIF()
 
-IF(UNIX)
+IF(UNIX AND NOT APPLE)
 	# copy libraries to cycles lib directory
 	SET(install_libs
 		${OPENIMAGEIO_LIBRARY}
@@ -101,27 +101,7 @@ IF(UNIX)
 	INSTALL(FILES ${install_libs}
 		DESTINATION ${CYCLES_INSTALL_PATH}/cycles/lib)
 	
-	IF(NOT APPLE)
-		# set path to look for dynamic libs
-		SET_TARGET_PROPERTIES(cycles_blender PROPERTIES INSTALL_RPATH $ORIGIN/lib)
-	ELSE()
-		# modify our libs to looks for dynamic libs in cycles lib directory
-		SET(install_name_command "install_name_tool")
-
-		FOREACH(lib ${install_libs})
-			GET_FILENAME_COMPONENT(libname ${lib} NAME)
-			SET(install_name_command " ${install_name_command} -change ${lib} @loader_path/lib/${libname}")
-			SET(install_name_command " ${install_name_command} -change ${libname} @loader_path/lib/${libname}")
-		ENDFOREACH()
-
-		INSTALL(
-			CODE
-			"
-			EXECUTE_PROCESS(COMMAND ${install_name_command} ${CYCLES_INSTALL_PATH}/cycles/libcycles_blender.so)
-			"
-		)
-	ELSE()
-	ENDIF()
+	# set path to look for dynamic libs
+	SET_TARGET_PROPERTIES(cycles_blender PROPERTIES INSTALL_RPATH $ORIGIN/lib)
 ENDIF()
-
 

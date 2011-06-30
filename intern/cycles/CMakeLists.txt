@@ -22,9 +22,12 @@ SET(CYCLES_CUDA_MAXREG 24 CACHE STRING "CUDA maximum number of register to use")
 
 # Paths
 
+IF(UNIX AND NOT APPLE)
+	SET(CYCLES_OIIO "" CACHE PATH "Path to OpenImageIO installation")
+	SET(CYCLES_BOOST "/usr" CACHE PATH "Path to Boost installation")
+ENDIF()
+
 SET(CYCLES_OSL "" CACHE PATH "Path to OpenShadingLanguage installation")
-SET(CYCLES_OIIO "" CACHE PATH "Path to OpenImageIO installation")
-SET(CYCLES_BOOST "/usr" CACHE PATH "Path to Boost installation")
 SET(CYCLES_CUDA "/usr/local/cuda" CACHE PATH "Path to CUDA installation")
 SET(CYCLES_OPENCL "" CACHE PATH "Path to OpenCL installation")
 SET(CYCLES_PARTIO "" CACHE PATH "Path to Partio installation")
