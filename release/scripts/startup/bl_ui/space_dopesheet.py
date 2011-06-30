@@ -50,7 +50,7 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
             row.prop(dopesheet, "filter_fcurve_name", text="")
 
     row = layout.row()
-    row.prop(dopesheet, "show_datablock_filters", text="more...", icon='FILTER')
+    row.prop(dopesheet, "show_datablock_filters", text="Filters", icon='DISCLOSURE_TRI_RIGHT')
 
     if (not genericFiltersOnly) and (dopesheet.show_datablock_filters):
         # TODO: put a box around these?
