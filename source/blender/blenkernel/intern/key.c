@@ -1032,7 +1032,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	defgrp_index= defgroup_name_index(ob, vgroup);
 	if(defgrp_index >= 0) {
 		float *weights;
-		int i, j;
+		int i;
 		
 		weights= MEM_callocN(totvert*sizeof(float), "weights");
 
