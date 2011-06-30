@@ -139,6 +139,7 @@ static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *
 	/* find the driver this belongs to and update it */
 	for (fcu=adt->drivers.first; fcu; fcu=fcu->next) {
 		driver= fcu->driver;
+		fcu->flag &= ~FCURVE_DISABLED;
 		
 		if (driver) {
 			// FIXME: need to be able to search targets for required one...
