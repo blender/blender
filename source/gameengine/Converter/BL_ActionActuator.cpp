@@ -213,7 +213,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	}
 
 	// Handle a frame property if it's defined
-	if (m_framepropname[0] != 0)
+	if (m_is_going && m_framepropname[0] != 0)
 	{
 		CValue* oldprop = obj->GetProperty(m_framepropname);
 		CValue* newval = new CFloatValue(obj->GetActionFrame(m_layer));
