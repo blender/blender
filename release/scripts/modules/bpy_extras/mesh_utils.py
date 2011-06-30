@@ -287,7 +287,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
         else:
             return v1[1], v2[1]
 
-    if not PREF_FIX_LOOPS:
+    if not fix_loops:
         '''
         Normal single concave loop filling
         '''
