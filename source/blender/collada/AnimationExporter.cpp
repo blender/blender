@@ -29,6 +29,7 @@ template<class Functor>
 void forEachObjectInScene(Scene *sce, Functor &f)
 {
 	Base *base= (Base*) sce->base.first;
+	
 	while(base) {
 		Object *ob = base->object;
 			
@@ -54,8 +55,16 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	// called for each exported object
 	void AnimationExporter::operator() (Object *ob) 
 	{
-		if (!ob->adt || !ob->adt->action) return;  //this is already checked in hasAnimations()
-		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
+		FCurve *fcu;
+        if(ob->adt && ob->adt->action)      
+				fcu = (FCurve*)ob->adt->action->curves.first;
+	    else if( (ob->type == OB_LAMP ) && ((Lamp*)ob ->data)->adt && ((Lamp*)ob ->data)->adt->action )
+				fcu = (FCurve*)(((Lamp*)ob ->data)->adt->action->curves.first);
+		else return;
+		//if (!ob->adt || !ob->adt->action) 
+		//	fcu = (FCurve*)((Lamp*)ob->data)->adt->action->curves.first;  //this is already checked in hasAnimations()
+		//else
+		//    fcu = (FCurve*)ob->adt->action->curves.first;
 		char * transformName = extract_transform_name( fcu->rna_path );
 		
 				        
@@ -78,8 +87,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				
 				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
 					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
-					(!strcmp(transformName, "rotation_quaternion"))) 
+					(!strcmp(transformName, "rotation_quaternion")) ||
+					(!strcmp(transformName, "color"))) 
 					dae_animation(ob ,fcu, transformName );
+				
 
 				fcu = fcu->next;
 			}
@@ -153,7 +164,12 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			if (fcu->array_index < 4)
 			axis_name = axis_names[fcu->array_index];*/
 		}
-
+		else if ( !strcmp(transformName, "color") )
+		{
+			const char *axis_names[] = {"R", "G", "B"};
+			if (fcu->array_index < 3)
+			axis_name = axis_names[fcu->array_index];
+		}
 		else
 		{
 			const char *axis_names[] = {"X", "Y", "Z"};
@@ -837,17 +853,19 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	bool AnimationExporter::hasAnimations(Scene *sce)
 	{
 		Base *base= (Base*) sce->base.first;
+		
 		while(base) {
 			Object *ob = base->object;
 			
 			FCurve *fcu = 0;
 			if(ob->adt && ob->adt->action)      
 				fcu = (FCurve*)ob->adt->action->curves.first;
-				
-			//The Scene has animations if object type is armature or object has f-curve
+			else if( (ob->type == OB_LAMP ) && ((Lamp*)ob ->data)->adt && ((Lamp*)ob ->data)->adt->action )
+				fcu = (FCurve*)(((Lamp*)ob ->data)->adt->action->curves.first);
+			//The Scene has animations if object type is armature or object has f-curve or object is a Lamp which has f-curves
 			if ((ob->type == OB_ARMATURE && ob->data) || fcu) {
 				return true;
-			}
+			} 
 			base= base->next;
 		}
 		return false;

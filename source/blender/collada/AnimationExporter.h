@@ -32,6 +32,7 @@ extern "C"
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_armature_types.h"
 
 #include "BKE_DerivedMesh.h"
