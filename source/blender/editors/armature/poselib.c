@@ -840,7 +840,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	/* start applying - only those channels which have a key at this point in time! */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* check if group has any keyframes */
-		if (ANIM_animchanneldata_keyframes_loop(&ked, agrp, ALE_GROUP, NULL, group_ok_cb, NULL, 0)) {
+		if (ANIM_animchanneldata_keyframes_loop(&ked, NULL, agrp, ALE_GROUP, NULL, group_ok_cb, NULL)) {
 			/* has keyframe on this frame, so try to get a PoseChannel with this name */
 			pchan= get_pose_channel(pose, agrp->name);
 			

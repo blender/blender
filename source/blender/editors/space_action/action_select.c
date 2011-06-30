@@ -198,7 +198,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter, filterflag;
+	int filter;
 	
 	KeyframeEditData ked;
 	KeyframeEditFunc ok_cb, select_cb;
@@ -213,14 +213,6 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 	/* filter data */
 	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-	
-	/* get filtering flag for dopesheet data (if applicable) */
-	if (ac->datatype == ANIMCONT_DOPESHEET) {
-		bDopeSheet *ads= (bDopeSheet *)ac->data;
-		filterflag= ads->filterflag;
-	}
-	else
-		filterflag= 0;
 	
 	/* get beztriple editing/validation funcs  */
 	select_cb= ANIM_editkeyframes_select(selectmode);
@@ -261,7 +253,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 			if (ale->type == ANIMTYPE_GPLAYER)
 				borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
 			else
-				ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, filterflag);
+				ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
 		}
 		
 		/* set minimum extent to be the maximum of the next channel */
@@ -900,9 +892,6 @@ void ACTION_OT_select_leftright (wmOperatorType *ot)
 /* option 1) select keyframe directly under mouse */
 static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short select_mode, float selx)
 {
-	bDopeSheet *ads= (ac->datatype == ANIMCONT_DOPESHEET) ? ac->data : NULL;
-	int ds_filter = ((ads) ? (ads->filterflag) : (0));
-	
 	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc select_cb, ok_cb;
 	
@@ -915,7 +904,7 @@ static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short 
 	if (ale->type == ANIMTYPE_GPLAYER)
 		select_gpencil_frame(ale->data, selx, select_mode);
 	else
-		ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, ds_filter);
+		ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */

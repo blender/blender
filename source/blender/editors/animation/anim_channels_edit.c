@@ -1405,10 +1405,6 @@ static EnumPropertyItem prop_animchannel_settings_types[] = {
 
 /* ------------------- */
 
-/* macro to be used in setflag_anim_channels */
-#define ASUBCHANNEL_SEL_OK(ale) ( (onlysel == 0) || \
-		((ale->id) && (GS(ale->id->name)==ID_OB) && (((Object *)ale->id)->flag & SELECT)) ) 
-
 /* Set/clear a particular flag (setting) for all selected + visible channels 
  *	setting: the setting to modify
  *	mode: eAnimChannels_SetFlag

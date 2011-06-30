@@ -277,7 +277,6 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 	BLI_dlrbTree_init(&keys);
 	
 	/* init dopesheet settings */
-	// FIXME: the ob_to_keylist function currently doesn't take this into account...
 	if (onlysel)
 		ads.filterflag |= ADS_FILTER_ONLYSEL;
 	

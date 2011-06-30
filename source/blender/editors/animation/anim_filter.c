@@ -127,6 +127,9 @@ static Key *actedit_get_shapekeys (bAnimContext *ac)
 /* Get data being edited in Action Editor (depending on current 'mode') */
 static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 {
+	/* get dopesheet */
+	ac->ads = &saction->ads;
+	
 	/* sync settings with current view status, then return appropriate data */
 	switch (saction->mode) {
 		case SACTCONT_ACTION: /* 'Action Editor' */
@@ -190,6 +193,7 @@ static short graphedit_get_context (bAnimContext *ac, SpaceIpo *sipo)
 		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
 		sipo->ads->source= (ID *)ac->scene;
 	}
+	ac->ads = sipo->ads;
 	
 	/* set settings for Graph Editor - "Selected = Editable" */
 	if (sipo->flag & SIPO_SELCUVERTSONLY)
@@ -238,6 +242,7 @@ static short nlaedit_get_context (bAnimContext *ac, SpaceNla *snla)
 	/* init dopesheet data if non-existant (i.e. for old files) */
 	if (snla->ads == NULL)
 		snla->ads= MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
+	ac->ads = snla->ads;
 	
 	/* sync settings with current view status, then return appropriate data */
 	/* update scene-pointer (no need to check for pinning yet, as not implemented) */
@@ -2038,6 +2043,32 @@ static short animdata_filter_dopesheet_summary (bAnimContext *ac, ListBase *anim
 	return 1;
 }  
 
+/* ......................... */
+
+/* filter data associated with a channel - usually for handling summary-channels in DopeSheet */
+static size_t animdata_filter_animchan (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAnimListElem *channel, int filter_mode)
+{
+	size_t items = 0;
+	
+	/* data to filter depends on channel type */
+	// XXX: only common channel-types have been handled for now
+	switch (channel->type) {
+		case ANIMTYPE_SUMMARY:
+			items += animdata_filter_dopesheet(ac, anim_data, ads, filter_mode);
+			break;
+			
+		case ANIMTYPE_SCENE:
+			items += animdata_filter_dopesheet_scene(ac, anim_data, ads, channel->data, filter_mode);
+			break;
+		
+		case ANIMTYPE_OBJECT:
+			items += animdata_filter_dopesheet_ob(ac, anim_data, ads, channel->data, filter_mode);
+			break;
+	}
+	
+	return items;
+}
+
 /* ----------- Cleanup API --------------- */
 
 /* Remove entries with invalid types in animation channel list */
@@ -2155,6 +2186,15 @@ size_t ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_m
 			{
 				/* all of these editors use the basic DopeSheet data for filtering options, but don't have all the same features */
 				items = animdata_filter_dopesheet(ac, anim_data, data, filter_mode);
+			}
+				break;
+			
+			case ANIMCONT_CHANNEL: /* animation channel */
+			{
+				bDopeSheet *ads = ac->ads;
+				
+				/* based on the channel type, filter relevant data for this */
+				items = animdata_filter_animchan(ac, anim_data, ads, data, filter_mode);
 			}
 				break;
 		}

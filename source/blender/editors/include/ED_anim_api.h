@@ -77,6 +77,8 @@ typedef struct bAnimContext {
 	struct SpaceLink *sl;	/* editor data */
 	struct ARegion *ar;		/* region within editor */
 	
+	struct bDopeSheet *ads; /* dopesheet data for editor (or which is being used) */
+	
 	struct Scene *scene;	/* active scene */
 	struct Object *obact;	/* active object */
 	ListBase *markers;		/* active set of markers */
@@ -85,7 +87,6 @@ typedef struct bAnimContext {
 } bAnimContext;
 
 /* Main Data container types */
-// XXX was ACTCONT_*
 typedef enum eAnimCont_Types {
 	ANIMCONT_NONE = 0,		/* invalid or no data */
 	ANIMCONT_ACTION,		/* action (bAction) */
@@ -94,7 +95,8 @@ typedef enum eAnimCont_Types {
 	ANIMCONT_DOPESHEET,		/* dopesheet (bDopesheet) */
 	ANIMCONT_FCURVES,		/* animation F-Curves (bDopesheet) */
 	ANIMCONT_DRIVERS,		/* drivers (bDopesheet) */
-	ANIMCONT_NLA			/* nla (bDopesheet) */
+	ANIMCONT_NLA,			/* nla (bDopesheet) */
+	ANIMCONT_CHANNEL		/* animation channel (bAnimListElem) */	
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -256,8 +258,8 @@ typedef enum eAnimFilter_Flags {
 	/* Action Channel Group */
 #define EDITABLE_AGRP(agrp) ((agrp->flag & AGRP_PROTECTED)==0)
 #define EXPANDED_AGRP(ac, agrp) \
-	( ( ((ac)->spacetype == SPACE_IPO) && (agrp->flag & AGRP_EXPANDED_G) ) || \
-	  ( ((ac)->spacetype != SPACE_IPO) && (agrp->flag & AGRP_EXPANDED)   ) )
+	( ((!(ac) || ((ac)->spacetype != SPACE_IPO)) && (agrp->flag & AGRP_EXPANDED)) || \
+	  (( (ac) && ((ac)->spacetype == SPACE_IPO)) && (agrp->flag & AGRP_EXPANDED_G)) )
 #define SEL_AGRP(agrp) ((agrp->flag & AGRP_SELECTED) || (agrp->flag & AGRP_ACTIVE))
 	/* F-Curve Channels */
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED)==0)
