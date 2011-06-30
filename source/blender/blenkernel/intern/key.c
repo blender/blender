@@ -1030,7 +1030,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	
 	/* find the group (weak loop-in-loop) */
 	defgrp_index= defgroup_name_index(ob, vgroup);
-	if(index >= 0) {
+	if(defgrp_index >= 0) {
 		float *weights;
 		int i, j;
 		
