@@ -1376,6 +1376,61 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 
 // BEGIN ndof menu -- experimental!
 
+static uiBlock* wm_block_ndof_menu_1st(bContext* C, ARegion* ar, void* UNUSED(arg_op))
+{
+	uiBlock* block;
+	uiBut* but;
+
+	block = uiBeginBlock(C, ar, "ndof_popup_menu", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+//	uiBlockSetDirection(block, UI_DOWN);
+//	uiBlockBeginAlign(block);
+
+	// uiItemBooleanO(block->curlayout, "enable pan/zoom", ICON_NDOF_TRANS, "toggle_ndof_pan_zoom_enabled", "ndof_pan_zoom_enabled", 1);
+	// uiBlock is used as an opaque type in this file, so can't use members...
+
+	int foo = 333;
+	uiDefButI(block, TOG, 0, "foo", 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, &foo, 0.f, 1.f, 0.1f, 0.9f, "15%");
+	// uiDefBut(block, TOG, 0, "enable pan/zoom", 0, 0, 10, 10, NULL, 0.f, 1.f, 0.f, 1.f, "don't talk to strangers");
+
+//	uiBlockEndAlign(block);
+//	uiBoundsBlock(block, 6);
+	uiEndBlock(C, block);
+
+	return block;
+}
+
+static uiBlock *wm_block_ndof_menu(bContext *C, ARegion *ar, void *UNUSED(arg_op))
+{
+	static char search[256]= "";
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+	
+	block= uiBeginBlock(C, ar, "ndof_popup", UI_EMBOSS);
+//	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_POPUP|UI_BLOCK_MOVEMOUSE_QUIT);
+	
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
+	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
+	
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9*UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	
+	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
+	uiEndBlock(C, block);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+	
+	return block;
+}
+
 static int wm_ndof_menu_poll(bContext *C)
 {
 	if(CTX_wm_window(C)==NULL)
@@ -1396,11 +1451,45 @@ static int wm_ndof_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	puts("ndof: menu invoke");
+	printf("ndof: menu invoked in ");
 
-	uiPupMenuNotice(C, "Hello!");
+	switch (CTX_wm_area(C)->spacetype) // diff spaces can have diff 3d mouse options
+		{
+		case SPACE_VIEW3D:
+			puts("3D area");
+			break;
+		case SPACE_IMAGE:
+			puts("image area");
+			break;
+		default:
+			puts("some iNDOFferent area");
+		}
+
+//	uiPupMenuNotice(C, "Hello!"); // <-- this works
+//	uiPupBlock(C, wm_block_ndof_menu, op); // <-- no luck!
+//	ui_popup_menu_create(C, NULL, NULL, NULL, NULL, "Hello!"); // <-- this works
+
+	uiPopupMenu* pup = uiPupMenuBegin(C,"3D mouse settings",ICON_NDOF_TURN);
+	uiLayout* layout = uiPupMenuLayout(pup);
+
+	//uiBlock* block = uiLayoutGetBlock(layout);
+	//int foo = 1;
+	//uiDefButI(block, TOG, 0, "foo", 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, &foo, 0.f, 1.f, 0.1f, 0.9f, "15%");
 	
-	return OPERATOR_CANCELLED;
+	uiItemS(layout); // separator
+
+	uiItemBooleanO(layout, "enable pan/zoom", ICON_NDOF_TRANS, "ndof_toggle_pan_zoom_enabled", "ndof_pan_zoom_enabled", 1);
+	uiItemBooleanO(layout, "enable rotation", ICON_NDOF_TURN, "ndof_toggle_rotation_enabled", "ndof_rotation_enabled", 1);
+	uiItemFloatO(layout, "sensitivity", 0, "ndof_adjust_sensitivity", "ndof_sensitivity", 1.f);
+	uiItemV(layout,"sensitivity",ICON_NDOF_TRANS, 1);
+
+	uiItemS(layout);
+	uiItemL(layout, "3D navigation mode", ICON_NDOF_FLY);
+	uiItemL(layout, "...", 0);
+
+	uiPupMenuEnd(C,pup);
+
+	return OPERATOR_CANCELLED; // <-- correct?
 }
 
 static void WM_OT_ndof_menu(wmOperatorType *ot)
@@ -1410,8 +1499,8 @@ static void WM_OT_ndof_menu(wmOperatorType *ot)
 	ot->idname= "WM_OT_ndof_menu";
 	
 	ot->invoke= wm_ndof_menu_invoke;
-	ot->exec= wm_ndof_menu_exec;
-	ot->poll= wm_ndof_menu_poll;
+//	ot->exec= wm_ndof_menu_exec;
+//	ot->poll= wm_ndof_menu_poll;
 }
 
 // END ndof menu
