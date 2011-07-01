@@ -68,7 +68,7 @@ static void node_shader_exec_tex_environment(void *data, bNode *node, bNodeStack
 		if(ibuf) {
 			float u= (atan2f(vec[1], vec[0]) + (float)M_PI)/(2*M_PI);
 			float v= atan2f(vec[2], hypotf(vec[0], vec[1]))/M_PI + 0.5f;
-			float rgb[3];
+			float rgb[4];
 
 			ibuf_sample(ibuf, u, v, 0.0f, 0.0f, rgb);
 

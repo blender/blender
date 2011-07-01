@@ -66,7 +66,7 @@ static void node_shader_exec_tex_image(void *data, bNode *node, bNodeStack **in,
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
 		if(ibuf) {
-			float rgb[3];
+			float rgb[4];
 
 			ibuf_sample(ibuf, vec[0], vec[1], 0.0f, 0.0f, rgb);
 
