@@ -231,7 +231,17 @@ else()
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-# install target
+
+# -----------------------------------------------------------------------------
+# Install Targets
+
+set(BLENDER_TEXT_FILES
+	${CMAKE_SOURCE_DIR}/release/text/GPL-license.txt
+	${CMAKE_SOURCE_DIR}/release/text/Python-license.txt
+	${CMAKE_SOURCE_DIR}/release/text/copyright.txt
+	${CMAKE_SOURCE_DIR}/release/text/readme.html
+)
+
 if(UNIX AND NOT APPLE)
 
 	if(WITH_INSTALL_PORTABLE)
@@ -274,9 +284,8 @@ if(UNIX AND NOT APPLE)
 		)
 
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+			FILES ${BLENDER_TEXT_FILES}
 			DESTINATION ${TARGETDIR}
-			PATTERN ".svn" EXCLUDE
 		)
 
 	else()
@@ -332,9 +341,8 @@ if(UNIX AND NOT APPLE)
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 		)
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+			FILES ${BLENDER_TEXT_FILES}
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
-			PATTERN ".svn" EXCLUDE
 		)
 	endif()
 
@@ -409,9 +417,8 @@ elseif(WIN32)
 	)
 
 	install(  # same as linux!, deduplicate
-		DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+		DIRECTORY ${BLENDER_TEXT_FILES}
 		DESTINATION ${TARGETDIR}
-		PATTERN ".svn" EXCLUDE
 	)
 
 	install(  # same as linux!, deduplicate
@@ -630,9 +637,9 @@ elseif(APPLE)
 	endmacro()
 
 	# install release and app files
-	install_dir(
-		${CMAKE_SOURCE_DIR}/release/text/
-		\${TARGETDIR}
+	install(
+		FILES ${BLENDER_TEXT_FILES}
+		DESTINATION ${TARGETDIR}
 	)
 
 	install(
@@ -696,6 +703,12 @@ elseif(APPLE)
 		)
 	endif()
 endif()
+
+unset(BLENDER_TEXT_FILES)
+
+
+# -----------------------------------------------------------------------------
+# Setup link libs
 
 add_dependencies(blender makesdna)
 

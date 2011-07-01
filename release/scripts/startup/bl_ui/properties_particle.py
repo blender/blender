@@ -878,7 +878,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             col.prop(part, "billboard_tilt_random", text="Random", slider=True)
             col = row.column()
             col.prop(part, "billboard_offset")
-            
+
             row = layout.row()
             col = row.column()
             col.prop(part, "billboard_size", text="Scale")
