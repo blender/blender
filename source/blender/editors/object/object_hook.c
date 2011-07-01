@@ -107,7 +107,7 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 
 	if(obedit->actdef) {
 		const int defgrp_index= obedit->actdef-1;
-		int i, totvert=0;
+		int totvert=0;
 
 		MDeformVert *dvert;
 		EditVert *eve;
