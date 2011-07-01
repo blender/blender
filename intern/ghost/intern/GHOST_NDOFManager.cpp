@@ -157,18 +157,22 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 				{
 				// -- current devices --
 				case 0xC626:
+					puts("ndof: using SpaceNavigator");
 					m_deviceType = NDOF_SpaceNavigator;
 					m_buttonCount = 2;
 					break;
 				case 0xC628:
+					puts("ndof: using SpaceNavigator for Notebooks");
 					m_deviceType = NDOF_SpaceNavigator; // for Notebooks
 					m_buttonCount = 2;
 					break;
 				case 0xC627:
+					puts("ndof: using SpaceExplorer");
 					m_deviceType = NDOF_SpaceExplorer;
 					m_buttonCount = 15;
 					break;
 				case 0xC629:
+					puts("ndof: using SpacePilotPro");
 					m_deviceType = NDOF_SpacePilotPro;
 					m_buttonCount = 31;
 					break;
