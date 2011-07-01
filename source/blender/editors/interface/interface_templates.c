@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -55,6 +56,7 @@
 #include "ED_render.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2105,6 +2107,15 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			uiLayoutSetActive(row, 0);
 		//uiItemR(row, itemptr, "mute", 0, "", ICON_MUTE_IPO_OFF);
 		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+	else if(itemptr->type == &RNA_KeyingSetPath) {
+		KS_Path *ksp = (KS_Path*)itemptr->data;
+		
+		/* icon needs to be the type of ID which is currently active */
+		RNA_enum_icon_from_value(id_type_items, ksp->idtype, &icon);
+		
+		/* nothing else special to do... */
+		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */
 	}
 	else
 		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */
