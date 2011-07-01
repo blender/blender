@@ -408,6 +408,11 @@ typedef struct bShrinkwrapConstraint {
 	char 		pad[9];
 } bShrinkwrapConstraint;
 
+/* Follow Track constraints */
+typedef struct bFollowTrackConstraint {
+	struct MovieClip	*clip;
+	char	track[24];
+} bFollowTrackConstraint;
 
 /* ------------------------------------------ */
 
@@ -442,6 +447,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_TRANSLIKE,			/* Copy transform matrix */
 	CONSTRAINT_TYPE_SAMEVOL,			/* Maintain volume during scaling */
 	CONSTRAINT_TYPE_PIVOT,				/* Pivot Constraint */
+	CONSTRAINT_TYPE_FOLLOWTRACK,		/* Follow Track Constraint */
 	
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES

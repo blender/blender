@@ -51,6 +51,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -639,7 +640,15 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		ListBase targets = {NULL, NULL};
 		bConstraintTarget *ct;
 		
-		if (cti && cti->get_constraint_targets) {
+		if(!cti)
+			continue;
+
+		/* special case for FollowTrack -- it doesn't use targets to define relations */
+		if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
+			dag_add_relation(dag,scenenode,node,DAG_RL_SCENE, "Scene Relation");
+			addtoroot = 0;
+		}
+		else if (cti->get_constraint_targets) {
 			cti->get_constraint_targets(con, &targets);
 			
 			for (ct= targets.first; ct; ct= ct->next) {
@@ -2073,18 +2082,25 @@ static void dag_object_time_update_flags(Object *ob)
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
-			if (cti && cti->get_constraint_targets) {
-				cti->get_constraint_targets(con, &targets);
-				
-				for (ct= targets.first; ct; ct= ct->next) {
-					if (ct->tar) {
-						ob->recalc |= OB_RECALC_OB;
-						break;
+			if (cti) {
+				/* special case for FollowTrack -- it doesn't use targets to define relations */
+				if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
+					ob->recalc |= OB_RECALC_OB;
+				}
+				else if (cti->get_constraint_targets) {
+					cti->get_constraint_targets(con, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						if (ct->tar) {
+							ob->recalc |= OB_RECALC_OB;
+							break;
+						}
 					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 1);
 				}
 				
-				if (cti->flush_constraint_targets)
-					cti->flush_constraint_targets(con, &targets, 1);
 			}
 		}
 	}
@@ -2440,6 +2456,19 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 				for(psys=obt->particlesystem.first; psys; psys=psys->next)
 					if(&psys->part->id == id)
 						BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
+		}
+
+		if(idtype == ID_MC) {
+			for(obt=bmain->object.first; obt; obt= obt->id.next){
+				bConstraint *con;
+				for (con = obt->constraints.first; con; con=con->next) {
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					if(cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
+						obt->recalc |= OB_RECALC_OB;
+						break;
+					}
+				}
+			}
 		}
 
 		/* update editors */

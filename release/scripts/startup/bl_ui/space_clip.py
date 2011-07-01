@@ -20,6 +20,42 @@
 import bpy
 
 
+class CLIP_OT_apply_follow_track(bpy.types.Operator):
+    bl_idname = "clip.apply_follow_track"
+    bl_label = "Apply Follow Track"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.space_data.type != 'CLIP_EDITOR':
+            return False
+
+        sc = context.space_data
+        clip = sc.clip
+
+        return clip and clip.tracking.active_track and context.active_object
+
+    def execute(self, context):
+        ob = context.active_object
+        sc = context.space_data
+        clip = sc.clip
+        track = clip.tracking.active_track
+        constraint = None
+
+        for con in ob.constraints:
+            if con.type == 'FOLLOW_TRACK':
+                constraint = con
+                break
+
+        if constraint is None:
+            constraint = ob.constraints.new(type='FOLLOW_TRACK')
+
+        constraint.clip = sc.clip
+        constraint.track = track.name
+
+        return {'FINISHED'}
+
+
 class CLIP_HT_header(bpy.types.Header):
     bl_space_type = 'CLIP_EDITOR'
 
@@ -96,16 +132,17 @@ class CLIP_PT_track(bpy.types.Panel):
         sc = context.space_data
         clip = sc.clip
 
-        return clip and clip.tracking.act_track
+        return clip and clip.tracking.active_track
 
     def draw(self, context):
         layout = self.layout
         sc = context.space_data
         clip = context.space_data.clip
+        act_track = clip.tracking.active_track
 
-        layout.template_track(clip.tracking, "act_track", sc.clip_user, clip)
+        layout.prop(act_track, "name")
 
-        act_track = clip.tracking.act_track
+        layout.template_track(clip.tracking, "active_track", sc.clip_user, clip)
 
         if act_track:
             row = layout.row()
@@ -190,6 +227,7 @@ class CLIP_PT_test(bpy.types.Panel):
         layout = self.layout
         sc = context.space_data
 
+        layout.operator("clip.apply_follow_track")
         layout.operator("clip.track_to_fcurves")
 
 

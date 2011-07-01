@@ -64,6 +64,9 @@ void BKE_tracking_sync(struct MovieTrackingContext *context);
 void BKE_tracking_sync_user(struct MovieClipUser *user, struct MovieTrackingContext *context);
 int BKE_tracking_next(struct MovieTrackingContext *context);
 
+void BKE_track_unique_name(struct MovieTracking *tracking, struct MovieTrackingTrack *track);
+struct MovieTrackingTrack *BKE_find_track_by_name(struct MovieTracking *tracking, const char *name);
+
 #define TRACK_SELECTED(track) ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 #define TRACK_AREA_SELECTED(track, area) ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))
 

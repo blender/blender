@@ -115,6 +115,7 @@ static void add_marker(SpaceClip *sc, float x, float y)
 	search[1] /= (float)height;
 
 	track= MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
+	strcpy(track->name, "Track");
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0]= x;
@@ -130,6 +131,7 @@ static void add_marker(SpaceClip *sc, float x, float y)
 	BKE_tracking_insert_marker(track, &marker);
 
 	BLI_addtail(&clip->tracking.tracks, track);
+	BKE_track_unique_name(&clip->tracking, track);
 
 	BKE_movieclip_select_track(clip, track, TRACK_AREA_ALL, 0);
 	BKE_movieclip_set_selection(clip, MCLIP_SEL_TRACK, track);
@@ -376,19 +378,17 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, MovieClip *clip, fl
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(cur, sc->user.framenr);
 		float dist, d1, d2, d3;
 
-		if(marker) {
-			d1= sqrtf((co[0]-marker->pos[0])*(co[0]-marker->pos[0])+
-					  (co[1]-marker->pos[1])*(co[1]-marker->pos[1])); /* distance to marker point */
-			d2= dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max); /* distance to search boundbox */
-			d3= dist_to_rect(co, marker->pos, cur->search_min, cur->search_max); /* distance to search boundbox */
+		d1= sqrtf((co[0]-marker->pos[0])*(co[0]-marker->pos[0])+
+				  (co[1]-marker->pos[1])*(co[1]-marker->pos[1])); /* distance to marker point */
+		d2= dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max); /* distance to search boundbox */
+		d3= dist_to_rect(co, marker->pos, cur->search_min, cur->search_max); /* distance to search boundbox */
 
-			/* choose minimal distance. useful for cases of overlapped markers. */
-			dist= MIN3(d1, d2, d3);
+		/* choose minimal distance. useful for cases of overlapped markers. */
+		dist= MIN3(d1, d2, d3);
 
-			if(track==NULL || dist<mindist) {
-				track= cur;
-				mindist= dist;
-			}
+		if(track==NULL || dist<mindist) {
+			track= cur;
+			mindist= dist;
 		}
 
 		cur= cur->next;
@@ -501,12 +501,10 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	while(track) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-		if(marker) {
-			if(BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
-				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
+		if(BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
+			BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
 
-				change= 1;
-			}
+			change= 1;
 		}
 
 		track= track->next;
@@ -586,12 +584,10 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	while(track) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-		if(marker) {
-			if(marker_inside_ellipse(marker, offset, ellipse)) {
-				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
+		if(marker_inside_ellipse(marker, offset, ellipse)) {
+			BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
 
-				change= 1;
-			}
+			change= 1;
 		}
 
 		track= track->next;
@@ -1089,7 +1085,7 @@ static int track_to_fcurves_exec(bContext *C, wmOperator *op)
 	while(fra<EFRA) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, fra);
 
-		if(marker && (marker->framenr&MARKER_DISABLED)==0) {
+		if((marker->framenr&MARKER_DISABLED)==0) {
 			FCurve *fcu;
 
 			fcu= verify_fcurve(act, ks->name, "location", 0, 1);

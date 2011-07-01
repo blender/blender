@@ -57,6 +57,8 @@
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
+#include "DNA_tracking_types.h"
+#include "DNA_movieclip_types.h"
 
 
 #include "BKE_action.h"
@@ -75,6 +77,8 @@
 #include "BKE_idprop.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_mesh.h"
+#include "BKE_tracking.h"
+#include "BKE_movieclip.h"
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -3929,6 +3933,62 @@ static bConstraintTypeInfo CTI_PIVOT = {
 	pivotcon_evaluate /* evaluate */
 };
 
+/* ----------- Follow Track ------------- */
+
+static void followtrack_new_data (void *cdata)
+{
+	bFollowTrackConstraint *data= (bFollowTrackConstraint *)cdata;
+
+	data->clip= NULL;
+}
+
+static void followtrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bFollowTrackConstraint *data= con->data;
+
+	func(con, (ID**)&data->clip, userdata);
+}
+
+static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
+{
+	bFollowTrackConstraint *data= con->data;
+	MovieClipUser user;
+	MovieTrackingTrack *track;
+	MovieTrackingMarker *marker;
+	float tx, ty;
+	int width, height;
+
+	if(!data->clip || !data->track[0])
+		return;
+
+	user.framenr= cob->scene->r.cfra;
+	BKE_movieclip_acquire_size(data->clip, &user, &width, &height);
+
+	track= BKE_find_track_by_name(&data->clip->tracking, data->track);
+	marker= BKE_tracking_get_marker(track, user.framenr);
+
+	tx= marker->pos[0]*width;
+	ty= marker->pos[1]*height;
+
+	translate_m4(cob->matrix, tx, ty, 0);
+}
+
+static bConstraintTypeInfo CTI_FOLLOWTRACK = {
+	CONSTRAINT_TYPE_FOLLOWTRACK, /* type */
+	sizeof(bFollowTrackConstraint), /* size */
+	"Follow Track", /* name */
+	"bFollowTrackConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	followtrack_id_looper, /* id looper */
+	NULL, /* copy data */
+	followtrack_new_data, /* new data */
+	NULL, /* get constraint targets */
+	NULL, /* flush constraint targets */
+	NULL, /* get target matrix */
+	followtrack_evaluate /* evaluate */
+};
+
 /* ************************* Constraints Type-Info *************************** */
 /* All of the constraints api functions use bConstraintTypeInfo structs to carry out
  * and operations that involve constraint specific code.
@@ -3966,6 +4026,7 @@ static void constraints_init_typeinfo (void) {
 	constraintsTypeInfo[23]= &CTI_TRANSLIKE;		/* Copy Transforms Constraint */
 	constraintsTypeInfo[24]= &CTI_SAMEVOL;			/* Maintain Volume Constraint */
 	constraintsTypeInfo[25]= &CTI_PIVOT;			/* Pivot Constraint */
+	constraintsTypeInfo[26]= &CTI_FOLLOWTRACK;		/* Follow Track Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only

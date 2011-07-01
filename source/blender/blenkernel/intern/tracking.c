@@ -30,6 +30,8 @@
  *  \ingroup bke
  */
 
+#include <stddef.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_movieclip_types.h"
@@ -662,4 +664,23 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	IMB_freeImBuf(ibuf_new);
 
 	return ok;
+}
+
+void BKE_track_unique_name(MovieTracking *tracking, MovieTrackingTrack *track)
+{
+	BLI_uniquename(&tracking->tracks, track, "Track", '.', offsetof(MovieTrackingTrack, name), sizeof(track->name));
+}
+
+MovieTrackingTrack *BKE_find_track_by_name(MovieTracking *tracking, const char *name)
+{
+	MovieTrackingTrack *track= tracking->tracks.first;
+
+	while(track) {
+		if(!strcmp(track->name, name))
+			return track;
+
+		track= track->next;
+	}
+
+	return NULL;
 }

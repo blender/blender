@@ -751,6 +751,10 @@ class ConstraintButtonsPanel():
         col = layout.column()
         col.prop(con, "rotation_range", text="Pivot When")
 
+    def FOLLOW_TRACK(self, context, layout, con):
+        layout.prop(con, "clip")
+        layout.prop(con, "track")
+
     def SCRIPT(self, context, layout, con):
         layout.label("Blender 2.5 has no py-constraints")
 

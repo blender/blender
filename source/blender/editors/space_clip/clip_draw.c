@@ -180,7 +180,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 		return;
 
 	marker= BKE_tracking_get_marker(track, sc->user.framenr);
-	if(marker==NULL || marker->flag&MARKER_DISABLED)
+	if(marker->flag&MARKER_DISABLED)
 		return;
 
 	framenr= marker->framenr;
@@ -432,10 +432,8 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 	while(track) {
 		marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-		if(marker) {
-			draw_marker_outline(sc, track, marker);
-			draw_marker_areas(sc, track, marker, 0, 0);
-		}
+		draw_marker_outline(sc, track, marker);
+		draw_marker_areas(sc, track, marker, 0, 0);
 
 		track= track->next;
 	}
@@ -448,8 +446,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 
 		if(!act) {
 			marker= BKE_tracking_get_marker(track, sc->user.framenr);
-			if(marker)
-				draw_marker_areas(sc, track, marker, 0, 1);
+			draw_marker_areas(sc, track, marker, 0, 1);
 		}
 
 		track= track->next;
@@ -458,9 +455,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 	/* active marker would be displayed on top of everything else */
 	if(sel_type==MCLIP_SEL_TRACK) {
 		marker= BKE_tracking_get_marker(sel, sc->user.framenr);
-
-		if(marker)
-			draw_marker_areas(sc, sel, marker, 1, 1);
+		draw_marker_areas(sc, sel, marker, 1, 1);
 	}
 
 	glPopMatrix();
@@ -510,14 +505,14 @@ void draw_clip_track_widget(const bContext *C, void *trackp, void *userp, void *
 	if(track) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
-		if(marker && marker->flag&MARKER_DISABLED) {
+		if(marker->flag&MARKER_DISABLED) {
 			glColor4f(0.7f, 0.3f, 0.3f, 0.3f);
 			uiSetRoundBox(15);
 			uiDrawBox(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 3.0f);
 
 			ok= 1;
 		}
-		else if(marker) {
+		else {
 			ImBuf* ibuf= BKE_movieclip_acquire_ibuf(clip, user);
 
 			if(ibuf && ibuf->rect) {

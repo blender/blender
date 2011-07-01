@@ -869,6 +869,8 @@ void recalcData(TransInfo *t)
 
 			track= track->next;
 		}
+
+		DAG_id_tag_update(&clip->id, 0);
 	}
 }
 

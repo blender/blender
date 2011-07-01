@@ -69,6 +69,7 @@ EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", ICON_CONSTRAINT_DATA, "Child Of", ""},
 	{CONSTRAINT_TYPE_MINMAX, "FLOOR", ICON_CONSTRAINT_DATA, "Floor", ""},
 	{CONSTRAINT_TYPE_FOLLOWPATH, "FOLLOW_PATH", ICON_CONSTRAINT_DATA, "Follow Path", ""},
+	{CONSTRAINT_TYPE_FOLLOWTRACK, "FOLLOW_TRACK", ICON_CONSTRAINT_DATA, "Follow Track", ""},
 	{CONSTRAINT_TYPE_PIVOT, "PIVOT", ICON_CONSTRAINT_DATA, "Pivot", ""},
 	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", ICON_CONSTRAINT_DATA, "Rigid Body Joint", ""},
 	{CONSTRAINT_TYPE_PYTHON, "SCRIPT", ICON_CONSTRAINT_DATA, "Script", ""},
@@ -158,6 +159,8 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 			return &RNA_CopyTransformsConstraint;
 		case CONSTRAINT_TYPE_PIVOT:
 			return &RNA_PivotConstraint;
+		case CONSTRAINT_TYPE_FOLLOWTRACK:
+			return &RNA_FollowTrackConstraint;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -1997,6 +2000,29 @@ static void rna_def_constraint_pivot(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
+static void rna_def_constraint_follow_track(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "FollowTrackConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Follow Track Constraint", "Locks motion to the target motion track");
+	RNA_def_struct_sdna_from(srna, "bFollowTrackConstraint", "data");
+
+	/* movie clip */
+	prop= RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "clip");
+	RNA_def_property_ui_text(prop, "Movie Clip", "Movie Clip to get tracking data from");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	/* track */
+	prop= RNA_def_property(srna, "track", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "track");
+	RNA_def_property_ui_text(prop, "Track", "Movie tracking track to follow");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+}
+
 /* base struct for constraints */
 void RNA_def_constraint(BlenderRNA *brna)
 {
@@ -2107,6 +2133,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	rna_def_constraint_damped_track(brna);
 	rna_def_constraint_spline_ik(brna);
 	rna_def_constraint_pivot(brna);
+	rna_def_constraint_follow_track(brna);
 }
 
 #endif

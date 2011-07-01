@@ -57,6 +57,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_tracking.h"
 #include "BIK_api.h"
 
 #ifdef WITH_PYTHON
@@ -403,6 +404,15 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 					/* clear the bound flag, forcing a rebind next time this is evaluated */
 					data->flag &= ~CONSTRAINT_SPLINEIK_BOUND;
 				}
+			}
+			else if (curcon->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
+				bFollowTrackConstraint *data = curcon->data;
+
+				if(data->clip != NULL && data->track[0]) {
+					if (!BKE_find_track_by_name(&data->clip->tracking, data->track))
+						curcon->flag |= CONSTRAINT_DISABLE;
+				}
+				else curcon->flag |= CONSTRAINT_DISABLE;
 			}
 			
 			/* Check targets for constraints */

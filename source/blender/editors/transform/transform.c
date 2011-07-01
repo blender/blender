@@ -352,6 +352,9 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		SpaceClip *sc= (SpaceClip*)t->sa->spacedata.first;
 		MovieClip *clip= ED_space_clip(sc);
 
+		/* objects could be parented to tracking data, so send this for viewport refresh */
+		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+
 		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 	}
 }

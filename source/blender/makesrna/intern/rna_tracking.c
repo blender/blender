@@ -55,6 +55,27 @@ static void rna_tracking_tracks_begin(CollectionPropertyIterator *iter, PointerR
 	rna_iterator_listbase_begin(iter, &clip->tracking.tracks, NULL);
 }
 
+void rna_trackingTrack_name_get(PointerRNA *ptr, char *value)
+{
+	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
+	BLI_strncpy(value, track->name, sizeof(track->name));
+}
+
+int rna_trackingTrack_name_length(PointerRNA *ptr)
+{
+	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
+	return strlen(track->name);
+}
+
+void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
+{
+	MovieClip *clip= (MovieClip *)ptr->id.data;
+	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
+	BLI_strncpy(track->name, value, sizeof(track->name));
+
+	BKE_track_unique_name(&clip->tracking, track);
+}
+
 static void rna_tracking_trackerPattern_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
@@ -194,6 +215,14 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MovieTrackingTrack", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking track data", "Match-moving track data for tracking");
 
+	/* name */
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Name", "Unique name of track");
+	RNA_def_property_string_funcs(prop, "rna_trackingTrack_name_get", "rna_trackingTrack_name_length", "rna_trackingTrack_name_set");
+	RNA_def_property_string_maxlength(prop, MAX_ID_NAME);
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+	RNA_def_struct_name_property(srna, prop);
+
 	/* Pattern */
 	prop= RNA_def_property(srna, "pattern_min", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 2);
@@ -282,7 +311,7 @@ static void rna_def_tracking(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tracks", "Collection of tracks in this tracking data object");
 
 	/* active tracks */
-	prop= RNA_def_property(srna, "act_track", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "active_track", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
 	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_track_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
