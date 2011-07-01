@@ -53,6 +53,8 @@ struct EditFace;
 struct EditMesh;
 struct ID;
 struct FCurve;
+struct FreestyleConfig;
+struct FreestyleLineSet;
 struct ImBuf;
 struct Image;
 struct ImageUser;
@@ -74,6 +76,7 @@ struct Render;
 struct RenderEngine;
 struct RenderLayer;
 struct RenderResult;
+struct SceneRenderLayer;
 struct ScrArea;
 struct SculptSession;
 struct ShadeInput;
@@ -426,6 +429,14 @@ float BPY_driver_exec(struct ChannelDriver *driver) {return 0.0f;} /* might need
 void BPY_DECREF(void *pyob_ptr) {}
 void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
 void macro_wrapper(struct wmOperatorType *ot, void *userdata) {} ;
+
+/* Freestyle */
+void FRS_add_freestyle_config(struct SceneRenderLayer* srl) {}
+void FRS_free_freestyle_config(struct SceneRenderLayer* srl) {}
+struct FreestyleLineSet *FRS_get_active_lineset(struct FreestyleConfig *config) { return NULL; }
+short FRS_get_active_lineset_index(struct FreestyleConfig *config) { return 0; }
+void FRS_set_active_lineset_index(struct FreestyleConfig *config, short index) {}
+void FRS_unlink_target_object(struct FreestyleConfig *config, struct Object *ob) {}
 
 
 char blender_path[] = "";
