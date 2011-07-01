@@ -998,7 +998,7 @@ static bAnimChannelType ACF_FILLACTD =
 // TODO: just get this from RNA?
 static int acf_filldrivers_icon(bAnimListElem *UNUSED(ale))
 {
-	return ICON_ANIM_DATA;
+	return ICON_DRIVER;
 }
 
 static void acf_filldrivers_name(bAnimListElem *UNUSED(ale), char *name)
@@ -2887,9 +2887,9 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 	
 	/* get the base icon for the setting */
 	switch (setting) {
-		case ACHANNEL_SETTING_VISIBLE:	/* visibility checkboxes */
-			//icon= ((enabled)? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT);
-			icon= ICON_CHECKBOX_DEHLT;
+		case ACHANNEL_SETTING_VISIBLE:	/* visibility eyes */
+			//icon= ((enabled)? ICON_VISIBLE_IPO_ON : ICON_VISIBLE_IPO_OFF);
+			icon= ICON_VISIBLE_IPO_OFF;
 			
 			if (ale->type == ANIMTYPE_FCURVE)
 				tooltip= "Channel is visible in Graph Editor for editing.";
@@ -2918,7 +2918,7 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 			tooltip= "Editability of keyframes for this channel.";
 			break;
 			
-		case ACHANNEL_SETTING_MUTE: /* muted eye */
+		case ACHANNEL_SETTING_MUTE: /* muted speaker */
 			//icon= ((enabled)? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
 			icon= ICON_MUTE_IPO_OFF;
 			

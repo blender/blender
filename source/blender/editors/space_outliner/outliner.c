@@ -4457,6 +4457,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				UI_icon_draw(x, y, ICON_NLA); break; // XXX
 			case TSE_NLA_ACTION:
 				UI_icon_draw(x, y, ICON_ACTION); break;
+			case TSE_DRIVER_BASE:
+				UI_icon_draw(x, y, ICON_DRIVER); break;
 			case TSE_DEFGROUP_BASE:
 				UI_icon_draw(x, y, ICON_GROUP_VERTEX); break;
 			case TSE_BONE:

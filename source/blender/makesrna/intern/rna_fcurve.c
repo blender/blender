@@ -1244,6 +1244,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Driver", NULL);
 	RNA_def_struct_sdna(srna, "ChannelDriver");
 	RNA_def_struct_ui_text(srna, "Driver", "Driver for the value of a setting based on an external value");
+	RNA_def_struct_ui_icon(srna, ICON_DRIVER);
 
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
