@@ -81,8 +81,8 @@ class MeshMirrorUV(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        ob = context.active_object
-        return (ob and ob.type == 'MESH')
+        obj = context.active_object
+        return (obj and obj.type == 'MESH' and obj.data.uv_textures.active)
 
     def execute(self, context):
         DIR = (self.direction == 'NEGATIVE')
@@ -120,12 +120,7 @@ class MeshMirrorUV(bpy.types.Operator):
                 if j is not None:
                     vmap[i] = j
 
-        active_uv_layer = None
-        for lay in mesh.uv_textures:
-            if lay.active:
-                active_uv_layer = lay.data
-                break
-
+        active_uv_layer = mesh.uv_textures.active.data
         fuvs = [(uv.uv1, uv.uv2, uv.uv3, uv.uv4) for uv in active_uv_layer]
         fuvs_cpy = [(uv[0].copy(), uv[1].copy(), uv[2].copy(), uv[3].copy()) for uv in fuvs]
 
