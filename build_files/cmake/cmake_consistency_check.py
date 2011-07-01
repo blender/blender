@@ -26,7 +26,7 @@
 from cmake_consistency_check_config import IGNORE, UTF8_CHECK, SOURCE_DIR
 
 import os
-from os.path import join, dirname, normpath, abspath, splitext
+from os.path import join, dirname, normpath, splitext
 
 print("Scanning:", SOURCE_DIR)
 
@@ -183,7 +183,6 @@ def is_ignore(f):
 
 # First do stupid check, do these files exist?
 print("\nChecking for missing references:")
-import sys
 is_err = False
 errs = []
 for f in (global_h | global_c):

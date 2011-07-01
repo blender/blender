@@ -883,7 +883,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
             if user_script_path is not None:
                 user_addon_paths.append(os.path.join(user_script_path(), "addons"))
             user_addon_paths.append(os.path.join(bpy.utils.resource_path('USER'), "scripts", "addons"))
-        
+
         for path in user_addon_paths:
             if bpy.path.is_subdir(mod.__file__, path):
                 return True
@@ -1001,8 +1001,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
                         for i in range(4 - tot_row):
                             split.separator()
-                        
-                        
+
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.
