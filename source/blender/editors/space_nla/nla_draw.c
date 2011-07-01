@@ -420,23 +420,23 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 } 
 
 /* add the relevant text to the cache of text-strings to draw in pixelspace */
-static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNUSED(index), View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
 {
-	char str[256], dir[3];
+	char str[256];
 	char col[4];
+	float xofs;
 	rctf rect;
 	
-	/* 'dir' - direction that strip is played in */
-	if (strip->flag & NLASTRIP_FLAG_REVERSE)
-		sprintf(dir, "<-");
-	else
-		sprintf(dir, "->");
-	
 	/* just print the name and the range */
-	if (strip->flag & NLASTRIP_FLAG_TEMP_META)
-		sprintf(str, "Temp-Meta | %.2f %s %.2f", strip->start, dir, strip->end);
-	else
-		sprintf(str, "%s | %.2f %s %.2f", strip->name, strip->start, dir, strip->end);
+	if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
+		sprintf(str, "%d) Temp-Meta", index);
+	}
+	else {
+		if (strip->flag & NLASTRIP_FLAG_REVERSE)
+			sprintf(str, "%s", strip->name);
+		else
+			sprintf(str, "%s", strip->name);
+	}
 	
 	/* set text color - if colors (see above) are light, draw black text, otherwise draw white */
 	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER)) {
@@ -445,20 +445,50 @@ static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNU
 	else {
 		col[0]= col[1]= col[2]= 255;
 	}
-	col[3]= 1.0;
-
+	col[3]= 255;
+	
+	/* determine the amount of padding required - cannot be constant otherwise looks weird in some cases */
+	if ((strip->end - strip->start) <= 5.0f)
+		xofs = 0.5f;
+	else
+		xofs = 1.0f;
+	
 	/* set bounding-box for text 
 	 *	- padding of 2 'units' on either side
 	 */
 	// TODO: make this centered?
-	rect.xmin= strip->start + 0.5f;
+	rect.xmin= strip->start + xofs;
 	rect.ymin= yminc;
-	rect.xmax= strip->end - 0.5f;
+	rect.xmax= strip->end - xofs;
 	rect.ymax= ymaxc;
 	
-	/* add this string to the cache of texts to draw*/
-
+	/* add this string to the cache of texts to draw */
 	UI_view2d_text_cache_rectf(v2d, &rect, str, col);
+}
+
+/* add frame extents to cache of text-strings to draw in pixelspace
+ * for now, only used when transforming strips
+ */
+static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float UNUSED(yminc), float ymaxc)
+{
+	const float ytol = 1.0f; /* small offset to vertical positioning of text, for legibility */
+	const char col[4] = {220, 220, 220, 255}; /* light grey */
+	char str[16] = "";
+	
+	
+	/* Always draw times above the strip, whereas sequencer drew below + above.
+	 * However, we should be fine having everything on top, since these tend to be 
+	 * quite spaced out. 
+	 *	- 1 dp is compromise between lack of precision (ints only, as per sequencer)
+	 *	  while also preserving some accuracy, since we do use floats
+	 */
+		/* start frame */
+	sprintf(str, "%.1f", strip->start);
+	UI_view2d_text_cache_add(v2d, strip->start-1.0f, ymaxc+ytol, str, col);
+	
+		/* end frame */
+	sprintf(str, "%.1f", strip->end);
+	UI_view2d_text_cache_add(v2d, strip->end, ymaxc+ytol, str, col);
 }
 
 /* ---------------------- */
@@ -518,6 +548,12 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 							
 							/* add the text for this strip to the cache */
 							nla_draw_strip_text(nlt, strip, index, v2d, yminc, ymaxc);
+							
+							/* if transforming strips (only real reason for temp-metas currently), 
+							 * add to the cache the frame numbers of the strip's extents
+							 */
+							if (strip->flag & NLASTRIP_FLAG_TEMP_META)
+								nla_draw_strip_frames_text(nlt, strip, v2d, yminc, ymaxc);
 						}
 					}
 				}

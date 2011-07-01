@@ -197,32 +197,6 @@ static short act_keyframes_loop(KeyframeEditData *ked, bAction *act, KeyframeEdi
 	return 0;
 }
 
-/* This function is used to loop over the keyframe data of an AnimData block */
-static short adt_keyframes_loop(KeyframeEditData *ked, AnimData *adt, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
-{
-	/* sanity check */
-	if (adt == NULL)
-		return 0;
-	
-	/* drivers or actions? */
-	if (filterflag & ADS_FILTER_ONLYDRIVERS) {
-		FCurve *fcu;
-		
-		/* just loop through all F-Curves acting as Drivers */
-		for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
-			if (ANIM_fcurve_keyframes_loop(ked, fcu, key_ok, key_cb, fcu_cb))
-				return 1;
-		}
-	}
-	else if (adt->action) {
-		/* call the function for actions */
-		if (act_keyframes_loop(ked, adt->action, key_ok, key_cb, fcu_cb))
-			return 1;
-	}
-	
-	return 0;
-}
-
 /* This function is used to loop over the keyframe data in an Object */
 static short ob_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, Object *ob, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb)
 {
