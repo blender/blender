@@ -1376,6 +1376,7 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 
 // BEGIN ndof menu -- experimental!
 
+#if 0
 static uiBlock* wm_block_ndof_menu_1st(bContext* C, ARegion* ar, void* UNUSED(arg_op))
 {
 	uiBlock* block;
@@ -1448,9 +1449,17 @@ static int wm_ndof_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 	puts("ndof: menu exec");
 	return OPERATOR_FINISHED;	
 }
+#endif
 
 static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
+//	uiPupMenuNotice(C, "Hello!"); // <-- this works
+//	uiPupBlock(C, wm_block_ndof_menu, op); // <-- no luck!
+//	ui_popup_menu_create(C, NULL, NULL, NULL, NULL, "Hello!"); // <-- this works
+
+	uiPopupMenu* pup = uiPupMenuBegin(C,"3D mouse settings",ICON_NDOF_TURN);
+	uiLayout* layout = uiPupMenuLayout(pup);
+
 	printf("ndof: menu invoked in ");
 
 	switch (CTX_wm_area(C)->spacetype) // diff spaces can have diff 3d mouse options
@@ -1465,12 +1474,6 @@ static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 			puts("some iNDOFferent area");
 		}
 
-//	uiPupMenuNotice(C, "Hello!"); // <-- this works
-//	uiPupBlock(C, wm_block_ndof_menu, op); // <-- no luck!
-//	ui_popup_menu_create(C, NULL, NULL, NULL, NULL, "Hello!"); // <-- this works
-
-	uiPopupMenu* pup = uiPupMenuBegin(C,"3D mouse settings",ICON_NDOF_TURN);
-	uiLayout* layout = uiPupMenuLayout(pup);
 
 	//uiBlock* block = uiLayoutGetBlock(layout);
 	//int foo = 1;
@@ -1495,12 +1498,11 @@ static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 static void WM_OT_ndof_menu(wmOperatorType *ot)
 {
 	puts("ndof: registering menu operator");
-	ot->name= "NDOF Menu";
-	ot->idname= "WM_OT_ndof_menu";
+
+	ot->name = "NDOF Menu";
+	ot->idname = "WM_OT_ndof_menu";
 	
-	ot->invoke= wm_ndof_menu_invoke;
-//	ot->exec= wm_ndof_menu_exec;
-//	ot->poll= wm_ndof_menu_poll;
+	ot->invoke = wm_ndof_menu_invoke;
 }
 
 // END ndof menu

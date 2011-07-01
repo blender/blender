@@ -27,6 +27,7 @@
 #include "GHOST_WindowManager.h"
 #include <string.h> // for memory functions
 #include <stdio.h> // for error/info reporting
+#include <math.h>
 
 #ifdef DEBUG_NDOF_BUTTONS
 static const char* ndof_button_names[] = {
@@ -301,6 +302,12 @@ void GHOST_NDOFManager::updateButtons(int button_bits, GHOST_TUns64 time)
 		}
 	}
 
+static bool atHomePosition(GHOST_TEventNDOFMotionData* ndof, float threshold)
+	{
+	#define HOME(foo) (fabsf(ndof->foo) < threshold)
+	return HOME(tx) && HOME(ty) && HOME(tz) && HOME(rx) && HOME(ry) && HOME(rz);
+	}
+
 bool GHOST_NDOFManager::sendMotionEvent()
 	{
 	if (m_atRest)
@@ -336,9 +343,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	m_system.pushEvent(event);
 
 	// 'at rest' test goes at the end so that the first 'rest' event gets sent
-	m_atRest = m_rotation[0] == 0 && m_rotation[1] == 0 && m_rotation[2] == 0 &&
-		m_translation[0] == 0 && m_translation[1] == 0 && m_translation[2] == 0;
-	// this needs to be aware of calibration -- 0.01 0.01 0.03 might be 'rest'
+	m_atRest = atHomePosition(data, 0.05f);
 
 	return true;
 	}

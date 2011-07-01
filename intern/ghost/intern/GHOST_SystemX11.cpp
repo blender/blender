@@ -75,22 +75,6 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
-#if 0 // obsolete SpaceNav code
-
-typedef struct NDOFPlatformInfo {
-	Display *display;
-	Window window;
-	volatile GHOST_TEventNDOFData *currValues;
-	Atom cmdAtom;
-	Atom motionAtom;
-	Atom btnPressAtom;
-	Atom btnRelAtom;
-} NDOFPlatformInfo;
-
-static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL, 0, 0, 0, 0};
-
-#endif
-
 //these are for copy and select copy
 static char *txt_cut_buffer= NULL;
 static char *txt_select_buffer= NULL;
@@ -612,6 +596,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case FocusOut:
 		{
 			XFocusChangeEvent &xfe = xe->xfocus;
+
+			printf("X: focus %s for window %d\n", xfe.type == FocusIn ? "in" : "out", (int) xfe.window);
 		
 			// May have to look at the type of event and filter some
 			// out.
@@ -641,36 +627,6 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					window
 				);
 			} else 
-#endif
-
-#if 0 // obsolete SpaceNav code
-
-			if (sNdofInfo.currValues) {
-				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
-				if (xcme.message_type == sNdofInfo.motionAtom)
-				{
-					data.changed = 1;
-					data.delta = xcme.data.s[8] - data.time;
-					data.time = xcme.data.s[8];
-					data.tx = xcme.data.s[2] >> 2;
-					data.ty = xcme.data.s[3] >> 2;
-					data.tz = xcme.data.s[4] >> 2;
-					data.rx = xcme.data.s[5];
-					data.ry = xcme.data.s[6];
-					data.rz =-xcme.data.s[7];
-					g_event = new GHOST_EventNDOF(getMilliSeconds(),
-					                              GHOST_kEventNDOFMotion,
-					                              window, data);
-				} else if (xcme.message_type == sNdofInfo.btnPressAtom) {
-					data.changed = 2;
-					data.delta = xcme.data.s[8] - data.time;
-					data.time = xcme.data.s[8];
-					data.buttons = xcme.data.s[2];
-					g_event = new GHOST_EventNDOF(getMilliSeconds(),
-					                              GHOST_kEventNDOFButton,
-					                              window, data);
-				}
-
 #endif
 
 			if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
@@ -730,6 +686,14 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					xce.y_root
 				);
 			}
+
+			printf("X: %s window %d\n", xce.type == EnterNotify ? "entering" : "leaving", (int) xce.window);
+
+			if (xce.type == EnterNotify)
+				m_windowManager->setActiveWindow(window);
+			else
+				m_windowManager->setWindowInactive(window);
+
 			break;
 		}
 		case MapNotify:
