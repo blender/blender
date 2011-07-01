@@ -997,6 +997,11 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* TODO: replace such guesswork with a flag or field from the NDOF manager */
 		ndof->dt = dt = 0.0125f;
 
+	#define DEBUG_NDOF_MOTION
+	#ifdef DEBUG_NDOF_MOTION
+	printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
+		ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
+	#endif
 
 	if (ndof->tz) {
 		// Zoom!
