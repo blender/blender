@@ -47,7 +47,7 @@ static void NDOF_DeviceAdded(io_connect_t connection)
 #endif
 
 	// determine exactly which device is plugged in
-	int result = 0;
+	SInt32 result = 0;
 	ConnexionControl(kConnexionCtlGetDeviceID, 0, &result);
 	unsigned short vendorID = result >> 16;
 	unsigned short productID = result & 0xffff;
