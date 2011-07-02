@@ -683,16 +683,16 @@ static int  ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 		/* cache type */
 		ptcache_file_write(pf, &surface->type, 1, sizeof(int));
 
-		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
+		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT)
 			in_len = sizeof(PaintPoint)*total_points;
-			out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
-		}
 		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
-				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
+				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)
 			in_len = sizeof(float)*total_points;
-			out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
-		}
+		if (surface->type == MOD_DPAINT_SURFACE_T_WAVE)
+			in_len = sizeof(PaintWavePoint)*total_points;
 		else return 0;
+
+		out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
 
 		ptcache_file_compressed_write(pf, (unsigned char *)surface->data->type_data, in_len, out, cache_compress);
 		MEM_freeN(out);
@@ -725,6 +725,8 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
 				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)
 			data_len = sizeof(float);
+		if (surface->type == MOD_DPAINT_SURFACE_T_WAVE)
+			data_len = sizeof(PaintWavePoint);
 		else return 0;
 
 		ptcache_file_compressed_read(pf, (unsigned char*)surface->data->type_data, data_len*surface->data->total_points);
@@ -2413,7 +2415,7 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 		else if(pid->type == PTCACHE_TYPE_SMOKE_HIGHRES)
 			smokeModifier_reset_turbulence(pid->calldata);
 		else if(pid->type == PTCACHE_TYPE_DYNAMICPAINT)
-			dynamicPaint_resetSurface((DynamicPaintSurface*)pid->calldata);
+			dynamicPaint_clearSurface((DynamicPaintSurface*)pid->calldata);
 	}
 	if(clear)
 		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);

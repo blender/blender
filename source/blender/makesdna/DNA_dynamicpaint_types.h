@@ -26,7 +26,7 @@ struct PaintSurfaceData;
 #define MOD_DPAINT_SURFACE_T_PAINT 0
 #define MOD_DPAINT_SURFACE_T_DISPLACE 1
 #define MOD_DPAINT_SURFACE_T_WEIGHT 2
-#define MOD_DPAINT_SURFACE_T_IWAVE 3
+#define MOD_DPAINT_SURFACE_T_WAVE 3
 
 /* surface flags */
 #define MOD_DPAINT_ACTIVE (1<<0) /* Is surface enabled */
@@ -36,10 +36,10 @@ struct PaintSurfaceData;
 #define MOD_DPAINT_MULALPHA (1<<3) /* Multiply color by alpha when saving image */
 #define MOD_DPAINT_DISSOLVE_LOG (1<<4) /* Use 1/x for surface dissolve */
 #define MOD_DPAINT_DRY_LOG (1<<5) /* Use 1/x for drying paint */
-
 #define MOD_DPAINT_PREVIEW (1<<6) /* preview this surface on viewport*/
 
-/* image sequence output */
+#define MOD_DPAINT_WAVE_OPEN_BORDERS (1<<7) /* passes waves through mesh edges */
+
 #define MOD_DPAINT_OUT1 (1<<10) /* output primary surface */
 #define MOD_DPAINT_OUT2 (1<<11) /* output secondary surface */
 
@@ -88,7 +88,11 @@ typedef struct DynamicPaintSurface {
 	int dry_speed, diss_speed;
 	float disp_depth;
 
-	float spread_speed, shrink_speed, pad_f;
+	float spread_speed, shrink_speed;
+
+	/* wave settings */
+	float wave_damping, wave_speed, wave_timescale, wave_spring;
+	float pad_f;
 	char uvlayer_name[32];
 
 	char image_output_path[240];
@@ -123,7 +127,6 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_RAMP_ALPHA (1<<4) /* only read falloff ramp alpha */
 #define MOD_DPAINT_PROX_FACEALIGNED (1<<5) /* do proximity check only in normal dir */
 #define MOD_DPAINT_INVERSE_PROX (1<<6) /* inverse proximity painting */
-//#define MOD_DPAINT_EDGE_DISP (1<<6) /* add displacement to intersection edges */
 
 /* collision type */
 #define MOD_DPAINT_COL_VOLUME 0 /* paint with mesh volume */
@@ -135,6 +138,11 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_PRFALL_SHARP 0 /* no-falloff */
 #define MOD_DPAINT_PRFALL_SMOOTH 1 /* smooth, linear falloff */
 #define MOD_DPAINT_PRFALL_RAMP 2 /* use color ramp */
+
+/* wave_brush_type */
+#define MOD_DPAINT_WAVEB_DEPTH 0 /* use intersection depth */
+#define MOD_DPAINT_WAVEB_FORCE 1 /* act as a force on intersection area */
+#define MOD_DPAINT_WAVEB_REFLECT 2 /* obstacle that reflects waves */
 
 
 /* Painter settings */
@@ -159,9 +167,11 @@ typedef struct DynamicPaintBrushSettings {
 
 	short proximity_falloff;
 	short brush_settings_context;	/* ui settings display */
-	int pad2;	// replace if need for new value
+	short wave_type;
+	short pad_s;
 
-	//int pad;
+	float wave_factor;
+	float pad_f;
 } DynamicPaintBrushSettings;
 
 #endif

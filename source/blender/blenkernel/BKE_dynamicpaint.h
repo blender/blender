@@ -24,8 +24,8 @@ typedef struct PaintSurfaceData {
 	void *format_data;
 	/* surface type data */
 	void *type_data;
-	/* paint effects data */
-	struct PaintEffectData *eff_data;
+	/* point neighbor data */
+	struct PaintAdjData *adj_data;
 
 	unsigned int total_points;
 	short samples;
@@ -49,27 +49,28 @@ typedef struct PaintPoint {
 	float alpha;
 } PaintPoint;
 
-/* iWave type surface point	*/
-typedef struct PaintIWavePoint {		
+/* heigh field waves	*/
+typedef struct PaintWavePoint {		
 
-	float source;
-	float obstruction;
-	float height, previousHeight;
-
+	float height;
+	float velocity;
+	short state; /* 0 = neutral
+				 *  1 = obstacle
+				 *  2 = reflect only */
 	float foam;
 
-	float verticalDerivative;
-
-} PaintIWavePoint;
+} PaintWavePoint;
 
 struct DerivedMesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm);
-void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
-int dynamicPaint_resetSurface(struct DynamicPaintSurface *surface);
-int dynamicPaint_surfaceHasPreview(DynamicPaintSurface *surface);
-void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
-void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basename);
 void dynamicPaint_Modifier_free (struct DynamicPaintModifierData *pmd);
 void dynamicPaint_Modifier_createType(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tsmd);
+
+void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
+void dynamicPaint_clearSurface(DynamicPaintSurface *surface);
+int  dynamicPaint_resetSurface(struct DynamicPaintSurface *surface);
+int  dynamicPaint_surfaceHasPreview(DynamicPaintSurface *surface);
+void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
+void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basename);
 
 #endif /* BKE_DYNAMIC_PAINT_H_ */

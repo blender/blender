@@ -104,7 +104,12 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
                         col.prop(brush, "paint_color", text="")
                         col.prop(brush, "paint_alpha", text="Alpha")
                 
-                if (brush.brush_settings_context != "GENERAL"):
+                elif (brush.brush_settings_context == "WAVE"):
+                    layout.prop(brush, "wave_type")
+                    if (brush.wave_type != "REFLECT"):
+                        split = layout.split(percentage=0.6)
+                        split.prop(brush, "wave_factor")
+                else:
                     layout.label(text="-WIP-")
 
 
@@ -131,7 +136,7 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
             split.prop(surface, "dry_speed", text="Dry Time")
             split.prop(surface, "use_dry_log", text="Slow")
             
-        if (surface.surface_type != "IWAVE"):
+        if (surface.surface_type != "WAVE"):
             if (surface.surface_type == "DISPLACE"):
                 layout.prop(surface, "use_dissolve", text="Dissolve:")
             elif (surface.surface_type == "WEIGHT"):
@@ -143,6 +148,19 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
             split = sub.split(percentage=0.8)
             split.prop(surface, "dissolve_speed", text="Time")
             split.prop(surface, "use_dissolve_log", text="Slow")
+            
+        if (surface.surface_type == "WAVE"):
+            layout.prop(surface, "wave_open_borders")
+            
+            split = layout.split()
+            
+            col = split.column(align=True)
+            col.prop(surface, "wave_timescale")
+            col.prop(surface, "wave_speed")
+            
+            col = split.column(align=True)
+            col.prop(surface, "wave_damping")
+            col.prop(surface, "wave_spring")
             
         layout.label(text="Brush Group:")
         layout.prop(surface, "brush_group", text="")
@@ -158,7 +176,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
         if ((not md) or (md.dynamicpaint_type != 'CANVAS')):
             return 0
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
-        return (surface and (not (surface.surface_format=="VERTEX" and surface.surface_type=="DISPLACE") ))
+        return (surface and not (surface.surface_format=="VERTEX" and (surface.surface_type=="DISPLACE" or surface.surface_type=="WAVE")))
 
     def draw(self, context):
         layout = self.layout
@@ -202,9 +220,10 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
                 sub = col.column()
                 sub.active = surface.do_output2
                 sub.prop(surface, "output_name2", text="Filename: ")
-            if (surface.surface_type == "DISPLACE"):
+            else:
                 col.prop(surface, "output_name", text="Filename: ")
-                col.prop(surface, "disp_type", text="Displace Type")
+                if (surface.surface_type == "DISPLACE"):
+                    col.prop(surface, "disp_type", text="Displace Type")
             
             layout.separator()
             layout.operator("dpaint.bake", text="Bake Image Sequence", icon='MOD_DYNAMICPAINT')

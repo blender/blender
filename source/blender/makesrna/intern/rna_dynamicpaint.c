@@ -220,14 +220,13 @@ static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext *C, Pointe
 		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
 
-	/* iWave */
-	/*if (surface->format == MOD_DPAINT_SURFACE_F_PTEX ||
-		surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
-		tmp.value = MOD_DPAINT_SURFACE_T_IWAVE;
-		tmp.identifier = "IWAVE";
-		tmp.name = "iWave";
+	/* Height waves */
+	{
+		tmp.value = MOD_DPAINT_SURFACE_T_WAVE;
+		tmp.identifier = "WAVE";
+		tmp.name = "Waves";
 		RNA_enum_item_add(&item, &totitem, &tmp);
-	}*/
+	}
 
 	RNA_enum_item_end(&item, &totitem);
 	*free = 1;
@@ -507,6 +506,35 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_dynamicpaint_disp_type);
 	RNA_def_property_ui_text(prop, "Data Type", "");
 
+	/* wave simulator settings */
+	prop= RNA_def_property(srna, "wave_damping", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "wave_damping");
+	RNA_def_property_range(prop, 0.001, 1.0);
+	RNA_def_property_ui_range(prop, 0.01, 1.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Damping", "Wave damping factor.");
+
+	prop= RNA_def_property(srna, "wave_speed", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "wave_speed");
+	RNA_def_property_range(prop, 0.01, 3.0);
+	RNA_def_property_ui_range(prop, 0.01, 1.5, 1, 2);
+	RNA_def_property_ui_text(prop, "Speed", "Wave speed.");
+
+	prop= RNA_def_property(srna, "wave_timescale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "wave_timescale");
+	RNA_def_property_range(prop, 0.01, 3.0);
+	RNA_def_property_ui_range(prop, 0.01, 1.5, 1, 2);
+	RNA_def_property_ui_text(prop, "Timescale", "Wave time scaling factor.");
+
+	prop= RNA_def_property(srna, "wave_spring", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "wave_spring");
+	RNA_def_property_range(prop, 0.01, 1.0);
+	RNA_def_property_ui_range(prop, 0.01, 1.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Spring", "Spring force that pulls water level back to zero.");
+
+	prop= RNA_def_property(srna, "wave_open_borders", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_WAVE_OPEN_BORDERS);
+	RNA_def_property_ui_text(prop, "Open Borders", "Passes waves through mesh edges.");
+
 	
 	/* cache */
 	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
@@ -565,10 +593,16 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 			{MOD_DPAINT_PRFALL_RAMP, "RAMP", 0, "Color Ramp", ""},
 			{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem prop_dynamicpaint_brush_wave_type[] = {
+			{MOD_DPAINT_WAVEB_DEPTH, "DEPTH", 0, "Obstacle", ""},
+			{MOD_DPAINT_WAVEB_FORCE, "FORCE", 0, "Force", ""},
+			{MOD_DPAINT_WAVEB_REFLECT, "REFLECT", 0, "Reflect Only", ""},
+			{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem buttons_dynamicpaint_settings_menu[] = {
 		{0, "GENERAL", ICON_MOD_DYNAMICPAINT, "", "Show general settings"},
-		{1, "DISPLACE", ICON_MOD_DISPLACE, "", "Show displace related settings"},
-		{3, "IWAVE", ICON_MOD_WAVE, "", "Show iWave related settings"},
+		//{1, "DISPLACE", ICON_MOD_DISPLACE, "", "Show displace related settings"},
+		{2, "WAVE", ICON_MOD_WAVE, "", "Show wave related settings"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "DynamicPaintBrushSettings", NULL);
@@ -618,6 +652,18 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "paint_erase", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ERASE);
 	RNA_def_property_ui_text(prop, "Erase Paint", "Erase / remove paint instead of adding it.");
+
+	prop= RNA_def_property(srna, "wave_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_sdna(prop, NULL, "wave_type");
+	RNA_def_property_enum_items(prop, prop_dynamicpaint_brush_wave_type);
+	RNA_def_property_ui_text(prop, "Paint Type", "");
+
+	prop= RNA_def_property(srna, "wave_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "wave_factor");
+	RNA_def_property_range(prop, -2.0, 2.0);
+	RNA_def_property_ui_range(prop, -1.0, 1.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Factor", "Multiplier for wave strenght of this brush.");
 	
 	/*
 	*   Paint Area / Collision
