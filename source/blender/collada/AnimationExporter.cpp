@@ -244,8 +244,15 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		addSampler(sampler);
 
-		std::string target = translate_id(ob_name)
+		std::string target ;
+
+		if ( !strcmp( transformName, "color" ) )
+		    target = get_light_id(ob)
 			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
+		else 
+			target = translate_id(ob_name)
+			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
+
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
 		closeAnimation();
@@ -758,6 +765,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				tm_type = 2;
 			else if (!strcmp(name, "location"))
 				tm_type = 3;
+			else if (!strcmp(name, "color"))
+				tm_type = 4;
 			else
 				tm_type = -1;
 		}
@@ -773,6 +782,9 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			break;
 		case 3:
 			tm_name = "location";
+			break;
+		case 4:
+			tm_name = "color";
 			break;
 		default:
 			tm_name = "";
