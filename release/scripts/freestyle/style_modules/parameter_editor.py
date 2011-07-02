@@ -333,8 +333,13 @@ class WithinImageBorderUP1D(UnaryPredicate1D):
 
 def iter_stroke_vertices(stroke):
     it = stroke.strokeVerticesBegin()
+    prev_p = None
     while not it.isEnd():
-        yield it.getObject()
+        sv = it.getObject()
+        p = sv.getPoint()
+        if prev_p is None or (prev_p - p).length > 1e-6:
+            yield sv
+            prev_p = p
         it.increment()
 
 class RoundCapShader(StrokeShader):
@@ -346,6 +351,8 @@ class RoundCapShader(StrokeShader):
         buffer = []
         for sv in iter_stroke_vertices(stroke):
             buffer.append((sv.getPoint(), sv.attribute()))
+        if len(buffer) < 2:
+            return
         # calculate the number of additional vertices to form caps
         R, L = stroke[0].attribute().getThicknessRL()
         caplen_beg = (R + L) / 2.0
@@ -394,6 +401,8 @@ class SquareCapShader(StrokeShader):
         buffer = []
         for sv in iter_stroke_vertices(stroke):
             buffer.append((sv.getPoint(), sv.attribute()))
+        if len(buffer) < 2:
+            return
         # calculate the number of additional vertices to form caps
         R, L = stroke[0].attribute().getThicknessRL()
         caplen_beg = (R + L) / 2.0
