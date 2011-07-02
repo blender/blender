@@ -422,8 +422,8 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
 	if((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
 		return;
 
-	for(y= 0; y<ibuf->x; y++) {
-		for (x= 0; x<ibuf->y; x++) {
+	for(y= 0; y<ibuf->y; y++) {
+		for (x= 0; x<ibuf->x; x++) {
 			int pixel= ibuf->x*y + x;
 			char *rrgb= (char*)ibuf->rect + pixel*4;
 
@@ -434,7 +434,8 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
 	}
 }
 
-static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker, float min[2], float max[2], int pos[2])
+static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+			float min[2], float max[2], int margin, float pos[2], int origin[2])
 {
 	ImBuf *tmpibuf;
 	int x, y;
@@ -455,30 +456,39 @@ static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTr
 	if(x1+w<=x) x1++;
 	if(y1+h<=y) y1++;
 
-	tmpibuf= IMB_allocImBuf(w, h, 32, IB_rect);
-	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1, y1, w, h);
+	tmpibuf= IMB_allocImBuf(w+margin*2, h+margin*2, 32, IB_rect);
+	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1-margin, y1-margin, w+margin*2, h+margin*2);
 
-	pos[0]= x-x1;
-	pos[1]= y-y1;
+	if(pos != NULL) {
+		pos[0]= x-x1+(marker->pos[0]*ibuf->x-x)+margin;
+		pos[1]= y-y1+(marker->pos[1]*ibuf->y-y)+margin;
+	}
+
+	if(origin != NULL) {
+		origin[0]= x1-margin;
+		origin[1]= y1-margin;
+	}
 
 	disable_imbuf_channels(tmpibuf, track);
 
 	return tmpibuf;
 }
 
-ImBuf *BKE_tracking_acquire_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker, int pos[2])
+ImBuf *BKE_tracking_acquire_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+			int margin, float pos[2], int origin[2])
 {
-	return acquire_area_imbuf(ibuf, track, marker, track->pat_min, track->pat_max, pos);
+	return acquire_area_imbuf(ibuf, track, marker, track->pat_min, track->pat_max, margin, pos, origin);
 }
 
-ImBuf *BKE_tracking_acquire_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker, int pos[2])
+ImBuf *BKE_tracking_acquire_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+			int margin, float pos[2], int origin[2])
 {
-	return acquire_area_imbuf(ibuf, track, marker, track->search_min, track->search_max, pos);
+	return acquire_area_imbuf(ibuf, track, marker, track->search_min, track->search_max, margin, pos, origin);
 }
 
 #ifdef WITH_LIBMV
 static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-			int *width_r, int *height_r, int pos[2])
+			int *width_r, int *height_r, float pos[2], int origin[2])
 {
 	ImBuf *tmpibuf;
 	float *pixels, *fp;
@@ -487,10 +497,7 @@ static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
 	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
 
-	tmpibuf= IMB_allocImBuf(width, height, 32, IB_rect);
-	IMB_rectcpy(tmpibuf, ibuf, 0, 0,
-			(track->search_min[0]+marker->pos[0])*ibuf->x,
-			(track->search_min[1]+marker->pos[1])*ibuf->y, width, height);
+	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, 0, pos, origin);
 	disable_imbuf_channels(tmpibuf, track);
 
 	*width_r= width;
@@ -621,11 +628,11 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 		if(marker && (marker->flag&MARKER_DISABLED)==0 && marker->framenr==curfra) {
 #ifdef WITH_LIBMV
-			int width, height, pos[2];
-			float *patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height, pos);
-			float *patch_new= acquire_search_floatbuf(ibuf_new, track, marker, &width, &height, pos);
-			//double x1= pos[0], y1= pos[1];
-			double x1= -track->search_min[0]*ibuf->x, y1= -track->search_min[1]*ibuf->y;
+			int width, height, origin[2];
+			float pos[2];
+			float *patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height, pos, origin);
+			float *patch_new= acquire_search_floatbuf(ibuf_new, track, marker, &width, &height, pos, origin);
+			double x1= pos[0], y1= pos[1];
 			double x2= x1, y2= y1;
 			int wndx, wndy;
 
@@ -638,8 +645,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				MovieTrackingMarker marker_new;
 
 				memset(&marker_new, 0, sizeof(marker_new));
-				marker_new.pos[0]= marker->pos[0]+track->search_min[0]+x2/ibuf_new->x;
-				marker_new.pos[1]= marker->pos[1]+track->search_min[1]+y2/ibuf_new->y;
+				marker_new.pos[0]= (origin[0]+x2)/ibuf_new->x;
+				marker_new.pos[1]= (origin[1]+y2)/ibuf_new->y;
 
 				if(context->backwards) marker_new.framenr= curfra-1;
 				else marker_new.framenr= curfra+1;

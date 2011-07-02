@@ -491,6 +491,28 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		draw_movieclip_cache(sc, ar, clip, scene);
 }
 
+static ImBuf *scale_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
+{
+	ImBuf *scaleibuf;
+	int x, y, w= ibuf->x*zoomx, h= ibuf->y*zoomy;
+	scaleibuf= IMB_allocImBuf(w, h, 32, IB_rect);
+
+	for(y= 0; y<scaleibuf->y; y++) {
+		for (x= 0; x<scaleibuf->x; x++) {
+			int pixel= scaleibuf->x*y + x;
+			int orig_pixel= ibuf->x*(int)(((float)y)/zoomy) + (int)(((float)x)/zoomx);
+			char *rrgb= (char*)scaleibuf->rect + pixel*4;
+			char *orig_rrgb= (char*)ibuf->rect + orig_pixel*4;
+			rrgb[0]= orig_rrgb[0];
+			rrgb[1]= orig_rrgb[1];
+			rrgb[2]= orig_rrgb[2];
+			rrgb[3]= orig_rrgb[3];
+		}
+	}
+
+	return scaleibuf;
+}
+
 void draw_clip_track_widget(const bContext *C, void *trackp, void *userp, void *clipp, rcti *rect)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -516,35 +538,39 @@ void draw_clip_track_widget(const bContext *C, void *trackp, void *userp, void *
 			ImBuf* ibuf= BKE_movieclip_acquire_ibuf(clip, user);
 
 			if(ibuf && ibuf->rect) {
-				int pos[2];
-				ImBuf* tmpibuf;
+				float pos[2];
+				ImBuf *tmpibuf;
 
-				tmpibuf= BKE_tracking_acquire_pattern_imbuf(ibuf, track, marker, pos);
+				tmpibuf= BKE_tracking_acquire_pattern_imbuf(ibuf, track, marker, 1, pos, NULL);
 
 				if(tmpibuf->rect_float)
 					IMB_rect_from_float(tmpibuf);
 
 				if(tmpibuf->rect) {
-					int a, w, h;
-					float zoomx, zoomy;
+					int a;
+					float zoomx, zoomy, off_x, off_y;
 					GLint scissor[4];
+					ImBuf *drawibuf;
 
-					w= rect->xmax-rect->xmin;
-					h= rect->ymax-rect->ymin;
+					zoomx= ((float)rect->xmax-rect->xmin) / (tmpibuf->x-2);
+					zoomy= ((float)rect->ymax-rect->ymin) / (tmpibuf->y-2);
 
-					zoomx= ((float)w) / tmpibuf->x;
-					zoomy= ((float)h) / tmpibuf->y;
+					off_x= ((int)pos[0]-pos[0]-0.5)*zoomx;
+					off_y= ((int)pos[1]-pos[1]-0.5)*zoomy;
 
 					glPushMatrix();
 
-					glPixelZoom(zoomx, zoomy);
-					glaDrawPixelsSafe(rect->xmin, rect->ymin, tmpibuf->x, tmpibuf->y, tmpibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, tmpibuf->rect);
-					glPixelZoom(1.f, 1.f);
-
 					glGetIntegerv(GL_VIEWPORT, scissor);
-					glScissor(ar->winrct.xmin + (rect->xmin-1), ar->winrct.ymin+(rect->ymin-1), (rect->xmax+1)-(rect->xmin-1), (rect->ymax+1)-(rect->ymin-1));
 
-					glTranslatef(rect->xmin+(pos[0]+0.5f)*zoomx, rect->ymin+(pos[1]+0.5f)*zoomy, 0.f);
+					/* draw content of pattern area */
+					glScissor(ar->winrct.xmin+rect->xmin, ar->winrct.ymin+rect->ymin, scissor[2], scissor[3]);
+
+					drawibuf= scale_ibuf(tmpibuf, zoomx, zoomy);
+					glaDrawPixelsSafe(off_x+rect->xmin, off_y+rect->ymin, rect->xmax-rect->xmin-off_x, rect->ymax-rect->ymin-off_y, drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
+
+					/* draw cross for pizel position */
+					glTranslatef(off_x+rect->xmin+pos[0]*zoomx, off_y+rect->ymin+pos[1]*zoomy, 0.f);
+					glScissor(ar->winrct.xmin + (rect->xmin-1), ar->winrct.ymin+(rect->ymin-1), (rect->xmax+1)-(rect->xmin-1), (rect->ymax+1)-(rect->ymin-1));
 
 					for(a= 0; a< 2; a++) {
 						if(a==1) {
@@ -557,10 +583,10 @@ void draw_clip_track_widget(const bContext *C, void *trackp, void *userp, void *
 						}
 
 						glBegin(GL_LINES);
-							glVertex2f(-10, 0);
-							glVertex2f(10, 0);
-							glVertex2f(0, -10);
-							glVertex2f(0, 10);
+							glVertex2f(-10.0f, 0.0f);
+							glVertex2f(10.0f, 0.0f);
+							glVertex2f(0.0f, -10.0f);
+							glVertex2f(0.0f, 10.0f);
 						glEnd();
 					}
 
@@ -569,6 +595,8 @@ void draw_clip_track_widget(const bContext *C, void *trackp, void *userp, void *
 					glPopMatrix();
 
 					glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+
+					IMB_freeImBuf(drawibuf);
 				}
 
 				IMB_freeImBuf(tmpibuf);

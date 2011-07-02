@@ -55,8 +55,10 @@ struct MovieTrackingTrack *BKE_tracking_copy_track(struct MovieTrackingTrack *tr
 void BKE_tracking_clear_path(struct MovieTrackingTrack *track, int ref_frame, int action);
 void BKE_tracking_free(struct MovieTracking *tracking);
 
-struct ImBuf *BKE_tracking_acquire_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, int pos[2]);
-struct ImBuf *BKE_tracking_acquire_search_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, int pos[2]);
+struct ImBuf *BKE_tracking_acquire_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
+			struct MovieTrackingMarker *marker, int margin, float pos[2], int origin[2]);
+struct ImBuf *BKE_tracking_acquire_search_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
+			struct MovieTrackingMarker *marker, int margin, float pos[2], int origin[2]);
 
 struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user, int backwards);
 void BKE_tracking_context_free(struct MovieTrackingContext *context);
