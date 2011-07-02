@@ -449,9 +449,9 @@ typedef struct CutCurve {
 #define KNIFE_MULTICUT	3
 
 static EnumPropertyItem knife_items[]= {
-	{KNIFE_EXACT, "EXACT", 0, "Exact", ""},
-	{KNIFE_MIDPOINT, "MIDPOINTS", 0, "Midpoints", ""},
-	{KNIFE_MULTICUT, "MULTICUT", 0, "Multicut", ""},
+	{KNIFE_EXACT, "EXACT", 0, N_("Exact"), ""},
+	{KNIFE_MIDPOINT, "MIDPOINTS", 0, N_("Midpoints"), ""},
+	{KNIFE_MULTICUT, "MULTICUT", 0, N_("Multicut"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -711,8 +711,8 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	ot->name= "Knife Cut";
-	ot->description= "Cut selected edges and faces into parts";
+	ot->name= _("Knife Cut");
+	ot->description= _("Cut selected edges and faces into parts");
 	ot->idname= "MESH_OT_knife_cut";
 	
 	ot->invoke= WM_gesture_lines_invoke;
@@ -725,14 +725,14 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", knife_items, KNIFE_EXACT, "Type", "");
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(knife_items), KNIFE_EXACT, _("Type"), "");
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
 	RNA_def_int(ot->srna, "num_cuts", 1, 1, MAX_CUTS, _("Number of Cuts"), _("Only for Multi-Cut"), 1, MAX_CUTS);
 	// doesn't work atm.. RNA_def_enum(ot->srna, "corner_cut_pattern", corner_type_items, SUBDIV_CORNER_INNERVERT, "Corner Cut Pattern", "Topology pattern to use to fill a face after cutting across its corner");
 	
 	/* internal */
-	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, _("Cursor"), "", 0, INT_MAX);
 }
 
 /* ******************************************************* */

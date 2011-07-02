@@ -574,13 +574,13 @@ enum {
 void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, N_("Confirm"), ""},
 
-	{VIEWROT_MODAL_AXIS_SNAP_ENABLE,	"AXIS_SNAP_ENABLE", 0, "Enable Axis Snap", ""},
-	{VIEWROT_MODAL_AXIS_SNAP_DISABLE,	"AXIS_SNAP_DISABLE", 0, "Disable Axis Snap", ""},
+	{VIEWROT_MODAL_AXIS_SNAP_ENABLE,	"AXIS_SNAP_ENABLE", 0, N_("Enable Axis Snap"), ""},
+	{VIEWROT_MODAL_AXIS_SNAP_DISABLE,	"AXIS_SNAP_DISABLE", 0, N_("Disable Axis Snap"), ""},
 		
-	{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
-	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
+	{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, N_("Switch to Zoom")},
+	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, N_("Switch to Move")},
 
 	{0, NULL, 0, NULL, NULL}};
 
@@ -589,7 +589,7 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "View3D Rotate Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, _("View3D Rotate Modal"), RNA_enum_items_gettexted(modal_items));
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -940,10 +940,10 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 void viewmove_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, N_("Confirm"), ""},
 		
-	{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
-	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
+	{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, N_("Switch to Zoom")},
+	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, N_("Switch to Rotate")},
 
 	{0, NULL, 0, NULL, NULL}};
 
@@ -952,7 +952,7 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "View3D Move Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, _("View3D Move Modal"), RNA_enum_items_gettexted(modal_items));
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -1100,10 +1100,10 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, N_("Confirm"), ""},
 		
-	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
-	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
+	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, N_("Switch to Rotate")},
+	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, N_("Switch to Move")},
 
 	{0, NULL, 0, NULL, NULL}};
 
@@ -1112,7 +1112,7 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "View3D Zoom Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, _("View3D Zoom Modal"), RNA_enum_items_gettexted(modal_items));
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -1351,10 +1351,10 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, N_("Confirm"), ""},
 
-	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
-	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
+	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, N_("Switch to Rotate")},
+	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, N_("Switch to Move")},
 
 	{0, NULL, 0, NULL, NULL}};
 
@@ -1363,7 +1363,7 @@ void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "View3D Dolly Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, _("View3D Dolly Modal"), RNA_enum_items_gettexted(modal_items));
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -2511,7 +2511,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	/* flags */
 	ot->flag= 0;
 
-	RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
+	RNA_def_enum(ot->srna, "type", prop_view_items, 0, _("View"), _("The Type of view"));
 	RNA_def_boolean(ot->srna, "align_active", 0, _("Align Active"), _("Align to the active objects axis"));
 }
 
@@ -2579,7 +2579,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= 0;
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_view_orbit_items), 0, "Orbit", "Direction of View Orbit");
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_view_orbit_items), 0, _("Orbit"), _("Direction of View Orbit"));
 }
 
 static EnumPropertyItem prop_view_pan_items[] = {
@@ -2627,7 +2627,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= 0;
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_view_pan_items), 0, "Pan", "Direction of View Pan");
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_view_pan_items), 0, _("Pan"), _("Direction of View Pan"));
 }
 
 static int viewpersportho_exec(bContext *C, wmOperator *UNUSED(op))

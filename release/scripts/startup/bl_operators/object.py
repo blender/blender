@@ -26,12 +26,12 @@ from blf import gettext as _
 class SelectPattern(bpy.types.Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_pattern"
-    bl_label = "Select Pattern"
+    bl_label = _("Select Pattern")
     bl_options = {'REGISTER', 'UNDO'}
 
-    pattern = StringProperty(name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen=32, default="*")
-    case_sensitive = BoolProperty(name="Case Sensitive", description="Do a case sensitive compare", default=False)
-    extend = BoolProperty(name="Extend", description="Extend the existing selection", default=True)
+    pattern = StringProperty(name=_("Pattern"), description=_("Name filter using '*' and '?' wildcard chars"), maxlen=32, default="*")
+    case_sensitive = BoolProperty(name=_("Case Sensitive"), description=_("Do a case sensitive compare"), default=False)
+    extend = BoolProperty(name=_("Extend"), description=_("Extend the existing selection"), default=True)
 
     def execute(self, context):
 
@@ -75,7 +75,7 @@ class SelectPattern(bpy.types.Operator):
 class SelectCamera(bpy.types.Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_camera"
-    bl_label = "Select Camera"
+    bl_label = _("Select Camera")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -96,17 +96,17 @@ class SelectCamera(bpy.types.Operator):
 class SelectHierarchy(bpy.types.Operator):
     '''Select object relative to the active objects position in the hierarchy'''
     bl_idname = "object.select_hierarchy"
-    bl_label = "Select Hierarchy"
+    bl_label = _("Select Hierarchy")
     bl_options = {'REGISTER', 'UNDO'}
 
     direction = EnumProperty(items=(
-                        ('PARENT', "Parent", ""),
-                        ('CHILD', "Child", "")),
-                name="Direction",
-                description="Direction to select in the hierarchy",
+                        ('PARENT', _("Parent"), ""),
+                        ('CHILD', _("Child"), "")),
+                name=_("Direction"),
+                description=_("Direction to select in the hierarchy"),
                 default='PARENT')
 
-    extend = BoolProperty(name="Extend", description="Extend the existing selection", default=False)
+    extend = BoolProperty(name=_("Extend"), description=_("Extend the existing selection"), default=False)
 
     @classmethod
     def poll(cls, context):
@@ -158,13 +158,13 @@ class SubdivisionSet(bpy.types.Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
     bl_idname = "object.subdivision_set"
-    bl_label = "Subdivision Set"
+    bl_label = _("Subdivision Set")
     bl_options = {'REGISTER', 'UNDO'}
 
-    level = IntProperty(name="Level",
+    level = IntProperty(name=_("Level"),
             default=1, min=-100, max=100, soft_min=-6, soft_max=6)
 
-    relative = BoolProperty(name="Relative", description="Apply the subsurf level as an offset relative to the current level", default=False)
+    relative = BoolProperty(name=_("Relative"), description=_("Apply the subsurf level as an offset relative to the current level"), default=False)
 
     @classmethod
     def poll(cls, context):
@@ -228,19 +228,19 @@ class ShapeTransfer(bpy.types.Operator):
     '''Copy another selected objects active shape to this one by applying the relative offsets'''
 
     bl_idname = "object.shape_key_transfer"
-    bl_label = "Transfer Shape Key"
+    bl_label = _("Transfer Shape Key")
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = EnumProperty(items=(
-                        ('OFFSET', "Offset", "Apply the relative positional offset"),
-                        ('RELATIVE_FACE', "Relative Face", "Calculate the geometricly relative position (using faces)."),
-                        ('RELATIVE_EDGE', "Relative Edge", "Calculate the geometricly relative position (using edges).")),
-                name="Transformation Mode",
-                description="Method to apply relative shape positions to the new shape",
+                        ('OFFSET', "Offset", _("Apply the relative positional offset")),
+                        ('RELATIVE_FACE', _("Relative Face"), _("Calculate the geometricly relative position (using faces).")),
+                        ('RELATIVE_EDGE', _("Relative Edge"), _("Calculate the geometricly relative position (using edges)."))),
+                name=_("Transformation Mode"),
+                description=_("Method to apply relative shape positions to the new shape"),
                 default='OFFSET')
 
-    use_clamp = BoolProperty(name="Clamp Offset",
-                description="Clamp the transformation to the distance each vertex moves in the original shape.",
+    use_clamp = BoolProperty(name=_("Clamp Offset"),
+                description=_("Clamp the transformation to the distance each vertex moves in the original shape."),
                 default=False)
 
     def _main(self, ob_act, objects, mode='OFFSET', use_clamp=False):
@@ -538,7 +538,7 @@ class MakeDupliFace(bpy.types.Operator):
 class IsolateTypeRender(bpy.types.Operator):
     '''Hide unselected render objects of same type as active by setting the hide render flag'''
     bl_idname = "object.isolate_type_render"
-    bl_label = "Restrict Render Unselected"
+    bl_label = _("Restrict Render Unselected")
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -558,7 +558,7 @@ class IsolateTypeRender(bpy.types.Operator):
 class ClearAllRestrictRender(bpy.types.Operator):
     '''Reveal all render objects by setting the hide render flag'''
     bl_idname = "object.hide_render_clear_all"
-    bl_label = "Clear All Restrict Render"
+    bl_label = _("Clear All Restrict Render")
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

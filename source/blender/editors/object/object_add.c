@@ -351,7 +351,7 @@ void OBJECT_OT_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(object_type_items), 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(object_type_items), 0, _("Type"), "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -359,18 +359,18 @@ void OBJECT_OT_add(wmOperatorType *ot)
 /********************* Add Effector Operator ********************/
 /* copy from rna_object_force.c*/
 static EnumPropertyItem field_type_items[] = {
-	{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", ""},
-	{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", ""},
-	{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", ""},
-	{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", ""},
-	{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic", ""},
-	{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge", ""},
-	{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones", ""},
-	{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", ""},
-	{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, "Curve Guide", ""},
-	{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
-	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
-	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
+	{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, N_("Force"), ""},
+	{PFIELD_WIND, "WIND", ICON_FORCE_WIND, N_("Wind"), ""},
+	{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, N_("Vortex"), ""},
+	{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, N_("Magnetic"), ""},
+	{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, N_("Harmonic"), ""},
+	{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, N_("Charge"), ""},
+	{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, N_("Lennard-Jones"), ""},
+	{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, N_("Texture"), ""},
+	{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, N_("Curve Guide"), ""},
+	{PFIELD_BOID, "BOID", ICON_FORCE_BOID, N_("Boid"), ""},
+	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, N_("Turbulence"), ""},
+	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, N_("Drag"), ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* for effector add primitive operators */
@@ -443,7 +443,7 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(field_type_items), 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(field_type_items), 0, _("Type"), "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -575,7 +575,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(metaelem_type_items), 0, "Primitive", "");
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(metaelem_type_items), 0, _("Primitive"), "");
 	ED_object_add_generic_props(ot, TRUE);
 }
 
@@ -658,8 +658,8 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
-	ot->name= "Add Armature";
-	ot->description = "Add an armature object to the scene";
+	ot->name= _("Add Armature");
+	ot->description = _("Add an armature object to the scene");
 	ot->idname= "OBJECT_OT_armature_add";
 	
 	/* api callbacks */
@@ -729,7 +729,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(lamp_type_items), 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(lamp_type_items), 0, _("Type"), "");
 
 	ED_object_add_generic_props(ot, FALSE);
 }
@@ -786,7 +786,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
+	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, _("Group"), "");
 	RNA_def_enum_funcs(prop, RNA_group_itemf);
 	ot->prop= prop;
 	ED_object_add_generic_props(ot, FALSE);
@@ -1717,7 +1717,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	
 	/* to give to transform */
 	RNA_def_boolean(ot->srna, "linked", 0, _("Linked"), _("Duplicate object but not object data, linking to the original data"));
-	prop= RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	prop= RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

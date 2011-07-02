@@ -37,6 +37,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 
 #include "WM_api.h"
@@ -73,8 +75,8 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Run python file";
-	ot->description= "Run Python file";
+	ot->name= _("Run python file");
+	ot->description= _("Run Python file");
 	ot->idname= "SCRIPT_OT_python_file_run";
 	ot->flag = OPTYPE_UNDO;
 
@@ -105,8 +107,8 @@ static int script_reload_exec(bContext *C, wmOperator *UNUSED(op))
 void SCRIPT_OT_reload(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reload Scripts";
-	ot->description= "Reload Scripts";
+	ot->name= _("Reload Scripts");
+	ot->description= _("Reload Scripts");
 	ot->idname= "SCRIPT_OT_reload";
 
 	/* api callbacks */

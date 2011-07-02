@@ -407,8 +407,8 @@ static int make_fgon_exec(bContext *C, wmOperator *op)
 void MESH_OT_fgon_make(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make F-gon";
-	ot->description= "Make fgon from selected faces";
+	ot->name= _("Make F-gon");
+	ot->description= _("Make fgon from selected faces");
 	ot->idname= "MESH_OT_fgon_make";
 	
 	/* api callbacks */
@@ -439,8 +439,8 @@ static int clear_fgon_exec(bContext *C, wmOperator *op)
 void MESH_OT_fgon_clear(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear F-gon";
-	ot->description= "Clear fgon from selected face";
+	ot->name= _("Clear F-gon");
+	ot->description= _("Clear fgon from selected face");
 	ot->idname= "MESH_OT_fgon_clear";
 	
 	/* api callbacks */
@@ -851,8 +851,8 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 void MESH_OT_edge_face_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Edge/Face";
-	ot->description= "Add an edge or face to selected";
+	ot->name= _("Make Edge/Face");
+	ot->description= _("Add an edge or face to selected");
 	ot->idname= "MESH_OT_edge_face_add";
 	
 	/* api callbacks */
@@ -1407,8 +1407,8 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Plane";
-	ot->description= "Construct a filled planar mesh with 4 vertices";
+	ot->name= _("Add Plane");
+	ot->description= _("Construct a filled planar mesh with 4 vertices");
 	ot->idname= "MESH_OT_primitive_plane_add";
 	
 	/* api callbacks */
@@ -1440,8 +1440,8 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Cube";
-	ot->description= "Construct a cube mesh";
+	ot->name= _("Add Cube");
+	ot->description= _("Construct a cube mesh");
 	ot->idname= "MESH_OT_primitive_cube_add";
 	
 	/* api callbacks */
@@ -1475,8 +1475,8 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Circle";
-	ot->description= "Construct a circle mesh";
+	ot->name= _("Add Circle");
+	ot->description= _("Construct a circle mesh");
 	ot->idname= "MESH_OT_primitive_circle_add";
 	
 	/* api callbacks */
@@ -1516,8 +1516,8 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Cylinder";
-	ot->description= "Construct a cylinder mesh";
+	ot->name= _("Add Cylinder");
+	ot->description= _("Construct a cylinder mesh");
 	ot->idname= "MESH_OT_primitive_cylinder_add";
 	
 	/* api callbacks */
@@ -1557,8 +1557,8 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Cone";
-	ot->description= "Construct a conic mesh (ends filled)";
+	ot->name= _("Add Cone");
+	ot->description= _("Construct a conic mesh (ends filled)");
 	ot->idname= "MESH_OT_primitive_cone_add";
 	
 	/* api callbacks */
@@ -1598,8 +1598,8 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Grid";
-	ot->description= "Construct a grid mesh";
+	ot->name= _("Add Grid");
+	ot->description= _("Construct a grid mesh");
 	ot->idname= "MESH_OT_primitive_grid_add";
 	
 	/* api callbacks */
@@ -1611,9 +1611,9 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "x_subdivisions", 10, INT_MIN, INT_MAX, "X Subdivisions", "", 3, 1000);
-	RNA_def_int(ot->srna, "y_subdivisions", 10, INT_MIN, INT_MAX, "Y Subdivisions", "", 3, 1000);
-	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
+	RNA_def_int(ot->srna, "x_subdivisions", 10, INT_MIN, INT_MAX, _("X Subdivisions"), "", 3, 1000);
+	RNA_def_int(ot->srna, "y_subdivisions", 10, INT_MIN, INT_MAX, _("Y Subdivisions"), "", 3, 1000);
+	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, _("Size"), "", 0.001, FLT_MAX);
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -1636,8 +1636,8 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Monkey";
-	ot->description= "Construct a Suzanne mesh";
+	ot->name= _("Add Monkey");
+	ot->description= _("Construct a Suzanne mesh");
 	ot->idname= "MESH_OT_primitive_monkey_add";
 	
 	/* api callbacks */
@@ -1671,8 +1671,8 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add UV Sphere";
-	ot->description= "Construct a UV sphere mesh";
+	ot->name= _("Add UV Sphere");
+	ot->description= _("Construct a UV sphere mesh");
 	ot->idname= "MESH_OT_primitive_uv_sphere_add";
 	
 	/* api callbacks */
@@ -1684,9 +1684,9 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "segments", 32, INT_MIN, INT_MAX, "Segments", "", 3, 500);
-	RNA_def_int(ot->srna, "ring_count", 16, INT_MIN, INT_MAX, "Rings", "", 3, 500);
-	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, 100.00);
+	RNA_def_int(ot->srna, "segments", 32, INT_MIN, INT_MAX, _("Segments"), "", 3, 500);
+	RNA_def_int(ot->srna, "ring_count", 16, INT_MIN, INT_MAX, _("Rings"), "", 3, 500);
+	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, _("Size"), "", 0.001, 100.00);
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -1710,8 +1710,8 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Ico Sphere";
-	ot->description= "Construct an Icosphere mesh";
+	ot->name= _("Add Ico Sphere");
+	ot->description= _("Construct an Icosphere mesh");
 	ot->idname= "MESH_OT_primitive_ico_sphere_add";
 	
 	/* api callbacks */
@@ -1723,8 +1723,8 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "subdivisions", 2, 0, INT_MAX, "Subdivisions", "", 0, 8);
-	RNA_def_float(ot->srna, "size", 1.0f, 0.0f, FLT_MAX, "Size", "", 0.001f, 100.00);
+	RNA_def_int(ot->srna, "subdivisions", 2, 0, INT_MAX, _("Subdivisions"), "", 0, 8);
+	RNA_def_float(ot->srna, "size", 1.0f, 0.0f, FLT_MAX, _("Size"), "", 0.001f, 100.00);
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -1758,8 +1758,8 @@ static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 void MESH_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Mesh";
-	ot->description= "Duplicate selected vertices, edges or faces";
+	ot->name= _("Duplicate Mesh");
+	ot->description= _("Duplicate selected vertices, edges or faces");
 	ot->idname= "MESH_OT_duplicate";
 	
 	/* api callbacks */
@@ -1769,6 +1769,6 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
 }
 

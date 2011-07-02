@@ -386,7 +386,7 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_property(ot->srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property(ot->srna, _("filepath"), PROP_STRING, PROP_FILEPATH);
 	RNA_def_boolean(ot->srna, "full", 1, _("Full Screen"), "");
 }
 

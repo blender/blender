@@ -162,9 +162,9 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void ANIM_OT_change_frame(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Change frame";
+	ot->name= _("Change frame");
 	ot->idname= "ANIM_OT_change_frame";
-	ot->description= "Interactively change the current frame number";
+	ot->description= _("Interactively change the current frame number");
 	
 	/* api callbacks */
 	ot->exec= change_frame_exec;
@@ -217,9 +217,9 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Preview Range";
+	ot->name= _("Set Preview Range");
 	ot->idname= "ANIM_OT_previewrange_set";
-	ot->description= "Interactively define frame range used for playback";
+	ot->description= _("Interactively define frame range used for playback");
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -265,9 +265,9 @@ static int previewrange_clear_exec(bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Preview Range";
+	ot->name= _("Clear Preview Range");
 	ot->idname= "ANIM_OT_previewrange_clear";
-	ot->description= "Clear Preview Range";
+	ot->description= _("Clear Preview Range");
 	
 	/* api callbacks */
 	ot->exec= previewrange_clear_exec;

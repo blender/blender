@@ -24,11 +24,13 @@ source/blender/editors/animation/drivers.c
 source/blender/editors/animation/keyframing.c
 source/blender/editors/animation/keyingsets.c
 
+source/blender/editors/armature/armature_ops.c
 source/blender/editors/armature/editarmature.c
 source/blender/editors/armature/editarmature_sketch.c
 source/blender/editors/armature/poselib.c
 source/blender/editors/armature/poseobject.c
 source/blender/editors/armature/poseSlide.c
+
 
 source/blender/editors/curve/editcurve.c
 source/blender/editors/curve/editfont.c
@@ -42,16 +44,21 @@ source/blender/editors/interface/interface_templates.c
 source/blender/editors/interface/interface_utils.c
 source/blender/editors/interface/view2d_ops.c
 
+source/blender/editors/mesh/editmesh.c
 source/blender/editors/mesh/editmesh_add.c
 source/blender/editors/mesh/editmesh_loop.c
 source/blender/editors/mesh/editmesh_mods.c
 source/blender/editors/mesh/editmesh_tools.c
 source/blender/editors/mesh/loopcut.c
+source/blender/editors/mesh/mesh_ops.c
+
+source/blender/editors/metaball/mball_edit.c
 
 source/blender/editors/object/object_add.c
 source/blender/editors/object/object_constraint.c
 source/blender/editors/object/object_edit.c
 source/blender/editors/object/object_group.c
+source/blender/editors/object/object_lattice.c
 source/blender/editors/object/object_ops.c
 source/blender/editors/object/object_relations.c
 source/blender/editors/object/object_select.c
@@ -70,7 +77,10 @@ source/blender/editors/screen/area.c
 source/blender/editors/screen/screendump.c
 source/blender/editors/screen/screen_ops.c
 
+source/blender/editors/sculpt_paint/paint_ops.c
+source/blender/editors/sculpt_paint/paint_image.c
 source/blender/editors/sculpt_paint/paint_utils.c
+source/blender/editors/sculpt_paint/paint_vertex.c
 source/blender/editors/sculpt_paint/sculpt.c
 
 source/blender/editors/sound/sound_ops.c
@@ -83,6 +93,7 @@ source/blender/editors/space_file/file_draw.c
 source/blender/editors/space_file/file_ops.c
 source/blender/editors/space_file/file_panels.c
 
+source/blender/editors/space_graph/graph_buttons.c
 source/blender/editors/space_graph/graph_edit.c
 source/blender/editors/space_graph/graph_ops.c
 source/blender/editors/space_graph/graph_select.c
@@ -104,6 +115,7 @@ source/blender/editors/space_node/node_select.c
 source/blender/editors/space_node/node_state.c
 
 source/blender/editors/space_outliner/outliner.c
+source/blender/editors/space_script/script_edit.c
 
 source/blender/editors/space_sequencer/sequencer_add.c
 source/blender/editors/space_sequencer/sequencer_edit.c
@@ -121,6 +133,7 @@ source/blender/editors/space_view3d/view3d_select.c
 source/blender/editors/space_view3d/view3d_view.c
 source/blender/editors/space_view3d/view3d_toolbar.c
 
+source/blender/editors/transform/transform.c
 source/blender/editors/transform/transform_ops.c
 source/blender/editors/transform/transform_orientations.c
 

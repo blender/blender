@@ -170,8 +170,8 @@ static int select_all_exec(bContext *C, wmOperator *op)
 void MBALL_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
-	ot->description= "Change selection of all meta elements";
+	ot->name= _("Select or Deselect All");
+	ot->description= _("Change selection of all meta elements");
 	ot->idname= "MBALL_OT_select_all";
 
 	/* callback functions */
@@ -211,8 +211,8 @@ static int select_inverse_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 void MBALL_OT_select_inverse_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Inverse";
-	ot->description= "Select inverse of (un)selected metaelements";
+	ot->name= _("Inverse");
+	ot->description= _("Select inverse of (un)selected metaelements");
 	ot->idname= "MBALL_OT_select_inverse_metaelems";
 
 	/* callback functions */
@@ -257,8 +257,8 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Random...";
-	ot->description= "Randomly select metaelements";
+	ot->name= _("Random...");
+	ot->description= _("Randomly select metaelements");
 	ot->idname= "MBALL_OT_select_random_metaelems";
 	
 	/* callback functions */
@@ -270,7 +270,7 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of metaelems to select randomly.", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, _("Percent"), _("Percentage of metaelems to select randomly."), 0.0001f, 1.0f);
 }
 
 /***************************** Duplicate operator *****************************/
@@ -316,8 +316,8 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Metaelements";
-	ot->description= "Delete selected metaelement(s)";
+	ot->name= _("Duplicate Metaelements");
+	ot->description= _("Delete selected metaelement(s)");
 	ot->idname= "MBALL_OT_duplicate_metaelems";
 
 	/* callback functions */
@@ -329,7 +329,7 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
 }
 
 /***************************** Delete operator *****************************/
@@ -362,8 +362,8 @@ static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
-	ot->description= "Delete selected metaelement(s)";
+	ot->name= _("Delete");
+	ot->description= _("Delete selected metaelement(s)");
 	ot->idname= "MBALL_OT_delete_metaelems";
 
 	/* callback functions */
@@ -402,8 +402,8 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide";
-	ot->description= "Hide (un)selected metaelement(s)";
+	ot->name= _("Hide");
+	ot->description= _("Hide (un)selected metaelement(s)");
 	ot->idname= "MBALL_OT_hide_metaelems";
 
 	/* callback functions */
@@ -443,8 +443,8 @@ static int reveal_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal";
-	ot->description= "Reveal all hidden metaelements";
+	ot->name= _("Reveal");
+	ot->description= _("Reveal all hidden metaelements");
 	ot->idname= "MBALL_OT_reveal_metaelems";
 	
 	/* callback functions */

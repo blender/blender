@@ -165,9 +165,9 @@ static int graphview_cursor_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Cursor";
+	ot->name= _("Set Cursor");
 	ot->idname= "GRAPH_OT_cursor_set";
-	ot->description= "Interactively set the current frame number and value cursor";
+	ot->description= _("Interactively set the current frame number and value cursor");
 	
 	/* api callbacks */
 	ot->exec= graphview_cursor_exec;
@@ -205,9 +205,9 @@ static int view_toggle_handles_exec (bContext *C, wmOperator *UNUSED(op))
 static void GRAPH_OT_view_togglehandles (wmOperatorType *ot)
 {
 	/* identification */
-	ot->name= "Show/Hide All Handles";
+	ot->name= _("Show/Hide All Handles");
 	ot->idname= "GRAPH_OT_handles_view_toggle";
-	ot->description= "Toggle whether handles are drawn on all keyframes that need them";
+	ot->description= _("Toggle whether handles are drawn on all keyframes that need them");
 	
 	/* callbacks */
 	ot->exec= view_toggle_handles_exec;
@@ -274,7 +274,7 @@ void ED_operatormacros_graph(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("GRAPH_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("GRAPH_OT_duplicate_move", _("Duplicate"), OPTYPE_UNDO|OPTYPE_REGISTER);
 	if (ot) {
 		WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");

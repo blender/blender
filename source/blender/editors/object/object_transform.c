@@ -272,8 +272,8 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Location";
-	ot->description = "Clear the object's location";
+	ot->name= _("Clear Location");
+	ot->description = _("Clear the object's location");
 	ot->idname= "OBJECT_OT_location_clear";
 	
 	/* api callbacks */
@@ -292,8 +292,8 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Rotation";
-	ot->description = "Clear the object's rotation";
+	ot->name= _("Clear Rotation");
+	ot->description = _("Clear the object's rotation");
 	ot->idname= "OBJECT_OT_rotation_clear";
 	
 	/* api callbacks */
@@ -312,8 +312,8 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Scale";
-	ot->description = "Clear the object's scale";
+	ot->name= _("Clear Scale");
+	ot->description = _("Clear the object's scale");
 	ot->idname= "OBJECT_OT_scale_clear";
 	
 	/* api callbacks */
@@ -357,8 +357,8 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Origin";
-	ot->description = "Clear the object's origin";
+	ot->name= _("Clear Origin");
+	ot->description = _("Clear the object's origin");
 	ot->idname= "OBJECT_OT_origin_clear";
 	
 	/* api callbacks */
@@ -586,8 +586,8 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Apply Visual Transform";
-	ot->description = "Apply the object's visual transformation to its data";
+	ot->name= _("Apply Visual Transform");
+	ot->description = _("Apply the object's visual transformation to its data");
 	ot->idname= "OBJECT_OT_visual_transform_apply";
 	
 	/* api callbacks */
@@ -925,8 +925,8 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	};
 	
 	static EnumPropertyItem prop_set_bounds_types[] = {
-		{V3D_CENTROID, "MEDIAN", 0, "Median Center", ""},
-		{V3D_CENTER, "BOUNDS", 0, "Bounds Center", ""},
+		{V3D_CENTROID, "MEDIAN", 0, N_("Median Center"), ""},
+		{V3D_CENTER, "BOUNDS", 0, N_("Bounds Center"), ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -944,7 +944,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_set_center_types), 0, "Type", "");
-	RNA_def_enum(ot->srna, "center", prop_set_bounds_types, V3D_CENTROID, "Center", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_set_center_types), 0, _("Type"), "");
+	RNA_def_enum(ot->srna, "center", RNA_enum_items_gettexted(prop_set_bounds_types), V3D_CENTROID, _("Center"), "");
 }
 

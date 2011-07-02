@@ -226,7 +226,7 @@ void GROUP_OT_create(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_string(ot->srna, "name", "Group", 32, "Name", "Name of the new group");
+	RNA_def_string(ot->srna, "name", "Group", 32, _("Name"), _("Name of the new group"));
 }
 
 /****************** properties window operators *********************/
@@ -295,7 +295,7 @@ void OBJECT_OT_group_link(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
+	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, _("Group"), "");
 	RNA_def_enum_funcs(prop, RNA_group_local_itemf);
 	ot->prop= prop;
 }

@@ -844,14 +844,14 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 
 void WM_operator_properties_select_all(wmOperatorType *ot) {
 	static EnumPropertyItem select_all_actions[] = {
-			{SEL_TOGGLE, "TOGGLE", 0, "Toggle", "Toggle selection for all elements"},
-			{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
-			{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
-			{SEL_INVERT, "INVERT", 0, "Invert", "Invert selection of all elements"},
+			{SEL_TOGGLE, "TOGGLE", 0, N_("Toggle"), N_("Toggle selection for all elements")},
+			{SEL_SELECT, "SELECT", 0, N_("Select"), N_("Select all elements")},
+			{SEL_DESELECT, "DESELECT", 0, N_("Deselect"), N_("Deselect all elements")},
+			{SEL_INVERT, "INVERT", 0, N_("Invert"), N_("Invert selection of all elements")},
 			{0, NULL, 0, NULL, NULL}
 	};
 
-	RNA_def_enum(ot->srna, "action", select_all_actions, SEL_TOGGLE, _("Action"), _("Selection action to execute"));
+	RNA_def_enum(ot->srna, "action", RNA_enum_items_gettexted(select_all_actions), SEL_TOGGLE, _("Action"), _("Selection action to execute"));
 }
 
 void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
@@ -3465,14 +3465,14 @@ void wm_operatortype_init(void)
 static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{GESTURE_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
-	{GESTURE_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
-	{GESTURE_MODAL_CIRCLE_ADD, "ADD", 0, "Add", ""},
-	{GESTURE_MODAL_CIRCLE_SUB, "SUBTRACT", 0, "Subtract", ""},
+	{GESTURE_MODAL_CANCEL,	"CANCEL", 0, N_("Cancel"), ""},
+	{GESTURE_MODAL_CONFIRM,	"CONFIRM", 0, N_("Confirm"), ""},
+	{GESTURE_MODAL_CIRCLE_ADD, "ADD", 0, N_("Add"), ""},
+	{GESTURE_MODAL_CIRCLE_SUB, "SUBTRACT", 0, N_("Subtract"), ""},
 
-	{GESTURE_MODAL_SELECT,	"SELECT", 0, "Select", ""},
-	{GESTURE_MODAL_DESELECT,"DESELECT", 0, "DeSelect", ""},
-	{GESTURE_MODAL_NOP,"NOP", 0, "No Operation", ""},
+	{GESTURE_MODAL_SELECT,	"SELECT", 0, N_("Select"), ""},
+	{GESTURE_MODAL_DESELECT,"DESELECT", 0, N_("DeSelect"), ""},
+	{GESTURE_MODAL_NOP,"NOP", 0, N_("No Operation"), ""},
 
 
 	{0, NULL, 0, NULL, NULL}};
@@ -3482,7 +3482,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "View3D Gesture Circle", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "View3D Gesture Circle", RNA_enum_items_gettexted(modal_items));
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
@@ -3518,9 +3518,9 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-		{GESTURE_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
-		{GESTURE_MODAL_SELECT,	"SELECT", 0, "Select", ""},
-		{GESTURE_MODAL_BEGIN,	"BEGIN", 0, "Begin", ""},
+		{GESTURE_MODAL_CANCEL,	"CANCEL", 0, N_("Cancel"), ""},
+		{GESTURE_MODAL_SELECT,	"SELECT", 0, N_("Select"), ""},
+		{GESTURE_MODAL_BEGIN,	"BEGIN", 0, N_("Begin"), ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Straight Line");
@@ -3528,7 +3528,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 	
-	keymap= WM_modalkeymap_add(keyconf, "Gesture Straight Line", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Straight Line", RNA_enum_items_gettexted(modal_items));
 	
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
@@ -3546,10 +3546,10 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{GESTURE_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
-	{GESTURE_MODAL_SELECT,	"SELECT", 0, "Select", ""},
-	{GESTURE_MODAL_DESELECT,"DESELECT", 0, "DeSelect", ""},
-	{GESTURE_MODAL_BEGIN,	"BEGIN", 0, "Begin", ""},
+	{GESTURE_MODAL_CANCEL,	"CANCEL", 0, N_("Cancel"), ""},
+	{GESTURE_MODAL_SELECT,	"SELECT", 0, N_("Select"), ""},
+	{GESTURE_MODAL_DESELECT,"DESELECT", 0, N_("DeSelect"), ""},
+	{GESTURE_MODAL_BEGIN,	"BEGIN", 0, N_("Begin"), ""},
 	{0, NULL, 0, NULL, NULL}};
 
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Border");
@@ -3557,7 +3557,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "Gesture Border", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Border", RNA_enum_items_gettexted(modal_items));
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
@@ -3599,10 +3599,10 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{GESTURE_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
-	{GESTURE_MODAL_IN,	"IN", 0, "In", ""},
-	{GESTURE_MODAL_OUT, "OUT", 0, "Out", ""},
-	{GESTURE_MODAL_BEGIN, "BEGIN", 0, "Begin", ""},
+	{GESTURE_MODAL_CANCEL, "CANCEL", 0, N_("Cancel"), ""},
+	{GESTURE_MODAL_IN,	"IN", 0, N_("In"), ""},
+	{GESTURE_MODAL_OUT, "OUT", 0, N_("Out"), ""},
+	{GESTURE_MODAL_BEGIN, "BEGIN", 0, N_("Begin"), ""},
 	{0, NULL, 0, NULL, NULL}};
 
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Zoom Border");
@@ -3610,7 +3610,7 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "Gesture Zoom Border", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, _("Gesture Zoom Border"), RNA_enum_items_gettexted(modal_items));
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);

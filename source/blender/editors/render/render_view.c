@@ -282,8 +282,8 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 void RENDER_OT_view_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Cancel Render View";
-	ot->description= "Cancel show render view";
+	ot->name= _("Cancel Render View");
+	ot->description= _("Cancel show render view");
 	ot->idname= "RENDER_OT_view_cancel";
 
 	/* api callbacks */

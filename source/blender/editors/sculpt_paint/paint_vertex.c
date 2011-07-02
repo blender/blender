@@ -48,6 +48,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
+#include "BLF_api.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -946,7 +948,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void PAINT_OT_weight_sample(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Weight Paint Sample Weight";
+	ot->name= _("Weight Paint Sample Weight");
 	ot->idname= "PAINT_OT_weight_sample";
 
 	/* api callbacks */
@@ -1044,7 +1046,7 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 	PropertyRNA *prop= NULL;
 
 	/* identifiers */
-	ot->name= "Weight Paint Sample Group";
+	ot->name= _("Weight Paint Sample Group");
 	ot->idname= "PAINT_OT_weight_sample_group";
 
 	/* api callbacks */
@@ -1056,7 +1058,7 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* keyingset to use (dynamic enum) */
-	prop= RNA_def_enum(ot->srna, "group", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
+	prop= RNA_def_enum(ot->srna, "group", DummyRNA_DEFAULT_items, 0, _("Keying Set"), _("The Keying Set to use"));
 	RNA_def_enum_funcs(prop, weight_paint_sample_enum_itemf);
 	ot->prop= prop;
 }
@@ -1203,7 +1205,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Weight Paint Mode";
+	ot->name= _("Weight Paint Mode");
 	ot->idname= "PAINT_OT_weight_paint_toggle";
 	
 	/* api callbacks */
@@ -1611,7 +1613,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Weight Paint";
+	ot->name= _("Weight Paint");
 	ot->idname= "PAINT_OT_weight_paint";
 	
 	/* api callbacks */
@@ -1624,7 +1626,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, _("Stroke"), "");
 }
 
 static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1640,7 +1642,7 @@ static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 void PAINT_OT_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Weight";
+	ot->name= _("Set Weight");
 	ot->idname= "PAINT_OT_weight_set";
 
 	/* api callbacks */
@@ -1702,7 +1704,7 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Vertex Paint Mode";
+	ot->name= _("Vertex Paint Mode");
 	ot->idname= "PAINT_OT_vertex_paint_toggle";
 	
 	/* api callbacks */
@@ -1910,7 +1912,7 @@ static int vpaint_cancel(bContext *C, wmOperator *op)
 void PAINT_OT_vertex_paint(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Vertex Paint";
+	ot->name= _("Vertex Paint");
 	ot->idname= "PAINT_OT_vertex_paint";
 	
 	/* api callbacks */
@@ -1923,7 +1925,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, _("Stroke"), "");
 }
 
 /* ********************** weight from bones operator ******************* */
@@ -1954,12 +1956,12 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
 void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{ARM_GROUPS_AUTO, "AUTOMATIC", 0, "Automatic", "Automatic weights froms bones"},
-		{ARM_GROUPS_ENVELOPE, "ENVELOPES", 0, "From Envelopes", "Weights from envelopes with user defined radius"},
+		{ARM_GROUPS_AUTO, "AUTOMATIC", 0, N_("Automatic"), N_("Automatic weights froms bones")},
+		{ARM_GROUPS_ENVELOPE, "ENVELOPES", 0, N_("From Envelopes"), N_("Weights from envelopes with user defined radius")},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Weight from Bones";
+	ot->name= _("Weight from Bones");
 	ot->idname= "PAINT_OT_weight_from_bones";
 	
 	/* api callbacks */
@@ -1971,6 +1973,6 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Method to use for assigning weights.");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(type_items), 0, _("Type"), _("Method to use for assigning weights."));
 }
 

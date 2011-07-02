@@ -1142,9 +1142,9 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Insert Keyframe";
+	ot->name= _("Insert Keyframe");
 	ot->idname= "ANIM_OT_keyframe_insert";
-	ot->description= "Insert keyframes on the current frame for all properties in the specified Keying Set";
+	ot->description= _("Insert keyframes on the current frame for all properties in the specified Keying Set");
 	
 	/* callbacks */
 	ot->exec= insert_key_exec; 
@@ -1154,7 +1154,7 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* keyingset to use (dynamic enum) */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, _("Keying Set"), _("The Keying Set to use"));
 	RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	ot->prop= prop;
@@ -1195,7 +1195,7 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Insert Keyframe Menu";
+	ot->name= _("Insert Keyframe Menu");
 	ot->idname= "ANIM_OT_keyframe_insert_menu";
 	ot->description= _("Insert Keyframes for specified Keying Set, with menu of available Keying Sets if undefined");
 	
@@ -1208,7 +1208,7 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* keyingset to use (dynamic enum) */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, _("Keying Set"), _("The Keying Set to use"));
 	RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	ot->prop= prop;
@@ -1224,7 +1224,7 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	 *	- by default, the menu should only be shown when there is no active Keying Set (2.5 behaviour),
 	 *	  although in some cases it might be useful to always shown (pre 2.5 behaviour)
 	 */
-	prop= RNA_def_boolean(ot->srna, "always_prompt", 0, "Always Show Menu", "");
+	prop= RNA_def_boolean(ot->srna, "always_prompt", 0, _("Always Show Menu"), "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -1289,9 +1289,9 @@ void ANIM_OT_keyframe_delete (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Delete Keying-Set Keyframe";
+	ot->name= _("Delete Keying-Set Keyframe");
 	ot->idname= "ANIM_OT_keyframe_delete";
-	ot->description= "Delete keyframes on the current frame for all properties in the specified Keying Set";
+	ot->description= _("Delete keyframes on the current frame for all properties in the specified Keying Set");
 	
 	/* callbacks */
 	ot->exec= delete_key_exec; 
@@ -1301,7 +1301,7 @@ void ANIM_OT_keyframe_delete (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* keyingset to use (dynamic enum) */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, _("Keying Set"), _("The Keying Set to use"));
 	RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	ot->prop= prop;
@@ -1361,7 +1361,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyframe_delete_v3d (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Keyframe";
+	ot->name= _("Delete Keyframe");
 	ot->description= _("Remove keyframes on current frame for selected object");
 	ot->idname= "ANIM_OT_keyframe_delete_v3d";
 	
@@ -1451,7 +1451,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyframe_insert_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Insert Keyframe (Buttons)";
+	ot->name= _("Insert Keyframe (Buttons)");
 	ot->idname= "ANIM_OT_keyframe_insert_button";
 	
 	/* callbacks */
@@ -1523,7 +1523,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyframe_delete_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Keyframe (Buttons)";
+	ot->name= _("Delete Keyframe (Buttons)");
 	ot->idname= "ANIM_OT_keyframe_delete_button";
 	
 	/* callbacks */

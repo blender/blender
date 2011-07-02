@@ -260,6 +260,7 @@ extern StructRNA RNA_Key;
 extern StructRNA RNA_KeyConfig;
 extern StructRNA RNA_KeyMap;
 extern StructRNA RNA_KeyMapItem;
+extern StructRNA RNA_KeyMapItems;
 extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_Keyframe;
 extern StructRNA RNA_KeyingSet;
@@ -576,7 +577,7 @@ extern StructRNA RNA_XnorController;
 extern StructRNA RNA_XorController;
 
 /* make all types gettexted */
-void RNA_types_init_gettext();
+void RNA_types_init_gettext(void);
 
 /* Pointer
  *

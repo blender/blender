@@ -486,8 +486,8 @@ void object_test_constraints (Object *owner)
 #define EDIT_CONSTRAINT_OWNER_BONE		1
 
 static EnumPropertyItem constraint_owner_items[] = {
-	{EDIT_CONSTRAINT_OWNER_OBJECT, "OBJECT", 0, "Object", "Edit a constraint on the active object"},
-	{EDIT_CONSTRAINT_OWNER_BONE, "BONE", 0, "Bone", "Edit a constraint on the active bone"},
+	{EDIT_CONSTRAINT_OWNER_OBJECT, "OBJECT", 0, N_("Object"), N_("Edit a constraint on the active object")},
+	{EDIT_CONSTRAINT_OWNER_BONE, "BONE", 0, N_("Bone"), N_("Edit a constraint on the active bone")},
 	{0, NULL, 0, NULL, NULL}};
 
 
@@ -509,8 +509,8 @@ static int edit_constraint_poll(bContext *C)
 
 static void edit_constraint_properties(wmOperatorType *ot)
 {
-	RNA_def_string(ot->srna, "constraint", "", 32, "Constraint", "Name of the constraint to edit");
-	RNA_def_enum(ot->srna, "owner", constraint_owner_items, 0, "Owner", "The owner of this constraint");
+	RNA_def_string(ot->srna, "constraint", "", 32, _("Constraint"), _("Name of the constraint to edit"));
+	RNA_def_enum(ot->srna, "owner", RNA_enum_items_gettexted(constraint_owner_items), 0, _("Owner"), _("The owner of this constraint"));
 }
 
 static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
@@ -611,9 +611,9 @@ static int stretchto_reset_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 void CONSTRAINT_OT_stretchto_reset (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset Original Length";
+	ot->name= _("Reset Original Length");
 	ot->idname= "CONSTRAINT_OT_stretchto_reset";
-	ot->description= "Reset original length of bone for Stretch To Constraint";
+	ot->description= _("Reset original length of bone for Stretch To Constraint");
 	
 	ot->exec= stretchto_reset_exec;
 	ot->invoke= stretchto_reset_invoke;
@@ -654,9 +654,9 @@ static int limitdistance_reset_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void CONSTRAINT_OT_limitdistance_reset (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset Distance";
+	ot->name= _("Reset Distance");
 	ot->idname= "CONSTRAINT_OT_limitdistance_reset";
-	ot->description= "Reset limiting distance for Limit Distance Constraint";
+	ot->description= _("Reset limiting distance for Limit Distance Constraint");
 	
 	ot->exec= limitdistance_reset_exec;
 	ot->invoke= limitdistance_reset_invoke;
@@ -744,9 +744,9 @@ static int childof_set_inverse_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void CONSTRAINT_OT_childof_set_inverse (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Inverse";
+	ot->name= _("Set Inverse");
 	ot->idname= "CONSTRAINT_OT_childof_set_inverse";
-	ot->description= "Set inverse correction for ChildOf constraint";
+	ot->description= _("Set inverse correction for ChildOf constraint");
 	
 	ot->exec= childof_set_inverse_exec;
 	ot->invoke= childof_set_inverse_invoke;
@@ -788,9 +788,9 @@ static int childof_clear_inverse_invoke(bContext *C, wmOperator *op, wmEvent *UN
 void CONSTRAINT_OT_childof_clear_inverse (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Inverse";
+	ot->name= _("Clear Inverse");
 	ot->idname= "CONSTRAINT_OT_childof_clear_inverse";
-	ot->description= "Clear inverse correction for ChildOf constraint";
+	ot->description= _("Clear inverse correction for ChildOf constraint");
 	
 	ot->exec= childof_clear_inverse_exec;
 	ot->invoke= childof_clear_inverse_invoke;
@@ -874,9 +874,9 @@ static int constraint_delete_exec (bContext *C, wmOperator *UNUSED(op))
 void CONSTRAINT_OT_delete (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Constraint";
+	ot->name= _("Delete Constraint");
 	ot->idname= "CONSTRAINT_OT_delete";
-	ot->description= "Remove constraint from constraint stack";
+	ot->description= _("Remove constraint from constraint stack");
 	
 	/* callbacks */
 	ot->exec= constraint_delete_exec;
@@ -919,9 +919,9 @@ static int constraint_move_down_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 void CONSTRAINT_OT_move_down (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Constraint Down";
+	ot->name= _("Move Constraint Down");
 	ot->idname= "CONSTRAINT_OT_move_down";
-	ot->description= "Move constraint down in constraint stack";
+	ot->description= _("Move constraint down in constraint stack");
 	
 	/* callbacks */
 	ot->exec= constraint_move_down_exec;
@@ -966,9 +966,9 @@ static int constraint_move_up_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Constraint Up";
+	ot->name= _("Move Constraint Up");
 	ot->idname= "CONSTRAINT_OT_move_up";
-	ot->description= "Move constraint up in constraint stack";
+	ot->description= _("Move constraint up in constraint stack");
 	
 	/* callbacks */
 	ot->exec= constraint_move_up_exec;
@@ -1013,9 +1013,9 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_constraints_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Clear Pose Constraints";
+	ot->name = _("Clear Pose Constraints");
 	ot->idname= "POSE_OT_constraints_clear";
-	ot->description= "Clear all the constraints for the selected bones";
+	ot->description= _("Clear all the constraints for the selected bones");
 	
 	/* callbacks */
 	ot->exec= pose_constraints_clear_exec;
@@ -1455,7 +1455,7 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, _("Type"), "");
 }
 
 void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
@@ -1474,7 +1474,7 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, _("Type"), "");
 }
 
 void POSE_OT_constraint_add(wmOperatorType *ot)
@@ -1493,7 +1493,7 @@ void POSE_OT_constraint_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, _("Type"), "");
 }
 
 void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
@@ -1512,7 +1512,7 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, _("Type"), "");
 }
 
 /************************ IK Constraint operators *********************/
@@ -1636,8 +1636,8 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_ik_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove IK";
-	ot->description= "Remove all IK Constraints from selected bones";
+	ot->name= _("Remove IK");
+	ot->description= _("Remove all IK Constraints from selected bones");
 	ot->idname= "POSE_OT_ik_clear";
 	
 	/* api callbacks */

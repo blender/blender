@@ -512,9 +512,9 @@ static int ringcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 void MESH_OT_edgering_select (wmOperatorType *ot)
 {
 	/* description */
-	ot->name= "Edge Ring Select";
+	ot->name= _("Edge Ring Select");
 	ot->idname= "MESH_OT_edgering_select";
-	ot->description= "Select an edge ring";
+	ot->description= _("Select an edge ring");
 	
 	/* callbacks */
 	ot->invoke= ringsel_invoke;
@@ -529,9 +529,9 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 void MESH_OT_loopcut (wmOperatorType *ot)
 {
 	/* description */
-	ot->name= "Loop Cut";
+	ot->name= _("Loop Cut");
 	ot->idname= "MESH_OT_loopcut";
-	ot->description= "Add a new loop between existing loops";
+	ot->description= _("Add a new loop between existing loops");
 	
 	/* callbacks */
 	ot->invoke= ringcut_invoke;

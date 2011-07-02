@@ -201,7 +201,7 @@ class InputKeyMapPanel:
                 subcol = self.indented_layout(col, level + 1)
                 subrow = subcol.row()
                 subrow.prop(km, "show_expanded_items", text="", emboss=False)
-                subrow.label(text="%s (Global)" % km.name)
+                subrow.label(text=_("%s (Global)") % _(km.name) )
             else:
                 km.show_expanded_items = True
 

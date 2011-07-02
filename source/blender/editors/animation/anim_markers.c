@@ -578,8 +578,8 @@ static int ed_marker_add(bContext *C, wmOperator *UNUSED(op))
 static void MARKER_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Time Marker";
-	ot->description= "Add a new time marker";
+	ot->name= _("Add Time Marker");
+	ot->description= _("Add a new time marker");
 	ot->idname= "MARKER_OT_add";
 	
 	/* api callbacks */
@@ -881,8 +881,8 @@ static int ed_marker_move_exec(bContext *C, wmOperator *op)
 static void MARKER_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Time Marker";
-	ot->description= "Move selected time marker(s)";
+	ot->name= _("Move Time Marker");
+	ot->description= _("Move selected time marker(s)");
 	ot->idname= "MARKER_OT_move";
 	
 	/* api callbacks */
@@ -976,8 +976,8 @@ static int ed_marker_duplicate_invoke_wrapper(bContext *C, wmOperator *op, wmEve
 static void MARKER_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Time Marker";
-	ot->description= "Duplicate selected time marker(s)";
+	ot->name= _("Duplicate Time Marker");
+	ot->description= _("Duplicate selected time marker(s)");
 	ot->idname= "MARKER_OT_duplicate";
 	
 	/* api callbacks */
@@ -1099,8 +1099,8 @@ static int ed_marker_select_invoke_wrapper(bContext *C, wmOperator *op, wmEvent 
 static void MARKER_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Time Marker";
-	ot->description= "Select time marker(s)";
+	ot->name= _("Select Time Marker");
+	ot->description= _("Select time marker(s)");
 	ot->idname= "MARKER_OT_select";
 	
 	/* api callbacks */
@@ -1183,8 +1183,8 @@ static int ed_marker_select_border_invoke_wrapper(bContext *C, wmOperator *op, w
 static void MARKER_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Marker Border select";
-	ot->description= "Select all time markers using border selection";
+	ot->name= _("Marker Border select");
+	ot->description= _("Select all time markers using border selection");
 	ot->idname= "MARKER_OT_select_border";
 	
 	/* api callbacks */
@@ -1240,8 +1240,8 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 static void MARKER_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)select all markers";
-	ot->description= "Change selection of all time markers";
+	ot->name= _("(De)select all markers");
+	ot->description= _("Change selection of all time markers");
 	ot->idname= "MARKER_OT_select_all";
 	
 	/* api callbacks */
@@ -1293,8 +1293,8 @@ static int ed_marker_delete_invoke_wrapper(bContext *C, wmOperator *op, wmEvent 
 static void MARKER_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Markers";
-	ot->description= "Delete selected time marker(s)";
+	ot->name= _("Delete Markers");
+	ot->description= _("Delete selected time marker(s)");
 	ot->idname= "MARKER_OT_delete";
 	
 	/* api callbacks */
@@ -1341,8 +1341,8 @@ static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, wmEvent 
 static void MARKER_OT_rename(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Rename Marker";
-	ot->description= "Rename first selected time marker";
+	ot->name= _("Rename Marker");
+	ot->description= _("Rename first selected time marker");
 	ot->idname= "MARKER_OT_rename";
 	
 	/* api callbacks */
@@ -1354,7 +1354,7 @@ static void MARKER_OT_rename(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;	
 	
 	/* properties */
-	ot->prop = RNA_def_string(ot->srna, "name", "RenamedMarker", sizeof(((TimeMarker *)NULL)->name), "Name", "New name for marker");
+	ot->prop = RNA_def_string(ot->srna, "name", "RenamedMarker", sizeof(((TimeMarker *)NULL)->name), _("Name"), _("New name for marker"));
 	//RNA_def_boolean(ot->srna, "ensure_unique", 0, "Ensure Unique", "Ensure that new name is unique within collection of markers");
 }
 
@@ -1394,8 +1394,8 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Make Links to Scene";
-	ot->description= "Copy selected markers to another scene";
+	ot->name= _("Make Links to Scene");
+	ot->description= _("Copy selected markers to another scene");
 	ot->idname= "MARKER_OT_make_links_scene";
 
 	/* api callbacks */
@@ -1407,7 +1407,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, _("Scene"), "");
 	RNA_def_enum_funcs(prop, RNA_scene_itemf);
 	ot->prop= prop;
 

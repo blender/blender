@@ -639,8 +639,8 @@ static int actionzone_cancel(bContext *UNUSED(C), wmOperator *op)
 static void SCREEN_OT_actionzone(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Handle area action zones";
-	ot->description= "Handle area action zones for mouse actions/gestures";
+	ot->name= _("Handle area action zones");
+	ot->description= _("Handle area action zones for mouse actions/gestures");
 	ot->idname= "SCREEN_OT_actionzone";
 	
 	ot->invoke= actionzone_invoke;
@@ -762,8 +762,8 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static void SCREEN_OT_area_swap(wmOperatorType *ot)
 {
-	ot->name= "Swap areas";
-	ot->description= "Swap selected areas screen positions";
+	ot->name= _("Swap areas");
+	ot->description= _("Swap selected areas screen positions");
 	ot->idname= "SCREEN_OT_area_swap";
 	
 	ot->invoke= area_swap_invoke;
@@ -1078,8 +1078,8 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move area edges";
-	ot->description= "Move selected area edges";
+	ot->name= _("Move area edges");
+	ot->description= _("Move selected area edges");
 	ot->idname= "SCREEN_OT_area_move";
 	
 	ot->exec= area_move_exec;
@@ -1492,14 +1492,14 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 static EnumPropertyItem prop_direction_items[] = {
-{'h', "HORIZONTAL", 0, "Horizontal", ""},
-{'v', "VERTICAL", 0, "Vertical", ""},
+{'h', "HORIZONTAL", 0, N_("Horizontal"), ""},
+{'v', "VERTICAL", 0, N_("Vertical"), ""},
 {0, NULL, 0, NULL, NULL}};
 
 static void SCREEN_OT_area_split(wmOperatorType *ot)
 {
-	ot->name = "Split area";
-	ot->description= "Split selected area into new windows";
+	ot->name = _("Split area");
+	ot->description= _("Split selected area into new windows");
 	ot->idname = "SCREEN_OT_area_split";
 	
 	ot->exec= area_split_exec;
@@ -1511,7 +1511,7 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna */
-	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', _("Direction"), "");
+	RNA_def_enum(ot->srna, "direction", RNA_enum_items_gettexted(prop_direction_items), 'h', _("Direction"), "");
 	RNA_def_float(ot->srna, "factor", 0.5f, 0.0, 1.0, _("Factor"), "", 0.0, 1.0);
 	RNA_def_int(ot->srna, "mouse_x", -100, INT_MIN, INT_MAX, _("Mouse X"), "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "mouse_y", -100, INT_MIN, INT_MAX, _("Mouse Y"), "", INT_MIN, INT_MAX);
@@ -1716,8 +1716,8 @@ int region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
 static void SCREEN_OT_region_scale(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scale Region Size";
-	ot->description= "Scale selected area";
+	ot->name= _("Scale Region Size");
+	ot->description= _("Scale selected area");
 	ot->idname= "SCREEN_OT_region_scale";
 	
 	ot->invoke= region_scale_invoke;
@@ -1751,7 +1751,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 {
-	ot->name = "Frame Offset";
+	ot->name = _("Frame Offset");
 	ot->idname = "SCREEN_OT_frame_offset";
 	
 	ot->exec= frame_offset_exec;
@@ -1946,8 +1946,8 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_screen_set(wmOperatorType *ot)
 {
-	ot->name = "Set Screen";
-	ot->description= "Cycle through available screens";
+	ot->name = _("Set Screen");
+	ot->description= _("Cycle through available screens");
 	ot->idname = "SCREEN_OT_screen_set";
 	
 	ot->exec= screen_set_exec;
@@ -2268,8 +2268,8 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_join(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Join area";
-	ot->description= "Join selected areas into new window";
+	ot->name= _("Join area");
+	ot->description= _("Join selected areas into new window");
 	ot->idname= "SCREEN_OT_area_join";
 	
 	/* api callbacks */
@@ -2327,8 +2327,8 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, wmEvent *even
 static void SCREEN_OT_area_options(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Area Options";
-	ot->description= "Operations for splitting and merging";
+	ot->name= _("Area Options");
+	ot->description= _("Operations for splitting and merging");
 	ot->idname= "SCREEN_OT_area_options";
 	
 	/* api callbacks */
@@ -2368,8 +2368,8 @@ static int spacedata_cleanup(bContext *C, wmOperator *op)
 static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clean-up space-data";
-	ot->description= "Remove unused settings for invisible editors";
+	ot->name= _("Clean-up space-data");
+	ot->description= _("Remove unused settings for invisible editors");
 	ot->idname= "SCREEN_OT_spacedata_cleanup";
 	
 	/* api callbacks */
@@ -2446,7 +2446,7 @@ static int repeat_history_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Repeat History";
+	ot->name= _("Repeat History");
 	ot->description= _("Display menu for previous actions performed");
 	ot->idname= "SCREEN_OT_repeat_history";
 	
@@ -2474,8 +2474,8 @@ static int redo_last_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED
 static void SCREEN_OT_redo_last(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Redo Last";
-	ot->description= "Display menu for last action performed";
+	ot->name= _("Redo Last");
+	ot->description= _("Display menu for last action performed");
 	ot->idname= "SCREEN_OT_redo_last";
 	
 	/* api callbacks */
@@ -2619,7 +2619,7 @@ static int region_flip_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_region_flip(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Flip Region";
+	ot->name= _("Flip Region");
 	ot->idname= "SCREEN_OT_region_flip";
 	
 	/* api callbacks */
@@ -2668,7 +2668,7 @@ static int header_flip_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_header_flip(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Flip Header Region";
+	ot->name= _("Flip Header Region");
 	ot->idname= "SCREEN_OT_header_flip";
 	
 	/* api callbacks */
@@ -2714,8 +2714,8 @@ static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *U
 static void SCREEN_OT_header_toolbox(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Header Toolbox";
-	ot->description="Display header region toolbox";
+	ot->name= _("Header Toolbox");
+	ot->description=_("Display header region toolbox");
 	ot->idname= "SCREEN_OT_header_toolbox";
 	
 	/* api callbacks */
@@ -2914,8 +2914,8 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 static void SCREEN_OT_animation_step(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Animation Step";
-	ot->description= "Step through animation by position";
+	ot->name= _("Animation Step");
+	ot->description= _("Step through animation by position");
 	ot->idname= "SCREEN_OT_animation_step";
 	
 	/* api callbacks */
@@ -3061,7 +3061,7 @@ static int border_select_do(bContext *C, wmOperator *op)
 static void SCREEN_OT_border_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border select";
+	ot->name= _("Border select");
 	ot->idname= "SCREEN_OT_border_select";
 	
 	/* api callbacks */
@@ -3107,8 +3107,8 @@ static int fullscreen_back_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Back to Previous Screen";
-	ot->description= "Revert back to the original screen layout, before fullscreen area overlay";
+	ot->name= _("Back to Previous Screen");
+	ot->description= _("Revert back to the original screen layout, before fullscreen area overlay");
 	ot->idname= "SCREEN_OT_back_to_previous";
 	
 	/* api callbacks */
@@ -3142,7 +3142,7 @@ static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show/Hide User Preferences";
+	ot->name= _("Show/Hide User Preferences");
 	ot->description= _("Show/hide user preferences");
 	ot->idname= "SCREEN_OT_userpref_show";
 	
@@ -3167,7 +3167,7 @@ static int screen_new_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Screen";
+	ot->name= _("New Screen");
 	ot->description= _("Add a new screen");
 	ot->idname= "SCREEN_OT_new";
 	
@@ -3346,15 +3346,15 @@ void ED_operatortypes_screen(void)
 static void keymap_modal_set(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-		{KM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
-		{KM_MODAL_APPLY, "APPLY", 0, "Apply", ""},
-		{KM_MODAL_STEP10, "STEP10", 0, "Steps on", ""},
-		{KM_MODAL_STEP10_OFF, "STEP10_OFF", 0, "Steps off", ""},
+		{KM_MODAL_CANCEL, "CANCEL", 0, N_("Cancel"), ""},
+		{KM_MODAL_APPLY, "APPLY", 0, N_("Apply"), ""},
+		{KM_MODAL_STEP10, "STEP10", 0, N_("Steps on"), ""},
+		{KM_MODAL_STEP10_OFF, "STEP10_OFF", 0, N_("Steps off"), ""},
 		{0, NULL, 0, NULL, NULL}};
 	wmKeyMap *keymap;
 	
 	/* Standard Modal keymap ------------------------------------------------ */
-	keymap= WM_modalkeymap_add(keyconf, "Standard Modal Map", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Standard Modal Map", RNA_enum_items_gettexted(modal_items));
 	
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, KM_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, KM_MODAL_APPLY);

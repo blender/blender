@@ -273,16 +273,16 @@ static int brush_curve_preset_poll(bContext *C)
 void BRUSH_OT_curve_preset(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_shape_items[] = {
-		{CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
-		{CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
-		{CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
-		{CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
-		{CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
+		{CURVE_PRESET_SHARP, "SHARP", 0, N_("Sharp"), ""},
+		{CURVE_PRESET_SMOOTH, "SMOOTH", 0, N_("Smooth"), ""},
+		{CURVE_PRESET_MAX, "MAX", 0, N_("Max"), ""},
+		{CURVE_PRESET_LINE, "LINE", 0, N_("Line"), ""},
+		{CURVE_PRESET_ROUND, "ROUND", 0, N_("Round"), ""},
+		{CURVE_PRESET_ROOT, "ROOT", 0, N_("Root"), ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	ot->name= "Preset";
-	ot->description= "Set brush shape";
+	ot->name= _("Preset");
+	ot->description= _("Set brush shape");
 	ot->idname= "BRUSH_OT_curve_preset";
 
 	ot->exec= brush_curve_preset_exec;
@@ -290,7 +290,7 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
+	RNA_def_enum(ot->srna, "shape", RNA_enum_items_gettexted(prop_shape_items), CURVE_PRESET_SMOOTH, _("Mode"), "");
 }
 
 
@@ -304,8 +304,8 @@ static int paint_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_face_select_linked(wmOperatorType *ot)
 {
-	ot->name= "Select Linked";
-	ot->description= "Select linked faces";
+	ot->name= _("Select Linked");
+	ot->description= _("Select linked faces");
 	ot->idname= "PAINT_OT_face_select_linked";
 
 	ot->exec= paint_select_linked_exec;
@@ -348,8 +348,8 @@ static int face_select_all_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_face_select_all(wmOperatorType *ot)
 {
-	ot->name= "Face Selection";
-	ot->description= "Change selection for all faces";
+	ot->name= _("Face Selection");
+	ot->description= _("Change selection for all faces");
 	ot->idname= "PAINT_OT_face_select_all";
 
 	ot->exec= face_select_all_exec;
@@ -371,8 +371,8 @@ static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PAINT_OT_face_select_inverse(wmOperatorType *ot)
 {
-	ot->name= "Face Select Invert";
-	ot->description= "Invert selection of faces";
+	ot->name= _("Face Select Invert");
+	ot->description= _("Invert selection of faces");
 	ot->idname= "PAINT_OT_face_select_inverse";
 
 	ot->exec= face_select_inverse_exec;

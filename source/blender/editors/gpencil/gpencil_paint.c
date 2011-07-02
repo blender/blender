@@ -1767,7 +1767,7 @@ static EnumPropertyItem prop_gpencil_drawmodes[] = {
 void GPENCIL_OT_draw (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Grease Pencil Draw";
+	ot->name= _("Grease Pencil Draw");
 	ot->idname= "GPENCIL_OT_draw";
 	ot->description= _("Make annotations on the active data");
 	
@@ -1782,7 +1782,7 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
-	RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(prop_gpencil_drawmodes), 0, "Mode", "Way to intepret mouse movements.");
+	RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(prop_gpencil_drawmodes), 0, _("Mode"), _("Way to intepret mouse movements."));
 	
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }

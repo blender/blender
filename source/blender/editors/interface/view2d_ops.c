@@ -294,8 +294,8 @@ static int view_pan_cancel(bContext *UNUSED(C), wmOperator *op)
 static void VIEW2D_OT_pan(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Pan View";
-	ot->description= "Pan the view";
+	ot->name= _("Pan View");
+	ot->description= _("Pan the view");
 	ot->idname= "VIEW2D_OT_pan";
 	
 	/* api callbacks */
@@ -344,8 +344,8 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Right";
-	ot->description= "Scroll the view right";
+	ot->name= _("Scroll Right");
+	ot->description= _("Scroll the view right");
 	ot->idname= "VIEW2D_OT_scroll_right";
 	
 	/* api callbacks */
@@ -388,8 +388,8 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroll Left";
-	ot->description= "Scroll the view left";
+	ot->name= _("Scroll Left");
+	ot->description= _("Scroll the view left");
 	ot->idname= "VIEW2D_OT_scroll_left";
 	
 	/* api callbacks */
@@ -714,8 +714,8 @@ static int view_zoomin_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom In";
-	ot->description= "Zoom in the view";
+	ot->name= _("Zoom In");
+	ot->description= _("Zoom in the view");
 	ot->idname= "VIEW2D_OT_zoom_in";
 	
 	/* api callbacks */
@@ -724,8 +724,8 @@ static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	ot->poll= view_zoom_poll;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
-	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, _("Zoom Factor X"), "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, _("Zoom Factor Y"), "", -FLT_MAX, FLT_MAX);
 }
 	
 /* this operator only needs this single callback, where it callsthe view_zoom_*() methods */
@@ -771,8 +771,8 @@ static int view_zoomout_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom Out";
-	ot->description= "Zoom out the view";
+	ot->name= _("Zoom Out");
+	ot->description= _("Zoom out the view");
 	ot->idname= "VIEW2D_OT_zoom_out";
 	
 	/* api callbacks */
@@ -781,8 +781,8 @@ static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 	ot->poll= view_zoom_poll;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
-	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, _("Zoom Factor X"), "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, _("Zoom Factor Y"), "", -FLT_MAX, FLT_MAX);
 }
 
 /* ********************************************************* */
@@ -1066,8 +1066,8 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void VIEW2D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom 2D View";
-	ot->description= "Zoom in/out the view";
+	ot->name= _("Zoom 2D View");
+	ot->description= _("Zoom in/out the view");
 	ot->idname= "VIEW2D_OT_zoom";
 	
 	/* api callbacks */
@@ -1082,8 +1082,8 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
 	// ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);
-	RNA_def_float(ot->srna, "deltay", 0, -FLT_MAX, FLT_MAX, "Delta Y", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, _("Delta X"), "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "deltay", 0, -FLT_MAX, FLT_MAX, _("Delta Y"), "", -FLT_MAX, FLT_MAX);
 }
 
 /* ********************************************************* */
@@ -1167,8 +1167,8 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Zoom to Border";
-	ot->description= "Zoom in the view to the nearest item contained in the border";
+	ot->name= _("Zoom to Border");
+	ot->description= _("Zoom in the view to the nearest item contained in the border");
 	ot->idname= "VIEW2D_OT_zoom_border";
 	
 	/* api callbacks */
@@ -1569,8 +1569,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scroller Activate";
-	ot->description= "Scroll view by mouse click and drag";
+	ot->name= _("Scroller Activate");
+	ot->description= _("Scroll view by mouse click and drag");
 	ot->idname= "VIEW2D_OT_scroller_activate";
 
 	/* flags */
@@ -1637,8 +1637,8 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 static void VIEW2D_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reset View";
-	ot->description= "Reset the view";
+	ot->name= _("Reset View");
+	ot->description= _("Reset the view");
 	ot->idname= "VIEW2D_OT_reset";
 	
 	/* api callbacks */

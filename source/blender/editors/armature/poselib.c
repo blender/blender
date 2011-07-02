@@ -223,9 +223,9 @@ static int poselib_new_exec (bContext *C, wmOperator *UNUSED(op))
 void POSELIB_OT_new (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "New Pose Library";
+	ot->name = _("New Pose Library");
 	ot->idname = "POSELIB_OT_new";
-	ot->description = "Add New Pose Library to active Object";
+	ot->description = _("Add New Pose Library to active Object");
 	
 	/* callbacks */
 	ot->exec = poselib_new_exec;
@@ -258,9 +258,9 @@ static int poselib_unlink_exec (bContext *C, wmOperator *UNUSED(op))
 void POSELIB_OT_unlink (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Unlink Pose Library";
+	ot->name = _("Unlink Pose Library");
 	ot->idname = "POSELIB_OT_unlink";
-	ot->description = "Remove Pose Library from active Object";
+	ot->description = _("Remove Pose Library from active Object");
 	
 	/* callbacks */
 	ot->exec = poselib_unlink_exec;
@@ -339,9 +339,9 @@ static int poselib_sanitise_exec (bContext *C, wmOperator *op)
 void POSELIB_OT_action_sanitise (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Sanitise Pose Library Action";
+	ot->name = _("Sanitise Pose Library Action");
 	ot->idname = "POSELIB_OT_action_sanitise";
-	ot->description = "Make action suitable for use as a Pose Library";
+	ot->description = _("Make action suitable for use as a Pose Library");
 	
 	/* callbacks */
 	ot->exec = poselib_sanitise_exec;
@@ -393,15 +393,15 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add new (adds to the first unoccupied frame) */
-	uiItemIntO(layout, "Add New", ICON_NONE, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
+	uiItemIntO(layout, _("Add New"), ICON_NONE, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
 	
 	/* check if we have any choices to add a new pose in any other way */
 	if ((ob->poselib) && (ob->poselib->markers.first)) {
 		/* add new (on current frame) */
-		uiItemIntO(layout, "Add New (Current Frame)", ICON_NONE, "POSELIB_OT_pose_add", "frame", CFRA);
+		uiItemIntO(layout, _("Add New (Current Frame)"), ICON_NONE, "POSELIB_OT_pose_add", "frame", CFRA);
 		
 		/* replace existing - submenu */
-		uiItemMenuF(layout, "Replace Existing...", 0, poselib_add_menu_invoke__replacemenu, NULL);
+		uiItemMenuF(layout, _("Replace Existing..."), 0, poselib_add_menu_invoke__replacemenu, NULL);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -465,9 +465,9 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 void POSELIB_OT_pose_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "PoseLib Add Pose";
+	ot->name= _("PoseLib Add Pose");
 	ot->idname= "POSELIB_OT_pose_add";
-	ot->description= "Add the current Pose to the active Pose Library";
+	ot->description= _("Add the current Pose to the active Pose Library");
 	
 	/* api callbacks */
 	ot->invoke= poselib_add_menu_invoke;
@@ -566,9 +566,9 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "PoseLib Remove Pose";
+	ot->name= _("PoseLib Remove Pose");
 	ot->idname= "POSELIB_OT_pose_remove";
-	ot->description= "Remove nth pose from the active Pose Library";
+	ot->description= _("Remove nth pose from the active Pose Library");
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -579,7 +579,7 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "pose", DummyRNA_DEFAULT_items, 0, "Pose", "The pose to remove");
+	prop= RNA_def_enum(ot->srna, "pose", DummyRNA_DEFAULT_items, 0, _("Pose"), _("The pose to remove"));
 		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 	ot->prop= prop;
 }
@@ -651,9 +651,9 @@ void POSELIB_OT_pose_rename (wmOperatorType *ot)
 	};
 	
 	/* identifiers */
-	ot->name= "PoseLib Rename Pose";
+	ot->name= _("PoseLib Rename Pose");
 	ot->idname= "POSELIB_OT_pose_rename";
-	ot->description= "Rename specified pose from the active Pose Library";
+	ot->description= _("Rename specified pose from the active Pose Library");
 	
 	/* api callbacks */
 	ot->invoke= poselib_rename_invoke;
@@ -1578,9 +1578,9 @@ static int poselib_preview_exec (bContext *C, wmOperator *op)
 void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "PoseLib Browse Poses";
+	ot->name= _("PoseLib Browse Poses");
 	ot->idname= "POSELIB_OT_browse_interactive";
-	ot->description= "Interactively browse poses in 3D-View";
+	ot->description= _("Interactively browse poses in 3D-View");
 	
 	/* callbacks */
 	ot->invoke= poselib_preview_invoke;
@@ -1604,9 +1604,9 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 void POSELIB_OT_apply_pose (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Apply Pose Library Pose";
+	ot->name = _("Apply Pose Library Pose");
 	ot->idname = "POSELIB_OT_apply_pose";
-	ot->description = "Apply specified Pose Library pose to the rig";
+	ot->description = _("Apply specified Pose Library pose to the rig");
 	
 	/* callbacks */
 	ot->exec= poselib_preview_exec;

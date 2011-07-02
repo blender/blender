@@ -166,7 +166,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(object_type_items), 1, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(object_type_items), 1, _("Type"), "");
 }
 
 /*********************** Selection by Links *********************/
@@ -348,7 +348,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_select_linked_types), 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_select_linked_types), 0, _("Type"), "");
 }
 
 /*********************** Selected Grouped ********************/
@@ -636,7 +636,7 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_select_grouped_types), 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_select_grouped_types), 0, _("Type"), "");
 }
 
 /************************* Select by Layer **********************/
@@ -710,8 +710,8 @@ void OBJECT_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->description = "Invert selection of all visible objects";
+	ot->name= _("Select Inverse");
+	ot->description = _("Invert selection of all visible objects");
 	ot->idname= "OBJECT_OT_select_inverse";
 	
 	/* api callbacks */
@@ -771,8 +771,8 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select or Deselect All";
-	ot->description = "Change selection of all visible objects in scene";
+	ot->name= _("Select or Deselect All");
+	ot->description = _("Change selection of all visible objects in scene");
 	ot->idname= "OBJECT_OT_select_all";
 	
 	/* api callbacks */
@@ -820,8 +820,8 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Select Same Group";
-	ot->description = "Select object in the same group";
+	ot->name= _("Select Same Group");
+	ot->description = _("Select object in the same group");
 	ot->idname= "OBJECT_OT_select_same_group";
 	
 	/* api callbacks */
@@ -831,7 +831,7 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "group", "", 32, "Group", "Name of the group to select.");
+	RNA_def_string(ot->srna, "group", "", 32, _("Group"), _("Name of the group to select."));
 }
 
 /**************************** Select Mirror ****************************/

@@ -144,9 +144,9 @@ static int add_default_keyingset_exec (bContext *C, wmOperator *UNUSED(op))
 void ANIM_OT_keying_set_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Empty Keying Set";
+	ot->name= _("Add Empty Keying Set");
 	ot->idname= "ANIM_OT_keying_set_add";
-	ot->description= "Add a new (empty) Keying Set to the active Scene";
+	ot->description= _("Add a new (empty) Keying Set to the active Scene");
 	
 	/* callbacks */
 	ot->exec= add_default_keyingset_exec;
@@ -191,9 +191,9 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Removed Active Keying Set";
+	ot->name= _("Removed Active Keying Set");
 	ot->idname= "ANIM_OT_keying_set_remove";
-	ot->description= "Remove the active Keying Set";
+	ot->description= _("Remove the active Keying Set");
 	
 	/* callbacks */
 	ot->exec= remove_active_keyingset_exec;
@@ -233,9 +233,9 @@ static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_path_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Empty Keying Set Path";
+	ot->name= _("Add Empty Keying Set Path");
 	ot->idname= "ANIM_OT_keying_set_path_add";
-	ot->description= "Add empty path to active Keying Set";
+	ot->description= _("Add empty path to active Keying Set");
 	
 	/* callbacks */
 	ot->exec= add_empty_ks_path_exec;
@@ -276,9 +276,9 @@ static int remove_active_ks_path_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_path_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Active Keying Set Path";
+	ot->name= _("Remove Active Keying Set Path");
 	ot->idname= "ANIM_OT_keying_set_path_remove";
-	ot->description= "Remove active Path from active Keying Set";
+	ot->description= _("Remove active Path from active Keying Set");
 	
 	/* callbacks */
 	ot->exec= remove_active_ks_path_exec;
@@ -374,7 +374,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add to Keying Set";
+	ot->name= _("Add to Keying Set");
 	ot->idname= "ANIM_OT_keyingset_button_add";
 	
 	/* callbacks */
@@ -453,7 +453,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove from Keying Set";
+	ot->name= _("Remove from Keying Set");
 	ot->idname= "ANIM_OT_keyingset_button_remove";
 	
 	/* callbacks */
@@ -496,7 +496,7 @@ static int keyingset_active_menu_exec (bContext *C, wmOperator *op)
 void ANIM_OT_keying_set_active_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Active Keying Set";
+	ot->name= _("Set Active Keying Set");
 	ot->idname= "ANIM_OT_keying_set_active_set";
 	
 	/* callbacks */

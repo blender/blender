@@ -2843,7 +2843,7 @@ int ED_operator_sketch_mode(const bContext *C)
 void SKETCH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "delete";
+	ot->name= _("delete");
 	ot->idname= "SKETCH_OT_delete";
 
 	/* api callbacks */
@@ -2858,7 +2858,7 @@ void SKETCH_OT_delete(wmOperatorType *ot)
 void SKETCH_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "select";
+	ot->name= _("select");
 	ot->idname= "SKETCH_OT_select";
 
 	/* api callbacks */
@@ -2873,7 +2873,7 @@ void SKETCH_OT_select(wmOperatorType *ot)
 void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "cancel stroke";
+	ot->name= _("cancel stroke");
 	ot->idname= "SKETCH_OT_cancel_stroke";
 
 	/* api callbacks */
@@ -2888,7 +2888,7 @@ void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 void SKETCH_OT_convert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "convert";
+	ot->name= _("convert");
 	ot->idname= "SKETCH_OT_convert";
 
 	/* api callbacks */
@@ -2903,7 +2903,7 @@ void SKETCH_OT_convert(wmOperatorType *ot)
 void SKETCH_OT_finish_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "end stroke";
+	ot->name= _("end stroke");
 	ot->idname= "SKETCH_OT_finish_stroke";
 
 	/* api callbacks */
@@ -2935,7 +2935,7 @@ void SKETCH_OT_draw_preview(wmOperatorType *ot)
 void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "draw stroke";
+	ot->name= _("draw stroke");
 	ot->idname= "SKETCH_OT_draw_stroke";
 
 	/* api callbacks */
@@ -2954,7 +2954,7 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 void SKETCH_OT_gesture(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "gesture";
+	ot->name= _("gesture");
 	ot->idname= "SKETCH_OT_gesture";
 
 	/* api callbacks */

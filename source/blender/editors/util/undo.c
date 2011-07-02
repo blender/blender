@@ -518,7 +518,7 @@ void ED_OT_undo_history(wmOperatorType *ot)
 	ot->exec= undo_history_exec;
 	ot->poll= ED_operator_screenactive;
 	
-	RNA_def_int(ot->srna, "item", 0, 0, INT_MAX, "Item", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "item", 0, 0, INT_MAX, _("Item"), "", 0, INT_MAX);
 
 }
 

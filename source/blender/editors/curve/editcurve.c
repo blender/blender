@@ -1428,7 +1428,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 void CURVE_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Separate";
+	ot->name= _("Separate");
 	ot->idname= "CURVE_OT_separate";
 	
 	/* api callbacks */
@@ -2097,7 +2097,7 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_factor(ot->srna, "weight", 1.0f, 0.0f, 1.0f, "Weight", "", 0.0f, 1.0f);
+	RNA_def_float_factor(ot->srna, "weight", 1.0f, 0.0f, 1.0f, _("Weight"), "", 0.0f, 1.0f);
 }
 
 /******************* set radius operator ******************/
@@ -2149,7 +2149,7 @@ void CURVE_OT_radius_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, "Radius", "", 0.0001f, 10.0f);
+	RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, _("Radius"), "", 0.0001f, 10.0f);
 }
 
 /********************* smooth operator ********************/
@@ -3575,11 +3575,11 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 void CURVE_OT_spline_type_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{CU_POLY, "POLY", 0, "Poly", ""},
-		{CU_BEZIER, "BEZIER", 0, "Bezier", ""},
-//		{CU_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
-//		{CU_BSPLINE, "B_SPLINE", 0, "B-Spline", ""},
-		{CU_NURBS, "NURBS", 0, "NURBS", ""},
+		{CU_POLY, "POLY", 0, N_("Poly"), ""},
+		{CU_BEZIER, "BEZIER", 0, N_("Bezier"), ""},
+//		{CU_CARDINAL, "CARDINAL", 0, N_("Cardinal"), ""},
+//		{CU_BSPLINE, "B_SPLINE", 0, N_("B-Spline"), ""},
+		{CU_NURBS, "NURBS", 0, N_("NURBS"), ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -3596,7 +3596,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, CU_POLY, "Type", "Spline type");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(type_items), CU_POLY, _("Type"), _("Spline type"));
 }
 
 /***************** set handle type operator *******************/
@@ -3618,16 +3618,16 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 {
 	/* keep in sync with graphkeys_handle_type_items */
 	static EnumPropertyItem editcurve_handle_type_items[]= {
-		{HD_AUTO, "AUTOMATIC", 0, "Automatic", ""},
-		{HD_VECT, "VECTOR", 0, "Vector", ""},
-		{5, "ALIGNED", 0, "Aligned", ""},
-		{6, "FREE_ALIGN", 0, "Free", ""},
-		{3, "TOGGLE_FREE_ALIGN", 0, "Toggle Free/Align", ""},
+		{HD_AUTO, "AUTOMATIC", 0, N_("Automatic"), ""},
+		{HD_VECT, "VECTOR", 0, N_("Vector"), ""},
+		{5, "ALIGNED", 0, N_("Aligned"), ""},
+		{6, "FREE_ALIGN", 0, N_("Free"), ""},
+		{3, "TOGGLE_FREE_ALIGN", 0, N_("Toggle Free/Align"), ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= "Set Handle Type";
-	ot->description = "Set type of handles for selected control points";
+	ot->name= _("Set Handle Type");
+	ot->description = _("Set type of handles for selected control points");
 	ot->idname= "CURVE_OT_handle_type_set";
 	
 	/* api callbacks */
@@ -3639,7 +3639,7 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", editcurve_handle_type_items, 1, "Type", "Spline type");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(editcurve_handle_type_items), 1, _("Type"), _("Spline type"));
 }
 
 /***************** make segment operator **********************/
@@ -4391,7 +4391,7 @@ static int spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_spin(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Spin";
+	ot->name= _("Spin");
 	ot->idname= "CURVE_OT_spin";
 	
 	/* api callbacks */
@@ -4402,8 +4402,8 @@ void CURVE_OT_spin(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
-	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, _("Center"), _("Center in global view space"), -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, _("Axis"), _("Axis in global view space"), -FLT_MAX, FLT_MAX);
 }
 
 /***************** add vertex operator **********************/
@@ -4714,7 +4714,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at.", -1e4, 1e4);
+	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, _("Location"), _("Location to add new vertex at."), -1e4, 1e4);
 }
 
 /***************** extrude operator **********************/
@@ -4775,7 +4775,7 @@ void CURVE_OT_extrude(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
 }
 
 /***************** make cyclic operator **********************/
@@ -4886,8 +4886,8 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-		{0, "CYCLIC_U", 0, "Cyclic U", ""},
-		{1, "CYCLIC_V", 0, "Cyclic V", ""},
+		{0, "CYCLIC_U", 0, N_("Cyclic U"), ""},
+		{1, "CYCLIC_V", 0, N_("Cyclic V"), ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -4904,7 +4904,7 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to make surface cyclic in.");
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, _("Direction"), _("Direction to make surface cyclic in."));
 }
 
 /***************** select linked operator ******************/
@@ -5648,7 +5648,7 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
 }
 
 /********************** delete operator *********************/
@@ -5995,9 +5995,9 @@ static int delete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_delete(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
-		{0, "SELECTED", 0, "Select", ""},
-		{1, "SEGMENT", 0, "Segment", ""},
-		{2, "ALL", 0, "All", ""},
+		{0, "SELECTED", 0, N_("Select"), ""},
+		{1, "SEGMENT", 0, N_("Segment"), ""},
+		{2, "ALL", 0, N_("All"), ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -6014,7 +6014,7 @@ void CURVE_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete.");
+	RNA_def_enum(ot->srna, "type", type_items, 0, _("Type"), _("Which elements to delete."));
 }
 
 /********************** shade smooth/flat operator *********************/
