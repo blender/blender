@@ -175,12 +175,8 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 
 	BKE_movieclip_last_selection(clip, &sel_type, &sel);
 
-	/* non-tracked tracks shouldn't display path */
-	if((track->flag&TRACK_PROCESSED)==0)
-		return;
-
 	marker= BKE_tracking_get_marker(track, sc->user.framenr);
-	if(marker->flag&MARKER_DISABLED)
+	if(marker->framenr!=sc->user.framenr || marker->flag&MARKER_DISABLED)
 		return;
 
 	framenr= marker->framenr;
@@ -198,7 +194,8 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 
 			if(marker->framenr==sc->user.framenr)
 				curindex= a;
-		}
+		} else
+			break;
 
 		i--;
 	}
@@ -216,7 +213,8 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 				curindex= b;
 
 			copy_v2_v2(path[b++], marker->pos);
-		}
+		} else
+			break;
 
 		i++;
 	}

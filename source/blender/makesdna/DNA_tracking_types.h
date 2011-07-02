@@ -109,7 +109,7 @@ typedef struct MovieTracking {
 #define MARKER_DISABLED	1
 
 /* MovieTrackingTrack->flag */
-#define TRACK_PROCESSED	(1<<1)
+#define TRACK_UNUSED		(1<<1)
 #define TRACK_DISABLE_RED	(1<<2)
 #define TRACK_DISABLE_GREEN	(1<<3)
 #define TRACK_DISABLE_BLUE	(1<<4)

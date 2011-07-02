@@ -553,7 +553,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 				if(sel_type==MCLIP_SEL_TRACK && sel==cur)
 					replace_sel= 1;
 
-				track->flag= cur->flag | (track->flag&TRACK_PROCESSED);
+				track->flag= cur->flag;
 				track->pat_flag= cur->pat_flag;
 				track->search_flag= cur->search_flag;
 
@@ -635,6 +635,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			double x1= pos[0], y1= pos[1];
 			double x2= x1, y2= y1;
 			int wndx, wndy;
+			MovieTrackingMarker marker_new;
 
 			wndx= (int)((track->pat_max[0]-track->pat_min[0])*ibuf->x)/2;
 			wndy= (int)((track->pat_max[1]-track->pat_min[1])*ibuf->y)/2;
@@ -642,8 +643,6 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			if(libmv_regionTrackerTrack(context->region_tracker, patch, patch_new,
 						width, height, MAX2(wndx, wndy),
 						x1, y1, &x2, &y2)) {
-				MovieTrackingMarker marker_new;
-
 				memset(&marker_new, 0, sizeof(marker_new));
 				marker_new.pos[0]= (origin[0]+x2)/ibuf_new->x;
 				marker_new.pos[1]= (origin[1]+y2)/ibuf_new->y;
@@ -651,18 +650,22 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				if(context->backwards) marker_new.framenr= curfra-1;
 				else marker_new.framenr= curfra+1;
 
-				track->flag|= TRACK_PROCESSED;
-
 				BKE_tracking_insert_marker(track, &marker_new);
 
-				ok= 1;
+			} else {
+				marker_new= *marker;
+				marker_new.framenr++;
+				marker_new.flag|= MARKER_DISABLED;
+
+				BKE_tracking_insert_marker(track, &marker_new);
 			}
+
+			ok= 1;
 
 			MEM_freeN(patch);
 			MEM_freeN(patch_new);
 #endif
-		} else
-			track->flag|= TRACK_PROCESSED;
+		}
 
 		track= track->next;
 	}
