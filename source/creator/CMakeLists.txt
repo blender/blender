@@ -417,7 +417,7 @@ elseif(WIN32)
 	)
 
 	install(  # same as linux!, deduplicate
-		DIRECTORY ${BLENDER_TEXT_FILES}
+		FILES ${BLENDER_TEXT_FILES}
 		DESTINATION ${TARGETDIR}
 	)
 
