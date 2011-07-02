@@ -241,9 +241,18 @@ extern "C" {
 //We need to subclass it in order to give Cocoa the feeling key events are trapped
 @interface CocoaOpenGLView : NSOpenGLView
 {
+	GHOST_SystemCocoa *systemCocoa;
+	GHOST_WindowCocoa *associatedWindow;
 }
+- (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
 @end
 @implementation CocoaOpenGLView
+
+- (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
+{
+	systemCocoa = sysCocoa;
+	associatedWindow = winCocoa;
+}
 
 - (BOOL)acceptsFirstResponder
 {
@@ -294,6 +303,7 @@ extern "C" {
     else
     {
         [super drawRect:rect];
+        systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
     }
 }
 
@@ -424,6 +434,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	//Creates the OpenGL View inside the window
 	m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect
 												 pixelFormat:pixelFormat];
+
+	[m_openGLView setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 	
 	[pixelFormat release];
 	

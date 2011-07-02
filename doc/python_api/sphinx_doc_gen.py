@@ -67,7 +67,7 @@ if 1:
 else:
     # for testing so doc-builds dont take so long.
     EXCLUDE_MODULES = (
-        # "bpy.context",
+        "bpy.context",
         "bpy.app",
         "bpy.path",
         "bpy.data",
@@ -76,10 +76,10 @@ else:
         "bpy.context",
         "bpy.types",  # supports filtering
         "bpy.ops",  # supports filtering
-        #"bpy_extras",
+        "bpy_extras",
         "bge",
         "aud",
-        "bgl",
+        #"bgl",
         "blf",
         "mathutils",
         "mathutils.geometry",
@@ -1028,8 +1028,8 @@ def rna2sphinx(BASEPATH):
         fw("   mathutils.rst\n\n")
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         fw("   mathutils.geometry.rst\n\n")
-    # XXX TODO
-    #fw("   bgl.rst\n\n")
+    if "bgl" not in EXCLUDE_MODULES:
+        fw("   bgl.rst\n\n")
     if "blf" not in EXCLUDE_MODULES:
         fw("   blf.rst\n\n")
     if "aud" not in EXCLUDE_MODULES:
@@ -1159,14 +1159,16 @@ def rna2sphinx(BASEPATH):
         import mathutils.geometry as module
         pymodule2sphinx(BASEPATH, "mathutils.geometry", module, "Geometry Utilities")
 
-    if "mathutils.geometry" not in EXCLUDE_MODULES:
+    if "blf" not in EXCLUDE_MODULES:
         import blf as module
         pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing")
 
-    # XXX TODO
-    #import bgl as module
-    #pymodule2sphinx(BASEPATH, "bgl", module, "Blender OpenGl wrapper")
-    #del module
+    if "bgl" not in EXCLUDE_MODULES:
+        #import bgl as module
+        #pymodule2sphinx(BASEPATH, "bgl", module, "Blender OpenGl wrapper")
+        #del module
+        import shutil
+        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bgl.rst"), BASEPATH)
 
     if "aud" not in EXCLUDE_MODULES:
         import aud as module

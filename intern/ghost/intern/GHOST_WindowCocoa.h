@@ -42,6 +42,7 @@
 #include "STR_String.h"
 
 @class CocoaWindow;
+@class CocoaOpenGLView;
 
 class GHOST_SystemCocoa;
 
@@ -309,7 +310,7 @@ protected:
     CocoaWindow *m_window;
 	
 	/** The openGL view */
-	NSOpenGLView *m_openGLView; 
+	CocoaOpenGLView *m_openGLView; 
     
 	/** The opgnGL drawing context */
 	NSOpenGLContext *m_openGLContext;
