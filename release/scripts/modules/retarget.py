@@ -71,13 +71,13 @@ def createIntermediate(performer_obj, enduser_obj, bonemap, bonemapr, root, s_fr
     #useful for storing the important data in the original motion
     #i.e. using this empty to IK the chain to that pos / DEBUG
     def locOfOriginal(inter_bone, perf_bone):
-        if not perf_bone.name + "Org" in bpy.data.objects:
+        if not inter_bone.name + "Org" in bpy.data.objects:
             bpy.ops.object.add()
             empty = bpy.context.active_object
-            empty.name = perf_bone.name + "Org"
+            empty.name = inter_bone.name + "Org"
             empty.empty_draw_size = 0.1
             #empty.parent = enduser_obj
-        empty = bpy.data.objects[perf_bone.name + "Org"]
+        empty = bpy.data.objects[inter_bone.name + "Org"]
         offset = perf_bone.vector
         if inter_bone.length == 0 or perf_bone.length == 0:
             scaling = 1
@@ -263,17 +263,17 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, bonemap, bonemapr, roo
                 #end bone's delta
                 if endV.length != 0:
                     linearAvg.append(hipV.length / endV.length)
-    
+
     bpy.ops.object.add()
     stride_bone = bpy.context.active_object
     stride_bone.name = "stride_bone"
-    
+
     if linearAvg:
         avg = sum(linearAvg) / len(linearAvg)
         for t in range(s_frame, e_frame):
             scene.frame_set(t)
             newTranslation = (tailLoc(perf_bones[perfRoot]) / avg)
-            stride_bone.location = newTranslation
+            stride_bone.location = newTranslation * enduser_obj.matrix_world
             stride_bone.keyframe_insert("location")
     return stride_bone
 
@@ -287,7 +287,7 @@ def IKRetarget(bonemap, bonemapr, performer_obj, enduser_obj, s_frame, e_frame, 
             perf_bone = bonemapr[pose_bone.name]
             if isinstance(perf_bone, list):
                 perf_bone = bonemapr[pose_bone.name][-1]
-            end_empty = bpy.data.objects[perf_bone + "Org"]
+            end_empty = bpy.data.objects[pose_bone.name + "Org"]
             ik_constraint = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"][0]
             if not ik_constraint.target:
                 ik_constraint.target = end_empty
@@ -326,22 +326,25 @@ def turnOffIK(enduser_obj):
             ik_constraint = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"][0]
             ik_constraint.mute = True
 
-def cleanAndStoreObjMat(performer_obj,enduser_obj):
+
+def cleanAndStoreObjMat(performer_obj, enduser_obj):
     perf_obj_mat = performer_obj.matrix_world.copy()
     enduser_obj_mat = enduser_obj.matrix_world.copy()
-    zero_mat = Matrix()#Matrix(((0,0,0,0),(0,0,0,0),(0,0,0,0),(0,0,0,0)))
+    zero_mat = Matrix()  # Matrix(((0,0,0,0),(0,0,0,0),(0,0,0,0),(0,0,0,0)))
     performer_obj.matrix_world = zero_mat
     enduser_obj.matrix_world = zero_mat
     return perf_obj_mat, enduser_obj_mat
 
-def restoreObjMat(performer_obj,enduser_obj,perf_obj_mat,enduser_obj_mat):
-    perf_bones = performer_obj.pose.bones
-    for perf_bone in perf_bones:
-        if perf_bone.name + "Org" in bpy.data.objects:
-            empty = bpy.data.objects[perf_bone.name + "Org"]
+
+def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone):
+    pose_bones = enduser_obj.pose.bones
+    for pose_bone in pose_bones:
+        if pose_bone.name + "Org" in bpy.data.objects:
+            empty = bpy.data.objects[pose_bone.name + "Org"]
             empty.parent = enduser_obj
     performer_obj.matrix_world = perf_obj_mat
     enduser_obj.matrix_world = enduser_obj_mat
+
 
 def totalRetarget():
     print("retargeting...")
@@ -357,13 +360,13 @@ def totalRetarget():
     s_frame = scene.frame_start
     e_frame = scene.frame_end
     bonemap, bonemapr, root = createDictionary(perf_arm)
-    perf_obj_mat, enduser_obj_mat = cleanAndStoreObjMat(performer_obj,enduser_obj)
+    perf_obj_mat, enduser_obj_mat = cleanAndStoreObjMat(performer_obj, enduser_obj)
     turnOffIK(enduser_obj)
     inter_obj, inter_arm = createIntermediate(performer_obj, enduser_obj, bonemap, bonemapr, root, s_frame, e_frame, scene)
     retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
     stride_bone = copyTranslation(performer_obj, enduser_obj, ["RightFoot", "LeftFoot"], bonemap, bonemapr, root, s_frame, e_frame, scene)
     IKRetarget(bonemap, bonemapr, performer_obj, enduser_obj, s_frame, e_frame, scene)
-    restoreObjMat(performer_obj,enduser_obj,perf_obj_mat,enduser_obj_mat)
+    restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_name(name=inter_obj.name, extend=False)
     bpy.ops.object.delete()
