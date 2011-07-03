@@ -1334,7 +1334,7 @@ static void bmDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
-	BMIter iter, liter;
+	BMIter iter;
 	BMFace *f;
 	int i, j;
 

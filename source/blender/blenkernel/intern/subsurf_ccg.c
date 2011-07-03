@@ -2621,7 +2621,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	float *w = NULL;
 	WeightTable wtable = {0};
 	MCol *mcol;
-	MEdge *medge = NULL, medge2;
+	MEdge *medge = NULL;
 	MFace *mface = NULL;
 	MPoly *mpoly = NULL;
 
