@@ -209,8 +209,6 @@ void BPY_python_start(int argc, const char **argv)
 
 	Py_Initialize();
 
-	bpy_intern_string_init();
-
 	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
 	/* sigh, why do python guys not have a char** version anymore? :( */
 	{
@@ -232,6 +230,8 @@ void BPY_python_start(int argc, const char **argv)
 	/* must run before python initializes */
 	PyImport_ExtendInittab(bpy_internal_modules);
 #endif
+
+	bpy_intern_string_init();
 
 	/* bpy.* and lets us import it */
 	BPy_init_modules();
