@@ -203,8 +203,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		else if (m_playtype == ACT_ACTION_LOOP_END)
 		{
 			// Convert into a play and let it finish
-			obj->PlayAction(m_action->id.name+2, start, end, m_layer, 0, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
-			obj->SetActionFrame(m_layer, m_localtime);
+			start = obj->GetActionFrame(m_layer);
+			obj->StopAction(m_layer);
+			obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
 
 			return true;
 		}
@@ -215,6 +216,8 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			start = obj->GetActionFrame(m_layer);
 			obj->StopAction(m_layer);
 			obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
+
+			return true;
 		}
 		
 		m_is_going = false;
