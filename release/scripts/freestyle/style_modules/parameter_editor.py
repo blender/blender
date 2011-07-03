@@ -351,7 +351,8 @@ class RoundCapShader(StrokeShader):
         buffer = []
         for sv in iter_stroke_vertices(stroke):
             buffer.append((sv.getPoint(), sv.attribute()))
-        if len(buffer) < 2:
+        nverts = len(buffer)
+        if nverts < 2:
             return
         # calculate the number of additional vertices to form caps
         R, L = stroke[0].attribute().getThicknessRL()
@@ -360,8 +361,7 @@ class RoundCapShader(StrokeShader):
         R, L = stroke[-1].attribute().getThicknessRL()
         caplen_end = (R + L) / 2.0
         nverts_end = max(5, int(R + L))
-        # increase the total number of stroke vertices
-        nverts = stroke.strokeVerticesSize()
+        # adjust the total number of stroke vertices
         stroke.Resample(nverts + nverts_beg + nverts_end)
         # restore the location and attribute of the original vertices
         for i in range(nverts):
@@ -401,7 +401,8 @@ class SquareCapShader(StrokeShader):
         buffer = []
         for sv in iter_stroke_vertices(stroke):
             buffer.append((sv.getPoint(), sv.attribute()))
-        if len(buffer) < 2:
+        nverts = len(buffer)
+        if nverts < 2:
             return
         # calculate the number of additional vertices to form caps
         R, L = stroke[0].attribute().getThicknessRL()
@@ -410,8 +411,7 @@ class SquareCapShader(StrokeShader):
         R, L = stroke[-1].attribute().getThicknessRL()
         caplen_end = (R + L) / 2.0
         nverts_end = 1
-        # increase the total number of stroke vertices
-        nverts = stroke.strokeVerticesSize()
+        # adjust the total number of stroke vertices
         stroke.Resample(nverts + nverts_beg + nverts_end)
         # restore the location and attribute of the original vertices
         for i in range(nverts):
