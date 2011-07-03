@@ -681,7 +681,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 	
 	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
 
-	AnimationType type = get_animation_type(node, FW_object_map );
+	int animType = get_animation_type(node, FW_object_map );
 
     char joint_path[200];
 
@@ -754,10 +754,10 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 }
 
 //Check if object is animated by checking if animlist_map holds the animlist_id of node transforms
-AnimationImporter::AnimationType AnimationImporter::get_animation_type ( const COLLADAFW::Node * node , 
+int AnimationImporter::get_animation_type ( const COLLADAFW::Node * node , 
 											std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map) 
 {
-	AnimationImporter::AnimationType type = AnimationImporter::INANIMATE ;
+	int type = INANIMATE ;
 	//bool exists = false;
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
 	
@@ -770,7 +770,7 @@ AnimationImporter::AnimationType AnimationImporter::get_animation_type ( const C
 		if (animlist_map.find(listid) == animlist_map.end()) continue ;
 		else 
 		{
-			type = AnimationImporter::NODE_TRANSFORM;
+			type = type|NODE_TRANSFORM;
 			break;
 		}
 	}
@@ -785,7 +785,7 @@ AnimationImporter::AnimationType AnimationImporter::get_animation_type ( const C
 		if (animlist_map.find(listid) == animlist_map.end()) continue ;
 		else 
 		{
-			type = AnimationImporter::LIGHT_COLOR;
+			type = type|LIGHT_COLOR;
 			break;
 		}
 	}
