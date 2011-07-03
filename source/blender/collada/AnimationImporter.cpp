@@ -680,8 +680,8 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 	Object *ob = is_joint ? armature_importer->get_armature_for_joint(root) : object_map[node->getUniqueId()];
 	
 	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
-    
-	if ( ! is_object_animated(node, FW_object_map) ) return ;  
+
+	AnimationType type = get_animation_type(node, FW_object_map );
 
     char joint_path[200];
 
@@ -754,9 +754,11 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 }
 
 //Check if object is animated by checking if animlist_map holds the animlist_id of node transforms
-bool AnimationImporter::is_object_animated ( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map ) 
+AnimationImporter::AnimationType AnimationImporter::get_animation_type ( const COLLADAFW::Node * node , 
+											std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map) 
 {
-	bool exists = false;
+	AnimationImporter::AnimationType type = AnimationImporter::INANIMATE ;
+	//bool exists = false;
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
 	
 	//for each transformation in node 
@@ -768,7 +770,7 @@ bool AnimationImporter::is_object_animated ( const COLLADAFW::Node * node , std:
 		if (animlist_map.find(listid) == animlist_map.end()) continue ;
 		else 
 		{
-			exists = true;
+			type = AnimationImporter::NODE_TRANSFORM;
 			break;
 		}
 	}
@@ -783,12 +785,12 @@ bool AnimationImporter::is_object_animated ( const COLLADAFW::Node * node , std:
 		if (animlist_map.find(listid) == animlist_map.end()) continue ;
 		else 
 		{
-			exists = true;
+			type = AnimationImporter::LIGHT_COLOR;
 			break;
 		}
 	}
 	
-	return exists;
+	return type;
 }
 
 //XXX Is not used anymore.

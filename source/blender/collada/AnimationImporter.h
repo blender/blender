@@ -80,6 +80,13 @@ private:
 	void fcurve_deg_to_rad(FCurve *cu);
 
 	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated);
+
+	enum AnimationType
+		{
+			NODE_TRANSFORM,
+			LIGHT_COLOR,
+			INANIMATE     
+		};
 public:
 
 	AnimationImporter(UnitConverter *conv, ArmatureImporter *arm, Scene *scene);
@@ -101,7 +108,7 @@ public:
 												   std::map<COLLADAFW::UniqueId, Object*>& object_map ,
 												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
 
-	bool is_object_animated ( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map ) ;
+	AnimationType get_animation_type( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map ) ;
 
 
 	void Assign_transform_animations(COLLADAFW::Transformation* transform , 
