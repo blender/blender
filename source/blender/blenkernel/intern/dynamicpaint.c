@@ -90,7 +90,6 @@
 struct Object;
 struct Scene;
 struct DerivedMesh;
-//struct DynamicPaintModifierData;
 
 /*
 *	Init predefined antialias jitter data
@@ -217,10 +216,11 @@ static int dynamicPaint_surfaceNumOfPoints(DynamicPaintSurface *surface)
 }
 
 /* checks whether surface's format/type has realtime preview */
-int dynamicPaint_surfaceHasPreview(DynamicPaintSurface *surface) {
+int dynamicPaint_surfaceHasColorPreview(DynamicPaintSurface *surface) {
 	if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) return 0;
 	else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-		if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) return 0;
+		if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
+			surface->type == MOD_DPAINT_SURFACE_T_WAVE) return 0;
 		else return 1;
 	}
 	else return 1;
@@ -247,7 +247,7 @@ static void dynamicPaint_resetPreview(DynamicPaintCanvasSettings *canvas)
 	int done=0;
 
 	for(; surface; surface=surface->next) {
-		if (!done && dynamicPaint_surfaceHasPreview(surface)) {
+		if (!done && dynamicPaint_surfaceHasColorPreview(surface)) {
 			surface->flags |= MOD_DPAINT_PREVIEW;
 			done=1;
 		}
@@ -295,7 +295,7 @@ void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface) {
 	}
 
 	/* update preview */
-	if (dynamicPaint_surfaceHasPreview(surface))
+	if (dynamicPaint_surfaceHasColorPreview(surface))
 		dynamicPaint_setPreview(surface);
 	else
 		dynamicPaint_resetPreview(surface->canvas);

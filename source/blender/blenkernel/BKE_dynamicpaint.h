@@ -69,7 +69,7 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
 void dynamicPaint_clearSurface(DynamicPaintSurface *surface);
 int  dynamicPaint_resetSurface(struct DynamicPaintSurface *surface);
-int  dynamicPaint_surfaceHasPreview(DynamicPaintSurface *surface);
+int  dynamicPaint_surfaceHasColorPreview(DynamicPaintSurface *surface);
 void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
 void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basename);
 

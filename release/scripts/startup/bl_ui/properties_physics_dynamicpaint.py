@@ -132,6 +132,7 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
         layout.separator()
 
         if (surface.surface_type == "PAINT"):
+            layout.label(text="Wetmap drying:")
             split = layout.split(percentage=0.8)
             split.prop(surface, "dry_speed", text="Dry Time")
             split.prop(surface, "use_dry_log", text="Slow")
@@ -206,16 +207,23 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
             col.label(text="UV layer:")
             col.prop_search(surface, "uv_layer", ob.data, "uv_textures", text="")
             
+            col.separator()
             col = layout.column()
             col.prop(surface, "image_output_path", text="Output directory")
-            col.prop(surface, "image_fileformat", text="Image Format:")
+            col.prop(surface, "image_fileformat", text="Image Format")
+            col.separator()
             if (surface.surface_type == "PAINT"):
+                split = col.split()
+                col = split.column()
                 col.prop(surface, "do_output1", text="Output Paintmaps:")
-                sub = col.column()
+                sub = split.column()
+                sub.prop(surface, "premultiply", text="Premultiply alpha")
+                sub.active = surface.do_output1
+                sub = layout.column()
                 sub.active = surface.do_output1
                 sub.prop(surface, "output_name", text="Filename: ")
-                sub.prop(surface, "premultiply", text="Premultiply alpha")
                 
+                col = layout.column()
                 col.prop(surface, "do_output2", text="Output Wetmaps:")
                 sub = col.column()
                 sub.active = surface.do_output2
@@ -241,7 +249,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
         if ((not md) or (md.dynamicpaint_type != 'CANVAS')):
             return False;
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
-        return surface and (surface.surface_format != "PTEX")
+        return surface and (surface.surface_type == "PAINT")
 
     def draw(self, context):
         layout = self.layout

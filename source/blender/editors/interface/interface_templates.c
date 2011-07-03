@@ -2138,7 +2138,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 		sprintf(name_final, "%s (%s)",name,enum_name);
 		uiItemL(sub, name_final, icon);
-		if (dynamicPaint_surfaceHasPreview(surface)) {
+		if (dynamicPaint_surfaceHasColorPreview(surface)) {
 			uiBlockSetEmboss(block, UI_EMBOSSN);
 			uiDefIconButR(block, OPTION, 0, (surface->flags & MOD_DPAINT_PREVIEW) ? ICON_RESTRICT_VIEW_OFF : ICON_RESTRICT_VIEW_ON,
 				0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "show_preview", 0, 0, 0, 0, 0, NULL);
