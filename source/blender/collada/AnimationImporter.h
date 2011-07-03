@@ -42,6 +42,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_lamp_types.h"
 
 //#include "ArmatureImporter.h"
 #include "TransformReader.h"
@@ -116,6 +117,9 @@ public:
 	void Assign_transform_animations(COLLADAFW::Transformation* transform , 
 									 const COLLADAFW::AnimationList::AnimationBinding * binding,
 									 std::vector<FCurve*>* curves, bool is_joint, char * joint_path);
+
+	void Assign_color_animations(const COLLADAFW::AnimationList::AnimationBinding * binding,
+								 std::vector<FCurve*>* curves);
 
 	void modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index );
 	// prerequisites:
