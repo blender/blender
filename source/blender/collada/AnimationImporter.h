@@ -37,6 +37,7 @@
 #include "COLLADAFWAnimationList.h"
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
+#include "COLLADAFWLight.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -97,9 +98,10 @@ public:
   
     void translate_Animations_NEW ( COLLADAFW::Node * Node , 
 												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
-												   std::map<COLLADAFW::UniqueId, Object*>& object_map );
+												   std::map<COLLADAFW::UniqueId, Object*>& object_map ,
+												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
 
-	bool is_object_animated ( const COLLADAFW::Node * node ) ;
+	bool is_object_animated ( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map ) ;
 
 
 	void Assign_transform_animations(std::vector<float>* frames, 

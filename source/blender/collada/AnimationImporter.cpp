@@ -675,7 +675,8 @@ void AnimationImporter:: Assign_transform_animations(std::vector<float>* frames,
 
 void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node , 
 												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
-												   std::map<COLLADAFW::UniqueId, Object*>& object_map )
+												   std::map<COLLADAFW::UniqueId, Object*>& object_map,
+												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map)
 {
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	
@@ -684,7 +685,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 	
 	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
     
-	if ( ! is_object_animated(node) ) return ;  
+	if ( ! is_object_animated(node, FW_object_map) ) return ;  
 
     char joint_path[200];
 
@@ -776,13 +777,11 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 				ob->rotmode = ROT_MODE_EUL;
 			}
 		}
- 
 	}
-	
 }
 
 //Check if object is animated by checking if animlist_map holds the animlist_id of node transforms
-bool AnimationImporter::is_object_animated ( const COLLADAFW::Node * node ) 
+bool AnimationImporter::is_object_animated ( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map ) 
 {
 	bool exists = false;
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
@@ -800,7 +799,22 @@ bool AnimationImporter::is_object_animated ( const COLLADAFW::Node * node )
 			break;
 		}
 	}
+	const COLLADAFW::InstanceLightPointerArray& nodeLights = node->getInstanceLights();
 
+	for (unsigned int i = 0; i < nodeLights.getCount(); i++) {
+		const COLLADAFW::Light *light = (COLLADAFW::Light *) FW_object_map[nodeLights[i]->getInstanciatedObjectId()];
+		const COLLADAFW::Color *col =  &(light->getColor());
+		const COLLADAFW::UniqueId& listid = col->getAnimationList();
+
+		//check if color has animations    
+		if (animlist_map.find(listid) == animlist_map.end()) continue ;
+		else 
+		{
+			exists = true;
+			break;
+		}
+	}
+	
 	return exists;
 }
 

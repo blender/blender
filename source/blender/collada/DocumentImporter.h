@@ -157,7 +157,7 @@ private:
 	std::vector<Object*> libnode_ob;
 
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> root_map; // find root joint by child joint uid, for bone tree evaluation during resampling
-
+	std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map;
 };
 
 #endif
