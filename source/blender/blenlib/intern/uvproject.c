@@ -169,8 +169,8 @@ UvCameraInfo *project_camera_info(Object *ob, float (*rotmat)[4], float winx, fl
 		}
 		
 		/* include 0.5f here to move the UVs into the center */
-		uci.shiftx = 0.5f - camera->shiftx;
-		uci.shifty = 0.5f - camera->shifty;
+		uci.shiftx = 0.5f - (camera->shiftx * uci.xasp);
+		uci.shifty = 0.5f - (camera->shifty * uci.yasp);
 		
 		uci_pt= MEM_mallocN(sizeof(UvCameraInfo), "UvCameraInfo");
 		*uci_pt= uci;
