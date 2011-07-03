@@ -2061,6 +2061,12 @@ static short animdata_use_time(AnimData *adt)
 			return 1;
 	}
 	
+	/* experimental check: if we have drivers, more likely than not, on a frame change
+	 * they'll need updating because their owner changed
+	 */
+	if (adt->drivers.first)
+		return 1;
+	
 	return 0;
 }
 
