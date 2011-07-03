@@ -570,8 +570,7 @@ void AnimationImporter::find_frames( std::vector<float>* frames , std::vector<FC
 }
 
 //creates the rna_paths and array indices of fcurves from animations using transformation and bound animation class of each animation.
-void AnimationImporter:: Assign_transform_animations(std::vector<float>* frames, 
-													 COLLADAFW::Transformation * transform , 
+void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation * transform , 
 													 const COLLADAFW::AnimationList::AnimationBinding * binding,
 													 std::vector<FCurve*>* curves, bool is_joint, char * joint_path)
 {
@@ -588,10 +587,7 @@ void AnimationImporter:: Assign_transform_animations(std::vector<float>* frames,
 		return;
 	}
     
-	//find key frames of the animation and accumulates them to frames of the transformation.
-	find_frames (frames , curves );
-
-	char rna_path[100];
+    char rna_path[100];
 	//char joint_path[100];
 	
 						
@@ -706,25 +702,6 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 		return;
 	}
 
-	/*
-	float irest_dae[4][4];
-	float rest[4][4], irest[4][4];
-
-	if (is_joint) {
-		get_joint_rest_mat(irest_dae, root, node);
-		invert_m4(irest_dae);
-
-		Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
-		if (!bone) {
-			fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
-			return;
-		}
-
-		unit_m4(rest);
-		copy_m4_m4(rest, bone->arm_mat);
-		invert_m4_m4(irest, rest);
-	}*/
-    
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
 	
 	//for each transformation in node 
@@ -737,9 +714,6 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 			
 		const COLLADAFW::UniqueId& listid = transform->getAnimationList();
 		
-		//might not be needed
-		std::vector<float> frames;
-		        
 		//check if transformation has animations    
 		if (animlist_map.find(listid) == animlist_map.end()) continue ; 
 		else 
@@ -752,7 +726,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 				for (unsigned int j = 0; j < bindings.getCount(); j++) {
 					 animcurves = curve_map[bindings[j].animation];
 					//calculate rnapaths and array index of fcurves according to transformation and animation class
-					 Assign_transform_animations(&frames,transform, &bindings[j], &animcurves, is_joint, joint_path ); 
+					 Assign_transform_animations(transform, &bindings[j], &animcurves, is_joint, joint_path ); 
 					
 					 std::vector<FCurve*>::iterator iter;
 			            //Add the curves of the current animation to the object
@@ -764,7 +738,6 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 							 BLI_addtail(AnimCurves, fcu);	
 						}	 			
 				}
-			 std::sort(frames.begin(), frames.end());
 			}
 		if (is_rotation || is_matrix) {
 			if (is_joint) 

@@ -104,15 +104,10 @@ public:
 	bool is_object_animated ( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map ) ;
 
 
-	void Assign_transform_animations(std::vector<float>* frames, 
-		                             COLLADAFW::Transformation* transform , 
+	void Assign_transform_animations(COLLADAFW::Transformation* transform , 
 									 const COLLADAFW::AnimationList::AnimationBinding * binding,
 									 std::vector<FCurve*>* curves, bool is_joint, char * joint_path);
 
-	/*void Assign_transform_animations(std::vector<float>* frames, 
-														COLLADAFW::Transformation *transform , 
-														COLLADAFW::AnimationList::AnimationBinding * binding,
-														COLLADAFW::Node * node);*/
 	void modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index );
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist
