@@ -41,6 +41,12 @@ def getConsObj(bone):
         cons_obj = bone
     return cons_obj
 
+def consObjToBone(cons_obj):
+    if cons_obj.name[-3:] == "Org":
+        return cons_obj.name[:-3]
+    else:
+        return cons_obj.name
+
 ### And and Remove Constraints (called from operators)
 
 
@@ -53,7 +59,7 @@ def addNewConstraint(m_constraint, cons_obj):
         c_type = "FLOOR"
     real_constraint = cons_obj.constraints.new(c_type)
     real_constraint.name = "Mocap constraint " + str(len(cons_obj.constraints))
-    m_constraint.real_constraint_bone = cons_obj.name
+    m_constraint.real_constraint_bone = consObjToBone(cons_obj)
     m_constraint.real_constraint = real_constraint.name
     setConstraint(m_constraint)
 
@@ -62,21 +68,14 @@ def removeConstraint(m_constraint, cons_obj):
     oldConstraint = cons_obj.constraints[m_constraint.real_constraint]
     cons_obj.constraints.remove(oldConstraint)
 
-### Update functions. There are 3: UpdateType, UpdateBone
+### Update functions. There are 2: UpdateType/UpdateBone
 ### and update for the others.
 
 
 def updateConstraint(self, context):
     setConstraint(self)
 
-
-def updateConstraintType(m_constraint, context):
-    pass
-    #If the constraint exists, we need to remove it
-    #Then create a new one.
-
-
-def updateConstraintTargetBone(m_constraint, context):
+def updateConstraintBoneType(m_constraint, context):
     #If the constraint exists, we need to remove it
     #from the old bone
     obj = context.active_object
@@ -103,7 +102,10 @@ def setConstraint(m_constraint):
     real_constraint = cons_obj.constraints[m_constraint.real_constraint]
 
     #frame changing section
-    fcurves = obj.animation_data.action.fcurves
+    if isinstance(cons_obj, bpy.types.PoseBone):
+        fcurves = obj.animation_data.action.fcurves
+    else:
+        fcurves = cons_obj.animation_data.action.fcurves
     influence_RNA = real_constraint.path_from_id("influence")
     fcurve = [fcurve for fcurve in fcurves if fcurve.data_path == influence_RNA]
     #clear the fcurve and set the frames.
@@ -111,17 +113,14 @@ def setConstraint(m_constraint):
         fcurve = fcurve[0]
         for i in range(len(fcurve.keyframe_points) - 1, 0, -1):
             fcurve.keyframe_points.remove(fcurve.keyframe_points[i])
-    s, e = bpy.context.scene.frame_start, bpy.context.scene.frame_end
-    real_constraint.influence = 0
-    real_constraint.keyframe_insert(data_path="influence", frame=s)
-    real_constraint.keyframe_insert(data_path="influence", frame=e)
     s, e = m_constraint.s_frame, m_constraint.e_frame
+    s_in, s_out = m_constraint.smooth_in, m_constraint.smooth_out
     real_constraint.influence = 1
     real_constraint.keyframe_insert(data_path="influence", frame=s)
     real_constraint.keyframe_insert(data_path="influence", frame=e)
     real_constraint.influence = 0
-    real_constraint.keyframe_insert(data_path="influence", frame=s - 10)
-    real_constraint.keyframe_insert(data_path="influence", frame=e + 10)
+    real_constraint.keyframe_insert(data_path="influence", frame=s - s_in)
+    real_constraint.keyframe_insert(data_path="influence", frame=e + s_out)
 
     #Set the blender constraint parameters
     if m_constraint.type == "point":
@@ -139,3 +138,23 @@ def setConstraint(m_constraint):
         real_constraint.use_min_x = True
         real_constraint.use_min_y = True
         real_constraint.use_min_z = True
+
+    if m_constraint.type == "freeze":
+        real_constraint.target_space = "WORLD" 
+        bpy.context.scene.frame_set(m_constraint.s_frame)
+        x, y, z = cons_obj.location.copy()
+        real_constraint.max_x = x
+        real_constraint.max_y = y
+        real_constraint.max_z = z
+        real_constraint.min_x = x
+        real_constraint.min_y = y
+        real_constraint.min_z = z
+        real_constraint.use_max_x = True
+        real_constraint.use_max_y = True
+        real_constraint.use_max_z = True
+        real_constraint.use_min_x = True
+        real_constraint.use_min_y = True
+        real_constraint.use_min_z = True
+    
+    # active check
+    real_constraint.mute = not m_constraint.active

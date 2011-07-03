@@ -37,7 +37,7 @@ class MocapConstraint(bpy.types.PropertyGroup):
     constrained_bone = bpy.props.StringProperty(name="Bone",
         default="",
         description="Constrained Bone",
-        update=updateConstraintTargetBone)
+        update=updateConstraintBoneType)
     constrained_boneB = bpy.props.StringProperty(name="Bone (2)",
         default="",
         description="Other Constrained Bone (optional, depends on type)",
@@ -50,6 +50,16 @@ class MocapConstraint(bpy.types.PropertyGroup):
         default=500,
         description="End frame of constrain",
         update=updateConstraint)
+    smooth_in = bpy.props.IntProperty(name="In",
+        default=10,
+        description="Amount of frames to smooth in",
+        update=updateConstraint,
+        min=0)
+    smooth_out = bpy.props.IntProperty(name="Out",
+        default=10,
+        description="Amount of frames to smooth out",
+        update=updateConstraint,
+        min=0)
     targetMesh = bpy.props.StringProperty(name="Mesh",
         default="",
         description="Target of Constraint - Mesh (optional, depends on type)",
@@ -83,7 +93,7 @@ class MocapConstraint(bpy.types.PropertyGroup):
             ("floor", "Stay above", "Bone does not cross specified mesh object eg floor"),
             ("distance", "Maintain distance", "Target bones maintained specified distance")],
         description="Type of constraint",
-        update=updateConstraint)
+        update=updateConstraintBoneType)
     real_constraint = bpy.props.StringProperty()
     real_constraint_bone = bpy.props.StringProperty()
 
@@ -231,6 +241,10 @@ class MocapConstraintsPanel(bpy.types.Panel):
                         frameRow.label("Frame Range:")
                         frameRow.prop(m_constraint, 's_frame')
                         frameRow.prop(m_constraint, 'e_frame')
+                        smoothRow = box.row()
+                        smoothRow.label("Smoothing:")
+                        smoothRow.prop(m_constraint, 'smooth_in')
+                        smoothRow.prop(m_constraint, 'smooth_out')
                         targetRow = box.row()
                         targetLabelCol = targetRow.column()
                         targetLabelCol.label("Target settings:")
