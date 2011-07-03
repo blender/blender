@@ -53,6 +53,7 @@ public:
 						short	blendin,
 						short	priority,
 						short	layer,
+						float	layer_weight,
 						short	ipo_flags,
 						short	end_reset,
 						float	stride) 
@@ -72,6 +73,7 @@ public:
 		m_playtype(playtype),
 		m_priority(priority),
 		m_layer(layer),
+		m_layer_weight(layer_weight),
 		m_ipo_flags(ipo_flags),
 		m_end_reset(end_reset),
 		m_is_going(false),
@@ -165,6 +167,7 @@ protected:
 	float	m_blendin;
 	float	m_blendstart;
 	float	m_stridelength;
+	float	m_layer_weight;
 	short	m_playtype;
 	short	m_priority;
 	short	m_layer;

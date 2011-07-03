@@ -58,12 +58,13 @@ private:
 	float m_blendframe;
 	float m_blendstart;
 
+	float m_layer_weight;
+
 	float m_speed;
 
 	short m_priority;
 
 	short m_playmode;
-	short m_blendmode;
 
 	short m_ipo_flags;
 
@@ -84,7 +85,7 @@ public:
 			short priority,
 			float blendin,
 			short play_mode,
-			short blend_mode,
+			float layer_weight,
 			short ipo_flags,
 			float playback_speed);
 	void Stop();
@@ -103,13 +104,6 @@ public:
 		ACT_MODE_LOOP,
 		ACT_MODE_PING_PONG,
 		ACT_MODE_MAX,
-	};
-
-	enum
-	{
-		ACT_BLEND_NONE = 0,
-		ACT_BLEND_MIX,
-		ACT_BLEND_MAX,
 	};
 
 	enum

@@ -46,7 +46,6 @@ extern "C" {
 #include "BKE_action.h"
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "DNA_nla_types.h"
 }
 
 BL_Action::BL_Action(class KX_GameObject* gameobj)
@@ -111,7 +110,7 @@ bool BL_Action::Play(const char* name,
 					short priority,
 					float blendin,
 					short play_mode,
-					short blend_mode,
+					float layer_weight,
 					short ipo_flags,
 					float playback_speed)
 {
@@ -173,11 +172,11 @@ bool BL_Action::Play(const char* name,
 	m_endframe = end;
 	m_blendin = blendin;
 	m_playmode = play_mode;
-	m_blendmode = blend_mode;
 	m_endtime = 0.f;
 	m_blendframe = 0.f;
 	m_blendstart = 0.f;
 	m_speed = playback_speed;
+	m_layer_weight = layer_weight;
 	
 	m_done = false;
 
@@ -335,15 +334,15 @@ void BL_Action::Update(float curtime)
 			float weight = 1.f - (m_blendframe/m_blendin);
 
 			// Blend the poses
-			game_blend_poses(m_pose, m_blendpose, weight, ACTSTRIPMODE_BLEND);
+			game_blend_poses(m_pose, m_blendpose, weight);
 		}
 
 
 		// Handle layer blending
-		if (m_blendmode != ACT_BLEND_NONE)
+		if (m_layer_weight >= 0)
 		{
 			obj->GetMRDPose(&m_blendpose);
-			game_blend_poses(m_pose, m_blendpose, 1.f, ACTSTRIPMODE_ADD);
+			game_blend_poses(m_pose, m_blendpose, m_layer_weight);
 		}
 
 		obj->SetPose(m_pose);

@@ -137,13 +137,14 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 
 
 /* Only allowed for Poses with identical channels */
-void game_blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
+void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 {	
 	bPoseChannel *dchan;
 	const bPoseChannel *schan;
 	bConstraint *dcon, *scon;
 	float dstweight;
 	int i;
+	short mode = ACTSTRIPMODE_BLEND;
 
 	switch (mode){
 	case ACTSTRIPMODE_BLEND:

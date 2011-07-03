@@ -145,7 +145,7 @@ protected:
 };
 
 /* Pose function specific to the game engine */
-void game_blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode); /* was blend_poses */
+void game_blend_poses(struct bPose *dst, struct bPose *src, float srcweight/*, short mode*/); /* was blend_poses */
 //void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 void game_copy_pose(struct bPose **dst, struct bPose *src, int copy_con);
 void game_free_pose(struct bPose *pose);

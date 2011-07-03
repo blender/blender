@@ -218,7 +218,7 @@ public:
 					short priority=0,
 					float blendin=0.f,
 					short play_mode=0,
-					short blend_mode=0,
+					float layer_weight=0.f,
 					short ipo_flags=0,
 					float playback_speed=1.f);
 

@@ -3713,6 +3713,7 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 
 	row= uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "layer", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "layer_weight", 0, NULL, ICON_NONE);
 
 	row= uiLayoutRow(layout, 0);
 	uiItemPointerR(layout, ptr, "frame_property", &settings_ptr, "properties", NULL, ICON_NONE);

@@ -220,6 +220,7 @@ void BL_ConvertActuators(char* maggiename,
 					actact->blendin,
 					actact->priority,
 					actact->layer,
+					actact->layer_weight,
 					ipo_flags,
 					actact->end_reset,
 					actact->stridelength

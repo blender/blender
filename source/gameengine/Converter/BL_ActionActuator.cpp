@@ -184,7 +184,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	if (!m_is_going && bPositiveEvent)
 	{		
 		m_is_going = true;
-		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, play_mode, 0, m_ipo_flags) && m_end_reset)
+		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, play_mode, m_layer_weight, m_ipo_flags) && m_end_reset)
 			obj->SetActionFrame(m_layer, m_localtime);
 	}
 	else if (m_is_going && bNegativeEvent)
@@ -203,7 +203,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		else if (m_playtype == ACT_ACTION_LOOP_END)
 		{
 			// Convert into a play and let it finish
-			obj->PlayAction(m_action->id.name+2, start, end, m_layer, 0, 0, BL_Action::ACT_MODE_PLAY, 0, m_ipo_flags);
+			obj->PlayAction(m_action->id.name+2, start, end, m_layer, 0, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
 			obj->SetActionFrame(m_layer, m_localtime);
 
 			return true;
