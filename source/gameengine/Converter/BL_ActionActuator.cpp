@@ -208,6 +208,14 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 
 			return true;
 		}
+		else if (m_playtype == ACT_ACTION_FLIPPER)
+		{
+			// Convert into a play action and play back to the beginning
+			end = start;
+			start = obj->GetActionFrame(m_layer);
+			obj->StopAction(m_layer);
+			obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
+		}
 		
 		m_is_going = false;
 	}
