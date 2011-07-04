@@ -103,8 +103,8 @@ void LightsExporter::operator()(Object *ob)
 	else if (la->type == LA_SPOT) {
 		COLLADASW::SpotLight cla(mSW, la_id, la_name);
 		cla.setColor(col,false,"color");
-		cla.setFallOffAngle(la->spotsize);
-		cla.setFallOffExponent(la->spotblend);
+		cla.setFallOffAngle(la->spotsize,false,"fall_off_angle");
+		cla.setFallOffExponent(la->spotblend,false,"fall_off_exponent");
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);

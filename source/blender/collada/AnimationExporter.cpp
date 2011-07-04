@@ -88,7 +88,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
 					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
 					(!strcmp(transformName, "rotation_quaternion")) ||
-					(!strcmp(transformName, "color"))) 
+					(!strcmp(transformName, "color")) ||
+					(!strcmp(transformName, "spot_size"))) 
 					dae_animation(ob ,fcu, transformName );
 				
 
@@ -163,6 +164,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			/*const char *axis_names[] = {"", "X", "Y", "Z"};
 			if (fcu->array_index < 4)
 			axis_name = axis_names[fcu->array_index];*/
+		}
+		else if ( !strcmp(transformName, "spot_size")||!strcmp(transformName, "spot_blend") )
+		{
+			axis_name = "";
 		}
 		else if ( !strcmp(transformName, "color") )
 		{
@@ -246,7 +251,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		std::string target ;
 
-		if ( !strcmp( transformName, "color" ) )
+		if ( ob->type == OB_LAMP )
 		    target = get_light_id(ob)
 			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
 		else 
@@ -546,7 +551,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				values[1] = 0;	
 			}
 			else if (rotation) {
-				values[1] = (bezt->vec[0][1]) * 180.0f/M_PI;
+				values[1] = (bezt->vec[2][1]) * 180.0f/M_PI;
 			} else {
 				values[1] = bezt->vec[2][1];
 			}
@@ -767,6 +772,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				tm_type = 3;
 			else if (!strcmp(name, "color"))
 				tm_type = 4;
+			else if (!strcmp(name, "spot_size"))
+				tm_type = 5;
+			else if (!strcmp(name, "spot_blend"))
+				tm_type = 6;
 			else
 				tm_type = -1;
 		}
@@ -785,6 +794,12 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			break;
 		case 4:
 			tm_name = "color";
+			break;
+		case 5:
+			tm_name = "fall_off_angle";
+			break;
+		case 6:
+			tm_name = "fall_off_exponent";
 			break;
 		default:
 			tm_name = "";
