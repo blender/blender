@@ -1455,7 +1455,7 @@ int shade_samples(ShadeSample *ssamp, PixStr *ps, int x, int y)
 		shade_samples_do_AO(ssamp);
 		
 		/* if shade (all shadepinputs have same passflag) */
-                if(ssamp->shi[0].passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB|SCE_PASS_INDEXMA)) {
+		if(ssamp->shi[0].passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB|SCE_PASS_INDEXMA)) {
 
 			for(samp=0; samp<ssamp->tot; samp++, shi++, shr++) {
 				shade_input_set_shade_texco(shi);

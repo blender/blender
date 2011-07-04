@@ -423,7 +423,7 @@ static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
-    ntype->uifuncbut = NULL;
+	ntype->uifuncbut = NULL;
 	switch(ntype->type) {
 		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
 
@@ -473,7 +473,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		default:
 			ntype->uifunc= NULL;
 	}
-        if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
+		if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
 }
 
 /* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
@@ -1040,31 +1040,28 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C
 }
 static void node_composit_buts_colorbalance_but(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-        uiItemR(layout, ptr, "correction_method", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "correction_method", 0, NULL, ICON_NONE);
 
-        if (RNA_enum_get(ptr, "correction_method")== 0) {
+	if (RNA_enum_get(ptr, "correction_method")== 0) {
 
-                uiTemplateColorWheel(layout, ptr, "lift", 1, 1, 0, 1);
-                uiItemR(layout, ptr, "lift", 0, NULL, ICON_NONE);
+	uiTemplateColorWheel(layout, ptr, "lift", 1, 1, 0, 1);
+		uiItemR(layout, ptr, "lift", 0, NULL, ICON_NONE);
 
-                uiTemplateColorWheel(layout, ptr, "gamma", 1, 1, 1, 1);
-                uiItemR(layout, ptr, "gamma", 0, NULL, ICON_NONE);
+		uiTemplateColorWheel(layout, ptr, "gamma", 1, 1, 1, 1);
+		uiItemR(layout, ptr, "gamma", 0, NULL, ICON_NONE);
 
-                uiTemplateColorWheel(layout, ptr, "gain", 1, 1, 1, 1);
-                uiItemR(layout, ptr, "gain", 0, NULL, ICON_NONE);
+		uiTemplateColorWheel(layout, ptr, "gain", 1, 1, 1, 1);
+		uiItemR(layout, ptr, "gain", 0, NULL, ICON_NONE);
+	} else {
+		uiTemplateColorWheel(layout, ptr, "offset", 1, 1, 0, 1);
+		uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
 
-        } else {
+		uiTemplateColorWheel(layout, ptr, "power", 1, 1, 0, 1);
+		uiItemR(layout, ptr, "power", 0, NULL, ICON_NONE);
 
-                uiTemplateColorWheel(layout, ptr, "offset", 1, 1, 0, 1);
-                uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
-
-                uiTemplateColorWheel(layout, ptr, "power", 1, 1, 0, 1);
-                uiItemR(layout, ptr, "power", 0, NULL, ICON_NONE);
-
-                uiTemplateColorWheel(layout, ptr, "slope", 1, 1, 0, 1);
-                uiItemR(layout, ptr, "slope", 0, NULL, ICON_NONE);
-        }
-
+		uiTemplateColorWheel(layout, ptr, "slope", 1, 1, 0, 1);
+		uiItemR(layout, ptr, "slope", 0, NULL, ICON_NONE);
+	}
 }
 
 
@@ -1081,7 +1078,7 @@ static void node_composit_buts_ycc(uiLayout *layout, bContext *UNUSED(C), Pointe
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
-    ntype->uifuncbut = NULL;
+	ntype->uifuncbut = NULL;
 	switch(ntype->type) {
 		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
 
@@ -1215,9 +1212,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			ntype->uifunc=node_composit_buts_view_levels;
 			break;
 		case CMP_NODE_COLORBALANCE:
-                        ntype->uifunc=node_composit_buts_colorbalance;
-                        ntype->uifuncbut=node_composit_buts_colorbalance_but;
-                        break;
+			ntype->uifunc=node_composit_buts_colorbalance;
+			ntype->uifuncbut=node_composit_buts_colorbalance_but;
+			break;
 		case CMP_NODE_HUECORRECT:
 			ntype->uifunc=node_composit_buts_huecorrect;
 			break;
@@ -1231,7 +1228,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		default:
 			ntype->uifunc= NULL;
 	}
-        if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
+	if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
 
 }
 
