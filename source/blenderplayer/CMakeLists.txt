@@ -139,6 +139,10 @@ endif()
 		bf_intern_mikktspace
 	)
 
+	if(WITH_MOD_CLOTH_ELTOPO)
+		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
+	endif()
+
 	if(WITH_BUILTIN_GLEW)
 		list(APPEND BLENDER_SORTED_LIBS extern_glew)
 	endif()
