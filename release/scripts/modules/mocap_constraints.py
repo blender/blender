@@ -23,7 +23,6 @@ from mathutils import *
 
 ### Utility Functions
 
-
 def hasIKConstraint(pose_bone):
     #utility function / predicate, returns True if given bone has IK constraint
     return ("IK" in [constraint.type for constraint in pose_bone.constraints])
@@ -85,9 +84,10 @@ def updateConstraintBoneType(m_constraint, context):
         cons_obj = getConsObj(bone)
         removeConstraint(m_constraint, cons_obj)
     #Regardless, after that we create a new constraint
-    bone = bones[m_constraint.constrained_bone]
-    cons_obj = getConsObj(bone)
-    addNewConstraint(m_constraint, cons_obj)
+    if m_constraint.constrained_bone:
+        bone = bones[m_constraint.constrained_bone]
+        cons_obj = getConsObj(bone)
+        addNewConstraint(m_constraint, cons_obj)
 
 
 # Function that copies all settings from m_constraint to the real Blender constraints
@@ -106,6 +106,7 @@ def setConstraint(m_constraint):
         fcurves = obj.animation_data.action.fcurves
     else:
         fcurves = cons_obj.animation_data.action.fcurves
+        
     influence_RNA = real_constraint.path_from_id("influence")
     fcurve = [fcurve for fcurve in fcurves if fcurve.data_path == influence_RNA]
     #clear the fcurve and set the frames.
@@ -120,11 +121,10 @@ def setConstraint(m_constraint):
     real_constraint.keyframe_insert(data_path="influence", frame=e)
     real_constraint.influence = 0
     real_constraint.keyframe_insert(data_path="influence", frame=s - s_in)
-    real_constraint.keyframe_insert(data_path="influence", frame=e + s_out)
-
+    real_constraint.keyframe_insert(data_path="influence", frame=e + s_out)   
     #Set the blender constraint parameters
     if m_constraint.type == "point":
-        real_constraint.target_space = "WORLD"  # temporary for now, just World is supported
+        real_constraint.owner_space = m_constraint.targetSpace
         x, y, z = m_constraint.targetPoint
         real_constraint.max_x = x
         real_constraint.max_y = y
@@ -140,9 +140,13 @@ def setConstraint(m_constraint):
         real_constraint.use_min_z = True
 
     if m_constraint.type == "freeze":
-        real_constraint.target_space = "WORLD" 
-        bpy.context.scene.frame_set(m_constraint.s_frame)
-        x, y, z = cons_obj.location.copy()
+        real_constraint.owner_space = m_constraint.targetSpace 
+        bpy.context.scene.frame_set(s)
+        if isinstance(cons_obj, bpy.types.PoseBone):
+            x, y, z = cons_obj.center + (cons_obj.vector / 2)
+        else:
+            x, y, z = cons_obj.matrix_world.to_translation()
+
         real_constraint.max_x = x
         real_constraint.max_y = y
         real_constraint.max_z = z

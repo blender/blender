@@ -22,6 +22,15 @@ import bpy
 
 from bpy.props import *
 from bpy import *
+import mocap_constraints
+import retarget
+import mocap_tools
+### reloads modules (for testing purposes only)
+from imp import reload
+reload(mocap_constraints)
+reload(retarget)
+reload(mocap_tools)
+
 from mocap_constraints import *
 
 # MocapConstraint class
@@ -72,17 +81,13 @@ class MocapConstraint(bpy.types.PropertyGroup):
         default=False,
         description="Constraint has been baked to NLA layer",
         update=updateConstraint)
-    targetFrame = bpy.props.IntProperty(name="Frame",
-        default=1,
-        description="Target of Constraint - Frame (optional, depends on type)",
-        update=updateConstraint)
     targetPoint = bpy.props.FloatVectorProperty(name="Point", size=3,
         subtype="XYZ", default=(0.0, 0.0, 0.0),
         description="Target of Constraint - Point",
         update=updateConstraint)
     targetSpace = bpy.props.EnumProperty(
-        items=[("world", "World Space", "Evaluate target in global space"),
-            ("object", "Object space", "Evaluate target in object space"),
+        items=[("WORLD", "World Space", "Evaluate target in global space"),
+            ("LOCAL", "Object space", "Evaluate target in object space"),
             ("constrained_boneB", "Other Bone Space", "Evaluate target in specified other bone space")],
         name="Space",
         description="In which space should Point type target be evaluated",
@@ -111,7 +116,11 @@ def toggleIKBone(self, context):
             print(self.name + " IK toggled ON!")
             ik = self.constraints.new('IK')
             #ik the whole chain up to the root, excluding
-            chainLen = len(self.bone.parent_recursive)
+            chainLen = 0
+            for parent_bone in self.parent_recursive:
+                chainLen+=1
+                if hasIKConstraint(parent_bone):
+                    break
             ik.chain_count = chainLen
             for bone in self.parent_recursive:
                 if bone.is_in_ik_chain:
@@ -158,10 +167,6 @@ def updateIKRetarget():
                     pose_bone.IKRetarget = False
 
 updateIKRetarget()
-
-import retarget
-import mocap_tools
-
 
 class MocapPanel(bpy.types.Panel):
     # Motion capture retargeting panel
@@ -251,11 +256,10 @@ class MocapConstraintsPanel(bpy.types.Panel):
                         targetPropCol = targetRow.column()
                         if m_constraint.type == "floor":
                             targetPropCol.prop_search(m_constraint, 'targetMesh', bpy.data, "objects")
-                        if m_constraint.type == "freeze":
-                            targetPropCol.prop(m_constraint, 'targetFrame')
+                        if m_constraint.type == "point" or m_constraint.type == "freeze":
+                            box.prop(m_constraint, 'targetSpace')
                         if m_constraint.type == "point":
                             targetPropCol.prop(m_constraint, 'targetPoint')
-                            box.prop(m_constraint, 'targetSpace')
                         checkRow = box.row()
                         checkRow.prop(m_constraint, 'active')
                         checkRow.prop(m_constraint, 'baked')

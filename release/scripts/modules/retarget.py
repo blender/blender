@@ -348,6 +348,7 @@ def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, str
             empty.parent = stride_bone
     performer_obj.matrix_world = perf_obj_mat
     enduser_obj.matrix_world = enduser_obj_mat
+    enduser_obj.parent = stride_bone
 
 
 def totalRetarget():
