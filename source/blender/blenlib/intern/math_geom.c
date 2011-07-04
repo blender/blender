@@ -430,7 +430,7 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 	    l2[1] - l1[1]
 	};
 
-	const float a= dot_v3v3(ldir, ldir);
+	const float a= dot_v2v2(ldir, ldir);
 
 	const float b= 2.0f *
 	        (ldir[0] * (l1[0] - sp[0]) +
