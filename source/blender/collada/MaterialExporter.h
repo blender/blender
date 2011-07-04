@@ -49,7 +49,7 @@ class MaterialsExporter: COLLADASW::LibraryMaterials
 {
 public:
 	MaterialsExporter(COLLADASW::StreamWriter *sw);
-	void exportMaterials(Scene *sce);
+	void exportMaterials(Scene *sce, bool export_selected);
 	void operator()(Material *ma, Object *ob);
 };
 
@@ -86,11 +86,11 @@ struct MaterialFunctor {
 	// f should have
 	// void operator()(Material* ma)
 	template<class Functor>
-	void forEachMaterialInScene(Scene *sce, Functor &f)
+	void forEachMaterialInScene(Scene *sce, Functor &f, bool export_selected)
 	{
 		ForEachMaterialFunctor<Functor> matfunc(&f);
 		GeometryFunctor gf;
-		gf.forEachMeshObjectInScene<ForEachMaterialFunctor<Functor> >(sce, matfunc);
+		gf.forEachMeshObjectInScene<ForEachMaterialFunctor<Functor> >(sce, matfunc, export_selected);
 	}
 };
 
