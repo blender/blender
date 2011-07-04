@@ -225,6 +225,13 @@ typedef enum eCreateDriverFlags {
 
 /* -------- */
 
+/* Low-level call to add a new driver F-Curve. This shouldn't be used directly for most tools,
+ * although there are special cases where this approach is preferable.
+ */
+struct FCurve *verify_driver_fcurve(struct ID *id, const char rna_path[], const int array_index, short add);
+
+/* -------- */
+
 /* Returns whether there is a driver in the copy/paste buffer to paste */
 short ANIM_driver_can_paste(void);
 

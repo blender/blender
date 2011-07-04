@@ -1701,6 +1701,10 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		/* driver expression */
 		return 1;
 	}
+	else if(str[0]=='#') {
+		/* shortcut to create new driver expression (versus immediate Py-execution) */
+		return ui_but_anim_expression_create(but, str+1);
+	}
 	else {
 		/* number editing */
 		double value;
