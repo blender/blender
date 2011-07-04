@@ -43,10 +43,12 @@ private:
 	struct bAction* m_action;
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
+	struct bPose* m_blendinpose;
 	struct PointerRNA *m_ptrrna;
 	class SG_Controller *m_sg_contr;
 	class KX_GameObject* m_obj;
 	std::vector<float>	m_blendshape;
+	std::vector<float>	m_blendinshape;
 
 	float m_startframe;
 	float m_endframe;
@@ -74,7 +76,7 @@ private:
 	void InitIPO();
 	void SetLocalTime(float curtime);
 	void IncrementBlending(float curtime);
-	void BlendShape(struct Key* key, float srcweight);
+	void BlendShape(struct Key* key, float srcweight, std::vector<float>& blendshape);
 public:
 	BL_Action(class KX_GameObject* gameobj);
 	~BL_Action();

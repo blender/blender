@@ -64,6 +64,7 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_ipo_flags(0),
 	m_pose(NULL),
 	m_blendpose(NULL),
+	m_blendinpose(NULL),
 	m_sg_contr(NULL),
 	m_ptrrna(NULL),
 	m_done(true),
@@ -95,6 +96,8 @@ BL_Action::~BL_Action()
 		game_free_pose(m_pose);
 	if (m_blendpose)
 		game_free_pose(m_blendpose);
+	if (m_blendinpose)
+		game_free_pose(m_blendinpose);
 	if (m_sg_contr)
 	{
 		m_obj->GetSGNode()->RemoveSGController(m_sg_contr);
@@ -145,18 +148,15 @@ bool BL_Action::Play(const char* name,
 	// Setup blendin shapes/poses
 	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
 	{
-		if (!m_blendpose)
-		{
-			BL_ArmatureObject *obj = (BL_ArmatureObject*)m_obj;
-			obj->GetMRDPose(&m_blendpose);
-		}
+		BL_ArmatureObject *obj = (BL_ArmatureObject*)m_obj;
+		obj->GetMRDPose(&m_blendinpose);
 	}
 	else
 	{
 		BL_DeformableGameObject *obj = (BL_DeformableGameObject*)m_obj;
 		BL_ShapeDeformer *shape_deformer = dynamic_cast<BL_ShapeDeformer*>(obj->GetDeformer());
 		
-		obj->GetShape(m_blendshape);
+		obj->GetShape(m_blendinshape);
 
 		// Now that we have the previous blend shape saved, we can clear out the key to avoid any
 		// further interference.
@@ -244,7 +244,7 @@ void BL_Action::IncrementBlending(float curtime)
 }
 
 
-void BL_Action::BlendShape(Key* key, float srcweight)
+void BL_Action::BlendShape(Key* key, float srcweight, std::vector<float>& blendshape)
 {
 	vector<float>::const_iterator it;
 	float dstweight;
@@ -252,8 +252,8 @@ void BL_Action::BlendShape(Key* key, float srcweight)
 	
 	dstweight = 1.0F - srcweight;
 	//printf("Dst: %f\tSrc: %f\n", srcweight, dstweight);
-	for (it=m_blendshape.begin(), kb = (KeyBlock*)key->block.first; 
-		 kb && it != m_blendshape.end(); 
+	for (it=blendshape.begin(), kb = (KeyBlock*)key->block.first; 
+		 kb && it != blendshape.end(); 
 		 kb = (KeyBlock*)kb->next, it++) {
 		//printf("OirgKeys: %f\t%f\n", kb->curval, (*it));
 		kb->curval = kb->curval * dstweight + (*it) * srcweight;
@@ -334,7 +334,7 @@ void BL_Action::Update(float curtime)
 			float weight = 1.f - (m_blendframe/m_blendin);
 
 			// Blend the poses
-			game_blend_poses(m_pose, m_blendpose, weight);
+			game_blend_poses(m_pose, m_blendinpose, weight);
 		}
 
 
@@ -376,10 +376,17 @@ void BL_Action::Update(float curtime)
 					kb->curval = 0.f;
 
 				// Now blend the shape
-				BlendShape(key, weight);
+				BlendShape(key, weight, m_blendinshape);
 			}
 
-			obj->SetActiveAction(NULL, 0, m_localtime);
+			// Handle layer blending
+			if (m_layer_weight >= 0)
+			{
+				obj->GetShape(m_blendshape);
+				BlendShape(key, m_layer_weight, m_blendshape);
+			}
+
+			obj->SetActiveAction(NULL, 0, curtime);
 		}
 
 
