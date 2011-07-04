@@ -3497,7 +3497,7 @@ static void add_transp_obindex(RenderLayer *rl, int offset, Object *ob)
 	RenderPass *rpass;
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		if(rpass->passtype == SCE_PASS_INDEXOB) {
+                if(rpass->passtype == SCE_PASS_INDEXOB||rpass->passtype == SCE_PASS_INDEXMA) {
 			float *fp= rpass->rect + offset;
 			*fp= (float)ob->index;
 			break;
@@ -3820,7 +3820,7 @@ static int shade_tra_samples(ShadeSample *ssamp, StrandShadeCache *cache, int x,
 		shade_samples_do_AO(ssamp);
 		
 		/* if shade (all shadepinputs have same passflag) */
-		if(shi->passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB)) {
+                if(shi->passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB|SCE_PASS_INDEXMA)) {
 			for(samp=0; samp<ssamp->tot; samp++, shi++, shr++) {
 				shade_input_set_shade_texco(shi);
 				shade_input_do_shade(shi, shr);
@@ -4115,7 +4115,14 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 							add_transp_obindex(rlpp[a], od, obr->ob);
 					}
 				}
-				
+                                if(addpassflag & SCE_PASS_INDEXMA) {
+                                        ObjectRen *obr= R.objectinstance[zrow[totface-1].obi].obr;
+                                        if(obr->ob) {
+                                                for(a= 0; a<totfullsample; a++)
+                                                        add_transp_obindex(rlpp[a], od, obr->ob);
+                                        }
+                                }
+
 				/* for each mask-sample we alpha-under colors. then in end it's added using filter */
 				memset(samp_shr, 0, sizeof(ShadeResult)*osa);
 				for(a=0; a<osa; a++) {

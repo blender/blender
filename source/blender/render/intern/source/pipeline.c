@@ -383,7 +383,11 @@ static const char *get_pass_name(int passtype, int channel)
 		if(channel==-1) return "IndexOB";
 		return "IndexOB.X";
 	}
-	if(passtype == SCE_PASS_MIST) {
+        if(passtype == SCE_PASS_INDEXMA) {
+                if(channel==-1) return "IndexMA";
+                return "IndexMA.X";
+        }
+        if(passtype == SCE_PASS_MIST) {
 		if(channel==-1) return "Mist";
 		return "Mist.Z";
 	}
@@ -447,6 +451,9 @@ static int passtype_from_name(char *str)
 
 	if(strcmp(str, "IndexOB")==0)
 		return SCE_PASS_INDEXOB;
+
+        if(strcmp(str, "IndexMA")==0)
+                return SCE_PASS_INDEXMA;
 
 	if(strcmp(str, "Mist")==0)
 		return SCE_PASS_MIST;
@@ -631,7 +638,9 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
-		if(srl->passflag  & SCE_PASS_MIST)
+                if(srl->passflag  & SCE_PASS_INDEXMA)
+                        render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXMA);
+                if(srl->passflag  & SCE_PASS_MIST)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_MIST);
 		if(rl->passflag & SCE_PASS_RAYHITS)
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_RAYHITS);

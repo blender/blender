@@ -161,7 +161,7 @@ typedef struct Material {
 
 	int mapto_textured;	/* render-time cache to optimise texture lookups */
 	short shadowonly_flag;		/* "shadowsonly" type */
-	short pad;
+        short index;    /* custom index for render passes */
 
 	ListBase gpumaterial;		/* runtime */
 } Material;

@@ -388,7 +388,8 @@ static void rna_def_render_pass(BlenderRNA *brna)
 		{SCE_PASS_MIST, "MIST", 0, "Mist", ""},
 		{SCE_PASS_EMIT, "EMIT", 0, "Emit", ""},
 		{SCE_PASS_ENVIRONMENT, "ENVIRONMENT", 0, "Environment", ""},
-		{0, NULL, 0, NULL, NULL}};
+                {SCE_PASS_INDEXMA, "MATERIAL_INDEX", 0, "Material Index", ""},
+                {0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "RenderPass", NULL);
 	RNA_def_struct_ui_text(srna, "Render Pass", "");
