@@ -81,7 +81,7 @@ private:
 	void fcurve_deg_to_rad(FCurve *cu);
 
 	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated);
-    
+	
 	int typeFlag;
 
 	enum AnimationType
@@ -107,7 +107,7 @@ public:
 	virtual void change_eul_to_quat(Object *ob, bAction *act);
 #endif
   
-    void translate_Animations_NEW ( COLLADAFW::Node * Node , 
+	void translate_Animations_NEW ( COLLADAFW::Node * Node , 
 												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 												   std::map<COLLADAFW::UniqueId, Object*>& object_map ,
 												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
@@ -122,7 +122,7 @@ public:
 	void Assign_color_animations(const COLLADAFW::AnimationList::AnimationBinding * binding,
 								 std::vector<FCurve*>* curves);
 
-    void Assign_float_animations(const COLLADAFW::AnimationList::AnimationBinding * binding,
+	void Assign_float_animations(const COLLADAFW::AnimationList::AnimationBinding * binding,
 												 std::vector<FCurve*>* curves, char * anim_type);
 
 	void modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index );
@@ -134,7 +134,7 @@ public:
 								std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 								COLLADAFW::Transformation::TransformationType tm_type,
 								Object *par_job = NULL);
-    
+	
 	void find_frames( std::vector<float>* frames , std::vector<FCurve*>* curves );
 	void find_frames_old( std::vector<float>* frames, COLLADAFW::Node * node, COLLADAFW::Transformation::TransformationType tm_type );
 	// internal, better make it private
