@@ -3094,7 +3094,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getActionFrame,
 
 KX_PYMETHODDEF_DOC(KX_GameObject, setActionFrame,
 	"setActionFrame(layer, frame)\n"
-	"Set the current fram of the action playing in the supplied layer")
+	"Set the current frame of the action playing in the supplied layer")
 {
 	short layer;
 	float frame;
