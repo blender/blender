@@ -85,6 +85,10 @@ class MocapConstraint(bpy.types.PropertyGroup):
         subtype="XYZ", default=(0.0, 0.0, 0.0),
         description="Target of Constraint - Point",
         update=updateConstraint)
+    targetDist = bpy.props.FloatProperty(name="Dist",
+        default=1,
+        description="Distance Constraint - Desired distance",
+        update=updateConstraint)
     targetSpace = bpy.props.EnumProperty(
         items=[("WORLD", "World Space", "Evaluate target in global space"),
             ("LOCAL", "Object space", "Evaluate target in object space"),
@@ -118,8 +122,11 @@ def toggleIKBone(self, context):
             #ik the whole chain up to the root, excluding
             chainLen = 0
             for parent_bone in self.parent_recursive:
-                chainLen+=1
+                chainLen += 1
                 if hasIKConstraint(parent_bone):
+                    break
+                deformer_children = [child for child in parent_bone.children if child.bone.use_deform]
+                if len(deformer_children) > 1:
                     break
             ik.chain_count = chainLen
             for bone in self.parent_recursive:
@@ -167,6 +174,7 @@ def updateIKRetarget():
                     pose_bone.IKRetarget = False
 
 updateIKRetarget()
+
 
 class MocapPanel(bpy.types.Panel):
     # Motion capture retargeting panel
@@ -260,6 +268,8 @@ class MocapConstraintsPanel(bpy.types.Panel):
                             box.prop(m_constraint, 'targetSpace')
                         if m_constraint.type == "point":
                             targetPropCol.prop(m_constraint, 'targetPoint')
+                        if m_constraint.type == "distance":
+                            targetPropCol.prop(m_constraint, 'targetDist')
                         checkRow = box.row()
                         checkRow.prop(m_constraint, 'active')
                         checkRow.prop(m_constraint, 'baked')
@@ -299,6 +309,7 @@ class OBJECT_OT_DenoiseButton(bpy.types.Operator):
     bl_label = "Denoises sampled mocap data "
 
     def execute(self, context):
+        mocap_tools.denoise_median()
         return {"FINISHED"}
 
 
