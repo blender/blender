@@ -23,6 +23,7 @@ from mathutils import *
 
 ### Utility Functions
 
+
 def hasIKConstraint(pose_bone):
     #utility function / predicate, returns True if given bone has IK constraint
     return ("IK" in [constraint.type for constraint in pose_bone.constraints])
@@ -39,6 +40,7 @@ def getConsObj(bone):
     else:
         cons_obj = bone
     return cons_obj
+
 
 def consObjToBone(cons_obj):
     if cons_obj.name[-3:] == "Org":
@@ -74,6 +76,7 @@ def removeConstraint(m_constraint, cons_obj):
 def updateConstraint(self, context):
     setConstraint(self)
 
+
 def updateConstraintBoneType(m_constraint, context):
     #If the constraint exists, we need to remove it
     #from the old bone
@@ -106,7 +109,7 @@ def setConstraint(m_constraint):
         fcurves = obj.animation_data.action.fcurves
     else:
         fcurves = cons_obj.animation_data.action.fcurves
-        
+
     influence_RNA = real_constraint.path_from_id("influence")
     fcurve = [fcurve for fcurve in fcurves if fcurve.data_path == influence_RNA]
     #clear the fcurve and set the frames.
@@ -121,7 +124,7 @@ def setConstraint(m_constraint):
     real_constraint.keyframe_insert(data_path="influence", frame=e)
     real_constraint.influence = 0
     real_constraint.keyframe_insert(data_path="influence", frame=s - s_in)
-    real_constraint.keyframe_insert(data_path="influence", frame=e + s_out)   
+    real_constraint.keyframe_insert(data_path="influence", frame=e + s_out)
     #Set the blender constraint parameters
     if m_constraint.type == "point":
         real_constraint.owner_space = m_constraint.targetSpace
@@ -140,7 +143,7 @@ def setConstraint(m_constraint):
         real_constraint.use_min_z = True
 
     if m_constraint.type == "freeze":
-        real_constraint.owner_space = m_constraint.targetSpace 
+        real_constraint.owner_space = m_constraint.targetSpace
         bpy.context.scene.frame_set(s)
         if isinstance(cons_obj, bpy.types.PoseBone):
             x, y, z = cons_obj.center + (cons_obj.vector / 2)
@@ -159,6 +162,12 @@ def setConstraint(m_constraint):
         real_constraint.use_min_x = True
         real_constraint.use_min_y = True
         real_constraint.use_min_z = True
-    
+
+    if m_constraint.type == "distance" and m_constraint.constrained_boneB:
+        real_constraint.owner_space = "WORLD"
+        real_constraint.target = getConsObj(bones[m_constraint.constrained_boneB])
+        real_constraint.limit_mode = "LIMITDIST_ONSURFACE"
+        real_constraint.distance = m_constraint.targetDist
+
     # active check
     real_constraint.mute = not m_constraint.active

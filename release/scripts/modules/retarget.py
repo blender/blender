@@ -200,7 +200,7 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
     for t in range(s_frame, e_frame):
         scene.frame_set(t)
         end_bone = end_bones[root]
-        end_bone.location = Vector((0,0,0))
+        end_bone.location = Vector((0, 0, 0))
         end_bone.keyframe_insert("location")
         bakeTransform(end_bone)
 
@@ -369,7 +369,7 @@ def totalRetarget():
     turnOffIK(enduser_obj)
     inter_obj, inter_arm = createIntermediate(performer_obj, enduser_obj, bonemap, bonemapr, root, s_frame, e_frame, scene)
     retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
-    stride_bone = copyTranslation(performer_obj, enduser_obj, ["RightFoot", "LeftFoot"], bonemap, bonemapr, root, s_frame, e_frame, scene,enduser_obj_mat)
+    stride_bone = copyTranslation(performer_obj, enduser_obj, ["RightFoot", "LeftFoot"], bonemap, bonemapr, root, s_frame, e_frame, scene, enduser_obj_mat)
     IKRetarget(bonemap, bonemapr, performer_obj, enduser_obj, s_frame, e_frame, scene)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone)
     bpy.ops.object.mode_set(mode='OBJECT')
