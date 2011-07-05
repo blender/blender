@@ -2124,7 +2124,8 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 {
 	Object *ob;
 	PointCache *cache;
-	float offset, time, nexttime;
+	/* float offset; unused for now */
+	float time, nexttime;
 
 	/* TODO: this has to be sorter out once bsystem_time gets redone, */
 	/*       now caches can handle interpolating etc. too - jahka */
@@ -2152,13 +2153,18 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		*startframe= cache->startframe;
 		*endframe= cache->endframe;
 
-		// XXX ipoflag is depreceated - old animation system stuff
-		if (/*(ob->ipoflag & OB_OFFS_PARENT) &&*/ (ob->partype & PARSLOW)==0) {
+		/* TODO: time handling with object offsets and simulated vs. cached
+		 * particles isn't particularly easy, so for now what you see is what
+		 * you get. In the future point cache could handle the whole particle
+		 * system timing. */
+#if 0
+		if ((ob->partype & PARSLOW)==0) {
 			offset= give_timeoffset(ob);
 
 			*startframe += (int)(offset+0.5f);
 			*endframe += (int)(offset+0.5f);
 		}
+#endif
 	}
 
 	/* verify cached_frames array is up to date */
