@@ -640,47 +640,6 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 				{
 					NlaTrack *nlt= (NlaTrack *)ale->data;
 					
-					indent= 0;
-					
-					if (ale->id) {
-						/* special exception for textures */
-						if (GS(ale->id->name) == ID_TE) {
-							offset= 14;
-							indent= 1;
-						}
-						/* special exception for nodetrees */
-						else if (GS(ale->id->name) == ID_NT) {
-							bNodeTree *ntree = (bNodeTree *)ale->id;
-							
-							switch (ntree->type) {
-								case NTREE_SHADER:
-								{
-									/* same as for textures */
-									offset= 14;
-									indent= 1;
-								}
-									break;
-									
-								case NTREE_TEXTURE:
-								{
-									/* even more */
-									offset= 21;
-									indent= 1;
-								}	
-									break;
-									
-								default:
-									/* normal will do */
-									offset= 14;
-									break;
-							}
-						}
-						else
-							offset= 14;
-					}
-					else
-						offset= 0;
-					
 					/* FIXME: 'solo' as the 'special' button?
 					 *	- need special icons for these
 					 */
@@ -717,45 +676,6 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					
 					group = 5;
 					
-					if (ale->id) {
-						/* special exception for textures */
-						if (GS(ale->id->name) == ID_TE) {
-							offset= 14;
-							indent= 1;
-						}
-						/* special exception for nodetrees */
-						else if (GS(ale->id->name) == ID_NT) {
-							bNodeTree *ntree = (bNodeTree *)ale->id;
-							
-							switch (ntree->type) {
-								case NTREE_SHADER:
-								{
-									/* same as for textures */
-									offset= 14;
-									indent= 1;
-								}
-									break;
-									
-								case NTREE_TEXTURE:
-								{
-									/* even more */
-									offset= 21;
-									indent= 1;
-								}	
-									break;
-									
-								default:
-									/* normal will do */
-									offset= 14;
-									break;
-							}
-						}
-						else
-							offset= 14;
-					}
-					else
-						offset= 0;
-					
 					special = ICON_ACTION;
 					
 					if (act)
@@ -776,6 +696,45 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 			
 			/* if special types, draw manually for now... */
 			if (doDraw) {
+				if (ale->id) {
+					/* special exception for textures */
+					if (GS(ale->id->name) == ID_TE) {
+						offset= 14;
+						indent= 1;
+					}
+					/* special exception for nodetrees */
+					else if (GS(ale->id->name) == ID_NT) {
+						bNodeTree *ntree = (bNodeTree *)ale->id;
+						
+						switch (ntree->type) {
+							case NTREE_SHADER:
+							{
+								/* same as for textures */
+								offset= 14;
+								indent= 1;
+							}
+								break;
+								
+							case NTREE_TEXTURE:
+							{
+								/* even more */
+								offset= 21;
+								indent= 1;
+							}	
+								break;
+								
+							default:
+								/* normal will do */
+								offset= 14;
+								break;
+						}
+					}
+					else
+						offset= 14;
+				}
+				else
+					offset= 0;
+				
 				/* now, start drawing based on this information */
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
