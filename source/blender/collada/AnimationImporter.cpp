@@ -692,13 +692,30 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::AnimationList:
 		}
 }
 
-void AnimationImporter:: Assign_float_animations(const COLLADAFW::AnimationList::AnimationBinding * binding,
-												 std::vector<FCurve*>* curves, char * anim_type)
+void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, char * anim_type)
 {
 	char rna_path[100];
-	BLI_strncpy(rna_path, anim_type , sizeof(rna_path));
-
-	modify_fcurve(curves, rna_path, 0 );
+	if (animlist_map.find(listid) == animlist_map.end()) return ;
+	else 
+	{
+		//transformation has animations
+		const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+		const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+		//all the curves belonging to the current binding
+		std::vector<FCurve*> animcurves;    
+		for (unsigned int j = 0; j < bindings.getCount(); j++) {
+			 animcurves = curve_map[bindings[j].animation];
+			//calculate rnapaths and array index of fcurves according to transformation and animation class
+			 BLI_strncpy(rna_path, anim_type , sizeof(rna_path));
+			 modify_fcurve(&animcurves, rna_path, 0 );
+			 std::vector<FCurve*>::iterator iter;
+				//Add the curves of the current animation to the object
+				for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+					FCurve * fcu = *iter;
+					BLI_addtail(AnimCurves, fcu);	
+				}	 			
+		}
+	}
 	
 }
 
@@ -787,7 +804,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 		}
 	}
 
-	if ( ((animType & LIGHT_COLOR) != 0)|| ((animType & LIGHT_FOA) != 0) )
+	if ( ((animType & LIGHT_COLOR) != 0)|| ((animType & LIGHT_FOA) != 0) || ((animType & LIGHT_FOE) != 0) )
 	{
 		Lamp * lamp  = (Lamp*) ob->data;
 
@@ -799,58 +816,43 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 
 		for (unsigned int i = 0; i < nodeLights.getCount(); i++) {
 			const COLLADAFW::Light *light = (COLLADAFW::Light *) FW_object_map[nodeLights[i]->getInstanciatedObjectId()];
+
 			if ((animType & LIGHT_COLOR) != 0)
 			{
 				const COLLADAFW::Color *col =  &(light->getColor());
 				const COLLADAFW::UniqueId& listid = col->getAnimationList();
-				if (animlist_map.find(listid) == animlist_map.end()) continue ;
-				else 
-				{
-					//transformation has animations
-					const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-					const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
-					//all the curves belonging to the current binding
-					std::vector<FCurve*> animcurves;    
-					for (unsigned int j = 0; j < bindings.getCount(); j++) {
-						 animcurves = curve_map[bindings[j].animation];
-						//calculate rnapaths and array index of fcurves according to transformation and animation class
-						 Assign_color_animations( &bindings[j], &animcurves); 
-						
-						 std::vector<FCurve*>::iterator iter;
-							//Add the curves of the current animation to the object
-							for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-								FCurve * fcu = *iter;
-								BLI_addtail(AnimCurves, fcu);	
-							}	 			
-					}
+				//transformation has animations
+				const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+				const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+				//all the curves belonging to the current binding
+				std::vector<FCurve*> animcurves;    
+				for (unsigned int j = 0; j < bindings.getCount(); j++) {
+					 animcurves = curve_map[bindings[j].animation];
+					//calculate rnapaths and array index of fcurves according to transformation and animation class
+					 Assign_color_animations( &bindings[j], &animcurves); 
+					
+					 std::vector<FCurve*>::iterator iter;
+						//Add the curves of the current animation to the object
+						for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+							FCurve * fcu = *iter;
+							BLI_addtail(AnimCurves, fcu);	
+						}	 			
 				}
+				
 			}
-			if ((animType & LIGHT_FOA) != 0)
+			if ((animType & LIGHT_FOA) != 0 )
 			{
 				const COLLADAFW::AnimatableFloat *foa =  &(light->getFallOffAngle());
 				const COLLADAFW::UniqueId& listid = foa->getAnimationList();
-				if (animlist_map.find(listid) == animlist_map.end()) continue ;
-				else 
-				{
-					//transformation has animations
-					const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-					const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
-					//all the curves belonging to the current binding
-					std::vector<FCurve*> animcurves;    
-					for (unsigned int j = 0; j < bindings.getCount(); j++) {
-						 animcurves = curve_map[bindings[j].animation];
-						//calculate rnapaths and array index of fcurves according to transformation and animation class
-						 Assign_float_animations( &bindings[j], &animcurves , "spot_size"); 
-						
-						 std::vector<FCurve*>::iterator iter;
-							//Add the curves of the current animation to the object
-							for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-								FCurve * fcu = *iter;
-								BLI_addtail(AnimCurves, fcu);	
-							}	 			
-					}
-				}
-			}            	
+				Assign_float_animations( listid ,AnimCurves, "spot_size"); 
+			}
+			if ( (animType & LIGHT_FOE) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *foe =  &(light->getFallOffExponent());
+				const COLLADAFW::UniqueId& listid = foe->getAnimationList();
+				Assign_float_animations( listid ,AnimCurves, "spot_blend"); 
+			
+			}
 		}
 	}
 }
@@ -893,6 +895,12 @@ int AnimationImporter::get_animation_type ( const COLLADAFW::Node * node ,
 
 		if (animlist_map.find(foa_listid) != animlist_map.end()) 
 				type = type|LIGHT_FOA;
+		
+		const COLLADAFW::AnimatableFloat *fallOffExpo =  &(light->getFallOffExponent());
+	    const COLLADAFW::UniqueId& foe_listid = fallOffExpo ->getAnimationList();
+
+		if (animlist_map.find(foe_listid) != animlist_map.end()) 
+				type = type|LIGHT_FOE;
 		
 		if ( type != 0) break;
 

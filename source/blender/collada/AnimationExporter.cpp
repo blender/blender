@@ -89,7 +89,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
 					(!strcmp(transformName, "rotation_quaternion")) ||
 					(!strcmp(transformName, "color")) ||
-					(!strcmp(transformName, "spot_size"))) 
+					(!strcmp(transformName, "spot_size"))||
+					(!strcmp(transformName, "spot_blend"))) 
 					dae_animation(ob ,fcu, transformName );
 				
 

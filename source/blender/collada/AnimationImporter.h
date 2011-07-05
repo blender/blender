@@ -89,7 +89,8 @@ private:
 			INANIMATE = 0,
 			NODE_TRANSFORM = 1,
 			LIGHT_COLOR	= 2,
-			LIGHT_FOA = 4
+			LIGHT_FOA = 4,
+			LIGHT_FOE = 8
 		};
 public:
 
@@ -122,8 +123,7 @@ public:
 	void Assign_color_animations(const COLLADAFW::AnimationList::AnimationBinding * binding,
 								 std::vector<FCurve*>* curves);
 
-	void Assign_float_animations(const COLLADAFW::AnimationList::AnimationBinding * binding,
-												 std::vector<FCurve*>* curves, char * anim_type);
+	void Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, char * anim_type);
 
 	void modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index );
 	// prerequisites:
