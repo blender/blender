@@ -2681,7 +2681,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 static void posttrans_gpd_clean (bGPdata *gpd)
 {
 	bGPDlayer *gpl;
-
+	
 	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
 		ListBase sel_buffer = {NULL, NULL};
 		bGPDframe *gpf, *gpfn;
@@ -4844,7 +4844,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				// XXX: BAD! this get gpencil datablocks directly from main db...
 				// but that's how this currently works :/
 				for (gpd = G.main->gpencil.first; gpd; gpd = gpd->id.next) {
-					if (ID_REAL_USERS(gpd) > 1)
+					if (ID_REAL_USERS(gpd))
 						posttrans_gpd_clean(gpd);
 				}
 			}
@@ -4872,7 +4872,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		}
 		
 		/* make sure all F-Curves are set correctly */
-		ANIM_editkeyframes_refresh(&ac);
+		if (ac.datatype != ANIMCONT_GPENCIL)
+			ANIM_editkeyframes_refresh(&ac);
 		
 		/* clear flag that was set for time-slide drawing */
 		saction->flag &= ~SACTION_MOVING;
