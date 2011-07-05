@@ -399,6 +399,11 @@ void KX_GameObject::SetActionFrame(short layer, float frame)
 	GetActionManager()->SetActionFrame(layer, frame);
 }
 
+bAction *KX_GameObject::GetCurrentAction(short layer)
+{
+	return GetActionManager()->GetCurrentAction(layer);
+}
+
 void KX_GameObject::ProcessReplica()
 {
 	SCA_IObject::ProcessReplica();

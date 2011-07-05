@@ -62,8 +62,7 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_blendinpose(NULL),
 	m_sg_contr(NULL),
 	m_ptrrna(NULL),
-	m_done(true),
-	m_bcalc_local_time(true)
+	m_done(true)
 {
 	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
 	{
@@ -197,6 +196,11 @@ void BL_Action::InitIPO()
 		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, m_ipo_flags & ACT_IPOFLAG_LOCAL);
 }
 
+bAction *BL_Action::GetAction()
+{
+	return (IsDone()) ? NULL : m_action;
+}
+
 float BL_Action::GetFrame()
 {
 	return m_localtime;
@@ -204,14 +208,24 @@ float BL_Action::GetFrame()
 
 void BL_Action::SetFrame(float frame)
 {
+	float dt;
+
 	// Clamp the frame to the start and end frame
 	if (frame < min(m_startframe, m_endframe))
 		frame = min(m_startframe, m_endframe);
 	else if (frame > max(m_startframe, m_endframe))
 		frame = max(m_startframe, m_endframe);
+	
+	// We don't set m_localtime directly since it's recalculated
+	// in the next update. So, we modify the value (m_starttime) 
+	// used to calculate m_localtime the next time SetLocalTime() is called.
 
-	m_localtime = frame;
-	m_bcalc_local_time = false;
+	dt = frame-m_startframe;
+
+	if (m_endframe < m_startframe)
+		dt = -dt;
+
+	m_starttime -= dt / (KX_KetsjiEngine::GetAnimFrameRate()*m_speed);
 }
 
 void BL_Action::SetLocalTime(float curtime)
@@ -263,16 +277,8 @@ void BL_Action::Update(float curtime)
 	if (m_done)
 		return;
 
-	// We only want to calculate the current time if we weren't given a frame (e.g., from SetFrame())
-	if (m_bcalc_local_time)
-	{
-		curtime -= KX_KetsjiEngine::GetSuspendedDelta();
-		SetLocalTime(curtime);
-	}
-	else
-	{
-		m_bcalc_local_time = true;
-	}
+	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
+	SetLocalTime(curtime);
 
 	// Handle wrap around
 	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))

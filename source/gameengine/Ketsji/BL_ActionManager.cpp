@@ -56,6 +56,12 @@ void BL_ActionManager::SetActionFrame(short layer, float frame)
 		m_layers[layer]->SetFrame(frame);
 }
 
+struct bAction *BL_ActionManager::GetCurrentAction(short layer)
+{
+	if (m_layers[layer])
+		return m_layers[layer]->GetAction();
+}
+
 bool BL_ActionManager::PlayAction(const char* name,
 								float start,
 								float end,

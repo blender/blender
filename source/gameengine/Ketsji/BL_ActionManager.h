@@ -56,6 +56,8 @@ public:
 	float GetActionFrame(short layer);
 	void SetActionFrame(short layer, float frame);
 
+	struct bAction *GetCurrentAction(short layer);
+
 	void StopAction(short layer);
 	bool IsActionDone(short layer);
 	void Update(float);

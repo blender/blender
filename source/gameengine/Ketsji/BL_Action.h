@@ -66,7 +66,6 @@ private:
 	short m_ipo_flags;
 
 	bool m_done;
-	bool m_bcalc_local_time;
 
 	void InitIPO();
 	void SetLocalTime(float curtime);
@@ -91,6 +90,7 @@ public:
 
 	// Accessors
 	float GetFrame();
+	struct bAction *GetAction();
 
 	// Mutators
 	void SetFrame(float frame);

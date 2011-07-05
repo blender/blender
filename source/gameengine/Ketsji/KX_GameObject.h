@@ -65,6 +65,7 @@ class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
 class BL_ActionManager;
 struct Object;
+struct bAction;
 
 #ifdef WITH_PYTHON
 /* utility conversion function */
@@ -231,6 +232,11 @@ public:
 	 * Sets the current frame of an action
 	 */
 	void SetActionFrame(short layer, float frame);
+
+	/**
+	 * Gets the currently running action on the given layer
+	 */
+	bAction *GetCurrentAction(short layer);
 
 	/**
 	 * Remove an action from the object's action manager

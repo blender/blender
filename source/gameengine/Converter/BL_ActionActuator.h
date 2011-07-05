@@ -56,35 +56,8 @@ public:
 						float	layer_weight,
 						short	ipo_flags,
 						short	end_reset,
-						float	stride) 
-		: SCA_IActuator(gameobj, KX_ACT_ACTION),
-		
-		m_lastpos(0, 0, 0),
-		m_blendframe(0),
-		m_flag(0),
-		m_startframe (starttime),
-		m_endframe(endtime) ,
-		m_starttime(0),
-		m_localtime(starttime),
-		m_lastUpdate(-1),
-		m_blendin(blendin),
-		m_blendstart(0),
-		m_stridelength(stride),
-		m_playtype(playtype),
-		m_priority(priority),
-		m_layer(layer),
-		m_layer_weight(layer_weight),
-		m_ipo_flags(ipo_flags),
-		m_end_reset(end_reset),
-		m_is_going(false),
-		m_pose(NULL),
-		m_blendpose(NULL),
-		m_userpose(NULL),
-		m_action(action),
-		m_propname(propname),
-		m_framepropname(framepropname)		
-	{
-	};
+						float	stride);
+
 	virtual ~BL_ActionActuator();
 	virtual	bool Update(double curtime, bool frame);
 	virtual CValue* GetReplica();
@@ -103,6 +76,9 @@ public:
 	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_channel_names(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
 	/* attribute check */
 	static int CheckFrame(void *self, const PyAttributeDef*)
 	{
@@ -147,9 +123,9 @@ public:
 	
 protected:
 
-	void SetStartTime(float curtime);
-	void SetLocalTime(float curtime);
-	bool ClampLocalTime();
+	//void SetStartTime(float curtime);
+	//void SetLocalTime(float curtime);
+	//bool ClampLocalTime();
 
 	MT_Point3	m_lastpos;
 	float	m_blendframe;
@@ -172,8 +148,6 @@ protected:
 	short	m_priority;
 	short	m_layer;
 	short	m_ipo_flags;
-	bool	m_end_reset;
-	bool	m_is_going;
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct bPose* m_userpose;
@@ -183,10 +157,13 @@ protected:
 };
 
 enum {
-	ACT_FLAG_REVERSE	= 0x00000001,
-	ACT_FLAG_LOCKINPUT	= 0x00000002,
-	ACT_FLAG_KEYUP		= 0x00000004,
-	ACT_FLAG_ACTIVE		= 0x00000008
+	ACT_FLAG_REVERSE	= 1<<0,
+	ACT_FLAG_LOCKINPUT	= 1<<1,
+	ACT_FLAG_KEYUP		= 1<<2,
+	ACT_FLAG_ACTIVE		= 1<<3,
+	ACT_FLAG_CONTINUE	= 1<<4,
+	ACT_FLAG_PLAY_END	= 1<<5
+
 };
 
 #endif
