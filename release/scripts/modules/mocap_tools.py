@@ -513,3 +513,37 @@ def fcurves_simplify(sel_opt="all", error=0.002, group_mode=True):
             print(str(totalt)[:5] + " seconds, total time elapsed")
 
     return
+
+# Implementation of non-linear median filter, with variable kernel size
+# Double pass - one marks spikes, the other smooths one
+# Expects sampled keyframes on everyframe
+
+
+def denoise_median():
+    context = bpy.context
+    obj = context.active_object
+    fcurves = obj.animation_data.action.fcurves
+    medKernel = 1  # actually *2+1... since it this is offset
+    flagKernel = 4
+    highThres = (flagKernel * 2) - 1
+    lowThres = 0
+    for fcurve in fcurves:
+        orgPts = fcurve.keyframe_points[:]
+        flaggedFrames = []
+        # mark frames that are spikes by sorting a large kernel
+        for i in range(flagKernel, len(fcurve.keyframe_points) - flagKernel):
+            center = orgPts[i]
+            neighborhood = orgPts[i - flagKernel: i + flagKernel]
+            neighborhood.sort(key=lambda pt: pt.co[1])
+            weight = neighborhood.index(center)
+            if weight >= highThres or weight <= lowThres:
+                flaggedFrames.append((i, center))
+        # clean marked frames with a simple median filter
+        # averages all frames in the kernel equally, except center which has no weight
+        for i, pt in flaggedFrames:
+            newValue = 0
+            sumWeights = 0
+            neighborhood = [neighpt.co[1] for neighpt in orgPts[i - medKernel: i + medKernel + 1] if neighpt != pt]
+            newValue = sum(neighborhood) / len(neighborhood)
+            pt.co[1] = newValue
+    return
