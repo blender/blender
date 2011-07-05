@@ -5530,7 +5530,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 void initTimeTranslate(TransInfo *t)
 {
 	/* this tool is only really available in the Action Editor... */
-	if (t->spacetype != SPACE_ACTION) {
+	if (!ELEM(t->spacetype, SPACE_ACTION, SPACE_SEQ)) {
 		t->state = TRANS_CANCEL;
 	}
 
