@@ -534,6 +534,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, 
 	
 	if (luminance(lacol) < 0.001f) return;
 	
+	normalize_v3(lv);
 	p = vol_get_phasefunc(shi, shi->mat->vol.asymmetry, shi->view, lv);
 	
 	/* physically based scattering with non-physically based RGB gain */

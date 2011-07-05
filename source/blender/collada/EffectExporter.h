@@ -47,7 +47,7 @@ class EffectsExporter: COLLADASW::LibraryEffects
 {
 public:
 	EffectsExporter(COLLADASW::StreamWriter *sw);
-	void exportEffects(Scene *sce);
+	void exportEffects(Scene *sce, bool export_selected);
 
 	void operator()(Material *ma, Object *ob);
 	

@@ -270,11 +270,16 @@ static void rna_Base_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, Base *base, Object *ob)
 {
 	/* try to avoid scene sort */
-	if((ob->lay & scene->lay) && (base->lay & scene->lay)) {
+	if(scene == NULL) {
+		/* pass - unlikely but when running scripts on startup it happens */
+	}
+	else if((ob->lay & scene->lay) && (base->lay & scene->lay)) {
 		 /* pass */
-	} else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0) {
+	}
+	else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0) {
 		/* pass */
-	} else {
+	}
+	else {
 		DAG_scene_sort(bmain, scene);
 	}
 }
@@ -284,7 +289,7 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	Base *base;
 
-	base= object_in_scene(ob, scene);
+	base= scene ? object_in_scene(ob, scene) : NULL;
 	if(!base)
 		return;
 	

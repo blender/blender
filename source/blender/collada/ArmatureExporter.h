@@ -65,7 +65,7 @@ public:
 
 	void add_instance_controller(Object *ob);
 
-	void export_controllers(Scene *sce);
+	void export_controllers(Scene *sce, bool export_selected);
 
 	void operator()(Object *ob);
 

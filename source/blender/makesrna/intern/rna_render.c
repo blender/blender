@@ -32,6 +32,7 @@
 #include "DNA_scene_types.h"
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -271,6 +272,12 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop= RNA_def_string(func, "info", "", 0, "Info", "");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 
+	func= RNA_def_function(srna, "report", "RE_engine_report");
+	prop= RNA_def_enum_flag(func, "type", wm_report_items, 0, "Type", "");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop= RNA_def_string(func, "message", "", 0, "Report Message", "");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+
 	/* registration */
 	RNA_define_verify_sdna(0);
 
@@ -381,6 +388,7 @@ static void rna_def_render_pass(BlenderRNA *brna)
 		{SCE_PASS_MIST, "MIST", 0, "Mist", ""},
 		{SCE_PASS_EMIT, "EMIT", 0, "Emit", ""},
 		{SCE_PASS_ENVIRONMENT, "ENVIRONMENT", 0, "Environment", ""},
+		{SCE_PASS_INDEXMA, "MATERIAL_INDEX", 0, "Material Index", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "RenderPass", NULL);

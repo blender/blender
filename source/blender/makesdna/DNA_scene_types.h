@@ -203,6 +203,7 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_RAYHITS		(1<<15)
 #define SCE_PASS_EMIT			(1<<16)
 #define SCE_PASS_ENVIRONMENT	(1<<17)
+#define SCE_PASS_INDEXMA	(1<<18)
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 

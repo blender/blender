@@ -523,7 +523,6 @@ static void *vol_precache_part(void *data)
 					continue;
 				}
 				
-				/* this view coordinate is very wrong! */
 				copy_v3_v3(shi->view, cco);
 				normalize_v3(shi->view);
 				vol_get_scattering(shi, scatter_col, cco);

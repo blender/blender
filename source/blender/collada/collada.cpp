@@ -51,7 +51,7 @@ extern "C"
 		return 1;
 	}
 
-	int collada_export(Scene *sce, const char *filepath)
+	int collada_export(Scene *sce, const char *filepath, int selected)
 	{
 		DocumentExporter exp;
 
@@ -64,7 +64,7 @@ extern "C"
 		}
 		/* end! */
 
-		exp.exportCurrentScene(sce, filepath);
+		exp.exportCurrentScene(sce, filepath, selected);
 
 		return 1;
 	}

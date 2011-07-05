@@ -172,6 +172,7 @@ static void displaceModifier_do(
 	MDeformVert *dvert = NULL;
 	int defgrp_index;
 	float (*tex_co)[3];
+	float weight= 1.0f; /* init value unused but some compilers may complain */
 
 	if(!dmd->texture) return;
 	if(dmd->strength == 0.0f) return;
@@ -189,17 +190,10 @@ static void displaceModifier_do(
 	for(i = 0; i < numVerts; ++i) {
 		TexResult texres;
 		float delta = 0, strength = dmd->strength;
-		MDeformWeight *def_weight = NULL;
 
 		if(dvert) {
-			int j;
-			for(j = 0; j < dvert[i].totweight; ++j) {
-				if(dvert[i].dw[j].def_nr == defgrp_index) {
-					def_weight = &dvert[i].dw[j];
-					break;
-				}
-			}
-			if(!def_weight || def_weight->weight==0.0f) continue;
+			weight= defvert_find_weight(dvert + i, defgrp_index);
+			if(weight == 0.0f) continue;
 		}
 
 		texres.nor = NULL;
@@ -207,7 +201,7 @@ static void displaceModifier_do(
 
 		delta = texres.tin - dmd->midlevel;
 
-		if(def_weight) strength *= def_weight->weight;
+		if(dvert) strength *= weight;
 
 		delta *= strength;
 		CLAMP(delta, -10000, 10000);

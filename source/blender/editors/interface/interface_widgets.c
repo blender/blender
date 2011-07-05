@@ -180,7 +180,7 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	
 	glEnable(GL_BLEND);
 	glGetFloatv(GL_CURRENT_COLOR, color);
-	color[3]= 0.125;
+	color[3]*= 0.125;
 	glColor4fv(color);
 	
 	/* for each AA step */

@@ -1680,8 +1680,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		bb.anim = part->bb_anim;
 		bb.lock = part->draw & PART_DRAW_BB_LOCK;
 		bb.ob = (part->bb_ob ? part->bb_ob : RE_GetCamera(re));
-		bb.offset[0] = part->bb_offset[0];
-		bb.offset[1] = part->bb_offset[1];
 		bb.split_offset = part->bb_split_offset;
 		bb.totnum = totpart+totchild;
 		bb.uv_split = part->bb_uv_split;
@@ -2015,7 +2013,20 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 					if(part->ren_as == PART_DRAW_BB) {
 						bb.random = random;
-						bb.size = pa_size;
+						bb.offset[0] = part->bb_offset[0];
+						bb.offset[1] = part->bb_offset[1];
+						bb.size[0] = part->bb_size[0] * pa_size;
+						if (part->bb_align==PART_BB_VEL) {
+							float pa_vel = len_v3(state.vel);
+							float head = part->bb_vel_head*pa_vel;
+							float tail = part->bb_vel_tail*pa_vel;
+							bb.size[1] = part->bb_size[1]*pa_size + head + tail;
+							/* use offset to adjust the particle center. this is relative to size, so need to divide! */
+							if (bb.size[1] > 0.0f)
+								bb.offset[1] += (head-tail) / bb.size[1];
+						}
+						else
+							bb.size[1] = part->bb_size[1] * pa_size;
 						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
 						bb.time = ct;
 						bb.num = a;
@@ -2040,7 +2051,20 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 				if(part->ren_as == PART_DRAW_BB) {
 					bb.random = random;
-					bb.size = pa_size;
+					bb.offset[0] = part->bb_offset[0];
+					bb.offset[1] = part->bb_offset[1];
+					bb.size[0] = part->bb_size[0] * pa_size;
+					if (part->bb_align==PART_BB_VEL) {
+						float pa_vel = len_v3(state.vel);
+						float head = part->bb_vel_head*pa_vel;
+						float tail = part->bb_vel_tail*pa_vel;
+						bb.size[1] = part->bb_size[1]*pa_size + head + tail;
+						/* use offset to adjust the particle center. this is relative to size, so need to divide! */
+						if (bb.size[1] > 0.0f)
+							bb.offset[1] += (head-tail) / bb.size[1];
+					}
+					else
+						bb.size[1] = part->bb_size[1] * pa_size;
 					bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
 					bb.time = pa_time;
 					bb.num = a;
@@ -5656,13 +5680,14 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
    RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
    RE_BAKE_SHADOW: for baking, only shadows, but all objects
 */
-void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, int type, Object *actob)
+void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, const int type, Object *actob)
 {
 	Object *camera;
 	float mat[4][4];
 	float amb[3];
-	int onlyselected, nolamps;
-	
+	const short onlyselected= !ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW);
+	const short nolamps= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);
+
 	re->main= bmain;
 	re->scene= scene;
 	re->lay= lay;
@@ -5712,7 +5737,15 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		unit_m4(mat);
 		RE_SetView(re, mat);
 	}
-	
+	copy_m3_m4(re->imat, re->viewinv);
+
+	/* TODO: deep shadow maps + baking + strands */
+	/* strands use the window matrix and view size, there is to correct
+	 * window matrix but at least avoids malloc and crash loop [#27807] */
+	unit_m4(re->winmat);
+	re->winx= re->winy= 256;
+	/* done setting dummy values */
+
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
 	if(re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
@@ -5731,9 +5764,6 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	set_node_shader_lamp_loop(shade_material_loop);
 	
 	/* MAKE RENDER DATA */
-	nolamps= !ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW);
-	onlyselected= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);
-
 	database_init_objects(re, lay, nolamps, onlyselected, actob, 0);
 
 	set_material_lightgroups(re);

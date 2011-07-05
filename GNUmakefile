@@ -75,7 +75,8 @@ all:
 	@echo Building Blender ...
 	make -C $(BUILD_DIR) -s -j $(NPROCS) install
 	@echo
-	@echo run blender from "$(BUILD_DIR)/bin/blender"
+	@echo edit build configuration with: "$(BUILD_DIR)/CMakeCache.txt" run make again to rebuild.
+	@echo blender installed, run from: "$(BUILD_DIR)/bin/blender"
 	@echo
 
 debug: all

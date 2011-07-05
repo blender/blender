@@ -42,6 +42,7 @@ set(INC_SYS
 set(SRC
 	bpy.c
 	bpy_app.c
+	bpy_app_handlers.c
 	bpy_driver.c
 	bpy_interface.c
 	bpy_intern_string.c
@@ -59,6 +60,7 @@ set(SRC
 
 	bpy.h
 	bpy_app.h
+	bpy_app_handlers.h
 	bpy_driver.h
 	bpy_intern_string.h
 	bpy_operator.h

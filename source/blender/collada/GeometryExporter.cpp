@@ -47,13 +47,13 @@
 GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryGeometries(sw) {}
 
 
-void GeometryExporter::exportGeom(Scene *sce)
+void GeometryExporter::exportGeom(Scene *sce, bool export_selected)
 {
 	openLibrary();
 
 	mScene = sce;
 	GeometryFunctor gf;
-	gf.forEachMeshObjectInScene<GeometryExporter>(sce, *this);
+	gf.forEachMeshObjectInScene<GeometryExporter>(sce, *this, export_selected);
 
 	closeLibrary();
 }

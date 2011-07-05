@@ -89,14 +89,14 @@ void ArmatureExporter::add_instance_controller(Object *ob)
 	ins.add();
 }
 
-void ArmatureExporter::export_controllers(Scene *sce)
+void ArmatureExporter::export_controllers(Scene *sce, bool export_selected)
 {
 	scene = sce;
 
 	openLibrary();
 
 	GeometryFunctor gf;
-	gf.forEachMeshObjectInScene<ArmatureExporter>(sce, *this);
+	gf.forEachMeshObjectInScene<ArmatureExporter>(sce, *this, export_selected);
 
 	closeLibrary();
 }

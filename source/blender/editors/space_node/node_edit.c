@@ -2004,18 +2004,15 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree= snode->edittree;
-	bNode *node, *newnode, *last;
+	bNode *node, *newnode, *lastnode;
+	bNodeLink *link, *newlink, *lastlink;
 	
 	ED_preview_kill_jobs(C);
 	
-	last = ntree->nodes.last;
+	lastnode = ntree->nodes.last;
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
 			newnode = nodeCopyNode(ntree, node);
-			
-			/* deselect old node, select the copy instead */
-			node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
-			newnode->flag |= NODE_SELECT;
 			
 			if(newnode->id) {
 				/* simple id user adjustment, node internal functions dont touch this
@@ -2027,7 +2024,53 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		
 		/* make sure we don't copy new nodes again! */
-		if (node==last)
+		if (node==lastnode)
+			break;
+	}
+	
+	/* copy links between selected nodes
+	 * NB: this depends on correct node->new_node and sock->new_sock pointers from above copy!
+	 */
+	lastlink = ntree->links.last;
+	for (link=ntree->links.first; link; link=link->next) {
+		/* this creates new links between copied nodes,
+		 * as well as input links from unselected (when fromnode==NULL) !
+		 */
+		if (link->tonode && (link->tonode->flag & NODE_SELECT)) {
+			newlink = MEM_callocN(sizeof(bNodeLink), "bNodeLink");
+			newlink->flag = link->flag;
+			newlink->tonode = link->tonode->new_node;
+			newlink->tosock = link->tosock->new_sock;
+			if (link->fromnode && (link->fromnode->flag & NODE_SELECT)) {
+				newlink->fromnode = link->fromnode->new_node;
+				newlink->fromsock = link->fromsock->new_sock;
+			}
+			else {
+				/* input node not copied, this keeps the original input linked */
+				newlink->fromnode = link->fromnode;
+				newlink->fromsock = link->fromsock;
+			}
+			
+			BLI_addtail(&ntree->links, newlink);
+		}
+		
+		/* make sure we don't copy new links again! */
+		if (link==lastlink)
+			break;
+	}
+	
+	/* deselect old nodes, select the copies instead */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			/* has been set during copy above */
+			newnode = node->new_node;
+			
+			node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
+			newnode->flag |= NODE_SELECT;
+		}
+		
+		/* make sure we don't copy new nodes again! */
+		if (node==lastnode)
 			break;
 	}
 	

@@ -879,6 +879,15 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             col = row.column()
             col.prop(part, "billboard_offset")
 
+            row = layout.row()
+            col = row.column()
+            col.prop(part, "billboard_size", text="Scale")
+            if part.billboard_align == 'VEL':
+                col = row.column(align=True)
+                col.label("Velocity Scale:")
+                col.prop(part, "billboard_velocity_head", text="Head")
+                col.prop(part, "billboard_velocity_tail", text="Tail")
+
             if psys:
                 col = layout.column()
                 col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_textures")

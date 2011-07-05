@@ -220,6 +220,11 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		if(oglrender->write_still) {
 			char name[FILE_MAX];
 			int ok;
+
+			if(scene->r.planes == 8) {
+				IMB_color_to_bw(ibuf);
+			}
+
 			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
 			ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality); /* no need to stamp here */
 			if(ok)	printf("OpenGL Render written to '%s'\n", name);
@@ -433,6 +438,24 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	ibuf= BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
 
 	if(ibuf) {
+		/* color -> greyscale */
+		/* editing directly would alter the render view */
+		if(scene->r.planes == 8) {
+			ImBuf *ibuf_bw= IMB_dupImBuf(ibuf);
+			IMB_color_to_bw(ibuf_bw);
+			// IMB_freeImBuf(ibuf); /* owned by the image */
+			ibuf= ibuf_bw;
+		}
+		else {
+			/* this is lightweight & doesnt re-alloc the buffers, only do this
+			 * to save the correct bit depth since the image is always RGBA */
+			ImBuf *ibuf_cpy= IMB_allocImBuf(ibuf->x, ibuf->y, scene->r.planes, 0);
+			ibuf_cpy->rect= ibuf->rect;
+			ibuf_cpy->rect_float= ibuf->rect_float;
+			ibuf_cpy->zbuf_float= ibuf->zbuf_float;
+			ibuf= ibuf_cpy;
+		}
+
 		if(BKE_imtype_is_movie(scene->r.imtype)) {
 			ok= oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey, oglrender->reports);
 			if(ok) {
@@ -453,6 +476,9 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 				BKE_reportf(op->reports, RPT_INFO, "Saved file: %s", name);
 			}
 		}
+
+		/* imbuf knows which rects are not part of ibuf */
+		IMB_freeImBuf(ibuf);
 	}
 
 	BKE_image_release_ibuf(oglrender->ima, lock);
