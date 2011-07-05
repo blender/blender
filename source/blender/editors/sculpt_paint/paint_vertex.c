@@ -1204,6 +1204,7 @@ static void multipaint_selection(MDeformVert *dvert, float change, char *selecti
 			if(dw && dw->weight) {
 				val = dw->weight * change;
 				if(val > 1) {
+					// Jason TODO: when the change is reduced, you need to recheck the earlier values to make sure they are not 0 (precision error)
 					change = 1.0f/dw->weight;
 				}
 				if(val <= 0) {

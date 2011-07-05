@@ -1959,3 +1959,37 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 		vc->em= me->edit_mesh;
 	}
 }
+
+
+/* Jason (similar to void paintface_flush_flags(Object *ob))
+ * copy the vertex flags, most importantly selection from the mesh to the final derived mesh,
+ * use in object mode when selecting vertices (while painting) */
+void paintvert_flush_flags(Object *ob)
+{
+	Mesh *me= get_mesh(ob);
+	DerivedMesh *dm= ob->derivedFinal;
+	MVert *verts, *mv, *mv_orig;
+	int *index_array = NULL;
+	int totvert;
+	int i;
+	
+	if(me==NULL || dm==NULL)
+		return;
+
+	index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
+	
+	verts = dm->getVertArray(dm);
+	totvert = dm->getNumVerts(dm);
+	
+	mv= verts;
+	
+	for (i= 0; i<totvert; i++, mv++) { /* loop over derived mesh faces */
+		if(index_array) {
+			mv_orig= me->mvert + index_array[i];
+			mv->flag= mv_orig->flag;
+		} else {
+			mv_orig= me->mvert + i;
+			mv->flag= mv_orig->flag;
+		}
+	}
+}

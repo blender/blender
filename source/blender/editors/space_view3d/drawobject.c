@@ -58,6 +58,7 @@
 #include "BKE_anim.h"			//for the where_on_path function
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_DerivedMesh.h"
+
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"
@@ -1657,7 +1658,45 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 
 	dm->release(dm);
 }
+/*Jason */
+static void mesh_obmode_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+{
+	struct { void (*func)(void *userData, MVert *mv, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
+	Mesh *me = data->vc.obact->data;
+	MVert *mv = me->mvert+index;
+	//MVert *dmv = CDDM_get_verts(data->vc.obact->derivedFinal)+index;
+	//MVert *mv = CDDM_get_verts(data->vc.obact->derivedFinal)+index;
+	if ((mv->flag & ME_HIDE)==0) {
+		short s[2]= {IS_CLIPPED, 0};
 
+		if (data->clipVerts) {
+			view3d_project_short_clip(data->vc.ar, co, s, 1);
+		} else {
+			view3d_project_short_noclip(data->vc.ar, co, s);
+		}
+
+		if (s[0]!=IS_CLIPPED)
+			data->func(data->userData, me->mvert, s[0], s[1], index);
+	}
+}
+/*Jason*/
+void mesh_obmode_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, MVert *mv, int x, int y, int index), void *userData, int clipVerts)
+{
+	struct { void (*func)(void *userData, MVert *mv, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } data;
+	DerivedMesh *dm = mesh_get_derived_final(vc->scene, vc->obact, CD_MASK_BAREMESH);
+
+	data.vc= *vc;
+	data.func = func;
+	data.userData = userData;
+	data.clipVerts = clipVerts;
+	
+	if(clipVerts)
+		ED_view3d_local_clipping(vc->rv3d, vc->obact->obmat); /* for local clipping lookups */
+
+	dm->foreachMappedVert(dm, mesh_obmode_foreachScreenVert__mapFunc, &data);
+
+	dm->release(dm);
+}
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
@@ -2744,6 +2783,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 					dm->drawEdges(dm, (dt==OB_WIRE || totface==0), me->drawflag);
 					glPointSize(3.0f);
 					dm->drawSelectedVerts(dm);
+					//draw_obmode_dm_verts(dm, 1);
 					glPointSize(1.0f);
 				}
 			}

@@ -277,12 +277,14 @@ static void cdDM_drawSelectedVerts(DerivedMesh *dm)
 	if( GPU_buffer_legacy(dm) ) {
 		glBegin(GL_POINTS);
 		for(i = 0; i < dm->numVertData; i++, mv++) {
-			if(mv->flag & 1) {//TODO define selected
+			if((mv->flag & 1)) {//TODO define selected
 				glColor3f(1.0f, 1.0f, 0.0f);
 			}else {
 				glColor3f(0.0f, 0.0f, 0.0f);
 			}
-			glVertex3fv(mv->co);
+			if(!(mv->flag & ME_HIDE)) {
+				glVertex3fv(mv->co);
+			}
 		}
 		glEnd();
 	}

@@ -197,6 +197,22 @@ static void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 		}
 	}
 }
+/* Jason */
+static void EM_backbuf_checkAndSelectTVerts(Mesh *me, int select)
+{
+	MVert *mv = me->mvert;
+	int a;
+
+	if (mv) {
+		for(a=1; a<=me->totvert; a++, mv++) {
+			if(EM_check_backbuf(a)) {
+				if(!(mv->flag & ME_HIDE)) {
+					mv->flag = select?(mv->flag|SELECT):(mv->flag&~SELECT);
+				}
+			}
+		}
+	}
+}
 
 static void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 {
@@ -1827,6 +1843,69 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
+/*Jason*/
+static void findnearestWPvert__doClosest(void *userData, MVert *mv, int x, int y, int index)
+{
+	struct { MVert *mv; short dist, select; int mval[2]; } *data = userData;
+	float temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+	mv = mv+index;
+	if((mv->flag & SELECT)==data->select)
+		temp += 5;
+
+	if(temp<data->dist) {
+		data->dist = temp;
+
+		data->mv = mv;
+	}
+}
+/*Jason*/
+static MVert *findnearestWPvert(ViewContext *vc, Object *obact, Mesh *me, const int mval[2], int sel)
+{
+	/* sel==1: selected gets a disadvantage */
+	struct { MVert *mv; short dist, select; int mval[2]; } data = {NULL};
+
+	data.dist = 100;
+	data.select = sel;
+	data.mval[0]= mval[0];
+	data.mval[1]= mval[1];
+
+	mesh_obmode_foreachScreenVert(vc, findnearestWPvert__doClosest, &data, 1);
+
+	return data.mv;
+}
+/* Jason */
+/* mouse selection in weight paint */
+/* gets called via generic mouse select operator */
+int mouse_wp_select(bContext *C, const int mval[2], short extend, Object *obact, Mesh* me)
+{
+	MVert *mv;
+	ViewContext *vc = NULL;
+	vc = MEM_callocN(sizeof(ViewContext), "wp_m_sel_viewcontext");
+	vc->ar= CTX_wm_region(C);
+	vc->scene= CTX_data_scene(C);
+	vc->v3d= CTX_wm_view3d(C);
+	vc->rv3d= CTX_wm_region_view3d(C);
+	vc->obact= obact;
+	vc->mval[0] = mval[0];
+	vc->mval[1] = mval[1];
+
+	ED_view3d_init_mats_rv3d(obact, vc->rv3d);
+
+	if(mv = findnearestWPvert(vc, obact, me, mval, 1)) {
+		if(extend) {
+			mv->flag ^= 1;
+		} else {
+			mv->flag |= 1;
+		}
+		paintvert_flush_flags(vc->obact);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
+
+		MEM_freeN(vc);
+		return 1;
+	}
+	MEM_freeN(vc);
+	return 0;
+}
 
 /* ****** Mouse Select ****** */
 
@@ -1839,9 +1918,11 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short center= RNA_boolean_get(op->ptr, "center");
 	short enumerate= RNA_boolean_get(op->ptr, "enumerate");
 	int	retval = 0;
+	// Jason
+	Mesh *me;
+	Scene *scene = CTX_data_scene(C);
 
 	view3d_operator_needs_opengl(C);
-	
 	if(obedit) {
 		if(obedit->type==OB_MESH)
 			retval = mouse_mesh(C, event->mval, extend);
@@ -1861,8 +1942,12 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return PE_mouse_particles(C, event->mval, extend);
 	else if(obact && paint_facesel_test(obact))
 		retval = paintface_mouse_select(C, obact, event->mval, extend);
-	else
+	/*Jason*/
+	else if (scene->toolsettings->wp_vert_sel && obact && obact->mode & OB_MODE_WEIGHT_PAINT && (me = (Mesh*)(obact->data))) {//Jason
+		retval = mouse_wp_select(C, event->mval, extend, obact, me);
+	} else {
 		retval = mouse_select(C, event->mval, extend, center, enumerate);
+	}
 
 	/* passthrough allows tweaks
 	 * FINISHED to signal one operator worked
@@ -1981,6 +2066,22 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 
 		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
 		EM_backbuf_checkAndSelectTFaces(me, select==LEFTMOUSE);
+		EM_free_backbuf();
+	}
+}
+
+/* Jason */
+static void paint_vertsel_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
+{
+	Object *ob= vc->obact;
+	Mesh *me = ob?ob->data:NULL;
+	int bbsel;
+
+	if (me) {
+		em_vertoffs= me->totvert+1;	/* max index array */
+
+		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
+		EM_backbuf_checkAndSelectTVerts(me, select==LEFTMOUSE);
 		EM_free_backbuf();
 	}
 }
@@ -2257,7 +2358,12 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
 		}
 		else if(paint_facesel_test(obact)) {
-			paint_facesel_circle_select(&vc, select, mval, (float)radius);
+			/* Jason */
+			if(scene->toolsettings->wp_vert_sel) {
+				paint_vertsel_circle_select(&vc, select, mval, (float)radius);
+			} else {
+				paint_facesel_circle_select(&vc, select, mval, (float)radius);
+			}
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
 		}
 		else if(obact->mode & OB_MODE_POSE)
