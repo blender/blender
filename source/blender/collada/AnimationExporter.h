@@ -33,6 +33,7 @@ extern "C"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_armature_types.h"
 
 #include "BKE_DerivedMesh.h"
@@ -90,7 +91,7 @@ public:
 	
 protected:
 
-	void dae_animation(Object* ob, FCurve *fcu, char* transformName);
+	void dae_animation(Object* ob, FCurve *fcu, char* transformName , bool is_param);
 
 	void write_bone_animation(Object *ob_arm, Bone *bone);
 

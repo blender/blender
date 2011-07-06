@@ -56,18 +56,50 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	void AnimationExporter::operator() (Object *ob) 
 	{
 		FCurve *fcu;
+		char * transformName ;
         if(ob->adt && ob->adt->action)      
-				fcu = (FCurve*)ob->adt->action->curves.first;
-	    else if( (ob->type == OB_LAMP ) && ((Lamp*)ob ->data)->adt && ((Lamp*)ob ->data)->adt->action )
-				fcu = (FCurve*)(((Lamp*)ob ->data)->adt->action->curves.first);
-		else return;
+		{
+			fcu = (FCurve*)ob->adt->action->curves.first;
+		    while (fcu) {
+			transformName = extract_transform_name( fcu->rna_path );
+				
+				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
+					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
+					(!strcmp(transformName, "rotation_quaternion"))) 
+					dae_animation(ob ,fcu, transformName, false);
+				fcu = fcu->next;
+			}
+		}
+		if( (ob->type == OB_LAMP ) && ((Lamp*)ob ->data)->adt && ((Lamp*)ob ->data)->adt->action )
+		{
+			fcu = (FCurve*)(((Lamp*)ob ->data)->adt->action->curves.first);
+			while (fcu) {
+			transformName = extract_transform_name( fcu->rna_path );
+				
+				if ((!strcmp(transformName, "color")) ||
+					(!strcmp(transformName, "spot_size"))||
+					(!strcmp(transformName, "spot_blend"))) 
+					dae_animation(ob ,fcu, transformName,true );
+				fcu = fcu->next;
+			}
+		}
+
+		if( (ob->type == OB_CAMERA ) && ((Camera*)ob ->data)->adt && ((Camera*)ob ->data)->adt->action )
+		{		
+			fcu = (FCurve*)(((Camera*)ob ->data)->adt->action->curves.first);
+			while (fcu) {
+			transformName = extract_transform_name( fcu->rna_path );
+				
+				if ((!strcmp(transformName, "lens"))) 
+					dae_animation(ob ,fcu, transformName,true );
+				fcu = fcu->next;
+			}
+		}
 		//if (!ob->adt || !ob->adt->action) 
 		//	fcu = (FCurve*)((Lamp*)ob->data)->adt->action->curves.first;  //this is already checked in hasAnimations()
 		//else
 		//    fcu = (FCurve*)ob->adt->action->curves.first;
-		char * transformName = extract_transform_name( fcu->rna_path );
-		
-				        
+						        
 		//if (ob->type == OB_ARMATURE) {
 		//	if (!ob->data) return;
 		//	bArmature *arm = (bArmature*)ob->data;
@@ -82,21 +114,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		//	}
 		//}
 		//else {
-			while (fcu) {
-			transformName = extract_transform_name( fcu->rna_path );
-				
-				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
-					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
-					(!strcmp(transformName, "rotation_quaternion")) ||
-					(!strcmp(transformName, "color")) ||
-					(!strcmp(transformName, "spot_size"))||
-					(!strcmp(transformName, "spot_blend"))) 
-					dae_animation(ob ,fcu, transformName );
-				
-
-				fcu = fcu->next;
-			}
-		//}
+		
 	}
 
 	float * AnimationExporter::get_eul_source_for_quat(Object *ob )
@@ -150,7 +168,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			return id_name(ob);
 	}
 
-	void AnimationExporter::dae_animation(Object* ob, FCurve *fcu/*, std::string ob_name*/ , char* transformName )
+	void AnimationExporter::dae_animation(Object* ob, FCurve *fcu/*, std::string ob_name*/ , char* transformName , bool is_param )
 	{
 		
 		const char *axis_name = NULL;
@@ -166,7 +184,9 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			if (fcu->array_index < 4)
 			axis_name = axis_names[fcu->array_index];*/
 		}
-		else if ( !strcmp(transformName, "spot_size")||!strcmp(transformName, "spot_blend") )
+		else if ( !strcmp(transformName, "spot_size")||
+			      !strcmp(transformName, "spot_blend")||
+				  !strcmp(transformName, "lens"))
 		{
 			axis_name = "";
 		}
@@ -252,13 +272,19 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		std::string target ;
 
-		if ( ob->type == OB_LAMP )
-		    target = get_light_id(ob)
-			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
-		else 
+		if ( !is_param )
 			target = translate_id(ob_name)
 			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
+		else 
+		{
+			if ( ob->type == OB_LAMP )
+				target = get_light_id(ob)
+				+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
 
+			if ( ob->type == OB_CAMERA )
+				target = get_camera_id(ob)
+				+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
+		}
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
 		closeAnimation();
@@ -569,9 +595,9 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		std::string source_id = anim_id + get_semantic_suffix(semantic);
 
 		//bool is_rotation = !strcmp(fcu->rna_path, "rotation");
-		bool is_rotation = false;
+		bool is_angle = false;
 		
-		if (strstr(fcu->rna_path, "rotation")) is_rotation = true;
+		if (strstr(fcu->rna_path, "rotation")||strstr(fcu->rna_path, "lens")) is_angle = true;
 		
 		COLLADASW::FloatSourceF source(mSW);
 		source.setId(source_id);
@@ -591,14 +617,14 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		
 		
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, is_rotation, axis_name);
+		add_source_parameters(param, semantic, is_angle, axis_name);
 
 		source.prepareToAppendValues();
 
 		for (unsigned int i = 0; i < fcu->totvert; i++) {
 			float values[3]; // be careful!
 			int length = 0;
-			get_source_values(&fcu->bezt[i], semantic, is_rotation, values, &length);
+			get_source_values(&fcu->bezt[i], semantic, is_angle, values, &length);
 				for (int j = 0; j < length; j++)
 				source.appendValues(values[j]);
 		}
@@ -777,6 +803,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				tm_type = 5;
 			else if (!strcmp(name, "spot_blend"))
 				tm_type = 6;
+			else if (!strcmp(name, "lens"))
+				tm_type = 7;
 			else
 				tm_type = -1;
 		}
@@ -802,6 +830,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		case 6:
 			tm_name = "fall_off_exponent";
 			break;
+		case 7:
+			tm_name = "xfov";
+			break;
+		
 		default:
 			tm_name = "";
 			break;
@@ -890,10 +922,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				fcu = (FCurve*)ob->adt->action->curves.first;
 			else if( (ob->type == OB_LAMP ) && ((Lamp*)ob ->data)->adt && ((Lamp*)ob ->data)->adt->action )
 				fcu = (FCurve*)(((Lamp*)ob ->data)->adt->action->curves.first);
+			else if( (ob->type == OB_CAMERA ) && ((Camera*)ob ->data)->adt && ((Camera*)ob ->data)->adt->action )
+				fcu = (FCurve*)(((Camera*)ob ->data)->adt->action->curves.first);
 			//The Scene has animations if object type is armature or object has f-curve or object is a Lamp which has f-curves
-			if ((ob->type == OB_ARMATURE && ob->data) || fcu) {
-				return true;
-			} 
+			if ( fcu) return true;
 			base= base->next;
 		}
 		return false;
