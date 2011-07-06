@@ -38,11 +38,13 @@
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
 #include "COLLADAFWLight.h"
+#include "COLLADAFWCamera.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_camera_types.h"
 
 //#include "ArmatureImporter.h"
 #include "TransformReader.h"
@@ -90,7 +92,8 @@ private:
 			NODE_TRANSFORM = 1,
 			LIGHT_COLOR	= 2,
 			LIGHT_FOA = 4,
-			LIGHT_FOE = 8
+			LIGHT_FOE = 8,
+			CAMERA_XFOV = 16
 		};
 public:
 

@@ -905,7 +905,22 @@ int AnimationImporter::get_animation_type ( const COLLADAFW::Node * node ,
 		if ( type != 0) break;
 
 	}
-	
+
+	const COLLADAFW::InstanceCameraPointerArray& nodeCameras = node->getInstanceCameras();
+	for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
+		const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
+		
+		const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
+	    const COLLADAFW::UniqueId& xfov_listid = xfov ->getAnimationList();
+
+		if (animlist_map.find(xfov_listid) != animlist_map.end()) 
+				type = type|CAMERA_XFOV;
+		
+			
+		if ( type != 0) break;
+
+	}
+
 	return type;
 }
 

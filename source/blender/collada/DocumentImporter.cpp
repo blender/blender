@@ -854,6 +854,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	}
 	
 	this->uid_camera_map[camera->getUniqueId()] = cam;
+	this->FW_object_map[camera->getUniqueId()] = camera;
 	// XXX import camera options
 	return true;
 }
