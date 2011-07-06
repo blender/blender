@@ -124,6 +124,7 @@ typedef struct TransSeq {
 	int startstill, endstill;
 	int startdisp, enddisp;
 	int startofs, endofs;
+	int anim_startofs, anim_endofs;
 	/* int final_left, final_right; */ /* UNUSED */
 	int len;
 } TransSeq;
@@ -729,8 +730,10 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 	ts.endstill= seq->endstill;
 	ts.startdisp= seq->startdisp;
 	ts.enddisp= seq->enddisp;
-	ts.startofs= seq->anim_startofs;
-	ts.endofs= seq->anim_endofs;
+	ts.startofs= seq->startofs;
+	ts.endofs= seq->endofs;
+	ts.anim_startofs= seq->anim_startofs;
+	ts.anim_endofs= seq->anim_endofs;
 	ts.len= seq->len;
 	
 	/* First Strip! */
@@ -780,7 +783,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		if ((seqn->startstill) && (cutframe == seqn->start + 1)) {
 			seqn->start = ts.start;
 			seqn->startstill= ts.start- cutframe;
-			seqn->anim_endofs = ts.endofs;
+			seqn->anim_endofs = ts.anim_endofs;
 			seqn->endstill = ts.endstill;
 		}
 		
@@ -789,8 +792,9 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 			seqn->start = cutframe;
 			seqn->startstill = 0;
 			seqn->startofs = 0;
+			seqn->endofs = ts.endofs;
 			seqn->anim_startofs += cutframe - ts.start;
-			seqn->anim_endofs = ts.endofs;
+			seqn->anim_endofs = ts.anim_endofs;
 			seqn->endstill = ts.endstill;
 		}				
 		
@@ -825,6 +829,8 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 	ts.enddisp= seq->enddisp;
 	ts.startofs= seq->startofs;
 	ts.endofs= seq->endofs;
+	ts.anim_startofs= seq->anim_startofs;
+	ts.anim_endofs= seq->anim_endofs;
 	ts.len= seq->len;
 	
 	/* First Strip! */

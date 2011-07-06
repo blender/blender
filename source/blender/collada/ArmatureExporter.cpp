@@ -89,14 +89,14 @@ void ArmatureExporter::add_instance_controller(Object *ob)
 	ins.add();
 }
 
-void ArmatureExporter::export_controllers(Scene *sce)
+void ArmatureExporter::export_controllers(Scene *sce, bool export_selected)
 {
 	scene = sce;
 
 	openLibrary();
 
 	GeometryFunctor gf;
-	gf.forEachMeshObjectInScene<ArmatureExporter>(sce, *this);
+	gf.forEachMeshObjectInScene<ArmatureExporter>(sce, *this, export_selected);
 
 	closeLibrary();
 }
@@ -351,12 +351,17 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 
 			bPoseChannel *pchan = get_pose_channel(pose, def->name);
 
+			float pose_mat[4][4];
 			float mat[4][4];
 			float world[4][4];
 			float inv_bind_mat[4][4];
 
+			// pose_mat is the same as pchan->pose_mat, but without the rotation
+			unit_m4(pose_mat);
+			translate_m4(pose_mat, pchan->pose_head[0], pchan->pose_head[1], pchan->pose_head[2]);
+
 			// make world-space matrix, pose_mat is armature-space
-			mul_m4_m4m4(world, pchan->pose_mat, ob_arm->obmat);
+			mul_m4_m4m4(world, pose_mat, ob_arm->obmat);
 			
 			invert_m4_m4(mat, world);
 			converter.mat4_to_dae(inv_bind_mat, mat);

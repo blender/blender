@@ -401,6 +401,8 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 {
 	ModifierTypeInfo *mti= modifierType_getInfo(md->type);
 
+	md->scene= scene;
+
 	if (mti->isDisabled && mti->isDisabled(md, 0)) {
 		BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
 		return 0;
@@ -448,6 +450,8 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
 	ModifierTypeInfo *mti= modifierType_getInfo(md->type);
+
+	md->scene= scene;
 
 	if (mti->isDisabled && mti->isDisabled(md, 0)) {
 		BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");

@@ -729,6 +729,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "use_vertex_color_paint")
         col.prop(mat, "use_vertex_color_light")
         col.prop(mat, "use_object_color")
+        col.prop(mat, "pass_index")
 
 
 class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):

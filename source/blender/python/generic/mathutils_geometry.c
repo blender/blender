@@ -553,6 +553,157 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	}
 }
 
+
+PyDoc_STRVAR(M_Geometry_intersect_line_sphere_doc,
+".. function:: intersect_line_sphere(line_a, line_b, sphere_co, sphere_radius, clip=True)\n"
+"\n"
+"   Takes a lines (as 2 vectors), a sphere as a point and a radius and\n"
+"   returns the intersection\n"
+"\n"
+"   :arg line_a: First point of the first line\n"
+"   :type line_a: :class:`mathutils.Vector`\n"
+"   :arg line_b: Second point of the first line\n"
+"   :type line_b: :class:`mathutils.Vector`\n"
+"   :arg sphere_co: The center of the sphere\n"
+"   :type sphere_co: :class:`mathutils.Vector`\n"
+"   :arg sphere_radius: Radius of the sphere\n"
+"   :type sphere_radius: sphere_radius\n"
+"   :return: The intersection points as a pair of vectors or None when there is no intersection\n"
+"   :rtype: A tuple pair containing :class:`mathutils.Vector` or None\n"
+);
+static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObject* args)
+{
+	VectorObject *line_a, *line_b, *sphere_co;
+	float sphere_radius;
+	int clip= TRUE;
+
+	float isect_a[3];
+	float isect_b[3];
+
+	if(!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere",
+	  &vector_Type, &line_a,
+	  &vector_Type, &line_b,
+	  &vector_Type, &sphere_co,
+	  &sphere_radius, &clip)
+	) {
+		return NULL;
+	}
+
+	if(		BaseMath_ReadCallback(line_a) == -1 ||
+	        BaseMath_ReadCallback(line_b) == -1 ||
+	        BaseMath_ReadCallback(sphere_co) == -1
+	) {
+		return NULL;
+	}
+
+	if(ELEM3(2, line_a->size, line_b->size, sphere_co->size)) {
+		PyErr_SetString(PyExc_RuntimeError, "geometry.intersect_line_sphere(...) can't use 2D Vectors");
+		return NULL;
+	}
+	else {
+		short use_a= TRUE;
+		short use_b= TRUE;
+		float lambda;
+
+		PyObject *ret= PyTuple_New(2);
+
+		switch(isect_line_sphere_v3(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
+		case 1:
+			if(!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			use_b= FALSE;
+			break;
+		case 2:
+			if(!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if(!(!clip || (((lambda= line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
+			break;
+		default:
+			use_a= FALSE;
+			use_b= FALSE;
+		}
+
+		if(use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
+
+		if(use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 3, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
+
+		return ret;
+	}
+}
+
+/* keep in sync with M_Geometry_intersect_line_sphere */
+PyDoc_STRVAR(M_Geometry_intersect_line_sphere_2d_doc,
+".. function:: intersect_line_sphere_2d(line_a, line_b, sphere_co, sphere_radius, clip=True)\n"
+"\n"
+"   Takes a lines (as 2 vectors), a sphere as a point and a radius and\n"
+"   returns the intersection\n"
+"\n"
+"   :arg line_a: First point of the first line\n"
+"   :type line_a: :class:`mathutils.Vector`\n"
+"   :arg line_b: Second point of the first line\n"
+"   :type line_b: :class:`mathutils.Vector`\n"
+"   :arg sphere_co: The center of the sphere\n"
+"   :type sphere_co: :class:`mathutils.Vector`\n"
+"   :arg sphere_radius: Radius of the sphere\n"
+"   :type sphere_radius: sphere_radius\n"
+"   :return: The intersection points as a pair of vectors or None when there is no intersection\n"
+"   :rtype: A tuple pair containing :class:`mathutils.Vector` or None\n"
+);
+static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyObject* args)
+{
+	VectorObject *line_a, *line_b, *sphere_co;
+	float sphere_radius;
+	int clip= TRUE;
+
+	float isect_a[3];
+	float isect_b[3];
+
+	if(!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere_2d",
+	  &vector_Type, &line_a,
+	  &vector_Type, &line_b,
+	  &vector_Type, &sphere_co,
+	  &sphere_radius, &clip)
+	) {
+		return NULL;
+	}
+
+	if(		BaseMath_ReadCallback(line_a) == -1 ||
+	        BaseMath_ReadCallback(line_b) == -1 ||
+	        BaseMath_ReadCallback(sphere_co) == -1
+	) {
+		return NULL;
+	}
+	else {
+		short use_a= TRUE;
+		short use_b= TRUE;
+		float lambda;
+
+		PyObject *ret= PyTuple_New(2);
+
+		switch(isect_line_sphere_v2(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
+		case 1:
+			if(!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			use_b= FALSE;
+			break;
+		case 2:
+			if(!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if(!(!clip || (((lambda= line_point_factor_v2(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
+			break;
+		default:
+			use_a= FALSE;
+			use_b= FALSE;
+		}
+
+		if(use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 2, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
+
+		if(use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 2, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
+
+		return ret;
+	}
+}
+
 PyDoc_STRVAR(M_Geometry_intersect_point_line_doc,
 ".. function:: intersect_point_line(pt, line_p1, line_p2)\n"
 "\n"

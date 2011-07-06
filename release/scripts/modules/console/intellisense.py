@@ -53,7 +53,7 @@ RE_UNQUOTED_WORD = re.compile(
     re.UNICODE)
 
 
-def complete(line, cursor, namespace, private=True):
+def complete(line, cursor, namespace, private):
     """Returns a list of possible completions:
 
     * name completion
@@ -82,6 +82,9 @@ def complete(line, cursor, namespace, private=True):
         if RE_MODULE.match(line):
             from . import complete_import
             matches = complete_import.complete(line)
+            if not private:
+                matches[:] = [m for m in matches if m[:1] != "_"]
+            matches.sort()
         else:
             from . import complete_namespace
             matches = complete_namespace.complete(word, namespace, private)
@@ -130,11 +133,15 @@ def expand(line, cursor, namespace, private=True):
         else:
             # causes blender bug [#27495] since string keys may contain '.'
             # scrollback = '  '.join([m.split('.')[-1] for m in matches])
+
+            # add white space to align with the cursor
+            white_space = "    " + (" " * (cursor + len(prefix)))
             word_prefix = word + prefix
-            scrollback = '  '.join(
-                    [m[len(word_prefix):]
+            scrollback = '\n'.join(
+                    [white_space + m[len(word_prefix):]
                      if (word_prefix and m.startswith(word_prefix))
-                     else m.split('.')[-1]
+                     else
+                     white_space + m.split('.')[-1]
                      for m in matches])
 
         no_calltip = True

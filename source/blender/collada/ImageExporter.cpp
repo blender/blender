@@ -71,12 +71,12 @@ bool ImagesExporter::hasImages(Scene *sce)
 	return false;
 }
 
-void ImagesExporter::exportImages(Scene *sce)
+void ImagesExporter::exportImages(Scene *sce, bool export_selected)
 {
 	if(hasImages(sce)) {
 		openLibrary();
 		MaterialFunctor mf;
-		mf.forEachMaterialInScene<ImagesExporter>(sce, *this);
+		mf.forEachMaterialInScene<ImagesExporter>(sce, *this, export_selected);
 
 		closeLibrary();
 	}

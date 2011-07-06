@@ -105,9 +105,9 @@ def edge_face_count(mesh):
     :return: list face users for each item in mesh.edges.
     :rtype: list
     """
-    edge_face_count_dict = edge_face_count_dict(mesh)
+    edge_face_count = edge_face_count_dict(mesh)
     get = dict.get
-    return [get(edge_face_count_dict, ed.key, 0) for ed in mesh.edges]
+    return [get(edge_face_count, ed.key, 0) for ed in mesh.edges]
 
 
 def edge_loops_from_faces(mesh, faces=None, seams=()):
@@ -287,7 +287,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
         else:
             return v1[1], v2[1]
 
-    if not PREF_FIX_LOOPS:
+    if not fix_loops:
         '''
         Normal single concave loop filling
         '''

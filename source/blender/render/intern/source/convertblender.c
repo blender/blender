@@ -5680,13 +5680,14 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
    RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
    RE_BAKE_SHADOW: for baking, only shadows, but all objects
 */
-void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, int type, Object *actob)
+void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, const int type, Object *actob)
 {
 	Object *camera;
 	float mat[4][4];
 	float amb[3];
-	int onlyselected, nolamps;
-	
+	const short onlyselected= !ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW);
+	const short nolamps= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);
+
 	re->main= bmain;
 	re->scene= scene;
 	re->lay= lay;
@@ -5736,7 +5737,15 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		unit_m4(mat);
 		RE_SetView(re, mat);
 	}
-	
+	copy_m3_m4(re->imat, re->viewinv);
+
+	/* TODO: deep shadow maps + baking + strands */
+	/* strands use the window matrix and view size, there is to correct
+	 * window matrix but at least avoids malloc and crash loop [#27807] */
+	unit_m4(re->winmat);
+	re->winx= re->winy= 256;
+	/* done setting dummy values */
+
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
 	if(re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
@@ -5755,9 +5764,6 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	set_node_shader_lamp_loop(shade_material_loop);
 	
 	/* MAKE RENDER DATA */
-	nolamps= !ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW);
-	onlyselected= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);
-
 	database_init_objects(re, lay, nolamps, onlyselected, actob, 0);
 
 	set_material_lightgroups(re);

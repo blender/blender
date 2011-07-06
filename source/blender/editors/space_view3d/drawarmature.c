@@ -197,8 +197,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_CONSTS:
 	{
 		if ( (bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS) ) {
-			if (constflag & PCHAN_HAS_STRIDE) glColor4ub(0, 0, 200, 80);
-			else if (constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
+			if (constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
 			else if (constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
 			else if (constflag & PCHAN_HAS_SPLINEIK) glColor4ub(200, 255, 0, 80);
 			else if (constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
@@ -269,8 +268,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	{
 		/* inner part in background color or constraint */
 		if ( (constflag) && ((bcolor==NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) ) {
-			if (constflag & PCHAN_HAS_STRIDE) glColor3ub(0, 0, 200);
-			else if (constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
+			if (constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
 			else if (constflag & PCHAN_HAS_IK) glColor3ub(255, 255, 0);
 			else if (constflag & PCHAN_HAS_SPLINEIK) glColor3ub(200, 255, 0);
 			else if (constflag & PCHAN_HAS_CONST) glColor3ub(0, 255, 120);
@@ -1865,9 +1863,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					constflag= pchan->constflag;
 					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
 						constflag |= PCHAN_HAS_ACTION;
-					if (pchan->flag & POSE_STRIDE)
-						constflag |= PCHAN_HAS_STRIDE;
-						
+
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
 					

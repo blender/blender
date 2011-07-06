@@ -53,7 +53,6 @@ if(NOT EXECUTABLE_OUTPUT_PATH)
 	set(FIRST_RUN "TRUE")
 endif()
 
-
 # this starts out unset
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules")
 
@@ -142,7 +141,7 @@ option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
 option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 
 # Audio/Video format support
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu)" OFF)
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 if(APPLE OR (WIN32 AND NOT UNIX))
 	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
@@ -240,11 +239,24 @@ TEST_SSE_SUPPORT()
 set(WITH_BINRELOC OFF)
 
 # MAXOSX only, set to avoid uninitialized 
-set(EXETYPE "")
+set(EXETYPE)
+
+# C/C++ flags
+set(PLATFORM_CFLAGS)
 
 # these are added to later on.
-set(C_WARNINGS "")
-set(CXX_WARNINGS "")
+set(C_WARNINGS)
+set(CXX_WARNINGS)
+
+# libraries to link the binary with passed to target_link_libraries()
+# known as LLIBS to scons
+set(PLATFORM_LINKLIBS)
+
+# Added to linker flags in setup_liblinks
+# - CMAKE_EXE_LINKER_FLAGS
+# - CMAKE_EXE_LINKER_FLAGS_DEBUG
+set(PLATFORM_LINKFLAGS)
+set(PLATFORM_LINKFLAGS_DEBUG)
 
 
 # disabled for now, not supported
@@ -347,7 +359,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
-		set(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
+		set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
 		mark_as_advanced(FFMPEG)
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 		set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
@@ -391,18 +403,18 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENCOLLADA)
-		set(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
+		set(OPENCOLLADA /usr/local/opencollada CACHE PATH "OpenCollada Directory")
 		mark_as_advanced(OPENCOLLADA)
 		set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
 		set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre ftoa buffer xml2)
 		set(OPENCOLLADA_INCLUDE_DIR ${OPENCOLLADA})
 
-		set(PCRE /usr CACHE FILEPATH "PCRE Directory")
+		set(PCRE /usr CACHE PATH "PCRE Directory")
 		mark_as_advanced(PCRE)
 		set(PCRE_LIBPATH ${PCRE}/lib)
 		set(PCRE_LIB pcre)
 
-		set(EXPAT /usr CACHE FILEPATH "Expat Directory")
+		set(EXPAT /usr CACHE PATH "Expat Directory")
 		mark_as_advanced(EXPAT)
 		set(EXPAT_LIBPATH ${EXPAT}/lib)
 		set(EXPAT_LIB expat)
@@ -416,24 +428,24 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++")
+	set(PLATFORM_LINKLIBS "-lutil -lc -lm -lpthread -lstdc++")
 
 	if(NOT WITH_HEADLESS)
 		find_package(X11 REQUIRED)
 		find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
 		mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
 
-		list(APPEND LLIBS ${X11_X11_LIB})
+		list(APPEND PLATFORM_LINKLIBS ${X11_X11_LIB})
 
 		if(WITH_X11_XINPUT)
-			list(APPEND LLIBS ${X11_Xinput_LIB})
+			list(APPEND PLATFORM_LINKLIBS ${X11_Xinput_LIB})
 		endif()
 	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		if(NOT WITH_PYTHON_MODULE)
 			# BSD's dont use libdl.so
-			list(APPEND LLIBS -ldl)
+			list(APPEND PLATFORM_LINKLIBS -ldl)
 			# binreloc is linux only
 			set(BINRELOC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/binreloc/include)
 			set(WITH_BINRELOC ON)
@@ -544,13 +556,15 @@ elseif(WIN32)
 
 	if(MSVC)
 		if(CMAKE_CL_64)
-			set(LLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid )
+			set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid)
 		else()
-			set(LLIBS kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 vfw32 winmm)
+			set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid)
 		endif()
-		
-		set(CMAKE_CXX_FLAGS "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /we4013 /wd4018 /wd4800 /wd4244 /wd4305 /wd4065 /wd4267" CACHE STRING "MSVC MT C++ flags " FORCE)
-		set(CMAKE_C_FLAGS   "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /we4013 /wd4018 /wd4800 /wd4244 /wd4305 /wd4065 /wd4267" CACHE STRING "MSVC MT C++ flags " FORCE)
+
+		add_definitions(/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_CONSOLE /D_LIB)
+
+		set(CMAKE_CXX_FLAGS "/nologo /J /W0 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013" CACHE STRING "MSVC MT C++ flags " FORCE)
+		set(CMAKE_C_FLAGS   "/nologo /J /W0 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013 /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
 
 		if(CMAKE_CL_64)
 			set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
@@ -587,24 +601,22 @@ elseif(WIN32)
 		endif()
 		set(JPEG_LIBRARIES libjpeg)
 
-		set(ZLIB ${LIBDIR}/zlib)
-		set(ZLIB_INCLUDE_DIRS ${ZLIB}/include)
-		set(ZLIB_LIBPATH ${ZLIB}/lib)
+		set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
 		if(CMAKE_CL_64)
-			set(ZLIB_LIBRARIES libz)
+			set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz.lib)
 		else()
-			set(ZLIB_LIBRARIES zlib)
+			set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/zlib.lib)
 		endif()
 
-		set(PTHREADS ${LIBDIR}/pthreads)
-		set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
-		set(PTHREADS_LIBPATH ${PTHREADS}/lib)
-		set(PTHREADS_LIBRARIES pthreadVC2)
-		
+		set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
+		set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC2.lib)
+
 		set(FREETYPE ${LIBDIR}/freetype)
-		set(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
-		set(FREETYPE_LIBPATH ${FREETYPE}/lib)
-		set(FREETYPE_LIBRARY freetype2ST)
+		set(FREETYPE_INCLUDE_DIRS
+			${LIBDIR}/freetype/include
+			${LIBDIR}/freetype/include/freetype2
+		)
+		set(FREETYPE_LIBRARY ${LIBDIR}/freetype/lib/freetype2ST.lib)
 
 		if(WITH_FFTW3)
 			set(FFTW3 ${LIBDIR}/fftw3)
@@ -635,10 +647,17 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_CODEC_FFMPEG)
-			set(FFMPEG ${LIBDIR}/ffmpeg)
-			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include/msvc)
-			set(FFMPEG_LIBRARIES avcodec-52 avformat-52 avdevice-52 avutil-50 swscale-0)
-			set(FFMPEG_LIBPATH ${FFMPEG}/lib)
+			set(FFMPEG_INCLUDE_DIRS
+				${LIBDIR}/ffmpeg/include
+				${LIBDIR}/ffmpeg/include/msvc
+			)
+			set(FFMPEG_LIBRARIES
+				${LIBDIR}/ffmpeg/lib/avcodec-52.lib
+				${LIBDIR}/ffmpeg/lib/avformat-52.lib
+				${LIBDIR}/ffmpeg/lib/avdevice-52.lib
+				${LIBDIR}/ffmpeg/lib/avutil-50.lib
+				${LIBDIR}/ffmpeg/lib/swscale-0.lib
+			)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
@@ -673,17 +692,16 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
-			set(TIFF ${LIBDIR}/tiff)
-			set(TIFF_LIBRARY libtiff)
-			set(TIFF_INCLUDE_DIR ${TIFF}/include)
-			set(TIFF_LIBPATH ${TIFF}/lib)
+			set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
+			set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
 		endif()
 
 		if(WITH_JACK)
-			set(JACK ${LIBDIR}/jack)
-			set(JACK_INCLUDE_DIRS ${JACK}/include/jack ${JACK}/include)
-			set(JACK_LIBRARIES libjack)
-			set(JACK_LIBPATH ${JACK}/lib)
+			set(JACK_INCLUDE_DIRS
+				${LIBDIR}/jack/include/jack
+				${LIBDIR}/jack/include
+			)
+			set(JACK_LIBRARIES ${LIBDIR}/jack/lib/libjack.lib)
 		endif()
 
 		if(WITH_PYTHON)
@@ -693,23 +711,24 @@ elseif(WIN32)
 			set(PYTHON_LIBRARIES ${LIBDIR}/python/lib/python32.lib)
 		endif()
 
+		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
+
 		# MSVC only, Mingw doesnt need
 		if(CMAKE_CL_64)
-			set(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib /STACK:2097152 ")
+			set(PLATFORM_LINKFLAGS "/MACHINE:X64 /OPT:NOREF ${PLATFORM_LINKFLAGS}")
 		else()
-			set(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib /STACK:2097152 ")
+			set(PLATFORM_LINKFLAGS "/MACHINE:IX86 /LARGEADDRESSAWARE ${PLATFORM_LINKFLAGS}")
 		endif()
 
-		set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib;libc.lib ")
+		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
 	else()
 		# keep GCC spesific stuff here
 		if(CMAKE_COMPILER_IS_GNUCC)
-			set(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
+			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
 			set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
-			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
+			add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
 		endif()
 
 		add_definitions(-DFREE_WINDOWS)
@@ -919,7 +938,7 @@ elseif(APPLE)
 		set(SAMPLERATE_LIBPATH ${SAMPLERATE}/lib)
 	endif()
 
-	set(LLIBS stdc++ SystemStubs)
+	set(PLATFORM_LINKLIBS stdc++ SystemStubs)
 
 	if(WITH_COCOA)
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char -DGHOST_COCOA")
@@ -1141,6 +1160,18 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
 
+endif()
+
+# MSVC2010 fails to links C++ libs right
+if(MSVC10)
+	if(WITH_IMAGE_OPENEXR)
+		message(WARNING "MSVC 2010 does not support OpenEXR, disabling WITH_IMAGE_OPENEXR. To enable support use Use MSVC 2008")
+		set(WITH_IMAGE_OPENEXR OFF)
+	endif()
+	if(WITH_OPENCOLLADA)
+		message(WARNING "MSVC 2010 does not support OpenCollada, disabling WITH_OPENCOLLADA. To enable support use Use MSVC 2008")
+		set(WITH_OPENCOLLADA OFF)
+	endif()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")

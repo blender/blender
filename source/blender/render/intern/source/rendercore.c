@@ -515,6 +515,14 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 						*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_INDEXMA:
+					/* no filter */
+					if(shi->vlr) {
+							fp= rpass->rect + offset;
+							if(*fp==0.0f)
+									*fp= (float)shi->mat->index;
+					}
+					break;
 			case SCE_PASS_MIST:
 				/*  */
 				col= &shr->mist;
