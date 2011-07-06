@@ -201,7 +201,6 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 			else if (constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
 			else if (constflag & PCHAN_HAS_SPLINEIK) glColor4ub(200, 255, 0, 80);
 			else if (constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
-			else if (constflag) UI_ThemeColor4(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
 			
 			return 1;
 		}
@@ -1944,8 +1943,6 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					
 					/* extra draw service for pose mode */
 					constflag= pchan->constflag;
-					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
-						constflag |= PCHAN_HAS_ACTION;
 
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
