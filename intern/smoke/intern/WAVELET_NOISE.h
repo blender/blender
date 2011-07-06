@@ -45,6 +45,11 @@
 
 #include <MERSENNETWISTER.h>
 
+#ifdef WIN32
+#include <float.h>
+#define isnan _isnan
+#endif
+
 // Tile file header, update revision upon any change done to the noise generator
 static const char tilefile_headerstring[] = "Noise Tile File rev. ";
 static const char tilefile_revision[] =  "001";

@@ -1498,15 +1498,18 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						GHOST_TInt32 x_mouse= mousePos.x;
 						GHOST_TInt32 y_mouse= mousePos.y;
 						GHOST_TInt32 x_accum, y_accum, x_cur, y_cur, x, y;
-						GHOST_Rect bounds, correctedBounds;
+						GHOST_Rect bounds, windowBounds, correctedBounds;
 						
 						/* fallback to window bounds */
 						if(window->getCursorGrabBounds(bounds)==GHOST_kFailure)
 							window->getClientBounds(bounds);
 						
 						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
-						window->screenToClient(bounds.m_l, bounds.m_b, correctedBounds.m_l, correctedBounds.m_b);
-						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_t);
+						window->getClientBounds(windowBounds);
+						window->screenToClient(bounds.m_l, bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
+						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
+						correctedBounds.m_b = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_b;
+						correctedBounds.m_t = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_t;
 						
 						//Update accumulation counts
 						window->getCursorGrabAccum(x_accum, y_accum);

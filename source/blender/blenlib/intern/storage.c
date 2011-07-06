@@ -478,7 +478,7 @@ LinkNode *BLI_read_file_as_lines(const char *name)
 	FILE *fp= fopen(name, "r");
 	LinkNode *lines= NULL;
 	char *buf;
-	int size;
+	int64_t size;
 
 	if (!fp) return NULL;
 		
