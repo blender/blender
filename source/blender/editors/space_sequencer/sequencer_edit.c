@@ -1784,19 +1784,21 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				/* new seq */
 				se = give_stripelem(seq, cfra);
 
-				seq_new= alloc_sequence(ed->seqbasep, start_ofs, seq->machine);
+				seq_new= seq_dupli_recursive(scene, scene, seq, SEQ_DUPE_UNIQUE_NAME);
+				BLI_addtail(&ed->seqbase, seq_new);
+
+				seq_new->start= start_ofs;
 				seq_new->type= SEQ_IMAGE;
 				seq_new->len = 1;
 				seq_new->endstill = step-1;
 
 				/* new strip */
-				seq_new->strip= strip_new= MEM_callocN(sizeof(Strip)*1, "strip");
+				strip_new= seq_new->strip;
 				strip_new->len= 1;
 				strip_new->us= 1;
-				strncpy(strip_new->dir, seq->strip->dir, FILE_MAXDIR-1);
 
 				/* new stripdata */
-				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
+				se_new= strip_new->stripdata;
 				BLI_strncpy(se_new->name, se->name, sizeof(se_new->name));
 				calc_sequence(scene, seq_new);
 
@@ -1808,8 +1810,6 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				}
 
 				/* XXX, COPY FCURVES */
-				strncpy(seq_new->name+2, seq->name+2, sizeof(seq->name)-2);
-				seqbase_unique_name_recursive(&scene->ed->seqbase, seq_new);
 
 				cfra++;
 				start_ofs += step;

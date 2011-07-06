@@ -42,6 +42,9 @@
 #include <ctype.h>
 
 #include "MEM_guardedalloc.h"
+#include "MEM_sys_types.h"
+
+#include "BLI_winstuff.h"
 
 #include "AVI_avi.h"
 #include "avi_intern.h"
@@ -593,7 +596,6 @@ AviError AVI_open_movie (const char *name, AviMovie *movie) {
 
 	movie->movi_offset = ftell (movie->fp);
 	movie->read_offset = movie->movi_offset;
-	if (AVI_DEBUG) printf ("movi_offset is %d\n", movie->movi_offset);
 	
 	/* Read in the index if the file has one, otherwise create one */
 	if (movie->header->Flags & AVIF_HASINDEX) {
@@ -707,8 +709,8 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 	AviList list;
 	AviChunk chunk;
 	int i;
-	int header_pos1, header_pos2;
-	int stream_pos1, stream_pos2;
+	int64_t header_pos1, header_pos2;
+	int64_t stream_pos1, stream_pos2;
 
 	movie->type = AVI_MOVIE_WRITE;
 	movie->fp = fopen (name, "wb");
@@ -718,7 +720,7 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 	if (movie->fp == NULL)
 		return AVI_ERROR_OPEN;
 
-	movie->offset_table = (long *) MEM_mallocN ((1+streams*2) * sizeof (long),"offsettable");
+	movie->offset_table = (int64_t *) MEM_mallocN ((1+streams*2) * sizeof (int64_t),"offsettable");
 	
 	for (i=0; i < 1 + streams*2; i++)
 		movie->offset_table[i] = -1L;
@@ -897,7 +899,7 @@ AviError AVI_write_frame (AviMovie *movie, int frame_num, ...) {
 	AviIndexEntry *temp;
 	va_list ap;
 	int stream;
-	long rec_off;
+	int64_t rec_off;
 	AviFormat format;
 	void *buffer;
 	int size;

@@ -27,6 +27,7 @@
 set(INC 
 	.
 	../../../intern/guardedalloc
+	../blenlib
 )
 
 set(INC_SYS
