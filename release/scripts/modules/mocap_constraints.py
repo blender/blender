@@ -95,16 +95,8 @@ def updateConstraintBoneType(m_constraint, context):
 
 # Function that copies all settings from m_constraint to the real Blender constraints
 # Is only called when blender constraint already exists
-def setConstraint(m_constraint):
-    if not m_constraint.constrained_bone:
-        return
-    obj = bpy.context.active_object
-    bones = obj.pose.bones
-    bone = bones[m_constraint.constrained_bone]
-    cons_obj = getConsObj(bone)
-    real_constraint = cons_obj.constraints[m_constraint.real_constraint]
 
-    #frame changing section
+def setConstraintFraming(m_constraint, cons_obj):
     if isinstance(cons_obj, bpy.types.PoseBone):
         fcurves = obj.animation_data.action.fcurves
     else:
@@ -125,6 +117,19 @@ def setConstraint(m_constraint):
     real_constraint.influence = 0
     real_constraint.keyframe_insert(data_path="influence", frame=s - s_in)
     real_constraint.keyframe_insert(data_path="influence", frame=e + s_out)
+
+def setConstraint(m_constraint):
+    if not m_constraint.constrained_bone:
+        return
+    obj = bpy.context.active_object
+    bones = obj.pose.bones
+    bone = bones[m_constraint.constrained_bone]
+    cons_obj = getConsObj(bone)
+    real_constraint = cons_obj.constraints[m_constraint.real_constraint]
+
+    #frame changing section
+    setConstraintFraming(m_constraint, cons_obj)
+    
     #Set the blender constraint parameters
     if m_constraint.type == "point":
         real_constraint.owner_space = m_constraint.targetSpace
@@ -168,6 +173,7 @@ def setConstraint(m_constraint):
         real_constraint.target = getConsObj(bones[m_constraint.constrained_boneB])
         real_constraint.limit_mode = "LIMITDIST_ONSURFACE"
         real_constraint.distance = m_constraint.targetDist
+        
 
     # active check
     real_constraint.mute = not m_constraint.active
