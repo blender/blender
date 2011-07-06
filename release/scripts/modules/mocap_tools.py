@@ -18,10 +18,10 @@
 
 # <pep8 compliant>
 
-from math import hypot, sqrt, isfinite
+from math import hypot, sqrt, isfinite, radians
 import bpy
 import time
-from mathutils import Vector
+from mathutils import Vector, Matrix
 
 
 #Vector utility functions
@@ -547,3 +547,25 @@ def denoise_median():
             newValue = sum(neighborhood) / len(neighborhood)
             pt.co[1] = newValue
     return
+
+
+def rotate_fix_armature(arm_data):
+    global_matrix = Matrix.Rotation(radians(90),4,"X")
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    if global_matrix!=Matrix(): #optimization: this might not be needed.
+        #disconnect all bones for ease of global rotation
+        connectedBones = []
+        for bone in arm_data.edit_bones:
+            if bone.use_connect:
+                connectedBones.append(bone.name)
+                bone.use_connect=False
+
+        #rotate all the bones around their center
+        for bone in arm_data.edit_bones:
+            bone.transform(global_matrix)
+
+        #reconnect the bones
+        for bone in connectedBones:
+            arm_data.edit_bones[bone].use_connect=True
+
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
