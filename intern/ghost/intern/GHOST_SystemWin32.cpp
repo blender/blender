@@ -59,46 +59,12 @@
 #endif
 #endif
 
-#if 0 // shouldn't be needed...
-/*
- * According to the docs the mouse wheel message is supported from windows 98 
- * upwards. Leaving WINVER at default value, the WM_MOUSEWHEEL message and the 
- * wheel detent value are undefined.
- */
-#ifndef WM_MOUSEWHEEL
-#define WM_MOUSEWHEEL 0x020A
-#endif // WM_MOUSEWHEEL
-#ifndef WHEEL_DELTA
-#define WHEEL_DELTA 120	/* Value for rolling one detent, (old convention! MS changed it) */
-#endif // WHEEL_DELTA
-
-/* 
- * Defines for mouse buttons 4 and 5 aka xbutton1 and xbutton2.
- * MSDN: Declared in Winuser.h, include Windows.h 
- * This does not seem to work with MinGW so we define our own here.
- */
-#ifndef XBUTTON1
-#define XBUTTON1 0x0001
-#endif // XBUTTON1
-#ifndef XBUTTON2
-#define XBUTTON2 0x0002
-#endif // XBUTTON2
-#ifndef WM_XBUTTONUP
-#define WM_XBUTTONUP 524
-#endif // WM_XBUTTONUP
-#ifndef WM_XBUTTONDOWN
-#define WM_XBUTTONDOWN 523
-#endif // WM_XBUTTONDOWN
-
-#endif // ^^^ removed code
-
 #include "GHOST_Debug.h"
 #include "GHOST_DisplayManagerWin32.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
-//#include "GHOST_EventNDOF.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
@@ -156,27 +122,12 @@
 #define VK_MEDIA_PLAY_PAUSE	0xB3
 #endif // VK_MEDIA_PLAY_PAUSE
 
-#if 0
-/*
-	Initiates WM_INPUT messages from keyboard
-	That way GHOST can retrieve true keys
-*/
-GHOST_TInt32 GHOST_SystemWin32::initKeyboardRawInput(void)
-{
-	RAWINPUTDEVICE device = {0};
-	device.usUsagePage	= 0x01; /* usUsagePage & usUsage for keyboard*/
-	device.usUsage		= 0x06; /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
-
-	return RegisterRawInputDevices(&device, 1, sizeof(device));
-};
-#endif
-
 static void initRawInput()
 {
 	RAWINPUTDEVICE devices[2];
 	memset(devices, 0, 2 * sizeof(RAWINPUTDEVICE));
 
-	// multi-axis mouse (SpaceNavigator)
+	// multi-axis mouse (SpaceNavigator, etc.)
 	devices[0].usUsagePage = 0x01;
 	devices[0].usUsage = 0x08;
 
@@ -414,15 +365,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 		(LPFNSETPROCESSDPIAWARE)GetProcAddress(user32, "SetProcessDPIAware");
 	if (SetProcessDPIAware)
 		SetProcessDPIAware();
-//	#ifdef NEED_RAW_PROC
-//		pRegisterRawInputDevices = (LPFNDLLRRID)GetProcAddress(user32, "RegisterRawInputDevices");
-//		pGetRawInputData = (LPFNDLLGRID)GetProcAddress(user32, "GetRawInputData");
-//	#else
-		FreeLibrary(user32);
-//	#endif
-
-	/* 	Initiates WM_INPUT messages from keyboard */
-//	initKeyboardRawInput();
+	FreeLibrary(user32);
 	initRawInput();
 
 	// Determine whether this system has a high frequency performance counter. */
@@ -464,17 +407,11 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 
 GHOST_TSuccess GHOST_SystemWin32::exit()
 {
-//	#ifdef NEED_RAW_PROC
-//	FreeLibrary(user32);
-//	#endif
-
 	return GHOST_System::exit();
 }
 
 GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, RAWINPUT const& raw, int * keyDown, char * vk)
 {
-//	unsigned int size = 0;
-//	char * data;
 	GHOST_TKey key = GHOST_kKeyUnknown;
 
 
@@ -757,7 +694,6 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 	char vk;
 	GHOST_SystemWin32 * system = (GHOST_SystemWin32 *)getSystem();
 	GHOST_TKey key = system->hardKey(window, raw, &keyDown, &vk);
-//	GHOST_TKey key = system->hardKey(window, wParam, lParam, &keyDown, &vk);
 	GHOST_EventKey* event;
 	if (key != GHOST_kKeyUnknown) {
 		char ascii = '\0';
@@ -832,11 +768,9 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 
 		GetRawInputDeviceInfo(raw.header.hDevice, RIDI_DEVICEINFO, &info, &infoSize);
 		if (info.dwType == RIM_TYPEHID)
-			{
-			// printf("hardware ID = %04X:%04X\n", info.hid.dwVendorId, info.hid.dwProductId);
 			m_ndofManager->setDevice(info.hid.dwVendorId, info.hid.dwProductId);
-			}
-		else puts("<!> not a HID device... mouse/kb perhaps?");
+		else
+            puts("<!> not a HID device... mouse/kb perhaps?");
 
 		firstEvent = false;
 		}
@@ -845,13 +779,25 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 	// send motion. Mark as 'sent' so motion will always get dispatched.
 	eventSent = true;
 
+#ifdef _MSC_VER
+    // using Microsoft compiler & header files
+    // they invented the RawInput API, so this version is (probably) correct
+	BYTE const* data = raw.data.hid.bRawData;
+	// struct RAWHID {
+  	// DWORD dwSizeHid;
+  	// DWORD dwCount;
+  	// BYTE  bRawData[1];
+	// };
+#else
+	// MinGW's definition (below) doesn't agree, so we need a slight
+	// workaround until it's fixed
 	BYTE const* data = &raw.data.hid.bRawData;
-	// MinGW's definition (below) doesn't agree with MSDN reference for bRawData:
-	// typedef struct tagRAWHID {
-	// 	DWORD dwSizeHid;
-	// 	DWORD dwCount;
-	// 	BYTE bRawData; // <== isn't this s'posed to be a BYTE*?
-	// } RAWHID,*PRAWHID,*LPRAWHID;
+	// struct RAWHID {
+	// DWORD dwSizeHid;
+	// DWORD dwCount;
+	// BYTE bRawData; // <== isn't this s'posed to be a BYTE*?
+	// };
+#endif
 
 	BYTE packetType = data[0];
 	switch (packetType)
@@ -1241,30 +1187,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
 					break;
-#if 0 // old NDOF code
-				case WM_BLND_NDOF_AXIS:
-					{
-						GHOST_TEventNDOFData ndofdata;
-						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
-						system->m_eventManager->
-							pushEvent(new GHOST_EventNDOF(
-								system->getMilliSeconds(), 
-								GHOST_kEventNDOFMotion, 
-								window, ndofdata));
-					}
-					break;
-				case WM_BLND_NDOF_BTN:
-					{
-						GHOST_TEventNDOFData ndofdata;
-						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
-						system->m_eventManager->
-							pushEvent(new GHOST_EventNDOF(
-								system->getMilliSeconds(), 
-								GHOST_kEventNDOFButton, 
-								window, ndofdata));
-					}
-					break;
-#endif // old NDOF code
 			}
 		}
 		else {
@@ -1283,13 +1205,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 		// Events without valid hwnd
 		GHOST_PRINT("GHOST_SystemWin32::wndProc: event without window\n")
 	}
-
-//	if (event) {
-//		system->pushEvent(event);
-//	}
-//	else {
-//		lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
-//	}
 
 	if (event) {
 		system->pushEvent(event);

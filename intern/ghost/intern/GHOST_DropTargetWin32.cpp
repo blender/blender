@@ -33,6 +33,7 @@
  
 #include "GHOST_Debug.h"
 #include "GHOST_DropTargetWin32.h"
+#include <ShellApi.h>
 
 #ifdef GHOST_DEBUG
 // utility

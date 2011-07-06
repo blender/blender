@@ -38,7 +38,6 @@
 #error WIN32 only!
 #endif // WIN32
 
-//#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x501 // require Windows XP or newer
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -49,96 +48,6 @@
 #if defined(__CYGWIN32__)
 #	define __int64 long long
 #endif
-
-/* RawInput definitions should not be needed, due to WinXP requirement
-
-#ifndef WM_INPUT
-#define WM_INPUT 0x00FF
-#endif 
-#ifndef RID_INPUT
-#define RID_INPUT 0x10000003
-#endif
-#ifndef RIM_INPUTSINK
-#define RIM_INPUTSINK 0x1
-#endif
-#ifndef RI_KEY_BREAK
-#define RI_KEY_BREAK 0x1
-#endif
-#ifndef RI_KEY_E0
-#define RI_KEY_E0 0x2
-#endif
-#ifndef RI_KEY_E1
-#define RI_KEY_E1 0x4
-#endif
-#ifndef RIM_TYPEMOUSE
-#define RIM_TYPEMOUSE		0x0
-#define RIM_TYPEKEYBOARD	0x1
-#define RIM_TYPEHID			0x2
-
-typedef struct tagRAWINPUTDEVICE {
-	USHORT usUsagePage;
-	USHORT usUsage;
-	DWORD dwFlags;
-	HWND hwndTarget;
-} RAWINPUTDEVICE;
-
-typedef struct tagRAWINPUTHEADER {
-	DWORD dwType;
-	DWORD dwSize;
-	HANDLE hDevice;
-	WPARAM wParam;
-} RAWINPUTHEADER;
-
-typedef struct tagRAWMOUSE {
-	USHORT usFlags;
-	union {
-		ULONG ulButtons;
-		struct	{
-			USHORT	usButtonFlags;
-			USHORT	usButtonData;
-		};
-	};
-	ULONG	ulRawButtons;
-	LONG	lLastX;
-	LONG	lLastY;
-	ULONG	ulExtraInformation;
-} RAWMOUSE;
-
-typedef struct tagRAWKEYBOARD {
-	USHORT	MakeCode;
-	USHORT	Flags;
-	USHORT	Reserved;
-	USHORT	VKey;
-	UINT	Message;
-	ULONG	ExtraInformation;
-} RAWKEYBOARD;
-
-typedef struct tagRAWHID {
-	DWORD	dwSizeHid;
-	DWORD	dwCount;
-	BYTE	bRawData[1];
-} RAWHID;
-
-typedef struct tagRAWINPUT {
-	RAWINPUTHEADER header;
-	union {
-		RAWMOUSE	mouse;
-		RAWKEYBOARD keyboard;
-		RAWHID      hid;
-	} data;
-} RAWINPUT;
-
-DECLARE_HANDLE(HRAWINPUT);
-#endif
-
-#ifdef FREE_WINDOWS
-#define NEED_RAW_PROC
-typedef BOOL (WINAPI * LPFNDLLRRID)(RAWINPUTDEVICE*,UINT, UINT);
-
-typedef UINT (WINAPI * LPFNDLLGRID)(HRAWINPUT, UINT, LPVOID, PUINT, UINT);
-#define GetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader) ((pGetRawInputData)?pGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader):(UINT)-1)
-#endif
-*/
 
 class GHOST_EventButton;
 class GHOST_EventCursor;
@@ -426,11 +335,6 @@ protected:
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	/**
-	 * Initiates WM_INPUT messages from keyboard 
-	 */
-//	GHOST_TInt32 initKeyboardRawInput(void);
-
-	/**
  * Toggles console
  * @action	0 - Hides
  *			1 - Shows
@@ -458,15 +362,6 @@ protected:
 
 	/** Console status */
 	int m_consoleStatus;
-
-	/** handle for user32.dll*/
-//	HMODULE user32;
-//	#ifdef NEED_RAW_PROC
-//	/* pointer to RegisterRawInputDevices function */
-//	LPFNDLLRRID pRegisterRawInputDevices;
-//	/* pointer to GetRawInputData function */
-//	LPFNDLLGRID pGetRawInputData;
-//	#endif
 };
 
 inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys& keys) const
@@ -500,4 +395,3 @@ inline void GHOST_SystemWin32::handleKeyboardChange(void)
 	}
 }
 #endif // _GHOST_SYSTEM_WIN32_H_
-
