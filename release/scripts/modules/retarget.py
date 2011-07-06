@@ -33,14 +33,15 @@ from math import radians, acos
 # be created from a more comfortable UI in the future
 
 
-def createDictionary(perf_arm):
+def createDictionary(perf_arm,end_arm):
     bonemap = {}
+    #Bonemap: performer to enduser
     for bone in perf_arm.bones:
         bonemap[bone.name] = bone.map
-    #root is the root of the enduser
-    root = "root"
+    
     # creation of a reverse map
     # multiple keys get mapped to list values
+    #Bonemapr: enduser to performer
     bonemapr = {}
     for key, value in bonemap.items():
         if not value in bonemapr:
@@ -51,7 +52,10 @@ def createDictionary(perf_arm):
                 bonemapr[bonemap[key]] = [key]
         else:
             bonemapr[bonemap[key]].append(key)
-    return bonemap, bonemapr, root
+    #root is the root of the enduser
+    root = end_arm.bones[0].name
+    feetBones = [bone.name for bone in perf_arm.bones if bone.foot]
+    return bonemap, bonemapr, feetBones, root
 # list of empties created to keep track of "original"
 # position data
 # in final product, these locations can be stored as custom props
@@ -210,12 +214,15 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
 
 
 def copyTranslation(performer_obj, enduser_obj, perfFeet, bonemap, bonemapr, root, s_frame, e_frame, scene, enduser_obj_mat):
-    endFeet = [bonemap[perfBone] for perfBone in perfFeet]
-    perfRoot = bonemapr[root][0]
-    locDictKeys = perfFeet + endFeet + [perfRoot]
+    
     perf_bones = performer_obj.pose.bones
     end_bones = enduser_obj.pose.bones
 
+    perfRoot = bonemapr[root][0]
+    endFeet = [bonemap[perfBone] for perfBone in perfFeet]
+    locDictKeys = perfFeet + endFeet + [perfRoot]
+    
+        
     def tailLoc(bone):
         return bone.center + (bone.vector / 2)
 
@@ -364,12 +371,12 @@ def totalRetarget():
     scene = bpy.context.scene
     s_frame = scene.frame_start
     e_frame = scene.frame_end
-    bonemap, bonemapr, root = createDictionary(perf_arm)
+    bonemap, bonemapr, feetBones, root = createDictionary(perf_arm,end_arm)
     perf_obj_mat, enduser_obj_mat = cleanAndStoreObjMat(performer_obj, enduser_obj)
     turnOffIK(enduser_obj)
     inter_obj, inter_arm = createIntermediate(performer_obj, enduser_obj, bonemap, bonemapr, root, s_frame, e_frame, scene)
     retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
-    stride_bone = copyTranslation(performer_obj, enduser_obj, ["RightFoot", "LeftFoot"], bonemap, bonemapr, root, s_frame, e_frame, scene, enduser_obj_mat)
+    stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, bonemap, bonemapr, root, s_frame, e_frame, scene, enduser_obj_mat)
     IKRetarget(bonemap, bonemapr, performer_obj, enduser_obj, s_frame, e_frame, scene)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone)
     bpy.ops.object.mode_set(mode='OBJECT')

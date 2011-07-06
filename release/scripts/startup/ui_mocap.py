@@ -149,6 +149,9 @@ def toggleIKBone(self, context):
                     bone.IKRetarget = False
 
 bpy.types.Bone.map = bpy.props.StringProperty()
+bpy.types.Bone.foot = bpy.props.BoolProperty(name="Foot",
+    description="Marks this bone as a 'foot', which determines retargeted animation's translation",
+    default=False)
 bpy.types.PoseBone.IKRetarget = bpy.props.BoolProperty(name="IK",
     description="Toggles IK Retargeting method for given bone",
     update=toggleIKBone, default=False)
@@ -189,6 +192,7 @@ class MocapPanel(bpy.types.Panel):
         row.alignment = 'EXPAND'
         row.operator("mocap.samples", text='Samples to Beziers')
         row.operator("mocap.denoise", text='Clean noise')
+        row.operator("mocap.rotate_fix", text='Fix BVH Axis Orientation')
         row2 = self.layout.row(align=True)
         row2.operator("mocap.looper", text='Loop animation')
         row2.operator("mocap.limitdof", text='Constrain Rig')
@@ -198,7 +202,6 @@ class MocapPanel(bpy.types.Panel):
         column1.label("Performer Rig")
         column2 = row3.column(align=True)
         column2.label("Enduser Rig")
-        self.layout.label("Hierarchy mapping")
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj]
         if enduser_obj is None or len(performer_obj) != 1:
@@ -212,6 +215,7 @@ class MocapPanel(bpy.types.Panel):
                     perf_pose_bones = enduser_obj.pose.bones
                     for bone in perf.bones:
                         row = self.layout.row()
+                        row.prop(data=bone, property='foot', text='', icon='POSE_DATA')
                         row.label(bone.name)
                         row.prop_search(bone, "map", enduser_arm, "bones")
                         label_mod = "FK"
@@ -222,7 +226,11 @@ class MocapPanel(bpy.types.Panel):
                             if hasIKConstraint(pose_bone):
                                 label_mod = "ik end"
                             row.prop(pose_bone, 'IKRetarget')
-                        row.label(label_mod)
+                            row.label(label_mod)
+                        else:
+                            row.label(" ")
+                            row.label(" ")
+                        
 
                     self.layout.operator("mocap.retarget", text='RETARGET!')
 
@@ -319,6 +327,17 @@ class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
 
     def execute(self, context):
         return {"FINISHED"}
+
+class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
+    bl_idname = "mocap.rotate_fix"
+    bl_label = "Rotates selected armature 90 degrees (fix for bvh import)"
+
+    def execute(self, context):
+        mocap_tools.rotate_fix_armature(context.active_object.data)
+        return {"FINISHED"}
+    
+    #def poll(self, context):
+      #  return context.active_object.data in bpy.data.armatures
 
 
 class OBJECT_OT_AddMocapConstraint(bpy.types.Operator):
