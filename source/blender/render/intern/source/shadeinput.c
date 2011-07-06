@@ -771,7 +771,8 @@ void shade_input_set_uv(ShadeInput *shi)
 			t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
 			t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
 
-			detsh= 1.0f/(t00*t11-t10*t01);
+			detsh= (t00*t11-t10*t01);
+			detsh= (detsh != 0.0f)? 1.0f/detsh: 0.0f;
 			t00*= detsh; t01*=detsh; 
 			t10*=detsh; t11*=detsh;
 
@@ -1272,8 +1273,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				s11= ho3[1]/ho3[3] - ho2[1]/ho2[3];
 				
 				detsh= s00*s11-s10*s01;
-				s00/= detsh; s01/=detsh; 
-				s10/=detsh; s11/=detsh;
+				detsh= (detsh != 0.0f)? 1.0f/detsh: 0.0f;
+				s00*= detsh; s01*=detsh; 
+				s10*=detsh; s11*=detsh;
 				
 				/* recalc u and v again */
 				hox= x/Zmulx -1.0f;
