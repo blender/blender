@@ -2479,6 +2479,7 @@ static short FrameOnMouseSide(char side, float frame, float cframe)
 static void createTransNlaData(bContext *C, TransInfo *t)
 {
 	Scene *scene= t->scene;
+	SpaceNla *snla = NULL;
 	TransData *td = NULL;
 	TransDataNla *tdn = NULL;
 	
@@ -2492,6 +2493,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
+	snla = (SpaceNla *)ac.sl;
 	
 	/* filter data */
 	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
@@ -2577,7 +2579,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						tdn->strip= strip;
 						tdn->trackIndex= BLI_findindex(&adt->nla_tracks, nlt);
 						
-						yval= (float)(tdn->trackIndex * NLACHANNEL_STEP);
+						yval= (float)(tdn->trackIndex * NLACHANNEL_STEP(snla));
 						
 						tdn->h1[0]= strip->start;
 						tdn->h1[1]= yval;

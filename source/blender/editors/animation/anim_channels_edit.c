@@ -1825,13 +1825,14 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 	bAnimListElem *ale;
 	int filter;
 	
+	SpaceNla *snla = (SpaceNla *)ac->sl;
 	View2D *v2d= &ac->ar->v2d;
 	rctf rectf;
 	float ymin, ymax;
 	
 	/* set initial y extents */
 	if (ac->datatype == ANIMCONT_NLA) {
-		ymin = (float)(-NLACHANNEL_HEIGHT);
+		ymin = (float)(-NLACHANNEL_HEIGHT(snla));
 		ymax = 0.0f;
 	}
 	else {
@@ -1850,7 +1851,7 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		if (ac->datatype == ANIMCONT_NLA)
-			ymin= ymax - NLACHANNEL_STEP;
+			ymin= ymax - NLACHANNEL_STEP(snla);
 		else
 			ymin= ymax - ACHANNEL_STEP;
 		

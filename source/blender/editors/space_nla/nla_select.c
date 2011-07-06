@@ -225,9 +225,10 @@ static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, sh
 	bAnimListElem *ale;
 	int filter;
 	
+	SpaceNla *snla = (SpaceNla *)ac->sl;
 	View2D *v2d= &ac->ar->v2d;
 	rctf rectf;
-	float ymin=(float)(-NLACHANNEL_HEIGHT), ymax=0;
+	float ymin=(float)(-NLACHANNEL_HEIGHT(snla)), ymax=0;
 	
 	/* convert border-region to view coordinates */
 	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin+2, &rectf.xmin, &rectf.ymin);
@@ -242,7 +243,7 @@ static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, sh
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		ymin= ymax - NLACHANNEL_STEP;
+		ymin= ymax - NLACHANNEL_STEP(snla);
 		
 		/* perform vertical suitability check (if applicable) */
 		if ( (mode == NLA_BORDERSEL_FRAMERANGE) ||
@@ -505,6 +506,7 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, const int mval[2], 
 	bAnimListElem *ale = NULL;
 	int filter;
 	
+	SpaceNla *snla = (SpaceNla *)ac->sl;
 	View2D *v2d= &ac->ar->v2d;
 	Scene *scene= ac->scene;
 	NlaStrip *strip = NULL;
@@ -515,7 +517,7 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, const int mval[2], 
 	
 	/* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-	UI_view2d_listview_view_to_cell(v2d, 0, NLACHANNEL_STEP, 0, (float)NLACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
+	UI_view2d_listview_view_to_cell(v2d, 0, NLACHANNEL_STEP(snla), 0, (float)NLACHANNEL_HEIGHT_HALF(snla), x, y, NULL, &channel_index);
 	
 	/* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click 
 	 * (that is the size of keyframe icons, so user should be expecting similar tolerances) 

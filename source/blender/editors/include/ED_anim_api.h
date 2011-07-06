@@ -299,11 +299,12 @@ typedef enum eAnimFilter_Flags {
 /* -------------- NLA Channel Defines -------------- */
 
 /* NLA channel heights */
-#define NLACHANNEL_FIRST			-16
-#define	NLACHANNEL_HEIGHT			24
-#define NLACHANNEL_HEIGHT_HALF	12
-#define	NLACHANNEL_SKIP			2
-#define NLACHANNEL_STEP			(NLACHANNEL_HEIGHT + NLACHANNEL_SKIP)
+// XXX: NLACHANNEL_FIRST isn't used?
+#define NLACHANNEL_FIRST			    -16
+#define	NLACHANNEL_HEIGHT(snla)	        ((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ? 16 : 24)
+#define NLACHANNEL_HEIGHT_HALF(snla)	((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ?  8 : 12)
+#define	NLACHANNEL_SKIP	                2
+#define NLACHANNEL_STEP(snla)           (NLACHANNEL_HEIGHT(snla) + NLACHANNEL_SKIP)
 
 /* channel widths */
 #define NLACHANNEL_NAMEWIDTH		200

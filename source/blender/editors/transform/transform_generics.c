@@ -573,8 +573,8 @@ void recalcData(TransInfo *t)
 			/* now, check if we need to try and move track
 			 *	- we need to calculate both, as only one may have been altered by transform if only 1 handle moved
 			 */
-			delta_y1= ((int)tdn->h1[1] / NLACHANNEL_STEP - tdn->trackIndex);
-			delta_y2= ((int)tdn->h2[1] / NLACHANNEL_STEP - tdn->trackIndex);
+			delta_y1= ((int)tdn->h1[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
+			delta_y2= ((int)tdn->h2[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
 			
 			if (delta_y1 || delta_y2) {
 				NlaTrack *track;

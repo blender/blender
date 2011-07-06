@@ -514,18 +514,18 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
-	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
+	height= ((items*NLACHANNEL_STEP(snla)) + (NLACHANNEL_HEIGHT(snla)*2));
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
 	v2d->tot.ymin= (float)(-height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)(-NLACHANNEL_HEIGHT);
+	y= (float)(-NLACHANNEL_HEIGHT(snla));
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
-		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
+		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
+		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
 		
 		/* check if visible */
 		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -602,7 +602,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 		}
 		
 		/* adjust y-position for next one */
-		y -= NLACHANNEL_STEP;
+		y -= NLACHANNEL_STEP(snla);
 	}
 	
 	/* free tempolary channels */
@@ -616,13 +616,14 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 // TODO: depreceate this code...
 static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, View2D *v2d, float y)
 {
+	SpaceNla *snla = (SpaceNla *)ac->sl;
 	bAnimListElem *ale;
 	float x = 0.0f;
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	for (ale= anim_data->first; ale; ale= ale->next) {
-		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
-		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
+		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
+		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
 		const float ydatac= (float)(y - 7);
 		
 		/* check if visible */
@@ -644,9 +645,9 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					 *	- need special icons for these
 					 */
 					if (nlt->flag & NLATRACK_SOLO)
-						special= ICON_LAYER_ACTIVE;
+						special= ICON_SPACE2;
 					else
-						special= ICON_LAYER_USED;
+						special= ICON_SPACE3;
 						
 					/* if this track is active and we're tweaking it, don't draw these toggles */
 					// TODO: need a special macro for this...
@@ -867,7 +868,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 		}
 		
 		/* adjust y-position for next one */
-		y -= NLACHANNEL_STEP;
+		y -= NLACHANNEL_STEP(snla);
 	}
 }
 
@@ -877,6 +878,7 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 	bAnimListElem *ale;
 	int filter;
 	
+	SpaceNla *snla = (SpaceNla *)ac->sl;
 	View2D *v2d= &ar->v2d;
 	float y= 0.0f;
 	size_t items;
@@ -892,7 +894,7 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
-	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
+	height= ((items*NLACHANNEL_STEP(snla)) + (NLACHANNEL_HEIGHT(snla)*2));
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
@@ -902,14 +904,14 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 	
 	/* draw channels */
 	{	/* first pass: backdrops + oldstyle drawing */
-		y= (float)(-NLACHANNEL_HEIGHT);
+		y= (float)(-NLACHANNEL_HEIGHT(snla));
 		
 		draw_nla_channel_list_gl(ac, &anim_data, v2d, y);
 	}
 	{	/* second pass: UI widgets */
 		uiBlock *block= uiBeginBlock(C, ar, "NLA channel buttons", UI_EMBOSS);
 		
-		y= (float)(-NLACHANNEL_HEIGHT);
+		y= (float)(-NLACHANNEL_HEIGHT(snla));
 		
 		/* set blending again, as may not be set in previous step */
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -917,8 +919,8 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 		
 		/* loop through channels, and set up drawing depending on their type  */	
 		for (ale= anim_data.first; ale; ale= ale->next) {
-			const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
-			const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
+			const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
+			const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
 			
 			/* check if visible */
 			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -929,7 +931,7 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 			}
 			
 			/* adjust y-position for next one */
-			y -= NLACHANNEL_STEP;
+			y -= NLACHANNEL_STEP(snla);
 		}
 		
 		uiEndBlock(C, block);
