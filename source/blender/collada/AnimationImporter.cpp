@@ -855,6 +855,28 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 			}
 		}
 	}
+
+	if ( ((animType & CAMERA_XFOV) != 0) )
+	{
+		Camera * camera  = (Camera*) ob->data;
+
+		if (!camera->adt || !camera->adt->action) act = verify_adt_action((ID*)&camera->id, 1);
+					else act = camera->adt->action;
+
+		ListBase *AnimCurves = &(act->curves);
+		const COLLADAFW::InstanceCameraPointerArray& nodeCameras= node->getInstanceCameras();
+
+		for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
+			const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
+
+			if ((animType & CAMERA_XFOV) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
+				const COLLADAFW::UniqueId& listid = xfov->getAnimationList();
+				Assign_float_animations( listid ,AnimCurves, "lens"); 
+			}
+		}
+	}
 }
 
 //Check if object is animated by checking if animlist_map holds the animlist_id of node transforms

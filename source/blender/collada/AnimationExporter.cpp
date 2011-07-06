@@ -597,7 +597,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		//bool is_rotation = !strcmp(fcu->rna_path, "rotation");
 		bool is_angle = false;
 		
-		if (strstr(fcu->rna_path, "rotation")||strstr(fcu->rna_path, "lens")) is_angle = true;
+		if (strstr(fcu->rna_path, "rotation")) is_angle = true;
 		
 		COLLADASW::FloatSourceF source(mSW);
 		source.setId(source_id);
