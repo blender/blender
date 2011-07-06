@@ -1,6 +1,7 @@
 
 Game Engine bge.texture Module
 ==============================
+
 .. note::
 	This documentation is still very weak, and needs some help! Right now they are mostly a collection
 	of the docstrings found in the bge.texture source code + some random places filled with text.
@@ -38,36 +39,6 @@ except that you are now in control of the texture.
 When the texture object is deleted, the new texture is deleted and the old texture restored.
 
 .. module:: bge.texture
-	
-.. code-block:: python
-
-    import bge
-	from bge import texture
-    from bge import logic
-
-    cont = logic.getCurrentController()
-    obj = cont.owner
-	
-    # the creation of the texture must be done once: save the 
-    # texture object in an attribute of GameLogic module makes it persistent
-    if not hasattr(logic, 'video'):
-	
-        # identify a static texture by name
-        matID = texture.materialID(obj, 'IMvideo.png')
-		
-        # create a dynamic texture that will replace the static texture
-        logic.video = texture.Texture(obj, matID)
-		
-        # define a source of image for the texture, here a movie
-        movie = logic.expandPath('//trailer_400p.ogg')
-        logic.video.source = texture.VideoFFmpeg(movie)
-        logic.video.source.scale = True
-		
-        # quick off the movie, but it wont play in the background
-        logic.video.source.play()	
-		
-        # you need to call this function every frame to ensure update of the texture.
-        logic.video.refresh(True)
 
 .. class:: VideoFFmpeg(file [, capture=-1, rate=25.0, width=0, height=0])
 
