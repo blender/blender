@@ -60,7 +60,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	
 	if(node->custom2 || node->need_exec==0) {
 		/* this node refers to its own texture tree! */
-		QUATCOPY(out, (fabs(co[0] - co[1]) < .01) ? white : red ;
+		QUATCOPY(out, (fabs(co[0] - co[1]) < .01) ? white : red );
 	}
 	else if(nodetex) {
 		TexResult texres;
