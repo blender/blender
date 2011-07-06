@@ -49,6 +49,7 @@ static bNodeSocketType outputs[]= {
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
+	Tex *nodetex = (Tex *)node->id;
 	static float red[] = {1,0,0,1};
 	static float white[] = {1,1,1,1};
 	float co[3], dxt[3], dyt[3];
@@ -57,14 +58,9 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	copy_v3_v3(dxt, p->dxt);
 	copy_v3_v3(dyt, p->dyt);
 	
-	Tex *nodetex = (Tex *)node->id;
-	
 	if(node->custom2 || node->need_exec==0) {
 		/* this node refers to its own texture tree! */
-		QUATCOPY(
-			out,
-			(fabs(co[0] - co[1]) < .01) ? white : red 
-		);
+		QUATCOPY(out, (fabs(co[0] - co[1]) < .01) ? white : red ;
 	}
 	else if(nodetex) {
 		TexResult texres;
