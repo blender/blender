@@ -51,7 +51,11 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 {
 	static float red[] = {1,0,0,1};
 	static float white[] = {1,1,1,1};
-	float *co = p->co;
+	float co[3], dxt[3], dyt[3];
+
+	copy_v3_v3(co, p->co);
+	copy_v3_v3(dxt, p->dxt);
+	copy_v3_v3(dyt, p->dyt);
 	
 	Tex *nodetex = (Tex *)node->id;
 	
@@ -70,9 +74,9 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		
 		tex_input_rgba(col1, in[0], p, thread);
 		tex_input_rgba(col2, in[1], p, thread);
-		
+
 		texres.nor = nor;
-		textype = multitex_nodes(nodetex, co, p->dxt, p->dyt, p->osatex,
+		textype = multitex_nodes(nodetex, co, dxt, dyt, p->osatex,
 			&texres, thread, 0, p->shi, p->mtex);
 		
 		if(textype & TEX_RGB) {
