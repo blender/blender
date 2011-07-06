@@ -550,22 +550,20 @@ def denoise_median():
 
 
 def rotate_fix_armature(arm_data):
-    global_matrix = Matrix.Rotation(radians(90),4,"X")
+    global_matrix = Matrix.Rotation(radians(90), 4, "X")
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-    if global_matrix!=Matrix(): #optimization: this might not be needed.
-        #disconnect all bones for ease of global rotation
-        connectedBones = []
-        for bone in arm_data.edit_bones:
-            if bone.use_connect:
-                connectedBones.append(bone.name)
-                bone.use_connect=False
+    #disconnect all bones for ease of global rotation
+    connectedBones = []
+    for bone in arm_data.edit_bones:
+        if bone.use_connect:
+            connectedBones.append(bone.name)
+            bone.use_connect = False
 
-        #rotate all the bones around their center
-        for bone in arm_data.edit_bones:
-            bone.transform(global_matrix)
+    #rotate all the bones around their center
+    for bone in arm_data.edit_bones:
+        bone.transform(global_matrix)
 
-        #reconnect the bones
-        for bone in connectedBones:
-            arm_data.edit_bones[bone].use_connect=True
-
+    #reconnect the bones
+    for bone in connectedBones:
+        arm_data.edit_bones[bone].use_connect = True
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)

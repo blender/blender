@@ -96,7 +96,7 @@ def updateConstraintBoneType(m_constraint, context):
 # Function that copies all settings from m_constraint to the real Blender constraints
 # Is only called when blender constraint already exists
 
-def setConstraintFraming(m_constraint, cons_obj):
+def setConstraintFraming(m_constraint, cons_obj, real_constraint):
     if isinstance(cons_obj, bpy.types.PoseBone):
         fcurves = obj.animation_data.action.fcurves
     else:
@@ -118,6 +118,7 @@ def setConstraintFraming(m_constraint, cons_obj):
     real_constraint.keyframe_insert(data_path="influence", frame=s - s_in)
     real_constraint.keyframe_insert(data_path="influence", frame=e + s_out)
 
+
 def setConstraint(m_constraint):
     if not m_constraint.constrained_bone:
         return
@@ -128,8 +129,8 @@ def setConstraint(m_constraint):
     real_constraint = cons_obj.constraints[m_constraint.real_constraint]
 
     #frame changing section
-    setConstraintFraming(m_constraint, cons_obj)
-    
+    setConstraintFraming(m_constraint, cons_obj, real_constraint)
+
     #Set the blender constraint parameters
     if m_constraint.type == "point":
         real_constraint.owner_space = m_constraint.targetSpace
@@ -149,7 +150,7 @@ def setConstraint(m_constraint):
 
     if m_constraint.type == "freeze":
         real_constraint.owner_space = m_constraint.targetSpace
-        bpy.context.scene.frame_set(s)
+        bpy.context.scene.frame_set(m_constraint.s_frame)
         if isinstance(cons_obj, bpy.types.PoseBone):
             x, y, z = cons_obj.center + (cons_obj.vector / 2)
         else:
@@ -173,7 +174,6 @@ def setConstraint(m_constraint):
         real_constraint.target = getConsObj(bones[m_constraint.constrained_boneB])
         real_constraint.limit_mode = "LIMITDIST_ONSURFACE"
         real_constraint.distance = m_constraint.targetDist
-        
 
     # active check
     real_constraint.mute = not m_constraint.active
