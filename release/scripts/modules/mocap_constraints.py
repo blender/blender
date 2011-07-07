@@ -20,6 +20,7 @@
 
 import bpy
 from mathutils import *
+from bl_operators import nla
 
 ### Utility Functions
 
@@ -96,7 +97,7 @@ def updateConstraintBoneType(m_constraint, context):
 # Function that copies all settings from m_constraint to the real Blender constraints
 # Is only called when blender constraint already exists
 
-def setConstraintFraming(m_constraint, cons_obj, real_constraint):
+def setConstraintFraming(m_constraint, cons_obj, obj, real_constraint):
     if isinstance(cons_obj, bpy.types.PoseBone):
         fcurves = obj.animation_data.action.fcurves
     else:
@@ -129,7 +130,7 @@ def setConstraint(m_constraint):
     real_constraint = cons_obj.constraints[m_constraint.real_constraint]
 
     #frame changing section
-    setConstraintFraming(m_constraint, cons_obj, real_constraint)
+    setConstraintFraming(m_constraint, cons_obj, obj, real_constraint)
 
     #Set the blender constraint parameters
     if m_constraint.type == "point":
@@ -176,4 +177,92 @@ def setConstraint(m_constraint):
         real_constraint.distance = m_constraint.targetDist
 
     # active check
-    real_constraint.mute = not m_constraint.active
+    real_constraint.mute = (not m_constraint.active) and (m_constraint.baked)
+
+
+def updateBake(self, context):
+    if self.baked:
+        print("baking...")
+        bakeConstraint(self)
+    else:
+        print("unbaking...")
+        unbakeConstraint(self)
+
+
+def bakeTransformFK(anim_data, s_frame, e_frame, end_bone, bones, cons_obj):
+    mute_ik = False
+    for bone in bones:
+        bone.bone.select = False
+    ik = hasIKConstraint(end_bone)
+    if not isinstance(cons_obj, bpy.types.PoseBone) and ik:
+            if ik.chain_count == 0:
+                selectedBones = bones
+            else:
+                selectedBones = [end_bone] + end_bone.parent_recursive[:ik.chain_count - 1]
+            mute_ik = True
+    else:
+        selectedBones = [end_bone]
+    print(selectedBones)
+    for bone in selectedBones:
+        bone.bone.select = True
+    anim_data.action = nla.bake(s_frame,
+        e_frame, action=anim_data.action)
+    return mute_ik
+
+
+def bakeConstraint(m_constraint):
+    obj = bpy.context.active_object
+    bones = obj.pose.bones
+    end_bone = bones[m_constraint.constrained_bone]
+    cons_obj = getConsObj(end_bone)
+    scene = bpy.context.scene
+    s_frame = scene.frame_start
+    e_frame = scene.frame_end
+    mute_ik = bakeTransformFK(obj.animation_data, s_frame, e_frame, end_bone, bones, cons_obj)
+    if mute_ik:
+        ik_con = hasIKConstraint(end_bone)
+        ik_con.mute = True
+    real_constraint = cons_obj.constraints[m_constraint.real_constraint]
+    real_constraint.mute = True
+    constraintTrack = obj.animation_data.nla_tracks["Mocap constraints"]
+    constraintStrip = constraintTrack.strips[0]
+    constraintStrip.action_frame_start = s_frame
+    constraintStrip.action_frame_end = e_frame
+    constraintStrip.frame_start = s_frame
+    constraintStrip.frame_end = e_frame
+
+
+def unbakeConstraint(m_constraint):
+    # to unbake a constraint we need to delete the whole strip
+    # and rebake all the other constraints
+    obj = bpy.context.active_object
+    bones = obj.pose.bones
+    end_bone = bones[m_constraint.constrained_bone]
+    cons_obj = getConsObj(end_bone)
+    scene = bpy.context.scene
+    s_frame = scene.frame_start
+    e_frame = scene.frame_end
+    constraintTrack = obj.animation_data.nla_tracks["Mocap constraints"]
+    constraintStrip = constraintTrack.strips[0]
+    action = constraintStrip.action
+    for fcurve in action.fcurves:
+        action.fcurves.remove(fcurve)
+    for other_m_constraint in obj.data.mocap_constraints:
+        if m_constraint != other_m_constraint:
+            bakeConstraint(other_m_constraint)
+    # It's a control empty: turn the ik back on
+    if not isinstance(cons_obj, bpy.types.PoseBone):
+        ik_con = hasIKConstraint(end_bone)
+        if ik_con:
+            ik_con.mute = False
+    real_constraint = cons_obj.constraints[m_constraint.real_constraint]
+    real_constraint.mute = False
+
+
+def hasIKConstraint(pose_bone):
+    #utility function / predicate, returns True if given bone has IK constraint
+    ik = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"]
+    if ik:
+        return ik[0]
+    else:
+        return False

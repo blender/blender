@@ -374,6 +374,21 @@ def totalRetarget():
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_name(name=inter_obj.name, extend=False)
     bpy.ops.object.delete()
+    anim_data = enduser_obj.animation_data
+    mocapAction = anim_data.action
+    mocapAction.name = "Base Mocap Action"
+    anim_data.use_nla = True
+    mocapTrack = anim_data.nla_tracks.new()
+    mocapTrack.name = "Base Mocap Track"
+    mocapStrip = mocapTrack.strips.new("Base Mocap Action", s_frame, mocapAction)
+    constraintTrack = anim_data.nla_tracks.new()
+    constraintTrack.name = "Mocap constraints"
+    constraintAction = bpy.data.actions.new("Mocap constraints Action")
+    constraintStrip = constraintTrack.strips.new("Mocap constraints Action", s_frame, constraintAction)
+    #constraintStrip.frame_end = e_frame
+    anim_data.nla_tracks.active = constraintTrack
+    anim_data.action = constraintAction
+
 
 if __name__ == "__main__":
     totalRetarget()

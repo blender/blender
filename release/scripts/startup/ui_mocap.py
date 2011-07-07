@@ -80,7 +80,7 @@ class MocapConstraint(bpy.types.PropertyGroup):
     baked = bpy.props.BoolProperty(name="Baked / Applied",
         default=False,
         description="Constraint has been baked to NLA layer",
-        update=updateConstraint)
+        update=updateBake)
     targetPoint = bpy.props.FloatVectorProperty(name="Point", size=3,
         subtype="XYZ", default=(0.0, 0.0, 0.0),
         description="Target of Constraint - Point",
@@ -157,11 +157,6 @@ bpy.types.PoseBone.IKRetarget = bpy.props.BoolProperty(name="IK",
     update=toggleIKBone, default=False)
 
 
-def hasIKConstraint(pose_bone):
-    #utility function / predicate, returns True if given bone has IK constraint
-    return ("IK" in [constraint.type for constraint in pose_bone.constraints])
-
-
 def updateIKRetarget():
     # ensures that Blender constraints and IK properties are in sync
     # currently runs when module is loaded, should run when scene is loaded
@@ -230,8 +225,6 @@ class MocapPanel(bpy.types.Panel):
                         else:
                             row.label(" ")
                             row.label(" ")
-                        
-
                     self.layout.operator("mocap.retarget", text='RETARGET!')
 
 
@@ -328,6 +321,7 @@ class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
     def execute(self, context):
         return {"FINISHED"}
 
+
 class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
     bl_idname = "mocap.rotate_fix"
     bl_label = "Rotates selected armature 90 degrees (fix for bvh import)"
@@ -335,7 +329,7 @@ class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
     def execute(self, context):
         mocap_tools.rotate_fix_armature(context.active_object.data)
         return {"FINISHED"}
-    
+
     #def poll(self, context):
       #  return context.active_object.data in bpy.data.armatures
 
