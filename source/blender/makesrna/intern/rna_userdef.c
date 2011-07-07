@@ -1009,7 +1009,14 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Bundle Solid", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "camera_path", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "camera_path");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Camera Path", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
+
 
 static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 {

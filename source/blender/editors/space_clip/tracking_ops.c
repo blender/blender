@@ -658,19 +658,16 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		if(BKE_tracking_has_marker(track, framenr)) {
 			switch (action) {
 				case SEL_SELECT:
-					if(track->bundle) track->bundle->flag|= SELECT;
 					track->flag|= SELECT;
 					track->pat_flag|= SELECT;
 					track->search_flag|= SELECT;
 					break;
 				case SEL_DESELECT:
-					if(track->bundle) track->bundle->flag&= ~SELECT;
 					track->flag&= ~SELECT;
 					track->pat_flag&= ~SELECT;
 					track->search_flag&= ~SELECT;
 					break;
 				case SEL_INVERT:
-					if(track->bundle) track->bundle->flag^= SELECT;
 					track->flag^= SELECT;
 					track->pat_flag^= SELECT;
 					track->search_flag^= SELECT;
@@ -971,6 +968,82 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tarcking");
 	RNA_def_boolean(ot->srna, "sequence", 0, "Track Sequence", "Track marker during image sequence rather than single image");
+}
+
+/********************** solve camera operator *********************/
+
+static int solve_camera_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+
+	BKE_tracking_solve_reconstruction(clip);
+
+	DAG_id_tag_update(&clip->id, 0);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_solve_camera(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Solve Camera";
+	ot->description= "Solve camera motion from tracks";
+	ot->idname= "CLIP_OT_solve_camera";
+
+	/* api callbacks */
+	ot->exec= solve_camera_exec;
+	ot->poll= space_clip_frame_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** clear reconstruction operator *********************/
+
+static int clear_reconstruction_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track= tracking->tracks.first;
+
+	while(track) {
+		track->flag&= ~TRACK_HAS_BUNDLE;
+
+		track= track->next;
+	}
+
+	if(tracking->camera.reconstructed)
+		MEM_freeN(tracking->camera.reconstructed);
+
+	tracking->camera.reconstructed= NULL;
+	tracking->camera.reconnr= 0;
+
+	DAG_id_tag_update(&clip->id, 0);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_clear_reconstruction(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Reconstruciton";
+	ot->description= "Clear all reconstruciton data";
+	ot->idname= "CLIP_OT_clear_reconstruction";
+
+	/* api callbacks */
+	ot->exec= clear_reconstruction_exec;
+	ot->poll= space_clip_frame_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** clear track operator *********************/

@@ -34,6 +34,7 @@ remove_flag("-DDEBUG")
 set(INC
 	extern
 	superlu
+	../../extern/colamd/Include
 )
 
 set(INC_SYS
@@ -42,7 +43,6 @@ set(INC_SYS
 
 set(SRC
 	intern/opennl.c
-	superlu/colamd.c
 	superlu/get_perm_c.c
 	superlu/heap_relax_snode.c
 	superlu/lsame.c
@@ -77,7 +77,6 @@ set(SRC
 	extern/ONL_opennl.h
 	superlu/superlu_sys_types.h
 	superlu/Cnames.h
-	superlu/colamd.h
 	superlu/ssp_defs.h
 	superlu/supermatrix.h
 	superlu/util.h

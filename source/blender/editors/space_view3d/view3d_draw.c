@@ -64,6 +64,7 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 #include "BKE_movieclip.h"
+#include "BKE_tracking.h"
 
 #include "RE_pipeline.h"	// make_stars
 
@@ -1575,73 +1576,66 @@ static void draw_bundle_outline(void)
 	glCallList(displist);
 }
 
-static void draw_clip(MovieClip *clip, int dt)
+static void draw_viewport_reconstruction(View3D *v3d, MovieClip *clip)
 {
-	MovieTrackingBundle *bundle;
+	MovieTrackingTrack *track;
 
-	for ( bundle= clip->tracking.bundles.first; bundle; bundle= bundle->next) {
-		glPushMatrix();
-			glTranslatef(bundle->pos[0], bundle->pos[1], bundle->pos[2]);
-
-			if(bundle->flag&SELECT) {
-				glDisable(GL_LIGHTING);
-				glDepthMask(0);
-
-				UI_ThemeColor(TH_SELECT);
-				draw_bundle_outline();
-
-				glDepthMask(1);
-				glEnable(GL_LIGHTING);
-			}
-
-			if(dt==OB_WIRE) {
-				if((bundle->flag&SELECT)==0) {
-					glDisable(GL_LIGHTING);
-					glDepthMask(0);
-
-					UI_ThemeColor(TH_WIRE);
-					draw_bundle_outline();
-
-					glDepthMask(1);
-					glEnable(GL_LIGHTING);
-				}
-			}
-			else if(dt>OB_WIRE) {
-				UI_ThemeColor(TH_BUNDLE_SOLID);
-				draw_bundle_sphere();
-			}
-		glPopMatrix();
-	}
-}
-
-/* draw movie-clips related items in the 3d view (bundles and so) */
-static void draw_viewport_clips(View3D *v3d)
-{
-	BGpic *bgpic;
-	MovieClip *clip;
-	int dt= v3d->drawtype;
+	if((v3d->flag2&V3D_SHOW_RECONSTRUCTION)==0)
+		return;
 
 	glEnable(GL_LIGHTING);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
 	glShadeModel(GL_SMOOTH);
 
-	/* clear usage flag */
-	for ( bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next )
-		if(bgpic->source==V3D_BGPIC_MOVIE && bgpic->clip)
-			bgpic->clip->id.flag&= ~LIB_DOIT;
+	for ( track= clip->tracking.tracks.first; track; track= track->next) {
+		if((track->flag&TRACK_HAS_BUNDLE)==0)
+			continue;
 
-	/* actual draw cycle */
-	for ( bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next )
-		if(bgpic->source==V3D_BGPIC_MOVIE) {
-			clip= bgpic->clip;
+		glPushMatrix();
+			glTranslatef(track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
+			glScalef(v3d->bundle_size/0.05, v3d->bundle_size/0.05, v3d->bundle_size/0.05);
 
-			if(clip && (clip->id.flag&LIB_DOIT)==0) {
-				draw_clip(clip, dt);
-
-				bgpic->clip->id.flag|= LIB_DOIT;
+			if(TRACK_SELECTED(track)) {
+				UI_ThemeColor(TH_SELECT);
 			}
-		}
+
+			if(v3d->drawtype==OB_WIRE) {
+				glDisable(GL_LIGHTING);
+				glDepthMask(0);
+
+				if(TRACK_SELECTED(track)) UI_ThemeColor(TH_SELECT);
+				else UI_ThemeColor(TH_WIRE);
+				draw_bundle_outline();
+
+				glDepthMask(1);
+				glEnable(GL_LIGHTING);
+			}
+			else if(v3d->drawtype>OB_WIRE) {
+				if(TRACK_SELECTED(track)) UI_ThemeColor(TH_SELECT);
+				else UI_ThemeColor(TH_BUNDLE_SOLID);
+				
+				draw_bundle_sphere();
+			}
+		glPopMatrix();
+	}
+
+	if(v3d->flag2&V3D_SHOW_CAMERAPATH && clip->tracking.camera.reconnr) {
+		int a= 0;
+		MovieTrackingCamera *camera= &clip->tracking.camera;
+		MovieReconstructedCamera *cur= camera->reconstructed;
+
+		glDisable(GL_LIGHTING);
+		UI_ThemeColor(TH_CAMERA_PATH);
+		glLineWidth(2.0f);
+		glBegin(GL_LINE_STRIP);
+			for(a= 0; a<camera->reconnr; a++, cur++) {
+				glVertex3f(cur->mat[3][0], cur->mat[3][1], cur->mat[3][2]);
+			}
+		glEnd();
+		glLineWidth(1.0f);
+		glEnable(GL_LIGHTING);
+	}
 
 	/* restore */
 	glShadeModel(GL_FLAT);
@@ -2730,8 +2724,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		}
 	}
 
-	/* draw data came from movie clips set as background */
-	draw_viewport_clips(v3d);
+	/* draw data for movie clip set as active for scene */
+	if(scene->clip)
+		draw_viewport_reconstruction(v3d, scene->clip);
 
 //	REEB_draw();
 

@@ -3466,6 +3466,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "TransformOrientation");
 	RNA_def_property_ui_text(prop, "Transform Orientations", "");
 
+	/* acctive MovieClip */
+	prop= RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "clip");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "MovieClip");
+	RNA_def_property_ui_text(prop, "Active Movie Clip", "Active movie clip used for constraints and viewport drawing");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);
 	rna_def_unit_settings(brna);

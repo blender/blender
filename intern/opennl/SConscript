@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('intern/*.c') + env.Glob('superlu/*.c')
 
-incs = 'extern superlu'
+incs = 'extern superlu ../../extern/colamd/Include'
 
 if (env['OURPLATFORM'] == 'win32-mingw'):
     env.BlenderLib ('bf_intern_opennl', sources, Split(incs), [], libtype=['core','intern'], priority=[1,80] )

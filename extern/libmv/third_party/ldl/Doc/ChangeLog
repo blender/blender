@@ -1,0 +1,39 @@
+May 31, 2007: version 2.0.0
+
+    * C-callable 64-bit version added
+
+    * ported to 64-bit MATLAB
+
+    * subdirectories added (Source/, Include/, Lib/, Demo/, Doc/, MATLAB/)
+
+Dec 12, 2006: version 1.3.4
+
+    * minor MATLAB cleanup
+
+Sept 11, 2006: version 1.3.1
+
+    * The ldl m-file renamed to ldlsparse, to avoid name conflict with the
+	new MATLAB ldl function (in MATLAB 7.3).
+
+Apr 30, 2006:  version 1.3
+
+    * requires AMD v2.0.  ldlmain.c demo program modified, since AMD can now
+	handle jumbled matrices.  Minor change to Makefile.
+
+Aug 30, 2005:
+
+    * Makefile changed to use ../UFconfig/UFconfig.mk.  License changed to
+	GNU LGPL.
+
+July 4, 2005:
+
+    * user guide added.  Since no changes to the code were made,
+	the version number (1.1) and code release date (Apr 22, 2005)
+	were left unchanged.
+
+Apr. 22, 2005:  LDL v1.1 released.
+
+    * No real changes were made.  The code was revised so
+	that each routine fits on a single page in the documentation.
+
+Dec 31, 2003:  LDL v1.0 released.

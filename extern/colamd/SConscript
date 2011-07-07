@@ -1,0 +1,14 @@
+#!/usr/bin/python
+import sys
+import os
+
+Import('env')
+
+defs = ''
+cflags = []
+
+src = env.Glob('Source/*.c')
+
+incs = './Include'
+
+env.BlenderLib ( libname = 'extern_colamd', sources=src, includes=Split(incs), defines=Split(defs), libtype=['extern', 'player'], priority=[20,137], compileflags=cflags )

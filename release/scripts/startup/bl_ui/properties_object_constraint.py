@@ -755,6 +755,12 @@ class ConstraintButtonsPanel():
         layout.prop(con, "clip")
         layout.prop(con, "track")
 
+        row = layout.row()
+        row.prop(con, "reference", expand=True)
+
+    def CAMERA_SOLVER(self, context, layout, con):
+        layout.prop(con, "clip")
+
     def SCRIPT(self, context, layout, con):
         layout.label("Blender 2.5 has no py-constraints")
 

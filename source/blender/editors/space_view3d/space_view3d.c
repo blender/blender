@@ -251,6 +251,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->gridflag &= ~V3D_SHOW_Z;
 	
 	v3d->flag |= V3D_SELECT_OUTLINE;
+	v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
 	
 	v3d->lens= 35.0f;
 	v3d->near= 0.01f;
@@ -259,6 +260,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->twflag |= U.tw_flag & V3D_USE_MANIPULATOR;
 	v3d->twtype= V3D_MANIP_TRANSLATE;
 	v3d->around= V3D_CENTROID;
+	
+	v3d->bundle_size= 0.1f;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for view3d");

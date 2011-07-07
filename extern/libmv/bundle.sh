@@ -7,7 +7,15 @@ tmp=`mktemp -d`
 
 git clone $repo $tmp/libmv
 
+git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log --since="1 month ago" > ChangeLog
+
+for p in `cat ./patches/series`; do
+  echo "Applying patch $p..."
+  cat ./patches/$p | patch -d $tmp/libmv -p1
+done
+
 rm -rf libmv
+rm -rf third_party
 
 cat "files.txt" | while f=`line`; do
   mkdir -p `dirname $f`
@@ -16,17 +24,60 @@ done
 
 rm -rf $tmp
 
-sources=`find ./libmv -type f -iname '*.cc' | sed -r 's/^\.\//\t/'`
+chmod 664 ./third_party/glog/src/windows/*.cc ./third_party/glog/src/windows/*.h ./third_party/glog/src/windows/glog/*.h
+
+sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/'`
 headers=`find ./libmv -type f -iname '*.h' | sed -r 's/^\.\//\t/'`
 
-src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; | sed -r 's/^\.\//\t/' | uniq`
+third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | sed -r 's/^\.\//\t/'`
+third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | sed -r 's/^\.\//\t/'`
+
+third_glog_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/'`
+third_glog_headers=`find ./third_party -type f -iname '*.h' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/'`
+
+src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/' | sort | uniq`
+src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/'  | sort | uniq`
 src=""
-for x in $src_dir; do
-  t="src += env.Glob('`echo $x'/*.cc'`')"
-  if [ -z "$src" ]; then
-    src=$t
+win_src=""
+for x in $src_dir $src_third_dir; do
+  t=""
+
+  if test  `echo "$x" | grep -c glog ` -eq 1; then
+    continue;
+  fi
+
+  if stat $x/*.cpp > /dev/null 2>&1; then
+    t="src += env.Glob('`echo $x'/*.cpp'`')"
+  fi
+
+  if stat $x/*.c > /dev/null 2>&1; then
+    if [ -z "$t" ]; then
+      t="src += env.Glob('`echo $x'/*.c'`')"
+    else
+      t="$t + env.Glob('`echo $x'/*.c'`')"
+    fi
+  fi
+
+  if stat $x/*.cc > /dev/null 2>&1; then
+    if [ -z "$t" ]; then
+      t="src += env.Glob('`echo $x'/*.cc'`')"
+    else
+      t="$t + env.Glob('`echo $x'/*.cc'`')"
+    fi
+  fi
+
+  if test `echo $x | grep -c windows ` -eq 0; then
+    if [ -z "$src" ]; then
+      src=$t
+    else
+      src=`echo "$src\n$t"`
+    fi
   else
-    src=`echo "$src\n$t"`
+    if [ -z "$win_src" ]; then
+      win_src=`echo "    $t"`
+    else
+      win_src=`echo "$win_src\n    $t"`
+    fi
   fi
 done
 
@@ -59,6 +110,9 @@ cat > CMakeLists.txt << EOF
 set(INC
 	.
 	../Eigen3
+	./third_party/ssba
+	./third_party/ldl/Include
+	../colamd/Include
 )
 
 set(INC_SYS
@@ -69,53 +123,60 @@ set(SRC
 	libmv-capi.cpp
 ${sources}
 
+${third_sources}
+
 	libmv-capi.h
 ${headers}
+
+${third_headers}
 )
 
+IF(WIN32)
+	list(APPEND SRC
+		third_party/glog/src/logging.cc
+		third_party/glog/src/raw_logging.cc
+		third_party/glog/src/utilities.cc
+		third_party/glog/src/vlog_is_on.cc
+		third_party/glog/src/windows/port.cc
+
+		third_party/glog/src/utilities.h
+		third_party/glog/src/stacktrace_generic-inl.h
+		third_party/glog/src/stacktrace.h
+		third_party/glog/src/stacktrace_x86_64-inl.h
+		third_party/glog/src/base/googleinit.h
+		third_party/glog/src/base/mutex.h
+		third_party/glog/src/base/commandlineflags.h
+		third_party/glog/src/stacktrace_powerpc-inl.h
+		third_party/glog/src/stacktrace_x86-inl.h
+		third_party/glog/src/config.h
+		third_party/glog/src/stacktrace_libunwind-inl.h
+		third_party/glog/src/windows/glog/raw_logging.h
+		third_party/glog/src/windows/glog/vlog_is_on.h
+		third_party/glog/src/windows/glog/logging.h
+		third_party/glog/src/windows/glog/log_severity.h
+		third_party/glog/src/windows/port.h
+		third_party/glog/src/windows/config.h
+	)
+
+	list(APPEND INC
+		./third_party/glog/src/windows
+		./third_party/msinttypes
+	)
+ELSE(WIN32)
+	list(APPEND SRC
+${third_glog_sources}
+
+${third_glog_headers}
+	)
+
+	list(APPEND INC
+		./third_party/glog/src
+	)
+ENDIF(WIN32)
+
+add_definitions(-DV3DLIB_ENABLE_SUITESPARSE -DGOOGLE_GLOG_DLL_DECL=)
+
 blender_add_lib(extern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}")
-EOF
-
-cat > libmv/logging/logging.h << EOF
-// Copyright (c) 2007, 2008, 2009 libmv authors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
-
-#ifndef LIBMV_LOGGING_LOGGING_H
-#define LIBMV_LOGGING_LOGGING_H
-
-#include <iostream>
-
-class DummyLogger {
-public:
-	DummyLogger operator << (const ::std::wstring& wstr) { return *this; }
-	DummyLogger operator << (const char *pchar) { return *this; }
-	DummyLogger operator << (int a) { return *this; }
-};
-
-#define LG (DummyLogger())
-#define V0 (DummyLogger())
-#define V1 (DummyLogger())
-#define V2 (DummyLogger())
-
-#endif  // LIBMV_LOGGING_LOGGING_H
-
 EOF
 
 cat > SConscript << EOF
@@ -125,13 +186,24 @@ import os
 
 Import('env')
 
-defs = ' -DUSE_FORTRAN_BLAS -DNOGUI'
+defs = 'V3DLIB_ENABLE_SUITESPARSE GOOGLE_GLOG_DLL_DECL='
 cflags = []
 
 src = env.Glob("*.cpp")
 $src
 
-incs = '. ../Eigen3 '
+incs = '. ../Eigen3'
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog ./third_party/msinttypes'
+${win_src}
+    src += ['./third_party/glog/src/logging.cc', './third_party/glog/src/raw_logging.cc', './third_party/glog/src/utilities.cc', './third_party/glog/src/vlog_is_on.cc']
+    src += ['./third_party/glog/src/windows/port.cc']
+else:
+    src += env.Glob("third_party/glog/src/*.cc")
+    incs += ' ./third_party/glog/src'
+
+incs += ' ./third_party/ssba ./third_party/ldl/Include ../colamd/Include'
 
 env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=Split(defs), libtype=['extern', 'player'], priority=[20,137], compileflags=cflags )
 EOF

@@ -251,7 +251,8 @@ enum {
 	TH_BUNDLE_SOLID,
 	TH_DIS_MARKER,
 	TH_PATH_BEFORE,
-	TH_PATH_AFTER
+	TH_PATH_AFTER,
+	TH_CAMERA_PATH
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

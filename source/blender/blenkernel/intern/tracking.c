@@ -31,6 +31,7 @@
  */
 
 #include <stddef.h>
+#include <limits.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -44,6 +45,7 @@
 
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
+#include "BKE_global.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -342,7 +344,9 @@ void BKE_tracking_free(MovieTracking *tracking)
 	}
 
 	BLI_freelistN(&tracking->tracks);
-	BLI_freelistN(&tracking->bundles);
+
+	if(tracking->camera.reconstructed)
+		MEM_freeN(tracking->camera.reconstructed);
 }
 
 /*********************** tracking *************************/
@@ -352,7 +356,7 @@ typedef struct MovieTrackingContext {
 	MovieClip *clip;
 
 #ifdef WITH_LIBMV
-	libmv_regionTrackerHandle region_tracker;
+	struct libmv_RegionTracker *region_tracker;
 #endif
 	ListBase tracks;
 	GHash *hash;
@@ -676,6 +680,117 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	return ok;
 }
 
+#if WITH_LIBMV
+static struct libmv_Tracks *create_libmv_tracks(MovieClip *clip)
+{
+	int width, height;
+	int tracknr= 0;
+	MovieTrackingTrack *track;
+	struct libmv_Tracks *tracks= libmv_tracksNew();;
+
+	/* XXX: could fail if footage uses images with different sizes */
+	BKE_movieclip_acquire_size(clip, NULL, &width, &height);
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		int a= 0;
+
+		for(a= 0; a<track->markersnr; a++) {
+			MovieTrackingMarker *marker= &track->markers[a];
+
+			libmv_tracksInsert(tracks, marker->framenr, tracknr, marker->pos[0]*width, marker->pos[1]*height);
+		}
+
+		track= track->next;
+		tracknr++;
+	}
+
+	return tracks;
+}
+
+static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstruction *reconstruction)
+{
+	int tracknr= 0;
+	int sfra= INT_MAX, efra= INT_MIN, a;
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track;
+	MovieTrackingCamera *camera;
+	MovieReconstructedCamera *reconstructed;
+
+	track= tracking->tracks.first;
+	while(track) {
+		double pos[3];
+
+		if(libmv_reporojectionPointForTrack(reconstruction, tracknr, pos)) {
+			track->bundle_pos[0]= pos[0];
+			track->bundle_pos[1]= pos[1];
+			track->bundle_pos[2]= pos[2];
+
+			track->flag|= TRACK_HAS_BUNDLE;
+		} else {
+			track->flag&= ~TRACK_HAS_BUNDLE;
+
+			if (G.f & G_DEBUG)
+				printf("No bundle for track #%d '%s'\n", tracknr, track->name);
+		}
+
+		if(track->markersnr) {
+			if(track->markers[0].framenr<sfra) sfra= track->markers[0].framenr;
+			if(track->markers[track->markersnr-1].framenr>efra) efra= track->markers[track->markersnr-1].framenr;
+		}
+
+		track= track->next;
+		tracknr++;
+	}
+
+	camera= &tracking->camera;
+
+	if(camera->reconstructed)
+		MEM_freeN(camera->reconstructed);
+
+	camera->reconnr= 0;
+	reconstructed= MEM_callocN((efra-sfra+1)*sizeof(MovieReconstructedCamera), "temp reconstructed camera");
+
+	for(a= sfra; a<=efra; a++) {
+		float mat[4][4];
+
+		if(libmv_reporojectionCameraForImage(reconstruction, a, mat)) {
+			copy_m4_m4(reconstructed[camera->reconnr].mat, mat);
+			reconstructed[camera->reconnr].framenr= a;
+			camera->reconnr++;
+		} else if (G.f & G_DEBUG) {
+			printf("No camera for image %d\n", a);
+		}
+	}
+
+	camera->reconstructed= MEM_callocN(camera->reconnr*sizeof(MovieReconstructedCamera), "reconstructed camera");
+	memcpy(camera->reconstructed, reconstructed, camera->reconnr*sizeof(MovieReconstructedCamera));
+
+	MEM_freeN(reconstructed);
+}
+
+#endif
+
+void BKE_tracking_solve_reconstruction(MovieClip *clip)
+{
+#if WITH_LIBMV
+	{
+		MovieTrackingCamera *camera= &clip->tracking.camera;
+		MovieTracking *tracking= &clip->tracking;
+		struct libmv_Tracks *tracks= create_libmv_tracks(clip);
+		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
+		        tracking->settings.keyframe1, tracking->settings.keyframe2,
+		        camera->focal, camera->principal[0], camera->principal[1],
+		        camera->k1, camera->k2, camera->k3);
+
+		retrive_libmv_reconstruct(clip, reconstruction);
+
+		libmv_destroyReconstruction(reconstruction);
+		libmv_tracksDestroy(tracks);
+	}
+#endif
+}
+
 void BKE_track_unique_name(MovieTracking *tracking, MovieTrackingTrack *track)
 {
 	BLI_uniquename(&tracking->tracks, track, "Track", '.', offsetof(MovieTrackingTrack, name), sizeof(track->name));
@@ -690,6 +805,18 @@ MovieTrackingTrack *BKE_find_track_by_name(MovieTracking *tracking, const char *
 			return track;
 
 		track= track->next;
+	}
+
+	return NULL;
+}
+
+MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(MovieTracking *tracking, int framenr)
+{
+	int a;
+
+	for (a= 0; a<tracking->camera.reconnr; a++ ) {
+		if(tracking->camera.reconstructed[a].framenr==framenr)
+			return &tracking->camera.reconstructed[a];
 	}
 
 	return NULL;

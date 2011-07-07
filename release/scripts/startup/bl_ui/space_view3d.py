@@ -2180,6 +2180,14 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
 
         layout.separator()
 
+        layout.prop(view, "show_reconstruction")
+        sub = layout.column()
+        sub.active = view.show_reconstruction
+        sub.prop(view, "bundle_size")
+        sub.prop(view, "show_camera_path")
+
+        layout.separator()
+
         region = view.region_quadview
 
         layout.operator("screen.region_quadview", text="Toggle Quad View")

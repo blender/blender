@@ -412,7 +412,13 @@ typedef struct bShrinkwrapConstraint {
 typedef struct bFollowTrackConstraint {
 	struct MovieClip	*clip;
 	char	track[24];
+	int		flag, pad;
 } bFollowTrackConstraint;
+
+/* Camera Solver constraints */
+typedef struct bCameraSolverConstraint {
+	struct MovieClip	*clip;
+} bCameraSolverConstraint;
 
 /* ------------------------------------------ */
 
@@ -448,6 +454,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_SAMEVOL,			/* Maintain volume during scaling */
 	CONSTRAINT_TYPE_PIVOT,				/* Pivot Constraint */
 	CONSTRAINT_TYPE_FOLLOWTRACK,		/* Follow Track Constraint */
+	CONSTRAINT_TYPE_CAMERASOLVER,		/* Camera Solver Constraint */
 	
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES
@@ -741,6 +748,11 @@ typedef enum ePivotConstraint_Flag {
 	/* rotation-based activation uses negative rotation to drive result */
 	PIVOTCON_FLAG_ROTACT_NEG	= (1<<1)
 } ePivotConstraint_Flag;
+
+/* FollowTrack Constraint -> flag */
+typedef enum eFollowTrack_Flags {
+	FOLLOWTRACK_BUNDLE 	= (1<<0),
+} eFollowTrack_Flags;
 
 /* Rigid-Body Constraint */
 #define CONSTRAINT_DRAW_PIVOT 0x40

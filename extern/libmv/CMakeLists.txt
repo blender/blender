@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2011 Blender Foundation.
+# The Original Code is Copyright (C) 2011, Blender Foundation
 # All rights reserved.
 #
 # Contributor(s): Blender Foundation,
@@ -26,6 +26,9 @@
 set(INC
 	.
 	../Eigen3
+	./third_party/ssba
+	./third_party/ldl/Include
+	../colamd/Include
 )
 
 set(INC_SYS
@@ -37,12 +40,32 @@ set(SRC
 	libmv/numeric/numeric.cc
 	libmv/numeric/poly.cc
 	libmv/numeric/tinyvector.cc
+	libmv/simple_pipeline/reconstruction.cc
+	libmv/simple_pipeline/resect.cc
+	libmv/simple_pipeline/intersect.cc
+	libmv/simple_pipeline/initialize_reconstruction.cc
+	libmv/simple_pipeline/camera_intrinsics.cc
+	libmv/simple_pipeline/pipeline.cc
+	libmv/simple_pipeline/tracks.cc
+	libmv/simple_pipeline/bundle.cc
 	libmv/image/convolve.cc
 	libmv/image/array_nd.cc
 	libmv/tracking/pyramid_region_tracker.cc
 	libmv/tracking/trklt_region_tracker.cc
 	libmv/tracking/klt_region_tracker.cc
 	libmv/tracking/retrack_region_tracker.cc
+	libmv/multiview/projection.cc
+	libmv/multiview/conditioning.cc
+	libmv/multiview/fundamental.cc
+	libmv/multiview/euclidean_resection.cc
+	libmv/multiview/triangulation.cc
+
+	third_party/ssba/Geometry/v3d_metricbundle.cpp
+	third_party/ssba/Math/v3d_optimization.cpp
+	third_party/gflags/gflags.cc
+	third_party/gflags/gflags_reporting.cc
+	third_party/gflags/gflags_completions.cc
+	third_party/ldl/Source/ldl.c
 
 	libmv-capi.h
 	libmv/logging/logging.h
@@ -51,6 +74,14 @@ set(SRC
 	libmv/numeric/poly.h
 	libmv/numeric/function_derivative.h
 	libmv/numeric/numeric.h
+	libmv/simple_pipeline/resect.h
+	libmv/simple_pipeline/reconstruction.h
+	libmv/simple_pipeline/camera_intrinsics.h
+	libmv/simple_pipeline/tracks.h
+	libmv/simple_pipeline/pipeline.h
+	libmv/simple_pipeline/intersect.h
+	libmv/simple_pipeline/bundle.h
+	libmv/simple_pipeline/initialize_reconstruction.h
 	libmv/image/convolve.h
 	libmv/image/tuple.h
 	libmv/image/array_nd.h
@@ -65,6 +96,97 @@ set(SRC
 	libmv/base/vector.h
 	libmv/base/scoped_ptr.h
 	libmv/base/vector_utils.h
+	libmv/multiview/nviewtriangulation.h
+	libmv/multiview/resection.h
+	libmv/multiview/euclidean_resection.h
+	libmv/multiview/triangulation.h
+	libmv/multiview/projection.h
+	libmv/multiview/fundamental.h
+	libmv/multiview/conditioning.h
+
+	third_party/ssba/Geometry/v3d_metricbundle.h
+	third_party/ssba/Geometry/v3d_cameramatrix.h
+	third_party/ssba/Geometry/v3d_distortion.h
+	third_party/ssba/Math/v3d_linear_utils.h
+	third_party/ssba/Math/v3d_optimization.h
+	third_party/ssba/Math/v3d_mathutilities.h
+	third_party/ssba/Math/v3d_linear.h
+	third_party/gflags/gflags_completions.h
+	third_party/gflags/mutex.h
+	third_party/gflags/config.h
+	third_party/gflags/gflags.h
+	third_party/ldl/Include/ldl.h
+	third_party/msinttypes/stdint.h
+	third_party/msinttypes/inttypes.h
 )
+
+IF(WIN32)
+	list(APPEND SRC
+		third_party/glog/src/logging.cc
+		third_party/glog/src/raw_logging.cc
+		third_party/glog/src/utilities.cc
+		third_party/glog/src/vlog_is_on.cc
+		third_party/glog/src/windows/port.cc
+
+		third_party/glog/src/utilities.h
+		third_party/glog/src/stacktrace_generic-inl.h
+		third_party/glog/src/stacktrace.h
+		third_party/glog/src/stacktrace_x86_64-inl.h
+		third_party/glog/src/base/googleinit.h
+		third_party/glog/src/base/mutex.h
+		third_party/glog/src/base/commandlineflags.h
+		third_party/glog/src/stacktrace_powerpc-inl.h
+		third_party/glog/src/stacktrace_x86-inl.h
+		third_party/glog/src/config.h
+		third_party/glog/src/stacktrace_libunwind-inl.h
+		third_party/glog/src/windows/glog/raw_logging.h
+		third_party/glog/src/windows/glog/vlog_is_on.h
+		third_party/glog/src/windows/glog/logging.h
+		third_party/glog/src/windows/glog/log_severity.h
+		third_party/glog/src/windows/port.h
+		third_party/glog/src/windows/config.h
+	)
+
+	list(APPEND INC
+		./third_party/glog/src/windows
+		./third_party/msinttypes
+	)
+ELSE(WIN32)
+	list(APPEND SRC
+		third_party/glog/src/utilities.cc
+		third_party/glog/src/symbolize.cc
+		third_party/glog/src/vlog_is_on.cc
+		third_party/glog/src/signalhandler.cc
+		third_party/glog/src/logging.cc
+		third_party/glog/src/demangle.cc
+		third_party/glog/src/raw_logging.cc
+
+		third_party/glog/src/utilities.h
+		third_party/glog/src/stacktrace_generic-inl.h
+		third_party/glog/src/config_mac.h
+		third_party/glog/src/stacktrace.h
+		third_party/glog/src/stacktrace_x86_64-inl.h
+		third_party/glog/src/symbolize.h
+		third_party/glog/src/base/googleinit.h
+		third_party/glog/src/base/mutex.h
+		third_party/glog/src/base/commandlineflags.h
+		third_party/glog/src/stacktrace_powerpc-inl.h
+		third_party/glog/src/stacktrace_x86-inl.h
+		third_party/glog/src/config.h
+		third_party/glog/src/demangle.h
+		third_party/glog/src/stacktrace_libunwind-inl.h
+		third_party/glog/src/glog/raw_logging.h
+		third_party/glog/src/glog/vlog_is_on.h
+		third_party/glog/src/glog/logging.h
+		third_party/glog/src/glog/log_severity.h
+		third_party/glog/src/config_linux.h
+	)
+
+	list(APPEND INC
+		./third_party/glog/src
+	)
+ENDIF(WIN32)
+
+add_definitions(-DV3DLIB_ENABLE_SUITESPARSE -DGOOGLE_GLOG_DLL_DECL=)
 
 blender_add_lib(extern_libmv "${SRC}" "${INC}" "${INC_SYS}")

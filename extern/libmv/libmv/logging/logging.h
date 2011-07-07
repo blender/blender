@@ -21,19 +21,11 @@
 #ifndef LIBMV_LOGGING_LOGGING_H
 #define LIBMV_LOGGING_LOGGING_H
 
-#include <iostream>
+#include "glog/logging.h"
 
-class DummyLogger {
-public:
-	DummyLogger operator << (const ::std::wstring& wstr) { return *this; }
-	DummyLogger operator << (const char *pchar) { return *this; }
-	DummyLogger operator << (int a) { return *this; }
-};
-
-#define LG (DummyLogger())
-#define V0 (DummyLogger())
-#define V1 (DummyLogger())
-#define V2 (DummyLogger())
+#define LG LOG(INFO)
+#define V0 LOG(INFO)
+#define V1 LOG(INFO)
+#define V2 LOG(INFO)
 
 #endif  // LIBMV_LOGGING_LOGGING_H
-

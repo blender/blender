@@ -644,7 +644,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			continue;
 
 		/* special case for FollowTrack -- it doesn't use targets to define relations */
-		if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
+		if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
 			dag_add_relation(dag,scenenode,node,DAG_RL_SCENE, "Scene Relation");
 			addtoroot = 0;
 		}
@@ -2084,7 +2084,7 @@ static void dag_object_time_update_flags(Object *ob)
 			
 			if (cti) {
 				/* special case for FollowTrack -- it doesn't use targets to define relations */
-				if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
+				if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
 					ob->recalc |= OB_RECALC_OB;
 				}
 				else if (cti->get_constraint_targets) {
@@ -2463,7 +2463,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 				bConstraint *con;
 				for (con = obt->constraints.first; con; con=con->next) {
 					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
-					if(cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
+					if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
 						obt->recalc |= OB_RECALC_OB;
 						break;
 					}

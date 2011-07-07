@@ -56,6 +56,7 @@ struct AnimData;
 struct Editing;
 struct SceneStats;
 struct bGPdata;
+struct MovieClip;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -827,6 +828,9 @@ typedef struct Scene {
 
 	/* Physics simulation settings */
 	struct PhysicsSettings physics_settings;
+
+	/* Movie Tracking */
+	struct MovieClip *clip;			/* active movie clip */
 } Scene;
 
 

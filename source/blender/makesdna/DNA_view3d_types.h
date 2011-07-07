@@ -147,7 +147,8 @@ typedef struct View3D {
 	float blockscale;
 	short blockhandler[8];
 	
-	float viewquat[4], dist, pad1;	/* XXX depricated */
+	float viewquat[4], dist;	/* XXX depricated */
+	float bundle_size;			/* size of bundles in reconstructed data */
 	
 	unsigned int lay_used; /* used while drawing */
 	
@@ -249,6 +250,8 @@ typedef struct View3D {
 #define V3D_SOLID_TEX			8
 #define V3D_DISPGP				16
 #define V3D_LOCK_CAMERA			32
+#define V3D_SHOW_RECONSTRUCTION	64
+#define V3D_SHOW_CAMERAPATH		128
 
 /* View3D->around */
 #define V3D_CENTER		 0

@@ -33,14 +33,33 @@
 extern "C" {
 #endif
 
-typedef void *libmv_regionTrackerHandle;
+struct libmv_RegionTracker;
+struct libmv_Tracks;
+struct libmv_Reconstruction;
 
-/* Regiontracker */
-libmv_regionTrackerHandle libmv_regionTrackerNew(int max_iterations, int pyramid_level, double tolerance);
-int libmv_regionTrackerTrack(libmv_regionTrackerHandle tracker, const float *ima1, const float *ima2,
+/* Logging */
+void libmv_initLogging(const char *argv0);
+void libmv_startDebugLogging(void);
+void libmv_setLoggingVerbosity(int verbosity);
+
+/* RegionTracker */
+struct libmv_RegionTracker *libmv_regionTrackerNew(int max_iterations, int pyramid_level, double tolerance);
+int libmv_regionTrackerTrack(struct libmv_RegionTracker *tracker, const float *ima1, const float *ima2,
 			int width, int height, int half_window_size,
 			double  x1, double  y1, double *x2, double *y2);
-void libmv_regionTrackerDestroy(libmv_regionTrackerHandle tracker);
+void libmv_regionTrackerDestroy(struct libmv_RegionTracker *tracker);
+
+/* Tracks */
+struct libmv_Tracks *libmv_tracksNew(void);
+void libmv_tracksInsert(struct libmv_Tracks *tracks, int image, int track, double x, double y);
+void libmv_tracksDestroy(struct libmv_Tracks *tracks);
+
+/* Reconstruction solver */
+struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *tracks, int keyframe1, int keyframe2,
+			double focal_length, double principal_x, double principal_y, double k1, double k2, double k3);
+int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *reconstruction, int track, double pos[3]);
+int libmv_reporojectionCameraForImage(struct libmv_Reconstruction *reconstruction, int image, float mat[4][4]);
+void libmv_destroyReconstruction(struct libmv_Reconstruction *reconstruction);
 
 #ifdef __cplusplus
 }

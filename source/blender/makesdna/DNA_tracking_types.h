@@ -41,15 +41,25 @@
 
 /* match-moving data */
 
+struct MovieReconstructedCamera;
 struct MovieTrackingCamera;
 struct MovieTrackingBundle;
 struct MovieTrackingMarker;
 struct MovieTrackingTrack;
 struct MovieTracking;
 
+typedef struct MovieReconstructedCamera {
+	int framenr, pad;
+	float mat[4][4];
+} MovieReconstructedCamera;
+
 typedef struct MovieTrackingCamera {
-	float focal;	/* focal length */
+	float focal;		/* focal length */
+	float principal[2];	/* principal point */
+	float k1, k2, k3;	/* radial distortion */
 	float pad;
+	int reconnr;		/* number of reconstructed cameras */
+	struct MovieReconstructedCamera *reconstructed;	/* reconstructed cameras */
 } MovieTrackingCamera;
 
 typedef struct MovieTrackingMarker {
@@ -57,15 +67,6 @@ typedef struct MovieTrackingMarker {
 	int framenr;	/* number of frame marker is associated with */
 	int flag;		/* Marker's flag (alive, ...) */
 } MovieTrackingMarker;
-
-typedef struct MovieTrackingBundle {
-	struct MovieTrackingBundle *next, *prev;
-	float pos[3];	/* 3d position of bundle */
-
-	int flag;		/* flags (selection, ...) */
-
-	struct MovieTrackingTrack *track;	/* track associated with this bundle */
-} MovieTrackingBundle;
 
 typedef struct MovieTrackingTrack {
 	struct MovieTrackingTrack *next, *prev;
@@ -84,32 +85,31 @@ typedef struct MovieTrackingTrack {
 	int pad2;
 	MovieTrackingMarker *markers;	/* markers in track */
 
-	struct MovieTrackingBundle *bundle;	/* bundle, associated with this tracker */
+	/* ** bundle ** */
+	float bundle_pos[3];
 
 	/* ** UI editing ** */
 	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
-
-	char pad3[4];
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingSettings {
 	int flag;		/* different flags (frames nr limit..) */
 	short speed;	/* speed of tracking */
 	short frames_limit;	/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
+	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
 } MovieTrackingSettings;
 
 typedef struct MovieTracking {
 	MovieTrackingSettings settings;
 	MovieTrackingCamera camera;
 	ListBase tracks;
-	ListBase bundles;
 } MovieTracking;
 
 /* MovieTrackingMarker->flag */
 #define MARKER_DISABLED	1
 
 /* MovieTrackingTrack->flag */
-#define TRACK_UNUSED		(1<<1)
+#define TRACK_HAS_BUNDLE	(1<<1)
 #define TRACK_DISABLE_RED	(1<<2)
 #define TRACK_DISABLE_GREEN	(1<<3)
 #define TRACK_DISABLE_BLUE	(1<<4)

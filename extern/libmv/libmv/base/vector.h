@@ -35,6 +35,10 @@ namespace libmv {
 // A simple container class, which guarantees 16 byte alignment needed for most
 // vectorization. Don't use this container for classes that cannot be copied
 // via memcpy.
+// FIXME: this class has some issues:
+// - doesn't support iterators.
+// - impede compatibility with code using STL.
+// - the STL already provide support for custom allocators
 template <typename T,
           typename Allocator = Eigen::aligned_allocator<T> >
 class vector {
@@ -68,6 +72,7 @@ class vector {
     std::swap(data_, other.data_);
   }
 
+        T *data()            const { return data_;            }
   int      size()            const { return size_;            }
   int      capacity()        const { return capacity_;        }
   const T& back()            const { return data_[size_ - 1]; }

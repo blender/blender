@@ -4700,6 +4700,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if(sce->nodetree)
 		direct_link_nodetree(fd, sce->nodetree);
 	
+	sce->clip= newlibadr_us(fd, sce->id.lib, sce->clip);
 }
 
 /* ************ READ WM ***************** */
@@ -5663,8 +5664,8 @@ static void lib_link_group(FileData *fd, Main *main)
 
 static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 {
+	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
-	MovieTrackingBundle *bundle;
 
 	if(fd->movieclipmap) clip->ibuf_cache= newmclipadr(fd, clip->ibuf_cache);
 	else clip->ibuf_cache= NULL;
@@ -5672,22 +5673,15 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	clip->adt= newdataadr(fd, clip->adt);
 	direct_link_animdata(fd, clip->adt);
 
-	link_list(fd, &clip->tracking.tracks);
+	tracking->camera.reconstructed= newdataadr(fd, tracking->camera.reconstructed);
 
-	track= clip->tracking.tracks.first;
+	link_list(fd, &tracking->tracks);
+
+	track= tracking->tracks.first;
 	while(track) {
-		track->bundle= newdataadr(fd, track->bundle);
 		track->markers= newdataadr(fd, track->markers);
 
 		track= track->next;
-	}
-
-	link_list(fd, &clip->tracking.bundles);
-	bundle= clip->tracking.bundles.first;
-	while(bundle) {
-		bundle->track= newdataadr(fd, bundle->track);
-
-		bundle= bundle->next;
 	}
 
 	clip->last_sel= newdataadr(fd, clip->last_sel);
@@ -11793,7 +11787,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 
 	{
-	
+		bScreen *sc;
+
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D *)sl;
+						if(v3d->bundle_size==0.0f) {
+							v3d->bundle_size= 0.1f;
+							v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

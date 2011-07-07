@@ -2417,13 +2417,16 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 	clip= idbase->first;
 	while(clip) {
 		if(clip->id.us>0 || wd->current) {
+			MovieTracking *tracking= &clip->tracking;
 			MovieTrackingTrack *track;
-			MovieTrackingBundle *bundle;
 			writestruct(wd, ID_MC, "MovieClip", 1, clip);
 
 			if (clip->adt) write_animdata(wd, clip->adt);
 
-			track= clip->tracking.tracks.first;
+			if(tracking->camera.reconnr)
+				writestruct(wd, DATA, "MovieReconstructedCamera", tracking->camera.reconnr, tracking->camera.reconstructed);
+
+			track= tracking->tracks.first;
 			while(track) {
 				writestruct(wd, DATA, "MovieTrackingTrack", 1, track);
 
@@ -2431,13 +2434,6 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 					writestruct(wd, DATA, "MovieTrackingMarker", track->markersnr, track->markers);
 
 				track= track->next;
-			}
-
-			bundle= clip->tracking.bundles.first;
-			while(bundle) {
-				writestruct(wd, DATA, "MovieTrackingBundle", 1, bundle);
-
-				bundle= bundle->next;
 			}
 		}
 
@@ -2524,6 +2520,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 		write_windowmanagers(wd, &mainvar->wm);
 		write_screens  (wd, &mainvar->screen);
 	}
+	write_movieclips (wd, &mainvar->movieclip);
 	write_scenes   (wd, &mainvar->scene);
 	write_curves   (wd, &mainvar->curve);
 	write_mballs   (wd, &mainvar->mball);
@@ -2548,7 +2545,6 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
 	write_gpencils (wd, &mainvar->gpencil);
-	write_movieclips (wd, &mainvar->movieclip);
 	write_libraries(wd,  mainvar->next);
 
 	if (write_user_block) {

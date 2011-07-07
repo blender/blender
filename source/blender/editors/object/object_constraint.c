@@ -414,6 +414,12 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 				}
 				else curcon->flag |= CONSTRAINT_DISABLE;
 			}
+			else if (curcon->type == CONSTRAINT_TYPE_CAMERASOLVER) {
+				bFollowTrackConstraint *data = curcon->data;
+
+				if(data->clip == NULL)
+					curcon->flag |= CONSTRAINT_DISABLE;
+			}
 			
 			/* Check targets for constraints */
 			if (cti && cti->get_constraint_targets) {
@@ -1373,7 +1379,29 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 				BPY_pyconstraint_update(ob, con);
 			}
 #endif
+			break;
 		}
+
+		case CONSTRAINT_TYPE_FOLLOWTRACK:
+		{
+			bFollowTrackConstraint *data= con->data;
+
+			if(data->clip == NULL)
+				data->clip= scene->clip;
+
+			break;
+		}
+
+		case CONSTRAINT_TYPE_CAMERASOLVER:
+		{
+			bCameraSolverConstraint *data= con->data;
+
+			if(data->clip == NULL)
+				data->clip= scene->clip;
+
+			break;
+		}
+
 		default:
 			break;
 	}

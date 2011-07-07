@@ -3951,26 +3951,37 @@ static void followtrack_id_looper (bConstraint *con, ConstraintIDFunc func, void
 
 static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
+	Scene *scene= cob->scene;
 	bFollowTrackConstraint *data= con->data;
+	MovieClip *clip= data->clip ? data->clip : scene->clip;
 	MovieClipUser user;
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	float tx, ty;
 	int width, height;
 
-	if(!data->clip || !data->track[0])
+	if(!clip || !data->track[0])
 		return;
 
-	user.framenr= cob->scene->r.cfra;
-	BKE_movieclip_acquire_size(data->clip, &user, &width, &height);
+	track= BKE_find_track_by_name(&clip->tracking, data->track);
 
-	track= BKE_find_track_by_name(&data->clip->tracking, data->track);
-	marker= BKE_tracking_get_marker(track, user.framenr);
+	if(!track)
+		return;
 
-	tx= marker->pos[0]*width;
-	ty= marker->pos[1]*height;
+	if(data->flag&FOLLOWTRACK_BUNDLE) {
+		if(track->flag&TRACK_HAS_BUNDLE)
+			translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
+	} else {
+		user.framenr= scene->r.cfra;
+		BKE_movieclip_acquire_size(clip, &user, &width, &height);
 
-	translate_m4(cob->matrix, tx, ty, 0);
+		marker= BKE_tracking_get_marker(track, user.framenr);
+
+		tx= marker->pos[0]*width;
+		ty= marker->pos[1]*height;
+
+		translate_m4(cob->matrix, tx, ty, 0);
+	}
 }
 
 static bConstraintTypeInfo CTI_FOLLOWTRACK = {
@@ -3987,6 +3998,56 @@ static bConstraintTypeInfo CTI_FOLLOWTRACK = {
 	NULL, /* flush constraint targets */
 	NULL, /* get target matrix */
 	followtrack_evaluate /* evaluate */
+};
+
+/* ----------- Camre Solver ------------- */
+
+static void camerasolver_new_data (void *cdata)
+{
+	bCameraSolverConstraint *data= (bCameraSolverConstraint *)cdata;
+
+	data->clip= NULL;
+}
+
+static void camerasolver_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bCameraSolverConstraint *data= con->data;
+
+	func(con, (ID**)&data->clip, userdata);
+}
+
+static void camerasolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
+{
+	Scene *scene= cob->scene;
+	bCameraSolverConstraint *data= con->data;
+	MovieClip *clip= data->clip ? data->clip : scene->clip;
+	MovieReconstructedCamera *camera;
+
+	if(clip) {
+		camera= BKE_tracking_get_reconstructed_camera(&clip->tracking, scene->r.cfra);
+
+		if(camera) {
+			float m[4][4];
+			copy_m4_m4(m, cob->matrix);
+			mul_m4_m4m4(cob->matrix, m, camera->mat);
+		}
+	}
+}
+
+static bConstraintTypeInfo CTI_CAMERASOLVER = {
+	CONSTRAINT_TYPE_CAMERASOLVER, /* type */
+	sizeof(bCameraSolverConstraint), /* size */
+	"Camera Solver", /* name */
+	"bCameraSolverConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	camerasolver_id_looper, /* id looper */
+	NULL, /* copy data */
+	camerasolver_new_data, /* new data */
+	NULL, /* get constraint targets */
+	NULL, /* flush constraint targets */
+	NULL, /* get target matrix */
+	camerasolver_evaluate /* evaluate */
 };
 
 /* ************************* Constraints Type-Info *************************** */
@@ -4027,6 +4088,7 @@ static void constraints_init_typeinfo (void) {
 	constraintsTypeInfo[24]= &CTI_SAMEVOL;			/* Maintain Volume Constraint */
 	constraintsTypeInfo[25]= &CTI_PIVOT;			/* Pivot Constraint */
 	constraintsTypeInfo[26]= &CTI_FOLLOWTRACK;		/* Follow Track Constraint */
+	constraintsTypeInfo[27]= &CTI_CAMERASOLVER;		/* Camera Solver Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only

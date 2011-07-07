@@ -315,6 +315,10 @@ def creator(env):
     if not env['WITH_BF_SDL']:
         defs.append('DISABLE_SDL')
 
+    if env['WITH_BF_LIBMV']:
+        incs.append('#/extern/libmv')
+        defs.append('WITH_LIBMV')
+
     if env['WITH_BF_PYTHON']:
         incs.append('#/source/blender/python')
         defs.append('WITH_PYTHON')

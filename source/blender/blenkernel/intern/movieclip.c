@@ -199,7 +199,7 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf)
 				moviecache_hashcmp, moviecache_keydata);
 	}
 
-	key.framenr= user->framenr;
+	key.framenr= user?user->framenr:clip->lastframe;
 
 	BKE_moviecache_put(clip->ibuf_cache, &key, ibuf);
 }
@@ -214,7 +214,8 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip= alloc_libblock(&G.main->movieclip, ID_MC, name);
 
 	clip->tracking.settings.frames_limit= 20;
-	clip->tracking.camera.focal= 24.0f;
+	clip->tracking.settings.keyframe1= 1;
+	clip->tracking.settings.keyframe2= 30;
 
 	return clip;
 }
@@ -226,7 +227,7 @@ static MovieClip *movieclip_alloc(const char *name)
 MovieClip *BKE_add_movieclip_file(const char *name)
 {
 	MovieClip *clip;
-	int file, len;
+	int file, len, width, height;
 	const char *libname;
 	char str[FILE_MAX], strtest[FILE_MAX];
 
@@ -264,6 +265,12 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 
 	if(BLI_testextensie_array(name, imb_ext_movie)) clip->source= MCLIP_SRC_MOVIE;
 	else clip->source= MCLIP_SRC_SEQUENCE;
+
+	BKE_movieclip_acquire_size(clip, NULL, &width, &height);
+	if(width && height) {
+		clip->tracking.camera.principal[0]= ((float)width)/2;
+		clip->tracking.camera.principal[1]= ((float)height)/2;
+	}
 
 	return clip;
 }
@@ -361,19 +368,16 @@ void BKE_movieclip_reload(MovieClip *clip)
 void BKE_movieclip_select_track(MovieClip *clip, MovieTrackingTrack *track, int area, int extend)
 {
 	if(extend) {
-		if(track->bundle) track->bundle->flag|= SELECT;
 		BKE_tracking_track_flag(track, area, SELECT, 0);
 	} else {
 		MovieTrackingTrack *cur= clip->tracking.tracks.first;
 
 		while(cur) {
 			if(cur==track) {
-				if(cur->bundle) cur->bundle->flag|= SELECT;
 				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
 				BKE_tracking_track_flag(cur, area, SELECT, 0);
 			}
 			else {
-				if(cur->bundle) cur->bundle->flag&= ~SELECT;
 				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
 			}
 

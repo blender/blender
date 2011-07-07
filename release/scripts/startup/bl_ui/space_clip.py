@@ -52,6 +52,7 @@ class CLIP_OT_apply_follow_track(bpy.types.Operator):
 
         constraint.clip = sc.clip
         constraint.track = track.name
+        constraint.reference = 'TRACK'
 
         return {'FINISHED'}
 
@@ -91,11 +92,11 @@ class CLIP_PT_tools(bpy.types.Panel):
 
         if clip:
             col = layout.column(align=True)
-
             col.label(text="Transform:")
             col.operator("transform.translate")
             col.operator("transform.resize")
 
+            col = layout.column(align=True)
             col.label(text="Marker:")
             col.operator("clip.add_marker_move")
             col.operator("clip.delete_track")
@@ -118,6 +119,11 @@ class CLIP_PT_tools(bpy.types.Panel):
             col.operator("clip.clear_track_path", text="Clear Remained Path").action = 'REMAINED'
             col.operator("clip.clear_track_path", text="Clear Path Up To").action = 'UPTO'
             col.operator("clip.clear_track_path", text="Clear Track Path").action = 'ALL'
+
+            col = layout.column(align=True)
+            col.label(text="Reconstruction:")
+            col.operator("clip.solve_camera")
+            col.operator("clip.clear_reconstruction")
         else:
             layout.operator('clip.open')
 
@@ -168,12 +174,18 @@ class CLIP_PT_track_settings(bpy.types.Panel):
         clip = context.space_data.clip
         settings = clip.tracking.settings
 
+        layout.label(text="2D tracking:")
         layout.prop(settings, "speed")
         layout.prop(settings, "use_frames_limit")
 
         row = layout.row()
         row.active = settings.use_frames_limit
         row.prop(settings, "frames_limit")
+
+        layout.label(text="Reconstruction:")
+        col = layout.column(align=True)
+        col.prop(settings, "keyframe1")
+        col.prop(settings, "keyframe2")
 
 
 class CLIP_PT_tracking_camera(bpy.types.Panel):
@@ -195,6 +207,14 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
         clip = sc.clip
 
         layout.prop(clip.tracking.camera, "focal_length")
+
+        layout.label(text="Principal Point")
+        layout.prop(clip.tracking.camera, "principal", text="")
+
+        col = layout.column(align=True)
+        col.prop(clip.tracking.camera, "k1")
+        col.prop(clip.tracking.camera, "k2")
+        col.prop(clip.tracking.camera, "k3")
 
 
 class CLIP_PT_display(bpy.types.Panel):

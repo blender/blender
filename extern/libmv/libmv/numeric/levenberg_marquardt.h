@@ -124,11 +124,11 @@ class LevenbergMarquardt {
     Parameters dx, x_new;
     int i;
     for (i = 0; results.status == RUNNING && i < params.max_iterations; ++i) {
-      LOG(INFO) << "iteration: " << i;
-      LOG(INFO) << "||f(x)||: " << f_(x).norm();
-      LOG(INFO) << "max(g): " << g.array().abs().maxCoeff();
-      LOG(INFO) << "u: " << u;
-      LOG(INFO) << "v: " << v;
+      VLOG(1) << "iteration: " << i;
+      VLOG(1) << "||f(x)||: " << f_(x).norm();
+      VLOG(1) << "max(g): " << g.array().abs().maxCoeff();
+      VLOG(1) << "u: " << u;
+      VLOG(1) << "v: " << v;
 
       AMatrixType A_augmented = A + u*AMatrixType::Identity(J.cols(), J.cols());
       Solver solver(A_augmented);

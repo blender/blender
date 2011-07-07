@@ -209,6 +209,8 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_delete_marker);
 
 	WM_operatortype_append(CLIP_OT_track_markers);
+	WM_operatortype_append(CLIP_OT_solve_camera);
+	WM_operatortype_append(CLIP_OT_clear_reconstruction);
 
 	WM_operatortype_append(CLIP_OT_clear_track_path);
 

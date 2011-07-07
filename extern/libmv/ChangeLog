@@ -1,0 +1,726 @@
+commit df1d54efd23530891851d3573a5126094acea840
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Jul 4 13:12:53 2011 -0700
+
+    Fix include ordering.
+
+commit 67433907db5537a2e32893ef558c63ab336f59c1
+Merge: 0049521 b027af4
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Jul 4 04:01:44 2011 -0700
+
+    Merge Matthias's branch.
+
+commit 0049521756bf03c88061ccc46d0a97397cc77094
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Jul 4 03:18:05 2011 -0700
+
+    Fix build break caused by removing out-of-place definition of P_from_KRt.
+
+commit 40b38d52f71ba61af9d2b00a5077d6346b83d669
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Jul 4 03:07:46 2011 -0700
+
+    Improvements to reconstruction.h documentation.
+
+commit b027af4662007c50a12c08e1991fb9b1124a3a87
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jul 4 10:22:54 2011 +0200
+
+    use P_From_KRt from projection.cc.
+
+commit b082a3e50c79e168e79e51d1571cd2e9b31aa2c2
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Jul 3 19:33:30 2011 +0200
+
+    Make unit testing optionnal.
+    Restore user defined camera intrinsincs.
+    Reduce subjective view speed.
+
+commit 144618f9bb247c33e7530118b1ff5aca608573af
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 30 02:33:09 2011 -0700
+
+    Add missing headers.
+
+commit 41b185566506a3583dc7d2aa46b48fa647d30177
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 30 02:32:50 2011 -0700
+
+    Disable projective resection for now.
+
+commit c0f6582f01d3529f757cccd83e7b76ffb1184f1f
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 30 02:31:07 2011 -0700
+
+    Fix a uninitialized memory error in reconstruction.
+    
+    With this change, the elevator sequence now reconstructs with 0.2 pixel average
+    reprojection error. That's over about 2000 markers, 120 frames, and 25 tracks.
+    Reconstruction is now working for real!
+
+commit 3dc34c599eaf69d7903e2213f68196fd32d69439
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 30 01:31:08 2011 -0700
+
+    Split multiview.h/cc up into individual files to keep compile times sane.
+
+commit c3b3296905f7b67ea038058b51efa8cd76e232ba
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Jun 29 22:46:58 2011 -0700
+
+    Add bundling support to simple pipeline. It seems to work pretty well.
+
+commit 4a3ebd309f551abe3197dc573cd7549941d74efd
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Jun 29 10:33:27 2011 -0700
+
+    Fix return type in multiview minimization.
+
+commit 045ff6625a3de3fff98e9f4c153376f2143d2c3d
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 28 10:27:33 2011 -0700
+
+    Add hacky hardcoded calls into multiview from qt-tracker.
+
+commit 8c1dec581afbb06e45ed6f15dd72c64b90f52409
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 28 10:25:38 2011 -0700
+
+    Add Intersect and Resect implementations, including nonlinear refinement with Levenberg-Marquardt.
+
+commit 63939617aa39a8012154b6f18cf65b671a57880d
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 28 10:10:48 2011 -0700
+
+    Add const and non-const accessors to Reconstruction.
+
+commit b95015c8e99d7c9c37c13c3efdc4e6c87cece53d
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 28 10:09:56 2011 -0700
+
+    Return false from euclidean resection if it does not work.
+
+commit 437ab722d16c442f27b9c63af3a43468a564a2ef
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 28 10:09:15 2011 -0700
+
+    Formatting.
+
+commit c7156a6fcaf7ca8d30d624abeefcd9ddf1087bea
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 28 10:04:21 2011 -0700
+
+    More testing fixes.
+
+commit ba9e89674a49aa3b5372dd721dd413d90222a064
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 28 10:04:03 2011 -0700
+
+    Reenable testing.
+
+commit 0f9a11ace1294f9d857683779747d367923d48a2
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 28 10:03:36 2011 -0700
+
+    Add a test for camera intrinsics.
+
+commit 37ae9aea4541c9211cd983ce44a875f037136bd7
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Jun 27 02:36:41 2011 -0700
+
+    Get simple reconstruction pipeline is running without BA. Doesn't work well yet.
+
+commit 656f4588f2dbb7672c7233bee5425b34e5ba8aa4
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sun Jun 26 23:06:22 2011 -0700
+
+    Fix PointForTrack() in the Reconstruction object.
+
+commit b27afb3168c23671c130c0f92e24643204034d3e
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sun Jun 26 23:05:39 2011 -0700
+
+    Clarify documenattion in pipelien.h.
+
+commit afd5c5b57999282a7f800c17c05d9020423843b3
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sun Jun 26 23:05:15 2011 -0700
+
+    Add more source files to multiview that got removed.
+
+commit 2916c0f0c29c1e03a11773ac6615a7dbfbc9c058
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sun Jun 26 23:04:24 2011 -0700
+
+    Implement Intersect() and Resect() in multiview.cc.
+
+commit ff2478331a98d0bf2e83b7b03a501049741b1d0e
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sun Jun 26 23:03:45 2011 -0700
+
+    Clarify documentation in multiview.h.
+
+commit f7670aab1b101f68802bc35bc1b64c3d55fa5f3c
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 23 16:18:44 2011 +0200
+
+    fix EnforceFundamentalRank2Constraint
+
+commit a3e29213bdd959502d2fdc077ac479d2b59db0c8
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 22 23:30:54 2011 +0200
+
+    fix CoordinatesForMarkersInImage
+
+commit 9e5f84b6cb063bdca8649b76b4f9769e35823f5d
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 22 20:26:33 2011 +0200
+
+    Remove random data generation, use InsertPoint in Intersect.
+
+commit a41b10fa74f0e7977654a43bb7367704b638bede
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 22 16:24:26 2011 +0200
+
+    hook NViewTriangulate to simple_pipeline/multiview Intersect API.
+    
+    Use libmv::vector instead of std::vector to avoid conflicts.
+    Convert iterator-based loops to counter-based loops as libmv::vector doesn't support iteration.
+
+commit 67b7437b074cb0dfdc26422dd29b9aba1cb906f4
+Merge: 045ca85 c257195
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 22 10:28:48 2011 +0200
+
+    Merge branch 'master' of git://github.com/keir/libmv
+    
+    Conflicts:
+    	src/libmv/simple_pipeline/multiview.cc
+
+commit 045ca85dde561c6ec84621ae8f8a67757152dc62
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jun 21 22:19:33 2011 +0200
+
+    Only reconstruct when we have at least 8 tracks, remove tracks from selections when no markers.
+
+commit 7b593875e6ba089d997ef9a7ff0df255c8883ea4
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jun 21 21:57:12 2011 +0200
+
+    only lens distort in overlay, fix keyframes creation.
+
+commit 4ff8e9762a4816bf3634578c2c4886e655120698
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jun 21 21:50:15 2011 +0200
+
+    MacOS support.
+
+commit c2571954d8d88b45b2f05be139fef06f308228ee
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 21 10:35:51 2011 -0700
+
+    Rework multiview.h doxygen comments.
+
+commit fb1c93590a67ba95d550f351c1d297699cdceffb
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 21 09:26:17 2011 -0700
+
+    Remove use od constBits() which is not present in Qt 4.6.
+
+commit 5a1883edb1b5b2b56b31ba929a1a077f53187306
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 21 09:26:00 2011 -0700
+
+    Make multiview.cc compile.
+
+commit 5ca168c45291205b387683ef679dbee18af23e72
+Merge: 9aea3ad 1de8d03
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 21 01:35:20 2011 -0700
+
+    Merge branch 'master' of git://github.com/Matthias-Fauconneau/libmv
+
+commit 9aea3adc56234b059a7ee10a6ff946c3a67ee699
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 21 01:34:40 2011 -0700
+
+    Progress on multiview code in simple pipeline.
+
+commit 1de8d0326cfe2c1b1d1b151b9eef147fca3c72c9
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jun 20 23:16:46 2011 +0200
+
+    Add back third_party/glog and third_party/gflag to build system as they are needed to compile multiview with logging in debug mode.
+
+commit a51662a259a6c946b5f84c3e0e3b351e9ea4105c
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jun 20 19:13:40 2011 +0200
+
+    Implement keyframe selection, Fix Tracks::MarkersForTracksInBothImages, Use Reconstruction methods.
+
+commit 2d6cd58ee1cd7c5073980f358c71b2898ad16b4c
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jun 20 14:15:37 2011 +0200
+
+    Add Simple Pipeline API header and documentation.
+    Make rebuilding much faster by removing unneeded dependencies.
+
+commit 7af3c1af55e42a8091b95ece38bbd1dbefa64013
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jun 20 12:52:44 2011 +0200
+
+    Add documentation to MultiView and Reconstruction APIs.
+
+commit 308fbc7d87c8d7189c588eb56a563d1f1ff926ba
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Jun 19 20:37:49 2011 +0200
+
+    Update the README.
+
+commit 340b69b2afa4d6c48a019c083bfd0a705bb12165
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Jun 19 20:28:22 2011 +0200
+
+    Change default build options to avoid spurious build failure reports.
+
+commit 2e1c6ef7803bbe8ef53237e2027764e932c404f9
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Jun 18 12:17:59 2011 +0200
+
+    Set maximum focal length to FLT_MAX.
+
+commit a213989750b7f080a2c543203865262a0d40252e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Jun 18 12:01:52 2011 +0200
+
+    Fix issues caused by style changes.
+
+commit cea54e0207696bb09cadeefbce7bb2a4f1e4c996
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jun 17 22:46:10 2011 +0200
+
+    Add many whitespaces and newlines.
+
+commit fd01f5139fe720fbe3e8206de27b48519c3de947
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jun 17 13:05:05 2011 +0200
+
+    Add low order lens distortion for reprojected bundle preview.
+    
+    TODO: Test if the distortion is correct.
+
+commit 8aca7f45513b3cdc2b4b3cf04bd6c11aecf0a756
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 16 23:02:17 2011 +0200
+
+    Add Solve button and a solve() stub.
+
+commit 60b24a44cebdb7308d19e0b472349eadac42fdde
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 16 21:41:08 2011 +0200
+
+    Fix first MaxImage() and MaxTrack().
+    Correct transform for Zoom view.
+    Display whole track for visible markers.
+
+commit 3cc45633279ac6fdcdfcae70db03301c69ad609b
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 16 19:58:07 2011 +0200
+
+    Persistent Settings.
+
+commit 8c5b8de3019013cbdbcf019352c49fc3dc1b181b
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 16 19:19:41 2011 +0200
+
+    Add Camera parameters GUI.
+    
+    TODO: persistent parameters.
+    TODO: Feed the data to Multiview API.
+
+commit 7db187d7035bc7f5adee3771125867e9b892d03a
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 16 18:34:40 2011 +0200
+
+    Smaller bundle display, Display bundles in overlay.
+
+commit 9bf3ccee0f846cdfa5358b367ca35bf68d726df3
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 16 10:26:12 2011 +0200
+
+    Display 3D Scene overlay on 2D Tracker view.
+
+commit 3e795fa9f5aa7c461d2d65507af5d7b7d4e976ab
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 16 00:26:12 2011 +0200
+
+    Fix tracking (was wrong coordinate transform).
+
+commit f3dc249c6cf417c0bed7455ff4a974d59088d369
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 15 22:56:56 2011 +0200
+
+    attribute should have been varying.
+
+commit cfe8f83cea71d0fe46159cdb4b750c5888ae2065
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 15 22:49:53 2011 +0200
+
+    NVidia GLSL compiler is really not strict enough...
+
+commit 13eb0c74ee49cc15827c88fe7f7ae6a0f29e378b
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 15 22:46:20 2011 +0200
+
+    correct GLSL 1.2
+
+commit a8e9cfffac479cd0af0a4e461a9204e4685fd01e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 15 22:26:36 2011 +0200
+
+    Remove unused GL abstraction, Downgrade GLSL requirement to 1.20, use GLEW by default even on linux.
+
+commit f9a29280ede36f6a3a894d2eea51dc7f4a1f62e2
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 15 21:58:35 2011 +0200
+
+    Add GL Zoom Views.
+    
+    This new implementation now display all selected markers.
+
+commit 9e339a46668e4a8d2330598a66ee855e5cd26f9c
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 15 19:23:21 2011 +0200
+
+    Reimplement 2D Tracker View to use GL.
+    
+    This will allow to easily render the 3D Scene overlay on the 2D Tracker View.
+    Add Tracks::MarkerInImageForTrack.
+    Some renames to improve consistency.
+    Zoom view still need to be readded.
+
+commit 32c9a3010066363f37a275dcbc712d27454e2e87
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 15 10:11:00 2011 +0200
+
+    Comment non-essential GL calls which don't link properly on some GL implementations.
+
+commit 2260465ac4f3963cc56a7e310b142382dfe5d203
+Merge: 24eacab a45e91d
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 14 20:00:43 2011 -0700
+
+    Merge branch 'master' of git://github.com/Matthias-Fauconneau/libmv
+
+commit 24eacab863638551824534b8777ad5fbcaf688b9
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 14 20:00:32 2011 -0700
+
+    Implement CoordinatesForMarkersInImage in the simple pipeline.
+
+commit a45e91d9285bdb191781d9c4031e925a3e2475c9
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 15 00:34:35 2011 +0200
+
+    Bundle,Camera,Object persistence, Render from Camera.
+    
+    Render from Camera doesn't overlay on 2D View yet.
+    Would be easier to reimplement 2D View using GL.
+
+commit c2e6e58533d24e78036b8a8d6b915458500af58f
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jun 14 22:39:17 2011 +0200
+
+    Implement Object support.
+    
+    Match code style.
+    Add objects.
+    Display objects.
+    Select objects.
+    Link active object to selected bundles.
+
+commit 26668a24bf63a98ed2519fe4b6bd6dff1760645d
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jun 14 19:58:18 2011 +0200
+
+    Implement Camera selection.
+    
+    Camera selection bounds is a sphere around camera origin.
+    TODO: we might want an accurate pyramid intersection.
+    Reconstruction::AllPoints() and Reconstruction::AllCameras() now only returns valid objects.
+
+commit da716826247e7afa152bf3598852b3fc013b51c0
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jun 13 21:17:34 2011 +0200
+
+    Implement bundle selection.
+
+commit 37714c581c585f8efb1212704459f91e26e32b31
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jun 13 15:01:22 2011 +0200
+
+    Use Reconstruction container.
+    
+    Add Reconstruction::AllCameras() and Recontruction::AllPoints().
+
+commit ab40db86cc9fd3fd9e031e3029f618b68a0a4158
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jun 13 11:26:33 2011 +0200
+
+    display random cameras
+
+commit 95a150f80325abad21f746cf46f165922673a791
+Merge: cefe6aa 007aa36
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Jun 12 10:18:28 2011 +0200
+
+    Merge branch 'master' of git://github.com/keir/libmv
+
+commit 007aa3629ea4f5f74355e896dd29da191b39b03b
+Merge: 2ae39cb daab3ad
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sat Jun 11 17:43:51 2011 -0700
+
+    Merge pull request #1 from paulinus/master
+    
+    This makes the project compile on the mac.
+
+commit daab3ad96dbf6defe153b97b28b78a3d99a7a092
+Author: Pau Gargallo <pau.gargallo@gmail.com>
+Date:   Sun Jun 12 01:12:30 2011 +0200
+
+    Make it compile on snow leopard.
+    
+    Mostly adding target_link_libraries. Aparently, on the mac, dynamic libs need to be linked against other libs they use.  Also fixed some minor C++ problems, which should not be mac related.
+
+commit cefe6aa584a72355ad42fdfff1bf9a183a2d2eae
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Jun 11 12:28:19 2011 +0200
+
+    Draw dummy 3D points.
+
+commit 7c21196249eecd579dcc1bcb056d36fba0f12bfe
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Jun 11 00:42:34 2011 +0200
+
+    UI fixes, better layouting, add scene view dock widget.
+
+commit 0eebc21db831211738acc938566bbc29d68d45db
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jun 10 17:31:23 2011 +0200
+
+    Add GL abstraction, Add 3D View, Small cleanups.
+    
+    3D View is not hooked in UI yet.
+    BUG: Image didn't fit to window on startup.
+    TODO: use extern templates instead of not compiling multiview
+
+commit 527e706ed8b7778f3d2e1f03236867c272a70195
+Merge: 2ae39cb 36e9069
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 19:39:15 2011 -0700
+
+    Merge branch 'master' of git://github.com/Matthias-Fauconneau/libmv
+
+commit 5395ef35f452f6456f683d1fdb549500bfd2fe95
+Merge: 36e9069 2ae39cb
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 9 21:26:51 2011 +0200
+
+    Merge branch 'master' of git://github.com/keir/libmv
+
+commit 2ae39cbf78f970f0e732eafeca6548f3b2b9ad1b
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 09:25:02 2011 -0700
+
+    Add forgotten multiview header.
+
+commit 36e9069e2755aee74d70b8f1e56eb075e906ffa1
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 9 14:38:27 2011 +0200
+
+    Fix build (Disabling pipeline.cc since multiview.h is missing).
+
+commit d459d827d49a072622882c7b43ca97d43c13c98e
+Merge: 6fec735 cce784d
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 9 12:30:37 2011 +0200
+
+    Merge branch 'master' of git://github.com/keir/libmv
+
+commit 6fec735ff44447f9a3476a7c82d2f9163e51e536
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 9 12:30:17 2011 +0200
+
+    Cosmetics for Qt Tracker.
+
+commit cce784d47a408d0fec1097ddfac7f4536f692d1b
+Merge: d4b61b7 56f49b5
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 03:18:18 2011 -0700
+
+    Merge Nathan's cleanup branch.
+
+commit d4b61b7d322b7e19abe19f17a2f92cc8af6809fb
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 03:15:46 2011 -0700
+
+    Get simple reconstruction pipeline to build.
+    
+    Removes much of the stuff I originally added such as keyframe estimation; we'll
+    add it back later.
+
+commit aef9ac10a5136d2f34f751618db1316044844d86
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 03:15:29 2011 -0700
+
+    Qt style docs for region_tracker.h.
+
+commit b94a05626c92f48ee0c877808f76e29ce3fd113e
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 03:10:12 2011 -0700
+
+    Qt style formatting for random_sample.h.
+
+commit 97371495b4aae534894f2ec944d64e64176a111e
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 02:36:57 2011 -0700
+
+    Switch tracks to Qt style doxygen comments.
+
+commit e0b619fa42b35f619419fd4d90321db6fd5a703c
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 02:36:19 2011 -0700
+
+    Support Qt style doxygen comments.
+
+commit 0ac0affb94324521c835aded8753aabcc97cb6b1
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 00:51:09 2011 -0700
+
+    Fix doxygen comments on the Tracks class.
+
+commit a59a9a0284ad28266543deda3bfa8a4f4822b33c
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jun 9 00:50:58 2011 -0700
+
+    Fix comment.
+
+commit a61e0f443d8d5e1c6b7dbcc647a3f28174bc5410
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Jun 8 22:26:39 2011 -0700
+
+    Switch to the TRKLT in the tracker. Fix a compile issue.
+
+commit 230e7d159f4cd6b067aab5840525b3fa364d7da7
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Jun 8 22:24:52 2011 -0700
+
+    Add implementation of time-reversible KLT.
+
+commit b4617d8d9758b261442a01e415e76b3ae386fd79
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Jun 8 20:38:19 2011 -0700
+
+    Fix the "Cancel" button on open in the tracker. Style fixups.
+
+commit 3c58adc840b3d91f367ce5e56bd51c5506197cb1
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jun 9 01:32:25 2011 +0200
+
+    Improve API, Support marker and track deletion.
+
+commit f026b5a3c4b7b17171cd3b464fdde97dfe7cb729
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 8 23:25:49 2011 +0200
+
+    Implement persistent tracks (i.e load/save to file)
+
+commit 4bec3680d9a9020daf9dc44967646960de1ae3b3
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 8 19:43:15 2011 +0200
+
+    Support backwards tracking.
+    Add button to enable automatic tracking of selected markers.
+    Add Oxygen icons to better support platforms without Oxygen theme (i.e Windows).
+    Add Doxygen documentation to public Tracks and Region Tracker API.
+
+commit 56f49b5ce44f32d24f372d5fe188827a35994b05
+Author: Nathan Wiegand <nathanwiegand@gmail.com>
+Date:   Wed Jun 8 10:15:42 2011 -0700
+
+    Fixed more whitespace issues
+
+commit 5b351a1c2a42ace0e84f890fe0a88bed1f5832cd
+Merge: 8667426 e3504fb
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 8 14:08:06 2011 +0200
+
+    Merge branch 'master' of git://github.com/keir/libmv
+
+commit 8667426a8866c10e59fcd9ae5a454dd594601a0c
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 8 14:05:41 2011 +0200
+
+    split tracker.cc in two files.
+    
+    - tracker.cc: implement Tracker which handles TrackItems
+    - main.cc: implement UI and seeking
+
+commit c3eef4d1a02c96988f7c4cb9dc6718be26da235b
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 8 11:17:47 2011 +0200
+
+    fix Google cosmetics, fix seek slider
+
+commit e3504fb4b90ef20360f31e11f87967c49eaf73c0
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Jun 8 00:53:33 2011 -0700
+
+    Add a way to remove the markers for a track from the tracks object.
+
+commit bcc09c55dd5f3dfd07f60c24bfb932c2973859a5
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Jun 8 00:04:50 2011 -0700
+
+    Fix various bugs in qt-tracker, and restore style.
+    
+    This fixes the track showing and hiding which was broken in the previous
+    version. This also restores libmv style to the file.
+
+commit 9b3dee7a90419b6995050f87196195b808071a5f
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Jun 8 00:04:36 2011 -0700
+
+    Formatting in tracks.h.
+
+commit c9bc9ca74cedc1705165ae10106fdbc792e2d31c
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Jun 8 00:04:10 2011 -0700
+
+    Relax constraints when downsampling by 2.
+
+commit 316481f3e42a15143ef52d8f742d85171b4337d5
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jun 8 00:57:58 2011 +0200
+
+    Better API names, Support track editing (i.e move markers), Usability improvements.
+
+commit bf01ecfa93afe348a79af6dc04a8b0dfe0720257
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jun 7 21:22:06 2011 +0200
+
+    Optimize for large reconstructions (i.e many tracks) with relatively few visible tracks per frame.
+    
+    Concretely, this means intersecting visible sets instead of indexing an array of Track x Frame.
+
+commit 324ca444a8baa41e5c7e3228564681044116ce92
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jun 7 20:29:24 2011 +0200
+
+    Implement TrackItem selections and zoom view.
+    
+    Make selections behave correctly (introduce TrackItem which stay selected on frame changes).
+    Add a dock widget which will hold details on the currently selected marker.
+    Add a View to the detail dock which stay zoomed on the current selection.
