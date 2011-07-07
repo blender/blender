@@ -1236,42 +1236,65 @@ static size_t animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, K
 	return items;
 }
 
+static size_t animdata_filter_gpencil_data (ListBase *anim_data, bGPdata *gpd, int filter_mode)
+{
+	bGPDlayer *gpl;
+	size_t items = 0;
+	
+	/* loop over layers as the conditions are acceptable */
+	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+		/* only if selected */
+		if ( ANIMCHANNEL_SELOK(SEL_GPL(gpl)) ) {
+			/* only if editable */
+			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
+				/* active... */
+				if (!(filter_mode & ANIMFILTER_ACTIVE) || (gpl->flag & GP_LAYER_ACTIVE)) {
+					/* add to list */
+					ANIMCHANNEL_NEW_CHANNEL(gpl, ANIMTYPE_GPLAYER, gpd);
+				}
+			}
+		}
+	}
+	
+	return items;
+}
+
 /* Grab all Grase Pencil datablocks in file */
 // TODO: should this be amalgamated with the dopesheet filtering code?
 static size_t animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int filter_mode)
 {
 	bGPdata *gpd;
-	bGPDlayer *gpl;
 	size_t items = 0;
 	
-	/* check if filtering types are appropriate */
-	{
-		/* for now, grab grease pencil datablocks directly from main*/
-		for (gpd = G.main->gpencil.first; gpd; gpd = gpd->id.next) {
-			/* only show if gpd is used by something... */
-			if (ID_REAL_USERS(gpd) < 1)
-				continue;
+	/* for now, grab grease pencil datablocks directly from main */
+	// XXX: this is not good...
+	for (gpd = G.main->gpencil.first; gpd; gpd = gpd->id.next) {
+		ListBase tmp_data = {NULL, NULL};
+		size_t tmp_items = 0;
+		
+		/* only show if gpd is used by something... */
+		if (ID_REAL_USERS(gpd) < 1)
+			continue;
 			
-			/* add gpd as channel too (if for drawing, and it has layers) */
-			if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && (gpd->layers.first)) {
-				/* add to list */
+		/* add gpencil animation channels */
+		BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_GPD(gpd))
+		{
+			tmp_items += animdata_filter_gpencil_data(&tmp_data, gpd, filter_mode);
+		}
+		END_ANIMFILTER_SUBCHANNELS;
+		
+		/* did we find anything? */
+		if (tmp_items) {
+			/* include data-expand widget first */
+			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+				/* add gpd as channel too (if for drawing, and it has layers) */
 				ANIMCHANNEL_NEW_CHANNEL(gpd, ANIMTYPE_GPDATABLOCK, NULL);
 			}
 			
-			/* only add layers if they will be visible (if drawing channels) */
-			if ( !(filter_mode & ANIMFILTER_LIST_VISIBLE) || (EXPANDED_GPD(gpd)) ) {
-				/* loop over layers as the conditions are acceptable */
-				for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-					/* only if selected */
-					if ( ANIMCHANNEL_SELOK(SEL_GPL(gpl)) ) {
-						/* only if editable */
-						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
-							/* add to list */
-							ANIMCHANNEL_NEW_CHANNEL(gpl, ANIMTYPE_GPLAYER, gpd);
-						}
-					}
-				}
-			}
+			/* now add the list of collected channels */
+			BLI_movelisttolist(anim_data, &tmp_data);
+			BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+			items += tmp_items;
 		}
 	}
 	

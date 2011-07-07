@@ -274,7 +274,7 @@ typedef enum eAnimFilter_Flags {
 #define EXPANDED_GPD(gpd) (gpd->flag & GP_DATA_EXPAND) 
 	/* Grease Pencil Layer settings */
 #define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED)==0)
-#define SEL_GPL(gpl) ((gpl->flag & GP_LAYER_ACTIVE) || (gpl->flag & GP_LAYER_SELECT))
+#define SEL_GPL(gpl) (gpl->flag & GP_LAYER_SELECT)
 
 /* NLA only */
 #define SEL_NLT(nlt) (nlt->flag & NLATRACK_SELECTED)
