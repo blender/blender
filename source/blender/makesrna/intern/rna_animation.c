@@ -74,42 +74,7 @@ static int rna_AnimData_action_editable(PointerRNA *ptr)
 static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 {
 	ID *ownerId = (ID *)ptr->id.data;
-	AnimData *adt = (AnimData *)ptr->data;
-	
-	/* manage usercount for current action */
-	if (adt->action)
-		id_us_min((ID*)adt->action);
-	
-	/* assume that AnimData's action can in fact be edited... */
-	if ((value.data) && (ownerId)) {
-		bAction *act = (bAction *)value.data;
-		
-		/* action must have same type as owner */
-		if (ownerId) {
-			if (ELEM(act->idroot, 0, GS(ownerId->name))) {
-				/* can set */
-				adt->action = act;
-				id_us_plus((ID*)adt->action);
-			}
-			else {
-				/* cannot set */
-				printf("ERROR: Couldn't set Action '%s' onto ID '%s', as it doesn't have suitably rooted paths for this purpose\n", 
-						act->id.name+2, ownerId->name);
-			}
-		}
-		else {
-			/* cannot tell if we can set, so let's just be generous... */
-			printf("Warning: Set Action '%s' onto AnimData block with an unknown ID-owner. May have attached invalid data\n",
-					act->id.name+2);
-				
-			adt->action = act;
-			id_us_plus((ID*)adt->action);
-		}
-	}
-	else {
-		/* just clearing the action... */
-		adt->action = NULL;
-	}
+	BKE_animdata_set_action(NULL, ownerId, value.data);
 }
 
 /* ****************************** */

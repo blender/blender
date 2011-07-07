@@ -179,6 +179,13 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_ANIMATION:
+			switch(wmn->data) {
+				case ND_NLA_ACTCHANGE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 	}
 	
 }

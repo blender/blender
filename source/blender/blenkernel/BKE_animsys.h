@@ -41,6 +41,7 @@ struct KeyingSet;
 struct KS_Path;
 
 struct PointerRNA;
+struct ReportList;
 struct bAction;
 struct bActionGroup;
 struct AnimMapper;
@@ -56,6 +57,9 @@ struct AnimData *BKE_animdata_from_id(struct ID *id);
 
 /* Add AnimData to the given ID-block */
 struct AnimData *BKE_id_add_animdata(struct ID *id);
+
+/* Set active action used by AnimData from the given ID-block */
+short BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct bAction *act);
 
 /* Free AnimData */
 void BKE_free_animdata(struct ID *id);

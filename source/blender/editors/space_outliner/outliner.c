@@ -101,6 +101,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "ED_keyframing.h"
 
@@ -3170,29 +3171,10 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 	}
 }
 
-static void unlink_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
+static void unlink_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
-	IdAdtTemplate *iat = (IdAdtTemplate *)tsep->id;
-	AnimData *adt = iat->adt;
-	
-	//printf("iat = '%s' | act = '%s'\n", iat->id.name, tselem->id->name);
-	
-	/* active action is only editable when it is not a tweaking strip 
-	 * see rna_AnimData_action_editable() in rna_animation.c
-	 */
-	if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact)) {
-		/* cannot remove, otherwise things turn to custard */
-		ReportList *reports = CTX_wm_reports(C);
-		
-		// FIXME: this only gets shown in info-window, since this is global not operator report
-		BKE_report(reports, RPT_ERROR, "Cannot unlink action, as it is still being edited in NLA");
-		
-		return;
-	}
-	
-	/* remove action... */
-	id_us_min((ID*)adt->action);
-	adt->action = NULL;
+	/* just set action to NULL */
+	BKE_animdata_set_action(CTX_wm_reports(C), tsep->id, NULL);
 }
 
 static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
@@ -3413,6 +3395,36 @@ static void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOop
 }
 
 /* ******************************************** */
+
+static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
+{
+	/* just set action to NULL */
+	BKE_animdata_set_action(NULL, tselem->id, NULL);
+}
+
+static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
+{
+	IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
+	
+	/* just free drivers - stored as a list of F-Curves */
+	free_fcurves(&iat->adt->drivers);
+}
+
+static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
+{
+	IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
+	FCurve *fcu;
+	
+	/* loop over drivers, performing refresh (i.e. check graph_buttons.c and rna_fcurve.c for details) */
+	for (fcu = iat->adt->drivers.first; fcu; fcu= fcu->next) {
+		fcu->flag &= ~FCURVE_DISABLED;
+		
+		if (fcu->driver)
+			fcu->driver->flag &= ~DRIVER_FLAG_INVALID;
+	}
+}
+
+/* --------------------------------- */
 
 static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 {
@@ -3775,6 +3787,224 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
 
 /* **************************************** */
 
+static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *lb, ID *newid,
+										 void (*operation_cb)(TreeElement *, TreeStoreElem *, TreeStoreElem *, ID *))
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for (te=lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if (tselem->flag & TSE_SELECTED) {
+			if(tselem->type==type) {
+				TreeStoreElem *tsep = TREESTORE(te->parent);
+				operation_cb(te, tselem, tsep, newid);
+			}
+		}
+		if ((tselem->flag & TSE_CLOSED)==0) {
+			outliner_do_id_set_operation(soops, type, &te->subtree, newid, operation_cb);
+		}
+	}
+}
+
+/* ------------------------------------------ */
+
+static void actionset_id_cb(TreeElement *te, TreeStoreElem *tselem, TreeStoreElem *tsep, ID *actId)
+{
+	bAction *act = (bAction *)actId;
+	
+	if (tselem->type == TSE_ANIM_DATA) {
+		/* "animation" entries - action is child of this */
+		BKE_animdata_set_action(NULL, tselem->id, act);
+	}
+	/* TODO: if any other "expander" channels which own actions need to support this menu, 
+	 * add: tselem->type = ...
+	 */
+	else if (tsep && (tsep->type == TSE_ANIM_DATA)) {
+		/* "animation" entries case again */
+		BKE_animdata_set_action(NULL, tsep->id, act);
+	}
+	// TODO: other cases not supported yet
+}
+
+static int outliner_action_set_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops= CTX_wm_space_outliner(C);
+	int scenelevel=0, objectlevel=0, idlevel=0, datalevel=0;
+	
+	bAction *act;
+	
+	/* check for invalid states */
+	if (soops == NULL)
+		return OPERATOR_CANCELLED;
+	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+	
+	/* get action to use */
+	act= BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "action"));
+	
+	if (act == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No valid Action to add.");
+		return OPERATOR_CANCELLED;
+	}
+	else if (act->idroot == 0) {
+		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
+		BKE_reportf(op->reports, RPT_WARNING,
+			"Action '%s' does not specify what datablocks it can be used on. Try setting the 'ID Root Type' setting from the Datablocks Editor for this Action to avoid future problems",
+			act->id.name+2);
+	}
+	
+	/* perform action if valid channel */
+	if (datalevel == TSE_ANIM_DATA)
+		outliner_do_id_set_operation(soops, datalevel, &soops->tree, (ID*)act, actionset_id_cb);
+	else if (idlevel == ID_AC)
+		outliner_do_id_set_operation(soops, idlevel, &soops->tree, (ID*)act, actionset_id_cb);
+	else
+		return OPERATOR_CANCELLED;
+		
+	/* set notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
+	ED_undo_push(C, "Set action");
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_action_set(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Outliner Set Action";
+	ot->idname= "OUTLINER_OT_action_set";
+	ot->description= "Change the active action used";
+	
+	/* api callbacks */
+	ot->invoke= WM_enum_search_invoke;
+	ot->exec= outliner_action_set_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	/* flags */
+	ot->flag= 0;
+	
+	/* props */
+		// TODO: this would be nicer as an ID-pointer...
+	prop= RNA_def_enum(ot->srna, "action", DummyRNA_NULL_items, 0, "Action", "");
+	RNA_def_enum_funcs(prop, RNA_action_itemf);
+	ot->prop= prop;
+}
+
+/* **************************************** */
+
+typedef enum eOutliner_AnimDataOps {
+	OUTLINER_ANIMOP_INVALID = 0,
+	
+	OUTLINER_ANIMOP_SET_ACT,
+	OUTLINER_ANIMOP_CLEAR_ACT,
+	
+	OUTLINER_ANIMOP_REFRESH_DRV,
+	OUTLINER_ANIMOP_CLEAR_DRV
+	
+	//OUTLINER_ANIMOP_COPY_DRIVERS,
+	//OUTLINER_ANIMOP_PASTE_DRIVERS
+} eOutliner_AnimDataOps;
+
+static EnumPropertyItem prop_animdata_op_types[] = {
+	{OUTLINER_ANIMOP_SET_ACT, "SET_ACT", 0, "Set Action", ""},
+	{OUTLINER_ANIMOP_CLEAR_ACT, "CLEAR_ACT", 0, "Unlink Action", ""},
+	{OUTLINER_ANIMOP_REFRESH_DRV, "REFRESH_DRIVERS", 0, "Refresh Drivers", ""},
+	//{OUTLINER_ANIMOP_COPY_DRIVERS, "COPY_DRIVERS", 0, "Copy Drivers", ""},
+	//{OUTLINER_ANIMOP_PASTE_DRIVERS, "PASTE_DRIVERS", 0, "Paste Drivers", ""},
+	{OUTLINER_ANIMOP_CLEAR_DRV, "CLEAR_DRIVERS", 0, "Clear Drivers", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops= CTX_wm_space_outliner(C);
+	int scenelevel=0, objectlevel=0, idlevel=0, datalevel=0;
+	eOutliner_AnimDataOps event;
+	short updateDeps = 0;
+	
+	/* check for invalid states */
+	if (soops == NULL)
+		return OPERATOR_CANCELLED;
+	
+	event= RNA_enum_get(op->ptr, "type");
+	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+	
+	if (datalevel != TSE_ANIM_DATA)
+		return OPERATOR_CANCELLED;
+	
+	/* perform the core operation */
+	switch (event) {
+		case OUTLINER_ANIMOP_SET_ACT:
+			/* delegate once again... */
+			WM_operator_name_call(C, "OUTLINER_OT_action_set", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		
+		case OUTLINER_ANIMOP_CLEAR_ACT:
+			/* clear active action - using standard rules */
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, unlinkact_animdata_cb);
+			
+			WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
+			ED_undo_push(C, "Unlink action");
+			break;
+			
+		case OUTLINER_ANIMOP_REFRESH_DRV:
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, refreshdrivers_animdata_cb);
+			
+			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN, NULL);
+			//ED_undo_push(C, "Refresh Drivers"); /* no undo needed - shouldn't have any impact? */
+			updateDeps = 1;
+			break;
+			
+		case OUTLINER_ANIMOP_CLEAR_DRV:
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, cleardrivers_animdata_cb);
+			
+			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN, NULL);
+			ED_undo_push(C, "Clear Drivers");
+			updateDeps = 1;
+			break;
+			
+		default: // invalid
+			break;
+	}
+	
+	/* update dependencies */
+	if (updateDeps) {
+		Main *bmain = CTX_data_main(C);
+		Scene *scene = CTX_data_scene(C);
+		
+		/* rebuild depsgraph for the new deps */
+		DAG_scene_sort(bmain, scene);
+		
+		/* force an update of depsgraph */
+		DAG_ids_flush_update(bmain, 0);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+
+void OUTLINER_OT_animdata_operation(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Outliner Animation Data Operation";
+	ot->idname= "OUTLINER_OT_animdata_operation";
+	ot->description= "";
+	
+	/* callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= outliner_animdata_operation_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= 0;
+	
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_animdata_op_types, 0, "Animation Operation", "");
+}
+
+/* **************************************** */
+
 static EnumPropertyItem prop_data_op_types[] = {
 	{1, "SELECT", 0, "Select", ""},
 	{2, "DESELECT", 0, "Deselect", ""},
@@ -3888,7 +4118,12 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 		else if(datalevel) {
 			if(datalevel==-1) error("Mixed selection");
 			else {
-				WM_operator_name_call(C, "OUTLINER_OT_data_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+				if (datalevel == TSE_ANIM_DATA)
+					WM_operator_name_call(C, "OUTLINER_OT_animdata_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+				else if (datalevel == TSE_DRIVER_BASE)
+					/* do nothing... no special ops needed yet */;
+				else
+					WM_operator_name_call(C, "OUTLINER_OT_data_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 			}
 		}
 		

@@ -56,6 +56,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -142,6 +143,59 @@ AnimData *BKE_id_add_animdata (ID *id)
 	}
 	else 
 		return NULL;
+}
+
+/* Action Setter --------------------------------------- */
+
+/* Called when user tries to change the active action of an AnimData block (via RNA, Outliner, etc.) */
+short BKE_animdata_set_action (ReportList *reports, ID *id, bAction *act)
+{
+	AnimData *adt = BKE_animdata_from_id(id);
+	short ok = 0;
+	
+	/* animdata validity check */
+	if (adt == NULL) {
+		BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
+		return ok;
+	}
+	
+	/* active action is only editable when it is not a tweaking strip 
+	 * see rna_AnimData_action_editable() in rna_animation.c
+	 */
+	if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact)) {
+		/* cannot remove, otherwise things turn to custard */
+		BKE_report(reports, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
+		return ok;
+	}
+	
+	/* manage usercount for current action */
+	if (adt->action)
+		id_us_min((ID*)adt->action);
+	
+	/* assume that AnimData's action can in fact be edited... */
+	if (act) {
+		/* action must have same type as owner */
+		if (ELEM(act->idroot, 0, GS(id->name))) {
+			/* can set */
+			adt->action = act;
+			id_us_plus((ID*)adt->action);
+			ok = 1;
+		}
+		else {
+			/* cannot set */
+			BKE_reportf(reports, RPT_ERROR,
+					"Couldn't set Action '%s' onto ID '%s', as it doesn't have suitably rooted paths for this purpose", 
+					act->id.name+2, id->name);
+			//ok = 0;
+		}
+	}
+	else {
+		/* just clearing the action... */
+		adt->action = NULL;
+		ok = 1;
+	}
+	
+	return ok;
 }
 
 /* Freeing -------------------------------------------- */

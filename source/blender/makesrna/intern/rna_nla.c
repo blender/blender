@@ -424,6 +424,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_NLA, NULL); /* this will do? */
 	
 	/* Action */
+	// TODO: this should only be editable if it is not being edited atm...
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Action_id_poll");
