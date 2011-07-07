@@ -17,15 +17,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Mitchell Stokes.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file BL_ActionManager.cpp
+ *  \ingroup ketsji
+ */
+
 #ifndef __BL_ACTIONMANAGER
 #define __BL_ACTIONMANAGER
 
@@ -33,6 +33,9 @@
 
 #define MAX_ACTION_LAYERS 4
 
+/**
+ * BL_ActionManager is responsible for handling a KX_GameObject's actions.
+ */
 class BL_ActionManager
 {
 private:
@@ -52,14 +55,34 @@ public:
 					float layer_weight=0.f,
 					short ipo_flags=0,
 					float playback_speed=1.f);
-	
+	/**
+	 * Gets the current frame of an action
+	 */
 	float GetActionFrame(short layer);
-	void SetActionFrame(short layer, float frame);
 
+	/**
+	 * Sets the current frame of an action
+	 */
+	void SetActionFrame(short layer, float frame);
+	
+	/**
+	 * Gets the currently running action on the given layer
+	 */
 	struct bAction *GetCurrentAction(short layer);
 
+	/**
+	 * Stop playing the action on the given layer
+	 */
 	void StopAction(short layer);
+
+	/**
+	 * Check if an action has finished playing
+	 */
 	bool IsActionDone(short layer);
+
+	/**
+	 * Update any running actions
+	 */
 	void Update(float);
 
 #ifdef WITH_CXX_GUARDEDALLOC

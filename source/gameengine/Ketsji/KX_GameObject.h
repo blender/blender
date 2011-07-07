@@ -239,7 +239,7 @@ public:
 	bAction *GetCurrentAction(short layer);
 
 	/**
-	 * Remove an action from the object's action manager
+	 * Stop playing the action on the given layer
 	 */
 	void StopAction(short layer);
 

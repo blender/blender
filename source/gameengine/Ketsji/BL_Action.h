@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file BL_Action.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __BL_ACTION
 #define __BL_ACTION
 
@@ -75,6 +80,9 @@ public:
 	BL_Action(class KX_GameObject* gameobj);
 	~BL_Action();
 
+	/**
+	 * Play an action
+	 */
 	bool Play(const char* name,
 			float start,
 			float end,
@@ -84,8 +92,17 @@ public:
 			float layer_weight,
 			short ipo_flags,
 			float playback_speed);
+	/**
+	 * Stop playing the action
+	 */
 	void Stop();
+	/**
+	 * Whether or not the action is still playing
+	 */
 	bool IsDone();
+	/**
+	 * Update the action's frame, etc.
+	 */
 	void Update(float curtime);
 
 	// Accessors

@@ -22,6 +22,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file BL_Action.cpp
+ *  \ingroup ketsji
+ */
+
 #include <cstdlib>
 
 #include "BL_Action.h"

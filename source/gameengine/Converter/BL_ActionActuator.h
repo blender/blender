@@ -122,11 +122,6 @@ public:
 #endif // WITH_PYTHON
 	
 protected:
-
-	//void SetStartTime(float curtime);
-	//void SetLocalTime(float curtime);
-	//bool ClampLocalTime();
-
 	MT_Point3	m_lastpos;
 	float	m_blendframe;
 	int		m_flag;
@@ -156,6 +151,9 @@ protected:
 	STR_String	m_framepropname;
 };
 
+// The first values are not used in BL_ActionActuator anymore,
+// but BL_ShapeActionActuator still uses them, so we keep them around
+// for now.
 enum {
 	ACT_FLAG_REVERSE	= 1<<0,
 	ACT_FLAG_LOCKINPUT	= 1<<1,
