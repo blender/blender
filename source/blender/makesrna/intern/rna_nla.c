@@ -222,6 +222,29 @@ static void rna_NlaStrip_blend_out_set(PointerRNA *ptr, float value)
 	data->blendout= value;
 }
 
+static int rna_NlaStrip_action_editable(PointerRNA *ptr)
+{
+	NlaStrip *strip = (NlaStrip *)ptr->data;
+	
+	/* strip actions shouldn't be editable if NLA tweakmode is on */
+	if (ptr->id.data) {
+		AnimData *adt = BKE_animdata_from_id(ptr->id.data);
+		
+		if (adt) {
+			/* active action is only editable when it is not a tweaking strip */
+			if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact))
+				return 0;
+		}
+	}
+	
+	/* check for clues that strip probably shouldn't be used... */
+	if (strip->flag & NLASTRIP_FLAG_TWEAKUSER)
+		return 0;
+		
+	/* should be ok, though we may still miss some cases */
+	return 1;
+}
+
 static void rna_NlaStrip_action_start_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
@@ -429,6 +452,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "act");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Action_id_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE); 
+	RNA_def_property_editable_func(prop, "rna_NlaStrip_action_editable");
 	RNA_def_property_ui_text(prop, "Action", "Action referenced by this strip");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_NLA, NULL); /* this will do? */
 	
