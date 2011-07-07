@@ -1097,7 +1097,7 @@ static size_t animfilter_action (bAnimContext *ac, ListBase *anim_data, bDopeShe
  *	- for normal filtering (i.e. for editing), we only need the NLA-tracks but they can be in 'normal' evaluation
  *	  order, i.e. first to last. Otherwise, some tools may get screwed up.
  */
-static size_t animfilter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDopeSheet *UNUSED(ads), AnimData *adt, int filter_mode, ID *owner_id)
+static size_t animfilter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDopeSheet *ads, AnimData *adt, int filter_mode, ID *owner_id)
 {
 	NlaTrack *nlt;
 	NlaTrack *first=NULL, *next=NULL;
@@ -1105,16 +1105,21 @@ static size_t animfilter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDo
 	
 	/* if showing channels, include active action */
 	if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-		/* there isn't really anything editable here, so skip if need editable */
-		if ((filter_mode & ANIMFILTER_FOREDIT) == 0) { 
-			/* just add the action track now (this MUST appear for drawing)
-			 *	- as AnimData may not have an action, we pass a dummy pointer just to get the list elem created, then
-			 *	  overwrite this with the real value - REVIEW THIS...
-			 */
-			ANIMCHANNEL_NEW_CHANNEL_FULL((void *)(&adt->action), ANIMTYPE_NLAACTION, owner_id, 
-				{
-					ale->data= adt->action ? adt->action : NULL; 
-				});
+		/* if NLA action-line filtering is off, don't show unless there are keyframes, 
+		 * in order to keep things more compact for doing transforms
+		 */
+		if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) || (adt->action)) {
+			/* there isn't really anything editable here, so skip if need editable */
+			if ((filter_mode & ANIMFILTER_FOREDIT) == 0) { 
+				/* just add the action track now (this MUST appear for drawing)
+				 *	- as AnimData may not have an action, we pass a dummy pointer just to get the list elem created, then
+				 *	  overwrite this with the real value - REVIEW THIS...
+				 */
+				ANIMCHANNEL_NEW_CHANNEL_FULL((void *)(&adt->action), ANIMTYPE_NLAACTION, owner_id, 
+					{
+						ale->data= adt->action ? adt->action : NULL; 
+					});
+			}
 		}
 		
 		/* first track to include will be the last one if we're filtering by channels */
