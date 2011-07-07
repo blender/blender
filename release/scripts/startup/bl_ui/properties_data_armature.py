@@ -98,7 +98,6 @@ class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
 
 class DATA_PT_bone_group_specials(bpy.types.Menu):
     bl_label = "Bone Group Specials"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
