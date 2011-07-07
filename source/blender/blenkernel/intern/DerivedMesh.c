@@ -1610,7 +1610,7 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int unselected, int multipaint, int auto_normalize)
 {
 	Mesh *me = ob->data;
-	float colf[4], input = 0.0f, unsel_sum = 0.0f;// Jason
+	float colf[4], input = 0.0f;// Jason
 	int i;
 	char make_black = FALSE;
 	char was_a_nonzero = FALSE;
@@ -1618,6 +1618,8 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 	if (me->dvert) {
 		for (i=0; i<me->dvert[vert].totweight; i++) {
 			// Jason was here
+			// in multipaint, get the average if auto normalize is inactive
+			// get the sum if it is active
 			if(multipaint && selected > 1) {
 				if(dg_flags[me->dvert[vert].dw[i].def_nr]) {
 					if(me->dvert[vert].dw[i].weight) {
@@ -1625,23 +1627,18 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 						was_a_nonzero = TRUE;
 					}
 				}
-				// TODO unselected non-bone groups should not be involved in this sum
-				else if(auto_normalize) {
-					unsel_sum+=me->dvert[vert].dw[i].weight;
-				}
 			} else if (me->dvert[vert].dw[i].def_nr==ob->actdef-1) {
 				input+=me->dvert[vert].dw[i].weight;
 			}
 		}
 		
 		// Jason was here
+		// make it black if the selected groups have no weight on a vertex
 		if(!make_black && multipaint && selected > 1) {
-			/*if(input == 1.0f && auto_normalize && !unsel_sum) {
-				make_black = TRUE;
-			} else */
 			if(!was_a_nonzero) {
 				make_black = TRUE;
 			} else if (!auto_normalize){
+				// get the average
 				input /= selected;
 			}
 

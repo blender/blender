@@ -158,6 +158,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
             row = layout.row()
             row.prop(group, "name")
         #Jason was here
+        # add buttons to make it faster to lock/unlock vgroups
         if ob.mode == 'WEIGHT_PAINT' and len(ob.vertex_groups) > 0:
             row = layout.row()
             sub = row.row(align=True)
