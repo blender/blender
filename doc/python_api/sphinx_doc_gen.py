@@ -77,9 +77,9 @@ else:
         "bpy.types",  # supports filtering
         "bpy.ops",  # supports filtering
         "bpy_extras",
-        "bge",
+        # "bge",
         "aud",
-        #"bgl",
+        "bgl",
         "blf",
         "mathutils",
         "mathutils.geometry",
@@ -1048,6 +1048,7 @@ def rna2sphinx(BASEPATH):
         fw("   bge.types.rst\n\n")
         fw("   bge.logic.rst\n\n")
         fw("   bge.render.rst\n\n")
+        fw("   bge.texture.rst\n\n")
         fw("   bge.events.rst\n\n")
 
     # rna generated change log
@@ -1182,6 +1183,7 @@ def rna2sphinx(BASEPATH):
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.types.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.logic.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.render.rst"), BASEPATH)
+        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.texture.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.events.rst"), BASEPATH)
 
     shutil.copy2(os.path.join(BASEPATH, "..", "rst", "change_log.rst"), BASEPATH)
