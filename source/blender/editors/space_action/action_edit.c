@@ -920,10 +920,17 @@ void ACTION_OT_sample (wmOperatorType *ot)
 
 /* ******************** Set Extrapolation-Type Operator *********************** */
 
+/* defines for make/clear cyclic extrapolation tools */
+#define MAKE_CYCLIC_EXPO 	-1
+#define CLEAR_CYCLIC_EXPO 	-2
+
 /* defines for set extrapolation-type for selected keyframes tool */
 static EnumPropertyItem prop_actkeys_expo_types[] = {
 	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", ""},
 	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", ""},
+	
+	{MAKE_CYCLIC_EXPO, "MAKE_CYCLIC", 0, "Make Cyclic (F-Modifier)", "Add Cycles F-Modifier if one doesn't exist already"},
+	{CLEAR_CYCLIC_EXPO, "CLEAR_CYCLIC", 0, "Clear Cyclic (F-Modifier)", "Remove Cycles F-Modifier if not needed anymore"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -941,7 +948,34 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
 	/* loop through setting mode per F-Curve */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->data;
-		fcu->extend= mode;
+		
+		if (mode >= 0) {
+			/* just set mode setting */
+			fcu->extend= mode;
+		}
+		else {
+			/* shortcuts for managing Cycles F-Modifiers to make it easier to toggle cyclic animation 
+			 * without having to go through FModifier UI in Graph Editor to do so
+			 */
+			if (mode == MAKE_CYCLIC_EXPO) {
+				/* only add if one doesn't exist */
+				if (list_has_suitable_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES, -1) == 0) {
+					// TODO: add some more preset versions which set different extrapolation options?
+					add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES);
+				}
+			}
+			else if (mode == CLEAR_CYCLIC_EXPO) {
+				/* remove all the modifiers fitting this description */
+				FModifier *fcm, *fcn=NULL;
+				
+				for (fcm = fcu->modifiers.first; fcm; fcm = fcn) {
+					fcn = fcm->next;
+					
+					if (fcm->type == FMODIFIER_TYPE_CYCLES)
+						remove_fmodifier(&fcu->modifiers, fcm);
+				}
+			}
+		}
 	}
 	
 	/* cleanup */
