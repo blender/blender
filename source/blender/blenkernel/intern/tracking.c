@@ -698,7 +698,8 @@ static struct libmv_Tracks *create_libmv_tracks(MovieClip *clip)
 		for(a= 0; a<track->markersnr; a++) {
 			MovieTrackingMarker *marker= &track->markers[a];
 
-			libmv_tracksInsert(tracks, marker->framenr, tracknr, marker->pos[0]*width, marker->pos[1]*height);
+			if((marker->flag&MARKER_DISABLED)==0)
+				libmv_tracksInsert(tracks, marker->framenr, tracknr, marker->pos[0]*width, marker->pos[1]*height);
 		}
 
 		track= track->next;

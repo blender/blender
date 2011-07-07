@@ -1438,6 +1438,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "bundle_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_float_sdna(prop, NULL, "bundle_size");
 	RNA_def_property_ui_text(prop, "Bundle Size", "Display size of bundles from reconstructed data");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
