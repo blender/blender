@@ -585,6 +585,25 @@ static void rna_PoseChannel_matrix_basis_set(PointerRNA *ptr, const float *value
 	pchan_apply_mat4(pchan, (float (*)[4])values, FALSE); /* no compat for predictable result */
 }
 
+static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	Object *ob= (Object*)ptr->id.data;
+	float umat[4][4]= MAT4_UNITY;
+	float tmat[4][4];
+
+	/* recalculate pose matrix with only parent transformations,
+	 * bone loc/sca/rot is ignored, scene and frame are not used. */
+	where_is_pose_bone(NULL, ob, pchan, 0.0f, FALSE);
+
+	/* find the matrix, need to remove the bone transforms first so this is
+	 * calculated as a matrix to set rather then a difference ontop of whats
+	 * already there. */
+	pchan_apply_mat4(pchan, umat, FALSE);
+	armature_mat_pose_to_bone(pchan, (float (*)[4])values, tmat);
+	pchan_apply_mat4(pchan, tmat, FALSE); /* no compat for predictable result */
+}
+
 #else
 
 static void rna_def_bone_group(BlenderRNA *brna)
@@ -830,8 +849,9 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
+	RNA_def_property_float_funcs(prop, NULL, "rna_PoseChannel_matrix_set", NULL);
 	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix after constraints and drivers are applied (object space)");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	/* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */
 	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
