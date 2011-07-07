@@ -126,6 +126,8 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(POSE_OT_group_add);
 	WM_operatortype_append(POSE_OT_group_remove);
+	WM_operatortype_append(POSE_OT_group_move);
+	WM_operatortype_append(POSE_OT_group_sort);
 	WM_operatortype_append(POSE_OT_group_assign);
 	WM_operatortype_append(POSE_OT_group_unassign);
 	WM_operatortype_append(POSE_OT_group_select);

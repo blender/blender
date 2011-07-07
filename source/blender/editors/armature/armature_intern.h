@@ -110,6 +110,8 @@ void POSE_OT_select_flip_active(struct wmOperatorType *ot);
 
 void POSE_OT_group_add(struct wmOperatorType *ot);
 void POSE_OT_group_remove(struct wmOperatorType *ot);
+void POSE_OT_group_move(struct wmOperatorType *ot);
+void POSE_OT_group_sort(struct wmOperatorType *ot);
 void POSE_OT_group_assign(struct wmOperatorType *ot);
 void POSE_OT_group_unassign(struct wmOperatorType *ot);
 void POSE_OT_group_select(struct wmOperatorType *ot);

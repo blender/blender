@@ -96,6 +96,16 @@ class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
         col.prop(arm, "use_deform_delay", text="Delay Refresh")
 
 
+class DATA_PT_bone_group_specials(bpy.types.Menu):
+    bl_label = "Bone Group Specials"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("pose.group_sort", icon='SORTALPHA')
+
+
 class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Bone Groups"
 
@@ -108,16 +118,25 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         pose = ob.pose
+        group = pose.bone_groups.active
 
         row = layout.row()
-        row.template_list(pose, "bone_groups", pose.bone_groups, "active_index", rows=2)
+
+        rows = 2
+        if group:
+            rows = 5
+        row.template_list(pose, "bone_groups", pose.bone_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
         col.active = (ob.proxy is None)
         col.operator("pose.group_add", icon='ZOOMIN', text="")
         col.operator("pose.group_remove", icon='ZOOMOUT', text="")
+        col.menu("DATA_PT_bone_group_specials", icon='DOWNARROW_HLT', text="")
+        if group:
+            col.separator()
+            col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        group = pose.bone_groups.active
         if group:
             col = layout.column()
             col.active = (ob.proxy is None)

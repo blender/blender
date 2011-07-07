@@ -1433,6 +1433,171 @@ void POSE_OT_group_unassign (wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int group_move_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan;
+	bActionGroup *grp;
+	int dir= RNA_enum_get(op->ptr, "direction");
+	int grpIndexA, grpIndexB;
+
+	if (ELEM(NULL, ob, pose))
+		return OPERATOR_CANCELLED;
+	if (pose->active_group <= 0)
+		return OPERATOR_CANCELLED;
+
+	/* get group to move */
+	grp= BLI_findlink(&pose->agroups, pose->active_group-1);
+	if (grp == NULL)
+		return OPERATOR_CANCELLED;
+
+	/* move bone group */
+	grpIndexA = pose->active_group;
+	if (dir == 1) { /* up */
+		void *prev = grp->prev;
+		
+		if (prev == NULL)
+			return OPERATOR_FINISHED;
+			
+		BLI_remlink(&pose->agroups, grp);
+		BLI_insertlinkbefore(&pose->agroups, prev, grp);
+		
+		grpIndexB = grpIndexA - 1;
+		pose->active_group--;
+	}
+	else { /* down */
+		void *next = grp->next;
+		
+		if (next == NULL)
+			return OPERATOR_FINISHED;
+			
+		BLI_remlink(&pose->agroups, grp);
+		BLI_insertlinkafter(&pose->agroups, next, grp);
+		
+		grpIndexB = grpIndexA + 1;
+		pose->active_group++;
+	}
+
+	/* fix changed bone group indices in bones (swap grpIndexA with grpIndexB) */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->agrp_index == grpIndexB)
+			pchan->agrp_index= grpIndexA;
+		else if (pchan->agrp_index == grpIndexA)
+			pchan->agrp_index= grpIndexB;
+	}
+
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_group_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem group_slot_move[] = {
+		{1, "UP", 0, "Up", ""},
+		{-1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Move Bone Group";
+	ot->idname= "POSE_OT_group_move";
+	ot->description= "Change position of active Bone Group in list of Bone Groups";
+
+	/* api callbacks */
+	ot->exec= group_move_exec;
+	ot->poll= ED_operator_posemode;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "direction", group_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
+}
+
+/* bone group sort element */
+typedef struct tSortActionGroup {
+	bActionGroup *agrp;
+	int          index;
+} tSortActionGroup;
+
+/* compare bone groups by name */
+static int compare_agroup(const void *sgrp_a_ptr, const void *sgrp_b_ptr)
+{
+	tSortActionGroup *sgrp_a= (tSortActionGroup *)sgrp_a_ptr;
+	tSortActionGroup *sgrp_b= (tSortActionGroup *)sgrp_b_ptr;
+
+	return strcmp(sgrp_a->agrp->name, sgrp_b->agrp->name);
+}
+
+static int group_sort_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan;
+	tSortActionGroup *agrp_array;
+	bActionGroup *agrp;
+	int agrp_count;
+	int i;
+
+	if (ELEM(NULL, ob, pose))
+		return OPERATOR_CANCELLED;
+	if (pose->active_group <= 0)
+		return OPERATOR_CANCELLED;
+
+	/* create temporary array with bone groups and indices */
+	agrp_count = BLI_countlist(&pose->agroups);
+	agrp_array = MEM_mallocN(sizeof(tSortActionGroup) * agrp_count, "sort bone groups");
+	for (agrp= pose->agroups.first, i= 0; agrp; agrp= agrp->next, i++) {
+		BLI_assert(i < agrp_count);
+		agrp_array[i].agrp = agrp;
+		agrp_array[i].index = i+1;
+	}
+
+	/* sort bone groups by name */
+	qsort(agrp_array, agrp_count, sizeof(tSortActionGroup), compare_agroup);
+
+	/* create sorted bone group list from sorted array */
+	pose->agroups.first= pose->agroups.last= NULL;
+	for (i= 0; i < agrp_count; i++) {
+		BLI_addtail(&pose->agroups, agrp_array[i].agrp);
+	}
+
+	/* fix changed bone group indizes in bones */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		for (i= 0; i < agrp_count; i++) {
+			if (pchan->agrp_index == agrp_array[i].index) {
+				pchan->agrp_index= i+1;
+				break;
+			}
+		}
+	}
+
+	/* free temp resources */
+	MEM_freeN(agrp_array);
+
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_group_sort(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Sort Bone Groups";
+	ot->idname= "POSE_OT_group_sort";
+	ot->description= "Sort Bone Groups by their names in ascending order";
+
+	/* api callbacks */
+	ot->exec= group_sort_exec;
+	ot->poll= ED_operator_posemode;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 static void pose_group_select(bContext *C, Object *ob, int select)
 {
 	bPose *pose= ob->pose;
