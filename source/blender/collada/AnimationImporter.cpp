@@ -856,7 +856,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 		}
 	}
 
-	if ( ((animType & CAMERA_XFOV) != 0) )
+	if ( ((animType & CAMERA_XFOV) != 0) || (animType & CAMERA_XMAG) != 0 )
 	{
 		Camera * camera  = (Camera*) ob->data;
 
@@ -874,6 +874,13 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 				const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
 				const COLLADAFW::UniqueId& listid = xfov->getAnimationList();
 				Assign_float_animations( listid ,AnimCurves, "lens"); 
+			}
+
+			else if ((animType & CAMERA_XMAG) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *xmag =  &(camera->getXMag());
+				const COLLADAFW::UniqueId& listid = xmag->getAnimationList();
+				Assign_float_animations( listid ,AnimCurves, "ortho_scale"); 
 			}
 		}
 	}
@@ -932,17 +939,23 @@ int AnimationImporter::get_animation_type ( const COLLADAFW::Node * node ,
 	for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
 		const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
 		
-		const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
-	    const COLLADAFW::UniqueId& xfov_listid = xfov ->getAnimationList();
-
-		if (animlist_map.find(xfov_listid) != animlist_map.end()) 
+		if ( camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE )
+		{
+			const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
+			const COLLADAFW::UniqueId& xfov_listid = xfov ->getAnimationList();
+			if (animlist_map.find(xfov_listid) != animlist_map.end()) 
 				type = type|CAMERA_XFOV;
-		
-			
+		}
+		else 
+		{
+			const COLLADAFW::AnimatableFloat *xmag =  &(camera->getXMag());
+			const COLLADAFW::UniqueId& xmag_listid = xmag ->getAnimationList();
+			if (animlist_map.find(xmag_listid) != animlist_map.end()) 
+					type = type|CAMERA_XMAG;
+		}	
 		if ( type != 0) break;
 
 	}
-
 	return type;
 }
 

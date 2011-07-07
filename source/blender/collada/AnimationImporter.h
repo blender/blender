@@ -93,7 +93,8 @@ private:
 			LIGHT_COLOR	= 2,
 			LIGHT_FOA = 4,
 			LIGHT_FOE = 8,
-			CAMERA_XFOV = 16
+			CAMERA_XFOV = 16,
+			CAMERA_XMAG = 32
 		};
 public:
 
