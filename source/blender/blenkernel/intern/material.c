@@ -867,6 +867,10 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 
 	if(ma->strand_surfnor > 0.0f)
 		ma->mode_l |= MA_STR_SURFDIFF;
+
+	/* parses the geom+tex nodes */
+	if(ma->nodetree && ma->use_nodes)
+		ntreeShaderGetTexcoMode(ma->nodetree, r_mode, &ma->texco, &ma->mode_l);
 }
 
 static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode, float *amb)
@@ -887,8 +891,6 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 				init_render_nodetree((bNodeTree *)node->id, basemat, r_mode, amb);
 		}
 	}
-	/* parses the geom+tex nodes */
-	ntreeShaderGetTexcoMode(ntree, r_mode, &basemat->texco, &basemat->mode_l);
 }
 
 void init_render_material(Material *mat, int r_mode, float *amb)

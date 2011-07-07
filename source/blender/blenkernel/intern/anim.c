@@ -719,12 +719,13 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, i
 		/* note, if you check on layer here, render goes wrong... it still deforms verts and uses parent imat */
 		if(go->ob!=ob) {
 			
-			/* Group Dupli Offset, should apply after everything else */
-			if (group->dupli_ofs[0] || group->dupli_ofs[1] || group->dupli_ofs[2]) {
+			/* group dupli offset, should apply after everything else */
+			if(!is_zero_v3(group->dupli_ofs)) {
 				copy_m4_m4(tmat, go->ob->obmat);
 				sub_v3_v3v3(tmat[3], tmat[3], group->dupli_ofs);
 				mul_m4_m4m4(mat, tmat, ob->obmat);
-			} else {
+			}
+			else {
 				mul_m4_m4m4(mat, go->ob->obmat, ob->obmat);
 			}
 			
@@ -1395,7 +1396,17 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 			if(part->ren_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 				for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
-					mul_m4_m4m4(tmat, oblist[b]->obmat, pamat);
+
+					/* group dupli offset, should apply after everything else */
+					if(!is_zero_v3(part->dup_group->dupli_ofs)) {
+						copy_m4_m4(tmat, oblist[b]->obmat);
+						sub_v3_v3v3(tmat[3], tmat[3], part->dup_group->dupli_ofs);
+						mul_m4_m4m4(tmat, tmat, pamat);
+					}
+					else {
+						mul_m4_m4m4(tmat, oblist[b]->obmat, pamat);
+					}
+
 					mul_mat3_m4_fl(tmat, size*scale);
 					if(par_space_mat)
 						mul_m4_m4m4(mat, tmat, par_space_mat);

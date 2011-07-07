@@ -3670,7 +3670,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
 
 		birthtime = pa->time;
-		dietime = birthtime + pa->lifetime;
+		dietime = pa->dietime;
 
 		/* store this, so we can do multiple loops over particles */
 		pa->state.time = dfra;

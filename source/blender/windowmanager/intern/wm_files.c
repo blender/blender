@@ -635,8 +635,9 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	char err_out[256]= "unknown";
 
 	*thumb_pt= NULL;
-	
-	if(G.background || scene->camera==NULL)
+
+	/* scene can be NULL if running a script at startup and calling the save operator */
+	if(G.background || scene==NULL || scene->camera==NULL)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */

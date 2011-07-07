@@ -278,6 +278,7 @@ int calc_manipulator_stats(const bContext *C)
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	View3D *v3d= sa->spacedata.first;
 	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
@@ -309,11 +310,63 @@ int calc_manipulator_stats(const bContext *C)
 				calc_tw_center(scene, vec);
 				totsel= 1;
 			} else {
-				/* do vertices for center, and if still no normal found, use vertex normals */
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					if(eve->f & SELECT) {
-						totsel++;
-						calc_tw_center(scene, eve->co);
+				/* do vertices/edges/faces for center depending on selection
+				   mode. note we can't use just vertex selection flag because
+				   it is not flush down on changes */
+				if(ts->selectmode & SCE_SELECT_VERTEX) {
+					for(eve= em->verts.first; eve; eve= eve->next) {
+						if(eve->f & SELECT) {
+							totsel++;
+							calc_tw_center(scene, eve->co);
+						}
+					}
+				}
+				else if(ts->selectmode & SCE_SELECT_EDGE) {
+					EditEdge *eed;
+
+					for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+					for(eed= em->edges.first; eed; eed= eed->next) {
+						if(eed->h==0 && (eed->f & SELECT)) {
+							if(!eed->v1->f1) {
+								eed->v1->f1= 1;
+								totsel++;
+								calc_tw_center(scene, eed->v1->co);
+							}
+							if(!eed->v2->f1) {
+								eed->v2->f1= 1;
+								totsel++;
+								calc_tw_center(scene, eed->v2->co);
+							}
+						}
+					}
+				}
+				else {
+					EditFace *efa;
+
+					for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+					for(efa= em->faces.first; efa; efa= efa->next) {
+						if(efa->h==0 && (efa->f & SELECT)) {
+							if(!efa->v1->f1) {
+								efa->v1->f1= 1;
+								totsel++;
+								calc_tw_center(scene, efa->v1->co);
+							}
+							if(!efa->v2->f1) {
+								efa->v2->f1= 1;
+								totsel++;
+								calc_tw_center(scene, efa->v2->co);
+							}
+							if(!efa->v3->f1) {
+								efa->v3->f1= 1;
+								totsel++;
+								calc_tw_center(scene, efa->v3->co);
+							}
+							if(efa->v4 && !efa->v4->f1) {
+								efa->v4->f1= 1;
+								totsel++;
+								calc_tw_center(scene, efa->v4->co);
+							}
+						}
 					}
 				}
 			}
