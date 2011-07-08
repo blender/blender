@@ -406,7 +406,7 @@ def lightmap_uvpack(meshes,
             ok = False
 
             # Tall boxes in groups of 2
-            for d, boxes in odd_dict.items():
+            for d, boxes in list(odd_dict.items()):
                 if d[1] < max_int_dimension:
                     #\boxes.sort(key = lambda a: len(a.children))
                     while len(boxes) >= 2:
@@ -427,7 +427,7 @@ def lightmap_uvpack(meshes,
                             odd_dict.setdefault((w, h), []).append(pf_parent)
 
             # Even boxes in groups of 4
-            for d, boxes in even_dict.items():
+            for d, boxes in list(even_dict.items()):
                 if d < max_int_dimension:
                     boxes.sort(key=lambda a: len(a.children))
 
