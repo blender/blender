@@ -750,6 +750,7 @@ static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructi
 		MEM_freeN(camera->reconstructed);
 
 	camera->reconnr= 0;
+	camera->reconstructed= NULL;
 	reconstructed= MEM_callocN((efra-sfra+1)*sizeof(MovieReconstructedCamera), "temp reconstructed camera");
 
 	for(a= sfra; a<=efra; a++) {
@@ -764,8 +765,10 @@ static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructi
 		}
 	}
 
-	camera->reconstructed= MEM_callocN(camera->reconnr*sizeof(MovieReconstructedCamera), "reconstructed camera");
-	memcpy(camera->reconstructed, reconstructed, camera->reconnr*sizeof(MovieReconstructedCamera));
+	if(camera->reconnr) {
+		camera->reconstructed= MEM_callocN(camera->reconnr*sizeof(MovieReconstructedCamera), "reconstructed camera");
+		memcpy(camera->reconstructed, reconstructed, camera->reconnr*sizeof(MovieReconstructedCamera));
+	}
 
 	MEM_freeN(reconstructed);
 }

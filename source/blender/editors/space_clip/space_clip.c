@@ -212,6 +212,9 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_solve_camera);
 	WM_operatortype_append(CLIP_OT_clear_reconstruction);
 
+	WM_operatortype_append(CLIP_OT_disable_markers);
+	WM_operatortype_append(CLIP_OT_set_origin);
+
 	WM_operatortype_append(CLIP_OT_clear_track_path);
 
 	WM_operatortype_append(CLIP_OT_track_to_fcurves);
@@ -286,6 +289,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", LKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.lock_selection");
+
+	WM_keymap_add_menu(keymap, "CLIP_MT_tracking_specials", WKEY, KM_PRESS, 0, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }

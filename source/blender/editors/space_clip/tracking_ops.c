@@ -96,6 +96,28 @@ static int space_clip_frame_poll(bContext *C)
 	return 0;
 }
 
+static int space_clip_frame_act_bundle_poll(bContext *C)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+
+	if(sc) {
+		MovieClip *clip= ED_space_clip(sc);
+
+		if(clip) {
+			if (BKE_movieclip_has_frame(clip, &sc->user)) {
+				int sel_type;
+				MovieTrackingTrack *sel;
+				BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
+
+				if(sel_type == MCLIP_SEL_TRACK)
+					return sel->flag&TRACK_HAS_BUNDLE;
+			}
+		}
+	}
+
+	return 0;
+}
+
 /********************** add marker operator *********************/
 
 static void add_marker(SpaceClip *sc, float x, float y)
@@ -933,7 +955,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int track_marekrs_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
 	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
@@ -960,7 +982,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	ot->exec= track_markers_exec;
 	ot->invoke= track_markers_invoke;
 	ot->poll= space_clip_frame_poll;
-	ot->modal= track_marekrs_modal;
+	ot->modal= track_markers_modal;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1109,6 +1131,114 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 	RNA_def_enum(ot->srna, "action", clear_path_actions, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
 
+}
+
+/********************** disable markers operator *********************/
+
+static int disable_markers_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track= tracking->tracks.first;
+	int action= RNA_enum_get(op->ptr, "action");
+
+	while(track) {
+		if(TRACK_SELECTED(track)) {
+			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, sc->user.framenr);
+
+			if(action==0) marker->flag|= MARKER_DISABLED;
+			else if(action==1) marker->flag&= ~MARKER_DISABLED;
+			else marker->flag^= MARKER_DISABLED;
+		}
+
+		track= track->next;
+	}
+
+	DAG_id_tag_update(&clip->id, 0);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_disable_markers(wmOperatorType *ot)
+{
+	static EnumPropertyItem actions_items[] = {
+			{0, "DISABLE", 0, "Disable", "Disable selected markers"},
+			{1, "ENABLE", 0, "Enable", "Enable selected markers"},
+			{2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Disable Markers";
+	ot->description= "Disable/enable selected markers";
+	ot->idname= "CLIP_OT_disable_markers";
+
+	/* api callbacks */
+	ot->exec= disable_markers_exec;
+	ot->poll= space_clip_frame_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Disable action to execute");
+}
+
+/********************** set origin operator *********************/
+
+static int set_origin_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track= tracking->tracks.first;
+	MovieTrackingTrack *sel;
+	MovieTrackingCamera *camera= &clip->tracking.camera;
+	MovieReconstructedCamera *cur= camera->reconstructed;
+	int a, sel_type;
+	float origin[3];
+
+	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
+	copy_v3_v3(origin, sel->bundle_pos);
+
+	/* translate bundkes */
+	while(track) {
+		sub_v3_v3(track->bundle_pos, origin);
+
+		track= track->next;
+	}
+
+	/* translate cameras */
+	for(a= 0; a<camera->reconnr; a++, cur++) {
+		cur->mat[3][0]-= origin[0];
+		cur->mat[3][1]-= origin[1];
+		cur->mat[3][2]-= origin[2];
+	}
+
+	DAG_id_tag_update(&clip->id, 0);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_set_origin(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Origin";
+	ot->description= "Set active marker as origin";
+	ot->idname= "CLIP_OT_set_origin";
+
+	/* api callbacks */
+	ot->exec= set_origin_exec;
+	ot->poll= space_clip_frame_act_bundle_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** track to fcurves opertaotr *********************/

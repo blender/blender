@@ -1,8 +1,58 @@
+commit 86356bd988b1b937082d56330f18a20e4cb26c19
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 8 10:19:30 2011 +0200
+
+    add QCompleter with QFileSystemModel to choose source image folder easily.
+
+commit 209983a5e74c8b328d22d17668b3ad20d6e87f7a
+Merge: 0396ccf 7bef9ca
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 8 10:17:05 2011 +0200
+
+    Merge branch 'master' of git://github.com/libmv/libmv
+
+commit 0396ccf81dee87c3e7a06aa15f05bcaad8dd6ac3
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jul 7 18:35:12 2011 +0200
+
+    calibration: Compute intrinsincs, undistort image and corners, output custom XML file.
+
+commit 540a48b1e9f9d4e28fe6b1ef56decf1b29b4811f
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jul 7 11:18:25 2011 +0200
+
+    Detect calibration checkerboard using OpenCV Calib3D.
+
+commit d8113dbac2f2156cdfebb5070102f29c26ba9776
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 6 22:36:12 2011 +0200
+
+    Initial implementation of OpenCV Qt Calibration Tool
+
+commit dae6fae16ec4abbaa9826f944c6ae16cc17ba051
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 6 16:01:41 2011 +0200
+
+    Fix build.
+
+commit 8cdf7aa54f16bf4fb0f0f824c7b5874373831019
+Merge: b8d02b5 df1d54e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 5 09:51:01 2011 +0200
+
+    Merge branch 'master' of git://github.com/keir/libmv
+
 commit df1d54efd23530891851d3573a5126094acea840
 Author: Keir Mierle <mierle@gmail.com>
 Date:   Mon Jul 4 13:12:53 2011 -0700
 
     Fix include ordering.
+
+commit b8d02b551bca95f4a228a85188f12078cc3bd2f4
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jul 4 16:34:04 2011 +0200
+
+    Remove momentum in scene view.
 
 commit 67433907db5537a2e32893ef558c63ab336f59c1
 Merge: 0049521 b027af4
@@ -222,6 +272,24 @@ Date:   Tue Jun 21 10:35:51 2011 -0700
 
     Rework multiview.h doxygen comments.
 
+commit 7bef9cac601f4407eab576906442dba70396ed89
+Merge: 7a996a2 56f49b5
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 21 10:04:20 2011 -0700
+
+    Merge pull request #5 from nathanwiegand/master
+    
+    Howdy, Keir.
+
+commit 7a996a2f8153eed6c6ae784b5a17aee59c65d45f
+Merge: 1b20b39 7aceb96
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue Jun 21 10:03:01 2011 -0700
+
+    Merge pull request #7 from JulienMichot/master
+    
+    Fixed issue 26: Error 'REG_RIP' was not declared in this scope
+
 commit fb1c93590a67ba95d550f351c1d297699cdceffb
 Author: Keir Mierle <mierle@gmail.com>
 Date:   Tue Jun 21 09:26:17 2011 -0700
@@ -388,6 +456,12 @@ Date:   Wed Jun 15 21:58:35 2011 +0200
     Add GL Zoom Views.
     
     This new implementation now display all selected markers.
+
+commit 7aceb964db6843fcf91bf641adde0646817db305
+Author: Julien Michot <julien.michot.fr@gmail.com>
+Date:   Wed Jun 15 21:51:04 2011 +0200
+
+    Fixed issue 26.
 
 commit 9e339a46668e4a8d2330598a66ee855e5cd26f9c
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
@@ -673,54 +747,3 @@ Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Wed Jun 8 11:17:47 2011 +0200
 
     fix Google cosmetics, fix seek slider
-
-commit e3504fb4b90ef20360f31e11f87967c49eaf73c0
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Jun 8 00:53:33 2011 -0700
-
-    Add a way to remove the markers for a track from the tracks object.
-
-commit bcc09c55dd5f3dfd07f60c24bfb932c2973859a5
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Jun 8 00:04:50 2011 -0700
-
-    Fix various bugs in qt-tracker, and restore style.
-    
-    This fixes the track showing and hiding which was broken in the previous
-    version. This also restores libmv style to the file.
-
-commit 9b3dee7a90419b6995050f87196195b808071a5f
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Jun 8 00:04:36 2011 -0700
-
-    Formatting in tracks.h.
-
-commit c9bc9ca74cedc1705165ae10106fdbc792e2d31c
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Jun 8 00:04:10 2011 -0700
-
-    Relax constraints when downsampling by 2.
-
-commit 316481f3e42a15143ef52d8f742d85171b4337d5
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 8 00:57:58 2011 +0200
-
-    Better API names, Support track editing (i.e move markers), Usability improvements.
-
-commit bf01ecfa93afe348a79af6dc04a8b0dfe0720257
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Tue Jun 7 21:22:06 2011 +0200
-
-    Optimize for large reconstructions (i.e many tracks) with relatively few visible tracks per frame.
-    
-    Concretely, this means intersecting visible sets instead of indexing an array of Track x Frame.
-
-commit 324ca444a8baa41e5c7e3228564681044116ce92
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Tue Jun 7 20:29:24 2011 +0200
-
-    Implement TrackItem selections and zoom view.
-    
-    Make selections behave correctly (introduce TrackItem which stay selected on frame changes).
-    Add a dock widget which will hold details on the currently selected marker.
-    Add a View to the detail dock which stay zoomed on the current selection.

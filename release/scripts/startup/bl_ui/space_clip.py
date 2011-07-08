@@ -124,6 +124,7 @@ class CLIP_PT_tools(bpy.types.Panel):
             col.label(text="Reconstruction:")
             col.operator("clip.solve_camera")
             col.operator("clip.clear_reconstruction")
+            col.operator("clip.set_origin")
         else:
             layout.operator('clip.open')
 
@@ -370,6 +371,20 @@ class CLIP_MT_select(bpy.types.Menu):
         layout.operator("clip.select_circle")
         layout.operator("clip.select_all", text="Select/Deselect all")
         layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
+
+class CLIP_MT_tracking_specials(bpy.types.Menu):
+    bl_label = "Specials"
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.clip
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("clip.disable_markers", text="Enable Markers").action = 'ENABLE'
+        layout.operator("clip.disable_markers", text="Disable markers").action = 'DISABLE'
+        layout.operator("clip.set_origin")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

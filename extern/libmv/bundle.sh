@@ -1,6 +1,7 @@
 #!/bin/sh
 
-BRANCH="keir"
+#BRANCH="keir"
+BRANCH="Matthias-Fauconneau"
 
 repo="git://github.com/${BRANCH}/libmv.git"
 tmp=`mktemp -d`
