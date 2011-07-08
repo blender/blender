@@ -260,45 +260,6 @@ void deselect_gpencil_layers (void *data, short mode)
 /* ***************************************** */
 /* Frame Editing Tools */
 
-#if 0 // XXX disabled until grease pencil code stabilises again
-/* Delete selected grease-pencil layers */
-void delete_gpencil_layers (void)
-{
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale, *next;
-	void *data;
-	short datatype;
-	int filter;
-	
-	/* determine what type of data we are operating on */
-	data = get_action_context(&datatype);
-	if (data == NULL) return;
-	if (datatype != ACTCONT_GPENCIL) return;
-	
-	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_CHANNELS | ACTFILTER_SEL);
-	actdata_filter(&act_data, filter, data, datatype);
-	
-	/* clean up grease-pencil layers */
-	for (ale= act_data.first; ale; ale= next) {
-		bGPdata *gpd= (bGPdata *)ale->owner;
-		bGPDlayer *gpl= (bGPDlayer *)ale->data;
-		next= ale->next;
-		
-		/* free layer and its data */
-		if (SEL_GPL(gpl)) {
-			free_gpencil_frames(gpl);
-			BLI_freelinkN(&gpd->layers, gpl);
-		}
-		
-		/* free temp memory */
-		BLI_freelinkN(&act_data, ale);
-	}
-	
-	BIF_undo_push("Delete GPencil Layers");
-}
-#endif // XXX disabled until Grease Pencil code stabilises again...
-
 /* Delete selected frames */
 void delete_gplayer_frames (bGPDlayer *gpl)
 {

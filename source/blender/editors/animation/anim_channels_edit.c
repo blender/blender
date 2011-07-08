@@ -1171,27 +1171,40 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		BLI_freelistN(&anim_data);
 	}
 	
-	/* now do F-Curves */
-	if (ac.datatype != ANIMCONT_GPENCIL) {
-		/* filter data */
-		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-		
-		/* delete selected F-Curves */
-		for (ale= anim_data.first; ale; ale= ale->next) {
-			/* only F-Curves, and only if we can identify its parent */
-			if (ale->type == ANIMTYPE_FCURVE) {
+	/* filter data */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* delete selected data channels */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		switch (ale->type) {
+			case ANIMTYPE_FCURVE: 
+			{
+				/* F-Curves if we can identify its parent */
 				AnimData *adt= ale->adt;
 				FCurve *fcu= (FCurve *)ale->data;
 				
 				/* try to free F-Curve */
 				ANIM_fcurve_delete_from_animdata(&ac, adt, fcu);
 			}
+				break;
+				
+			case ANIMTYPE_GPLAYER:
+			{
+				/* Grease Pencil layer */
+				bGPdata *gpd= (bGPdata *)ale->id;
+				bGPDlayer *gpl= (bGPDlayer *)ale->data;
+				
+				/* try to delete the layer's data and the layer itself */
+				free_gpencil_frames(gpl);
+				BLI_freelinkN(&gpd->layers, gpl);
+			}
+				break;
 		}
-		
-		/* cleanup */
-		BLI_freelistN(&anim_data);
 	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
