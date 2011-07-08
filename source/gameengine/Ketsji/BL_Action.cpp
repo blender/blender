@@ -154,14 +154,16 @@ bool BL_Action::Play(const char* name,
 		BL_DeformableGameObject *obj = (BL_DeformableGameObject*)m_obj;
 		BL_ShapeDeformer *shape_deformer = dynamic_cast<BL_ShapeDeformer*>(obj->GetDeformer());
 		
-		obj->GetShape(m_blendinshape);
+		if (shape_deformer)
+		{
+			obj->GetShape(m_blendinshape);
 
-		// Now that we have the previous blend shape saved, we can clear out the key to avoid any
-		// further interference.
-		KeyBlock *kb;
-		for (kb=(KeyBlock*)shape_deformer->GetKey()->block.first; kb; kb=(KeyBlock*)kb->next)
-			kb->curval = 0.f;
-
+			// Now that we have the previous blend shape saved, we can clear out the key to avoid any
+			// further interference.
+			KeyBlock *kb;
+			for (kb=(KeyBlock*)shape_deformer->GetKey()->block.first; kb; kb=(KeyBlock*)kb->next)
+				kb->curval = 0.f;
+		}
 	}
 
 	// Now that we have an action, we have something we can play
