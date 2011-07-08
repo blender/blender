@@ -37,15 +37,18 @@
 
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"	/* SELECT */
+#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 
+#include "BKE_global.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
-#include "BKE_global.h"
+#include "BKE_object.h"
+#include "BKE_scene.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -712,11 +715,12 @@ static struct libmv_Tracks *create_libmv_tracks(MovieClip *clip)
 static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstruction *reconstruction)
 {
 	int tracknr= 0;
-	int sfra= INT_MAX, efra= INT_MIN, a;
+	int sfra= INT_MAX, efra= INT_MIN, a, origin_set= 0;
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
 	MovieTrackingCamera *camera;
 	MovieReconstructedCamera *reconstructed;
+	float origin[3]= {0.0f, 0.f, 0.0f};
 
 	track= tracking->tracks.first;
 	while(track) {
@@ -757,6 +761,14 @@ static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructi
 		float mat[4][4];
 
 		if(libmv_reporojectionCameraForImage(reconstruction, a, mat)) {
+			if(!origin_set) {
+				copy_v3_v3(origin, mat[3]);
+				origin_set= 1;
+			}
+
+			if(origin_set)
+				sub_v3_v3(mat[3], origin);
+
 			copy_m4_m4(reconstructed[camera->reconnr].mat, mat);
 			reconstructed[camera->reconnr].framenr= a;
 			camera->reconnr++;
@@ -768,6 +780,16 @@ static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructi
 	if(camera->reconnr) {
 		camera->reconstructed= MEM_callocN(camera->reconnr*sizeof(MovieReconstructedCamera), "reconstructed camera");
 		memcpy(camera->reconstructed, reconstructed, camera->reconnr*sizeof(MovieReconstructedCamera));
+	}
+
+	if(origin_set) {
+		track= tracking->tracks.first;
+		while(track) {
+			if(track->flag&TRACK_HAS_BUNDLE)
+				sub_v3_v3(track->bundle_pos, origin);
+
+			track= track->next;
+		}
 	}
 
 	MEM_freeN(reconstructed);
@@ -824,4 +846,19 @@ MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(MovieTracking *t
 	}
 
 	return NULL;
+}
+
+void BKE_get_tracking_mat(Scene *scene, float mat[4][4])
+{
+	float obmat[4][4];
+
+	unit_m4(obmat);
+
+	if(!scene->camera)
+		scene->camera= scene_find_camera(scene);
+
+	if(scene->camera)
+		object_to_mat4(scene->camera, obmat);
+
+	copy_m4_m4(mat, obmat);
 }

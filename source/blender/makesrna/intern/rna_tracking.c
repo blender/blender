@@ -135,27 +135,32 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 
 	/* speed */
 	prop= RNA_def_property(srna, "speed", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, speed_items);
 	RNA_def_property_ui_text(prop, "Speed", "Speed to make tracking with");
 
 	/* use limit frames */
 	prop= RNA_def_property(srna, "use_frames_limit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_FRAMES_LIMIT);
 	RNA_def_property_ui_text(prop, "Limit Frames", "Limit number of frames be tracked during single tracking operation");
 
 	/* limit frames */
 	prop= RNA_def_property(srna, "frames_limit", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "frames_limit");
 	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_text(prop, "Frames Limit", "Amount of frames to be tracked during single tracking operation");
 
 	/* keyframe1 */
 	prop= RNA_def_property(srna, "keyframe1", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "keyframe1");
 	RNA_def_property_ui_text(prop, "Keyframe 1", "First keyframe used for reconstruction initialization");
 
 	/* keyframe2 */
 	prop= RNA_def_property(srna, "keyframe2", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "keyframe2");
 	RNA_def_property_ui_text(prop, "Keyframe 2", "Second keyframe used for reconstruction initialization");
 }

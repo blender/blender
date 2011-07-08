@@ -2019,6 +2019,18 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 					flush_pointcache_reset(sce, itA->node, lasttime, 0);
 			}
 		}
+
+		/* also all objects which are parented to tracking data should be re-calculated */
+		for(ob=bmain->object.first; ob; ob= ob->id.next){
+			bConstraint *con;
+			for (con = ob->constraints.first; con; con=con->next) {
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
+					ob->recalc |= OB_RECALC_OB;
+					break;
+				}
+			}
+		}
 	}
 	
 	dag_tag_renderlayers(sce, lay);
@@ -2469,6 +2481,13 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 					}
 				}
 			}
+		}
+
+		/* camera's matrix is used to orient reconstructed stuff,
+		   so it should happen tracking-related constraints recalculation
+		   when camera is changing */
+		if(sce->camera && &sce->camera->id == id && sce->clip) {
+			dag_id_flush_update(sce, &sce->clip->id);
 		}
 
 		/* update editors */

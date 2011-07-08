@@ -124,6 +124,9 @@ class CLIP_PT_tools(bpy.types.Panel):
             col.label(text="Reconstruction:")
             col.operator("clip.solve_camera")
             col.operator("clip.clear_reconstruction")
+
+            col = layout.column(align=True)
+            col.label(text="Scene Orientation:")
             col.operator("clip.set_origin")
         else:
             layout.operator('clip.open')

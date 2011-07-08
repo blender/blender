@@ -40,6 +40,7 @@ struct MovieTrackingMarker;
 struct MovieTracking;
 struct MovieTrackingContext;
 struct MovieClipUser;
+struct Scene;
 
 void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
@@ -72,6 +73,8 @@ void BKE_track_unique_name(struct MovieTracking *tracking, struct MovieTrackingT
 struct MovieTrackingTrack *BKE_find_track_by_name(struct MovieTracking *tracking, const char *name);
 
 struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking, int framenr);
+
+void BKE_get_tracking_mat(struct Scene *scene, float mat[4][4]);
 
 #define TRACK_SELECTED(track) ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 #define TRACK_AREA_SELECTED(track, area) ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))

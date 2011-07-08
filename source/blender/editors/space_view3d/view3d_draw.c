@@ -1576,19 +1576,27 @@ static void draw_bundle_outline(void)
 	glCallList(displist);
 }
 
-static void draw_viewport_reconstruction(View3D *v3d, MovieClip *clip)
+static void draw_viewport_reconstruction(Scene *scene, View3D *v3d, MovieClip *clip)
 {
+	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
+	float mat[4][4];
 
 	if((v3d->flag2&V3D_SHOW_RECONSTRUCTION)==0)
 		return;
+
+	BKE_get_tracking_mat(scene, mat);
 
 	glEnable(GL_LIGHTING);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
 	glShadeModel(GL_SMOOTH);
 
-	for ( track= clip->tracking.tracks.first; track; track= track->next) {
+	glPushMatrix();
+	glMultMatrixf(mat);
+
+	for ( track= tracking->tracks.first; track; track= track->next) {
+		float pos[3];
 		if((track->flag&TRACK_HAS_BUNDLE)==0)
 			continue;
 
@@ -1628,14 +1636,18 @@ static void draw_viewport_reconstruction(View3D *v3d, MovieClip *clip)
 		glDisable(GL_LIGHTING);
 		UI_ThemeColor(TH_CAMERA_PATH);
 		glLineWidth(2.0f);
+
 		glBegin(GL_LINE_STRIP);
 			for(a= 0; a<camera->reconnr; a++, cur++) {
 				glVertex3f(cur->mat[3][0], cur->mat[3][1], cur->mat[3][2]);
 			}
 		glEnd();
+
 		glLineWidth(1.0f);
 		glEnable(GL_LIGHTING);
 	}
+
+	glPopMatrix();
 
 	/* restore */
 	glShadeModel(GL_FLAT);
@@ -2726,7 +2738,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* draw data for movie clip set as active for scene */
 	if(scene->clip)
-		draw_viewport_reconstruction(v3d, scene->clip);
+		draw_viewport_reconstruction(scene, v3d, scene->clip);
 
 //	REEB_draw();
 

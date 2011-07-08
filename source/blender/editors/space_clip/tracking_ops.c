@@ -47,6 +47,7 @@
 #include "BKE_global.h"
 #include "BKE_animsys.h"
 #include "BKE_depsgraph.h"
+#include "BKE_scene.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -483,7 +484,7 @@ void CLIP_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_exec;
 	ot->invoke= select_invoke;
-	ot->poll= space_clip_frame_poll;
+	ot->poll= space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -554,7 +555,7 @@ void CLIP_OT_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= border_select_exec;
 	ot->modal= WM_border_select_modal;
-	ot->poll= space_clip_frame_poll;
+	ot->poll= space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -637,7 +638,7 @@ void CLIP_OT_select_circle(wmOperatorType *ot)
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;
 	ot->exec= circle_select_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->poll= space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -719,7 +720,7 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= select_all_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->poll= space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1018,7 +1019,7 @@ void CLIP_OT_solve_camera(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= solve_camera_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->poll= space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1062,7 +1063,7 @@ void CLIP_OT_clear_reconstruction(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= clear_reconstruction_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->poll= space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1145,7 +1146,7 @@ static int disable_markers_exec(bContext *C, wmOperator *op)
 
 	while(track) {
 		if(TRACK_SELECTED(track)) {
-			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, sc->user.framenr);
+			MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
 
 			if(action==0) marker->flag|= MARKER_DISABLED;
 			else if(action==1) marker->flag&= ~MARKER_DISABLED;
@@ -1178,7 +1179,7 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= disable_markers_exec;
-	ot->poll= space_clip_frame_poll;
+	ot->poll= space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1193,30 +1194,23 @@ static int set_origin_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingTrack *track= tracking->tracks.first;
 	MovieTrackingTrack *sel;
-	MovieTrackingCamera *camera= &clip->tracking.camera;
-	MovieReconstructedCamera *cur= camera->reconstructed;
-	int a, sel_type;
-	float origin[3];
+	Scene *scene= CTX_data_scene(C);
+	int sel_type;
+	float mat[4][4], vec[3];
 
 	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
-	copy_v3_v3(origin, sel->bundle_pos);
 
-	/* translate bundkes */
-	while(track) {
-		sub_v3_v3(track->bundle_pos, origin);
+	if(scene->camera == NULL)
+		scene->camera= scene_find_camera(scene);
 
-		track= track->next;
-	}
+	if(!scene->camera)
+		return OPERATOR_CANCELLED;
 
-	/* translate cameras */
-	for(a= 0; a<camera->reconnr; a++, cur++) {
-		cur->mat[3][0]-= origin[0];
-		cur->mat[3][1]-= origin[1];
-		cur->mat[3][2]-= origin[2];
-	}
+	BKE_get_tracking_mat(scene, mat);
+	mul_v3_m4v3(vec, mat, sel->bundle_pos);
+
+	sub_v3_v3(scene->camera->loc, vec);
 
 	DAG_id_tag_update(&clip->id, 0);
 

@@ -3969,8 +3969,18 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 		return;
 
 	if(data->flag&FOLLOWTRACK_BUNDLE) {
-		if(track->flag&TRACK_HAS_BUNDLE)
-			translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
+		if(track->flag&TRACK_HAS_BUNDLE) {
+			float pos[3], mat[4][4], obmat[4][4];
+
+			copy_m4_m4(obmat, cob->matrix);
+
+			BKE_get_tracking_mat(cob->scene, mat);
+			mul_v3_m4v3(pos, mat, track->bundle_pos);
+
+			cob->matrix[3][0]+= pos[0];
+			cob->matrix[3][1]+= pos[1];
+			cob->matrix[3][2]+= pos[2];
+		}
 	} else {
 		user.framenr= scene->r.cfra;
 		BKE_movieclip_acquire_size(clip, &user, &width, &height);
@@ -4027,9 +4037,10 @@ static void camerasolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 		camera= BKE_tracking_get_reconstructed_camera(&clip->tracking, scene->r.cfra);
 
 		if(camera) {
-			float m[4][4];
-			copy_m4_m4(m, cob->matrix);
-			mul_m4_m4m4(cob->matrix, m, camera->mat);
+			float obmat[4][4];
+
+			copy_m4_m4(obmat, cob->matrix);
+			mul_m4_m4m4(cob->matrix, camera->mat, obmat);
 		}
 	}
 }

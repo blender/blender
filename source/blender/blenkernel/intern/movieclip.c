@@ -59,6 +59,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
+#include "BLI_math.h"
 
 #include "BKE_library.h"
 #include "BKE_global.h"
