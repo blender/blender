@@ -5,7 +5,6 @@ Blender Game Engine example of using the blf module. For this module to work we
 need to use the OpenGL wrapper :class:`~bgl` as well.
 """
 # import game engine modules
-import bge
 from bge import render
 from bge import logic
 # import stand alone modules
