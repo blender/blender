@@ -56,7 +56,7 @@ public:
 
 	// Iteratively called
 	void SetBetas(int id, int size, const MT_Vector3& v);
-	void SetDerivatives(int id, int dof_id, const MT_Vector3& v);
+	void SetDerivatives(int id, int dof_id, const MT_Vector3& v, MT_Scalar norm_weight);
 
 	void Invert();
 
@@ -89,6 +89,7 @@ private:
 
 	/// the vector of computed angle changes
 	TVector m_d_theta;
+	TVector m_d_norm_weight;
 
 	/// space required for SVD computation
 
