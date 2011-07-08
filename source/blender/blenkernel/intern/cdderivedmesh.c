@@ -284,8 +284,10 @@ static void cdDM_drawVerts(DerivedMesh *dm)
 	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
 		GPU_vertex_setup(dm);
 		if( !GPU_buffer_legacy(dm) ) {
-			if(dm->drawObject->nelements)	glDrawArrays(GL_POINTS,0, dm->drawObject->nelements);
-			else							glDrawArrays(GL_POINTS,0, dm->drawObject->nlooseverts);
+			if(dm->drawObject->tot_triangle_point)
+				glDrawArrays(GL_POINTS,0, dm->drawObject->tot_triangle_point);
+			else
+				glDrawArrays(GL_POINTS,0, dm->drawObject->tot_loose_point);
 		}
 		GPU_buffer_unbind();
 	}
@@ -547,9 +549,10 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 		GPU_normal_setup( dm );
 		if( !GPU_buffer_legacy(dm) ) {
 			glShadeModel(GL_SMOOTH);
-			for( a = 0; a < dm->drawObject->nmaterials; a++ ) {
+			for( a = 0; a < dm->drawObject->totmaterial; a++ ) {
 				if( setMaterial(dm->drawObject->materials[a].mat_nr+1, NULL) )
-					glDrawArrays(GL_TRIANGLES, dm->drawObject->materials[a].start, dm->drawObject->materials[a].end-dm->drawObject->materials[a].start);
+					glDrawArrays(GL_TRIANGLES, dm->drawObject->materials[a].start,
+						     dm->drawObject->materials[a].totpoint);
 			}
 		}
 		GPU_buffer_unbind( );
@@ -629,13 +632,13 @@ static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 		GPU_color_setup(dm);
 		if( !GPU_buffer_legacy(dm) ) {
 			glShadeModel(GL_SMOOTH);
-			glDrawArrays(GL_TRIANGLES, 0, dm->drawObject->nelements);
+			glDrawArrays(GL_TRIANGLES, 0, dm->drawObject->tot_triangle_point);
 
 			if( useTwoSided ) {
 				GPU_color4_upload(dm,cp2);
 				GPU_color_setup(dm);
 				glCullFace(GL_FRONT);
-				glDrawArrays(GL_TRIANGLES, 0, dm->drawObject->nelements);
+				glDrawArrays(GL_TRIANGLES, 0, dm->drawObject->tot_triangle_point);
 				glCullFace(GL_BACK);
 			}
 		}
@@ -787,8 +790,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			
 			glShadeModel( GL_SMOOTH );
 			lastFlag = 0;
-			for(i = 0; i < dm->drawObject->nelements/3; i++) {
-				int actualFace = dm->drawObject->faceRemap[i];
+			for(i = 0; i < dm->drawObject->tot_triangle_point/3; i++) {
+				int actualFace = dm->drawObject->triangle_to_mface[i];
 				int flag = 1;
 
 				if(drawParams) {
@@ -819,13 +822,13 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					startFace = i;
 				}
 			}
-			if( startFace < dm->drawObject->nelements/3 ) {
+			if( startFace < dm->drawObject->tot_triangle_point/3 ) {
 				if( lastFlag != 0 ) { /* if the flag is 0 it means the face is hidden or invisible */
 					if (lastFlag==1 && col)
 						GPU_color_switch(1);
 					else
 						GPU_color_switch(0);
-					glDrawArrays(GL_TRIANGLES,startFace*3,dm->drawObject->nelements-startFace*3);
+					glDrawArrays(GL_TRIANGLES, startFace*3, dm->drawObject->tot_triangle_point - startFace*3);
 				}
 			}
 		}
@@ -935,7 +938,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		if( useColors && mc )
 			GPU_color_setup(dm);
 		if( !GPU_buffer_legacy(dm) ) {
-			int tottri = dm->drawObject->nelements/3;
+			int tottri = dm->drawObject->tot_triangle_point/3;
 			glShadeModel(GL_SMOOTH);
 			
 			if(tottri == 0) {
@@ -947,17 +950,17 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			}
 			else {
 				/* we need to check if the next material changes */
-				int next_actualFace= dm->drawObject->faceRemap[0];
+				int next_actualFace= dm->drawObject->triangle_to_mface[0];
 				
 				for( i = 0; i < tottri; i++ ) {
-					//int actualFace = dm->drawObject->faceRemap[i];
+					//int actualFace = dm->drawObject->triangle_to_mface[i];
 					int actualFace = next_actualFace;
 					MFace *mface= mf + actualFace;
 					int drawSmooth= (mface->flag & ME_SMOOTH);
 					int draw = 1;
 
 					if(i != tottri-1)
-						next_actualFace= dm->drawObject->faceRemap[i+1];
+						next_actualFace= dm->drawObject->triangle_to_mface[i+1];
 
 					orig= (index==NULL) ? actualFace : index[actualFace];
 
@@ -1129,9 +1132,9 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 		GPU_normal_setup(dm);
 
 		if( !GPU_buffer_legacy(dm) ) {
-			for( i = 0; i < dm->drawObject->nelements/3; i++ ) {
+			for( i = 0; i < dm->drawObject->tot_triangle_point/3; i++ ) {
 
-				a = dm->drawObject->faceRemap[i];
+				a = dm->drawObject->triangle_to_mface[i];
 
 				mface = mf + a;
 				new_matnr = mface->mat_nr + 1;
@@ -1153,7 +1156,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 
 							if( numdata != 0 ) {
 
-								GPU_buffer_free(buffer, NULL);
+								GPU_buffer_free(buffer);
 
 								buffer = NULL;
 							}
@@ -1193,7 +1196,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 						}
 						if( numdata != 0 ) {
 							elementsize = GPU_attrib_element_size( datatypes, numdata );
-							buffer = GPU_buffer_alloc( elementsize*dm->drawObject->nelements, NULL );
+							buffer = GPU_buffer_alloc( elementsize*dm->drawObject->tot_triangle_point);
 							if( buffer == NULL ) {
 								GPU_buffer_unbind();
 								dm->drawObject->legacy = 1;
@@ -1202,7 +1205,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 							varray = GPU_buffer_lock_stream(buffer);
 							if( varray == NULL ) {
 								GPU_buffer_unbind();
-								GPU_buffer_free(buffer, NULL);
+								GPU_buffer_free(buffer);
 								dm->drawObject->legacy = 1;
 								return;
 							}
@@ -1341,7 +1344,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 			}
 			GPU_buffer_unbind();
 		}
-		GPU_buffer_free( buffer, NULL );
+		GPU_buffer_free(buffer);
 	}
 
 	glShadeModel(GL_FLAT);
