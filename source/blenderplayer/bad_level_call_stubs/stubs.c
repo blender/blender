@@ -43,6 +43,7 @@ struct ARegionType;
 struct Base;
 struct Brush;
 struct bNodeTree;
+struct bNodeSocket;
 struct CSG_FaceIteratorDescriptor;
 struct CSG_VertexIteratorDescriptor;
 struct ColorBand;
@@ -195,6 +196,7 @@ struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima){return (struct ImBu
 void ED_screen_set_scene(struct bContext *C, struct Scene *scene){}
 
 void ED_area_tag_redraw_regiontype(struct ScrArea *sa, int regiontype){}
+void ED_render_engine_changed(struct Main *bmain) {}
 
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob){return (struct PTCacheEdit *) NULL;}
 void PE_current_changed(struct Scene *scene, struct Object *ob){}
@@ -362,6 +364,10 @@ void uiTemplateHistogram(struct uiLayout *layout, struct PointerRNA *ptr, char *
 void uiTemplateReportsBanner(struct uiLayout *layout, struct bContext *C, struct wmOperator *op){}
 void uiTemplateWaveform(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand){}
 void uiTemplateVectorscope(struct uiLayout *_self, struct PointerRNA *data, char* property, int expand){}
+void uiTemplateNodeLink(struct uiLayout *layout, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input) {}
+void uiTemplateNodeView(struct uiLayout *layout, struct bContext *C, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input) {}
+void uiTemplateTextureUser(struct uiLayout *layout, struct bContext *C) {}
+void uiTemplateTextureShow(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop) {}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}
@@ -369,6 +375,7 @@ struct RenderResult *RE_AcquireResultRead(struct Render *re){return (struct Rend
 struct RenderResult *RE_AcquireResultWrite(struct Render *re){return (struct RenderResult *) NULL;}
 struct RenderStats *RE_GetStats(struct Render *re){return (struct RenderStats *) NULL;}
 void RE_engine_update_result(struct RenderEngine *engine, struct RenderResult *result){}
+void RE_engine_update_progress(struct RenderEngine *engine, float progress) {}
 void RE_engine_end_result(struct RenderEngine *engine, struct RenderResult *result){}
 void RE_engine_update_stats(struct RenderEngine *engine, char *stats, char *info){}
 void RE_layer_load_from_file(struct RenderLayer *layer, struct ReportList *reports, char *filename){}
@@ -380,6 +387,8 @@ int RE_engine_test_break(struct RenderEngine *engine){return 0;}
 void RE_engines_init() {}
 void RE_engines_exit() {}
 void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) {}
+ListBase R_engines = {NULL, NULL};
+void RE_engine_free(struct RenderEngine *engine);
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet){return (struct wmOperatorType *) NULL;}
