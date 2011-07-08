@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from blf import gettext as _
 
 
 class TEXT_HT_header(bpy.types.Header):
@@ -73,7 +74,7 @@ class TEXT_HT_header(bpy.types.Header):
 class TEXT_PT_properties(bpy.types.Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Properties"
+    bl_label = _("Properties")
 
     def draw(self, context):
         layout = self.layout
@@ -104,7 +105,7 @@ class TEXT_PT_properties(bpy.types.Panel):
 class TEXT_PT_find(bpy.types.Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Find"
+    bl_label = _("Find")
 
     def draw(self, context):
         layout = self.layout
@@ -131,12 +132,12 @@ class TEXT_PT_find(bpy.types.Panel):
         # settings
         layout.prop(st, "use_match_case")
         row = layout.row()
-        row.prop(st, "use_find_wrap", text="Wrap")
-        row.prop(st, "use_find_all", text="All")
+        row.prop(st, "use_find_wrap", text=_("Wrap"))
+        row.prop(st, "use_find_all", text=_("All"))
 
 
 class TEXT_MT_view(bpy.types.Menu):
-    bl_label = "View"
+    bl_label = _("View")
 
     def draw(self, context):
         layout = self.layout
@@ -150,12 +151,12 @@ class TEXT_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("text.move", text="Top of File").type = 'FILE_TOP'
-        layout.operator("text.move", text="Bottom of File").type = 'FILE_BOTTOM'
+        layout.operator("text.move", text=_("Top of File")).type = 'FILE_TOP'
+        layout.operator("text.move", text=_("Bottom of File")).type = 'FILE_BOTTOM'
 
 
 class TEXT_MT_text(bpy.types.Menu):
-    bl_label = "Text"
+    bl_label = _("Text")
 
     def draw(self, context):
         layout = self.layout
@@ -194,14 +195,14 @@ class TEXT_MT_templates(bpy.types.Menu):
     '''
     Creates the menu items by scanning scripts/templates
     '''
-    bl_label = "Script Templates"
+    bl_label = _("Script Templates")
 
     def draw(self, context):
         self.path_menu(bpy.utils.script_paths("templates"), "text.open", {"internal": True})
 
 
 class TEXT_MT_edit_select(bpy.types.Menu):
-    bl_label = "Select"
+    bl_label = _("Select")
 
     def draw(self, context):
         layout = self.layout
@@ -211,7 +212,7 @@ class TEXT_MT_edit_select(bpy.types.Menu):
 
 
 class TEXT_MT_edit_markers(bpy.types.Menu):
-    bl_label = "Markers"
+    bl_label = _("Markers")
 
     def draw(self, context):
         layout = self.layout
@@ -222,7 +223,7 @@ class TEXT_MT_edit_markers(bpy.types.Menu):
 
 
 class TEXT_MT_format(bpy.types.Menu):
-    bl_label = "Format"
+    bl_label = _("Format")
 
     def draw(self, context):
         layout = self.layout
@@ -241,17 +242,17 @@ class TEXT_MT_format(bpy.types.Menu):
 
 
 class TEXT_MT_edit_to3d(bpy.types.Menu):
-    bl_label = "Text To 3D Object"
+    bl_label = _("Text To 3D Object")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("text.to_3d_object", text="One Object").split_lines = False
-        layout.operator("text.to_3d_object", text="One Object Per Line").split_lines = True
+        layout.operator("text.to_3d_object", text=_("One Object")).split_lines = False
+        layout.operator("text.to_3d_object", text=_("One Object Per Line")).split_lines = True
 
 
 class TEXT_MT_edit(bpy.types.Menu):
-    bl_label = "Edit"
+    bl_label = _("Edit")
 
     @classmethod
     def poll(cls, context):
@@ -277,7 +278,7 @@ class TEXT_MT_edit(bpy.types.Menu):
         layout.separator()
 
         layout.operator("text.jump")
-        layout.operator("text.properties", text="Find...")
+        layout.operator("text.properties", text=_("Find..."))
 
         layout.separator()
 

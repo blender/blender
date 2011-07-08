@@ -54,6 +54,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -119,8 +121,8 @@ static int properties_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Properties";
-	ot->description= "Toggle text properties panel";
+	ot->name= _("Properties");
+	ot->description= _("Toggle text properties panel");
 	ot->idname= "TEXT_OT_properties";
 	
 	/* api callbacks */

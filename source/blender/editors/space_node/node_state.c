@@ -212,9 +212,9 @@ static int node_toggle_visibility_invoke(bContext *C, wmOperator *op, wmEvent *e
 void NODE_OT_visibility_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Visibility";
+	ot->name= _("Toggle Visibility");
 	ot->idname= "NODE_OT_visibility_toggle";
-	ot->description= "Handle clicks on node header buttons";
+	ot->description= _("Handle clicks on node header buttons");
 	
 	/* api callbacks */
 	ot->invoke= node_toggle_visibility_invoke;
@@ -295,9 +295,9 @@ static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
+	ot->name= _("View All");
 	ot->idname= "NODE_OT_view_all";
-	ot->description= "Resize view so you can see all nodes";
+	ot->description= _("Resize view so you can see all nodes");
 	
 	/* api callbacks */
 	ot->exec= node_view_all_exec;

@@ -165,9 +165,9 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 void ACTION_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select All";
+	ot->name= _("Select All");
 	ot->idname= "ACTION_OT_select_all_toggle";
-	ot->description= "Toggle selection of all keyframes";
+	ot->description= _("Toggle selection of all keyframes");
 	
 	/* api callbacks */
 	ot->exec= actkeys_deselectall_exec;
@@ -326,9 +326,9 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 void ACTION_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
+	ot->name= _("Border Select");
 	ot->idname= "ACTION_OT_select_border";
-	ot->description= "Select all keyframes within the specified region";
+	ot->description= _("Select all keyframes within the specified region");
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -357,10 +357,10 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 
 /* defines for column-select mode */
 static EnumPropertyItem prop_column_select_types[] = {
-	{ACTKEYS_COLUMNSEL_KEYS, "KEYS", 0, "On Selected Keyframes", ""},
-	{ACTKEYS_COLUMNSEL_CFRA, "CFRA", 0, "On Current Frame", ""},
-	{ACTKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", 0, "On Selected Markers", ""},
-	{ACTKEYS_COLUMNSEL_MARKERS_BETWEEN, "MARKERS_BETWEEN", 0, "Between Min/Max Selected Markers", ""},
+	{ACTKEYS_COLUMNSEL_KEYS, "KEYS", 0, N_("On Selected Keyframes"), ""},
+	{ACTKEYS_COLUMNSEL_CFRA, "CFRA", 0, N_("On Current Frame"), ""},
+	{ACTKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", 0, N_("On Selected Markers"), ""},
+	{ACTKEYS_COLUMNSEL_MARKERS_BETWEEN, "MARKERS_BETWEEN", 0, N_("Between Min/Max Selected Markers"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -532,9 +532,9 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 void ACTION_OT_select_column (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select All";
+	ot->name= _("Select All");
 	ot->idname= "ACTION_OT_select_column";
-	ot->description= "Select all keyframes on the specified frame(s)";
+	ot->description= _("Select all keyframes on the specified frame(s)");
 	
 	/* api callbacks */
 	ot->exec= actkeys_columnselect_exec;
@@ -544,7 +544,7 @@ void ACTION_OT_select_column (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
+	ot->prop= RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(prop_column_select_types), 0, _("Mode"), "");
 }
 
 /* ******************** Select Linked Operator *********************** */
@@ -590,9 +590,9 @@ static int actkeys_select_linked_exec (bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_select_linked (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select Linked";
+	ot->name = _("Select Linked");
 	ot->idname= "ACTION_OT_select_linked";
-	ot->description = "Select keyframes occurring the same F-Curves as selected ones";
+	ot->description = _("Select keyframes occurring the same F-Curves as selected ones");
 	
 	/* api callbacks */
 	ot->exec= actkeys_select_linked_exec;
@@ -667,9 +667,9 @@ static int actkeys_select_more_exec (bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_select_more (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select More";
+	ot->name = _("Select More");
 	ot->idname= "ACTION_OT_select_more";
-	ot->description = "Select keyframes beside already selected ones";
+	ot->description = _("Select keyframes beside already selected ones");
 	
 	/* api callbacks */
 	ot->exec= actkeys_select_more_exec;
@@ -701,9 +701,9 @@ static int actkeys_select_less_exec (bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_select_less (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select Less";
+	ot->name = _("Select Less");
 	ot->idname= "ACTION_OT_select_less";
-	ot->description = "Deselect keyframes on ends of selection islands";
+	ot->description = _("Deselect keyframes on ends of selection islands");
 	
 	/* api callbacks */
 	ot->exec= actkeys_select_less_exec;
@@ -718,9 +718,9 @@ void ACTION_OT_select_less (wmOperatorType *ot)
 
 /* defines for left-right select tool */
 static EnumPropertyItem prop_actkeys_leftright_select_types[] = {
-	{ACTKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
-	{ACTKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
-	{ACTKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
+	{ACTKEYS_LRSEL_TEST, "CHECK", 0, N_("Check if Select Left or Right"), ""},
+	{ACTKEYS_LRSEL_LEFT, "LEFT", 0, N_("Before current frame"), ""},
+	{ACTKEYS_LRSEL_RIGHT, "RIGHT", 0, N_("After current frame"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -867,9 +867,9 @@ static int actkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 void ACTION_OT_select_leftright (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Left/Right";
+	ot->name= _("Select Left/Right");
 	ot->idname= "ACTION_OT_select_leftright";
-	ot->description= "Select keyframes to the left or the right of the current frame";
+	ot->description= _("Select keyframes to the left or the right of the current frame");
 	
 	/* api callbacks  */
 	ot->invoke= actkeys_select_leftright_invoke;
@@ -880,7 +880,7 @@ void ACTION_OT_select_leftright (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", prop_actkeys_leftright_select_types, ACTKEYS_LRSEL_TEST, "Mode", "");
+	ot->prop= RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(prop_actkeys_leftright_select_types), ACTKEYS_LRSEL_TEST, _("Mode"), "");
 	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
 }
 
@@ -1186,9 +1186,9 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 void ACTION_OT_clickselect (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Select Keys";
+	ot->name= _("Mouse Select Keys");
 	ot->idname= "ACTION_OT_clickselect";
-	ot->description= "Select keyframes by clicking on them";
+	ot->description= _("Select keyframes by clicking on them");
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= actkeys_clickselect_invoke;

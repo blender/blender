@@ -87,37 +87,37 @@ static int okee(const char *UNUSED(dummy)) {return 0;}
 /* XXX */
 /* RNA Enums, used in multiple files */
 EnumPropertyItem sequencer_prop_effect_types[] = {
-	{SEQ_CROSS, "CROSS", 0, "Crossfade", "Crossfade effect strip type"},
-	{SEQ_ADD, "ADD", 0, "Add", "Add effect strip type"},
-	{SEQ_SUB, "SUBTRACT", 0, "Subtract", "Subtract effect strip type"},
-	{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", "Alpha Over effect strip type"},
-	{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", "Alpha Under effect strip type"},
-	{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Gamma Cross effect strip type"},
-	{SEQ_MUL, "MULTIPLY", 0, "Multiply", "Multiply effect strip type"},
-	{SEQ_OVERDROP, "OVER_DROP", 0, "Alpha Over Drop", "Alpha Over Drop effect strip type"},
-	{SEQ_PLUGIN, "PLUGIN", 0, "Plugin", "Plugin effect strip type"},
-	{SEQ_WIPE, "WIPE", 0, "Wipe", "Wipe effect strip type"},
-	{SEQ_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
-	{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
-	{SEQ_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
-	{SEQ_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
-	{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
-	{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+	{SEQ_CROSS, "CROSS", 0, N_("Crossfade"), N_("Crossfade effect strip type")},
+	{SEQ_ADD, "ADD", 0, N_("Add"), N_("Add effect strip type")},
+	{SEQ_SUB, "SUBTRACT", 0, N_("Subtract"), N_("Subtract effect strip type")},
+	{SEQ_ALPHAOVER, "ALPHA_OVER", 0, N_("Alpha Over"), N_("Alpha Over effect strip type")},
+	{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, N_("Alpha Under"), N_("Alpha Under effect strip type")},
+	{SEQ_GAMCROSS, "GAMMA_CROSS", 0, N_("Gamma Cross"), N_("Gamma Cross effect strip type")},
+	{SEQ_MUL, "MULTIPLY", 0, N_("Multiply"), N_("Multiply effect strip type")},
+	{SEQ_OVERDROP, "OVER_DROP", 0, N_("Alpha Over Drop"), N_("Alpha Over Drop effect strip type")},
+	{SEQ_PLUGIN, "PLUGIN", 0, N_("Plugin"), N_("Plugin effect strip type")},
+	{SEQ_WIPE, "WIPE", 0, N_("Wipe"), N_("Wipe effect strip type")},
+	{SEQ_GLOW, "GLOW", 0, N_("Glow"), N_("Glow effect strip type")},
+	{SEQ_TRANSFORM, "TRANSFORM", 0, N_("Transform"), N_("Transform effect strip type")},
+	{SEQ_COLOR, "COLOR", 0, N_("Color"), N_("Color effect strip type")},
+	{SEQ_SPEED, "SPEED", 0, N_("Speed"), N_("Color effect strip type")},
+	{SEQ_MULTICAM, "MULTICAM", 0, N_("Multicam Selector"), ""},
+	{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, N_("Adjustment Layer"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
 /* mute operator */
 
 EnumPropertyItem prop_side_types[] = {
-	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
-	{SEQ_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
-	{SEQ_SIDE_BOTH, "BOTH", 0, "Both", ""},
+	{SEQ_SIDE_LEFT, "LEFT", 0, N_("Left"), ""},
+	{SEQ_SIDE_RIGHT, "RIGHT", 0, N_("Right"), ""},
+	{SEQ_SIDE_BOTH, "BOTH", 0, N_("Both"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem prop_side_lr_types[] = {
-	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
-	{SEQ_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
+	{SEQ_SIDE_LEFT, "LEFT", 0, N_("Left"), ""},
+	{SEQ_SIDE_RIGHT, "RIGHT", 0, N_("Right"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1183,9 +1183,9 @@ static int sequencer_snap_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap strips";
+	ot->name= _("Snap strips");
 	ot->idname= "SEQUENCER_OT_snap";
-	ot->description="Frame where selected strips will be snapped";
+	ot->description=_("Frame where selected strips will be snapped");
 	
 	/* api callbacks */
 	ot->invoke= sequencer_snap_invoke;
@@ -1313,9 +1313,9 @@ static int sequencer_lock_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_lock(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Lock Strips";
+	ot->name= _("Lock Strips");
 	ot->idname= "SEQUENCER_OT_lock";
-	ot->description="Lock the active strip so that it can't be transformed";
+	ot->description=_("Lock the active strip so that it can't be transformed");
 	
 	/* api callbacks */
 	ot->exec= sequencer_lock_exec;
@@ -1346,9 +1346,9 @@ static int sequencer_unlock_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "UnLock Strips";
+	ot->name= _("UnLock Strips");
 	ot->idname= "SEQUENCER_OT_unlock";
-	ot->description="Unlock the active strip so that it can't be transformed";
+	ot->description=_("Unlock the active strip so that it can't be transformed");
 	
 	/* api callbacks */
 	ot->exec= sequencer_unlock_exec;
@@ -1379,9 +1379,9 @@ static int sequencer_reload_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reload Strips";
+	ot->name= _("Reload Strips");
 	ot->idname= "SEQUENCER_OT_reload";
-	ot->description="Reload strips in the sequencer";
+	ot->description=_("Reload strips in the sequencer");
 	
 	/* api callbacks */
 	ot->exec= sequencer_reload_exec;
@@ -1407,9 +1407,9 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Refresh Sequencer";
+	ot->name= _("Refresh Sequencer");
 	ot->idname= "SEQUENCER_OT_refresh_all";
-	ot->description="Refresh the sequencer editor";
+	ot->description=_("Refresh the sequencer editor");
 	
 	/* api callbacks */
 	ot->exec= sequencer_refresh_all_exec;
@@ -1467,9 +1467,9 @@ static int sequencer_effect_poll(bContext *C)
 void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reassign Inputs";
+	ot->name= _("Reassign Inputs");
 	ot->idname= "SEQUENCER_OT_reassign_inputs";
-	ot->description="Reassign the inputs for the effects strip";
+	ot->description=_("Reassign the inputs for the effects strip");
 
 	/* api callbacks */
 	ot->exec= sequencer_reassign_inputs_exec;
@@ -1503,9 +1503,9 @@ static int sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Swap Inputs";
+	ot->name= _("Swap Inputs");
 	ot->idname= "SEQUENCER_OT_swap_inputs";
-	ot->description="Swap the first two inputs for the effects strip";
+	ot->description=_("Swap the first two inputs for the effects strip");
 
 	/* api callbacks */
 	ot->exec= sequencer_swap_inputs_exec;
@@ -1518,8 +1518,8 @@ void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot)
 
 /* cut operator */
 static EnumPropertyItem prop_cut_types[] = {
-	{SEQ_CUT_SOFT, "SOFT", 0, "Soft", ""},
-	{SEQ_CUT_HARD, "HARD", 0, "Hard", ""},
+	{SEQ_CUT_SOFT, "SOFT", 0, N_("Soft"), ""},
+	{SEQ_CUT_HARD, "HARD", 0, N_("Hard"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1594,9 +1594,9 @@ static int sequencer_cut_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Cut Strips";
+	ot->name= _("Cut Strips");
 	ot->idname= "SEQUENCER_OT_cut";
-	ot->description="Cut the selected strips";
+	ot->description=_("Cut the selected strips");
 	
 	/* api callbacks */
 	ot->invoke= sequencer_cut_invoke;
@@ -1607,8 +1607,8 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, _("Frame"), _("Frame where selected strips will be cut"), INT_MIN, INT_MAX);
-	RNA_def_enum(ot->srna, "type", prop_cut_types, SEQ_CUT_SOFT, _("Type"), _("The type of cut operation to perform on strips"));
-	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, _("Side"), _("The side that remains selected after cutting"));
+	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_cut_types), SEQ_CUT_SOFT, _("Type"), _("The type of cut operation to perform on strips"));
+	RNA_def_enum(ot->srna, "side", RNA_enum_items_gettexted(prop_side_types), SEQ_SIDE_BOTH, _("Side"), _("The side that remains selected after cutting"));
 }
 
 /* duplicate operator */
@@ -1664,9 +1664,9 @@ static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *
 void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Strips";
+	ot->name= _("Duplicate Strips");
 	ot->idname= "SEQUENCER_OT_duplicate";
-	ot->description="Duplicate the selected strips";
+	ot->description=_("Duplicate the selected strips");
 	
 	/* api callbacks */
 	ot->invoke= sequencer_add_duplicate_invoke;
@@ -1677,7 +1677,7 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
 }
 
 /* delete operator */
@@ -1737,9 +1737,9 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Erase Strips";
+	ot->name= _("Erase Strips");
 	ot->idname= "SEQUENCER_OT_delete";
-	ot->description="Erase selected strips from the sequencer";
+	ot->description=_("Erase selected strips from the sequencer");
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -1830,9 +1830,9 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Separate Images";
+	ot->name= _("Separate Images");
 	ot->idname= "SEQUENCER_OT_images_separate";
-	ot->description="On image sequences strips, it return a strip for each image";
+	ot->description=_("On image sequences strips, it return a strip for each image");
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_props_popup;
@@ -1903,9 +1903,9 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_meta_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Meta Strip";
+	ot->name= _("Toggle Meta Strip");
 	ot->idname= "SEQUENCER_OT_meta_toggle";
-	ot->description="Toggle a metastrip (to edit enclosed strips)";
+	ot->description=_("Toggle a metastrip (to edit enclosed strips)");
 	
 	/* api callbacks */
 	ot->exec= sequencer_meta_toggle_exec;
@@ -1970,9 +1970,9 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_meta_make(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Meta Strip";
+	ot->name= _("Make Meta Strip");
 	ot->idname= "SEQUENCER_OT_meta_make";
-	ot->description="Group selected strips into a metastrip";
+	ot->description=_("Group selected strips into a metastrip");
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -2041,9 +2041,9 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "UnMeta Strip";
+	ot->name= _("UnMeta Strip");
 	ot->idname= "SEQUENCER_OT_meta_separate";
-	ot->description="Put the contents of a metastrip back in the sequencer";
+	ot->description=_("Put the contents of a metastrip back in the sequencer");
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -2074,9 +2074,9 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
+	ot->name= _("View All");
 	ot->idname= "SEQUENCER_OT_view_all";
-	ot->description="View all the strips in the sequencer";
+	ot->description=_("View all the strips in the sequencer");
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_all_exec;
@@ -2140,9 +2140,9 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
+	ot->name= _("View All");
 	ot->idname= "SEQUENCER_OT_view_all_preview";
-	ot->description="Zoom preview to fit in the area";
+	ot->description=_("Zoom preview to fit in the area");
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_all_preview_exec;
@@ -2176,9 +2176,9 @@ static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sequencer View Zoom Ratio";
+	ot->name= _("Sequencer View Zoom Ratio");
 	ot->idname= "SEQUENCER_OT_view_zoom_ratio";
-	ot->description = "Change zoom ratio of sequencer preview";
+	ot->description = _("Change zoom ratio of sequencer preview");
 
 	/* api callbacks */
 	ot->exec= sequencer_view_zoom_ratio_exec;
@@ -2186,15 +2186,15 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 1.0f, 0.0f, FLT_MAX,
-		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out.", -FLT_MAX, FLT_MAX);
+		_("Ratio"), _("Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out."), -FLT_MAX, FLT_MAX);
 }
 
 
 #if 0
 static EnumPropertyItem view_type_items[] = {
-		{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
-		{SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
-		{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SEQUENCER, "Sequencer and Image Preview", ""},
+		{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, N_("Sequencer"), ""},
+		{SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, N_("Image Preview"), ""},
+		{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SEQUENCER, N_("Sequencer and Image Preview"), ""},
 		{0, NULL, 0, NULL, NULL}};
 #endif
 
@@ -2214,9 +2214,9 @@ static int sequencer_view_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_view_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Toggle";
+	ot->name= _("View Toggle");
 	ot->idname= "SEQUENCER_OT_view_toggle";
-	ot->description="Toggle between sequencer views (sequence, preview, both)";
+	ot->description=_("Toggle between sequencer views (sequence, preview, both)");
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_toggle_exec;
@@ -2294,9 +2294,9 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Selected";
+	ot->name= _("View Selected");
 	ot->idname= "SEQUENCER_OT_view_selected";
-	ot->description="Zoom the sequencer on the selected strips";
+	ot->description=_("Zoom the sequencer on the selected strips");
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_selected_exec;
@@ -2379,9 +2379,9 @@ static int sequencer_next_edit_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_next_edit(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Next Edit";
+	ot->name= _("Next Edit");
 	ot->idname= "SEQUENCER_OT_next_edit";
-	ot->description="Move frame to next edit point";
+	ot->description=_("Move frame to next edit point");
 	
 	/* api callbacks */
 	ot->exec= sequencer_next_edit_exec;
@@ -2409,9 +2409,9 @@ static int sequencer_previous_edit_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Previous Edit";
+	ot->name= _("Previous Edit");
 	ot->idname= "SEQUENCER_OT_previous_edit";
-	ot->description="Move frame to previous edit point";
+	ot->description=_("Move frame to previous edit point");
 	
 	/* api callbacks */
 	ot->exec= sequencer_previous_edit_exec;
@@ -2513,9 +2513,9 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_swap(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Swap Strip";
+	ot->name= _("Swap Strip");
 	ot->idname= "SEQUENCER_OT_swap";
-	ot->description="Swap active strip with strip to the left";
+	ot->description=_("Swap active strip with strip to the left");
 	
 	/* api callbacks */
 	ot->exec= sequencer_swap_exec;
@@ -2525,7 +2525,7 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "side", prop_side_lr_types, SEQ_SIDE_RIGHT, "Side", "Side of the strip to swap");
+	RNA_def_enum(ot->srna, "side", prop_side_lr_types, SEQ_SIDE_RIGHT, _("Side"), _("Side of the strip to swap"));
 }
 
 static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2572,9 +2572,9 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_rendersize(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Render Size";
+	ot->name= _("Set Render Size");
 	ot->idname= "SEQUENCER_OT_rendersize";
-	ot->description="Set render size and aspect from active sequence";
+	ot->description=_("Set render size and aspect from active sequence");
 	
 	/* api callbacks */
 	ot->exec= sequencer_rendersize_exec;
@@ -2651,7 +2651,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy";
+	ot->name= _("Copy");
 	ot->idname= "SEQUENCER_OT_copy";
 	ot->description="";
 
@@ -2702,7 +2702,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste";
+	ot->name= _("Paste");
 	ot->idname= "SEQUENCER_OT_paste";
 	ot->description="";
 
@@ -2753,9 +2753,9 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_swap_data(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sequencer Swap Data";
+	ot->name= _("Sequencer Swap Data");
 	ot->idname= "SEQUENCER_OT_swap_data";
-	ot->description="Swap 2 sequencer strips";
+	ot->description=_("Swap 2 sequencer strips");
 
 	/* api callbacks */
 	ot->exec= sequencer_swap_data_exec;
@@ -2810,9 +2810,9 @@ static int view_ghost_border_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Offset View";
+	ot->name= _("Border Offset View");
 	ot->idname= "SEQUENCER_OT_view_ghost_border";
-	ot->description="Enable border select mode";
+	ot->description=_("Enable border select mode");
 
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;

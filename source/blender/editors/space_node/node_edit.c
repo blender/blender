@@ -90,8 +90,8 @@
 #include "node_intern.h"
 
 static EnumPropertyItem socket_in_out_items[] = {
-	{ SOCK_IN, "IN", 0, "In", "" },
-	{ SOCK_OUT, "OUT", 0, "Out", "" },
+	{ SOCK_IN, "IN", 0, N_("In"), "" },
+	{ SOCK_OUT, "OUT", 0, N_("Out"), "" },
 	{ 0, NULL, 0, NULL, NULL}
 };
 
@@ -638,8 +638,8 @@ static int node_group_edit_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 void NODE_OT_group_edit(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Edit Group";
-	ot->description = "Edit node group";
+	ot->name = _("Edit Group");
+	ot->description = _("Edit node group");
 	ot->idname = "NODE_OT_group_edit";
 	
 	/* api callbacks */
@@ -687,8 +687,8 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 void NODE_OT_group_socket_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add Group Socket";
-	ot->description = "Add node group socket";
+	ot->name = _("Add Group Socket");
+	ot->description = _("Add node group socket");
 	ot->idname = "NODE_OT_group_socket_add";
 	
 	/* api callbacks */
@@ -698,9 +698,9 @@ void NODE_OT_group_socket_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
-	RNA_def_string(ot->srna, "name", "", 32, "Name", "Group socket name");
-	RNA_def_enum(ot->srna, "type", node_socket_type_items, SOCK_VALUE, "Type", "Type of the group socket");
+	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, _("Socket Type"), _("Input or Output"));
+	RNA_def_string(ot->srna, "name", "", 32, _("Name"), _("Group socket name"));
+	RNA_def_enum(ot->srna, "type", node_socket_type_items, SOCK_VALUE, _("Type"), _("Type of the group socket"));
 }
 
 /* ***************** Remove Group Socket operator ************* */
@@ -739,8 +739,8 @@ static int node_group_socket_remove_exec(bContext *C, wmOperator *op)
 void NODE_OT_group_socket_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Remove Group Socket";
-	ot->description = "Removed node group socket";
+	ot->name = _("Remove Group Socket");
+	ot->description = _("Removed node group socket");
 	ot->idname = "NODE_OT_group_socket_remove";
 	
 	/* api callbacks */
@@ -805,8 +805,8 @@ static int node_group_socket_move_up_exec(bContext *C, wmOperator *op)
 void NODE_OT_group_socket_move_up(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Move Group Socket Up";
-	ot->description = "Move up node group socket";
+	ot->name = _("Move Group Socket Up");
+	ot->description = _("Move up node group socket");
 	ot->idname = "NODE_OT_group_socket_move_up";
 	
 	/* api callbacks */
@@ -871,8 +871,8 @@ static int node_group_socket_move_down_exec(bContext *C, wmOperator *op)
 void NODE_OT_group_socket_move_down(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Move Group Socket Down";
-	ot->description = "Move down node group socket";
+	ot->name = _("Move Group Socket Down");
+	ot->description = _("Move down node group socket");
 	ot->idname = "NODE_OT_group_socket_move_down";
 	
 	/* api callbacks */
@@ -922,8 +922,8 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 void NODE_OT_group_ungroup(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Ungroup";
-	ot->description = "Ungroup selected nodes";
+	ot->name = _("Ungroup");
+	ot->description = _("Ungroup selected nodes");
 	ot->idname = "NODE_OT_group_ungroup";
 	
 	/* api callbacks */
@@ -1092,8 +1092,8 @@ static int snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
 void NODE_OT_backimage_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Background Image Move";
-	ot->description = "Move Node backdrop";
+	ot->name= _("Background Image Move");
+	ot->description = _("Move Node backdrop");
 	ot->idname= "NODE_OT_backimage_move";
 	
 	/* api callbacks */
@@ -1123,7 +1123,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Background Image Zoom";
+	ot->name= _("Background Image Zoom");
 	ot->idname= "NODE_OT_backimage_zoom";
 	
 	/* api callbacks */
@@ -1134,7 +1134,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 
 	/* internal */
-	RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, "Factor", "", 0.0f, 10.0f);
+	RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, _("Factor"), "", 0.0f, 10.0f);
 }
 
 /******************** sample backdrop operator ********************/
@@ -1286,7 +1286,7 @@ static int sample_cancel(bContext *C, wmOperator *op)
 void NODE_OT_backimage_sample(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Backimage Sample";
+	ot->name= _("Backimage Sample");
 	ot->idname= "NODE_OT_backimage_sample";
 	
 	/* api callbacks */
@@ -1405,7 +1405,7 @@ static int node_resize_cancel(bContext *UNUSED(C), wmOperator *op)
 void NODE_OT_resize(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Resize Node";
+	ot->name= _("Resize Node");
 	ot->idname= "NODE_OT_resize";
 	
 	/* api callbacks */
@@ -1612,8 +1612,8 @@ static int node_active_link_viewer(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_link_viewer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Link to Viewer Node";
-	ot->description = "Link to Viewer Node";
+	ot->name= _("Link to Viewer Node");
+	ot->description = _("Link to Viewer Node");
 	ot->idname= "NODE_OT_link_viewer";
 	
 	/* api callbacks */
@@ -2045,8 +2045,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Nodes";
-	ot->description = "Duplicate the nodes";
+	ot->name= _("Duplicate Nodes");
+	ot->description = _("Duplicate the nodes");
 	ot->idname= "NODE_OT_duplicate";
 	
 	/* api callbacks */
@@ -2313,7 +2313,7 @@ static int node_link_cancel(bContext *C, wmOperator *op)
 void NODE_OT_link(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Link Nodes";
+	ot->name= _("Link Nodes");
 	ot->idname= "NODE_OT_link";
 	
 	/* api callbacks */
@@ -2349,8 +2349,8 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 void NODE_OT_link_make(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Links";
-	ot->description= "Makes a link between selected output in input sockets";
+	ot->name= _("Make Links");
+	ot->description= _("Makes a link between selected output in input sockets");
 	ot->idname= "NODE_OT_link_make";
 	
 	/* callbacks */
@@ -2428,7 +2428,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	ot->name= "Cut links";
+	ot->name= _("Cut links");
 	ot->idname= "NODE_OT_links_cut";
 	
 	ot->invoke= WM_gesture_lines_invoke;
@@ -2485,7 +2485,7 @@ static int node_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_read_renderlayers(wmOperatorType *ot)
 {
 	
-	ot->name= "Read Render Layers";
+	ot->name= _("Read Render Layers");
 	ot->idname= "NODE_OT_read_renderlayers";
 	
 	ot->exec= node_read_renderlayers_exec;
@@ -2517,7 +2517,7 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_read_fullsamplelayers(wmOperatorType *ot)
 {
 	
-	ot->name= "Read Full Sample Layers";
+	ot->name= _("Read Full Sample Layers");
 	ot->idname= "NODE_OT_read_fullsamplelayers";
 	
 	ot->exec= node_read_fullsamplelayers_exec;
@@ -2565,7 +2565,7 @@ int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_render_changed(wmOperatorType *ot)
 {
 	
-	ot->name= "Render Changed Layer";
+	ot->name= _("Render Changed Layer");
 	ot->idname= "NODE_OT_render_changed";
 	
 	ot->exec= node_render_changed_exec;
@@ -2624,8 +2624,8 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 void NODE_OT_group_make(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Group";
-	ot->description = "Make group from selected nodes";
+	ot->name = _("Group");
+	ot->description = _("Make group from selected nodes");
 	ot->idname = "NODE_OT_group_make";
 	
 	/* api callbacks */
@@ -2687,8 +2687,8 @@ static int node_hide_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_hide_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide";
-	ot->description= "Toggle hiding of selected nodes";
+	ot->name= _("Hide");
+	ot->description= _("Toggle hiding of selected nodes");
 	ot->idname= "NODE_OT_hide_toggle";
 	
 	/* callbacks */
@@ -2719,8 +2719,8 @@ static int node_preview_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_preview_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Node Preview";
-	ot->description= "Toggle preview display for selected nodes";
+	ot->name= _("Toggle Node Preview");
+	ot->description= _("Toggle preview display for selected nodes");
 	ot->idname= "NODE_OT_preview_toggle";
 
 	/* callbacks */
@@ -2768,8 +2768,8 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_hide_socket_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Hidden Node Sockets";
-	ot->description= "Toggle unused node socket display";
+	ot->name= _("Toggle Hidden Node Sockets");
+	ot->description= _("Toggle unused node socket display");
 	ot->idname= "NODE_OT_hide_socket_toggle";
 
 	/* callbacks */
@@ -2811,8 +2811,8 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_mute_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Node Mute";
-	ot->description= "Toggle muting of the nodes";
+	ot->name= _("Toggle Node Mute");
+	ot->description= _("Toggle muting of the nodes");
 	ot->idname= "NODE_OT_mute_toggle";
 	
 	/* callbacks */
@@ -2853,8 +2853,8 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete";
-	ot->description = "Delete selected nodes";
+	ot->name= _("Delete");
+	ot->description = _("Delete selected nodes");
 	ot->idname= "NODE_OT_delete";
 	
 	/* api callbacks */
@@ -2881,8 +2881,8 @@ static int node_show_cycles_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show Cyclic Dependencies";
-	ot->description= "Sort the nodes and show the cyclic dependencies between the nodes";
+	ot->name= _("Show Cyclic Dependencies");
+	ot->description= _("Sort the nodes and show the cyclic dependencies between the nodes");
 	ot->idname= "NODE_OT_show_cyclic_dependencies";
 	
 	/* callbacks */
@@ -2970,8 +2970,8 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void NODE_OT_add_file(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add File Node";
-	ot->description= "Add a file node to the current node editor";
+	ot->name= _("Add File Node");
+	ot->description= _("Add a file node to the current node editor");
 	ot->idname= "NODE_OT_add_file";
 	
 	/* callbacks */
@@ -2983,6 +2983,6 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign.");
+	RNA_def_string(ot->srna, "name", "Image", 24, _("Name"), _("Datablock name to assign."));
 }
 

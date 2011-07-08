@@ -42,6 +42,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
@@ -126,9 +128,9 @@ static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_new (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Action";
+	ot->name= _("New Action");
 	ot->idname= "ACTION_OT_new";
-	ot->description= "Create new action";
+	ot->description= _("Create new action");
 	
 	/* api callbacks */
 	ot->exec= act_new_exec;
@@ -209,9 +211,9 @@ static int act_markers_make_local_exec (bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_markers_make_local (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Markers Local";
+	ot->name= _("Make Markers Local");
 	ot->idname= "ACTION_OT_markers_make_local";
-	ot->description= "Move selected scene markers to the active Action as local 'pose' markers";
+	ot->description= _("Move selected scene markers to the active Action as local 'pose' markers");
 	
 	/* callbacks */
 	ot->exec = act_markers_make_local_exec;
@@ -310,9 +312,9 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_previewrange_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Auto-Set Preview Range";
+	ot->name= _("Auto-Set Preview Range");
 	ot->idname= "ACTION_OT_previewrange_set";
-	ot->description= "Set Preview Range based on extents of selected Keyframes";
+	ot->description= _("Set Preview Range based on extents of selected Keyframes");
 	
 	/* api callbacks */
 	ot->exec= actkeys_previewrange_exec;
@@ -372,9 +374,9 @@ static int actkeys_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View All";
+	ot->name= _("View All");
 	ot->idname= "ACTION_OT_view_all";
-	ot->description= "Reset viewable area to show full keyframe range";
+	ot->description= _("Reset viewable area to show full keyframe range");
 	
 	/* api callbacks */
 	ot->exec= actkeys_viewall_exec;
@@ -387,9 +389,9 @@ void ACTION_OT_view_all (wmOperatorType *ot)
 void ACTION_OT_view_selected (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View Selected";
+	ot->name= _("View Selected");
 	ot->idname= "ACTION_OT_view_selected";
-	ot->description= "Reset viewable area to show selected keyframes range";
+	ot->description= _("Reset viewable area to show selected keyframes range");
 	
 	/* api callbacks */
 	ot->exec= actkeys_viewsel_exec;
@@ -473,9 +475,9 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 void ACTION_OT_copy (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Keyframes";
+	ot->name= _("Copy Keyframes");
 	ot->idname= "ACTION_OT_copy";
-	ot->description= "Copy selected keyframes to the copy/paste buffer";
+	ot->description= _("Copy selected keyframes to the copy/paste buffer");
 	
 	/* api callbacks */
 //	ot->invoke= WM_operator_props_popup; // better wait for graph redo panel
@@ -524,9 +526,9 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 void ACTION_OT_paste (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste Keyframes";
+	ot->name= _("Paste Keyframes");
 	ot->idname= "ACTION_OT_paste";
-	ot->description= "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame";
+	ot->description= _("Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame");
 	
 	/* api callbacks */
 	ot->exec= actkeys_paste_exec;
@@ -535,17 +537,17 @@ void ACTION_OT_paste (wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
-	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merking pasted keys and existing");
+	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, _("Offset"), _("Paste time offset of keys"));
+	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, _("Type"), _("Method of merking pasted keys and existing"));
 }
 
 /* ******************** Insert Keyframes Operator ************************* */
 
 /* defines for insert keyframes tool */
 static EnumPropertyItem prop_actkeys_insertkey_types[] = {
-	{1, "ALL", 0, "All Channels", ""},
-	{2, "SEL", 0, "Only Selected Channels", ""},
-	{3, "GROUP", 0, "In Active Group", ""}, // xxx not in all cases
+	{1, "ALL", 0, N_("All Channels"), ""},
+	{2, "SEL", 0, N_("Only Selected Channels"), ""},
+	{3, "GROUP", 0, N_("In Active Group"), ""}, // xxx not in all cases
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -623,9 +625,9 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 void ACTION_OT_keyframe_insert (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Insert Keyframes";
+	ot->name= _("Insert Keyframes");
 	ot->idname= "ACTION_OT_keyframe_insert";
-	ot->description= "Insert keyframes for the specified channels";
+	ot->description= _("Insert keyframes for the specified channels");
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -636,7 +638,7 @@ void ACTION_OT_keyframe_insert (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_insertkey_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_actkeys_insertkey_types), 0, _("Type"), "");
 }
 
 /* ******************** Duplicate Keyframes Operator ************************* */
@@ -698,9 +700,9 @@ static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 void ACTION_OT_duplicate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Duplicate Keyframes";
+	ot->name= _("Duplicate Keyframes");
 	ot->idname= "ACTION_OT_duplicate";
-	ot->description= "Make a copy of all selected keyframes";
+	ot->description= _("Make a copy of all selected keyframes");
 	
 	/* api callbacks */
 	ot->invoke= actkeys_duplicate_invoke;
@@ -711,7 +713,7 @@ void ACTION_OT_duplicate (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
 }
 
 /* ******************** Delete Keyframes Operator ************************* */
@@ -775,9 +777,9 @@ static int actkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_delete (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Keyframes";
+	ot->name= _("Delete Keyframes");
 	ot->idname= "ACTION_OT_delete";
-	ot->description= "Remove all selected keyframes";
+	ot->description= _("Remove all selected keyframes");
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -839,9 +841,9 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
 void ACTION_OT_clean (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clean Keyframes";
+	ot->name= _("Clean Keyframes");
 	ot->idname= "ACTION_OT_clean";
-	ot->description= "Simplify F-Curves by removing closely spaced keyframes";
+	ot->description= _("Simplify F-Curves by removing closely spaced keyframes");
 	
 	/* api callbacks */
 	//ot->invoke=  // XXX we need that number popup for this! 
@@ -852,7 +854,7 @@ void ACTION_OT_clean (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_float(ot->srna, "threshold", 0.001f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 1000.0f);
+	ot->prop= RNA_def_float(ot->srna, "threshold", 0.001f, 0.0f, FLT_MAX, _("Threshold"), "", 0.0f, 1000.0f);
 }
 
 /* ******************** Sample Keyframes Operator *********************** */
@@ -903,9 +905,9 @@ static int actkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_sample (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Sample Keyframes";
+	ot->name= _("Sample Keyframes");
 	ot->idname= "ACTION_OT_sample";
-	ot->description= "Add keyframes on every frame between the selected keyframes";
+	ot->description= _("Add keyframes on every frame between the selected keyframes");
 	
 	/* api callbacks */
 	ot->exec= actkeys_sample_exec;
@@ -922,8 +924,8 @@ void ACTION_OT_sample (wmOperatorType *ot)
 
 /* defines for set extrapolation-type for selected keyframes tool */
 static EnumPropertyItem prop_actkeys_expo_types[] = {
-	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", ""},
-	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", ""},
+	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, N_("Constant Extrapolation"), ""},
+	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, N_("Linear Extrapolation"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -979,9 +981,9 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 void ACTION_OT_extrapolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Keyframe Extrapolation";
+	ot->name= _("Set Keyframe Extrapolation");
 	ot->idname= "ACTION_OT_extrapolation_type";
-	ot->description= "Set extrapolation mode for selected F-Curves";
+	ot->description= _("Set extrapolation mode for selected F-Curves");
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -992,7 +994,7 @@ void ACTION_OT_extrapolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_expo_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_expo_types, 0, _("Type"), "");
 }
 
 /* ******************** Set Interpolation-Type Operator *********************** */
@@ -1050,9 +1052,9 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 void ACTION_OT_interpolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Keyframe Interpolation";
+	ot->name= _("Set Keyframe Interpolation");
 	ot->idname= "ACTION_OT_interpolation_type";
-	ot->description= "Set interpolation mode for the F-Curve segments starting from the selected keyframes";
+	ot->description= _("Set interpolation mode for the F-Curve segments starting from the selected keyframes");
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1063,18 +1065,18 @@ void ACTION_OT_interpolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(beztriple_interpolation_mode_items), 0, _("Type"), "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
 
 static EnumPropertyItem actkeys_handle_type_items[] = {
-	{HD_FREE, "FREE", 0, "Free", ""},
-	{HD_VECT, "VECTOR", 0, "Vector", ""},
-	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+	{HD_FREE, "FREE", 0, N_("Free"), ""},
+	{HD_VECT, "VECTOR", 0, N_("Vector"), ""},
+	{HD_ALIGN, "ALIGNED", 0, N_("Aligned"), ""},
 	{0, "", 0, "", ""},
-	{HD_AUTO, "AUTO", 0, "Auto", "Handles that are automatically adjusted upon moving the keyframe"},
-	{HD_AUTO_ANIM, "ANIM_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot"},
+	{HD_AUTO, "AUTO", 0, N_("Auto"), N_("Handles that are automatically adjusted upon moving the keyframe")},
+	{HD_AUTO_ANIM, "ANIM_CLAMPED", 0, N_("Auto Clamped"), N_("Auto handles clamped to not overshoot")},
 	{0, NULL, 0, NULL, NULL}};
 
 /* ------------------- */
@@ -1147,9 +1149,9 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 void ACTION_OT_handle_type (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Keyframe Handle Type";
+	ot->name= _("Set Keyframe Handle Type");
 	ot->idname= "ACTION_OT_handle_type";
-	ot->description= "Set type of handle for selected keyframes";
+	ot->description= _("Set type of handle for selected keyframes");
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1160,7 +1162,7 @@ void ACTION_OT_handle_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", actkeys_handle_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(actkeys_handle_type_items), 0, _("Type"), "");
 }
 
 /* ******************** Set Keyframe-Type Operator *********************** */
@@ -1218,9 +1220,9 @@ static int actkeys_keytype_exec(bContext *C, wmOperator *op)
 void ACTION_OT_keyframe_type (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Keyframe Type";
+	ot->name= _("Set Keyframe Type");
 	ot->idname= "ACTION_OT_keyframe_type";
-	ot->description= "Set type of keyframe for the selected keyframes";
+	ot->description= _("Set type of keyframe for the selected keyframes");
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1231,7 +1233,7 @@ void ACTION_OT_keyframe_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_keyframe_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(beztriple_keyframe_type_items), 0, _("Type"), "");
 }
 
 /* ************************************************************************** */
@@ -1286,9 +1288,9 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_frame_jump (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Jump to Frame";
+	ot->name= _("Jump to Frame");
 	ot->idname= "ACTION_OT_frame_jump";
-	ot->description= "Set the current frame to the average frame of the selected keyframes";
+	ot->description= _("Set the current frame to the average frame of the selected keyframes");
 	
 	/* api callbacks */
 	ot->exec= actkeys_framejump_exec;
@@ -1302,10 +1304,10 @@ void ACTION_OT_frame_jump (wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 static EnumPropertyItem prop_actkeys_snap_types[] = {
-	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
-	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
-	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
-	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
+	{ACTKEYS_SNAP_CFRA, "CFRA", 0, N_("Current frame"), ""},
+	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, N_("Nearest Frame"), ""}, // XXX as single entry?
+	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, N_("Nearest Second"), ""}, // XXX as single entry?
+	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, N_("Nearest Marker"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1382,9 +1384,9 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
 void ACTION_OT_snap (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Keys";
+	ot->name= _("Snap Keys");
 	ot->idname= "ACTION_OT_snap";
-	ot->description= "Snap selected keyframes to the times specified";
+	ot->description= _("Snap selected keyframes to the times specified");
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1395,16 +1397,16 @@ void ACTION_OT_snap (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_snap_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_actkeys_snap_types), 0, _("Type"), "");
 }
 
 /* ******************** Mirror Keyframes Operator *********************** */
 
 /* defines for mirror keyframes tool */
 static EnumPropertyItem prop_actkeys_mirror_types[] = {
-	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
-	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
-	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
+	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, N_("By Times over Current frame"), ""},
+	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, N_("By Values over Value=0"), ""},
+	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, N_("By Times over First Selected Marker"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1492,9 +1494,9 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 void ACTION_OT_mirror (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mirror Keys";
+	ot->name= _("Mirror Keys");
 	ot->idname= "ACTION_OT_mirror";
-	ot->description= "Flip selected keyframes over the selected mirror line";
+	ot->description= _("Flip selected keyframes over the selected mirror line");
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1505,7 +1507,7 @@ void ACTION_OT_mirror (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_mirror_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_actkeys_mirror_types), 0, _("Type"), "");
 }
 
 /* ************************************************************************** */

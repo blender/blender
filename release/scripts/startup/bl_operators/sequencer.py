@@ -21,13 +21,14 @@
 import bpy
 
 from bpy.props import IntProperty
+from blf import gettext as _
 
 
 class SequencerCrossfadeSounds(bpy.types.Operator):
     '''Do crossfading volume animation of two selected sound strips.'''
 
     bl_idname = "sequencer.crossfade_sounds"
-    bl_label = "Crossfade sounds"
+    bl_label = _("Crossfade sounds")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -78,10 +79,10 @@ class SequencerCutMulticam(bpy.types.Operator):
     '''Cut multicam strip and select camera.'''
 
     bl_idname = "sequencer.cut_multicam"
-    bl_label = "Cut multicam"
+    bl_label = _("Cut multicam")
     bl_options = {'REGISTER', 'UNDO'}
 
-    camera = IntProperty(name="Camera",
+    camera = IntProperty(name=_("Camera"),
             default=1, min=1, max=32, soft_min=1, soft_max=32)
 
     @classmethod
@@ -116,7 +117,7 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
     '''Deinterlace all selected movie sources.'''
 
     bl_idname = "sequencer.deinterlace_selected_movies"
-    bl_label = "Deinterlace Movies"
+    bl_label = _("Deinterlace Movies")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod

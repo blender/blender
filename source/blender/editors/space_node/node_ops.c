@@ -42,6 +42,8 @@
 
 #include "RNA_access.h"
 
+#include "BLF_api.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -101,11 +103,11 @@ void ED_operatormacros_node(void)
 {
 	wmOperatorType *ot;
 	
-	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", _("Duplicate"), OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
-	ot= WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer", OPTYPE_UNDO);
+	ot= WM_operatortype_append_macro("NODE_OT_select_link_viewer", _("Link Viewer"), OPTYPE_UNDO);
 	WM_operatortype_macro_define(ot, "NODE_OT_select");
 	WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
 	

@@ -189,9 +189,9 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 void NLA_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= _("Select or Deselect All");
 	ot->idname= "NLA_OT_select_all_toggle";
-	ot->description= "(De)Select all NLA-Strips";
+	ot->description= _("(De)Select all NLA-Strips");
 	
 	/* api callbacks */
 	ot->exec= nlaedit_deselectall_exec;
@@ -327,9 +327,9 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 void NLA_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Border Select";
+	ot->name= _("Border Select");
 	ot->idname= "NLA_OT_select_border";
-	ot->description= "Use box selection to grab NLA-Strips";
+	ot->description= _("Use box selection to grab NLA-Strips");
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -353,9 +353,9 @@ void NLA_OT_select_border(wmOperatorType *ot)
 
 /* defines for left-right select tool */
 static EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
-	{NLAEDIT_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
-	{NLAEDIT_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
-	{NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
+	{NLAEDIT_LRSEL_TEST, "CHECK", 0, N_("Check if Select Left or Right"), ""},
+	{NLAEDIT_LRSEL_LEFT, "LEFT", 0, N_("Before current frame"), ""},
+	{NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, N_("After current frame"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -479,9 +479,9 @@ static int nlaedit_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 void NLA_OT_select_leftright (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Left/Right";
+	ot->name= _("Select Left/Right");
 	ot->idname= "NLA_OT_select_leftright";
-	ot->description= "Select strips to the left or the right of the current frame ";
+	ot->description= _("Select strips to the left or the right of the current frame ");
 	
 	/* api callbacks  */
 	ot->invoke= nlaedit_select_leftright_invoke;
@@ -492,7 +492,7 @@ void NLA_OT_select_leftright (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
+	ot->prop= RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(prop_nlaedit_leftright_select_types), NLAEDIT_LRSEL_TEST, _("Mode"), "");
 	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
 }
 
@@ -640,9 +640,9 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 void NLA_OT_click_select (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Select";
+	ot->name= _("Mouse Select");
 	ot->idname= "NLA_OT_click_select";
-	ot->description= "Handle clicks to select NLA Strips";
+	ot->description= _("Handle clicks to select NLA Strips");
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= nlaedit_clickselect_invoke;

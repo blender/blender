@@ -46,6 +46,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -162,8 +164,8 @@ static int node_properties_poll(bContext *C)
 
 void NODE_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
-	ot->description= "Toggles the properties panel display";
+	ot->name= _("Properties");
+	ot->description= _("Toggles the properties panel display");
 	ot->idname= "NODE_OT_properties";
 	
 	ot->exec= node_properties;

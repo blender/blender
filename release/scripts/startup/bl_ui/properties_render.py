@@ -331,13 +331,13 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Threads:")
+        col.label(text=_("Threads:"))
         col.row().prop(rd, "threads_mode", expand=True)
         sub = col.column()
         sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
         sub = col.column(align=True)
-        sub.label(text="Tiles:")
+        sub.label(text=_("Tiles:"))
         sub.prop(rd, "parts_x", text="X")
         sub.prop(rd, "parts_y", text="Y")
 
@@ -352,7 +352,7 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
         sub.prop(rd, "use_free_unused_nodes")
         sub = col.column()
         sub.active = rd.use_raytrace
-        sub.label(text="Acceleration structure:")
+        sub.label(text=_("Acceleration structure:"))
         sub.prop(rd, "raytrace_method", text="")
         if rd.raytrace_method == 'OCTREE':
             sub.prop(rd, "octree_resolution", text=_("Resolution"))

@@ -47,6 +47,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -860,9 +862,9 @@ static int image_properties(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_properties(wmOperatorType *ot)
 {
-	ot->name= "Properties";
+	ot->name= _("Properties");
 	ot->idname= "IMAGE_OT_properties";
-	ot->description= "Toggle display properties panel";
+	ot->description= _("Toggle display properties panel");
 	
 	ot->exec= image_properties;
 	ot->poll= ED_operator_image_active;
@@ -884,9 +886,9 @@ static int image_scopes(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_scopes(wmOperatorType *ot)
 {
-	ot->name= "Scopes";
+	ot->name= _("Scopes");
 	ot->idname= "IMAGE_OT_scopes";
-	ot->description= "Toggle display scopes panel";
+	ot->description= _("Toggle display scopes panel");
 	
 	ot->exec= image_scopes;
 	ot->poll= ED_operator_image_active;

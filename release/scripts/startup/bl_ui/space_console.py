@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.props import StringProperty
-
+from blf import gettext as _
 
 class CONSOLE_HT_header(bpy.types.Header):
     bl_space_type = 'CONSOLE'
@@ -35,11 +35,11 @@ class CONSOLE_HT_header(bpy.types.Header):
             sub.menu("CONSOLE_MT_console")
 
         row = layout.row(align=True)
-        row.operator("console.autocomplete", text="Autocomplete")
+        row.operator("console.autocomplete", text=_("Autocomplete"))
 
 
 class CONSOLE_MT_console(bpy.types.Menu):
-    bl_label = "Console"
+    bl_label = _("Console")
 
     def draw(self, context):
         layout = self.layout
@@ -56,7 +56,7 @@ class CONSOLE_MT_console(bpy.types.Menu):
 
 
 class CONSOLE_MT_language(bpy.types.Menu):
-    bl_label = "Languages..."
+    bl_label = _("Languages...")
 
     def draw(self, context):
         import sys
@@ -85,7 +85,7 @@ def add_scrollback(text, text_type):
 class ConsoleExec(bpy.types.Operator):
     '''Execute the current console line as a python expression'''
     bl_idname = "console.execute"
-    bl_label = "Console Execute"
+    bl_label = _("Console Execute")
 
     def execute(self, context):
         sc = context.space_data
@@ -103,7 +103,7 @@ class ConsoleExec(bpy.types.Operator):
 class ConsoleAutocomplete(bpy.types.Operator):
     '''Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one'''
     bl_idname = "console.autocomplete"
-    bl_label = "Console Autocomplete"
+    bl_label = _("Console Autocomplete")
 
     def execute(self, context):
         sc = context.space_data
@@ -120,7 +120,7 @@ class ConsoleAutocomplete(bpy.types.Operator):
 class ConsoleBanner(bpy.types.Operator):
     '''Print a message whem the terminal initializes'''
     bl_idname = "console.banner"
-    bl_label = "Console Banner"
+    bl_label = _("Console Banner")
 
     def execute(self, context):
         sc = context.space_data
@@ -142,7 +142,7 @@ class ConsoleBanner(bpy.types.Operator):
 class ConsoleLanguage(bpy.types.Operator):
     '''Set the current language for this console'''
     bl_idname = "console.language"
-    bl_label = "Console Language"
+    bl_label = _("Console Language")
     language = StringProperty(name="Language", maxlen=32, default="")
 
     def execute(self, context):

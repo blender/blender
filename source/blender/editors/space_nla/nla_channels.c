@@ -344,9 +344,9 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 void NLA_OT_channels_click (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Click on NLA Channels";
+	ot->name= _("Mouse Click on NLA Channels");
 	ot->idname= "NLA_OT_channels_click";
-	ot->description= "Handle clicks to select NLA channels";
+	ot->description= _("Handle clicks to select NLA channels");
 	
 	/* api callbacks */
 	ot->invoke= nlachannels_mouseclick_invoke;
@@ -418,9 +418,9 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 void NLA_OT_tracks_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Track(s)";
+	ot->name= _("Add Track(s)");
 	ot->idname= "NLA_OT_tracks_add";
-	ot->description= "Add NLA-Tracks above/after the selected tracks";
+	ot->description= _("Add NLA-Tracks above/after the selected tracks");
 	
 	/* api callbacks */
 	ot->exec= nlaedit_add_tracks_exec;
@@ -482,9 +482,9 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_delete_tracks (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Tracks";
+	ot->name= _("Delete Tracks");
 	ot->idname= "NLA_OT_delete_tracks";
-	ot->description= "Delete selected NLA-Tracks and the strips they contain";
+	ot->description= _("Delete selected NLA-Tracks and the strips they contain");
 	
 	/* api callbacks */
 	ot->exec= nlaedit_delete_tracks_exec;

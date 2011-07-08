@@ -4,13 +4,16 @@ release/scripts/startup/bl_operators/object_align.py
 release/scripts/startup/bl_operators/object_randomize_transform.py
 release/scripts/startup/bl_operators/presets.py
 release/scripts/startup/bl_operators/screen_play_rendered_anim.py
+release/scripts/startup/bl_operators/sequencer.py
 release/scripts/startup/bl_operators/wm.py
 
 release/scripts/startup/bl_ui/properties_render.py
 release/scripts/startup/bl_ui/properties_texture.py
 
+release/scripts/startup/bl_ui/space_console.py
 release/scripts/startup/bl_ui/space_info.py
 release/scripts/startup/bl_ui/space_outliner.py
+release/scripts/startup/bl_ui/space_text.py
 release/scripts/startup/bl_ui/space_time.py
 release/scripts/startup/bl_ui/space_userpref.py
 release/scripts/startup/bl_ui/space_userpref_keymap.py
@@ -30,7 +33,6 @@ source/blender/editors/armature/editarmature_sketch.c
 source/blender/editors/armature/poselib.c
 source/blender/editors/armature/poseobject.c
 source/blender/editors/armature/poseSlide.c
-
 
 source/blender/editors/curve/editcurve.c
 source/blender/editors/curve/editfont.c
@@ -85,7 +87,10 @@ source/blender/editors/sculpt_paint/sculpt.c
 
 source/blender/editors/sound/sound_ops.c
 
+source/blender/editors/space_action/action_edit.c
+source/blender/editors/space_action/action_ops.c
 source/blender/editors/space_action/action_select.c
+
 source/blender/editors/space_buttons/buttons_ops.c
 source/blender/editors/space_console/console_ops.c
 
@@ -98,6 +103,7 @@ source/blender/editors/space_graph/graph_edit.c
 source/blender/editors/space_graph/graph_ops.c
 source/blender/editors/space_graph/graph_select.c
 
+source/blender/editors/space_image/image_buttons.c
 source/blender/editors/space_image/image_ops.c
 
 source/blender/editors/space_info/info_ops.c
@@ -106,11 +112,14 @@ source/blender/editors/space_info/space_info.c
 
 source/blender/editors/space_logic/logic_buttons.c
 
+source/blender/editors/space_nla/nla_buttons.c
 source/blender/editors/space_nla/nla_channels.c
 source/blender/editors/space_nla/nla_edit.c
 source/blender/editors/space_nla/nla_select.c
 
+source/blender/editors/space_node/node_buttons.c
 source/blender/editors/space_node/node_edit.c
+source/blender/editors/space_node/node_ops.c
 source/blender/editors/space_node/node_select.c
 source/blender/editors/space_node/node_state.c
 
@@ -118,9 +127,11 @@ source/blender/editors/space_outliner/outliner.c
 source/blender/editors/space_script/script_edit.c
 
 source/blender/editors/space_sequencer/sequencer_add.c
+source/blender/editors/space_sequencer/sequencer_buttons.c
 source/blender/editors/space_sequencer/sequencer_edit.c
 source/blender/editors/space_sequencer/sequencer_select.c
 
+source/blender/editors/space_text/text_header.c
 source/blender/editors/space_text/text_ops.c
 source/blender/editors/space_time/time_ops.c
 
@@ -142,6 +153,7 @@ source/blender/editors/util/undo.c
 source/blender/editors/uvedit/uvedit_ops.c
 source/blender/editors/uvedit/uvedit_unwrap_ops.c
 
+source/blender/makesrna/intern/rna_color.c
 source/blender/makesrna/intern/rna_curve.c
 source/blender/makesrna/intern/rna_ID.c
 source/blender/makesrna/intern/rna_object.c

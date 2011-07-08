@@ -1064,7 +1064,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 	ot->exec= file_directory_new_exec;
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 
-	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Name of new directory");
+	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, _("Directory"), _("Name of new directory"));
 
 }
 

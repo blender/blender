@@ -79,9 +79,9 @@ static int time_set_sfra_exec (bContext *C, wmOperator *UNUSED(op))
 static void TIME_OT_start_frame_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Start Frame";
+	ot->name= _("Set Start Frame");
 	ot->idname= "TIME_OT_start_frame_set";
-	ot->description="Set the start frame";
+	ot->description=_("Set the start frame");
 	
 	/* api callbacks */
 	ot->exec= time_set_sfra_exec;
@@ -121,9 +121,9 @@ static int time_set_efra_exec (bContext *C, wmOperator *UNUSED(op))
 static void TIME_OT_end_frame_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set End Frame";
+	ot->name= _("Set End Frame");
 	ot->idname= "TIME_OT_end_frame_set";
-	ot->description="Set the end frame";
+	ot->description=_("Set the end frame");
 	
 	/* api callbacks */
 	ot->exec= time_set_efra_exec;

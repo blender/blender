@@ -1649,9 +1649,9 @@ static int outliner_toggle_visibility_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Visibility";
+	ot->name= _("Toggle Visibility");
 	ot->idname= "OUTLINER_OT_visibility_toggle";
-	ot->description= "Toggle the visibility of selected items";
+	ot->description= _("Toggle the visibility of selected items");
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_visibility_exec;
@@ -1689,9 +1689,9 @@ static int outliner_toggle_selectability_exec(bContext *C, wmOperator *UNUSED(op
 void OUTLINER_OT_selectability_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Selectability";
+	ot->name= _("Toggle Selectability");
 	ot->idname= "OUTLINER_OT_selectability_toggle";
-	ot->description= "Toggle the selectability";
+	ot->description= _("Toggle the selectability");
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_selectability_exec;
@@ -1726,9 +1726,9 @@ static int outliner_toggle_renderability_exec(bContext *C, wmOperator *UNUSED(op
 void OUTLINER_OT_renderability_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Renderability";
+	ot->name= _("Toggle Renderability");
 	ot->idname= "OUTLINER_OT_renderability_toggle";
-	ot->description= "Toggle the renderability of selected items";
+	ot->description= _("Toggle the renderability of selected items");
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_renderability_exec;
@@ -1757,9 +1757,9 @@ static int outliner_toggle_expanded_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Expand/Collapse All";
+	ot->name= _("Expand/Collapse All");
 	ot->idname= "OUTLINER_OT_expanded_toggle";
-	ot->description= "Expand/Collapse all items";
+	ot->description= _("Expand/Collapse all items");
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_expanded_exec;
@@ -1792,9 +1792,9 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void OUTLINER_OT_selected_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Selected";
+	ot->name= _("Toggle Selected");
 	ot->idname= "OUTLINER_OT_selected_toggle";
-	ot->description= "Toggle the Outliner selection of items";
+	ot->description= _("Toggle the Outliner selection of items");
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_selected_exec;
@@ -2747,9 +2747,9 @@ static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 
 void OUTLINER_OT_item_rename(wmOperatorType *ot)
 {
-	ot->name= "Rename Item";
+	ot->name= _("Rename Item");
 	ot->idname= "OUTLINER_OT_item_rename";
-	ot->description= "Rename item under cursor";
+	ot->description= _("Rename item under cursor");
 	
 	ot->invoke= outliner_item_rename;
 	
@@ -3438,12 +3438,12 @@ static void outliner_del(bContext *C, Scene *scene, ARegion *UNUSED(ar), SpaceOo
 /* **************************************** */
 
 static EnumPropertyItem prop_object_op_types[] = {
-	{1, "SELECT", 0, "Select", ""},
-	{2, "DESELECT", 0, "Deselect", ""},
-	{4, "DELETE", 0, "Delete", ""},
-	{6, "TOGVIS", 0, "Toggle Visible", ""},
-	{7, "TOGSEL", 0, "Toggle Selectable", ""},
-	{8, "TOGREN", 0, "Toggle Renderable", ""},
+	{1, "SELECT", 0, N_("Select"), ""},
+	{2, "DESELECT", 0, N_("Deselect"), ""},
+	{4, "DELETE", 0, N_("Delete"), ""},
+	{6, "TOGVIS", 0, N_("Toggle Visible"), ""},
+	{7, "TOGSEL", 0, N_("Toggle Selectable"), ""},
+	{8, "TOGREN", 0, N_("Toggle Renderable"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3511,7 +3511,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_object_operation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Outliner Object Operation";
+	ot->name= _("Outliner Object Operation");
 	ot->idname= "OUTLINER_OT_object_operation";
 	ot->description= "";
 	
@@ -3522,18 +3522,18 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_object_op_types, 0, "Object Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_object_op_types), 0, _("Object Operation"), "");
 }
 
 /* **************************************** */
 
 static EnumPropertyItem prop_group_op_types[] = {
-	{1, "UNLINK", 0, "Unlink", ""},
-	{2, "LOCAL", 0, "Make Local", ""},
-	{3, "LINK", 0, "Link Group Objects to Scene", ""},
-	{4, "TOGVIS", 0, "Toggle Visible", ""},
-	{5, "TOGSEL", 0, "Toggle Selectable", ""},
-	{6, "TOGREN", 0, "Toggle Renderable", ""},
+	{1, "UNLINK", 0, N_("Unlink"), ""},
+	{2, "LOCAL", 0, N_("Make Local"), ""},
+	{3, "LINK", 0, N_("Link Group Objects to Scene"), ""},
+	{4, "TOGVIS", 0, N_("Toggle Visible"), ""},
+	{5, "TOGSEL", 0, N_("Toggle Selectable"), ""},
+	{6, "TOGREN", 0, N_("Toggle Renderable"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3572,7 +3572,7 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_group_operation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Outliner Group Operation";
+	ot->name= _("Outliner Group Operation");
 	ot->idname= "OUTLINER_OT_group_operation";
 	ot->description= "";
 	
@@ -3583,14 +3583,14 @@ void OUTLINER_OT_group_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_group_op_types, 0, "Group Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_group_op_types), 0, _("Group Operation"), "");
 }
 
 /* **************************************** */
 
 static EnumPropertyItem prop_id_op_types[] = {
-	{1, "UNLINK", 0, "Unlink", ""},
-	{2, "LOCAL", 0, "Make Local", ""},
+	{1, "UNLINK", 0, N_("Unlink"), ""},
+	{2, "LOCAL", 0, N_("Make Local"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3638,7 +3638,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_id_operation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Outliner ID data Operation";
+	ot->name= _("Outliner ID data Operation");
 	ot->idname= "OUTLINER_OT_id_operation";
 	ot->description= "";
 	
@@ -3649,16 +3649,16 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_id_op_types, 0, "ID data Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_id_op_types), 0, _("ID data Operation"), "");
 }
 
 /* **************************************** */
 
 static EnumPropertyItem prop_data_op_types[] = {
-	{1, "SELECT", 0, "Select", ""},
-	{2, "DESELECT", 0, "Deselect", ""},
-	{3, "HIDE", 0, "Hide", ""},
-	{4, "UNHIDE", 0, "Unhide", ""},
+	{1, "SELECT", 0, N_("Select"), ""},
+	{2, "DESELECT", 0, N_("Deselect"), ""},
+	{3, "HIDE", 0, N_("Hide"), ""},
+	{4, "UNHIDE", 0, N_("Unhide"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3709,7 +3709,7 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_data_operation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Outliner Data Operation";
+	ot->name= _("Outliner Data Operation");
 	ot->idname= "OUTLINER_OT_data_operation";
 	ot->description= "";
 	
@@ -3720,7 +3720,7 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_data_op_types, 0, "Data Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_data_op_types), 0, _("Data Operation"), "");
 }
 
 
@@ -3802,9 +3802,9 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 /* Menu only! Calls other operators */
 void OUTLINER_OT_operation(wmOperatorType *ot)
 {
-	ot->name= "Execute Operation";
+	ot->name= _("Execute Operation");
 	ot->idname= "OUTLINER_OT_operation";
-	ot->description= "Context menu for item operations";
+	ot->description= _("Context menu for item operations");
 	
 	ot->invoke= outliner_operation;
 	
@@ -4071,8 +4071,8 @@ void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot)
 {
 	/* api callbacks */
 	ot->idname= "OUTLINER_OT_drivers_add_selected";
-	ot->name= "Add Drivers for Selected";
-	ot->description= "Add drivers to selected items";
+	ot->name= _("Add Drivers for Selected");
+	ot->description= _("Add drivers to selected items");
 	
 	/* api callbacks */
 	ot->exec= outliner_drivers_addsel_exec;
@@ -4106,8 +4106,8 @@ void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->idname= "OUTLINER_OT_drivers_delete_selected";
-	ot->name= "Delete Drivers for Selected";
-	ot->description= "Delete drivers assigned to selected items";
+	ot->name= _("Delete Drivers for Selected");
+	ot->description= _("Delete drivers assigned to selected items");
 	
 	/* api callbacks */
 	ot->exec= outliner_drivers_deletesel_exec;
@@ -4244,8 +4244,8 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->idname= "OUTLINER_OT_keyingset_add_selected";
-	ot->name= "Keying Set Add Selected";
-	ot->description= "Add selected items (blue-grey rows) to active Keying Set";
+	ot->name= _("Keying Set Add Selected");
+	ot->description= _("Add selected items (blue-grey rows) to active Keying Set");
 	
 	/* api callbacks */
 	ot->exec= outliner_keyingset_additems_exec;
@@ -4281,8 +4281,8 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->idname= "OUTLINER_OT_keyingset_remove_selected";
-	ot->name= "Keying Set Remove Selected";
-	ot->description = "Remove selected items (blue-grey rows) from active Keying Set";
+	ot->name= _("Keying Set Remove Selected");
+	ot->description = _("Remove selected items (blue-grey rows) from active Keying Set");
 	
 	/* api callbacks */
 	ot->exec= outliner_keyingset_removeitems_exec;
