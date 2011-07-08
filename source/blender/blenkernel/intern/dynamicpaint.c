@@ -3101,7 +3101,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, PaintBakeDa
 
 static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, PaintBakeData *bData, float *pointCoord, DynamicPaintBrushSettings *brush, Object *canvasOb, float timescale)
 {
-	unsigned int index;
+	int index;
 	PaintSurfaceData *sData = surface->data;
 
 	/*
