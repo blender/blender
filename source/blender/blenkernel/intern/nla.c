@@ -1242,7 +1242,7 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 	if (strip->name[0]==0) {
 		switch (strip->type) {
 			case NLASTRIP_TYPE_CLIP: /* act-clip */
-				sprintf(strip->name, "Act: %s", (strip->act)?(strip->act->id.name+2):("<None>"));
+				sprintf(strip->name, "%s", (strip->act)?(strip->act->id.name+2):("<No Action>"));
 				break;
 			case NLASTRIP_TYPE_TRANSITION: /* transition */
 				sprintf(strip->name, "Transition");
