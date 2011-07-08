@@ -60,7 +60,7 @@ class GeometryExporter : COLLADASW::LibraryGeometries
 public:
 	GeometryExporter(COLLADASW::StreamWriter *sw);
 
-	void exportGeom(Scene *sce);
+	void exportGeom(Scene *sce, bool export_selected);
 
 	void operator()(Object *ob);
 
@@ -102,14 +102,15 @@ struct GeometryFunctor {
 	// f should have
 	// void operator()(Object* ob)
 	template<class Functor>
-	void forEachMeshObjectInScene(Scene *sce, Functor &f)
+	void forEachMeshObjectInScene(Scene *sce, Functor &f, bool export_selected)
 	{
 		
 		Base *base= (Base*) sce->base.first;
 		while(base) {
 			Object *ob = base->object;
 			
-			if (ob->type == OB_MESH && ob->data) {
+			if (ob->type == OB_MESH && ob->data
+				&& !(export_selected && !(ob->flag && SELECT))) {
 				f(ob);
 			}
 			base= base->next;

@@ -827,6 +827,8 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 
 		if(key->flag & PEK_TAG)
 			mkey->flag |= PEK_TAG;
+
+		mkey->length = key->length;
 	}
 
 	if(point->flag & PEP_TAG)

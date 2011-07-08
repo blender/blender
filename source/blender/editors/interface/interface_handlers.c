@@ -1895,7 +1895,15 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 
 		if(event->ascii && (retval == WM_UI_HANDLER_CONTINUE)) {
-			changed= ui_textedit_type_ascii(but, data, event->ascii);
+			char ascii = event->ascii;
+
+			/* exception that's useful for number buttons, some keyboard
+			   numpads have a comma instead of a period */
+			if(ELEM3(but->type, NUM, NUMABS, NUMSLI))
+				if(event->type == PADPERIOD && ascii == ',')
+					ascii = '.';
+
+			changed= ui_textedit_type_ascii(but, data, ascii);
 			retval= WM_UI_HANDLER_BREAK;
 			
 		}

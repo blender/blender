@@ -608,8 +608,11 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 	return(perc);
 } 
 
-
+/* for multicut */
 #define MAX_CUTS 256
+
+/* for amount of edges */
+#define MAX_CUT_EDGES 1024
 
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
@@ -618,7 +621,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	EditEdge *eed;
 	EditVert *eve;
-	CutCurve curve[MAX_CUTS];
+	CutCurve curve[MAX_CUT_EDGES];
 	struct GHash *gh;
 	float isect=0.0;
 	float  *scr, co[4];
@@ -642,7 +645,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		
 		RNA_float_get_array(&itemptr, "loc", (float *)&curve[len]);
 		len++;
-		if(len>= MAX_CUTS) break;
+		if(len>= MAX_CUT_EDGES) break;
 	}
 	RNA_END;
 	

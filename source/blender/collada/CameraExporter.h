@@ -40,7 +40,7 @@ class CamerasExporter: COLLADASW::LibraryCameras
 {
 public:
 	CamerasExporter(COLLADASW::StreamWriter *sw);
-	void exportCameras(Scene *sce);
+	void exportCameras(Scene *sce, bool export_selected);
 	void operator()(Object *ob, Scene *sce);
 };
 

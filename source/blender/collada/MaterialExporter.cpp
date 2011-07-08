@@ -35,12 +35,12 @@
 
 MaterialsExporter::MaterialsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryMaterials(sw){}
 
-void MaterialsExporter::exportMaterials(Scene *sce)
+void MaterialsExporter::exportMaterials(Scene *sce, bool export_selected)
 {
 	openLibrary();
 
 	MaterialFunctor mf;
-	mf.forEachMaterialInScene<MaterialsExporter>(sce, *this);
+	mf.forEachMaterialInScene<MaterialsExporter>(sce, *this, export_selected);
 
 	closeLibrary();
 }
