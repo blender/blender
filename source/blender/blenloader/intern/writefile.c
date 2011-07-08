@@ -1260,7 +1260,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		else if(md->type==eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 			
-			if(pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS)
+			if(pmd->canvas)
 			{
 				DynamicPaintSurface *surface;
 				writestruct(wd, DATA, "DynamicPaintCanvasSettings", 1, pmd->canvas);
@@ -1275,7 +1275,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 					writestruct(wd, DATA, "EffectorWeights", 1, surface->effector_weights);
 				}
 			}
-			else if(pmd->type & MOD_DYNAMICPAINT_TYPE_BRUSH && pmd->brush)
+			if(pmd->brush)
 			{
 				writestruct(wd, DATA, "DynamicPaintBrushSettings", 1, pmd->brush);
 				writestruct(wd, DATA, "Material", 1, pmd->brush->mat);

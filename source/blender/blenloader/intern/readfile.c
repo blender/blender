@@ -4031,10 +4031,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type==eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 
-			if(pmd->type==MOD_DYNAMICPAINT_TYPE_CANVAS)
+			if(pmd->canvas)
 			{
-				pmd->brush = NULL;
-
 				pmd->canvas = newdataadr(fd, pmd->canvas);
 				pmd->canvas->pmd = pmd;
 				pmd->canvas->dm = NULL;
@@ -4055,10 +4053,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					}
 				}
 			}
-			else if(pmd->type==MOD_DYNAMICPAINT_TYPE_BRUSH)
+			if(pmd->brush)
 			{
-				pmd->canvas = NULL;
-
 				pmd->brush = newdataadr(fd, pmd->brush);
 				if (pmd->brush) {
 					pmd->brush->pmd = pmd;

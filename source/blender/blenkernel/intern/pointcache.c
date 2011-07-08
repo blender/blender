@@ -688,7 +688,7 @@ static int  ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
 				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)
 			in_len = sizeof(float)*total_points;
-		if (surface->type == MOD_DPAINT_SURFACE_T_WAVE)
+		else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE)
 			in_len = sizeof(PaintWavePoint)*total_points;
 		else return 0;
 
@@ -725,7 +725,7 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
 				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)
 			data_len = sizeof(float);
-		if (surface->type == MOD_DPAINT_SURFACE_T_WAVE)
+		else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE)
 			data_len = sizeof(PaintWavePoint);
 		else return 0;
 
@@ -972,7 +972,7 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 		}
 		else if(md->type == eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-			if(pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS)
+			if(pmd->canvas)
 			{
 				DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 
@@ -2474,7 +2474,7 @@ int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 		}
 		if(md->type == eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-			if(pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS)
+			if(pmd->canvas)
 			{
 				DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 

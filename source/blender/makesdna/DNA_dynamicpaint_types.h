@@ -127,12 +127,14 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_RAMP_ALPHA (1<<4) /* only read falloff ramp alpha */
 #define MOD_DPAINT_PROX_FACEALIGNED (1<<5) /* do proximity check only in normal dir */
 #define MOD_DPAINT_INVERSE_PROX (1<<6) /* inverse proximity painting */
+#define MOD_DPAINT_ACCEPT_NONCLOSED (1<<7) /* allows volume brushes to work with non-closed volumes */
 
 /* collision type */
 #define MOD_DPAINT_COL_VOLUME 0 /* paint with mesh volume */
 #define MOD_DPAINT_COL_DIST 1 /* paint using distance to mesh surface */
 #define MOD_DPAINT_COL_VOLDIST 2 /* use both volume and distance */
 #define MOD_DPAINT_COL_PSYS 3 /* use particle system */
+#define MOD_DPAINT_COL_POINT 4 /* use distance to object center point */
 
 /* proximity_falloff */
 #define MOD_DPAINT_PRFALL_SHARP 0 /* no-falloff */
@@ -143,6 +145,10 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_WAVEB_DEPTH 0 /* use intersection depth */
 #define MOD_DPAINT_WAVEB_FORCE 1 /* act as a force on intersection area */
 #define MOD_DPAINT_WAVEB_REFLECT 2 /* obstacle that reflects waves */
+
+/* brush ray_dir */
+#define MOD_DPAINT_RAY_CANVAS 0
+#define MOD_DPAINT_RAY_ZPLUS 1
 
 
 /* Painter settings */
@@ -168,7 +174,7 @@ typedef struct DynamicPaintBrushSettings {
 	short proximity_falloff;
 	short brush_settings_context;	/* ui settings display */
 	short wave_type;
-	short pad_s;
+	short ray_dir;
 
 	float wave_factor;
 	float pad_f;

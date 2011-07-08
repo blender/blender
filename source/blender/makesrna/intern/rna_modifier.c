@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -280,21 +281,6 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 	
 	// update dependancy since a domain - other type switch could have happened
-	rna_Modifier_dependency_update(bmain, scene, ptr);
-}
-
-static void rna_DynamicPaint_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	DynamicPaintModifierData *pmd= (DynamicPaintModifierData *)ptr->data;
-
-	// nothing changed
-	if((pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS) && pmd->canvas)
-		return;
-		
-	dynamicPaint_Modifier_free(pmd);
-	dynamicPaint_Modifier_createType(pmd); // create regarding of selected type
-	
-	// update dependancy
 	rna_Modifier_dependency_update(bmain, scene, ptr);
 }
 
@@ -1961,12 +1947,6 @@ static void rna_def_modifier_dynamic_paint(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem prop_dynamicpaint_type_items[] = {
-			{0, "NONE", 0, "None", ""},
-			{MOD_DYNAMICPAINT_TYPE_CANVAS, "CANVAS", 0, "Canvas", ""},
-			{MOD_DYNAMICPAINT_TYPE_BRUSH, "BRUSH", 0, "Brush", ""},
-			{0, NULL, 0, NULL, NULL}};
-	
 	srna= RNA_def_struct(brna, "DynamicPaintModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Dynamic Paint Modifier", "Dynamic Paint modifier");
 	RNA_def_struct_sdna(srna, "DynamicPaintModifierData");
@@ -1979,13 +1959,12 @@ static void rna_def_modifier_dynamic_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "brush_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "brush");
 	RNA_def_property_ui_text(prop, "Brush Settings", "");
-	
-	prop= RNA_def_property(srna, "dynamicpaint_type", PROP_ENUM, PROP_NONE);
+
+	prop= RNA_def_property(srna, "ui_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_dynamicpaint_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, 0, "rna_DynamicPaint_set_type");
 }
 
 static void rna_def_modifier_collision(BlenderRNA *brna)

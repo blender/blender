@@ -787,6 +787,7 @@ typedef enum {
 	eWarp_Falloff_Sphere =		7, /* PROP_SPHERE */
 	/* PROP_RANDOM not used */
 } WarpModifierFalloff;
+
 /* Dynamic paint modifier flags */
 #define MOD_DYNAMICPAINT_TYPE_CANVAS (1 << 0)
 #define MOD_DYNAMICPAINT_TYPE_BRUSH (1 << 1)
@@ -796,7 +797,7 @@ typedef struct DynamicPaintModifierData {
 
 	struct DynamicPaintCanvasSettings *canvas;
 	struct DynamicPaintBrushSettings *brush;
-	int type;  /* canvas / painter */
+	int type;  /* ui display: canvas / brush */
 	int pad;
 } DynamicPaintModifierData;
 #endif

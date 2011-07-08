@@ -35,7 +35,7 @@ static void initData(ModifierData *md)
 	
 	pmd->canvas = NULL;
 	pmd->brush = NULL;
-	pmd->type = 0;
+	pmd->type = MOD_DYNAMICPAINT_TYPE_CANVAS;
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -93,14 +93,14 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 
 	/* add relation from canvases to all brush objects */
-	if(pmd && (pmd->type & MOD_DYNAMICPAINT_TYPE_CANVAS) && pmd->canvas)
+	if(pmd && pmd->canvas)
 	{
 		Base *base = scene->base.first;
 
 		for(; base; base = base->next) {
 			DynamicPaintModifierData *pmd2 = (DynamicPaintModifierData *)modifiers_findByType(base->object, eModifierType_DynamicPaint);
 
-			if(pmd2 && (pmd2->type & MOD_DYNAMICPAINT_TYPE_BRUSH) && pmd2->brush)
+			if(pmd2 && pmd2->brush && ob!=base->object)
 			{
 				DagNode *brushNode = dag_get_node(forest, base->object);
 				dag_add_relation(forest, brushNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Dynamic Paint Brush");
@@ -119,7 +119,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 
-	if(pmd->type==MOD_DYNAMICPAINT_TYPE_CANVAS && pmd->canvas) {
+	if(pmd->canvas) {
 		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 
 		for(; surface; surface=surface->next) {

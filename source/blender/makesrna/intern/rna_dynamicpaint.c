@@ -29,6 +29,11 @@
 
 #include "WM_types.h"
 
+EnumPropertyItem prop_dynamicpaint_type_items[] = {
+		{MOD_DYNAMICPAINT_TYPE_CANVAS, "CANVAS", 0, "Canvas", ""},
+		{MOD_DYNAMICPAINT_TYPE_BRUSH, "BRUSH", 0, "Brush", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 
 #ifdef RNA_RUNTIME
 
@@ -116,6 +121,12 @@ static void rna_DynamicPaintSurfaces_changeFormat(Main *bmain, Scene *scene, Poi
 	surface->type = MOD_DPAINT_SURFACE_T_PAINT;
 	dynamicPaintSurface_updateType((DynamicPaintSurface*)ptr->data);
 	rna_DynamicPaintSurface_reset(bmain, scene, ptr);
+}
+
+static void rna_DynamicPaint_resetDependancy(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	rna_DynamicPaintSurface_reset(bmain, scene, ptr);
+	DAG_scene_sort(bmain, scene);
 }
 
 static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
@@ -347,6 +358,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Brush Group", "Only use brush objects from this group");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_resetDependancy");
 
 
 	/*
@@ -410,6 +422,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ANTIALIAS);
 	RNA_def_property_ui_text(prop, "Anti-aliasing", "Uses 5x multisampling to smoothen paint edges.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 
 	/*
 	*   Effect Settings
@@ -429,8 +442,10 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Slow", "Use logarithmic dissolve. Makes high values to fade faster than low values.");
 	
 	prop= RNA_def_property(srna, "use_spread", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "effect", MOD_DPAINT_EFFECT_DO_SPREAD);
 	RNA_def_property_ui_text(prop, "Use Spread", "Processes spread effect. Spreads wet paint around surface.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 	
 	prop= RNA_def_property(srna, "spread_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spread_speed");
@@ -439,12 +454,16 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Spread Speed", "How fast spread effect moves on the canvas surface.");
 	
 	prop= RNA_def_property(srna, "use_drip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "effect", MOD_DPAINT_EFFECT_DO_DRIP);
 	RNA_def_property_ui_text(prop, "Use Drip", "Processes drip effect. Drips wet paint to gravity direction.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 	
 	prop= RNA_def_property(srna, "use_shrink", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "effect", MOD_DPAINT_EFFECT_DO_SHRINK);
 	RNA_def_property_ui_text(prop, "Use Shrink", "Processes shrink effect. Shrinks paint areas.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 	
 	prop= RNA_def_property(srna, "shrink_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shrink_speed");
@@ -582,6 +601,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	/* paint collision type */
 	static EnumPropertyItem prop_dynamicpaint_collisiontype[] = {
 			{MOD_DPAINT_COL_PSYS, "PSYS", ICON_PARTICLES, "Particle System", ""},
+			{MOD_DPAINT_COL_POINT, "POINT", ICON_META_EMPTY, "Object Center", ""},
 			{MOD_DPAINT_COL_DIST, "DISTANCE", ICON_META_EMPTY, "Proximity", ""},
 			{MOD_DPAINT_COL_VOLDIST, "VOLDIST", ICON_META_CUBE, "Mesh Volume + Proximity", ""},
 			{MOD_DPAINT_COL_VOLUME, "VOLUME", ICON_MESH_CUBE, "Mesh Volume", ""},
@@ -597,6 +617,11 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 			{MOD_DPAINT_WAVEB_DEPTH, "DEPTH", 0, "Obstacle", ""},
 			{MOD_DPAINT_WAVEB_FORCE, "FORCE", 0, "Force", ""},
 			{MOD_DPAINT_WAVEB_REFLECT, "REFLECT", 0, "Reflect Only", ""},
+			{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_dynamicpaint_brush_ray_dir[] = {
+			{MOD_DPAINT_RAY_CANVAS, "CANVAS", 0, "Canvas Normal", ""},
+			{MOD_DPAINT_RAY_ZPLUS, "ZPLUT", 0, "Z-Axis", ""},
 			{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem buttons_dynamicpaint_settings_menu[] = {
@@ -673,6 +698,15 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "collision");
 	RNA_def_property_enum_items(prop, prop_dynamicpaint_collisiontype);
 	RNA_def_property_ui_text(prop, "Paint Source", "");
+
+	prop= RNA_def_property(srna, "accept_nonclosed", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ACCEPT_NONCLOSED);
+	RNA_def_property_ui_text(prop, "Accept Non-Closed", "Allows painting with non-closed meshes. Brush influence is defined by ray dir.");
+
+	prop= RNA_def_property(srna, "ray_dir", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ray_dir");
+	RNA_def_property_enum_items(prop, prop_dynamicpaint_brush_ray_dir);
+	RNA_def_property_ui_text(prop, "Ray Dir", "Defines ray direction to use for non-closed meshes. If ray faces an opposite normal brush is processed.");
 	
 	prop= RNA_def_property(srna, "paint_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "paint_distance");
@@ -719,6 +753,8 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Particle Systems", "The particle system to paint with.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_resetDependancy");
+
 	
 	prop= RNA_def_property(srna, "use_part_radius", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_PART_RAD);

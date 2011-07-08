@@ -3459,7 +3459,7 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 	if((md = modifiers_findByType(ob, eModifierType_DynamicPaint)))
 	{
 		DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-		if((pmd->type == MOD_DYNAMICPAINT_TYPE_BRUSH) && pmd->brush && pmd->brush->psys)
+		if(pmd->brush && pmd->brush->psys)
 			if(pmd->brush->psys == psys)
 				pmd->brush->psys = NULL;
 	}

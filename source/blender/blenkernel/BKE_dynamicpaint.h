@@ -28,7 +28,6 @@ typedef struct PaintSurfaceData {
 	struct PaintAdjData *adj_data;
 
 	unsigned int total_points;
-	short samples;
 
 } PaintSurfaceData;
 
@@ -63,7 +62,6 @@ typedef struct PaintWavePoint {
 
 struct DerivedMesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm);
 void dynamicPaint_Modifier_free (struct DynamicPaintModifierData *pmd);
-void dynamicPaint_Modifier_createType(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tsmd);
 
 void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);

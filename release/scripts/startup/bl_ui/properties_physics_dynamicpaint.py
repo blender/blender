@@ -46,71 +46,81 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
         ob = context.object
 
         if md:
-            layout.prop(md, "dynamicpaint_type", expand=True)
+            layout.prop(md, "ui_type", expand=True)
 
-            if md.dynamicpaint_type == 'CANVAS':
+            if (md.ui_type == "CANVAS"):
                 canvas = md.canvas_settings
-                surface = canvas.canvas_surfaces.active
-                row = layout.row()
-                row.template_list(canvas, "canvas_surfaces", canvas.canvas_surfaces, "active_index", rows=2)
-
-                col = row.column(align=True)
-                col.operator("dpaint.surface_slot_add", icon='ZOOMIN', text="")
-                col.operator("dpaint.surface_slot_remove", icon='ZOOMOUT', text="")
                 
-                if surface:
-                    layout.prop(surface, "name")
-                    layout.prop(surface, "surface_format", expand=False)
+                if (not canvas):
+                    layout.operator("dpaint.type_toggle", text="Add Canvas").type = 'CANVAS'
+                else:
+                    layout.operator("dpaint.type_toggle", text="Remove Canvas", icon='X').type = 'CANVAS'
+
+                    surface = canvas.canvas_surfaces.active
+                    row = layout.row()
+                    row.template_list(canvas, "canvas_surfaces", canvas.canvas_surfaces, "active_index", rows=2)
+
+                    col = row.column(align=True)
+                    col.operator("dpaint.surface_slot_add", icon='ZOOMIN', text="")
+                    col.operator("dpaint.surface_slot_remove", icon='ZOOMOUT', text="")
                     
-                    if surface.surface_format != "VERTEX":
+                    if surface:
+                        layout.prop(surface, "name")
+                        layout.prop(surface, "surface_format", expand=False)
                         col = layout.column()
-                        col.label(text="Quality:")
-                        col.prop(surface, "image_resolution")
+                        
+                        if surface.surface_format != "VERTEX":
+                            col.label(text="Quality:")
+                            col.prop(surface, "image_resolution")
                         col.prop(surface, "use_anti_aliasing")
-                
-                    col = layout.column()
-                    col.label(text="Frames:")
-                    split = col.split()
-                
-                    col = split.column(align=True)
-                    col.prop(surface, "start_frame", text="Start")
-                    col.prop(surface, "end_frame", text="End")
-                
-                    col = split.column()
-                    col.prop(surface, "substeps")
-                
+                    
+                        col = layout.column()
+                        col.label(text="Frames:")
+                        split = col.split()
+                    
+                        col = split.column(align=True)
+                        col.prop(surface, "start_frame", text="Start")
+                        col.prop(surface, "end_frame", text="End")
+                    
+                        col = split.column()
+                        col.prop(surface, "substeps")
 
-            elif md.dynamicpaint_type == 'BRUSH':
+            elif (md.ui_type == "BRUSH"):
                 brush = md.brush_settings
                 
-                layout.prop(brush, "brush_settings_context", expand=True, icon_only=True)
-                
-                if (brush.brush_settings_context == "GENERAL"):
-                    split = layout.split()
-
-                    col = split.column()
-                    col.prop(brush, "absolute_alpha")
-                    col.prop(brush, "paint_erase")
-                    col.prop(brush, "paint_wetness", text="Wetness")
-                
-                    col = split.column()
-                    sub = col.column()
-                    sub.active = (brush.paint_source != "PSYS");
-                    sub.prop(brush, "use_material")
-                    if brush.use_material and brush.paint_source != "PSYS":
-                        col.prop(brush, "material", text="")
-                        col.prop(brush, "paint_alpha", text="Alpha Factor")
-                    else:
-                        col.prop(brush, "paint_color", text="")
-                        col.prop(brush, "paint_alpha", text="Alpha")
-                
-                elif (brush.brush_settings_context == "WAVE"):
-                    layout.prop(brush, "wave_type")
-                    if (brush.wave_type != "REFLECT"):
-                        split = layout.split(percentage=0.6)
-                        split.prop(brush, "wave_factor")
+                if (not brush):
+                    layout.operator("dpaint.type_toggle", text="Add Brush").type = 'BRUSH'
                 else:
-                    layout.label(text="-WIP-")
+                    layout.operator("dpaint.type_toggle", text="Remove Brush", icon='X').type = 'BRUSH'
+                    
+                    layout.prop(brush, "brush_settings_context", expand=True, icon_only=True)
+                    
+                    if (brush.brush_settings_context == "GENERAL"):
+                        split = layout.split()
+
+                        col = split.column()
+                        col.prop(brush, "absolute_alpha")
+                        col.prop(brush, "paint_erase")
+                        col.prop(brush, "paint_wetness", text="Wetness")
+                    
+                        col = split.column()
+                        sub = col.column()
+                        sub.active = (brush.paint_source != "PSYS");
+                        sub.prop(brush, "use_material")
+                        if brush.use_material and brush.paint_source != "PSYS":
+                            col.prop(brush, "material", text="")
+                            col.prop(brush, "paint_alpha", text="Alpha Factor")
+                        else:
+                            col.prop(brush, "paint_color", text="")
+                            col.prop(brush, "paint_alpha", text="Alpha")
+                    
+                    elif (brush.brush_settings_context == "WAVE"):
+                        layout.prop(brush, "wave_type")
+                        if (brush.wave_type != "REFLECT"):
+                            split = layout.split(percentage=0.6)
+                            split.prop(brush, "wave_factor")
+                    else:
+                        layout.label(text="-WIP-")
 
 
 class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
@@ -119,7 +129,7 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
-        return md and (md.dynamicpaint_type == 'CANVAS') and (context.dynamic_paint.canvas_settings.canvas_surfaces.active)
+        return md and (md.ui_type == "CANVAS") and (md.canvas_settings) and (md.canvas_settings.canvas_surfaces.active)
 
     def draw(self, context):
         layout = self.layout
@@ -174,7 +184,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
-        if ((not md) or (md.dynamicpaint_type != 'CANVAS')):
+        if (not (md and (md.ui_type == "CANVAS") and (md.canvas_settings))):
             return 0
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
         return (surface and not (surface.surface_format=="VERTEX" and (surface.surface_type=="DISPLACE" or surface.surface_type=="WAVE")))
@@ -246,7 +256,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
-        if ((not md) or (md.dynamicpaint_type != 'CANVAS')):
+        if (not (md and (md.ui_type == "CANVAS") and (md.canvas_settings))):
             return False;
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
         return surface and (surface.surface_type == "PAINT")
@@ -285,7 +295,7 @@ class PHYSICS_PT_dp_cache(PhysicButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
-        return md and (md.dynamicpaint_type == 'CANVAS') and \
+        return md and (md.ui_type == "CANVAS") and (md.canvas_settings) and \
         (md.canvas_settings.canvas_surfaces.active) and (md.canvas_settings.canvas_surfaces.active.uses_cache)
 
     def draw(self, context):
@@ -304,7 +314,7 @@ class PHYSICS_PT_dp_advanced_brush(PhysicButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
-        return md and (md.dynamicpaint_type == 'BRUSH')
+        return md and (md.ui_type == "BRUSH") and (md.brush_settings)
 
     def draw(self, context):
         layout = self.layout
@@ -325,12 +335,21 @@ class PHYSICS_PT_dp_advanced_brush(PhysicButtonsPanel, bpy.types.Panel):
                 sub.prop(brush, "solid_radius", text="Solid Radius")
                 col.prop(brush, "use_part_radius", text="Use Particle's Radius")
                 col.prop(brush, "smooth_radius", text="Smooth radius")
-
-        elif brush.paint_source == "DISTANCE" or brush.paint_source == "VOLDIST":
-            col.prop(brush, "paint_distance", text="Paint Distance")
-            split = layout.row().split()
+        elif brush.paint_source in {'VOLUME', 'VOLDIST'}:
+            split = layout.row().split(percentage=0.4)
             sub = split.column()
-            sub.prop(brush, "prox_facealigned")
+            sub.prop(brush, "accept_nonclosed")
+            if brush.accept_nonclosed:
+                sub = split.column()
+                sub.prop(brush, "ray_dir")
+                
+                
+        if brush.paint_source in {'DISTANCE', 'VOLDIST', 'POINT'}:
+            col.prop(brush, "paint_distance", text="Paint Distance")
+            split = layout.row().split(percentage=0.4)
+            sub = split.column()
+            if (brush.paint_source != 'POINT'):
+                sub.prop(brush, "prox_facealigned")
             sub = split.column()
             sub.prop(brush, "prox_falloff", text="Falloff")
             if brush.paint_source == "VOLDIST":
