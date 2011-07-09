@@ -64,6 +64,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1798,6 +1799,46 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 
 /* ********************************************** */
 
+static int pose_bone_rotmode_exec (bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	int mode = RNA_enum_get(op->ptr, "type");
+	
+	/* set rotation mode of selected bones  */	
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
+	{
+		pchan->rotmode = mode;
+	}
+	CTX_DATA_END;
+	
+	/* notifiers and updates */
+	DAG_id_tag_update((ID *)ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_rotation_mode_set (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Rotation Mode";
+	ot->idname= "POSE_OT_rotation_mode_set";
+	ot->description= "Set the rotation representation used by selected bones";
+	
+	/* callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= pose_bone_rotmode_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop= RNA_def_enum(ot->srna, "type", posebone_rotmode_items, 0, "Rotation Mode", "");
+}
+
+/* ********************************************** */
+
 /* Show all armature layers */
 static int pose_armature_layers_showall_poll (bContext *C)
 {
@@ -1884,7 +1925,7 @@ static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 	PointerRNA ptr;
 	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
-	if(ob==NULL || ob->data==NULL) {
+	if (ELEM(NULL, ob, ob->data)) {
 		return OPERATOR_CANCELLED;
 	}
 

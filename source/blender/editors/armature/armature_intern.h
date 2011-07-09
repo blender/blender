@@ -123,6 +123,8 @@ void POSE_OT_paths_clear(struct wmOperatorType *ot);
 void POSE_OT_autoside_names(struct wmOperatorType *ot);
 void POSE_OT_flip_names(struct wmOperatorType *ot);
 
+void POSE_OT_rotation_mode_set(struct wmOperatorType *ot);
+
 void POSE_OT_quaternions_flip(struct wmOperatorType *ot);
 
 void POSE_OT_armature_layers(struct wmOperatorType *ot);
