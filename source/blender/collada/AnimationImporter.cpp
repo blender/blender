@@ -724,7 +724,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 												   std::map<COLLADAFW::UniqueId, Object*>& object_map,
 												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map)
 {
-	int animType = get_animation_type(node, FW_object_map );
+	AnimationImporter::AnimMix* animType = get_animation_type(node, FW_object_map );
 
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
@@ -738,7 +738,8 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 	bAction * act;
 	bActionGroup *grp = NULL;
     
-	if ( (animType & NODE_TRANSFORM) != 0 )
+	//if ( (animType & NODE_TRANSFORM) != 0 )
+	if ( (animType->transform) != 0 )
 	{
     	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
         char joint_path[200];
@@ -804,7 +805,8 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 		}
 	}
 
-	if ( ((animType & LIGHT_COLOR) != 0)|| ((animType & LIGHT_FOA) != 0) || ((animType & LIGHT_FOE) != 0) )
+	//if ( ((animType & LIGHT_COLOR) != 0)|| ((animType & LIGHT_FOA) != 0) || ((animType & LIGHT_FOE) != 0) )
+	if ((animType->light) != 0)
 	{
 		Lamp * lamp  = (Lamp*) ob->data;
 
@@ -817,7 +819,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 		for (unsigned int i = 0; i < nodeLights.getCount(); i++) {
 			const COLLADAFW::Light *light = (COLLADAFW::Light *) FW_object_map[nodeLights[i]->getInstanciatedObjectId()];
 
-			if ((animType & LIGHT_COLOR) != 0)
+			if ((animType->light & LIGHT_COLOR) != 0)
 			{
 				const COLLADAFW::Color *col =  &(light->getColor());
 				const COLLADAFW::UniqueId& listid = col->getAnimationList();
@@ -840,13 +842,13 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 				}
 				
 			}
-			if ((animType & LIGHT_FOA) != 0 )
+			if ((animType->light & LIGHT_FOA) != 0 )
 			{
 				const COLLADAFW::AnimatableFloat *foa =  &(light->getFallOffAngle());
 				const COLLADAFW::UniqueId& listid = foa->getAnimationList();
 				Assign_float_animations( listid ,AnimCurves, "spot_size"); 
 			}
-			if ( (animType & LIGHT_FOE) != 0 )
+			if ( (animType->light & LIGHT_FOE) != 0 )
 			{
 				const COLLADAFW::AnimatableFloat *foe =  &(light->getFallOffExponent());
 				const COLLADAFW::UniqueId& listid = foe->getAnimationList();
@@ -856,7 +858,8 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 		}
 	}
 
-	if ( ((animType & CAMERA_XFOV) != 0) || (animType & CAMERA_XMAG) != 0 )
+	//if ( ((animType & CAMERA_XFOV) != 0) || (animType & CAMERA_XMAG) != 0 )
+	if ( (animType->camera) != 0) 
 	{
 		Camera * camera  = (Camera*) ob->data;
 
@@ -869,14 +872,14 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 		for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
 			const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
 
-			if ((animType & CAMERA_XFOV) != 0 )
+			if ((animType->camera & CAMERA_XFOV) != 0 )
 			{
 				const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
 				const COLLADAFW::UniqueId& listid = xfov->getAnimationList();
 				Assign_float_animations( listid ,AnimCurves, "lens"); 
 			}
 
-			else if ((animType & CAMERA_XMAG) != 0 )
+			else if ((animType->camera & CAMERA_XMAG) != 0 )
 			{
 				const COLLADAFW::AnimatableFloat *xmag =  &(camera->getXMag());
 				const COLLADAFW::UniqueId& listid = xmag->getAnimationList();
@@ -887,11 +890,16 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 }
 
 //Check if object is animated by checking if animlist_map holds the animlist_id of node transforms
-int AnimationImporter::get_animation_type ( const COLLADAFW::Node * node , 
+AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLADAFW::Node * node , 
 											std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map) 
 {
-	int type = INANIMATE ;
-	//bool exists = false;
+	AnimationImporter::AnimMix *types = NULL;
+	types->transform = INANIMATE ;
+	types->light = INANIMATE;
+	types->camera = INANIMATE;
+	types->material = INANIMATE;
+	types->texture = INANIMATE;
+	
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
 	
 	//for each transformation in node 
@@ -903,7 +911,7 @@ int AnimationImporter::get_animation_type ( const COLLADAFW::Node * node ,
 		if (animlist_map.find(listid) == animlist_map.end()) continue ;
 		else 
 		{
-			type = type|NODE_TRANSFORM;
+			types->transform = types->transform|NODE_TRANSFORM;
 			break;
 		}
 	}
@@ -917,22 +925,26 @@ int AnimationImporter::get_animation_type ( const COLLADAFW::Node * node ,
 
 		//check if color has animations    
 		if (animlist_map.find(col_listid) != animlist_map.end())  
-			type = type|LIGHT_COLOR;
+		//	type = type|LIGHT_FOA;
+			types->light = types->light|LIGHT_COLOR;
 		
 		const COLLADAFW::AnimatableFloat *fallOffAngle =  &(light->getFallOffAngle());
 	    const COLLADAFW::UniqueId& foa_listid = fallOffAngle ->getAnimationList();
 
 		if (animlist_map.find(foa_listid) != animlist_map.end()) 
-				type = type|LIGHT_FOA;
+		//		type = type|LIGHT_FOA;
+				types->light = types->light|LIGHT_FOA;
 		
 		const COLLADAFW::AnimatableFloat *fallOffExpo =  &(light->getFallOffExponent());
 	    const COLLADAFW::UniqueId& foe_listid = fallOffExpo ->getAnimationList();
 
 		if (animlist_map.find(foe_listid) != animlist_map.end()) 
-				type = type|LIGHT_FOE;
+				//type = type|LIGHT_FOE;
+				types->light = types->light|LIGHT_FOE;
 		
-		if ( type != 0) break;
-
+		//if ( type != 0) break;
+		if ( types->light != 0) break;
+		
 	}
 
 	const COLLADAFW::InstanceCameraPointerArray& nodeCameras = node->getInstanceCameras();
@@ -944,19 +956,23 @@ int AnimationImporter::get_animation_type ( const COLLADAFW::Node * node ,
 			const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
 			const COLLADAFW::UniqueId& xfov_listid = xfov ->getAnimationList();
 			if (animlist_map.find(xfov_listid) != animlist_map.end()) 
-				type = type|CAMERA_XFOV;
+				//type = type|CAMERA_XFOV; 	
+				types->camera = types->camera|CAMERA_XFOV;
+		
 		}
 		else 
 		{
 			const COLLADAFW::AnimatableFloat *xmag =  &(camera->getXMag());
 			const COLLADAFW::UniqueId& xmag_listid = xmag ->getAnimationList();
 			if (animlist_map.find(xmag_listid) != animlist_map.end()) 
-					type = type|CAMERA_XMAG;
+				//	type = type|CAMERA_XMAG;
+				types->camera = types->camera|CAMERA_XMAG;
 		}	
-		if ( type != 0) break;
+		//if ( type != 0) break;
+		if ( types->camera != 0) break;
 
 	}
-	return type;
+	return types;
 }
 
 //XXX Is not used anymore.

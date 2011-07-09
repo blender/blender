@@ -85,17 +85,41 @@ private:
 	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated);
 	
 	int typeFlag;
+    
+	enum lightAnim
+	{
+//		INANIMATE = 0,
+		LIGHT_COLOR	= 2,
+		LIGHT_FOA = 4,
+		LIGHT_FOE = 8
+	};
 
+	enum cameraAnim
+	{
+//		INANIMATE = 0,
+		CAMERA_XFOV = 2,
+		CAMERA_XMAG = 4
+	};
+	
 	enum AnimationType
 		{
 			INANIMATE = 0,
 			NODE_TRANSFORM = 1,
-			LIGHT_COLOR	= 2,
+	/*		LIGHT_COLOR	= 2,
 			LIGHT_FOA = 4,
 			LIGHT_FOE = 8,
 			CAMERA_XFOV = 16,
-			CAMERA_XMAG = 32
+			CAMERA_XMAG = 32*/
 		};
+
+	struct AnimMix
+	{
+		int transform;
+		int light;
+		int camera;
+		int material;
+		int texture;
+	};
 public:
 
 	AnimationImporter(UnitConverter *conv, ArmatureImporter *arm, Scene *scene);
@@ -117,7 +141,7 @@ public:
 												   std::map<COLLADAFW::UniqueId, Object*>& object_map ,
 												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
 
-	int get_animation_type( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map ) ;
+	AnimMix* get_animation_type( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map ) ;
 
 
 	void Assign_transform_animations(COLLADAFW::Transformation* transform , 

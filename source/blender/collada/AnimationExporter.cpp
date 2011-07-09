@@ -92,7 +92,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				
 				if ((!strcmp(transformName, "lens"))||
 					(!strcmp(transformName, "ortho_scale"))||
-					(!strcmp(transformName, "clipend"))) 
+					(!strcmp(transformName, "clipend"))||(!strcmp(transformName, "clipsta"))) 
 					dae_animation(ob ,fcu, transformName,true );
 				fcu = fcu->next;
 			}
@@ -188,7 +188,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		}
 		//maybe a list or a vector of float animations
 		else if ( !strcmp(transformName, "spot_size")||!strcmp(transformName, "spot_blend")||
-				  !strcmp(transformName, "lens")||!strcmp(transformName, "ortho_scale")||!strcmp(transformName, "clipend"))
+				  !strcmp(transformName, "lens")||!strcmp(transformName, "ortho_scale")||!strcmp(transformName, "clipend")||
+				  !strcmp(transformName, "clipsta"))
 		{
 			axis_name = "";
 		}
@@ -811,6 +812,9 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				tm_type = 8;
 			else if (!strcmp(name, "clipend"))
 				tm_type = 9;
+			else if (!strcmp(name, "clipsta"))
+				tm_type = 10;
+			
 			else
 				tm_type = -1;
 		}
@@ -845,7 +849,11 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		case 9:
 			tm_name = "zfar";
 			break;
+		case 10:
+			tm_name = "znear";
+			break;
 		
+
 		default:
 			tm_name = "";
 			break;
