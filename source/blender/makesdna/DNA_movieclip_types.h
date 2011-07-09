@@ -49,7 +49,6 @@ typedef struct MovieClipUser {
 
 typedef struct MovieClip {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
 
 	char name[240];		/* file path */
 

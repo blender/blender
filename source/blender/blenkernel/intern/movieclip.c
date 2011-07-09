@@ -418,8 +418,6 @@ void free_movieclip(MovieClip *clip)
 {
 	free_buffers(clip);
 
-	if(clip->adt) BKE_free_animdata((ID *)clip);
-
 	BKE_tracking_free(&clip->tracking);
 }
 

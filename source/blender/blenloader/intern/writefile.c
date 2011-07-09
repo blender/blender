@@ -2425,8 +2425,6 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 			MovieTrackingTrack *track;
 			writestruct(wd, ID_MC, "MovieClip", 1, clip);
 
-			if (clip->adt) write_animdata(wd, clip->adt);
-
 			if(tracking->camera.reconnr)
 				writestruct(wd, DATA, "MovieReconstructedCamera", tracking->camera.reconnr, tracking->camera.reconstructed);
 

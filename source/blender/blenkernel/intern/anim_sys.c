@@ -85,7 +85,6 @@ short id_type_can_have_animdata (ID *id)
 		case ID_MA: case ID_TE: case ID_NT:
 		case ID_LA: case ID_CA: case ID_WO:
 		case ID_SCE:
-		case ID_MC:
 		{
 			return 1;
 		}
@@ -2243,9 +2242,6 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	
 	/* scenes */
 	EVAL_ANIM_NODETREE_IDS(main->scene.first, Scene, ADT_RECALC_ANIM);
-
-	/* movieclips */
-	EVAL_ANIM_IDS(main->movieclip.first, ADT_RECALC_ANIM);
 }
 
 /* ***************************************** */ 

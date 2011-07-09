@@ -5669,9 +5669,6 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	if(fd->movieclipmap) clip->ibuf_cache= newmclipadr(fd, clip->ibuf_cache);
 	else clip->ibuf_cache= NULL;
 
-	clip->adt= newdataadr(fd, clip->adt);
-	direct_link_animdata(fd, clip->adt);
-
 	tracking->camera.reconstructed= newdataadr(fd, tracking->camera.reconstructed);
 
 	link_list(fd, &tracking->tracks);
@@ -5691,15 +5688,13 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	clip->tracking_context= NULL;
 }
 
-static void lib_link_movieclip(FileData *fd, Main *main)
+static void lib_link_movieclip(FileData *UNUSED(fd), Main *main)
 {
 	MovieClip *clip;
 
 	clip= main->movieclip.first;
 	while(clip) {
 		if(clip->id.flag & LIB_NEEDLINK) {
-			if(clip->adt) lib_link_animdata(fd, &clip->id, clip->adt);
-
 			clip->id.flag -= LIB_NEEDLINK;
 		}
 		clip= clip->id.next;
