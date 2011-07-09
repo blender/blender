@@ -51,6 +51,7 @@
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_gpencil.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 
