@@ -76,7 +76,7 @@ class CLIP_HT_header(bpy.types.Header):
 
             if clip:
                 sub.menu("CLIP_MT_select")
-                sub.menu("CLIP_MT_edit")
+                sub.menu("CLIP_MT_track")
 
         layout.template_ID(sc, "clip")
 
@@ -338,28 +338,64 @@ class CLIP_MT_clip(bpy.types.Menu):
         layout.operator("clip.open")
 
 
-class CLIP_MT_edit(bpy.types.Menu):
-    bl_label = "Edit"
+class CLIP_MT_track(bpy.types.Menu):
+    bl_label = "Track"
 
     def draw(self, context):
         layout = self.layout
 
-        sc = context.space_data
+        layout.operator("clip.set_origin")
 
+        layout.separator()
+        layout.operator("clip.clear_reconstruction")
+        layout.operator("clip.solve_camera")
+
+        layout.separator()
+        layout.operator("clip.clear_track_path", text="Clear Remained Path").action = 'REMAINED'
+        layout.operator("clip.clear_track_path", text="Clear Path Up To").action = 'UPTO'
+        layout.operator("clip.clear_track_path", text="Clear Track Path").action = 'ALL'
+
+        layout.separator()
+        op = layout.operator("clip.track_markers", text="Track Frame Backwards")
+        op.backwards = True
+        op = layout.operator("clip.track_markers", text="Track Backwards")
+        op.backwards = True
+        op.sequence = True
+        op = layout.operator("clip.track_markers", text="Track Forwards")
+        op.sequence = True
+        layout.operator("clip.track_markers", text="Track Frame Forwards")
+
+        layout.separator()
         layout.operator("clip.delete_track")
         layout.operator("clip.delete_marker")
-        layout.menu("CLIP_MT_marker")
+
+        layout.separator()
+        layout.operator("clip.add_marker_move")
+
+        layout.separator()
+        layout.menu("CLIP_MT_track_visibility")
+        layout.menu("CLIP_MT_track_transform")
 
 
-class CLIP_MT_marker(bpy.types.Menu):
-    bl_label = "Marker"
+class CLIP_MT_track_visibility(bpy.types.Menu):
+    bl_label = "Show/Hide"
 
     def draw(self, context):
         layout = self.layout
 
-        sc = context.space_data
+        layout.operator("clip.hide_tracks_clear", text="Show Hidden")
+        layout.operator("clip.hide_tracks", text="Hide Selected")
+        layout.operator("clip.hide_tracks", text="Hide Unselected").unselected = True
 
-        layout.operator("clip.add_marker_move")
+
+class CLIP_MT_track_transform(bpy.types.Menu):
+    bl_label = "Transform"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("transform.translate")
+        layout.operator("transform.resize")
 
 
 class CLIP_MT_select(bpy.types.Menu):

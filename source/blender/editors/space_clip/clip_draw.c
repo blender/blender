@@ -507,7 +507,9 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 	if(sc->flag&SC_SHOW_MARKER_PATH) {
 		track= clip->tracking.tracks.first;
 		while(track) {
-			draw_track_path(sc, clip, track);
+			if((track->flag&TRACK_HIDDEN)==0)
+				draw_track_path(sc, clip, track);
+
 			track= track->next;
 		}
 	}
@@ -515,11 +517,13 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 	/* markers outline and non-selected areas */
 	track= clip->tracking.tracks.first;
 	while(track) {
-		marker= BKE_tracking_get_marker(track, sc->user.framenr);
+		if((track->flag&TRACK_HIDDEN)==0) {
+			marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-		draw_marker_outline(sc, track, marker);
-		draw_marker_slide_zones(sc, track, marker, 1, 0, width, height);
-		draw_marker_areas(sc, track, marker, 0, 0);
+			draw_marker_outline(sc, track, marker);
+			draw_marker_slide_zones(sc, track, marker, 1, 0, width, height);
+			draw_marker_areas(sc, track, marker, 0, 0);
+		}
 
 		track= track->next;
 	}
@@ -528,12 +532,14 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 	   non-selected areas */
 	track= clip->tracking.tracks.first;
 	while(track) {
-		int act= sel_type==MCLIP_SEL_TRACK && sel==track;
+		if((track->flag&TRACK_HIDDEN)==0) {
+			int act= sel_type==MCLIP_SEL_TRACK && sel==track;
 
-		if(!act) {
-			marker= BKE_tracking_get_marker(track, sc->user.framenr);
-			draw_marker_areas(sc, track, marker, 0, 1);
-			draw_marker_slide_zones(sc, track, marker, 0, 0, width, height);
+			if(!act) {
+				marker= BKE_tracking_get_marker(track, sc->user.framenr);
+				draw_marker_areas(sc, track, marker, 0, 1);
+				draw_marker_slide_zones(sc, track, marker, 0, 0, width, height);
+			}
 		}
 
 		track= track->next;
@@ -541,9 +547,11 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 
 	/* active marker would be displayed on top of everything else */
 	if(sel_type==MCLIP_SEL_TRACK) {
-		marker= BKE_tracking_get_marker(sel, sc->user.framenr);
-		draw_marker_areas(sc, sel, marker, 1, 1);
-		draw_marker_slide_zones(sc, sel, marker, 0, 1, width, height);
+		if((((MovieTrackingTrack *)sel)->flag&TRACK_HIDDEN)==0) {
+			marker= BKE_tracking_get_marker(sel, sc->user.framenr);
+			draw_marker_areas(sc, sel, marker, 1, 1);
+			draw_marker_slide_zones(sc, sel, marker, 0, 1, width, height);
+		}
 	}
 
 	glPopMatrix();

@@ -241,7 +241,7 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 	while(track) {
 		next= track->next;
 
-		if(TRACK_SELECTED(track)) {
+		if(TRACK_VIEW_SELECTED(track)) {
 			BKE_tracking_free_track(track);
 			BLI_freelinkN(&clip->tracking.tracks, track);
 		}
@@ -286,7 +286,7 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 	while(track) {
 		next= track->next;
 
-		if(TRACK_SELECTED(track)) {
+		if(TRACK_VIEW_SELECTED(track)) {
 			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, framenr);
 
 			if(marker) {
@@ -519,12 +519,14 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	/* do actual selection */
 	track= clip->tracking.tracks.first;
 	while(track) {
-		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
+		if((track->flag&TRACK_HIDDEN)==0) {
+			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-		if(BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
-			BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
+			if(BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
+				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
 
-			change= 1;
+				change= 1;
+			}
 		}
 
 		track= track->next;
@@ -602,12 +604,14 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	/* do selection */
 	track= clip->tracking.tracks.first;
 	while(track) {
-		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
+		if((track->flag&TRACK_HIDDEN)==0) {
+			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-		if(marker_inside_ellipse(marker, offset, ellipse)) {
-			BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
+			if(marker_inside_ellipse(marker, offset, ellipse)) {
+				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
 
-			change= 1;
+				change= 1;
+			}
 		}
 
 		track= track->next;
@@ -663,7 +667,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		track= clip->tracking.tracks.first;
 		while(track) {
 			if(BKE_tracking_has_marker(track, framenr)) {
-				if(TRACK_SELECTED(track)) {
+				if(TRACK_VIEW_SELECTED(track)) {
 					action= SEL_DESELECT;
 					break;
 				}
@@ -675,7 +679,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(BKE_tracking_has_marker(track, framenr)) {
+		if((track->flag&TRACK_HIDDEN)==0 && BKE_tracking_has_marker(track, framenr)) {
 			switch (action) {
 				case SEL_SELECT:
 					track->flag|= SELECT;
@@ -751,7 +755,8 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		BKE_tracking_ensure_marker(track, framenr);
+		if((track->flag&TRACK_HIDDEN)==0)
+			BKE_tracking_ensure_marker(track, framenr);
 
 		track= track->next;
 	}
@@ -996,8 +1001,11 @@ static int solve_camera_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
+	Scene *scene= CTX_data_scene(C);
 
 	BKE_tracking_solve_reconstruction(clip);
+
+	scene->clip= clip;
 
 	DAG_id_tag_update(&clip->id, 0);
 
@@ -1142,7 +1150,7 @@ static int disable_markers_exec(bContext *C, wmOperator *op)
 	int action= RNA_enum_get(op->ptr, "action");
 
 	while(track) {
-		if(TRACK_SELECTED(track)) {
+		if(TRACK_VIEW_SELECTED(track)) {
 			MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
 
 			if(action==0) marker->flag|= MARKER_DISABLED;
@@ -1322,7 +1330,7 @@ static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_SELECTED(track)) {
+		if(TRACK_VIEW_SELECTED(track)) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
 			if(marker && (marker->flag&MARKER_DISABLED)==0) {
@@ -1413,6 +1421,100 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
 		"Offset", "Offset in floating point units, 1.0 is the width and height of the image.", -FLT_MAX, FLT_MAX);
+}
+
+/********************** hide tracks opertaotr *********************/
+
+static int hide_tracks_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	int sel_type, unselected;
+	void *sel;
+
+	unselected= RNA_boolean_get(op->ptr, "unselected");
+
+	BKE_movieclip_last_selection(clip, &sel_type, &sel);
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(unselected==0 && TRACK_SELECTED(track)) {
+			track->flag|= TRACK_HIDDEN;
+		} else if(unselected==1 && !TRACK_SELECTED(track)) {
+			track->flag|= TRACK_HIDDEN;
+		}
+
+		track= track->next;
+	}
+
+	if(sel_type==MCLIP_SEL_TRACK) {
+		track= (MovieTrackingTrack *)sel;
+
+		if(track->flag&TRACK_HIDDEN)
+			BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_hide_tracks(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hide Tracks";
+	ot->description= "Hide selected tracks";
+	ot->idname= "CLIP_OT_hide_tracks";
+
+	/* api callbacks */
+	ot->exec= hide_tracks_exec;
+	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected tracks");
+}
+
+/********************** hide tracks clear opertaotr *********************/
+
+static int hide_tracks_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	int sel_type;
+	void *sel;
+
+	BKE_movieclip_last_selection(clip, &sel_type, &sel);
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		track->flag&= ~TRACK_HIDDEN;
+
+		track= track->next;
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hide Tracks Clear";
+	ot->description= "Clear hide selected tracks";
+	ot->idname= "CLIP_OT_hide_tracks_clear";
+
+	/* api callbacks */
+	ot->exec= hide_tracks_clear_exec;
+	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /********************** track to fcurves opertaotr *********************/

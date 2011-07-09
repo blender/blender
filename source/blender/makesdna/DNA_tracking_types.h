@@ -113,6 +113,7 @@ typedef struct MovieTracking {
 #define TRACK_DISABLE_RED	(1<<2)
 #define TRACK_DISABLE_GREEN	(1<<3)
 #define TRACK_DISABLE_BLUE	(1<<4)
+#define TRACK_HIDDEN		(1<<5)
 
 /* MovieTrackingSettings->speed */
 #define TRACKING_SPEED_FASTEST		0

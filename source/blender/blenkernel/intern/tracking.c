@@ -386,7 +386,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 
 	track= tracking->tracks.first;
 	while(track) {
-		if(TRACK_SELECTED(track)) {
+		if(TRACK_VIEW_SELECTED(track)) {
 			MovieTrackingTrack *new_track= BKE_tracking_copy_track(track);
 
 			BLI_addtail(&context->tracks, new_track);

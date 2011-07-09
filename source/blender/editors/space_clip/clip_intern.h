@@ -74,6 +74,8 @@ void CLIP_OT_clear_reconstruction(struct wmOperatorType *ot);
 void CLIP_OT_clear_track_path(struct wmOperatorType *ot);
 
 void CLIP_OT_disable_markers(struct wmOperatorType *ot);
+void CLIP_OT_hide_tracks(struct wmOperatorType *ot);
+void CLIP_OT_hide_tracks_clear(struct wmOperatorType *ot);
 
 void CLIP_OT_set_origin(struct wmOperatorType *ot);
 

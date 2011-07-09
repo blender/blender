@@ -78,6 +78,7 @@ void BKE_get_tracking_mat(struct Scene *scene, float mat[4][4]);
 
 #define TRACK_SELECTED(track) ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 #define TRACK_AREA_SELECTED(track, area) ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))
+#define TRACK_VIEW_SELECTED(track) ((track->flag&TRACK_HIDDEN)==0 && TRACK_SELECTED(track))
 
 #define CLAMP_PAT_DIM		1
 #define CLAMP_PAT_POS		2
