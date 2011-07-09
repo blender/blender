@@ -98,18 +98,15 @@ private:
 	{
 //		INANIMATE = 0,
 		CAMERA_XFOV = 2,
-		CAMERA_XMAG = 4
+		CAMERA_XMAG = 4,
+		CAMERA_ZFAR = 8,
+		CAMERA_ZNEAR = 16
 	};
 	
 	enum AnimationType
 		{
 			INANIMATE = 0,
 			NODE_TRANSFORM = 1,
-	/*		LIGHT_COLOR	= 2,
-			LIGHT_FOA = 4,
-			LIGHT_FOE = 8,
-			CAMERA_XFOV = 16,
-			CAMERA_XMAG = 32*/
 		};
 
 	struct AnimMix
@@ -152,7 +149,9 @@ public:
 								 std::vector<FCurve*>* curves);
 
 	void Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, char * anim_type);
-
+    
+	int setAnimType ( const COLLADAFW::Animatable * prop , int type, int addition);
+	
 	void modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index );
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist

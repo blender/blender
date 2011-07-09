@@ -76,7 +76,7 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 		persp.setXFov(lens_to_angle(cam->lens)*(180.0f/M_PI),"xfov");
 		persp.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch),false,"aspect_ratio");
 		persp.setZFar(cam->clipend, false , "zfar");
-		persp.setZNear(cam->clipsta);
+		persp.setZNear(cam->clipsta,false , "znear");
 		COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);
 		addCamera(ccam);
 	}
@@ -85,7 +85,7 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 		ortho.setXMag(cam->ortho_scale,"xmag");
 		ortho.setAspectRatio((float)(sce->r.xsch)/(float)(sce->r.ysch),false,"aspect_ratio");
 		ortho.setZFar(cam->clipend , false , "zfar");
-		ortho.setZNear(cam->clipsta);
+		ortho.setZNear(cam->clipsta, false , "znear");
 		COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_name);
 		addCamera(ccam);
 	}
