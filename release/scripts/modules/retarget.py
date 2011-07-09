@@ -22,40 +22,33 @@ import bpy
 from mathutils import *
 from math import radians, acos
 
-#TODO: Only selected bones get retargeted.
-#      Selected Bones/chains get original pos empties,
-#      if ppl want IK instead of FK
-#      Some "magic" numbers - frame start and end,
-#	eulers of all orders instead of just quats keyframed
 
-# dictionary of mapping
-# this is currently manuall input'ed, but willW
-# be created from a more comfortable UI in the future
+def hasIKConstraint(pose_bone):
+    #utility function / predicate, returns True if given bone has IK constraint
+    ik = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"]
+    if ik:
+        return ik[0]
+    else:
+        return False
 
 
 def createDictionary(perf_arm, end_arm):
-    bonemap = {}
-    #Bonemap: performer to enduser
-    for bone in perf_arm.bones:
-        bonemap[bone.name] = bone.map
+    # clear any old data
+    for end_bone in end_arm.bones:
+        for mapping in end_bone.reverseMap:
+            end_bone.reverseMap.remove(0)
 
-    # creation of a reverse map
-    # multiple keys get mapped to list values
-    #Bonemapr: enduser to performer
-    bonemapr = {}
-    for key, value in bonemap.items():
-        if not value in bonemapr:
-            if isinstance(bonemap[key], tuple):
-                for key_x in bonemap[key]:
-                    bonemapr[key_x] = [key]
-            else:
-                bonemapr[bonemap[key]] = [key]
-        else:
-            bonemapr[bonemap[key]].append(key)
+    for perf_bone in perf_arm.bones:
+        #find its match and add perf_bone to the match's mapping
+        if perf_bone.map:
+            end_bone = end_arm.bones[perf_bone.map]
+            newMap = end_bone.reverseMap.add()
+            newMap.name = perf_bone.name
+
     #root is the root of the enduser
     root = end_arm.bones[0].name
     feetBones = [bone.name for bone in perf_arm.bones if bone.foot]
-    return bonemap, bonemapr, feetBones, root
+    return feetBones, root
 # list of empties created to keep track of "original"
 # position data
 # in final product, these locations can be stored as custom props
@@ -69,7 +62,7 @@ def createDictionary(perf_arm, end_arm):
 # easily while concentrating on the hierarchy changes
 
 
-def createIntermediate(performer_obj, enduser_obj, bonemap, bonemapr, root, s_frame, e_frame, scene):
+def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene):
     #creates and keyframes an empty with its location
     #the original position of the tail bone
     #useful for storing the important data in the original motion
@@ -96,22 +89,17 @@ def createIntermediate(performer_obj, enduser_obj, bonemap, bonemapr, root, s_fr
     #determines the type of hierachy change needed and calls the
     #right function
     def retargetPerfToInter(inter_bone):
-        if inter_bone.name in bonemapr:
-            perf_bone_name = bonemapr[inter_bone.name]
-            #is it a 1 to many?
-            if isinstance(bonemap[perf_bone_name[0]], tuple):
-                pass
+        if inter_bone.bone.reverseMap:
+            perf_bone_name = inter_bone.bone.reverseMap
                 # 1 to many not supported yet
-            else:
                 # then its either a many to 1 or 1 to 1
-
-                if len(perf_bone_name) > 1:
-                    performer_bones_s = [performer_bones[name] for name in perf_bone_name]
-                    #we need to map several performance bone to a single
-                    inter_bone.matrix_basis = manyPerfToSingleInterRetarget(inter_bone, performer_bones_s)
-                else:
-                    perf_bone = performer_bones[perf_bone_name[0]]
-                    inter_bone.matrix_basis = singleBoneRetarget(inter_bone, perf_bone)
+            if len(perf_bone_name) > 1:
+                performer_bones_s = [performer_bones[map.name] for map in perf_bone_name]
+                #we need to map several performance bone to a single
+                inter_bone.matrix_basis = manyPerfToSingleInterRetarget(inter_bone, performer_bones_s)
+            else:
+                perf_bone = performer_bones[perf_bone_name[0].name]
+                inter_bone.matrix_basis = singleBoneRetarget(inter_bone, perf_bone)
 
         inter_bone.keyframe_insert("rotation_quaternion")
         for child in inter_bone.children:
@@ -140,7 +128,7 @@ def createIntermediate(performer_obj, enduser_obj, bonemap, bonemapr, root, s_fr
         inter_bone = inter_bones[root]
         retargetPerfToInter(inter_bone)
 
-    return inter_obj, inter_arm
+    return inter_obj
 
 # this procedure copies the rotations over from the intermediate
 # armature to the end user one.
@@ -176,7 +164,13 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
         rest_matrix_inv.invert()
         bake_matrix = rest_matrix_inv * bake_matrix
         trg_bone.matrix_basis = bake_matrix
-        end_bone.keyframe_insert("rotation_quaternion")
+        rot_mode = end_bone.rotation_mode
+        if rot_mode == "QUATERNION":
+            end_bone.keyframe_insert("rotation_quaternion")
+        elif rot_mode == "AXIS_ANGLE":
+            end_bone.keyframe_insert("rotation_axis_angle")
+        else:
+            end_bone.keyframe_insert("rotation_euler")
 
         for bone in end_bone.children:
             bakeTransform(bone)
@@ -193,13 +187,13 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
 # (they don't move, despite root moving) somewhere in the animation.
 
 
-def copyTranslation(performer_obj, enduser_obj, perfFeet, bonemap, bonemapr, root, s_frame, e_frame, scene, enduser_obj_mat):
+def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame, scene, enduser_obj_mat):
 
     perf_bones = performer_obj.pose.bones
     end_bones = enduser_obj.pose.bones
 
-    perfRoot = bonemapr[root][0]
-    endFeet = [bonemap[perfBone] for perfBone in perfFeet]
+    perfRoot = end_bones[root].bone.reverseMap[0].name
+    endFeet = [perf_bones[perfBone].bone.map for perfBone in perfFeet]
     locDictKeys = perfFeet + endFeet + [perfRoot]
 
     def tailLoc(bone):
@@ -208,7 +202,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, bonemap, bonemapr, roo
     #Step 1 - we create a dict that contains these keys:
     #(Performer) Hips, Feet
     #(End user) Feet
-    # where the values are their world position on each (1,120) frame
+    # where the values are their world position on each frame in range (s,e)
 
     locDict = {}
     for key in locDictKeys:
@@ -231,10 +225,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, bonemap, bonemapr, roo
 
     for key in locDict.keys():
         graph = locDict[key]
-        for t in range(len(graph) - 1):
-            x = graph[t]
-            xh = graph[t + 1]
-            locDeriv[key].append(xh - x)
+        locDeriv[key] = [graph[t + 1] - graph[t] for t in range(len(graph) - 1)]
 
     # now find the plant frames, where perfFeet don't move much
 
@@ -244,7 +235,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, bonemap, bonemapr, roo
         for i in range(len(locDeriv[key]) - 1):
             v = locDeriv[key][i]
             hipV = locDeriv[perfRoot][i]
-            endV = locDeriv[bonemap[key]][i]
+            endV = locDeriv[perf_bones[key].bone.map][i]
             if (v.length < 0.1):
                 #this is a plant frame.
                 #lets see what the original hip delta is, and the corresponding
@@ -268,18 +259,16 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, bonemap, bonemapr, roo
     return stride_bone
 
 
-def IKRetarget(bonemap, bonemapr, performer_obj, enduser_obj, s_frame, e_frame, scene):
+def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene):
     end_bones = enduser_obj.pose.bones
     for pose_bone in end_bones:
-        if "IK" in [constraint.type for constraint in pose_bone.constraints]:
+        ik_constraint = hasIKConstraint(pose_bone)
+        if ik_constraint:
             target_is_bone = False
             # set constraint target to corresponding empty if targetless,
             # if not, keyframe current target to corresponding empty
-            perf_bone = bonemapr[pose_bone.name]
-            if isinstance(perf_bone, list):
-                perf_bone = bonemapr[pose_bone.name][-1]
+            perf_bone = pose_bone.bone.reverseMap[-1].name
             orgLocTrg = originalLocationTarget(pose_bone)
-            ik_constraint = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"][0]
             if not ik_constraint.target:
                 ik_constraint.target = orgLocTrg
                 target = orgLocTrg
@@ -314,8 +303,8 @@ def turnOffIK(enduser_obj):
             #pose_bone.ik_stiffness_x = 0.5
             #pose_bone.ik_stiffness_y = 0.5
             #pose_bone.ik_stiffness_z = 0.5
-        if "IK" in [constraint.type for constraint in pose_bone.constraints]:
-            ik_constraint = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"][0]
+        ik_constraint = hasIKConstraint(pose_bone)
+        if ik_constraint:
             ik_constraint.mute = True
 
 
@@ -350,44 +339,37 @@ def originalLocationTarget(end_bone):
     return empty
 
 
-def totalRetarget():
-    print("retargeting...")
-    enduser_obj = bpy.context.active_object
-    performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj]
-    if enduser_obj is None or len(performer_obj) != 1:
-        print("Need active and selected armatures")
-    else:
-        performer_obj = performer_obj[0]
+def NLASystemInitialize(enduser_obj, s_frame):
+    anim_data = enduser_obj.animation_data
+    mocapAction = anim_data.action
+    mocapAction.name = "Base Mocap"
+    anim_data.use_nla = True
+    mocapTrack = anim_data.nla_tracks.new()
+    mocapTrack.name = "Base Mocap Track"
+    mocapStrip = mocapTrack.strips.new("Base Mocap", s_frame, mocapAction)
+    constraintTrack = anim_data.nla_tracks.new()
+    constraintTrack.name = "Mocap constraints"
+    constraintAction = bpy.data.actions.new("Mocap constraints")
+    constraintStrip = constraintTrack.strips.new("Mocap constraints", s_frame, constraintAction)
+    anim_data.nla_tracks.active = constraintTrack
+    anim_data.action = constraintAction
+
+
+def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     perf_arm = performer_obj.data
     end_arm = enduser_obj.data
-    scene = bpy.context.scene
-    s_frame = scene.frame_start
-    e_frame = scene.frame_end
-    bonemap, bonemapr, feetBones, root = createDictionary(perf_arm, end_arm)
+    feetBones, root = createDictionary(perf_arm, end_arm)
     perf_obj_mat, enduser_obj_mat = cleanAndStoreObjMat(performer_obj, enduser_obj)
     turnOffIK(enduser_obj)
-    inter_obj, inter_arm = createIntermediate(performer_obj, enduser_obj, bonemap, bonemapr, root, s_frame, e_frame, scene)
+    inter_obj = createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene)
     retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
-    stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, bonemap, bonemapr, root, s_frame, e_frame, scene, enduser_obj_mat)
-    IKRetarget(bonemap, bonemapr, performer_obj, enduser_obj, s_frame, e_frame, scene)
+    stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
+    IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_name(name=inter_obj.name, extend=False)
     bpy.ops.object.delete()
-    anim_data = enduser_obj.animation_data
-    mocapAction = anim_data.action
-    mocapAction.name = "Base Mocap Action"
-    anim_data.use_nla = True
-    mocapTrack = anim_data.nla_tracks.new()
-    mocapTrack.name = "Base Mocap Track"
-    mocapStrip = mocapTrack.strips.new("Base Mocap Action", s_frame, mocapAction)
-    constraintTrack = anim_data.nla_tracks.new()
-    constraintTrack.name = "Mocap constraints"
-    constraintAction = bpy.data.actions.new("Mocap constraints Action")
-    constraintStrip = constraintTrack.strips.new("Mocap constraints Action", s_frame, constraintAction)
-    #constraintStrip.frame_end = e_frame
-    anim_data.nla_tracks.active = constraintTrack
-    anim_data.action = constraintAction
+    NLASystemInitialize(enduser_obj, s_frame)
 
 
 if __name__ == "__main__":

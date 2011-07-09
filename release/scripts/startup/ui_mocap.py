@@ -42,7 +42,7 @@ class MocapConstraint(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty(name="Name",
         default="Mocap Constraint",
         description="Name of Mocap Constraint",
-        update=updateConstraint)
+        update=setConstraint)
     constrained_bone = bpy.props.StringProperty(name="Bone",
         default="",
         description="Constrained Bone",
@@ -50,33 +50,33 @@ class MocapConstraint(bpy.types.PropertyGroup):
     constrained_boneB = bpy.props.StringProperty(name="Bone (2)",
         default="",
         description="Other Constrained Bone (optional, depends on type)",
-        update=updateConstraint)
+        update=setConstraint)
     s_frame = bpy.props.IntProperty(name="S",
         default=1,
         description="Start frame of constraint",
-        update=updateConstraint)
+        update=setConstraintFraming)
     e_frame = bpy.props.IntProperty(name="E",
         default=500,
         description="End frame of constrain",
-        update=updateConstraint)
+        update=setConstraintFraming)
     smooth_in = bpy.props.IntProperty(name="In",
         default=10,
         description="Amount of frames to smooth in",
-        update=updateConstraint,
+        update=setConstraintFraming,
         min=0)
     smooth_out = bpy.props.IntProperty(name="Out",
         default=10,
         description="Amount of frames to smooth out",
-        update=updateConstraint,
+        update=setConstraintFraming,
         min=0)
     targetMesh = bpy.props.StringProperty(name="Mesh",
         default="",
         description="Target of Constraint - Mesh (optional, depends on type)",
-        update=updateConstraint)
+        update=setConstraint)
     active = bpy.props.BoolProperty(name="Active",
         default=True,
         description="Constraint is active",
-        update=updateConstraint)
+        update=setConstraint)
     baked = bpy.props.BoolProperty(name="Baked / Applied",
         default=False,
         description="Constraint has been baked to NLA layer",
@@ -84,18 +84,18 @@ class MocapConstraint(bpy.types.PropertyGroup):
     targetPoint = bpy.props.FloatVectorProperty(name="Point", size=3,
         subtype="XYZ", default=(0.0, 0.0, 0.0),
         description="Target of Constraint - Point",
-        update=updateConstraint)
+        update=setConstraint)
     targetDist = bpy.props.FloatProperty(name="Dist",
         default=1,
         description="Distance Constraint - Desired distance",
-        update=updateConstraint)
+        update=setConstraint)
     targetSpace = bpy.props.EnumProperty(
         items=[("WORLD", "World Space", "Evaluate target in global space"),
             ("LOCAL", "Object space", "Evaluate target in object space"),
             ("constrained_boneB", "Other Bone Space", "Evaluate target in specified other bone space")],
         name="Space",
         description="In which space should Point type target be evaluated",
-        update=updateConstraint)
+        update=setConstraint)
     type = bpy.props.EnumProperty(name="Type of constraint",
         items=[("point", "Maintain Position", "Bone is at a specific point"),
             ("freeze", "Maintain Position at frame", "Bone does not move from location specified in target frame"),
@@ -148,7 +148,14 @@ def toggleIKBone(self, context):
                 if not bone.is_in_ik_chain:
                     bone.IKRetarget = False
 
+
+class MocapMapping(bpy.types.PropertyGroup):
+    name = bpy.props.StringProperty()
+
+bpy.utils.register_class(MocapMapping)
+
 bpy.types.Bone.map = bpy.props.StringProperty()
+bpy.types.Bone.reverseMap = bpy.props.CollectionProperty(type=MocapMapping)
 bpy.types.Bone.foot = bpy.props.BoolProperty(name="Foot",
     description="Marks this bone as a 'foot', which determines retargeted animation's translation",
     default=False)
@@ -225,6 +232,7 @@ class MocapPanel(bpy.types.Panel):
                         else:
                             row.label(" ")
                             row.label(" ")
+                    self.layout.operator("mocap.savemapping", text='Save mapping')
                     self.layout.operator("mocap.retarget", text='RETARGET!')
 
 
@@ -283,8 +291,48 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
     bl_label = "Retargets active action from Performer to Enduser"
 
     def execute(self, context):
-        retarget.totalRetarget()
+        enduser_obj = context.active_object
+        performer_obj = [obj for obj in context.selected_objects if obj != enduser_obj]
+        if enduser_obj is None or len(performer_obj) != 1:
+            print("Need active and selected armatures")
+        else:
+            performer_obj = performer_obj[0]
+        scene = context.scene
+        s_frame = scene.frame_start
+        e_frame = scene.frame_end
+        retarget.totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame)
         return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+        performer_obj = [obj for obj in context.selected_objects if obj != context.active_object]
+        if performer_obj:
+            return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
+        else:
+            return False
+
+
+class OBJECT_OT_SaveMappingButton(bpy.types.Operator):
+    bl_idname = "mocap.savemapping"
+    bl_label = "Saves user generated mapping from Performer to Enduser"
+
+    def execute(self, context):
+        enduser_obj = bpy.context.active_object
+        performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
+        retarget.createDictionary(performer_obj.data, enduser_obj.data)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+        performer_obj = [obj for obj in context.selected_objects if obj != context.active_object]
+        if performer_obj:
+            return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
+        else:
+            return False
 
 
 class OBJECT_OT_ConvertSamplesButton(bpy.types.Operator):
@@ -295,6 +343,10 @@ class OBJECT_OT_ConvertSamplesButton(bpy.types.Operator):
         mocap_tools.fcurves_simplify()
         return {"FINISHED"}
 
+    @classmethod
+    def poll(cls, context):
+        return context.active_object.animation_data
+
 
 class OBJECT_OT_LooperButton(bpy.types.Operator):
     bl_idname = "mocap.looper"
@@ -303,6 +355,10 @@ class OBJECT_OT_LooperButton(bpy.types.Operator):
     def execute(self, context):
         mocap_tools.autoloop_anim()
         return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object.animation_data
 
 
 class OBJECT_OT_DenoiseButton(bpy.types.Operator):
@@ -313,6 +369,14 @@ class OBJECT_OT_DenoiseButton(bpy.types.Operator):
         mocap_tools.denoise_median()
         return {"FINISHED"}
 
+    @classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object.animation_data
+
 
 class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
     bl_idname = "mocap.limitdof"
@@ -320,6 +384,16 @@ class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
 
     def execute(self, context):
         return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+        performer_obj = [obj for obj in context.selected_objects if obj != context.active_object]
+        if performer_obj:
+            return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
+        else:
+            return False
 
 
 class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
@@ -330,8 +404,10 @@ class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
         mocap_tools.rotate_fix_armature(context.active_object.data)
         return {"FINISHED"}
 
-    #def poll(self, context):
-      #  return context.active_object.data in bpy.data.armatures
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            return isinstance(context.active_object.data, bpy.types.Armature)
 
 
 class OBJECT_OT_AddMocapConstraint(bpy.types.Operator):
@@ -343,6 +419,11 @@ class OBJECT_OT_AddMocapConstraint(bpy.types.Operator):
         enduser_arm = enduser_obj.data
         new_mcon = enduser_arm.mocap_constraints.add()
         return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            return isinstance(context.active_object.data, bpy.types.Armature)
 
 
 class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
@@ -361,6 +442,11 @@ class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
             removeConstraint(m_constraint, cons_obj)
         m_constraints.remove(self.constraint)
         return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            return isinstance(context.active_object.data, bpy.types.Armature)
 
 
 def register():
