@@ -217,6 +217,8 @@ static void clip_operatortypes(void)
 
 	WM_operatortype_append(CLIP_OT_clear_track_path);
 
+	WM_operatortype_append(CLIP_OT_slide_marker);
+
 	WM_operatortype_append(CLIP_OT_track_to_fcurves);
 }
 
@@ -291,6 +293,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "space_data.lock_selection");
 
 	WM_keymap_add_menu(keymap, "CLIP_MT_tracking_specials", WKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_slide_marker", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }

@@ -77,6 +77,8 @@ void CLIP_OT_disable_markers(struct wmOperatorType *ot);
 
 void CLIP_OT_set_origin(struct wmOperatorType *ot);
 
+void CLIP_OT_slide_marker(struct wmOperatorType *ot);
+
 void CLIP_OT_track_to_fcurves(struct wmOperatorType *ot);
 
 /* clip_draw.c */
