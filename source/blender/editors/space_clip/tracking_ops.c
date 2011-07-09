@@ -1250,6 +1250,8 @@ typedef struct {
 	int width, height;
 	float *min, *max, *pos;
 	float smin[2], smax[2], spos[2];
+
+	int keep_square;
 } SlideMarkerData;
 
 static SlideMarkerData *create_slide_marker_data(MovieTrackingTrack *track, MovieTrackingMarker *marker, wmEvent *event, int area, int width, int height)
@@ -1364,12 +1366,22 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	SlideMarkerData *data= (SlideMarkerData *)op->customdata;
-	float dx, dy;
+	float dx, dy, mdelta[2];
 
 	switch(event->type) {
+		case LEFTCTRLKEY:
+		case RIGHTCTRLKEY:
+			if(data->area != TRACK_AREA_POINT)
+				data->keep_square= event->val==KM_PRESS;
+
+			/* no break! update area size */
+
 		case MOUSEMOVE:
-			dx= ((float)(event->mval[0]-data->mval[0]))/data->width/sc->zoom;
-			dy= ((float)(event->mval[1]-data->mval[1]))/data->height/sc->zoom;
+			mdelta[0]= event->mval[0]-data->mval[0];
+			mdelta[1]= event->mval[1]-data->mval[1];
+
+			dx= mdelta[0]/data->width/sc->zoom;
+			dy= mdelta[1]/data->height/sc->zoom;
 
 			if(data->area == TRACK_AREA_POINT) {
 				data->pos[0]= data->spos[0]+dx;
@@ -1380,6 +1392,14 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 				data->min[1]= data->smin[1]+dy;
 				data->max[1]= data->smax[1]-dy;
+
+				if(data->keep_square) {
+					float h= (data->max[0]-data->min[0])*data->width/data->height;
+
+					data->min[1]= data->spos[1]-h/2;
+					data->max[1]= data->spos[1]+h/2;
+				}
+
 
 				if(data->area==TRACK_AREA_SEARCH) BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_DIM);
 				else BKE_tracking_clamp_track(data->track, CLAMP_PAT_DIM);

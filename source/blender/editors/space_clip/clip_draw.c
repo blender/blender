@@ -383,7 +383,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	float x, y, dx, dy, tdx, tdy;
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
 
-	if(!TRACK_SELECTED(track) || (tiny && outline))
+	if(!TRACK_SELECTED(track) || (tiny && outline) || (marker->flag&MARKER_DISABLED))
 		return;
 
 	if(outline) {
