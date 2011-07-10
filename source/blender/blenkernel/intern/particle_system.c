@@ -3510,11 +3510,15 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 static void hair_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
-/*	ParticleSettings *part = psys->part; */
+	ParticleSettings *part = psys->part;
 	PARTICLE_P;
 	float disp = (float)psys_get_current_display_percentage(psys)/100.0f;
 
 	LOOP_PARTICLES {
+		pa->size = part->size;
+		if(part->randsize > 0.0f)
+			pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
+
 		if(PSYS_FRAND(p) > disp)
 			pa->flag |= PARS_NO_DISP;
 		else

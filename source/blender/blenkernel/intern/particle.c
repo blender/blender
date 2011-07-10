@@ -4372,58 +4372,45 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 	Object *ob = sim->ob;
 	ParticleSystem *psys = sim->psys;
 	ParticleSystemModifierData *psmd = sim->psmd;
-	float loc[3], nor[3], vec[3], side[3], len, obrotmat[4][4], qmat[4][4];
-	float xvec[3] = {-1.0, 0.0, 0.0}, q[4], nmat[3][3];
+	float loc[3], nor[3], vec[3], side[3], len;
+	float xvec[3] = {-1.0, 0.0, 0.0}, nmat[3][3];
 
 	sub_v3_v3v3(vec, (cache+cache->steps)->co, cache->co);
 	len= normalize_v3(vec);
 
-	if(psys->part->rotmode) {
-		if(pa == NULL)
-			pa= psys->particles+cpa->pa[0];
+	if(pa == NULL && psys->part->childflat != PART_CHILD_FACES)
+		pa = psys->particles + cpa->pa[0];
 
-		vec_to_quat( q,xvec, ob->trackflag, ob->upflag);
-		quat_to_mat4( obrotmat,q);
-		obrotmat[3][3]= 1.0f;
-
-		quat_to_mat4( qmat,pa->state.rot);
-		mul_m4_m4m4(mat, obrotmat, qmat);
-	}
-	else {
-		if(pa == NULL && psys->part->childflat != PART_CHILD_FACES)
-			pa = psys->particles + cpa->pa[0];
-
-		if(pa)
-			psys_particle_on_emitter(psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
-		else
-			psys_particle_on_emitter(psmd,PART_FROM_FACE,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,nor,0,0,0,0);
+	if(pa)
+		psys_particle_on_emitter(psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
+	else
+		psys_particle_on_emitter(psmd,PART_FROM_FACE,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,nor,0,0,0,0);
 		
-		copy_m3_m4(nmat, ob->imat);
-		transpose_m3(nmat);
-		mul_m3_v3(nmat, nor);
+	copy_m3_m4(nmat, ob->imat);
+	transpose_m3(nmat);
+	mul_m3_v3(nmat, nor);
 
-		/* make sure that we get a proper side vector */
-		if(fabs(dot_v3v3(nor,vec))>0.999999) {
-			if(fabs(dot_v3v3(nor,xvec))>0.999999) {
-				nor[0] = 0.0f;
-				nor[1] = 1.0f;
-				nor[2] = 0.0f;
-			}
-			else {
-				nor[0] = 1.0f;
-				nor[1] = 0.0f;
-				nor[2] = 0.0f;
-			}
+	/* make sure that we get a proper side vector */
+	if(fabs(dot_v3v3(nor,vec))>0.999999) {
+		if(fabs(dot_v3v3(nor,xvec))>0.999999) {
+			nor[0] = 0.0f;
+			nor[1] = 1.0f;
+			nor[2] = 0.0f;
 		}
-		cross_v3_v3v3(side, nor, vec);
-		normalize_v3(side);
-		cross_v3_v3v3(nor, vec, side);
-
-		unit_m4(mat);
-		VECCOPY(mat[0], vec);
-		VECCOPY(mat[1], side);
-		VECCOPY(mat[2], nor);
+		else {
+			nor[0] = 1.0f;
+			nor[1] = 0.0f;
+			nor[2] = 0.0f;
+		}
 	}
+	cross_v3_v3v3(side, nor, vec);
+	normalize_v3(side);
+	cross_v3_v3v3(nor, vec, side);
+
+	unit_m4(mat);
+	VECCOPY(mat[0], vec);
+	VECCOPY(mat[1], side);
+	VECCOPY(mat[2], nor);
 
 	*scale= len;
 }
