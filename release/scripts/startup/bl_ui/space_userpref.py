@@ -126,7 +126,7 @@ class USERPREF_MT_appconfigs(bpy.types.Menu):
     preset_operator = "wm.appconfig_activate"
 
     def draw(self, context):
-        props = self.layout.operator("wm.appconfig_default", text="Blender (default)")
+        self.layout.operator("wm.appconfig_default", text="Blender (default)")
 
         # now draw the presets
         bpy.types.Menu.draw_preset(self, context)
@@ -1124,7 +1124,6 @@ class WM_OT_addon_install(bpy.types.Operator):
         del pyfile_dir
         # done checking for exceptional case
 
-        addon_files_old = set(os.listdir(path_addons))
         addons_old = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)}
 
         #check to see if the file is in compressed format (.zip)

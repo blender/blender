@@ -189,9 +189,9 @@ class InputKeyMapPanel:
         if km.is_modal:
             row.label(text="", icon='LINKED')
         if km.is_user_defined:
-            op = row.operator("wm.keymap_restore", text="Restore")
+            row.operator("wm.keymap_restore", text="Restore")
         else:
-            op = row.operator("wm.keymap_edit", text="Edit")
+            row.operator("wm.keymap_edit", text="Edit")
 
         if km.show_expanded_children:
             if children:
@@ -213,7 +213,7 @@ class InputKeyMapPanel:
                 col = self.indented_layout(col, level + 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.enabled = km.is_user_defined
-                op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
             col.separator()
 
@@ -351,9 +351,9 @@ class InputKeyMapPanel:
                 row.label()
 
                 if km.is_user_defined:
-                    op = row.operator("wm.keymap_restore", text="Restore")
+                    row.operator("wm.keymap_restore", text="Restore")
                 else:
-                    op = row.operator("wm.keymap_edit", text="Edit")
+                    row.operator("wm.keymap_edit", text="Edit")
 
                 for kmi in filtered_items:
                     self.draw_kmi(display_keymaps, kc, km, kmi, col, 1)
@@ -362,7 +362,7 @@ class InputKeyMapPanel:
                 col = self.indented_layout(layout, 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.enabled = km.is_user_defined
-                op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
     def draw_hierarchy(self, display_keymaps, layout):
         for entry in KM_HIERARCHY:
@@ -723,9 +723,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
     bl_label = "Add Key Map Item"
 
     def execute(self, context):
-        wm = context.window_manager
         km = context.keymap
-        kc = wm.keyconfigs.default
 
         if km.is_modal:
             km.keymap_items.new_modal("", 'A', 'PRESS')  # kmi
