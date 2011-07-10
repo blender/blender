@@ -894,11 +894,11 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 											std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map) 
 {
 	AnimMix *types = new AnimMix();
-	types->transform = INANIMATE ;
-	types->light = INANIMATE;
-	types->camera = INANIMATE;
-	types->material = INANIMATE;
-	types->texture = INANIMATE;
+	//types->transform = INANIMATE ;
+	//types->light = INANIMATE;
+	//types->camera = INANIMATE;
+	//types->material = INANIMATE;
+	//types->texture = INANIMATE;
 	
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
 	
@@ -919,32 +919,10 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 
 	for (unsigned int i = 0; i < nodeLights.getCount(); i++) {
 		const COLLADAFW::Light *light = (COLLADAFW::Light *) FW_object_map[nodeLights[i]->getInstanciatedObjectId()];
-		//
-		//const COLLADAFW::Color *col =  &(light->getColor());
-		//const COLLADAFW::UniqueId& col_listid = col->getAnimationList();
-
-		////check if color has animations    
-		//if (animlist_map.find(col_listid) != animlist_map.end())  
-		////	type = type|LIGHT_FOA;
-		//	types->light = types->light|LIGHT_COLOR;
 		types->light = setAnimType(&(light->getColor()),(types->light), LIGHT_COLOR);
-		//
-		//const COLLADAFW::AnimatableFloat *fallOffAngle =  &(light->getFallOffAngle());
-	 //   const COLLADAFW::UniqueId& foa_listid = fallOffAngle ->getAnimationList();
-
-		//if (animlist_map.find(foa_listid) != animlist_map.end()) 
-		////		type = type|LIGHT_FOA;
-		//		types->light = types->light|LIGHT_FOA;
 		types->light = setAnimType(&(light->getFallOffAngle()),(types->light), LIGHT_FOA);
-		//const COLLADAFW::AnimatableFloat *fallOffExpo =  &(light->getFallOffExponent());
-	 //   const COLLADAFW::UniqueId& foe_listid = fallOffExpo ->getAnimationList();
-		//if (animlist_map.find(foe_listid) != animlist_map.end()) 
-		//		//type = type|LIGHT_FOE;
-		//		types->light = types->light|LIGHT_FOE;
-		
 		types->light = setAnimType(&(light->getFallOffExponent()),(types->light), LIGHT_FOE);
 		
-		//if ( type != 0) break;
 		if ( types->light != 0) break;
 		
 	}
@@ -956,30 +934,13 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 
 		if ( camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE )
 		{
-			//const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
-			//const COLLADAFW::UniqueId& xfov_listid = xfov ->getAnimationList();
-			//if (animlist_map.find(xfov_listid) != animlist_map.end()) 
-			//	//type = type|CAMERA_XFOV; 	
-			//	types->camera = types->camera|CAMERA_XFOV;
 		    types->camera = setAnimType(&(camera->getXMag()),(types->camera), CAMERA_XFOV);
 		}
 		else 
 		{
-			//const COLLADAFW::AnimatableFloat *xmag =  &(camera->getXMag());
-			//const COLLADAFW::UniqueId& xmag_listid = xmag ->getAnimationList();
-			//if (animlist_map.find(xmag_listid) != animlist_map.end()) 
-			//	//	type = type|CAMERA_XMAG;
-			//	types->camera = types->camera|CAMERA_XMAG;
 			types->camera = setAnimType(&(camera->getXMag()),(types->camera), CAMERA_XMAG);
 		}
-
-		//const COLLADAFW::AnimatableFloat *zfar =  &(camera->getFarClippingPlane());
-		//const COLLADAFW::UniqueId& zfar_listid = zfar ->getAnimationList();
-		//if (animlist_map.find(zfar_listid) != animlist_map.end()) 
-		//		//type = type|CAMERA_XFOV; 	
-		//		types->camera = types->camera|CAMERA_ZFAR;
-
-		
+			
 		types->camera = setAnimType(&(camera->getFarClippingPlane()),(types->camera), CAMERA_ZFAR);
 		types->camera = setAnimType(&(camera->getNearClippingPlane()),(types->camera), CAMERA_ZNEAR);
 
