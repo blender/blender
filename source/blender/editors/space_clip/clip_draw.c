@@ -400,8 +400,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	x= track->search_min[0];
 	y= track->search_max[1];
 
-	dx= 15.0f/width/sc->zoom;
-	dy= 15.0f/height/sc->zoom;
+	dx= 12.0f/width/sc->zoom;
+	dy= 12.0f/height/sc->zoom;
 
 	if(sc->flag&SC_SHOW_MARKER_SEARCH) {
 		tdx=MIN2(dx, (track->search_max[0]-track->search_min[0])/5);
@@ -435,6 +435,10 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	}
 
 	if(sc->flag&SC_SHOW_MARKER_PATTERN) {
+		/* use smaller slider for pattern area */
+		dx= 10.0f/width/sc->zoom;
+		dy= 10.0f/height/sc->zoom;
+
 		if(!outline) {
 			if(track->pat_flag&SELECT) UI_ThemeColor(color);
 			else UI_ThemeColor(TH_MARKER);
@@ -583,8 +587,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		draw_tracking(sc, ar, clip, zoomx, zoomy);
 	}
 
-	if(sc->debug_flag&SC_DBG_SHOW_CACHE)
-		draw_movieclip_cache(sc, ar, clip, scene);
+	draw_movieclip_cache(sc, ar, clip, scene);
 }
 
 static ImBuf *scale_ibuf(ImBuf *ibuf, float zoomx, float zoomy)

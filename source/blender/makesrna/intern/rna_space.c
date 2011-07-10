@@ -2671,14 +2671,6 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Path Length", "Length of displaying path, in frames");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
-	/* ** debug flags ** */
-
-	/* show cache */
-	prop= RNA_def_property(srna, "show_cache", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Show Cache", "Show cached frames for current clip");
-	RNA_def_property_boolean_sdna(prop, NULL, "debug_flag", SC_DBG_SHOW_CACHE);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
-
 	/* show tiny markers */
 	prop= RNA_def_property(srna, "show_tiny_markers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Show Tiny Markers", "Show markers tiny");

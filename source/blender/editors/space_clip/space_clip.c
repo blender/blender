@@ -78,7 +78,6 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 	sc= MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype= SPACE_CLIP;
 	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_MARKER_SEARCH|SC_SHOW_MARKER_PATH;
-	sc->debug_flag= SC_DBG_SHOW_CACHE;
 	sc->zoom= 1.0f;
 	sc->path_length= 20;
 

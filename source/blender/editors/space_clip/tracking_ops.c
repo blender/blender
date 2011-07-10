@@ -1288,28 +1288,31 @@ static SlideMarkerData *create_slide_marker_data(MovieTrackingTrack *track, Movi
 
 /* corner = 0: right-bottom corner,
    corner = 1: left-top corner */
-static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, float co[2], int corner,
+static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, float size, float co[2], int corner,
 			float *pos, float *min, float *max, int width, int height)
 {
-	int crn[2], inside= 0;
-	float dx, dy;
+	int inside= 0;
+	float nco[2], crn[2], dx, dy;
 
-	dx= 15.0f/sc->zoom;
-	dy= 15.0f/sc->zoom;
+	nco[0]= co[0]/width;
+	nco[1]= co[1]/height;
 
-	dx=MIN2(dx, (track->search_max[0]-track->search_min[0])*width/5);
-	dy=MIN2(dy, (track->search_max[1]-track->search_min[1])*height/5);
+	dx= size/width/sc->zoom;
+	dy= size/height/sc->zoom;
+
+	dx=MIN2(dx, (track->search_max[0]-track->search_min[0])/5);
+	dy=MIN2(dy, (track->search_max[1]-track->search_min[1])/5);
 
 	if(corner==0) {
-		crn[0]= (pos[0]+max[0])*width;
-		crn[1]= (pos[1]+min[1])*height;
+		crn[0]= pos[0]+max[0];
+		crn[1]= pos[1]+min[1];
 
-		inside= co[0]>=crn[0]-dx && co[0]<=crn[0] && co[1]>=crn[1] && co[1]<=crn[1]+dy;
+		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0] && nco[1]>=crn[1] && nco[1]<=crn[1]+dy;
 	} else {
-		crn[0]= (pos[0]+min[0])*width;
-		crn[1]= (pos[1]+max[1])*height;
+		crn[0]= pos[0]+min[0];
+		crn[1]= pos[1]+max[1];
 
-		inside= co[0]>=crn[0] && co[0]<=crn[0]+dx && co[1]>=crn[1]-dy && co[1]<=crn[1];
+		inside= nco[0]>=crn[0] && nco[0]<=crn[0]+dx && nco[1]>=crn[1]-dy && nco[1]<=crn[1];
 	}
 
 	return inside;
@@ -1337,15 +1340,15 @@ static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			if(marker && (marker->flag&MARKER_DISABLED)==0) {
 				if(sc->flag&SC_SHOW_MARKER_SEARCH) {
-					if(mouse_on_corner(sc, track, co, 1, marker->pos, track->search_min, track->search_max, width, height))
+					if(mouse_on_corner(sc, track, 15.0f, co, 1, marker->pos, track->search_min, track->search_max, width, height))
 						op->customdata= create_slide_marker_data(track, marker, event, TRACK_AREA_POINT, width, height);
 
-					if(mouse_on_corner(sc, track, co, 0, marker->pos, track->search_min, track->search_max, width, height))
+					if(mouse_on_corner(sc, track, 15.0f, co, 0, marker->pos, track->search_min, track->search_max, width, height))
 						op->customdata= create_slide_marker_data(track, marker, event, TRACK_AREA_SEARCH, width, height);
 				}
 
 				if(sc->flag&SC_SHOW_MARKER_PATTERN)
-					if(mouse_on_corner(sc, track, co, 0, marker->pos, track->pat_min, track->pat_max, width, height))
+					if(mouse_on_corner(sc, track, 10.0f, co, 0, marker->pos, track->pat_min, track->pat_max, width, height))
 						op->customdata= create_slide_marker_data(track, marker, event, TRACK_AREA_PAT, width, height);
 
 				if(op->customdata) {

@@ -108,7 +108,8 @@ class CLIP_PT_tools(bpy.types.Panel):
 
             op = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
             op.backwards = True
-            op = row.operator("clip.track_markers", text="", icon='PLAY_REVERSE')
+            op = row.operator("clip.track_markers", text="", \
+                 icon='PLAY_REVERSE')
             op.backwards = True
             op.sequence = True
             op = row.operator("clip.track_markers", text="", icon='PLAY')
@@ -116,9 +117,15 @@ class CLIP_PT_tools(bpy.types.Panel):
             row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
 
             col = layout.column(align=True)
-            col.operator("clip.clear_track_path", text="Clear Remained Path").action = 'REMAINED'
-            col.operator("clip.clear_track_path", text="Clear Path Up To").action = 'UPTO'
-            col.operator("clip.clear_track_path", text="Clear Track Path").action = 'ALL'
+            op = col.operator("clip.clear_track_path", \
+                 text="Clear Remained Path")
+            op.action = 'REMAINED'
+
+            op = col.operator("clip.clear_track_path", text="Clear Path Up To")
+            op.action = 'UPTO'
+
+            op = col.operator("clip.clear_track_path", text="Clear Track Path")
+            op.action = 'ALL'
 
             col = layout.column(align=True)
             col.label(text="Reconstruction:")
@@ -152,7 +159,8 @@ class CLIP_PT_track(bpy.types.Panel):
 
         layout.prop(act_track, "name")
 
-        layout.template_track(clip.tracking, "active_track", sc.clip_user, clip)
+        layout.template_track(clip.tracking, "active_track", \
+            sc.clip_user, clip)
 
         if act_track:
             row = layout.row()
@@ -240,6 +248,8 @@ class CLIP_PT_display(bpy.types.Panel):
         row.active = sc.show_marker_path
         row.prop(sc, "path_length")
 
+        layout.prop(sc, "show_tiny_markers")
+
 
 class CLIP_PT_test(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
@@ -253,20 +263,6 @@ class CLIP_PT_test(bpy.types.Panel):
 
         layout.operator("clip.apply_follow_track")
         layout.operator("clip.track_to_fcurves")
-
-
-class CLIP_PT_debug(bpy.types.Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-    bl_label = "Debug"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        sc = context.space_data
-
-        layout.prop(sc, "show_cache")
-        layout.prop(sc, "show_tiny_markers")
 
 
 class CLIP_PT_footage(bpy.types.Panel):
@@ -351,16 +347,27 @@ class CLIP_MT_track(bpy.types.Menu):
         layout.operator("clip.solve_camera")
 
         layout.separator()
-        layout.operator("clip.clear_track_path", text="Clear Remained Path").action = 'REMAINED'
-        layout.operator("clip.clear_track_path", text="Clear Path Up To").action = 'UPTO'
-        layout.operator("clip.clear_track_path", text="Clear Track Path").action = 'ALL'
+        op = layout.operator("clip.clear_track_path", \
+             text="Clear Remained Path")
+        op.action = 'REMAINED'
+
+        op = layout.operator("clip.clear_track_path", \
+             text="Clear Path Up To")
+        op.action = 'UPTO'
+
+        op = layout.operator("clip.clear_track_path", \
+             text="Clear Track Path")
+        op.action = 'ALL'
 
         layout.separator()
-        op = layout.operator("clip.track_markers", text="Track Frame Backwards")
+        op = layout.operator("clip.track_markers", \
+            text="Track Frame Backwards")
         op.backwards = True
+
         op = layout.operator("clip.track_markers", text="Track Backwards")
         op.backwards = True
         op.sequence = True
+
         op = layout.operator("clip.track_markers", text="Track Forwards")
         op.sequence = True
         layout.operator("clip.track_markers", text="Track Frame Forwards")
@@ -385,7 +392,9 @@ class CLIP_MT_track_visibility(bpy.types.Menu):
 
         layout.operator("clip.hide_tracks_clear", text="Show Hidden")
         layout.operator("clip.hide_tracks", text="Hide Selected")
-        layout.operator("clip.hide_tracks", text="Hide Unselected").unselected = True
+
+        op = layout.operator("clip.hide_tracks", text="Hide Unselected")
+        op.unselected = True
 
 
 class CLIP_MT_track_transform(bpy.types.Menu):
@@ -411,6 +420,7 @@ class CLIP_MT_select(bpy.types.Menu):
         layout.operator("clip.select_all", text="Select/Deselect all")
         layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
 
+
 class CLIP_MT_tracking_specials(bpy.types.Menu):
     bl_label = "Specials"
 
@@ -421,9 +431,17 @@ class CLIP_MT_tracking_specials(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("clip.disable_markers", text="Enable Markers").action = 'ENABLE'
-        layout.operator("clip.disable_markers", text="Disable markers").action = 'DISABLE'
+        op = layout.operator("clip.disable_markers", text="Enable Markers")
+        op.action = 'ENABLE'
+
+        op = layout.operator("clip.disable_markers", text="Disable markers")
+        op.action = 'DISABLE'
+
         layout.operator("clip.set_origin")
+
+        layout.separator()
+        layout.operator("clip.hide_tracks")
+        layout.operator("clip.hide_tracks_clear", text="Show Tracks")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

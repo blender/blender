@@ -576,7 +576,7 @@ typedef struct SpaceClip {
 	struct MovieClip *clip;		/* clip data */
 
 	int flag;					/* flags */
-	int debug_flag;				/* flags for debugging */
+	int pad;
 
 	int path_length;			/* length of displaying path, in frames */
 
@@ -965,9 +965,6 @@ enum {
 #define SC_LOCK_SELECTION		(1<<2)
 #define SC_SHOW_TINY_MARKER		(1<<3)
 #define SC_SHOW_MARKER_PATH		(1<<4)
-
-/* SpaceClip->debug_flag */
-#define SC_DBG_SHOW_CACHE	(1<<0)
 
 
 /* space types, moved from DNA_screen_types.h */
