@@ -893,7 +893,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLADAFW::Node * node , 
 											std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map) 
 {
-	AnimationImporter::AnimMix *types = NULL;
+	AnimMix *types = new AnimMix();
 	types->transform = INANIMATE ;
 	types->light = INANIMATE;
 	types->camera = INANIMATE;
