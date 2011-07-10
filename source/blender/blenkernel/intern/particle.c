@@ -2889,8 +2889,6 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	if(psys_in_edit_mode(sim->scene, psys))
 		if(psys->renderdata==0 && (psys->edit==NULL || pset->flag & PE_DRAW_PART)==0)
 			return;
-	
-	BLI_srandom(psys->seed);
 
 	keyed = psys->flag & PSYS_KEYED;
 	baked = psys->pointcache->mem_cache.first && psys->part->type != PART_HAIR;

@@ -1798,10 +1798,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			pa_size = pa->size;
 
-			BLI_srandom(psys->seed+a);
-
-			r_tilt = 2.0f*(BLI_frand() - 0.5f);
-			r_length = BLI_frand();
+			r_tilt = 2.0f*(PSYS_FRAND(a) - 0.5f);
+			r_length = PSYS_FRAND(a+1);
 
 			if(path_nbr) {
 				cache = psys->pathcache[a];
