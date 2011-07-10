@@ -701,7 +701,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "accept_nonclosed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ACCEPT_NONCLOSED);
-	RNA_def_property_ui_text(prop, "Accept Non-Closed", "Allows painting with non-closed meshes. Brush influence is defined by ray dir.");
+	RNA_def_property_ui_text(prop, "Non-Closed", "Allows painting with non-closed meshes. Brush influence is defined by ray dir.");
 
 	prop= RNA_def_property(srna, "ray_dir", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ray_dir");
@@ -742,7 +742,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "prox_inverse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_INVERSE_PROX);
-	RNA_def_property_ui_text(prop, "Inverse", "Invert proximity to reduce volume effect.");
+	RNA_def_property_ui_text(prop, "Inner", "Invert proximity to reduce effect inside the volume.");
 	
 
 	/*

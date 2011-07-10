@@ -2132,7 +2132,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	}
 	else if(itemptr->type == &RNA_DynamicPaintSurface) {
 		char name_final[96];
-		char *enum_name;
+		const char *enum_name;
 		PropertyRNA *prop = RNA_struct_find_property(itemptr, "surface_type");
 		DynamicPaintSurface *surface= (DynamicPaintSurface*)itemptr->data;
 

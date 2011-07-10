@@ -2603,13 +2603,15 @@ static void dynamicPaint_mixWaveHeight(PaintWavePoint *wPoint, DynamicPaintBrush
 */
 static void dynamicPaint_updatePointData(DynamicPaintSurface *surface, unsigned int index, DynamicPaintBrushSettings *brush, float paint[4], float strength, float depth, float timescale)
 {
-		PaintSurfaceData *sData = surface->data;	
+		PaintSurfaceData *sData = surface->data;
+
+		strength *= brush->alpha;
 
 		/* mix paint surface */
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 
 			float paintWetness = brush->wetness * strength;
-			float paintAlpha = paint[3] * strength;
+			float paintAlpha = strength;
 			if (paintAlpha > 1.0f) paintAlpha = 1.0f;
 
 			dynamicPaint_mixPaintColors(surface, index, brush->flags, paint, &paintAlpha, &paintWetness, &timescale);
@@ -2648,6 +2650,9 @@ static void dynamicPaint_updatePointData(DynamicPaintSurface *surface, unsigned 
 
 #define VECADDVAL(v,val) 	{*(v)+=(val); *(v+1)+=(val); *(v+2)+=(val);}
 #define VECMULVAL(v,val) 	{*(v)*=(val); *(v+1)*=(val); *(v+2)*=(val);}
+
+#define HIT_VOLUME 1
+#define HIT_PROXIMITY 2
 
 /*
 *	Paint a brush object mesh to the surface
@@ -2692,10 +2697,10 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 				{
 					int ss, samples = bData->s_num[index];
 					float total_sample = (float)samples;
-					float brushFactor = 0.0f;	/* brush influence factor */
+					float brushStrength = 0.0f;	/* brush influence factor */
 					float depth = 0.0f;		/* displace depth */
 
-					float paintColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+					float paintColor[3] = {0.0f};
 					int numOfHits = 0;
 
 					/* for image sequence anti-aliasing, use gaussian factors */
@@ -2707,13 +2712,12 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 					{
 
 						float ray_start[3], ray_dir[3] = {0.0f};
+						float colorband[4] = {0.0f};
 						float sample_factor;
+						float sampleStrength = 0.0f;
 						BVHTreeRayHit hit;
 						BVHTreeNearest nearest;
 						short hit_found = 0;
-
-						/* If it's a proximity hit, store distance rate */
-						float distRate = -1.0f;
 
 						/* hit data	*/
 						float hitCoord[3];		/* mid-sample hit coordinate */
@@ -2780,8 +2784,8 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 
 								if(hit.index != -1) {
 									/* Add factor on supersample filter	*/
-									brushFactor += sample_factor;
-									hit_found = 1;
+									sampleStrength += sample_factor;
+									hit_found = HIT_VOLUME;
 
 									/*
 									*	Mark hit info
@@ -2795,12 +2799,16 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 						}	// end of raycast
 					
 						/* Check proximity collision	*/
-						if ((brush->collision == MOD_DPAINT_COL_DIST || brush->collision == MOD_DPAINT_COL_VOLDIST))
+						if ((brush->collision == MOD_DPAINT_COL_DIST || brush->collision == MOD_DPAINT_COL_VOLDIST) &&
+							(!hit_found || (brush->flags & MOD_DPAINT_INVERSE_PROX)))
 						{
 							float proxDist = -1.0f;
 							float hitCo[3];
 							short hQuad;
 							int face;
+
+							/* if inverse prox and no hit found, skip this sample */
+							if (brush->flags & MOD_DPAINT_INVERSE_PROX && !hit_found) continue;
 
 							/*
 							*	If pure distance proximity, find the nearest point on the mesh
@@ -2829,38 +2837,29 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 							}
 
 							/* If a hit was found, calculate required values	*/
-							if (proxDist >= 0.0f) {
+							if (proxDist >= 0.0f && proxDist <= brush->paint_distance) {
 								float dist_rate = proxDist / brush->paint_distance;
 								float prox_influence = 0.0f;
 
-								/* Smooth range or color ramp	*/
-								if (brush->proximity_falloff == MOD_DPAINT_PRFALL_SMOOTH ||
-									brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP) {
-
-									/* Limit distance to 0.0 - 1.0 */
-									if (dist_rate > 1.0f) dist_rate = 1.0f;
-									if (dist_rate < 0.0f) dist_rate = 0.0f;
-
-									/* if using smooth falloff, multiply gaussian factor */
-									if (brush->proximity_falloff == MOD_DPAINT_PRFALL_SMOOTH) {
-										prox_influence = (1.0f - dist_rate) * sample_factor;
-									}
-									else prox_influence = sample_factor;
-
-									if (hitFace == -1) {
-										distRate = dist_rate;
-									}
-								}
-								else prox_influence = sample_factor;
-
-								hit_found = 1;
+								/* in case of inverse prox also undo volume effect */
 								if (brush->flags & MOD_DPAINT_INVERSE_PROX) {
-									brushFactor -= prox_influence;
-									distRate = -distRate;
+									sampleStrength -= sample_factor;
+									dist_rate = 1.0f - dist_rate;
 								}
-								else 
-									brushFactor += prox_influence;
 
+								/* if using color ramp*/
+								if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP && do_colorband(brush->paint_ramp, dist_rate, colorband))
+									prox_influence = colorband[3];
+								/* if using smooth falloff, multiply gaussian factor */
+								else if (brush->proximity_falloff == MOD_DPAINT_PRFALL_SMOOTH) {
+									prox_influence = (1.0f - dist_rate) * sample_factor;
+								}
+								else prox_influence = (brush->flags & MOD_DPAINT_INVERSE_PROX) ? 0.0f : 1.0f;
+
+								hit_found = HIT_PROXIMITY;
+								sampleStrength += prox_influence*sample_factor;
+
+								/* if no volume hit, use prox point face info */
 								if (hitFace == -1) {
 									copy_v3_v3(hitCoord, hitCo);
 									hitQuad = hQuad;
@@ -2869,52 +2868,53 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 							}
 						}
 
+						if (!hit_found) continue;
+
 						/*
 						*	Process hit color and alpha
 						*/
-						if (hit_found && surface->type == MOD_DPAINT_SURFACE_T_PAINT)
+						if (surface->type == MOD_DPAINT_SURFACE_T_PAINT)
 						{
 							float sampleColor[3];
-							float sampleAlpha = 1.0f;
-							float bandres[4];
+							float alpha_factor = 1.0f;
 
 							sampleColor[0] = brush->r;
 							sampleColor[1] = brush->g;
 							sampleColor[2] = brush->b;
 						
 							/* Get material+textures color on hit point if required	*/
-							if (brush->flags & MOD_DPAINT_USE_MATERIAL) dynamicPaint_getMaterialColor(sampleColor, &sampleAlpha, brushOb, &bData->realCoord[(bData->s_index[index]+ss)*3], hitCoord, hitFace, hitQuad, brush->dm, brush->mat);
+							if (brush->flags & MOD_DPAINT_USE_MATERIAL) dynamicPaint_getMaterialColor(sampleColor, &alpha_factor, brushOb, &bData->realCoord[(bData->s_index[index]+ss)*3], hitCoord, hitFace, hitQuad, brush->dm, brush->mat);
 
 							/* Sample colorband if required	*/
-							if ((distRate >= 0.0f) && (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP) && do_colorband(brush->paint_ramp, distRate, bandres)) {
+							if ((hit_found == HIT_PROXIMITY) && (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP)) {
 								if (!(brush->flags & MOD_DPAINT_RAMP_ALPHA)) {
-									sampleColor[0] = bandres[0];
-									sampleColor[1] = bandres[1];
-									sampleColor[2] = bandres[2];
+									sampleColor[0] = colorband[0];
+									sampleColor[1] = colorband[1];
+									sampleColor[2] = colorband[2];
 								}
-								sampleAlpha *= bandres[3];
 							}
 
 							/* Add AA sample */
 							paintColor[0] += sampleColor[0];
 							paintColor[1] += sampleColor[1];
 							paintColor[2] += sampleColor[2];
-
-							paintColor[3] += sampleAlpha;
+							sampleStrength *= alpha_factor;
 							numOfHits++;
 						}
+
+						/* apply sample strength */
+						brushStrength += sampleStrength;
 					} // end supersampling
 
 
 					/* if any sample was inside paint range	*/
-					if (brushFactor > 0.01f) {
+					if (brushStrength > 0.01f) {
 
 						/* apply supersampling results	*/
 						if (samples > 1) {
-							brushFactor /= total_sample;
+							brushStrength /= total_sample;
 						}
-						CLAMP(brushFactor, 0.0f, 1.0f);
-						brushFactor *= brush->alpha;
+						CLAMP(brushStrength, 0.0f, 1.0f);
 
 						if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 							/* Get final pixel color and alpha	*/
@@ -2929,7 +2929,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, PaintBakeData *b
 							depth /= bData->bPoint[index].normal_scale * total_sample;
 						}
 						
-						dynamicPaint_updatePointData(surface, index, brush, paintColor, brushFactor, depth, timescale);
+						dynamicPaint_updatePointData(surface, index, brush, paintColor, brushStrength, depth, timescale);
 					}
 				}
 			}
@@ -3081,7 +3081,6 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, PaintBakeDa
 				paintColor[0] = brush->r;
 				paintColor[1] = brush->g;
 				paintColor[2] = brush->b;
-				paintColor[3] = brush->alpha;
 			}
 			else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
 					 surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
@@ -3111,30 +3110,40 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, PaintBake
 	for (index = 0; index < sData->total_points; index++)
 	{
 		float distance = len_v3v3(pointCoord, &bData->realCoord[(bData->s_index[index])*3]);
+		float colorband[4] = {0.0f};
 		float strength;
+
+		if (distance>brush->paint_distance) continue;
 
 		/* Smooth range or color ramp	*/
 		if (brush->proximity_falloff == MOD_DPAINT_PRFALL_SMOOTH ||
 			brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP) {
-
-			if (brush->proximity_falloff == MOD_DPAINT_PRFALL_SMOOTH) {
-				strength = distance / brush->paint_distance;
-				CLAMP(strength, 0.0f, 1.0f);
-				strength = 1.0f - strength;
-			}
-			else strength = 1.0f;
+			
+			strength = 1.0f - distance / brush->paint_distance;
+			CLAMP(strength, 0.0f, 1.0f);
 		}
 		else strength = 1.0f;
 
 		if (strength >= 0.001f) {
-			float paintColor[4] = {0.0f};
+			float paintColor[3] = {0.0f};
 			float depth = 0.0f;
 
+			/* color ramp */
+			if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP && do_colorband(brush->paint_ramp, (1.0f-strength), colorband))
+				strength = colorband[3];
+
 			if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-				paintColor[0] = brush->r;
-				paintColor[1] = brush->g;
-				paintColor[2] = brush->b;
-				paintColor[3] = brush->alpha;
+
+				if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP) {
+					paintColor[0] = colorband[0];
+					paintColor[1] = colorband[1];
+					paintColor[2] = colorband[2];
+				}
+				else {
+					paintColor[0] = brush->r;
+					paintColor[1] = brush->g;
+					paintColor[2] = brush->b;
+				}
 			}
 			else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
 					 surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
@@ -3671,10 +3680,7 @@ static int dynamicPaint_prepareSurfaceStep(DynamicPaintSurface *surface, PaintBa
 			/* drying */
 			if (pPoint->wetness > 0.0f) {
 				/* for every drying step blend wet paint to the background */
-				float invAlpha = 1.0f - pPoint->e_alpha;
-				pPoint->color[0] = pPoint->color[0]*invAlpha + pPoint->e_color[0]*pPoint->e_alpha;
-				pPoint->color[1] = pPoint->color[1]*invAlpha + pPoint->e_color[1]*pPoint->e_alpha;
-				pPoint->color[2] = pPoint->color[2]*invAlpha + pPoint->e_color[2]*pPoint->e_alpha;
+				mixColors(pPoint->color, pPoint->alpha, pPoint->e_color, pPoint->e_alpha);
 				pPoint->state = 1;
 
 				/* only increase alpha if wet paint has higher	*/
@@ -4229,7 +4235,7 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 static int dynamicPaint_initBake(bContext *C, wmOperator *op)
 {
 	DynamicPaintModifierData *pmd = NULL;
-	Object *cObject = CTX_data_active_object(C);
+	Object *cObject = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	int status = 0;
 	double timer = PIL_check_seconds_timer();
 	DynamicPaintSurface *surface;
@@ -4337,7 +4343,7 @@ void DPAINT_OT_bake(wmOperatorType *ot)
 static int surface_slot_add_exec(bContext *C, wmOperator *op)
 {
 	DynamicPaintModifierData *pmd = NULL;
-	Object *cObject = CTX_data_active_object(C);
+	Object *cObject = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	DynamicPaintSurface *surface;
 
 	/* Make sure we're dealing with a canvas */
@@ -4378,7 +4384,7 @@ void DPAINT_OT_surface_slot_add(wmOperatorType *ot)
 static int surface_slot_remove_exec(bContext *C, wmOperator *op)
 {
 	DynamicPaintModifierData *pmd = NULL;
-	Object *cObject = CTX_data_active_object(C);
+	Object *cObject = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	DynamicPaintSurface *surface;
 	int id=0;
 
@@ -4424,7 +4430,7 @@ void DPAINT_OT_surface_slot_remove(wmOperatorType *ot)
 
 static int type_toggle_exec(bContext *C, wmOperator *op) {
 
-	Object *cObject = CTX_data_active_object(C);
+	Object *cObject = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(cObject, eModifierType_DynamicPaint);
 	int type= RNA_enum_get(op->ptr, "type");
