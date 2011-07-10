@@ -2045,7 +2045,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					mul_m4_v3(psys->parent->obmat, state.co);
 
 				if(use_duplimat)
-					mul_m4_v4(duplimat, state.co);
+					mul_m4_v3(duplimat, state.co);
 
 				if(part->ren_as == PART_DRAW_BB) {
 					bb.random = random;
