@@ -121,7 +121,6 @@ class ProjectEdit(bpy.types.Operator):
 
     def execute(self, context):
         import os
-        import subprocess
 
         EXT = "png"  # could be made an option but for now ok
 

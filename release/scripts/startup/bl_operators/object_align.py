@@ -98,8 +98,6 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
     # Main Loop
 
     for obj, bb_world in objs:
-
-        loc_world = obj.location
         bb_world = [Vector(v[:]) * obj.matrix_world for v in obj.bound_box]
 
         Left_Up_Front = bb_world[1]
