@@ -1022,10 +1022,8 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 		return NULL;
 
 	PyObject* argValue = PyTuple_New(2);
-	if (argValue) {
-		PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
-		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
-	}
+	PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
+	PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
 
 	if(!PyVecTo(PygetScreenVect(argValue), vect))
 	{

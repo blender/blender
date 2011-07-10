@@ -4874,7 +4874,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if(sl->spacetype==SPACE_FILE) {
 						SpaceFile *sfile= (SpaceFile *)sl;
 						sfile->files= NULL;
-						sfile->params= NULL;
 						sfile->op= NULL;
 						sfile->layout= NULL;
 						sfile->folders_prev= NULL;
@@ -5487,7 +5486,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				sfile->files= NULL;
 				sfile->layout= NULL;
 				sfile->op= NULL;
-				sfile->params= NULL;
+				sfile->params= newdataadr(fd, sfile->params);
 			}
 		}
 		

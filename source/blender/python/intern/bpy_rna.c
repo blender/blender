@@ -3847,9 +3847,11 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 				case PROP_RAW_DOUBLE:
 					item= PyFloat_FromDouble((double) ((double *)array)[i]);
 					break;
-				case PROP_RAW_UNSET:
+				default: /* PROP_RAW_UNSET */
 					/* should never happen */
 					BLI_assert(!"Invalid array type - get");
+					item= Py_None;
+					Py_INCREF(item);
 					break;
 				}
 

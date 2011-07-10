@@ -2932,8 +2932,10 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
 						vlr->v4= NULL;
 
-						normal_tri_v3(tmp, vlr->v3->co, vlr->v2->co, vlr->v1->co);
-						add_v3_v3(n, tmp);
+						if(area_tri_v3(vlr->v3->co, vlr->v2->co, vlr->v1->co)>FLT_EPSILON) {
+							normal_tri_v3(tmp, vlr->v3->co, vlr->v2->co, vlr->v1->co);
+							add_v3_v3(n, tmp);
+						}
 
 						vlr->mat= matar[ dl->col ];
 						vlr->flag= 0;

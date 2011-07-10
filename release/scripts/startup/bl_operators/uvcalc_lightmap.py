@@ -444,7 +444,7 @@ def lightmap_uvpack(meshes,
         del even_dict
         del odd_dict
 
-        orig = len(pretty_faces)
+        # orig = len(pretty_faces)
 
         pretty_faces = [pf for pf in pretty_faces if not pf.has_parent]
 
@@ -489,7 +489,10 @@ def lightmap_uvpack(meshes,
 
         if PREF_APPLY_IMAGE:
             if not PREF_PACK_IN_ONE:
-                image = Image.New("lightmap", PREF_IMG_PX_SIZE, PREF_IMG_PX_SIZE, 24)
+                image = bpy.data.images.new(name="lightmap",
+                                            width=PREF_IMG_PX_SIZE,
+                                            height=PREF_IMG_PX_SIZE,
+                                            )
 
             for f in face_sel:
                 # f.image = image
@@ -530,7 +533,7 @@ def unwrap(operator, context, **kwargs):
 
     return {'FINISHED'}
 
-from bpy.props import BoolProperty, FloatProperty, IntProperty, EnumProperty
+from bpy.props import BoolProperty, FloatProperty, IntProperty
 
 
 class LightMapPack(bpy.types.Operator):

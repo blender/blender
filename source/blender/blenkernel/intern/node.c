@@ -2418,6 +2418,11 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		
 		if(ntree->type==NTREE_COMPOSIT)
 			composit_begin_exec(ntree, ntree->stack);
+		
+		/* ensures only a single output node is enabled, texnode allows multiple though */
+		if(ntree->type!=NTREE_TEXTURE)
+			ntreeSetOutput(ntree);
+		
 	}
 	
 	ntree->init |= NTREE_EXEC_INIT;
@@ -2764,9 +2769,6 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	
 	/* fixed seed, for example noise texture */
 	BLI_srandom(rd->cfra);
-
-	/* ensures only a single output node is enabled */
-	ntreeSetOutput(ntree);
 
 	/* sets need_exec tags in nodes */
 	curnode = totnode= setExecutableNodes(ntree, &thdata);

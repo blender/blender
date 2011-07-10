@@ -36,8 +36,6 @@
 #include "BLI_path_util.h"
 #endif
 
-#define PYC_INTERPRETER_ACTIVE (((PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
-
 /* array utility function */
 int PyC_AsArray(void *array, PyObject *value, const int length, const PyTypeObject *type, const short is_double, const char *error_prefix)
 {
