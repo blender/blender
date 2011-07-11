@@ -116,6 +116,29 @@ static PointerRNA rna_tracking_active_track_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_SceneRenderLayer, NULL);
 }
 
+static float rna_trackingCamera_focal_get(PointerRNA *ptr)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+	MovieTrackingCamera *camera= &clip->tracking.camera;
+	float val= camera->focal;
+
+	if(camera->units==CAMERA_UNITS_MM) {
+		int width, height;
+
+		BKE_movieclip_approx_size(clip, &width, &height);
+
+		if(width)
+			val= val*camera->sensor_width/(float)width;
+	}
+
+	return val;
+}
+
+static void rna_trackingCamera_focal_set(PointerRNA *ptr, float value)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+}
+
 #else
 
 static void rna_def_trackingSettings(BlenderRNA *brna)
@@ -124,7 +147,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem speed_items[] = {
-		{0, "FASTEST", 0, "Fastest", "track as fast as it's possible"},
+		{0, "FASTEST", 0, "Fastest", "Track as fast as it's possible"},
 		{TRACKING_SPEED_REALTIME, "REALTIME", 0, "Realtime", "Track with realtime speed"},
 		{TRACKING_SPEED_HALF, "HALF", 0, "Half", "Track with half of realtime speed"},
 		{TRACKING_SPEED_HALF, "QUARTER", 0, "Quarter", "Track with quarter of realtime speed"},
@@ -170,33 +193,58 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem camera_units_items[] = {
+		{CAMERA_UNITS_PX, "PIXELS", 0, "Pixels", "Use pixels for units of focal length"},
+		{CAMERA_UNITS_MM, "MILLIMETERS", 0, "Millimeters", "Use millimeters for units of focal length"},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "MovieTrackingCamera", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking camera data", "Match-moving camera data for tracking");
+
+	/* Sensor Wdth */
+	prop= RNA_def_property(srna, "sensor_width", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sensor_width");
+	RNA_def_property_range(prop, 0.0f, 500.0f);
+	RNA_def_property_ui_text(prop, "Sensor Width", "Width of CCD sensor in millimeters");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	/* Focal Length */
 	prop= RNA_def_property(srna, "focal_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "focal");
 	RNA_def_property_range(prop, 0.0f, 5000.0f);
 	RNA_def_property_ui_text(prop, "Focal Length", "Camera's focal length in pixels");
+	RNA_def_property_float_funcs(prop, "rna_trackingCamera_focal_get", "rna_trackingCamera_focal_set", NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+
+	/* Units */
+	prop= RNA_def_property(srna, "units", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "units");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, camera_units_items);
+	RNA_def_property_ui_text(prop, "Units", "Units used for camera focal length");
 
 	/* Principal Point */
 	prop= RNA_def_property(srna, "principal", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_sdna(prop, NULL, "principal");
 	RNA_def_property_ui_text(prop, "Principal Point", "Optical center of lens");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	/* Radial distortion parameters */
 	prop= RNA_def_property(srna, "k1", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k1");
 	RNA_def_property_ui_text(prop, "K1", "");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	prop= RNA_def_property(srna, "k2", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k2");
 	RNA_def_property_ui_text(prop, "K2", "");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	prop= RNA_def_property(srna, "k3", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k3");
 	RNA_def_property_ui_text(prop, "K3", "");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
 static void rna_def_trackingMarker(BlenderRNA *brna)

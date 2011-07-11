@@ -141,7 +141,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	glRecti(x, 0, x+framelen, 8);
 }
 
-static void draw_movieclip_buffer(ARegion *ar, ImBuf *ibuf, float zoomx, float zoomy)
+static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf, float zoomx, float zoomy)
 {
 	int x, y;
 
@@ -151,11 +151,16 @@ static void draw_movieclip_buffer(ARegion *ar, ImBuf *ibuf, float zoomx, float z
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.f, 0.f, &x, &y);
 
-	if(ibuf->rect_float)
-		IMB_rect_from_float(ibuf);
+	if(sc->flag&SC_MUTE_FOOTAGE) {
+		glColor3f(0.0f, 0.0f, 0.0f);
+		glRectf(x, y, x+ibuf->x*sc->zoom, y+ibuf->y*sc->zoom);
+	} else {
+		if(ibuf->rect_float)
+			IMB_rect_from_float(ibuf);
 
-	if(ibuf->rect)
-		glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+		if(ibuf->rect)
+			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	}
 
 	/* reset zoom */
 	glPixelZoom(1.f, 1.f);
@@ -482,9 +487,10 @@ static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx
 static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, float zoomx, float zoomy)
 {
 	float x, y;
+	MovieTracking* tracking= &clip->tracking;
 	MovieTrackingMarker *marker;
 	MovieTrackingTrack *track;
-	int width, height, sel_type;
+	int width, height, sel_type, framenr= sc->user.framenr;
 	void *sel;
 
 	ED_space_clip_size(sc, &width, &height);
@@ -509,7 +515,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 	BKE_movieclip_last_selection(clip, &sel_type, &sel);
 
 	if(sc->flag&SC_SHOW_MARKER_PATH) {
-		track= clip->tracking.tracks.first;
+		track= tracking->tracks.first;
 		while(track) {
 			if((track->flag&TRACK_HIDDEN)==0)
 				draw_track_path(sc, clip, track);
@@ -519,10 +525,10 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 	}
 
 	/* markers outline and non-selected areas */
-	track= clip->tracking.tracks.first;
+	track= tracking->tracks.first;
 	while(track) {
 		if((track->flag&TRACK_HIDDEN)==0) {
-			marker= BKE_tracking_get_marker(track, sc->user.framenr);
+			marker= BKE_tracking_get_marker(track, framenr);
 
 			draw_marker_outline(sc, track, marker);
 			draw_marker_slide_zones(sc, track, marker, 1, 0, width, height);
@@ -534,13 +540,13 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 
 	/* selected areas only, so selection wouldn't be overlapped by
 	   non-selected areas */
-	track= clip->tracking.tracks.first;
+	track= tracking->tracks.first;
 	while(track) {
 		if((track->flag&TRACK_HIDDEN)==0) {
 			int act= sel_type==MCLIP_SEL_TRACK && sel==track;
 
 			if(!act) {
-				marker= BKE_tracking_get_marker(track, sc->user.framenr);
+				marker= BKE_tracking_get_marker(track, framenr);
 				draw_marker_areas(sc, track, marker, 0, 1);
 				draw_marker_slide_zones(sc, track, marker, 0, 0, width, height);
 			}
@@ -552,10 +558,52 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 	/* active marker would be displayed on top of everything else */
 	if(sel_type==MCLIP_SEL_TRACK) {
 		if((((MovieTrackingTrack *)sel)->flag&TRACK_HIDDEN)==0) {
-			marker= BKE_tracking_get_marker(sel, sc->user.framenr);
+			marker= BKE_tracking_get_marker(sel, framenr);
 			draw_marker_areas(sc, sel, marker, 1, 1);
 			draw_marker_slide_zones(sc, sel, marker, 0, 1, width, height);
 		}
+	}
+
+	if(sc->flag&SC_SHOW_BUNDLES) {
+		float pos[4], vec[4], mat[4][4];
+
+		glEnable(GL_POINT_SMOOTH);
+		glPointSize(3.0f);
+
+		BKE_tracking_projection_matrix(tracking, framenr, width, height, mat);
+
+		track= tracking->tracks.first;
+		while(track) {
+			if(track->flag&TRACK_HAS_BUNDLE) {
+				marker= BKE_tracking_get_marker(track, framenr);
+
+				copy_v4_v4(vec, track->bundle_pos);
+				vec[3]=1;
+
+				mul_v4_m4v4(pos, mat, vec);
+
+				pos[0]= (pos[0]/(pos[3]*2.0f)+0.5f)*width;
+				pos[1]= (pos[1]/(pos[3]*2.0f)+0.5f)*height;
+
+				BKE_tracking_apply_intrinsics(tracking, pos, width, height, pos);
+
+				vec[0]= marker->pos[0]*width;
+				vec[1]= marker->pos[1]*height;
+				sub_v2_v2(vec, pos);
+
+				if(len_v2(vec)<3) glColor3f(0.0f, 1.0f, 0.0f);
+				else glColor3f(1.0f, 0.0f, 0.0f);
+
+				glBegin(GL_POINTS);
+					glVertex3f(pos[0]/width, pos[1]/height, 0);
+				glEnd();
+			}
+
+			track= track->next;
+		}
+
+		glPointSize(1.0f);
+		glDisable(GL_POINT_SMOOTH);
 	}
 
 	glPopMatrix();
@@ -581,7 +629,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	ibuf= ED_space_clip_acquire_buffer(sc);
 
 	if(ibuf) {
-		draw_movieclip_buffer(ar, ibuf, zoomx, zoomy);
+		draw_movieclip_buffer(sc, ar, ibuf, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
 
 		draw_tracking(sc, ar, clip, zoomx, zoomy);

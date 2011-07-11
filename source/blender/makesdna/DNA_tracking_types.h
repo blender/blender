@@ -54,10 +54,13 @@ typedef struct MovieReconstructedCamera {
 } MovieReconstructedCamera;
 
 typedef struct MovieTrackingCamera {
+	float sensor_width;	/* width of CCD sensor */
 	float focal;		/* focal length */
+	short units;		/* units of focal length user is working with */
+	short pad;
 	float principal[2];	/* principal point */
 	float k1, k2, k3;	/* radial distortion */
-	float pad;
+	int last_camera;	/* most recently used camera */
 	int reconnr;		/* number of reconstructed cameras */
 	struct MovieReconstructedCamera *reconstructed;	/* reconstructed cameras */
 } MovieTrackingCamera;
@@ -104,6 +107,12 @@ typedef struct MovieTracking {
 	MovieTrackingCamera camera;
 	ListBase tracks;
 } MovieTracking;
+
+/* MovieTrackingCamera->units */
+enum {
+	CAMERA_UNITS_PX = 0,
+	CAMERA_UNITS_MM
+};
 
 /* MovieTrackingMarker->flag */
 #define MARKER_DISABLED	1

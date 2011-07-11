@@ -214,6 +214,9 @@ static MovieClip *movieclip_alloc(const char *name)
 
 	clip= alloc_libblock(&G.main->movieclip, ID_MC, name);
 
+	clip->tracking.camera.sensor_width= 35.0f;
+	clip->tracking.camera.units= CAMERA_UNITS_MM;
+
 	clip->tracking.settings.frames_limit= 20;
 	clip->tracking.settings.keyframe1= 1;
 	clip->tracking.settings.keyframe2= 30;
@@ -281,7 +284,6 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 	ImBuf *ibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
 
-	clip->lastframe= framenr;
 	ibuf= get_imbuf_cache(clip, user);
 
 	if(!ibuf) {
@@ -293,6 +295,9 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 		if(ibuf)
 			put_imbuf_cache(clip, user, ibuf);
 	}
+
+	if(ibuf)
+		clip->lastframe= framenr;
 
 	return ibuf;
 }
@@ -312,6 +317,29 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 void BKE_movieclip_acquire_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
 {
 	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+
+	if(ibuf && ibuf->x && ibuf->y) {
+		*width= ibuf->x;
+		*height= ibuf->y;
+	} else {
+		*width= 0;
+		*height= 0;
+	}
+
+	if(ibuf)
+		IMB_freeImBuf(ibuf);
+}
+
+void BKE_movieclip_approx_size(MovieClip *clip, int *width, int *height)
+{
+	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, NULL);
+
+	if(!ibuf) {
+		MovieClipUser user;
+		user.framenr= 0;
+
+		ibuf= BKE_movieclip_acquire_ibuf(clip, &user);
+	}
 
 	if(ibuf && ibuf->x && ibuf->y) {
 		*width= ibuf->x;

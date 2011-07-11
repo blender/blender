@@ -218,7 +218,11 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
         sc = context.space_data
         clip = sc.clip
 
-        layout.prop(clip.tracking.camera, "focal_length")
+        layout.prop(clip.tracking.camera, "sensor_width")
+
+        row = layout.row()
+        row.prop(clip.tracking.camera, "focal_length")
+        row.prop(clip.tracking.camera, "units", text="")
 
         layout.label(text="Principal Point")
         layout.prop(clip.tracking.camera, "principal", text="")
@@ -249,6 +253,8 @@ class CLIP_PT_display(bpy.types.Panel):
         row.prop(sc, "path_length")
 
         layout.prop(sc, "show_tiny_markers")
+        layout.prop(sc, "show_bundles")
+        layout.prop(sc, "use_mute_footage")
 
 
 class CLIP_PT_test(bpy.types.Panel):

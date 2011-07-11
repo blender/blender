@@ -331,7 +331,7 @@ int libmv_reporojectionPointForTrack(libmv_Reconstruction *reconstruction, int t
 	return 0;
 }
 
-int libmv_reporojectionCameraForImage(libmv_Reconstruction *reconstruction, int image, float mat[4][4])
+int libmv_reporojectionCameraForImage(libmv_Reconstruction *reconstruction, int image, double mat[4][4])
 {
 	libmv::Camera *camera = ((libmv::Reconstruction *)reconstruction)->CameraForImage(image);
 
@@ -368,3 +368,20 @@ void libmv_destroyReconstruction(libmv_Reconstruction *reconstruction)
 	delete (libmv::Reconstruction *)reconstruction;
 }
 
+/* ************ utils ************ */
+
+void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			double x, double y, double *x1, double *y1)
+{
+	libmv::CameraIntrinsics intrinsics;
+
+	intrinsics.SetFocalLength(focal_length);
+	intrinsics.set_principal_point(principal_x, principal_y);
+	intrinsics.set_radial_distortion(k1, k2, k3);
+
+	if(focal_length) {
+		/* do a lens undistortion if focal length is non-zero only */
+
+		intrinsics.ApplyIntrinsics(x, y, x1, y1);
+	}
+}

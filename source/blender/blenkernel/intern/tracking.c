@@ -758,9 +758,16 @@ static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructi
 	reconstructed= MEM_callocN((efra-sfra+1)*sizeof(MovieReconstructedCamera), "temp reconstructed camera");
 
 	for(a= sfra; a<=efra; a++) {
-		float mat[4][4];
+		double matd[4][4];
 
-		if(libmv_reporojectionCameraForImage(reconstruction, a, mat)) {
+		if(libmv_reporojectionCameraForImage(reconstruction, a, matd)) {
+			int i, j;
+			float mat[4][4];
+
+			for(i=0; i<4; i++)
+				for(j= 0; j<4; j++)
+					mat[i][j]= matd[i][j];
+
 			if(!origin_set) {
 				copy_v3_v3(origin, mat[3]);
 				origin_set= 1;
@@ -838,11 +845,27 @@ MovieTrackingTrack *BKE_find_track_by_name(MovieTracking *tracking, const char *
 
 MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(MovieTracking *tracking, int framenr)
 {
-	int a;
+	MovieTrackingCamera *camera= &tracking->camera;
+	int a= 0, d= 1;
 
-	for (a= 0; a<tracking->camera.reconnr; a++ ) {
-		if(tracking->camera.reconstructed[a].framenr==framenr)
-			return &tracking->camera.reconstructed[a];
+	if(!camera->reconnr)
+		return NULL;
+
+	if(camera->last_camera<camera->reconnr)
+		a= camera->last_camera;
+
+	if(camera->reconstructed[a].framenr>=framenr)
+		d= -1;
+
+	while(a>=0 && a<camera->reconnr) {
+		if(camera->reconstructed[a].framenr==framenr) {
+			camera->last_camera= a;
+			return &camera->reconstructed[a];
+
+			break;
+		}
+
+		a+= d;
 	}
 
 	return NULL;
@@ -861,4 +884,57 @@ void BKE_get_tracking_mat(Scene *scene, float mat[4][4])
 		object_to_mat4(scene->camera, obmat);
 
 	copy_m4_m4(mat, obmat);
+}
+
+void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4])
+{
+	MovieReconstructedCamera *camera;
+	float lens= tracking->camera.focal*32.0f/(float)winx;
+	float viewfac, pixsize, left, right, bottom, top, clipsta, clipend;
+	float winmat[4][4];
+
+	clipsta= 0.1f;
+	clipend= 1000.0f;
+
+	if(winx >= winy)
+		viewfac= (lens*winx)/32.0f;
+	else
+		viewfac= (lens*winy)/32.0f;
+
+	pixsize= clipsta/viewfac;
+
+	left= -0.5f*(float)winx*pixsize;
+	bottom= -0.5f*(float)winy*pixsize;
+	right=  0.5f*(float)winx*pixsize;
+	top=  0.5f*(float)winy*pixsize;
+
+	perspective_m4(winmat, left, right, bottom, top, clipsta, clipend);
+
+	camera= BKE_tracking_get_reconstructed_camera(tracking, framenr);
+	if(camera) {
+		float imat[4][4];
+
+		invert_m4_m4(imat, camera->mat);
+		mul_m4_m4m4(mat, imat, winmat);
+	} else copy_m4_m4(mat, winmat);
+}
+
+void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float width, float height, float nco[2])
+{
+	MovieTrackingCamera *camera= &tracking->camera;
+
+#ifdef WITH_LIBMV
+	double x= nco[0], y= nco[1];
+
+	/* normalize coords */
+	x= (co[0]-camera->principal[0]) / camera->focal;
+	y= (co[1]-camera->principal[1]) / camera->focal;
+
+	libmv_applyCameraIntrinsics(camera->focal, camera->principal[0], camera->principal[1],
+				camera->k1, camera->k2, camera->k3, x, y, &x, &y);
+
+	/* result is in image coords already */
+	nco[0]= x;
+	nco[1]= y;
+#endif
 }

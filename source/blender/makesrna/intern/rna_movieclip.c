@@ -62,19 +62,12 @@ static void rna_MovieClip_reload_update(Main *bmain, Scene *scene, PointerRNA *p
 static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 {
 	MovieClip *clip= (MovieClip*)ptr->data;
-	ImBuf *ibuf;
+	int width, height;
 
-	ibuf= BKE_movieclip_acquire_ibuf(clip, NULL);
-	if (ibuf) {
-		values[0]= ibuf->x;
-		values[1]= ibuf->y;
+	BKE_movieclip_approx_size(clip, &width, &height);
 
-		IMB_freeImBuf(ibuf);
-	}
-	else {
-		values[0]= 0;
-		values[1]= 0;
-	}
+	values[0]= height;
+	values[1]= width;
 }
 
 static void rna_MovieClip_resolution_get(PointerRNA *ptr, float *values)

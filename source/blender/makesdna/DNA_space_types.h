@@ -965,6 +965,8 @@ enum {
 #define SC_LOCK_SELECTION		(1<<2)
 #define SC_SHOW_TINY_MARKER		(1<<3)
 #define SC_SHOW_MARKER_PATH		(1<<4)
+#define SC_SHOW_BUNDLES			(1<<5)
+#define SC_MUTE_FOOTAGE			(1<<6)
 
 
 /* space types, moved from DNA_screen_types.h */

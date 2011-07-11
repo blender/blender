@@ -75,6 +75,8 @@ struct MovieTrackingTrack *BKE_find_track_by_name(struct MovieTracking *tracking
 struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking, int framenr);
 
 void BKE_get_tracking_mat(struct Scene *scene, float mat[4][4]);
+void BKE_tracking_projection_matrix(struct MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4]);
+void BKE_tracking_apply_intrinsics(struct MovieTracking *tracking, float co[2], float width, float height, float nco[2]);
 
 #define TRACK_SELECTED(track) ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 #define TRACK_AREA_SELECTED(track, area) ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))
