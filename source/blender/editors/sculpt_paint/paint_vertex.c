@@ -1320,7 +1320,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defcnt, char *
 			total_changed++;
 			if(ndw->weight == 0) {
 				new_weight_has_zero = TRUE;
-			} else if(!designatedw){
+			} else if(designatedw == -1){
 				designatedw = i;
 			}
 		} // unchanged, unlocked bone groups are handled here
@@ -1361,7 +1361,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defcnt, char *
 			left_over += totchange_allowed;
 			if(left_over) {
 				// more than one nonzero weights were changed with the same ratio, so keep them changed that way!
-				if(total_changed > 1 && !new_weight_has_zero) {
+				if(total_changed > 1 && !new_weight_has_zero && designatedw >= 0) {
 					// this dw is special, it is used as a base to determine how to change the others
 					ndw = defvert_find_index(ndv, designatedw);
 					odw = defvert_find_index(odv, designatedw);
@@ -1378,7 +1378,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defcnt, char *
 						}
 					}
 				}
-				// a weight was changed to zero, or only one weight was changed
+				// a weight was changed to zero, only one weight was changed, or designatedw is still -1
 				// put weight back as evenly as possible
 				else {
 					redistribute_change(ndv, change_status, 2, -2, validmap, left_over, total_changed);
