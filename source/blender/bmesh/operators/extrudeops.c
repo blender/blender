@@ -170,11 +170,11 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	BMOperator dupeop, delop;
 	BMOIter siter;
 	BMIter iter, fiter, viter;
-	BMEdge *e, *newedge /* , *e2 */, *ce;
+	BMEdge *e, *newedge;
 	BMLoop *l, *l2;
 	BMVert *verts[4], *v, *v2;
 	BMFace *f;
-	int rlen, found, delorig=0 /*, i */;
+	int rlen, found, fwd, delorig=0;
 
 	/*initialize our sub-operators*/
 	BMO_Init_Op(&dupeop, "dupe");
@@ -204,7 +204,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		found = 0;
 
 		BM_ITER(e, &viter, bm, BM_EDGES_OF_VERT, v) {
-			if (!BMO_TestFlag(bm, e, EXT_INPUT)) {
+			if (!BMO_TestFlag(bm, e, EXT_INPUT) || !BMO_TestFlag(bm, e, EXT_DEL)){
 				found = 1;
 				break;
 			}
@@ -254,10 +254,17 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		newedge = BMO_IterMapVal(&siter);
 		newedge = *(BMEdge**)newedge;
 		if (!newedge) continue;
-		if (!newedge->l) ce = e;
-		else ce = newedge;
+
+		/* orient loop to give same normal as a loop of newedge
+		if it exists (will be an extruded face),
+		else same normal as a loop of e, if it exists */
+		if (!newedge->l)
+			fwd = !e->l || !(e->l->v == e->v1);
+		else
+			fwd = (newedge->l->v == newedge->v1);
+
 		
-		if (ce->l && (ce->l->v == ce->v1)) {
+		if (fwd) {
 			verts[0] = e->v1;
 			verts[1] = e->v2;
 			verts[2] = newedge->v2;
