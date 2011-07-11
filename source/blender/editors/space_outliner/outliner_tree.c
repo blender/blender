@@ -299,6 +299,25 @@ ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode)
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index);
 
+/* -------------------------------------------------------- */
+
+/* special handling of hierarchical non-lib data */
+static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
+							  TreeElement *parent, int *a)
+{
+	TreeElement *te= outliner_add_element(soops, lb, id, parent, TSE_BONE, *a);
+	
+	(*a)++;
+	te->name= curBone->name;
+	te->directdata= curBone;
+	
+	for(curBone= curBone->childbase.first; curBone; curBone=curBone->next) {
+		outliner_add_bone(soops, &te->subtree, id, curBone, te, a);
+	}
+}
+
+/* -------------------------------------------------------- */
+
 #define LOG2I(x) (int)(log(x)/M_LN2)
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
@@ -389,21 +408,6 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 
 #undef LOG2I
 
-/* special handling of hierarchical non-lib data */
-static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
-							  TreeElement *parent, int *a)
-{
-	TreeElement *te= outliner_add_element(soops, lb, id, parent, TSE_BONE, *a);
-	
-	(*a)++;
-	te->name= curBone->name;
-	te->directdata= curBone;
-	
-	for(curBone= curBone->childbase.first; curBone; curBone=curBone->next) {
-		outliner_add_bone(soops, &te->subtree, id, curBone, te, a);
-	}
-}
-
 static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *sce, TreeElement *te)
 {
 	SceneRenderLayer *srl;
@@ -429,6 +433,360 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 		outliner_add_element(soops, lb, sce, te, TSE_ANIM_DATA, 0);
 	
 	outliner_add_element(soops,  lb, sce->world, te, 0, 0);
+}
+
+// can be inlined if necessary
+static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, Object *ob)
+{
+	int a = 0;
+	
+	if (ob->adt)
+		outliner_add_element(soops, &te->subtree, ob, te, TSE_ANIM_DATA, 0);
+	
+	outliner_add_element(soops, &te->subtree, ob->poselib, te, 0, 0); // XXX FIXME.. add a special type for this
+	
+	if (ob->proxy && ob->id.lib==NULL)
+		outliner_add_element(soops, &te->subtree, ob->proxy, te, TSE_PROXY, 0);
+	
+	outliner_add_element(soops, &te->subtree, ob->data, te, 0, 0);
+	
+	if (ob->pose) {
+		bArmature *arm= ob->data;
+		bPoseChannel *pchan;
+		TreeElement *ten;
+		TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_POSE_BASE, 0);
+		
+		tenla->name= "Pose";
+		
+		/* channels undefined in editmode, but we want the 'tenla' pose icon itself */
+		if ((arm->edbo == NULL) && (ob->mode & OB_MODE_POSE)) {
+			int a= 0, const_index= 1000;	/* ensure unique id for bone constraints */
+			
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
+				ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSE_CHANNEL, a);
+				ten->name= pchan->name;
+				ten->directdata= pchan;
+				pchan->prev= (bPoseChannel *)ten;
+				
+				if(pchan->constraints.first) {
+					//Object *target;
+					bConstraint *con;
+					TreeElement *ten1;
+					TreeElement *tenla1= outliner_add_element(soops, &ten->subtree, ob, ten, TSE_CONSTRAINT_BASE, 0);
+					//char *str;
+					
+					tenla1->name= "Constraints";
+					for(con= pchan->constraints.first; con; con= con->next, const_index++) {
+						ten1= outliner_add_element(soops, &tenla1->subtree, ob, tenla1, TSE_CONSTRAINT, const_index);
+#if 0 /* disabled as it needs to be reworked for recoded constraints system */
+						target= get_constraint_target(con, &str);
+						if(str && str[0]) ten1->name= str;
+						else if(target) ten1->name= target->id.name+2;
+						else ten1->name= con->name;
+#endif
+						ten1->name= con->name;
+						ten1->directdata= con;
+						/* possible add all other types links? */
+					}
+				}
+			}
+			/* make hierarchy */
+			ten= tenla->subtree.first;
+			while(ten) {
+				TreeElement *nten= ten->next, *par;
+				tselem= TREESTORE(ten);
+				if(tselem->type==TSE_POSE_CHANNEL) {
+					pchan= (bPoseChannel *)ten->directdata;
+					if(pchan->parent) {
+						BLI_remlink(&tenla->subtree, ten);
+						par= (TreeElement *)pchan->parent->prev;
+						BLI_addtail(&par->subtree, ten);
+						ten->parent= par;
+					}
+				}
+				ten= nten;
+			}
+			/* restore prev pointers */
+			pchan= ob->pose->chanbase.first;
+			if(pchan) pchan->prev= NULL;
+			for(; pchan; pchan= pchan->next) {
+				if(pchan->next) pchan->next->prev= pchan;
+			}
+		}
+		
+		/* Pose Groups */
+		if(ob->pose->agroups.first) {
+			bActionGroup *agrp;
+			TreeElement *ten;
+			TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_POSEGRP_BASE, 0);
+			int a= 0;
+			
+			tenla->name= "Bone Groups";
+			for (agrp=ob->pose->agroups.first; agrp; agrp=agrp->next, a++) {
+				ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSEGRP, a);
+				ten->name= agrp->name;
+				ten->directdata= agrp;
+			}
+		}
+	}
+	
+	for(a=0; a<ob->totcol; a++) 
+		outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
+	
+	if(ob->constraints.first) {
+		//Object *target;
+		bConstraint *con;
+		TreeElement *ten;
+		TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
+		//char *str;
+		
+		tenla->name= "Constraints";
+		for (con=ob->constraints.first, a=0; con; con= con->next, a++) {
+			ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_CONSTRAINT, a);
+#if 0 /* disabled due to constraints system targets recode... code here needs review */
+			target= get_constraint_target(con, &str);
+			if(str && str[0]) ten->name= str;
+			else if(target) ten->name= target->id.name+2;
+			else ten->name= con->name;
+#endif
+			ten->name= con->name;
+			ten->directdata= con;
+			/* possible add all other types links? */
+		}
+	}
+	
+	if (ob->modifiers.first) {
+		ModifierData *md;
+		TreeElement *temod = outliner_add_element(soops, &te->subtree, ob, te, TSE_MODIFIER_BASE, 0);
+		int index;
+		
+		temod->name = "Modifiers";
+		for (index=0,md=ob->modifiers.first; md; index++,md=md->next) {
+			TreeElement *te = outliner_add_element(soops, &temod->subtree, ob, temod, TSE_MODIFIER, index);
+			te->name= md->name;
+			te->directdata = md;
+			
+			if (md->type==eModifierType_Lattice) {
+				outliner_add_element(soops, &te->subtree, ((LatticeModifierData*) md)->object, te, TSE_LINKED_OB, 0);
+			} 
+			else if (md->type==eModifierType_Curve) {
+				outliner_add_element(soops, &te->subtree, ((CurveModifierData*) md)->object, te, TSE_LINKED_OB, 0);
+			} 
+			else if (md->type==eModifierType_Armature) {
+				outliner_add_element(soops, &te->subtree, ((ArmatureModifierData*) md)->object, te, TSE_LINKED_OB, 0);
+			} 
+			else if (md->type==eModifierType_Hook) {
+				outliner_add_element(soops, &te->subtree, ((HookModifierData*) md)->object, te, TSE_LINKED_OB, 0);
+			} 
+			else if (md->type==eModifierType_ParticleSystem) {
+				TreeElement *ten;
+				ParticleSystem *psys= ((ParticleSystemModifierData*) md)->psys;
+				
+				ten = outliner_add_element(soops, &te->subtree, ob, te, TSE_LINKED_PSYS, 0);
+				ten->directdata = psys;
+				ten->name = psys->part->id.name+2;
+			}
+		}
+	}
+	
+	/* vertex groups */
+	if (ob->defbase.first) {
+		bDeformGroup *defgroup;
+		TreeElement *ten;
+		TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_DEFGROUP_BASE, 0);
+		
+		tenla->name= "Vertex Groups";
+		for (defgroup=ob->defbase.first, a=0; defgroup; defgroup=defgroup->next, a++) {
+			ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_DEFGROUP, a);
+			ten->name= defgroup->name;
+			ten->directdata= defgroup;
+		}
+	}
+	
+	/* duplicated group */
+	if (ob->dup_group)
+		outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);	
+}
+
+// can be inlined if necessary
+static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, ID *id)
+{
+	/* tuck pointer back in object, to construct hierarchy */
+	if (GS(id->name)==ID_OB) id->newid= (ID *)te;
+	
+	/* expand specific data always */
+	switch (GS(id->name)) {
+		case ID_LI:
+		{
+			te->name= ((Library *)id)->name;
+		}
+			break;
+		case ID_SCE:
+		{
+			outliner_add_scene_contents(soops, &te->subtree, (Scene *)id, te);
+		}
+			break;
+		case ID_OB:
+		{
+			outliner_add_object_contents(soops, te, tselem, (Object *)id);
+		}
+			break;
+		case ID_ME:
+		{
+			Mesh *me= (Mesh *)id;
+			int a;
+			
+			if (me->adt)
+				outliner_add_element(soops, &te->subtree, me, te, TSE_ANIM_DATA, 0);
+			
+			outliner_add_element(soops, &te->subtree, me->key, te, 0, 0);
+			for(a=0; a<me->totcol; a++) 
+				outliner_add_element(soops, &te->subtree, me->mat[a], te, 0, a);
+			/* could do tfaces with image links, but the images are not grouped nicely.
+			   would require going over all tfaces, sort images in use. etc... */
+		}
+			break;
+		case ID_CU:
+		{
+			Curve *cu= (Curve *)id;
+			int a;
+			
+			if (cu->adt)
+				outliner_add_element(soops, &te->subtree, cu, te, TSE_ANIM_DATA, 0);
+			
+			for(a=0; a<cu->totcol; a++) 
+				outliner_add_element(soops, &te->subtree, cu->mat[a], te, 0, a);
+		}
+			break;
+		case ID_MB:
+		{
+			MetaBall *mb= (MetaBall *)id;
+			int a;
+			
+			if (mb->adt)
+				outliner_add_element(soops, &te->subtree, mb, te, TSE_ANIM_DATA, 0);
+			
+			for(a=0; a<mb->totcol; a++) 
+				outliner_add_element(soops, &te->subtree, mb->mat[a], te, 0, a);
+		}
+			break;
+		case ID_MA:
+		{
+			Material *ma= (Material *)id;
+			int a;
+			
+			if (ma->adt)
+				outliner_add_element(soops, &te->subtree, ma, te, TSE_ANIM_DATA, 0);
+			
+			for(a=0; a<MAX_MTEX; a++) {
+				if(ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
+			}
+		}
+			break;
+		case ID_TE:
+		{
+			Tex *tex= (Tex *)id;
+			
+			if (tex->adt)
+				outliner_add_element(soops, &te->subtree, tex, te, TSE_ANIM_DATA, 0);
+			
+			outliner_add_element(soops, &te->subtree, tex->ima, te, 0, 0);
+		}
+			break;
+		case ID_CA:
+		{
+			Camera *ca= (Camera *)id;
+			
+			if (ca->adt)
+				outliner_add_element(soops, &te->subtree, ca, te, TSE_ANIM_DATA, 0);
+		}
+			break;
+		case ID_LA:
+		{
+			Lamp *la= (Lamp *)id;
+			int a;
+			
+			if (la->adt)
+				outliner_add_element(soops, &te->subtree, la, te, TSE_ANIM_DATA, 0);
+			
+			for(a=0; a<MAX_MTEX; a++) {
+				if(la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, 0, a);
+			}
+		}
+			break;
+		case ID_WO:
+		{
+			World *wrld= (World *)id;
+			int a;
+			
+			if (wrld->adt)
+				outliner_add_element(soops, &te->subtree, wrld, te, TSE_ANIM_DATA, 0);
+			
+			for(a=0; a<MAX_MTEX; a++) {
+				if(wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, 0, a);
+			}
+		}
+			break;
+		case ID_KE:
+		{
+			Key *key= (Key *)id;
+			
+			if (key->adt)
+				outliner_add_element(soops, &te->subtree, key, te, TSE_ANIM_DATA, 0);
+		}
+			break;
+		case ID_AC:
+		{
+			// XXX do we want to be exposing the F-Curves here?
+			//bAction *act= (bAction *)id;
+		}
+			break;
+		case ID_AR:
+		{
+			bArmature *arm= (bArmature *)id;
+			int a= 0;
+			
+			if (arm->adt)
+				outliner_add_element(soops, &te->subtree, arm, te, TSE_ANIM_DATA, 0);
+			
+			if(arm->edbo) {
+				EditBone *ebone;
+				TreeElement *ten;
+				
+				for (ebone = arm->edbo->first; ebone; ebone=ebone->next, a++) {
+					ten= outliner_add_element(soops, &te->subtree, id, te, TSE_EBONE, a);
+					ten->directdata= ebone;
+					ten->name= ebone->name;
+					ebone->temp= ten;
+				}
+				/* make hierarchy */
+				ten= te->subtree.first;
+				while(ten) {
+					TreeElement *nten= ten->next, *par;
+					ebone= (EditBone *)ten->directdata;
+					if(ebone->parent) {
+						BLI_remlink(&te->subtree, ten);
+						par= ebone->parent->temp;
+						BLI_addtail(&par->subtree, ten);
+						ten->parent= par;
+					}
+					ten= nten;
+				}
+			}
+			else {
+				/* do not extend Armature when we have posemode */
+				tselem= TREESTORE(te->parent);
+				if( GS(tselem->id->name)==ID_OB && ((Object *)tselem->id)->mode & OB_MODE_POSE);
+				else {
+					Bone *curBone;
+					for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
+						outliner_add_bone(soops, &te->subtree, id, curBone, te, &a);
+					}
+				}
+			}
+		}
+			break;
+	}
 }
 
 // TODO: this function needs to be split up! It's getting a bit too large...
@@ -465,337 +823,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 	
 	if(type==0) {
-		/* tuck pointer back in object, to construct hierarchy */
-		if(GS(id->name)==ID_OB) id->newid= (ID *)te;
-		
-		/* expand specific data always */
-		switch(GS(id->name)) {
-			case ID_LI:
-			te->name= ((Library *)id)->name;
-				break;
-			case ID_SCE:
-			outliner_add_scene_contents(soops, &te->subtree, (Scene *)id, te);
-				break;
-			case ID_OB:
-			{
-				Object *ob= (Object *)id;
-				
-				if (ob->adt)
-					outliner_add_element(soops, &te->subtree, ob, te, TSE_ANIM_DATA, 0);
-				outliner_add_element(soops, &te->subtree, ob->poselib, te, 0, 0); // XXX FIXME.. add a special type for this
-				
-				if(ob->proxy && ob->id.lib==NULL)
-					outliner_add_element(soops, &te->subtree, ob->proxy, te, TSE_PROXY, 0);
-				
-				outliner_add_element(soops, &te->subtree, ob->data, te, 0, 0);
-				
-				if(ob->pose) {
-					bArmature *arm= ob->data;
-					bPoseChannel *pchan;
-					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_POSE_BASE, 0);
-					
-					tenla->name= "Pose";
-					
-					if(arm->edbo==NULL && (ob->mode & OB_MODE_POSE)) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
-						int a= 0, const_index= 1000;	/* ensure unique id for bone constraints */
-						
-						for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
-							ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSE_CHANNEL, a);
-							ten->name= pchan->name;
-							ten->directdata= pchan;
-							pchan->prev= (bPoseChannel *)ten;
-							
-							if(pchan->constraints.first) {
-								//Object *target;
-								bConstraint *con;
-								TreeElement *ten1;
-								TreeElement *tenla1= outliner_add_element(soops, &ten->subtree, ob, ten, TSE_CONSTRAINT_BASE, 0);
-								//char *str;
-								
-								tenla1->name= "Constraints";
-								for(con= pchan->constraints.first; con; con= con->next, const_index++) {
-									ten1= outliner_add_element(soops, &tenla1->subtree, ob, tenla1, TSE_CONSTRAINT, const_index);
-#if 0 /* disabled as it needs to be reworked for recoded constraints system */
-									target= get_constraint_target(con, &str);
-									if(str && str[0]) ten1->name= str;
-									else if(target) ten1->name= target->id.name+2;
-									else ten1->name= con->name;
-#endif
-									ten1->name= con->name;
-									ten1->directdata= con;
-									/* possible add all other types links? */
-								}
-							}
-						}
-						/* make hierarchy */
-						ten= tenla->subtree.first;
-						while(ten) {
-							TreeElement *nten= ten->next, *par;
-							tselem= TREESTORE(ten);
-							if(tselem->type==TSE_POSE_CHANNEL) {
-								pchan= (bPoseChannel *)ten->directdata;
-								if(pchan->parent) {
-									BLI_remlink(&tenla->subtree, ten);
-									par= (TreeElement *)pchan->parent->prev;
-									BLI_addtail(&par->subtree, ten);
-									ten->parent= par;
-								}
-							}
-							ten= nten;
-						}
-						/* restore prev pointers */
-						pchan= ob->pose->chanbase.first;
-						if(pchan) pchan->prev= NULL;
-						for(; pchan; pchan= pchan->next) {
-							if(pchan->next) pchan->next->prev= pchan;
-						}
-					}
-					
-					/* Pose Groups */
-					if(ob->pose->agroups.first) {
-						bActionGroup *agrp;
-						TreeElement *ten;
-						TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_POSEGRP_BASE, 0);
-						int a= 0;
-						
-						tenla->name= "Bone Groups";
-						for (agrp=ob->pose->agroups.first; agrp; agrp=agrp->next, a++) {
-							ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSEGRP, a);
-							ten->name= agrp->name;
-							ten->directdata= agrp;
-						}
-					}
-				}
-				
-				for(a=0; a<ob->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
-				
-				if(ob->constraints.first) {
-					//Object *target;
-					bConstraint *con;
-					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
-					int a= 0;
-					//char *str;
-					
-					tenla->name= "Constraints";
-					for(con= ob->constraints.first; con; con= con->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_CONSTRAINT, a);
-#if 0 /* disabled due to constraints system targets recode... code here needs review */
-						target= get_constraint_target(con, &str);
-						if(str && str[0]) ten->name= str;
-						else if(target) ten->name= target->id.name+2;
-						else ten->name= con->name;
-#endif
-						ten->name= con->name;
-						ten->directdata= con;
-						/* possible add all other types links? */
-					}
-				}
-				
-				if(ob->modifiers.first) {
-					ModifierData *md;
-					TreeElement *temod = outliner_add_element(soops, &te->subtree, ob, te, TSE_MODIFIER_BASE, 0);
-					int index;
-					
-					temod->name = "Modifiers";
-					for (index=0,md=ob->modifiers.first; md; index++,md=md->next) {
-						TreeElement *te = outliner_add_element(soops, &temod->subtree, ob, temod, TSE_MODIFIER, index);
-						te->name= md->name;
-						te->directdata = md;
-						
-						if (md->type==eModifierType_Lattice) {
-							outliner_add_element(soops, &te->subtree, ((LatticeModifierData*) md)->object, te, TSE_LINKED_OB, 0);
-						} 
-						else if (md->type==eModifierType_Curve) {
-							outliner_add_element(soops, &te->subtree, ((CurveModifierData*) md)->object, te, TSE_LINKED_OB, 0);
-						} 
-						else if (md->type==eModifierType_Armature) {
-							outliner_add_element(soops, &te->subtree, ((ArmatureModifierData*) md)->object, te, TSE_LINKED_OB, 0);
-						} 
-						else if (md->type==eModifierType_Hook) {
-							outliner_add_element(soops, &te->subtree, ((HookModifierData*) md)->object, te, TSE_LINKED_OB, 0);
-						} 
-						else if (md->type==eModifierType_ParticleSystem) {
-							TreeElement *ten;
-							ParticleSystem *psys= ((ParticleSystemModifierData*) md)->psys;
-							
-							ten = outliner_add_element(soops, &te->subtree, ob, te, TSE_LINKED_PSYS, 0);
-							ten->directdata = psys;
-							ten->name = psys->part->id.name+2;
-						}
-					}
-				}
-				if(ob->defbase.first) {
-					bDeformGroup *defgroup;
-					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_DEFGROUP_BASE, 0);
-					int a= 0;
-					
-					tenla->name= "Vertex Groups";
-					for (defgroup=ob->defbase.first; defgroup; defgroup=defgroup->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_DEFGROUP, a);
-						ten->name= defgroup->name;
-						ten->directdata= defgroup;
-					}
-				}
-				
-				if(ob->dup_group)
-					outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);	
-				
-			}
-				break;
-			case ID_ME:
-			{
-				Mesh *me= (Mesh *)id;
-				
-				if (me->adt)
-					outliner_add_element(soops, &te->subtree, me, te, TSE_ANIM_DATA, 0);
-				
-				outliner_add_element(soops, &te->subtree, me->key, te, 0, 0);
-				for(a=0; a<me->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, me->mat[a], te, 0, a);
-				/* could do tfaces with image links, but the images are not grouped nicely.
-				   would require going over all tfaces, sort images in use. etc... */
-			}
-				break;
-			case ID_CU:
-			{
-				Curve *cu= (Curve *)id;
-				
-				if (cu->adt)
-					outliner_add_element(soops, &te->subtree, cu, te, TSE_ANIM_DATA, 0);
-				
-				for(a=0; a<cu->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, cu->mat[a], te, 0, a);
-			}
-				break;
-			case ID_MB:
-			{
-				MetaBall *mb= (MetaBall *)id;
-				
-				if (mb->adt)
-					outliner_add_element(soops, &te->subtree, mb, te, TSE_ANIM_DATA, 0);
-				
-				for(a=0; a<mb->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, mb->mat[a], te, 0, a);
-			}
-				break;
-			case ID_MA:
-			{
-				Material *ma= (Material *)id;
-				
-				if (ma->adt)
-					outliner_add_element(soops, &te->subtree, ma, te, TSE_ANIM_DATA, 0);
-				
-				for(a=0; a<MAX_MTEX; a++) {
-					if(ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
-				}
-			}
-				break;
-			case ID_TE:
-			{
-				Tex *tex= (Tex *)id;
-				
-				if (tex->adt)
-					outliner_add_element(soops, &te->subtree, tex, te, TSE_ANIM_DATA, 0);
-				
-				outliner_add_element(soops, &te->subtree, tex->ima, te, 0, 0);
-			}
-				break;
-			case ID_CA:
-			{
-				Camera *ca= (Camera *)id;
-				
-				if (ca->adt)
-					outliner_add_element(soops, &te->subtree, ca, te, TSE_ANIM_DATA, 0);
-			}
-				break;
-			case ID_LA:
-			{
-				Lamp *la= (Lamp *)id;
-				
-				if (la->adt)
-					outliner_add_element(soops, &te->subtree, la, te, TSE_ANIM_DATA, 0);
-				
-				for(a=0; a<MAX_MTEX; a++) {
-					if(la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, 0, a);
-				}
-			}
-				break;
-			case ID_WO:
-			{
-				World *wrld= (World *)id;
-				
-				if (wrld->adt)
-					outliner_add_element(soops, &te->subtree, wrld, te, TSE_ANIM_DATA, 0);
-				
-				for(a=0; a<MAX_MTEX; a++) {
-					if(wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, 0, a);
-				}
-			}
-				break;
-			case ID_KE:
-			{
-				Key *key= (Key *)id;
-				
-				if (key->adt)
-					outliner_add_element(soops, &te->subtree, key, te, TSE_ANIM_DATA, 0);
-			}
-				break;
-			case ID_AC:
-			{
-				// XXX do we want to be exposing the F-Curves here?
-				//bAction *act= (bAction *)id;
-			}
-				break;
-			case ID_AR:
-			{
-				bArmature *arm= (bArmature *)id;
-				int a= 0;
-				
-				if (arm->adt)
-					outliner_add_element(soops, &te->subtree, arm, te, TSE_ANIM_DATA, 0);
-				
-				if(arm->edbo) {
-					EditBone *ebone;
-					TreeElement *ten;
-					
-					for (ebone = arm->edbo->first; ebone; ebone=ebone->next, a++) {
-						ten= outliner_add_element(soops, &te->subtree, id, te, TSE_EBONE, a);
-						ten->directdata= ebone;
-						ten->name= ebone->name;
-						ebone->temp= ten;
-					}
-					/* make hierarchy */
-					ten= te->subtree.first;
-					while(ten) {
-						TreeElement *nten= ten->next, *par;
-						ebone= (EditBone *)ten->directdata;
-						if(ebone->parent) {
-							BLI_remlink(&te->subtree, ten);
-							par= ebone->parent->temp;
-							BLI_addtail(&par->subtree, ten);
-							ten->parent= par;
-						}
-						ten= nten;
-					}
-				}
-				else {
-					/* do not extend Armature when we have posemode */
-					tselem= TREESTORE(te->parent);
-					if( GS(tselem->id->name)==ID_OB && ((Object *)tselem->id)->mode & OB_MODE_POSE);
-					else {
-						Bone *curBone;
-						for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-							outliner_add_bone(soops, &te->subtree, id, curBone, te, &a);
-						}
-					}
-				}
-			}
-				break;
-		}
+		/* ID datablock */
+		outliner_add_id_contents(soops, te, tselem, id);
 	}
 	else if(type==TSE_ANIM_DATA) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)idv;
