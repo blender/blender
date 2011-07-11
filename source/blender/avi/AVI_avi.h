@@ -60,7 +60,7 @@
 
 typedef struct _AviChunk {
   int fcc;
-  int64_t size;
+  int size;
 } AviChunk;
 
 typedef struct _AviList {

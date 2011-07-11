@@ -123,10 +123,7 @@ static void smoothModifier_do(
 	medges = dm->getEdgeArray(dm);
 	numDMEdges = dm->getNumEdges(dm);
 
-	defgrp_index = defgroup_name_index(ob, smd->defgrp_name);
-
-	if (defgrp_index >= 0)
-		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
 
 	/* NOTICE: this can be optimized a little bit by moving the
 	* if (dvert) out of the loop, if needed */

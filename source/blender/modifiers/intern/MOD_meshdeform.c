@@ -284,10 +284,7 @@ static void meshdeformModifier_do(
 			copy_v3_v3(dco[a], co);
 	}
 
-	defgrp_index = defgroup_name_index(ob, mmd->defgrp_name);
-
-	if(dm && defgrp_index >= 0)
-		dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	modifier_get_vgroup(ob, dm, mmd->defgrp_name, &dvert, &defgrp_index);
 
 	/* do deformation */
 	fac= 1.0f;

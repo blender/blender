@@ -36,14 +36,15 @@
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.h"
 
-struct Tex;
-struct TexResult;
 struct CustomData;
 struct DerivedMesh;
+struct EditMesh;
+struct MDeformVert;
+struct ModifierData;
 struct Object;
 struct Scene;
-struct EditMesh;
-struct ModifierData;
+struct Tex;
+struct TexResult;
 
 void get_texture_value(struct Tex *texture, float *tex_co, struct TexResult *texres);
 void get_texture_coords(struct MappingInfoModifierData *dmd, struct Object *ob, struct DerivedMesh *dm, float (*co)[3], float (*texco)[3], int numVerts);
@@ -51,5 +52,6 @@ void modifier_vgroup_cache(struct ModifierData *md, float (*vertexCos)[3]);
 void validate_layer_name(const struct CustomData *data, int type, char *name, char *outname);
 struct DerivedMesh *get_cddm(struct Object *ob, struct EditMesh *em, struct DerivedMesh *dm, float (*vertexCos)[3]);
 struct DerivedMesh *get_dm(struct Object *ob, struct EditMesh *em, struct DerivedMesh *dm, float (*vertexCos)[3], int orco);
+void modifier_get_vgroup(struct Object *ob, DerivedMesh *dm, const char *name, struct MDeformVert **dvert, int *defgrp_index);
 
 #endif /* MOD_UTIL_H */
