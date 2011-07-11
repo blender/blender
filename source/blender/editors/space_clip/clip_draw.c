@@ -574,7 +574,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 
 		track= tracking->tracks.first;
 		while(track) {
-			if(track->flag&TRACK_HAS_BUNDLE) {
+			if((track->flag&TRACK_HIDDEN)==0 && track->flag&TRACK_HAS_BUNDLE) {
 				marker= BKE_tracking_get_marker(track, framenr);
 
 				copy_v4_v4(vec, track->bundle_pos);

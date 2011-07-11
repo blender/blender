@@ -127,7 +127,7 @@ static void add_marker(SpaceClip *sc, float x, float y)
 	MovieTrackingTrack *track;
 	MovieTrackingMarker marker;
 	int width, height;
-	float pat[2]= {15.0f, 15.0f}, search[2]= {30.0f, 30.0f}; /* TODO: move to default setting? */
+	float pat[2]= {5.5f, 5.5f}, search[2]= {80.5f, 80.5f}; /* TODO: move to default setting? */
 
 	ED_space_clip_size(sc, &width, &height);
 
@@ -328,7 +328,7 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 
 /********************** mouse select operator *********************/
 
-static int mouse_on_size(float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
+static int mouse_on_side(float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
 {
 	if(x1>x2) SWAP(float, x1, x2);
 	if(y1>y2) SWAP(float, y1, y2);
@@ -338,10 +338,10 @@ static int mouse_on_size(float co[2], float x1, float y1, float x2, float y2, fl
 
 static int mouse_on_rect(float co[2], float pos[2], float min[2], float max[2], float epsx, float epsy)
 {
-	return mouse_on_size(co, pos[0]+min[0], pos[1]+min[1], pos[0]+max[0], pos[1]+min[1], epsx, epsy) ||
-	       mouse_on_size(co, pos[0]+min[0], pos[1]+min[1], pos[0]+min[0], pos[1]+max[1], epsx, epsy) ||
-	       mouse_on_size(co, pos[0]+min[0], pos[1]+max[1], pos[0]+max[0], pos[1]+max[1], epsx, epsy) ||
-	       mouse_on_size(co, pos[0]+max[0], pos[1]+min[1], pos[0]+max[0], pos[1]+max[1], epsx, epsy);
+	return mouse_on_side(co, pos[0]+min[0], pos[1]+min[1], pos[0]+max[0], pos[1]+min[1], epsx, epsy) ||
+	       mouse_on_side(co, pos[0]+min[0], pos[1]+min[1], pos[0]+min[0], pos[1]+max[1], epsx, epsy) ||
+	       mouse_on_side(co, pos[0]+min[0], pos[1]+max[1], pos[0]+max[0], pos[1]+max[1], epsx, epsy) ||
+	       mouse_on_side(co, pos[0]+max[0], pos[1]+min[1], pos[0]+max[0], pos[1]+max[1], epsx, epsy);
 }
 
 static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *track)
@@ -1251,7 +1251,7 @@ typedef struct {
 	float *min, *max, *pos;
 	float smin[2], smax[2], spos[2];
 
-	int keep_square;
+	int keep_square, accurate;
 } SlideMarkerData;
 
 static SlideMarkerData *create_slide_marker_data(MovieTrackingTrack *track, MovieTrackingMarker *marker, wmEvent *event, int area, int width, int height)
@@ -1374,8 +1374,14 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 	switch(event->type) {
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
 			if(data->area != TRACK_AREA_POINT)
-				data->keep_square= event->val==KM_PRESS;
+				if(ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
+					data->keep_square= event->val==KM_PRESS;
+
+			if(ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
+				data->accurate= event->val==KM_PRESS;
 
 			/* no break! update area size */
 
@@ -1385,6 +1391,11 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			dx= mdelta[0]/data->width/sc->zoom;
 			dy= mdelta[1]/data->height/sc->zoom;
+
+			if(data->accurate) {
+				dx/= 5;
+				dy/= 5;
+			}
 
 			if(data->area == TRACK_AREA_POINT) {
 				data->pos[0]= data->spos[0]+dx;
