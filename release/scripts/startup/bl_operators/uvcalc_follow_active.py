@@ -42,7 +42,6 @@ def extend(obj, operator, EXTEND_MODE):
     edge_average_lengths = {}
 
     OTHER_INDEX = 2, 3, 0, 1
-    FAST_INDICIES = 0, 2, 1, 3  # order is faster
 
     def extend_uvs(face_source, face_target, edge_key):
         '''

@@ -3510,13 +3510,15 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 static void hair_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
-/*	ParticleSettings *part = psys->part; */
+	ParticleSettings *part = psys->part;
 	PARTICLE_P;
 	float disp = (float)psys_get_current_display_percentage(psys)/100.0f;
 
-	BLI_srandom(psys->seed);
-
 	LOOP_PARTICLES {
+		pa->size = part->size;
+		if(part->randsize > 0.0f)
+			pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
+
 		if(PSYS_FRAND(p) > disp)
 			pa->flag |= PARS_NO_DISP;
 		else
@@ -3801,8 +3803,6 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 	PARTICLE_P;
 	float disp, dietime;
 
-	BLI_srandom(psys->seed);
-
 	psys_update_effectors(sim);
 	
 	disp= (float)psys_get_current_display_percentage(psys)/100.0f;
@@ -4054,7 +4054,6 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	/* set particles to be not calculated TODO: can't work with pointcache */
 	disp= (float)psys_get_current_display_percentage(psys)/100.0f;
 
-	BLI_srandom(psys->seed);
 	LOOP_PARTICLES {
 		if(PSYS_FRAND(p) > disp)
 			pa->flag |= PARS_NO_DISP;

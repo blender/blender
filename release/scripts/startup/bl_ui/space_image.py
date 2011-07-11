@@ -434,7 +434,6 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
         sima = context.space_data
         # display even when not in game mode because these settings effect the 3d view
         return (sima and sima.image)  # and (rd.engine == 'BLENDER_GAME')

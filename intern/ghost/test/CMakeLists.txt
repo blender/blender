@@ -82,8 +82,6 @@ add_library(bli_lib
 		"../../../source/blender/blenlib/intern/BLI_memarena.c"
 		)
 
-message(STATUS "EEEk ${SRC_NEW}")
-
 
 find_package(OpenGL REQUIRED)
 

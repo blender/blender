@@ -48,8 +48,6 @@ def paths():
 
 def modules(module_cache):
     import os
-    import sys
-    import time
 
     path_list = paths()
 
@@ -173,11 +171,9 @@ def enable(module_name, default_set=True):
     :return: the loaded module or None on failier.
     :rtype: module
     """
-    # note, this still gets added to _bpy_types.TypeMap
 
     import os
     import sys
-    import bpy_types as _bpy_types
     import imp
 
     def handle_error():
@@ -246,8 +242,6 @@ def disable(module_name, default_set=True):
     :type module_name: string
     """
     import sys
-    import bpy_types as _bpy_types
-
     mod = sys.modules.get(module_name)
 
     # possible this addon is from a previous session and didnt load a module this time.

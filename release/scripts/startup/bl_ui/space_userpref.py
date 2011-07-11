@@ -126,7 +126,7 @@ class USERPREF_MT_appconfigs(bpy.types.Menu):
     preset_operator = "wm.appconfig_activate"
 
     def draw(self, context):
-        props = self.layout.operator("wm.appconfig_default", text="Blender (default)")
+        self.layout.operator("wm.appconfig_default", text="Blender (default)")
 
         # now draw the presets
         bpy.types.Menu.draw_preset(self, context)
@@ -986,7 +986,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         split.label(text="Warning:")
                         split.label(text='  ' + info["warning"], icon='ERROR')
 
-                    user_addon = __class__.is_user_addon(mod, user_addon_paths)
+                    user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
                     tot_row = bool(info["wiki_url"]) + bool(info["tracker_url"]) + bool(user_addon)
 
                     if tot_row:
@@ -1124,7 +1124,6 @@ class WM_OT_addon_install(bpy.types.Operator):
         del pyfile_dir
         # done checking for exceptional case
 
-        addon_files_old = set(os.listdir(path_addons))
         addons_old = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)}
 
         #check to see if the file is in compressed format (.zip)
@@ -1137,7 +1136,7 @@ class WM_OT_addon_install(bpy.types.Operator):
 
             if self.overwrite:
                 for f in file_to_extract.namelist():
-                    __class__._module_remove(path_addons, f)
+                    WM_OT_addon_install._module_remove(path_addons, f)
             else:
                 for f in file_to_extract.namelist():
                     path_dest = os.path.join(path_addons, os.path.basename(f))
@@ -1161,7 +1160,7 @@ class WM_OT_addon_install(bpy.types.Operator):
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
             if self.overwrite:
-                __class__._module_remove(path_addons, os.path.basename(pyfile))
+                WM_OT_addon_install._module_remove(path_addons, os.path.basename(pyfile))
             elif os.path.exists(path_dest):
                 self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
                 return {'CANCELLED'}
@@ -1226,7 +1225,7 @@ class WM_OT_addon_remove(bpy.types.Operator):
         return None, False
 
     def execute(self, context):
-        path, isdir = __class__.path_from_addon(self.module)
+        path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
         if path is None:
             self.report('WARNING', "Addon path %r could not be found" % path)
             return {'CANCELLED'}
@@ -1246,7 +1245,7 @@ class WM_OT_addon_remove(bpy.types.Operator):
     # lame confirmation check
     def draw(self, context):
         self.layout.label(text="Remove Addon: %r?" % self.module)
-        path, isdir = __class__.path_from_addon(self.module)
+        path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
         self.layout.label(text="Path: %r" % path)
 
     def invoke(self, context, event):
