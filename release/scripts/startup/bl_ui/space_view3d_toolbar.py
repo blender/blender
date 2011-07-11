@@ -465,7 +465,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = __class__.paint_settings(context)
+        settings = self.paint_settings(context)
         brush = settings.brush
 
         if not context.particle_edit_object:
@@ -686,7 +686,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = __class__.paint_settings(context)
+        settings = self.paint_settings(context)
         brush = settings.brush
         tex_slot = brush.texture_slot
 
@@ -785,7 +785,7 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = __class__.paint_settings(context)
+        settings = self.paint_settings(context)
         brush = settings.brush
 
         col = layout.column(align=True)
@@ -820,7 +820,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = __class__.paint_settings(context)
+        settings = self.paint_settings(context)
         brush = settings.brush
         image_paint = context.image_paint_object
 
@@ -1003,7 +1003,7 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = __class__.paint_settings(context)
+        settings = self.paint_settings(context)
         brush = settings.brush
 
         if brush is None:  # unlikely but can happen

@@ -29,7 +29,7 @@ op_as_string = ops_module.as_string
 op_get_rna = ops_module.get_rna
 
 
-class bpy_ops(object):
+class BPyOps(object):
     '''
     Fake module like class.
 
@@ -42,7 +42,7 @@ class bpy_ops(object):
         '''
         if module.startswith('__'):
             raise AttributeError(module)
-        return bpy_ops_submodule(module)
+        return BPyOpsSubMod(module)
 
     def __dir__(self):
 
@@ -67,7 +67,7 @@ class bpy_ops(object):
         return "<module like class 'bpy.ops'>"
 
 
-class bpy_ops_submodule(object):
+class BPyOpsSubMod(object):
     '''
     Utility class to fake submodules.
 
@@ -84,7 +84,7 @@ class bpy_ops_submodule(object):
         '''
         if func.startswith('__'):
             raise AttributeError(func)
-        return bpy_ops_submodule_op(self.module, func)
+        return BPyOpsSubModOp(self.module, func)
 
     def __dir__(self):
 
@@ -103,7 +103,7 @@ class bpy_ops_submodule(object):
         return "<module like class 'bpy.ops.%s'>" % self.module
 
 
-class bpy_ops_submodule_op(object):
+class BPyOpsSubModOp(object):
     '''
     Utility class to fake submodule operators.
 
@@ -151,7 +151,7 @@ class bpy_ops_submodule_op(object):
         self.func = func
 
     def poll(self, *args):
-        C_dict, C_exec = __class__._parse_args(args)
+        C_dict, C_exec = BPyOpsSubModOp._parse_args(args)
         return op_poll(self.idname_py(), C_dict, C_exec)
 
     def idname(self):
@@ -170,16 +170,16 @@ class bpy_ops_submodule_op(object):
         wm = context.window_manager
 
         # run to account for any rna values the user changes.
-        __class__._scene_update(context)
+        BPyOpsSubModOp._scene_update(context)
 
         if args:
-            C_dict, C_exec = __class__._parse_args(args)
+            C_dict, C_exec = BPyOpsSubModOp._parse_args(args)
             ret = op_call(self.idname_py(), C_dict, kw, C_exec)
         else:
             ret = op_call(self.idname_py(), None, kw)
 
         if 'FINISHED' in ret and context.window_manager == wm:
-            __class__._scene_update(context)
+            BPyOpsSubModOp._scene_update(context)
 
         return ret
 
@@ -208,4 +208,4 @@ class bpy_ops_submodule_op(object):
         return "<function bpy.ops.%s.%s at 0x%x'>" % \
                 (self.module, self.func, id(self))
 
-ops_fake_module = bpy_ops()
+ops_fake_module = BPyOps()

@@ -234,7 +234,7 @@ class InputKeyMapPanel:
         for pname, value in properties.bl_rna.properties.items():
             if pname != "rna_type" and not properties.is_property_hidden(pname):
                 if isinstance(value, bpy.types.OperatorProperties):
-                    __class__.draw_kmi_properties(box, value, title=pname)
+                    InputKeyMapPanel.draw_kmi_properties(box, value, title=pname)
                 else:
                     flow.prop(properties, pname)
 
@@ -325,7 +325,7 @@ class InputKeyMapPanel:
             # Operator properties
             props = kmi.properties
             if props is not None:
-                __class__.draw_kmi_properties(box, props)
+                InputKeyMapPanel.draw_kmi_properties(box, props)
 
             # Modal key maps attached to this operator
             if not km.is_modal:
