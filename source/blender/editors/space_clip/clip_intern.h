@@ -81,8 +81,6 @@ void CLIP_OT_set_origin(struct wmOperatorType *ot);
 
 void CLIP_OT_slide_marker(struct wmOperatorType *ot);
 
-void CLIP_OT_track_to_fcurves(struct wmOperatorType *ot);
-
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 void draw_clip_track_widget(const struct bContext *C, void *trackp, void *userp, void *clipp, rcti *rect);

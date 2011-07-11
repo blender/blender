@@ -412,12 +412,13 @@ typedef struct bShrinkwrapConstraint {
 typedef struct bFollowTrackConstraint {
 	struct MovieClip	*clip;
 	char	track[24];
-	int		flag, pad;
+	int		flag, reference;
 } bFollowTrackConstraint;
 
 /* Camera Solver constraints */
 typedef struct bCameraSolverConstraint {
 	struct MovieClip	*clip;
+	int		flag, pad;
 } bCameraSolverConstraint;
 
 /* ------------------------------------------ */
@@ -750,9 +751,19 @@ typedef enum ePivotConstraint_Flag {
 } ePivotConstraint_Flag;
 
 /* FollowTrack Constraint -> flag */
+typedef enum eFollowTrack_Reference {
+	FOLLOWTRACK_TRACK		= (1<<0),
+	FOLLOWTRACK_BUNDLE		= (1<<1)
+} FollowTrack_Reference;
+
 typedef enum eFollowTrack_Flags {
-	FOLLOWTRACK_BUNDLE 	= (1<<0),
+	FOLLOWTRACK_DEFAULTCLIP	= (1<<0)
 } eFollowTrack_Flags;
+
+/* CameraSolver Constraint -> flag */
+typedef enum eCameraSolver_Flags {
+	CAMERASOLVER_DEFAULTCLIP	= (1<<0)
+} eCameraSolver_Flags;
 
 /* Rigid-Body Constraint */
 #define CONSTRAINT_DRAW_PIVOT 0x40

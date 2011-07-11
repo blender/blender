@@ -127,6 +127,8 @@ class CLIP_PT_tools(bpy.types.Panel):
             op = col.operator("clip.clear_track_path", text="Clear Track Path")
             op.action = 'ALL'
 
+            layout.operator("clip.apply_follow_track")
+
             col = layout.column(align=True)
             col.label(text="Reconstruction:")
             col.operator("clip.solve_camera")
@@ -255,20 +257,6 @@ class CLIP_PT_display(bpy.types.Panel):
         layout.prop(sc, "show_tiny_markers")
         layout.prop(sc, "show_bundles")
         layout.prop(sc, "use_mute_footage")
-
-
-class CLIP_PT_test(bpy.types.Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_label = "Test"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        sc = context.space_data
-
-        layout.operator("clip.apply_follow_track")
-        layout.operator("clip.track_to_fcurves")
 
 
 class CLIP_PT_footage(bpy.types.Panel):

@@ -377,7 +377,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	MovieTrackingTrack *track;
 
 #ifdef WITH_LIBMV
-	context->region_tracker= libmv_regionTrackerNew(100, 4, 0.2);
+	context->region_tracker= libmv_regionTrackerNew(100, 7, 0.2);
 #endif
 
 	context->settings= *settings;

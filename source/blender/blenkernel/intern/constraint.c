@@ -3940,6 +3940,7 @@ static void followtrack_new_data (void *cdata)
 	bFollowTrackConstraint *data= (bFollowTrackConstraint *)cdata;
 
 	data->clip= NULL;
+	data->flag|= FOLLOWTRACK_DEFAULTCLIP;
 }
 
 static void followtrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -3953,12 +3954,15 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 {
 	Scene *scene= cob->scene;
 	bFollowTrackConstraint *data= con->data;
-	MovieClip *clip= data->clip ? data->clip : scene->clip;
+	MovieClip *clip= data->clip;
 	MovieClipUser user;
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	float tx, ty;
 	int width, height;
+
+	if(data->flag&FOLLOWTRACK_DEFAULTCLIP)
+		clip= scene->clip;
 
 	if(!clip || !data->track[0])
 		return;
@@ -3968,7 +3972,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	if(!track)
 		return;
 
-	if(data->flag&FOLLOWTRACK_BUNDLE) {
+	if(data->reference==FOLLOWTRACK_BUNDLE) {
 		if(track->flag&TRACK_HAS_BUNDLE) {
 			float pos[3], mat[4][4], obmat[4][4];
 
@@ -4017,6 +4021,7 @@ static void camerasolver_new_data (void *cdata)
 	bCameraSolverConstraint *data= (bCameraSolverConstraint *)cdata;
 
 	data->clip= NULL;
+	data->flag|= CAMERASOLVER_DEFAULTCLIP;
 }
 
 static void camerasolver_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -4030,8 +4035,11 @@ static void camerasolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 {
 	Scene *scene= cob->scene;
 	bCameraSolverConstraint *data= con->data;
-	MovieClip *clip= data->clip ? data->clip : scene->clip;
+	MovieClip *clip= data->clip;
 	MovieReconstructedCamera *camera;
+
+	if(data->flag&CAMERASOLVER_DEFAULTCLIP)
+		clip= scene->clip;
 
 	if(clip) {
 		camera= BKE_tracking_get_reconstructed_camera(&clip->tracking, scene->r.cfra);

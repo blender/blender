@@ -99,7 +99,7 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, int framenr)
 	   autoguess offset for now. could be something smarter in the future */
 	offset= sequence_guess_offset(clip->name, strlen(head), numlen);
 
-	if(numlen) BLI_stringenc(name, head, tail, numlen, offset+framenr);
+	if(numlen) BLI_stringenc(name, head, tail, numlen, offset+framenr-1);
 	else strncpy(name, clip->name, sizeof(name));
 
 	if(clip->id.lib)
