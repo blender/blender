@@ -121,6 +121,7 @@ def validate_arguments(args, bc):
             'BF_OPENMP_INC',
             'BF_OPENMP_LIBPATH',
             'WITH_GHOST_COCOA',
+            'WITH_GHOST_SDL',
             'USE_QTKIT',
             'BF_FANCY', 'BF_QUIET', 'BF_LINE_OVERWRITE',
             'BF_X264_CONFIG',
@@ -385,6 +386,7 @@ def read_opts(env, cfg, args):
         ('BF_OPENMP_INC', 'Path to OpenMP includes (used when cross-compiling with older versions of WinGW)', ''),
         ('BF_OPENMP_LIBPATH', 'Path to OpenMP libraries (used when cross-compiling with older versions of WinGW)', ''),
         (BoolVariable('WITH_GHOST_COCOA', 'Use Cocoa-framework if true', False)),
+        (BoolVariable('WITH_GHOST_SDL', 'Enable building blender against SDL for windowing rather then the native APIs', False)),
         (BoolVariable('USE_QTKIT', 'Use QTKIT if true', False)),
 
         (BoolVariable('WITH_BF_QUICKTIME', 'Use QuickTime if true', False)),
