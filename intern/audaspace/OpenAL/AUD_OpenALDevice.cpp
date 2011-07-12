@@ -492,10 +492,10 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::setSourceOrientation(const AUD_Quaterni
 
 bool AUD_OpenALDevice::AUD_OpenALHandle::isRelative()
 {
-	int result = std::numeric_limits<float>::quiet_NaN();
+	int result;
 
 	if(!m_status)
-		return result;
+		return false;
 
 	m_device->lock();
 

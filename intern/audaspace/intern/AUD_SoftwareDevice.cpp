@@ -38,15 +38,178 @@
 #else
 #include "AUD_LinearResampleReader.h"
 #endif
-#include "AUD_ChannelMapperReader.h"
 
 #include <cstring>
+#include <cmath>
 #include <limits>
 
-AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, bool keep) :
-	m_reader(reader), m_pitch(pitch), m_keep(keep), m_volume(1.0f), m_loopcount(0),
-	m_stop(NULL), m_stop_data(NULL), m_status(AUD_STATUS_PLAYING), m_device(device)
+typedef enum
 {
+	AUD_RENDER_DISTANCE = 0x01,
+	AUD_RENDER_DOPPLER = 0x02,
+	AUD_RENDER_CONE = 0x04,
+	AUD_RENDER_VOLUME = 0x08
+} AUD_RenderFlags;
+
+#define AUD_PITCH_MAX 10
+
+/******************************************************************************/
+/********************** AUD_SoftwareHandle Handle Code ************************/
+/******************************************************************************/
+
+AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, AUD_Reference<AUD_ChannelMapperReader> mapper, bool keep) :
+	m_reader(reader), m_pitch(pitch), m_mapper(mapper), m_keep(keep), m_user_pitch(1.0f), m_user_volume(1.0f), m_volume(1.0f), m_loopcount(0),
+	m_relative(false), m_volume_max(1.0f), m_volume_min(0), m_distance_max(std::numeric_limits<float>::max()),
+	m_distance_reference(1.0f), m_attenuation(1.0f), m_cone_angle_outer(M_PI), m_cone_angle_inner(M_PI), m_cone_volume_outer(0),
+	m_flags(AUD_RENDER_CONE), m_stop(NULL), m_stop_data(NULL), m_status(AUD_STATUS_PLAYING), m_device(device)
+{
+}
+
+#include <iostream>
+
+void AUD_SoftwareDevice::AUD_SoftwareHandle::update()
+{
+	int flags = 0;
+
+	AUD_Vector3 SL;
+	if(m_relative)
+		SL = m_location;
+	else
+		SL = m_device->m_location - m_location;
+	float distance = SL * SL;
+
+	if(distance > 0)
+		distance = sqrt(distance);
+	else
+		flags |= AUD_RENDER_DOPPLER | AUD_RENDER_DISTANCE;
+
+	if(m_pitch->getSpecs().channels != AUD_CHANNELS_MONO)
+	{
+		m_volume = m_user_volume;
+		m_pitch->setPitch(m_user_pitch);
+		return;
+	}
+
+	flags = ~(flags | m_flags | m_device->m_flags);
+
+	// Doppler and Pitch
+
+	if(flags & AUD_RENDER_DOPPLER)
+	{
+		float vls;
+		if(m_relative)
+			vls = 0;
+		else
+			vls = SL * m_device->m_velocity / distance;
+		float vss = SL * m_velocity / distance;
+		float max = m_device->m_speed_of_sound / m_device->m_doppler_factor;
+		if(vss >= max)
+		{
+			m_pitch->setPitch(AUD_PITCH_MAX);
+		}
+		else
+		{
+			if(vls > max)
+				vls = max;
+
+			m_pitch->setPitch((m_device->m_speed_of_sound - m_device->m_doppler_factor * vls) / (m_device->m_speed_of_sound - m_device->m_doppler_factor * vss) * m_user_pitch);
+		}
+	}
+	else
+		m_pitch->setPitch(m_user_pitch);
+
+	if(flags & AUD_RENDER_VOLUME)
+	{
+		// Distance
+
+		if(flags & AUD_RENDER_DISTANCE)
+		{
+			if(m_device->m_distance_model == AUD_DISTANCE_MODEL_INVERSE_CLAMPED || m_device->m_distance_model == AUD_DISTANCE_MODEL_LINEAR_CLAMPED || m_device->m_distance_model == AUD_DISTANCE_MODEL_EXPONENT_CLAMPED)
+			{
+				distance = AUD_MAX(AUD_MIN(m_distance_max, distance), m_distance_reference);
+			}
+
+			switch(m_device->m_distance_model)
+			{
+			case AUD_DISTANCE_MODEL_INVERSE:
+			case AUD_DISTANCE_MODEL_INVERSE_CLAMPED:
+				m_volume = m_distance_reference / (m_distance_reference + m_attenuation * (distance - m_distance_reference));
+				break;
+			case AUD_DISTANCE_MODEL_LINEAR:
+			case AUD_DISTANCE_MODEL_LINEAR_CLAMPED:
+			{
+				float temp = m_distance_max - m_distance_reference;
+				if(temp == 0)
+				{
+					if(distance > m_distance_reference)
+						m_volume = 0.0f;
+					else
+						m_volume = 1.0f;
+				}
+				else
+					m_volume = 1.0f - m_attenuation * (distance - m_distance_reference) / (m_distance_max - m_distance_reference);
+				break;
+			}
+			case AUD_DISTANCE_MODEL_EXPONENT:
+			case AUD_DISTANCE_MODEL_EXPONENT_CLAMPED:
+				if(m_distance_reference == 0)
+					m_volume = 0;
+				else
+					m_volume = pow(distance / m_distance_reference, -m_attenuation);
+				break;
+			default:
+				m_volume = 1.0f;
+			}
+		}
+		else
+			m_volume = 1.0f;
+
+		// Cone
+
+		if(flags & AUD_RENDER_CONE)
+		{
+			AUD_Vector3 SZ = m_orientation.getLookAt();
+
+			float phi = acos(SZ * SL / (SZ.length() * SL.length()));
+			float t = (phi - m_cone_angle_inner)/(m_cone_angle_outer - m_cone_angle_inner);
+
+			if(t > 0)
+			{
+				if(t > 1)
+					m_volume *= m_cone_volume_outer;
+				else
+					m_volume *= 1 + t * (m_cone_volume_outer - 1);
+			}
+		}
+
+		// Volume
+
+		m_volume *= m_user_volume;
+	}
+
+	// 3D Cue
+
+	AUD_Quaternion orientation;
+
+	if(!m_relative)
+		orientation = m_device->m_orientation;
+
+	AUD_Vector3 Z = orientation.getLookAt();
+	AUD_Vector3 N = orientation.getUp();
+	AUD_Vector3 A = N * ((SL * N) / (N * N)) - SL;
+
+	float Asquare = A * A;
+
+	if(Asquare > 0)
+	{
+		float phi = acos(Z * A/ (Z.length() * sqrt(Asquare)));
+		if(N.cross(Z) * A > 0)
+			phi = -phi;
+
+		m_mapper->setMonoAngle(phi);
+	}
+	else
+		m_mapper->setMonoAngle(0);
 }
 
 bool AUD_SoftwareDevice::AUD_SoftwareHandle::pause()
@@ -177,25 +340,36 @@ AUD_Status AUD_SoftwareDevice::AUD_SoftwareHandle::getStatus()
 
 float AUD_SoftwareDevice::AUD_SoftwareHandle::getVolume()
 {
-	return m_volume;
+	return m_user_volume;
 }
 
 bool AUD_SoftwareDevice::AUD_SoftwareHandle::setVolume(float volume)
 {
 	if(!m_status)
 		return false;
-	m_volume = volume;
+	m_user_volume = volume;
+
+	if(volume == 0)
+	{
+		m_volume = volume;
+		m_flags |= AUD_RENDER_VOLUME;
+	}
+	else
+		m_flags &= ~AUD_RENDER_VOLUME;
+
 	return true;
 }
 
 float AUD_SoftwareDevice::AUD_SoftwareHandle::getPitch()
 {
-	return m_pitch->getPitch();
+	return m_user_pitch;
 }
 
 bool AUD_SoftwareDevice::AUD_SoftwareHandle::setPitch(float pitch)
 {
-	m_pitch->setPitch(pitch);
+	if(!m_status)
+		return false;
+	m_user_pitch = pitch;
 	return true;
 }
 
@@ -231,19 +405,249 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::setStopCallback(stopCallback callba
 
 
 
+/******************************************************************************/
+/******************** AUD_SoftwareHandle 3DHandle Code ************************/
+/******************************************************************************/
 
+AUD_Vector3 AUD_SoftwareDevice::AUD_SoftwareHandle::getSourceLocation()
+{
+	if(!m_status)
+		return AUD_Vector3();
 
+	return m_location;
+}
 
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setSourceLocation(const AUD_Vector3& location)
+{
+	if(!m_status)
+		return false;
 
+	m_location = location;
 
+	return true;
+}
 
+AUD_Vector3 AUD_SoftwareDevice::AUD_SoftwareHandle::getSourceVelocity()
+{
+	if(!m_status)
+		return AUD_Vector3();
 
+	return m_velocity;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setSourceVelocity(const AUD_Vector3& velocity)
+{
+	if(!m_status)
+		return false;
+
+	m_velocity = velocity;
+
+	return true;
+}
+
+AUD_Quaternion AUD_SoftwareDevice::AUD_SoftwareHandle::getSourceOrientation()
+{
+	if(!m_status)
+		return AUD_Quaternion();
+
+	return m_orientation;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setSourceOrientation(const AUD_Quaternion& orientation)
+{
+	if(!m_status)
+		return false;
+
+	m_orientation = orientation;
+
+	return true;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::isRelative()
+{
+	if(!m_status)
+		return false;
+
+	return m_relative;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setRelative(bool relative)
+{
+	if(!m_status)
+		return false;
+
+	m_relative = relative;
+
+	return true;
+}
+
+float AUD_SoftwareDevice::AUD_SoftwareHandle::getVolumeMaximum()
+{
+	if(!m_status)
+		return std::numeric_limits<float>::quiet_NaN();
+
+	return m_volume_max;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setVolumeMaximum(float volume)
+{
+	if(!m_status)
+		return false;
+
+	m_volume_max = volume;
+
+	return true;
+}
+
+float AUD_SoftwareDevice::AUD_SoftwareHandle::getVolumeMinimum()
+{
+	if(!m_status)
+		return std::numeric_limits<float>::quiet_NaN();;
+
+	return m_volume_min;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setVolumeMinimum(float volume)
+{
+	if(!m_status)
+		return false;
+
+	m_volume_min = volume;
+
+	return true;
+}
+
+float AUD_SoftwareDevice::AUD_SoftwareHandle::getDistanceMaximum()
+{
+	if(!m_status)
+		return std::numeric_limits<float>::quiet_NaN();
+
+	return m_distance_max;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setDistanceMaximum(float distance)
+{
+	if(!m_status)
+		return false;
+
+	m_distance_max = distance;
+
+	return true;
+}
+
+float AUD_SoftwareDevice::AUD_SoftwareHandle::getDistanceReference()
+{
+	if(!m_status)
+		return std::numeric_limits<float>::quiet_NaN();
+
+	return m_distance_reference;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setDistanceReference(float distance)
+{
+	if(!m_status)
+		return false;
+
+	m_distance_reference = distance;
+
+	return true;
+}
+
+float AUD_SoftwareDevice::AUD_SoftwareHandle::getAttenuation()
+{
+	if(!m_status)
+		return std::numeric_limits<float>::quiet_NaN();
+
+	return m_attenuation;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setAttenuation(float factor)
+{
+	if(!m_status)
+		return false;
+
+	m_attenuation = factor;
+
+	if(factor == 0)
+		m_flags |= AUD_RENDER_DISTANCE;
+	else
+		m_flags &= ~AUD_RENDER_DISTANCE;
+
+	return true;
+}
+
+float AUD_SoftwareDevice::AUD_SoftwareHandle::getConeAngleOuter()
+{
+	if(!m_status)
+		return std::numeric_limits<float>::quiet_NaN();
+
+	return m_cone_angle_outer * 360.0f / M_PI;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setConeAngleOuter(float angle)
+{
+	if(!m_status)
+		return false;
+
+	m_cone_angle_outer = angle * M_PI / 360.0f;
+
+	return true;
+}
+
+float AUD_SoftwareDevice::AUD_SoftwareHandle::getConeAngleInner()
+{
+	if(!m_status)
+		return std::numeric_limits<float>::quiet_NaN();
+
+	return m_cone_angle_inner * 360.0f / M_PI;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setConeAngleInner(float angle)
+{
+	if(!m_status)
+		return false;
+
+	if(angle >= 360)
+		m_flags |= AUD_RENDER_CONE;
+	else
+		m_flags &= ~AUD_RENDER_CONE;
+
+	m_cone_angle_inner = angle * M_PI / 360.0f;
+
+	return true;
+}
+
+float AUD_SoftwareDevice::AUD_SoftwareHandle::getConeVolumeOuter()
+{
+	if(!m_status)
+		return std::numeric_limits<float>::quiet_NaN();;
+
+	return m_cone_volume_outer;
+}
+
+bool AUD_SoftwareDevice::AUD_SoftwareHandle::setConeVolumeOuter(float volume)
+{
+	if(!m_status)
+		return false;
+
+	m_cone_volume_outer = volume;
+
+	return true;
+}
+
+/******************************************************************************/
+/**************************** IDevice Code ************************************/
+/******************************************************************************/
 
 void AUD_SoftwareDevice::create()
 {
 	m_playback = false;
 	m_volume = 1.0f;
 	m_mixer = new AUD_Mixer(m_specs);
+	m_speed_of_sound = 343.0f;
+	m_doppler_factor = 1.0f;
+	m_distance_model = AUD_DISTANCE_MODEL_INVERSE_CLAMPED;
+	m_flags = 0;
 
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
@@ -296,6 +700,9 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			// get the buffer from the source
 			pos = 0;
 			len = length;
+
+			// update 3D Info
+			sound->update();
 
 			sound->m_reader->read(len, eos, buf);
 
@@ -370,13 +777,14 @@ AUD_Reference<AUD_IHandle> AUD_SoftwareDevice::play(AUD_Reference<AUD_IReader> r
 	#endif
 
 	// rechannel
-	reader = new AUD_ChannelMapperReader(reader, m_specs.channels);
+	AUD_Reference<AUD_ChannelMapperReader> mapper = new AUD_ChannelMapperReader(reader, m_specs.channels);
+	reader = AUD_Reference<AUD_IReader>(mapper);
 
 	if(reader.isNull())
 		return NULL;
 
 	// play sound
-	AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> sound = new AUD_SoftwareDevice::AUD_SoftwareHandle(this, reader, pitch, keep);
+	AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> sound = new AUD_SoftwareDevice::AUD_SoftwareHandle(this, reader, pitch, mapper, keep);
 
 	lock();
 	m_playingSounds.push_back(sound);
@@ -411,4 +819,76 @@ float AUD_SoftwareDevice::getVolume() const
 void AUD_SoftwareDevice::setVolume(float volume)
 {
 	m_volume = volume;
+}
+
+/******************************************************************************/
+/**************************** 3D Device Code **********************************/
+/******************************************************************************/
+
+AUD_Vector3 AUD_SoftwareDevice::getListenerLocation() const
+{
+	return m_location;
+}
+
+void AUD_SoftwareDevice::setListenerLocation(const AUD_Vector3& location)
+{
+	m_location = location;
+}
+
+AUD_Vector3 AUD_SoftwareDevice::getListenerVelocity() const
+{
+	return m_velocity;
+}
+
+void AUD_SoftwareDevice::setListenerVelocity(const AUD_Vector3& velocity)
+{
+	m_velocity = velocity;
+}
+
+AUD_Quaternion AUD_SoftwareDevice::getListenerOrientation() const
+{
+	return m_orientation;
+}
+
+void AUD_SoftwareDevice::setListenerOrientation(const AUD_Quaternion& orientation)
+{
+	m_orientation = orientation;
+}
+
+float AUD_SoftwareDevice::getSpeedOfSound() const
+{
+	return m_speed_of_sound;
+}
+
+void AUD_SoftwareDevice::setSpeedOfSound(float speed)
+{
+	m_speed_of_sound = speed;
+}
+
+float AUD_SoftwareDevice::getDopplerFactor() const
+{
+	return m_doppler_factor;
+}
+
+void AUD_SoftwareDevice::setDopplerFactor(float factor)
+{
+	m_doppler_factor = factor;
+	if(factor == 0)
+		m_flags |= AUD_RENDER_DOPPLER;
+	else
+		m_flags &= ~AUD_RENDER_DOPPLER;
+}
+
+AUD_DistanceModel AUD_SoftwareDevice::getDistanceModel() const
+{
+	return m_distance_model;
+}
+
+void AUD_SoftwareDevice::setDistanceModel(AUD_DistanceModel model)
+{
+	m_distance_model = model;
+	if(model == AUD_DISTANCE_MODEL_INVALID)
+		m_flags |= AUD_RENDER_DISTANCE;
+	else
+		m_flags &= ~AUD_RENDER_DISTANCE;
 }

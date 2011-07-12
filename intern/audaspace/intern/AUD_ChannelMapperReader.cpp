@@ -43,7 +43,7 @@
 AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_Reference<AUD_IReader> reader,
 												 AUD_Channels channels) :
 		AUD_EffectReader(reader), m_target_channels(channels),
-	m_source_channels(AUD_CHANNELS_INVALID), m_mapping(0)
+	m_source_channels(AUD_CHANNELS_INVALID), m_mapping(0), m_map_size(0), m_mono_angle(0)
 {
 }
 
@@ -58,6 +58,13 @@ void AUD_ChannelMapperReader::setChannels(AUD_Channels channels)
 	calculateMapping();
 }
 
+void AUD_ChannelMapperReader::setMonoAngle(float angle)
+{
+	m_mono_angle = angle;
+	if(m_source_channels == AUD_CHANNELS_MONO)
+		calculateMapping();
+}
+
 float AUD_ChannelMapperReader::angleDistance(float alpha, float beta)
 {
 	alpha = fabs(alpha - beta);
@@ -68,10 +75,19 @@ float AUD_ChannelMapperReader::angleDistance(float alpha, float beta)
 	return alpha;
 }
 
+#include <iostream>
+
 void AUD_ChannelMapperReader::calculateMapping()
 {
-	delete[] m_mapping;
-	m_mapping = new float[m_source_channels * m_target_channels];
+	if(m_map_size < m_source_channels * m_target_channels)
+	{
+		delete[] m_mapping;
+		m_mapping = new float[m_source_channels * m_target_channels];
+		m_map_size = m_source_channels * m_target_channels;
+	}
+
+	for(int i = 0; i < m_source_channels * m_target_channels; i++)
+		m_mapping[i] = 0;
 
 	const AUD_Channel* source_channels = CHANNEL_MAPS[m_source_channels - 1];
 	const AUD_Channel* target_channels = CHANNEL_MAPS[m_target_channels - 1];
@@ -89,6 +105,9 @@ void AUD_ChannelMapperReader::calculateMapping()
 
 	const float* source_angles = CHANNEL_ANGLES[m_source_channels - 1];
 	const float* target_angles = CHANNEL_ANGLES[m_target_channels - 1];
+
+	if(m_source_channels == AUD_CHANNELS_MONO)
+		source_angles = &m_mono_angle;
 
 	int channel_min1, channel_min2;
 	float angle_min1, angle_min2, angle;
@@ -124,17 +143,26 @@ void AUD_ChannelMapperReader::calculateMapping()
 			}
 		}
 
-		if(channel_min2 == -1)
+		angle = angle_min1 + angle_min2;
+		if(channel_min2 == -1 || angle == 0)
 		{
 			m_mapping[channel_min1 * m_source_channels + i] = 1;
 		}
 		else
 		{
-			angle = angle_min1 + angle_min2;
 			m_mapping[channel_min1 * m_source_channels + i] = cos(M_PI_2 * angle_min1 / angle);
 			m_mapping[channel_min2 * m_source_channels + i] = cos(M_PI_2 * angle_min2 / angle);
 		}
 	}
+
+	/* AUD_XXX for(int i = 0; i < m_source_channels; i++)
+	{
+		for(int j = 0; j < m_target_channels; j++)
+		{
+			std::cout << m_mapping[i * m_source_channels + j] << " ";
+		}
+		std::cout << std::endl;
+	}*/
 }
 
 AUD_Specs AUD_ChannelMapperReader::getSpecs() const

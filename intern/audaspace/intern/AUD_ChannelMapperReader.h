@@ -62,6 +62,16 @@ private:
 	 */
 	float* m_mapping;
 
+	/**
+	 * The size of the mapping.
+	 */
+	int m_map_size;
+
+	/**
+	 * The mono source angle.
+	 */
+	float m_mono_angle;
+
 	static const AUD_Channel MONO_MAP[];
 	static const AUD_Channel STEREO_MAP[];
 	static const AUD_Channel STEREO_LFE_MAP[];
@@ -110,6 +120,8 @@ public:
 	~AUD_ChannelMapperReader();
 
 	void setChannels(AUD_Channels channels);
+
+	void setMonoAngle(float angle);
 
 	virtual AUD_Specs getSpecs() const;
 	virtual void read(int& length, bool& eos, sample_t* buffer);

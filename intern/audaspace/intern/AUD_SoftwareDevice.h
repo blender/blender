@@ -34,9 +34,12 @@
 
 #include "AUD_IDevice.h"
 #include "AUD_IHandle.h"
+#include "AUD_I3DDevice.h"
+#include "AUD_I3DHandle.h"
 #include "AUD_Mixer.h"
 #include "AUD_Buffer.h"
 #include "AUD_PitchReader.h"
+#include "AUD_ChannelMapperReader.h"
 
 #include <list>
 #include <pthread.h>
@@ -49,11 +52,11 @@
  *  - Call the create and destroy functions.
  *  - Call the mix function to retrieve their audio data.
  */
-class AUD_SoftwareDevice : public AUD_IDevice
+class AUD_SoftwareDevice : public AUD_IDevice, public AUD_I3DDevice
 {
 protected:
 	/// Saves the data for playback.
-	class AUD_SoftwareHandle : public AUD_IHandle
+	class AUD_SoftwareHandle : public AUD_IHandle, public AUD_I3DHandle
 	{
 	public:
 		/// The reader source.
@@ -62,14 +65,62 @@ protected:
 		/// The pitch reader in between.
 		AUD_Reference<AUD_PitchReader> m_pitch;
 
+		/// The channel mapper reader in between.
+		AUD_Reference<AUD_ChannelMapperReader> m_mapper;
+
 		/// Whether to keep the source if end of it is reached.
 		bool m_keep;
 
-		/// The volume of the source.
+		/// The user set pitch of the source.
+		float m_user_pitch;
+
+		/// The user set volume of the source.
+		float m_user_volume;
+
+		/// The calculated final volume of the source.
 		float m_volume;
 
 		/// The loop count of the source.
 		int m_loopcount;
+
+		/// Location in 3D Space.
+		AUD_Vector3 m_location;
+
+		/// Velocity in 3D Space.
+		AUD_Vector3 m_velocity;
+
+		/// Orientation in 3D Space.
+		AUD_Quaternion m_orientation;
+
+		/// Whether the position to the listener is relative or absolute
+		bool m_relative;
+
+		/// Maximum volume.
+		float m_volume_max;
+
+		/// Minimum volume.
+		float m_volume_min;
+
+		/// Maximum distance.
+		float m_distance_max;
+
+		/// Reference distance;
+		float m_distance_reference;
+
+		/// Attenuation
+		float m_attenuation;
+
+		/// Cone outer angle.
+		float m_cone_angle_outer;
+
+		/// Cone inner angle.
+		float m_cone_angle_inner;
+
+		/// Cone outer volume.
+		float m_cone_volume_outer;
+
+		/// Rendering flags
+		int m_flags;
 
 		/// The stop callback.
 		stopCallback m_stop;
@@ -85,7 +136,9 @@ protected:
 
 	public:
 
-		AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, bool keep);
+		AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, AUD_Reference<AUD_ChannelMapperReader> mapper, bool keep);
+
+		void update();
 
 		virtual ~AUD_SoftwareHandle() {}
 		virtual bool pause();
@@ -103,6 +156,31 @@ protected:
 		virtual int getLoopCount();
 		virtual bool setLoopCount(int count);
 		virtual bool setStopCallback(stopCallback callback = 0, void* data = 0);
+
+		virtual AUD_Vector3 getSourceLocation();
+		virtual bool setSourceLocation(const AUD_Vector3& location);
+		virtual AUD_Vector3 getSourceVelocity();
+		virtual bool setSourceVelocity(const AUD_Vector3& velocity);
+		virtual AUD_Quaternion getSourceOrientation();
+		virtual bool setSourceOrientation(const AUD_Quaternion& orientation);
+		virtual bool isRelative();
+		virtual bool setRelative(bool relative);
+		virtual float getVolumeMaximum();
+		virtual bool setVolumeMaximum(float volume);
+		virtual float getVolumeMinimum();
+		virtual bool setVolumeMinimum(float volume);
+		virtual float getDistanceMaximum();
+		virtual bool setDistanceMaximum(float distance);
+		virtual float getDistanceReference();
+		virtual bool setDistanceReference(float distance);
+		virtual float getAttenuation();
+		virtual bool setAttenuation(float factor);
+		virtual float getConeAngleOuter();
+		virtual bool setConeAngleOuter(float angle);
+		virtual float getConeAngleInner();
+		virtual bool setConeAngleInner(float angle);
+		virtual float getConeVolumeOuter();
+		virtual bool setConeVolumeOuter(float volume);
 	};
 
 	typedef std::list<AUD_Reference<AUD_SoftwareHandle> >::iterator AUD_HandleIterator;
@@ -171,6 +249,27 @@ private:
 	 */
 	float m_volume;
 
+	/// Listener location.
+	AUD_Vector3 m_location;
+
+	/// Listener velocity.
+	AUD_Vector3 m_velocity;
+
+	/// Listener orientation.
+	AUD_Quaternion m_orientation;
+
+	/// Speed of Sound.
+	float m_speed_of_sound;
+
+	/// Doppler factor.
+	float m_doppler_factor;
+
+	/// Distance model.
+	AUD_DistanceModel m_distance_model;
+
+	/// Rendering flags
+	int m_flags;
+
 public:
 	virtual AUD_DeviceSpecs getSpecs() const;
 	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
@@ -179,6 +278,19 @@ public:
 	virtual void unlock();
 	virtual float getVolume() const;
 	virtual void setVolume(float volume);
+
+	virtual AUD_Vector3 getListenerLocation() const;
+	virtual void setListenerLocation(const AUD_Vector3& location);
+	virtual AUD_Vector3 getListenerVelocity() const;
+	virtual void setListenerVelocity(const AUD_Vector3& velocity);
+	virtual AUD_Quaternion getListenerOrientation() const;
+	virtual void setListenerOrientation(const AUD_Quaternion& orientation);
+	virtual float getSpeedOfSound() const;
+	virtual void setSpeedOfSound(float speed);
+	virtual float getDopplerFactor() const;
+	virtual void setDopplerFactor(float factor);
+	virtual AUD_DistanceModel getDistanceModel() const;
+	virtual void setDistanceModel(AUD_DistanceModel model);
 };
 
 #endif //AUD_SOFTWAREDEVICE
