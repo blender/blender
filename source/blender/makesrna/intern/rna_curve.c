@@ -980,19 +980,19 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 
 	prop= RNA_def_property(srna, "font_bold", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vfontb");
-	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_ui_text(prop, "Font Bold", "");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "font_italic", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vfonti");
-	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_ui_text(prop, "Font Italic", "");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "font_bold_italic", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vfontbi");
-	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_ui_text(prop, "Font Bold Italic", "");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
@@ -1004,7 +1004,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	/* flags */
 	prop= RNA_def_property(srna, "use_fast_edit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FAST);
-	RNA_def_property_ui_text(prop, "Fast", "Don't fill polygons while editing");
+	RNA_def_property_ui_text(prop, "Fast Editing", "Don't fill polygons while editing");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 

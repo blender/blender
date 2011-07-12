@@ -89,13 +89,27 @@ set(SRC
 	intern/GHOST_WindowManager.h
 )
 
-if(WITH_HEADLESS)
-	list(APPEND SRC
-		intern/GHOST_DisplayManagerNULL.h
-		intern/GHOST_SystemNULL.h
-		intern/GHOST_WindowNULL.h
-	)
-	add_definitions(-DWITH_HEADLESS)
+if(WITH_HEADLESS OR WITH_SDL_GHOST)
+	if(WITH_HEADLESS)
+		list(APPEND SRC
+			intern/GHOST_DisplayManagerNULL.h
+			intern/GHOST_SystemNULL.h
+			intern/GHOST_WindowNULL.h
+		)
+		add_definitions(-DWITH_HEADLESS)
+	else()
+		list(APPEND SRC
+			intern/GHOST_DisplayManagerSDL.cpp
+			intern/GHOST_SystemSDL.cpp
+			intern/GHOST_WindowSDL.cpp
+
+			intern/GHOST_DisplayManagerSDL.h
+			intern/GHOST_SystemSDL.h
+			intern/GHOST_WindowSDL.h
+		)
+		add_definitions(-DWITH_SDL_GHOST)
+	endif()
+
 
 	# ack, this is still system dependant
 	if(APPLE)
@@ -123,6 +137,8 @@ if(WITH_HEADLESS)
 			intern/GHOST_SystemPathsWin32.h
 		)
 	endif()
+
+	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})
 
 elseif(APPLE)
 	if(WITH_COCOA)
