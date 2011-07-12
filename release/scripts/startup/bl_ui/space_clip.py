@@ -89,6 +89,7 @@ class CLIP_PT_tools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         clip = context.space_data.clip
+        settings = clip.tracking.settings
 
         if clip:
             col = layout.column(align=True)
@@ -131,6 +132,11 @@ class CLIP_PT_tools(bpy.types.Panel):
 
             col = layout.column(align=True)
             col.label(text="Reconstruction:")
+
+            col.prop(settings, "keyframe1")
+            col.prop(settings, "keyframe2")
+
+            col = layout.column(align=True)
             col.operator("clip.solve_camera")
             col.operator("clip.clear_reconstruction")
 
@@ -196,10 +202,6 @@ class CLIP_PT_track_settings(bpy.types.Panel):
         row.active = settings.use_frames_limit
         row.prop(settings, "frames_limit")
 
-        layout.label(text="Reconstruction:")
-        col = layout.column(align=True)
-        col.prop(settings, "keyframe1")
-        col.prop(settings, "keyframe2")
 
 
 class CLIP_PT_tracking_camera(bpy.types.Panel):
@@ -222,9 +224,10 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
 
         layout.prop(clip.tracking.camera, "sensor_width")
 
-        row = layout.row()
-        row.prop(clip.tracking.camera, "focal_length")
-        row.prop(clip.tracking.camera, "units", text="")
+        row = layout.row(align=True)
+        sub = row.split(percentage=0.65)
+        sub.prop(clip.tracking.camera, "focal_length")
+        sub.prop(clip.tracking.camera, "units", text="")
 
         layout.label(text="Principal Point")
         layout.prop(clip.tracking.camera, "principal", text="")
@@ -245,17 +248,19 @@ class CLIP_PT_display(bpy.types.Panel):
         layout = self.layout
         sc = context.space_data
 
-        layout.prop(sc, "show_marker_pattern")
-        layout.prop(sc, "show_marker_search")
-        layout.prop(sc, "lock_selection")
-        layout.prop(sc, "show_marker_path")
+        row = layout.row()
+        row.prop(sc, "show_marker_pattern", text="Pattern")
+        row.prop(sc, "show_marker_search", text="Search")
 
         row = layout.row()
-        row.active = sc.show_marker_path
-        row.prop(sc, "path_length")
+        row.prop(sc, "show_track_path", text="Path")
+        row.active = sc.show_track_path
+        row.prop(sc, "path_length", text="Length")
 
-        layout.prop(sc, "show_tiny_markers")
-        layout.prop(sc, "show_bundles")
+        layout.prop(sc, "show_tiny_markers", text="Tiny Markers")
+        layout.prop(sc, "show_bundles", text="Bundles")
+
+        layout.prop(sc, "lock_selection")
         layout.prop(sc, "use_mute_footage")
 
 

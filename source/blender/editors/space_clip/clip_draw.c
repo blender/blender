@@ -276,6 +276,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
+	int show_pat= 0;
 
 	UI_ThemeColor(TH_MARKER_OUTLINE);
 
@@ -294,7 +295,8 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 
 	if(!tiny) glLineWidth(3.0f);
 
-	if(sc->flag&SC_SHOW_MARKER_PATTERN && (marker->flag&MARKER_DISABLED)==0) {
+	show_pat= ((marker->flag&MARKER_DISABLED)==0 || (sc->flag&SC_SHOW_MARKER_SEARCH)==0);
+	if(sc->flag&SC_SHOW_MARKER_PATTERN && show_pat) {
 		glBegin(GL_LINE_LOOP);
 			glVertex2f(track->pat_min[0], track->pat_min[1]);
 			glVertex2f(track->pat_max[0], track->pat_min[1]);
@@ -320,6 +322,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 {
 	int color= act?TH_ACT_MARKER:TH_SEL_MARKER;
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
+	int show_pat= 0;
 
 	/* marker position */
 	if((track->flag&SELECT)==sel && (marker->flag&MARKER_DISABLED)==0) {
@@ -342,9 +345,16 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		glEnable(GL_LINE_STIPPLE);
 	}
 
-	if((track->pat_flag&SELECT)==sel && (marker->flag&MARKER_DISABLED)==0) {
-		if(track->pat_flag&SELECT) UI_ThemeColor(color);
-		else UI_ThemeColor(TH_MARKER);
+	show_pat= ((marker->flag&MARKER_DISABLED)==0 || (sc->flag&SC_SHOW_MARKER_SEARCH)==0);
+	if((track->pat_flag&SELECT)==sel && show_pat) {
+		if(marker->flag&MARKER_DISABLED) {
+			if(act) UI_ThemeColor(TH_ACT_MARKER);
+			else if(track->search_flag&SELECT) UI_ThemeColorShade(TH_DIS_MARKER, 128);
+			else UI_ThemeColor(TH_DIS_MARKER);
+		} else {
+			if(track->pat_flag&SELECT) UI_ThemeColor(color);
+			else UI_ThemeColor(TH_MARKER);
+		}
 
 		if(sc->flag&SC_SHOW_MARKER_PATTERN) {
 			glBegin(GL_LINE_LOOP);
@@ -362,7 +372,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			if(act) UI_ThemeColor(TH_ACT_MARKER);
 			else if(track->search_flag&SELECT) UI_ThemeColorShade(TH_DIS_MARKER, 128);
 			else UI_ThemeColor(TH_DIS_MARKER);
-		} else {if(track->search_flag&SELECT) UI_ThemeColor(color);
+		} else {
+			if(track->search_flag&SELECT) UI_ThemeColor(color);
 			else UI_ThemeColor(TH_MARKER);
 		}
 
@@ -514,7 +525,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 
 	BKE_movieclip_last_selection(clip, &sel_type, &sel);
 
-	if(sc->flag&SC_SHOW_MARKER_PATH) {
+	if(sc->flag&SC_SHOW_TRACK_PATH) {
 		track= tracking->tracks.first;
 		while(track) {
 			if((track->flag&TRACK_HIDDEN)==0)

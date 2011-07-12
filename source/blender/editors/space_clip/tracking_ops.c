@@ -1275,7 +1275,7 @@ typedef struct {
 	float *min, *max, *pos;
 	float smin[2], smax[2], spos[2];
 
-	int keep_square, accurate;
+	int lock, accurate;
 } SlideMarkerData;
 
 static SlideMarkerData *create_slide_marker_data(MovieTrackingTrack *track, MovieTrackingMarker *marker, wmEvent *event, int area, int width, int height)
@@ -1306,6 +1306,8 @@ static SlideMarkerData *create_slide_marker_data(MovieTrackingTrack *track, Movi
 
 	data->width= width;
 	data->height= height;
+
+	data->lock= 1;
 
 	return data;
 }
@@ -1402,7 +1404,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case RIGHTSHIFTKEY:
 			if(data->area != TRACK_AREA_POINT)
 				if(ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
-					data->keep_square= event->val==KM_PRESS;
+					data->lock= event->val==KM_RELEASE;
 
 			if(ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
 				data->accurate= event->val==KM_PRESS;
@@ -1431,7 +1433,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 				data->min[1]= data->smin[1]+dy;
 				data->max[1]= data->smax[1]-dy;
 
-				if(data->keep_square) {
+				if(data->lock) {
 					float h= (data->max[0]-data->min[0])*data->width/data->height;
 
 					data->min[1]= data->spos[1]-h/2;
@@ -1455,6 +1457,23 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 
 			break;
+
+		case ESCKEY:
+			/* cancel sliding */
+			if(data->area == TRACK_AREA_POINT) {
+				data->pos[0]= data->spos[0];
+				data->pos[1]= data->spos[1];
+			} else {
+				data->min[0]= data->smin[0];
+				data->max[0]= data->smax[0];
+
+				data->min[1]= data->smin[1];
+				data->max[1]= data->smax[1];
+			}
+
+			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
+
+			return OPERATOR_CANCELLED;
 	}
 
 	return OPERATOR_PASS_THROUGH;

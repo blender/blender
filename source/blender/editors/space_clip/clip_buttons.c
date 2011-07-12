@@ -122,13 +122,13 @@ static void trackingMarker_buttons(const bContext *C, uiLayout *layout)
 	block= uiLayoutAbsoluteBlock(col);
 	uiBlockBeginAlign(block);
 
-	uiDefBut(block, LABEL, 0, "Position:", 0, 171, 145, 19, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Position:", 0, 171, 300, 19, NULL, 0, 0, 0, 0, "");
 	uiDefButF(block, NUM, B_MARKER_POS, "X:", 10, 152, 145, 19, &sc->marker_pos[0],
 		-10*width, 10.0*width, step, digits, "X-position of marker at frame in screen coordinates.");
 	uiDefButF(block, NUM, B_MARKER_POS, "Y:", 165, 152, 145, 19, &sc->marker_pos[1],
 		-10*height, 10.0*height, step, digits, "Y-position of marker at frame in screen coordinates.");
 
-	uiDefBut(block, LABEL, 0, "Pattern Area:", 0, 133, 145, 19, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Pattern Area:", 0, 133, 300, 19, NULL, 0, 0, 0, 0, "");
 	uiDefButF(block, NUM, B_MARKER_PAT_POS, "X:", 10, 114, 145, 19, &sc->track_pat_pos[0],
 		-width, width, step, digits, "X-position of pattern at frame in screen coordinates relative to marker's position.");
 	uiDefButF(block, NUM, B_MARKER_PAT_POS, "Y:", 165, 114, 145, 19, &sc->track_pat_pos[1],
@@ -138,7 +138,7 @@ static void trackingMarker_buttons(const bContext *C, uiLayout *layout)
 	uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Height:", 10, 76, 300, 19, &sc->track_pat[1], 3.0f,
 		10.0*height, step, digits, "Height of marker's pattern in screen soordinates.");
 
-	uiDefBut(block, LABEL, 0, "Search Area:", 0, 57, 145, 19, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Search Area:", 0, 57, 300, 19, NULL, 0, 0, 0, 0, "");
 	uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "X:", 10, 38, 145, 19, &sc->track_search_pos[0],
 		-width, width, step, digits, "X-position of search at frame relative to marker's position");
 	uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "Y:", 165, 38, 145, 19, &sc->track_search_pos[1],

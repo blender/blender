@@ -206,8 +206,8 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem camera_units_items[] = {
-		{CAMERA_UNITS_PX, "PIXELS", 0, "Pixels", "Use pixels for units of focal length"},
-		{CAMERA_UNITS_MM, "MILLIMETERS", 0, "Millimeters", "Use millimeters for units of focal length"},
+		{CAMERA_UNITS_PX, "PIXELS", 0, "px", "Use pixels for units of focal length"},
+		{CAMERA_UNITS_MM, "MILLIMETERS", 0, "mm", "Use millimeters for units of focal length"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MovieTrackingCamera", NULL);
