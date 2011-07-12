@@ -373,6 +373,9 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_weight_sample);
 	WM_operatortype_append(PAINT_OT_weight_sample_group);
 
+	/* Jason, vertex selection */
+	WM_operatortype_append(PAINT_OT_vert_select_all);
+
 	/* vertex */
 	WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
 	WM_operatortype_append(PAINT_OT_vertex_paint);
@@ -606,6 +609,10 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "weight_paint_object.data.use_paint_mask");
 
 	WM_keymap_verify_item(keymap, "PAINT_OT_weight_from_bones", WKEY, KM_PRESS, 0, 0);
+
+	// Jason
+	WM_keymap_add_item(keymap, "PAINT_OT_vert_select_all", QKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	/* Image/Texture Paint mode */
 	keymap= WM_keymap_find(keyconf, "Image Paint", 0, 0);

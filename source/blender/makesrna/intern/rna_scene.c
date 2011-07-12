@@ -1097,12 +1097,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		 "weight painting");
 	RNA_def_property_update(prop, 0, "rna_update_active_object");
 
-	prop = RNA_def_property(srna, "use_wp_vert_sel", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "wp_vert_sel", 1);
-	RNA_def_property_ui_text(prop, "WPaint Vertex Selection", 
-		"Allow vertices to be selected in Weight Paint Mode ");
-	RNA_def_property_update(prop, 0, "rna_update_active_object");
-
 	prop= RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");
 	RNA_def_property_ui_text(prop, "Vertex Paint", "");

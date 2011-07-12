@@ -247,7 +247,7 @@ static int view3d_selectable_data(bContext *C)
 			if (ob->mode & OB_MODE_SCULPT) {
 				return 0;
 			}
-			if (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT) && !paint_facesel_test(ob)) {
+			if (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT) && !paint_facesel_test(ob) && !paint_vertsel_test(ob)) {//Jason
 				return 0;
 			}
 		}
@@ -1895,9 +1895,10 @@ int mouse_wp_select(bContext *C, const int mval[2], short extend, Object *obact,
 		if(extend) {
 			mv->flag ^= 1;
 		} else {
+			paintvert_deselect_all_visible(obact, SEL_DESELECT, FALSE);
 			mv->flag |= 1;
 		}
-		paintvert_flush_flags(vc->obact);
+		paintvert_flush_flags(obact);
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
 
 		MEM_freeN(vc);
@@ -1943,7 +1944,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if(obact && paint_facesel_test(obact))
 		retval = paintface_mouse_select(C, obact, event->mval, extend);
 	/*Jason*/
-	else if (scene->toolsettings->wp_vert_sel && obact && obact->mode & OB_MODE_WEIGHT_PAINT && (me = (Mesh*)(obact->data))) {//Jason
+	else if (paint_vertsel_test(obact) && (me = (Mesh*)(obact->data))) {
 		retval = mouse_wp_select(C, event->mval, extend, obact, me);
 	} else {
 		retval = mouse_select(C, event->mval, extend, center, enumerate);
@@ -1991,6 +1992,18 @@ static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y
 		eve->f = data->select?(eve->f|1):(eve->f&~1);
 	}
 }
+/* Jason */
+static void mesh_obmode_circle_doSelectVert(void *userData, MVert *mv, int x, int y, int index)
+{
+	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
+	int mx = x - data->mval[0], my = y - data->mval[1];
+	float r = sqrt(mx*mx + my*my);
+	mv = mv+index;
+	if (r<=data->radius) {
+		mv->flag = data->select?(mv->flag|1):(mv->flag&~1);
+	}
+}
+
 static void mesh_circle_doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
 {
 	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
@@ -2075,14 +2088,19 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 {
 	Object *ob= vc->obact;
 	Mesh *me = ob?ob->data:NULL;
-	int bbsel;
 
+	struct {ViewContext *vc; short select; int mval[2]; float radius; } data = {NULL};
 	if (me) {
-		em_vertoffs= me->totvert+1;	/* max index array */
+		ED_view3d_init_mats_rv3d(ob, vc->rv3d);
+		data.radius = rad;
+		data.vc = vc;
+		data.select = select;
+		data.mval[0]= mval[0];
+		data.mval[1]= mval[1];
 
-		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
-		EM_backbuf_checkAndSelectTVerts(me, select==LEFTMOUSE);
-		EM_free_backbuf();
+		mesh_obmode_foreachScreenVert(vc, mesh_obmode_circle_doSelectVert, &data, 1);
+
+		paintvert_flush_flags(ob);
 	}
 }
 
@@ -2340,8 +2358,8 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int select;
 	
 	select= (gesture_mode==GESTURE_MODAL_SELECT);
-
-	if( CTX_data_edit_object(C) || paint_facesel_test(obact) ||
+																// Jason
+	if( CTX_data_edit_object(C) || paint_facesel_test(obact) || paint_vertsel_test(obact) ||
 		(obact && (obact->mode & (OB_MODE_PARTICLE_EDIT|OB_MODE_POSE))) )
 	{
 		ViewContext vc;
@@ -2358,12 +2376,11 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
 		}
 		else if(paint_facesel_test(obact)) {
-			/* Jason */
-			if(scene->toolsettings->wp_vert_sel) {
-				paint_vertsel_circle_select(&vc, select, mval, (float)radius);
-			} else {
-				paint_facesel_circle_select(&vc, select, mval, (float)radius);
-			}
+			paint_facesel_circle_select(&vc, select, mval, (float)radius);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
+		}/* Jason */
+		else if(paint_vertsel_test(obact)) {
+			paint_vertsel_circle_select(&vc, select, mval, (float)radius);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
 		}
 		else if(obact->mode & OB_MODE_POSE)

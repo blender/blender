@@ -2077,6 +2077,11 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_FACESEL_HLT, 0);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
+	prop= RNA_def_property(srna, "wp_vert_sel", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_VERT_SEL);
+	RNA_def_property_ui_text(prop, "Vertex Selection", "Vertex Selection for auto brushes");
+	RNA_def_property_ui_icon(prop, ICON_FACESEL_HLT, 0);
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
 	/* readonly editmesh info - use for extrude menu */
 	prop= RNA_def_property(srna, "total_vert_sel", PROP_INT, PROP_UNSIGNED);

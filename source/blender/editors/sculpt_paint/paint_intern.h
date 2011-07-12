@@ -121,6 +121,9 @@ void PAINT_OT_face_select_all(struct wmOperatorType *ot);
 void PAINT_OT_face_select_inverse(struct wmOperatorType *ot);
 void PAINT_OT_face_select_hide(struct wmOperatorType *ot);
 void PAINT_OT_face_select_reveal(struct wmOperatorType *ot);
+/* Jason */
+void PAINT_OT_vert_select_all(struct wmOperatorType *ot);
+int vert_paint_poll(struct bContext *C);
 
 int facemask_paint_poll(struct bContext *C);
 

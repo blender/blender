@@ -2777,7 +2777,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 				GPU_disable_material();
 				// Jason
-				if(scene->toolsettings->wp_vert_sel) {
+				if(paint_vertsel_test(ob)) {
 					glColor3f(0.0f, 0.0f, 0.0f);
 					glPointSize(2.0f);
 					dm->drawEdges(dm, (dt==OB_WIRE || totface==0), me->drawflag);

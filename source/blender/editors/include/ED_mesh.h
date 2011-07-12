@@ -124,6 +124,7 @@ int			EM_vertColorCheck(struct EditMesh *em);
 void		undo_push_mesh(struct bContext *C, const char *name);
 /* Jason */
 void		paintvert_flush_flags(struct Object *ob);
+void		paintvert_deselect_all_visible(struct Object *ob, int action, short flush_flags);
 
 /* editmesh_lib.c */
 

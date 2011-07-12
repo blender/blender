@@ -498,6 +498,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		RNA_pointer_create(&ob->id, &RNA_Mesh, ob->data, &meshptr);
 		uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		uiItemR(layout, &meshptr, "wp_vert_sel", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);// Jason
 	} else {
 		const char *str_menu;
 

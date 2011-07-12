@@ -1993,3 +1993,62 @@ void paintvert_flush_flags(Object *ob)
 		}
 	}
 }
+/* Jason note: caller needs to run paintvert_flush_flags(ob) after this */
+void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
+{
+	Mesh *me;
+	MVert *mvert;
+	int a;
+
+	me= get_mesh(ob);
+	if(me==NULL) return;
+	
+	if(action == SEL_INVERT) {
+		mvert= me->mvert;
+		a= me->totvert;
+		while(a--) {
+			if((mvert->flag & ME_HIDE) == 0) {
+				mvert->flag ^= SELECT;
+			}
+			mvert++;
+		}
+	}
+	else {
+		if (action == SEL_TOGGLE) {
+			action = SEL_SELECT;
+
+			mvert= me->mvert;
+			a= me->totvert;
+			while(a--) {
+				if((mvert->flag & ME_HIDE) == 0 && mvert->flag & SELECT) {
+					action = SEL_DESELECT;
+					break;
+				}
+				mvert++;
+			}
+		}
+
+		mvert= me->mvert;
+		a= me->totvert;
+		while(a--) {
+			if((mvert->flag & ME_HIDE) == 0) {
+				switch (action) {
+				case SEL_SELECT:
+					mvert->flag |= SELECT;
+					break;
+				case SEL_DESELECT:
+					mvert->flag &= ~SELECT;
+					break;
+				case SEL_INVERT:
+					mvert->flag ^= SELECT;
+					break;
+				}
+			}
+			mvert++;
+		}
+	}
+
+	if(flush_flags) {
+		paintvert_flush_flags(ob);
+	}
+}
