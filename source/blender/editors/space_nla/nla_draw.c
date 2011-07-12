@@ -645,9 +645,9 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					 *	- need special icons for these
 					 */
 					if (nlt->flag & NLATRACK_SOLO)
-						special= ICON_SPACE2;
+						special= ICON_SOLO_ON;
 					else
-						special= ICON_SPACE3;
+						special= ICON_SOLO_OFF;
 						
 					/* if this track is active and we're tweaking it, don't draw these toggles */
 					// TODO: need a special macro for this...
