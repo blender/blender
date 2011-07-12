@@ -173,7 +173,7 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 	}
 
 	/* avoid 0 size allocs */
-	if(avs->path_sf >= avs->path_ef) {
+	if (avs->path_sf >= avs->path_ef) {
 		return NULL;
 	}
 
@@ -231,6 +231,7 @@ typedef struct MPathTarget {
 /* get list of motion paths to be baked for the given object
  * 	- assumes the given list is ready to be used
  */
+// TODO: it would be nice in future to be able to update objects dependant on these bones too?
 void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 {
 	MPathTarget *mpt;
