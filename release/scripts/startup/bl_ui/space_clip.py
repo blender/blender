@@ -57,6 +57,44 @@ class CLIP_OT_apply_follow_track(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class CLIP_OT_bundles_to_mesh(bpy.types.Operator):
+    bl_idname = "clip.bundles_to_mesh"
+    bl_label = "Bundles to Mesh"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.space_data.type != 'CLIP_EDITOR':
+            return False
+
+        sc = context.space_data
+        clip = sc.clip
+
+        return clip
+
+    def execute(self, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        mesh = bpy.data.meshes.new(name="Bundles")
+        for track in clip.tracking.tracks:
+            if track.has_bundle:
+                mesh.vertices.add(1)
+                mesh.vertices[-1].co = track.bundle
+
+        ob = bpy.data.objects.new(name="Bundles", object_data=mesh)
+
+        camera = bpy.context.scene.camera
+        if camera:
+            ob.location = camera.location
+            ob.rotation_quaternion = camera.rotation_quaternion
+            ob.rotation_euler = camera.rotation_euler
+
+        bpy.context.scene.objects.link(ob)
+
+        return {'FINISHED'}
+
+
 class CLIP_HT_header(bpy.types.Header):
     bl_space_type = 'CLIP_EDITOR'
 
@@ -139,6 +177,9 @@ class CLIP_PT_tools(bpy.types.Panel):
             col = layout.column(align=True)
             col.operator("clip.solve_camera")
             col.operator("clip.clear_reconstruction")
+
+            col = layout.column(align=True)
+            col.operator("clip.bundles_to_mesh")
 
             col = layout.column(align=True)
             col.label(text="Scene Orientation:")

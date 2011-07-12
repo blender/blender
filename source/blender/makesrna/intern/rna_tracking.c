@@ -346,7 +346,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Blue Channel", "Use blue channel from footage for tracking");
 
 	/* has bundle */
-	prop= RNA_def_property(srna, "bas_bundle", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "has_bundle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACK_HAS_BUNDLE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Has Bundle", "True if track has a valid bundle");
