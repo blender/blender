@@ -81,7 +81,6 @@
  */
 static void nla_action_get_color (AnimData *adt, bAction *act, float color[4])
 {
-	// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
 	if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
 		// greenish color (same as tweaking strip) - hardcoded for now
 		color[0]= 0.30f;
@@ -105,6 +104,10 @@ static void nla_action_get_color (AnimData *adt, bAction *act, float color[4])
 			color[3]= 0.3f;
 		}
 	}
+	
+	/* when an NLA track is tagged "solo", action doesn't contribute, so shouldn't be as prominent */
+	if (adt && (adt->flag & ADT_NLA_SOLO_TRACK))
+		color[3] *= 0.15f;
 }
 
 /* draw the keyframes in the specified Action */
@@ -125,9 +128,12 @@ static void nla_action_draw_keyframes (AnimData *adt, bAction *act, View2D *v2d,
 	
 	/* draw a darkened region behind the strips 
 	 *	- get and reset the background color, this time without the alpha to stand out better 
+	 *	  (amplified alpha is used instead)
 	 */
 	nla_action_get_color(adt, act, color);
-	glColor3fv(color);
+	color[3] *= 2.5f;
+	
+	glColor4fv(color);
 	/* 	- draw a rect from the first to the last frame (no extra overlaps for now) 
 	 *	  that is slightly stumpier than the track background (hardcoded 2-units here)
 	 */
@@ -286,15 +292,18 @@ static void nla_draw_strip_curves (NlaStrip *strip, float yminc, float ymaxc)
 }
 
 /* main call for drawing a single NLA-strip */
-static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
+	short nonSolo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO)==0);
 	float color[3];
 	
 	/* get color of strip */
 	nla_strip_get_color_inside(adt, strip, color);
 	
-	/* draw extrapolation info first (as backdrop) */
-	if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
+	/* draw extrapolation info first (as backdrop)
+	 *	- but this should only be drawn if track has some contribution
+	 */
+	if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && (nonSolo == 0)) {
 		/* enable transparency... */
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
@@ -347,10 +356,23 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 		glDisable(GL_BLEND);
 	}
 	
+	
 	/* draw 'inside' of strip itself */
-	glColor3fv(color);
-	uiSetRoundBox(15); /* all corners rounded */
-	uiDrawBoxShade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
+	if (nonSolo == 0) {
+		/* strip is in normal track */
+		glColor3fv(color);
+		uiSetRoundBox(15); /* all corners rounded */
+		
+		uiDrawBoxShade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
+	}
+	else {
+		/* strip is in disabled track - make less visible */
+		glColor4f(color[0], color[1], color[2], 0.1f);
+		
+		glEnable(GL_BLEND);
+			glRectf(strip->start, yminc, strip->end, ymaxc);
+		glDisable(GL_BLEND);
+	}
 	
 	
 	/* draw strip's control 'curves'
@@ -358,6 +380,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 	 */
 	if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
 		nla_draw_strip_curves(strip, yminc, ymaxc);
+	
 	
 	/* draw strip outline 
 	 *	- color used here is to indicate active vs non-active
@@ -420,8 +443,9 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 } 
 
 /* add the relevant text to the cache of text-strings to draw in pixelspace */
-static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip_text (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
 {
+	short notSolo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO)==0);
 	char str[256];
 	char col[4];
 	float xofs;
@@ -445,7 +469,12 @@ static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int ind
 	else {
 		col[0]= col[1]= col[2]= 255;
 	}
-	col[3]= 255;
+	
+	/* text opacity depends on whether if there's a solo'd track, this isn't it */
+	if (notSolo == 0)
+		col[3]= 255;
+	else
+		col[3]= 128;
 	
 	/* determine the amount of padding required - cannot be constant otherwise looks weird in some cases */
 	if ((strip->end - strip->start) <= 5.0f)
@@ -547,7 +576,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 							nla_draw_strip(snla, adt, nlt, strip, v2d, yminc, ymaxc);
 							
 							/* add the text for this strip to the cache */
-							nla_draw_strip_text(nlt, strip, index, v2d, yminc, ymaxc);
+							nla_draw_strip_text(adt, nlt, strip, index, v2d, yminc, ymaxc);
 							
 							/* if transforming strips (only real reason for temp-metas currently), 
 							 * add to the cache the frame numbers of the strip's extents
@@ -630,7 +659,9 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
 			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
 		{
-			short indent= 0, offset= 0, sel= 0, group= 0;
+			AnimData *adt = ale->adt;
+			
+			short indent= 0, offset= 0, sel= 0, group= 0, nonSolo= 0;
 			int expand= -1, protect = -1, special= -1, mute = -1;
 			char name[128];
 			short doDraw=0;
@@ -641,9 +672,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 				{
 					NlaTrack *nlt= (NlaTrack *)ale->data;
 					
-					/* FIXME: 'solo' as the 'special' button?
-					 *	- need special icons for these
-					 */
+					/* 'solo' as the 'special' button? */
 					if (nlt->flag & NLATRACK_SOLO)
 						special= ICON_SOLO_ON;
 					else
@@ -662,6 +691,15 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 							protect = ICON_UNLOCKED;
 						else
 							protect = ICON_LOCKED;
+					}
+					
+					/* is track enabled for solo drawing? */
+					if ((adt) && (adt->flag & ADT_NLA_SOLO_TRACK)) {
+						if ((nlt->flag & NLATRACK_SOLO) == 0) {
+							/* tag for special non-solo handling; also hide the mute toggles */
+							nonSolo= 1;
+							mute = 0;
+						}
 					}
 						
 					sel = SEL_NLT(nlt);
@@ -743,18 +781,19 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 				/* draw backing strip behind channel name */
 				if (group == 5) {
 					/* Action Line */
-					AnimData *adt= ale->adt;
-					
 					// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
 					if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
 						// greenish color (same as tweaking strip) - hardcoded for now
 						glColor3f(0.3f, 0.95f, 0.1f);
 					}
 					else {
+						/* if a track is being solo'd, action is ignored, so draw less boldly (alpha lower) */
+						float alpha = (adt && (adt->flag & ADT_NLA_SOLO_TRACK))? 0.3f : 1.0f;
+						
 						if (ale->data)
-							glColor3f(0.8f, 0.2f, 0.0f);	// reddish color - hardcoded for now 
+							glColor4f(0.8f, 0.2f, 0.0f, alpha);	// reddish color - hardcoded for now 
 						else
-							glColor3f(0.6f, 0.5f, 0.5f); 	// greyish-red color - hardcoded for now
+							glColor4f(0.6f, 0.5f, 0.5f, alpha); // greyish-red color - hardcoded for now
 					}
 					
 					offset += 7 * indent;
@@ -771,10 +810,8 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					group = 0;
 				}
 				else {
-					/* for normal channels 
-					 *	- use 3 shades of color group/standard color for 3 indention level
-					 */
-					UI_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+					/* NLA tracks - darker color if not solo track when we're showing solo */
+					UI_ThemeColorShade(TH_HEADER, ((nonSolo == 0)? 20 : -20));
 					
 					indent += group;
 					offset += 7 * indent;
