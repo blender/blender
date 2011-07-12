@@ -472,6 +472,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	time_draw_sfra_efra(scene, v2d);
 	
 	/* current frame */
+	flag = DRAWCFRA_WIDE; /* this is only really needed on frames where there's a keyframe, but this will do... */
 	if ((stime->flag & TIME_DRAWFRAMES)==0) 	flag |= DRAWCFRA_UNIT_SECONDS;
 	if (stime->flag & TIME_CFRA_NUM) 			flag |= DRAWCFRA_SHOW_NUMBOX;
 	ANIM_draw_cfra(C, v2d, flag);

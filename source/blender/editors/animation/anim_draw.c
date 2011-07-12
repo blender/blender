@@ -225,7 +225,10 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 	vec[0]= (float)(scene->r.cfra * scene->r.framelen);
 	
 	UI_ThemeColor(TH_CFRAME);
-	glLineWidth(2.0);
+	if (flag & DRAWCFRA_WIDE)
+		glLineWidth(3.0);
+	else
+		glLineWidth(2.0);
 	
 	glBegin(GL_LINE_STRIP);
 		vec[1]= v2d->cur.ymin-500.0f;	/* XXX arbitrary... want it go to bottom */
