@@ -48,7 +48,6 @@ void BKE_movieclip_reload(struct MovieClip *clip);
 
 struct ImBuf *BKE_movieclip_acquire_ibuf(struct MovieClip *clip, struct MovieClipUser *user);
 void BKE_movieclip_acquire_size(struct MovieClip *clip, struct MovieClipUser *user, int *width, int *height);
-void BKE_movieclip_approx_size(struct MovieClip *clip, int *width, int *height);
 int BKE_movieclip_has_frame(struct MovieClip *clip, struct MovieClipUser *user);
 void BKE_movieclip_user_set_frame(struct MovieClipUser *user, int framenr);
 

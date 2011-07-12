@@ -495,19 +495,15 @@ static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx
 	*regiony= v2d->mask.ymin + y*(v2d->mask.ymax-v2d->mask.ymin);
 }
 
-static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, float zoomx, float zoomy)
+static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
+			int width, int height, float zoomx, float zoomy)
 {
 	float x, y;
 	MovieTracking* tracking= &clip->tracking;
 	MovieTrackingMarker *marker;
 	MovieTrackingTrack *track;
-	int width, height, sel_type, framenr= sc->user.framenr;
+	int sel_type, framenr= sc->user.framenr;
 	void *sel;
-
-	ED_space_clip_size(sc, &width, &height);
-
-	if(!width || !height) /* no image displayed for frame */
-		return;
 
 	/* ** find window pixel coordinates of origin ** */
 
@@ -620,9 +616,10 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip, fl
 	glPopMatrix();
 }
 
-static void draw_tracking(SpaceClip *sc, ARegion *ar, MovieClip *clip, float zoomx, float zoomy)
+static void draw_tracking(SpaceClip *sc, ARegion *ar, MovieClip *clip,
+			int width, int height, float zoomx, float zoomy)
 {
-	draw_tracking_tracks(sc, ar, clip, zoomx, zoomy);
+	draw_tracking_tracks(sc, ar, clip, width, height, zoomx, zoomy);
 }
 
 void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
@@ -643,7 +640,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		draw_movieclip_buffer(sc, ar, ibuf, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
 
-		draw_tracking(sc, ar, clip, zoomx, zoomy);
+		draw_tracking(sc, ar, clip, ibuf->x, ibuf->y, zoomx, zoomy);
 	}
 
 	draw_movieclip_cache(sc, ar, clip, scene);

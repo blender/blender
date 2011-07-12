@@ -53,7 +53,8 @@ typedef struct MovieClip {
 	char name[240];		/* file path */
 
 	int source;			/* sequence or movie */
-	int lastframe;		/* last accessed frame */
+	int lastframe;		/* last accessed frame number */
+	int lastsize[2];	/* size of last accessed frame */
 
 	struct anim *anim;	/* movie source data */
 	void *ibuf_cache;	/* cache of ibufs, not in file */

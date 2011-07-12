@@ -1019,13 +1019,10 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 
 		/* set blender camera focal length so result would look fine there */
 		if(focal) {
-			int width, height;
 			Camera *camera= (Camera*)scene->camera->data;
 
-			BKE_movieclip_approx_size(clip, &width, &height);
-
-			if(width)
-				camera->lens= focal*32.0f/(float)width;
+			if(clip->lastsize[0])
+				camera->lens= focal*32.0f/(float)clip->lastsize[0];
 
 			WM_event_add_notifier(C, NC_OBJECT, camera);
 		}

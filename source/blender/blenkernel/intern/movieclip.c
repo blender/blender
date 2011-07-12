@@ -296,8 +296,12 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 			put_imbuf_cache(clip, user, ibuf);
 	}
 
-	if(ibuf)
+	if(ibuf) {
 		clip->lastframe= framenr;
+
+		clip->lastsize[0]= ibuf->x;
+		clip->lastsize[1]= ibuf->y;
+	}
 
 	return ibuf;
 }
@@ -316,41 +320,23 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 
 void BKE_movieclip_acquire_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
 {
-	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
-
-	if(ibuf && ibuf->x && ibuf->y) {
-		*width= ibuf->x;
-		*height= ibuf->y;
+	if(!user || user->framenr==clip->lastframe) {
+		*width= clip->lastsize[0];
+		*height= clip->lastsize[1];
 	} else {
-		*width= 0;
-		*height= 0;
+		ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+
+		if(ibuf && ibuf->x && ibuf->y) {
+			*width= ibuf->x;
+			*height= ibuf->y;
+		} else {
+			*width= 0;
+			*height= 0;
+		}
+
+		if(ibuf)
+			IMB_freeImBuf(ibuf);
 	}
-
-	if(ibuf)
-		IMB_freeImBuf(ibuf);
-}
-
-void BKE_movieclip_approx_size(MovieClip *clip, int *width, int *height)
-{
-	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, NULL);
-
-	if(!ibuf) {
-		MovieClipUser user;
-		user.framenr= 0;
-
-		ibuf= BKE_movieclip_acquire_ibuf(clip, &user);
-	}
-
-	if(ibuf && ibuf->x && ibuf->y) {
-		*width= ibuf->x;
-		*height= ibuf->y;
-	} else {
-		*width= 0;
-		*height= 0;
-	}
-
-	if(ibuf)
-		IMB_freeImBuf(ibuf);
 }
 
 /* get segments of cached frames. useful for debugging cache policies */

@@ -123,12 +123,8 @@ static float rna_trackingCamera_focal_get(PointerRNA *ptr)
 	float val= camera->focal;
 
 	if(camera->units==CAMERA_UNITS_MM) {
-		int width, height;
-
-		BKE_movieclip_approx_size(clip, &width, &height);
-
-		if(width)
-			val= val*camera->sensor_width/(float)width;
+		if(clip->lastsize[0])
+			val= val*camera->sensor_width/(float)clip->lastsize[0];
 	}
 
 	return val;
@@ -140,12 +136,8 @@ static void rna_trackingCamera_focal_set(PointerRNA *ptr, float value)
 	MovieTrackingCamera *camera= &clip->tracking.camera;
 
 	if(camera->units==CAMERA_UNITS_MM) {
-		int width, height;
-
-		BKE_movieclip_approx_size(clip, &width, &height);
-
-		if(width)
-			value= width*value/camera->sensor_width;
+		if(clip->lastsize[0])
+			value= clip->lastsize[0]*value/camera->sensor_width;
 	}
 
 	camera->focal= value;

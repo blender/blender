@@ -62,12 +62,9 @@ static void rna_MovieClip_reload_update(Main *bmain, Scene *scene, PointerRNA *p
 static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 {
 	MovieClip *clip= (MovieClip*)ptr->data;
-	int width, height;
 
-	BKE_movieclip_approx_size(clip, &width, &height);
-
-	values[0]= height;
-	values[1]= width;
+	values[0]= clip->lastsize[0];
+	values[1]= clip->lastsize[1];
 }
 
 static void rna_MovieClip_resolution_get(PointerRNA *ptr, float *values)

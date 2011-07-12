@@ -3941,6 +3941,7 @@ static void followtrack_new_data (void *cdata)
 
 	data->clip= NULL;
 	data->flag|= FOLLOWTRACK_DEFAULTCLIP;
+	data->reference= FOLLOWTRACK_TRACK;
 }
 
 static void followtrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
