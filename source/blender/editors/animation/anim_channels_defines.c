@@ -2655,6 +2655,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
 		
 		/* set text color */
+		// XXX: if active, highlight differently?
 		if (selected)
 			UI_ThemeColor(TH_TEXT_HI);
 		else

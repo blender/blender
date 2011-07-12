@@ -263,7 +263,7 @@ typedef enum eAnimFilter_Flags {
 #define SEL_AGRP(agrp) ((agrp->flag & AGRP_SELECTED) || (agrp->flag & AGRP_ACTIVE))
 	/* F-Curve Channels */
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED)==0)
-#define SEL_FCU(fcu) (fcu->flag & (FCURVE_ACTIVE|FCURVE_SELECTED))
+#define SEL_FCU(fcu) (fcu->flag & FCURVE_SELECTED)
 
 /* ShapeKey mode only */
 #define EDITABLE_SHAPEKEY(kb) ((kb->flag & KEYBLOCK_LOCKED)==0)
