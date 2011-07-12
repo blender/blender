@@ -71,16 +71,20 @@
 static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 {	
 	/* draw darkened area outside of active timeline 
-	 * frame range used is preview range or scene range */
-	UI_ThemeColorShade(TH_BACK, -25);
-
-	if (PSFRA < PEFRA) {
-		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-		glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
-	}
-	else {
-		glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
-	}
+	 * frame range used is preview range or scene range 
+	 */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+		glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+		
+		if (PSFRA < PEFRA) {
+			glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
+			glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+		}
+		else {
+			glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+		}
+	glDisable(GL_BLEND);
 
 	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
@@ -303,8 +307,8 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 			 (ak) && (ak->cfra <= v2d->cur.xmax); 
 			  ak=ak->next ) 
 		{
-			glVertex2f(ak->cfra, v2d->cur.ymin);
-			glVertex2f(ak->cfra, v2d->cur.ymax);
+			glVertex2f(ak->cfra, v2d->tot.ymin);
+			glVertex2f(ak->cfra, v2d->tot.ymax);
 		}
 	glEnd(); // GL_LINES
 		
@@ -457,9 +461,6 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	UI_view2d_view_ortho(v2d);
-
-	/* start and end frame */
-	time_draw_sfra_efra(scene, v2d);
 	
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
@@ -467,10 +468,15 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_draw(v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
 	UI_view2d_grid_free(grid);
 	
+	/* start and end frame */
+	time_draw_sfra_efra(scene, v2d);
+	
 	/* current frame */
 	if ((stime->flag & TIME_DRAWFRAMES)==0) 	flag |= DRAWCFRA_UNIT_SECONDS;
 	if (stime->flag & TIME_CFRA_NUM) 			flag |= DRAWCFRA_SHOW_NUMBOX;
 	ANIM_draw_cfra(C, v2d, flag);
+	
+	UI_view2d_view_ortho(v2d);
 	
 	/* keyframes */
 	if(!G.rendering) /* ANIM_nla_mapping_apply_fcurve() modifies curve data while rendering, possible race condition */

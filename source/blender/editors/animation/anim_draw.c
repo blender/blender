@@ -243,13 +243,13 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 			// XXX ob->ipoflag is depreceated!
 			if ((ob->ipoflag & OB_OFFS_OB) && (timeoffset != 0.0f)) {
 				vec[0]-= timeoffset; /* could avoid calling twice */
-			
+				
 				UI_ThemeColorShade(TH_CFRAME, -30);
-			
+				
 				glBegin(GL_LINE_STRIP);
 					/*vec[1]= v2d->cur.ymax;*/ // this is set already. this line is only included
 					glVertex2fv(vec);
-				
+					
 					vec[1]= v2d->cur.ymin;
 					glVertex2fv(vec);
 				glEnd();
