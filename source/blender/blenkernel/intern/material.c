@@ -550,7 +550,7 @@ Material *material_pop_id(ID *id, int index)
 				Material **mat;
 
 				if(index + 1 != (*totcol))
-					memmove((*matar), (*matar) + 1, (*totcol) - (index + 1));
+					memmove((*matar), (*matar) + 1, sizeof(void *) * ((*totcol) - (index + 1)));
 
 				(*totcol)--;
 				

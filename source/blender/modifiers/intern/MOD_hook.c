@@ -157,9 +157,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 	int i, *index_pt;
 	const float falloff_squared= hmd->falloff * hmd->falloff; /* for faster comparisons */
 	
-	int max_dvert= 0;
-	MDeformVert *dvert= NULL;
-	int defgrp_index = -1;
+	MDeformVert *dvert;
+	int defgrp_index, max_dvert;
 	
 	/* get world-space matrix of target, corrected for the space the verts are in */
 	if (hmd->subtarget[0] && pchan) {
@@ -174,21 +173,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 	mul_serie_m4(mat, ob->imat, dmat, hmd->parentinv,
 			 NULL, NULL, NULL, NULL, NULL);
 
-	if((defgrp_index= defgroup_name_index(ob, hmd->name)) != -1) {
-		Mesh *me = ob->data;
-		if(dm) {
-			dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
-			if(dvert) {
-				max_dvert = numVerts;
-			}
-		}
-		else if(me->dvert) {
-			dvert= me->dvert;
-			if(dvert) {
-				max_dvert = me->totvert;
-			}
-		}
-	}
+	modifier_get_vgroup(ob, dm, hmd->name, &dvert, &defgrp_index);
+	max_dvert = (dvert)? numVerts: 0;
 
 	/* Regarding index range checking below.
 	 *

@@ -208,7 +208,7 @@ class TextureSlotPanel(TextureButtonsPanel):
             return False
 
         engine = context.scene.render.engine
-        return TextureButtonsPanel.poll(self, context) and (engine in cls.COMPAT_ENGINES)
+        return TextureButtonsPanel.poll(cls, context) and (engine in cls.COMPAT_ENGINES)
 
 
 # Texture Type Panels #

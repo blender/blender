@@ -114,7 +114,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         to_dict = getattr(val, "to_dict", None)
         to_list = getattr(val, "to_list", None)
 
-        val_orig = val
+        # val_orig = val  # UNUSED
         if to_dict:
             val = to_dict()
             val_draw = str(val)

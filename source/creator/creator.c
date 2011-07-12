@@ -1134,7 +1134,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 #ifdef WITH_PYTHON_MODULE
 /* allow python module to call main */
-#define main main_python
+#define main main_python_enter
+static void *evil_C= NULL;
 #endif
 
 int main(int argc, const char **argv)
@@ -1145,6 +1146,7 @@ int main(int argc, const char **argv)
 
 #ifdef WITH_PYTHON_MODULE
 #undef main
+	evil_C= C;
 #endif
 
 #ifdef WITH_BINRELOC
@@ -1312,6 +1314,14 @@ int main(int argc, const char **argv)
 
 	return 0;
 } /* end of int main(argc,argv)	*/
+
+#ifdef WITH_PYTHON_MODULE
+void main_python_exit(void)
+{
+	WM_exit((bContext *)evil_C);
+	evil_C= NULL;
+}
+#endif
 
 static void error_cb(const char *err)
 {

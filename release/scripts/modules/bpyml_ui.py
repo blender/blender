@@ -22,7 +22,6 @@
 import bpy as _bpy
 import bpyml
 from bpyml import TAG, ARGS, CHILDREN
-from types import ModuleType
 
 _uilayout_rna = _bpy.types.UILayout.bl_rna
 

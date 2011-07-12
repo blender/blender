@@ -77,9 +77,9 @@ else:
         "bpy.types",  # supports filtering
         "bpy.ops",  # supports filtering
         "bpy_extras",
-        "bge",
+        # "bge",
         "aud",
-        #"bgl",
+        "bgl",
         "blf",
         "mathutils",
         "mathutils.geometry",
@@ -989,6 +989,7 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("* `Quickstart Intro <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>`_ if you are new to scripting in blender and want to get you're feet wet!\n")
     fw("* `Blender/Python Overview <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Overview>`_ for a more complete explanation of python integration in blender\n")
+    fw("\n")
 
     fw("===================\n")
     fw("Application Modules\n")
@@ -1048,7 +1049,9 @@ def rna2sphinx(BASEPATH):
         fw("   bge.types.rst\n\n")
         fw("   bge.logic.rst\n\n")
         fw("   bge.render.rst\n\n")
+        fw("   bge.texture.rst\n\n")
         fw("   bge.events.rst\n\n")
+        fw("   bge.constraints.rst\n\n")
 
     # rna generated change log
     fw("========\n")
@@ -1182,7 +1185,9 @@ def rna2sphinx(BASEPATH):
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.types.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.logic.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.render.rst"), BASEPATH)
+        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.texture.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.events.rst"), BASEPATH)
+        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.constraints.rst"), BASEPATH)
 
     shutil.copy2(os.path.join(BASEPATH, "..", "rst", "change_log.rst"), BASEPATH)
 

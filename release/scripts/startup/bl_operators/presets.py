@@ -315,7 +315,7 @@ class AddPresetOperator(AddPresetBase, bpy.types.Operator):
 
     @property
     def preset_subdir(self):
-        return __class__.operator_path(self.operator)
+        return AddPresetOperator.operator_path(self.operator)
 
     @property
     def preset_values(self):

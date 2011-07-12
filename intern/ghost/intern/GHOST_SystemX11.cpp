@@ -76,6 +76,9 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
+static GHOST_TKey
+convertXKey(KeySym key);
+
 typedef struct NDOFPlatformInfo {
 	Display *display;
 	Window window;
@@ -923,35 +926,20 @@ getButtons(
 	int rx,ry,wx,wy;
 	unsigned int mask_return;
 
-	if (XQueryPointer(
-		m_display,
-		RootWindow(m_display,DefaultScreen(m_display)),
-		&root_return,
-		&child_return,
-		&rx,&ry,
-		&wx,&wy,
-		&mask_return
-	) == False) {
+	if (XQueryPointer(m_display,
+	                  RootWindow(m_display,DefaultScreen(m_display)),
+	                  &root_return,
+	                  &child_return,
+	                  &rx,&ry,
+	                  &wx,&wy,
+	                  &mask_return) == True)
+	{
+		buttons.set(GHOST_kButtonMaskLeft,   (mask_return & Button1Mask) != 0);
+		buttons.set(GHOST_kButtonMaskMiddle, (mask_return & Button2Mask) != 0);
+		buttons.set(GHOST_kButtonMaskRight,  (mask_return & Button3Mask) != 0);
+	}
+	else {
 		return GHOST_kFailure;
-	} else {
-
-		if (mask_return & Button1Mask) {
-			buttons.set(GHOST_kButtonMaskLeft,true);
-		} else {
-			buttons.set(GHOST_kButtonMaskLeft,false);
-		}
-
-		if (mask_return & Button2Mask) {
-			buttons.set(GHOST_kButtonMaskMiddle,true);
-		} else {
-			buttons.set(GHOST_kButtonMaskMiddle,false);
-		}
-
-		if (mask_return & Button3Mask) {
-			buttons.set(GHOST_kButtonMaskRight,true);
-		} else {
-			buttons.set(GHOST_kButtonMaskRight,false);
-		}
 	}	
 
 	return GHOST_kSuccess;
@@ -1056,11 +1044,9 @@ generateWindowExposeEvents(
 
 #define GXMAP(k,x,y) case x: k = y; break; 
 
-	GHOST_TKey
-GHOST_SystemX11::
-convertXKey(
-	KeySym key
-){
+static GHOST_TKey
+convertXKey(KeySym key)
+{
 	GHOST_TKey type;
 
 	if ((key >= XK_A) && (key <= XK_Z)) {

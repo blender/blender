@@ -407,7 +407,7 @@ class BUILTIN_KSI_DeltaRotation(bpy.types.KeyingSetInfo):
         # add the property name to the base path
         #   rotation mode affects the property used
         if data.rotation_mode == 'QUATERNION':
-            path = path_add_property(base_path, "delta_rotation_quaternion")
+            path = keyingsets_utils.path_add_property(base_path, "delta_rotation_quaternion")
         elif data.rotation_mode == 'AXIS_ANGLE':
             # XXX: for now, this is not available yet
             #path = path_add_property(base_path, "delta_rotation_axis_angle")

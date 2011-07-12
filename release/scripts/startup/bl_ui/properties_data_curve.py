@@ -122,7 +122,6 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
         curve = context.curve
 
         row = layout.row()
