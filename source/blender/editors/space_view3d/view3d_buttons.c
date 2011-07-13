@@ -966,12 +966,12 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 	
 	ebone= arm->act_edbone;
 
-	if (!ebone || (ebone->layer & arm->layer)==0)
+	if (!ebone || (ebone->layer & arm->layer)==0) {
+		uiItemL(col, "Nothing selected", ICON_NONE);
 		return;
-	
+	}
 //	row= uiLayoutRow(layout, 0);
 	RNA_pointer_create(&arm->id, &RNA_EditBone, ebone, &eboneptr);
-
 
 	col= uiLayoutColumn(layout, 0);
 	uiItemR(col, &eboneptr, "head", 0, "Head", ICON_NONE);
@@ -1256,7 +1256,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 
 	if(ob==obedit) {
 		if(ob->type==OB_ARMATURE) v3d_editarmature_buts(col, ob);
-		if(ob->type==OB_MBALL) v3d_editmetaball_buts(col, ob);
+		else if(ob->type==OB_MBALL) v3d_editmetaball_buts(col, ob);
 		else v3d_editvertex_buts(col, v3d, ob, lim);
 	}
 	else if(ob->mode & OB_MODE_POSE) {
