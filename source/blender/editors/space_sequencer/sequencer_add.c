@@ -278,9 +278,9 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Add Scene Strip";
+	ot->name= _("Add Scene Strip");
 	ot->idname= "SEQUENCER_OT_scene_strip_add";
-	ot->description= "Add a strip to the sequencer using a blender scene as a source";
+	ot->description= _("Add a strip to the sequencer using a blender scene as a source");
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_scene_strip_invoke;
@@ -292,7 +292,7 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, _("Scene"), "");
 	RNA_def_enum_funcs(prop, RNA_scene_itemf);
 	ot->prop= prop;
 }
@@ -540,9 +540,9 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Add Image Strip";
+	ot->name= _("Add Image Strip");
 	ot->idname= "SEQUENCER_OT_image_strip_add";
-	ot->description= "Add an image or image sequence to the sequencer";
+	ot->description= _("Add an image or image sequence to the sequencer");
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_image_strip_invoke;
@@ -718,9 +718,9 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Effect Strip";
+	ot->name= _("Add Effect Strip");
 	ot->idname= "SEQUENCER_OT_effect_strip_add";
-	ot->description= "Add an effect to the sequencer, most are applied on top of existing strips";
+	ot->description= _("Add an effect to the sequencer, most are applied on top of existing strips");
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_effect_strip_invoke;
@@ -733,6 +733,6 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME);
-	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, "Type", "Sequencer effect type");
-	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, "Color", "Initialize the strip with this color (only used when type='COLOR')", 0.0f, 1.0f);
+	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, _("Type"), _("Sequencer effect type"));
+	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, _("Color"), _("Initialize the strip with this color (only used when type='COLOR')"), 0.0f, 1.0f);
 }

@@ -644,11 +644,11 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 
 /* XXX make dynamic */
 static const EnumPropertyItem image_file_type_items[] = {
-		{R_TARGA, "TARGA", 0, "Targa", ""},
-		{R_RAWTGA, "TARGA RAW", 0, "Targa Raw", ""},
+		{R_TARGA, "TARGA", 0, N_("Targa"), ""},
+		{R_RAWTGA, "TARGA RAW", 0, N_("Targa Raw"), ""},
 		{R_PNG, "PNG", 0, "PNG", ""},
 #ifdef WITH_DDS
-		{R_DDS, "DDS", 0, "DirectDraw Surface", ""},
+		{R_DDS, "DDS", 0, N_("DirectDraw Surface"), ""},
 #endif
 		{R_BMP, "BMP", 0, "BMP", ""},
 		{R_JPEG90, "JPEG", 0, "Jpeg", ""},
@@ -660,10 +660,10 @@ static const EnumPropertyItem image_file_type_items[] = {
 		{R_TIFF, "TIFF", 0, "Tiff", ""},
 #endif
 #ifdef WITH_DDS
-		{R_RADHDR, "RADIANCE_HDR", 0, "Radiance HDR", ""},
+		{R_RADHDR, "RADIANCE_HDR", 0, N_("Radiance HDR"), ""},
 #endif
 #ifdef WITH_CINEON
-		{R_CINEON, "CINEON", 0, "Cineon", ""},
+		{R_CINEON, "CINEON", 0, N_("Cineon"), ""},
 		{R_DPX, "DPX", 0, "DPX", ""},
 #endif
 #ifdef WITH_OPENEXR
@@ -1348,7 +1348,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= _("New Image");
-	ot->description= "Create a new image";
+	ot->description= _("Create a new image");
 	ot->idname= "IMAGE_OT_new";
 	
 	/* api callbacks */

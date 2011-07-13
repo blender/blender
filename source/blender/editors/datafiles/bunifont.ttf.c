@@ -3,7 +3,6 @@
  */
 /* DataToC output of file <bfont_ttf> */
 
-#include <zlib.h>
 #include <stdio.h>
 #include "BLI_path_util.h"
 #include "BLI_string.h"

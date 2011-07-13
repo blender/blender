@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from blf import gettext as _
 
 
 class BrushButtonsPanel():
@@ -32,7 +33,7 @@ class BrushButtonsPanel():
 
 
 class IMAGE_MT_view(bpy.types.Menu):
-    bl_label = "View"
+    bl_label = _("View")
 
     def draw(self, context):
         layout = self.layout
@@ -63,7 +64,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         ratios = [[1, 8], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1]]
 
         for a, b in ratios:
-            text = "Zoom %d:%d" % (a, b)
+            text = _("Zoom %d:%d") % (a, b)
             layout.operator("image.view_zoom_ratio", text=text).ratio = a / b
 
         layout.separator()
@@ -80,7 +81,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
 
 class IMAGE_MT_select(bpy.types.Menu):
-    bl_label = "Select"
+    bl_label = _("Select")
 
     def draw(self, context):
         layout = self.layout
@@ -91,7 +92,7 @@ class IMAGE_MT_select(bpy.types.Menu):
         layout.separator()
 
         layout.operator("uv.select_all")
-        layout.operator("uv.select_all", text="Inverse").action = 'INVERT'
+        layout.operator("uv.select_all", text=_("Inverse")).action = 'INVERT'
         layout.operator("uv.unlink_selected")
 
         layout.separator()
@@ -101,7 +102,7 @@ class IMAGE_MT_select(bpy.types.Menu):
 
 
 class IMAGE_MT_image(bpy.types.Menu):
-    bl_label = "Image"
+    bl_label = _("Image")
 
     def draw(self, context):
         layout = self.layout
@@ -121,12 +122,12 @@ class IMAGE_MT_image(bpy.types.Menu):
 
             layout.operator("image.save")
             layout.operator("image.save_as")
-            layout.operator("image.save_as", text="Save a Copy").copy = True
+            layout.operator("image.save_as", text=_("Save a Copy")).copy = True
 
             if ima.source == 'SEQUENCE':
                 layout.operator("image.save_sequence")
 
-            layout.operator("image.external_edit", "Edit Externally")
+            layout.operator("image.external_edit", _("Edit Externally"))
 
             layout.separator()
 
@@ -144,7 +145,7 @@ class IMAGE_MT_image(bpy.types.Menu):
                 # this could be done in operator poll too
                 if ima.is_dirty:
                     if ima.source in {'FILE', 'GENERATED'} and ima.type != 'MULTILAYER':
-                        layout.operator("image.pack", text="Pack As PNG").as_png = True
+                        layout.operator("image.pack", text=_("Pack As PNG")).as_png = True
 
             layout.separator()
 
@@ -152,44 +153,44 @@ class IMAGE_MT_image(bpy.types.Menu):
 
 
 class IMAGE_MT_image_invert(bpy.types.Menu):
-    bl_label = "Invert"
+    bl_label = _("Invert")
 
     def draw(self, context):
         layout = self.layout
 
-        op = layout.operator("image.invert", text="Invert Image Colors")
+        op = layout.operator("image.invert", text=_("Invert Image Colors"))
         op.invert_r = True
         op.invert_g = True
         op.invert_b = True
 
         layout.separator()
 
-        op = layout.operator("image.invert", text="Invert Red Channel")
+        op = layout.operator("image.invert", text=_("Invert Red Channel"))
         op.invert_r = True
 
-        op = layout.operator("image.invert", text="Invert Green Channel")
+        op = layout.operator("image.invert", text=_("Invert Green Channel"))
         op.invert_g = True
 
-        op = layout.operator("image.invert", text="Invert Blue Channel")
+        op = layout.operator("image.invert", text=_("Invert Blue Channel"))
         op.invert_b = True
 
-        op = layout.operator("image.invert", text="Invert Alpha Channel")
+        op = layout.operator("image.invert", text=_("Invert Alpha Channel"))
         op.invert_a = True
 
 
 class IMAGE_MT_uvs_showhide(bpy.types.Menu):
-    bl_label = "Show/Hide Faces"
+    bl_label = _("Show/Hide Faces")
 
     def draw(self, context):
         layout = self.layout
 
         layout.operator("uv.reveal")
-        layout.operator("uv.hide", text="Hide Selected")
-        layout.operator("uv.hide", text="Hide Unselected").unselected = True
+        layout.operator("uv.hide", text=_("Hide Selected"))
+        layout.operator("uv.hide", text=_("Hide Unselected")).unselected = True
 
 
 class IMAGE_MT_uvs_transform(bpy.types.Menu):
-    bl_label = "Transform"
+    bl_label = _("Transform")
 
     def draw(self, context):
         layout = self.layout
@@ -200,35 +201,35 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
 
 
 class IMAGE_MT_uvs_snap(bpy.types.Menu):
-    bl_label = "Snap"
+    bl_label = _("Snap")
 
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.operator("uv.snap_selected", text="Selected to Pixels").target = 'PIXELS'
-        layout.operator("uv.snap_selected", text="Selected to Cursor").target = 'CURSOR'
-        layout.operator("uv.snap_selected", text="Selected to Adjacent Unselected").target = 'ADJACENT_UNSELECTED'
+        layout.operator("uv.snap_selected", text=_("Selected to Pixels")).target = 'PIXELS'
+        layout.operator("uv.snap_selected", text=_("Selected to Cursor")).target = 'CURSOR'
+        layout.operator("uv.snap_selected", text=_("Selected to Adjacent Unselected")).target = 'ADJACENT_UNSELECTED'
 
         layout.separator()
 
-        layout.operator("uv.snap_cursor", text="Cursor to Pixels").target = 'PIXELS'
-        layout.operator("uv.snap_cursor", text="Cursor to Selected").target = 'SELECTED'
+        layout.operator("uv.snap_cursor", text=_("Cursor to Pixels")).target = 'PIXELS'
+        layout.operator("uv.snap_cursor", text=_("Cursor to Selected")).target = 'SELECTED'
 
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
-    bl_label = "Mirror"
+    bl_label = _("Mirror")
 
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.operator("transform.mirror", text="X Axis").constraint_axis[0] = True
-        layout.operator("transform.mirror", text="Y Axis").constraint_axis[1] = True
+        layout.operator("transform.mirror", text=_("X Axis")).constraint_axis[0] = True
+        layout.operator("transform.mirror", text=_("Y Axis")).constraint_axis[1] = True
 
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
-    bl_label = "Weld/Align"
+    bl_label = _("Weld/Align")
 
     def draw(self, context):
         layout = self.layout
@@ -254,7 +255,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         layout.prop(uv, "use_live_unwrap")
         layout.operator("uv.unwrap")
-        layout.operator("uv.pin", text="Unpin").clear = True
+        layout.operator("uv.pin", text=_("Unpin")).clear = True
         layout.operator("uv.pin")
 
         layout.separator()
@@ -283,7 +284,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
 
 class IMAGE_MT_uvs_select_mode(bpy.types.Menu):
-    bl_label = "UV Select Mode"
+    bl_label = _("UV Select Mode")
 
     def draw(self, context):
         layout = self.layout
@@ -294,32 +295,32 @@ class IMAGE_MT_uvs_select_mode(bpy.types.Menu):
         # do smart things depending on whether uv_select_sync is on
 
         if toolsettings.use_uv_select_sync:
-            prop = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
+            prop = layout.operator("wm.context_set_value", text=_("Vertex"), icon='VERTEXSEL')
             prop.value = "(True, False, False)"
             prop.data_path = "tool_settings.mesh_select_mode"
 
-            prop = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
+            prop = layout.operator("wm.context_set_value", text=_("Edge"), icon='EDGESEL')
             prop.value = "(False, True, False)"
             prop.data_path = "tool_settings.mesh_select_mode"
 
-            prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
+            prop = layout.operator("wm.context_set_value", text=_("Face"), icon='FACESEL')
             prop.value = "(False, False, True)"
             prop.data_path = "tool_settings.mesh_select_mode"
 
         else:
-            prop = layout.operator("wm.context_set_string", text="Vertex", icon='UV_VERTEXSEL')
+            prop = layout.operator("wm.context_set_string", text=_("Vertex"), icon='UV_VERTEXSEL')
             prop.value = "VERTEX"
             prop.data_path = "tool_settings.uv_select_mode"
 
-            prop = layout.operator("wm.context_set_string", text="Edge", icon='UV_EDGESEL')
+            prop = layout.operator("wm.context_set_string", text=_("Edge"), icon='UV_EDGESEL')
             prop.value = "EDGE"
             prop.data_path = "tool_settings.uv_select_mode"
 
-            prop = layout.operator("wm.context_set_string", text="Face", icon='UV_FACESEL')
+            prop = layout.operator("wm.context_set_string", text=_("Face"), icon='UV_FACESEL')
             prop.value = "FACE"
             prop.data_path = "tool_settings.uv_select_mode"
 
-            prop = layout.operator("wm.context_set_string", text="Island", icon='UV_ISLANDSEL')
+            prop = layout.operator("wm.context_set_string", text=_("Island"), icon='UV_ISLANDSEL')
             prop.value = "ISLAND"
             prop.data_path = "tool_settings.uv_select_mode"
 
@@ -351,9 +352,9 @@ class IMAGE_HT_header(bpy.types.Header):
                 sub.menu("IMAGE_MT_select")
 
             if ima and ima.is_dirty:
-                sub.menu("IMAGE_MT_image", text="Image*")
+                sub.menu("IMAGE_MT_image", text=_("Image*"))
             else:
-                sub.menu("IMAGE_MT_image", text="Image")
+                sub.menu("IMAGE_MT_image", text=_("Image"))
 
             if show_uvedit:
                 sub.menu("IMAGE_MT_uvs")
@@ -411,7 +412,7 @@ class IMAGE_HT_header(bpy.types.Header):
 class IMAGE_PT_image_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Image"
+    bl_label = _("Image")
 
     @classmethod
     def poll(cls, context):
@@ -430,7 +431,7 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
 class IMAGE_PT_game_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Game Properties"
+    bl_label = _("Game Properties")
 
     @classmethod
     def poll(cls, context):
@@ -454,9 +455,9 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 
         subsub = sub.column()
         subsub.active = ima.use_animation
-        subsub.prop(ima, "frame_start", text="Start")
-        subsub.prop(ima, "frame_end", text="End")
-        subsub.prop(ima, "fps", text="Speed")
+        subsub.prop(ima, "frame_start", text=_("Start"))
+        subsub.prop(ima, "frame_end", text=_("End"))
+        subsub.prop(ima, "fps", text=_("Speed"))
 
         col.prop(ima, "use_tiles")
         sub = col.column(align=True)
@@ -475,7 +476,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 class IMAGE_PT_view_histogram(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = "Histogram"
+    bl_label = _("Histogram")
 
     @classmethod
     def poll(cls, context):
@@ -494,7 +495,7 @@ class IMAGE_PT_view_histogram(bpy.types.Panel):
 class IMAGE_PT_view_waveform(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = "Waveform"
+    bl_label = _("Waveform")
 
     @classmethod
     def poll(cls, context):
@@ -514,7 +515,7 @@ class IMAGE_PT_view_waveform(bpy.types.Panel):
 class IMAGE_PT_view_vectorscope(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = "Vectorscope"
+    bl_label = _("Vectorscope")
 
     @classmethod
     def poll(cls, context):
@@ -532,7 +533,7 @@ class IMAGE_PT_view_vectorscope(bpy.types.Panel):
 class IMAGE_PT_sample_line(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = "Sample Line"
+    bl_label = _("Sample Line")
 
     @classmethod
     def poll(cls, context):
@@ -550,7 +551,7 @@ class IMAGE_PT_sample_line(bpy.types.Panel):
 class IMAGE_PT_scope_sample(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = "Scope Samples"
+    bl_label = _("Scope Samples")
 
     @classmethod
     def poll(cls, context):
@@ -571,7 +572,7 @@ class IMAGE_PT_scope_sample(bpy.types.Panel):
 class IMAGE_PT_view_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Display"
+    bl_label = _("Display")
 
     @classmethod
     def poll(cls, context):
@@ -590,22 +591,22 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 
         col = split.column()
         if ima:
-            col.prop(ima, "display_aspect", text="Aspect Ratio")
+            col.prop(ima, "display_aspect", text=_("Aspect Ratio"))
 
             col = split.column()
-            col.label(text="Coordinates:")
-            col.prop(sima, "show_repeat", text="Repeat")
+            col.label(text=_("Coordinates:"))
+            col.prop(sima, "show_repeat", text=_("Repeat"))
             if show_uvedit:
-                col.prop(uvedit, "show_normalized_coords", text="Normalized")
+                col.prop(uvedit, "show_normalized_coords", text=_("Normalized"))
 
         elif show_uvedit:
-            col.label(text="Coordinates:")
-            col.prop(uvedit, "show_normalized_coords", text="Normalized")
+            col.label(text=_("Coordinates:"))
+            col.prop(uvedit, "show_normalized_coords", text=_("Normalized"))
 
         if show_uvedit:
 
             col = layout.column()
-            col.label("Cursor Location")
+            col.label(_("Cursor Location"))
             row = col.row()
             row.prop(uvedit, "cursor_location", text="")
 
@@ -616,13 +617,13 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 
             split = layout.split()
             col = split.column()
-            col.prop(uvedit, "show_smooth_edges", text="Smooth")
-            col.prop(uvedit, "show_modified_edges", text="Modified")
+            col.prop(uvedit, "show_smooth_edges", text=_("Smooth"))
+            col.prop(uvedit, "show_modified_edges", text=_("Modified"))
             #col.prop(uvedit, "show_edges")
             #col.prop(uvedit, "show_faces")
 
             col = split.column()
-            col.prop(uvedit, "show_stretch", text="Stretch")
+            col.prop(uvedit, "show_stretch", text=_("Stretch"))
             sub = col.column()
             sub.active = uvedit.show_stretch
             sub.row().prop(uvedit, "draw_stretch_type", expand=True)
@@ -631,7 +632,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 class IMAGE_PT_paint(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Paint"
+    bl_label = _("Paint")
 
     @classmethod
     def poll(cls, context):
@@ -665,16 +666,16 @@ class IMAGE_PT_paint(bpy.types.Panel):
             row.prop(brush, "jitter", slider=True)
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
-            col.prop(brush, "blend", text="Blend")
+            col.prop(brush, "blend", text=_("Blend"))
 
             if brush.image_tool == 'CLONE':
                 col.separator()
-                col.prop(brush, "clone_image", text="Image")
-                col.prop(brush, "clone_alpha", text="Alpha")
+                col.prop(brush, "clone_image", text=_("Image"))
+                col.prop(brush, "clone_alpha", text=_("Alpha"))
 
 
 class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
-    bl_label = "Texture"
+    bl_label = _("Texture")
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -689,7 +690,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
 
 
 class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, bpy.types.Panel):
-    bl_label = "Tool"
+    bl_label = _("Tool")
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -709,7 +710,7 @@ class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, bpy.types.Panel):
 
 
 class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
-    bl_label = "Paint Stroke"
+    bl_label = _("Paint Stroke")
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -726,14 +727,14 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
         layout.prop(brush, "use_space")
         row = layout.row(align=True)
         row.active = brush.use_space
-        row.prop(brush, "spacing", text="Distance", slider=True)
+        row.prop(brush, "spacing", text=_("Distance"), slider=True)
         row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
         layout.prop(brush, "use_wrap")
 
 
 class IMAGE_PT_paint_curve(BrushButtonsPanel, bpy.types.Panel):
-    bl_label = "Paint Curve"
+    bl_label = _("Paint Curve")
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):

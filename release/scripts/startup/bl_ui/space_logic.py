@@ -18,12 +18,13 @@
 
 # <pep8 compliant>
 import bpy
+from blf import gettext as _
 
 
 class LOGIC_PT_properties(bpy.types.Panel):
     bl_space_type = 'LOGIC_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Properties"
+    bl_label = _("Properties")
 
     @classmethod
     def poll(cls, context):
@@ -36,7 +37,7 @@ class LOGIC_PT_properties(bpy.types.Panel):
         ob = context.active_object
         game = ob.game
 
-        layout.operator("object.game_property_new", text="Add Game Property", icon='ZOOMIN')
+        layout.operator("object.game_property_new", text=_("Add Game Property"), icon='ZOOMIN')
 
         for i, prop in enumerate(game.properties):
 
@@ -50,14 +51,14 @@ class LOGIC_PT_properties(bpy.types.Panel):
 
 
 class LOGIC_MT_logicbricks_add(bpy.types.Menu):
-    bl_label = "Add"
+    bl_label = _("Add")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_menu_enum("logic.sensor_add", "type", text="Sensor")
-        layout.operator_menu_enum("logic.controller_add", "type", text="Controller")
-        layout.operator_menu_enum("logic.actuator_add", "type", text="Actuator")
+        layout.operator_menu_enum("logic.sensor_add", "type", text=_("Sensor"))
+        layout.operator_menu_enum("logic.controller_add", "type", text=_("Controller"))
+        layout.operator_menu_enum("logic.actuator_add", "type", text=_("Actuator"))
 
 
 class LOGIC_HT_header(bpy.types.Header):
@@ -77,7 +78,7 @@ class LOGIC_HT_header(bpy.types.Header):
 
 
 class LOGIC_MT_view(bpy.types.Menu):
-    bl_label = "View"
+    bl_label = _("View")
 
     def draw(self, context):
         layout = self.layout

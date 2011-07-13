@@ -584,10 +584,10 @@ enum {
 
 /* defines for rearranging channels */
 static EnumPropertyItem prop_animchannel_rearrange_types[] = {
-	{REARRANGE_ANIMCHAN_TOP, "TOP", 0, "To Top", ""},
-	{REARRANGE_ANIMCHAN_UP, "UP", 0, "Up", ""},
-	{REARRANGE_ANIMCHAN_DOWN, "DOWN", 0, "Down", ""},
-	{REARRANGE_ANIMCHAN_BOTTOM, "BOTTOM", 0, "To Bottom", ""},
+	{REARRANGE_ANIMCHAN_TOP, "TOP", 0, N_("To Top"), ""},
+	{REARRANGE_ANIMCHAN_UP, "UP", 0, N_("Up"), ""},
+	{REARRANGE_ANIMCHAN_DOWN, "DOWN", 0, N_("Down"), ""},
+	{REARRANGE_ANIMCHAN_BOTTOM, "BOTTOM", 0, N_("To Bottom"), ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1088,7 +1088,7 @@ static void ANIM_OT_channels_move (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "direction", prop_animchannel_rearrange_types, REARRANGE_ANIMCHAN_DOWN, _("Direction"), "");
+	ot->prop= RNA_def_enum(ot->srna, "direction", RNA_enum_items_gettexted(prop_animchannel_rearrange_types), REARRANGE_ANIMCHAN_DOWN, _("Direction"), "");
 }
 
 /* ******************** Delete Channel Operator *********************** */

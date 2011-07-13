@@ -44,6 +44,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_node.h"
@@ -181,34 +183,34 @@ static void node_menu_add(const bContext *C, Menu *menu)
 		uiLayoutSetActive(layout, 0);
 
 	if(snode->treetype==NTREE_SHADER) {
-		uiItemMenuF(layout, "Input", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
-		uiItemMenuF(layout, "Output", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
-		uiItemMenuF(layout, "Color", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
-		uiItemMenuF(layout, "Vector", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_VECTOR));
-		uiItemMenuF(layout, "Convertor", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
-		uiItemMenuF(layout, "Group", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
-		uiItemMenuF(layout, "Dynamic", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_DYNAMIC));
+		uiItemMenuF(layout, _("Input"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
+		uiItemMenuF(layout, _("Output"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
+		uiItemMenuF(layout, _("Color"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
+		uiItemMenuF(layout, _("Vector"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_VECTOR));
+		uiItemMenuF(layout, _("Convertor"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
+		uiItemMenuF(layout, _("Group"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
+		uiItemMenuF(layout, _("Dynamic"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_DYNAMIC));
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
-		uiItemMenuF(layout, "Input", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
-		uiItemMenuF(layout, "Output", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
-		uiItemMenuF(layout, "Color", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
-		uiItemMenuF(layout, "Vector", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_VECTOR));
-		uiItemMenuF(layout, "Filter", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_FILTER));
-		uiItemMenuF(layout, "Convertor", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
-		uiItemMenuF(layout, "Matte", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_MATTE));
-		uiItemMenuF(layout, "Distort", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_DISTORT));
-		uiItemMenuF(layout, "Group", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
+		uiItemMenuF(layout, _("Input"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
+		uiItemMenuF(layout, _("Output"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
+		uiItemMenuF(layout, _("Color"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
+		uiItemMenuF(layout, _("Vector"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_VECTOR));
+		uiItemMenuF(layout, _("Filter"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_FILTER));
+		uiItemMenuF(layout, _("Convertor"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
+		uiItemMenuF(layout, _("Matte"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_MATTE));
+		uiItemMenuF(layout, _("Distort"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_DISTORT));
+		uiItemMenuF(layout, _("Group"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
-		uiItemMenuF(layout, "Input", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
-		uiItemMenuF(layout, "Output", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
-		uiItemMenuF(layout, "Color", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
-		uiItemMenuF(layout, "Patterns", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_PATTERN));
-		uiItemMenuF(layout, "Textures", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_TEXTURE));
-		uiItemMenuF(layout, "Convertor", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
-		uiItemMenuF(layout, "Distort", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_DISTORT));
-		uiItemMenuF(layout, "Group", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
+		uiItemMenuF(layout, _("Input"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
+		uiItemMenuF(layout, _("Output"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
+		uiItemMenuF(layout, _("Color"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
+		uiItemMenuF(layout, _("Patterns"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_PATTERN));
+		uiItemMenuF(layout, _("Textures"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_TEXTURE));
+		uiItemMenuF(layout, _("Convertor"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
+		uiItemMenuF(layout, _("Distort"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_DISTORT));
+		uiItemMenuF(layout, _("Group"), 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
 	}
 }
 
@@ -218,7 +220,7 @@ void node_menus_register(void)
 
 	mt= MEM_callocN(sizeof(MenuType), "spacetype node menu add");
 	strcpy(mt->idname, "NODE_MT_add");
-	strcpy(mt->label, "Add");
+	strcpy(mt->label, _("Add"));
 	mt->draw= node_menu_add;
 	WM_menutype_add(mt);
 }

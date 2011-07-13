@@ -11,8 +11,15 @@ release/scripts/startup/bl_ui/properties_render.py
 release/scripts/startup/bl_ui/properties_texture.py
 
 release/scripts/startup/bl_ui/space_console.py
+release/scripts/startup/bl_ui/space_dopesheet.py
+release/scripts/startup/bl_ui/space_graph.py
+release/scripts/startup/bl_ui/space_image.py
 release/scripts/startup/bl_ui/space_info.py
+release/scripts/startup/bl_ui/space_logic.py
+release/scripts/startup/bl_ui/space_nla.py
+release/scripts/startup/bl_ui/space_node.py
 release/scripts/startup/bl_ui/space_outliner.py
+release/scripts/startup/bl_ui/space_sequencer.py 
 release/scripts/startup/bl_ui/space_text.py
 release/scripts/startup/bl_ui/space_time.py
 release/scripts/startup/bl_ui/space_userpref.py
@@ -73,6 +80,7 @@ source/blender/editors/physics/physics_pointcache.c
 
 source/blender/editors/render/render_internal.c
 source/blender/editors/render/render_opengl.c
+source/blender/editors/render/render_shading.c
 source/blender/editors/render/render_view.c
 
 source/blender/editors/screen/area.c
@@ -119,6 +127,7 @@ source/blender/editors/space_nla/nla_select.c
 
 source/blender/editors/space_node/node_buttons.c
 source/blender/editors/space_node/node_edit.c
+source/blender/editors/space_node/node_header.c
 source/blender/editors/space_node/node_ops.c
 source/blender/editors/space_node/node_select.c
 source/blender/editors/space_node/node_state.c
@@ -153,9 +162,12 @@ source/blender/editors/util/undo.c
 source/blender/editors/uvedit/uvedit_ops.c
 source/blender/editors/uvedit/uvedit_unwrap_ops.c
 
+source/blender/makesrna/intern/rna_ID.c
+source/blender/makesrna/intern/rna_action.c
 source/blender/makesrna/intern/rna_color.c
 source/blender/makesrna/intern/rna_curve.c
-source/blender/makesrna/intern/rna_ID.c
+source/blender/makesrna/intern/rna_fcurve.c
+source/blender/makesrna/intern/rna_material.c
 source/blender/makesrna/intern/rna_object.c
 source/blender/makesrna/intern/rna_object_force.c
 source/blender/makesrna/intern/rna_render.c

@@ -119,6 +119,7 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
     bl_idname = "sequencer.deinterlace_selected_movies"
     bl_label = _("Deinterlace Movies")
     bl_options = {'REGISTER', 'UNDO'}
+    __doc__ = _("Deinterlace all selected movie sources.")
 
     @classmethod
     def poll(cls, context):

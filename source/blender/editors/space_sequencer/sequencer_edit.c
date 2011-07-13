@@ -2525,7 +2525,7 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "side", prop_side_lr_types, SEQ_SIDE_RIGHT, _("Side"), _("Side of the strip to swap"));
+	RNA_def_enum(ot->srna, "side", RNA_enum_items_gettexted(prop_side_lr_types), SEQ_SIDE_RIGHT, _("Side"), _("Side of the strip to swap"));
 }
 
 static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))

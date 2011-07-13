@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from blf import gettext as _
 
 
 class NODE_HT_header(bpy.types.Header):
@@ -66,7 +67,7 @@ class NODE_HT_header(bpy.types.Header):
             scene = snode.id
 
             layout.prop(scene, "use_nodes")
-            layout.prop(scene.render, "use_free_unused_nodes", text="Free Unused")
+            layout.prop(scene.render, "use_free_unused_nodes", text=_("Free Unused"))
             layout.prop(snode, "show_backdrop")
             if snode.show_backdrop:
                 row = layout.row(align=True)
@@ -79,7 +80,7 @@ class NODE_HT_header(bpy.types.Header):
 
 
 class NODE_MT_view(bpy.types.Menu):
-    bl_label = "View"
+    bl_label = _("View")
 
     def draw(self, context):
         layout = self.layout
@@ -97,9 +98,9 @@ class NODE_MT_view(bpy.types.Menu):
         if context.space_data.show_backdrop:
             layout.separator()
 
-            layout.operator("node.backimage_move", text="Backdrop move")
-            layout.operator("node.backimage_zoom", text="Backdrop zoom in").factor = 1.2
-            layout.operator("node.backimage_zoom", text="Backdrop zoom out").factor = 0.833
+            layout.operator("node.backimage_move", text=_("Backdrop move"))
+            layout.operator("node.backimage_zoom", text=_("Backdrop zoom in")).factor = 1.2
+            layout.operator("node.backimage_zoom", text=_("Backdrop zoom out")).factor = 0.833
 
         layout.separator()
 
@@ -108,7 +109,7 @@ class NODE_MT_view(bpy.types.Menu):
 
 
 class NODE_MT_select(bpy.types.Menu):
-    bl_label = "Select"
+    bl_label = _("Select")
 
     def draw(self, context):
         layout = self.layout
@@ -125,7 +126,7 @@ class NODE_MT_select(bpy.types.Menu):
 
 
 class NODE_MT_node(bpy.types.Menu):
-    bl_label = "Node"
+    bl_label = _("Node")
 
     def draw(self, context):
         layout = self.layout
@@ -141,7 +142,7 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.separator()
         layout.operator("node.link_make")
-        layout.operator("node.link_make", text="Make and Replace Links").replace = True
+        layout.operator("node.link_make", text=_("Make and Replace Links")).replace = True
         layout.operator("node.links_cut")
 
         layout.separator()
@@ -167,7 +168,7 @@ class NODE_MT_node(bpy.types.Menu):
 class NODE_PT_properties(bpy.types.Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Backdrop"
+    bl_label = _("Backdrop")
 
     @classmethod
     def poll(cls, context):
@@ -184,13 +185,13 @@ class NODE_PT_properties(bpy.types.Panel):
         snode = context.space_data
         layout.active = snode.show_backdrop
         layout.prop(snode, "backdrop_channels", text="")
-        layout.prop(snode, "backdrop_zoom", text="Zoom")
+        layout.prop(snode, "backdrop_zoom", text=_("Zoom"))
 
         col = layout.column(align=True)
-        col.label(text="Offset:")
+        col.label(text=_("Offset:"))
         col.prop(snode, "backdrop_x", text="X")
         col.prop(snode, "backdrop_y", text="Y")
-        col.operator("node.backimage_move", text="Move")
+        col.operator("node.backimage_move", text=_("Move")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

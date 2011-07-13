@@ -43,6 +43,8 @@
 
 #include "BLI_math.h"
 
+#include "BLF_api.h"
+
 #include "BKE_action.h"
 
 #include "WM_types.h"
