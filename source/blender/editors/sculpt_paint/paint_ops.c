@@ -611,7 +611,13 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "PAINT_OT_weight_from_bones", WKEY, KM_PRESS, 0, 0);
 
 	// Jason
-	WM_keymap_add_item(keymap, "PAINT_OT_vert_select_all", QKEY, KM_PRESS, 0, 0);
+	/*Weight paint's Vertex Selection Mode */
+	keymap= WM_keymap_find(keyconf, "Weight Paint Vertex Selection", 0, 0);
+	keymap->poll= vert_paint_poll;
+	WM_keymap_add_item(keymap, "PAINT_OT_vert_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT|KM_CTRL, 0)->ptr, "deselect", 1);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	/* Image/Texture Paint mode */

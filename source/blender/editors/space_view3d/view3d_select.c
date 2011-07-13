@@ -742,7 +742,30 @@ static void do_lasso_select_meta(ViewContext *vc, int mcords[][2], short moves, 
 		}
 	}
 }
+/* Jason */
+static void do_lasso_select_paintvert(ViewContext *vc, int mcords[][2], short moves, short extend, short select)
+{
+	Object *ob= vc->obact;
+	Mesh *me= ob?ob->data:NULL;
+	rcti rect;
 
+	if(me==NULL || me->totvert==0)
+		return;
+
+	if(extend==0 && select)
+		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE); /* flush selection at the end */
+
+	em_vertoffs= me->totvert+1;	/* max index array */
+
+	lasso_select_boundbox(&rect, mcords, moves);
+	EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	
+	EM_backbuf_checkAndSelectTVerts(me, select);
+
+	EM_free_backbuf();
+
+	paintface_flush_flags(ob);
+}
 static void do_lasso_select_paintface(ViewContext *vc, int mcords[][2], short moves, short extend, short select)
 {
 	Object *ob= vc->obact;
@@ -805,6 +828,8 @@ static void view3d_lasso_select(bContext *C, ViewContext *vc, int mcords[][2], s
 	if(vc->obedit==NULL) { /* Object Mode */
 		if(paint_facesel_test(ob))
 			do_lasso_select_paintface(vc, mcords, moves, extend, select);
+		else if(paint_vertsel_test(ob))
+			do_lasso_select_paintvert(vc, mcords, moves, extend, select);
 		else if(ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))
 			;
 		else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT)
