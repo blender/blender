@@ -92,7 +92,7 @@ void AUD_Mixer::mix(sample_t* buffer, int start, int length, float volume)
 	sample_t* out = m_buffer.getBuffer();
 
 	length = (AUD_MIN(m_length, length + start) - start) * m_specs.channels;
-	start += m_specs.channels;
+	start *= m_specs.channels;
 
 	for(int i = 0; i < length; i++)
 		out[i + start] += buffer[i] * volume;

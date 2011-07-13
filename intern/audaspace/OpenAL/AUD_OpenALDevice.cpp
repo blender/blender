@@ -178,10 +178,14 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::stop()
 
 	m_device->lock();
 
+	// AUD_XXX Create a reference of our own object so that it doesn't get
+	// deleted before the end of this function
+	AUD_Reference<AUD_OpenALHandle> This = this;
+
 	if(m_status == AUD_STATUS_PLAYING)
-		m_device->m_playingSounds.remove(this);
+		m_device->m_playingSounds.remove(This);
 	else
-		m_device->m_pausedSounds.remove(this);
+		m_device->m_pausedSounds.remove(This);
 
 	m_device->unlock();
 

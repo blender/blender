@@ -65,8 +65,6 @@ AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* d
 {
 }
 
-#include <iostream>
-
 void AUD_SoftwareDevice::AUD_SoftwareHandle::update()
 {
 	int flags = 0;
@@ -170,7 +168,7 @@ void AUD_SoftwareDevice::AUD_SoftwareHandle::update()
 		{
 			AUD_Vector3 SZ = m_orientation.getLookAt();
 
-			float phi = acos(SZ * SL / (SZ.length() * SL.length()));
+			float phi = acos(float(SZ * SL / (SZ.length() * SL.length())));
 			float t = (phi - m_cone_angle_inner)/(m_cone_angle_outer - m_cone_angle_inner);
 
 			if(t > 0)
@@ -202,7 +200,7 @@ void AUD_SoftwareDevice::AUD_SoftwareHandle::update()
 
 	if(Asquare > 0)
 	{
-		float phi = acos(Z * A/ (Z.length() * sqrt(Asquare)));
+		float phi = acos(float(Z * A / (Z.length() * sqrt(Asquare))));
 		if(N.cross(Z) * A > 0)
 			phi = -phi;
 
@@ -268,15 +266,19 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::stop()
 
 	m_device->lock();
 
+	// AUD_XXX Create a reference of our own object so that it doesn't get
+	// deleted before the end of this function
+	AUD_Reference<AUD_SoftwareHandle> This = this;
+
 	if(m_status == AUD_STATUS_PLAYING)
 	{
-		m_device->m_playingSounds.remove(this);
+		m_device->m_playingSounds.remove(This);
 
 		if(m_device->m_playingSounds.empty())
 			m_device->playing(m_device->m_playback = false);
 	}
 	else
-		m_device->m_pausedSounds.remove(this);
+		m_device->m_pausedSounds.remove(This);
 
 	m_device->unlock();
 	m_status = AUD_STATUS_INVALID;

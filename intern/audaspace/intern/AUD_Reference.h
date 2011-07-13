@@ -33,6 +33,11 @@
 
 #include <map>
 
+#ifdef MEM_DEBUG
+#include <iostream>
+#include <typeinfo>
+#endif
+
 class AUD_ReferenceHandler
 {
 private:
@@ -88,6 +93,10 @@ public:
 	{
 		m_original = m_reference = reference;
 		AUD_ReferenceHandler::incref(reference);
+#ifdef MEM_DEBUG
+		if(m_reference != 0)
+			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
+#endif
 	}
 
 	/**
@@ -98,6 +107,10 @@ public:
 	{
 		m_original = m_reference = ref.m_reference;
 		AUD_ReferenceHandler::incref(m_reference);
+#ifdef MEM_DEBUG
+		if(m_reference != 0)
+			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
+#endif
 	}
 
 	template <class U>
@@ -106,6 +119,10 @@ public:
 		m_original = ref.get();
 		m_reference = dynamic_cast<T*>(ref.get());
 		AUD_ReferenceHandler::incref(m_original);
+#ifdef MEM_DEBUG
+		if(m_reference != 0)
+			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
+#endif
 	}
 
 	/**
@@ -114,6 +131,10 @@ public:
 	 */
 	~AUD_Reference()
 	{
+#ifdef MEM_DEBUG
+		if(m_reference != 0)
+			std::cerr << "-" << typeid(*m_reference).name() << std::endl;
+#endif
 		if(AUD_ReferenceHandler::decref(m_original))
 			delete m_reference;
 	}
@@ -127,12 +148,20 @@ public:
 		if(&ref == this)
 			return *this;
 
+#ifdef MEM_DEBUG
+		if(m_reference != 0)
+			std::cerr << "-" << typeid(*m_reference).name() << std::endl;
+#endif
 		if(AUD_ReferenceHandler::decref(m_original))
 			delete m_reference;
 
 		m_original = ref.m_original;
 		m_reference = ref.m_reference;
 		AUD_ReferenceHandler::incref(m_original);
+#ifdef MEM_DEBUG
+		if(m_reference != 0)
+			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
+#endif
 
 		return *this;
 	}

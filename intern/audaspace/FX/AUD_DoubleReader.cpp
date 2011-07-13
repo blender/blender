@@ -33,9 +33,6 @@
 
 #include <cstring>
 
-static const char* specs_error = "AUD_DoubleReader: Both readers have to have "
-								 "the same specs.";
-
 AUD_DoubleReader::AUD_DoubleReader(AUD_Reference<AUD_IReader> reader1,
 								   AUD_Reference<AUD_IReader> reader2) :
 		m_reader1(reader1), m_reader2(reader2), m_finished1(false)

@@ -32,8 +32,6 @@
 #include "AUD_LimiterReader.h"
 #include "AUD_Buffer.h"
 
-#include <iostream>
-
 AUD_LimiterReader::AUD_LimiterReader(AUD_Reference<AUD_IReader> reader,
 									 float start, float end) :
 		AUD_EffectReader(reader),

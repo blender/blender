@@ -60,6 +60,8 @@ void AUD_ChannelMapperReader::setChannels(AUD_Channels channels)
 
 void AUD_ChannelMapperReader::setMonoAngle(float angle)
 {
+	if(std::isnan(angle))
+		angle = 0;
 	m_mono_angle = angle;
 	if(m_source_channels == AUD_CHANNELS_MONO)
 		calculateMapping();
@@ -74,8 +76,6 @@ float AUD_ChannelMapperReader::angleDistance(float alpha, float beta)
 
 	return alpha;
 }
-
-#include <iostream>
 
 void AUD_ChannelMapperReader::calculateMapping()
 {
@@ -127,6 +127,8 @@ void AUD_ChannelMapperReader::calculateMapping()
 
 		for(int j = 0; j < m_target_channels; j++)
 		{
+			if(j == lfe)
+				continue;
 			angle = angleDistance(source_angles[i], target_angles[j]);
 			if(angle < angle_min1)
 			{
