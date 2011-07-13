@@ -84,12 +84,6 @@ class CLIP_OT_bundles_to_mesh(bpy.types.Operator):
 
         ob = bpy.data.objects.new(name="Bundles", object_data=mesh)
 
-        camera = bpy.context.scene.camera
-        if camera:
-            ob.location = camera.location
-            ob.rotation_quaternion = camera.rotation_quaternion
-            ob.rotation_euler = camera.rotation_euler
-
         bpy.context.scene.objects.link(ob)
 
         return {'FINISHED'}

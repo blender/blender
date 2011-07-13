@@ -645,6 +645,17 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 
 		/* special case for FollowTrack -- it doesn't use targets to define relations */
 		if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
+			if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
+				bFollowTrackConstraint *data= (bFollowTrackConstraint *)con->data;
+
+				if(data->reference==FOLLOWTRACK_BUNDLE) {
+					if((data->clip || data->flag&FOLLOWTRACK_DEFAULTCLIP) && data->track[0]) {
+						node2 = dag_get_node(dag, scene->camera);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB, cti->name);
+					}
+				}
+			}
+
 			dag_add_relation(dag,scenenode,node,DAG_RL_SCENE, "Scene Relation");
 			addtoroot = 0;
 		}

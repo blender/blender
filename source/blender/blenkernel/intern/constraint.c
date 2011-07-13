@@ -4039,6 +4039,9 @@ static void camerasolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 	MovieClip *clip= data->clip;
 	MovieReconstructedCamera *camera;
 
+	if(data->flag&CAMERASOLVER_TMPDISABLE)
+		return;
+
 	if(data->flag&CAMERASOLVER_DEFAULTCLIP)
 		clip= scene->clip;
 

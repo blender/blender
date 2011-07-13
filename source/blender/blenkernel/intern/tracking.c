@@ -35,6 +35,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_constraint_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"	/* SELECT */
 #include "DNA_scene_types.h"
@@ -44,6 +45,7 @@
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 
+#include "BKE_constraint.h"
 #include "BKE_global.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
@@ -871,19 +873,40 @@ MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(MovieTracking *t
 	return NULL;
 }
 
+static void temporary_disable_camerasolver(Object *ob, Scene *scene, int disable)
+{
+	bConstraint *con;
+
+	for(con= ob->constraints.first; con; con=con->next) {
+		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+
+		if(cti->type==CONSTRAINT_TYPE_CAMERASOLVER) {
+			bCameraSolverConstraint *data= (bCameraSolverConstraint *)con->data;
+
+			if(disable) data->flag|= CAMERASOLVER_TMPDISABLE;
+			else data->flag&= ~CAMERASOLVER_TMPDISABLE;
+		}
+	}
+
+	if(ob->constraints.first)
+		where_is_object_time(scene, ob, CFRA+SUBFRA);
+}
+
 void BKE_get_tracking_mat(Scene *scene, float mat[4][4])
 {
-	float obmat[4][4];
+	float tmat[4][4];
 
-	unit_m4(obmat);
+	unit_m4(mat);
+	unit_m4(tmat);
 
 	if(!scene->camera)
 		scene->camera= scene_find_camera(scene);
 
-	if(scene->camera)
-		object_to_mat4(scene->camera, obmat);
-
-	copy_m4_m4(mat, obmat);
+	if(scene->camera) {
+		temporary_disable_camerasolver(scene->camera, scene, 1);
+		copy_m4_m4(mat, scene->camera->obmat);
+		temporary_disable_camerasolver(scene->camera, scene, 0);
+	}
 }
 
 void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4])
