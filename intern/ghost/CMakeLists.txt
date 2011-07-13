@@ -42,7 +42,6 @@ set(SRC
 	intern/GHOST_Path-api.cpp
 	intern/GHOST_DisplayManager.cpp
 	intern/GHOST_EventManager.cpp
-	intern/GHOST_EventPrinter.cpp
 	intern/GHOST_ISystem.cpp
 	intern/GHOST_ISystemPaths.cpp
 	intern/GHOST_ModifierKeys.cpp
@@ -89,7 +88,17 @@ set(SRC
 	intern/GHOST_WindowManager.h
 )
 
-if(WITH_HEADLESS OR WITH_SDL_GHOST)
+if(WITH_GHOST_DEBUG)
+	list(APPEND SRC
+		intern/GHOST_EventPrinter.cpp
+
+		intern/GHOST_EventPrinter.h
+	)
+	add_definitions(-DWITH_GHOST_DEBUG)
+endif()
+
+
+if(WITH_HEADLESS OR WITH_GHOST_SDL)
 	if(WITH_HEADLESS)
 		list(APPEND SRC
 			intern/GHOST_DisplayManagerNULL.h
@@ -107,7 +116,7 @@ if(WITH_HEADLESS OR WITH_SDL_GHOST)
 			intern/GHOST_SystemSDL.h
 			intern/GHOST_WindowSDL.h
 		)
-		add_definitions(-DWITH_SDL_GHOST)
+		add_definitions(-DWITH_GHOST_SDL)
 	endif()
 
 
