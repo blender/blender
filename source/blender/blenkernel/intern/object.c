@@ -2142,6 +2142,39 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	else							ob->transflag &= ~OB_NEG_SCALE;
 }
 
+/* get object transformation matrix without recalculating dependencies and
+   constraints -- assume dependencies are already solved by depsgraph.
+   no changes to object and it's parent would be done.
+   used for bundles orientation in 3d space relative to parented blender camera */
+void where_is_object_mat(Scene *scene, Object *ob, float obmat[4][4])
+{
+	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
+	float fac1, fac2;
+	int a;
+
+	if(ob->parent) {
+		Object *par= ob->parent;
+
+		solve_parenting(scene, ob, par, obmat, slowmat, 1);
+
+		if(ob->partype & PARSLOW) {
+			// include framerate
+			fac1= ( 1.0f / (1.0f + (float)fabs(give_timeoffset(ob))) );
+			if(fac1 >= 1.0f) return;
+			fac2= 1.0f-fac1;
+
+			fp1= obmat[0];
+			fp2= slowmat[0];
+			for(a=0; a<16; a++, fp1++, fp2++) {
+				fp1[0]= fac1*fp1[0] + fac2*fp2[0];
+			}
+		}
+	}
+	else {
+		object_to_mat4(ob, obmat);
+	}
+}
+
 static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
 {
 	float totmat[4][4];

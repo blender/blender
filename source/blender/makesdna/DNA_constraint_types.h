@@ -762,8 +762,7 @@ typedef enum eFollowTrack_Flags {
 
 /* CameraSolver Constraint -> flag */
 typedef enum eCameraSolver_Flags {
-	CAMERASOLVER_DEFAULTCLIP	= (1<<0),
-	CAMERASOLVER_TMPDISABLE		= (1<<1)
+	CAMERASOLVER_DEFAULTCLIP	= (1<<0)
 } eCameraSolver_Flags;
 
 /* Rigid-Body Constraint */

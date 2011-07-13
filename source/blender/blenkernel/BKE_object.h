@@ -112,6 +112,7 @@ void set_no_parent_ipo(int val);
 void where_is_object_time(struct Scene *scene, struct Object *ob, float ctime);
 void where_is_object(struct Scene *scene, struct Object *ob);
 void where_is_object_simul(struct Scene *scene, struct Object *ob);
+void where_is_object_mat(struct Scene *scene, struct Object *ob, float obmat[4][4]);
 
 struct BoundBox *unit_boundbox(void);
 void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
