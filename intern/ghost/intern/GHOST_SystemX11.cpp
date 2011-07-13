@@ -859,60 +859,28 @@ getModifierKeys(
 	// now translate key symobols into keycodes and
 	// test with vector.
 
-	const KeyCode shift_l = XKeysymToKeycode(m_display,XK_Shift_L);
-	const KeyCode shift_r = XKeysymToKeycode(m_display,XK_Shift_R);
-	const KeyCode control_l = XKeysymToKeycode(m_display,XK_Control_L);
-	const KeyCode control_r = XKeysymToKeycode(m_display,XK_Control_R);
-	const KeyCode alt_l = XKeysymToKeycode(m_display,XK_Alt_L);
-	const KeyCode alt_r = XKeysymToKeycode(m_display,XK_Alt_R);
-	const KeyCode super_l = XKeysymToKeycode(m_display,XK_Super_L);
-	const KeyCode super_r = XKeysymToKeycode(m_display,XK_Super_R);
+	const static KeyCode shift_l = XKeysymToKeycode(m_display,XK_Shift_L);
+	const static KeyCode shift_r = XKeysymToKeycode(m_display,XK_Shift_R);
+	const static KeyCode control_l = XKeysymToKeycode(m_display,XK_Control_L);
+	const static KeyCode control_r = XKeysymToKeycode(m_display,XK_Control_R);
+	const static KeyCode alt_l = XKeysymToKeycode(m_display,XK_Alt_L);
+	const static KeyCode alt_r = XKeysymToKeycode(m_display,XK_Alt_R);
+	const static KeyCode super_l = XKeysymToKeycode(m_display,XK_Super_L);
+	const static KeyCode super_r = XKeysymToKeycode(m_display,XK_Super_R);
 
-	// Shift
-	if ((m_keyboard_vector[shift_l >> 3] >> (shift_l & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyLeftShift,true);
-	} else {
-		keys.set(GHOST_kModifierKeyLeftShift,false);
-	}
-	if ((m_keyboard_vector[shift_r >> 3] >> (shift_r & 7)) & 1) {
+	// shift
+	keys.set(GHOST_kModifierKeyLeftShift, ((m_keyboard_vector[shift_l >> 3] >> (shift_l & 7)) & 1) != 0);
+	keys.set(GHOST_kModifierKeyRightShift, ((m_keyboard_vector[shift_r >> 3] >> (shift_r & 7)) & 1) != 0);
+	// control
+	keys.set(GHOST_kModifierKeyLeftControl, ((m_keyboard_vector[control_l >> 3] >> (control_l & 7)) & 1) != 0);
+	keys.set(GHOST_kModifierKeyRightControl, ((m_keyboard_vector[control_r >> 3] >> (control_r & 7)) & 1) != 0);
+	// alt
+	keys.set(GHOST_kModifierKeyLeftAlt, ((m_keyboard_vector[alt_l >> 3] >> (alt_l & 7)) & 1) != 0);
+	keys.set(GHOST_kModifierKeyRightAlt, ((m_keyboard_vector[alt_r >> 3] >> (alt_r & 7)) & 1) != 0);
+	// super (windows) - only one GHOST-kModifierKeyOS, so mapping to either
+	keys.set(GHOST_kModifierKeyOS, ( ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) ||
+	                                 ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) ) != 0);
 
-		keys.set(GHOST_kModifierKeyRightShift,true);
-	} else {
-		keys.set(GHOST_kModifierKeyRightShift,false);
-	}
-
-	// control (weep)
-	if ((m_keyboard_vector[control_l >> 3] >> (control_l & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyLeftControl,true);
-	} else {
-		keys.set(GHOST_kModifierKeyLeftControl,false);
-	}
-	if ((m_keyboard_vector[control_r >> 3] >> (control_r & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyRightControl,true);
-	} else {
-		keys.set(GHOST_kModifierKeyRightControl,false);
-	}
-
-	// Alt (yawn)
-	if ((m_keyboard_vector[alt_l >> 3] >> (alt_l & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyLeftAlt,true);
-	} else {
-		keys.set(GHOST_kModifierKeyLeftAlt,false);
-	}	
-	if ((m_keyboard_vector[alt_r >> 3] >> (alt_r & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyRightAlt,true);
-	} else {
-		keys.set(GHOST_kModifierKeyRightAlt,false);
-	}
-
-	// Super (Windows) - only one GHOST-kModifierKeyOS, so mapping
-	// to either
-	if ( ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) || 
-	     ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) ) {
-		keys.set(GHOST_kModifierKeyOS,true);
-	} else {
-		keys.set(GHOST_kModifierKeyOS,false);
-	}
 	return GHOST_kSuccess;
 }
 

@@ -27,50 +27,58 @@ set(INC_SYS
 
 )
 
+# blender and player
 set(SRC
 	Bfont.c
 	bfont.ttf.c
-	bmonofont.ttf.c
-	startup.blend.c
-	preview.blend.c
 )
 
-if(NOT WITH_HEADLESS)
+if(WITH_BLENDER)
+	# blender only
 	list(APPEND SRC
-		splash.png.c
-		blenderbuttons.c
-
-		# brushes
-		add.png.c
-		blob.png.c
-		blur.png.c
-		clay.png.c
-		clone.png.c
-		crease.png.c
-		darken.png.c
-		draw.png.c
-		fill.png.c
-		flatten.png.c
-		grab.png.c
-		inflate.png.c
-		layer.png.c
-		lighten.png.c
-		mix.png.c
-		multiply.png.c
-		nudge.png.c
-		pinch.png.c
-		prvicons.c
-		scrape.png.c
-		smear.png.c
-		smooth.png.c
-		snake_hook.png.c
-		soften.png.c
-		subtract.png.c
-		texdraw.png.c
-		thumb.png.c
-		twist.png.c
-		vertexdraw.png.c
+		startup.blend.c
+		preview.blend.c
+		bmonofont.ttf.c
 	)
+
+	if(NOT WITH_HEADLESS)
+		# blender UI only
+		list(APPEND SRC
+			splash.png.c
+			blenderbuttons.c
+
+			# brushes
+			add.png.c
+			blob.png.c
+			blur.png.c
+			clay.png.c
+			clone.png.c
+			crease.png.c
+			darken.png.c
+			draw.png.c
+			fill.png.c
+			flatten.png.c
+			grab.png.c
+			inflate.png.c
+			layer.png.c
+			lighten.png.c
+			mix.png.c
+			multiply.png.c
+			nudge.png.c
+			pinch.png.c
+			prvicons.c
+			scrape.png.c
+			smear.png.c
+			smooth.png.c
+			snake_hook.png.c
+			soften.png.c
+			subtract.png.c
+			texdraw.png.c
+			thumb.png.c
+			twist.png.c
+			vertexdraw.png.c
+		)
+	endif()
 endif()
 
 blender_add_lib(bf_editor_datafiles "${SRC}" "${INC}" "${INC_SYS}")

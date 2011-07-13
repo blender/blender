@@ -1,5 +1,5 @@
 /*
- * $Id: GHOST_DisplayManagerSDL.h 37194 2011-06-05 00:10:20Z gsrb3d $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -34,6 +34,10 @@
 extern "C" {
 	#include "SDL.h"
 }
+
+#if !SDL_VERSION_ATLEAST(1, 3, 0)
+#  error "SDL 1.3 or newer is needed to build with Ghost"
+#endif
 
 class GHOST_SystemSDL;
 

@@ -90,6 +90,9 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
 get_blender_version()
 
 # Blender internal features
+option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
+mark_as_advanced(WITH_BLENDER)
+
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
@@ -106,14 +109,20 @@ option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
 
-option(WITH_AUDASPACE    "Build with blenders audio library" ON)
-mark_as_advanced(WITH_AUDASPACE)
+# GHOST Windowing Library Options
+option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
+mark_as_advanced(WITH_GHOST_DEBUG)
 
-option(WITH_SDL_GHOST    "Enable building blender against SDL for windowing rather then the native APIs" OFF)
-mark_as_advanced(WITH_SDL_GHOST)
+option(WITH_GHOST_SDL    "Enable building blender against SDL for windowing rather then the native APIs" OFF)
+mark_as_advanced(WITH_GHOST_SDL)
 
+# Misc...
 option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
 mark_as_advanced(WITH_HEADLESS)
+
+option(WITH_AUDASPACE    "Build with blenders audio library (only disable if you know what you're doing!)" ON)
+mark_as_advanced(WITH_AUDASPACE)
+
 
 # (unix defaults to OpenMP On)
 if(UNIX AND NOT APPLE)
@@ -207,6 +216,10 @@ endif()
 #-----------------------------------------------------------------------------
 # Check for conflicting/unsupported configurations
 
+if(NOT WITH_BLENDER AND NOT WITH_PLAYER)
+	message(FATAL_ERROR "At least one of WITH_BLENDER or WITH_PLAYER must be enabled, nothing to do!")
+endif()
+
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
@@ -215,8 +228,8 @@ if(NOT WITH_AUDASPACE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
 	message(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK/WITH_CODEC_FFMPEG require WITH_AUDASPACE")
 endif()
 
-if(NOT WITH_SDL AND WITH_SDL_GHOST)
-	message(FATAL_ERROR "WITH_SDL_GHOST requires WITH_SDL to be ON")
+if(NOT WITH_SDL AND WITH_GHOST_SDL)
+	message(FATAL_ERROR "WITH_GHOST_SDL requires WITH_SDL to be ON")
 endif()
 
 if(NOT WITH_IMAGE_OPENJPEG AND WITH_IMAGE_REDCODE)
@@ -443,7 +456,7 @@ if(UNIX AND NOT APPLE)
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
 	set(PLATFORM_LINKLIBS "-lutil -lc -lm -lpthread -lstdc++")
 
-	if((NOT WITH_HEADLESS) AND (NOT WITH_SDL_GHOST))
+	if((NOT WITH_HEADLESS) AND (NOT WITH_GHOST_SDL))
 		find_package(X11 REQUIRED)
 		find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
 		mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
@@ -1220,7 +1233,9 @@ add_subdirectory(extern)
 
 #-----------------------------------------------------------------------------
 # Blender Application
-add_subdirectory(source/creator)
+if(WITH_BLENDER)
+	add_subdirectory(source/creator)
+endif()
 
 
 #-----------------------------------------------------------------------------
