@@ -179,7 +179,10 @@ class CLIP_PT_tools(bpy.types.Panel):
             col.label(text="Scene Orientation:")
             col.operator("clip.set_floor")
             col.operator("clip.set_origin")
-            col.operator("clip.set_x_axis")
+
+            row = col.row()
+            row.operator("clip.set_axis", text="Set X Axis").axis = 'X'
+            row.operator("clip.set_axis", text="Set Y Axis").axis = 'Y'
         else:
             layout.operator('clip.open')
 
@@ -238,7 +241,6 @@ class CLIP_PT_track_settings(bpy.types.Panel):
         row = layout.row()
         row.active = settings.use_frames_limit
         row.prop(settings, "frames_limit")
-
 
 
 class CLIP_PT_tracking_camera(bpy.types.Panel):

@@ -79,7 +79,7 @@ void CLIP_OT_hide_tracks_clear(struct wmOperatorType *ot);
 
 void CLIP_OT_set_origin(struct wmOperatorType *ot);
 void CLIP_OT_set_floor(struct wmOperatorType *ot);
-void CLIP_OT_set_x_axis(struct wmOperatorType *ot);
+void CLIP_OT_set_axis(struct wmOperatorType *ot);
 
 void CLIP_OT_slide_marker(struct wmOperatorType *ot);
 

@@ -1157,6 +1157,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
+	/* proeprties */
 	RNA_def_enum(ot->srna, "action", clear_path_actions, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
 
 }
@@ -1217,6 +1218,24 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 
 /********************** set origin operator *********************/
 
+static int count_selected_bundles(bContext *C)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	int tot= 0;
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track))
+			tot++;
+
+		track= track->next;
+	}
+
+	return tot;
+}
+
 static int set_origin_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
@@ -1225,6 +1244,11 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *parent= scene->camera;
 	float mat[4][4], vec[3];
+
+	if(count_selected_bundles(C)!=1) {
+		BKE_report(op->reports, RPT_ERROR, "Track with bundle should be selected to define origin position");
+		return OPERATOR_CANCELLED;
+	}
 
 	if(scene->camera->parent)
 		parent= scene->camera->parent;
@@ -1235,11 +1259,6 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 			break;
 
 		track= track->next;
-	}
-
-	if(!track) {
-		BKE_report(op->reports, RPT_ERROR, "Track with bundle should be selected to define origin position");
-		return OPERATOR_CANCELLED;
 	}
 
 	BKE_get_tracking_mat(scene, mat);
@@ -1273,7 +1292,7 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 
 /********************** set floor operator *********************/
 
-static void set_x_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track)
+static void set_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track, char axis)
 {
 	float mat[4][4], vec[3], obmat[4][4];
 
@@ -1285,10 +1304,17 @@ static void set_x_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track)
 
 	unit_m4(mat);
 
-	copy_v3_v3(mat[0], vec);
-	mat[0][2]= 0.f;
-	mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
-	cross_v3_v3v3(mat[1], mat[2], mat[0]);
+	if(axis=='X') {
+		copy_v3_v3(mat[0], vec);
+		mat[0][2]= 0.f;
+		mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
+		cross_v3_v3v3(mat[1], mat[2], mat[0]);
+	} else {
+		copy_v3_v3(mat[1], vec);
+		mat[1][2]= 0.f;
+		mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
+		cross_v3_v3v3(mat[0], mat[1], mat[2]);
+	}
 
 	normalize_v3(mat[0]);
 	normalize_v3(mat[1]);
@@ -1306,7 +1332,7 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	Scene *scene= CTX_data_scene(C);
-	MovieTrackingTrack *track, *sel, *xtrack= NULL;
+	MovieTrackingTrack *track, *sel, *axis_track= NULL;
 	Object *camera= scene->camera;
 	Object *parent= camera;
 	int tot= 0, sel_type;
@@ -1315,6 +1341,11 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	                 {0.f, 1.f, 0.f, 0.f},
 	                 {1.f, 0.f, 0.f, 0.f},
 	                 {0.f, 0.f, 0.f, 1.f}};	/* 90 degrees Y-axis rotation matrix */
+
+	if(count_selected_bundles(C)!=3) {
+		BKE_report(op->reports, RPT_ERROR, "Three tracks with bundles are needed to orient the floor");
+		return OPERATOR_CANCELLED;
+	}
 
 	if(scene->camera->parent)
 		parent= scene->camera->parent;
@@ -1332,17 +1363,12 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 			if(tot==0 || (sel_type==MCLIP_SEL_TRACK && track==sel))
 				copy_v3_v3(orig, vec[tot]);
 			else
-				xtrack= track;
+				axis_track= track;
 
 			tot++;
 		}
 
 		track= track->next;
-	}
-
-	if(tot!=3) {
-		BKE_report(op->reports, RPT_ERROR, "Three tracks with bundles are needed to orient the floor");
-		return OPERATOR_CANCELLED;
 	}
 
 	sub_v3_v3(vec[1], vec[0]);
@@ -1380,7 +1406,7 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	}
 
 	where_is_object(scene, parent);
-	set_x_axis(scene, parent, xtrack);
+	set_axis(scene, parent, axis_track, 'X');
 
 	DAG_id_tag_update(&clip->id, 0);
 	DAG_id_tag_update(&parent->id, OB_RECALC_OB);
@@ -1408,13 +1434,20 @@ void CLIP_OT_set_floor(wmOperatorType *ot)
 
 /********************** set origin operator *********************/
 
-static int set_x_axis_exec(bContext *C, wmOperator *op)
+static int set_axis_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	Scene *scene= CTX_data_scene(C);
 	Object *parent= scene->camera;
+	int axis= RNA_enum_get(op->ptr, "axis");
+
+	if(count_selected_bundles(C)!=1) {
+		BKE_report(op->reports, RPT_ERROR, "Track with bundle should be selected to define X-axis");
+
+		return OPERATOR_CANCELLED;
+	}
 
 	if(scene->camera->parent)
 		parent= scene->camera->parent;
@@ -1427,12 +1460,7 @@ static int set_x_axis_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	if(!track) {
-		BKE_report(op->reports, RPT_ERROR, "Track with bundle should be selected to define X-axis");
-		return OPERATOR_CANCELLED;
-	}
-
-	set_x_axis(scene, parent, track);
+	set_axis(scene, parent, track, axis==0?'X':'Y');
 
 	DAG_id_tag_update(&clip->id, 0);
 	DAG_id_tag_update(&parent->id, OB_RECALC_OB);
@@ -1443,19 +1471,28 @@ static int set_x_axis_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CLIP_OT_set_x_axis(wmOperatorType *ot)
+void CLIP_OT_set_axis(wmOperatorType *ot)
 {
+	static EnumPropertyItem axis_actions[] = {
+			{0, "X", 0, "X", "Align bundle align X axis"},
+			{1, "Y", 0, "Y", "Align bundle align Y axis"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
-	ot->name= "Set X-axis";
-	ot->description= "Set direction of scene X-axis";
-	ot->idname= "CLIP_OT_set_x_axis";
+	ot->name= "Set Axis";
+	ot->description= "Set direction of scene axis";
+	ot->idname= "CLIP_OT_set_axis";
 
 	/* api callbacks */
-	ot->exec= set_x_axis_exec;
+	ot->exec= set_axis_exec;
 	ot->poll= space_clip_frame_camera_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "axis", axis_actions, 0, "Axis", "Axis to use to align bundle along");
 }
 
 /********************** slide marker opertaotr *********************/
