@@ -36,9 +36,6 @@
 #include "BKE_animsys.h"
 
 
-static int force_device = -1;
-
-
 struct bSound* sound_new_file(struct Main *bmain, const char *filename)
 {
 	bSound* sound = NULL;
@@ -93,6 +90,8 @@ void sound_free(struct bSound* sound)
 
 
 #ifdef WITH_AUDASPACE
+
+static int force_device = -1;
 
 #ifdef WITH_JACK
 static void sound_sync_callback(void* data, int mode, float time)
@@ -537,7 +536,7 @@ void sound_play_scene(struct Scene *UNUSED(scene)) {}
 void sound_stop_scene(struct Scene *UNUSED(scene)) {}
 void sound_seek_scene(struct bContext *UNUSED(C)) {}
 float sound_sync_scene(struct Scene *UNUSED(scene)) { return 0.0f; }
-int sound_scene_playing(struct Scene *UNUSED(scene)) { return 0; }
+int sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
 int sound_read_sound_buffer(struct bSound* UNUSED(sound), float* UNUSED(buffer), int UNUSED(length), float UNUSED(start), float UNUSED(end)) { return 0; }
 int sound_get_channels(struct bSound* UNUSED(sound)) { return 1; }
 
