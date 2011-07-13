@@ -103,6 +103,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 	switch (dim) {
 	case 1: // X, Y, Z or angle
 	case 3: // XYZ
+	case 4:
 	case 16: // matrix
 		{
 			for (i = 0; i < dim; i++ ) {
@@ -684,8 +685,10 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::AnimationList:
 			modify_fcurve(curves, rna_path, 2 );
 			break;
 		case COLLADAFW::AnimationList::COLOR_RGB:
+		case COLLADAFW::AnimationList::COLOR_RGBA:
 			modify_fcurve(curves, rna_path, -1 );
 			break;
+			
 		default:
 			fprintf(stderr, "AnimationClass %d is not supported for %s.\n",
 					binding->animationClass, "COLOR" );
@@ -885,6 +888,21 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 				const COLLADAFW::UniqueId& listid = xmag->getAnimationList();
 				Assign_float_animations( listid ,AnimCurves, "ortho_scale"); 
 			}
+
+			if ((animType->camera & CAMERA_ZFAR) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *zfar =  &(camera->getFarClippingPlane());
+				const COLLADAFW::UniqueId& listid = zfar->getAnimationList();
+				Assign_float_animations( listid ,AnimCurves, "clipend"); 
+			}
+
+			if ((animType->camera & CAMERA_ZNEAR) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *znear =  &(camera->getNearClippingPlane());
+				const COLLADAFW::UniqueId& listid = znear->getAnimationList();
+				Assign_float_animations( listid ,AnimCurves, "clipsta"); 
+			}
+
 		}
 	}
 }
