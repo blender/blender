@@ -37,13 +37,16 @@ if(WITH_BLENDER)
 	# blender only
 	list(APPEND SRC
 		startup.blend.c
-		preview.blend.c
 		bmonofont.ttf.c
 	)
 
 	if(NOT WITH_HEADLESS)
 		# blender UI only
 		list(APPEND SRC
+			# blends
+			preview.blend.c
+
+			# images
 			splash.png.c
 			blenderbuttons.c
 
