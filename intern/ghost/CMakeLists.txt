@@ -74,7 +74,6 @@ set(SRC
 	intern/GHOST_EventKey.h
 	intern/GHOST_EventManager.h
 	intern/GHOST_EventNDOF.h
-	intern/GHOST_EventPrinter.h
 	intern/GHOST_EventString.h
 	intern/GHOST_EventTrackpad.h
 	intern/GHOST_EventWheel.h

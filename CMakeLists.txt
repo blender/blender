@@ -90,6 +90,9 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
 get_blender_version()
 
 # Blender internal features
+option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
+mark_as_advanced(WITH_BLENDER)
+
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
@@ -209,6 +212,10 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Check for conflicting/unsupported configurations
+
+if(NOT WITH_BLENDER AND NOT WITH_PLAYER)
+	message(FATAL_ERROR "At least one of WITH_BLENDER or WITH_PLAYER must be enabled, nothing to do!")
+endif()
 
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
@@ -1223,7 +1230,9 @@ add_subdirectory(extern)
 
 #-----------------------------------------------------------------------------
 # Blender Application
-add_subdirectory(source/creator)
+if(WITH_BLENDER)
+	add_subdirectory(source/creator)
+endif()
 
 
 #-----------------------------------------------------------------------------
