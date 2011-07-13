@@ -177,7 +177,9 @@ class CLIP_PT_tools(bpy.types.Panel):
 
             col = layout.column(align=True)
             col.label(text="Scene Orientation:")
+            col.operator("clip.set_floor")
             col.operator("clip.set_origin")
+            col.operator("clip.set_x_axis")
         else:
             layout.operator('clip.open')
 

@@ -46,6 +46,7 @@
 #include "BKE_tracking.h"
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -97,24 +98,24 @@ static int space_clip_frame_poll(bContext *C)
 	return 0;
 }
 
-static int space_clip_frame_act_bundle_poll(bContext *C)
+static int space_clip_frame_camera_poll(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	if(space_clip_frame_poll(C)) {
+		return scene->camera != NULL;
+	}
+
+	return 0;
+}
+
+static int space_clip_camera_poll(bContext *C)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
+	Scene *scene= CTX_data_scene(C);
 
-	if(sc) {
-		MovieClip *clip= ED_space_clip(sc);
-
-		if(clip) {
-			if (BKE_movieclip_has_frame(clip, &sc->user)) {
-				int sel_type;
-				MovieTrackingTrack *sel;
-				BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
-
-				if(sel_type == MCLIP_SEL_TRACK)
-					return sel->flag&TRACK_HAS_BUNDLE;
-			}
-		}
-	}
+	if(sc && sc->clip && scene->camera)
+		return 1;
 
 	return 0;
 }
@@ -1216,29 +1217,38 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 
 /********************** set origin operator *********************/
 
-static int set_origin_exec(bContext *C, wmOperator *UNUSED(op))
+static int set_origin_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	MovieTrackingTrack *sel;
+	MovieTrackingTrack *track;
 	Scene *scene= CTX_data_scene(C);
-	int sel_type;
+	Object *parent= scene->camera;
 	float mat[4][4], vec[3];
 
-	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
+	if(scene->camera->parent)
+		parent= scene->camera->parent;
 
-	if(scene->camera == NULL)
-		scene->camera= scene_find_camera(scene);
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track))
+			break;
 
-	if(!scene->camera)
+		track= track->next;
+	}
+
+	if(!track) {
+		BKE_report(op->reports, RPT_ERROR, "Track with bundle should be selected to define origin position");
 		return OPERATOR_CANCELLED;
+	}
 
 	BKE_get_tracking_mat(scene, mat);
-	mul_v3_m4v3(vec, mat, sel->bundle_pos);
+	mul_v3_m4v3(vec, mat, track->bundle_pos);
 
-	sub_v3_v3(scene->camera->loc, vec);
+	sub_v3_v3(parent->loc, vec);
 
 	DAG_id_tag_update(&clip->id, 0);
+	DAG_id_tag_update(&parent->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
@@ -1255,7 +1265,194 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= set_origin_exec;
-	ot->poll= space_clip_frame_act_bundle_poll;
+	ot->poll= space_clip_frame_camera_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** set floor operator *********************/
+
+static void set_x_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track)
+{
+	float mat[4][4], vec[3], obmat[4][4];
+
+	BKE_get_tracking_mat(scene, mat);
+	mul_v3_m4v3(vec, mat, track->bundle_pos);
+
+	if(len_v2(vec)<1e-3)
+		return;
+
+	unit_m4(mat);
+
+	copy_v3_v3(mat[0], vec);
+	mat[0][2]= 0.f;
+	mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
+	cross_v3_v3v3(mat[1], mat[2], mat[0]);
+
+	normalize_v3(mat[0]);
+	normalize_v3(mat[1]);
+	normalize_v3(mat[2]);
+
+	invert_m4(mat);
+
+	object_to_mat4(ob, obmat);
+	mul_m4_m4m4(mat, obmat, mat);
+	object_apply_mat4(ob, mat, 0, 0);
+}
+
+static int set_floor_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	Scene *scene= CTX_data_scene(C);
+	MovieTrackingTrack *track, *sel, *xtrack= NULL;
+	Object *camera= scene->camera;
+	Object *parent= camera;
+	int tot= 0, sel_type;
+	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3];
+	float rot[4][4]={{0.f, 0.f, -1.f, 0.f},
+	                 {0.f, 1.f, 0.f, 0.f},
+	                 {1.f, 0.f, 0.f, 0.f},
+	                 {0.f, 0.f, 0.f, 1.f}};	/* 90 degrees Y-axis rotation matrix */
+
+	if(scene->camera->parent)
+		parent= scene->camera->parent;
+
+	BKE_get_tracking_mat(scene, mat);
+
+	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
+
+	/* get 3 bundles to use as reference */
+	track= clip->tracking.tracks.first;
+	while(track && tot<3) {
+		if(track->flag&TRACK_HAS_BUNDLE && TRACK_SELECTED(track)) {
+			mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
+
+			if(tot==0 || (sel_type==MCLIP_SEL_TRACK && track==sel))
+				copy_v3_v3(orig, vec[tot]);
+			else
+				xtrack= track;
+
+			tot++;
+		}
+
+		track= track->next;
+	}
+
+	if(tot!=3) {
+		BKE_report(op->reports, RPT_ERROR, "Three tracks with bundles are needed to orient the floor");
+		return OPERATOR_CANCELLED;
+	}
+
+	sub_v3_v3(vec[1], vec[0]);
+	sub_v3_v3(vec[2], vec[0]);
+
+	/* construct ortho-normal basis */
+	unit_m4(mat);
+
+	cross_v3_v3v3(mat[0], vec[1], vec[2]);
+	copy_v3_v3(mat[1], vec[1]);
+	cross_v3_v3v3(mat[2], mat[0], mat[1]);
+
+	normalize_v3(mat[0]);
+	normalize_v3(mat[1]);
+	normalize_v3(mat[2]);
+
+	/* move to origin point */
+	mat[3][0]= orig[0];
+	mat[3][1]= orig[1];
+	mat[3][2]= orig[2];
+
+	invert_m4(mat);
+
+	object_to_mat4(parent, obmat);
+	mul_m4_m4m4(mat, obmat, mat);
+	mul_m4_m4m4(newmat, mat, rot);
+	object_apply_mat4(parent, newmat, 0, 0);
+
+	/* make camera have positive z-coordinate */
+	mul_v3_m4v3(vec[0], mat, camera->loc);
+	if(camera->loc[2]<0) {
+		invert_m4(rot);
+		mul_m4_m4m4(newmat, mat, rot);
+		object_apply_mat4(camera, newmat, 0, 0);
+	}
+
+	where_is_object(scene, parent);
+	set_x_axis(scene, parent, xtrack);
+
+	DAG_id_tag_update(&clip->id, 0);
+	DAG_id_tag_update(&parent->id, OB_RECALC_OB);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_set_floor(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Floor";
+	ot->description= "Set floor using 3 selected bundles";
+	ot->idname= "CLIP_OT_set_floor";
+
+	/* api callbacks */
+	ot->exec= set_floor_exec;
+	ot->poll= space_clip_camera_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** set origin operator *********************/
+
+static int set_x_axis_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	Scene *scene= CTX_data_scene(C);
+	Object *parent= scene->camera;
+
+	if(scene->camera->parent)
+		parent= scene->camera->parent;
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track))
+			break;
+
+		track= track->next;
+	}
+
+	if(!track) {
+		BKE_report(op->reports, RPT_ERROR, "Track with bundle should be selected to define X-axis");
+		return OPERATOR_CANCELLED;
+	}
+
+	set_x_axis(scene, parent, track);
+
+	DAG_id_tag_update(&clip->id, 0);
+	DAG_id_tag_update(&parent->id, OB_RECALC_OB);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_set_x_axis(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set X-axis";
+	ot->description= "Set direction of scene X-axis";
+	ot->idname= "CLIP_OT_set_x_axis";
+
+	/* api callbacks */
+	ot->exec= set_x_axis_exec;
+	ot->poll= space_clip_frame_camera_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

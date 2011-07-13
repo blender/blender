@@ -212,7 +212,10 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_disable_markers);
 	WM_operatortype_append(CLIP_OT_hide_tracks);
 	WM_operatortype_append(CLIP_OT_hide_tracks_clear);
+
 	WM_operatortype_append(CLIP_OT_set_origin);
+	WM_operatortype_append(CLIP_OT_set_floor);
+	WM_operatortype_append(CLIP_OT_set_x_axis);
 
 	WM_operatortype_append(CLIP_OT_clear_track_path);
 
