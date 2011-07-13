@@ -40,6 +40,11 @@ extern "C" {
 	#include "SDL.h"
 }
 
+#if !SDL_VERSION_ATLEAST(1, 3, 0)
+#  error "SDL 1.3 or newer is needed to build with Ghost"
+#endif
+
+
 class GHOST_WindowSDL;
 
 

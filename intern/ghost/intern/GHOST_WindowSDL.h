@@ -37,6 +37,10 @@ extern "C" {
 	#include "SDL.h"
 }
 
+#if !SDL_VERSION_ATLEAST(1, 3, 0)
+#  error "SDL 1.3 or newer is needed to build with Ghost"
+#endif
+
 class STR_String;
 
 class GHOST_WindowSDL : public GHOST_Window
@@ -55,10 +59,8 @@ public:
 
 	GHOST_WindowSDL(GHOST_SystemSDL *system,
 	                const STR_String& title,
-	                GHOST_TInt32 left,
-	                GHOST_TInt32 top,
-	                GHOST_TUns32 width,
-	                GHOST_TUns32 height,
+	                GHOST_TInt32 left, GHOST_TInt32 top,
+	                GHOST_TUns32 width, GHOST_TUns32 height,
 	                GHOST_TWindowState state,
 	                const GHOST_TEmbedderWindowID parentWindow,
 	                GHOST_TDrawingContextType type,
@@ -70,8 +72,8 @@ public:
 
 	/* SDL spesific */
 	SDL_Window *
-	getSDLWindow(
-	){
+	getSDLWindow()
+	{
 		return m_sdl_win;
 	}
 
@@ -88,37 +90,74 @@ public:
 		m_invalid_window = false;
 	}
 
-	bool getValid( ) const
+	bool getValid() const
 	{
 		return (m_sdl_win != NULL);
 	}
+
+	void getWindowBounds(GHOST_Rect& bounds) const;
+	void getClientBounds(GHOST_Rect& bounds) const;
 
 protected:
 	GHOST_TSuccess installDrawingContext(GHOST_TDrawingContextType type);
 	GHOST_TSuccess removeDrawingContext();
 
-	GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode);
-	GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape);
-	GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY);
-	GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask, int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color);
-	GHOST_TSuccess setWindowCursorVisibility(bool visible);
+	GHOST_TSuccess
+	setWindowCursorGrab(GHOST_TGrabCursorMode mode);
 
-	void setTitle(const STR_String& title);
-	void getTitle(STR_String& title) const;
-	void getWindowBounds( GHOST_Rect& bounds ) const;
-	void getClientBounds( GHOST_Rect& bounds ) const;
-	GHOST_TSuccess setClientWidth(GHOST_TUns32 width);
-	GHOST_TSuccess setClientHeight(GHOST_TUns32 height);
-	GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height);
+	GHOST_TSuccess
+	setWindowCursorShape(GHOST_TStandardCursor shape);
 
-	/* TODO */
-	void screenToClient( GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY ) const { outX = inX; outY = inY; }
-	void clientToScreen( GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY ) const { outX = inX; outY = inY; }
+	GHOST_TSuccess
+	setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2],
+	                           GHOST_TUns8 mask[16][2],
+	                           int hotX, int hotY);
 
-	GHOST_TSuccess swapBuffers();
-	GHOST_TSuccess activateDrawingContext();
-	GHOST_TSuccess setState(GHOST_TWindowState state);
-	GHOST_TWindowState getState() const;
+	GHOST_TSuccess
+	setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
+	                           GHOST_TUns8 *mask,
+	                           int sizex, int sizey,
+	                           int hotX, int hotY,
+	                           int fg_color, int bg_color);
+
+	GHOST_TSuccess
+	setWindowCursorVisibility(bool visible);
+
+	void
+	setTitle(const STR_String& title);
+
+	void
+	getTitle(STR_String& title) const;
+
+	GHOST_TSuccess
+	setClientWidth(GHOST_TUns32 width);
+
+	GHOST_TSuccess
+	setClientHeight(GHOST_TUns32 height);
+
+	GHOST_TSuccess
+	setClientSize(GHOST_TUns32 width,
+	              GHOST_TUns32 height);
+
+	void
+	screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY,
+	               GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+
+	void
+	clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY,
+	               GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+
+	GHOST_TSuccess
+	swapBuffers();
+
+	GHOST_TSuccess
+	activateDrawingContext();
+
+	GHOST_TSuccess
+	setState(GHOST_TWindowState state);
+
+	GHOST_TWindowState
+	getState() const;
 
 	GHOST_TSuccess setOrder(GHOST_TWindowOrder order) { return GHOST_kSuccess; } // TODO
 

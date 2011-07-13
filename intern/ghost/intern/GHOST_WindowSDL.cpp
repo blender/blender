@@ -50,8 +50,8 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
       m_sdl_custom_cursor(NULL)
 {
 	m_sdl_win= SDL_CreateWindow(title,
-	                            10,
-	                            10,
+	                            left,
+	                            top,
 	                            width,
 	                            height,
 	                            SDL_WINDOW_RESIZABLE|SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN);
@@ -285,6 +285,26 @@ GHOST_WindowSDL::setClientSize(GHOST_TUns32 width,
 	return GHOST_kSuccess;
 }
 
+void
+GHOST_WindowSDL::screenToClient( GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY ) const
+{
+	/* XXXSDL_WEAK_ABS_COORDS */
+	int x_win, y_win;
+	SDL_GetWindowPosition(m_sdl_win, &x_win, &y_win);
+
+	outX = inX - x_win;
+	outY = inY - y_win;
+}
+void
+GHOST_WindowSDL::clientToScreen( GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY ) const
+{
+	/* XXXSDL_WEAK_ABS_COORDS */
+	int x_win, y_win;
+	SDL_GetWindowPosition(m_sdl_win, &x_win, &y_win);
+
+	outX = inX + x_win;
+	outY = inY + y_win;
+}
 
 /* mouse cursor */
 static unsigned char sdl_std_cursor_mask_xterm[]= {0xef,0x01,0xff,0x01,0xff,0x01,0x7c,0x00,0x38,0x00,0x38,0x00,0x38,0x00,0x38,0x00,0x38,0x00,0x38,0x00,0x38,0x00,0x38,0x00,0x7c,0x00,0xff,0x01,0xff,0x01,0xef,0x01,};

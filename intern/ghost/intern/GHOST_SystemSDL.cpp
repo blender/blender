@@ -279,10 +279,57 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 	case SDL_MOUSEMOTION:
 		{
 			SDL_MouseMotionEvent &sdl_sub_evt= sdl_event->motion;
-			GHOST_WindowSDL *window= findGhostWindow(SDL_GetWindowFromID(sdl_sub_evt.windowID));
+			SDL_Window *sdl_win= SDL_GetWindowFromID(sdl_sub_evt.windowID);
+			GHOST_WindowSDL *window= findGhostWindow(sdl_win);
 			assert(window != NULL);
 
-			g_event= new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, sdl_sub_evt.x, sdl_sub_evt.y);
+			int x_win, y_win;
+			SDL_GetWindowPosition(sdl_win, &x_win, &y_win);
+
+			GHOST_TInt32 x_root= sdl_sub_evt.x + x_win;
+			GHOST_TInt32 y_root= sdl_sub_evt.y + y_win;
+
+#if 0
+			if(window->getCursorGrabMode() != GHOST_kGrabDisable && window->getCursorGrabMode() != GHOST_kGrabNormal)
+			{
+				GHOST_TInt32 x_new= x_root;
+				GHOST_TInt32 y_new= y_root;
+				GHOST_TInt32 x_accum, y_accum;
+				GHOST_Rect bounds;
+
+				/* fallback to window bounds */
+				if(window->getCursorGrabBounds(bounds)==GHOST_kFailure)
+					window->getClientBounds(bounds);
+
+				/* could also clamp to screen bounds
+				 * wrap with a window outside the view will fail atm  */
+				bounds.wrapPoint(x_new, y_new, 8); /* offset of one incase blender is at screen bounds */
+				window->getCursorGrabAccum(x_accum, y_accum);
+
+				// cant use setCursorPosition because the mouse may have no focus!
+				if(x_new != x_root || y_new != y_root) {
+					if (1 ) { //xme.time > m_last_warp) {
+						/* when wrapping we don't need to add an event because the
+						 * setCursorPosition call will cause a new event after */
+						SDL_WarpMouseInWindow(sdl_win, x_new - x_win, y_new - y_win); /* wrap */
+						window->setCursorGrabAccum(x_accum + (x_root - x_new), y_accum + (y_root - y_new));
+						// m_last_warp= lastEventTime(xme.time);
+					} else {
+						// setCursorPosition(x_new, y_new); /* wrap but don't accumulate */
+						SDL_WarpMouseInWindow(sdl_win, x_new - x_win, y_new - y_win);
+					}
+
+					g_event = new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, x_new, y_new);
+				}
+				else {
+					g_event = new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, x_root + x_accum, y_root + y_accum);
+				}
+			}
+			else
+#endif
+			{
+				g_event= new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, x_root, y_root);
+			}
 			break;
 		}
 	case SDL_MOUSEBUTTONUP:
@@ -346,10 +393,15 @@ GHOST_TSuccess
 GHOST_SystemSDL::getCursorPosition(GHOST_TInt32& x,
                                    GHOST_TInt32& y) const
 {
+	int x_win, y_win;
+	SDL_Window *win= SDL_GetMouseFocus();
+	SDL_GetWindowPosition(win, &x_win, &y_win);
+
 	int xi, yi;
 	SDL_GetMouseState(&xi, &yi);
-	x= xi;
-	y= yi;
+	x= xi + x_win;
+	y= yi + x_win;
+
 	return GHOST_kSuccess;
 }
 
@@ -357,8 +409,11 @@ GHOST_TSuccess
 GHOST_SystemSDL::setCursorPosition(GHOST_TInt32 x,
                                    GHOST_TInt32 y)
 {
-	// SDL_SendMouseMotion(SDL, SDL_FALSE, x, y); // NOT EXPOSED
-	SDL_WarpMouseInWindow(NULL, x, y);
+	int x_win, y_win;
+	SDL_Window *win= SDL_GetMouseFocus();
+	SDL_GetWindowPosition(win, &x_win, &y_win);
+
+	SDL_WarpMouseInWindow(win, x - x_win, y - y_win);
 	return GHOST_kSuccess;
 }
 
