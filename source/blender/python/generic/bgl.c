@@ -44,25 +44,7 @@
 
 #include "BLI_utildefines.h"
 
-
-PyDoc_STRVAR(Method_Buffer_doc,
-	"(type, dimensions, [template]) - Create a new Buffer object\n\n\
-(type) - The format to store data in\n\
-(dimensions) - An int or sequence specifying the dimensions of the buffer\n\
-[template] - A sequence of matching dimensions to the buffer to be created\n\
-  which will be used to initialize the Buffer.\n\n\
-If a template is not passed in all fields will be initialized to 0.\n\n\
-The type should be one of GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT, or GL_DOUBLE.\n\
-If the dimensions are specified as an int a linear buffer will be\n\
-created. If a sequence is passed for the dimensions the buffer\n\
-will have len(sequence) dimensions, where the size for each dimension\n\
-is determined by the value in the sequence at that index.\n\n\
-For example, passing [100, 100] will create a 2 dimensional\n\
-square buffer. Passing [16, 16, 32] will create a 3 dimensional\n\
-buffer which is twice as deep as it is wide or high."
-);
-
-static PyObject *Method_Buffer(PyObject *self, PyObject *args);
+static PyObject *Buffer_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 
 /* Buffer sequence methods */
 
@@ -71,41 +53,97 @@ static PyObject *Buffer_item(PyObject *self, int i);
 static PyObject *Buffer_slice(PyObject *self, int begin, int end);
 static int Buffer_ass_item(PyObject *self, int i, PyObject *v);
 static int Buffer_ass_slice(PyObject *self, int begin, int end,
-				 PyObject *seq);
+                            PyObject *seq);
 
 static PySequenceMethods Buffer_SeqMethods = {
-	( lenfunc ) Buffer_len,						/*sq_length */
-	( binaryfunc ) NULL,						/*sq_concat */
-	( ssizeargfunc ) NULL,						/*sq_repeat */
-	( ssizeargfunc ) Buffer_item,				/*sq_item */
-	( ssizessizeargfunc ) Buffer_slice,			/*sq_slice, deprecated TODO, replace */
-	( ssizeobjargproc ) Buffer_ass_item,		/*sq_ass_item */
-	( ssizessizeobjargproc ) Buffer_ass_slice,	/*sq_ass_slice, deprecated TODO, replace */
+	(lenfunc) Buffer_len,						/*sq_length */
+	(binaryfunc) NULL,							/*sq_concat */
+	(ssizeargfunc) NULL,						/*sq_repeat */
+	(ssizeargfunc) Buffer_item,					/*sq_item */
+	(ssizessizeargfunc) Buffer_slice,			/*sq_slice, deprecated TODO, replace */
+	(ssizeobjargproc) Buffer_ass_item,			/*sq_ass_item */
+	(ssizessizeobjargproc) Buffer_ass_slice,	/*sq_ass_slice, deprecated TODO, replace */
 	(objobjproc) NULL,							/* sq_contains */
 	(binaryfunc) NULL,							/* sq_inplace_concat */
 	(ssizeargfunc) NULL,						/* sq_inplace_repeat */
 };
 
 static void Buffer_dealloc(PyObject *self);
-static PyObject *Buffer_tolist(PyObject *self);
-static PyObject *Buffer_dimensions(PyObject *self);
-static PyObject *Buffer_getattr(PyObject *self, char *name);
+static PyObject *Buffer_tolist(PyObject *self, void *arg);
+static PyObject *Buffer_dimensions(PyObject *self, void *arg);
 static PyObject *Buffer_repr(PyObject *self);
+static PyGetSetDef Buffer_getseters[];
 
 PyTypeObject BGL_bufferType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"buffer",		/*tp_name */
-	sizeof( Buffer ),	/*tp_basicsize */
-	0,			/*tp_itemsize */
-	( destructor ) Buffer_dealloc,	/*tp_dealloc */
-	( printfunc ) 0,	/*tp_print */
-	( getattrfunc ) Buffer_getattr,	/*tp_getattr */
-	( setattrfunc ) 0,	/*tp_setattr */
+	"bgl.Buffer",               /*tp_name */
+	sizeof(Buffer),             /*tp_basicsize */
+	0,                          /*tp_itemsize */
+	(destructor)Buffer_dealloc, /*tp_dealloc */
+	(printfunc)NULL,            /*tp_print */
+	NULL,                       /*tp_getattr */
+	NULL,                       /*tp_setattr */
 	NULL,		/*tp_compare */
-	( reprfunc ) Buffer_repr,	/*tp_repr */
+	(reprfunc) Buffer_repr,	/*tp_repr */
 	NULL,			/*tp_as_number */
 	&Buffer_SeqMethods,	/*tp_as_sequence */
+	NULL,		/* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL, /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+	/*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+	/*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+	/***  Assigned meaning in release 2.1 ***/
+	/*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+	/***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+	/*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL, /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+	/*** Attribute descriptor and subclassing stuff ***/
+	NULL,        /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	Buffer_getseters,           /* struct PyGetSetDef *tp_getset; */
+	NULL,						/*tp_base*/
+	NULL,						/*tp_dict*/
+	NULL,						/*tp_descr_get*/
+	NULL,						/*tp_descr_set*/
+	0,							/*tp_dictoffset*/
+	NULL,						/*tp_init*/
+	NULL,						/*tp_alloc*/
+	Buffer_new,					/*tp_new*/
+	NULL,						/*tp_free*/
+	NULL,						/*tp_is_gc*/
+	NULL,						/*tp_bases*/
+	NULL,						/*tp_mro*/
+	NULL,						/*tp_cache*/
+	NULL,						/*tp_subclasses*/
+	NULL,						/*tp_weaklist*/
+	NULL						/*tp_del*/
 };
+
 
 /* #ifndef __APPLE__ */
 
@@ -174,26 +212,13 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
 	}
 	else {
 		memset(buffer->buf.asvoid, 0, length*size);
-		/*
-		for (i= 0; i<length; i++) {
-			if (type==GL_BYTE) 
-				buffer->buf.asbyte[i]= 0;
-			else if (type==GL_SHORT) 
-				buffer->buf.asshort[i]= 0;
-			else if (type==GL_INT) 
-				buffer->buf.asint[i]= 0;
-			else if (type==GL_FLOAT) 
-				buffer->buf.asfloat[i]= 0.0f;
-			else if (type==GL_DOUBLE)
-				buffer->buf.asdouble[i]= 0.0;
-		}
-		*/
 	}
 	return buffer;
 }
 
+
 #define MAX_DIMENSIONS	256
-static PyObject *Method_Buffer (PyObject *UNUSED(self), PyObject *args)
+static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	PyObject *length_ob= NULL, *init= NULL;
 	Buffer *buffer;
@@ -201,31 +226,40 @@ static PyObject *Method_Buffer (PyObject *UNUSED(self), PyObject *args)
 	
 	int i, type;
 	int ndimensions = 0;
-	
-	if (!PyArg_ParseTuple(args, "iO|O", &type, &length_ob, &init)) {
-		PyErr_SetString(PyExc_AttributeError, "expected an int and one or two PyObjects");
+
+	if(kwds && PyDict_Size(kwds)) {
+		PyErr_SetString(PyExc_TypeError, "bgl.Buffer(): takes no keyword args");
+		return NULL;
+	}
+
+	if (!PyArg_ParseTuple(args, "iO|O: bgl.Buffer", &type, &length_ob, &init)) {
 		return NULL;
 	}
 	if (!ELEM5(type, GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT, GL_DOUBLE)) {
-		PyErr_SetString(PyExc_AttributeError, "invalid first argument type, should be one of GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT or GL_DOUBLE");
+		PyErr_SetString(PyExc_AttributeError,
+		                "invalid first argument type, should be one of "
+		                "GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT or GL_DOUBLE");
 		return NULL;
 	}
 
 	if (PyLong_Check(length_ob)) {
 		ndimensions= 1;
 		if(((dimensions[0]= PyLong_AsLong(length_ob)) < 1)) {
-			PyErr_SetString(PyExc_AttributeError, "dimensions must be between 1 and "STRINGIFY(MAX_DIMENSIONS));
+			PyErr_SetString(PyExc_AttributeError,
+			                "dimensions must be between 1 and "STRINGIFY(MAX_DIMENSIONS));
 			return NULL;
 		}
 	}
 	else if (PySequence_Check(length_ob)) {
 		ndimensions= PySequence_Size(length_ob);
 		if (ndimensions > MAX_DIMENSIONS) {
-			PyErr_SetString(PyExc_AttributeError, "too many dimensions, max is "STRINGIFY(MAX_DIMENSIONS));
+			PyErr_SetString(PyExc_AttributeError,
+			                "too many dimensions, max is "STRINGIFY(MAX_DIMENSIONS));
 			return NULL;
 		}
 		else if (ndimensions < 1) {
-			PyErr_SetString(PyExc_AttributeError, "sequence must have at least one dimension");
+			PyErr_SetString(PyExc_AttributeError,
+			                "sequence must have at least one dimension");
 			return NULL;
 		}
 		for (i=0; i<ndimensions; i++) {
@@ -236,13 +270,16 @@ static PyObject *Method_Buffer (PyObject *UNUSED(self), PyObject *args)
 			Py_DECREF(ob);
 
 			if(dimensions[i] < 1) {
-				PyErr_SetString(PyExc_AttributeError, "dimensions must be between 1 and "STRINGIFY(MAX_DIMENSIONS));
+				PyErr_SetString(PyExc_AttributeError,
+				                "dimensions must be between 1 and "STRINGIFY(MAX_DIMENSIONS));
 				return NULL;
 			}
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "invalid second argument argument expected a sequence or an int, not a %.200s", Py_TYPE(length_ob)->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "invalid second argument argument expected a sequence "
+		             "or an int, not a %.200s", Py_TYPE(length_ob)->tp_name);
 		return NULL;
 	}
 	
@@ -336,42 +373,38 @@ static int Buffer_ass_item(PyObject *self, int i, PyObject *v)
 	Buffer *buf= (Buffer *) self;
 	
 	if (i >= buf->dimensions[0]) {
-		PyErr_SetString(PyExc_IndexError, "array assignment index out of range");
+		PyErr_SetString(PyExc_IndexError,
+		                "array assignment index out of range");
 		return -1;
 	}
-	
+
 	if (buf->ndimensions!=1) {
 		PyObject *row= Buffer_item(self, i);
-		int ret;
 
-		if (!row) return -1;
-		ret= Buffer_ass_slice(row, 0, buf->dimensions[1], v);
-		Py_DECREF(row);
-		return ret;
+		if (row) {
+			int ret= Buffer_ass_slice(row, 0, buf->dimensions[1], v);
+			Py_DECREF(row);
+			return ret;
+		}
+		else {
+			return -1;
+		}
 	}
 
-	if (buf->type==GL_BYTE) {
-		if (!PyArg_Parse(v, "b:Coordinates must be ints", &buf->buf.asbyte[i]))
-		return -1;
+	switch(buf->type) {
+	case GL_BYTE:
+		return PyArg_Parse(v, "b:Expected ints", &buf->buf.asbyte[i]) ? 0:-1;
+	case GL_SHORT:
+		return PyArg_Parse(v, "h:Expected ints", &buf->buf.asshort[i]) ? 0:-1;
+	case GL_INT:
+		return PyArg_Parse(v, "i:Expected ints", &buf->buf.asint[i]) ? 0:-1;
+	case GL_FLOAT:
+		return PyArg_Parse(v, "f:Expected floats", &buf->buf.asfloat[i]) ? 0:-1;
+	case GL_DOUBLE:
+		return PyArg_Parse(v, "d:Expected floats", &buf->buf.asdouble[i]) ? 0:-1;
+	default:
+		return 0; /* should never happen */
 	}
-	else if (buf->type==GL_SHORT) {
-		if (!PyArg_Parse(v, "h:Coordinates must be ints", &buf->buf.asshort[i]))
-			return -1;
-	  
-	}
-	else if (buf->type==GL_INT) {
-		if (!PyArg_Parse(v, "i:Coordinates must be ints", &buf->buf.asint[i]))
-			return -1;
-	}
-	else if (buf->type==GL_FLOAT) {
-		if (!PyArg_Parse(v, "f:Coordinates must be floats", &buf->buf.asfloat[i]))
-			return -1;
-	}
-	else if (buf->type==GL_DOUBLE) {
-		if (!PyArg_Parse(v, "d:Coordinates must be floats", &buf->buf.asdouble[i]))
-			return -1;
-	}
-	return 0;
 }
 
 static int Buffer_ass_slice(PyObject *self, int begin, int end, PyObject *seq)
@@ -385,23 +418,30 @@ static int Buffer_ass_slice(PyObject *self, int begin, int end, PyObject *seq)
 	if (begin>end) begin= end;
 	
 	if (!PySequence_Check(seq)) {
-		PyErr_SetString(PyExc_TypeError,
-			"illegal argument type for built-in operation");
+		PyErr_Format(PyExc_TypeError,
+		             "buffer[:] = value, invalid assignment. "
+		             "Expected a sequence, not an %.200s type",
+		             Py_TYPE(seq)->tp_name);
 		return -1;
 	}
 
-	if (PySequence_Size(seq)!=(end-begin)) {
-		int seq_len = PySequence_Size(seq);
-		char err_str[128];
-		sprintf(err_str, "size mismatch in assignment. Expected size: %d (size provided: %d)", seq_len, (end-begin));
-		PyErr_SetString(PyExc_TypeError, err_str);
+	/* re-use count var */
+	if ((count= PySequence_Size(seq)) != (end - begin)) {
+		PyErr_Format(PyExc_TypeError,
+		             "buffer[:] = value, size mismatch in assignment. "
+		             "Expected: %d (given: %d)", count, end - begin);
 		return -1;
 	}
 	
-	for (count= begin; count<end; count++) {
-		item= PySequence_GetItem(seq, count-begin);
-		err= Buffer_ass_item(self, count, item);
-		Py_DECREF(item);
+	for (count= begin; count < end; count++) {
+		item= PySequence_GetItem(seq, count - begin);
+		if(item) {
+			err= Buffer_ass_item(self, count, item);
+			Py_DECREF(item);
+		}
+		else {
+			err= -1;
+		}
 		if (err) break;
 	}
 	return err;
@@ -411,15 +451,15 @@ static void Buffer_dealloc(PyObject *self)
 {
 	Buffer *buf = (Buffer *)self;
 
-	if (buf->parent) Py_DECREF (buf->parent);
+	if (buf->parent) Py_DECREF(buf->parent);
 	else MEM_freeN (buf->buf.asvoid);
 
 	MEM_freeN (buf->dimensions);
 	
-	PyObject_DEL (self);
+	PyObject_DEL(self);
 }
 
-static PyObject *Buffer_tolist(PyObject *self)
+static PyObject *Buffer_tolist(PyObject *self, void *UNUSED(arg))
 {
 	int i, len= ((Buffer *)self)->dimensions[0];
 	PyObject *list= PyList_New(len);
@@ -431,7 +471,7 @@ static PyObject *Buffer_tolist(PyObject *self)
 	return list;
 }
 
-static PyObject *Buffer_dimensions(PyObject *self)
+static PyObject *Buffer_dimensions(PyObject *self, void *UNUSED(arg))
 {
 	Buffer *buffer= (Buffer *) self;
 	PyObject *list= PyList_New(buffer->ndimensions);
@@ -444,18 +484,15 @@ static PyObject *Buffer_dimensions(PyObject *self)
 	return list;
 }
 
-static PyObject *Buffer_getattr(PyObject *self, char *name)
-{
-	if (strcmp(name, "list")==0) return Buffer_tolist(self);
-	else if (strcmp(name, "dimensions")==0) return Buffer_dimensions(self);
-	
-	PyErr_SetString(PyExc_AttributeError, name);
-	return NULL;
-}
+static PyGetSetDef Buffer_getseters[] = {
+	{(char *)"list", (getter)Buffer_tolist, NULL, NULL, NULL},
+	{(char *)"dimensions", (getter)Buffer_dimensions, NULL, NULL, NULL},
+	 {NULL, NULL, NULL, NULL, NULL}
+};
 
 static PyObject *Buffer_repr(PyObject *self)
 {
-	PyObject *list= Buffer_tolist(self);
+	PyObject *list= Buffer_tolist(self, NULL);
 	PyObject *repr= PyObject_Repr(list);
 	Py_DECREF(list);
 	
@@ -805,7 +842,6 @@ BGLU_Wrap(9, UnProject,			GLint,		(GLdouble, GLdouble, GLdouble, GLdoubleP, GLdo
  * {"glAccum", Method_Accumfunc, METH_VARARGS} */
 
 static struct PyMethodDef BGL_methods[] = {
-	{"Buffer", Method_Buffer, METH_VARARGS, Method_Buffer_doc},
 
 /* #ifndef __APPLE__ */
 	MethodDef(Accum),
@@ -1153,8 +1189,11 @@ PyObject *BPyInit_bgl(void)
 	submodule= PyModule_Create(&BGL_module_def);
 	dict= PyModule_GetDict(submodule);
 	
-	if( PyType_Ready( &BGL_bufferType) < 0)
+	if(PyType_Ready(&BGL_bufferType) < 0)
 		return NULL; /* should never happen */
+
+
+	PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
 
 #define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, item=PyLong_FromLong((int)x)); Py_DECREF(item)
 
