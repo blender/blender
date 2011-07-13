@@ -213,7 +213,7 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.operator("graph.sound_bake")
 
         layout.separator()
-        layout.operator("graph.duplicate")
+        layout.operator("graph.duplicate_move")
         layout.operator("graph.delete")
 
         layout.separator()

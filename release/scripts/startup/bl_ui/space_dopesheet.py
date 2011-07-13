@@ -291,7 +291,7 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.operator("action.keyframe_insert")
 
         layout.separator()
-        layout.operator("action.duplicate")
+        layout.operator("action.duplicate_move")
         layout.operator("action.delete")
 
         layout.separator()
