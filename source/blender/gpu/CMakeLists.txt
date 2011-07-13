@@ -56,6 +56,10 @@ set(SRC
 	intern/gpu_codegen.h
 )
 
+if(WITH_MOD_SMOKE)
+	add_definitions(-DWITH_SMOKE)
+endif()
+
 add_definitions(-DGLEW_STATIC)
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}")

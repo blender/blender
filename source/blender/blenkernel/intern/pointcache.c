@@ -516,6 +516,7 @@ static int  ptcache_cloth_totpoint(void *cloth_v, int UNUSED(cfra))
 	return clmd->clothObject ? clmd->clothObject->numverts : 0;
 }
 
+#ifdef WITH_SMOKE
 /* Smoke functions */
 static int  ptcache_smoke_totpoint(void *smoke_v, int UNUSED(cfra))
 {
@@ -652,6 +653,11 @@ static void ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 		}
 	}
 }
+#else // WITH_SMOKE
+static int  ptcache_smoke_totpoint(void *UNUSED(smoke_v), int UNUSED(cfra)) { return 0; };
+static void ptcache_smoke_read(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) {}
+static int  ptcache_smoke_write(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
+#endif // WITH_SMOKE
 
 /* Creating ID's */
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)

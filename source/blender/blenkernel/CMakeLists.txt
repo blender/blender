@@ -306,6 +306,10 @@ if(NOT WITH_MOD_FLUID)
 	add_definitions(-DDISABLE_ELBEEM)
 endif()
 
+if(WITH_MOD_SMOKE)
+	add_definitions(-DWITH_SMOKE)
+endif()
+
 if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
 endif()

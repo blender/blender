@@ -141,6 +141,7 @@ endif()
 
 # Modifiers
 option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
+option(WITH_MOD_SMOKE        	"Enable Smoke Modifier (Smoke Simulation)" ON)
 option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
 option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
 option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experemental cloth solver" OFF)

@@ -84,7 +84,7 @@ set(SRC
 )
 
 if(WITH_OPENMP)
-		add_definitions(-DPARALLEL=1)
+	add_definitions(-DPARALLEL=1)
 endif()
 
 if(WITH_FFTW3)
