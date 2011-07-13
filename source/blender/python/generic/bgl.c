@@ -72,6 +72,7 @@ static void Buffer_dealloc(PyObject *self);
 static PyObject *Buffer_tolist(PyObject *self, void *arg);
 static PyObject *Buffer_dimensions(PyObject *self, void *arg);
 static PyObject *Buffer_repr(PyObject *self);
+static PyMethodDef Buffer_methods[];
 static PyGetSetDef Buffer_getseters[];
 
 PyTypeObject BGL_bufferType = {
@@ -123,7 +124,7 @@ PyTypeObject BGL_bufferType = {
 	NULL, /* getiterfunc tp_iter; */
 	NULL,                       /* iternextfunc tp_iternext; */
 	/*** Attribute descriptor and subclassing stuff ***/
-	NULL,        /* struct PyMethodDef *tp_methods; */
+	Buffer_methods,             /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	Buffer_getseters,           /* struct PyGetSetDef *tp_getset; */
 	NULL,						/*tp_base*/
@@ -459,7 +460,7 @@ static void Buffer_dealloc(PyObject *self)
 	PyObject_DEL(self);
 }
 
-static PyObject *Buffer_tolist(PyObject *self, void *UNUSED(arg))
+static PyObject *Buffer_to_list(PyObject *self)
 {
 	int i, len= ((Buffer *)self)->dimensions[0];
 	PyObject *list= PyList_New(len);
@@ -484,18 +485,35 @@ static PyObject *Buffer_dimensions(PyObject *self, void *UNUSED(arg))
 	return list;
 }
 
+static PyMethodDef Buffer_methods[] = {
+	{"to_list", (PyCFunction)Buffer_to_list, METH_NOARGS,
+     "return the buffer as a list"},
+	{NULL, NULL, 0, NULL}
+};
+
 static PyGetSetDef Buffer_getseters[] = {
-	{(char *)"list", (getter)Buffer_tolist, NULL, NULL, NULL},
 	{(char *)"dimensions", (getter)Buffer_dimensions, NULL, NULL, NULL},
 	 {NULL, NULL, NULL, NULL, NULL}
 };
 
 static PyObject *Buffer_repr(PyObject *self)
 {
-	PyObject *list= Buffer_tolist(self, NULL);
-	PyObject *repr= PyObject_Repr(list);
+	PyObject *list= Buffer_to_list(self);
+	PyObject *repr;
+	const char *typestr= "UNKNOWN";
+	Buffer *buffer= (Buffer *)self;
+
+	switch(buffer->type) {
+	case GL_BYTE:   typestr= "GL_BYTE"; break;
+	case GL_SHORT:  typestr= "GL_SHORT"; break;
+	case GL_INT:    typestr= "GL_BYTE"; break;
+	case GL_FLOAT:  typestr= "GL_FLOAT"; break;
+	case GL_DOUBLE: typestr= "GL_DOUBLE"; break;
+	}
+
+	repr= PyUnicode_FromFormat("Buffer(%s, %R)", typestr, list);
 	Py_DECREF(list);
-	
+
 	return repr;
 }
 

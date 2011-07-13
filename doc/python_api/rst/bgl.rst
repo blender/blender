@@ -1379,14 +1379,15 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
       .. code-block:: python
 
-        import Blender
-        from Blender.BGL import *
+        import bgl
         xval, yval= 100, 40
         # Get the scale of the view matrix
-        viewMatrix = Buffer(GL_FLOAT, 16)
-        glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix)
-        f = 1/viewMatrix[0]
-        glRasterPos2f(xval*f, yval*f) # Instead of the usual glRasterPos2i(xval, yval)
+        view_matrix = bgl.Buffer(bgl.GL_FLOAT, 16)
+        bgl.glGetFloatv(bgl.GL_MODELVIEW_MATRIX, view_matrix)
+        f = 1.0 / view_matrix[0]
+
+		# Instead of the usual glRasterPos2i(xval, yval)
+        bgl.glRasterPos2f(xval * f, yval * f)
 
 
 .. function:: glReadBuffer(mode):
@@ -1839,32 +1840,32 @@ class Buffer:
    The Buffer object is simply a block of memory that is delineated and initialized by the
    user. Many OpenGL functions return data to a C-style pointer, however, because this
    is not possible in python the Buffer object can be used to this end. Wherever pointer
-   notation is used in the OpenGL functions the Buffer object can be used in it's BGL
+   notation is used in the OpenGL functions the Buffer object can be used in it's bgl
    wrapper. In some instances the Buffer object will need to be initialized with the template
    parameter, while in other instances the user will want to create just a blank buffer
    which will be zeroed by default.
 
-   Example with Buffer::
-      import Blender
-      from Blender import BGL
-      myByteBuffer = BGL.Buffer(BGL.GL_BYTE, [32,32])
-      BGL.glGetPolygonStipple(myByteBuffer)
-      print myByteBuffer.dimensions
-      print myByteBuffer.list
+   .. code-block:: python
+
+      import bgl
+      myByteBuffer = bgl.Buffer(bgl.GL_BYTE, [32, 32])
+      bgl.glGetPolygonStipple(myByteBuffer)
+      print(myByteBuffer.dimensions)
+      print(myByteBuffer.to_list())
       sliceBuffer = myByteBuffer[0:16]
-      print sliceBuffer
-
-   .. attribute:: list
-
-      The contents of the Buffer.
+      print(sliceBuffer)
 
    .. attribute:: dimensions
 
-      The size of the Buffer.
+      The number of dimensions of the Buffer.
+
+   .. method:: to_list()
+
+      The contents of the Buffer as a python list.
 
    .. method:: __init__(type, dimensions, template = None):
 
-      This will create a new Buffer object for use with other BGL OpenGL commands.
+      This will create a new Buffer object for use with other bgl OpenGL commands.
       Only the type of argument to store in the buffer and the dimensions of the buffer
       are necessary. Buffers are zeroed by default unless a template is supplied, in
       which case the buffer is initialized to the template.
