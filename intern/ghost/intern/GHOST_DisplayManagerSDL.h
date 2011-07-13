@@ -1,5 +1,5 @@
 /*
- * $Id: GHOST_DisplayManagerSDL.h 37194 2011-06-05 00:10:20Z gsrb3d $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
