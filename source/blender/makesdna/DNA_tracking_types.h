@@ -93,6 +93,9 @@ typedef struct MovieTrackingTrack {
 
 	/* ** UI editing ** */
 	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
+	short transflag;					/* transform flags */
+
+	char pad3[6];
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingSettings {

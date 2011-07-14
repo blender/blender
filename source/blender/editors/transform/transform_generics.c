@@ -848,6 +848,18 @@ void recalcData(TransInfo *t)
 		SpaceClip *sc= t->sa->spacedata.first;
 		MovieClip *clip= ED_space_clip(sc);
 		MovieTrackingTrack *track;
+
+		if(t->state == TRANS_CANCEL) {
+			track= clip->tracking.tracks.first;
+			while(track) {
+				MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
+
+				marker->flag= track->transflag;
+
+				track= track->next;
+			}
+		}
+
 		flushTransTracking(t);
 
 		track= clip->tracking.tracks.first;

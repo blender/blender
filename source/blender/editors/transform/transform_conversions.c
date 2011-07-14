@@ -5249,24 +5249,19 @@ static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d, Mo
 {
 	MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
 
-	if((marker->flag&MARKER_DISABLED)==0) {
-		if(track->flag&SELECT)
-			markerToTransDataInit(td++, td2d++, marker->pos, NULL);
+	track->transflag= marker->flag;
 
-		if(track->pat_flag&SELECT) {
-			markerToTransDataInit(td++, td2d++, track->pat_min, marker->pos);
-			markerToTransDataInit(td++, td2d++, track->pat_max, marker->pos);
-		}
+	marker->flag&= ~MARKER_DISABLED;
+
+	if(track->flag&SELECT)
+		markerToTransDataInit(td++, td2d++, marker->pos, NULL);
+
+	if(track->pat_flag&SELECT) {
+		markerToTransDataInit(td++, td2d++, track->pat_min, marker->pos);
+		markerToTransDataInit(td++, td2d++, track->pat_max, marker->pos);
 	}
 
 	if(track->search_flag&SELECT) {
-		if(marker->flag&MARKER_DISABLED) {
-			markerToTransDataInit(td++, td2d++, marker->pos, NULL);
-
-			markerToTransDataInit(td++, td2d++, track->pat_min, marker->pos);
-			markerToTransDataInit(td++, td2d++, track->pat_max, marker->pos);
-		}
-
 		markerToTransDataInit(td++, td2d++, track->search_min, marker->pos);
 		markerToTransDataInit(td++, td2d++, track->search_max, marker->pos);
 	}
