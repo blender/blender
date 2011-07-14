@@ -60,7 +60,7 @@ void AUD_ChannelMapperReader::setChannels(AUD_Channels channels)
 
 void AUD_ChannelMapperReader::setMonoAngle(float angle)
 {
-	if(std::isnan(angle))
+	if(angle != angle)
 		angle = 0;
 	m_mono_angle = angle;
 	if(m_source_channels == AUD_CHANNELS_MONO)
