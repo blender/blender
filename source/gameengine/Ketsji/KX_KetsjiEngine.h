@@ -108,6 +108,7 @@ private:
 	double				m_frameTime;//discrete timestamp of the 'game logic frame'
 	double				m_clockTime;//current time
 	double				m_previousClockTime;//previous clock time
+	double				m_previousAnimTime; //the last time animations were updated
 	double				m_remainingTime;
 
 	static int				m_maxLogicFrame;	/* maximum number of consecutive logic frame */
@@ -147,6 +148,7 @@ private:
 		tc_first = 0,
 		tc_physics = 0,
 		tc_logic,
+		tc_animations,
 		tc_network,
 		tc_scenegraph,
 		tc_sound,

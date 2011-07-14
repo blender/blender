@@ -91,7 +91,8 @@
 
 const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 	"Physics:",		// tc_physics
-	"Logic",		// tc_logic
+	"Logic:",		// tc_logic
+	"Animations:",	// tc_animations
 	"Network:",		// tc_network
 	"Scenegraph:",	// tc_scenegraph
 	"Sound:",		// tc_sound
@@ -137,6 +138,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_frameTime(0.f),
 	m_clockTime(0.f),
 	m_previousClockTime(0.f),
+	m_previousAnimTime(0.f),
 
 
 	m_exitcode(KX_EXIT_REQUEST_NO_REQUEST),
@@ -652,6 +654,16 @@ else
 				scene->LogicUpdateFrame(m_frameTime, true);
 				
 				scene->LogicEndFrame();
+
+				// Handle animations
+				double anim_timestep = 1.0/scene->GetAnimationFPS();
+				if (m_clockTime - m_previousAnimTime > anim_timestep)
+				{
+					m_previousAnimTime = m_clockTime;
+					m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+					SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
+					scene->UpdateAnimations(m_frameTime);
+				}
 	
 				// Actuators can affect the scenegraph
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
