@@ -1676,7 +1676,7 @@ static void mesh_obmode_foreachScreenVert__mapFunc(void *userData, int index, fl
 		}
 
 		if (s[0]!=IS_CLIPPED)
-			data->func(data->userData, me->mvert, s[0], s[1], index);
+			data->func(data->userData, mv, s[0], s[1], index);
 	}
 }
 /*Jason*/

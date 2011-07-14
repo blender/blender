@@ -641,7 +641,15 @@ static void do_lasso_select_curve(ViewContext *vc, int mcords[][2], short moves,
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data);
 }
+/* Jason */
+static void do_obmode_lasso_select__doSelect(void *userData, MVert *mv, int x, int y)
+{
+	struct { int (*mcords)[2]; short moves; short select; } *data = userData;
 
+	if (lasso_inside(data->mcords, data->moves, x, y)) {
+		mv->flag = data->select?(mv->flag|SELECT):(mv->flag&~SELECT);
+	}
+}
 static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x, int y)
 {
 	struct { int (*mcords)[2]; short moves; short select; } *data = userData;
@@ -743,28 +751,61 @@ static void do_lasso_select_meta(ViewContext *vc, int mcords[][2], short moves, 
 	}
 }
 /* Jason */
+static void do_obmode_box_select__doSelect(void *userData, MVert *mv, int x, int y)
+{
+	struct { ViewContext vc; rcti *rect; int select; } *data = userData;
+
+	if (BLI_in_rcti(data->rect, x, y)) {
+		mv->flag = data->select?(mv->flag|SELECT):(mv->flag&~SELECT);
+	}
+}
+/* Jason */
+int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
+{
+	Object *ob= vc->obact;
+	Mesh *me= ob?ob->data:NULL;
+	int sx= rect->xmax-rect->xmin+1;
+	int sy= rect->ymax-rect->ymin+1;
+	bglMats mats;
+	struct { ViewContext vc; rcti *rect; int select; } data = {NULL};
+
+	if(me==NULL || me->totvert==0 || sx*sy <= 0)
+		return OPERATOR_CANCELLED;
+
+	if(extend==0 && select)
+		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE); /* flush selection at the end */
+
+	ED_view3d_init_mats_rv3d(ob, vc->rv3d);
+	data.vc = *vc;
+	data.rect = rect;
+	data.select= select;
+
+	mesh_obmode_foreachScreenVert(vc, do_obmode_box_select__doSelect, &data, 1);
+
+	paintvert_flush_flags(ob);
+
+	return OPERATOR_FINISHED;
+}
+/* Jason */
 static void do_lasso_select_paintvert(ViewContext *vc, int mcords[][2], short moves, short extend, short select)
 {
 	Object *ob= vc->obact;
 	Mesh *me= ob?ob->data:NULL;
-	rcti rect;
+
+	struct { int (*mcords)[2]; short moves; short select; } data = {NULL};
 
 	if(me==NULL || me->totvert==0)
 		return;
 
 	if(extend==0 && select)
 		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE); /* flush selection at the end */
+	ED_view3d_init_mats_rv3d(ob, vc->rv3d);
+	data.select = select;
+	data.mcords = mcords;
+	data.moves= moves;
+	mesh_obmode_foreachScreenVert(vc, do_obmode_lasso_select__doSelect, &data, 1);
 
-	em_vertoffs= me->totvert+1;	/* max index array */
-
-	lasso_select_boundbox(&rect, mcords, moves);
-	EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-	
-	EM_backbuf_checkAndSelectTVerts(me, select);
-
-	EM_free_backbuf();
-
-	paintface_flush_flags(ob);
+	paintvert_flush_flags(ob);
 }
 static void do_lasso_select_paintface(ViewContext *vc, int mcords[][2], short moves, short extend, short select)
 {
@@ -1833,6 +1874,9 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		else if(vc.obact && paint_facesel_test(vc.obact)) {
 			ret= do_paintface_box_select(&vc, &rect, select, extend);
 		}
+		else if(vc.obact && paint_vertsel_test(vc.obact)) {
+			ret= do_paintvert_box_select(&vc, &rect, select, extend);
+		}
 		else if(vc.obact && vc.obact->mode & OB_MODE_PARTICLE_EDIT) {
 			ret= PE_border_select(C, &rect, select, extend);
 		}
@@ -2018,12 +2062,12 @@ static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y
 	}
 }
 /* Jason */
-static void mesh_obmode_circle_doSelectVert(void *userData, MVert *mv, int x, int y, int index)
+static void mesh_obmode_circle_doSelectVert(void *userData, MVert *mv, int x, int y, int UNUSED(index))
 {
 	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
-	mv = mv+index;
+
 	if (r<=data->radius) {
 		mv->flag = data->select?(mv->flag|1):(mv->flag&~1);
 	}
