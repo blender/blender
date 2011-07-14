@@ -88,15 +88,15 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        if not hasattr(context, "texture_slot"):
+        if not (hasattr(context, "texture_slot") or hasattr(context, "texture_node")):
             return False
         return ((context.material or context.world or context.lamp or context.brush or context.texture or context.particle_system or isinstance(context.space_data.pin_id, bpy.types.ParticleSettings))
             and (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
-        slot = context.texture_slot
-        node = context.texture_node
+        slot = getattr(context, "texture_slot", None)
+        node = getattr(context, "texture_node", None)
         space = context.space_data
         tex = context.texture
         idblock = context_tex_datablock(context)
@@ -393,7 +393,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
 
         idblock = context_tex_datablock(context)
         tex = context.texture
-        slot = context.texture_slot
+        slot = getattr(context, "texture_slot", None)
 
         split = layout.split()
 
@@ -408,7 +408,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
         col = split.column()
 
         #Only for Material based textures, not for Lamp/World...
-        if isinstance(idblock, bpy.types.Material):
+        if slot and isinstance(idblock, bpy.types.Material):
             col.prop(tex, "use_normal_map")
             row = col.row()
             row.active = tex.use_normal_map

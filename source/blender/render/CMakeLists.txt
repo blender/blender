@@ -120,6 +120,10 @@ if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()
 
+if(WITH_MOD_SMOKE)
+	add_definitions(-DWITH_SMOKE)
+endif()
+
 if(WITH_CODEC_QUICKTIME)
 	list(APPEND INC ../quicktime)
 	list(APPEND INC_SYS ${QUICKTIME_INCLUDE_DIRS})
