@@ -1514,6 +1514,72 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "axis", axis_actions, 0, "Axis", "Axis to use to align bundle along");
 }
 
+/********************** set scale operator *********************/
+
+static int set_scale_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	Scene *scene= CTX_data_scene(C);
+	Object *parent= scene->camera;
+	int tot= 0;
+	float vec[2][3], mat[4][4], scale;
+
+	if(count_selected_bundles(C)!=2) {
+		BKE_report(op->reports, RPT_ERROR, "Two tracks with bundles should be selected to scale scene");
+
+		return OPERATOR_CANCELLED;
+	}
+
+	if(scene->camera->parent)
+		parent= scene->camera->parent;
+
+	BKE_get_tracking_mat(scene, mat);
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track)) {
+			mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
+			tot++;
+		}
+
+		track= track->next;
+	}
+
+	sub_v3_v3(vec[0], vec[1]);
+
+	if(len_v3(vec[0])>1e-5) {
+		scale= clip->tracking.settings.dist / len_v3(vec[0]);
+
+		mul_v3_fl(parent->size, scale);
+		mul_v3_fl(parent->loc, scale);
+
+		DAG_id_tag_update(&clip->id, 0);
+		DAG_id_tag_update(&parent->id, OB_RECALC_OB);
+
+		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_set_scale(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Scale";
+	ot->description= "Set scale of scene";
+	ot->idname= "CLIP_OT_set_scale";
+
+	/* api callbacks */
+	ot->exec= set_scale_exec;
+	ot->poll= space_clip_frame_camera_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /********************** slide marker opertaotr *********************/
 
 typedef struct {

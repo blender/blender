@@ -220,6 +220,7 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->tracking.settings.frames_limit= 20;
 	clip->tracking.settings.keyframe1= 1;
 	clip->tracking.settings.keyframe2= 30;
+	clip->tracking.settings.dist= 1;
 
 	return clip;
 }
