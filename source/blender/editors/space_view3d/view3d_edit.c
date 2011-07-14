@@ -950,36 +950,6 @@ float ndof_to_angle_axis(struct wmNDOFMotionData* ndof, float axis[3])
 	return angle;
 	}
 
-#if 0 // unused utility functions
-// returns angular velocity (0..1), fills axis of rotation
-float ndof_to_angle_axis(const float ndof[3], float axis[3])
-	{
-	const float x = ndof[0];
-	const float y = ndof[1];
-	const float z = ndof[2];
-
-	float angular_velocity = sqrtf(x*x + y*y + z*z);
-
-	float scale = 1.f / angular_velocity;
-
-	// normalize 
-	axis[0] = scale * x;
-	axis[1] = scale * y;
-	axis[2] = scale * z;
-
-	return angular_velocity;
-	}
-
-static float ndof_to_angular_velocity(wmNDOFMotionData* ndof)
-	{
-	const float x = ndof->rx;
-	const float y = ndof->ry;
-	const float z = ndof->rz;
-
-	return sqrtf(x*x + y*y + z*z);
-	}
-#endif
-
 void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
 	{
 	const float x = ndof->rx;
@@ -999,11 +969,10 @@ void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
 	q[3] = scale * z;
 	}
 
-// Mike's original version:
+static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 // -- "orbit" navigation (trackball/turntable)
 // -- zooming
 // -- panning in rotationally-locked views
-static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RegionView3D* rv3d = CTX_wm_region_view3d(C);
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
@@ -1102,205 +1071,6 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-#if 0
-// statics for controlling rv3d->dist corrections.
-// viewmoveNDOF zeros and adjusts rv3d->ofs.
-// viewmove restores based on dz_flag state.
-
-static int dz_flag = 0;
-static float m_dist;
-
-static void mouse_rotation_workaround_push(RegionView3D* rv3d)
-{
-	// This is due to a side effect of the original
-	// mouse view rotation code. The rotation point is
-	// set a distance in front of the viewport to
-	// make rotating with the mouse look better.
-	// The distance effect is written at a low level
-	// in the view management instead of the mouse
-	// view function. This means that all other view
-	// movement devices must subtract this from their
-	// view transformations.
-
-	float mat[3][3];
-	float upvec[3];
-
-	if(rv3d->dist != 0.0) {
-		dz_flag = 1;
-		m_dist = rv3d->dist;
-		upvec[0] = upvec[1] = 0;
-		upvec[2] = rv3d->dist;
-		copy_m3_m4(mat, rv3d->viewinv);
-		mul_m3_v3(mat, upvec);
-		sub_v3_v3(rv3d->ofs, upvec);
-		rv3d->dist = 0.0;
-	}
-
-	// this is still needed in version 2.5 [mce]
-	// warning! current viewmove does not look at dz_flag or m_dist
-	// don't expect 2D mouse to work properly right after using 3D mouse
-}
-
-static void mouse_rotation_workaround_pop(RegionView3D* rv3d)
-{
-	if (dz_flag) {
-		dz_flag = 0;
-		rv3d->dist = m_dist;
-	}
-}
-
-static int ndof_fly_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	RegionView3D* rv3d = CTX_wm_region_view3d(C);
-	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
-
-	const int shouldRotate = 1, shouldTranslate = 0;
-
-	const float dt = ndof->dt;
-
-	float view_inv[4];
-	invert_qt_qt(view_inv, rv3d->viewquat);
-
-	if (shouldRotate)
-		{
-		const float turn_sensitivity = 1.f;
-
-		float rot[4];
-		float view_inv_conj[4];
-		mouse_rotation_workaround_push(rv3d);
-
-		ndof_to_quat(ndof, rot);
-
-		copy_qt_qt(view_inv_conj, view_inv);
-		conjugate_qt(view_inv_conj);
-
-		// transform rotation from view to world coordinates
-		mul_qt_qtqt(rot, view_inv, rot);
-		mul_qt_qtqt(rot, rot, view_inv_conj);
-
-		// apply rotation to view offset (focal point)
-		mul_qt_v3(rot, rv3d->ofs);
-//		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);		
-
-		rv3d->view = RV3D_VIEW_USER;
-		}
-
-	if (shouldTranslate)
-		{
-		const float forward_sensitivity = 1.f;
-		const float vertical_sensitivity = 1.f;
-		const float lateral_sensitivity = 1.f;
-
-		float trans[3] = {
-			lateral_sensitivity * ndof->tx,
-			vertical_sensitivity * ndof->ty,
-			forward_sensitivity * ndof->tz
-			};
-
-//		mul_v3_fl(trans, rv3d->dist * dt);
-		mul_v3_fl(trans, dt);
-
-		/* transform motion from view to world coordinates */
-		mul_qt_v3(view_inv, trans);
-
-		/* move center of view opposite of hand motion (this is camera mode, not object mode) */
-		sub_v3_v3(rv3d->ofs, trans);
-		}
-
-	ED_region_tag_redraw(CTX_wm_region(C));
-
-	return OPERATOR_FINISHED;
-}
-
-// BEGIN old fly code
-// derived from blender 2.4
-
-static void getndof(wmNDOFMotionData* indof, float* outdof)
-{
-	// Rotations feel relatively faster than translations only in fly mode, so
-	// we have no choice but to fix that here (not in the plugins)
-	const float turn_sensitivity = 0.8f;
-
-	const float forward_sensitivity = 2.5f;
-	const float vertical_sensitivity = 1.6f;
-	const float lateral_sensitivity = 2.5f;
-
-	const float dt = indof->dt;
-
-	outdof[0] = lateral_sensitivity * dt * indof->tx;
-	outdof[1] = vertical_sensitivity * dt * indof->ty;
-	outdof[2] = forward_sensitivity * dt * indof->tz;
-
-	outdof[3] = turn_sensitivity * dt * indof->rx;
-	outdof[4] = turn_sensitivity * dt * indof->ry;
-	outdof[5] = turn_sensitivity * dt * indof->rz;
-}
-
-
-static int ndof_oldfly_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	RegionView3D* rv3d = CTX_wm_region_view3d(C);
-	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
-
-	float phi;
-	float dval[6];
-	float tvec[3], rvec[3];
-	float q1[4];
-	float mat[3][3];
-
-	// fetch the current state of the ndof device
-	getndof(ndof, dval);
-
-	// force perspective mode. This is a hack and is
-	// incomplete. It doesn't actually affect the view
-	// until the first draw and doesn't update the menu
-	// to reflect persp mode.
-	rv3d->persp = RV3D_PERSP;
-
-	// Correct the distance jump if rv3d->dist != 0
-	mouse_rotation_workaround_push(rv3d);
-
-	// Apply rotation
-	rvec[0] = dval[3];
-	rvec[1] = dval[4];
-	rvec[2] = dval[5];
-
-	// rotate device x and y by view z
-	copy_m3_m4(mat, rv3d->viewinv);
-	mat[2][2] = 0.0f;
-	mul_m3_v3(mat, rvec);
-
-	// rotate the view
-	phi = normalize_v3(rvec);
-	if(phi != 0) {
-		axis_angle_to_quat(q1,rvec,phi);
-		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
-	}
-
-	// Apply translation
-	tvec[0] = dval[0];
-	tvec[1] = dval[1];
-	tvec[2] = dval[2];
-
-	// the next three lines rotate the x and y translation coordinates
-	// by the current z axis angle
-	copy_m3_m4(mat, rv3d->viewinv);
-	mat[2][2] = 0.0f;
-	mul_m3_v3(mat, tvec);
-
-	// translate the view
-	sub_v3_v3(rv3d->ofs, tvec);
-
-//	mouse_rotation_workaround_pop(rv3d);
-
-	// back to 2.5 land!
-	ED_region_tag_redraw(CTX_wm_region(C));
-	return OPERATOR_FINISHED;
-}
-
-// END old fly code
-#endif
-
 void VIEW3D_OT_ndof(struct wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1310,8 +1080,6 @@ void VIEW3D_OT_ndof(struct wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = ndof_orbit_invoke;
-//	ot->invoke = ndof_fly_invoke;
-//	ot->invoke = ndof_oldfly_invoke;
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
