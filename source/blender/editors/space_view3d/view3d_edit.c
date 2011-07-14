@@ -929,10 +929,30 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
-#if 0 // NDOF utility functions
+// NDOF utility functions
+// (should these functions live in this file?)
+float ndof_to_angle_axis(struct wmNDOFMotionData* ndof, float axis[3])
+	{
+	const float x = ndof->rx;
+	const float y = ndof->ry;
+	const float z = ndof->rz;
+
+	float angular_velocity = sqrtf(x*x + y*y + z*z);
+	float angle = ndof->dt * angular_velocity;
+
+	float scale = 1.f / angular_velocity;
+
+	// normalize 
+	axis[0] = scale * x;
+	axis[1] = scale * y;
+	axis[2] = scale * z;
+
+	return angle;
+	}
+
+#if 0 // unused utility functions
 // returns angular velocity (0..1), fills axis of rotation
-// (shouldn't live in this file!)
-static float ndof_to_angle_axis(const float ndof[3], float axis[3])
+float ndof_to_angle_axis(const float ndof[3], float axis[3])
 	{
 	const float x = ndof[0];
 	const float y = ndof[1];
@@ -960,7 +980,7 @@ static float ndof_to_angular_velocity(wmNDOFMotionData* ndof)
 	}
 #endif
 
-static void ndof_to_quat(wmNDOFMotionData* ndof, float q[4])
+void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
 	{
 	const float x = ndof->rx;
 	const float y = ndof->ry;
@@ -988,6 +1008,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RegionView3D* rv3d = CTX_wm_region_view3d(C);
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
+	const float dt = ndof->dt;
+
 	// tune these until everything feels right
 	const float rot_sensitivity = 1.f;
 	const float zoom_sensitivity = 1.f;
@@ -995,12 +1017,6 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	// rather have bool, but...
 	int has_rotation = rv3d->viewlock != RV3D_LOCKED && (ndof->rx || ndof->ry || ndof->rz);
-
-	float dt = ndof->dt;
-	if (dt > 0.25f)
-		/* this is probably the first event for this motion, so set dt to something reasonable */
-		/* TODO: replace such guesswork with a flag or field from the NDOF manager */
-		ndof->dt = dt = 0.0125f;
 
 	//#define DEBUG_NDOF_MOTION
 	#ifdef DEBUG_NDOF_MOTION
@@ -1086,74 +1102,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-#if 0 // not ready
-static int ndof_fly_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	RegionView3D* rv3d = CTX_wm_region_view3d(C);
-	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
-
-	const int shouldRotate = 0, shouldMove = 1;
-
-	float dt = ndof->dt;
-	if (dt > 0.25f)
-		/* this is probably the first event for this motion, so set dt to something reasonable */
-		/* TODO: replace such guesswork with a flag or field from the NDOF manager */
-		ndof->dt = dt = 0.0125f;
-
-	if (shouldRotate)
-		{
-		const float turn_sensitivity = 1.f;
-
-		float rot[4];
-		ndof_to_quat(ndof, rot);
-
-		rv3d->view = RV3D_VIEW_USER;
-		}
-
-	if (shouldMove)
-		{
-		const float forward_sensitivity = 1.f;
-		const float vertical_sensitivity = 1.f;
-		const float lateral_sensitivity = 1.f;
-		
-		float trans[3] = {
-			lateral_sensitivity * dt * ndof->tx,
-			vertical_sensitivity * dt * ndof->ty,
-			forward_sensitivity * rv3d->dist * dt * ndof->tz
-			};
-		}
-
-	ED_region_tag_redraw(CTX_wm_region(C));
-
-	return OPERATOR_FINISHED;
-}
-
-// BEGIN old fly code
-// derived from blender 2.4
-
-static void getndof(wmNDOFMotionData* indof, float* outdof)
-{
-	// Rotations feel relatively faster than translations only in fly mode, so
-	// we have no choice but to fix that here (not in the plugins)
-	const float turn_sensitivity = 0.8f;
-
-	const float forward_sensitivity = 2.5f;
-	const float vertical_sensitivity = 1.6f;
-	const float lateral_sensitivity = 2.5f;
-
-	const float dt = (indof->dt < 0.25f) ? indof->dt : 0.0125f;
-		// this is probably the first event for this motion, so set dt to something reasonable
-		// TODO: replace such guesswork with a flag or field from the NDOF manager
-
-	outdof[0] = lateral_sensitivity * dt * indof->tx;
-	outdof[1] = vertical_sensitivity * dt * indof->ty;
-	outdof[2] = forward_sensitivity * dt * indof->tz;
-
-	outdof[3] = turn_sensitivity * dt * indof->rx;
-	outdof[4] = turn_sensitivity * dt * indof->ry;
-	outdof[5] = turn_sensitivity * dt * indof->rz;
-}
-
+#if 0
 // statics for controlling rv3d->dist corrections.
 // viewmoveNDOF zeros and adjusts rv3d->ofs.
 // viewmove restores based on dz_flag state.
@@ -1199,6 +1148,94 @@ static void mouse_rotation_workaround_pop(RegionView3D* rv3d)
 		rv3d->dist = m_dist;
 	}
 }
+
+static int ndof_fly_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	RegionView3D* rv3d = CTX_wm_region_view3d(C);
+	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+
+	const int shouldRotate = 1, shouldTranslate = 0;
+
+	const float dt = ndof->dt;
+
+	float view_inv[4];
+	invert_qt_qt(view_inv, rv3d->viewquat);
+
+	if (shouldRotate)
+		{
+		const float turn_sensitivity = 1.f;
+
+		float rot[4];
+		float view_inv_conj[4];
+		mouse_rotation_workaround_push(rv3d);
+
+		ndof_to_quat(ndof, rot);
+
+		copy_qt_qt(view_inv_conj, view_inv);
+		conjugate_qt(view_inv_conj);
+
+		// transform rotation from view to world coordinates
+		mul_qt_qtqt(rot, view_inv, rot);
+		mul_qt_qtqt(rot, rot, view_inv_conj);
+
+		// apply rotation to view offset (focal point)
+		mul_qt_v3(rot, rv3d->ofs);
+//		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);		
+
+		rv3d->view = RV3D_VIEW_USER;
+		}
+
+	if (shouldTranslate)
+		{
+		const float forward_sensitivity = 1.f;
+		const float vertical_sensitivity = 1.f;
+		const float lateral_sensitivity = 1.f;
+
+		float trans[3] = {
+			lateral_sensitivity * ndof->tx,
+			vertical_sensitivity * ndof->ty,
+			forward_sensitivity * ndof->tz
+			};
+
+//		mul_v3_fl(trans, rv3d->dist * dt);
+		mul_v3_fl(trans, dt);
+
+		/* transform motion from view to world coordinates */
+		mul_qt_v3(view_inv, trans);
+
+		/* move center of view opposite of hand motion (this is camera mode, not object mode) */
+		sub_v3_v3(rv3d->ofs, trans);
+		}
+
+	ED_region_tag_redraw(CTX_wm_region(C));
+
+	return OPERATOR_FINISHED;
+}
+
+// BEGIN old fly code
+// derived from blender 2.4
+
+static void getndof(wmNDOFMotionData* indof, float* outdof)
+{
+	// Rotations feel relatively faster than translations only in fly mode, so
+	// we have no choice but to fix that here (not in the plugins)
+	const float turn_sensitivity = 0.8f;
+
+	const float forward_sensitivity = 2.5f;
+	const float vertical_sensitivity = 1.6f;
+	const float lateral_sensitivity = 2.5f;
+
+	const float dt = indof->dt;
+
+	outdof[0] = lateral_sensitivity * dt * indof->tx;
+	outdof[1] = vertical_sensitivity * dt * indof->ty;
+	outdof[2] = forward_sensitivity * dt * indof->tz;
+
+	outdof[3] = turn_sensitivity * dt * indof->rx;
+	outdof[4] = turn_sensitivity * dt * indof->ry;
+	outdof[5] = turn_sensitivity * dt * indof->rz;
+}
+
 
 static int ndof_oldfly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -1254,7 +1291,7 @@ static int ndof_oldfly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	// translate the view
 	sub_v3_v3(rv3d->ofs, tvec);
 
-	mouse_rotation_workaround_pop(rv3d);
+//	mouse_rotation_workaround_pop(rv3d);
 
 	// back to 2.5 land!
 	ED_region_tag_redraw(CTX_wm_region(C));
@@ -1272,8 +1309,9 @@ void VIEW3D_OT_ndof(struct wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_ndof";
 
 	/* api callbacks */
-//	ot->invoke = ndof_oldfly_invoke;
 	ot->invoke = ndof_orbit_invoke;
+//	ot->invoke = ndof_fly_invoke;
+//	ot->invoke = ndof_oldfly_invoke;
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */

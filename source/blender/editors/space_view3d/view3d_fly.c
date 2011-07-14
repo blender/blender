@@ -158,7 +158,9 @@ typedef struct FlyInfo {
 	short state;
 	short use_precision;
 	short redraw;
-	int mval[2];
+
+	int mval[2]; /* latest 2D mouse values */
+	wmNDOFMotionData* ndof; /* latest 3D mouse values */
 
 	/* fly state state */
 	float speed; /* the speed the view is moving per redraw */
@@ -257,6 +259,8 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	fly->ar = CTX_wm_region(C);
 	fly->scene= CTX_data_scene(C);
 
+	puts("\n-- fly begin --");
+
 	if(fly->rv3d->persp==RV3D_CAMOB && fly->v3d->camera->id.lib) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot fly a camera from an external library");
 		return FALSE;
@@ -282,12 +286,14 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	fly->zlock_momentum=0.0f;
 	fly->grid= 1.0f;
 	fly->use_precision= 0;
+	fly->redraw= 1;
 
 	fly->dvec_prev[0]= fly->dvec_prev[1]= fly->dvec_prev[2]= 0.0f;
 
 	fly->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
 	VECCOPY2D(fly->mval, event->mval)
+	fly->ndof = NULL;
 
 	fly->time_lastdraw= fly->time_lastwheel= PIL_check_seconds_timer();
 
@@ -329,8 +335,17 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		/* perspective or ortho */
 		if (fly->rv3d->persp==RV3D_ORTHO)
 			fly->rv3d->persp= RV3D_PERSP; /*if ortho projection, make perspective */
+
 		copy_qt_qt(fly->rot_backup, fly->rv3d->viewquat);
 		copy_v3_v3(fly->ofs_backup, fly->rv3d->ofs);
+
+		/* the dist defines a vector that is infront of the offset
+		to rotate the view about.
+		this is no good for fly mode because we
+		want to rotate about the viewers center.
+		but to correct the dist removal we must
+		alter offset so the view doesn't jump. */
+
 		fly->rv3d->dist= 0.0f;
 
 		upvec[2]= fly->dist_backup; /*x and y are 0*/
@@ -338,7 +353,6 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		sub_v3_v3(fly->rv3d->ofs, upvec);
 		/*Done with correcting for the dist*/
 	}
-
 	
 	/* center the mouse, probably the UI mafia are against this but without its quite annoying */
 	WM_cursor_warp(CTX_wm_window(C), fly->ar->winrct.xmin + fly->ar->winx/2, fly->ar->winrct.ymin + fly->ar->winy/2);
@@ -355,6 +369,8 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 
 	if(fly->state == FLY_RUNNING)
 		return OPERATOR_RUNNING_MODAL;
+
+	puts("\n-- fly end --");
 
 	WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), fly->timer);
 
@@ -401,6 +417,9 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	if(fly->obtfm)
 		MEM_freeN(fly->obtfm);
 
+	if(fly->ndof)
+		MEM_freeN(fly->ndof);
+
 	if(fly->state == FLY_CONFIRM) {
 		MEM_freeN(fly);
 		return OPERATOR_FINISHED;
@@ -412,12 +431,46 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 
 static void flyEvent(FlyInfo *fly, wmEvent *event)
 {
-	if (event->type == TIMER && event->customdata == fly->timer) {
-		fly->redraw = 1;
-	}
-	else if (event->type == MOUSEMOVE) {
+	if (event->type == MOUSEMOVE) {
 		VECCOPY2D(fly->mval, event->mval);
-	} /* handle modal keymap first */
+	}
+	else if (event->type == NDOF_MOTION) {
+		// do these automagically get delivered? yes.
+		// puts("ndof motion detected in fly mode!");
+		// static const char* tag_name = "3D mouse position";
+
+		wmNDOFMotionData* incoming_ndof = (wmNDOFMotionData*) event->customdata;
+		switch (incoming_ndof->progress)
+			{
+			case P_STARTING:
+				// start keeping track of 3D mouse position
+				puts("start keeping track of 3D mouse position");
+				// fall through...
+			case P_IN_PROGRESS:
+				// update 3D mouse position
+				putchar('.'); fflush(stdout);
+				if (fly->ndof == NULL)
+					// fly->ndof = MEM_mallocN(sizeof(wmNDOFMotionData), tag_name);
+					fly->ndof = MEM_dupallocN(incoming_ndof);
+					// fly->ndof = malloc(sizeof(wmNDOFMotionData));
+				else
+					memcpy(fly->ndof, incoming_ndof, sizeof(wmNDOFMotionData));
+				break;
+			case P_FINISHING:
+				// stop keeping track of 3D mouse position
+				puts("stop keeping track of 3D mouse position");
+				if (fly->ndof)
+					{
+					MEM_freeN(fly->ndof);
+					// free(fly->ndof);
+					fly->ndof = NULL;
+					}
+				break;
+			default:
+				; // should always be one of the above 3
+			}
+		}
+	/* handle modal keymap first */
 	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
 			case FLY_MODAL_CANCEL:
@@ -528,7 +581,6 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 			case FLY_MODAL_PRECISION_DISABLE:
 				fly->use_precision= FALSE;
 				break;
-
 		}
 	}
 }
@@ -567,15 +619,11 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	unsigned char
 	apply_rotation= 1; /* if the user presses shift they can look about without movinf the direction there looking*/
 
+	static unsigned int iteration = 1;
+	printf("fly timer %d\n", iteration++);
+
 	if(fly->root_parent)
 		ED_view3d_to_m4(prev_view_mat, fly->rv3d->ofs, fly->rv3d->viewquat, fly->rv3d->dist);
-
-	/* the dist defines a vector that is infront of the offset
-	to rotate the view about.
-	this is no good for fly mode because we
-	want to rotate about the viewers center.
-	but to correct the dist removal we must
-	alter offset so the view doesn't jump. */
 
 	xmargin= ar->winx/20.0f;
 	ymargin= ar->winy/20.0f;
@@ -621,6 +669,8 @@ static int flyApply(bContext *C, FlyInfo *fly)
 			double time_current; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
 			float time_redraw;
 			float time_redraw_clamped;
+
+			fly->redraw= 1;
 
 			time_current= PIL_check_seconds_timer();
 			time_redraw= (float)(time_current - fly->time_lastdraw);
@@ -854,11 +904,69 @@ static int flyApply(bContext *C, FlyInfo *fly)
 		copy_v3_v3(fly->dvec_prev, dvec);
 	}
 
-/* moved to flyEnd() */
-
 	return OPERATOR_FINISHED;
 }
 
+static int flyApply_ndof(bContext *C, FlyInfo *fly)
+{
+	// shorthand for oft-used variables
+	wmNDOFMotionData* ndof = fly->ndof;
+	const float dt = ndof->dt;
+	RegionView3D* rv3d = fly->rv3d;
+
+	const int shouldRotate = 1, shouldTranslate = 1;
+
+	float view_inv[4];
+	invert_qt_qt(view_inv, rv3d->viewquat);
+
+	if (shouldRotate)
+		{
+		const float turn_sensitivity = 1.f;
+
+		float rotation[4];
+		float axis[3];
+		float angle = turn_sensitivity * ndof_to_angle_axis(ndof, axis);
+
+		// transform rotation axis from view to world coordinates
+		mul_qt_v3(view_inv, axis);
+
+		// apply rotation to view
+		axis_angle_to_quat(rotation, axis, angle);
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);		
+
+		rv3d->view = RV3D_VIEW_USER;
+
+		fly->redraw = 1;
+		}
+
+	if (shouldTranslate)
+		{
+		const float forward_sensitivity = 1.f;
+		const float vertical_sensitivity = 0.4f;
+		const float lateral_sensitivity = 0.6f;
+
+		float speed = 10.f; // blender units per second
+		// ^^ this is ok for default cube scene, but should scale with.. something
+
+		float trans[3] = {
+			lateral_sensitivity * ndof->tx,
+			vertical_sensitivity * ndof->ty,
+			forward_sensitivity * ndof->tz
+			};
+
+		mul_v3_fl(trans, speed * dt);
+
+		// transform motion from view to world coordinates
+		mul_qt_v3(view_inv, trans);
+
+		// move center of view opposite of hand motion (this is camera mode, not object mode)
+		sub_v3_v3(rv3d->ofs, trans);
+
+		fly->redraw = 1;
+		}
+
+	return OPERATOR_FINISHED;
+}
 
 
 static int fly_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -908,7 +1016,12 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	flyEvent(fly, event);
 
-	if(event->type==TIMER && event->customdata == fly->timer)
+	if (fly->ndof) // 3D mouse overrules [2D mouse + timer]
+		{
+		if (event->type==NDOF_MOTION)
+			flyApply_ndof(C, fly);
+		}
+	else if (event->type==TIMER && event->customdata == fly->timer)
 		flyApply(C, fly);
 
 	do_draw |= fly->redraw;

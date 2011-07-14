@@ -2324,6 +2324,8 @@ static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* g
 
 	data->dt = ghost->dt;
 
+	data->progress = (wmProgress) ghost->progress;
+
 	event->custom = EVT_DATA_NDOF_MOTION;
 	event->customdata = data;
 	event->customdatafree = 1;

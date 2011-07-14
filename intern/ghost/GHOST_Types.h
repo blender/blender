@@ -434,14 +434,24 @@ typedef struct {
 	GHOST_TUns8 **strings;
 } GHOST_TStringArray;
 
+typedef enum {
+	GHOST_kNotStarted,
+	GHOST_kStarting,
+	GHOST_kInProgress,
+	GHOST_kFinishing,
+	GHOST_kFinished
+	} GHOST_TProgress;
+
 typedef struct {
-	/** N-degree of freedom device data v3 [GSoC 2010]*/
-	/* Each component normally ranges from -1 to +1, but can exceed that. */
-	float tx, ty, tz; /* translation: -x left, +y forward, -z up */
-	float rx, ry, rz; /* rotation:
-		axis = (rx,ry,rz).normalized
-		amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg] */
-	float dt; // time since previous NDOF Motion event (or zero if this is the first)
+	/** N-degree of freedom device data v3 [GSoC 2010] */
+	// Each component normally ranges from -1 to +1, but can exceed that.
+	// These use blender standard view coordinates, with positive rotations being CCW about the axis.
+	float tx, ty, tz; // translation
+	float rx, ry, rz; // rotation:
+		// axis = (rx,ry,rz).normalized
+		// amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
+	float dt; // time since previous NDOF Motion event
+	GHOST_TProgress progress; // Starting, InProgress or Finishing (for modal handlers)
 } GHOST_TEventNDOFMotionData;
 
 typedef enum { GHOST_kPress, GHOST_kRelease } GHOST_TButtonAction;

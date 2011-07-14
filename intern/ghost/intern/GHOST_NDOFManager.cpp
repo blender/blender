@@ -29,6 +29,12 @@
 #include <stdio.h> // for error/info reporting
 #include <math.h>
 
+#ifdef DEBUG_NDOF_MOTION
+// printable version of each GHOST_TProgress value
+static const char* progress_string[] =
+	{"not started","starting","in progress","finishing","finished"};
+#endif
+
 #ifdef DEBUG_NDOF_BUTTONS
 static const char* ndof_button_names[] = {
 	// used internally, never sent
@@ -139,9 +145,10 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	, m_buttonCount(0)
 	, m_buttonMask(0)
 	, m_buttons(0)
-	, m_motionTime(1000) // one full second (operators should filter out such large time deltas)
+	, m_motionTime(0)
 	, m_prevMotionTime(0)
-	, m_atRest(true)
+	, m_motionState(GHOST_kNotStarted)
+	, m_motionEventPending(false)
 	{
 	// to avoid the rare situation where one triple is updated and
 	// the other is not, initialize them both here:
@@ -179,10 +186,16 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					break;
 
 				// -- older devices --
-				case 0xC623: puts("ndof: SpaceTraveler not supported, please file a bug report"); break;
-					// no buttons?
-				case 0xC625: puts("ndof: SpacePilot not supported, please file a bug report"); break;
-					// 21 buttons
+				// keep unknown device type so rogue button events will get discarded
+				// "mystery device" owners can help build another HID_map for their hardware
+				case 0xC623:
+					puts("ndof: SpaceTraveler not supported, please file a bug report");
+					m_buttonCount = 8;
+					break;
+				case 0xC625:
+					puts("ndof: SpacePilot not supported, please file a bug report");
+					m_buttonCount = 21;
+					break;
 
 				default: printf("ndof: unknown Logitech product %04hx\n", product_id);
 				}
@@ -198,18 +211,41 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 	#endif
 	}
 
+void GHOST_NDOFManager::updateMotionState()
+	{
+	if (m_motionEventPending)
+		return;
+
+	switch (m_motionState)
+		{
+		case GHOST_kFinished:
+		case GHOST_kNotStarted:
+			m_motionState = GHOST_kStarting;
+			break;
+		case GHOST_kStarting:
+			m_motionState = GHOST_kInProgress;
+			break;		
+		default:
+			// InProgress remains InProgress
+			// should never be Finishing
+			break;
+		}
+
+	m_motionEventPending = true;
+	}
+
 void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)
 	{
 	memcpy(m_translation, t, sizeof(m_translation));
 	m_motionTime = time;
-	m_atRest = false;
+	updateMotionState();
 	}
 
 void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
 	{
 	memcpy(m_rotation, r, sizeof(m_rotation));
 	m_motionTime = time;
-	m_atRest = false;
+	updateMotionState();
 	}
 
 void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button, bool press, GHOST_TUns64 time, GHOST_IWindow* window)
@@ -290,7 +326,7 @@ void GHOST_NDOFManager::updateButtons(int button_bits, GHOST_TUns64 time)
 
 	int diff = m_buttons ^ button_bits;
 
-	for (int button_number = 0; button_number <= 31; ++button_number)
+	for (int button_number = 0; button_number < m_buttonCount; ++button_number)
 		{
 		int mask = 1 << button_number;
 
@@ -302,15 +338,21 @@ void GHOST_NDOFManager::updateButtons(int button_bits, GHOST_TUns64 time)
 		}
 	}
 
-static bool atHomePosition(GHOST_TEventNDOFMotionData* ndof, float threshold)
+static bool atHomePosition(GHOST_TEventNDOFMotionData* ndof)
 	{
-	#define HOME(foo) (fabsf(ndof->foo) < threshold)
+	#define HOME(foo) (ndof->foo == 0)
 	return HOME(tx) && HOME(ty) && HOME(tz) && HOME(rx) && HOME(ry) && HOME(rz);
+	}
+
+static bool nearHomePosition(GHOST_TEventNDOFMotionData* ndof, float threshold)
+	{
+	#define HOME1(foo) (fabsf(ndof->foo) < threshold)
+	return HOME1(tx) && HOME1(ty) && HOME1(tz) && HOME1(rx) && HOME1(ry) && HOME1(rz);
 	}
 
 bool GHOST_NDOFManager::sendMotionEvent()
 	{
-	if (m_atRest)
+	if (m_motionState == GHOST_kFinished || m_motionState == GHOST_kNotStarted)
 		return false;
 
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
@@ -320,7 +362,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
 	const float scale = 1.f / 350.f; // 3Dconnexion devices send +/- 350 usually
 
-	// possible future enhancement
+	// probable future enhancement
 	// scale *= m_sensitivity;
 
 	data->tx = scale * m_translation[0];
@@ -331,19 +373,35 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	data->ry = scale * m_rotation[1];
 	data->rz = scale * m_rotation[2];
 
-	data->dt = 0.001f * (m_motionTime - m_prevMotionTime); // in seconds
+	if (m_motionState == GHOST_kStarting)
+		// prev motion time will be ancient, so just make up something reasonable
+		data->dt = 0.0125f;
+	else
+		data->dt = 0.001f * (m_motionTime - m_prevMotionTime); // in seconds
 
 	m_prevMotionTime = m_motionTime;
 
+	// 'at rest' test goes at the end so that the first 'rest' event gets sent
+	if (atHomePosition(data))
+//	if (nearHomePosition(data, 0.05f)) // Linux & Windows have trouble w/ calibration
+		{
+		data->progress = GHOST_kFinishing;
+		// for internal state, skip Finishing & jump to Finished
+		m_motionState = GHOST_kFinished;
+		}
+	else
+		data->progress = m_motionState; // Starting or InProgress
+
 	#ifdef DEBUG_NDOF_MOTION
-	printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
-		data->tx, data->ty, data->tz, data->rx, data->ry, data->rz, data->dt);
+	printf("ndof %s: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
+		progress_string[data->progress],
+		data->tx, data->ty, data->tz,
+		data->rx, data->ry, data->rz,
+		data->dt);
 	#endif
 
 	m_system.pushEvent(event);
-
-	// 'at rest' test goes at the end so that the first 'rest' event gets sent
-	m_atRest = atHomePosition(data, 0.05f);
+	m_motionEventPending = false;
 
 	return true;
 	}

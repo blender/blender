@@ -27,9 +27,7 @@
 #include "GHOST_System.h"
 
 
-// --- the following type definitions will find a home somewhere else once finished ---
-
-//#define DEBUG_NDOF_MOTION
+#define DEBUG_NDOF_MOTION
 #define DEBUG_NDOF_BUTTONS
 
 typedef enum { NDOF_UnknownDevice, NDOF_SpaceNavigator, NDOF_SpaceExplorer, NDOF_SpacePilotPro } NDOF_DeviceT;
@@ -120,7 +118,7 @@ protected:
 private:
 	void sendButtonEvent(NDOF_ButtonT, bool press, GHOST_TUns64 time, GHOST_IWindow*);
 	void sendKeyEvent(GHOST_TKey, bool press, GHOST_TUns64 time, GHOST_IWindow*);
-
+	void updateMotionState();
 
 	NDOF_DeviceT m_deviceType;
 	int m_buttonCount;
@@ -132,7 +130,8 @@ private:
 
 	GHOST_TUns64 m_motionTime; // in milliseconds
 	GHOST_TUns64 m_prevMotionTime; // time of most recent Motion event sent
-	bool m_atRest;
+	GHOST_TProgress m_motionState;
+	bool m_motionEventPending;
 };
 
 #endif
