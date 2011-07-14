@@ -365,7 +365,7 @@ typedef struct UserDef {
 	short recent_files;		/* maximum number of recently used files to remember  */
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
-	short ndof_pan, ndof_rotate;
+/*	short ndof_pan, ndof_rotate; */
 	short curssize;
 	short color_picker_type;
 	short ipo_new;			/* interpolation mode for newly added F-Curves */
@@ -375,7 +375,10 @@ typedef struct UserDef {
 	short scrcastwait;		/* milliseconds between screencast snapshots */
 	
 	short widget_unit;		/* defaults to 20 for 72 DPI setting */
-	short pad[3];			
+	short pad[1];			
+
+	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
+	int ndof_flag;			/* flags for 3D mouse */
 
 	char versemaster[160];
 	char verseuser[160];
@@ -577,6 +580,17 @@ extern UserDef U; /* from blenkernel blender.c */
 #define TH_ROUNDED  	2
 #define TH_OLDSKOOL 	3
 #define TH_SHADED   	4
+
+/* ndof_flag (3D mouse options) */
+#define NDOF_SHOW_GUIDE     (1 << 0)
+#define NDOF_FLY_HELICOPTER (1 << 1)
+#define NDOF_LOCK_HORIZON   (1 << 2)
+/* the following might not need to be saved between sessions,
+   but they do need to live somewhere accessible...
+#define NDOF_SHOULD_PAN     (1 << 3)
+#define NDOF_SHOULD_ZOOM    (1 << 4)
+#define NDOF_SHOULD_ROTATE  (1 << 5)
+*/
 
 #ifdef __cplusplus
 }
