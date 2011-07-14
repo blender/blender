@@ -306,10 +306,10 @@ class AddPresetTrackingCamera(AddPresetBase, bpy.types.Operator):
     ]
 
     preset_values = [
-        "camera.focal_length",
         "camera.sensor_width",
         "camera.sensor_height",
         "camera.units",
+        "camera.focal_length",
         "camera.k1",
         "camera.k2",
         "camera.k3"

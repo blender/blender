@@ -834,7 +834,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 					{
 					double yfov = camera->getYFov().getValue();
 					// yfov is in degrees, cam->lens is in millimiters
-					cam->lens = hfov_to_focallength((float)x*(M_PI/180.0f), cam->sensor_x);
+					cam->lens = hfov_to_focallength((float)yfov*(M_PI/180.0f), cam->sensor_x);
 					}
 					break;
 			}
