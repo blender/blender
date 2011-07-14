@@ -90,7 +90,8 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject* 
 		return NULL;
 	}
 	if(vec1->size != 3 || vec2->size != 3 || vec3->size != 3 || ray->size != 3 || ray_off->size != 3) {
-		PyErr_SetString(PyExc_ValueError, "only 3D vectors for all parameters");
+		PyErr_SetString(PyExc_ValueError,
+		                "only 3D vectors for all parameters");
 		return NULL;
 	}
 
@@ -177,7 +178,8 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 		return NULL;
 	}
 	if(vec1->size != vec2->size || vec1->size != vec3->size || vec3->size != vec2->size) {
-		PyErr_SetString(PyExc_ValueError,"vectors must be of the same size");
+		PyErr_SetString(PyExc_ValueError,
+		                "vectors must be of the same size");
 		return NULL;
 	}
 
@@ -225,7 +227,8 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 		}
 	}
 	else {
-		PyErr_SetString(PyExc_ValueError, "2D/3D vectors only");
+		PyErr_SetString(PyExc_ValueError,
+		                "2D/3D vectors only");
 		return NULL;
 	}
 }
@@ -259,11 +262,13 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject* args)
 			return NULL;
 		}
 		if(vec1->size != vec2->size || vec1->size != vec3->size) {
-			PyErr_SetString(PyExc_ValueError, "vectors must be of the same size");
+			PyErr_SetString(PyExc_ValueError,
+			                "vectors must be of the same size");
 			return NULL;
 		}
 		if(vec1->size < 3) {
-			PyErr_SetString(PyExc_ValueError, "2D vectors unsupported");
+			PyErr_SetString(PyExc_ValueError,
+			                "2D vectors unsupported");
 			return NULL;
 		}
 
@@ -277,11 +282,13 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject* args)
 			return NULL;
 		}
 		if(vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec4->size) {
-			PyErr_SetString(PyExc_ValueError,"vectors must be of the same size");
+			PyErr_SetString(PyExc_ValueError,
+			                "vectors must be of the same size");
 			return NULL;
 		}
 		if(vec1->size < 3) {
-			PyErr_SetString(PyExc_ValueError, "2D vectors unsupported");
+			PyErr_SetString(PyExc_ValueError,
+			                "2D vectors unsupported");
 			return NULL;
 		}
 
@@ -318,7 +325,8 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject* args)
 	}
 
 	if(vec1->size != vec2->size || vec1->size != vec3->size) {
-		PyErr_SetString(PyExc_ValueError, "vectors must be of the same size");
+		PyErr_SetString(PyExc_ValueError,
+		                "vectors must be of the same size");
 		return NULL;
 	}
 
@@ -332,7 +340,8 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject* args)
 		return PyFloat_FromDouble(area_tri_v2(vec1->vec, vec2->vec, vec3->vec));
 	}
 	else {
-		PyErr_SetString(PyExc_ValueError, "only 2D,3D vectors are supported");
+		PyErr_SetString(PyExc_ValueError,
+		                "only 2D,3D vectors are supported");
 		return NULL;
 	}
 }
@@ -360,7 +369,8 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 	int index, *dl_face, totpoints=0;
 
 	if(!PySequence_Check(polyLineSeq)) {
-		PyErr_SetString(PyExc_TypeError, "expected a sequence of poly lines");
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a sequence of poly lines");
 		return NULL;
 	}
 	
@@ -371,7 +381,8 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 		if (!PySequence_Check(polyLine)) {
 			freedisplist(&dispbase);
 			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
-			PyErr_SetString(PyExc_TypeError, "One or more of the polylines is not a sequence of mathutils.Vector's");
+			PyErr_SetString(PyExc_TypeError,
+			                "One or more of the polylines is not a sequence of mathutils.Vector's");
 			return NULL;
 		}
 		
@@ -381,7 +392,8 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 			if (EXPP_check_sequence_consistency(polyLine, &vector_Type) != 1) {
 				freedisplist(&dispbase);
 				Py_DECREF(polyLine);
-				PyErr_SetString(PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type");
+				PyErr_SetString(PyExc_TypeError,
+				                "A point in one of the polylines is not a mathutils.Vector type");
 				return NULL;
 			}
 #endif
@@ -422,7 +434,9 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 	
 	if(ls_error) {
 		freedisplist(&dispbase); /* possible some dl was allocated */
-		PyErr_SetString(PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type");
+		PyErr_SetString(PyExc_TypeError,
+		                "A point in one of the polylines "
+		                "is not a mathutils.Vector type");
 		return NULL;
 	}
 	else if (totpoints) {
@@ -436,7 +450,8 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 		tri_list= PyList_New(dl->parts);
 		if(!tri_list) {
 			freedisplist(&dispbase);
-			PyErr_SetString(PyExc_RuntimeError, "geometry.PolyFill failed to make a new list");
+			PyErr_SetString(PyExc_RuntimeError,
+			                "failed to make a new list");
 			return NULL;
 		}
 		
@@ -541,7 +556,9 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	}
 
 	if(ELEM4(2, line_a->size, line_b->size, plane_co->size, plane_no->size)) {
-		PyErr_SetString(PyExc_RuntimeError, "geometry.intersect_line_plane(...) can't use 2D Vectors");
+		PyErr_SetString(PyExc_RuntimeError,
+		                "geometry.intersect_line_plane(...): "
+		                " can't use 2D Vectors");
 		return NULL;
 	}
 
@@ -597,7 +614,9 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 	}
 
 	if(ELEM3(2, line_a->size, line_b->size, sphere_co->size)) {
-		PyErr_SetString(PyExc_RuntimeError, "geometry.intersect_line_sphere(...) can't use 2D Vectors");
+		PyErr_SetString(PyExc_RuntimeError,
+		                "geometry.intersect_line_sphere(...): "
+		                " can't use 2D Vectors");
 		return NULL;
 	}
 	else {
@@ -834,7 +853,8 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 	
 	/* Error checking must already be done */
 	if(!PyList_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "can only back a list of [x, y, w, h]");
+		PyErr_SetString(PyExc_TypeError,
+		                "can only back a list of [x, y, w, h]");
 		return -1;
 	}
 	
@@ -847,7 +867,8 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 		list_item= PyList_GET_ITEM(value, i);
 		if(!PyList_Check(list_item) || PyList_Size(list_item) < 4) {
 			MEM_freeN(*boxarray);
-			PyErr_SetString(PyExc_TypeError, "can only pack a list of [x, y, w, h]");
+			PyErr_SetString(PyExc_TypeError,
+			                "can only pack a list of [x, y, w, h]");
 			return -1;
 		}
 		
@@ -862,7 +883,9 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 
 		if (box->w < 0.0f || box->h < 0.0f) {
 			MEM_freeN(*boxarray);
-			PyErr_SetString(PyExc_TypeError, "error parsing width and height values from list: [x, y, w, h], not numbers or below zero");
+			PyErr_SetString(PyExc_TypeError,
+			                "error parsing width and height values from list: "
+			                "[x, y, w, h], not numbers or below zero");
 			return -1;
 		}
 
@@ -906,7 +929,8 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 	PyObject *ret;
 	
 	if(!PyList_Check(boxlist)) {
-		PyErr_SetString(PyExc_TypeError, "expected a list of boxes [[x, y, w, h], ... ]");
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a list of boxes [[x, y, w, h], ... ]");
 		return NULL;
 	}
 
@@ -972,7 +996,8 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject*
 	}
 
 	if(resolu <= 1) {
-		PyErr_SetString(PyExc_ValueError, "resolution must be 2 or over");
+		PyErr_SetString(PyExc_ValueError,
+		                "resolution must be 2 or over");
 		return NULL;
 	}
 
@@ -1049,7 +1074,8 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 		vec_t2_tar->size != 3 ||
 		vec_t3_tar->size != 3)
 	{
-		PyErr_SetString(PyExc_ValueError, "One of more of the vector arguments wasnt a 3D vector");
+		PyErr_SetString(PyExc_ValueError,
+		                "One of more of the vector arguments wasnt a 3D vector");
 		return NULL;
 	}
 

@@ -55,7 +55,9 @@ static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	short order= EULER_ORDER_XYZ;
 
 	if(kwds && PyDict_Size(kwds)) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.Euler(): takes no keyword args");
+		PyErr_SetString(PyExc_TypeError,
+		                "mathutils.Euler(): "
+		                "takes no keyword args");
 		return NULL;
 	}
 
@@ -97,7 +99,9 @@ short euler_order_from_string(const char *str, const char *error_prefix)
 		}
 	}
 
-	PyErr_Format(PyExc_TypeError, "%s: invalid euler order '%s'", error_prefix, str);
+	PyErr_Format(PyExc_TypeError,
+	             "%s: invalid euler order '%s'",
+	             error_prefix, str);
 	return -1;
 }
 
@@ -199,11 +203,14 @@ static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 	const char *axis;
 
 	if(!PyArg_ParseTuple(args, "sf:rotate", &axis, &angle)){
-		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected angle (float) and axis (x, y, z)");
+		PyErr_SetString(PyExc_TypeError,
+		                "euler.rotate(): "
+		                "expected angle (float) and axis (x, y, z)");
 		return NULL;
 	}
 	if(!(ELEM3(*axis, 'X', 'Y', 'Z') && axis[1]=='\0')){
-		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected axis to be 'X', 'Y' or 'Z'");
+		PyErr_SetString(PyExc_TypeError, "euler.rotate(): "
+		                "expected axis to be 'X', 'Y' or 'Z'");
 		return NULL;
 	}
 
@@ -360,7 +367,9 @@ static PyObject *Euler_item(EulerObject * self, int i)
 	if(i<0) i= EULER_SIZE-i;
 
 	if(i < 0 || i >= EULER_SIZE) {
-		PyErr_SetString(PyExc_IndexError, "euler[attribute]: array index out of range");
+		PyErr_SetString(PyExc_IndexError,
+		                "euler[attribute]: "
+		                "array index out of range");
 		return NULL;
 	}
 
@@ -377,14 +386,18 @@ static int Euler_ass_item(EulerObject * self, int i, PyObject *value)
 	float f = PyFloat_AsDouble(value);
 
 	if(f == -1 && PyErr_Occurred()) { // parsed item not a number
-		PyErr_SetString(PyExc_TypeError, "euler[attribute] = x: argument not a number");
+		PyErr_SetString(PyExc_TypeError,
+		                "euler[attribute] = x: "
+		                "argument not a number");
 		return -1;
 	}
 
 	if(i<0) i= EULER_SIZE-i;
 
 	if(i < 0 || i >= EULER_SIZE){
-		PyErr_SetString(PyExc_IndexError, "euler[attribute] = x: array assignment index out of range");
+		PyErr_SetString(PyExc_IndexError,
+		                "euler[attribute] = x: "
+		                "array assignment index out of range");
 		return -1;
 	}
 
@@ -436,7 +449,9 @@ static int Euler_ass_slice(EulerObject *self, int begin, int end, PyObject *seq)
 		return -1;
 
 	if(size != (end - begin)){
-		PyErr_SetString(PyExc_TypeError, "euler[begin:end] = []: size mismatch in slice assignment");
+		PyErr_SetString(PyExc_TypeError,
+		                "euler[begin:end] = []: "
+		                "size mismatch in slice assignment");
 		return -1;
 	}
 
@@ -471,12 +486,15 @@ static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
 			return Euler_slice(self, start, stop);
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError, "slice steps not supported with eulers");
+			PyErr_SetString(PyExc_TypeError,
+			                "slice steps not supported with eulers");
 			return NULL;
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "euler indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "euler indices must be integers, not %.200s",
+		             Py_TYPE(item)->tp_name);
 		return NULL;
 	}
 }
@@ -501,12 +519,15 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
 		if (step == 1)
 			return Euler_ass_slice(self, start, stop, value);
 		else {
-			PyErr_SetString(PyExc_TypeError, "slice steps not supported with euler");
+			PyErr_SetString(PyExc_TypeError,
+			                "slice steps not supported with euler");
 			return -1;
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "euler indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "euler indices must be integers, not %.200s",
+		             Py_TYPE(item)->tp_name);
 		return -1;
 	}
 }
@@ -680,7 +701,8 @@ PyObject *newEulerObject(float *eul, short order, int type, PyTypeObject *base_t
 			self->wrapped = Py_NEW;
 		}
 		else {
-			PyErr_SetString(PyExc_RuntimeError, "Euler(): invalid type");
+			PyErr_SetString(PyExc_RuntimeError,
+			                "Euler(): invalid type, internal error");
 			return NULL;
 		}
 

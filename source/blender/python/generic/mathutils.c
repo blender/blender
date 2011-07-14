@@ -57,8 +57,16 @@ static int mathutils_array_parse_fast(float *array, int array_min, int array_max
 	size= PySequence_Fast_GET_SIZE(value_fast);
 
 	if(size > array_max || size < array_min) {
-		if (array_max == array_min)	PyErr_Format(PyExc_ValueError, "%.200s: sequence size is %d, expected %d", error_prefix, size, array_max);
-		else						PyErr_Format(PyExc_ValueError, "%.200s: sequence size is %d, expected [%d - %d]", error_prefix, size, array_min, array_max);
+		if (array_max == array_min)	{
+			PyErr_Format(PyExc_ValueError,
+			             "%.200s: sequence size is %d, expected %d",
+			             error_prefix, size, array_max);
+		}
+		else {
+			PyErr_Format(PyExc_ValueError,
+			             "%.200s: sequence size is %d, expected [%d - %d]",
+			             error_prefix, size, array_min, array_max);
+		}
 		Py_DECREF(value_fast);
 		return -1;
 	}
@@ -67,7 +75,10 @@ static int mathutils_array_parse_fast(float *array, int array_min, int array_max
 	do {
 		i--;
 		if(((array[i]= PyFloat_AsDouble((item= PySequence_Fast_GET_ITEM(value_fast, i)))) == -1.0f) && PyErr_Occurred()) {
-			PyErr_Format(PyExc_ValueError, "%.200s: sequence index %d expected a number, found '%.200s' type, ", error_prefix, i, Py_TYPE(item)->tp_name);
+			PyErr_Format(PyExc_ValueError,
+			             "%.200s: sequence index %d expected a number, "
+			             "found '%.200s' type, ",
+			             error_prefix, i, Py_TYPE(item)->tp_name);
 			Py_DECREF(value_fast);
 			return -1;
 		}
@@ -93,8 +104,16 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 		}
 
 		if(size > array_max || size < array_min) {
-			if (array_max == array_min)	PyErr_Format(PyExc_ValueError, "%.200s: sequence size is %d, expected %d", error_prefix, size, array_max);
-			else						PyErr_Format(PyExc_ValueError, "%.200s: sequence size is %d, expected [%d - %d]", error_prefix, size, array_min, array_max);
+			if (array_max == array_min)	{
+				PyErr_Format(PyExc_ValueError,
+				             "%.200s: sequence size is %d, expected %d",
+				             error_prefix, size, array_max);
+			}
+			else {
+				PyErr_Format(PyExc_ValueError,
+				             "%.200s: sequence size is %d, expected [%d - %d]",
+				             error_prefix, size, array_min, array_max);
+			}
 			return -1;
 		}
 
@@ -135,7 +154,9 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 			return -1;
 		}
 		else if(((MatrixObject *)value)->col_size < 3 || ((MatrixObject *)value)->row_size < 3) {
-			PyErr_Format(PyExc_ValueError, "%.200s: matrix must have minimum 3x3 dimensions", error_prefix);
+			PyErr_Format(PyExc_ValueError,
+			             "%.200s: matrix must have minimum 3x3 dimensions",
+			             error_prefix);
 			return -1;
 		}
 		else {
@@ -145,7 +166,9 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "%.200s: expected a Euler, Quaternion or Matrix type, found %.200s", error_prefix, Py_TYPE(value)->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s: expected a Euler, Quaternion or Matrix type, "
+		             "found %.200s", error_prefix, Py_TYPE(value)->tp_name);
 		return -1;
 	}
 }
@@ -213,8 +236,11 @@ int _BaseMathObject_ReadCallback(BaseMathObject *self)
 	if(cb->get(self, self->cb_subtype) != -1)
 		return 0;
 
-	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_RuntimeError, "%s read, user has become invalid", Py_TYPE(self)->tp_name);
+	if(!PyErr_Occurred()) {
+		PyErr_Format(PyExc_RuntimeError,
+		             "%s read, user has become invalid",
+		             Py_TYPE(self)->tp_name);
+	}
 	return -1;
 }
 
@@ -224,8 +250,11 @@ int _BaseMathObject_WriteCallback(BaseMathObject *self)
 	if(cb->set(self, self->cb_subtype) != -1)
 		return 0;
 
-	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_RuntimeError, "%s write, user has become invalid", Py_TYPE(self)->tp_name);
+	if(!PyErr_Occurred()) {
+		PyErr_Format(PyExc_RuntimeError,
+		             "%s write, user has become invalid",
+		             Py_TYPE(self)->tp_name);
+	}
 	return -1;
 }
 
@@ -235,8 +264,11 @@ int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 	if(cb->get_index(self, self->cb_subtype, index) != -1)
 		return 0;
 
-	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_RuntimeError, "%s read index, user has become invalid", Py_TYPE(self)->tp_name);
+	if(!PyErr_Occurred()) {
+		PyErr_Format(PyExc_RuntimeError,
+		             "%s read index, user has become invalid",
+		             Py_TYPE(self)->tp_name);
+	}
 	return -1;
 }
 
@@ -246,8 +278,11 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 	if(cb->set_index(self, self->cb_subtype, index) != -1)
 		return 0;
 
-	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_RuntimeError, "%s write index, user has become invalid", Py_TYPE(self)->tp_name);
+	if(!PyErr_Occurred()) {
+		PyErr_Format(PyExc_RuntimeError,
+		             "%s write index, user has become invalid",
+		             Py_TYPE(self)->tp_name);
+	}
 	return -1;
 }
 
