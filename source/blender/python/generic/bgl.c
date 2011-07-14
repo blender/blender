@@ -69,11 +69,44 @@ static PySequenceMethods Buffer_SeqMethods = {
 };
 
 static void Buffer_dealloc(PyObject *self);
-static PyObject *Buffer_tolist(PyObject *self, void *arg);
-static PyObject *Buffer_dimensions(PyObject *self, void *arg);
 static PyObject *Buffer_repr(PyObject *self);
-static PyMethodDef Buffer_methods[];
-static PyGetSetDef Buffer_getseters[];
+
+static PyObject *Buffer_to_list(PyObject *self)
+{
+	int i, len= ((Buffer *)self)->dimensions[0];
+	PyObject *list= PyList_New(len);
+
+	for (i=0; i<len; i++) {
+		PyList_SET_ITEM(list, i, Buffer_item(self, i));
+	}
+
+	return list;
+}
+
+static PyObject *Buffer_dimensions(PyObject *self, void *UNUSED(arg))
+{
+	Buffer *buffer= (Buffer *) self;
+	PyObject *list= PyList_New(buffer->ndimensions);
+	int i;
+
+	for (i= 0; i<buffer->ndimensions; i++) {
+		PyList_SET_ITEM(list, i, PyLong_FromLong(buffer->dimensions[i]));
+	}
+
+	return list;
+}
+
+static PyMethodDef Buffer_methods[] = {
+	{"to_list", (PyCFunction)Buffer_to_list, METH_NOARGS,
+     "return the buffer as a list"},
+	{NULL, NULL, 0, NULL}
+};
+
+static PyGetSetDef Buffer_getseters[] = {
+	{(char *)"dimensions", (getter)Buffer_dimensions, NULL, NULL, NULL},
+	 {NULL, NULL, NULL, NULL, NULL}
+};
+
 
 PyTypeObject BGL_bufferType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -460,41 +493,6 @@ static void Buffer_dealloc(PyObject *self)
 	PyObject_DEL(self);
 }
 
-static PyObject *Buffer_to_list(PyObject *self)
-{
-	int i, len= ((Buffer *)self)->dimensions[0];
-	PyObject *list= PyList_New(len);
-
-	for (i=0; i<len; i++) {
-		PyList_SET_ITEM(list, i, Buffer_item(self, i));
-	}
-
-	return list;
-}
-
-static PyObject *Buffer_dimensions(PyObject *self, void *UNUSED(arg))
-{
-	Buffer *buffer= (Buffer *) self;
-	PyObject *list= PyList_New(buffer->ndimensions);
-	int i;
-
-	for (i= 0; i<buffer->ndimensions; i++) {
-		PyList_SET_ITEM(list, i, PyLong_FromLong(buffer->dimensions[i]));
-	}
-
-	return list;
-}
-
-static PyMethodDef Buffer_methods[] = {
-	{"to_list", (PyCFunction)Buffer_to_list, METH_NOARGS,
-     "return the buffer as a list"},
-	{NULL, NULL, 0, NULL}
-};
-
-static PyGetSetDef Buffer_getseters[] = {
-	{(char *)"dimensions", (getter)Buffer_dimensions, NULL, NULL, NULL},
-	 {NULL, NULL, NULL, NULL, NULL}
-};
 
 static PyObject *Buffer_repr(PyObject *self)
 {
