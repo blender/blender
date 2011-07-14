@@ -1110,38 +1110,20 @@ void CLIP_OT_clear_reconstruction(wmOperatorType *ot)
 
 /********************** clear track operator *********************/
 
-static int clear_track_path_poll(bContext *C)
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-
-	if(sc) {
-		MovieClip *clip= ED_space_clip(sc);
-
-		if(clip && BKE_movieclip_has_frame(clip, &sc->user)) {
-			int sel_type;
-			void *sel;
-
-			BKE_movieclip_last_selection(clip, &sel_type, &sel);
-
-			return sel_type == MCLIP_SEL_TRACK;
-		}
-	}
-
-	return 0;
-}
-
 static int clear_track_path_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	int sel_type, action;
 	MovieTrackingTrack *track;
+	int action= RNA_enum_get(op->ptr, "action");
 
-	action= RNA_enum_get(op->ptr, "action");
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track))
+			BKE_tracking_clear_path(track, sc->user.framenr, action);
 
-	BKE_movieclip_last_selection(clip, &sel_type, (void**)&track);
-
-	BKE_tracking_clear_path(track, sc->user.framenr, action);
+		track= track->next;
+	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
 
@@ -1164,7 +1146,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= clear_track_path_exec;
-	ot->poll= clear_track_path_poll;
+	ot->poll= space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
