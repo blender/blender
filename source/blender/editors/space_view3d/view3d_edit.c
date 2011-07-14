@@ -1127,7 +1127,6 @@ static int ndof_fly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	return OPERATOR_FINISHED;
 }
-#endif
 
 // BEGIN old fly code
 // derived from blender 2.4
@@ -1263,6 +1262,7 @@ static int ndof_oldfly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 // END old fly code
+#endif
 
 void VIEW3D_OT_ndof(struct wmOperatorType *ot)
 {
@@ -1272,8 +1272,8 @@ void VIEW3D_OT_ndof(struct wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_ndof";
 
 	/* api callbacks */
-	ot->invoke = ndof_oldfly_invoke;
-//	ot->invoke = ndof_orbit_invoke;
+//	ot->invoke = ndof_oldfly_invoke;
+	ot->invoke = ndof_orbit_invoke;
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
