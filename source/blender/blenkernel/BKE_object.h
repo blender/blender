@@ -142,7 +142,7 @@ int object_is_modified(struct Scene *scene, struct Object *ob);
 void object_camera_mode(struct RenderData *rd, struct Object *camera);
 void object_camera_matrix(
 		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
-		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens, float *ycor,
+		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens, float *sensor_x, float *ycor,
 		float *viewdx, float *viewdy);
 
 void object_relink(struct Object *ob);

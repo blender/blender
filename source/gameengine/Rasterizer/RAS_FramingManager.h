@@ -241,6 +241,7 @@ public :
 		const RAS_Rect &availableViewport,
 		const RAS_Rect &viewport,
 		const float lens,
+		const float sensor_x,
 		const float camnear,
 		const float camfar,
 		RAS_FrameFrustum &frustum
@@ -252,6 +253,7 @@ public :
 		const float camnear,
 		const float camfar,
 		const float lens,
+		const float sensor_x,
 		const float design_aspect_ratio,
 		RAS_FrameFrustum & frustum
 	);	

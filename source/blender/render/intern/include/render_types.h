@@ -155,6 +155,7 @@ struct Render
 	
 	/* values for viewing */
 	float lens;
+	float sensor_x; /* image sensor size, same variable in camera */
 	float ycor; /* (scene->xasp / scene->yasp), multiplied with 'winy' */
 	
 	float panophi, panosi, panoco, panodxp, panodxv;

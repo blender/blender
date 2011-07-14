@@ -1134,6 +1134,21 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			uiSetRoundBox(15);
 			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 		}
+
+		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
+			/* assume fixed sensor width for now */
+			float sensor_aspect = ca->sensor_x / ca->sensor_y;
+			float sensor_scale = (x2i-x1i) / ca->sensor_x;
+			float sensor_height = sensor_scale * ca->sensor_y;
+
+			float ymid = y1i + (y2i-y1i)/2.f;
+			float sy1= ymid - sensor_height/2.f;
+			float sy2= ymid + sensor_height/2.f;
+
+			UI_ThemeColorShade(TH_WIRE, 100);
+
+			uiDrawBox(GL_LINE_LOOP, x1i, sy1, x2i, sy2, 2.0);
+		}
 	}
 
 	setlinestyle(0);
@@ -2466,10 +2481,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	/* render 3d view */
 	if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
 		float winmat[4][4];
-		float _clipsta, _clipend, _lens, _yco, _dx, _dy;
+		float _clipsta, _clipend, _lens, _yco, _dx, _dy, _sensor_x=0;
 		rctf _viewplane;
 
-		object_camera_matrix(&scene->r, v3d->camera, sizex, sizey, 0, winmat, &_viewplane, &_clipsta, &_clipend, &_lens, &_yco, &_dx, &_dy);
+		object_camera_matrix(&scene->r, v3d->camera, sizex, sizey, 0, winmat, &_viewplane, &_clipsta, &_clipend, &_lens, &_sensor_x, &_yco, &_dx, &_dy);
 
 		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
 	}
@@ -2524,9 +2539,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	invert_m4_m4(rv3d.viewmat, rv3d.viewinv);
 
 	{
-		float _yco, _dx, _dy;
+		float _yco, _dx, _dy, _sensor_x=0;
 		rctf _viewplane;
-		object_camera_matrix(&scene->r, v3d.camera, width, height, 0, rv3d.winmat, &_viewplane, &v3d.near, &v3d.far, &v3d.lens, &_yco, &_dx, &_dy);
+		object_camera_matrix(&scene->r, v3d.camera, width, height, 0, rv3d.winmat, &_viewplane, &v3d.near, &v3d.far, &v3d.lens, &_sensor_x, &_yco, &_dx, &_dy);
 	}
 
 	mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);

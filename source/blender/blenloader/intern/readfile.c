@@ -11800,6 +11800,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	{
+		Camera *cam;
+			for(cam= main->camera.first; cam; cam= cam->id.next) {
+				if (cam->sensor_x < 0.01) {
+					cam->sensor_x = 32.f;
+					cam->sensor_y = 18.f;
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

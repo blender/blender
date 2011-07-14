@@ -950,7 +950,7 @@ int ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *clipsta, fl
 int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
 {
 	Camera *cam=NULL;
-	float lens, fac, x1, y1, x2, y2;
+	float lens, sensor=32.f, fac, x1, y1, x2, y2;
 	float winx= (float)winxi, winy= (float)winyi;
 	int orth= 0;
 	
@@ -976,6 +976,7 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 			else if(v3d->camera->type==OB_CAMERA) {
 				cam= v3d->camera->data;
 				lens= cam->lens;
+				sensor= cam->sensor_x;
 				*clipsta= cam->clipsta;
 				*clipend= cam->clipend;
 			}
@@ -1021,8 +1022,8 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 		else {
 			float dfac;
 			
-			if(winx>winy) dfac= 64.0f/(fac*winx*lens);
-			else dfac= 64.0f/(fac*winy*lens);
+			if(winx>winy) dfac= (sensor * 2.0) / (fac*winx*lens);
+			else dfac= (sensor * 2.0) / (fac*winy*lens);
 			
 			x1= - *clipsta * winx*dfac;
 			x2= -x1;
@@ -1041,8 +1042,8 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 				dy += cam->shifty * cam->ortho_scale;
 			}
 			else {
-				dx += cam->shiftx * (cam->clipsta / cam->lens) * 32.0f;
-				dy += cam->shifty * (cam->clipsta / cam->lens) * 32.0f;
+				dx += cam->shiftx * (cam->clipsta / cam->lens) * sensor;
+				dy += cam->shifty * (cam->clipsta / cam->lens) * sensor;
 			}
 
 			x1+= dx;

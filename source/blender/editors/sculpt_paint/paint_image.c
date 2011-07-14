@@ -2966,7 +2966,7 @@ static void project_paint_begin(ProjPaintState *ps)
 				Object *camera= ps->scene->camera;
 
 				/* dont actually use these */
-				float _viewdx, _viewdy, _ycor, _lens=0.0f;
+				float _viewdx, _viewdy, _ycor, _lens=0.0f, _sensor_x=0.0f;
 				rctf _viewplane;
 
 				/* viewmat & viewinv */
@@ -2978,7 +2978,7 @@ static void project_paint_begin(ProjPaintState *ps)
 				object_camera_mode(&ps->scene->r, camera);
 				object_camera_matrix(&ps->scene->r, camera, ps->winx, ps->winy, 0,
 						winmat, &_viewplane, &ps->clipsta, &ps->clipend,
-						&_lens, &_ycor, &_viewdx, &_viewdy);
+						&_lens, &_sensor_x, &_ycor, &_viewdx, &_viewdy);
 
 				ps->is_ortho= (ps->scene->r.mode & R_ORTHO) ? 1 : 0;
 			}

@@ -53,6 +53,8 @@ typedef struct Camera {
 	float passepartalpha;
 	float clipsta, clipend;
 	float lens, ortho_scale, drawsize;
+	float hfov, vfov;
+	float sensor_x, sensor_y;
 	float shiftx, shifty;
 	
 	/* yafray: dof params */
@@ -90,6 +92,7 @@ typedef struct Camera {
 #define CAM_ANGLETOGGLE		32
 #define CAM_DS_EXPAND		64
 #define CAM_PANORAMA		128
+#define CAM_SHOWSENSOR		256
 
 /* yafray: dof sampling switch */
 /* #define CAM_YF_NO_QMC	512 */ /* depreceated */

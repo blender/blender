@@ -1666,15 +1666,31 @@ void vec_apply_track(float vec[3], short axis)
 }
 
 /* lens/angle conversion (radians) */
-float lens_to_angle(float lens)
+float focallength_to_hfov(float focal_length, float sensor_x)
 {
-	return 2.0f * atanf(16.0f/lens);
+	return 2.0f * atanf((sensor_x/2.0f) / focal_length);
 }
 
-float angle_to_lens(float angle)
+float focallength_to_vfov(float focal_length, float sensor_y)
 {
-	return 16.0f / tanf(angle * 0.5f);
+	return 2.0f * atanf((sensor_y/2.0f) / focal_length);
 }
+
+float hfov_to_focallength(float hfov, float sensor_x)
+{
+	return (sensor_x/2.0f) / tanf(hfov * 0.5f);
+}
+
+float vfov_to_focallength(float vfov, float sensor_y)
+{
+	return (sensor_y/2.0f) / tanf(vfov * 0.5f);
+}
+
+/* takes into account subject distance */
+//float focus_dist_to_fov(float focal_length, float sensor_x, float dist)
+//{
+// return 2.f * atanf( (sensor_x * (dist - focal_length)) / (2.f * dist * focal_length));
+//}
 
 /* 'mod_inline(-3,4)= 1', 'fmod(-3,4)= -3' */
 static float mod_inline(float a, float b)

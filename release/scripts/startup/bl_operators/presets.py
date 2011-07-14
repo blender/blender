@@ -175,6 +175,24 @@ class AddPresetRender(AddPresetBase, bpy.types.Operator):
     preset_subdir = "render"
 
 
+class AddPresetCamera(AddPresetBase, bpy.types.Operator):
+    '''Add a Camera Preset'''
+    bl_idname = "camera.preset_add"
+    bl_label = "Add Camera Preset"
+    preset_menu = "CAMERA_MT_presets"
+
+    preset_defines = [
+        "cam = bpy.context.object.data"
+    ]
+
+    preset_values = [
+        "cam.sensor_x",
+        "cam.sensor_y",
+    ]
+
+    preset_subdir = "camera"
+
+
 class AddPresetSSS(AddPresetBase, bpy.types.Operator):
     '''Add a Subsurface Scattering Preset'''
     bl_idname = "material.sss_preset_add"

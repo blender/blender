@@ -213,6 +213,7 @@ void ImageRender::Render()
     } else 
     {
 		float lens = m_camera->GetLens();
+		float sensor_x = m_camera->GetSensorWidth();
 		bool orthographic = !m_camera->GetCameraData()->m_perspective;
 		float nearfrust = m_camera->GetCameraNear();
 		float farfrust = m_camera->GetCameraFar();
@@ -243,6 +244,7 @@ void ImageRender::Render()
 				nearfrust,
 				farfrust,
 				lens,
+				sensor_x,
 				aspect_ratio,
 				frustrum);
 			

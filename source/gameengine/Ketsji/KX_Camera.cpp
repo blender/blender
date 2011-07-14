@@ -202,6 +202,13 @@ float KX_Camera::GetScale() const
 	return m_camdata.m_scale;
 }
 
+/*
+* Gets the horizontal size of the sensor - for camera matching.
+*/
+float KX_Camera::GetSensorWidth() const
+{
+	return m_camdata.m_sensor_x;
+}
 
 
 float KX_Camera::GetCameraNear() const

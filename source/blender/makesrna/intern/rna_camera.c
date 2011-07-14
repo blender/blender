@@ -44,17 +44,28 @@
 #include "BKE_object.h"
 
 /* only for rad/deg conversion! can remove later */
-static float rna_Camera_angle_get(PointerRNA *ptr)
+static float rna_Camera_angle_x_get(PointerRNA *ptr)
 {
 	Camera *cam= ptr->id.data;
-
-	return lens_to_angle(cam->lens);
+	return focallength_to_hfov(cam->lens, cam->sensor_x);
 }
 
-static void rna_Camera_angle_set(PointerRNA *ptr, float value)
+static float rna_Camera_angle_y_get(PointerRNA *ptr)
 {
 	Camera *cam= ptr->id.data;
-	cam->lens= angle_to_lens(value);
+	return focallength_to_vfov(cam->lens, cam->sensor_y);
+}
+
+static void rna_Camera_angle_x_set(PointerRNA *ptr, float value)
+{
+	Camera *cam= ptr->id.data;
+	cam->lens= hfov_to_focallength(value, cam->sensor_x);
+}
+
+static void rna_Camera_angle_y_set(PointerRNA *ptr, float value)
+{
+	Camera *cam= ptr->id.data;
+	cam->lens= vfov_to_focallength(value, cam->sensor_y);
 }
 
 #else
@@ -77,9 +88,9 @@ void RNA_def_camera(BlenderRNA *brna)
 		{CAM_DTX_HARMONY_TRI_A, "HARMONY_TRIANGLE_A", 0, "Harmonious Triangle A", ""},
 		{CAM_DTX_HARMONY_TRI_B, "HARMONY_TRIANGLE_B", 0, "Harmonious Triangle B", ""},
 		{0, NULL, 0, NULL, NULL}};
-	static EnumPropertyItem prop_lens_unit_items[] = {
-		{0, "MILLIMETERS", 0, "Millimeters", ""},
-		{CAM_ANGLETOGGLE, "DEGREES", 0, "Degrees", ""},
+	static EnumPropertyItem prop_angle_unit_items[] = {
+		{0, "HORIZONTAL", 0, "Horizontal", ""},
+		{CAM_ANGLETOGGLE, "VERTICAL", 0, "Vertical", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Camera", "ID");
@@ -106,6 +117,20 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Passepartout Alpha", "Opacity (alpha) of the darkened overlay in Camera view");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
+	prop= RNA_def_property(srna, "angle_x", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, M_PI * (0.367/180.0), M_PI * (172.847/180.0));
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Field of View", "Camera lens horizontal field of view in degrees");
+	RNA_def_property_float_funcs(prop, "rna_Camera_angle_x_get", "rna_Camera_angle_x_set", NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "angle_y", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, M_PI * (0.367/180.0), M_PI * (172.847/180.0));
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Field of View", "Camera lens vertical field of view in degrees");
+	RNA_def_property_float_funcs(prop, "rna_Camera_angle_y_get", "rna_Camera_angle_y_set", NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
 	RNA_def_property_range(prop, 0.001f, FLT_MAX);
@@ -124,11 +149,17 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Focal Length", "Perspective Camera lens value in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_range(prop, M_PI * (0.367/180.0), M_PI * (172.847/180.0));
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Angle", "Perspective Camera lens field of view in degrees");
-	RNA_def_property_float_funcs(prop, "rna_Camera_angle_get", "rna_Camera_angle_set", NULL); /* only for deg/rad conversion */
+	prop= RNA_def_property(srna, "sensor_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sensor_x");
+	RNA_def_property_range(prop, 1.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 1.0f, 100.f, 1, 2);
+	RNA_def_property_ui_text(prop, "Sensor X", "Horizontal size of the image sensor area in millimeters");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "sensor_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 1.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 1.0f, 100.f, 1, 2);
+	RNA_def_property_ui_text(prop, "Sensor Y", "Vertical size of the image sensor area in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "ortho_scale", PROP_FLOAT, PROP_NONE);
@@ -190,10 +221,15 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Name", "Show the active Camera's name in Camera view");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "lens_unit", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "show_sensor", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWSENSOR);
+	RNA_def_property_ui_text(prop, "Show Sensor Size", "Show sensor size (film gate) in Camera view");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "angle_unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_lens_unit_items);
-	RNA_def_property_ui_text(prop, "Lens Unit", "Unit to edit lens in for the user interface");
+	RNA_def_property_enum_items(prop, prop_angle_unit_items);
+	RNA_def_property_ui_text(prop, "Angle Unit", "Unit to edit lens in for the user interface");
 
 	prop= RNA_def_property(srna, "use_panorama", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_PANORAMA);

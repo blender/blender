@@ -712,6 +712,8 @@ void *add_camera(const char *name)
 	cam=  alloc_libblock(&G.main->camera, ID_CA, name);
 
 	cam->lens= 35.0f;
+	cam->sensor_x = 32.f;
+	cam->sensor_y = 18.f;
 	cam->clipsta= 0.1f;
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
@@ -2905,7 +2907,7 @@ void object_camera_mode(RenderData *rd, Object *camera)
 /* 'lens' may be set for envmap only */
 void object_camera_matrix(
 		RenderData *rd, Object *camera, int winx, int winy, short field_second,
-		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens, float *ycor,
+		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens, float *sensor_x, float *ycor,
 		float *viewdx, float *viewdy
 ) {
 	Camera *cam=NULL;
@@ -2938,6 +2940,7 @@ void object_camera_matrix(
 		shiftx=cam->shiftx;
 		shifty=cam->shifty;
 		(*lens)= cam->lens;
+		(*sensor_x)= cam->sensor_x;
 		(*clipsta)= cam->clipsta;
 		(*clipend)= cam->clipend;
 	}
@@ -2953,7 +2956,7 @@ void object_camera_matrix(
 		(*clipend)= la->clipend;
 	}
 	else {	/* envmap exception... */;
-		if((*lens)==0.0f)
+		if((*lens)==0.0f) /* is this needed anymore? */
 			(*lens)= 16.0f;
 
 		if((*clipsta)==0.0f || (*clipend)==0.0f) {
@@ -2974,8 +2977,8 @@ void object_camera_matrix(
 		pixsize= cam->ortho_scale/viewfac;
 	}
 	else {
-		if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx)/32.0f;
-		else								viewfac= (*ycor) * ((*lens) * winy)/32.0f;
+		if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx) / (*sensor_x);
+		else					viewfac= (*ycor) * ((*lens) * winy) / (*sensor_x);
 		pixsize= (*clipsta) / viewfac;
 	}
 

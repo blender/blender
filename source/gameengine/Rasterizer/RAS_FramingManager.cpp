@@ -40,6 +40,7 @@ ComputeDefaultFrustum(
 	const float camnear,
 	const float camfar,
 	const float lens,
+	const float sensor_x,
 	const float design_aspect_ratio,
 	RAS_FrameFrustum & frustum
 ){
@@ -48,8 +49,9 @@ ComputeDefaultFrustum(
 	 * Magic Blender calculation.
 	 * Blender does not give a Field of View as lens but a size
 	 * at 16 units away from the lens.
+	 * ^Deprecated Comment
 	 */
-	float halfSize = 16.f * camnear / lens;
+	float halfSize = (sensor_x / 2.f) * camnear / lens;
 	float sizeX;
 	float sizeY;
 
@@ -200,6 +202,7 @@ ComputeFrustum(
 	const RAS_Rect &availableViewport,
 	const RAS_Rect &viewport,
 	const float lens,
+	const float sensor_x,
 	const float camnear,
 	const float camfar,
 	RAS_FrameFrustum &frustum
@@ -225,6 +228,7 @@ ComputeFrustum(
 		camnear,
 		camfar,
 		lens,
+		sensor_x,
 		design_aspect_ratio,
 		frustum
 	);

@@ -1263,6 +1263,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 				area,
 				viewport,
 				cam->GetLens(),
+				cam->GetSensorWidth(),
 				nearfrust,
 				farfrust,
 				frustum

@@ -1382,7 +1382,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		if(is_view) {
 			/* fixed depth, variable size (avoids exceeding clipping range) */
 			depth = -(cam->clipsta + 0.1f);
-			fac = depth / (cam->lens/-16.0f * scaz);
+			fac = depth / (cam->lens/ (cam->sensor_x / 2.0f));
 		}
 		else {
 			/* fixed size, variable depth (stays a reasonable size in the 3D view) */

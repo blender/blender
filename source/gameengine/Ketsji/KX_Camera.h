@@ -201,6 +201,8 @@ public:
 	float				GetLens() const;
 	/** Gets the ortho scale. */
 	float				GetScale() const;
+	/** Gets the horizontal size of the sensor - for camera matching */
+	float				GetSensorWidth() const;
 	/** Gets the near clip distance. */
 	float				GetCameraNear() const;
 	/** Gets the far clip distance. */
