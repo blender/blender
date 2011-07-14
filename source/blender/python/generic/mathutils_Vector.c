@@ -442,8 +442,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 			}
 		}
 		else {
-			PyErr_SetString(PyExc_ValueError,
-			                axis_err_msg);
+			PyErr_SetString(PyExc_ValueError, axis_err_msg);
 			return NULL;
 		}
 	}
@@ -667,7 +666,7 @@ static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 	float quat[4], vec_a[3], vec_b[3];
 
 	if(self->size < 3) {
-		PyErr_SetString(PyExc_AttributeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "vec.difference(value): "
 		                "expects both vectors to be size 3 or 4");
 		return NULL;
@@ -1094,7 +1093,7 @@ static int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject
 			vec_cpy[3] = 1.0f;
 		}
 		else {
-			PyErr_SetString(PyExc_AttributeError,
+			PyErr_SetString(PyExc_TypeError,
 			                "matrix * vector: "
 			                "matrix.row_size and len(vector) must be the same, "
 			                "except for 3D vector * 4x4 matrix.");
@@ -1147,7 +1146,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 		double dot = 0.0f;
 
 		if(vec1->size != vec2->size) {
-			PyErr_SetString(PyExc_AttributeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "Vector multiplication: "
 			                "vectors must have the same dimensions for this operation");
 			return NULL;
@@ -1177,7 +1176,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 			float tvec[3];
 
 			if(vec1->size != 3) {
-				PyErr_SetString(PyExc_TypeError,
+				PyErr_SetString(PyExc_ValueError,
 				                "Vector multiplication: "
 				                "only 3D vector rotations (with quats) currently supported");
 				return NULL;
@@ -1235,7 +1234,7 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		QuaternionObject *quat2 = (QuaternionObject*)v2;
 
 		if(vec->size != 3) {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "Vector multiplication: "
 			                "only 3D vector rotations (with quats) currently supported");
 			return NULL;
@@ -1485,7 +1484,7 @@ static PyObject *Vector_subscript(VectorObject* self, PyObject* item)
 			return Vector_slice(self, start, stop);
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with vectors");
 			return NULL;
 		}
@@ -1517,7 +1516,7 @@ static int Vector_ass_subscript(VectorObject* self, PyObject* item, PyObject* va
 		if (step == 1)
 			return Vector_ass_slice(self, start, stop, value);
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with vectors");
 			return -1;
 		}
@@ -1620,7 +1619,7 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 	}
 
 	if (param < 0.0) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "cannot set a vectors length to a negative value");
 		return -1;
 	}
@@ -2174,7 +2173,7 @@ static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObj
 
 	if(mat->colSize != vec_size){
 		if(mat->colSize == 4 && vec_size != 3){
-			PyErr_SetString(PyExc_AttributeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "vector * matrix: matrix column size "
 			                "and the vector size must be the same");
 			return -1;
@@ -2390,9 +2389,7 @@ PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObje
 			self->wrapped = Py_NEW;
 		}
 		else {
-			PyErr_SetString(PyExc_RuntimeError,
-			                "Vector(): invalid type, internal error");
-			return NULL;
+			Py_FatalError("Vector(): invalid type!");
 		}
 	}
 	return (PyObject *) self;

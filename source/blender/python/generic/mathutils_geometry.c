@@ -556,7 +556,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	}
 
 	if(ELEM4(2, line_a->size, line_b->size, plane_co->size, plane_no->size)) {
-		PyErr_SetString(PyExc_RuntimeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "geometry.intersect_line_plane(...): "
 		                " can't use 2D Vectors");
 		return NULL;
@@ -614,7 +614,7 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 	}
 
 	if(ELEM3(2, line_a->size, line_b->size, sphere_co->size)) {
-		PyErr_SetString(PyExc_RuntimeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "geometry.intersect_line_sphere(...): "
 		                " can't use 2D Vectors");
 		return NULL;
@@ -881,6 +881,7 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 		box->h=  (float)PyFloat_AsDouble(item_2);
 		box->index= i;
 
+		/* accounts for error case too and overwrites with own error */
 		if (box->w < 0.0f || box->h < 0.0f) {
 			MEM_freeN(*boxarray);
 			PyErr_SetString(PyExc_TypeError,
@@ -1075,7 +1076,7 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 		vec_t3_tar->size != 3)
 	{
 		PyErr_SetString(PyExc_ValueError,
-		                "One of more of the vector arguments wasnt a 3D vector");
+		                "One of more of the vector arguments wasn't a 3D vector");
 		return NULL;
 	}
 

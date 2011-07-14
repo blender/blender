@@ -259,7 +259,7 @@ static int Color_ass_slice(ColorObject *self, int begin, int end, PyObject *seq)
 		return -1;
 
 	if(size != (end - begin)){
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "color[begin:end] = []: "
 		                "size mismatch in slice assignment");
 		return -1;
@@ -296,7 +296,7 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
 			return Color_slice(self, start, stop);
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with color");
 			return NULL;
 		}
@@ -328,7 +328,7 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 		if (step == 1)
 			return Color_ass_slice(self, start, stop, value);
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with color");
 			return -1;
 		}
@@ -371,7 +371,7 @@ static PyObject *Color_add(PyObject *v1, PyObject *v2)
 	float col[COLOR_SIZE];
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError,
+		PyErr_SetString(PyExc_TypeError,
 		                "Color addition: "
 		                "arguments not valid for this operation");
 		return NULL;
@@ -393,7 +393,7 @@ static PyObject *Color_iadd(PyObject *v1, PyObject *v2)
 	ColorObject *color1 = NULL, *color2 = NULL;
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError,
+		PyErr_SetString(PyExc_TypeError,
 		                "Color addition: "
 		                "arguments not valid for this operation");
 		return NULL;
@@ -418,7 +418,7 @@ static PyObject *Color_sub(PyObject *v1, PyObject *v2)
 	float col[COLOR_SIZE];
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError,
+		PyErr_SetString(PyExc_TypeError,
 		                "Color subtraction: "
 		                "arguments not valid for this operation");
 		return NULL;
@@ -440,7 +440,7 @@ static PyObject *Color_isub(PyObject *v1, PyObject *v2)
 	ColorObject *color1= NULL, *color2= NULL;
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError,
+		PyErr_SetString(PyExc_TypeError,
 		                "Color subtraction: "
 		                "arguments not valid for this operation");
 		return NULL;
@@ -555,7 +555,9 @@ static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 		mul_vn_fl(color->col, COLOR_SIZE, scalar);
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Color multiplication: arguments not acceptable for this operation");
+		PyErr_SetString(PyExc_TypeError,
+		                "Color multiplication: "
+		                "arguments not acceptable for this operation");
 		return NULL;
 	}
 
@@ -846,9 +848,7 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 			self->wrapped = Py_NEW;
 		}
 		else {
-			PyErr_SetString(PyExc_RuntimeError,
-			                "Color(): invalid type, internal error");
-			return NULL;
+			Py_FatalError("Color(): invalid type!");
 		}
 	}
 
