@@ -267,9 +267,11 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
         clip = sc.clip
 
         row = layout.row(align=True)
-        row.menu('CLIP_MT_camera_presets')
+        label = bpy.types.CLIP_MT_camera_presets.bl_label
+        row.menu('CLIP_MT_camera_presets', text=label)
         row.operator("clip.camera_preset_add", text="", icon="ZOOMIN")
-        row.operator("clip.camera_preset_add", text="", icon="ZOOMOUT").remove_active = True
+        op = row.operator("clip.camera_preset_add", text="", icon="ZOOMOUT")
+        op.remove_active = True
 
         layout.prop(clip.tracking.camera, "sensor_width")
 
