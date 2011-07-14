@@ -49,10 +49,15 @@ def createDictionary(perf_arm, end_arm):
     root = end_arm.bones[0].name
     feetBones = [bone.name for bone in perf_arm.bones if bone.foot]
     return feetBones, root
-# list of empties created to keep track of "original"
-# position data
-# in final product, these locations can be stored as custom props
-# these help with constraining, etc.
+
+
+def loadMapping(perf_arm, end_arm):
+
+    for end_bone in end_arm.bones:
+        #find its match and add perf_bone to the match's mapping
+        if end_bone.reverseMap:
+            for perf_bone in end_bone.reverseMap:
+                perf_arm.bones[perf_bone.name].map = end_bone.name
 
 #creation of intermediate armature
 # the intermediate armature has the hiearchy of the end user,
@@ -248,11 +253,13 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
     stride_bone.name = "stride_bone"
 
     if linearAvg:
+        #determine the average change in scale needed
         avg = sum(linearAvg) / len(linearAvg)
         scene.frame_set(s_frame)
         initialPos = (tailLoc(perf_bones[perfRoot]) / avg)
         for t in range(s_frame, e_frame):
             scene.frame_set(t)
+            #calculate the new position, by dividing by the found ratio between performer and enduser
             newTranslation = (tailLoc(perf_bones[perfRoot]) / avg)
             stride_bone.location = (newTranslation - initialPos) * enduser_obj_mat
             stride_bone.keyframe_insert("location")
@@ -281,6 +288,7 @@ def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene):
             else:
                 target = ik_constraint.target
 
+            # bake the correct locations for the ik target bones
             for t in range(s_frame, e_frame):
                 scene.frame_set(t)
                 if target_is_bone:
@@ -308,15 +316,17 @@ def turnOffIK(enduser_obj):
             ik_constraint.mute = True
 
 
+#copy the object matrixes and clear them (to be reinserted later)
 def cleanAndStoreObjMat(performer_obj, enduser_obj):
     perf_obj_mat = performer_obj.matrix_world.copy()
     enduser_obj_mat = enduser_obj.matrix_world.copy()
-    zero_mat = Matrix()  # Matrix(((0,0,0,0),(0,0,0,0),(0,0,0,0),(0,0,0,0)))
+    zero_mat = Matrix()
     performer_obj.matrix_world = zero_mat
     enduser_obj.matrix_world = zero_mat
     return perf_obj_mat, enduser_obj_mat
 
 
+#restore the object matrixes after parenting the auto generated IK empties
 def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone):
     pose_bones = enduser_obj.pose.bones
     for pose_bone in pose_bones:
@@ -328,6 +338,7 @@ def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, str
     enduser_obj.parent = stride_bone
 
 
+#create (or return if exists) the related IK empty to the bone
 def originalLocationTarget(end_bone):
     if not end_bone.name + "Org" in bpy.data.objects:
         bpy.ops.object.add()
@@ -339,6 +350,7 @@ def originalLocationTarget(end_bone):
     return empty
 
 
+#create the specified NLA setup for base animation, constraints and tweak layer.
 def NLASystemInitialize(enduser_obj, s_frame):
     anim_data = enduser_obj.animation_data
     mocapAction = anim_data.action
@@ -351,10 +363,13 @@ def NLASystemInitialize(enduser_obj, s_frame):
     constraintTrack.name = "Mocap constraints"
     constraintAction = bpy.data.actions.new("Mocap constraints")
     constraintStrip = constraintTrack.strips.new("Mocap constraints", s_frame, constraintAction)
+    constraintStrip.extrapolation = "NOTHING"
     anim_data.nla_tracks.active = constraintTrack
     anim_data.action = constraintAction
+    anim_data.action_extrapolation = "NOTHING"
 
 
+#Main function that runs the retargeting sequence.
 def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     perf_arm = performer_obj.data
     end_arm = enduser_obj.data

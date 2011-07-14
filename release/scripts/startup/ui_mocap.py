@@ -54,20 +54,20 @@ class MocapConstraint(bpy.types.PropertyGroup):
     s_frame = bpy.props.IntProperty(name="S",
         default=1,
         description="Start frame of constraint",
-        update=setConstraintFraming)
+        update=setConstraint)
     e_frame = bpy.props.IntProperty(name="E",
         default=500,
         description="End frame of constrain",
-        update=setConstraintFraming)
+        update=setConstraint)
     smooth_in = bpy.props.IntProperty(name="In",
         default=10,
         description="Amount of frames to smooth in",
-        update=setConstraintFraming,
+        update=setConstraint,
         min=0)
     smooth_out = bpy.props.IntProperty(name="Out",
         default=10,
         description="Amount of frames to smooth out",
-        update=setConstraintFraming,
+        update=setConstraint,
         min=0)
     targetMesh = bpy.props.StringProperty(name="Mesh",
         default="",
@@ -77,10 +77,6 @@ class MocapConstraint(bpy.types.PropertyGroup):
         default=True,
         description="Constraint is active",
         update=setConstraint)
-    baked = bpy.props.BoolProperty(name="Baked / Applied",
-        default=False,
-        description="Constraint has been baked to NLA layer",
-        update=updateBake)
     targetPoint = bpy.props.FloatVectorProperty(name="Point", size=3,
         subtype="XYZ", default=(0.0, 0.0, 0.0),
         description="Target of Constraint - Point",
@@ -232,7 +228,9 @@ class MocapPanel(bpy.types.Panel):
                         else:
                             row.label(" ")
                             row.label(" ")
-                    self.layout.operator("mocap.savemapping", text='Save mapping')
+                    mapRow = self.layout.row()
+                    mapRow.operator("mocap.savemapping", text='Save mapping')
+                    mapRow.operator("mocap.loadmapping", text='Load mapping')
                     self.layout.operator("mocap.retarget", text='RETARGET!')
 
 
@@ -251,6 +249,8 @@ class MocapConstraintsPanel(bpy.types.Panel):
                     enduser_obj = context.active_object
                     enduser_arm = enduser_obj.data
                     layout.operator("mocap.addconstraint")
+                    layout.operator("mocap.bakeconstraints")
+                    layout.operator("mocap.unbakeconstraints")
                     layout.separator()
                     for i, m_constraint in enumerate(enduser_arm.mocap_constraints):
                         box = layout.box()
@@ -281,7 +281,6 @@ class MocapConstraintsPanel(bpy.types.Panel):
                             targetPropCol.prop(m_constraint, 'targetDist')
                         checkRow = box.row()
                         checkRow.prop(m_constraint, 'active')
-                        checkRow.prop(m_constraint, 'baked')
                         layout.operator("mocap.removeconstraint", text="Remove constraint").constraint = i
                         layout.separator()
 
@@ -322,6 +321,27 @@ class OBJECT_OT_SaveMappingButton(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         retarget.createDictionary(performer_obj.data, enduser_obj.data)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+        performer_obj = [obj for obj in context.selected_objects if obj != context.active_object]
+        if performer_obj:
+            return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
+        else:
+            return False
+
+
+class OBJECT_OT_LoadMappingButton(bpy.types.Operator):
+    bl_idname = "mocap.loadmapping"
+    bl_label = "Loads user generated mapping from Performer to Enduser"
+
+    def execute(self, context):
+        enduser_obj = bpy.context.active_object
+        performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
+        retarget.loadMapping(performer_obj.data, enduser_obj.data)
         return {"FINISHED"}
 
     @classmethod
@@ -441,6 +461,34 @@ class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
             cons_obj = getConsObj(bone)
             removeConstraint(m_constraint, cons_obj)
         m_constraints.remove(self.constraint)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            return isinstance(context.active_object.data, bpy.types.Armature)
+
+
+class OBJECT_OT_BakeMocapConstraints(bpy.types.Operator):
+    bl_idname = "mocap.bakeconstraints"
+    bl_label = "Bake all constraints to target armature"
+
+    def execute(self, context):
+        bakeConstraints(context)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            return isinstance(context.active_object.data, bpy.types.Armature)
+
+
+class OBJECT_OT_UnbakeMocapConstraints(bpy.types.Operator):
+    bl_idname = "mocap.unbakeconstraints"
+    bl_label = "Unbake all constraints to target armature"
+
+    def execute(self, context):
+        unbakeConstraints(context)
         return {"FINISHED"}
 
     @classmethod
