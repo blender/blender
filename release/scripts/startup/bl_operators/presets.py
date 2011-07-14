@@ -277,6 +277,28 @@ class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     preset_subdir = "interaction"
 
 
+class AddPresetTrackingCamera(AddPresetBase, bpy.types.Operator):
+    '''Add a Tracking Camera Intrinsics  Preset'''
+    bl_idname = "clip.camera_preset_add"
+    bl_label = "Add Camera Preset"
+    preset_menu = "CLIP_MT_camera_presets"
+
+    preset_defines = [
+        "camera = bpy.context.edit_movieclip.tracking.camera"
+    ]
+
+    preset_values = [
+        "camera.focal_length",
+        "camera.sensor_width",
+        "camera.units",
+        "camera.k1",
+        "camera.k2",
+        "camera.k3"
+    ]
+
+    preset_subdir = "tracking_camera"
+
+
 class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
     '''Add a Keyconfig Preset'''
     bl_idname = "wm.keyconfig_preset_add"

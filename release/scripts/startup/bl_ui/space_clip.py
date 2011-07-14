@@ -266,6 +266,11 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
         sc = context.space_data
         clip = sc.clip
 
+        row = layout.row(align=True)
+        row.menu('CLIP_MT_camera_presets')
+        row.operator("clip.camera_preset_add", text="", icon="ZOOMIN")
+        row.operator("clip.camera_preset_add", text="", icon="ZOOMOUT").remove_active = True
+
         layout.prop(clip.tracking.camera, "sensor_width")
 
         row = layout.row(align=True)
@@ -273,10 +278,14 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
         sub.prop(clip.tracking.camera, "focal_length")
         sub.prop(clip.tracking.camera, "units", text="")
 
-        layout.label(text="Principal Point")
-        layout.prop(clip.tracking.camera, "principal", text="")
+        col = layout.column()
+        col.label(text="Principal Point")
+        row = col.row()
+        row.prop(clip.tracking.camera, "principal", text="")
+        col.operator("clip.set_center_principal", text="Center")
 
         col = layout.column(align=True)
+        col.label(text="Undistortion:")
         col.prop(clip.tracking.camera, "k1")
         col.prop(clip.tracking.camera, "k2")
         col.prop(clip.tracking.camera, "k3")
@@ -488,6 +497,14 @@ class CLIP_MT_tracking_specials(bpy.types.Menu):
         layout.separator()
         layout.operator("clip.hide_tracks")
         layout.operator("clip.hide_tracks_clear", text="Show Tracks")
+
+
+class CLIP_MT_camera_presets(bpy.types.Menu):
+    bl_label = "Camera Presets"
+    preset_subdir = "tracking_camera"
+    preset_operator = "script.execute_preset"
+    draw = bpy.types.Menu.draw_preset
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

@@ -1580,6 +1580,41 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/********************** set principal center operator *********************/
+
+static int set_center_principal_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	int width, height;
+
+	BKE_movieclip_acquire_size(clip, &sc->user, &width, &height);
+
+	if(width==0 || height==0)
+		return OPERATOR_CANCELLED;
+
+	clip->tracking.camera.principal[0]= ((float)width)/2.0f;
+	clip->tracking.camera.principal[1]= ((float)height)/2.0f;
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_set_center_principal(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Principal to Center";
+	ot->description= "Set principal point to center of footage";
+	ot->idname= "CLIP_OT_set_center_principal";
+
+	/* api callbacks */
+	ot->exec= set_center_principal_exec;
+	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 /********************** slide marker opertaotr *********************/
 
 typedef struct {
