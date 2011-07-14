@@ -386,11 +386,15 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 
 	track= tracking->tracks.first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(track)) {
-			MovieTrackingTrack *new_track= BKE_tracking_copy_track(track);
+		if(TRACK_VIEW_SELECTED(track) && TRACK_VISIBLE(track)) {
+			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
-			BLI_addtail(&context->tracks, new_track);
-			BLI_ghash_insert(context->hash, new_track, track);
+			if((marker->flag&MARKER_DISABLED)==0) {
+				MovieTrackingTrack *new_track= BKE_tracking_copy_track(track);
+
+				BLI_addtail(&context->tracks, new_track);
+				BLI_ghash_insert(context->hash, new_track, track);
+			}
 		}
 
 		track= track->next;
@@ -661,7 +665,10 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 			} else {
 				marker_new= *marker;
-				marker_new.framenr++;
+
+				if(context->backwards) marker_new.framenr--;
+				else marker_new.framenr++;;
+
 				marker_new.flag|= MARKER_DISABLED;
 
 				BKE_tracking_insert_marker(track, &marker_new);

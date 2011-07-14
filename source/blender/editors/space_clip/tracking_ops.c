@@ -400,19 +400,22 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, MovieClip *clip, fl
 	cur= clip->tracking.tracks.first;
 	while(cur) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(cur, sc->user.framenr);
-		float dist, d1, d2, d3;
 
-		d1= sqrtf((co[0]-marker->pos[0])*(co[0]-marker->pos[0])+
-				  (co[1]-marker->pos[1])*(co[1]-marker->pos[1])); /* distance to marker point */
-		d2= dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max); /* distance to search boundbox */
-		d3= dist_to_rect(co, marker->pos, cur->search_min, cur->search_max); /* distance to search boundbox */
+		if(TRACK_VISIBLE(cur) && MARKER_VISIBLE(sc, marker)) {
+			float dist, d1, d2, d3;
 
-		/* choose minimal distance. useful for cases of overlapped markers. */
-		dist= MIN3(d1, d2, d3);
+			d1= sqrtf((co[0]-marker->pos[0])*(co[0]-marker->pos[0])+
+					  (co[1]-marker->pos[1])*(co[1]-marker->pos[1])); /* distance to marker point */
+			d2= dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max); /* distance to search boundbox */
+			d3= dist_to_rect(co, marker->pos, cur->search_min, cur->search_max); /* distance to search boundbox */
 
-		if(track==NULL || dist<mindist) {
-			track= cur;
-			mindist= dist;
+			/* choose minimal distance. useful for cases of overlapped markers. */
+			dist= MIN3(d1, d2, d3);
+
+			if(track==NULL || dist<mindist) {
+				track= cur;
+				mindist= dist;
+			}
 		}
 
 		cur= cur->next;
@@ -520,10 +523,10 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	/* do actual selection */
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if((track->flag&TRACK_HIDDEN)==0) {
+		if(TRACK_VISIBLE(track)) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-			if(BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
+			if(MARKER_VISIBLE(sc, marker) && BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
 				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
 
 				change= 1;
@@ -605,10 +608,10 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	/* do selection */
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if((track->flag&TRACK_HIDDEN)==0) {
+		if(TRACK_VISIBLE(track)) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
-			if(marker_inside_ellipse(marker, offset, ellipse)) {
+			if(MARKER_VISIBLE(sc, marker) && marker_inside_ellipse(marker, offset, ellipse)) {
 				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode!=GESTURE_MODAL_SELECT);
 
 				change= 1;
@@ -680,23 +683,27 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if((track->flag&TRACK_HIDDEN)==0 && BKE_tracking_has_marker(track, framenr)) {
-			switch (action) {
-				case SEL_SELECT:
-					track->flag|= SELECT;
-					track->pat_flag|= SELECT;
-					track->search_flag|= SELECT;
-					break;
-				case SEL_DESELECT:
-					track->flag&= ~SELECT;
-					track->pat_flag&= ~SELECT;
-					track->search_flag&= ~SELECT;
-					break;
-				case SEL_INVERT:
-					track->flag^= SELECT;
-					track->pat_flag^= SELECT;
-					track->search_flag^= SELECT;
-					break;
+		if(TRACK_VISIBLE(track)) {
+			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
+
+			if(marker && MARKER_VISIBLE(sc, marker)) {
+				switch (action) {
+					case SEL_SELECT:
+						track->flag|= SELECT;
+						track->pat_flag|= SELECT;
+						track->search_flag|= SELECT;
+						break;
+					case SEL_DESELECT:
+						track->flag&= ~SELECT;
+						track->pat_flag&= ~SELECT;
+						track->search_flag&= ~SELECT;
+						break;
+					case SEL_INVERT:
+						track->flag^= SELECT;
+						track->pat_flag^= SELECT;
+						track->search_flag^= SELECT;
+						break;
+				}
 			}
 		}
 
@@ -756,7 +763,7 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if((track->flag&TRACK_HIDDEN)==0)
+		if(TRACK_VISIBLE(track))
 			BKE_tracking_ensure_marker(track, framenr);
 
 		track= track->next;
@@ -1305,15 +1312,27 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track, char 
 	unit_m4(mat);
 
 	if(axis=='X') {
-		copy_v3_v3(mat[0], vec);
-		mat[0][2]= 0.f;
-		mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
-		cross_v3_v3v3(mat[1], mat[2], mat[0]);
+		if(fabsf(vec[1])<1e-3) {
+			mat[0][0]= -1.f; mat[0][1]= 0.f; mat[0][2]= 0.f;
+			mat[1][0]= 0.f; mat[1][1]= -1.f; mat[1][2]= 0.f;
+			mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
+		} else {
+			copy_v3_v3(mat[0], vec);
+			mat[0][2]= 0.f;
+			mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
+			cross_v3_v3v3(mat[1], mat[2], mat[0]);
+		}
 	} else {
-		copy_v3_v3(mat[1], vec);
-		mat[1][2]= 0.f;
-		mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
-		cross_v3_v3v3(mat[0], mat[1], mat[2]);
+		if(fabsf(vec[0])<1e-3) {
+			mat[0][0]= -1.f; mat[0][1]= 0.f; mat[0][2]= 0.f;
+			mat[1][0]= 0.f; mat[1][1]= -1.f; mat[1][2]= 0.f;
+			mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
+		} else {
+			copy_v3_v3(mat[1], vec);
+			mat[1][2]= 0.f;
+			mat[2][0]= 0.f; mat[2][1]= 0.f; mat[2][2]= 1.0f;
+			cross_v3_v3v3(mat[0], mat[1], mat[2]);
+		}
 	}
 
 	normalize_v3(mat[0]);
@@ -1759,7 +1778,7 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
 	if(sel_type==MCLIP_SEL_TRACK) {
 		track= (MovieTrackingTrack *)sel;
 
-		if(track->flag&TRACK_HIDDEN)
+		if(!TRACK_VISIBLE(track))
 			BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 	}
 

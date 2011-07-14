@@ -231,6 +231,7 @@ static MovieClip *movieclip_alloc(const char *name)
 MovieClip *BKE_add_movieclip_file(const char *name)
 {
 	MovieClip *clip;
+	MovieClipUser user;
 	int file, len, width, height;
 	const char *libname;
 	char str[FILE_MAX], strtest[FILE_MAX];
@@ -270,7 +271,8 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 	if(BLI_testextensie_array(name, imb_ext_movie)) clip->source= MCLIP_SRC_MOVIE;
 	else clip->source= MCLIP_SRC_SEQUENCE;
 
-	BKE_movieclip_acquire_size(clip, NULL, &width, &height);
+	user.framenr= 1;
+	BKE_movieclip_acquire_size(clip, &user, &width, &height);
 	if(width && height) {
 		clip->tracking.camera.principal[0]= ((float)width)/2;
 		clip->tracking.camera.principal[1]= ((float)height)/2;

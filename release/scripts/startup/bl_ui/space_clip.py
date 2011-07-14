@@ -121,9 +121,10 @@ class CLIP_PT_tools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         clip = context.space_data.clip
-        settings = clip.tracking.settings
 
         if clip:
+            settings = clip.tracking.settings
+
             col = layout.column(align=True)
             col.label(text="Transform:")
             col.operator("transform.translate")
@@ -296,8 +297,11 @@ class CLIP_PT_display(bpy.types.Panel):
         row.active = sc.show_track_path
         row.prop(sc, "path_length", text="Length")
 
+        row = layout.row()
+        row.prop(sc, "show_disabled", text="Disabled")
+        row.prop(sc, "show_bundles", text="Bundles")
+
         layout.prop(sc, "show_tiny_markers", text="Tiny Markers")
-        layout.prop(sc, "show_bundles", text="Bundles")
 
         layout.prop(sc, "lock_selection")
         layout.prop(sc, "use_mute_footage")

@@ -967,6 +967,7 @@ enum {
 #define SC_SHOW_TRACK_PATH		(1<<4)
 #define SC_SHOW_BUNDLES			(1<<5)
 #define SC_MUTE_FOOTAGE			(1<<6)
+#define SC_HIDE_DISABLED		(1<<7)
 
 
 /* space types, moved from DNA_screen_types.h */

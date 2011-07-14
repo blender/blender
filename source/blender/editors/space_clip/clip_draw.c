@@ -524,7 +524,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	if(sc->flag&SC_SHOW_TRACK_PATH) {
 		track= tracking->tracks.first;
 		while(track) {
-			if((track->flag&TRACK_HIDDEN)==0)
+			if(TRACK_VISIBLE(track))
 				draw_track_path(sc, clip, track);
 
 			track= track->next;
@@ -534,12 +534,14 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	/* markers outline and non-selected areas */
 	track= tracking->tracks.first;
 	while(track) {
-		if((track->flag&TRACK_HIDDEN)==0) {
+		if(TRACK_VISIBLE(track)) {
 			marker= BKE_tracking_get_marker(track, framenr);
 
-			draw_marker_outline(sc, track, marker);
-			draw_marker_slide_zones(sc, track, marker, 1, 0, width, height);
-			draw_marker_areas(sc, track, marker, 0, 0);
+			if(MARKER_VISIBLE(sc, marker)) {
+				draw_marker_outline(sc, track, marker);
+				draw_marker_slide_zones(sc, track, marker, 1, 0, width, height);
+				draw_marker_areas(sc, track, marker, 0, 0);
+			}
 		}
 
 		track= track->next;
@@ -549,13 +551,16 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	   non-selected areas */
 	track= tracking->tracks.first;
 	while(track) {
-		if((track->flag&TRACK_HIDDEN)==0) {
+		if(TRACK_VISIBLE(track)) {
 			int act= sel_type==MCLIP_SEL_TRACK && sel==track;
 
 			if(!act) {
 				marker= BKE_tracking_get_marker(track, framenr);
-				draw_marker_areas(sc, track, marker, 0, 1);
-				draw_marker_slide_zones(sc, track, marker, 0, 0, width, height);
+
+				if(MARKER_VISIBLE(sc, marker)) {
+					draw_marker_areas(sc, track, marker, 0, 1);
+					draw_marker_slide_zones(sc, track, marker, 0, 0, width, height);
+				}
 			}
 		}
 
@@ -564,10 +569,13 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 	/* active marker would be displayed on top of everything else */
 	if(sel_type==MCLIP_SEL_TRACK) {
-		if((((MovieTrackingTrack *)sel)->flag&TRACK_HIDDEN)==0) {
+		if(TRACK_VISIBLE((MovieTrackingTrack *)sel)) {
 			marker= BKE_tracking_get_marker(sel, framenr);
-			draw_marker_areas(sc, sel, marker, 1, 1);
-			draw_marker_slide_zones(sc, sel, marker, 0, 1, width, height);
+
+			if(MARKER_VISIBLE(sc, marker)) {
+				draw_marker_areas(sc, sel, marker, 1, 1);
+				draw_marker_slide_zones(sc, sel, marker, 0, 1, width, height);
+			}
 		}
 	}
 
@@ -581,29 +589,31 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 		track= tracking->tracks.first;
 		while(track) {
-			if((track->flag&TRACK_HIDDEN)==0 && track->flag&TRACK_HAS_BUNDLE) {
+			if(TRACK_VISIBLE(track) && track->flag&TRACK_HAS_BUNDLE) {
 				marker= BKE_tracking_get_marker(track, framenr);
 
-				copy_v4_v4(vec, track->bundle_pos);
-				vec[3]=1;
+				if(MARKER_VISIBLE(sc, marker)) {
+					copy_v4_v4(vec, track->bundle_pos);
+					vec[3]=1;
 
-				mul_v4_m4v4(pos, mat, vec);
+					mul_v4_m4v4(pos, mat, vec);
 
-				pos[0]= (pos[0]/(pos[3]*2.0f)+0.5f)*width;
-				pos[1]= (pos[1]/(pos[3]*2.0f)+0.5f)*height;
+					pos[0]= (pos[0]/(pos[3]*2.0f)+0.5f)*width;
+					pos[1]= (pos[1]/(pos[3]*2.0f)+0.5f)*height;
 
-				BKE_tracking_apply_intrinsics(tracking, pos, width, height, pos);
+					BKE_tracking_apply_intrinsics(tracking, pos, width, height, pos);
 
-				vec[0]= marker->pos[0]*width;
-				vec[1]= marker->pos[1]*height;
-				sub_v2_v2(vec, pos);
+					vec[0]= marker->pos[0]*width;
+					vec[1]= marker->pos[1]*height;
+					sub_v2_v2(vec, pos);
 
-				if(len_v2(vec)<3) glColor3f(0.0f, 1.0f, 0.0f);
-				else glColor3f(1.0f, 0.0f, 0.0f);
+					if(len_v2(vec)<3) glColor3f(0.0f, 1.0f, 0.0f);
+					else glColor3f(1.0f, 0.0f, 0.0f);
 
-				glBegin(GL_POINTS);
-					glVertex3f(pos[0]/width, pos[1]/height, 0);
-				glEnd();
+					glBegin(GL_POINTS);
+						glVertex3f(pos[0]/width, pos[1]/height, 0);
+					glEnd();
+				}
 			}
 
 			track= track->next;

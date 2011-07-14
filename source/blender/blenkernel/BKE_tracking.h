@@ -78,9 +78,11 @@ void BKE_get_tracking_mat(struct Scene *scene, float mat[4][4]);
 void BKE_tracking_projection_matrix(struct MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4]);
 void BKE_tracking_apply_intrinsics(struct MovieTracking *tracking, float co[2], float width, float height, float nco[2]);
 
-#define TRACK_SELECTED(track) ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
-#define TRACK_AREA_SELECTED(track, area) ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))
-#define TRACK_VIEW_SELECTED(track) ((track->flag&TRACK_HIDDEN)==0 && TRACK_SELECTED(track))
+#define TRACK_SELECTED(track)				((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
+#define TRACK_AREA_SELECTED(track, area)	((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))
+#define TRACK_VIEW_SELECTED(track)			((track->flag&TRACK_HIDDEN)==0 && TRACK_SELECTED(track))
+#define TRACK_VISIBLE(track)				(((track)->flag&TRACK_HIDDEN)==0)
+#define MARKER_VISIBLE(sc, marker)			(((marker)->flag&MARKER_DISABLED)==0 || ((sc)->flag&SC_HIDE_DISABLED)==0)
 
 #define CLAMP_PAT_DIM		1
 #define CLAMP_PAT_POS		2

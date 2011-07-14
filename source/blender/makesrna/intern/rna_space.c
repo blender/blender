@@ -2688,6 +2688,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mute Footage", "Mute footage and show black background instead");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_MUTE_FOOTAGE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* hide disabled */
+	prop= RNA_def_property(srna, "show_disabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Disabled", "Show disabled tracks from the footage");
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SC_HIDE_DISABLED);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 
 void RNA_def_space(BlenderRNA *brna)

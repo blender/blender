@@ -301,6 +301,9 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "unselected", 1);
 	WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks_clear", HKEY, KM_PRESS, KM_ALT, 0);
 
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_disable_markers", DKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", 2);
+
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }
 
