@@ -273,7 +273,10 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
         op = row.operator("clip.camera_preset_add", text="", icon="ZOOMOUT")
         op.remove_active = True
 
-        layout.prop(clip.tracking.camera, "sensor_width")
+        layout.label(text="Sensor:")
+        row = layout.row(align=True)
+        row.prop(clip.tracking.camera, "sensor_width", text="X")
+        row.prop(clip.tracking.camera, "sensor_height", text="Y")
 
         row = layout.row(align=True)
         sub = row.split(percentage=0.65)

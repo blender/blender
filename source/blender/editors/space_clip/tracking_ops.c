@@ -1023,14 +1023,19 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 		scene->camera= scene_find_camera(scene);
 
 	if(scene->camera) {
-		float focal= clip->tracking.camera.focal;
+		MovieTracking *tracking= &clip->tracking;
+		float focal= tracking->camera.focal;
 
 		/* set blender camera focal length so result would look fine there */
 		if(focal) {
 			Camera *camera= (Camera*)scene->camera->data;
 
-			if(clip->lastsize[0])
-				camera->lens= focal*32.0f/(float)clip->lastsize[0];
+			if(clip->lastsize[0]) {
+				camera->sensor_x= tracking->camera.sensor_width;
+				camera->sensor_y= tracking->camera.sensor_height;
+
+				camera->lens= focal*camera->sensor_x/(float)clip->lastsize[0];
+			}
 
 			WM_event_add_notifier(C, NC_OBJECT, camera);
 		}

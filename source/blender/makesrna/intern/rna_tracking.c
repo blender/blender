@@ -218,6 +218,13 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sensor Width", "Width of CCD sensor in millimeters");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
+	/* Sensor height */
+	prop= RNA_def_property(srna, "sensor_height", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sensor_height");
+	RNA_def_property_range(prop, 0.0f, 500.0f);
+	RNA_def_property_ui_text(prop, "Sensor Height", "Height of CCD sensor in millimeters");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+
 	/* Focal Length */
 	prop= RNA_def_property(srna, "focal_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "focal");
