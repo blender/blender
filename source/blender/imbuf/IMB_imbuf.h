@@ -338,6 +338,7 @@ void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */
 void IMB_convert_profile(struct ImBuf *ibuf, int profile);
 float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc);
+void IMB_color_to_bw(struct ImBuf *ibuf);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from

@@ -20,6 +20,7 @@
 import bpy
 from blf import gettext as _
 
+
 class TIME_HT_header(bpy.types.Header):
     bl_space_type = 'TIMELINE'
 

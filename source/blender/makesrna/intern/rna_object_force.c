@@ -910,13 +910,6 @@ static void rna_def_collision(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Damping", "Amount of damping during collision");
 	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
-	
-	/* Does this belong here?
-	prop= RNA_def_property(srna, "collision_stack", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_COLLFINAL);
-	RNA_def_property_ui_text(prop, "Collision from Stack", "Pick collision object from modifier stack (softbody only)");
-	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
-	*/
 
 	prop= RNA_def_property(srna, "absorption", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);

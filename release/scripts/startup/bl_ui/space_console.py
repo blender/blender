@@ -21,6 +21,7 @@ import bpy
 from bpy.props import StringProperty
 from blf import gettext as _
 
+
 class CONSOLE_HT_header(bpy.types.Header):
     bl_space_type = 'CONSOLE'
 

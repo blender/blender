@@ -306,6 +306,11 @@ if env['BF_NO_ELBEEM'] == 1:
     env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
     env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
+# TODO, make optional
+env['CPPFLAGS'].append('-DWITH_AUDASPACE')
+env['CXXFLAGS'].append('-DWITH_AUDASPACE')
+env['CCFLAGS'].append('-DWITH_AUDASPACE')
+
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
 B.doc_build_dir = os.path.join(env['BF_INSTALLDIR'], 'doc')

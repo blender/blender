@@ -43,7 +43,9 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	float col[3]= {0.0f, 0.0f, 0.0f};
 
 	if(kwds && PyDict_Size(kwds)) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.Color(): takes no keyword args");
+		PyErr_SetString(PyExc_TypeError,
+		                "mathutils.Color(): "
+		                "takes no keyword args");
 		return NULL;
 	}
 
@@ -55,7 +57,9 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 			return NULL;
 		break;
 	default:
-		PyErr_SetString(PyExc_TypeError, "mathutils.Color(): more then a single arg given");
+		PyErr_SetString(PyExc_TypeError,
+		                "mathutils.Color(): "
+		                "more then a single arg given");
 		return NULL;
 	}
 	return newColorObject(col, Py_NEW, type);
@@ -174,7 +178,9 @@ static PyObject *Color_item(ColorObject * self, int i)
 	if(i<0) i= COLOR_SIZE-i;
 
 	if(i < 0 || i >= COLOR_SIZE) {
-		PyErr_SetString(PyExc_IndexError, "color[attribute]: array index out of range");
+		PyErr_SetString(PyExc_IndexError,
+		                "color[attribute]: "
+		                "array index out of range");
 		return NULL;
 	}
 
@@ -191,14 +197,17 @@ static int Color_ass_item(ColorObject * self, int i, PyObject *value)
 	float f = PyFloat_AsDouble(value);
 
 	if(f == -1 && PyErr_Occurred()) { // parsed item not a number
-		PyErr_SetString(PyExc_TypeError, "color[attribute] = x: argument not a number");
+		PyErr_SetString(PyExc_TypeError,
+		                "color[attribute] = x: "
+		                "argument not a number");
 		return -1;
 	}
 
 	if(i<0) i= COLOR_SIZE-i;
 
 	if(i < 0 || i >= COLOR_SIZE){
-		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: array assignment index out of range");
+		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: "
+		                "array assignment index out of range");
 		return -1;
 	}
 
@@ -250,7 +259,9 @@ static int Color_ass_slice(ColorObject *self, int begin, int end, PyObject *seq)
 		return -1;
 
 	if(size != (end - begin)){
-		PyErr_SetString(PyExc_TypeError, "color[begin:end] = []: size mismatch in slice assignment");
+		PyErr_SetString(PyExc_TypeError,
+		                "color[begin:end] = []: "
+		                "size mismatch in slice assignment");
 		return -1;
 	}
 
@@ -285,12 +296,15 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
 			return Color_slice(self, start, stop);
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError, "slice steps not supported with color");
+			PyErr_SetString(PyExc_TypeError,
+			                "slice steps not supported with color");
 			return NULL;
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "color indices must be integers, not %.200s",
+		             Py_TYPE(item)->tp_name);
 		return NULL;
 	}
 }
@@ -314,12 +328,15 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 		if (step == 1)
 			return Color_ass_slice(self, start, stop, value);
 		else {
-			PyErr_SetString(PyExc_TypeError, "slice steps not supported with color");
+			PyErr_SetString(PyExc_TypeError,
+			                "slice steps not supported with color");
 			return -1;
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "color indices must be integers, not %.200s",
+		             Py_TYPE(item)->tp_name);
 		return -1;
 	}
 }
@@ -354,7 +371,9 @@ static PyObject *Color_add(PyObject *v1, PyObject *v2)
 	float col[COLOR_SIZE];
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError, "Color addition: arguments not valid for this operation");
+		PyErr_SetString(PyExc_AttributeError,
+		                "Color addition: "
+		                "arguments not valid for this operation");
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -374,7 +393,9 @@ static PyObject *Color_iadd(PyObject *v1, PyObject *v2)
 	ColorObject *color1 = NULL, *color2 = NULL;
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError, "Color addition: arguments not valid for this operation");
+		PyErr_SetString(PyExc_AttributeError,
+		                "Color addition: "
+		                "arguments not valid for this operation");
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -397,7 +418,9 @@ static PyObject *Color_sub(PyObject *v1, PyObject *v2)
 	float col[COLOR_SIZE];
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError, "Color subtraction: arguments not valid for this operation");
+		PyErr_SetString(PyExc_AttributeError,
+		                "Color subtraction: "
+		                "arguments not valid for this operation");
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -417,7 +440,9 @@ static PyObject *Color_isub(PyObject *v1, PyObject *v2)
 	ColorObject *color1= NULL, *color2= NULL;
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError, "Color subtraction: arguments not valid for this operation");
+		PyErr_SetString(PyExc_AttributeError,
+		                "Color subtraction: "
+		                "arguments not valid for this operation");
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -476,7 +501,10 @@ static PyObject *Color_mul(PyObject *v1, PyObject *v2)
 		BLI_assert(!"internal error");
 	}
 
-	PyErr_Format(PyExc_TypeError, "Color multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
+	PyErr_Format(PyExc_TypeError,
+	             "Color multiplication: not supported between "
+	             "'%.200s' and '%.200s' types",
+	             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 	return NULL;
 }
 
@@ -491,20 +519,25 @@ static PyObject *Color_div(PyObject *v1, PyObject *v2)
 			return NULL;
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Color division not supported in this order");
+		PyErr_SetString(PyExc_TypeError,
+		                "Color division not supported in this order");
 		return NULL;
 	}
 
 	/* make sure v1 is always the vector */
 	if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* COLOR * FLOAT */
 		if(scalar==0.0f) {
-			PyErr_SetString(PyExc_ZeroDivisionError, "Color division: divide by zero error");
+			PyErr_SetString(PyExc_ZeroDivisionError,
+			                "Color division: divide by zero error");
 			return NULL;
 		}
 		return color_mul_float(color1, 1.0f / scalar);
 	}
 
-	PyErr_Format(PyExc_TypeError, "Color multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
+	PyErr_Format(PyExc_TypeError,
+	             "Color multiplication: not supported between "
+	             "'%.200s' and '%.200s' types",
+	             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 	return NULL;
 }
 
@@ -543,14 +576,17 @@ static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
 	/* only support color /= float */
 	if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* COLOR /= FLOAT */
 		if(scalar==0.0f) {
-			PyErr_SetString(PyExc_ZeroDivisionError, "Color division: divide by zero error");
+			PyErr_SetString(PyExc_ZeroDivisionError,
+			                "Color division: divide by zero error");
 			return NULL;
 		}
 
 		mul_vn_fl(color->col, COLOR_SIZE, 1.0f / scalar);
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Color multiplication: arguments not acceptable for this operation");
+		PyErr_SetString(PyExc_TypeError,
+		                "Color multiplication: "
+		                "arguments not acceptable for this operation");
 		return NULL;
 	}
 
@@ -642,7 +678,9 @@ static int Color_setChannelHSV(ColorObject * self, PyObject *value, void * type)
 	float f = PyFloat_AsDouble(value);
 
 	if(f == -1 && PyErr_Occurred()) {
-		PyErr_SetString(PyExc_TypeError, "color.h/s/v = value: argument not a number");
+		PyErr_SetString(PyExc_TypeError,
+		                "color.h/s/v = value: "
+		                "argument not a number");
 		return -1;
 	}
 
@@ -808,7 +846,8 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 			self->wrapped = Py_NEW;
 		}
 		else {
-			PyErr_SetString(PyExc_RuntimeError, "Color(): invalid type");
+			PyErr_SetString(PyExc_RuntimeError,
+			                "Color(): invalid type, internal error");
 			return NULL;
 		}
 	}

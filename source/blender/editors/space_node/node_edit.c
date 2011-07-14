@@ -2006,18 +2006,15 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree= snode->edittree;
-	bNode *node, *newnode, *last;
+	bNode *node, *newnode, *lastnode;
+	bNodeLink *link, *newlink, *lastlink;
 	
 	ED_preview_kill_jobs(C);
 	
-	last = ntree->nodes.last;
+	lastnode = ntree->nodes.last;
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
 			newnode = nodeCopyNode(ntree, node);
-			
-			/* deselect old node, select the copy instead */
-			node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
-			newnode->flag |= NODE_SELECT;
 			
 			if(newnode->id) {
 				/* simple id user adjustment, node internal functions dont touch this
@@ -2029,7 +2026,53 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		
 		/* make sure we don't copy new nodes again! */
-		if (node==last)
+		if (node==lastnode)
+			break;
+	}
+	
+	/* copy links between selected nodes
+	 * NB: this depends on correct node->new_node and sock->new_sock pointers from above copy!
+	 */
+	lastlink = ntree->links.last;
+	for (link=ntree->links.first; link; link=link->next) {
+		/* this creates new links between copied nodes,
+		 * as well as input links from unselected (when fromnode==NULL) !
+		 */
+		if (link->tonode && (link->tonode->flag & NODE_SELECT)) {
+			newlink = MEM_callocN(sizeof(bNodeLink), "bNodeLink");
+			newlink->flag = link->flag;
+			newlink->tonode = link->tonode->new_node;
+			newlink->tosock = link->tosock->new_sock;
+			if (link->fromnode && (link->fromnode->flag & NODE_SELECT)) {
+				newlink->fromnode = link->fromnode->new_node;
+				newlink->fromsock = link->fromsock->new_sock;
+			}
+			else {
+				/* input node not copied, this keeps the original input linked */
+				newlink->fromnode = link->fromnode;
+				newlink->fromsock = link->fromsock;
+			}
+			
+			BLI_addtail(&ntree->links, newlink);
+		}
+		
+		/* make sure we don't copy new links again! */
+		if (link==lastlink)
+			break;
+	}
+	
+	/* deselect old nodes, select the copies instead */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			/* has been set during copy above */
+			newnode = node->new_node;
+			
+			node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
+			newnode->flag |= NODE_SELECT;
+		}
+		
+		/* make sure we don't copy new nodes again! */
+		if (node==lastnode)
 			break;
 	}
 	
@@ -2861,6 +2904,117 @@ void NODE_OT_delete(wmOperatorType *ot)
 	ot->exec= node_delete_exec;
 	ot->poll= ED_operator_node_active;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****************** Delete with reconnect ******************* */
+
+/* note: in cmp_util.c is similar code, for node_compo_pass_on() */
+/* used for disabling node  (similar code in node_draw.c for disable line) */
+static void node_delete_reconnect(bNodeTree* tree, bNode* node) {
+	bNodeLink *link, *next;
+	bNodeSocket *valsocket= NULL, *colsocket= NULL, *vecsocket= NULL;
+	bNodeSocket *deliveringvalsocket= NULL, *deliveringcolsocket= NULL, *deliveringvecsocket= NULL;
+	bNode *deliveringvalnode= NULL, *deliveringcolnode= NULL, *deliveringvecnode= NULL;
+	bNodeSocket *sock;
+
+	/* test the inputs */
+	for(sock= node->inputs.first; sock; sock= sock->next) {
+		int type = sock->type;
+		if(type==SOCK_VALUE && valsocket==NULL) valsocket = sock;
+		if(type==SOCK_VECTOR && vecsocket==NULL) vecsocket = sock;
+		if(type==SOCK_RGBA && colsocket==NULL) colsocket = sock;
+	}
+	// we now have the input sockets for the 'data types'
+	// now find the output sockets (and nodes) in the tree that delivers data to these input sockets
+	for(link= tree->links.first; link; link=link->next) {
+		if (valsocket != NULL) {
+			if (link->tosock == valsocket) {
+				deliveringvalnode = link->fromnode;
+				deliveringvalsocket = link->fromsock;
+			}
+		}
+		if (vecsocket != NULL) {
+			if (link->tosock == vecsocket) {
+				deliveringvecnode = link->fromnode;
+				deliveringvecsocket = link->fromsock;
+			}
+		}
+		if (colsocket != NULL) {
+			if (link->tosock == colsocket) {
+				deliveringcolnode = link->fromnode;
+				deliveringcolsocket = link->fromsock;
+			}
+		}
+	}
+	// we now have the sockets+nodes that fill the inputsockets be aware for group nodes these can be NULL
+	// now make the links for all outputlinks of the node to be reconnected
+	for(link= tree->links.first; link; link=next) {
+		next= link->next;
+		if (link->fromnode == node) {
+			sock = link->fromsock;
+			switch(sock->type) {
+			case SOCK_VALUE:
+				if (deliveringvalsocket) {
+					link->fromnode = deliveringvalnode;
+					link->fromsock = deliveringvalsocket;
+				}
+				break;
+			case SOCK_VECTOR:
+				if (deliveringvecsocket) {
+					link->fromnode = deliveringvecnode;
+					link->fromsock = deliveringvecsocket;
+				}
+				break;
+			case SOCK_RGBA:
+				if (deliveringcolsocket) {
+					link->fromnode = deliveringcolnode;
+					link->fromsock = deliveringcolsocket;
+				}
+				break;
+			}
+		}
+	}
+	if(node->id)
+		node->id->us--;
+	nodeFreeNode(tree, node);
+
+}
+
+static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNode *node, *next;
+
+	ED_preview_kill_jobs(C);
+
+	for(node= snode->edittree->nodes.first; node; node= next) {
+		next= node->next;
+		if(node->flag & SELECT) {
+			node_delete_reconnect(snode->edittree, node);
+		}
+	}
+
+	node_tree_verify_groups(snode->nodetree);
+
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_delete_reconnect(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete with reconnect";
+	ot->description = "Delete nodes; will reconnect nodes as if deletion was muted";
+	ot->idname= "NODE_OT_delete_reconnect";
+
+	/* api callbacks */
+	ot->exec= node_delete_reconnect_exec;
+	ot->poll= ED_operator_node_active;
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

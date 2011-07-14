@@ -90,7 +90,8 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject* 
 		return NULL;
 	}
 	if(vec1->size != 3 || vec2->size != 3 || vec3->size != 3 || ray->size != 3 || ray_off->size != 3) {
-		PyErr_SetString(PyExc_ValueError, "only 3D vectors for all parameters");
+		PyErr_SetString(PyExc_ValueError,
+		                "only 3D vectors for all parameters");
 		return NULL;
 	}
 
@@ -177,7 +178,8 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 		return NULL;
 	}
 	if(vec1->size != vec2->size || vec1->size != vec3->size || vec3->size != vec2->size) {
-		PyErr_SetString(PyExc_ValueError,"vectors must be of the same size");
+		PyErr_SetString(PyExc_ValueError,
+		                "vectors must be of the same size");
 		return NULL;
 	}
 
@@ -225,7 +227,8 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 		}
 	}
 	else {
-		PyErr_SetString(PyExc_ValueError, "2D/3D vectors only");
+		PyErr_SetString(PyExc_ValueError,
+		                "2D/3D vectors only");
 		return NULL;
 	}
 }
@@ -259,11 +262,13 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject* args)
 			return NULL;
 		}
 		if(vec1->size != vec2->size || vec1->size != vec3->size) {
-			PyErr_SetString(PyExc_ValueError, "vectors must be of the same size");
+			PyErr_SetString(PyExc_ValueError,
+			                "vectors must be of the same size");
 			return NULL;
 		}
 		if(vec1->size < 3) {
-			PyErr_SetString(PyExc_ValueError, "2D vectors unsupported");
+			PyErr_SetString(PyExc_ValueError,
+			                "2D vectors unsupported");
 			return NULL;
 		}
 
@@ -277,11 +282,13 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject* args)
 			return NULL;
 		}
 		if(vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec4->size) {
-			PyErr_SetString(PyExc_ValueError,"vectors must be of the same size");
+			PyErr_SetString(PyExc_ValueError,
+			                "vectors must be of the same size");
 			return NULL;
 		}
 		if(vec1->size < 3) {
-			PyErr_SetString(PyExc_ValueError, "2D vectors unsupported");
+			PyErr_SetString(PyExc_ValueError,
+			                "2D vectors unsupported");
 			return NULL;
 		}
 
@@ -318,7 +325,8 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject* args)
 	}
 
 	if(vec1->size != vec2->size || vec1->size != vec3->size) {
-		PyErr_SetString(PyExc_ValueError, "vectors must be of the same size");
+		PyErr_SetString(PyExc_ValueError,
+		                "vectors must be of the same size");
 		return NULL;
 	}
 
@@ -332,7 +340,8 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject* args)
 		return PyFloat_FromDouble(area_tri_v2(vec1->vec, vec2->vec, vec3->vec));
 	}
 	else {
-		PyErr_SetString(PyExc_ValueError, "only 2D,3D vectors are supported");
+		PyErr_SetString(PyExc_ValueError,
+		                "only 2D,3D vectors are supported");
 		return NULL;
 	}
 }
@@ -360,7 +369,8 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 	int index, *dl_face, totpoints=0;
 
 	if(!PySequence_Check(polyLineSeq)) {
-		PyErr_SetString(PyExc_TypeError, "expected a sequence of poly lines");
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a sequence of poly lines");
 		return NULL;
 	}
 	
@@ -371,7 +381,8 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 		if (!PySequence_Check(polyLine)) {
 			freedisplist(&dispbase);
 			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
-			PyErr_SetString(PyExc_TypeError, "One or more of the polylines is not a sequence of mathutils.Vector's");
+			PyErr_SetString(PyExc_TypeError,
+			                "One or more of the polylines is not a sequence of mathutils.Vector's");
 			return NULL;
 		}
 		
@@ -381,7 +392,8 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 			if (EXPP_check_sequence_consistency(polyLine, &vector_Type) != 1) {
 				freedisplist(&dispbase);
 				Py_DECREF(polyLine);
-				PyErr_SetString(PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type");
+				PyErr_SetString(PyExc_TypeError,
+				                "A point in one of the polylines is not a mathutils.Vector type");
 				return NULL;
 			}
 #endif
@@ -422,7 +434,9 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 	
 	if(ls_error) {
 		freedisplist(&dispbase); /* possible some dl was allocated */
-		PyErr_SetString(PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type");
+		PyErr_SetString(PyExc_TypeError,
+		                "A point in one of the polylines "
+		                "is not a mathutils.Vector type");
 		return NULL;
 	}
 	else if (totpoints) {
@@ -436,7 +450,8 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 		tri_list= PyList_New(dl->parts);
 		if(!tri_list) {
 			freedisplist(&dispbase);
-			PyErr_SetString(PyExc_RuntimeError, "geometry.PolyFill failed to make a new list");
+			PyErr_SetString(PyExc_RuntimeError,
+			                "failed to make a new list");
 			return NULL;
 		}
 		
@@ -522,7 +537,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	VectorObject *line_a, *line_b, *plane_co, *plane_no;
 	int no_flip= 0;
 	float isect[3];
-	if(!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_line_line_2d",
+	if(!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_line_plane",
 	  &vector_Type, &line_a,
 	  &vector_Type, &line_b,
 	  &vector_Type, &plane_co,
@@ -541,7 +556,9 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	}
 
 	if(ELEM4(2, line_a->size, line_b->size, plane_co->size, plane_no->size)) {
-		PyErr_SetString(PyExc_RuntimeError, "geometry.intersect_line_plane(...) can't use 2D Vectors");
+		PyErr_SetString(PyExc_RuntimeError,
+		                "geometry.intersect_line_plane(...): "
+		                " can't use 2D Vectors");
 		return NULL;
 	}
 
@@ -550,6 +567,159 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	}
 	else {
 		Py_RETURN_NONE;
+	}
+}
+
+
+PyDoc_STRVAR(M_Geometry_intersect_line_sphere_doc,
+".. function:: intersect_line_sphere(line_a, line_b, sphere_co, sphere_radius, clip=True)\n"
+"\n"
+"   Takes a lines (as 2 vectors), a sphere as a point and a radius and\n"
+"   returns the intersection\n"
+"\n"
+"   :arg line_a: First point of the first line\n"
+"   :type line_a: :class:`mathutils.Vector`\n"
+"   :arg line_b: Second point of the first line\n"
+"   :type line_b: :class:`mathutils.Vector`\n"
+"   :arg sphere_co: The center of the sphere\n"
+"   :type sphere_co: :class:`mathutils.Vector`\n"
+"   :arg sphere_radius: Radius of the sphere\n"
+"   :type sphere_radius: sphere_radius\n"
+"   :return: The intersection points as a pair of vectors or None when there is no intersection\n"
+"   :rtype: A tuple pair containing :class:`mathutils.Vector` or None\n"
+);
+static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObject* args)
+{
+	VectorObject *line_a, *line_b, *sphere_co;
+	float sphere_radius;
+	int clip= TRUE;
+
+	float isect_a[3];
+	float isect_b[3];
+
+	if(!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere",
+	  &vector_Type, &line_a,
+	  &vector_Type, &line_b,
+	  &vector_Type, &sphere_co,
+	  &sphere_radius, &clip)
+	) {
+		return NULL;
+	}
+
+	if(		BaseMath_ReadCallback(line_a) == -1 ||
+	        BaseMath_ReadCallback(line_b) == -1 ||
+	        BaseMath_ReadCallback(sphere_co) == -1
+	) {
+		return NULL;
+	}
+
+	if(ELEM3(2, line_a->size, line_b->size, sphere_co->size)) {
+		PyErr_SetString(PyExc_RuntimeError,
+		                "geometry.intersect_line_sphere(...): "
+		                " can't use 2D Vectors");
+		return NULL;
+	}
+	else {
+		short use_a= TRUE;
+		short use_b= TRUE;
+		float lambda;
+
+		PyObject *ret= PyTuple_New(2);
+
+		switch(isect_line_sphere_v3(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
+		case 1:
+			if(!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			use_b= FALSE;
+			break;
+		case 2:
+			if(!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if(!(!clip || (((lambda= line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
+			break;
+		default:
+			use_a= FALSE;
+			use_b= FALSE;
+		}
+
+		if(use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
+
+		if(use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 3, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
+
+		return ret;
+	}
+}
+
+/* keep in sync with M_Geometry_intersect_line_sphere */
+PyDoc_STRVAR(M_Geometry_intersect_line_sphere_2d_doc,
+".. function:: intersect_line_sphere_2d(line_a, line_b, sphere_co, sphere_radius, clip=True)\n"
+"\n"
+"   Takes a lines (as 2 vectors), a sphere as a point and a radius and\n"
+"   returns the intersection\n"
+"\n"
+"   :arg line_a: First point of the first line\n"
+"   :type line_a: :class:`mathutils.Vector`\n"
+"   :arg line_b: Second point of the first line\n"
+"   :type line_b: :class:`mathutils.Vector`\n"
+"   :arg sphere_co: The center of the sphere\n"
+"   :type sphere_co: :class:`mathutils.Vector`\n"
+"   :arg sphere_radius: Radius of the sphere\n"
+"   :type sphere_radius: sphere_radius\n"
+"   :return: The intersection points as a pair of vectors or None when there is no intersection\n"
+"   :rtype: A tuple pair containing :class:`mathutils.Vector` or None\n"
+);
+static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyObject* args)
+{
+	VectorObject *line_a, *line_b, *sphere_co;
+	float sphere_radius;
+	int clip= TRUE;
+
+	float isect_a[3];
+	float isect_b[3];
+
+	if(!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere_2d",
+	  &vector_Type, &line_a,
+	  &vector_Type, &line_b,
+	  &vector_Type, &sphere_co,
+	  &sphere_radius, &clip)
+	) {
+		return NULL;
+	}
+
+	if(		BaseMath_ReadCallback(line_a) == -1 ||
+	        BaseMath_ReadCallback(line_b) == -1 ||
+	        BaseMath_ReadCallback(sphere_co) == -1
+	) {
+		return NULL;
+	}
+	else {
+		short use_a= TRUE;
+		short use_b= TRUE;
+		float lambda;
+
+		PyObject *ret= PyTuple_New(2);
+
+		switch(isect_line_sphere_v2(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
+		case 1:
+			if(!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			use_b= FALSE;
+			break;
+		case 2:
+			if(!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if(!(!clip || (((lambda= line_point_factor_v2(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
+			break;
+		default:
+			use_a= FALSE;
+			use_b= FALSE;
+		}
+
+		if(use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 2, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
+
+		if(use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 2, Py_NEW, NULL)); }
+		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
+
+		return ret;
 	}
 }
 
@@ -683,7 +853,8 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 	
 	/* Error checking must already be done */
 	if(!PyList_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "can only back a list of [x, y, w, h]");
+		PyErr_SetString(PyExc_TypeError,
+		                "can only back a list of [x, y, w, h]");
 		return -1;
 	}
 	
@@ -696,7 +867,8 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 		list_item= PyList_GET_ITEM(value, i);
 		if(!PyList_Check(list_item) || PyList_Size(list_item) < 4) {
 			MEM_freeN(*boxarray);
-			PyErr_SetString(PyExc_TypeError, "can only pack a list of [x, y, w, h]");
+			PyErr_SetString(PyExc_TypeError,
+			                "can only pack a list of [x, y, w, h]");
 			return -1;
 		}
 		
@@ -711,7 +883,9 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 
 		if (box->w < 0.0f || box->h < 0.0f) {
 			MEM_freeN(*boxarray);
-			PyErr_SetString(PyExc_TypeError, "error parsing width and height values from list: [x, y, w, h], not numbers or below zero");
+			PyErr_SetString(PyExc_TypeError,
+			                "error parsing width and height values from list: "
+			                "[x, y, w, h], not numbers or below zero");
 			return -1;
 		}
 
@@ -755,7 +929,8 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 	PyObject *ret;
 	
 	if(!PyList_Check(boxlist)) {
-		PyErr_SetString(PyExc_TypeError, "expected a list of boxes [[x, y, w, h], ... ]");
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a list of boxes [[x, y, w, h], ... ]");
 		return NULL;
 	}
 
@@ -821,7 +996,8 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject*
 	}
 
 	if(resolu <= 1) {
-		PyErr_SetString(PyExc_ValueError, "resolution must be 2 or over");
+		PyErr_SetString(PyExc_ValueError,
+		                "resolution must be 2 or over");
 		return NULL;
 	}
 
@@ -898,7 +1074,8 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 		vec_t2_tar->size != 3 ||
 		vec_t3_tar->size != 3)
 	{
-		PyErr_SetString(PyExc_ValueError, "One of more of the vector arguments wasnt a 3D vector");
+		PyErr_SetString(PyExc_ValueError,
+		                "One of more of the vector arguments wasnt a 3D vector");
 		return NULL;
 	}
 
@@ -917,6 +1094,8 @@ static PyMethodDef M_Geometry_methods[]= {
 	{"intersect_line_line", (PyCFunction) M_Geometry_intersect_line_line, METH_VARARGS, M_Geometry_intersect_line_line_doc},
 	{"intersect_line_line_2d", (PyCFunction) M_Geometry_intersect_line_line_2d, METH_VARARGS, M_Geometry_intersect_line_line_2d_doc},
 	{"intersect_line_plane", (PyCFunction) M_Geometry_intersect_line_plane, METH_VARARGS, M_Geometry_intersect_line_plane_doc},
+	{"intersect_line_sphere", (PyCFunction) M_Geometry_intersect_line_sphere, METH_VARARGS, M_Geometry_intersect_line_sphere_doc},
+	{"intersect_line_sphere_2d", (PyCFunction) M_Geometry_intersect_line_sphere_2d, METH_VARARGS, M_Geometry_intersect_line_sphere_2d_doc},
 	{"interpolate_bezier", (PyCFunction) M_Geometry_interpolate_bezier, METH_VARARGS, M_Geometry_interpolate_bezier_doc},
 	{"area_tri", (PyCFunction) M_Geometry_area_tri, METH_VARARGS, M_Geometry_area_tri_doc},
 	{"normal", (PyCFunction) M_Geometry_normal, METH_VARARGS, M_Geometry_normal_doc},

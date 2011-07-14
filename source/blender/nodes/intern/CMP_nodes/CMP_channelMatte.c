@@ -97,6 +97,7 @@ static void do_channel_matte(bNode *node, float *out, float *in)
 			default:
 				break;
 		}
+		break;
 	}
 	default:
 		break;

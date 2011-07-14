@@ -17,7 +17,7 @@ Module to access logic functions, imported automatically into the python control
    # To get the game object this controller is on:
    obj = cont.owner
 
-:class:`~bge.types.KX_GameObject` and :class:`~bge.types.KX_Camera` or :class:`bge.types.~KX_LightObject` methods are available depending on the type of object
+:class:`~bge.types.KX_GameObject` and :class:`~bge.types.KX_Camera` or :class:`~bge.types.KX_LightObject` methods are available depending on the type of object
 
 .. code-block:: python
 

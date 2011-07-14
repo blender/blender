@@ -172,21 +172,21 @@ add_test(import_stl_knot_max_simplified ${TEST_BLENDER_EXE}
 add_test(import_x3d_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/color_cube.x3d'\)
-	--md5=2ed64325dd3d62be6ce43c64219376ec --md5_method=SCENE
+	--md5=3fae9be004199c145941cd3f9f80ad7b --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_x3d_cube.blend
 )
 
 add_test(import_x3d_teapot ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/teapot.x3d'\)
-	--md5=8b8b386900b8e3d2c036a38c625f4079 --md5_method=SCENE
+	--md5=8ee196c71947dce4199d55698501691e --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_x3d_teapot.blend
 )
 
 add_test(import_x3d_suzanne_material ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/suzanne_material.x3d'\)
-	--md5=999129ba835f0ccb98c4bb299f6c2fef --md5_method=SCENE
+	--md5=3edea1353257d8b5a5f071942f417be6 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_x3d_suzanne_material.blend
 )
 
@@ -196,7 +196,7 @@ add_test(export_x3d_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_cube.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_cube.x3d
-	--md5=30d2b056c004144cd4a0d172484a66f3 --md5_method=FILE
+	--md5=6ae36be272d6f84c697e84a8b6463273 --md5_method=FILE
 )
 
 add_test(export_x3d_nurbs ${TEST_BLENDER_EXE}
@@ -204,7 +204,7 @@ add_test(export_x3d_nurbs ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_nurbs.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_nurbs.x3d
-	--md5=7c15afe7b0cf007b842a925508b7d966 --md5_method=FILE
+	--md5=2d5bcf43cf7b6fbbef1c8cc566968fe5 --md5_method=FILE
 )
 
 add_test(export_x3d_all_objects ${TEST_BLENDER_EXE}
@@ -212,7 +212,7 @@ add_test(export_x3d_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_all_objects.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_all_objects.x3d
-	--md5=d7d6574e833f3f051b65ef4577485fa9 --md5_method=FILE
+	--md5=bba48ca191e8891adb27c59ed4ce4735 --md5_method=FILE
 )
 
 

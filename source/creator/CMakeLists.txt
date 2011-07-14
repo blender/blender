@@ -231,7 +231,17 @@ else()
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-# install target
+
+# -----------------------------------------------------------------------------
+# Install Targets
+
+set(BLENDER_TEXT_FILES
+	${CMAKE_SOURCE_DIR}/release/text/GPL-license.txt
+	${CMAKE_SOURCE_DIR}/release/text/Python-license.txt
+	${CMAKE_SOURCE_DIR}/release/text/copyright.txt
+	${CMAKE_SOURCE_DIR}/release/text/readme.html
+)
+
 if(UNIX AND NOT APPLE)
 
 	if(WITH_INSTALL_PORTABLE)
@@ -274,9 +284,8 @@ if(UNIX AND NOT APPLE)
 		)
 
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+			FILES ${BLENDER_TEXT_FILES}
 			DESTINATION ${TARGETDIR}
-			PATTERN ".svn" EXCLUDE
 		)
 
 	else()
@@ -332,27 +341,26 @@ if(UNIX AND NOT APPLE)
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 		)
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+			FILES ${BLENDER_TEXT_FILES}
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
-			PATTERN ".svn" EXCLUDE
 		)
 	endif()
 
 	install(
 		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}/config
+		DESTINATION ${TARGETDIR_VER}
 	)
 
 	if(WITH_INTERNATIONAL)
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-			DESTINATION ${TARGETDIR_VER}/config
+			DESTINATION ${TARGETDIR_VER}
 		)
 
 		install(
 			DIRECTORY
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
@@ -411,25 +419,24 @@ elseif(WIN32)
 	)
 
 	install(  # same as linux!, deduplicate
-		DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+		FILES ${BLENDER_TEXT_FILES}
 		DESTINATION ${TARGETDIR}
-		PATTERN ".svn" EXCLUDE
 	)
 
 	install(  # same as linux!, deduplicate
 		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}/config
+		DESTINATION ${TARGETDIR_VER}
 	)
 
 	if(WITH_INTERNATIONAL) # same as linux!, deduplicate
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-			DESTINATION ${TARGETDIR_VER}/config
+			DESTINATION ${TARGETDIR_VER}
 		)
 		install(
 			DIRECTORY
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
@@ -634,9 +641,9 @@ elseif(APPLE)
 	endmacro()
 
 	# install release and app files
-	install_dir(
-		${CMAKE_SOURCE_DIR}/release/text/
-		\${TARGETDIR}
+	install(
+		FILES ${BLENDER_TEXT_FILES}
+		DESTINATION ${TARGETDIR}
 	)
 
 	install(
@@ -651,7 +658,7 @@ elseif(APPLE)
 
 	install(
 		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}/datafiles
+		DESTINATION ${TARGETDIR_VER}
 	)
 
 	# localization
@@ -702,6 +709,12 @@ elseif(APPLE)
 		)
 	endif()
 endif()
+
+unset(BLENDER_TEXT_FILES)
+
+
+# -----------------------------------------------------------------------------
+# Setup link libs
 
 add_dependencies(blender makesdna)
 

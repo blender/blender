@@ -22,6 +22,7 @@ import os
 from blf import gettext as _
 from blf import fake_gettext as N_
 
+
 KM_HIERARCHY = [
     ( N_('Window'), 'EMPTY', 'WINDOW', []),  # file save, window change, exit
     ( N_('Screen'), 'EMPTY', 'WINDOW', [     # full screen, undo, screenshot
@@ -190,9 +191,9 @@ class InputKeyMapPanel:
         if km.is_modal:
             row.label(text="", icon='LINKED')
         if km.is_user_defined:
-            op = row.operator("wm.keymap_restore", text=_("Restore"))
+            row.operator("wm.keymap_restore", text=_("Restore"))
         else:
-            op = row.operator("wm.keymap_edit", text=_("Edit"))
+            row.operator("wm.keymap_edit", text=_("Edit"))
 
         if km.show_expanded_children:
             if children:
@@ -214,7 +215,7 @@ class InputKeyMapPanel:
                 col = self.indented_layout(col, level + 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.enabled = km.is_user_defined
-                op = subcol.operator("wm.keyitem_add", text=_("Add New"), icon='ZOOMIN')
+                subcol.operator("wm.keyitem_add", text=_("Add New"), icon='ZOOMIN')
 
             col.separator()
 
@@ -235,7 +236,7 @@ class InputKeyMapPanel:
         for pname, value in properties.bl_rna.properties.items():
             if pname != "rna_type" and not properties.is_property_hidden(pname):
                 if isinstance(value, bpy.types.OperatorProperties):
-                    __class__.draw_kmi_properties(box, value, title=pname)
+                    InputKeyMapPanel.draw_kmi_properties(box, value, title=pname)
                 else:
                     flow.prop(properties, pname)
 
@@ -326,7 +327,7 @@ class InputKeyMapPanel:
             # Operator properties
             props = kmi.properties
             if props is not None:
-                __class__.draw_kmi_properties(box, props)
+                InputKeyMapPanel.draw_kmi_properties(box, props)
 
             # Modal key maps attached to this operator
             if not km.is_modal:
@@ -352,9 +353,9 @@ class InputKeyMapPanel:
                 row.label()
 
                 if km.is_user_defined:
-                    op = row.operator("wm.keymap_restore", text=_("Restore"))
+                    row.operator("wm.keymap_restore", text=_("Restore"))
                 else:
-                    op = row.operator("wm.keymap_edit", text=_("Edit"))
+                    row.operator("wm.keymap_edit", text=_("Edit"))
 
                 for kmi in filtered_items:
                     self.draw_kmi(display_keymaps, kc, km, kmi, col, 1)
@@ -363,7 +364,7 @@ class InputKeyMapPanel:
                 col = self.indented_layout(layout, 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.enabled = km.is_user_defined
-                op = subcol.operator("wm.keyitem_add", text=_("Add New"), icon='ZOOMIN')
+                subcol.operator("wm.keyitem_add", text=_("Add New"), icon='ZOOMIN')
 
     def draw_hierarchy(self, display_keymaps, layout):
         for entry in KM_HIERARCHY:
@@ -731,9 +732,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
     __doc__ = _("Add key map item")
 
     def execute(self, context):
-        wm = context.window_manager
         km = context.keymap
-        kc = wm.keyconfigs.default
 
         if km.is_modal:
             km.keymap_items.new_modal("", 'A', 'PRESS')  # kmi

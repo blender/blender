@@ -232,7 +232,7 @@ class ShapeTransfer(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = EnumProperty(items=(
-                        ('OFFSET', "Offset", _("Apply the relative positional offset")),
+                        ('OFFSET', _("Offset"), _("Apply the relative positional offset")),
                         ('RELATIVE_FACE', _("Relative Face"), _("Calculate the geometricly relative position (using faces).")),
                         ('RELATIVE_EDGE', _("Relative Edge"), _("Calculate the geometricly relative position (using edges)."))),
                 name=_("Transformation Mode"),

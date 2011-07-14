@@ -33,13 +33,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-
-#include "BLF_api.h"
 
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
@@ -63,6 +62,8 @@
 
 #include "UI_interface.h"
 #include "interface_intern.h"
+
+#include "BLF_api.h"
 
 void UI_template_fix_linking(void)
 {
@@ -2104,6 +2105,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		Object *ob= (Object*)activeptr->data;
+		Key *key= (Key*)itemptr->data;
 
 		split= uiLayoutSplit(sub, 0.75f, 0);
 
@@ -2111,7 +2113,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		row= uiLayoutRow(split, 1);
-		if(i == 0) uiItemL(row, "", ICON_NONE);
+		if(i == 0 || (key->type != KEY_RELATIVE)) uiItemL(row, "", ICON_NONE);
 		else uiItemR(row, itemptr, "value", 0, "", ICON_NONE);
 
 		if(ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH))

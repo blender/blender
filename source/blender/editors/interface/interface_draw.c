@@ -142,13 +142,13 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 
 static void round_box_shade_col(float *col1, float *col2, float fac)
 {
-	float col[3];
+	float col[4];
 
 	col[0]= (fac*col1[0] + (1.0f-fac)*col2[0]);
 	col[1]= (fac*col1[1] + (1.0f-fac)*col2[1]);
 	col[2]= (fac*col1[2] + (1.0f-fac)*col2[2]);
-	
-	glColor3fv(col);
+	col[3]= (fac*col1[3] + (1.0f-fac)*col2[3]);
+	glColor4fv(col);
 }
 
 
@@ -159,7 +159,7 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	float vec[7][2]= {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
 					  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	float div= maxy-miny;
-	float coltop[3], coldown[3], color[4];
+	float coltop[4], coldown[4], color[4];
 	int a;
 	
 	/* mult */
@@ -173,9 +173,11 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	coltop[0]= color[0]+shadetop; if(coltop[0]>1.0f) coltop[0]= 1.0f;
 	coltop[1]= color[1]+shadetop; if(coltop[1]>1.0f) coltop[1]= 1.0f;
 	coltop[2]= color[2]+shadetop; if(coltop[2]>1.0f) coltop[2]= 1.0f;
+	coltop[3]= color[3];
 	coldown[0]= color[0]+shadedown; if(coldown[0]<0.0f) coldown[0]= 0.0f;
 	coldown[1]= color[1]+shadedown; if(coldown[1]<0.0f) coldown[1]= 0.0f;
 	coldown[2]= color[2]+shadedown; if(coldown[2]<0.0f) coldown[2]= 0.0f;
+	coldown[3]= color[3];
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);

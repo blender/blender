@@ -126,6 +126,7 @@ typedef struct TransSeq {
 	int startstill, endstill;
 	int startdisp, enddisp;
 	int startofs, endofs;
+	int anim_startofs, anim_endofs;
 	/* int final_left, final_right; */ /* UNUSED */
 	int len;
 } TransSeq;
@@ -731,8 +732,10 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 	ts.endstill= seq->endstill;
 	ts.startdisp= seq->startdisp;
 	ts.enddisp= seq->enddisp;
-	ts.startofs= seq->anim_startofs;
-	ts.endofs= seq->anim_endofs;
+	ts.startofs= seq->startofs;
+	ts.endofs= seq->endofs;
+	ts.anim_startofs= seq->anim_startofs;
+	ts.anim_endofs= seq->anim_endofs;
 	ts.len= seq->len;
 	
 	/* First Strip! */
@@ -782,7 +785,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		if ((seqn->startstill) && (cutframe == seqn->start + 1)) {
 			seqn->start = ts.start;
 			seqn->startstill= ts.start- cutframe;
-			seqn->anim_endofs = ts.endofs;
+			seqn->anim_endofs = ts.anim_endofs;
 			seqn->endstill = ts.endstill;
 		}
 		
@@ -791,8 +794,9 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 			seqn->start = cutframe;
 			seqn->startstill = 0;
 			seqn->startofs = 0;
+			seqn->endofs = ts.endofs;
 			seqn->anim_startofs += cutframe - ts.start;
-			seqn->anim_endofs = ts.endofs;
+			seqn->anim_endofs = ts.anim_endofs;
 			seqn->endstill = ts.endstill;
 		}				
 		
@@ -827,6 +831,8 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 	ts.enddisp= seq->enddisp;
 	ts.startofs= seq->startofs;
 	ts.endofs= seq->endofs;
+	ts.anim_startofs= seq->anim_startofs;
+	ts.anim_endofs= seq->anim_endofs;
 	ts.len= seq->len;
 	
 	/* First Strip! */
@@ -1780,19 +1786,21 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				/* new seq */
 				se = give_stripelem(seq, cfra);
 
-				seq_new= alloc_sequence(ed->seqbasep, start_ofs, seq->machine);
+				seq_new= seq_dupli_recursive(scene, scene, seq, SEQ_DUPE_UNIQUE_NAME);
+				BLI_addtail(&ed->seqbase, seq_new);
+
+				seq_new->start= start_ofs;
 				seq_new->type= SEQ_IMAGE;
 				seq_new->len = 1;
 				seq_new->endstill = step-1;
 
 				/* new strip */
-				seq_new->strip= strip_new= MEM_callocN(sizeof(Strip)*1, "strip");
+				strip_new= seq_new->strip;
 				strip_new->len= 1;
 				strip_new->us= 1;
-				strncpy(strip_new->dir, seq->strip->dir, FILE_MAXDIR-1);
 
 				/* new stripdata */
-				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
+				se_new= strip_new->stripdata;
 				BLI_strncpy(se_new->name, se->name, sizeof(se_new->name));
 				calc_sequence(scene, seq_new);
 
@@ -1804,8 +1812,6 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				}
 
 				/* XXX, COPY FCURVES */
-				strncpy(seq_new->name+2, seq->name+2, sizeof(seq->name)-2);
-				seqbase_unique_name_recursive(&scene->ed->seqbase, seq_new);
 
 				cfra++;
 				start_ofs += step;

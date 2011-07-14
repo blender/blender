@@ -262,7 +262,7 @@ def path_reference(filepath, base_src, base_dst, mode='AUTO', copy_subdir="", co
         filepath_abs = filepath_cpy
         mode = 'RELATIVE'
     else:
-        Excaption("invalid mode given %r" % mode)
+        raise Exception("invalid mode given %r" % mode)
 
     if mode == 'ABSOLUTE':
         return filepath_abs

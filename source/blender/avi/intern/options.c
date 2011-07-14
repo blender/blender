@@ -40,6 +40,8 @@
 #include "avi_intern.h"
 #include "endian.h"
 
+#include "BLI_winstuff.h"
+
 /* avi_set_compress_options gets its own file... now don't WE feel important? */
 
 AviError AVI_set_compress_option (AviMovie *movie, int option_type, int stream, AviOption option, void *opt_data) {

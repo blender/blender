@@ -42,6 +42,7 @@
 #include "STR_String.h"
 
 @class CocoaWindow;
+@class CocoaOpenGLView;
 
 class GHOST_SystemCocoa;
 
@@ -77,7 +78,7 @@ public:
 		GHOST_SystemCocoa *systemCocoa,
 		const STR_String& title,
 		GHOST_TInt32 left,
-		GHOST_TInt32 top,
+		GHOST_TInt32 bottom,
 		GHOST_TUns32 width,
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
@@ -179,6 +180,26 @@ public:
 	 * @param outY	The y-coordinate on the screen.
 	 */
 	virtual	void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+
+	/**
+	 * Converts a point in screen coordinates to client rectangle coordinates
+	 * but without the y coordinate conversion needed for ghost compatibility.
+	 * @param inX	The x-coordinate in the client rectangle.
+	 * @param inY	The y-coordinate in the client rectangle.
+	 * @param outX	The x-coordinate on the screen.
+	 * @param outY	The y-coordinate on the screen.
+	 */
+	void clientToScreenIntern(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+
+	/**
+	 * Converts a point in screen coordinates to client rectangle coordinates,
+	 * but without the y coordinate conversion needed for ghost compatibility.
+	 * @param inX	The x-coordinate in the client rectangle.
+	 * @param inY	The y-coordinate in the client rectangle.
+	 * @param outX	The x-coordinate on the screen.
+	 * @param outY	The y-coordinate on the screen.
+	 */
+	void screenToClientIntern(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	/**
 	 * Gets the screen the window is displayed in
@@ -289,7 +310,7 @@ protected:
     CocoaWindow *m_window;
 	
 	/** The openGL view */
-	NSOpenGLView *m_openGLView; 
+	CocoaOpenGLView *m_openGLView; 
     
 	/** The opgnGL drawing context */
 	NSOpenGLContext *m_openGLContext;

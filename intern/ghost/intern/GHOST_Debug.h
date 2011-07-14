@@ -41,9 +41,9 @@
 	#endif // DEBUG
 #endif // WIN32
 
-#ifdef BF_GHOST_DEBUG 
+#ifdef WITH_GHOST_DEBUG 
 	#define GHOST_DEBUG // spit ghost events to stdout
-#endif // BF_GHOST_DEBUG 
+#endif // WITH_GHOST_DEBUG 
 
 #ifdef GHOST_DEBUG
 	#include <iostream>

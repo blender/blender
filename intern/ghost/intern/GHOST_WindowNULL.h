@@ -54,7 +54,7 @@ public:
 		const bool stereoVisual,
 		const GHOST_TUns16 numOfAASamples
 		) :
-		GHOST_Window(title,left,top,width,height,state,type,stereoVisual,numOfAASamples),
+		GHOST_Window(width,height,state,type,stereoVisual,numOfAASamples),
 		m_system (system)
 	{
 		setTitle(title);

@@ -179,7 +179,9 @@ static struct _inittab bpy_internal_modules[]= {
 //	{(char *)"mathutils.geometry", BPyInit_mathutils_geometry},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
+#ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
+#endif
 	{NULL, NULL}
 };
 
@@ -207,8 +209,6 @@ void BPY_python_start(int argc, const char **argv)
 
 	Py_Initialize();
 
-	bpy_intern_string_init();
-
 	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
 	/* sigh, why do python guys not have a char** version anymore? :( */
 	{
@@ -230,6 +230,8 @@ void BPY_python_start(int argc, const char **argv)
 	/* must run before python initializes */
 	PyImport_ExtendInittab(bpy_internal_modules);
 #endif
+
+	bpy_intern_string_init();
 
 	/* bpy.* and lets us import it */
 	BPy_init_modules();
@@ -661,7 +663,9 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 #include "BLI_storage.h"
 /* TODO, reloading the module isnt functional at the moment. */
 
-extern int main_python(int argc, const char **argv);
+static void bpy_module_free(void *mod);
+extern int main_python_enter(int argc, const char **argv);
+extern void main_python_exit(void);
 static struct PyModuleDef bpy_proxy_def= {
 	PyModuleDef_HEAD_INIT,
 	"bpy",  /* m_name */
@@ -671,8 +675,8 @@ static struct PyModuleDef bpy_proxy_def= {
 	NULL,  /* m_reload */
 	NULL,  /* m_traverse */
 	NULL,  /* m_clear */
-	NULL,  /* m_free */
-};	
+	bpy_module_free,  /* m_free */
+};
 
 typedef struct {
 	PyObject_HEAD
@@ -697,7 +701,7 @@ void bpy_module_delay_init(PyObject *bpy_proxy)
 	
 	// printf("module found %s\n", argv[0]);
 
-	main_python(argc, argv);
+	main_python_enter(argc, argv);
 
 	/* initialized in BPy_init_modules() */
 	PyDict_Update(PyModule_GetDict(bpy_proxy), PyModule_GetDict(bpy_package_py));
@@ -752,6 +756,11 @@ PyInit_bpy(void)
 	PyModule_AddObject(bpy_proxy, "__file__", (PyObject *)dob); /* borrow */
 
 	return bpy_proxy;
+}
+
+static void bpy_module_free(void *UNUSED(mod))
+{
+	main_python_exit();
 }
 
 #endif

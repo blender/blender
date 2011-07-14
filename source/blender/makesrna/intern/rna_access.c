@@ -140,6 +140,7 @@ void RNA_types_init_gettext(void)
 			&RNA_Object,
 			&RNA_RenderLayer, &RNA_RenderSettings,
 			&RNA_Macro,
+			&RNA_Material,
 			&RNA_Scene,
 			&RNA_Scopes,
 
@@ -1683,6 +1684,8 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
+	/* useful to check on bad values but set function should clamp */
+	/* BLI_assert(RNA_property_int_clamp(ptr, prop, &value) == 0); */
 
 	if((idprop=rna_idproperty_check(&prop, ptr)))
 		IDP_Int(idprop)= value;
@@ -1905,6 +1908,8 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	/* useful to check on bad values but set function should clamp */
+	/* BLI_assert(RNA_property_float_clamp(ptr, prop, &value) == 0); */
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		if(idprop->type == IDP_FLOAT)
@@ -2915,7 +2920,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 				}
 
 				/* editable check */
-				if(RNA_property_editable(&itemptr, iprop)) {
+				if(!set || RNA_property_editable(&itemptr, iprop)) {
 					if(a+itemlen > in.len) {
 						BKE_reportf(reports, RPT_ERROR, "Array length mismatch (got %d, expected more).", in.len);
 						err= 1;

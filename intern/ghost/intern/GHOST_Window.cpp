@@ -41,8 +41,7 @@
 
 
 GHOST_Window::GHOST_Window(
-	const STR_String& /*title*/,
-	GHOST_TInt32 /*left*/, GHOST_TInt32 /*top*/, GHOST_TUns32 width, GHOST_TUns32 height,
+	GHOST_TUns32 width, GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual,

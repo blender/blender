@@ -729,6 +729,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "use_vertex_color_paint")
         col.prop(mat, "use_vertex_color_light")
         col.prop(mat, "use_object_color")
+        col.prop(mat, "pass_index")
 
 
 class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
@@ -883,7 +884,7 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
             sub = col.column()
             sub.enabled = True
             sub.active = False
-            sub.prop(vol, "use_light_cache")
+            sub.label("Light Cache Enabled")
             col.prop(vol, "cache_resolution")
 
             sub = col.column(align=True)

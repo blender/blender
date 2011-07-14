@@ -420,7 +420,7 @@ typedef struct SoftBody {
 #define OB_SB_SELF		512
 #define OB_SB_FACECOLL  1024
 #define OB_SB_EDGECOLL  2048
-#define OB_SB_COLLFINAL 4096
+#define OB_SB_COLLFINAL 4096	/* deprecated */
 #define OB_SB_BIG_UI	8192
 #define OB_SB_AERO_ANGLE	16384
 

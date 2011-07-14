@@ -467,6 +467,7 @@ static void node_composit_exec_glare(void *UNUSED(data), bNode *node, bNodeStack
 		case 2:
 		default:
 			streaks(ndg, new, src);
+			break;
 	}
 
 	free_compbuf(src);

@@ -66,7 +66,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "AUD_C-API.h"
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 #include "ED_sound.h"
 #include "ED_util.h"
@@ -83,6 +85,7 @@ static void open_init(bContext *C, wmOperator *op)
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
+#ifdef WITH_AUDASPACE
 static int open_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
@@ -132,6 +135,17 @@ static int open_exec(bContext *C, wmOperator *op)
 	if(op->customdata) MEM_freeN(op->customdata);
 	return OPERATOR_FINISHED;
 }
+
+#else //WITH_AUDASPACE
+
+static int open_exec(bContext *UNUSED(C), wmOperator *op)
+{
+	BKE_report(op->reports, RPT_ERROR, "Compiled without sound support");
+
+	return OPERATOR_CANCELLED;
+}
+
+#endif
 
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
