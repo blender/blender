@@ -117,6 +117,14 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
     inter_obj.name = "intermediate"
     bpy.context.scene.objects.active = inter_obj
     bpy.ops.object.mode_set(mode='EDIT')
+    #add some temporary connecting bones in case end user bones are not connected to their parents
+    for bone in inter_obj.data.edit_bones:
+        if not bone.use_connect and bone.parent:
+            newBone = inter_obj.data.edit_bones.new("Temp")
+            newBone.head = bone.parent.head
+            newBone.tail = bone.head
+            newBone.parent = bone.parent
+            bone.parent = newBone
     #resets roll
     bpy.ops.armature.calculate_roll(type='Z')
     bpy.ops.object.mode_set(mode="OBJECT")
@@ -156,7 +164,10 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
         rest_matrix = trg_bone.bone.matrix_local
 
         if trg_bone.parent and trg_bone.bone.use_inherit_rotation:
-            parent_mat = src_bone.parent.matrix
+            srcParent = src_bone.parent
+            if not trg_bone.bone.use_connect:
+                srcParent = srcParent.parent
+            parent_mat = srcParent.matrix
             parent_rest = trg_bone.parent.bone.matrix_local
             parent_rest_inv = parent_rest.copy()
             parent_rest_inv.invert()
@@ -168,7 +179,7 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
         rest_matrix_inv = rest_matrix.copy()
         rest_matrix_inv.invert()
         bake_matrix = rest_matrix_inv * bake_matrix
-        trg_bone.matrix_basis = bake_matrix
+        end_bone.matrix_basis = bake_matrix
         rot_mode = end_bone.rotation_mode
         if rot_mode == "QUATERNION":
             end_bone.keyframe_insert("rotation_quaternion")
