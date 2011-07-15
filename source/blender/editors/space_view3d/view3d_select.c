@@ -766,7 +766,7 @@ int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	Mesh *me= ob?ob->data:NULL;
 	int sx= rect->xmax-rect->xmin+1;
 	int sy= rect->ymax-rect->ymin+1;
-	bglMats mats;
+
 	struct { ViewContext vc; rcti *rect; int select; } data = {NULL};
 
 	if(me==NULL || me->totvert==0 || sx*sy <= 0)
