@@ -25,7 +25,7 @@ env.BlenderLib( libname = 'bf_python_ext', sources = Split(sources), includes = 
 defs = []
 
 sources = env.Glob('mathutils/*.c')
-env.BlenderLib( libname = 'bf_python_mathutils', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [361,165])
+env.BlenderLib( libname = 'bf_python_mathutils', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [362,165])
 
 
 # bpy
