@@ -151,6 +151,16 @@ IF(WIN32)
 		./third_party/glog/src/windows
 		./third_party/msinttypes
 	)
+
+	IF(MSVC)
+		set(MSVC_OFLAGS O1 O2 Ox)
+		foreach(FLAG )
+			string(REPLACE "" "Od" CMAKE_CXX_FLAGS_RELEASE "")
+			string(REPLACE "" "Od" CMAKE_C_FLAGS_RELWITHDEBINFO "")
+		endforeach()
+	ENDIF(MSVC)
+
+	add_definitions(-DEIGEN_DONT_ALIGN_STATICALLY)
 ELSE(WIN32)
 	list(APPEND SRC
 		third_party/glog/src/utilities.cc
