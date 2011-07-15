@@ -55,10 +55,10 @@
 #include "MEM_guardedalloc.h"
 
  /* external util modules */
-#include "../generic/mathutils.h"
+#include "../generic/IDProp.h"
 #include "../generic/bgl.h"
 #include "../generic/blf_py_api.h"
-#include "../generic/IDProp.h"
+#include "../mathutils/mathutils.h"
 
 PyObject *bpy_package_py= NULL;
 

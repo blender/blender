@@ -66,10 +66,10 @@
 #include "../generic/py_capi_utils.h"
 
 /* inittab initialization functions */
-#include "../generic/noise_py_api.h"
-#include "../generic/mathutils.h"
 #include "../generic/bgl.h"
 #include "../generic/blf_py_api.h"
+#include "../generic/noise_py_api.h"
+#include "../mathutils/mathutils.h"
 
 /* for internal use, when starting and ending python scripts */
 
@@ -175,8 +175,8 @@ extern PyObject *AUD_initPython(void);
 
 static struct _inittab bpy_internal_modules[]= {
 	{(char *)"noise", BPyInit_noise},
-	{(char *)"mathutils", BPyInit_mathutils},
-//	{(char *)"mathutils.geometry", BPyInit_mathutils_geometry},
+	{(char *)"mathutils", PyInit_mathutils},
+//	{(char *)"mathutils.geometry", PyInit_mathutils_geometry},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
 #ifdef WITH_AUDASPACE

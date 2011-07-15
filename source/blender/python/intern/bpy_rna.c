@@ -346,7 +346,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item);
 
 #ifdef USE_MATHUTILS
-#include "../generic/mathutils.h" /* so we can have mathutils callbacks */
+#include "../mathutils/mathutils.h" /* so we can have mathutils callbacks */
 
 static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop, Py_ssize_t start, Py_ssize_t stop, Py_ssize_t length);
 static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback);

@@ -40,6 +40,7 @@ set(INC
 	../../../source/blender/blenkernel
 	../../../source/blender/python
 	../../../source/blender/python/generic
+	../../../source/blender/python/mathutils
 	../../../source/blender 
 	../../../source/blender/makesdna 
 	../../../source/gameengine/Rasterizer 

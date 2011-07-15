@@ -37,16 +37,16 @@
 #include "mathutils_geometry.h"
 
 /* Used for PolyFill */
-#include "MEM_guardedalloc.h"
+#ifndef MATH_STANDALONE /* define when building outside blender */
+#  include "MEM_guardedalloc.h"
+#  include "BLI_blenlib.h"
+#  include "BLI_boxpack2d.h"
+#  include "BKE_displist.h"
+#  include "BKE_curve.h"
+#endif
 
-#include "BLI_blenlib.h"
-#include "BLI_boxpack2d.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
- 
-#include "BKE_displist.h"
-
-#include "BKE_curve.h"
 
 #define SWAP_FLOAT(a, b, tmp) tmp=a; a=b; b=tmp
 #define eps 0.000001
@@ -346,132 +346,6 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject* args)
 	}
 }
 
-/*----------------------------------geometry.PolyFill() -------------------*/
-PyDoc_STRVAR(M_Geometry_tesselate_polygon_doc,
-".. function:: tesselate_polygon(veclist_list)\n"
-"\n"
-"   Takes a list of polylines (each point a vector) and returns the point indices for a polyline filled with triangles.\n"
-"\n"
-"   :arg veclist_list: list of polylines\n"
-"   :rtype: list\n"
-);
-/* PolyFill function, uses Blenders scanfill to fill multiple poly lines */
-static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *polyLineSeq)
-{
-	PyObject *tri_list; /*return this list of tri's */
-	PyObject *polyLine, *polyVec;
-	int i, len_polylines, len_polypoints, ls_error= 0;
-
-	/* display listbase */
-	ListBase dispbase={NULL, NULL};
-	DispList *dl;
-	float *fp; /*pointer to the array of malloced dl->verts to set the points from the vectors */
-	int index, *dl_face, totpoints=0;
-
-	if(!PySequence_Check(polyLineSeq)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected a sequence of poly lines");
-		return NULL;
-	}
-	
-	len_polylines= PySequence_Size(polyLineSeq);
-	
-	for(i= 0; i < len_polylines; ++i) {
-		polyLine= PySequence_GetItem(polyLineSeq, i);
-		if (!PySequence_Check(polyLine)) {
-			freedisplist(&dispbase);
-			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
-			PyErr_SetString(PyExc_TypeError,
-			                "One or more of the polylines is not a sequence of mathutils.Vector's");
-			return NULL;
-		}
-		
-		len_polypoints= PySequence_Size(polyLine);
-		if (len_polypoints>0) { /* dont bother adding edges as polylines */
-#if 0
-			if (EXPP_check_sequence_consistency(polyLine, &vector_Type) != 1) {
-				freedisplist(&dispbase);
-				Py_DECREF(polyLine);
-				PyErr_SetString(PyExc_TypeError,
-				                "A point in one of the polylines is not a mathutils.Vector type");
-				return NULL;
-			}
-#endif
-			dl= MEM_callocN(sizeof(DispList), "poly disp");
-			BLI_addtail(&dispbase, dl);
-			dl->type= DL_INDEX3;
-			dl->nr= len_polypoints;
-			dl->type= DL_POLY;
-			dl->parts= 1; /* no faces, 1 edge loop */
-			dl->col= 0; /* no material */
-			dl->verts= fp= MEM_callocN(sizeof(float)*3*len_polypoints, "dl verts");
-			dl->index= MEM_callocN(sizeof(int)*3*len_polypoints, "dl index");
-			
-			for(index= 0; index<len_polypoints; ++index, fp+=3) {
-				polyVec= PySequence_GetItem(polyLine, index);
-				if(VectorObject_Check(polyVec)) {
-					
-					if(BaseMath_ReadCallback((VectorObject *)polyVec) == -1)
-						ls_error= 1;
-					
-					fp[0]= ((VectorObject *)polyVec)->vec[0];
-					fp[1]= ((VectorObject *)polyVec)->vec[1];
-					if(((VectorObject *)polyVec)->size > 2)
-						fp[2]= ((VectorObject *)polyVec)->vec[2];
-					else
-						fp[2]= 0.0f; /* if its a 2d vector then set the z to be zero */
-				}
-				else {
-					ls_error= 1;
-				}
-				
-				totpoints++;
-				Py_DECREF(polyVec);
-			}
-		}
-		Py_DECREF(polyLine);
-	}
-	
-	if(ls_error) {
-		freedisplist(&dispbase); /* possible some dl was allocated */
-		PyErr_SetString(PyExc_TypeError,
-		                "A point in one of the polylines "
-		                "is not a mathutils.Vector type");
-		return NULL;
-	}
-	else if (totpoints) {
-		/* now make the list to return */
-		filldisplist(&dispbase, &dispbase, 0);
-		
-		/* The faces are stored in a new DisplayList
-		thats added to the head of the listbase */
-		dl= dispbase.first; 
-		
-		tri_list= PyList_New(dl->parts);
-		if(!tri_list) {
-			freedisplist(&dispbase);
-			PyErr_SetString(PyExc_RuntimeError,
-			                "failed to make a new list");
-			return NULL;
-		}
-		
-		index= 0;
-		dl_face= dl->index;
-		while(index < dl->parts) {
-			PyList_SET_ITEM(tri_list, index, Py_BuildValue("iii", dl_face[0], dl_face[1], dl_face[2]));
-			dl_face+= 3;
-			index++;
-		}
-		freedisplist(&dispbase);
-	}
-	else {
-		/* no points, do this so scripts dont barf */
-		freedisplist(&dispbase); /* possible some dl was allocated */
-		tri_list= PyList_New(0);
-	}
-	
-	return tri_list;
-}
 
 PyDoc_STRVAR(M_Geometry_intersect_line_line_2d_doc,
 ".. function:: intersect_line_line_2d(lineA_p1, lineA_p2, lineB_p1, lineB_p2)\n"
@@ -844,188 +718,6 @@ static PyObject *M_Geometry_intersect_point_quad_2d(PyObject *UNUSED(self), PyOb
 	return PyLong_FromLong(isect_point_quad_v2(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
 }
 
-static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
-{
-	int len, i;
-	PyObject *list_item, *item_1, *item_2;
-	boxPack *box;
-	
-	
-	/* Error checking must already be done */
-	if(!PyList_Check(value)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "can only back a list of [x, y, w, h]");
-		return -1;
-	}
-	
-	len= PyList_Size(value);
-	
-	(*boxarray)= MEM_mallocN(len*sizeof(boxPack), "boxPack box");
-	
-	
-	for(i= 0; i < len; i++) {
-		list_item= PyList_GET_ITEM(value, i);
-		if(!PyList_Check(list_item) || PyList_Size(list_item) < 4) {
-			MEM_freeN(*boxarray);
-			PyErr_SetString(PyExc_TypeError,
-			                "can only pack a list of [x, y, w, h]");
-			return -1;
-		}
-		
-		box= (*boxarray)+i;
-		
-		item_1= PyList_GET_ITEM(list_item, 2);
-		item_2= PyList_GET_ITEM(list_item, 3);
-		
-		box->w=  (float)PyFloat_AsDouble(item_1);
-		box->h=  (float)PyFloat_AsDouble(item_2);
-		box->index= i;
-
-		/* accounts for error case too and overwrites with own error */
-		if (box->w < 0.0f || box->h < 0.0f) {
-			MEM_freeN(*boxarray);
-			PyErr_SetString(PyExc_TypeError,
-			                "error parsing width and height values from list: "
-			                "[x, y, w, h], not numbers or below zero");
-			return -1;
-		}
-
-		/* verts will be added later */
-	}
-	return 0;
-}
-
-static void boxPack_ToPyObject(PyObject *value, boxPack **boxarray)
-{
-	int len, i;
-	PyObject *list_item;
-	boxPack *box;
-	
-	len= PyList_Size(value);
-	
-	for(i= 0; i < len; i++) {
-		box= (*boxarray)+i;
-		list_item= PyList_GET_ITEM(value, box->index);
-		PyList_SET_ITEM(list_item, 0, PyFloat_FromDouble(box->x));
-		PyList_SET_ITEM(list_item, 1, PyFloat_FromDouble(box->y));
-	}
-	MEM_freeN(*boxarray);
-}
-
-PyDoc_STRVAR(M_Geometry_box_pack_2d_doc,
-".. function:: box_pack_2d(boxes)\n"
-"\n"
-"   Returns the normal of the 3D tri or quad.\n"
-"\n"
-"   :arg boxes: list of boxes, each box is a list where the first 4 items are [x, y, width, height, ...] other items are ignored.\n"
-"   :type boxes: list\n"
-"   :return: the width and height of the packed bounding box\n"
-"   :rtype: tuple, pair of floats\n"
-);
-static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlist)
-{
-	float tot_width= 0.0f, tot_height= 0.0f;
-	int len;
-
-	PyObject *ret;
-	
-	if(!PyList_Check(boxlist)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected a list of boxes [[x, y, w, h], ... ]");
-		return NULL;
-	}
-
-	len= PyList_GET_SIZE(boxlist);
-	if (len) {
-		boxPack *boxarray= NULL;
-		if(boxPack_FromPyObject(boxlist, &boxarray) == -1) {
-			return NULL; /* exception set */
-		}
-
-		/* Non Python function */
-		boxPack2D(boxarray, len, &tot_width, &tot_height);
-
-		boxPack_ToPyObject(boxlist, &boxarray);
-	}
-
-	ret= PyTuple_New(2);
-	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(tot_width));
-	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(tot_width));
-	return ret;
-}
-
-PyDoc_STRVAR(M_Geometry_interpolate_bezier_doc,
-".. function:: interpolate_bezier(knot1, handle1, handle2, knot2, resolution)\n"
-"\n"
-"   Interpolate a bezier spline segment.\n"
-"\n"
-"   :arg knot1: First bezier spline point.\n"
-"   :type knot1: :class:`mathutils.Vector`\n"
-"   :arg handle1: First bezier spline handle.\n"
-"   :type handle1: :class:`mathutils.Vector`\n"
-"   :arg handle2: Second bezier spline handle.\n"
-"   :type handle2: :class:`mathutils.Vector`\n"
-"   :arg knot2: Second bezier spline point.\n"
-"   :type knot2: :class:`mathutils.Vector`\n"
-"   :arg resolution: Number of points to return.\n"
-"   :type resolution: int\n"
-"   :return: The interpolated points\n"
-"   :rtype: list of :class:`mathutils.Vector`'s\n"
-);
-static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject* args)
-{
-	VectorObject *vec_k1, *vec_h1, *vec_k2, *vec_h2;
-	int resolu;
-	int dims;
-	int i;
-	float *coord_array, *fp;
-	PyObject *list;
-	
-	float k1[4]= {0.0, 0.0, 0.0, 0.0};
-	float h1[4]= {0.0, 0.0, 0.0, 0.0};
-	float k2[4]= {0.0, 0.0, 0.0, 0.0};
-	float h2[4]= {0.0, 0.0, 0.0, 0.0};
-	
-	
-	if(!PyArg_ParseTuple(args, "O!O!O!O!i:interpolate_bezier",
-	  &vector_Type, &vec_k1,
-	  &vector_Type, &vec_h1,
-	  &vector_Type, &vec_h2,
-	  &vector_Type, &vec_k2, &resolu)
-	) {
-		return NULL;
-	}
-
-	if(resolu <= 1) {
-		PyErr_SetString(PyExc_ValueError,
-		                "resolution must be 2 or over");
-		return NULL;
-	}
-
-	if(BaseMath_ReadCallback(vec_k1) == -1 || BaseMath_ReadCallback(vec_h1) == -1 || BaseMath_ReadCallback(vec_k2) == -1 || BaseMath_ReadCallback(vec_h2) == -1)
-		return NULL;
-
-	dims= MAX4(vec_k1->size, vec_h1->size, vec_h2->size, vec_k2->size);
-	
-	for(i=0; i < vec_k1->size; i++) k1[i]= vec_k1->vec[i];
-	for(i=0; i < vec_h1->size; i++) h1[i]= vec_h1->vec[i];
-	for(i=0; i < vec_k2->size; i++) k2[i]= vec_k2->vec[i];
-	for(i=0; i < vec_h2->size; i++) h2[i]= vec_h2->vec[i];
-	
-	coord_array= MEM_callocN(dims * (resolu) * sizeof(float), "interpolate_bezier");
-	for(i=0; i<dims; i++) {
-		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array+i, resolu-1, sizeof(float)*dims);
-	}
-	
-	list= PyList_New(resolu);
-	fp= coord_array;
-	for(i=0; i<resolu; i++, fp= fp+dims) {
-		PyList_SET_ITEM(list, i, newVectorObject(fp, dims, Py_NEW, NULL));
-	}
-	MEM_freeN(coord_array);
-	return list;
-}
-
 PyDoc_STRVAR(M_Geometry_barycentric_transform_doc,
 ".. function:: barycentric_transform(point, tri_a1, tri_a2, tri_a3, tri_b1, tri_b2, tri_b3)\n"
 "\n"
@@ -1087,6 +779,321 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 	return newVectorObject(vec, 3, Py_NEW, NULL);
 }
 
+#ifndef MATH_STANDALONE
+
+PyDoc_STRVAR(M_Geometry_interpolate_bezier_doc,
+".. function:: interpolate_bezier(knot1, handle1, handle2, knot2, resolution)\n"
+"\n"
+"   Interpolate a bezier spline segment.\n"
+"\n"
+"   :arg knot1: First bezier spline point.\n"
+"   :type knot1: :class:`mathutils.Vector`\n"
+"   :arg handle1: First bezier spline handle.\n"
+"   :type handle1: :class:`mathutils.Vector`\n"
+"   :arg handle2: Second bezier spline handle.\n"
+"   :type handle2: :class:`mathutils.Vector`\n"
+"   :arg knot2: Second bezier spline point.\n"
+"   :type knot2: :class:`mathutils.Vector`\n"
+"   :arg resolution: Number of points to return.\n"
+"   :type resolution: int\n"
+"   :return: The interpolated points\n"
+"   :rtype: list of :class:`mathutils.Vector`'s\n"
+);
+static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject* args)
+{
+	VectorObject *vec_k1, *vec_h1, *vec_k2, *vec_h2;
+	int resolu;
+	int dims;
+	int i;
+	float *coord_array, *fp;
+	PyObject *list;
+
+	float k1[4]= {0.0, 0.0, 0.0, 0.0};
+	float h1[4]= {0.0, 0.0, 0.0, 0.0};
+	float k2[4]= {0.0, 0.0, 0.0, 0.0};
+	float h2[4]= {0.0, 0.0, 0.0, 0.0};
+
+
+	if(!PyArg_ParseTuple(args, "O!O!O!O!i:interpolate_bezier",
+	  &vector_Type, &vec_k1,
+	  &vector_Type, &vec_h1,
+	  &vector_Type, &vec_h2,
+	  &vector_Type, &vec_k2, &resolu)
+	) {
+		return NULL;
+	}
+
+	if(resolu <= 1) {
+		PyErr_SetString(PyExc_ValueError,
+		                "resolution must be 2 or over");
+		return NULL;
+	}
+
+	if(BaseMath_ReadCallback(vec_k1) == -1 || BaseMath_ReadCallback(vec_h1) == -1 || BaseMath_ReadCallback(vec_k2) == -1 || BaseMath_ReadCallback(vec_h2) == -1)
+		return NULL;
+
+	dims= MAX4(vec_k1->size, vec_h1->size, vec_h2->size, vec_k2->size);
+
+	for(i=0; i < vec_k1->size; i++) k1[i]= vec_k1->vec[i];
+	for(i=0; i < vec_h1->size; i++) h1[i]= vec_h1->vec[i];
+	for(i=0; i < vec_k2->size; i++) k2[i]= vec_k2->vec[i];
+	for(i=0; i < vec_h2->size; i++) h2[i]= vec_h2->vec[i];
+
+	coord_array= MEM_callocN(dims * (resolu) * sizeof(float), "interpolate_bezier");
+	for(i=0; i<dims; i++) {
+		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array+i, resolu-1, sizeof(float)*dims);
+	}
+
+	list= PyList_New(resolu);
+	fp= coord_array;
+	for(i=0; i<resolu; i++, fp= fp+dims) {
+		PyList_SET_ITEM(list, i, newVectorObject(fp, dims, Py_NEW, NULL));
+	}
+	MEM_freeN(coord_array);
+	return list;
+}
+
+
+PyDoc_STRVAR(M_Geometry_tesselate_polygon_doc,
+".. function:: tesselate_polygon(veclist_list)\n"
+"\n"
+"   Takes a list of polylines (each point a vector) and returns the point indices for a polyline filled with triangles.\n"
+"\n"
+"   :arg veclist_list: list of polylines\n"
+"   :rtype: list\n"
+);
+/* PolyFill function, uses Blenders scanfill to fill multiple poly lines */
+static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *polyLineSeq)
+{
+	PyObject *tri_list; /*return this list of tri's */
+	PyObject *polyLine, *polyVec;
+	int i, len_polylines, len_polypoints, ls_error= 0;
+
+	/* display listbase */
+	ListBase dispbase={NULL, NULL};
+	DispList *dl;
+	float *fp; /*pointer to the array of malloced dl->verts to set the points from the vectors */
+	int index, *dl_face, totpoints=0;
+
+	if(!PySequence_Check(polyLineSeq)) {
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a sequence of poly lines");
+		return NULL;
+	}
+
+	len_polylines= PySequence_Size(polyLineSeq);
+
+	for(i= 0; i < len_polylines; ++i) {
+		polyLine= PySequence_GetItem(polyLineSeq, i);
+		if (!PySequence_Check(polyLine)) {
+			freedisplist(&dispbase);
+			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
+			PyErr_SetString(PyExc_TypeError,
+			                "One or more of the polylines is not a sequence of mathutils.Vector's");
+			return NULL;
+		}
+
+		len_polypoints= PySequence_Size(polyLine);
+		if (len_polypoints>0) { /* dont bother adding edges as polylines */
+#if 0
+			if (EXPP_check_sequence_consistency(polyLine, &vector_Type) != 1) {
+				freedisplist(&dispbase);
+				Py_DECREF(polyLine);
+				PyErr_SetString(PyExc_TypeError,
+				                "A point in one of the polylines is not a mathutils.Vector type");
+				return NULL;
+			}
+#endif
+			dl= MEM_callocN(sizeof(DispList), "poly disp");
+			BLI_addtail(&dispbase, dl);
+			dl->type= DL_INDEX3;
+			dl->nr= len_polypoints;
+			dl->type= DL_POLY;
+			dl->parts= 1; /* no faces, 1 edge loop */
+			dl->col= 0; /* no material */
+			dl->verts= fp= MEM_callocN(sizeof(float)*3*len_polypoints, "dl verts");
+			dl->index= MEM_callocN(sizeof(int)*3*len_polypoints, "dl index");
+
+			for(index= 0; index<len_polypoints; ++index, fp+=3) {
+				polyVec= PySequence_GetItem(polyLine, index);
+				if(VectorObject_Check(polyVec)) {
+
+					if(BaseMath_ReadCallback((VectorObject *)polyVec) == -1)
+						ls_error= 1;
+
+					fp[0]= ((VectorObject *)polyVec)->vec[0];
+					fp[1]= ((VectorObject *)polyVec)->vec[1];
+					if(((VectorObject *)polyVec)->size > 2)
+						fp[2]= ((VectorObject *)polyVec)->vec[2];
+					else
+						fp[2]= 0.0f; /* if its a 2d vector then set the z to be zero */
+				}
+				else {
+					ls_error= 1;
+				}
+
+				totpoints++;
+				Py_DECREF(polyVec);
+			}
+		}
+		Py_DECREF(polyLine);
+	}
+
+	if(ls_error) {
+		freedisplist(&dispbase); /* possible some dl was allocated */
+		PyErr_SetString(PyExc_TypeError,
+		                "A point in one of the polylines "
+		                "is not a mathutils.Vector type");
+		return NULL;
+	}
+	else if (totpoints) {
+		/* now make the list to return */
+		filldisplist(&dispbase, &dispbase, 0);
+
+		/* The faces are stored in a new DisplayList
+		thats added to the head of the listbase */
+		dl= dispbase.first;
+
+		tri_list= PyList_New(dl->parts);
+		if(!tri_list) {
+			freedisplist(&dispbase);
+			PyErr_SetString(PyExc_RuntimeError,
+			                "failed to make a new list");
+			return NULL;
+		}
+
+		index= 0;
+		dl_face= dl->index;
+		while(index < dl->parts) {
+			PyList_SET_ITEM(tri_list, index, Py_BuildValue("iii", dl_face[0], dl_face[1], dl_face[2]));
+			dl_face+= 3;
+			index++;
+		}
+		freedisplist(&dispbase);
+	}
+	else {
+		/* no points, do this so scripts dont barf */
+		freedisplist(&dispbase); /* possible some dl was allocated */
+		tri_list= PyList_New(0);
+	}
+
+	return tri_list;
+}
+
+
+static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
+{
+	int len, i;
+	PyObject *list_item, *item_1, *item_2;
+	boxPack *box;
+
+
+	/* Error checking must already be done */
+	if(!PyList_Check(value)) {
+		PyErr_SetString(PyExc_TypeError,
+		                "can only back a list of [x, y, w, h]");
+		return -1;
+	}
+
+	len= PyList_Size(value);
+
+	(*boxarray)= MEM_mallocN(len*sizeof(boxPack), "boxPack box");
+
+
+	for(i= 0; i < len; i++) {
+		list_item= PyList_GET_ITEM(value, i);
+		if(!PyList_Check(list_item) || PyList_Size(list_item) < 4) {
+			MEM_freeN(*boxarray);
+			PyErr_SetString(PyExc_TypeError,
+			                "can only pack a list of [x, y, w, h]");
+			return -1;
+		}
+
+		box= (*boxarray)+i;
+
+		item_1= PyList_GET_ITEM(list_item, 2);
+		item_2= PyList_GET_ITEM(list_item, 3);
+
+		box->w=  (float)PyFloat_AsDouble(item_1);
+		box->h=  (float)PyFloat_AsDouble(item_2);
+		box->index= i;
+
+		/* accounts for error case too and overwrites with own error */
+		if (box->w < 0.0f || box->h < 0.0f) {
+			MEM_freeN(*boxarray);
+			PyErr_SetString(PyExc_TypeError,
+			                "error parsing width and height values from list: "
+			                "[x, y, w, h], not numbers or below zero");
+			return -1;
+		}
+
+		/* verts will be added later */
+	}
+	return 0;
+}
+
+static void boxPack_ToPyObject(PyObject *value, boxPack **boxarray)
+{
+	int len, i;
+	PyObject *list_item;
+	boxPack *box;
+
+	len= PyList_Size(value);
+
+	for(i= 0; i < len; i++) {
+		box= (*boxarray)+i;
+		list_item= PyList_GET_ITEM(value, box->index);
+		PyList_SET_ITEM(list_item, 0, PyFloat_FromDouble(box->x));
+		PyList_SET_ITEM(list_item, 1, PyFloat_FromDouble(box->y));
+	}
+	MEM_freeN(*boxarray);
+}
+
+PyDoc_STRVAR(M_Geometry_box_pack_2d_doc,
+".. function:: box_pack_2d(boxes)\n"
+"\n"
+"   Returns the normal of the 3D tri or quad.\n"
+"\n"
+"   :arg boxes: list of boxes, each box is a list where the first 4 items are [x, y, width, height, ...] other items are ignored.\n"
+"   :type boxes: list\n"
+"   :return: the width and height of the packed bounding box\n"
+"   :rtype: tuple, pair of floats\n"
+);
+static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlist)
+{
+	float tot_width= 0.0f, tot_height= 0.0f;
+	int len;
+
+	PyObject *ret;
+
+	if(!PyList_Check(boxlist)) {
+		PyErr_SetString(PyExc_TypeError,
+		                "expected a list of boxes [[x, y, w, h], ... ]");
+		return NULL;
+	}
+
+	len= PyList_GET_SIZE(boxlist);
+	if (len) {
+		boxPack *boxarray= NULL;
+		if(boxPack_FromPyObject(boxlist, &boxarray) == -1) {
+			return NULL; /* exception set */
+		}
+
+		/* Non Python function */
+		boxPack2D(boxarray, len, &tot_width, &tot_height);
+
+		boxPack_ToPyObject(boxlist, &boxarray);
+	}
+
+	ret= PyTuple_New(2);
+	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(tot_width));
+	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(tot_width));
+	return ret;
+}
+
+#endif /* MATH_STANDALONE */
+
+
 static PyMethodDef M_Geometry_methods[]= {
 	{"intersect_ray_tri", (PyCFunction) M_Geometry_intersect_ray_tri, METH_VARARGS, M_Geometry_intersect_ray_tri_doc},
 	{"intersect_point_line", (PyCFunction) M_Geometry_intersect_point_line, METH_VARARGS, M_Geometry_intersect_point_line_doc},
@@ -1097,12 +1104,14 @@ static PyMethodDef M_Geometry_methods[]= {
 	{"intersect_line_plane", (PyCFunction) M_Geometry_intersect_line_plane, METH_VARARGS, M_Geometry_intersect_line_plane_doc},
 	{"intersect_line_sphere", (PyCFunction) M_Geometry_intersect_line_sphere, METH_VARARGS, M_Geometry_intersect_line_sphere_doc},
 	{"intersect_line_sphere_2d", (PyCFunction) M_Geometry_intersect_line_sphere_2d, METH_VARARGS, M_Geometry_intersect_line_sphere_2d_doc},
-	{"interpolate_bezier", (PyCFunction) M_Geometry_interpolate_bezier, METH_VARARGS, M_Geometry_interpolate_bezier_doc},
 	{"area_tri", (PyCFunction) M_Geometry_area_tri, METH_VARARGS, M_Geometry_area_tri_doc},
 	{"normal", (PyCFunction) M_Geometry_normal, METH_VARARGS, M_Geometry_normal_doc},
+	{"barycentric_transform", (PyCFunction) M_Geometry_barycentric_transform, METH_VARARGS, M_Geometry_barycentric_transform_doc},
+#ifndef MATH_STANDALONE
+	{"interpolate_bezier", (PyCFunction) M_Geometry_interpolate_bezier, METH_VARARGS, M_Geometry_interpolate_bezier_doc},
 	{"tesselate_polygon", (PyCFunction) M_Geometry_tesselate_polygon, METH_O, M_Geometry_tesselate_polygon_doc},
 	{"box_pack_2d", (PyCFunction) M_Geometry_box_pack_2d, METH_O, M_Geometry_box_pack_2d_doc},
-	{"barycentric_transform", (PyCFunction) M_Geometry_barycentric_transform, METH_VARARGS, M_Geometry_barycentric_transform_doc},
+#endif
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1119,7 +1128,7 @@ static struct PyModuleDef M_Geometry_module_def= {
 };
 
 /*----------------------------MODULE INIT-------------------------*/
-PyMODINIT_FUNC BPyInit_mathutils_geometry(void)
+PyMODINIT_FUNC PyInit_mathutils_geometry(void)
 {
 	PyObject *submodule= PyModule_Create(&M_Geometry_module_def);
 	return submodule;

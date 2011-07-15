@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# TODO, split into 2 files.
+# TODO, split into 3 files.
 
 Import ('env')
 
@@ -18,7 +18,14 @@ if is_debug:
     defs.append('_DEBUG')
 
 sources = env.Glob('generic/*.c')
-env.BlenderLib( libname = 'bf_python_ext', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [362,165]) # ketsji is 360
+env.BlenderLib( libname = 'bf_python_ext', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [363,165]) # ketsji is 360
+
+
+# mathutils
+defs = []
+
+sources = env.Glob('mathutils/*.c')
+env.BlenderLib( libname = 'bf_python_mathutils', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [361,165])
 
 
 # bpy

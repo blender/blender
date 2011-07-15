@@ -54,7 +54,7 @@
 extern "C" {
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
 	#include "py_capi_utils.h"
-	#include "mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
+	#include "mathutils.h" // 'mathutils' module copied here so the blenderlayer can use.
 	#include "bgl.h"
 	#include "blf_py_api.h"
 
@@ -1749,7 +1749,7 @@ static void restorePySysObjects(void)
 
 // Copied from bpy_interface.c
 static struct _inittab bge_internal_modules[]= {
-	{(char *)"mathutils", BPyInit_mathutils},
+	{(char *)"mathutils", PyInit_mathutils},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
 	{(char *)"aud", AUD_initPython},
