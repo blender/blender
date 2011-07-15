@@ -36,6 +36,7 @@ extern "C" {
 struct libmv_RegionTracker;
 struct libmv_Tracks;
 struct libmv_Reconstruction;
+struct libmv_Corners;
 
 /* Logging */
 void libmv_initLogging(const char *argv0);
@@ -60,6 +61,13 @@ struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *trac
 int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *reconstruction, int track, double pos[3]);
 int libmv_reporojectionCameraForImage(struct libmv_Reconstruction *reconstruction, int image, double mat[4][4]);
 void libmv_destroyReconstruction(struct libmv_Reconstruction *reconstruction);
+
+/* feature detector */
+
+struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride);
+int libmv_countCorners(struct libmv_Corners *corners);
+void libmv_getCorner(struct libmv_Corners *corners, int number, float *x, float *y, float *score, float *size);
+void libmv_destroyCorners(struct libmv_Corners *corners);
 
 /* utils */
 void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,

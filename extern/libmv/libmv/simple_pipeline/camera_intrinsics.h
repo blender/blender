@@ -28,9 +28,9 @@ namespace libmv {
 class CameraIntrinsics {
  public:
   CameraIntrinsics();
-  virtual ~CameraIntrinsics() {}
 
   const Mat3 &K()                 const { return K_;            }
+  // FIXME(MatthiasF): these should be CamelCase methods
   double      focal_length()      const { return K_(0, 0);      }
   double      focal_length_x()    const { return K_(0, 0);      }
   double      focal_length_y()    const { return K_(1, 1);      }
@@ -45,21 +45,22 @@ class CameraIntrinsics {
   double      p2()                const { return p2_; }
 
   /// Set both x and y focal length in pixels.
-  void SetFocalLength(double focal) {
-    K_(0, 0) = K_(1, 1) = focal;
+  void SetFocalLength(double focal_x, double focal_y) {
+    K_(0, 0) = focal_x;
+    K_(1, 1) = focal_y;
   }
 
-  void set_principal_point(double cx, double cy) {
+  void SetPrincipalPoint(double cx, double cy) {
     K_(0, 2) = cx;
     K_(1, 2) = cy;
   }
 
-  void set_image_size(int width, int height) {
+  void SetImageSize(int width, int height) {
     image_width_ = width;
     image_height_ = height;
   }
 
-  void set_radial_distortion(double k1, double k2, double k3) {
+  void SetRadialDistortion(double k1, double k2, double k3 = 0) {
     k1_ = k1;
     k2_ = k2;
     k3_ = k3;

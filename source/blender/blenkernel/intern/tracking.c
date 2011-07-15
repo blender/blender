@@ -153,6 +153,41 @@ void BKE_tracking_track_flag(MovieTrackingTrack *track, int area, int flag, int 
 	}
 }
 
+MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, float y,
+			int framenr, int width, int height)
+{
+	MovieTrackingTrack *track;
+	MovieTrackingMarker marker;
+	float pat[2]= {5.5f, 5.5f}, search[2]= {80.5f, 80.5f}; /* TODO: move to default setting? */
+
+	pat[0] /= (float)width;
+	pat[1] /= (float)height;
+
+	search[0] /= (float)width;
+	search[1] /= (float)height;
+
+	track= MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
+	strcpy(track->name, "Track");
+
+	memset(&marker, 0, sizeof(marker));
+	marker.pos[0]= x;
+	marker.pos[1]= y;
+	marker.framenr= framenr;
+
+	copy_v2_v2(track->pat_max, pat);
+	negate_v2_v2(track->pat_min, pat);
+
+	copy_v2_v2(track->search_max, search);
+	negate_v2_v2(track->search_min, search);
+
+	BKE_tracking_insert_marker(track, &marker);
+
+	BLI_addtail(&tracking->tracks, track);
+	BKE_track_unique_name(tracking, track);
+
+	return track;
+}
+
 void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
 	MovieTrackingMarker *old_marker= BKE_tracking_get_marker(track, marker->framenr);
@@ -383,6 +418,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->settings= *settings;
 	context->backwards= backwards;
 	context->hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "tracking trackHash");
+	context->sync_frame= user->framenr;
 
 	track= tracking->tracks.first;
 	while(track) {
@@ -939,5 +975,57 @@ void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float w
 	/* result is in image coords already */
 	nco[0]= x;
 	nco[1]= y;
+#endif
+}
+
+#ifdef WITH_LIBMV
+/* flips upside-down */
+static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
+{
+	int x, y;
+	unsigned char *pixels, *fp;
+
+	fp= pixels= MEM_callocN(ibuf->x*ibuf->y*sizeof(unsigned char), "tracking ucharBuf");
+	for(y= 0; y<ibuf->y; y++) {
+		for (x= 0; x<ibuf->x; x++) {
+			int pixel= ibuf->x*(ibuf->y-y-1) + x;
+			char *rrgb= (char*)ibuf->rect + pixel*4;
+
+			//*fp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
+			*fp= (11*rrgb[0]+16*rrgb[1]+5*rrgb[2])/32;
+
+			fp++;
+		}
+	}
+
+	return pixels;
+}
+#endif
+
+void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr)
+{
+#ifdef WITH_LIBMV
+	struct libmv_Corners *corners;
+	unsigned char *pixels= acquire_ucharbuf(ibuf);
+	int a;
+
+	corners= libmv_detectCorners(pixels, ibuf->x, ibuf->y, ibuf->x);
+	MEM_freeN(pixels);
+
+	a= libmv_countCorners(corners);
+	while(a--) {
+		MovieTrackingTrack *track;
+
+		float x, y, size, score;
+
+		libmv_getCorner(corners, a, &x, &y, &score, &size);
+
+		track= BKE_tracking_add_track(tracking, x/ibuf->x, 1.0f-(y/ibuf->y), framenr, ibuf->x, ibuf->y);
+		track->flag|= SELECT;
+		track->pat_flag|= SELECT;
+		track->search_flag|= SELECT;
+	}
+
+	libmv_destroyCorners(corners);
 #endif
 }

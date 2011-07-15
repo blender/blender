@@ -190,7 +190,7 @@ void EuclideanToHomogeneous(const Mat &X, Mat *H) {
 
 void EuclideanToHomogeneous(const Vec2 &X, Vec3 *H) {
   *H << X(0), X(1), 1;
-};
+}
 
 void EuclideanToHomogeneous(const Vec3 &X, Vec4 *H) {
   *H << X(0), X(1), X(2), 1;

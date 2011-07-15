@@ -43,6 +43,7 @@
 #include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/initialize_reconstruction.h"
 #include "libmv/simple_pipeline/bundle.h"
+#include "libmv/simple_pipeline/detect.h"
 #include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 
@@ -219,6 +220,38 @@ static void saveImage(libmv::FloatImage image, int x0, int y0)
 	}
 	free(row_pointers);
 }
+
+static void saveBytesImage(unsigned char *data, int width, int height)
+{
+	int x, y;
+	png_bytep *row_pointers;
+
+	row_pointers= (png_bytep*)malloc(sizeof(png_bytep)*height);
+
+	for (y = 0; y < height; y++) {
+		row_pointers[y]= (png_bytep)malloc(sizeof(png_byte)*4*width);
+
+		for (x = 0; x < width; x++) {
+			char pixel = data[width*y+x];
+			row_pointers[y][x*4+0]= pixel;
+			row_pointers[y][x*4+1]= pixel;
+			row_pointers[y][x*4+2]= pixel;
+			row_pointers[y][x*4+3]= 255;
+		}
+	}
+
+	{
+		static int a= 0;
+		char buf[128];
+		snprintf(buf, sizeof(buf), "%02d.png", ++a);
+		savePNGImage(row_pointers, width, height, 8, PNG_COLOR_TYPE_RGBA, buf);
+	}
+
+	for (y = 0; y < height; y++) {
+		free(row_pointers[y]);
+	}
+	free(row_pointers);
+}
 #endif
 
 int libmv_regionTrackerTrack(libmv_RegionTracker *tracker, const float *ima1, const float *ima2,
@@ -289,9 +322,9 @@ struct libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int
 	libmv::CameraIntrinsics intrinsics;
 	libmv::Reconstruction *reconstruction = new libmv::Reconstruction();
 
-	intrinsics.SetFocalLength(focal_length);
-	intrinsics.set_principal_point(principal_x, principal_y);
-	intrinsics.set_radial_distortion(k1, k2, k3);
+	intrinsics.SetFocalLength(focal_length, focal_length);
+	intrinsics.SetPrincipalPoint(principal_x, principal_y);
+	intrinsics.SetRadialDistortion(k1, k2, k3);
 
 	if(focal_length) {
 		/* do a lens undistortion if focal length is non-zero only */
@@ -368,6 +401,38 @@ void libmv_destroyReconstruction(libmv_Reconstruction *reconstruction)
 	delete (libmv::Reconstruction *)reconstruction;
 }
 
+/* ************ feature detector ************ */
+
+struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride)
+{
+	std::vector<libmv::Corner> detect= libmv::Detect(data, width, height, stride);
+	std::vector<libmv::Corner> *corners= new std::vector<libmv::Corner>();
+
+	corners->insert(corners->begin(), detect.begin(), detect.end());
+
+	return (libmv_Corners *)corners;
+}
+
+int libmv_countCorners(struct libmv_Corners *corners)
+{
+	return ((std::vector<libmv::Corner> *)corners)->size();
+}
+
+void libmv_getCorner(struct libmv_Corners *corners, int number, float *x, float *y, float *score, float *size)
+{
+	libmv::Corner corner = ((std::vector<libmv::Corner> *)corners)->at(number);
+
+	*x = corner.x;
+	*y = corner.y;
+	*score = corner.score;
+	*size = corner.size;
+}
+
+void libmv_destroyCorners(struct libmv_Corners *corners)
+{
+	delete (std::vector<libmv::Corner> *)corners;
+}
+
 /* ************ utils ************ */
 
 void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
@@ -375,9 +440,9 @@ void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double
 {
 	libmv::CameraIntrinsics intrinsics;
 
-	intrinsics.SetFocalLength(focal_length);
-	intrinsics.set_principal_point(principal_x, principal_y);
-	intrinsics.set_radial_distortion(k1, k2, k3);
+	intrinsics.SetFocalLength(focal_length, focal_length);
+	intrinsics.SetPrincipalPoint(principal_x, principal_y);
+	intrinsics.SetRadialDistortion(k1, k2, k3);
 
 	if(focal_length) {
 		/* do a lens undistortion if focal length is non-zero only */

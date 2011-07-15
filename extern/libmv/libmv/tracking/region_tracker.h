@@ -27,6 +27,8 @@ namespace libmv {
 
 class RegionTracker {
  public:
+  // FIXME(MatthiasF): Our public API require C++ support (constructors,virtuals,templates)
+  // We need to either simplify it directly or add a C ABI compatible wrapper.
   RegionTracker() {}
   virtual ~RegionTracker() {}
 
@@ -37,6 +39,9 @@ class RegionTracker {
       image2. If no guess is available, (\a x1, \a y1) is a good start. Returns
       true on success, false otherwise
   */
+  // FIXME(MatthiasF): FloatImage (aka Array3Df (aka Array3D<float>, aka
+  // ArrayND<float, 3>)) is an overly complicated generic (i.e templated) type.
+  // Using ( int size, float* old, float* new ) would be simpler and more flexible
   virtual bool Track(const FloatImage &image1,
                      const FloatImage &image2,
                      double  x1, double  y1,

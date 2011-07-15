@@ -17,6 +17,8 @@ libmv/simple_pipeline/initialize_reconstruction.cc
 libmv/simple_pipeline/camera_intrinsics.cc
 libmv/simple_pipeline/pipeline.cc
 libmv/simple_pipeline/tracks.h
+libmv/simple_pipeline/detect.h
+libmv/simple_pipeline/detect.cc
 libmv/simple_pipeline/pipeline.h
 libmv/simple_pipeline/tracks.cc
 libmv/simple_pipeline/bundle.cc
@@ -75,6 +77,16 @@ third_party/gflags/README.libmv
 third_party/gflags/config.h
 third_party/gflags/gflags_completions.cc
 third_party/gflags/gflags.h
+third_party/fast/fast_9.c
+third_party/fast/fast_10.c
+third_party/fast/fast_11.c
+third_party/fast/fast.h
+third_party/fast/LICENSE
+third_party/fast/fast_12.c
+third_party/fast/fast.c
+third_party/fast/README
+third_party/fast/README.libmv
+third_party/fast/nonmax.c
 third_party/ldl/Include/ldl.h
 third_party/ldl/CMakeLists.txt
 third_party/ldl/README.libmv

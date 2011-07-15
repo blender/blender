@@ -1,3 +1,110 @@
+commit dec996966d5466717a813da2d8b9962115dfc8ac
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 15 20:04:06 2011 +0200
+
+    Detect API documentation.
+
+commit bfc07bd0940bba0d5439ccd0297368607db514be
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 15 16:22:52 2011 +0200
+
+    Refactor Qt Tracker.
+    Create Detect API.
+    Improve CameraIntrinsics API.
+    Put Calibration settings UI in a QDockWidget.
+    Support anamorphic.
+    
+    TODO: Finish new Zoom widget.
+
+commit e59595806c045916ab4ef15ef7047c1a728b2da9
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jul 14 22:29:06 2011 +0200
+
+    Use FAST detector.
+    
+    FAST is much faster and works much better than the "Good Features to Track algorithm".
+
+commit 17c036e9f8c6529c2f771fdd9dc73f3022e36c77
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 13 22:23:40 2011 +0200
+
+    Add visualization of image filtering operations.
+
+commit c4f71e17b6b72acc0f863906c01c87d53e8bbb2c
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 13 10:37:26 2011 +0200
+
+    Simplify feature detection.
+
+commit d8109b7a4fede1660e0dbd73735f1a9e3fd79eec
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 13 10:21:52 2011 +0200
+
+    Add feature detection.
+    
+    Remove unused keyframe selection code.
+
+commit 1088517da70ae9ec2369752fbc17dde4bb869c47
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jul 11 22:42:14 2011 +0200
+
+    Replace system file dialog with custom one which supports multiple file/folder selection.
+    Add Stop button when adding frame from video.
+
+commit 323af7a3a1344e7ef419c72fe22b674c17c578e3
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jul 11 16:30:59 2011 +0200
+
+    Add stub for feature detection.
+
+commit 739ec729fa8bc6e0ba6a40cc7b89d85e5332e900
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jul 11 16:30:42 2011 +0200
+
+    Fix compilation of Qt Calibration tool.
+
+commit 113ccc413db6bdfb75839418bddfba5ce3ba60f7
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jul 11 12:27:47 2011 +0200
+
+    Add raw on-disk video cache.
+    
+    This is useful for faster testing iterations.
+    It avoids waiting for the footage to decode on startup.
+    Using file memory mapping, we let the OS handle caching.
+    The OS disk cache also has the advantage of being kept in memory between runs.
+    A cache is only created for shot < 1GiB (e.g 17s of 1080@30).
+
+commit efbe8b6a3e2a8cff497726e11afffbce0ec6aa53
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jul 11 11:11:47 2011 +0200
+
+    Miscellaneous UI fixes, faster grayscale conversion, compute window size from pattern size and pyramid level count.
+
+commit 0c6911831b0a391da14bf1c5833b1e5c0d5056b7
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Jul 10 22:48:15 2011 +0200
+
+    Add Video support using FFmpeg to Qt Calibration.
+
+commit c9f2bd5a17585f816bf0ef89097ac8f222ad058e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Jul 10 19:44:35 2011 +0200
+
+    Add Video support using FFmpeg to Qt Tracker.
+
+commit af8f9c412b0592868a0e68a14686651b45de9737
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Jul 9 12:08:28 2011 +0200
+
+    Update README with instructions to build Qt OpenCV Calibration tool.
+
+commit dc4e18b474b024c04fbb0ef6b4f2c2cd642c8715
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 8 13:25:14 2011 +0200
+
+    Make Qt OpenCV Calibration Tool optionnal.
+
 commit 86356bd988b1b937082d56330f18a20e4cb26c19
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Fri Jul 8 10:19:30 2011 +0200
@@ -462,288 +569,3 @@ Author: Julien Michot <julien.michot.fr@gmail.com>
 Date:   Wed Jun 15 21:51:04 2011 +0200
 
     Fixed issue 26.
-
-commit 9e339a46668e4a8d2330598a66ee855e5cd26f9c
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 15 19:23:21 2011 +0200
-
-    Reimplement 2D Tracker View to use GL.
-    
-    This will allow to easily render the 3D Scene overlay on the 2D Tracker View.
-    Add Tracks::MarkerInImageForTrack.
-    Some renames to improve consistency.
-    Zoom view still need to be readded.
-
-commit 32c9a3010066363f37a275dcbc712d27454e2e87
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 15 10:11:00 2011 +0200
-
-    Comment non-essential GL calls which don't link properly on some GL implementations.
-
-commit 2260465ac4f3963cc56a7e310b142382dfe5d203
-Merge: 24eacab a45e91d
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 14 20:00:43 2011 -0700
-
-    Merge branch 'master' of git://github.com/Matthias-Fauconneau/libmv
-
-commit 24eacab863638551824534b8777ad5fbcaf688b9
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 14 20:00:32 2011 -0700
-
-    Implement CoordinatesForMarkersInImage in the simple pipeline.
-
-commit a45e91d9285bdb191781d9c4031e925a3e2475c9
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 15 00:34:35 2011 +0200
-
-    Bundle,Camera,Object persistence, Render from Camera.
-    
-    Render from Camera doesn't overlay on 2D View yet.
-    Would be easier to reimplement 2D View using GL.
-
-commit c2e6e58533d24e78036b8a8d6b915458500af58f
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Tue Jun 14 22:39:17 2011 +0200
-
-    Implement Object support.
-    
-    Match code style.
-    Add objects.
-    Display objects.
-    Select objects.
-    Link active object to selected bundles.
-
-commit 26668a24bf63a98ed2519fe4b6bd6dff1760645d
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Tue Jun 14 19:58:18 2011 +0200
-
-    Implement Camera selection.
-    
-    Camera selection bounds is a sphere around camera origin.
-    TODO: we might want an accurate pyramid intersection.
-    Reconstruction::AllPoints() and Reconstruction::AllCameras() now only returns valid objects.
-
-commit da716826247e7afa152bf3598852b3fc013b51c0
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jun 13 21:17:34 2011 +0200
-
-    Implement bundle selection.
-
-commit 37714c581c585f8efb1212704459f91e26e32b31
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jun 13 15:01:22 2011 +0200
-
-    Use Reconstruction container.
-    
-    Add Reconstruction::AllCameras() and Recontruction::AllPoints().
-
-commit ab40db86cc9fd3fd9e031e3029f618b68a0a4158
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jun 13 11:26:33 2011 +0200
-
-    display random cameras
-
-commit 95a150f80325abad21f746cf46f165922673a791
-Merge: cefe6aa 007aa36
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sun Jun 12 10:18:28 2011 +0200
-
-    Merge branch 'master' of git://github.com/keir/libmv
-
-commit 007aa3629ea4f5f74355e896dd29da191b39b03b
-Merge: 2ae39cb daab3ad
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat Jun 11 17:43:51 2011 -0700
-
-    Merge pull request #1 from paulinus/master
-    
-    This makes the project compile on the mac.
-
-commit daab3ad96dbf6defe153b97b28b78a3d99a7a092
-Author: Pau Gargallo <pau.gargallo@gmail.com>
-Date:   Sun Jun 12 01:12:30 2011 +0200
-
-    Make it compile on snow leopard.
-    
-    Mostly adding target_link_libraries. Aparently, on the mac, dynamic libs need to be linked against other libs they use.  Also fixed some minor C++ problems, which should not be mac related.
-
-commit cefe6aa584a72355ad42fdfff1bf9a183a2d2eae
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sat Jun 11 12:28:19 2011 +0200
-
-    Draw dummy 3D points.
-
-commit 7c21196249eecd579dcc1bcb056d36fba0f12bfe
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sat Jun 11 00:42:34 2011 +0200
-
-    UI fixes, better layouting, add scene view dock widget.
-
-commit 0eebc21db831211738acc938566bbc29d68d45db
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jun 10 17:31:23 2011 +0200
-
-    Add GL abstraction, Add 3D View, Small cleanups.
-    
-    3D View is not hooked in UI yet.
-    BUG: Image didn't fit to window on startup.
-    TODO: use extern templates instead of not compiling multiview
-
-commit 527e706ed8b7778f3d2e1f03236867c272a70195
-Merge: 2ae39cb 36e9069
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 19:39:15 2011 -0700
-
-    Merge branch 'master' of git://github.com/Matthias-Fauconneau/libmv
-
-commit 5395ef35f452f6456f683d1fdb549500bfd2fe95
-Merge: 36e9069 2ae39cb
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 9 21:26:51 2011 +0200
-
-    Merge branch 'master' of git://github.com/keir/libmv
-
-commit 2ae39cbf78f970f0e732eafeca6548f3b2b9ad1b
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 09:25:02 2011 -0700
-
-    Add forgotten multiview header.
-
-commit 36e9069e2755aee74d70b8f1e56eb075e906ffa1
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 9 14:38:27 2011 +0200
-
-    Fix build (Disabling pipeline.cc since multiview.h is missing).
-
-commit d459d827d49a072622882c7b43ca97d43c13c98e
-Merge: 6fec735 cce784d
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 9 12:30:37 2011 +0200
-
-    Merge branch 'master' of git://github.com/keir/libmv
-
-commit 6fec735ff44447f9a3476a7c82d2f9163e51e536
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 9 12:30:17 2011 +0200
-
-    Cosmetics for Qt Tracker.
-
-commit cce784d47a408d0fec1097ddfac7f4536f692d1b
-Merge: d4b61b7 56f49b5
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 03:18:18 2011 -0700
-
-    Merge Nathan's cleanup branch.
-
-commit d4b61b7d322b7e19abe19f17a2f92cc8af6809fb
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 03:15:46 2011 -0700
-
-    Get simple reconstruction pipeline to build.
-    
-    Removes much of the stuff I originally added such as keyframe estimation; we'll
-    add it back later.
-
-commit aef9ac10a5136d2f34f751618db1316044844d86
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 03:15:29 2011 -0700
-
-    Qt style docs for region_tracker.h.
-
-commit b94a05626c92f48ee0c877808f76e29ce3fd113e
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 03:10:12 2011 -0700
-
-    Qt style formatting for random_sample.h.
-
-commit 97371495b4aae534894f2ec944d64e64176a111e
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 02:36:57 2011 -0700
-
-    Switch tracks to Qt style doxygen comments.
-
-commit e0b619fa42b35f619419fd4d90321db6fd5a703c
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 02:36:19 2011 -0700
-
-    Support Qt style doxygen comments.
-
-commit 0ac0affb94324521c835aded8753aabcc97cb6b1
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 00:51:09 2011 -0700
-
-    Fix doxygen comments on the Tracks class.
-
-commit a59a9a0284ad28266543deda3bfa8a4f4822b33c
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 9 00:50:58 2011 -0700
-
-    Fix comment.
-
-commit a61e0f443d8d5e1c6b7dbcc647a3f28174bc5410
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Jun 8 22:26:39 2011 -0700
-
-    Switch to the TRKLT in the tracker. Fix a compile issue.
-
-commit 230e7d159f4cd6b067aab5840525b3fa364d7da7
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Jun 8 22:24:52 2011 -0700
-
-    Add implementation of time-reversible KLT.
-
-commit b4617d8d9758b261442a01e415e76b3ae386fd79
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Jun 8 20:38:19 2011 -0700
-
-    Fix the "Cancel" button on open in the tracker. Style fixups.
-
-commit 3c58adc840b3d91f367ce5e56bd51c5506197cb1
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 9 01:32:25 2011 +0200
-
-    Improve API, Support marker and track deletion.
-
-commit f026b5a3c4b7b17171cd3b464fdde97dfe7cb729
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 8 23:25:49 2011 +0200
-
-    Implement persistent tracks (i.e load/save to file)
-
-commit 4bec3680d9a9020daf9dc44967646960de1ae3b3
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 8 19:43:15 2011 +0200
-
-    Support backwards tracking.
-    Add button to enable automatic tracking of selected markers.
-    Add Oxygen icons to better support platforms without Oxygen theme (i.e Windows).
-    Add Doxygen documentation to public Tracks and Region Tracker API.
-
-commit 56f49b5ce44f32d24f372d5fe188827a35994b05
-Author: Nathan Wiegand <nathanwiegand@gmail.com>
-Date:   Wed Jun 8 10:15:42 2011 -0700
-
-    Fixed more whitespace issues
-
-commit 5b351a1c2a42ace0e84f890fe0a88bed1f5832cd
-Merge: 8667426 e3504fb
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 8 14:08:06 2011 +0200
-
-    Merge branch 'master' of git://github.com/keir/libmv
-
-commit 8667426a8866c10e59fcd9ae5a454dd594601a0c
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 8 14:05:41 2011 +0200
-
-    split tracker.cc in two files.
-    
-    - tracker.cc: implement Tracker which handles TrackItems
-    - main.cc: implement UI and seeking
-
-commit c3eef4d1a02c96988f7c4cb9dc6718be26da235b
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 8 11:17:47 2011 +0200
-
-    fix Google cosmetics, fix seek slider

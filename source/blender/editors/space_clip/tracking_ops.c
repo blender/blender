@@ -58,6 +58,7 @@
 #include "ED_keyframing.h"
 
 #include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
 #include "UI_interface.h"
 
@@ -126,36 +127,11 @@ static void add_marker(SpaceClip *sc, float x, float y)
 {
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	MovieTrackingMarker marker;
 	int width, height;
-	float pat[2]= {5.5f, 5.5f}, search[2]= {80.5f, 80.5f}; /* TODO: move to default setting? */
 
 	ED_space_clip_size(sc, &width, &height);
 
-	pat[0] /= (float)width;
-	pat[1] /= (float)height;
-
-	search[0] /= (float)width;
-	search[1] /= (float)height;
-
-	track= MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
-	strcpy(track->name, "Track");
-
-	memset(&marker, 0, sizeof(marker));
-	marker.pos[0]= x;
-	marker.pos[1]= y;
-	marker.framenr= sc->user.framenr;
-
-	copy_v2_v2(track->pat_max, pat);
-	negate_v2_v2(track->pat_min, pat);
-
-	copy_v2_v2(track->search_max, search);
-	negate_v2_v2(track->search_min, search);
-
-	BKE_tracking_insert_marker(track, &marker);
-
-	BLI_addtail(&clip->tracking.tracks, track);
-	BKE_track_unique_name(&clip->tracking, track);
+	track= BKE_tracking_add_track(&clip->tracking, x, y, sc->user.framenr, width, height);
 
 	BKE_movieclip_select_track(clip, track, TRACK_AREA_ALL, 0);
 	BKE_movieclip_set_selection(clip, MCLIP_SEL_TRACK, track);
@@ -1900,10 +1876,6 @@ static int hide_tracks_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	int sel_type;
-	void *sel;
-
-	BKE_movieclip_last_selection(clip, &sel_type, &sel);
 
 	track= clip->tracking.tracks.first;
 	while(track) {
@@ -1927,6 +1899,49 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= hide_tracks_clear_exec;
 	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** detect features opertaotr *********************/
+
+static int detect_features_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, &sc->user);
+	MovieTrackingTrack *track= clip->tracking.tracks.first;
+
+	/* deselect existing tracks */
+	while(track) {
+		track->flag&= ~SELECT;
+		track->pat_flag&= ~SELECT;
+		track->search_flag&= ~SELECT;
+
+		track= track->next;
+	}
+
+	BKE_tracking_detect(&clip->tracking, ibuf, sc->user.framenr);
+
+	IMB_freeImBuf(ibuf);
+
+	BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_detect_features(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Detect Features";
+	ot->description= "Automatically detect features to track";
+	ot->idname= "CLIP_OT_detect_features";
+
+	/* api callbacks */
+	ot->exec= detect_features_exec;
+	ot->poll= space_clip_frame_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

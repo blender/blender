@@ -46,6 +46,7 @@ set(SRC
 	libmv/simple_pipeline/initialize_reconstruction.cc
 	libmv/simple_pipeline/camera_intrinsics.cc
 	libmv/simple_pipeline/pipeline.cc
+	libmv/simple_pipeline/detect.cc
 	libmv/simple_pipeline/tracks.cc
 	libmv/simple_pipeline/bundle.cc
 	libmv/image/convolve.cc
@@ -65,6 +66,12 @@ set(SRC
 	third_party/gflags/gflags.cc
 	third_party/gflags/gflags_reporting.cc
 	third_party/gflags/gflags_completions.cc
+	third_party/fast/fast_9.c
+	third_party/fast/fast_10.c
+	third_party/fast/fast_11.c
+	third_party/fast/fast_12.c
+	third_party/fast/fast.c
+	third_party/fast/nonmax.c
 	third_party/ldl/Source/ldl.c
 
 	libmv-capi.h
@@ -78,6 +85,7 @@ set(SRC
 	libmv/simple_pipeline/reconstruction.h
 	libmv/simple_pipeline/camera_intrinsics.h
 	libmv/simple_pipeline/tracks.h
+	libmv/simple_pipeline/detect.h
 	libmv/simple_pipeline/pipeline.h
 	libmv/simple_pipeline/intersect.h
 	libmv/simple_pipeline/bundle.h
@@ -115,6 +123,7 @@ set(SRC
 	third_party/gflags/mutex.h
 	third_party/gflags/config.h
 	third_party/gflags/gflags.h
+	third_party/fast/fast.h
 	third_party/ldl/Include/ldl.h
 	third_party/msinttypes/stdint.h
 	third_party/msinttypes/inttypes.h

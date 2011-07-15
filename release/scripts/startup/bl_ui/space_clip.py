@@ -161,6 +161,7 @@ class CLIP_PT_tools(bpy.types.Panel):
             op = col.operator("clip.clear_track_path", text="Clear Track Path")
             op.action = 'ALL'
 
+            layout.operator("clip.detect_features")
             layout.operator("clip.apply_follow_track")
 
             col = layout.column(align=True)

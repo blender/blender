@@ -44,6 +44,8 @@ struct Scene;
 
 void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
+struct MovieTrackingTrack *BKE_tracking_add_track(struct MovieTracking *tracking, float x, float y,
+			int framenr, int width, int height);
 void BKE_tracking_insert_marker(struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
 void BKE_tracking_delete_marker(struct MovieTrackingTrack *track, int framenr);
 struct MovieTrackingMarker *BKE_tracking_get_marker(struct MovieTrackingTrack *track, int framenr);
@@ -77,6 +79,8 @@ struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct Mo
 void BKE_get_tracking_mat(struct Scene *scene, float mat[4][4]);
 void BKE_tracking_projection_matrix(struct MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4]);
 void BKE_tracking_apply_intrinsics(struct MovieTracking *tracking, float co[2], float width, float height, float nco[2]);
+
+void BKE_tracking_detect(struct MovieTracking *tracking, struct ImBuf *imbuf, int framenr);
 
 #define TRACK_SELECTED(track)				((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 #define TRACK_AREA_SELECTED(track, area)	((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))
