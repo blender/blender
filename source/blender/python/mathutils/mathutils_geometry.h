@@ -38,6 +38,6 @@
 
 #include "mathutils.h"
 
-PyMODINIT_FUNC BPyInit_mathutils_geometry(void);
+PyMODINIT_FUNC PyInit_mathutils_geometry(void);
 
 #endif /* MATHUTILS_GEOMETRY_H */
