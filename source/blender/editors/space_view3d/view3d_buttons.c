@@ -967,7 +967,7 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 	ebone= arm->act_edbone;
 
 	if (!ebone || (ebone->layer & arm->layer)==0) {
-		uiItemL(col, "Nothing selected", ICON_NONE);
+		uiItemL(layout, "Nothing selected", ICON_NONE);
 		return;
 	}
 //	row= uiLayoutRow(layout, 0);
