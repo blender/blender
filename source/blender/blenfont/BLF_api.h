@@ -188,8 +188,6 @@ void BLF_lang_init(void);
 
 /* Set the current locale. */
 void BLF_lang_set(const char *);
-/* Get the current locale. */
-char* BLF_lang_get(void);
 
 /* Set the current encoding name. */
 void BLF_lang_encoding_name(const char *str);
@@ -222,7 +220,6 @@ extern int blf_mono_font_render; // dont mess drawing with render threads.
 
 // XXX, me, too
 extern int blf_unifont;
-extern int blf_unifont_render; // dont mess drawing with render threads.
 #define _(msgid) BLF_gettext(msgid)
 #define N_(msgid) msgid
 

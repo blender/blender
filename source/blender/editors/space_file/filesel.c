@@ -403,7 +403,7 @@ float file_shorten_string(char* string, float w, int front)
 
 float file_string_width(const char* str)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiStyleFontSet(&style->widget);
 	return BLF_width(style->widget.uifont_id, str);
 }
@@ -413,12 +413,12 @@ float file_font_pointsize(void)
 #if 0
 	float s;
 	char tmp[2] = "X";
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiStyleFontSet(&style->widget);
 	s = BLF_height(style->widget.uifont_id, tmp);
 	return style->widget.points;
 #else
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiStyleFontSet(&style->widget);
 	return style->widget.points * UI_DPI_FAC;
 #endif

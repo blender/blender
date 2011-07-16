@@ -774,7 +774,7 @@ void uiStyleFontDrawRotated(struct uiFontStyle *fs, struct rcti *rect, const cha
 int UI_GetStringWidth(const char *str); // XXX temp
 void UI_DrawString(float x, float y, const char *str); // XXX temp
 void UI_DrawTriIcon(float x, float y, char dir);
-
+uiStyle* UI_GetStyle(void);
 /* linker workaround ack! */
 void UI_template_fix_linking(void);
 

@@ -228,7 +228,7 @@ void ui_block_translate(uiBlock *block, int x, int y)
 
 static void ui_text_bounds_block(uiBlock *block, float offset)
 {
-	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
+	uiStyle *style=UI_GetStyle();
 	uiBut *bt;
 	int i = 0, j, x1addval= offset, nextcol;
 	int lastcol= 0, col= 0;
@@ -908,7 +908,7 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, u
 /* uses local copy of style, to scale things down, and allow widgets to change stuff */
 void uiDrawBlock(const bContext *C, uiBlock *block)
 {
-	uiStyle style= *((uiStyle *)U.uistyles.first);	// XXX pass on as arg
+	uiStyle style= *UI_GetStyle();	// XXX pass on as arg
 	ARegion *ar;
 	uiBut *but;
 	rcti rect;

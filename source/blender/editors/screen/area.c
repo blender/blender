@@ -1412,7 +1412,7 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *context, int contextnr)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiBlock *block;
 	PanelType *pt;
 	Panel *panel;
@@ -1600,7 +1600,7 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 
 void ED_region_header(const bContext *C, ARegion *ar)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiBlock *block;
 	uiLayout *layout;
 	HeaderType *ht;

@@ -117,11 +117,6 @@ void BLF_lang_encoding(const char *str)
 	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */
 }
 
-char* BLF_lang_get(void)
-{
-	return global_language;
-}
-
 #else /* ! INTERNATIONAL */
 
 void BLF_lang_init(void)
@@ -139,11 +134,6 @@ void BLF_lang_set(const char *str)
 {
 	(void)str;
 	return;
-}
-
-char* BLF_lang_get(void)
-{
-	return "";
 }
 
 #endif /* INTERNATIONAL */

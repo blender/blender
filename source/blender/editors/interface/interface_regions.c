@@ -318,7 +318,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	rcti bbox= data->bbox;
 	int a;
 	
-	ui_draw_menu_back(U.uistyles.first, NULL, &data->bbox);
+	ui_draw_menu_back(UI_GetStyle(), NULL, &data->bbox);
 	
 	/* draw text */
 	uiStyleFontSet(&data->fstyle);
@@ -345,7 +345,7 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
 
 ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 {
-	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
+	uiStyle *style= UI_GetStyle();
 	static ARegionType type;
 	ARegion *ar;
 	uiTooltipData *data;
@@ -973,7 +973,7 @@ static void ui_searchbox_region_free_cb(ARegion *ar)
 
 ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 {
-	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
+	uiStyle *style= UI_GetStyle();
 	static ARegionType type;
 	ARegion *ar;
 	uiSearchboxData *data;
@@ -2288,7 +2288,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg, char *str)
 {
 	wmWindow *window= CTX_wm_window(C);
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiPopupBlockHandle *handle;
 	uiPopupMenu *pup;
 	
@@ -2337,7 +2337,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 /* only return handler, and set optional title */
 uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiPopupMenu *pup= MEM_callocN(sizeof(uiPopupMenu), "popup menu");
 	uiBut *but;
 	

@@ -173,7 +173,7 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 
 Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int *open)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	Panel *pa, *patab, *palast, *panext;
 	char *drawname= pt->label;
 	char *idname= pt->idname;
@@ -292,7 +292,7 @@ void uiEndPanel(uiBlock *block, int width, int height)
 
 static void ui_offset_panel_block(uiBlock *block)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiBut *but;
 	int ofsy;
 
@@ -667,7 +667,7 @@ static int compare_panel(const void *a1, const void *a2)
 /* returns 1 when it did something */
 static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	Panel *pa;
 	PanelSort *ps, *panelsort, *psnext;
 	int a, tot=0, done;

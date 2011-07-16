@@ -344,6 +344,7 @@ typedef struct UserDef {
 	struct ListBase keymaps;
 	struct ListBase addons;
 	char keyconfigstr[64];
+	char myuistyle[24];
 	
 	short undosteps;
 	short undomemory;

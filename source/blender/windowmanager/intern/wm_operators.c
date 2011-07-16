@@ -903,7 +903,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	wmOperator *op= arg_op;
 	uiBlock *block;
 	uiLayout *layout;
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	int width= 300;
 	
 
@@ -981,7 +981,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 	wmOperator *op= data->op;
 	uiBlock *block;
 	uiLayout *layout;
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 
 	block = uiBeginBlock(C, ar, "operator dialog", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
@@ -1022,7 +1022,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 	wmOperator *op= data->op;
 	uiBlock *block;
 	uiLayout *layout;
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 
 	block= uiBeginBlock(C, ar, "opui_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
@@ -1189,7 +1189,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlock *block;
 	uiBut *but;
 	uiLayout *layout, *split, *col;
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	struct RecentFile *recent;
 	int i;
 	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);

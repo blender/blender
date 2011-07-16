@@ -252,10 +252,16 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
 
 /* ************** helpers ************************ */
 
+uiStyle* UI_GetStyle(void)
+{
+	uiStyle *style = BLI_findstring( &U.uistyles, U.myuistyle, sizeof(style)*2 );
+	return (style != NULL) ? style : U.uifonts.first;
+}
+
 /* temporarily, does widget font */
 int UI_GetStringWidth(const char *str)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiFontStyle *fstyle= &style->widget;
 	int width;
 	
@@ -274,7 +280,7 @@ int UI_GetStringWidth(const char *str)
 /* temporarily, does widget font */
 void UI_DrawString(float x, float y, const char *str)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	
 	if (style->widget.kerning == 1)
 		BLF_enable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
@@ -295,7 +301,6 @@ void uiStyleInit(void)
 {
 	uiFont *font= U.uifonts.first;
 	uiStyle *style= U.uistyles.first;
-	char *lang_set= BLF_lang_get();
 	
 	/* recover from uninitialized dpi */
 	if(U.dpi == 0)
@@ -336,7 +341,11 @@ void uiStyleInit(void)
 			BLF_size(font->blf_id, 14, U.dpi);
 		}
 	}
-
+	
+	if(style==NULL) {
+		ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT );
+	}
+	
 	// XXX, this should be moved into a style, but for now best only load the monospaced font once.
 	if (blf_mono_font == -1)
 		blf_mono_font= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
@@ -349,10 +358,9 @@ void uiStyleInit(void)
 
 	BLF_size(blf_mono_font_render, 12, 72);
 
-	/* XXX Maybe it's bad to do this */
-	if(style==NULL) {
-		// load unifont only when need. It takes 15MB memories
-		// get_datatoc_bunifont_ttf() may return null, BLF_load_mem_unique() will handle it
+	/* offset is two struct uiStyle pointers */
+	if( BLI_findstring( &U.uistyles, "Unifont Style", sizeof(style)*2 )==NULL )
+	{
 		if( blf_unifont == -1 )
 			blf_unifont= BLF_load_mem_unique("unifont", (unsigned char *)get_datatoc_bunifont_ttf(), datatoc_bunifont_ttf_size);
 		if( blf_unifont != -1 )
@@ -360,9 +368,10 @@ void uiStyleInit(void)
 			BLF_size(blf_unifont, 12, 72);
 			ui_style_new(&U.uistyles, "Unifont Style", blf_unifont );
 		}
-		else
-			ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT );
 	}
+	/* init style setting */
+	if( U.myuistyle[0]==0 )
+		strcpy( U.myuistyle, "Unifont Style" );
 }
 
 void uiStyleFontSet(uiFontStyle *fs)

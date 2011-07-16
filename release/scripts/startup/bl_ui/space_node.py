@@ -192,7 +192,7 @@ class NODE_PT_properties(bpy.types.Panel):
         col.label(text=_("Offset:"))
         col.prop(snode, "backdrop_x", text="X")
         col.prop(snode, "backdrop_y", text="Y")
-        col.operator("node.backimage_move", text=_("Move")
+        col.operator("node.backimage_move", text=_("Move"))
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
