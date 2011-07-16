@@ -100,7 +100,7 @@ def setConstraintFraming(m_constraint, context):
     cons_obj = getConsObj(bone)
     real_constraint = cons_obj.constraints[m_constraint.real_constraint]
     #remove the old keyframes
-    removeInfluenceFcurve(cons_obj, obj, real_constraint)
+    removeFcurves(cons_obj, obj, real_constraint, m_constraint)
     #set the new ones according to the m_constraint properties
     s, e = m_constraint.s_frame, m_constraint.e_frame
     s_in, s_out = m_constraint.smooth_in, m_constraint.smooth_out
