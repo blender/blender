@@ -51,8 +51,12 @@ set(SRC
 )
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../../quicktime)
-	list(APPEND INC_SYS ${QUICKTIME_INCLUDE_DIRS})
+	list(APPEND INC
+		../../quicktime
+	)
+	list(APPEND INC_SYS
+		${QUICKTIME_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 

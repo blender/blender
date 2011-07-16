@@ -210,7 +210,9 @@ set(SRC
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_SDL)
-	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})  
+	list(APPEND INC_SYS
+		${SDL_INCLUDE_DIR}
+	)
 else()
 	add_definitions(-DDISABLE_SDL)
 endif()

@@ -88,9 +88,6 @@ if(WITH_PYTHON_SAFETY)
 endif()
 
 if(WITH_AUDASPACE)
-	list(APPEND INC
-		../../../intern/audaspace/intern
-	)
 	add_definitions(-DWITH_AUDASPACE)
 endif()
 

@@ -146,7 +146,9 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
 		)
 	endif()
 
-	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})
+	list(APPEND INC_SYS
+		${SDL_INCLUDE_DIR}
+	)
 
 elseif(APPLE)
 	if(WITH_COCOA)
@@ -185,7 +187,9 @@ elseif(UNIX)
 		add_definitions(-DWITH_X11_XINPUT)
 	endif()
 
-	list(APPEND INC_SYS ${X11_X11_INCLUDE_PATH})
+	list(APPEND INC_SYS
+		${X11_X11_INCLUDE_PATH}
+	)
 
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerX11.cpp
@@ -205,7 +209,9 @@ elseif(UNIX)
 
 	if(X11_XF86keysym_INCLUDE_PATH)
 		add_definitions(-DWITH_XF86KEYSYM)
-		list(APPEND INC_SYS ${X11_XF86keysym_INCLUDE_PATH})
+		list(APPEND INC_SYS
+			${X11_XF86keysym_INCLUDE_PATH}
+		)
 	endif()
 
 elseif(WIN32)
@@ -213,7 +219,9 @@ elseif(WIN32)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
 	endif()
 
-	list(APPEND INC_SYS ${WINTAB_INC})
+	list(APPEND INC_SYS
+		${WINTAB_INC}
+	)
 
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerWin32.cpp

@@ -113,29 +113,43 @@ if(WITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_IMAGE_TIFF)
-	list(APPEND INC_SYS ${TIFF_INCLUDE_DIR})
+	list(APPEND INC_SYS
+		${TIFF_INCLUDE_DIR}
+	)
 	add_definitions(-DWITH_TIFF)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
-	list(APPEND INC_SYS ${OPENJPEG_INCLUDE_DIRS})
+	list(APPEND INC_SYS
+		${OPENJPEG_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_OPENJPEG)
 endif()
 
 if(WITH_IMAGE_REDCODE)
-	list(APPEND INC_SYS ${REDCODE_INC})
+	list(APPEND INC_SYS
+		${REDCODE_INC}
+	)
 	add_definitions(-DWITH_REDCODE)
 endif()
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../quicktime)
-	list(APPEND INC_SYS ${QUICKTIME_INCLUDE_DIRS})
+	list(APPEND INC
+		../quicktime
+	)
+	list(APPEND INC_SYS
+		${QUICKTIME_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-	list(APPEND INC ../../../intern/ffmpeg)
-	list(APPEND INC_SYS ${FFMPEG_INCLUDE_DIRS})
+	list(APPEND INC
+		../../../intern/ffmpeg
+	)
+	list(APPEND INC_SYS
+		${FFMPEG_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 

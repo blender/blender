@@ -159,8 +159,12 @@ set(SRC
 
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
-	list(APPEND INC ffmpeg)
-	list(APPEND INC_SYS ${FFMPEG_INCLUDE_DIRS})
+	list(APPEND INC
+		ffmpeg
+	)
+	list(APPEND INC_SYS
+		${FFMPEG_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		ffmpeg/AUD_FFMPEGFactory.cpp
 		ffmpeg/AUD_FFMPEGReader.cpp
@@ -172,8 +176,12 @@ endif()
 
 if(WITH_SDL)
 	add_definitions(-DWITH_SDL)
-	list(APPEND INC SDL)
-	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})
+	list(APPEND INC
+		SDL
+	)
+	list(APPEND INC_SYS
+		${SDL_INCLUDE_DIR}
+	)
 	list(APPEND SRC
 		SDL/AUD_SDLDevice.cpp
 
@@ -183,8 +191,12 @@ endif()
 
 if(WITH_OPENAL)
 	add_definitions(-DWITH_OPENAL)
-	list(APPEND INC OpenAL)
-	list(APPEND INC_SYS ${OPENAL_INCLUDE_DIR})
+	list(APPEND INC
+		OpenAL
+	)
+	list(APPEND INC_SYS
+		${OPENAL_INCLUDE_DIR}
+	)
 	list(APPEND SRC
 		OpenAL/AUD_OpenALDevice.cpp
 
@@ -194,8 +206,12 @@ endif()
 
 if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
-	list(APPEND INC jack)
-	list(APPEND INC_SYS ${JACK_INCLUDE_DIRS})
+	list(APPEND INC
+		jack
+	)
+	list(APPEND INC_SYS
+		${JACK_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		jack/AUD_JackDevice.cpp
 
@@ -205,8 +221,12 @@ endif()
 
 if(WITH_CODEC_SNDFILE)
 	add_definitions(-DWITH_SNDFILE)
-	list(APPEND INC sndfile)
-	list(APPEND INC_SYS ${SNDFILE_INCLUDE_DIRS})
+	list(APPEND INC
+		sndfile
+	)
+	list(APPEND INC_SYS
+		${SNDFILE_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		sndfile/AUD_SndFileFactory.cpp
 		sndfile/AUD_SndFileReader.cpp
@@ -218,7 +238,9 @@ endif()
 
 if(WITH_SAMPLERATE)
 	add_definitions(-DWITH_SAMPLERATE)
-	list(APPEND INC_SYS ${SAMPLERATE_INCLUDE_DIRS})
+	list(APPEND INC_SYS
+		${SAMPLERATE_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		SRC/AUD_SRCResampleFactory.cpp
 		SRC/AUD_SRCResampleReader.cpp
@@ -230,8 +252,12 @@ endif()
 
 if(WITH_FFTW3 AND FALSE)
 	add_definitions(-DWITH_FFTW3)
-	list(APPEND INC fftw)
-	list(APPEND INC_SYS ${FFTW3_INCLUDE_DIRS})
+	list(APPEND INC
+		fftw
+	)
+	list(APPEND INC_SYS
+		${FFTW3_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		fftw/AUD_BandPassFactory.cpp
 		fftw/AUD_BandPassReader.cpp
@@ -242,8 +268,12 @@ if(WITH_FFTW3 AND FALSE)
 endif()
 
 if(WITH_PYTHON)
-	list(APPEND INC Python)
-	list(APPEND INC_SYS ${PYTHON_INCLUDE_DIRS})
+	list(APPEND INC
+		Python
+	)
+	list(APPEND INC_SYS
+		${PYTHON_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		Python/AUD_PyAPI.cpp
 

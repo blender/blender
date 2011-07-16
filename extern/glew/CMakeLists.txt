@@ -33,7 +33,9 @@ set(INC_SYS
 )
 
 if(UNIX)
-	list(APPEND INC_SYS ${X11_X11_INCLUDE_PATH})
+	list(APPEND INC_SYS
+		${X11_X11_INCLUDE_PATH}
+	)
 endif()
 
 set(SRC

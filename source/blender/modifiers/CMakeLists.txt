@@ -25,7 +25,8 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC 
-	. ./intern
+	.
+	./intern
 	../blenlib
 	../blenloader
 	../makesdna
@@ -98,7 +99,9 @@ endif()
 
 if(WITH_MOD_DECIMATE)
 	add_definitions(-DWITH_MOD_DECIMATE)
-	list(APPEND INC ../../../intern/decimation/extern)
+	list(APPEND INC
+		../../../intern/decimation/extern
+	)
 endif()
 
 if(NOT WITH_MOD_FLUID)
