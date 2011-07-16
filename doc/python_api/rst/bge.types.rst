@@ -1564,23 +1564,37 @@ Game Engine  bge.types Module
       :arg speed: the playback speed of the action as a factor (1.0 = normal speed, 2.0 = 2x speed, etc)
 	  :type speed: float
 
-   .. method:: getActionFrame(layer)
+   .. method:: stopAction(layer=0)
+      
+	  Stop playing the action on the given layer.
+	  
+	  :arg layer: The layer to stop playing.
+	  :type layer: integer
+	  
+   .. method:: getActionFrame(layer=0)
    
-      Gets the current frame of the action playing in the supplied layer
+      Gets the current frame of the action playing in the supplied layer.
 	  
 	  :arg layer: The layer that you want to get the frame from.
 	  :type layer: integer
 	  
 	  :return: The current frame of the action
 	  
-   .. method:: setActionFrame(layer, frame)
+   .. method:: setActionFrame(frame, layer=0)
    
-      Set the current frame of the action playing in the supplied layer
+      Set the current frame of the action playing in the supplied layer.
 	  
 	  :arg layer: The layer where you want to set the frame
 	  :type layer: integer
 	  :arg frame: The frame to set the action to
 	  :type frame: float
+
+   .. method:: isPlayingAction(layer=0)
+   
+       Checks to see if there is an action playing in the given layer.
+	   
+	   :arg layer: The layer to check for a playing action.
+	   :type layer: integer
 
 .. class:: KX_IpoActuator(SCA_IActuator)
 
