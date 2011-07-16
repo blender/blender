@@ -1561,8 +1561,10 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE(KX_GameObject, sendMessage),
 
 	KX_PYMETHODTABLE_KEYWORDS(KX_GameObject, playAction),
+	KX_PYMETHODTABLE(KX_GameObject, stopAction),
 	KX_PYMETHODTABLE(KX_GameObject, getActionFrame),
 	KX_PYMETHODTABLE(KX_GameObject, setActionFrame),
+	KX_PYMETHODTABLE(KX_GameObject, isPlayingAction),
 	
 	// dict style access for props
 	{"get",(PyCFunction) KX_GameObject::sPyget, METH_VARARGS},
@@ -3041,9 +3043,18 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 	Py_RETURN_NONE;
 }
 
+static void layer_check(short &layer, const char *method_name)
+{
+	if (layer < 0 || layer > MAX_ACTION_LAYERS)
+	{
+		printf("KX_GameObject.%s(): given layer (%d) is out of range (0 - %d), setting to 0.\n", method_name, layer, MAX_ACTION_LAYERS-1);
+		layer = 0;
+	}
+}
+
 KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 	"playAction(name, start_frame, end_frame, layer=0, priority=0 blendin=0, play_mode=ACT_MODE_PLAY, layer_weight=0.0, ipo_flags=0, speed=1.0)\n"
-	"plays an action\n")
+	"Plays an action\n")
 {
 	const char* name;
 	float start, end, blendin=0.f, speed=1.f, layer_weight=0.f;
@@ -3057,11 +3068,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 									&name, &start, &end, &layer, &priority, &blendin, &play_mode, &layer_weight, &ipo_flags, &speed))
 		return NULL;
 
-	if (layer < 0 || layer > MAX_ACTION_LAYERS)
-	{
-		printf("KX_GameObject.playAction(): given layer (%d) is out of range (0 - %d), setting to 0", layer, MAX_ACTION_LAYERS-1);
-		layer = 0;
-	}
+	layer_check(layer, "playAction");
 
 	if (play_mode < 0 || play_mode > BL_Action::ACT_MODE_MAX)
 	{
@@ -3080,32 +3087,67 @@ KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
 	Py_RETURN_NONE;
 }
 
-KX_PYMETHODDEF_DOC(KX_GameObject, getActionFrame,
-	"getActionFrame(layer)\n"
-	"Gets the current frame of the action playing in the supplied layer")
+KX_PYMETHODDEF_DOC(KX_GameObject, stopAction,
+	"stopAction(layer=0)\n"
+	"Stop playing the action on the given layer\n")
 {
-	short layer;
+	short layer=0;
 
-	if (!PyArg_ParseTuple(args, "h:getActionFrame", &layer))
+	if (!PyArg_ParseTuple(args, "|h:stopAction", &layer))
 		return NULL;
+
+	layer_check(layer, "stopAction");
+
+	StopAction(layer);
+
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, getActionFrame,
+	"getActionFrame(layer=0)\n"
+	"Gets the current frame of the action playing in the supplied layer\n")
+{
+	short layer=0;
+
+	if (!PyArg_ParseTuple(args, "|h:getActionFrame", &layer))
+		return NULL;
+
+	layer_check(layer, "getActionFrame");
 
 	return PyLong_FromLong(GetActionFrame(layer));
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, setActionFrame,
-	"setActionFrame(layer, frame)\n"
-	"Set the current frame of the action playing in the supplied layer")
+	"setActionFrame(frame, layer=0)\n"
+	"Set the current frame of the action playing in the supplied layer\n")
 {
-	short layer;
+	short layer=0;
 	float frame;
 
-	if (!PyArg_ParseTuple(args, "hf:setActionFrame", &layer, &frame))
+	if (!PyArg_ParseTuple(args, "f|h:setActionFrame", &frame, &layer))
 		return NULL;
+
+	layer_check(layer, "setActionFrame");
 
 	SetActionFrame(layer, frame);
 
 	Py_RETURN_NONE;
 }
+
+KX_PYMETHODDEF_DOC(KX_GameObject, isPlayingAction,
+	"isPlayingAction(layer=0)\n"
+	"Checks to see if there is an action playing in the given layer\n")
+{
+	short layer=0;
+
+	if (!PyArg_ParseTuple(args, "|h:isPlayingAction", &layer))
+		return NULL;
+
+	layer_check(layer, "isPlayingAction");
+
+	return PyBool_FromLong(!IsActionDone(layer));
+}
+
 
 /* dict style access */
 
