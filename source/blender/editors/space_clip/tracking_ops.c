@@ -214,11 +214,15 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track= clip->tracking.tracks.first, *next;
+	int has_bundle= 0;
 
 	while(track) {
 		next= track->next;
 
 		if(TRACK_VIEW_SELECTED(track)) {
+			if(track->flag&TRACK_HAS_BUNDLE)
+				has_bundle= 1;
+
 			BKE_tracking_free_track(track);
 			BLI_freelinkN(&clip->tracking.tracks, track);
 		}
@@ -228,6 +232,9 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+
+	if(has_bundle)
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -646,11 +653,9 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		action= SEL_SELECT;
 		track= clip->tracking.tracks.first;
 		while(track) {
-			if(BKE_tracking_has_marker(track, framenr)) {
-				if(TRACK_VIEW_SELECTED(track)) {
-					action= SEL_DESELECT;
-					break;
-				}
+			if(TRACK_VIEW_SELECTED(track)) {
+				action= SEL_DESELECT;
+				break;
 			}
 
 			track= track->next;
@@ -981,14 +986,33 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 
 /********************** solve camera operator *********************/
 
+static int check_solve_tarck_count(MovieTracking *tracking)
+{
+	int tot= 0;
+	int frame1= tracking->settings.keyframe1, frame2= tracking->settings.keyframe2;
+	MovieTrackingTrack *track;
+
+	track= tracking->tracks.first;
+	while(track) {
+		if(BKE_tracking_has_marker(track, frame1))
+			if(BKE_tracking_has_marker(track, frame2))
+				tot++;
+
+		track= track->next;
+	}
+
+	return tot>=10;
+}
+
 static int solve_camera_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	Scene *scene= CTX_data_scene(C);
 
-	if(BLI_countlist(&clip->tracking.tracks)<10) {
-		BKE_report(op->reports, RPT_ERROR, "At least 10 tracks are needed for reconstruction");
+	if(!check_solve_tarck_count(&clip->tracking)) {
+		BKE_report(op->reports, RPT_ERROR, "At least 10 tracks on both of keyframes are needed for reconstruction");
+		return OPERATOR_CANCELLED;
 	}
 
 	BKE_tracking_solve_reconstruction(clip);
@@ -1318,7 +1342,7 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	Object *camera= scene->camera;
 	Object *parent= camera;
 	int tot= 0, sel_type;
-	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3];
+	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3]= {0.f, 0.f, 0.f};
 	float rot[4][4]={{0.f, 0.f, -1.f, 0.f},
 	                 {0.f, 1.f, 0.f, 0.f},
 	                 {1.f, 0.f, 0.f, 0.f},

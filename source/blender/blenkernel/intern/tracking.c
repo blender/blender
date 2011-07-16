@@ -307,7 +307,7 @@ MovieTrackingMarker *BKE_tracking_exact_marker(MovieTrackingTrack *track, int fr
 
 int BKE_tracking_has_marker(MovieTrackingTrack *track, int framenr)
 {
-	return BKE_tracking_get_marker(track, framenr) != 0;
+	return BKE_tracking_exact_marker(track, framenr) != 0;
 }
 
 void BKE_tracking_free_track(MovieTrackingTrack *track)

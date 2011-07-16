@@ -260,7 +260,7 @@ static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
 	if(type!=MCLIP_SEL_TRACK)
 		return 0;
 
-	return BKE_tracking_has_marker(track, sc->user.framenr);
+	return 1;
 }
 
 static void clip_panel_marker(const bContext *C, Panel *pa)
