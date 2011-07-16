@@ -81,9 +81,9 @@ class MocapConstraint(bpy.types.PropertyGroup):
         subtype="XYZ", default=(0.0, 0.0, 0.0),
         description="Target of Constraint - Point",
         update=setConstraint)
-    targetDist = bpy.props.FloatProperty(name="Dist",
-        default=1,
-        description="Distance Constraint - Desired distance",
+    targetDist = bpy.props.FloatProperty(name="Offset",
+        default=0.0,
+        description="Distance and Floor Constraints - Desired offset",
         update=setConstraint)
     targetSpace = bpy.props.EnumProperty(
         items=[("WORLD", "World Space", "Evaluate target in global space"),
@@ -277,7 +277,7 @@ class MocapConstraintsPanel(bpy.types.Panel):
                             box.prop(m_constraint, 'targetSpace')
                         if m_constraint.type == "point":
                             targetPropCol.prop(m_constraint, 'targetPoint')
-                        if m_constraint.type == "distance":
+                        if m_constraint.type == "distance" or m_constraint.type == "floor":
                             targetPropCol.prop(m_constraint, 'targetDist')
                         checkRow = box.row()
                         checkRow.prop(m_constraint, 'active')

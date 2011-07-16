@@ -56,7 +56,7 @@ def addNewConstraint(m_constraint, cons_obj):
     if m_constraint.type == "distance":
         c_type = "LIMIT_DISTANCE"
     if m_constraint.type == "floor":
-        c_type = "FLOOR"
+        c_type = "LIMIT_LOCATION"
         #create and store the new constraint within m_constraint
     real_constraint = cons_obj.constraints.new(c_type)
     real_constraint.name = "Mocap constraint " + str(len(cons_obj.constraints))
@@ -69,7 +69,7 @@ def addNewConstraint(m_constraint, cons_obj):
 def removeConstraint(m_constraint, cons_obj):
     #remove the influence fcurve and Blender constraint
     oldConstraint = cons_obj.constraints[m_constraint.real_constraint]
-    removeInfluenceFcurve(cons_obj, bpy.context.active_object, oldConstraint)
+    removeFcurves(cons_obj, bpy.context.active_object, oldConstraint, m_constraint)
     cons_obj.constraints.remove(oldConstraint)
 
 ### Update functions. There are 3: UpdateType/Bone
@@ -112,19 +112,66 @@ def setConstraintFraming(m_constraint, context):
     real_constraint.keyframe_insert(data_path="influence", frame=e + s_out)
 
 
-def removeInfluenceFcurve(cons_obj, obj, real_constraint):
+def removeFcurves(cons_obj, obj, real_constraint, m_constraint):
     #Determine if the constrained object is a bone or an empty
     if isinstance(cons_obj, bpy.types.PoseBone):
         fcurves = obj.animation_data.action.fcurves
     else:
         fcurves = cons_obj.animation_data.action.fcurves
     #Find the RNA data path of the constraint's influence
-    influence_RNA = real_constraint.path_from_id("influence")
+    RNA_paths = []
+    RNA_paths.append(real_constraint.path_from_id("influence"))
+    if m_constraint.type == "floor" or m_constraint.type == "point":
+        RNA_paths += [real_constraint.path_from_id("max_x"), real_constraint.path_from_id("min_x")]
+        RNA_paths += [real_constraint.path_from_id("max_y"), real_constraint.path_from_id("min_y")]
+        RNA_paths += [real_constraint.path_from_id("max_z"), real_constraint.path_from_id("min_z")]
     #Retrieve the correct fcurve via the RNA data path and remove it
-    fcurve = [fcurve for fcurve in fcurves if fcurve.data_path == influence_RNA]
+    fcurves_del = [fcurve for fcurve in fcurves if fcurve.data_path in RNA_paths]
     #clear the fcurve and set the frames.
-    if fcurve:
-        fcurves.remove(fcurve[0])
+    if fcurves_del:
+        for fcurve in fcurves_del:
+            fcurves.remove(fcurve)
+    #remove armature fcurves (if user keyframed m_constraint properties)
+    if obj.data.animation_data and m_constraint.type == "point":
+        if obj.data.animation_data.action:
+            path = m_constraint.path_from_id("targetPoint")
+            m_fcurves = [fcurve for fcurve in obj.data.animation_data.action.fcurves if fcurve.data_path == path]
+            for curve in m_fcurves:
+                obj.data.animation_data.action.fcurves.remove(curve)
+
+#Utility function for copying property fcurves over
+
+
+def copyFCurve(newCurve, oldCurve):
+    for point in oldCurve.keyframe_points:
+        newCurve.keyframe_points.insert(frame=point.co.x, value=point.co.y)
+
+#Creates new fcurves for the constraint properties (for floor and point)
+
+
+def createConstraintFCurves(cons_obj, obj, real_constraint):
+    if isinstance(cons_obj, bpy.types.PoseBone):
+        c_fcurves = obj.animation_data.action.fcurves
+    else:
+        c_fcurves = cons_obj.animation_data.action.fcurves
+    c_x_path = [real_constraint.path_from_id("max_x"), real_constraint.path_from_id("min_x")]
+    c_y_path = [real_constraint.path_from_id("max_y"), real_constraint.path_from_id("min_y")]
+    c_z_path = [real_constraint.path_from_id("max_z"), real_constraint.path_from_id("min_z")]
+    c_constraints_path = c_x_path + c_y_path + c_z_path
+    existing_curves = [fcurve for fcurve in c_fcurves if fcurve.data_path in c_constraints_path]
+    if existing_curves:
+        for curve in existing_curves:
+            c_fcurves.remove(curve)
+    xCurves, yCurves, zCurves = [], [], []
+    for path in c_constraints_path:
+        newCurve = c_fcurves.new(path)
+        if path in c_x_path:
+            xCurves.append(newCurve)
+        elif path in c_y_path:
+            yCurves.append(newCurve)
+        else:
+            zCurves.append(newCurve)
+    return xCurves, yCurves, zCurves
 
 
 # Function that copies all settings from m_constraint to the real Blender constraints
@@ -145,20 +192,35 @@ def setConstraint(m_constraint, context):
 
     #Set the blender constraint parameters
     if m_constraint.type == "point":
+        constraint_settings = False
         real_constraint.owner_space = m_constraint.targetSpace
-        x, y, z = m_constraint.targetPoint
-        real_constraint.max_x = x
-        real_constraint.max_y = y
-        real_constraint.max_z = z
-        real_constraint.min_x = x
-        real_constraint.min_y = y
-        real_constraint.min_z = z
-        real_constraint.use_max_x = True
-        real_constraint.use_max_y = True
-        real_constraint.use_max_z = True
-        real_constraint.use_min_x = True
-        real_constraint.use_min_y = True
-        real_constraint.use_min_z = True
+        if obj.data.animation_data:
+            if obj.data.animation_data.action:
+                path = m_constraint.path_from_id("targetPoint")
+                m_fcurves = [fcurve for fcurve in obj.data.animation_data.action.fcurves if fcurve.data_path == path]
+                if m_fcurves:
+                    constraint_settings = True
+                    xCurves, yCurves, zCurves = createConstraintFCurves(cons_obj, obj, real_constraint)
+                    for curve in xCurves:
+                        copyFCurve(curve, m_fcurves[0])
+                    for curve in yCurves:
+                        copyFCurve(curve, m_fcurves[1])
+                    for curve in zCurves:
+                        copyFCurve(curve, m_fcurves[2])
+        if not constraint_settings:
+            x, y, z = m_constraint.targetPoint
+            real_constraint.max_x = x
+            real_constraint.max_y = y
+            real_constraint.max_z = z
+            real_constraint.min_x = x
+            real_constraint.min_y = y
+            real_constraint.min_z = z
+            real_constraint.use_max_x = True
+            real_constraint.use_max_y = True
+            real_constraint.use_max_z = True
+            real_constraint.use_min_x = True
+            real_constraint.use_min_y = True
+            real_constraint.use_min_z = True
 
     if m_constraint.type == "freeze":
         real_constraint.owner_space = m_constraint.targetSpace
@@ -186,6 +248,50 @@ def setConstraint(m_constraint, context):
         real_constraint.target = getConsObj(bones[m_constraint.constrained_boneB])
         real_constraint.limit_mode = "LIMITDIST_ONSURFACE"
         real_constraint.distance = m_constraint.targetDist
+
+    if m_constraint.type == "floor" and m_constraint.targetMesh:
+        real_constraint.mute = True
+        real_constraint.owner_space = "WORLD"
+        #calculate the positions thoughout the range
+        s, e = m_constraint.s_frame, m_constraint.e_frame
+        s_in, s_out = m_constraint.smooth_in, m_constraint.smooth_out
+        s -= s_in
+        e += s_out
+        bakedPos = {}
+        floor = bpy.data.objects[m_constraint.targetMesh]
+        c_frame = context.scene.frame_current
+        for t in range(s, e):
+            context.scene.frame_set(t)
+            axis = Vector((0, 0, 100)) * obj.matrix_world.to_3x3()
+            offset = Vector((0, 0, m_constraint.targetDist)) * obj.matrix_world.to_3x3()
+            ray_origin = cons_obj.matrix_world.to_translation() - offset  # world position of constrained bone
+            ray_target = ray_origin + axis
+            #convert ray points to floor's object space
+            ray_origin *= floor.matrix_world.inverted()
+            ray_target *= floor.matrix_world.inverted()
+            hit, nor, ind = floor.ray_cast(ray_origin, ray_target)
+            if hit != Vector((0, 0, 0)):
+                bakedPos[t] = (hit * floor.matrix_world)
+                bakedPos[t] += Vector((0, 0, m_constraint.targetDist))
+            else:
+                bakedPos[t] = cons_obj.matrix_world.to_translation()
+        context.scene.frame_set(c_frame)
+        #create keyframes for real constraint
+        xCurves, yCurves, zCurves = createConstraintFCurves(cons_obj, obj, real_constraint)
+        for frame in bakedPos.keys():
+            pos = bakedPos[frame]
+            for xCurve in xCurves:
+                xCurve.keyframe_points.insert(frame=frame, value=pos.x)
+            for yCurve in yCurves:
+                yCurve.keyframe_points.insert(frame=frame, value=pos.y)
+            for zCurve in zCurves:
+                zCurve.keyframe_points.insert(frame=frame, value=pos.z)
+        real_constraint.use_max_x = True
+        real_constraint.use_max_y = True
+        real_constraint.use_max_z = True
+        real_constraint.use_min_x = True
+        real_constraint.use_min_y = True
+        real_constraint.use_min_z = True
 
     # active/baked check
     real_constraint.mute = (not m_constraint.active)
