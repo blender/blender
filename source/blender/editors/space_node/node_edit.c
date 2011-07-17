@@ -2038,7 +2038,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 		 * If keep_inputs is set, also copies input links from unselected (when fromnode==NULL)!
 		 */
 		if (link->tonode && (link->tonode->flag & NODE_SELECT)
-			&& (keep_inputs || link->fromnode && (link->fromnode->flag & NODE_SELECT))) {
+			&& (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT)))) {
 			newlink = MEM_callocN(sizeof(bNodeLink), "bNodeLink");
 			newlink->flag = link->flag;
 			newlink->tonode = link->tonode->new_node;
