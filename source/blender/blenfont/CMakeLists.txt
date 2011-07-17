@@ -24,10 +24,10 @@
 
 set(INC
 	.
-	../blenlib
-	../makesdna
-	../editors/include
 	../blenkernel
+	../blenlib
+	../editors/include
+	../makesdna
 	../../../intern/guardedalloc
 )
 

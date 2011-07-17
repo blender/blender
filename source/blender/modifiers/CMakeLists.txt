@@ -26,15 +26,15 @@
 
 set(INC 
 	.
-	./intern
+	intern
+	../blenkernel
+	../blenkernel/intern
 	../blenlib
 	../blenloader
 	../makesdna
-	../blenkernel
-	../blenkernel/intern
 	../render/extern/include
-	../../../intern/guardedalloc
 	../../../intern/elbeem/extern
+	../../../intern/guardedalloc
 )
 
 set(INC_SYS

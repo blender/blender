@@ -26,23 +26,23 @@
 
 set(INC
 	.
-	../nodes
-	../gpu
 	../blenfont
-	../blenlib
-	../makesdna
-	../makesrna
 	../blenkernel
-	../imbuf
+	../blenlib
 	../blenloader
 	../editors/include
+	../gpu
+	../imbuf
+	../makesdna
+	../makesrna
+	../nodes
 	../render/extern/include
-	../../../intern/guardedalloc
-	../../../intern/memutil
+	../../gameengine/BlenderRoutines
 	../../../intern/elbeem/extern
 	../../../intern/ghost
+	../../../intern/guardedalloc
+	../../../intern/memutil
 	../../../intern/opennl/extern
-	../../../source/gameengine/BlenderRoutines
 )
 
 set(INC_SYS

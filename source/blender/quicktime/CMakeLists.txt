@@ -34,7 +34,6 @@ set(INC
 	../imbuf/intern
 	../makesdna
 	../makesrna
-	../quicktime
 	../render/extern/include
 	../windowmanager
 	../../../intern/guardedalloc

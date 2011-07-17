@@ -22,9 +22,9 @@
 
 set(INC
 	.
-	intern
 	FX
 	SRC
+	intern
 	../ffmpeg
 )
 

@@ -25,13 +25,13 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	. 
-	../../../intern/string
+	.
+	../Expressions
+	../Rasterizer
+	../SceneGraph
 	../../../intern/container
-	../../../source/gameengine/Expressions 
-	../../../source/gameengine/SceneGraph
 	../../../intern/moto/include
-	../../../source/gameengine/Rasterizer
+	../../../intern/string
 )
 
 set(INC_SYS
@@ -39,8 +39,6 @@ set(INC_SYS
 )
 
 set(SRC
-	Joystick/SCA_Joystick.cpp
-	Joystick/SCA_JoystickEvents.cpp
 	SCA_2DFilterActuator.cpp
 	SCA_ANDController.cpp
 	SCA_ActuatorEventManager.cpp
@@ -81,10 +79,9 @@ set(SRC
 	SCA_TimeEventManager.cpp
 	SCA_XNORController.cpp
 	SCA_XORController.cpp
+	Joystick/SCA_Joystick.cpp
+	Joystick/SCA_JoystickEvents.cpp
 
-	Joystick/SCA_Joystick.h
-	Joystick/SCA_JoystickDefines.h
-	Joystick/SCA_JoystickPrivate.h
 	SCA_2DFilterActuator.h
 	SCA_ANDController.h
 	SCA_ActuatorEventManager.h
@@ -125,6 +122,9 @@ set(SRC
 	SCA_TimeEventManager.h
 	SCA_XNORController.h
 	SCA_XORController.h
+	Joystick/SCA_Joystick.h
+	Joystick/SCA_JoystickDefines.h
+	Joystick/SCA_JoystickPrivate.h
 )
 
 if(WITH_SDL)

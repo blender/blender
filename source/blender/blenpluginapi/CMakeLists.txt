@@ -28,9 +28,9 @@ set(INC
 	.
 	..
 	../blenlib
+	../blenloader
 	../imbuf
 	../makesdna
-	../blenloader
 	../../../intern/guardedalloc
 )
 

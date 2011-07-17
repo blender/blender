@@ -30,8 +30,8 @@ set(INC
 	../..
 	../../../blenkernel
 	../../../blenlib
-	../../../../../intern/guardedalloc
 	../../../makesdna
+	../../../../../intern/guardedalloc
 )
 
 set(INC_SYS

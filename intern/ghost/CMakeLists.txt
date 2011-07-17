@@ -37,15 +37,15 @@ set(INC_SYS
 
 set(SRC
 	intern/GHOST_Buttons.cpp
-	intern/GHOST_CallbackEventConsumer.cpp
 	intern/GHOST_C-api.cpp
-	intern/GHOST_Path-api.cpp
+	intern/GHOST_CallbackEventConsumer.cpp
 	intern/GHOST_DisplayManager.cpp
 	intern/GHOST_EventManager.cpp
 	intern/GHOST_ISystem.cpp
 	intern/GHOST_ISystemPaths.cpp
 	intern/GHOST_ModifierKeys.cpp
 	intern/GHOST_NDOFManager.cpp
+	intern/GHOST_Path-api.cpp
 	intern/GHOST_Path-api.cpp
 	intern/GHOST_Rect.cpp
 	intern/GHOST_System.cpp
@@ -63,6 +63,7 @@ set(SRC
 	GHOST_Path-api.h
 	GHOST_Rect.h
 	GHOST_Types.h
+
 	intern/GHOST_Buttons.h
 	intern/GHOST_CallbackEventConsumer.h
 	intern/GHOST_Debug.h

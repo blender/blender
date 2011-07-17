@@ -28,8 +28,8 @@ set(INC
 	.
 	..
 	../..
-	../../../blenlib
 	../../../blenkernel
+	../../../blenlib
 	../../../makesdna
 	../../../../../intern/guardedalloc
 )

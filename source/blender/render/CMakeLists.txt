@@ -26,17 +26,17 @@
 
 
 set(INC 
-	intern/include
 	extern/include
+	intern/include
+	../blenkernel
 	../blenlib
 	../blenloader
+	../imbuf
 	../makesdna
 	../makesrna
-	../blenkernel
-	../imbuf
-	../../../intern/smoke/extern
-	../../../intern/mikktspace
 	../../../intern/guardedalloc
+	../../../intern/mikktspace
+	../../../intern/smoke/extern
 )
 
 set(INC_SYS

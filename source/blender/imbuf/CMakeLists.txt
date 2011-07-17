@@ -32,12 +32,12 @@ endif()
 set(INC 
 	.
 	../avi
-	../blenlib
 	../blenkernel
+	../blenlib
 	../blenloader
 	../makesdna
-	../../../intern/memutil
 	../../../intern/guardedalloc
+	../../../intern/memutil
 )
 
 set(INC_SYS

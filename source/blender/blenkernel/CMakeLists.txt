@@ -55,7 +55,7 @@ set(INC
 	../../../intern/smoke/extern
 
 	# XXX - BAD LEVEL CALL WM_api.h
-	../../../source/blender/windowmanager
+	../windowmanager
 )
 
 set(INC_SYS

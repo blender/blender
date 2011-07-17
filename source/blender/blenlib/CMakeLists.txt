@@ -26,10 +26,10 @@
 
 set(INC 
 	.
-	../makesdna
 	../blenkernel
 	../blenloader
 	../gpu
+	../makesdna
 	../../../intern/ghost
 	../../../intern/guardedalloc
 )
