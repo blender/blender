@@ -2118,9 +2118,9 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 		if(tlink) {
 			/* try to move the existing link to the next available socket */
 			if (tlink->tonode) {
-				/* is there a free input socket with same type? */
+				/* is there a free input socket with the target type? */
 				for(sock= tlink->tonode->inputs.first; sock; sock= sock->next) {
-					if(sock->type==tlink->fromsock->type)
+					if(sock->type==tlink->tosock->type)
 						if(nodeCountSocketLinks(snode->edittree, sock) < sock->limit)
 							break;
 				}
