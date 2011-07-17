@@ -58,6 +58,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	{
 		FCurve *fcu;
 		char * transformName ;
+		bool isMatAnim = false;
         if(ob->adt && ob->adt->action)      
 		{
 			fcu = (FCurve*)ob->adt->action->curves.first;
@@ -67,7 +68,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
 					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
 					(!strcmp(transformName, "rotation_quaternion"))) 
-					dae_animation(ob ,fcu, transformName, false);
+					dae_animation(ob ,fcu, transformName, false , isMatAnim);
 				fcu = fcu->next;
 			}
 		}
@@ -80,7 +81,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if ((!strcmp(transformName, "color")) ||
 					(!strcmp(transformName, "spot_size"))||
 					(!strcmp(transformName, "spot_blend"))) 
-					dae_animation(ob ,fcu, transformName,true );
+					dae_animation(ob , fcu, transformName, true, isMatAnim );
 				fcu = fcu->next;
 			}
 		}
@@ -94,8 +95,26 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if ((!strcmp(transformName, "lens"))||
 					(!strcmp(transformName, "ortho_scale"))||
 					(!strcmp(transformName, "clipend"))||(!strcmp(transformName, "clipsta"))) 
-					dae_animation(ob ,fcu, transformName,true );
+					dae_animation(ob , fcu, transformName, true, isMatAnim );
 				fcu = fcu->next;
+			}
+		}
+
+		for(int a = 0; a < ob->totcol; a++)
+		{
+			Material *ma = give_current_material(ob, a+1);
+			if (!ma) continue;
+   			if(ma->adt && ma->adt->action)
+			{
+				isMatAnim = true;
+				fcu = (FCurve*)ma->adt->action->curves.first;
+				while (fcu) {
+					transformName = extract_transform_name( fcu->rna_path );
+					
+					if ((!strcmp(transformName, "specular_hardness"))) 
+						dae_animation(ob ,fcu, transformName, true, isMatAnim );
+					fcu = fcu->next;
+				}
 			}
 		}
 		//if (!ob->adt || !ob->adt->action) 
@@ -132,18 +151,15 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			{
 				char * transformName = extract_transform_name( fcu->rna_path );
 				
-				if( !strcmp(transformName, "rotation_quaternion") ) 
-				{ 
-					for ( int i = 0 ; i < fcu->totvert ; i++) 
-					{
+				if( !strcmp(transformName, "rotation_quaternion") )	{ 
+					for ( int i = 0 ; i < fcu->totvert ; i++){
 						*(quat + ( i * 4 ) + fcu->array_index) = fcu->bezt[i].vec[1][1];
 					}
 				}
 					fcu = fcu->next;
 			}
 
-			for ( int i = 0 ; i < fcu->totvert ; i++) 
-			{
+			for ( int i = 0 ; i < fcu->totvert ; i++){
 				for ( int j = 0;j<4;j++)
 					temp_quat[j] = quat[(i*4)+j];
 
@@ -171,7 +187,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			return id_name(ob);
 	}
 
-	void AnimationExporter::dae_animation(Object* ob, FCurve *fcu/*, std::string ob_name*/ , char* transformName , bool is_param )
+	void AnimationExporter::dae_animation(Object* ob, FCurve *fcu, char* transformName , bool is_param, bool isMatAnim )
 	{
 		
 		const char *axis_name = NULL;
@@ -188,24 +204,23 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			axis_name = axis_names[fcu->array_index];*/
 		}
 		//maybe a list or a vector of float animations
-		else if ( !strcmp(transformName, "spot_size")||!strcmp(transformName, "spot_blend")||
-				  !strcmp(transformName, "lens")||!strcmp(transformName, "ortho_scale")||!strcmp(transformName, "clipend")||
-				  !strcmp(transformName, "clipsta"))
-		{
-			axis_name = "";
-		}
 		else if ( !strcmp(transformName, "color") )
 		{
 			const char *axis_names[] = {"R", "G", "B"};
 			if (fcu->array_index < 3)
 			axis_name = axis_names[fcu->array_index];
 		}
-		else
+		else if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
+				(!strcmp(transformName, "rotation_euler")))
 		{
 			const char *axis_names[] = {"X", "Y", "Z"};
 			if (fcu->array_index < 3)
 			axis_name = axis_names[fcu->array_index];
 		}
+		else{
+			axis_name = "";
+		}
+		
 		std::string ob_name = std::string("null");
 		if (ob->type == OB_ARMATURE) 
 		{   
@@ -215,9 +230,11 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		}
 		else 
 		{
-			ob_name = id_name(ob);
-			BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
-				 fcu->rna_path, axis_name);
+			if (isMatAnim)
+				ob_name = id_name(ob) + "_material";
+			else
+				BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
+					 fcu->rna_path, axis_name);
 		}
 		
 		// check rna_path is one of: rotation, scale, location
