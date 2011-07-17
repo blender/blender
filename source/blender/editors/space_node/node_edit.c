@@ -2000,12 +2000,13 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 
 /* ****************** Duplicate *********************** */
 
-static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_duplicate_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree= snode->edittree;
 	bNode *node, *newnode, *lastnode;
 	bNodeLink *link, *newlink, *lastlink;
+	int keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
 	
 	ED_preview_kill_jobs(C);
 	
@@ -2033,10 +2034,11 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	 */
 	lastlink = ntree->links.last;
 	for (link=ntree->links.first; link; link=link->next) {
-		/* this creates new links between copied nodes,
-		 * as well as input links from unselected (when fromnode==NULL) !
+		/* This creates new links between copied nodes.
+		 * If keep_inputs is set, also copies input links from unselected (when fromnode==NULL)!
 		 */
-		if (link->tonode && (link->tonode->flag & NODE_SELECT)) {
+		if (link->tonode && (link->tonode->flag & NODE_SELECT)
+			&& (keep_inputs || link->fromnode && (link->fromnode->flag & NODE_SELECT))) {
 			newlink = MEM_callocN(sizeof(bNodeLink), "bNodeLink");
 			newlink->flag = link->flag;
 			newlink->tonode = link->tonode->new_node;
@@ -2096,6 +2098,8 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "keep_inputs", 0, "Keep Inputs", "Keep the input links to duplicated nodes");
 }
 
 /* *************************** add link op ******************** */

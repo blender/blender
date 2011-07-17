@@ -101,9 +101,16 @@ void node_operatortypes(void)
 void ED_operatormacros_node(void)
 {
 	wmOperatorType *ot;
+	wmOperatorTypeMacro *mot;
 	
 	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+
+	/* modified operator call for duplicating with input links */
+	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+		RNA_boolean_set(mot->ptr, "keep_inputs", 1);
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
 	ot= WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer", OPTYPE_UNDO);
@@ -155,6 +162,8 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	
 	WM_keymap_add_menu(keymap, "NODE_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
+	/* modified operator call for duplicating with input links */
+	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move_keep_inputs", DKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_hide_toggle", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_mute_toggle", MKEY, KM_PRESS, 0, 0);
