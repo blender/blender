@@ -415,6 +415,41 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 	*index= -1;
 }
 
+void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float point_co[3], float n_location[3], float n_normal[3], int *index)
+{
+	BVHTreeFromMesh treeData= {NULL};
+	
+	if(ob->derivedFinal==NULL) {
+		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for finding nearest point.", ob->id.name+2);
+		return;
+	}
+
+	/* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
+	bvhtree_from_mesh_faces(&treeData, ob->derivedFinal, 0.0f, 4, 6);
+
+	if(treeData.tree==NULL) {
+		BKE_reportf(reports, RPT_ERROR, "object \"%s\" could not create internal data for finding nearest point", ob->id.name+2);
+		return;
+	}
+	else {
+		BVHTreeNearest nearest;
+
+		nearest.index = -1;
+		nearest.dist = FLT_MAX;
+
+		if(BLI_bvhtree_find_nearest(treeData.tree, point_co, &nearest, treeData.nearest_callback, &treeData) != -1) {
+			copy_v3_v3(n_location, nearest.co);
+			copy_v3_v3(n_normal, nearest.no);
+			*index= nearest.index;
+			return;
+		}
+	}
+
+	zero_v3(n_location);
+	zero_v3(n_normal);
+	*index= -1;
+}
+
 /* ObjectBase */
 
 void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
@@ -498,6 +533,26 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 	
+	parm= RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no intersection is found.", 0, 0);
+	RNA_def_function_output(func, parm);
+
+	/* Nearest Point */
+	func= RNA_def_function(srna, "closest_point_on_mesh", "rna_Object_closest_point_on_mesh");
+	RNA_def_function_ui_description(func, "Find the nearest point on the object.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+
+	/* ray start and end */
+	parm= RNA_def_float_vector(func, "point", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	/* return location and normal */
+	parm= RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "The location on the object closest to the point", -1e4, 1e4);
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_function_output(func, parm);
+	parm= RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "The face normal at the closest point", -1e4, 1e4);
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_function_output(func, parm);
+
 	parm= RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no intersection is found.", 0, 0);
 	RNA_def_function_output(func, parm);
 
