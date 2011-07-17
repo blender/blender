@@ -25,10 +25,10 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC 
+	.
+	../blenkernel
 	../blenlib
 	../makesdna
-	../blenkernel
-	../ikplugin
 	../../../intern/guardedalloc
 	../../../intern/iksolver/extern
 )

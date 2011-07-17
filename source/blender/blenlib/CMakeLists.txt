@@ -26,10 +26,10 @@
 
 set(INC 
 	.
-	../makesdna
 	../blenkernel
 	../blenloader
 	../gpu
+	../makesdna
 	../../../intern/ghost
 	../../../intern/guardedalloc
 )
@@ -138,7 +138,9 @@ set(SRC
 )
 
 if(WITH_BINRELOC)
-	list(APPEND INC_SYS "${BINRELOC_INCLUDE_DIRS}")
+	list(APPEND INC_SYS
+		${BINRELOC_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_BINRELOC)
 endif()
 

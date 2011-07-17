@@ -25,15 +25,16 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC 
-	. ./intern
+	.
+	intern
+	../blenkernel
+	../blenkernel/intern
 	../blenlib
 	../blenloader
 	../makesdna
-	../blenkernel
-	../blenkernel/intern
 	../render/extern/include
-	../../../intern/guardedalloc
 	../../../intern/elbeem/extern
+	../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -98,7 +99,9 @@ endif()
 
 if(WITH_MOD_DECIMATE)
 	add_definitions(-DWITH_MOD_DECIMATE)
-	list(APPEND INC ../../../intern/decimation/extern)
+	list(APPEND INC
+		../../../intern/decimation/extern
+	)
 endif()
 
 if(NOT WITH_MOD_FLUID)

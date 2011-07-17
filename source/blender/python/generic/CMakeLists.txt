@@ -20,10 +20,10 @@
 
 set(INC 
 	.
-	../../blenlib
-	../../makesdna
 	../../blenkernel
+	../../blenlib
 	../../blenloader
+	../../makesdna
 	../../../../intern/guardedalloc
 )
 

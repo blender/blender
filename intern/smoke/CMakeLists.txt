@@ -89,7 +89,9 @@ endif()
 
 if(WITH_FFTW3)
 	add_definitions(-DFFTW3=1)
-	list(APPEND INC ${FFTW3_INCLUDE_DIRS})
+	list(APPEND INC
+		${FFTW3_INCLUDE_DIRS}
+	)
 endif()
 
 blender_add_lib(bf_intern_smoke "${SRC}" "${INC}" "${INC_SYS}")
