@@ -24,6 +24,7 @@
 
 #include "GeometryExporter.h"
 #include "AnimationExporter.h"
+#include "MaterialExporter.h"
 
 template<class Functor>
 void forEachObjectInScene(Scene *sce, Functor &f)
@@ -944,7 +945,17 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				fcu = (FCurve*)(((Lamp*)ob ->data)->adt->action->curves.first);
 			else if( (ob->type == OB_CAMERA ) && ((Camera*)ob ->data)->adt && ((Camera*)ob ->data)->adt->action )
 				fcu = (FCurve*)(((Camera*)ob ->data)->adt->action->curves.first);
-			//The Scene has animations if object type is armature or object has f-curve or object is a Lamp which has f-curves
+			
+		    for(int a = 0; a < ob->totcol; a++)
+			{
+				Material *ma = give_current_material(ob, a+1);
+				if (!ma) continue;
+       			if(ma->adt && ma->adt->action)
+				{
+					fcu = (FCurve*)ma->adt->action->curves.first;	
+				}
+			}
+
 			if ( fcu) return true;
 			base= base->next;
 		}

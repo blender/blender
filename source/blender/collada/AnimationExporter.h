@@ -35,6 +35,7 @@ extern "C"
 #include "DNA_lamp_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_fcurve.h"
@@ -67,6 +68,8 @@ extern char build_rev[];
 #include "COLLADASWSampler.h"
 #include "COLLADASWConstants.h"
 #include "COLLADASWBaseInputElement.h"
+
+#include "EffectExporter.h"
 
 #include "collada_internal.h"
 
