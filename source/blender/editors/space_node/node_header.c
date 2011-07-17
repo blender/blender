@@ -94,8 +94,6 @@ static void do_node_add(bContext *C, void *UNUSED(arg), int event)
 		if(node->flag & NODE_TEST) node->flag |= NODE_SELECT;
 	}
 	
-	snode_autoconnect(snode, 1, 0);
-	
 	/* deselect after autoconnection */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & NODE_TEST) node->flag &= ~NODE_SELECT;
