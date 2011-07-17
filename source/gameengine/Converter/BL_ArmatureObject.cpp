@@ -295,6 +295,7 @@ void BL_ArmatureObject::LoadConstraints(KX_BlenderSceneConverter* converter)
 			case CONSTRAINT_TYPE_CLAMPTO:
 			case CONSTRAINT_TYPE_TRANSFORM:
 			case CONSTRAINT_TYPE_DISTLIMIT:
+			case CONSTRAINT_TYPE_TRANSLIKE:
 				cti = constraint_get_typeinfo(pcon);
 				gametarget = gamesubtarget = NULL;
 				if (cti && cti->get_constraint_targets) {
