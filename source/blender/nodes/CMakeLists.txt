@@ -75,6 +75,7 @@ set(SRC
 	intern/CMP_nodes/CMP_mapValue.c
 	intern/CMP_nodes/CMP_math.c
 	intern/CMP_nodes/CMP_mixrgb.c
+	intern/CMP_nodes/CMP_movieclip.c
 	intern/CMP_nodes/CMP_normal.c
 	intern/CMP_nodes/CMP_normalize.c
 	intern/CMP_nodes/CMP_outputFile.c

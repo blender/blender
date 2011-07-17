@@ -155,8 +155,9 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf, float
 		glColor3f(0.0f, 0.0f, 0.0f);
 		glRectf(x, y, x+ibuf->x*sc->zoom, y+ibuf->y*sc->zoom);
 	} else {
-		if(ibuf->rect_float)
+		if(ibuf->rect_float && !ibuf->rect) {
 			IMB_rect_from_float(ibuf);
+		}
 
 		if(ibuf->rect)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);

@@ -55,11 +55,13 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"	/* SELECT */
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+
+#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_mempool.h"
 #include "BLI_math.h"
+#include "BLI_mempool.h"
+#include "BLI_threads.h"
 
 #include "BKE_library.h"
 #include "BKE_global.h"
@@ -288,13 +290,20 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 	ImBuf *ibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
 
+	/* cache is supposed to be threadsafe */
 	ibuf= get_imbuf_cache(clip, user);
 
 	if(!ibuf) {
 		if(clip->source==MCLIP_SRC_SEQUENCE)
 			ibuf= movieclip_load_sequence_file(clip, framenr);
-		else
+		else {
+			/* loading of movies can't happen from concurent threads */
+			BLI_lock_thread(LOCK_MOVIECLIP);
+
 			ibuf= movieclip_load_movie_file(clip, framenr);
+
+			BLI_unlock_thread(LOCK_MOVIECLIP);
+		}
 
 		if(ibuf)
 			put_imbuf_cache(clip, user, ibuf);

@@ -48,6 +48,7 @@ void register_node_type_cmp_texture(ListBase *lb);
 void register_node_type_cmp_value(ListBase *lb);
 void register_node_type_cmp_rgb(ListBase *lb);
 void register_node_type_cmp_curve_time(ListBase *lb);
+void register_node_type_cmp_movieclip(ListBase *lb);
 
 void register_node_type_cmp_composite(ListBase *lb);
 void register_node_type_cmp_viewer(ListBase *lb);

@@ -3305,6 +3305,10 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 				NodeTagChanged(ntree, node);
 			}
 		}
+		else if(node->type==CMP_NODE_MOVIECLIP) {
+			NodeTagChanged(ntree, node);
+			tagged= 1;
+		}
 	}
 	
 	return tagged;
@@ -3451,6 +3455,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	register_node_type_cmp_value(ntypelist);
 	register_node_type_cmp_rgb(ntypelist);
 	register_node_type_cmp_curve_time(ntypelist);
+	register_node_type_cmp_movieclip(ntypelist);
 	
 	register_node_type_cmp_composite(ntypelist);
 	register_node_type_cmp_viewer(ntypelist);

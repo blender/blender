@@ -1075,6 +1075,11 @@ static void node_composit_buts_ycc(uiLayout *layout, bContext *UNUSED(C), Pointe
 	uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
+static void node_composit_buts_movieclip(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1224,6 +1229,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_COMBYCCA:
 		case CMP_NODE_SEPYCCA:
 			ntype->uifunc=node_composit_buts_ycc;
+			break;
+		case CMP_NODE_MOVIECLIP:
+			ntype->uifunc= node_composit_buts_movieclip;
 			break;
 		default:
 			ntype->uifunc= NULL;
