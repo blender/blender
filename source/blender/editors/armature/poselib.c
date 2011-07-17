@@ -110,22 +110,34 @@ static int poselib_get_free_index (bAction *act)
 {
 	TimeMarker *marker;
 	int low=0, high=0;
+	short changed = 0;
 	
 	/* sanity checks */
 	if (ELEM(NULL, act, act->markers.first)) return 1;
 	
-	/* loop over poses finding various values (poses are not stored in chronological order) */
-	for (marker= act->markers.first; marker; marker= marker->next) {
-		/* only increase low if value is 1 greater than low, to find "gaps" where
-		 * poses were removed from the poselib
-		 */
-		if (marker->frame == (low + 1)) 
-			low++;
+	/* As poses are not stored in chronological order, we must iterate over this list 
+	 * a few times until we don't make any new discoveries (mostly about the lower bound).
+	 * Prevents problems with deleting then trying to add new poses [#27412]
+	 */
+	do {
+		changed = 0;
 		
-		/* value replaces high if it is the highest value encountered yet */
-		if (marker->frame > high) 
-			high= marker->frame;
-	}
+		for (marker= act->markers.first; marker; marker= marker->next) {
+			/* only increase low if value is 1 greater than low, to find "gaps" where
+			 * poses were removed from the poselib
+			 */
+			if (marker->frame == (low + 1)) {
+				low++;
+				changed = 1;
+			}
+			
+			/* value replaces high if it is the highest value encountered yet */
+			if (marker->frame > high) {
+				high= marker->frame;
+				changed = 1;
+			}
+		}
+	} while (changed != 0);
 	
 	/* - if low is not equal to high, then low+1 is a gap 
 	 * - if low is equal to high, then high+1 is the next index (add at end) 
@@ -330,6 +342,11 @@ static int poselib_sanitise_exec (bContext *C, wmOperator *op)
 	
 	/* free temp memory */
 	BLI_dlrbTree_free(&keys);
+	
+	/* send notifiers for this - using keyframe editing notifiers, since action 
+	 * may be being shown in anim editors as active action 
+	 */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -555,6 +572,11 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	/* fix active pose number */
 	act->active_marker= 0;
 	
+	/* send notifiers for this - using keyframe editing notifiers, since action 
+	 * may be being shown in anim editors as active action 
+	 */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
+	
 	/* done */
 	return OPERATOR_FINISHED;
 }
@@ -636,6 +658,11 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 	/* copy name and validate it */
 	BLI_strncpy(marker->name, newname, sizeof(marker->name));
 	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
+	
+	/* send notifiers for this - using keyframe editing notifiers, since action 
+	 * may be being shown in anim editors as active action 
+	 */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
