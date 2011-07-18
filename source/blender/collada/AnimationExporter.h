@@ -94,7 +94,7 @@ public:
 	
 protected:
 
-	void dae_animation(Object* ob, FCurve *fcu, char* transformName , bool is_param, bool isMatAnim);
+	void dae_animation(Object* ob, FCurve *fcu, char* transformName , bool is_param, Material *ma = NULL);
 
 	void write_bone_animation(Object *ob_arm, Bone *bone);
 

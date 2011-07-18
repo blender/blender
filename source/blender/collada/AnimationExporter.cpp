@@ -68,7 +68,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
 					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
 					(!strcmp(transformName, "rotation_quaternion"))) 
-					dae_animation(ob ,fcu, transformName, false , isMatAnim);
+					dae_animation(ob ,fcu, transformName, false);
 				fcu = fcu->next;
 			}
 		}
@@ -81,7 +81,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if ((!strcmp(transformName, "color")) ||
 					(!strcmp(transformName, "spot_size"))||
 					(!strcmp(transformName, "spot_blend"))) 
-					dae_animation(ob , fcu, transformName, true, isMatAnim );
+					dae_animation(ob , fcu, transformName, true );
 				fcu = fcu->next;
 			}
 		}
@@ -95,7 +95,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if ((!strcmp(transformName, "lens"))||
 					(!strcmp(transformName, "ortho_scale"))||
 					(!strcmp(transformName, "clipend"))||(!strcmp(transformName, "clipsta"))) 
-					dae_animation(ob , fcu, transformName, true, isMatAnim );
+					dae_animation(ob , fcu, transformName, true );
 				fcu = fcu->next;
 			}
 		}
@@ -112,7 +112,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 					transformName = extract_transform_name( fcu->rna_path );
 					
 					if ((!strcmp(transformName, "specular_hardness"))) 
-						dae_animation(ob ,fcu, transformName, true, isMatAnim );
+						dae_animation(ob ,fcu, transformName, true, ma );
 					fcu = fcu->next;
 				}
 			}
@@ -187,7 +187,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			return id_name(ob);
 	}
 
-	void AnimationExporter::dae_animation(Object* ob, FCurve *fcu, char* transformName , bool is_param, bool isMatAnim )
+	void AnimationExporter::dae_animation(Object* ob, FCurve *fcu, char* transformName , bool is_param, Material * ma )
 	{
 		
 		const char *axis_name = NULL;
@@ -230,11 +230,12 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		}
 		else 
 		{
-			if (isMatAnim)
+			if (ma)
 				ob_name = id_name(ob) + "_material";
 			else
-				BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
-					 fcu->rna_path, axis_name);
+				ob_name = id_name(ob);
+			BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
+				 fcu->rna_path, axis_name);
 		}
 		
 		// check rna_path is one of: rotation, scale, location
@@ -305,6 +306,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			if ( ob->type == OB_CAMERA )
 				target = get_camera_id(ob)
 				+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
+
+			if( ma ) 
+				target = translate_id(id_name(ma)) + "-effect"
+						+"/common/" /* should take dynamically */ + get_transform_sid(fcu->rna_path, -1, axis_name, true);
 		}
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
@@ -832,6 +837,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				tm_type = 9;
 			else if (!strcmp(name, "clipsta"))
 				tm_type = 10;
+			else if (!strcmp(name, "specular_hardness"))
+				tm_type = 11;
 			
 			else
 				tm_type = -1;
@@ -870,8 +877,9 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		case 10:
 			tm_name = "znear";
 			break;
-		
-
+		case 11:
+			tm_name = "shininess";
+			break;
 		default:
 			tm_name = "";
 			break;
