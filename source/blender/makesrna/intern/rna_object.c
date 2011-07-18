@@ -483,7 +483,7 @@ static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
 static int rna_Object_active_vertex_group_index_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	return MAX2(ob->actdef-1, 0);
+	return ob->actdef-1;
 }
 
 static void rna_Object_active_vertex_group_index_set(PointerRNA *ptr, int value)
