@@ -1913,11 +1913,10 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
 /*Jason*/
-static void findnearestWPvert__doClosest(void *userData, MVert *mv, int x, int y, int index)
+static void findnearestWPvert__doClosest(void *userData, MVert *mv, int x, int y, int UNUSED(index))
 {
 	struct { MVert *mv; short dist, select; int mval[2]; } *data = userData;
 	float temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
-	mv = mv+index;
 	if((mv->flag & SELECT)==data->select)
 		temp += 5;
 

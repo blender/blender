@@ -2619,7 +2619,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
 	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
-	const short is_paint_sel= (ob==OBACT && paint_facesel_test(ob));
+	const short is_paint_sel= (ob==OBACT && (paint_facesel_test(ob)));
 	int draw_wire = 0;
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
@@ -2775,16 +2775,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glDisable(GL_LIGHTING);
 
 				GPU_disable_material();
-				// Jason
-				if(paint_vertsel_test(ob)) {
-					glColor3f(0.0f, 0.0f, 0.0f);
-					glPointSize(2.0f);
-					dm->drawEdges(dm, (dt==OB_WIRE || totface==0), me->drawflag);
-					glPointSize(3.0f);
-					dm->drawSelectedVerts(dm);
-					//draw_obmode_dm_verts(dm, 1);
-					glPointSize(1.0f);
-				}
 			}
 			else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_TEXTURE_PAINT)) {
 				if(me->mcol)
@@ -2796,7 +2786,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			}
 		}
 	}
-	
 	/* set default draw color back for wire or for draw-extra later on */
 	if (dt!=OB_WIRE) {
 		if(base->flag & SELECT) {
@@ -2855,7 +2844,21 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			bglPolygonOffset(rv3d->dist, 0.0);
 		}
 	}
-
+	// Jason
+	if(paint_vertsel_test(ob)) {
+		glColor3f(0.0f, 0.0f, 0.0f);
+		glPointSize(2.0f);
+		// TODO clarify:
+		// there is clearly something I don't understand, when it was 
+		// dt != OB_WIRE instead, it still drew in wire mode!
+		if(dt != OB_SOLID) {
+			dm->drawEdges(dm, (totface==0), TRUE);
+		}
+		glPointSize(3.0f);
+		dm->drawSelectedVerts(dm);
+		//draw_obmode_dm_verts(dm, 1);
+		glPointSize(1.0f);
+	}
 	dm->release(dm);
 }
 
