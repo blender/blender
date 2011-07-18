@@ -628,7 +628,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case TFM_MODAL_ROTATE:
 				/* only switch when... */
-				if(!(t->options & CTX_TEXTURE)) {
+				if(!(t->options & CTX_TEXTURE) && !(t->options & CTX_VIDEOCLIP)) {
 					if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
 						
 						resetTransRestrictions(t);
@@ -1587,6 +1587,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	else if(t->spacetype == SPACE_CLIP) {
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+		t->options |= CTX_VIDEOCLIP;
 	}
 	else
 		unit_m3(t->spacemtx);
