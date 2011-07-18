@@ -29,6 +29,8 @@
 
 /* defines VIEW3D_OT_fly modal operator */
 
+// #define NDOF_FLY_DEBUG
+
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -259,7 +261,9 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	fly->ar = CTX_wm_region(C);
 	fly->scene= CTX_data_scene(C);
 
+	#ifdef NDOF_FLY_DEBUG
 	puts("\n-- fly begin --");
+	#endif
 
 	if(fly->rv3d->persp==RV3D_CAMOB && fly->v3d->camera->id.lib) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot fly a camera from an external library");
@@ -370,7 +374,9 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	if(fly->state == FLY_RUNNING)
 		return OPERATOR_RUNNING_MODAL;
 
+	#ifdef NDOF_FLY_DEBUG
 	puts("\n-- fly end --");
+	#endif
 
 	WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), fly->timer);
 
@@ -444,11 +450,15 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 			{
 			case P_STARTING:
 				// start keeping track of 3D mouse position
+				#ifdef NDOF_FLY_DEBUG
 				puts("start keeping track of 3D mouse position");
+				#endif
 				// fall through...
 			case P_IN_PROGRESS:
 				// update 3D mouse position
+				#ifdef NDOF_FLY_DEBUG
 				putchar('.'); fflush(stdout);
+				#endif
 				if (fly->ndof == NULL)
 					// fly->ndof = MEM_mallocN(sizeof(wmNDOFMotionData), tag_name);
 					fly->ndof = MEM_dupallocN(incoming_ndof);
@@ -458,7 +468,9 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				break;
 			case P_FINISHING:
 				// stop keeping track of 3D mouse position
+				#ifdef NDOF_FLY_DEBUG
 				puts("stop keeping track of 3D mouse position");
+				#endif
 				if (fly->ndof)
 					{
 					MEM_freeN(fly->ndof);
@@ -619,8 +631,10 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	unsigned char
 	apply_rotation= 1; /* if the user presses shift they can look about without movinf the direction there looking*/
 
+	#ifdef NDOF_FLY_DEBUG
 	static unsigned int iteration = 1;
 	printf("fly timer %d\n", iteration++);
+	#endif
 
 	if(fly->root_parent)
 		ED_view3d_to_m4(prev_view_mat, fly->rv3d->ofs, fly->rv3d->viewquat, fly->rv3d->dist);
