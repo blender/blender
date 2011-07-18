@@ -105,7 +105,12 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
             else:
                 perf_bone = performer_bones[perf_bone_name[0].name]
                 inter_bone.matrix_basis = singleBoneRetarget(inter_bone, perf_bone)
-
+        elif inter_bone.parent:
+            if "Temp" in inter_bone.parent.name:
+                inter_bone.parent.bone.use_inherit_rotation = True
+                inter_bone.bone.use_inherit_rotation = True
+        else:
+            inter_bone.bone.use_inherit_rotation = True
         inter_bone.keyframe_insert("rotation_quaternion")
         for child in inter_bone.children:
             retargetPerfToInter(child)
@@ -119,12 +124,14 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
     bpy.ops.object.mode_set(mode='EDIT')
     #add some temporary connecting bones in case end user bones are not connected to their parents
     for bone in inter_obj.data.edit_bones:
-        if not bone.use_connect and bone.parent:
+        if not bone.use_connect and bone.parent and  inter_obj.data.bones[bone.name].reverseMap:
             newBone = inter_obj.data.edit_bones.new("Temp")
-            newBone.head = bone.parent.head
+            newBone.head = bone.parent.tail
             newBone.tail = bone.head
             newBone.parent = bone.parent
             bone.parent = newBone
+            bone.use_connect = True
+            newBone.use_connect = True
     #resets roll
     bpy.ops.armature.calculate_roll(type='Z')
     bpy.ops.object.mode_set(mode="OBJECT")
@@ -165,7 +172,7 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
 
         if trg_bone.parent and trg_bone.bone.use_inherit_rotation:
             srcParent = src_bone.parent
-            if not trg_bone.bone.use_connect:
+            if "Temp" in srcParent.name:
                 srcParent = srcParent.parent
             parent_mat = srcParent.matrix
             parent_rest = trg_bone.parent.bone.matrix_local
@@ -187,6 +194,8 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
             end_bone.keyframe_insert("rotation_axis_angle")
         else:
             end_bone.keyframe_insert("rotation_euler")
+        if not end_bone.bone.use_connect:
+            end_bone.keyframe_insert("location")
 
         for bone in end_bone.children:
             bakeTransform(bone)
@@ -384,11 +393,16 @@ def NLASystemInitialize(enduser_obj, s_frame):
 def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     perf_arm = performer_obj.data
     end_arm = enduser_obj.data
+    print("creating Dictionary")
     feetBones, root = createDictionary(perf_arm, end_arm)
+    print("cleaning stuff up")
     perf_obj_mat, enduser_obj_mat = cleanAndStoreObjMat(performer_obj, enduser_obj)
     turnOffIK(enduser_obj)
+    print("creating intermediate armature")
     inter_obj = createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene)
+    print("retargeting from intermediate to end user")
     retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
+    print("retargeting root translation and clean up")
     stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
     IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone)
@@ -396,6 +410,7 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     bpy.ops.object.select_name(name=inter_obj.name, extend=False)
     bpy.ops.object.delete()
     NLASystemInitialize(enduser_obj, s_frame)
+    print("retargeting done!")
 
 
 if __name__ == "__main__":

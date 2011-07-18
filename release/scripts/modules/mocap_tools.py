@@ -567,3 +567,13 @@ def rotate_fix_armature(arm_data):
     for bone in connectedBones:
         arm_data.edit_bones[bone].use_connect = True
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+
+def scale_fix_armature(performer_obj, enduser_obj):
+        perf_bones = performer_obj.data.bones
+        end_bones = enduser_obj.data.bones
+
+       #perf_avg = performer_obj.dimensions
+        #end_avg = enduser_obj.dimensions
+        #print(perf_avg, end_avg)
+        #performer_obj.scale /= (perf_avg / end_avg)

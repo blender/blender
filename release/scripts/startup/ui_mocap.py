@@ -191,6 +191,7 @@ class MocapPanel(bpy.types.Panel):
         row.operator("mocap.samples", text='Samples to Beziers')
         row.operator("mocap.denoise", text='Clean noise')
         row.operator("mocap.rotate_fix", text='Fix BVH Axis Orientation')
+        row.operator("mocap.scale_fix", text='Auto scale Performer')
         row2 = self.layout.row(align=True)
         row2.operator("mocap.looper", text='Loop animation')
         row2.operator("mocap.limitdof", text='Constrain Rig')
@@ -428,6 +429,27 @@ class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
     def poll(cls, context):
         if context.active_object:
             return isinstance(context.active_object.data, bpy.types.Armature)
+
+
+class OBJECT_OT_ScaleFixArmature(bpy.types.Operator):
+    bl_idname = "mocap.scale_fix"
+    bl_label = "Scales performer armature to match target armature"
+
+    def execute(self, context):
+        enduser_obj = bpy.context.active_object
+        performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
+        mocap_tools.scale_fix_armature(performer_obj, enduser_obj)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+        performer_obj = [obj for obj in context.selected_objects if obj != context.active_object]
+        if performer_obj:
+            return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
+        else:
+            return False
 
 
 class OBJECT_OT_AddMocapConstraint(bpy.types.Operator):
