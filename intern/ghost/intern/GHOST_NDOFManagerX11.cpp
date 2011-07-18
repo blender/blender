@@ -34,6 +34,8 @@ GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
 		{
 		m_available = true;
 
+		setDeadZone(0.1f); // how to calibrate on Linux? throw away slight motion!
+
 		// determine exactly which device is plugged in
 
 		#define MAX_LINE_LENGTH 100

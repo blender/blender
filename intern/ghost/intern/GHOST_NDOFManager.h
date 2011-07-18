@@ -30,7 +30,12 @@
 // #define DEBUG_NDOF_MOTION
 #define DEBUG_NDOF_BUTTONS
 
-typedef enum { NDOF_UnknownDevice, NDOF_SpaceNavigator, NDOF_SpaceExplorer, NDOF_SpacePilotPro } NDOF_DeviceT;
+typedef enum {
+	NDOF_UnknownDevice, // <-- motion will work fine, buttons are ignored
+	NDOF_SpaceNavigator,
+	NDOF_SpaceExplorer,
+	NDOF_SpacePilotPro
+	} NDOF_DeviceT;
 
 // NDOF device button event types
 typedef enum {
@@ -50,6 +55,7 @@ typedef enum {
 	NDOF_BUTTON_ISO1,
 	NDOF_BUTTON_ISO2,
 	// 90 degree rotations
+	// these don't all correspond to physical buttons
 	NDOF_BUTTON_ROLL_CW,
 	NDOF_BUTTON_ROLL_CCW,
 	NDOF_BUTTON_SPIN_CW,
@@ -63,6 +69,7 @@ typedef enum {
 	NDOF_BUTTON_PLUS,
 	NDOF_BUTTON_MINUS,
 	// general-purpose buttons
+	// TODO: expose these to keymap editor so users can assign functions
 	NDOF_BUTTON_1,
 	NDOF_BUTTON_2,
 	NDOF_BUTTON_3,
@@ -89,6 +96,12 @@ public:
 	// each platform's device detection should call this
 	// use standard USB/HID identifiers
 	void setDevice(unsigned short vendor_id, unsigned short product_id);
+
+	// filter out small/accidental/uncalibrated motions by
+	// setting up a "dead zone" around home position
+	// set to 0 to disable
+	// 0.1 is a safe and reasonable value
+	void setDeadZone(float);
 
 	// the latest raw axis data from the device
 	// NOTE: axis data should be in blender view coordinates
@@ -118,7 +131,6 @@ protected:
 private:
 	void sendButtonEvent(NDOF_ButtonT, bool press, GHOST_TUns64 time, GHOST_IWindow*);
 	void sendKeyEvent(GHOST_TKey, bool press, GHOST_TUns64 time, GHOST_IWindow*);
-	void updateMotionState();
 
 	NDOF_DeviceT m_deviceType;
 	int m_buttonCount;
@@ -130,8 +142,10 @@ private:
 
 	GHOST_TUns64 m_motionTime; // in milliseconds
 	GHOST_TUns64 m_prevMotionTime; // time of most recent Motion event sent
+
 	GHOST_TProgress m_motionState;
 	bool m_motionEventPending;
+	float m_deadZone; // discard motion with each component < this
 };
 
 #endif

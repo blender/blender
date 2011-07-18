@@ -149,6 +149,7 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	, m_prevMotionTime(0)
 	, m_motionState(GHOST_kNotStarted)
 	, m_motionEventPending(false)
+	, m_deadZone(0.f)
 	{
 	// to avoid the rare situation where one triple is updated and
 	// the other is not, initialize them both here:
@@ -201,7 +202,7 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 				}
 			break;
 		default:
-			printf("ndof: unknown vendor %04hx\n", vendor_id);
+			printf("ndof: unknown device %04hx:%04hx\n", vendor_id, product_id);
 		}
 
 	m_buttonMask = ~(-1 << m_buttonCount);
@@ -211,41 +212,18 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 	#endif
 	}
 
-void GHOST_NDOFManager::updateMotionState()
-	{
-	if (m_motionEventPending)
-		return;
-
-	switch (m_motionState)
-		{
-		case GHOST_kFinished:
-		case GHOST_kNotStarted:
-			m_motionState = GHOST_kStarting;
-			break;
-		case GHOST_kStarting:
-			m_motionState = GHOST_kInProgress;
-			break;		
-		default:
-			// InProgress remains InProgress
-			// should never be Finishing
-			break;
-		}
-
-	m_motionEventPending = true;
-	}
-
 void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)
 	{
 	memcpy(m_translation, t, sizeof(m_translation));
 	m_motionTime = time;
-	updateMotionState();
+	m_motionEventPending = true;
 	}
 
 void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
 	{
 	memcpy(m_rotation, r, sizeof(m_rotation));
 	m_motionTime = time;
-	updateMotionState();
+	m_motionEventPending = true;
 	}
 
 void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button, bool press, GHOST_TUns64 time, GHOST_IWindow* window)
@@ -338,6 +316,20 @@ void GHOST_NDOFManager::updateButtons(int button_bits, GHOST_TUns64 time)
 		}
 	}
 
+void GHOST_NDOFManager::setDeadZone(float dz)
+	{
+	if (dz < 0.f)
+		// negative values don't make sense, so clamp at zero
+		dz = 0.f;
+	else if (dz > 0.5f)
+		// warn the rogue user/programmer, but allow it
+		printf("ndof: dead zone of %.2f is rather high...\n", dz);
+
+	m_deadZone = dz;
+
+	printf("ndof: dead zone set to %.2f\n", dz);
+	}
+
 static bool atHomePosition(GHOST_TEventNDOFMotionData* ndof)
 	{
 	#define HOME(foo) (ndof->foo == 0)
@@ -346,16 +338,25 @@ static bool atHomePosition(GHOST_TEventNDOFMotionData* ndof)
 
 static bool nearHomePosition(GHOST_TEventNDOFMotionData* ndof, float threshold)
 	{
-	#define HOME1(foo) (fabsf(ndof->foo) < threshold)
-	return HOME1(tx) && HOME1(ty) && HOME1(tz) && HOME1(rx) && HOME1(ry) && HOME1(rz);
+	if (threshold == 0.f)
+		return atHomePosition(ndof);
+	else
+		{
+		#define HOME1(foo) (fabsf(ndof->foo) < threshold)
+		return HOME1(tx) && HOME1(ty) && HOME1(tz) && HOME1(rx) && HOME1(ry) && HOME1(rz);
+		}
 	}
 
 bool GHOST_NDOFManager::sendMotionEvent()
 	{
-	if (m_motionState == GHOST_kFinished || m_motionState == GHOST_kNotStarted)
+	if (!m_motionEventPending)
 		return false;
 
+	m_motionEventPending = false; // any pending motion is handled right now
+
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
+	if (window == NULL)
+		return false; // delivery will fail, so don't bother sending
 
 	GHOST_EventNDOFMotion* event = new GHOST_EventNDOFMotion(m_motionTime, window);
 	GHOST_TEventNDOFMotionData* data = (GHOST_TEventNDOFMotionData*) event->getData();
@@ -363,7 +364,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	const float scale = 1.f / 350.f; // 3Dconnexion devices send +/- 350 usually
 
 	// probable future enhancement
-	// scale *= m_sensitivity;
+	// scale *= U.ndof_sensitivity;
 
 	data->tx = scale * m_translation[0];
 	data->ty = scale * m_translation[1];
@@ -373,35 +374,57 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	data->ry = scale * m_rotation[1];
 	data->rz = scale * m_rotation[2];
 
-	if (m_motionState == GHOST_kStarting)
-		// prev motion time will be ancient, so just make up something reasonable
-		data->dt = 0.0125f;
-	else
-		data->dt = 0.001f * (m_motionTime - m_prevMotionTime); // in seconds
+	data->dt = 0.001f * (m_motionTime - m_prevMotionTime); // in seconds
 
-	m_prevMotionTime = m_motionTime;
+	bool handMotion = !nearHomePosition(data, m_deadZone);
 
-	// 'at rest' test goes at the end so that the first 'rest' event gets sent
-	if (atHomePosition(data))
-//	if (nearHomePosition(data, 0.05f)) // Linux & Windows have trouble w/ calibration
+	// determine what kind of motion event to send (Starting, InProgress, Finishing)
+	// and where that leaves this NDOF manager (NotStarted, InProgress, Finished)
+	switch (m_motionState)
 		{
-		data->progress = GHOST_kFinishing;
-		// for internal state, skip Finishing & jump to Finished
-		m_motionState = GHOST_kFinished;
+		case GHOST_kNotStarted:
+		case GHOST_kFinished:
+			if (handMotion)
+				{
+				data->progress = GHOST_kStarting;
+				m_motionState = GHOST_kInProgress;
+				// prev motion time will be ancient, so just make up something reasonable
+				data->dt = 0.0125f;
+				}
+			else
+				{
+				// send no event and keep current state
+				delete event;
+				return false;
+				}
+			break;
+		case GHOST_kInProgress:
+			if (handMotion)
+				{
+				data->progress = GHOST_kInProgress;
+				// keep InProgress state
+				}
+			else
+				{
+				data->progress = GHOST_kFinishing;
+				m_motionState = GHOST_kFinished;
+				}
+			break;
 		}
-	else
-		data->progress = m_motionState; // Starting or InProgress
 
 	#ifdef DEBUG_NDOF_MOTION
-	printf("ndof %s: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
-		progress_string[data->progress],
+	printf("ndof motion sent -- %s\n", progress_string[data->progress]);
+
+	// show details about this motion event
+	printf("    T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
 		data->tx, data->ty, data->tz,
 		data->rx, data->ry, data->rz,
 		data->dt);
 	#endif
 
 	m_system.pushEvent(event);
-	m_motionEventPending = false;
+
+	m_prevMotionTime = m_motionTime;
 
 	return true;
 	}

@@ -597,7 +597,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		{
 			XFocusChangeEvent &xfe = xe->xfocus;
 
-			printf("X: focus %s for window %d\n", xfe.type == FocusIn ? "in" : "out", (int) xfe.window);
+			// TODO: make sure this is the correct place for activate/deactivate
+			// printf("X: focus %s for window %d\n", xfe.type == FocusIn ? "in" : "out", (int) xfe.window);
 		
 			// May have to look at the type of event and filter some
 			// out.
@@ -687,7 +688,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				);
 			}
 
-			printf("X: %s window %d\n", xce.type == EnterNotify ? "entering" : "leaving", (int) xce.window);
+			// printf("X: %s window %d\n", xce.type == EnterNotify ? "entering" : "leaving", (int) xce.window);
 
 			if (xce.type == EnterNotify)
 				m_windowManager->setActiveWindow(window);
