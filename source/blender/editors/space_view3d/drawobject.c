@@ -58,7 +58,6 @@
 #include "BKE_anim.h"			//for the where_on_path function
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_DerivedMesh.h"
-
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"

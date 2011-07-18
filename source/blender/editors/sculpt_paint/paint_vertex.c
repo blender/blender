@@ -75,7 +75,6 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
-
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -386,6 +385,7 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	DAG_id_tag_update(&me->id, 0);
 }
 
+
 /* fills in the selected faces with the current weight and vertex group */
 void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 {
@@ -401,7 +401,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	
 	me= ob->data;
 	if(me==NULL || me->totface==0 || me->dvert==NULL || !me->mface) return;
-
+	
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 
 	indexar= get_indexarray(me);

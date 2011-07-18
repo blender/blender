@@ -1993,6 +1993,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Scene *scene = CTX_data_scene(C);
 
 	view3d_operator_needs_opengl(C);
+	
 	if(obedit) {
 		if(obedit->type==OB_MESH)
 			retval = mouse_mesh(C, event->mval, extend);
