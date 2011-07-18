@@ -537,7 +537,7 @@ bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat )
 	
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
 	this->uid_material_map[cmat->getUniqueId()] = ma;
-	
+	this->FW_object_map[cmat->getUniqueId()] = cmat;
 	return true;
 }
 
@@ -738,7 +738,7 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 	// Currently only first <profile_common> is supported
 	COLLADAFW::EffectCommon *ef = common_efs[0];
 	write_profile_COMMON(ef, ma);
-	
+	this->FW_object_map[effect->getUniqueId()] = effect;
 	return true;
 }
 

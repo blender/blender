@@ -39,6 +39,9 @@
 #include "COLLADAFWUniqueId.h"
 #include "COLLADAFWLight.h"
 #include "COLLADAFWCamera.h"
+#include "COLLADAFWMaterial.h"
+#include "COLLADAFWEffect.h"
+#include "COLLADAFWInstanceGeometry.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"

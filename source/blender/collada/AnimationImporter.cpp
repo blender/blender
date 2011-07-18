@@ -966,6 +966,20 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 		if ( types->camera != 0) break;
 
 	}
+
+	const COLLADAFW::InstanceGeometryPointerArray& nodeGeoms = node->getInstanceGeometries();
+	for (unsigned int i = 0; i < nodeGeoms.getCount(); i++) {
+		const COLLADAFW::MaterialBindingArray& matBinds = nodeGeoms[i]->getMaterialBindings();
+		for (unsigned int j = 0; i < matBinds.getCount(); i++) {
+			const COLLADAFW::Material *mat = (COLLADAFW::Material *) FW_object_map[matBinds[i].getReferencedMaterial()];
+			const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) FW_object_map[mat->getInstantiatedEffect()];
+			const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
+			for (unsigned int k = 0; i < commonEffects.getCount(); i++) {
+				types->material =  setAnimType(&(commonEffects[i]->getShininess()),(types->material), MATERIAL_SHININESS);
+			}
+		}
+		
+	}
 	return types;
 }
 
