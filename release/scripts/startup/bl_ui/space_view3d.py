@@ -1106,17 +1106,18 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
         layout.operator_menu_enum("brush.curve_preset", "shape")
         layout.separator()
 
-        sculpt_tool = brush.sculpt_tool
+        if brush is not None:  # unlikely but can happen
+            sculpt_tool = brush.sculpt_tool
 
-        if sculpt_tool != 'GRAB':
-            layout.prop_menu_enum(brush, "stroke_method")
+            if sculpt_tool != 'GRAB':
+                layout.prop_menu_enum(brush, "stroke_method")
 
-            if sculpt_tool in {'DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'}:
-                layout.prop_menu_enum(brush, "direction")
+                if sculpt_tool in {'DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'}:
+                    layout.prop_menu_enum(brush, "direction")
 
-            if sculpt_tool == 'LAYER':
-                layout.prop(brush, "use_persistent")
-                layout.operator("sculpt.set_persistent_base")
+                if sculpt_tool == 'LAYER':
+                    layout.prop(brush, "use_persistent")
+                    layout.operator("sculpt.set_persistent_base")
 
         layout.separator()
         layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
@@ -1251,7 +1252,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_pose_showhide")
-        layout.operator_menu_enum("pose.flags_set", 'mode', text="Bone Settings")
+        layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
 
 
 class VIEW3D_MT_pose_transform(bpy.types.Menu):
@@ -1371,6 +1372,49 @@ class VIEW3D_MT_pose_apply(bpy.types.Menu):
         layout.operator("pose.armature_apply")
         layout.operator("pose.visual_transform_apply")
 
+
+class BoneOptions:
+    def draw(self, context):
+        layout = self.layout
+
+        options = [
+            "show_wire",
+            "use_deform",
+            "use_envelope_multiply",
+            "use_inherit_rotation",
+            "use_inherit_scale",
+        ]
+
+        if context.mode == 'EDIT_ARMATURE':
+            bone_props = bpy.types.EditBone.bl_rna.properties
+            data_path_iter = "selected_bones"
+            opt_suffix = ""
+            options.append("lock")
+        else:  # posemode
+            bone_props = bpy.types.Bone.bl_rna.properties
+            data_path_iter = "selected_pose_bones"
+            opt_suffix = "bone."
+
+        for opt in options:
+            props = layout.operator("wm.context_collection_boolean_set", text=bone_props[opt].name)
+            props.data_path_iter = data_path_iter
+            props.data_path_item = opt_suffix + opt
+            props.type = self.type
+
+
+class VIEW3D_MT_bone_options_toggle(bpy.types.Menu, BoneOptions):
+    bl_label = "Toggle Bone Options"
+    type = 'TOGGLE'
+
+
+class VIEW3D_MT_bone_options_enable(bpy.types.Menu, BoneOptions):
+    bl_label = "Enable Bone Options"
+    type = 'ENABLE'
+
+
+class VIEW3D_MT_bone_options_disable(bpy.types.Menu, BoneOptions):
+    bl_label = "Disable Bone Options"
+    type = 'DISABLE'
 
 # ********** Edit Menus, suffix from ob.type **********
 
@@ -1965,7 +2009,7 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("armature.flags_set", "mode", text="Bone Settings")
+        layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
 
 
 class VIEW3D_MT_armature_specials(bpy.types.Menu):

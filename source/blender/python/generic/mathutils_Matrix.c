@@ -779,7 +779,7 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
 		for(blank_columns = (4 - self->col_size); blank_columns > 0; blank_columns--){
 			self->contigPtr[new_pos + blank_columns] = 0.0f;
 		}
-		for(curr_pos = curr_pos; curr_pos >= first_row_elem; curr_pos--){
+		for( ; curr_pos >= first_row_elem; curr_pos--){
 			self->contigPtr[new_pos] = self->contigPtr[curr_pos];
 			new_pos--;
 		}

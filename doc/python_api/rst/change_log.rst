@@ -700,6 +700,23 @@ Renamed
 2.57 to 2.58
 ============
 
+bpy_extras
+----------
+
+Added
+^^^^^
+
+* :mod:`bpy_extras`
+* :mod:`bpy_extras.view3d_utils`
+
+Moved
+^^^^^
+
+* io_utils -> :mod:`bpy_extras.io_utils`
+* image_utils -> :mod:`bpy_extras.image_utils`
+* mesh_utils -> :mod:`bpy_extras.mesh_utils`
+* object_utils -> :mod:`bpy_extras.object_utils`
+
 bpy.types.RenderSettings
 ------------------------
 

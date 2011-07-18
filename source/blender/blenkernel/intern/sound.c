@@ -498,8 +498,9 @@ int sound_scene_playing(struct Scene *scene)
 int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length, float start, float end)
 {
 	AUD_Sound* limiter = AUD_limitSound(sound->cache, start, end);
-	return AUD_readSound(limiter, buffer, length);
+	int ret= AUD_readSound(limiter, buffer, length);
 	AUD_unload(limiter);
+	return ret;
 }
 
 int sound_get_channels(struct bSound* sound)

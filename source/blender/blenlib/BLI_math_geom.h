@@ -68,6 +68,7 @@ void closest_to_line_segment_v3(float r[3], const float p[3], const float l1[3],
 
 float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3]);
 float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2]);
+
 /******************************* Intersection ********************************/
 
 /* TODO int return value consistency */
