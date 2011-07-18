@@ -2431,6 +2431,7 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 {
 	float *p1,*p2,*p3, pt[3];
 	float dx1,dy1,dz1,dx,dy,dz,vx,vy,vz,len,len1,len2;
+	const float eps= 1e-5;
 
 	if(bezt->h1==0 && bezt->h2==0) return;
 
@@ -2587,30 +2588,38 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 
 	if(bezt->f1 & SELECT) { /* order of calculation */
 		if(bezt->h2==HD_ALIGN) {	/* aligned */
-			len= len2/len1;
-			p2[3]= p2[0]+len*(p2[0]-p2[-3]);
-			p2[4]= p2[1]+len*(p2[1]-p2[-2]);
-			p2[5]= p2[2]+len*(p2[2]-p2[-1]);
+			if(len1>eps) {
+				len= len2/len1;
+				p2[3]= p2[0]+len*(p2[0]-p2[-3]);
+				p2[4]= p2[1]+len*(p2[1]-p2[-2]);
+				p2[5]= p2[2]+len*(p2[2]-p2[-1]);
+			}
 		}
 		if(bezt->h1==HD_ALIGN) {
-			len= len1/len2;
-			p2[-3]= p2[0]+len*(p2[0]-p2[3]);
-			p2[-2]= p2[1]+len*(p2[1]-p2[4]);
-			p2[-1]= p2[2]+len*(p2[2]-p2[5]);
+			if(len2>eps) {
+				len= len1/len2;
+				p2[-3]= p2[0]+len*(p2[0]-p2[3]);
+				p2[-2]= p2[1]+len*(p2[1]-p2[4]);
+				p2[-1]= p2[2]+len*(p2[2]-p2[5]);
+			}
 		}
 	}
 	else {
 		if(bezt->h1==HD_ALIGN) {
-			len= len1/len2;
-			p2[-3]= p2[0]+len*(p2[0]-p2[3]);
-			p2[-2]= p2[1]+len*(p2[1]-p2[4]);
-			p2[-1]= p2[2]+len*(p2[2]-p2[5]);
+			if(len2>eps) {
+				len= len1/len2;
+				p2[-3]= p2[0]+len*(p2[0]-p2[3]);
+				p2[-2]= p2[1]+len*(p2[1]-p2[4]);
+				p2[-1]= p2[2]+len*(p2[2]-p2[5]);
+			}
 		}
 		if(bezt->h2==HD_ALIGN) {	/* aligned */
-			len= len2/len1;
-			p2[3]= p2[0]+len*(p2[0]-p2[-3]);
-			p2[4]= p2[1]+len*(p2[1]-p2[-2]);
-			p2[5]= p2[2]+len*(p2[2]-p2[-1]);
+			if(len1>eps) {
+				len= len2/len1;
+				p2[3]= p2[0]+len*(p2[0]-p2[-3]);
+				p2[4]= p2[1]+len*(p2[1]-p2[-2]);
+				p2[5]= p2[2]+len*(p2[2]-p2[-1]);
+			}
 		}
 	}
 }

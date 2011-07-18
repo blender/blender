@@ -31,7 +31,6 @@ add_subdirectory(moto)
 add_subdirectory(memutil)
 add_subdirectory(iksolver)
 add_subdirectory(opennl)
-add_subdirectory(smoke)
 add_subdirectory(mikktspace)
 
 if(WITH_AUDASPACE)
@@ -40,6 +39,10 @@ endif()
 
 if(WITH_MOD_FLUID)
 	add_subdirectory(elbeem)
+endif()
+
+if(WITH_MOD_SMOKE)
+	add_subdirectory(smoke)
 endif()
 
 if(WITH_MOD_DECIMATE)

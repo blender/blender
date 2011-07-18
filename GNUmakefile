@@ -99,13 +99,17 @@ test:
 
 # run pep8 check check on scripts we distribute.
 test_pep8:
-	python source/tests/pep8.py > test_pep8.log 2>&1
+	python3 source/tests/pep8.py > test_pep8.log 2>&1
 	@echo "written: test_pep8.log"
 
 # run some checks on our cmakefiles.
 test_cmake:
-	python build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
+	python3 build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
 	@echo "written: test_cmake_consistency.log"
+
+# run deprecation tests, see if we have anything to remove.
+test_deprecated:
+	python3 source/tests/check_deprecated.py
 
 clean:
 	make -C $(BUILD_DIR) clean

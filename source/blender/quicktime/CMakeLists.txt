@@ -26,17 +26,15 @@
 
 set(INC 
 	.
-	../quicktime
-	../makesdna
-	../makesrna
-	../blenlib
-	../blenkernel
 	../avi
+	../blenkernel
+	../blenlib
+	../blenloader
 	../imbuf
 	../imbuf/intern
-	../blenloader
+	../makesdna
+	../makesrna
 	../render/extern/include
-	../include
 	../windowmanager
 	../../../intern/guardedalloc
 )

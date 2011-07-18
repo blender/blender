@@ -121,7 +121,7 @@ static void fcurves_to_pchan_links_get (ListBase *pfLinks, Object *ob, bAction *
 		pfl->oldangle = pchan->rotAngle;
 		
 		/* make copy of custom properties */
-		if (transFlags & ACT_TRANS_PROP)
+		if (pchan->prop && (transFlags & ACT_TRANS_PROP))
 			pfl->oldprops = IDP_CopyProperty(pchan->prop);
 	}
 } 

@@ -627,6 +627,12 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 					*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_INDEXMA:
+				if(shi->vlr) {
+					fp= rpass->rect + offset;
+					*fp= (float)shi->mat->index;
+				}
+				break;
 			case SCE_PASS_MIST:
 				fp= rpass->rect + offset;
 				*fp= shr->mist;

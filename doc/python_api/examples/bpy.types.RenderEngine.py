@@ -61,10 +61,10 @@ bpy.utils.register_class(CustomRenderEngine)
 # Otherwise most of the UI will be empty when the engine is selected.
 # In this example, we need to see the main render image button and
 # the material preview panel.
-import properties_render
+from bl_ui import properties_render
 properties_render.RENDER_PT_render.COMPAT_ENGINES.add('custom_renderer')
 del properties_render
 
-import properties_material
+from bl_ui import properties_material
 properties_material.MATERIAL_PT_preview.COMPAT_ENGINES.add('custom_renderer')
 del properties_material

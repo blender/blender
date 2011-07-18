@@ -20,10 +20,10 @@
 
 set(INC 
 	.
-	../../blenlib
-	../../makesdna
 	../../blenkernel
+	../../blenlib
 	../../blenloader
+	../../makesdna
 	../../../../intern/guardedalloc
 )
 
@@ -37,13 +37,6 @@ set(SRC
 	bgl.c
 	blf_py_api.c
 	bpy_internal_import.c
-	mathutils.c
-	mathutils_Color.c
-	mathutils_Euler.c
-	mathutils_Matrix.c
-	mathutils_Quaternion.c
-	mathutils_Vector.c
-	mathutils_geometry.c
 	noise_py_api.c
 	py_capi_utils.c
 
@@ -51,13 +44,6 @@ set(SRC
 	bgl.h
 	blf_py_api.h
 	bpy_internal_import.h
-	mathutils.h
-	mathutils_Color.h
-	mathutils_Euler.h
-	mathutils_Matrix.h
-	mathutils_Quaternion.h
-	mathutils_Vector.h
-	mathutils_geometry.h
 	noise_py_api.h
 	py_capi_utils.h
 )

@@ -28,13 +28,13 @@ remove_strict_flags()
 
 set(INC
 	.
-	../blenlib
 	../blenkernel
+	../blenlib
 	../blenloader
-	../windowmanager
+	../editors/include
 	../makesdna
 	../makesrna
-	../editors/include
+	../windowmanager
 	../../../intern/guardedalloc
 )
 

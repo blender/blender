@@ -966,9 +966,10 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 0);
 	Mesh *me= (Mesh*)ob->data;
 
-	*lvl= mmd->lvl;
+	if(ob->mode==OB_MODE_SCULPT) *lvl= mmd->sculptlvl;
+	else *lvl= mmd->lvl;
 
-	if(mmd->lvl==0) {
+	if(*lvl==0) {
 		DerivedMesh *tmp_dm= CDDM_from_mesh(me, ob);
 		dm= CDDM_copy(tmp_dm);
 		tmp_dm->release(tmp_dm);
@@ -976,7 +977,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 		MultiresModifierData tmp_mmd= *mmd;
 		DerivedMesh *cddm= CDDM_from_mesh(me, ob);
 
-		tmp_mmd.lvl= mmd->lvl;
+		tmp_mmd.lvl= *lvl;
 		dm= multires_dm_create_from_derived(&tmp_mmd, 1, cddm, ob, 0, 0);
 		cddm->release(cddm);
 	}

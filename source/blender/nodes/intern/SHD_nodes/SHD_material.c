@@ -226,7 +226,7 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, 
 		GPUShadeInput shi;
 		GPUShadeResult shr;
 		bNodeSocket *sock;
-		char hasinput[NUM_MAT_IN];
+		char hasinput[NUM_MAT_IN]= {'\0'};
 		int i;
 		
 		/* note: cannot use the in[]->hasinput flags directly, as these are not necessarily

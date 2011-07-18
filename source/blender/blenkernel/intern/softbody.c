@@ -75,6 +75,7 @@ variables on the UI for now
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_modifier.h"
 #include "BKE_softbody.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
@@ -289,21 +290,24 @@ typedef struct ccd_Mesh {
 
 
 
-static ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
+static ccd_Mesh *ccd_mesh_make(Object *ob)
 {
+	CollisionModifierData *cmd;
 	ccd_Mesh *pccd_M = NULL;
 	ccdf_minmax *mima =NULL;
 	MFace *mface=NULL;
 	float v[3],hull;
 	int i;
 
+	cmd =(CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
+
 	/* first some paranoia checks */
-	if (!dm) return NULL;
-	if (!dm->getNumVerts(dm) || !dm->getNumFaces(dm)) return NULL;
+	if (!cmd) return NULL;
+	if (!cmd->numverts || !cmd->numfaces) return NULL;
 
 	pccd_M = MEM_mallocN(sizeof(ccd_Mesh),"ccd_Mesh");
-	pccd_M->totvert = dm->getNumVerts(dm);
-	pccd_M->totface = dm->getNumFaces(dm);
+	pccd_M->totvert = cmd->numverts;
+	pccd_M->totface = cmd->numfaces;
 	pccd_M->savety  = CCD_SAVETY;
 	pccd_M->bbmin[0]=pccd_M->bbmin[1]=pccd_M->bbmin[2]=1e30f;
 	pccd_M->bbmax[0]=pccd_M->bbmax[1]=pccd_M->bbmax[2]=-1e30f;
@@ -314,12 +318,10 @@ static ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
 	hull = MAX2(ob->pd->pdef_sbift,ob->pd->pdef_sboft);
 
 	/* alloc and copy verts*/
-	pccd_M->mvert = dm->dupVertArray(dm);
-	/* ah yeah, put the verices to global coords once */
-	/* and determine the ortho BB on the fly */
+	pccd_M->mvert = MEM_dupallocN(cmd->xnew);
+	/* note that xnew coords are already in global space, */
+	/* determine the ortho BB */
 	for(i=0; i < pccd_M->totvert; i++){
-		mul_m4_v3(ob->obmat, pccd_M->mvert[i].co);
-
 		/* evaluate limits */
 		VECCOPY(v,pccd_M->mvert[i].co);
 		pccd_M->bbmin[0] = MIN2(pccd_M->bbmin[0],v[0]-hull);
@@ -332,7 +334,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
 
 	}
 	/* alloc and copy faces*/
-	pccd_M->mface = dm->dupFaceArray(dm);
+	pccd_M->mface = MEM_dupallocN(cmd->mfaces);
 
 	/* OBBs for idea1 */
 	pccd_M->mima = MEM_mallocN(sizeof(ccdf_minmax)*pccd_M->totface,"ccd_Mesh_Faces_mima");
@@ -386,19 +388,22 @@ static ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
 	}
 	return pccd_M;
 }
-static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DerivedMesh *dm)
+static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 {
-	 ccdf_minmax *mima =NULL;
+	CollisionModifierData *cmd;
+	ccdf_minmax *mima =NULL;
 	MFace *mface=NULL;
 	float v[3],hull;
 	int i;
 
-	/* first some paranoia checks */
-	if (!dm) return ;
-	if (!dm->getNumVerts(dm) || !dm->getNumFaces(dm)) return ;
+	cmd =(CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
 
-	if ((pccd_M->totvert != dm->getNumVerts(dm)) ||
-		(pccd_M->totface != dm->getNumFaces(dm))) return;
+	/* first some paranoia checks */
+	if (!cmd) return ;
+	if (!cmd->numverts || !cmd->numfaces) return ;
+
+	if ((pccd_M->totvert != cmd->numverts) ||
+		(pccd_M->totface != cmd->numfaces)) return;
 
 	pccd_M->bbmin[0]=pccd_M->bbmin[1]=pccd_M->bbmin[2]=1e30f;
 	pccd_M->bbmax[0]=pccd_M->bbmax[1]=pccd_M->bbmax[2]=-1e30f;
@@ -411,12 +416,10 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DerivedMesh *dm)
 	if(pccd_M->mprevvert) MEM_freeN(pccd_M->mprevvert);
 	pccd_M->mprevvert = pccd_M->mvert;
 	/* alloc and copy verts*/
-	pccd_M->mvert = dm->dupVertArray(dm);
-	/* ah yeah, put the verices to global coords once */
-	/* and determine the ortho BB on the fly */
+	pccd_M->mvert = MEM_dupallocN(cmd->xnew);
+	/* note that xnew coords are already in global space, */
+	/* determine the ortho BB */
 	for(i=0; i < pccd_M->totvert; i++){
-		mul_m4_v3(ob->obmat, pccd_M->mvert[i].co);
-
 		/* evaluate limits */
 		VECCOPY(v,pccd_M->mvert[i].co);
 		pccd_M->bbmin[0] = MIN2(pccd_M->bbmin[0],v[0]-hull);
@@ -555,21 +558,8 @@ static void ccd_build_deflector_hash(Scene *scene, Object *vertexowner, GHash *h
 
 			/*+++ only with deflecting set */
 			if(ob->pd && ob->pd->deflect && BLI_ghash_lookup(hash, ob) == NULL) {
-				DerivedMesh *dm= NULL;
-
-				if(ob->softflag & OB_SB_COLLFINAL) /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-				else
-					dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
-
-				if(dm){
-					ccd_Mesh *ccdmesh = ccd_mesh_make(ob, dm);
-					BLI_ghash_insert(hash, ob, ccdmesh);
-
-					/* we did copy & modify all we need so give 'em away again */
-					dm->release(dm);
-
-				}
+				ccd_Mesh *ccdmesh = ccd_mesh_make(ob);
+				BLI_ghash_insert(hash, ob, ccdmesh);
 			}/*--- only with deflecting set */
 
 		}/* mesh && layer*/
@@ -595,21 +585,9 @@ static void ccd_update_deflector_hash(Scene *scene, Object *vertexowner, GHash *
 
 			/*+++ only with deflecting set */
 			if(ob->pd && ob->pd->deflect) {
-				DerivedMesh *dm= NULL;
-
-				if(ob->softflag & OB_SB_COLLFINAL) { /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-				} else {
-					dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
-				}
-				if(dm){
-					ccd_Mesh *ccdmesh = BLI_ghash_lookup(hash,ob);
-					if (ccdmesh)
-						ccd_mesh_update(ob,ccdmesh,dm);
-
-					/* we did copy & modify all we need so give 'em away again */
-					dm->release(dm);
-				}
+				ccd_Mesh *ccdmesh = BLI_ghash_lookup(hash,ob);
+				if (ccdmesh)
+					ccd_mesh_update(ob,ccdmesh);
 			}/*--- only with deflecting set */
 
 		}/* mesh && layer*/

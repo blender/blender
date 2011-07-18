@@ -4979,6 +4979,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			where_is_pose(t->scene, pose_ob);
 		}
 
+		/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
+		if (!cancelled && (t->mode != TFM_DUMMY))
+			count_set_pose_transflags(&t->mode, t->around, ob);
+
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if (!cancelled && t->mode==TFM_TRANSLATION)
 			targetless_ik= apply_targetless_ik(ob);

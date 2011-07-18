@@ -140,6 +140,19 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 
 #define TRI_UVOFFSET (1./4.)
 
+/* Stubs to use when smoke is disabled */
+#ifndef WITH_SMOKE
+struct WTURBULENCE *smoke_turbulence_init(int *UNUSED(res), int UNUSED(amplify), int UNUSED(noisetype)) { return NULL; }
+struct FLUID_3D *smoke_init(int *UNUSED(res), float *UNUSED(p0)) { return NULL; }
+void smoke_free(struct FLUID_3D *UNUSED(fluid)) {}
+void smoke_turbulence_free(struct WTURBULENCE *UNUSED(wt)) {}
+void smoke_initWaveletBlenderRNA(struct WTURBULENCE *UNUSED(wt), float *UNUSED(strength)) {}
+void smoke_initBlenderRNA(struct FLUID_3D *UNUSED(fluid), float *UNUSED(alpha), float *UNUSED(beta), float *UNUSED(dt_factor), float *UNUSED(vorticity), int *UNUSED(border_colli)) {}
+long long smoke_get_mem_req(int UNUSED(xres), int UNUSED(yres), int UNUSED(zres), int UNUSED(amplify)) { return 0; }
+void smokeModifier_do(SmokeModifierData *UNUSED(smd), Scene *UNUSED(scene), Object *UNUSED(ob), DerivedMesh *UNUSED(dm)) {}
+#endif // WITH_SMOKE
+
+
 static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, DerivedMesh *dm)
 {
 	if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain && !smd->domain->fluid)
@@ -805,6 +818,9 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 // forward decleration
 static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
+
+#ifdef WITH_SMOKE
+
 static int get_lamp(Scene *scene, float *light)
 {	
 	Base *base_tmp = NULL;	
@@ -1646,3 +1662,4 @@ static void smoke_calc_transparency(float *result, float *input, float *p0, floa
 	}
 }
 
+#endif // WITH_SMOKE

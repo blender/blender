@@ -87,8 +87,6 @@ class MeshMirrorUV(bpy.types.Operator):
     def execute(self, context):
         DIR = (self.direction == 'NEGATIVE')
 
-        from mathutils import Vector
-
         ob = context.active_object
         is_editmode = (ob.mode == 'EDIT')
         if is_editmode:
