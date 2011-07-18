@@ -47,6 +47,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -54,6 +55,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
@@ -3956,11 +3958,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	Scene *scene= cob->scene;
 	bFollowTrackConstraint *data= con->data;
 	MovieClip *clip= data->clip;
-	MovieClipUser user;
 	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
-	float tx, ty;
-	int width, height;
 
 	if(data->flag&FOLLOWTRACK_DEFAULTCLIP)
 		clip= scene->clip;
@@ -3987,15 +3985,96 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			cob->matrix[3][2]+= pos[2];
 		}
 	} else {
-		user.framenr= scene->r.cfra;
-		BKE_movieclip_acquire_size(clip, &user, &width, &height);
+		Object *camob= cob->scene->camera;
 
-		marker= BKE_tracking_get_marker(track, user.framenr);
+		if(camob) {
+			MovieClipUser user;
+			MovieTrackingMarker *marker;
+			float vec[3], disp[3], axis[3], mat[4][4];
+			float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
+			float sensor_x, lens, len, d, ortho_scale;
 
-		tx= marker->pos[0]*width;
-		ty= marker->pos[1]*height;
+			where_is_object_mat(scene, camob, mat);
 
-		translate_m4(cob->matrix, tx, ty, 0);
+			/* camera axis */
+			vec[0]= 0.f;
+			vec[1]= 0.f;
+			vec[2]= 1.f;
+			mul_v3_m4v3(axis, mat, vec);
+
+			/* distance to projection plane */
+			copy_v3_v3(vec, cob->matrix[3]);
+			sub_v3_v3(vec, mat[3]);
+			project_v3_v3v3(disp, vec, axis);
+
+			len= len_v3(disp);
+
+			if(len>FLT_EPSILON) {
+				float rmat[4][4];
+				int is_ortho= 0;
+
+				/* calculate lens and sensor size depends on object type */
+				if(camob->type==OB_CAMERA) {
+					Camera *camera= (Camera *)camob->data;
+
+					sensor_x= camera->sensor_x;
+					lens= camera->lens;
+					is_ortho= camera->type == CAM_ORTHO;
+					ortho_scale= camera->ortho_scale;
+				} else if (camob->type==OB_LAMP) {
+					Lamp *la= camob->data;
+					float fac= cosf((float)M_PI*la->spotsize/360.0f);
+					float phi= acos(fac);
+
+					lens= 16.0f*fac/sinf(phi);
+					sensor_x= 32.f;
+					ortho_scale= 0.f;
+				} else {
+					lens= 16.f;
+					sensor_x= 32.f;
+					ortho_scale= 0.f;
+				}
+
+				user.framenr= scene->r.cfra;
+				marker= BKE_tracking_get_marker(track, user.framenr);
+
+				if(is_ortho) {
+					vec[0]= ortho_scale * (marker->pos[0]-0.5f);
+					vec[1]= ortho_scale * (marker->pos[1]-0.5f);
+					vec[2]= -len;
+
+					if(aspect>1.f) vec[1]/= aspect;
+					else vec[0]*= aspect;
+
+					mul_v3_m4v3(disp, camob->obmat, vec);
+
+					copy_m4_m4(rmat, camob->obmat);
+					zero_v3(rmat[3]);
+					mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
+
+					copy_v3_v3(cob->matrix[3], disp);
+				}
+				else {
+					d= (len*sensor_x) / (2.f*lens);
+
+					vec[0]= d*(2.f*marker->pos[0]-1.f);
+					vec[1]= d*(2.f*marker->pos[1]-1.f);
+					vec[2]= -len;
+
+					if(aspect>1.f) vec[1]/= aspect;
+					else vec[0]*= aspect;
+
+					mul_v3_m4v3(disp, camob->obmat, vec);
+
+					/* apply camera rotation so Z-axis would be co-linear */
+					copy_m4_m4(rmat, camob->obmat);
+					zero_v3(rmat[3]);
+					mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
+
+					copy_v3_v3(cob->matrix[3], disp);
+				}
+			}
+		}
 	}
 }
 

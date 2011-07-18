@@ -42,6 +42,7 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_object.h"
+#include "BKE_depsgraph.h"
 
 /* only for rad/deg conversion! can remove later */
 static float rna_Camera_angle_x_get(PointerRNA *ptr)
@@ -66,6 +67,13 @@ static void rna_Camera_angle_y_set(PointerRNA *ptr, float value)
 {
 	Camera *cam= ptr->id.data;
 	cam->lens= vfov_to_focallength(value, cam->sensor_y);
+}
+
+static void rna_Camera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Camera *camera= (Camera*)ptr->id.data;
+
+	DAG_id_tag_update(&camera->id, 0);
 }
 
 #else
@@ -101,7 +109,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Camera types");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	prop= RNA_def_property(srna, "show_guide", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "dtx");
@@ -122,14 +130,14 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Field of View", "Camera lens horizontal field of view in degrees");
 	RNA_def_property_float_funcs(prop, "rna_Camera_angle_x_get", "rna_Camera_angle_x_set", NULL);
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	prop= RNA_def_property(srna, "angle_y", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_range(prop, M_PI * (0.367/180.0), M_PI * (172.847/180.0));
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Field of View", "Camera lens vertical field of view in degrees");
 	RNA_def_property_float_funcs(prop, "rna_Camera_angle_y_get", "rna_Camera_angle_y_set", NULL);
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
@@ -147,26 +155,26 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "lens");
 	RNA_def_property_range(prop, 1.0f, 5000.0f);
 	RNA_def_property_ui_text(prop, "Focal Length", "Perspective Camera lens value in millimeters");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 	
 	prop= RNA_def_property(srna, "sensor_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sensor_x");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 1.0f, 100.f, 1, 2);
 	RNA_def_property_ui_text(prop, "Sensor X", "Horizontal size of the image sensor area in millimeters");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	prop= RNA_def_property(srna, "sensor_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 1.0f, 100.f, 1, 2);
 	RNA_def_property_ui_text(prop, "Sensor Y", "Vertical size of the image sensor area in millimeters");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	prop= RNA_def_property(srna, "ortho_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ortho_scale");
 	RNA_def_property_range(prop, 0.01f, 4000.0f);
 	RNA_def_property_ui_text(prop, "Orthographic Scale", "Orthographic Camera scale (similar to zoom)");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	prop= RNA_def_property(srna, "draw_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "drawsize");
