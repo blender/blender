@@ -102,6 +102,11 @@ private:
 		CAMERA_ZFAR = 8,
 		CAMERA_ZNEAR = 16
 	};
+
+	enum matAnim
+	{
+		MATERIAL_SHININESS = 2
+	};
 	
 	enum AnimationType
 		{
