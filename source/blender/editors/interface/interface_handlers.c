@@ -4057,7 +4057,7 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_numedit_but_TRACKPREVIEW(uiBut *but, uiHandleButtonData *data, int mx, int my)
+static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
 	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
 	/* rcti rect; */
@@ -4072,8 +4072,11 @@ static int ui_numedit_but_TRACKPREVIEW(uiBut *but, uiHandleButtonData *data, int
 		scopes->track_preview_height = (but->y2 - but->y1) + (data->dragstarty - my);
 	} else {
 		if(scopes->marker_pos) {
+			(*scopes->marker_flag)&= ~MARKER_DISABLED;
 			scopes->marker_pos[0]+= -dx*scopes->slide_scale[0] / (but->block->maxx-but->block->minx);
 			scopes->marker_pos[1]+= -dy*scopes->slide_scale[1] / (but->block->maxy-but->block->miny);
+
+			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
 		}
 
 		scopes->ok= 0;
@@ -4102,7 +4105,7 @@ static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHan
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 			/* also do drag the first time */
-			if(ui_numedit_but_TRACKPREVIEW(but, data, mx, my))
+			if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my))
 				ui_numedit_apply(C, block, but, data);
 
 			return WM_UI_HANDLER_BREAK;
@@ -4116,7 +4119,7 @@ static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHan
 		}
 		else if(event->type == MOUSEMOVE) {
 			if(mx!=data->draglastx || my!=data->draglasty) {
-				if(ui_numedit_but_TRACKPREVIEW(but, data, mx, my))
+				if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}

@@ -78,6 +78,7 @@ typedef struct MovieClipScopes {
 	short track_disabled;			/* active track is disabled, special notifier should be drawn */
 	char pad[6];
 	float *marker_pos;				/* original marker position. used for sliding from preview */
+	int *marker_flag;				/* original marker flags. used for sliding from preview */
 	float slide_scale[2];			/* scale used for sliding from previewe area */
 } MovieClipScopes;
 

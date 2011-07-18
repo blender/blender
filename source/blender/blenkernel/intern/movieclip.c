@@ -481,14 +481,15 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 						scopes->track_preview= tmpibuf;
 					else
 						IMB_freeImBuf(tmpibuf);
-
-					scopes->marker_pos= marker->pos;
-					scopes->slide_scale[0]= track->pat_max[0]-track->pat_min[0];
-					scopes->slide_scale[1]= track->pat_max[1]-track->pat_min[1];
 				}
 
 				IMB_freeImBuf(ibuf);
 			}
+
+			scopes->marker_pos= marker->pos;
+			scopes->slide_scale[0]= track->pat_max[0]-track->pat_min[0];
+			scopes->slide_scale[1]= track->pat_max[1]-track->pat_min[1];
+			scopes->marker_flag= &marker->flag;
 		}
 	}
 
