@@ -917,6 +917,13 @@ static void ui_apply_but_WAVEFORM(bContext *C, uiBut *but, uiHandleButtonData *d
 	data->applied= 1;
 }
 
+static void ui_apply_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	ui_apply_but_func(C, but);
+	data->retval= but->retval;
+	data->applied= 1;
+}
+
 
 static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, int interactive)
 {
@@ -1045,6 +1052,9 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			break;
 		case WAVEFORM:
 			ui_apply_but_WAVEFORM(C, but, data);
+			break;
+		case TRACKPREVIEW:
+			ui_apply_but_TRACKPREVIEW(C, but, data);
 			break;
 		default:
 			break;

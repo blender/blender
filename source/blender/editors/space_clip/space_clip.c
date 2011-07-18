@@ -146,11 +146,13 @@ static void clip_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 
 static SpaceLink *clip_duplicate(SpaceLink *sl)
 {
-	SpaceClip *sclipn= MEM_dupallocN(sl);
+	SpaceClip *scn= MEM_dupallocN(sl);
 
 	/* clear or remove stuff from old */
+	scn->scopes.track_preview= NULL;
+	scn->scopes.ok= 0;
 
-	return (SpaceLink *)sclipn;
+	return (SpaceLink *)scn;
 }
 
 static void clip_listener(ScrArea *sa, wmNotifier *wmn)

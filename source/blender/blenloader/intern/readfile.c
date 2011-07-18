@@ -5248,7 +5248,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 
 					sclip->clip= restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
 
-					sclip->scopes.track_preview = NULL;
 					sclip->scopes.ok = 0;
 				}
 			}
