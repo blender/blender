@@ -889,6 +889,16 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 return True
         return False
 
+    @staticmethod
+    def draw_error(layout, message):
+        lines = message.split("\n")
+        box = layout.box()
+        rowsub = box.row()
+        rowsub.label(lines[0])
+        rowsub.label(icon='ERROR')
+        for l in lines[1:]:
+            box.label(l)
+
     def draw(self, context):
         layout = self.layout
 
@@ -908,6 +918,14 @@ class USERPREF_PT_addons(bpy.types.Panel):
         col.prop(context.window_manager, "addon_support", expand=True)
 
         col = split.column()
+
+        # set in addon_utils.modules(...)
+        if addon_utils.error_duplicates:
+            self.draw_error(col,
+                            "Multiple addons using the same name found!\n"
+                            "likely a problem with the script search path.\n"
+                            "(see console for details)",
+                            )
 
         filter = context.window_manager.addon_filter
         search = context.window_manager.addon_search.lower()
