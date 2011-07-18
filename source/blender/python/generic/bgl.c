@@ -114,7 +114,7 @@ static PyObject *Buffer_to_list_recursive(Buffer *self)
 	return list;
 }
 
-/* deprecate */
+/* *DEPRECATED* 2011/7/17 bgl.Buffer.list */
 static PyObject *Buffer_list(Buffer *self, void *UNUSED(arg))
 {
 	fprintf(stderr, "Warning: 'Buffer.list' deprecated, use '[:]' instead\n");
