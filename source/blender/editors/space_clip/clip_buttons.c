@@ -336,16 +336,14 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 
 /********************* Marker Template ************************/
 
-void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *clipptr)
+void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
 	PropertyRNA *prop;
-	PointerRNA trackptr;
+	PointerRNA scopesptr;
 	uiBlock *block;
 	uiBut *bt;
 	rctf rect;
-	MovieTrackingTrack *track;
-
-	(void)userptr;
+	MovieClipScopes *scopes;
 
 	if(!ptr->data)
 		return;
@@ -361,16 +359,15 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname, Po
 		return;
 	}
 
-	trackptr= RNA_property_pointer_get(ptr, prop);
-	track= trackptr.data;
+	scopesptr= RNA_property_pointer_get(ptr, prop);
+	scopes= (MovieClipScopes *)scopesptr.data;
 
 	rect.xmin= 0; rect.xmax= 200;
 	rect.ymin= 0; rect.ymax= 120;
 
-	uiLayoutSetContextPointer(layout, "edit_movieclip", clipptr);
-
 	block= uiLayoutAbsoluteBlock(layout);
 
-	bt= uiDefBut(block, BUT_EXTRA, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, rect.ymax-rect.ymin, track, 0, 0, 0, 0, "");
-	uiBlockSetDrawExtraFunc(block, draw_clip_track_widget, userptr->data, clipptr->data);
+	scopes->track_preview_height= (scopes->track_preview_height<=UI_UNIT_Y)?UI_UNIT_Y:scopes->track_preview_height;
+
+	bt= uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
 }

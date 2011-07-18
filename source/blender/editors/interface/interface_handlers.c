@@ -4057,6 +4057,78 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 	return WM_UI_HANDLER_CONTINUE;
 }
 
+static int ui_numedit_but_TRACKPREVIEW(uiBut *but, uiHandleButtonData *data, int mx, int my)
+{
+	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
+	/* rcti rect; */
+	int changed= 1;
+	float dx, dy, yfac=1.f;
+
+	dx = mx - data->draglastx;
+	dy = my - data->draglasty;
+
+	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
+		 /* resize preview widget itself */
+		scopes->track_preview_height = (but->y2 - but->y1) + (data->dragstarty - my);
+	} else {
+		if(scopes->marker_pos) {
+			scopes->marker_pos[0]+= -dx*scopes->slide_scale[0] / (but->block->maxx-but->block->minx);
+			scopes->marker_pos[1]+= -dy*scopes->slide_scale[1] / (but->block->maxy-but->block->miny);
+		}
+
+		scopes->ok= 0;
+	}
+
+	data->draglastx= mx;
+	data->draglasty= my;
+
+	return changed;
+}
+
+static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	int mx, my;
+
+	mx= event->x;
+	my= event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+
+	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		if(event->type==LEFTMOUSE && event->val==KM_PRESS) {
+			data->dragstartx= mx;
+			data->dragstarty= my;
+			data->draglastx= mx;
+			data->draglasty= my;
+			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+
+			/* also do drag the first time */
+			if(ui_numedit_but_TRACKPREVIEW(but, data, mx, my))
+				ui_numedit_apply(C, block, but, data);
+
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if(data->state == BUTTON_STATE_NUM_EDITING) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == MOUSEMOVE) {
+			if(mx!=data->draglastx || my!=data->draglasty) {
+				if(ui_numedit_but_TRACKPREVIEW(but, data, mx, my))
+					ui_numedit_apply(C, block, but, data);
+			}
+		}
+		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		return WM_UI_HANDLER_BREAK;
+	}
+
+	return WM_UI_HANDLER_CONTINUE;
+}
+
 static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 {
 	uiBut *but = (uiBut *)arg1;
@@ -4580,6 +4652,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case LINK:
 	case INLINK:
 		retval= ui_do_but_LINK(C, but, data, event);
+		break;
+	case TRACKPREVIEW:
+		retval= ui_do_but_TRACKPREVIEW(C, block, but, data, event);
 		break;
 	}
 	

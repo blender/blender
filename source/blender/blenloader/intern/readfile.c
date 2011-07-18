@@ -5012,6 +5012,9 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceClip *sclip= (SpaceClip *)sl;
 
 						sclip->clip= newlibadr_us(fd, sc->id.lib, sclip->clip);
+
+						sclip->scopes.track_preview = NULL;
+						sclip->scopes.ok = 0;
 					}
 				}
 				sa= sa->next;
@@ -5244,6 +5247,9 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceClip *sclip= (SpaceClip *)sl;
 
 					sclip->clip= restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
+
+					sclip->scopes.track_preview = NULL;
+					sclip->scopes.ok = 0;
 				}
 			}
 			sa= sa->next;
@@ -11811,6 +11817,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	{
 		bScreen *sc;
+		Camera *cam;
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
@@ -11824,17 +11831,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
 						}
 					}
+					else if(sl->spacetype==SPACE_CLIP) {
+						SpaceClip *sc= (SpaceClip *)sl;
+						if(sc->scopes.track_preview_height==0)
+							sc->scopes.track_preview_height= 120;
+					}
 				}
 			}
 		}
-	}
-	
-	{
-		Camera *cam;
-			for(cam= main->camera.first; cam; cam= cam->id.next) {
-				if (cam->sensor_x < 0.01) {
-					cam->sensor_x = 32.f;
-					cam->sensor_y = 18.f;
+
+		for(cam= main->camera.first; cam; cam= cam->id.next) {
+			if (cam->sensor_x < 0.01) {
+				cam->sensor_x = 32.f;
+				cam->sensor_y = 18.f;
 			}
 		}
 	}

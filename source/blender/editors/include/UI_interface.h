@@ -232,6 +232,7 @@ typedef struct uiLayout uiLayout;
 #define WAVEFORM	(48<<9)
 #define VECTORSCOPE	(49<<9)
 #define PROGRESSBAR	(50<<9)
+#define TRACKPREVIEW	(51<<9)
 
 #define BUTTYPE		(63<<9)
 
@@ -726,7 +727,7 @@ void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, int rows, int maxrows, int type);
 
 void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
-void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, struct PointerRNA *clipptr);
+void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);

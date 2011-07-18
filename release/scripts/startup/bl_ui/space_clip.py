@@ -213,8 +213,7 @@ class CLIP_PT_track(bpy.types.Panel):
 
         layout.prop(act_track, "name")
 
-        layout.template_track(clip.tracking, "active_track", \
-            sc.clip_user, clip)
+        layout.template_track(sc, "scopes")
 
         if act_track:
             row = layout.row()

@@ -441,6 +441,61 @@ void BKE_movieclip_last_selection(MovieClip *clip, int *type, void **sel)
 	else *sel= clip->last_sel;
 }
 
+void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)
+{
+	void *sel;
+	int sel_type;
+
+	if(scopes->ok) return;
+
+	if(scopes->track_preview) {
+		IMB_freeImBuf(scopes->track_preview);
+		scopes->track_preview= NULL;
+	}
+
+	scopes->marker_pos= NULL;
+
+	if(clip) {
+		BKE_movieclip_last_selection(clip, &sel_type, &sel);
+
+		if(sel_type==MCLIP_SEL_TRACK) {
+			MovieTrackingTrack *track= (MovieTrackingTrack*)sel;
+			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
+
+			if(marker->flag&MARKER_DISABLED) {
+				scopes->track_disabled= 1;
+			} else {
+				ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+
+				scopes->track_disabled= 0;
+
+				if(ibuf && ibuf->rect) {
+					ImBuf *tmpibuf;
+
+					tmpibuf= BKE_tracking_acquire_pattern_imbuf(ibuf, track, marker, 1, &scopes->track_pos, NULL);
+
+					if(tmpibuf->rect_float)
+						IMB_rect_from_float(tmpibuf);
+
+					if(tmpibuf->rect)
+						scopes->track_preview= tmpibuf;
+					else
+						IMB_freeImBuf(tmpibuf);
+
+					scopes->marker_pos= marker->pos;
+					scopes->slide_scale[0]= track->pat_max[0]-track->pat_min[0];
+					scopes->slide_scale[1]= track->pat_max[1]-track->pat_min[1];
+				}
+
+				IMB_freeImBuf(ibuf);
+			}
+		}
+	}
+
+
+	scopes->ok= 1;
+}
+
 void free_movieclip(MovieClip *clip)
 {
 	free_buffers(clip);

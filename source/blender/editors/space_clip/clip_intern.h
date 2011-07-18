@@ -90,7 +90,7 @@ void CLIP_OT_detect_features(struct wmOperatorType *ot);
 
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
-void draw_clip_track_widget(const struct bContext *C, void *trackp, void *userp, void *clipp, rcti *rect);
+void draw_clip_track_widget(const bContext *C, void *poin, void *arg1, void *arg2, rcti *rect);
 
 /* clip_buttons.c */
 void ED_clip_buttons_register(struct ARegionType *art);

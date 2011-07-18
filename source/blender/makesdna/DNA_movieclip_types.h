@@ -41,6 +41,7 @@
 #include "DNA_tracking_types.h"
 
 struct anim;
+struct ImBuf;
 
 typedef struct MovieClipUser {
 	int framenr;	/* current frame number */
@@ -68,6 +69,17 @@ typedef struct MovieClip {
 	int pad;
 	void *last_sel;
 } MovieClip;
+
+typedef struct MovieClipScopes {
+	int ok;							/* 1 means scopes are ok and re-calculaito is unneeded */
+	int track_preview_height;		/* height of track preview widget */
+	struct ImBuf *track_preview;	/* ImBuf displayed in track preview */
+	float track_pos[2];				/* sub-pizel position of marker in track ImBuf */
+	short track_disabled;			/* active track is disabled, special notifier should be drawn */
+	char pad[6];
+	float *marker_pos;				/* original marker position. used for sliding from preview */
+	float slide_scale[2];			/* scale used for sliding from previewe area */
+} MovieClipScopes;
 
 /* MovieClip->source */
 #define MCLIP_SRC_SEQUENCE	1

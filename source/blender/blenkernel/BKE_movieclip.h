@@ -37,6 +37,7 @@
 struct ImBuf;
 struct Main;
 struct MovieClip;
+struct MovieClipScopes;
 struct MovieClipUser;
 struct MovieTrackingTrack;
 
@@ -55,6 +56,8 @@ void BKE_movieclip_select_track(struct MovieClip *clip, struct MovieTrackingTrac
 void BKE_movieclip_deselect_track(struct MovieClip *clip, struct MovieTrackingTrack *track, int area);
 void BKE_movieclip_set_selection(struct MovieClip *clip, int type, void *sel);
 void BKE_movieclip_last_selection(struct MovieClip *clip, int *type, void **sel);
+
+void BKE_movieclip_update_scopes(struct MovieClip *clip, struct MovieClipUser *user, struct MovieClipScopes *scopes);
 
 void BKE_movieclip_get_cache_segments(struct MovieClip *clip, int *totseg_r, int **points_r);
 

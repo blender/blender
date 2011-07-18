@@ -102,6 +102,15 @@ static void rna_def_moviecliUuser(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Current Frame", "Get frame number user is points to in clip");
 }
 
+static void rna_def_movieClipScopes(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	srna= RNA_def_struct(brna, "MovieClipScopes", NULL);
+	RNA_def_struct_ui_text(srna, "MovieClipScopes", "Scopes for statistical view of a movie clip");
+}
+
+
 static void rna_def_movieclip(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -132,6 +141,7 @@ void RNA_def_movieclip(BlenderRNA *brna)
 {
 	rna_def_movieclip(brna);
 	rna_def_moviecliUuser(brna);
+	rna_def_movieClipScopes(brna);
 }
 
 #endif

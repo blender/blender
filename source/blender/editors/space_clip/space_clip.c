@@ -54,6 +54,8 @@
 #include "ED_clip.h"
 #include "ED_transform.h"
 
+#include "IMB_imbuf.h"
+
 #include "BIF_gl.h"
 
 #include "WM_api.h"
@@ -67,6 +69,20 @@
 
 
 #include "clip_intern.h"	// own include
+
+static void clip_scopes_tag_refresh(ScrArea *sa)
+{
+	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
+	ARegion *ar;
+
+	/* only while proeprties are visible */
+	for (ar=sa->regionbase.first; ar; ar=ar->next) {
+		if (ar->regiontype == RGN_TYPE_PREVIEW && ar->flag & RGN_FLAG_HIDDEN)
+			return;
+	}
+
+	sc->scopes.ok=0;
+}
 
 /* ******************** default callbacks for clip space ***************** */
 
@@ -114,9 +130,12 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 /* not spacelink itself */
 static void clip_free(SpaceLink *sl)
 {
-	SpaceClip *sclip= (SpaceClip*) sl;
+	SpaceClip *sc= (SpaceClip*) sl;
 
-	sclip->clip= NULL;
+	sc->clip= NULL;
+
+	if(sc->scopes.track_preview)
+		IMB_freeImBuf(sc->scopes.track_preview);
 }
 
 /* spacetype; init callback */
@@ -145,6 +164,9 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+					clip_scopes_tag_refresh(sa);
+					/* no break! */
+
 				case ND_FRAME_RANGE:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
@@ -155,6 +177,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_DISPLAY:
 				case ND_SELECT:
+					clip_scopes_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -163,6 +186,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 				case NA_SELECTED:
 				case NA_EDITED:
 				case NA_EVALUATED:
+					clip_scopes_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -171,12 +195,15 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_SELECT:
 					ED_area_tag_redraw(sa);
+					clip_scopes_tag_refresh(sa);
 					break;
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data==ND_SPACE_CLIP)
+			if(wmn->data==ND_SPACE_CLIP) {
+				clip_scopes_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
+			}
 			break;
 	}
 }
@@ -459,6 +486,10 @@ static void clip_properties_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void clip_properties_area_draw(const bContext *C, ARegion *ar)
 {
+	SpaceClip *sc= CTX_wm_space_clip(C);
+
+	BKE_movieclip_update_scopes(sc->clip, &sc->user, &sc->scopes);
+
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 

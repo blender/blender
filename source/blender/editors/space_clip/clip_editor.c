@@ -114,6 +114,7 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 				if(sa->spacetype==SPACE_CLIP) {
 					SpaceClip *sc= sa->spacedata.first;
+					sc->scopes.ok= 0;
 					BKE_movieclip_user_set_frame(&sc->user, cfra);
 				}
 			}

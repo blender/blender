@@ -66,6 +66,7 @@ struct Scene;
 struct wmOperator;
 struct wmTimer;
 struct MovieClip;
+struct MovieClipScopes;
 
 	/**
 	 * The base structure all the other spaces
@@ -572,8 +573,9 @@ typedef struct SpaceClip {
 	float xof, yof;				/* user defined offset, image is centered */
 	float zoom;					/* user defined zoom level */
 
-	struct MovieClipUser user;	/* user of clip */
-	struct MovieClip *clip;		/* clip data */
+	struct MovieClipUser user;		/* user of clip */
+	struct MovieClip *clip;			/* clip data */
+	struct MovieClipScopes scopes;	/* different scoped displayed in space panels */
 
 	int flag;					/* flags */
 	int pad;
