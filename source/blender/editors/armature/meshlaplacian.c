@@ -657,22 +657,26 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	int *vertsflipped = NULL, *mask= NULL;
 	int a, totface, j, bbone, firstsegment, lastsegment;
 
+	// Jason
+	MVert *mv = me->mvert;
+	int selectedVerts;
+
 	*err_str= NULL;
 
 	/* count triangles and create mask */
-	if(me->editflag & ME_EDIT_PAINT_MASK)
+	if((me->editflag & ME_EDIT_PAINT_MASK) || (selectedVerts=(me->editflag & ME_EDIT_VERT_SEL)))
 		mask= MEM_callocN(sizeof(int)*me->totvert, "heat_bone_weighting mask");
 
 	for(totface=0, a=0, mface=me->mface; a<me->totface; a++, mface++) {
 		totface++;
 		if(mface->v4) totface++;
-
-		if(mask && (mface->flag & ME_FACE_SEL)) {
-			mask[mface->v1]= 1;
-			mask[mface->v2]= 1;
-			mask[mface->v3]= 1;
+		// Jason (added selectedVerts content for vertex mask, they used to just equal 1)
+		if(mask && ((mface->flag & ME_FACE_SEL) || selectedVerts)) {
+			mask[mface->v1]= selectedVerts ? ((mv+mface->v1)->flag & 1): 1;
+			mask[mface->v2]= selectedVerts ? ((mv+mface->v2)->flag & 1): 1;
+			mask[mface->v3]= selectedVerts ? ((mv+mface->v3)->flag & 1): 1;
 			if(mface->v4)
-				mask[mface->v4]= 1;
+				mask[mface->v4]= selectedVerts ? ((mv+mface->v4)->flag & 1): 1;
 		}
 	}
 
