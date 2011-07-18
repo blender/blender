@@ -105,15 +105,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
             else:
                 perf_bone = performer_bones[perf_bone_name[0].name]
                 inter_bone.matrix_basis = singleBoneRetarget(inter_bone, perf_bone)
-        elif inter_bone.parent:
-            if "Temp" in inter_bone.parent.name:
-                inter_bone.parent.bone.use_inherit_rotation = True
-                inter_bone.bone.use_inherit_rotation = True
-        else:
-            inter_bone.bone.use_inherit_rotation = True
         inter_bone.keyframe_insert("rotation_quaternion")
-        for child in inter_bone.children:
-            retargetPerfToInter(child)
 
     #creates the intermediate armature object
     inter_obj = enduser_obj.copy()
@@ -123,16 +115,19 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
     bpy.context.scene.objects.active = inter_obj
     bpy.ops.object.mode_set(mode='EDIT')
     #add some temporary connecting bones in case end user bones are not connected to their parents
+    print("creating temp bones")
     for bone in inter_obj.data.edit_bones:
-        if not bone.use_connect and bone.parent and  inter_obj.data.bones[bone.name].reverseMap:
-            newBone = inter_obj.data.edit_bones.new("Temp")
-            newBone.head = bone.parent.tail
-            newBone.tail = bone.head
-            newBone.parent = bone.parent
-            bone.parent = newBone
-            bone.use_connect = True
-            newBone.use_connect = True
+        if not bone.use_connect and bone.parent:
+            if inter_obj.data.bones[bone.parent.name].reverseMap or inter_obj.data.bones[bone.name].reverseMap:
+                newBone = inter_obj.data.edit_bones.new("Temp")
+                newBone.head = bone.parent.tail
+                newBone.tail = bone.head
+                newBone.parent = bone.parent
+                bone.parent = newBone
+                bone.use_connect = True
+                newBone.use_connect = True
     #resets roll
+    print("retargeting to intermediate")
     bpy.ops.armature.calculate_roll(type='Z')
     bpy.ops.object.mode_set(mode="OBJECT")
     inter_obj.data.name = "inter_arm"
@@ -141,12 +136,15 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
     inter_bones = inter_obj.pose.bones
     #clears inheritance
     for inter_bone in inter_bones:
-        inter_bone.bone.use_inherit_rotation = False
+        if inter_bone.bone.reverseMap:
+            inter_bone.bone.use_inherit_rotation = False
+        else:
+            inter_bone.bone.use_inherit_rotation = True
 
     for t in range(s_frame, e_frame):
         scene.frame_set(t)
-        inter_bone = inter_bones[root]
-        retargetPerfToInter(inter_bone)
+        for bone in inter_bones:
+            retargetPerfToInter(bone)
 
     return inter_obj
 
@@ -217,7 +215,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
     perf_bones = performer_obj.pose.bones
     end_bones = enduser_obj.pose.bones
 
-    perfRoot = end_bones[root].bone.reverseMap[0].name
+    perfRoot = perf_bones[0].name
     endFeet = [perf_bones[perfBone].bone.map for perfBone in perfFeet]
     locDictKeys = perfFeet + endFeet + [perfRoot]
 
