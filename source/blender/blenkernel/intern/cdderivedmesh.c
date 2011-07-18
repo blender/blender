@@ -291,8 +291,8 @@ static void cdDM_drawSelectedVerts(DerivedMesh *dm)
 	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
 		GPU_vertex_setup(dm);
 		if( !GPU_buffer_legacy(dm) ) {
-			if(dm->drawObject->nelements)	glDrawArrays(GL_POINTS,0, dm->drawObject->nelements);
-			else							glDrawArrays(GL_POINTS,0, dm->drawObject->nlooseverts);
+			if(dm->drawObject->tot_triangle_point)	glDrawArrays(GL_POINTS,0, dm->drawObject->tot_triangle_point);
+			else							glDrawArrays(GL_POINTS,0, dm->drawObject->tot_loose_point);
 		}
 		GPU_buffer_unbind();
 	}
