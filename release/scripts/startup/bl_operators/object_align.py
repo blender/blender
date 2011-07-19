@@ -21,13 +21,52 @@
 import bpy
 from mathutils import Vector
 
+def GlobalBB(bb_world):
+    # Initialize the variables with the 8th vertex
+    left, right, front, back, down, up =\
+    bb_world[7][0],\
+    bb_world[7][0],\
+    bb_world[7][1],\
+    bb_world[7][1],\
+    bb_world[7][2],\
+    bb_world[7][2]
+    
+    # Test against the other 7 verts
+    for i in range (7):
+        
+        # X Range
+        val = bb_world[i][0]
+        if val < left:
+            left = val
+            
+        if val > right:
+            right = val
+            
+        # Y Range
+        val = bb_world[i][1]
+        if val < front:
+            front = val
+            
+        if val > back:
+            back = val
+            
+        # Z Range
+        val = bb_world[i][2]
+        if val < down:
+            down = val
+            
+        if val > up:
+            up = val
+            
+    return (Vector((left, front, up)), Vector((right, back, down)))
+
 
 def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
     cursor = bpy.context.scene.cursor_location
 
-    Left_Up_Front_SEL = [0.0, 0.0, 0.0]
-    Right_Down_Back_SEL = [0.0, 0.0, 0.0]
+    Left_Front_Up_SEL = [0.0, 0.0, 0.0]
+    Right_Back_Down_SEL = [0.0, 0.0, 0.0]
 
     flag_first = True
 
@@ -42,78 +81,81 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
         return False
 
     for obj, bb_world in objs:
-        Left_Up_Front = bb_world[1]
-        Right_Down_Back = bb_world[7]
+        
+        GBB = GlobalBB(bb_world)
+        Left_Front_Up = GBB[0]
+        Right_Back_Down = GBB[1]
 
         # Active Center
 
         if obj == bpy.context.active_object:
 
-            center_active_x = (Left_Up_Front[0] + Right_Down_Back[0]) / 2.0
-            center_active_y = (Left_Up_Front[1] + Right_Down_Back[1]) / 2.0
-            center_active_z = (Left_Up_Front[2] + Right_Down_Back[2]) / 2.0
+            center_active_x = (Left_Front_Up[0] + Right_Back_Down[0]) / 2.0
+            center_active_y = (Left_Front_Up[1] + Right_Back_Down[1]) / 2.0
+            center_active_z = (Left_Front_Up[2] + Right_Back_Down[2]) / 2.0
 
-            size_active_x = (Right_Down_Back[0] - Left_Up_Front[0]) / 2.0
-            size_active_y = (Right_Down_Back[1] - Left_Up_Front[1]) / 2.0
-            size_active_z = (Left_Up_Front[2] - Right_Down_Back[2]) / 2.0
+            size_active_x = (Right_Back_Down[0] - Left_Front_Up[0]) / 2.0
+            size_active_y = (Right_Back_Down[1] - Left_Front_Up[1]) / 2.0
+            size_active_z = (Left_Front_Up[2] - Right_Back_Down[2]) / 2.0
 
         # Selection Center
 
         if flag_first:
             flag_first = False
 
-            Left_Up_Front_SEL[0] = Left_Up_Front[0]
-            Left_Up_Front_SEL[1] = Left_Up_Front[1]
-            Left_Up_Front_SEL[2] = Left_Up_Front[2]
+            Left_Front_Up_SEL[0] = Left_Front_Up[0]
+            Left_Front_Up_SEL[1] = Left_Front_Up[1]
+            Left_Front_Up_SEL[2] = Left_Front_Up[2]
 
-            Right_Down_Back_SEL[0] = Right_Down_Back[0]
-            Right_Down_Back_SEL[1] = Right_Down_Back[1]
-            Right_Down_Back_SEL[2] = Right_Down_Back[2]
+            Right_Back_Down_SEL[0] = Right_Back_Down[0]
+            Right_Back_Down_SEL[1] = Right_Back_Down[1]
+            Right_Back_Down_SEL[2] = Right_Back_Down[2]
 
         else:
             # X axis
-            if Left_Up_Front[0] < Left_Up_Front_SEL[0]:
-                Left_Up_Front_SEL[0] = Left_Up_Front[0]
+            if Left_Front_Up[0] < Left_Front_Up_SEL[0]:
+                Left_Front_Up_SEL[0] = Left_Front_Up[0]
             # Y axis
-            if Left_Up_Front[1] < Left_Up_Front_SEL[1]:
-                Left_Up_Front_SEL[1] = Left_Up_Front[1]
+            if Left_Front_Up[1] < Left_Front_Up_SEL[1]:
+                Left_Front_Up_SEL[1] = Left_Front_Up[1]
             # Z axis
-            if Left_Up_Front[2] > Left_Up_Front_SEL[2]:
-                Left_Up_Front_SEL[2] = Left_Up_Front[2]
+            if Left_Front_Up[2] > Left_Front_Up_SEL[2]:
+                Left_Front_Up_SEL[2] = Left_Front_Up[2]
 
             # X axis
-            if Right_Down_Back[0] > Right_Down_Back_SEL[0]:
-                Right_Down_Back_SEL[0] = Right_Down_Back[0]
+            if Right_Back_Down[0] > Right_Back_Down_SEL[0]:
+                Right_Back_Down_SEL[0] = Right_Back_Down[0]
             # Y axis
-            if Right_Down_Back[1] > Right_Down_Back_SEL[1]:
-                Right_Down_Back_SEL[1] = Right_Down_Back[1]
+            if Right_Back_Down[1] > Right_Back_Down_SEL[1]:
+                Right_Back_Down_SEL[1] = Right_Back_Down[1]
             # Z axis
-            if Right_Down_Back[2] < Right_Down_Back_SEL[2]:
-                Right_Down_Back_SEL[2] = Right_Down_Back[2]
+            if Right_Back_Down[2] < Right_Back_Down_SEL[2]:
+                Right_Back_Down_SEL[2] = Right_Back_Down[2]
 
-    center_sel_x = (Left_Up_Front_SEL[0] + Right_Down_Back_SEL[0]) / 2.0
-    center_sel_y = (Left_Up_Front_SEL[1] + Right_Down_Back_SEL[1]) / 2.0
-    center_sel_z = (Left_Up_Front_SEL[2] + Right_Down_Back_SEL[2]) / 2.0
+    center_sel_x = (Left_Front_Up_SEL[0] + Right_Back_Down_SEL[0]) / 2.0
+    center_sel_y = (Left_Front_Up_SEL[1] + Right_Back_Down_SEL[1]) / 2.0
+    center_sel_z = (Left_Front_Up_SEL[2] + Right_Back_Down_SEL[2]) / 2.0
 
     # Main Loop
 
     for obj, bb_world in objs:
         bb_world = [Vector(v[:]) * obj.matrix_world for v in obj.bound_box]
+        
+        GBB = GlobalBB(bb_world)
+        Left_Front_Up = GBB[0]
+        Right_Back_Down = GBB[1]
 
-        Left_Up_Front = bb_world[1]
-        Right_Down_Back = bb_world[7]
+        center_x = (Left_Front_Up[0] + Right_Back_Down[0]) / 2.0
+        center_y = (Left_Front_Up[1] + Right_Back_Down[1]) / 2.0
+        center_z = (Left_Front_Up[2] + Right_Back_Down[2]) / 2.0
 
-        center_x = (Left_Up_Front[0] + Right_Down_Back[0]) / 2.0
-        center_y = (Left_Up_Front[1] + Right_Down_Back[1]) / 2.0
-        center_z = (Left_Up_Front[2] + Right_Down_Back[2]) / 2.0
+        positive_x = Right_Back_Down[0]
+        positive_y = Right_Back_Down[1]
+        positive_z = Left_Front_Up[2]
 
-        positive_x = Right_Down_Back[0]
-        positive_y = Right_Down_Back[1]
-        positive_z = Left_Up_Front[2]
-
-        negative_x = Left_Up_Front[0]
-        negative_y = Left_Up_Front[1]
-        negative_z = Right_Down_Back[2]
+        negative_x = Left_Front_Up[0]
+        negative_y = Left_Front_Up[1]
+        negative_z = Right_Back_Down[2]
 
         obj_loc = obj.location
 
