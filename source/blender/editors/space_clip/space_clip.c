@@ -96,6 +96,7 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH;
 	sc->zoom= 1.0f;
 	sc->path_length= 20;
+	sc->scopes.track_preview_height= 120;
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for clip");
