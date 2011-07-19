@@ -142,6 +142,8 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
             inter_bone.bone.use_inherit_rotation = True
 
     for t in range(s_frame, e_frame):
+        if (t - s_frame) % 10 == 0:
+            print("First pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))      
         scene.frame_set(t)
         for bone in inter_bones:
             retargetPerfToInter(bone)
@@ -199,6 +201,8 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
             bakeTransform(bone)
 
     for t in range(s_frame, e_frame):
+        if (t - s_frame) % 10 == 0:
+            print("Second pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))   
         scene.frame_set(t)
         end_bone = end_bones[root]
         end_bone.location = Vector((0, 0, 0))
@@ -396,11 +400,11 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     print("cleaning stuff up")
     perf_obj_mat, enduser_obj_mat = cleanAndStoreObjMat(performer_obj, enduser_obj)
     turnOffIK(enduser_obj)
-    print("creating intermediate armature")
+    print("Creating intermediate armature (for first pass)")
     inter_obj = createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene)
-    print("retargeting from intermediate to end user")
+    print("First pass: retargeting from intermediate to end user")
     retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
-    print("retargeting root translation and clean up")
+    print("Second pass: retargeting root translation and clean up")
     stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
     IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone)
