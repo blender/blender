@@ -287,6 +287,7 @@ class MocapConstraintsPanel(bpy.types.Panel):
 
 
 class OBJECT_OT_RetargetButton(bpy.types.Operator):
+    '''Retarget animation from selected armature to active armature '''
     bl_idname = "mocap.retarget"
     bl_label = "Retargets active action from Performer to Enduser"
 
@@ -315,6 +316,7 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
 
 
 class OBJECT_OT_SaveMappingButton(bpy.types.Operator):
+    '''Save mapping to active armature (for future retargets) '''
     bl_idname = "mocap.savemapping"
     bl_label = "Saves user generated mapping from Performer to Enduser"
 
@@ -336,6 +338,7 @@ class OBJECT_OT_SaveMappingButton(bpy.types.Operator):
 
 
 class OBJECT_OT_LoadMappingButton(bpy.types.Operator):
+    '''Load saved mapping from active armature'''
     bl_idname = "mocap.loadmapping"
     bl_label = "Loads user generated mapping from Performer to Enduser"
 
@@ -357,6 +360,7 @@ class OBJECT_OT_LoadMappingButton(bpy.types.Operator):
 
 
 class OBJECT_OT_ConvertSamplesButton(bpy.types.Operator):
+    '''Convert active armature's sampled keyframed to beziers'''
     bl_idname = "mocap.samples"
     bl_label = "Converts samples / simplifies keyframes to beziers"
 
@@ -370,6 +374,7 @@ class OBJECT_OT_ConvertSamplesButton(bpy.types.Operator):
 
 
 class OBJECT_OT_LooperButton(bpy.types.Operator):
+    '''Trim active armature's animation to a single cycle, given a cyclic animation (such as a walk cycle)'''
     bl_idname = "mocap.looper"
     bl_label = "loops animation / sampled mocap data"
 
@@ -383,6 +388,7 @@ class OBJECT_OT_LooperButton(bpy.types.Operator):
 
 
 class OBJECT_OT_DenoiseButton(bpy.types.Operator):
+    '''Denoise active armature's animation. Good for dealing with 'bad' frames inherent in mocap animation'''
     bl_idname = "mocap.denoise"
     bl_label = "Denoises sampled mocap data "
 
@@ -400,6 +406,7 @@ class OBJECT_OT_DenoiseButton(bpy.types.Operator):
 
 
 class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
+    '''UNIMPLEMENTED: Create limit constraints on the active armature from the selected armature's animation's range of motion'''
     bl_idname = "mocap.limitdof"
     bl_label = "Analyzes animations Max/Min DOF and adds hard/soft constraints"
 
@@ -418,6 +425,7 @@ class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
 
 
 class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
+    '''Realign the active armature's axis system to match Blender (Commonly needed after bvh import)'''
     bl_idname = "mocap.rotate_fix"
     bl_label = "Rotates selected armature 90 degrees (fix for bvh import)"
 
@@ -432,6 +440,7 @@ class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
 
 
 class OBJECT_OT_ScaleFixArmature(bpy.types.Operator):
+    '''Rescale selected armature to match the active animation, for convienence'''
     bl_idname = "mocap.scale_fix"
     bl_label = "Scales performer armature to match target armature"
 
@@ -453,6 +462,7 @@ class OBJECT_OT_ScaleFixArmature(bpy.types.Operator):
 
 
 class OBJECT_OT_AddMocapConstraint(bpy.types.Operator):
+    '''Add a post-retarget fix - useful for fixing certain artifacts following the retarget'''
     bl_idname = "mocap.addconstraint"
     bl_label = "Add constraint to target armature"
 
@@ -469,6 +479,7 @@ class OBJECT_OT_AddMocapConstraint(bpy.types.Operator):
 
 
 class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
+    '''Remove this post-retarget fix'''
     bl_idname = "mocap.removeconstraint"
     bl_label = "Removes constraints from target armature"
     constraint = bpy.props.IntProperty()
@@ -492,6 +503,7 @@ class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
 
 
 class OBJECT_OT_BakeMocapConstraints(bpy.types.Operator):
+    '''Bake all post-retarget fixes to the Retarget Fixes NLA Track'''
     bl_idname = "mocap.bakeconstraints"
     bl_label = "Bake all constraints to target armature"
 
@@ -506,6 +518,7 @@ class OBJECT_OT_BakeMocapConstraints(bpy.types.Operator):
 
 
 class OBJECT_OT_UnbakeMocapConstraints(bpy.types.Operator):
+    '''Unbake all post-retarget fixes - removes the baked data from the Retarget Fixes NLA Track'''
     bl_idname = "mocap.unbakeconstraints"
     bl_label = "Unbake all constraints to target armature"
 
