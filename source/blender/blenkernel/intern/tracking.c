@@ -693,6 +693,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				memset(&marker_new, 0, sizeof(marker_new));
 				marker_new.pos[0]= (origin[0]+x2)/ibuf_new->x;
 				marker_new.pos[1]= (origin[1]+y2)/ibuf_new->y;
+				marker_new.flag|= MARKER_TRACKED;
 
 				if(context->backwards) marker_new.framenr= curfra-1;
 				else marker_new.framenr= curfra+1;

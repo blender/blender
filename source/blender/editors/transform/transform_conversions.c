@@ -5251,7 +5251,7 @@ static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d, Mo
 
 	track->transflag= marker->flag;
 
-	marker->flag&= ~MARKER_DISABLED;
+	marker->flag&= ~(MARKER_DISABLED|MARKER_TRACKED);
 
 	if(track->flag&SELECT)
 		markerToTransDataInit(td++, td2d++, marker->pos, NULL);

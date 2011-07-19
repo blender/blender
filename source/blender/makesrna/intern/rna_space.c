@@ -2700,6 +2700,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "scopes");
 	RNA_def_property_struct_type(prop, "MovieClipScopes");
 	RNA_def_property_ui_text(prop, "Scopes", "Scopes to visualize movie clip statistics.");
+
+	/* show names */
+	prop= RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_NAMES);
+	RNA_def_property_ui_text(prop, "Show Names", "Show track names and status");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 
 

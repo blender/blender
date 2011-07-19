@@ -412,19 +412,24 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track= NULL;	/* selected marker */
+	int hidden= 0;
 
 	track= find_nearest_track(sc, clip, co);
+
+	if((sc->flag&SC_SHOW_MARKER_PATTERN)==0) hidden|= TRACK_AREA_PAT;
+	if((sc->flag&SC_SHOW_MARKER_SEARCH)==0) hidden|= TRACK_AREA_SEARCH;
 
 	if(track) {
 		int area= track_mouse_area(sc, co, track);
 
 		if(!extend || !TRACK_SELECTED(track))
-			area= TRACK_AREA_ALL;
+			area= TRACK_AREA_ALL & ~hidden;
 
 		if(extend && TRACK_AREA_SELECTED(track, area)) {
 			BKE_movieclip_deselect_track(clip, track, area);
 		} else {
-			if(area==TRACK_AREA_POINT) area= TRACK_AREA_ALL;
+			if(area==TRACK_AREA_POINT)
+				area= TRACK_AREA_ALL & ~hidden;
 
 			BKE_movieclip_select_track(clip, track, area, extend);
 			BKE_movieclip_set_selection(clip, MCLIP_SEL_TRACK, track);
@@ -1607,6 +1612,7 @@ void CLIP_OT_set_center_principal(wmOperatorType *ot)
 typedef struct {
 	int area;
 	MovieTrackingTrack *track;
+	MovieTrackingMarker *marker;
 
 	int mval[2];
 	int width, height;
@@ -1625,6 +1631,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 
 	data->area= area;
 	data->track= track;
+	data->marker= marker;
 
 	if(area==TRACK_AREA_POINT) {
 		data->pos= marker->pos;
@@ -1767,6 +1774,8 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(data->area == TRACK_AREA_POINT) {
 				data->pos[0]= data->spos[0]+dx;
 				data->pos[1]= data->spos[1]+dy;
+
+				data->marker->flag&= ~MARKER_TRACKED;
 			} else {
 				data->min[0]= data->smin[0]-dx;
 				data->max[0]= data->smax[0]+dx;

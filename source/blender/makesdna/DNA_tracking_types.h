@@ -122,7 +122,8 @@ enum {
 };
 
 /* MovieTrackingMarker->flag */
-#define MARKER_DISABLED	1
+#define MARKER_DISABLED	(1<<0)
+#define MARKER_TRACKED	(1<<1)
 
 /* MovieTrackingTrack->flag */
 #define TRACK_HAS_BUNDLE	(1<<1)

@@ -46,6 +46,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 
 #include "ED_screen.h"
 #include "ED_clip.h"
@@ -485,6 +486,47 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		glLineWidth(1.0f);
 }
 
+static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker, int act,
+			int width, int height, float zoomx, float zoomy)
+{
+	char str[128]= {0}, state[64]= {0};
+	float x, y, dx= 0.f, dy= 0.f;
+
+	if(!TRACK_SELECTED(track))
+		return;
+
+	if(marker->flag&MARKER_DISABLED) {
+		if(act) UI_ThemeColor(TH_ACT_MARKER);
+		else UI_ThemeColorShade(TH_DIS_MARKER, 128);
+	} else {
+		if(act) UI_ThemeColor(TH_ACT_MARKER);
+		else UI_ThemeColor(TH_SEL_MARKER);
+	}
+
+	if(sc->flag&SC_SHOW_MARKER_SEARCH) {
+		dx= track->search_min[0];
+		dy= track->search_min[1];
+	} else if(sc->flag&SC_SHOW_MARKER_PATTERN) {
+		dx= track->pat_min[0];
+		dy= track->pat_min[1];
+	}
+
+	x= (marker->pos[0]+dx)*width*zoomx;
+	y= (marker->pos[1]+dy)*height*zoomy-14.f*UI_DPI_FAC;
+
+	if(marker->flag&MARKER_DISABLED) strcpy(state, "disabled");
+	else if(marker->flag&MARKER_TRACKED) strcpy(state, "tracked");
+	else if(marker->framenr!=sc->user.framenr) strcpy(state, "estimated");
+	else strcpy(state, "keyframed");
+
+	if(state[0])
+		BLI_snprintf(str, sizeof(str), "%s: %s", track->name, state);
+	else
+		BLI_snprintf(str, sizeof(str), "%s", track->name);
+
+	UI_DrawString(x, y, str);
+}
+
 static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx, float *regiony)
 {
 	/* express given coordinates as proportional values */
@@ -517,6 +559,8 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 	glPushMatrix();
 	glTranslatef(x, y, 0);
+
+	glPushMatrix();
 	glScalef(zoomx, zoomy, 0);
 	glScalef(width, height, 0);
 
@@ -622,6 +666,23 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 		glPointSize(1.0f);
 		glDisable(GL_POINT_SMOOTH);
+	}
+
+	glPopMatrix();
+
+	if(sc->flag&SC_SHOW_NAMES) {
+		/* scaling should be cleared before drawing texts, otherwise font would also be scaled */
+		track= tracking->tracks.first;
+		while(track) {
+			if(TRACK_VISIBLE(track)) {
+				int act= sel_type==MCLIP_SEL_TRACK && sel==track;
+
+				marker= BKE_tracking_get_marker(track, framenr);
+				draw_marker_texts(sc, track, marker, act, width, height, zoomx, zoomy);
+			}
+
+			track= track->next;
+		}
 	}
 
 	glPopMatrix();
