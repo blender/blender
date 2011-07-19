@@ -453,7 +453,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 		scopes->track_preview= NULL;
 	}
 
-	scopes->marker_pos= NULL;
+	scopes->marker= NULL;
+	scopes->track= NULL;
 
 	if(clip) {
 		BKE_movieclip_last_selection(clip, &sel_type, &sel);
@@ -486,14 +487,14 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				IMB_freeImBuf(ibuf);
 			}
 
-			scopes->marker_pos= marker->pos;
+			scopes->marker= marker;
+			scopes->track= track;
 			scopes->slide_scale[0]= track->pat_max[0]-track->pat_min[0];
 			scopes->slide_scale[1]= track->pat_max[1]-track->pat_min[1];
-			scopes->marker_flag= &marker->flag;
 		}
 	}
 
-
+	scopes->framenr= user->framenr;
 	scopes->ok= 1;
 }
 

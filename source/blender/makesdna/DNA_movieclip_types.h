@@ -42,6 +42,8 @@
 
 struct anim;
 struct ImBuf;
+struct MovieTrackingTrack;
+struct MovieTrackingMarker;
 
 typedef struct MovieClipUser {
 	int framenr;	/* current frame number */
@@ -76,9 +78,10 @@ typedef struct MovieClipScopes {
 	struct ImBuf *track_preview;	/* ImBuf displayed in track preview */
 	float track_pos[2];				/* sub-pizel position of marker in track ImBuf */
 	short track_disabled;			/* active track is disabled, special notifier should be drawn */
-	char pad[6];
-	float *marker_pos;				/* original marker position. used for sliding from preview */
-	int *marker_flag;				/* original marker flags. used for sliding from preview */
+	char pad[2];
+	int framenr;					/* frame number scopes are created for */
+	struct MovieTrackingTrack *track;	/* track scopes are created for */
+	struct MovieTrackingMarker *marker;	/* marker scopes are created for */
 	float slide_scale[2];			/* scale used for sliding from previewe area */
 } MovieClipScopes;
 

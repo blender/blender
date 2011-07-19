@@ -341,7 +341,6 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	PropertyRNA *prop;
 	PointerRNA scopesptr;
 	uiBlock *block;
-	uiBut *bt;
 	rctf rect;
 	MovieClipScopes *scopes;
 
@@ -369,5 +368,5 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 
 	scopes->track_preview_height= (scopes->track_preview_height<=UI_UNIT_Y)?UI_UNIT_Y:scopes->track_preview_height;
 
-	bt= uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
+	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
 }

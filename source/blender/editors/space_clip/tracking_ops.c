@@ -1616,9 +1616,12 @@ typedef struct {
 	int lock, accurate;
 } SlideMarkerData;
 
-static SlideMarkerData *create_slide_marker_data(MovieTrackingTrack *track, MovieTrackingMarker *marker, wmEvent *event, int area, int width, int height)
+static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTrack *track,
+			MovieTrackingMarker *marker, wmEvent *event, int area, int width, int height)
 {
 	SlideMarkerData *data= MEM_callocN(sizeof(SlideMarkerData), "slide marker data");
+
+	marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
 
 	data->area= area;
 	data->track= track;
@@ -1705,15 +1708,15 @@ static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			if(marker && (marker->flag&MARKER_DISABLED)==0) {
 				if(sc->flag&SC_SHOW_MARKER_SEARCH) {
 					if(mouse_on_corner(sc, track, 15.0f, co, 1, marker->pos, track->search_min, track->search_max, width, height))
-						op->customdata= create_slide_marker_data(track, marker, event, TRACK_AREA_POINT, width, height);
+						op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, width, height);
 
 					if(mouse_on_corner(sc, track, 15.0f, co, 0, marker->pos, track->search_min, track->search_max, width, height))
-						op->customdata= create_slide_marker_data(track, marker, event, TRACK_AREA_SEARCH, width, height);
+						op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, width, height);
 				}
 
 				if(sc->flag&SC_SHOW_MARKER_PATTERN)
 					if(mouse_on_corner(sc, track, 10.0f, co, 0, marker->pos, track->pat_min, track->pat_max, width, height))
-						op->customdata= create_slide_marker_data(track, marker, event, TRACK_AREA_PAT, width, height);
+						op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, width, height);
 
 				if(op->customdata) {
 					WM_event_add_modal_handler(C, op);

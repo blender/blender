@@ -56,6 +56,7 @@
 #include "BKE_idprop.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
+#include "BKE_tracking.h"
 #include "BKE_unit.h"
 
 #include "ED_screen.h"
@@ -4081,10 +4082,13 @@ static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonDa
 		 /* resize preview widget itself */
 		scopes->track_preview_height = (but->y2 - but->y1) + (data->dragstarty - my);
 	} else {
-		if(scopes->marker_pos) {
-			(*scopes->marker_flag)&= ~MARKER_DISABLED;
-			scopes->marker_pos[0]+= -dx*scopes->slide_scale[0] / (but->block->maxx-but->block->minx);
-			scopes->marker_pos[1]+= -dy*scopes->slide_scale[1] / (but->block->maxy-but->block->miny);
+		if(scopes->marker) {
+			if(scopes->marker->framenr!=scopes->framenr)
+				scopes->marker= BKE_tracking_ensure_marker(scopes->track, scopes->framenr);
+
+			scopes->marker->flag&= ~MARKER_DISABLED;
+			scopes->marker->pos[0]+= -dx*scopes->slide_scale[0] / (but->block->maxx-but->block->minx);
+			scopes->marker->pos[1]+= -dy*scopes->slide_scale[1] / (but->block->maxy-but->block->miny);
 
 			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
 		}
