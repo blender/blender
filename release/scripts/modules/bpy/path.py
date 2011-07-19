@@ -35,7 +35,7 @@ def abspath(path, start=None):
     :type start: string
     """
     if path.startswith("//"):
-        return _os.path.join(_os.path.dirname(_bpy.data.filepath if start is None else start), path[2:])
+        return _os.path.join(_os.path.dirname(_bpy.data.filepath) if start is None else start, path[2:])
 
     return path
 
