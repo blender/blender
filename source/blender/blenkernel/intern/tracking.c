@@ -1030,3 +1030,22 @@ void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr)
 	libmv_destroyCorners(corners);
 #endif
 }
+
+MovieTrackingTrack *BKE_tracking_indexed_bundle(MovieTracking *tracking, int bundlenr)
+{
+	MovieTrackingTrack *track= tracking->tracks.first;
+	int cur= 1;
+
+	while(track) {
+		if(track->flag&TRACK_HAS_BUNDLE) {
+			if(cur==bundlenr)
+				return track;
+
+			cur++;
+		}
+
+		track= track->next;
+	}
+
+	return NULL;
+}

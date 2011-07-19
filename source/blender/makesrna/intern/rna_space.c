@@ -1448,6 +1448,11 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed path of ameraip");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
+	prop= RNA_def_property(srna, "show_bundle_name", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
+	RNA_def_property_ui_text(prop, "Show Bundle Name", "Show names for bundle objects");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
 	/* region */
 
 	srna= RNA_def_struct(brna, "RegionView3D", NULL);
