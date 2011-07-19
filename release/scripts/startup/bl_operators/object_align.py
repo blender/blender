@@ -63,11 +63,13 @@ def GlobalBB_LQ(bb_world):
 
 def GlobalBB_HQ(obj):
     
+    matrix_world = obj.matrix_world.copy()
+    
     # Initialize the variables with the last vertex
     
     verts = obj.data.vertices
     
-    val = verts[-1].co * obj.matrix_world
+    val = verts[-1].co * matrix_world
     
     left, right, front, back, down, up =\
     val[0],\
@@ -80,7 +82,7 @@ def GlobalBB_HQ(obj):
     # Test against all other verts
     for i in range (len(verts)-1):
         
-        vco = verts[i].co * obj.matrix_world
+        vco = verts[i].co * matrix_world
         
         # X Range
         val = vco[0]
