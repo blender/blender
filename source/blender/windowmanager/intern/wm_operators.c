@@ -1401,37 +1401,6 @@ static uiBlock* wm_block_ndof_menu_1st(bContext* C, ARegion* ar, void* UNUSED(ar
 	return block;
 }
 
-static uiBlock *wm_block_ndof_menu(bContext *C, ARegion *ar, void *UNUSED(arg_op))
-{
-	static char search[256]= "";
-	wmEvent event;
-	wmWindow *win= CTX_wm_window(C);
-	uiBlock *block;
-	uiBut *but;
-	
-	block= uiBeginBlock(C, ar, "ndof_popup", UI_EMBOSS);
-//	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_POPUP|UI_BLOCK_MOVEMOUSE_QUIT);
-	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
-	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
-	
-	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9*UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
-	
-	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
-	uiEndBlock(C, block);
-	
-	event= *(win->eventstate);	/* XXX huh huh? make api call */
-	event.type= EVT_BUT_OPEN;
-	event.val= KM_PRESS;
-	event.customdata= but;
-	event.customdatafree= FALSE;
-	wm_event_add(win, &event);
-	
-	return block;
-}
-
 static int wm_ndof_menu_poll(bContext *C)
 {
 	if(CTX_wm_window(C)==NULL)
@@ -1453,6 +1422,11 @@ static int wm_ndof_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
+	uiPupMenuInvoke(C,"VIEW3D_MT_ndof_settings");
+
+	return OPERATOR_CANCELLED; // <-- correct?
+
+/*
 //	uiPupMenuNotice(C, "Hello!"); // <-- this works
 //	uiPupBlock(C, wm_block_ndof_menu, op); // <-- no luck!
 //	ui_popup_menu_create(C, NULL, NULL, NULL, NULL, "Hello!"); // <-- this works
@@ -1460,12 +1434,25 @@ static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	uiPopupMenu* pup = uiPupMenuBegin(C,"3D mouse settings",ICON_NDOF_TURN);
 	uiLayout* layout = uiPupMenuLayout(pup);
 
+	uiItemS(layout); // separator
+	uiItemFloatO(layout, "sensitivity", 0, 0, "ndof_sensitivity", 1.f);
+	// do I have to look specifically in "UserPreferences" for ndof_sensitivity property?
+
+	// trial & error -- ok, mostly error
+//	uiItemBooleanO(layout, "enable pan/zoom", ICON_NDOF_TRANS, "ndof_toggle_pan_zoom_enabled", "ndof_pan_zoom_enabled", 1);
+//	uiItemBooleanO(layout, "enable rotation", ICON_NDOF_TURN, "ndof_toggle_rotation_enabled", "ndof_rotation_enabled", 1);
+//	uiItemV(layout,"sensitivity",ICON_NDOF_TRANS, 1);
+
 	printf("ndof: menu invoked in ");
 
 	switch (CTX_wm_area(C)->spacetype) // diff spaces can have diff 3d mouse options
 		{
 		case SPACE_VIEW3D:
 			puts("3D area");
+			uiItemS(layout);
+			uiItemL(layout, "3D navigation mode", 0);
+			uiItemBooleanO(layout, "helicopter", ICON_NDOF_FLY, 0, "ndof_fly_helicopter", 1);
+			uiItemBooleanO(layout, "lock horizon", ICON_NDOF_DOM, 0, "ndof_lock_horizon", 1);
 			break;
 		case SPACE_IMAGE:
 			puts("image area");
@@ -1474,25 +1461,12 @@ static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 			puts("some iNDOFferent area");
 		}
 
-
 	//uiBlock* block = uiLayoutGetBlock(layout);
 	//int foo = 1;
 	//uiDefButI(block, TOG, 0, "foo", 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, &foo, 0.f, 1.f, 0.1f, 0.9f, "15%");
-	
-	uiItemS(layout); // separator
-
-	uiItemBooleanO(layout, "enable pan/zoom", ICON_NDOF_TRANS, "ndof_toggle_pan_zoom_enabled", "ndof_pan_zoom_enabled", 1);
-	uiItemBooleanO(layout, "enable rotation", ICON_NDOF_TURN, "ndof_toggle_rotation_enabled", "ndof_rotation_enabled", 1);
-	uiItemFloatO(layout, "sensitivity", 0, "ndof_adjust_sensitivity", "ndof_sensitivity", 1.f);
-	uiItemV(layout,"sensitivity",ICON_NDOF_TRANS, 1);
-
-	uiItemS(layout);
-	uiItemL(layout, "3D navigation mode", ICON_NDOF_FLY);
-	uiItemL(layout, "...", 0);
 
 	uiPupMenuEnd(C,pup);
-
-	return OPERATOR_CANCELLED; // <-- correct?
+*/
 }
 
 static void WM_OT_ndof_menu(wmOperatorType *ot)

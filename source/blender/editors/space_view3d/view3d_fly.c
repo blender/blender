@@ -973,6 +973,15 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		// transform motion from view to world coordinates
 		mul_qt_v3(view_inv, trans);
 
+		// int fly_mode = TRUE;
+		int fly_mode = U.ndof_flag & NDOF_FLY_HELICOPTER;
+		// could also use RNA to get a simple boolean value
+
+		if (fly_mode)
+			{
+			trans[2] = speed * dt * vertical_sensitivity * ndof->ty;
+			}
+
 		// move center of view opposite of hand motion (this is camera mode, not object mode)
 		sub_v3_v3(rv3d->ofs, trans);
 
