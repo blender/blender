@@ -1600,6 +1600,9 @@ static void draw_viewport_reconstruction(Scene *scene, View3D *v3d, MovieClip *c
 	if((v3d->flag2&V3D_SHOW_RECONSTRUCTION)==0)
 		return;
 
+	if(v3d->flag2&V3D_RENDER_OVERRIDE)
+		return;
+
 	BKE_get_tracking_mat(scene, mat);
 
 	glEnable(GL_LIGHTING);

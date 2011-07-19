@@ -515,8 +515,8 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	y= (marker->pos[1]+dy)*height*zoomy-14.f*UI_DPI_FAC;
 
 	if(marker->flag&MARKER_DISABLED) strcpy(state, "disabled");
-	else if(marker->flag&MARKER_TRACKED) strcpy(state, "tracked");
 	else if(marker->framenr!=sc->user.framenr) strcpy(state, "estimated");
+	else if(marker->flag&MARKER_TRACKED) strcpy(state, "tracked");
 	else strcpy(state, "keyframed");
 
 	if(state[0])
