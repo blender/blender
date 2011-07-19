@@ -477,6 +477,8 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 					// free(fly->ndof);
 					fly->ndof = NULL;
 					}
+				/* update the time else the view will jump when 2D mouse/timer resume */
+				fly->time_lastdraw= PIL_check_seconds_timer();
 				break;
 			default:
 				; // should always be one of the above 3
@@ -933,26 +935,6 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	float view_inv[4];
 	invert_qt_qt(view_inv, rv3d->viewquat);
 
-	if (shouldRotate)
-		{
-		const float turn_sensitivity = 1.f;
-
-		float rotation[4];
-		float axis[3];
-		float angle = turn_sensitivity * ndof_to_angle_axis(ndof, axis);
-
-		// transform rotation axis from view to world coordinates
-		mul_qt_v3(view_inv, axis);
-
-		// apply rotation to view
-		axis_angle_to_quat(rotation, axis, angle);
-		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);		
-
-		rv3d->view = RV3D_VIEW_USER;
-
-		fly->redraw = 1;
-		}
-
 	if (shouldTranslate)
 		{
 		const float forward_sensitivity = 1.f;
@@ -973,17 +955,62 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		// transform motion from view to world coordinates
 		mul_qt_v3(view_inv, trans);
 
-		// int fly_mode = TRUE;
-		int fly_mode = U.ndof_flag & NDOF_FLY_HELICOPTER;
-		// could also use RNA to get a simple boolean value
-
-		if (fly_mode)
+		if (U.ndof_flag & NDOF_FLY_HELICOPTER)
+			// could also use RNA to get a simple boolean value
 			{
+			// replace world z component with device y (yes it makes sense)
 			trans[2] = speed * dt * vertical_sensitivity * ndof->ty;
 			}
 
 		// move center of view opposite of hand motion (this is camera mode, not object mode)
 		sub_v3_v3(rv3d->ofs, trans);
+
+		fly->redraw = 1;
+		}
+
+	if (shouldRotate)
+		{
+		const float turn_sensitivity = 1.f;
+
+		float rotation[4];
+		float axis[3];
+		float angle = turn_sensitivity * ndof_to_angle_axis(ndof, axis);
+
+		// transform rotation axis from view to world coordinates
+		mul_qt_v3(view_inv, axis);
+
+		// apply rotation to view
+		axis_angle_to_quat(rotation, axis, angle);
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);		
+
+		if (U.ndof_flag & NDOF_LOCK_HORIZON)
+			// force an upright viewpoint
+			// TODO: make this less... sudden
+			{
+			float view_horizon[3] = {1, 0, 0}; // view +x
+			float view_direction[3] = {0, 0, -1}; // view -z (into screen)
+
+			// find new inverse since viewquat has changed
+			invert_qt_qt(view_inv, rv3d->viewquat);
+
+			// transform view vectors to world coordinates
+			mul_qt_v3(view_inv, view_horizon);
+			mul_qt_v3(view_inv, view_direction);
+
+			// find difference between view & world horizons
+			// true horizon lives in world xy plane, so look only at difference in z
+			angle = -asinf(view_horizon[2]);
+
+			#ifdef NDOF_FLY_DEBUG
+			printf("lock horizon: adjusting %.1f degrees\n\n", RAD2DEG(angle));
+			#endif
+
+			// rotate view so view horizon = world horizon
+			axis_angle_to_quat(rotation, view_direction, angle);
+			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);		
+			}
+
+		rv3d->view = RV3D_VIEW_USER;
 
 		fly->redraw = 1;
 		}
