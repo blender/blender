@@ -4548,7 +4548,7 @@ PyTypeObject pyrna_struct_meta_idprop_Type= {
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,						/* setattrfunc tp_setattr; */
-	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
+	NULL,						/* tp_compare */ /* deprecated in python 3.0! */
 	NULL,						/* tp_repr */
 
 	/* Method suites for standard classes */

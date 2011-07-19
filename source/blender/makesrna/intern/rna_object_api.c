@@ -45,6 +45,8 @@
 
 // #include "ED_mesh.h"
 
+#include "BLI_math.h"
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_main.h"
@@ -63,8 +65,6 @@
 #include "BKE_font.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
-
-#include "BLI_math.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
@@ -415,7 +415,7 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 	*index= -1;
 }
 
-void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float point_co[3], float n_location[3], float n_normal[3], int *index)
+void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float point_co[3], float max_dist, float n_location[3], float n_normal[3], int *index)
 {
 	BVHTreeFromMesh treeData= {NULL};
 	
@@ -435,7 +435,7 @@ void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float poi
 		BVHTreeNearest nearest;
 
 		nearest.index = -1;
-		nearest.dist = FLT_MAX;
+		nearest.dist = max_dist * max_dist;
 
 		if(BLI_bvhtree_find_nearest(treeData.tree, point_co, &nearest, treeData.nearest_callback, &treeData) != -1) {
 			copy_v3_v3(n_location, nearest.co);
@@ -541,9 +541,10 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Find the nearest point on the object.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
-	/* ray start and end */
+	/* location of point for test and max distance */
 	parm= RNA_def_float_vector(func, "point", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_float(func, "max_dist", sqrt(FLT_MAX), 0.0, FLT_MAX, "", "", 0.0, FLT_MAX);
 
 	/* return location and normal */
 	parm= RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "The location on the object closest to the point", -1e4, 1e4);
@@ -553,7 +554,7 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 
-	parm= RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no intersection is found.", 0, 0);
+	parm= RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no closest point is found.", 0, 0);
 	RNA_def_function_output(func, parm);
 
 	/* View */

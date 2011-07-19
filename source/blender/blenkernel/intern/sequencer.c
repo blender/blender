@@ -3232,9 +3232,10 @@ int seq_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 {
 	char name[sizeof(seq_a->name)];
 
-	if(seq_a->len != seq_b->len)
+	if(seq_a->len != seq_b->len) {
 		*error_str= "Strips must be the same length";
 		return 0;
+	}
 
 	/* type checking, could be more advanced but disalow sound vs non-sound copy */
 	if(seq_a->type != seq_b->type) {
