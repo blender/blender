@@ -300,13 +300,32 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 
 static void id_local_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
-	if(tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
+	if (tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
 		tselem->id->lib= NULL;
 		tselem->id->flag= LIB_LOCAL;
 		new_id(NULL, tselem->id, NULL);
 	}
 }
 
+static void id_fake_user_set_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+{
+	ID *id = tselem->id;
+	
+	if ((id) && ((id->flag & LIB_FAKEUSER) == 0)) {
+		id->flag |= LIB_FAKEUSER;
+		id_us_plus(id);
+	}
+}
+
+static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+{
+	ID *id = tselem->id;
+	
+	if ((id) && (id->flag & LIB_FAKEUSER)) {
+		id->flag &= ~LIB_FAKEUSER;
+		id_us_min(id);
+	}
+}
 
 static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
@@ -637,9 +656,13 @@ void OUTLINER_OT_group_operation(wmOperatorType *ot)
 
 typedef enum eOutlinerIdOpTypes {
 	OUTLINER_IDOP_INVALID = 0,
+	
 	OUTLINER_IDOP_UNLINK,
 	OUTLINER_IDOP_LOCAL,
-	OUTLINER_IDOP_SINGLE
+	OUTLINER_IDOP_SINGLE,
+	
+	OUTLINER_IDOP_FAKE_ADD,
+	OUTLINER_IDOP_FAKE_CLEAR
 } eOutlinerIdOpTypes;
 
 // TODO: implement support for changing the ID-block used
@@ -647,6 +670,8 @@ static EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
 	{OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
+	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User", "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
+	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -718,6 +743,26 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					BKE_report(op->reports, RPT_WARNING, "Not Yet");
 					break;
 			}
+		}
+			break;
+			
+		case OUTLINER_IDOP_FAKE_ADD:
+		{
+			/* set fake user */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_fake_user_set_cb);
+			
+			WM_event_add_notifier(C, NC_ID|NA_EDITED, NULL);
+			ED_undo_push(C, "Add Fake User");
+		}
+			break;
+			
+		case OUTLINER_IDOP_FAKE_CLEAR:
+		{
+			/* clear fake user */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_fake_user_clear_cb);
+			
+			WM_event_add_notifier(C, NC_ID|NA_EDITED, NULL);
+			ED_undo_push(C, "Clear Fake User");
 		}
 			break;
 			
